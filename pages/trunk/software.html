@@ -17,10 +17,10 @@
   <h2>Current Release</h2>
                  
   <p> The current release of SML/NJ is <a href="NEWS/110-README.html">
- <strong>    Version 110</strong></a>, originally introduced in February
+<strong> Version 110</strong></a>, originally introduced in February
 1998. Version   110 runs under Unix, Windows 95 or Windows NT.  (<em>The
-the current release   version number is 110.0.7, representing the 7th patch
-release of 110, but   we will refer to this version as 110 for short.</em>
+the current release  version number is 110.0.7, representing the 7th patch
+release of 110, but we will refer to this version as 110 for short.</em>
 ) </p>
                
   <p>  </p>
@@ -33,10 +33,8 @@ release of 110, but   we will refer to this version as 110 for short.</em>
   <h3> The Distribution Files </h3>
       </a> </p>
                
-  <blockquote> NOTE: the names of the distribution files have changed in
-110.0.7; the tarball files no longer have a "110-" prefix. </blockquote>
 The files making up the Version 110 distribution are available via http
-using this <a href="dist/release/110.0.7/index.html"> index </a> page.
+from this <a href="dist/release/110.0.7/index.html"> index </a> page.
 
 The following sites mirror the distributions (if you run a mirror site not listed 
  here, please let us know):                             
@@ -61,311 +59,39 @@ University  (California)</strong> </a> </li>
                                
       </ul>
                                   
-      <h3> Previous Release </h3>
-      Users of the previous release, <a href="NEWS/93-README.html">
- Version  0.93</a>  (released in 1993) should migrate to Version 110 as soon
-as possible.   Version 0.93 is available but is no longer supported. However,
-for the time  being it is the only version that runs on Apple Macintoshes
-(on 68K machines,  or PowerMacs under emulation with the aid of SoftwareFPU).
+      <h3> Previous Releases </h3>
+<a href="NEWS/93-README.html">
+Version  0.93</a> (released in 1993) is still available but is no
+longer supported.
                              
-      <h3>Potential Downloading Problems (Bell Labs site)</h3>
-                                 
-      <p> We have had reports of distribution files being corrupted when downloaded
-via a web browser.  Using ftp directly may be more reliable, but be warned
-that Bell Labs ftp service is incompatible with some firewalls.  The ftp
-service on ftp.research.bell-labs.com uses special stripped-down server software
-for security.  This implementation deviates from the RFC standards in that
-the data call-back circuit does not originate from port 20 on the server
-host. Some firewalls count on this in their filtering rules. If the dir (ls)
-command doesn't work, this is probably the reason why.  However, most ftp
-accesses (including browsers) these days use the passive command PASV, which
-has a better security model for a firewall.  If all else fails, try one of
-the mirror sites listed above.  </p>
-                               
-      <hr> <a name="SOFTWARE:WORKING-VERSIONS"> </a>                     
-     
       <h2><a name="SOFTWARE:WORKING-VERSIONS"> Working Versions </a></h2>
-     <a name="SOFTWARE:WORKING-VERSIONS">Working versions are created for 
+Working versions are created for 
 internal  development purposes and vary in reliability and stability.  Some 
 are robust  enough for noncritical research use, others are not.  Please pay
 careful  attention to the README or NEWS file for each version before attempting
-to  use it.  These working versions can be found at </a><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working">
-     ftp.research.bell-labs.com</a>.
+to  use it.
+
+Current and recent working versions are listed in the
+<a href="dist/working/index.html">Working Versions</a> index,
+which gives access to README files for recent working
+versions and the ftp directories for working versions that are currently
+available for downloading.  The <a href="install/index.html">
+installation   instructions</a> for the release version will generally work,
+<em>mutatis   mutandis</em>, for working versions. </p>
+Some older working versions can be found at </a><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working">ftp://ftp.research.bell-labs.com/dist/smlnj/working</a>.
      <p>
      We generally announce new versions (including working versions) on
      comp.lang.ml, comp.lang.functional, freshmeat.net, and our
      development mailing list <img src="smlnj-list-logo.jpg" align=center>.</p>
                                
-      <p> The following table gives access to README files for recent working
-   versions and the ftp directories for working versions that are currently
-  available for downloading.  The <a href="install/index.html">
-installation   instructions</a> for the release version will generally work,
-      <em>mutatis   mutandis</em>, for working versions. </p>
-                               
-      <p> After version 110.9.1, the older "cmachine" (i.e. non-MLRISC) code 
-  generators have been eliminated, so a more limited range of architectures
-  will be supported until the new MLRISC code generators are implemented.
- Other major changes involving FLINT and the transition to a new runtime
-system are under way, so expect some instability after 110.9.1. </p>
+<p> After version 110.9.1, the older "cmachine" (i.e. non-MLRISC) code 
+generators were replaced by new MLRISC code
+generators, except for the MIPS architecture, which is currently not
+supported in the latest working version.  Work on a new MIPS MLRISC
+code generator is in progress.</p>
                                
       <p>  </p>
                                
-      <h3> Recent Working Versions </h3>
-                                 
-      <table border="1">
-      <tbody>
-              <tr>
-                <th> README </th>
-                <th> Released 	</th>
-                <th> Software Links </th>
-              </tr>
-
-            <tr>
-            <td valign="top"><a href="NEWS/110.42-README.html">
-                <b>110.42</b></a><br>
-            </td>
-            <td valign="top">October 16, 2002<br>
-            </td>
-            <td valign="top"><a href="dist/working/110.42/index.html">files</a><br>
-            </td>
-            </tr>
- 
-           <tr>
-            <td valign="top"><a href="NEWS/110.41-README.html">
-                <b>110.41</b></a><br>
-            </td>
-            <td valign="top">July 05, 2002<br>
-            </td>
-            <td valign="top"><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.41/">
-  /dist/smlnj/working/110.41</a><br>
-            </td>
-            </tr>
-            <tr>
-            <td valign="top"><a href="NEWS/110.40-README.html">
-                <b>110.40</b></a><br>
-            </td>
-            <td valign="top">May 21, 2002<br>
-            </td>
-            <td valign="top"><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.40/">
-  /dist/smlnj/working/110.40</a><br>
-            </td>
-            </tr>
-            <tr>
-            <td valign="top"><a href="NEWS/110.39-README.html"><b>
-110.39</b></a><br>
-            </td>
-            <td valign="top">February 15, 2002<br>
-            </td>
-            <td valign="top"><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.39/">
-  /dist/smlnj/working/110.39</a><br>
-            </td>
-          </tr>
-          <tr>
-              <td valign="top"><a href="NEWS/110.38-README.html"><b>
-110.38</b></a><br>
-              </td>
-              <td valign="top">January 28, 2002<br>
-              </td>
-              <td valign="top"><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.38/">
-  /dist/smlnj/working/110.38</a><br>
-              </td>
-            </tr>
-            <tr>
-                <td valign="top"><b><a href="NEWS/110.37-README.html">
-110.37</a></b><br>
-                </td>
-                <td valign="top">November 23, 2001<br>
-                </td>
-                <td valign="top"><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.37/">
-    /dist/smlnj/working/110.37</a><br>
-                </td>
-              </tr>
-              <tr>
-                <td><a href="NEWS/110.36-README.html"><b>
-110.36 </b></a> <b>       </b></td>
-                <td>September 18, 2001     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.36">
-     	  /dist/smlnj/working/110.36</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.35-README"><b>
-110.35 </b></a> <b>                </b></td>
-                <td>August 24, 2001     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.35">
-     	  /dist/smlnj/working/110.35</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.34-README.html"><b>
-110.34 </b></a> <b>       </b></td>
-                <td>July 10, 2001     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.34">
-     	  /dist/smlnj/working/110.34</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.33-README.html"><b>
-110.33 </b></a> <b>       </b></td>
-                <td>May 23, 2001     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.33">
-     	  /dist/smlnj/working/110.33</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.32-README.html"><b>
-110.32 </b></a> <b>       </b></td>
-                <td>December 22, 2000     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.32">
-     	  /dist/smlnj/working/110.32</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.31-README.html"><b>
-110.31 </b></a> <b>       </b></td>
-                <td>December 8, 2000     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.31">
-     	  /dist/smlnj/working/110.31</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.30-README.html"><b>
-110.30 </b></a> <b>       </b></td>
-                <td>November 4, 2000     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.30">
-     	  /dist/smlnj/working/110.30</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.29-README"><b>
-110.29 </b></a> <b>                </b></td>
-                <td>July 25, 2000     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.29">
-     	  /dist/smlnj/working/110.29</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.28-README.html"><b>
-110.28 </b></a> <b>       </b></td>
-                <td>May 1, 2000     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.28">
-     	  /dist/smlnj/working/110.28</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.27-README.html"><b>
-110.27 </b></a> <b>       </b></td>
-                <td>April 10, 2000     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.27">
-     	  /dist/smlnj/working/110.27</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.25-README.html"><b>
-110.25 </b></a> <b>       </b></td>
-                <td>December 6, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.25">
-     	  /dist/smlnj/working/110.25</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.24-README.html"><b>
-110.24 </b></a> <b>       </b></td>
-                <td>November 1, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.24">
-     	  /dist/smlnj/working/110.24</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.23-README.html"><b>
-110.23 </b></a> <b>       </b></td>
-                <td>October 9, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.23">
-     	  /dist/smlnj/working/110.23</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.22-README.html"><b>
-110.22 </b></a> <b>       </b></td>
-                <td>September 9, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.22">
-     	  /dist/smlnj/working/110.22</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.21-README.html"><b>
-110.21 </b></a> <b>       </b></td>
-                <td>September 3, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.21">
-     	  /dist/smlnj/working/110.21</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.20-README.html"><b>
-110.20 </b></a> <b>       </b></td>
-                <td>July 16, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.20">
-     	  /dist/smlnj/working/110.20</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.19-README.html"><b>
-110.19 </b></a> <b>       </b></td>
-                <td>July 8, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.19">
-     	  /dist/smlnj/working/110.19</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.17-README.html"><b>
-110.17 </b></a> <b>       </b></td>
-                <td>May 20, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.17">
-     	  /dist/smlnj/working/110.17</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.16-README.html"><b>
-110.16 </b></a> <b>       </b></td>
-                <td>April 16, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.16">
-     	  /dist/smlnj/working/110.16</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.15-README.html"><b>
-110.15 </b></a> <b>       </b></td>
-                <td>March 22, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.15">
-     	  /dist/smlnj/working/110.15</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.14-README.html"><b>
-110.14 </b></a> <b>       </b></td>
-                <td>Feb 22, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.14">
-     	  /dist/smlnj/working/110.14</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.13-README"><b>
-110.13 </b></a> <b>                </b></td>
-                <td>Jan 16, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.13">
-     	  /dist/smlnj/working/110.13</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.12-README"><b>
-110.12 </b></a> <b>                </b></td>
-                <td>Jan 12, 1999     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.12">
-     	  /dist/smlnj/working/110.12</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.11-README"><b>
-110.11 </b></a> <b>                </b></td>
-                <td> Dec 22, 1998     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.11">
-     	  /dist/smlnj/working/110.11</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.10-README"><b>
-110.10 </b></a> <b>                </b></td>
-                <td>Dec 20, 1998     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.10">
-     	  /dist/smlnj/working/110.10</a>     </td>
-              </tr>
-     <tr>
-                <td><a href="NEWS/110.9.1-README.html"><b>
-110.9.1 </b></a>              <b>      </b></td>
-                <td>Oct 19, 1998     </td>
-                <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.9.1">
-     	  /dist/smlnj/working/110.9.1</a>     </td>
-              </tr>
-                                         
-        </tbody>                            
-      </table>
-                                 
       <hr>  <a name="packages">                             
       <h2> Packages </h2>
           </a>                             
