@@ -7103,7 +7103,7 @@ Comments:
 Fix:
 Test: bug1321.sml
 Owner: dbm
-Status: open
+Status: fixed in 110.43
 ----------------------------------------------------------------------
 Number: 1322
 Title: Functor application causes "Compiler bug: LambdaType: wrong TCs in tc_select"

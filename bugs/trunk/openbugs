@@ -54,7 +54,6 @@
 1180. [jhr] bug in blastRead, blastWrite?
 1181. [dbm,Zhong] tmp argument naming in front end
 1183. [Zhong, dbm] distorted abstract syntax printed in type error message
-1186. [dbm] type printing in multi-declaration
 1193. [Zhong] Memory leak due to ref cells
 1208. [dbm] unimplemented strexp syntax
 1210. [jhr, Lal] weak pointers to strings cause SML to crash
@@ -66,7 +65,6 @@
 1259. [dbm] Mistakenly inadmissable signature.
 1261. [dbm, Appel] explicit type parameter with "val rec" not supported
 1282. [dbm] sharing syntax not consistent with SML 97
-1286. [dbm] Flexible records and as patterns
 1287. [dbm] SML'97 scoping restrictions on local datatypes
 1292. [dbm] val rec (fun) should be able to rebind constructor id
 1299. [dbm,jhr] some error messages aren't being sent to stderr
@@ -80,7 +78,6 @@
 1311. [dbm] odd secondary typing error after incorrect datatype decl
 1314. [Lal] ml-burg loops on invalid character in input file
 1319. [jhr, Andrew] Real.toManExp on Intel
-1321. [dbm] printing of datatype = datatype in signatures
 1323. [Zhong, Andrew] "uncaught exception RegMap" on hppa
 1324. [dbm] Equality check in where type
 1328. [dbm] non-legal respecifications and redeclarations

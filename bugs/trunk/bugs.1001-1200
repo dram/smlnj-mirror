@@ -8367,7 +8367,7 @@ Comments:
 Fix:
 Test: bug1186.sml
 Owner: dbm
-Status: open
+Status: fixed before 110.42
 ----------------------------------------------------------------------
 Number: 1187
 Title: Compiler bug: Translate: unexpected tyvar LBOUND in mkPE

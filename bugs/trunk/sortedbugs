@@ -153,7 +153,6 @@ Medium
 1172. [dbm] error message about non-constructor in pattern needs more info
 1181. [dbm,Zhong] tmp argument naming in front end
 1183. [Zhong, dbm] distorted abstract syntax printed in type error message
-1186. [dbm] type printing in multi-declaration
 1208. [dbm] unimplemented strexp syntax
 1210. [jhr, Lal] weak pointers to strings cause SML to crash
 1220. [dbm] type definition masks datatype
@@ -170,7 +169,6 @@ Medium
 1307. [?] Illegal escapes in strings not recognized
 1314. [Lal] ml-burg loops on invalid character in input file
 1319. [jhr, Andrew] Real.toManExp on Intel
-1321. [dbm] printing of datatype = datatype in signatures
 1324. [dbm] Equality check in where type
 1328. [dbm] non-legal respecifications and redeclarations
 1329. [dbm] Problem with realisation in where type
@@ -726,6 +724,8 @@ Fixed in 110.43
 ---------------
 784. [dbm] unnatural type error messages  (fixed earlier)
 895. [dbm] printing type unit when hidden
+1186. [dbm] type printing in multi-declaration (fixed earlier)
+1321. [dbm] printing of datatype = datatype in signatures
 
 Fixes To Verify
 ---------------
