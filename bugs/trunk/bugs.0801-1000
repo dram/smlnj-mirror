@@ -48,7 +48,7 @@ I've discovered several problems with the Pretty Printing in 0.93:
    will use the former, but not the latter.
 
 Owner: dbm
-Status: open
+Status: fixed (obsolete)
 ----------------------------------------------------------------------
 Number: 802
 Title: missing signature PRETTYPRINT

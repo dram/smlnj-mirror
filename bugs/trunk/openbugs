@@ -11,7 +11,6 @@
 753. [] pretty printer prints syntactically incorrect text
 774. [] aliased exceptions are pattern-matched in the wrong order
 779. [Andrew] val rec syntax overly restrictive
-801. [] pretty printing problems
 827. [] exportML including future evaluations
 852. [dbm] include merging types
 854. [] excessive spilling with large let expressions
@@ -39,7 +38,6 @@
 1081. [dbm] difficult type error message
 1084. [dbm] hole in value restriction implementation (bottom type)
 1086. [dbm] illegal signature decl inside structure not rejected
-1095. [dbm] inadaquate type error message
 1118. [jhr, Andrew] Compiler bug: 222 in prof
 1119. [] excessive memory usage (same as 1131?) 
 1120. [] profiling on Linux

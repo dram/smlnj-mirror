@@ -128,7 +128,6 @@ Medium
 745. [] Prettyprinter produces bad output when printing records
 753. [] pretty printer prints syntactically incorrect text
 774. [] aliased exceptions are pattern-matched in the wrong order
-801. [] pretty printing problems
 852. [dbm] include merging types
 854. [] excessive spilling with large let expressions
 857. [dbm] type error message points to wrong place
@@ -143,7 +142,6 @@ Medium
 1030. [] string literals in presence of CM-library on Alpha
 1058. [dbm] misleading error message
 1081. [dbm] difficult type error message
-1095. [dbm] inadaquate type error message
 1118. [Andrew] Compiler bug: 222 in prof
 1120. [] profiling on Linux
 1125. [dbm] Unbound raised instead of proper error for sig inside functor
@@ -723,7 +721,9 @@ Fixed in 110.34
 Fixed in 110.43
 ---------------
 784. [dbm] unnatural type error messages  (fixed earlier)
+801. [dbm] pretty printing problems
 895. [dbm] printing type unit when hidden
+1095. [dbm] inadaquate type error message
 1186. [dbm] type printing in multi-declaration (fixed earlier)
 1321. [dbm] printing of datatype = datatype in signatures
 

@@ -3742,7 +3742,7 @@ was to add a constraint
 I think the type error reporting needs some more smarts.
 
 Owner: dbm
-Status: open
+Status: fixed
 ----------------------------------------------------------------------
 Number: 1096
 Title: abstype name not printed properly
