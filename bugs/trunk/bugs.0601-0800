@@ -8451,8 +8451,8 @@ Comments:
   *correct* clauses are incorrect, and then it reports that all the
   explicit declarations I've put in are incorrect.
 
-Owner: 
-Status: open (though not strictly speaking a bug)
+Owner: dbm
+Status: fixed
 ----------------------------------------------------------------------
 Number: 785
 Title: makestring (on real numbers) gives wrong output

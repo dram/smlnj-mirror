@@ -11,7 +11,6 @@
 753. [] pretty printer prints syntactically incorrect text
 774. [] aliased exceptions are pattern-matched in the wrong order
 779. [Andrew] val rec syntax overly restrictive
-784. [dbm] unnatural type error messages
 801. [] pretty printing problems
 827. [] exportML including future evaluations
 852. [dbm] include merging types
@@ -20,7 +19,6 @@
 857. [dbm] type error message points to wrong place
 876. [dbm] uninformative type error message
 883. [Andrew] ML-Yacc can lose on multiline comments
-895. [dbm] printing type unit when hidden
 914. [Andrew] "foo1" style names in productions in mlyacc
 929. [dbm] failure of respecifying type after include
 933. [Andrew] bogus message after explicit "raise Match"

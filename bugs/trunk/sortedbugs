@@ -128,7 +128,6 @@ Medium
 745. [] Prettyprinter produces bad output when printing records
 753. [] pretty printer prints syntactically incorrect text
 774. [] aliased exceptions are pattern-matched in the wrong order
-784. [dbm] unnatural type error messages
 801. [] pretty printing problems
 852. [dbm] include merging types
 854. [] excessive spilling with large let expressions
@@ -236,7 +235,6 @@ Low
 730. [] reappearance of bug 705 on RS/6000
 779. [Andrew] val rec syntax overly restrictive
 827. [] exportML including future evaluations
-895. [dbm] printing type unit when hidden
 914. [Andrew] "foo1" style names in productions in mlyacc
 934. [] Control.CG.misc4 when retargeting
 1086. [dbm] illegal signature decl inside structure not rejected
@@ -724,9 +722,15 @@ Fixed in 110.34
 1515. [jhr] ML signal handling broken since 110.15 [FIX INCLUDED]
 1614. [Lal, jhr, Matthias] signal handling bug on x86
 
+Fixed in 110.43
+---------------
+784. [dbm] unnatural type error messages  (fixed earlier)
+895. [dbm] printing type unit when hidden
+
 Fixes To Verify
 ---------------
 1302
 1368
 1377
 1480
+

@@ -4072,7 +4072,7 @@ Comments:
            val it = () : ?.unit
 Owner: Dave
 Test: bug895.sml
-Status: open
+Status: fixed in 110.43 (6/17/03)
 ----------------------------------------------------------------------
 Number: 896
 Title: Compiler bug: Unexpected RELtyc in transtypes
