@@ -1,5 +1,7 @@
 Changes since 3.9.3:
 
+* Indentation rules improved.
+
 * New add-log support (try C-x 4 a from within an SML function).
 
 * Imenu support
