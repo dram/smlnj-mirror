@@ -1,0 +1,79 @@
+SML/NJ bug records
+
+Files:
+------
+README.bugs       (this file)
+form		  sample bug report form
+bugs.nnnn-mmmm	  collected bug reports
+openbugs	  list of bugs currently "open" (needing to be fixed)
+tests.tar.Z	  collection of bug test cases
+
+The SML/NJ bug reports are split into files with at most 200 bug
+reports each, so that each file will be of a manageable size.  The
+files are named "bugs.0001-0200", "bugs.0201-0400", etc.  They contain
+the cumulative record of all bugs ever recorded; most of these bugs
+have been fixed.
+
+The bugs that are currently open are listed in the file "openbugs".
+
+
+Format of bug reports
+---------------------
+The format of bug reports is
+
+Number:	      the unique sequence number of the bug
+Title:	      a short (one line) descriptive title
+Keywords:     keywords used to categorize the bug, e.g. "modules", "signals"
+Submitter:    name and email address of submitter
+Date:	      date submitted
+Version:      SML/NJ version number; tool or library version number if relevant
+System:	      architecture-os description, e.g. x86-linux, sparc-sunos
+Severity:     characterization of severity of the bug ("minor", "major", "critical")
+Problem:      description of the problem
+Code:	      code that manifests the problem
+Transcript:   transcript that illustrates the behavior
+Comments:     additional comments
+Fix:	      suggested fix, if available
+Test:	      test case code (e.g. bug367.sml), normally found in bugs/tests
+Owner:	      person currently responsible for fixing the bug
+Status:	      status of the bug (open, fixed, etc.)
+
+The Number, Keywords, Test, Owner, and Status fields are filled in by
+the bug list maintainers.  The rest may be provided by the submitter
+of the bug report.
+
+To facilitate processing, special formats should be observed for the
+Date and Status fields. The formats are:
+
+	Date: mm/dd/yy
+	Status: fixed in <version-number> ...
+		open ...
+		not a bug ...
+	 	same as <number> ...
+		not important ...
+		not reproducible ...
+		obsolete
+
+The file "form" contains a sample bug report format.
+
+
+How to submit a bug report
+--------------------------
+New bug reports should be mailed to
+
+  sml-bugs@research.bell-labs.com.
+
+Before mailing a report, please check out the existing report to see
+if your problem is covered.  But when in doubt, please do not hesitate
+to submit a report, since even redundant reports can provide useful
+information or additional test cases.  Of course, the most helpful
+bug reports are those accompanied by a succinct bit of code that 
+manifests the bug.  (Actually, that's not quite right -- the most
+helpful bug reports are those with the "Fix" field filled in!)
+
+The collection of test cases for bugs is provided in the compressed
+tar file tests.tar.Z.  These tests are used as part of the regression
+test suite for the compiler.
+
+Dave MacQueen
+dbm@research.bell-labs.com
