@@ -43,12 +43,24 @@ by defining sf-shell as a host alias in your .ssh/config file:
 </pre>
 <p>
 <h3>Moving files to sourceforge</h3>
-You can copy an individual html source file (localfile) to your
-sourceforge home directory by executing a command like:
+SourceForge does not support ftp. You can copy files (localfile) to
+SourceForge using scp.  For instance, you can copy file localfile to
+your sourceforge home directory by executing a command like:
 <pre>
    scp localfile macqueen@smlnj.sourceforge.net:/home/users/m/ma/macqueen
 </pre>
-I have not been able to use ftp (from SF) to transfer files into SF.
+or simply
+<pre>
+   scp localfile sf-shell:
+</pre>
+if you have defined host sf-shell in your ssh config file as
+illustrated above.  Similarly, to copy a file or files to the
+top-level directory of the www.smlnj.org web site, you could execute
+the command:
+<pre>
+   scp localfile sf-shell:/home/groups/s/sm/smlnj/htdocs
+</pre>
+
 
 <h3>Setting up CVS access</h3>
 <ol>
@@ -86,7 +98,7 @@ is one of these, so ssh-add has to be run manually after login.
 like the following (replacing loginname with your SF user name, as usual):
 <pre>
     Host = sf-smlnj
-    HostName = cvs.smlnj.sourceforge.net
+    HostName = cvs.sourceforge.net
     User = loginname
 </pre>
 This defines a standard alias for the cvs host that agrees with that used
@@ -112,7 +124,7 @@ also define CVS_RSH and run ssh-agent in your .profile at
 SourceForge to make things simpler.
 
 <h3> Updating web pages </h3>
-The htdocs directory in the smlnj project home directory (/home/groups/s/sm/smlnj)
+The htdocs directory in the smlnj project home directory (/home/groups/s/sm/smlnj/htdocs)
 contains the web pages for the project.  These web pages can be accessed using
 either of the following URLs:
 <blockquote>
@@ -124,14 +136,15 @@ the htdocs module from the project CVS repository.  The Bell Labs copy
 (in /home/sml/Doc/WWW/smlnj) is also checked-out from the repository ("htdocs"
 and "smlnj" are both aliases of the pages module in the repository).  If you
 have extensive edits to perform on the web pages, we recommend that you check
-out your own private working copy, make the edits, test them, and commit the changes.
+out your own private working copy, make the edits, test them, and
+commit the changes.
 After the changes are commited, "cvs update" must be performed in
 the two directories
 <blockquote>
 /home/groups/s/sm/smlnj/htdocs  (at SF)<br>
-alice:/cm/cs/what/smlnj         (at Bell Labs)
+/stage/w3serv/smlnj.cs.uchicago.edu  (at U of C)
 </blockquote>
-to synchronize them with the changed repository.  You can do the
+to synchronize them with the changed repository. You can do the
 update on the htdocs directory yourself as described in the next
 paragraph, but you may need to send mail to Bell Labs to have the
 update done on that copy until we set up automatic email notifications
@@ -145,12 +158,22 @@ and do (e.g.)
    export CVSROOT=sf-smlnj:/cvsroot/smlnj
    cvs update htdocs
 </pre>
+The definition of host sf-smlnj for your SF shell account should look
+like this:
+<pre>
+   Host = sf-smlnj
+   Hostname = cvs1
+   User = username
+</pre>
+Note the Hostname definition; "cvs1" is the local name for the cvs
+server at SF.
+
 <p>
     <hr>
     <address><a href="mailto:macqueen@users.sourceforge.net">Dave MacQueen</a></address>
 <!-- Created: Fri Feb 16 12:36:42 EST 2001 -->
 <!-- hhmts start -->
-Last modified: Wed Feb 21 14:10:48 EST 2001
+Last modified: Thu Mar 20 22:57:22 CST 2003
 <!-- hhmts end -->
   </body>
 </html>
