@@ -3434,7 +3434,7 @@ val it =
 val it = () : unit
 
 Owner: dbm
-Status: open
+Status: fixed in 110.43
 ----------------------------------------------------------------------
 Number: 676
 Title: Out of order record field evaluation.
@@ -6029,7 +6029,7 @@ Quit (no coredump)
 Process Inferior cml finished
 ======================================================================
 Owner: 
-Status: open
+Status: not reproducible
 ----------------------------------------------------------------------
 Number: 731
 Title: exportML seems to be incorrectly searching paths
@@ -6805,7 +6805,15 @@ Comments:
    d=d,
    e=e}
 
-Owner: 
+Comments:
+ [dbm: 8/15/03]
+   Not clear how to achieve the suggested behavior with the PrettyPrint
+   librarie's box structures.  May possibly require a revision of the
+   behavior of the prettyprinter functions, so that the right edge of a
+   wide, multiline box is the right margin, instead of where the last
+   line in the box ends.
+
+Owner: dbm
 Status: open
 ----------------------------------------------------------------------
 Number: 746

@@ -914,8 +914,8 @@ Transcript:
 
 Comment: use original code in error message instead of "pretty-printing"
   abstract syntax
-Owner: 
-Status: open
+Owner: dbm
+Status: fixed
 ---------------------------------------------------------------------------
 Number: 418
 Title: repeated type names in type declarations
@@ -7437,7 +7437,7 @@ Comments:
     megabytes of physical memory and no limit on process size
     that I know of.  I don't know why it gave up the ghost at
     28 megabytes -- do you?
-Owner: 
+Owner: jhr
 Status: open
 ---------------------------------------------------------------------------
 Number: 455
@@ -14356,7 +14356,7 @@ Fix:		use some kind of field by field comparison of the pattern and
 		expression, then (possibly even for flex records) omitted
 		labels.
 
-Owner: 
+Owner: dbm
 Status: open
 ----------------------------------------------------------------------
 Number: 593

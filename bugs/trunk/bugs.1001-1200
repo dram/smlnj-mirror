@@ -1800,7 +1800,7 @@ uncaught exception exception Error
              build/evalloop.sml:316.38-316.41
 -
 Test: bug1045.sml
-Owner:
+Owner: dbm
 Status: open
 ----------------------------------------------------------------------
 Number: 1046

@@ -121,16 +121,13 @@ High
 
 Medium
 ------
-417. [] cosmetic error message suggestion
 592. [dbm] unhelpful error messages for record type mismatches
-675. [] prettyprinter doesn't sense System.Print.linewidth
 735. [dbm] bad type error message
 745. [] Prettyprinter produces bad output when printing records
 753. [] pretty printer prints syntactically incorrect text
 774. [] aliased exceptions are pattern-matched in the wrong order
 852. [dbm] include merging types
 854. [] excessive spilling with large let expressions
-857. [dbm] type error message points to wrong place
 876. [dbm] uninformative type error message
 883. [Andrew] ML-Yacc can lose on multiline comments
 929. [dbm] failure of respecifying type after include
@@ -228,7 +225,6 @@ Low
 415. [Andrew] late error detection in parsing
 416. [dbm] equality property checking in functor parameter matching
 725. [] fragility of quote/antiquote implementation
-730. [] reappearance of bug 705 on RS/6000
 779. [Andrew] val rec syntax overly restrictive
 827. [] exportML including future evaluations
 914. [Andrew] "foo1" style names in productions in mlyacc
@@ -270,6 +266,7 @@ Probably fixed (need verification)
 
 Obsolete or unreproducible?
 ---------------------------
+730. [] reappearance of bug 705 on RS/6000
 842. [dbm] sharing constraints in functor sig [moot in SML96]
 855. [dbm] sharing in signatures [moot in SML96]
 893. [] Bind exception while recompiling compiler with representation off
@@ -720,8 +717,11 @@ Fixed in 110.34
 
 Fixed in 110.43
 ---------------
+417. [] cosmetic error message suggestion
+675. [] prettyprinter doesn't sense System.Print.linewidth
 784. [dbm] unnatural type error messages  (fixed earlier)
 801. [dbm] pretty printing problems
+857. [dbm] type error message points to wrong place
 895. [dbm] printing type unit when hidden
 1095. [dbm] inadaquate type error message
 1186. [dbm] type printing in multi-declaration (fixed earlier)

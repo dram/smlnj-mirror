@@ -2438,7 +2438,7 @@ constrained to have the return type of int, the use of h in f should
 be reported as an error.
 Test: bug857.sml
 Owner: dbm
-Status: open
+Status: fixed
 ----------------------------------------------------------------------
 Number: 858
 Title: Compiler bug: DebugError:Static.locOfEvent bad APPev marking
