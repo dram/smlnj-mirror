@@ -336,10 +336,7 @@ The directory structure of the repository and of the compiler
 distribution should be coordinated.
 
 <h3>9. Keywords</h3>
-CVS keywords (such as $Log$
-CVS keywords (such as Revision 1.1  2001/10/11 09:52:12  macqueen
-CVS keywords (such as Initial revision
-CVS keywords (such as) will not be used in the sml source.
+CVS keywords (such as Dollar-Log-Dollar) will not be used in the sml source.
 Log, version, and status information for files can be accessed using
 the "cvs log" and "cvs status" commands.
 
@@ -428,10 +425,7 @@ In either case we need to make things more transparent.
        - branches permitted but discouraged, extreme care should be exercised when 
 	 merging, and NEVER do an "update -A" on a branch.
      * keyword policy
-       - I favor removing the $Log$
-       - I favor removing the Revision 1.1  2001/10/11 09:52:12  macqueen
-       - I favor removing the Initial revision
-       - I favor removing the keyword from the sources and
+       - I favor removing the Log keyword from teh sources and
          relying on the cvs log command, since we will now all have
          access to this information from the repository.
 

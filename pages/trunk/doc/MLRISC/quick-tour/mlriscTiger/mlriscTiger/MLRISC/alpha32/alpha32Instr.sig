@@ -88,19 +88,3 @@ signature ALPHA32INSTR = sig
 
   | CALL_PAL of {code:osf_user_palcode, def:int list, use:int list}
 end
-
-
-
-
-(*
- * $Log$
- * Revision 1.1  2001/10/11 09:52:26  macqueen
- * Initial revision
- *
- * Revision 1.2  1998/05/19 15:41:40  george
- *   There is no longer a generic CELLS interface, but an architecture specific one.
- *
- * Revision 1.1.1.1  1998/04/08 18:39:01  george
- * Version 110.5
- *
- *)

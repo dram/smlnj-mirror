@@ -48,17 +48,3 @@ signature CELLS = sig
   val addReg  : int * cellset -> cellset (* addCell GP *)
   val addFreg : int * cellset -> cellset (* addCell FP *)
 end
-
-
-(*
- * $Log$
- * Revision 1.1  2001/10/11 09:52:26  macqueen
- * Initial revision
- *
- * Revision 1.2  1998/05/19 15:47:05  george
- *   The cells interface now makes registers an abstract type called cellclass.
- *
- * Revision 1.1.1.1  1998/04/08 18:39:02  george
- * Version 110.5
- *
- *)

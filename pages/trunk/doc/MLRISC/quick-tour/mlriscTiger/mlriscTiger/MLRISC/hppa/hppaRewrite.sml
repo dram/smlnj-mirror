@@ -105,16 +105,3 @@ functor HppaRewrite(Instr:HPPAINSTR) = struct
     (*esac*)
   end
 end
-
-(*
- * $Log$
- * Revision 1.1  2001/10/11 09:52:26  macqueen
- * Initial revision
- *
- * Revision 1.2  1998/05/08 10:54:00  george
- *   The exhausted register has been made optional -- leung
- *
- * Revision 1.1.1.1  1998/04/08 18:39:01  george
- * Version 110.5
- *
- *)
