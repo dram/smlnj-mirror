@@ -1,0 +1,36 @@
+
+			Standard ML of New Jersey
+		    Version 110.0.3, January 30, 1998
+		    ---------------------------------
+
+This is the third patch release for version 110.  It fixes a few serious bugs
+that slipped through in the earlier patch releases.  See the files 110-README,
+110-PATCH-1, and 110-PATCH-2 for additional information.
+
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+1047. Not very random, random number generator ... (smlnj-lib)
+1337. exportFn in CML produces large images*
+1340. Segmentation fault on Sparc, x86, Alpha, and MIPS
+ -    Match exception related to span dependent loads on the hppa.
+
+* we thought that this had been fixed in 110.0.2, but were mistaken.
+
+
+Other changes
+-------------
+
+Problems with the InstallShield installation on Windows95 have been
+fixed.
+
+Installation problems under Linux have been fixed.
+
+Installation problems under gcc 2.8.0 on the x86 have been fixed.
+
+Made some minor additions to the Util library in the SML/NJ Library.
+
+Added the GetDpy utility module to eXene.  This provides simple support
+for getting the display and authentication information.
+

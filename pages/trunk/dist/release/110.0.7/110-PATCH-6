@@ -1,0 +1,63 @@
+                        Standard ML of New Jersey
+                    Version 110.0.6, October 31, 1999
+                    ----------------------------------
+
+
+       http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+This is the fifth patch release for version 110 (110.0.4 was not released).
+The primary purpose of this update is to fix problems in CML, but a number
+of other bug fixes are included, as well as some enhancements.
+
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+  1294. Real.fromString accepts too much
+  1359. unexpected diagnostic message
+  1407. ARRAY does not agree with Basis Library spec
+  1448. Real.round does not round to nearest even for ties
+  1525. Array2 bug
+  1530. ListSetFn should have opaque result [smlnj-lib]
+
+
+SML/NJ Library
+--------------
+
+ o Fixed bug in RedBlack trees (the linear time construction of
+   trees from ordered sequences was producing backwards trees).
+
+ o Changed UREF signature so that union, unify, and link operations
+   now return a boolean.
+
+ o Added peekFn to PropList.newProp return result.
+
+ o Added TextIOPP structure to pp-lib.cm (it was not being exported).
+
+ o Changed the getOpt API.  Errors are now reported using a callback
+   and both usage and getOpt take records as arguments.  Also changed
+   the NoArg descriptor to take a function so that imperative argument
+   processing can be supported.
+
+ o Changed CM files to be compatible with both the old (110.0.x) and
+   new (110.20+) versions of CM.
+
+
+Platforms:
+----------
+
+  We have built and tested (with the regression suites) this version
+  on the following platforms:
+
+     x86-linux (Red Hat 5.1, Linux 2.0.35; Red Hat 6.0, Linux 2.2.5-22)
+     x86-win32 (Windows NT 4.0)
+     x86-freeBSD (FreeBSD 3.2 - built but not tested)
+     sparc-solaris  (UltraSparc II, Solaris 2.5.1)
+     alpha32-dunix  (Digital Unix 4.0)
+     hppa-hpux (HPUX 10.20)
+     mipseb-irix6 (R10000, IRIX 6.4)
+
+  The system should build on rs6000-aix, but we no longer have access to
+  an rs6000-aix machine for testing.  Any volunteers?  This version will
+  not run on more recent PowerPC-based RS6000 machines, but current working
+  versions of SML/NJ will run under powerpc-aix.

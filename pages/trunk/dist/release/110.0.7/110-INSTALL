@@ -1,0 +1,151 @@
+Installation instructions for SML/NJ
+------------------------------------
+
+Quick Windows installation:
+---------------------------
+
+For standard installation of SML/NJ on Microsoft Windows (9X, NT, or 2K),
+fetch smlnj.exe, which is a self-installing executable.  This
+self-installer gives you the options of typical, custom, or compact
+installations.
+
+For installation on Unix, or to manually build the compiler on
+Windows, use the directions below.  Installation instructions are also
+available in the form of a web page at URL
+
+  http://cm.bell-labs.com/cm/cs/what/smlnj/install.html
+
+
+               ---------------------------------------------
+
+Linux RPM Installation:
+----------------------
+
+Administrators of Intel-based Linux systems can use the RedHat package
+manager "RPM" (http://www.redhat.com/rpm/) to install SML/NJ.  This
+has been tested under RedHat 5.0, 6.1-2, and 7.0.  Use the
+distribution file RPMS/smlnj-110.0.6-0.i386.rpm for a complete
+install.  This directory also has a set or rpm files for individual
+components of the system.  These rpm packages have been created and
+tested on the Red Hat 6.2 Linux distribution.
+
+Should you have difficulties with this, we recommend falling back
+on the following generic installation procedure for Unix.
+
+
+Generic Unix Installation:
+--------------------------
+
+Once you have retrieved the distribution files, do the following
+steps:
+
+1) create a root directory for the installation (e.g., /usr/local/sml).
+
+2) put the compressed tar files that make up the distribution in the
+   root directory.  Note that these files will be unpacked automatically
+   by the install script (except for 110-config.tar.Z; see step 3). In
+   addition to the tar files for the various sources, you also need the
+   pre-compiled binary files for the compiler.  These files are:
+
+    bin.alpha32-unix.tar.Z	-- for Alpha and Digital Unix 4.0
+    bin.hppa-unix.tar.Z		-- for HPPA processors
+    bin.mipseb-unix.tar.Z	-- for big-endian MIPS processors (e.g. SGI)
+    bin.sparc-unix.tar.Z	-- for SPARC processors
+    bin.x86.tar.Z		-- for Intel i386, i486 and Pentium processors.
+    bin.rs6000-unix.tar.Z	-- for IBM Power processors
+
+   In addition, you need the source code for the run-time system, which is
+   in the file runtime.tar.Z.
+
+3) unpack the configuration bundle in the root directory
+
+    % cd /usr/local/sml
+    % zcat 110-config.tar.Z | tar -xf -
+
+   this will create a directory /usr/local/sml/config.
+
+4) edit the file config/targets, commenting out any targets that
+   you do not want to install.  The default is to install the following
+   list (given with the corresponding distribution file):
+
+    Target		Distribution file
+    ------		-----------------
+    sml-cm		110-cm.tar.Z
+    smlnj-lib		110-smlnj-lib.tar.Z
+    ml-yacc		110-ml-yacc.tar.Z
+    ml-lex		110-ml-lex.tar.Z
+    ml-burg		110-ml-burg.tar.Z
+ 
+5) run the installation script while in the root directory:
+
+    % config/install.sh
+
+6) if you have multiple hardware/operating system platforms sharing the
+   same file system, you can repeat steps 4&5 for each platform.
+
+The installation process creates the following directory tree rooted
+at the installation directory (call it ROOT):
+
+  ROOT/config		- the configuration tools
+  ROOT/bin		- shell scripts for running sml and the tools
+  ROOT/bin/.run		- contains the runtime systems
+  ROOT/bin/.heap	- contains the heap images
+  ROOT/lib		- CM alias files for the various libraries
+  ROOT/src		- the source code; installing libraries also leaves
+			  the precompiled library code in this subtree.
+
+POTENTIAL PROBLEMS
+
+The most likely problem is in compiling the runtime system.  You may
+need to edit the architecture/operating system specific makefile.  You
+can find these files in the directory "ROOT/src/runtime/objs".  They
+are named mk.<arch>-<opsys> (e.g., mk.sparc-sunos, mk.mipseb-irix5).
+They are currently set up to use the vendor compiler on the mips, and
+alpha, and to use gcc on the sparc, rs6000 and x86.
+
+
+               ---------------------------------------------
+
+Windows Installation:
+---------------------
+
+These instructions are provided for those that need to recompile the
+runtime system, the SML/NJ compiler, or the other tools provided with
+the SML/NJ distribution under Windows NT or 2000 (the runtime
+makefiles currently do not work under Windows 9X with Visual C++ 6.0).
+
+Fetch the file windows.tar.Z from
+
+  ftp://ftp.research.bell-labs.com/dist/smlnj/working/windows/windows.tar.Z
+
+This package contains a configwin directory with a modified install.sh
+script for building the compiler.  You will also need the files
+
+  runtime.tar.Z        -- runtime source
+  bin.x86-win32.tar.Z  -- Windows bin files
+  smlnj-lib.tar.Z
+  ml-lex.tar.Z
+  ml-yacc.tar.Z
+  ml-burg.tar.Z
+  cml.tar.Z
+
+To unpack the distribution, you will need the Windows versions of the
+"GNU unzip" (gunzip) and "tape archive" (tar). These are freely
+available from
+
+  ftp://ftp.cs.washington.edu/pub/ntemacs/utilities
+
+It should be possible to build with other compilers, assemblers, and
+"make" utilities (see src\runtime\objs\makefile.win32 and
+src\runtime\objs\mk.x86-win32).
+
+Compiling the runtime system requires the following tools:
+
+  MS Visual C++, 2.0 or later  (we used 6.0)
+  MS Assembler (MASM), 6.11 or later
+  MS NMAKE (part of VC++), 1.50 or later
+
+Running install.sh requires ksh and common Unix tools (sed, grep). We
+use MKS Toolkit for this, although other ksh based toolkits should
+work directly as well; e.g. UWIN (http://www.research.att.com/sw/tools/uwin/).
+For building on Windows 2000, MKS Toolkit Version 7.0 or later is required.
