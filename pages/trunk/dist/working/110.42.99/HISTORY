@@ -13,7 +13,7 @@ Tag: <post-commit CVS tag>
 Description:
 
 ----------------------------------------------------------------------
-Name: Matthias Blume (blume@tti-c.org)
+Name: Matthias Blume (blume (at) tti - c (dot) org)
 Date: 2003/08/28 17:00:00 CDT
 Tag: blume-20030828-intinf
 Description:
@@ -100,7 +100,7 @@ prettyprinter for ast datatypes (Elaborator/print/ppast.{sig,sml})
 has been added.
 
 ----------------------------------------------------------------------
-Name: Matthias Blume (blume@tti-c.org)
+Name: Matthias Blume (blume (at) tti - c (dot) org)
 Date: 2003/08/11 15:45:00 CDT
 Tag: blume-20030811-windows
 Description:
@@ -195,7 +195,7 @@ Tag will be used for new development branch (mcz-branch) for
 use by MacQueen, (Lucasz) Zairek, and (George) Cao at uchicago.
 
 ----------------------------------------------------------------------
-Name: Matthias Blume (blume@tti-c.org)
+Name: Matthias Blume (blume (at) tti - c (dot) org)
 Date: 2003/05/27 16:55:00 CDT
 Tag: blume-20030527-polyeq
 Description:
@@ -203,7 +203,7 @@ Description:
 Tried to eliminated most cases of polymorphic equality.
 
 ----------------------------------------------------------------------
-Name: Matthias Blume (blume@tti-c.org)
+Name: Matthias Blume (blume (at) tti - c (dot) org)
 Date: 2003/05/21 17:45:00 CDT
 Tag: blume-20030517-complete
 Description:
@@ -216,7 +216,7 @@ Two changes:
      without a single non-exhaustive match- or bind warning.
 
 ----------------------------------------------------------------------
-Name: Matthias Blume (blume@tti-c.org)
+Name: Matthias Blume (blume (at) tti - c (dot) org)
 Date: 2003/05/17 10:20:00 CDT
 Tag: blume-20030517-absyn
 Description:
