@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>3.3 BOOTLIST file</TITLE>
+<META NAME="description" CONTENT="3.3 BOOTLIST file">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node14.html">
+<LINK REL="previous" HREF="node11.html">
+<LINK REL="up" HREF="node9.html">
+<LINK REL="next" HREF="node14.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html222"
+ HREF="node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html218"
+ HREF="node9.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html212"
+ HREF="node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html220"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html223"
+ HREF="node14.html">3.4 PIDMAP file</A>
+<B> Up:</B> <A NAME="tex2html219"
+ HREF="node9.html">3. Differences between CMB</A>
+<B> Previous:</B> <A NAME="tex2html213"
+ HREF="node12.html">3.2.1 Linkage to runtime</A>
+ &nbsp <B>  <A NAME="tex2html221"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00043000000000000000">
+3.3 BOOTLIST file</A>
+</H2>
+
+<P>
+Linking of SML/NJ programs involves executing the code of each of the
+concerned compilation units.  The code of each compilation unit is
+technically a closed function; all its imports have been turned into
+arguments and all exports have been turned into return values.
+
+<P>
+For ordinary programs, this process is under control of CM; CM will
+take care of properly passing the exports of one compilation unit to
+the imports of the next.
+
+<P>
+When booting a stand-alone program, though, there is no CM available
+yet.  Thus, executing module-level code and passing exports to imports
+has to be done by the (bare) runtime system.  The runtime system
+understands enough about the layout of binfiles and library files so
+that it can do that--provided there is a special <EM> bootlist</EM>
+file that contains instructions about which modules to load in what
+order.
+
+<P>
+The bootlist mechanism is not restricted to building SML/NJ.  Ordinary
+ML code can also be turned into stand-alone programs, and as far as the
+runtime system is concerned, the mechanisms are the same.  The
+bootlist file used by such ordinary stand-alone ML programs will be
+constructed by CM; only in the case of bootstrapping SML/NJ itself it
+will be constructed by CMB.
+
+<P>
+The name of the bootlist file is <TT> BOOTLIST</TT>, and it is located at
+the root of the directory tree that contains stable files (i.e., its
+name is <TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.boot.<I> arch</I>-<I> os</I>/BOOTLIST</TT>).
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html222"
+ HREF="node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html218"
+ HREF="node9.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html212"
+ HREF="node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html220"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html223"
+ HREF="node14.html">3.4 PIDMAP file</A>
+<B> Up:</B> <A NAME="tex2html219"
+ HREF="node9.html">3. Differences between CMB</A>
+<B> Previous:</B> <A NAME="tex2html213"
+ HREF="node12.html">3.2.1 Linkage to runtime</A>
+ &nbsp <B>  <A NAME="tex2html221"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

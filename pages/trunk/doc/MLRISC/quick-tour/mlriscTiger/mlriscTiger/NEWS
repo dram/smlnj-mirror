@@ -1,0 +1,157 @@
+	           M  L  R  I  S  C     N  E  W  S
+
+	   http://cm.bell-labs.com/cm/cs/what/smlnj/doc/MLRISC
+
+			    22 May, 1998
+
+
+This update is the first in a quick series that is intended to
+integrate a large number of changes that support global instruction
+scheduling and various SSA optimizations largely done by Allen Leung. 
+
+I have temporarily removed the x86 Tiger back end because the current
+version that I am developing has changed dramatically from the one I
+initially distributed with the Tiger compiler --- and I still expect a
+few more changes before being done. Expect a release of the x86 and
+PPC back end (done by Dino Oliva) soon.
+
+For now here's what new:
+
+
+			Client side changes
+			-------------------
+
+
+ 1. Parallel Copies:
+
+    The format of target machine parallel copy instructions have 
+    changed. For example on the Alpha, 
+
+	COPY : int list * int list * instruction list option ref
+    
+    is now:
+
+       COPY of {dst:int list, 
+		src:int list, 
+		impl:instruction list option ref,
+		tmp: ea option}
+
+    In particular the parallel copy instructions takes a
+    register-allocatable temporary to break cycles. In the future I
+    would like to get rid of all explicit use of the asmTmp register,
+    because back ends that directly generate machine code can use the
+    reserved asmTmp for other purposes. 
+
+    During instruction selection a fresh temporary is filled in for
+    the tmp field.
+
+    The biggest impact of this change is on spilling. The client must
+    be able to spill the tmp to a memory location if it cannot be
+    register allocated.
+
+    A small simplification is possible on systems that use a
+    traditional assembler and linker. Such systems must not use the 
+    asmTmp register for any other purpose because the assembler may
+    make use of it. Therefore when spilling tmp, the instruction
+    can be rewritten to use the asmTmp register instead. This is what
+    I have done for the tiger compiler.
+
+    Note: The def/use information lists the tmp in the def list and
+    not the use list. Otherwise, liveness analysis will mark the
+    tmp has being live at the beginning of the program.
+
+
+  2. Spilling Interface:
+
+     The spilling interface has changed to take an additional
+     argument. The spill function is now:
+
+	 val spill : 
+	    {instr:I.instruction, 
+	     reg:int,
+	     regmap:int -> int} 
+	     -> 
+	       {code:I.instruction list, 
+		proh:int list,
+		instr:I.instruction option}
+
+     The register map is passed as an argument to spilling. Spilling
+     and reloading must always be done by rewriting the instruction to
+     use a new register so that a long lived live range is split into
+     many tiny ranges. The register map is passed as an argument to 
+     the rewrite module (see below).
+
+     I have modified the Tiger compiler with these changes. 
+
+
+  3. Instruction Properties:
+       Because of various interface functions added to the
+     INSN_PROPERTIES, a module that does shuffling must be supplied
+     to the functor that produces the INSN_PROPERTIES. For example:
+
+       functor Alpha32Props
+	         (structure Alpha32Instr:ALPHA32INSTR): INSN_PROPERTIES
+
+     is now:
+
+       functor Alpha32Props
+	        (structure Alpha32Instr : ALPHA32INSTR
+		 structure Shuffle : ALPHA32SHUFFLE
+		   sharing Shuffle.I = Alpha32Instr) : INSN_PROPERTIES
+
+	
+
+
+
+			Internal Changes:
+			-----------------
+
+  1. CELLS 
+
+	The CELLS interface now has an abstract type for machine
+     resources called cellclass, with various functions like:
+
+	val newCell : cellclass -> unit -> int
+	val maxCell : cellclass -> int
+	...
+	etc.
+
+  2. INSN_PROPERTIES
+
+	
+     Several functions have been added to the instruction properties
+     interface to support global scheduling. All the new functions 
+     are fairly self-explanatory.
+
+     Like the changes to CELLS, defUseR and defUseF have gone
+     and are replaced by: 
+	
+	val defUse : cellclass -> int list * int list
+
+
+  3. Instruction Rewrite
+     
+     Now requires a register map. It did not require this before
+     because there was a guarantee that aliased registers would never
+     spill. With global scheduling, copy-propagation may first be
+     applied setting up aliases. If this is followed by a round of 
+     global scheduling, there is the possibility that an aliased node
+     might spill. This is because the scheduling phase maintains a
+     crude approximation of can be register allocated.
+
+
+	
+  
+			New Modules
+			-----------
+
+  
+  o {Alpha32, Hppa}Shuffle.{sig, sml}
+      -- Shuffling of parallel copies into sequential moves/loads/stores
+
+  o {Alpha32, Hppa}Cells.{sig, sml}
+      -- Resources classes available on the architecture. 
+
+
+
+	

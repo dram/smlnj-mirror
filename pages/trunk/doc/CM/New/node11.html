@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>2.8 Stable libraries</TITLE>
+<META NAME="description" CONTENT="2.8 Stable libraries">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node12.html">
+<LINK REL="previous" HREF="node10.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node12.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html380"
+ HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html376"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html370"
+ HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html378"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html381"
+ HREF="node12.html">2.9 Top-level groups</A>
+<B> Up:</B> <A NAME="tex2html377"
+ HREF="node3.html">2. The CM model</A>
+<B> Previous:</B> <A NAME="tex2html371"
+ HREF="node10.html">2.7 Multiple occurences of</A>
+ &nbsp <B>  <A NAME="tex2html379"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00038000000000000000"></A>
+<A NAME="sec:stable"></A>
+<BR>
+2.8 Stable libraries
+</H2>
+
+<P>
+CM distinguishes between libraries that are <EM> under development</EM>
+and libraries that are <EM> stable</EM>.  A stable library is created by a
+call of <TT> CM.stabilize</TT> (see Section&nbsp;<A HREF="node22.html#sec:api:compiling">4.1.1</A>).
+
+<P>
+Access to stable libraries is subject to less internal
+consistency-checking and touches far fewer file-system
+objects. Therefore, it is typically more efficient.  Stable libraries
+play an additional semantic role in the context of access control (see
+Section&nbsp;<A HREF="node59.html#sec:access">8</A>).
+
+<P>
+From the client program's point of view, using a stable library is
+completely transparent.  When referring to a library--regardless of
+whether it is under development or stable--one <EM> always</EM> uses the
+name of the library's description file.  CM will check whether there
+is a stable version of the library and provided that is the case use
+it.  This means that in the presence of a stable version, the
+library's actual description file does not have to physically exists
+(even though its name is used by CM to find the corresponding stable
+file).
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html380"
+ HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html376"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html370"
+ HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html378"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html381"
+ HREF="node12.html">2.9 Top-level groups</A>
+<B> Up:</B> <A NAME="tex2html377"
+ HREF="node3.html">2. The CM model</A>
+<B> Previous:</B> <A NAME="tex2html371"
+ HREF="node10.html">2.7 Multiple occurences of</A>
+ &nbsp <B>  <A NAME="tex2html379"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

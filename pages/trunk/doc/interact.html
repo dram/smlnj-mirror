@@ -1,0 +1,183 @@
+<!-- Changed by: John Reppy, 19-Dec-1997 -->
+<!-- Changed by: Andrew Appel, 31-Oct-1997 -->
+<HTML>
+<HEAD>
+<TITLE>SML/NJ Interactive System</TITLE></HEAD>
+<BODY BGCOLOR="ffffff">
+<H1>Standard ML of New Jersey Interactive System</H1>
+<blockquote>
+This section explains some of the basic elements of using the Standard
+ML of New Jersey compiler as an interactive system into which you
+enter declarations and expressions or load code from source files.
+This is the most accessible mode of using the compiler, but for any
+programs of nontrivial size we recommend that the <a href="CM/index.html">
+Compilation Manager</a> be used to organize the compilation process.
+<p>
+We assume below that you are using the compiler under Unix.  The
+behavior will be somewhat different under MS Windows or the Macintosh
+OS.
+
+<h2>Running Standard ML</h2>
+
+   Type ``<code>sml</code>'' from the shell.  This puts you into the
+   interactive system.  The top level prompt is ``-'', and the
+   secondary prompt (printed when input is incomplete) is ``=''.
+   If you get the secondary prompt when you don't expect it,
+   typing ``<code>;</code> <i>return</i>'' will often complete your input, or
+   typing your interrupt character (e.g., control-C) 
+   will cancel your input and return to the ML top level.
+<p>
+   If ``<code>sml</code>'' doesn't work, ask where <code>sml</code> has
+   been installed on your machine and use the appropriate path name or
+   redefine your PATH environment variable.
+
+<h2>Interactive input</h2>
+
+   Input to the top level interpreter (i.e., declarations and
+   expressions) must be terminated by a semicolon (and carriage
+   return) before the system will evaluate it.  The system then prints
+   out a response indicating the effect of the evaluation.
+   Expressions are treated as implicit declarations of a standard
+   variable <code>it</code>.  For example,
+
+<table>
+<tr><td><code>- 3;</code><td><i>user input after prompt</i>
+<tr><td><code>val it  = 3 : int<td><i>system response</i>
+</table>
+
+   This means that the value of the last top level expression evaluated
+   can be referred to using the variable ``<code>it</code>.''
+
+<h2>Interrupting compilation or execution</h2>
+
+Typing the interrupt character (typically control-C)
+should interrupt the compiler and return you
+to top level.
+
+<h2>Exiting the interactive system.</h2>
+
+Typing control-D (EOF) at top level will cause an exit to the shell
+(or the parent process from which <code>sml</code> was run).  One can also terminate
+by calling <code>OS.Process.exit(OS.Process.success)</code>.
+
+<h2>Loading ML source text from a file</h2>
+
+The function <code>use: string -> unit</code> interprets its argument as a
+file name relative to <code>sml</code>'s current directory and loads the text
+from that file as though it had been typed in.  This should normally
+be executed at top level, but the loaded files can also contain calls
+of <code>use</code> to recursively load other files.  It is a bad idea to call
+<code>use</code> within an expression or declaration, because the effects are
+not well-defined.
+<p>
+For industrial-strength multi-module software systems, the 
+the <a href="CM">Compilation Manager</a>
+is more appropriate than <code>use</code>.
+
+<!--
+<h2>Saving an image of the system</h2>
+
+Use the function <code>exportML: string -> bool</code> to save an image of the
+current <code>sml</code> system (including the environment that you have
+built) in a file.  
+-->
+
+<h2>Error messages</h2>
+
+The compiler attempts to recover from syntactic errors so that it can
+also produce semantic (type-checking) errors during the same
+compilation.  Syntactic error recovery is more accurate for source
+files loaded by <code>use</code> or CM than it is from declarations typed
+directly into the interactive system -- this is because lookahead is
+not possible when text is entered one line at a time.
+<p>
+When compiling files, the error messages include line numbers and
+character positions within the line.  For example:
+<pre>
+- if true
+= then 5 true
+= else 6;
+std_in:7.6-7.11 Error: operator is not a function
+  operator: int
+  in expression:
+    5 true
+- 
+</pre>
+Here the location information <code>std_in:7.6-7.11</code> indicates that the
+erroneous expression ``<code>5 true</code>'' occupies characters 6 through 11
+of the 7th line of input from <code>std_in</code>.  For simple syntactic
+errors this position information is usually accurate or perhaps off by
+just one line.  For some classes of errors the line numbers may not be very
+useful, because they delineate a potentially large declaration
+containing the error.  If the error occurs in a file being loaded by
+<code>use</code>, the line numbers will refer to lines in the file being
+loaded.
+<p>
+There are a number of different forms of type error message, and it
+may require some practice before you become adept at interpreting
+them.  The most common form indicates a mismatch between the type of a
+function (or operator) and its argument (or operand).
+A representation of the offending expression is usually included, but
+this is an image of the internal abstract syntax for the expression
+and may differ significantly from the original source code.  For
+instance, an expression ``<code>if </code>e1<code> then </code>e2<code> else </code>e3''
+is represented internally as a <code>case</code> expression over a boolean value: 
+``$<code>case </code> e1 <code> of true => </code> e2 <code> | false => </code> e3.''
+<p>
+All the error messages produced by SML/NJ are documented in the
+<a href="errors.html"><strong>SML/NJ Error and Warning Messages</strong></a> page.
+
+<h2>Compiler interface</h2>
+
+Most users will interact with the compiler by loading code via the
+<code>use</code> command or under control of the 
+<a href="CM/index.html"><i>Compilation Manager</i></a>.
+However, some control of individual compiler phases is possible
+through the
+<a href="Compiler/pages/control.html"><code>Compiler.Control</code></a>
+structure.
+
+<h2>Printing</h2>
+
+The structure
+<a href="Compiler/pages/printcontrol.html"><code>Compiler.Control.Print</code></a>
+contains several useful flags and functions with which you can control
+or redirect compiler error, diagnostic, and result messages. 
+Among other things, there is a variable <code>printDepth</code> that
+controls the depth of printing of large structured values.
+
+<h2>Interacting with the operating system</h2>
+
+The structures <code>IO</code>, <code>OS</code>, and others contain functions
+for such tasks as executing other programs from within <code>sml</code>
+and changing the current directory.  These are documented in
+<a href="basis/index.html">
+The Standard ML Basis Library</a> manual.
+
+<h2>Emacs support</h2>
+The directory contrib/emacs contains
+<a href="mailto:mjm@dcs.ed.ac.uk"> Matthew J. Morley's</a> 
+<a href="Emacs/sml-mode.html">sml-mode</a> package that supports editing SML
+source code and interacting with <code>sml</code> under GNU emacs.
+The <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs/sml-mode-3.3.tar.Z">
+sml-mode package</a> is available at our ftp site.
+<!--
+and from
+<a href="http://www.scs.leeds.ac.uk/mjm/sml-mode/">http://www.scs.leeds.ac.uk/mjm/sml-mode/</a>.
+-->
+
+</blockquote>
+<HR>
+<CENTER><STRONG>
+| <A HREF="../index.html">SML/NJ Home Page</A> | <br>
+| <A HREF="index.html">SML/NJ Documentation Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>

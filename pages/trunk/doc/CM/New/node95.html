@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>A..6 EBNF for library descriptions</TITLE>
+<META NAME="description" CONTENT="A..6 EBNF for library descriptions">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node96.html">
+<LINK REL="previous" HREF="node94.html">
+<LINK REL="up" HREF="node89.html">
+<LINK REL="next" HREF="node96.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1454"
+ HREF="node96.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1450"
+ HREF="node89.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1444"
+ HREF="node94.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1452"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1455"
+ HREF="node96.html">A..7 EBNF for library</A>
+<B> Up:</B> <A NAME="tex2html1451"
+ HREF="node89.html">A. CM description file</A>
+<B> Previous:</B> <A NAME="tex2html1445"
+ HREF="node94.html">A..5 EBNF for member</A>
+ &nbsp <B>  <A NAME="tex2html1453"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000186000000000000000">
+A..6 EBNF for library descriptions</A>
+</H2>
+
+<P>
+The following set of rules defines the syntax for library descriptions
+(<I> library</I>).  Notice that although the syntax used for <I> version</I>
+is the same as that for <I> stdpn</I>, actual version strings will
+undergo further analysis according to the rules given in
+section&nbsp;<A HREF="node37.html#sec:versions">5</A>:
+
+<P>
+ 
+<TABLE CELLPADDING=3>
+<TR><TD ALIGN="RIGHT"><I> libkw</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT"><U><B>library</U></B> &nbsp;<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.gif"
+ ALT="$\vert$">&nbsp;<U><B>Library</U></B> &nbsp;<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.gif"
+ ALT="$\vert$">&nbsp;<U><B>LIBRARY</U></B></TD>
+</TR>
+<TR><TD ALIGN="RIGHT"><I> version</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT"><I> stdpn</I></TD>
+</TR>
+<TR><TD ALIGN="RIGHT"><I> privilege</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT"><I> stdpn</I></TD>
+</TR>
+<TR><TD ALIGN="RIGHT"><I> lprivspec</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT">{ <I> privilege</I> &nbsp;<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.gif"
+ ALT="$\vert$">&nbsp;<U><B>(</U></B> { <I> privilege</I> } <U><B>)</U></B> }</TD>
+</TR>
+<TR><TD ALIGN="RIGHT"><I> library</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT">[<I> lprivspec</I>] <I> libkw</I> [[<U><B>(</U></B> <I> version</I> <U><B>)</U></B>] <I> elst</I>] (<U><B>is</U></B> &nbsp;<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.gif"
+ ALT="$\vert$">&nbsp;<U><B>IS</U></B>) <I> members</I></TD>
+</TR>
+</TABLE>
+
+<P>
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

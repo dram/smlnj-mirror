@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Yale CVS Map</title>
+  </head>
+
+  <body BGCOLOR="ffffff">
+<blockquote>
+<h1>Instructions for use of Yale CVS Repository</h1>
+<p>
+<p>
+This page provides basic information, advice, and hints for using
+the SML/NJ CVS repository at Yale.
+<p>
+<h3>Repository address</h3>
+<pre>
+   flint.cs.yale.edu:/home/cvs
+</pre>
+<p>
+<h3>Mailing list</h3>
+<p>
+There is a mailing list, <a href="mailto:smlnj-cvs@rum.cs.yale.edu">
+smlnj-cvs@rum.cs.yale.edu</a>, that will
+automatically receive messages announcing commits to the repository.
+To join the mailing list, send mail to
+<a href="mailto:smlnj-cvs-request@rum.cs.yale.edu">smlnj-cvs-request@rum.cs.yale.edu</a>
+with subject:
+<pre>
+  subscribe &lt;your@email.address&gt;
+</pre>
+<p>
+<h3>Setting up and using ssh</h3>
+<ol>
+<li> <strong>To get access</strong>: send <a href="mailto:monnier@cs.yale.edu">
+Stefan Monnier</a> your public SSH-1
+key along with a set of machine names (full domain paths)
+from which you'll login.  Here is how you can generate an
+SSH-1 key and transmit it to Stefan:
+<pre>
+   % ssh-keygen
+   % Mail -s "here you are" monnier@cs.yale.edu &lt;~/.ssh/identity.pub
+</pre>
+<code>ssh-keygen<code> will ask you to enter a passphrase, which you'll
+need to remember and use whenever you use the Yale repository.
+<p>
+You can check whether your access is authorized by executing
+<pre>
+     ssh -v flint.cs.yale.edu
+</pre>
+<p>
+<li> <strong>set CVS_RSH</strong>
+<pre>
+   export CVS_RSH=ssh
+</pre>
+<p>
+<li> use <strong>ssh-agent</strong> to set up for cvs usage.
+ssh-agent produces three lines of shell commands that should be evaled
+<pre>
+   eval `ssh-agent`
+</pre>
+<li> use <strong>ssh-add</strong> to authenticate for the whole session.
+ssh-add adds identity from ~/.ssh.  Using this command, you won't be asked
+for authentication on each cvs command.
+</ol>
+<p>
+Here is a script that can be "sourced" to do all these steps:
+<pre>
+    export CVS_RSH=ssh
+    export CVSROOT=flint.cs.yale.edu:/home/cvs
+    eval `ssh-agent`
+    ssh-add &lt;&lt;EOF
+    &lt;insert your passphrase here&gt;
+    EOF
+</pre>
+Note that if you have your DISPLAY variable set, the ssh-add ignores
+its standard input and pops up a dialog box into which you must type your
+passphrase.
+<p>
+
+<h3>CVS Hints</h3>
+<ol>
+<li> Typical command:
+<pre>
+     cvs -d flint.cs.yale.edu:/home/cvs co smlnj
+</pre>
+<p>
+<li> To avoid having to specify the repository in each command, you can set
+CVSROOT:
+<pre>
+     export CVSROOT=flint.cs.yale.edu:/home/cvs
+</pre>
+<p>
+<li> It is recommended to have a ~/.cvsrc file containing
+<pre>
+	% cat ~/.cvsrc
+	update -P -d
+	checkout -P
+	% 
+</pre>
+The -P tells CVS to prune empty directories.  The -d tells CVS
+to add new directories that have been created in the repository
+since the last update.
+<p>
+<li> When using `cvs import' it's useful to first try a dry run
+`cvs -n import' so you can fix the -I options (i.e. what files to
+ignore) or any other problems.  Note that symbolic links are
+ignored by import.  The global -n option for cvs suppresses any
+action and only generates reports of what the command would do.
+</ol>
+<p>
+
+<h3>Advice on Managing Branches</h3>
+
+See Matthias's page with notes on 
+<a href="http://www.kurims.kyoto-u.ac.jp/~blume/SMLNJ-DEV/cvs.html">
+managing private development branches</a>.
+<p>
+Also, see this <a href="cvs-branch2.html">follow-up advice on
+branching</a> from Stefan.
+<p>
+<hr>
+<h3>Reminder: Tag all of smlnj module when committing</h3>
+<p>
+Matthias Blume, 31 Mar 2000
+<p>
+This is a reminder to everybody who is checking stuff into the CVS
+repository that they should tag the _entire_ repository (actually --
+the entiry "smlnj" module if what you are doing is compiler-related).
+Otherwise tags are much less useful.
+<p>
+In this case I wanted to compare my "blume_main_v110p26p2_0" with the
+version _before_ that.  For this, I tried to use the previous tag --
+which was created by Alan.  However, as it turns out, Alan tagged only
+those files he actually changed.  As a result, CVS gave me only those
+files.
+<p>
+In other words, if a file does not have a certain tag, then it is
+considered non-existent.  There is a flag to "cvs update" that lets
+one change this behavior to "use the most recent version", but this is
+<em>also</em> not what I wanted.
+<p>
+The other "solution" would be to really always tag "before" and
+"after" a commit.  My point is that "before" tags are completely
+redundant if "after" tags are properly applied to the entire
+repository.
+<p>
+My current workaround is to use dates. (This proved a bit tricky
+because it wasn't obvious from the outset relative to which timezone
+the date would be interpreted... :)
+
+
+<hr>
+<h3>Anonymous CVS</h3>
+<p>
+Stefan Monnier, 7 Apr 2000
+<p>
+I have a tentative setup for anonymous CVS working on rum (aka flint).
+To try it out, do the following:
+<pre>
+        % cvs -d :pserver:cvsguest@flint.cs.yale.edu:/guest login
+        passwd: cvs
+        % cvs -d :pserver:cvsguest@flint.cs.yale.edu:/guest co smlnj
+<pre>
+</blockquote>
+
+<hr>
+<address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Mon Feb 21 16:13:47 EST 2000 -->
+<!-- hhmts start -->
+Last modified: Fri Apr 21 16:33:41 EDT 2000
+<!-- hhmts end -->
+  </body>
+</html>

@@ -1,0 +1,48 @@
+<!-- HTML/codegenerator.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CODEGENERATOR signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>CODEGENERATOR</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CODEGENERATOR:SIG:SPEC"><CODE>CODEGENERATOR</CODE></A><BR>
+<B>structure </B><A NAME="Machm:STR:SPEC"><CODE>Compiler.Machm</CODE></A><B> : </B>CODEGENERATOR<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:CODEGENERATOR.csegments:TY:SPEC" HREF="#SIG:CODEGENERATOR.csegments:TY">csegments</A> <B>=</B> {c0 : Word8Vector.vector, cn : Word8Vector.vector list, name : string option ref}     <BR>
+<B>val</B> <A NAME="SIG:CODEGENERATOR.architecture:VAL:SPEC" HREF="#SIG:CODEGENERATOR.architecture:VAL">architecture</A> <B>:</B> string         <BR>
+<B>val</B> <A NAME="SIG:CODEGENERATOR.codegen:VAL:SPEC" HREF="#SIG:CODEGENERATOR.codegen:VAL">codegen</A> <B>:</B> (ErrorMsg.errors * Lambda.lexp) -&gt; csegments         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CODEGENERATOR.csegments:TY"><CODE><B>type</B> csegments</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:CODEGENERATOR.architecture:VAL"><CODE>architecture
+          </CODE></A>
+<DD>
+What instruction set is being executed.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CODEGENERATOR.codegen:VAL"><CODE>codegen (<VAR>er</VAR>, <VAR>le</VAR>)
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

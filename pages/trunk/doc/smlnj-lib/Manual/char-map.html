@@ -1,0 +1,91 @@
+<!-- HTML/char-map.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CharMap structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>CharMap</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CHAR_MAP:SIG:SPEC"><CODE>CHAR_MAP</CODE></A><BR>
+<B>structure </B><A NAME="CharMap:STR:SPEC"><CODE>CharMap</CODE></A><B> :> </B>CHAR_MAP<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The CharMap structure provides fast, read-only maps from characters to values. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> 'a <A NAME="SIG:CHAR_MAP.char_map:TY:SPEC" HREF="#SIG:CHAR_MAP.char_map:TY">char_map</A><BR>
+<B>val</B> <A NAME="SIG:CHAR_MAP.mkCharMap:VAL:SPEC" HREF="#SIG:CHAR_MAP.mkCharMap:VAL">mkCharMap</A> <B>:</B> {default : 'a, bindings : (string * 'a) list} -&gt; 'a char_map         <BR>
+<B>val</B> <A NAME="SIG:CHAR_MAP.mapChr:VAL:SPEC" HREF="#SIG:CHAR_MAP.mapChr:VAL">mapChr</A> <B>:</B> 'a char_map -&gt; char -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:CHAR_MAP.mapStrChr:VAL:SPEC" HREF="#SIG:CHAR_MAP.mapStrChr:VAL">mapStrChr</A> <B>:</B> 'a char_map -&gt; (string * int) -&gt; 'a         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CHAR_MAP.char_map:TY"><CODE><B>type</B> 'a char_map</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:CHAR_MAP.mkCharMap:VAL"><CODE>mkCharMap {<VAR>default</VAR>, <VAR>bindings</VAR>}
+          </CODE></A>
+<DD>
+makes a character map that maps the bound characters to their            bindings and maps everything else to the default value.           Specifically, if <CODE>c</CODE> is a character and <CODE>(str,v)</CODE> is an           item in <VAR>bindings</VAR> with <CODE>c</CODE> in <CODE>str</CODE>, then <CODE>c</CODE>           will be mapped to <CODE>v</CODE>. Otherwise, <CODE>c</CODE> is mapped to           <VAR>default</VAR>.            
+<P>
+          Note that the <VAR>bindings</VAR> list is processed from left to           right, so if a character appears in multiple strings, the           binding specified by the rightmost one will be the one used           in the map.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR_MAP.mapChr:VAL"><CODE>mapChr <VAR>cm</VAR> <VAR>c</VAR>
+          </CODE></A>
+<DD>
+maps the given character.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR_MAP.mapStrChr:VAL"><CODE>mapStrChr <VAR>cm</VAR> (<VAR>s</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DD>
+is equivalent to           
+<PRE>
+          mapChr cm (String.sub(s, i)))
+          
+</PRE>
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/char.html#Char:STR:SPEC">Char</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 11, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

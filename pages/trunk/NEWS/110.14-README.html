@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.14 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.14, February 22, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot.  It only  supports the Sparc, 
+	Alpha, HPPA, and PowerPC architectures.  Furthermore, 
+	there are performance bugs that have to be fixed.
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+
+<h2>Summary</h2>
+  This version is intended to introduce the new MLRISC PowerPC 
+  code generator, but also includes a few MLRISC bug fixes.
+<hr>
+
+<h2>Bug Fixes</h2>
+Relative to 110.13
+
+<ul>
+  <li> The alpha (and other architectures) generated LDA and LDAH
+    instructions to load immediate operands where the value was 
+    zero (Perry Cheng).
+  <p>
+  <li> The register allocator generated an exception for temporaries
+    that were used but not defined. This happens all the time in
+    C (Fermin Reig).
+</ul>
+<hr>
+
+<h2> Features </h2>
+
+    The cross compilers had no access to the Control structure
+    and could not therefore  access flags that affected
+    the cross compilation. Building a cross compiler using 
+    CMB.retarget, now defines a structure <Arch>Compiler as 
+    well as <ArchOpsys>CMB. For example, cross compiling to the 
+    DEC Alpha will generate Alpha32Compiler and Alpha32UnixCMB.
+    The Alpha32Compiler interface is identical to the Compiler
+    interface, but substructures in Alpha32Compiler are specific
+    to the target being cross compiled to.
+
+<hr>
+<h2> PowerPC notes </h2>
+  The generated code could be improved in a number of ways:
+
+ <ul>
+   <li> There are three registers that are wasted. This will be fixed
+    in the next round of runtime system, interface changes.
+   <p>
+   <li> Without out-of-order execution, the generated code pays a 
+    high penalty for branches. The following sequence is typically
+    generated:
+ </ul>
+
+<pre>
+	mtlr	r
+	blr	
+</pre>
+    or
+<pre>
+	cmp	cr, r1, r2
+	bt	cr, lab
+</pre>
+   or
+<pre>
+	and.	r1, r2, r3
+	bt	cr0, lab
+</pre>
+
+  In all cases, scheduling the assignment of the link register or the 
+  setting of the condition code register far away from the branch would
+  improve the situation dramatically. Various possibilities for 
+  accomplishing this are being investigated.
+
+
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Mon Mar 22 16:28:20 EST 1999
+<!-- hhmts end -->
+    </font>
+  </body>
+</html>

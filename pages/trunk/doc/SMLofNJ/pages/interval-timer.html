@@ -1,0 +1,68 @@
+<!-- HTML/interval-timer.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The INTERVAL_TIMER signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>INTERVAL_TIMER</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="INTERVAL_TIMER:SIG:SPEC"><CODE>INTERVAL_TIMER</CODE></A><BR>
+<B>structure </B><A NAME="IntervalTimer:STR:SPEC"><CODE>IntervalTimer</CODE></A><B> : </B>INTERVAL_TIMER<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:INTERVAL_TIMER.tick:VAL:SPEC" HREF="#SIG:INTERVAL_TIMER.tick:VAL">tick</A> <B>:</B> unit -&gt; Time.time         <BR>
+<B>val</B> <A NAME="SIG:INTERVAL_TIMER.setIntTimer:VAL:SPEC" HREF="#SIG:INTERVAL_TIMER.setIntTimer:VAL">setIntTimer</A> <B>:</B> Time.time option -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:INTERVAL_TIMER.tick:VAL"><CODE>tick <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Returns the granularity of the interval timer.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:INTERVAL_TIMER.setIntTimer:VAL"><CODE>setIntTimer (SOME <VAR>t</VAR>)
+	  </CODE></A>
+<DT> <CODE>            setIntTimer NONE
+          </CODE>
+<DD>
+The first form sets the interval timer to deliver an ALRM signal every           <VAR>t</VAR> time-units from now on, and the second form turns off the 	  interval timer.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

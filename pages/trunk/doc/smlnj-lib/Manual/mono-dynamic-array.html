@@ -1,0 +1,137 @@
+<!-- HTML/mono-dynamic-array.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The MONO_DYNAMIC_ARRAY signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>MONO_DYNAMIC_ARRAY</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="MONO_DYNAMIC_ARRAY:SIG:SPEC"><CODE>MONO_DYNAMIC_ARRAY</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The MONO_DYNAMIC_ARRAY signature specifies an interface to dynamic monomorphic arrays. These act like arrays of unbounded length.  
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.elem:TY:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.elem:TY">elem</A><BR>
+<B>type</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.array:TY:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.array:TY">array</A><BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.array:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.array:VAL">array</A> <B>:</B> (int * elem) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.subArray:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.subArray:VAL">subArray</A> <B>:</B> (array * int * int) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.fromList:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.fromList:VAL">fromList</A> <B>:</B> (elem list * elem) -&gt; array         <BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.tabulate:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.tabulate:VAL">tabulate</A> <B>:</B> (int * (int -&gt; elem) * elem) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.default:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.default:VAL">default</A> <B>:</B> array -&gt; elem         <BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.sub:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.sub:VAL">sub</A> <B>:</B> (array * int) -&gt; elem       <BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.update:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.update:VAL">update</A> <B>:</B> (array * int * elem) -&gt; unit       <BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.bound:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.bound:VAL">bound</A> <B>:</B> array -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:MONO_DYNAMIC_ARRAY.truncate:VAL:SPEC" HREF="#SIG:MONO_DYNAMIC_ARRAY.truncate:VAL">truncate</A> <B>:</B> (array * int) -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.elem:TY"><CODE><B>type</B> elem</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.array:TY"><CODE><B>type</B> array</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.array:VAL"><CODE>array (<VAR>sz</VAR>, <VAR>el</VAR>)
+          </CODE></A>
+<DD>
+creates a dynamic array all of whose elements are            initialized to the default value of <VAR>el</VAR>. The <VAR>sz</VAR>            parameter is used as a hint of the potential range of indices of           non-default items. Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> if           <VAR>sz</VAR> &lt; 0.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.subArray:VAL"><CODE>subArray (<VAR>arr</VAR>, <VAR>lo</VAR>, <VAR>hi</VAR>)
+          </CODE></A>
+<DD>
+creates a new array with the same default as <VAR>arr</VAR>, and whose            values in the range [0,hi-lo] are equal to the values in            <VAR>arr</VAR> in the range [lo, hi].           Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> if           <VAR>hi</VAR> &lt; <VAR>lo</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.fromList:VAL"><CODE>fromList (<VAR>l</VAR>, <VAR>el</VAR>)
+          </CODE></A>
+<DD>
+creates an array using the list of values <VAR>l</VAR> plus the            default value <VAR>el</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.tabulate:VAL"><CODE>tabulate (<VAR>sz</VAR>, <VAR>f</VAR>, <VAR>el</VAR>)
+          </CODE></A>
+<DD>
+acts like <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/array.html#SIG:ARRAY.tabulate:VAL:SPEC">Array.tabulate</A>, 	  plus stores the default value <VAR>el</VAR>.           Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> if           <VAR>sz</VAR> &lt; 0.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.default:VAL"><CODE>default <VAR>arr</VAR>
+          </CODE></A>
+<DD>
+returns the array's default value.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.sub:VAL"><CODE>sub (<VAR>arr</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DD>
+returns value of the array at index <VAR>i</VAR>. If that value has not            been set by <CODE>update</CODE>, it returns the default value.           Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> if           <VAR>i</VAR> &lt; 0. Note that no exception is raised for an           index too large.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.update:VAL"><CODE>update (<VAR>arr</VAR>, <VAR>i</VAR>, <VAR>el</VAR>)
+          </CODE></A>
+<DD>
+sets the value at index <VAR>i</VAR> of the array <VAR>arr</VAR> to <VAR>el</VAR>.            Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> if           <VAR>i</VAR> &lt; 0. Note that no exception is raised for an           index too large.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.bound:VAL"><CODE>bound <VAR>arr</VAR>
+          </CODE></A>
+<DD>
+returns an upper bound on the index of values that have been changed.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MONO_DYNAMIC_ARRAY.truncate:VAL"><CODE>truncate (<VAR>arr</VAR>, <VAR>sz</VAR>)
+          </CODE></A>
+<DD>
+makes every entry in <VAR>arr</VAR> with index greater than <VAR>sz</VAR>            the default value.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="dynamic-array.html#DynamicArrayFn:FCT:SPEC">DynamicArrayFn</A>, <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/mono-array.html#MONO_ARRAY:SIG:SPEC">MONO_ARRAY</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 9, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

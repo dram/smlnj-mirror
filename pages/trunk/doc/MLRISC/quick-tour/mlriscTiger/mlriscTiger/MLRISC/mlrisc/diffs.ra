@@ -1,0 +1,105 @@
+98a99,100
+>   fun inc(counter, i) = counter := !counter + 1
+> 
+110,111c112,113
+< 	  fun regset cellset = 
+< 	    map (fn r => Intmap.map regmap r) (RaArch.regSet(cellset))
+---
+>           fun rmap r = (Intmap.map regmap r) handle _ => r
+> 	  fun regset cellset = map rmap (RaArch.regSet(cellset))
+162a165,166
+>     val chaseReg = chase o getnode
+>     val chaseRegs = map chaseReg
+255,257c259,269
+< 		  fun zip(d::defs, u::uses, l) = 
+< 		       zip(defs, uses, MV{src=u, dst=d, status=ref WORKLIST}::l)
+< 		    | zip(_, _, l) = l
+---
+> 		  fun zip(defs, uses) = let
+> 		    fun f([], []) = mvs
+>                       | f(d::defs, u::uses) = 
+> 		        if d=u then f(defs, uses) 
+> 			else MV{dst=d, src=u, status=ref WORKLIST}::f(defs, uses)
+> 		  in if length defs <> length uses then mvs else f(defs, uses)
+> 		  end
+> 
+> 		  (* Assumes that the move temporary if present is always the
+> 		   * first thing on the definition list.
+> 		   *)
+259,260c271,274
+< 		    if P.moveInstr instr then					(* XXXX *)
+< 		      if length def <> length use then mvs else zip(def,use,mvs)
+---
+> 		    if P.moveInstr instr then 
+> 		       (case P.moveTmpR instr
+> 			 of NONE => zip(def, use)
+> 		          | SOME r => if null def then mvs  else zip(tl def, use))
+271c285
+< 	    val lout = map getnode (rmvDedicated(RaArch.regSet(!liveOut)))
+---
+> 	    val lout = chaseRegs (rmvDedicated(RaArch.regSet(!liveOut)))
+337a352,353
+>     val initialMoveCnt = length initialMoves	(* total number of moves *)
+>     val movesCoalesced = ref 0			(* number of moves coalesced *)
+338a355
+> 
+525a543
+> 	       inc(movesCoalesced, 1);
+681c699
+< 	  val rNum = nodeNumber o chase o getnode
+---
+> 	  val rNum = nodeNumber o chaseReg
+841,842c859
+< 	    val liveOut = 
+< 	      map (chase o getnode) (rmvDedicated(RaArch.regSet(!liveOut)))
+---
+> 	    val liveOut = chaseRegs (rmvDedicated(RaArch.regSet(!liveOut)))
+1083a1101,1121
+> 
+>       fun lastOne(finish) = let
+> 	val mc = !movesCoalesced
+> 	(* getOut when all moves have been coalesced, or no moves 
+> 	 * have been coalesced. Since in theory this could iterate
+>  	 * many times with no significant improvement , we should 
+> 	 * have a cut off, but I have never seen this behavior in 
+> 	 * practise. 
+> 	 *) 	
+> 	fun getOut () = initialMoveCnt = mc orelse mc = 0 
+>       in
+> 	if getOut() then finish()
+> 	else let
+> 	    fun init(NODE{color, degree, adj, movecnt, movelist, ...}) =
+> 	      (degree:=0; adj := []; movecnt:=0; movelist:=[]; color:=PSEUDO)
+> 	  in 
+> 	    app init stack;
+> 	    graphColoring(mode,blocks,cblocks,blockDU,prevSpills,nodes,regmap)
+> 	  end
+> 	end
+>       fun lastOne(finish) = finish()
+1086,1094c1124,1137
+<       of COPY_PROPAGATION => finishCP()
+<        | REGISTER_ALLOCATION => 
+< 	 (case optimistic(stack, [])
+< 	  of [] => finishRA()		
+< 	   | spills  =>			
+< 	       (app (fn NODE{color, ...} => color := PSEUDO) stack;
+< 		app undoCoalesced (!undoInfo);
+< 		rerun spills) 
+< 	 (*esac*))
+---
+>       of COPY_PROPAGATION => lastOne(finishCP)
+>        | REGISTER_ALLOCATION =>
+> 	 if not(!spillFlag) then 
+> 	   (* If there were no Chaitin spills then there cannot be
+> 	    * any optimistic spills.
+> 	    *)
+> 	   lastOne(fn () => (optimistic(stack, []); finishRA())) 
+> 	 else (case optimistic(stack, [])
+> 	   of [] => lastOne(finishRA)
+> 	    | spills  =>
+> 		(app (fn NODE{color, ...} => color := PSEUDO) stack;
+> 		 app undoCoalesced (!undoInfo);
+> 		 rerun spills) 
+> 	  (*esac*))
+1110a1154
+> 

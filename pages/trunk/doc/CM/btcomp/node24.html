@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>6.4 The fixpt script</TITLE>
+<META NAME="description" CONTENT="6.4 The fixpt script">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node25.html">
+<LINK REL="previous" HREF="node23.html">
+<LINK REL="up" HREF="node20.html">
+<LINK REL="next" HREF="node25.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html357"
+ HREF="node25.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html353"
+ HREF="node20.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html347"
+ HREF="node23.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html355"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html358"
+ HREF="node25.html">6.5 The allcross script</A>
+<B> Up:</B> <A NAME="tex2html354"
+ HREF="node20.html">6. Scripts</A>
+<B> Previous:</B> <A NAME="tex2html348"
+ HREF="node23.html">6.3 The installml script</A>
+ &nbsp <B>  <A NAME="tex2html356"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00074000000000000000">
+6.4 The <TT> fixpt</TT> script</A>
+</H2>
+
+<P>
+One good test of whether a new version of the compiler is working
+properly is to see if it compiles to a <EM> fixed point</EM>.  For this,
+the compiler is compiled <IMG
+ WIDTH="14" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img9.gif"
+ ALT="$n$"> times with the result of the <IMG
+ WIDTH="53" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img10.gif"
+ ALT="$(k-1)$">st
+compilation being responsible for compiling the <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.gif"
+ ALT="$k$">th version.
+A fixed point is reached if two consecutive compilations produce
+identical results.
+
+<P>
+The <TT> fixpt</TT> script automates the task of compiling to a fixed
+point.  It internally uses the <TT> sml</TT> command for the first
+compilation and the <TT> makeml</TT> script with its <TT> -rebuild</TT>
+parameter for all subsequent runs.  This produces a series of bin-directories
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.bin.<I> arch</I>-<I> os</I></TT>,
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">1.bin.<I> arch</I>-<I> os</I></TT>,
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">2.bin.<I> arch</I>-<I> os</I></TT>,<IMG
+ WIDTH="23" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img12.gif"
+ ALT="$\ldots$">
+and boot-directories
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.boot.<I> arch</I>-<I> os</I></TT>,
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">1.boot.<I> arch</I>-<I> os</I></TT>,
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">2.boot.<I> arch</I>-<I> os</I></TT>,<IMG
+ WIDTH="23" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img12.gif"
+ ALT="$\ldots$">
+where <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"> is a common ``stem'' that is used for naming the whole series.
+
+<P>
+The <TT> fixpt</TT> script accepts the following options:
+
+<P>
+ 
+<DL>
+<DT><STRONG>-iter <IMG
+ WIDTH="14" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img9.gif"
+ ALT="$n$"></STRONG></DT>
+<DD>limits the number of iterations to <IMG
+ WIDTH="14" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img9.gif"
+ ALT="$n$">.  The default
+for <IMG
+ WIDTH="14" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img9.gif"
+ ALT="$n$"> is 3.  If no fixed point is found after <IMG
+ WIDTH="14" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img9.gif"
+ ALT="$n$"> iterations, then
+<TT> fixpt</TT> terminates with an error message.</DD>
+<DT><STRONG>-base <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"></STRONG></DT>
+<DD>selects the ``stem'' <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"> (see above).  The default is
+<TT> sml</TT>.</DD>
+<DT><STRONG>-light</STRONG></DT>
+<DD>causes <TT> LIGHT</TT> to be defined during compilation.
+(See the discussion of <TT> makeml</TT>'s <TT> -rebuildlight</TT> option.)</DD>
+</DL>
+
+<P>
+Failure to reach a fixed point after 2 iterations usually indicates
+some serious problem within the compiler.
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html357"
+ HREF="node25.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html353"
+ HREF="node20.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html347"
+ HREF="node23.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html355"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html358"
+ HREF="node25.html">6.5 The allcross script</A>
+<B> Up:</B> <A NAME="tex2html354"
+ HREF="node20.html">6. Scripts</A>
+<B> Previous:</B> <A NAME="tex2html348"
+ HREF="node23.html">6.3 The installml script</A>
+ &nbsp <B>  <A NAME="tex2html356"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

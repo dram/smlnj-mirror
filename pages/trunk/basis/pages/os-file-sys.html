@@ -1,0 +1,292 @@
+<!-- HTML/os-file-sys.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The OS.FileSys structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>OS.FileSys</CODE> structure</H3>
+<P>
+  The OS.FileSys structure provides facilities for accessing and operating on the file system. They are meant to be portable across operating systems. They raise <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> with an argument in case of errors. 
+<P>
+Except for <A HREF="#SIG:OS_FILE_SYS.fullPath:VAL:SPEC">fullPath</A> and <A HREF="#SIG:OS_FILE_SYS.realPath:VAL:SPEC">realPath</A>, functions taking a  string argument will raise the <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> exception of the string is empty. 
+<P>
+It is expected that all functions taking a pathname as an argument (e.g., <A HREF="#SIG:OS_FILE_SYS.modTime:VAL:SPEC">modTime</A> or  <A HREF="os-process.html#SIG:OS_PROCESS.system:VAL:SPEC">OS.Process.system</A>) will resolve any components corresponding to symbolic links. The obvious exceptions to this rule are &lt;<A HREF="#SIG:OS_FILE_SYS.isLink:VAL:SPEC">isLink</A> and  <A HREF="#SIG:OS_FILE_SYS.readLink:VAL:SPEC">readLink</A>, where only symbolic links appearing as directory components of the pathname are resolved. 
+<P>
+<B>We need a general discussion of dirstreams, working directory, directory structure, etc. The introduction should say something about the model of a file system that these functions use; what features they support and what examples of features that require an OS-specific library. We should also note that the particular semantics, especially concerning errors, is OS dependent.</B> 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="OS_FILE_SYS:SIG:SPEC"><CODE>OS_FILE_SYS</CODE></A><BR>
+<B>structure </B><A NAME="FileSys:STR:SPEC"><CODE>FileSys</CODE></A><B> : </B>OS_FILE_SYS<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:OS_FILE_SYS.dirstream:TY:SPEC" HREF="#SIG:OS_FILE_SYS.dirstream:TY">dirstream</A><BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.openDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.openDir:VAL">openDir</A> <B>:</B> string -&gt; dirstream         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.readDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.readDir:VAL">readDir</A> <B>:</B> dirstream -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.rewindDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.rewindDir:VAL">rewindDir</A> <B>:</B> dirstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.closeDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.closeDir:VAL">closeDir</A> <B>:</B> dirstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.chDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.chDir:VAL">chDir</A> <B>:</B> string -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.getDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.getDir:VAL">getDir</A> <B>:</B> unit -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.mkDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.mkDir:VAL">mkDir</A> <B>:</B> string -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.rmDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.rmDir:VAL">rmDir</A> <B>:</B> string -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.isDir:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.isDir:VAL">isDir</A> <B>:</B> string -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.isLink:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.isLink:VAL">isLink</A> <B>:</B> string -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.readLink:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.readLink:VAL">readLink</A> <B>:</B> string -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.fullPath:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.fullPath:VAL">fullPath</A> <B>:</B> string -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.realPath:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.realPath:VAL">realPath</A> <B>:</B> string -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.modTime:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.modTime:VAL">modTime</A> <B>:</B> string -&gt; Time.time         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.fileSize:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.fileSize:VAL">fileSize</A> <B>:</B> string -&gt; Position.int         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.setTime:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.setTime:VAL">setTime</A> <B>:</B> (string * Time.time option) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.remove:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.remove:VAL">remove</A> <B>:</B> string -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.rename:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.rename:VAL">rename</A> <B>:</B> {old : string, new : string} -&gt; unit         <BR>
+<B>datatype</B> <A NAME="SIG:OS_FILE_SYS.access_mode:TY:SPEC" HREF="#SIG:OS_FILE_SYS.access_mode:TY">access_mode</A><BR>
+&nbsp;&nbsp;<B>=</B> A_READ<BR>
+&nbsp;&nbsp;<B>|</B> A_WRITE<BR>
+&nbsp;&nbsp;<B>|</B> A_EXEC<BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.access:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.access:VAL">access</A> <B>:</B> (string * access_mode list) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.tmpName:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.tmpName:VAL">tmpName</A> <B>:</B> unit -&gt; string         <BR>
+<B>eqtype</B> <A NAME="SIG:OS_FILE_SYS.file_id:TY:SPEC" HREF="#SIG:OS_FILE_SYS.file_id:TY">file_id</A><BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.fileId:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.fileId:VAL">fileId</A> <B>:</B> string -&gt; file_id         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.hash:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.hash:VAL">hash</A> <B>:</B> file_id -&gt; word         <BR>
+<B>val</B> <A NAME="SIG:OS_FILE_SYS.compare:VAL:SPEC" HREF="#SIG:OS_FILE_SYS.compare:VAL">compare</A> <B>:</B> (file_id * file_id) -&gt; order         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:OS_FILE_SYS.dirstream:TY"><CODE><B>type</B> dirstream</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.openDir:VAL"><CODE>openDir <VAR>s</VAR>
+          </CODE></A>
+<DD>
+opens directory <VAR>s</VAR> and creates a directory stream for use with <A HREF="#SIG:OS_FILE_SYS.readDir:VAL:SPEC">readDir</A>, <A HREF="#SIG:OS_FILE_SYS.rewindDir:VAL:SPEC">rewindDir</A> and <A HREF="#SIG:OS_FILE_SYS.closeDir:VAL:SPEC">closeDir</A>.  The stream reads the directory entries off the file system in some unspecified order.  Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, the directory does not exist or is not accessible.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.readDir:VAL"><CODE>readDir <VAR>dir</VAR>
+          </CODE></A>
+<DD>
+returns and removes one file name from the directory stream <VAR>dir</VAR>.  When the directory stream is empty (that is, when all entries have been read from the stream), the empty string <CODE>&quot;&quot;</CODE> is returned. <A HREF="#SIG:OS_FILE_SYS.readDir:VAL:SPEC">readDir</A> filters out the names corresponding to the current and parent arcs.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.rewindDir:VAL"><CODE>rewindDir <VAR>dir</VAR>
+          </CODE></A>
+<DD>
+resets the directory stream <VAR>dir</VAR>, as if it had just been opened.  Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, the directory does not exist or is not accessible.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.closeDir:VAL"><CODE>closeDir <VAR>dir</VAR>
+          </CODE></A>
+<DD>
+closes the directory stream <VAR>dir</VAR>, releasing any system resources associated with it.  Any subsequent operations on the stream will raise exception <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A>. However, closing a closed directory stream has no effect.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.chDir:VAL"><CODE>chDir <VAR>s</VAR>
+          </CODE></A>
+<DD>
+changes the current working directory to <VAR>s</VAR>. This affects future calls to all functions that access the file system.  These include the input/output functions such as <A HREF="text-io.html#SIG:TEXT_IO.openIn:VAL:SPEC">TextIO.openIn</A> and <A HREF="text-io.html#SIG:TEXT_IO.openOut:VAL:SPEC">TextIO.openOut</A>, and functions defined in this structure.  Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, the directory does not exist or is not readable.
+<P>
+The <A HREF="#SIG:OS_FILE_SYS.chDir:VAL:SPEC">chDir</A> function will also change the current volume (on systems with volumes) if one is specified. <A HREF="#SIG:OS_FILE_SYS.chDir:VAL:SPEC">chDir</A> will not allow the user to change the current working directory of another volume than the current, even on systems where this concept is otherwise supported.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.getDir:VAL"><CODE>getDir <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns an absolute canonical pathname  of the current working directory. This includes the current volume for systems supporting volumes.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.mkDir:VAL"><CODE>mkDir <VAR>s</VAR>
+          </CODE></A>
+<DD>
+creates directory <VAR>s</VAR> on the file system. Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, the directory in which <VAR>s</VAR> is to be created does not exist or is not writable.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.rmDir:VAL"><CODE>rmDir <VAR>s</VAR>
+          </CODE></A>
+<DD>
+removes directory <VAR>s</VAR> from the file system. Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, <VAR>s</VAR> does not exist or if the directory in which <VAR>s</VAR> resides is not writable, or if the directory is not empty.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.isDir:VAL"><CODE>isDir <VAR>s</VAR>
+          </CODE></A>
+<DD>
+tests whether <VAR>s</VAR> is a directory.  Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, <VAR>s</VAR> does not exist or if the directory in which <VAR>s</VAR> resides is not accessible.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.isLink:VAL"><CODE>isLink <VAR>s</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE>  if <VAR>s</VAR> names a symbolic link. Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, <VAR>s</VAR> does not exist or there is an access violation. On operating systems without symbolic links, it will always return <CODE>false</CODE> unless an exception is raised.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.readLink:VAL"><CODE>readLink <VAR>s</VAR>
+          </CODE></A>
+<DD>
+returns the contents of the symbolic link <VAR>s</VAR>. Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, <VAR>s</VAR> does not exist or is not a symbolic link, or there is an access violation.  On operating systems without symbolic links, it raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> unconditionally.           
+<P>
+          The precise form of the returned string, in particular, whether           it corresponds to an absolute or relative path, is system-dependent.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.fullPath:VAL"><CODE>fullPath <VAR>s</VAR>
+          </CODE></A>
+<DD>
+returns an absolute canonical path that names the same file-system 	object as <VAR>s</VAR>. 	The resulting path will have a volume prefix (on systems supporting         volumes), all occurrences of the 	current, parent, and empty arcs will have been expanded or removed, 	and any symbolic links will have been fully expanded.         An empty <VAR>s</VAR> is treated as <CODE>&quot;.&quot;</CODE>. 	It raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, a directory on the 	path, or the file or directory named, does not exist or is not 	accessible or if there is a link loop.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.realPath:VAL"><CODE>realPath <VAR>s</VAR>
+        </CODE></A>
+<DD>
+returns a canonical path that names the same file-system 	object as <VAR>s</VAR>. 	If <VAR>s</VAR> is an absolute path, then realPath         acts like fullPath. 	If <VAR>s</VAR> is relative and on the same volume as the current working 	directory, then it returns a path that is relative to the current 	working directory.         Otherwise, it raises <A HREF="os-path.html#SIG:OS_PATH.Path:EXN:SPEC">OS.Path.Path</A>. 	
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+realPath can be implemented as: 	  
+<PRE>
+fun realPath p = if <A HREF="os-path.html#SIG:OS_PATH.isAbsolute:VAL:SPEC">OS.Path.isAbsolute</A> p
+      then fullPath p
+      else <A HREF="os-path.html#SIG:OS_PATH.mkRelative:VAL:SPEC">OS.Path.mkRelative</A> (fullPath p, fullPath (getDir ()))
+	  
+</PRE>
+ 	
+</BLOCKQUOTE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.modTime:VAL"><CODE>modTime <VAR>s</VAR>
+          </CODE></A>
+<DD>
+returns the modification time of file <VAR>s</VAR>. Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, <VAR>s</VAR> does not exist or if the directory in which <VAR>s</VAR> resides is not accessible.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.fileSize:VAL"><CODE>fileSize <VAR>s</VAR>
+          </CODE></A>
+<DD>
+returns the size of file <VAR>s</VAR> in bytes. Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, <VAR>s</VAR> does not exist or if the directory in which <VAR>s</VAR> resides is not accessible.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.setTime:VAL"><CODE>setTime (<VAR>s</VAR>, <VAR>opt</VAR>)
+          </CODE></A>
+<DD>
+sets the modification and access time of file <VAR>s</VAR>. If <VAR>opt</VAR> is <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A> <VAR>t</VAR></CODE>, then the time <VAR>t</VAR> is used; otherwise the current time, that is, <CODE><A HREF="time.html#SIG:TIME.now:VAL:SPEC">Time.now</A>()</CODE>, is used.  Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, <VAR>s</VAR> does not exist or if the directory in which <VAR>s</VAR> resides is not accessible or the user does not have appropriate permission.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.remove:VAL"><CODE>remove <VAR>s</VAR>
+          </CODE></A>
+<DD>
+deletes file <VAR>s</VAR> from the file system. Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, for example, <VAR>s</VAR> does not exist or is not writable, or if the directory in which <VAR>s</VAR> resides is not writable.         
+<P>
+If one removes a file that has been opened for reading or writing, the behavior of subsequent reads and writes is undefined.  For example, removing the file may close all existing streams or generate an exception.  The Unix idiom of opening a file and then removing it is not portable.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.rename:VAL"><CODE>rename {<VAR>old</VAR>, <VAR>new</VAR>}
+          </CODE></A>
+<DD>
+changes the name of file <VAR>old</VAR> to <VAR>new</VAR>. 	If <VAR>new</VAR> and <VAR>old</VAR> refer to the same file, 	rename does nothing. 	If a file called <VAR>new</VAR> exists, it is removed.   	Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if, 	for example, <VAR>old</VAR> does not exist, or if one of the 	directories in which <VAR>old</VAR> or <VAR>new</VAR> reside is not writable. 	This may also fail if <VAR>old</VAR> refers to an open file, or if 	<VAR>old</VAR> and <VAR>new</VAR> are on different file systems, i.e., if     a copy is required.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.access_mode:TY"><CODE><B>datatype</B> access_mode</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.access:VAL"><CODE>access (<VAR>s</VAR>, <VAR>accs</VAR>)
+          </CODE></A>
+<DD>
+tests the access permissions of file <VAR>s</VAR>, expanding symbolic links as necessary.  If the list <VAR>accs</VAR> of required access permission is empty, it tests whether <VAR>s</VAR> exists. If <VAR>accs</VAR> contains <A HREF="#SIG:OS_FILE_SYS.access_mode:TY:SPEC">A_READ</A>, <A HREF="#SIG:OS_FILE_SYS.access_mode:TY:SPEC">A_WRITE</A> or <A HREF="#SIG:OS_FILE_SYS.access_mode:TY:SPEC">A_EXEC</A>, respectively, it tests whether the user process has read, write or execute permission for the file, testing their conjunction if more than one are present.  Note that access is also implicitly testing the user's access to the parent directories of the file. The function will only raise <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> for errors unrelated to resolving the pathname and the related permissions, such as being interrupted by a signal during the system call.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.tmpName:VAL"><CODE>tmpName <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns a valid file name <VAR>s</VAR> that is not  	the name of a currently existing file, and is suitable for 	naming a temporary file. 	This will raise <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">SysErr</A> if it can detect that it 	cannot create a unique file name. 	Even if it succeeds, there is no guarantee that a file 	of that name was not created shortly after the call to 	tmpName, although this situation 	is unlikely.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.file_id:TY"><CODE><B>eqtype</B> file_id</CODE></A>
+<DD>
+a unique identifier associated with a file system object.           Not persistent across changes in file           system (e.g., mount/unmount) but is better than path names           for uniquely identifying files.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.fileId:VAL"><CODE>fileId <VAR>s</VAR>
+          </CODE></A>
+<DD>
+returns the unique <A HREF="#SIG:OS_FILE_SYS.file_id:TY:SPEC">file_id</A> value associated with            the file system object designated by the pathname <VAR>s</VAR>.           In particular,            if <CODE>fileId <VAR>p</VAR> = fileId <VAR>p'</VAR></CODE>, then           the paths <VAR>p</VAR> and <VAR>p'</VAR> refer to the same file system object.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.hash:VAL"><CODE>hash <VAR>fid</VAR>
+          </CODE></A>
+<DD>
+returns a hashvalue associated with <VAR>fid</VAR>.            
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+hash must have the property that values produced are           well distributed when taken modulo 2<SUP>(n)</SUP> for any <VAR>n</VAR>.           
+</BLOCKQUOTE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_FILE_SYS.compare:VAL"><CODE>compare (<VAR>fid</VAR>, <VAR>fid'</VAR>)
+          </CODE></A>
+<DD>
+returns <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">LESS</A>,            <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">EQUAL</A> or <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">GREATER</A> 	  when <VAR>fid</VAR> is less than, equal to, or greater than 	  <VAR>fid'</VAR>, respectively, in some underlying linear ordering           on <A HREF="#SIG:OS_FILE_SYS.file_id:TY:SPEC">file_id</A> values.    
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="os.html#OS:STR:SPEC">OS</A>, <A HREF="os.html#SIG:OS.Path:STR:SPEC">OS.Path</A>, <A HREF="text-io.html#TextIO:STR:SPEC">TextIO</A>, <A HREF="bin-io.html#BinIO:STR:SPEC">BinIO</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="system-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 6, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

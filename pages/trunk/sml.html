@@ -1,0 +1,152 @@
+<HTML>
+  <TITLE>Standard ML</TITLE>
+<BODY BGCOLOR="ffffff">
+
+<h1>Standard ML</h1>
+<HR>
+<p>
+<blockquote>
+Standard ML is a safe, modular, strict, functional, polymorphic
+programming language with compile-time type checking
+and type inference,
+garbage collection, exception handling,
+immutable data types and updatable references,
+abstract data types, and parametric modules.  
+It has efficient implementations and a formal definition
+with a proof of soundness.
+
+<dl>
+<dt><strong>Safe</strong><dd>
+ML is safe, in that a program that passes the type-checker
+cannot dump core, access private fields of abstract data types,
+mistake integers for pointers, or otherwise "go wrong."
+
+<dt><strong>Modular</strong><dd>
+The Standard ML module system supports modules (called <i>structures</i>)
+and interfaces (called <i>signatures</i>); the signature of a module
+determines what components and types from the module are visible
+from outside.  There is a flexible system for matching structures
+to signatures: there can be several different views (signatures)
+of the same structure, and there can be several different
+implementations (structures) matching the same signature.
+
+<dt><strong>Functional</strong><dd>
+ML has higher-order functions:  functions can be passed
+as arguments, stored in data structures, and returned as results
+of function calls.  Functions can be statically nested within 
+other functions; this lexical scoping mechanism gives the ability
+to create "new" functions at run time.
+
+<dt><strong>Strict</strong><dd>
+Function calls in ML, like those of C, Pascal, C++, Java, etc., evaluate
+their arguments before entering the body of the function.
+Such a language is called <i>strict</i> or <i>call-by-value</i>,
+in contrast to some functional programming languages that
+are <i>lazy</i> or <i>call-by-need</i>.  Strict evaluation makes it
+easier for the programmer to reason about the execution of the program.
+
+<dt><strong>Polymorphic</strong><dd>
+ML supports polymorphic functions and data types.  
+Data-type polymorphism
+allows a single type declaration (such as "list") to describe
+lists of integers, lists of strings, lists of lists of integers, and so on;
+but the programmer can be assured that, given an "int list",
+every element really is an "int".  Function polymorphism allows
+a single function declaration (such as filter_list) to operate on
+lists of integers, lists of strings, lists of integer-lists,
+and so on, avoid needless duplication of code.
+
+<dt><strong>Compile-time type checking</strong><dd>
+Programmers in compile-time type-checked languages get the
+benefit not only of faster execution but also less debugging:
+many of the programmer's mistakes can be caught early in the
+development process; and the types may lead to clearer thinking about
+the program's specification.
+
+<dt><strong>Type inference</strong><dd>
+The ML programmer need not write down the type of every
+variable and function-parameter: the compiler can usually
+calculate the type from context.  This makes programs more
+concise and easier to write.
+
+<dt><strong>Garbage collection</strong><dd>
+Automatic deallocation of unreachable data makes programs
+simpler, cleaner, and more reliable.
+
+<dt><strong>Exception handling</strong><dd>
+ML's exception-handling mechanism -- similar to the ones
+in C++, Java, Ada, etc. -- provides dynamic nesting of handlers
+and eliminates the need for ad hoc, special exceptional
+return values from functions.
+
+<dt><strong>Immutable data types</strong><dd>
+In ML, most variables and
+data structures -- once created and initialized -- are
+<i>immutable</i>, meaning that they are never changed, updated, or
+stored into.  This leads to some powerful guarantees of noninterference
+by different parts of the program operating on those data structures.
+In a functional language such as ML, one tends to build new data
+structures (and let the old ones be garbage collected) instead of
+modifying old ones.
+
+<dt><strong>Updatable references</strong><dd>
+However, ML does have updatable (assignable) <i>reference</i> types,
+so that in those cases where destructive update is the most natural
+way to express an algorithm, one can express it directly.
+
+<dt><strong>Abstract data types</strong><dd>
+ML supports information hiding, so that one can implement a data
+type whose representation is hidden by an interface that just exports
+functions to construct and operate on the type.
+
+<dt><strong>Parametric modules</strong><dd>
+A <i>functor</i> is an ML program module takes the signature 
+of another module as an argument.  The functor can then be applied to
+any module matching that signature.  This facility is like the
+<i>template</i> of C++ or the <i>generic</i> of Ada or Modula-3,
+but in ML the functor can be completely type-checked and compiled
+to machine code before it is applied to its argument(s); this leads
+to better program modularity.
+
+<dt><strong>Efficient implementations</strong><dd>
+Features such as polymorphism, parametric modules, and a heavy
+reliance on garbage collection have meant that compiling ML to efficient
+machine code requires techniques not usually necessary in C compilers.
+Several Standard ML 
+compilers generate high-quality machine code, including 
+<a href="index.html">Standard ML of New Jersey</a> and
+<a href="http://www.harlequin.com/products/ads/ml/">Harlequin ML Works</a>.
+
+<dt><strong>Formal definition</strong><dd>
+The ML language is clearly specified by 
+<a href="http://mitpress.mit.edu/book-home.tcl?isbn=0262631814"><I>The Definition of Standard ML
+(Revised)</I> (Milner, Tofte, Harper, MacQueen, MIT Press, 1997)</a>,
+which defines the language in 93 pages of mathematical notation and
+English prose.  This book is not meant for the casual reader, but
+it is accessible to the serious student of programming languages and
+its existence and accessibility provide an implementation-independent
+formulation of Standard ML.
+
+<dt><strong>Proof of soundness</strong><dd>
+A consequence of having the language definition in a formal notation
+is that one can 
+<a href="http://simon.trinhall.cam.ac.uk/~mvi20/papers/JAR.html">prove 
+important properties of the language</a>, such as 
+deterministic evaluation or soundness of type-checking.
+
+</dl>
+</blockquote>
+<HR>
+<CENTER><STRONG>
+| <A HREF="index.html">SML/NJ Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>
+

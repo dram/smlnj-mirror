@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.21 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.21, September 3, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot. 
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+<center><h2>Summary:</h2></center>
+  This version contains substantial internal changes to CM (Blume) 
+  and MLRISC (Leung). Also a new scheme for version numbers is
+  proposed.  
+
+<hr>
+
+<center><h2> Version Numbers</h2></center>
+  The version numbers, of late, have begun to carry at least one
+  unnecessay digit. For example, the last public release was <tt>110.0.3.</tt> 
+  The internal versions since then have been called <tt>110.xx</tt>, such as
+  <tt>110.21</tt> etc. Continuing in this fashion, the next set of public 
+  versions will be <tt>111.0</tt>, <tt>112.0</tt>, etc. At the rate at which we 
+  have public releases, the leading 1 is meaningless. 
+<p>
+  We have a proposal to change this release to version <tt>3.21</tt>,  
+  and the next to version <tt>3.22</tt>. The next public release will be
+  version <tt>4.0</tt>. This is assuming:
+<p>
+     public release <tt>75</tt> was version <tt>1.0</tt>, 
+     public release <tt>93</tt> was version <tt>2.0</tt>,		
+    and public release <tt>110</tt> was version <tt>3.0.</tt>
+<p>
+  Send opinions to smlnj@research.bell-labs.com
+<p>
+<hr>
+<center><h2> CM </h2></center>
+  <ul>
+    <li> New implementation of generic pickler modules
+    <p>
+     These have been moved to comp-lib and are now being used not
+     only by the compiler's environment-pickler but also by CM to
+     write skeleton files and stable libraries
+    <p>
+     New implementation of the environment pickler/unpickler
+     (is smaller in object code size, slightly faster, a bit more
+     general as it allows "lazy" unpickling, and compiles without
+     warnings) 
+
+  <p> <li> New format of stable library files (they are smaller, load
+	  faster,  and (tend to) incur less main memory usage)
+ 
+  <p><li> Some streamlining of CM's internals
+
+  <p><li> The new CM manual is in draft version, and can be previewed at:
+<pre>
+        http://www.kurims.kyoto-u.ac.jp/~blume/SMLNJ-DEV/manual/
+</pre>
+
+<hr>
+<center><h2> MLRISC</h2></center>
+  <h4> gc callbacks: </h4>
+   A new interface to generating gc involving callbacks 
+   is now in place. This will allow for code motion past gc safe points 
+   and late generation of gc invocation code.
+    
+  <h4> Stream based</h4>
+
+   All phases of the back end use a new stream based interface to
+   the flow graph. This allows changes in internal representation  
+   depending on the level of optimization.
+
+  <h4> Address width</h4>
+
+    This is set to 64 on the alpha so that address arithmetic is done
+    in 64 bits (<tt>LDA</tt>).  This is supposed to fix the
+      <tt>ADDL/LDA</tt> problem. 
+    Recall that word32 was actually broken on the alpha (in all
+    previous MLRISC versions).  But the fix of replacing <tt>LDA</tt>
+      by <tt>ADDL</tt> 
+    has severe impact on performance. 
+    <p>
+    NOTE: this is a somewhat risky fix, so I have to identify all the
+    places where address arithmetic is used in MLRiscGen, InvokeGC, 
+    MkRecord etc. 
+    <p>
+    MLRiscGen is a new version with some gc type annotations support.
+
+  <h4> Machine-gen</h4>
+
+    All the back ends are modified so that it is specialized 
+    using the functor <tt>MachineGen</tt>.   This keeps the machine 
+    dependent stuff to a minimum. <tt>MachineGen</tt> also has support
+    for profiling (in Compiler.Stats.) 
+    See Compiler.Stats.summary();
+
+  <h4> Dominator trees</h4>
+
+    The dominator tree stuff has been cleaned up.  It is now
+    faster and more modular.
+
+  <h4> Alpha</h4>
+
+    Various fixes provided by Fermin went into the alpha backend, 
+    which now supports <tt>CVTx2x</tt> operators.  
+
+  <h4> Control-C </h4>
+
+    There used be some problem with states in the backpatch modules.
+    The state was not cleaned up properly when ^C is pressed during
+    compilation.  BTW, the same problem appeared in callgc.sml.
+    In this release the functor <tt>MachineGen</tt> will reset the state of the 
+    MLRISC system before processing a new compilation unit.  I think
+    now we should have a harder time of crashing SML with ^C.
+
+  <h4> Labels</h4>
+
+    Labels have been simplified (no more option).
+
+  <h4> MLTREECOMP </h4>
+
+    MLTREECOMP has been changed to use the stream interface.
+    This makes things more convenient in many places, when we have
+    to pass around the code emitter functions.  The
+      <tt>mltree-mult</tt>  stuff 
+    has been changed to support signed arithmetic better (for C--).
+    <tt>MLTreeGen</tt> has been changed to support <tt>CVTI2I</tt> operators.
+
+  <h4> register allocation modules</h4>
+
+    The phases of register allocation has been broken up into 
+    several modules.
+
+  <h4> x86 </h4>
+
+    Various fixes from Fermin and James went in here.
+    Fermin sent in a bug fix for spilling CALLs.
+    James (sbj@mit.edu) sent in fixes for the assembler and
+    X86RewritePseudo. Also, I've changed <tt>X86RewritePseudo</tt>
+    and <tt>X86Spill</tt>
+    so that they preserve annotations; again requested by James.
+    <p>
+    In the instruction set, 'RET of operand option' is added.
+
+<hr>
+
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Tue Sep  7 14:05:55 EDT 1999
+<!-- hhmts end -->
+    </font>
+</blockquote>
+</body>
+</html>

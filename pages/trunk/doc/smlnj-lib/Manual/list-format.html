@@ -1,0 +1,95 @@
+<!-- HTML/list-format.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The ListFormat structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>ListFormat</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="LIST_FORMAT:SIG:SPEC"><CODE>LIST_FORMAT</CODE></A><BR>
+<B>structure </B><A NAME="ListFormat:STR:SPEC"><CODE>ListFormat</CODE></A><B> : </B>LIST_FORMAT<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The ListFormat structure provides simple utilities for converting between lists and their string representations. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:LIST_FORMAT.fmt:VAL:SPEC" HREF="#SIG:LIST_FORMAT.fmt:VAL">fmt</A> <B>:</B> {init : string, sep : string, final : string, fmt : 'a -&gt; string} -&gt; 'a list -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:LIST_FORMAT.listToString:VAL:SPEC" HREF="#SIG:LIST_FORMAT.listToString:VAL">listToString</A> <B>:</B> ('a -&gt; string) -&gt; 'a list -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:LIST_FORMAT.scan:VAL:SPEC" HREF="#SIG:LIST_FORMAT.scan:VAL">scan</A> <B>:</B> {init : string, sep : string, final : string, scan : (char,'b) StringCvt.reader -&gt; ('a,'b) StringCvt.reader} -&gt; (char,'b) StringCvt.reader -&gt; ('a list,'b) StringCvt.reader         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:LIST_FORMAT.fmt:VAL"><CODE>fmt {<VAR>init</VAR>, <VAR>sep</VAR>, <VAR>final</VAR>, <VAR>fmt</VAR>}
+          </CODE></A>
+<DD>
+takes an initial string (<VAR>init</VAR>), a separator (<VAR>sep</VAR>),            a terminating string (<VAR>final</VAR>), and an item formating            function (<VAR>fmt</VAR>), and returns a list formatting function.             The list <CODE>[a, b, ..., c]</CODE> gets formated as            
+<PRE>
+          init ^ (fmt a) ^ sep ^ (fmt b) ^ sep ^ ... ^ sep ^ (fmt c) ^ final
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIST_FORMAT.listToString:VAL"><CODE>listToString <VAR>f</VAR> <VAR>l</VAR>
+          </CODE></A>
+<DD>
+formats a list in SML style. Equivalent to:           
+<PRE>
+ 
+          fmt {init=&quot;[&quot;, sep=&quot;,&quot;, final=&quot;]&quot;, fmt=f} l
+          
+</PRE>
+      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIST_FORMAT.scan:VAL"><CODE>scan {<VAR>init</VAR>, <VAR>sep</VAR>, <VAR>final</VAR>, <VAR>scan</VAR>} <VAR>re</VAR>
+          </CODE></A>
+<DD>
+scans a list of the specified format from a stream of characters. If           successful, it returns the list and the remainder of the stream;           otherwise, it returns <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/option.html#SIG:OPTION.option:TY:SPEC">NONE</A>.            
+<P>
+          The format of the list is specified by an expected initial string           <VAR>init</VAR>, a list item separator <VAR>sep</VAR>, an expected           terminating string <VAR>final</VAR>, and a function <VAR>scan</VAR> for scanning           a list item. Whitespace is ignored.            
+<P>
+          When scanning a string, <CODE>scan</CODE> checks for the separator before            the terminator, thus if the separator is a prefix of the terminator,            the function will not work.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+Format, <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/list.html#List:STR:SPEC">List</A>, <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/string-cvt.html#StringCvt:STR:SPEC">StringCvt</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 11, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

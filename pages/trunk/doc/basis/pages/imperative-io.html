@@ -1,0 +1,271 @@
+<!-- HTML/imperative-io.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The IMPERATIVE_IO signature</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>IMPERATIVE_IO</CODE> signature</H3>
+<P>
+The IMPERATIVE_IO signature defines the interface of the <EM>Imperative IO</EM> layer in the IO stack. This layer provides buffered IO using mutable streams. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="IMPERATIVE_IO:SIG:SPEC"><CODE>IMPERATIVE_IO</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> <A NAME="SIG:IMPERATIVE_IO.StreamIO:STR:SPEC" HREF="#SIG:IMPERATIVE_IO.StreamIO:STR">StreamIO</A> <B>:</B> STREAM_IO<BR>
+<B>type</B> <A NAME="SIG:IMPERATIVE_IO.vector:TY:SPEC" HREF="#SIG:IMPERATIVE_IO.vector:TY">vector</A> <B>=</B> StreamIO.vector       <BR>
+<B>type</B> <A NAME="SIG:IMPERATIVE_IO.elem:TY:SPEC" HREF="#SIG:IMPERATIVE_IO.vector:TY">elem</A> <B>=</B> StreamIO.elem 	<BR>
+<B>type</B> <A NAME="SIG:IMPERATIVE_IO.instream:TY:SPEC" HREF="#SIG:IMPERATIVE_IO.instream:TY">instream</A><BR>
+<B>type</B> <A NAME="SIG:IMPERATIVE_IO.outstream:TY:SPEC" HREF="#SIG:IMPERATIVE_IO.outstream:TY">outstream</A><BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.input:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.input:VAL">input</A> <B>:</B> instream -&gt; vector 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.input1:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.input1:VAL">input1</A> <B>:</B> instream -&gt; elem option 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.inputN:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.inputN:VAL">inputN</A> <B>:</B> (instream * int) -&gt; vector 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.inputAll:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.inputAll:VAL">inputAll</A> <B>:</B> instream -&gt; vector 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.canInput:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.canInput:VAL">canInput</A> <B>:</B> (instream * int) -&gt; int option       <BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.lookahead:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.lookahead:VAL">lookahead</A> <B>:</B> instream -&gt; elem option 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.closeIn:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.closeIn:VAL">closeIn</A> <B>:</B> instream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.endOfStream:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.endOfStream:VAL">endOfStream</A> <B>:</B> instream -&gt; bool 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.output:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.output:VAL">output</A> <B>:</B> (outstream * vector) -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.output1:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.output1:VAL">output1</A> <B>:</B> (outstream * elem) -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.flushOut:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.flushOut:VAL">flushOut</A> <B>:</B> outstream -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.closeOut:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.closeOut:VAL">closeOut</A> <B>:</B> outstream -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.getPosIn:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.getPosIn:VAL">getPosIn</A> <B>:</B> instream -&gt; StreamIO.in_pos 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.setPosIn:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.setPosIn:VAL">setPosIn</A> <B>:</B> (instream * StreamIO.in_pos) -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.mkInstream:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.mkInstream:VAL">mkInstream</A> <B>:</B> StreamIO.instream -&gt; instream         <BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.getInstream:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.getInstream:VAL">getInstream</A> <B>:</B> instream -&gt; StreamIO.instream         <BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.setInstream:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.setInstream:VAL">setInstream</A> <B>:</B> (instream * StreamIO.instream) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.getPosOut:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.getPosOut:VAL">getPosOut</A> <B>:</B> outstream -&gt; StreamIO.out_pos 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.setPosOut:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.setPosOut:VAL">setPosOut</A> <B>:</B> (outstream * StreamIO.out_pos) -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.mkOutstream:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.mkOutstream:VAL">mkOutstream</A> <B>:</B> StreamIO.outstream -&gt; outstream         <BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.getOutstream:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.getOutstream:VAL">getOutstream</A> <B>:</B> outstream -&gt; StreamIO.outstream         <BR>
+<B>val</B> <A NAME="SIG:IMPERATIVE_IO.setOutstream:VAL:SPEC" HREF="#SIG:IMPERATIVE_IO.setOutstream:VAL">setOutstream</A> <B>:</B> (outstream * StreamIO.outstream) -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:IMPERATIVE_IO.StreamIO:STR"><CODE><B>structure</B> StreamIO</CODE></A>
+<DD>
+This substructure provides lower-level stream I/O, as defined         by the <A HREF="stream-io.html#STREAM_IO:SIG:SPEC">STREAM_IO</A> interface, that is         compatible with the <A HREF="#SIG:IMPERATIVE_IO.instream:TY:SPEC">instream</A> and <A HREF="#SIG:IMPERATIVE_IO.outstream:TY:SPEC">outstream</A>,         in the sense that the conversion functions <A HREF="#SIG:IMPERATIVE_IO.mkInstream:VAL:SPEC">mkInstream</A>,         <A HREF="#SIG:IMPERATIVE_IO.getInstream:VAL:SPEC">getInstream</A>, <A HREF="#SIG:IMPERATIVE_IO.mkOutstream:VAL:SPEC">mkOutstream</A>          and <A HREF="#SIG:IMPERATIVE_IO.getOutstream:VAL:SPEC">getOutstream</A> allow         the programmer to convert between low-level streams and         redirectable streams. Typically, the redirectable streams         are implemented in terms of low-level streams. 	Note that <A HREF="stream-io.html#SIG:STREAM_IO.outstream:TY:SPEC">StreamIO.outstream</A> 	is not a functional stream. 	The <EM>only</EM> difference between a 	<A HREF="stream-io.html#SIG:STREAM_IO.outstream:TY:SPEC">StreamIO.outstream</A> and an 	<A HREF="#SIG:IMPERATIVE_IO.outstream:TY:SPEC">outstream</A> is that the latter is redirectable. 	
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.vector:TY"><CODE><B>type</B> vector</CODE></A>
+<DT> <CODE><B>type</B> elem</CODE>
+<DD>
+These are the abstract types of stream elements and vectors of 	elements. 	For text streams, these are <A HREF="char.html#SIG:CHAR.char:TY:SPEC">Char.char</A> and <A HREF="string.html#SIG:STRING.string:TY:SPEC">String.string</A>, 	while for binary streams, these are <A HREF="word.html#SIG:WORD.word:TY:SPEC">Word8.word</A> and 	<A HREF="mono-vector.html#SIG:MONO_VECTOR.vector:TY:SPEC">Word8Vector.vector</A>. 	
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.instream:TY"><CODE><B>type</B> instream</CODE></A>
+<DD>
+The type of redirectable imperative input streams.  Two 	imperative streams may share an underlying functional stream or 	reader.  Closing one of them effectively closes the underlying 	functional stream, which will affect subsequent operations on 	the other. 	
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.outstream:TY"><CODE><B>type</B> outstream</CODE></A>
+<DD>
+The type of redirectable output streams.  Two redirectable streams 	may share an underlying stream or writer.  If this 	is the case, writing or positioning the file pointer on one of 	them, or closing it, also affects the other. 	
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.input:VAL"><CODE>input <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+attempts to read from <VAR>strm</VAR>, starting from the current 	  input file position.  When elements are available, returns a 	  <CODE>vector</CODE> of at least one element.  When <VAR>strm</VAR> is at 	  end-of-stream or is closed, returns an empty vector. 	  Otherwise, <CODE>input</CODE> blocks until one of these 	  conditions is met, and returns accordingly. 	  May raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.input1:VAL"><CODE>input1 <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+reads one element from <VAR>strm</VAR>.  Returns <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A> e</CODE> 	  if one element was available; returns <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> if at 	  end-of-stream. 	  May block, and may raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.inputN:VAL"><CODE>inputN (<VAR>strm</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+reads at most <VAR>n</VAR> elements from <VAR>strm</VAR>.  Returns 	  a vector containing <VAR>n</VAR> elements if at least <VAR>n</VAR> 	  elements are available before end-of-stream; returns 	  a shorter (and possibly empty) vector of all elements 	  remaining before end-of-stream otherwise. 	  May block, and may raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>.           Raises <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> if <VAR>n</VAR> &lt; 0 or           <VAR>n</VAR> &gt; <CODE>maxLen</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.inputAll:VAL"><CODE>inputAll <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+returns all elements of <VAR>strm</VAR> up to end-of-stream. 	  May block, and may raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>.           Raises <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> if the amount of data exceeds           the <A HREF="mono-vector.html#SIG:MONO_VECTOR.maxLen:VAL:SPEC">maxLen</A> of the <A HREF="#SIG:IMPERATIVE_IO.vector:TY:SPEC">vector</A> 	  type.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.canInput:VAL"><CODE>canInput (<VAR>strm</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+returns <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> if any attempt at input           would block. Returns <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A> <VAR>k</VAR></CODE>,           where 0 &lt;= k &lt;= n, if a call to <A HREF="#SIG:IMPERATIVE_IO.input:VAL:SPEC">input</A>           would return immediately with <VAR>k</VAR> characters. Note that           k = 0 corresponds to the stream being at end-of-stream.           
+<P>
+	  Some streams may not support this operation, in which case the 	  <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception will be raised. 	  This function also raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception           if there is an error in the underlying system calls. 	  It raises the <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> exception           if n &lt; 0.           
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+Implementations of <A HREF="#SIG:IMPERATIVE_IO.canInput:VAL:SPEC">canInput</A> should attempt to return           as large a <VAR>k</VAR> as possible. For example, if the           buffer contains 10 characters and the user calls           <CODE>canInput (<VAR>f</VAR>, 15)</CODE>, <A HREF="#SIG:IMPERATIVE_IO.canInput:VAL:SPEC">canInput</A> should           call <CODE>readVecNB 5</CODE> to see if an additional 5           characters are available.           
+</BLOCKQUOTE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.lookahead:VAL"><CODE>lookahead <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+determines whether one element is available on <VAR>strm</VAR> 	  before end-of-stream and returns <CODE>SOME e</CODE> in this case; 	  returns <CODE>NONE</CODE> if at end-of-stream.  In the former case, 	  <CODE>e</CODE> is not removed from <VAR>strm</VAR> but stays available for 	  further input operations. 	  May block, and may raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>.           
+<P>
+          Note that arbitrary lookahead can be easily implemented           using the underlying stream.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.closeIn:VAL"><CODE>closeIn <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+closes the instream <VAR>strm</VAR>, freeing resources of the 	  underlying I/O layers associated with it.   	  A <CODE>closeIn</CODE> applied to an already closed stream will be ignored.       Other operations on a closed stream will behave as if the stream       is at end-of-stream.       The function is implemented in terms of <CODE>S.closeIn</CODE>.   	  It may also raise <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> when another error occurs.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.endOfStream:VAL"><CODE>endOfStream <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>strm</VAR> is at end-of-stream, 	  and <CODE>false</CODE> if elements are still available. 	  May block until one of these conditions is determined, 	  and may raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>. 	  <B>Note</B>: When <CODE>endOfStream</CODE> returns <CODE>true</CODE> on an 	  unterminated stream, this denotes the <EM>current</EM> 	  situation.  When further data are appended to the underlying 	  file or stream, the next call to <CODE>endOfStream</CODE> will return 	  false, and input operations will deliver new elements.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.output:VAL"><CODE>output (<VAR>strm</VAR>, <VAR>vec</VAR>)
+          </CODE></A>
+<DD>
+attempts to write the contents of <VAR>vec</VAR> to <VAR>strm</VAR>, 	  starting from the current output file position.  May block 	  until the underlying stream layers (and eventually the 	  operating system) can accept all of <VAR>vec</VAR>. 	  May raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>.  In that case, it is 	  unspecified how much of <VAR>vec</VAR> was actually written.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.output1:VAL"><CODE>output1 (<VAR>strm</VAR>, <VAR>el</VAR>)
+          </CODE></A>
+<DD>
+outputs exactly one element <VAR>el</VAR> to <VAR>strm</VAR>. 	  May block, and may raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> when 	  an error occurred. 	  In that case it is unspecified how much of <VAR>el</VAR> (if 	  its physical representation is larger than just one byte) 	  was actually written.           At this level, more than this can not be guaranteed. Programs           that need more control over this possibility need to make use           of more primitive or OS-specific I/O routines.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.flushOut:VAL"><CODE>flushOut <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+causes any stream buffers to be written out.  Corresponds 	  to <CODE>S.flushOut</CODE>. 	  May block, and may raise the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> when 	  an error occurs.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.closeOut:VAL"><CODE>closeOut <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+closes the outstream <VAR>strm</VAR>, freeing resources of the 	  underlying I/O layers associated with it. Implemented 	  in terms of <CODE>S.closeOut</CODE>. A write attempt on a 	  closed outstream will cause the exception           <CODE><A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>{cause=<A HREF="io.html#SIG:IO.ClosedStream:EXN:SPEC">ClosedStream</A>,...}</CODE> to be raised. 	  May also raise <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> when another error occurs (e.g., 	  buffers can't be flushed out).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.getPosIn:VAL"><CODE>getPosIn <VAR>strm</VAR>
+	</CODE></A>
+<DD>
+returns the current position in the stream <VAR>strm</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.setPosIn:VAL"><CODE>setPosIn (<VAR>strm</VAR>, <VAR>pos</VAR>)
+	</CODE></A>
+<DD>
+sets the current position of the stream <VAR>strm</VAR> to be <VAR>pos</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.mkInstream:VAL"><CODE>mkInstream <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+constructs a redirectable instream from a functional one. 	  The current version of <VAR>strm</VAR> returned by input 	  operations will be kept internally and used for the next 	  input. They can be obtained by <CODE>getInstream</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.getInstream:VAL"><CODE>getInstream <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+returns the current version of the underlying functional 	  instream of <VAR>strm</VAR>.  Using <A HREF="#SIG:IMPERATIVE_IO.getInstream:VAL:SPEC">getInstream</A>, it is 	  possible to get input directly from the underlying 	  functional stream. 	  After having done so, it may be necessary to reassign the 	  newly obtained functional stream to <VAR>strm</VAR>; otherwise 	  that input will be read again when reading from <VAR>strm</VAR> 	  the next time.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.setInstream:VAL"><CODE>setInstream (<VAR>strm</VAR>, <VAR>strm'</VAR>)
+          </CODE></A>
+<DD>
+assigns a new functional stream <VAR>strm'</VAR> to <VAR>strm</VAR>. 	  Future inputs on <VAR>strm</VAR> will be redirected to <VAR>strm'</VAR>. 	  Useful for redirecting input or interleaving input from 	  different streams, e.g., when handling nested include files in a 	  lexer.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.getPosOut:VAL"><CODE>getPosOut <VAR>strm</VAR>
+	</CODE></A>
+<DD>
+returns the current position in the stream <VAR>strm</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.setPosOut:VAL"><CODE>setPosOut (<VAR>strm</VAR>, <VAR>pos</VAR>)
+	</CODE></A>
+<DD>
+sets the current position of the stream <VAR>strm</VAR> to be <VAR>pos</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.mkOutstream:VAL"><CODE>mkOutstream <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+constructs a redirectable outstream from a low-level imperative one. 	  Output to the imperative stream will be redirected to 	  <VAR>strm</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.getOutstream:VAL"><CODE>getOutstream <VAR>strm</VAR>
+          </CODE></A>
+<DD>
+flushes <VAR>strm</VAR> and returns the underlying 	  <A HREF="stream-io.html#SIG:STREAM_IO.outstream:TY:SPEC">StreamIO.outstream</A>. 	  Using <A HREF="#SIG:IMPERATIVE_IO.getOutstream:VAL:SPEC">getOutstream</A>, it is possible to write output 	  directly to the underlying stream, or to save it and 	  restore it after <VAR>strm</VAR> has been redirected.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IMPERATIVE_IO.setOutstream:VAL"><CODE>setOutstream (<VAR>strm</VAR>, <VAR>strm'</VAR>)
+          </CODE></A>
+<DD>
+flushes the stream underlying <VAR>strm</VAR>, and then assigns a new low-level 	  stream <VAR>strm'</VAR> to it. 	  Future outputs on <VAR>strm</VAR> will be redirected to <VAR>strm'</VAR>.    
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="text-io.html#TextIO:STR:SPEC">TextIO</A>, <A HREF="bin-io.html#BinIO:STR:SPEC">BinIO</A>, <A HREF="stream-io.html#STREAM_IO:SIG:SPEC">STREAM_IO</A>, <A HREF="imperative-io-fn.html#ImperativeIO:FCT:SPEC">ImperativeIO</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="io-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified January 29, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

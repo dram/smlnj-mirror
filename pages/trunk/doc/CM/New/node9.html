@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>2.6 Library components (groups)</TITLE>
+<META NAME="description" CONTENT="2.6 Library components (groups)">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node10.html">
+<LINK REL="previous" HREF="node8.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node10.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html356"
+ HREF="node10.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html352"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html346"
+ HREF="node8.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html354"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html357"
+ HREF="node10.html">2.7 Multiple occurences of</A>
+<B> Up:</B> <A NAME="tex2html353"
+ HREF="node3.html">2. The CM model</A>
+<B> Previous:</B> <A NAME="tex2html347"
+ HREF="node8.html">2.5 Name visibility</A>
+ &nbsp <B>  <A NAME="tex2html355"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00036000000000000000"></A>
+<A NAME="sec:groups"></A>
+<BR>
+2.6 Library components (groups)
+</H2>
+
+<P>
+CM's group model eliminates a whole class of potential naming problems
+by providing control over name spaces for program linkage.  The group
+model in full generality sometimes requires bindings to be renamed at
+the time of import. As has been described
+separately&nbsp;[<A
+ HREF="node110.html#blume:appel:cm99">BA99</A>], in the case of ML this can also be
+achieved using ``administative'' libaries, which is why CM can get
+away with not providing more direct support for renaming.
+
+<P>
+However, under CM, the term ``library'' does not only mean namespace
+management (as it would from the point of view of the pure group
+model) but also refers to actual file system objects (e.g., CM
+description files and stable library files).  It would be inconvenient
+if name resolution problems would result in a proliferation of
+additional library files.  Therefore, CM also provides the notion of
+library components (``groups'').  Name resolution for groups works
+like name resolution for entire libraries, but grouping is entirely
+internal to each library.
+
+<P>
+When a library is <EM> stabilized</EM> (via <TT> CM.stabilize</TT> - see
+Section&nbsp;<A HREF="node11.html#sec:stable">2.8</A>), the entire library is compiled to a single
+file (hence groups do not result in separate stable files).
+
+<P>
+During development, each group has its own description file which will
+be referred to by the surrounding library or by other groups of that
+library. The syntax of group description files is the same as that of
+library description files with the following exceptions:
+
+<P>
+
+<UL>
+<LI>The initial keyword <TT> Library</TT> is replaced with <TT> Group</TT>.
+It is followed by the name of the surrounding library's description
+file in parentheses.</LI>
+<LI>The export list can be left empty, in which case CM will provide
+a default export list: all exports from ML source files plus all
+exports from subcomponents of the component.  Imports from other
+libraries will not be re-exported in this case.  (Notice that an
+export list that is not <EM> syntactically</EM> empty but which
+effectively contains zero symbols because of conditional
+compilation--see Section&nbsp;<A HREF="node55.html#sec:preproc">7</A>--does not count as being
+``left empty'' in the above sense.  Instead, the result would be an
+almost certainly useless component with truly no exports.)</LI>
+<LI>There are some small restrictions on access control
+specifications (see Section&nbsp;<A HREF="node59.html#sec:access">8</A>).</LI>
+</UL>
+
+<P>
+As an example, let us assume that
+<TT> foo-utils.cm</TT> contains the following text:
+
+<P>
+ 
+<PRE>
+
+  Group (foo-lib.cm)
+  is
+      set-util.sml
+      map-util.sml
+      $/basis.cm
+</PRE>
+
+<P>
+This description defines group <TT> foo-utils.cm</TT> to have the
+following properties:
+
+<P>
+
+<UL>
+<LI>it is a component of library <TT> foo-lib.cm</TT> (meaning that only
+foo-lib.cm itself or other groups thereof may list <TT> foo-utils.cm</TT> as one
+of their members)</LI>
+<LI><TT> set-utils.sml</TT> and <TT> map-util.sml</TT> are ML source files
+belonging to this component</LI>
+<LI>exports from the Standard Basis Library are available when
+compiling these ML source files</LI>
+<LI>since the export list has been left blank, the only (implicitly
+specified) exports of this component are the top-level definitions in
+its ML source files</LI>
+</UL>
+
+<P>
+With this, the library description file <TT> foo-lib.cm</TT> could list
+<TT> foo-utils.cm</TT> as one of its members:
+
+<P>
+ 
+<PRE>
+
+  Library
+      signature FOO
+      structure Foo
+  is
+      foo.sig
+      foo.sml
+      foo-utils.cm
+      $/basis.cm
+</PRE>
+
+<P>
+No harm is done if <TT> foo-lib.cm</TT> does not actually mention <TT> 
+foo-utils.cm</TT>.  In this case it could be that
+<BR> <TT> 
+foo-utils.cm</TT> is mentioned indirectly via a chain of other components
+of <TT> foo-lib.cm</TT>.  The other possibility is that it is not
+mentioned at all (in which case CM would never know about it, so it
+cannot complain).
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html356"
+ HREF="node10.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html352"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html346"
+ HREF="node8.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html354"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html357"
+ HREF="node10.html">2.7 Multiple occurences of</A>
+<B> Up:</B> <A NAME="tex2html353"
+ HREF="node3.html">2. The CM model</A>
+<B> Previous:</B> <A NAME="tex2html347"
+ HREF="node8.html">2.5 Name visibility</A>
+ &nbsp <B>  <A NAME="tex2html355"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

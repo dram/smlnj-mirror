@@ -1,0 +1,158 @@
+<HTML>
+<HEAD>
+<TITLE>Standard ML of NJ User's Guide</TITLE></HEAD>
+<!-- Changed by: Andrew Appel,  5-Dec-1997 -->
+<BODY BGCOLOR="white">
+<CENTER>
+<H1>Standard ML of New Jersey User's Guide</H1>
+</CENTER>
+<blockquote>
+Standard ML of New Jersey (SML/NJ) is a compiler, interactive
+system, and programming environment for the Standard ML language.
+This document is a guide to programming in Standard ML using SML/NJ.
+<p>
+
+<h2>General Information</h2>
+<p>
+Several very useful <a href="literature.html#books">books</a>
+on the Standard ML programming language are available, and a number of
+Standard ML <a href="literature.html#tutorials">tutorials</a> can be
+found on line.  The <a href="news:comp.lang.ml">comp.lang.ml</a> and 
+<a href="news:comp.lang.functional">comp.lang.functional</a> newsgroups
+are also a good source of information, help, and news, and these
+newsgroups maintain associated <a href="literature.html#other">FAQs</a>.
+Our <a href="literature.html">literature</a> page summaries these general
+information sources.
+
+<h2>Using Standard ML of New Jersey</h2>
+<dl>
+<dt><strong><a href="../software.html">Obtaining the SML/NJ Software</a></strong><dd>
+SML/NJ is available for free via internet ftp or the web.  It's use
+is governed by a very liberal <a href="../license.html">license</a>.
+
+<dt><strong><a href="../install/index.html">Installing SML/NJ</a></strong><dd>
+Installing SML/NJ under under Unix is easy, and generally just
+requires downloading the files and running a shell script.  Installation
+under Windows is even easier using the self-installing ".exe" file.
+
+<dt><strong><a href="FAQ/index.html">The SML/NJ FAQ</a></strong><dd>
+A FAQ for SML/NJ is currently under development but is still very
+fragmentary.
+
+<dt><strong><a href="interact.html">The SML/NJ Interactive System</a></strong>
+<dd>
+How to get started with <tt>sml</tt>, how to compile and
+run programs.
+
+<dt><strong><a href="CM/index.html">Compilation Manager</a></strong> <dd>
+The SML/NJ compilation manager <strong>CM</strong> organizes and
+optimizes the compilation process.  CM calculates and caches the
+dependence graph between modules.  When a module has been edited and
+is recompiled, CM compares the export type-signature of the new module
+to that of the old, to minimize the number of modules that are
+recompiled.  The CM Manual is also available in <a
+href="CM/manual.ps"> Postscript</a>.
+
+<dt><strong><a href="errors.html">SML/NJ Error Messages</a></strong><dd>
+An explanation of the error messages printed by the SML/NJ compiler.
+
+<dt><strong><a href="features.html">Special features of SML/NJ</a></strong>
+<dd>Standard ML of New Jersey supports some extensions to the
+Standard ML language, such as first-class continuations, higher-order
+functors, and so on.
+
+<dt><strong><a href="SMLofNJ/index.html">The SMLofNJ structure</a></strong>
+<dd>This structure contains runtime-system interface and operating-system
+interface functions that are not part of the international standard.
+
+<dt><strong><a href="Compiler/pages/compiler.html">The Compiler structure</a></strong>
+<dd>This structure contains user-settable flags to control the
+operation of the compiler and interactive system, and also interfaces
+to individual phases of the SML/NJ compiler.
+
+<dt><strong><a href="Conversion/index.html">SML '97 Conversion Guide</a></strong><dd>
+The Standard ML '97 language is almost, but not quite, compatible
+with the 1990 definition supported by earlier versions of SML/NJ;
+the conversion guide explains the differents, and gives examples
+of how to upgrade existing SML'90 programs.
+
+<dt><strong><a href="Conversion/top-level-comparison.html">Top Level Environment Comparison</a></strong><dd>
+A comparison of the SML/NJ 0.93 and SML/NJ 110 top level environments.
+</dl>
+
+<h2>Basic Libraries</h2>
+<dl>
+<dt><strong><a href="basis/index.html">
+The Standard ML Basis Library</a></strong>
+<dd>This describes the "library" functions and interfaces
+that are part of the ML standard.  This includes modules for
+I/O, operating-system interface, arithmetic on integers, reals,
+and words (unsigned integers), mathematical functions, operations on
+strings and substrings, and so on.
+
+<dt><strong><A HREF="smlnj-lib/index.html">The Standard ML of New Jersey Library</A></strong>
+<dd>The SML/NJ Library contains library and utility functions that
+are not part of the standard Standard.  The SML/NJ library
+includes modules for binary search trees, adjustable arrays,
+and other useful data structures in the Util directory.  The
+Unix directory supplies additional Unix-specific features,
+while the HTML directory supports processing web pages.
+</dl>
+
+<h2>Programming Tools and Libraries</h2>
+<dl>
+<dt><a href="ML-Lex/manual.html">ML-Lex</a><dd>
+A lexical-analyzer generator similar to the classic Unix lex.
+<dt><a href="ML-Yacc/index.html">ML-Yacc</a><dd>
+A parser generator similar to the classic Unix yacc, but with
+syntax error repair features.
+<dt><a href="http://cm.bell-labs.com/cm/cs/who/jhr/sml/cml/index.html">
+Concurrent ML</a><dd>
+A library adding concurrency to SML.
+<dt><a href="http://cm.bell-labs.com/cm/cs/who/jhr/sml/eXene/index.html">
+eXene</a><dd>
+An X-windows based graphical interface toolkit.
+<dt><a href="SMLNJ-C/index.html">SML/NJ C Interface Library</a><dd>
+Lorenz Huelsbergen's library for building SML interfaces to C
+libraries and programs.
+<dt><strong><a href="http://www.cs.nyu.edu/leunga/www/MLRISC/Doc/html/index.html">MLRISC</a></strong><dd>
+The SML/NJ compiler uses Lal George's MLRISC code generation framework
+(currently for Alpha and HPPA architectures, but eventually for all
+architectures).  MLRISC is being developed as an independent tool for
+building highly modular optimizing code generators, and is currently
+being used in a number of other compilers and compiler research projects.
+</dl>
+
+<h2><a href="Emacs/sml-mode.html">Emacs Editing and Interaction
+Support</a></h2> Documentation for version 3.3 of Matthew J. Morley's
+sml-mode for Gnu emacs and Xemacs, which supports editing SML source
+code and interacting with <code>sml</code> under emacs.  Sml-mode is
+now maintained by <a href="mailto:monnier@cs.yale.edu">Stefan Monnier</a>,
+and the latest version is 3.9.3
+(<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs/sml-mode-3.9.3.tar.gz">ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs/sml-mode-3.9.3.tar.gz</a>, 52KB).
+
+<h2>Downloading the Documentation</h2>
+The directory tree of the
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/doc/SMLNJ/smlnj.tar.Z">
+SML/NJ web page documentation</a>, including the Basis pages, is available for downloading as a
+compressed tar file that can be installed on a local machine for faster
+access. The
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/doc/Basis/SMLBasis.tar.gz">
+Basis documentation pages</a> are also available separately as a gzipped tar
+file.
+
+</blockquote>
+<HR>
+<CENTER><STRONG>
+| <A HREF="../index.html">SML/NJ Home page</A>
+|
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>

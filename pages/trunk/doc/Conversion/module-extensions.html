@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Module Extensions</title>
+  </head>
+
+<body>
+
+<body BGCOLOR="white">
+<center>
+<h2>1.6. SML/NJ Module Extensions</h2>
+</center>
+<blockquote>
+<p>
+
+<h3><a name="HOF">
+1.6.1. higher-order functors</a></h3>
+<p>
+
+<h3><a name="StrDefSpec">
+1.6.2. structure definition specs</a></h3>
+<p>
+
+<h3><a name="WhereStruct">
+1.6.3. <code>where</code> clause for structure definitions</a></h3>
+<p>
+
+<h3><a name="LayeredRedef">
+1.6.4. Layered Redefinitions Ignored</a></h3>
+<p>
+Structure definition specs can easily give rise to redefinitions.  Consider 
+the following example:
+<pre>
+  signature S1 =
+  sig
+    type t
+  end;
+
+  signature S2 =
+  sig
+    structure A : S1
+    structure B : S1 = A
+  end;
+
+  signature S3 =
+  sig
+    structure C : S2
+    structure D : S2 = C
+  end;
+</pre>
+Here the substructure <code>D.B</code> of <code>S3</code> is defined
+within <code>S2</code> in terms of <code>D.A</code>
+(implying <code>D.B.t = D.A.t</code>), while by the definitional spec
+in <code>S3</code>, <code>D.B</code> is
+equal to <code>C.B</code> (implying <code>D.B.t = C.B.t</code>).
+<p>
+There are two ways of dealing with such secondary, or layered
+definitional specs.
+<ol>
+  <li> Secondary definitions can be treated as errors (excepting
+      those cases where the equivalence of the definitions can easily be
+      verified).  This was the policy for 110.0.3 through 110.8, where
+      examples like the above gave rise to the error message
+      <pre>
+        Error: possibly inconsistent structure definitions
+      </pre>
+      [This was bug 1354.]
+
+  <li> The redefinitions can be regarded as producing implied sharing
+      constraints (e.g. <code>D.A.t = C.B.t</code> in this case).
+</ol>
+In case (2), these implied sharing constraints will be verified
+automatically during signature matching, in the process of matching
+all the definitional specifications.  The question is whether they
+should be taken into account (i.e. satisfied) when instantiating a
+signature like <code>S3</code>.  We adopt the lenient policy of not dealing with
+these implied constraints during instantiation.  Instead, during
+instantiation secondary definitions are simply ignored.  In the
+example, the inner definition <code>D.B.t = D.A.t</code> takes effect while the
+secondary definition <code>D.B.t = C.B.t</code> is ignored.
+<p>
+The consequence of this policy is that some additional inconsistent
+signatures will be successfully instantiated.  As usual, any attempt
+to match these inconsistent signatures will fail.
+<p>
+The compiler flag
+<pre>
+  Compiler.Control.multDefWarn : bool ref
+</pre>
+controls whether a warning message will be generated when a secondary
+definition is ignored.  It's default value is false, meaning no warning
+messages will be produced.
+<p>
+We follow a stricter policy in some other cases, such as layered type
+definition specs:
+<pre>
+  signature S = sig
+    type t
+    type s = t
+  end where type s = int
+</pre>
+Here the secondary redefinition "where type s = int" is detected and
+causes an error message.
+<pre>
+  Error: where type defn applied to definitional spec: s
+</pre>
+NOTE: This is an SML/NJ divergence, since the above signature is legal
+in SML '97.  See Note "Sharable Types" below.
+
+<h3><a name="MergingInclude">
+1.6.4. type spec merging with <code>include</code></a></h3>
+<p>
+
+</blockquote>
+
+    <hr>
+    <address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Wed Feb  3 15:54:34 EST 1999 -->
+<!-- hhmts start -->
+Last modified: Mon Feb  8 14:32:33 EST 1999
+<!-- hhmts end -->
+  </body>
+</html>

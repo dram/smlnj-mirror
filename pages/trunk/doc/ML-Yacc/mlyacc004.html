@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset= ISO-8859-1">
+<TITLE>
+ The lexical analyzer
+</TITLE>
+</HEAD>
+<BODY BGCOLOR=silver TEXT=black>
+<A HREF="mlyacc003.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc005.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+<HR>
+
+<H2>4&nbsp;&nbsp; The lexical analyzer</H2>Let the name for
+the parser given in the <TT>%name</TT> declaration be denoted by {n} and
+the specification file name be denoted by {spec name}
+The parser generator creates a functor named {n}LrValsFun for
+the values needed for a particular parser. This functor is placed
+in {spec name}.sml. This
+functor contains a structure
+Tokens which allows you to construct terminals from the appropriate
+values. The structure has a function for each terminal that takes a tuple
+consisting of the value for the terminal (if there is any), a leftmost
+position for the terminal, and a rightmost position for the terminal and
+constructs the terminal from these values.<BR>
+<BR>
+A signature for the structure Tokens is created and placed in the ``.sig''
+file created by ML-Yacc. This signature is {n}_TOKENS,
+ where {n} is
+the name given in the parser specification. A signature
+{n}_LRVALS is created for the structure produced by
+applying {n}LrValsFun.<BR>
+<BR>
+Use the signature {n}_TOKENS to create a functor for the
+lexical analyzer which takes the structure Tokens as an argument. The
+signature {n}_TOKENS
+will not change unless the <TT>%term</TT> declaration in a
+specification is altered by adding terminals or
+changing the types of terminals. You do not need to recompile
+the lexical analyzer functor each time the specification for
+the parser is changed if the
+signature {n}_TOKENS does not change.<BR>
+<BR>
+If you are using ML-Lex to create the lexical analyzer, you
+can turn the lexer structure into a functor using the
+<TT>%header</TT> declaration.
+<TT>%header</TT> allows the user to define the header for a structure body.<BR>
+<BR>
+If the name of the parser in the specification were Calc, you
+would add this declaration to the specification for the lexical 
+analyzer:
+<BLOCKQUOTE>
+<PRE><TT>
+%header (functor CalcLexFun(structure Tokens : Calc_TOKENS))
+</TT></PRE><TT>
+</TT></BLOCKQUOTE>You must define the following in the user definitions section:
+<BLOCKQUOTE>
+<PRE><TT>
+type pos
+</TT></PRE><TT>
+</TT></BLOCKQUOTE>
+This is the type of position values for terminals. This type
+must be the same as the one declared in the specification for
+the grammar. Note, however, that this type is not available
+in the Tokens structure that parameterizes the lexer functor.<BR>
+<BR>
+You must include the following code in the user definitions section of
+the ML-Lex specification:
+<BLOCKQUOTE>
+<PRE><TT>
+type svalue = Tokens.svalue
+type ('a,'b) token = ('a,'b) Tokens.token
+type lexresult  = (svalue,pos) token
+</TT></PRE><TT>
+</TT></BLOCKQUOTE>These types are used to give lexers signatures.<BR>
+<BR>
+You may use a lexer constructed using ML-Lex with the <TT>%arg</TT>
+declaration, but you must follow special instructions for tying the parser
+and lexer together.
+ 
+<HR>
+<A HREF="mlyacc003.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc005.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+</BODY>
+</HTML>

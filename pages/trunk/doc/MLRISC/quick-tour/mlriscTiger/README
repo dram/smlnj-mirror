@@ -1,0 +1,97 @@
+			 m l r i s c T i g e r
+
+		             R E A D M E
+
+
+	 	  	     Lal George
+	  	    george@research.bell-labs.com
+
+
+
+		             20 May, 1998
+
+
+
+This document describes how to build the mlriscTiger compiler and
+compile Tiger programs. The sources for the frontend are not
+distributed but can be obtained by sending me email.
+
+
+Building the compiler:
+
+  To build a standalone compiler, the script
+	  bin/build 
+
+  must be used. This expects the path to a 109.29 version of sml-cm,
+  bound to the shell variable CM. If the path to sml-cm is 
+	  /usr/local/bin/sml-cm, 
+
+  then under ksh the command:
+	  (export CM=/usr/local/bin/sml-cm; bin/build <arg>)
+
+  will build a heap image. For now, <args> indicates the target
+  architecture and can be either Hppa, Alpha32, or X86. Under other 
+  shells, 'export' should be substituted by the appropriate command
+  such as setenv under csh.
+
+
+
+Cross compiling:
+
+  It is not necessary to build an Alpha32Tiger compiler on a DEC
+  Alpha. The build procedure can be used to create a cross compiler
+  to the Alpha from any architecture supported by SML/NJ version
+  109.29.  
+
+
+
+Compiling Tiger programs:
+
+  The script bin/mlriscTiger takes a tiger source file with a ".tig" 
+  extension and generates a .s file with the same basename. It assumes
+  that the shell variable SML is bound to a 109.29 version of the
+  SML/NJ compiler. The command:
+    	(export SML=/usr/local/bin/sml; bin/mlriscTiger test/queens.tig)
+
+  can be used to compile the 8-queens program. The command can be 
+  shortened to just:
+	bin/mlriscTiger test/queens.tig
+
+  if the SML variable is hardwired in the bin/mlriscTiger script.
+
+
+
+Running Tiger programs:
+
+  The generated assembly file must be linked with bin/runtime.c to 
+  create an executable. Different commands are required for linking
+  based on the target architecture.
+
+    Alpha32:
+      cc -non_shared -T 20000000 -D 40000000 bin/runtime.c test/queens.s
+
+    Hppa:
+      cc -Aa bin/runtime.c test/queens.s
+
+    X86:
+      cc bin/runtime.c test/queens.s
+
+
+  The generated assembler has been tested in the following
+  environment:
+
+	Architecture	    OS			Assembler
+	-------------	------------		---------
+	Dec Alpha	Digital Unix 4.0	DEC Assembler
+	HPPA		HPUX 10.x		HP Assembler
+	X86		Linux 2.0		Gnu Assembler (GAS)
+
+
+The Tiger Language:
+
+  Details of the syntax and semantics of Tiger programs are described 
+  in the book, "Modern Compiler Implementation: Basic Techniques", by 
+  Andrew Appel. 
+
+
+  

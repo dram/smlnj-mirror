@@ -1,0 +1,93 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>10.2 Index files</TITLE>
+<META NAME="description" CONTENT="10.2 Index files">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="previous" HREF="node62.html">
+<LINK REL="up" HREF="node61.html">
+<LINK REL="next" HREF="node64.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1049"
+ HREF="node64.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1045"
+ HREF="node61.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1041"
+ HREF="node62.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1047"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1050"
+ HREF="node64.html">11. Extending the tool</A>
+<B> Up:</B> <A NAME="tex2html1046"
+ HREF="node61.html">10. Files</A>
+<B> Previous:</B> <A NAME="tex2html1042"
+ HREF="node62.html">10.1 Time stamps</A>
+ &nbsp <B>  <A NAME="tex2html1048"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000112000000000000000"></A>
+<A NAME="sec:indexfiles"></A>
+<BR>
+10.2 Index files
+</H2>
+
+<P>
+CM can optionally generate a human-readable index file for each
+description file.  An index files alphabetically lists all symbols
+defined or imported within the given library or library component.
+Index-file generation is normally disabled.  To enable it, <TT> 
+CM.Control.generate_index</TT> must be set to true (see
+section&nbsp;<A HREF="node21.html#sec:api">4.1</A>).
+
+<P>
+With index-file generation enabled, index files will be written for
+all description files involved every time CM performs a dependency
+analysis.  (In other words, it is a side-effect to other CM operations
+such as <TT> CM.make</TT> etc.)  If the name of the description files is
+<TT><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img6.gif"
+ ALT="$p$">/<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img8.gif"
+ ALT="$d$">.cm</TT>, then the corresponding index file will be in <TT><IMG
+ WIDTH="12" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img6.gif"
+ ALT="$p$">/CM/INDEX/<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img8.gif"
+ ALT="$d$">.cm</TT>.
+
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

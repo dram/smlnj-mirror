@@ -1,0 +1,67 @@
+<!-- HTML/gc.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The GC signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>GC</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="GC:SIG:SPEC"><CODE>GC</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:GC.doGC:VAL:SPEC" HREF="#SIG:GC.doGC:VAL">doGC</A> <B>:</B> int -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:GC.messages:VAL:SPEC" HREF="#SIG:GC.messages:VAL">messages</A> <B>:</B> bool -&gt; unit 	<BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:GC.doGC:VAL"><CODE>doGC <VAR>g</VAR>
+          </CODE></A>
+<DD>
+Garbage-collect the heap to generation <VAR>g</VAR>.           <A HREF="gc.html#SIG:GC.doGC:VAL:SPEC">doGC</A>(0) does a most-minor-generation collection,           <A HREF="gc.html#SIG:GC.doGC:VAL:SPEC">doGC</A>(100000) does a most-major-generation collection,           making sure to scavenge all garbage.           In a typical installation, the highest meaningful argument           value is approximately 6.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:GC.messages:VAL"><CODE>messages <VAR>b</VAR>
+	  </CODE></A>
+<DD>
+turns garbage collection messages on or off, depending on the value 	  of the boolean <VAR>b</VAR>. 	  For interactive systems (i.e., those created by 	  <A HREF="smlnj.html#SIG:SML_OF_NJ.exportML:VAL:SPEC">exportML</A>), messages are on by default, while 	  messages are off by default for images created by 	  <A HREF="smlnj.html#SIG:SML_OF_NJ.exportFn:VAL:SPEC">exportFn</A>. 	  
+<P>
+	  <I>Note that this feature is only available in version 110.0.1, and 	  later</I>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified December 13, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

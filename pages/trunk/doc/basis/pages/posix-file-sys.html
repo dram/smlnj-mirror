@@ -1,0 +1,811 @@
+<!-- HTML/posix-file-sys.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Posix.FileSys structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Posix.FileSys</CODE> structure</H3>
+<P>
+The structure Posix.FileSys provides access to file system operations as described in in Section 5 of the POSIX standard  <B>[CITE]</B>1003.1,1996/ 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="POSIX_FILE_SYS:SIG:SPEC"><CODE>POSIX_FILE_SYS</CODE></A><BR>
+<B>structure </B><A NAME="FileSys:STR:SPEC"><CODE>FileSys</CODE></A><B> : </B>POSIX_FILE_SYS<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:POSIX_FILE_SYS.uid:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.uid:TY">uid</A><BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_FILE_SYS.gid:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.gid:TY">gid</A><BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_FILE_SYS.file_desc:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.file_desc:TY">file_desc</A><BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.fdToWord:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.fdToWord:VAL">fdToWord</A> <B>:</B> file_desc -&gt; SysWord.word       <BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.wordToFD:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.fdToWord:VAL">wordToFD</A> <B>:</B> SysWord.word -&gt; file_desc         <BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.fdToIOD:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.fdToIOD:VAL">fdToIOD</A> <B>:</B> file_desc -&gt; OS.IO.iodesc       <BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.iodToFD:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.fdToIOD:VAL">iodToFD</A> <B>:</B> OS.IO.iodesc -&gt; file_desc option         <BR>
+<B>type</B> <A NAME="SIG:POSIX_FILE_SYS.dirstream:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.dirstream:TY">dirstream</A><BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.opendir:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.opendir:VAL">opendir</A> <B>:</B> string -&gt; dirstream<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.readdir:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.readdir:VAL">readdir</A> <B>:</B> dirstream -&gt; string<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.rewinddir:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.rewinddir:VAL">rewinddir</A> <B>:</B> dirstream -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.closedir:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.closedir:VAL">closedir</A> <B>:</B> dirstream -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.chdir:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.chdir:VAL">chdir</A> <B>:</B> string -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.getcwd:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.getcwd:VAL">getcwd</A> <B>:</B> unit -&gt; string<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.stdin:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.stdin:VAL">stdin</A> <B>:</B> file_desc       <BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.stdout:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.stdin:VAL">stdout</A> <B>:</B> file_desc       <BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.stderr:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.stdin:VAL">stderr</A> <B>:</B> file_desc         <BR>
+<B>structure</B> <A NAME="SIG:POSIX_FILE_SYS.S:STR:SPEC" HREF="#SIG:POSIX_FILE_SYS.S:STR">S</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>type</B> <A NAME="SIG:POSIX_FILE_SYS.S.mode:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.mode:TY">mode</A><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>include</B> <A HREF="posix-flags.html#POSIX_FLAGS:SIG:SPEC">POSIX_FLAGS</A><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B>where type</B> flags <B>=</B> mode         <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.irwxu:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.irwxu:VAL">irwxu</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.irusr:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.irusr:VAL">irusr</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.iwusr:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.iwusr:VAL">iwusr</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.ixusr:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.ixusr:VAL">ixusr</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.irwxg:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.irwxg:VAL">irwxg</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.irgrp:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.irgrp:VAL">irgrp</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.iwgrp:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.iwgrp:VAL">iwgrp</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.ixgrp:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.ixgrp:VAL">ixgrp</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.irwxo:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.irwxo:VAL">irwxo</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.iroth:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.iroth:VAL">iroth</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.iwoth:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.iwoth:VAL">iwoth</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.ixoth:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.ixoth:VAL">ixoth</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.isuid:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.isuid:VAL">isuid</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.S.isgid:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.S.isgid:VAL">isgid</A> <B>:</B> mode             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>structure</B> <A NAME="SIG:POSIX_FILE_SYS.O:STR:SPEC" HREF="#SIG:POSIX_FILE_SYS.O:STR">O</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>include</B> POSIX_FLAGS<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.O.append:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.O.append:VAL">append</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.O.excl:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.O.excl:VAL">excl</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.O.noctty:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.O.noctty:VAL">noctty</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.O.nonblock:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.O.nonblock:VAL">nonblock</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.O.sync:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.O.sync:VAL">sync</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.O.trunc:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.O.trunc:VAL">trunc</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>datatype</B> <A NAME="SIG:POSIX_FILE_SYS.open_mode:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.open_mode:TY">open_mode</A>&nbsp;&nbsp;<B>=</B> O_RDONLY&nbsp;&nbsp;<B>|</B> O_WRONLY&nbsp;&nbsp;<B>|</B> O_RDWR<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.openf:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.openf:VAL">openf</A> <B>:</B> (string * open_mode * O.flags) -&gt; file_desc 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.createf:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.openf:VAL">createf</A> <B>:</B> (string * open_mode * O.flags * S.mode) -&gt; file_desc 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.creat:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.creat:VAL">creat</A> <B>:</B> (string * S.mode) -&gt; file_desc 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.umask:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.umask:VAL">umask</A> <B>:</B> S.mode -&gt; S.mode<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.link:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.link:VAL">link</A> <B>:</B> {old : string, new : string} -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.mkdir:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.mkdir:VAL">mkdir</A> <B>:</B> (string * S.mode) -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.mkfifo:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.mkfifo:VAL">mkfifo</A> <B>:</B> (string * S.mode) -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.unlink:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.unlink:VAL">unlink</A> <B>:</B> string -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.rmdir:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.rmdir:VAL">rmdir</A> <B>:</B> string -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.rename:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.rename:VAL">rename</A> <B>:</B> {old : string, new : string} -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.symlink:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.symlink:VAL">symlink</A> <B>:</B> {old : string, new : string} -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.readlink:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.readlink:VAL">readlink</A> <B>:</B> string -&gt; string<BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_FILE_SYS.dev:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.dev:TY">dev</A><BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.wordToDev:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.wordToDev:VAL">wordToDev</A> <B>:</B> SysWord.word -&gt; dev         <BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.devToWord:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.devToWord:VAL">devToWord</A> <B>:</B> dev -&gt; SysWord.word         <BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_FILE_SYS.ino:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.ino:TY">ino</A><BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.wordToIno:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.wordToIno:VAL">wordToIno</A> <B>:</B> SysWord.word -&gt; ino         <BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.inoToWord:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.inoToWord:VAL">inoToWord</A> <B>:</B> ino -&gt; SysWord.word         <BR>
+<B>structure</B> <A NAME="SIG:POSIX_FILE_SYS.ST:STR:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST:STR">ST</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>type</B> <A NAME="SIG:POSIX_FILE_SYS.ST.stat:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.stat:TY">stat</A><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.isDir:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.isDir:VAL">isDir</A> <B>:</B> stat -&gt; bool         <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.isChr:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.isChr:VAL">isChr</A> <B>:</B> stat -&gt; bool         <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.isBlk:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.isBlk:VAL">isBlk</A> <B>:</B> stat -&gt; bool         <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.isReg:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.isReg:VAL">isReg</A> <B>:</B> stat -&gt; bool         <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.isFIFO:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.isFIFO:VAL">isFIFO</A> <B>:</B> stat -&gt; bool         <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.isLink:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.isLink:VAL">isLink</A> <B>:</B> stat -&gt; bool         <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.isSock:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.isSock:VAL">isSock</A> <B>:</B> stat -&gt; bool         <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.mode:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.mode:VAL">mode</A> <B>:</B> stat -&gt; S.mode 	<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.ino:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.ino:VAL">ino</A> <B>:</B> stat -&gt; ino 	<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.dev:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.dev:VAL">dev</A> <B>:</B> stat -&gt; dev 	<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.nlink:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.nlink:VAL">nlink</A> <B>:</B> stat -&gt; int 	<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.uid:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.uid:VAL">uid</A> <B>:</B> stat -&gt; uid 	<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.gid:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.gid:VAL">gid</A> <B>:</B> stat -&gt; gid 	<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.size:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.size:VAL">size</A> <B>:</B> stat -&gt; Position.int 	<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.atime:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.atime:VAL">atime</A> <B>:</B> stat -&gt; Time.time             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.mtime:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.mtime:VAL">mtime</A> <B>:</B> stat -&gt; Time.time             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ST.ctime:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ST.ctime:VAL">ctime</A> <B>:</B> stat -&gt; Time.time             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.stat:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.stat:VAL">stat</A> <B>:</B> string -&gt; ST.stat<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.lstat:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.stat:VAL">lstat</A> <B>:</B> string -&gt; ST.stat<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.fstat:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.stat:VAL">fstat</A> <B>:</B> file_desc -&gt; ST.stat<BR>
+<B>datatype</B> <A NAME="SIG:POSIX_FILE_SYS.access_mode:TY:SPEC" HREF="#SIG:POSIX_FILE_SYS.access_mode:TY">access_mode</A><BR>
+&nbsp;&nbsp;<B>=</B> A_READ<BR>
+&nbsp;&nbsp;<B>|</B> A_WRITE<BR>
+&nbsp;&nbsp;<B>|</B> A_EXEC<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.access:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.access:VAL">access</A> <B>:</B> (string * access_mode list) -&gt; bool<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.chmod:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.chmod:VAL">chmod</A> <B>:</B> (string * S.mode) -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.fchmod:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.fchmod:VAL">fchmod</A> <B>:</B> (file_desc * S.mode) -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.chown:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.chown:VAL">chown</A> <B>:</B> (string * uid * gid) -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.fchown:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.fchown:VAL">fchown</A> <B>:</B> (file_desc * uid * gid) -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.utime:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.utime:VAL">utime</A> <B>:</B> (string * {actime : Time.time, modtime : Time.time} option) -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.ftruncate:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.ftruncate:VAL">ftruncate</A> <B>:</B> (file_desc * Position.int) -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.pathconf:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.pathconf:VAL">pathconf</A> <B>:</B> (string * string) -&gt; SysWord.word option<BR>
+<B>val</B> <A NAME="SIG:POSIX_FILE_SYS.fpathconf:VAL:SPEC" HREF="#SIG:POSIX_FILE_SYS.pathconf:VAL">fpathconf</A> <B>:</B> (file_desc * string) -&gt; SysWord.word option<BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:POSIX_FILE_SYS.uid:TY"><CODE><B>eqtype</B> uid</CODE></A>
+<DD>
+User identifier; identical to <A HREF="posix-proc-env.html#SIG:POSIX_PROC_ENV.uid:TY:SPEC">Posix.ProcEnv.uid</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.gid:TY"><CODE><B>eqtype</B> gid</CODE></A>
+<DD>
+Group identifier; identical to <A HREF="posix-proc-env.html#SIG:POSIX_PROC_ENV.gid:TY:SPEC">Posix.ProcEnv.gid</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.file_desc:TY"><CODE><B>eqtype</B> file_desc</CODE></A>
+<DD>
+Open file descriptor     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.fdToWord:VAL"><CODE>fdToWord <VAR>fd</VAR>
+          </CODE></A>
+<DT> <CODE>          wordToFD <VAR>i</VAR>
+          </CODE>
+<DD>
+Convert between an abstract open file descriptor and            the integer representation used by the operating           system. These calls should be avoided where possible,           for the ML implementation may be able to garbage-collect           (i.e., automatically close) any <A HREF="#SIG:POSIX_FILE_SYS.file_desc:TY:SPEC">file_desc</A> value that           is not accessible, but it cannot do this for any <A HREF="#SIG:POSIX_FILE_SYS.file_desc:TY:SPEC">file_desc</A>           that has ever been made concrete by <A HREF="#SIG:POSIX_FILE_SYS.fdToWord:VAL:SPEC">fdToWord</A>.           Also, there is no validation that the file descriptor           created by <CODE>wordToFD</CODE> corresponds to an actually open file.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.fdToIOD:VAL"><CODE>fdToIOD <VAR>fd</VAR>
+          </CODE></A>
+<DT> <CODE>          iodToFD <VAR>iod</VAR>
+          </CODE>
+<DD>
+Convert between a POSIX open file descriptor and            and the handle used by the OS subsystem. The function           <A HREF="#SIG:POSIX_FILE_SYS.iodToFD:VAL:SPEC">iodToFD</A> returns an <A HREF="option.html#SIG:OPTION.option:TY:SPEC">option</A> type           because, on certain systems, some open I/O devices are not           associated with an underlying open file descriptor.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.dirstream:TY"><CODE><B>type</B> dirstream</CODE></A>
+<DD>
+A directory opened for reading.       This type is identical to <A HREF="os-file-sys.html#SIG:OS_FILE_SYS.dirstream:TY:SPEC">OS.FileSys.dirstream</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.opendir:VAL"><CODE>opendir <VAR>dirName</VAR>
+          </CODE></A>
+<DD>
+Opens the directory designated by <VAR>dirName</VAR>   parameter and associates a directory stream with it. The directory stream   is positioned at the first entry.  A directory stream is an ordered   sequence of all the directory entries in a particular directory.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.readdir:VAL"><CODE>readdir <VAR>d</VAR>
+          </CODE></A>
+<DD>
+Read the next filename in the directory stream <VAR>d</VAR>.           Entries for <CODE>&quot;.&quot;</CODE> (current directory) and <CODE>&quot;..&quot;</CODE> (parent directory)           are never returned. 	  
+<BLOCKQUOTE>
+<B>Rationale:</B><BR>
+
+<P>
+The reason for filtering out the current and parent directory entries 	    is that it makes recursive walks of a directory tree easier. 	  
+</BLOCKQUOTE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.rewinddir:VAL"><CODE>rewinddir <VAR>d</VAR>
+          </CODE></A>
+<DD>
+Position the directory stream <VAR>d</VAR> for reading at the beginning.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.closedir:VAL"><CODE>closedir <VAR>d</VAR>
+          </CODE></A>
+<DD>
+Close the directory stream <VAR>d</VAR>. Closing a closed <A HREF="#SIG:POSIX_FILE_SYS.dirstream:TY:SPEC">dirstream</A>           does not raise an exception.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.chdir:VAL"><CODE>chdir <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Change the current working directory to <VAR>s</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.getcwd:VAL"><CODE>getcwd ()
+          </CODE></A>
+<DD>
+returns the pathname of the current working directory.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.stdin:VAL"><CODE>stdin
+          </CODE></A>
+<DT> <CODE>          stdout
+          </CODE>
+<DT> <CODE>          stderr
+          </CODE>
+<DD>
+The standard input, output and error file descriptors.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S:STR"><CODE><B>structure</B> S</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.mode:TY"><CODE><B>type</B> mode</CODE></A>
+<DD>
+A file ``mode'' is a set of (read, write, execute)            permissions for the owner of the file, members of            the file's group, and others.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.irwxu:VAL"><CODE><B>val</B> irwxu</CODE></A>
+<DD>
+Read, write, and execute permission for ``user'' (the file's  	      owner).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.irusr:VAL"><CODE><B>val</B> irusr</CODE></A>
+<DD>
+Read permission for ``user'' (the file's owner).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.iwusr:VAL"><CODE><B>val</B> iwusr</CODE></A>
+<DD>
+Write permission for ``user'' (the file's owner).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.ixusr:VAL"><CODE><B>val</B> ixusr</CODE></A>
+<DD>
+Execute permission for ``user'' (the file's owner).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.irwxg:VAL"><CODE><B>val</B> irwxg</CODE></A>
+<DD>
+Read, write, and execute permission for members of the               file's group.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.irgrp:VAL"><CODE><B>val</B> irgrp</CODE></A>
+<DD>
+Read permission for members of the file's group.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.iwgrp:VAL"><CODE><B>val</B> iwgrp</CODE></A>
+<DD>
+Write permission for members of the file's group.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.ixgrp:VAL"><CODE><B>val</B> ixgrp</CODE></A>
+<DD>
+Execute permission for members of the file's group.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.irwxo:VAL"><CODE><B>val</B> irwxo</CODE></A>
+<DD>
+Read, write, and execute permission for ``others'' (all users).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.iroth:VAL"><CODE><B>val</B> iroth</CODE></A>
+<DD>
+Read permission for ``others'' (all users).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.iwoth:VAL"><CODE><B>val</B> iwoth</CODE></A>
+<DD>
+Write permission for ``others'' (all users).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.ixoth:VAL"><CODE><B>val</B> ixoth</CODE></A>
+<DD>
+Execute permission for ``others'' (all users).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.isuid:VAL"><CODE><B>val</B> isuid</CODE></A>
+<DD>
+Set-user-id mode, indicating that the effective user ID of any user executing the file should be made the same as that of the owner of the file.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.S.isgid:VAL"><CODE><B>val</B> isgid</CODE></A>
+<DD>
+Set-group-id mode, indicating that the effective group ID of any user executing the file should be made the same as the group of the file.         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_FILE_SYS.O:STR"><CODE><B>structure</B> O</CODE></A>
+<DD>
+The structure <A HREF="#SIG:POSIX_FILE_SYS.O:STR:SPEC">Posix.FileSys.O</A> 	contains file status flags used in calls to <A HREF="#SIG:POSIX_FILE_SYS.openf:VAL:SPEC">openf</A>.     
+<BR>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:POSIX_FILE_SYS.O.append:VAL"><CODE><B>val</B> append</CODE></A>
+<DD>
+If set, the file pointer is set to the end of the file prior to             each write.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.O.excl:VAL"><CODE><B>val</B> excl</CODE></A>
+<DD>
+Cause the open to fail if the file already exists.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.O.noctty:VAL"><CODE><B>val</B> noctty</CODE></A>
+<DD>
+If the path parameter identifies a terminal device, this flag             assures that the terminal device does not become the controlling             terminal for the process.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.O.nonblock:VAL"><CODE><B>val</B> nonblock</CODE></A>
+<DD>
+Open, read and write operations on the file will be nonblocking.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.O.sync:VAL"><CODE><B>val</B> sync</CODE></A>
+<DD>
+If set, updates and writes to regular files and block devices are 	      synchronous updates. On return from a function that performs 	      a synchronous update (<A HREF="posix-io.html#SIG:POSIX_IO.writeVec:VAL:SPEC">writeVec</A>, 	      <A HREF="posix-io.html#SIG:POSIX_IO.writeArr:VAL:SPEC">writeArr</A>, ftruncate, 	      openf with <A HREF="#SIG:POSIX_FILE_SYS.O.trunc:VAL:SPEC">trunc</A>), the 	      calling process is assured that all data for the file has been 	      written to permanent storage, even if the file is also open for 	      deferred update.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.O.trunc:VAL"><CODE>trunc
+              </CODE></A>
+<DD>
+Cause the file to be truncated (to zero length) upon opening.         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_FILE_SYS.open_mode:TY"><CODE><B>datatype</B> open_mode</CODE></A>
+<DD>
+<DL>
+<DT> <CODE>O_RDONLY</CODE>
+<DD>
+Specifies opening a file for reading only.         
+<BR>
+<BR>
+
+<DT> <CODE>O_WRONLY</CODE>
+<DD>
+Specifies opening a file for writing only.         
+<BR>
+<BR>
+
+<DT> <CODE>O_RDWR</CODE>
+<DD>
+Specifies opening a file for reading and writing.       
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_FILE_SYS.openf:VAL"><CODE>openf (<VAR>s</VAR>, <VAR>om</VAR>, <VAR>f</VAR>)
+          </CODE></A>
+<DT> <CODE>          createf (<VAR>s</VAR>, <VAR>om</VAR>, <VAR>f</VAR>, <VAR>m</VAR>)
+          </CODE>
+<DD>
+Open a file named <VAR>s</VAR> for reading, writing or both (depending           on the open mode <VAR>om</VAR>).  The flags <VAR>f</VAR> specify the state           of the open file. If the file does not exist, <A HREF="#SIG:POSIX_FILE_SYS.openf:VAL:SPEC">openf</A>           raises the <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> exception whereas           <A HREF="#SIG:POSIX_FILE_SYS.createf:VAL:SPEC">createf</A> creates the file, setting its protection            mode to <VAR>m</VAR> (as modified by the <A HREF="#SIG:POSIX_FILE_SYS.umask:VAL:SPEC">umask</A>).           
+<P>
+          Note that, in C, the roles of <A HREF="#SIG:POSIX_FILE_SYS.openf:VAL:SPEC">openf</A> and <A HREF="#SIG:POSIX_FILE_SYS.createf:VAL:SPEC">createf</A>           are combined in the function <CODE>open</CODE>. The first acts like           <CODE>open</CODE> without the <CODE>O_CREAT</CODE> flag; the second acts like           <CODE>open</CODE> with the <CODE>O_CREAT</CODE> flag and the specified permission           mode. Also, the <A HREF="#SIG:POSIX_FILE_SYS.createf:VAL:SPEC">createf</A> function should not be confused           with the <A HREF="#SIG:POSIX_FILE_SYS.creat:VAL:SPEC">creat</A> function below, which behaves like its           C namesake.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.creat:VAL"><CODE>creat (<VAR>s</VAR>, <VAR>m</VAR>)
+          </CODE></A>
+<DD>
+opens a file <VAR>s</VAR> for writing. If the file exists, it is truncated           to length 0.           If the file does not exist, it creates it, setting its protection mode 	  to <VAR>m</VAR> (as modified by the <A HREF="#SIG:POSIX_FILE_SYS.umask:VAL:SPEC">umask</A>).           This is equivalent to the expression: 	  
+<PRE>
+	    <A HREF="#SIG:POSIX_FILE_SYS.createf:VAL:SPEC">createf</A>(<VAR>s</VAR>,<A HREF="#SIG:POSIX_FILE_SYS.open_mode:TY:SPEC">O_WRONLY</A>,<A HREF="#SIG:POSIX_FILE_SYS.O.trunc:VAL:SPEC">O.trunc</A>,<VAR>m</VAR>)
+	  
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.umask:VAL"><CODE>umask <VAR>cmask</VAR>
+          </CODE></A>
+<DD>
+Sets the file mode creation mask of the process to  <VAR>cmask</VAR> parameter and returns the previous value of the mask.
+<P>
+  Whenever a file is created (by <A HREF="#SIG:POSIX_FILE_SYS.openf:VAL:SPEC">openf</A>, <A HREF="#SIG:POSIX_FILE_SYS.creat:VAL:SPEC">creat</A>, <A HREF="#SIG:POSIX_FILE_SYS.mkdir:VAL:SPEC">mkdir</A> etc.),   all file permission bits set in the file mode creation mask are cleared in   the mode of the created file. This clearing allows users to restrict the   default access to their files.
+<P>
+  The mask is inherited by child processes.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.link:VAL"><CODE>link {<VAR>old</VAR>, <VAR>new</VAR>}
+          </CODE></A>
+<DD>
+creates an additional hard link (directory entry) for   an existing file.  Both the old and the new link share equal access rights   to the underlying object. 
+<P>
+  Both <VAR>old</VAR> and <VAR>new</VAR> must reside on the same file system. A   hard link to a directory cannot be created.
+<P>
+  Upon successful completion, <A HREF="#SIG:POSIX_FILE_SYS.link:VAL:SPEC">link</A> updates the file status change   time of the <VAR>old</VAR> file, and updates the file status change and   modification times of the directory containing the <VAR>new</VAR> entry.   (See <A HREF="#SIG:POSIX_FILE_SYS.ST:STR:SPEC">ST</A>.)     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.mkdir:VAL"><CODE>mkdir (<VAR>s</VAR>, <VAR>m</VAR>)
+          </CODE></A>
+<DD>
+Create a new directory named <VAR>s</VAR> with protection mode  	  <VAR>m</VAR> (as modified by the <A HREF="#SIG:POSIX_FILE_SYS.umask:VAL:SPEC">umask</A>).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.mkfifo:VAL"><CODE>mkfifo (<VAR>s</VAR>, <VAR>m</VAR>)
+          </CODE></A>
+<DD>
+Make a FIFO special file <VAR>s</VAR>, with protection mode <VAR>m</VAR>           (as modified by the <A HREF="#SIG:POSIX_FILE_SYS.umask:VAL:SPEC">umask</A>).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.unlink:VAL"><CODE>unlink <VAR>path</VAR>
+          </CODE></A>
+<DD>
+Remove the directory entry specified by <VAR>path</VAR>  and, if the entry is a hard link, decrement the link count of   the file referenced by the link.
+<P>
+When all links to a file are removed and no process has the file open or   mapped, all resources associated with the file are reclaimed, and the file   is no longer accessible. If one or more processes have the file open or   mapped when the last link is removed, the link is removed before    <A HREF="#SIG:POSIX_FILE_SYS.unlink:VAL:SPEC">unlink</A> returns, but the removal of the file contents is post-   poned until all open or map references to the file are removed.  If the   <VAR>path</VAR> parameter names a symbolic link,  the symbolic link itself is removed.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.rmdir:VAL"><CODE>rmdir <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Remove a directory <VAR>s</VAR>, which must be empty.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.rename:VAL"><CODE>rename {<VAR>old</VAR>, <VAR>new</VAR>}
+          </CODE></A>
+<DD>
+Rename a directory or a file within a file system.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.symlink:VAL"><CODE>symlink {<VAR>old</VAR>, <VAR>new</VAR>}
+          </CODE></A>
+<DD>
+Create a symbolic link with the name specified by   the <VAR>new</VAR> that refers to the file named by <VAR>old</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.readlink:VAL"><CODE>readlink <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Read the value of a symbolic link <VAR>s</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.dev:TY"><CODE><B>eqtype</B> dev</CODE></A>
+<DD>
+Device Identifier. File serial number (I-node) and device           ID uniquely identify a file.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.wordToDev:VAL"><CODE>wordToDev <VAR>i</VAR>
+          </CODE></A>
+<DD>
+Convert a word (by which the operating system identifies           a device) to a device identifier. There is no verification           that <VAR>i</VAR> corresponds to a valid device identifier.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.devToWord:VAL"><CODE>devToWord <VAR>dev</VAR>
+          </CODE></A>
+<DD>
+Convert <VAR>dev</VAR> to the word by which the operating             system identifies the device.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ino:TY"><CODE><B>eqtype</B> ino</CODE></A>
+<DD>
+File Serial Number (I-node).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.wordToIno:VAL"><CODE>wordToIno <VAR>i</VAR>
+          </CODE></A>
+<DD>
+Convert a word (by which the operating system identifies            an i-node) to an <A HREF="#SIG:POSIX_FILE_SYS.ino:TY:SPEC">ino</A> value.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.inoToWord:VAL"><CODE>inoToWord <VAR>ino</VAR>
+          </CODE></A>
+<DD>
+Convert <VAR>ino</VAR> to the word by which the operating system           identifies it.
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST:STR"><CODE><B>structure</B> ST</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.stat:TY"><CODE><B>type</B> stat</CODE></A>
+<DD>
+provides information concerning a file.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.isDir:VAL"><CODE>isDir <VAR>st</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if the file is a <I>directory</I>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.isChr:VAL"><CODE>isChr <VAR>st</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if the file is            a <I>character special device</I>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.isBlk:VAL"><CODE>isBlk <VAR>st</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if the file            is a <I>block special device</I>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.isReg:VAL"><CODE>isReg <VAR>st</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if the            file is a <I>regular file</I>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.isFIFO:VAL"><CODE>isFIFO <VAR>st</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if the file is a <I>FIFO</I>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.isLink:VAL"><CODE>isLink <VAR>st</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if the file            is a <I>symbolic link</I>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.isSock:VAL"><CODE>isSock <VAR>st</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if the file is a <I>socket</I>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.mode:VAL"><CODE>mode <VAR>st</VAR>
+	  </CODE></A>
+<DD>
+returns the protection mode of the file described by <VAR>st</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.ino:VAL"><CODE>ino <VAR>st</VAR>
+	  </CODE></A>
+<DD>
+returns the file serial number (I-node) of the file described by <VAR>st</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.dev:VAL"><CODE>dev <VAR>st</VAR>
+	  </CODE></A>
+<DD>
+returns the device identifier of the file described by <VAR>st</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.nlink:VAL"><CODE>nlink <VAR>st</VAR>
+	  </CODE></A>
+<DD>
+returns the number of hard links to the file described by <VAR>st</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.uid:VAL"><CODE>uid <VAR>st</VAR>
+	  </CODE></A>
+<DD>
+returns the owner of the file described by <VAR>st</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.gid:VAL"><CODE>gid <VAR>st</VAR>
+	  </CODE></A>
+<DD>
+returns the group ID of the file described by <VAR>st</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.size:VAL"><CODE>size <VAR>st</VAR>
+	  </CODE></A>
+<DD>
+returns the size (number of bytes) of the file described by <VAR>st</VAR>.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.atime:VAL"><CODE>atime <VAR>st</VAR>
+              </CODE></A>
+<DD>
+returns the last access time of the file described by <VAR>st</VAR>.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.mtime:VAL"><CODE>mtime <VAR>st</VAR>
+              </CODE></A>
+<DD>
+returns the last modification time of the file described by <VAR>st</VAR>.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ST.ctime:VAL"><CODE>ctime <VAR>st</VAR>
+              </CODE></A>
+<DD>
+returns the time last status change of the file described by <VAR>st</VAR>.         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_FILE_SYS.stat:VAL"><CODE>stat <VAR>s</VAR>
+          </CODE></A>
+<DT> <CODE>          lstat <VAR>s</VAR>
+          </CODE>
+<DT> <CODE>          fstat <VAR>fd</VAR>
+          </CODE>
+<DD>
+returns information on a file system object. For <A HREF="#SIG:POSIX_FILE_SYS.stat:VAL:SPEC">stat</A>           and <A HREF="#SIG:POSIX_FILE_SYS.lstat:VAL:SPEC">lstat</A>, the object is specified by its name <VAR>s</VAR>.           Note that an empty string causes an exception.           For <A HREF="#SIG:POSIX_FILE_SYS.fstat:VAL:SPEC">fstat</A>, an open file descriptor is supplied.           
+<P>
+          <A HREF="#SIG:POSIX_FILE_SYS.lstat:VAL:SPEC">lstat</A> differs from <A HREF="#SIG:POSIX_FILE_SYS.stat:VAL:SPEC">stat</A> in that, if <VAR>s</VAR> is           a symbolic link, the information concerns the link itself,            not the file to which the link points.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.access_mode:TY"><CODE><B>datatype</B> access_mode</CODE></A>
+<DD>
+This type is identical to <A HREF="os-file-sys.html#SIG:OS_FILE_SYS.access_mode:TY:SPEC">OS.FileSys.access_mode</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.access:VAL"><CODE>access (<VAR>s</VAR>, <VAR>l</VAR>)
+          </CODE></A>
+<DD>
+Check for accessibility of file <VAR>s</VAR>.  If <VAR>l</VAR> is nil,           checks for the existence of the file; if <VAR>l</VAR> contains           <A HREF="#SIG:POSIX_FILE_SYS.access_mode:TY:SPEC">A_READ</A>, checks for the readability of <VAR>s</VAR>, and so on.
+<P>
+  Only access bits are checked.  A directory may be indicated as writable by   <A HREF="#SIG:POSIX_FILE_SYS.access:VAL:SPEC">access</A>, but an attempt to open it for writing will fail    (although files   may be created there); a file's access bits may indicate that it is    executable, but the <A HREF="posix-process.html#SIG:POSIX_PROCESS.exec:VAL:SPEC">exec</A> can fail if the file does not contain the   proper format.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.chmod:VAL"><CODE>chmod (<VAR>s</VAR>, <VAR>mode</VAR>)
+          </CODE></A>
+<DD>
+Change the protection mode of <VAR>s</VAR> to <VAR>mode</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.fchmod:VAL"><CODE>fchmod (<VAR>fd</VAR>, <VAR>mode</VAR>)
+          </CODE></A>
+<DD>
+Change the protection mode of the file opened as <VAR>fd</VAR> to <VAR>mode</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.chown:VAL"><CODE>chown (<VAR>s</VAR>, <VAR>uid</VAR>, <VAR>gid</VAR>)
+          </CODE></A>
+<DD>
+Change the owner and group of file <VAR>s</VAR> to <VAR>uid</VAR>           and <VAR>gid</VAR>, respectively.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.fchown:VAL"><CODE>fchown (<VAR>fd</VAR>, <VAR>uid</VAR>, <VAR>gid</VAR>)
+          </CODE></A>
+<DD>
+Change the owner and group of the file opened as <VAR>fd</VAR> to <VAR>uid</VAR>           and <VAR>gid</VAR>, respectively.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.utime:VAL"><CODE>utime (<VAR>s</VAR>, SOME(<VAR>a</VAR>,<VAR>m</VAR>))
+          </CODE></A>
+<DT> <CODE>          utime (<VAR>s</VAR>, NONE)
+          </CODE>
+<DD>
+The first form sets the access and modification times            of a file to <VAR>a</VAR> and <VAR>m</VAR>, respectively.           The second form sets the access and modification times of            a file to the current time.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.ftruncate:VAL"><CODE>ftruncate (<VAR>fd</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+Change the length of a file opened as <VAR>fd</VAR> to the <VAR>n</VAR>   bytes. If the new length is less   than the previous length, remove   all data beyond <VAR>n</VAR> bytes from the specified file.  All file data   between the new end-of-file and the previous end-of-file is discarded.  If   the new length is greater than the previous length, new file data between   the previous end-of-file and the new end-of-file is added, consisting of   all zeros.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FILE_SYS.pathconf:VAL"><CODE>pathconf (<VAR>s</VAR>, <VAR>p</VAR>)
+          </CODE></A>
+<DT> <CODE>          fpathconf (<VAR>fd</VAR>, <VAR>p</VAR>)
+          </CODE>
+<DD>
+Determine the value of property <VAR>p</VAR> supported by the            file system underlying the file specified by <VAR>s</VAR> or <VAR>fd</VAR>.           If the value is false or unbounded, <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> is returned.           If the value is true or            bounded, <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A> <VAR>v</VAR></CODE> is returned,            where v is the value.           The <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> exception is raised if something goes wrong,            including if the name <VAR>p</VAR> is not a valid property,            or if the implementation does not            associate the property with the file.           
+<P>
+          In the case of <A HREF="#SIG:POSIX_FILE_SYS.pathconf:VAL:SPEC">pathconf</A>,           read, write, or execute permission of the named           file is not required, but all directories in the path            leading to the file must be searchable.             
+<P>
+          The properties required by Posix are described below. A given           implementation may support additional properties.   
+<DL>
+<DT> &quot;CHOWN_RESTRICTED&quot;
+<DD>
+This is applicable only to a directory file.  The value returned             applies to any files (other than directories) that exist or can             be created within the directory.    
+<DT> &quot;LINK_MAX&quot;
+<DD>
+The maximum number of links to the file.   
+<DT> &quot;MAX_CANON&quot;
+<DD>
+The maximum number of bytes in a canonical          input line.  This is applicable only to terminal devices.   
+<DT> &quot;MAX_INPUT&quot;
+<DD>
+The number of types allowed in an input queue.  This is applicable only to terminal devices.   
+<DT> &quot;NAME_MAX&quot;
+<DD>
+Maximum number of bytes in a filename (not including a             terminating null). This may be as small as 13, but is never             larger than 255.  This is applicable only to a directory file.             The value returned applies to filenames within the directory.   
+<DT> &quot;NO_TRUNC&quot;
+<DD>
+Returns 1 if supplying a component name longer than allowed by             NAME_MAX will cause an error. Returns 0 (zero) if long component             names are truncated. This is applicable only to a directory file.    
+<DT> &quot;PATH_MAX&quot;
+<DD>
+Maximum number of bytes in a pathname (not including  	a terminating null). This is never larger than 65,535.  This is applicable             only to a directory file.  The value returned is the maximum             length of a relative pathname when the specified directory is the             working directory.    
+<DT> &quot;PIPE_BUF&quot;
+<DD>
+Maximum number of bytes guaranteed to be written atomically. This             is applicable only to a FIFO.  The value returned applies to the             referenced object. 	    If the path or file descriptor parameter refers to a             directory, the value returned applies to any FIFO that exists or             can be created within the directory.      
+<DT> &quot;VDISABLE&quot;
+<DD>
+Tell the disabling character of a terminal device.     
+<DT> &quot;ASYNC_IO&quot;
+<DD>
+Tell if asynchronous I/O may be performed on the file.     
+<DT> &quot;SYNC_IO&quot;
+<DD>
+Tell if synchronous I/O may be performed on the file.     
+<DT> &quot;PRIO_IO&quot;
+<DD>
+Tell if prioritized I/O may be performed on the file.   
+</DL>
+   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="posix.html#Posix:STR:SPEC">Posix</A>, <A HREF="posix.html#SIG:POSIX.ProcEnv:STR:SPEC">Posix.ProcEnv</A>, <A HREF="posix.html#SIG:POSIX.Process:STR:SPEC">Posix.Process</A>, <A HREF="posix.html#SIG:POSIX.IO:STR:SPEC">Posix.IO</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="posix-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 14, 1996</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,166 @@
+<!-- HTML/ieee-float.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The IEEEReal structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>IEEEReal</CODE> structure</H3>
+<P>
+The IEEEReal structure defines types associated with an IEEE implementation of  floating-point numbers. In addition, it provides control for the floating-point hardware's rounding mode.  Refer to the IEEE standard 754-1985 and the ANSI/IEEE standard 854-1987 for additional information. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="IEEE_REAL:SIG:SPEC"><CODE>IEEE_REAL</CODE></A><BR>
+<B>structure </B><A NAME="IEEEReal:STR:SPEC"><CODE>IEEEReal</CODE></A><B> : </B>IEEE_REAL<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>exception</B> <A NAME="SIG:IEEE_REAL.Unordered:EXN:SPEC" HREF="#SIG:IEEE_REAL.Unordered:EXN">Unordered</A><BR>
+<B>datatype</B> <A NAME="SIG:IEEE_REAL.real_order:TY:SPEC" HREF="#SIG:IEEE_REAL.real_order:TY">real_order</A> <B>=</B> LESS <B>|</B> EQUAL <B>|</B> GREATER <B>|</B> UNORDERED<BR>
+<B>datatype</B> <A NAME="SIG:IEEE_REAL.nan_mode:TY:SPEC" HREF="#SIG:IEEE_REAL.nan_mode:TY">nan_mode</A> <B>=</B> QUIET <B>|</B> SIGNALLING<BR>
+<B>datatype</B> <A NAME="SIG:IEEE_REAL.float_class:TY:SPEC" HREF="#SIG:IEEE_REAL.float_class:TY">float_class</A><BR>
+&nbsp;&nbsp;<B>=</B> NAN <B>of</B> nan_mode         <BR>
+&nbsp;&nbsp;<B>|</B> INF<BR>
+&nbsp;&nbsp;<B>|</B> ZERO<BR>
+&nbsp;&nbsp;<B>|</B> NORMAL<BR>
+&nbsp;&nbsp;<B>|</B> SUBNORMAL<BR>
+<B>datatype</B> <A NAME="SIG:IEEE_REAL.rounding_mode:TY:SPEC" HREF="#SIG:IEEE_REAL.rounding_mode:TY">rounding_mode</A><BR>
+&nbsp;&nbsp;<B>=</B> TO_NEAREST<BR>
+&nbsp;&nbsp;<B>|</B> TO_NEGINF<BR>
+&nbsp;&nbsp;<B>|</B> TO_POSINF<BR>
+&nbsp;&nbsp;<B>|</B> TO_ZERO<BR>
+<B>val</B> <A NAME="SIG:IEEE_REAL.setRoundingMode:VAL:SPEC" HREF="#SIG:IEEE_REAL.setRoundingMode:VAL">setRoundingMode</A> <B>:</B> rounding_mode -&gt; unit       <BR>
+<B>val</B> <A NAME="SIG:IEEE_REAL.getRoundingMode:VAL:SPEC" HREF="#SIG:IEEE_REAL.setRoundingMode:VAL">getRoundingMode</A> <B>:</B> unit -&gt; rounding_mode         <BR>
+<B>type</B> <A NAME="SIG:IEEE_REAL.decimal_approx:TY:SPEC" HREF="#SIG:IEEE_REAL.decimal_approx:TY">decimal_approx</A> <B>=</B> {         kind : float_class,         sign : bool,         digits : int list,         exp : int       }         <BR>
+<B>val</B> <A NAME="SIG:IEEE_REAL.toString:VAL:SPEC" HREF="#SIG:IEEE_REAL.toString:VAL">toString</A> <B>:</B> decimal_approx -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:IEEE_REAL.fromString:VAL:SPEC" HREF="#SIG:IEEE_REAL.fromString:VAL">fromString</A> <B>:</B> string -&gt; decimal_approx option         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:IEEE_REAL.Unordered:EXN"><CODE><B>exception</B> Unordered</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:IEEE_REAL.real_order:TY"><CODE><B>datatype</B> real_order</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:IEEE_REAL.nan_mode:TY"><CODE><B>datatype</B> nan_mode</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:IEEE_REAL.float_class:TY"><CODE><B>datatype</B> float_class</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:IEEE_REAL.rounding_mode:TY"><CODE><B>datatype</B> rounding_mode</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:IEEE_REAL.setRoundingMode:VAL"><CODE>setRoundingMode <VAR>mode</VAR>
+          </CODE></A>
+<DT> <CODE>          getRoundingMode <VAR>()</VAR>
+          </CODE>
+<DD>
+set and get the rounding mode of the underlying hardware.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IEEE_REAL.decimal_approx:TY"><CODE><B>type</B> decimal_approx</CODE></A>
+<DD>
+provides a structured decimal representation of a real. The         <CODE>kind</CODE> field indicates the real class. If <CODE>sign</CODE> is <CODE>true</CODE>,         the number is negative. The integers in the <CODE>digits</CODE> list must         be digits, i.e., between 0 and 9.         
+<P>
+        When <CODE>kind</CODE> is <CODE>NORMAL</CODE> or <CODE>SUBNORMAL</CODE>, a value of          of type <CODE>decimal_approx</CODE> with          <CODE>digits</CODE> = [d<SUB>(1)</SUB>, d<SUB>(2)</SUB>, ..., d<SUB>(n)</SUB>] corresponds         to the          real number s * 0.d<SUB>(1)</SUB>d<SUB>(2)</SUB>...d<SUB>(n)</SUB> 10<SUP>(exp)</SUP>,         where s is -1 if <CODE>sign</CODE> is <CODE>true</CODE> and 1 otherwise.         When <CODE>kind</CODE> is <CODE>ZERO</CODE> or <CODE>INF</CODE>, the value corresponds to zero         or infinity, respectively, with its sign determined by <CODE>sign</CODE>.         When <CODE>kind</CODE> is <CODE>NAN _</CODE>, the value corresponds to a NaN real value         whose whose fraction bits are the binary equivalent of         0.d<SUB>(1)</SUB>d<SUB>(2)</SUB>...d<SUB>(n)</SUB> and whose sign bit is set         if <CODE>sign</CODE> is <CODE>true</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IEEE_REAL.toString:VAL"><CODE>toString <VAR>d</VAR>
+          </CODE></A>
+<DD>
+returns a string representation of <VAR>d</VAR>.            Assuming <CODE>digits</CODE> = [d<SUB>(1)</SUB>, d<SUB>(2)</SUB>, ..., d<SUB>(n)</SUB>]           and ignoring the <CODE>sign</CODE> and <CODE>exp</CODE> fields,            <CODE>toString</CODE> generates            the following strings depending on the <CODE>kind</CODE> field:           
+<HR>
+<CENTER>
+<TABLE ALIGN="CENTER">
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">ZERO</A>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>0.0</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">NORMAL</A>
+<TD ALIGN="LEFT" VALIGN="TOP">
+0.d<SUB>(1)</SUB>d<SUB>(2)</SUB>...d<SUB>(n)</SUB>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">SUBNORMAL</A>
+<TD ALIGN="LEFT" VALIGN="TOP">
+0.d<SUB>(1)</SUB>d<SUB>(2)</SUB>...d<SUB>(n)</SUB>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">INF</A>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>inf</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">NAN</A> _
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>nan</TT>(d<SUB>(1)</SUB>d<SUB>(2)</SUB>...d<SUB>(n)</SUB>)
+</TABLE>
+</CENTER>
+<HR>
+ If the <CODE>sign</CODE> field is <CODE>true</CODE>, a <CODE>#&quot;~&quot;</CODE> is prepended. If the <CODE>exp</CODE> field is non-zero and the <CODE>kind</CODE> is <A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">NORMAL</A> or <A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">SUBNORMAL</A>, the string <CODE>&quot;E&quot;^(Integer.toString exp)</CODE> is appended.           
+<P>
+          <CODE>toString o REAL.toDecimal</CODE> is equivalent to            <CODE>REAL.fmt IEEEReal.EXACT</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IEEE_REAL.fromString:VAL"><CODE>fromString <VAR>s</VAR>
+          </CODE></A>
+<DD>
+returns <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A> r</CODE> if the decimal       approximation <CODE>r</CODE> can be parsed from a prefix 	  of string <VAR>s</VAR>, ignoring initial whitespace;        <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> is returned if no such conversion is possible. <CODE>fromString</CODE> accepts any of the following regular expressions:           
+<PRE>
+	  [+~-]?(INF|INFINITY)
+	  [+~-]?(NAN|NAN\([0-9]+\))
+	  [+~-]?(([0-9]+(\.[0-9]+)?)|(\.[0-9]+))([eE][+~-]?[0-9]+)?
+          
+</PRE>
+ where alphabetic characters are case-insensitive. The optional sign determines the value of the <CODE>sign</CODE> field, with a default of <CODE>false</CODE>. In the first case, <CODE>kind</CODE> is set to <A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">INF</A>, <CODE>digits = []</CODE> and <CODE>exp = 0</CODE>. In the second case, <CODE>kind</CODE> is set to <A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">NAN</A> and <CODE>exp = 0</CODE>. If the optional digits are provided, they become the list of digits; otherwise, <CODE>digits = []</CODE>. In the last case, initial 0's are stripped from the integer part and trailing 0's are stripped from the fractional part, yielding two lists <CODE>il</CODE> and <CODE>fl</CODE>, respectively, of integers. If no digits are left, i.e., both lists are empty, <CODE>kind</CODE> is set to <A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">ZERO</A>, <CODE>digits = []</CODE> and <CODE>exp = 0</CODE>. Otherwise, <CODE>kind</CODE> is set to <A HREF="#SIG:IEEE_REAL.float_class:TY:SPEC">NORMAL</A>, <CODE>digits = il@fl</CODE>, and <CODE>exp</CODE> is set to the length of <CODE>il</CODE> plus the value of the exponent, if it exists.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="real.html#REAL:SIG:SPEC">REAL</A>, <A HREF="math.html#MATH:SIG:SPEC">MATH</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="real-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified January 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

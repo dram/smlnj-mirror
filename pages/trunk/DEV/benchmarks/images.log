@@ -1,0 +1,223 @@
+This is TeX, Version 3.14159 (C version 6.1) (format=latex 98.12.5)  23 JUN 2000 15:42
+**./images.tex
+(images.tex
+LaTeX2e <1996/12/01> patch level 1
+Babel <v3.6h> and hyphenation patterns for american, german, loaded.
+
+(/opt/teTeX-0.4/texmf/tex/latex/base/article.cls
+Document Class: article 1996/10/31 v1.3u Standard LaTeX document class
+(/opt/teTeX-0.4/texmf/tex/latex/base/size10.clo
+File: size10.clo 1996/10/31 v1.3u Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+) (/opt/teTeX-0.4/texmf/tex/latex/graphics/epsfig.sty
+Package: epsfig 1996/10/04 v1.7 (e)psfig emulation (SPQR)
+(/opt/teTeX-0.4/texmf/tex/latex/graphics/graphicx.sty
+Package: graphicx 1996/10/31 v1.0c Enhanced LaTeX Graphics (DPC,SPQR)
+(/opt/teTeX-0.4/texmf/tex/latex/graphics/keyval.sty
+Package: keyval 1995/09/21 v1.09 key=value parser (DPC)
+) (/opt/teTeX-0.4/texmf/tex/latex/graphics/graphics.sty
+Package: graphics 1996/10/31 v1.0c Standard LaTeX Graphics (DPC,SPQR)
+(/opt/teTeX-0.4/texmf/tex/latex/graphics/trig.sty
+Package: trig 1994/10/16 v1.08 sin cos tan (DPC)
+) (/opt/teTeX-0.4/texmf/tex/latex/config/graphics.cfg)
+Package graphics Info: Driver file: dvips.def on input line 82.
+(/opt/teTeX-0.4/texmf/tex/latex/graphics/dvips.def
+File: dvips.def 1996/12/12 v3.0d Driver-dependant file (DPC,SPQR)
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+\epsfxsize=\dimen105
+\epsfysize=\dimen106
+) (/opt/teTeX-0.4/texmf/tex/generic/xypic/xy.sty (/opt/teTeX-0.4/texmf/tex/gene
+ric/xypic/xy.tex Bootstrap'ing: catcodes, docmode, (/opt/teTeX-0.4/texmf/tex/ge
+neric/xypic/xyrecat.tex) (/opt/teTeX-0.4/texmf/tex/generic/xypic/xyidioms.tex)
+
+ Xy-pic version 3.3 <1996/12/19>
+ Copyright (c) 1991-1996 by Kristoffer H. Rose <krisrose@brics.dk>
+ Xy-pic is free software: see the User's Guide for details.
+
+Loading kernel: messages; fonts; allocations: state,
+\X@c=\dimen107
+\Y@c=\dimen108
+\U@c=\dimen109
+\D@c=\dimen110
+\L@c=\dimen111
+\R@c=\dimen112
+\Edge@c=\toks14
+\X@p=\dimen113
+\Y@p=\dimen114
+\U@p=\dimen115
+\D@p=\dimen116
+\L@p=\dimen117
+\R@p=\dimen118
+\Edge@p=\toks15
+\X@origin=\dimen119
+\Y@origin=\dimen120
+\X@xbase=\dimen121
+\Y@xbase=\dimen122
+\X@ybase=\dimen123
+\Y@ybase=\dimen124
+\X@min=\dimen125
+\Y@min=\dimen126
+\X@max=\dimen127
+\Y@max=\dimen128
+\lastobjectbox@=\box26
+\zerodotbox@=\box27
+\almostz@=\dimen129
+direction,
+\d@X=\dimen130
+\d@Y=\dimen131
+\K@=\count87
+\KK@=\count88
+\Direction=\count89
+\K@dXdY=\dimen132
+\K@dYdX=\dimen133
+\xyread@=\read1
+\xywrite@=\write3
+\csp@=\count90
+\quotPTK@=\dimen134
+utility macros; pictures: \xy, positions,
+\swaptoks@@=\toks16
+\connectobjectbox@@=\box28
+objects,
+\styletoks@=\toks17
+decorations; kernel objects: directionals, circles, text; options; algorithms: 
+directions, edges, connections;  Xy-pic loaded)
+Package: xy 1996/12/19 Xy-pic version 3.3
+)
+\sizebox=\box29
+\lthtmlwrite=\write4
+No file images.aux.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 63.
+LaTeX Font Info:    ... okay on input line 63.
+latex2htmlLength hsize=349.0pt
+latex2htmlLength vsize=633.0pt
+latex2htmlLength hoffset=0.0pt
+latex2htmlLength voffset=0.0pt
+latex2htmlLength topmargin=0.0pt
+latex2htmlLength topskip=0.00002pt
+latex2htmlLength headheight=0.0pt
+latex2htmlLength headsep=0.0pt
+latex2htmlLength parskip=0.0pt plus 1.0pt
+latex2htmlLength oddsidemargin=62.0pt
+latex2htmlLength evensidemargin=62.0pt
+File: compile0.ps Graphic file (type eps)
+<compile0.ps>
+Overfull \hbox (48.48499pt too wide) in paragraph at lines 84--85
+ [] 
+ []
+
+l2hSize :figure10:380.37997pt::0.0pt::349.0pt.
+[1
+
+
+]
+File: compile1.ps Graphic file (type eps)
+<compile1.ps>
+Overfull \hbox (48.48499pt too wide) in paragraph at lines 94--95
+ [] 
+ []
+
+l2hSize :figure13:380.37997pt::0.0pt::349.0pt.
+[2
+
+
+]
+File: compile2.ps Graphic file (type eps)
+<compile2.ps>
+Overfull \hbox (48.48499pt too wide) in paragraph at lines 104--105
+ [] 
+ []
+
+l2hSize :figure16:380.37997pt::0.0pt::349.0pt.
+[3
+
+
+]
+File: compile3.ps Graphic file (type eps)
+<compile3.ps>
+Overfull \hbox (48.48499pt too wide) in paragraph at lines 114--115
+ [] 
+ []
+
+l2hSize :figure19:118.40123pt::0.0pt::349.0pt.
+[4
+
+
+]
+File: run0.ps Graphic file (type eps)
+<run0.ps>
+Overfull \hbox (48.48499pt too wide) in paragraph at lines 125--126
+ [] 
+ []
+
+l2hSize :figure23:380.37997pt::0.0pt::349.0pt.
+[5
+
+
+]
+File: run1.ps Graphic file (type eps)
+<run1.ps>
+Overfull \hbox (48.48499pt too wide) in paragraph at lines 135--136
+ [] 
+ []
+
+l2hSize :figure26:380.37997pt::0.0pt::349.0pt.
+[6
+
+
+]
+File: run2.ps Graphic file (type eps)
+<run2.ps>
+Overfull \hbox (48.48499pt too wide) in paragraph at lines 145--146
+ [] 
+ []
+
+l2hSize :figure29:378.37248pt::0.0pt::349.0pt.
+[7
+
+
+]
+File: run3.ps Graphic file (type eps)
+<run3.ps>
+Overfull \hbox (44.46999pt too wide) in paragraph at lines 155--156
+ [] 
+ []
+
+l2hSize :figure32:120.40874pt::0.0pt::349.0pt.
+[8
+
+
+] (images.aux) ) 
+Here is how much of TeX's memory you used:
+ 1490 strings out of 10906
+ 15125 string characters out of 72187
+ 74740 words of memory out of 262141
+ 4363 multiletter control sequences out of 9500
+ 4501 words of font info for 19 fonts, out of 150000 for 255
+ 14 hyphenation exceptions out of 607
+ 32i,4n,21p,215b,383s stack positions out of 300i,40n,60p,3000b,4000s
+
+Output written on images.dvi (8 pages, 1308 bytes).

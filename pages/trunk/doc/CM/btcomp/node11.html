@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>3.2 Init library</TITLE>
+<META NAME="description" CONTENT="3.2 Init library">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node13.html">
+<LINK REL="previous" HREF="node10.html">
+<LINK REL="up" HREF="node9.html">
+<LINK REL="next" HREF="node12.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html199"
+ HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html195"
+ HREF="node9.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html189"
+ HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html197"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html200"
+ HREF="node12.html">3.2.1 Linkage to runtime</A>
+<B> Up:</B> <A NAME="tex2html196"
+ HREF="node9.html">3. Differences between CMB</A>
+<B> Previous:</B> <A NAME="tex2html190"
+ HREF="node10.html">3.1 Code sharing</A>
+ &nbsp <B>  <A NAME="tex2html198"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00042000000000000000">
+3.2 Init library</A>
+</H2>
+
+<P>
+The <EM> init library</EM> (<TT> $smlnj/internal/init.cmi</TT>) is a library
+that is used implicitly by all programs.  This library is ``special''
+in several ways and cannot be described using an ordinary CM
+description file.  It is the bootstrap compiler's responsibility to
+properly prepare a stable version.
+
+<P>
+Ordinary programs (those managed by CM) do not have to worry about the
+special aspects of how to construct this library; they just have to be
+able to use its stable version.
+
+<P>
+There are several reasons why the library cannot be described as an
+ordinary CM library:
+
+<P>
+
+<UL>
+<LI>The library exports the <EM> pervasive environment</EM> which
+normally is imported implicitly by every compilation unit.  Within the
+init library, no pervasive environment is available yet.</LI>
+<LI>One binding in the above-mentioned pervasive environment is a
+binding for <TT> structure _Core</TT>.  The symbol <TT> _Core</TT> is not a
+legal SML identifier, and the bootstrap compiler has to take special
+action to create a binding for it anyway.</LI>
+<LI>One of the compilation units in this library is merely a
+placeholder which at link time has to be replaced by the SML/NJ
+runtime system (which is written in C).</LI>
+</UL>
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL>
+<LI><A NAME="tex2html201"
+ HREF="node12.html">3.2.1 Linkage to runtime system</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html199"
+ HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html195"
+ HREF="node9.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html189"
+ HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html197"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html200"
+ HREF="node12.html">3.2.1 Linkage to runtime</A>
+<B> Up:</B> <A NAME="tex2html196"
+ HREF="node9.html">3. Differences between CMB</A>
+<B> Previous:</B> <A NAME="tex2html190"
+ HREF="node10.html">3.1 Code sharing</A>
+ &nbsp <B>  <A NAME="tex2html198"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

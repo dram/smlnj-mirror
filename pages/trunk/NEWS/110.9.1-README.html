@@ -1,0 +1,516 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.9 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.9, October 19, 1998</h1>
+   </center>
+  <blockquote>
+<p>
+This version consist primarily of enhancements to CM and changes to
+the module system.  
+
+<hr>
+
+
+<h2>Bug Fixes</h2>
+Relative to 110.8
+<P>
+<TABLE BORDER>
+<THEAD>
+<TR><TH>No.<TH ALIGN="left">   Description</TR>
+</THEAD>
+<TBODY>
+<TR><TD>  1352 <TD> Equality status of reals is compromised </tr>
+<TR><TD>  1354 <TD> spurious? "possibly inconsistent structure definitions"</tr>
+<TR><TD>  1357 <TD> rebinding of constructors and exceptions not allowed</tr>
+<TR><TD>  1364 <TD> Mistakenly accepted datatype spec when signature matching.</tr>
+<TR><TD>  1374 <TD> Datatype replication causes nonexhaustive match error.</tr>
+<TR><TD>  1384 <TD> incorrect complaint about "inconsistent structure definitions"</tr>
+<TR><TD>  1385 <TD> functor defn including "where" structure defs shouldn't elaborate</tr>
+<TR><TD>  1386 <TD> redefinition of a type spec is not detected</tr>
+<TR><TD>  1414 <TD> Compiler bug: Instantiate: unexpected DATATYPE 354</tr>
+<TR><TD>  1417 <TD> problems with datatype replication in functors</tr>
+<TR><TD>  1418 <TD> CM.set_path is a constant function</tr>
+<TR><TD>  1421 <TD> incorrect type comparison for val spec in signature match</tr>
+<TR><TD>  1422 <TD> Core dump on Sparc when using lazy features</tr>
+<TR><TD>  1423 <TD> 2.0 + 2.0 = nan</tr>
+<TR><TD>  1426 <TD> smlnj-c interface function, second call core dumps</tr>
+<TR><TD>  1428 <TD> CM docs out of date</tr>
+<TR><TD>  1432 <TD> signature match fails for datatype specs if "where type" is used</tr>
+<TR><TD>  1433 <TD> eqtype u=t doesn't force eqtype. [partial fix]</tr>
+<TR><TD>  1438 <TD> Wrong types for TextIO.StreamIO.inputAll and TextIO.StreamIO.mkInstream</tr>
+<TR><TD>  1440 <TD> CM.set_path has no effect in Win 32 or Irix 6.4</tr>
+<TR><TD>  1445 <TD> uncaught Unbound in FLINT/trans/transtypes.sml</tr>
+<TR><TD>  1450 <TD> bugs in Array2.fromList and Array2.row</tr>
+<TR><TD>  -- <TD> fixed Real.fromString (regression test failures in basis/tests/reals.sml)</tr>
+</TBODY> 
+</TABLE>
+
+<hr>
+<h2> Module System </h2>
+<h3>1. Layered Redefinitions Ignored (Bug 1354 fixed)</h3>
+<p>
+Structure definition specs can easily give rise to redefinitions.  Consider 
+the following example:
+<pre>
+  signature S1 =
+  sig
+    type t
+  end;
+
+  signature S2 =
+  sig
+    structure A : S1
+    structure B : S1 = A
+  end;
+
+  signature S3 =
+  sig
+    structure C : S2
+    structure D : S2 = C
+  end;
+</pre>
+Here the substructure <code>D.B</code> of <code>S3</code> is defined
+within <code>S2</code> in terms of <code>D.A</code>
+(implying <code>D.B.t = D.A.t</code>), while by the definitional spec
+in <code>S3</code>, <code>D.B</code> is
+equal to <code>C.B</code> (implying <code>D.B.t = C.B.t</code>).
+<p>
+There are two ways of dealing with such secondary, or layered
+definitional specs.
+<ol>
+  <li> Secondary definitions can be treated as errors (excepting
+      those cases where the equivalence of the definitions can easily be
+      verified).  This was the policy for 110.0.3 through 110.8, where
+      examples like the above gave rise to the error message
+      <pre>
+        Error: possibly inconsistent structure definitions
+      </pre>
+      [This was bug 1354.]
+
+  <li> The redefinitions can be regarded as producing implied sharing
+      constraints (e.g. <code>D.A.t = C.B.t</code> in this case).
+</ol>
+In case (2), these implied sharing constraints will be verified
+automatically during signature matching, in the process of matching
+all the definitional specifications.  The question is whether they
+should be taken into account (i.e. satisfied) when instantiating a
+signature like <code>S3</code>.  We adopt the lenient policy of not dealing with
+these implied constraints during instantiation.  Instead, during
+instantiation secondary definitions are simply ignored.  In the
+example, the inner definition <code>D.B.t = D.A.t</code> takes effect while the
+secondary definition <code>D.B.t = C.B.t</code> is ignored.
+<p>
+The consequence of this policy is that some additional inconsistent
+signatures will be successfully instantiated.  As usual, any attempt
+to match these inconsistent signatures will fail.
+<p>
+The compiler flag
+<pre>
+  Compiler.Control.multDefWarn : bool ref
+</pre>
+controls whether a warning message will be generated when a secondary
+definition is ignored.  It's default value is false, meaning no warning
+messages will be produced.
+<p>
+We follow a stricter policy in some other cases, such as layered type
+definition specs:
+<pre>
+  signature S = sig
+    type t
+    type s = t
+  end where type s = int
+</pre>
+Here the secondary redefinition "where type s = int" is detected and
+causes an error message.
+<pre>
+  Error: where type defn applied to definitional spec: s
+</pre>
+NOTE: This is an SML/NJ divergence, since the above signature is legal
+in SML '97.  See Note "Sharable Types" below.
+
+
+
+<h3>2. Noninterference of sharing and definitional specs</h3>
+<p>
+While the above solution relaxed a constraint enforced by the compiler,
+this problem involves enforcing a new constraint relating to the
+interaction between sharing and definitional specs.
+<p>
+The Definition requires that a type constructor involved in a sharing
+constraint be (1) not defined as a type function, and (2) not
+defined in terms of some "rigid" type constructor (i.e. a type
+constructor previously defined in the context).
+<p>
+We choose to define "sharable" as meaning simply that there is {\em
+no} definition applying to a type constructor.  We'll use the term
+"defined" for the opposite of sharable.  A more subtle definition is
+possible; see note "Sharable Types" below.
+<p>
+Thus the following signature is illegal
+<pre>
+  signature S =
+  sig
+    type s = int  (* s is defined *)
+    type t        (* t is sharable *)
+    sharing type t = s  (* s is not sharable *)
+  end
+</pre>
+and has to be reexpressed as (for instance):
+<pre>
+  signature S =
+  sig
+    type s = int
+    type t = s
+  end
+</pre>
+With "where type" definitions, things are a little more complicated.  An
+inner type sharing constraint can be affected by an outer definitional
+constraint, as in the following example:
+<pre>
+  signature S1 =
+  sig
+    type s
+    type t
+    sharing type t = s  (* ok, because s and t are sharable here *)
+  end
+  where type t = int;  (* this converts both s and t to rigid types *)
+</pre>
+This is legal, but the following declaration is not:
+<pre>
+  signature S2 =
+  sig 
+    structure A : S1
+    type v
+    sharing type v = A.s  (* A.s not flexible *)
+  end;
+</pre>
+However, S2 can easily be converted to the legal S3 below by
+replacing the outer sharing constraint by a definition.
+<pre>
+  signature S3 =
+  sig 
+    structure A : S1
+    type v = A.s
+  end;
+</pre>
+In general, we recommend avoiding sharing constraints that can easily
+be expressed by definitional specs.  So one should always prefer
+<pre>
+  type t = s
+</pre>
+to 
+<pre>
+  type t
+  sharing type t = s.
+</pre>
+The same applies to structure sharing and structure definition specs
+(which are an SML/NJ language extension).  Violations of this newly
+enforced constraint can often be eliminated by replacing structure
+sharing by structure definition specs, e.g. replacing
+<pre>
+  structure A : SIGA
+  sharing A = B.C
+</pre>
+with
+<pre>
+  structure A : SIGA = B.C.
+</pre>
+
+<h4>SML/NJ Exception for Structure Sharing with Same Signature</h4>
+<p>
+SML/NJ provides one important exception to the rule about sharing rigid
+types.  This is the case where the type sharing is implied by structure
+sharing between two structures with the same signature.
+<p>
+Here is an example
+<pre>
+  signature S =
+  sig
+    type t = int
+  end
+
+  signature S1 =
+  sig
+    structure A : S
+    structure B : S
+    sharing A = B
+  end
+</pre>
+This is allowed in SML/NJ because A and B have the same signature, even
+though the sharing constraint is equivalent to
+<pre>
+  sharing type A.t = B.t
+</pre>
+and A.t and B.t have the rigid spec
+<pre>
+  type t = int.
+</pre>
+
+<h4>Note: Sharable Types</h4>
+[Mostly for language lawyers]
+<p>
+There is some controversy about what type constructors should be
+allowed in sharing constraints.  We can illustrate this by the
+following example
+<pre>
+  signature S =
+  sig
+    type s
+    type t = s
+    type u
+    sharing type t = u
+  end
+</pre>
+By our definition above, <code>t</code> is defined, and therefore not sharable, and
+this signature declaration is rejected.  Technically, however, the
+semantic representation of <code>t</code> in the signature is the type function
+<code>\().() <it>ns</it></code> (a nullary type function, where
+<code><it>ns</it></code> is the semantic type
+"name" for <code>s</code>), and this type function is eta-equivalent
+to <code><it>ns</it></code>, a simple flexible type name.  Therefore,
+if this eta-reduction is
+assumed, <code>t</code> meets the requirements of the definition and can appear in
+the sharing constraint.  On the other hand, consider
+<pre>
+  signature S =
+  sig
+    type s
+    type t = s list
+    type u
+    sharing type t = u
+  end
+</pre>
+Here the representation of <code>t</code> is the type function
+<code>\().(()ns) list</code>,
+which does not reduce to a simple type name, so the sharing constraint
+is clearly illegal.
+
+The reasons that we adopt the simpler and more restrictive meaning of
+sharable are that it is easier to explain and it admits all sensible
+usages.  I claim that it promotes a cleaner and simpler style in
+signature writing.  It is also much simpler more efficient to
+implement (at least for SML/NJ).
+
+Here are some example signatures that are admitted under the
+more complicated version of the definition (thanks to Martin Elsman):
+<pre>
+  signature S1 =
+  sig
+    type t
+    type s = t
+  end where type s = int
+
+  signature S2 =
+  sig
+    type t
+    type s = t
+    sharing type t = s
+  end
+
+  signature S3 =
+  sig
+    type s
+    structure U :
+      sig
+        type 'a t
+        type u = (int * real) t
+      end where type 'a t = s
+  end where type U.u = int
+</pre>
+It is not clear that examples like these have any importance to anyone
+other than language lawyers.  The last is particularly perverse: reading
+a signature should not be an exercise in puzzle solving!
+
+<hr>
+<h2>CM</h2>
+
+<h3> User Level Changes </h3>
+      
+<ul>
+ <li>
+     assorted bugs fixed (e.g., <tt>CM.set_path</tt> is no longer a constant
+      function, etc.)
+
+ <p><li> CM now uses its own <em>archive</em> file format for storing
+      <em>stable</em> groups.  To this end,  the
+      contents of the binfiles are attached to the end of each stablefile
+      and the header includes information about the
+      corresponding positions.
+      This means that after a group or library has been
+      stabilized, one can safely remove
+	  <ul>
+	    <p><li> all source files
+	    <p><li> all dependency files
+	    <p><li> all binfiles
+	  </ul>
+      <p>
+      Only the group description itself (one file) and the
+      stablefile (one file per architecture/OS combination) must
+      be present.
+
+ <p><li> <em>argument types of CM interface functions:</em>
+      All multi-argument functions now use _records_ (as opposed 
+      to _tuples_).  This way there is less room for confusion
+      because the arguments are named.
+
+ <p><li> <em>result types of CM interface functions:</em>
+      Boolean results now indicate whether or not CM had to
+      recompile or re-link anything.
+      Functions such as <tt>CM.make</tt>, <tt>CM.recompile</tt>, <tt>CMB.make</tt>, etc. 
+      report a boolean result which will be true iff the
+      function had to recompile or relink (re-execute) anything.
+
+ <p><li> <em>Improved documentation:</em>
+      The manual has been brought up-to-date.  This includes some 
+      old ommisions, previously undocumented changes, and documentation
+      of the current changes.
+
+</ul>
+
+<h3>  COMPILER NOTES</h3>
+<ul>
+    <li> <tt>CMB.make</tt> now builds a directory hierachy under
+      hat is analogous to the hierarchy under
+      <tt>src/compiler</tt>.  (There are some special hacks to make ".."
+      work, though.)  This removes the need to keep all source
+      file names distinct.
+</ul>
+
+
+<h3>  Bootstrap Internals </h3>
+
+     <h4>A bit of History</h4>
+       
+	Originally, when you said <tt>CMB.make();</tt>, CM would compile the entire
+	source tree and build compilers as well as interactive systems for all
+	available architectures.   CM would then output "list" files in
+	the <tt> bin.[arch]-[os]</tt> directory that omitted those sources that are
+	not necessary for the current architecture.
+       <p>
+	But still, the name of the Compiler structure as well as the name of
+	the structure representing the interactive system was
+	architecture-specific.  Therefore, the boot process would select the
+	bindings for those structures from the environment and re-bind them as
+	"Compiler" etc.
+	<p>
+	Moreover, CM itself would be built as an "ordinary" SML program
+	functorized by the "Compiler" structure.
+
+     <h4> The New Organization</h4>
+	Since sources of compiler and CM are merged, some things have already
+	been streamlined.  I simplified things further in the following way:
+        <ul>
+	<p><li> <tt>CMB.make ();</tt> builds the compiler for the current architecture only.
+	<p><li> Conditional compilation (via #if-directives in CM description files) 
+	  is used to create a binding for structure Compiler directly without
+	  hacking the environment during boot.
+	<p><li> Both CM and the interactive loop refer to structure Compiler
+	  (or relevant parts thereof -- see point 4 below) directly.
+	  This way there only has to be one version of CM and one
+	  interactive loop (i.e., one "glue").
+	<p><li> Therefore, the boot process does not have to do any hacking to get
+	  the right names bound.  (However, it still does some filtering of the
+	  environment as it did before.)
+	<p><li> <tt>CMB.retarget</tt> (the replacement of <tt>CMR.retarget</tt>) builds the desired
+	  cross-compiler and makes two new structures available at top-level.
+	  One of them is the cross-compiler version of CMB, the other the
+	  cross-compiler version of the machine-dependent part of Compiler.
+	  The original structures CMB and Compiler are retained.
+	  Example for naming conventions:
+<pre>
+	    CMB.retarget { cpu = "sparc", os = "unix" };
+</pre>
+	  will create bindings for
+<pre>
+	    structure SparcUnixCMB     (* cross-compiler version of CMB *)
+</pre>
+	  and
+<pre>
+	    structure SparcVisComp     (* cross-compiler version of
+					  the machine-dependent part of
+					  Compiler *)
+</pre>
+
+  <h3> Visible Compiler Internals</h3>
+
+          The <tt>Compiler</tt> structure is split into two parts:
+           <ul>
+	    <p><li> a machine-independent part called <tt>GenericVC</tt>
+	    <p><li> a machine-dependent part called <tt>MachDepVC</tt>
+	   </ul>
+          <p>
+	  These two structures are later merged again to form the
+	  familiar Compiler structure.  The advantage, however, is on
+	  CM's side:  much of the excessive  
+	  functorization was untangled  because CM does not need to be abstracted 
+	  over the "generic" part of the visible compiler.  This part
+	  contains virtually all the relevant types which enables the 
+	  elimination of  almost all "sharing" constraints from CM's source
+	  code.
+
+          <p>
+	  To our pleasant surprise  this change has reduced
+	  the size of the heap image by a few 100kB.
+	  <p>
+	  The main motivation, however, was to clean up CM's source code.
+	  It may also make compilation of the compiler somewhat faster,
+	  because CM is less heavy on functors now.  (This effect
+	  doesn't seem to be very noticeable, though.)
+<hr>
+<h2> Basis</h2>
+  <ul>
+  <p><li> The <tt>in_pos</tt> type and the functions  <tt>getPosIn</tt> and  <tt>setPosIn</tt> are no
+    longer part of the  <tt>STREAM_IO</tt> signature in the SML'97 basis, and
+    have been removed from our implementation.  Likewise, the functions
+     <tt>getPosIn</tt> and  <tt>setPosIn</tt> in the  <tt>IMPERATIVE_IO</tt> signature have been
+    removed.  The function  <tt>filePosIn</tt> in  <tt>STREAM_IO</tt> now takes an instream
+    argument (instead of a  <tt>in_pos</tt>).
+
+  <p><li> The type of the mkInstream function in  <tt>STREAM_IO</tt> was fixed to agree
+    with the SML'97 basis specification.
+
+  <p><li> The types of  <tt>OS.Path.{mkRelative,mkAbsolute}</tt> were changed to track
+    changes in the SML'97 basis specification.
+  </ul>
+
+<hr>
+<h2>MLRISC</h2>
+  o The  <tt>MLTREECOMP</tt> interface was extended to allow the injection
+    of native instructions into the flowgraph being created. This
+    is necessary on the sparc in order to insert  <tt>SAVE</tt> and  <tt>RESTORE</tt>
+    instructions.
+
+  o Insert  <tt>NOPS</tt> where required after floating point comparisions
+    for older SPARC machines.
+
+  o The  <tt>FLOWGRAPH</tt> interface has been removed from several modules
+    that did not need it. 
+
+  o  <tt>FCMP</tt>,  <tt>FTEST</tt>,  <tt>FBCC</tt> on the HPPA has been replaced by a composite
+    FBRANCH instruction. This makes scheduling and
+    other tasks easier.  Also, added BLR and BL in the instruction 
+    set.
+
+  o Fixed various assembly output bugs for the SPARC.
+
+  o Not directly MLRISC related, but gc invocation points for known
+    functions were marked as module entry points. This added an 
+    unnecessary edge in the flowgraph.
+
+
+
+    <hr>
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Wed Jan  6 16:19:15 EST 1999
+<!-- hhmts end -->
+    </font>
+  </body>
+</html>

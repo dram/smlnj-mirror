@@ -1,0 +1,134 @@
+<!-- HTML/errormsg.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The ERRORMSG signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>ERRORMSG</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="ERRORMSG:SIG:SPEC"><CODE>ERRORMSG</CODE></A><BR>
+<B>structure </B><A NAME="ErrorMsg:STR:SPEC"><CODE>Compiler.ErrorMsg</CODE></A><B> : </B>ERRORMSG<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>datatype</B> <A NAME="SIG:ERRORMSG.severity:TY:SPEC" HREF="#SIG:ERRORMSG.severity:TY">severity</A><BR>
+&nbsp;&nbsp;<B>=</B> WARN<BR>
+&nbsp;&nbsp;<B>|</B> COMPLAIN<BR>
+<B>type</B> <A NAME="SIG:ERRORMSG.complainer:TY:SPEC" HREF="#SIG:ERRORMSG.complainer:TY">complainer</A><BR>
+<B>type</B> <A NAME="SIG:ERRORMSG.errorFn:TY:SPEC" HREF="#SIG:ERRORMSG.errorFn:TY">errorFn</A> <B>=</B> SourceMap.region -&gt; complainer     <BR>
+<B>type</B> <A NAME="SIG:ERRORMSG.errors:TY:SPEC" HREF="#SIG:ERRORMSG.errors:TY">errors</A><BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.anyErrors:VAL:SPEC" HREF="#SIG:ERRORMSG.anyErrors:VAL">anyErrors</A> <B>:</B> errors -&gt; bool         <BR>
+<B>exception</B> <A NAME="SIG:ERRORMSG.Error:EXN:SPEC" HREF="#SIG:ERRORMSG.Error:EXN">Error</A><BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.defaultConsumer:VAL:SPEC" HREF="#SIG:ERRORMSG.defaultConsumer:VAL">defaultConsumer</A> <B>:</B> unit -&gt; PrettyPrint.ppconsumer         <BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.nullErrorBody:VAL:SPEC" HREF="#SIG:ERRORMSG.nullErrorBody:VAL">nullErrorBody</A> <B>:</B> PrettyPrint.ppstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.error:VAL:SPEC" HREF="#SIG:ERRORMSG.error:VAL">error</A> <B>:</B> Source.inputSource -&gt; SourceMap.region -&gt; complainer         <BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.errorNoFile:VAL:SPEC" HREF="#SIG:ERRORMSG.errorNoFile:VAL">errorNoFile</A> <B>:</B> (PrettyPrint.ppconsumer * bool ref) -&gt; SourceMap.region -&gt; complainer         <BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.matchErrorString:VAL:SPEC" HREF="#SIG:ERRORMSG.matchErrorString:VAL">matchErrorString</A> <B>:</B> Source.inputSource -&gt; SourceMap.region -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.errors:VAL:SPEC" HREF="#SIG:ERRORMSG.errors:VAL">errors</A> <B>:</B> Source.inputSource -&gt; errors         <BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.errorsNoFile:VAL:SPEC" HREF="#SIG:ERRORMSG.errorsNoFile:VAL">errorsNoFile</A> <B>:</B> (PrettyPrint.ppconsumer * bool ref) -&gt; errors         <BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.impossible:VAL:SPEC" HREF="#SIG:ERRORMSG.impossible:VAL">impossible</A> <B>:</B> string -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:ERRORMSG.impossibleWithBody:VAL:SPEC" HREF="#SIG:ERRORMSG.impossibleWithBody:VAL">impossibleWithBody</A> <B>:</B> string -&gt; (PrettyPrint.ppstream -&gt; unit) -&gt; 'a         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:ERRORMSG.severity:TY"><CODE><B>datatype</B> severity</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.complainer:TY"><CODE><B>type</B> complainer</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.errorFn:TY"><CODE><B>type</B> errorFn</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.errors:TY"><CODE><B>type</B> errors</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.anyErrors:VAL"><CODE>anyErrors <VAR>er</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.Error:EXN"><CODE><B>exception</B> Error</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.defaultConsumer:VAL"><CODE>defaultConsumer <VAR>()</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.nullErrorBody:VAL"><CODE>nullErrorBody <VAR>pp</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.error:VAL"><CODE>error <VAR>in</VAR> <VAR>re</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.errorNoFile:VAL"><CODE>errorNoFile (<VAR>pp</VAR>, <VAR>re</VAR>) <VAR>re</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.matchErrorString:VAL"><CODE>matchErrorString <VAR>in</VAR> <VAR>re</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.errors:VAL"><CODE>errors <VAR>in</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.errorsNoFile:VAL"><CODE>errorsNoFile (<VAR>pp</VAR>, <VAR>re</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.impossible:VAL"><CODE>impossible <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ERRORMSG.impossibleWithBody:VAL"><CODE>impossibleWithBody <VAR>s</VAR> <VAR>f</VAR>
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

@@ -1,0 +1,203 @@
+<!-- HTML/environment.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The ENVIRONMENT signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>ENVIRONMENT</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="ENVIRONMENT:SIG:SPEC"><CODE>ENVIRONMENT</CODE></A><BR>
+<B>structure </B><A NAME="Environment:STR:SPEC"><CODE>Compiler.Environment</CODE></A><B> : </B>ENVIRONMENT<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:ENVIRONMENT.staticEnv:TY:SPEC" HREF="#SIG:ENVIRONMENT.staticEnv:TY">staticEnv</A><BR>
+<B>type</B> <A NAME="SIG:ENVIRONMENT.dynenv:TY:SPEC" HREF="#SIG:ENVIRONMENT.dynenv:TY">dynenv</A><BR>
+<B>type</B> <A NAME="SIG:ENVIRONMENT.symenv:TY:SPEC" HREF="#SIG:ENVIRONMENT.symenv:TY">symenv</A><BR>
+<B>type</B> <A NAME="SIG:ENVIRONMENT.environment:TY:SPEC" HREF="#SIG:ENVIRONMENT.environment:TY">environment</A><BR>
+<B>type</B> <A NAME="SIG:ENVIRONMENT.symbol:TY:SPEC" HREF="#SIG:ENVIRONMENT.symbol:TY">symbol</A><BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.emptyEnv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.emptyEnv:VAL">emptyEnv</A> <B>:</B> environment         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.staticPart:VAL:SPEC" HREF="#SIG:ENVIRONMENT.staticPart:VAL">staticPart</A> <B>:</B> environment -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.dynamicPart:VAL:SPEC" HREF="#SIG:ENVIRONMENT.dynamicPart:VAL">dynamicPart</A> <B>:</B> environment -&gt; dynenv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.symbolicPart:VAL:SPEC" HREF="#SIG:ENVIRONMENT.symbolicPart:VAL">symbolicPart</A> <B>:</B> environment -&gt; symenv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.mkenv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.mkenv:VAL">mkenv</A> <B>:</B> {static : staticEnv, dynamic : dynenv, symbolic : symenv} -&gt; environment         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.layerEnv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.layerEnv:VAL">layerEnv</A> <B>:</B> (environment * environment) -&gt; environment         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.concatEnv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.concatEnv:VAL">concatEnv</A> <B>:</B> (environment * environment) -&gt; environment         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.layerStatic:VAL:SPEC" HREF="#SIG:ENVIRONMENT.layerStatic:VAL">layerStatic</A> <B>:</B> (staticEnv * staticEnv) -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.layerSymbolic:VAL:SPEC" HREF="#SIG:ENVIRONMENT.layerSymbolic:VAL">layerSymbolic</A> <B>:</B> (symenv * symenv) -&gt; symenv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.filterEnv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.filterEnv:VAL">filterEnv</A> <B>:</B> (environment * Symbol.symbol list) -&gt; environment         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.filterStaticEnv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.filterStaticEnv:VAL">filterStaticEnv</A> <B>:</B> (staticEnv * Symbol.symbol list) -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.consolidateEnv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.consolidateEnv:VAL">consolidateEnv</A> <B>:</B> environment -&gt; environment         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.consolidateStatic:VAL:SPEC" HREF="#SIG:ENVIRONMENT.consolidateStatic:VAL">consolidateStatic</A> <B>:</B> staticEnv -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.consolidateSymbolic:VAL:SPEC" HREF="#SIG:ENVIRONMENT.consolidateSymbolic:VAL">consolidateSymbolic</A> <B>:</B> symenv -&gt; symenv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.catalogEnv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.catalogEnv:VAL">catalogEnv</A> <B>:</B> staticEnv -&gt; Symbol.symbol list         <BR>
+<B>datatype</B> <A NAME="SIG:ENVIRONMENT.cmEnv:TY:SPEC" HREF="#SIG:ENVIRONMENT.cmEnv:TY">cmEnv</A><BR>
+&nbsp;&nbsp;<B>=</B> CM_NONE<BR>
+&nbsp;&nbsp;<B>|</B> CM_ENV <B>of</B> {look : Symbol.symbol -&gt; cmEnv, symbols : unit -&gt; Symbol.symbol list}       <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.cmEnvOfModule:VAL:SPEC" HREF="#SIG:ENVIRONMENT.cmEnvOfModule:VAL">cmEnvOfModule</A> <B>:</B> staticEnv -&gt; Symbol.symbol -&gt; cmEnv         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.describe:VAL:SPEC" HREF="#SIG:ENVIRONMENT.describe:VAL">describe</A> <B>:</B> staticEnv -&gt; Symbol.symbol -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:ENVIRONMENT.primEnv:VAL:SPEC" HREF="#SIG:ENVIRONMENT.primEnv:VAL">primEnv</A> <B>:</B> staticEnv         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:ENVIRONMENT.staticEnv:TY"><CODE><B>type</B> staticEnv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.dynenv:TY"><CODE><B>type</B> dynenv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.symenv:TY"><CODE><B>type</B> symenv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.environment:TY"><CODE><B>type</B> environment</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.symbol:TY"><CODE><B>type</B> symbol</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.emptyEnv:VAL"><CODE>emptyEnv
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.staticPart:VAL"><CODE>staticPart <VAR>en</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.dynamicPart:VAL"><CODE>dynamicPart <VAR>en</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.symbolicPart:VAL"><CODE>symbolicPart <VAR>en</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.mkenv:VAL"><CODE>mkenv {<VAR>static</VAR>, <VAR>dynamic</VAR>, <VAR>symbolic</VAR>}
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.layerEnv:VAL"><CODE>layerEnv (<VAR>en</VAR>, <VAR>en2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.concatEnv:VAL"><CODE>concatEnv (<VAR>en</VAR>, <VAR>en2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.layerStatic:VAL"><CODE>layerStatic (<VAR>st</VAR>, <VAR>st2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.layerSymbolic:VAL"><CODE>layerSymbolic (<VAR>sy</VAR>, <VAR>sy2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.filterEnv:VAL"><CODE>filterEnv (<VAR>en</VAR>, <VAR>l</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.filterStaticEnv:VAL"><CODE>filterStaticEnv (<VAR>st</VAR>, <VAR>l</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.consolidateEnv:VAL"><CODE>consolidateEnv <VAR>en</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.consolidateStatic:VAL"><CODE>consolidateStatic <VAR>st</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.consolidateSymbolic:VAL"><CODE>consolidateSymbolic <VAR>sy</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.catalogEnv:VAL"><CODE>catalogEnv <VAR>st</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.cmEnv:TY"><CODE><B>datatype</B> cmEnv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.cmEnvOfModule:VAL"><CODE>cmEnvOfModule <VAR>st</VAR> <VAR>sy</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.describe:VAL"><CODE>describe <VAR>st</VAR> <VAR>sy</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ENVIRONMENT.primEnv:VAL"><CODE>primEnv
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>heap2exec</title>
+  </head>
+
+  <body>
+<blockquote>
+<h2>heap2exec</h2>
+<p>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/tools/heap2exec/">
+heap2exec</a> is a simple utility for building stand-alone
+executables from SML/NJ heap images, typically produced by
+<a href="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exportFn:VAL">
+SMLofNJ.exportFn</a>
+or <A HREF="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exportML:VAL">
+SMLofNJ.exportML</A>.
+<p>
+heap2exec wraps the binary smlnj runtime image and an smlnj heap image
+into one executable image.
+<p>
+The heap2exec program can be downloaded from the ftp directory:
+<blockquote>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/tools/heap2exec/">
+ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/tools/heap2exec/</a>
+</blockquote>
+The source code for heap2exec is in the file heap2exec.tar.gz, which
+needs to be unpacked using gunzip and tar.
+<p>
+
+<h3>Directions</h3>
+First, a special version of the runtime is required to support stand-alone
+executables; that is, the runtime must be able to detect and extract 
+piggy-backed heap images.  To do this, in the src/runtime/objs directory,
+make a copy of the makefile for the processor-OS for which a standalone
+executable is desired.  For example: 
+<pre>
+	cp mk.x86-linux mk.x86-linux-standalone
+</pre>
+Edit the new copy (<i>i.e.</i>, <code>mk.x86-linux-standalone</code>) and
+place <code>-DHACKED_STANDALONE</code> as the last entry on the 
+new makefile's <code>DEFS</code> list.  Also, change the name of the runtime
+to <code>run.&lt;arch&gt;-&lt;os&gt-standalone</code> on 
+the makefile's <code>RUNTIME</code> entry.
+
+<p>
+Next the heap2exec utility needs to be built.  Change to the heap2exec
+directory. 
+Issue a 'make' in the heap2exec directory to produce <code>heap2exec</code>.
+<p>
+Given a runtime built with <code>HACKED_STANDALONE</code> defined 
+(as described above) and an exported heap image (i.e., your program), 
+invoke <code>heap2exec</code> as
+<pre>
+	heap2exec the-runtime the-heap the-executable
+</pre>
+where 'the-runtime' is the standalone smlnj runtime (<code>run.&lt;arch&gt;-&lt;os&gt-standalone</code>) to put 
+into the stand-alone executable and 
+'the-heap' is the smlnj heap to put in the stand-alone 'the-executable'.
+<p>
+
+<h3>Relative Paths</h3>
+<p>
+Relative paths are somewhat problematic with heap2exec since the resulting 
+executable uses its own name (argv[0]) as the name of the image
+to load.  If you want to place your executable in /usr/bin/
+and invoke it as myprog, for example, name it myprog.heap2exec
+and place it in /usr/bin/.  Then create a shell script /usr/bin/myprog
+with the content:
+<pre>
+	#! /bin/ksh
+	/usr/bin/myprog.heap2exec $*
+</pre>
+Now if /usr/bin/ is in your path (and you remembered to 'chmod +x myprog'),
+you should be able to invoke the executable from anywhere. 
+<p>
+(Note: A new version of the runtime that will be able to generate
+stand-alone executables directly is planned for the next release.)
+<p>
+<strong>Author:</strong> <a href="mailto:lorenz@research.bell-labs.com">Lorenz Huelsbergen</a>
+
+
+</blockquote>
+    <hr>
+    <address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Wed Feb 10 14:20:13 EST 1999 -->
+<!-- hhmts start -->
+Last modified: Thu Jun 24 18:28:40 EDT 1999
+<!-- hhmts end -->
+  </body>
+</html>

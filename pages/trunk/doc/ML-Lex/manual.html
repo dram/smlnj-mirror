@@ -1,0 +1,659 @@
+<HTML>
+<HEAD>
+<TITLE> A lexical analyzer generator for Standard ML. Version 1.6.0, October 1994 </TITLE>
+<META NAME="description" CONTENT=" A lexical analyzer generator for Standard ML. Version 1.6.0, October 1994 ">
+<META NAME="keywords" CONTENT="lexgen">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+</HEAD>
+<BODY LANG="EN">
+<BR> <P>
+<H1 ALIGN=CENTER>        A lexical analyzer generator for Standard ML.<BR> 
+			       Version 1.6.0, October 1994
+      </H1>
+<P H3 ALIGN=CENTER><STRONG><a href="http://www.cs.princeton.edu/~appel">Andrew W. Appel</a><BR> 
+	                    James S. Mattson<BR> 
+        	            <a href="http://www.cs.cmu.edu/~dtarditi">David R. Tarditi</a><BR> 
+<BR></strong></h3>
+<P>
+<P ALIGN=CENTER><STRONG>
+<a href="http://www.cs.princeton.edu">Department of Computer
+Science</a>, <a href="http://www.princeton.edu">Princeton University</a> <BR>
+</STRONG>
+<P>
+(c) 1989-94 Andrew W. Appel, James S. Mattson, David R. Tarditi
+<P>
+<B>
+This software comes with ABSOLUTELY NO WARRANTY.  It is subject only to
+the terms of the ML-Yacc NOTICE, LICENSE, and DISCLAIMER (in the
+file COPYRIGHT distributed with this software).
+</B>
+<P>
+New in this version:  
+<UL><LI> REJECT is much less costly than before.<LI> Lexical analyzers with more than 255 states can now compile in your
+lifetime.
+</UL>
+<P>
+<BR> <HR>
+<BR> <P>
+<P><H2><A NAME="SECTION00010000000000000000">Contents</A></H2>
+<UL> 
+<LI> <A NAME="tex2html27" HREF="#gendesc">1. General Description</A>
+<LI> <A NAME="tex2html28" HREF="#spec">2. ML-Lex specifications</A>
+<LI> <A NAME="tex2html29" HREF="#regexp">3. Regular expressions</A>
+<LI> <A NAME="tex2html30" HREF="#syntax">4. ML-Lex syntax summary</A>
+<UL> 
+<LI> <A NAME="tex2html31" HREF="#decs">4.1 User declarations</A>
+<LI> <A NAME="tex2html32" HREF="#defs">4.2 ML-Lex definitions</A>
+<LI> <A NAME="tex2html33" HREF="#rules">4.3 Rules</A>
+</UL> 
+<LI> <A NAME="tex2html34" HREF="#vals">5. Values available inside the code associated with a rule.</A>
+<LI> <A NAME="tex2html35" HREF="#run">6. Running ML-Lex</A>
+<LI> <A NAME="tex2html36" HREF="#use">7. Using the program produced by ML-Lex</A>
+<LI> <A NAME="tex2html37" HREF="#sample">8. Sample</A>
+</UL>
+<P>
+<BR> <HR>
+
+<BR> <P>
+<H1><A NAME="gendesc">1. General Description</A></H1>
+<P>
+Computer programs often need to divide their input into words and
+distinguish between different kinds of words.  Compilers, for
+example, need to distinguish between integers, reserved words, and
+identifiers.  Applications programs often need to be able to
+recognize components of typed commands from users.
+<P>
+The problem of segmenting input into words and recognizing classes of
+words is known as lexical analysis.  Small cases of this problem,
+such as reading text strings separated by spaces, can be solved by
+using hand-written programs.  Larger cases of this problem, such as
+tokenizing an input stream for a compiler, can also be solved using
+hand-written programs.
+<P>
+A hand-written program for a large lexical analysis problem, however,
+suffers from two major problems.  First, the program requires a fair
+amount of programmer time to create.  Second, the description of
+classes of words is not explicit in the program.  It must be inferred
+from the program code.  This makes it difficult to verify if the
+program recognizes the correct words for each class.  It also makes
+future maintenance of the program difficult.
+<P>
+Lex, a programming tool for the Unix system, is a successful solution
+to the general problem of lexical analysis.  It uses regular
+expressions to describe classes of words.  A program fragment is
+associated with each class of words.  This information is given to
+Lex as a specification (a Lex program).  Lex produces a program for a
+function that can be used to perform lexical analysis.
+<P>
+The function operates as follows.  It finds the longest word starting
+from the current position in the input stream that is in one of the
+word classes.  It executes the program fragment associated with the
+class, and sets the current position in the input stream to be the
+character after the word.  The program fragment has the actual text
+of the word available to it, and may be any piece of code.  For many
+applications it returns some kind of value.
+<P>
+Lex allows the programmer to make the language description explicit,
+and to concentrate on what to do with the recognized words, not how
+to recognize the words.  It saves programmer time and increases
+program maintainability.
+<P>
+Unfortunately, Lex is targeted only C.  It also places artificial 
+limits on the size of strings that can be recognized.
+<P>
+ML-Lex is a variant of Lex for the ML programming language.  ML-Lex
+has a syntax similar to Lex, and produces an ML program instead of a
+C program.  ML-Lex produces a program that runs very efficiently.
+Typically the program will be as fast or even faster than a
+hand-coded lexer implemented in Standard ML.
+<P>
+The program typically uses only a small amount of space.
+ML-Lex thus allows ML programmers the same benefits that Lex allows C
+programmers.  It also does not place artificial limits on the size of
+recognized strings.
+<P>
+<HR>
+<BR> <P>
+<H1><A NAME="spec">2. ML-Lex specifications</A></H1>
+<P>
+An ML-Lex specification has the general format:
+<P>
+<BLOCKQUOTE> user declarations
+        <code>%%</code>
+        ML-Lex definitions
+        <code>%%</code>
+        rules
+</BLOCKQUOTE>
+<P>
+Each section is separated from the others by a <code>%%</code> delimiter.
+<P>
+The rules are used to define the lexical analysis function.  Each
+rule has two parts--a regular expression and an action.  The regular
+expression defines the word class that a rule matches.  The action is
+a program fragment to be executed when a rule matches the input.  The
+actions are used to compute values, and must all return values of the
+same type.
+<P>
+The user can define values available to all rule actions in the user
+declarations section.  The user must define two values in this
+section--a type lexresult and a function eof.  Lexresult defines the
+type of values returned by the rule actions.  The function &quot;eof&quot; is
+called by the lexer when the end of the input stream is reached.  It
+will typically return a value signalling eof or raise an exception.
+It is called with the same argument as lex (see <code>%arg</code>, below),
+and must return a value of type lexresult.
+<P>
+In the definitions section, the user can define named regular
+expressions, a set of start states, and specify which of the various
+bells and whistles of ML-Lex are desired.
+<P>
+The start states allow the user to control when certain rules are
+matched.  Rules may be defined to match only when the lexer is in
+specific start states.  The user may change the lexer's start state
+in a rule action.  This allows the user to specify special handling
+of lexical objects.
+<P>
+This feature is typically used to handle quoted strings with escapes
+to denote special characters.  The rules to recognize the inside
+contents of a string are defined for only one start state.  This
+start state is entered when the beginning of a string is recognized,
+and exited when the end of the string is recognized.
+<P>
+<HR>
+<BR> <P>
+<H1><A NAME="regexp">3. Regular expressions</A></H1>
+<P>
+Regular expressions are a simple language for denoting classes of
+strings.  A regular expression is defined inductively over an
+alphabet with a set of basic operations.  The alphabet for ML-Lex is
+the Ascii character set (character codes 0-127; or if 
+<code>%full</code> is used, 0-255).
+<P>
+The syntax and semantics of regular expressions will be described in
+order of decreasing precedence (from the most tightly binding operators
+to the most weakly binding):
+<P>
+<DL COMPACT><DT><DD>	An individual character stands for itself, except for the
+	reserved characters  <code>? * + | ( ) ^ $ / ; . = &lt; &gt; [ { &quot; \</code>
+<P>
+<DT><STRONG><BR> </STRONG>
+<DD>	A backslash followed by one of the reserved characters stands
+	for that character.
+<P>
+<DT><DD>	A set of characters enclosed in square brackets [ ] stands
+	for any one of those characters.  Inside the brackets, only
+	the symbols  <code>\ - ^</code> are reserved.  An initial up-arrow 
+	<code>^</code> stands
+	for the complement of the characters listed, e.g. <code>[^abc]</code>
+	stands any character except a, b, or c.  The hyphen - denotes
+	a range of characters, e.g. <code>[a-z]</code> stands for any lower-case
+	alphabetic character, and <code>[0-9a-fA-F]</code> stands for any hexadecimal
+	digit.  To include <code>^</code> literally in a bracketed set, put it anywhere
+	but first; to include <code>-</code> literally in a set, put it first or last.
+<P>
+<DT><STRONG><code>.</code></STRONG>
+<DD>	The dot <code>.</code> character stands for any character except newline,
+	i.e. the same as <code>[^\n]</code>
+<P>
+<DT><DD>	The following special escape sequences are available, inside
+	or outside of square-brackets:
+<P>
+<DL COMPACT>
+<dt>		<code>\b</code>	<dd>backspace
+<dt>		<code>\n</code>	<dd>newline
+<dt>		<code>\t</code>	<dd>tab
+<dt>		<code>\h</code>	<dd>stands for all characters with codes > 127,
+		when 7-bit characters are used.
+<dt>		<code>\ddd</code>	<dd>where ddd is a 3 digit
+decimal escape.
+</dl>
+	<P><P>
+<P>
+<DT><STRONG><code>&quot;</code></STRONG>
+<DD>	A sequence of characters will stand for itself (reserved
+        characters will be taken literally) if it is enclosed in
+	double quotes <code>&quot; &quot;</code>.
+<P>
+<DT><STRONG>{}</STRONG>
+<DD>	A named regular expression (defined in the &quotdefinitions&quot;
+	section) may be referred to by enclosing its name in
+	braces <code>{ }</code>.
+<P>
+<DT><STRONG>()</STRONG>
+<DD> Any regular expression may be enclosed in parentheses <code>( )</code>
+	for syntactic (but, as usual, not semantic) effect.
+<P>
+<DT><STRONG><code>*</code></STRONG>
+<DD>	The postfix operator <code>*</code> stands for Kleene closure:
+	zero or more repetitions of the preceding expression.
+<P>
+<DT><STRONG><code>+</code></STRONG>
+<DD>	The postfix operator <code>+</code> stands for one or more repetitions
+	of the preceding expression.
+<P>
+<DT><STRONG><code>?</code></STRONG>
+<DD>	The postfix operator <code>?</code> stands for zero or one occurrence of
+	the preceding expression.
+<P>
+<DT><DD>	A postfix repetition range {<i>a, b</i>} where <i>a</i>
+and <i>b</i>  are small
+	integers stands for any number of repetitions between <i>a</i> and <i>b</i>
+	of the preceding expression.  The notation {<i>a</i>} stands for
+	exactly  <i>a</i> repetitions.
+<P>
+<DT><DD>	Concatenation of expressions denotes concatenation of strings.
+	The expression 
+<i>ef</i> stands for any string that results from
+	the concatenation of one string that matches <i>e</i>  with another
+	string that matches <i>f</i>.
+<P>
+<DT><STRONG><code>|</code></STRONG>
+<DD>The infix operator <code>|</code> stands for alternation.  The expression
+	&nbsp; <i>e</i> | <i>f</i>&nbsp;  stands for anything that
+either <i>e</i> or <i>f</i>  stands for.
+<P>
+<DT><STRONG><code>/</code></STRONG>
+<DD>	The infix operator <code>/</code> denotes lookahead.  Lookahead is not
+        implemented and cannot be used, because there is a bug
+        in the algorithm for generating lexers with lookahead.  If
+        it could be used, the expression <code><i>e</i>/<i>f</i></code>  would match any string
+        that <i>e></i>  stands for, but only when that string is followed by a
+        string that matches <i>f</i>.
+<P>
+<DT><DD>	When the up-arrow <code>^</code> occurs at the beginning of an expression,
+	that expression will only match strings that occur at the
+	beginning of a line (right after a newline character).
+<P>
+<DT><STRONG>$</STRONG>
+<DD>   The dollar sign of C Lex $ is not implemented, since it is an abbreviation
+        for lookahead involving the newline character (that is, it
+        is an abbreviation for <code>/\n</code>).
+<P>
+ </DL>
+<P>
+Here are some examples of regular expressions, and descriptions of the
+set of strings they denote:
+<DL>
+<dt><code>0 | 1 | 2 | 3</code> 
+<dd>A single digit between 0 and 3
+<dt><code>[0123]</code>
+<dd>A single digit between 0 and 3
+<dt><code>0123</code>
+<dd>The string &quot123&quot
+<dt><code>0*</code>
+<dd>All strings of 0 or more 0's
+<dt><code>00*</code>
+<dd>All strings of 1 or more 0's
+<dt><code>0+</code>
+<dd>All strings of 1 or more 0's
+<dt><code>[0-9]{3}</code>
+<dd>Any three-digit decimal number.
+<dt><code>\\[ntb]</code>
+<dd>A newline, tab, or backspace.
+<dt><code>(00)*</code>
+<dd>Any string with an even number of 0's
+</dl>
+<P>
+<HR>
+<BR> <P>
+<H1><A NAME="syntax">4. ML-Lex syntax summary</A></H1>
+<P>
+<BR> <HR>
+<BR> <P>
+<H2><A NAME="decs">4.1 User declarations</A></H2>
+<P>
+Anything up to the first <code>%%</code> is in the user declarations section.  The
+user should note that no symbolic identifier containing 
+<code>%%</code> can be
+used in this section.
+<P>
+<BR> <HR>
+<BR> <P>
+<H2><A NAME="defs">4.2 ML-Lex definitions</A></H2>
+<P>
+Start states can be defined with
+<BLOCKQUOTE> <code>%s</code> identifier list <code>;</code>
+</BLOCKQUOTE>
+<P>
+An identifier list consists of one or more identifiers.
+<br>
+An identifier consists of one or more letters, digits, underscores,
+or primes, and must begin with a letter.
+<br>
+Named expressions can be defined with
+<P>
+<BLOCKQUOTE> identifier = regular expression ;
+</BLOCKQUOTE>
+<P>
+Regular expressions are defined below.
+<br>
+The following % commands are also available:
+<P>
+<DL ><DT><STRONG><TT>%reject</tt></STRONG>
+<DD>     create REJECT() function
+<DT><STRONG><TT>%count</tt></STRONG>
+<DD>      count newlines using yylineno
+<DT><STRONG><TT>%full</tt></STRONG>
+<DD>       create lexer for the full 8-bit character set,
+                          with characters in the range 0-255 permitted
+                          as input.
+<DT><STRONG><TT>%structure {identifier}</tt></STRONG>
+<DD>  name the structure in the output program
+                          identifier instead of Mlex
+<DT><STRONG><TT>%header</tt></STRONG>
+<DD> 	use code following it to create header for lexer
+			  structure
+<DT><STRONG><TT>%arg</tt></STRONG>
+<DD>       extra (curried) formal parameter argument to be
+			  passed to the lex functions, and to be passed
+			  to the eof function in place of ()
+<P>
+ </DL>
+        These functions are discussed in section <A HREF="#vals">5</A>.
+<P>
+</TT></TT></TT></TT></TT></TT><BR> <HR>
+
+<BR> <P>
+<H2><A NAME="rules">4.3 Rules</A></H2>
+<P>
+Each rule has the format:
+<P>
+<BLOCKQUOTE> <code>&lt;</code><I>start state list</I><code>&gt;</code> <I>regular expression</I> <code>=&gt; (</code> <I>code</I> <code>);</code>
+</BLOCKQUOTE>
+<P>
+All parentheses in  <I>code</I>  must be balanced, including those
+used in strings and comments.
+<P>
+The <I>start state list</I> is optional.  It consists of a list of
+identifiers separated by commas, and is delimited by triangle
+brackets <code>&lt; &gt;</code>.  Each identifier must be a start state defined in the
+<code>%s</code> section above.
+<P>
+The regular expression is only recognized when the lexer is in one of
+the start states in the start state list.  If no start state list is
+given, the expression is recognized in all start states.
+<P>
+The lexer begins in a pre-defined start state called <code>INITIAL</code>.
+<P>
+The lexer resolves conflicts among rules by choosing the rule with
+the longest match, and in the case two rules match the same string,
+choosing the rule listed first in the specification.
+<P>
+The rules should match all possible input.  If some input occurs that
+does not match any rule, the lexer created by ML-Lex will raise an
+exception LexError.  Note that this differs from C Lex, which prints
+any unmatched input on the standard output.
+<P>
+<BR> <HR>
+<BR> <P>
+<H1><A NAME="vals">5. Values available inside the code associated with a rule.</A></H1>
+<P>
+<A NAME="avail">&#160;</A>
+<P>
+ML-Lex places the value of the string matched by a regular expression
+in <code>yytext</code>, a string variable.
+<P>
+The user may recursively
+call the lexing function with <code>lex()</code>.  (If <code>%arg</code> is used, the
+lexing function may be re-invoked with the same argument by using
+continue().) This is convenient for ignoring white space or comments silently:
+<P>
+<PRE>        [\ \t\n]+       =&gt; ( lex());</PRE>
+<P>
+To switch start states, the user may call <code>YYBEGIN</code> with the name of a
+start state.
+<P>
+The following values will be available only if the corresponding <code>%</code>
+command is in the ML-Lex definitions sections:
+<P>
+
+<TABLE>
+<tr>
+<th> Value </th>
+<th> <code>%</code> command </th>
+<th> description </th>
+</tr>
+<tr>
+<td><code>REJECT</code></td>
+<td><code>%reject</code>
+<td><code>REJECT()</code> causes the current rule to be &quot
+rejected. &quot The lexer behaves as if the current rule had not
+matched; another rule that matches this string, or that matches the
+longest possible prefix of this string, is used instead.
+</td>
+</tr>
+<tr>
+<td><code>yypos</code></td>
+<td></td>
+<td>Current character position from beginning of file.<td>
+</tr> 
+<tr>
+<td><code>yylineto</code></td>
+<td><code>%count</code></td>
+<td>Current line number</td>
+</tr>
+</TABLE>
+<P><P>
+<P>
+These values should be used only if necessary.  Adding <TT>REJECT</TT> to a
+lexer will slow it down by 20%; adding <TT>yylineno</TT> will slow it down by
+another 20%, or more.  (It is much more efficient to 
+recognize <TT><BR> n</TT> and
+have an action that increments the line-number variable.)  The use of
+the lookahead operator <TT>/</TT> will also slow down the entire lexer.
+The character-position, <TT>yypos</TT>, is not costly to maintain, however.
+<P>
+<BR> <HR>
+<BR> <P>
+<H1><A NAME="run">6. Running ML-Lex</A></H1>
+<P>
+From the Unix shell, run    <TT>sml-lex&nbsp;myfile.lex</TT>
+The output file will be myfile.lex.sml.  The extension <TT>.lex</TT> is not
+required but is recommended.
+<P>
+Within an interactive system [not the preferred method]:
+Use <TT>lexgen.sml</TT>; this will create a structure LexGen.  The function
+LexGen.lexGen creates a program for a lexer from an input
+specification.  It takes a string argument - the name of the file
+containing the input specification.  The output file name is
+determined by appending ``<TT>.sml</TT>'' to the input file name.
+<P>
+<BR> <HR>
+
+<BR> <P>
+<H1><A NAME="use">7. Using the program produced by ML-Lex</A></H1>
+<P>
+When the output file is loaded, it will create a structure Mlex that
+contains the function <TT>makeLexer</TT> which takes a function from
+<tt>int -> string</tt> and returns a lexing function.
+<P>
+For example,
+<P>
+<PRE>        val lexer = Mlex.makeLexer (inputc (open_in &quot;f&quot;))</PRE>
+<P>
+creates a lexer that operates on the file whose name is f.
+<P>
+The  function
+should read a string of characters
+from the input stream.  It should return a null string to indicate
+that the end of the stream has been reached.  The integer is the
+number of characters that the lexer wishes to read; the function may
+return any non-zero number of characters.  For example,
+<P>
+<PRE>  val lexer = 
+    let val input_line = fn f =&gt;
+          let fun loop result =
+             let val c = input (f,1)
+	         val result = c :: result
+             in if String.size c = 0 orelse c = &quot;\n&quot; then
+	  	   String.implode (rev result)
+	         else loop result
+	     end
+          in loop nil
+          end
+     in Mlex.makeLexer (fn n =&gt; input_line std_in)
+     end</PRE>
+<P>
+is appropriate for interactive streams where prompting, etc.  occurs;
+the lexer won't care that <code>input_line</code> might return a string of more
+than or less than <I>n</I> characters.
+<P>
+The lexer tries to read a large number of characters from the input
+function at once, and it is desirable that the input function return
+as many as possible.  Reading many characters at once makes the lexer
+more efficient.  Fewer input calls and buffering operations are
+needed, and input is more efficient in large block reads.  For
+interactive streams this is less of a concern, as the limiting factor
+is the speed at which the user can type.
+<P>
+To obtain a value, invoke the lexer by passing it a unit:
+<P>
+<PRE>        val nextToken = lexer()</PRE>
+<P>
+If one wanted to restart the lexer, one would just discard <TT>lexer</TT>
+and create a new lexer on the same stream with another call to
+<TT>makeLexer</TT>.  This is the best way to discard any characters buffered
+internally by the lexer.
+<P>
+All code in the user declarations section is placed inside a
+structure UserDeclarations.  To access this structure, use the path name
+<TT>Mlex.UserDeclarations</TT>.
+<P>
+If any input cannot be matched, the program will raise the exception
+<TT>Mlex.LexError</TT>.  An internal error (i.e.  bug) will cause the
+exception <TT>Internal.LexerError</TT> to be raised.
+<P>
+If <TT>%structure</TT> is used, remember that the structure name will no
+longer be Mlex, but the one specified in the command.
+<P>
+<HR>
+<BR> <P>
+<H1><A NAME="sample">8. Sample</A></H1>
+<P>
+Here is a sample lexer for a calculator program:
+<P>
+<PRE>datatype lexresult= DIV | EOF | EOS | ID of string | LPAREN |
+                     NUM of int | PLUS | PRINT | RPAREN | SUB | TIMES 
+
+val linenum = ref 1
+val error = fn x =&gt; output(std_out,x ^ &quot;\n&quot;)
+val eof = fn () =&gt; EOF
+%%
+%structure CalcLex
+alpha=[A-Za-z];
+digit=[0-9];
+ws = [\ \t];
+%%
+\n       =&gt; (inc linenum; lex());
+{ws}+    =&gt; (lex());
+&quot;/&quot;      =&gt; (DIV);
+&quot;;&quot;      =&gt; (EOS);
+&quot;(&quot;      =&gt; (LPAREN);
+{digit}+ =&gt; (NUM (revfold (fn(a,r)=&gt;ord(a)-ord(&quot;0&quot;)+10*r) (explode yytext) 0));
+&quot;)&quot;      =&gt; (RPAREN);
+&quot;+&quot;      =&gt; (PLUS);
+{alpha}+ =&gt; (if yytext=&quot;print&quot; then PRINT else ID yytext);
+&quot;-&quot;      =&gt; (SUB);
+&quot;*&quot;      =&gt; (TIMES);
+.        =&gt; (error (&quot;calc: ignoring bad character &quot;^yytext); lex());</PRE>
+<P>
+Here is the parser for the calculator:
+<PRE>(* Sample interactive calculator to demonstrate use of lexer 
+ 
+   The original grammar was
+
+       stmt_list -&gt; stmt_list stmt
+       stmt -&gt; print exp ;  | exp ;
+       exp -&gt; exp + t | exp - t | t
+       t -&gt; t * f | t/f | f
+       f -&gt; (exp) | id | num
+
+  The function parse takes a stream and parses it for the calculator 
+  program.
+
+  If a syntax error occurs, parse prints an error message and calls
+  itself on the stream.  On this system that has the effect of ignoring
+  all input to the end of a line.  
+*)
+       
+structure Calc =
+ struct
+   open CalcLex
+   open UserDeclarations
+   exception Error
+   fun parse strm =
+    let
+      val say = fn s =&gt; output(std_out,s)
+      val input_line = fn f =&gt;
+          let fun loop result =
+             let val c = input (f,1)
+	         val result = c :: result
+             in if String.size c = 0 orelse c = &quot;\n&quot; then
+	  	   String.implode (rev result)
+	         else loop result
+	     end
+          in loop nil
+          end
+      val lexer = makeLexer (fn n =&gt; input_line strm)
+      val nexttok = ref (lexer())
+      val advance = fn () =&gt; (nexttok := lexer(); !nexttok)
+      val error = fn () =&gt; (say (&quot;calc: syntax error on line&quot; ^
+                           (makestring(!linenum)) ^ &quot;\n&quot;); raise Error)
+      val lookup = fn i =&gt;
+        if i = &quot;ONE&quot; then 1
+        else if i = &quot;TWO&quot; then 2
+        else  (say (&quot;calc: unknown identifier '&quot; ^ i ^ &quot;'\n&quot;); raise Error)
+     fun STMT_LIST () =
+         case !nexttok of
+            EOF =&gt; ()
+          | _ =&gt; (STMT(); STMT_LIST())
+        
+     and STMT() =
+         (case !nexttok
+           of EOS  =&gt; ()
+            | PRINT =&gt; (advance(); say ((makestring (E():int)) ^ &quot;\n&quot;); ())
+            | _ =&gt; (E(); ());
+         case !nexttok
+           of EOS =&gt; (advance())
+            | _ =&gt; error())
+     and E () = E' (T())
+     and E' (i : int ) =
+         case !nexttok of
+            PLUS =&gt; (advance (); E'(i+T()))
+          | SUB =&gt; (advance (); E'(i-T()))
+          | RPAREN =&gt; i
+          | EOF =&gt; i
+          | EOS =&gt; i
+          | _ =&gt; error()
+     and T () =  T'(F())
+     and T' i =
+        case !nexttok of
+            PLUS =&gt; i
+          | SUB =&gt; i
+          | TIMES =&gt; (advance(); T'(i*F()))
+          | DIV =&gt; (advance (); T'(i div F()))
+          | EOF =&gt; i
+          | EOS =&gt; i
+          | RPAREN =&gt; i
+          | _ =&gt; error()
+     and F () =
+        case !nexttok of
+            ID i =&gt; (advance(); lookup i)
+          | LPAREN =&gt;
+              let val v = (advance(); E())
+              in if !nexttok = RPAREN then (advance (); v) else error()
+              end
+          | NUM i =&gt; (advance(); i)
+          | _ =&gt; error()
+    in STMT_LIST () handle Error =&gt; parse strm
+    end
+ end</PRE>
+<BR> <HR>
+<ADDRESS>
+<I>Frank P. Flannery <BR>
+Mon Jul 22 14:15:03 EDT 1996</I>
+</ADDRESS>
+
+</BODY>
+</HTML>

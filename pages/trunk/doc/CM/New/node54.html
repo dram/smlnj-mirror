@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>6.2.7.2 Directory scanning:</TITLE>
+<META NAME="description" CONTENT="6.2.7.2 Directory scanning:">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="previous" HREF="node53.html">
+<LINK REL="up" HREF="node52.html">
+<LINK REL="next" HREF="node55.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html940"
+ HREF="node55.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html936"
+ HREF="node52.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html932"
+ HREF="node53.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html938"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html941"
+ HREF="node55.html">7. Conditional compilation</A>
+<B> Up:</B> <A NAME="tex2html937"
+ HREF="node52.html">6.2.7 Dir</A>
+<B> Previous:</B> <A NAME="tex2html933"
+ HREF="node53.html">6.2.7.1 Directory factoring:</A>
+ &nbsp <B>  <A NAME="tex2html939"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H4><A NAME="SECTION00072720000000000000">
+6.2.7.2 Directory scanning:</A>
+</H4>
+Another use of the Dir tool, indicated by the absence of tool options,
+is to include all ML code in a given directory ``whole-sale style''.
+For example, a member of the form
+
+<P>
+ 
+<PRE>
+
+  projects/ml/foo : dir
+</PRE>
+
+<P>
+lets CM scan the contents of directory <TT> projects/ml/foo</TT> and
+proceed as if a list of all discovered ML files had been written
+in place of the <TT> dir</TT> member.  For this, the usual classification
+mechanism is used to decide which directory entries are to be
+considered files containing ML code.
+
+<P>
+As before, the example could be further simplified by omitting the
+class name.  Thus, a very quick way of putting together a small
+project is to use a generic description file of the form:
+
+<P>
+ 
+<PRE>
+
+Group is $/basis.cm .
+</PRE>
+
+<P>
+As usual, the dot denotes the current directory.  Therefore, CM will
+scan the current directory and include any ML code it finds there.
+(Library <TT> $/basis.cm</TT> is necessary for most non-trivial programs,
+so we included it also.)
+
+<P>
+This is deceptively simple, but be warned: The technique of letting CM
+scan the physical directory is to be avoided for any serious project
+because it is very fragile.  It does not mix well with the use of
+other tools, it will break when certain otherwise unrelated ML files
+are present, and so on, and so forth. In short, for serious
+programming the Dir tool should not be used without specifying
+options.
+
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html940"
+ HREF="node55.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html936"
+ HREF="node52.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html932"
+ HREF="node53.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html938"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html941"
+ HREF="node55.html">7. Conditional compilation</A>
+<B> Up:</B> <A NAME="tex2html937"
+ HREF="node52.html">6.2.7 Dir</A>
+<B> Previous:</B> <A NAME="tex2html933"
+ HREF="node53.html">6.2.7.1 Directory factoring:</A>
+ &nbsp <B>  <A NAME="tex2html939"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

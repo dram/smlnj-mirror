@@ -1,0 +1,130 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.23 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.23, October 9, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot. 
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+<center><h2>Summary:</h2></center>
+  This version has some major MLRISC changes (from Allen Leung) and
+  bug fixes for CM.   
+  The primary MLRISC changes include a sparse algorithm for
+  interference  graph construction, dead copy elimination, propagation 
+  of branch frequency information, and makes use of a new annotation
+  mechanism throughout the system.
+
+<hr>
+
+<center><h2> CM </h2></center>
+
+  Fixed a bug related to consistent handling of pathnames that point
+  to the same file but are not identical. (This situation can happen 
+  because of path anchors or symbolic links).  
+  <p>
+  Fixed a  potential exponential blowup in CM.make pointed out
+  by Simon Helsen.
+
+<hr>
+
+<center><h2> MLRISC</h2></center>
+  <h4> Register Allocator </h4>
+     This release uses a brand new graph coloring register allocator.  
+     The new register allocator is slightly faster (20% in 
+     the register allocator for RISC machines; no change for x86), 
+     generates less spill code (about 10% on RISC machines) 
+     than the previous one, and has eliminated a few bugs.  It has 
+     also incorporated many algorithmic improvements (but the framework 
+     is still based on iterated coalescing). 
+     Some of the improvements are:
+     <p> <ul>
+     
+     <li> Sparse interference graph construction -- the new algorithm
+       uses a sparse method for constructing the interference graph.  
+       This is based on the algorithm described in Modern Compiler 
+       Implementation, by A.Appel. Since our input is mostly single
+       assignment (CPS), this phase runs in effectively linear-time.
+     <p><li>
+       Dead copy elimination -- an additional phase for removing 
+       dead copies is added.  This allows us to remove about 59k of 
+       code on the x86 platform. 
+     <p><li>
+       In addition, these new features are added but not currently used for
+       SML/NJ:
+
+	<p><ul>
+        <li> coalescing and spilling decisions can now be prioritized by execution
+          frequencies
+
+        <li> coalescing and coloring of spill locations 
+        </ul>
+     </ul>
+     <p>
+     Please see the 
+     <A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/compiler-notes/index.html#NEW-RA"> paper </A> 
+     for more details.
+
+<hr>
+<center><h2>Annotations</h2></center>
+       The interface of annotations has been changed in this version.
+       It is now an abstract type.  See the files 
+       <tt>MLRISC/library/annotations.{sig,sml}</tt> and
+       <tt>MLRISC/instructions/basicAnnotations.sig</tt> for details. 
+       <p>
+       A few
+      <A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/compiler-notes/index.html#ANNOTATIONS"> notes </A>
+       describing this change are available. 
+
+<h4>Block names</h4>
+
+       Block names are now implemented using basic block annotations instead
+       of a special data constructor.
+
+<h4>MLTREE</h4>
+       Various fixes dealing with integer to integer conversions have been 
+       added.  
+
+<h4>CM Libraries</h4>
+       All the target specific files have been turned into libraries. 
+       MLRISC itself has been broken up into several libraries a core 
+       defined by MLRISC.cm and various extensions.
+      <p>
+       The new CM library mechanism makes it particularly easy to 
+       autoload new optimization phases at the top level. See
+       compiler/MLRISC-OPTIMIZER.cm
+<hr>
+
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Wed Oct  6 21:37:30 EDT 1999
+<!-- hhmts end -->
+    </font>
+</blockquote>
+</body>
+</html>

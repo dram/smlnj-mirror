@@ -1,0 +1,140 @@
+<!-- HTML/option.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Option structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Option</CODE> structure</H3>
+<P>
+The Option structure defines the <A HREF="#SIG:OPTION.option:TY:SPEC">option</A> type, used for handling partial functions and optional values, and provides a collection of common combinators.
+<P>
+The type, the <CODE>Option</CODE> exception and the functions <CODE>getOpt</CODE>, <CODE>valOf</CODE> and <CODE>isSome</CODE> are available in the top-level environment. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="OPTION:SIG:SPEC"><CODE>OPTION</CODE></A><BR>
+<B>structure </B><A NAME="Option:STR:SPEC"><CODE>Option</CODE></A><B> : </B>OPTION<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>datatype</B> 'a <A NAME="SIG:OPTION.option:TY:SPEC" HREF="#SIG:OPTION.option:TY">option</A> <B>=</B> NONE <B>|</B> SOME <B>of</B> 'a       <BR>
+<B>exception</B> <A NAME="SIG:OPTION.Option:EXN:SPEC" HREF="#SIG:OPTION.Option:EXN">Option</A><BR>
+<B>val</B> <A NAME="SIG:OPTION.getOpt:VAL:SPEC" HREF="#SIG:OPTION.getOpt:VAL">getOpt</A> <B>:</B> ('a option * 'a) -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:OPTION.isSome:VAL:SPEC" HREF="#SIG:OPTION.isSome:VAL">isSome</A> <B>:</B> 'a option -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:OPTION.valOf:VAL:SPEC" HREF="#SIG:OPTION.valOf:VAL">valOf</A> <B>:</B> 'a option -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:OPTION.filter:VAL:SPEC" HREF="#SIG:OPTION.filter:VAL">filter</A> <B>:</B> ('a -&gt; bool) -&gt; 'a -&gt; 'a option         <BR>
+<B>val</B> <A NAME="SIG:OPTION.join:VAL:SPEC" HREF="#SIG:OPTION.join:VAL">join</A> <B>:</B> 'a option option -&gt; 'a option         <BR>
+<B>val</B> <A NAME="SIG:OPTION.map:VAL:SPEC" HREF="#SIG:OPTION.map:VAL">map</A> <B>:</B> ('a -&gt; 'b) -&gt; 'a option -&gt; 'b option         <BR>
+<B>val</B> <A NAME="SIG:OPTION.mapPartial:VAL:SPEC" HREF="#SIG:OPTION.mapPartial:VAL">mapPartial</A> <B>:</B> ('a -&gt; 'b option) -&gt; 'a option -&gt; 'b option         <BR>
+<B>val</B> <A NAME="SIG:OPTION.compose:VAL:SPEC" HREF="#SIG:OPTION.compose:VAL">compose</A> <B>:</B> (('a -&gt; 'b) * ('c -&gt; 'a option)) -&gt; 'c -&gt; 'b option         <BR>
+<B>val</B> <A NAME="SIG:OPTION.composePartial:VAL:SPEC" HREF="#SIG:OPTION.composePartial:VAL">composePartial</A> <B>:</B> (('a -&gt; 'b option) * ('c -&gt; 'a option)) -&gt; 'c -&gt; 'b option         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:OPTION.option:TY"><CODE><B>datatype</B> 'a option</CODE></A>
+<DD>
+The type <A HREF="#SIG:OPTION.option:TY:SPEC">option</A> provides a distinction between some        value and no value, and is often used for representing the        result of partially defined functions. It can be viewed as        a typed version of the C convention of returning a NULL        pointer to indicate no value.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.Option:EXN"><CODE><B>exception</B> Option</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.getOpt:VAL"><CODE>getOpt (<VAR>opt</VAR>, <VAR>a</VAR>)
+          </CODE></A>
+<DD>
+returns <CODE>v</CODE> if <VAR>opt</VAR> is <CODE><A HREF="#SIG:OPTION.option:TY:SPEC">SOME</A> v</CODE>; otherwise returns <VAR>a</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.isSome:VAL"><CODE>isSome <VAR>opt</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE>            if <VAR>opt</VAR> is <CODE><A HREF="#SIG:OPTION.option:TY:SPEC">SOME</A> v</CODE>;            otherwise returns <CODE>false</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.valOf:VAL"><CODE>valOf <VAR>opt</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>v</CODE> if <VAR>opt</VAR> is <CODE><A HREF="#SIG:OPTION.option:TY:SPEC">SOME</A> v</CODE>; otherwise raises <A HREF="#SIG:OPTION.Option:EXN:SPEC">Option</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.filter:VAL"><CODE>filter <VAR>f</VAR> <VAR>a</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>SOME <VAR>a</VAR></CODE> if <CODE>f a</CODE> is true and <CODE>NONE</CODE> otherwise.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.join:VAL"><CODE>join <VAR>opt</VAR>
+          </CODE></A>
+<DD>
+maps <CODE>NONE</CODE> to <CODE>NONE</CODE> and <CODE>SOME v</CODE> to <CODE>v</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.map:VAL"><CODE>map <VAR>f</VAR> <VAR>opt</VAR>
+          </CODE></A>
+<DD>
+maps <CODE>NONE</CODE> to <CODE>NONE</CODE> and <CODE>SOME v</CODE> to <CODE>SOME (<VAR>f</VAR> v)</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.mapPartial:VAL"><CODE>mapPartial <VAR>f</VAR> <VAR>opt</VAR>
+          </CODE></A>
+<DD>
+maps <CODE>NONE</CODE> to <CODE>NONE</CODE> and <CODE>SOME v</CODE> to <CODE><VAR>f</VAR> v</CODE>.           The expression <CODE>mapPartial <VAR>f</VAR></CODE> is equivalent           to <CODE>join o (map <VAR>f</VAR>)</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.compose:VAL"><CODE>compose (<VAR>f</VAR>, <VAR>g</VAR>) <VAR>a</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>NONE</CODE> if <CODE><VAR>g</VAR> <VAR>a</VAR></CODE> is <CODE>NONE</CODE>;           otherwise, if <CODE><VAR>g</VAR> <VAR>a</VAR></CODE> is <CODE>SOME v</CODE>, it returns           <CODE>SOME (<VAR>f</VAR> v)</CODE>. Thus, the <CODE>compose</CODE> function           composes <VAR>f</VAR> with the partial function <VAR>g</VAR>, to produce           another partial function.            The expression <CODE>compose (<VAR>f</VAR>, <VAR>g</VAR>)</CODE> is equivalent           to <CODE>(map <VAR>f</VAR>) o <VAR>g</VAR></CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OPTION.composePartial:VAL"><CODE>composePartial (<VAR>f</VAR>, <VAR>g</VAR>) <VAR>a</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>NONE</CODE> if <CODE><VAR>g</VAR> <VAR>a</VAR></CODE> is <CODE>NONE</CODE>;           otherwise, if <CODE><VAR>g</VAR> <VAR>a</VAR></CODE> is <CODE>SOME v</CODE>, it returns           <CODE><VAR>f</VAR> v</CODE>. Thus, the <CODE>composePartial</CODE> function           composes the two partial functions <VAR>f</VAR> and <VAR>g</VAR>, to produce           another partial function.            The expression <CODE>composePartial (<VAR>f</VAR>, <VAR>g</VAR>)</CODE> is equivalent           to <CODE>(mapPartial <VAR>f</VAR>) o <VAR>g</VAR></CODE>.      
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+Note that adding <CODE>val unit = SOME</CODE> to the functions <CODE>map</CODE> and <CODE>join</CODE>  makes the type constructor <CODE>option</CODE> into a monad  (<B>[CITE]</B>Wadler/, Section 7.2).      
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="general-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified January 22, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

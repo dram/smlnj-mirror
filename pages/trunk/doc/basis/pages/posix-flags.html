@@ -1,0 +1,96 @@
+<!-- HTML/posix-flags.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Posix.Flags structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>POSIX_FLAGS</CODE> signature</H3>
+<P>
+The POSIX_FLAGS signature defines a generic set of operations on an abstract representation of system flags. It is included in various flag substructures of the other POSIX interfaces. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="POSIX_FLAGS:SIG:SPEC"><CODE>POSIX_FLAGS</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:POSIX_FLAGS.flags:TY:SPEC" HREF="#SIG:POSIX_FLAGS.flags:TY">flags</A><BR>
+<B>val</B> <A NAME="SIG:POSIX_FLAGS.toWord:VAL:SPEC" HREF="#SIG:POSIX_FLAGS.toWord:VAL">toWord</A> <B>:</B> flags -&gt; SysWord.word       <BR>
+<B>val</B> <A NAME="SIG:POSIX_FLAGS.wordTo:VAL:SPEC" HREF="#SIG:POSIX_FLAGS.toWord:VAL">wordTo</A> <B>:</B> SysWord.word -&gt; flags         <BR>
+<B>val</B> <A NAME="SIG:POSIX_FLAGS.flags:VAL:SPEC" HREF="#SIG:POSIX_FLAGS.flags:VAL">flags</A> <B>:</B> flags list -&gt; flags         <BR>
+<B>val</B> <A NAME="SIG:POSIX_FLAGS.allSet:VAL:SPEC" HREF="#SIG:POSIX_FLAGS.allSet:VAL">allSet</A> <B>:</B> (flags * flags) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:POSIX_FLAGS.anySet:VAL:SPEC" HREF="#SIG:POSIX_FLAGS.anySet:VAL">anySet</A> <B>:</B> (flags * flags) -&gt; bool         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:POSIX_FLAGS.flags:TY"><CODE><B>eqtype</B> flags</CODE></A>
+<DD>
+This is the abstract representation of a set of system flags.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FLAGS.toWord:VAL"><CODE>toWord <VAR>flags</VAR>
+	  </CODE></A>
+<DT> <CODE>            wordTo <VAR>w</VAR>
+          </CODE>
+<DD>
+these functions convert between the abstract <A HREF="#SIG:POSIX_FLAGS.flags:TY:SPEC">flags</A> type 	  and a bit-vector that is represented as a system <A HREF="word.html#SIG:WORD.word:TY:SPEC">word</A>. 	  The interpretation of the bits is system dependent, but follows 	  the Posix C-language binding for the host operating system.           Note that there is no error checking on the <CODE>wordTo</CODE> function's           argument.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FLAGS.flags:VAL"><CODE>flags <VAR>l</VAR>
+          </CODE></A>
+<DD>
+returns a value that represents the union of the flags in the 	  list <VAR>l</VAR>.           The expression <CODE>flags []</CODE> denotes the empty set.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FLAGS.allSet:VAL"><CODE>allSet (<VAR>fl1</VAR>, <VAR>fl2</VAR>)
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if all of the flags in <VAR>fl1</VAR> are also 	  in <VAR>fl2</VAR> (i.e., this tests for inclusion of <VAR>fl1</VAR> in 	  <VAR>fl2</VAR>).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_FLAGS.anySet:VAL"><CODE>anySet (<VAR>fl1</VAR>, <VAR>fl2</VAR>)
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if any of the flags in <VAR>fl1</VAR> is also 	  in <VAR>fl2</VAR> (i.e., this tests for non-empty intersection).       
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="posix.html#Posix:STR:SPEC">Posix</A>, <A HREF="posix.html#SIG:POSIX.FileSys:STR:SPEC">Posix.FileSys</A>, <A HREF="posix.html#SIG:POSIX.IO:STR:SPEC">Posix.IO</A>, <A HREF="posix.html#SIG:POSIX.FileSys:STR:SPEC">Posix.FileSys</A>, <A HREF="word.html#SysWord:STR:SPEC">SysWord</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="posix-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified April 9, 1996</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

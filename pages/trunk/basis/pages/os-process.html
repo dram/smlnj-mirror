@@ -1,0 +1,122 @@
+<!-- HTML/os-process.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The OS.Process structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>OS.Process</CODE> structure</H3>
+<P>
+The OS.Process structure provides functions for manipulating processes in an  operating system independent manner. For discussion of additional relations between this structure and other structures, see Section 11.1. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="OS_PROCESS:SIG:SPEC"><CODE>OS_PROCESS</CODE></A><BR>
+<B>structure </B><A NAME="Process:STR:SPEC"><CODE>Process</CODE></A><B> : </B>OS_PROCESS<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:OS_PROCESS.status:TY:SPEC" HREF="#SIG:OS_PROCESS.status:TY">status</A><BR>
+<B>val</B> <A NAME="SIG:OS_PROCESS.success:VAL:SPEC" HREF="#SIG:OS_PROCESS.success:VAL">success</A> <B>:</B> status         <BR>
+<B>val</B> <A NAME="SIG:OS_PROCESS.failure:VAL:SPEC" HREF="#SIG:OS_PROCESS.failure:VAL">failure</A> <B>:</B> status         <BR>
+<B>val</B> <A NAME="SIG:OS_PROCESS.system:VAL:SPEC" HREF="#SIG:OS_PROCESS.system:VAL">system</A> <B>:</B> string -&gt; status         <BR>
+<B>val</B> <A NAME="SIG:OS_PROCESS.atExit:VAL:SPEC" HREF="#SIG:OS_PROCESS.atExit:VAL">atExit</A> <B>:</B> (unit -&gt; unit) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:OS_PROCESS.exit:VAL:SPEC" HREF="#SIG:OS_PROCESS.exit:VAL">exit</A> <B>:</B> status -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:OS_PROCESS.terminate:VAL:SPEC" HREF="#SIG:OS_PROCESS.terminate:VAL">terminate</A> <B>:</B> status -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:OS_PROCESS.getEnv:VAL:SPEC" HREF="#SIG:OS_PROCESS.getEnv:VAL">getEnv</A> <B>:</B> string -&gt; string option         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:OS_PROCESS.status:TY"><CODE><B>eqtype</B> status</CODE></A>
+<DD>
+The <CODE>status</CODE> type represents various termination         conditions for processes.         On Posix-based systems, <A HREF="#SIG:OS_PROCESS.status:TY:SPEC">status</A> will be be <A HREF="integer.html#SIG:INTEGER.int:TY:SPEC">int</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_PROCESS.success:VAL"><CODE>success
+          </CODE></A>
+<DD>
+is the unique <A HREF="#SIG:OS_PROCESS.status:TY:SPEC">status</A> value that signifies successful           termination of a process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_PROCESS.failure:VAL"><CODE>failure
+          </CODE></A>
+<DD>
+is a <A HREF="#SIG:OS_PROCESS.status:TY:SPEC">status</A> value that signifies an error during           execution of a process.  Note that, in contrast to the success           value, there may be several distinct failure values.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_PROCESS.system:VAL"><CODE>system <VAR>cmd</VAR>
+          </CODE></A>
+<DD>
+asks the operating system to execute the command <VAR>cmd</VAR>,            and to return the termination status of the command.           Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">SysErr</A> if the command cannot be executed.           
+<P>
+          Note that, although this function is independent of the operating           system, the interpretation of the string <VAR>cmd</VAR> depends           very much on the underlying operating system and shell.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_PROCESS.atExit:VAL"><CODE>atExit <VAR>f</VAR>
+          </CODE></A>
+<DD>
+registers an action <VAR>f</VAR> to be executed when the           current SML program calls <A HREF="#SIG:OS_PROCESS.exit:VAL:SPEC">exit</A>.             Actions will be executed in the reverse order of registration.           
+<P>
+          Exceptions raised when <VAR>f</VAR> is invoked that escape it           are trapped and ignored. Calls in <VAR>f</VAR> to <A HREF="#SIG:OS_PROCESS.atExit:VAL:SPEC">atExit</A>           are ignored. Calls to <A HREF="#SIG:OS_PROCESS.exit:VAL:SPEC">exit</A> do not return, but should           cause the remainder of the functions registered with <A HREF="#SIG:OS_PROCESS.atExit:VAL:SPEC">atExit</A>           to be executed.           Calls to <A HREF="#SIG:OS_PROCESS.terminate:VAL:SPEC">terminate</A> (or similar functions such as            <A HREF="posix-process.html#SIG:POSIX_PROCESS.exit:VAL:SPEC">Posix.Process.exit</A>) will terminate           the process immediately.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_PROCESS.exit:VAL"><CODE>exit <VAR>st</VAR>
+          </CODE></A>
+<DD>
+executes all actions registered with <A HREF="#SIG:OS_PROCESS.atExit:VAL:SPEC">atExit</A>,            flushes and closes all I/O streams,           then terminates the SML           process with termination status <VAR>st</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_PROCESS.terminate:VAL"><CODE>terminate <VAR>st</VAR>
+          </CODE></A>
+<DD>
+terminates the SML process with termination status <VAR>st</VAR>,           without executing the actions  registered with <A HREF="#SIG:OS_PROCESS.atExit:VAL:SPEC">atExit</A> or flushing open I/O streams.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:OS_PROCESS.getEnv:VAL"><CODE>getEnv <VAR>s</VAR>
+          </CODE></A>
+<DD>
+An environment is associated with each SML process,           modeled as a list of pairs of strings, corresponding to           name-value pairs. (The way the environment is established           depends on the host operating system.)           The <A HREF="#SIG:OS_PROCESS.getEnv:VAL:SPEC">getEnv</A> function scans           the environment for a pair whose first component equals           <VAR>s</VAR>. If successful, it returns the second component;           otherwise, it returns <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A>.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="os.html#OS:STR:SPEC">OS</A>, <A HREF="os.html#SIG:OS.FileSys:STR:SPEC">OS.FileSys</A>, <A HREF="os.html#SIG:OS.Path:STR:SPEC">OS.Path</A>, <A HREF="os.html#SIG:OS.IO:STR:SPEC">OS.IO</A>, <A HREF="posix.html#SIG:POSIX.ProcEnv:STR:SPEC">Posix.ProcEnv</A>, <A HREF="posix.html#SIG:POSIX.Process:STR:SPEC">Posix.Process</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="system-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified September 1, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

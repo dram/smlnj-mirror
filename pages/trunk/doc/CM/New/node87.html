@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>15. Example: Dynamic linking</TITLE>
+<META NAME="description" CONTENT="15. Example: Dynamic linking">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node88.html">
+<LINK REL="previous" HREF="node83.html">
+<LINK REL="up" HREF="manual.html">
+<LINK REL="next" HREF="node88.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1351"
+ HREF="node88.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1347"
+ HREF="manual.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1341"
+ HREF="node86.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1349"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1352"
+ HREF="node88.html">16. Some history</A>
+<B> Up:</B> <A NAME="tex2html1348"
+ HREF="manual.html">CM The SML/NJ Compilation</A>
+<B> Previous:</B> <A NAME="tex2html1342"
+ HREF="node86.html">14.2 Generating dependencies for</A>
+ &nbsp <B>  <A NAME="tex2html1350"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION000160000000000000000"></A>
+<A NAME="sec:dynlink"></A>
+<BR>
+15. Example: Dynamic linking
+</H1>
+
+<P>
+Autoloading is convenient and avoids wasted memory for modules that
+should be available at the interactive prompt but have not actually
+been used so far.  However, sometimes one wants to be even more
+aggressive and save the space needed for a function until--at
+runtime--that function is actually being dynamically invoked.
+
+<P>
+CM does not provide immediate support for this kind of <EM> dynamic
+linking</EM>, but it is quite simple to achieve the effect by carefully
+arranging some helper libraries and associated stub code.
+
+<P>
+Consider the following module:
+<PRE>
+
+  structure F = struct
+      fun f (x: int): int =
+          G.g x + H.h (2 * x + 1)
+  end
+</PRE>
+
+<P>
+Let us further assume that the implementations of structures <TT> G</TT>
+and <TT> H</TT> are rather large so that it would be worthwhile to avoid
+loading the code for <TT> G</TT> and <TT> H</TT> until <TT> F.f</TT> is called
+with some actual argument.  Of course, if <TT> F</TT> were bigger, then we
+also want to avoid loading <TT> F</TT> itself.
+
+<P>
+To achieve this goal, we first define a <EM> hook</EM> module which will
+be the place where the actual implementation of our function will be
+registered once it has been loaded.  This hook module is then wrapped
+into a hook library.  Thus, we have <TT> f-hook.cm</TT>:
+<PRE>
+
+  Library
+      structure F_Hook
+  is
+      f-hook.sml
+</PRE>
+
+<P>
+and <TT> f-hook.sml</TT>:
+
+<P>
+ 
+<PRE>
+
+  structure F_Hook = struct
+      local
+          fun placeholder (i: int) : int =
+              raise Fail "F_Hook.f: unitinialized"
+          val r = ref placeholder
+      in
+          fun init f = r := f
+          fun f x = !r x
+      end
+  end
+</PRE>
+
+<P>
+The hook module provides a reference cell into which a function of
+type equal to <TT> F.f</TT> can be installed.  Here we have chosen to hide
+the actual reference cell behind a <B> local</B> construct.  Accessor
+functions are provided to install something into the hook
+(<TT> init</TT>) and to invoke the so-installed value (<TT> f</TT>).
+
+<P>
+With this preparation we can write the implementation module <TT> f-impl.sml</TT>
+in such a way that not only does it provide the actual
+code but also installs itself into the hook:
+<PRE>
+
+  structure F_Impl = struct
+      local
+          fun f (x: int): int =
+              G.g x + H.h (2 * x + 1)
+      in
+          val _ = F_Hook.init f
+      end
+  end
+</PRE>
+The implementation module is wrapped into its implementation
+library <TT> f-impl.cm</TT>:
+<PRE>
+
+  Library
+      structure F_Impl
+  is
+      f-impl.sml
+      f-hook.cm
+      g.cm       (* imports G *)
+      h.cm       (* imports H *)
+</PRE>
+Note that <TT> f-impl.cm</TT> must mention <TT> f-hook.cm</TT> for
+<TT> f-impl.sml</TT> to be able to access structure <TT> F_Hook</TT>.
+
+<P>
+Finally, we replace the original contents of <TT> f.sml</TT> with a stub
+module that defines structure <TT> F</TT>:
+<PRE>
+
+  structure F = struct
+      local
+          val initialized = ref false
+      in
+          fun f x =
+              (if !initialized then ()
+               else if CM.make "f-impl.cm" then initialized := true
+               else raise Fail "dynamic linkage for F.f failed";
+               F_Hook.f x)
+      end
+  end
+</PRE>
+The trick here is to explicitly invoke <TT> CM.make</TT> the
+first time <TT> F.f</TT> is called.  This will then cause <TT> f-impl.cm</TT>
+(and therefore <TT> g.cm</TT> and also <TT> h.cm</TT>) to be loaded and the
+``real'' implementation of <TT> F.f</TT> to be registered with the hook
+module from where it will then be available to this and future calls
+of <TT> F.f</TT>.
+
+<P>
+For the new <TT> f.sml</TT> to be compiled successfully it must be placed
+into a library <TT> f.cm</TT> that mentions <TT> f-hook.cm</TT> and <TT> 
+$smlnj/cm.cm</TT>.  As we have seen, <TT> f-hook.cm</TT> exports <TT> 
+F_Hook.f</TT> and <TT> $smlnj/cm.cm</TT> is needed because it exports
+<TT> CM.make</TT>:
+
+<P>
+ 
+<PRE>
+
+  Library
+      structure F
+  is
+      f.sml
+      f-hook.cm
+      $smlnj/cm.cm (* or $smlnj/cm/full.cm *)
+</PRE>
+
+<P>
+ 
+<B> Beware!</B>  This solution makes use of <TT> $smlnj/cm.cm</TT>
+which in turn requires the SML/NJ compiler to be present.  Therefore,
+is worthwhile only for really large program modules where the benefits
+of their absence are not outweighed be the need for the compiler.
+
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1351"
+ HREF="node88.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1347"
+ HREF="manual.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1341"
+ HREF="node86.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1349"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1352"
+ HREF="node88.html">16. Some history</A>
+<B> Up:</B> <A NAME="tex2html1348"
+ HREF="manual.html">CM The SML/NJ Compilation</A>
+<B> Previous:</B> <A NAME="tex2html1342"
+ HREF="node86.html">14.2 Generating dependencies for</A>
+ &nbsp <B>  <A NAME="tex2html1350"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

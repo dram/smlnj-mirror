@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.19 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.19, July 8, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot. 
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+<center><h2>Summary:</h2></center>
+  This version has a large number of MLRISC changes done primarily by
+  Allen Leung. Salient features are:
+  <ul>
+   <li><font color="#aa0000"> MLTree:</font> All operations are explicitly typed by the data width,
+	allowing better support for 16/64 bit operations (or any other
+	width).  
+
+   <li><font color="#aa0000"> Register encodings:</font> All physical
+   registers are encoded uniquely.
+
+   <li><font color="#aa0000"> Machine Descriptions: </font> Nearly all
+   the target specific MLRISC files are now generated from a machine
+   description.
+
+   <li><font color="#aa0000"> Annotations:</font> Target machine
+   instructions can be marked with client specific annotations.
+
+   <li><font color="#aa0000"> Regions:</font> There is a new way to
+   describing memory aliasing.
+
+   <li><font color="#aa0000"> Multiplication/division:</font> There is
+   better support for generating code involving constant operands.
+
+   <li><font color="#aa0000"> Documentation:</font> Is in progress but
+   not ready for prime time.
+
+   <li> Execution time improves. 
+  </ul>
+<p>
+ Other Changes include:
+
+  <ul>
+    <li> <font color="#aa0000">alpha32x</font> is no longer supported.
+    <li> changes to support sockets under win32.
+  </ul>
+<hr>
+
+<center><h2> MLRISC Changes</h2></center>
+
+  <h4> MLTree </h4>
+
+   <ul>
+     <li>
+        All operators in MLTREE are now typed by the data width.  For example,
+        previously to compute <tt>x := y + 1</tt> we would write:
+        <pre>
+                MV(x,ADD(REG y,LI 1)) 
+	</pre>
+        Now we write:
+	<pre>
+            MV(x, 32, ADD(32, REG(32, y), LI 1))
+	</pre>
+        instead (assuming that x and y are both 32-bit quantities.)
+
+        To translate old MLTREE to new MLTREE should be a straight
+        forward process.
+
+      <li> There is a larger set of operators.  Also, some of the operation
+        names have been changed.  For example, we had:
+	<pre>
+            LOAD32 of rexp * region
+	</pre>
+        Now, we have
+	<pre>
+            LOAD of ty * rexp * region
+	</pre>
+        instead.  The ty (data width) parameter specifies the width of the
+        data to be loaded.
+
+      <li> New integer operators are:
+	  <pre>
+          MULS   of ty * rexp * rexp (* signed multiplication/division *)
+          DIVS   of ty * rexp * rexp
+          REMS   of ty * rexp * rexp
+          REMU   of ty * rexp * rexp (* unsigned remainder *)
+          NOTB   of ty * rexp        (* ones complement *) 
+          CVTI2I of ty * ext * rexp  (* type promotion and conversion *)
+          CVTF2I of ty * rounding_mode * fexp
+
+           (* 
+            * COND(ty,cc,e1,e2):
+            * Evaluate into either e1 or e2, depending on cc.  
+            * Both e1 and e2 can be evaluated eagerly.
+            *)
+          COND of ty * ccexp * rexp * rexp
+          LOAD_UNALIGNED of ty * rexp * Region.region (* unaligned load *)
+          MARK of rexp * Annotations.annotation
+         </pre>
+      <li> New floating-point operators are:
+	  <pre>
+          FLOAD_UNALIGNED  of fty * rexp * Region.region
+          FABS of fty * fexp
+          FNEG of fty * fexp
+          FSQRT of fty * fexp
+          CVTI2F of fty * ext * rexp
+          CVTF2F of fty * rounding_mode * fexp
+          FMARK of fexp * Annotations.annotation
+	  </pre>
+      <li> Note: not all the new operators have been implemented.
+
+      <li> Order of evaluation:
+	   <pre>
+	   datatype order = 
+		RL (* right-to-left *) | LR (* left-to-right *)
+	   </pre>
+          has been removed from arithmetic operators. Where order of
+          evaluation is important, it should be made explicit by
+	  sequentially assigning values to temporary registers.
+      </ul>
+
+   <h4>Register encodings</h4>
+
+      <strong>EXTREMELY IMPORTANT:</strong> The encoding of physical
+      registers has been changed. All physical registers are now
+      encoded uniquely.  For example, on the Sparc, %g0 is encoding as
+      0 and %f0 is encoding as 32.  Previously %f0 was encoded as 0.
+      An MLRISC client should use the function Reg provided by the
+      CELLS interface to compute these new encoding.
+      <pre>
+	   val Reg : cellkind -> int -> register
+      </pre>
+      For example, to describe %f0, use 
+      <pre>
+	  SparcCells.Reg SparcCells.FP 0
+      </pre>
+
+  <h4> Annotations</h4>
+   
+      There is a new mechanism to inject client-defined annotations into 
+      the program.  Annotations can be attached to instructions, basic blocks,
+      control flow edges or an entire cluster/CFG.
+      <p>
+      These MLTREE constructors:
+	
+	<ul>
+	 <li> <tt>MARK of rexp * Annotations.annotation</tt>
+	 <li> <tt>FMARK of fexp * Annotations.annotation</tt>
+	 <li> <tt>CCMARK of ccexp * Annotations.annotation</tt>
+        </ul>
+
+      inject instruction level annotations.  
+      (See MLRISC/instructions/insnProps.sig)
+      <p>
+      The term
+	<pre>
+	 BLOCK_ANNOTATION of Annotations.annotation
+	</pre>
+      inject a basic block level annotation.
+      <p>
+      Finally, 
+	 <pre>
+	 ENDCLUSTER of int Intmap.intmap * Annotations.annotations
+	 </pre>
+      can be used to attach a list of cluster level annotations.
+      <p>
+      Certain annotations are interpreted specially by the MLRISC
+      system.  For example, there is an annotation that specifies
+      branch probability, another that specifies control-dependence
+      etc.  (See <tt>MLRISC/instructions/basicAnnotations.sig</tt>).
+      Annotations are not restricted to the ones that we have
+      predefined; an MLRISC client can freely define its own
+      annotations (annotations are just ML exceptions).
+      Client-defined annotations are propagated and are semantically
+      null -- unless you write a new optimization phase to recognize a
+      new annotation.
+
+
+  <h4> Execution time</h4>
+
+   Compilation and execution time on the HPPA, which has been the
+      most finely tuned architecture in this release, improves from
+      0-20% depending on the benchmark. Your mileage with other
+      architectures will vary, however, their fine tuning has been 
+      deferred to the next version. All other architecture should
+      eventually improve, as a result of the generic
+      multiplication/division by constants, and strength reduction.
+      Currently 110.19 is 6% slower at compiling the compiler than 
+      110.18 on the DEC Alpha.
+
+  <h4> Machine Descriptions </h4>
+
+      Nearly all the target specific MLRISC files are generated from a
+      machine description. (See <tt>MLRISC/[arch]/[arch].md</tt>,
+      where <tt>[arch]</tt> is one of <tt>sparc</tt>, <tt>hppa</tt>,
+      <tt>alpha</tt>, <tt>ppc</tt>, or <tt>x86</tt>). This borrows
+      several ideas from the New Jersey Machine Code Toolkit, and
+      others. The files that process the machine descriptions have not
+      been included in this release.
+ 
+  <h4> Regions</h4>
+
+      Please see the files <tt>aliasing/mlriscRegion.{sig,sml}</tt>
+      for details.
+ 
+  <h4> Multiplication/Division</h4>
+
+       Strength reduction is performed for integer multiplications and 
+    divisions by constants (except on the x86 platform).  This almost
+    always leads to faster code.  The algorithm that we currently use 
+    for strength reduction is very simple; more improvements are possible. 
+
+  <h4> Documentation </h4>
+
+      Preliminary documentation is included in this version, but is
+      not ready for prime time use. It can be accessed by pointing to
+      <tt.MLRISC/Doc/index.html</tt>. This documentation will be
+      continually updated, and the following page should be used for
+      the latest documentation:
+        <pre>
+	http://cm.bell-labs.com/cm/cs/what/smlnj/MLRISC
+	</pre>
+
+  <h4> See Also </h4>
+
+      For architecture specific changes, please see the files
+       <tt>MLRISC/[arch]/README.[arch]</tt>
+      where <tt>[arch]</tt> is the name of the architecture.
+
+ 
+      For detailed changes to MLRISC, please see the files
+      <tt>MLRISC/README</tt> and <tt>MLRISC/CHANGES</tt>.
+<hr>
+<center><h2> Other Changes </h2></center>
+  <h4>Alpha32x </h4>
+
+    The DEC Alpha under OSF 3.2 is no longer supported. A special code 
+    generator was required for this because the OS would not emulate
+    certain floating point instructions. For example, for floating
+    point subtraction, FSUB with the /SUD extension is  generated.
+    (/SUD for software completion, underflow enabled, and dynamic
+    rounding mode). Instead OSF 3.2 would generate an illegal
+    instruction error.
+
+<hr>
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Mon Jul 12 16:01:06 EDT 1999
+<!-- hhmts end -->
+    </font>
+</blockquote>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>5.2 Different anchor mappings at different times</TITLE>
+<META NAME="description" CONTENT="5.2 Different anchor mappings at different times">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="previous" HREF="node18.html">
+<LINK REL="up" HREF="node17.html">
+<LINK REL="next" HREF="node20.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html292"
+ HREF="node20.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html288"
+ HREF="node17.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html284"
+ HREF="node18.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html290"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html293"
+ HREF="node20.html">6. Scripts</A>
+<B> Up:</B> <A NAME="tex2html289"
+ HREF="node17.html">5. File naming the</A>
+<B> Previous:</B> <A NAME="tex2html285"
+ HREF="node18.html">5.1 Anchoring requirement</A>
+ &nbsp <B>  <A NAME="tex2html291"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00062000000000000000">
+5.2 Different anchor mappings at different times</A>
+</H2>
+
+<P>
+We can distinguish between four different anchor configurations which
+will be in effect at different times:
+
+<P>
+ 
+<DL>
+<DT><STRONG><B> compilation</B>:</STRONG></DT>
+<DD>At the time <TT> CMB.make</TT> runs, the anchor configuration is taken
+from file <TT> pathconfig</TT>.<A NAME="tex2html2"
+HREF="footnode.html#foot872"><SUP>2</SUP></A>  This configuration maps anchors to
+their respective directories in the actual source tree.  At the same
+time the policy which determines the names of binfiles
+and stablefiles is modified in such a way that all binfiles will be
+created in directory <TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.bin.<I> arch</I>-<I> os</I></TT> and all
+stablefiles will be created in <TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.boot.<I> arch</I>-<I> os</I></TT>.
+In particular, if <TT> $<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$"></TT> is the root anchor name controlling
+the path leading to an ML source file
+<TT> $<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$">/<IMG
+ WIDTH="23" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.gif"
+ ALT="$\cdots$">/<I> file</I>.sml</TT>,
+then the corresponding binfile will be created as
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.bin.<I> arch</I>-<I> os</I>/<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$">/<IMG
+ WIDTH="23" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.gif"
+ ALT="$\cdots$">/CM/<I> arch</I>-<I> os</I>/<I> file</I>.sml</TT>.
+Similarly, the stablefile for the library description
+<TT> $<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$">/<IMG
+ WIDTH="23" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.gif"
+ ALT="$\cdots$">/<I> file</I>.cm</TT> controlled by root anchor <TT> $<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$"></TT>
+gets written to
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.boot.<I> arch</I>-<I> os</I>/<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$">/<IMG
+ WIDTH="23" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.gif"
+ ALT="$\cdots$">/CM/<I> arch</I>-<I> os</I>/<I> file</I>.cm</TT>.
+(Notice how the anchor name <TT> $<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$"></TT> is being incorporated into the
+resulting pathnames.)</DD>
+<DT><STRONG><B> boot</B>:</STRONG></DT>
+<DD>At bootstrap time (e.g., when the <TT> makeml</TT> script is invoked), CM
+scans the contents of <TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.boot.<I> arch</I>-<I> os</I></TT>, and for
+each directory name <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$"> it finds there it maps the anchor <TT> $<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$"></TT> to that
+directory.  The result is that the location for library description
+<TT> $<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$">/<IMG
+ WIDTH="23" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.gif"
+ ALT="$\cdots$">/<I> file</I>.cm</TT>
+is considered to be
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.bin.<I> arch</I>-<I> os</I>/<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$">/<IMG
+ WIDTH="23" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.gif"
+ ALT="$\cdots$">/<I> file</I>.cm</TT>, which
+means that--under the <EM> usual</EM> rules of CM--
+the corresponding stablefile is going to be
+<TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.bin.<I> arch</I>-<I> os</I>/<IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$">/<IMG
+ WIDTH="23" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.gif"
+ ALT="$\cdots$">/CM/<I> arch</I>-<I> 
+os</I>/<I> file</I>.cm</TT>.  This is precisely where <TT> CMB.make</TT> created
+it.  (Of course, the libary description file itself does not exist,
+but this is not a problem because the stablefile does.)
+
+<P>
+The resulting mapping for anchors is the one that is being saved to the
+newly generated heap image.</DD>
+<DT><STRONG><B> test</B>:</STRONG></DT>
+<DD>After generating a new heap image <TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.<I> 
+arch</I>-<I> osname</I></TT><A NAME="tex2html3"
+ HREF="footnode.html#foot884"><SUP>3</SUP></A>, the <TT> makeml</TT> script will copy the
+hierarchy of directories under <TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.boot.<I> arch</I>-<I> os</I></TT> to a
+new directory <TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.lib</TT> and generate a path configuration file
+<TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.lib/pathconfig</TT> for it.  Files in this hierarchy will be
+re-created as hard links.  The prefix <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$"> can be chosen at the time
+<TT> makeml</TT> is invoked (see section&nbsp;<A HREF="node21.html#script:makeml">6.1</A>)--just like
+<IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"> can be chosen at the time <TT> CMB.make</TT> is invoked.  The default
+for <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$"> is <TT> sml</TT>.  Copying the directory prevents any future <TT> 
+CMB.make</TT> from clobbering the libraries that belong to the newly
+generated heap image.
+
+<P>
+Running the <TT> testml</TT> script will start the runtime system,
+instruct it to load heap image <TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.<I> arch</I>-<I> osname</I></TT>,
+and arrange for the path configuration file <TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.lib/pathconfig</TT>
+to take effect.  This will cause any anchor <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$"> to be resolved within
+the <TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.lib</TT> hierarchy.  Thus, the new system can be tested in a
+way that is completely independent from any existing installation.
+(Again, <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$"> can be specified as a parameter to <TT> testml</TT>.)</DD>
+<DT><STRONG><B> install</B>:</STRONG></DT>
+<DD>When testing has been satisfactory, the new system can be installed
+permamently, replacing the old heap image and its old libraries with
+their newly created counterparts.  To do so, one should run the <TT> 
+installml</TT> script.  It will move the heap image
+<TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.<I> arch</I>-<I> osname</I></TT> to
+<TT> ../../bin/.heap/sml.<I> arch</I>-<I> osname</I></TT>
+and all stablefiles from <TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.lib</TT> to their usual place
+under <TT> ../../lib</TT>.  It then proceeds to edit
+<TT> ../../lib/pathconfig</TT> (the main path configuration file of the
+installation) to reflect the new situation.
+(Library files in <TT> ../../lib</TT> that have nothing to do with the
+bootstrap process will remain untouched.)</DD>
+</DL><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html292"
+ HREF="node20.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html288"
+ HREF="node17.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html284"
+ HREF="node18.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html290"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html293"
+ HREF="node20.html">6. Scripts</A>
+<B> Up:</B> <A NAME="tex2html289"
+ HREF="node17.html">5. File naming the</A>
+<B> Previous:</B> <A NAME="tex2html285"
+ HREF="node18.html">5.1 Anchoring requirement</A>
+ &nbsp <B>  <A NAME="tex2html291"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

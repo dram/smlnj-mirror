@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Optimizations</title>
+  </head>
+
+  <body bgcolor=#FFFFFF>
+   <CENTER>
+    <H1><FONT COLOR=#AA0000>Optimizations</FONT></H1>
+   </CENTER>
+  <body>
+
+  MLRISC assumes that all high level optimizations (target
+  independent) have already been performed. This includes things like
+  inlining, array dependence analysis, and array bounds check
+  elimination.  The target dependent optimizations that remain include
+  register allocation, scheduling and traditional optimizations to
+  support scheduling. 
+
+  <h2> <font color=#aa0000> Register allocation</font></h2>
+  
+  MLRISC includes a state-of-the-art graph-coloring based register
+  allocator that has an aggressive algorithm for copy-propagation. The
+  latter guarantees to eliminate copy instructions without introducing
+  spills.
+
+  <p> Spills in the register allocator are under the control of the
+client via call-backs to the front end. Where to spill registers and
+the associated information that must be maintained is client specific
+and varies with the compiler. 
+
+  <h2> <font color=#aa0000> Scheduling </font></h2>
+  Several algorithms for acyclic global scheduling are provided. These
+include:
+
+  <ul>
+    <li> Superblock,
+    <li> a variant of Bernstein/Rodeh, and
+    <li> Percolation based scheduling.
+  </ul>
+
+These algorithms tend to be quite complex and require a large number
+of support data structures and analysis. These include data structures
+such as:
+
+  <ul>
+    <li> dominator/post dominator trees,
+    <li> control dependency graphs, and 
+    <li> data dependency graphs.
+ </ul>
+
+Support analysis and optimization include:
+
+  <ul>
+    <li> constant propagation,
+    <li> global value numbering,
+    <li> loop invariant hoisting,
+    <li> incremental liveness, 
+    <li> partial redundancy elimination, and
+    <li> parameterized form of abstract interpretation.
+  </ul>
+
+    <hr> 
+     <font size=-2>
+    <address><a href="mailto:george@canna.research.bell-labs.com">Lal George</a></address>
+<!-- Created: Thu Apr 16 16:30:11 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Tue Apr 28 15:23:04 EDT 1998
+<!-- hhmts end -->
+    </font>
+  </body>
+</html>

@@ -1,0 +1,416 @@
+<!-- HTML/sml90.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SML90 structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>SML90</CODE> structure</H3>
+<P>
+The SML90 structure provides the types and values available in older versions of SML. This allows code written under the old basis to be used with little or no change. 
+<P>
+The required identifiers correspond to those specified in the Definition as part of the initial basis for which the equivalent is not provided in the new basis. Thus, since the <CODE>map</CODE> function is the same in both the old and new bases, it is not included in SML90. The <A HREF="real.html#SIG:REAL.real:TY:SPEC">real</A> type  is the exception to this rule. In the old basis, <CODE>real</CODE> was an equality type and allowed pattern matching. In addition, the basic arithmetic operators raised exceptions on exceptional conditions. These properties no longer hold,  and the SML90 structure does not provide support for them. 
+<P>
+In addition to the required identifiers, the structure may contain implementation-dependent substructures that provide the top-level bindings available in older versions of the implementation. For example, the SML90 might contain the substructure <CODE>SMLNJ</CODE>, which would contain the additional types, values and modules provided by the SML/NJ implementation.  
+<P>
+This module is provided solely to allow programmers to continue to run old code in the new environment while, it is hoped, gradually rewriting the source to be compatible with the new environment. At some point, the SML90 structure will be considered obsolete and will be removed from the basis. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>structure </B><A NAME="SML90:STR:SPEC"><CODE>SML90</CODE></A><B> :> </B>SML90<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SML90:SIG:SPEC"><CODE>SML90</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:SML90.instream:TY:SPEC" HREF="#SIG:SML90.instream:TY">instream</A><BR>
+<B>type</B> <A NAME="SIG:SML90.outstream:TY:SPEC" HREF="#SIG:SML90.instream:TY">outstream</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Abs:EXN:SPEC" HREF="#SIG:SML90.Abs:EXN">Abs</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Quot:EXN:SPEC" HREF="#SIG:SML90.Abs:EXN">Quot</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Prod:EXN:SPEC" HREF="#SIG:SML90.Abs:EXN">Prod</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Neg:EXN:SPEC" HREF="#SIG:SML90.Abs:EXN">Neg</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Sum:EXN:SPEC" HREF="#SIG:SML90.Abs:EXN">Sum</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Diff:EXN:SPEC" HREF="#SIG:SML90.Abs:EXN">Diff</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Floor:EXN:SPEC" HREF="#SIG:SML90.Abs:EXN">Floor</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Exp:EXN:SPEC" HREF="#SIG:SML90.Abs:EXN">Exp</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Sqrt:EXN:SPEC" HREF="#SIG:SML90.Sqrt:EXN">Sqrt</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Ln:EXN:SPEC" HREF="#SIG:SML90.Ln:EXN">Ln</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Ord:EXN:SPEC" HREF="#SIG:SML90.Ord:EXN">Ord</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Mod:EXN:SPEC" HREF="#SIG:SML90.Mod:EXN">Mod</A><BR>
+<B>exception</B> <A NAME="SIG:SML90.Io:EXN:SPEC" HREF="#SIG:SML90.Io:EXN">Io</A> <B>of</B> string     <BR>
+<B>exception</B> <A NAME="SIG:SML90.Interrupt:EXN:SPEC" HREF="#SIG:SML90.Interrupt:EXN">Interrupt</A><BR>
+<B>val</B> <A NAME="SIG:SML90.sqrt:VAL:SPEC" HREF="#SIG:SML90.sqrt:VAL">sqrt</A> <B>:</B> real -&gt; real         <BR>
+<B>val</B> <A NAME="SIG:SML90.exp:VAL:SPEC" HREF="#SIG:SML90.exp:VAL">exp</A> <B>:</B> real -&gt; real         <BR>
+<B>val</B> <A NAME="SIG:SML90.ln:VAL:SPEC" HREF="#SIG:SML90.ln:VAL">ln</A> <B>:</B> real -&gt; real         <BR>
+<B>val</B> <A NAME="SIG:SML90.sin:VAL:SPEC" HREF="#SIG:SML90.sin:VAL">sin</A> <B>:</B> real -&gt; real       <BR>
+<B>val</B> <A NAME="SIG:SML90.cos:VAL:SPEC" HREF="#SIG:SML90.sin:VAL">cos</A> <B>:</B> real -&gt; real         <BR>
+<B>val</B> <A NAME="SIG:SML90.arctan:VAL:SPEC" HREF="#SIG:SML90.arctan:VAL">arctan</A> <B>:</B> real -&gt; real         <BR>
+<B>val</B> <A NAME="SIG:SML90.ord:VAL:SPEC" HREF="#SIG:SML90.ord:VAL">ord</A> <B>:</B> string -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:SML90.chr:VAL:SPEC" HREF="#SIG:SML90.ord:VAL">chr</A> <B>:</B> int -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SML90.explode:VAL:SPEC" HREF="#SIG:SML90.explode:VAL">explode</A> <B>:</B> string -&gt; string list         <BR>
+<B>val</B> <A NAME="SIG:SML90.implode:VAL:SPEC" HREF="#SIG:SML90.implode:VAL">implode</A> <B>:</B> string list -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SML90.std_in:VAL:SPEC" HREF="#SIG:SML90.std_in:VAL">std_in</A> <B>:</B> instream         <BR>
+<B>val</B> <A NAME="SIG:SML90.open_in:VAL:SPEC" HREF="#SIG:SML90.open_in:VAL">open_in</A> <B>:</B> string -&gt; instream         <BR>
+<B>val</B> <A NAME="SIG:SML90.input:VAL:SPEC" HREF="#SIG:SML90.input:VAL">input</A> <B>:</B> (instream * int) -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SML90.lookahead:VAL:SPEC" HREF="#SIG:SML90.lookahead:VAL">lookahead</A> <B>:</B> instream -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SML90.close_in:VAL:SPEC" HREF="#SIG:SML90.close_in:VAL">close_in</A> <B>:</B> instream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SML90.end_of_stream:VAL:SPEC" HREF="#SIG:SML90.end_of_stream:VAL">end_of_stream</A> <B>:</B> instream -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:SML90.std_out:VAL:SPEC" HREF="#SIG:SML90.std_out:VAL">std_out</A> <B>:</B> outstream         <BR>
+<B>val</B> <A NAME="SIG:SML90.open_out:VAL:SPEC" HREF="#SIG:SML90.open_out:VAL">open_out</A> <B>:</B> string -&gt; outstream         <BR>
+<B>val</B> <A NAME="SIG:SML90.output:VAL:SPEC" HREF="#SIG:SML90.output:VAL">output</A> <B>:</B> (outstream * string) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SML90.close_out:VAL:SPEC" HREF="#SIG:SML90.close_out:VAL">close_out</A> <B>:</B> outstream -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SML90.instream:TY"><CODE><B>type</B> instream</CODE></A>
+<DT> <CODE><B>type</B> outstream</CODE>
+<DD>
+The types of input and output streams, respectively.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.Abs:EXN"><CODE><B>exception</B> Abs</CODE></A>
+<DT> <CODE><B>exception</B> Quot</CODE>
+<DT> <CODE><B>exception</B> Prod</CODE>
+<DT> <CODE><B>exception</B> Neg</CODE>
+<DT> <CODE><B>exception</B> Sum</CODE>
+<DT> <CODE><B>exception</B> Diff</CODE>
+<DT> <CODE><B>exception</B> Floor</CODE>
+<DT> <CODE><B>exception</B> Exp</CODE>
+<DD>
+These exceptions are aliases for <A HREF="general.html#SIG:GENERAL.Overflow:EXN:SPEC">Overflow</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.Sqrt:EXN"><CODE><B>exception</B> Sqrt</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SML90.Ln:EXN"><CODE><B>exception</B> Ln</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SML90.Ord:EXN"><CODE><B>exception</B> Ord</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SML90.Mod:EXN"><CODE><B>exception</B> Mod</CODE></A>
+<DD>
+This is an alias for <A HREF="general.html#SIG:GENERAL.Div:EXN:SPEC">Div</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.Io:EXN"><CODE><B>exception</B> Io</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SML90.Interrupt:EXN"><CODE><B>exception</B> Interrupt</CODE></A>
+<DD>
+This exception is never raised.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.sqrt:VAL"><CODE>sqrt <VAR>r</VAR>
+          </CODE></A>
+<DD>
+returns the square root of <VAR>r</VAR>, raising <A HREF="#SIG:SML90.Sqrt:EXN:SPEC">Sqrt</A>           if <VAR>r</VAR> is negative.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.exp:VAL"><CODE>exp <VAR>r</VAR>
+          </CODE></A>
+<DD>
+returns e<SUP>(<VAR>x</VAR>)</SUP>, i.e., e raised to the <VAR>x</VAR>th power.       Raises <A HREF="#SIG:SML90.Exp:EXN:SPEC">Exp</A> is the resulting number is too large.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.ln:VAL"><CODE>ln <VAR>r</VAR>
+          </CODE></A>
+<DD>
+returns the natural logarithm of <VAR>r</VAR>, raising <A HREF="#SIG:SML90.Ln:EXN:SPEC">Ln</A>           if <VAR>r</VAR> is not positive.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.sin:VAL"><CODE>sin <VAR>r</VAR>
+          </CODE></A>
+<DT> <CODE>          cos <VAR>r</VAR>
+          </CODE>
+<DD>
+return the sine and cosine, respectively, of <VAR>r</VAR>. These are equivalent           to <A HREF="math.html#SIG:MATH.sin:VAL:SPEC">Math.sin</A> and <A HREF="math.html#SIG:MATH.cos:VAL:SPEC">Math.cos</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.arctan:VAL"><CODE>arctan <VAR>r</VAR>
+          </CODE></A>
+<DD>
+returns the arc tangent of <VAR>r</VAR>. This is equivalent to           <A HREF="math.html#SIG:MATH.atan:VAL:SPEC">Math.atan</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.ord:VAL"><CODE>ord <VAR>s</VAR>
+          </CODE></A>
+<DT> <CODE>          chr <VAR>i</VAR>
+          </CODE>
+<DD>
+returns the integer code of the first character in <VAR>s</VAR> and the string containing a single character whose code is <VAR>i</VAR>, respectively. The function <A HREF="#SIG:SML90.ord:VAL:SPEC">ord</A> raises <A HREF="#SIG:SML90.Ord:EXN:SPEC">Ord</A> if <VAR>s</VAR> is empty. The function <A HREF="#SIG:SML90.chr:VAL:SPEC">chr</A> raises <A HREF="general.html#SIG:GENERAL.Chr:EXN:SPEC">Chr</A>  if <VAR>i</VAR> &lt; 0  or <VAR>i</VAR> &gt; 255.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.explode:VAL"><CODE>explode <VAR>s</VAR>
+          </CODE></A>
+<DD>
+is the list of characters, represented as strings of size 1,            in the string <VAR>s</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.implode:VAL"><CODE>implode <VAR>l</VAR>
+          </CODE></A>
+<DD>
+is the concatenation of all the strings in <VAR>l</VAR>.           This raises <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> if the sum of all the sizes           is greater than <A HREF="string.html#SIG:STRING.maxSize:VAL:SPEC">String.maxSize</A>.           The function is equivalent to <A HREF="string.html#SIG:STRING.concat:VAL:SPEC">String.concat</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.std_in:VAL"><CODE>std_in
+          </CODE></A>
+<DD>
+is the standard input stream, open by default.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.open_in:VAL"><CODE>open_in <VAR>s</VAR>
+          </CODE></A>
+<DD>
+opens the file named <VAR>s</VAR> for reading and returns the corresponding input           stream.           Raises <A HREF="#SIG:SML90.Io:EXN:SPEC">Io</A> if the file <VAR>s</VAR> cannot be opened for           reading.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.input:VAL"><CODE>input (<VAR>ins</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DD>
+reads <VAR>i</VAR> characters from an input stream <VAR>ins</VAR>. If fewer than <VAR>i</VAR> characters remain before end of file, return them. Otherwise block until either <VAR>i</VAR> characters are available or end of           Raises <A HREF="#SIG:SML90.Io:EXN:SPEC">Io</A> if <VAR>ins</VAR> has been closed.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.lookahead:VAL"><CODE>lookahead <VAR>ins</VAR>
+          </CODE></A>
+<DD>
+yields the next character from <VAR>ins</VAR> without removing it from the readable input, or the empty string if at end of file.  Blocks if no character available but not at end of file.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.close_in:VAL"><CODE>close_in <VAR>ins</VAR>
+          </CODE></A>
+<DD>
+closes the input stream <VAR>ins</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.end_of_stream:VAL"><CODE>end_of_stream <VAR>ins</VAR>
+          </CODE></A>
+<DD>
+returns true if at end of stream     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.std_out:VAL"><CODE>std_out
+          </CODE></A>
+<DD>
+is the standard output stream, open by default.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.open_out:VAL"><CODE>open_out <VAR>s</VAR>
+          </CODE></A>
+<DD>
+opens the file named <VAR>s</VAR>s$ for writing and returns the corresponding output stream.           Raises <A HREF="#SIG:SML90.Io:EXN:SPEC">Io</A> if the file <VAR>s</VAR> cannot be opened for           writing.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.output:VAL"><CODE>output (<VAR>outs</VAR>, <VAR>s</VAR>)
+          </CODE></A>
+<DD>
+writes the string <VAR>s</VAR> to output stream <VAR>outs</VAR>.           Raises <A HREF="#SIG:SML90.Io:EXN:SPEC">Io</A> if <VAR>outs</VAR> has been closed.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML90.close_out:VAL"><CODE>close_out <VAR>outs</VAR>
+          </CODE></A>
+<DD>
+flushes and closes the output stream <VAR>outs</VAR>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+Since the I/O streams here and in <A HREF="text-io.html#TextIO:STR:SPEC">TextIO</A> are buffered, but may share low-level I/O primitives, mixing the use of both types of streams in an application may lead to unexpected results.
+<P>
+As noted above, this module only contains items not available in the new basis, or having different semantics. The following list gives the types that are the same in both the old and new bases.  
+<HR>
+<CENTER>
+<TABLE ALIGN="CENTER">
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>eqtype unit</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>eqtype int</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>eqtype real</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>eqtype string</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>type exn</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>eqtype 'a ref</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>datatype bool = false | true</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>datatype 'a list = nil | :: of ('a * 'a list)</CODE>
+</TABLE>
+</CENTER>
+<HR>
+ The top-level exceptions that are the same in the old and new bases are 
+<HR>
+<CENTER>
+<TABLE ALIGN="CENTER">
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>exception Bind</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>exception Chr</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>exception Div</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>exception Match</CODE>
+</TABLE>
+</CENTER>
+<HR>
+ We next give a list of the identical functions. 
+<HR>
+<CENTER>
+<TABLE ALIGN="CENTER">
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val map : ('a -&gt; 'b) -&gt; 'a list -&gt; 'b list</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val rev  : 'a list -&gt; 'a list</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val not : bool -&gt; bool</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val ~ : <I>num</I> -&gt; <I>num</I></TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val abs : <I>num</I> -&gt; <I>num</I></TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val floor : real -&gt; int</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val real : int -&gt; real</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val size : string -&gt; int</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val ! : 'a ref -&gt; 'a</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val ref : 'a -&gt; 'a ref</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val / : real * real -&gt; real</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val div : int * int -&gt; int</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val mod : int * int -&gt; int</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val * : <I>num</I> * <I>num</I> -&gt; <I>num</I></TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val + : <I>num</I> * <I>num</I> -&gt; <I>num</I></TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val - : <I>num</I> * <I>num</I> -&gt; <I>num</I></TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val ^ : string * string -&gt; string</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val @ : ('a list * 'a list) -&gt; 'a list</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val = : 'a * 'a -&gt; bool</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val &lt;&gt; : 'a * 'a -&gt; bool</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val &lt; : <I>num</I> * <I>num</I> -&gt; bool</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val &gt; : <I>num</I> * <I>num</I> -&gt; bool</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val &lt;= : <I>num</I> * <I>num</I> -&gt; bool</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val &gt;= : <I>num</I> * <I>num</I> -&gt; bool</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val := : 'a ref * 'a -&gt; unit</TT>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>val o : ('a -&gt; 'b) * ('c -&gt; 'a) -&gt; 'c -&gt; 'b</TT>
+</TABLE>
+</CENTER>
+<HR>
+ The type schemas given for overloaded functions are those of the 1990 <B>[CITE]</B>Definition/.  The <I>num</I> category includes <CODE>int</CODE> and <CODE>real</CODE>. The actual functions in the new basis have more extended schemas. For example, <CODE>&lt;</CODE> is defined for <CODE>string</CODE> values as well as all varieties of <CODE>integer</CODE>, <CODE>word</CODE> and <CODE>real</CODE>.  Additional information on these top-level types and values can be found in the Chapter 3.
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="general-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 31, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

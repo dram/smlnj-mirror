@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>MLRISC Intermediate Representation</title>
+  </head>
+
+  <body bgcolor=#FFFFFF>
+   <CENTER>
+    <H1><FONT COLOR=#AA0000>MLRISC Intermediate Representation</FONT></H1>
+   </CENTER>
+   The MLRISC intermediate language is called <font
+   color=#dd0000>MLRisc</font> just to distinguish the intermediate
+   language from the <font color=#dd0000> MLRISC</font> system as a
+   whole. At the lowest level, the core of MLRisc is a <I>Register
+   Transfer Language (RTL)</I> but represented in tree form. The tree
+   form makes it convenient to use tree pattern matching tools like
+   BURG (where appropriate) to do target instruction selection. Thus a
+   tree such as: 
+
+   <small>
+   <pre>  
+  MV(REG(t), 
+     ADDT(MULT(REG(b), REG(b)),
+          MULT(MULT(REG(a), LI(4)), REG(c))))
+   </pre>
+   </small>
+
+   computes <TT>t := b*b + 4*a*c</TT>. The nodes <TT>ADDT</TT> and
+   <TT>MULT</TT> are the trapping form of addition and multiplication,
+   and <TT>LI</TT> is used for integer constants. An infinite number
+   of registers are assumed by the model, however depending on the
+   target machine the first <TT>0..K</TT> registers map onto the first
+   <TT>K</TT> registers on the target machine. Everything else is
+   assumed to be a pseudo-register. The <TT>REG</TT> node is used to
+   indicate a  general purpose register. 
+
+   <p>
+   The core MLRisc language makes no assumptions about instructions or
+   calling convections of the target architecture. Trees can be
+   created and combined in almost any form, with certain meaningless
+   trees such as <TT> LOAD32(REAL 3.14127)</TT> being forbidden by the
+   MLRisc type structure.
+
+   <p> Such pure trees are nice but inadequate in real compilers. One
+   needs to be able to propagate front end specific information, such
+   as frame sizes and frame offsets where the actual values are only
+   available after register allocation and spilling. One could add
+   support for frames in MLRISC, however this becomes a slippery slope
+   because some compilers (e.g. SML/NJ) do not have a conventional
+   notion of frames --- indeed there is no runtime stack in the
+   execution of SML/NJ. A frame organization for one person may not
+   meet the needs for another, and so on.  In MLRISC, the special
+   requirements of different compilers is communicated into the MLRisc
+   language, and subsequently into the optimizations phases, by
+   specializing the MLRisc data structure with client specific
+   information. There are currently <EM>three</EM> dimensions over
+   which one could specialize the MLRisc language.
+
+   <DL>
+    <DT> <FONT COLOR=#ff0000>Constants</FONT> <DD> Constants are an
+    abstraction for integer literals whose value is know after
+    certain phases of code generation. Frame sizes and offsets are an
+    example.  
+   <img alt="MLRISC intermediate representation" 
+	src="pictures/jpeg/mlrisc-ir.jpg" align=right>
+
+
+    <DT> <FONT COLOR=#ff0000>Regions </FONT> <DD> While the data
+    dependencies between arithmetic operations is implicit in the
+    instruction, the data dependencies between memory operations is
+    not. Regions are an abstract view of memory that make this
+    dependence explicit and is specially useful for instruction
+    reordering. 
+
+    <DT> <FONT COLOR=#ff0000>Pseudo-ops </FONT> <DD> Pseudo-ops are
+    intended to correspond to pseudo-op directives provided by native
+    assemblers to lay out data, jump tables, and perform alignment.
+   </DL>
+
+		<H2> <FONT COLOR=#aa000000> Examples </FONT></H2>
+   <p>
+   In the SML/NJ compiler, an encoding of a list of registers
+   is passed to the garbage collector as the roots of live
+   variables. This encoding cannot be computed until register
+   allocation has been performed, therefore the integer literal
+   encoding is represented as an abstract <EM>Constant</EM>.
+
+   <p> Again, in the SML/NJ compiler, most stores are for initializing 
+   records in the allocation space, therefore representing every slot in
+   the allocation space as a unique region allows one to commute
+   most store instructions. Similarly, most loads are from
+   <EM>immutable</EM> records, and a simple analysis marks these are
+   being accesses to <EM>read-only</EM> memory. Read-only memory is
+   characterized as having multiple <EM>uses</EM> but no
+   <EM>definitions</EM>.  
+
+   <p> In the TIL compiler, a <EM>trace table </EM> is generated for
+   every call site that records the set of live variables, their
+   location (register or stack offset), and the type associated with
+   the variable. This table is integrated into the program using the
+   abstract pseudo-op mechanism. An interesting aspect of these tables
+   is that they may need adjustment based on the results of register
+   spilling.
+
+   <p> The more convention use of the psuedo-op abstraction is to
+   propagate function prologue and epilogue information.
+
+   <p> The constants abstraction are created by a tree node called
+   <TT>CONST</TT>. In the SML/NJ compiler, the tree that communicates
+   garbage collection information looks like:
+
+<PRE>
+   MV(maskReg, CONST{r110,r200,r300,r400 ...})
+</PRE>
+
+  where <TT>maskReg</TT> is a dedicated register. On the DEC Alpha,
+  this would get translated to:
+
+<PRE>
+   LDA maskReg, {encode(r110,r200,r300,r400, ...)}
+</PRE>
+
+   which indicates that the alpha instruction set (and optimization
+   suite) know about these types of values. Further, after
+   register allocation, the <TT>LDA</TT> instruction may not be
+   sufficient as the encoding may result in a value that is too large
+   as an operand to <TT>LDA</TT>. Two instructions may ultimately be
+   required to load the encoding into the <TT>maskReg</TT>
+   register. This expansion is done during span-dependency resolution.
+
+
+   <p> All these examples are intended to indicate that one
+   intermediate representation and optimization suite does not fit
+   all, but that the intermediate representation and optimization
+   suite needs to be specialized to the needs of the client.
+
+    <hr>
+    <FONT SIZE="-2">
+    <address><a href="mailto:george@vex.cs.bell-labs.com">Lal
+    George</a></address> <!-- Created: Thu Apr 2 11:18:06 EST 1998 -->
+    <!-- hhmts start --> Last modified: Wed Apr 15 12:08:33 EDT 1998
+    <!-- hhmts end -->
+    </FONT>
+  </body>
+</html>

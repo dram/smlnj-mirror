@@ -1,0 +1,2263 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>CM
+A Compilation Manager for SML/NJ
+User Manual</TITLE>
+<META NAME="description" CONTENT="CM
+A Compilation Manager for SML/NJ
+User Manual">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="manual.css">
+</HEAD>
+<BODY>
+<!--Navigation Panel-->
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif_gr.gif"> 
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif_gr.gif"> 
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif_gr.gif">   
+<BR>
+<BR><BR>
+<!--End of Navigation Panel-->
+<P><H1 ALIGN="CENTER"><B>CM</B><BR>
+A Compilation Manager for SML/NJ<BR>
+<EM>User Manual</EM></H1>
+<P ALIGN="CENTER"><STRONG>Matthias Blume<BR>
+Department of Computer Science<BR>
+Princeton University</STRONG></P>
+<P ALIGN="LEFT"></P>
+<P><H1><A NAME="SECTION00010000000000000000">
+1 Overview</A>
+</H1>
+<P>
+CM is the compilation manager for Standard ML of New
+Jersey&nbsp;[<A HREF="#milner89">MTH90</A>,<A HREF="#appel91:sml">AM91</A>].  It is loosely based on its
+precursor SC&nbsp;[<A HREF="#harper94:irm">HLPR94b</A>,<A HREF="#harper-lee-pfenning-rollins-CM">HLPR94a</A>] and
+provides functionality similar to the well-known U<font size="-1"><small>NIX</small></font>-program
+<TT>make</TT>&nbsp;[<A HREF="#feldman79">Fel79</A>].
+<P>
+CM simplifies the maintenance of large software systems by subdividing
+them into a hierarchy of groups and libraries.  Groups and
+libraries--collectively called entities--consist of individual SML
+source files, other groups, and other libraries.
+<P>
+Unlike <TT>make</TT>, which is meant to be a general-purpose tool not
+aimed at a specific language, CM provides automatic dependency
+analysis and a form of separate compilation known as cutoff
+recompilation&nbsp;[<A HREF="#tichy94">ATW94</A>].
+<P>
+The compilation manager uses the hooks provided by SML/NJ's open
+compiler&nbsp;[<A HREF="#appel94:sepcomp">AM94</A>] and translates SML sources to produce
+binary object files called binfiles.  The SML sources themselves can
+be the result of executing other programs, which is accounted for by
+CM's tools mechanism.  Examples of such tools are the version control
+system RCS&nbsp;[<A HREF="#tichy85:rcs">Tic85</A>], the parser-generator
+ML-Yacc&nbsp;[<A HREF="#tarditi90:yacc">TA90</A>], and the literate programming tool
+noweb&nbsp;[<A HREF="#ramsey:simplified">Ram94</A>].
+<P>
+One important use for CM is the maintenance of SML/NJ's compiler,
+which is not quite the same as maintaining other SML
+programs&nbsp;[<A HREF="#appel94:bootstrap">App94</A>].  For that reason we offer a special
+interface, which facilitates controlling batch compilation,
+bootstrapping, and the process of retargeting the compiler to a
+different machine architecture.
+<P><H1><A NAME="SECTION00020000000000000000">
+2 Why CM?</A>
+</H1>
+<P>
+The basic function of CM is to perform separate compilation, automatic
+dependency analysis, and selective recompilation for any SML program
+consisting of more than one compilation unit.  But when the number of
+compilation units is large, it becomes increasingly important
+that they themselves can be grouped together and that explicit export
+interfaces can be used to control namespaces. When there are many
+groups, then one may want to organize them into supergroups, and so
+on.
+<P><BR>
+<DIV ALIGN="CENTER"><A NAME="fig:cml-hier">&#160;</A><A NAME="735">&#160;</A>
+<TABLE>
+<CAPTION><STRONG>Figure:</STRONG>
+<B>Dependency hierarchy of CML.</B><SMALL>Separate compilation can be used to break large programs into smaller
+pieces and to compile these smaller compilation units one at a time.
+But in most cases we cannot compile a compilation unit in complete
+isolation:  The result of the compilation depends on both the source
+file itself and on the result of compiling other units.
+Here <TT>trace-cml.sml</TT> depends on <TT>cml-sig.sml</TT>, which is
+indicated by the presence of directed paths from the former to
+the latter.  In fact, the graph contains as many as five such paths,
+although each one of them would be enough for a dependency to exist.
+</SMALL></CAPTION>
+<TR><TD><IMG WIDTH="565" HEIGHT="539" SRC="img1.gif" ALT="\begin{figure}
+\centerline{
+\psfig {figure=example.ps}
+}\end{figure}"></TD></TR>
+</TABLE>
+</DIV><BR>
+<P>
+Figure&nbsp;<A HREF="#fig:cml-hier">1</A> shows the dependency graph for CML's
+sources.  CML&nbsp;[<A HREF="#reppy91:cml">Rep91</A>] is implemented as a regular SML/NJ
+program.  Without the help from a compilation manager one would have
+to invoke a number of <TT>use</TT> commands--one for each source
+file--in order to load CML into SML/NJ.  Of course, the order in
+which the commands are issued is important here, because identifiers
+can only be referred to after they are defined.  Therefore, since <TT>
+run-cml.sml</TT> refers to objects defined in <TT>cml-compat.sml</TT> the
+former must be loaded after the latter.  More precisely, the sequence
+of <TT>use</TT> commands has to be in topological order with respect to
+the dependency graph.  Normally the programmer does not have the
+benefit of looking at a diagram like figure&nbsp;<A HREF="#fig:cml-hier">1</A>; the
+task of manually maintaining sources in topological order is tedious
+and error-prone.
+<P>
+One feasible ordering of CML's sources is
+<PRE>
+app use
+  [&quot;cml-base-sig.sml&quot;, &quot;cml-sig.sml&quot;, &quot;run-cml-sig.sml&quot;,
+   &quot;cio-sig.sml&quot;, &quot;trace-cml-sig.sml&quot;, &quot;trace-cml.sml&quot;,
+   &quot;cio.sml&quot;, &quot;cml-compat.sml&quot;, &quot;run-cml.sml&quot;,
+   &quot;cml-version.sml&quot;, &quot;cml-base.sml&quot;, &quot;cml.sml&quot;, &quot;build.sml&quot;];
+</PRE>
+but clearly there are many others as well.  For example, <TT>
+cml-version.sml</TT> could be moved further to the front of this list
+without harm.  CM's dependency analysis automates the task of
+determining a feasible ordering.
+<P>
+But not every source depends on every other source. In fact, we hope
+that in a well-structured project there are relatively few
+interdependencies between source files.  Therefore, it is usually
+possible to perform selective recompilation when some but not all
+source files have been changed.
+<P>
+The U<font size="-1"><small>NIX</small></font> program <TT>make</TT> uses a policy where not only the
+source that has been altered will be recompiled but also all of its
+predecessors in the dependency graph as well.  This mechanism can be
+overly pessimistic, because changes to one file might not have an
+actual influence on subsequent compilations of dependent units.  CM
+also recompiles a source whenever its own time stamp changes, but in
+addition it compares the outcome with the result of previous
+compilations of the same unit. Recompilation is terminated as soon as
+changes no longer propagate any further.
+<P>
+Suppose we modify <TT>cml-version.sml</TT> without changing its
+interface.  CM will recompile this unit and be done, because no
+further work is necessary, while <TT>make</TT> would also process three
+other files--<TT>cml-base.sml</TT>, <TT>cml.sml</TT>, and <TT>build.sml</TT>.
+<P><H1><A NAME="SECTION00030000000000000000">
+3 Getting started</A>
+</H1>
+<P>
+The easiest way of getting started using CM is by treating the entire
+program--the ``system''--as one single group.  A group in its most
+basic form is just a collection of SML source files, which must be
+listed in an entity description file.
+<P>
+Even though there will be more on syntax and semantics of entity
+description files, for now it is enough to start with two keywords:
+<B>Group</B> and <B>is</B>, followed by a list of source file names.
+For example, if we want to put <TT>main.sml</TT>, <TT>table.sig</TT>, and
+<TT>table.sml</TT> into a single entity, then we must create a file <TT>
+sources.cm</TT> containing:
+<P><PRE>
+Group is
+        main.sml    (* the application code *)
+        table.sig   (* interface to `table' abstraction *)
+        table.sml   (* implementation of `table' abstraction *)
+</PRE>
+<P>
+As shown in this example it is possible to use SML-style comments
+within entity description files.
+<P>
+Once <TT>sources.cm</TT> has been set up we can start CM, which is
+usually done by running the command <TT>sml-cm</TT>.  This begins an
+interactive SML/NJ session and provides CM's functionality.
+<P>
+The command
+<P><PRE>
+CM.make ();
+</PRE>
+<P>
+will now analyze the dependencies among components of the system,
+determine a feasible ordering of (re-)compilation steps, and continue
+to carry them out as necessary.  All CM commands are just SML
+expressions.
+<P><H1><A NAME="SECTION00040000000000000000">
+4 Restrictions</A>
+</H1>
+<P>
+Without placing certain restrictions on SML source code it is a
+provably hard problem to perform reliable dependency analyses.
+Therefore, CM can only deal with SML source code that obeys
+the following two additional rules:
+
+<P><UL>
+<LI> No symbol can be defined (at top level) in more than one source
+of the same entity (group or library).
+<LI> The use of <TT>open</TT> is not allowed at the top level.
+</UL>
+
+<P>
+It must also be noted that only occurrences of structures, signatures,
+functors, and functor signatures are tracked by CM's dependency
+analysis.  This in itself does not impose another restriction on the
+admissible input language, but it bears the danger of missing certain
+dependencies.  Good programming style demands keeping all other
+definitions inside structures and signatures--in which case there
+will be no problem.
+<P>
+The analyzer does not make any attempt to take side-effects into
+account.  Consider the following situation:
+<P>
+File <TT>a.sml</TT> defines:
+<PRE>
+(* file a.sml *)
+structure A = struct
+  val r = ref 0
+end
+</PRE>
+<P>
+Execution of <TT>b.sml</TT> modifies the <TT>ref</TT> cell:
+<P><PRE>
+(* file b.sml *)
+structure B = struct
+  val _ = A.r := 1
+end
+</PRE>
+<P>
+Now, if <TT>c.sml</TT> refers to <TT>A.r</TT> as well - which value should
+it see?
+<P><PRE>
+(* file c.sml *)
+structure C = struct
+  val x = !A.r
+end
+</PRE>
+<P>
+Either <TT>0</TT> or <TT>1</TT> would be legal, and there is no way to
+prefer one over the other.
+<P>
+Care must be taken with top-level side effects, because CM does not
+try to address this problem.  It is up to the programmer to make sure
+that the ordering of side-effects is either unambiguous or does not
+matter.  In the example above, to make sure that <TT>b.sml</TT> is
+compiled and executed before <TT>c.sml</TT>, one could add an otherwise
+unnecessary reference to structure <TT>B</TT> to the code in <TT>c.sml</TT>:
+<P><PRE>
+(* file c.sml *)
+structure C = struct
+  local
+    structure B = B
+  in
+    val x = !A.r
+  end
+end
+</PRE>
+<P><H1><A NAME="SECTION00050000000000000000">
+5 Hierarchical modularity</A>
+</H1>
+<P>
+Instead of using a single group one can divide a system into several
+groups and arrange them into a group hierarchy.  There are two main
+motivations for doing so:
+
+<DL COMPACT>
+<DT>1.
+<DD>to make large systems more manageable by grouping related source
+files together
+<DT>2.
+<DD>to relax the restriction of only being allowed to have one
+definition for every top-level symbol
+</DL>
+
+The second point deserves some elaboration: Normally--within one
+entity--we are forced to have at most one top-level definition for
+each symbol.  Without this restriction there could be ambiguities that
+prevent automatic dependency analysis from succeeding.
+<P>
+However, the hierarchy of groups must be specified by the programmer
+explicitly. Therefore, there is no problem with having the same symbol
+defined in different groups or libraries, because the partial ordering
+for them is known in advance; CM does not have to infer it.
+<P>
+In SML it is not allowed for definitions to form cycles across module
+boundaries.  In particular, <TT>structure A</TT> from <TT>a.sml</TT> cannot
+refer to <TT>structure B</TT> in <TT>b.sml</TT>, if at the same time <TT>
+structure B</TT> refers to <TT>structure A</TT>.  CM enforces this rule even
+if there is a sub-entity providing definitions for either <TT>A</TT> or
+<TT>B</TT>.  This would allow one to break the cycle, but in general it is
+not possible to unambiguously decide where.
+<P>
+There is one exception.  Constructions like
+<PRE>
+structure A = A
+</PRE>
+or variations thereof, which seem to form cycles of length one, are
+not considered cyclic definitions.  The use of <TT>A</TT> is
+not in the scope of the definition of <TT>structure A</TT>.  There is no
+way of changing this situation by reordering source files, because
+both use and definition are in the same compilation unit.  Therefore,
+CM will treat the use of <TT>A</TT> as a reference to some
+definitions imported from a sub-entity.
+<P><H2><A NAME="SECTION00051000000000000000">
+5.1 Groups and subgroups</A>
+</H2>
+<P>
+A group whose description file has been mentioned in some other
+entity's description becomes a subgroup of that other entity, which is
+then called the client of the group.  Sources of the client can refer
+freely to any of the symbols defined within and exported by the
+subgroup.  However, the client can also provide new definitions for
+any of the subgroup's symbols, thereby masking the original one.
+<P>
+Imported symbols are available for re-export by the client.  The exact
+rules which govern re-export will be described later after libraries
+and export filters have been introduced.  So far we only deal with
+groups and subgroups without export filters.  In this simple but
+certainly common scenario all imported definitions will always be
+re-exported--with the exception of those that have been masked.  In
+effect, all non-masked definitions will ultimately become available at
+the interactive top level.
+<P><H2><A NAME="SECTION00052000000000000000">
+5.2 Describing a group-hierarchy</A>
+</H2>
+<P>
+To turn a group into a client of some other group one only needs to
+mention the subgroup's description file somewhere among the list of
+sources of the client.  From now on we will refer to this list as the
+list of members.  Some of the members are sources, others are
+descriptions for sub-entities.  Usually CM will automatically identify
+description files in its member list by looking at the names: those
+ending in <TT>.cm</TT> are treated as names of CM-style entity
+description files.  Relative filenames are regarded as being relative
+to the directory the description file appears in.
+<P>
+Suppose we have a group consisting of <TT>a.sml</TT> and <TT>b.sml</TT>,
+which needs to refer to a subgroup containing <TT>util/c.sml</TT> and
+<TT>util/d.sml</TT>.  In this case we could create a description file
+<TT>util/sources.cm</TT> with:
+<P><PRE>
+Group is
+        c.sml
+        d.sml
+</PRE>
+<P>
+and another one--called <TT>sources.cm</TT>--specifying:
+<P><PRE>
+Group is
+        a.sml
+        b.sml
+        util/sources.cm
+</PRE>
+<P><H2><A NAME="SECTION00053000000000000000">
+5.3 Tools and member classes</A>
+</H2>
+<P>
+Sometimes a member file is not a description file and also does not
+contain SML source code.  Such a file requires a different kind of
+processing before CM's analyzer can understand them.  The special
+processing is done by the built-in tools facility of CM, which in many
+cases will invoke auxiliary programs for this purpose.  For
+example, an ML-Yacc source file <TT>parser.grm</TT> will first be fed to
+<TT>ml-yacc</TT>, which produces two files: <TT>parser.grm.sig</TT> and <TT>
+parser.grm.sml</TT>.  These will then be treated as SML source files.
+<P>
+CM tools can be combined into cascades.  Instead of specifying <TT>
+parser.grm</TT> one can use the corresponding RCS archive <TT>
+parser.grm,v</TT> instead.  CM will first run the <TT>co</TT> command to
+check out a copy of <TT>parser.grm</TT>, then feed the result into
+ML-Yacc to finally obtain <TT>parser.grm.sig</TT> and <TT>
+parser.grm.sml</TT>.
+<P>
+Normally the decision of which tool to pick is made based on the name
+of the source file, but in general it can also be guided by explicit
+specifications in the description file: Any member name can  optionally
+be followed by a colon and the name of a member class.
+Currently CM knows about the classes <TT>Sml</TT>, <TT>CMFile</TT>,
+<TT>SCGroup</TT>, <TT>SCLibrary</TT>, <TT>MLLex</TT>, <TT>MLYacc</TT>, <TT>
+MLBurg</TT>, <TT>RCS</TT>, and <TT>Noweb</TT>. Class names are case-insensitive.
+<P>
+Some class names are special to CM--they correspond to
+classes of members which do not need to be processed by tools but
+which can be analyzed directly.  Those classes are
+
+<DL>
+<DT><STRONG>Sml:</STRONG>
+<DD>plain SML sources
+<DT><STRONG>CMFile:</STRONG>
+<DD>CM-style entity descriptions
+<DT><STRONG>SCGroup:</STRONG>
+<DD>SC-style group descriptions
+<DT><STRONG>SCLibrary:</STRONG>
+<DD>SC-style library descriptions
+</DL>
+
+<P><BR><DIV ALIGN="CENTER">
+<A NAME="147">&#160;</A>
+<TABLE CELLPADDING="3" BORDER="1" ALIGN="CENTER">
+<CAPTION><STRONG>Table 1:</STRONG>
+Default mapping from name suffixes to member classes</CAPTION>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP><TT>.sig .sml .fun</TT></TD>
+<TD ALIGN="CENTER" NOWRAP>Sml</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP><TT>.grm .y</TT></TD>
+<TD ALIGN="CENTER" NOWRAP>MLYacc&nbsp;[<A HREF="#tarditi90:yacc">TA90</A>]</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP><TT>.lex .l</TT></TD>
+<TD ALIGN="CENTER" NOWRAP>MLLex&nbsp;[<A HREF="#appel89:lex">AMT89</A>]</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP><TT>.burg</TT></TD>
+<TD ALIGN="CENTER" NOWRAP>MLBurg&nbsp;[<A HREF="#mlburg93">GG93</A>]</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP><TT>,v </TT></TD>
+<TD ALIGN="CENTER" NOWRAP>RCS&nbsp;[<A HREF="#tichy85:rcs">Tic85</A>]</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP><TT>.cm </TT></TD>
+<TD ALIGN="CENTER" NOWRAP>CMFile</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP><TT>.sc </TT></TD>
+<TD ALIGN="CENTER" NOWRAP>SCGroup</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP><TT>.nw </TT></TD>
+<TD ALIGN="CENTER" NOWRAP>Noweb</TD>
+</TR>
+</TABLE></DIV>
+<BR>
+<P>
+Since CM tries to guess the member class based upon the member's name
+it will rarely be necessary to specify class names explicitly.
+Table&nbsp;<A HREF="#tab:suffixes">1</A> shows the list of recognized file name
+suffixes and their corresponding class names. (Not all supported
+suffixes are shown in this table.  The unlisted ones embody SC legacy
+and will eventually disappear.)
+<P>
+Every tool is associated with
+
+<UL>
+<LI> a processor
+<LI> a rule for determining target file names from the name of the
+source file
+<LI> a set of conditions under which the processor is to be invoked
+</UL>
+
+<P>
+The tools interface to CM allows for the seamless addition of new
+tools by writing a few lines of Standard ML (see section&nbsp;<A HREF="#sec:addtools">9</A>).
+Table&nbsp;<A HREF="#tab:tools">2</A> shows the specifications for the tools which are
+available by default.  The <EM>out-of-date</EM> condition mentioned in
+this table refers to the situation where at least one of the targets
+is either missing or older than the source.
+<P><BR><DIV ALIGN="CENTER">
+<A NAME="197">&#160;</A>
+<TABLE CELLPADDING="3" BORDER="1" ALIGN="CENTER">
+<CAPTION><STRONG>Table 2:</STRONG>
+Available tools</CAPTION>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>member class</TD>
+<TD ALIGN="CENTER" NOWRAP>processor</TD>
+<TD ALIGN="CENTER" NOWRAP>source</TD>
+<TD ALIGN="CENTER" NOWRAP>targets</TD>
+<TD ALIGN="CENTER" NOWRAP>conditions</TD>
+</TR>
+<TR VALIGN="TOP"><TH ALIGN="CENTER" NOWRAP><B>MLYacc</B></TH>
+<TD ALIGN="CENTER" NOWRAP>ml-yacc</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM></TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sig</TD>
+<TD ALIGN="CENTER" NOWRAP>out-of-date</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sml</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+</TR>
+<TR VALIGN="TOP"><TH ALIGN="CENTER" NOWRAP><B>MLLex</B></TH>
+<TD ALIGN="CENTER" NOWRAP>ml-lex</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM></TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sml</TD>
+<TD ALIGN="CENTER" NOWRAP>out-of-date</TD>
+</TR>
+<TR VALIGN="TOP"><TH ALIGN="CENTER" NOWRAP><B>MLBurg</B></TH>
+<TD ALIGN="CENTER" NOWRAP>ml-burg</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.burg</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sml</TD>
+<TD ALIGN="CENTER" NOWRAP>out-of-date</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM></TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sml</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+</TR>
+<TR VALIGN="TOP"><TH ALIGN="CENTER" NOWRAP><B>RCS</B></TH>
+<TD ALIGN="CENTER" NOWRAP>co -q</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>,v</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM></TD>
+<TD ALIGN="CENTER" NOWRAP>target missing</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>RCS/<EM>file</EM>,v</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM></TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+</TR>
+<TR VALIGN="TOP"><TH ALIGN="CENTER" NOWRAP><B>Noweb</B></TH>
+<TD ALIGN="CENTER" NOWRAP>notangle</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.nw</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sig</TD>
+<TD ALIGN="CENTER" NOWRAP>out-of-date</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sml</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM></TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sig</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>file</EM>.sml</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>root</EM>@<EM>file</EM>.nw</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>root</EM></TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+<TD ALIGN="CENTER" NOWRAP><EM>root</EM>@<EM>file</EM></TD>
+<TD ALIGN="CENTER" NOWRAP><EM>root</EM></TD>
+<TD ALIGN="CENTER" NOWRAP>&nbsp;</TD>
+</TR>
+</TABLE></DIV>
+<BR><H2><A NAME="SECTION00054000000000000000">
+5.4 Export filters</A>
+</H2>
+<P>
+Any entity can be equipped with an export filter.  The filter, which
+is simply a list of symbols, restricts the set of definitions
+exported.  Entities with export filters will export definitions for
+precisely the symbols listed, no matter whether they are defined in the
+entity itself or in one of the sub-entities that it is a client of.
+<P>
+Export filters can be used to good effect in the case of libraries,
+where they are mandatory.  But even for groups they are often useful.
+Symbols used for the communication between individual sources of an
+entity but not meant to be visible from outside can conveniently be
+hidden this way.  Furthermore, export filters enable us to reduce the
+chance of clashes between different definitions for the same symbol.
+Another reason for using export filters is to restrict the set of
+symbols that will become visible at the interactive top level.
+<P>
+During the process of recompilation CM always combines just the
+minimal set of static environments sufficient to build a suitable
+compilation environment for each given SML source.  By specifying
+export filters it is possible to further decrease the size of the
+compiler's internal data structures, which is something that can also
+contribute to reduced memory bandwidth and increased compilation
+speed.
+<P>
+An export filter is specified as a list of symbols. It appears
+between the keywords <TT>Group</TT> (or <TT>Library</TT>) and <TT>is</TT>.
+Since in SML we distinguish between symbols of different name spaces
+we must write <TT>structure</TT> <EM>struct-sym</EM> for a structure symbol,
+<TT>signature</TT> <EM>sig-sym</EM> for a signature symbol, <TT>functor</TT>
+<EM>fct-sym</EM> for a functor symbol, and <TT>funsig</TT> <EM>fsig-sym</EM>
+for a functor signature symbol.
+<P>
+A group description with export filter could therefore look like this:
+
+<P><PRE>
+Group
+        structure Table
+        signature TABLE
+        structure Main
+        functor A
+        funsig A
+is
+        main.sml
+        a/fct.sml
+        a/fsig.sml
+        table/sources.cm
+        RCS/parser.grm,v
+</PRE>
+
+<P><H2><A NAME="SECTION00055000000000000000">
+5.5 Libraries</A>
+</H2>
+<P>
+Entities are either groups or libraries.  In many ways libraries
+are very similar to groups: both of them have a list of members, both
+of them contain SML sources and input for tools, and both of them can
+be clients to sub-entities.  The major difference between groups and
+libraries becomes apparent when we look at the terms and conditions
+under which symbols are exported.
+<P>
+If an entity imports a symbol from a group, then the corresponding
+definition (besides being allowed to be masked) has the same status
+as any definition coming directly from a source of the client.  In
+particular, it will be exported to clients of the client unless hidden
+by the client's export filter.
+<P>
+Symbols imported from libraries can be referred to from within sources
+of the client, but they will not automatically be re-exported to
+clients of the client.  (The client may still provide new definitions,
+therby masking the ones that are imported.)  Since libraries never
+appear at the root of the entity hierarchy this implies that
+definitions from libraries will not become visible at the interactive
+top level.  (The root entity is always treated as if it were a
+group--regardless of what the description says.  This way the
+programmer can force a library to be compiled, or to be loaded into
+the top-level environment.)
+<P>
+Of course, this behavior can be modified: even symbols from libraries
+are subject to re-export provided they have been mentioned in the
+client's export filter explicitly.
+<P>
+Here is the precise rule which governs symbol export:
+<P><DL>
+<DT><STRONG>An entity with export filter</STRONG>
+<DD>exports all symbols listed in the
+filter regardless of their origin.
+<DT><STRONG>A group without export filter</STRONG>
+<DD>exports all symbols defined in
+sources of the group and all symbols defined in subgroups of the group
+unless these imported symbols have been redefined and therefore are
+hidden.
+<DT><STRONG>A library without export filter</STRONG>
+<DD>is normally not legal.
+However, for the purpose of backward-compatibility with SC it is
+possible to use SC-style libraries which do not have export
+filters.  In this case the library exports all symbols defined in
+sources of the library and all non-masked symbols defined in
+subgroups of the library. (This coincides with the rule for
+groups without export filter.)
+</DL>
+<P>
+If a symbol's definition is not used by any of the clients of a
+library, then it cannot be accessed at all.  CM will ignore the
+members of libraries whose exported definitions are not accessed; they
+will not be loaded and they will not be linked with the rest of the
+system.  Therefore, they behave in a way similar to members of
+libraries for other languages.
+<P><H2><A NAME="SECTION00056000000000000000">
+5.6 Description files--the rules</A>
+</H2>
+<P>
+A CM-style library description file looks almost exactly like a
+group description file.  The only difference is that the initial
+keyword <TT>Group</TT> is replaced with <TT>Library</TT>.
+<P><H3><A NAME="SECTION00056100000000000000">
+5.6.1 Aliases</A>
+</H3>
+<P>
+CM-style description files can also provide the functionality of a
+symbolic link.  Instead of actually listing the specification of a
+group or a library a description can ``point to'' another description.
+A file containing only
+<BLOCKQUOTE>
+<TT>Alias</TT> <EM>name</EM>
+</BLOCKQUOTE>
+behaves exactly like the description file identified by <EM>
+name</EM>.  To locate the aliased description, CM applies the same rules
+that are also used to find subgroups of groups.  If <EM>name</EM> is a
+relative pathname, then CM will first try to find it in the directory
+that contains the alias.  Upon failure it then consults an internal
+search path. See section&nbsp;<A HREF="#section:path">8.8</A> for details.
+<P>
+The maximum nesting depth for aliases is limited to 32.
+<P><H3><A NAME="SECTION00056200000000000000">
+5.6.2 Syntax</A>
+</H3>
+<P>
+The full syntax of description files in BNF is:
+<P><PRE><TT>
+<I>description-file</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>group-description</I> &nbsp;|&nbsp;<I>library-description</I> &nbsp;|&nbsp;<I>alias</I> 
+<I>group-description</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <B>Group</B> [ <I>export-filter</I> ]  <B>is</B> <I>member-list</I> 
+<I>library-description</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <B>Library</B> <I>export-filter</I><B>is</B> <I>member-list</I> 
+<I>export-filter</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>export-symbol</I> { <I>export-symbol</I> } 
+<I>export-symbol</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>name-space</I> <TT>Identifier</TT> 
+<I>name-space</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <B>structure</B> &nbsp;|&nbsp;<B>signature</B> &nbsp;|&nbsp;  <B>functor</B> &nbsp;|&nbsp;<B>funsig</B> 
+<I>member-list</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>member</I> { <I>member</I> } 
+<I>member</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <TT>Pathname</TT> [ <B>:</B> <TT>Class</TT> ] 
+<I>alias</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <B>Alias</B> <TT>Pathname</TT>
+</TT></PRE>
+<P><TT>Identifier</TT>, <TT>Pathname</TT>, and <TT>Class</TT> are lexical classes
+consisting of non-empty strings without white space, colons,
+parentheses, or semicolons.  Comments in the style of
+Standard ML (text between balanced pairs of <TT>(*</TT> and <TT>*)</TT>) or
+in the style of Scheme (text extending from a semicolon to the end of
+the line) are permitted.  They count as delimiters like white space.
+The class <TT>Pathname</TT> also includes strings of characters enclosed
+in double-quotes (<B><code>&quot;</code></B>).  No character except <B><code>&quot;</code></B>
+has a special meaning there; a literal <B><code>&quot;</code></B> that is to
+appear in a path name must be written twice.
+<P><H3><A NAME="SECTION00056300000000000000">
+5.6.3 Path name syntax and portability</A>
+</H3>
+<P>
+Normally, pathnames are parsed according to CM's own ``standard''
+interpretation.  Forward- or back-slashes (<B><code>/</code></B> and <B>
+<code>\</code></B>) are used to separate directory names from names of files
+and subdirectories.  Pathnames that start with a slash are absolute
+pathnames, others are relative to the directory that contains the CM
+description file.
+<P>
+These conventions are independent of the underlying operating system
+and should work wherever there is a hierarchically structured file
+system.
+<P>
+Pathnames specified using a string enclosed in double-quotes are
+considered native and will be interpreted according to the underlying
+operating system's conventions.  Therefore, such pathnames are
+inherently non-portable.  However, this syntax is mainly used in
+situations that are not portable to begin with:  explicit volume
+labels under MS-DOS, non-standard characters in file names, and so on.
+<P>
+The recommended strategy for writing portable CM descriptions is to
+exclusively use relative pathnames in CM's standard syntax.  By
+relying on CM's built-in search path, libraries in central locations
+(which would normally require the use of absolute pathnames) can be
+named using simple file names.
+<P><H3><A NAME="SECTION00056400000000000000">
+5.6.4 The preprocessor</A>
+</H3>
+<P>
+When reading a description file CM applies a simple, C-like
+preprocessor that allows for conditional compilation.  Currently there
+is no way to ``define'' symbols using preprocessor syntax; the
+conditionals are tested with respect to an environment defined in CM
+itself.  However, there are CM commands <TT>lookup</TT>, <TT>define</TT>,
+<TT>undef</TT>, and <TT>undefall</TT> in structure <TT>CM.SymVal</TT> that can
+be used to modify that environment.
+<P>
+CM's preprocessor syntax is very similar to that used by the
+C-preprocessor: Lines that start with <code>#</code> are treated specially.
+<P><PRE><TT>
+<I>line</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>nonpreprocline</I>
+		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>preproc</I> 
+<I>nonpreprocline</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> line not starting with <code>#</code> 
+<I>preproc</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>if</I> { <I>line</I> } <I>elif-opt</I> <I>else-opt</I> <I>endif</I>
+		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>error</I> 
+<I>if</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>beginning-of-line</I> <code>#</code> <B>if</B> <I>expression</I> <I>end-of-line</I> 
+<I>elif-opt</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> { <I>elif</I> { <I>line</I> } } 
+<I>elif</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>beginning-of-line</I> <code>#</code> <B>elif</B> <I>expression</I> <I>end-of-line</I> 
+<I>else-opt</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> [ <I>else</I> { <I>line</I> } ] 
+<I>else</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>beginning-of-line</I> <code>#</code> <B>else</B> <I>end-of-line</I> 
+<I>error</I> 		 <IMG WIDTH="18" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img2.gif" ALT="$\rightarrow$"> <I>beginning-of-line</I> <code>#</code> <B>error</B>  <I>text</I> <I>end-of-line</I>
+</TT></PRE>
+<P>
+Example:
+<PRE>
+Group is
+	a.sml
+	b.sml
+# if (SMLNJ_VERSION &gt;= 109 || defined(structure SMLofNJ) )
+	util.sml
+# elif (SMLNJ_VERSION &lt; 108)
+# error This version of SML/NJ is too old to support this software.
+# else
+	util-workaround.sml
+# endif
+</PRE>
+<P>
+Expressions denote integer quantities;  is used for for false and
+non-zero values for true.
+There are four forms of atomic expressions:
+<DL COMPACT>
+<DT>1.
+<DD>Integer literals evaluate to the corresponding integer.
+<DT>2.
+<DD>A symbol evaluates to the value bound to that symbol--or to 
+if the symbol is not defined.
+<DT>3.
+<DD>The expression <TT>defined</TT>(<I>symbol</I>)
+evaluates to 1 if <I>symbol</I> is defined, or to  if it is not
+defined.
+<DT>4.
+<DD>The forms: <TT>defined</TT>(<TT>signature</TT> <I>sigid</I>), <TT>
+defined</TT>(<TT>structure</TT> <I>strid</I>), <TT>defined</TT>(<TT>functor</TT>
+<I>fctid</I>), and <TT>defined</TT>(<TT>funsig</TT> <I>fsigid</I>)
+test to see if the given ML module is defined in the base environment.
+</DL>
+<P>
+Depending on architecture, operating system, and configuration one
+symbol out of each of the following groups will be predefined to 1:
+<P><DL>
+<DT><STRONG>Operating system</STRONG>
+<DD><PRE>
+OPSYS_UNIX
+OPSYS_WIN32
+OPSYS_MACOS
+OPSYS_OS2
+</PRE>
+<DT><STRONG>Architecture</STRONG>
+<DD><PRE>
+ARCH_SPARC
+ARCH_MIPS
+ARCH_ALPHA
+ARCH_X86
+ARCH_HPPA
+ARCH_RS6000
+ARCH_POWERPC
+</PRE>
+<DT><STRONG>Byte order</STRONG>
+<DD><PRE>
+BIG_ENDIAN
+LITTLE_ENDIAN
+</PRE>
+<DT><STRONG>Size of an ML value (pointer size)</STRONG>
+<DD><PRE>
+SIZE_32
+SIZE_64
+</PRE>
+</DL>
+<P>
+Additionally, in version <I>xxx.yy</I> of the compiler
+<code>SMLNJ_VERSION</code> will be set to <I>xxx</I>, and
+<code>SMLNJ_MINOR_VERSION</code> evaluates to <I>yy</I>.
+<P>
+Expressions are formed using a variety of binary operators, all of
+which are left-associative.  Operators are listed with increasing
+precedence. Those that appear on the same line have equal binding
+strength:
+<PRE>
+||
+&amp;&amp;
+== !=
+&lt; &lt;= &gt; &gt;=
++ -
+* /
+</PRE>
+Logical disjunction <code>||</code> and conjunction <code>&amp;&amp;</code> are
+short-circuiting operations.  The unary operators for logical and
+numerical negation are <code>!</code> and <code>-</code>,
+respectively. Parentheses can be used for grouping.
+<P><H1><A NAME="SECTION00060000000000000000">
+6 Autoloading</A>
+</H1>
+<P>
+With autoloading enabled the command
+<PRE>
+CM.autoload' &quot;util.cm&quot;;
+</PRE>
+makes all definitions exported from the entity described by <TT>
+util.cm</TT> available at the SML top-level.  However, it does that
+without actually compiling or loading anything.  CM will then monitor
+code entered at top level. If it finds that a symbol exported from
+<TT>util.cm</TT> is being used and that the definition for that symbol
+has not already been supplied earlier, then it will calculate the
+minimal set of sources that need to be loaded in order to provide the
+desired definition.
+<P><H2><A NAME="SECTION00061000000000000000">
+6.1 Controlling the autoloader</A>
+</H2>
+<P><A NAME="sec:autoload">&#160;</A>
+<PRE>
+val autoloading: bool option -&gt; bool
+</PRE>
+This function is used for enabling and disabling the autoloader.  With
+an argument of <TT>NONE</TT> one can query the current status without
+actually changing it.  The function always returns the previous
+setting.
+<P><PRE>
+val autoload: unit -&gt; unit
+val autoload': string -&gt; unit
+</PRE>
+These two functions behave like make and make', except they do not
+actually load any module.  Later, when CM sees a use of some symbol
+that is exported by the entity (only structures, signatures, functors,
+and functor signatures are tracked), then all necessary compilation
+units will automatically be linked into the running system.
+<P><PRE>
+val autoList: unit -&gt; string list
+</PRE>
+A call to <TT>autoList</TT> returns a list of all entities that are
+currently registered for autoloading. The internal registry of such
+entities can be erased by invoking <TT>clearAutoList</TT>:
+<PRE>
+val clearAutoList: unit -&gt; unit
+</PRE>
+<P><H1><A NAME="SECTION00070000000000000000">
+7 Caches, missing sources, and stable entities</A>
+</H1>
+<P>
+CM uses a variety of caches to speed up its analysis and recompilation
+steps.  In-core caches provide fast access to information as long as
+we do not terminate the CM session.  The ambient file system provides
+a second level of caches, which is used to remember the results of
+expensive operations from one session to the next.
+<P>
+All cache files are stored in subdirectories of a directory called
+<TT>CM</TT>, which itself appears in the directory where the corresponding
+source files are located.
+<P><H2><A NAME="SECTION00071000000000000000">
+7.1 Binfiles</A>
+</H2>
+<P>
+The most important kind of cache is the binfile, because it enables us
+to avoid compiling sources over and over.  In addition, during an
+ongoing session compilation results are partially kept in main
+memory. This greatly reduces file system traffic.
+<P>
+Binfiles are located in a subdirectory whose name is derived
+from the name of the target machine architecture and the flavor of
+operating system running on that platform.
+Table&nbsp;<A HREF="#tab:arch">3</A> shows the architectures which are currently
+supported together with their associated binfile directory names.
+The binfiles themselves use the suffix <TT>.bin</TT>, which is simply
+glued to the end of the respective source file name.
+<P>
+Example: On a Sparc runnning some form of U<font size="-1"><small>NIX</small></font> the binfile for
+<TT>u/a.sml</TT> is <TT>u/CM/sparc-unix/a.sml.bin</TT>.
+<P><BR><DIV ALIGN="CENTER">
+<A NAME="381">&#160;</A>
+<TABLE CELLPADDING="3" BORDER="1" ALIGN="CENTER">
+<CAPTION><STRONG>Table 3:</STRONG>
+Supported architectures and associated binfile directory names</CAPTION>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>Architecture</TD>
+<TD ALIGN="LEFT" NOWRAP>binfile directory</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>DEC Alpha (32 bit)</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>CM/alpha32-</TT><I>os</I></TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>Sparc</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>CM/sparc-</TT><I>os</I></TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>MIPS (big endian)</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>CM/mipseb-</TT><I>os</I></TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>HP-PA</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>CM/hppa-</TT><I>os</I></TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>IBM RS6000</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>CM/rs6000-</TT><I>os</I></TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>Intel x86</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>CM/x86-</TT><I>os</I></TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>bytecode</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>CM/bytecode-</TT><I>os</I></TD>
+</TR>
+</TABLE></DIV>
+<BR><H2><A NAME="SECTION00072000000000000000">
+7.2 Declfiles</A>
+</H2>
+<P>
+Dependency analysis is also expensive, because it requires parsing
+source files.  However, very little information taken from each source
+is necessary to drive the analysis.  Therefore, CM extracts this
+information and caches it both in main memory and in the file system.
+<P>
+The files used for this purpose are called dependency files.  They are
+stored in a subdirectory <TT>CM/DEPEND</TT>.  For example, the declfile
+for <TT>u/a.sml</TT> will be <TT>u/CM/DEPEND/a.sml</TT>.
+<P>
+Write errors on declfiles are ignored. When CM encounters an error
+while writing such a cache file it only keeps the corresponding
+in-core information.
+<P><H2><A NAME="SECTION00073000000000000000">
+7.3 Overcoming missing source files</A>
+</H2>
+<P>
+In the presence of caches it is possible to overcome the absence of
+source files as long as the contents of those caches are usable.  In
+particular, if both the dependency file and the binfile are present,
+then CM might not need to consult the corresponding source file at
+all.
+<P>
+However, there are situations where the source must be consulted
+regardless of whether the binfile exists or not, because the binfile
+also depends on the environment that was in effect when the source was
+compiled.  This environment was the result of compiling the source's
+ancestors in the dependency graph.  Changes in the compilation
+environment also require the source to be recompiled.
+<P><H2><A NAME="SECTION00074000000000000000">
+7.4 Stable entities</A>
+</H2>
+<P>
+A stable entity is one whose development has (tentatively) come to
+some conclusion.  If we do not expect an entity to change in the near
+future, then we may decide to stabilize it.  Examples of stable
+entities are central libraries, which are installed and maintained by
+the system administator.
+<P>
+After an entity has been stabilized we can be sure that binfiles will
+always be valid.  The process of stabilization also creates a special
+version of a dependency file--the stablefile--which contains a
+summary of what would have been stored in per-source dependency files.
+<P>
+When CM encounters a stablefile it assumes the entity to be stable.
+It will not be necessary for any of the sources to be present.  Not
+even individual dependency files are necessary anymore.  Only
+stablefile and binfiles are required.
+<P>
+For stable entities CM avoids most of its usual activity in the
+ambient file system. On computers with comparatively slow access to
+the file system this can considerably improve performance.  On many
+systems it will make no difference.
+<P>
+The name of the stablefile is derived from the entity's description
+file name.  A rule very similar to the one used for binfiles is used.
+For example, on a Sparc-based U<font size="-1"><small>NIX</small></font> system the stablefile for an
+entity described by <TT>u/sources.cm</TT> will be <TT>
+u/CM/sparc-unix/sources.cm.stable</TT>.
+<P><H1><A NAME="SECTION00080000000000000000">
+8 Using the <TT>CM</TT> structure</A>
+</H1>
+<P>
+The main functionality of CM can be accessed through members of
+<TT>structure CM</TT>.  Earlier we saw an example of that when we
+described the <TT>CM.make()</TT> command.  This section will
+give a complete description of items in <TT>structure CM</TT>.
+<P><H2><A NAME="SECTION00081000000000000000">
+8.1 The root description file</A>
+</H2>
+<P>
+Most actions of CM are driven by the result of some dependency
+analysis.  In order to perform such an analysis it is necessary to
+know the root entity of the hierarchy to be analyzed.  The explicit
+argument used by many functions for naming the root description file
+is a string.  Normally it will be considered a CM-style description
+file except if it ends in <TT>.sc</TT>, in which case it will be treated
+as an SC-style description.
+<P>
+Most of the time we can rely on built-in defaults.  All functions in
+the <TT>CM</TT> structure that take an explicit root description as one
+of their arguments have a counterpart without such a parameter.  The
+counterpart implicitly uses an internal default parameter of the form
+<PRE>
+!rootfile
+</PRE>
+The <TT>rootfile</TT> reference cell is not directly accessible, but
+its value can be set via
+<PRE>
+val set_root: string -&gt; unit
+</PRE>
+Normally <TT>rootfile</TT> contains <TT>&quot;sources.cm&quot;</TT>, unless the
+operating system environment variable <code>CM_ROOT</code> is set, in which
+case its value will be used.  Note, that <TT>!rootfile</TT> is always
+treated as a CM-style description file--regardless of its name.
+<P>
+The names of all functions taking explicit string arguments end
+with an apostrophe.  Names of the corresponding set of functions,
+which make use of the default, are almost the same--they just omit
+the trailing apostrophe.  Example:
+<PRE>
+CM.make ();
+</PRE>
+is roughly equivalent to
+<PRE>
+CM.make' (!rootfile);
+</PRE>
+We will always discuss both versions of these functions together in
+order to avoid unnecessary repetition.
+<P><H2><A NAME="SECTION00082000000000000000">
+8.2 Compilation</A>
+</H2>
+<P><PRE>
+val make': string -&gt; unit
+val make: unit -&gt; unit
+
+val recompile': string -&gt; unit
+val recompile: unit -&gt; unit
+</PRE>
+<P><TT>CM.recompile()</TT> analyzes the system and performs all necessary
+recompilation steps.  A recompilation step is necessary, if one of
+the following is true:
+
+<P><UL>
+<LI> the binfile is missing
+<LI> the binfile is older than its source file
+<LI> a file that this source depends on has been recompiled and
+CM has discovered that the new version of the ancestor is not
+compatible with the existing binfile
+</UL>
+
+<P>
+The last point is important: Unlike <TT>make</TT> in U<font size="-1"><small>NIX</small></font>, CM is
+often able to avoid recompiling certain units even if their ancestors
+had been recompiled.
+<P>
+If the result of the ancestor's compilation is still compatible with
+the existing binfile, then no further action is necessary.  In
+particular, just <TT>touch</TT>ing a file does not cause a recompilation
+of the entire system.  Also, if a change to a source file does not
+change the interface (the static environment) exported by the
+compilation unit, then it will not trigger subsequent recompilations
+of dependent files.  Such a behavior is sometimes referred to as
+cutoff recompilation.
+<P><TT>CM.recompile()</TT> does not execute the code of any of the units
+and does not introduce any new bindings to the interactive top level.
+Furthermore, it does not keep compiled code in main memory to avoid
+wasting resources.
+<P><TT>CM.make()</TT> performs the same analysis and recompilation steps
+which would have been performed by <TT>CM.recompile()</TT>.  In addition
+to that it executes the code in all units (i.e., not only the
+ones which needed to be recompiled). If everything went without
+error, then it will also augment the interactive top level with new
+bindings for the symbols exported by the system.
+<P><H3><A NAME="SECTION00082100000000000000">
+8.2.1 Compilation errors</A>
+</H3>
+<P>
+Obviously, when faced with an error during one of the compile steps,
+CM cannot proceed with compiling other files that depend on the one
+with the error.  However, this does not affect unrelated branches of
+the dependency graph.  Therefore, CM can ``keep going'', which
+is reminiscent of the behavior of <TT>make</TT> in U<font size="-1"><small>NIX</small></font> when
+it is called with the <TT>-k</TT> command line flag.
+<P>
+Calling
+<P><PRE>
+val keep_going: bool option -&gt; bool
+</PRE>
+<P>
+with an argument of <TT>SOME true</TT> will enable this feature.
+<P>
+Since CM needs to run tools and parse source files before it can
+even start to build the dependency graph it cannot keep going
+after errors during any of those operations.  Until the set of
+dependencies is available, it is impossible to decide which
+branches of the graph will not be affected by an error.
+<P><H2><A NAME="SECTION00083000000000000000">
+8.3 Linearization</A>
+</H2>
+<P>
+Export filters and CM's special rules for exporting symbols from
+libraries add something new to programming in SML: It is possible to
+construct systems that can be compiled using CM, but which have no
+legal ordering of <TT>use</TT>-commands for the individual source files
+that would build a semantically equivalent program.
+Example:
+<P>
+Suppose we have two source files--<TT>f1.sml</TT> and <TT>
+f2.sml</TT>--each of which defines two structures <TT>A</TT> and <TT>B</TT>.
+In <TT>g.sml</TT> we want to access the <TT>A</TT> which was defined in <TT>
+f1.sml</TT> and at the same time the <TT>B</TT> from <TT>f2.sml</TT>.  But no
+matter how we order <TT>f1.sml</TT> and <TT>f2.sml</TT>--the definitions in
+the second will always mask both definitions in the first.
+Under CM we can put <TT>f1.sml</TT> and <TT>f2.sml</TT> into different
+subgroups and use export filters to avoid the unwanted masking.
+<P>
+Nevertheless, in many cases things are not that convoluted and one can
+use a topologically sorted list of source files for this
+purpose.
+<PRE>
+val names': string -&gt; string list
+val names: unit -&gt; string list
+
+val binfiles': string -&gt; string list
+val binfiles: unit -&gt; string list
+
+val strings': string -&gt; string list
+val strings: unit -&gt; string list
+</PRE>
+Each function--<TT>CM.names</TT>, <TT>CM.binfiles</TT>, and <TT>
+CM.strings</TT>--returns a list of strings that is topologically sorted
+according to the same principle.  <TT>CM.names</TT> produces lists of SML
+source file names, <TT>CM.binfiles</TT> returns lists of binfile names,
+and calls to <TT>CM.strings</TT> yield lists of descriptions for SML
+sources.  These descriptions are often just the file name--except
+when the SML source is the result of running some tool, in which case
+this fact will be mentioned in the description. (The string argument
+to <TT>names'</TT>, <TT>binfiles'</TT>, and <TT>strings'</TT> is the name of
+the description file.)
+<P>
+Let <I>S</I>(<I>s</I>) be the SML source associated with string <I>s</I>.  The lists
+returned by any of the three functions described above share the
+property that if <I>s</I> and <I>t</I> are distinct members of the list and <I>s</I>
+appears before (to the left of) <I>t</I>, then <I>S</I>(<I>s</I>) does not depend
+(either directly or indirectly) on <I>S</I>(<I>t</I>).  This is what we mean when
+we say the lists are in topological order.
+<P><TT>CM.mkusefile</TT> allows one to create a file with a topologically
+sorted list of <TT>use</TT> commands.  The second or sole string argument
+is the name of the file to be written.
+<PRE>
+val mkusefile': string * string -&gt; unit
+val mkusefile: string -&gt; unit
+</PRE>
+This can be useful for maintaining stand-alone versions of a system,
+but the technique of sequentially reading and compiling a collection
+of SML source files is inherently less expressive in its management of
+name spaces than what can be done with CM's groups, libraries, and
+export filters.
+<P>
+Therefore, a much better alternative to <TT>CM.mkusefile</TT> is <TT>
+CM.sa</TT> (<I>sa</I> <IMG WIDTH="15" HEIGHT="13" ALIGN="BOTTOM" BORDER="0" SRC="img3.gif" ALT="$\equiv$"> <I>S</I>tand <I>A</I>lone).  This function
+also produces a small program expressed in SML source language that
+can subsequently be read and compiled by SML/NJ.
+<PRE>
+val sa': string * string -&gt; unit
+val sa: string -&gt; unit
+</PRE>
+However, unlike the program written by <TT>mkusefile</TT>, the one
+generated using <TT>CM.sa</TT> uses special support that was built into
+SML/NJ and reproduces precisely the same treatment of namespaces that
+CM itself would use internally when running <TT>CM.make</TT>.
+Furthermore, before compiling a source file the program will attempt
+to load the corresponding binfile.  This can be a useful aid when
+building systems that no longer depend on the presence of CM.  (CM
+itself can be bootstrapped using this facility.)
+<P><H2><A NAME="SECTION00084000000000000000">
+8.4 Visualization</A>
+</H2>
+<P>
+Sometimes it is helpful to be able to look at a graphical
+representation of the dependency graph.  CM's dependency graphs are
+directed and acyclic.  The function <TT>CM.dot</TT> can be used to
+produce input for the DOT program&nbsp;[<A HREF="#north93:dot">KN93</A>], which is a tool for
+automatically drawing such graphs.  Figure&nbsp;<A HREF="#fig:dotsample">2</A> shows a
+DOT drawing of the dependency graph for the CML
+library&nbsp;[<A HREF="#reppy91:cml">Rep91</A>].
+<PRE>
+val dot': string * string -&gt; unit
+val dot: string -&gt; unit
+</PRE>
+An invocation of this function writes a DOT-specification into the
+file that was named by the second (or sole) argument.
+DOT-specifications contain ordinary text.  Layout parameters are
+located near the top of the file.  Any text editor can be used to
+adjust them when necessary.
+<P>
+DOT was developed at AT&amp;T Bell Laboratories.  Universities can obtain
+it in binary format free of charge after signing a license agreement.
+For further information contact <TT>north@research.att.com</TT>.
+<P><BR>
+<DIV ALIGN="CENTER"><A NAME="fig:dotsample">&#160;</A><A NAME="461">&#160;</A>
+<TABLE>
+<CAPTION><STRONG>Figure 2:</STRONG>
+DOT drawing of a dependency graph</CAPTION>
+<TR><TD><IMG WIDTH="569" HEIGHT="693" SRC="img4.gif" ALT="\begin{figure}
+\centerline{
+\psfig {figure=dot.ps}
+}\end{figure}"></TD></TR>
+</TABLE>
+</DIV><BR>
+<P>
+The pictures produced use ellipses for <TT>.sig</TT>-files, rectangular
+boxes for <TT>.sml</TT>-files, and diamond-shaped boxes for all others.
+Lines between nodes denote direct dependencies.  Lines are solid when
+the two nodes belong to the same entity. Dashed lines are used for edges
+which cross between different entities.  A dotted line connects a node to
+the name of a symbol imported from the base system.  These symbols are
+displayed as plain text labels.
+<P><H2><A NAME="SECTION00085000000000000000">
+8.5 Stabilization</A>
+</H2>
+<P>
+Running <TT>CM.stabilize false</TT> stabilizes the root entity of the
+system.  In the process of stabilization CM runs the equivalent of
+<TT>CM.recompile()</TT> in order to update all of the binfiles.  After
+succeeding it continues by creating a stablefile.  If the entity to be
+stabilized refers to other entities, then those sub-entities should
+already be stable.  The process of stabilization can be made recursive
+by passing <TT>true</TT> to <TT>CM.stabilize</TT>.  This way not only the
+root entity but also all of its descendents will be stabilized.
+<P><PRE>
+val stabilize': string * bool -&gt; unit
+val stabilize: bool -&gt; unit
+</PRE>
+In order to de-stabilize a stable entity one can invoke the <TT>
+CM.destabilize</TT> command.
+<PRE>
+val destabilize': string -&gt; unit
+val destabilize: unit -&gt; unit
+</PRE>
+<P><H2><A NAME="SECTION00086000000000000000">
+8.6 Preprocessor symbols</A>
+</H2>
+<P>
+The top-level structure <TT>CM</TT> contains a substructure <TT>SymVal</TT>
+with the following functions:
+<P><PRE>
+val lookup: string -&gt; int option
+val define: string * int -&gt; unit
+val undef: string -&gt; unit
+val undefall: unit -&gt; unit
+</PRE>
+<P>
+Definitions for specific symbols can be added using <TT>define</TT> and
+removed using <TT>undef</TT>.  An invocation of <TT>undefall</TT> clears all
+definitions.  The <TT>lookup</TT> function provides a way of determining
+the current value associated with a given symbol.
+<P><H2><A NAME="SECTION00087000000000000000">
+8.7 Autoloader</A>
+</H2>
+<P>
+Here is a summary of the functions used to control the autoloader. See
+section&nbsp;<A HREF="#sec:autoload">6.1</A> for details.
+<P><PRE>
+val autoloading: bool option -&gt; bool
+
+val autoload: unit -&gt; unit
+val autoload': string -&gt; unit
+
+val autoList: unit -&gt; string list
+val clearAutoList: unit -&gt; unit
+</PRE>
+<P><H2><A NAME="SECTION00088000000000000000">
+8.8 Miscellaneous</A>
+</H2>
+<P><A NAME="section:path">&#160;</A>
+CM maintains some internal state which is used to control its global
+behavior.  Part of this state is a set of boolean flags which can be
+manipulated by calling interface functions of type <TT>
+bool&nbsp;option&nbsp;-&gt;&nbsp;bool</TT>.  All of them always return the previous setting.
+An argument of <TT>SOME</TT>&nbsp;<I>x</I> is used to set the value to <I>x</I>,
+<TT>NONE</TT> only queries the current state without modifying it.
+<PRE>
+val keep_going: bool option -&gt; bool   (* CM_KEEP_GOING   *)
+val verbose: bool option -&gt; bool      (* CM_VERBOSE      *)
+val show_exports: bool option -&gt; bool (* CM_SHOW_EXPORTS *)
+val parse_caching: int option -&gt; int
+</PRE>
+The comments show the names of U<font size="-1"><small>NIX</small></font> environment variables, which
+can be used to set the initial values.  The values are controlled by
+setting the corresponding environment variable to either <TT>true</TT> or
+<TT>false</TT>.
+<P><code>CM.keep_going</code> has been described before.  The <TT>verbose</TT>
+flag (initially <TT>true</TT>) can be used to silence CM's chatting about
+its current activities by setting it to <TT>false</TT>.
+<P><code>CM.show_exports</code>, when set to <TT>true</TT>, will cause CM to
+report the set of symbols exported by filterless entities.  This
+feature is particularly useful when trying to convert SC-style
+libraries to CM.
+<P><code>CM.parse_caching</code> limits the number of parse trees CM keeps in
+main memory.  Parse trees that are kept after dependency analysis
+might save time by avoiding reparsing the file during compilation.
+However, with large programs this can become rather unwieldy.
+<code>CM.parse_caching</code> offers a way to tune CM's behavior here.
+<P><PRE>
+val set_path: string list option -&gt; string list (* CM_PATH *)
+</PRE>
+<P>
+Normally CM interprets relative pathnames in descriptions as being
+relative to the directory the description file appears in.  The
+path--an internally kept string list--specifies a set of alternative
+directories, which CM must consider in the case that a named subentity
+cannot be found locally.  An initial path is taken from the U<font size="-1"><small>NIX</small></font>
+environment variable <code>CM_PATH</code> unless this is not present, in
+which case a built-in default will be used.  <code>CM_PATH</code> must
+specify a list of directories. Under Unix the format is a
+colon-separated list of pathnames in the style of <TT>/bin/sh</TT>'s <TT>
+PATH</TT> variable, while on other systems CM uses the semicolon in place
+of the colon as its separator.
+<P>
+One can change the path interactively by invoking <code>CM.set_path</code>.
+This function also returns the old setting.  Passing <TT>NONE</TT> as an
+argument can be used to query the current setting.
+<P><PRE>
+val sweep: unit -&gt; unit
+val clear: unit -&gt; unit
+</PRE>
+<P><TT>CM.sweep()</TT> and <TT>CM.clear()</TT> are used to explicitely
+manipulate CM's in-core caches.
+<P><TT>CM.sweep()</TT> removes all internally cached binfiles that
+are no longer consistent with the external (file-system) cache or the
+respective sources.  For correctness this will never be necessary,
+because CM always performs consistency checks before using a
+cached item.  However, it can help to reduce memory usage.
+<P><TT>CM.clear()</TT> empties all in-memory caches.
+<P><H1><A NAME="SECTION00090000000000000000">
+9 Adding new tools to CM</A>
+</H1>
+<P><A NAME="sec:addtools">&#160;</A>
+Structure <TT>CM.Tools:&nbsp;CMTOOLS</TT> is a repository of types and
+functions that are necessary when one wishes to add new tools to CM.
+It is not necessary to recompile CM when augmenting it this way.
+<P>
+This interface for customizing CM is not as convenient as writing
+scripts for <TT>make</TT>. Instead it was designed to be very general,
+because the full power of SML can be used.  For the most common
+situations there are useful pre-defined building blocks available in
+<TT>CM.Tools</TT>.
+<P><H2><A NAME="SECTION00091000000000000000">
+9.1 Basics</A>
+</H2>
+<P>
+Tools are associated with ``tool classes''.  Source files are
+classified according to what tool is needed to process them.
+<P>
+CM's knowledge about a tool class consists of:
+<DL COMPACT>
+<DT>1.
+<DD>A <EM>name</EM> for the class. This is a simple string consisting
+of lower-case letters.
+<DT>2.
+<DD>A <EM>rule</EM>: The rule is a function from a member name (a
+string) to a ``target'' list, where each target is another member name
+together with an optional tool class. Most of the time member names
+refer to files, but this is not always the case, as can be seen in the
+case of the <EM>root</EM>@<EM>file</EM>.<TT>nw</TT> notation for the <TT>
+noweb</TT> tool.
+<DT>3.
+<DD>A <EM>validator</EM>: The validator takes a source file name and
+the target list as produced by the rule and determines whether or not
+the tool needs to be invoked at all.
+<DT>4.
+<DD>A <EM>processor</EM>: The processor implements the actual tool,
+i.e., it takes source file name and targets and runs the tool.
+</DL>
+<P><PRE>
+type fname = string
+type class = string
+type target = fname * class option
+</PRE>
+<P>
+Member names passed to rules, validators, and processors are exactly
+the ones that appear in the entity description file.  Relative names
+are resolved relative to the directory the description file appears
+in. We call this directory the ``context''.  When running a validator
+or a processor CM temporarily changes its working directory to the
+context to allow for relative filenames to be processed correctly.
+<P><PRE>
+type validator = { source: fname, targets: target list } -&gt; bool
+type processor = { source: fname, targets: target list } -&gt; unit
+</PRE>
+<P>
+Ideally, rules should also run with the working directory changed to
+the corresponding context.  However,  changing the working directory
+can be relatively expensive and is often not necessary for a rule to
+work correctly.  To account for that CM offers a somewhat involved
+interface for its rules, so it is up to the programmer to decide
+whether or not the context should be set or not.
+<P><PRE>
+type rulefn = unit -&gt; target list
+type rulecontext = rulefn -&gt; target list
+type rule = fname * rulecontext -&gt; target list
+</PRE>
+<P>
+Generic rules take the name of the source and also a rule context as
+an argument.  It may subsequently pass a parameterless procedure (the
+``rule function'') to the rule context.  The function is then invoked
+with the working directory set properly.  Rules that do not care about
+the context can ignore their second argument.  Most of the time this
+will be the case when the target file names can be derived directly
+from the source name itself.  In more complicated situations it may be
+that the rule needs to open the file and inspect its contents.
+<P>
+The most common rules (``simple rules'') will either always ignore the
+context or always use it.  This is captured by the type <TT>
+simplerule</TT>.  Conversion routines <TT>dontcare</TT> and <TT>withcontext</TT>
+convert simple rules to generic ones.
+<PRE>
+type simplerule = fname -&gt; target list
+
+val dontcare: simplerule -&gt; rule
+val withcontext: simplerule -&gt; rule
+</PRE>
+<P>
+Tools classes are registered with CM using the function <TT>
+addToolClass</TT>:
+<PRE>
+val addToolClass:
+    { class: class, rule: rule,
+      validator: validator, processor: processor } -&gt; unit
+</PRE>
+<P><H2><A NAME="SECTION00092000000000000000">
+9.2 Tool classes and classification</A>
+</H2>
+<P>
+The tool class can be determined in three different ways:
+<P><DL COMPACT>
+<DT>1.
+<DD>If the source name is a member in a CM description file, then it
+can be followed by a colon and the name of the corresponding tool
+class.  Internally, tool classes use lower-case names, tool names in
+CM description files are case-insensitive.
+<DT>2.
+<DD>If a source is the product of running a tool on another source,
+then the rule for that tool may have specified the tool class for its
+target.
+<DT>3.
+<DD>If the description file omits the class specification or if a
+tool's rule does not provide this information for one of its targets,
+then CM tries to infer the class name automatically.
+</DL><H3><A NAME="SECTION00092100000000000000">
+Automatic classification and classifiers</A>
+</H3>
+<P>
+Automatic classification is done based on the name of the source.  In
+the most common case it is the filename extension (``suffix'') that is
+used to make the decision, but it is also possible to take more or all
+of the file's name into account.  Classification is done by
+``classifiers'', which come in two flavors:
+<P><PRE>
+datatype classifier =
+    SFX_CLASSIFIER of string -&gt; class option
+  | GEN_CLASSIFIER of fname -&gt; class option
+</PRE>
+<P><DL>
+<DT><STRONG>Suffix classifier</STRONG>
+<DD>A function from suffix strings to class
+option. (<code>SFX_CLASSIFIER</code>)
+<DT><STRONG>General classifier</STRONG>
+<DD>A function from source names
+to class option. (<code>GEN_CLASSIFIER</code>)
+</DL>
+<P>
+Classifiers can be added using <TT>addClassifier</TT>.
+<PRE>
+val addClassifier: classifier -&gt; unit
+</PRE>
+It is possible to invoke the built-in classification mechanism
+explicitly using the function <TT>defaultClassOf</TT>:
+<PRE>
+val defaultClassOf: fname -&gt; class option
+</PRE>
+<P>
+The <TT>CM.Tools</TT> structure also contains some functions for
+conveniently creating the most common classifiers, validators, and
+processors:
+<P><UL>
+<LI> Make a classifier which looks for a specific file name suffix:
+<PRE>
+val stdSfxClassifier: { sfx: string, class: class } -&gt; classifier
+</PRE>
+<LI> Two validators--one verifies time stamp consistency, the other
+one only probes the existence of the targets:
+<PRE>
+val stdTStampValidator: validator
+val stdExistenceValidator: validator
+</PRE>
+<LI> Make a processor that runs a given shell command with the source
+name as its only argument.  The <TT>tool</TT> argument is used when
+raising the <TT>ToolError</TT> exception upon failure (see
+section&nbsp;<A HREF="#sec:toolerror">9.3</A>).
+<PRE>
+val stdShellProcessor: { command: string, tool: string } -&gt; processor
+</PRE>
+</UL><H2><A NAME="SECTION00093000000000000000">
+9.3 Tools exception</A>
+</H2>
+<P><A NAME="sec:toolerror">&#160;</A>
+If a tool fails to complete its operation normally, then it can signal
+this condition by raising the exception <TT>ToolError</TT>:
+<PRE>
+exception ToolError of {msg:string, tool:string}
+</PRE>
+The fields <TT>msg</TT> and <TT>tool</TT> can contain arbitrary
+strings. However, <TT>tool</TT> is intended to describe the tool that
+raised the exception, while <TT>msg</TT> should give more detailed
+indication of what exactly went wrong.
+<P><H2><A NAME="SECTION00094000000000000000">
+9.4 Recommended strategy for adding tools</A>
+</H2>
+<P>
+When adding new tools to CM we recommend writing a functor that takes
+the <TT>CM.Tools</TT> structure as its argument.  This way the tool can
+easily be installed by instantiating the functor.
+<P>
+Suppose one wants to extend CM with a tool for an improved version of
+ML-Yacc.  The old ML-Yacc should still be available, though.  Let's
+create a new class <TT>BetterYacc</TT>, a processor that runs the command
+<TT>new-ml-yacc</TT>, and have CM recognize files whose names end in <TT>
+.ngrm</TT> or <TT>.ny</TT> as input for this tool.
+<P>
+The rule maps input file <EM>x</EM> to output files <EM>x</EM><TT>.sig</TT> and
+<EM>x</EM><TT>.sml</TT>--both of them classified as belonging to class <TT>
+Sml</TT>.  The validator compares time stamps in the file system.
+<P>
+The following sample code is highly stylized; experienced programmes
+could easily ``compress'' it to only a few lines:
+<PRE>
+functor YaccSourceFun (structure Tools: CMTOOLS) = struct
+    local
+        val command = &quot;new-ml-yacc&quot;
+
+        fun simplerule source = let
+            val smlfile = source ^ &quot;.sml&quot;
+            val sigfile = source ^ &quot;.sig&quot;
+            fun sml f = (f, SOME &quot;sml&quot;)
+        in
+            [sml sigfile, sml smlfile]
+        end
+
+        val validator = Tools.stdTStampValidator
+
+        val processor =
+            Tools.stdShellProcessor { command = command,
+                                      tool = &quot;Better-ML-Yacc&quot; }
+
+        (* install BetterYacc class *)
+        open Tools
+        val class = &quot;betteryacc&quot;
+        fun sfx s =
+            addClassifier (stdSfxClassifier { sfx = s, class = class })
+    in
+        val _ = addToolClass { class = class,
+                               rule = dontcare simplerule,
+                               validator = validator,
+                               processor = processor }
+        val _ = sfx &quot;ngrm&quot;
+        val _ = sfx &quot;ny&quot;
+    end
+end
+</PRE>
+<P><BR>
+<P>
+<P><H1><A NAME="SECTION000100000000000000000">
+A Using CM for compiling the compiler</A>
+</H1>
+<P><H2><A NAME="SECTION000101000000000000000">
+A.1 Introduction</A>
+</H2>
+<P>
+For CM's precursor SC there existed a special batch version called
+SCB, which was used by those who work on SML/NJ's compiler itself.
+Recompiling compiler sources is closely related to the process of
+bootstrapping SML/NJ&nbsp;[<A HREF="#appel94:bootstrap">App94</A>].
+<P>
+There is no separate ``batch'' version of CM; the functionality of
+batch compilation has been integrated into CM proper.  It is available
+through two additional top-level structures: <TT>CMB</TT> and <TT>CMR</TT>.
+<P><H2><A NAME="SECTION000102000000000000000">
+A.2 Batch compilation--<TT>structure CMB</TT></A>
+</H2>
+<P>
+The batch compiler is implemented as a structure called <TT>CMB</TT>
+which uses its own private copy of a full-fledged <TT>structure CM</TT>.
+Its behavior has been modified in minor ways to account for the
+specifics of recompiling the compiler.
+<P>
+In order to use <TT>CMB</TT> it is necessary to run CM in the compiler's
+source directory.  Batch compilation is started by invoking <TT>
+CMB.make()</TT>:
+<PRE>
+val make: unit -&gt; unit
+</PRE>
+<P><H2><A NAME="SECTION000103000000000000000">
+A.3 Batch compilation--the internals</A>
+</H2>
+<P><TT>CMB.make</TT>'s work proceeds in several distinct phases.  Most of
+them are closely interrelated with the details of the interaction
+between SML/NJ's compiler and its run-time system as well as with the
+details of the boot procedure.
+<P><H3><A NAME="SECTION000103100000000000000">
+A.3.1 Phases</A>
+</H3>
+<P><DL COMPACT>
+<DT>1.
+<DD>Construction of the core environment by compiling some
+dedicated source files located in the <TT>boot</TT> directory.
+This step compiles three files, the names of which
+are hardwired into <TT>CMB</TT>:
+<DL>
+<DT><STRONG>boot/assembly.sig</STRONG>
+<DD>defines a signature that describes the
+interface to the run-time system. (The run-time system is not written
+in SML.)
+<DT><STRONG>boot/dummy.sml</STRONG>
+<DD>implements a structure that matches the
+run-time system's signature.  This structure is used as a placeholder
+in order to allow further compile-steps to proceed.  The actual code
+is never used, because the boot procedure will replace it with the
+actual run-time system.
+<DT><STRONG>boot/core.sml</STRONG>
+<DD>implements the core environment.  This file
+is the only one that directly depends on the result of compiling <TT>
+boot/dummy.sml</TT>.  Since the place of the latter will be taken by the
+run-time system we must compile <TT>boot/core.sml</TT> in a special way
+to account for potential compatibility problems.
+</DL>
+<P><DT>2.
+<DD>Compilation of the remaining sources in the boot directory in
+some fixed order. This order is specified in <TT>boot/all-files.cm</TT>.
+The format of this file is an entity description file. However, CM
+does not perform dependency analysis but uses the order in which the
+members are listed.
+<DT>3.
+<DD>CM reads the description file <TT>boot/pervasives.cm</TT> and
+compiles the members listed there.  Anything defined here will
+eventually make up the so-called pervasive environment, which serves
+as the initial basis for compiling the compiler sources proper.
+Now we have finished compiling the <TT>boot</TT> directory.
+<DT>4.
+<DD>Analysis of dependencies among the compiler's source files.  The
+bulk of the compiler's sources can directly be understood by CM's
+dependency analyzer.
+<DT>5.
+<DD>Recompilation of the compiler's sources as far as necessary.
+This step also takes advantage of CM's basic functionality such as
+cutoff recompilation. However, there are some differences:
+<UL>
+<LI> All binfiles are stored in one single directory. Its name
+depends on target architecture and operating system.  For example,
+when compiling for a DEC Alpha machine running a flavor of Unix
+binfiles are placed into <TT>bin.alpha32-unix</TT>. Note that this
+implies there can be <EM>no</EM> duplication of file names throughout the
+compiler sources (even within subdirectories and subgroups).
+<LI> The base environment for the compilation is the one constructed
+by compiling the <TT>boot</TT> directory.
+</UL>
+<DT>6.
+<DD>Generating list files (see below).
+<A NAME="step:list">&#160;</A></DL><H3><A NAME="SECTION000103200000000000000">
+A.3.2 List-files</A>
+</H3>
+<P>
+In order to finally build a new SML/NJ system it is necessary to
+combine the various binfiles.  However, this cannot be done by CM or
+other SML programs.  The binfiles must be loaded into an empty
+run-time system.
+<P>
+The boot mechanism of the run-time system reads certain list
+files.  They are used to record the names of binfiles that are
+needed to build a new compiler.  The two most important list
+files--<TT>BOOTLIST</TT> and <TT>BINLIST</TT>--are written by the batch
+compiler in step&nbsp;<A HREF="#step:list">6</A>.  Both of them (like all the other
+list-files as well) are located in the binfile directory.
+<P><TT>BOOTLIST</TT> contains the names of binfiles for the various sources
+in the <TT>boot</TT> directory.  However, neither <TT>assembly.sig</TT> nor
+<TT>dummy.sml</TT> are mentioned.
+<P><TT>BINLIST</TT> lists all remaining binfiles necessary to build SML/NJ
+on the target machine.  In order to create this file CM selects one
+single compilation unit as the root of the dependency graph and writes
+a topologically sorted list of binfiles belonging to nodes reachable
+from this root.  The rootfile selected must define a structure whose
+name depends on the target architecture.  It consists of <TT>Int</TT>
+concatenated with the stem that can be looked up in
+table&nbsp;<A HREF="#tab:structs">4</A>.  For example, for a target achitecture of
+``MIPS big endian'' the structure's name is <TT>IntMipsBig</TT>. (<EM>
+Int</EM> stands for <EM>Interactive</EM>.)
+<P><BR><DIV ALIGN="CENTER">
+<A NAME="615">&#160;</A>
+<TABLE CELLPADDING="3" BORDER="1" ALIGN="CENTER">
+<CAPTION><STRONG>Table 4:</STRONG>
+Target architectures, associated name stems, and list-files</CAPTION>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>architecture</TD>
+<TD ALIGN="LEFT" NOWRAP>stem</TD>
+<TD ALIGN="LEFT" NOWRAP>binlist</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>DEC Alpha (32 bit)</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>Alpha32</TT></TD>
+<TD ALIGN="LEFT" NOWRAP>BINLIST.alpha32</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>Sparc</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>Sparc</TT></TD>
+<TD ALIGN="LEFT" NOWRAP>BINLIST.sparc</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>MIPS big endian</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>MipsBig</TT></TD>
+<TD ALIGN="LEFT" NOWRAP>BINLIST.mipseb</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>HP-PA</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>Hppa</TT></TD>
+<TD ALIGN="LEFT" NOWRAP>BINLIST.hppa</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>IBM RS6000</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>RS6000 </TT></TD>
+<TD ALIGN="LEFT" NOWRAP>BINLIST.rs6000</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>Intel x86</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>X86</TT></TD>
+<TD ALIGN="LEFT" NOWRAP>BINLIST.x86</TD>
+</TR>
+<TR VALIGN="TOP"><TD ALIGN="LEFT" NOWRAP>bytecode</TD>
+<TD ALIGN="LEFT" NOWRAP><TT>ByteCode</TT></TD>
+<TD ALIGN="LEFT" NOWRAP>BINLIST.bytecode<A NAME="tex2html7" HREF="#612"><SUP><IMG ALIGN="BOTTOM" BORDER="1" ALT="[*]" SRC="foot_motif.gif"></SUP></A></TD>
+</TR>
+</TABLE></DIV>
+<BR>
+<P>
+In addition to <TT>BINLIST</TT> there will be another list-file--<TT>
+SRCLIST</TT>--naming the sources for these binfiles.  This file will be
+used to find the sources in the case that static environments must be
+re-created from sources at boot-time instead of simply extracting them
+from binfiles (<TT>xmakeml -elab</TT> option).  Similarly, <TT>BOOTSRC</TT>
+names the sources for binfiles listed in <TT>BOOTLIST</TT>. Note that
+file names in <TT>BOOTLIST</TT> and <TT>BINLIST</TT> are relative to the
+binfile directory, while file names in <TT>BOOTSRC</TT> and <TT>SRCLIST</TT>
+are relative to the compiler's source directory.
+<P>
+Finally, there will be a set of list-files--one per supported target
+architecture (table&nbsp;<A HREF="#tab:structs">4</A>)--which specify names of
+binfiles for cross compilers.  Again, each of these files contains a
+topologically sorted list of binfiles.  Their creation proceeds
+completely analogous to creating <TT>BINLIST</TT>: There must be one
+compilation unit defining some structure whose name depends on the
+cross compiler's target architecture.  This unit is selected as the
+root of the dependency graph used to produce the topological ordering.
+To obtain the name of the structure CM concatenates the stem shown in
+table&nbsp;<A HREF="#tab:structs">4</A> with <TT>VisComp</TT>.  Example:  The structure
+pertaining to cross compilers for the HP-PA architecture is <TT>
+HppaVisComp</TT>.
+<P><H2><A NAME="SECTION000104000000000000000">
+A.4 Controlling the batch compiler</A>
+</H2>
+<P><H3><A NAME="SECTION000104100000000000000">
+A.4.1 Files</A>
+</H3>
+<P>
+There are three files that are used to control batch compilation.  All
+of them have the format of a group description without export filter.
+<P><DL>
+<DT><STRONG>boot/all-files.cm</STRONG>
+<DD>The files <TT>boot/all-files.cm</TT> lists the
+source files in directory <TT>boot</TT> with the exception of
+<UL>
+<LI> <TT>boot/assembly.sig</TT>
+<LI> <TT>boot/dummy.sml</TT>
+<LI> <TT>boot/core.sml</TT>, and
+</UL>
+Even though it has the format of a group description it will not be
+used as input for a dependency analysis.  Instead, the order of
+members in this ``group'' matters--they are compiled top-to-bottom.
+<DT><STRONG>boot/pervasives.cm</STRONG>
+<DD>After all members of <TT>boot/all-files.cm</TT>
+have been compiled CM will continue to process the members of <TT>
+boot/pervasives.cm</TT>.  Again, the members of this file is also not
+subject to dependency analysis.  The environment resulting from
+compiling <TT>boot/pervasives.cm</TT> is remembered as the so-called
+pervasive environment or <EM>initial basis</EM>.
+<DT><STRONG>all-files.cm</STRONG>
+<DD>File <TT>all-files.cm</TT> is the root description
+for the remaining system.  It will serve as input to the dependency
+analyzer.  Therefore, the order of its members does not matter.
+</DL><H3><A NAME="SECTION000104200000000000000">
+A.4.2 Flags</A>
+</H3>
+<P><TT>CM</TT> shares its internal state with <TT>CMB</TT>.  This means that
+the interface functions described in section&nbsp;<A HREF="#section:path">8.8</A> can
+also be used to control the behavior of <TT>CMB</TT>. Example:
+<P><PRE>
+CMB.CM.verbose (SOME false);
+CMB.CM.keep_going (SOME true);
+</PRE>
+<P>
+This is equivalent to
+<P><PRE>
+CM.verbose (SOME false);
+CM.keep_going (SOME true);
+</PRE>
+<P><H2><A NAME="SECTION000105000000000000000">
+A.5 Cross-compilation and retargeting</A>
+</H2>
+<P>
+Retargeting the batch compiler corresponds to creating a new
+instance of <TT>CMB</TT>, the compiler of which has been replaced with
+one that produces code for a different architecture.  In order to be
+able to retarget we must already have a complete set of working
+binfiles for the compiler running on the host architecture.
+<P>
+Structure <TT>CMR</TT> contains the <TT>retarget</TT> function, which is
+responsible for building a new <TT>CMB</TT>.
+<P><PRE>
+structure CMR: sig
+  val retarget: { bindir: string, cpu: string, os: string } -&gt; unit
+end
+</PRE>
+<P>
+For example, if the host machine is a DEC Alpha and we want to
+cross-compile for a Sparc running some flavor of U<font size="-1"><small>NIX</small></font>, then we
+invoke:
+<P><PRE>
+CMR.retarget { bindir = &quot;bin.alpha32&quot;, cpu = &quot;sparc&quot;, os = &quot;unix&quot; };
+</PRE>
+<P>
+This command reads <TT>bin.alpha32/BINLIST.sparc</TT> and loads the files
+listed therein.  The result is a compiler that produces code for a
+Sparc machine running U<font size="-1"><small>NIX</small></font>, even though it itself still runs on the
+Alpha.  The new compiler is used to construct a new structure <TT>
+CMB</TT> which then replaces the old one.
+<P>
+Known CPU names are <TT>alpha32</TT>, <TT>sparc</TT>,
+<TT>mipseb</TT>, <TT>hppa</TT>, <TT>rs6000</TT>, <TT>x86</TT>, and <TT>bytecode</TT>.
+Operating system specifiers are <TT>unix</TT>, <TT>macos</TT>, <TT>os2</TT>,
+and <TT>win32</TT>.
+<P>
+Once CMR.retarget has completed successfully it suffices to run
+<P><PRE>
+CMB.make ();
+</PRE>
+<P>
+in order to produce Sparc binfiles for the compiler.
+<P><BR>
+<P><H1><A NAME="SECTION000110000000000000000">
+B Installation and maintenance</A>
+</H1>
+<P>
+Normally a working version of CM will be distributed as part of the
+SML/NJ system.  SML/NJ's installation procedure automatically builds
+CM and even uses it to install other parts of the system.
+<P>
+The following paragraphs describe the steps necessary to be taken in
+the unlikely event that CM must be installed or maintained separately.
+<P><H2><A NAME="SECTION000111000000000000000">
+B.1 Installation</A>
+</H2>
+<P>
+To build the first heap image for CM you must run the <TT>build</TT>
+script.
+<P>
+If everything is fine, then <TT>build</TT> will create <TT>sml-cm.</TT><EM>
+arch</EM>-<EM>os</EM>, which subsequently needs to be moved to the
+appropriate heap directory.  Normally this will be something like <TT>
+../../bin/.heap/</TT>.
+<P><TT>build</TT> accepts a number of parameters that can be used to
+customize CM. Defaults are given in parentheses.
+<P><DL>
+<DT><STRONG>-sml <I>sml</I></STRONG>
+<DD>tells <TT>build</TT> which command to run in order
+to launch SML/NJ's base system (<TT>sml</TT>).
+<DT><STRONG>-yacc <I>yacc</I></STRONG>
+<DD>names the command for running ML-Yacc (<TT>
+ml-yacc</TT>).
+<DT><STRONG>-lex <I>lex</I></STRONG>
+<DD>declares the command for running ML-Lex (<TT>
+ml-lex</TT>).
+<DT><STRONG>-burg <I>burg</I></STRONG>
+<DD>does the same for ML-Burg (<TT>ml-burg</TT>).
+<DT><STRONG>-rcs <I>co</I></STRONG>
+<DD>specifies the U<font size="-1"><small>NIX</small></font> command responsible for
+checking out the most recent version of a file from its RCS archive
+(<TT>co -q</TT>).
+<DT><STRONG>-nll</STRONG>
+<DD>tells CM that filenames have a limited length.  To
+cope with this it will avoid using the <TT>.bin</TT>-suffix for
+binfiles. (Binfiles reside in dedicated directories, therefore it
+is not necessary for them to have a special suffix.)
+<DT><STRONG>-L <I>path</I></STRONG>
+<DD>defines the default search path for files.
+The <I>path</I> must be given as a colon-separated list of directories.
+Later this value can be overridden by calling <code>CM.set_path</code>, or by
+starting <TT>sml-cm</TT> with the <code>CM_PATH</code> environment variable
+set.
+<DT><STRONG>-o <I>name</I></STRONG>
+<DD>specifies the name of the CM image file (<TT>
+sml-cm.</TT><EM>arch</EM>).
+</DL><H2><A NAME="SECTION000112000000000000000">
+B.2 Maintenance</A>
+</H2>
+<P>
+Once an initial version has been set up CM itself can be used
+to maintain its own sources.  CM is an ordinary SML program.
+It has been divided into three entities: the root group described in
+<TT>sources.cm</TT>, a group defining the interface to the base system
+described in <TT>sys/sources.cm</TT>, and a library of utility functions.
+The library's description file is <TT>util/sources.cm</TT>.
+<P>
+After successfully recompiling the sources (by running <TT>CM.make
+()</TT>) one can use the <TT>SMLofNJ.exportML</TT> function in order to produce a
+new heap image.
+<P>
+After making changes to CM's sources it is advisable to run
+<PRE>
+CM.sa &quot;load-all&quot;;
+</PRE>
+in order to provide <TT>build</TT> with information necessary to recompile
+CM from scratch should this become necessary in the future.
+<P><H1><A NAME="SECTION000120000000000000000">
+C Compatibility with SC</A>
+</H1>
+<P>
+CM's precursor SC supported a notion of groups and
+libraries similar to the one used here.  However, there was no way of
+specifying export filters or explicit member classes.
+<P>
+Furthermore, the property of being a library was not given as part of
+the entity's description.  SC's solution was to treat as
+library description files those members whose names were preceded by a
+minus sign.  This meant that the client had to know whether an entity
+was a group or a library.  There was no syntactic difference between
+group descriptions and library descriptions.
+<P>
+In most cases it is easy to convert from SC's description
+files to a format suitable for CM.  In fact, in their most basic
+form SC's and CM's descriptions look very similar to
+each other.  To upgrade from the former to the latter simply add the
+line
+<PRE>
+Group is
+</PRE>
+at the top of the description file and rename it from <TT>sources.sc</TT>
+to <TT>sources.cm</TT>.
+<P>
+CM can also process SC-style description files directly.
+It does this by introducing the member classes <TT>SCGroup</TT> and <TT>
+SCLibrary</TT>.  By default, member names ending in <TT>.sc</TT> are regarded
+as belonging to <TT>SCGroup</TT>.
+<P>
+Since it is impossible to use explicit class names within SC-style
+description files CM will rely solely on name suffixes and the leading
+minus sign to infer them.  The same set of rules given in
+table&nbsp;<A HREF="#tab:suffixes">1</A> applies here.
+<P>
+The most serious deficiency of SC-style descriptions is that
+they do not provide a notation for specifying export filters.  One
+result of this is the undesirable ability to write libraries without
+export filters--something that has deliberately been disallowed in
+CM.
+<P>
+CM's current support for old-style SC descriptions must be regarded as
+a temporary solution only.  It is expected to disappear in the future.
+<P><BR>
+<H2><A NAME="SECTION000130000000000000000">
+Contents</A>
+</H2>
+<!--Table of Contents-->
+<UL>
+<LI><A NAME="tex2html63" HREF="#SECTION00010000000000000000">
+1 Overview</A>
+<LI><A NAME="tex2html64" HREF="#SECTION00020000000000000000">
+2 Why CM?</A>
+<LI><A NAME="tex2html65" HREF="#SECTION00030000000000000000">
+3 Getting started</A>
+<LI><A NAME="tex2html66" HREF="#SECTION00040000000000000000">
+4 Restrictions</A>
+<LI><A NAME="tex2html67" HREF="#SECTION00050000000000000000">
+5 Hierarchical modularity</A>
+<UL>
+<LI><A NAME="tex2html68" HREF="#SECTION00051000000000000000">
+5.1 Groups and subgroups</A>
+<LI><A NAME="tex2html69" HREF="#SECTION00052000000000000000">
+5.2 Describing a group-hierarchy</A>
+<LI><A NAME="tex2html70" HREF="#SECTION00053000000000000000">
+5.3 Tools and member classes</A>
+<LI><A NAME="tex2html71" HREF="#SECTION00054000000000000000">
+5.4 Export filters</A>
+<LI><A NAME="tex2html72" HREF="#SECTION00055000000000000000">
+5.5 Libraries</A>
+<LI><A NAME="tex2html73" HREF="#SECTION00056000000000000000">
+5.6 Description files--the rules</A>
+<UL>
+<LI><A NAME="tex2html74" HREF="#SECTION00056100000000000000">
+5.6.1 Aliases</A>
+<LI><A NAME="tex2html75" HREF="#SECTION00056200000000000000">
+5.6.2 Syntax</A>
+<LI><A NAME="tex2html76" HREF="#SECTION00056300000000000000">
+5.6.3 Path name syntax and portability</A>
+<LI><A NAME="tex2html77" HREF="#SECTION00056400000000000000">
+5.6.4 The preprocessor</A>
+</UL>
+</UL>
+<LI><A NAME="tex2html78" HREF="#SECTION00060000000000000000">
+6 Autoloading</A>
+<UL>
+<LI><A NAME="tex2html79" HREF="#SECTION00061000000000000000">
+6.1 Controlling the autoloader</A>
+</UL>
+<LI><A NAME="tex2html80" HREF="#SECTION00070000000000000000">
+7 Caches, missing sources, and stable entities</A>
+<UL>
+<LI><A NAME="tex2html81" HREF="#SECTION00071000000000000000">
+7.1 Binfiles</A>
+<LI><A NAME="tex2html82" HREF="#SECTION00072000000000000000">
+7.2 Declfiles</A>
+<LI><A NAME="tex2html83" HREF="#SECTION00073000000000000000">
+7.3 Overcoming missing source files</A>
+<LI><A NAME="tex2html84" HREF="#SECTION00074000000000000000">
+7.4 Stable entities</A>
+</UL>
+<LI><A NAME="tex2html85" HREF="#SECTION00080000000000000000">
+8 Using the <TT>CM</TT> structure</A>
+<UL>
+<LI><A NAME="tex2html86" HREF="#SECTION00081000000000000000">
+8.1 The root description file</A>
+<LI><A NAME="tex2html87" HREF="#SECTION00082000000000000000">
+8.2 Compilation</A>
+<UL>
+<LI><A NAME="tex2html88" HREF="#SECTION00082100000000000000">
+8.2.1 Compilation errors</A>
+</UL>
+<LI><A NAME="tex2html89" HREF="#SECTION00083000000000000000">
+8.3 Linearization</A>
+<LI><A NAME="tex2html90" HREF="#SECTION00084000000000000000">
+8.4 Visualization</A>
+<LI><A NAME="tex2html91" HREF="#SECTION00085000000000000000">
+8.5 Stabilization</A>
+<LI><A NAME="tex2html92" HREF="#SECTION00086000000000000000">
+8.6 Preprocessor symbols</A>
+<LI><A NAME="tex2html93" HREF="#SECTION00087000000000000000">
+8.7 Autoloader</A>
+<LI><A NAME="tex2html94" HREF="#SECTION00088000000000000000">
+8.8 Miscellaneous</A>
+</UL>
+<LI><A NAME="tex2html95" HREF="#SECTION00090000000000000000">
+9 Adding new tools to CM</A>
+<UL>
+<LI><A NAME="tex2html96" HREF="#SECTION00091000000000000000">
+9.1 Basics</A>
+<LI><A NAME="tex2html97" HREF="#SECTION00092000000000000000">
+9.2 Tool classes and classification</A>
+<LI><A NAME="tex2html98" HREF="#SECTION00093000000000000000">
+9.3 Tools exception</A>
+<LI><A NAME="tex2html99" HREF="#SECTION00094000000000000000">
+9.4 Recommended strategy for adding tools</A>
+</UL>
+<LI><A NAME="tex2html100" HREF="#SECTION000100000000000000000">
+A Using CM for compiling the compiler</A>
+<UL>
+<LI><A NAME="tex2html101" HREF="#SECTION000101000000000000000">
+A.1 Introduction</A>
+<LI><A NAME="tex2html102" HREF="#SECTION000102000000000000000">
+A.2 Batch compilation--<TT>structure CMB</TT></A>
+<LI><A NAME="tex2html103" HREF="#SECTION000103000000000000000">
+A.3 Batch compilation--the internals</A>
+<UL>
+<LI><A NAME="tex2html104" HREF="#SECTION000103100000000000000">
+A.3.1 Phases</A>
+<LI><A NAME="tex2html105" HREF="#SECTION000103200000000000000">
+A.3.2 List-files</A>
+</UL>
+<LI><A NAME="tex2html106" HREF="#SECTION000104000000000000000">
+A.4 Controlling the batch compiler</A>
+<UL>
+<LI><A NAME="tex2html107" HREF="#SECTION000104100000000000000">
+A.4.1 Files</A>
+<LI><A NAME="tex2html108" HREF="#SECTION000104200000000000000">
+A.4.2 Flags</A>
+</UL>
+<LI><A NAME="tex2html109" HREF="#SECTION000105000000000000000">
+A.5 Cross-compilation and retargeting</A>
+</UL>
+<LI><A NAME="tex2html110" HREF="#SECTION000110000000000000000">
+B Installation and maintenance</A>
+<UL>
+<LI><A NAME="tex2html111" HREF="#SECTION000111000000000000000">
+B.1 Installation</A>
+<LI><A NAME="tex2html112" HREF="#SECTION000112000000000000000">
+B.2 Maintenance</A>
+</UL>
+<LI><A NAME="tex2html113" HREF="#SECTION000120000000000000000">
+C Compatibility with SC</A>
+<LI><A NAME="tex2html114" HREF="#SECTION000130000000000000000">
+Contents</A>
+<LI><A NAME="tex2html115" HREF="#SECTION000140000000000000000">
+References</A>
+</UL>
+<!--End of Table of Contents-->
+<BR>
+<P><H2><A NAME="SECTIONREF">References</A>
+</H2>
+<DL COMPACT><P></P><DT><A NAME="appel91:sml"><STRONG>AM91</STRONG></A>
+<DD>
+Andrew W. Appel and David B. MacQueen.
+<BR>Standard ML of New Jersey.
+<BR>In Martin Wirsing, editor, <EM>3rd International Symp. on Prog.
+  Lang. Implementation and Logic Programming</EM>, pages 1-13, New York, August
+  1991. Springer-Verlag.
+<P><P></P><DT><A NAME="appel94:sepcomp"><STRONG>AM94</STRONG></A>
+<DD>
+Andrew W. Appel and David B. MacQueen.
+<BR>Separate compilation for Standard ML.
+<BR>In <EM>Proc. SIGPLAN '94 Symp. on Prog. Language Design and
+  Implementation</EM>, volume 29, pages 13-23. ACM Press, June 1994.
+<P><P></P><DT><A NAME="appel89:lex"><STRONG>AMT89</STRONG></A>
+<DD>
+Andrew W. Appel, James S. Mattson, and David R. Tarditi.
+<BR>A lexical analyzer generator for Standard ML.
+<BR>Distributed with Standard ML of New Jersey, December 1989.
+<P><P></P><DT><A NAME="appel94:bootstrap"><STRONG>App94</STRONG></A>
+<DD>
+Andrew W. Appel.
+<BR>Axiomatic bootstrapping: A guide for the compiler hacker.
+<BR><EM>ACM Trans. on Programming Languages and Systems</EM>,
+  16(6):1699-1718, November 1994.
+<P><P></P><DT><A NAME="tichy94"><STRONG>ATW94</STRONG></A>
+<DD>
+Rolf Adams, Walter Tichy, and Annette Weinert.
+<BR>The cost of selective recompilation and environment processing.
+<BR><EM>ACM TOSEM</EM>, 3(1):3-28, January 1994.
+<P><P></P><DT><A NAME="feldman79"><STRONG>Fel79</STRONG></A>
+<DD>
+S. I. Feldman.
+<BR>Make - a program for maintaining computer programs.
+<BR>In <EM>Unix Programmer's Manual, Seventh Edition, Volume 2A</EM>. Bell
+  Laboratories, 1979.
+<P><P></P><DT><A NAME="mlburg93"><STRONG>GG93</STRONG></A>
+<DD>
+Florent Guillaume and Lal George.
+<BR><EM>ML-Burg Documentation</EM>.
+<BR>AT&amp;T Bell Laboratories, 1993.
+<BR>distributed with SML/NJ software.
+<P><P></P><DT><A NAME="harper-lee-pfenning-rollins-CM"><STRONG>HLPR94a</STRONG></A>
+<DD>
+Robert Harper, Peter Lee, Frank Pfenning, and Eugene Rollins.
+<BR>A Compilation Manager for Standard ML of New Jersey.
+<BR>In <EM>1994 ACM SIGPLAN Workshop on ML and its Applications</EM>, pages
+  136-147, 1994.
+<P><P></P><DT><A NAME="harper94:irm"><STRONG>HLPR94b</STRONG></A>
+<DD>
+Robert Harper, Peter Lee, Frank Pfenning, and Eugene Rollins.
+<BR>Incremental recompilation for Standard ML of New Jersey.
+<BR>Technical Report CMU-CS-94-116, Department of Computer Science,
+  Carnegie-Mellon University, February 1994.
+<P><P></P><DT><A NAME="north93:dot"><STRONG>KN93</STRONG></A>
+<DD>
+Eleftherios Koutsofios and Stephen C. North.
+<BR>Drawing graphs with <I>dot</I>, October 1993.
+<P><P></P><DT><A NAME="milner89"><STRONG>MTH90</STRONG></A>
+<DD>
+Robin Milner, Mads Tofte, and Robert Harper.
+<BR><EM>The Definition of Standard ML</EM>.
+<BR>MIT Press, Cambridge, MA, 1990.
+<P><P></P><DT><A NAME="ramsey:simplified"><STRONG>Ram94</STRONG></A>
+<DD>
+Norman Ramsey.
+<BR>Literate programming simplified.
+<BR><EM>IEEE Software</EM>, 11(5):97-105, September 1994.
+<P><P></P><DT><A NAME="reppy91:cml"><STRONG>Rep91</STRONG></A>
+<DD>
+John H. Reppy.
+<BR>CML: A higher-order concurrent language.
+<BR>In <EM>Proc. ACM SIGPLAN '91 Conf. on Prog. Lang. Design and
+  Implementation</EM>, volume 26, pages 293-305. ACM Press, 1991.
+<P><P></P><DT><A NAME="tarditi90:yacc"><STRONG>TA90</STRONG></A>
+<DD>
+David R. Tarditi and Andrew W. Appel.
+<BR>ML-Yacc, version 2.0.
+<BR>Distributed with Standard ML of New Jersey, April 1990.
+<P><P></P><DT><A NAME="tichy85:rcs"><STRONG>Tic85</STRONG></A>
+<DD>
+Walter F. Tichy.
+<BR>RCS--A System for Version Control.
+<BR><EM>Software--Practice &amp; Experience</EM>, 15(7):637-654, July
+  1985.
+</DL>
+<P><H1><A NAME="SECTION000150000000000000000">
+About this document ... </A>
+</H1> 
+ <STRONG><B>CM</B><BR>
+A Compilation Manager for SML/NJ<BR>
+<EM>User Manual</EM></STRONG><P>
+This document was generated using the
+<A HREF="http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/"><STRONG>LaTeX</STRONG>2<tt>HTML</tt></A> translator Version 97.1 (release) (July 13th, 1997)
+<P>
+Copyright &#169; 1993, 1994, 1995, 1996, 1997,
+<A HREF="http://cbl.leeds.ac.uk/nikos/personal.html">Nikos Drakos</A>, 
+Computer Based Learning Unit, University of Leeds.
+<P>
+The command line arguments were: <BR>
+ <STRONG>latex2html</STRONG> <tt>-local_icons -split 0 -show_section_numbers manual</tt>.
+<P>
+The translation was initiated by Matthias Blume on 11/5/1997<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="612">...BINLIST.bytecode</A>
+<DD>not yet supported
+<P></DL><HR>
+<!--Navigation Panel-->
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif_gr.gif"> 
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif_gr.gif"> 
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif_gr.gif">   
+<BR>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>11/5/1997</I>
+</ADDRESS>
+</BODY>
+</HTML>

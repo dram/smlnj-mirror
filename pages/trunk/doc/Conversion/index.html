@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+  <title>SML '97 Conversion Guide </title>
+</head>
+
+<body BGCOLOR="white">
+<center>
+<h1>SML '97 Conversion Guide</h1>
+<h2>Warning!  This document is under construction.</h2>
+</center>
+
+<h2>Introduction</h2>
+<blockquote>
+The primary goal of this document is to help current SML programmers
+learn to use SML '97 (as implemented in SML/NJ 110), and to help them
+convert old SML code to SML '97.  It concentrates on changes in the
+language and libraries, and assumes some familiarity with SML.
+However, it should also be of some use to new SML programmers, as a
+supplement to one of the available
+<A HREF="../literature.html#books">
+textbooks</A> or
+<A HREF="../literature.html#tutorials">
+tutorials</A>.
+<p>
+The new SML '97 language itself is defined in
+<A HREF="http://mitpress.mit.edu/book-home.tcl?isbn=0262631814">
+<B>The Definition of Standard ML (Revised)</B></a>, hereafter
+refered to as "the Definition".  Appendix G of
+that book briefly summarizes the language changes, mainly from the
+point of view of the language semantics.  The treatment here expands
+on that description, taking the point of view of a programmer.  Note
+that the second editions of Paulson's and Ullman's books describe SML
+'97.
+<P>
+The other major changes are encompassed in an extensive new Basis
+library that replaces the minimal initial basis described in
+Appendices C and D of the original SML '90
+<A HREF="http://mitpress.mit.edu/book-home.tcl?isbn=0262631326">
+<B>Definition</B></A>.
+</blockquote>
+<hr>
+
+<h2>1. Language Changes</h2>
+<blockquote>
+This section is a more detailed exploration of the changes
+summarized in appendix G of the new
+<A HREF="http://mitpress.mit.edu/book-home.tcl?isbn=0262631814">
+<strong>Definition</strong></a>.
+</blockquote>
+<p>
+<UL>
+<LI><h3><a href="types.html">
+1.1. Types and Type Checking</a></h3>
+<UL>
+<LI><h4><a href="types.html#Checking">
+1.1.2. Type checking</a></h4>
+<menu>
+<LI> <A HREF="types.html#Value">1.1.2.1. Value polymorphism</A>
+<LI> <A HREF="types.html#Literals">1.1.2.2. Overloaded literals</A>
+<LI> <A HREF="types.html#Defaulting">1.1.2.3. Defaulting overloads</A>
+</menu>
+<p>
+<LI><h4><A HREF="types.html#Explicit">
+1.1.3. Explicit type variable binding</A></h4>
+
+<LI><h4><a href="types.html#LocalDT">
+1.1.4. Local datatypes</a></h4>
+
+<LI><h4><a href="types.html#Replication">
+1.1.5. Datatype replication declarations</a></h4>
+
+<LI><h4><A HREF="types.html#Real-equality">
+1.1.6. <code>real</code> not an equality type</A></h4>
+</UL>
+
+
+<LI><h3><a href="core.html">
+1.2. Core Language</a></h3>
+
+<UL>
+<LI><h4><a href="core.html#Rebind">
+1.2.1. Rebinding constructor names with
+<code><strong>val rec</strong></code> and <code><strong>fun</strong></code></a></h4>
+
+<LI><h4><a href="core.html#Infix">
+1.2.2. Revised infix operator precedence rules</a></h4>
+
+<LI><h4><a href="core.html#NoRebind">
+1.2.3. Forbidden rebindings</a></h4>
+</UL>
+
+<LI><h3><a href="modules.html">
+1.3. Modules</a></h3>
+<menu>
+<LI><h4><a href="modules.html#SigDefs">
+1.3.1. Type abbreviations in signatures</a></h4>
+
+<LI><h4><a href="modules.html#ReplSpecs">
+1.3.2. Datatype replication specs</a></h4>
+
+<LI><h4><a href="modules.html#WhereType">
+1.3.3. Adding definitions with <code>where type</code></a></h4>
+
+<LI><h4><a href="modules.html#LocalSharing">
+1.3.4. Restriction of sharing to local paths</a></h4>
+
+<LI><h4><a href="modules.html#SharingVsDefn">
+1.3.5. Noninterference of sharing and definitional specs</a></h3>
+
+<LI><h4><a href="modules.html#NoDefShare">
+1.3.6. Replacement of "definitional" sharing by definitional specs</a></h4>
+
+<LI><h4><a href="modules.html#StrSharing">
+1.3.7. Structure sharing as derived form for type sharing</a></h4>
+
+<LI><h4><a href="modules.html#IncludeSigExp">
+1.3.8. <code>include</code> <i>sigexp</i></a></h4>
+
+<LI><h4><a href="modules.html#Opaque">
+1.3.9. opaque signature matching (<code>:&gt;</code>)</a></h4>
+
+<LI><h4><a href="modules.html#Equality">
+1.3.10. equality type specs, inferred equality properties</a></h4>
+
+<LI><h4><a href="modules.html#Obsolete">
+1.3.11. <code>open</code> and <code>local</code> specification forms deleted</a></h4>
+
+<LI><h4><a href="modules.html#NoMultSpec">
+1.3.12. no repeated specifications of an identifier</a></h4>
+
+<LI><h4><a href="modules.html#Include">
+1.3.13. behavior of <code>include</code> (Defn vs SML/NJ)</a></h4>
+</menu>
+
+<LI><h3><a href="deviations.html">
+1.4. SML/NJ Deviations</a></h3>
+<menu>
+<LI><h4><a href="deviations.html#ValRec">
+1.4.1. <code>val rec</code> syntax
+<p>
+<LI><h4><a href="deviations.html#WithTypeScope">
+1.4.2. <code>withtype</code> scoping rules
+</menu>
+<p>
+
+<LI><h3><a href="core-extensions.html">
+1.5. SML/NJ Extensions: Core</a></h3>
+<menu>
+<li><h4><a href="core-extensions.html#OrPatterns">
+1.5.1. or patterns</a></h4>
+<li><h4><a href="core-extensions.html#Vectors">
+1.5.2. vector expressions and patterns</a></h4>
+</menu>
+<p>
+
+<LI><h3><a href="module-extensions.html">
+1.6. SML/NJ Extensions: Modules</a></h3>
+<menu>
+<li><h4><a href="module-extensions.html#HOF">
+1.6.1. higher-order functors</a></h4>
+<li><h4><a href="module-extensions.html#StrDefSpec">
+1.6.2. structure definition specs</a></h4>
+<li><h4><a href="module-extensions.html#WhereStruct">
+1.6.3. <code>where</code> clause for structure definitions</a></h4>
+<li><h4><a href="modules.html#LayeredRedef">
+1.6.4. Layered Redefinitions Ignored</a></h4>
+<li><h4><a href="module-extensions.html#MergingInclude">
+1.6.5. type spec merging with <code>include</code></a></h4>
+</menu>
+</UL>
+
+<H2><a href="libraries.html">
+2. Library and Environment Changes</a></H2>
+</blockquote>
+<UL>
+
+<LI><h3><a href="libraries.html#BasicTypes">
+2.1. Basic Types</a></h3>
+<menu>
+<LI><h4><a href="libraries.html#Arithmetic">
+2.1.1. Arithmetic</a></h4>
+<LI><h4><a href="libraries.html#Chars">
+2.1.2. Characters and Strings</a></h4>
+<LI><h4><a href="libraries.html#Lists">
+2.1.3. Lists</a></h4>
+</menu>
+
+<LI><h3><a href="libraries.html#IO">
+2.2. Input/Output</a></h3>
+<menu>
+<LI><h4><a href="libraries.html#TextIO">
+2.2.1. TextIO</a></h4>
+<LI><h4><a href="libraries.html#Print">
+2.2.2. The print function</a></h4>
+</menu>
+
+<LI><h3><a href="libraries.html#System">
+2.3. System Facilities</a></h3>
+<menu>
+<LI><h4><a href="libraries.html#Use">
+2.3.1. Invoking the compiler</a></h4>
+<LI><h4><a href="libraries.html#BasisOS">
+2.3.2. OS structure in Basis</a></h4>
+<LI><h4><a href="libraries.html#BasisPosix">
+2.3.3. Posix structure in Basis</a></h4>
+<LI><h4><a href="libraries.html#Unix">
+2.3.4. The Unix structure</a></h4>
+</menu>
+
+<p>
+<LI><h3><a href="libraries.html#SMLNJ">
+2.4. SML/NJ Facilities</a></h3>
+<menu>
+<LI><h4><a href="libraries.html#SMLofNJ">
+2.4.1. The SMLofNJ Structure</a></h4>
+<LI><h4><a href="libraries.html#Flags">
+2.4.2. Useful control flags</a></h4>
+</menu>
+
+</UL>
+
+<hr>
+    <address><a href="mailto:sml-nj@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Wed Oct  8 13:33:51 EDT 1997 -->
+<!-- hhmts start -->
+Last modified: Mon Feb  8 14:31:07 EST 1999
+<!-- hhmts end -->
+  </body>
+</html>

@@ -1,0 +1,480 @@
+<!-- HTML/top-level-chapter.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>Top-level Environment</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align=CENTER>The Standard ML Basis Library</H1>
+<HR>
+
+
+<H2>Top-level environment</H2>
+<P>
+This chapter describes the standard initial top-level environment, that is, those identifiers available unqualified before the user introduces  additional top-level bindings. As special aspects of this environment, infix identifiers and overloading are also discussed. 
+<H3>Modules in the top-level environment</H3>
+<P>
+There are no default requirements on which modules will be intially available at top-level for either interactive or batch-oriented sessions. Each implementation may provide its own mechanism for making its various modules available to the user's code. Even the presence of a top-level identifier that is logically defined in a structure (e.g., the type <CODE>int</CODE> is defined in the <CODE>Int</CODE> structure) is no guarantee that the structure name is in the environment. 
+<H3>Top-level type, exception and value identifiers</H3>
+<P>
+Various types, exceptions and values are available unqualified in the top-level environment. In particular, everything in <A HREF="general.html#General:STR:SPEC">General</A> is thus available.
+<P>
+We note in passing that the special identifiers <CODE>=</CODE> and <CODE>&lt;&gt;</CODE>, corresponding to polymorphic equality and inequality, are available in the top-level environment but are not bound in any module.
+<P>
+The following table presents the top-level  types and their defining structures, if any. 
+<HR>
+<CENTER>
+<TABLE ALIGN=CENTER>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>eqtype unit</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>eqtype int</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Int</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>eqtype word</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Word</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>type real</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Real</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>eqtype char</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Char</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>eqtype string</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>String</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>type substring</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Substring</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>type exn</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>eqtype 'a array</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Array</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>eqtype 'a vector</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Vector</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>eqtype 'a ref</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>datatype bool = false | true</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<I>primitive</I>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>datatype 'a option = NONE | SOME of 'a</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Option</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>datatype order = LESS | EQUAL | GREATER</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>datatype 'a list = nil | :: of ('a * 'a list)</CODE>
+<TD ALIGN=LEFT VALIGN=TOP>
+<I>primitive</I>
+</TABLE>
+</CENTER>
+<HR>
+ 
+<P>
+Although the types <A HREF="bool.html#SIG:BOOL.bool:TY:SPEC">bool</A> and <A HREF="list.html#SIG:LIST.list:TY:SPEC">list</A> are considered primitive and defined in the top-level environment, for convenience they also bound in the structures <A HREF="bool.html#Bool:STR:SPEC">Bool</A> and <A HREF="list.html#List:STR:SPEC">List</A>, respectively. 
+<P>
+The next list presents the exceptions and exception constructors available at top-level. All of the exceptions are defined in <A HREF="general.html#General:STR:SPEC">General</A>, except for <CODE>Option</CODE>, which is defined in <CODE>Option</CODE> and <CODE>Empty</CODE>, which is defined in <CODE>List</CODE>. 
+<HR>
+<CENTER>
+<TABLE ALIGN=CENTER>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Bind</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Chr</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Div</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Domain</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Empty</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Fail of string</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Match</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Option</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Overflow</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Size</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Span</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>exception Subscript</CODE>
+</TABLE>
+</CENTER>
+<HR>
+ 
+<P>
+The next table presents the non-overloaded functions available at top-level, plus the structure value to which each is bound. Note that the <CODE>use</CODE> function is special. Although not defined precisely, its intended purpose is to take the pathname of a file and treat the contents of the file as SML source code typed in by the user. It can be used as a simple build mechanism, especially for interactive sessions. Most implementations will provide a more sophisticated build mechanism for larger collections of source files. 
+<HR>
+<CENTER>
+<TABLE ALIGN=CENTER>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val ! : 'a ref -&gt; 'a</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General.!</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val := : 'a ref * 'a -&gt; unit</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General.:=</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val ref : 'a -&gt; 'a ref</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<I>primitive</I>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val before : 'a * unit -&gt; 'a</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General.before</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val ignore : 'a -&gt; unit</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General.ignore</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val o : ('a -&gt; 'b) * ('c -&gt; 'a) -&gt; 'c -&gt; 'b</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General.o</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val exnName : exn -&gt; string</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General.exnName</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val exnMessage : exn -&gt; string</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>General.exnMessage</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val getOpt : ('a option * 'a) -&gt; 'a</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Option.getOpt</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val isSome : 'a option -&gt; bool</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Option.isSome</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val valOf : 'a option -&gt; 'a</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Option.valOf</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val not : bool -&gt; bool</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Bool.not</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val real : int -&gt; real</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Real.fromInt</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val trunc : real -&gt; int</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Real.trunc</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val floor : real -&gt; int</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Real.floor</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val ceil : real -&gt; int</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Real.ceil</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val round : real -&gt; int</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Real.round</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val ord : char -&gt; int</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Char.ord</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val chr : int -&gt; char</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Char.chr</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val size : string -&gt; int</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>String.size</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val str : char -&gt; string</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>String.str</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val concat : string list -&gt; string</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>String.concat</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val implode : char list -&gt; string</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>String.implode</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val explode : string -&gt; char list</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>String.explode</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val substring : string * int * int -&gt; string</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>String.substring</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val ^ : string * string -&gt; string</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>String.^</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val null : 'a list -&gt; bool</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.null</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val hd : 'a list -&gt; 'a</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.hd</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val tl : 'a list -&gt; 'a list</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.tl</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val length : 'a list -&gt; int</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.length</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val rev  : 'a list -&gt; 'a list</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.rev</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val @ : ('a list * 'a list) -&gt; 'a list</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.@</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val app : ('a -&gt; unit) -&gt; 'a list -&gt; unit</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.app</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val map : ('a -&gt; 'b) -&gt; 'a list -&gt; 'b list</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.map</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val foldr : ('a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a list -&gt; 'b</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.foldr</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val foldl : ('a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a list -&gt; 'b</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>List.foldl</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val print : string -&gt; unit</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>TextIO.print</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val vector : 'a list -&gt; 'a vector</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<CODE>Vector.fromList</CODE>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val use : string -&gt; unit</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<I>primitive</I>
+</TABLE>
+</CENTER>
+<HR>
+ 
+<P>
+Although the benefits and costs of allowing user-defined overloading are the source of some debate, the design of SML prohibits this feature. However, it would be unacceptable to most programmers not to provide overloading on certain basic arithmetic and relational operators and functions. The nature of overloading requires these identifiers to be available in the top-level environment. These identifiers, with their type schemas and default types, are given  below 
+<HR>
+<CENTER>
+<TABLE ALIGN=CENTER>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val + : <I>num</I> * <I>num</I> -&gt; <I>num</I></TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; int</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val - : <I>num</I> * <I>num</I> -&gt; <I>num</I></TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; int</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val * : <I>num</I> * <I>num</I> -&gt; <I>num</I></TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; int</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val div : <I>wordint</I> * <I>wordint</I> -&gt; <I>wordint</I></TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; int</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val mod : <I>wordint</I> * <I>wordint</I> -&gt; <I>wordint</I></TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; int</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val / : <I>real</I> * <I>real</I> -&gt; <I>real</I></TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>real * real -&gt; real</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val ~ : <I>realint</I> -&gt; <I>realint</I></TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int -&gt; int</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val abs : <I>realint</I> -&gt; <I>realint</I></TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int -&gt; int</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val &lt; : <I>numtext</I> * <I>numtext</I> -&gt; bool</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; bool</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val &gt; : <I>numtext</I> * <I>numtext</I> -&gt; bool</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; bool</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val &lt;= : <I>numtext</I> * <I>numtext</I> -&gt; bool</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; bool</TT>
+<TR>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>val &gt;= : <I>numtext</I> * <I>numtext</I> -&gt; bool</TT>
+<TD ALIGN=LEFT VALIGN=TOP>
+<TT>int * int -&gt; bool</TT>
+</TABLE>
+</CENTER>
+<HR>
+ where 
+<UL>
+<LI>
+<I>int</I><CODE> := {Int.int, Int</CODE><I>N</I><CODE>.int, IntInf.int, Position.int}</CODE>   
+<LI>
+<I>word</I><CODE> := {Word.word, Word8.word, Word</CODE><I>N</I><CODE>.word, SysWord.word}</CODE>   
+<LI>
+<I>real</I><CODE> := {Real.real, Real</CODE><I>N</I><CODE>.real}</CODE>   
+<LI>
+<I>text</I><CODE> := {String.string, Char.char, WideString.string, WideChar.char}</CODE>   
+<LI>
+<I>wordint <CODE>:=</CODE> word <B>union</B> int</I>   
+<LI>
+<I>realint <CODE>:=</CODE> real <B>union</B> int</I>   
+<LI>
+<I>num <CODE>:=</CODE> word <B>union</B> int <B>union</B> real</I>   
+<LI>
+<I>numtext <CODE>:=</CODE> num <B>union</B> text</I>
+</UL>
+ The same type must be chosen throughout the entire type of an overloaded operator. For example, the function <CODE>abs</CODE> cannot have  type <CODE>int -&gt; real</CODE>, but only a type like <CODE>int -&gt; int</CODE>. In addition, we note that <I><CODE>Int</CODE>N<CODE>.int</CODE></I>, <CODE>IntInf.int</CODE>,  <I><CODE>Word</CODE>N<CODE>.word</CODE></I>, <I><CODE>Real</CODE>N<CODE>.real</CODE></I>, <CODE>WideString.string</CODE>  and <CODE>WideChar.char</CODE> are optional types.
+<P>
+Appendix C provides additional information on how overload resolution  is performed on these identifiers, particularly in the context of overloaded literals.
+<H3>Infix identifiers</H3>
+<P>
+The top-level environment has the following infix identifiers: 
+<PRE>
+infix  7  * / div mod
+infix  6  + - ^
+infixr 5  :: @
+infix  4  = &lt;&gt; &gt; &gt;= &lt; &lt;=
+infix  3  := o
+infix  0  before
+</PRE>
+ 
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="sml-std-basis.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 4, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

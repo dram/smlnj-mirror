@@ -1,0 +1,470 @@
+<!-- HTML/char.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CHAR signature</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>CHAR</CODE> signature</H3>
+<P>
+ The CHAR signature defines a type char of characters and provides basic operations and predicates on values of that type. There is a linear ordering supported on characters. In addition, there is an encoding of characters into a contiguous range of non-negative integers that preserves the linear ordering.
+<P>
+There are two structures matching the <A HREF="#CHAR:SIG:SPEC">CHAR</A> signature.  The <CODE>Char</CODE> structure defines a superset of the usual ASCII characters and locale-independent operations on them. For this structure, <CODE>Char.maxOrd</CODE> = 255.
+<P>
+The optional <CODE>WideChar</CODE> structure defines wide characters, which are represented by a fixed number of 8-bit words (bytes). If the <A HREF="#WideChar:STR:SPEC">WideChar</A> is provided, it is distinct from the <A HREF="#Char:STR:SPEC">Char</A> structure.
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CHAR:SIG:SPEC"><CODE>CHAR</CODE></A><BR>
+<B>structure </B><A NAME="Char:STR:SPEC"><CODE>Char</CODE></A><B> : </B>CHAR<BR>
+<B>structure </B><A NAME="WideChar:STR:SPEC"><CODE>WideChar</CODE></A><B> : </B>CHAR<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:CHAR.char:TY:SPEC" HREF="#SIG:CHAR.char:TY">char</A><BR>
+<B>eqtype</B> <A NAME="SIG:CHAR.string:TY:SPEC" HREF="#SIG:CHAR.string:TY">string</A><BR>
+<B>val</B> <A NAME="SIG:CHAR.minChar:VAL:SPEC" HREF="#SIG:CHAR.minChar:VAL">minChar</A> <B>:</B> char         <BR>
+<B>val</B> <A NAME="SIG:CHAR.maxChar:VAL:SPEC" HREF="#SIG:CHAR.maxChar:VAL">maxChar</A> <B>:</B> char         <BR>
+<B>val</B> <A NAME="SIG:CHAR.maxOrd:VAL:SPEC" HREF="#SIG:CHAR.maxOrd:VAL">maxOrd</A> <B>:</B> int         <BR>
+<B>val</B> <A NAME="SIG:CHAR.ord:VAL:SPEC" HREF="#SIG:CHAR.ord:VAL">ord</A> <B>:</B> char -&gt; int       <BR>
+<B>val</B> <A NAME="SIG:CHAR.chr:VAL:SPEC" HREF="#SIG:CHAR.ord:VAL">chr</A> <B>:</B> int -&gt; char         <BR>
+<B>val</B> <A NAME="SIG:CHAR.succ:VAL:SPEC" HREF="#SIG:CHAR.succ:VAL">succ</A> <B>:</B> char -&gt; char         <BR>
+<B>val</B> <A NAME="SIG:CHAR.pred:VAL:SPEC" HREF="#SIG:CHAR.pred:VAL">pred</A> <B>:</B> char -&gt; char         <BR>
+<B>val</B> <A NAME="SIG:CHAR.\|@LT\|:VAL:SPEC" HREF="#SIG:CHAR.\|@LT\|:VAL">&lt;</A> <B>:</B> (char * char) -&gt; bool       <BR>
+<B>val</B> <A NAME="SIG:CHAR.\|@LTE\|:VAL:SPEC" HREF="#SIG:CHAR.\|@LT\|:VAL">&lt;=</A> <B>:</B> (char * char) -&gt; bool       <BR>
+<B>val</B> <A NAME="SIG:CHAR.\|@GT\|:VAL:SPEC" HREF="#SIG:CHAR.\|@LT\|:VAL">&gt;</A> <B>:</B> (char * char) -&gt; bool       <BR>
+<B>val</B> <A NAME="SIG:CHAR.\|@GTE\|:VAL:SPEC" HREF="#SIG:CHAR.\|@LT\|:VAL">&gt;=</A> <B>:</B> (char * char) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.compare:VAL:SPEC" HREF="#SIG:CHAR.compare:VAL">compare</A> <B>:</B> (char * char) -&gt; order         <BR>
+<B>val</B> <A NAME="SIG:CHAR.contains:VAL:SPEC" HREF="#SIG:CHAR.contains:VAL">contains</A> <B>:</B> string -&gt; char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.notContains:VAL:SPEC" HREF="#SIG:CHAR.notContains:VAL">notContains</A> <B>:</B> string -&gt; char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.toLower:VAL:SPEC" HREF="#SIG:CHAR.toLower:VAL">toLower</A> <B>:</B> char -&gt; char       <BR>
+<B>val</B> <A NAME="SIG:CHAR.toUpper:VAL:SPEC" HREF="#SIG:CHAR.toLower:VAL">toUpper</A> <B>:</B> char -&gt; char         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isAlpha:VAL:SPEC" HREF="#SIG:CHAR.isAlpha:VAL">isAlpha</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isAlphaNum:VAL:SPEC" HREF="#SIG:CHAR.isAlphaNum:VAL">isAlphaNum</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isAscii:VAL:SPEC" HREF="#SIG:CHAR.isAscii:VAL">isAscii</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isCntrl:VAL:SPEC" HREF="#SIG:CHAR.isCntrl:VAL">isCntrl</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isDigit:VAL:SPEC" HREF="#SIG:CHAR.isDigit:VAL">isDigit</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isGraph:VAL:SPEC" HREF="#SIG:CHAR.isGraph:VAL">isGraph</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isHexDigit:VAL:SPEC" HREF="#SIG:CHAR.isHexDigit:VAL">isHexDigit</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isLower:VAL:SPEC" HREF="#SIG:CHAR.isLower:VAL">isLower</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isPrint:VAL:SPEC" HREF="#SIG:CHAR.isPrint:VAL">isPrint</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isSpace:VAL:SPEC" HREF="#SIG:CHAR.isSpace:VAL">isSpace</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isPunct:VAL:SPEC" HREF="#SIG:CHAR.isPunct:VAL">isPunct</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.isUpper:VAL:SPEC" HREF="#SIG:CHAR.isUpper:VAL">isUpper</A> <B>:</B> char -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:CHAR.fromString:VAL:SPEC" HREF="#SIG:CHAR.fromString:VAL">fromString</A> <B>:</B> String.string -&gt; char option       <BR>
+<B>val</B> <A NAME="SIG:CHAR.scan:VAL:SPEC" HREF="#SIG:CHAR.fromString:VAL">scan</A> <B>:</B> (Char.char, 'a) StringCvt.reader -&gt; 'a -&gt; (char * 'a) option       <BR>
+<B>val</B> <A NAME="SIG:CHAR.toString:VAL:SPEC" HREF="#SIG:CHAR.toString:VAL">toString</A> <B>:</B> char -&gt; String.string         <BR>
+<B>val</B> <A NAME="SIG:CHAR.fromCString:VAL:SPEC" HREF="#SIG:CHAR.fromCString:VAL">fromCString</A> <B>:</B> String.string -&gt; char option         <BR>
+<B>val</B> <A NAME="SIG:CHAR.toCString:VAL:SPEC" HREF="#SIG:CHAR.toCString:VAL">toCString</A> <B>:</B> char -&gt; String.string         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CHAR.char:TY"><CODE><B>eqtype</B> char</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.string:TY"><CODE><B>eqtype</B> string</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.minChar:VAL"><CODE>minChar
+          </CODE></A>
+<DD>
+is the least character in the ordering.           It always equals <CODE><A HREF="#SIG:CHAR.chr:VAL:SPEC">chr</A> 0</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.maxChar:VAL"><CODE>maxChar
+          </CODE></A>
+<DD>
+is the greatest character in the ordering.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.maxOrd:VAL"><CODE>maxOrd
+          </CODE></A>
+<DD>
+is the greatest character code; equals <CODE><A HREF="#SIG:CHAR.ord:VAL:SPEC">ord</A> <A HREF="#SIG:CHAR.maxChar:VAL:SPEC">maxChar</A></CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.ord:VAL"><CODE>ord <VAR>c</VAR>
+          </CODE></A>
+<DT> <CODE>          chr <VAR>i</VAR>
+          </CODE>
+<DD>
+returns the integer code of the character <VAR>c</VAR> and the character whose code is <VAR>i</VAR>, respectively. The function <A HREF="#SIG:CHAR.chr:VAL:SPEC">chr</A> raises <A HREF="general.html#SIG:GENERAL.Chr:EXN:SPEC">Chr</A>  if <VAR>i</VAR> &lt; 0  or <VAR>i</VAR> &gt; <CODE>maxOrd</CODE>. When <A HREF="#SIG:CHAR.chr:VAL:SPEC">chr</A> is restricted to the interval [0,<CODE>maxOrd</CODE>], these two functions denote the character encoding function and its inverse.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.succ:VAL"><CODE>succ <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns the character immediately following <VAR>c</VAR> in the ordering, or raises <A HREF="general.html#SIG:GENERAL.Chr:EXN:SPEC">Chr</A> if <VAR>c</VAR> = <CODE>maxChar</CODE>. When defined, <CODE><A HREF="#SIG:CHAR.succ:VAL:SPEC">succ</A> <VAR>c</VAR></CODE> is equivalent to <CODE><A HREF="#SIG:CHAR.chr:VAL:SPEC">chr</A>(<A HREF="#SIG:CHAR.ord:VAL:SPEC">ord</A> <VAR>c</VAR> + 1)</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.pred:VAL"><CODE>pred <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns the character immediately preceding <VAR>c</VAR>, or raises <A HREF="general.html#SIG:GENERAL.Chr:EXN:SPEC">Chr</A> if  <VAR>c</VAR> = <CODE>minChar</CODE>. When defined, <CODE><A HREF="#SIG:CHAR.pred:VAL:SPEC">pred</A> <VAR>c</VAR></CODE> is equivalent to <CODE><A HREF="#SIG:CHAR.chr:VAL:SPEC">chr</A>(<A HREF="#SIG:CHAR.ord:VAL:SPEC">ord</A> <VAR>c</VAR> - 1)</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.\|@LT\|:VAL"><CODE><VAR>c</VAR> &lt; <VAR>d</VAR>
+          </CODE></A>
+<DT> <CODE>          <VAR>c</VAR> &lt;= <VAR>d</VAR>
+          </CODE>
+<DT> <CODE>          <VAR>c</VAR> &gt; <VAR>d</VAR>
+          </CODE>
+<DT> <CODE>          <VAR>c</VAR> &gt;= <VAR>d</VAR>
+          </CODE>
+<DD>
+compare characters in the character ordering.           Note that the functions <A HREF="#SIG:CHAR.ord:VAL:SPEC">ord</A> and <A HREF="#SIG:CHAR.chr:VAL:SPEC">chr</A>           preserve orderings.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.compare:VAL"><CODE>compare (<VAR>c</VAR>, <VAR>d</VAR>)
+          </CODE></A>
+<DD>
+returns <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">LESS</A>, <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">EQUAL</A>, or <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">GREATER</A>, according as <VAR>c</VAR> precedes, equals, or follows <VAR>d</VAR> in the character ordering.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.contains:VAL"><CODE>contains <VAR>s</VAR> <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if character <VAR>c</VAR> occurs in the string <VAR>s</VAR>; otherwise <CODE>false</CODE>.             
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+In some implementations, the partial application of            <A HREF="#SIG:CHAR.contains:VAL:SPEC">contains</A> to <VAR>s</VAR> may build a table, which           is used by the resulting function to decide whether a given character           is in the string or not.  Hence it may be expensive to compute            <CODE>val <VAR>p</VAR> = <A HREF="#SIG:CHAR.contains:VAL:SPEC">contains</A> <VAR>s</VAR></CODE>, but fast to compute           <CODE>p <VAR>c</VAR></CODE> for any given character <VAR>c</VAR>.           
+</BLOCKQUOTE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.notContains:VAL"><CODE>notContains <VAR>s</VAR> <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if character <VAR>c</VAR> does not occur in the string <VAR>s</VAR>; <CODE>false</CODE> otherwise.   Equivalent to <CODE><A HREF="bool.html#SIG:BOOL.not:VAL:SPEC">not</A>(<A HREF="#SIG:CHAR.contains:VAL:SPEC">contains</A> <VAR>s</VAR> <VAR>c</VAR></CODE>).           
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+As with <A HREF="#SIG:CHAR.contains:VAL:SPEC">contains</A>, <A HREF="#SIG:CHAR.notContains:VAL:SPEC">notContains</A> may be           implemented via table lookup.           
+</BLOCKQUOTE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.toLower:VAL"><CODE>toLower <VAR>c</VAR>
+          </CODE></A>
+<DT> <CODE>          toUpper <VAR>c</VAR>
+          </CODE>
+<DD>
+returns the lowercase (respectively, uppercase) letter            corresponding to <VAR>c</VAR> if <VAR>c</VAR> is a letter;            otherwise returns <VAR>c</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isAlpha:VAL"><CODE>isAlpha <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a letter (lowercase or uppercase).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isAlphaNum:VAL"><CODE>isAlphaNum <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is alphanumeric (a letter or a decimal digit).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isAscii:VAL"><CODE>isAscii <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a (seven-bit) ASCII character, i.e., 0 &lt;= <CODE>ord</CODE> <VAR>c</VAR> &lt;= 127. Note that this function is independent of locale.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isCntrl:VAL"><CODE>isCntrl <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a control character. Equivalent to <CODE> <A HREF="bool.html#SIG:BOOL.not:VAL:SPEC">not</A> o <A HREF="#SIG:CHAR.isPrint:VAL:SPEC">isPrint</A></CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isDigit:VAL"><CODE>isDigit <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a decimal digit (0-9).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isGraph:VAL"><CODE>isGraph <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a graphical character, that is, it is printable and not a whitespace character.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isHexDigit:VAL"><CODE>isHexDigit <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a hexadecimal digit (0-9, a-f, A-F).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isLower:VAL"><CODE>isLower <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a lowercase letter.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isPrint:VAL"><CODE>isPrint <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a printable character (space or visible), i.e., not a control character.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isSpace:VAL"><CODE>isSpace <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a whitespace character (space, newline, tab, carriage return, vertical tab, formfeed).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isPunct:VAL"><CODE>isPunct <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is a punctuation character: graphical but not alphanumeric.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.isUpper:VAL"><CODE>isUpper <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if <VAR>c</VAR> is an uppercase letter.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.fromString:VAL"><CODE>fromString <VAR>s</VAR>
+        </CODE></A>
+<DT> <CODE>	  scan <VAR>getc</VAR> <VAR>strm</VAR>
+        </CODE>
+<DD>
+scan a character (including space) or an SML escape           sequence representing a character from the prefix of            a string or a character stream. After a successful conversion,           <A HREF="#SIG:CHAR.fromString:VAL:SPEC">fromString</A> ignores any additional characters in <VAR>s</VAR>.           If no conversion is possible, e.g., if the first character           is non-printable (i.e., not in the ASCII range 0x20-0x7E) or           starts an illegal escape sequence,           <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> is returned.           
+<P>
+          The allowable escape sequences are:           
+<PRE>
+          \a       Alert (ASCII 0x07)
+          \b       Backspace (ASCII 0x08)
+          \t       Horizontal tab (ASCII 0x09)
+          \n       Linefeed or newline (ASCII 0x0A)
+          \v       Vertical tab (ASCII 0x0B)
+          \f       Form feed (ASCII 0x0C)
+          \r       Carriage return (ASCII 0x0D)
+          \\       Backslash
+          \&quot;       Double quote
+          \^c      A control character whose encoding is C - 64, where C
+                   is the encoding of the character c, with C in the range
+                   [64,95].
+          \ddd     The character whose encoding is the number ddd, three decimal
+                   digits denoting an integer in the range [0,255].
+          \uxxxx   The character whose encoding is the number xxxx, 
+                   four hexadecimal digits denoting an integer in the 
+                   ordinal range of the alphabet.
+          \f...f\  This sequence is ignored, where f...f stands for a sequence
+                   of one or more formatting characters.
+          
+</PRE>
+<P>
+In the escape sequences involving  decimal or hexadecimal digits, the sequence of digits is taken to be the longest sequence of such characters. If the resulting value cannot be represented in the character set,  <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> is returned.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.toString:VAL"><CODE>toString <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns a printable string representation of the character,           using, if necessary, SML escape sequences.           Printable characters, except for <CODE>#&quot;\\&quot;</CODE> and <CODE>#&quot;\&quot;&quot;</CODE>,            are left unchanged.            Backslash <CODE>#&quot;\\&quot;</CODE> becomes <CODE>&quot;\\\\&quot;</CODE>;           double quote <CODE>#&quot;\&quot;&quot;</CODE> becomes <CODE>&quot;\\\&quot;&quot;</CODE>.           The common control characters are converted to two-character escape           sequences:           
+<PRE>
+          Alert (ASCII 0x07)                    &quot;\\a&quot;
+          Backspace (ASCII 0x08)                &quot;\\b&quot;
+          Horizontal tab (ASCII 0x09)           &quot;\\t&quot;
+          Linefeed or newline (ASCII 0x0A)      &quot;\\n&quot;
+          Vertical tab (ASCII 0x0B)             &quot;\\v&quot;
+          Form feed (ASCII 0x0C)                &quot;\\f&quot;
+          Carriage return (ASCII 0x0D)          &quot;\\r&quot;
+          
+</PRE>
+           The remaining characters whose codes are less than 32            are represented by three-character strings in ``control character'' notation, e.g.,            <CODE>#&quot;\000&quot;</CODE> maps to <CODE>&quot;\\^@&quot;</CODE>,            <CODE>#&quot;\001&quot;</CODE> maps to <CODE>&quot;\\^A&quot;</CODE>, etc.           All other characters (i.e., those whose codes are 127 or greater)           are mapped to four-character strings of the form <CODE>&quot;\\ddd&quot;</CODE>, where           <CODE>ddd</CODE> are the three decimal digits corresponding to a character's code.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.fromCString:VAL"><CODE>fromCString <VAR>s</VAR>
+          </CODE></A>
+<DD>
+scans a character (including space) or a C escape           sequence representing a character from the prefix of            a string. After a successful conversion,           <A HREF="#SIG:CHAR.fromCString:VAL:SPEC">fromCString</A> ignores any additional            characters in <VAR>s</VAR>.           If no conversion is possible, e.g., if the first character           is non-printable (i.e., not in the ASCII range 0x20-0x7E) or           starts an illegal escape sequence,           <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> is returned.           
+<P>
+          The allowable escape sequences are given below           (cf. Section 6.1.3.4 of the ISO C standard  ISO/IEC <B>[CITE]</B>9899:1990/).           
+<PRE>
+          \a       Alert (ASCII 0x07)
+          \b       Backspace (ASCII 0x08)
+          \t       Horizontal tab (ASCII 0x09)
+          \n       Linefeed or newline (ASCII 0x0A)
+          \v       Vertical tab (ASCII 0x0B)
+          \f       Form feed (ASCII 0x0C)
+          \r       Carriage return (ASCII 0x0D)
+          \?       Question mark
+          \\       Backslash
+          \&quot;       Double quote
+          \'       Single quote
+          \^c      A control character whose encoding is C - 64, where C
+                   is the encoding of the character c, with C in the range
+                   [64,95].
+          \ddd     The character whose encoding is the number ddd, where
+                   ddd consists of one to three octal.
+          \uxxxx   The character whose encoding is the number xxxx, 
+                   where xxxx is a sequence of hexadecimal digits.
+          
+</PRE>
+<P>
+In the escape sequences involving  octal or hexadecimal digits, the sequence of digits is taken to be the longest sequence of such characters. If the resulting value cannot be represented in the character set,  <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> is returned.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CHAR.toCString:VAL"><CODE>toCString <VAR>c</VAR>
+          </CODE></A>
+<DD>
+returns a printable string corresponding to <VAR>c</VAR>, with           non-printable characters replaced by C escape sequences.           Specifically, printable characters,            except for <CODE>#&quot;\\&quot;</CODE>, <CODE>#&quot;\&quot;&quot;</CODE>, <CODE>#&quot;?&quot;</CODE> and <CODE>#&quot;'&quot;</CODE>           are left unchanged.            Backslash <CODE>#&quot;\\&quot;</CODE> becomes <CODE>&quot;\\\\&quot;</CODE>;           double quote <CODE>#&quot;\&quot;&quot;</CODE> becomes <CODE>&quot;\\\&quot;&quot;</CODE>,           question mark <CODE>#&quot;?&quot;</CODE> becomes <CODE>&quot;\\?&quot;</CODE>,           single quote <CODE>#&quot;'&quot;</CODE> becomes <CODE>&quot;\\'&quot;</CODE>.           The common control characters are converted to two-character escape           sequences:           
+<PRE>
+          Alert (ASCII 0x07)                    &quot;\\a&quot;
+          Backspace (ASCII 0x08)                &quot;\\b&quot;
+          Horizontal tab (ASCII 0x09)           &quot;\\t&quot;
+          Linefeed or newline (ASCII 0x0A)      &quot;\\n&quot;
+          Vertical tab (ASCII 0x0B)             &quot;\\v&quot;
+          Form feed (ASCII 0x0C)                &quot;\\f&quot;
+          Carriage return (ASCII 0x0D)          &quot;\\r&quot;
+          
+</PRE>
+           All other characters are represented by one to three octal digits,           corresponding to a character's code, preceded by a backslash.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+In <A HREF="#WideChar:STR:SPEC">WideChar</A>, the functions <A HREF="#SIG:CHAR.toLower:VAL:SPEC">toLower</A>, <A HREF="#SIG:CHAR.toLower:VAL:SPEC">toLower</A>, <A HREF="#SIG:CHAR.isAlpha:VAL:SPEC">isAlpha</A>,..., <A HREF="#SIG:CHAR.isUpper:VAL:SPEC">isUpper</A> are locale-dependent. In <A HREF="#Char:STR:SPEC">Char</A>, these functions are locale-independent, with the following semantics: 
+<HR>
+<CENTER>
+<TABLE ALIGN="CENTER">
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isUpper</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>#&quot;A&quot; &lt;= <VAR>c</VAR> andalso <VAR>c</VAR> &lt;= #&quot;Z&quot;</CODE>  
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isLower</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>#&quot;a&quot; &lt;= <VAR>c</VAR> andalso <VAR>c</VAR> &lt;= #&quot;z&quot;</CODE>  
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isDigit</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>#&quot;0&quot; &lt;= <VAR>c</VAR> andalso <VAR>c</VAR> &lt;= #&quot;9&quot;</CODE>  
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isAlpha</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>isUpper <VAR>c</VAR> orelse isLower <VAR>c</VAR></CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isAlphaNum</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>isAlpha <VAR>c</VAR> orelse isDigit <VAR>c</VAR></CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isHexDigit</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>isDigit <VAR>c</VAR> orelse (#&quot;a&quot; &lt;= <VAR>c</VAR> andalso <VAR>c</VAR> &lt;= #&quot;f&quot;) orelse (#&quot;A&quot; &lt;= <VAR>c</VAR> andalso <VAR>c</VAR> &lt;= #&quot;F&quot;)</CODE>  
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isGraph</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>#&quot;!&quot; &lt;= <VAR>c</VAR> andalso <VAR>c</VAR> &lt;= #&quot;~&quot;</CODE>  
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isPrint</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>isGraph <VAR>c</VAR> orelse <VAR>c</VAR> = #&quot; &quot;</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isPunct</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>isGraph <VAR>c</VAR> andalso not (isAlphaNum <VAR>c</VAR>)</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isCtrl</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>not (isPrint <VAR>c</VAR>)</CODE>
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isSpace</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>(#&quot;\t&quot; &lt;= <VAR>c</VAR> andalso <VAR>c</VAR> &lt;= #&quot;\r&quot;) orelse <VAR>c</VAR> &lt;= #&quot;\ &quot;</CODE>  
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>isAscii</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>true</CODE> if <CODE>0 &lt;= ord <VAR>c</VAR> andalso ord <VAR>c</VAR> &lt;= 127</CODE>  
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>toLower</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>chr (ord <VAR>c</VAR> + 32)</CODE> if <CODE>isUpper <VAR>c</VAR></CODE>; otherwise, <CODE>c</CODE>  
+<TR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<TT>toUpper</TT> <VAR>c</VAR>
+<TD ALIGN="LEFT" VALIGN="TOP">
+<CODE>chr (ord <VAR>c</VAR> - 32)</CODE> if <CODE>isLower <VAR>c</VAR></CODE>; otherwise, <CODE>c</CODE>  
+</TABLE>
+</CENTER>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="locale.html#Locale:STR:SPEC">Locale</A>, <A HREF="multibyte.html#MultiByte:STR:SPEC">MultiByte</A>, <A HREF="string.html#STRING:SIG:SPEC">STRING</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="text-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 6, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

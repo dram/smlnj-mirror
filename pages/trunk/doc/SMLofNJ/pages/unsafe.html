@@ -1,0 +1,160 @@
+<!-- HTML/unsafe.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Unsafe structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>Unsafe</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="UNSAFE:SIG:SPEC"><CODE>UNSAFE</CODE></A><BR>
+<B>structure </B><A NAME="Unsafe:STR:SPEC"><CODE>Unsafe</CODE></A><B> : </B>UNSAFE<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+These modules provide unsafe access to data structures and to runtime-system functions.  Use of <A HREF="unsafe.html#Unsafe:STR:SPEC">Unsafe</A> by an ML program can cause corruption of the ML execution, which may lead to  program crashes or other insecurity. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> CInterface <B>:</B> CINTERFACE<BR>
+<B>structure</B> Object <B>:</B> UNSAFE_OBJECT<BR>
+<B>structure</B> Poll <B>:</B> POLL<BR>
+<B>structure</B> Vector <B>:</B> UNSAFE_VECTOR<BR>
+<B>structure</B> Array <B>:</B> UNSAFE_ARRAY<BR>
+<B>structure</B> CharVector <B>:</B> UNSAFE_MONO_VECTOR         <BR>
+<B>structure</B> CharArray <B>:</B> UNSAFE_MONO_ARRAY         <BR>
+<B>structure</B> Word8Vector <B>:</B> UNSAFE_MONO_VECTOR         <BR>
+<B>structure</B> Word8Array <B>:</B> UNSAFE_MONO_ARRAY         <BR>
+<B>structure</B> Real64Array <B>:</B> UNSAFE_MONO_ARRAY         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.getHdlr:VAL:SPEC" HREF="#SIG:UNSAFE.getHdlr:VAL">getHdlr</A> <B>:</B> unit -&gt; 'a cont         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.setHdlr:VAL:SPEC" HREF="#SIG:UNSAFE.setHdlr:VAL">setHdlr</A> <B>:</B> 'a cont -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.getVar:VAL:SPEC" HREF="#SIG:UNSAFE.getVar:VAL">getVar</A> <B>:</B> unit -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.setVar:VAL:SPEC" HREF="#SIG:UNSAFE.setVar:VAL">setVar</A> <B>:</B> 'a -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.getPseudo:VAL:SPEC" HREF="#SIG:UNSAFE.getPseudo:VAL">getPseudo</A> <B>:</B> int -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.setPseudo:VAL:SPEC" HREF="#SIG:UNSAFE.setPseudo:VAL">setPseudo</A> <B>:</B> ('a * int) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.blastRead:VAL:SPEC" HREF="#SIG:UNSAFE.blastRead:VAL">blastRead</A> <B>:</B> Word8Vector.vector -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.blastWrite:VAL:SPEC" HREF="#SIG:UNSAFE.blastWrite:VAL">blastWrite</A> <B>:</B> 'a -&gt; Word8Vector.vector         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.boxed:VAL:SPEC" HREF="#SIG:UNSAFE.boxed:VAL">boxed</A> <B>:</B> 'a -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.cast:VAL:SPEC" HREF="#SIG:UNSAFE.cast:VAL">cast</A> <B>:</B> 'a -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.pStruct:VAL:SPEC" HREF="#SIG:UNSAFE.pStruct:VAL">pStruct</A> <B>:</B> Object.object ref         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE.topLevelCont:VAL:SPEC" HREF="#SIG:UNSAFE.topLevelCont:VAL">topLevelCont</A> <B>:</B> unit cont ref         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:UNSAFE.getHdlr:VAL"><CODE>getHdlr <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Get the current exception handler, expressed as an <CODE>exn cont</CODE>,           that is, a continuation taking an exception as an argument.           (There seems to be no reason for the type to be <CODE>'a cont</CODE>            in this signature.)  Throwing an <CODE>exn</CODE> to this continuation           will behave as if the exception were raised.           
+<P>
+          There is nothing inherently unsafe about this (except the           bogus use of <CODE>'a cont</CODE> in the signature instead of            <CODE>exn cont</CODE>.  It is even possible to grab the handler,           then leave the dynamic scope of the handler, then throw           to it, with paradoxical but not unsafe effect.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.setHdlr:VAL"><CODE>setHdlr <VAR>k</VAR>
+          </CODE></A>
+<DD>
+Install <VAR>k</VAR>, which should be an <CODE>exn cont</CODE>, as the current           exception handler.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.getVar:VAL"><CODE>getVar <VAR>()</VAR>
+          </CODE></A>
+<DD>
+SML/NJ has a special global variable, kept in registers upon           most target architectures, used for various purposes by           subsystems such as CML or the debugger.  This function            fetches the contents of the &quot;var&quot;.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.setVar:VAL"><CODE>setVar <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Sets the value of the special global variable.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.getPseudo:VAL"><CODE>getPseudo <VAR>i</VAR>
+          </CODE></A>
+<DD>
+Obsolete, do not use.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.setPseudo:VAL"><CODE>setPseudo (<VAR>a</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DD>
+Obsolete, do not use.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.blastRead:VAL"><CODE>blastRead <VAR>vec</VAR>
+          </CODE></A>
+<DD>
+Unpack a data structure from a string.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.blastWrite:VAL"><CODE>blastWrite <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Marshall a data structure of arbitrary type into a linear           sequence of bytes.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.boxed:VAL"><CODE>boxed <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Tell whether the representation of <VAR>a</VAR> is via  a pointer.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.cast:VAL"><CODE>cast <VAR>a</VAR>
+          </CODE></A>
+<DD>
+View <VAR>a</VAR> as if it had another type.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.pStruct:VAL"><CODE>pStruct
+          </CODE></A>
+<DD>
+A pointer to the primitive core structure; for use           in bootstrapping the interactive system.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE.topLevelCont:VAL"><CODE>topLevelCont
+          </CODE></A>
+<DD>
+The continuation to which control will be thrown when           an interrupt signal (SIGINT, on Unix) is received.           Usually, the topLevelCont continuation resumes the           interactive loop, but in principle users could install           other continuation values in this variable.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

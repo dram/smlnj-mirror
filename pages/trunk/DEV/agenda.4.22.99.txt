@@ -1,0 +1,46 @@
+Agenda for 4/22/99 visit by Zhong Shao and Stefan Monnier
+
+* status and roadmap for Flint
+  - SML/NJ specific, we are working on the following:
+     = cross-functor inlining and other FLINT optimizations
+     = moving closure conversion into FLINT
+     = primop and primtyc reorganizations (merging FLINT/CPS primops)
+     = eliminating CPS completely (FLINT will go directly to MLtree) 
+     = dictionary-based type-dependent operations (new pretty-printing
+       support, elimination of runtime equality operator, etc.)
+  - General to FLINT:
+     = java bytecode to FLINT translation
+     = stack-heap interoperability
+     = new FLINT-based virtual machine and runtime system
+     = front-end for a FLINT-like surface language
+
+* status and roadmap for MLRISC
+  - x86 plans
+  - machine descriptions and mips
+  - support for LCC to C--
+  - machine SSA optimizations.
+
+* status and roadmap for new runtime
+  - architecture
+  - interaction of changes with MLRISC and FLINT	
+  - datatypes layout guarantees
+  - idl, c-interface, COM
+
+* design issues
+  - exposing the new array representation in the compiler internals (and
+    possibly in the PrimTypes interface too).
+  - replacing Core with a dynamic mechanism.
+
+* performance 
+  - benchmarking
+  - performance tracking
+  - priorities for improving performance
+
+* documentation
+  - external
+  - internal
+
+* bug status
+   (I'll bring the bug list up to date)
+
+* plan for next release

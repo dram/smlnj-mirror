@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ-C</title>
+  </head>
+
+  <body BGCOLOR="white">
+    <h1>SML/NJ-C Foreign Function Interface Library</h1>
+<p>
+The documentation for this library consists of the
+<a href="README">README</a> file (found at src/smlnj-c/README in the
+source distribution),
+and the paper
+<a href="smlnj-c.ps"><em>A Portable C Interface for Standard ML of New
+Jersey</em> (postscript, 204KB)</a>.  The abstract of this paper
+reads:
+<blockquote>
+This paper describes the design and implementation of an interface to
+C for the SML/NJ ML compiler.  The interface supplies ML datatypes
+with which programmers specify C types and C data. An ML program uses
+these datatypes to register a foreign C function with the interface
+and to build specifications of structured C data. The interface
+automatically instantiates C function arguments from C data
+specifications upon foreign function application. Most C types,
+including aggregate and function-pointer types, are supported.  A
+runtime code generation technique converts ML closures to C-callable
+function pointers.  Function pointers allow C programs to call ML
+programs.  We solve the problems due to differences in data
+representation, function calling conventions, and storage management
+by copying data between the ML and C heaps, converting
+representations and changing calling conventions in the process. We
+find that this copying strategy provides adequate performance in
+practice.  The interface is portable in the sense that its
+implementation does not require changes to the SML/NJ compiler proper;
+it is isolated in a pair of libraries (ML and C).  The interface has
+already found use in several non-trivial applications.
+</blockquote>
+
+    <hr>
+    <address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Fri May  8 15:10:54 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Wed Feb 10 14:02:39 EST 1999
+<!-- hhmts end -->
+  </body>
+</html>

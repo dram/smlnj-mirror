@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>10.1 Time stamps</TITLE>
+<META NAME="description" CONTENT="10.1 Time stamps">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node63.html">
+<LINK REL="previous" HREF="node61.html">
+<LINK REL="up" HREF="node61.html">
+<LINK REL="next" HREF="node63.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1039"
+ HREF="node63.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1035"
+ HREF="node61.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1029"
+ HREF="node61.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1037"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1040"
+ HREF="node63.html">10.2 Index files</A>
+<B> Up:</B> <A NAME="tex2html1036"
+ HREF="node61.html">10. Files</A>
+<B> Previous:</B> <A NAME="tex2html1030"
+ HREF="node61.html">10. Files</A>
+ &nbsp <B>  <A NAME="tex2html1038"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000111000000000000000">
+10.1 Time stamps</A>
+</H2>
+
+<P>
+For skeleton files and binfiles, CM uses file system time stamps
+(i.e., modification time) to determine whether a file has become
+outdated.  The rule is that in order to be considered ``up-to-date''
+the time stamp on skeleton file and binfile has to be exactly the
+same<A NAME="tex2html9"
+ HREF="footnode.html#foot3131"><SUP>9</SUP></A> as
+the one on the ML source file.  This guarantees that all changes to a
+source will be noticed--even those that revert to an older version of
+a source file.<A NAME="tex2html10"
+ HREF="footnode.html#foot3132"><SUP>10</SUP></A>
+<P>
+CM also uses time stamps to decide whether tools such as ML-Yacc or
+ML-Lex need to be run (see Section&nbsp;<A HREF="node40.html#sec:classes">6</A>).  However, the
+difference is that a file is considered outdated if it is older than
+its source.  Some care on the programmers side is necessary since this
+scheme does not allow CM to detect the situation where a source file
+gets replaced by an older version of itself.
+
+<P>
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,402 @@
+<!-- HTML/stream-io.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The STREAM_IO signature</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>STREAM_IO</CODE> signature</H3>
+<P>
+The STREAM_IO signature defines the interface of the <EM>Stream IO</EM> layer in the I/O stack. This layer provides buffering over the primitive readers and writers of the <A HREF="prim-io.html#PrimIO:Layer">primitive IO</A> layer.
+<P>
+Input streams are treated in the lazy functional style: that is, input from a stream <VAR>f</VAR> yields a finite vector of elements, plus a new stream <VAR>f'</VAR>.  Input from <VAR>f</VAR> again will yield the same elements; to advance within the stream in the usual way it is necessary to do further input from <VAR>f'</VAR>.  This interface allows arbitrary lookahead to be done very cleanly, which should be useful both for <I>ad hoc</I> lexical analysis and for table-driven, regular-expression-based lexing.
+<P>
+Output streams are handled more conventionally, since the lazy functional style doesn't seem to make sense for output.
+<P>
+Stream I/O functions may raise the <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> exception if a resulting vector of elements would exceed the maximum vector size, or the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">IO.Io</A> exception. In general, when <A HREF="io.html#SIG:IO.Io:EXN:SPEC">IO.Io</A> is raised as a result  of a failure in a lower-level module, the underlying exception is propagated up as the <CODE>cause</CODE> component of  the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">IO.Io</A> exception value. This will usually be a <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A>,  <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> or <A HREF="general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A> exception, but the stream I/O module will rarely (perhaps never) need to inspect it. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="STREAM_IO:SIG:SPEC"><CODE>STREAM_IO</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:STREAM_IO.elem:TY:SPEC" HREF="#SIG:STREAM_IO.elem:TY">elem</A><BR>
+<B>type</B> <A NAME="SIG:STREAM_IO.vector:TY:SPEC" HREF="#SIG:STREAM_IO.elem:TY">vector</A><BR>
+<B>type</B> <A NAME="SIG:STREAM_IO.reader:TY:SPEC" HREF="#SIG:STREAM_IO.reader:TY">reader</A><BR>
+<B>type</B> <A NAME="SIG:STREAM_IO.writer:TY:SPEC" HREF="#SIG:STREAM_IO.reader:TY">writer</A><BR>
+<B>type</B> <A NAME="SIG:STREAM_IO.instream:TY:SPEC" HREF="#SIG:STREAM_IO.instream:TY">instream</A><BR>
+<B>type</B> <A NAME="SIG:STREAM_IO.outstream:TY:SPEC" HREF="#SIG:STREAM_IO.outstream:TY">outstream</A><BR>
+<B>type</B> <A NAME="SIG:STREAM_IO.in_pos:TY:SPEC" HREF="#SIG:STREAM_IO.in_pos:TY">in_pos</A><BR>
+<B>type</B> <A NAME="SIG:STREAM_IO.out_pos:TY:SPEC" HREF="#SIG:STREAM_IO.in_pos:TY">out_pos</A><BR>
+<B>type</B> <A NAME="SIG:STREAM_IO.pos:TY:SPEC" HREF="#SIG:STREAM_IO.pos:TY">pos</A><BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.input:VAL:SPEC" HREF="#SIG:STREAM_IO.input:VAL">input</A> <B>:</B> instream -&gt; (vector * instream)       <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.input1:VAL:SPEC" HREF="#SIG:STREAM_IO.input1:VAL">input1</A> <B>:</B> instream -&gt; (elem * instream) option       <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.inputN:VAL:SPEC" HREF="#SIG:STREAM_IO.inputN:VAL">inputN</A> <B>:</B> (instream * int) -&gt; (vector * instream)       <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.inputAll:VAL:SPEC" HREF="#SIG:STREAM_IO.inputAll:VAL">inputAll</A> <B>:</B> instream -&gt; vector       <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.canInput:VAL:SPEC" HREF="#SIG:STREAM_IO.canInput:VAL">canInput</A> <B>:</B> (instream * int) -&gt; int option       <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.closeIn:VAL:SPEC" HREF="#SIG:STREAM_IO.closeIn:VAL">closeIn</A> <B>:</B> instream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.endOfStream:VAL:SPEC" HREF="#SIG:STREAM_IO.endOfStream:VAL">endOfStream</A> <B>:</B> instream -&gt; bool       <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.mkInstream:VAL:SPEC" HREF="#SIG:STREAM_IO.mkInstream:VAL">mkInstream</A> <B>:</B> (reader * vector) -&gt; instream         <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.getReader:VAL:SPEC" HREF="#SIG:STREAM_IO.getReader:VAL">getReader</A> <B>:</B> instream -&gt; (reader * vector)         <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.getPosIn:VAL:SPEC" HREF="#SIG:STREAM_IO.getPosIn:VAL">getPosIn</A> <B>:</B> instream -&gt; in_pos 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.setPosIn:VAL:SPEC" HREF="#SIG:STREAM_IO.setPosIn:VAL">setPosIn</A> <B>:</B> in_pos -&gt; instream 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.filePosIn:VAL:SPEC" HREF="#SIG:STREAM_IO.filePosIn:VAL">filePosIn</A> <B>:</B> in_pos -&gt; pos 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.output:VAL:SPEC" HREF="#SIG:STREAM_IO.output:VAL">output</A> <B>:</B> (outstream * vector) -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.output1:VAL:SPEC" HREF="#SIG:STREAM_IO.output1:VAL">output1</A> <B>:</B> (outstream * elem) -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.flushOut:VAL:SPEC" HREF="#SIG:STREAM_IO.flushOut:VAL">flushOut</A> <B>:</B> outstream -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.closeOut:VAL:SPEC" HREF="#SIG:STREAM_IO.closeOut:VAL">closeOut</A> <B>:</B> outstream -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.setBufferMode:VAL:SPEC" HREF="#SIG:STREAM_IO.setBufferMode:VAL">setBufferMode</A> <B>:</B> (outstream * IO.buffer_mode) -&gt; unit       <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.getBufferMode:VAL:SPEC" HREF="#SIG:STREAM_IO.setBufferMode:VAL">getBufferMode</A> <B>:</B> outstream -&gt; IO.buffer_mode       <BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.mkOutstream:VAL:SPEC" HREF="#SIG:STREAM_IO.mkOutstream:VAL">mkOutstream</A> <B>:</B> (writer * IO.buffer_mode) -&gt; outstream 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.getWriter:VAL:SPEC" HREF="#SIG:STREAM_IO.getWriter:VAL">getWriter</A> <B>:</B> outstream -&gt; (writer * IO.buffer_mode) 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.getPosOut:VAL:SPEC" HREF="#SIG:STREAM_IO.getPosOut:VAL">getPosOut</A> <B>:</B> outstream -&gt; out_pos 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.setPosOut:VAL:SPEC" HREF="#SIG:STREAM_IO.setPosOut:VAL">setPosOut</A> <B>:</B> out_pos -&gt; outstream 	<BR>
+<B>val</B> <A NAME="SIG:STREAM_IO.filePosOut:VAL:SPEC" HREF="#SIG:STREAM_IO.filePosOut:VAL">filePosOut</A> <B>:</B> out_pos -&gt; pos 	<BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:STREAM_IO.elem:TY"><CODE><B>type</B> elem</CODE></A>
+<DT> <CODE><B>type</B> vector</CODE>
+<DD>
+These are the abstract types of stream elements and vectors of 	elements. 	For text streams, these are <A HREF="char.html#SIG:CHAR.char:TY:SPEC">Char.char</A> and <A HREF="string.html#SIG:STRING.string:TY:SPEC">String.string</A>, 	while for binary streams, these are <A HREF="word.html#SIG:WORD.word:TY:SPEC">Word8.word</A> and 	<A HREF="mono-vector.html#SIG:MONO_VECTOR.vector:TY:SPEC">Word8Vector.vector</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.reader:TY"><CODE><B>type</B> reader</CODE></A>
+<DT> <CODE><B>type</B> writer</CODE>
+<DD>
+These are the types of the readers and writers that underlie the 	input and output streams.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.instream:TY"><CODE><B>type</B> instream</CODE></A>
+<DD>
+These are buffered functional input streams.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.outstream:TY"><CODE><B>type</B> outstream</CODE></A>
+<DD>
+These are buffered output streams. 	Unlike input streams, these are imperative objects.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.in_pos:TY"><CODE><B>type</B> in_pos</CODE></A>
+<DT> <CODE><B>type</B> out_pos</CODE>
+<DD>
+These are the abstract types of positions in input and output 	streams.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.pos:TY"><CODE><B>type</B> pos</CODE></A>
+<DD>
+This is the type of positions in the underlying readers and writers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.input:VAL"><CODE>input <VAR>f</VAR>
+          </CODE></A>
+<DD>
+if elements are available, 	  returns a vector of one or more elements from the stream and the 	  remainder of the stream. 	  If the end-of-stream has been reached, then the empty vector 	  is returned.           May block until one of these conditions is satisfied. 	  This function raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception            if there is an error in the underlying system calls.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.input1:VAL"><CODE>input1 <VAR>f</VAR>
+          </CODE></A>
+<DD>
+returns the next element in the stream <VAR>f</VAR> and the 	  remainder of the stream. 	  If the stream is at the end, then <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> is returned.           May block until one of these conditions is satisfied. 	  This function raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception if there is 	  an error in the underlying system calls.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.inputN:VAL"><CODE>inputN (<VAR>f</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+returns a vector of the next <VAR>n</VAR> elements from <VAR>f</VAR> 	  and the rest of the stream. 	  If fewer than <VAR>n</VAR> elements are available, then it returns all 	  of the elements up to the end-of-stream (the empty vector 	  means that there is no more input).           May block until it can determine if additional characters are           available or the end-of-stream condition holds. 	  This function raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>            exception if there is 	  an error in the underlying system calls.           Raises <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> if <VAR>n</VAR> &lt; 0 or           the number of elements to be returned is greater than           <A HREF="mono-vector.html#SIG:MONO_VECTOR.maxLen:VAL:SPEC">maxLen</A>.           
+<P>
+          Using <A HREF="#SIG:STREAM_IO.instream:TY:SPEC">instream</A>s, one can synthesize a non-blocking           version of <A HREF="#SIG:STREAM_IO.inputN:VAL:SPEC">inputN</A> from <A HREF="#SIG:STREAM_IO.inputN:VAL:SPEC">inputN</A>            and <A HREF="#SIG:STREAM_IO.canInput:VAL:SPEC">canInput</A>, as <A HREF="#SIG:STREAM_IO.inputN:VAL:SPEC">inputN</A> is guaranteed not           to block if a previous call to <A HREF="#SIG:STREAM_IO.canInput:VAL:SPEC">canInput</A> returned           <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A> _</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.inputAll:VAL"><CODE>inputAll <VAR>f</VAR>
+          </CODE></A>
+<DD>
+returns the vector of the rest of the elements in the stream 	  <VAR>f</VAR> (i.e., up to end-of-stream). 	  Care should be taken when using this function, since it can 	  block indefinitely on interactive streams. 	  This function raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception if there is 	  an error in the underlying system calls.           Raises <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> if           the number of elements to be returned is greater than           <A HREF="mono-vector.html#SIG:MONO_VECTOR.maxLen:VAL:SPEC">maxLen</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.canInput:VAL"><CODE>canInput (<VAR>f</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+returns <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A> if any attempt at input           would block. Returns <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A> <VAR>k</VAR></CODE>,           where 0 &lt;= k &lt;= n, if a call to <A HREF="#SIG:STREAM_IO.input:VAL:SPEC">input</A>           would return immediately with <VAR>k</VAR> characters. Note that           k = 0 corresponds to the stream being at end-of-stream.           
+<P>
+	  Some streams may not support this operation, in which case the 	  <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception will be raised. 	  This function also raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception           if there is an error in the underlying system calls. 	  It raises the <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> exception           if n &lt; 0.           
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+Implementations of <A HREF="#SIG:STREAM_IO.canInput:VAL:SPEC">canInput</A> should attempt to return           as large a <VAR>k</VAR> as possible. For example, if the           buffer contains 10 characters and the user calls           <CODE>canInput (<VAR>f</VAR>, 15)</CODE>, <A HREF="#SIG:STREAM_IO.canInput:VAL:SPEC">canInput</A> should           call <CODE>readVecNB 5</CODE> to see if an additional 5           characters are available.           
+</BLOCKQUOTE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.closeIn:VAL"><CODE>closeIn <VAR>f</VAR>
+          </CODE></A>
+<DD>
+truncates the instream <VAR>f</VAR>, and releases any associated 	  system resources.           Applying <A HREF="#SIG:STREAM_IO.closeIn:VAL:SPEC">closeIn</A> on a closed stream has no effect.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.endOfStream:VAL"><CODE>endOfStream <VAR>f</VAR>
+          </CODE></A>
+<DD>
+tests if <VAR>f</VAR> satisfies the end-of-stream condition. 	  If there is no further input in the stream, then this returns 	  <CODE>true</CODE>; otherwise it returns <CODE>false</CODE>. 	  This function raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception if there is 	  an error in the underlying system calls.           
+<P>
+	  This function may block when checking for more input. 	  It is equivalent to           
+<PRE>
+            (<A HREF="mono-vector.html#SIG:MONO_VECTOR.length:VAL:SPEC">length</A>(#1(<A HREF="#SIG:STREAM_IO.input:VAL:SPEC">input</A> <VAR>f</VAR>)) = 0)
+          
+</PRE>
+ 	  where <A HREF="mono-vector.html#SIG:MONO_VECTOR.length:VAL:SPEC">length</A> is the vector length operation           
+<P>
+	  Note that even if this returns <CODE>true</CODE>, subsequent input 	  operations may succeed if more data becomes available.           We always have            
+<PRE>
+            <A HREF="#SIG:STREAM_IO.endOfStream:VAL:SPEC">endOfStream</A> <VAR>f</VAR> = <A HREF="#SIG:STREAM_IO.endOfStream:VAL:SPEC">endOfStream</A> <VAR>f</VAR>
+          
+</PRE>
+          In addition, if <CODE><A HREF="#SIG:STREAM_IO.endOfStream:VAL:SPEC">endOfStream</A> <VAR>f</VAR></CODE>           returns <CODE>true</CODE>,          then <CODE><A HREF="#SIG:STREAM_IO.input:VAL:SPEC">input</A> <VAR>f</VAR></CODE> returns <CODE>(&quot;&quot;,<VAR>f'</VAR>)</CODE> and           <CODE><A HREF="#SIG:STREAM_IO.endOfStream:VAL:SPEC">endOfStream</A> <VAR>f'</VAR></CODE> may or may not be true.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.mkInstream:VAL"><CODE>mkInstream (<VAR>rd</VAR>, <VAR>v</VAR>)
+          </CODE></A>
+<DD>
+returns a new <A HREF="#SIG:STREAM_IO.instream:TY:SPEC">instream</A> built on top of the reader <VAR>rd</VAR> 	  with initial buffer contents <VAR>v</VAR>. 
+<BLOCKQUOTE>
+<B>Question:</B><BR>
+
+<P>
+We should explain the mapping between optional fields of the reader and supported operations (as a table?).
+</BLOCKQUOTE>
+ 	  Note that building more than one instream on top of a single 	  reader has unpredictable effects, since readers are imperative 	  objects.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.getReader:VAL"><CODE>getReader <VAR>f</VAR>
+          </CODE></A>
+<DD>
+truncates the instream <VAR>f</VAR> and returns the underlying 	  reader along with any unconsumed data from its buffer. 	  This raises the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> 	  if <VAR>f</VAR> is closed or truncated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.getPosIn:VAL"><CODE>getPosIn <VAR>strm</VAR>
+	</CODE></A>
+<DD>
+returns the current position in the stream <VAR>strm</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.setPosIn:VAL"><CODE>setPosIn <VAR>pos</VAR>
+	</CODE></A>
+<DD>
+returns a stream based on the position and stream recorded in         <VAR>pos</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.filePosIn:VAL"><CODE>filePosIn <VAR>pos</VAR>
+	</CODE></A>
+<DD>
+returns the primitive-level reader position that corresponds to the 	abstract input stream position <VAR>pos</VAR>.      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.output:VAL"><CODE>output (<VAR>f</VAR>, <VAR>vec</VAR>)
+          </CODE></A>
+<DD>
+writes the vector of elements <VAR>vec</VAR> to the stream <VAR>f</VAR>. 	  This raises the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>            if <VAR>f</VAR> is terminated. 	  This function also raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception           if there is an error in the underlying system calls.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.output1:VAL"><CODE>output1 (<VAR>f</VAR>, <VAR>elem</VAR>)
+          </CODE></A>
+<DD>
+writes the element <VAR>elem</VAR> to the stream <VAR>f</VAR>. 	  This raises the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A>            if <VAR>f</VAR> is terminated. 	  This function also raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception           if there is an error in the underlying system calls.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.flushOut:VAL"><CODE>flushOut <VAR>f</VAR>
+          </CODE></A>
+<DD>
+flushes any output in the outstream's buffer to the underlying 	  writer; it is a no-op on terminated streams. 	  This function raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception if there is 	  an error in the underlying system calls.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.closeOut:VAL"><CODE>closeOut <VAR>f</VAR>
+          </CODE></A>
+<DD>
+flushes <VAR>f</VAR>'s buffers, marks the stream closed, and 	  closes the underlying writer. 	  This operation has no effect if <VAR>f</VAR> is already closed.           If <VAR>f</VAR> is terminated, it should close the underlying writer. 	  This function raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> exception if there is 	  an error in the underlying system calls.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.setBufferMode:VAL"><CODE>setBufferMode (<VAR>ostr</VAR>, <VAR>mode</VAR>)
+          </CODE></A>
+<DT> <CODE>          getBufferMode <VAR>ostr</VAR>
+        </CODE>
+<DD>
+set and get the buffering mode of the output stream <VAR>ostr</VAR>.         Setting the buffer mode to <A HREF="io.html#SIG:IO.buffer_mode:TY:SPEC">IO.NO_BUF</A>         causes any buffered output to be flushed.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.mkOutstream:VAL"><CODE>mkOutstream <VAR>wr</VAR>
+          </CODE></A>
+<DD>
+returns a new outstream built on top of the writer <VAR>wr</VAR>. 
+<BLOCKQUOTE>
+<B>Question:</B><BR>
+
+<P>
+We should explain the mapping between optional fields of the writer and supported operations (as a table?).
+</BLOCKQUOTE>
+ 	  Note that building more than one <A HREF="#SIG:STREAM_IO.outstream:TY:SPEC">outstream</A> on top of a single 	  writer has unpredictable effects, since buffering may change the 	  order of output.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.getWriter:VAL"><CODE>getWriter <VAR>f</VAR>
+          </CODE></A>
+<DD>
+flushes and terminates the outstream <VAR>f</VAR>,            and returns the underlying writer. 	  This raises the exception <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> if <VAR>f</VAR> is closed.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.getPosOut:VAL"><CODE>getPosOut <VAR>strm</VAR>
+	</CODE></A>
+<DD>
+returns the current position out the stream <VAR>strm</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.setPosOut:VAL"><CODE>setPosOut <VAR>pos</VAR>
+	</CODE></A>
+<DD>
+sets the current position of the stream underlying <VAR>pos</VAR> to         the position recorded in <VAR>pos</VAR>, and returns the stream.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STREAM_IO.filePosOut:VAL"><CODE>filePosOut <VAR>pos</VAR>
+	</CODE></A>
+<DD>
+returns the primitive-level writer position that corresponds to the 	abstract output stream position <VAR>pos</VAR>.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+The following expressions are all guaranteed <CODE>true</CODE>, if they complete without exception.
+<P>
+Input is semi-deterministic: <CODE>input</CODE> may read any number of elements from <VAR>f</VAR> the ``first'' time, but then it is committed to its choice, and must return the same number of elements on subsequent reads from the same point. 
+<PRE>
+let val (a,_) = input f
+    val (b,_) = input f
+ in  a=b
+end
+</PRE>
+<P>
+Closing a stream just causes the not-yet-determined part of the stream to be empty: 
+<PRE>
+let val (a,f') = input f
+    val _ = closeIn f
+    val (b,_) = input f
+ in  a=b andalso endOfStream f'
+end
+</PRE>
+<P>
+Closing a terminated stream is legal and harmless: 
+<PRE>
+  (closeIn f; closeIn f; true)
+</PRE>
+<P>
+If a stream has already been at least partly determined, then input cannot possibly block: 
+<PRE>
+let val (a,_) = input f
+ in canInput (f, length a) 
+end (* must be true *)
+</PRE>
+ Note that a successful <A HREF="#SIG:STREAM_IO.canInput:VAL:SPEC">canInput</A> does not imply that more characters remain before end-of-stream, just that reading won't block.
+<P>
+A freshly opened stream is still undetermined (no ``read'' has yet been done on the underlying reader): 
+<PRE>
+let val a = mkInstream r
+ in closeIn a;
+    size(#1(input a)) = 0
+end
+</PRE>
+ This has the useful consequence that if one opens a stream, then extracts the underlying reader, the reader has not yet been advanced in its file.
+<P>
+Closing a stream guarantees that the underlying reader will never again be accessed; so input can't possibly block.
+<P>
+The <A HREF="#SIG:STREAM_IO.endOfStream:VAL:SPEC">endOfStream</A> test is equivalent to <A HREF="#SIG:STREAM_IO.input:VAL:SPEC">input</A> returning an empty sequence: 
+<PRE>
+let val (a,_) = input f  
+  in (length(a)=0) = (endOfStream f)   
+end
+</PRE>
+<P>
+<B>Unbuffered I/O</B> If <CODE>chunkSize</CODE> = 1 in the underlying <A HREF="prim-io.html#SIG:PRIM_IO.reader:TY:SPEC">reader</A>, then input operations must be unbuffered: 
+<PRE>
+let
+val f = mkInstream(reader)
+val (a,f') = input f
+val PrimIO.Rd{chunkSize,...} = getReader f
+in
+  (chunkSize &gt; 1) orelse endOfStream f'
+nd
+</PRE>
+ Although <A HREF="#SIG:STREAM_IO.input:VAL:SPEC">input</A> may perform a <CODE>read(<VAR>k</VAR>)</CODE> operation on the reader (for k &gt;= 1), it must immediately  return all the elements it receives. However, this does not  hold for partly determined instreams: 
+<PRE>
+ let val f = mkInstream(reader)
+     val _ = doInputOperationsOn(f)
+     val (a,f') = input f
+     val PrimIO.Rd{chunkSize,...} = getReader f
+  in chunkSize&gt;1 orelse endOfStream f'  (* could be false*)
+ end
+</PRE>
+ because in this case, the stream <CODE>f</CODE> may have accumulated a history of several responses, and <A HREF="#SIG:STREAM_IO.input:VAL:SPEC">input</A> is required to repeat them one at a time.
+<P>
+Output buffering is controlled by the <A HREF="#SIG:STREAM_IO.getBufferMode:VAL:SPEC">getBufferMode</A> and <A HREF="#SIG:STREAM_IO.setBufferMode:VAL:SPEC">setBufferMode</A> functions.
+<P>
+<B>Don't bother the reader</B> Input must be done without any operation on the underlying reader, whenever it is possible to do so by using elements from the buffer. This is necessary so that repeated calls to <A HREF="#SIG:STREAM_IO.endOfStream:VAL:SPEC">endOfStream</A> will not make repeated system calls.   
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="prim-io.html#PRIM_IO:SIG:SPEC">PRIM_IO</A>, <A HREF="imperative-io.html#IMPERATIVE_IO:SIG:SPEC">IMPERATIVE_IO</A>, <A HREF="text-stream-io.html#TEXT_STREAM_IO:SIG:SPEC">TEXT_STREAM_IO</A>, <A HREF="stream-io-fn.html#StreamIO:FCT:SPEC">StreamIO</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="io-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified May 10, 1996</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

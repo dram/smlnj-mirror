@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>6.2.3 ML-Burg</TITLE>
+<META NAME="description" CONTENT="6.2.3 ML-Burg">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node49.html">
+<LINK REL="previous" HREF="node47.html">
+<LINK REL="up" HREF="node45.html">
+<LINK REL="next" HREF="node49.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html870"
+ HREF="node49.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html866"
+ HREF="node45.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html860"
+ HREF="node47.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html868"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html871"
+ HREF="node49.html">6.2.4 Shell</A>
+<B> Up:</B> <A NAME="tex2html867"
+ HREF="node45.html">6.2 Built-in tools</A>
+<B> Previous:</B> <A NAME="tex2html861"
+ HREF="node47.html">6.2.2 ML-Lex</A>
+ &nbsp <B>  <A NAME="tex2html869"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00072300000000000000">
+6.2.3 ML-Burg</A>
+</H3>
+
+<P>
+The ML-Burg tool deals with files that are input to the ML-Burg
+code-generater generator&nbsp;[<A
+ HREF="node110.html#mlburg93">GG93</A>].  Its class name is <TT> 
+mlburg</TT>.  The only recognized file name suffix is <TT> .burg</TT>.  For a
+source file <IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.gif"
+ ALT="$f$"><TT> .burg</TT>, the tool produces one targets <IMG
+ WIDTH="14" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img1.gif"
+ ALT="$f$"><TT> 
+.sml</TT> which will always be treated as ML source code.  Any tool
+parameters are passed on without change to the target.
+
+<P>
+The tool invokes the <TT> ml-burg</TT> command if the target is outdated.
+Unless anchored using the path anchor mechanism (see
+Section&nbsp;<A HREF="node17.html#sec:anchor:env">3.3</A>), the command <TT> ml-lex</TT> will be located
+using the operating system's path search mechanism (e.g., the <TT> 
+$PATH</TT> environment variable).
+
+<P>
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

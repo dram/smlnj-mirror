@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>2.3 Booting a new interactive system</TITLE>
+<META NAME="description" CONTENT="2.3 Booting a new interactive system">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node7.html">
+<LINK REL="previous" HREF="node5.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node7.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html135"
+ HREF="node7.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html131"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html125"
+ HREF="node5.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html133"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html136"
+ HREF="node7.html">2.4 Testing the newly</A>
+<B> Up:</B> <A NAME="tex2html132"
+ HREF="node3.html">2. Basic usage</A>
+<B> Previous:</B> <A NAME="tex2html126"
+ HREF="node5.html">2.2 Invoking the bootstrap</A>
+ &nbsp <B>  <A NAME="tex2html134"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00033000000000000000">
+2.3 Booting a new interactive system</A>
+</H2>
+
+<P>
+Once <TT> CMB.make()</TT> has completed its work successfully (indicated
+by its return value of <TT> true</TT>), the next step is to build a new
+heap image.  To do so, issue the command <TT> makeml</TT> at the shell
+prompt:
+
+<P>
+ 
+<PRE>
+
+$ ./makeml
+...
+Standard ML of New Jersey ...
+./makeml: Heap image generated.
+</PRE>
+
+<P>
+The <TT> makeml</TT> command generates a new heap image and also prepares
+stable libraries to be used by this image.  Neither the heap image nor
+the libraries will at this time be installed for permanent use
+though.  This means that invoking <TT> sml</TT> still starts the old
+system.
+
+<P>
+Again, the name of the generated heap image is variable and depends on
+programmer choice, current architecture, and current operating
+system.  For example, on an Intel x86 Linux machine, the default would
+be <TT> sml.x86-linux</TT>.<A NAME="tex2html1"
+ HREF="footnode.html#foot166"><SUP>1</SUP></A>
+<P>
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

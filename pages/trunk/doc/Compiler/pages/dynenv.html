@@ -1,0 +1,111 @@
+<!-- HTML/dynenv.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The DYNENV signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>DYNENV</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="DYNENV:SIG:SPEC"><CODE>DYNENV</CODE></A><BR>
+<B>structure </B><A NAME="DynamicEnv:STR:SPEC"><CODE>Compiler.DynamicEnv</CODE></A><B> : </B>DYNENV<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:DYNENV.object:TY:SPEC" HREF="#SIG:DYNENV.object:TY">object</A><BR>
+<B>type</B> <A NAME="SIG:DYNENV.dynenv:TY:SPEC" HREF="#SIG:DYNENV.dynenv:TY">dynenv</A><BR>
+<B>exception</B> <A NAME="SIG:DYNENV.Unbound:EXN:SPEC" HREF="#SIG:DYNENV.Unbound:EXN">Unbound</A><BR>
+<B>exception</B> <A NAME="SIG:DYNENV.SpecialEnv:EXN:SPEC" HREF="#SIG:DYNENV.SpecialEnv:EXN">SpecialEnv</A><BR>
+<B>val</B> <A NAME="SIG:DYNENV.empty:VAL:SPEC" HREF="#SIG:DYNENV.empty:VAL">empty</A> <B>:</B> dynenv         <BR>
+<B>val</B> <A NAME="SIG:DYNENV.special:VAL:SPEC" HREF="#SIG:DYNENV.special:VAL">special</A> <B>:</B> ((PersStamps.persstamp -&gt; object) * dynenv) -&gt; dynenv         <BR>
+<B>val</B> <A NAME="SIG:DYNENV.look:VAL:SPEC" HREF="#SIG:DYNENV.look:VAL">look</A> <B>:</B> dynenv -&gt; PersStamps.persstamp -&gt; object         <BR>
+<B>val</B> <A NAME="SIG:DYNENV.bind:VAL:SPEC" HREF="#SIG:DYNENV.bind:VAL">bind</A> <B>:</B> (PersStamps.persstamp * object * dynenv) -&gt; dynenv         <BR>
+<B>val</B> <A NAME="SIG:DYNENV.atop:VAL:SPEC" HREF="#SIG:DYNENV.atop:VAL">atop</A> <B>:</B> (dynenv * dynenv) -&gt; dynenv         <BR>
+<B>val</B> <A NAME="SIG:DYNENV.remove:VAL:SPEC" HREF="#SIG:DYNENV.remove:VAL">remove</A> <B>:</B> (PersStamps.persstamp list * dynenv) -&gt; dynenv         <BR>
+<B>val</B> <A NAME="SIG:DYNENV.consolidate:VAL:SPEC" HREF="#SIG:DYNENV.consolidate:VAL">consolidate</A> <B>:</B> dynenv -&gt; dynenv         <BR>
+<B>val</B> <A NAME="SIG:DYNENV.singleton:VAL:SPEC" HREF="#SIG:DYNENV.singleton:VAL">singleton</A> <B>:</B> (PersStamps.persstamp * object) -&gt; dynenv         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:DYNENV.object:TY"><CODE><B>type</B> object</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.dynenv:TY"><CODE><B>type</B> dynenv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.Unbound:EXN"><CODE><B>exception</B> Unbound</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.SpecialEnv:EXN"><CODE><B>exception</B> SpecialEnv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.empty:VAL"><CODE>empty
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.special:VAL"><CODE>special (<VAR>f</VAR>, <VAR>dy</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.look:VAL"><CODE>look <VAR>dy</VAR> <VAR>pe</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.bind:VAL"><CODE>bind (<VAR>pe</VAR>, <VAR>ob</VAR>, <VAR>dy</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.atop:VAL"><CODE>atop (<VAR>dy</VAR>, <VAR>dy2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.remove:VAL"><CODE>remove (<VAR>l</VAR>, <VAR>dy</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.consolidate:VAL"><CODE>consolidate <VAR>dy</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:DYNENV.singleton:VAL"><CODE>singleton (<VAR>pe</VAR>, <VAR>ob</VAR>)
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

@@ -1,0 +1,123 @@
+<!-- HTML/unix.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Unix structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Unix</CODE> structure</H3>
+<P>
+The Unix structure provides several high-level functions for creating and communicating with separate processes, in analogy with the <CODE>popen</CODE> interface provided in the Unix operating system. This provides a more flexible interface than that provided by the <A HREF="os-process.html#SIG:OS_PROCESS.system:VAL:SPEC">OS.Process.system</A> function. Using this module, a program can invoke a separate process and  obtain input and output streams connected to the <A HREF="text-io.html#SIG:TEXT_IO.stdOut:VAL:SPEC">TextIO.stdOut</A> and <A HREF="text-io.html#SIG:TEXT_IO.stdIn:VAL:SPEC">TextIO.stdIn</A> streams, respectively, of the other process. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="UNIX:SIG:SPEC"><CODE>UNIX</CODE></A><BR>
+<B>structure </B><A NAME="Unix:STR:SPEC"><CODE>Unix</CODE></A><B> : </B>UNIX<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:UNIX.proc:TY:SPEC" HREF="#SIG:UNIX.proc:TY">proc</A><BR>
+<B>type</B> <A NAME="SIG:UNIX.signal:TY:SPEC" HREF="#SIG:UNIX.signal:TY">signal</A><BR>
+<B>val</B> <A NAME="SIG:UNIX.executeInEnv:VAL:SPEC" HREF="#SIG:UNIX.executeInEnv:VAL">executeInEnv</A> <B>:</B> (string * string list * string list) -&gt; proc 	  <BR>
+<B>val</B> <A NAME="SIG:UNIX.execute:VAL:SPEC" HREF="#SIG:UNIX.execute:VAL">execute</A> <B>:</B> (string * string list) -&gt; proc 	  <BR>
+<B>val</B> <A NAME="SIG:UNIX.streamsOf:VAL:SPEC" HREF="#SIG:UNIX.streamsOf:VAL">streamsOf</A> <B>:</B> proc -&gt; (TextIO.instream * TextIO.outstream)         <BR>
+<B>val</B> <A NAME="SIG:UNIX.reap:VAL:SPEC" HREF="#SIG:UNIX.reap:VAL">reap</A> <B>:</B> proc -&gt; OS.Process.status 	  <BR>
+<B>val</B> <A NAME="SIG:UNIX.kill:VAL:SPEC" HREF="#SIG:UNIX.kill:VAL">kill</A> <B>:</B> (proc * signal) -&gt; unix 	  <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:UNIX.proc:TY"><CODE><B>type</B> proc</CODE></A>
+<DD>
+represents a handle to an operating system process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNIX.signal:TY"><CODE><B>type</B> signal</CODE></A>
+<DD>
+represents a Unix-like signal which can be sent to another         process. Note that signal values must be obtained from some         other structure. For example, an implementation providing Posix         would probably use <CODE>type signal = Posix.Signal.signal</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNIX.executeInEnv:VAL"><CODE>executeInEnv (<VAR>cmd</VAR>, <VAR>args</VAR>, <VAR>env</VAR>)
+          </CODE></A>
+<DD>
+asks the operating system to execute the command <VAR>cmd</VAR>           with the argument list <VAR>args</VAR> and in the environment <VAR>env</VAR>,           as a separate process.           (Typically, a string in the <VAR>env</VAR> list has the form           <CODE>&quot;NAME=VALUE&quot;</CODE>. See also <A HREF="os-process.html#SIG:OS_PROCESS.getEnv:VAL:SPEC">OS.Process.getEnv</A>.)           A <A HREF="#SIG:UNIX.proc:TY:SPEC">proc</A> value representing the new process is returned.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNIX.execute:VAL"><CODE>execute (<VAR>cmd</VAR>, <VAR>args</VAR>)
+          </CODE></A>
+<DD>
+asks the operating system to execute the command <VAR>cmd</VAR>           with the argument list <VAR>args</VAR> as a separate process.           The new process executes using the same environment as the           calling process.           A <A HREF="#SIG:UNIX.proc:TY:SPEC">proc</A> value representing the new process is returned.           
+<P>
+          For implementations providing Posix modules, this function is           equivalent to  <CODE>executeInEnv (<VAR>cmd</VAR>, <VAR>args</VAR>, <A HREF="posix-proc-env.html#SIG:POSIX_PROC_ENV.environ:VAL:SPEC">Posix.ProcEnv.environ</A> ())</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNIX.streamsOf:VAL"><CODE>streamsOf <VAR>pr</VAR>
+          </CODE></A>
+<DD>
+returns the pair <CODE>(<VAR>ins</VAR>, <VAR>outs</VAR>)</CODE> of input and output            streams associated with <VAR>pr</VAR>. When the process <VAR>pr</VAR> is            created, its <A HREF="text-io.html#SIG:TEXT_IO.stdOut:VAL:SPEC">TextIO.stdOut</A> becomes the           source for the stream <VAR>ins</VAR> and the output stream  <VAR>outs</VAR>           becomes the source for its <A HREF="text-io.html#SIG:TEXT_IO.stdIn:VAL:SPEC">TextIO.stdIn</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNIX.reap:VAL"><CODE>reap <VAR>pr</VAR>
+          </CODE></A>
+<DD>
+closes the input and output streams associated with <VAR>pr</VAR>,           and then suspends the current process until the system process           corresponding to <VAR>pr</VAR> terminates. Returns the exit status           given by <VAR>pr</VAR> when it terminated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNIX.kill:VAL"><CODE>kill (<VAR>pr</VAR>,<VAR>s</VAR>)
+          </CODE></A>
+<DD>
+sends the signal <VAR>s</VAR> to the process <VAR>pr</VAR>.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+Note that the interpretation of the string <VAR>cmd</VAR> depends very much on the underlying operating system. Typically, the <VAR>cmd</VAR> argument will be a full pathname. On Unix systems, simple command searching, allowing <VAR>cmd</VAR> to be a relative pathname, can be achieved by, for example, replacing <VAR>cmd</VAR> with <CODE>/bin/sh</CODE> and replacing the argument list <VAR>args</VAR>  with <CODE>&quot;-c&quot;::(concat (<VAR>cmd</VAR>::<VAR>args</VAR>))</CODE>.
+<P>
+The semantics of Unix necessitates that processes that have terminated need to be reaped. If this is not done, information concerning the dead process continues to reside in system tables. Thus, a program using <CODE>execute</CODE> or <CODE>executeInEnv</CODE> should invoke <CODE>reap</CODE> on any process it creates. 
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+Although the flavor of this module is heavily influenced by Unix, and the module is simple to implement given the <A HREF="posix.html#Posix:STR:SPEC">Posix</A> subsystem, the functions are specified at a sufficiently high-level that implementations, including non-Unix ones, could provide this module without having to supply all of the <A HREF="posix.html#Posix:STR:SPEC">Posix</A> modules.
+</BLOCKQUOTE>
+   
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="posix.html#Posix:STR:SPEC">Posix</A>, <A HREF="posix.html#SIG:POSIX.Signal:STR:SPEC">Posix.Signal</A>, <A HREF="posix.html#SIG:POSIX.ProcEnv:STR:SPEC">Posix.ProcEnv</A>, <A HREF="text-io.html#TextIO:STR:SPEC">TextIO</A>, <A HREF="os.html#SIG:OS.Process:STR:SPEC">OS.Process</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="system-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified January 31, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

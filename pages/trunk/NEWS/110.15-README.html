@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.15 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.15, March 22, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot.  It only  supports the Sparc, 
+	Alpha, HPPA, and PowerPC architectures.  Furthermore, 
+	there are performance bugs that have to be fixed.
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+
+<h2>Summary</h2>
+  This version contains a new and simplified interface between
+  the code generator and runtime system. 
+
+<hr>
+
+<h2>GC API</h2>
+
+  The basic idea is that all communication to the runtime system
+  is through a fixed set of registers. Anything extra must be 
+  bundled up and saved in one of these fixed registers. This 
+  simplifies the runtime system significantly, and reduces the
+  overhead of getting into (and out of) C. The net result is
+  a 4% improvement in compiling the compiler on the DEC Alpha.
+
+  <p>
+  See the paper GC-API under
+    <a href="../compiler-notes/index.html">Compiler notes</a>.
+
+<h2> MLRISC </h2>
+  There is a new mechanism for setting flags and gathering statistics.
+  Various flags and counters can be set at the interactive level, e.g.
+  the following can be used to dump the flowgraph before register 
+  allocation:
+
+<pre>
+	structure CG = Compiler.Control.MLRISC
+
+	CG.getFlag "dump-cfg-before-ra" := true;
+</pre>
+
+  The currently implemented set of flags and counters are described in:
+
+<pre>
+	src/MLRISC/FLAGS
+</pre>
+
+<hr>
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Thu May 20 15:30:31 EDT 1999
+<!-- hhmts end -->
+    </font>
+  </body>
+</html>

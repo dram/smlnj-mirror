@@ -1,0 +1,54 @@
+			R  O  A  D  M  A  P
+
+ Version  Time		Description
+ -------  ----		-----------
+   -	   -		FLINT optimizer
+
+   _      end of 	New runtime
+	  summer
+
+   -	  1 week	Polling Support:
+			MacOS (in particular) requires 
+			polling support to handle signals.
+
+ 110.19  2 weeks	MLRISC: Major changes to MLTREE
+ 	done 7/8
+			  o variable width support:
+		  	  All operators will be register-size
+			  sensitive. This is critical for machine
+			  that support both 32 and 64 bits, and
+			  machines that do not have powers-of-two
+			  sized registers. It also turns out to
+			  be essential for the C-- backend for lcc.
+			
+			  o use of infinite precision for immediates
+	
+			  o removal of order of evaluation field
+			  that is currently part of many of the operators. 
+
+			  o An escape hatch to inject machine assembly 
+			    code into MLTrees. 
+
+			  o A frameword to annotate instructions with
+			  user information.
+
+			  o and much more ...
+
+   -      2 weeks 	New x86 technology:
+			I want to experiment with two things:
+			1) linear-scan register allocation, a la 
+			   traub, holloway, and smith. This ought
+			   to be fast and produce reasonable code.
+
+			2) Transparency control, via integer linear
+			   programming. There is not enough space in
+			   this margin to describe this;-)
+
+   -   	  2 weeks	Machine descriptions:
+			Most machine specific MLRISC files are 
+			current generated from machine descriptions.
+			This version will have support to generate
+			all necessary files from machine descriptions.
+			
+   -	     -		Machine SSA support
+

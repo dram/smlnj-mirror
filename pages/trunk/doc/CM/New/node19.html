@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>3.5 When to use anchor environments</TITLE>
+<META NAME="description" CONTENT="3.5 When to use anchor environments">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="previous" HREF="node18.html">
+<LINK REL="up" HREF="node14.html">
+<LINK REL="next" HREF="node20.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html477"
+ HREF="node20.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html473"
+ HREF="node14.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html469"
+ HREF="node18.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html475"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html478"
+ HREF="node20.html">4. Using CM</A>
+<B> Up:</B> <A NAME="tex2html474"
+ HREF="node14.html">3. Naming objects in</A>
+<B> Previous:</B> <A NAME="tex2html470"
+ HREF="node18.html">3.4 Anchor configuration</A>
+ &nbsp <B>  <A NAME="tex2html476"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00045000000000000000">
+3.5 When to use anchor environments</A>
+</H2>
+
+<P>
+The following sample scenario for using anchor environments will
+provide some background on the reasons that led to the inclusion of
+this feature into CM.  In short, anchor environments will typically be
+used to disambiguate between two or more different uses of the same
+anchor name.  This is something that the root environment alone (i.e.,
+a fixed mapping from anchors to directory names) cannot do because the
+root environment binds each anchor to at most one ``meaning.''
+
+<P>
+Suppose you are developing a project <TT> P.cm</TT> for which you obtain
+two utility libraries <TT> A.cm</TT> and <TT> B.cm</TT> from other
+programmers.  Unfortunately, since these programmers did not
+coordinate their work (perhaps because they did not even know of each
+other), both <TT> A.cm</TT> and <TT> B.cm</TT> each uses its own helper
+library that is expected to be found under the name <TT> $H/H.cm</TT>.
+
+<P>
+Your task is to put references to <TT> A.cm</TT> and <TT> B.cm</TT> into <TT> 
+P.cm</TT> so that everything ``works.''  Now, mentioning <TT> A.cm</TT> and
+<TT> B.cm</TT> is easy enough, but if you do so without special
+precautions, you arrive at a situation where both helpers end up being
+the same--no matter how you configure the binding for anchor <TT> 
+$H</TT>.
+
+<P>
+If you have access to the description files for <TT> A.cm</TT> and <TT> 
+B.cm</TT>, you could work around this problem by changing the reference to
+<TT> $H</TT> in one of them into something else.  Remember, however, that
+in general you may not be able to do this because it could be that
+either you do not have permissions to change the description files, or
+you might not even have any description file that you could change
+because the two libraries were given to you in ``stable'' form.
+
+<P>
+The correct solution is to add <TT> bind:</TT>-directives where you <EM> 
+use</EM> <TT> A.cm</TT> and <TT> B.cm</TT> in your own description file <TT> P.cm</TT>.
+For example, you could write there:
+
+<P>
+ 
+<PRE>
+
+  A.cm (bind:(anchor:H value:$AH))
+  B.cm (bind:(anchor:H value:$BH))
+</PRE>
+
+<P>
+With this, the two uses of anchor <TT> $H</TT> will occur in different
+<EM> local</EM> anchor environments.  In the example as shown, the first
+such local environment effectively renames <TT> $H</TT> into <TT> $AH</TT>
+while the second renames <TT> $H</TT> into <TT> $BH</TT>. Thus, you can put
+independent bindings for <TT> $AH</TT> and <TT> $HB</TT> into your root
+configuration, these independent bindings will propagate to the
+respective local environment, and the two uses of <TT> $H</TT> will be
+resolved differently--as was intended.
+
+<P>
+Another situation where anchor name clashes would definitely happen is
+when two different versions (i.e., development stages) of the same set
+of libraries are being used at the same time.  In this case, one
+should let the libraries within each set refer to each other using
+anchored names and provide (different) bindings for these names using
+<TT> bind:</TT>-directives from within their respective clients.
+
+<P>
+A good way of encapsulating the construction of the required local
+anchor environment for a library is to create a <EM> proxy</EM> for it
+(see Section&nbsp;<A HREF="node13.html#sec:proxies">2.10</A>).
+
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html477"
+ HREF="node20.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html473"
+ HREF="node14.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html469"
+ HREF="node18.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html475"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html478"
+ HREF="node20.html">4. Using CM</A>
+<B> Up:</B> <A NAME="tex2html474"
+ HREF="node14.html">3. Naming objects in</A>
+<B> Previous:</B> <A NAME="tex2html470"
+ HREF="node18.html">3.4 Anchor configuration</A>
+ &nbsp <B>  <A NAME="tex2html476"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

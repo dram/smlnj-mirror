@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.21 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.20, July 16, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot. 
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+<center><h2>Summary:</h2></center>
+This version transplants the old implementation of the compilation
+manager (CM) with a brand-new one.  It also constitutes a major change
+in how the files of the interactive compiler are organized.
+<p>
+The basic ideas behind the new CM are identical to those of the old
+one.  However, many, many details have changed, and virtually no code
+is shared between the two implementations.
+<p>
+Syntax and semantics of CM description files has changed slightly.
+One important user-visible change is the treatment of the basis library:
+it has no special status anymore and must be specified as "basis.cm"
+by anyone who wants to use it.
+<p>
+The new CM offers more robust pathname handling, improved error detection
+and error reporting, as well as very efficient handling of stable libraries.
+It is integrated with the interactive toplevel by means of its
+autoloading mechanism and makes sure that modules that are common to
+system code (compiler, CM, interactive system) and user code are
+shared.
+<p>
+Compiler hackers should definitely read the file system/README.
+<p>
+<h3>Some details on how to use the new compilation manager</h3>
+CM's API is not yet as complete as the old one.  Moreover, there
+are some semantic changes:
+<ul>
+<li> There is no default description file "sources.cm" anymore.
+CM.make, CM.autoload, CM.recomp, and CM.stabilize always take
+string arguments that specify the root description file.
+<p>
+<li> The syntax of that string argument is CM's "standard" path name
+notation.  In essence, this means Unix-style pathnames (even on
+a non-Unix system!), but the more important aspect is that
+"pathname anchors" (see below) are recognized.
+<p>
+<li> CM no longer searches a list of directories.  Instead, there is
+a new "pathname anchor" mechanism that can be used to establish
+a fixed mapping from the initial arc of a relative pathname to
+some other directory.  For example, if "a" is mapped to
+"/usr/share/smlnj/lib", then "a/b/c.sml" will refer to
+"/usr/share/smlnj/lib/a/b/c.sml".  There are pre-defined mappings
+for libraries such as "basis.cm", "smlnj-lib.cm", "ml-yacc-lib.cm",
+etc.  Thus, if you say
+<pre>
+     CM.autoload "smlnj-lib.cm";
+</pre>
+Then CM will register the library
+<pre>
+   &lt;smlnj-installation-dir&gt;/lib/smlnj-lib.cm/smlnj-lib.cm
+</pre>
+for autoloading. However, the important point is that you nearly
+never should have to worry about this mapping.
+<p>
+<li> The pathname mapping can be modified using CM.setAnchor,
+CM.cancelAnchor, and CM.resetPathConfig as well as by editing
+configuration files that are read at startup time.  These files are
+<pre>
+    &lt;smlnj-installation-dir&gt;/lib/pathconfig
+    $HOME/.smlnj-pathconfig
+</pre>
+<p>
+<li> CM tries to be quite careful about pathname elaboration.  Barring
+bugs, it will now be possible to change the working directory, to
+change the pathname mapping (see above), or to save a session via
+SMLofNJ.exportML and later resume it in a totally different environment
+(provided the pathname configuration has been set accordingly).
+<p>
+<li> If you have an ongoing CM session and you move/rename files that
+CM knows about in such a way that the mapping of file names to file
+IDs changes, then you should invoke CM.synchronize().  Otherwise CM
+might get confused.
+</ul>
+The primary means for structuring a program is now the "library".
+Please, use "library" where you used "group" before.  This means
+that you will have to specify the export list of your library.
+<p>
+The purpose of "group" is now to give structure to a "library".
+Under the new scheme, each group has a unique "owner" which is
+either some library or the "toplevel".  If the owner is a library,
+then you must specify that library in parentheses after the "group"
+keyword.
+<p>
+To quickly convert existing code to work with the new scheme,it may
+be easier to ignore the "group" issue and use "library" exclusively.
+However, groups _are_ an important concept as soon as you begin
+creating your own stable libraries.
+
+<hr>
+
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Dec  2 18:07:29 EST 1999 -->
+<!-- hhmts start -->
+Last modified: Thu Dec  2 18:14:31 EST 1999
+<!-- hhmts end -->
+    </font>
+</blockquote>
+</body>
+</html>

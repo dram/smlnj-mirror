@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>F..2 Libraries for controlling SML/NJ's operation</TITLE>
+<META NAME="description" CONTENT="F..2 Libraries for controlling SML/NJ's operation">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node104.html">
+<LINK REL="previous" HREF="node102.html">
+<LINK REL="up" HREF="node101.html">
+<LINK REL="next" HREF="node104.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1552"
+ HREF="node104.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1548"
+ HREF="node101.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1542"
+ HREF="node102.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1550"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1553"
+ HREF="node104.html">F..3 Libraries for SML/NJ</A>
+<B> Up:</B> <A NAME="tex2html1549"
+ HREF="node101.html">F. Available libraries</A>
+<B> Previous:</B> <A NAME="tex2html1543"
+ HREF="node102.html">F..1 Libraries for general</A>
+ &nbsp <B>  <A NAME="tex2html1551"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000232000000000000000">
+F..2 Libraries for controlling SML/NJ's operation</A>
+</H2>
+
+<P>
+The following table lists those libraries that provide access to the
+so-called <EM> visible compiler</EM> infrastructure and to the compilation
+manager API.
+
+<P>
+ 
+
+<DIV ALIGN="CENTER"><TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1">
+name </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> description </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> installed </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> loaded </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler.cm</TT> <BR>
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler/current.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> visible compiler for current
+architecture </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> auto </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler/compiler.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> structure </FONT><FONT SIZE="-1"><TT> Compiler</TT> (the
+visible compiler in one big structure) </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cm.cm</TT> <BR>
+</FONT><FONT SIZE="-1"><TT> $smlnj/cm/cm.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> compilation manager </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> auto </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cm/tools.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> API for extending CM with new tools </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1">
+always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/mllex-tool.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for class </FONT><FONT SIZE="-1"><TT> mllex</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always
+</FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/lex-ext.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for extension </FONT><FONT SIZE="-1"><TT> .lex</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always
+</FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/mlyacc-tool.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for class </FONT><FONT SIZE="-1"><TT> mlyacc</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1">
+always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/grm-ext.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for extension </FONT><FONT SIZE="-1"><TT> .grm</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always
+</FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/mlburg-tool.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for class </FONT><FONT SIZE="-1"><TT> mlburg</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1">
+always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/burg-ext.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for extension </FONT><FONT SIZE="-1"><TT> .burg</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1">
+always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/noweb-tool.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for class </FONT><FONT SIZE="-1"><TT> noweb</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always
+</FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/nw-ext.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for extension </FONT><FONT SIZE="-1"><TT> .nw</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1">
+on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/make-tool.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for class </FONT><FONT SIZE="-1"><TT> make</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1">
+on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/shell-tool.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for class </FONT><FONT SIZE="-1"><TT> shell</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always
+</FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $/dir-tool.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=180><FONT SIZE="-1"> plugin library for class </FONT><FONT SIZE="-1"><TT> dir</TT> </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always
+</FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> on demand
+</FONT></TD>
+</TR>
+</TABLE></DIV>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1552"
+ HREF="node104.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1548"
+ HREF="node101.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1542"
+ HREF="node102.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1550"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1553"
+ HREF="node104.html">F..3 Libraries for SML/NJ</A>
+<B> Up:</B> <A NAME="tex2html1549"
+ HREF="node101.html">F. Available libraries</A>
+<B> Previous:</B> <A NAME="tex2html1543"
+ HREF="node102.html">F..1 Libraries for general</A>
+ &nbsp <B>  <A NAME="tex2html1551"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

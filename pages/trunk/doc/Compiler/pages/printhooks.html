@@ -1,0 +1,51 @@
+<!-- HTML/printhooks.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The PRINTHOOKS signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>PRINTHOOKS</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="PRINTHOOKS:SIG:SPEC"><CODE>PRINTHOOKS</CODE></A><BR>
+<B>structure </B><A NAME="PrintHooks:STR:SPEC"><CODE>Compiler.PrintHooks</CODE></A><B> : </B>PRINTHOOKS<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:PRINTHOOKS.prAbsyn:VAL:SPEC" HREF="#SIG:PRINTHOOKS.prAbsyn:VAL">prAbsyn</A> <B>:</B> StaticEnv.staticEnv -&gt; Absyn.dec -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRINTHOOKS.prLambda:VAL:SPEC" HREF="#SIG:PRINTHOOKS.prLambda:VAL">prLambda</A> <B>:</B> Lambda.lexp -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRINTHOOKS.prLamFun:VAL:SPEC" HREF="#SIG:PRINTHOOKS.prLamFun:VAL">prLamFun</A> <B>:</B> Lambda.lexp -&gt; int -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:PRINTHOOKS.prAbsyn:VAL"><CODE>prAbsyn <VAR>st</VAR> <VAR>de</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTHOOKS.prLambda:VAL"><CODE>prLambda <VAR>le</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTHOOKS.prLamFun:VAL"><CODE>prLamFun <VAR>le</VAR> <VAR>i</VAR>
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.22 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.22, September 9, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot. 
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+<center><h2>Summary:</h2></center>
+  This version is intended to fix the installation and recompilation
+  problems associated with 110.21. Along the way, various fixes 
+  and (of course) enhancements were made. 
+
+<hr>
+
+<center><h2> CM </h2></center>
+  <ul>
+  <li> Added CM.symval and CMB.symval which let you define your own
+   "CM variables" -- those that can be queried from CM's #if syntax.
+
+  <p><li>
+   MLRISC.cm and viscomp-lib.cm were modified so that if the symbol "LIGHT"
+   is defined then CMB.deliver will not include cross-compilers.  This
+   considerably speeds up compiler re-compilation and also gives you
+   smaller library files (savings are roughly 1.5 MB).
+  <p>
+   The variable can be set like this:
+  <pre>
+   #set (CMB.symval "LIGHT") (SOME 1);
+  </pre>
+ 
+  <p><li>
+    Changes to src/system/pathconfig and config/install.sh as suggested
+   by Stefan Monnier.  However, the name "INSTALLDIR" is used  instead
+   "prefix".
+  </ul>
+
+<hr>
+
+<center><h2> X86</h2></center>
+   The assembly file X86.prim.asm was converted to use the assyntax.h 
+   file from the xfree86 distribution. Thus just one file needs to be
+   maintained for both Unix and Windows platforms.
+<hr>
+
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Tue Sep 14 16:40:42 EDT 1999
+<!-- hhmts end -->
+    </font>
+</blockquote>
+</body>
+</html>

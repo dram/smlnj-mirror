@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset= ISO-8859-1">
+<TITLE>
+ Hints
+</TITLE>
+</HEAD>
+<BODY BGCOLOR=silver TEXT=black>
+<A HREF="mlyacc009.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc011.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+<HR>
+
+<H2>10&nbsp;&nbsp; Hints</H2>
+<A NAME="toc21"></A>
+<H3>10.1&nbsp;&nbsp; Multiple start symbols</H3>
+To have multiple start symbols, define a dummy token for each
+start symbol. Then define a start symbol which derives the
+multiple start symbols with dummy tokens placed in front of
+them. When you start the parser you must place a dummy token
+on the front of the lexer stream to select a start symbol
+from which to begin parsing.<BR>
+<BR>
+Assuming that you have followed the naming conventions used before,
+create the lexer using the makeLexer function in the {n}Parser structure.
+Then, place the dummy token on the front of the lexer:
+<BLOCKQUOTE>
+<PRE>
+val dummyLexer =
+    {n}Parser.Stream.cons
+        ({n}LrVals.Tokens.{dummy token name}
+                 ({dummy lineno},{dummy lineno}),
+        lexer)
+</PRE>
+</BLOCKQUOTE>
+You have to pass a Tokens structure to the lexer. This Tokens structure
+contains functions which construct tokens from values and line numbers.
+So to create your dummy token just apply the appropriate token constructor
+function from this Tokens structure to a value (if there is one) and the
+line numbers. This is exactly what you do in the lexer to construct tokens.<BR>
+<BR>
+Then you must place the dummy token on the front of your lex stream.
+The structure {n}Parser contains a structure Stream which implements
+lazy streams. So you just cons the dummy token on to stream returned
+by makeLexer.
+<A NAME="toc22"></A>
+<H3>10.2&nbsp;&nbsp; Functorizing things further</H3>You may wish to functorize things even further. Two possibilities
+are turning the lexer and parser structures into closed functors,
+that is, functors which do not refer to types or values defined
+outside their body or outside their parameter structures (except
+for pervasive types and values), and creating a functor which
+encapsulates the code necessary to invoke the parser.<BR>
+<BR>
+Use the <TT>%header</TT> declarations in ML-Lex and ML-Yacc to create
+closed functors. See section&nbsp;<A HREF="mlyacc002.html#optional-def">2.4</A> of this manual
+and section 4 of the manual for ML-Lex for complete descriptions of these
+declarations. If you do this, you should also parameterize these
+structures by the types of line numbers. The type will be an
+abstract type, so you will also need to define all the valid
+operations on the type. The signature INTERFACE, defined below,
+shows one possible signature for a structure defining the line
+number type and associated operations.<BR>
+<BR>
+If you wish to encapsulate the code necessary to invoke the
+parser, your functor generally will have form:
+<BLOCKQUOTE>
+<PRE>
+functor Encapsulate(
+     structure Parser : PARSER
+     structure Interface : INTERFACE
+         sharing type Parser.arg = Interface.arg
+         sharing type Parser.pos = Interface.pos
+         sharing type Parser.result = ...
+     structure Tokens : {parser name}_TOKENS
+         sharing type Tokens.token = Parser.Token.token
+         sharing type Tokens.svalue = Parser.svalue) =
+  struct
+        ...
+  end
+</PRE>
+</BLOCKQUOTE>The signature INTERFACE, defined below, is a possible signature for
+a structure
+defining the types
+of line numbers and arguments (types pos and arg, respectively)
+along with operations for them. You need this structure
+because
+these types will be abstract types inside the body of your
+functor.
+<BLOCKQUOTE>
+<PRE>
+signature INTERFACE = 
+sig
+   type pos
+   val line : pos ref
+   val reset : unit -&gt; unit
+   val next : unit -&gt; unit
+   val error : string * pos * pos -&gt; unit
+
+   type arg
+   val nothing : arg
+end
+</PRE>
+</BLOCKQUOTE>The directory example/fol contains a sample parser in which
+the code for tying together the lexer and parser has been
+encapsulated in a functor.<BR>
+<BR>
+<HR>
+<A HREF="mlyacc009.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc011.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+</BODY>
+</HTML>

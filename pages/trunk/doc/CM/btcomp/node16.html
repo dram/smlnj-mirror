@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>4. Structure CMB</TITLE>
+<META NAME="description" CONTENT="4. Structure CMB">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node17.html">
+<LINK REL="previous" HREF="node9.html">
+<LINK REL="up" HREF="btcomp.html">
+<LINK REL="next" HREF="node17.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html256"
+ HREF="node17.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html252"
+ HREF="btcomp.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html246"
+ HREF="node15.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html254"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html257"
+ HREF="node17.html">5. File naming the</A>
+<B> Up:</B> <A NAME="tex2html253"
+ HREF="btcomp.html">CMB The SML/NJ Bootstrap</A>
+<B> Previous:</B> <A NAME="tex2html247"
+ HREF="node15.html">3.5 Cross-compiling</A>
+ &nbsp <B>  <A NAME="tex2html255"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00050000000000000000">
+4. Structure CMB</A>
+</H1>
+
+<P>
+This section describes the signature of <TT> structure CMB</TT>.  Since
+structures representing cross-compilers have the same signature,
+everything said here applies (<EM> mutatis mutandis</EM>) to them as well.
+
+<P>
+The primary function to invoke the bootstrap compiler is <TT> 
+CMB.make'</TT>:
+
+<P>
+ 
+<PRE>
+
+  val make' : string option -&gt; bool
+</PRE>
+
+<P>
+This (re-)compiles the interactive system's entire source tree,
+constructing stable versions for all libraries involved.  In the
+process, binfiles are placed under directory <TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.bin.<I> 
+arch</I>-<I> os</I></TT> where <I> arch</I> and <I> os</I> are strings describing
+target architecture and target OS, respectively.  The string <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"> is
+the optional argument to <TT> CMB.make'</TT>.  If set to <TT> NONE</TT>, it
+defaults to <code>"sml"</code>.
+
+<P>
+An alternative equivalent to invoking <TT> CMB.make'</TT> with <TT> NONE</TT>
+is to use <TT> CMB.make</TT>:
+
+<P>
+ 
+<PRE>
+
+  val make : unit -&gt; bool
+</PRE>
+
+<P>
+CMB--like CM--maintains a lot of internal state to speed up repeated
+invocations.  (Between sessions, much of this state is preserved in
+those binfile- and stablefile-directories.  However, reloading is
+still quite a bit more expensive than directly using existing in-core
+information.)
+
+<P>
+Information that CMB keeps in memory can be completely erased by
+issuing the <TT> CMB.reset</TT> command:
+
+<P>
+ 
+<PRE>
+
+  val reset : unit -&gt; unit
+</PRE>
+
+<P>
+After a <TT> CMB.reset()</TT>, the next <TT> CMB.make</TT> (or <TT> CMB.make'</TT>)
+will have to re-load everything from the file system.
+
+<P>
+CMB has its own registry of ``CM identifiers''--named values that can
+be queried by using the conditional compilation facility.  This
+registry is initialized according to CM's rules. Of course, initial
+values are not based on current architecture and OS but on those of the
+target system.  To explicitly set or erase the values of specific
+variables, one can use <TT> CMB.symval</TT> (which acts in a way analogous
+to <TT> CM.symval</TT>):
+
+<P>
+<PRE>
+
+  val symval : string -&gt;
+               { get : unit -&gt; int option, set : int option -&gt; unit}
+</PRE><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html256"
+ HREF="node17.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html252"
+ HREF="btcomp.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html246"
+ HREF="node15.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html254"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html257"
+ HREF="node17.html">5. File naming the</A>
+<B> Up:</B> <A NAME="tex2html253"
+ HREF="btcomp.html">CMB The SML/NJ Bootstrap</A>
+<B> Previous:</B> <A NAME="tex2html247"
+ HREF="node15.html">3.5 Cross-compiling</A>
+ &nbsp <B>  <A NAME="tex2html255"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

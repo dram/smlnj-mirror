@@ -1,0 +1,231 @@
+Notes from 6/12/01 meeting
+==========================
+Lal George, Dave MacQueen
+
+Attending:
+  Matthias Blume, Lal George (george), Dave MacQueen (dbm), Stefan Monnier, 
+  John Reppy (jhr), Zhong Shao, 
+
+
+Old Business
+------------
+
+1. description of runtime representation of (data)types
+
+   Need a maintained document that describes runtime representation of
+   types.  This is to support FFI and interoperability.
+
+   * only needs to cover fully known, concrete types.
+   * document should be available in the "Compiler Notes" collection
+   * should be maintained to track any relevant changes in the compiler
+
+   Action [Zhong]:  write document
+
+2. state of the profiler
+
+   * unclear what profiler functionality works on which platforms
+   * need a "working" profiler for performance tuning
+   * low sample rate available through timer signals (typically 100Hz)
+     means statistical sampling is unreliable
+     - a good profiler should use instruction counter for measurement rather
+       than timer signals.  Problem is that instruction-counter facilities
+       are highly architecture/implementation dependent (e.g. not uniform within
+       x86 family)
+   * jhr advocates designing a new profiler (or modifying existing) to
+     use the cost-center model (as in Haskell profiler?)
+   
+   Action:
+     1. [jhr] get basic functionality working under x86-linux
+     2. [blume] improve profiler compatiblity and support within CM
+     3. [?] convert existing profiler to use a cost-center model
+
+3. use of IntInf through FLINT
+
+   Integer literals are represented using IntInf in front-end and MLRISC.
+   Carry this through FLINT.
+
+   Action: [Zhong, Stefan] Make necessary changes to FLINT.
+
+4. primop support of new array/vector representations
+
+   Set of primops relating to new vector/array representations should be
+   completed (e.g. get-length, get-data, constructors in appropriate variety
+   of flavors).  These should expose information about these representations
+   and enable optimizations in FLINT.
+
+   Action: [Zhong, Stefan, jhr, george] Define full set of primops and implement.
+     Verify that expected optimizations are taking place (e.g. lifting 
+     length accesses out of loops).
+
+5. representation support for slices/substrings
+
+   There should be special primitive runtime representations (with unique tags)
+   for array/vector slices (including substrings).  The header block would be
+   like that for arrays (data/length) but with added start,stop-index components.
+   New primops would be added for accessing the index attributes.
+
+   Action: [Zhong, Stefan, jhr, george, dbm] Define representation, tags, and
+     primops.  Modify slice modules in the Basis to use the new primitives.
+
+6. state of cross-module inlining
+
+   Some expected cross-module inlining is not taking place.
+
+   Action: [Matthias, Stefan] Create appropriate bug report and test cases
+    and fix.
+
+7. first-class IntInf
+
+   IntInf should be a first-class member of the basis and LargeInt should
+   be identified with it.  Support for IntInf literals must be added
+   (e.g. 123456789123456789: IntInf.int).  Implementation should be optimized
+   by adding new reps and primops for efficient low-level implementation.
+
+   Action: [jhr, Zhong, Stefan, george, dbm]
+     1. add support for InfInt literals
+     2. integrate fully in Basis, defining LargeInt = IntInf
+     3. design and implement low-level representation and primop support
+
+8. polymorphic equality elimination
+   
+   Juan Chen has a prototype dictionary passing implementation of polymorphic
+   equality that has "acceptible" performance.  We could incorporate this to
+   avoid the polyeq function and its constraints on runtime representations.
+   Alternatively, the "next-generation" FLINT will have a "more robust"
+   implementation, but this will not be ready for the next release.
+
+   Action: [Zhong] evaluate whether Juan Chen's implementation is an adequate
+     replacement for the next release.
+
+9. Real implementation incomplete, incorrect
+
+   Negative zero (~0.0) does not have the correct representation.  The
+   current implementation of reals is incomplete in other respects.  The 
+   compiler internal representation of reals should be changed from strings
+   to BCD(?) lists, and a modified variant of David Gay's library (using 
+   ints instead of ascii characters for digits) should be used to map
+   reals to/from strings.
+
+   Action: [jhr, Zhong, george] Make appropriate changes in real implementation.
+
+10. CML and eXene need to be updated to run under current working versions
+
+   Action: [jhr, ...] Make necessary changes, debug.
+
+11. Current working version needs to be built on Windows
+
+   Concentrate on Windows 2K and XP, lower priority for the obsolescent 9x line.
+
+   Action: [jhr, Riccardo, dbm]
+
+12. Implement the Window structure
+
+   Action: [Riccardo, ...]
+
+   Note: need to recruit/develop additional windows experts.
+
+13. Complete MIPS code generator
+
+   Action: [george, Allen]
+
+
+New Business
+------------
+
+1. SML Basis revision
+
+   SML code for Basis has been mostly revised
+    - to agree with updated Basis spec
+    - to use new IDL-based runtime interface (the SMLBasis structure)
+
+   The IDL tool is not fully functional (problem with header files), but
+   should soon be able to generate correct C/SML stub files.
+
+   This will first run on top of a modified version of the old runtime,
+   but will be shifted to the new runtime without requiring any changes
+   to the SML Basis code.
+
+   Action: [jhr, Riccardo, dbm]
+     Finish IDL stubs, integrate into old runtime, build and debug new
+     Basis code.
+
+2. IDL vs NLFFI
+
+   We have two new ways of supporting C code: the IDL stub compiler, and
+   Matthias's NLFFI.  IDL is more versatile (supporting operating on ML
+   data representations), whild NLFFI minimizes the overhead of calling
+   C code, but currently has no call-back support.
+
+   In the long run, both will be supported and applications can use a
+   mix of IDL and NLFFI.
+
+   Call-back support:
+
+      IDL: uses a wrapper mechanism
+      NLFFI: currently no support for call-back, but limited call-backs
+        are probably feasible
+      thread approach: there is an alternative coroutine-like approach
+        to call-backs using threads
+
+   Action: [jhr, Riccardo, Matthias] Coordinate work on IDL and NLFFI and
+     document their roles.
+
+3. New runtime
+
+   * New Basis implemented on IDL interface, which will be reimplemented
+     in new runtime (see New Business 1.)
+   * New runtime code compiles, but has not been integrated and tested.
+   * Initial versions will be x86-linux, powerpc-macosx, with other ports
+     to follow.
+
+   Action: [jhr, Riccardo, george, ...] complete integration, debugging, porting.
+
+4. Support for 64-bit primitive types
+
+   * 64 bit int and word types
+   * full 64 bit compiler (64 bit pointers)
+
+   This will be after next release.
+
+
+----------------------------------------------------------------------
+Administrative items
+
+Bugs
+----
+
+1. filter open bug list to remove nonbugs and duplicates
+2. reassign bug responsibilities
+3. track bug fixes and remaining bug count
+4. final cleanup and establishment of new bug tracking regime for
+   next release (probably using SourceForge bug tracking machinery)
+
+Action: [everyone]
+  1. examine open bug list, report bugs that should be removed
+     because they are fixed, not a bug, or have become irrelevant.
+  2. take responsibility for particular bugs that are likely to
+     involve your code.
+
+
+Tuning performance
+------------------
+
+1. generate a useful set of micro-benchmarks and examine the code
+   produced at cps and machine level to evaluate whether expected
+   optimizations are being achieved (e.g. bug 1612).
+
+2. update, extend, and document the general benchmark suite.
+
+
+SourceForge Move
+----------------
+The CVS repository and web page are to move to the smlnj SourceForge
+project this summer.  The project has the domain name smlnj.org.
+This will be coordinated between dbm and Stefan.
+
+
+Next Release
+------------
+
+First beta version due September 1, 2001.  This should include at least
+one instance of the new runtime system.

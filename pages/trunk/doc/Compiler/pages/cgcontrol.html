@@ -1,0 +1,751 @@
+<!-- HTML/cgcontrol.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CGCONTROL signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>CGCONTROL</CODE> signature</H3>
+<P>
+There is little point in fiddling with these flags to improve the performance of the optimizer.  Each flag either has little effect or is already set to an optimum value. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CGCONTROL:SIG:SPEC"><CODE>CGCONTROL</CODE></A><BR>
+<B>structure </B><A NAME="CG:STR:SPEC"><CODE>Compiler.Control.CG</CODE></A><B> : </B>CGCONTROL<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:CGCONTROL.tailrecur:VAL:SPEC" HREF="#SIG:CGCONTROL.tailrecur:VAL">tailrecur</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.recordopt:VAL:SPEC" HREF="#SIG:CGCONTROL.recordopt:VAL">recordopt</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.specialize:VAL:SPEC" HREF="#SIG:CGCONTROL.specialize:VAL">specialize</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.tail:VAL:SPEC" HREF="#SIG:CGCONTROL.tail:VAL">tail</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.allocprof:VAL:SPEC" HREF="#SIG:CGCONTROL.allocprof:VAL">allocprof</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.closureprint:VAL:SPEC" HREF="#SIG:CGCONTROL.closureprint:VAL">closureprint</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.closureStrategy:VAL:SPEC" HREF="#SIG:CGCONTROL.closureStrategy:VAL">closureStrategy</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.lambdaopt:VAL:SPEC" HREF="#SIG:CGCONTROL.lambdaopt:VAL">lambdaopt</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.cpsopt:VAL:SPEC" HREF="#SIG:CGCONTROL.cpsopt:VAL">cpsopt</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.rounds:VAL:SPEC" HREF="#SIG:CGCONTROL.rounds:VAL">rounds</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.path:VAL:SPEC" HREF="#SIG:CGCONTROL.path:VAL">path</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.betacontract:VAL:SPEC" HREF="#SIG:CGCONTROL.betacontract:VAL">betacontract</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.eta:VAL:SPEC" HREF="#SIG:CGCONTROL.eta:VAL">eta</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.selectopt:VAL:SPEC" HREF="#SIG:CGCONTROL.selectopt:VAL">selectopt</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.dropargs:VAL:SPEC" HREF="#SIG:CGCONTROL.dropargs:VAL">dropargs</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.deadvars:VAL:SPEC" HREF="#SIG:CGCONTROL.deadvars:VAL">deadvars</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.flattenargs:VAL:SPEC" HREF="#SIG:CGCONTROL.flattenargs:VAL">flattenargs</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.extraflatten:VAL:SPEC" HREF="#SIG:CGCONTROL.extraflatten:VAL">extraflatten</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.switchopt:VAL:SPEC" HREF="#SIG:CGCONTROL.switchopt:VAL">switchopt</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.handlerfold:VAL:SPEC" HREF="#SIG:CGCONTROL.handlerfold:VAL">handlerfold</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.branchfold:VAL:SPEC" HREF="#SIG:CGCONTROL.branchfold:VAL">branchfold</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.arithopt:VAL:SPEC" HREF="#SIG:CGCONTROL.arithopt:VAL">arithopt</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.betaexpand:VAL:SPEC" HREF="#SIG:CGCONTROL.betaexpand:VAL">betaexpand</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.unroll:VAL:SPEC" HREF="#SIG:CGCONTROL.unroll:VAL">unroll</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.knownfiddle:VAL:SPEC" HREF="#SIG:CGCONTROL.knownfiddle:VAL">knownfiddle</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.invariant:VAL:SPEC" HREF="#SIG:CGCONTROL.invariant:VAL">invariant</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.targeting:VAL:SPEC" HREF="#SIG:CGCONTROL.targeting:VAL">targeting</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.lambdaprop:VAL:SPEC" HREF="#SIG:CGCONTROL.lambdaprop:VAL">lambdaprop</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.newconreps:VAL:SPEC" HREF="#SIG:CGCONTROL.newconreps:VAL">newconreps</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.boxedconstconreps:VAL:SPEC" HREF="#SIG:CGCONTROL.boxedconstconreps:VAL">boxedconstconreps</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.sharepath:VAL:SPEC" HREF="#SIG:CGCONTROL.sharepath:VAL">sharepath</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.staticprof:VAL:SPEC" HREF="#SIG:CGCONTROL.staticprof:VAL">staticprof</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.unroll_recur:VAL:SPEC" HREF="#SIG:CGCONTROL.unroll_recur:VAL">unroll_recur</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.hoistup:VAL:SPEC" HREF="#SIG:CGCONTROL.hoistup:VAL">hoistup</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.hoistdown:VAL:SPEC" HREF="#SIG:CGCONTROL.hoistdown:VAL">hoistdown</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.recordcopy:VAL:SPEC" HREF="#SIG:CGCONTROL.recordcopy:VAL">recordcopy</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.recordpath:VAL:SPEC" HREF="#SIG:CGCONTROL.recordpath:VAL">recordpath</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.debugcps:VAL:SPEC" HREF="#SIG:CGCONTROL.debugcps:VAL">debugcps</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.misc4:VAL:SPEC" HREF="#SIG:CGCONTROL.misc4:VAL">misc4</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.argrep:VAL:SPEC" HREF="#SIG:CGCONTROL.argrep:VAL">argrep</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.bodysize:VAL:SPEC" HREF="#SIG:CGCONTROL.bodysize:VAL">bodysize</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.reducemore:VAL:SPEC" HREF="#SIG:CGCONTROL.reducemore:VAL">reducemore</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.alphac:VAL:SPEC" HREF="#SIG:CGCONTROL.alphac:VAL">alphac</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.comment:VAL:SPEC" HREF="#SIG:CGCONTROL.comment:VAL">comment</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.knownGen:VAL:SPEC" HREF="#SIG:CGCONTROL.knownGen:VAL">knownGen</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.knownClGen:VAL:SPEC" HREF="#SIG:CGCONTROL.knownClGen:VAL">knownClGen</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.escapeGen:VAL:SPEC" HREF="#SIG:CGCONTROL.escapeGen:VAL">escapeGen</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.calleeGen:VAL:SPEC" HREF="#SIG:CGCONTROL.calleeGen:VAL">calleeGen</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.spillGen:VAL:SPEC" HREF="#SIG:CGCONTROL.spillGen:VAL">spillGen</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.foldconst:VAL:SPEC" HREF="#SIG:CGCONTROL.foldconst:VAL">foldconst</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.etasplit:VAL:SPEC" HREF="#SIG:CGCONTROL.etasplit:VAL">etasplit</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.printLambda:VAL:SPEC" HREF="#SIG:CGCONTROL.printLambda:VAL">printLambda</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.printit:VAL:SPEC" HREF="#SIG:CGCONTROL.printit:VAL">printit</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.printsize:VAL:SPEC" HREF="#SIG:CGCONTROL.printsize:VAL">printsize</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.scheduling:VAL:SPEC" HREF="#SIG:CGCONTROL.scheduling:VAL">scheduling</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.cse:VAL:SPEC" HREF="#SIG:CGCONTROL.cse:VAL">cse</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.optafterclosure:VAL:SPEC" HREF="#SIG:CGCONTROL.optafterclosure:VAL">optafterclosure</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.uncurry:VAL:SPEC" HREF="#SIG:CGCONTROL.uncurry:VAL">uncurry</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.ifidiom:VAL:SPEC" HREF="#SIG:CGCONTROL.ifidiom:VAL">ifidiom</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.comparefold:VAL:SPEC" HREF="#SIG:CGCONTROL.comparefold:VAL">comparefold</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.csehoist:VAL:SPEC" HREF="#SIG:CGCONTROL.csehoist:VAL">csehoist</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.rangeopt:VAL:SPEC" HREF="#SIG:CGCONTROL.rangeopt:VAL">rangeopt</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.icount:VAL:SPEC" HREF="#SIG:CGCONTROL.icount:VAL">icount</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.debugRep:VAL:SPEC" HREF="#SIG:CGCONTROL.debugRep:VAL">debugRep</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.sharewrap:VAL:SPEC" HREF="#SIG:CGCONTROL.sharewrap:VAL">sharewrap</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.checklty1:VAL:SPEC" HREF="#SIG:CGCONTROL.checklty1:VAL">checklty1</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.checklty2:VAL:SPEC" HREF="#SIG:CGCONTROL.checklty2:VAL">checklty2</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.checklty3:VAL:SPEC" HREF="#SIG:CGCONTROL.checklty3:VAL">checklty3</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.checkcps1:VAL:SPEC" HREF="#SIG:CGCONTROL.checkcps1:VAL">checkcps1</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.checkcps2:VAL:SPEC" HREF="#SIG:CGCONTROL.checkcps2:VAL">checkcps2</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.checkcps3:VAL:SPEC" HREF="#SIG:CGCONTROL.checkcps3:VAL">checkcps3</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.checkcps:VAL:SPEC" HREF="#SIG:CGCONTROL.checkcps:VAL">checkcps</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.liftLiterals:VAL:SPEC" HREF="#SIG:CGCONTROL.liftLiterals:VAL">liftLiterals</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.flatfblock:VAL:SPEC" HREF="#SIG:CGCONTROL.flatfblock:VAL">flatfblock</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.deadup:VAL:SPEC" HREF="#SIG:CGCONTROL.deadup:VAL">deadup</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.pollChecks:VAL:SPEC" HREF="#SIG:CGCONTROL.pollChecks:VAL">pollChecks</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.pollRatioAtoI:VAL:SPEC" HREF="#SIG:CGCONTROL.pollRatioAtoI:VAL">pollRatioAtoI</A> <B>:</B> real ref         <BR>
+<B>datatype</B> <A NAME="SIG:CGCONTROL.mlrisc_phase:TY:SPEC" HREF="#SIG:CGCONTROL.mlrisc_phase:TY">mlrisc_phase</A><BR>
+&nbsp;&nbsp;<B>=</B> NO_PHASE<BR>
+&nbsp;&nbsp;<B>|</B> AFTER_INSTR_SEL<BR>
+&nbsp;&nbsp;<B>|</B> AFTER_RA<BR>
+&nbsp;&nbsp;<B>|</B> AFTER_SCHED<BR>
+&nbsp;&nbsp;<B>|</B> PHASES <B>of</B> (mlrisc_phase * mlrisc_phase)       <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.printFlowgraph:VAL:SPEC" HREF="#SIG:CGCONTROL.printFlowgraph:VAL">printFlowgraph</A> <B>:</B> mlrisc_phase ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.printFlowgraphStream:VAL:SPEC" HREF="#SIG:CGCONTROL.printFlowgraphStream:VAL">printFlowgraphStream</A> <B>:</B> TextIO.outstream ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.memDisambiguate:VAL:SPEC" HREF="#SIG:CGCONTROL.memDisambiguate:VAL">memDisambiguate</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.mudebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.mudebugging:VAL">mudebugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.eedebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.eedebugging:VAL">eedebugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.insdebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.insdebugging:VAL">insdebugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.smdebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.smdebugging:VAL">smdebugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.emdebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.emdebugging:VAL">emdebugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.esdebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.esdebugging:VAL">esdebugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.etdebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.etdebugging:VAL">etdebugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.ecdebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.ecdebugging:VAL">ecdebugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CGCONTROL.tmdebugging:VAL:SPEC" HREF="#SIG:CGCONTROL.tmdebugging:VAL">tmdebugging</A> <B>:</B> bool ref         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CGCONTROL.tailrecur:VAL"><CODE>tailrecur
+          </CODE></A>
+<DD>
+Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.recordopt:VAL"><CODE>recordopt
+          </CODE></A>
+<DD>
+Constant-fold record expressions, if true.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.specialize:VAL"><CODE>specialize
+          </CODE></A>
+<DD>
+Perform monomorphic instantiation of polymorphic functions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.tail:VAL"><CODE>tail
+          </CODE></A>
+<DD>
+Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.allocprof:VAL"><CODE>allocprof
+          </CODE></A>
+<DD>
+Generate allocation-profiling code, if true.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.closureprint:VAL"><CODE>closureprint
+          </CODE></A>
+<DD>
+Print information about generated closures, if true.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.closureStrategy:VAL"><CODE>closureStrategy
+          </CODE></A>
+<DD>
+Choose flat vs. linked closures.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.lambdaopt:VAL"><CODE>lambdaopt
+          </CODE></A>
+<DD>
+Perform reduction of lambda-language before CPS-conversion, if true.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.cpsopt:VAL"><CODE>cpsopt
+          </CODE></A>
+<DD>
+Perform optimization of CPS representation, if true.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.rounds:VAL"><CODE>rounds
+          </CODE></A>
+<DD>
+How many alternating rounds of expansion/contraction.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.path:VAL"><CODE>path
+          </CODE></A>
+<DD>
+Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.betacontract:VAL"><CODE>betacontract
+          </CODE></A>
+<DD>
+Perform beta-contraction of functions called only once.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.eta:VAL"><CODE>eta
+          </CODE></A>
+<DD>
+Perform eta-reduction on CPS.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.selectopt:VAL"><CODE>selectopt
+          </CODE></A>
+<DD>
+Constant-folding of SELECT expressions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.dropargs:VAL"><CODE>dropargs
+          </CODE></A>
+<DD>
+Remove unused arguments to known functions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.deadvars:VAL"><CODE>deadvars
+          </CODE></A>
+<DD>
+Eliminate dead variables.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.flattenargs:VAL"><CODE>flattenargs
+          </CODE></A>
+<DD>
+Flatten tupled arguments of known functions. Probably obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.extraflatten:VAL"><CODE>extraflatten
+          </CODE></A>
+<DD>
+Flatten tupled arguments of known functions, even if this           requires extra work at some call sites. Probably obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.switchopt:VAL"><CODE>switchopt
+          </CODE></A>
+<DD>
+Constant-folding of SWITCH expressions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.handlerfold:VAL"><CODE>handlerfold
+          </CODE></A>
+<DD>
+Constant-folding of exception handlers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.branchfold:VAL"><CODE>branchfold
+          </CODE></A>
+<DD>
+Optimization of conditional branches whose clauses are alpha-equivalent.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.arithopt:VAL"><CODE>arithopt
+          </CODE></A>
+<DD>
+Constant-folding of arithmetic operators.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.betaexpand:VAL"><CODE>betaexpand
+          </CODE></A>
+<DD>
+Inline-expansion of functions called more than once.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.unroll:VAL"><CODE>unroll
+          </CODE></A>
+<DD>
+Loop unrolling.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.knownfiddle:VAL"><CODE>knownfiddle
+          </CODE></A>
+<DD>
+Scope localization of free variables.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.invariant:VAL"><CODE>invariant
+          </CODE></A>
+<DD>
+Hoist loop-invariant computations.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.targeting:VAL"><CODE>targeting
+          </CODE></A>
+<DD>
+Register targeting of results of subexpressions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.lambdaprop:VAL"><CODE>lambdaprop
+          </CODE></A>
+<DD>
+Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.newconreps:VAL"><CODE>newconreps
+          </CODE></A>
+<DD>
+Use efficient data-constructor representations.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.boxedconstconreps:VAL"><CODE>boxedconstconreps
+          </CODE></A>
+<DD>
+Use boxed constant constructor representations.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.sharepath:VAL"><CODE>sharepath
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.staticprof:VAL"><CODE>staticprof
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.unroll_recur:VAL"><CODE>unroll_recur
+          </CODE></A>
+<DD>
+Unrolling of non-tail-recursive functions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.hoistup:VAL"><CODE>hoistup
+          </CODE></A>
+<DD>
+Enlarge scope of variables to merge closures. Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.hoistdown:VAL"><CODE>hoistdown
+          </CODE></A>
+<DD>
+Contract scope of variables to merge closures. Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.recordcopy:VAL"><CODE>recordcopy
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.recordpath:VAL"><CODE>recordpath
+          </CODE></A>
+<DD>
+Perform select-path optimization on record components.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.debugcps:VAL"><CODE>debugcps
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.misc4:VAL"><CODE>misc4
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.argrep:VAL"><CODE>argrep
+          </CODE></A>
+<DD>
+Use trace-based argument register selection.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.bodysize:VAL"><CODE>bodysize
+          </CODE></A>
+<DD>
+Control the optimism of the inline expander.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.reducemore:VAL"><CODE>reducemore
+          </CODE></A>
+<DD>
+Control the propensity of the optimizer to give up when 	  few optimizations are found.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.alphac:VAL"><CODE>alphac
+          </CODE></A>
+<DD>
+Perform alpha conversion when necessary.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.comment:VAL"><CODE>comment
+          </CODE></A>
+<DD>
+Generate comments in the assembly code. Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.knownGen:VAL"><CODE>knownGen
+          </CODE></A>
+<DD>
+Count of the number of known functions without closures ever generated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.knownClGen:VAL"><CODE>knownClGen
+          </CODE></A>
+<DD>
+Count of the number of known functions with closures ever generated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.escapeGen:VAL"><CODE>escapeGen
+          </CODE></A>
+<DD>
+The number of escaping functions ever generated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.calleeGen:VAL"><CODE>calleeGen
+          </CODE></A>
+<DD>
+The number of callee-save closures ever generated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.spillGen:VAL"><CODE>spillGen
+          </CODE></A>
+<DD>
+The number of spills ever generated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.foldconst:VAL"><CODE>foldconst
+          </CODE></A>
+<DD>
+Do constant folding     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.etasplit:VAL"><CODE>etasplit
+          </CODE></A>
+<DD>
+Local/global calling sequences for escaping functions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.printLambda:VAL"><CODE>printLambda
+          </CODE></A>
+<DD>
+Show the lambda code of each compilation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.printit:VAL"><CODE>printit
+          </CODE></A>
+<DD>
+Show the CPS code after each phase.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.printsize:VAL"><CODE>printsize
+          </CODE></A>
+<DD>
+Show the size of CPS after each phase.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.scheduling:VAL"><CODE>scheduling
+          </CODE></A>
+<DD>
+Instruction scheduling.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.cse:VAL"><CODE>cse
+          </CODE></A>
+<DD>
+Common subexpression elimination.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.optafterclosure:VAL"><CODE>optafterclosure
+          </CODE></A>
+<DD>
+Perform CPS optimization after the closure phase. Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.uncurry:VAL"><CODE>uncurry
+          </CODE></A>
+<DD>
+Do the uncurrying optimization.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.ifidiom:VAL"><CODE>ifidiom
+          </CODE></A>
+<DD>
+Optimize the special SWITCH statements generated by if expressions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.comparefold:VAL"><CODE>comparefold
+          </CODE></A>
+<DD>
+Constant-fold integer comparisons.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.csehoist:VAL"><CODE>csehoist
+          </CODE></A>
+<DD>
+Hoist common subexpressions. Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.rangeopt:VAL"><CODE>rangeopt
+          </CODE></A>
+<DD>
+Do range analysis.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.icount:VAL"><CODE>icount
+          </CODE></A>
+<DD>
+Enable instruction counting.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.debugRep:VAL"><CODE>debugRep
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.sharewrap:VAL"><CODE>sharewrap
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.checklty1:VAL"><CODE>checklty1
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.checklty2:VAL"><CODE>checklty2
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.checklty3:VAL"><CODE>checklty3
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.checkcps1:VAL"><CODE>checkcps1
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.checkcps2:VAL"><CODE>checkcps2
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.checkcps3:VAL"><CODE>checkcps3
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.checkcps:VAL"><CODE>checkcps
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.liftLiterals:VAL"><CODE>liftLiterals
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.flatfblock:VAL"><CODE>flatfblock
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.deadup:VAL"><CODE>deadup
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.pollChecks:VAL"><CODE>pollChecks
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.pollRatioAtoI:VAL"><CODE>pollRatioAtoI
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.mlrisc_phase:TY"><CODE><B>datatype</B> mlrisc_phase</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.printFlowgraph:VAL"><CODE>printFlowgraph
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.printFlowgraphStream:VAL"><CODE>printFlowgraphStream
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.memDisambiguate:VAL"><CODE>memDisambiguate
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.mudebugging:VAL"><CODE>mudebugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.eedebugging:VAL"><CODE>eedebugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.insdebugging:VAL"><CODE>insdebugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.smdebugging:VAL"><CODE>smdebugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.emdebugging:VAL"><CODE>emdebugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.esdebugging:VAL"><CODE>esdebugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.etdebugging:VAL"><CODE>etdebugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.ecdebugging:VAL"><CODE>ecdebugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CGCONTROL.tmdebugging:VAL"><CODE>tmdebugging
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

@@ -1,0 +1,260 @@
+<!-- HTML/ast.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The AST signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>AST</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="AST:SIG:SPEC"><CODE>AST</CODE></A><BR>
+<B>structure </B><A NAME="Ast:STR:SPEC"><CODE>Compiler.Ast</CODE></A><B> : </B>AST<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:AST.fixity:TY:SPEC" HREF="#SIG:AST.fixity:TY">fixity</A><BR>
+<B>type</B> <A NAME="SIG:AST.symbol:TY:SPEC" HREF="#SIG:AST.symbol:TY">symbol</A><BR>
+<B>val</B> <A NAME="SIG:AST.infixleft:VAL:SPEC" HREF="#SIG:AST.infixleft:VAL">infixleft</A> <B>:</B> int -&gt; fixity     <BR>
+<B>val</B> <A NAME="SIG:AST.infixright:VAL:SPEC" HREF="#SIG:AST.infixright:VAL">infixright</A> <B>:</B> int -&gt; fixity     <BR>
+<B>type</B> <A NAME="SIG:AST.literal:TY:SPEC" HREF="#SIG:AST.literal:TY">literal</A> <B>=</B> IntInf.int     <BR>
+<B>type</B> <A NAME="SIG:AST.srcpos:TY:SPEC" HREF="#SIG:AST.srcpos:TY">srcpos</A><BR>
+<B>type</B> <A NAME="SIG:AST.region:TY:SPEC" HREF="#SIG:AST.region:TY">region</A><BR>
+<B>type</B> <A NAME="SIG:AST.path:TY:SPEC" HREF="#SIG:AST.path:TY">path</A><BR>
+<B>type</B> 'a <A NAME="SIG:AST.fixitem:TY:SPEC" HREF="#SIG:AST.fixitem:TY">fixitem</A><BR>
+<B>datatype</B> 'a <A NAME="SIG:AST.sigConst:TY:SPEC" HREF="#SIG:AST.sigConst:TY">sigConst</A><BR>
+&nbsp;&nbsp;<B>=</B> NoSig<BR>
+&nbsp;&nbsp;<B>|</B> Transparent <B>of</B> 'a         <BR>
+&nbsp;&nbsp;<B>|</B> Opaque <B>of</B> 'a       <BR>
+<B>datatype</B> <A NAME="SIG:AST.exp:TY:SPEC" HREF="#SIG:AST.exp:TY">exp</A><BR>
+&nbsp;&nbsp;<B>=</B> VarExp <B>of</B> path         <BR>
+&nbsp;&nbsp;<B>|</B> FnExp <B>of</B> rule list         <BR>
+&nbsp;&nbsp;<B>|</B> FlatAppExp <B>of</B> exp fixitem list         <BR>
+&nbsp;&nbsp;<B>|</B> AppExp <B>of</B> {function : exp, argument : exp}         <BR>
+&nbsp;&nbsp;<B>|</B> CaseExp <B>of</B> {expr : exp, rules : rule list}         <BR>
+&nbsp;&nbsp;<B>|</B> LetExp <B>of</B> {dec : dec, expr : exp}         <BR>
+&nbsp;&nbsp;<B>|</B> SeqExp <B>of</B> exp list         <BR>
+&nbsp;&nbsp;<B>|</B> IntExp <B>of</B> literal         <BR>
+&nbsp;&nbsp;<B>|</B> WordExp <B>of</B> literal         <BR>
+&nbsp;&nbsp;<B>|</B> RealExp <B>of</B> string         <BR>
+&nbsp;&nbsp;<B>|</B> StringExp <B>of</B> string         <BR>
+&nbsp;&nbsp;<B>|</B> CharExp <B>of</B> string         <BR>
+&nbsp;&nbsp;<B>|</B> RecordExp <B>of</B> (symbol * exp) list         <BR>
+&nbsp;&nbsp;<B>|</B> ListExp <B>of</B> exp list         <BR>
+&nbsp;&nbsp;<B>|</B> TupleExp <B>of</B> exp list         <BR>
+&nbsp;&nbsp;<B>|</B> SelectorExp <B>of</B> symbol         <BR>
+&nbsp;&nbsp;<B>|</B> ConstraintExp <B>of</B> {expr : exp, constraint : ty}         <BR>
+&nbsp;&nbsp;<B>|</B> HandleExp <B>of</B> {expr : exp, rules : rule list}         <BR>
+&nbsp;&nbsp;<B>|</B> RaiseExp <B>of</B> exp         <BR>
+&nbsp;&nbsp;<B>|</B> IfExp <B>of</B> {test : exp, thenCase : exp, elseCase : exp}         <BR>
+&nbsp;&nbsp;<B>|</B> AndalsoExp <B>of</B> (exp * exp)         <BR>
+&nbsp;&nbsp;<B>|</B> OrelseExp <B>of</B> (exp * exp)         <BR>
+&nbsp;&nbsp;<B>|</B> VectorExp <B>of</B> exp list         <BR>
+&nbsp;&nbsp;<B>|</B> WhileExp <B>of</B> {test : exp, expr : exp}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkExp <B>of</B> (exp * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.rule:TY:SPEC" HREF="#SIG:AST.exp:TY">rule</A><BR>
+&nbsp;&nbsp;<B>=</B> Rule <B>of</B> {pat : pat, exp : exp}       <BR>
+<B>datatype</B> <A NAME="SIG:AST.pat:TY:SPEC" HREF="#SIG:AST.exp:TY">pat</A><BR>
+&nbsp;&nbsp;<B>=</B> WildPat<BR>
+&nbsp;&nbsp;<B>|</B> VarPat <B>of</B> path         <BR>
+&nbsp;&nbsp;<B>|</B> IntPat <B>of</B> literal         <BR>
+&nbsp;&nbsp;<B>|</B> WordPat <B>of</B> literal         <BR>
+&nbsp;&nbsp;<B>|</B> StringPat <B>of</B> string         <BR>
+&nbsp;&nbsp;<B>|</B> CharPat <B>of</B> string         <BR>
+&nbsp;&nbsp;<B>|</B> RecordPat <B>of</B> {def : (symbol * pat) list, flexibility : bool}         <BR>
+&nbsp;&nbsp;<B>|</B> ListPat <B>of</B> pat list         <BR>
+&nbsp;&nbsp;<B>|</B> TuplePat <B>of</B> pat list         <BR>
+&nbsp;&nbsp;<B>|</B> FlatAppPat <B>of</B> pat fixitem list         <BR>
+&nbsp;&nbsp;<B>|</B> AppPat <B>of</B> {constr : pat, argument : pat}         <BR>
+&nbsp;&nbsp;<B>|</B> ConstraintPat <B>of</B> {pattern : pat, constraint : ty}         <BR>
+&nbsp;&nbsp;<B>|</B> LayeredPat <B>of</B> {varPat : pat, expPat : pat}         <BR>
+&nbsp;&nbsp;<B>|</B> VectorPat <B>of</B> pat list         <BR>
+&nbsp;&nbsp;<B>|</B> MarkPat <B>of</B> (pat * region)         <BR>
+&nbsp;&nbsp;<B>|</B> OrPat <B>of</B> pat list       <BR>
+<B>datatype</B> <A NAME="SIG:AST.strexp:TY:SPEC" HREF="#SIG:AST.exp:TY">strexp</A><BR>
+&nbsp;&nbsp;<B>=</B> VarStr <B>of</B> path         <BR>
+&nbsp;&nbsp;<B>|</B> StructStr <B>of</B> dec         <BR>
+&nbsp;&nbsp;<B>|</B> ConstrainedStr <B>of</B> (strexp * sigexp sigConst)         <BR>
+&nbsp;&nbsp;<B>|</B> AppStr <B>of</B> (path * (strexp * bool) list)         <BR>
+&nbsp;&nbsp;<B>|</B> LetStr <B>of</B> (dec * strexp)         <BR>
+&nbsp;&nbsp;<B>|</B> MarkStr <B>of</B> (strexp * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.fctexp:TY:SPEC" HREF="#SIG:AST.exp:TY">fctexp</A><BR>
+&nbsp;&nbsp;<B>=</B> VarFct <B>of</B> (path * fsigexp sigConst)         <BR>
+&nbsp;&nbsp;<B>|</B> FctFct <B>of</B> {params : (symbol option * sigexp) list, body : strexp, constraint : sigexp sigConst}         <BR>
+&nbsp;&nbsp;<B>|</B> LetFct <B>of</B> (dec * fctexp)         <BR>
+&nbsp;&nbsp;<B>|</B> AppFct <B>of</B> (path * (strexp * bool) list * fsigexp sigConst)         <BR>
+&nbsp;&nbsp;<B>|</B> MarkFct <B>of</B> (fctexp * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.wherespec:TY:SPEC" HREF="#SIG:AST.exp:TY">wherespec</A><BR>
+&nbsp;&nbsp;<B>=</B> WhType <B>of</B> (symbol list * tyvar list * ty)         <BR>
+&nbsp;&nbsp;<B>|</B> WhStruct <B>of</B> (symbol list * symbol list)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.sigexp:TY:SPEC" HREF="#SIG:AST.exp:TY">sigexp</A><BR>
+&nbsp;&nbsp;<B>=</B> VarSig <B>of</B> symbol         <BR>
+&nbsp;&nbsp;<B>|</B> AugSig <B>of</B> (sigexp * wherespec list)         <BR>
+&nbsp;&nbsp;<B>|</B> SigSig <B>of</B> spec list         <BR>
+&nbsp;&nbsp;<B>|</B> MarkSig <B>of</B> (sigexp * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.fsigexp:TY:SPEC" HREF="#SIG:AST.exp:TY">fsigexp</A><BR>
+&nbsp;&nbsp;<B>=</B> VarFsig <B>of</B> symbol         <BR>
+&nbsp;&nbsp;<B>|</B> FsigFsig <B>of</B> {param : (symbol option * sigexp) list, def : sigexp}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkFsig <B>of</B> (fsigexp * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.spec:TY:SPEC" HREF="#SIG:AST.exp:TY">spec</A><BR>
+&nbsp;&nbsp;<B>=</B> StrSpec <B>of</B> (symbol * sigexp option * path option) list         <BR>
+&nbsp;&nbsp;<B>|</B> TycSpec <B>of</B> ((symbol * tyvar list * ty option) list * bool)         <BR>
+&nbsp;&nbsp;<B>|</B> FctSpec <B>of</B> (symbol * fsigexp) list         <BR>
+&nbsp;&nbsp;<B>|</B> ValSpec <B>of</B> (symbol * ty) list         <BR>
+&nbsp;&nbsp;<B>|</B> DataSpec <B>of</B> {datatycs : db list, withtycs : tb list}         <BR>
+&nbsp;&nbsp;<B>|</B> ExceSpec <B>of</B> (symbol * ty option) list         <BR>
+&nbsp;&nbsp;<B>|</B> FixSpec <B>of</B> {fixity : fixity, ops : symbol list}         <BR>
+&nbsp;&nbsp;<B>|</B> ShareStrSpec <B>of</B> path list         <BR>
+&nbsp;&nbsp;<B>|</B> ShareTycSpec <B>of</B> path list         <BR>
+&nbsp;&nbsp;<B>|</B> IncludeSpec <B>of</B> sigexp         <BR>
+&nbsp;&nbsp;<B>|</B> MarkSpec <B>of</B> (spec * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.dec:TY:SPEC" HREF="#SIG:AST.exp:TY">dec</A><BR>
+&nbsp;&nbsp;<B>=</B> ValDec <B>of</B> (vb list * tyvar list)         <BR>
+&nbsp;&nbsp;<B>|</B> ValrecDec <B>of</B> (rvb list * tyvar list)         <BR>
+&nbsp;&nbsp;<B>|</B> FunDec <B>of</B> (fb list * tyvar list)         <BR>
+&nbsp;&nbsp;<B>|</B> TypeDec <B>of</B> tb list         <BR>
+&nbsp;&nbsp;<B>|</B> DatatypeDec <B>of</B> {datatycs : db list, withtycs : tb list}         <BR>
+&nbsp;&nbsp;<B>|</B> AbstypeDec <B>of</B> {abstycs : db list, withtycs : tb list, body : dec}         <BR>
+&nbsp;&nbsp;<B>|</B> ExceptionDec <B>of</B> eb list         <BR>
+&nbsp;&nbsp;<B>|</B> StrDec <B>of</B> strb list         <BR>
+&nbsp;&nbsp;<B>|</B> AbsDec <B>of</B> strb list         <BR>
+&nbsp;&nbsp;<B>|</B> FctDec <B>of</B> fctb list         <BR>
+&nbsp;&nbsp;<B>|</B> SigDec <B>of</B> sigb list         <BR>
+&nbsp;&nbsp;<B>|</B> FsigDec <B>of</B> fsigb list         <BR>
+&nbsp;&nbsp;<B>|</B> LocalDec <B>of</B> (dec * dec)         <BR>
+&nbsp;&nbsp;<B>|</B> SeqDec <B>of</B> dec list         <BR>
+&nbsp;&nbsp;<B>|</B> OpenDec <B>of</B> path list         <BR>
+&nbsp;&nbsp;<B>|</B> OvldDec <B>of</B> (symbol * ty * exp list)         <BR>
+&nbsp;&nbsp;<B>|</B> FixDec <B>of</B> {fixity : fixity, ops : symbol list}         <BR>
+&nbsp;&nbsp;<B>|</B> ImportDec <B>of</B> string list         <BR>
+&nbsp;&nbsp;<B>|</B> MarkDec <B>of</B> (dec * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.vb:TY:SPEC" HREF="#SIG:AST.exp:TY">vb</A><BR>
+&nbsp;&nbsp;<B>=</B> Vb <B>of</B> {pat : pat, exp : exp}         <BR>
+&nbsp;&nbsp;<B>|</B> LVb <B>of</B> {pat : pat, exp : exp}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkVb <B>of</B> (vb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.rvb:TY:SPEC" HREF="#SIG:AST.exp:TY">rvb</A><BR>
+&nbsp;&nbsp;<B>=</B> Rvb <B>of</B> {var : symbol, fixity : (symbol * region) option, exp : exp, resultty : ty option}         <BR>
+&nbsp;&nbsp;<B>|</B> LRvb <B>of</B> {var : symbol, fixity : (symbol * region) option, exp : exp, resultty : ty option}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkRvb <B>of</B> (rvb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.fb:TY:SPEC" HREF="#SIG:AST.exp:TY">fb</A><BR>
+&nbsp;&nbsp;<B>=</B> Fb <B>of</B> clause list         <BR>
+&nbsp;&nbsp;<B>|</B> LFb <B>of</B> clause list         <BR>
+&nbsp;&nbsp;<B>|</B> MarkFb <B>of</B> (fb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.clause:TY:SPEC" HREF="#SIG:AST.exp:TY">clause</A><BR>
+&nbsp;&nbsp;<B>=</B> Clause <B>of</B> {pats : pat fixitem list, resultty : ty option, exp : exp}       <BR>
+<B>datatype</B> <A NAME="SIG:AST.tb:TY:SPEC" HREF="#SIG:AST.exp:TY">tb</A><BR>
+&nbsp;&nbsp;<B>=</B> Tb <B>of</B> {tyc : symbol, def : ty, tyvars : tyvar list}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkTb <B>of</B> (tb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.db:TY:SPEC" HREF="#SIG:AST.exp:TY">db</A><BR>
+&nbsp;&nbsp;<B>=</B> Db <B>of</B> {tyc : symbol, tyvars : tyvar list, rhs : dbrhs}         <BR>
+&nbsp;&nbsp;<B>|</B> LDb <B>of</B> {tyc : symbol, tyvars : tyvar list, rhs : dbrhs}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkDb <B>of</B> (db * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.dbrhs:TY:SPEC" HREF="#SIG:AST.exp:TY">dbrhs</A><BR>
+&nbsp;&nbsp;<B>=</B> Constrs <B>of</B> (symbol * ty option) list         <BR>
+&nbsp;&nbsp;<B>|</B> Repl <B>of</B> symbol list       <BR>
+<B>datatype</B> <A NAME="SIG:AST.eb:TY:SPEC" HREF="#SIG:AST.exp:TY">eb</A><BR>
+&nbsp;&nbsp;<B>=</B> EbGen <B>of</B> {exn : symbol, etype : ty option}         <BR>
+&nbsp;&nbsp;<B>|</B> EbDef <B>of</B> {exn : symbol, edef : path}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkEb <B>of</B> (eb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.strb:TY:SPEC" HREF="#SIG:AST.exp:TY">strb</A><BR>
+&nbsp;&nbsp;<B>=</B> Strb <B>of</B> {name : symbol, def : strexp, constraint : sigexp sigConst}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkStrb <B>of</B> (strb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.fctb:TY:SPEC" HREF="#SIG:AST.exp:TY">fctb</A><BR>
+&nbsp;&nbsp;<B>=</B> Fctb <B>of</B> {name : symbol, def : fctexp}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkFctb <B>of</B> (fctb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.sigb:TY:SPEC" HREF="#SIG:AST.exp:TY">sigb</A><BR>
+&nbsp;&nbsp;<B>=</B> Sigb <B>of</B> {name : symbol, def : sigexp}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkSigb <B>of</B> (sigb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.fsigb:TY:SPEC" HREF="#SIG:AST.exp:TY">fsigb</A><BR>
+&nbsp;&nbsp;<B>=</B> Fsigb <B>of</B> {name : symbol, def : fsigexp}         <BR>
+&nbsp;&nbsp;<B>|</B> MarkFsigb <B>of</B> (fsigb * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.tyvar:TY:SPEC" HREF="#SIG:AST.exp:TY">tyvar</A><BR>
+&nbsp;&nbsp;<B>=</B> Tyv <B>of</B> symbol         <BR>
+&nbsp;&nbsp;<B>|</B> MarkTyv <B>of</B> (tyvar * region)       <BR>
+<B>datatype</B> <A NAME="SIG:AST.ty:TY:SPEC" HREF="#SIG:AST.exp:TY">ty</A><BR>
+&nbsp;&nbsp;<B>=</B> VarTy <B>of</B> tyvar         <BR>
+&nbsp;&nbsp;<B>|</B> ConTy <B>of</B> (symbol list * ty list)         <BR>
+&nbsp;&nbsp;<B>|</B> RecordTy <B>of</B> (symbol * ty) list         <BR>
+&nbsp;&nbsp;<B>|</B> TupleTy <B>of</B> ty list         <BR>
+&nbsp;&nbsp;<B>|</B> MarkTy <B>of</B> (ty * region)       <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:AST.fixity:TY"><CODE><B>type</B> fixity</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.symbol:TY"><CODE><B>type</B> symbol</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.infixleft:VAL"><CODE><B>val</B> infixleft</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.infixright:VAL"><CODE><B>val</B> infixright</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.literal:TY"><CODE><B>type</B> literal</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.srcpos:TY"><CODE><B>type</B> srcpos</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.region:TY"><CODE><B>type</B> region</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.path:TY"><CODE><B>type</B> path</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.fixitem:TY"><CODE><B>type</B> 'a fixitem</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.sigConst:TY"><CODE><B>datatype</B> 'a sigConst</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:AST.exp:TY"><CODE><B>datatype</B> exp</CODE></A>
+<DT> <CODE><B>datatype</B> rule</CODE>
+<DT> <CODE><B>datatype</B> pat</CODE>
+<DT> <CODE><B>datatype</B> strexp</CODE>
+<DT> <CODE><B>datatype</B> fctexp</CODE>
+<DT> <CODE><B>datatype</B> wherespec</CODE>
+<DT> <CODE><B>datatype</B> sigexp</CODE>
+<DT> <CODE><B>datatype</B> fsigexp</CODE>
+<DT> <CODE><B>datatype</B> spec</CODE>
+<DT> <CODE><B>datatype</B> dec</CODE>
+<DT> <CODE><B>datatype</B> vb</CODE>
+<DT> <CODE><B>datatype</B> rvb</CODE>
+<DT> <CODE><B>datatype</B> fb</CODE>
+<DT> <CODE><B>datatype</B> clause</CODE>
+<DT> <CODE><B>datatype</B> tb</CODE>
+<DT> <CODE><B>datatype</B> db</CODE>
+<DT> <CODE><B>datatype</B> dbrhs</CODE>
+<DT> <CODE><B>datatype</B> eb</CODE>
+<DT> <CODE><B>datatype</B> strb</CODE>
+<DT> <CODE><B>datatype</B> fctb</CODE>
+<DT> <CODE><B>datatype</B> sigb</CODE>
+<DT> <CODE><B>datatype</B> fsigb</CODE>
+<DT> <CODE><B>datatype</B> tyvar</CODE>
+<DT> <CODE><B>datatype</B> ty</CODE>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

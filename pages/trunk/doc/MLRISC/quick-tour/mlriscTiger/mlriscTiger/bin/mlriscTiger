@@ -1,0 +1,53 @@
+#! /bin/ksh
+
+SML=${SML?"must define path to sml bound to SML"}
+
+CMD=$0
+BINDIR=`dirname $CMD`
+
+#
+# Check if file argument is provided.
+#
+if [[ ${#*} -eq 0 ]] then
+  echo "alpha32Tiger:: Error: no file argument"
+  exit 1
+fi
+FILE=$1
+FILENAME=${FILE%.tig}
+
+#
+# Test if we have something that may be a tiger input file
+#
+if [[ $FILENAME = $FILE ]] then
+  echo "alpha32Tiger:: Error: File name must have .tig extension"
+  exit 1
+fi
+
+#
+# compile the file
+#
+$SML @SMLquiet @SMLload=$BINDIR/heap/mlriscTiger $FILE
+
+#
+# check if the assembly file was generated.
+#
+if [[ ! (-a $FILENAME.s) ]] then
+  echo "mlriscTiger:: Error: compilation failed"
+  exit 1
+else
+  echo "mlriscTiger:: Created $FILENAME.s"
+fi
+
+
+#
+# create executable
+#
+#echo "alpha32Tiger:: cc -non_shared -T 20000000 -D 40000000 $BINDIR/runtime.c $FILENAME.s"
+#rm -f a.out
+#cc -non_shared -T 20000000 -D 40000000 $BINDIR/runtime.c $FILENAME.s
+#if [[ -a a.out ]] then
+#  echo "alpha32Tiger:: created a.out"
+#fi
+
+echo "mlriscTiger:: Done"
+

@@ -1,0 +1,95 @@
+<!-- HTML/profile.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The PROFILE signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>PROFILE</CODE> signature</H3>
+<P>
+This is the user interface for the execution time profiler.  
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="PROFILE:SIG:SPEC"><CODE>PROFILE</CODE></A><BR>
+<B>structure </B><A NAME="Profile:STR:SPEC"><CODE>Compiler.Profile</CODE></A><B> : </B>PROFILE<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:PROFILE.setProfMode:VAL:SPEC" HREF="#SIG:PROFILE.setProfMode:VAL">setProfMode</A> <B>:</B> bool -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PROFILE.getProfMode:VAL:SPEC" HREF="#SIG:PROFILE.getProfMode:VAL">getProfMode</A> <B>:</B> unit -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:PROFILE.setTimingMode:VAL:SPEC" HREF="#SIG:PROFILE.setTimingMode:VAL">setTimingMode</A> <B>:</B> bool -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PROFILE.getTimingMode:VAL:SPEC" HREF="#SIG:PROFILE.getTimingMode:VAL">getTimingMode</A> <B>:</B> unit -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:PROFILE.reset:VAL:SPEC" HREF="#SIG:PROFILE.reset:VAL">reset</A> <B>:</B> unit -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PROFILE.report:VAL:SPEC" HREF="#SIG:PROFILE.report:VAL">report</A> <B>:</B> TextIO.outstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PROFILE.reportAll:VAL:SPEC" HREF="#SIG:PROFILE.reportAll:VAL">reportAll</A> <B>:</B> TextIO.outstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PROFILE.reportData:VAL:SPEC" HREF="#SIG:PROFILE.reportData:VAL">reportData</A> <B>:</B> unit -&gt; {name : string, count : int, time : Time.time} list         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:PROFILE.setProfMode:VAL"><CODE>setProfMode <VAR>b</VAR>
+          </CODE></A>
+<DD>
+Set the current profiling mode. 	  When the profiling mode is <CODE>true</CODE>, all compilation (through 	  the interactive system or the compilation manager) generates 	  profiled executable code.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PROFILE.getProfMode:VAL"><CODE>getProfMode <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Get the current profiling mode.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PROFILE.setTimingMode:VAL"><CODE>setTimingMode <VAR>b</VAR>
+          </CODE></A>
+<DD>
+Set the timing mode.  While true, timer interrupts  	  generate a statistical sample for calculation of where 	  the program is spending its time.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PROFILE.getTimingMode:VAL"><CODE>getTimingMode <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Get the timing mode.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PROFILE.reset:VAL"><CODE>reset <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Reset profiling counts to zero.  This is done automatically when 	 the timing mode is enabled by <A HREF="#SIG:PROFILE.setTimingMode:VAL:SPEC">setTimingMode</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PROFILE.report:VAL"><CODE>report <VAR>stream</VAR>
+          </CODE></A>
+<DD>
+Print a formatted profile report to <VAR>stream</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PROFILE.reportAll:VAL"><CODE>reportAll <VAR>ou</VAR>
+          </CODE></A>
+<DD>
+Print a formatted profile report to <VAR>stream</VAR>  	  <I>without</I> suppressing zero entries.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PROFILE.reportData:VAL"><CODE>reportData <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Return the unformatted profile-count data.
+<BR>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

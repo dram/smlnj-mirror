@@ -1,0 +1,1954 @@
+<HTML>
+<HEAD>
+<!-- This HTML file has been created by texi2html 1.51
+     from sml-mode.texi on 23 June 1997 
+     with some help by MJM -->
+
+<TITLE>SML mode, Version 3.3</TITLE>
+</HEAD>
+<BODY>
+<H1><em>SML mode, Version 3.3</em></H1>
+<ADDRESS>Author: Matthew J. Morley</ADDRESS>
+<P>
+<P><HR><P>
+<H1>Table of Contents</H1>
+<UL>
+<LI><A NAME="TOC1" HREF="sml-mode.html#SEC1">SML Mode Info</A>
+<LI><A NAME="TOC2" HREF="sml-mode.html#SEC2">Copying</A>
+<LI><A NAME="TOC3" HREF="sml-mode.html#SEC3">Introduction</A>
+<UL>
+<LI><A NAME="TOC4" HREF="sml-mode.html#SEC4">The SML mode distribution</A>
+<LI><A NAME="TOC5" HREF="sml-mode.html#SEC5">Getting started</A>
+<LI><A NAME="TOC6" HREF="sml-mode.html#SEC6">Help!</A>
+</UL>
+<LI><A NAME="TOC7" HREF="sml-mode.html#SEC7">Editing with SML Mode</A>
+<UL>
+<LI><A NAME="TOC8" HREF="sml-mode.html#SEC8">On entering SML mode</A>
+<LI><A NAME="TOC9" HREF="sml-mode.html#SEC9">Automatic indentation</A>
+<LI><A NAME="TOC10" HREF="sml-mode.html#SEC10">Electric features</A>
+<LI><A NAME="TOC11" HREF="sml-mode.html#SEC11">Indentation defaults</A>
+</UL>
+<LI><A NAME="TOC12" HREF="sml-mode.html#SEC12">Running ML under Emacs</A>
+<UL>
+<LI><A NAME="TOC13" HREF="sml-mode.html#SEC13">Starting the compiler</A>
+<LI><A NAME="TOC14" HREF="sml-mode.html#SEC14">Speaking to the compiler</A>
+<LI><A NAME="TOC15" HREF="sml-mode.html#SEC15">Finding errors</A>
+<LI><A NAME="TOC16" HREF="sml-mode.html#SEC16">Process defaults</A>
+</UL>
+<LI><A NAME="TOC17" HREF="sml-mode.html#SEC17">Configuration Summary</A>
+<UL>
+<LI><A NAME="TOC18" HREF="sml-mode.html#SEC18">Hooks</A>
+<LI><A NAME="TOC19" HREF="sml-mode.html#SEC19">Key bindings</A>
+<LI><A NAME="TOC20" HREF="sml-mode.html#SEC20">Menus</A>
+<LI><A NAME="TOC21" HREF="sml-mode.html#SEC21">Syntax colouring</A>
+<LI><A NAME="TOC22" HREF="sml-mode.html#SEC22">Advanced Topics</A>
+</UL>
+<LI><A NAME="TOC23" HREF="sml-mode.html#SEC23">Credit &#38; Blame</A>
+<LI><A NAME="TOC24" HREF="sml-mode.html#SEC24">Command Index</A>
+<LI><A NAME="TOC25" HREF="sml-mode.html#SEC25">Variable Index</A>
+<LI><A NAME="TOC26" HREF="sml-mode.html#SEC26">Key Index</A>
+</UL>
+<P><HR><P>
+
+
+<H1><A NAME="SEC1" HREF="sml-mode.html#TOC1">SML Mode Info</A></H1>
+
+<P>
+You are looking at the top node of the Info tree documenting
+SML-MODE (Version 3.3). Not all functions are documented here, but
+those that aren't you probably won't miss. All commands and settable
+variables have built-in documentation, as per usual Emacs conventions.
+
+</P>
+
+
+
+<H1><A NAME="SEC2" HREF="sml-mode.html#TOC2">Copying</A></H1>
+
+<P>
+You can freely copy, modify and redistribute SML mode because it's
+made available under the liberal terms of the GNU General Public
+License.
+
+</P>
+<P>
+GNU General Public License as published by the Free Software Foundation;
+either version 2, or (at your option) any later version.
+
+</P>
+<P>
+SML mode is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
+
+</P>
+<P>
+You should have received a copy of the GNU General Public License along
+with GNU Emacs; see the file COPYING. If not, write to the Free Software
+Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+</P>
+
+
+
+<H1><A NAME="SEC3" HREF="sml-mode.html#TOC3">Introduction</A></H1>
+
+<P>
+SML mode is a major mode for Emacs for editing Standard ML. It has
+some novel bugs, and some nice features:
+
+</P>
+
+<UL>
+<LI>
+
+Automatic indentation of sml code--a number of variables to customise
+the indentation.
+<LI>
+
+Easy insertion for commonly used templates like let, local, signature,
+and structure declarations, with minibuffer prompting for types and
+expressions.
+<LI>
+
+Magic pipe insertion: <CODE>|</CODE> automatically determines if it is used
+in a case or fun construct, and indents the next line as appropriate, 
+inserting <CODE>=&#62;</CODE> or the name of the function.
+<LI>
+
+Inferior shell for running ML. There's no need to leave Emacs, just keep
+on editing while the compiler runs in another window.
+<LI>
+
+Automatic "use file" in the inferior shell--you can send files,
+buffers, or regions of code to the ML subprocess.
+<LI>
+
+Menus, and syntax and keyword highlighting supported for Emacs 19 and
+derivatives.
+<LI>
+
+Parsing errors from the inferior shell, and repositioning the
+source--much like the next-error function used in c-mode.
+<LI>
+
+SML mode can be easily configured to work with a number of Standard
+ML compilers, and other SML based tools.
+</UL>
+
+
+
+<H2><A NAME="SEC4" HREF="sml-mode.html#TOC4">The SML mode distribution</A></H2>
+
+<P>
+The distribution contains several Emacs Lisp files--this is for ease of
+maintenance, you can concatenate them if you're careful:
+
+</P>
+<DL COMPACT>
+
+<DT><TT>`sml-mode.el'</TT>
+<DD>
+Main file, and should work in any Emacs editor or version post
+18.58--it only knows, or thinks it knows, about SML syntax and
+indentation.
+
+<DT><TT>`sml-menus.el'</TT>
+<DD>
+Menus to access user settable features of the mode, and for those who
+prefer menus over keys under Emacs 19 and derivatives.
+
+<DT><TT>`sml-{hilite,font}.el'</TT>
+<DD>
+Syntax highlighting functions to display keywords in a bold font,
+comments in italics, etc., using one of Emacs' two popular syntax
+colouring packages.
+
+<DT><TT>`sml-proc.el'</TT>
+<DD>
+Process interaction requires the <TT>`comint'</TT> package (normally
+distributed with Emacs 19 and derivatives).
+
+<DT><TT>`sml-{poly-ml,mosml}.el'</TT>
+<DD>
+Auxiliary library support for Poly/ML and Moscow ML compilers. 
+
+</DL>
+
+<P>
+There is also the Texinfo generated <CODE>info</CODE> file:
+
+</P>
+<DL COMPACT>
+
+<DT><TT>`sml-mode.{dvi,info}'</TT>
+<DD>
+This file--rudimentary SML mode documentation, and
+
+<DT><TT>`sml-site.el'</TT>
+<DD>
+Configuration file for system-wide installation. Read and edit this file
+if you are installing SML mode for general use.
+
+</DL>
+
+
+
+<H2><A NAME="SEC5" HREF="sml-mode.html#TOC5">Getting started</A></H2>
+
+<P>
+With luck your system administrator will have installed SML mode
+somewhere convenient, so all you have to do is put the line
+
+</P>
+
+<PRE>
+(require 'sml-site)
+</PRE>
+
+<P>
+in your <TT>`.emacs'</TT> configuration file and all will be well--you can
+skip the rest of this getting started section. Otherwise you will need
+to tell Emacs where to find all the SML mode <TT>`.el'</TT> files, and
+when to use them. The where is addressed by locating the Lisp code on
+your Emacs Lisp load path--you may have to create a directory for this,
+say <TT>`/home/mjm/elisp'</TT>, and then insert the following lines in your
+<TT>`/home/mjm/.emacs'</TT> file<A NAME="DOCF1" HREF="sml-mode.html#FOOT1">(1)</A>:
+
+</P>
+
+<PRE>
+(setq load-path (cons "/home/mjm/elisp" load-path))
+(autoload 'sml-mode "sml-mode" "Major mode for editing SML." t)
+</PRE>
+
+<P>
+The first line adjusts Emacs' internal search path so it can locate the
+Lisp source you have copied to that directory; the second line tells
+Emacs to load the code automatically when it is needed. You can then
+switch any Emacs buffer into SML mode by entering the command
+
+</P>
+
+<PRE>
+M-x sml-mode
+</PRE>
+
+<P>
+It is usually more convenient to have Emacs automatically place the
+buffer in SML mode whenever you visit a file containing ML
+programs. The simplest way of achieving this is to put something like
+
+</P>
+
+<PRE>
+(setq auto-mode-alist
+      (append '(("\\.sml$" . sml-mode) 
+                ("\\.sig$" . sml-mode) 
+                ("\\.ML$"  . sml-mode)) auto-mode-alist))
+</PRE>
+
+<P>
+also in your <TT>`.emacs'</TT> file. Subsequently (after a restart), any
+files with these extensions will be placed in SML mode buffers when
+you visit them.
+
+</P>
+
+<P>
+You may want to pre-compile the <TT>`sml-*.el'</TT> files (<KBD>M-x
+byte-compile-file</KBD>) for greater speed--byte compiled code loads and
+runs somewhat faster.
+
+</P>
+
+
+
+<H2><A NAME="SEC6" HREF="sml-mode.html#TOC6">Help!</A></H2>
+
+<P>
+You're reading it. Apart from the on-line info tree (<KBD>C-h i</KBD> is the
+Emacs key to enter the <CODE>info</CODE> system--you should follow the brief
+tutorial if this is unfamiliar), there are further details on specific
+commands in their documentation strings. Only the most useful
+SML mode commands are documented in the info tree: to find out more
+use Emacs' help facilities.
+
+</P>
+<P>
+Briefly, to get help on a specific function use <KBD>C-h f</KBD> and enter
+the command name. All (almost all, then) SML mode commands begin
+with <CODE>sml-</CODE>, so if you type this and press <KBD>TAB</KBD> (for
+completion) you will get a list of all commands. Another way is to use
+<KBD>C-h a</KBD> and enter the string <CODE>sml</CODE>. This is command apropos; it
+will list all commands with that sub-string in their names, and any key
+binding they may have in the current buffer. Command apropos gives a
+one-line synopsis of what each command does.
+
+</P>
+<P>
+Some commands are also variables--such things are allowed in Lisp, if
+not in ML! See section <A HREF="sml-mode.html#SEC24">Command Index</A>, for a list of (info) documented
+functions. See section <A HREF="sml-mode.html#SEC25">Variable Index</A>, for a list of user settable variables
+to control the behaviour of SML mode.
+
+</P>
+<P>
+Before accessing this information on-line from within Emacs you may have
+to set the variable <CODE>sml-mode-info</CODE>. Put in your <TT>`.emacs'</TT> file
+something like:
+
+</P>
+<P>
+<A NAME="IDX1"></A>
+<A NAME="IDX2"></A>
+<A NAME="IDX3"></A>
+
+<PRE>
+(setq sml-mode-info "/home/mjm/info/sml-mode.info")
+</PRE>
+
+<P>
+When different from the default this variable should be a string giving
+the absolute name of the <TT>`.info'</TT> file. Then <KBD>C-c C-i</KBD> in
+SML mode (i.e., the command <KBD>M-x sml-mode-info</KBD>) will bring up
+the manual. This help is also accessible from the menu. (Resetting this
+variable will not be necessary if your site administrator has been kind
+enough to install SML mode and its attendant documentation in the
+Emacs hierarchy.)
+
+</P>
+
+
+
+<H1><A NAME="SEC7" HREF="sml-mode.html#TOC7">Editing with SML Mode</A></H1>
+
+<P>
+Now SML mode provides just a few additional editing commands. Most
+of the work (see section <A HREF="sml-mode.html#SEC23">Credit &#38; Blame</A>) has gone into implementing
+the indentation algorithm which, if you think about it, has to be
+complicated for a language like ML. See section <A HREF="sml-mode.html#SEC11">Indentation defaults</A>, for details on how to control some of the behaviour of the
+indentation algorithm. Principal goodies are the `electric pipe'
+feature, and the ability to insert common SML forms (macros or
+templates).
+
+</P>
+
+
+
+<H2><A NAME="SEC8" HREF="sml-mode.html#TOC8">On entering SML mode</A></H2>
+
+<P>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-mode</B>
+<DD><A NAME="IDX4"></A>
+This switches a buffer into SML mode. This is a <EM>major mode</EM> in
+Emacs. To get out of SML mode the buffer's major mode must be set to
+something else, like <TT>text-mode</TT>. See section <A HREF="sml-mode.html#SEC5">Getting started</A>, for details
+on how to set this up automatically when visiting an SML file.
+</DL>
+
+</P>
+<P>
+Emacs is all hooks of course. A hook is a variable: if the variable is
+non-nil it binds a list of Emacs Lisp functions to be run in some order
+(usually left to right). You can customise SML mode with these
+hooks:
+
+</P>
+
+<P>
+<DL>
+<DT><U>Hook:</U> <B>sml-mode-hook</B>
+<DD><A NAME="IDX5"></A>
+Default: <CODE>nil</CODE>
+
+</P>
+<P>
+This is run every time a new SML mode buffer is created (or if you
+type <KBD>M-x sml-mode</KBD>). This is one place to put your preferred key
+bindings. See section <A HREF="sml-mode.html#SEC17">Configuration Summary</A>, for some examples.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Hook:</U> <B>sml-load-hook</B>
+<DD><A NAME="IDX6"></A>
+Default: <CODE>'sml-mode-version</CODE>
+
+</P>
+<P>
+Another, maybe better, place for key bindings. This hook is only run when
+SML mode is loaded into Emacs. See section <A HREF="sml-mode.html#SEC17">Configuration Summary</A>.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-mode-version</B>
+<DD><A NAME="IDX7"></A>
+Prints the current version of SML mode in the mini-buffer, in case
+you need to know. I've put it on <CODE>sml-load-hook</CODE> so you can easily
+tell which version of SML mode you are running.
+</DL>
+
+</P>
+
+
+
+<H2><A NAME="SEC9" HREF="sml-mode.html#TOC9">Automatic indentation</A></H2>
+
+<P>
+ML is a complicated language to parse, let alone compile. The
+indentation algorithm is a little wooden (for some tastes), and the best
+advice is not to fight it! There are several variables that can be
+adjusted to control the indentation algorithm (see section <A HREF="sml-mode.html#SEC11">Indentation defaults</A>, below).
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-indent-line</B>
+<DD><A NAME="IDX8"></A>
+Key: <KBD>TAB</KBD>
+<A NAME="IDX9"></A>
+
+</P>
+<P>
+This command indents the current line. If you set the indentation of the
+previous line by hand, <CODE>sml-indent-line</CODE> will indent relative to
+this setting.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-indent-region</B>
+<DD><A NAME="IDX10"></A>
+Key: <KBD>C-M-\</KBD>
+<A NAME="IDX11"></A>
+
+</P>
+<P>
+Indent the current region. Be patient if the region is large (like the
+whole buffer).
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-back-to-outer-indent</B>
+<DD><A NAME="IDX12"></A>
+Key: <KBD>M-<KBD>TAB</KBD></KBD>
+<A NAME="IDX13"></A>
+
+</P>
+<P>
+Unindents the line to the next outer level of indentation.
+</DL>
+
+</P>
+
+<P>
+Further indentation commands that Emacs provides (generically, for all
+modes) that you may like to recall:
+
+</P>
+
+<UL>
+<LI>
+
+<KBD>M-x newline-and-indent</KBD>
+
+On <KBD>LFD</KBD> by default.
+<A NAME="IDX14"></A>
+Insert a newline, then indent according to the major mode. See section `Indentation for Programs' in <CITE>The Emacs Editor Manual</CITE>, for
+details.
+
+<LI>
+
+<KBD>M-x indent-rigidly</KBD>
+
+On <KBD>C-x <KBD>TAB</KBD></KBD> by default.
+<A NAME="IDX15"></A>
+Moves all lines in the region right by its argument (left, for negative
+arguments). See section `Indentation' in <CITE>The Emacs Editor Manual</CITE>.
+
+<LI>
+
+<KBD>M-x indent-for-comment</KBD> 
+
+On <KBD>M-;</KBD> by default.
+<A NAME="IDX16"></A>
+Indent this line's comment to comment column, or insert an empty
+comment. See section `Comment Commands' in <CITE>The Emacs Editor Manual</CITE>.
+
+<LI>
+
+<KBD>M-x indent-new-comment-line</KBD>
+
+On <KBD>M-<KBD>LFD</KBD></KBD> by default.
+<A NAME="IDX17"></A>
+Break line at point and indent, continuing comment if within one.
+See section `Multi-Line Comments' in <CITE>The Emacs Editor Manual</CITE>.
+</UL>
+
+<P>
+<A NAME="IDX18"></A>
+As with other language modes, <KBD>M-;</KBD> gives you a comment at the end
+of the current line. The column where the comment starts is determined
+by the variable <CODE>comment-column</CODE>---default is 40, but it can be
+changed with <CODE>set-comment-column</CODE> (on <KBD>C-x ;</KBD> by default).
+
+</P>
+
+
+
+<H2><A NAME="SEC10" HREF="sml-mode.html#TOC10">Electric features</A></H2>
+
+<P>
+Electric keys are generally pretty irritating, so those provided by
+SML mode are fairly muted. The only truly electric key is <KBD>;</KBD>,
+and this has to be enabled to take effect.
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-electric-pipe</B>
+<DD><A NAME="IDX19"></A>
+Key: <KBD>M-|</KBD>
+<A NAME="IDX20"></A>
+
+</P>
+<P>
+When the point is in a `case' statement this opens a new line, indents
+and inserts <CODE>| =&#62;</CODE> leaving point just before the double arrow; if
+the enclosing construct is a `fun' declaration, the newline is indented
+and the function name copied at the appropriate column. Generally, try
+it whenever a <CODE>|</CODE> is wanted--you'll like it!
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-electric-semi</B>
+<DD><A NAME="IDX21"></A>
+Key: <KBD>;</KBD>
+<A NAME="IDX22"></A>
+
+</P>
+<P>
+Just inserts a semi-colon, usually. The behaviour of this command is
+governed by the variable <CODE>sml-electric-semi-mode</CODE>.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command, Variable:</U> <B>sml-electric-semi-mode</B>
+<DD><A NAME="IDX23"></A>
+Default: <CODE>nil</CODE>
+
+</P>
+<P>
+If this variable is <CODE>nil</CODE>, <CODE>sml-electric-semi</CODE> just inserts a
+semi-colon, otherwise it inserts a semi-colon and a newline, and indents
+the newline for SML. The command toggles the value of the variable; if
+you give the command a prefix argument (i.e., <KBD>C-u M-x
+sml-electric-semi-mode</KBD>) this always disables the electric effect of
+<KBD>;</KBD>.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-insert-form</B>
+<DD><A NAME="IDX24"></A>
+Key: <KBD>C-c <KBD>RET</KBD></KBD>
+<A NAME="IDX25"></A>
+
+</P>
+<P>
+Interactive short-cut to insert common ML forms (a.k.a. macros, or
+templates). Recognised forms are `let', `local', `case', `abstype',
+`datatype', `signature', `structure', and `functor'. Except for `let'
+and `local', these will prompt for appropriate parameters like functor
+name and signature, etc.. This command prompts in the mini-buffer, with
+completion.
+
+</P>
+<P>
+By default <KBD>C-c <KBD>RET</KBD></KBD> will insert at point, with the
+indentation of the current column; if you give a prefix argument (i.e.,
+<KBD>C-u C-c <KBD>RET</KBD></KBD>) the command will insert a newline first,
+indent, and then insert the template.
+</DL>
+
+</P>
+<P>
+<CODE>sml-insert-form</CODE> is also extensible: see section <A HREF="sml-mode.html#SEC17">Configuration Summary</A> for
+further details.
+
+</P>
+
+
+
+<H2><A NAME="SEC11" HREF="sml-mode.html#TOC11">Indentation defaults</A></H2>
+
+<P>
+Several variables try to control the indentation algorithm and other
+features of SML mode. For these user settable variables there is
+generally a function of the same name that does the job--look for them
+in the menu under <EM>Format/Mode Variables</EM>.
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command, Variable:</U> <B>sml-indent-level</B>
+<DD><A NAME="IDX26"></A>
+<A NAME="IDX27"></A>
+Default: <CODE>4</CODE>
+
+</P>
+<P>
+This variable controls the block indentation level. The command prompts
+for a numeric value unless a numeric prefix is provided instead. For
+example <KBD>M-2 M-x sml-indent-level</KBD> will set the variable to 2
+without prompting.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command, Variable:</U> <B>sml-pipe-indent</B>
+<DD><A NAME="IDX28"></A>
+<A NAME="IDX29"></A>
+Default: <CODE>-2</CODE>
+
+</P>
+<P>
+This variable adjusts the indentation level for lines that begin with a
+<CODE>|</CODE> (after any white space). The extra offset is usually negative.
+The command prompts for a numeric value unless a numeric prefix is
+provided instead.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-paren-lookback</B>
+<DD><A NAME="IDX30"></A>
+Default: <CODE>1000</CODE>
+
+</P>
+<P>
+The number of characters the indentation algorithm searches for an
+opening parenthesis. 1000 characters is about 30-40 lines; larger values
+mean slower indentation. If the value of the variable is <CODE>nil</CODE> this
+means the indentation algorithm won't look back at all.
+</DL>
+
+</P>
+
+<P>
+If the default values are not acceptable you can set these variables
+permanently in your <TT>`.emacs'</TT> file. See section <A HREF="sml-mode.html#SEC17">Configuration Summary</A>, for
+details and examples. Three further variables control the behaviour of
+indentation.
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command, Variable:</U> <B>sml-case-indent</B>
+<DD><A NAME="IDX31"></A>
+<A NAME="IDX32"></A>
+Default: <CODE>nil</CODE>
+
+</P>
+<P>
+How to indent `case' expressions:
+
+</P>
+
+<PRE>
+If <CODE>t</CODE>:                             If <CODE>nil</CODE>:
+case expr                           case expr of
+  of exp1 =&#62; ...                        exp1 =&#62; ...
+   | exp2 =&#62; ...                      | exp2 =&#62; ...
+</PRE>
+
+<P>
+The first seems to be the standard in SML/NJ. The second is the (nicer?)
+default.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command, Variable:</U> <B>sml-nested-if-indent</B>
+<DD><A NAME="IDX33"></A>
+<A NAME="IDX34"></A>
+Default: <CODE>nil</CODE>
+
+</P>
+<P>
+Nested `if-then-else' expressions have the following indentation
+depending on the value.
+
+</P>
+
+<PRE>
+If <CODE>t</CODE>:                           If <CODE>nil</CODE>:
+if exp1 then exp2                 if exp1 then exp2          
+else if exp3 then exp4            else if exp3 then exp4     
+else if exp5 then exp6                 else if exp5 then exp6
+     else exp7                              else exp7       
+</PRE>
+
+</DL>
+
+<P>
+<DL>
+<DT><U>Command, Variable:</U> <B>sml-type-of-indent</B>
+<DD><A NAME="IDX35"></A>
+<A NAME="IDX36"></A>
+Default: <CODE>t</CODE>
+
+</P>
+<P>
+Determines how to indent `let', `struct', etc..
+
+</P>
+
+<PRE>
+If <CODE>t</CODE>:                           If <CODE>nil</CODE>:
+fun foo bar = let                 fun foo bar = let
+                  val p = 4           val p = 4    
+              in                  in               
+                  bar + p             bar + p      
+              end                 end              
+</PRE>
+
+<P>
+<CODE>sml-type-of-indent</CODE> will not have any effect if the starting
+keyword is the first word on the line.
+</DL>
+
+</P>
+
+
+
+<H1><A NAME="SEC12" HREF="sml-mode.html#TOC12">Running ML under Emacs</A></H1>
+
+<P>
+The most useful feature of SML mode is that it provides a convenient
+interface to the compiler. How serious users of ML put up with a
+teletype interface to the compiler is beyond me... but perhaps there
+are other interfaces to compilers that require one to part with serious
+money. Such remarks can quickly become dated--in this case, let's hope
+so!
+
+</P>
+<P>
+Anyway, SML mode provides an interaction mode,
+<CODE>inferior-sml-mode</CODE>, where the compiler runs in a separate buffer
+in a window or frame of its own. You can use this buffer just like a
+terminal, but it's usually more convenient to mark some text in the
+SML mode buffer and have Emacs communicate with the sub-process. The
+features discussed below are syntax-independent, so they should work
+with a wide range of ML-like tools and compilers. See section <A HREF="sml-mode.html#SEC16">Process defaults</A>, for some hints.
+
+</P>
+<P>
+<A NAME="IDX37"></A>
+<CODE>inferior-sml-mode</CODE> is a specialisation of the <TT>`comint'</TT>
+package that comes with GNU Emacs and GNU XEmacs.
+
+</P>
+
+
+
+<H2><A NAME="SEC13" HREF="sml-mode.html#TOC13">Starting the compiler</A></H2>
+
+<P>
+Start your favourite ML compiler with the command
+
+</P>
+
+<PRE>
+<KBD>M-x sml</KBD>
+</PRE>
+
+<P>
+This creates a process interaction buffer that inherits some key
+bindings from SML mode and from <TT>`comint'</TT> (see section `Shell Mode' in <CITE>The Emacs Editor Manual</CITE>). Starting the ML compiler adds some
+functions to SML mode buffers so that program text can be
+communicated between editor and compiler (see section <A HREF="sml-mode.html#SEC14">Speaking to the compiler</A>).
+
+</P>
+<P>
+The name of the ML compiler is the first thing you should know how to
+specify:
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-program-name</B>
+<DD><A NAME="IDX38"></A>
+Default: <CODE>"sml"</CODE>
+
+</P>
+<P>
+The program to run as ML. You might need to specify the full path name
+of the program.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-default-arg</B>
+<DD><A NAME="IDX39"></A>
+Default: <CODE>""</CODE>
+
+</P>
+<P>
+Useful for Poly/ML users who may supply a database file, or others who
+have wrappers for setting various options around the command to run the
+compiler. Moscow ML people might set this to <CODE>"-P full"</CODE>, etc..
+</DL>
+
+</P>
+<P>
+The variable <CODE>sml-program-name</CODE> is a string holding the name
+of the program <EM>as you would type it at the shell</EM>. You 
+can always choose a program different to the default by invoking
+
+</P>
+
+<PRE>
+<KBD>C-u M-x sml</KBD>
+</PRE>
+
+<P>
+With the prefix argument Emacs will prompt for the command name and any
+command line arguments to pass to the compiler. Thereafter Emacs will
+use this new name as the default, but for a permanent change you should
+set this in your <TT>`.emacs'</TT> with, e.g.:
+
+</P>
+
+<PRE>
+(setq sml-program-name "nj-sml")
+</PRE>
+
+<P>
+You probably shouldn't set this in <CODE>sml-mode-hook</CODE> because that
+will interfere if you occasionally run a different compiler (e.g.,
+<CODE>poly</CODE> or <CODE>hol90</CODE>).
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml</B>
+<DD><A NAME="IDX40"></A>
+Launches ML as an inferior process in another buffer; if an ML process
+already exists, just switch to the process buffer. A prefix argument
+allows you to edit the command line to specify the program, and any
+command line options.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Hook:</U> <B>inferior-sml-mode-hook</B>
+<DD><A NAME="IDX41"></A>
+Default: <CODE>nil</CODE>
+
+</P>
+<P>
+<KBD>M-x sml</KBD> runs <CODE>comint-mode-hook</CODE> and
+<CODE>inferior-sml-mode-hook</CODE> hooks in that order, but <EM>after</EM> the
+compiler is started. Use <CODE>inferior-sml-mode-hook</CODE> to set any
+<CODE>comint</CODE> buffer-local configurations for SML mode you like.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Hook:</U> <B>inferior-sml-load-hook</B>
+<DD><A NAME="IDX42"></A>
+Default: <CODE>nil</CODE>
+
+</P>
+<P>
+This hook is analogous to <CODE>sml-load-hook</CODE> and is run just after the
+code for <CODE>inferior-sml-mode</CODE> is loaded into Emacs. Use this to set
+process defaults, and preferred key bindings for the interaction buffer.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>switch-to-sml</B>
+<DD><A NAME="IDX43"></A>
+Key: <KBD>C-c C-s</KBD>
+<A NAME="IDX44"></A>
+
+</P>
+<P>
+Switch from the SML buffer to the interaction buffer. By default point
+will be placed at the end of the process buffer, but a prefix argument
+will leave point wherever it was before. If you try <KBD>C-c C-s</KBD> before
+an ML process has been started, you'll just get an error message to the
+effect that there's no current process buffer.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-dedicated-frame</B>
+<DD><A NAME="IDX45"></A>
+<A NAME="IDX46"></A>
+Default: <CODE>(if window-system t nil)</CODE>
+
+</P>
+<P>
+If <CODE>t</CODE> this indicates to <CODE>switch-to-sml</CODE> and other functions
+that the interaction buffer where ML is running will be displayed on its
+own, dedicated frame; otherwise the interaction buffer will appear on
+the current frame, splitting the window if necessary. The default means
+SML mode will try and use a dedicated frame if you are running Emacs
+under X Windows (say), but not otherwise. The variable
+<CODE>sml-display-frame-alist</CODE> configures the dedicated frame's
+appearance (<KBD>C-h v sml-display-frame-alist</KBD> for details).
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-cd</B>
+<DD><A NAME="IDX47"></A>
+When started, the ML compiler's default working directory is the
+current buffer's default directory. This command allows the working
+directory to be changed, if the compiler can do this. The variable
+<CODE>sml-cd-command</CODE> specifies the compiler command to invoke
+(see section <A HREF="sml-mode.html#SEC16">Process defaults</A>).
+</DL>
+
+</P>
+
+
+
+<H2><A NAME="SEC14" HREF="sml-mode.html#TOC14">Speaking to the compiler</A></H2>
+
+<P>
+Several commands are defined for sending program fragments to the
+running compiler. Each of the following commands takes a prefix argument
+that will switch the input focus to the process buffer afterwards
+(leaving point at the end of the buffer):
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-load-file</B>
+<DD><A NAME="IDX48"></A>
+Key: <KBD>C-c C-l</KBD>
+<A NAME="IDX49"></A>
+
+</P>
+<P>
+Send a `use file' command to the current ML process. The variable
+<CODE>sml-use-command</CODE> is used to define the correct template for the
+command to invoke (see section <A HREF="sml-mode.html#SEC16">Process defaults</A>). The default file is the
+file associated with the current buffer, or the last file loaded if you
+are in the interaction buffer.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-send-region</B>
+<DD><A NAME="IDX50"></A>
+<A NAME="IDX51"></A>
+Key: <KBD>C-c C-r</KBD>
+<A NAME="IDX52"></A>
+
+</P>
+<P>
+Send the current region of text in the SML buffer.
+<CODE>sml-send-region-and-go</CODE> is a similar command for you to bind in
+SML mode if you wish: it'll send the region and then switch-to-sml.
+</DL>
+
+</P>
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-drag-region</B>
+<DD><A NAME="IDX53"></A>
+Key: <KBD>M-S-down-mouse-1</KBD>
+<A NAME="IDX54"></A>
+
+</P>
+<P>
+It's sometimes irritating to do all that <KBD>C-@</KBD> and <KBD>C-c C-r</KBD>
+stuff to send regions to the ML process, so if you are running Emacs
+under X Windows (say) you can do the same job by holding down both the
+<KBD>SHIFT</KBD> and <KBD>META</KBD> keys, and dragging with mouse button one over
+the region. This will temporarily highlight the region as you move the
+mouse, like <CODE>mouse-drag-region</CODE> (i.e., <KBD>down-mouse-1</KBD>),
+and send the highlighted text straight into the jaws of the ML compiler.
+
+</P>
+<P>
+If you only click the mouse button, instead of dragging, the region of
+text sent to the compiler is delimited by the current position of point
+and the place where you click the mouse. In neither case will the
+command set the region.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-send-buffer</B>
+<DD><A NAME="IDX55"></A>
+Key: <KBD>C-c C-b</KBD>
+<A NAME="IDX56"></A>
+
+</P>
+<P>
+Send the contents of the current buffer to ML.
+</DL>
+
+</P>
+
+<P>
+By and large, Emacs can nowadays quite happily send large chunks of text
+to its subprocesses (<TT>`comint'</TT> does input splitting). However, it is
+still probably safest<A NAME="DOCF2" HREF="sml-mode.html#FOOT2">(2)</A> to send
+larger program fragments to ML via the temporary file mechanism. This,
+for <CODE>sml-send-region</CODE> and other SML mode commands that use it
+in some way, takes advantage of the ML compiler's ability to open a file
+and compile the contents by making a temporary file of the indicated
+text. Two variables of interest are:
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-temp-threshold</B>
+<DD><A NAME="IDX57"></A>
+Default: <CODE>0</CODE>
+
+</P>
+<P>
+Determines what constitutes a large program fragment. A value of 512,
+say, will declare half a kilobyte a suitable threshold and larger
+fragments will be sent via a temporary file. A value of 0 means
+<EM>all</EM> text is sent via a temporary file; the value <CODE>nil</CODE>
+inhibits the temporary file mechanism altogether.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-temp-file</B>
+<DD><A NAME="IDX58"></A>
+Default: <CODE>(make-temp-name "/tmp/ml")</CODE>
+
+</P>
+<P>
+A string that gives the name of the temporary file to use. This
+default ensures Emacs will invent a unique name for this purpose for
+use throughout the rest of the editing session. Only one temporary
+file is used. 
+</DL>
+
+</P>
+
+<P>
+Another reason, you might well say <EM>the reason</EM>, for using the
+temporary file mechanism is that error messages reported by the ML
+compiler (see section <A HREF="sml-mode.html#SEC15">Finding errors</A>) are generally useless to SML mode
+unless a real file is associated with the input (an embedded <EM>use
+file</EM> will count as a real file). Of course, this all rather depends on
+the compiler producing sensible error messages, and on SML mode
+being able to parse them.
+
+</P>
+
+
+
+<H2><A NAME="SEC15" HREF="sml-mode.html#TOC15">Finding errors</A></H2>
+
+<P>
+SML mode provides one customisable function for locating the source
+position of errors reported by the compiler. This should work whether
+you type <CODE>use "puzzle.sml";</CODE> into the interaction buffer, or use
+one of the mechanisms provided for sending programs directly to the
+compiler---see section <A HREF="sml-mode.html#SEC14">Speaking to the compiler</A>.
+
+</P>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>sml-next-error</B>
+<DD><A NAME="IDX59"></A>
+<A NAME="IDX60"></A>
+Key: <KBD>C-c`</KBD>
+<A NAME="IDX61"></A>
+
+</P>
+<P>
+Jump to the source location of the next error reported by the compiler.
+If the function bound to <CODE>sml-error-parser</CODE> returns a range of
+character positions for the location of the error in the source file,
+<CODE>sml-next-error</CODE> will put the mark at the end of the range with
+point at the beginning; it may also highlight the region specified; it
+will also echo the one-line text of the error message if the error
+parser returns one.<A NAME="DOCF3" HREF="sml-mode.html#FOOT3">(3)</A>
+
+</P>
+<P>
+If you enter <KBD>C-u C-c`</KBD> instead, the command (a.k.a.
+<CODE>sml-skip-errors</CODE>) skips past all the remaining error messages and
+removes any error overlay in the current buffer. Note that <KBD>C-c`</KBD>
+also works in the ML interaction buffer (by default).
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable, Command:</U> <B>sml-error-overlay</B>
+<DD><A NAME="IDX62"></A>
+<A NAME="IDX63"></A>
+Default: <CODE>t</CODE>
+
+</P>
+<P>
+Legal default values for this buffer-local variable are <CODE>t</CODE> and
+<CODE>nil</CODE>. The variable attains a local value in each SML mode
+buffer when the default is <CODE>t</CODE>; in this case the local value is an
+overlay (or <EM>extent</EM> in XEmacs speak), and this means
+<CODE>sml-next-error</CODE> will highlight errors in the buffer when it can.
+If the default is <CODE>nil</CODE> it stays that way and <CODE>sml-next-error</CODE>
+will not highlight anything, ever.
+
+</P>
+<P>
+The command <KBD>M-x sml-error-overlay</KBD> will set the overlay around the
+current region, or remove the overlay if a prefix argument is given
+(i.e., <KBD>C-u M-x sml-error-overlay</KBD> removes the overlay, but this
+functionality can be accessed from the menu to save typing).
+</DL>
+
+</P>
+
+<P>
+Note that SML mode will usually locate errors relative to the start
+of the last major program fragment sent to the compiler (via
+<CODE>sml-load-file</CODE>, etc.), but if you don't use the temporary file
+mechanism to communicate text to the ML process (see section <A HREF="sml-mode.html#SEC16">Process defaults</A>), errors will generally not be located at all.
+
+</P>
+
+
+
+<H2><A NAME="SEC16" HREF="sml-mode.html#TOC16">Process defaults</A></H2>
+
+<P>
+The process interaction code is independent of the compiler used,
+deliberately, so SML mode will work with a variety of ML compilers
+and ML-based tools. There are therefore a number of variables that may
+need to be set correctly before SML mode can speak to the compiler.
+Things are by default set up for Standard ML of New Jersey, but
+switching to a new system is quite easy--very easy if you are using
+Poly/ML or Moscow ML as these are supported by libraries bundled with
+SML mode.
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-use-command</B>
+<DD><A NAME="IDX64"></A>
+Default: <CODE>"use \"%s\""</CODE>
+
+</P>
+<P>
+Use file command template. Emacs will replace the <CODE>%s</CODE> with a file
+name. Note that Emacs requires double quote characters inside strings
+to be quoted with a backslash.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-cd-command</B>
+<DD><A NAME="IDX65"></A>
+Default: <CODE>"OS.FileSys.chDir \"%s\""</CODE>
+
+</P>
+<P>
+Compiler command to change the working directory. Not all ML systems
+support this feature (well, Edinburgh (core) ML didn't), but they
+should.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-prompt-regexp</B>
+<DD><A NAME="IDX66"></A>
+Default: <CODE>"^[\-=] *"</CODE>
+
+</P>
+<P>
+Matches the ML compiler's prompt: <TT>`comint'</TT> uses this for various
+purposes.
+</DL>
+
+</P>
+
+<P>
+To customise error reportage for different ML compilers you need to set
+two further variables before <CODE>sml-next-error</CODE> can be useful:
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-error-regexp</B>
+<DD><A NAME="IDX67"></A>
+Default: <CODE>sml-smlnj-error-regexp</CODE>
+
+</P>
+<P>
+This is the regular expression for matching the start of an error
+message. The default matches the Standard ML of New Jersey compiler's
+Error and Warning messages. If you don't want stop at Warnings try, for
+example:
+
+<PRE>
+  "^[-= ]*.+:[0-9]+\\.[0-9]+.+Error:"
+</PRE>
+
+<P>
+If you're using Edinburgh (core) ML try <CODE>"^Parse error:"</CODE>.
+</DL>
+
+</P>
+
+<P>
+<DL>
+<DT><U>Variable:</U> <B>sml-error-parser</B>
+<DD><A NAME="IDX68"></A>
+Default: <CODE>'sml-smlnj-error-parser</CODE>
+
+</P>
+<P>
+The function that actually parses the error message. Again, the default
+is for SML/NJ. If you need to change this you may have to do a little
+Emacs Lisp programming.
+</DL>
+
+</P>
+
+<P>
+Note that bundled libraries supply an <CODE>sml-mosml-error-parser</CODE> and
+an <CODE>sml-poly-ml-error-parser</CODE>, and set all the attendant compiler
+variables. See section <A HREF="sml-mode.html#SEC22">Advanced Topics</A>, for tips on how to program your own
+compiler extension to SML mode.
+
+</P>
+
+
+
+<H1><A NAME="SEC17" HREF="sml-mode.html#TOC17">Configuration Summary</A></H1>
+
+<P>
+This (sort of pedagogic) section gives more information on how to
+configure SML mode: menus, key bindings, hooks and highlighting are
+discussed, along with a few other random topics. First, though, the
+auxiliary files <TT>`sml-poly-ml.el'</TT> and <TT>`sml-mosml.el'</TT> define
+defaults for these popular (?) ML compilers--Poly/ML and Moscow ML,
+respectively. One way to setup SML mode to use Moscow ML is to add
+to your <TT>`.emacs'</TT>:
+
+</P>
+
+<PRE>
+(defun my-mosml-setup () "Initialise inferior SML mode for Moscow ML."
+  (load-library "sml-mosml.el")
+  (setq sml-program-name "/home/mjm/mosml/bin/mosml"))
+(add-hook 'inferior-sml-load-hook 'my-mosml-setup)
+</PRE>
+
+<P>
+which creates a hook function <CODE>my-mosml-setup</CODE> and adds it to
+<CODE>inferior-sml-load-hook</CODE> so that the defaults for
+<CODE>sml-error-regexp</CODE> and its ilk (see section <A HREF="sml-mode.html#SEC16">Process defaults</A>) are
+correctly initialised; I have to set <CODE>sml-program-name</CODE> explicitly
+here because that directory isn't on my (Unix) PATH. The story is
+similar if you use Poly/ML.
+Note, by the way, that order matters here: the <CODE>load-library</CODE> call
+comes first because the default for <CODE>sml-program-name</CODE> in
+<TT>`sml-mosml.el'</TT> is just <CODE>"mosml"</CODE>. 
+
+</P>
+
+<P>
+The auxiliary libraries bundled with SML mode define commands
+<CODE>sml-mosml</CODE> and <CODE>sml-poly-ml</CODE> (there's also an
+<CODE>sml-smlnj</CODE> for uniformity); these commands prompt for suitable
+values for <CODE>sml-program-name</CODE> and <CODE>sml-default-arg</CODE> before
+starting the compiler and setting the other process defaults. A prefix
+argument will give you the builtin defaults with no questions asked.
+
+</P>
+
+
+
+<H2><A NAME="SEC18" HREF="sml-mode.html#TOC18">Hooks</A></H2>
+
+<P>
+One way to set SML mode variables (see section <A HREF="sml-mode.html#SEC11">Indentation defaults</A>), and other defaults, is through the
+<CODE>sml-mode-hook</CODE> in your <TT>`.emacs'</TT>. A simple example:
+
+</P>
+
+<PRE>
+(defun my-sml-mode-hook () "Local defaults for SML mode"
+  (setq sml-indent-level 2)        ; conserve on horizontal space
+  (setq words-include-escape t)    ; \ loses word break status
+  (setq indent-tabs-mode nil))     ; never ever indent with tabs
+(add-hook 'sml-mode-hook 'my-sml-mode-hook)
+</PRE>
+
+<P>
+The body of <CODE>my-sml-mode-hook</CODE> is a sequence of bindings. In this
+case it is not really necessary to set <CODE>sml-indent-level</CODE> in a hook
+because this variable is global (most SML mode variables are). With
+similar effect:
+
+</P>
+
+<PRE>
+(setq sml-indent-level 2)
+</PRE>
+
+<P>
+anywhere in your <TT>`.emacs'</TT> file (but probably on
+<CODE>sml-load-hook</CODE>). The variable <CODE>indent-tabs-mode</CODE> is
+automatically made local to the current buffer whenever it is set
+explicitly, so it <EM>must</EM> be set in a hook if you always want
+SML mode to behave like this. The same goes for the buffer-local
+<CODE>sml-error-overlay</CODE>; since this is globally <CODE>t</CODE> by default,
+set it globally <CODE>nil</CODE> if you never want errors highlighted:
+
+</P>
+
+<PRE>
+(setq-default sml-error-overlay nil)
+</PRE>
+
+<P>
+Again, on <CODE>sml-load-hook</CODE> would probably be the best place.
+
+</P>
+
+<P>
+Another hook is <CODE>inferior-sml-mode-hook</CODE>. This can be used to
+control the behaviour of the interaction buffer through various
+variables meaningful to <TT>`comint'</TT>-based packages:
+
+</P>
+
+<PRE>
+(defun my-inf-sml-mode-hook () "Local defaults for inferior SML mode"
+  (add-hook 'comint-output-filter-functions 'comint-truncate-buffer)
+  (setq      comint-scroll-show-maximum-output t)
+  (setq      comint-input-autoexpand nil))
+(add-hook 'inferior-sml-mode-hook 'my-inf-sml-mode-hook)
+</PRE>
+
+<P>
+Again, the body is a sequence of bindings. Unless you run several ML
+compilers simultaneously under one Emacs, this hook will normally only
+get run once. You might want to look up the documentation (<KBD>C-h v</KBD>
+and <KBD>C-h f</KBD>) for these buffer-local <CODE>comint</CODE> things.
+
+</P>
+
+
+
+<H2><A NAME="SEC19" HREF="sml-mode.html#TOC19">Key bindings</A></H2>
+
+<P>
+Customisation (in Emacs) usually entails putting favourite commands on
+easily remembered keys. Two `keymaps' are defined in SML mode: one
+is effective in program text buffers (<CODE>sml-mode-map</CODE>) and the other
+is effective in interaction buffers (<CODE>inferior-sml-mode-map</CODE>).
+The initial design ensures that (many of) the default key bindings from
+the former keymap will also be available in the latter (e.g.,
+<KBD>C-c`</KBD>).
+
+</P>
+<P>
+Type <KBD>C-h m</KBD> in an SML mode buffer to find the default key
+bindings (and similarly in an ML interaction buffer), and use the hooks
+provided to install your preferred key bindings. Given that the keymaps
+are global (variables):
+
+</P>
+
+<PRE>
+(defun my-sml-load-hook () "Global defaults for SML mode"
+  (define-key   sml-mode-map "\C-cd" 'sml-cd)
+  (define-key   sml-mode-map "\C-co" 'sml-error-overlay))
+(add-hook 'sml-load-hook 'my-sml-load-hook)
+</PRE>
+
+<P>
+This has the effect of binding <CODE>sml-cd</CODE> to the key <KBD>C-c d</KBD>, and
+the command <CODE>sml-error-overlay</CODE> to the key <KBD>C-c o</KBD>. If you want
+the same behaviour from <KBD>C-c d</KBD> in the ML buffer:
+
+</P>
+
+<PRE>
+(defun my-inf-sml-load-hook () "Global defaults for inferior SML mode"
+  (define-key inferior-sml-mode-map "\C-cd" 'sml-cd)
+  ;; NB. for SML/NJ '96
+  (setq sml-cd-command "OS.FileSys.chDir \"%s\""))
+(add-hook 'inferior-sml-load-hook 'my-inf-sml-load-hook)
+</PRE>
+
+<P>
+There is nothing to stop you rebuilding the entire keymap for
+SML mode and the ML interaction buffer in your <TT>`.emacs'</TT> of
+course: SML mode won't define <CODE>sml-mode-map</CODE> or
+<CODE>inferior-sml-mode-map</CODE> if you have already done so. 
+
+</P>
+
+
+
+<H2><A NAME="SEC20" HREF="sml-mode.html#TOC20">Menus</A></H2>
+
+<P>
+Menus are useful for fiddling with mode defaults and finding out what
+keys commands are on if you are forgetful (not all commands are listed
+in the menu). For menus to appear in the menu bar under GNU Emacs or GNU
+XEmacs, the editor must be able to find one of two packages--i.e., one
+or both must be on your <CODE>load-path</CODE>. The first option is
+<TT>`easymenu'</TT> which is distributed with GNU Emacs. Easy!
+
+</P>
+<P>
+The second option is <TT>`auc-menu'</TT> which was written by Per Abrahamsen
+and distributed with AUCTeX, but it is independently available from the
+IESD lisp archive<A NAME="DOCF4" HREF="sml-mode.html#FOOT4">(4)</A>}
+at Aalborg. You'll also find <TT>`auc-menu'</TT> is available from the LCD
+archive<A NAME="DOCF5" HREF="sml-mode.html#FOOT5">(5)</A>},
+the main repository for all Emacs Lisp. The advantage of <TT>`auc-menu'</TT>
+is that it works with XEmacs too.
+
+</P>
+<P>
+Notice that certain menu entries are not illuminated at first--these
+are generally functions that depend on there being an ML process running
+with which to communicate.
+
+</P>
+
+
+
+<H2><A NAME="SEC21" HREF="sml-mode.html#TOC21">Syntax colouring</A></H2>
+
+<P>
+Highlighting is very handy for picking out keywords in the program text,
+spotting misspelled kewyords, and, if you have Emacs' <TT>`ps-print'</TT>
+package installed (you usually do these days), obtaining pretty, even
+colourful code listings--quite properly for your colourful ML programs.
+
+</P>
+<P>
+<A NAME="IDX69"></A>
+<A NAME="IDX70"></A>
+
+</P>
+<P>
+Various highlight (hilite, if you spell real bad!) packages are
+available for GNU Emacs 19, and GNU XEmacs. SML mode can use either
+<TT>`hilit19'</TT> which only comes with Emacs, or <TT>`font-lock'</TT> which is
+the package of choice with XEmacs. If you are not familiar with these
+highlight packages you'll have to check their sources for installation
+guidelines, etc..
+
+</P>
+<P>
+Use <CODE>sml-load-hook</CODE> to tell Emacs which scheme you prefer for
+SML mode. For example:
+
+</P>
+
+<PRE>
+(add-hook 'sml-load-hook '(lambda () (require 'sml-font)))
+</PRE>
+
+<P>
+This ensures the SML extensions to <TT>`font-lock'</TT> will be available
+once SML mode loads (from <TT>`sml-font.el'</TT>---if you prefer
+<TT>`hilit19'</TT> you should <CODE>(require 'sml-hilite)</CODE> instead.
+
+</P>
+<P>
+The variable <CODE>sml-font-lock-extra-keywords</CODE> is for further
+customising <TT>`font-lock'</TT> for SML mode. The value of the variable
+should be a list of strings, each of which is a regular expression that
+should match the desired keyword exactly. Here's an example:
+
+</P>
+
+<PRE>
+(setq sml-font-lock-extra-keywords 
+      '("\\babstraction\\b" "\\bfunsig\\b" "=&#62;" "::"))))
+</PRE>
+
+<P>
+The <CODE>\b</CODE> marks a word boundary, according to the syntax table
+defined for SML mode. Backslash must be quoted inside a string.
+See section `Regexps' in <CITE>The Emacs Editor Manual</CITE>, for a summary of Emacs'
+regular expression syntax. 
+
+</P>
+
+<P>
+Finally, the variable <CODE>sml-font-lock-auto-on</CODE> can be used to
+control whether or not <TT>`font-lock'</TT> should be enabled by default in
+SML mode buffers; it is enabled by default. The <CODE>sml-hilite</CODE>
+package is customisable, but only with regard to colour changes.
+
+</P>
+
+
+
+<H2><A NAME="SEC22" HREF="sml-mode.html#TOC22">Advanced Topics</A></H2>
+
+
+<PRE>
+<EM>These forms are bloody useless; can't we have better ones?</EM>
+</PRE>
+
+<P>
+You can indeed. <CODE>sml-insert-form</CODE> is extensible so all you need to
+do is create the macros yourself. Define a <EM>keybord macro</EM>
+(<KBD>C-x (</KBD> &#60;something&#62; <KBD>C-x )</KBD>) and give it a suitable name:
+<CODE>sml-addto-forms-alist</CODE> prompts for a name, say <CODE>NAME</CODE>, and
+binds the macro <CODE>sml-form-NAME</CODE>. Thereafter <KBD>C-c <KBD>RET</KBD>
+NAME</KBD> will insert the macro at point, and <KBD>C-u C-c <KBD>RET</KBD> NAME</KBD>
+will insert the macro after a <CODE>newline-and-indent</CODE>. If you want to
+keep your macros from one editing session to the next, go to your
+<TT>`.emacs'</TT> file and call <CODE>insert-kbd-macro</CODE>; you'll need
+to add <CODE>NAME</CODE> to <CODE>sml-forms-alist</CODE> permanently yourself:
+
+</P>
+
+<PRE>
+(defun my-sml-load-hook () "Global defaults for SML mode"
+  ;; whatever else you do
+  (setq sml-forms-alist (cons '("NAME") sml-forms-alist)))
+</PRE>
+
+<P>
+If you want to create templates like `case' that prompt for parameters
+you'll have to do some Lisp programming. The <CODE>tempo</CODE> package looks
+like a good stating point. You can always overwrite your own macros, but
+the builtin forms for `let', etc., can't be overwritten.
+
+</P>
+
+<P>
+
+<PRE>
+<EM>I hate that indentation algorithm; can't I suppress it?</EM>
+</PRE>
+
+<P>
+Ah, yes, a common complaint. It's actually very easy to use SML mode
+without the troublesome <CODE>sml-indent-line</CODE>:
+
+</P>
+
+<PRE>
+(defun my-sml-load-hook () "Global defaults for SML mode"
+  ;; whatever else you do
+  (fset 'sml-indent-line 'ignore))
+</PRE>
+
+<P>
+though <CODE>indent-relative-maybe</CODE> may conceivable be more useful than
+<CODE>ignore</CODE>.
+
+</P>
+
+<P>
+
+<PRE>
+<EM>The dedicated frame for ML is too huge; can it be made smaller?</EM>
+</PRE>
+
+<P>
+Of course, you just have to modify the frame parameters. The variable
+<CODE>sml-display-frame-alist</CODE> can be defined explicitly in your
+<TT>`.emacs'</TT>; the default is a frame of 80 columns by 24 lines, and the
+icon name will be the same as the ML interaction buffer's
+name--something like <CODE>*mosml*</CODE>. I like a small, tidy font for this
+frame so I
+
+</P>
+
+<PRE>
+(setq sml-display-frame-alist 
+      (cons '(font . "7x14") sml-display-frame-alist))
+</PRE>
+
+<P>
+in my <CODE>inferior-sml-load-hook</CODE>. If you want fewer lines, try:
+
+</P>
+
+<PRE>
+(setcdr (assoc 'height sml-display-frame-alist) 15)
+</PRE>
+
+<P>
+or something.
+
+</P>
+
+<P>
+
+<PRE>
+<EM>Can SML mode handle more than one compiler running at once?</EM>
+</PRE>
+
+<P>
+<A NAME="IDX71"></A>
+<A NAME="IDX72"></A>
+<P>
+The question is whether you can! See the <CODE>sml-buffer</CODE> variable's
+on-line help (<KBD>C-h v sml-buffer</KBD>). Note that the SML mode
+compiler variables (see section <A HREF="sml-mode.html#SEC16">Process defaults</A>) are all buffer-local, so
+you can even switch between different ML compilers, not just different
+invocations of the same one. Well, you <EM>can</EM>.
+
+</P>
+
+<P>
+
+<PRE>
+<EM>What needs to be done to support other ML compilers?</EM>
+</PRE>
+
+<P>
+Not that much really, at least not to create minimal support. The
+interface between SML mode and the compiler is determined by the
+variables
+<CODE>sml-use-command</CODE>,
+<CODE>sml-cd-command</CODE>,
+<CODE>sml-prompt-regexp</CODE>
+(which are easy to get right), and
+<CODE>sml-error-regexp</CODE>, and
+<CODE>sml-error-parser</CODE> (which are more tricky). 
+The general template to follow in setting this up
+is in the files <TT>`sml-{poly-ml,mosml}.el'</TT>.
+These rules will not change, I hope:
+
+</P>
+
+<UL>
+<LI>
+
+<CODE>sml-next-error</CODE> uses <CODE>sml-error-regexp</CODE> to locate the start
+of the next error report in the ML interaction buffer (<VAR>P</VAR>)
+
+<LI>
+
+<CODE>sml-next-error</CODE> calls <CODE>sml-error-parser</CODE>, passing <VAR>P</VAR>, and
+expects up to five return values in this order:
+
+
+<OL>
+<LI>file name in which the error occurs (<VAR>F</VAR>)
+
+<LI>start line of the error (<VAR>L</VAR> &#62; 0)
+
+<LI>start column of the error (<VAR>C</VAR>)
+
+<LI>an Emacs Lisp expression to be <CODE>eval</CODE>'d
+
+at (<VAR>L</VAR>,<VAR>C</VAR>) in <VAR>F</VAR> (<VAR>EOE</VAR>)
+<LI>the actual text of the one-line error report (<VAR>MSG</VAR>)
+
+</OL>
+
+<LI>
+
+<CODE>sml-error-parser</CODE> can assume that <VAR>P</VAR> is the start of the next
+error message that the user is interested in--since she defines this
+point by defining <CODE>sml-error-regexp</CODE>.
+
+<LI>
+
+What <CODE>sml-error-parser</CODE> returns is a list. In the event of problems,
+I foresee the following needs:
+
+
+<UL>
+<LI>if the file is the standard input,
+
+return <CODE>("std_in" <VAR>L</VAR> <VAR>C</VAR>)</CODE>
+<LI>if the file cannot be inferred,
+
+return <CODE>(nil <VAR>L</VAR> <VAR>C</VAR>)</CODE>
+<LI>if <VAR>L</VAR>=0, or the start cannot be inferred,
+
+return <CODE>(<VAR>F</VAR> nil <VAR>C</VAR>)</CODE>
+<LI>if the start column cannot be inferred,
+
+return <CODE>(<VAR>F</VAR> <VAR>L</VAR> 1)</CODE>
+</UL>
+
+</UL>
+
+<P>
+There's no need to return anything else. However, if you do want the
+errorful text in <VAR>F</VAR> highlighted you should return a simple Lisp
+expression in the fourth argument that'll compute the region. <VAR>EOE</VAR>
+will be called with point at character (<VAR>L</VAR>,<VAR>C</VAR>) in <VAR>F</VAR>, and
+should move point to the end of the errorful text. In fact, <VAR>EOE</VAR>
+can actually do anything you wish, but in the simplest cases it'll just
+<CODE>(forward-char 45)</CODE>, or
+
+</P>
+
+<PRE>
+(progn (forward-line 4) (forward-char 37))
+</PRE>
+
+<P>
+etc.. If it does more, make sure it leaves point at the end of the
+region in <VAR>F</VAR>---use <CODE>save-excursion</CODE> if switching buffers.
+<VAR>MSG</VAR>, if returned, will be echoed in the minibuffer.
+
+</P>
+
+
+
+<H1><A NAME="SEC23" HREF="sml-mode.html#TOC23">Credit &#38; Blame</A></H1>
+
+<P>
+SML Mode was written originally by Lars Bo Nielsen for Emacs 18.5n;
+later hacked for comint by Olin Shivers (who called it <TT>ml-mode</TT>);
+much later hacked by myself because it didn't seem to work... Fritz
+Knabe brilliantly posted the <CODE>hilit19</CODE> and <CODE>font-lock</CODE>
+functions on the net. Lars probably would recognise much of what
+remains, yet now there're menus, syntax highlighting, support for
+various ML compilers, Texinfo (hey!), and more than a little hope it'll
+work with a variety of Emacs 19s. But there are still things to do. Lars
+wrote:
+
+<BLOCKQUOTE>
+<P>
+<EM>The indentation algorithm still can be fooled. I don't know if it will
+ever be 100% right, as this means it will have to actually parse all of
+the buffer up to the actual line [...].</EM>
+</BLOCKQUOTE>
+
+<P>
+This is still the main cause of grief; SML's syntax is a nightmare for
+Emacs modes, and of course opinions vary about proper indentation. But
+there may be something we can do...
+
+</P>
+
+
+
+<H1><A NAME="SEC24" HREF="sml-mode.html#TOC24">Command Index</A></H1>
+
+<P>
+<H2>i</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX37">inferior-sml-mode</A>
+</DIR>
+<H2>s</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX40">sml</A>
+<LI><A HREF="sml-mode.html#IDX12">sml-back-to-outer-indent</A>
+<LI><A HREF="sml-mode.html#IDX71">sml-buffer</A>
+<LI><A HREF="sml-mode.html#IDX32">sml-case-indent</A>
+<LI><A HREF="sml-mode.html#IDX47">sml-cd</A>
+<LI><A HREF="sml-mode.html#IDX53">sml-drag-region</A>
+<LI><A HREF="sml-mode.html#IDX19">sml-electric-pipe</A>
+<LI><A HREF="sml-mode.html#IDX21">sml-electric-semi</A>
+<LI><A HREF="sml-mode.html#IDX63">sml-error-overlay</A>
+<LI><A HREF="sml-mode.html#IDX27">sml-indent-level</A>
+<LI><A HREF="sml-mode.html#IDX8">sml-indent-line</A>
+<LI><A HREF="sml-mode.html#IDX10">sml-indent-region</A>
+<LI><A HREF="sml-mode.html#IDX24">sml-insert-form</A>
+<LI><A HREF="sml-mode.html#IDX48">sml-load-file</A>
+<LI><A HREF="sml-mode.html#IDX4">sml-mode</A>
+<LI><A HREF="sml-mode.html#IDX2">sml-mode-info</A>
+<LI><A HREF="sml-mode.html#IDX7">sml-mode-version</A>
+<LI><A HREF="sml-mode.html#IDX34">sml-nested-if-indent</A>
+<LI><A HREF="sml-mode.html#IDX59">sml-next-error</A>
+<LI><A HREF="sml-mode.html#IDX29">sml-pipe-indent</A>
+<LI><A HREF="sml-mode.html#IDX55">sml-send-buffer</A>
+<LI><A HREF="sml-mode.html#IDX50">sml-send-region</A>
+<LI><A HREF="sml-mode.html#IDX51">sml-send-region-and-go</A>
+<LI><A HREF="sml-mode.html#IDX60">sml-skip-errors</A>
+<LI><A HREF="sml-mode.html#IDX36">sml-type-of-indent</A>
+<LI><A HREF="sml-mode.html#IDX43">switch-to-sml</A>
+</DIR>
+
+</P>
+
+
+
+<H1><A NAME="SEC25" HREF="sml-mode.html#TOC25">Variable Index</A></H1>
+
+<P>
+<H2>i</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX42">inferior-sml-load-hook</A>
+<LI><A HREF="sml-mode.html#IDX41">inferior-sml-mode-hook</A>
+</DIR>
+<H2>s</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX72">sml-buffer</A>
+<LI><A HREF="sml-mode.html#IDX31">sml-case-indent</A>
+<LI><A HREF="sml-mode.html#IDX65">sml-cd-command</A>
+<LI><A HREF="sml-mode.html#IDX45">sml-dedicated-frame</A>
+<LI><A HREF="sml-mode.html#IDX39">sml-default-arg</A>
+<LI><A HREF="sml-mode.html#IDX46">sml-display-frame-alist</A>
+<LI><A HREF="sml-mode.html#IDX23">sml-electric-semi-mode</A>
+<LI><A HREF="sml-mode.html#IDX62">sml-error-overlay</A>
+<LI><A HREF="sml-mode.html#IDX68">sml-error-parser</A>
+<LI><A HREF="sml-mode.html#IDX67">sml-error-regexp</A>
+<LI><A HREF="sml-mode.html#IDX70">sml-font-lock-auto-on</A>
+<LI><A HREF="sml-mode.html#IDX69">sml-font-lock-extra-keywords</A>
+<LI><A HREF="sml-mode.html#IDX26">sml-indent-level</A>
+<LI><A HREF="sml-mode.html#IDX6">sml-load-hook</A>
+<LI><A HREF="sml-mode.html#IDX5">sml-mode-hook</A>
+<LI><A HREF="sml-mode.html#IDX1">sml-mode-info</A>
+<LI><A HREF="sml-mode.html#IDX33">sml-nested-if-indent</A>
+<LI><A HREF="sml-mode.html#IDX30">sml-paren-lookback</A>
+<LI><A HREF="sml-mode.html#IDX28">sml-pipe-indent</A>
+<LI><A HREF="sml-mode.html#IDX38">sml-program-name</A>
+<LI><A HREF="sml-mode.html#IDX66">sml-prompt-regexp</A>
+<LI><A HREF="sml-mode.html#IDX58">sml-temp-file</A>
+<LI><A HREF="sml-mode.html#IDX57">sml-temp-threshold</A>
+<LI><A HREF="sml-mode.html#IDX35">sml-type-of-indent</A>
+<LI><A HREF="sml-mode.html#IDX64">sml-use-command</A>
+</DIR>
+
+</P>
+
+
+
+<H1><A NAME="SEC26" HREF="sml-mode.html#TOC26">Key Index</A></H1>
+
+<P>
+<H2>;</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX22"><KBD>;</KBD></A>
+</DIR>
+<H2>c</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX56"><KBD>C-c C-b</KBD></A>
+<LI><A HREF="sml-mode.html#IDX3"><KBD>C-c C-i</KBD></A>
+<LI><A HREF="sml-mode.html#IDX49"><KBD>C-c C-l</KBD></A>
+<LI><A HREF="sml-mode.html#IDX52"><KBD>C-c C-r</KBD></A>
+<LI><A HREF="sml-mode.html#IDX44"><KBD>C-c C-s</KBD></A>
+<LI><A HREF="sml-mode.html#IDX25"><KBD>C-c <KBD>RET</KBD></KBD></A>
+<LI><A HREF="sml-mode.html#IDX61"><KBD>C-c`</KBD></A>
+<LI><A HREF="sml-mode.html#IDX11"><KBD>C-M-\</KBD></A>
+<LI><A HREF="sml-mode.html#IDX18"><KBD>C-x ;</KBD></A>
+<LI><A HREF="sml-mode.html#IDX15"><KBD>C-x <KBD>TAB</KBD></KBD></A>
+</DIR>
+<H2>l</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX14"><KBD>LFD</KBD></A>
+</DIR>
+<H2>m</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX16"><KBD>M-;</KBD></A>
+<LI><A HREF="sml-mode.html#IDX17"><KBD>M-<KBD>LFD</KBD></KBD></A>
+<LI><A HREF="sml-mode.html#IDX54"><KBD>M-S-down-mouse-1</KBD></A>
+<LI><A HREF="sml-mode.html#IDX13"><KBD>M-<KBD>TAB</KBD></KBD></A>
+<LI><A HREF="sml-mode.html#IDX20"><KBD>M-|</KBD></A>
+</DIR>
+<H2>t</H2>
+<DIR>
+<LI><A HREF="sml-mode.html#IDX9"><KBD>TAB</KBD></A>
+</DIR>
+
+</P>
+<P><HR><P>
+<H1>Footnotes</H1>
+<H3><A NAME="FOOT1" HREF="sml-mode.html#DOCF1">(1)</A></H3>
+<P>cf. commentary in the site
+initialisation file <TT>`sml-site.el'</TT>.
+<H3><A NAME="FOOT2" HREF="sml-mode.html#DOCF2">(2)</A></H3>
+<P>XEmacs 19.11 users are warned that
+changing the default <CODE>sml-temp-threshold</CODE> may well cause XEmacs to
+hang; they seem to have fixed the problem in 19.12 and above.
+<H3><A NAME="FOOT3" HREF="sml-mode.html#DOCF3">(3)</A></H3>
+<P>Does <CODE>sml-error-parser</CODE> return these
+nice things? The answer is complicated! See section <A HREF="sml-mode.html#SEC22">Advanced Topics</A>, and the
+docstring <KBD>C-h v sml-error-parser</KBD>.
+<H3><A NAME="FOOT4" HREF="sml-mode.html#DOCF4">(4)</A></H3>
+<P><a href="ftp://sunsite.auc.dk/packages/auctex/">ftp://sunsite.auc.dk/packages/auctex/</a>
+<H3><A NAME="FOOT5" HREF="sml-mode.html#DOCF5">(5)</A></H3>
+<P><a href="ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/misc/">ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive/misc/</a>
+<P><HR><P>
+This document was generated on 23 June 1997 using the
+<A HREF="http://wwwcn.cern.ch/dci/texi2html/">texi2html</A>
+translator version 1.51 (with some help by MJM)</P>
+</BODY>
+</HTML>

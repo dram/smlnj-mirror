@@ -1,0 +1,175 @@
+Policy for Managing Unified SML/NJ CVS Repository
+-------------------------------------------------
+
+Our aim is to improve coordination of the various people contributing
+to the development and maintenance of SML/NJ by having a single master
+CVS repository accessible to all.  In order for this plan to work
+well, we need to agree on a policy or set of guidelines for how the
+repository should be managed.
+
+This is my attempt to outline such a policy.  I encourage comments,
+suggestions, and constructive criticism, and I hope we will quickly
+converge to a consensus on how the new repository will be managed.
+
+1. Location
+
+The master repository from with Release and Working versions have been
+created in the past has been at Bell Labs.  The obvious problem with
+this arrangement is that people not at Bell Labs do not have access
+through the firewall.  CVS supports remote operations on a repository
+(with selective password authorization) as long as the repository is
+accessible, so we should place the repository on a system that
+everyone has access to.  The initial proposal is to have Yale host
+the repository.
+
+2. Access
+
+It has become common practice in the "open source" movement to have an
+open CVS repository that _anyone_ can checkout from.  This seems to be
+a reasonable policy for the SML/NJ repository.  As a consequence,
+adventurous users can try out a snapshot of the code under
+development, and as with our current "working versions" they do so at
+the risc of encountering bugs and instabilities.
+
+The privilege to commit should be restricted to those on the sml-nj
+mailing list (or possibly a subset consisting of the "active"
+developers) [I'll call this set of people the "developers"].  The
+function of taging versions should probably be in the hands of a
+designated CVS administrator or his/her deputy, but perhaps it ok to
+allow any developer to tag.
+
+3. Backup
+
+The repository should be backed up on a daily basis (probably by
+normal file system backups of the server hosting the repository).
+
+4. Maintaining stability: Prerequisites for commits
+
+This is the tricky bit.  We want to have developers commit their
+changes frequently enough so that the community remains synchronized,
+but we don't want partial or half-baked changes committed.  Most
+importantly, we don't want changes committed that break the system
+(recognizing of course that some changes may introduce bugs no matter
+how careful we try to be).  So here is my proposal on what should be
+done prior to any checkin:
+
+  a) Do an update from the repository to incorporate any other changes
+     that have been checked in since your working copy was checked out
+     (frequent updates are a good policy in general).
+
+  b) Make sure your version compiles to a fixed point.  If you are
+     making changes that are clearly platform independent (e.g. to
+     the type checker), it may be sufficient to do this on one
+     architecture.  If your changes are specific to one architecture
+     (e.g. changes to x86 specific code generator files), then
+     compiling to a fixed point on that architecture should suffice.
+     If your changes affect non-architecture-specific code generation,
+     you should check all architectures.
+     [What if you don't have access to all architectures or platforms?
+     Ask for help from someone who does.]
+
+  c) Do further testing as appropriate.  How much testing depends.
+     For a minor front-end bug fix, running the regression test on
+     one platform may do.  For more extensive changes that may effect
+     multiple platforms, regression tests should be run on all
+     platforms.  One can also build and test some large applications
+     to improve confidence.
+
+  d) Do another update to see if any changes have occurred since step
+     a).  If any have, go back and repeat steps b) and c).
+
+  e) Do the checkin.  Checkins should normally include log comments.
+
+  f) Send mail to the sml-nj mailing list announcing what files have
+     changed and the reasons.  If your changes have a radical effect,
+     like (temporarily) removing support for a particular architecture
+     or (temporarily) turning off some important function, or
+     (temporarily) reducing performance, you should announce and justify
+     your proposed changes _before_ committing them.
+
+In order to avoid "performance bugs", where a change significantly
+slows down the compiler or the generated code, it would be a good idea
+to also run benchmarks.
+
+If you are starting on an extensive set of changes, it would be a good
+idea to warn the list about what you are planning to do, indicating
+what parts of the system will be affected.
+
+
+5. When to tag, when to build distributions
+
+We want to tag versions to mark milestones and to create reference
+points in the development that can be documented.  Tagged versions
+also allow us to back out of any disasters.  It has been our practice
+in the past to build a working version distribution (bin file sets,
+etc.) for every tag, but this is partly to give those developers
+outside Bell Labs a chance to synchronize.  With a common CVS
+repository, we do not necessarily need to build a distribution for
+each tagged version.  Each tagged version (or perhaps just each
+distribution version?) should have a readme file, and ideally a set of
+benchmark results.
+
+Here are my suggestions on when to tag and when to build a distribution.
+
+  a) Tag after any major set of changes has been committed.  (What
+     constitutes "major" is a judgement call.)
+
+  b) Tag and build a distribution after any change that requires a
+     non-trivial bootstrap.
+    
+  c) Tag after a sufficient accumulation of small changes.  This might
+     be covered by tagging at least once every month or two months,
+     even in the absence of major changes.  Of course, it's not
+     necessary to tag if _no_ changes have occurred since the last tag.
+
+6. Branches vs private checkouts or private repositories
+
+I don't think that branches should be allowed in the repository.  If
+you want to create a variant of the system for experimentation, and
+don't plan to merge your changes into the main branch, then just make
+your own repository.  If you want to make very extensive changes that
+involve multiple developers over a significant period of time, do a
+checkout and if necessary create a working repository of your own.
+Then when your changes are complete and tested check them in as
+describe above, after first merging with a fresh checkout of the
+main repository.
+
+7. CVS administrator
+
+We should designate someone as CVS administrator.  This person will be
+in charge of maintaining the repository, ensuring that it is backed
+up, tagging versions, building reference distributions for tagged
+versions, and dealing with any other problems that may come up, like
+restoring after a foul-up.  There should be one or two deputy
+administrators who can fill in when the primary adminstrator is
+not available.
+
+8. What should be included
+
+We should include at least whatever components are currently included
+in the Bell Labs repository:
+
+   cm
+   compiler  (includes FLINT)
+   config
+   ml-burg
+   ml-lex
+   ml-yacc
+   MLRISC
+   runtime
+   smlnj-c
+   smlnj-lib
+   system
+
+If someone claims exclusive "ownership" over one of these components
+and wants to restrict the checkin privilege, we may have to create a
+separate repository for that component.
+
+It may also be advisable to have separate repositories for components
+whose development is more loosely synchonized with that of the core
+compiler components (like ml-yacc, smlnj-lib).  Having separate
+repositories implies having separate version tags.  It also increases
+the overhead of working with the repositories by requiring multiple
+checkouts, updates, etc.
+
+9. Other issues?

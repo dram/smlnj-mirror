@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>2.1 Basic philosophy</TITLE>
+<META NAME="description" CONTENT="2.1 Basic philosophy">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node5.html">
+<LINK REL="previous" HREF="node3.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node5.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html296"
+ HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html292"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html286"
+ HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html294"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html297"
+ HREF="node5.html">2.2 Description files</A>
+<B> Up:</B> <A NAME="tex2html293"
+ HREF="node3.html">2. The CM model</A>
+<B> Previous:</B> <A NAME="tex2html287"
+ HREF="node3.html">2. The CM model</A>
+ &nbsp <B>  <A NAME="tex2html295"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00031000000000000000">
+2.1 Basic philosophy</A>
+</H2>
+
+<P>
+The venerable <B> make</B> of Unix&nbsp;[<A
+ HREF="node110.html#feldman79">Fel79</A>] is <EM> 
+target-oriented</EM>: one starts with a main goal (target) and applies
+production rules (with associated actions such as invoking a compiler)
+until no more rules are applicable. The leaves of the resulting
+derivation tree<A NAME="tex2html1"
+ HREF="footnode.html#foot145"><SUP>1</SUP></A> can be seen as defining the set of
+source files that are used to make the main target.
+
+<P>
+CM, on the other hand, is largely <EM> source-oriented</EM>: Whereas
+with <B> make</B> one specifies the tree and lets the program derive the
+leaves, with CM one specifies the leaves and lets the program derive
+the tree.  Thus, the programmer writes down a list of sources, and CM
+will calculate and then execute a series of steps to make the
+corresponding program.  In <B> make</B> terminology, this resulting
+program acts as the ``main goal'', but under CM it does not need to be
+explicitly named.  In fact, since there typically is no corresponding
+single file system object for it, a ``natural'' name does not even
+exist.
+
+<P>
+For simple projects it is literally true that all the programmer has
+to do is tell CM about the set of sources: a description file lists
+little more than the names of participating ML source files. However,
+larger projects typically benefit from a hierarchical structuring.
+This can be achieved by grouping ML source files into separate
+libraries and library components.  Dependencies between such libraries
+have to be specified explicitly and must form an acyclic directed
+graph (DAG).
+
+<P>
+CM's own semantics, particularly its dependency analysis, interact
+with the ML language in such a way that for any well-formed project
+there will be exactly one possible interpretation as far as static
+semantics are concerned.  Only well-formed projects are accepted by
+CM; projects that are not well-formed will cause error messages.
+(Well-formedness is <EM> defined</EM> to enforce a unique definition-use
+relation for ML definitions&nbsp;[<A
+ HREF="node110.html#blume:depend99">Blu99</A>].)
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html296"
+ HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html292"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html286"
+ HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html294"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html297"
+ HREF="node5.html">2.2 Description files</A>
+<B> Up:</B> <A NAME="tex2html293"
+ HREF="node3.html">2. The CM model</A>
+<B> Previous:</B> <A NAME="tex2html287"
+ HREF="node3.html">2. The CM model</A>
+ &nbsp <B>  <A NAME="tex2html295"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

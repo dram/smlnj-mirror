@@ -1,0 +1,467 @@
+<!-- Top Level Environment Comparison -->
+<!-- Copyright (c) 1996 Lucent Technologies; Bell Laboratories -->
+<!-- BELL-LABS
+kw	programming language compiler functional symbolic
+category	project
+contact	dbm@research.bell-labs.com
+desc	a compiler and programming system for a modern functional language
+-->
+
+<HTML>
+  <TITLE>SML Top-level Comparison</TITLE>
+<!-- Changed by: Andrew Appel,  5-Dec-1997 -->
+<BODY BGCOLOR="ffffff">
+<CENTER>
+<H1>Top Level Environment Comparison</H1>
+<H3>From SML/NJ 0.93 to SML/NJ 110 (SML '97)</H3>
+</CENTER>
+<P>
+This document is a quick reference for those who need to port code
+from SML/NJ 0.93 to SML/NJ 110 and later versions, which implement the
+new SML '97
+<A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/index.html">Standard Basis</A>.
+</P>
+<P>
+It should also be useful as a supplement for those who want to use new
+versions of SML/NJ in conjunction with
+textbooks based on the SML/NJ 0.93 Basis environment.
+</P>
+<P>
+Please send any error reports or questions regarding this document to <A HREF="mailto:dbm@research.bell-labs.com">Dave MacQueen</A> at dbm@research.bell-labs.com.
+
+<H3>Infixes</H3>
+<P>
+Here are the top level infix declarations for SML/NJ 0.93:
+<PRE>
+  infix 0 before
+  infix 3 o :=
+  infix 4 = <> > < >= <=
+  infixr 5 :: @
+  infix 6 + - ^
+  infix 7 * / div mod quot rem
+</PRE>
+<P>
+SML '97 is the same except that quot and rem are no longer infixes, and
+are not bound at top level (use Int.quot, Int.rem).
+</P>
+<H3>Overloading</H3>
+<P>
+Here are the overloaded operators of 0.93:
+</P>
+<PRE>
+  makestring : ('a -> string) {Bool.makestring, Real.makestring, Integer.makestring}
+  print : ('a -> unit)    {Bool.print, Integer.print, Real.print, String.print}
+  ~ :   ('a -> 'a)        {Integer.~, Real.~}
+  + :   ('a * 'a -> 'a)   {Integer.+, Real.+}
+  - :   ('a * 'a -> 'a)   {Integer.-, Real.-}
+  * :   ('a * 'a -> 'a)   {Integer.*, Real.*}
+  < :   ('a * 'a -> bool) {Integer.<, Real.<, String.<}
+  > :   ('a * 'a -> bool) {Integer.>, Real.>, String.>}
+  <= :  ('a * 'a -> bool) {Integer.<=, Real.<=, String.<=}
+  >= :  ('a * 'a -> bool) {Integer.>=, Real.>=, String.>=}
+  abs : ('a -> 'a)        {Integer.abs, Real.abs}
+</PRE>
+<P>
+SML '97 eliminates makestring and print as overloaded functions.  At top
+level,
+<PRE>
+      val print = TextIO.print: string -> unit
+</PRE>
+<P>
+while the overloaded makestring is replaced by the functions
+Bool.toString, Real.toString, and Int.toString.
+<P>
+mod, div are now overloaded on int and word types of various
+precisions, and / is overloaded on various precisions of reals.  The
+other arithmetic and relational operators are overloaded on more types
+(e.g. integers, words, reals of various sizes).  The relational
+operators are also overloaded on chars as well as strings, and
+there can potentially be more than one variety of chars (e.g. Ascii,
+Unicode), with corresponding varieties of strings.
+
+<H3>Module Replacements</H3>
+<P>
+The former Basis structures 
+<PRE>
+  Array
+  Bool
+  General
+  IO
+  List
+  Real
+  RealArray
+  String
+  Vector
+</PRE>
+continue to exist in SML '97, but their signatures have changed.  The
+<CODE>Ref</CODE> structure no longer exists.  The functions
+<CODE>!</CODE> and <CODE>:=</CODE> are now found in
+<CODE>General</CODE>, while the type <CODE>ref</CODE> and
+constructor <CODE>ref</CODE> are only bound at top level.  The
+following former Basis structures have been renamed or replaced as
+indicated, again with modified signatures:
+<PRE>
+  Bits      => Word31
+  ByteArray => Word8Array
+  Integer   => Int
+  IO        => TextIO, BinIO
+</PRE>
+Although there actually is an IO structure in SML '97, the old IO structure
+corresponds to the new TextIO and BinIO structures.
+<P>
+<H3>The Top Level Environment</H3>
+<P>
+SML/NJ 0.93 opens the following structures at top level:
+<PRE>
+  Ref String IO Bool List Integer Real General
+</PRE>
+It then adds the overloaded bindings and infix bindings to create the
+top-level environment.  The top level environment also includes module
+bindings, which we are ignoring in this document.
+<P>
+The following table lists the elements in the SML/NJ 0.93 top-level
+environment (excluding overloaded symbols and infix declarations) with
+their corresponding elements in SML '97.  The SML/NJ 0.93 top-level
+elements appear in the first column, grouped under subheadings
+corresponding to their home modules in SML/NJ 0.93.  The second column
+gives the corresponding element of the SML '97 (SML/NJ 110) Basis.
+This is displayed as a simple identifier when it is also bound at top
+level, annotated by its type if different from the type in the first
+column.  If the corresponding element is bound at top level, but comes
+from a different structure, a path in italics indicates its home
+structure.  If the corresponding element is not defined at top level,
+column two contains a full path (nonitalicized), once again annotated
+by a type if the types differ.
+</P>
+<P>
+When column two contains a simple identifier, indicating it is
+bound at the top level in SML '97 (SML/NJ 110), the third column
+gives its home module in SML '97.
+</P>
+<P>
+Entries in column two that do not have a corresponding entry in column
+one are new top level bindings not present in SML/NJ 0.93.
+</P>
+<TABLE BORDER="2">
+<THEAD>
+<TR>
+ <TH ALIGN="left">SML/NJ 0.93</TH>
+ <TH ALIGN="left">SML '97 (SML/NJ 110)</TH>
+</TR>
+</THEAD>
+<TBODY>
+<TR><TH ALIGN="left" COLSPAN="2"> No structure </TH></TR>
+<TR><TD><CODE> eqtype 'a ref </CODE></TD> <TD><CODE> ref </CODE></TD> </TR>
+<TR><TD><CODE> val ref : '_a -> '_a ref </CODE></TD> <TD><CODE> ref : 'a -> 'a ref </CODE></TD> </TR>
+
+<TR><TH ALIGN="left" COLSPAN="2"> Ref </TH></TR>
+<TR><TD><CODE> val ! : 'a ref -> 'a </CODE></CODE></TD> <TD><CODE> <I>General.</I>! </CODE></TD> </TR>
+<TR><TD><CODE> val := : 'a ref * 'a -> unit </CODE></TD> <TD><CODE> <I>General.</I>:= </CODE></TD> </TR>
+<TR><TD><CODE> val inc : int ref -> unit </CODE></TD><TD> &nbsp; </TD></TR>
+<TR><TD><CODE> val dec : int ref -> unit </CODE></TD><TD> &nbsp; </TD></TR>
+
+<TR><TH> &nbsp; </TH> <TH ALIGN="left"> Char </TH></TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> eqtype char </CODE></TD> </TR>
+
+<TR><TH ALIGN="left" COLSPAN="2"> String </TH></TR>
+<TR><TD><CODE> eqtype string </CODE></TD> <TD><CODE> string </CODE></TD> </TR>
+<TR><TD><CODE> exception Substring </CODE></TD> <TD><CODE> <I>General.</I>Subscript </CODE></TD> </TR>
+<TR><TD><CODE> exception Chr </CODE></TD> <TD><CODE> <I>General.</I>Chr </CODE></TD> </TR>
+<TR><TD><CODE> exception Ord </CODE></TD> <TD>&nbsp;</TD></TR>
+<TR><TD><CODE> val length : string -> int </CODE></TD><TD> &nbsp; </TD><TR> 
+<TR><TD><CODE> val size : string -> int </CODE></TD> <TD><CODE> size </CODE></TD> </TR>
+<TR><TD><CODE> val substring : string * int * int -> string </CODE></TD> <TD><CODE> substring </CODE></TD> </TR>
+<TR><TD><CODE> val explode : string -> string list </CODE></TD> <TD><CODE> explode: string -> char list </CODE></TD> </TR>
+<TR><TD><CODE> val implode : string list -> string </CODE></TD> <TD><CODE> implode: char list -> string </CODE></TD> </TR>
+<TR><TD>&nbsp;</TD> <TD><CODE> val concat: string list -> string </CODE></TD> </TR>
+<TR><TD><CODE> val ^  : string * string -> string </CODE></TD> <TD><CODE> ^ </CODE></TD> </TR>
+<TR><TD><CODE> val chr : int -> string </CODE></TD> <TD><CODE> <I>Char.</I>chr: int -> char </CODE></TD> </TR>
+<TR><TD><CODE> val ord : string -> int </CODE></TD> <TD><CODE> <I>Char.</I>ord: char -> int </CODE></TD> </TR>
+<TR><TD><CODE> val ordof : string * int -> int </CODE></TD> <TD><CODE> String.sub : string * int -> char </CODE></TD></TR>
+<TR><TD>&nbsp;</TD> <TD><CODE> val str: char -> string </CODE></TD> </TR>
+
+<TR><TH ALIGN="left" COLSPAN="2"> IO </TH></TR>
+<TR><TD><CODE> type instream </CODE></TD> <TD><CODE> TextIO.instream </CODE></TD></TR>
+<TR><TD><CODE> type outstream	</CODE></TD> <TD><CODE> TextIO.outstream </CODE></TD></TR>
+<TR VALIGN="TOP"><TD><CODE> exception Io of string </CODE></TD>
+ <TD>
+<PRE>
+IO.Io of {name : string,
+          function : string,
+          cause : exn}
+</PRE></TD></TR>
+<TR><TD><CODE> val std_in : instream </CODE></TD> <TD><CODE> TextIO.stdIn : TextIO.instream </CODE></TD></TR>
+<TR><TD><CODE> val std_out : outstream </CODE></TD> <TD><CODE> TextIO.stdOut : TextIO.outstream </CODE></TD></TR>
+<TR><TD><CODE> val std_err : outstream </CODE></TD> <TD><CODE> TextIO.stdErr : TextIO.outstream </CODE></TD></TR>
+<TR><TD><CODE> val open_in : string -> instream </CODE></TD> <TD><CODE> TextIO.openIn : string -> TextIO.instream </CODE></TD></TR>
+<TR><TD><CODE> val open_out : string -> outstream </CODE></TD> <TD><CODE> TextIO.openOut : string -> TextIO.outstream </CODE></TD></TR>
+<TR><TD><CODE> val open_append : string -> outstream </CODE></TD> <TD><CODE> TextIO.openAppend : string -> TextIO.outstream </CODE></TD></TR>
+<TR><TD><CODE> val open_string : string -> instream </CODE></TD> <TD><CODE> TextIO.openString : string -> TextIO.instream </CODE></TD></TR>
+<TR><TD><CODE> val close_in : instream -> unit </CODE></TD> <TD><CODE> TextIO.closeIn : TextIO.instream -> unit </CODE></TD></TR>
+<TR><TD><CODE> val close_out : outstream -> unit </CODE></TD> <TD><CODE> TextIO.closeOut : TextIO.outstream -> unit </CODE></TD></TR>
+<TR><TD><CODE> val output : outstream * string -> unit </CODE></TD> <TD><CODE> TextIO.output : TextIO.outstream * string -> unit </CODE></TD></TR>
+<TR><TD><CODE> val outputc : outstream -> string -> unit </CODE></TD><TD> &nbsp; </TD></TR>
+<TR><TD><CODE> val input : instream * int -> string </CODE></TD> <TD><CODE> TextIO.inputN : TextIO.instream * int -> string </CODE></TD></TR>
+<TR><TD><CODE> val inputc : instream -> int -> string </CODE></TD><TD> &nbsp; </TD></TR>	
+<TR><TD><CODE> val input_line : instream -> string </CODE></TD> <TD><CODE> TextIO.inputLine : TextIO.instream -> string </CODE></TD></TR>
+<TR><TD><CODE> val lookahead : instream -> string </CODE></TD> <TD><CODE> TextIO.lookahead : TextIO.instream -> char option </CODE></TD></TR>
+<TR><TD><CODE> val end_of_stream : instream -> bool </CODE></TD> <TD><CODE> TextIO.endOfStream : TextIO.instream -> bool </CODE></TD></TR>
+<TR><TD><CODE> val can_input : instream -> int </CODE></TD> <TD><CODE> TextIO.canInput : TextIO.instream * int -> bool </CODE></TD></TR>
+<TR><TD><CODE> val flush_out : outstream -> unit </CODE></TD> <TD><CODE> TextIO.flushOut : TextIO.outstream -> unit </CODE></TD></TR>
+<TR><TD><CODE> val is_term_in : instream -> bool </CODE></TD> <TD><CODE> [Note 1] </CODE></TD></TR>
+<TR><TD><CODE> val is_term_out : outstream -> bool </CODE></TD> <TD><CODE> [Note 2] </CODE></TD></TR>
+<TR><TD><CODE> val set_term_in : instream * bool -> unit </CODE></TD><TD> &nbsp; </TD></TR>
+<TR><TD><CODE> val set_term_out : outstream * bool -> unit </CODE></TD><TD> &nbsp; </TD></TR>
+<TR ALIGN="TOP"><TD>
+<PRE>
+val execute :
+ (string * string list)
+ -> instream * outstream
+</PRE>
+</TD> <TD>
+<PRE>
+Unix.execute :
+ string * string list -> Unix.proc [Note 3]
+</PRE>
+</TD></TR>
+<TR VALIGN="TOP"><TD>
+<PRE>
+val execute_in_env :
+ string * string list * string list
+ -> instream * outstream
+</PRE>
+</TD>
+<TD>
+<PRE>
+Unix.executeInEnv :
+ string * string list * string list
+ -> Unix.proc
+</PRE>
+</TD></TR>
+<TR><TD><CODE> val exportML : string -> bool </CODE></TD>
+<TD><CODE> SMLofNJ.exportML</CODE></TD></TR>
+<TR VALIGN="TOP"><TD>
+<PRE>
+val exportFn :
+ string *
+ (string list * string list -> unit)
+ -> unit					    
+</PRE>
+</TD> <TD>
+<PRE>
+SMLofNJ.exportFn: 
+ string *
+ (string * string list -> OS.Process.status)
+ -> 'a
+</PRE>
+</TD></TR>
+<TR><TD>&nbsp;</TD> <TD><CODE> val <I>TextIO.</I>print: string -> unit </CODE></TD></TR>
+							
+<TR><TH ALIGN="left" COLSPAN="2"> Bool </TH></TR>
+<TR><TD><PRE>
+datatype bool = true | false
+</PRE></TD>
+<TD><PRE>
+datatype bool = true | false
+</PRE></TD>
+</TR>
+<TR VALIGN="TOP"><TD><PRE>
+datatype 'a option = NONE | SOME of 'a
+</PRE></TD>
+<TD><PRE>
+<I>Option.</I>option
+<I>Option.</I>NONE
+<I>Option.</I>SOME
+</PRE></TD>
+</TR>
+<TR><TD><CODE>val not : bool -> bool </CODE></TD> <TD><CODE> not </CODE></TD></TR>
+
+<TR><TH ALIGN="left" COLSPAN="2"> List </TH></TR>
+<TR VALIGN="TOP"><TD><PRE>
+datatype 'a list
+  = nil
+  | :: of ('a * 'a list)
+</PRE></TD>
+<TD><PRE>
+datatype 'a list
+  = nil
+  | :: of ('a * 'a list)
+</PRE></TD>
+</TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> exception Empty </CODE></TD> </TR>
+<TR><TD><CODE> exception Hd </CODE></TD> <TD><CODE> Empty </CODE></TD> </TR>
+<TR><TD><CODE> exception Tl </CODE></TD> <TD><CODE> Empty </CODE></TD> </TR>
+<TR><TD><CODE> exception Nth </CODE></TD> <TD><CODE> <I>General.</I>Subscript </CODE></TD> </TR>
+<TR><TD><CODE> exception NthTail </CODE></TD> <TD><CODE>  <I>General.</I>Subscript </CODE></TD> </TR>
+<TR><TD><CODE> val hd : 'a list -> 'a </CODE></TD> <TD><CODE> hd </CODE></TD> </TR>
+<TR><TD><CODE> val tl : 'a list -> 'a list </CODE></TD> <TD><CODE> tl </CODE></TD> </TR>
+<TR><TD><CODE> val null : 'a list -> bool  </CODE></TD> <TD><CODE> null </CODE></TD> </TR>
+<TR><TD><CODE> val length : 'a list -> int </CODE></TD> <TD><CODE> length </CODE></TD> </TR>
+<TR><TD><CODE> val @ : 'a list * 'a list -> 'a list </CODE></TD> <TD><CODE> @ </CODE></TD> </TR>
+<TR><TD><CODE> val rev : 'a list -> 'a list </CODE></TD> <TD><CODE> rev </CODE></TD> </TR>
+<TR><TD><CODE> val map :  ('a -> 'b) -> 'a list -> 'b list </CODE></TD> <TD><CODE> map </CODE></TD> </TR>
+<TR><TD>
+<PRE>
+val fold :
+ ('a * 'b -> 'b) -> 'a list
+ -> 'b -> 'b
+</PRE>
+</TD> <TD>
+<PRE>
+foldr :
+ ('a * 'b -> 'b) -> 'b
+ -> 'a list -> 'b
+</PRE>
+</TD> </TR>
+<TR><TD>
+<PRE>
+val revfold :
+ ('a * 'b -> 'b) -> 'a list
+ -> 'b -> 'b
+</PRE>
+</TD> <TD>
+<PRE>
+foldl :
+ ('a * 'b -> 'b) -> 'b
+ -> 'a list -> 'b
+</PRE>
+</TD> </TR>
+<TR><TD><CODE> val app : ('a -> 'b) -> 'a list -> unit </CODE></TD>
+ <TD><CODE> app: ('a -> unit) -> 'a list -> unit </CODE></TD>
+ </TR>
+<TR><TD><CODE> val revapp : ('a -> 'b) -> 'a list -> unit </CODE></TD><TD> &nbsp; </TD></TR>
+<TR><TD><CODE> val nth : 'a list * int -> 'a </CODE></TD> <TD><CODE> List.nth </CODE></TD></TR>
+<TR><TD><CODE> val nthtail : 'a list * int -> 'a list </CODE></TD> <TD><CODE> List.drop </CODE></TD></TR>
+<TR><TD><CODE> val exists : ('a -> bool) -> 'a list -> bool </CODE></TD> <TD><CODE> List.exists </CODE></TD></TR>
+
+<TR><TH ALIGN="left">Integer</TH><TH ALIGN="left">Int</TH></TR>
+<TR><TD><CODE> eqtype int </CODE></TD> <TD><CODE> int </CODE></TD> </TR>
+<TR><TD><CODE> exception Sum </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Diff </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Prod </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Neg </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Quot </CODE></TD> <TD><CODE> <I>General.</I>Div </CODE></TD> </TR>
+<TR><TD><CODE> exception Abs </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Div </CODE></TD> <TD><CODE> <I>General.</I>Div </CODE></TD> </TR>
+<TR><TD><CODE> exception Mod </CODE></TD> <TD><CODE> <I>General.</I>Div </CODE></TD> </TR>
+<TR><TD><CODE> exception Overflow </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> val div : int * int -> int </CODE></TD> <TD><CODE> div (overloaded: Int.div) </CODE></TD></TR>
+<TR><TD><CODE> val mod : int * int -> int </CODE></TD> <TD><CODE> mod (overloaded: Int.mod) </CODE></TD></TR>
+<TR><TD><CODE> val quot : int * int -> int </CODE></TD> <TD><CODE> Int.quot </CODE></TD></TR>
+<TR><TD><CODE> val rem : int * int -> int </CODE></TD> <TD><CODE> Int.rem </CODE></TD></TR>
+<TR><TD><CODE> val min : int * int -> int </CODE></TD> <TD><CODE> Int.min </CODE></TD></TR>
+<TR><TD><CODE> val max : int * int -> int </CODE></TD> <TD><CODE> Int.max </CODE></TD></TR>
+
+<TR><TH ALIGN="left" COLSPAN="2"> Real </TH></TR>
+<TR><TD><CODE> eqtype real </CODE></TD> <TD><CODE> type real [not eqtype!]</CODE></TD> </TR>
+<TR><TD><CODE> exception Sum </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Diff </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Prod </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Floor </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Sqrt </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Exp </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Ln </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> exception Div </CODE></TD> <TD><CODE> <I>General.</I>Div </CODE></TD> </TR>
+<TR><TD><CODE> exception Overflow </CODE></TD> <TD><CODE> <I>General.</I>Overflow </CODE></TD> </TR>
+<TR><TD><CODE> val / : (real * real) -> real </CODE></TD> <TD><CODE> / (Real./,...) </CODE></TD></TR>
+<TR><TD><CODE> val real : int -> real </CODE></TD> <TD><CODE> Real.fromInt </CODE></TD></TR>
+<TR><TD><CODE> val floor : real -> int </CODE></TD> <TD><CODE> floor </CODE></TD> </TR>
+<TR><TD><CODE> val truncate : real -> int </CODE></TD> <TD><CODE> trunc </CODE></TD> </TR>
+<TR><TD><CODE> val ceiling : real -> int </CODE></TD> <TD><CODE> ceil </CODE></TD> </TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> val round : real -> int </CODE></TD> </TR>
+<TR><TD><CODE> val sqrt : real -> real </CODE></TD> <TD><CODE> Math.sqrt </CODE></TD></TR>
+<TR><TD><CODE> val sin : real -> real </CODE></TD> <TD><CODE> Math.sin </CODE></TD></TR>
+<TR><TD><CODE> val cos : real -> real </CODE></TD> <TD><CODE> Math.cos </CODE></TD></TR>
+<TR><TD><CODE> val arctan : real -> real </CODE></TD> <TD><CODE> Math.atan </CODE></TD></TR>
+<TR><TD><CODE> val exp : real -> real </CODE></TD> <TD><CODE> Math.exp </CODE></TD></TR>
+<TR><TD><CODE> val ln : real -> real </CODE></TD> <TD><CODE> Math.ln </CODE></TD></TR>
+
+<TR><TH ALIGN="left" COLSPAN="2"> General </TH></TR>
+<TR><TD><CODE> type 'a cont </CODE></TD> <TD><CODE> SMLofNJ.cont </CODE></TD></TR>
+<TR><TD><CODE> type exn </CODE></TD> <TD><CODE> type exn </CODE></TD> </TR>
+<TR><TD><CODE> type unit </CODE></TD> <TD><CODE> type unit </CODE></TD> </TR>
+<TR VALIGN="TOP"><TD><PRE>
+datatype 'a frag
+  = QUOTE of string
+  | ANTIQUOTE of 'a
+</PRE></TD>
+<TD><PRE>
+SMLofNJ.frag
+SMLofNJ.QUOTE
+SMLofNJ.ANTIQUOTE
+</PRE></TD>
+</TR>		
+<TR VALIGN="TOP"><TD> &nbsp; </TD> <TD><PRE>
+datatype order
+  = LESS | EQUAL | GREATER
+</PRE>
+</TD>
+</TR>
+<TR><TD><CODE> exception Bind </CODE></TD> <TD><CODE> Bind </CODE></TD> </TR>
+<TR><TD><CODE> exception Match </CODE></TD> <TD><CODE> Match </CODE></TD> </TR>
+<TR><TD><CODE> exception Interrupt </CODE></TD><TD> &nbsp; </TD></TR>
+<TR><TD><CODE> exception Fail of string </CODE></TD> <TD><CODE> Fail </CODE></TD> </TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> exception Option </CODE></TD> </TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> exception Subscript </CODE></TD> </TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> exception Chr </CODE></TD> </TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> exception Div </CODE></TD> </TR>
+<TR><TD><CODE> val use : string -> unit </CODE></TD> <TD><CODE> use (= Compiler.Interact.useFile) </CODE></TD></TR>
+<TR><TD><CODE> val callcc : ('_a cont -> '_a) -> '_a </CODE></TD>
+    <TD><CODE> SMLofNJ.Cont.callcc : ('a cont -> 'a) -> 'a </CODE></TD>
+</TR>
+<TR><TD><CODE> val throw : 'a cont -> 'a -> 'b </CODE></TD> <TD><CODE> SMLofNJ.Cont.throw </CODE></TD></TR>
+<TR><TD><CODE> val o : ('b -> 'c) * ('a -> 'b) -> ('a -> 'c) </CODE></TD> <TD><CODE> o </CODE></TD> </TR>
+<TR><TD><CODE> val before : ('a * 'b) -> 'a </CODE></TD> <TD><CODE> before : ('a * unit) -> 'a </CODE></TD> </TR> </CODE></TD> <TD><CODE>
+<TR><TD> &nbsp; </TD> <TD><CODE> val ignore : 'a -> unit </CODE></TD> </TR>
+<TR><TD> &nbsp;  </TD> <TD><CODE> val exnName : exn -> string </CODE></TD> </TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> val exnMessage : exn -> string </CODE></TD> </TR>
+<TR><TD><CODE> val = : ''a * ''a -> bool </CODE></TD><TD> = </TD></TR>
+<TR><TD><CODE> val <> : ''a * ''a -> bool </CODE></TD><TD><CODE> <> </CODE></TD></TR>
+<TR><TH> &nbsp; </TH> <TH ALIGN="left"> Option </TH></TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> datatype 'a option = NONE | SOME of
+	      'a</CODE></TD>
+</TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> val getOpt : ('a option * 'a) -> 'a  </CODE></TD></TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> val isSome : 'a option -> bool </CODE></TD> </TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> val valOf : 'a option -> 'a </CODE></TD> </TR>
+<TR><TH> &nbsp; </TH> <TH ALIGN="left"> Other New SML '97 Elements </TH></TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> eqtype <I>Word.</I>word </CODE></TD> </TR>
+<TR></TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> type <I>Substring.</I>substring </CODE></TD> </TR>
+<TR></TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> eqtype 'a <I>Array.</I>array </CODE></TD> </TR>
+<TR></TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> eqtype 'a <I>Vector.</I>vector </CODE></TD> </TR>
+<TR><TD> &nbsp; </TD> <TD><CODE> val <I>Vector.</I>vector : 'a list -> 'a vector </CODE></TD> </TR>
+</TBODY>
+</TABLE>
+
+<H3>Notes</H3>
+<OL>
+<LI>
+The is_term_in function can be defined as follows:
+<PRE>
+    fun is_term_in (instream : TextIO.instream) =
+	let val (rd as TextPrimIO.RD{ioDesc,...}, buf) =
+		 TextIO.StreamIO.getReader(TextIO.getInstream instream)
+	 in TextIO.setInstream (instream, TextIO.StreamIO.mkInstream(rd, SOME buf));
+	    case ioDesc
+	      of NONE => false
+	       | SOME desc => (OS.IO.kind desc = OS.IO.Kind.tty)
+	end
+</PRE>
+</LI>
+<LI>
+The is_term_out function can be defined as follows:
+<PRE>
+    fun is_term_out (outstream: TextIO.outstream) =
+        let val (wr as TextPrimIO.WR{ioDesc,...},buf) =
+	        TextIO.StreamIO.getWriter(TextIO.getOutstream outstream)
+         in TextIO.setOutstream (outstream, TextIO.StreamIO.mkOutstream(wr,buf));
+	    case ioDesc
+	      of NONE => false
+	       | SOME desc => (OS.IO.kind desc = OS.IO.Kind.tty)
+        end
+</PRE>
+</LI>
+</OL>

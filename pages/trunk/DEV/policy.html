@@ -1,0 +1,448 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>CVS Policy</title>
+  </head>
+
+<BODY BGCOLOR="ffffff">
+<blockquote>
+<h1> Policy for Managing Unified SML/NJ CVS Repository </h1>
+
+In order to improve coordination of the various people contributing to
+the development and maintenance of SML/NJ, we have established a
+single master CVS repository accessible to all.  In order for this
+plan to work well, we need to agree on a policy or set of guidelines
+for how the repository should be managed.
+<p>
+This policy document is still evolving; comments, corrections,
+and suggestions are encouraged.
+<p>
+See the <a href="cvs-readme.html">cvs-readme</a> file for additional
+advice about accessing and using the repository.
+<p>
+<h3>1. Location</h3>
+
+The master repository from with Release and Working versions have been
+created in the past has been at Bell Labs.  The obvious problem with
+this arrangement is that people not at Bell Labs do not have access
+through the firewall.  CVS supports remote operations on a repository
+(with selective password authorization) as long as the repository is
+accessible, so the repository should reside on a system that everyone
+has access to.  The new common repository is be hosted by Yale.  The
+address of the repository is:
+<pre>
+  flint.cs.yale.edu:/home/cvs
+</pre>
+
+<p>
+<h3>2. Administration</h3>
+<h4>2.1. Repository Administrator</h4>
+There is a repository administrator (currently 
+<a href="mailto:monnier@cs.yale.edu">Stefan Monnier</a>) whose
+responsibilities include creating and organizing the repository,
+ensuring that the repository is backed up, setting up access for
+developers and the user community, and generally solving problems
+that require full access to the repository host machine.  A deputy
+or backup administrator should be designated.
+<p>
+<h4>2.2. Access</h4>
+There are two levels of access privileges: developer and user.
+<p>
+<strong>Developers.</strong>
+The privilege to commit changes is restricted to "active" developers
+(effectively those on the sml-nj mailing list).  Each developer can
+checkout, commit, tag the repository, create branches, and import new
+directories.  There is a strong obligation on developers to
+communicate the nature and extent of changes they are making to
+the group via the sml-nj mailing list.
+<p>
+Developers outside Yale will use ssh to access the repository
+remotely.  Procedures for using ssh are documented in the
+<a href="cvs-readme.html">cvs-readme</a> file.
+<p>
+<strong>Users.</strong>
+It has become common practice in the "open source" movement to have an
+open CVS repository that _anyone_ can checkout from.  This seems to be
+a reasonable policy for the SML/NJ repository.  As a consequence,
+adventurous users can try out a snapshot of the code under
+development, and as with our current "working versions", they do so at
+the risc of encountering bugs and instabilities.
+<p>
+<h4>2.3. Backup</h4>
+The repository should be backed up on a daily basis (probably by
+normal file system backups of the server hosting the repository).
+<p>
+
+<h3>3. Maintaining stability: Prerequisites for commits</h3>
+
+We want to have developers commit their changes frequently enough so
+that the community remains synchronized, but we don't want partial or
+half-baked changes committed.  Most importantly, we don't want changes
+committed that break the system (recognizing of course that some
+changes may introduce bugs no matter how careful we try to be).  So
+here are some guidelines on the procedure for checking in changes.
+<ol>
+<li> Do an update from the repository to incorporate any new changes
+     that have been checked in since your working copy was checked out
+     or updated (frequent updates are a good policy in general).
+<p>
+<li> Make sure your version compiles to a fixed point.  If you are
+     making changes that are clearly platform independent (e.g. to
+     the type checker), it may be sufficient to do this on one
+     architecture.  If your changes are specific to one architecture
+     (e.g. changes to x86 specific code generator files), then
+     compiling to a fixed point on that architecture should suffice.
+     If your changes affect non-architecture-specific code generation,
+     you should check all architectures (this may require help from
+     someone who has access to architectures that you don't have).
+<p>
+<li> Do further testing as appropriate.  How much testing depends.
+     For a minor front-end bug fix, running the regression test on
+     one platform may do.  For more extensive changes that may effect
+     multiple platforms, regression tests should be run on all
+     platforms.  One can also build and test some large applications
+     to improve confidence.
+<p>
+<li> Do another update to see if any changes have occurred since step
+     1.  If any have, go back and repeat steps 2 and 3.
+<p>
+<li> rtag the repository (the core set of directories, see Section 8)
+to mark the state before your changes.
+<p>
+<li> Do the checkin.  Checkins should include useful log comments.
+<p>
+<li> rtag the repository again to mark the state immediately after your
+changes.
+<p>
+<li> Create a description of the changes checked in, including the
+associated tag names, the nature and purpose of the changes, and a
+list of files checked in.  Add this description to the history file
+sml/HISTORY in the repository and send it vial email to the sml-nj
+mailing list (or the smlnj-cvs mailing list?).
+<p>
+<li> If the changes checked in require a nontrivial bootstrap
+proceedure (i.e. anything other than iterating recompiles to a
+fixed point) a set of boot files for the standard platforms should
+be provided.  The boot files should be made available for
+ftp from the flint.cs.yale.edu server, but in the interim the
+file sml/BOOT contains a record of the location of the latest
+boot files and what tag they are associated with.  Whenever new
+boot files are required, the tertiary verion number (e.g. x in
+110.26.x) should be incremented along with the date in the file
+<pre>
+   src/compiler/TopLevel/main/version.sml
+</pre>
+This should be done before committing, tagging and building the
+boot files.
+</ol>
+If you are going to make a series of commits over a period
+of several hours, and the repository will be in a nonworking
+(i.e. noncompilable) state between commits, please send mail to sml-nj
+or smlnj-cvs to warn people not to do updates until you are finished
+with your commits, and send followup mail indicating that you have
+finished and it is safe to commit.
+<p>
+Another suggestion is that after finishing your commits, you do an
+update on smlnj to verify that all your locally modified files have
+been committed.
+<p>
+In order to avoid "performance bugs", where a change significantly
+slows down the compiler or the generated code, it would be a good idea
+to also run benchmarks before checking in.
+<p>
+If you are starting on an extensive set of changes, it would be a good
+idea to warn the sml-nj list about what you are planning to do, indicating
+what parts of the system will be affected.  Coordinate with other
+developers in detail as appropriate, and get their cooperation and
+agreement when necessary.
+<p>
+If your changes have a negative effect, like (temporarily) removing
+support for a particular architecture or (temporarily) turning off
+some important function, or (temporarily) reducing performance, it
+is particularly important to warn the developer community and explain
+how <em>and when</em> the temporary problem will be corrected.
+<p>
+
+<h3>5. History, tagging, building boot files, building distributions</h3>
+
+We tag the repository to mark milestones and to create reference
+points in the development that can be documented, and that we can back
+out to if necessary.  With a common CVS repository, we will be
+updating and taging the code on a much more frequent basis.  
+<p>
+<strong>HISTORY and BOOT files.</strong>There are two special files in the
+repository for recording information about changes and new boot file
+sets.
+<dl>
+<dt>sml/HISTORY
+<dd>The change history for the repository.  Must be updated for each
+commit.  Will be used to prepare version README files.
+<p>
+<dt>sml/BOOT
+<dd>Records the location of the current (and past) sets of boot files.
+Should be associated with a CVS tag.
+</dl>
+<p>
+<strong>Documenting tags.</strong> Tags will be documented in the
+sml/HISTORY file, and a record of the tags will be available using the
+cvs history command:
+<pre>
+  cvs history -a -T
+</pre>
+<blockquote>
+NOTE: for tags to be recorded in the cvs history file, they
+must be created using the "rtag" command rather than the "tag"
+command.  If you use "tag" instead of "rtag", the only effective
+way to tell the community about the tag is to record it in the
+sml/HISTORY file.
+<p>
+There is a slight chance of a race condition when using rtag: someone
+may do a commit while you are in the process of performing the
+rtag command, in which case the tagged revisions might not correspond
+with the revisions in your working directory.  The tag command does
+not have this problem; it always tags the revisions corresponding to
+the ones in your working directory.
+</blockquote>
+<p>
+<strong>When to tag.</strong> Here are some guidelines on when to tag.
+<ol>
+<li> Tag (before and) after any significant set of changes has been
+committed. What constitutes significant is a judgement call -- error
+on the side of tagging when in doubt.
+<p>
+<li> Tag after a sufficient accumulation of small changes.  This might
+be covered by tagging at least once every month or two months, even in
+the absence of major changes.  Of course, it's not necessary to tag if
+_no_ changes have occurred since the last tag.
+<p>
+<li> Tag when creating a new version (i.e. when incrementing the compiler
+version number and date in src/compiler/TopLevel/main/version.sml).
+</ol>
+<p>
+<strong>What to tag.</strong> The tag should be applied to the set of
+core compiler "working set" of directories, including at least the
+following:
+<pre>
+  sml/config
+  sml/src/MLRISC
+  sml/src/cm
+  sml/src/compiler
+  sml/src/runtime
+  sml/src/system
+</pre>
+Note that this is a subset of smlnj (see Section 8 below), the minimal
+set of directories that must be checked out to build the compiler from
+sources, since it does not include sml/src/ml-yacc and
+sml/src/smlnj-lib.  There could be an module corresponding to this
+core working set, namely the compiler-set suggested in Section 8.
+Ideally the modules smlnj-lib and ml-yacc that are relatively stable
+compared with the compiler and are maintained independently of the
+compiler should have their own separate tags and version history.
+<p>
+<strong>Tag name format.</strong> The suggested format for tag names is:
+<blockquote>
+  &lt;name&gt;-&lt;date:yyyymmdd&gt;-&lt;comment phrase&gt;
+</blockquote>
+for instance:
+<pre>
+  dbm-20000224-fix_bug_1544
+</pre>
+<p>
+Note that one can check whether any changes have been committed since
+the last tag by usiing the cvs diff command:
+<pre>
+  cvs diff -r &lt;tag-name&gt; -r HEAD
+</pre>
+<p>
+<strong>Boot files.</strong> A new set of boot files should be
+provided whenever changes require a nontrivial bootstrap procedure.
+The boot files will be placed in an ftp directory on [a designated ftp
+server - tbd].
+<p>
+<strong>Version increments.</strong> When accumulated changes warrant
+it, we will increment the minor version number and build a
+distribution.  A distribution consists of a version README
+(summarizing changes documented in the HISTORY file and providing
+benchmark results), a set of source tarballs, and a set of boot
+tarballs (i.e. sml.boot.*.tgz).
+
+<p>
+<h3>6. Branches </h3>
+
+The normal procedure will be to check out a working copy, modify that
+working copy, update, test, and commit changes.  In some cases it may be
+convenient or necessary to create a branch in the repository,
+particularly when two geographically distributed developers want to
+collaborate on changes.  We advise great caution when using branches
+in the main repository, and suggest that you read the documentation
+on branches thoroughly and make sure you understand how they work.
+Be particularly careful when updating a working copy of a repository
+branch (e.g. never use "update -A" in such circumstances).
+<p>
+When working on a branch, try to keep the branch and the trunk as much
+in sync as possible:
+<ul>
+<li> merge changes from the trunk into your branch as often as you can.
+<li> merge the branch back into the trunk as soon as the branch is stable
+enough.
+</ul>
+The only reason for not merging a branch whose code is working is that
+it is uncertain whether the code will ever be merged into the trunk
+(i.e. it's experimental).
+<p>
+The <a href="cvs-readme.html">cvs-readme</a> file contains more advice about
+using branches.
+<p>
+
+<h3>8. Contents and organization of the Repository</h3>
+
+The repository will contain
+<ol>
+<li> components of the compiler itself (config, runtime, compiler,
+MLRISC, system, cm)
+<li> libraries and tools (smlnj-lib, ml-lex, ml-yacc, ml-burg,
+smlnj-c)
+<li> testing and benchmarking code (tests, benchmarks)
+<li> other packages (CML, eXene, ckit)
+</ol>
+There is a <a href="cvs-map.html">repository map</a> that documents
+the current directory structure of the repository.
+<p>
+Some directories may have more restrictive access policies (i.e.
+may limit the set of developers allowed to commit changes to the
+directory).
+<p>
+The repository supports the following "modules" or virtual
+projects:
+<ol>
+<li> The smlnj module consists of the set of directories needed
+to build the compiler from sources (i.e. those necessary to bootstrap
+the compiler). smlnj contains the following
+<pre>
+  smlnj/config
+  smlnj/src/runtime
+  smlnj/src/compiler
+  smlnj/src/MLRISC
+  smlnj/src/system
+  smlnj/src/cm
+  smlnj/src/ml-yacc
+  smlnj/src/smlnj-lib
+</pre>
+<li> The set of core compiler components that should be tagged when
+committing changes.  This will be called "compiler-set" and will
+consist of the components of boot-set except for ml-yacc and smlnj-lib.
+</ol>
+The directory structure of the repository and of the compiler
+distribution should be coordinated.
+
+<h3>9. Keywords</h3>
+CVS keywords (such as $Log$
+CVS keywords (such as Revision 1.1  2001/10/11 09:52:12  macqueen
+CVS keywords (such as Initial revision
+CVS keywords (such as) will not be used in the sml source.
+Log, version, and status information for files can be accessed using
+the "cvs log" and "cvs status" commands.
+
+<h3>10. Mailing list</h3>
+
+There is a mailing list, <a
+href="mailto:smlnj-cvs@rum.cs.yale.edu">smlnj-cvs</a>, that will
+automatically receive messages announcing commits to the repository.
+To join the mailing list, send mail to <a
+href="mailto:smlnj-cvs-request@rum.cs.yale.edu">
+smlnj-cvs-request@rum.cs.yale.edu</a> with subject:
+<pre>
+  subscribe &lt;your@email.address&gt;
+</pre>
+
+<h3>11. CVS References</h3>
+The following are the most useful references for CVS users.
+<blockquote>
+Version Management with CVS<br>
+Per Cederqvist, et al.<br>
+(the manual that comes with the CVS software)
+<p>
+Open Source Development with CVS<br>
+Karl Fogel<br>
+CoriolisOpen Press<br>
+1999<br>
+ISBN: 1-57610-490-7<br>
+Online Version: <a href="http://cvsbook.red-bean.com">http://cvsbook.red-bean.com</a>
+<p>
+info cvs (emacs info documentation for cvs)
+</blockquote>
+
+    <hr>
+    <address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Tue Feb 29 10:43:35 EST 2000 -->
+<!-- hhmts start -->
+Last modified: Fri Apr 21 16:10:41 EDT 2000
+<!-- hhmts end -->
+  </body>
+</blockquote>
+</html>
+
+
+<!--
+In either case we need to make things more transparent.
+
+   How is the repository organized?  (We need a map.)
+     * What are the top-level directories (called "projects" in the
+       Fogel book)?
+     * What are the modules and how are they defined?
+       - Stefan has mentioned smlnj and sml.  Is smlnj a directory, or 
+         an alias module (defined with module -a).
+       - Can directories within a module like smlnj have different
+	 access policies (note that smlnj-lib is a component of the
+         smlnj module)?
+     * What is the rationale for the repository organization?
+       (e.g. the smlnj module gives you everything needed to build the
+        compiler (except the runtime).)
+     * binaries will be stored outside the repository?
+     * should we reorganize the source tree to agree with the
+       repository organization?
+
+   How is it managed?
+     * Access permissions? 
+       - The world should be able to check anything out.
+       - John (presumably with Emden?) wants exclusive checkin rights
+         for smlnj-lib (and CML, and eXene).  [I don't agree with
+	 this exclusivity, but I'll go along with it.]
+     * Security: ssh management
+     * tagging policy
+       - when we tag (for routine commits, versions, whatever), what
+         collections of code (e.g. modules) do we tag?  Should one tag
+	 just MLRISC, or compiler, or system, or all of smlnj.  Should
+	 only John and Emden tag smlnj-lib if only they have commit
+	 privileges?
+     * Version management
+       - who is responsible, who decides when to create a new version
+       - tagging a version
+       - building the binaries (need for all platforms)
+       - running regressions and benchmarks
+       - generating version READMEs
+     * What happens when there is a major code reorganization?
+       - Build a new repository?
+       - Introduce new versions of projects/directories like "compiler" or "MLRISC"?
+     * branch policy
+       - branches permitted but discouraged, extreme care should be exercised when 
+	 merging, and NEVER do an "update -A" on a branch.
+     * keyword policy
+       - I favor removing the $Log$
+       - I favor removing the Revision 1.1  2001/10/11 09:52:12  macqueen
+       - I favor removing the Initial revision
+       - I favor removing the keyword from the sources and
+         relying on the cvs log command, since we will now all have
+         access to this information from the repository.
+
+   Usage guidelines, hints, suggestions?
+     * managing ssh access with ssh-agent, etc.
+     * update + compile to fixed point before any commit (regressions
+       and benchmarks are advised - shame on he who commits buggy code
+       or performance degrading code!)
+     * meaningful log messages for commits
+     * tagging after every commit (e.g. "dbm-2000_1_12")
+     * email announcement after every commit/tag (mention tag, list
+       files changed)
+     * change log (maybe just a record of the email announcements)
+-->

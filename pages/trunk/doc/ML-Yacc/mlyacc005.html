@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset= ISO-8859-1">
+<TITLE>
+ Creating the parser
+</TITLE>
+</HEAD>
+<BODY BGCOLOR=silver TEXT=black>
+<A HREF="mlyacc004.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc006.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+<HR>
+
+<H2>5&nbsp;&nbsp; Creating the parser</H2>
+<A NAME="create-parser"></A>
+Let the name of the grammar specification file be denoted by
+{grammar} and the name of the lexer specification file be
+denoted by {lexer} (e.g. in our calculator example these would
+stand for calc.grm and calc.lex, respectively).
+Let the parser name in the specification be represented by {n}
+(e.g. Calc in our calculator example).<BR>
+<BR>
+To construct a parser, do the following:
+<OL>
+<LI>
+ 
+In the appropriate CM description file (e.g. for your main
+program or one of its subgroups or libraries), include the lines:
+<BLOCKQUOTE>
+<PRE>
+ml-yacc-lib.cm
+{lexer}
+{grammar}
+</PRE> 
+</BLOCKQUOTE>
+This will cause ML-Yacc to be run on {grammar}, producing source files
+{grammar}.sig and {grammar}.sml, and ML-Lex to be run on
+{lexer}, producing a source file {lexer}.sml. Then these files
+will be compiled after loading the necessary signatures and modules
+from the ML-Yacc library as specified by <TT>ml-yacc-lib.cm</TT>.
+
+<LI>Apply functors to create the parser:
+<BLOCKQUOTE>
+<PRE>
+structure {n}LrVals =
+  {n}LrValsFun(structure Token = LrParser.Token)
+structure {n}Lex = 
+  {n}LexFun(structure Tokens = {n}LrVals.Tokens)
+structure {n}Parser=
+  Join(structure ParserData = {n}LrVals.ParserData
+       structure Lex={n}Lex
+       structure LrParser=LrParser)
+</PRE>
+</BLOCKQUOTE>
+If the lexer was created using the <TT>%arg</TT> declaration in ML-Lex,
+the definition of {n}Parser must be changed to use another functor
+called JoinWithArg:
+<BLOCKQUOTE>
+<PRE>
+structure {n}Parser=
+  JoinWithArg
+    (structure ParserData={n}LrVals.ParserData
+     structure Lex={n}Lex
+     structure LrParser=LrParser)
+</PRE>
+</BLOCKQUOTE>
+</OL>The following outline summarizes this process:
+<BLOCKQUOTE>
+<PRE>
+(* available at top level *)
+
+TOKEN
+LR_TABLE
+STREAM
+LR_PARSER
+PARSER_DATA
+structure LrParser : LR_PARSER
+
+(* printed out in .sig file created by parser generator: *)
+
+signature {n}_TOKENS = 
+sig
+  structure Token : TOKEN
+  type svalue
+  val PLUS : 'pos * 'pos -&gt;
+             (svalue,'pos) Token.token
+  val INTLIT : int * 'pos * 'pos -&gt;
+               (svalue,'pos) Token.token
+  ...
+end
+
+signature {n}_LRVALS =
+sig
+  structure Tokens : {n}_TOKENS
+  structure ParserData : PARSER_DATA
+  sharing ParserData.Token = Tokens.Token
+  sharing type ParserData.svalue = Tokens.svalue
+end
+
+(* printed out by lexer generator: *)
+
+functor {n}LexFun(structure Tokens : {n}_TOKENS)=
+struct
+  ...
+end
+
+(* printed out in .sml file created by parser generator: *)
+
+functor {n}LrValsFun(structure Token : TOKENS) =
+struct
+
+  structure ParserData =
+  struct
+    structure Token = Token
+
+    (* code in header section of specification *)
+
+    structure Header = ...
+    type svalue = ...
+    type result = ...
+    type pos = ...
+    structure Actions = ...
+    structure EC = ...
+    val table = ...
+  end
+
+  structure Tokens : {n}_TOKENS =
+  struct
+    structure Token = ParserData.Token
+    type svalue = ...
+    fun PLUS(p1,p2) = ...
+    fun INTLIT(i,p1,p2) = ... 
+  end
+
+end
+
+(* to be done by the user: *)
+ 
+structure {n}LrVals =
+  {n}LrValsFun(structure Token = LrParser.Token)
+
+structure {n}Lex = 
+  {n}LexFun(structure Tokens = {n}LrVals.Tokens)
+
+structure {n}Parser =
+  Join(structure Lex = {n}Lex
+       structure ParserData = {n}ParserData
+       structure LrParser = LrParser)
+</PRE>
+</BLOCKQUOTE><HR>
+<A HREF="mlyacc004.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc006.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+</BODY>
+</HTML>

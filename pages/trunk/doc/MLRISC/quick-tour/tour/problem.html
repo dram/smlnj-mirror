@@ -1,0 +1,63 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.04 [en] (X11; U; IRIX 5.3 IP19) [Netscape]">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF>
+   <CENTER>
+    <H1><FONT COLOR=#AA0000>Problem Statement</FONT></H1>
+   </CENTER>
+
+    Writing a 
+    native code generator for any language is a signifcant
+    investment especially for todays modern processors with a high
+    degree of instruction level parallelism. The algorithms that must
+    be used to generate high quality code are complex, sometimes quite
+    delicate, and require substantial infrastructure.
+
+    <P>
+
+    <img alt="Retargeting compiler" align=right
+    src=pictures/jpeg/uncol2.jpg> A specific architecture has a
+    relatively short life time in relation to the time taken to build
+    the code generator, and one quickly needs the ability to retarget
+    to new versions of the architecture, or to different target
+    architectures. This is by no means an open problem. There are many
+    compilers today that target multiple architectures, however the
+    quality of code varies. For example, <FONT
+    COLOR=red><I>lcc</I></FONT> by Chris Fraser and David Hansen does
+    no back end optimizations; <FONT COLOR=red><I>gcc</I></FONT> from
+    the Free Software Foundation does extensive peephole and simple
+    data flow optimizations, and falls short on advanced superscalar
+    optimizations; and finally the <FONT COLOR=red><I>impact</I></FONT>
+    compiler done by the Impact group at the
+    University of Illinois specializes in more advanced superscalar
+    and predicated architectures. 
+
+    <BR CLEAR=right>
+
+    <p>
+    <img alt="UNCOL?" align=left src=pictures/jpeg/uncol.jpg> Assuming
+    the retargeting issue is solved, one would like to use all the
+    developed infrastructure for multiple source languages. This
+    problem is far from solved; even though <I>gcc</I> has been used
+    for multiple languages like Ada, Pascal, and Modula III, each of
+    these have similiar execution models or were forced to adopt C
+    conventions.  <I>gcc</I> cannot be used directly for languages
+    such as Lisp, Smalltalk, Haskell, or ML that have radically
+    different execution models and special requirements to support
+    advanced language features.
+<HR>
+    <FONT SIZE="-2">
+<ADDRESS>
+<A HREF="mailto:george@research.bell-labs.com">Lal George</A></ADDRESS>
+
+<!-- Created: Wed Mar 18 14:19:49 EST 1998 -->
+<!-- hhmts start -->
+Last modified: Tue Apr 28 11:58:41 EDT 1998
+<!-- hhmts end -->
+    </FONT>
+</BODY>
+</HTML>
+ 
+   

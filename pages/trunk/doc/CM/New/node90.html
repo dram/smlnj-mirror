@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>A..1 Lexical Analysis</TITLE>
+<META NAME="description" CONTENT="A..1 Lexical Analysis">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node91.html">
+<LINK REL="previous" HREF="node89.html">
+<LINK REL="up" HREF="node89.html">
+<LINK REL="next" HREF="node91.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1394"
+ HREF="node91.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1390"
+ HREF="node89.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1384"
+ HREF="node89.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1392"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1395"
+ HREF="node91.html">A..2 EBNF for preprocessor</A>
+<B> Up:</B> <A NAME="tex2html1391"
+ HREF="node89.html">A. CM description file</A>
+<B> Previous:</B> <A NAME="tex2html1385"
+ HREF="node89.html">A. CM description file</A>
+ &nbsp <B>  <A NAME="tex2html1393"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000181000000000000000">
+A..1 Lexical Analysis</A>
+</H2>
+
+<P>
+The CM parser employs a context-sensitive scanner.  In many cases this
+avoids the need for ``escape characters'' or other lexical devices
+that would make writing description files cumbersome.  (The downside
+of this is that it increases the complexity of both documentation and
+implementation.)
+
+<P>
+The scanner skips all nestable SML-style comments (enclosed with <B> 
+(*</B> and <B> *)</B>).
+
+<P>
+Lines starting with <B> #line</B> may list up to three fields separated
+by white space.  The first field is taken as a line number and the
+last field (if more than one field is present) as a file name.  The
+optional third (middle) field specifies a column number.  A line of
+this form resets the scanner's idea about the name of the file that it
+is currently processing and about the current position within that
+file.  If no file is specified, the default is the current file.  If
+no column is specified, the default is the first column of the
+(specified) line.  This feature is meant for program-generators or
+tools such as <TT> noweb</TT> but is not intended for direct use by
+programmers.
+
+<P>
+The following lexical classes are recognized:
+
+<P>
+ 
+<DL>
+<DT><STRONG>Namespace specifiers:</STRONG></DT>
+<DD><B> structure</B>, <B> signature</B>,
+<B> functor</B>, or <B> funsig</B>.  These keywords are recognized
+everywhere.</DD>
+<DT><STRONG>CM keywords:</STRONG></DT>
+<DD><B> group</B>, <B> Group</B>, <B> GROUP</B>, <B> 
+library</B>, <B> Library</B>, <B> LIBRARY</B>, <B> is</B>, <B> IS</B>.  These
+keywords are recognized everywhere except within ``preprocessor''
+lines (lines starting with <B> #</B>) or following one of the namespace
+specifiers.</DD>
+<DT><STRONG>Preprocessor control keywords:</STRONG></DT>
+<DD><B> #if</B>, <B> #elif</B>, <B> 
+#else</B>, <B> #endif</B>, <B> #error</B>.  These keywords are recognized
+only at the beginning of the line and indicate the start of a
+``preprocessor'' line.  The initial <B> #</B> character may be
+separated from the rest of the token by white space (but not by comments).</DD>
+<DT><STRONG>Preprocessor operator keywords:</STRONG></DT>
+<DD><B> defined</B>, <B> div</B>, <B> 
+mod</B>, <B> andalso</B>, <B> orelse</B>, <B> not</B>.  These keywords are
+recognized only when they occur within ``preprocessor'' lines.  Even
+within such lines, they are not recognized as keywords when they
+directly follow a namespace specifier--in which case they are
+considered SML identifiers.</DD>
+<DT><STRONG>SML identifiers (<I> mlid</I>):</STRONG></DT>
+<DD>Recognized SML identifiers
+include all legal identifiers as defined by the SML language
+definition. (CM also recognizes some tokens as SML identifiers that
+are really keywords according to the SML language definition. However,
+this can never cause problems in practice.)  SML identifiers are
+recognized only when they directly follow one of the namespace
+specifiers.</DD>
+<DT><STRONG>CM identifiers (<I> cmid</I>):</STRONG></DT>
+<DD>CM identifiers have the same form
+as those ML identifiers that are made up solely of letters, decimal
+digits, apostrophes, and underscores.  CM identifiers are recognized when they
+occur within ``preprocessor'' lines, but not when they directly follow
+some namespace specifier.</DD>
+<DT><STRONG>Numbers (<I> number</I>):</STRONG></DT>
+<DD>Numbers are non-empty sequences of
+decimal digits.  Numbers are recognized only within ``preprocessor''
+lines.</DD>
+<DT><STRONG>Preprocessor operators:</STRONG></DT>
+<DD>The following unary and binary operators are
+recognized when they occur within ``preprocessor'' lines: <TT> +</TT>,
+<TT> -</TT>, <TT> *</TT>, <TT> /</TT>, <TT> %</TT>, <TT> &lt;&gt;</TT>, <TT> !=</TT>, <TT> &lt;=</TT>,
+<TT> &lt;</TT>, <TT> &gt;=</TT>, <TT> &gt;</TT>, <TT> ==</TT>, <TT> =</TT>, <IMG
+ WIDTH="8" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img20.gif"
+ ALT="$\tilde{~}$">, <TT> 
+&amp;&amp;</TT>, <TT> ||</TT>, <TT> !</TT>.  Of these, the following (``C-style'')
+operators are considered obsolete and trigger a warning
+message<A NAME="tex2html16"
+HREF="footnode.html#foot5276"><SUP>16</SUP></A> as long as <TT> CM.Control.warn_obsolete</TT> is set to
+<TT> true</TT>: <TT> /</TT>, <TT> %</TT>, <TT> !=</TT>, <TT> ==</TT>, <TT> &amp;&amp;</TT>, <TT> 
+||</TT>, <TT> !</TT>.</DD>
+<DT><STRONG>Standard path names (<I> stdpn</I>):</STRONG></DT>
+<DD>Any non-empty sequence of
+upper- and lower-case letters, decimal digits, and characters drawn
+from <TT> '_.;,!%&amp;$+/&lt;=&gt;?@<IMG
+ WIDTH="8" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img20.gif"
+ ALT="$\tilde{~}$">|#*-<code>^</code></TT> that occurs
+outside of ``preprocessor'' lines and is neither a namespace specifier
+nor a CM keyword will be recognized as a stardard path name.  Strings
+that lexically constitute standard path names are usually--but not
+always--interpreted as file names. Sometimes they are simply taken as
+literal strings.  When they act as file names, they will be
+interpreted according to CM's <EM> standard syntax</EM> (see
+Section&nbsp;<A HREF="node16.html#sec:basicrules">3.2</A>).  (Member class names, names of
+privileges, and many tool optios are also specified as standard path
+names even though in these cases no actual file is being named.)</DD>
+<DT><STRONG>Native path names (<I> ntvpn</I>):</STRONG></DT>
+<DD>A token that has the form of an
+SML string is considered a native path name.  The same rules as in SML
+regarding escape characters apply.  Like their ``standard''
+counterparts, native path names are not always used to actually name
+files, but when they are, they use the native file name syntax of the
+underlying operating system.</DD>
+<DT><STRONG>Punctuation:</STRONG></DT>
+<DD>A colon <B> :</B> is recognized as a token
+everywhere except within ``preprocessor'' lines. Parentheses <B> ()</B>
+are recognized everywhere.</DD>
+</DL>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1394"
+ HREF="node91.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1390"
+ HREF="node89.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1384"
+ HREF="node89.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1392"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1395"
+ HREF="node91.html">A..2 EBNF for preprocessor</A>
+<B> Up:</B> <A NAME="tex2html1391"
+ HREF="node89.html">A. CM description file</A>
+<B> Previous:</B> <A NAME="tex2html1385"
+ HREF="node89.html">A. CM description file</A>
+ &nbsp <B>  <A NAME="tex2html1393"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>
