@@ -6,7 +6,9 @@ README.bugs       (this file)
 form		  sample bug report form
 bugs.nnnn-mmmm	  collected bug reports
 openbugs	  list of bugs currently "open" (needing to be fixed)
-tests.tar.Z	  collection of bug test cases
+[tests.tar.Z	  collection of bug test cases 
+                  -- no longer found here, see sml/tests CVS module
+                  at Yale repository flint.cs.yale.edu:/home/cvs.]
 
 The SML/NJ bug reports are split into files with at most 200 bug
 reports each, so that each file will be of a manageable size.  The
@@ -71,9 +73,15 @@ bug reports are those accompanied by a succinct bit of code that
 manifests the bug.  (Actually, that's not quite right -- the most
 helpful bug reports are those with the "Fix" field filled in!)
 
-The collection of test cases for bugs is provided in the compressed
-tar file tests.tar.Z.  These tests are used as part of the regression
-test suite for the compiler.
+The collection of test cases for bugs is available as part of the
+sml/tests module at flint.cs.yale.edu:/home/cvs.
+
+These files are now maintained under cvs in module bugs at
+the SML/NJ SourceForge project.  Set CVSROOT to 
+
+  <loginname>@cvs.smlnj.sourceforge.net:/cvsroot/smlnj
+
+and checkout bugs to edit.
 
 Dave MacQueen
 dbm@research.bell-labs.com
