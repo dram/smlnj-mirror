@@ -25,11 +25,30 @@ The SML/NJ project directory path is:
 This directory contains subdirectories <code>htdocs</code> and <code>cgi-bin</code>.
 <p>
 
-<h3>Login to sourceforge user account</h3>
+<h3>Logging in to your sourceforge user account</h3>
 <pre>
-   ssh -l loginname smlnj.sourceforge.net
+   ssh -l loginname shell.sourceforge.net
 </pre>
 Your home directory will look something like: <code>/home/users/m/ma/macqueen</code>.
+<p>
+You can abbreviate the command to (e.g.)
+<pre>
+   ssh sf-shell
+</pre>
+by defining sf-shell as a host alias in your .ssh/config file:
+<pre>
+    Host = sf-shell
+    HostName = shell.sourceforge.net
+    User = loginname
+</pre>
+<p>
+<h3>Moving files to sourceforge</h3>
+You can copy an individual html source file (localfile) to your
+sourceforge home directory by executing a command like:
+<pre>
+   scp localfile macqueen@smlnj.sourceforge.net:/home/users/m/ma/macqueen
+</pre>
+I have not been able to use ftp (from SF) to transfer files into SF.
 
 <h3>Setting up CVS access</h3>
 <ol>
@@ -46,6 +65,7 @@ Your home directory will look something like: <code>/home/users/m/ma/macqueen</c
 <pre>
      export CVS_RSH=ssh
 </pre>
+<p>
 <li> Run ssh-agent and ssh-add for convenience, to avoid having to repeatedly
 type in your ssh passphrase or SourceForge password:
 <pre>
@@ -60,43 +80,71 @@ that you gave when you created your ssh identity files with ssh-keygen.
 Note that some versions of ssh do not support the -p flag, in which case
 you will have to run ssh-add interactively and type in your pass phrase.
 Unfortunately, the version of ssh available on the SourceForge shell servers
-is one of these.
+is one of these, so ssh-add has to be run manually after login.
+<p>
+<li> Create a host entry for cvs.sourceforge.net in your ssh config file (.ssh/config)
+like the following (replacing loginname with your SF user name, as usual):
+<pre>
+    Host = sf-smlnj
+    HostName = cvs.smlnj.sourceforge.net
+    User = loginname
+</pre>
+This defines a standard alias for the cvs host that agrees with that used
+the CVS/Root files (in htdocs, for instance).
+<p>
 <li> Set CVSROOT:
 <pre>
-     export CVSROOT=<SF loginname>@cvs.smlnj.sourceforge.net:/cvsroot/smlnj
+     export CVSROOT=sf-smlnj:/cvsroot/smlnj
 </pre>
-<li> Execute cvs commands (without needing -d arguments, passwords,
-or pass phrases), e.g.: 
+Note the use of the alias "sf-smlnj" defined in the config file from the
+previous item.
+<p>
+<li> Now you can execute cvs commands without needing -d arguments, passwords,
+or pass phrases, e.g.: 
 <pre>
      cvs update bugs
 </pre>
 </ol>
+In order to execute cvs commands on the SourceForge shell server, you
+should run ssh-keygen from your SF account to generate a new ssh key, and
+then add that key to the end of your .ssh/authorized_keys file.  You can
+also define CVS_RSH and run ssh-agent in your .profile at
+SourceForge to make things simpler.
 
 <h3> Updating web pages </h3>
-You can copy an individual html source file (localfile) to the smlnj
-sourceforge site by executing a command like:
-<pre>
-   scp localfile loginname@smlnj.sourceforge.net:/home/groups/s/sm/smlnj/htdocs/
-</pre>
-However, updating the site web pages should be done by working on a
-checked-out copy of the web pages (module "pages" in the project
-CVS repository).  
+The htdocs directory in the smlnj project home directory (/home/groups/s/sm/smlnj)
+contains the web pages for the project.  These web pages can be accessed using
+either of the following URLs:
+<blockquote>
+<a href="http://www.smlnj.org">http://www.smlnj.org</a><br>
+<a href="http://smlnj.sourceforge.net">http://smlnj.sourceforge.net/index.html</a>
+</blockquote>
+The htdocs directory is a CVS working directory created by checking out
+the htdocs module from the project CVS repository.  The Bell Labs copy
+(in /home/sml/Doc/WWW/smlnj) is also checked-out from the repository ("htdocs"
+and "smlnj" are both aliases of the pages module in the repository).  If you
+have extensive edits to perform on the web pages, we recommend that you check
+out your own private working copy, make the edits, test them, and commit the changes.
+After the changes are commited, "cvs update" must be performed in
+the two directories
+<blockquote>
+/home/groups/s/sm/smlnj/htdocs  (at SF)<br>
+alice:/cm/cs/what/smlnj         (at Bell Labs)
+</blockquote>
+to synchronize them with the changed repository.  You can do the
+update on the htdocs directory yourself as described in the next
+paragraph, but you may need to send mail to Bell Labs to have the
+update done on that copy until we set up automatic email notifications
+of commits to the web pages repository.
 <p>
-Then to actually update the pages, you login to your SourceForge account
-and do
+To actually update the pages at SF, you login to your SF account
+and do (e.g.)
 <pre>
    cd /home/groups/s/sm/smlnj/htdocs
    ... set up cvs ...
-   export CVSROOT=<loginname>@cvs.smlnj.sourceforge.net:/cvsroot/smlnj
-   cvs update pages
+   export CVSROOT=sf-smlnj:/cvsroot/smlnj
+   cvs update htdocs
 </pre>
-In order to do the cvs operations on your SourceForge shell server, it
-is a good idea to run ssh-keygen there to generate a new ssh key, and
-then add that key to the end of your .ssh/authorized_keys file.  You can
-also define CVS_RSH and run ssh-agent in your .profile at
-SourceForge to make things simpler.  Since the ssh at SourceForge does
-not appear to accept a pass phrase on standard input, you'll have to run
-ssh-add interactively after you log in.
 <p>
     <hr>
     <address><a href="mailto:macqueen@users.sourceforge.net">Dave MacQueen</a></address>
