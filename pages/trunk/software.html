@@ -1,363 +1,407 @@
-<!-- Copyright (c) 1996 Lucent Technologies; Bell Laboratories -->
-
-<HTML>
-  <TITLE>SML/NJ Software</TITLE>
-<!-- Changed by: Lal George, 13-Oct-1997 -->
-<BODY BGCOLOR="white">
-
-<center>
-<H1>SML/NJ Software</H1>
-</center>
-
-<blockquote>
-This page provides pointers to the SML/NJ software distributions and
-installation instructions.
-<HR>
-
-<H2>Current Release</H2>
-<P>
-The current release of SML/NJ is <a href="NEWS/110-README.html">
-<strong>Version 110</strong></a>, originally introduced in February 1998.
-Version 110 runs under Unix, Windows 95 or Windows NT.  (<em>The
-the current release version number is 110.0.7, representing the 7th patch
-release of 110, but we will refer to this version as 110 for short.</em>)
-<p>
-
-<h3>Installation Instructions</h3>
-<p>
-To download and install SML/NJ 110, follow these 
-<a href="install/index.html"><strong>installation instructions</strong></a>.
-
-<a name="Mirrors">
-<H3> The Distribution Files </H3></a>
-<blockquote>
-NOTE: the names of the distribution files have changed in 110.0.7;
-the tarball files no longer have a "110-" prefix.
-</blockquote>
-The files making up the Version 110 distribution are available via
-http or ftp:
-<blockquote>
-<a href="dist/110.0.7.html">http://cm.bell-labs.com/cm/cs/what/smlnj/dist/110.0.7.html</a><br>
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110">
-ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/</a>
-</blockquote>
-and at the following mirror sites
-(if you run a mirror site not listed here, please let us know):
-<UL>
-<LI><a href="ftp://rodin.stanford.edu/pub/smlnj"> 
-	<strong>Stanford University (California)</strong> </a>
-<LI><a href="ftp://flint.cs.yale.edu/pub/smlnj">
-	<strong>Yale University (Connecticut)</strong> </a>
-<LI><a href="ftp://ftp.diku.dk/pub/smlnj"> <strong>DIKU (Denmark)</strong> </a>
-<LI><a href="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj"><strong>Cambridge (UK)</strong></a>
-<LI><a href="ftp://sunsite.doc.ic.ac.uk/computing/programming/languages/ml/smlnj/">
-<strong>SunSITE (UK)</strong></A>
-<LI><a href="ftp://ftp.ntua.gr/pub/lang/smlnj"><strong>National Technical Univ. of Athens (Greece)</strong></a>
-<LI><a href="ftp://ropas.kaist.ac.kr/pub/smlnj/"><strong>KAIST (Korea)</strong></a>
-<LI><a href="http://gd.tuwien.ac.at/languages/smlnj/"><strong>Vienna
-Univ. of Technology, Austria</strong></a>
-(<a href="ftp://gd.tuwien.ac.at/languages/smlnj/">ftp version</a>)
-</UL>
-
-<h3> Previous Release </h3>
-
-Users of the previous release, <a href="NEWS/93-README.html"> Version
-0.93</a> (released in 1993) should migrate to Version 110 as soon as
-possible.  Version 0.93 is available but is no longer supported.
-However, for the time being it is the only version that runs on Apple
-Macintoshes (on 68K machines, or PowerMacs under emulation with the
-aid of SoftwareFPU).
-
-<h3>Potential Downloading Problems (Bell Labs site)</h3>
-<p>
-We have had reports of distribution files being corrupted when
-downloaded via a web browser.  Using ftp directly may be more
-reliable, but be warned that Bell Labs ftp service is incompatible
-with some firewalls.  The ftp service on ftp.research.bell-labs.com
-uses special stripped-down server software for security.  This
-implementation deviates from the RFC standards in that the data
-call-back circuit does not originate from port 20 on the server
-host. Some firewalls count on this in their filtering rules. If the
-dir (ls) command doesn't work, this is probably the reason why.  However,
-most ftp accesses (including browsers) these days use the passive
-command PASV, which has a better security model for a firewall.  If
-all else fails, try one of the mirror sites listed above.
-
-<HR>
-<A NAME="SOFTWARE:WORKING-VERSIONS">
-<H2> Working Versions </H2>
-Working versions are created for internal development purposes and
-vary in reliability and stability.  Some are robust enough for
-noncritical research use, others are not.  Please pay careful
-attention to the README or NEWS file for each version before
-attempting to use it.  These working versions can be found at
-<A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working">
-ftp.research.bell-labs.com</A>.
-<p>
-<a href="mailto:george@research.bell-labs.com">Lal George</a> maintains a
-mailing list for those adventurous souls who want to receive
-announcements of new working versions.  Contact Lal if you want
-to be added to (or subtracted from) the list.
-<P>
-The following table gives access to README files for recent working 
-versions and the ftp directories for working versions that are
-currently available for downloading.  The
-<a href="install/index.html">installation instructions</a>
-for the release version will generally work, <em>mutatis mutandis</em>,
-for working versions.
-<p>
-After version 110.9.1, the older "cmachine" (i.e. non-MLRISC) code
-generators have been eliminated, so a more limited range of
-architectures will be supported until the new MLRISC code generators
-are implemented.  Other major changes involving FLINT and the
-transition to a new runtime system are under way, so expect some
-instability after 110.9.1.
-<p>
-
-<H3> Recent Working Versions </H3>
-<TABLE BORDER>
-<TH> README <TH> Released 	<TH> Software Links <th>
-<TR><TD><A HREF="NEWS/110.36-README.html"><B>110.36 </A>
-    <TD>September 18, 2001
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.36">
-	  /dist/smlnj/working/110.36</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.35-README"><B>110.35 </A>
-    <TD>August 24, 2001
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.35">
-	  /dist/smlnj/working/110.35</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.34-README.html"><B>110.34 </A>
-    <TD>July 10, 2001
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.34">
-	  /dist/smlnj/working/110.34</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.33-README.html"><B>110.33 </A>
-    <TD>May 23, 2001
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.33">
-	  /dist/smlnj/working/110.33</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.32-README.html"><B>110.32 </A>
-    <TD>December 22, 2000
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.32">
-	  /dist/smlnj/working/110.32</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.31-README.html"><B>110.31 </A>
-    <TD>December 8, 2000
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.31">
-	  /dist/smlnj/working/110.31</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.30-README.html"><B>110.30 </A>
-    <TD>November 4, 2000
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.30">
-	  /dist/smlnj/working/110.30</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.29-README"><B>110.29 </A>
-    <TD>July 25, 2000
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.29">
-	  /dist/smlnj/working/110.29</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.28-README.html"><B>110.28 </A>
-    <TD>May 1, 2000
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.28">
-	  /dist/smlnj/working/110.28</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.27-README.html"><B>110.27 </A>
-    <TD>April 10, 2000
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.27">
-	  /dist/smlnj/working/110.27</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.25-README.html"><B>110.25 </A>
-    <TD>December 6, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.25">
-	  /dist/smlnj/working/110.25</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.24-README.html"><B>110.24 </A>
-    <TD>November 1, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.24">
-	  /dist/smlnj/working/110.24</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.23-README.html"><B>110.23 </A>
-    <TD>October 9, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.23">
-	  /dist/smlnj/working/110.23</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.22-README.html"><B>110.22 </A>
-    <TD>September 9, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.22">
-	  /dist/smlnj/working/110.22</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.21-README.html"><B>110.21 </A>
-    <TD>September 3, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.21">
-	  /dist/smlnj/working/110.21</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.20-README.html"><B>110.20 </A>
-    <TD>July 16, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.20">
-	  /dist/smlnj/working/110.20</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.19-README.html"><B>110.19 </A>
-    <TD>July 8, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.19">
-	  /dist/smlnj/working/110.19</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.17-README.html"><B>110.17 </A>
-    <TD>May 20, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.17">
-	  /dist/smlnj/working/110.17</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.16-README.html"><B>110.16 </A>
-    <TD>April 16, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.16">
-	  /dist/smlnj/working/110.16</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.15-README.html"><B>110.15 </A>
-    <TD>March 22, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.15">
-	  /dist/smlnj/working/110.15</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.14-README.html"><B>110.14 </A>
-    <TD>Feb 22, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.14">
-	  /dist/smlnj/working/110.14</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.13-README"><B>110.13 </A>
-    <TD>Jan 16, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.13">
-	  /dist/smlnj/working/110.13</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.12-README"><B>110.12 </A>
-    <TD>Jan 12, 1999
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.12">
-	  /dist/smlnj/working/110.12</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.11-README"><B>110.11 </A>
-    <TD> Dec 22, 1998
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.11">
-	  /dist/smlnj/working/110.11</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.10-README"><B>110.10 </A>
-    <TD>Dec 20, 1998
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.10">
-	  /dist/smlnj/working/110.10</A>
-    </TR>
-<TR><TD><A HREF="NEWS/110.9.1-README.html"><B>110.9.1 </A>
-    <TD>Oct 19, 1998
-    <TD><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.9.1">
-	  /dist/smlnj/working/110.9.1</A>
-    </TR>
-</TABLE>
-<HR>
-
-<A name="packages">
-<H2> Packages </H2></A>
-<p>
-The directory 
-<blockquote> <A
-HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/packages/">
-ftp://ftp.research.bell-labs.com/dist/smlnj/packages/</A>.
-</blockquote>
-contains software packages that are not part of the core SML/NJ
-distribution.  Currently, this directory contains:
-<ul>
-<li> <A HREF="doc/ckit/index.html"><strong>ckit</strong></A>, a C front 
-end.
-</ul>
-
-<A name="benchmarks">
-<H2> Benchmarks </H2></A>
-<p>
-A set of programs used as a "benchmark suite" for Standard ML is
-available at:
-<blockquote> <A
-HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/benchmarks/">
-ftp://ftp.research.bell-labs.com/dist/smlnj/benchmarks/</A>.
-</blockquote>
-
-<H2> SML/NJ Compiler Test Suites </H2>
-<p>
-The regression test suites used for the SML/NJ compiler are
-available at:
-<blockquote> <A
-HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/testing/">
-ftp://ftp.research.bell-labs.com/dist/smlnj/testing/</A>.
-</blockquote>
-
-
-<H2> <A NAME="contrib">Contributed Software</A> </H2>
-<P>
-Some contributed software packages can be found at
-<blockquote>
-<A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/">
-ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/</A>.
-</blockquote>
-Currently this directory contains:
-<DL>
-<DT>
-<A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs">
-<strong>emacs</strong></A>
-<DD>
-The sml-mode package provides an emacs mode for editing
-sml code under Gnu emacs and running the sml top-level as a subprocess of
-emacs.  Originally developed by Matthew J. Morley, it is now maintained by
-<a href="mailto:monnier@cs.yale.edu">Stefan Monnier</a>.  The latest
-version is 3.9.5 (Dec 22, 2000).
-
-<a href="doc/Emacs/sml-mode.html">Online documentation</a> is
-available here.  The latest sml-mode tarball is available at 
-<a
-	    href="ftp://flint.cs.yale.edu/pub/monnier/sml-mode/sml-mode.tar.gz">Yale</a> and is mirrored at 
-<a
-	    href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs/sml-mode-3.9.5.tar.gz">Bell Labs</a>.
-<p>
-<DT><strong>tools</strong>
-<DD>
-Various software tools, including:
-<UL>
-<LI>
-<a href="doc/heap2exec/index.html">
-heap2exec</a>, Lorenz Huelsbergen's "heap2exec" utility for building
-Unix executables from heap images and the SML/NJ runtime executable.
-<LI>
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/tools/lexgenmos.tar.Z">
-lexgenmos.tar.Z</a>, a translation of the Moscow ML lexer generator, which produces
-lexers that run a bit faster than the improved ML-Lex in working version 110.7.
-</UL>
-<p>
-<DT><strong>lib</strong>
-<DD>
-Some contributed or "borrowed" libraries, including:
-<UL>
-<LI>
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/CGI.tar.Z">
-CGI.tar.Z</a>, a port of Moscow ML's CGI library. 
-<LI>
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/Util.tar.Z">
-Util.tar.Z</a>, utility modules contributed by Nikolai Bjorner and
-Matthias Blume.
-<LI>
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/getopt.tar.Z">
-getopt.tar.Z</a>, a port (via Haskell) of the GNU getopt library.
-</UL>
-</DL>
-<p>
-Additional packages will be added as they become available.
-New contributions are eagerly sought!
-
-</blockquote>
-
-
-<HR>
-<CENTER><STRONG>
-| <A HREF="index.html">SML/NJ Home Page</A> |
-</STRONG></CENTER>
-<HR>
-Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
-<FONT SIZE="-3">
-  Copyright &#169; 1998,
-  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
-  <BR>
-</FONT>
-</BODY>
-</HTML>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+ <!-- Copyright (c) 1996 Lucent Technologies; Bell Laboratories -->
+  <title>SML/NJ Software</title>
+    <!-- Changed by: Lal George, 13-Oct-1997 -->
+</head>
+  <body bgcolor="white">
+    
+<center>  
+<h1>SML/NJ Software</h1>
+  </center>
+    
+<blockquote> This page provides pointers to the SML/NJ software distributions 
+and installation instructions.    
+  <hr>     
+  <h2>Current Release</h2>
+     
+  <p> The current release of SML/NJ is <a href="NEWS/110-README.html"> <strong>
+ Version 110</strong></a>, originally introduced in February 1998. Version 
+110 runs under Unix, Windows 95 or Windows NT.  (<em>The the current release 
+version number is 110.0.7, representing the 7th patch release of 110, but 
+we will refer to this version as 110 for short.</em>) </p>
+   
+  <p>  </p>
+   
+  <h3>Installation Instructions</h3>
+     
+  <p> To download and install SML/NJ 110, follow these  <a href="install/index.html"><strong>
+ installation instructions</strong></a>.  <a name="Mirrors">    
+  <h3> The Distribution Files </h3>
+   </a> </p>
+   
+  <blockquote> NOTE: the names of the distribution files have changed in 110.0.7;
+the tarball files no longer have a "110-" prefix. </blockquote>
+  The files making up the Version 110 distribution are available via http 
+or ftp:      
+    <blockquote> <a href="dist/110.0.7.html">http://cm.bell-labs.com/cm/cs/what/smlnj/dist/110.0.7.html</a><br>
+  <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110"> ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/</a>
+  </blockquote>
+  and at the following mirror sites (if you run a mirror site not listed
+here, please let us know):        
+      <ul>
+  <li><a href="ftp://rodin.stanford.edu/pub/smlnj">  	<strong>Stanford University 
+(California)</strong> </a> </li>
+         <li><a href="ftp://flint.cs.yale.edu/pub/smlnj"> 	<strong>Yale University 
+(Connecticut)</strong> </a> </li>
+         <li><a href="ftp://ftp.diku.dk/pub/smlnj"> <strong>DIKU (Denmark)</strong>
+  </a> </li>
+         <li><a href="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj"><strong>Cambridge 
+(UK)</strong></a> </li>
+         <li><a href="ftp://sunsite.doc.ic.ac.uk/computing/programming/languages/ml/smlnj/">
+  <strong>SunSITE (UK)</strong></a> </li>
+         <li><a href="ftp://ftp.ntua.gr/pub/lang/smlnj"><strong>National
+Technical Univ. of Athens (Greece)</strong></a> </li>
+         <li><a href="ftp://ropas.kaist.ac.kr/pub/smlnj/"><strong>KAIST (Korea)</strong></a>
+  </li>
+         <li><a href="http://gd.tuwien.ac.at/languages/smlnj/"><strong>Vienna
+ Univ. of Technology, Austria</strong></a> (<a href="ftp://gd.tuwien.ac.at/languages/smlnj/">
+ ftp version</a>) </li>
+       
+      </ul>
+          
+      <h3> Previous Release </h3>
+   Users of the previous release, <a href="NEWS/93-README.html"> Version
+0.93</a>  (released in 1993) should migrate to Version 110 as soon as possible.
+ Version 0.93 is available but is no longer supported. However, for the time
+being it is the only version that runs on Apple Macintoshes (on 68K machines,
+or PowerMacs under emulation with the aid of SoftwareFPU).         
+      <h3>Potential Downloading Problems (Bell Labs site)</h3>
+         
+      <p> We have had reports of distribution files being corrupted when
+downloaded via a web browser.  Using ftp directly may be more reliable, but
+be warned that Bell Labs ftp service is incompatible with some firewalls.
+ The ftp service on ftp.research.bell-labs.com uses special stripped-down
+server software for security.  This implementation deviates from the RFC
+standards in that the data call-back circuit does not originate from port
+20 on the server host. Some firewalls count on this in their filtering rules.
+If the dir (ls) command doesn't work, this is probably the reason why.  However,
+most ftp accesses (including browsers) these days use the passive command
+PASV, which has a better security model for a firewall.  If all else fails,
+try one of the mirror sites listed above.  </p>
+       
+      <hr> <a name="SOFTWARE:WORKING-VERSIONS"> </a>       
+      <h2><a name="SOFTWARE:WORKING-VERSIONS"> Working Versions </a></h2>
+  <a name="SOFTWARE:WORKING-VERSIONS">Working versions are created for internal 
+development purposes and vary in reliability and stability.  Some are robust 
+enough for noncritical research use, others are not.  Please pay careful
+attention to the README or NEWS file for each version before attempting to
+use it.  These working versions can be found at </a><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working">
+  ftp.research.bell-labs.com</a>.        
+      <p> <a href="mailto:george@research.bell-labs.com">Lal George</a> maintains 
+a mailing list for those adventurous souls who want to receive announcements 
+of new working versions.  Contact Lal if you want to be added to (or subtracted 
+from) the list. </p>
+       
+      <p> The following table gives access to README files for recent working 
+ versions and the ftp directories for working versions that are currently 
+available for downloading.  The <a href="install/index.html">installation 
+instructions</a> for the release version will generally work, <em>mutatis 
+mutandis</em>, for working versions. </p>
+       
+      <p> After version 110.9.1, the older "cmachine" (i.e. non-MLRISC) code
+ generators have been eliminated, so a more limited range of architectures 
+will be supported until the new MLRISC code generators are implemented.  Other
+major changes involving FLINT and the transition to a new runtime system are
+under way, so expect some instability after 110.9.1. </p>
+       
+      <p>  </p>
+       
+      <h3> Recent Working Versions </h3>
+         
+      <table border="1">
+  <tbody>
+           <tr>
+             <th> README </th>
+             <th> Released 	</th>
+             <th> Software Links </th>
+           </tr>
+           <tr>
+             <td valign="Top"><b><a href="NEWS/110.37-README.html">110.37</a></b><br>
+             </td>
+             <td valign="Top">November 23, 2001<br>
+             </td>
+             <td valign="Top"><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.37/">
+ /dist/smlnj/working/110.37</a><br>
+             </td>
+           </tr>
+           <tr>
+             <td><a href="NEWS/110.36-README.html"><b>110.36 </b></a> <b>
+    </b></td>
+             <td>September 18, 2001     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.36">
+  	  /dist/smlnj/working/110.36</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.35-README"><b>110.35 </b></a> <b>    </b></td>
+             <td>August 24, 2001     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.35">
+  	  /dist/smlnj/working/110.35</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.34-README.html"><b>110.34 </b></a> <b>
+    </b></td>
+             <td>July 10, 2001     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.34">
+  	  /dist/smlnj/working/110.34</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.33-README.html"><b>110.33 </b></a> <b>
+    </b></td>
+             <td>May 23, 2001     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.33">
+  	  /dist/smlnj/working/110.33</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.32-README.html"><b>110.32 </b></a> <b>
+    </b></td>
+             <td>December 22, 2000     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.32">
+  	  /dist/smlnj/working/110.32</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.31-README.html"><b>110.31 </b></a> <b>
+    </b></td>
+             <td>December 8, 2000     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.31">
+  	  /dist/smlnj/working/110.31</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.30-README.html"><b>110.30 </b></a> <b>
+    </b></td>
+             <td>November 4, 2000     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.30">
+  	  /dist/smlnj/working/110.30</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.29-README"><b>110.29 </b></a> <b>    </b></td>
+             <td>July 25, 2000     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.29">
+  	  /dist/smlnj/working/110.29</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.28-README.html"><b>110.28 </b></a> <b>
+    </b></td>
+             <td>May 1, 2000     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.28">
+  	  /dist/smlnj/working/110.28</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.27-README.html"><b>110.27 </b></a> <b>
+    </b></td>
+             <td>April 10, 2000     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.27">
+  	  /dist/smlnj/working/110.27</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.25-README.html"><b>110.25 </b></a> <b>
+    </b></td>
+             <td>December 6, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.25">
+  	  /dist/smlnj/working/110.25</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.24-README.html"><b>110.24 </b></a> <b>
+    </b></td>
+             <td>November 1, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.24">
+  	  /dist/smlnj/working/110.24</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.23-README.html"><b>110.23 </b></a> <b>
+    </b></td>
+             <td>October 9, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.23">
+  	  /dist/smlnj/working/110.23</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.22-README.html"><b>110.22 </b></a> <b>
+    </b></td>
+             <td>September 9, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.22">
+  	  /dist/smlnj/working/110.22</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.21-README.html"><b>110.21 </b></a> <b>
+    </b></td>
+             <td>September 3, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.21">
+  	  /dist/smlnj/working/110.21</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.20-README.html"><b>110.20 </b></a> <b>
+    </b></td>
+             <td>July 16, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.20">
+  	  /dist/smlnj/working/110.20</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.19-README.html"><b>110.19 </b></a> <b>
+    </b></td>
+             <td>July 8, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.19">
+  	  /dist/smlnj/working/110.19</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.17-README.html"><b>110.17 </b></a> <b>
+    </b></td>
+             <td>May 20, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.17">
+  	  /dist/smlnj/working/110.17</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.16-README.html"><b>110.16 </b></a> <b>
+    </b></td>
+             <td>April 16, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.16">
+  	  /dist/smlnj/working/110.16</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.15-README.html"><b>110.15 </b></a> <b>
+    </b></td>
+             <td>March 22, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.15">
+  	  /dist/smlnj/working/110.15</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.14-README.html"><b>110.14 </b></a> <b>
+    </b></td>
+             <td>Feb 22, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.14">
+  	  /dist/smlnj/working/110.14</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.13-README"><b>110.13 </b></a> <b>    </b></td>
+             <td>Jan 16, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.13">
+  	  /dist/smlnj/working/110.13</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.12-README"><b>110.12 </b></a> <b>    </b></td>
+             <td>Jan 12, 1999     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.12">
+  	  /dist/smlnj/working/110.12</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.11-README"><b>110.11 </b></a> <b>    </b></td>
+             <td> Dec 22, 1998     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.11">
+  	  /dist/smlnj/working/110.11</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.10-README"><b>110.10 </b></a> <b>    </b></td>
+             <td>Dec 20, 1998     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.10">
+  	  /dist/smlnj/working/110.10</a>     </td>
+           </tr>
+  <tr>
+             <td><a href="NEWS/110.9.1-README.html"><b>110.9.1 </b></a> <b>
+     </b></td>
+             <td>Oct 19, 1998     </td>
+             <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/110.9.1">
+  	  /dist/smlnj/working/110.9.1</a>     </td>
+           </tr>
+           
+        </tbody>       
+      </table>
+         
+      <hr>  <a name="packages">        
+      <h2> Packages </h2>
+       </a>        
+      <p> The directory  </p>
+       
+      <blockquote> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/packages/">
+  ftp://ftp.research.bell-labs.com/dist/smlnj/packages/</a>. </blockquote>
+  contains software packages that are not part of the core SML/NJ distribution. 
+ Currently, this directory contains:          
+        <ul>
+  <li> <a href="doc/ckit/index.html"><strong>ckit</strong></a>, a C front 
+ end. </li>
+         
+        </ul>
+   <a name="benchmarks">          
+        <h2> Benchmarks </h2>
+         </a>          
+        <p> A set of programs used as a "benchmark suite" for Standard ML 
+is available at: </p>
+         
+        <blockquote> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/benchmarks/">
+  ftp://ftp.research.bell-labs.com/dist/smlnj/benchmarks/</a>. </blockquote>
+              
+          <h2> SML/NJ Compiler Test Suites </h2>
+             
+          <p> The regression test suites used for the SML/NJ compiler are
+ available at: </p>
+           
+          <blockquote> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/testing/">
+  ftp://ftp.research.bell-labs.com/dist/smlnj/testing/</a>. </blockquote>
+                 
+            <h2> <a name="contrib">Contributed Software</a> </h2>
+               
+            <p> Some contributed software packages can be found at </p>
+             
+            <blockquote> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/">
+  ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/</a>. </blockquote>
+  Currently this directory contains:                
+              <dl>
+              <dt> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs">
+  <strong>emacs</strong></a> </dt>
+                <dd> The sml-mode package provides an emacs mode for editing
+ sml code under Gnu emacs and running the sml top-level as a subprocess of
+ emacs.  Originally developed by Matthew J. Morley, it is now maintained
+by                    <a href="mailto:monnier@cs.yale.edu">Stefan Monnier</a>
+ .  The latest version is 3.9.5 (Dec 22, 2000).  <a href="doc/Emacs/sml-mode.html">
+ Online documentation</a> is available here.  The latest sml-mode tarball 
+is available at  <a href="ftp://flint.cs.yale.edu/pub/monnier/sml-mode/sml-mode.tar.gz">
+ Yale</a> and is mirrored at  <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs/sml-mode-3.9.5.tar.gz">
+ Bell Labs</a>.                    
+                  <p> </p>
+                   </dd>
+                  <dt><strong>tools</strong> </dt>
+                    <dd> Various software tools, including:             
+          
+                      <ul>
+  <li> <a href="doc/heap2exec/index.html"> heap2exec</a>, Lorenz Huelsbergen's 
+"heap2exec" utility for building Unix executables from heap images and the 
+SML/NJ runtime executable. </li>
+                         <li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/tools/lexgenmos.tar.Z">
+  lexgenmos.tar.Z</a>, a translation of the Moscow ML lexer generator, which 
+produces lexers that run a bit faster than the improved ML-Lex in working 
+version 110.7. </li>
+                       
+                      </ul>
+                         
+                      <p> </p>
+                       </dd>
+                      <dt><strong>lib</strong> </dt>
+                        <dd> Some contributed or "borrowed" libraries, including:
+                           
+                          <ul>
+  <li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/CGI.tar.Z">
+  CGI.tar.Z</a>, a port of Moscow ML's CGI library.  </li>
+                             <li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/Util.tar.Z">
+  Util.tar.Z</a>, utility modules contributed by Nikolai Bjorner and Matthias 
+Blume. </li>
+                             <li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/getopt.tar.Z">
+  getopt.tar.Z</a>, a port (via Haskell) of the GNU getopt library. </li>
+                           
+                          </ul>
+  </dd>
+                          </dl>
+                             
+                          <p> Additional packages will be added as they become 
+available. New contributions are eagerly sought!  </p>
+                           </blockquote>
+                               
+                          <hr>                            
+                          <center><strong> | <a href="index.html">SML/NJ Home
+Page</a> | </strong></center>
+                             
+                          <hr> Send your comments to <a href="mailto:sml-nj@research.bell-labs.com">
+ sml-nj@research.bell-labs.com</a><br>
+  <font size="-3">   Copyright &copy; 1998,   <a href="http://www.lucent.com/">
+ Lucent Technologies; Bell Laboratories</a>.   <br>
+  </font>                            
+                          </body>
+                          </html>
