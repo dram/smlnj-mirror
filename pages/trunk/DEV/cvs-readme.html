@@ -9,87 +9,20 @@
 <h1>Instructions for use of Yale CVS Repository</h1>
 <p>
 <p>
-This page provides basic information, advice, and hints for using
-the SML/NJ CVS repository at Yale.
-<p>
-<h3>Repository address</h3>
-<pre>
-   flint.cs.yale.edu:/home/cvs
-</pre>
-<p>
+The SML/NJ CVS repository has moved to SourceForge.
+Please see <a href="http://sourceforge.net/cvs/?group_id=20680">Accessing
+    the CVS repository</a>.
+</p>
 <h3>Mailing list</h3>
 <p>
-There is a mailing list, <a href="mailto:smlnj-cvs@rum.cs.yale.edu">
-smlnj-cvs@rum.cs.yale.edu</a>, that will
-automatically receive messages announcing commits to the repository.
-To join the mailing list, send mail to
-<a href="mailto:smlnj-cvs-request@rum.cs.yale.edu">smlnj-cvs-request@rum.cs.yale.edu</a>
-with subject:
-<pre>
-  subscribe &lt;your@email.address&gt;
-</pre>
-<p>
-<h3>Setting up and using ssh</h3>
-<ol>
-<li> <strong>To get access</strong>: send <a href="mailto:monnier@cs.yale.edu">
-Stefan Monnier</a> your public SSH-1
-key along with a set of machine names (full domain paths)
-from which you'll login.  Here is how you can generate an
-SSH-1 key and transmit it to Stefan:
-<pre>
-   % ssh-keygen
-   % Mail -s "here you are" monnier@cs.yale.edu &lt;~/.ssh/identity.pub
-</pre>
-<code>ssh-keygen<code> will ask you to enter a passphrase, which you'll
-need to remember and use whenever you use the Yale repository.
-<p>
-You can check whether your access is authorized by executing
-<pre>
-     ssh -v flint.cs.yale.edu
-</pre>
-<p>
-<li> <strong>set CVS_RSH</strong>
-<pre>
-   export CVS_RSH=ssh
-</pre>
-<p>
-<li> use <strong>ssh-agent</strong> to set up for cvs usage.
-ssh-agent produces three lines of shell commands that should be evaled
-<pre>
-   eval `ssh-agent`
-</pre>
-<li> use <strong>ssh-add</strong> to authenticate for the whole session.
-ssh-add adds identity from ~/.ssh.  Using this command, you won't be asked
-for authentication on each cvs command.
-</ol>
-<p>
-Here is a script that can be "sourced" to do all these steps:
-<pre>
-    export CVS_RSH=ssh
-    export CVSROOT=flint.cs.yale.edu:/home/cvs
-    eval `ssh-agent`
-    ssh-add &lt;&lt;EOF
-    &lt;insert your passphrase here&gt;
-    EOF
-</pre>
-Note that if you have your DISPLAY variable set, the ssh-add ignores
-its standard input and pops up a dialog box into which you must type your
-passphrase.
-<p>
+Since Yale's CVS repository is not used any more, the old mailing list,
+<a href="mailto:smlnj-cvs@rum.cs.yale.edu">smlnj-cvs@rum.cs.yale.edu</a>
+has also become useless.  It has been replaced by
+<a href="http://lists.sourceforge.net/lists/listinfo/smlnj-commits">smlnj-commits</a>.
+</p>
 
 <h3>CVS Hints</h3>
 <ol>
-<li> Typical command:
-<pre>
-     cvs -d flint.cs.yale.edu:/home/cvs co smlnj
-</pre>
-<p>
-<li> To avoid having to specify the repository in each command, you can set
-CVSROOT:
-<pre>
-     export CVSROOT=flint.cs.yale.edu:/home/cvs
-</pre>
-<p>
 <li> It is recommended to have a ~/.cvsrc file containing
 <pre>
 	% cat ~/.cvsrc
@@ -111,7 +44,7 @@ action and only generates reports of what the command would do.
 
 <h3>Advice on Managing Branches</h3>
 
-See Matthias's page with notes on 
+See Matthias's page with notes on
 <a href="http://www.kurims.kyoto-u.ac.jp/~blume/SMLNJ-DEV/cvs.html">
 managing private development branches</a>.
 <p>
@@ -148,20 +81,6 @@ My current workaround is to use dates. (This proved a bit tricky
 because it wasn't obvious from the outset relative to which timezone
 the date would be interpreted... :)
 
-
-<hr>
-<h3>Anonymous CVS</h3>
-<p>
-Stefan Monnier, 7 Apr 2000
-<p>
-I have a tentative setup for anonymous CVS working on rum (aka flint).
-To try it out, do the following:
-<pre>
-        % cvs -d :pserver:cvsguest@flint.cs.yale.edu:/guest login
-        passwd: cvs
-        % cvs -d :pserver:cvsguest@flint.cs.yale.edu:/guest co smlnj
-<pre>
-</blockquote>
 
 <hr>
 <address>Dave MacQueen</address>
