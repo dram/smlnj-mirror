@@ -12,8 +12,8 @@
 <p>
 The easiest way to install SML/NJ on Windows machines is to use the 
 self-installing executable <strong>smlnj.exe</strong> (
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj.exe">ftp</a>,
-<a href="../dist/smlnj.exe">http</a>).
+<a href="../dist/release/110.0.7/smlnj.exe">http</a>,
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj.exe">ftp</a>).
 
 <ol>
 <li> Login as administrator (the setup must define system environment variables).
@@ -50,11 +50,9 @@ Administrators of Intel-based Linux systems can use the
 to install SML/NJ.  This has been tested on an installation of RedHat
 6.1-2 and 7.0.  Use the distribution file:
 <blockquote>
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/RPMS/smlnj-110.0.7-4.i386.rpm">
-RPMS/smlnj-110.0.7-4.i386.rpm</a>
+<a href="../dist/release/110.0.7/smlnj-110.0.7-4.i386.rpm">
+smlnj-110.0.7-4.i386.rpm</a>
 </blockquote>
-The RPMS directory also contains a set of rpm packages for the
-individual components of SML/NJ.
 <p>
 Should you have difficulties with the RPM installation, or wish to
 customize the installation, then we recommend falling back on the
@@ -69,25 +67,23 @@ create the new sml directory in a public directory like /usr/local or
 /opt, but if necessary you can always install sml in a subdirectory of
 your own home directory.
 <p>
-<li>ftp the compressed tar files that make up the distribution into this
+<li>Download the compressed tar files that make up the distribution into this
 SMLROOT directory.  These files will be unpacked automatically
-by the install script (except for config.tar.Z; see step 3).  Note
-that with 110.0.7, the "110-" prefix has been dropped from the
-names of the tarball files.
+by the install script (except for config.tar.Z; see step 3).
 <p>
 You will need at least the following source packages from the distribution:
 <p>
 <table>
 <tr><td><td>config.tar.Z
-<td><a href="../dist/config.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/config.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/config.tar.Z">ftp</a>
 <td>Installation scripts
 <tr><td><td>runtime.tar.Z
-<td><a href="../dist/runtime.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/runtime.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/runtime.tar.Z">ftp</a>
 <td>Runtime system
 <tr><td><td> cm.tar.Z
-<td><a href="../dist/cm.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/cm.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/cm.tar.Z">ftp</a>
 <td>Compilation Manager
 </table>
@@ -98,27 +94,27 @@ You will need <strong>one</strong> of these files:
 <p>
 <table>
 <tr><td><td> bin.alpha32-unix.tar.Z
-<td><a href="../dist/bin.alpha32-unix.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/bin.alpha32-unix.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.alpha32-unix.tar.Z">ftp</a>
 <td>for DEC Alpha and Digital Unix 4.0
 <tr><td><td> bin.hppa-unix.tar.Z
-<td><a href="../dist/cm.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/cm.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.hppa-unix.tar.Z">ftp</a>
 <td>for HPPA processors
 <tr><td><td> bin.mipseb-unix.tar.Z
-<td><a href="../dist/bin.mipseb-unix.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/bin.mipseb-unix.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.mipseb-unix.tar.Z">ftp</a>
 <td>for Silicon Graphics machines
 <tr><td><td> bin.rs6000-unix.tar.Z
-<td><a href="../dist/bin.rs6000-unix.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/bin.rs6000-unix.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.rs6000-unix.tar.Z">ftp</a>
 <td>for IBM Power processors
 <tr><td><td> bin.sparc-unix.tar.Z
-<td><a href="../dist/bin.sparc-unix.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/bin.sparc-unix.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.sparc-unix.tar.Z">ftp</a>
 <td>for SPARC processors
 <tr><td><td> bin.x86-unix.tar.Z
-<td><a href="../dist/bin.x86-unix.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/bin.x86-unix.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.x86-unix.tar.Z">ftp</a>
 <td>for Intel Pentium processors running UNIX.
 </table>
@@ -132,31 +128,31 @@ standard <tt>config/targets</tt>, see below):
 <p>
 <table>
 <tr><td>*<td> smlnj-lib.tar.Z
-<td><a href="../dist/smlnj-lib.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/smlnj-lib.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj-lib.tar.Z">ftp</a>
 <td>Standard ML of New Jersey Library
 <tr><td>*<td> ml-burg.tar.Z
-<td><a href="../dist/ml-burg.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/ml-burg.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-burg.tar.Z">ftp</a>
 <td>ML-Burg code-generator generator
 <tr><td>*<td> ml-lex.tar.Z
-<td><a href="../dist/ml-lex.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/ml-lex.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-lex.tar.Z">ftp</a>
 <td>ML-Lex lexical analyzer generator
 <tr><td>*<td> ml-yacc.tar.Z
-<td><a href="../dist/ml-yacc.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/ml-yacc.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-yacc.tar.Z">ftp</a>
 <td>ML-Yacc parser generator
 <tr><td><td> sml-nj.tar.Z
-<td><a href="../dist/sml-nj.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/sml-nj.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/sml-nj.tar.Z">ftp</a>
 <td>Source code for SML/NJ compiler
 <tr><td>*<td> cml.tar.Z
-<td><a href="../dist/cml.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/cml.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/cml.tar.Z">ftp</a>
 <td>Concurrent ML
 <tr><td>*<td> eXene.tar.Z
-<td><a href="../dist/eXene.tar.Z">http</a>
+<td><a href="../dist/release/110.0.7/eXene.tar.Z">http</a>
 <td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/eXene.tar.Z">ftp</a>
 <td>eXene multithreaded X-windows toolkit
 </table>
