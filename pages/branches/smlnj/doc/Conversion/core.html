@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Core SML '97 Changes</title>
+  </head>
+
+<body BGCOLOR="FFFFFF">
+<center>
+<h2>1.2. Core Language</h2>
+</center>
+<blockquote>
+<h3><a name="Rebind">1.2.1. Rebinding constructor names with
+<code><strong>val rec</strong></code> and <code><strong>fun</strong></code></a></h3>
+In SML '90, a data constructor name can be rebound in its scope only
+by another datatype declaration using that name.  In SML '97, data constructor
+names can also be rebound by recursive function declarations
+(<code><strong>val rec</strong></code> and
+<code><strong>fun</strong></code>).
+See the SML '97 Definition, page 24, rule (26).
+For instance:
+<pre>
+  datatype t = f;
+  fun f x = x;
+</pre>
+<blockquote>
+<strong>SML/NJ Discrepancy</strong>.  This change is not yet
+implemented in SML/NJ.  This is bug 1357.
+</blockquote>
+
+<h3><a name="Infix">1.2.2. Revised infix operator precedence rules</a></h3>
+The way infix operators interact now conforms to the treatment SML/NJ
+has always implemented (SML '97 Definition, Section 2.6, page 6).  If
+<code><i>id<sub>1</sub></i></code> and
+<code><i>id<sub>2</sub></i></code> are left (right) associative infix
+operators of the same precedence, then an expression of the form
+<pre>
+  <i>aexp id<sub>1</sub> aexp id<sub>2</sub> aexp</i>
+</pre>
+(where <code><i>aexp</i></code> stands for atomic expressions)
+associates to the left (right).  If <code><i>id<sub>1</sub></i></code>
+and <code><i>id<sub>2</sub></i></code> are of the same precedence but
+different associativities (i.e. one is left associative and the other
+is right associative), then the SML '97 Definition says that the
+expression is illegal.  SML/NJ is more lenient, and only issues a
+warning in this case, and breaks the tie by associating to the left.
+<pre>
+  - infix 4 <<;
+  infix 4 <<
+  - infixr 4 >>;
+  infixr 4 >>
+  - fun (x>>y) = "right";
+  val >> = fn : 'a * 'b -> string
+  - fun (x&lt;&lt;y) = "left";
+  val << = fn : 'a * 'b -> string
+  - 1 << 2 >> 3;
+  stdIn:21.8-21.10 Warning: mixed left- and right-associative operators of same precedence
+  val it = "right" : string
+  - 1 >> 2 << 3;
+  stdIn:22.8-22.10 Warning: mixed left- and right-associative operators of same precedence
+  val it = "left" : string
+</pre>
+
+<h3><a name="NoRebind">1.2.3. Forbidden rebindings</a></h3>
+To make sure that certain derived form expansions in the semantics
+(e.g. if expressions translating to case expressions) are robust, SML
+'97 forbids the rebinding of <code><strong>true</strong></code>,
+<code><strong>false</strong></code>,
+<code><strong>nil</strong></code>, <code><strong>::</strong></code>,
+and <code><strong>ref</strong></code>.  It is also forbidden to bind
+<code><strong>it</strong></code> as a data constructor or exception
+constructor.  These restrictions are mainly for the sake of the
+semantics, since most implementations would not be broken by rebinding
+these identifiers.  However, it is a good idea not to redind these
+key identifers anyway, because doing so is likely to lead to confusion.
+<blockquote>
+<strong>SML/NJ Discrepancy</strong>: SML/NJ does not currently enforce
+this restriction.  This is bug 1328.
+</blockquote>
+</blockquote>
+<hr>
+<address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Mon Mar  2 15:17:13 EST 1998 -->
+<!-- hhmts start -->
+Last modified: Thu Mar  5 14:25:32 EST 1998
+<!-- hhmts end -->
+  </body>
+</html>

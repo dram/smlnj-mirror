@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>4.1.1 Compiling</TITLE>
+<META NAME="description" CONTENT="4.1.1 Compiling">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node23.html">
+<LINK REL="previous" HREF="node21.html">
+<LINK REL="up" HREF="node21.html">
+<LINK REL="next" HREF="node23.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html540"
+ HREF="node23.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html536"
+ HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html530"
+ HREF="node21.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html538"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html541"
+ HREF="node23.html">4.1.2 Linking and execution</A>
+<B> Up:</B> <A NAME="tex2html537"
+ HREF="node21.html">4.1 Structure CM</A>
+<B> Previous:</B> <A NAME="tex2html531"
+ HREF="node21.html">4.1 Structure CM</A>
+ &nbsp <B>  <A NAME="tex2html539"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00051100000000000000"></A>
+<A NAME="sec:api:compiling"></A>
+<BR>
+4.1.1 Compiling
+</H3>
+
+<P>
+Two main activities when using CM are to compile ML source code and to
+build stable libraries:
+
+<P>
+ 
+<PRE>
+
+  val recomp : string -&gt; bool
+  val stabilize : bool -&gt; string -&gt; bool
+</PRE>
+
+<P>
+ 
+<TT> CM.recomp</TT> takes the name of a program's ``root'' description
+file and compiles or recompiles all ML source files that are necessary
+to provide definitions for the root library's export list.  (<EM> 
+Note:</EM> The difference to <TT> CM.make</TT> is that no linking takes
+place.)
+
+<P>
+ 
+<TT> CM.stabilize</TT> takes a boolean flag and then the name of a library
+and <EM> stabilizes</EM> this library.  A library is stabilized by writing
+all information pertaining to it, including all of its library
+components (i.e., subgroups), into a single file.  Sublibraries do not
+become part of the stabilized library; CM records stub entries for them.
+When a stabilized library is used in other programs, all members of
+the library are guaranteed to be up-to-date; no dependency analysis
+work and no recompilation work will be necessary.  If the boolean flag
+is <TT> false</TT>, then all sublibraries of the library must already be
+stable.  If the flag is <TT> true</TT>, then CM will recursively stabilize
+all libraries reachable from the given root.
+
+<P>
+After a library has been stabilized it can be used even if none of its
+original sources--including the description file--are present.
+
+<P>
+The boolean result of <TT> CM.recomp</TT> and <TT> CM.stabilize</TT> indicates
+success or failure of the operation (<TT> true</TT> = success).
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html540"
+ HREF="node23.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html536"
+ HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html530"
+ HREF="node21.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html538"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html541"
+ HREF="node23.html">4.1.2 Linking and execution</A>
+<B> Up:</B> <A NAME="tex2html537"
+ HREF="node21.html">4.1 Structure CM</A>
+<B> Previous:</B> <A NAME="tex2html531"
+ HREF="node21.html">4.1 Structure CM</A>
+ &nbsp <B>  <A NAME="tex2html539"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

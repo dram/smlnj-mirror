@@ -1,0 +1,113 @@
+<!-- HTML/cinterface.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CINTERFACE signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>CINTERFACE</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CINTERFACE:SIG:SPEC"><CODE>CINTERFACE</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>exception</B> <A NAME="SIG:CINTERFACE.CFunNotFound:EXN:SPEC" HREF="#SIG:CINTERFACE.CFunNotFound:EXN">CFunNotFound</A> <B>of</B> string     <BR>
+<B>val</B> <A NAME="SIG:CINTERFACE.c_function:VAL:SPEC" HREF="#SIG:CINTERFACE.c_function:VAL">c_function</A> <B>:</B> string -&gt; string -&gt; 'a -&gt; 'b         <BR>
+<B>type</B> <A NAME="SIG:CINTERFACE.c_function:TY:SPEC" HREF="#SIG:CINTERFACE.c_function:TY">c_function</A><BR>
+<B>val</B> <A NAME="SIG:CINTERFACE.bindCFun:VAL:SPEC" HREF="#SIG:CINTERFACE.bindCFun:VAL">bindCFun</A> <B>:</B> (string * string) -&gt; c_function         <BR>
+<B>type</B> <A NAME="SIG:CINTERFACE.system_const:TY:SPEC" HREF="#SIG:CINTERFACE.system_const:TY">system_const</A> <B>=</B> (int * string) 	<BR>
+<B>exception</B> <A NAME="SIG:CINTERFACE.SysConstNotFound:EXN:SPEC" HREF="#SIG:CINTERFACE.SysConstNotFound:EXN">SysConstNotFound</A> <B>of</B> string 	<BR>
+<B>val</B> <A NAME="SIG:CINTERFACE.findSysConst:VAL:SPEC" HREF="#SIG:CINTERFACE.findSysConst:VAL">findSysConst</A> <B>:</B> (string * system_const list) -&gt; system_const option         <BR>
+<B>val</B> <A NAME="SIG:CINTERFACE.bindSysConst:VAL:SPEC" HREF="#SIG:CINTERFACE.bindSysConst:VAL">bindSysConst</A> <B>:</B> (string * system_const list) -&gt; system_const         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CINTERFACE.CFunNotFound:EXN"><CODE><B>exception</B> CFunNotFound</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:CINTERFACE.c_function:VAL"><CODE>c_function <VAR>modName</VAR> <VAR>funName</VAR>
+          </CODE></A>
+<DD>
+Look up the function &quot;modName.funName&quot; in the runtime system's           dictionary of native-code functions, and return an ML           function that interfaces to it.  For improved safety,           the result should be immediately cast to a particular type, as in:           
+<PRE>
+            val gettimeofday : unit -&gt; (Int32.int * int) =
+	         <A HREF="cinterface.html#SIG:CINTERFACE.c_function:VAL:SPEC">c_function</A> &quot;SMLNJ-Time&quot; &quot;timeofday&quot;
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CINTERFACE.c_function:TY"><CODE><B>type</B> c_function</CODE></A>
+<DD>
+          The abstract type for pointer-to-native-code-function.           Sometimes it is useful to pass values of this type to           other native-code functions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CINTERFACE.bindCFun:VAL"><CODE>bindCFun (<VAR>modName</VAR>, <VAR>funName</VAR>)
+          </CODE></A>
+<DD>
+Look up &quot;modName.funName&quot; in the runtime system's           dictionary of native-code functions, and return            pointer-to-native-code-function.  Most users will want to           use <A HREF="cinterface.html#SIG:CINTERFACE.c_function:VAL:SPEC">c_function</A> instead, which returns an ML-callable           function.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CINTERFACE.system_const:TY"><CODE><B>type</B> system_const</CODE></A>
+<DD>
+         A type typically used for making lists of (sys-error-num,           sys-error-message).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CINTERFACE.SysConstNotFound:EXN"><CODE><B>exception</B> SysConstNotFound</CODE></A>
+<DD>
+         Exception raised by <A HREF="cinterface.html#SIG:CINTERFACE.bindSysConst:VAL:SPEC">bindSysConst</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CINTERFACE.findSysConst:VAL"><CODE>findSysConst (<VAR>s</VAR>, <VAR>l</VAR>)
+          </CODE></A>
+<DD>
+If the pair (i,<VAR>s</VAR>) is present in <VAR>l</VAR>, return            SOME(i,<VAR>s</VAR>); else return NONE.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CINTERFACE.bindSysConst:VAL"><CODE>bindSysConst (<VAR>s</VAR>, <VAR>l</VAR>)
+          </CODE></A>
+<DD>
+If the pair (i,<VAR>s</VAR>) is present in <VAR>l</VAR>, return            (i,<VAR>s</VAR>); else raise <A HREF="cinterface.html#SIG:CINTERFACE.SysConstNotFound:EXN:SPEC">SysConstNotFound</A>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

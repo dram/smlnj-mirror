@@ -1,0 +1,146 @@
+<!-- HTML/prof-control.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The PROF_CONTROL signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>PROF_CONTROL</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="PROF_CONTROL:SIG:SPEC"><CODE>PROF_CONTROL</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+ The <A HREF="internals.html#SIG:INTERNALS.ProfControl:STR:SPEC">ProfControl</A> structure is for internal use by the compiler.  Programmers who want execution profiles of their programs should use the <A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Compiler/pages/compiler.html#SIG:VISCOMP.Profile:STR:SPEC">Compiler.Profile</A> structure.  
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:PROF_CONTROL.getTimeArray:VAL:SPEC" HREF="#SIG:PROF_CONTROL.getTimeArray:VAL">getTimeArray</A> <B>:</B> unit -&gt; int array     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.profMode:VAL:SPEC" HREF="#SIG:PROF_CONTROL.profMode:VAL">profMode</A> <B>:</B> bool ref     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.current:VAL:SPEC" HREF="#SIG:PROF_CONTROL.current:VAL">current</A> <B>:</B> int ref     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.profileOn:VAL:SPEC" HREF="#SIG:PROF_CONTROL.profileOn:VAL">profileOn</A> <B>:</B> unit -&gt; unit     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.profileOff:VAL:SPEC" HREF="#SIG:PROF_CONTROL.profileOff:VAL">profileOff</A> <B>:</B> unit -&gt; unit     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.getTimingMode:VAL:SPEC" HREF="#SIG:PROF_CONTROL.getTimingMode:VAL">getTimingMode</A> <B>:</B> unit -&gt; bool     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.getQuantum:VAL:SPEC" HREF="#SIG:PROF_CONTROL.getQuantum:VAL">getQuantum</A> <B>:</B> unit -&gt; int     <BR>
+<B>datatype</B> <A NAME="SIG:PROF_CONTROL.compunit:TY:SPEC" HREF="#SIG:PROF_CONTROL.compunit:TY">compunit</A><BR>
+&nbsp;&nbsp;<B>=</B> UNIT <B>of</B> {base : int, size : int, counts : int Array.array, names : string}       <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.runTimeIndex:VAL:SPEC" HREF="#SIG:PROF_CONTROL.runTimeIndex:VAL">runTimeIndex</A> <B>:</B> int     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.minorGCIndex:VAL:SPEC" HREF="#SIG:PROF_CONTROL.minorGCIndex:VAL">minorGCIndex</A> <B>:</B> int     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.majorGCIndex:VAL:SPEC" HREF="#SIG:PROF_CONTROL.majorGCIndex:VAL">majorGCIndex</A> <B>:</B> int     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.otherIndex:VAL:SPEC" HREF="#SIG:PROF_CONTROL.otherIndex:VAL">otherIndex</A> <B>:</B> int     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.compileIndex:VAL:SPEC" HREF="#SIG:PROF_CONTROL.compileIndex:VAL">compileIndex</A> <B>:</B> int     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.numPredefIndices:VAL:SPEC" HREF="#SIG:PROF_CONTROL.numPredefIndices:VAL">numPredefIndices</A> <B>:</B> int     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.units:VAL:SPEC" HREF="#SIG:PROF_CONTROL.units:VAL">units</A> <B>:</B> compunit list ref     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.reset:VAL:SPEC" HREF="#SIG:PROF_CONTROL.reset:VAL">reset</A> <B>:</B> unit -&gt; unit     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.spaceProfiling:VAL:SPEC" HREF="#SIG:PROF_CONTROL.spaceProfiling:VAL">spaceProfiling</A> <B>:</B> bool ref     <BR>
+<B>val</B> <A NAME="SIG:PROF_CONTROL.spaceProfRegister:VAL:SPEC" HREF="#SIG:PROF_CONTROL.spaceProfRegister:VAL">spaceProfRegister</A> <B>:</B> ((Unsafe.Object.object * string) -&gt; Unsafe.Object.object) ref<BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:PROF_CONTROL.getTimeArray:VAL"><CODE><B>val</B> getTimeArray</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.profMode:VAL"><CODE><B>val</B> profMode</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.current:VAL"><CODE><B>val</B> current</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.profileOn:VAL"><CODE><B>val</B> profileOn</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.profileOff:VAL"><CODE><B>val</B> profileOff</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.getTimingMode:VAL"><CODE><B>val</B> getTimingMode</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.getQuantum:VAL"><CODE><B>val</B> getQuantum</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.compunit:TY"><CODE><B>datatype</B> compunit</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.runTimeIndex:VAL"><CODE><B>val</B> runTimeIndex</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.minorGCIndex:VAL"><CODE><B>val</B> minorGCIndex</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.majorGCIndex:VAL"><CODE><B>val</B> majorGCIndex</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.otherIndex:VAL"><CODE><B>val</B> otherIndex</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.compileIndex:VAL"><CODE><B>val</B> compileIndex</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.numPredefIndices:VAL"><CODE><B>val</B> numPredefIndices</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.units:VAL"><CODE><B>val</B> units</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.reset:VAL"><CODE><B>val</B> reset</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.spaceProfiling:VAL"><CODE><B>val</B> spaceProfiling</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PROF_CONTROL.spaceProfRegister:VAL"><CODE><B>val</B> spaceProfRegister</CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Compiler/pages/compiler.html#SIG:VISCOMP.Profile:STR:SPEC">Compiler.Profile</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

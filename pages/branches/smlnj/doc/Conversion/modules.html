@@ -1,0 +1,1158 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+  <title>SML '97 Modules</title>
+</head>
+
+<body BGCOLOR="white">
+<center>
+<h2>1.3. Modules</h2>
+</center>
+<blockquote>
+<p>
+Significant changes were made in the SML module system in SML '97.
+The motivations for this change were to simplify the semantics of the
+module system, mainly by weakening the notion of structure sharing,
+and to improve the expressiveness of signatures by adding definitional 
+type specifications.
+
+The addition of definitional type specifications is accompanied with
+new restrictions on type sharing specs.  In many cases where type
+sharing specs would have been used in SML '90, in SML '97 it is
+necessary, or perhaps just better style, to use definitional type
+specifications.
+
+In SML '97, structures do not have unique, checkable static
+identities, and structure sharing is viewed as an abbreviation
+for implied type sharing.  The lack of a structure level equivalent of 
+definitional type specs was soon found to be awkward, and SML/NJ has
+implemented this useful feature (<a href="module-extensions.html#StrDefSpecs">
+Section 1.6.2</a>).
+
+<h3><a name="SigDefs">
+1.3.1. Type abbreviations in signatures</a></h3>
+<p>
+SML '97 Definition, Section G.1.
+<p>
+It has long been realized that the original signature language of SML
+'90 was not expressive enough for some purposes.  In particular, it
+was not possible in general to indicate both the existence and the
+definition of a type component in a specification.  In special cases,
+one could use a <em>definitional</em> type sharing specification, as in
+<pre>
+    signature S =
+    sig
+      type t sharing type t = int
+    end
+</pre>
+but this would not work if <code>t</code>'s definition was a type 
+expression like <code>int list</code>.  So in SML '97 the
+definition of type specification is extended to allow
+specifications of the form:
+<pre>
+    <b>type</b> <i>tyvarseq tycon</i> = <i>ty</i>
+</pre>
+We call such a specification a <em>definitional spec</em> (also
+sometimes referred to as <em>type abbreviation spec</em>).  Using this
+sort of specification, we can rewrite the above signature more neatly
+as follows:
+<pre>
+    signature S =
+    sig
+      type t = int list
+    end
+</pre>
+Allowing type definition specs in signatures makes it possible to
+write a signature that more fully captures or constrains the type
+information in a structure.  It also makes it more practical to use
+the opaque form of signature matching described below
+(Section <a href="#Opaque">1.3.9</a>),
+because one has more control over which exported types are abstract
+(<em>opaque</em>) and which are concrete (<em>transparent</em>).
+<p>
+Type definition specs were introduced in SML/NJ starting with version
+0.93, and they have also been supported in Caml Special Light and
+Ocaml(?).  The main improvement made in SML '97 is to reduce
+confusing interactions between type definition specs and type sharing
+specs by placing new restrictions on type sharing specs.  We restrict
+the types that can appear in a sharing spec to those specified within
+the current signature (Section <a href="#LocalSharing">1.3.4</a>),
+and we ban definitional sharing specs (Section <a
+href="#SharingVsDefn">1.3.5</a>).  We also increase the usefulness of
+definitional specs by using the "<code>where type</code>" syntax to
+attach definitions to previously defined signatures (Section <a
+href="#WhereType">1.3.3</a>).  The resulting design gives us more
+expressive power than SML '90.
+<p>
+The motivations for introducing type definition specs also apply to
+structure specs.  In SML '90 programs we often use definitional
+<em>structure</em> sharing specs, bug this form of sharing spec is
+not allowed is SML '97.  Clearly a structure analogue of type definition
+specs would be a convenient replacement, but unfortunately SML '97 does not
+provide them.  So SML/NJ fills this gap, as described below in the
+section on structure definition specs
+(<a href="module-extensions.html#StrDefSpecs">Section 1.6.2</a>).
+
+<h3><a name="ReplSpecs">
+1.3.2. Datatype replication specs</a></h3>
+<p>
+Datatype replication declarations were described in 
+<a href="types.html#Replication">Section 1.1.5</a>.  An
+analogous datatype replication specification form has been provided
+for signatures, and it has the same syntax as the declarations:
+<pre>
+    <strong>datatype</strong> <i>tycon</i> = <strong>datatype</strong> <i>longtycon</i>
+</pre>
+Datatype replication specs serve the same purpose for datatype specs
+as definitional type specs do for simple type specs, and we use the 
+term <em>definitional specifications</em> to cover these two forms.
+Here is an example
+<pre>
+    structure A =
+    struct
+      datatype 'a t = C | D of 'a * 'a t
+    end
+
+    signature S =
+    sig
+      datatype t = datatype A.t
+    end
+</pre>
+Note that even though <code>A.t</code> (and hence <code>t</code>) is 
+a unary type constructor, we do not include formal type variable
+parameters in the datatype replication spec.  The effect of this spec
+is to define type component <code>t</code> to be the same as
+<code>A.t</code>, and in addition it implicitly specifies the
+data constructors <code>C</code> and <code>D</code> associated with
+<code>A.t</code>.  Thus in a functor declaration such as
+<pre>
+    functor F(X: S) : sig val f : 'a X.t -> 'a A.t end =
+    struct
+      fun f(X.C) = X.C
+	| f(X.D(x,y)) = A.D(x,X.D(x,y))
+    end
+</pre>
+it is guaranteed that <code>X.t</code> and <code>A.t</code> are
+the same type and <code>A.D</code> and <code>X.D</code> are the same
+data constructor.
+<p>
+As explained below in <a href="#NoDefShare">Section 1.3.6</a>,
+one of the main uses of datatype replication specs
+is to substitute for definitional sharing constraints, which are
+no longer allowed.
+
+<h3><a name="WhereType">
+1.3.3. Modifying signatures with <code>where type</code></a></h3>
+<p>
+Sometimes it's "too late" to use a definitional type spec when we need
+one.  By this I am refering to cases where the type we would like to
+define is specified in a signature that has already been declared,
+perhaps in a library.  For example, suppose <code>S1</code> is a large
+signature with a simple specification of type <code>t</code>:
+<pre>
+    signature S1 =
+    sig
+      type t
+      ... (* twenty other specifications *)
+    end
+</pre>
+Later we want to use <code>S1</code>, but we want to specify in
+addition that <code>t</code> is <code>int list</code>).  
+<p>
+One could insert 
+<code>S1</code>'s defining signature expression in place of
+<code>S1</code>, modified with the appropriate definition of
+<code>t</code>, but this is obviously undesirable when <code>S1</code>
+is a large signature.
+SML '97 provides another solution to this problem in the form of the
+<code><strong>where type</strong></code> definition.  It modifies
+an existing signature by adding a definition of one of it's types.
+In our example, we would use it as follows:
+<pre>
+    signature S2 =
+    sig
+      structure A : S1 where type t = int list
+    end
+</pre>
+Here the <code>where type</code> definition modifies or augments the
+signature <code>S1</code>, and <code>S1 where type A.t = int</code>
+is a new form of signature expression.  With <code>where type</code>
+we are able to express things that we couldn't express before with
+definitional sharing constraints, like
+<pre>
+    signature S2 =
+    sig
+      structure A : S1 where type t = int list
+    end
+</pre>
+We can even use <code>where type</code> clauses in cases where the
+type to be defined is buried inside a substructure, as in the
+following example
+<pre>
+    signature U =
+    sig
+      structure A : S1
+      ...
+    end
+
+    signature S2 =
+    sig
+      structure B : U where type A.t = int list
+    end
+</pre>
+Note that here the left hand side of the <code>where type</code> clause
+is a symbolic path <code>A.t</code> (a <i>longtycon</i> in the
+Definition's terminology), and the effect is to augment the
+specification of <code>t</code> in <code>S1</code>.
+<p>
+<strong>Datatypes defined by where clauses.</strong>
+The type defined by a <code>where type</code> clause can be one
+that was specified as a datatype.
+<pre>
+    structure A =
+    struct
+      datatype 'a t = C | D of 'a * 'a t
+    end
+
+    signature S =
+    sig
+      datatype 'a t = C | D of 'a * 'a t
+    end
+
+    signature U = S where type 'a t = 'a A.t
+</pre>
+In this example, the <code>where type</code> is equivalent to an embedded 
+datatype replication spec, so signature <code>U</code> could
+equivalently have been defined as
+<pre>
+    signature U =
+    sig
+      datatype t = datatype A.t
+    end
+</pre>
+Technically, the Definition is rather lenient about consistency between
+the affected primary specification and its definition in a where
+clause.  For instance, the following signature declaration is legal,
+<pre>
+    signature S =
+    sig
+      datatype t = T
+    end
+    where type t = int
+</pre>
+though such a signature cannot be realized because the 
+base specification of <code>t</code> and its definition in
+the where clause are not consistent.  A compiler might
+check for such obvious inconsistencies (but SML/NJ does not).
+<p>
+<strong>Context of right hand side of where definition.</strong>
+The type expression on the right hand side of a <code>where
+type</code> definition cannot mention types that are specified
+in the signature it modifies.  So the following example is
+illegal (assuming no type <code>t</code> is defined in the 
+context of this declaration).
+<pre>
+    signature S =
+    sig
+      type s
+      type t
+    end
+    where type s = t
+</pre>
+The reason for this restriction is that we want to avoid examples
+like the following
+<pre>
+    signature S =
+    sig
+      type s
+      structure A :
+	sig
+	  type t
+	  val x : s * t
+	end
+    end
+
+    signature U = S where type s = A.t * A.t
+</pre>
+If the <code>A.t</code> on the right hand side of the <code>where
+type</code> clause refers to the type specified inside the signature
+<code>S</code>, then we will have created a kind of undesirable circular
+dependency, where type <code>s</code> depends on the substructure
+<code>A</code> because of the where definition, while <code>A</code>
+depends on <code>s</code> because <code>s</code> is mentioned in
+<code>A</code>'s signature.
+<p>
+We would like to be able to replace any signature definition using
+the <code>where type</code> construct by an equivalent definition
+that replaces the where definitions with
+type abbreviation specs and datatype replication specs.  It is clear
+that the signature <code>U</code> in the last example could not be
+expressed without the <code>where type</code> clause under this interpretation
+of the context of the clause's right hand side.  This is why we
+exclude the body of the modified signature from the context of the
+right hand side and thereby make this example illegal.
+<p>
+<blockquote>
+<strong>SML/NJ Discrepancy</strong>: The natural way of thinking of
+the <code>where type</code> construct is that is is a way of
+introducing type abbreviation specs (or datatype replication specs)
+into a previously defined signature, thereby producing an augmented
+version of that signature.  It should in principle be possible to
+equivalently define that augmented signature with the definitions placed
+directly at the points of specification of the affected types.  This
+is in fact how SML/NJ implements <code>where type</code> definitions.
+Thus
+<pre>
+    signature S =
+    sig
+      type t
+    end
+    where type t = int
+</pre>
+is tranformed by the compiler into the declaration
+<pre>
+    signature S =
+    sig
+      type t = int
+    end
+</pre>
+Thus treating type abbreviation specs as the primary construct and
+defining <code>where type</code> in terms of it.
+<p>
+However, for technical reasons the Definition does things backward,
+treating <code>where type</code> as a primary notion and
+defining type abbreviation specs (but not datatype replication
+specs) in terms of <code>where type</code> and <code>include</code>.
+Thus in the Definition,
+<pre>
+    signature S =
+    sig
+      type t = int
+    end
+</pre>
+is translated into
+<pre>
+    signature S =
+    sig
+      include sig type t end where type t = int
+    end
+</pre>
+For the most part, this difference in approaches does not matter.
+The Definition's version admits more signatures as legal, but we
+argue that they are not signatures that good programmers would
+want to write.  Here is an example of a legal signature that is
+not accepted by SML/NJ (due to Marin Elsman, see SML/NJ bug 1330):
+<pre>
+    signature S =
+    sig
+      type s
+      structure U : sig
+	type 'a t
+	type u = (int * real) t
+      end where type 'a t = s
+    end where type U.u = int
+</pre>
+We leave it as an exercise for diligent language lawyers to verify
+that this is acceptible under the definition, but it is pretty clearly
+not the sort of thing we want to encourage programmers to write.
+Determining whether this signature makes sense is an exercise in
+setting up a system of equations in higher-order variables
+(<code>s</code>, <code>u</code>, and <code>t</code>) and then
+seeking a solution of that system.  We would prefer that the
+sensibility of a signature definition should be more obvious.
+<p>
+One particular reason why this signature declaration is not accepted
+by SML/NJ is that SML/NJ does not allow a <code>where type</code>
+definition to apply to a type constructor that already has a
+definitional specification.  A simpler example of a signature
+that is rejected for this reason is:
+<pre>
+    signature S =
+    sig
+      type s
+      type t = s
+    end
+    where type t = int
+</pre>
+A more sensible way to write this would be
+<pre>
+    signature S =
+    sig
+      type s
+      type t = s
+    end
+    where type s = int
+</pre>
+which <em>is</em> acceptible to SML/NJ.
+</blockquote>
+
+<h3><a name="LocalSharing">
+1.3.4. Restriction of sharing to local paths</a></h3>
+<p>
+<!-- this belongs in 1.3.4
+The type paths in a
+type sharing specification must be local to the previous specifications
+in the signature, which means that the declaration of signature
+<code>S</code> above is no longer legal.  Instead, we
+<em>must</em> employ a type definition spec and write
+<pre>
+  signature S =
+  sig
+    type t = int
+  end
+</pre>
+(or the equivalent version using <code><strong>where
+type</strong></code> (see next topic).  This form is clearer
+and more concise in any case.
+<p>
+A type sharing spec as in the first declaration of <code>S</code>
+is called a definitional sharing constraint, since it identifies
+a formal, unknown type <code>t</code> with the known type <code>int</code>,
+thereby effectively defining t.  The SML '97 design eliminates 
+definitional sharing constraints, with the intension that they
+should be replaced by more direct type definition specs.
+-->
+In SML '90, a sharing specification is an independent specification
+in a signature, but in SML '97, sharing specifications modify the
+specifications (a sequencial spec) that they follow textually in
+the signature.  The components mentioned in the sharing constraint must
+all come from the specifications modified by the sharing constraint.
+Thus, in
+<pre>
+    [1]  signature S =
+    [2]  sig
+    [3]    type s
+    [4]    structure A : sig
+    [5]		           type t
+    [6]		           type u
+    [7]		           sharing type t = u
+    [8]		           sharing type t = s
+    [9]		         end
+    [10] end
+</pre>
+the sharing constraint in line [7] applies to the preceding specs in
+lines [5] and [6], and is legal because the type names <code>t</code>
+and <code>u</code> mentioned in the sharing constraint are bound in
+those specs.  The sharing constraint at line [8], on the other hand,
+is not legal, because its "scope" consists of lines [5-7], while it
+mentions the type <code>s</code> bound lin line [3].  The same rule
+applies to structure sharing constraints.
+<p>
+This scope restriction on sharing constraints is the main reason
+why sharing constraints may need to be converted into definitional
+specs or <code>where</code> definitions.  The declaration of
+<code>S</code> above can be rewritten as the following legal SML '97
+declaration.
+<pre>
+    [1] signature S =
+    [2] sig
+    [3]   type s
+    [4]   structure A : sig
+    [5]		        type t = s
+    [6]		        type u = t
+    [7]		      end
+    [8] end
+</pre>
+It can also be legally rewritten (according to the Definition) as
+<pre>
+    [1] signature S =
+    [2] sig
+    [3]   type s
+    [4]   structure A : sig
+    [5]		        type t = s
+    [6]		        type u
+    [7]		        sharing type t = u
+    [8]		      end
+    [9] end
+</pre>
+but this version raises a delicate and controversial point.  Notice
+that the type <code>t</code> is defined in its specification at
+line [5], and it is further constrained by the sharing constraint at
+line [7].  
+
+<h3><a name="SharingVsDefn">
+1.3.5. Noninterference of sharing and definitional specs</a></h3>
+<p>
+In SML '90, there were two flavors of type sharing, one where both
+types involved are "formal" or unknown, which we call <em>coherence
+sharing</em>, and the other sort, where one type is unknown and the other
+is known, which we call <em>definitional sharing</em>.  Here is a typical
+example of coherence sharing:
+<pre>
+    signature S =
+    sig
+      type t
+      type s
+      sharing type t = s
+    end
+</pre>
+In this case, neither <code>t</code> nor <code>s</code> is determined,
+but the sharing spec requires that when they are instantiated, they
+are both instantiated to the same type.
+<p>
+A simple example of definitional sharing is:
+<pre>
+    signature S =
+    sig
+      type t
+      sharing type t = int
+    end
+</pre>
+where type <code>t</code> is effectively defined to be equal to
+<code>int</code> by the sharing constraint.
+<p>
+In SML '97, it is possible to define a type directly, in its
+original specification, or after the fact, using the "where type" syntax, so
+definitional sharing seems redundant.  Furthermore, the interaction
+between definitional sharing and direct definition could create
+puzzles, such as the following:
+<pre>
+    signature S =
+    sig
+      type s
+      type t = s list
+      type 'a u
+      type v = int u
+      sharing type t = v
+    end
+</pre>
+Here, types <code>t</code> and <code>v</code> are defined directly in
+terms of the formal types <code>s</code> and <code>u</code>, and then
+they are equated by the sharing specification.  If we wanted to
+determine whether this signature is satisfiable, we would have to see
+whether types s and u exist that satisfy the equation
+<pre>
+    s list = int u
+</pre>
+Solving such second-order equations is a messy problem in general,
+perhaps unsolvable.  To solve this problem, the SML '97 design
+excludes such examples by outlawing definitional sharing.  In other
+words, the types involved in a sharing specification are required to
+be formal or "flexible".
+<p>
+Technically, the Definition requires that a type constructor involved
+in a sharing constraint be (1) not defined as a type function, and (2)
+not defined in terms of some "rigid" type constructor (i.e. a type
+constructor previously defined in the context).
+<p>
+We choose to define "sharable" as meaning simply that there is <em>
+no</em> definition applying to a type constructor.  We'll use the term
+"defined" for the opposite of sharable.  A more subtle definition is
+possible; see note <a href="#SharableTypes">"Sharable Types"</a> below.
+<p>
+Thus the following signature is illegal
+<pre>
+    signature S =
+    sig
+      type s = int  (* s is defined *)
+      type t        (* t is sharable *)
+      sharing type t = s  (* s is not sharable *)
+    end
+</pre>
+and has to be reexpressed as (for instance):
+<pre>
+    signature S =
+    sig
+      type s = int
+      type t = s
+    end
+</pre>
+With "where type" definitions, things are a little more complicated.  An
+inner type sharing constraint can be affected by an outer definitional
+constraint, as in the following example:
+<pre>
+    signature S1 =
+    sig
+      type s
+      type t
+      sharing type t = s  (* ok, because s and t are sharable here *)
+    end
+    where type t = int;  (* this converts both s and t to rigid types *)
+</pre>
+This is legal, but the following declaration is not:
+<pre>
+    signature S2 =
+    sig 
+      structure A : S1
+      type v
+      sharing type v = A.s  (* A.s not flexible *)
+    end;
+</pre>
+However, S2 can easily be converted to the legal S3 below by
+replacing the outer sharing constraint by a definition.
+<pre>
+    signature S3 =
+    sig 
+      structure A : S1
+      type v = A.s
+    end;
+</pre>
+In general, we recommend avoiding sharing constraints that can easily
+be expressed by definitional specs.  So one should always prefer
+<pre>
+    type t = s
+</pre>
+to 
+<pre>
+    type t
+    sharing type t = s.
+</pre>
+The same applies to structure sharing and structure definition specs
+(which are an SML/NJ language extension).  Violations of this newly
+enforced constraint can often be eliminated by replacing structure
+sharing by structure definition specs, e.g. replacing
+<pre>
+    structure A : SIGA
+    sharing A = B.C
+</pre>
+with
+<pre>
+    structure A : SIGA = B.C.
+</pre>
+
+<h4><a name="StructSharingException">
+1.3.5.1 SML/NJ Exception for Structure Sharing with Same Signature</a></h4>
+<p>
+SML/NJ provides one important exception to the rule about sharing rigid
+types.  This is the case where the type sharing is implied by structure
+sharing between two structures with the same signature.
+<p>
+Here is an example
+<pre>
+    signature S =
+    sig
+      type t = int
+    end
+
+    signature S1 =
+    sig
+      structure A : S
+      structure B : S
+      sharing A = B
+    end
+</pre>
+This is allowed in SML/NJ because A and B have the same signature, even
+though the sharing constraint is equivalent to
+<pre>
+    sharing type A.t = B.t
+</pre>
+and A.t and B.t have the rigid spec
+<pre>
+    type t = int.
+</pre>
+
+<h4><a name="SharableTypes">
+1.3.5.2 What Types Are Sharable [Mostly for language lawyers]</a></h4>
+<p>
+There is some controversy about what type constructors should be
+allowed in sharing constraints.  We can illustrate this by the
+following example
+<pre>
+    signature S =
+    sig
+      type s
+      type t = s
+      type u
+      sharing type t = u
+    end
+</pre>
+By our definition above, <code>t</code> is defined, and therefore not sharable, and
+this signature declaration is rejected.  Technically, however, the
+semantic representation of <code>t</code> in the signature is the type function
+<code>\().(()<i>ns</i>)</code> (a nullary type function, where
+<code><i>ns</i></code> is the semantic type
+"name" for <code>s</code>), and this type function is eta-equivalent
+to <code><i>ns</i></code>, a simple flexible type name.  Therefore,
+if this eta-reduction is
+assumed, <code>t</code> meets the requirements of the definition and can appear in
+the sharing constraint.  On the other hand, consider
+<pre>
+    signature S =
+    sig
+      type s
+      type t = s list
+      type u
+      sharing type t = u
+    end
+</pre>
+Here the representation of <code>t</code> is the type function
+<code>\().(()ns) list</code>,
+which does not reduce to a simple type name, so the sharing constraint
+is clearly illegal.
+
+The reasons that we adopt the simpler and more restrictive meaning of
+sharable are that it is easier to explain and it admits all sensible
+usages.  We claim that it promotes a cleaner and simpler style in
+signature writing.  It is also much simpler more efficient to
+implement (at least for SML/NJ).
+
+Here are some example signatures that are admitted under the
+more complicated version of the definition (thanks to Martin Elsman of 
+DIKU):
+<pre>
+    signature S1 =
+    sig
+      type t
+      type s = t
+    end where type s = int
+
+    signature S2 =
+    sig
+      type t
+      type s = t
+      sharing type t = s
+    end
+
+    signature S3 =
+    sig
+      type s
+      structure U :
+	sig
+	  type 'a t
+	  type u = (int * real) t
+	end where type 'a t = s
+    end where type U.u = int
+</pre>
+It is not clear that examples like these have any importance to anyone
+other than language lawyers.  The last is particularly perverse: reading
+a signature should not be an exercise in puzzle solving!
+
+
+<h3><a name="NoDefShare">
+1.3.6. Replacement of "definitional" sharing by definitional specs</a></h3>
+<p>
+We used to be able to use a definitional sharing
+specification, as illustrated by:
+<pre>
+    signature S2 =
+    sig
+      structure A : S1
+      sharing type A.t = int
+    end
+</pre>
+But this sharing is no loner legal, because <code>int</code> is not
+a path local to the body of <code>S2</code>.  
+<!-- 
+more introductory text on sharing ==> definitions
+-->
+There are situations where you have a choice of using sharing
+specifications or type definition specs or <code>where type</code>
+clauses.  For instance, the following three declarations of signature
+<code>S</code> are equivalent:
+<pre>
+    signature T = sig type s end
+
+    signature S =
+    sig
+      type t
+      structure A : T
+      sharing type t = A.s
+    end
+
+    signature S =
+    sig
+      type t
+      structure A : sig type s = t end  (* expanding T *)
+    end
+
+    signature S =
+    sig
+      type t
+      structure A : T where type s = t
+    end
+</pre>
+This last example might suggest that one could always replace
+type sharing specs with type definition specs or <code>where
+type</code> clauses, but this is not quite the case, as shown
+by the following example:
+<pre>
+    signature S =
+    sig
+      type s
+      structure A : sig
+		      datatype d = D of s
+		      datatype t = K
+		    end
+      sharing type s = A.t
+    end
+</pre>
+There is no way to rearrange the definition of the signature
+<code>S</code> so that the sharing spec can be replaced by a
+definition.  However, this example is rather contrived, and it
+is not clear that there would be any serious practical impact
+if we gave up the ability to write such signatures and uniformly
+used definitional specs in place of sharing.
+<p>
+The <code>where type</code> construct can also be used to define
+types specified as datatypes in the base signature, and this makes
+it related to the datatype replication specs described below.
+Here is an example.
+<pre>
+    structure A =
+    struct
+      datatype t = T
+    end
+
+    signature S =
+    sig
+      datatype t = T
+    end
+
+    signature S1 = S where type t = A.t
+</pre>
+This capability to <em>define</em> a datatype spec is needed in
+order to replace definitional sharing constraints like in the
+following example:
+<pre>
+    signature S =
+    sig
+      datatype t = T
+      sharing type t = A.t
+    end
+</pre>  
+The definition in this case does not require a check that the
+datatype "signature" of the spec and its definition in the
+<code>where type</code> clause have to agree, but a compiler
+could perform some level of checking.  It might at least check
+that the type on the right hand side of the definition is also
+a datatype, and beyond that it might check that the number and
+names of data constructors agree.
+
+<h3><a name="StrSharing">
+1.3.7. Structure sharing as derived form for type sharing</a></h3>
+<p>
+In SML '97, structure sharing has been weakened from a first-class
+feature to a derived syntax feature, i.e. a feature that is explained
+in terms of translation to type sharing syntax.  This is a real
+weakening of the expressiveness of the module system.  In SML '90,
+where each structure had a unique static identity and structure
+sharing could be checked statically, one could use structure sharing
+to guarantee not only that types in two structures agreed, but that
+the values making up the associated interface to those types were also
+shared.  For instance, if two structures <code>A</code> and <code>B</code> have the signature
+<code>ORD</code> defined below
+<pre>
+    signature ORD =
+    sig
+      type t
+      val comp : t * t -> t
+    end
+</pre>
+the sharing specification
+<pre>
+    sharing A = B
+</pre>
+guarantees not only that the types <code>A.t</code> and
+<code>B.t</code> are the same but that the comparison operations
+<code>A.comp</code> and <code>B.comp</code> were the same, i.e. that
+<code>A</code> and <code>B</code> implement the same ordering over the
+same type.
+<p>
+In SML '97, we can still write such sharing specification, but they
+are viewed as abbreviations for all possible implied type sharing
+specs.  In this case, the above structure sharing spec translates to
+the following type sharing spec:
+<pre>
+    sharing type A.t = B.t
+</pre>
+This does not imply that the comparison operators A.comp and B.comp
+agree, so it is strictly weaker than the structure sharing spec in SML 
+'90.
+<p>
+One can recover something like the old structure sharing functionality
+when the structures in question contain a (generative) type that is
+used to uniquely identify the structure.  In effect, the type is used
+as a unique tag to guarantee identity of the structure as a whole.
+This works if there is no "cheating", i.e. if no other independently
+defined structure incorporates this same tagging type.
+<p>
+Another thing to note about the weak version of structure sharing
+is that it is not transitive.  For instance
+<pre>
+    sharing A = B and B = C
+</pre>
+does not necessarily imply that 
+<pre>
+    sharing A = C
+</pre>
+is satisfied.  Here is an example
+<pre>
+    signature S0 =
+    sig
+      type t
+    end
+
+    signature S =
+    sig
+      structure A : S0
+      structure B : sig end
+      structure C : S0
+      sharing A = B and B = C
+    end
+</pre>
+Since structure <code>B</code> has no type components, the sharing
+equations <code>A = B</code> and <code>B = C</code> are vacuous, and
+translate into no type sharing at all.  In particular, they do not guarantee
+that <code>A.t = C.t</code>, and therefore do not imply the sharing
+constraint <code>A = C</code>.
+<p>
+The paths appearing is structure sharing specs must also satisfy the
+locality restriction described in <a href="#LocalSharing">Section
+1.3.4</a>.  That is, the structures that are specified to share must
+all be components (or subcomponents) of the same signature that
+contains the sharing spec.  This will guarantee that the type sharing
+specs that the structure sharing translates into will satisfy the
+locality constraint for type sharing.
+<p>
+This locality rule will generally preclude "definitional structure
+sharing specs", which are used fairly frequently in SML '90.  How
+should we rewrite such definitional structure sharing specs?  One
+approach is to expand the structure sharing into the corresponding set 
+of type sharing specs, and then replace the definitional type sharing
+specs with the appropriate "where type" definitions.  For example, 
+given a structure A defined as follows:
+<pre>
+structure A =
+struct
+  datatype t = T
+end
+</pre>
+the SML '90 signature
+<pre>
+signature S =
+sig
+  structure B : sig type t end
+  sharing B = A
+end
+</pre>
+can be rewritten as
+<pre>
+signature S =
+sig
+  structure B : sig type t end where type t = A.t
+end
+</pre>
+Of course, if there were a dozen types involved in A rather than just
+one, this can lead to an unpleasant expansion of the code.  For this
+reason, it would have been desirable to have a structure analogue of
+definitional specs, so that we could write something like:
+<pre>
+signature S =
+sig
+  structure B : sig type t end = A
+end
+</pre>
+Such definitional structure specs are in fact supported in SML/NJ;
+see <a href="module-extensions.html#StrDefSpec">Section 1.6.2</a>.
+
+<h3><a name="IncludeSigExp">
+1.3.8. <code>include <i>sigexp</i></code></a></h3>
+<p>
+The syntax of the <code>include</code> spec has been generalized
+to allow arbitrary signature expressions as well as signature names.
+The purpose of this extension is to allow definitional type specs
+to be defined in terms of <code>include</code> and <code>where
+type</a> as a derived form.  Thus 
+<pre>
+    type t = <i>ty</i>
+</pre>
+is supposed to be an abbreviation for
+<pre>
+    include sig type t end where type t = <i>ty</i>
+</pre>
+This seems somewhat convoluted, since the simple type definition spec
+seems to be a more elementary concept in its own right, but this
+approach was chosen because of technical convenience in the
+Definition.  There is a technical problem with treating simple
+definitional specs as the primitive construct and defining <code>where
+type</code> via a syntactic translation into definitional specs, and
+that is the issue of free variable capture.  For instance, in the
+following signature definition the type <code>u</code> appearing 
+in the <code>where type</code> clause is different from the type
+<code>u</code> specified in the body of <code>S</code>.
+<pre>
+signature S =
+sig
+  type u
+  type t
+end
+where type t = u * u
+</pre>
+If we were to eliminate the <code>where type</code> clause in the
+following definition by textually moving the definition inward to the point where
+<code>t</code> is specified, we would have
+signature S =
+sig
+  type u
+  type t = u * u
+end
+</pre>
+which is clearly incorrect, because the free occurences of <code>u</code>
+in the definition of <code>t</code> have been captured by the local
+binding of <code>u</code>.  So though this approach to eliminating
+<code>where type</code> can work at the level of semantic structures,
+it doesn't work as a textual transformation (i.e. as a derived form).
+
+<h3><a name="Opaque">
+1.3.9. opaque signature matching <code>:&gt;</code></a></h3>
+<p>
+Previous versions of SML/NJ supported a special structure declaration
+form
+<pre>
+    abstraction S : SIG = struct ... end
+</pre>
+whose purpose was to create an "abstract" instance of the signature
+<code>SIG</code>.  This feature was left out of SML '90 for various
+reasons, but the need for it was real.
+<p>
+In SML '97, a similar feature has been provided in the form of
+"opaque" signature matching using the special signature constraint
+syntax <code>S :> SIG</code>.  For example, the following declaration
+has the same effect as the old "abstraction" declaration given above.
+<pre>
+    structure S :> SIG = struct ... end
+</pre>
+The effect of opaque signature matching is that the formal or flexible
+types in the signature SIG get fresh, abstract instantiations that are
+distinct from the corresponding types in the structure expression
+being constrained.  Here is a more detailed example:
+<pre>
+signature SIG =
+sig
+  type s
+  type t = int
+  val zero : s
+  val succ : s -> s
+  val f : s -> t
+end
+
+strucutre Transp : SIG =
+struct
+  type s = int
+  type t = int
+  val zero = 0
+  fun succ x = x+1
+  fun f x = x
+end
+
+strucutre Opaque :> SIG =
+struct
+  type s = int
+  type t = int
+  val zero = 0
+  fun succ x = x+1
+  fun f x = x
+end
+</pre>
+Because of the normal transparent signature matching, Transp.s is
+equivalent to <code>int</code>, as is Transp.t.  But in the case of
+<code>Opaque</code>, <code>Opaque.t</code> is still equivalent to
+<code>int</code>, because of the definition in the signature, but
+<code>Opaque.s</code> is a new abstract type that is different from
+<code>int</code>.
+<p>
+There are two places where it may make sense to use opaque signature
+matching.  First in a normal structure declaration as in the above
+examples, and second in specifying the result signature of a functor.
+<pre>
+functor F(X: PSIG) :> SIG = struct ... end
+</pre>
+When a functor is defined with an opaque result signature like this,
+each time the functor is applied a new abstract instantiation of the
+result signature is created.
+<p>
+It does not make sense to use the opaque signature matching form
+for the formal parameter of a functor (i.e. on the input side as
+opposed to the output side).
+<p>
+
+<h3><a name="Equality">
+1.3.10. equality type specs, inferred equality properties</a></h3>
+<p>
+
+<h3><a name="Obsolete">
+1.3.11. <tt>open</tt> and <tt>local</tt> specification forms deleted</a></h3>
+<p>
+The Definition of SML '90 had two special forms of specification that
+could be used in signatures: <code>local...in..end</code> and
+<code>open</close>.  These forms, particularly local specs, were
+introduced for technical reasons within the definition.
+
+These specification forms have both been dropped in SML '97.  These
+features were controversial in SML '90, because when used in full
+generality their behavior had no clear intuitive justification,
+despite their having a precise technical meaning and a technical role
+in the Definition's semantics.
+
+The utility of these features was also dubious, except for one special
+restricted case, where open and local were combinded to allow the
+abbreviation of type paths in specifications.  For example:
+<pre>
+    structure A =
+    struct
+      type t = int
+    end;
+
+    signature S =
+    sig
+      local open A in
+	val x : t
+      end
+    end;
+</pre>
+Here the <code>open A</code> specification allows
+<code>A.t</code> to be abbreviated to <code>t</code>, while the
+<code>local</code> form prevents the components of <code>A</code>
+from being added to <code>S</code> as specifications.
+So this definition of signature <code>S</code> is equivalent to
+writing
+<pre>
+    signature S =
+    sig
+      val x : A.t
+    end;
+</pre>
+<p>
+In SML/NJ, local and open were never fully implemented according
+to the SML '90 Definition, but they were partially implemented to
+support just the above path abbreviation idiom.  In fact, the open
+form was implemented so that it could be used for abbreviational
+effect even without the surrounding local spec.  Thus in SML/NJ 0.93
+it was possible to write simply
+<pre>
+    signature S =
+    sig
+      open A
+      val x : t
+    end;
+</pre>
+with the same effect.
+<p>
+Since these forms have been dropped in SML '97, when converting 
+SML '90 (or SML/NJ 0.93) code it is necessary to find and eliminate uses
+of local and open in signatures and write out the full type paths
+for those types which were thereby abbreviated.
+<p>
+Any (non SML/NJ) code that uses local specs in their full generality
+to achieve some strange effect will have to be rewritten to achieve
+the desired effect some other way
+[<a href="mailto:dbm@research.bell-labs.com">dbm</a>: I would be
+interested in seeing examples of this].
+
+<h3><a name="NoMultSpec">
+1.3.12. no repeated specifications of an identifier</a></h3>
+<p>
+
+<h3><a name="Include">
+1.3.13. behavior of <tt>include</tt> (Defn vs SML/NJ)</a></h3>
+<p>
+
+</blockquote>
+<hr>
+<address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Mon Mar  2 15:24:16 EST 1998 -->
+<!-- hhmts start -->
+Last modified: Thu Jun 28 17:23:44 EDT 2001
+<!-- hhmts end -->
+  </body>
+</html>

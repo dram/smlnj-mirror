@@ -1,0 +1,101 @@
+<!-- HTML/rand.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Rand structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>Rand</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="RAND:SIG:SPEC"><CODE>RAND</CODE></A><BR>
+<B>structure </B><A NAME="Rand:STR:SPEC"><CODE>Rand</CODE></A><B> : </B>RAND<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The Rand structure implements a simple linear congruential random number generator with a uniform distribution. It is based on the one described in Paulson's book (pp. 170-171), which is derived from the article ``Random number generators: good ones are hard to find,'' by Stephen K. Park and Keith W. Miller, <I>CACM</I> 31 (1988), pp. 1192-1201. It also incorporates the changes suggested by Park and Miller  in <I>CACM</I> 36 (1993), pp. 105-110. The generator has period 2<SUP>(31)</SUP>-1. The values returned by <CODE>random</CODE> and <CODE>mkRandom</CODE> are 31-bit words in the range [<CODE>randMin</CODE>,<CODE>randMax</CODE>].  In the current implementation, <CODE>randMin</CODE> is 1.0 and <CODE>randMax</CODE> is 2<SUP>(31)</SUP>-2. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:RAND.rand:TY:SPEC" HREF="#SIG:RAND.rand:TY">rand</A> <B>=</B> Word31.word     <BR>
+<B>val</B> <A NAME="SIG:RAND.randMin:VAL:SPEC" HREF="#SIG:RAND.randMin:VAL">randMin</A> <B>:</B> rand       <BR>
+<B>val</B> <A NAME="SIG:RAND.randMax:VAL:SPEC" HREF="#SIG:RAND.randMin:VAL">randMax</A> <B>:</B> rand         <BR>
+<B>val</B> <A NAME="SIG:RAND.random:VAL:SPEC" HREF="#SIG:RAND.random:VAL">random</A> <B>:</B> rand -&gt; rand         <BR>
+<B>val</B> <A NAME="SIG:RAND.mkRandom:VAL:SPEC" HREF="#SIG:RAND.mkRandom:VAL">mkRandom</A> <B>:</B> rand -&gt; unit -&gt; rand         <BR>
+<B>val</B> <A NAME="SIG:RAND.norm:VAL:SPEC" HREF="#SIG:RAND.norm:VAL">norm</A> <B>:</B> rand -&gt; real         <BR>
+<B>val</B> <A NAME="SIG:RAND.range:VAL:SPEC" HREF="#SIG:RAND.range:VAL">range</A> <B>:</B> (int * int) -&gt; rand -&gt; int       <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:RAND.rand:TY"><CODE><B>type</B> rand</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:RAND.randMin:VAL"><CODE>randMin</CODE></A>
+<DT> <CODE>randMax</CODE>
+<DD>
+specify the minimum and maximum values returned by  <CODE>random</CODE> and <CODE>mkRandom</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:RAND.random:VAL"><CODE>random <VAR>r</VAR>
+          </CODE></A>
+<DD>
+returns a random number in the range [<CODE>randMin</CODE>,<CODE>randMax</CODE>]        using the seed <VAR>r</VAR>. Iteratively using the value returned by         <CODE>random</CODE> as the next seed to <CODE>random</CODE> will produce a sequence         of pseudo-random numbers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:RAND.mkRandom:VAL"><CODE>mkRandom <VAR>r</VAR>
+          </CODE></A>
+<DD>
+returns a stateful function generating a sequence of        random numbers in the range [<CODE>randMin</CODE>,<CODE>randMax</CODE>],        starting from the seed <VAR>r</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:RAND.norm:VAL"><CODE><B>val</B> norm</CODE></A>
+<DD>
+          Uniformly maps the range [<CODE>randMin</CODE>,<CODE>randMax</CODE>] to           the range (0.0,1.0).            This can be used in combination with           <CODE>random</CODE> or <CODE>mkRandom</CODE> to generate normalized real-valued           random numbers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:RAND.range:VAL"><CODE>range (<VAR>i</VAR>, <VAR>j</VAR>)
+          </CODE></A>
+<DD>
+returns a function mapping the range [<CODE>randMin</CODE>,<CODE>randMax</CODE>]        uniformly to the range [<VAR>i</VAR>,<VAR>j</VAR>].        This can be used in combination with        <CODE>random</CODE> or <CODE>mkRandom</CODE> to generate random numbers in a given        integer range.        This raises the exception <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A>        if <VAR>j</VAR> &lt; <VAR>i</VAR>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="random.html#Random:STR:SPEC">Random</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified May 6, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

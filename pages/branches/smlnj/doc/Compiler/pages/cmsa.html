@@ -1,0 +1,111 @@
+<!-- HTML/cmsa.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CMSA signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>CMSA</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CMSA:SIG:SPEC"><CODE>CMSA</CODE></A><BR>
+<B>structure </B><A NAME="CMSA:STR:SPEC"><CODE>Compiler.CMSA</CODE></A><B> : </B>CMSA<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:CMSA.env:TY:SPEC" HREF="#SIG:CMSA.env:TY">env</A><BR>
+<B>type</B> <A NAME="SIG:CMSA.sym:TY:SPEC" HREF="#SIG:CMSA.sym:TY">sym</A><BR>
+<B>val</B> <A NAME="SIG:CMSA.STR:VAL:SPEC" HREF="#SIG:CMSA.STR:VAL">STR</A> <B>:</B> string -&gt; sym         <BR>
+<B>val</B> <A NAME="SIG:CMSA.SIG:VAL:SPEC" HREF="#SIG:CMSA.SIG:VAL">SIG</A> <B>:</B> string -&gt; sym         <BR>
+<B>val</B> <A NAME="SIG:CMSA.FCT:VAL:SPEC" HREF="#SIG:CMSA.FCT:VAL">FCT</A> <B>:</B> string -&gt; sym         <BR>
+<B>val</B> <A NAME="SIG:CMSA.FSIG:VAL:SPEC" HREF="#SIG:CMSA.FSIG:VAL">FSIG</A> <B>:</B> string -&gt; sym         <BR>
+<B>val</B> <A NAME="SIG:CMSA.pervenv:VAL:SPEC" HREF="#SIG:CMSA.pervenv:VAL">pervenv</A> <B>:</B> unit -&gt; env         <BR>
+<B>val</B> <A NAME="SIG:CMSA.register:VAL:SPEC" HREF="#SIG:CMSA.register:VAL">register</A> <B>:</B> env -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:CMSA.run:VAL:SPEC" HREF="#SIG:CMSA.run:VAL">run</A> <B>:</B> (string * env) -&gt; env         <BR>
+<B>val</B> <A NAME="SIG:CMSA.layer:VAL:SPEC" HREF="#SIG:CMSA.layer:VAL">layer</A> <B>:</B> env list -&gt; env         <BR>
+<B>val</B> <A NAME="SIG:CMSA.filter:VAL:SPEC" HREF="#SIG:CMSA.filter:VAL">filter</A> <B>:</B> sym list -&gt; env -&gt; env         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CMSA.env:TY"><CODE><B>type</B> env</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.sym:TY"><CODE><B>type</B> sym</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.STR:VAL"><CODE>STR <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Symbol space for structure identifiers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.SIG:VAL"><CODE>SIG <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Symbol space for signature identifiers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.FCT:VAL"><CODE>FCT <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Symbol space for functor identifiers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.FSIG:VAL"><CODE>FSIG <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Symbol space for functor signature identifiers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.pervenv:VAL"><CODE>pervenv <VAR>()</VAR>
+          </CODE></A>
+<DD>
+The pervasive environment.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.register:VAL"><CODE>register <VAR>en</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.run:VAL"><CODE>run (<VAR>s</VAR>, <VAR>en</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.layer:VAL"><CODE>layer <VAR>l</VAR>
+          </CODE></A>
+<DD>
+Compose several environments together.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CMSA.filter:VAL"><CODE>filter <VAR>syms</VAR> <VAR>e</VAR>
+          </CODE></A>
+<DD>
+Select the bindings from <VAR>e</VAR> named by <VAR>syms</VAR>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

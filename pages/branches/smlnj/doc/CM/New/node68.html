@@ -1,0 +1,278 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>11.2.2 Adding a class and its rule</TITLE>
+<META NAME="description" CONTENT="11.2.2 Adding a class and its rule">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node69.html">
+<LINK REL="previous" HREF="node67.html">
+<LINK REL="up" HREF="node66.html">
+<LINK REL="next" HREF="node69.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1125"
+ HREF="node69.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1121"
+ HREF="node66.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1115"
+ HREF="node67.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1123"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1126"
+ HREF="node69.html">11.2.3 Reporting errors from</A>
+<B> Up:</B> <A NAME="tex2html1122"
+ HREF="node66.html">11.2 Adding other classes</A>
+<B> Previous:</B> <A NAME="tex2html1116"
+ HREF="node67.html">11.2.1 Filename abstractions</A>
+ &nbsp <B>  <A NAME="tex2html1124"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000122200000000000000">
+11.2.2 Adding a class and its rule</A>
+</H3>
+
+<P>
+The interface to add arbitrary classes is the routine <TT> 
+Tools.registerClass</TT>:
+
+<P>
+ 
+<PRE>
+
+  val registerClass : class * rule -&gt; unit
+</PRE>
+
+<P>
+Here, type <TT> class</TT> is simply synonymous to <TT> string</TT>; a class
+string is the name of the class to be registered.  It must not contain
+upper-case letters:
+
+<P>
+ 
+<PRE>
+
+  type class = string
+</PRE>
+
+<P>
+Type <TT> rule</TT> is a function type.  It describes the rule function
+that CM will invoke for every member of the new class. The rule
+function is responsible for invoking the auxiliary mechanism necessary
+to bring its targets up-to-date.  The function result of the rule
+function describes to CM what the targets are.  Thus, the function
+maps the <EM> specification</EM> of the given member to its (partial) <EM> 
+expansion</EM>:
+
+<P>
+ 
+<PRE>
+
+  type rule =
+    { spec: spec,
+      native2pathmaker: string -&gt; pathmaker,
+      context: rulecontext,
+      defaultClassOf: fnspec -&gt; class option } -&gt;
+    partial_expansion
+</PRE>
+
+<P>
+The specification <TT> spec</TT> consists of the name of the member
+together with a function to produce its corresponding abstract
+path (should that be necessary), the member's optional class (in case
+it had been given explicitly), its tool options, and a boolean flag
+that tells whether this member was the result of another tool:
+
+<P>
+ 
+<PRE>
+
+  type spec = { name: string,
+                mkpath: pathmaker,
+                class: class option,
+                opts: toolopts option,
+                derived: bool }
+</PRE>
+
+<P>
+ 
+<DL>
+<DT><STRONG>name:</STRONG></DT>
+<DD>The name is the verbatim member string from the
+description file.  Be sure not to use this string directly as a file
+name (although some tools might use it directly for purposes other
+than file names).  Instead, first convert it to an abstract path (see
+<TT> mkpath</TT> below) and then convert back to a <EM> native</EM> file name
+string using one of <TT> nativeSpec</TT> or <TT> nativePreSpec</TT>.</DD>
+<DT><STRONG>mkpath</STRONG></DT>
+<DD>This is a function of type <TT> pathmaker</TT> that produces
+an abstract pathname corresponding to <TT> name</TT>.  CM will pass in different
+functions here depending on whether <TT> name</TT> was given in CM's
+standard pathname syntax or in the underlying operating system's
+native syntax.
+<PRE>
+
+  type pathmaker = unit -&gt; presrcpath
+</PRE></DD>
+<DT><STRONG>class:</STRONG></DT>
+<DD>This argument carries the class name if such a class
+name was explicitly specified.  If the class was inferred from the
+member name, then it will be set to <TT> NONE</TT>.</DD>
+<DT><STRONG>opts:</STRONG></DT>
+<DD>Tool options are represented by a data structure
+resembling Lisp lists:
+<PRE>
+
+  type fnspec = { name: string, mkpath: pathmaker }
+  datatype toolopt =
+      STRING of fnspec
+    | SUBOPTS of { name: string, opts: toolopts }
+  withtype toolopts = toolopt list
+</PRE>
+The nesting of <TT> SUBOPTS</TT> reflects the nesting of sub-option lists
+in the member's tool option specification.
+Again, names which are potentially to be interpreted as file names are
+represented by their original specification string and a function <TT> 
+mkpath</TT> to get the corresponding abstract path, thereby taking
+care of interpreting the name according to its respective syntactic
+rules and its context. (Type <TT> fnspec</TT> is a slimmed-down version of
+type <TT> spec</TT>.  It also appears as the argument type of function
+<TT> defaultClassOf</TT>.  See below.)</DD>
+<DT><STRONG>derived:</STRONG></DT>
+<DD>This flag is set to <TT> true</TT> if the source file
+represented by the specification is the result of a another, earlier
+tool invocation.</DD>
+</DL>
+
+<P>
+The other three arguments of a rule function are <TT> native2pathmaker</TT>,
+<TT> context</TT>, and <TT> defaultClassOf</TT>:
+
+<P>
+ 
+<DL>
+<DT><STRONG>native2pathmaker:</STRONG></DT>
+<DD>This function takes a string and produces a
+function of the same type as <TT> mkpath</TT> above.  When the rule
+constructs the specifications for its result files, it must provide
+the corresponding <TT> mkpath</TT> functions for those.  Since most tools
+internally operate on native pathnames, these <TT> mkpath</TT> functions
+will have to be constructed using <TT> native2pathmaker</TT>.</DD>
+<DT><STRONG>context:</STRONG></DT>
+<DD>The context argument of a rule represents the
+directory that contains the CM description file on whose behalf the
+rule was invoked.  It is represented as a higher-order function that
+invokes its function argument after temporarily setting the working
+directory to the context directory and returns the result of this
+invocation after restoring the original working directory.  Not all
+rules require such a temporary change of directories, but those that
+do should encapsulate all their work into a local function and then
+pass this function to the context.
+<PRE>
+
+  type rulefn = unit -&gt; partial_expansion
+  type rulecontext = rulefn -&gt; partial_expansion
+</PRE></DD>
+<DT><STRONG>defaultClassOf:</STRONG></DT>
+<DD>This function can be used to directly invoke
+CM's internal classification mechanism, taking advantage of any
+registered classifiers.  The argument to be passed is of type <TT> 
+fnspec</TT>, i.e., a record consisting of a name string and a function to
+convert the string to its corresponding abstract path.</DD>
+</DL>
+
+<P>
+A (full) <EM> expansion</EM> consists of three lists: a list of ML files,
+a list of CM files, and a list of <EM> sources</EM>.  A partial expansion
+is a full expansion together with a list of specifications that still
+need to be expanded further.
+
+<P>
+ 
+<PRE>
+
+  type expansion =
+    { smlfiles: (srcpath * Sharing.request * setup) list,
+      cmfiles: (srcpath * Version.t option * rebindings) list,
+      sources: (srcpath * { class: class, derived: bool}) list }
+
+  type partial_expansion = expansion * spec list
+</PRE>
+
+<P>
+A rule always returns a partial expansion.  CM will derive a full
+expansion by repeatedly applying rules until the list of pending
+specification becomes empty.
+
+<P>
+Most rules (except those for classes <TT> sml</TT> and <TT> cm</TT>) leave the
+lists <TT> smlfiles</TT> and <TT> cmfiles</TT> empty.  A tool that produces an
+ML source file or a CM description file as output should put a
+specification for this file into the specification list of a partial
+expansion, letting the rules for classes <TT> sml</TT> and <TT> cm</TT> take
+care of the rest.  At this point we will therefore not dwell on
+explanations for the types of these two fields.
+
+<P>
+The <TT> sources</TT> field is used to implement <TT> CM.sources</TT> (see
+section&nbsp;<A HREF="node32.html#sec:makedepend:support">4.1.11</A>).  Therefore, the rule should
+include here every file that it consumes if its implementer wishes to
+have it reported by <TT> CM.sources</TT>.  (Do not include source files
+that are <EM> produced</EM> by the rule because those will be reported by
+subsequent rules.)
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1125"
+ HREF="node69.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1121"
+ HREF="node66.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1115"
+ HREF="node67.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1123"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1126"
+ HREF="node69.html">11.2.3 Reporting errors from</A>
+<B> Up:</B> <A NAME="tex2html1122"
+ HREF="node66.html">11.2 Adding other classes</A>
+<B> Previous:</B> <A NAME="tex2html1116"
+ HREF="node67.html">11.2.1 Filename abstractions</A>
+ &nbsp <B>  <A NAME="tex2html1124"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

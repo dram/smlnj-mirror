@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>7. Conditional compilation</TITLE>
+<META NAME="description" CONTENT="7. Conditional compilation">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node59.html">
+<LINK REL="previous" HREF="node40.html">
+<LINK REL="up" HREF="manual.html">
+<LINK REL="next" HREF="node56.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html952"
+ HREF="node56.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html948"
+ HREF="manual.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html942"
+ HREF="node54.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html950"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html953"
+ HREF="node56.html">7.1 CM variables</A>
+<B> Up:</B> <A NAME="tex2html949"
+ HREF="manual.html">CM The SML/NJ Compilation</A>
+<B> Previous:</B> <A NAME="tex2html943"
+ HREF="node54.html">6.2.7.2 Directory scanning:</A>
+ &nbsp <B>  <A NAME="tex2html951"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00080000000000000000"></A>
+<A NAME="sec:preproc"></A>
+<BR>
+7. Conditional compilation
+</H1>
+
+<P>
+In its description files, CM offers a simple conditional compilation
+facility inspired by the preprocessor for the C language&nbsp;[<A
+ HREF="node110.html#k_SPMamp_r2">KR88</A>].
+However, it is not really a <I> pre</I>-processor, and the syntax of the
+controlling expressions is borrowed from SML.
+
+<P>
+Sequences of members can be guarded by <TT> #if</TT>-<TT> #endif</TT>
+brackets with optional <TT> #elif</TT> and <TT> #else</TT> lines in between.
+The same guarding syntax can also be used to conditionalize the export
+list.  <TT> #if</TT>-, <TT> #elif</TT>-, <TT> #else</TT>-, and <TT> 
+#endif</TT>-lines must start in the first column and always
+extend to the end of the current line.  <TT> #if</TT> and <TT> #elif</TT>
+must be followed by a boolean expression.
+
+<P>
+Boolean expressions can be formed by comparing arithmetic expressions
+(using operators <TT> &lt;</TT>, <TT> &lt;=</TT>, <TT> =</TT>, <TT> &gt;=</TT>, <TT> &gt;</TT>, or
+<TT> &lt;&gt;</TT>), by logically combining two other boolean expressions (using
+operators <TT> andalso</TT>, <TT> orelse</TT>, <TT> =</TT>, or <TT> &lt;&gt;</TT>, by
+querying the existence of a CM symbol definition, or by querying the
+existence of an exported ML definition.
+
+<P>
+Arithmetic expressions can be numbers or references to CM symbols, or
+can be formed from other arithmetic expressions using operators <TT> 
++</TT>, <TT> -</TT> (subtraction), <code>*</code>, <TT> div</TT>, <TT> mod</TT>, or <IMG
+ WIDTH="8" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img20.gif"
+ ALT="$\tilde{~}$">
+(unary minus).  All arithmetic is done on signed integers.
+
+<P>
+Any expression (arithmetic or boolean) can be surrounded by
+parentheses to enforce precedence.
+
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL>
+<LI><A NAME="tex2html954"
+ HREF="node56.html">7.1 CM variables</A>
+<LI><A NAME="tex2html955"
+ HREF="node57.html">7.2 Querying exported definitions</A>
+<LI><A NAME="tex2html956"
+ HREF="node58.html">7.3 Explicit errors</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html952"
+ HREF="node56.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html948"
+ HREF="manual.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html942"
+ HREF="node54.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html950"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html953"
+ HREF="node56.html">7.1 CM variables</A>
+<B> Up:</B> <A NAME="tex2html949"
+ HREF="manual.html">CM The SML/NJ Compilation</A>
+<B> Previous:</B> <A NAME="tex2html943"
+ HREF="node54.html">6.2.7.2 Directory scanning:</A>
+ &nbsp <B>  <A NAME="tex2html951"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

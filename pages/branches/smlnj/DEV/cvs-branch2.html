@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>More Branch Advice</title>
+  </head>
+
+  <body bgcolor="white">
+    <h1>More Advice on CVS Branches</h1>
+
+<h3>Addendum to Branch Management Advice</h3>
+<p>
+Stefan Monnier, 04/21/2000
+<p>
+It is pretty common to use
+<pre>
+        foobar-branch-tag and foobar-banch-tag-root
+</pre>
+instead of
+<pre>
+        foobar-devel-tag and foobar-main-tag
+</pre>
+there have been proposals on the CVS list to provide an automatic way
+to get the "root" with something like foobar-branch-tag.0 or
+foobar-branch-tag.ROOT or somesuch. Of course, nothing came of
+these, since CVS development is close enough to moribund.
+<p>
+The problem Matthias mentions when merging changes from the trunk to the
+branch can be solved in the following way
+[Note: I assume that the user has put `update -dP' in his ~/.cvsrc file.]:
+<ol>
+<li> Update the trunk and tag the "new root":
+<pre>
+        cd ~/ML/MainTrunk/smlnj
+        cvs update
+        cvs tag joe-tmp
+</pre>
+<li> Merge changes between old root and new root:
+<pre>
+        cd ~/ML/smlnj
+        cvs update -j joe_main_v110p27p4_2 -j joe-tmp
+</pre>
+<li> Move the root:
+<pre>
+        cvs rtag -d joe_main_v110p27p4_2
+        cvs tag -r joe-tmp joe_main_v110p27p4_2
+        cvs tag -d joe-tmp
+</pre>
+</ol>
+Note that instead of using `<code>cvs rtag -d</code>' and 
+`<code>cvs tag</code>' I could just use
+`<code>cvs tag -F</code>', except that it would not remove the
+tag on files that were removed between the two points.
+<p>
+The advantage of moving the root tag like this instead of creating
+a new branch is that it requires fewer steps and that it doesn't pollute
+RCS files nearly as much (do a `<code>cvs log</code>' on a few files
+in the current directory and you'll see the impressive number of tags
+compared to the fairly short age of the repository).
+Also it saves you from coming up with yet-another-name.
+<p>
+Funnily enough, this technique relies on an explicit "root tag":
+an automatic foobar-branch-tag.ROOT would not cut the mustard.
+<p>
+<p>
+<hr>
+<h3>Earlier Advice on Branches</h3>
+<p>
+CVS has many quirks which lead to several "Commandments" to help you
+avoid them.  Among those are the following two:
+<ul>
+<li><em>When branching, always start by tagging the current code and then
+branch off of that tag</em>.
+It's very often needed/convenient to find the `root' of a branch, but CVS
+offers no way to do that automatically. This shouldn't be difficult to fix in
+CVS, but noone has done it yet. In the mean time, you need to create a tag
+manually:
+<pre>
+        cvs tag &lt;branch&gt;-ROOT
+        cvs tag -b &lt;branch&gt;
+</pre>
+<p>
+<li> <em>When merging, always provide both `-j' arguments</em>.
+CVS can automatically infer the ancestor between the two merge points,
+and hence only requires one `-j' argument.  But this automatic
+inference is rather crude and often does not do what you want, leading
+to spurious conflicts.
+I.e. don't do
+<pre>
+        cvs update -j &lt;branch&gt;
+</pre>
+but
+<pre>
+        cvs update -j &lt;branch&gt;-ROOT -j &lt;branch&gt;
+</pre>
+or
+<pre>
+        cvs update -j last-merge-on-&lt;branch&gt; -j &lt;branch&gt;
+</pre>
+To figure out what is `last-merge-on-&lt;branch&gt;', there are two techniques:
+<ol>
+<li> each time you merge, stop using the branch (and create a new one
+off of the newer version if you want to keep hacking on a branch).
+<li> move the &lt;branch&gt;-ROOT tag to the "new root" (on the branch).
+<pre>
+        cvs update -j &lt;branch&gt;-ROOT -j &lt;branch&gt;
+        &lt;...resolve conflicts and commit...>
+        &lt;..there's a race condition here..>
+        cvs tag -F -r &lt;branch&gt; &lt;branch&gt;-ROOT
+</pre>
+This way, &lt;branch&gt;-ROOT always contains the last-merged revision.
+</ol>
+<p>
+Matthias was caught by the `cvs update -j &lt;branch&gt;' problem where he
+thought that CVS would automatically find the right common ancestor
+to do the merge.  This seemed reasonable since he only had a branch
+off of the main trunk and hadn't merged anything back yet, so finding
+the ancestor should have been trivial.  It turned out that his branch
+was made off of the magic-vendor-branch (used when importing files),
+so he ended up merging 1.1.1.19 (for example) and 1.3 where 1.3 is
+a direct descendent of 1.1.1.19, but this is muddied up by the magic-branch.
+The common ancestor ended up being 1.1 which happens to be the very
+first version I entered in the repository (i.e. 110.5 of there about).
+<p>
+His specific problem could have been avoided had I not used `cvs import'
+to create the repository, but the above two rules will save you in
+several other cases as well.
+<p>
+
+    <hr>
+    <address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Fri Apr 21 15:28:39 EDT 2000 -->
+<!-- hhmts start -->
+Last modified: Fri Apr 21 15:38:23 EDT 2000
+<!-- hhmts end -->
+  </body>
+</html>

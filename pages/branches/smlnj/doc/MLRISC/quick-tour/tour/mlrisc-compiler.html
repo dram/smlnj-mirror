@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>MLRISC Based Compiler</title>
+  </head>
+
+  <body BGCOLOR=#FFFFFF>
+   <CENTER>
+    <H1><FONT COLOR=#AA0000>MLRISC Based Compiler</FONT></H1>
+   </CENTER>
+
+    A traditional compiler will typically consist of a <FONT
+    COLOR=#DD0000>lex/yacc</FONT> based front end, an <FONT
+    COLOR=#DD0000>optimization</FONT> phase that is repeatedly invoked
+    over some intermediate representation, and finally a <FONT
+    COLOR=#DD0000>back end</FONT> code generation phase. The intermediate
+    representation is usually at a level of detail appropriate to the
+    optimization being performed, and may be far removed from the
+    native instructions of the target architecture. The back end
+    proceeds by translating the intermediate representation into
+    instructions and registers for an abstract machine that is much
+    closer to the target architecture. Retargetting is then achieved
+    by mapping the registers and instructions of the abstract machine
+    to registers and instructions of the target architecture.
+
+
+    <br clear=left>
+    <p>
+
+    <img alt="MLRISC based compiler" align=right 
+	 src=pictures/jpeg/compiler-2.jpg>
+
+  An MLRISC based compiler, on the other hand, translates the
+  intermediate representation into MLRISC instructions and it is the
+  MLRISC instructions that get mapped onto instructions of the target
+  architecture. Another possibility is to translate the front end
+  abstract machine instructions instead of the intermediate
+  representation.  Once MLRISC instructions have been generated,
+  nearly all aspects of high quality code generation come for free. A
+  long story would be cut short if MLRISC were just another abstract
+  machine.
+
+<p>
+  <FONT COLOR=#580000> The key idea behind MLRISC is that there is no
+  single MLRISC instruction set or intermediate program
+  representation, </FONT> but the MLRISC intermediate representation
+  is specialized to the needs of the front end source language being
+  compiled. The specialization does not stop there, but the:
+<ul plain>
+  <li>  <FONT COLOR=#005500>target instruction set</FONT>,
+  <li>  <FONT COLOR=#005500>flowgraph</FONT>, and
+  <li>  <FONT COLOR=#005500>entire optimization suite</FONT>
+</ul>
+
+  are specialized to the needs of the front end. The ability to
+  consistently specialize each of these to create a back end for a
+  specific language, summarizes the characteristics of MLRISC that
+  distinguishes it from other retargetable backends.
+<p>
+  <FONT COLOR=#580000> It is important to emphasize that there are no
+  optimizations performed on the MLRISC intermediate
+  representation. </FONT> All optimizations are done on a flowgraph of
+  target machine instructions, and the MLRISC intermediate
+  representation is just used as a stepping stone to get to the
+  flowgraph.
+    <hr>
+    <FONT SIZE="-2">
+    <address><a href="mailto:george@vex.cs.bell-labs.com">Lal George</a></address>
+<!-- Created: Wed Apr  1 14:03:44 EST 1998 -->
+<!-- hhmts start -->
+Last modified: Wed Apr 29 06:11:25 EDT 1998
+<!-- hhmts end -->
+    </FONT>
+  </body>
+</html>

@@ -1,0 +1,199 @@
+<!-- HTML/vector.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Vector structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Vector</CODE> structure</H3>
+<P>
+The Vector structure provides polymorphic immutable sequences. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="VECTOR:SIG:SPEC"><CODE>VECTOR</CODE></A><BR>
+<B>structure </B><A NAME="Vector:STR:SPEC"><CODE>Vector</CODE></A><B> : </B>VECTOR<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> 'a <A NAME="SIG:VECTOR.vector:TY:SPEC" HREF="#SIG:VECTOR.vector:TY">vector</A><BR>
+<B>val</B> <A NAME="SIG:VECTOR.maxLen:VAL:SPEC" HREF="#SIG:VECTOR.maxLen:VAL">maxLen</A> <B>:</B> int         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.fromList:VAL:SPEC" HREF="#SIG:VECTOR.fromList:VAL">fromList</A> <B>:</B> 'a list -&gt; 'a vector         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.tabulate:VAL:SPEC" HREF="#SIG:VECTOR.tabulate:VAL">tabulate</A> <B>:</B> (int * (int -&gt; 'a)) -&gt; 'a vector         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.length:VAL:SPEC" HREF="#SIG:VECTOR.length:VAL">length</A> <B>:</B> 'a vector -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.sub:VAL:SPEC" HREF="#SIG:VECTOR.sub:VAL">sub</A> <B>:</B> ('a vector * int) -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.extract:VAL:SPEC" HREF="#SIG:VECTOR.extract:VAL">extract</A> <B>:</B> ('a vector * int * int option) -&gt; 'a vector         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.concat:VAL:SPEC" HREF="#SIG:VECTOR.concat:VAL">concat</A> <B>:</B> 'a vector list -&gt; 'a vector         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.mapi:VAL:SPEC" HREF="#SIG:VECTOR.mapi:VAL">mapi</A> <B>:</B> ((int * 'a) -&gt; 'b) -&gt; ('a vector * int * int option) -&gt; 'b vector         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.map:VAL:SPEC" HREF="#SIG:VECTOR.mapi:VAL">map</A> <B>:</B> ('a -&gt; 'b) -&gt; 'a vector -&gt; 'b vector         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.appi:VAL:SPEC" HREF="#SIG:VECTOR.appi:VAL">appi</A> <B>:</B> ((int * 'a) -&gt; unit) -&gt; ('a vector * int * int option) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.app:VAL:SPEC" HREF="#SIG:VECTOR.appi:VAL">app</A> <B>:</B> ('a -&gt; unit) -&gt; 'a vector -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.foldli:VAL:SPEC" HREF="#SIG:VECTOR.foldli:VAL">foldli</A> <B>:</B> ((int * 'a * 'b) -&gt; 'b) -&gt; 'b -&gt; ('a vector * int * int option) -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.foldri:VAL:SPEC" HREF="#SIG:VECTOR.foldli:VAL">foldri</A> <B>:</B> ((int * 'a * 'b) -&gt; 'b) -&gt; 'b -&gt; ('a vector * int * int option) -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:VECTOR.foldl:VAL:SPEC" HREF="#SIG:VECTOR.foldli:VAL">foldl</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a vector -&gt; 'b       <BR>
+<B>val</B> <A NAME="SIG:VECTOR.foldr:VAL:SPEC" HREF="#SIG:VECTOR.foldli:VAL">foldr</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a vector -&gt; 'b         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:VECTOR.vector:TY"><CODE><B>eqtype</B> 'a vector</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.maxLen:VAL"><CODE>maxLen
+          </CODE></A>
+<DD>
+is the maximum length of vectors supported by this implementation. 	  Attempts to create larger vectors will result in the <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> 	  exception being raised.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.fromList:VAL"><CODE>fromList <VAR>l</VAR>
+          </CODE></A>
+<DD>
+creates a new vector from a list of elements.  If the length of the 	  list is greater than <A HREF="#SIG:VECTOR.maxLen:VAL:SPEC">maxLen</A>, then the <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> 	  exception is raised.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.tabulate:VAL"><CODE>tabulate (<VAR>n</VAR>, <VAR>f</VAR>)
+          </CODE></A>
+<DD>
+creates an vector of <VAR>n</VAR> elements, where the elements are 	  defined in order of increasing index by applying <VAR>f</VAR> to 	  the element's index. 	  This is equivalent to the expression: 	  
+<PRE>
+	  fromList (List.tabulate (<VAR>n</VAR>, <VAR>f</VAR>))
+	  
+</PRE>
+ 	  If <VAR>n</VAR> &lt; 0 or 	  <CODE>maxLen</CODE> &lt; <VAR>n</VAR>, then the <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> 	  exception is raised.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.length:VAL"><CODE>length <VAR>vec</VAR>
+          </CODE></A>
+<DD>
+returns |<VAR>vec</VAR>|, the length of the array <VAR>vec</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.sub:VAL"><CODE>sub (<VAR>vec</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DD>
+returns the <VAR>i</VAR>th element of the vector <VAR>vec</VAR>. 	  If <VAR>i</VAR> &lt; 0 or 	  |<VAR>vec</VAR>| &lt;= <VAR>i</VAR>, then 	  the <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> exception is raised.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.extract:VAL"><CODE>extract <VAR>slice</VAR>
+          </CODE></A>
+<DD>
+extracts the <A HREF="aggregates-chapter.html#array-vector-slice">vector slice</A> 	  <VAR>slice</VAR> from the vector <VAR>vec</VAR>, and returns it as a vector. 	  If the slice is not <A HREF="aggregates-chapter.html#valid-slices">valid,</A> then 	  the exception <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> is raised.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.concat:VAL"><CODE>concat <VAR>l</VAR>
+          </CODE></A>
+<DD>
+returns the vector that is the concatenation of the vectors in the 	  list <VAR>l</VAR>. 	  If the total length of these vectors exceeds <A HREF="#SIG:VECTOR.maxLen:VAL:SPEC">maxLen</A>, 	  then the <A HREF="general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> exception is raised.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.mapi:VAL"><CODE>mapi <VAR>f</VAR> <VAR>slice</VAR>
+          </CODE></A>
+<DT> <CODE>          map <VAR>f</VAR> <VAR>vec</VAR>
+          </CODE>
+<DD>
+produce new vectors by mapping the function <VAR>f</VAR> from left to            right over the argument vector or slice. 	  The more general <A HREF="#SIG:VECTOR.mapi:VAL:SPEC">mapi</A> function applies <VAR>f</VAR> to the elements 	  of the <A HREF="aggregates-chapter.html#array-vector-slice">vector slice</A> <VAR>slice</VAR> 	  and supplies both the element and the element's index to the 	  function <VAR>f</VAR>. 	  If <VAR>slice</VAR> is not <A HREF="aggregates-chapter.html#valid-slices">valid</A>, then 	  the exception <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> is raised. 	  The expression <CODE>mapi <VAR>f</VAR> <VAR>slice</VAR></CODE> 	  is equivalent to: 	  
+<PRE>
+        fromList (List.map f (foldri (fn (i,a,l) =&gt; (i,a)::l) [] slice))
+	  
+</PRE>
+ 	  
+<P>
+	  The function <A HREF="#SIG:VECTOR.map:VAL:SPEC">map</A> applies <VAR>f</VAR> to the whole vector and 	  does not supply the element index to <VAR>f</VAR>. 	  Thus the expression <CODE>map <VAR>f</VAR> <VAR>vec</VAR></CODE> 	  is equivalent to: 	  
+<PRE>
+	    mapi (<VAR>f</VAR> o #2) (<VAR>vec</VAR>, 0, NONE)
+	  
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.appi:VAL"><CODE>appi <VAR>f</VAR> <VAR>slice</VAR>
+          </CODE></A>
+<DT> <CODE>          app <VAR>f</VAR> <VAR>vec</VAR>
+          </CODE>
+<DD>
+apply the function <VAR>f</VAR> to the elements of a vector in 	  left to right order (i.e., increasing indices). 	  The more general <A HREF="#SIG:VECTOR.appi:VAL:SPEC">appi</A> function applies <VAR>f</VAR> to the elements 	  of the <A HREF="aggregates-chapter.html#array-vector-slice">vector slice</A> <VAR>slice</VAR> 	  and supplies both the element and the element's index to the 	  function <VAR>f</VAR>. 	  If <VAR>slice</VAR> is not <A HREF="aggregates-chapter.html#valid-slices">valid</A>, then 	  the exception <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> is raised. 	  
+<P>
+	  The function <A HREF="#SIG:VECTOR.app:VAL:SPEC">app</A> applies <VAR>f</VAR> to the whole vector and 	  does not supply the element index to <VAR>f</VAR>. 	  Thus the expression <CODE>app <VAR>f</VAR> <VAR>vec</VAR></CODE> 	  is equivalent to: 	  
+<PRE>
+	    appi (<VAR>f</VAR> o #2) (<VAR>vec</VAR>, 0, NONE)
+	  
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VECTOR.foldli:VAL"><CODE>foldli <VAR>f</VAR> <VAR>init</VAR> <VAR>slice</VAR>
+	  </CODE></A>
+<DT> <CODE>            foldri <VAR>f</VAR> <VAR>init</VAR> <VAR>slice</VAR>
+	  </CODE>
+<DT> <CODE>            foldl <VAR>f</VAR> <VAR>init</VAR> <VAR>vec</VAR>
+	  </CODE>
+<DT> <CODE>            foldr <VAR>f</VAR> <VAR>init</VAR> <VAR>vec</VAR>
+          </CODE>
+<DD>
+fold the function <VAR>f</VAR> over the elements of a vector, using 	  the value <VAR>init</VAR> as the initial value. 	  The functions <A HREF="#SIG:VECTOR.foldli:VAL:SPEC">foldli</A> and <A HREF="#SIG:VECTOR.foldl:VAL:SPEC">foldl</A> apply the            function <VAR>f</VAR> 	  from left to right (increasing indices), while the functions 	  <A HREF="#SIG:VECTOR.foldri:VAL:SPEC">foldri</A> and <A HREF="#SIG:VECTOR.foldr:VAL:SPEC">foldr</A> work from right to left (decreasing 	  indices). 	  The more general functions <A HREF="#SIG:VECTOR.foldli:VAL:SPEC">foldli</A> and <A HREF="#SIG:VECTOR.foldri:VAL:SPEC">foldri</A> work on 	  <A HREF="aggregates-chapter.html#array-vector-slice">vector slices</A>, and supply both the 	  element and the element's index to the function <VAR>f</VAR>. 	  
+<P>
+	  The functions <A HREF="#SIG:VECTOR.foldl:VAL:SPEC">foldl</A> and <A HREF="#SIG:VECTOR.foldr:VAL:SPEC">foldr</A> work on the whole vector 	  <VAR>vec</VAR> and do not supply the element index to <VAR>f</VAR>. 	  Thus the expression <CODE>foldl <VAR>f</VAR> <VAR>init</VAR> <VAR>vec</VAR></CODE> 	  is equivalent to: 	  
+<PRE>
+	    foldli (fn (_, <VAR>a</VAR>, <VAR>x</VAR>) =&gt; <VAR>f</VAR>(<VAR>a</VAR>, <VAR>x</VAR>))
+	      <VAR>init</VAR> (<VAR>vec</VAR>, 0, NONE)
+	  
+</PRE>
+ 	  
+<BLOCKQUOTE>
+<B>Example:</B><BR>
+
+<P>
+One can extract the list of elements in a vector <VAR>vec</VAR> by 	    the expression: 	    
+<PRE>
+	      foldr (op ::) [] <VAR>vec</VAR>
+	    
+</PRE>
+ 	  
+</BLOCKQUOTE>
+   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="array.html#Array:STR:SPEC">Array</A>, <A HREF="mono-vector.html#MONO_VECTOR:SIG:SPEC">MONO_VECTOR</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="aggregates-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified January 21, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

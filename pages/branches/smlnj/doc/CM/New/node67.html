@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>11.2.1 Filename abstractions</TITLE>
+<META NAME="description" CONTENT="11.2.1 Filename abstractions">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node68.html">
+<LINK REL="previous" HREF="node66.html">
+<LINK REL="up" HREF="node66.html">
+<LINK REL="next" HREF="node68.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1113"
+ HREF="node68.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1109"
+ HREF="node66.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1103"
+ HREF="node66.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1111"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1114"
+ HREF="node68.html">11.2.2 Adding a class</A>
+<B> Up:</B> <A NAME="tex2html1110"
+ HREF="node66.html">11.2 Adding other classes</A>
+<B> Previous:</B> <A NAME="tex2html1104"
+ HREF="node66.html">11.2 Adding other classes</A>
+ &nbsp <B>  <A NAME="tex2html1112"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000122100000000000000">
+11.2.1 Filename abstractions</A>
+</H3>
+
+<P>
+CM represents filenames as something that could be called a <EM> 
+filename closure</EM>.  Essentially, what this means is that not only a
+string is being remembered but also the context in which to interpret
+the string.  For a relative path, context information is the directory
+in which it is to be interpreted; for an anchored path, the context
+takes care of the anchoring.
+
+<P>
+The <TT> Tools</TT> module provides two abstract types related to this
+filename abstraction:
+
+<P>
+ 
+<PRE>
+
+  type presrcpath
+  type srcpath
+</PRE>
+
+<P>
+Since many tools invoke external shell commands or perform other
+operation on physical files, it is often necessary to obtain an actual
+native filename string from an abstract path:
+
+<P>
+ 
+<PRE>
+
+  val nativeSpec : srcpath -&gt; string
+  val nativePreSpec : presrcpath -&gt; string
+</PRE>
+
+<P>
+It is important to remember that these two functions frequently return
+relative filenames, and such relative names must be interpreted from
+within the right directory.  This ``right'' directory is the directory
+that contains the CM description file on whose behalf the tool's rule
+was invoked.  Rules that perform physical operations on files whose
+names result from <TT> nativeSpec</TT> or <TT> nativePreSpec</TT> must
+therefore first switch to that directory.  See the discussion of the
+<TT> context</TT> argument to rule functions below.
+
+<P>
+Strings that can potentially be used as pathnames are being passed
+around as records containing a <TT> name</TT>- and a <TT> mkpath</TT> field.
+The <TT> name</TT> field contains the string itself while <TT> mkpath</TT>
+is a ``suspended'' abstract version of the path.
+
+<P>
+A fresh pathmaker can be constructed from native strings using <TT> 
+native2pathmaker</TT>, which like <TT> context</TT> is also an argument to
+rule functions.  This function takes care of interpreting relative
+strings within the correct context.  (For this, it is not even
+necessary to first switch the current working directory.)
+
+<P>
+Recall that filenames that appear in description files can be written
+using either ``standard'' or ``native'' syntax.  The field <TT> name</TT>
+will, thus, contain a string that can be in either of these two forms.
+However, CM will pass an <TT> mkpath</TT> function that accounts for these
+syntactic differences and which also takes care of interpreting the
+string in the correct context.
+
+<P>
+When new name specifications are constructed by the tool, the
+appropriate <TT> mkpath</TT> function must be provided.  For most tools
+this will be a value constructed by applying <TT> native2pathmaker</TT> to
+some native filename string (because most tools internally operate on
+native paths).
+
+<P>
+As shown above, there are two abstract path types: <TT> presrcpath</TT>
+and <TT> srcpath</TT>.  The former can represent both directory names and
+source file names, the latter can represent only source file names.
+To convert from <TT> presrcpath</TT> to <TT> srcpath</TT>, use function <TT> 
+Tools.srcpath</TT>:
+<PRE>
+
+  val srcpath : presrcpath -&gt; srcpath
+</PRE>
+This function enforces CM's rule that there has to be at least one arc
+in every such name (i.e., that it cannot be just an anchor).
+
+<P>
+One can also construct a new abstract path from an existing path by
+adding arcs at the end.  The constructed path will share its internal
+context with the old one.
+
+<P>
+ 
+<PRE>
+
+  val augment : presrcpath -&gt; string list -&gt; presrcpath
+</PRE>
+
+<P>
+The list of strings must contain simple pathname arcs.
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1113"
+ HREF="node68.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1109"
+ HREF="node66.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1103"
+ HREF="node66.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1111"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1114"
+ HREF="node68.html">11.2.2 Adding a class</A>
+<B> Up:</B> <A NAME="tex2html1110"
+ HREF="node66.html">11.2 Adding other classes</A>
+<B> Previous:</B> <A NAME="tex2html1104"
+ HREF="node66.html">11.2 Adding other classes</A>
+ &nbsp <B>  <A NAME="tex2html1112"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

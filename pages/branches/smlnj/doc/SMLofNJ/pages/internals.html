@@ -1,0 +1,85 @@
+<!-- HTML/internals.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The INTERNALS signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>INTERNALS</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="INTERNALS:SIG:SPEC"><CODE>INTERNALS</CODE></A><BR>
+<B>structure </B><A NAME="Internals:STR:SPEC"><CODE>Internals</CODE></A><B> : </B>INTERNALS<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> CleanUp <B>:</B> <A HREF="cleanup.html#CLEAN_UP:SIG:SPEC">CLEAN_UP</A><BR>
+<B>structure</B> ProfControl <B>:</B> <A HREF="prof-control.html#PROF_CONTROL:SIG:SPEC">PROF_CONTROL</A><BR>
+<B>structure</B> GC <B>:</B> <A HREF="gc.html#GC:SIG:SPEC">GC</A><BR>
+<B>val</B> <A NAME="SIG:INTERNALS.prHook:VAL:SPEC" HREF="#SIG:INTERNALS.prHook:VAL">prHook</A> <B>:</B> (string -&gt; unit) ref         <BR>
+<B>val</B> <A NAME="SIG:INTERNALS.initSigTbl:VAL:SPEC" HREF="#SIG:INTERNALS.initSigTbl:VAL">initSigTbl</A> <B>:</B> 'a -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:INTERNALS.clearSigTbl:VAL:SPEC" HREF="#SIG:INTERNALS.clearSigTbl:VAL">clearSigTbl</A> <B>:</B> 'a -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:INTERNALS.resetSigTbl:VAL:SPEC" HREF="#SIG:INTERNALS.resetSigTbl:VAL">resetSigTbl</A> <B>:</B> 'a -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:INTERNALS.prHook:VAL"><CODE>prHook
+          </CODE></A>
+<DD>
+This is a hook for the top-level <CODE>print</CODE> function, which allows           it to be rebound.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:INTERNALS.initSigTbl:VAL"><CODE>initSigTbl <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Initialize the signal table to the inherited process                 environment.  The argument <VAR>a</VAR> is ignored.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:INTERNALS.clearSigTbl:VAL"><CODE>clearSigTbl <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Clear the signal table of handlers. 	  The argument <VAR>a</VAR> is ignored.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:INTERNALS.resetSigTbl:VAL"><CODE>resetSigTbl <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Reset the signal environment to agree with the signal table. 	  The argument <VAR>a</VAR> is ignored.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>MLRISC Overview</title>
+  </head>
+
+  <body bgcolor=#FFFFFF>
+   <CENTER>
+    <H1><FONT COLOR=#AA0000>Contributions</FONT></H1>
+   </CENTER>
+    
+    The optimizations provided by MLRISC are at a similar level to
+    those performed by the Impact compiler; several target back ends
+    exist (Dec Alpha, HPPA, x86, and PPC); but more importantly, the
+    framework has been demonstrated in real use for languages with
+    radically different execution models.  These include:
+    <P>
+      <TABLE ALIGN=center border=1>
+      <THEAD>
+	<TR> <TH> Compiler <TH> Association
+      </THEAD>
+      <TBODY>
+          <TR><TD> <FONT COLOR=#005500>SML/NJ</FONT> 
+			<TD> Bell Labs and Princeton
+          <TR><TD> <FONT COLOR=#005500> TIL</FONT> 
+			<TD> CMU
+          <TR><TD> <FONT COLOR=#005500>Tiger </FONT> 
+			<TD> Princeton
+          <TR><TD> <FONT COLOR=#005500> C-- </FONT> 
+			<TD> OGI
+          <TR><TD> <FONT COLOR=#005500> SML/Regions </FONT> 
+			<TD> DIKU
+      </TBODY>
+      </TABLE> 
+    <p>
+    The strength of MLRISC lies in the ability to easily create high
+    quality code generator for each of these systems. For example:
+    <p>
+    <dl>
+      <dt> <FONT COLOR=#005500>Tiger: </FONT> <dd> Has an execution
+      model very similar to C with stack allocated activation frames,
+      and also maintains static and dynamic chains to support lexical
+      scoping.
+<p>
+      <dt><FONT COLOR=#005500> TIL:</FONT> <dd> Is similar to C in its
+      use of activation frames, however it uses a <I>typed
+      intermediate language</I> that supports <I>almost tag-free</I>
+      garbage collection.  This has severe implications on the
+      interaction of spilling and garbage collection. The set of live
+      variables and their locations, be it registers or frame slots,
+      is recorded in a trace table for a specific program point. When
+      spilling occurs, it is necessary to adjust some of these trace
+      tables to reflect the new locations of live variables.
+<p>
+      <dt> <FONT COLOR=#005500>SML/NJ:</FONT> <dd> Has no runtime
+      stack, but stores all execution context in a garbage collected
+      heap. This arrangement imposes special requirements for spilling
+      registers. SML/NJ also does <I>dynamic linking</I> --- that is
+      to say, no use is made of a conventional linker, but machine
+      code is generated directly and linked into the interactive
+      environment, dynamically.
+        </dl>
+    
+<p>
+  It is not uncommon for any of these systems to store special global
+  values in dedicated registers, and use their own parameter passing
+  and callee-save conventions. In any language that supports garbage
+  collection, there is a subtle interaction between global code motion
+  past garbage collection points that must also be dealt with.
+
+    <hr>
+    <FONT SIZE="-2">
+    <address><a href="mailto:george@vex.cs.bell-labs.com">Lal
+    George</a></address> <!-- Created: Mon Mar 23 21:47:53 EST 1998
+    --> <!-- hhmts start --> Last modified: Tue Mar 31 11:50:34 EST
+    1998 <!-- hhmts end -->
+    </FONT>
+  </body>
+</html>

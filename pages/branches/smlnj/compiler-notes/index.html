@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Compiler Implementation Notes</title>
+  </head>
+
+  <body bgcolor="white">
+<center>
+    <h1>Compiler Implementation Notes</h1>
+</center>
+
+<blockquote>
+  <h2><A HREF="gc-api.ps"> GC API</A></h2>
+    <blockquote>
+    This note describes the garbage collection interface to the
+    runtime system implemented in version 110.15. All communication to
+    the runtime system is through a fixed set of registers. Anything
+    extra must be bundled up and saved in one of these fixed
+    registers. This simplifies the runtime system significantly, 
+    reduces the ML to C context switch overhead,
+    and barely increases the size of code generated to invoke 
+    garbage collection. 
+    The net result is a
+    4% improvement in compiling the compiler on the DEC Alpha.
+    </blockquote>
+
+  <hr>
+  <h2><A HREF="k32.ps"> X86-k32</A></h2>
+    <blockquote>
+
+    This note describes the code generation algorithm used for the
+    Intel x86, in version 110.16. The standard Chaitan graph coloring
+    register allocation cannot be used directly for machines with few
+    registers, as all temporaries wind up being spilled, making for a
+    poor allocation. Thus, for the x86, the conceptual model of the
+    architecture has been extended with a set of memory locations that
+    are treated as registers.  The net effect is one where temporaries
+    are computed into memory locations and passed as arguments to
+    functions.  The use of these memory locations managed in this way
+    can be as fast as using registers, where indirectly, the register
+    allocation is taking into account the hardware register renaming
+    mechanism.
+
+    <h4> Performance Monitors </h4> The values of all the performance
+    counters on the Pentium II were measured using version 110.17, and
+    the results are shown in the table below. Each entry is in units
+    of 1K counts. The meaning of each counter is explained in
+    Appendix A of the <em>Intel Architecture Software Developers
+    Manual; Volume 3: System Programming Guide</em> Order
+    No. 243192. Each entry is the average of three runs, where one of
+    the counters measured something whose value was usually close to
+    zero.  I used <a
+    href="http://qso.lanl.gov/~mpg/perfmon.html">pperf</a> for these
+    measurements.
+    <p>
+    <center>
+	   Table: <a href="x86-perfmon.html"> x86-perfmon</a>
+    </center>
+	  
+    </blockquote>
+    <hr>
+    <h2><A HREF="new-ra.ps" NAME="NEW-RA"> 
+		A New MLRISC Register Allocator</A></h2>
+      <blockquote>
+	This report describes the design 
+	and implementation of the new register allocator for the MLRISC
+	customizable code generator.
+	This new allocator, like the original allocator distributed with MLRISC,
+	is a Chaitin-style graph coloring allocator that 
+	uses the iterated coalescing algorithm.
+	The new allocator, however, has a different client interface, uses
+	different data structures, and has incorporated the following new features
+	and improvements:
+	<ul>
+	  <p><li> Propagates and makes use of frequency information to prioritize
+	    coalescing and spilling.
+
+	  <p><li> Uses a sparse method for constructing the interference graph.
+	  
+	  <p><li> Has a smarter spill insertion strategy.
+	  <p><li> Has a more modular design.
+	</ul>
+      </blockquote>
+    <hr>
+    <h2><A HREF="annotations.ps" NAME="ANNOTATIONS"> 
+	      MLRISC Annotations</A></h2>
+      <blockquote>
+	The <tt> Annotations</tt> module written
+	in Standard ML  is used extensively 
+	for exchanging information between different phases in
+	the MLRISC customizable code generator.   Different optimization
+	phases may attach annotations to individual instructions,
+	basic blocks, hyperblocks, or compilation units. These annotations
+	may then be read and updated in subsequent phases.
+	For instance, annotations can be used to propagate
+	comments from the program text to the assembly output.
+	<p>
+	This document describes the interface to the annotation mechanism and
+	its use within the MLRISC system.
+      </blockquote>
+     <hr>
+     <h2><A HREF="matchcomp.ps" NAME="MATCHCOMP">Match Compiler
+	  Notes</A></h2>
+      <blockquote>
+	These notes describe the SML/NJ pattern match compiler, last
+	rewritten by Bill Aitken in the summer of 1992.  An 
+	<A HREF="85-note-baudinet.ps">earlier paper</A> by M. Baudinet
+	and D. MacQueen describs the general approach to pattern match
+        compilation, but the heuristics described in that paper are
+	out of date.
+      </blockquote>
+
+     <hr>
+     <h2><A HREF="x86-fp.ps" NAME="X86 FLOATING POINT">X86 Floating Point</A></h2> 
+      <blockquote>
+	The floating point registers are no longer maintained as a
+	stack of floating  point registers managed via the
+	Sethi-Ullman numbering scheme, but as a set of registers.  
+      </blockquote>
+
+
+    <hr>
+     <h2><A HREF="omit-vfp.ps" NAME="OMIT VIRTUAL FRAME POINTER">
+	   `Omit Virtual Frame Pointer' Optimization </A></h2> 
+      <blockquote>
+        In many languages, it is convenient to access local variables
+        and spill locations via the use of a frame pointer. The frame
+        pointer may be a physical register, or a virtual register that
+        is later mapped to the stack pointer. This note describes the
+        MLRISC support and requirements to rewrite uses of a virtual
+        frame pointer to uses of the stack pointer -- the omit frame
+        pointer optimization.
+      </blockquote>
+    <hr>
+
+
+     <h2><A HREF="93-tr-reppy.ps" NAME="HIGH-PERFORMANCE GC">
+	   A High-performance Garbage Collector for Standard ML </A></h2> 
+      <blockquote>
+      We have designed and implemented a new garbage collector for the
+      Standard ML of  New Jersey System (SML/NJ). This collector has
+	higher performance, lower latency, and generally requires less
+	physical memory than the existing SML/NJ collector. In
+	addition, it is able to exploit the large secondary caches
+	found on modern workstations. This paper describes the design
+	of the collector, and presents comparative performance data
+	that demonstrates the above performance claims.
+
+      </blockquote>
+    <hr>
+     <h2><A HREF="90-tr-reppy.ps" NAME="ASYNCHRONOUS SIGNALS">
+	   Asynchronous Signals in Standard ML </A></h2> 
+      <blockquote>
+        We describe the design, implementation and use of a mechanism
+	for handling asynchronous signals, such as user interrupts, in
+	the New Jersey implementation of Standard ML. Providing this
+	kind of mechanism is a necessary requirement for the
+	development of real-world application programs. Our mechanism
+	uses first-class continuations to represent the execution
+	state at the time at which a signal occurs. It has been used
+	to support pre-emptive scheduling in concurrency packages and
+	for forcing break-points in debuggers, as well as for handling
+	user interrrupts in the SML/NJ interactive environment.
+      </blockquote>
+</blockquote>
+
+    <hr>
+    <font size="-2">
+    <address><a href="mailto:george@research.bell-labs.com">Lal George</a></address>
+<!-- Created: Thu Mar 25 11:30:55 EST 1999 -->
+<!-- hhmts start -->
+Last modified: Thu May 17 16:40:03 EDT 2001
+<!-- hhmts end -->
+  </body>
+</html>

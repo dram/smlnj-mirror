@@ -1,0 +1,56 @@
+<!-- HTML/source.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SOURCE signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>SOURCE</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SOURCE:SIG:SPEC"><CODE>SOURCE</CODE></A><BR>
+<B>structure </B><A NAME="Source:STR:SPEC"><CODE>Compiler.Source</CODE></A><B> : </B>SOURCE<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:SOURCE.inputSource:TY:SPEC" HREF="#SIG:SOURCE.inputSource:TY">inputSource</A> <B>=</B> {sourceMap : SourceMap.sourcemap, fileOpened : string, interactive : bool, sourceStream : TextIO.instream, anyErrors : bool ref, errConsumer : PrettyPrint.ppconsumer}     <BR>
+<B>val</B> <A NAME="SIG:SOURCE.newSource:VAL:SPEC" HREF="#SIG:SOURCE.newSource:VAL">newSource</A> <B>:</B> (string * int * TextIO.instream * bool * PrettyPrint.ppconsumer) -&gt; inputSource         <BR>
+<B>val</B> <A NAME="SIG:SOURCE.closeSource:VAL:SPEC" HREF="#SIG:SOURCE.closeSource:VAL">closeSource</A> <B>:</B> inputSource -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SOURCE.filepos:VAL:SPEC" HREF="#SIG:SOURCE.filepos:VAL">filepos</A> <B>:</B> inputSource -&gt; SourceMap.charpos -&gt; (string * int * int)         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SOURCE.inputSource:TY"><CODE><B>type</B> inputSource</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE.newSource:VAL"><CODE>newSource (<VAR>s</VAR>, <VAR>i</VAR>, <VAR>in</VAR>, <VAR>b</VAR>, <VAR>pp</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE.closeSource:VAL"><CODE>closeSource <VAR>in</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE.filepos:VAL"><CODE>filepos <VAR>in</VAR> <VAR>ch</VAR>
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>2.1 Requirements</TITLE>
+<META NAME="description" CONTENT="2.1 Requirements">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node5.html">
+<LINK REL="previous" HREF="node3.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node5.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html111"
+ HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html107"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html101"
+ HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html109"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html112"
+ HREF="node5.html">2.2 Invoking the bootstrap</A>
+<B> Up:</B> <A NAME="tex2html108"
+ HREF="node3.html">2. Basic usage</A>
+<B> Previous:</B> <A NAME="tex2html102"
+ HREF="node3.html">2. Basic usage</A>
+ &nbsp <B>  <A NAME="tex2html110"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00031000000000000000">
+2.1 Requirements</A>
+</H2>
+
+<P>
+To be able to use the bootstrap compiler, one must first install
+SML/NJ (i.e., the interactive system that contains the compiler) as
+well as both ML-Yacc and ML-Lex.
+
+<P>
+It is further necessary to have all ML source code for the system
+available.  If the basic installation did not install this source
+code, then one must now fetch all source archives and unpack them.
+(There is an option for the SML/NJ installer that lets it install all
+source trees automatically.  However, by default this feature is turned
+off.)
+
+<P>
+The following list shows all required source packages.  (Path names
+are shown relative to the SML/NJ installation directory.)
+
+<P>
+ 
+<DL>
+<DT><STRONG><B> src/system</B></STRONG></DT>
+<DD>This archive contains the sources for the SML
+Standard Basis library as well as lots of ``glue'' code.  The glue is
+used for assembling a complete system from all its other parts.
+Directory <TT> src/system</TT> must be the current working directory at
+the time the bootstrap compiler is started.</DD>
+<DT><STRONG><B> src/MLRISC</B></STRONG></DT>
+<DD>This is the implementation of the MLRISC
+backend (the low-level optimizer and code generator) used by SML/NJ.</DD>
+<DT><STRONG><B> src/cm</B></STRONG></DT>
+<DD>This source tree contains most of CM's (and CMB's)
+implementation.</DD>
+<DT><STRONG><B> src/compiler</B></STRONG></DT>
+<DD>This is the implementation of the frontend
+(parser, type checker, etc.) of the compiler as well as its high-level
+optimizer (FLINT).</DD>
+<DT><STRONG><B> src/ml-yacc</B></STRONG></DT>
+<DD>This source tree contains the implementation
+of ML-Yacc and its library (<TT> $/ml-yacc-lib.cm</TT>).
+Technically, the sources of ML-Yacc itself are not needed (provided a
+working executable for ML-Yacc has been installed), but the library
+sources are.</DD>
+<DT><STRONG><B> src/smlnj-lib</B></STRONG></DT>
+<DD>This source tree hosts several sub-trees,
+each of which implements one of the libraries in the SML/NJ library
+collection.  For bootstrap compilation, the following sub-trees are
+required:
+<DL>
+<DT><STRONG><B> src/smlnj-lib/Util</B></STRONG></DT>
+<DD>This directory holds the sources for
+<TT> $/smlnj-lib.cm</TT>.</DD>
+<DT><STRONG><B> src/smlnj-lib/PP</B></STRONG></DT>
+<DD>This directory holds the sourcse for
+<TT> $/pp-lib.cm</TT>, i.e., the pretty-printing library.</DD>
+<DT><STRONG><B> src/smlnj-lib/HTML</B></STRONG></DT>
+<DD>This directory holds the sources for
+<TT> $/html-lib.cm</TT>, a library for handling HTML files.  The need for
+this library arises from the fact that <TT> $/pp-lib.cm</TT> statically
+depends on it.  (The compiler does not actually use any services from
+this library.)</DD>
+</DL></DD>
+</DL>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html111"
+ HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html107"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html101"
+ HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html109"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html112"
+ HREF="node5.html">2.2 Invoking the bootstrap</A>
+<B> Up:</B> <A NAME="tex2html108"
+ HREF="node3.html">2. Basic usage</A>
+<B> Previous:</B> <A NAME="tex2html102"
+ HREF="node3.html">2. Basic usage</A>
+ &nbsp <B>  <A NAME="tex2html110"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

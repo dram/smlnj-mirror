@@ -1,0 +1,169 @@
+<!-- HTML/poll.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The POLL signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>POLL</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="POLL:SIG:SPEC"><CODE>POLL</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+ The <A HREF="unsafe.html#SIG:UNSAFE.Poll:STR:SPEC">Unsafe.Poll</A> structure provides an interface to automatic software polling.  The <A HREF="poll.html#SIG:POLL.pollEvent:VAL:SPEC">pollEvent</A> flag is watched (with user-specified frequency), and when it becomes <CODE>true</CODE>, a user-specified function is invoked.  This is all done without hardware interrupts; it is useful where the operating system does not provide an interface to hardware signals, or where the cost of hardware signal-handling is too high.
+<P>
+Polling does not slow down user code very much, because the polling code is integrated with the &quot;heap exhausted?&quot; tests that are used to invoke the garbage collector.
+<P>
+In SML/NJ version 110, polling works on the MIPS, Sparc, and Intel x86 architectures.
+<P>
+Soft polling is used to support garbage collection for the MP thread library; fully follow only steps 1 and 2 for MP.   For custom application, follow all steps.
+<P>
+1) build a runtime system for polling by adding &quot;-DSOFT_POLL&quot; to the     appropriate mk.&lt;arch$GT;-&lt;os$GT; make script in src/runtime/objs     (see, for example, mk.x86-linux-poll)     then, do a &quot;make clean&quot; followed by a &quot;make -f mk.&lt;arch$GT;-&lt;os$GT;&quot;
+<P>
+2) use the resulting runtime (src/runtime/objs/run.&lt;arch&gt;-&lt;os&gt;) for     the following steps
+<P>
+3) start the compiler and set it to emit polling checks: 
+<PRE>
+ Compiler.Control.CG.pollChecks := true;
+</PRE>
+ For MP support:  	One may now want to build an entire compiler that checks for  	poll events: if retargeting, after the retarget do 
+<PRE>
+ &lt;ARCH&gt;VisComp.Control.CG.pollChecks := true;
+ CMB.make();
+</PRE>
+  otherwise, 
+<PRE>
+ Compiler.Control.CG.pollChecks := true;
+ CMB.make()
+</PRE>
+				
+<P>
+4) polling is now available in the freshly compiled compiler    to use, install a polling handler, e.g.: 
+<PRE>
+ <A HREF="poll.html#SIG:POLL.setHandler:VAL:SPEC">Unsafe.Poll.setHandler</A> (SOME(fn x =&gt; (print &quot;in handler\n&quot;; x)));
+</PRE>
+ or, 
+<PRE>
+ <A HREF="poll.html#SIG:POLL.setHandler:VAL:SPEC">Unsafe.Poll.setHandler</A> (SOME(fn x =&gt; (print &quot;in handler\n&quot;;
+			      <A HREF="poll.html#SIG:POLL.pollEvent:VAL:SPEC">Unsafe.Poll.pollEvent</A> := false;
+			      x)));
+</PRE>
+<P>
+5) set a polling frequency: <CODE><A HREF="poll.html#SIG:POLL.setFreq:VAL:SPEC">Unsafe.Poll.setFreq</A> (SOME 50);</CODE>    Frequency <CODE>(SOME x)</CODE> sets the polling interval to approximately    x*1000 instructions;     frequency <CODE>NONE</CODE> disables polling.
+<P>
+6) the installed poll handler will be called after <CODE><A HREF="poll.html#SIG:POLL.pollEvent:VAL:SPEC">Unsafe.Poll.pollEvent</A> := true;</CODE> occurs. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>exception</B> <A NAME="SIG:POLL.BadPollFreq:EXN:SPEC" HREF="#SIG:POLL.BadPollFreq:EXN">BadPollFreq</A><BR>
+<B>val</B> <A NAME="SIG:POLL.pollEvent:VAL:SPEC" HREF="#SIG:POLL.pollEvent:VAL">pollEvent</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:POLL.setHandler:VAL:SPEC" HREF="#SIG:POLL.setHandler:VAL">setHandler</A> <B>:</B> (unit cont -&gt; unit cont) option -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:POLL.inqHandler:VAL:SPEC" HREF="#SIG:POLL.inqHandler:VAL">inqHandler</A> <B>:</B> unit -&gt; (unit cont -&gt; unit cont) option         <BR>
+<B>val</B> <A NAME="SIG:POLL.setFreq:VAL:SPEC" HREF="#SIG:POLL.setFreq:VAL">setFreq</A> <B>:</B> int option -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:POLL.inqFreq:VAL:SPEC" HREF="#SIG:POLL.inqFreq:VAL">inqFreq</A> <B>:</B> unit -&gt; int option         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:POLL.BadPollFreq:EXN"><CODE><B>exception</B> BadPollFreq</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POLL.pollEvent:VAL"><CODE>pollEvent
+          </CODE></A>
+<DD>
+When this variable becomes true (and the frequency is           not <CODE>NONE</CODE>), the hander will be invoked.           <A HREF="poll.html#SIG:POLL.pollEvent:VAL:SPEC">pollEvent</A> is accessible to the runtime system           and may (of course) be set asynchronously by other threads.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POLL.setHandler:VAL"><CODE>setHandler <VAR>a</VAR>
+          </CODE></A>
+<DD>
+If 
+<PRE>
+<VAR>a</VAR>=f
+</PRE>
+, install <VAR>f</VAR> as the event handler. 	  When <A HREF="poll.html#SIG:POLL.pollEvent:VAL:SPEC">pollEvent</A>           becomes true, the current continuation <CODE>k</CODE> will be saved, 	  <A HREF="poll.html#SIG:POLL.pollEvent:VAL:SPEC">pollEvent</A> will be set to false,           and <VAR>f</VAR>(<CODE>k</CODE>) will be called.  No polling will occur           during the execution of <VAR>f</VAR>.  When <VAR>f</VAR> returns some           continuation <CODE>k'</CODE>, then polling will resume and           <CODE>k'</CODE> will be invoked.           
+<P>
+	  If 
+<PRE>
+<VAR>a</VAR>=NONE
+</PRE>
+, disable polling.                
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POLL.inqHandler:VAL"><CODE>inqHandler <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Returns the current event handler.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POLL.setFreq:VAL"><CODE>setFreq <VAR>a</VAR>
+          </CODE></A>
+<DD>
+When 
+<PRE>
+<VAR>a</VAR>=(SOME i)
+</PRE>
+,            sets the polling frequency to 
+<PRE>
+i
+</PRE>
+; that is,            approximately every 
+<PRE>
+i*1000
+</PRE>
+ instructions,            the <A HREF="poll.html#SIG:POLL.pollEvent:VAL:SPEC">pollEvent</A> variable will be checked.           
+<P>
+          When 
+<PRE>
+<VAR>a</VAR>=NONE
+</PRE>
+, disables polling.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POLL.inqFreq:VAL"><CODE>inqFreq <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Returns the current frequency value.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/posix.html#SIG:POSIX.Signal:STR:SPEC">Posix.Signal</A>, <A HREF="sysinfo.html#SIG:SYS_INFO.hasSoftwarePolling:VAL:SPEC">SMLofNJ.SysInfo.hasSoftwarePolling</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

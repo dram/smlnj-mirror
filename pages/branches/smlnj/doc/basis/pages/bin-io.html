@@ -1,0 +1,78 @@
+<!-- HTML/bin-io.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The BinIO structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>BinIO</CODE> structure</H3>
+<P>
+The structure BinIO provides input/output  of binary data (8-bit bytes).   The semantics of the various I/O operations can be found in the description of the <A HREF="imperative-io.html#IMPERATIVE_IO:SIG:SPEC">IMPERATIVE_IO</A> signature. The <A HREF="#SIG:BIN_IO.openIn:VAL:SPEC">openIn</A> and <A HREF="#SIG:BIN_IO.openOut:VAL:SPEC">openOut</A> functions allow the creation of binary streams to read an write file data. Certain operating systems may provide other ways to open files in operating-system-specific structures. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="BIN_IO:SIG:SPEC"><CODE>BIN_IO</CODE></A><BR>
+<B>structure </B><A NAME="BinIO:STR:SPEC"><CODE>BinIO</CODE></A><B> : </B>BIN_IO<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>include</B> <A HREF="imperative-io.html#IMPERATIVE_IO:SIG:SPEC">IMPERATIVE_IO</A><BR>
+&nbsp;&nbsp;<B>where type</B> StreamIO.vector <B>=</B>  Word8Vector.vector         <BR>
+&nbsp;&nbsp;<B>where type</B> StreamIO.elem <B>=</B>  Word8.word     <BR>
+<B>val</B> <A NAME="SIG:BIN_IO.openIn:VAL:SPEC" HREF="#SIG:BIN_IO.openIn:VAL">openIn</A> <B>:</B> string -&gt; instream         <BR>
+<B>val</B> <A NAME="SIG:BIN_IO.openOut:VAL:SPEC" HREF="#SIG:BIN_IO.openIn:VAL">openOut</A> <B>:</B> string -&gt; outstream         <BR>
+<B>val</B> <A NAME="SIG:BIN_IO.openAppend:VAL:SPEC" HREF="#SIG:BIN_IO.openAppend:VAL">openAppend</A> <B>:</B> string -&gt; outstream         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:BIN_IO.openIn:VAL"><CODE>openIn <VAR>name</VAR>
+        </CODE></A>
+<DT> <CODE>        openOut <VAR>name</VAR>
+        </CODE>
+<DD>
+Open the file named <VAR>name</VAR> for input and output, respectively.         If <VAR>name</VAR> is a relative pathname, the file opened depends on         the current working directory.         On <A HREF="#SIG:BIN_IO.openOut:VAL:SPEC">openOut</A>, the file is created if it         does not already exist and truncated to length zero otherwise.         Raises <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> if a stream cannot be opened on the given file or, in the case of <A HREF="#SIG:BIN_IO.openIn:VAL:SPEC">openIn</A>, the file <VAR>name</VAR> does not exist.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIN_IO.openAppend:VAL"><CODE>openAppend <VAR>name</VAR></CODE></A>
+<DD>
+opens the file named <VAR>name</VAR> for output in append mode,         creating it if it does not already exist.  If the file already         exists, set position at end of file.           Raises <A HREF="io.html#SIG:IO.Io:EXN:SPEC">Io</A> if a stream cannot be opened on the given file.         
+<P>
+        Beyond having the initial file position be at the end of the file,         any additional properties are system and implementation dependent.         On operating systems (e.g., Unix) that support ``atomic append mode,''         each (flushed) output operation to the file will be appended         to the end, even if there are other processes writing          to the file simultaneously. However, due to buffering, these writes         need not be atomic, i.e., output from a different process may         interleave the output of a single write using the stream library.         On certain other operating systems, having the file open for          writing prevents any other process from opening the file for writing.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="imperative-io.html#IMPERATIVE_IO:SIG:SPEC">IMPERATIVE_IO</A>, <A HREF="text-io.html#TextIO:STR:SPEC">TextIO</A>, <A HREF="os.html#SIG:OS.Path:STR:SPEC">OS.Path</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="io-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified January 9, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

@@ -1,0 +1,135 @@
+<!-- HTML/stream-io-fn.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The StreamIO functor</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>StreamIO</CODE> functor</H3>
+<P>
+The optional <CODE>StreamIO</CODE> functor provides a way to build a stream IO stack on top of an arbitrary primitive I/O implementation. For example, given an implementation of readers and writers for pairs of integers, one can define streams of pairs of integers. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>functor </B><A NAME="StreamIO:FCT:SPEC"><CODE>StreamIO</CODE></A><B> (</B> ... <B>)</B><B> : </B>STREAM_IO<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Functor argument interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> <A NAME="ARG:StreamIO.PrimIO:STR:SPEC" HREF="#ARG:StreamIO.PrimIO:STR">PrimIO</A> <B>:</B> PRIM_IO<BR>
+<B>structure</B> <A NAME="ARG:StreamIO.Vector:STR:SPEC" HREF="#ARG:StreamIO.Vector:STR">Vector</A> <B>:</B> MONO_VECTOR<BR>
+<B>structure</B> <A NAME="ARG:StreamIO.Array:STR:SPEC" HREF="#ARG:StreamIO.Array:STR">Array</A> <B>:</B> MONO_ARRAY<BR>
+<B>sharing type</B> PrimIO.elem <B>=</B> Vector.elem <B>=</B> Array.elem<BR>
+<B>sharing type</B> PrimIO.vector <B>=</B> Vector.vector <B>=</B> Array.vector<BR>
+<B>sharing type</B> PrimIO.array <B>=</B> Array.array<BR>
+<B>val</B> <A NAME="ARG:StreamIO.someElem:VAL:SPEC" HREF="#ARG:StreamIO.someElem:VAL">someElem</A> <B>:</B> PrimIO.elem         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="ARG:StreamIO.PrimIO:STR"><CODE><B>structure</B> PrimIO</CODE></A>
+<DD>
+This is the underlying primitive I/O structure.     
+<BR>
+<BR>
+
+<DT> <A NAME="ARG:StreamIO.Vector:STR"><CODE><B>structure</B> Vector</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="ARG:StreamIO.Array:STR"><CODE><B>structure</B> Array</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="ARG:StreamIO.PrimIO.elem:SHARE"><CODE><B>sharing type</B> PrimIO.elem</CODE></A>
+<DT> <CODE><B>sharing type</B> PrimIO.vector</CODE>
+<DT> <CODE><B>sharing type</B> PrimIO.array</CODE>
+<DD>
+<BR>
+
+<DT> <A NAME="ARG:StreamIO.someElem:VAL"><CODE>someElem
+          </CODE></A>
+<DD>
+is some arbitrary element used to initialize buffer arrays.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+The <CODE>Vector</CODE> and <CODE>Array</CODE> structures provide vector and array operations for manipulating the vectors and arrays used in <CODE>PrimIO</CODE> and <CODE>StreamIO</CODE>. The element <VAR>someElem</VAR> is used to initialize buffer arrays; any element will do.
+<P>
+The types <CODE>instream</CODE> and <CODE>outstream</CODE> in the result of the <A HREF="#StreamIO:FCT:SPEC">StreamIO</A> functor must be abstract.
+<P>
+If <A HREF="stream-io.html#SIG:STREAM_IO.flushOut:VAL:SPEC">flushOut</A> finds that it can do only a partial write (i.e., <CODE>writeVec</CODE> or a similar function returns a ``number of elements written'' less than its <VAR>sz</VAR> argument), then <A HREF="stream-io.html#SIG:STREAM_IO.flushOut:VAL:SPEC">flushOut</A> must adjust its buffer for the items written and then try again. If the first or any successive write attempt returns zero elements written (or raises an exception) then <A HREF="stream-io.html#SIG:STREAM_IO.flushOut:VAL:SPEC">flushOut</A> raises the <A HREF="io.html#SIG:IO.Io:EXN:SPEC">IO.Io</A> exception.
+<P>
+If an exception occurs during any stream I/O operation, then the module must, of course, leave itself in a consistent state, without losing or duplicating data.
+<P>
+In some ML systems, a user interrupt aborts execution and returns control to a top-level prompt, without raising any exception that the current execution can handle.  It may be the case that some information must be lost or duplicated.  Data (input or output) must <I>never</I> be duplicated, but may be lost.  This can be accomplished without stream I/O doing any explicit masking of interrupts or locking.  On output, the internal state (saying how much has been written should be updated <I>before</I> doing the <I>write</I> operation; on input, the <I>read</I> should be done before updating the count of valid characters in the buffer.      
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+Here are some suggestions for efficient performance:  
+<UL>
+<LI>
+Operations on the underlying readers and writers (<CODE>readVec</CODE>, etc.) are expected to be expensive (involving a system call, with context switch). 
+<LI>
+Small input operations can be done from a buffer; the <CODE>readVec</CODE> or <CODE>readVecNB</CODE> operation of the underlying reader can replenish the buffer when necessary. 
+<LI>
+Each reader may provide only a subset of <CODE>readVec</CODE>, <CODE>readVecNB</CODE>, <CODE>block</CODE>, <CODE>canInput</CODE>, etc.  An augmented reader that provides more operations can be constructed using <CODE>PrimIO.augmentIn</CODE>, but it may be more efficient to use the functions directly provided by the reader, instead of relying on the constructed ones.  The same applies to augmented writers. 
+<LI>
+Keep the position of the beginning of the buffer on a multiple-of-<CODE>chunkSize</CODE> boundary, and do <B>read</B> or  <B>write</B> operations with a multiple-of-<CODE>chunkSize</CODE> number of elements. 
+<LI>
+For very large <CODE>inputAll</CODE> or <CODE>inputN</CODE> operations, it is (somewhat) inefficient to read one <CODE>chunkSize</CODE> at a time and then concatenate all the results together. Instead, it is good to try to do the read all in one large system call; that is, <CODE>readBlock(<VAR>n</VAR>)</CODE>.  However, in a typical implementation of <CODE>readVec</CODE>, this requires pre-allocating a vector of size <VAR>n</VAR>. However, in <CODE>inputAll()</CODE>, the size of the vector is not known <I>a priori</I> and if the argument to <CODE>inputN</CODE> is large, the allocation of a much-too-large buffer is wasteful.  Therefore, for large input operations, query the size of the reader using <CODE>endPos</CODE>, subtract the current position, and try to <B>read</B> that much. But one should also keep things rounded to the nearest <CODE>chunkSize</CODE>. 
+<LI>
+The use of <CODE>endPos</CODE> to try to do (large) read operations of just the right size will be inaccurate on translated readers. But this inaccuracy can be tolerated: if the translation is anything close to 1-1,  <CODE>endPos</CODE> will still provide a very good hint about the order-of-magnitude size of the file. 
+<LI>
+Similar suggestions apply to very large <B>output</B> operations. Small outputs go through a buffer; the buffer is written with <CODE>writeArr</CODE>. Very large outputs can be written directly from the argument string using <CODE>writeVec</CODE>. 
+<LI>
+A lazy functional instream can (should) be implemented as a sequence of immutable (vector) buffers, each with a mutable ref to the next ``thing,'' which is either another buffer, the underlying reader, or an indication that the stream has been truncated. 
+<LI>
+The <CODE>input</CODE> function should return the largest sequence that is most convenient. Usually this means ``the remaining contents of the current buffer.'' 
+<LI>
+To support non-blocking input, use <CODE>readVecNB</CODE> if it exists, otherwise do <CODE>canInput</CODE> followed (if appropriate) by <CODE>readVec</CODE>. 
+<LI>
+To support blocking input, use <CODE>readVec</CODE> if it exists, otherwise do <CODE>readVecNB</CODE> followed (if it would block) by <CODE>block</CODE>. and then another <CODE>readVecNB</CODE>. 
+<LI>
+To support lazy functional streams, <CODE>readArr</CODE> and <CODE>readArrNB</CODE> are not useful. If necessary, <CODE>readVec</CODE> should be synthesized from <CODE>readArr</CODE> and <CODE>readVecNB</CODE> from <CODE>readArrNB</CODE>. 
+<LI>
+<CODE>writeArr</CODE> should, if necessary, be synthesized from <CODE>writeVec</CODE> and vice versa.  Similarly for <CODE>writeArrNB</CODE> and <CODE>writeVecNB</CODE>. 
+</UL>
+     
+</BLOCKQUOTE>
+   
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="stream-io.html#STREAM_IO:SIG:SPEC">STREAM_IO</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="io-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified May 10, 1996</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

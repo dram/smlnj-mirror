@@ -1,0 +1,125 @@
+<!-- HTML/sysinfo.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SYS_INFO signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>SYS_INFO</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SYS_INFO:SIG:SPEC"><CODE>SYS_INFO</CODE></A><BR>
+<B>structure </B><A NAME="SysInfo:STR:SPEC"><CODE>SysInfo</CODE></A><B> : </B>SYS_INFO<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>exception</B> <A NAME="SIG:SYS_INFO.UNKNOWN:EXN:SPEC" HREF="#SIG:SYS_INFO.UNKNOWN:EXN">UNKNOWN</A><BR>
+<B>datatype</B> <A NAME="SIG:SYS_INFO.os_kind:TY:SPEC" HREF="#SIG:SYS_INFO.os_kind:TY">os_kind</A><BR>
+&nbsp;&nbsp;<B>=</B> UNIX<BR>
+&nbsp;&nbsp;<B>|</B> WIN32<BR>
+&nbsp;&nbsp;<B>|</B> MACOS<BR>
+&nbsp;&nbsp;<B>|</B> OS2<BR>
+&nbsp;&nbsp;<B>|</B> BEOS<BR>
+<B>val</B> <A NAME="SIG:SYS_INFO.getOSKind:VAL:SPEC" HREF="#SIG:SYS_INFO.getOSKind:VAL">getOSKind</A> <B>:</B> unit -&gt; os_kind         <BR>
+<B>val</B> <A NAME="SIG:SYS_INFO.getOSName:VAL:SPEC" HREF="#SIG:SYS_INFO.getOSName:VAL">getOSName</A> <B>:</B> unit -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SYS_INFO.getOSVersion:VAL:SPEC" HREF="#SIG:SYS_INFO.getOSVersion:VAL">getOSVersion</A> <B>:</B> unit -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SYS_INFO.getHostArch:VAL:SPEC" HREF="#SIG:SYS_INFO.getHostArch:VAL">getHostArch</A> <B>:</B> unit -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SYS_INFO.getTargetArch:VAL:SPEC" HREF="#SIG:SYS_INFO.getTargetArch:VAL">getTargetArch</A> <B>:</B> unit -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SYS_INFO.hasSoftwarePolling:VAL:SPEC" HREF="#SIG:SYS_INFO.hasSoftwarePolling:VAL">hasSoftwarePolling</A> <B>:</B> unit -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:SYS_INFO.hasMultiprocessing:VAL:SPEC" HREF="#SIG:SYS_INFO.hasMultiprocessing:VAL">hasMultiprocessing</A> <B>:</B> unit -&gt; bool         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SYS_INFO.UNKNOWN:EXN"><CODE><B>exception</B> UNKNOWN</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SYS_INFO.os_kind:TY"><CODE><B>datatype</B> os_kind</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SYS_INFO.getOSKind:VAL"><CODE>getOSKind <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Tell what operating system ML is running under.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYS_INFO.getOSName:VAL"><CODE>getOSName <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Return the name of the operating system (e.g. &quot;Solaris&quot;, &quot;OSF/1&quot;).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYS_INFO.getOSVersion:VAL"><CODE>getOSVersion <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Return the operating-system version (e.g., &quot;&lt;unknown&gt;&quot;).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYS_INFO.getHostArch:VAL"><CODE>getHostArch <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Return the name of the host architecture (e.g., &quot;ALPHA32&quot;).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYS_INFO.getTargetArch:VAL"><CODE>getTargetArch <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Get the name of the architecture for which the compiler           is generating code (differs from <A HREF="sysinfo.html#SIG:SYS_INFO.getHostArch:VAL:SPEC">getHostArch</A>() only           when cross-compiling).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYS_INFO.hasSoftwarePolling:VAL"><CODE>hasSoftwarePolling <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Tell whether software polling is installed in the runtime           system.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYS_INFO.hasMultiprocessing:VAL"><CODE>hasMultiprocessing <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Tell whether multiprocessing support is installed in the runtime           system.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="unsafe.html#SIG:UNSAFE.Poll:STR:SPEC">Unsafe.Poll</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>4.1.11 Finding all sources</TITLE>
+<META NAME="description" CONTENT="4.1.11 Finding all sources">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="previous" HREF="node31.html">
+<LINK REL="up" HREF="node21.html">
+<LINK REL="next" HREF="node33.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html658"
+ HREF="node33.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html654"
+ HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html650"
+ HREF="node31.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html656"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html659"
+ HREF="node33.html">4.2 The autoloader</A>
+<B> Up:</B> <A NAME="tex2html655"
+ HREF="node21.html">4.1 Structure CM</A>
+<B> Previous:</B> <A NAME="tex2html651"
+ HREF="node31.html">4.1.10 Support for stand-alone</A>
+ &nbsp <B>  <A NAME="tex2html657"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000511100000000000000"></A>
+<A NAME="sec:makedepend:support"></A>
+<BR>
+4.1.11 Finding all sources
+</H3>
+
+<P>
+The <TT> CM.sources</TT> function can be used to find the names of all
+source files that a given library depends on.  It returns the names of
+all files involved with the exception of skeleton files and binfiles
+(see Section&nbsp;<A HREF="node61.html#sec:files">10</A>).  Stable libraries are represented by
+their library file; their description file or consitutent members are
+<EM> not</EM> listed.
+
+<P>
+Normally, the function reports actual file names as used for accessing
+the file system.  For (stable) library files this behavior can be
+inconvenient because these names depend on architecture and operating
+system.  For this reason, <TT> CM.sources</TT> accepts an optional pair of
+strings that then will be used in place of the architecture- and
+OS-specific part of these names.
+
+<P>
+ 
+<PRE>
+
+  val sources :
+    { arch: string, os: string } option -&gt;
+    string -&gt;
+    { file: string, class: string, derived: bool } list option
+</PRE>
+
+<P>
+In case there was some error analyzing the specified library or group,
+<TT> CM.sources</TT> returns <TT> NONE</TT>.  Otherwise the result is a list
+of records, each carrying a file name, the corresponding class, and
+information about whether or not the source was created by some tool.
+
+<P>
+Examples:
+
+<P>
+ 
+<DL>
+<DT><STRONG>generating ``make'' dependencies:</STRONG></DT>
+<DD>To generate dependency information usable by Unix' <TT> make</TT> command,
+one would be interested in all files that were not derived by some
+tool application.  Moreover, one would probably like to use shell
+variables instead of concrete architecture- and OS-names:
+<PRE>
+
+  Option.map (List.filter (not o #derived))
+    (CM.sources (SOME { arch = "$ARCH", os = "$OPSYS" })
+         "foo.cm");
+</PRE>
+A call of <TT> CM.sources</TT> similar to the one shown here is used by
+the auxiliary script <TT> ml-makedepend</TT> (see
+Section&nbsp;<A HREF="node86.html#sec:makedepend">14.2</A>).</DD>
+<DT><STRONG>finding all <TT> noweb</TT> sources:</STRONG></DT>
+<DD>To find all <TT> noweb</TT> sources (see Section&nbsp;<A HREF="node51.html#sec:builtin-tools:noweb">6.2.6</A>),
+e.g., to be able to run the document preparation program <TT> noweave</TT>
+on them, one can simply look for entries of the <TT> noweb</TT> class.
+Here, one would probably want to include derived sources:
+<PRE>
+
+  Option.map (List.filter (fn x =&gt; #class x = "noweb"))
+    (CM.sources NONE "foo.cm");
+</PRE></DD>
+</DL>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html658"
+ HREF="node33.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html654"
+ HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html650"
+ HREF="node31.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html656"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html659"
+ HREF="node33.html">4.2 The autoloader</A>
+<B> Up:</B> <A NAME="tex2html655"
+ HREF="node21.html">4.1 Structure CM</A>
+<B> Previous:</B> <A NAME="tex2html651"
+ HREF="node31.html">4.1.10 Support for stand-alone</A>
+ &nbsp <B>  <A NAME="tex2html657"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

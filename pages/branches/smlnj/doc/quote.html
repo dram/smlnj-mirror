@@ -1,0 +1,162 @@
+<HTML>
+<HEAD>
+<TITLE>SML/NJ Quote/Antiquote</TITLE>
+</HEAD>
+<!-- Changed by: Andrew Appel,  5-Dec-1997 -->
+<BODY BGCOLOR="white">
+<H1>Object Language Embedding with Quote/Antiquote</h1>
+<blockquote>
+Standard ML is often used to implement another language <i>L</i>,
+for example, 
+the syntax of the HOL logic in <tt>hol90</tt> or the syntax of CCS for the
+Concurrency Workbench. Typically, one defines the 
+abstract syntax of <i>L</i> by a <tt>datatype</tt> declaration. Then useful
+functions over the datatype can be defined (such as finding the free
+variables of a formula when <i>L</i> is a logic). Soon afterwards, one
+concludes that concrete syntax is easier for humans to read than
+abstract syntax, and so writes a parser and prettyprinter for <i>L</i>.
+<p>
+In the situation just outlined, ML is called the 
+<i>metalanguage</i>, and <i>L</i> is called the <i>object language</i>, or 
+OL. (Edinburgh/INRIA/Cambridge ML, the precursor to Standard ML, was
+originally a programming metalanguage for a particular object language,
+the LCF logic.)  The purpose of a quotation/antiquotation mechanism
+is to allow one to embed expressions in the object language's
+concrete syntax inside of ML programs, and to mix the object
+language expressions with ML expressions.
+
+<h3>Quotation and Antiquotation</h3>
+
+The quote/antiquote mechanism is enabled by setting 
+<pre>
+Compiler.Control.quotation : bool ref
+</pre>
+to true.  Then the backquote character <tt>`</tt>
+ceases to be legal in symbolic identifiers, and takes on a special meaning.
+<p>
+A <i>quotation</i> is a special form of literal expression that
+represents the concrete syntax of an OL phrase. The backquote character
+<tt>`</tt> is used to delimit quotations.
+<p>
+For a running example, suppose our OL is a simple propositional logic
+with propositions represented as values of abstract type <tt>prop</tt>.
+We might wish to write propositional expressions such as <tt>A/\B/\C</tt>.
+<p>
+The most common approximation to quotation is strings. This is not
+pleasant at times, especially when dealing with backslashes and
+newlines. Still, strings are bearable. Strings are not adequate,
+however, for the following idea.
+<p>
+The ML-OL relationship invites a notion of <i>antiquotation</i>: the
+temporary abandonment of parsing so that an ML value can be spliced into
+the middle of a quotation. Operations like this have cropped up under
+various names in various places: antiquote is due to Milner; Quine had a
+version called <i>quasi-quotation</i> in his 1940 book; 
+Carnap used a notation much like it. It also closely resembles
+the Lisp <i>backquote</i> facility.
+<p>
+Using backquote, we write
+
+<pre>
+- val f = `A /\ B \/ C`;
+<i>val f = [QUOTE "A /\\ B /\\ C"] : 'a SMLofNJ.frag list</i>
+</pre>
+The compiler interprets this as a list of "fragments", 
+using the <a href="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.frag:TY:SPEC">frag</a>
+data type from the SMLofNJ structure:
+
+<pre>
+structure SMLofNJ = struct
+  . . .
+  datatype 'a frag = QUOTE of string | ANTIQUOTE of 'a
+end
+</pre>
+<p>
+More commonly, we
+invoke an OL parser to parse, enforce precedence, etc.
+By naming the parser something concise, such as <tt>%</tt>, we
+can use the syntax
+
+<pre>
+- val % = my_proposition_parser;
+<i>val % : prop frag -> prop</i>
+- val p = %`A /\ B \/ C`;
+<i>val p = -: prop</i>
+</pre>
+<p>
+An antiquote is written as a caret <tt>^<tt>
+followed by either an SML identifier or a parenthesized SML expression.
+Antiquotation can be used to conveniently express <i>contexts</i>, which
+are often used as a descriptive tool for syntax. A context could be
+defined as a function taking a <tt>prop</tt> and directly placing it at a
+location in a quotation.
+
+<pre>
+- fun foo a = %`^a ==> A`;
+<i>val foo : prop -> prop</i>
+</pre>
+
+In this case, <tt>foo p</tt> would denote the same proposition as
+<pre>
+    %`(A /\ B \/ C) ==> A`
+</pre>
+<p>
+Antiquotations can have nested quotations (which may contain antiquotes
+of their own, etc.):
+<pre>
+- let val K x y = x
+      val I x = x
+  in 
+  %`A /\ ^(K (%`B`) (I (%`C`)))
+      \/ C`
+      end;
+</pre>
+gives the same <tt>prop</tt> as that denoted by <tt>p</tt>. We note in
+passing that the power of the OL parser is completely up to its author:
+for example, in the framework offered here, one could write an OL
+``parser'' for Scheme that parses program plus arguments, evaluates the
+program on the arguments, and finally prints the returned value.
+
+<h3>Implementation of OL parsers</h3>
+
+A concrete syntax quotation is mapped by the SML compiler into a
+<tt>frag list</tt>. Intuitively, a <tt>frag</tt> is a contiguous part of a
+quotation: <tt>`A /\ B`</tt> maps to <tt>[ QUOTE "A /\\ B" ]</tt>
+while <tt>`^x /\ ^y`</tt> maps to
+<pre>
+[QUOTE "",ANTIQUOTE x, QUOTE "/\\", ANTIQUOTE y, QUOTE ""]
+</pre>
+(Note that the names <tt>frag</tt>, <tt>QUOTE</tt>, and <tt>ANTIQUOTE</tt>
+need to be qualified by the SMLofNJ structure-id, in practice.)
+<p>
+In this approach, the value of a quotation has type <tt>ol frag list</tt> where
+<tt>ol</tt> is the type of object language expressions; the type
+of the OL parser is <tt>ol frag list -> ol</tt>.
+<p>
+The OL parser (in our example, <tt>%</tt>) must handle these lists
+and insert the antiquoted ML values in the right places.
+
+<h3>CAVEATS</h3>
+Often one wants to parse stratified languages, such as first order
+logic, or typed lambda calculus, which requires a trick. Also, there is
+a bit of trickery when one wants to deal with ML-Yacc and ML-Lex,
+especially when functorizing the parser.
+
+<h3>SEE ALSO</h3>
+<A HREF="Compiler/pages/prettyprint.html">
+Compiler.PrettyPrint</A>
+</blockquote>
+<HR>
+<CENTER><STRONG>
+| <A HREF="../index.html">SML/NJ Home Page</A> | <br>
+| <A HREF="index.html">SML/NJ Documentation Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>

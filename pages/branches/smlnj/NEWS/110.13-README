@@ -1,0 +1,112 @@
+			S  M  L   /   N  J
+
+                  1  1  0  .  1  3      N  E  W  S
+			
+  		         January 16, 1999
+
+				WARNING
+
+        This version is intended for compiler hackers only.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot.  It only  supports the Sparc, 
+	Alpha, and HPPA architectures.  Furthermore, there are
+	performance bugs that have to be fixed.
+
+        http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+Summary:
+  This version provides support for loading the sources files for the
+  MLRISC Optimizer, and hooking it into the interactive loop. For now, 
+  the only source files that are loaded are ones that build all the 
+  fundamental compiler optimization data structures, and graphically 
+  viewers for them. 
+
+
+Demo:
+ 
+  Requires daVinci: ftp://ftp.uni-bremen.de/pub/graphics/daVinci, or
+  vcg: http://www.cs.uni-sb.de/RW/users/sander/html/gsvcg1.html
+  
+  The following steps exercises the current changes.
+
+    1. Loading the optimizer sources and set the hook using:
+
+	  CM.make'{force_relink=false, 
+	           group="src/compiler/MLRISC-OPTIMIZER.cm"};
+
+    2. At the top level execute:
+
+	 structure M = Compiler.Control.MLRISC;
+
+	 M.mlrisc :=true;				(* enable optimizer *)
+	 M.Visual.viewer := "daVinci";		(* set viewer *)
+	 M.view_IR := true;			(* enable viewer *)
+	 M.mlrisc_phases :=			(* set phases *)
+	  ["cluster->cfg", "view-dom", "cfg->cluster"];
+
+
+    3. Compiling anything from here onwards, will go through the 
+       optimizer. 
+ 
+  Currently, the optimizer uses two different representations:
+  the cluster and the IR.  The cluster is the old representation used
+  in the register allocator and instruction selection.  The IR
+  is the new representation.  Most new optimizations operate on
+  the new IR.
+
+  Several phases are possible in the mlrisc_phases list such as:
+
+   a. view-cfg  -- view control flow graph
+   b. view-dom  -- view dominator tree
+   c. view-pdom -- view post dominator tree
+   d. view-doms -- view dominator tree and post dominator tree together.
+                   The post dominator is upside down.
+   e. view-cdg  -- view control dependence graph
+   f. view-loop -- show loop nesting tree
+   g. guess     -- apply static branch prediction
+                   (this need better machine descriptions)
+   h. reshape   -- reorder the branch structure using frequencies 
+                    gathered by static branch prediction
+
+  All phases above transform IR into IR, so 
+  they must be enclosed in phases "cluster->cfg", and "cfg->cluster",
+  which translate clusters into IRs and vice versa.  In addition,
+  there is a phase "copy-prop", which performs copy propagation on
+  clusters.
+
+Changes:
+
+ .  The compiler uses  compiler/MLRISC.cm instead of the full
+    MLRISC/MLRISC.cm. 
+
+ .  FLOWGEN (MLRISC/cluster/flowgen.sml) now takes two functions:
+
+	val optimize : (cluster->cluster) option ref
+	val output : cluster->unit
+
+    Each of the CodeGen/<arch>/<arch>CG.sml file were changed to have
+    these. 
+
+ .  CodeGen/main/mlrisc-export.sml defines a structure of all modules
+    that must currently be exported from within the compiler. This 
+    structure is quite small (for now at least).
+
+ .  To get (6) above to work, I needed to establish the MLRISC
+    environment as normally seen
+    (CodeGen/optimizer/mlrisc-environment.sml), and set the 
+    interactive optimizer hook to the new optimizer
+    (CodeGen/optimizer/mlrisc-optimizer.sml).
+
+Files:
+   Deleted:
+	TopLevel/main/codes.sig 
+	CodeGen/main/cpsgen.sig
+   Added:
+	MLRISC.cm
+	MLRISC-OPTIMIZER.cm
+	TopLevel/main/code-generator.sig
+	CodeGen/main/machine.sig
+	CodeGen/main/machine-gen.sig
+	CodeGen/main/mlrisc-export.sml
+	CodeGen/optimizer/mlrisc-environment.sml
+	CodeGen/optimizer/mlrisc-optimizer.sml

@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Back End Optimizations</title>
+  </head>
+
+  <body bgcolor=#FFFFFF>
+   <CENTER>
+    <H1><FONT COLOR=#AA0000>Back End Optimizations</FONT></H1>
+   </CENTER>
+
+  Once MLRisc trees have been generated, they are passed into a module
+  that generates a flowgraph of target machine instructions. Again,
+  this module and all subsequent optimization phases have been
+  specialized to the front end.  <img alt="Back end optimizations"
+  align=right src=pictures/jpeg/optimization.jpg> Nearly all
+  instruction selection modules provided by MLRISC use a simple tree
+  pattern matching algorithm rather than the more heavy weight BURG
+  tools --- including the x86 <font color=#580000> It is important to
+  emphasis that all optimizations are performed on the flowgraph of
+  target machine instructions and <EM>not</EM> MLRisc
+  instructions. </font> There is complete flexibility in the order,
+  and nature of the optimizations performed. 
+
+    <hr>
+    <font size=-2>
+    <address><a href="mailto:george@vex.cs.bell-labs.com">Lal George</a></address>
+<!-- Created: Wed Apr 15 10:03:37 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Tue Apr 28 12:27:42 EDT 1998
+<!-- hhmts end -->
+    </font>
+  </body>
+</html>

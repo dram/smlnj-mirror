@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Development Info</title>
+  </head>
+
+  <body BGCOLOR="ffffff">
+<blockquote>
+    <h1>SML/NJ Development Info</h1>
+<p>
+<p>
+These pages contain planning and other information related to the
+development of SML/NJ.  The purpose is to coordinate between the
+geographically dispersed subgroups of the sml-nj community.  These
+pages are currently not being publiced beyond the sml-nj mailing
+list.
+<p>
+We want these pages to keep track of who is doing what, when, and why,
+and to map dependencies between efforts.  These pages are maintained
+by Lal and Dave, so please send them updates and corrections and
+relevant links.  Also suggestions are welcome as to what additional
+information should be maintained here.  For instance, it would be
+useful to document procedures used for overall source and version
+control for SML/NJ.
+<p>
+<h3>News</h3>
+<DL> 
+<DT> <strong>June 2001 SML/NJ Meeting</strong> [dbm]
+<DD> A status/planning meeting was held June 12, 2001 at Bell Labs.
+See the <a href="meeting.6.12.01.txt">meeting record</a>.  Send any
+corrections to dbm.
+<p>
+<DT> <strong>Status</strong> [dbm]
+<DD> Working version 110.33 is latest, created 23 May 2001.
+<p>
+<DT> <strong>Benchmark graphs</strong>
+<DD> Lal has added graphs of the benchmarks for a representative
+sample of version from 110.0.3 to 110.26.  See the Benchmarks section
+below.
+<p>
+<DT> <strong>Bug reports</strong>
+<DD> The bug report files have been brought up to date
+as of 21 Feb 2000.  As usual, see bugs.1401-1600, openbugs, and sortedbugs
+in
+<blockquote>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs/">
+ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs/</a>.
+</blockquote>
+</DL>
+<p>
+<h3>Yale CVS Repository</h3>
+We are using the Yale CVS Repository to hold the master code for
+the compiler, libraries and tools, and for private development
+branches.  The initial state of the repository is based on 
+working version 110.26 (even though this was never released as
+a normal working version).
+<p>
+<ul>
+<li><strong>Policy</strong>.  This <A HREF="policy.html">policy
+statement</A> lays out the rules and procedures for administering
+the CVS repository [last revised 3/8/00].
+<p><li><strong>Repository README</strong>. The
+<a href="cvs-readme.html"><strong>cvs-readme</strong></a>
+page contains instructions on accessing the Yale repository
+and instructions and advice on using CVS.
+<p><li><strong>Location</strong>.  The repository's CVS root is
+<pre>
+  flint.cs.yale.edu:/home/cvs
+</pre>
+<p><li><strong>Repository Map</strong>.  The structure of the repository is described by this
+<a href="cvs-map.html"><strong>map</strong></a>.
+<p><li><strong>Boot files</strong>. The location of the current boot files for building the
+compiler corresponding to the current state of the repository is
+given in the file <code>smlnj/BOOT</code> in the repository.  The file
+<code>smlnj/HISTORY</code> tracks all changes that have been committed.
+<p><li><strong>Mailing List</strong>. To get email reports on all commits to the repository,
+subscribe to the <a href="mailto:smlnj-cvs@rum.cs.yale.edu">smlnj-cvs</a> 
+mailing list by sending a message to
+<a href="mailto:smlnj-cvs-request@rum.cs.yale.edu">
+smlnj-cvs-request@rum.cs.yale.edu</a> with subject:
+<pre>
+  subscribe &lt;your@email.address&gt;
+</pre>
+<p>
+<li> <strong>Managing Branches</strong>.  CVS branches are useful but also tricky. 
+<a href="http://www.kurims.kyoto-u.ac.jp/~blume/SMLNJ-DEV/cvs.html">
+<strong>These notes</strong></a> by Matthias Blume
+provide a summary of useful commands and procedures to follow when
+using branches.  Additional advice on branches can be found in
+<a href="cvs-branch2.html">Stefan Monnier's follow-up notes</a>.
+</ul>
+<p>
+<h3>Benchmarks</h3>
+<p>
+All the benchmark compile times and run times have been graphed going
+back to 110.0.3. All measurements were done on a DEC alpha at the
+Labs. The following conclusions appear to be supported by the graphs:
+<ul>
+ <p><li> Version 110.12, which is the new array representation alone, 
+      did not have a significant impact on both compile and execution
+      time. 
+
+  <p><li> Version 110.11 (the combination of NEW FLINT and array
+	  representation) did have a significant overall impact.
+	  Note that the NEW FLINT was subsequently retracted. 
+
+  <p><li> In general execution time has remained the same or has
+	  steadily improved over the working versions. 
+
+  <p><li> Compile time has steadily increased but not by anything
+	  significant. 
+</ul>
+<p>
+<a href="benchmarks/main.html"> Look here for more details.</a>
+
+<h3>Roadmaps</h3>
+The roadmaps below are way out of date.  We need to revised these.
+<UL>
+<LI><a href="compiler-1-17">Winter/Spring 99</a>
+<LI>A planning meeting was held on April 22 at Murray Hill.  The
+<A HREF="agenda.4.22.99.txt">agenda</a> and dbm's
+<A HREF="notes.4.22.99.txt">meeting notes</a> are available here.
+Please send dbm any corrections, clarifications, or additions to
+the notes.
+<LI><a href="compiler-6-2">Summer 99</a>
+</UL>
+
+<h3>Links</h3>
+<p>
+These are links to development pages maintained by subgroups of sml-nj.
+<UL>
+<LI><a href="http://www.kurims.kyoto-u.ac.jp/~blume/SMLNJ-DEV/">
+Matthias Blume</a> [updated July 6, 2000]
+<LI><a href="http://flint.cs.yale.edu/SMLNJ-DEV/devplan.html">FLINT</a>
+</UL>
+  
+<h3>SML/NJ Developers mailing lists</h3>
+There are two mailing lists for communication to and among the SML/NJ
+developers.  The addresses are:
+<pre>
+  <a href="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</a>
+  <a href="mailto:sml-bugs@research.bell-labs.com">sml-bugs@research.bell-labs.com</a>
+</pre>
+Currently, both mailing lists go to the same group of people, and the
+members are listed below.
+<menu>
+<LI><a href="mailto:george@research.bell-labs.com">Lal George (Bell Labs)</a>
+<LI><a href="mailto:elsa@research.bell-labs.com">Elsa Gunter (Bell Labs)</a>
+<LI><a href="mailto:nch@research.bell-labs.com">Nevin Heintze (Bell Labs)</a>
+<LI><a href="mailto:lorenz@research.bell-labs.com">Lorenz Huelsbergen (Bell Labs)</a>
+<LI><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen (Bell Labs)</a>
+<LI><a href="mailto:jhr@research.bell-labs.com">John Reppy (Bell Labs)</a>
+<LI><a href="mailto:oliva@research.bell-labs.com">Dino Oliva (Bell Labs)</a>
+<LI><a href="mailto:riccardo@research.bell-labs.com">Riccardo Pucella (Bell Labs)</a>
+<LI><a href="mailto:appel@princeton.edu">Andrew Appel (Princeton)</a>
+<LI><a href="mailto:danwang@cs.princeton.edu">Dan Wang (Princeton)</a>
+<LI><a href="mailto:erg@research.att.com">Emden Gansner (AT&T)</a>
+<LI><a href="mailto:blume@kurims.kyoto-u.ac.jp">Matthias Blume (Kyoto)</a>
+<LI><a href="mailto:shao-zhong@cs.yale.edu">Zhong Shao (Yale)</a>
+<LI><a href="mailto:monnier-stefan@cs.yale.edu">Stefan Monnier (Yale)</a>
+<LI><a href="mailto:league-christopher@cs.yale.edu">Christopher League (Yale)</a>
+<LI><a href="mailto:saha-bratin@cs.yale.edu">Saha Bratin (Yale)</a>
+<LI><a href="mailto:trifonov-valery@cs.yale.edu">Valery Trifonov (Yale)</a>
+<LI><a href="mailto:leunga@cs.nyu.edu">Alan Leung (NYU)</a>
+</menu>
+
+<blockquote>
+
+    <hr>
+    <address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Mon Feb  1 14:34:20 EST 1999 -->
+<!-- hhmts start -->
+Last modified: Wed Jun 13 16:08:45 EDT 2001
+<!-- hhmts end -->
+  </body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>4.1.6 Library registry</TITLE>
+<META NAME="description" CONTENT="4.1.6 Library registry">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node28.html">
+<LINK REL="previous" HREF="node26.html">
+<LINK REL="up" HREF="node21.html">
+<LINK REL="next" HREF="node28.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html600"
+ HREF="node28.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html596"
+ HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html590"
+ HREF="node26.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html598"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html601"
+ HREF="node28.html">4.1.7 Internal state</A>
+<B> Up:</B> <A NAME="tex2html597"
+ HREF="node21.html">4.1 Structure CM</A>
+<B> Previous:</B> <A NAME="tex2html591"
+ HREF="node26.html">4.1.5 Setting CM variables</A>
+ &nbsp <B>  <A NAME="tex2html599"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION00051600000000000000"></A>
+<A NAME="sec:libreg"></A>
+<BR>
+4.1.6 Library registry
+</H3>
+
+<P>
+To be able to share associated data structures such as symbol tables
+and dependency graphs, CM maintains an internal registry of all stable
+libraries that it has encountered during an ongoing interactive
+session.  The <TT> CM.Library</TT> sub-structure of structure <TT> CM</TT>
+provides access to this registry.
+
+<P>
+ 
+<PRE>
+
+  structure Library : sig
+    type lib
+    val known : unit -&gt; lib list
+    val descr : lib -&gt; string
+    val osstring : lib -&gt; string
+    val dismiss : lib -&gt; unit
+    val unshare : lib -&gt; unit
+  end
+</PRE>
+
+<P>
+ 
+<TT> CM.Library.known</TT>, when called, produces a list of currently
+known stable libraries.  Each such library is represented by an
+element of the abstract data type <TT> CM.Library.lib</TT>.
+
+<P>
+ 
+<TT> CM.Library.descr</TT> extracts a string describing the location of
+the CM description file associated with the given library.  The syntax
+of this string is almost the same as that being used by CM's
+master-slave protocol (see section&nbsp;<A HREF="node77.html#sec:pathencode">12.1</A>).
+
+<P>
+ 
+<TT> CM.Library.osstring</TT> produces a string denoting the given
+library's description file using the underlying operating system's
+native pathname syntax.  In other words, the result of a call of <TT> 
+CM.Library.osstring</TT> is suitable as an argument to <TT> 
+TextIO.openIn</TT>.
+
+<P>
+ 
+<TT> CM.Library.dismiss</TT> is used to remove a stable library from CM's
+internal registry.  Although removing a library from the registry may
+recover considerable amounts of main memory, doing so also eliminates
+any chance of sharing the associated data structures with later
+references to the same library.  Therefore, it is not always in the
+interest of memory-conscious users to use this feature.
+
+<P>
+While dependency graphs and symbol tables need to be reloaded when a
+previously dismissed library is referenced again, the sharing of
+link-time state created by this library is <EM> not</EM> affected.
+(Link-time state is independently maintained in a separate data
+structure.  See the discussion of <TT> CM.unshare</TT> below.)
+
+<P>
+ 
+<TT> CM.Library.unshare</TT> is used to remove a stable library from CM's
+internal registry, and--at the same time--to inhibit future sharing
+with its existing link-time state.  Any future references to this
+library will see newly created state (which will then be properly
+shared again).  (<B> Warning:</B> <I> This feature is not the preferred
+way of creating unshared state; use functors for that.  However, it
+can come in handy when two different (and perhaps incompatible)
+versions of the same library are supposed to coexist--especially if
+one of the two versions is used by SML/NJ itself.  Normally, only
+programmers working on SML/NJ's compiler are expected to be using this
+facility.</I>)
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html600"
+ HREF="node28.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html596"
+ HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html590"
+ HREF="node26.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html598"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html601"
+ HREF="node28.html">4.1.7 Internal state</A>
+<B> Up:</B> <A NAME="tex2html597"
+ HREF="node21.html">4.1 Structure CM</A>
+<B> Previous:</B> <A NAME="tex2html591"
+ HREF="node26.html">4.1.5 Setting CM variables</A>
+ &nbsp <B>  <A NAME="tex2html599"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,157 @@
+<!-- HTML/smlnj.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SMLofNJ structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>SMLofNJ</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SML_OF_NJ:SIG:SPEC"><CODE>SML_OF_NJ</CODE></A><BR>
+<B>structure </B><A NAME="SMLofNJ:STR:SPEC"><CODE>SMLofNJ</CODE></A><B> : </B>SML_OF_NJ<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> <A NAME="SIG:SML_OF_NJ.Cont:STR:SPEC" HREF="#SIG:SML_OF_NJ.Cont:STR">Cont</A> <B>:</B> <A HREF="cont.html#CONT:SIG:SPEC">CONT</A><BR>
+<B>structure</B> <A NAME="SIG:SML_OF_NJ.IntervalTimer:STR:SPEC" HREF="#SIG:SML_OF_NJ.IntervalTimer:STR">IntervalTimer</A> <B>:</B> <A HREF="interval-timer.html#INTERVAL_TIMER:SIG:SPEC">INTERVAL_TIMER</A><BR>
+<B>structure</B> <A NAME="SIG:SML_OF_NJ.Internals:STR:SPEC" HREF="#SIG:SML_OF_NJ.Internals:STR">Internals</A> <B>:</B> <A HREF="internals.html#INTERNALS:SIG:SPEC">INTERNALS</A><BR>
+<B>structure</B> <A NAME="SIG:SML_OF_NJ.SysInfo:STR:SPEC" HREF="#SIG:SML_OF_NJ.SysInfo:STR">SysInfo</A> <B>:</B> <A HREF="sysinfo.html#SYS_INFO:SIG:SPEC">SYS_INFO</A><BR>
+<B>structure</B> <A NAME="SIG:SML_OF_NJ.Susp:STR:SPEC" HREF="#SIG:SML_OF_NJ.Susp:STR">Susp</A> <B>:</B> <A HREF="susp.html#SUSP:SIG:SPEC">SUSP</A><BR>
+<B>structure</B> <A NAME="SIG:SML_OF_NJ.Weak:STR:SPEC" HREF="#SIG:SML_OF_NJ.Weak:STR">Weak</A> <B>:</B> <A HREF="weak.html#WEAK:SIG:SPEC">WEAK</A><BR>
+<B>val</B> <A NAME="SIG:SML_OF_NJ.exportML:VAL:SPEC" HREF="#SIG:SML_OF_NJ.exportML:VAL">exportML</A> <B>:</B> string -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:SML_OF_NJ.exportFn:VAL:SPEC" HREF="#SIG:SML_OF_NJ.exportFn:VAL">exportFn</A> <B>:</B> (string * ((string * string list) -&gt; OS.Process.status)) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SML_OF_NJ.getCmdName:VAL:SPEC" HREF="#SIG:SML_OF_NJ.getCmdName:VAL">getCmdName</A> <B>:</B> unit -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SML_OF_NJ.getArgs:VAL:SPEC" HREF="#SIG:SML_OF_NJ.getArgs:VAL">getArgs</A> <B>:</B> unit -&gt; string list         <BR>
+<B>val</B> <A NAME="SIG:SML_OF_NJ.getAllArgs:VAL:SPEC" HREF="#SIG:SML_OF_NJ.getAllArgs:VAL">getAllArgs</A> <B>:</B> unit -&gt; string list         <BR>
+<B>datatype</B> 'a <A NAME="SIG:SML_OF_NJ.frag:TY:SPEC" HREF="#SIG:SML_OF_NJ.frag:TY">frag</A><BR>
+&nbsp;&nbsp;<B>=</B> QUOTE <B>of</B> string         <BR>
+&nbsp;&nbsp;<B>|</B> ANTIQUOTE <B>of</B> 'a       <BR>
+<B>val</B> <A NAME="SIG:SML_OF_NJ.exnHistory:VAL:SPEC" HREF="#SIG:SML_OF_NJ.exnHistory:VAL">exnHistory</A> <B>:</B> exn -&gt; string list         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SML_OF_NJ.Cont:STR"><CODE><B>structure</B> Cont</CODE></A>
+<DD>
+First-class continuations and their operators.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.IntervalTimer:STR"><CODE><B>structure</B> IntervalTimer</CODE></A>
+<DD>
+Delivers alarm signal at specified intervals.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.Internals:STR"><CODE><B>structure</B> Internals</CODE></A>
+<DD>
+Ways to tweak the runtime system and read-eval-print loop.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.SysInfo:STR"><CODE><B>structure</B> SysInfo</CODE></A>
+<DD>
+What hardware and operating system are we running on?     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.Susp:STR"><CODE><B>structure</B> Susp</CODE></A>
+<DD>
+Suspensions for lazy evaluation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.Weak:STR"><CODE><B>structure</B> Weak</CODE></A>
+<DD>
+Weak pointers that don't keep objects alive.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.exportML:VAL"><CODE>exportML <VAR>filename</VAR>
+          </CODE></A>
+<DD>
+Dump the current state of the ML process into a heap image           called <CODE><VAR>filename</VAR>.arch-opsys</CODE> (where           <CODE>arch</CODE> is the machine architecture, such as <CODE>&quot;sparc&quot;</CODE>           or <CODE>&quot;x86&quot;</CODE>, and <CODE>opsys</CODE> is the operating system,           such as <CODE>&quot;solaris&quot;</CODE> or <CODE>&quot;win32&quot;</CODE>;            and return false.           
+<P>
+          When the heap image is loaded into an SML runtime system,           (with <CODE>sml @SMLload=filename.arch-opsys</CODE>, computation will            resume as if <A HREF="smlnj.html#SIG:SML_OF_NJ.exportML:VAL:SPEC">exportML</A> had returned true.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.exportFn:VAL"><CODE>exportFn (<VAR>filename</VAR>, <VAR>f</VAR>)
+          </CODE></A>
+<DD>
+Dump the function <VAR>f</VAR> into a heap image           called <CODE><VAR>filename</VAR>.arch-opsys</CODE> (where           <CODE>arch</CODE> is the machine architecture, such as <CODE>&quot;sparc&quot;</CODE>           or <CODE>&quot;x86&quot;</CODE>, and <CODE>opsys</CODE> is the operating system,           such as <CODE>&quot;solaris&quot;</CODE> or <CODE>&quot;win32&quot;</CODE>;            and then exit.           
+<P>
+          When the heap image is loaded into an SML runtime system,           (with <CODE>sml @SMLload=filename.arch-opsys arg1 arg2 ...</CODE>,  	  computation will            start with a call to <CODE><VAR>f</VAR>(arg0,[arg1,arg2,...])</CODE>           where <CODE>arg0</CODE> is the name of the           executable file (in this example, the pathname expansion           of <CODE>sml</CODE>).           
+<P>
+          When <VAR>f</VAR> returns, the ML process terminates, with the 	  process termination condition determined by the value returned by 	  <VAR>f</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.getCmdName:VAL"><CODE>getCmdName <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Get the command name by which ML was invoked            (in Unix, the &quot;zeroth&quot; command-line argument).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.getArgs:VAL"><CODE>getArgs <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Get the command-line arguments from when ML was invoked, 	  not including the &quot;zeroth&quot; argument (in Unix) that is            the command name, and not including any arguments starting           with <TT>@SML</TT> (which are directives to the ML runtime system).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.getAllArgs:VAL"><CODE>getAllArgs <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Get all the arguments to the ML process, including the            zeroth argument and also arguments starting with <TT>@SML</TT>            (which are directives to the ML runtime system).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.frag:TY"><CODE><B>datatype</B> 'a frag</CODE></A>
+<DD>
+	A datatype used by the quote/antiquote mechanism         for object-language parsing; see also 	<A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Compiler/pages/control.html#SIG:CONTROL.quotation:VAL:SPEC">Compiler.Control.quotation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SML_OF_NJ.exnHistory:VAL"><CODE>exnHistory <VAR>exn</VAR>
+          </CODE></A>
+<DD>
+Return the exception history of <VAR>exn</VAR>, showing where it            was first raised and through which exception-handlers it           has been passed (or reraised).  Each string in the list           describes the source-file and line number of the raising           (or reraising) code; the most recent handler (or reraise)           is first, the earliest raising point is last.           
+<P>
+          Code compiled with 	  <A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Compiler/pages/control.html#SIG:CONTROL.trackExn:VAL:SPEC">Compiler.Control.trackExn</A> 	  set to <CODE>false</CODE> does not generate exception histories.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified December 19, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

@@ -1,0 +1,91 @@
+<!-- HTML/bool.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Bool structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Bool</CODE> structure</H3>
+<P>
+The Bool structure provides some basic operations on boolean values. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="BOOL:SIG:SPEC"><CODE>BOOL</CODE></A><BR>
+<B>structure </B><A NAME="Bool:STR:SPEC"><CODE>Bool</CODE></A><B> : </B>BOOL<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>datatype</B> <A NAME="SIG:BOOL.bool:TY:SPEC" HREF="#SIG:BOOL.bool:TY">bool</A> <B>=</B> <B>datatype</B> bool<BR>
+<B>val</B> <A NAME="SIG:BOOL.not:VAL:SPEC" HREF="#SIG:BOOL.not:VAL">not</A> <B>:</B> bool -&gt; bool     <BR>
+<B>val</B> <A NAME="SIG:BOOL.fromString:VAL:SPEC" HREF="#SIG:BOOL.fromString:VAL">fromString</A> <B>:</B> string -&gt; bool option   <BR>
+<B>val</B> <A NAME="SIG:BOOL.scan:VAL:SPEC" HREF="#SIG:BOOL.fromString:VAL">scan</A> <B>:</B> (char, 'a) StringCvt.reader -&gt; 'a -&gt; (bool * 'a) option     <BR>
+<B>val</B> <A NAME="SIG:BOOL.toString:VAL:SPEC" HREF="#SIG:BOOL.toString:VAL">toString</A> <B>:</B> bool -&gt; string     <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:BOOL.bool:TY"><CODE><B>datatype</B> bool</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:BOOL.not:VAL"><CODE>not <VAR>b</VAR>
+      </CODE></A>
+<DD>
+returns the logical negation of the boolean value <VAR>b</VAR>.   
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BOOL.fromString:VAL"><CODE>fromString <VAR>s</VAR>
+      </CODE></A>
+<DT> <CODE>	scan <VAR>getc</VAR> <VAR>strm</VAR>
+      </CODE>
+<DD>
+scan a boolean value from a stream of characters.       Ignoring case and initial whitespace,       the sequences <CODE>&quot;true&quot;</CODE> and <CODE>&quot;false&quot;</CODE> are converted to the       corresponding boolean values, respectively.       
+<P>
+      The function <CODE>fromString</CODE> takes a string <VAR>s</VAR> as its source       of characters.       It returns <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A> <VAR>b</VAR></CODE> for a scanned value <VAR>b</VAR>;       otherwise it returns <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A>.       Note that the function <CODE>fromString</CODE> is equivalent to       <CODE><A HREF="string-cvt.html#SIG:STRING_CVT.scanString:VAL:SPEC">StringCvt.scanString</A> scan</CODE>.       
+<P>
+      The function <CODE>scan</CODE> takes a character stream       reader <VAR>getc</VAR> and a stream <VAR>strm</VAR>.       On successful scanning of a boolean value, it returns       <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A>(<VAR>b</VAR>, <VAR>strm'</VAR>)</CODE>, where        <VAR>b</VAR> is the scanned value       and <VAR>strm'</VAR> is the remaining character stream.       The type of <A HREF="#SIG:BOOL.scan:VAL:SPEC">scan</A> can also be written as       <CODE>(char, 'a) StringCvt.reader -&gt; (bool, 'a) StringCvt.reader</CODE>.   
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BOOL.toString:VAL"><CODE>toString <VAR>b</VAR>
+      </CODE></A>
+<DD>
+returns the string representation, which is either <CODE>&quot;true&quot;</CODE>       or <CODE>&quot;false&quot;</CODE>, of the boolean value <VAR>b</VAR>.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="string-cvt.html#StringCvt:STR:SPEC">StringCvt</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="general-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified February 25, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

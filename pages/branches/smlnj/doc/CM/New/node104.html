@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>F..3 Libraries for SML/NJ compiler hackers</TITLE>
+<META NAME="description" CONTENT="F..3 Libraries for SML/NJ compiler hackers">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node105.html">
+<LINK REL="previous" HREF="node103.html">
+<LINK REL="up" HREF="node101.html">
+<LINK REL="next" HREF="node105.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1564"
+ HREF="node105.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1560"
+ HREF="node101.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1554"
+ HREF="node103.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1562"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1565"
+ HREF="node105.html">F..4 Internal libraries</A>
+<B> Up:</B> <A NAME="tex2html1561"
+ HREF="node101.html">F. Available libraries</A>
+<B> Previous:</B> <A NAME="tex2html1555"
+ HREF="node103.html">F..2 Libraries for controlling</A>
+ &nbsp <B>  <A NAME="tex2html1563"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000233000000000000000">
+F..3 Libraries for SML/NJ compiler hackers</A>
+</H2>
+
+<P>
+The following table lists libraries that provide access to the SML/NJ
+<EM> bootstrap compiler</EM>.  The bootstrap compiler is a derivative of
+the compilation manager.  In addition to being able to recompile
+SML/NJ for the ``host'' system there are also cross-compilers that
+can target all of SML/NJ's supported platforms.
+
+<P>
+ 
+
+<DIV ALIGN="CENTER"><TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1">
+name </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> description </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> installed </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> loaded </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb.cm</TT> <BR>
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb/current.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> bootstrap compiler for current
+architecture and OS </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb/alpha32-unix.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> bootstrap compiler for Alpha/Unix
+systems </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb/hppa-unix.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> bootstrap compiler for HP-PA/Unix
+systems </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb/ppc-macos.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> bootstrap compiler for PowerPC/Unix
+systems </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb/ppc-unix.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> bootstrap compiler for PowerPC/MacOS
+systems </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb/sparc-unix.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> bootstrap compiler for Sparc/Unix
+systems </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb/x86-unix.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> bootstrap compiler for IA32/Unix
+systems </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/cmb/x86-win32.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> bootstrap compiler for IA32/Win32
+systems </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler/alpha32.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> visible compiler with backend for
+Alpha-specific cross-compiler </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler/hppa.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> visible compiler with backend for
+HP-PA-specific cross-compiler </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler/ppc.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> visible compiler with backend for
+PowerPC-specific cross-compiler </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler/sparc.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> visible compiler with backend for
+Sparc-specific cross-compiler </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler/x86.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> visible compiler with backend for
+IA32-specific cross-compiler </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no </FONT></TD>
+</TR>
+<TR><TD ALIGN="LEFT" VALIGN="TOP" WIDTH=166><FONT SIZE="-1"> 
+
+</FONT><FONT SIZE="-1"><TT> $smlnj/compiler/all.cm</TT> </FONT></TD>
+<TD ALIGN="LEFT" VALIGN="TOP" WIDTH=209><FONT SIZE="-1"> visible compiler, backends and
+bootstrap compilers for all architectures </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> always </FONT></TD>
+<TD ALIGN="CENTER"><FONT SIZE="-1"> no
+</FONT></TD>
+</TR>
+</TABLE></DIV>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1564"
+ HREF="node105.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1560"
+ HREF="node101.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1554"
+ HREF="node103.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1562"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1565"
+ HREF="node105.html">F..4 Internal libraries</A>
+<B> Up:</B> <A NAME="tex2html1561"
+ HREF="node101.html">F. Available libraries</A>
+<B> Previous:</B> <A NAME="tex2html1555"
+ HREF="node103.html">F..2 Libraries for controlling</A>
+ &nbsp <B>  <A NAME="tex2html1563"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

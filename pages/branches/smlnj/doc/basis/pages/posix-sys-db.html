@@ -1,0 +1,172 @@
+<!-- HTML/posix-sys-db.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Posix.SysDB structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align=CENTER>The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Posix.SysDB</CODE> structure</H3>
+<P>
+ The Posix.SysDB structure implements operations on the user database and the group database (in POSIX parlance, the password file and the group file).  These are the data and operations described in Section 9 of the POSIX standard <B>[CITE]</B>1003.1,1996/. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="POSIX_SYS_DB:SIG:SPEC"><CODE>POSIX_SYS_DB</CODE></A><BR>
+<B>structure </B><A NAME="SysDB:STR:SPEC"><CODE>SysDB</CODE></A><B> : </B>POSIX_SYS_DB<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:POSIX_SYS_DB.uid:TY:SPEC" HREF="#SIG:POSIX_SYS_DB.uid:TY">uid</A><BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_SYS_DB.gid:TY:SPEC" HREF="#SIG:POSIX_SYS_DB.gid:TY">gid</A><BR>
+<B>structure</B> <A NAME="SIG:POSIX_SYS_DB.Passwd:STR:SPEC" HREF="#SIG:POSIX_SYS_DB.Passwd:STR">Passwd</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>type</B> <A NAME="SIG:POSIX_SYS_DB.Passwd.passwd:TY:SPEC" HREF="#SIG:POSIX_SYS_DB.Passwd.passwd:TY">passwd</A><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_SYS_DB.Passwd.name:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.Passwd.name:VAL">name</A> <B>:</B> passwd -&gt; string             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_SYS_DB.Passwd.uid:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.Passwd.uid:VAL">uid</A> <B>:</B> passwd -&gt; uid             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_SYS_DB.Passwd.gid:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.Passwd.gid:VAL">gid</A> <B>:</B> passwd -&gt; gid             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_SYS_DB.Passwd.home:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.Passwd.home:VAL">home</A> <B>:</B> passwd -&gt; string             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_SYS_DB.Passwd.shell:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.Passwd.shell:VAL">shell</A> <B>:</B> passwd -&gt; string             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>structure</B> <A NAME="SIG:POSIX_SYS_DB.Group:STR:SPEC" HREF="#SIG:POSIX_SYS_DB.Group:STR">Group</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>type</B> <A NAME="SIG:POSIX_SYS_DB.Group.group:TY:SPEC" HREF="#SIG:POSIX_SYS_DB.Group.group:TY">group</A><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_SYS_DB.Group.name:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.Group.name:VAL">name</A> <B>:</B> group -&gt; string             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_SYS_DB.Group.gid:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.Group.gid:VAL">gid</A> <B>:</B> group -&gt; gid             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_SYS_DB.Group.members:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.Group.members:VAL">members</A> <B>:</B> group -&gt; string list             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>val</B> <A NAME="SIG:POSIX_SYS_DB.getgrgid:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.getgrgid:VAL">getgrgid</A> <B>:</B> gid -&gt; Group.group       <BR>
+<B>val</B> <A NAME="SIG:POSIX_SYS_DB.getgrnam:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.getgrgid:VAL">getgrnam</A> <B>:</B> string -&gt; Group.group       <BR>
+<B>val</B> <A NAME="SIG:POSIX_SYS_DB.getpwuid:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.getgrgid:VAL">getpwuid</A> <B>:</B> uid -&gt; Passwd.passwd       <BR>
+<B>val</B> <A NAME="SIG:POSIX_SYS_DB.getpwnam:VAL:SPEC" HREF="#SIG:POSIX_SYS_DB.getgrgid:VAL">getpwnam</A> <B>:</B> string -&gt; Passwd.passwd         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:POSIX_SYS_DB.uid:TY"><CODE><B>eqtype</B> uid</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.gid:TY"><CODE><B>eqtype</B> gid</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Passwd:STR"><CODE><B>structure</B> Passwd</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:POSIX_SYS_DB.Passwd.passwd:TY"><CODE><B>type</B> passwd</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Passwd.name:VAL"><CODE>name <VAR>pa</VAR>
+              </CODE></A>
+<DD>
+extracts the user name from the user database entry <VAR>pa</VAR> (in POSIX terminology, the <CODE>pw_name</CODE> field).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Passwd.uid:VAL"><CODE>uid <VAR>pa</VAR>
+              </CODE></A>
+<DD>
+extracts the user id from the user database entry <VAR>pa</VAR> (in POSIX terminology, the <CODE>pw_uid</CODE> field).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Passwd.gid:VAL"><CODE>gid <VAR>pa</VAR>
+              </CODE></A>
+<DD>
+extracts the group id from the user database entry <VAR>pa</VAR> (in POSIX terminology, the <CODE>pw_gid</CODE> field).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Passwd.home:VAL"><CODE>home <VAR>pa</VAR>
+              </CODE></A>
+<DD>
+extracts the path of the initial working directory from the user database entry <VAR>pa</VAR> (in POSIX terminology, the <CODE>pw_dir</CODE> field).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Passwd.shell:VAL"><CODE>shell <VAR>pa</VAR>
+              </CODE></A>
+<DD>
+extracts the path of the initial shell from the user database entry <VAR>pa</VAR> (in POSIX terminology, the <CODE>pw_shell</CODE> field).         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_SYS_DB.Group:STR"><CODE><B>structure</B> Group</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:POSIX_SYS_DB.Group.group:TY"><CODE><B>type</B> group</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Group.name:VAL"><CODE>name <VAR>gr</VAR>
+              </CODE></A>
+<DD>
+extracts the group name from the group database entry <VAR>gr</VAR> (in POSIX terminology, the <CODE>gr_name</CODE> field).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Group.gid:VAL"><CODE>gid <VAR>gr</VAR>
+              </CODE></A>
+<DD>
+extracts the group id from the group database entry <VAR>gr</VAR> (in POSIX terminology, the <CODE>gr_gid</CODE> field).         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_SYS_DB.Group.members:VAL"><CODE>members <VAR>gr</VAR>
+              </CODE></A>
+<DD>
+extracts the list of group members (user names) from the group database entry <VAR>gr</VAR> (in POSIX terminology, the <CODE>gr_mem</CODE> field).         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_SYS_DB.getgrgid:VAL"><CODE>getgrgid <VAR>gid</VAR>
+          </CODE></A>
+<DT> <CODE>          getgrnam <VAR>s</VAR>
+          </CODE>
+<DT> <CODE>          getpwuid <VAR>uid</VAR>
+          </CODE>
+<DT> <CODE>          getpwnam <VAR>s</VAR>
+          </CODE>
+<DD>
+return the group or user database entry associated           with the given group or user id, or group or user name.           Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if there is no group or user            with the given id or name.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="posix.html#Posix:STR:SPEC">Posix</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="posix-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified April 11, 1996</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

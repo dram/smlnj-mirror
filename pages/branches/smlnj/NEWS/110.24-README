@@ -1,0 +1,161 @@
+
+			S  M  L   /   N  J
+
+                  1  1  0  .  2 4      N  E  W  S
+			
+  		          November 1, 1999
+
+				WARNING
+
+  	This version is intended for compiler hackers.
+	We are in the midst of substantial structural changes,
+	and this is a snapshot.
+
+       http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+------------------------------------------------------------------------ 
+
+Summary:
+ 
+  This version is primarily intended to introduce parallel and
+  distributed compilation in CM. On a lightly loaded 533MHz 21164, the
+  compiler compiled itself in 7m36s (all times are real/wall-clock
+  times). Using 4 similar, but remote machines in parallel, the 
+  compile time was reduced to 3m38s -- more than a factor of two.
+  
+  This release also includes further MLRISC infra-structure to support
+  lcc to C--.   
+------------------------------------------------------------------------
+CM: 
+             Parallel and Distributed compilation
+
+  Firing up on host machine:
+
+    To perform parallel compilations, you must attach "compile servers"
+    to CM.  This is done using function CM.server_start with the
+    following signature:
+
+      val server_start :
+	   { name: string,
+	     pathtrans: (string -> string) option,
+	     cmd: string * string list } -> bool,
+	     pref : int
+	    }
+
+    "name" is a string uniquely identifying the server and "cmd" is
+    a value suitable as argument to Unix.execute.  (Since you are
+    asking: no, there is only a dummy implementation of this for
+    non-Unix systems.) 
+
+    If the path to the sml  executable is  /path/to/smlnj/bin/sml,
+    then a server process on the local machine  could be started by:
+
+      CM.server_start
+	  { name = "A", 
+	    pathtrans = NONE,
+	    cmd = ("/path/to/smlnj/bin/sml", ["@CMslave"]),
+	    pref = 0
+           };
+
+    The command line argument @CMslave puts sml into "slave mode".
+    pref is a numeric rating when choosing between idle slaves. Higher 
+    values of pref are given greater preference.
+
+  Firing up on remote machines:
+
+    To run a process on a remote machine, e.g., "thatmachine", as
+    compute server, you should be using something like "rsh".  (You
+    must specify the full path to "rsh" in the command because that's
+    what Unix.execute wants. I.e., no PATH search. :-( ) The remote
+    machine must share the file system with the local machine via
+    something like NFS.
+
+      CM.server_start
+         { name = "thatmachine", 
+	   pathtrans = NONE,
+           cmd = ("/usr/ucb/rsh", 
+	          ["thatmachine", "/path/to/smlnj/bin/sml",
+                   "@CMslave"]) 
+	   pref
+          };
+
+    You can start as many servers as you want, but they all must have
+    different names.  If you attach any servers at all, then you should
+    attach at least two (unless you want to attach one that runs on a
+    machine vastly more powerful than your local one).  Local servers make
+    sense on multi-CPU machines: start as many servers as there are CPUs.
+
+  File paths:
+
+    For local servers, "pathtrans" can be safely left at "NONE".  If
+    you connect to a remote server, you can use "pathtrans" to specify
+    a function for translating local absolute pathnames to remote
+    absolute pathnames.  This can be a bit tricky to get right,
+    especially if the machines use automounters and such.  Here is an
+    area that definitely is only "alpha".
+
+  Go for it:
+
+    After you have attached your servers, you should be able to do 
+    CM.recomp, CM.make, CM.stabilize, CMB.make, CMB.deliver, etc. as
+    usual.  Cross-compilers (<Arch><OS>CMB.make ...) also work. If you
+    are using "CM.xxx" functions, all attached servers must have
+    the same architecture as your local one.  For "CMB.xxx" functions
+    this requirement does not exist because there are cross-compilers
+    available on the slave side, too. (I have not tested a
+    mixed-architecture setup, though).
+
+  Verbose:
+
+    For fun (or trouble-shooting), you can watch the master-slave 
+    protocol by setting CM.debug to true (#set CM.debug true;)
+
+  Races:
+
+    You might experience strange things in case of compile errors or
+    interrupts. Please report bugs.  Attached servers should go
+    away if you quit the contolling sml session. Warning: Be careful
+    though, because this feature is a bit fragile.  If servers don't
+    go away they tend to spin rapidly and suck up large quantities of
+    CPU cycles. 
+
+  PervEnv:
+
+    Since the protocol is fairly simple and brain-dead, it cannot
+    handle complicated things like setting up the initial (pervasive)
+    environment in the case of CMB.make.  Therefore, this will be done
+    locally by the "master" process.
+
+  Control-C:
+
+     When pressing ^C, you will experience a certain delay if servers
+     are currently attached and busy.  This is because the
+     interrupt-handling code will wait for the servers to finish what
+     they are currently doing and bring them back to an "idle" state.
+
+------------------------------------------------------------------------
+MLRISC:
+  o BLOCK_NAME annotation:
+ 
+      During flowgraph generation, this annotation gives a user
+      defined name to each basic block that is subsequently 
+      generated. 
+
+  o EMPTY_BLOCK annotation:
+
+      SSA conversion requires an empty block at nodes that are global
+      entry points as well as entry points from within the cluster. 
+      The EMPTY_BLOCK annotation forces an empty basic block. Note
+      that defining two labels consecutively does not create an empty
+      block.
+
+  o The flag "asm-show-cellset" will list the definition and uses
+    of CALL instructions during assembly listing.
+
+  o MLTREE.CVTI2I did needless sign-extension when converting from 32
+    to 64 bits, which is now fixed. CVTI2I now explicitly mentions the
+    size of the source and destination.
+
+  o MLTREE and related signatures have been simplified so that the
+    large number of where clauses used in several places are no longer 
+    required.

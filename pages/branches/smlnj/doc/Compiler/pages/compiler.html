@@ -1,0 +1,153 @@
+<!-- HTML/compiler.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Compiler structure</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>Compiler</CODE> structure</H3>
+<P>
+The <A HREF="#Compiler:STR:SPEC">Compiler</A> structure provides access to &quot;The Visible Compiler&quot; of Standard ML of New Jersey.  Individual modules that control the major phases of compilation can be accessed in a type-safe way by user programs.  In this way such utilities as the Compilation Manager can be implemented outside of the compiler itself.
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="VISCOMP:SIG:SPEC"><CODE>VISCOMP</CODE></A><BR>
+<B>structure </B><A NAME="Compiler:STR:SPEC"><CODE>Compiler</CODE></A><B> : </B>VISCOMP<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> <A NAME="SIG:VISCOMP.Stats:STR:SPEC" HREF="#SIG:VISCOMP.Stats:STR">Stats</A> <B>:</B> STATS<BR>
+<B>structure</B> <A NAME="SIG:VISCOMP.Control:STR:SPEC" HREF="#SIG:VISCOMP.Control:STR">Control</A> <B>:</B> <A HREF="control.html#CONTROL:SIG:SPEC">CONTROL</A><BR>
+<B>structure</B> Source <B>:</B> <A HREF="source.html#SOURCE:SIG:SPEC">SOURCE</A><BR>
+<B>structure</B> SourceMap <B>:</B> <A HREF="sourcemap.html#SOURCE_MAP:SIG:SPEC">SOURCE_MAP</A><BR>
+<B>structure</B> ErrorMsg <B>:</B> <A HREF="errormsg.html#ERRORMSG:SIG:SPEC">ERRORMSG</A><BR>
+<B>structure</B> Symbol <B>:</B> <A HREF="symbol.html#SYMBOL:SIG:SPEC">SYMBOL</A><BR>
+<B>structure</B> StaticEnv <B>:</B> <A HREF="staticenv.html#STATICENV:SIG:SPEC">STATICENV</A><BR>
+<B>structure</B> DynamicEnv <B>:</B> <A HREF="dynenv.html#DYNENV:SIG:SPEC">DYNENV</A><BR>
+<B>structure</B> BareEnvironment <B>:</B> <A HREF="environment.html#ENVIRONMENT:SIG:SPEC">ENVIRONMENT</A><BR>
+<B>structure</B> Environment <B>:</B> <A HREF="environment.html#ENVIRONMENT:SIG:SPEC">ENVIRONMENT</A><BR>
+<B>structure</B> CoerceEnv <B>:</B> COERCE_ENV<BR>
+<B>structure</B> EnvRef <B>:</B> ENVREF<BR>
+<B>structure</B> ModuleId <B>:</B> <A HREF="module_id.html#MODULE_ID:SIG:SPEC">MODULE_ID</A><BR>
+<B>structure</B> SCStaticEnv <B>:</B> <A HREF="scstatenv.html#SCSTATICENV:SIG:SPEC">SCSTATICENV</A><BR>
+<B>structure</B> Profile <B>:</B> <A HREF="profile.html#PROFILE:SIG:SPEC">PROFILE</A><BR>
+<B>structure</B> CUnitUtil <B>:</B> <A HREF="cunitutil.html#CUNITUTIL:SIG:SPEC">CUNITUTIL</A><BR>
+<B>structure</B> CMSA <B>:</B> <A HREF="cmsa.html#CMSA:SIG:SPEC">CMSA</A><BR>
+<B>structure</B> PersStamps <B>:</B> <A HREF="persstamps.html#PERSSTAMPS:SIG:SPEC">PERSSTAMPS</A><BR>
+<B>structure</B> <A NAME="SIG:VISCOMP.PrettyPrint:STR:SPEC" HREF="#SIG:VISCOMP.PrettyPrint:STR">PrettyPrint</A> <B>:</B> <A HREF="prettyprint.html#PRETTYPRINT:SIG:SPEC">PRETTYPRINT</A><BR>
+<B>structure</B> <A NAME="SIG:VISCOMP.PPTable:STR:SPEC" HREF="#SIG:VISCOMP.PPTable:STR">PPTable</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:VISCOMP.PPTable.install_pp:VAL:SPEC" HREF="#SIG:VISCOMP.PPTable.install_pp:VAL">install_pp</A> <B>:</B> string list -&gt; (PrettyPrint.ppstream -&gt; 'a -&gt; unit) -&gt; unit             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>structure</B> Ast <B>:</B> <A HREF="ast.html#AST:SIG:SPEC">AST</A><BR>
+<B>structure</B> <A NAME="SIG:VISCOMP.Lambda:STR:SPEC" HREF="#SIG:VISCOMP.Lambda:STR">Lambda</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>type</B> <A NAME="SIG:VISCOMP.Lambda.lexp:TY:SPEC" HREF="#SIG:VISCOMP.Lambda.lexp:TY">lexp</A><BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>structure</B> Compile <B>:</B> <A HREF="compile.html#COMPILE:SIG:SPEC">COMPILE</A><BR>
+<B>structure</B> Interact <B>:</B> <A HREF="interact.html#INTERACT:SIG:SPEC">INTERACT</A><BR>
+<B>structure</B> Machm <B>:</B> <A HREF="codegenerator.html#CODEGENERATOR:SIG:SPEC">CODEGENERATOR</A><BR>
+<B>structure</B> PrintHooks <B>:</B> <A HREF="printhooks.html#PRINTHOOKS:SIG:SPEC">PRINTHOOKS</A><BR>
+<B>structure</B> <A NAME="SIG:VISCOMP.Boot:STR:SPEC" HREF="#SIG:VISCOMP.Boot:STR">Boot</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:VISCOMP.Boot.coreEnvRef:VAL:SPEC" HREF="#SIG:VISCOMP.Boot.coreEnvRef:VAL">coreEnvRef</A> <B>:</B> SCEnv.Env.environment ref         <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>val</B> <A NAME="SIG:VISCOMP.version:VAL:SPEC" HREF="#SIG:VISCOMP.version:VAL">version</A> <B>:</B> {system : string, version_id : int list, date : string}         <BR>
+<B>val</B> <A NAME="SIG:VISCOMP.banner:VAL:SPEC" HREF="#SIG:VISCOMP.banner:VAL">banner</A> <B>:</B> string         <BR>
+<B>val</B> <A NAME="SIG:VISCOMP.architecture:VAL:SPEC" HREF="#SIG:VISCOMP.architecture:VAL">architecture</A> <B>:</B> string         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:VISCOMP.Stats:STR"><CODE><B>structure</B> Stats</CODE></A>
+<DD>
+Utilities for statistics gathering about compiler phases.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VISCOMP.Control:STR"><CODE><B>structure</B> Control</CODE></A>
+<DD>
+Allows parameters of the       compiler and interactive system to be tweaked in a simple way.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VISCOMP.PrettyPrint:STR"><CODE><B>structure</B> PrettyPrint</CODE></A>
+<DD>
+Provides services to user programs that want to do Oppen-style 	pretty printing.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VISCOMP.PPTable:STR"><CODE><B>structure</B> PPTable</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:VISCOMP.PPTable.install_pp:VAL"><CODE>install_pp <VAR>l</VAR> <VAR>f</VAR>
+              </CODE></A>
+<DD>
+The user defines a datatype <CODE>d</CODE>,  	     whose full symbolic pathname is (e.g.)  	     <CODE>MyStruct.Substruct.d</CODE>, 	     then defines a               prettyprinter 	     
+<PRE>
+               dp : ppstream -&gt; d -&gt; unit 
+             
+</PRE>
+ 	     over <CODE>d</CODE>, perhaps using the Oppen primitives. Then  	     <CODE>dp</CODE> is installed   	     in the pp-table via  	     
+<PRE>
+	      install_pp [&quot;MyStruct&quot;,&quot;Substruct&quot;,&quot;d&quot;] dp
+             
+</PRE>
+              Subsequently, when a value of    	     type <CODE>d</CODE> comes to be printed out, the interactive system              uses <CODE>dp</CODE> for displaying the value, instead of using              the default datatype prettyprinter.         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:VISCOMP.Lambda:STR"><CODE><B>structure</B> Lambda</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:VISCOMP.Lambda.lexp:TY"><CODE><B>type</B> lexp</CODE></A>
+<DD>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:VISCOMP.Boot:STR"><CODE><B>structure</B> Boot</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:VISCOMP.Boot.coreEnvRef:VAL"><CODE><B>val</B> coreEnvRef</CODE></A>
+<DD>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:VISCOMP.version:VAL"><CODE>version
+          </CODE></A>
+<DD>
+Tells which version of SML/NJ is running.           <CODE>system</CODE> is typically &quot;Standard ML of New Jersey&quot;,           <CODE>version_id</CODE> tells major and minor version numbers,           and <CODE>date</CODE> is spelled out in English.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VISCOMP.banner:VAL"><CODE>banner
+          </CODE></A>
+<DD>
+The concatenation of version fields, with punctuation,           typically (though not necessarily) as follows:           
+<PRE>
+(system), Version (version_id), (date)
+</PRE>
+           with dots separating the elements of the version_id.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:VISCOMP.architecture:VAL"><CODE>architecture
+          </CODE></A>
+<DD>
+A short identifier for the instruction-set architecture           on which the system is running.
+<BR>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

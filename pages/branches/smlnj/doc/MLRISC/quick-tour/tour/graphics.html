@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Graphical Interface</title>
+  </head>
+
+  <body bgcolor=#ffffff>
+  <CENTER>
+    <H1><FONT COLOR=#AA0000>Graphical Interface</FONT></H1>
+  </CENTER>
+
+  All the major data structures and intermediate program states can be
+  viewed graphically using <font color=#ff0000> daVinci</font>. The
+  following screen dumps are intended to represent the range of
+  possibilities. Graphical tools like these are an indispensible
+  debugging aid. Each of the dumps below were taken when generating
+  code for the <font color=#ff0000>mandelbrot</font> on the HPPA
+  architecture. It will be necessary to make netscape fill the size of
+  the screen to view these easily. Even though some of these graphs
+  look quite complex, daVinci has several <em>navigational</em> modes
+  that allow walking to successors, or predecessors, or navigating
+  through a scaled down map of the graph. The navigational view is
+shown as another window, and the view into the graph that is being
+displayed is usually outlined in <font color=#0000ff>blue</font>.
+
+  <p>
+  <ul>
+    <dl>
+     <dt><A HREF="graphics/mandelbrot-opt.gif"> 
+		  Control Flowgraph after Optimization:</A>
+
+	 <dd> Each basic block is shown with its dynamic profile and
+	 code before and after a specific optimization. This view
+	 saves having to pour through pages of assembly code listings
+	 -- a tedious and frustrating activity.
+
+     <p>
+     <dt><A HREF="graphics/mandelbrot-ssa.gif"> SSA form:</A>
+	 <dd> The generated flow graph is converted to SSA form which
+makes many code improvement optimizations easy and efficient.
+     <p>
+     <dt><A HREF="graphics/mandelbrot-ddg.gif"> 
+           Data Dependency Graph 
+	     <font color=#ff0000 size=-1> (may take time to download)
+             </font>:</A>
+
+	 <dd> 
+         A graphical view of the data dependency graph and the various
+kinds of dependencies decorating the edges, provides a useful clue to
+why instructions got rearranged the way they did. The navigational
+view helps to control the complexity in the display.
+    </dl>
+  </ul>
+
+    <hr>
+    <font size=-2>
+    <address><a href="mailto:george@vex.cs.bell-labs.com">Lal George</a></address>
+<!-- Created: Wed Apr 29 05:51:15 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Fri May  1 10:42:04 EDT 1998
+<!-- hhmts end -->
+    </font>
+  </body>
+</html>

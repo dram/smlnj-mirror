@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>2.7 Multiple occurences of the same member</TITLE>
+<META NAME="description" CONTENT="2.7 Multiple occurences of the same member">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node11.html">
+<LINK REL="previous" HREF="node9.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node11.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html368"
+ HREF="node11.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html364"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html358"
+ HREF="node9.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html366"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html369"
+ HREF="node11.html">2.8 Stable libraries</A>
+<B> Up:</B> <A NAME="tex2html365"
+ HREF="node3.html">2. The CM model</A>
+<B> Previous:</B> <A NAME="tex2html359"
+ HREF="node9.html">2.6 Library components (groups)</A>
+ &nbsp <B>  <A NAME="tex2html367"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00037000000000000000"></A>
+<A NAME="sec:multioccur"></A>
+<BR>
+2.7 Multiple occurences of the same member
+</H2>
+
+<P>
+The following rules apply to multiple occurences of the same ML source
+file, the same library, or the same group within a program:
+
+<P>
+
+<UL>
+<LI>Within the same description file, each member can be specified
+at most once.</LI>
+<LI>Libraries can be referred to freely from as many other groups or
+libraries as the programmer desires.</LI>
+<LI>A group cannot be used from outside the uniquely defined library
+(as specified in its description file) of which it is a component.
+However, within that library it can be referred to from arbitrarily
+many other groups.</LI>
+<LI>The same ML source file cannot appear more than once.  If an ML
+source file is to be referred to by multiple clients, it must first be
+``wrapped'' into a library (or--if all references are from within the
+same library--a group).</LI>
+</UL>
+
+<P>
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

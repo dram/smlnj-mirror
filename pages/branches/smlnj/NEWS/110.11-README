@@ -1,0 +1,17 @@
+
+			S  M  L   /   N  J
+
+                 1  1  0  .  1 1       N  E  W  S
+			
+  		        December 22, 1998
+
+
+        http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+This version is intended for compiler hackers only.  We are in the midst
+of substantial structural changes, and this is a snapshot.  It only
+supports the Sparc, Alpha, and HPPA architectures.  Furthermore, there
+are performance bugs that have to be fixed.  We recommend that if you
+want to use a working version, then you should use 110.10 until further
+notice.
+

@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>3.1 Motivation</TITLE>
+<META NAME="description" CONTENT="3.1 Motivation">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node16.html">
+<LINK REL="previous" HREF="node14.html">
+<LINK REL="up" HREF="node14.html">
+<LINK REL="next" HREF="node16.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html431"
+ HREF="node16.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html427"
+ HREF="node14.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html421"
+ HREF="node14.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html429"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html432"
+ HREF="node16.html">3.2 Basic rules</A>
+<B> Up:</B> <A NAME="tex2html428"
+ HREF="node14.html">3. Naming objects in</A>
+<B> Previous:</B> <A NAME="tex2html422"
+ HREF="node14.html">3. Naming objects in</A>
+ &nbsp <B>  <A NAME="tex2html430"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00041000000000000000">
+3.1 Motivation</A>
+</H2>
+
+<P>
+The main difficulty with file naming lies in the fact that files or
+even whole directories may move after CM has already partially (but
+not fully) processed them.  For example, this happens when the <EM> 
+autoloader</EM> (see Section&nbsp;<A HREF="node33.html#sec:autoload">4.2</A>) has been invoked and the
+session (including CM's internal state) is then frozen (i.e., saved to
+a file) via <TT> SMLofNJ.exportML</TT>.
+
+<P>
+CM's configurable <EM> path anchor</EM> mechanism enables it to resume
+such a session even when operating in a different environment, perhaps
+on a different machine with different file systems mounted, or a
+different location of the SML/NJ installation.  Evaluation of path
+anchors always takes place as late as possible, and CM will re-evaluate
+path anchors as this becomes necessary due to changes to their
+configuration.
+
+<P>
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

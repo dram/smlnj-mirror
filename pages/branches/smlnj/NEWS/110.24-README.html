@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.24 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.24, November 1, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot. 
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+<center><h2>Summary:</h2></center>
+  This version is primarily intended to introduce parallel and
+  distributed compilation in CM. On a lightly loaded 533MHz 21164, the
+  compiler compiled itself in <tt>7m36s</tt> (all times are real/wall-clock
+  times). Using 4 similar, but remote machines in parallel, the 
+  compile time was reduced to <tt>3m38s</tt> -- more than a factor of two.
+  <p>  
+  This release also includes further MLRISC infra-structure to support
+  lcc to C--.   
+
+<hr>
+
+<center><h2> CM </h2></center>
+
+  <center><h3>Parallel and Distributed compilation</h3></center>
+
+  <h4> Firing up on host machine </h4>
+
+    To perform parallel compilations, you must attach "compile servers"
+    to CM.  This is done using function CM.server_start with the
+    following signature:
+    <pre>
+      val server_start :
+	   { name: string,
+	     pathtrans: (string -> string) option,
+	     cmd: string * string list } -> bool,
+	     pref : int
+	    }
+    </pre>
+    <tt>name</tt> is a string uniquely identifying the server and <tt>cmd</tt> is
+    a value suitable as argument to <tt>Unix.execute</tt>.  (Since you are 
+    asking: no, there is only a dummy implementation of this for
+    non-Unix systems.) 
+
+    <p>
+    If the path to the sml  executable is <tt>/path/to/smlnj/bin/sml</tt>,
+    then a server process on the local machine  could be started by:
+  
+    <pre>
+      CM.server_start
+	  { name = "A", 
+	    pathtrans = NONE,
+	    cmd = ("/path/to/smlnj/bin/sml", ["@CMslave"]),
+	    pref = 0
+           };
+    </pre>
+
+    The command line argument <tt>@CMslave</tt> puts sml into "slave
+     mode". 
+    <tt>pref</tt> is a numeric rating when choosing between idle slaves. Higher 
+    values of pref are given greater preference.
+
+  <h4>Firing up on remote machines</h4>
+
+    To run a process on a remote machine, e.g., <tt>thatmachine</tt>, as
+    compute server, you should be using something like <tt>rsh</tt>.  (You
+    must specify the full path to <tt>rsh</tt> in the command because that's
+    what Unix.execute wants. I.e., no PATH search. :-( ) The remote
+    machine must share the file system with the local machine via
+    something like NFS.
+    <pre>
+      CM.server_start
+         { name = "thatmachine", 
+	   pathtrans = NONE,
+           cmd = ("/usr/ucb/rsh", 
+	          ["thatmachine", "/path/to/smlnj/bin/sml",
+                   "@CMslave"]) 
+	   pref
+          };
+    </pre>
+
+    You can start as many servers as you want, but they all must have
+    different names.  If you attach any servers at all, then you should
+    attach at least two (unless you want to attach one that runs on a
+    machine vastly more powerful than your local one).  Local servers make
+    sense on multi-CPU machines: start as many servers as there are CPUs.
+
+  <h4>File paths</h4>
+
+    For local servers, <tt>pathtrans</tt> can be safely left at <tt>NONE</tt>.  If
+    you connect to a remote server, you can use <tt>pathtrans</tt> to specify
+    a function for translating local absolute pathnames to remote
+    absolute pathnames.  This can be a bit tricky to get right,
+    especially if the machines use automounters and such.  Here is an
+    area that definitely is only "alpha".
+
+  <h4>Go for it</h4>
+
+    After you have attached your servers, you should be able to do 
+    <tt>CM.recomp</tt>, <tt>CM.make</tt>, <tt>CM.stabilize</tt>,
+    <tt>CMB.make</tt>, <tt>CMB.deliver</tt>, etc.   
+    as
+    usual.  Cross-compilers ([Arch][OS]CMB.make ...) also work. If you
+    are using <tt>CM.xxx</tt> functions, all attached servers must have
+    the same architecture as your local one.  For <tt>CMB.xxx</tt> functions
+    this requirement does not exist because there are cross-compilers
+    available on the slave side, too. (I have not tested a
+    mixed-architecture setup, though).
+
+  <h4>Verbose</h4>
+
+    For fun (or trouble-shooting), you can watch the master-slave 
+    protocol by setting CM.debug to true (#set CM.debug true;)
+
+  <h4>Races</h4>
+
+    You might experience strange things in case of compile errors or
+    interrupts. Please report bugs.  Attached servers should go
+    away if you quit the contolling sml session. Warning: Be careful
+    though, because this feature is a bit fragile.  If servers don't
+    go away they tend to spin rapidly and suck up large quantities of
+    CPU cycles. 
+
+  <h4>PervEnv</h4>
+
+    Since the protocol is fairly simple and brain-dead, it cannot
+    handle complicated things like setting up the initial (pervasive)
+    environment in the case of CMB.make.  Therefore, this will be done
+    locally by the "master" process.
+
+  <h4>Control-C</h4>
+
+     When pressing ^C, you will experience a certain delay if servers
+     are currently attached and busy.  This is because the
+     interrupt-handling code will wait for the servers to finish what
+     they are currently doing and bring them back to an "idle" state.
+
+
+<hr>
+
+<center><h2> MLRISC</h2></center>
+
+  <h4> BLOCK_NAME annotation</h4>
+ 
+      During flowgraph generation, this annotation gives a user
+      defined name to each basic block that is subsequently 
+      generated. 
+
+  <h4> EMPTY_BLOCK annotation</h4>
+
+      SSA conversion requires an empty block at nodes that are global
+      entry points as well as entry points from within the cluster. 
+      The <tt>EMPTY_BLOCK</tt> annotation forces an empty basic block. Note
+      that defining two labels consecutively does not create an empty
+      block.
+
+  <h4> asm-show-cellset </h4>
+
+    The flag <tt>asm-show-cellset</tt> will list the definition and uses
+    of CALL instructions during assembly listing.
+
+  <h4> CVTI2I </h4>
+
+    <tt>MLTREE.CVTI2I</tt> did needless sign-extension when converting from 32
+    to 64 bits, and <tt>CVTI2I</tt> explicitly mentions the size of the source
+    and destination.
+
+  <h4> MLTREE </h4>
+
+    <tt>MLTREE</tt> and related signatures have been simplified so that the
+    large number of where clauses used in several places are no longer 
+    required.
+
+<hr>
+
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Mon Nov  1 10:56:41 EST 1999
+<!-- hhmts end -->
+    </font>
+</blockquote>
+</body>
+</html>

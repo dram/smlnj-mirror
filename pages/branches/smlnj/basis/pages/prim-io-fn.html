@@ -1,0 +1,92 @@
+<!-- HTML/prim-io-fn.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The PrimIO functor</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>PrimIO</CODE> functor</H3>
+<P>
+The optional functor PrimIO builds an instance of the primitive I/O signature <A HREF="prim-io.html#PRIM_IO:SIG:SPEC">PRIM_IO</A>. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>functor </B><A NAME="PrimIO:FCT:SPEC"><CODE>PrimIO</CODE></A><B> (</B> ... <B>)</B><B> : </B>PRIM_IO<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Functor argument interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> <A NAME="ARG:PrimIO.A:STR:SPEC" HREF="#ARG:PrimIO.A:STR">A</A> <B>:</B> MONO_ARRAY<BR>
+<B>structure</B> <A NAME="ARG:PrimIO.V:STR:SPEC" HREF="#ARG:PrimIO.V:STR">V</A> <B>:</B> MONO_VECTOR<BR>
+<B>sharing type</B> A.vector <B>=</B> V.vector<BR>
+<B>sharing type</B> A.elem <B>=</B> V.elem<BR>
+<B>val</B> <A NAME="ARG:PrimIO.someElem:VAL:SPEC" HREF="#ARG:PrimIO.someElem:VAL">someElem</A> <B>:</B> A.elem         <BR>
+<B>type</B> <A NAME="ARG:PrimIO.pos:TY:SPEC" HREF="#ARG:PrimIO.pos:TY">pos</A><BR>
+<B>val</B> <A NAME="ARG:PrimIO.compare:VAL:SPEC" HREF="#ARG:PrimIO.compare:VAL">compare</A> <B>:</B> (pos * pos) -&gt; order         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="ARG:PrimIO.A:STR"><CODE><B>structure</B> A</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="ARG:PrimIO.V:STR"><CODE><B>structure</B> V</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="ARG:PrimIO.A.vector:SHARE"><CODE><B>sharing type</B> A.vector</CODE></A>
+<DT> <CODE><B>sharing type</B> A.elem</CODE>
+<DD>
+<BR>
+
+<DT> <A NAME="ARG:PrimIO.someElem:VAL"><CODE>someElem
+          </CODE></A>
+<DD>
+an element that may be read or written by a <A HREF="prim-io.html#SIG:PRIM_IO.reader:TY:SPEC">reader</A> 	  or <A HREF="prim-io.html#SIG:PRIM_IO.writer:TY:SPEC">writer</A>. 	  The value <A HREF="#ARG:PrimIO.someElem:VAL:SPEC">someElem</A> is typically used for initialization 	  of buffers. 	     
+<BR>
+<BR>
+
+<DT> <A NAME="ARG:PrimIO.pos:TY"><CODE><B>type</B> pos</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="ARG:PrimIO.compare:VAL"><CODE>compare (<VAR>pos</VAR>, <VAR>pos'</VAR>)
+          </CODE></A>
+<DD>
+returns <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">LESS</A>, <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">EQUAL</A>, or <A HREF="general.html#SIG:GENERAL.order:TY:SPEC">GREATER</A> 	  When <VAR>pos</VAR> is less than, equal to, or greater than 	  <VAR>pos'</VAR>, respectively, in some underlying linear ordering           on <A HREF="#ARG:PrimIO.pos:TY:SPEC">pos</A> values.    
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="prim-io.html#PRIM_IO:SIG:SPEC">PRIM_IO</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="io-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified May 10, 1996</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

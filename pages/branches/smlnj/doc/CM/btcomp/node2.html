@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>1. Introduction</TITLE>
+<META NAME="description" CONTENT="1. Introduction">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node3.html">
+<LINK REL="previous" HREF="node1.html">
+<LINK REL="up" HREF="btcomp.html">
+<LINK REL="next" HREF="node3.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html82"
+ HREF="node3.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html78"
+ HREF="btcomp.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html72"
+ HREF="node1.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html80"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html83"
+ HREF="node3.html">2. Basic usage</A>
+<B> Up:</B> <A NAME="tex2html79"
+ HREF="btcomp.html">CMB The SML/NJ Bootstrap</A>
+<B> Previous:</B> <A NAME="tex2html73"
+ HREF="node1.html">Contents</A>
+ &nbsp <B>  <A NAME="tex2html81"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00020000000000000000">
+1. Introduction</A>
+</H1>
+
+<P>
+With the exception of the runtime system which is written in C,
+compiler and interactive system for Standard ML of New Jersey
+(SML/NJ)&nbsp;[<A
+ HREF="node26.html#appel91:sml">AM91</A>] are themselves implemented in Standard
+ML&nbsp;[<A
+ HREF="node26.html#milner97">MTHM97</A>].  When the new Compilation and Library Manager
+(CM)&nbsp;[<A
+ HREF="node26.html#blume00:newcm">Blu00</A>] was introduced, all ML code of SML/NJ was
+reorganized in such a way that the system itself works like any other
+stand-alone ML program compiled by SML/NJ.
+
+<P>
+However, there are a few important differences between compiling an
+ordinary ML program using CM and (re-)compiling the interactive system
+itself.  These differences are handled by a special-purpose version of
+the compilation manager: the bootstrap compiler.  Its interface is
+<TT> structure CMB</TT>, exported from library <TT> $smlnj/cmb.cm</TT>.
+
+<P>
+This document describes how to use the bootstrap compiler and also
+explains how bootstrapping the SML/NJ compiler differs from compiling
+ordinary ML code.
+
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,77 @@
+<!-- HTML/command-line.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CommandLine structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align=CENTER>The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>CommandLine</CODE> structure</H3>
+<P>
+The CommandLine structure provides access to the name and arguments used to invoke the currently running program. Additional information on the functions defined in this structure,  particularly as stand-alone programs and program termination, can  be found in Section 11.1. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="COMMAND_LINE:SIG:SPEC"><CODE>COMMAND_LINE</CODE></A><BR>
+<B>structure </B><A NAME="CommandLine:STR:SPEC"><CODE>CommandLine</CODE></A><B> : </B>COMMAND_LINE<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:COMMAND_LINE.name:VAL:SPEC" HREF="#SIG:COMMAND_LINE.name:VAL">name</A> <B>:</B> unit -&gt; string     <BR>
+<B>val</B> <A NAME="SIG:COMMAND_LINE.arguments:VAL:SPEC" HREF="#SIG:COMMAND_LINE.arguments:VAL">arguments</A> <B>:</B> unit -&gt; string     <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:COMMAND_LINE.name:VAL"><CODE>name <VAR>()</VAR>
+      </CODE></A>
+<DD>
+returns the name used to invoke the current program.   
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMMAND_LINE.arguments:VAL"><CODE>arguments <VAR>()</VAR>
+      </CODE></A>
+<DD>
+returns the argument list used to invoke the current program.       
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+The arguments returned may be only a subset of the arguments actually       supplied by the user, since an implementation's run-time system        may consume some of them.       
+</BLOCKQUOTE>
+   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+The precise semantics of the above operations are OS- and  implementation-specific. For example, <CODE>name</CODE> might return the full pathname or just the base name. See also the implementation note under <CODE>arguments</CODE>.   
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="system-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified September 1, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

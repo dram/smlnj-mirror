@@ -1,0 +1,231 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Installation Notes</title>
+  </head>
+
+  <body BGCOLOR="ffffff">
+    <h1>SML/NJ Installation Notes</h1>
+
+<blockquote>
+<h2>For Windows 9X and Windows NT (3.5.1 and above) and Windows 2000:</h2>
+<p>
+The easiest way to install SML/NJ on Windows machines is to use the 
+self-installing executable <strong>smlnj.exe</strong> (
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj.exe">ftp</a>,
+<a href="../dist/smlnj.exe">http</a>).
+
+<ol>
+<li> Login as administrator (the setup must define system environment variables).
+<li> Launch the self-installing executable.
+<li> Choose a destination folder for SML/NJ (default C:\SML).
+<li> Choose a setup. Choices include:
+  <ul>
+  <li> typical: installs the runtime system, the compiler (including the
+  compilation manager), ml-lex, ml-yacc, ml-burg and most components
+  of the SML/NJ library.
+  <li> compact: installs only the runtime system and the compiler.
+  <li> custom: allows you to choose the components to install.
+  </ul>
+<li> Choose a folder that will contain the program icons for
+SML/NJ. This folder will be part of the Programs folder of the
+Start menu.
+</ol>
+
+The installation updates the system PATH environment variable to point to the
+location of the SML/NJ executables, and adds a CM_PATH environment
+variable to point to the location of the libraries.  Because of these
+updates, it is necessary to reboot the machine after the installation
+to ensure proper behavior of the compiler (Windows NT/2000 users can logoff
+instead of rebooting).<p>
+
+To recompile the runtime system, the SML/NJ compiler itself, or
+any of the tools, you will need to refer to the <a
+href="windows.html">manual installation instructions for Windows</a>.
+
+<h2>Linux RPM Installation:</h2>
+
+Administrators of Intel-based Linux systems can use the
+<a href="http://www.redhat.com/rpm/">RedHat package manager "RPM"</a>
+to install SML/NJ.  This has been tested on an installation of RedHat
+6.1-2 and 7.0.  Use the distribution file:
+<blockquote>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/RPMS/smlnj-110.0.7-4.i386.rpm">
+RPMS/smlnj-110.0.7-4.i386.rpm</a>
+</blockquote>
+The RPMS directory also contains a set of rpm packages for the
+individual components of SML/NJ.
+<p>
+Should you have difficulties with the RPM installation, or wish to
+customize the installation, then we recommend falling back on the
+following generic installation procedure for Unix.
+
+<h2>For Unix machines:</h2>
+<ol>
+<li>Create an SMLROOT directory for the installation (e.g.,
+SMLROOT=/usr/local/sml) in a place where it is appropriate to install
+software packages.  On some machines administrator privileges may be required to
+create the new sml directory in a public directory like /usr/local or
+/opt, but if necessary you can always install sml in a subdirectory of
+your own home directory.
+<p>
+<li>ftp the compressed tar files that make up the distribution into this
+SMLROOT directory.  These files will be unpacked automatically
+by the install script (except for config.tar.Z; see step 3).  Note
+that with 110.0.7, the "110-" prefix has been dropped from the
+names of the tarball files.
+<p>
+You will need at least the following source packages from the distribution:
+<p>
+<table>
+<tr><td><td>config.tar.Z
+<td><a href="../dist/config.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/config.tar.Z">ftp</a>
+<td>Installation scripts
+<tr><td><td>runtime.tar.Z
+<td><a href="../dist/runtime.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/runtime.tar.Z">ftp</a>
+<td>Runtime system
+<tr><td><td> cm.tar.Z
+<td><a href="../dist/cm.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/cm.tar.Z">ftp</a>
+<td>Compilation Manager
+</table>
+<p>
+In addition to the tar files for the various sources,
+you also need the pre-compiled binary files for the compiler.
+You will need <strong>one</strong> of these files:
+<p>
+<table>
+<tr><td><td> bin.alpha32-unix.tar.Z
+<td><a href="../dist/bin.alpha32-unix.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.alpha32-unix.tar.Z">ftp</a>
+<td>for DEC Alpha and Digital Unix 4.0
+<tr><td><td> bin.hppa-unix.tar.Z
+<td><a href="../dist/cm.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.hppa-unix.tar.Z">ftp</a>
+<td>for HPPA processors
+<tr><td><td> bin.mipseb-unix.tar.Z
+<td><a href="../dist/bin.mipseb-unix.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.mipseb-unix.tar.Z">ftp</a>
+<td>for Silicon Graphics machines
+<tr><td><td> bin.rs6000-unix.tar.Z
+<td><a href="../dist/bin.rs6000-unix.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.rs6000-unix.tar.Z">ftp</a>
+<td>for IBM Power processors
+<tr><td><td> bin.sparc-unix.tar.Z
+<td><a href="../dist/bin.sparc-unix.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.sparc-unix.tar.Z">ftp</a>
+<td>for SPARC processors
+<tr><td><td> bin.x86-unix.tar.Z
+<td><a href="../dist/bin.x86-unix.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.x86-unix.tar.Z">ftp</a>
+<td>for Intel Pentium processors running UNIX.
+</table>
+<p>
+If your file system is mounted on multiple machines with different
+instruction sets, you may fetch more than one of these "bin" files.
+<p>
+Finally, you may wish to fetch some of the following optional
+components of the SML/NJ distribution (a "*" marks a member of the
+standard <tt>config/targets</tt>, see below):
+<p>
+<table>
+<tr><td>*<td> smlnj-lib.tar.Z
+<td><a href="../dist/smlnj-lib.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj-lib.tar.Z">ftp</a>
+<td>Standard ML of New Jersey Library
+<tr><td>*<td> ml-burg.tar.Z
+<td><a href="../dist/ml-burg.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-burg.tar.Z">ftp</a>
+<td>ML-Burg code-generator generator
+<tr><td>*<td> ml-lex.tar.Z
+<td><a href="../dist/ml-lex.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-lex.tar.Z">ftp</a>
+<td>ML-Lex lexical analyzer generator
+<tr><td>*<td> ml-yacc.tar.Z
+<td><a href="../dist/ml-yacc.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-yacc.tar.Z">ftp</a>
+<td>ML-Yacc parser generator
+<tr><td><td> sml-nj.tar.Z
+<td><a href="../dist/sml-nj.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/sml-nj.tar.Z">ftp</a>
+<td>Source code for SML/NJ compiler
+<tr><td>*<td> cml.tar.Z
+<td><a href="../dist/cml.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/cml.tar.Z">ftp</a>
+<td>Concurrent ML
+<tr><td>*<td> eXene.tar.Z
+<td><a href="../dist/eXene.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/eXene.tar.Z">ftp</a>
+<td>eXene multithreaded X-windows toolkit
+</table>
+
+<p>
+<li>Unpack the configuration bundle in the sml ROOT directory
+<pre>
+    % zcat config.tar.Z | tar -xf -
+</pre>
+This will create a subdirectory <tt>config</tt>.
+<p>
+<li> If you wish to customize the installation to include more or
+fewer components than the default, edit the file config/targets,
+commenting out any targets that you do not want to install or removing
+comment characters from components that you want to add.  However,
+you not need to edit the targets file; if you leave it alone
+the subsystems marked with an asterisk * above will be installed by default.
+Editing config/targets is not required or recommended for first-time
+users.
+<p>
+<li>Run the installation script while in the SMLROOT directory:
+<pre>
+    % config/install.sh
+</pre>
+<p>
+<li>If you have multiple hardware/operating system platforms sharing the
+same file system, you can run <tt>config/install.sh</tt>
+on each platform.
+</ol>
+
+The installation process creates the following subdirectories in
+the installation directory:
+
+<table>
+<tr><td>config <td>- the configuration tools
+<tr><td>bin <td>- shell scripts for running sml and the tools
+<tr><td>bin/.run <td>- contains the runtime systems
+<tr><td>bin/.heap <td>- contains the heap images
+<tr><td>lib <td>- compilation-manager sources files for the various libraries
+<tr><td>src <td>- the source code; installing libraries also leaves
+			  the precompiled library code in this subtree.
+</table>
+
+<h2>POTENTIAL PROBLEMS</h2>
+<p>
+The most likely problem is in compiling the runtime system.  You may
+need to edit the architecture/operating system specific makefile.  You
+can find these files in the directory 
+<tt>SMLROOT/src/runtime/objs</tt>.  They
+are named mk.<arch>-<opsys> (e.g., mk.sparc-sunos, mk.mipseb-irix5).
+They are currently set up to use the vendor compiler on the mips, and
+alpha, and to use gcc on the sparc, rs6000 and x86.
+<p>
+The install shell script checks to see if your system has Korn shell
+(ksh); if so, it uses that for the shell in the shell scripts (ksh is
+faster than /bin/sh).  If you are installing your system on multiple
+platforms, where some have ksh and some do not, then install the
+system on a platform that does not have ksh first.
+</blockquote>
+<HR>
+<CENTER><STRONG>
+| <A HREF="../index.html">SML/NJ Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</body>
+</html>

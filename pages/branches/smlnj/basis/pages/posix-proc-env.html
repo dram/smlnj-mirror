@@ -1,0 +1,273 @@
+<!-- HTML/posix-proc-env.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Posix.ProcEnv structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Posix.ProcEnv</CODE> structure</H3>
+<P>
+The structure Posix.ProcEnv specifies functions, as described in Section 4 of the POSIX standard  <B>[CITE]</B>1003.1,1996/, that provide primitive POSIX access to the process environment. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="POSIX_PROC_ENV:SIG:SPEC"><CODE>POSIX_PROC_ENV</CODE></A><BR>
+<B>structure </B><A NAME="ProcEnv:STR:SPEC"><CODE>ProcEnv</CODE></A><B> : </B>POSIX_PROC_ENV<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:POSIX_PROC_ENV.pid:TY:SPEC" HREF="#SIG:POSIX_PROC_ENV.pid:TY">pid</A><BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_PROC_ENV.uid:TY:SPEC" HREF="#SIG:POSIX_PROC_ENV.uid:TY">uid</A><BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_PROC_ENV.gid:TY:SPEC" HREF="#SIG:POSIX_PROC_ENV.gid:TY">gid</A><BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_PROC_ENV.file_desc:TY:SPEC" HREF="#SIG:POSIX_PROC_ENV.file_desc:TY">file_desc</A><BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.uidToWord:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.uidToWord:VAL">uidToWord</A> <B>:</B> uid -&gt; SysWord.word       <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.wordToUid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.uidToWord:VAL">wordToUid</A> <B>:</B> SysWord.word -&gt; uid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.gidToWord:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.gidToWord:VAL">gidToWord</A> <B>:</B> gid -&gt; SysWord.word       <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.wordToGid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.gidToWord:VAL">wordToGid</A> <B>:</B> SysWord.word -&gt; gid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getpid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getpid:VAL">getpid</A> <B>:</B> unit -&gt; pid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getppid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getppid:VAL">getppid</A> <B>:</B> unit -&gt; pid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getuid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getuid:VAL">getuid</A> <B>:</B> unit -&gt; uid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.geteuid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.geteuid:VAL">geteuid</A> <B>:</B> unit -&gt; uid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getgid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getgid:VAL">getgid</A> <B>:</B> unit -&gt; gid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getegid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getegid:VAL">getegid</A> <B>:</B> unit -&gt; gid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.setuid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.setuid:VAL">setuid</A> <B>:</B> uid -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.setgid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.setgid:VAL">setgid</A> <B>:</B> gid -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getgroups:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getgroups:VAL">getgroups</A> <B>:</B> unit -&gt; gid list<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getlogin:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getlogin:VAL">getlogin</A> <B>:</B> unit -&gt; string<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getpgrp:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getpgrp:VAL">getpgrp</A> <B>:</B> unit -&gt; pid         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.setsid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.setsid:VAL">setsid</A> <B>:</B> unit -&gt; pid<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.setpgid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.setpgid:VAL">setpgid</A> <B>:</B> {pid : pid option, pgid : pid option} -&gt; unit<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.uname:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.uname:VAL">uname</A> <B>:</B> unit -&gt; (string * string) list<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.time:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.time:VAL">time</A> <B>:</B> unit -&gt; Time.time<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.times:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.times:VAL">times</A> <B>:</B> unit -&gt; {elapsed : Time.time, utime : Time.time, stime : Time.time, cutime : Time.time, cstime : Time.time}<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.getenv:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.getenv:VAL">getenv</A> <B>:</B> string -&gt; string option         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.environ:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.environ:VAL">environ</A> <B>:</B> unit -&gt; string list         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.ctermid:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.ctermid:VAL">ctermid</A> <B>:</B> unit -&gt; string<BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.ttyname:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.ttyname:VAL">ttyname</A> <B>:</B> file_desc -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.isatty:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.isatty:VAL">isatty</A> <B>:</B> file_desc -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:POSIX_PROC_ENV.sysconf:VAL:SPEC" HREF="#SIG:POSIX_PROC_ENV.sysconf:VAL">sysconf</A> <B>:</B> string -&gt; SysWord.word<BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:POSIX_PROC_ENV.pid:TY"><CODE><B>eqtype</B> pid</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.uid:TY"><CODE><B>eqtype</B> uid</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.gid:TY"><CODE><B>eqtype</B> gid</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.file_desc:TY"><CODE><B>eqtype</B> file_desc</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.uidToWord:VAL"><CODE>uidToWord <VAR>u</VAR>
+          </CODE></A>
+<DT> <CODE>          wordToUid <VAR>i</VAR>
+          </CODE>
+<DD>
+convert between abstract user IDs and an underlying unique            unsigned integers. 	  Note that <A HREF="#SIG:POSIX_PROC_ENV.wordToUid:VAL:SPEC">wordToUid</A> does not ensure that <VAR>i</VAR>            is a valid <A HREF="#SIG:POSIX_PROC_ENV.uid:TY:SPEC">uid</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.gidToWord:VAL"><CODE>gidToWord <VAR>g</VAR>
+          </CODE></A>
+<DT> <CODE>          wordToGid <VAR>i</VAR>
+          </CODE>
+<DD>
+convert between abstract group IDs and an underlying unique            unsigned integers. 	  Note that <A HREF="#SIG:POSIX_PROC_ENV.wordToGid:VAL:SPEC">wordToGid</A> does not ensure that <VAR>i</VAR>            is a valid <A HREF="#SIG:POSIX_PROC_ENV.gid:TY:SPEC">gid</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getpid:VAL"><CODE>getpid <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the process ID of the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getppid:VAL"><CODE>getppid <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the parent process ID of the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getuid:VAL"><CODE>getuid <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the real user ID of the calling process.               
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.geteuid:VAL"><CODE>geteuid <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the effective user ID of the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getgid:VAL"><CODE>getgid <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the real group ID of the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getegid:VAL"><CODE>getegid <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the effective group ID of the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.setuid:VAL"><CODE>setuid <VAR>u</VAR>
+          </CODE></A>
+<DD>
+sets the real user ID and effective user ID to <VAR>u</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.setgid:VAL"><CODE>setgid <VAR>g</VAR>
+          </CODE></A>
+<DD>
+sets the real group ID and effective group ID to <VAR>g</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getgroups:VAL"><CODE>getgroups <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the list of supplementary group IDs of the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getlogin:VAL"><CODE>getlogin <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the user name associated with the calling process, 	  i.e. the login name associated with the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getpgrp:VAL"><CODE>getpgrp <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the process group ID of the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.setsid:VAL"><CODE>setsid <VAR>()</VAR>
+          </CODE></A>
+<DD>
+creates a new session if the calling process is not a  	  process group leader.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.setpgid:VAL"><CODE>setpgid {<VAR>pid</VAR>, <VAR>pgid</VAR>}
+          </CODE></A>
+<DD>
+sets the process group ID of the process with the process ID  	  specified by <VAR>pid</VAR> 	  to the process group ID specified by 	  <VAR>pgid</VAR>. 	  If <VAR>pid</VAR> is <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A>, the process ID 	  is taken to be the process ID of the calling 	  process. If <VAR>pgid</VAR> is <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A>, the process specified 	  by <VAR>pid</VAR> becomes a process group leader.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.uname:VAL"><CODE>uname <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns a list of pairs <CODE>(name,value)</CODE> including, 	  at least,  	  the names: &quot;sysname&quot;, &quot;nodename&quot;, &quot;release&quot;, 	  &quot;version&quot;, and &quot;machine&quot;. (A POSIX implementation 	  may provide additional values beyond this set.)           The respective values are strings 	  that describe the named system component.       
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.time:VAL"><CODE>time <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the elapsed wall time since the Epoch.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.times:VAL"><CODE>times <VAR>()</VAR>
+          </CODE></A>
+<DD>
+for the calling process,            returns the wall time (<CODE>elapsed</CODE>), user time (<CODE>utime</CODE>), 	  system time (<CODE>stime</CODE>), user CPU time of terminated 	  child processes (<CODE>cutime</CODE>), and system CPU time of 	  terminated child processes (<CODE>cstime</CODE>).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.getenv:VAL"><CODE>getenv <VAR>name</VAR>
+          </CODE></A>
+<DD>
+searches the environment list for a string of the form 	  <CODE>name</CODE>=<CODE>value</CODE> and returns <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A>(value)</CODE> 	  if <CODE>name</CODE> is present; returns <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A></CODE> if 	  <CODE>name</CODE> is not present.           This is equivalent to <A HREF="os-process.html#SIG:OS_PROCESS.getEnv:VAL:SPEC">OS.Process.getEnv</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.environ:VAL"><CODE>environ <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns the environment of the calling process as a list of strings.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.ctermid:VAL"><CODE>ctermid <VAR>()</VAR>
+          </CODE></A>
+<DD>
+produces a string that represents the pathname of the 	  controlling terminal for the calling process.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.ttyname:VAL"><CODE>ttyname <VAR>fd</VAR>
+          </CODE></A>
+<DD>
+produces a string that represents the pathname of the 	  terminal associated with file descriptor <VAR>fd</VAR>. 	  Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if <VAR>fd</VAR> does not denote 	  a valid terminal device.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.isatty:VAL"><CODE>isatty <VAR>fd</VAR>
+          </CODE></A>
+<DD>
+returns <CODE>true</CODE> if           <VAR>fd</VAR> is a valid file descriptor associated with a terminal.           Note that <A HREF="#SIG:POSIX_PROC_ENV.isatty:VAL:SPEC">isatty</A> will return <CODE>false</CODE>           if <VAR>fd</VAR> is a bad file descriptor.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_PROC_ENV.sysconf:VAL"><CODE>sysconf <VAR>s</VAR>
+          </CODE></A>
+<DD>
+returns the integer value for the POSIX configurable 	  system variable <VAR>s</VAR>.  Raises <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if <VAR>s</VAR> 	  does not denote a supported POSIX system variable.           Consult Section 4.8.1.2 of           POSIX standard <B>[CITE]</B>1003.1,1996/ for a         table of configurable system variables; 	  this table is a minimal set required for POSIX compliance, and an 	  implementation may extend it with non-POSIX variables.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="posix.html#SIG:POSIX.ProcEnv:STR:SPEC">Posix.ProcEnv</A>, <A HREF="posix.html#SIG:POSIX.FileSys:STR:SPEC">Posix.FileSys</A>, <A HREF="time.html#Time:STR:SPEC">Time</A>, <A HREF="os.html#OS:STR:SPEC">OS</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="posix-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified April 17, 1996</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

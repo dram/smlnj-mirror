@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>2.2 Invoking the bootstrap compiler</TITLE>
+<META NAME="description" CONTENT="2.2 Invoking the bootstrap compiler">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node6.html">
+<LINK REL="previous" HREF="node4.html">
+<LINK REL="up" HREF="node3.html">
+<LINK REL="next" HREF="node6.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html123"
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html119"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html113"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html121"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html124"
+ HREF="node6.html">2.3 Booting a new</A>
+<B> Up:</B> <A NAME="tex2html120"
+ HREF="node3.html">2. Basic usage</A>
+<B> Previous:</B> <A NAME="tex2html114"
+ HREF="node4.html">2.1 Requirements</A>
+ &nbsp <B>  <A NAME="tex2html122"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00032000000000000000">
+2.2 Invoking the bootstrap compiler</A>
+</H2>
+
+<P>
+To invoke the bootstrap compiler, first one has to change the current
+working directory to <TT> src/system</TT>:
+
+<P>
+ 
+<PRE>
+
+$ cd src/system
+</PRE>
+
+<P>
+The next step is to start the interactive system and load the
+bootstrap compiler.  This can be done in one of two ways:
+
+<P>
+
+<OL>
+<LI>Start the interactive system and then issue a <TT> CM.autoload</TT>
+command that causes the bootstrap compiler to be loaded. The resulting
+session could look like this:
+<PRE>
+
+$ sml
+Standard ML of New Jersey ...
+- CM.autoload "$smlnj/cmb.cm";
+...
+val it = true : bool
+-
+</PRE></LI>
+<LI>Start the interactive system and specify <TT> $smlnj/cmb.cm</TT> on
+the command line:
+<PRE>
+
+$ sml '$smlnj/cmb.cm'
+Standard ML of New Jersey ...
+-
+</PRE></LI>
+</OL>
+
+<P>
+ 
+<I> Note for frequent compiler hackers:</I> The <TT> makeml</TT>
+script (see below) builds the the interactive system in such a way
+that <TT> $smlnj/cmb.cm</TT> is already pre-registered for autoloading.
+Therefore, when using an interactive system built by <TT> makeml</TT>
+(as opposed to the original config/install.sh) there is no need
+for loading the bootstrap compiler explicitly.
+
+<P>
+At this point one can invoke the bootstrap compiler by simply issuing
+the command <TT> CMB.make()</TT>:
+
+<P>
+ 
+<PRE>
+
+- CMB.make ();
+</PRE>
+
+<P>
+If <TT> CMB.make()</TT> does not run to successful completion, you do not
+have to start from the beginning.  Instead, fix the problem at hand
+and re-issue <TT> CMB.make()</TT> without terminating the interactive
+session in between.  This tends to be a lot faster than starting over.
+
+<P>
+This process can be repeated arbitrarily many times until <TT> 
+CMB.make()</TT> is successful.
+
+<P>
+A successful run looks like this:
+
+<P>
+ 
+<PRE>
+
+- CMB.make ();
+...
+New boot directory has been built.
+val it = true : bool
+-
+</PRE>
+
+<P>
+The return value of <TT> true</TT> indicates success.  This means that (as
+indicated by the message above the return value) a directory with
+stable libraries and some other special files that are needed for
+``booting'' a new interactive system has been created.
+
+<P>
+The name of the boot directory depends on circumstances.  A part of it
+can be chosen freely, other parts depend on current architecture and
+operating system.  For example, on a Sparc system running some version
+of Unix, the default name of the directory is <TT> 
+sml.boot.sparc-unix</TT>.
+
+<P>
+There is also a similarly-named em binfile directory which is used
+by <TT> CMB.make()</TT> itself but which is not required for the purpose
+of subsequent ``boot'' steps.
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html123"
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html119"
+ HREF="node3.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html113"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html121"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html124"
+ HREF="node6.html">2.3 Booting a new</A>
+<B> Up:</B> <A NAME="tex2html120"
+ HREF="node3.html">2. Basic usage</A>
+<B> Previous:</B> <A NAME="tex2html114"
+ HREF="node4.html">2.1 Requirements</A>
+ &nbsp <B>  <A NAME="tex2html122"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

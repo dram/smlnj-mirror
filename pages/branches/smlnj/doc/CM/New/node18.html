@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>3.4 Anchor configuration</TITLE>
+<META NAME="description" CONTENT="3.4 Anchor configuration">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node19.html">
+<LINK REL="previous" HREF="node17.html">
+<LINK REL="up" HREF="node14.html">
+<LINK REL="next" HREF="node19.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html467"
+ HREF="node19.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html463"
+ HREF="node14.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html457"
+ HREF="node17.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html465"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html468"
+ HREF="node19.html">3.5 When to use</A>
+<B> Up:</B> <A NAME="tex2html464"
+ HREF="node14.html">3. Naming objects in</A>
+<B> Previous:</B> <A NAME="tex2html458"
+ HREF="node17.html">3.3 Anchor environments</A>
+ &nbsp <B>  <A NAME="tex2html466"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00044000000000000000"></A>
+<A NAME="sec:anchor:config"></A>
+<BR>
+3.4 Anchor configuration
+</H2>
+
+<P>
+Anchor configuration is concerned with the values that are stored in
+the root anchor environment.  At startup time, the root environment is
+initialized by reading two configuration files: an
+installation-specific one and a user-specific one.  After that, the
+contents of root locations can be maintained using CM's interface
+functions <TT> CM.Anchor.anchor</TT> and <TT> CM.Anchor.reset</TT> (see
+Section&nbsp;<A HREF="node25.html#sec:api:anchors">4.1.4</A>).
+
+<P>
+Although there is a hard-wired default for the installation-specific
+configuration file<A NAME="tex2html4"
+ HREF="footnode.html#foot639"><SUP>4</SUP></A>, this default in rarely being used.
+Instead, in a typical installation of SML/NJ the default will be a
+file <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img10.gif"
+ ALT="$r$"><TT> /lib/pathconfig</TT> where <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img10.gif"
+ ALT="$r$"> is the <I> root</I> directory
+into which SML/NJ had been installed.  (The installation procedure
+establishes this new default by setting the environment variable <TT> 
+CM_PATHCONFIG_DEFAULT</TT> at the time it produces the heap image for
+the interactive system.)  The user can specify a new location at
+startup time using the environment variable <TT> CM_PATHCONFIG</TT>.
+
+<P>
+The default location of the user-specific configuration file is <TT> 
+.smlnj-pathconfig</TT> in the user's home directory (which must be given
+by the <TT> HOME</TT> environment variable).  At startup time, this
+default can be overridden by a fixed location which must be given as
+the value of the environment variable <TT> CM_LOCAL_PATHCONFIG</TT>.
+
+<P>
+The syntax of all configuration files is identical.  Lines are
+processed from top to bottom. White space divides lines into tokens.
+
+<UL>
+<LI>A line with exactly two tokens associates an anchor (the first
+token) with a directory in native syntax (the second token).  Neither
+anchor nor directory name may contain white space and the anchor
+should not contain a <B> /</B>.  If the directory name is a relative
+name, then it will be expanded by prepending the name of the directory
+that contains the configuration file.</LI>
+<LI>A line containing exactly one token that is the name of an
+anchor cancels any existing association of that anchor with a
+directory.</LI>
+<LI>A line with a single token that consists of a single minus sign
+<B> -</B> cancels all existing anchors.  This typically makes sense only
+at the beginning of the user-specific configuration file and
+erases any settings that were made by the installation-specific
+configuration file.</LI>
+<LI>Lines with no token (i.e., empty lines) will be silently ignored.</LI>
+<LI>Any other line is considered malformed and will cause a warning
+but will otherwise be ignored.</LI>
+</UL>
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html467"
+ HREF="node19.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html463"
+ HREF="node14.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html457"
+ HREF="node17.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html465"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html468"
+ HREF="node19.html">3.5 When to use</A>
+<B> Up:</B> <A NAME="tex2html464"
+ HREF="node14.html">3. Naming objects in</A>
+<B> Previous:</B> <A NAME="tex2html458"
+ HREF="node17.html">3.3 Anchor environments</A>
+ &nbsp <B>  <A NAME="tex2html466"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

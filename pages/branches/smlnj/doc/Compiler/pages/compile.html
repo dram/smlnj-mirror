@@ -1,0 +1,257 @@
+<!-- HTML/compile.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The COMPILE signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>COMPILE</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="COMPILE:SIG:SPEC"><CODE>COMPILE</CODE></A><BR>
+<B>structure </B><A NAME="Compile:STR:SPEC"><CODE>Compiler.Compile</CODE></A><B> : </B>COMPILE<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>exception</B> <A NAME="SIG:COMPILE.Compile:EXN:SPEC" HREF="#SIG:COMPILE.Compile:EXN">Compile</A> <B>of</B> string     <BR>
+<B>type</B> <A NAME="SIG:COMPILE.lvar:TY:SPEC" HREF="#SIG:COMPILE.lvar:TY">lvar</A> <B>=</B> Lambda.lvar     <BR>
+<B>type</B> <A NAME="SIG:COMPILE.absyn:TY:SPEC" HREF="#SIG:COMPILE.absyn:TY">absyn</A><BR>
+<B>type</B> <A NAME="SIG:COMPILE.compInfo:TY:SPEC" HREF="#SIG:COMPILE.compInfo:TY">compInfo</A><BR>
+<B>type</B> <A NAME="SIG:COMPILE.lambda:TY:SPEC" HREF="#SIG:COMPILE.lambda:TY">lambda</A> <B>=</B> Lambda.lexp     <BR>
+<B>type</B> <A NAME="SIG:COMPILE.pid:TY:SPEC" HREF="#SIG:COMPILE.pid:TY">pid</A> <B>=</B> PersStamps.persstamp     <BR>
+<B>type</B> <A NAME="SIG:COMPILE.obj:TY:SPEC" HREF="#SIG:COMPILE.obj:TY">obj</A> <B>=</B> Unsafe.Object.object     <BR>
+<B>type</B> <A NAME="SIG:COMPILE.csegments:TY:SPEC" HREF="#SIG:COMPILE.csegments:TY">csegments</A> <B>=</B> {c0 : Word8Vector.vector, cn : Word8Vector.vector list, name : string option ref}     <BR>
+<B>val</B> <A NAME="SIG:COMPILE.debugging:VAL:SPEC" HREF="#SIG:COMPILE.debugging:VAL">debugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.mkCompInfo:VAL:SPEC" HREF="#SIG:COMPILE.mkCompInfo:VAL">mkCompInfo</A> <B>:</B> (Source.inputSource * StaticEnv.staticEnv * (Absyn.dec -&gt; Absyn.dec)) -&gt; compInfo         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.anyErrors:VAL:SPEC" HREF="#SIG:COMPILE.anyErrors:VAL">anyErrors</A> <B>:</B> compInfo -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.parse:VAL:SPEC" HREF="#SIG:COMPILE.parse:VAL">parse</A> <B>:</B> Source.inputSource -&gt; Ast.dec         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.parseOne:VAL:SPEC" HREF="#SIG:COMPILE.parseOne:VAL">parseOne</A> <B>:</B> Source.inputSource -&gt; unit -&gt; Ast.dec option         <BR>
+<B>structure</B> <A NAME="SIG:COMPILE.SCS:STR:SPEC" HREF="#SIG:COMPILE.SCS:STR">SCS</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>type</B> <A NAME="SIG:COMPILE.SCS.staticEnv:TY:SPEC" HREF="#SIG:COMPILE.SCS.staticEnv:TY">staticEnv</A><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:COMPILE.SCS.SC:VAL:SPEC" HREF="#SIG:COMPILE.SCS.SC:VAL">SC</A> <B>:</B> StaticEnv.staticEnv -&gt; staticEnv             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:COMPILE.SCS.unSC:VAL:SPEC" HREF="#SIG:COMPILE.SCS.unSC:VAL">unSC</A> <B>:</B> staticEnv -&gt; StaticEnv.staticEnv             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>type</B> <A NAME="SIG:COMPILE.pickle:TY:SPEC" HREF="#SIG:COMPILE.pickle:TY">pickle</A><BR>
+<B>type</B> <A NAME="SIG:COMPILE.hash:TY:SPEC" HREF="#SIG:COMPILE.hash:TY">hash</A><BR>
+<B>val</B> <A NAME="SIG:COMPILE.elaborate:VAL:SPEC" HREF="#SIG:COMPILE.elaborate:VAL">elaborate</A> <B>:</B> {ast : Ast.dec, compenv : SCS.staticEnv, compInfo : compInfo} -&gt; {absyn : Absyn.dec, newenv : SCS.staticEnv, exportLvars : lvar list, exportPid : pid option, staticPid : hash, pickle : pickle}         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.makePid:VAL:SPEC" HREF="#SIG:COMPILE.makePid:VAL">makePid</A> <B>:</B> (SCStaticEnv.staticEnv * SCStaticEnv.staticEnv) -&gt; PersStamps.persstamp         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.instrument:VAL:SPEC" HREF="#SIG:COMPILE.instrument:VAL">instrument</A> <B>:</B> {source : Source.inputSource, compenv : SCS.staticEnv, compInfo : compInfo} -&gt; Absyn.dec -&gt; Absyn.dec          <BR>
+<B>val</B> <A NAME="SIG:COMPILE.translate:VAL:SPEC" HREF="#SIG:COMPILE.translate:VAL">translate</A> <B>:</B> {absyn : Absyn.dec, exportLvars : lvar list, exportPid : pid option, newstatenv : SCS.staticEnv, oldstatenv : SCS.staticEnv, compInfo : compInfo} -&gt; {genLambda : lambda option list -&gt; lambda, imports : pid list}         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.symDelta:VAL:SPEC" HREF="#SIG:COMPILE.symDelta:VAL">symDelta</A> <B>:</B> (pid option * lambda option) -&gt; SymbolicEnv.symenv         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.architecture:VAL:SPEC" HREF="#SIG:COMPILE.architecture:VAL">architecture</A> <B>:</B> string         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.inline:VAL:SPEC" HREF="#SIG:COMPILE.inline:VAL">inline</A> <B>:</B> {genLambda : lambda option list -&gt; lambda, imports : pid list, symenv : SymbolicEnv.symenv} -&gt; lambda         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.split:VAL:SPEC" HREF="#SIG:COMPILE.split:VAL">split</A> <B>:</B> {lambda : lambda, enable : bool} -&gt; {lambda_e : lambda, lambda_i : lambda option}         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.codegen:VAL:SPEC" HREF="#SIG:COMPILE.codegen:VAL">codegen</A> <B>:</B> {lambda : lambda, compInfo : compInfo} -&gt; csegments         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.applyCode:VAL:SPEC" HREF="#SIG:COMPILE.applyCode:VAL">applyCode</A> <B>:</B> csegments -&gt; obj vector -&gt; obj         <BR>
+<B>exception</B> <A NAME="SIG:COMPILE.TopLevelException:EXN:SPEC" HREF="#SIG:COMPILE.TopLevelException:EXN">TopLevelException</A> <B>of</B> exn     <BR>
+<B>exception</B> <A NAME="SIG:COMPILE.SilentException:EXN:SPEC" HREF="#SIG:COMPILE.SilentException:EXN">SilentException</A><BR>
+<B>exception</B> <A NAME="SIG:COMPILE.TopLevelCallcc:EXN:SPEC" HREF="#SIG:COMPILE.TopLevelCallcc:EXN">TopLevelCallcc</A><BR>
+<B>val</B> <A NAME="SIG:COMPILE.isolate:VAL:SPEC" HREF="#SIG:COMPILE.isolate:VAL">isolate</A> <B>:</B> ('a -&gt; 'b) -&gt; 'a -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:COMPILE.execute:VAL:SPEC" HREF="#SIG:COMPILE.execute:VAL">execute</A> <B>:</B> {executable : obj vector -&gt; obj, imports : pid list, exportPid : pid option, dynenv : DynamicEnv.dynenv} -&gt; DynamicEnv.dynenv         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:COMPILE.Compile:EXN"><CODE><B>exception</B> Compile</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.lvar:TY"><CODE><B>type</B> lvar</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.absyn:TY"><CODE><B>type</B> absyn</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.compInfo:TY"><CODE><B>type</B> compInfo</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.lambda:TY"><CODE><B>type</B> lambda</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.pid:TY"><CODE><B>type</B> pid</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.obj:TY"><CODE><B>type</B> obj</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.csegments:TY"><CODE><B>type</B> csegments</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.debugging:VAL"><CODE>debugging
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.mkCompInfo:VAL"><CODE>mkCompInfo (<VAR>in</VAR>, <VAR>st</VAR>, <VAR>f</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.anyErrors:VAL"><CODE>anyErrors <VAR>co</VAR>
+          </CODE></A>
+<DD>
+Have any compile errors been reported in <VAR>co</VAR>?     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.parse:VAL"><CODE>parse <VAR>in</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.parseOne:VAL"><CODE>parseOne <VAR>in</VAR> <VAR>()</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.SCS:STR"><CODE><B>structure</B> SCS</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:COMPILE.SCS.staticEnv:TY"><CODE><B>type</B> staticEnv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.SCS.SC:VAL"><CODE>SC <VAR>st</VAR>
+              </CODE></A>
+<DD>
+        
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.SCS.unSC:VAL"><CODE>unSC <VAR>st</VAR>
+              </CODE></A>
+<DD>
+        
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:COMPILE.pickle:TY"><CODE><B>type</B> pickle</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.hash:TY"><CODE><B>type</B> hash</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.elaborate:VAL"><CODE>elaborate {<VAR>ast</VAR>, <VAR>compenv</VAR>, <VAR>compInfo</VAR>}
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.makePid:VAL"><CODE>makePid (<VAR>st</VAR>, <VAR>st2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.instrument:VAL"><CODE>instrument {<VAR>source</VAR>, <VAR>compenv</VAR>, <VAR>compInfo</VAR>} <VAR>de</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.translate:VAL"><CODE>translate {<VAR>absyn</VAR>, <VAR>exportLvars</VAR>, <VAR>exportPid</VAR>, <VAR>newstatenv</VAR>, <VAR>oldstatenv</VAR>, <VAR>compInfo</VAR>}
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.symDelta:VAL"><CODE>symDelta (<VAR>opt</VAR>, <VAR>opt2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.architecture:VAL"><CODE>architecture
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.inline:VAL"><CODE>inline {<VAR>genLambda</VAR>, <VAR>imports</VAR>, <VAR>symenv</VAR>}
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.split:VAL"><CODE>split {<VAR>lambda</VAR>, <VAR>enable</VAR>}
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.codegen:VAL"><CODE>codegen {<VAR>lambda</VAR>, <VAR>compInfo</VAR>}
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.applyCode:VAL"><CODE>applyCode <VAR>cs</VAR> <VAR>vec</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.TopLevelException:EXN"><CODE><B>exception</B> TopLevelException</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.SilentException:EXN"><CODE><B>exception</B> SilentException</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.TopLevelCallcc:EXN"><CODE><B>exception</B> TopLevelCallcc</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.isolate:VAL"><CODE>isolate <VAR>f</VAR> <VAR>a</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:COMPILE.execute:VAL"><CODE>execute {<VAR>executable</VAR>, <VAR>imports</VAR>, <VAR>exportPid</VAR>, <VAR>dynenv</VAR>}
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

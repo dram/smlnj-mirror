@@ -1,0 +1,168 @@
+<!-- HTML/bit-vector.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The BitVector structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>BitVector</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="BIT_VECTOR:SIG:SPEC"><CODE>BIT_VECTOR</CODE></A><BR>
+<B>structure </B><A NAME="BitVector:STR:SPEC"><CODE>BitVector</CODE></A><B> : </B>BIT_VECTOR<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The BitVector structure   provides compacted vectors of booleans, with one bit for each boolean value. A 0 (1) bit corresponds to the boolean value <CODE>false</CODE> (<CODE>true</CODE>), respectively. These vectors can be used to implement sets of integers. Member testing takes constant time. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>include</B> <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/mono-vector.html#MONO_VECTOR:SIG:SPEC">MONO_VECTOR</A><BR>
+&nbsp;&nbsp;<B>where type</B> elem <B>=</B> bool<BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.fromString:VAL:SPEC" HREF="#SIG:BIT_VECTOR.fromString:VAL">fromString</A> <B>:</B> string -&gt; vector       <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.bits:VAL:SPEC" HREF="#SIG:BIT_VECTOR.bits:VAL">bits</A> <B>:</B> (int * int list) -&gt; vector       <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.getBits:VAL:SPEC" HREF="#SIG:BIT_VECTOR.getBits:VAL">getBits</A> <B>:</B> vector -&gt; int list         <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.toString:VAL:SPEC" HREF="#SIG:BIT_VECTOR.toString:VAL">toString</A> <B>:</B> vector -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.isZero:VAL:SPEC" HREF="#SIG:BIT_VECTOR.isZero:VAL">isZero</A> <B>:</B> vector -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.extend0:VAL:SPEC" HREF="#SIG:BIT_VECTOR.extend0:VAL">extend0</A> <B>:</B> (vector * int) -&gt; vector       <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.extend1:VAL:SPEC" HREF="#SIG:BIT_VECTOR.extend0:VAL">extend1</A> <B>:</B> (vector * int) -&gt; vector       <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.eqBits:VAL:SPEC" HREF="#SIG:BIT_VECTOR.eqBits:VAL">eqBits</A> <B>:</B> (vector * vector) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.equal:VAL:SPEC" HREF="#SIG:BIT_VECTOR.equal:VAL">equal</A> <B>:</B> (vector * vector) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.andb:VAL:SPEC" HREF="#SIG:BIT_VECTOR.andb:VAL">andb</A> <B>:</B> (vector * vector * int) -&gt; vector       <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.orb:VAL:SPEC" HREF="#SIG:BIT_VECTOR.andb:VAL">orb</A> <B>:</B> (vector * vector * int) -&gt; vector       <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.xorb:VAL:SPEC" HREF="#SIG:BIT_VECTOR.andb:VAL">xorb</A> <B>:</B> (vector * vector * int) -&gt; vector         <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.notb:VAL:SPEC" HREF="#SIG:BIT_VECTOR.notb:VAL">notb</A> <B>:</B> vector -&gt; vector         <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.lshift:VAL:SPEC" HREF="#SIG:BIT_VECTOR.lshift:VAL">lshift</A> <B>:</B> (vector * int) -&gt; vector       <BR>
+<B>val</B> <A NAME="SIG:BIT_VECTOR.rshift:VAL:SPEC" HREF="#SIG:BIT_VECTOR.rshift:VAL">rshift</A> <B>:</B> (vector * int) -&gt; vector       <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:BIT_VECTOR.fromString:VAL"><CODE>fromString <VAR>s</VAR>
+          </CODE></A>
+<DD>
+creates a vector from the string argument <VAR>s</VAR>, which should           contain a hexadecimal representation of the bits set in the vector.           Characters 0-9, a-f and A-F are allowed. For example,            <CODE>fromString &quot;1af8&quot; = 0001101011111000</CODE>. (By convention, 0            corresponds to <CODE>false</CODE> and 1 corresponds to <CODE>true</CODE>,            bit 0 appears on the right, and indices increase to the left.)            The length of the vector will be <CODE>4*(size <VAR>s</VAR>)</CODE>.            Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A> if a non-hexadecimal character            appears in the string.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.bits:VAL"><CODE>bits (<VAR>sz</VAR>, <VAR>l</VAR>)
+          </CODE></A>
+<DD>
+creates a vector of length <VAR>sz</VAR> with the indices of its set bits             given by <VAR>l</VAR>. 	  Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A>            if a list item is less than 0, or greater than or equal to <VAR>sz</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.getBits:VAL"><CODE>getBits <VAR>vec</VAR>
+          </CODE></A>
+<DD>
+returns a list of indices of the bits set in <VAR>vec</VAR>,            in increasing order.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.toString:VAL"><CODE>toString <VAR>vec</VAR>
+          </CODE></A>
+<DD>
+encodes a bit vector as a string. The bit vector is zero-padded to            the next length that is a multiple of 4.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.isZero:VAL"><CODE>isZero <VAR>vec</VAR>
+          </CODE></A>
+<DD>
+returns true if and only if no bits are set.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.extend0:VAL"><CODE>extend0 (<VAR>vec</VAR>, <VAR>len</VAR>)
+          </CODE></A>
+<DT> <CODE>          extend1 (<VAR>vec</VAR>, <VAR>len</VAR>)
+          </CODE>
+<DD>
+create a new vectors by extending the argument bit vector            by 0's or 1's to given length. If <VAR>vec</VAR>            is already as long as <VAR>len</VAR>, return a copy of the bit vector.            Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> 	  if <VAR>len</VAR> is negative.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.eqBits:VAL"><CODE>eqBits (<VAR>vec</VAR>, <VAR>vec2</VAR>)
+          </CODE></A>
+<DD>
+returns true if the set bits in the two vectors are the same. This           is equivalent to:           
+<PRE>
+            getBits <VAR>vec</VAR> = getBits <VAR>vec2</VAR>
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.equal:VAL"><CODE>equal (<VAR>vec</VAR>, <VAR>vec2</VAR>)
+          </CODE></A>
+<DD>
+returns true if the two vectors are equivalent, i.e., have the           same length and set bits.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.andb:VAL"><CODE>andb (<VAR>vec</VAR>, <VAR>vec2</VAR>, <VAR>len</VAR>)
+          </CODE></A>
+<DT> <CODE>          orb (<VAR>vec</VAR>, <VAR>vec2</VAR>, <VAR>len</VAR>)
+          </CODE>
+<DT> <CODE>          xorb (<VAR>vec</VAR>, <VAR>vec2</VAR>, <VAR>len</VAR>)
+          </CODE>
+<DD>
+creates a new vector of length <VAR>len</VAR> by logically combining the            bits of <VAR>vec</VAR> and <VAR>vec2</VAR> using and, or and xor, respectively.           If necessary, the vectors are implicitly extended by 0 to be the            same length  as the new array.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.notb:VAL"><CODE>notb <VAR>vec</VAR>
+          </CODE></A>
+<DD>
+creates a new vector with all bits of original vector inverted.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.lshift:VAL"><CODE>lshift (<VAR>vec</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DD>
+creates a new vector by inserting <VAR>n</VAR> 0's on the right            of <VAR>vec</VAR>. The new vector has            length <VAR>n</VAR> + <CODE>length</CODE> <VAR>vec</VAR>.           Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A> if <VAR>n</VAR> is negative.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_VECTOR.rshift:VAL"><CODE>rshift (<VAR>vec</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DD>
+creates a new vector of            length max(0,<CODE>length</CODE> <VAR>vec</VAR> - <VAR>n</VAR>) consisting            of bits n,n+1,...,<CODE>length</CODE> <VAR>vec</VAR> - 1 of <VAR>vec</VAR>.            If <VAR>n</VAR> &gt;= <CODE>length</CODE> <VAR>vec</VAR>, the new vector            has length 0.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="bit-array.html#BitArray:STR:SPEC">BitArray</A>, <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/mono-vector.html#MONO_VECTOR:SIG:SPEC">MONO_VECTOR</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 9, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

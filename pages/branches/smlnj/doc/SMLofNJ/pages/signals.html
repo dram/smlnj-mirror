@@ -1,0 +1,196 @@
+<!-- HTML/signals.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Signals structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>Signals</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SIGNALS:SIG:SPEC"><CODE>SIGNALS</CODE></A><BR>
+<B>structure </B><A NAME="Signals:STR:SPEC"><CODE>Signals</CODE></A><B> : </B>SIGNALS<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+<A HREF="signals.html#Signals:STR:SPEC">Signals</A> provides an interface to signal system.  
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:SIGNALS.signal:TY:SPEC" HREF="#SIG:SIGNALS.signal:TY">signal</A><BR>
+<B>datatype</B> <A NAME="SIG:SIGNALS.sig_action:TY:SPEC" HREF="#SIG:SIGNALS.sig_action:TY">sig_action</A><BR>
+&nbsp;&nbsp;<B>=</B> IGNORE<BR>
+&nbsp;&nbsp;<B>|</B> DEFAULT<BR>
+&nbsp;&nbsp;<B>|</B> HANDLER <B>of</B> (signal * int * unit cont) -&gt; unit cont       <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.listSignals:VAL:SPEC" HREF="#SIG:SIGNALS.listSignals:VAL">listSignals</A> <B>:</B> unit -&gt; signal list         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.toString:VAL:SPEC" HREF="#SIG:SIGNALS.toString:VAL">toString</A> <B>:</B> signal -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.fromString:VAL:SPEC" HREF="#SIG:SIGNALS.fromString:VAL">fromString</A> <B>:</B> string -&gt; signal option         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.setHandler:VAL:SPEC" HREF="#SIG:SIGNALS.setHandler:VAL">setHandler</A> <B>:</B> (signal * sig_action) -&gt; sig_action         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.overrideHandler:VAL:SPEC" HREF="#SIG:SIGNALS.overrideHandler:VAL">overrideHandler</A> <B>:</B> (signal * sig_action) -&gt; sig_action         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.inqHandler:VAL:SPEC" HREF="#SIG:SIGNALS.inqHandler:VAL">inqHandler</A> <B>:</B> signal -&gt; sig_action         <BR>
+<B>datatype</B> <A NAME="SIG:SIGNALS.sigmask:TY:SPEC" HREF="#SIG:SIGNALS.sigmask:TY">sigmask</A><BR>
+&nbsp;&nbsp;<B>=</B> MASKALL<BR>
+&nbsp;&nbsp;<B>|</B> MASK <B>of</B> signal list       <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.maskSignals:VAL:SPEC" HREF="#SIG:SIGNALS.maskSignals:VAL">maskSignals</A> <B>:</B> sigmask -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.unmaskSignals:VAL:SPEC" HREF="#SIG:SIGNALS.unmaskSignals:VAL">unmaskSignals</A> <B>:</B> sigmask -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.masked:VAL:SPEC" HREF="#SIG:SIGNALS.masked:VAL">masked</A> <B>:</B> unit -&gt; sigmask         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.pause:VAL:SPEC" HREF="#SIG:SIGNALS.pause:VAL">pause</A> <B>:</B> unit -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.sigINT:VAL:SPEC" HREF="#SIG:SIGNALS.sigINT:VAL">sigINT</A> <B>:</B> signal         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.sigALRM:VAL:SPEC" HREF="#SIG:SIGNALS.sigALRM:VAL">sigALRM</A> <B>:</B> signal         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.sigTERM:VAL:SPEC" HREF="#SIG:SIGNALS.sigTERM:VAL">sigTERM</A> <B>:</B> signal         <BR>
+<B>val</B> <A NAME="SIG:SIGNALS.sigGC:VAL:SPEC" HREF="#SIG:SIGNALS.sigGC:VAL">sigGC</A> <B>:</B> signal         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SIGNALS.signal:TY"><CODE><B>eqtype</B> signal</CODE></A>
+<DD>
+	The type of signals (HUP, INT, QUIT, ...)  	deliverable to a process, plus         ML-specific pseudo-signals such as &quot;GC&quot;.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.sig_action:TY"><CODE><B>datatype</B> sig_action</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.listSignals:VAL"><CODE>listSignals <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Return a list of all signals recognized by the signal system.           Since <A HREF="signals.html#SIG:SIGNALS.signal:TY:SPEC">signal</A> is an abstract type, one may wish           to examine <CODE>map <A HREF="signals.html#SIG:SIGNALS.toString:VAL:SPEC">toString</A> (<A HREF="signals.html#SIG:SIGNALS.listSignals:VAL:SPEC">listSignals</A>())</CODE>           to see their names.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.toString:VAL"><CODE>toString <VAR>signal</VAR>
+          </CODE></A>
+<DD>
+Get the name of <VAR>signal</VAR>.  Example: &quot;HUP&quot;, &quot;INT&quot;, &quot;QUIT&quot;, etc.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.fromString:VAL"><CODE>fromString <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Convert a string to a signal, or return <CODE>NONE</CODE> if there           is no such signal.           
+<P>
+          The structure <A HREF="unix-signals.html#UnixSignals:STR:SPEC">UnixSignals</A> defines several of these           signal values, so that you need not suffer the indignity           and insecurity of using <A HREF="signals.html#SIG:SIGNALS.fromString:VAL:SPEC">fromString</A> to look them           up.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.setHandler:VAL"><CODE>          setHandler (<VAR>signal</VAR>, <A HREF="signals.html#SIG:SIGNALS.sig_action:TY:SPEC">IGNORE</A>)
+	  </CODE></A>
+<DT> <CODE>          setHandler (<VAR>signal</VAR>, <A HREF="signals.html#SIG:SIGNALS.sig_action:TY:SPEC">DEFAULT</A>)
+	  </CODE>
+<DT> <CODE>          setHandler (<VAR>signal</VAR>, <A HREF="signals.html#SIG:SIGNALS.sig_action:TY:SPEC">HANDLER</A>(<VAR>f</VAR>))
+          </CODE>
+<DD>
+<A HREF="signals.html#SIG:SIGNALS.sig_action:TY:SPEC">IGNORE</A> tells the operating system to ignore  	  <VAR>signal</VAR> and not to deliver it to the process.           
+<P>
+          <A HREF="signals.html#SIG:SIGNALS.sig_action:TY:SPEC">DEFAULT</A>  	  tells the operating system to perform the default action           for <VAR>signal</VAR>.           
+<P>
+          <A HREF="signals.html#SIG:SIGNALS.sig_action:TY:SPEC">HANDLER</A>(<VAR>f</VAR>)           installs a handler for a signal.  When <VAR>signal</VAR> is delivered           to the process, the execution state of the current thread           will be bundled up as a continuation <CODE>k</CODE>,           then <VAR>f</VAR>(<VAR>signal</VAR>,<CODE>n</CODE>,<CODE>k</CODE>) will be called.           The number <CODE>n</CODE> is the number of times <VAR>signal</VAR>           has been signalled since the last time <VAR>f</VAR> was invoked for           it.           During the execution of <VAR>f</VAR>, all signals are held (not           delivered).  When <VAR>f</VAR> returns some continuation <CODE>k'</CODE>,           signals are re-enabled, and then <CODE>k'</CODE> is invoked.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.overrideHandler:VAL"><CODE>overrideHandler (<VAR>signal</VAR>, <VAR>handler</VAR>)
+          </CODE></A>
+<DD>
+If <VAR>signal</VAR> is not being ignored, then set the handler.  This 	  returns the previous handler (if <A HREF="signals.html#SIG:SIGNALS.sig_action:TY:SPEC">IGNORE</A>,  	  then the current handler 	  is still <A HREF="signals.html#SIG:SIGNALS.sig_action:TY:SPEC">IGNORE</A>).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.inqHandler:VAL"><CODE>inqHandler <VAR>signal</VAR>
+          </CODE></A>
+<DD>
+Get the current action for <VAR>signal</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.sigmask:TY"><CODE><B>datatype</B> sigmask</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.maskSignals:VAL"><CODE>maskSignals <VAR>sigs</VAR>
+          </CODE></A>
+<DD>
+Mask the specified set of signals: signals that are not IGNORED 	  will be delivered when unmasked.  Calls to 	  <A HREF="signals.html#SIG:SIGNALS.maskSignals:VAL:SPEC">maskSignals</A> nest on a 	  per signal basis.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.unmaskSignals:VAL"><CODE>unmaskSignals <VAR>sigs</VAR>
+          </CODE></A>
+<DD>
+Unmask the specified signals.  The unmasking of a signal that is 	 not masked has no effect.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.masked:VAL"><CODE>masked <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Return the set of masked signals; the value <CODE>MASK[]</CODE> means that 	 no signals are masked.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.pause:VAL"><CODE>pause <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Sleep until the next signal; if called when signals are masked, 	 then signals will still be masked when pause returns.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.sigINT:VAL"><CODE>sigINT
+          </CODE></A>
+<DD>
+The interactive interrupt.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.sigALRM:VAL"><CODE>sigALRM
+          </CODE></A>
+<DD>
+The interval timer signal.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.sigTERM:VAL"><CODE>sigTERM
+          </CODE></A>
+<DD>
+Process termination.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SIGNALS.sigGC:VAL"><CODE>sigGC
+          </CODE></A>
+<DD>
+Signalled by the runtime system (not by the operating system)           immediately after each garbage collection.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

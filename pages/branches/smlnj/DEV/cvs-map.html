@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Yale CVS Map</title>
+  </head>
+
+  <body BGCOLOR="ffffff">
+<blockquote>
+<h1>Yale CVS Map</h2>
+<p>
+<p>
+The following a directory map gives the
+current organization of the Yale CVS repository.  This organization
+is subject to change, but any such changes will be reflected on this
+page.
+</p>
+The base "sml" module includes the sources for the compiler, libraries
+and tools, and additional resources like regression tests and benchmarks.
+<pre>
+    sml/config/
+    sml/sml-mode/
+    sml/benchmarks/
+    sml/tests/
+    sml/src/MLRISC/
+    sml/src/cm/
+    sml/src/cml/
+    sml/src/compiler/
+    sml/src/eXene/
+    sml/src/ml-burg/
+    sml/src/ml-lex/
+    sml/src/ml-yacc/
+    sml/src/runtime/
+    sml/src/smlnj-c/
+    sml/src/smlnj-lib/
+    sml/src/system/
+</pre>
+<p>
+The smlnj "module" (a directory containing mostly symbolic links to
+corresponding subdirectories of sml) provides those directories that
+are required for building the compiler from sources (i.e. for
+bootstrapping the compiler).  smlnj is basically a filtered version of
+sml.
+<pre>
+    smlnj/HISTORY  (* history file with info on all commits *)
+    smlnj/BOOT     (* location of boot files for those tags needing them *)
+    smlnj/READMES/ (* read me files for versions *)
+    smlnj/config/        -> sml/config/
+    smlnj/src/runtime/   -> sml/src/runtime/
+    smlnj/src/compiler/  -> sml/src/compiler/
+    smlnj/src/MLRISC/    -> sml/src/MLRISC/
+    smlnj/src/system/    -> sml/src/system/
+    smlnj/src/cm/        -> sml/src/cm/
+    smlnj/src/ml-lex/    -> sml/src/ml-lex/
+    smlnj/src/ml-yacc/   -> sml/src/ml-yacc/
+    smlnj/src/smlnj-lib/ -> sml/src/smlnj-lib/
+</pre>
+<p>
+The sml-dist "module" consists of the sources included in a distribution.
+<pre>
+    sml-dist/config  -> sml/config
+    sml-dist/src     -> sml/src
+</pre>
+</blockquote>
+    <hr>
+    <address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Mon Feb 21 16:13:47 EST 2000 -->
+<!-- hhmts start -->
+Last modified: Fri Apr 21 16:34:55 EDT 2000
+<!-- hhmts end -->
+  </body>
+</html>

@@ -1,0 +1,347 @@
+<!-- HTML/posix-io.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Posix.IO structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Posix.IO</CODE> structure</H3>
+<P>
+The structure Posix.IO specifies functions that provide the primitive POSIX input/output operations, as described in Section 6 of the POSIX standard <B>[CITE]</B>1003.1,1996/. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="POSIX_IO:SIG:SPEC"><CODE>POSIX_IO</CODE></A><BR>
+<B>structure </B><A NAME="IO:STR:SPEC"><CODE>IO</CODE></A><B> : </B>POSIX_IO<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:POSIX_IO.file_desc:TY:SPEC" HREF="#SIG:POSIX_IO.file_desc:TY">file_desc</A><BR>
+<B>eqtype</B> <A NAME="SIG:POSIX_IO.pid:TY:SPEC" HREF="#SIG:POSIX_IO.pid:TY">pid</A><BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.pipe:VAL:SPEC" HREF="#SIG:POSIX_IO.pipe:VAL">pipe</A> <B>:</B> unit -&gt; {infd : file_desc, outfd : file_desc} 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.dup:VAL:SPEC" HREF="#SIG:POSIX_IO.dup:VAL">dup</A> <B>:</B> file_desc -&gt; file_desc 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.dup2:VAL:SPEC" HREF="#SIG:POSIX_IO.dup2:VAL">dup2</A> <B>:</B> {old : file_desc, new : file_desc} -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.close:VAL:SPEC" HREF="#SIG:POSIX_IO.close:VAL">close</A> <B>:</B> file_desc -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.readVec:VAL:SPEC" HREF="#SIG:POSIX_IO.readVec:VAL">readVec</A> <B>:</B> (file_desc * int) -&gt; Word8Vector.vector 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.readArr:VAL:SPEC" HREF="#SIG:POSIX_IO.readArr:VAL">readArr</A> <B>:</B> (file_desc * {buf : Word8Array.array, i : int, sz : int option}) -&gt; int 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.writeVec:VAL:SPEC" HREF="#SIG:POSIX_IO.writeVec:VAL">writeVec</A> <B>:</B> (file_desc * {buf : Word8Vector.vector, i : int, sz : int option}) -&gt; int 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.writeArr:VAL:SPEC" HREF="#SIG:POSIX_IO.writeArr:VAL">writeArr</A> <B>:</B> (file_desc * {buf : Word8Array.array, i : int, sz : int option}) -&gt; int 	<BR>
+<B>datatype</B> <A NAME="SIG:POSIX_IO.whence:TY:SPEC" HREF="#SIG:POSIX_IO.whence:TY">whence</A><BR>
+&nbsp;&nbsp;<B>=</B> SEEK_SET<BR>
+&nbsp;&nbsp;<B>|</B> SEEK_CUR<BR>
+&nbsp;&nbsp;<B>|</B> SEEK_END<BR>
+<B>structure</B> <A NAME="SIG:POSIX_IO.FD:STR:SPEC" HREF="#SIG:POSIX_IO.FD:STR">FD</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>include</B> POSIX_FLAGS<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.FD.cloexec:VAL:SPEC" HREF="#SIG:POSIX_IO.FD.cloexec:VAL">cloexec</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>structure</B> <A NAME="SIG:POSIX_IO.O:STR:SPEC" HREF="#SIG:POSIX_IO.O:STR">O</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>include</B> POSIX_FLAGS<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.O.append:VAL:SPEC" HREF="#SIG:POSIX_IO.O.append:VAL">append</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.O.nonblock:VAL:SPEC" HREF="#SIG:POSIX_IO.O.nonblock:VAL">nonblock</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.O.sync:VAL:SPEC" HREF="#SIG:POSIX_IO.O.sync:VAL">sync</A> <B>:</B> flags             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>datatype</B> <A NAME="SIG:POSIX_IO.open_mode:TY:SPEC" HREF="#SIG:POSIX_IO.open_mode:TY">open_mode</A><BR>
+&nbsp;&nbsp;<B>=</B> O_RDONLY<BR>
+&nbsp;&nbsp;<B>|</B> O_WRONLY<BR>
+&nbsp;&nbsp;<B>|</B> O_RDWR<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.dupfd:VAL:SPEC" HREF="#SIG:POSIX_IO.dupfd:VAL">dupfd</A> <B>:</B> {old : file_desc, base : file_desc} -&gt; file_desc 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.getfd:VAL:SPEC" HREF="#SIG:POSIX_IO.getfd:VAL">getfd</A> <B>:</B> file_desc -&gt; FD.flags 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.setfd:VAL:SPEC" HREF="#SIG:POSIX_IO.setfd:VAL">setfd</A> <B>:</B> (file_desc * FD.flags) -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.getfl:VAL:SPEC" HREF="#SIG:POSIX_IO.getfl:VAL">getfl</A> <B>:</B> file_desc -&gt; (O.flags * open_mode) 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.setfl:VAL:SPEC" HREF="#SIG:POSIX_IO.setfl:VAL">setfl</A> <B>:</B> (file_desc * O.flags) -&gt; unit 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.lseek:VAL:SPEC" HREF="#SIG:POSIX_IO.lseek:VAL">lseek</A> <B>:</B> (file_desc * Position.int * whence) -&gt; Position.int 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.fsync:VAL:SPEC" HREF="#SIG:POSIX_IO.fsync:VAL">fsync</A> <B>:</B> file_desc -&gt; unit 	<BR>
+<B>datatype</B> <A NAME="SIG:POSIX_IO.lock_type:TY:SPEC" HREF="#SIG:POSIX_IO.lock_type:TY">lock_type</A><BR>
+&nbsp;&nbsp;<B>=</B> F_RDLCK<BR>
+&nbsp;&nbsp;<B>|</B> F_WRLCK<BR>
+&nbsp;&nbsp;<B>|</B> F_UNLCK<BR>
+<B>structure</B> <A NAME="SIG:POSIX_IO.FLock:STR:SPEC" HREF="#SIG:POSIX_IO.FLock:STR">FLock</A> <B>:</B> <B>sig</B><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>type</B> <A NAME="SIG:POSIX_IO.FLock.flock:TY:SPEC" HREF="#SIG:POSIX_IO.FLock.flock:TY">flock</A><BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.FLock.flock:VAL:SPEC" HREF="#SIG:POSIX_IO.FLock.flock:VAL">flock</A> <B>:</B> {ltype : lock_type, whence : whence, start : Position.int, len : Position.int, pid : pid option} -&gt; flock             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.FLock.ltype:VAL:SPEC" HREF="#SIG:POSIX_IO.FLock.ltype:VAL">ltype</A> <B>:</B> flock -&gt; lock_type             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.FLock.whence:VAL:SPEC" HREF="#SIG:POSIX_IO.FLock.whence:VAL">whence</A> <B>:</B> flock -&gt; whence             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.FLock.start:VAL:SPEC" HREF="#SIG:POSIX_IO.FLock.start:VAL">start</A> <B>:</B> flock -&gt; Position.int             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.FLock.len:VAL:SPEC" HREF="#SIG:POSIX_IO.FLock.len:VAL">len</A> <B>:</B> flock -&gt; Position.int             <BR>
+&nbsp;&nbsp;&nbsp;&nbsp;<B>val</B> <A NAME="SIG:POSIX_IO.FLock.pid:VAL:SPEC" HREF="#SIG:POSIX_IO.FLock.pid:VAL">pid</A> <B>:</B> flock -&gt; pid option             <BR>
+&nbsp;&nbsp;<B>end</B><BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.getlk:VAL:SPEC" HREF="#SIG:POSIX_IO.getlk:VAL">getlk</A> <B>:</B> (file_desc * FLock.flock) -&gt; FLock.flock 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.setlk:VAL:SPEC" HREF="#SIG:POSIX_IO.setlk:VAL">setlk</A> <B>:</B> (file_desc * FLock.flock) -&gt; FLock.flock 	<BR>
+<B>val</B> <A NAME="SIG:POSIX_IO.setlkw:VAL:SPEC" HREF="#SIG:POSIX_IO.setlkw:VAL">setlkw</A> <B>:</B> (file_desc * FLock.flock) -&gt; FLock.flock 	<BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:POSIX_IO.file_desc:TY"><CODE><B>eqtype</B> file_desc</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.pid:TY"><CODE><B>eqtype</B> pid</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.pipe:VAL"><CODE>pipe <VAR>()</VAR>
+          </CODE></A>
+<DD>
+creates a pipe (channel) and returns two file descriptors that 	  refer to the read (<VAR>infd</VAR>) and write (<VAR>outfd</VAR>) 	  ends of the pipe.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.dup:VAL"><CODE>dup <VAR>fd</VAR>
+          </CODE></A>
+<DD>
+returns a new file descriptor that refers to the same 	  open file, with the same file pointer and access mode,           as <VAR>fd</VAR>. The underlying word            (see <A HREF="posix-file-sys.html#SIG:POSIX_FILE_SYS.fdToWord:VAL:SPEC">Posix.FileSys.fdToWord</A>)           of the returned file            descriptor is the lowest one available.           Equivalent to <CODE><A HREF="#SIG:POSIX_IO.dupfd:VAL:SPEC">dupfd</A> {<VAR>old</VAR>=<VAR>fd</VAR>, <VAR>base</VAR>=<A HREF="posix-file-sys.html#SIG:POSIX_FILE_SYS.wordToFD:VAL:SPEC">Posix.FileSys.wordToFD</A> 0w0}</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.dup2:VAL"><CODE>dup2 {<VAR>old</VAR>, <VAR>new</VAR>}
+          </CODE></A>
+<DD>
+duplicates the open file descriptor <VAR>old</VAR> as  	  file descriptor <VAR>new</VAR>.       
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.close:VAL"><CODE>close <VAR>fd</VAR>
+          </CODE></A>
+<DD>
+closes the file descriptor <VAR>fd</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.readVec:VAL"><CODE>readVec (<VAR>fd</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+reads <VAR>n</VAR> bytes from the file referred to by <VAR>fd</VAR>. 	  The size of the resulting vector is the number of  	  bytes that were successfully read, which may be less than <VAR>n</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.readArr:VAL"><CODE>readArr (<VAR>fd</VAR>, {<VAR>buf</VAR>, <VAR>i</VAR>, <VAR>sz</VAR>})
+          </CODE></A>
+<DD>
+reads <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A>(<VAR>sz</VAR>)</CODE> bytes from file <VAR>fd</VAR> into 	  buffer <VAR>buf</VAR> starting at buffer position <VAR>i</VAR>.  Returns the 	  number of bytes actually read.  If <VAR>sz</VAR> is <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A>, 	  reads as many bytes as are available up to the number of bytes 	  that can be placed in buffer starting at buffer position <VAR>i</VAR>.   	  Raises <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> if buffer bounds are violated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.writeVec:VAL"><CODE>writeVec (<VAR>fd</VAR>, {<VAR>buf</VAR>, <VAR>i</VAR>, <VAR>sz</VAR>})
+          </CODE></A>
+<DD>
+writes <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A>(<VAR>sz</VAR>)</CODE> bytes from the vector  	  <VAR>buf</VAR>, starting from position <VAR>i</VAR>, to the open file <VAR>fd</VAR>. 	  If <VAR>sz</VAR> is <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A>, writes the bytes from position <VAR>i</VAR> 	  to the end of the buffer.  Returns the number of bytes actually 	  written.  Raises <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> if buffer bounds are violated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.writeArr:VAL"><CODE>writeArr (<VAR>fd</VAR>, {<VAR>buf</VAR>, <VAR>i</VAR>, <VAR>sz</VAR>})
+          </CODE></A>
+<DD>
+writes <CODE><A HREF="option.html#SIG:OPTION.option:TY:SPEC">SOME</A>(<VAR>sz</VAR>)</CODE> bytes from the array 	  <VAR>buf</VAR>, starting from position <VAR>i</VAR>, to the open file <VAR>fd</VAR>. 	  If <VAR>sz</VAR> is <A HREF="option.html#SIG:OPTION.option:TY:SPEC">NONE</A>, writes the bytes from position <VAR>i</VAR> 	  to the end of the buffer.  Returns the number of bytes actually 	  written.  Raises <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> if buffer bounds are violated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.whence:TY"><CODE><B>datatype</B> whence</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.FD:STR"><CODE><B>structure</B> FD</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:POSIX_IO.FD.cloexec:VAL"><CODE>cloexec
+              </CODE></A>
+<DD>
+file descriptor flag that, if set for <CODE>fd</CODE>, will  	      close <CODE>fd</CODE> should the opening process replace itself 	      (through <CODE>exec</CODE>, etc.). 	      If cloexec is not 	      set, the file associated with <CODE>fd</CODE> will remain open  	      in the new process.         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_IO.O:STR"><CODE><B>structure</B> O</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:POSIX_IO.O.append:VAL"><CODE>append
+              </CODE></A>
+<DD>
+file status flag that forces the file offset to be 	      set to the end of the file prior to each write.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.O.nonblock:VAL"><CODE>nonblock
+              </CODE></A>
+<DD>
+file status flag to enable non-blocking IO.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.O.sync:VAL"><CODE>sync
+              </CODE></A>
+<DD>
+file status flag to enable writes using 	      ``synchronized I/O file integrity completion.''         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_IO.open_mode:TY"><CODE><B>datatype</B> open_mode</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.dupfd:VAL"><CODE>dupfd {<VAR>old</VAR>, <VAR>base</VAR>}
+          </CODE></A>
+<DD>
+returns a file descriptor bound to <VAR>old</VAR> that is  	  greater than or equal to (according to the underlying 	  integer mapping; see <A HREF="posix-file-sys.html#SIG:POSIX_FILE_SYS.fdToWord:VAL:SPEC">Posix.FileSys.fdToWord</A> and 	  <A HREF="posix-file-sys.html#SIG:POSIX_FILE_SYS.wordToFD:VAL:SPEC">Posix.FileSys.wordToFD</A>) the file descriptor <VAR>base</VAR>.           Corresponds to the POSIX <CODE>fcntl</CODE> function with the 	  <CODE>F_DUPFD</CODE> command.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.getfd:VAL"><CODE>getfd <VAR>fd</VAR>
+          </CODE></A>
+<DD>
+gets the file descriptor flags associated with <VAR>fd</VAR>.           Corresponds to the POSIX <CODE>fcntl</CODE> function with the 	  <CODE>F_GETFD</CODE> command.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.setfd:VAL"><CODE>setfd (<VAR>fd</VAR>, <VAR>fl</VAR>)
+          </CODE></A>
+<DD>
+sets the flags of file descriptor <VAR>fd</VAR> to <VAR>fl</VAR>.           Corresponds to the POSIX <CODE>fcntl</CODE> function with the 	  <CODE>F_SETFD</CODE> command.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.getfl:VAL"><CODE>getfl <VAR>fd</VAR>
+          </CODE></A>
+<DD>
+gets the file status flags for the open file descriptor <VAR>fd</VAR>.            Corresponds to the POSIX <CODE>fcntl</CODE> function with the 	  <CODE>F_GETFL</CODE> command.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.setfl:VAL"><CODE>setfl (<VAR>fd</VAR>, <VAR>fl</VAR>)
+          </CODE></A>
+<DD>
+sets the file status flags for the open file descriptor <VAR>fd</VAR> 	  to <VAR>fl</VAR>.           Corresponds to the POSIX <CODE>fcntl</CODE> function with the 	  <CODE>F_SETFL</CODE> command.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.lseek:VAL"><CODE>lseek (<VAR>fd</VAR>, <VAR>off</VAR>, <VAR>wh</VAR>)
+          </CODE></A>
+<DD>
+sets the file offset for open file descriptor <VAR>fd</VAR> to  	  <VAR>off</VAR> if <VAR>wh</VAR> is <A HREF="#SIG:POSIX_IO.whence:TY:SPEC">SEEK_SET</A>;  	  to its current value  	  plus <VAR>off</VAR> bytes if <VAR>wh</VAR> is <A HREF="#SIG:POSIX_IO.whence:TY:SPEC">SEEK_CUR</A>;  	  or, to the size of the file plus <VAR>off</VAR> bytes if  	  <VAR>wh</VAR> is <A HREF="#SIG:POSIX_IO.whence:TY:SPEC">SEEK_END</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.fsync:VAL"><CODE>fsync <VAR>fd</VAR>
+          </CODE></A>
+<DD>
+indicates that all data for the open file descriptor <VAR>fd</VAR> 	  is to be transferred to the device associated with the descriptor; 	  similar to a &quot;flush&quot; operation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.lock_type:TY"><CODE><B>datatype</B> lock_type</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.FLock:STR"><CODE><B>structure</B> FLock</CODE></A>
+<DD>
+<BR>
+
+<DL>
+<DT> <A NAME="SIG:POSIX_IO.FLock.flock:TY"><CODE><B>type</B> flock</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.FLock.flock:VAL"><CODE>flock {<VAR>ltype</VAR>, <VAR>whence</VAR>, <VAR>start</VAR>, <VAR>len</VAR>, <VAR>pid</VAR>}
+              </CODE></A>
+<DD>
+creates a <A HREF="#SIG:POSIX_IO.FLock.flock:TY:SPEC">flock</A> data structure  	      given <VAR>ltype</VAR>, <VAR>whence</VAR>, 	      <VAR>start</VAR>, <VAR>len</VAR> and <VAR>pid</VAR>.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.FLock.ltype:VAL"><CODE>ltype <VAR>fl</VAR>
+              </CODE></A>
+<DD>
+returns the <CODE>ltype</CODE> field for <A HREF="#SIG:POSIX_IO.FLock.flock:TY:SPEC">flock</A> <VAR>fl</VAR>.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.FLock.whence:VAL"><CODE>whence <VAR>fl</VAR>
+              </CODE></A>
+<DD>
+returns the <CODE>whence</CODE> field for <A HREF="#SIG:POSIX_IO.FLock.flock:TY:SPEC">flock</A> <VAR>fl</VAR>.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.FLock.start:VAL"><CODE>start <VAR>fl</VAR>
+              </CODE></A>
+<DD>
+returns the <CODE>start</CODE> field for <A HREF="#SIG:POSIX_IO.FLock.flock:TY:SPEC">flock</A> <VAR>fl</VAR>.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.FLock.len:VAL"><CODE>len <VAR>fl</VAR>
+              </CODE></A>
+<DD>
+returns the <CODE>len</CODE> field for <A HREF="#SIG:POSIX_IO.FLock.flock:TY:SPEC">flock</A> <VAR>fl</VAR>.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.FLock.pid:VAL"><CODE>pid <VAR>fl</VAR>
+              </CODE></A>
+<DD>
+returns the <CODE>pid</CODE> field for <A HREF="#SIG:POSIX_IO.FLock.flock:TY:SPEC">flock</A> <VAR>fl</VAR>.         
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:POSIX_IO.getlk:VAL"><CODE>getlk (<VAR>fd</VAR>, <VAR>fl</VAR>)
+          </CODE></A>
+<DD>
+gets the first lock that blocks the lock description <VAR>fl</VAR> on  	  the open file descriptor <VAR>fd</VAR>.           Corresponds to the POSIX <CODE>fcntl</CODE> function with the 	  <CODE>F_GETLK</CODE> command.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.setlk:VAL"><CODE>setlk (<VAR>fd</VAR>, <VAR>fl</VAR>)
+          </CODE></A>
+<DD>
+set or clear a file segment lock according to the  	  lock description <VAR>fl</VAR> on  	  the open file descriptor <VAR>fd</VAR>.           Corresponds to the POSIX <CODE>fcntl</CODE> function with the 	  <CODE>F_SETLK</CODE> command.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX_IO.setlkw:VAL"><CODE>setlkw (<VAR>fd</VAR>, <VAR>fl</VAR>)
+          </CODE></A>
+<DD>
+similar to the <A HREF="#SIG:POSIX_IO.setlk:VAL:SPEC">setlk</A> function above except that  	  <A HREF="#SIG:POSIX_IO.setlkw:VAL:SPEC">setlkw</A> waits on blocked locks until they released.           Corresponds to the POSIX <CODE>fcntl</CODE> function with the 	  <CODE>F_SETLKW</CODE> command.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+Many POSIX I/O functions can raise <A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A>.   	The above descriptions do not describe the particular system 	errors a function may raise; for now, consult more detailed 	POSIX documentation.    
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="posix-flags.html#POSIX_FLAGS:SIG:SPEC">POSIX_FLAGS</A>, <A HREF="posix.html#Posix:STR:SPEC">Posix</A>, <A HREF="posix.html#SIG:POSIX.IO:STR:SPEC">Posix.IO</A>, <A HREF="posix.html#SIG:POSIX.FileSys:STR:SPEC">Posix.FileSys</A>, <A HREF="posix.html#SIG:POSIX.Error:STR:SPEC">Posix.Error</A>, <A HREF="os.html#OS:STR:SPEC">OS</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="posix-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified April 17, 1996</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

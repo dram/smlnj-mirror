@@ -1,0 +1,116 @@
+<!-- HTML/printcontrol.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The PRINTCONTROL signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>PRINTCONTROL</CODE> signature</H3>
+<P>
+Interface to parameters that control top-level printing. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="PRINTCONTROL:SIG:SPEC"><CODE>PRINTCONTROL</CODE></A><BR>
+<B>structure </B><A NAME="Print:STR:SPEC"><CODE>Compiler.Control.Print</CODE></A><B> : </B>PRINTCONTROL<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:PRINTCONTROL.printDepth:VAL:SPEC" HREF="#SIG:PRINTCONTROL.printDepth:VAL">printDepth</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.printLength:VAL:SPEC" HREF="#SIG:PRINTCONTROL.printLength:VAL">printLength</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.stringDepth:VAL:SPEC" HREF="#SIG:PRINTCONTROL.stringDepth:VAL">stringDepth</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.printLoop:VAL:SPEC" HREF="#SIG:PRINTCONTROL.printLoop:VAL">printLoop</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.signatures:VAL:SPEC" HREF="#SIG:PRINTCONTROL.signatures:VAL">signatures</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.printOpens:VAL:SPEC" HREF="#SIG:PRINTCONTROL.printOpens:VAL">printOpens</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.out:VAL:SPEC" HREF="#SIG:PRINTCONTROL.out:VAL">out</A> <B>:</B> {say : string -&gt; unit, flush : unit -&gt; unit} ref         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.linewidth:VAL:SPEC" HREF="#SIG:PRINTCONTROL.linewidth:VAL">linewidth</A> <B>:</B> int ref         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.say:VAL:SPEC" HREF="#SIG:PRINTCONTROL.say:VAL">say</A> <B>:</B> string -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRINTCONTROL.flush:VAL:SPEC" HREF="#SIG:PRINTCONTROL.flush:VAL">flush</A> <B>:</B> unit -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:PRINTCONTROL.printDepth:VAL"><CODE>printDepth
+          </CODE></A>
+<DD>
+The depth of nesting of recursive data structure at which ellipsis begins.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.printLength:VAL"><CODE>printLength
+          </CODE></A>
+<DD>
+The length of lists at which ellipsis begins.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.stringDepth:VAL"><CODE>stringDepth
+          </CODE></A>
+<DD>
+The length of strings at which ellipsis begins.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.printLoop:VAL"><CODE>printLoop
+          </CODE></A>
+<DD>
+Whether to treat loops (involving ref cells) specially when printing.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.signatures:VAL"><CODE>signatures
+          </CODE></A>
+<DD>
+Whether to print signature bodies at their declarations.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.printOpens:VAL"><CODE>printOpens
+          </CODE></A>
+<DD>
+Whether to print signature bodies when they are opened.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.out:VAL"><CODE>out
+          </CODE></A>
+<DD>
+The stream to which all compiler messages and top-level  	  value printing should go.  Initialized to <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/text-io.html#SIG:TEXT_IO.stdOut:VAL:SPEC">TextIO.stdOut</A>. 	 To suppress all printout by the compiler, assign empty functions: 	 
+<PRE>
+Compiler.Control.Print.out := {say=fn _=&gt;(), flush=fn()=&gt;()};
+	 
+</PRE>
+	      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.linewidth:VAL"><CODE>linewidth
+          </CODE></A>
+<DD>
+The number of characters per line for prettyprinting to <A HREF="#SIG:PRINTCONTROL.out:VAL:SPEC">out</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.say:VAL"><CODE>say <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Write <VAR>s</VAR> to <A HREF="#SIG:PRINTCONTROL.out:VAL:SPEC">out</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRINTCONTROL.flush:VAL"><CODE>flush <VAR>()</VAR>
+          </CODE></A>
+<DD>
+Same as <CODE>#flush(!out)()</CODE>
+<BR>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

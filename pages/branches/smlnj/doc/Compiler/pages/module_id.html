@@ -1,0 +1,67 @@
+<!-- HTML/module_id.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The MODULE_ID signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>MODULE_ID</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="MODULE_ID:SIG:SPEC"><CODE>MODULE_ID</CODE></A><BR>
+<B>structure </B><A NAME="ModuleId:STR:SPEC"><CODE>Compiler.ModuleId</CODE></A><B> : </B>MODULE_ID<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:MODULE_ID.stamp:TY:SPEC" HREF="#SIG:MODULE_ID.stamp:TY">stamp</A><BR>
+<B>datatype</B> <A NAME="SIG:MODULE_ID.modId:TY:SPEC" HREF="#SIG:MODULE_ID.modId:TY">modId</A><BR>
+&nbsp;&nbsp;<B>=</B> STRid <B>of</B> {rlzn : stamp, sign : stamp}         <BR>
+&nbsp;&nbsp;<B>|</B> SIGid <B>of</B> stamp         <BR>
+&nbsp;&nbsp;<B>|</B> FCTid <B>of</B> {rlzn : stamp, sign : modId}         <BR>
+&nbsp;&nbsp;<B>|</B> FSIGid <B>of</B> {paramsig : stamp, bodysig : stamp}         <BR>
+&nbsp;&nbsp;<B>|</B> TYCid <B>of</B> stamp         <BR>
+&nbsp;&nbsp;<B>|</B> EENVid <B>of</B> stamp       <BR>
+<B>val</B> <A NAME="SIG:MODULE_ID.equalId:VAL:SPEC" HREF="#SIG:MODULE_ID.equalId:VAL">equalId</A> <B>:</B> (modId * modId) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:MODULE_ID.cmp:VAL:SPEC" HREF="#SIG:MODULE_ID.cmp:VAL">cmp</A> <B>:</B> (modId * modId) -&gt; order         <BR>
+<B>val</B> <A NAME="SIG:MODULE_ID.idToString:VAL:SPEC" HREF="#SIG:MODULE_ID.idToString:VAL">idToString</A> <B>:</B> modId -&gt; string         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:MODULE_ID.stamp:TY"><CODE><B>type</B> stamp</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:MODULE_ID.modId:TY"><CODE><B>datatype</B> modId</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:MODULE_ID.equalId:VAL"><CODE>equalId (<VAR>mo</VAR>, <VAR>mo2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MODULE_ID.cmp:VAL"><CODE>cmp (<VAR>mo</VAR>, <VAR>mo2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MODULE_ID.idToString:VAL"><CODE>idToString <VAR>mo</VAR>
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

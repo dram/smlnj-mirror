@@ -1,0 +1,170 @@
+<!-- Copyright (c) 1996 Lucent Technologies; Bell Laboratories -->
+
+<HTML>
+  <TITLE>SML/NJ --- What's new?</TITLE>
+<!-- Changed by: Andrew Appel,  5-Dec-1997 -->
+<BODY BGCOLOR="ffffff">
+
+<center>
+<H1>What's new?</H1>
+</center>
+<HR width="30%">
+
+<A name="macosx">
+<H3>Working version 110.33 supports Mac OS X and experimentat FFI</H3>
+<blockquote>
+The recently released 
+<A HREF="NEWS/110.33-README.html">110.33</A>
+working version runs under Mac OS X.  It also introduces Matthias Blume's new,
+experimental FFI, NLFFI ("No-Longer Foreign Function Interface").
+Currently NLFFI is available only under x86-linux, but it is being
+ported to other architectures.
+</blockquote>
+
+<A name="smlnj.exe">
+<H3>New 110.0.7 smlnj.exe works on Windows 9X</H3>
+<blockquote>
+The original version of the Windows installer, smlnj.exe, for 110.0.7
+had a problem when running under Windows 95/98/ME that caused error messages
+abound undefined strings like PRODUCT_NAME.  This problem has been
+corrected in a new 
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj.exe">smlnj.exe</a>
+now available in the usual 110.0.7
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/">
+ftp</a> and 
+<a href="http://cm.bell-labs.com/cm/cs/what/smlnj/dist">http</a>
+distribution directories.  
+<p>
+This new smlnj.exe (as of 23 March 01) also corrects a problem where
+installation only set the user PATH and CM_PATH environment variables.
+Now the installer sets these variables at the system level for all
+users.  Installation must be done from an administrator account.
+</blockquote>
+
+<A name="sourceforge">
+<H3>New Standard ML and SML/NJ SourceForge projects</H3>
+<blockquote>
+Two new SML-related projects have been started at SourceForge, a site
+and organization supporting collaborative development of open-source
+software.  The 
+<A href="http://www.standardml.org">Standard ML (sml)</A> project at
+<A HREF="http://www.standardml.org">www.standardml.org</A> supports
+all Standard ML implementations by encouraging sharing of resources
+such as test suites, benchmarks, libraries, and documentaion.  The
+<A href="http://www.smlnj.org">Standard ML of New Jersey (smlnj)</A>
+project at <A HREF="http://www.smlnj.org">www.smlnj.org</A>
+is intended to be the future home of SML/NJ (including web
+pages, releases, CVS repository, etc.).
+</blockquote>
+
+<A name="prog-smlnj">
+<H3>New SML/NJ tutorial by Riccardo Pucella</H3>
+<blockquote>
+<A HREF="mailto:riccardo@cs.cornell.edu">Riccardo Pucella</a> has
+written an extensive new tutorial,
+<a href="http://www.cs.cornell.edu/riccardo/smlnj.html"> <strong>Notes on
+Programming SML/NJ</strong></a>, which is available as <A
+HREF="http://www.cs.cornell.edu/riccardo/prog-smlnj/notes-011001.ps">postscript</A>
+or <A
+HREF="http://www.cs.cornell.edu/riccardo/prog-smlnj/notes-011001.pdf">PDF</A>.
+This is a first draft of the Notes, and Riccardo welcomes corrections
+and suggestions.
+</blockquote>
+
+<A name="sml-mode">
+<H3>New version of sml-mode added to contrib/emacs</H3>
+<blockquote>
+<A HREF="mailto:monnier@cs.yale.edu">Stefan Monnier's</a> latest
+version, 3.9.5, of the sml-mode package for emacs has been added to the
+<A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs">contrib/emacs</A>
+directory.
+</blockquote>
+
+<A name="110.0.7">
+<H3>Patch Release 110.0.7</H3> </A>
+<blockquote>
+A new minor release version <a href="NEWS/110-README.html">110.0.7</a>
+is now available.  This is the sixth patch release for version 110
+(110.0.4 was not released).  This patch release fixes a long-standing
+bug in signal handling.  It also includes a number of SML/NJ Library
+enhancements and fixes and some fixes to CM and eXene, and a small
+number of other bug fixes.  See the
+<a href="NEWS/110-PATCH-HISTORY">110-PATCH-HISTORY</a> file for
+      details.
+With this release, we are also making the distribution files available
+for download via http as well as ftp.  See the
+<a href="dist/110.0.7.html">110.0.7 distribution page</a>.
+[<strong>Note:</strong> The original smlnj.exe installer for Windows
+had incorrect CM tool paths.  This has been corrected by a new
+smlnj.exe as of October 18, 2000.]
+</blockquote>
+
+<A name="Version-111">
+<H3>Plans for the next release (Version 111)</H3> </A>
+<blockquote>
+Meanwhile, work
+continues on the next release, which we hope to have ready for a
+beta release "real soon now".
+The next release will not contain any major language
+or Basis library changes, but there will be major internal changes,
+including:
+<UL>
+<LI>A new runtime system with improved management of virtual memory.
+<LI>New support for foreign functions (C) based on IDL.
+<LI>Conformance with the soon to be published SML Basis spec.
+<LI>MLRISC code generators for all architectures.
+<LI>The FLINT representation has partially replaced the old cps
+representation in the back end.
+</UL>
+In addition, there will be a couple significant language extensions:
+lazy datatypes and lazy functions over such datatypes, functional
+record concatenation (a "with" operation), and mutable records whose
+fields can be updated.
+<p> Most features of Version 111 are implemented in current working
+versions.  The main missing elements are the new runtime system and
+a MIPS code generator.
+</blockquote>
+
+<H3><A HREF="software.html#SOFTWARE:WORKING-VERSIONS">Working Versions</A></H3>
+<P>
+<blockquote>
+<A name="110.34">
+The latest working version is <A HREF="NEWS/110.34-README.html">110.34</A>.
+This version runs under the new Mac OS X.  It includes Matthias
+Blume's new, experimental FFI (NLFFI) for x86-linux and finally supports
+CML and eXene again.
+<p>
+Since working version 110.9.1, major internal changes have been
+implemented and many changes are still in progress.  Version
+<A HREF="NEWS/110.12-README">110.12</A> introduced fundamental
+changes in array, vector and string representations and a new garbage
+collector interface.  Extensive changes have also been made to the
+ML-RISC code generators.
+<p> Starting with <A HREF="NEWS/110.20-README.html">110.20</A>, a
+major overhaul of the CM compilation manager has been in progress,
+accompanied with a reorganization of the compiler itself into a set
+of libraries.
+<p>
+The next working release will incorporate an updated version of the
+FLINT middle end.  At this point, we will change the way the code is
+managed by having a publically accessible CVS repository at Yale.
+<p>
+As usual, use the working versions at your own risk.  Some working
+versions incorporate substantial changes that reduce stability and
+introduce bugs.
+</blockquote>
+
+<HR>
+<CENTER><STRONG>
+| <A HREF="index.html">SML/NJ Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>
+

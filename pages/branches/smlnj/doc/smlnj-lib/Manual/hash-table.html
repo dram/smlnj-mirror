@@ -1,0 +1,145 @@
+<!-- hash-table.html -->
+
+<!-- COPYRIGHT (c) 1996 AT\|@AMP\|T Bell Laboratories. -->
+
+<HTML>
+<HEAD>
+  <TITLE>The HASH_TABLE signature</TITLE>
+
+</HEAD>
+<BODY>
+<H1><A NAME="top-of-document">The SML/NJ Library Reference Manual</A></H1>
+<HR>
+
+<H3>The <CODE>HASH_TABLE</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="HASH_TABLE:SIG:SPEC"><CODE>HASH_TABLE</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> ('a,'b) <A HREF="#SIG:HASH_TABLE.hash_table:TY" NAME="SIG:HASH_TABLE.hash_table:TY:SPEC">hash_table</A><BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.mkTable:VAL" NAME="SIG:HASH_TABLE.mkTable:VAL:SPEC">mkTable</A> <B>:</B> (('a -&gt; word) * (('a * 'a) -&gt; bool)) -&gt; (int * exn) -&gt; ('a,'b) hash_table         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.insert:VAL" NAME="SIG:HASH_TABLE.insert:VAL:SPEC">insert</A> <B>:</B> ('a,'b) hash_table -&gt; ('a * 'b) -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.lookup:VAL" NAME="SIG:HASH_TABLE.lookup:VAL:SPEC">lookup</A> <B>:</B> ('a,'b) hash_table -&gt; 'a -&gt; 'b         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.find:VAL" NAME="SIG:HASH_TABLE.find:VAL:SPEC">find</A> <B>:</B> ('a,'b) hash_table -&gt; 'a -&gt; 'b option         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.remove:VAL" NAME="SIG:HASH_TABLE.remove:VAL:SPEC">remove</A> <B>:</B> ('a,'b) hash_table -&gt; 'a -&gt; 'b         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.numItems:VAL" NAME="SIG:HASH_TABLE.numItems:VAL:SPEC">numItems</A> <B>:</B> ('a,'b) hash_table -&gt; int         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.listItems:VAL" NAME="SIG:HASH_TABLE.listItems:VAL:SPEC">listItems</A> <B>:</B> ('a,'b) hash_table -&gt; ('a * 'b) list         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.appi:VAL" NAME="SIG:HASH_TABLE.appi:VAL:SPEC">appi</A> <B>:</B> (('a * 'b) -&gt; unit) -&gt; ('a,'b) hash_table -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.app:VAL" NAME="SIG:HASH_TABLE.app:VAL:SPEC">app</A> <B>:</B> ('b -&gt; unit) -&gt; ('a,'b) hash_table -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.mapi:VAL" NAME="SIG:HASH_TABLE.mapi:VAL:SPEC">mapi</A> <B>:</B> (('a * 'b) -&gt; 'c) -&gt; ('a,'b) hash_table -&gt; ('a,'c) hash_table         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.map:VAL" NAME="SIG:HASH_TABLE.map:VAL:SPEC">map</A> <B>:</B> ('b -&gt; 'c) -&gt; ('a,'b) hash_table -&gt; ('a,'c) hash_table         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.foldi:VAL" NAME="SIG:HASH_TABLE.foldi:VAL:SPEC">foldi</A> <B>:</B> (('a * 'b * 'c) -&gt; 'c) -&gt; 'c -&gt; ('a,'b) hash_table -&gt; 'c         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.fold:VAL" NAME="SIG:HASH_TABLE.fold:VAL:SPEC">fold</A> <B>:</B> (('b * 'c) -&gt; 'c) -&gt; 'c -&gt; ('a,'b) hash_table -&gt; 'c         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.filteri:VAL" NAME="SIG:HASH_TABLE.filteri:VAL:SPEC">filteri</A> <B>:</B> (('a * 'b) -&gt; bool) -&gt; ('a,'b) hash_table -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.filter:VAL" NAME="SIG:HASH_TABLE.filter:VAL:SPEC">filter</A> <B>:</B> ('a -&gt; bool) -&gt; ('a,'b) hash_table -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.copy:VAL" NAME="SIG:HASH_TABLE.copy:VAL:SPEC">copy</A> <B>:</B> ('a,'b) hash_table -&gt; ('a,'b) hash_table         <BR>
+<B>val</B> <A HREF="#SIG:HASH_TABLE.bucketSizes:VAL" NAME="SIG:HASH_TABLE.bucketSizes:VAL:SPEC">bucketSizes</A> <B>:</B> ('a,'b) hash_table -&gt; int list         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+  <DT> <A NAME="SIG:HASH_TABLE.hash_table:TY"><CODE><B>type</B> ('a,'b) hash_table</CODE></A>
+  <DD>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.mkTable:VAL"><CODE>mkTable (<VAR>f</VAR>, <VAR>g</VAR>) (<VAR>i</VAR>, <VAR>ex</VAR>)           </CODE></A>
+  <DD>
+    explain the use and semantics of mkTable HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.insert:VAL"><CODE>insert <VAR>ht</VAR> (<VAR>a</VAR>, <VAR>b</VAR>)           </CODE></A>
+  <DD>
+    explain the use and semantics of insert HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.lookup:VAL"><CODE>lookup <VAR>ht</VAR> <VAR>a</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of lookup HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.find:VAL"><CODE>find <VAR>ht</VAR> <VAR>a</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of find HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.remove:VAL"><CODE>remove <VAR>ht</VAR> <VAR>a</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of remove HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.numItems:VAL"><CODE>numItems <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of numItems HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.listItems:VAL"><CODE>listItems <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of listItems HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.appi:VAL"><CODE>appi <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of appi HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.app:VAL"><CODE>app <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of app HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.mapi:VAL"><CODE>mapi <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of mapi HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.map:VAL"><CODE>map <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of map HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.foldi:VAL"><CODE>foldi <VAR>f</VAR> <VAR>a</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of foldi HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.fold:VAL"><CODE>fold <VAR>f</VAR> <VAR>a</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of fold HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.filteri:VAL"><CODE>filteri <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of filteri HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.filter:VAL"><CODE>filter <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of filter HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.copy:VAL"><CODE>copy <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of copy HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:HASH_TABLE.bucketSizes:VAL"><CODE>bucketSizes <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of bucketSizes HERE.
+    <BR>
+    <BR>
+</DL>
+<HR>
+<HR>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="hash-table.html">TOP</A>
+   | <A HREF="">Parent</A> | <A HREF="">Root</A>
+   ]</B>
+<P>
+<I>Last Modified May 29, 1996</I><BR>
+Copyright &copy; 1996 AT&amp;T Research <BR>
+<HR>
+</BODY>
+</HTML>

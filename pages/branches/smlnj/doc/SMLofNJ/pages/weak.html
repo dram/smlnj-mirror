@@ -1,0 +1,123 @@
+<!-- HTML/weak.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The WEAK signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>WEAK</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="WEAK:SIG:SPEC"><CODE>WEAK</CODE></A><BR>
+<B>structure </B><A NAME="Weak:STR:SPEC"><CODE>Weak</CODE></A><B> : </B>WEAK<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+A weak pointer is one that is not sufficient to keep an object live. If some object <CODE>x</CODE> is pointed to by ordinary pointers and by weak pointers, it will stay live (not be garbage collected); but if it is pointed to only by weak pointers, then it may be garbage collected.
+<P>
+As an example, suppose we want to make a &quot;finalization&quot; function for some data structure <CODE>t</CODE>.  We can create a <CODE>w=weak(t)</CODE> and put <CODE>w</CODE> onto a list (of things we want to finalize). Then we can watch this list from time to time, and when  <CODE>strong(w)=NONE</CODE> we can perform the finalization procedure. A good time to examine the list is upon receipt of the <CODE>GC</CODE> signal; see <A HREF="signals.html#Signals:STR:SPEC">Signals</A>.
+<P>
+The semantics of weak pointers to immutable data structures in ML is ambiguous.  For example, consider the following: 
+<PRE>
+let
+val (b', w') = let
+      val a = (1, 2)
+      val b = (1, 2)
+      val w = weak(a)
+      in (b,w) end
+in (b, strong w) end
+</PRE>
+ After this expression is evaluated, <CODE>a</CODE> is both statically and dynamically dead; so one would think that the result is <CODE>((1,2),NONE)</CODE>.  But first of all, weak pointers do not go dead until a garbage collection occurs, so the answer will likely be <CODE>((1,2),SOME(1,2))</CODE>.  Secondly, the compiler or  runtime system may have done common subexpression elimination, so that <CODE>a</CODE> and <CODE>b</CODE> point to the same (1,2), and therefore <CODE>w</CODE>'s contents may stay alive as long as <CODE>b</CODE> does.
+<P>
+Finally, in this example: 
+<PRE>
+let
+val a = (1,2)
+val w = weak(a)
+in (a,w) end
+</PRE>
+ even though <CODE>a</CODE> is still alive, the compiler may have unpacked <CODE>a</CODE> into registers; in creating <CODE>w</CODE> it may box a new copy of (1,2) onto the heap, but there are no other pointers to this copy, so <CODE>w</CODE>'s contents are immediately dead and may be reclaimed by the collector.
+<P>
+One way of avoiding these problems, this year, is to apply  <CODE>weak</CODE> only to <CODE>ref</CODE> objects, which have a stronger notion of object identity than do ordinary records, tuples, and data constructors. This works as long as the compiler does not optimize <CODE>ref</CODE>s too much, which at present is a safe assumption.  
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> 'a <A NAME="SIG:WEAK.weak:TY:SPEC" HREF="#SIG:WEAK.weak:TY">weak</A><BR>
+<B>val</B> <A NAME="SIG:WEAK.weak:VAL:SPEC" HREF="#SIG:WEAK.weak:VAL">weak</A> <B>:</B> 'a -&gt; 'a weak         <BR>
+<B>val</B> <A NAME="SIG:WEAK.strong:VAL:SPEC" HREF="#SIG:WEAK.strong:VAL">strong</A> <B>:</B> 'a weak -&gt; 'a option         <BR>
+<B>type</B> <A NAME="SIG:WEAK.weak':TY:SPEC" HREF="#SIG:WEAK.weak':TY">weak'</A><BR>
+<B>val</B> <A NAME="SIG:WEAK.weak':VAL:SPEC" HREF="#SIG:WEAK.weak':VAL">weak'</A> <B>:</B> 'a -&gt; weak'         <BR>
+<B>val</B> <A NAME="SIG:WEAK.strong':VAL:SPEC" HREF="#SIG:WEAK.strong':VAL">strong'</A> <B>:</B> weak' -&gt; bool         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:WEAK.weak:TY"><CODE><B>type</B> 'a weak</CODE></A>
+<DD>
+	The type of weak pointers to objects of type <CODE>'a</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:WEAK.weak:VAL"><CODE>weak <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Make a weak pointer to object <VAR>a</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:WEAK.strong:VAL"><CODE>strong <VAR>w</VAR>
+          </CODE></A>
+<DD>
+The result is <CODE>NONE</CODE> if the object to which <VAR>w</VAR> points           has already been garbage-collected; or <CODE>SOME(a)</CODE> if           <VAR>w</VAR> points to some still-live object <CODE>a</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:WEAK.weak':TY"><CODE><B>type</B> weak'</CODE></A>
+<DD>
+	The type of opaque weak pointers to objects of type <CODE>'a</CODE>;         weak pointers of this type can be examined to see if the         underlying objects are still alive, but the underlying         objects cannot be extracted from them.  This is useful to         make finalizers (of heterogenous collections) statically type-check.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:WEAK.weak':VAL"><CODE>weak' <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Make an opaque weak pointer to <VAR>a</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:WEAK.strong':VAL"><CODE>strong' <VAR>w</VAR>
+          </CODE></A>
+<DD>
+Tell if the underlying object is still alive.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

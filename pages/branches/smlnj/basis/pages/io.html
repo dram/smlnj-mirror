@@ -1,0 +1,138 @@
+<!-- HTML/io.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The IO structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>IO</CODE> structure</H3>
+<P>
+The IO structure contains exception constructors common to all the input/output structures and functors. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="IO:SIG:SPEC"><CODE>IO</CODE></A><BR>
+<B>structure </B><A NAME="IO:STR:SPEC"><CODE>IO</CODE></A><B> : </B>IO<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>exception</B> <A NAME="SIG:IO.Io:EXN:SPEC" HREF="#SIG:IO.Io:EXN">Io</A> <B>of</B> {name : string, function : string, cause : exn}         <BR>
+<B>exception</B> <A NAME="SIG:IO.BlockingNotSupported:EXN:SPEC" HREF="#SIG:IO.BlockingNotSupported:EXN">BlockingNotSupported</A><BR>
+<B>exception</B> <A NAME="SIG:IO.NonblockingNotSupported:EXN:SPEC" HREF="#SIG:IO.NonblockingNotSupported:EXN">NonblockingNotSupported</A><BR>
+<B>exception</B> <A NAME="SIG:IO.RandomAccessNotSupported:EXN:SPEC" HREF="#SIG:IO.RandomAccessNotSupported:EXN">RandomAccessNotSupported</A><BR>
+<B>exception</B> <A NAME="SIG:IO.TerminatedStream:EXN:SPEC" HREF="#SIG:IO.TerminatedStream:EXN">TerminatedStream</A><BR>
+<B>exception</B> <A NAME="SIG:IO.ClosedStream:EXN:SPEC" HREF="#SIG:IO.ClosedStream:EXN">ClosedStream</A><BR>
+<B>datatype</B> <A NAME="SIG:IO.buffer_mode:TY:SPEC" HREF="#SIG:IO.buffer_mode:TY">buffer_mode</A> <B>=</B> NO_BUF <B>|</B> LINE_BUF <B>|</B> BLOCK_BUF<BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:IO.Io:EXN"><CODE><B>exception</B> Io</CODE></A>
+<DD>
+is the principal exception raised when an error occurs 	  in the I/O subsystem. 	  The components of <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> are: 	  
+<DL>
+<DT>  <CODE>name</CODE>
+<DD>
+The <CODE>name</CODE> component of the reader or writer. 	    
+<DT>  <CODE>function</CODE>
+<DD>
+The name of the <A HREF="stream-io.html#STREAM_IO:SIG:SPEC">STREAM_IO</A> function raising the exception 	    
+<DT>  <CODE>cause</CODE>
+<DD>
+The underlying exception raised by the reader or writer, or detected 	      at the stream I/O level. 	  
+</DL>
+           
+<P>
+	  Some of the standard causes are:  	  
+<UL>
+<LI>
+<A HREF="os.html#SIG:OS.SysErr:EXN:SPEC">OS.SysErr</A> if an actual system call was done 	      and failed. 	    
+<LI>
+<A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> if ill-formed arguments are given. 	    
+<LI>
+<A HREF="#SIG:IO.BlockingNotSupported:EXN:SPEC">BlockingNotSupported</A> 	    
+<LI>
+<A HREF="#SIG:IO.NonblockingNotSupported:EXN:SPEC">NonblockingNotSupported</A> 	    
+<LI>
+<A HREF="#SIG:IO.TerminatedStream:EXN:SPEC">TerminatedStream</A> 	    
+<LI>
+<A HREF="#SIG:IO.ClosedStream:EXN:SPEC">ClosedStream</A> 	  
+</UL>
+ 	  The <CODE>cause</CODE> field of <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> is not limited to these 	  particular exceptions. 	  Users who create their own readers or writers may raise 	  any exception they like, which will be reported as the <CODE>cause</CODE> 	  field of the resulting <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> exception.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IO.BlockingNotSupported:EXN"><CODE><B>exception</B> BlockingNotSupported</CODE></A>
+<DD>
+used in the <A HREF="stream-io.html#SIG:STREAM_IO.output:VAL:SPEC">output</A>, 	  <A HREF="text-stream-io.html#SIG:TEXT_STREAM_IO.outputSubstr:VAL:SPEC">outputSubstr</A>, 	  <A HREF="stream-io.html#SIG:STREAM_IO.output1:VAL:SPEC">output1</A>           and <A HREF="stream-io.html#SIG:STREAM_IO.flushOut:VAL:SPEC">flushOut</A> I/O operations           if the underlying writer does not support blocking writes; or           in the <A HREF="stream-io.html#SIG:STREAM_IO.input:VAL:SPEC">input</A>, <A HREF="stream-io.html#SIG:STREAM_IO.inputN:VAL:SPEC">inputN</A> 	  and <A HREF="stream-io.html#SIG:STREAM_IO.input1:VAL:SPEC">input1</A> I/O operations           if the underlying reader does not support blocking reads.           It should never be raised within the I/O system; it should only            be used in the <CODE>cause</CODE> field of an <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> exception.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IO.NonblockingNotSupported:EXN"><CODE><B>exception</B> NonblockingNotSupported</CODE></A>
+<DD>
+used by the <A HREF="stream-io.html#SIG:STREAM_IO.canInput:VAL:SPEC">canInput</A> I/O operation if the 	  underlying stream does not support non-blocking input.           It should never be raised within the I/O system; it should only            be used in the <CODE>cause</CODE> field of an <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> exception.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IO.RandomAccessNotSupported:EXN"><CODE><B>exception</B> RandomAccessNotSupported</CODE></A>
+<DD>
+used by the <A HREF="stream-io.html#STREAM_IO:SIG:SPEC">STREAM_IO</A> position operations to indicate that 	  random access operations are not supported by the underlying device.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IO.TerminatedStream:EXN"><CODE><B>exception</B> TerminatedStream</CODE></A>
+<DD>
+used by the <A HREF="stream-io.html#SIG:STREAM_IO.setPosIn:VAL:SPEC">setPosIn</A> I/O operation           if the underlying stream is terminated.           It should never be raised within the I/O system; it should only            be used in the <CODE>cause</CODE> field of an <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> exception.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IO.ClosedStream:EXN"><CODE><B>exception</B> ClosedStream</CODE></A>
+<DD>
+used by the output I/O operations if the underlying stream is closed.          This exception is actually raised by the reader or writer.          It should never be raised within the I/O system; it should only           be used in the <CODE>cause</CODE> field of an <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> exception.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:IO.buffer_mode:TY"><CODE><B>datatype</B> buffer_mode</CODE></A>
+<DD>
+specify the type of buffering used on output streams.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+Lower-level imperative, stream and primitive I/O modules will never raise a bare <A HREF="#SIG:IO.TerminatedStream:EXN:SPEC">TerminatedStream</A>, <A HREF="#SIG:IO.BlockingNotSupported:EXN:SPEC">BlockingNotSupported</A>, <A HREF="#SIG:IO.NonblockingNotSupported:EXN:SPEC">NonblockingNotSupported</A> or <A HREF="#SIG:IO.ClosedStream:EXN:SPEC">ClosedStream</A> exception;  these exceptions are only used in the <CODE>cause</CODE> field of the <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A>  exception. However, any module may raise <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> directly if given ill-formed arguments, or may raise <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> with <A HREF="general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> as the <CODE>cause</CODE>.
+<P>
+It is possible that multiple error conditions hold when an IO function  is called. For example, a random access call may be made on a closed stream corresponding to a device that does not support random access. The <CODE>cause</CODE> reported in the generated <A HREF="#SIG:IO.Io:EXN:SPEC">Io</A> exception is system-dependent.
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="text-io.html#TextIO:STR:SPEC">TextIO</A>, <A HREF="bin-io.html#BinIO:STR:SPEC">BinIO</A>, <A HREF="imperative-io.html#IMPERATIVE_IO:SIG:SPEC">IMPERATIVE_IO</A>, <A HREF="stream-io.html#STREAM_IO:SIG:SPEC">STREAM_IO</A>, <A HREF="prim-io.html#PRIM_IO:SIG:SPEC">PRIM_IO</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="io-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified January 21, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

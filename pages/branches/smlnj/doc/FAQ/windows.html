@@ -1,0 +1,298 @@
+<html>
+<head>
+<title>SML/NJ Windows FAQ</title>
+<!-- Changed by: Dave MacQueen, 18-Jan-1998 -->
+</head>
+
+<body>
+<h2>
+Frequently Asked Questions about SML/NJ on Windows Platforms
+</h2>
+
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-smlnj.exe"><strong>New! Self-installing .EXE for Windows 95 or NT</strong></a>
+
+<ul>
+<li> <a href="#versions">What versions of Windows does SML/NJ run on?</a>
+<li> <a href="#distribution">How is the Windows version of SML/NJ distributed?</a>
+<li> <a href="#tools">What tools are required to install SML/NJ on Windows?</a>
+<li> <a href="#install">Now that I have the binaries, gunzip and tar, how do I do the install?</a>
+<li> <a href="#run">How do I run the compiler under Windows?</a>
+<li> <a href="#smlnj-lib">How does this version interact with the SML/NJ library?</a>
+<li> <a href="#icon">How do I create a Windows icon for SML/NJ?</a>
+<li> <a href="#compiler">How do I compile the SML/NJ compiler under Win32?</a>
+</ul>
+
+<dl>
+<a name="versions"></a>
+<dt><b>What versions of Windows does SML/NJ run on?</b>
+	
+<dd>	Windows 95
+<dd>	Windows NT (versions 3.51 and 4.0)
+
+<p>
+<a name="distribution"></a>
+<dt><b>How is the Windows version of SML/NJ distributed?</b>
+
+<dd>
+<UL>
+<LI> As a self-installing .EXE for Windows 95 or NT. <br>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-smlnj.exe">ftp.research.bell-labs.com:/dist/smlnj/release/110/110-smlnj.exe</a>
+<p>
+<LI> As a set of Unix compressed tar files that can be used for manual
+installation.
+
+<dd>	The Windows version of the compiler is fully integrated with the
+	source distrbution.  Therefore, you may also want to fetch the 
+	SML/NJ library:<br>
+
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-smlnj-lib.tar.Z">ftp.research.bell-labs.com:/dist/smlnj/release/110/110-smlnj-lib.tar.Z</a>
+
+
+<p>
+<a name="tools"></a>
+<dt><b>What tools are required to manually install SML/NJ on Windows?</b>
+
+<dd>	Windows versions of the "GNU unzip" (<tt>gunzip</tt>) 
+	and "tape archive" (<tt>tar</tt>)
+	programs are required to uncompress and unbundle.  
+
+<p>
+<dd>
+(<tt>tar</tt> and <tt>gunzip</tt> for win32 are freely available from <a href="ftp://ftp.cs.washington.edu/pub/ntemacs/utilities"> ftp.cs.washington.edu:/pub/ntemacs/utilities</a>.)
+
+<p>
+<dd>	Alternately, you can uncompress and untar on a Unix platform and 
+	then move the resulting directory to Windows (via removable media,
+	shared files, etc.).
+
+<p>
+<a name="install"></a>
+<dt><b>Now that I have the binaries, gunzip and tar, how do I do the install?</b>
+
+<dd>	Select and create a directory for the installation.  
+	Here we'll use 
+<pre>
+	c:\smlnj\ 
+</pre>
+
+but any valid directory name of your choosing will do.
+
+<p>
+<dd>	Create an environment variable called <tt>SMLNJ_HOME</tt> 
+	and set it to <tt>c:\smlnj\</tt>
+
+<p>
+	In NT, environment variables are usually set via 
+	<tt>ControlPanel->System</tt>.  
+	In Windows 95, they may be set per session with the DOS <tt>set</tt> 
+	command from a shell prompt or, more persistently, 
+	by placing a <tt>set</tt> command in 
+	the <tt>autoexec.bat</tt> startup file:
+
+<pre>
+		set SMLNJ_HOME=c:\smlnj\
+		set PATH=c:\smlnj\bin\
+</pre>
+
+
+<p>
+<dd>	Place the <tt>110-win32-smlnj.tar.gz</tt> file in <tt>c:\smlnj\</tt>
+	<br>
+	Uncompress this file; i.e.:
+
+<pre>
+	c:\smlnj\> gunzip 110-win32-smlnj.tar.gz
+</pre>
+
+<p>
+<dd>	Then untar the resulting tar file; i.e.:
+
+<pre>
+	c:\smlnj\> tar -xvf 110-win32-smlnj.tar
+</pre>
+		
+<p>
+<dd>	This will create the <tt>c:\smlnj\bin\</tt> subdirectory.  
+	This directory is structured similarly to the Unix distributions 
+	of SML/NJ.  
+	That is, scripts to run the compiler (<tt>sml</tt>, <tt>sml-cm</tt>) 
+	and the tools (<tt>ml-lex</tt>, <tt>ml-yacc</tt>, <tt>ml-burg</tt>)
+	are in <tt>c:\smlnj\bin\</tt>, runtime executables are in 
+	<tt>c:\smlnj\bin\.run\</tt> 
+	and heap images are in <tt>c:\smlnj\bin\.heap\</tt>
+
+<p>
+<dd>	You may now want to put <tt>%SMLNJ_HOME%\bin\</tt> 
+	in your <tt>PATH</tt>.
+
+<p>
+<dd>	To conserve space, you can remove heap images (in 
+	<tt>%SMLNJ_HOME%\bin\.heap\</tt>) 
+	corresponding to unneeded tools.  
+	You can also use <tt>sml-cm</tt> in lieu of 
+	<tt>sml</tt> (and remove <tt>sml</tt>); however, 
+	<tt>sml-cm</tt> uses a bit more space (disk and memory).
+
+<p>
+<a name="run"></a>
+<dt><b>How do I run the compiler under Windows?</b>
+<dd>	From an MS-DOS prompt (or other shell), invoke the <tt>sml.bat</tt>, 
+	<tt>sml-cm.bat</tt>, <tt>ml-lex.bat</tt>, <tt>ml-yacc.bat</tt> or
+	<tt>ml-burg.bat</tt> 
+	scripts to run the compiler and tools respectively.
+
+<p>
+<dd>	Note that if you did not place <tt>%SMLNJ_HOME%\bin\</tt> 
+	in your <tt>PATH</tt>, you
+	will need to give a full path to the scripts; e.g.:
+
+<pre>
+	c:\smlnj\bin\sml-cm
+</pre>
+
+<p>
+<a name="smlnj-lib"></a>
+<dt><b>How does this version interact with the SML/NJ library?</b>
+
+<dd>	The Windows version of the compiler is fully integrated with the
+	source distrbution.  Therefore, you may also want to fetch the 
+	SML/NJ library:
+<pre>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-smlnj-lib.tar.Z">ftp.research.bell-labs.com:/dist/smlnj/working/110/110-smlnj-lib.tar.Z</a>
+</pre>
+
+	To install it, create a SML/NJ <tt>src</tt> directory (i.e. 
+	<tt>c:\smlnj\src</tt>) and
+	decompress and untar the above smlnj-lib distribution file there.
+
+<p>
+<a name="icon"></a>
+<dt><b>How do I create a Windows icon for SML/NJ?</b>
+<dd>	We currently do not have a custom icon for SML/NJ.  However,
+	SML/NJ can be installed as a Windows <i>program item</i> and 
+	Windows will assign a generic icon.
+
+<p>
+<dd>
+	<b>NT 4.0 and Windows 95:</b> use <i>Explorer</i> to locate the
+	file for which an icon is desired (e.g. <tt>sml-cm.bat</tt>
+	in the <tt>c:\smlnj\bin\</tt> directory), select it, and
+	create a shortcut for it (<tt>File->CreateShortcut</tt>).
+	You can then rename this shortcut icon and place it elsewhere.
+	Drag it to the desktop to place it there; click the right
+	mouse button on the <i>task bar</i> and select <tt>Properties</tt>
+	to place the SML/NJ icon in the <i>Start</i> menu.
+
+<p>
+<dd>	<b>NT 3.51:</b> using the program manager, 
+	select the program group where you would like to
+	install SML/NJ as an icon.  Then select 
+	<tt>File->New->ProgramItem</tt>.  As a <i>Description</i>,
+	choose a label for the icon (e.g. "SML/NJ").
+	For the <i>Command Line</i> field, give the path to
+	<tt>sml.bat</tt> (or <tt>sml-cm.bat</tt>); e.g.:
+<pre>
+	c:\smlnj\bin\sml-cm.bat
+</pre>
+	Set the <i>Working Directory</i> to the directory in which
+	you want SML/NJ to start.
+
+
+<p>
+<a name="compiler"></a>
+<dt><b>How do I compile the SML/NJ compiler under Win32?</b>
+
+<dd>
+<p>
+If you desire to modify the compiler itself, you'll need some additional
+tools to build it.  (The executables in the distribution suffice for
+compiling SML programs.)
+
+<p>
+Compiling the runtime system requires the following tools:
+<ul>
+<li>MS Visual C++, 2.0 or later
+<li>MS Assembler (MASM), 6.11 or later
+<li>MS NMAKE (part of VC++), 1.50 or later
+</ul>
+
+<p>
+It should be straightforward to build with other compilers, assemblers,
+and "make" utilities (see <tt>src\runtime\objs\makefile.win32</tt> and <tt>src\runtime\objs\mk.x86-win32</tt>).
+
+<p>
+<dd>Compiling the SML compiler source requires <em>ksh</em> and common
+Unix tools (<tt>sed</tt>, <tt>grep</tt>). We use MKS Toolkit for this,
+although other <em>ksh</em> based toolkits should work directly as well;
+e.g. <a href="http://www.research.att.com/sw/tools/uwin/">UWIN</a>.
+
+<p>
+<dd>Here we assume that you have the SML/NJ compiler sources. (The Win32
+version uses the same source tree as the Unix versions.)  
+
+<p>
+<dd>Ensure that the compiler, assembler, and "make" utility are in your path.
+
+<p>
+<dd>Compile the runtime by issuing
+<pre>
+    nmake /f mk.x86-win32
+</pre>
+in SML/NJ's <tt>src\runtime\objs</tt> directory.
+This will create <tt>run.x86-win32.exe</tt> which is usually placed in 
+the <tt>smlnj\bin\.run</tt> directory.
+
+<p>
+<dd>Compiling the compiler proper requires a set of "bin" files retargeted
+for Windows.  For the x86, this directory is called <tt>bin.x86-win32</tt> and
+is distributed as:
+<pre>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-bin.x86-win32.tar.Z">ftp.research.bell-labs.com:/dist/smlnj/release/110/110-bin.x86-win32.tar.Z</a>
+</pre>
+(You can create this set of <tt>bin</tt> files by retargeting the compiler,
+with CM, to cross-compile, e.g. from a Unix platform,
+to the <tt>win32</tt> OS.)
+Place <tt>bin.x86-win32</tt> in <tt>src\sml-nj</tt>.
+Set the working directory to <tt>src\sml-nj</tt> and, from a 
+<em>ksh</em>
+prompt, issue the command:
+<pre>
+    xmakeml -boot bin.x86-win32
+</pre>
+This will produce the image <tt>sml.x86-win32</tt> which is usually placed in
+<tt>bin\.heap</tt>
+
+<p>
+<dd>SML/NJ tools are built analogously to the Unix versions.  That is,
+the command
+<pre>
+    build
+</pre>
+is issued in the respective tool directory.  Note that SML/NJ's <tt>bin</tt>
+directory must be in the path for the default <tt>build</tt> command to 
+find the compiler and tools.
+
+
+
+</dl>	
+
+<hr>
+Send comments or questions to 
+<a href="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</a>.
+<br>
+Created by 
+<a href="http://cm.bell-labs.com/cm/cs/who/lorenz/">Lorenz Huelsbergen</a>
+on Wednesday, 9 Apr 1997.
+<br>
+<!-- hhmts start -->
+Last modified: Wed Feb 18 17:14:41 EST 1998
+<!-- hhmts end -->
+<br>
+<font size="-3">
+  Copyright &#169; 1997,
+  <a href="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</a>.
+  <br>
+</font>
+
+</body>
+</html>

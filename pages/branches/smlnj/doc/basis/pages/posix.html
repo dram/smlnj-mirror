@@ -1,0 +1,111 @@
+<!-- HTML/posix.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Posix structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align="CENTER">The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Posix</CODE> structure</H3>
+<P>
+This optional structure contains several substructures that are useful for interfacing to POSIX operating systems. For more complete information on the semantics of the types and functions provided in Posix, see the POSIX standard 1003.1,1996 <B>[CITE]</B>document/. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="POSIX:SIG:SPEC"><CODE>POSIX</CODE></A><BR>
+<B>structure </B><A NAME="Posix:STR:SPEC"><CODE>Posix</CODE></A><B> : </B>POSIX<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> <A NAME="SIG:POSIX.Error:STR:SPEC" HREF="#SIG:POSIX.Error:STR">Error</A> <B>:</B> POSIX_ERROR<BR>
+<B>structure</B> <A NAME="SIG:POSIX.Signal:STR:SPEC" HREF="#SIG:POSIX.Signal:STR">Signal</A> <B>:</B> POSIX_SIGNAL<BR>
+<B>structure</B> <A NAME="SIG:POSIX.Process:STR:SPEC" HREF="#SIG:POSIX.Process:STR">Process</A> <B>:</B> POSIX_PROCESS<BR>
+<B>structure</B> <A NAME="SIG:POSIX.ProcEnv:STR:SPEC" HREF="#SIG:POSIX.ProcEnv:STR">ProcEnv</A> <B>:</B> POSIX_PROC_ENV<BR>
+<B>structure</B> <A NAME="SIG:POSIX.FileSys:STR:SPEC" HREF="#SIG:POSIX.FileSys:STR">FileSys</A> <B>:</B> POSIX_FILE_SYS<BR>
+<B>structure</B> <A NAME="SIG:POSIX.IO:STR:SPEC" HREF="#SIG:POSIX.IO:STR">IO</A> <B>:</B> POSIX_IO<BR>
+<B>structure</B> <A NAME="SIG:POSIX.SysDB:STR:SPEC" HREF="#SIG:POSIX.SysDB:STR">SysDB</A> <B>:</B> POSIX_SYS_DB<BR>
+<B>structure</B> <A NAME="SIG:POSIX.TTY:STR:SPEC" HREF="#SIG:POSIX.TTY:STR">TTY</A> <B>:</B> POSIX_TTY<BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:POSIX.Error:STR"><CODE><B>structure</B> Error</CODE></A>
+<DD>
+Errors and their descriptions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX.Signal:STR"><CODE><B>structure</B> Signal</CODE></A>
+<DD>
+Signal values and their associated numbers.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX.Process:STR"><CODE><B>structure</B> Process</CODE></A>
+<DD>
+Processes: fork, exec, wait, exit, kill, alarm, pause, sleep.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX.ProcEnv:STR"><CODE><B>structure</B> ProcEnv</CODE></A>
+<DD>
+User and group ID's, process times, environment, etc.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX.FileSys:STR"><CODE><B>structure</B> FileSys</CODE></A>
+<DD>
+File system: open, chdir, chmod, directories, etc.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX.IO:STR"><CODE><B>structure</B> IO</CODE></A>
+<DD>
+Input/output: read, write, pipe, dup, close,  lock, seek, sync, etc.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX.SysDB:STR"><CODE><B>structure</B> SysDB</CODE></A>
+<DD>
+Password database, group database, etc.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:POSIX.TTY:STR"><CODE><B>structure</B> TTY</CODE></A>
+<DD>
+Teletype (TTY) control: speed, attributes, drain, flush, etc.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="#SIG:POSIX.Error:STR:SPEC">Posix.Error</A>, <A HREF="#SIG:POSIX.Signal:STR:SPEC">Posix.Signal</A>, <A HREF="#SIG:POSIX.Process:STR:SPEC">Posix.Process</A>, <A HREF="#SIG:POSIX.ProcEnv:STR:SPEC">Posix.ProcEnv</A>, <A HREF="#SIG:POSIX.FileSys:STR:SPEC">Posix.FileSys</A>, <A HREF="#SIG:POSIX.IO:STR:SPEC">Posix.IO</A>, <A HREF="#SIG:POSIX.SysDB:STR:SPEC">Posix.SysDB</A>, <A HREF="#SIG:POSIX.TTY:STR:SPEC">Posix.TTY</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="posix-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 4, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

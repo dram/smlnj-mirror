@@ -1,0 +1,274 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.25 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.25, December 6, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot. 
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+<center><h2>Summary:</h2></center>
+
+  This version has a variety of changes to CM, MLRISC, the x86 back
+  end, Library, and  some crucial bug fixes. In no specific order:
+<hr>
+
+<center><h2> Polyequal </h2></center>
+
+  The compiler will now print a warning each time it generates a call
+  to polyequal. Such calls, which are known to be expensive in practice, 
+  can most of the time be  eliminated using a type constraint (but see
+  bug1534). The warning messages can be turned off using:
+<pre>
+	Compiler.Control.CG.polyEqWarn := false;
+</pre>
+
+<hr>
+<center><h2> Bug 1507 </h2></center>
+
+  Bug 1507 which easily ranks as the most difficult and mysterious
+  bug yet, is fixed.  See the bugs files for the saga of message 
+  related to the bug.
+
+<hr>
+<center><h2> comp-lib </h2></center>
+
+  The comp-lib directory is gone. Pretty printing is done using the 
+  SML/NJ Library version, and most variants of integer sets were 
+  replaced with red-black trees. Whatever was not directly supported 
+  by the SML/NJ Library was moved to <tt>compiler/MiscUtil/library</tt>.
+
+<hr>
+<center><h2> MLRISC </h2></center>
+   <h4> MLRISC GC type </h4>
+
+      <ul>
+      <li> GC type is now an abstract type parameter customizable by the client
+
+      <li> A mechanism for incrementally generating GC code 
+        after optimizations has been added.  
+      </ul>
+
+   <h4> MLRISC Code Generator (mlriscGen)</h4>
+
+      <ul>
+       <p><li> Annotation of GC type information is now supported.  
+        This feature is enabled via the flag "mlrisc-gcsafety"
+
+       <p><li> There is now a mechansim for splitting entries into a block:  
+        given an entry block A, if there are internal control flow to A,
+        then we split A into A and A', with internal control flow redirected
+        to A'.  Splitting the entry block removes critical edges that cannot be 
+        handledd by the backend.  This is necessary for SSA optimizations.
+        This feature is enabled via the flag "split-entry-block"
+      </ul>
+
+   <h4> MLRISC Register Allocator</h4>
+
+      <ul>
+      <p><li>This new version employs an improved iterated coalescing algorithm,
+        which speeds up allocation of huge compilation units.
+
+      <p><li> The new RA also runs a "spill coloring" phase to compact 
+        spill locations on the stack frame.  This makes it possible
+        to compile very large compilation units.
+
+      <p><li> The client interface has been altered. 
+
+      <p><li> Descriptions of these changes are in :
+	<pre>
+	  http://cm.bell-labs.com/cm/cs/what/smlnj/compiler-notes
+	</pre>
+      </ul>
+
+   <h4> MLRISC clusters/flowgraphs</h4>
+ 
+       There is now a new mechanism for incrementally adding/replacing code.
+
+   <h4> ML-Yacc</h4>
+
+       The generated initialization code now spills less.  The old generated
+       code caused problems on certain architectures (HP).
+
+   <h4> Intel IA32</h4>
+     This version uses a new register allocator for the x86.  Unlike
+     the previous allocator which targets pseudo memory registers and
+     coalesces memory using a two phase scheme, this one directly
+     controls memory  coalescing in one single (but more complex)
+     phase.  Compilation of the compiler has sped up by 20-24%  As a
+     side benefit, the benchmarks are  also running faster on the
+     average.  Here are the numbers:
+
+<pre>
+                     Compilation Time        Run time
+                  110.24   New   Speedup    110.24  New    Speedup
+      barnesHut   4.395   4.257   3.25%     2.985   2.760    8.15%
+          boyer  17.417   6.587  164.42%    0.252   0.252    0.00%
+   count-graphs   1.710   1.527  12.01%    21.675  21.242    2.04%
+            fft   1.090   1.033   5.48%     0.875   0.808    8.25%
+    knuthBendix   5.118   3.755  36.31%     0.820   0.788    4.02%
+         lexgen   9.780   7.698  27.04%     0.815   0.693   17.55%
+           life   1.065   0.940  13.30%     0.110   0.095   15.79%
+          logic   2.862   2.532  13.03%     4.777   4.278   11.65%
+     mandelbrot   0.120   0.107  12.50%     0.615   0.515   19.42%
+         mlyacc  31.312  26.233  19.36%     0.463   0.415   11.65%
+        nucleic   5.138   5.222  -1.60%     0.128   0.128    0.00%
+  ratio-regions  13.518   5.102  164.98%   96.717  95.265    1.52%
+            ray   1.872   1.673  11.85%     3.102   3.133   -1.01%
+         simple   8.480   7.127  18.99%     2.723   2.362   15.31%
+            tsp   1.387   1.167  18.86%     6.352   6.428   -1.19%
+           vliw  29.178  22.705  28.51%     1.595   1.513    5.40%
+        Average                  34.27%                      7.41%
+</pre>
+
+    <p>
+    Each number represents an average of 6 runs.  These numbers are collected
+    on a dual processor (400Mhz Pentium II 512K) Linux box with 1G of
+    memory, and @SMLalloc=256k as the allocation parameter.
+    <p>
+    The generated code of the new allocator seems to be just as compact
+    as the old one.  The heap image sizes generated by the two allocators
+    are identical given the same set of compiler source code as input.
+
+
+<hr>
+<center><h2> CM </h2></center>
+
+    The "sml" command accepts command-line parameters.
+    These parameters must be names of files that contain either ML
+    source code or CM library descriptions.  The distinction is made
+    based upon the filename suffix (.sml and .sig = ML source, .cm =
+    CM description). Files are processed left-to-right.  ML source
+    code files are "use"d, CM files are either "CM.autoload"ed or
+    given to "CM.make". "CM.autoload" is used until the first
+    occurence of the "-m" flag which switches to "CM.make". The "-a"
+    flag restores the default behavior ("CM.autoload").
+<p>
+  CM properly handles the exception that the elaborator throws in
+  cases of semantic errors.  As a result, you don't see an unhandled
+  exception at top-level anymore, and CM.keep_going also works.
+<p>
+  Filters are treated "correctly" during cutoff recompilation.
+    If you have an ML source that exports two things (say, structures
+    A and B) but one of them gets filtered out by an export filter,
+    then the rest of the system does not get "infected" by changes to
+    the part that it cannot see.  So if B is filtered away, then for
+    the rest of the system, your source really looks like it only
+    exports A.  Modifications to B do no longer lead to recompilation
+    of other modules if they cannot actually "see" B because of some
+    export filter.
+<p>
+    This behavior was always the intended one, but it has never
+    actually worked so far (not under the old CM and not under the new
+    one).  The fix actually required some tweaking of the pickler.
+<p>
+  Structure CM re-shaped and distinction between "minimal-cm.cm" and
+  "full-cm.cm":
+     The new "full" structure CM is cleaned up quite a bit and uses
+     sub-structures to organize things.  This will probably be fleshed
+     out more in the future.  Full documentation of this can be found at:
+<pre>
+       http://www.kurims.kyoto-u.ac.jp/~blume/SMLNJ-DEV/manual.ps or
+       http://www.kurims.kyoto-u.ac.jp/~blume/SMLNJ-DEV/manual/index.html
+</pre>
+
+    The library host-cm.cm has been eliminated.  Its place is taken by
+    two _new_ libraries: full-cm.cm and minimal-cm.cm.  The latter is
+    initially registered at toplevel.
+
+<p>
+  CM's master-slave protocol made more robust against unexpected failures:
+    This mainly robustifies CM's master-slave protocol against
+    unexpected deaths of slave processes.  This is important because
+    rsh tends to die when you press ^C -- at least on some systems.
+    CM will now gracefully continue to utilize remaining compile
+    servers in the event of some other servers going down.  If the
+    last servers disappears, operation will automatically switch back
+    to non-parallel mode.
+<p>
+  CM's internal cache logic cleaned up:
+    It will also avoid spurious error messages about files belonging
+    to multiple groups.
+<p>
+  CM's "Tools" structure (library "cm-tools.cm") cleaned up and made
+  more flexible.
+<p>
+  Pre-loading of libraries during bootstrap can now be customized.
+  For "makeml", the relevant file is in src/system/preloads.standard;
+  for "install.sh" it is "config/preloads".
+
+<hr>
+<center><h2> Library-related changes </h2></center>
+
+  Reorganization of the libraries that make up the compiler
+    viscomp-lib.cm was split into a core part (viscomp-core.cm) and
+    various machine-dependent siblings (viscomp-<arch>.cm). The
+    dependence of host-cmb.cm on target-compilers.cm is eliminated so
+    that you don't suck in stuff you don't need when you load it.
+    This cleans up some of the .cm files quite nicely (all that "#if"
+    goo is gone except in one place where structures CM and CMB are
+    built.
+    Also, the "LIGHT" variable is treated quite nicely in just one
+    place.
+    On the downside (if you consider this a downside), there are quite
+    a few additional .cm files (and libraries).  In particular, there
+    is now one library for each architecture (called
+    <arch>-compiler.cm) and one library for each CMB
+    (<arch>-<opsys>.cm).  As a result, you can re-target either
+    summarily by loading target-compilers.cm (which is just the sum of
+    the above) or by loading precisely the one CMB or the one Compiler
+    that you need.
+<p>
+  All libraries except (viscomp-* and MLRISC-*) updated to eliminate
+  all incomplete match warnings during compilation.
+
+<hr>
+<center><h2> Installation scripts </h2></center>
+
+  The scripts "makeml" and "installml" are modified to automatically
+  patch relevant "pathconfig" files.
+<p>
+  Default "bin" dir is now called sml.bin.<arch>-<os>; default "boot"
+  dir is now called sml.boot.<arch>-<os>. Scripts are updated
+  accordingly.
+  (This seems to be more consistent with other naming conventions.)
+<p>
+  The "-bare" option to "makeml" works again.  Pre-loading of
+  libraries into a "bare" system can be controlled using the
+  src/system/preloads.bare file.
+
+<hr>
+
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Mon Dec  6 13:59:56 EST 1999
+<!-- hhmts end -->
+    </font>
+</blockquote>
+</body>
+</html>

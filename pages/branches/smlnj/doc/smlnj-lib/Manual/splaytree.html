@@ -1,0 +1,84 @@
+<!-- HTML/splaytree.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SplayTree structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>SplayTree</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SPLAY_TREE:SIG:SPEC"><CODE>SPLAY_TREE</CODE></A><BR>
+<B>structure </B><A NAME="SplayTree:STR:SPEC"><CODE>SplayTree</CODE></A><B> : </B>SPLAY_TREE<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The SplayTree structure provides the datatype and  two basic functions necessary for applicative Sleator-Tarjan splay trees. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>datatype</B> 'a <A NAME="SIG:SPLAY_TREE.splay:TY:SPEC" HREF="#SIG:SPLAY_TREE.splay:TY">splay</A><BR>
+&nbsp;&nbsp;<B>=</B> SplayObj <B>of</B> {value : 'a, right : 'a splay, left : 'a splay}         <BR>
+&nbsp;&nbsp;<B>|</B> SplayNil<BR>
+<B>val</B> <A NAME="SIG:SPLAY_TREE.splay:VAL:SPEC" HREF="#SIG:SPLAY_TREE.splay:VAL">splay</A> <B>:</B> (('a -&gt; order) * 'a splay) -&gt; (order * 'a splay)         <BR>
+<B>val</B> <A NAME="SIG:SPLAY_TREE.join:VAL:SPEC" HREF="#SIG:SPLAY_TREE.join:VAL">join</A> <B>:</B> ('a splay * 'a splay) -&gt; 'a splay         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SPLAY_TREE.splay:TY"><CODE><B>datatype</B> 'a splay</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SPLAY_TREE.splay:VAL"><CODE>splay (<VAR>cmp</VAR>, <VAR>tree</VAR>)
+          </CODE></A>
+<DD>
+returns <CODE>(<VAR>r</VAR>,<VAR>tree'</VAR>)</CODE>,  where <VAR>tree'</VAR> is            <VAR>tree</VAR> adjusted using the comparison function <VAR>cmp</VAR>.            In addtion, if <CODE>tree' = SplayObj{value,...}</CODE>, then <VAR>r</VAR> equal           <CODE>cmp value</CODE>. <CODE>tree' = SplayNil</CODE> if and only if            <CODE>tree = SplayNil</CODE>, in which case <VAR>r</VAR> is unspecified.            
+<P>
+          Usually, <VAR>cmp</VAR> will compare its argument against some fixed value.           For example, if <CODE>cmpfn : 'a * 'a -&gt; order</CODE> defines an order            relation on the type <CODE>'a</CODE> and we wish to search for a value            <CODE>u</CODE>, we can pass the function <CODE>fn v =&gt; cmpfn(v,u)</CODE> to            the <CODE>splay</CODE> function.              
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SPLAY_TREE.join:VAL"><CODE>join (<VAR>sp</VAR>, <VAR>sp2</VAR>)
+          </CODE></A>
+<DD>
+returns a new splay tree joining <VAR>sp</VAR> and <VAR>sp2</VAR>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="splay-set-fn.html#SplaySetFn:FCT:SPEC">SplaySetFn</A>, <A HREF="splay-map-fn.html#SplayMapFn:FCT:SPEC">SplayMapFn</A>
+</BLOCKQUOTE>
+<H4>Discussion</H4>
+<P>
+Not only is the data structure concrete, but the <CODE>splay</CODE> function takes a comparison function as an argument, allowing the semantics of the splay tree to be changed on the fly. It is assumed that this structure will only be used within another structure that will guarantee the consistency of the trees. 
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 5, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

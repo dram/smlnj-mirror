@@ -1,0 +1,190 @@
+<!-- HTML/symbol.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SYMBOL signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>SYMBOL</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SYMBOL:SIG:SPEC"><CODE>SYMBOL</CODE></A><BR>
+<B>structure </B><A NAME="Symbol:STR:SPEC"><CODE>Compiler.Symbol</CODE></A><B> : </B>SYMBOL<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:SYMBOL.symbol:TY:SPEC" HREF="#SIG:SYMBOL.symbol:TY">symbol</A><BR>
+<B>datatype</B> <A NAME="SIG:SYMBOL.namespace:TY:SPEC" HREF="#SIG:SYMBOL.namespace:TY">namespace</A><BR>
+&nbsp;&nbsp;<B>=</B> VALspace<BR>
+&nbsp;&nbsp;<B>|</B> TYCspace<BR>
+&nbsp;&nbsp;<B>|</B> SIGspace<BR>
+&nbsp;&nbsp;<B>|</B> STRspace<BR>
+&nbsp;&nbsp;<B>|</B> FCTspace<BR>
+&nbsp;&nbsp;<B>|</B> FIXspace<BR>
+&nbsp;&nbsp;<B>|</B> LABspace<BR>
+&nbsp;&nbsp;<B>|</B> TYVspace<BR>
+&nbsp;&nbsp;<B>|</B> FSIGspace<BR>
+<B>val</B> <A NAME="SIG:SYMBOL.eq:VAL:SPEC" HREF="#SIG:SYMBOL.eq:VAL">eq</A> <B>:</B> (symbol * symbol) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.symbolGt:VAL:SPEC" HREF="#SIG:SYMBOL.symbolGt:VAL">symbolGt</A> <B>:</B> (symbol * symbol) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.symbolCMLt:VAL:SPEC" HREF="#SIG:SYMBOL.symbolCMLt:VAL">symbolCMLt</A> <B>:</B> (symbol * symbol) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.varSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.varSymbol:VAL">varSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.tycSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.tycSymbol:VAL">tycSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.sigSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.sigSymbol:VAL">sigSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.strSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.strSymbol:VAL">strSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.fctSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.fctSymbol:VAL">fctSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.fsigSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.fsigSymbol:VAL">fsigSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.fixSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.fixSymbol:VAL">fixSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.labSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.labSymbol:VAL">labSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.tyvSymbol:VAL:SPEC" HREF="#SIG:SYMBOL.tyvSymbol:VAL">tyvSymbol</A> <B>:</B> string -&gt; symbol         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.var'n'fix:VAL:SPEC" HREF="#SIG:SYMBOL.var'n'fix:VAL">var'n'fix</A> <B>:</B> string -&gt; (symbol * symbol)         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.name:VAL:SPEC" HREF="#SIG:SYMBOL.name:VAL">name</A> <B>:</B> symbol -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.number:VAL:SPEC" HREF="#SIG:SYMBOL.number:VAL">number</A> <B>:</B> symbol -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.nameSpace:VAL:SPEC" HREF="#SIG:SYMBOL.nameSpace:VAL">nameSpace</A> <B>:</B> symbol -&gt; namespace         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.nameSpaceToString:VAL:SPEC" HREF="#SIG:SYMBOL.nameSpaceToString:VAL">nameSpaceToString</A> <B>:</B> namespace -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:SYMBOL.symbolToString:VAL:SPEC" HREF="#SIG:SYMBOL.symbolToString:VAL">symbolToString</A> <B>:</B> symbol -&gt; string         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SYMBOL.symbol:TY"><CODE><B>type</B> symbol</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.namespace:TY"><CODE><B>datatype</B> namespace</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.eq:VAL"><CODE>eq (<VAR>sy</VAR>, <VAR>sy2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.symbolGt:VAL"><CODE>symbolGt (<VAR>sy</VAR>, <VAR>sy2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.symbolCMLt:VAL"><CODE>symbolCMLt (<VAR>sy</VAR>, <VAR>sy2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.varSymbol:VAL"><CODE>varSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.tycSymbol:VAL"><CODE>tycSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.sigSymbol:VAL"><CODE>sigSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.strSymbol:VAL"><CODE>strSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.fctSymbol:VAL"><CODE>fctSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.fsigSymbol:VAL"><CODE>fsigSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.fixSymbol:VAL"><CODE>fixSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.labSymbol:VAL"><CODE>labSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.tyvSymbol:VAL"><CODE>tyvSymbol <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.var'n'fix:VAL"><CODE>var'n'fix <VAR>s</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.name:VAL"><CODE>name <VAR>sy</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.number:VAL"><CODE>number <VAR>sy</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.nameSpace:VAL"><CODE>nameSpace <VAR>sy</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.nameSpaceToString:VAL"><CODE>nameSpaceToString <VAR>na</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SYMBOL.symbolToString:VAL"><CODE>symbolToString <VAR>sy</VAR>
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

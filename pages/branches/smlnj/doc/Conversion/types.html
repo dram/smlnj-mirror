@@ -1,0 +1,1154 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML '97 Types and Type Checking</title>
+  </head>
+
+<body BGCOLOR="white">
+
+<center>
+<h1>1.1. Types and Type Checking</h1>
+</center>
+<h2> <A NAME="Checking">1.1.2. Type Checking</A> </h2>
+<h3> <A NAME="Value">1.1.2.1. Value Polymorphism</A> </h3>
+<blockquote>
+<h4> Background </h4>
+The interaction between polymorphism and side-effects has
+always been a troublesome problem for ML.  Here is an example
+of a program illustrating the danger:
+<pre>
+    val r = ref(fn x => x);
+    r := (fn x => x+1);
+    !r true;
+</pre>
+<p>
+Under the basic rules of ML type inference (Hindley-Milner type
+inference), we would give the local variable <code>r</code> the polymorphic type
+<pre>
+    r: ('a -> 'a) ref
+</pre>
+where the type variable <code>'a</code> here is implicitly
+<em>quantified</em>, meaning the type might be more explicitly
+written (in an extended SML type notation) as:
+<pre>
+    r: (All 'a).('a -> 'a) ref
+</pre>
+We will use this explicit quantifier notation when we want to
+be particularly clear that we are dealing with a polymorphic type.
+<p>
+Given that r has this polymorphic type, the occurrence of
+<code>r</code> in the assignment expression would have the type
+<code>(int -> int) ref</code>, while in the third line <code>r</code>
+would have the type <code>(bool -> bool) ref</code>.  This typing of
+the program is clearly unsound, since it allows a function on integers
+to be applied to a boolean value.
+<p>
+What is going on here is that a mutable value (here a
+ref cell <code>r</code>) is given a polymorphic type.  This allows the
+mutable value's type to be instantiated differently at the points
+where the contents are updated and where they are fetched, with the
+consequence that the value stored and retrieved changes type in the
+process.  The ref cell is acting as a communication channel between
+two points in the program that do not agree on the type of the value
+being communicated.
+<p>
+Besides ref cells and arrays, another mechanism that can serve as
+communication channel between statically uncoordinated parts of a
+program  are first-class continuations.  These can give rise to
+the same sort of type unsoundness illustrated above.
+<p>
+This example shows that the simple rule for introducing polymorphism
+for let-bound variables, which suffices for purely functional languages,
+is not sound in a language with side effects like SML.  Somehow the
+rule for typing let-bound variables has to be restricted to prevent this
+unsoundness.
+<p>
+SML '90 solved this problem by introducing a special, restricted form
+of polymorphism expressed through <em>imperative types</em>.  An
+imperative type is a polymorphic type whose bound type variable is of
+a special form, called an imperative type variable.  Imperative type
+variables are distinguished by an initial underscore in the type
+variable name, for example <code>'_a</code>.
+<blockquote>
+<strong>Notation:</strong> I'll use type variables names with
+lower-case names near the beginning of the alphabet like
+<code>'a</code>, <code>'b</code> and <code>'_a</code> for implicitly
+generalized type variables in polymorphic types, while capitalized
+names near the end of the alphabet like <code>'X</code> or
+<code>'_X</code> will be used for <em>free</em>, or nongeneralized,
+type variables.  Such free type variables occur during the type
+checking process and are sometimes called type <em>metavariables</em>.
+They are not allowed to occur in the top-level types produced by
+type checking.
+</blockquote>
+<p>
+In the SML '90 scheme, imperative types are initially associated with
+certain primitive functions, such as <code>ref</code>, which has the
+imperative polymorphic type:
+<pre>
+    ref: '_a -> '_a ref
+</pre>
+The imperative attribute of a type variable is propagated by
+substitution during type checking, so the expression <code>ref(fn x =>
+x)</code> has the typing
+<pre>
+    ref(fn x => x)  : ('_X -> '_X) ref
+</pre>
+where <code>'_X</code> is a free imperative type variable inheriting
+its imperative nature from the <code>'_a</code> in the type of
+<code>ref</code>.
+<p>
+The purpose of imperative type variables is to limit the introduction
+of polymorphism, i.e. to prevent certain type variables from being
+generalized in certain circumstances.  In a value declaration like
+<pre>
+    val y = ref(fn x => x)
+</pre>
+we have seen that the type of the right hand side is
+<pre>
+    ('_X -> '_X) ref	   [1]
+</pre>
+We will only be allowed to generalize the imperative type variable
+<code>'_X</code> and assign <code>y</code> a polymorphic type if the
+defining expression on the right is in some sense <em>safe</em>,
+meaning that it cannot create new ref cells that could behave
+polymorphically and cause the kind of unsoundness illustrated above.
+In this case, the right hand side clearly is <em>not</em> safe since it
+directly creates a ref cell.  So in this case the type will not be
+generalized and <code>y</code> will not have a polymorphic type.  In
+fact, if the declaration is at top level, <code>y</code> would not be
+given a type at all, because types like [1] containing free type
+variables such as <code>'_X</code> are not allowed for top-level
+bindings.
+<p>
+Determining exactly which expressions are safe, and may therefore have
+their types generalized without jeopardizing type soundness, is a very
+difficult problem.  So we approximate safety with a simple syntactic
+notion, that of a <em>nonexpansive</em> expression.  Nonexpansive
+expressions are
+<ul>
+<li>constants, including nullary constructors (e.g. <code>3</code>, <code>nil</code>),
+<li>variables (e.g. <code>x</code>, <code>A.x</code>), or
+<li>function expressions (e.g. <code>fn x => x</code>).
+</ul>
+The evaluation of expressions of any of these forms is
+trivial, and in particular cannot entail the creation of new data
+structures (other than the benign case of a function closure for
+function expressions).  All other expressions, including function
+applications, let expressions, conditionals, etc., are by definition
+<em>expansive</em>, implying that their evaluation may entail
+nontrivial computations that <em>might</em> lead to the creation of
+ref cells or other mutable data structures.
+<p>
+So to summarize the rule used in SML '90: in a value declaration, we
+generalize those free type variables that do not occur free in the
+context environment, except that free <em>imperative</em> type
+variables can only be generalized (i.e. transformed into bound type
+variables of a polymorphic type) if the expression on the right hand
+side of the declaration is nonexpansive.
+<blockquote>
+<strong>Note:</strong> In SML/NJ, the notions of imperative type
+variables and nonexpansive expressions were refined into a system of
+<em>weak</em> type variables with different degrees of weakness indicated by
+a leading integer in the type variable name, e.g. <code>'1a,
+'2b</code>.  This scheme moderately extended the power of the type
+system by allowing the types of certain expansive expressions to be
+generalized (e.g. partial applications of polymorphic curried
+functions).
+</blockquote>
+<p>
+One obvious drawback of both imperative types in SML '90 and the
+related weak types of SML/NJ (0.93) is that they require a special
+kind of type variable.  The rules governing their behavior were also
+relatively subtle and hard to explain to novices (especially SML/NJ's
+weak types).
+<p>
+Another major problem is that imperative types often "infect"
+interfaces.  A given signature might have two semantically equivalent
+implementations written in different styles, one purely functional and
+the other using imperative features.  The types of the values in the
+functional implementation would be normal polymorphic types.  However,
+even though their behavior is equivalent, the types of the
+corresponding values in the imperative implementation might be
+imperative polymorphic types.  This happens because once a type
+variable acquires the imperative attribute through interaction with a
+ref cell, the attribute sticks and gets propagated through to the
+final type.  For example, here are two equivalent implementations of
+the identity function:
+<pre>
+    fun id x = x         (* pure *)
+    idFun : 'a -> 'a
+
+    fun id x = !(ref x)  (* imperative *)
+    idImp : '_a -> '_a
+</pre>
+A single signature that is meant to describe the common interface of
+both implementations must therefore specify the imperative type.
+<pre>
+    signature S =
+    sig
+      val id : '_a -> '_a
+    end;
+</pre>
+If the imperative implementation is introduced after the functional
+version already existed, it becomes necessary to go back and revise
+the earlier signature to change nonimperative polymorphic types to
+imperative types.
+<p>
+
+Let's consider a slightly more subtle example demonstrating the need
+for restricted polymorphism.  Under the naive typing rules, (without
+imperative types or other restrictions on type generalization), the
+following definitions result in the same polymorphic type being
+assigned to functions <code>f1</code> and <code>f2</code>.
+<pre>
+    fun f1 () =
+	let val r = ref nil
+	    fun put x = r := x::nil
+	    fun get () = hd(!r)
+	 in (put, get)
+	end
+    <i>val f1 = fn : unit -> ('a -> unit) * (unit -> 'a) </i>
+
+    fun f2 () : ('a -> unit) * (unit->'a) = 
+	((fn x => ()), (fn () => raise Fail "f2"));
+    <i>val f2 = fn : unit -> ('a -> unit) * (unit -> 'a) </i>
+</pre>
+Again under the naive typing rules, we then have
+<pre>
+    val (g1,h1) = f1 ()
+    <i>val g1 = fn : 'a -> unit
+    val h1 = fn : unit -> 'a</i>
+
+    val (g2,h2) = f2 ()
+    <i>val g2 = fn : 'a -> unit
+    val h2 = fn : unit -> 'a</i>
+</pre>
+Here the polymorphic types for <code>g1</code> and <code>h1</code>
+lead to trouble, because the the last value to which <code>g1</code>
+is applied will be the value returned by the next call of
+<code>h1</code>:
+<pre>
+    g1 3;              (* stores 3 in the shared ref *)
+    <i>val it = () : unit</i>
+    not(h1());        (* apply boolean operation to 3! *)
+    <i>val it = <<CRASH!!!>> : bool</i>
+</pre>
+Because their function bodies both refer to the local variable
+<code>r</code>, <code>g1</code> and <code>h1</code> are tied together
+by hidden shared state, and this is how calls of <code>g1</code> and
+<code>h1</code> communicate.  If <code>g1</code> and <code>h1</code>
+have independent polymorphic types, the the value communicated between
+them can change types arbitrarily.
+<p>
+On the other hand, the behavior of <code>g2</code> and <code>h2</code> is benign:
+<pre>
+    g2 3;              (* 3 is just discarded *)
+    <i>val it = () : unit</i>
+    not(h2());        (* no problem, h1 does not return *)
+    <i>uncaught exception Fail: f2</i>
+</pre>
+because <code>g2</code> and <code>h2</code> are independent, and
+there is no hidden communication between them.
+<p>
+We note two things about this example: (1) The polymorphic type that
+<code>f1</code> and <code>f2</code> share does not mention the
+<code>ref</code> type constructor, illustrating that there is no
+simple way to determine whether shared state and side effects are
+involved by looking at the type.  (2) Typing is
+<em>compositional</em>, meaning that we when we type declarations like
+<pre>
+    val (g1,h1) = f1 ()
+    val (g2,h2) = f2 ()
+</pre>
+we have only the previously determined types of the component elements
+(<code>f1, f2, ()</code>) to work with.  Since the types of
+<code>f1</code> and <code>f2</code> are the same, these two declarations must be
+typed the same way, regardless of what may be going on inside of <code>f1</code>
+and <code>f2</code>.
+<p>
+In SML '90, the problem is solved by causing <code>f1</code> and
+<code>f2</code> to have different types.  The use of
+<code>ref</code> in the definition of <code>f1</code> introduces an imperative
+type variable, and the type checker assigns <code>f1</code> the type:
+<pre>
+    <i>val f1 = fn : unit -> ('_a -> unit) * (unit -> '_a) </i>
+</pre>
+Note that <code>f1</code> is still polymorphic because the
+declaration of <code>f1</code> is equivalent to
+<pre>
+    val f1 = (fn () => ...)
+</pre>
+so the right hand side of the declaration is a function expression
+and therefore nonexpansive.
+<blockquote>
+<strong>Note</strong>: I've oversimplified slightly here, since a
+<code>fun</code> declaration is actually equivalent to a <code>val
+rec</code>, but <code>val rec</code> declarations are by
+convention always treated as nonexpansive, since the right hand
+sides must all be function expressions.
+</blockquote>
+<p>
+Now when we type the suspect declaration
+<pre>
+    val (g1,h1) = f1 ()
+</pre>
+the expression <code>f1()</code> on the right gets the type
+<pre>
+    ('_X -> unit) * (unit -> '_X)
+</pre>
+and since the right hand side is expansive, the imperative type variable 
+<code>'_X</code> will not be generalized.  This will lead to an
+error (at top level), thus preventing the unsound use of <code>g1</code>
+and <code>h1</code>.  The typing of <code>f2</code>, <code>g2</code>,
+and <code>h2</code> proceeds as in the naive case, since no imperative
+type variables arise in those declarations.
+<p>
+
+<h4>Value Polymorphism</h4>
+
+In SML '97, we use a different technique to avoid unsoundness.  We
+drop the distinction between imperative type variables and ordinary
+type variables, so once again there is only one flavor of type
+variable (ignoring equality type variables).  This means that
+<code>f1</code> and <code>f2</code> have the same polymorphic type, as
+with the naive rule.  We therefore cannot distinguish between
+dangerous (<code>f1()</code>) and safe (<code>f2()</code>)
+expressions based on type information alone.  Also, without imperative
+type variables we can't distinguish which type variables are unsafe to
+generalize because they are involved in the type of a ref value.  So
+we conservatively treat all function applications as dangerous and we
+do not allow <em>any</em> of the type variables in their types to be
+generalized.  In effect, we have decided to treat <em>all</em> type
+variables as imperative.  This new scheme is called <em>value
+polymorphism</em>, and it is also known as the <em>value
+restriction</em>.
+<p>
+As in SML '90, we approximate the class of safe-to-generalize
+expressions conservatively by the simple syntactic notion of a
+nonexpansive expression, also known as a <em>value expression</em>
+or simply a <em>value</em>.  SML '90 defined nonexpansive expressions
+to include the following atomic forms:
+<UL>
+<li>constants (e.g. <code>3</code>),
+<li>nullary constructors (e.g. <code>nil</code>),
+<li>variables (e.g. <code>x</code>, <code>A.x</code>),
+<li>function expressions (e.g. <code>(fn x => x)</code>).
+</UL>
+It is clear that the evaluation of any of these forms is
+safe because it cannot entail the creation of new data structures
+(other than the benign case of creating function closures for
+function expressions).  To partially compensate for the fact that we
+are being more restrictive in our creation of polymorphism, SML '97
+enlarges the class of nonexpansive expressions to include some simple
+compound expressions:
+<UL>
+<li> records and tuples with nonexpansive fields (e.g. <code>(3,x,nil)</code>),
+<li> constructors (except <code>ref</code>) applied to nonexpansive arguments (e.g. <code>x::nil</code>).
+</UL>
+All other expressions, including function applications, let
+expressions, conditionals, etc., are by definition <em>expansive</em>,
+implying that their evaluation may entail nontrivial computations that
+<em>might</em> lead to the creation of ref cells or other mutable data
+structures.
+<p>
+The <strong>value polymorphism</strong> rule for typing value
+declarations states that in a declaration such as
+<pre>
+    val <i>pat</i> = <i>exp</i>
+</pre>
+the types of the variables appearing in pat can be closed by
+generalizing those type variables appearing free in their types but
+not in the context if, and <em>only if</em>, the expression on the
+right hand side is nonexpansive.
+<p>
+Using the value restriction to control the interaction of polymorphism
+and side-effects had been considered during the design of Standard ML,
+but it was generally thought to sacrifice too much polymorphism.
+However, after several years of investigation of more elaborate
+schemes that attempted to weaken the restriction (like the weak types
+in SML/NJ), Andrew Wright undertook an empirical investigation
+of the consequences of the value restriction ("Simple Imperative
+Polymorphism", LISP and Symbolic Computation, 8, 343-355, 1995).  He
+implemented the value restriction and recorded the changes that were
+necessary to convert a large body of existing code (the SML/NJ compiler
+and tools, HOL90 and Isabelle theorem provers, etc.).  The conclusion
+was that surprisingly few changes to the code were needed, and these
+changes were mostly fairly simple and local.  It turns out that the
+imperative types originally adopted were a good example of
+<em>premature optimization</em> in language design!
+<p>
+Based on this revelation, we decided to adopt the value restriction
+in the revised SML '97 version of the language.  This is one of the
+most evident and important changes in the language, and it is
+important to understand the consequences, and in particular how to
+modify old SML code to conform to the new restriction.
+We will illustrate below some typical situations where adjustments
+are required to conform to the value restriction.
+
+<h4>What does it mean in practice?</h4> 
+<p>
+The value polymorphism scheme is more restrictive than the imperative
+type scheme of SML '90 and the weak types of SML/NJ 0.93, so when
+converting code from SML '90 to SML '97 you will occasionally need
+to rewrite code to satisfy the value restriction.  In converting
+the 125K lines of SML code in the SML/NJ compiler, there were about 80
+cases where code had to be modified for value polymorphism.
+<p>
+The consequences of a failure of the value restriction differ
+according to whether the declaration is at top level (in the
+interactive system or in the body of a structure), or local to a
+<code>let</code> expression or <code>local</code> declaration.  How
+top-level failures are treated is implementation dependent, but SML/NJ
+eliminates any nongeneralized free type variables by instantiating
+them to fresh dummy variables.  For example
+<pre>
+    val x = ref nil;
+    <i>stdIn:6.1-6.8 Warning: type vars not generalized because of</i>
+    <i>   value restriction are instantiated to dummy types (X1,X2,...)</i>
+    <i>val x = ref [] : ?.X1 list ref</i>
+</pre>
+The fresh dummy types that are generated for this purpose are named
+X1, X2, X3, etc.  Since these dummy types are not the types of any
+values, the result of such a declaration is likely to be of little
+use.  For instance, in the above example, the only value we will
+be able to assign to x is nil, and if we fetch the contents of x,
+the only thing we will be able to do with this (empty) list is
+calculate its length, append it to itself, etc. 
+<p>
+If the declaration has local scope (as in a <code>let</code>
+expression or <code>local</code> declaration), then all occurrences of
+the declared variable must have the same type.  The free type
+variables left ungeneralized because of the value restriction may be
+instantiated by the context in which the declared variable is used,
+as in 
+<pre>
+    let val x = ref nil      (* x : 'X list ref *)
+     in x := [3];            (* x : int list ref *)
+        hd(!x)
+    end;
+    <i>val it = 3 : int</i>
+</pre>
+Here when the declaration of <code>x</code> is type checked,
+<code>x</code> gets the type <code>'X list ref</code> for some free
+type metavariable <code>'X</code>, but the way <code>x</code> is used
+in the body instantiates <code>'X</code> to be <code>int</code>.
+<p>
+If the type variables are not instantiated locally, they may be
+propagated to outer scopes where they are eventually eliminated either
+by instantiation or generalization as in the following examples:
+<pre>
+    fun f y = let val x = ref nil in x end;  (* generalized *)
+    <i>val f = fn : 'a -> 'b list ref</i>
+
+    let val y = let val x = ref nil in x end  (* instantiated *)
+     in y := [true];
+        if hd(!y) then 1 else 2
+    end;
+    <i>val it = 1 : int</i>
+</pre>
+In the first of these examples the type variable in the type of
+<code>x</code> was generalized to <code>'b</code> when the type of
+<code>f</code> was generalized.  Note that all "<code>fun</code>"
+declarations automatically satisfy the value restriction, so type
+variables introduced when typing a "<code>fun</code>" declaration can
+always be generalized.  In the second example the ungeneralized
+(therefore free) type variable shared by the types of <code>x</code>
+and <code>y</code> is instantiated to <code>bool</code> when the body
+of the <code>let</code>-expression is type checked.
+<p>
+
+What should you do when the value restriction applies and a formerly
+polymorphic declaration fails to be polymorphic?  This depends
+on whether the polymorphism was actually exploited or not.
+
+<h4>Polymorphism not required</h4>
+
+If the declaration is local, and the ungeneralized type variables do
+not escape (as in the second example above), then nothing need be
+done.  In fact, one may not even realize that there was a value
+restriction failure in such a case unless one has turned on the
+message flag <code>Compiler.Control.valueRestrictionLocalWarn</code>,
+which causes a warning message to be printed for value restriction
+failures in embedded declarations (i.e. declarations local to
+expressions or declarations).
+
+<p>
+If the declaration was at top-level and only a monotype was required,
+a type constraint can be added to eliminate the ungeneralized
+(escaping) type variable:
+<pre>
+    val x : int list ref = ref nil;
+</pre>
+<p>
+
+<h4>Polymorphism required</h4>
+
+If polymorphism was required, and is no longer achieved because of the
+value restriction, then we need to modify the code.  A very common
+case involves an expansive expression that
+computes a function, such as the partial application of a curried 
+function to an incomplete list of arguments.
+<pre>
+    fun f x y = y;
+    <i>val f = fn : 'a -> 'b -> 'b</i>
+    val g = f 3;
+    <i>stdIn:7.1-7.12 Warning: type vars not generalized because of</i>
+    <i>   value restriction are instantiated to dummy types (X1,X2,...)</i>
+    <i>val g = fn : ?.X1 -> ?.X1</i>
+</pre>
+In SML '90, <code>g</code> would have the type <code>'a -> 'a</code>
+because there are no imperative type variables involved, but now in
+SML '97 the value restriction comes into play, forcing <code>g</code>
+to have a monomorphic type (containing a dummy type <code>X1</code> to
+boot!).  We can fix the definition of <code>g</code> to restore the
+polymorphic type by converting the expression <code>f 3</code> into a
+value expression using <em>eta-expansion</em>.  Eta-expansion
+transforms an function valued expression <code>e</code> into <code>(fn
+x => (e) x)</code> (choosing the new variable <code>x</code> to make
+sure that it is not free in <code>e</code>).  In this case, we
+eta-expand the definition of <code>g</code> to:
+<pre>
+    val g = (fn y => (f 3) y);
+    <i>val g = fn : 'a -> 'a</i>
+</pre>
+or, equivalently:
+<pre>
+    fun g y = f 3 y;
+    <i>val g = fn : 'a -> 'a</i>
+</pre>
+In this case, the eta-expanded definition of <code>g</code> is entirely
+equivalent to the original one.  But in general we have to be careful,
+because the eta-expansion of an expression is not always semantically
+equivalent to that expression.
+<p>
+One problem is termination.  It may be that the expression defining
+<code>g</code> loops or raises an exception:
+<pre>
+    fun f (x::l) = (fn y => y);
+    <i>stdIn:14.1-14.27 Warning: match nonexhaustive</i>
+    <i>          x :: l => ...</i>
+
+    <i>val f = fn : 'a list -> 'b -> 'b</i>
+    val g = f nil;
+    <i>stdIn:15.1-15.14 Warning: type vars not generalized because of</i>
+    <i>   value restriction are instantiated to dummy types (X1,X2,...)</i>
+
+    <i>uncaught exception nonexhaustive match failure</i>
+    <i>  raised at: stdIn:14.16</i>
+    fun g y = f nil y;
+    <i>val g = fn : 'a -> 'a</i>
+</pre>
+With this eta-expanded definition of <code>g,</code> the raising of
+the nonexhaustive match exception is delayed from when <code>g</code>
+is defined to when <code>g</code> is applied to an argument.
+<P>
+Another situation where eta-expansion does not preserve semantics
+is where partial application causes side-effects, as the following
+example (borrowed from Andrew Wright) shows.
+<pre>
+    val counter = ref(ref 0);
+    <i>val counter = ref (ref 0) : int ref ref</i>
+    fun mkCountF f =
+	let val x = ref 0
+	    val f2 = fn z => (x := !x + 1; f z)
+	 in counter := x; (* call counter returned via global counter *)
+	    f2
+	end;
+    <i>val mkCountF = fn : ('a -> 'b) -> 'a -> 'b</i>
+</pre>
+When applied to a function, <code>mkCountF</code> returns a new
+function that behaves like the argument except that a counter records
+the number of times it is called.  The counter is returned via the
+global reference <code>counter</code>.  If we define a function by
+partially applying <code>mkCountF</code>:
+<pre>
+    fun pair x = (x,x);
+    <i>val pair = fn : 'a -> 'a * 'a</i>
+    val cpair = mkCountF pair;
+    <i>val cpair = fn : ?.X1 -> ?.X1 * ?.X1</i>
+    val cpairCalls = !counter  (* obtain the counter for cpair *)
+    <i>val cpairCalls = ref 0 : int ref</i>
+</pre>
+the function <code>cpair</code> is not polymorphic.  Recovering
+polymorphism by eta-expansion changes the behavior:
+<pre>
+    val cpair' = (fn y => mkCountF pair y)
+    <i>val cpair' = fn : 'a -> 'a * 'a</i>
+</pre>
+Now <code>cpair'</code> is polymorphic, but no counter is produced
+when cpair' is defined. Instead, a new counter is produced every time
+cpair' is applied, which is not what we want.
+<P>
+Another problem with eta-expansion is the potential for severe
+performance penalties.
+<pre>
+    fun id x = x
+    <i>val id = fn : 'a -> 'a</i>
+    fun g f = (heavy(); f)
+    <i>val g = fn : 'a -> 'a</i>
+    val id1 = g id
+    <i>val id1 = fn : ?.X1 -> ?.X1</i>
+    val id2 = (fn x => g id x)
+    <i>val id2 = fn : 'a -> 'a</i>
+</pre>
+Here the definition of <code>id1</code> causes <code>heavy</code>
+to be called once, but <code>id1</code> is not polymorphic, while the
+function <code>id2</code> defined by eta-expansion is polymorphic, but
+<code>heavy</code> is called every time <code>id2</code> is applied.
+If <code>heavy</code> is a very expensive function, this will probably
+not be acceptable.
+<P>
+In the examples given here, the algorithmic differences between the
+original function and its eta-expanded version are obvious, but in
+real programs, the difference may be rather subtle and easily
+overlooked (as I found on at least one occasion when converting the
+SML/NJ compiler to obey the value restriction).
+<P>
+So eta-expansion is not a universal solution for restoring
+polymorphism to computed functions.  When eta-expansion is not
+appropriate, one can sometimes rewrite the code more globally to
+work around the problem; e.g. by lifting a side-effect or expensive
+computation out of the function definition.  In the very rare cases
+where this fails, and one can't achieve a polymorphic definition, the
+last resort is to duplicate code and have multiple definitions.  At
+least one is no worse off than one would be with a language like
+Pascal that does not support polymorphism!
+
+<h4>Computed Polymorphic data</h4>
+There are cases where in SML '90 one might use a non-value expression
+to compute a polymorphic data structure.  For instance, in SML '90
+the declaration
+<code>
+    val x = rev []
+</code>
+yields the polymorphic typing <code>x : 'a list</code>.  Since
+<code>rev []</code> is not a value expression, <code>x</code> will
+not get a polymorphic type in SML '97.  If the polymorphic type of
+such a data structure declaration was needed, we cannot restore it
+by the technique of eta expansion that usually works for function
+declarations.  As for computed function declarations where eta
+expansion is not appropriate, some global rewriting of the code
+may be required, including possibly duplicating the declaration.
+Fortunately this situation seems to rarely arise in practice.
+<p>
+<h4>Treatment of local vs top level declarations</h4>
+When the type of a variable fails to generalize in a local declaration
+because of the value restriction, the ungeneralized free type variables in
+its type may be instantiated later on when the variable is used in
+the body.  In the following expression, 
+<pre>
+    let val r = ref(fn x => x)
+     in !r 5
+    end;
+</pre>
+the local variable <code>r</code> initially gets the type:
+<pre>
+    r : ('X -> 'X) ref
+</pre>
+Then when the body expression <code>!r 5</code> is type
+checked <code>'X</code> is unified with <code>int</code> and thereby
+eliminated.  Thus <code>r</code> ends up with the type <code>int ->
+int</code> and the whole let expression has type <code>int</code>.
+Since <code>r</code> has only one type in its scope, it cannot be used
+inconsistently, so
+<pre>
+    let val r = ref(fn x => x)
+     in !r 5; !r true
+    end;
+</pre>
+will cause a type error in the expression <code>!r true</code>
+(assuming left to right expression traversal by the type checker).
+<p>
+It is also possible that a free type variable in a local variable's
+type will be generalized in a more global scope, as illustrated by
+the declaration
+<pre>
+    fun f () =
+	let val r = ref(fn x => x)
+	 in !r
+	end;
+</pre>
+where the free type variable <code>'X</code> in the type <code>r : ('X
+-> 'X) ref</code> gets eliminated by polymorphic generalization in the
+typing of the declaration of <code>f</code>, with the resulting typing:
+<pre>
+    val f : unit -> 'a -> 'a
+</pre>
+<p>
+But how do we deal with type variables that remain free in the type
+of top-level declarations because of the value restriction?  We could
+just leave the free type variables in the type as we do for local
+declarations, but this would lead to inscrutable behavior at best
+or type unsoundness at worst, depending on how these free type
+variables are treated.  In SML/NJ, our solution is to eliminate
+residual free type variables in top-level declarations by
+instantiating them to new dummy types.  We also print a warning
+message indicating that type generalization failed.
+<pre>
+    val x = ref(fn x => x);
+    <i>stdIn:1.1-2.18 Warning: type vars not generalized because of
+       value restriction are instantiated to dummy types (X1,X2,...)
+    val x = ref fn : (?.X1 -> ?.X1) ref</i>
+</pre>
+The new dummy type <code>X1</code> introduced for this purpose will
+not match the type of any value, so there is very little one can
+do with the value of <code>x</code>.  Nevertheless, we consider it
+to be more informative to produce a dummy typing rather than a type
+error.  There are also situations where the dummy typing doesn't
+matter, such as 
+<pre>
+    OS.Process.exit(OS.Process.failure);
+    <i>stdIn:1.1-19.12 Warning: type vars not generalized because of
+       value restriction are instantiated to dummy types (X1,X2,...)</i>
+</pre>
+where 
+<pre>
+    OS.Process.exit: OS.Process.status -> 'a
+</pre>
+In this case, having the value restriction generate a static error
+would prevent the execution of the expression, thus preventing the exit
+command from taking effect.
+<p>
+The warning message for top-level value restriction violations can be
+suppressed by setting the appropriate compiler control flag to false
+(the default value is true):
+<pre>
+    Compiler.Control.valueRestrictionTopWarn := false;
+</pre>
+On the other hand, if you also want to see warning messages when local
+declarations fail to generalize because of the value restriction, you
+can set another flag to true:
+<pre>
+Compiler.Control.valueRestrictionLocalWarn := true;
+</pre>
+However, these additional warning messages for local declarations are
+not very useful in our experience.
+<p>
+<h4>Old imperative or weak type variable notation in SML '97</h4>
+How are the old "imperative" (<code>'_a</code>) or "weak"
+(<code>'1a</code>) type variables treated? The special annotation
+of an underscore or digit following the apostrophe has no significance
+in SML '97, so these will be treated as ordinary type variables;
+the value restriction means that all type variables are effectively
+treated like imperative type variables in SML '90.  However, it is
+a good idea to remove these annotations from your SML '97 code to
+avoid possible confusion.
+<p>
+<h4><A NAME="Nonrefutable">Nonrefutable pattern restriction</A></h4>
+A declaration such as:
+<pre>
+    val [x] = nil::nil
+</pre>
+is known as a refutable pattern binding since an exception can 
+potentially be raised  depending on the value of the right hand side.
+In SML/NJ, the value restriction rule has been tightened to disallow
+generalization for such bindings, even though the defining expression
+for <code>x</code> can be statically determined to be a value.
+<P>
+This is a minor deviation from the SML '97 definition. The main
+justification is the simplicity it provides in the type-theoretic
+interpretation.  The potential raising of the Bind exception can
+be regarded as a side-effect, and a strict version of the value
+restriction will suppress type generalization in these cases too.
+<blockquote>
+<P>
+Formally, one can associate polymorphic generalization with the
+introduction of an explicit type abstraction.  The type checker
+would implicitly transform the declaration
+<pre>
+    val I = fn x => x
+</pre>
+into the explicitly typed version
+<pre>
+    val I = (FN 'a => fn (x: 'a) => x) : (All 'a). 'a -> 'a
+</pre>
+where "<code>FN 'a</code>" is an explicit type abstraction.
+If such an explicit type abstraction is <em>suspending</em> (i.e.
+suspends evaluation of its body like a normal variable abstraction)
+then the abstracted expression should have no computational effect,
+including the potential of raising an exception.
+Consider
+<pre>
+    val [x] = nil
+</pre>
+which is equivalent to
+<pre>
+    val x = hd(nil)              [1]
+</pre>
+which could translate into the explicit form
+<pre>
+    val x = (FN 'a => hd(nil))   [2]
+</pre>
+If the type abstraction is suspending, then versions [1] and [2] are
+not equivalent, because [1] raises the Empty exception while [2] does
+not.  There are technical advantages for this interpretation, which
+corresponds closely with the typed internal language used in SML/NJ
+(FLINT), so we have adopted this stricter version of the value
+restriction.
+</blockquote>
+
+<h4>Nonreturning expressions</h4>
+<p>
+It would be possible (that is, we believe it would be sound) to weaken
+the value restriction by allowing generalization of types that consist
+of a single free type variable.  For instance, in the declaration
+<pre>
+    val x = raise Fail "foo";
+</pre>
+the type of the right hand side is <code>'X</code> (where
+<code>'X</code> again represents a free type variable).  This can
+safely be generalized to the polymorphic type <code>(All
+'a). 'a</code>, because the expression does not return a value,
+and hence the variable <code>x</code> is not bound to a value and will not be
+used.  This would also apply to applications of functions like
+<pre>
+    fun loop () = loop ()
+</pre>
+or OS.Process.exit of type <code>(All 'a). <i>t</i> -> 'a</code> for some
+domain type <code><i>t</i></code>.
+<P>
+We do not admit this weakening of the value restriction in SML '97,
+partly because it is not consistent with the suspending type
+abstraction model discussed in the previous point.
+</blockquote>
+<P>
+
+<h3><A NAME="Literals">1.1.2.2. Overloaded literals</A></h3>
+<blockquote>
+SML '97 supports multiple precisions of integers
+(<code>Int31.int</code>, <code>Int32.int</code>) and words
+(<code>Word8.word</code>, <code>Word31.word</code>,
+<code>Word32.word</code>).  It is convenient to overload integer
+literals (e.g. <code>3</code>), and word literals
+(e.g. <code>0w3</code>, so SML '97 supports this.
+<pre>
+    3;
+    <i>val it = 3 : int  (* int = Int.int = Int31.int *)</i>
+    3 : Int31.int;
+    <i>val it = 3 : int</i>
+    3 : Int32.int;
+    <i>val it = 3 : Int32.int</i>
+
+    0w3;
+    <i>val it = 0wx3 : word   (* word = Word.word = Word31.word *)</i>
+    0w3 : Word8.word;
+    <i>val it = 0wx3 : Word8.word</i>
+    0w3 : Word31.word;
+    <i>val it = 0wx3 : word</i>
+    0w3 : Word32.word;
+    <i>val it = 0wx3 : Word32.word</i>
+    0w3 :Word.word;
+    <i>val it = 0wx3 : word</i>
+</pre>
+As this illustrates, if the context does not explicitly or implicitly
+determine the type of a literal, it is assigned a default type:
+<code>Int.int</code> for integer literals and <code>Word.word</code>
+for word literals.
+<p>
+Although SML/NJ currently only implements one precision of floating
+point numbers (64 bits), the Basis definition allows for multiple
+floating point precisions.  When multiple floating point
+precisions are supported in an implementations, floating point
+literals would also be overloaded.
+</blockquote>
+
+<h3><A NAME="Defaulting">1.1.2.3. Overloaded functions with defaults</A></h3>
+<blockquote>
+Like SML '90, SML '97 provides a fixed set of overloaded functions,
+including arithmetic operators such as <code>+</code> and relational
+operators such as <code>&gt;</code>.  In SML '90, the context has to
+provide enough type information to resolve the overloaded operator
+(i.e. to assign it exactly one of the possible types that the operator
+is capable of assuming).  If the overloaded operator is not resolved,
+an SML '90 compiler generates an error message:
+<pre>
+    fun f x = x + x;
+    <i>std_in:10.13 Error: overloaded variable cannot be resolved: +</i>
+</pre>
+In SML '97, an overloaded function that is not resolved by its context
+is assigned a default type (normally the integer version of the operator).
+<pre>
+    fun f x = x + x;
+    <i>val f = fn : int -> int</i>
+</pre>
+If you don't want the default type, you must override it by adding
+explicit type constraints, as in:
+<pre>
+    fun f (x: real) = x + x;
+    <i>val f = fn : real -> real</i>
+</pre>
+</blockquote>
+
+<h3><A NAME="Explicit">1.1.3. Explicit type variable binding</A></h3>
+<blockquote>
+When a programmer uses a type variable in a type constraint in
+an expression or declaration, there is a natural, but fairly
+complicated, rule that determines where that type variable is
+implicitly bound.
+<P>
+For instance, in the code
+<pre>
+    val x = (let val id : 'a -> 'a = fn z => z in Id Id end,
+	     fn y => y);
+</pre>
+the type variable <code>'a</code> used in the type of <code>id</code>
+is implicitly bound at the declaration <code>val id</code>, so
+<code>id</code> has a polymorphic type.  However, if we add another
+occurrence of <code>'a</code>, as in
+<pre>
+    val x = (let val id : 'a -> 'a = fn z => z in id id end,
+	     fn (y: 'a) => y);
+</pre>
+now <code>'a</code> is implicitly bound at the <code>val x</code>
+declaration.  This means that <code>id</code> is no longer
+polymorphic, because <code>'a</code> acts like a monomorphic type
+identifier within its binding scope, and so the later declaration will
+not type check.
+<p>
+Since the application of the scoping rule for such explicit type
+variables is a bit tricky, it would be preferable to be able to
+explicitly determine where the type variable is bound.  SML '97
+provides a notation for this.  Here are some examples:
+<pre>
+    fun 'a id(z: 'a) = z
+
+    val 'a id : 'a -> 'a = fn z => z
+
+    fun ('a, 'b) pair (x: 'a) (y: 'b) = (x,y)
+</pre>
+So using this notation, the first example above becomes
+<pre>
+    val x = (let val 'a id : 'a -> 'a = fn z => z in Id Id end,
+	     fn y => y);
+</pre>
+while the second, which still doesn't type check, becomes
+<pre>
+    val 'a x = (let val id : 'a -> 'a = fn z => z in id id end,
+	       fn (y: 'a) => y);
+</pre>
+<blockquote>
+<B>Note:</B> There is a discrepancy between the syntax supported by SML/NJ
+and that of the Definition in the case of explicit type variable
+bindings in <code>val rec</code> declarations.  SML/NJ supports the notation
+<pre>
+    val rec 'a f = (fn x: 'a => x);
+</pre>
+while the Definition would have
+<pre>
+    val 'a rec f = (fn x: 'a => x);
+</pre>
+</blockquote>
+</blockquote>
+<P>
+
+<h3><a name="LocalDT">1.1.4. Local datatypes</a></h3>
+<blockquote>
+In the SML '90 formal definition, there were deficiencies in the
+way that new type <em>names</em> (i.e. internal type identifiers) were
+managed.  These deficiencies would allow a generative type name to be
+reused for another type while values of the original type were still
+in the environment.  Thus according to the Definition, an expression
+such as 
+<pre>
+    let datatype A = C of bool
+     in fn (C x) = not x         (* : A -> bool *)
+    end
+    let datatype B = C of int
+     in C 2                      (* : B *)
+    end
+</pre>
+could be successfully type checked because the internal type name for
+<code>A</code> could be reused for <code>B</code>, meaning that types
+<code>A</code> and <code>B</code> would agree and the application
+would be accepted.  This is unsound of course, because it is
+equivalent to <code>not(2)</code>.
+<p>
+This problem is an artifact of the way the formal definition
+was designed;  compilers (e.g. SML/NJ) typically implement generative type
+declarations (datatypes and abstypes) by ensuring that unique names
+are assigned to each declared type, and they never recycle these names.
+Since the SML '97 Definition is still vulnerable to
+this problem, the language has been restricted to ensure soundness of
+the Definition.  The language restrictions ensure that a locally
+declared datatype cannot escape from the static scope of its
+declaration.  Thus in a <code>let</code> expression
+<pre>
+    let <i>dec</i> in <i>exp</i> end
+</pre>
+the type of the let expression, which is the type of <code>exp</code>,
+cannot contain any generative types declared in <code>dec</code>.
+This means that an expression like
+<pre>
+    let datatype t = C in C end
+</pre>
+should not type check in SML '97.
+<p>
+Another way that a local generative type could escape from its scope
+is through type unification, as in the following expression.
+<pre>
+    fn x => let datatype t = C
+		val _ = if true then x else C
+	     in 5
+	    end
+</pre>
+Because of the conditional expression, <code>x</code> gets the type
+<code>t</code>, and the entire function expression gets the type
+<code>t -> int</code>, even though it extends outside the scope of the
+declaration of <code>t</code>.  So this sort of expression is also not
+allowed in SML '97.
+<p>
+<blockquote>
+<strong>SML/NJ Deviation:</strong>  Currently, in SML/NJ both the
+above expressions still type check, so the new restriction
+is not currently enforced.  As we noted before, this relates to an
+unsoundness in the Definition that does not affect implementations
+(unless they adhere too closely to the Definition's technique for
+managing unique type names!).
+</blockquote>
+</blockquote>
+
+<h3><a name="Replication">1.1.5. Datatype replication declarations</a></h3>
+<blockquote>
+In SML '90, there was no direct way for one module to inherit a
+datatype <em>as a datatype</em> from another module.  For instance,
+suppose I have a datatype <code>t</code> in a structure <code>A</code>:
+<pre>
+    structure A =
+    struct
+      datatype t = C | D of t
+    end
+</pre>
+I can define a new structure <code>B</code> that contains an alias of 
+<code>t</code> as follows:
+<pre>
+    structure B =
+    struct
+      type t = A.t
+    end
+</pre>
+but then <code>B</code> does not provide access to the data constructors
+of <code>t</code>.  If I define <code>B</code> as
+<pre>
+    structure B =
+    struct
+      type t = A.t
+      val C = A.C
+      val D = A.D
+    end
+</pre>
+I gain access to the constructors <code>C</code> and <code>D</code>
+as values, but I still can't use them in patterns.
+<p>
+In SML '90, you can work around this problem by using the <code>open</code>
+declaration:
+<pre>
+    structure B =
+    struct
+      open A
+    end
+</pre>
+and if <code>A</code> has additional components that <code>B</code> is not supposed
+to export you can use a signature constraint on <code>B</code> to
+filter them out.  This is not an ideal solution, because it
+unnecessarily pollutes the name space within the body of <code>B</code>
+with all the component names in <code>A</code>.
+<p>
+To support the sharing of datatypes between modules directly, without
+the use of <code>open</code>, SML '97 introduces a new form of
+datatype declaration: the <em>datatype replication</em> declaration.
+Its syntax is
+<pre>
+    <strong>datatype</strong> <i>tycon</i> = <strong>datatype</strong> <i>longtycon</i>
+</pre>
+where (as the the Definition), <code><i>tycon</i></code> is an
+identifier naming a type constructor (in the <i>TyCon</i> name space),
+and <code><i>longtycon</i></code> is a symbolic path
+(e.g. <code>A.t</code>) ending in a type constructor name.  A datatype
+replication makes the <code><i>tycon</i></code> be an alias for the
+datatype named by <code><i>longtycon</i></code>, and in addition
+implicitly declares the data constructor names for
+<code><i>longtycon</i></code>.  Thus
+<pre>
+    structure B =
+    struct
+      datatype t = datatype A.t
+    end
+</pre>
+is equivalent to the version of the declaration of <code>B</code> using
+<code><strong>open</strong></code>, so <code>B.C</code> and
+<code>B.D</code> are defined as constructors of <code>B.t</code> and
+can be used in patterns.
+<p>
+A common error with datatype replication declarations is to leave
+out the <code><strong>datatype</strong></code> keyword on the right
+hand side, as in
+<pre>
+    structure B =
+    struct
+      datatype t = A.t
+    end
+</pre>
+This causes <code>A.t</code> to be treated as a constructor declaration, and an
+error results because a qualified name is illegal in this case.  But
+if I had written
+<pre>
+    structure B =
+    struct
+      open A
+      datatype t = t
+    end
+</pre>
+There would be no complaint from the compiler, because the <code>t</code> on the
+right hand side would be treated as a valid data constructor name
+having nothing to do with the datatype <code>t</code> in <code>A</code>.
+<p>
+As we will see in the chapter on modules, there is an analogous 
+datatype replication <em>specification</em> for use in signatures.
+</blockquote>
+
+<h3><A NAME="Real-equality">1.1.6. <code>real</code> not an equality type</A></h3>
+<blockquote>
+SML '97 uses the IEEE semantics for floating point operations.
+Equality for floating point numbers in the IEEE standard does not
+behave the way equality is expected to behave in SML.  For instance,
+<code>x = x</code> is not always true for floating point numbers,
+because <code>nan = nan</code> is false.
+<P>
+The function <code>Real.==</code> implements IEEE equality for reals, but
+because of its unusual behavior we no longer treat
+<code>Real.real</code> as an equality type.  For consistency,
+we also reject real literals as constants in patterns.
+This means that an expression like
+<pre>
+    x = 5.6
+</pre>
+has to be rewritten as
+<pre>
+    Real.==(x,5.6),
+</pre>
+and a case expression like
+<pre>
+    case x
+      of 5.6 => 0
+       | 3.2 => 1
+       | ~1.7 => 2
+       | _ => 3
+</pre>
+has to be rewritten using conditionals:
+<pre>
+    if Real.==(x,5.6) then 0
+    else if Real.==(x,3.2) then 1
+    else if Real.==(x,~1.7) then 2
+    else 3
+</pre>
+</blockquote>
+<p>
+<hr>
+<address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Mon Oct 20 16:55:59 EDT 1997 -->
+<!-- hhmts start -->
+Last modified: Tue Apr  4 15:59:39 EDT 2000
+<!-- hhmts end -->
+  </body>
+</html>

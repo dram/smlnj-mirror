@@ -1,0 +1,104 @@
+<!-- HTML/cont.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CONT signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>CONT</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CONT:SIG:SPEC"><CODE>CONT</CODE></A><BR>
+<B>structure </B><A NAME="Cont:STR:SPEC"><CODE>Cont</CODE></A><B> : </B>CONT<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> 'a <A NAME="SIG:CONT.cont:TY:SPEC" HREF="#SIG:CONT.cont:TY">cont</A><BR>
+<B>val</B> <A NAME="SIG:CONT.callcc:VAL:SPEC" HREF="#SIG:CONT.callcc:VAL">callcc</A> <B>:</B> ('a cont -&gt; 'a) -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:CONT.throw:VAL:SPEC" HREF="#SIG:CONT.throw:VAL">throw</A> <B>:</B> 'a cont -&gt; 'a -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:CONT.isolate:VAL:SPEC" HREF="#SIG:CONT.isolate:VAL">isolate</A> <B>:</B> ('a -&gt; unit) -&gt; 'a cont         <BR>
+<B>type</B> 'a <A NAME="SIG:CONT.control_cont:TY:SPEC" HREF="#SIG:CONT.control_cont:TY">control_cont</A><BR>
+<B>val</B> <A NAME="SIG:CONT.capture:VAL:SPEC" HREF="#SIG:CONT.capture:VAL">capture</A> <B>:</B> ('a control_cont -&gt; 'a) -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:CONT.escape:VAL:SPEC" HREF="#SIG:CONT.escape:VAL">escape</A> <B>:</B> 'a control_cont -&gt; 'a -&gt; 'b         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CONT.cont:TY"><CODE><B>type</B> 'a cont</CODE></A>
+<DD>
+The type of continuations accepting arguments of type <CODE>'a</CODE>      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONT.callcc:VAL"><CODE>callcc <VAR>f</VAR>
+          </CODE></A>
+<DD>
+Apply <VAR>f</VAR> to the &quot;current continuation&quot;.  If <VAR>f</VAR> invokes           this continuation with argument <CODE>x</CODE>, it is as if            <CODE>(callcc <VAR>f</VAR>)</CODE> had returned <CODE>x</CODE> as a result.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONT.throw:VAL"><CODE>throw <VAR>k</VAR> <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Invoke continuation <VAR>k</VAR> with argument <VAR>a</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONT.isolate:VAL"><CODE>isolate <VAR>f</VAR> <VAR>x</VAR>
+          </CODE></A>
+<DD>
+Discard all live data from the calling context (except what           is reachable from <VAR>f</VAR> or <VAR>x</VAR>), then           call <VAR>f</VAR>(<VAR>x</VAR>), then exit.   This may use much less           memory then something like  <CODE><VAR>f</VAR>(<VAR>x</VAR>) before exit()</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONT.control_cont:TY"><CODE><B>type</B> 'a control_cont</CODE></A>
+<DD>
+	  The type of &quot;primitive&quot; continuations accepting            arguments of type <CODE>'a</CODE>.  Unlike an ordinary continuation           <A HREF="cont.html#SIG:CONT.cont:TY:SPEC">cont</A>, a <A HREF="cont.html#SIG:CONT.control_cont:TY:SPEC">control_cont</A> does not remember the           exception-handler of its creator.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONT.capture:VAL"><CODE>capture <VAR>f</VAR>
+          </CODE></A>
+<DD>
+Apply <VAR>f</VAR> to the &quot;current continuation&quot;.  If <VAR>f</VAR> invokes           this continuation with argument <CODE>x</CODE>, it is as if            <CODE>(capture <VAR>f</VAR>)</CODE> had returned <CODE>x</CODE> as a result,           except that the exception-handler is not properly restored           (it is still that of the invoker).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONT.escape:VAL"><CODE>escape <VAR>k</VAR> <VAR>a</VAR>
+          </CODE></A>
+<DD>
+Invoke primitive continuation <VAR>k</VAR> with argument <VAR>a</VAR>,           which is like returning from the original <A HREF="cont.html#SIG:CONT.capture:VAL:SPEC">capture</A>           except that the exception handler is that of whoever called           <A HREF="cont.html#SIG:CONT.escape:VAL:SPEC">escape</A> <VAR>k</VAR> <VAR>a</VAR>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

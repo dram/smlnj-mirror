@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>11.3.2 Explicitly loaded, local plug-in tools</TITLE>
+<META NAME="description" CONTENT="11.3.2 Explicitly loaded, local plug-in tools">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node75.html">
+<LINK REL="previous" HREF="node73.html">
+<LINK REL="up" HREF="node72.html">
+<LINK REL="next" HREF="node75.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1196"
+ HREF="node75.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1192"
+ HREF="node72.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1186"
+ HREF="node73.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1194"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1197"
+ HREF="node75.html">11.3.3 Locally declared suffixes</A>
+<B> Up:</B> <A NAME="tex2html1193"
+ HREF="node72.html">11.3 Plug-in Tools</A>
+<B> Previous:</B> <A NAME="tex2html1187"
+ HREF="node73.html">11.3.1 Automatically loaded, global</A>
+ &nbsp <B>  <A NAME="tex2html1195"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H3><A NAME="SECTION000123200000000000000"></A>
+<A NAME="sec:localtools"></A>
+<BR>
+11.3.2 Explicitly loaded, local plug-in tools
+</H3>
+
+<P>
+Some projects might want to use their own special-purpose tools for
+which a global installation is not convenient or not appropriate.  In
+such a case, the project's description file can explicitly demand the
+tool to be registered temporarily.  This is the purpose of the special
+tool class <TT> tool</TT>.  Example:
+
+<P>
+ 
+<PRE>
+
+Library
+    structure Foo
+is
+    bar-tool.cm : tool
+    foo.b : bar
+</PRE>
+
+<P>
+Here, the member whose class is <TT> tool</TT> (i.e, <TT> bar-tool.cm</TT>)
+must be the CM description file of the tool's implementation.  The
+difference to class <TT> cm</TT> is that the so-specified library does not
+become part of the current project but is loaded and linked
+immediately via <TT> CM.load_plugin</TT>, causing one or more new classes
+and their classifiers to be registered.
+
+<P>
+If we assume that loading <TT> bar-tool.cm</TT> causes a class <TT> bar</TT>
+to be registered with its associated rule (e.g., by invoking <TT> 
+Tools.registerStdShellCmdTool</TT>), the class name <TT> bar</TT> will be
+available for all subsequent members of the current description file.
+Likewise, classifiers (e.g., filename suffixes) registered by <TT> 
+bar-tool.cm</TT> will also be available.
+
+<P>
+The effect of registering classes and classifiers using class <TT> 
+tool</TT> lasts until the end of the current description file and is
+restricted to that file.  This means that other description files that
+also want to use class <TT> bar</TT> will have to have their own <TT> 
+tool</TT> entry.<A NAME="tex2html11"
+ HREF="footnode.html#foot3504"><SUP>11</SUP></A>
+<P>
+Local tool classes and suffixes temporarily override any equally-named
+global classes or suffixes, respectively.
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1196"
+ HREF="node75.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1192"
+ HREF="node72.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1186"
+ HREF="node73.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1194"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1197"
+ HREF="node75.html">11.3.3 Locally declared suffixes</A>
+<B> Up:</B> <A NAME="tex2html1193"
+ HREF="node72.html">11.3 Plug-in Tools</A>
+<B> Previous:</B> <A NAME="tex2html1187"
+ HREF="node73.html">11.3.1 Automatically loaded, global</A>
+ &nbsp <B>  <A NAME="tex2html1195"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

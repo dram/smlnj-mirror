@@ -1,0 +1,128 @@
+<!-- Copyright (c) 1996 Lucent Technologies; Bell Laboratories -->
+<!-- Changed by: John Reppy, 19-Dec-1997 -->
+<!-- Changed by: Andrew Appel,  5-Dec-1997 -->
+<!-- Changed by: Dave MacQueen, 21-Apr-1997 -->
+<!-- Changed by: Lal George, 28-Oct-1996 -->
+
+<HTML>
+  <TITLE>SML '97</TITLE>
+
+<BODY BGCOLOR="ffffff">
+<H1>Standard ML '97</H1>
+<HR>
+<blockquote>
+<a href="sml.html">Standard ML</a> was proposed in 1983, designed from '84-'88,
+and defined in
+<a href="http://mitpress.mit.edu/book-home.tcl?isbn=0262631326"><I>Definition
+of Standard ML</I>
+(Milner, Tofte, Harper, MIT Press, 1990)</a>.
+<p>
+Standard ML '97 is 
+a modest revision (and simplification) of the language,
+defined in <a href="http://mitpress.mit.edu/book-home.tcl?isbn=0262631814"><I>The Definition of Standard ML
+(Revised)</I> (Milner, Tofte, Harper, MacQueen, MIT Press, 1997)</a>.
+<p>
+The name of the revised language remains "Standard ML", but we also
+refer to it as "Standard ML '97" or "SML '97" to distinguish it
+from the 1990 version, which can be referred to as  "SML '90".
+<p>
+At the same time, the new
+<A HREF="doc/basis/index.html">
+<I>SML Basis Library</I></A> is added to the
+specification of the language.  
+The new basis library is intended to support a wide range of systems
+and applications programming: it specifies
+a broad collection of predefined modules that provide basic types,
+input/output facilities, and interfaces for interacting with the
+host operating system in a portable way.
+<p>
+The highlights of the language changes in SML '97 are given below.
+For much more detail on the changes, and suggestions on how to convert
+SML '90 code to run under SML '97, see the <a
+href="doc/Conversion/index.html">SML '97 Conversion Guide</a>.
+
+<p>
+The principal language changes in <B>SML '97</B> are:
+<p>
+<ul>
+<li>
+
+<em>The elimination of imperative type variables</em>.  The role of
+imperative type variables in constraining polymorphism in the presence
+of effects is now played by the <em>value restriction</em>, which
+allows the type of a val binding to be generalized only when the right
+hand side is an expression in a restricted form called a <em>value
+expression</em>.  A value expression is either a constant, a variable,
+a function expression (i.e. a lambda expression) or is built from
+these elements using products and constructions.
+
+<p> <li>
+
+<em>The elimination of structure sharing</em>.  Type sharing is still
+available, and the structure sharing notation remains, but is
+interpreted in a weaker sense, as an indirect way of expressing type
+sharing.  The role of type sharing is restricted somewhat so as not
+to conflict with type definitions.
+
+<p>
+<li>
+
+<em>The addition of type definitions in signatures</em>.  There is
+also a new <em>where type</em> notation that allows one to modify an
+existing signature by adding definitions for its type components.
+New forms of datatype specifications and definitions allow a datatype
+to be defined to be the same as an existing datatype.
+
+</ul>
+
+<p>
+<h4>Documentation</h4>
+<P>
+A <A
+HREF="doc/Conversion/index.html"> SML '97 Conversion Guide</A>
+covers the issues of converting programs from
+SML/NJ 0.93 to SML '97 (SML/NJ 110).  A useful conversion aid is the
+<A HREF="doc/Conversion/top-level-comparison.html">
+Top Level Environment Comparison</A>,
+which summarizes the differences between the top level environments of
+SML/NJ 0.93 (which is assumed by some older textbooks) and the new SML
+'97 (SML/NJ 110) top level.  Full documentation for the
+<A HREF="doc/basis/index.html">Basis Library</A>
+is available online.
+
+
+<h4>Text Books</h4>
+<p>
+The following new editions of ML programming textbooks describe SML '97.
+<UL>
+<LI>
+<a href="http://www.cl.cam.ac.uk/users/lcp/MLbook/">Paulson's <i>ML for the Working Programmer (2nd edition)</i></a>
+<LI>
+<a href="http://www-db.stanford.edu/~ullman/emlp.html">Ullman's
+	<i>Elements of ML Programming (ML97 Edition)</i></a>
+</UL>
+<p>
+<h4>Implementations</h4>
+<dl>
+<dt><a href="index.html">Standard ML of New Jersey</a><dd>
+The new 
+<a href="NEWS/110-README.html">SML/NJ version 110</a> implements SML '97.
+<dt><a href="http://www.harlequin.com/products/ads/ml/">Harlequin ML Works</a><dd>
+A commercial implementation featuring a graphical development environment.
+<dt><a href="http://www.dina.kvl.dk/~sestoft/mosml.html">Moscow ML</a>
+<dd>A lightweight implementation that does not support the SML module system
+</dl>
+</blockquote>
+<HR>
+<CENTER><STRONG>
+| <A HREF="index.html">SML/NJ Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>

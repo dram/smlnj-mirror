@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Messages FAQ</title>
+  </head>
+
+  <body BGCOLOR="white">
+    <h1>Messages</h1>
+<DL>
+<A NAME="Warning"></A>
+<DT><strong>How do I turn off compiler warning messages?</strong><DD>
+<p>
+Setting the flag
+<pre>
+  <a href="../Compiler/pages/control.html#SIG:CONTROL.printWarnings:VAL:SPEC">Compiler.Control.printWarnings</a> : bool ref
+</pre>
+to false will suppress all warning messages.  This is generally not a
+good idea.  One situation where you might want to do this is when
+using the "next-error" ("^C`") command in the emacs sml-mode to step
+through compiler error messages.
+<p>
+<A NAME="GC"></A>
+<DT><strong>How do I turn off garbage collection messages?</strong><DD>
+<p>
+The function
+<pre>
+  SMLofNJ.Internals.GC.messages : bool -> unit
+</pre>
+will turn off garbage collection messages if it is applied to
+<code>false</code>.  Applying it to <code>true</code> turns them
+back on.  See the documentation for the 
+<a href="../SMLofNJ/pages/gc.html">GC signature</a>.
+</DL>
+    <hr>
+    <address><a href="mailto:dbm@research.bell-labs.com">Dave MacQueen</a></address>
+<!-- Created: Tue Mar 10 18:33:24 EST 1998 -->
+<!-- hhmts start -->
+Last modified: Fri Feb 19 16:02:39 EST 1999
+<!-- hhmts end -->
+  </body>
+</html>

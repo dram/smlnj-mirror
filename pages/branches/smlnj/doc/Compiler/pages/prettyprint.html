@@ -1,0 +1,167 @@
+<!-- HTML/prettyprint.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The PRETTYPRINT signature</TITLE>
+</HEAD>
+<BODY><H3>The <CODE>PRETTYPRINT</CODE> signature</H3>
+<P>
+<A HREF="compiler.html#SIG:VISCOMP.PrettyPrint:STR:SPEC">Compiler.PrettyPrint</A> implements a facility for defining and installing user-defined prettyprinters over (monomorphic) user-defined types for use by the top-level loop of the SML compiler.  The underlying algorithm is that of Oppen (TOPLAS, 1980).  There are more expressive prettyprinting languages around, notably that of PPML, but the Oppen interface has the benefit of being efficiently implementable.  Thus it is a good option for modest prettyprinting tasks that need to be quick, such as the printing of SML values.  These same prettyprinting facilities are used by the compiler for such tasks as printing values in the interactive top level and printing expressions in error messages.
+<P>
+The high-level view is that the user will define a prettyprinter for a datatype and install it in a prettyprinter table.  When it comes time for the compiler to print a value, it looks first in the prettyprinter table, to see if a prettyprinter is installed for that type.  If so, it calls the prettyprinter on the value, otherwise, it calls the default printing routine.
+<P>
+The Oppen algorithm provides a <I>block</I> abstraction:  a block establishes a level of indentation. Since blocks can be nested and offset from one another, levels of indentation can be achieved.  A block can be broken up by one or more <I>breaks</I>, which mark possible places to add carriage returns. There are two styles of block: CONSISTENT and INCONSISTENT.  If a consistent block does not fit completely onto the current line, a carriage return will be added after each component of the block.  If an INCONSISTENT block does not fit completely onto the current line, a carriage return is added after the last item that does fit on the line; this style of block conserves on vertical space. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="PRETTYPRINT:SIG:SPEC"><CODE>PRETTYPRINT</CODE></A><BR>
+<B>structure </B><A NAME="PrettyPrint:STR:SPEC"><CODE>Compiler.PrettyPrint</CODE></A><B> : </B>PRETTYPRINT<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:PRETTYPRINT.ppstream:TY:SPEC" HREF="#SIG:PRETTYPRINT.ppstream:TY">ppstream</A><BR>
+<B>type</B> <A NAME="SIG:PRETTYPRINT.ppconsumer:TY:SPEC" HREF="#SIG:PRETTYPRINT.ppconsumer:TY">ppconsumer</A><BR>
+<B>datatype</B> <A NAME="SIG:PRETTYPRINT.break_style:TY:SPEC" HREF="#SIG:PRETTYPRINT.break_style:TY">break_style</A>&nbsp;&nbsp;<B>=</B> CONSISTENT&nbsp;&nbsp;<B>|</B> INCONSISTENT<BR>
+<B>exception</B> <A NAME="SIG:PRETTYPRINT.PP_FAIL:EXN:SPEC" HREF="#SIG:PRETTYPRINT.PP_FAIL:EXN">PP_FAIL</A> <B>of</B> string     <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.mk_ppstream:VAL:SPEC" HREF="#SIG:PRETTYPRINT.mk_ppstream:VAL">mk_ppstream</A> <B>:</B> ppconsumer -&gt; ppstream         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.dest_ppstream:VAL:SPEC" HREF="#SIG:PRETTYPRINT.dest_ppstream:VAL">dest_ppstream</A> <B>:</B> ppstream -&gt; ppconsumer         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.add_break:VAL:SPEC" HREF="#SIG:PRETTYPRINT.add_break:VAL">add_break</A> <B>:</B> ppstream -&gt; (int * int) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.add_newline:VAL:SPEC" HREF="#SIG:PRETTYPRINT.add_newline:VAL">add_newline</A> <B>:</B> ppstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.add_string:VAL:SPEC" HREF="#SIG:PRETTYPRINT.add_string:VAL">add_string</A> <B>:</B> ppstream -&gt; string -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.begin_block:VAL:SPEC" HREF="#SIG:PRETTYPRINT.begin_block:VAL">begin_block</A> <B>:</B> ppstream -&gt; break_style -&gt; int -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.end_block:VAL:SPEC" HREF="#SIG:PRETTYPRINT.end_block:VAL">end_block</A> <B>:</B> ppstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.clear_ppstream:VAL:SPEC" HREF="#SIG:PRETTYPRINT.clear_ppstream:VAL">clear_ppstream</A> <B>:</B> ppstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.flush_ppstream:VAL:SPEC" HREF="#SIG:PRETTYPRINT.flush_ppstream:VAL">flush_ppstream</A> <B>:</B> ppstream -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.with_pp:VAL:SPEC" HREF="#SIG:PRETTYPRINT.with_pp:VAL">with_pp</A> <B>:</B> ppconsumer -&gt; (ppstream -&gt; unit) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:PRETTYPRINT.pp_to_string:VAL:SPEC" HREF="#SIG:PRETTYPRINT.pp_to_string:VAL">pp_to_string</A> <B>:</B> int -&gt; (ppstream -&gt; 'a -&gt; unit) -&gt; 'a -&gt; string         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:PRETTYPRINT.ppstream:TY"><CODE><B>type</B> ppstream</CODE></A>
+<DD>
+This is an abstract type of prettyprint streams.  A ppstream     encapsulates the state of an Oppen prettyprinter.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.ppconsumer:TY"><CODE><B>type</B> ppconsumer</CODE></A>
+<DD>
+This type describes a record that provides the ultimate consumer of 	the characters produced by the prettyprint operations.  A ppconsumer 	is supplied to <A HREF="#SIG:PRETTYPRINT.mk_ppstream:VAL:SPEC">mk_ppstream</A> and <A HREF="#SIG:PRETTYPRINT.with_pp:VAL:SPEC">with_pp</A> and is 	used by those operations to build ppstreams.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.break_style:TY"><CODE><B>datatype</B> break_style</CODE></A>
+<DD>
+<DL>
+<DT> <CODE>CONSISTENT</CODE>
+<DD>
+This defines the behavior of breaks within a block.  If the style         is <A HREF="#SIG:PRETTYPRINT.break_style:TY:SPEC">CONSISTENT</A>, then if any break occurs, all breaks occur.         
+<BR>
+<BR>
+
+<DT> <CODE>INCONSISTENT</CODE>
+<DD>
+If the style is <A HREF="#SIG:PRETTYPRINT.break_style:TY:SPEC">INCONSISTENT</A>, then breaks will only occur     when the current line is full.        
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:PRETTYPRINT.PP_FAIL:EXN"><CODE><B>exception</B> PP_FAIL</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.mk_ppstream:VAL"><CODE>mk_ppstream <VAR>consumer</VAR>
+          </CODE></A>
+<DD>
+A new ppstream is constructed, with character output directed to          the <VAR>consumer</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.dest_ppstream:VAL"><CODE>dest_ppstream <VAR>pps</VAR>
+          </CODE></A>
+<DD>
+Returns the consumer record used by <VAR>pps</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.add_break:VAL"><CODE>add_break <VAR>pp</VAR> (<VAR>i</VAR>, <VAR>j</VAR>)
+          </CODE></A>
+<DD>
+Notify the ppstream pps that a carriage return is possible.  The     argument to this function is a pair; the first member is the size of     the break, the second member is an offset.  This ``break'' offset is     used for finer control over indentation than that offered by the     block offset.  The current block style and the size of the block     determine what action is to be taken:     
+<P>
+ If <CODE>block_style = CONSISTENT</CODE> and the entire block fits on the         remainder of the current line: output <CODE>size</CODE> spaces.     
+<P>
+ If <CODE>block_style = CONSISTENT</CODE> and the block does not fit on the rest         of the line: add a carriage return after each component in the block         and add the block offset to the current indentation level.  Each         component will be further indented by offset spaces.     
+<P>
+ If <CODE>block_style = INCONSISTENT</CODE> and the next component of the         current block fits on the rest of the line: output <CODE>size</CODE> spaces.     
+<P>
+ If <CODE>block_style = INCONSISTENT</CODE> and the next component doesn't         fit on the rest of the line: output a carriage return and indent to         the current indentation level plus the block offset plus offset         extra spaces.     
+<P>
+    Size is taken into account when determining if there is enough room     to print the next component in the block.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.add_newline:VAL"><CODE>add_newline <VAR>pps</VAR>
+          </CODE></A>
+<DD>
+Forces the output of a line break on <VAR>pps</VAR>.      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.add_string:VAL"><CODE>add_string <VAR>pps</VAR> <VAR>s</VAR>
+          </CODE></A>
+<DD>
+Outputs the string <VAR>s</VAR> to <VAR>pps</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.begin_block:VAL"><CODE>begin_block <VAR>pp</VAR> <VAR>bs</VAR> <VAR>i</VAR>
+          </CODE></A>
+<DD>
+This begins a new level of indentation, at the current offset from the     left margin. The break_style argument determines how the block is to be     broken.  The third argument determines the new offset if the block     gets broken.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.end_block:VAL"><CODE>end_block <VAR>pps</VAR>
+          </CODE></A>
+<DD>
+Prettyprinting for <VAR>pps</VAR> reverts to the previous level of indentation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.clear_ppstream:VAL"><CODE>clear_ppstream <VAR>pps</VAR>
+          </CODE></A>
+<DD>
+Clears the state of <VAR>pps</VAR>.      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.flush_ppstream:VAL"><CODE>flush_ppstream <VAR>pps</VAR>
+          </CODE></A>
+<DD>
+Flushes currently accumulated text to <VAR>pps</VAR>'s consumer and calls     the flush operation of the consumer.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.with_pp:VAL"><CODE>with_pp <VAR>consumer</VAR> <VAR>printfn</VAR>
+          </CODE></A>
+<DD>
+Constructs a new ppstream from <VAR>consumer</VAR> and applies  	<VAR>printfn</VAR> to it.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PRETTYPRINT.pp_to_string:VAL"><CODE>pp_to_string <VAR>i</VAR> <VAR>printit</VAR> <VAR>x</VAR>
+          </CODE></A>
+<DD>
+Constructs a new ppstream whose consumer accumulates output in a string.     Applies the function <VAR>printit</VAR> to this ppstream and the  	value <VAR>x</VAR>, and     then returns the string containing the prettyprinting output.
+<BR>
+<BR>
+
+</DL>
+<HR>
+</BODY></HTML>

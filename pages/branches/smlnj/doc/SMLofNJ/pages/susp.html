@@ -1,0 +1,73 @@
+<!-- HTML/susp.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SUSP signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>SUSP</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SUSP:SIG:SPEC"><CODE>SUSP</CODE></A><BR>
+<B>structure </B><A NAME="Susp:STR:SPEC"><CODE>Susp</CODE></A><B> : </B>SUSP<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+ This module creates and manipulates suspensions for lazy evaluation. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> 'a <A NAME="SIG:SUSP.susp:TY:SPEC" HREF="#SIG:SUSP.susp:TY">susp</A><BR>
+<B>val</B> <A NAME="SIG:SUSP.delay:VAL:SPEC" HREF="#SIG:SUSP.delay:VAL">delay</A> <B>:</B> (unit -&gt; 'a) -&gt; 'a susp         <BR>
+<B>val</B> <A NAME="SIG:SUSP.force:VAL:SPEC" HREF="#SIG:SUSP.force:VAL">force</A> <B>:</B> 'a susp -&gt; 'a         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SUSP.susp:TY"><CODE><B>type</B> 'a susp</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SUSP.delay:VAL"><CODE>delay <VAR>f</VAR>
+          </CODE></A>
+<DD>
+Make a suspension from function <VAR>f</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SUSP.force:VAL"><CODE>force <VAR>s</VAR>
+          </CODE></A>
+<DD>
+If <VAR>s</VAR> has never been forced before, evaluate its           underlying <CODE>f</CODE> function, save the result, and return           the result.  If <VAR>s</VAR> has been previously forced,           return the result from last time.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

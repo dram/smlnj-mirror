@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>8. Access control</TITLE>
+<META NAME="description" CONTENT="8. Access control">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node60.html">
+<LINK REL="previous" HREF="node55.html">
+<LINK REL="up" HREF="manual.html">
+<LINK REL="next" HREF="node60.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1001"
+ HREF="node60.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html997"
+ HREF="manual.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html991"
+ HREF="node58.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html999"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1002"
+ HREF="node60.html">9. The pervasive environment</A>
+<B> Up:</B> <A NAME="tex2html998"
+ HREF="manual.html">CM The SML/NJ Compilation</A>
+<B> Previous:</B> <A NAME="tex2html992"
+ HREF="node58.html">7.3 Explicit errors</A>
+ &nbsp <B>  <A NAME="tex2html1000"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00090000000000000000"></A>
+<A NAME="sec:access"></A>
+<BR>
+8. Access control
+</H1>
+
+<P>
+The basic idea behind CM's access control is the following: In their
+description files, groups and libraries can specify a list of
+<EM> privileges</EM> that the client must have in order to be able to use them.
+Privileges at this level are just names (strings) and must be written
+in front of the initial keyword <TT> Library</TT> or <TT> Group</TT>.  If one
+group or library imports from another group or library, then
+privileges (or rather: privilege requirements) are being inherited.
+In effect, to be able to use a program, one must have all privileges
+for all its libraries, sub-libraries and library components,
+components of sub-libraries, and so on.
+
+<P>
+Of course, this alone would not yet be satisfactory.  The main service
+of the access control system is that it can let a client use an
+``unsafe'' library ``safely''.  For example, a library <TT> LSafe.cm</TT>
+could ``wrap'' all the unsafe operations in <TT> LUnsafe.cm</TT> with
+enough error checking that they become safe.  Therefore, a user of
+<TT> LSafe.cm</TT> should not also be required to possess the privileges
+that would be required if one were to use <TT> LUnsafe.cm</TT> directly.
+
+<P>
+In CM's access control model it is possible for a library to ``wrap''
+privileges.  If a privilege <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.gif"
+ ALT="$P$"> has been wrapped, then the user of the
+library does not need to have privilege <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.gif"
+ ALT="$P$"> even though the library is
+using another library that requires privilege <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.gif"
+ ALT="$P$">.  In essence, the
+library acts as a ``proxy'' who provides the necessary credentials for
+privilege <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.gif"
+ ALT="$P$"> to the sub-library.
+
+<P>
+Of course, not everybody can be allowed to establish a library with
+such a ``wrapped'' privilege <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.gif"
+ ALT="$P$">.  The programmer who does that should at
+least herself have privilege P (but perhaps better, she should have
+<EM> permission to wrap <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.gif"
+ ALT="$P$"></EM>--a stronger requirement).
+
+<P>
+In CM, wrapping a privilege is done by specifying the name of that
+privilege within parenthesis.  The wrapping becomes effective once the
+library gets stabilized via <TT> CM.stabilize</TT>.  The (not yet
+implemented) enforcement mechanism must ensure that anyone who
+stabilizes a library that wraps <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.gif"
+ ALT="$P$"> has permission to wrap <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.gif"
+ ALT="$P$">.
+
+<P>
+Note that privileges cannot be wrapped at the level of CM groups.
+
+<P>
+Access control is a new feature. At the moment, only the basic
+mechanisms are implemented, but there is no enforcement.  In other
+words, everybody is assumed to have every possible privilege.  CM
+merely reports which privileges ``would have been required''.
+
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html1001"
+ HREF="node60.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html997"
+ HREF="manual.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html991"
+ HREF="node58.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html999"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1002"
+ HREF="node60.html">9. The pervasive environment</A>
+<B> Up:</B> <A NAME="tex2html998"
+ HREF="manual.html">CM The SML/NJ Compilation</A>
+<B> Previous:</B> <A NAME="tex2html992"
+ HREF="node58.html">7.3 Explicit errors</A>
+ &nbsp <B>  <A NAME="tex2html1000"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

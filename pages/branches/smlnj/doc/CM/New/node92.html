@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>A..3 EBNF for export lists</TITLE>
+<META NAME="description" CONTENT="A..3 EBNF for export lists">
+<META NAME="keywords" CONTENT="manual">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="manual.css">
+
+<LINK REL="next" HREF="node93.html">
+<LINK REL="previous" HREF="node91.html">
+<LINK REL="up" HREF="node89.html">
+<LINK REL="next" HREF="node93.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html1418"
+ HREF="node93.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html1414"
+ HREF="node89.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html1408"
+ HREF="node91.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html1416"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html1419"
+ HREF="node93.html">A..4 EBNF for tool</A>
+<B> Up:</B> <A NAME="tex2html1415"
+ HREF="node89.html">A. CM description file</A>
+<B> Previous:</B> <A NAME="tex2html1409"
+ HREF="node91.html">A..2 EBNF for preprocessor</A>
+ &nbsp <B>  <A NAME="tex2html1417"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION000183000000000000000">
+A..3 EBNF for export lists</A>
+</H2>
+
+<P>
+The following set of rules defines the syntax for export lists (<I> elst</I>):
+
+<P>
+ 
+<TABLE CELLPADDING=3>
+<TR><TD ALIGN="RIGHT"><I> guardedexports</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT">{ <I> export</I> } (<U><B>#endif</U></B> &nbsp;<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.gif"
+ ALT="$\vert$">&nbsp;
+<U><B>#else</U></B> { <I> export</I> } <U><B>#endif</U></B> &nbsp;<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.gif"
+ ALT="$\vert$">&nbsp;<U><B>#elif</U></B> <I> ppexp</I>
+<I> guardedexports</I>)</TD>
+</TR>
+<TR><TD ALIGN="RIGHT"><I> restline</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT">rest of current line up to next newline character</TD>
+</TR>
+<TR><TD ALIGN="RIGHT"><I> export</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT"><I> mlsym</I> &nbsp;<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.gif"
+ ALT="$\vert$">&nbsp;<U><B>#if</U></B> <I> ppexp</I>
+<I> guardedexports</I> &nbsp;<IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.gif"
+ ALT="$\vert$">&nbsp;<U><B>#error</U></B> <I> restline</I></TD>
+</TR>
+<TR><TD ALIGN="RIGHT"><I> elst</I></TD>
+<TD ALIGN="CENTER"><IMG
+ WIDTH="20" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img32.gif"
+ ALT="$\rightarrow$"></TD>
+<TD ALIGN="LEFT"><I> export</I> { <I> export</I> }</TD>
+</TR>
+</TABLE>
+
+<P>
+<BR><HR>
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,38 @@
+
+			S  M  L   /   N  J
+
+                  1  1  0  .  1  2      N  E  W  S
+			
+  		         January 12, 1999
+
+
+        http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+WARNING:
+
+  This version is intended for compiler hackers only.  We are in the midst
+  of substantial structural changes, and this is a snapshot.  It only
+  supports the Sparc, Alpha, and HPPA architectures.  Furthermore, there
+  are performance bugs that have to be fixed.  We recommend that if you
+  want to use a working version, then you should use 110.10 until further
+  notice.
+
+Compiler:
+  Because of stability problems, we have backed out of the 110.10 FLINT
+  changes (there are bad interactions between these changes and the
+  literal lifting and new array representations).  The compiler now
+  generates code directly into code objects (instead of into an array
+  that later gets copied into the code object)  The greatly reduces the
+  GC activity during big compiles.
+
+MLRISC:
+
+  The MLRISC directory structure has been reorganized. All the
+  optimization modules and their interfaces are in separate
+  directories. Each instantiation of the optimization modules 
+  for a specific architecture will follow the same directory
+  structure. Thus the register allocator and its interfaces
+  are under MLRISC/ra, and its instantiation for the DEC Alpha
+  under MLRISC/alpha32/ra; etc.
+
+  

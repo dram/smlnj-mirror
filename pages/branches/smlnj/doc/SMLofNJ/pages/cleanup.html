@@ -1,0 +1,118 @@
+<!-- HTML/cleanup.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CLEAN_UP signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>CLEAN_UP</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CLEAN_UP:SIG:SPEC"><CODE>CLEAN_UP</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+This modules provides hooks for actions (e.g., closing files)  to be performed at various important points in the ML process, such as at process exit. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>datatype</B> <A NAME="SIG:CLEAN_UP.when:TY:SPEC" HREF="#SIG:CLEAN_UP.when:TY">when</A>&nbsp;&nbsp;<B>=</B> AtExportML&nbsp;&nbsp;<B>|</B> AtExportFn&nbsp;&nbsp;<B>|</B> AtExit&nbsp;&nbsp;<B>|</B> AtInit&nbsp;&nbsp;<B>|</B> AtInitFn<BR>
+<B>val</B> <A NAME="SIG:CLEAN_UP.atAll:VAL:SPEC" HREF="#SIG:CLEAN_UP.atAll:VAL">atAll</A> <B>:</B> when list         <BR>
+<B>val</B> <A NAME="SIG:CLEAN_UP.addCleaner:VAL:SPEC" HREF="#SIG:CLEAN_UP.addCleaner:VAL">addCleaner</A> <B>:</B> (string * when list * (when -&gt; unit)) -&gt; (when list * (when -&gt; unit)) option         <BR>
+<B>val</B> <A NAME="SIG:CLEAN_UP.removeCleaner:VAL:SPEC" HREF="#SIG:CLEAN_UP.removeCleaner:VAL">removeCleaner</A> <B>:</B> string -&gt; (when list * (when -&gt; unit)) option         <BR>
+<B>val</B> <A NAME="SIG:CLEAN_UP.clean:VAL:SPEC" HREF="#SIG:CLEAN_UP.clean:VAL">clean</A> <B>:</B> when -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CLEAN_UP.when:TY"><CODE><B>datatype</B> when</CODE></A>
+<DD>
+<DL>
+<DT> <CODE>AtExportML</CODE>
+<DD>
+The event that occurs when                  <A HREF="smlnj.html#SIG:SML_OF_NJ.exportML:VAL:SPEC">SMLofNJ.exportML</A> is called.         
+<BR>
+<BR>
+
+<DT> <CODE>AtExportFn</CODE>
+<DD>
+The event that occurs when                  <A HREF="smlnj.html#SIG:SML_OF_NJ.exportFn:VAL:SPEC">SMLofNJ.exportFn</A> is called.         
+<BR>
+<BR>
+
+<DT> <CODE>AtExit</CODE>
+<DD>
+The event that occurs when                  the ML process exits.         
+<BR>
+<BR>
+
+<DT> <CODE>AtInit</CODE>
+<DD>
+The event that occurs when                  a heap image created by <A HREF="smlnj.html#SIG:SML_OF_NJ.exportML:VAL:SPEC">SMLofNJ.exportML</A> begins executing.         
+<BR>
+<BR>
+
+<DT> <CODE>AtInitFn</CODE>
+<DD>
+The event that occurs when                  a heap image created by <A HREF="smlnj.html#SIG:SML_OF_NJ.exportFn:VAL:SPEC">SMLofNJ.exportFn</A> begins executing.       
+<BR>
+<BR>
+
+</DL>
+<DT> <A NAME="SIG:CLEAN_UP.atAll:VAL"><CODE>atAll
+          </CODE></A>
+<DD>
+A list containing all the <A HREF="cleanup.html#SIG:CLEAN_UP.when:TY:SPEC">when</A> values.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CLEAN_UP.addCleaner:VAL"><CODE>addCleaner (<VAR>name</VAR>, <VAR>when</VAR>, <VAR>f</VAR>)
+          </CODE></A>
+<DD>
+Install a new cleaner <VAR>f</VAR> with name <VAR>name</VAR>.           From now on, whenever an event <CODE>w</CODE>           in the <VAR>when</VAR> list occurs,           <VAR>f</VAR>(<CODE>w</CODE>) will be called.           If there was previously a cleaner <CODE>(when',g)</CODE> associated with            that name, then <CODE>SOME(when',g)</CODE> will be removed and            returned, otherwise <CODE>NONE</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CLEAN_UP.removeCleaner:VAL"><CODE>removeCleaner <VAR>name</VAR>
+          </CODE></A>
+<DD>
+Remove and return any cleaner associated with <VAR>name</VAR>,           or return <CODE>NONE</CODE>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CLEAN_UP.clean:VAL"><CODE>clean <VAR>when</VAR>
+          </CODE></A>
+<DD>
+Execute all cleaners executed with event <VAR>when</VAR>.           This function is automatically called by the system at the           appropriate times, but may also be called by the user.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

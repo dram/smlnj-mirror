@@ -1,0 +1,64 @@
+<!-- HTML/persstamps.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The PERSSTAMPS signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>PERSSTAMPS</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="PERSSTAMPS:SIG:SPEC"><CODE>PERSSTAMPS</CODE></A><BR>
+<B>structure </B><A NAME="PersStamps:STR:SPEC"><CODE>Compiler.PersStamps</CODE></A><B> : </B>PERSSTAMPS<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>eqtype</B> <A NAME="SIG:PERSSTAMPS.persstamp:TY:SPEC" HREF="#SIG:PERSSTAMPS.persstamp:TY">persstamp</A><BR>
+<B>val</B> <A NAME="SIG:PERSSTAMPS.compare:VAL:SPEC" HREF="#SIG:PERSSTAMPS.compare:VAL">compare</A> <B>:</B> (persstamp * persstamp) -&gt; order         <BR>
+<B>val</B> <A NAME="SIG:PERSSTAMPS.toHex:VAL:SPEC" HREF="#SIG:PERSSTAMPS.toHex:VAL">toHex</A> <B>:</B> persstamp -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:PERSSTAMPS.toBytes:VAL:SPEC" HREF="#SIG:PERSSTAMPS.toBytes:VAL">toBytes</A> <B>:</B> persstamp -&gt; Word8Vector.vector         <BR>
+<B>val</B> <A NAME="SIG:PERSSTAMPS.fromBytes:VAL:SPEC" HREF="#SIG:PERSSTAMPS.fromBytes:VAL">fromBytes</A> <B>:</B> Word8Vector.vector -&gt; persstamp         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:PERSSTAMPS.persstamp:TY"><CODE><B>eqtype</B> persstamp</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:PERSSTAMPS.compare:VAL"><CODE>compare (<VAR>pe</VAR>, <VAR>pe2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PERSSTAMPS.toHex:VAL"><CODE>toHex <VAR>pe</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PERSSTAMPS.toBytes:VAL"><CODE>toBytes <VAR>pe</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:PERSSTAMPS.fromBytes:VAL"><CODE>fromBytes <VAR>vec</VAR>
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

@@ -1,0 +1,344 @@
+<HTML>
+<HEAD>
+<TITLE>SML/NJ Special Features</TITLE></HEAD>
+<!-- Changed by: Andrew Appel,  5-Dec-1997 -->
+<BODY BGCOLOR="ffffff">
+<H1>Special Features of SML/NJ</H1>
+<blockquote>
+<h2>Extra top-level structures</h2>
+Standard ML of New Jersey provides the complete
+<a href="basis/index.html">SML'97
+Basis Library</a>, and in addition provides several other library
+modules.
+<p>
+The <a href="SMLofNJ/pages/smlnj.html">SMLofNJ</a> structure contains substructures
+that provide:
+<menu>
+<li><a href="SMLofNJ/pages/internals.html">access to compiler internals</a>,
+<li><a href="SMLofNJ/pages/weak.html">weak pointers</a>,
+<li><a href="SMLofNJ/pages/susp.html">lazy suspensions</a>,
+<li><a href="SMLofNJ/pages/cont.html">first-class continuations</a>,
+<li><a href="SMLofNJ/pages/interval-timer.html">interval timers</a>, and
+<li><a href="SMLofNJ/pages/sysinfo.html">information about the underlying system</a>.
+</menu>
+<p>
+Other top-level structures provide:
+<menu>
+<li><a href="SMLofNJ/pages/unsafe.html">unsafe operations (such as unchecked array access)</a>,
+<li><a href="SMLofNJ/pages/signals.html">general operating system signal values</a>,
+<li><a href="SMLofNJ/pages/unix-signals.html">unix-specific signal values</a>,
+<li><a href="SMLofNJ/pages/poll.html">control of automatic compiler-generated polling</a>,
+<li><a href="SMLofNJ/pages/cleanup.html">hooks for cleanup operations at ML exit and restart</a>,
+and 
+<li><a href="SMLofNJ/pages/cinterface.html">interface to runtime-system functions</a>.
+</menu>
+<p>
+SML/NJ also provides a <a href="Compiler/pages/compiler.html">Compiler</a>
+structure that controls the ML compiler itself, and gives access to
+internal phases of the compiler.  There are substructures for:
+<menu>
+<li><a href="Compiler/pages/profile.html">execution profiling</a>,
+<li><a href="Compiler/pages/prettyprint.html">user-customizable pretty printing</a>,
+<li><a href="Compiler/pages/printcontrol.html">control of compiler
+error-message printing</a>, and
+<li><a href="Compiler/pages/mccontrol.html">control of warning messages</a>.
+</menu>
+Other Compiler substructures provide access to the SML/NJ "visible
+compiler", including environments, syntax trees (Ast), abstract syntax
+(Absyn), parsing, and other basic compilation operations.  These
+"visible compiler" structures are not yet documented, other than by
+source code for the signatures.
+
+<h2>Vector expressions and patterns</h2>
+Vectors are homogeneous, immutable arrays
+(see the <a href="basis/pages/vector.html">Vector</a> structure).
+Vectors are a standard feature of SML'97, but SML/NJ also has special
+syntax for vector expressions and vector patterns.
+In SML'97, vectors can be created only by calling functions
+from the Vector structure, and cannot be pattern-matched.
+<p>
+The vector expression 
+<pre>
+  #[<i>exp</i><sub>0</sub>, <i>exp</i><sub>1</sub>, ..., <i>exp</i><sub><i>n</i>-1</sub>]
+</pre>
+(where <i>n</i> &gt;= 0) creates a vector of length <i>n</i> whose
+elements are the values of the corresponding subexpressions.  As with
+other aggregate expressions, the element expressions are evaluated
+from left to right.  Vectors may be pattern-matched by vector patterns
+of the form 
+<pre>
+  #[<i>pat</i><sub>0</sub>, <i>pat</i><sub>1</sub>, ..., <i>pat</i><sub><i>n</i>-1</sub>]
+</pre>
+Such a pattern will only match a vector value
+of the same length.
+<p>
+Vector expressions and vector patterns are more compact and efficient
+than lists, and are comparable in cost to records.
+
+<h2>Or-patterns</h2>
+SML/NJ has also extended the syntax of patterns to allow 
+``or-patterns.''
+The basic syntax is:
+<pre>
+  (<i>apat</i><sub>1</sub> | ... | <i>apat</i><sub><i>n</i></sub>)
+</pre>
+where the <i>apat</i><sub><i>i</i></sub> are atomic patterns.
+The other restriction is that the variables bound in each 
+<i>apat</i><sub><i>i</i></sub>
+must be the same, and have the same type.
+A simple example is:
+<pre>
+  fun f ("y"|"yes") = true
+    | f _ = false;
+</pre>
+which has the same meaning as:
+<pre>
+  fun f "y" = true
+    | f "yes" = true
+    | f _ = false;
+</pre>
+
+<h2>First-class continuations</h2>
+
+A set of primitives has been added to ML to give access to continuations:
+<pre>
+  structure <a href="SMLofNJ/pages/cont.html">SMLofNJ.Cont</a> : sig
+    type 'a cont
+    val callcc : ('a cont -> 'a) -> 'a
+    val throw : 'a cont -> 'a -> 'b
+    . . .
+  end
+</pre>
+The continuation of an expression is an abstraction of what the system
+will do with the value of the expression. 
+<p>
+The use of <strong>callcc</strong> is described with structure 
+<a href="SMLofNJ/pages/cont.html"><code>SMLofNJ.Cont</code></a>.
+
+<h2>Quote/Antiquote</h2>
+
+An early use of ML was as a <strong>M</strong>eta<strong>L</strong>anguage
+for manipulating terms in an object language.  Edinburgh LCF/ML
+had features to parse one particular object language (called OL).
+Standard ML of New Jersey has 
+<a href="quote.html">support for arbitrary object languages,
+with user supplied object-language parsing</a>.
+
+<h2>Higher-order Modules</h2>
+
+The module system of Standard ML has supported <i>first-order</i>
+parametric modules in the form of <i>functors</i>.  But there are
+occasions when one like to parameterize over functors as well as
+structures, which requires a truly higher-order module system (see,
+for instance, the <a href="powerset.sml">powerset functor example</a>.
+SML/NJ now provides a
+higher-order extension of the module system.
+<p>
+Parameterization over functors can be provided in a straightforward
+way by allowing functors to be components of structures.
+Syntactically this can be accomplished merely by allowing functor
+declarations inside of structure bodies, and by providing syntax for
+functor specifications in signatures.  Functor specifications were
+already part of the module syntax of the Definition of Standard ML
+(Figure 8, p. 14), so we have implemented that syntax and added it to
+the <i>spec</i> class (Figure 7, p. 13).  In addition, it is convenient
+to have a way of declaring functor signatures and some syntactic
+sugar for curried functor definitions and partial application of
+curried functors, so these have also been provided.  This extension
+is an ``upward-compatible'' enrichment of the language that should
+break no existing programs.
+<p>
+<strong>Functors as structure components.</strong>
+In the extended language, a signature can contain a functor specification:
+<pre>
+  signature SIG =
+  sig
+    type t
+    val a : t
+    functor F(X: sig type s
+		     val b: s
+		 end) : sig val x : t * X.s end
+  end
+</pre>
+To match such a signature, a structure is allowed to contain a functor
+declaration:
+<pre>
+  structure S : SIG =
+  struct
+    type t = int
+    val a = 3
+    functor F(X: sig type s val b: s end) = 
+      struct val x = (a,X.b) end
+  end
+</pre>
+This makes it possible higher-order functors by including a functor as
+a component of a parameter structure or of a result structure.  The case
+of a functor parameter is illustrated by the following example.
+<pre>
+  signature MONOID = 
+  sig
+    type t
+    val plus: t*t -> t
+    val e: t
+  end;
+
+  (* functor signature declaration *)
+  funsig PROD (structure M: MONOID
+	       structure N: MONOID) = MONOID
+
+  functor Square(structure X: MONOID
+		 functor Prod: PROD): MONOID =
+      Prod(structure M = X
+	   structure N = X);
+
+</pre>
+Note that this example involves the definition of a <em>functor
+signature</em> <code>PROD</code>.
+Currently functor signature declarations take one of the following forms:
+<pre>
+  funsig <i>funid</i> (<i>strid</i>: <i>sigexp</i>) = <i>sigexp}</i>
+  funsig <i>funid</i> (<i>specs</i>) = <i>sigexp</i>
+</pre>
+This syntax is viewed as provisional and subject to change.
+<p>
+A common use of functors returning functors in their result is to
+approximate a curried functor with multiple parameters.  Here is
+how one might define a curried monoid product functor:
+<pre>
+  functor CurriedProd (M: MONOID) =
+  struct
+    functor Prod1 (N: MONOID) : MONOID =
+      struct
+	type t = M.t * N.t
+	val e = (M.e, N.e)
+	fun plus((m1,n1),(m2,n2))=(M.plus(m1,m2),N.plus(n1,n2))
+      end;
+  end
+</pre>
+This works, but the partial application of this functor is rather 
+awkward because it requires the explicit creation of an intermediate
+structure:
+<pre>
+  structure IntMonoid =
+  struct
+    type t = int
+    val e = 0
+    val plus = (op +): int*int -> int
+  end;
+
+  structure Temp = CurriedProd(IntMonoid);
+
+  functor ProdInt = Temp.Prod1;
+</pre>
+To simplify the use of this sort of functor, some derived forms
+provide syntactic sugar for curried functor definition and partial
+application.  Thus the above example can be written:
+<pre>
+  functor CurriedProd (M: MONOID) (N: MONOID) : MONOID =
+  struct
+    type t = M.t * N.t
+    val e = (M.e, N.e)
+    fun plus((m1,n1),(m2,n2))=(M.plus(m1,m2),N.plus(n1,n2))
+  end;
+
+  functor ProdInt = CurriedProd(IntMonoid);
+</pre>
+
+The syntax for curried forms of functor signature and functor declarations
+and for the corresponding partial applications can be summarized
+as follows:
+<pre>
+  funsig <i>funsigid</i> (<i>par</i><sub>1</sub>) ... (<i>par</i><sub><i>n</i></sub>) = <i>sigexp</i>
+
+  functor <i>funid</i> (<i>par</i><sub>1</sub>) ... (<i>par</i><sub><i>n</i></sub>) = <i>strexp</i>
+
+  functor <i>funid1</i> = <i>funid2</i> (<i>arg</i><sub>1</sub>) ... (<i>arg</i><sub><i>n</i></sub>)
+
+  structure <i>strid</i> = <i>funid</i> (<i>arg</i><sub>1</sub>) ... (<i>arg</i><sub><i>n</i></sub>)
+</pre>
+where
+<pre>
+  <i>par</i> ::= <i>id</i> : <i>sigexp</i> | <i>specs</i>
+  <i>arg</i> ::= <i>strexp</i> | <i>dec</i>
+</pre>
+In the case of a partial application defining a functor, it is assumed
+that the <i>funid2</i> on the right hand side takes more than <i>n</i>
+arguments, while in the case of the structure declaration <i>funid</i>
+should take exactly <i>n</i> arguments.  As a degenerate case where <i>n</i>=0
+we have identity functor declarations:
+<pre>
+  functor <i>funid1</i> = <i>funid2</i>
+</pre>
+There is also a "let" form of functor expression:
+<pre>
+  <i>fctexp</i> ::= let <i>dec</i> in <i>fctexp</i> end
+</pre>
+which can only be used in functor definitions of the form:
+<pre>
+  functor <i>funid</i> = let <i>dec</i> in <i>fctexp</i> end.
+</pre>
+<p>
+The curried functor declaration
+<pre>
+  functor F (<i>par</i><sub>1</sub>) ... (<i>par</i><sub><i>n</i></sub>) = <i>strexp</i>
+</pre>
+is a derived form that is translated into the following declaration
+<pre>
+  functor F (<i>par</i><sub>1</sub>) =
+  struct
+    functor %fct% (<i>par</i><sub>2</sub>) ... (<i>par</i><sub><i>n</i></sub>) = <i>strexp</i>
+  end
+</pre>
+and the declarations
+<pre>
+  structure S = F (<i>arg</i><sub>1</sub>) ... (<i>arg</i><sub><i>n</i></sub>)
+  functor G = F (<i>arg</i><sub>1</sub>) ... (<i>arg</i><sub><i>n</i></sub>)
+</pre>
+are derived forms expanding into (respectively):
+<pre>
+  local
+    structure %hidden% = F (<i>arg</i><sub>1</sub>)
+  in
+    structure S = %hidden%.%fct% (<i>arg</i><sub>2</sub>) ... (<i>arg</i><sub><i>n</i></sub>)
+  end
+</pre>
+and
+<pre>
+  local
+    structure %hidden% = F (<i>arg</i><sub>1</sub>) ... (<i>arg</i><sub><i>n</i></sub>)
+  in
+    functor G = %hidden%.%fct%
+  end
+</pre>
+Currently there is no checking that a complete set of arguments is
+supplied when a curried functor is applied to define a structure,
+as illustrated by the following example:
+<pre>
+  functor Foo (X: sig type s end) (Y: sig type t end) =
+  struct type u = X.s * Y.t end
+
+  structure A = struct type s = int end
+
+  structure S = Foo (A)  (* Foo A yields a (useless) structure *)
+
+  functor G = Foo (A)    (* Foo A yields a functor *)
+</pre>
+Of course, the structure <code>S</code> defined in this way is useless,
+since we cannot use the pseudo-identifier <code>%fct%</code> to select
+its functor component.  Arity checking to prevent this sort of
+error will be added in a future release.
+</blockquote>
+<HR>
+<CENTER><STRONG>
+| <A HREF="../index.html">SML/NJ Home Page</A> | <br>
+| <A HREF="index.html">SML/NJ Documentation Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>

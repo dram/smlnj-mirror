@@ -1,0 +1,173 @@
+Notes of planning meeting at MH on 4/22/99
+------------------------------------------
+Present: Zhong Shao, Stefan Monnier, Lal George, Dave MacQueen, Riccardo
+	 Pucella, John Reppy
+Author: Dave MacQueen
+
+1. MLRISC
+
+  * alternative for generating code for the x86
+     - more performance
+     - faster code generation
+
+
+  * benchmarks
+     - micro benchmarks to measure specific optimization effects and
+       performance bottlenecks
+
+     - "realistic" benchmarks to measure overall system performance on
+       real applications
+        o Barnes-Hut [jhr]
+	o Tiger compiler
+	o need more integer benchmarks (current set is biased toward floating
+	  point)
+
+
+  * current x86 MLRISC
+     - no instruction scheduling yet
+     - two rounds of register allocation (with large register set,
+       then with small one (8 visible registers))
+
+  * C-- support being added to MLRISC
+     - involves major rewrite
+     - uses (supports?) variable width data
+     - Fermin working on LCC variant targetting C--
+
+  * Performance
+     - aggressive argument flattening doesn't hurt performance for x86
+       with new MLRISC code generator
+
+     - Leung: machine level SSA optimizations (global value numbering, etc.)
+        o 30-40% improvements on some benchmarks
+	o currently not safe for GC
+	   # code motion past GC points can't be allowed
+	   # needs types to make it safe
+
+     - interference graph construction in linear time in SSA form
+
+     - C-- won't have type info
+
+
+
+2. Runtime
+
+  * interaction with MLRISC, backend, etc.
+     - essential changes, including new array reps and GC api are in place
+       as of 110.16
+
+     - still needed: "soft polling" support from FLINT (Lorenz's polling scheme)
+
+  * architecture
+     - runtime system as a library rather than a program
+        o runtime consists mainly of three "DLL"s
+	   # memory subsystem (OS dependent)
+	   # garbage collector (OS independent)
+	   # everything else
+	     (code that glues ML and RT together, signals, ML states and
+	      contexts, and C library code (from IDL tool))
+
+     - memory subsystem
+        o age "hints" from GC
+	o owns bbop
+
+     - GC
+        o investigating "train" collection algorithm for oldest generation
+	  (has been done for Danish Beta implementation)
+
+     - multiple modes of operation
+        o stand-alone executables  ("real" stand alones)
+	o libraries
+	o linking with C code
+
+     - will consolidate set of supported platforms
+        e.g. drop SunOS support, MIPS R3000 and IRIX 4x and 5x.
+
+  * IDL
+     - need datatype memory layout specs from FLINT
+        o used form IDL generated marshalling/unmarshalling code (in C)
+	o could be provided in declarative form (e.g. rewrite rules,
+	  or semantic rules)
+	o only need to deal with "first-order" datatypes
+	   no functions
+	   no references
+	   no abstract types
+	   tuples, but no records
+	   no polymorphism
+
+
+3. FLINT
+
+  * moving closure conversion and cpsopt into FLINT [Stefan]
+     - cps forms as sublanguage of FLINT, not a separate type
+
+     - cps conversion moving into FLINT  (soon)
+
+     - expect comparable compilation time and run time compared with
+       existing cps backend
+
+     - cross-module inlining now partially working
+       limited performance gains so far (only a few examples tested)
+
+     - FLINT language has been extended with existentials for support
+       of closures
+
+     - goal is to replace CPS completely
+
+
+  * dictionary-based type-dependent operations [Saha]
+     - new pretty-printing support
+
+     - replacement of runtime equality function (polyeq)
+
+     - optimal type lifting
+
+
+  * primop and primtyc reorganizations (merging FLINT/CPS primops)
+
+  * primops (jhr)
+     - arithmetic primops need to be made more "modular"
+
+     - represetation types should just be tied to size
+
+     - trapping and signal behavior should be tied to operations
+
+
+  * General FLINT developments
+     - translating Java byte-code to FLINT [Chris Lee]
+
+     - stack/heap interoperability (e.g. support for callcc in presence
+       of a stack)
+
+     - new FLINT-based virtual machine and runtime system
+
+     - front-end for a FLINT-like surface language
+
+     - new DARPA grant: language independent (ML, C, Java) mobile code
+
+
+4. Design issues
+
+  * replacing Core (jhr) with a dynamic mechanism (???)
+
+  * exposing the new array representation in terms of FLINT
+     - primitive types in FLINT for raw array/vector/string representations
+       with indirections to enable generic optimizations
+     - library implementations accessing raw representations
+     - build substring implementation on top of raw representation
+       instead of the string type itself
+
+
+5. Documentation
+
+  * SML/NJ Library documentation is 80% complete [jhr, Emden]
+
+
+6. Release plans
+
+  * jhr estimates next 111 at end of year
+    (new runtime running on at least one platform by early summer?)
+
+  * Zhong: FLINT incorporating CPS by end of summer (?)
+
+  * get 110.0.4 interim release out in June
+

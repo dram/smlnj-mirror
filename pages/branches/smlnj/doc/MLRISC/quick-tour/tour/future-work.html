@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Future Work</title>
+  </head>
+
+  <body bgcolor=#ffffff>
+   <CENTER>
+    <H1><FONT COLOR=#AA0000>Future Work</FONT></H1>
+   </CENTER>
+    <h2><font color=#aa0000>Short Term</font></h1>
+
+    <dl>
+      <dt> <b>Detailed user manual:</b><dd>
+	   A detailed user manual describing the interfaces, algorithms, 
+	   and examples on how to put together code generators.
+
+      <p><dt> <b>x86 code generator:</b> <dd>The x86 poses several
+      challenges which can be met quite effectively, I believe, by the
+      register allocation technology used in MLRISC.
+
+     <p><dt><b>Support for GC:</b> <dd> There is a strong interaction
+     with support for GC and global code motion. MLRISC aims at
+     providing a generic framework for code generators, and finding
+     the right level of information to support GC and global code
+     motion is an issue. I think we have several solutions to address
+     this that need more evaluation.
+
+     <p><dt><b>Other architectures:</b><dd> There is the need to port
+to other architectures like the MIPS and SPARC.
+    </dl>
+ 
+<hr>
+    <h2> <font color=#aa0000>Long Term</font></h2>
+    <dl>
+      <dt><b> Predicated VLIW: </b><dd> Currently, there are no optimizations
+that will support predication. In principle there is no reason why this
+should be the case.
+
+
+      <p><dt><b> Other compilers: </b><dd> I would really like to see some
+major compiler effort bootstrapped with an MLRISC backend.
+
+      <p><dt><b> Robustness of scheduling</b><dd>It is extremely difficult to
+debug errors in modules that perform aggressive code
+reorganizations. Ideas from formal methods such as typed assembly
+language (TAL) or Proof Carrying Code (PCC) are worth investigating.
+    </dl>
+
+
+    <hr>
+    <font size=-2>
+    <address><a href="mailto:george@canna.research.bell-labs.com">Lal George</a></address>
+<!-- Created: Thu Apr 16 23:25:30 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Thu May 14 13:41:05 EDT 1998
+<!-- hhmts end -->
+    </font>
+  </body>
+</html>

@@ -1,0 +1,196 @@
+<!-- HTML/object.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The UNSAFE_OBJECT signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>UNSAFE_OBJECT</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="UNSAFE_OBJECT:SIG:SPEC"><CODE>UNSAFE_OBJECT</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:UNSAFE_OBJECT.object:TY:SPEC" HREF="#SIG:UNSAFE_OBJECT.object:TY">object</A><BR>
+<B>datatype</B> <A NAME="SIG:UNSAFE_OBJECT.representation:TY:SPEC" HREF="#SIG:UNSAFE_OBJECT.representation:TY">representation</A><BR>
+&nbsp;&nbsp;<B>=</B> Unboxed<BR>
+&nbsp;&nbsp;<B>|</B> Real<BR>
+&nbsp;&nbsp;<B>|</B> Pair<BR>
+&nbsp;&nbsp;<B>|</B> Record<BR>
+&nbsp;&nbsp;<B>|</B> PolyArray<BR>
+&nbsp;&nbsp;<B>|</B> ByteVector<BR>
+&nbsp;&nbsp;<B>|</B> ByteArray<BR>
+&nbsp;&nbsp;<B>|</B> RealArray<BR>
+&nbsp;&nbsp;<B>|</B> Susp<BR>
+&nbsp;&nbsp;<B>|</B> WeakPtr<BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toObject:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toObject:VAL">toObject</A> <B>:</B> 'a -&gt; object         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.boxed:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.boxed:VAL">boxed</A> <B>:</B> object -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.unboxed:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.unboxed:VAL">unboxed</A> <B>:</B> object -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.rep:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.rep:VAL">rep</A> <B>:</B> object -&gt; representation         <BR>
+<B>exception</B> <A NAME="SIG:UNSAFE_OBJECT.Representation:EXN:SPEC" HREF="#SIG:UNSAFE_OBJECT.Representation:EXN">Representation</A><BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toTuple:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toTuple:VAL">toTuple</A> <B>:</B> object -&gt; object vector         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toString:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toString:VAL">toString</A> <B>:</B> object -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toRef:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toRef:VAL">toRef</A> <B>:</B> object -&gt; object ref         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toArray:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toArray:VAL">toArray</A> <B>:</B> object -&gt; object array         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toExn:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toExn:VAL">toExn</A> <B>:</B> object -&gt; exn         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toReal:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toReal:VAL">toReal</A> <B>:</B> object -&gt; real         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toInt:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toInt:VAL">toInt</A> <B>:</B> object -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toInt32:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toInt32:VAL">toInt32</A> <B>:</B> object -&gt; Int32.int         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toWord:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toWord:VAL">toWord</A> <B>:</B> object -&gt; Word.word         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toWord8:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toWord8:VAL">toWord8</A> <B>:</B> object -&gt; Word8.word         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_OBJECT.toWord32:VAL:SPEC" HREF="#SIG:UNSAFE_OBJECT.toWord32:VAL">toWord32</A> <B>:</B> object -&gt; Word32.word         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:UNSAFE_OBJECT.object:TY"><CODE><B>type</B> object</CODE></A>
+<DD>
+	An abstract type for SML values, from which their representation 	may be interrogated.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.representation:TY"><CODE><B>datatype</B> representation</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toObject:VAL"><CODE>toObject <VAR>a</VAR>
+          </CODE></A>
+<DD>
+View any value as an <A HREF="object.html#SIG:UNSAFE_OBJECT.object:TY:SPEC">object</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.boxed:VAL"><CODE>boxed <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+Does <VAR>ob</VAR> have a boxed (pointer) representation?     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.unboxed:VAL"><CODE>unboxed <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+Does <VAR>ob</VAR> have an unboxed (tagged, nonpointer) representation?     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.rep:VAL"><CODE>rep <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+What is the representation of <VAR>ob</VAR>?     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.Representation:EXN"><CODE><B>exception</B> Representation</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toTuple:VAL"><CODE>toTuple <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is a record, tuple, vector, or real-array,           get a vector of its fields; otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toString:VAL"><CODE>toString <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is really a string, get its string value;           otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toRef:VAL"><CODE>toRef <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is really a <CODE>ref</CODE> or an array of length 1,           view it as a <CODE>ref</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toArray:VAL"><CODE>toArray <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is really an array,           view it as a <CODE>array</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toExn:VAL"><CODE>toExn <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is really an exception value,           view it as a <CODE>exn</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toReal:VAL"><CODE>toReal <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is really an floating-point number,           view it as a <CODE>real</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toInt:VAL"><CODE>toInt <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is really a tagged 31-bit integer,           view it as an <CODE>int</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toInt32:VAL"><CODE>toInt32 <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is really a  32-bit integer or byte-vector of length 4,           view it as an <CODE>Int32.int</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toWord:VAL"><CODE>toWord <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is a tagged 31-bit value,           view it as a <CODE>word</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toWord8:VAL"><CODE>toWord8 <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is a tagged 31-bit value,           view it as a <CODE>Word8.word</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_OBJECT.toWord32:VAL"><CODE>toWord32 <VAR>ob</VAR>
+          </CODE></A>
+<DD>
+If <VAR>ob</VAR> is really a  32-bit value or byte-vector of length 4,           view it as a <CODE>Word32.word</CODE>, otherwise raise <A HREF="object.html#SIG:UNSAFE_OBJECT.Representation:EXN:SPEC">Representation</A>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

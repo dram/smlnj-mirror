@@ -1,0 +1,217 @@
+<!-- HTML/control.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The CONTROL signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>CONTROL</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="CONTROL:SIG:SPEC"><CODE>CONTROL</CODE></A><BR>
+<B>structure </B><A NAME="Control:STR:SPEC"><CODE>Compiler.Control</CODE></A><B> : </B>CONTROL<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> MC <B>:</B> <A HREF="mccontrol.html#MCCONTROL:SIG:SPEC">MCCONTROL</A><BR>
+<B>structure</B> Lazy <B>:</B> <A HREF="lazycontrol.html#LAZYCONTROL:SIG:SPEC">LAZYCONTROL</A><BR>
+<B>structure</B> CG <B>:</B> <A HREF="cgcontrol.html#CGCONTROL:SIG:SPEC">CGCONTROL</A><BR>
+<B>structure</B> Print <B>:</B> <A HREF="printcontrol.html#PRINTCONTROL:SIG:SPEC">PRINTCONTROL</A><BR>
+<B>val</B> <A NAME="SIG:CONTROL.debugging:VAL:SPEC" HREF="#SIG:CONTROL.debugging:VAL">debugging</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.primaryPrompt:VAL:SPEC" HREF="#SIG:CONTROL.primaryPrompt:VAL">primaryPrompt</A> <B>:</B> string ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.secondaryPrompt:VAL:SPEC" HREF="#SIG:CONTROL.secondaryPrompt:VAL">secondaryPrompt</A> <B>:</B> string ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.printWarnings:VAL:SPEC" HREF="#SIG:CONTROL.printWarnings:VAL">printWarnings</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.valueRestrictionWarn:VAL:SPEC" HREF="#SIG:CONTROL.valueRestrictionWarn:VAL">valueRestrictionWarn</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.instantiateSigs:VAL:SPEC" HREF="#SIG:CONTROL.instantiateSigs:VAL">instantiateSigs</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.internals:VAL:SPEC" HREF="#SIG:CONTROL.internals:VAL">internals</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.interp:VAL:SPEC" HREF="#SIG:CONTROL.interp:VAL">interp</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.saveLambda:VAL:SPEC" HREF="#SIG:CONTROL.saveLambda:VAL">saveLambda</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.saveLvarNames:VAL:SPEC" HREF="#SIG:CONTROL.saveLvarNames:VAL">saveLvarNames</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.preserveLvarNames:VAL:SPEC" HREF="#SIG:CONTROL.preserveLvarNames:VAL">preserveLvarNames</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.markabsyn:VAL:SPEC" HREF="#SIG:CONTROL.markabsyn:VAL">markabsyn</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.trackExn:VAL:SPEC" HREF="#SIG:CONTROL.trackExn:VAL">trackExn</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.indexing:VAL:SPEC" HREF="#SIG:CONTROL.indexing:VAL">indexing</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.instSigs:VAL:SPEC" HREF="#SIG:CONTROL.instSigs:VAL">instSigs</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.quotation:VAL:SPEC" HREF="#SIG:CONTROL.quotation:VAL">quotation</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.saveit:VAL:SPEC" HREF="#SIG:CONTROL.saveit:VAL">saveit</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.saveAbsyn:VAL:SPEC" HREF="#SIG:CONTROL.saveAbsyn:VAL">saveAbsyn</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.saveConvert:VAL:SPEC" HREF="#SIG:CONTROL.saveConvert:VAL">saveConvert</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.saveCPSopt:VAL:SPEC" HREF="#SIG:CONTROL.saveCPSopt:VAL">saveCPSopt</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.saveClosure:VAL:SPEC" HREF="#SIG:CONTROL.saveClosure:VAL">saveClosure</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.lambdaSplitEnable:VAL:SPEC" HREF="#SIG:CONTROL.lambdaSplitEnable:VAL">lambdaSplitEnable</A> <B>:</B> bool ref         <BR>
+<B>val</B> <A NAME="SIG:CONTROL.crossInlineEnable:VAL:SPEC" HREF="#SIG:CONTROL.crossInlineEnable:VAL">crossInlineEnable</A> <B>:</B> bool ref         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:CONTROL.debugging:VAL"><CODE>debugging
+          </CODE></A>
+<DD>
+Enable general-purpose debugging messages throughout           the compiler.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.primaryPrompt:VAL"><CODE>primaryPrompt
+          </CODE></A>
+<DD>
+The prompt that is printed in the interactive loop           between top-level declarations.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.secondaryPrompt:VAL"><CODE>secondaryPrompt
+          </CODE></A>
+<DD>
+The prompt printed by the interactive loop in the           midst of a declaration.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.printWarnings:VAL"><CODE>printWarnings
+          </CODE></A>
+<DD>
+Control whether compiler warning messages are printed.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.valueRestrictionWarn:VAL"><CODE>valueRestrictionWarn
+          </CODE></A>
+<DD>
+Control whether a warning message           is printed when a failure to generalize occurs for a declaration           inside a <CODE>let</CODE>.       
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.instantiateSigs:VAL"><CODE>instantiateSigs
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.internals:VAL"><CODE>internals
+          </CODE></A>
+<DD>
+Show internal fields of types and modules when pretty-printing           top-level declarations.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.interp:VAL"><CODE>interp
+          </CODE></A>
+<DD>
+Interpret instead of generating native code.  Obsolete.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.saveLambda:VAL"><CODE>saveLambda
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.saveLvarNames:VAL"><CODE>saveLvarNames
+          </CODE></A>
+<DD>
+Propagate names of user-declared variables throughout           the compiler's intermediate representation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.preserveLvarNames:VAL"><CODE>preserveLvarNames
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.markabsyn:VAL"><CODE>markabsyn
+          </CODE></A>
+<DD>
+Propagate source-location marks to, and through, the type-checker.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.trackExn:VAL"><CODE>trackExn
+          </CODE></A>
+<DD>
+Attach source-file description strings to exceptions where           they are raised, re-raised, and propagated through handlers. 	  (See also <A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/doc/SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exnHistory:VAL:SPEC">SMLofNJ.exnHistory</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.indexing:VAL"><CODE>indexing
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.instSigs:VAL"><CODE>instSigs
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.quotation:VAL"><CODE>quotation
+          </CODE></A>
+<DD>
+Treat back-quote ` as a special &quot;quotation&quot; character; 	  see also <A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/doc/SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.frag:TY:SPEC">SMLofNJ.frag</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.saveit:VAL"><CODE>saveit
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.saveAbsyn:VAL"><CODE>saveAbsyn
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.saveConvert:VAL"><CODE>saveConvert
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.saveCPSopt:VAL"><CODE>saveCPSopt
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.saveClosure:VAL"><CODE>saveClosure
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.lambdaSplitEnable:VAL"><CODE>lambdaSplitEnable
+          </CODE></A>
+<DD>
+Enable the &quot;lambda-splitting&quot; optimization, useful for 	  cross-module inline-expansion.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:CONTROL.crossInlineEnable:VAL"><CODE>crossInlineEnable
+          </CODE></A>
+<DD>
+Enable cross-module inline-expansion.
+<BR>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

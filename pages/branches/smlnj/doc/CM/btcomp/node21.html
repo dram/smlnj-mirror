@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 99.1 release (March 30, 1999)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>6.1 The makeml script</TITLE>
+<META NAME="description" CONTENT="6.1 The makeml script">
+<META NAME="keywords" CONTENT="btcomp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v99.1 release">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="btcomp.css">
+
+<LINK REL="next" HREF="node22.html">
+<LINK REL="previous" HREF="node20.html">
+<LINK REL="up" HREF="node20.html">
+<LINK REL="next" HREF="node22.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html321"
+ HREF="node22.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html317"
+ HREF="node20.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html311"
+ HREF="node20.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html319"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html322"
+ HREF="node22.html">6.2 The testml script</A>
+<B> Up:</B> <A NAME="tex2html318"
+ HREF="node20.html">6. Scripts</A>
+<B> Previous:</B> <A NAME="tex2html312"
+ HREF="node20.html">6. Scripts</A>
+ &nbsp <B>  <A NAME="tex2html320"
+ HREF="node1.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00071000000000000000"></A>
+<A NAME="script:makeml"></A>
+<BR>
+6.1 The <TT> makeml</TT> script
+</H2>
+
+<P>
+This script is used after a successful run of <TT> CMB.make</TT> (or <TT> 
+CMB.make'</TT>).  It <EM> links</EM> the compiler and its interactive system,
+forming a corresponding heap image.  In addition to that, it prepares
+a new directory containing stable CM libraries to be used with the new
+image.
+
+<P>
+One way of thinking about this is to view <TT> makeml</TT> as a function
+mapping a bootfile directory <IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.gif"
+ ALT="$b$"> to a
+pair consisting of a heap image <TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.<I> arch</I>-<I> osname</I></TT> and
+a library directory <TT> <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.lib</TT>.  The strings <IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.gif"
+ ALT="$b$"> and <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$"> are
+optional parameters; the defaults are <TT> sml.boot.<I> arch</I>-<I> os</I></TT>
+for <IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.gif"
+ ALT="$b$"> and <TT> sml</TT> for <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$">.
+
+<P>
+The script accepts a number of options as follows:
+
+<P>
+ 
+<DL>
+<DT><STRONG>-o <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$"></STRONG></DT>
+<DD>specifies a <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.gif"
+ ALT="$v$"> other than the default <TT> sml</TT>.</DD>
+<DT><STRONG>-boot <IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.gif"
+ ALT="$b$"></STRONG></DT>
+<DD>specifies a <IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.gif"
+ ALT="$b$"> other than the default <TT> 
+sml.boot.<I> arch</I>-<I> os</I></TT>.</DD>
+<DT><STRONG>-quiet</STRONG></DT>
+<DD>instructs <TT> makeml</TT> to greatly reduce its
+diagnostic output.  In particular, the names of files being linked are
+not shown.  The default for this can be controlled via a
+boolean-valued environment variable <TT> MAKEML_VERBOSITY</TT>.  If the
+variable is not set, then the default is <TT> true</TT> (meaning ``verbose'').</DD>
+<DT><STRONG>-verbose</STRONG></DT>
+<DD>is the opposite of <TT> -quiet</TT>.</DD>
+<DT><STRONG>-rebuild <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"></STRONG></DT>
+<DD>puts <TT> makeml</TT> into a different mode: After
+loading the executable section of all binfiles and linking them, it
+will not read any static environments, will not initialize the usual
+interactive system and will not produce a heap image.  Instead, it
+internally invokes the equivalent of <TT> CMB.make' (SOME
+<code>"</code><IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"><code>"</code>)</TT>, thus recompiling everything again.  When
+recompilation is complete, <TT> makeml</TT> stops; the newly-built system
+must be linked using a separate explicit invocation of <TT> makeml</TT>.
+Notice that <TT> <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$">.boot.<I> arch</I>-<I> os</I></TT> must be different from
+<IMG
+ WIDTH="11" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.gif"
+ ALT="$b$">.</DD>
+<DT><STRONG>-rebuildlight <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"></STRONG></DT>
+<DD>is the same as <TT> -rebuild <IMG
+ WIDTH="13" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.gif"
+ ALT="$u$"></TT> except that
+the symbol <TT> LIGHT</TT> will be defined (using <TT> CMB.symval</TT>) for
+the duration of the compilation.  The effect of this is that no
+cross-compilers will be built (which can save considerable time).
+Alternative names for <B> -rebuildlight</B> are <B> -light</B> and <B> 
+-lightrebuild</B>.</DD>
+<DT><STRONG>-bare</STRONG></DT>
+<DD>causes <TT> makeml</TT> to build a reduced version of
+the system without the compilation manager CM included.  This is
+useful for people who are interested in an interactive system only.</DD>
+<DT><STRONG>-run <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img8.gif"
+ ALT="$r$"></STRONG></DT>
+<DD>selects the executable for the SML/NJ runtime system.
+The default is ../../bin/.run/run.<I> arch</I>-<I> osname</I>.</DD>
+<DT><STRONG>-alloc <IMG
+ WIDTH="12" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.gif"
+ ALT="$a$"></STRONG></DT>
+<DD>specifies the size of the SML/NJ garbage-collector's
+allocation area.  The default depends on the current machine
+architecture.</DD>
+</DL>
+
+<P>
+The most common usage is to simply say <TT> ./makeml</TT> without any
+arguments, taking advantage of the defaults as described above.
+
+<P>
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html321"
+ HREF="node22.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next_motif.gif"></A> 
+<A NAME="tex2html317"
+ HREF="node20.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up_motif.gif"></A> 
+<A NAME="tex2html311"
+ HREF="node20.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="previous_motif.gif"></A> 
+<A NAME="tex2html319"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html322"
+ HREF="node22.html">6.2 The testml script</A>
+<B> Up:</B> <A NAME="tex2html318"
+ HREF="node20.html">6. Scripts</A>
+<B> Previous:</B> <A NAME="tex2html312"
+ HREF="node20.html">6. Scripts</A>
+ &nbsp <B>  <A NAME="tex2html320"
+ HREF="node1.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Matthias Blume</I>
+<BR><I>2001-07-19</I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,76 @@
+<!-- HTML/listsort.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The LIST_SORT signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>LIST_SORT</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="LIST_SORT:SIG:SPEC"><CODE>LIST_SORT</CODE></A><BR>
+<B>structure </B><A NAME="ListMergeSort:STR:SPEC"><CODE>ListMergeSort</CODE></A><B> : </B>LIST_SORT<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The LIST_SORT signature specifies an interface for the applicative sorting of lists. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:LIST_SORT.sort:VAL:SPEC" HREF="#SIG:LIST_SORT.sort:VAL">sort</A> <B>:</B> (('a * 'a) -&gt; bool) -&gt; 'a list -&gt; 'a list         <BR>
+<B>val</B> <A NAME="SIG:LIST_SORT.uniqueSort:VAL:SPEC" HREF="#SIG:LIST_SORT.uniqueSort:VAL">uniqueSort</A> <B>:</B> (('a * 'a) -&gt; order) -&gt; 'a list -&gt; 'a list         <BR>
+<B>val</B> <A NAME="SIG:LIST_SORT.sorted:VAL:SPEC" HREF="#SIG:LIST_SORT.sorted:VAL">sorted</A> <B>:</B> (('a * 'a) -&gt; bool) -&gt; 'a list -&gt; bool         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:LIST_SORT.sort:VAL"><CODE>sort <VAR>f</VAR> <VAR>l</VAR>
+          </CODE></A>
+<DD>
+returns a list of the elements in <VAR>l</VAR>, sorted in non-decreasing           order as specified by the ``greater than'' predicate <VAR>f</VAR>.           Specifically, if <CODE>f(x,y)</CODE> evaluates to true, then <CODE>x</CODE> will           appear after <CODE>y</CODE> in the resulting list.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIST_SORT.uniqueSort:VAL"><CODE>uniqueSort <VAR>f</VAR> <VAR>l</VAR>
+          </CODE></A>
+<DD>
+returns a list of the elements in <VAR>l</VAR>, sorted in increasing           order as specified by the comparison function <VAR>f</VAR>, and having           only one copy of equal elements.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIST_SORT.sorted:VAL"><CODE>sorted <VAR>f</VAR> <VAR>l</VAR>
+          </CODE></A>
+<DD>
+returns true if <VAR>l</VAR> is sorted in non-decreasing           order as specified by the ``greater than'' predicate <VAR>f</VAR>.           Specifically, it returns true if for all adjacent items <CODE>x,y</CODE>           in <VAR>l</VAR>, <CODE>f(x,y)</CODE> evaluates to false.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 11, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

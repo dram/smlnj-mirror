@@ -1,0 +1,95 @@
+<!-- HTML/unsafe-mono-vector.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The UNSAFE_MONO_VECTOR signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>Standard ML of New Jersey</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>UNSAFE_MONO_VECTOR</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="UNSAFE_MONO_VECTOR:SIG:SPEC"><CODE>UNSAFE_MONO_VECTOR</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+For those of you that don't mind a little insecurity if only your vector accesses don't have bounds checks, here are some unchecked operations on vectors.
+<P>
+These operations work on ordinary vectors, so you can mix checked and unchecked operations on the same vectors.
+<P>
+In an ideal world (which we're working on, in principle) the compiler would let you use the ordinary checked operations and then optimize the checks away in a safe and efficient manner. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:UNSAFE_MONO_VECTOR.vector:TY:SPEC" HREF="#SIG:UNSAFE_MONO_VECTOR.vector:TY">vector</A><BR>
+<B>type</B> <A NAME="SIG:UNSAFE_MONO_VECTOR.elem:TY:SPEC" HREF="#SIG:UNSAFE_MONO_VECTOR.elem:TY">elem</A><BR>
+<B>val</B> <A NAME="SIG:UNSAFE_MONO_VECTOR.sub:VAL:SPEC" HREF="#SIG:UNSAFE_MONO_VECTOR.sub:VAL">sub</A> <B>:</B> (vector * int) -&gt; elem         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_MONO_VECTOR.update:VAL:SPEC" HREF="#SIG:UNSAFE_MONO_VECTOR.update:VAL">update</A> <B>:</B> (vector * int * elem) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:UNSAFE_MONO_VECTOR.create:VAL:SPEC" HREF="#SIG:UNSAFE_MONO_VECTOR.create:VAL">create</A> <B>:</B> int -&gt; vector         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:UNSAFE_MONO_VECTOR.vector:TY"><CODE><B>type</B> vector</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_MONO_VECTOR.elem:TY"><CODE><B>type</B> elem</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_MONO_VECTOR.sub:VAL"><CODE>sub (<VAR>vec</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DD>
+Fetch the <VAR>i</VAR>th element of <VAR>a</VAR>.  If <VAR>i</VAR> is negative           or greater than or equal to the length of <VAR>a</VAR>,            the results will be unpredictable and may corrupt the           further execution of the ML program.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_MONO_VECTOR.update:VAL"><CODE>update (<VAR>vec</VAR>, <VAR>i</VAR>, <VAR>el</VAR>)
+          </CODE></A>
+<DD>
+Store <VAR>x</VAR> into  	  the <VAR>i</VAR>th element of <VAR>a</VAR>.  If <VAR>i</VAR> is negative           or greater than or equal to the length of <VAR>a</VAR>,            the results will be unpredictable and may corrupt the           further execution of the ML program. 	  
+<P>
+          This operation is particularly unsafe, even if <VAR>i</VAR> is           in range, because the compiler           performs other optimizations on vectors based on the           fact that their contents are immutable.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:UNSAFE_MONO_VECTOR.create:VAL"><CODE>create <VAR>i</VAR>
+          </CODE></A>
+<DD>
+Create an array of <VAR>i</VAR> elements, with every slot            uninitialized.  If <VAR>i</VAR> is negative           or greater than the largest array size            that the system can represent           the results will be unpredictable and may corrupt the           further execution of the ML program.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/mono-vector.html#MONO_VECTOR:SIG:SPEC">MONO_VECTOR</A>, <A HREF="unsafe-mono-array.html#UNSAFE_MONO_ARRAY:SIG:SPEC">UNSAFE_MONO_ARRAY</A>, <A HREF="unsafe.html#SIG:UNSAFE.Vector:STR:SPEC">Unsafe.Vector</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 28, 1997</I><BR>
+<I>Comments to <A HREF="mailto:sml-nj@research.bell-labs.com"><TT>sml-nj@research.bell-labs.com</TT></A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

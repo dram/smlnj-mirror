@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Line Counts</title>
+  </head>
+
+  <body bgcolor=#ffffff>
+
+   <CENTER>
+    <H1><FONT COLOR=#AA0000>Line Counts</FONT></H1>
+   </CENTER>
+
+  <TABLE align=right border=1>
+   <THEAD>
+     <tr><th> <th> SML/NJ <th> MLRISC
+   </THEAD>
+   <TBODY>
+     <tr><td> <font color=#00aa00>Generic <td align=right> 3,023 
+					  <td align=right> 6,814
+     <tr><td> <font color=#00aa00>Hppa    <td align=right>  725  
+				          <td align=right> 2,285
+     <tr><td> <font color=#00aa00>Alpha   <td align=right>  614  
+					  <td align=right> 2,316
+   <thead>
+     <tr><th>TOTAL <th align=right> 4,362 <th align=right> 11,415
+   </thead>
+   </TBODY>
+  </TABLE>
+  The table shows the number of lines involved in a basic MLRISC code
+  generator for SML/NJ that only does graph coloring register
+  allocation. The SML/NJ column shows the number of lines specific to
+  SML/N and the MLRISC column shows the number of lines specific to
+  MLRISC. The <TT><font color=#00aa00>Generic</font></tt> shows the
+  number of lines that are target independent for both SML/NJ and
+  MLRISC. The <tt><font color=#00aa00>Hppa</font></tt> and <tt><font
+  color=#00aa00>Alpha</font></tt> shows the number of lines that are
+  target dependent for both the HP Hppa and DEC Alpha targets.
+<p>
+  The bulk of the <tt>3,023</tt> generic to SML/NJ is involved in the
+  generation of MLRisc trees. Once this is done the incremental cost
+  of adding a target is between <tt>600</tt> to <tt>700</tt> lines.
+<p>
+  The MLRISC column shows that the bulk of MLRISC is quite generic and
+a client is saved from writing <tt>11,415</tt> lines of code.
+
+<p>
+  <TABLE align=right border=1>
+   <THEAD>
+     <tr><th> <th> SML/NJ <th> MLRISC
+   </THEAD>
+   <TBODY>
+     <tr><td>  <font color=#00aa00>Generic <td align=right> 121 + 3,023
+					   <td align=right> 15,686 + 6,814
+     <tr><td>  <font color=#00aa00>Hppa    <td align=right>  32 + 725
+					   <td align=right>  920 + 2,285
+     <tr><td>  <font color=#00aa00>Alpha   <td align=right>  614  
+					   <td align=right> 2,316
+   <thead>
+     <tr><th>TOTAL <th align=right> 153 + 4,362 
+					   <th align=right> 16,606 + 11,415
+   </thead>
+   </TBODY>
+  </TABLE>
+  If one were to include the preliminary numbers for global acyclic
+  scheduling in the above table, we find that the incremental cost
+  required by the client is quite small -- approximately <tt>153</tt>
+  lines of which <tt>121</tt> are generic. However, the scheduling
+infra structure is quite large, a lot of it being quite generic. 
+
+    <font size=-2>
+    <hr>
+    <address><a href="mailto:george@canna.research.bell-labs.com">Lal George</a></address>
+<!-- Created: Thu Apr 16 22:58:51 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Tue Apr 28 11:40:06 EDT 1998
+<!-- hhmts end -->
+    </font>
+  </body>
+</html>

@@ -1,0 +1,105 @@
+			R  O  A  D  M  A  P
+
+Version numbers are tentative, and I have overestimated the time each
+stage will take. Please provide me a similar roadmap if you are doing
+any work that should be merged into this stream.
+
+ Version 	Time		Description
+ -------	----		-----------
+ 110.12		done 1/13	Included: 
+				  new array representation,
+				  literal lifting, and
+				  inplace code object updating.
+
+ 110.13 	done 1/18	MLRISC integration: 
+
+				 Introduces 'mega optimizations' into
+			       the MLRISC back end. This is mostly
+			       Allen's work. 
+
+			         The idea is to have these
+			       optimizations loaded at top level with
+			       an internal hook bound to the new
+			       optimizer. Thus these modules will
+			       not be part of the base heap image.
+
+ 110.14		done 2/22	PPC port:
+				Most of it is there already but 
+				needs debugging.
+
+ 110.15		done 3/17		GC API:
+
+				 The interface to GC will proceed
+			       through a fixed set of registers. This 
+			       means that the code generation must
+			       bundle up anything extra in a record
+			       and unbundle it on return.
+
+				 This will simplify, enormously, the 
+			       interface to GC and will also make
+			       fiddling around with register
+			       assignments trivial in comparison to 
+			       what one has to do now. That is to
+			       say, changes in register assignment
+			       may need little or no runtime system
+			       changes. 
+
+				 A performance improvement is??
+			       expected in returning from C calls,
+			       and going into and out of the garbage
+			       collector.
+
+				 It turns out that this is essential
+			       for the new x86 code generator.
+
+ 110.16		done 4/15       x86 code generator:
+
+			       Depends On: 	110.13, 110.15
+
+				 A robust MLRISC x86 code generator 
+			       exists already, which produces
+			       substantially better floating point 
+			       performance and comparable integer
+			       performance. 110.16 is intended
+			       to get this version with reasonable
+			       compile time performance. 
+
+				 I am (almost) certain I understand
+			       how to get good integer	performance. 
+			       The missing piece of the puzzle is
+			       keeping things in registers, but all 
+			       the techniques I am aware of are
+			       heavy weight. 
+
+				 Good integer performance must  
+			       (at least for now) be a loadable 
+			       'mega-optimization'.
+
+ 110.17  	4 weeks		New runtime:
+				
+ 				Depends On:	110.15
+
+ 110.xx		  -		Polling Support:
+
+				   MacOS (in particular) requires 
+				polling support to handle signals.
+				  
+
+ 110.xx		  - 		
+
+FLINT optimizer:
+  
+  Since an earlier attempt at integrating the FLINT optimizer at Bell
+Labs (v 110.11) resulted in an unstable version, it is assumed that
+this integration is best done at Yale. 
+
+  The FLINT optimizer can in principle be incorporated at any point in
+this road map. The earlier the better. 
+
+
+Additional (not scheduled yet):
+
+	- MIPS code generator
+	- representation analysis for new arrays
+	-
+

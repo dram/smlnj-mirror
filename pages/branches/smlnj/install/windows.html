@@ -1,0 +1,117 @@
+<html>
+<head>
+<title>SML/NJ Manual Installation for Windows</title>
+<!-- Changed by: Dave MacQueen, 18-Jan-1998 -->
+</head>
+
+<body BGCOLOR="ffffff">
+<h1>
+SML/NJ Manual Installation for Windows 9X/NT
+</h1>
+<blockquote>
+These instructions are provided for those who need to install a
+version of SML/NJ that does not include an installer program (i.e. a
+self-installing .exe), or who need to recompile the
+runtime system, the SML/NJ compiler, or other tools provided with
+the SML/NJ distribution.
+<p>
+<blockquote>
+NOTE: These instructions apply to Windows NT and Windows 2000.  The build
+process will not currently work under Windows 9X because of
+differences in the syntax accepted by the MSDOS command prompt.
+</blockquote>
+
+<h2>Required tools</h2>
+<p>
+To unpack the distribution, you will need the Windows versions of the
+"GNU unzip" (<tt>gunzip</tt>) and "tape archive" (<tt>tar</tt>)
+utilities. These are freely available from <a
+href="ftp://ftp.cs.washington.edu/pub/ntemacs/utilities">
+ftp.cs.washington.edu:/pub/ntemacs/utilities</a>.  They are also
+included in common Unix-on-Windows systems like MKS Toolkit and
+UWIN.
+<p>
+Running the windows install.sh script or building manually requires a
+Unix shell (<em>ksh</em> preferred) and other common Unix tools
+(<tt>sed</tt>, <tt>grep</tt>). We use MKS Toolkit to provide these
+facilites, although other <em>ksh</em> based toolkits should work
+directly as well; e.g. <a
+href="http://www.research.att.com/sw/tools/uwin/">UWIN</a>.
+<p>
+Compiling the runtime system requires the following tools:
+<ul>
+<li>MS Visual C++, 2.0 or later  (we used 6.0)
+<li>MS Assembler (MASM), 6.11 or later
+<li>MS NMAKE (part of VC++), 1.50 or later
+</ul>
+<p>
+It should not be difficult to adapt the source code to build with
+other compilers, assemblers, and "make" utilities (see
+<tt>src\runtime\objs\makefile.win32</tt> and
+<tt>src\runtime\objs\mk.x86-win32</tt>).<p>
+
+<h2>Installing using configwin/install.sh</h2>
+<p>
+Fetch the tarball
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/windows/windows.tar.Z">
+windows.tar.Z</a> from
+<blockquote>
+ftp://ftp.research.bell-labs.com/dist/smlnj/working/windows/windows.tar.Z
+<\blockquote>
+<p>
+This package contains a configwin directory with a modified install.sh
+script for building the compiler.  You will also need the files
+<table>
+<tr><td><td> runtime.tar.Z
+<td><a href="../dist/runtime.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/runtime.tar.Z">ftp</a>
+<tr><td><td> bin.x86-win32.tar.Z
+<td><a href="../dist/bin.x86-win32.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.x86-win32.tar.Z">ftp</a>
+<tr><td><td> smlnj-lib.tar.Z
+<td><a href="../dist/smlnj-lib.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj-lib.tar.Z">ftp</a>
+<tr><td><td> ml-lex.tar.Z
+<td><a href="../dist/ml-lex.tar.Z">http</a> 
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-lex.tar.Z">ftp</a>
+<tr><td><td> ml-yacc.tar.Z
+<td><a href="../dist/ml-yacc.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-yacc.tar.Z">ftp</a>
+<tr><td><td> ml-burg.tar.Z
+<td><a href="../dist/ml-burg.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-burg.tar.Z">ftp</a>
+<tr><td><td> cml.tar.Z
+<td><a href="../dist/cml.tar.Z">http</a>
+<td><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/cml.tar.Z">ftp</a>
+</table>
+<p>
+Unpack the windows.tar.Z package by running
+<pre>
+    zcat windows.tar.Z | tar xvf -
+</pre>
+This will produce a directory named "windows" containing
+subdirectories <em>doc</em>, <em>configwin</em>, and <em>is-gen</em>.
+Move the configwin directory in which you want to install SML,
+along with the tarballs listed above.  Then from a Unix shell, run
+configwin/install.sh.
+<p>
+The windows/doc directory contains detailed instructions for building
+and installing SML/NJ manually (doc/WIN32-BUILD).  The is-gen
+directory contains code for a utility that is used to build an
+InstallShield project from the installation created by
+configwin/install.sh.
+</blockquote>
+
+<HR>
+<CENTER><STRONG>
+| <A HREF="index.html">SML/NJ Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Version 110.15 NEWS</title>
+  </head>
+
+  <body bgcolor="white">
+   <center><h1>Standard ML of New Jersey<BR>
+        Version 110.16, April 16, 1999</h1>
+   </center>
+
+   <center>
+      <tt> http://cm.bell-labs.com/cm/cs/what/smlnj/index.html </tt>
+   </center>
+
+<blockquote>
+<center>
+<h2> Warning </h2>
+</center>
+ <blockquote>
+ <blockquote>
+    <em>
+  	This version is intended for compiler hackers.  
+	We are in the midst of substantial structural changes, 
+	and this is a snapshot.  It only  supports the Sparc, 
+	Alpha, HPPA, and PowerPC architectures.  Furthermore, 
+	there are performance bugs that have to be fixed.
+    </em>
+ </blockquote> 
+ </blockquote>
+      
+<hr>
+
+<h2>Summary:</h2>
+  This version is primarily intended to have a working x86 back  
+  end that  will aid in migrating FLINT changes into the central 
+  repository. 
+  
+<hr>
+
+<h2>X86 back end</h2>
+
+  The new x86 back end in this version is one point in a series 
+  of experiments aimed at code generation for the x86. 
+<p>
+  See the paper X86-k32 under:
+    <a href="../compiler-notes/index.html">Compiler notes</a>.
+
+<pre>
+    cm.bell-labs.com/cm/cs/what/smlnj/compiler-notes/index.html
+</pre>
+  In summary, on a 433MHz Pentium II, floating point programs 
+  show a better improvement (over a factor of 2 for mandelbrot) 
+  than integer programs, when compared with 110.0.3. 
+<p>
+<TABLE border>
+<THEAD>
+<TR><TH> Name <TH>    110.0.3 <TH>  New <TH>   Speedup </TR>
+</THEAD>
+<TR><TD>    tsp	     <TD>       7.55<TD>    6.49<TD>     16.39%</TR>
+<TR><TD>    logic    <TD>       5.45<TD>    4.87<TD>     11.84%</TR>
+<TR><TD>    fft      <TD>       1.11<TD>    0.81<TD>     37.89%</TR>
+<TR><TD>    barnesHut<TD>       3.89<TD>    3.04<TD>     27.64%</TR>
+<TR><TD>    ray      <TD>       3.93<TD>    3.26<TD>     20.28%</TR>
+<TR><TD>    mandelbrot <TD>     1.32<TD>    0.56<TD>    134.22%</TR>
+<TR><TD>    simple   <TD>       2.85<TD>    2.76<TD>      3.02%</TR>
+<TR><TD>    vliw     <TD>       2.20<TD>    1.78<TD>     23.64%</TR>
+<TR><TD>    mlyacc   <TD>       0.49<TD>    0.47<TD>      3.86%</TR>
+<TR><TD>    lexgen   <TD>       0.97<TD>    0.91<TD>      6.99%</TR>
+<TR><TD>    knuthBendix<TD>     1.05<TD>    0.78<TD>     34.98%</TR>
+<TR><TD>    life     <TD>       0.14<TD>    0.12<TD>     13.51%</TR>
+<TR><TD>    boyer    <TD>       0.25<TD>    0.22<TD>     13.74%</TR>
+</TABLE>
+<p>
+  Compile time however, has uniformly increased by 40%. The compiler
+  compiles itself in 10.51 minutes, which is reasonable for the time
+  being. 
+
+  For very fast compile times, a quick and simple code generator is 
+  possible, but my priority right now is execution speed.
+
+<hr>
+<h2>Compiler changes</h2>
+
+  The CPS compiler will frequently generate a sequence of
+  <tt>SELECTS</tt>,  
+  and use the result in the rest of the function. This is bad
+  for the x86, which will normally spill the result of the select, 
+  reload it at the use, only to have it written into the heap. 
+<p>
+  Many of these selects are used just once, and so the MLRisc 
+  generator moves these pure operations to the point of their use, 
+  to reduce register pressure. It turns out that this optimization
+  is also useful for RISC machines. 
+<p>
+  110.16 on a 533MHz DEC Alpha, compiles itself in 5.92 minutes
+<pre>
+   {gc="26.961",sys="6.740",tot="382.769",usr="349.067"}
+</pre>
+  whereas 110.15 compiles the sources for 110.16 in 6.72 minutes
+<pre>
+   {gc="50.055",sys="9.132",tot="453.331",usr="394.143"}
+</pre>
+  an improvement of 14%. 
+
+<hr>
+<h2>MLRISC</h2>
+
+  The interface to the register allocator now takes a list of 
+  registers to prohibit from spilling.
+
+<hr>
+    <font size=-2>
+    <address><a href="mailto:george@research.bell-labs.com">
+		Lal George</a></address>
+<!-- Created: Thu Aug  6 00:13:09 EDT 1998 -->
+<!-- hhmts start -->
+Last modified: Thu Jun  3 11:20:13 EDT 1999
+<!-- hhmts end -->
+    </font>
+</blockquote>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!-- HTML/sourcemap.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SOURCE_MAP signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>SOURCE_MAP</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="SOURCE_MAP:SIG:SPEC"><CODE>SOURCE_MAP</CODE></A><BR>
+<B>structure </B><A NAME="SourceMap:STR:SPEC"><CODE>Compiler.SourceMap</CODE></A><B> : </B>SOURCE_MAP<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:SOURCE_MAP.charpos:TY:SPEC" HREF="#SIG:SOURCE_MAP.charpos:TY">charpos</A><BR>
+<B>type</B> 'a <A NAME="SIG:SOURCE_MAP.pair:TY:SPEC" HREF="#SIG:SOURCE_MAP.pair:TY">pair</A><BR>
+<B>type</B> <A NAME="SIG:SOURCE_MAP.region:TY:SPEC" HREF="#SIG:SOURCE_MAP.region:TY">region</A><BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.span:VAL:SPEC" HREF="#SIG:SOURCE_MAP.span:VAL">span</A> <B>:</B> (region * region) -&gt; region         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.nullRegion:VAL:SPEC" HREF="#SIG:SOURCE_MAP.nullRegion:VAL">nullRegion</A> <B>:</B> region         <BR>
+<B>type</B> <A NAME="SIG:SOURCE_MAP.sourceloc:TY:SPEC" HREF="#SIG:SOURCE_MAP.sourceloc:TY">sourceloc</A><BR>
+<B>type</B> <A NAME="SIG:SOURCE_MAP.sourcemap:TY:SPEC" HREF="#SIG:SOURCE_MAP.sourcemap:TY">sourcemap</A><BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.newmap:VAL:SPEC" HREF="#SIG:SOURCE_MAP.newmap:VAL">newmap</A> <B>:</B> (charpos * sourceloc) -&gt; sourcemap         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.newline:VAL:SPEC" HREF="#SIG:SOURCE_MAP.newline:VAL">newline</A> <B>:</B> sourcemap -&gt; charpos -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.resynch:VAL:SPEC" HREF="#SIG:SOURCE_MAP.resynch:VAL">resynch</A> <B>:</B> sourcemap -&gt; (charpos * {fileName : string option, line : int, column : int option}) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.forgetOldPositions:VAL:SPEC" HREF="#SIG:SOURCE_MAP.forgetOldPositions:VAL">forgetOldPositions</A> <B>:</B> sourcemap -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.filepos:VAL:SPEC" HREF="#SIG:SOURCE_MAP.filepos:VAL">filepos</A> <B>:</B> sourcemap -&gt; charpos -&gt; sourceloc         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.fileregion:VAL:SPEC" HREF="#SIG:SOURCE_MAP.fileregion:VAL">fileregion</A> <B>:</B> sourcemap -&gt; region -&gt; sourceloc pair list         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.positions:VAL:SPEC" HREF="#SIG:SOURCE_MAP.positions:VAL">positions</A> <B>:</B> sourcemap -&gt; sourceloc -&gt; charpos list         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.lastChange:VAL:SPEC" HREF="#SIG:SOURCE_MAP.lastChange:VAL">lastChange</A> <B>:</B> sourcemap -&gt; charpos         <BR>
+<B>val</B> <A NAME="SIG:SOURCE_MAP.newlineCount:VAL:SPEC" HREF="#SIG:SOURCE_MAP.newlineCount:VAL">newlineCount</A> <B>:</B> sourcemap -&gt; region -&gt; int         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:SOURCE_MAP.charpos:TY"><CODE><B>type</B> charpos</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.pair:TY"><CODE><B>type</B> 'a pair</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.region:TY"><CODE><B>type</B> region</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.span:VAL"><CODE>span (<VAR>re</VAR>, <VAR>re2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.nullRegion:VAL"><CODE>nullRegion
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.sourceloc:TY"><CODE><B>type</B> sourceloc</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.sourcemap:TY"><CODE><B>type</B> sourcemap</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.newmap:VAL"><CODE>newmap (<VAR>ch</VAR>, <VAR>so</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.newline:VAL"><CODE>newline <VAR>so</VAR> <VAR>ch</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.resynch:VAL"><CODE>resynch <VAR>so</VAR> (<VAR>ch</VAR>, {<VAR>fileName</VAR>, <VAR>line</VAR>, <VAR>column</VAR>})
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.forgetOldPositions:VAL"><CODE>forgetOldPositions <VAR>so</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.filepos:VAL"><CODE>filepos <VAR>so</VAR> <VAR>ch</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.fileregion:VAL"><CODE>fileregion <VAR>so</VAR> <VAR>re</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.positions:VAL"><CODE>positions <VAR>so</VAR> <VAR>so</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.lastChange:VAL"><CODE>lastChange <VAR>so</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:SOURCE_MAP.newlineCount:VAL"><CODE>newlineCount <VAR>so</VAR> <VAR>re</VAR>
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

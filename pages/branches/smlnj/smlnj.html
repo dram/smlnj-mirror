@@ -1,0 +1,103 @@
+<!-- Copyright (c) 1996 Lucent Technologies; Bell Laboratories -->
+<!-- Changed by: John Reppy,  19-Dec-1997 -->
+<!-- Changed by: Lal George,  5-Dec-1996 -->
+
+<HTML>
+  <TITLE>SML/NJ background information</TITLE>
+<BODY BGCOLOR="ffffff">
+<H1>What is Standard ML of New Jersey?</H1>
+<HR>
+
+<blockquote>
+<STRONG>Standard ML of New Jersey</STRONG> (SML/NJ) is a compiler and
+programming environment for the <A HREF="sml.html"><I>Standard
+ML</I></A> programming language.  It was originally developed jointly
+at Bell Laboratories and <A
+HREF="http://www.cs.princeton.edu/">Princeton University</A>, and is
+now a joint project between researchers at <A
+HREF="http://cm.bell-labs.com/">Bell Laboratories</A> (<A
+HREF="http://www.lucent.com/">Lucent Technologies</A>), <A
+HREF="http://www.cs.princeton.edu/">Princeton University</A>, <A
+HREF="http://www.cs.yale.edu/">Yale University</A> 
+(<A HREF="http://flint.cs.yale.edu/">The FLINT Project</A>), and <A
+HREF="http://www.research.att.com/">AT&amp;T Research</A>.
+<p>
+The current release of SML/NJ is
+ <a href="NEWS/110-README.html">Version 110</a>,
+which implements the
+<a href="sml97.html">SML '97</a>
+revision of the Standard ML language, including the new
+<a href="doc/basis/index.html">Standard Basis</a>
+library.
+<p>
+<STRONG>SML/NJ</STRONG> is distributed free of charge with source
+code, but with no warranty.  You may use, copy, modify, and distribute
+the software provided that you preserve the copyright notice and don't
+mention Bell Labs or Lucent Technologies in your advertising without
+prior written agreement; see the <A HREF="license.html">license and
+copyright notice</A> for details.
+<p>
+Standard ML of New Jersey is written in Standard ML (except for the
+runtime system, which is written in C).  SML/NJ has been used to
+implement a significant number of large systems, mainly in the
+fields of applied logic and verification (HOL 90, Isabelle, Step),
+and program analysis and advanced compilers.  See Andrew Appel's
+<A HREF="http://www.cs.princeton.edu/~appel/smlnj/projects.html">
+projects page</A>.
+<p>
+Here is a summary of some of the major features of the SML/NJ system.
+<UL>
+<LI>The core of the SML/NJ system is an agressively optimizing compiler
+that produces native machine code for most commonly used
+architectures: x86 (IA32), Sparc, MIPS, IBM Power 1 (PowerPC), HPPA, and Alpha.
+<p>
+<LI>SML/NJ runs under Windows 95 and NT as well as many flavors of
+Unix.  Renewed support for MacOS is planned for the next release.
+<p>
+<LI>SML/NJ provides an interactive top level based on incremental compilation,
+but it can produce stand-alone executables using the exportFn function.
+<p>
+<LI>SML/NJ uses Matthias Blume's <em>Compilation Manager</em>,
+<A HREF="doc/CM/index.html">CM</A>,
+to greatly simplify the development of large software projects.
+<p>
+<LI>A variety of general-purpose data structures, algorithms
+and utilities (such as finite sets and maps, regular expressions,
+pretty-printing) are provided by the
+<A HREF="doc/smlnj-lib/index.html">
+SML/NJ library</A>.
+<p>
+<LI>Concurrent programming in SML is supported by the
+<a href="http://cm.bell-labs.com/cm/cs/who/jhr/sml/cml/index.html">
+<em>Concurrent ML</em></a>
+library.
+<p>
+<LI>
+<a href="http://cm.bell-labs.com/cm/cs/who/jhr/sml/eXene/index.html">
+<em>eXene</em></a> is a graphical interface toolkit for X-windows based on
+Concurrent ML.
+<p>
+<LI>SML/NJ extends the SML '97 language with
+higher-order functors, OR-patterns, first-class continuations, 
+and a number of other useful <a href="doc/features.html">features</a>.
+<p>
+<LI>Support for manipulating "object languages" (e.g. logics, calculi,
+simple programming languages, specification languages) is provided by
+a simple <a href="doc/quote.html">quote/anitquote</a> mechanism.
+</UL>
+
+</blockquote>
+<p>
+<HR>
+<CENTER><STRONG>
+| <A HREF="index.html">SML/NJ Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1996,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>

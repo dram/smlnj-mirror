@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>Usage</title>
+  </head>
+
+  <body BGCOLOR="white">
+      <h1>Using the SML/NJ System</h1>
+<P>
+This page covers some basic questions on how to use the SML/NJ system.
+<p>
+
+<DL>
+<A NAME="starting"></A>
+<DT><strong>How do I start SML?</strong> <DD>
+<P>
+Under Unix, you should make sure that the bin directory containing
+the sml command is in your path (defined by the PATH shell variable).
+If SMLHOME is defined to be the directory where SML/NJ was installed,
+then the sml command would be $SMLHOME/bin/sml.  Another common place
+where the sml command might be installed is the directory /usr/local/bin.
+You can invoke sml by giving a full file name
+<pre>
+  /usr/local/bin/sml
+</pre>
+or, if the sml command is in a directory in your path, just type:
+<pre>
+  sml
+</pre>
+<p>
+Under Windows, you can run SML/NJ by double clicking on the SML icon.
+Or ...
+<p>
+<A NAME="quiting"></A>
+<DT><strong>How do I quit SML?</strong> <DD>
+<P>
+Typing the EOF character at the interactive top level will quit sml.
+The EOF key is typically ctrl-D under Unix and ctrl-Z under Windows,
+where you'll need to press the return/enter key to make it take
+effect.  Another method is to call the function
+<code>OS.Process.exit</code>:
+<pre>
+  OS.Process.exit(OS.Process.success);
+</pre>
+The two status values definied in <code>OS.Process</code> are
+<code>success</code> and <code>failure</code>.
+See the <a href="../basis/pages/os-process.html"><code>OS.Process</code></a>
+documentation.  The <code>OS.Process.exit</code> function is the
+proper means of quiting sml from within a program.
+<p>
+<A NAME="loadFile"></A>
+<DT><strong>How do I load a program from a file?</strong> <DD>
+<p>
+The function
+<pre>
+  use: string -> unit
+</pre>
+is defined at top level and will load a file containing SML source
+code if applied to a string containing the name of the file (i.e. a
+file path name in the syntax of the host operating system).  For
+instance
+<pre>  
+  use "../lib/sort.sml";
+</pre>  
+would cause the contents of the file "<code>../lib/sort.sml</code>" (assuming Unix
+file name syntax) to be loaded into the top-level interactive system
+as though it had been typed or pasted into the top-level interactive
+loop.
+<p>
+The function name <code>use</code> is a top-level synonym for the
+function <a href="../Compiler/pages/interact.html#SIG:INTERACT.useFile:VAL:SPEC">
+<code>Compiler.Interact.useFile</code></a>.
+<p>
+The <code>use</code> function is convenient and adaquate for casual
+use, but it is not the recommended way to load an entire multifile
+program.  For serious program development, it is much better to use
+the facilities of the compilation manager,
+<a href="../CM/index.html"><strong>CM</strong></a>.
+<p>
+<A NAME="loadLib"></A>
+<DT><strong>How do I load libraries?</strong><DD>
+<p>
+It depends on what you mean by "load".  A brute force method would be
+to determine the pathname of the source code for the library and load
+the source code with the "use" command, but this is not recommended.
+A much better technique is to use <a href="../CM/index.html">CM</a>,
+the built-in Compilation Manager.
+<p>
+If you want to use a library as part of a CM-managed program,
+then you simply list the library's description file in your own
+project's description file.
+<p>
+If you want to be able to access the bindings that the library exports
+at the interactive prompt, then you must issue the command:
+<pre>
+  CM.make' ("&lt;library-description-file&gt;", false);
+</pre>
+or, if you are using the latest "working" version of SML/NJ (110.9 or later):
+<pre>
+  CM.make' { group = "&lt;library-description-file&gt;",
+             force_relink = false };
+</pre>
+Of course, you must replace the placeholder
+<code>&lt;library-description-file&gt;</code> with the pathname of the
+library's description file (note that CM uses the shell environment
+variable CM_PATH when looking for description files).  If the pathname
+of the library happens to be simply "sources.cm", then you don't need
+to specify it at all.  In that case simply say
+<pre>
+  CM.make ();
+</pre>
+<p>
+CM also provides an <em>autoloading feature</em>, which causes selected
+library modules to be loaded automatically when they are mentioned in
+the interactive system.  By default, the Util and Unix sections of
+the SML/NJ Library are registered for autoloading when the SML/NJ
+system is built.  This means that if you refer to any of these library 
+modules in code entered into the interactive system (directly or via
+the function <code>use</code>), they will be loaded automatically by
+CM.  Which libraries are initially registered for autoloading is
+determined by variables set in the config/targets file, but users can
+register their own libraries for autoloading using the <code>CM.autoload'</code>
+function.
+<p>
+See the <a href="../CM/index.html">CM manual</a> for further information.
+<p>
+
+<a name="getDir"></a>
+<dt><strong>How do I determine the current directory of the SML process?
+</strong><dd>
+<p>
+The function <code>OS.FileSys.getDir</code> returns the current 
+directory of the interactive loop or of an SML program that calls it.
+<p>
+
+<a name="chDir"></a>
+<dt><strong>How do I change the current directory of the SML process?</strong><dd>
+<p>
+The function <code>OS.FileSys.chDir</code> sets the current 
+directory of the interactive loop or of an SML program that calls it.
+<p>
+
+<A NAME="saveImage"></A>
+<DT><strong>How do I save an SML image?</strong><DD>
+<p>
+To save a heap-image of the SML/NJ interactive system, use the function
+<pre>
+  <A HREF="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exportML:VAL">exportML</A>: string -> bool
+</pre>
+which is defined in the
+<A HREF="../SMLofNJ/pages/smlnj.html"><code>SMLofNJ</code></A>
+structure.  A call such as
+<pre>
+  exportML "image"
+</pre>
+causes a heap image to be saved as <code>image.<i>arch-opsys</i></code> where
+<code><i>arch-opsys</i></code> designates the architecture and
+operating system (e.g. <code>image.sparc-solaris</code>).  The original
+call of <code>exportML</code> returns false.
+<p>
+<A NAME="runImage"></A>
+<DT><strong>How do I run a saved SML image?</strong><DD>
+<p>
+Having created a heap image file, say <code>image.<i>arch-opsys</i></code>
+with the 
+<A HREF="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exportML:VAL">exportML</A>
+function, you can run the image, resuming the interactive loop from
+the point where <code>exportML</code> was called by executing
+<pre>
+  sml @SMLload=image.<i>arch-opsys</i>
+</pre>
+(where <code><i>arch-opsys</i></code> will be a particular
+architecture, operating system combination like
+"<code>sparc-solaris</code>"), or just
+<pre>
+  sml @SMLload=image
+</pre>
+since <code>sml</code> can figure out the right <code><i>arch-opsys</i></code>
+suffix.
+Execution will
+resume at the point where <code>exportML</code> returned, with the return value
+being true to indicate that we are in the resumed image.
+<p>
+<A NAME="standAlone"></A>
+<DT><strong>How do I create a stand-alone SML application?</strong><DD>
+<p>
+To create a stand-alone application, use the function
+<pre>
+  <A HREF="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exportFn:VAL">exportFn</A>: (string * ((string * string list) -> OS.Process.status)) -> unit 
+</pre>
+which is defined in the
+<A HREF="../SMLofNJ/pages/smlnj.html"><code>SMLofNJ</code></A>
+structure.  This function also produces a heap image file that must
+be passed as an <code>@SMLload</code> parameter to <code>sml</code> to be run.
+If you want to create a simple executable image, see the
+<a href="#executable">following question</a>.
+<p>
+<A NAME="executable"></A>
+<DT><strong>How do I create an executable image for an SML/NJ application?</strong><DD>
+<p>
+It is possible to combine a heap image with the SML/NJ runtime to
+create a normal executable file by using Lorenz Huelsbergen's
+<a href="../heap2exec/index.html"> heap2exec</a> utility.
+
+</DL>
+<p>
+<HR>
+<CENTER><STRONG>
+| <A HREF="../index.html">SML/NJ Documentation Home Page</A> |<br>
+| <A HREF="../../index.html">SML/NJ Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments or questions to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A>.<BR>
+Created by <A HREF="http://cm.bell-labs.com/cm/cs/who/dbm/">David MacQueen</A>
+on Wednesday, 9 Apr 1997.
+<BR>
+<!-- hhmts start -->
+Last modified: Fri Feb 19 16:24:23 EST 1999
+<!-- hhmts end -->
+<BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1997,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+<!-- Created: Wed Apr  9 14:20:59 EDT 1997 -->
+  </body>
+</html>

@@ -1,0 +1,28 @@
+#! /bin/ksh
+
+CM=${CM?"must define path for sml-cm bound to CM"}
+
+if [[ $# != 1 ]] then
+    echo "Error: Usage: build [Hppa | Alpha32]"
+    exit 1
+fi
+case $1 in
+    Alpha32) ARCH=Alpha32
+    ;;
+    Hppa) ARCH=Hppa
+    ;;
+    X86) ARCH=X86
+    ;;
+    *) echo "Error: Unknown architecture"
+       exit 1
+    ;;
+esac
+
+$CM <<XXX
+   CM.make();
+   SMLofNJ.exportFn
+	("bin/heap/mlriscTiger", 
+ 	 fn (_, [tfile]) => 
+	       (${ARCH}Tiger.compile tfile; OS.Process.success)):unit;
+XXX
+

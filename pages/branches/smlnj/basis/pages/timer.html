@@ -1,0 +1,126 @@
+<!-- HTML/timer.html -->
+
+<!-- COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Timer structure</TITLE>
+</HEAD>
+<BODY>
+<A NAME="top"></A>
+<H1 align=CENTER>The Standard ML Basis Library</H1>
+<HR>
+
+
+<H3>The <CODE>Timer</CODE> structure</H3>
+<P>
+The Timer structure provides facilities for measuring the passing of wall clock (real) time and the amount of time the running process has had the CPU (user time), has been active in the OS kernel (system time), and has spent on garbage collection (GC time). 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="TIMER:SIG:SPEC"><CODE>TIMER</CODE></A><BR>
+<B>structure </B><A NAME="Timer:STR:SPEC"><CODE>Timer</CODE></A><B> : </B>TIMER<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:TIMER.cpu_timer:TY:SPEC" HREF="#SIG:TIMER.cpu_timer:TY">cpu_timer</A><BR>
+<B>type</B> <A NAME="SIG:TIMER.real_timer:TY:SPEC" HREF="#SIG:TIMER.real_timer:TY">real_timer</A><BR>
+<B>val</B> <A NAME="SIG:TIMER.startCPUTimer:VAL:SPEC" HREF="#SIG:TIMER.startCPUTimer:VAL">startCPUTimer</A> <B>:</B> unit -&gt; cpu_timer         <BR>
+<B>val</B> <A NAME="SIG:TIMER.checkCPUTimer:VAL:SPEC" HREF="#SIG:TIMER.checkCPUTimer:VAL">checkCPUTimer</A> <B>:</B> cpu_timer -&gt; {usr : Time.time, sys : Time.time, gc : Time.time}         <BR>
+<B>val</B> <A NAME="SIG:TIMER.totalCPUTimer:VAL:SPEC" HREF="#SIG:TIMER.totalCPUTimer:VAL">totalCPUTimer</A> <B>:</B> unit -&gt; cpu_timer         <BR>
+<B>val</B> <A NAME="SIG:TIMER.startRealTimer:VAL:SPEC" HREF="#SIG:TIMER.startRealTimer:VAL">startRealTimer</A> <B>:</B> unit -&gt; real_timer         <BR>
+<B>val</B> <A NAME="SIG:TIMER.checkRealTimer:VAL:SPEC" HREF="#SIG:TIMER.checkRealTimer:VAL">checkRealTimer</A> <B>:</B> real_timer -&gt; Time.time         <BR>
+<B>val</B> <A NAME="SIG:TIMER.totalRealTimer:VAL:SPEC" HREF="#SIG:TIMER.totalRealTimer:VAL">totalRealTimer</A> <B>:</B> unit -&gt; real_timer         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:TIMER.cpu_timer:TY"><CODE><B>type</B> cpu_timer</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:TIMER.real_timer:TY"><CODE><B>type</B> real_timer</CODE></A>
+<DD>
+Type <CODE>real_timer</CODE> is the type of wall clock (real)         timers, and <CODE>cpu_timer</CODE> is the type of CPU timers.         
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:TIMER.startCPUTimer:VAL"><CODE>startCPUTimer <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns a CPU timer that measures the time the process is 	  computing (has control of the CPU) starting at this call.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:TIMER.checkCPUTimer:VAL"><CODE>checkCPUTimer <VAR>ct</VAR>
+          </CODE></A>
+<DD>
+returns the user time, system time and GC time that have 	  accumulated since the timer <VAR>ct</VAR> was started.  The 	  amount of GC time is also included in the user time.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:TIMER.totalCPUTimer:VAL"><CODE>totalCPUTimer <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns a CPU timer that measures the time the process is 	  computing (has control of the CPU) starting at some system-dependent       initialization time.
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:TIMER.startRealTimer:VAL"><CODE>startRealTimer <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns a wall clock (real) timer that measures how much time 	  passes, starting from the time of this call.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:TIMER.checkRealTimer:VAL"><CODE>checkRealTimer <VAR>rt</VAR>
+          </CODE></A>
+<DD>
+returns the amount of (real) time that has passed since the 	  timer <VAR>rt</VAR> was started.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:TIMER.totalRealTimer:VAL"><CODE>totalRealTimer <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns a wall clock (real) timer that measures how much time 	  passes, starting from some system-dependent initialization time.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+The accuracy of the user, system and GC times depends on the resolution of the system timer and the function call overhead in the OS interface. In particular, very small intervals might not be reported accurately.
+<P>
+On a Unix system, the user and system time reported by a CPU timer do not include the time spent in child processes.   
+<BLOCKQUOTE>
+<B>Implementation note:</B><BR>
+
+<P>
+Some operating systems may lack the ability to measure CPU time consumption, in which case the real time should be returned instead.
+</BLOCKQUOTE>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="time.html#Time:STR:SPEC">Time</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="#top">TOP</A>
+   | <A HREF="system-chapter.html">Parent</A> | <A HREF="sml-std-basis.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified October 31, 1997</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy.</A></I><BR>
+
+Copyright &copy; 1997 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY>
+</HTML>

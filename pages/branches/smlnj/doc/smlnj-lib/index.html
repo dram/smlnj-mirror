@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Draft//EN">
+
+<!-- index.html -->
+<!-- Copyright (c) 1996 AT&T Research -->
+<!-- Created: 7-Oct-96 -->
+<!-- By: John Reppy (jhr@research.att.com) -->
+
+
+<HTML>
+<HEAD>
+
+<TITLE>SML/NJ Library</TITLE>
+
+</HEAD>
+
+<BODY BGCOLOR="FFFFFF">
+
+<H1 ALIGN=CENTER>The SML/NJ Library</H1>
+<P>
+<blockquote>
+The SML/NJ Library consists of the following components
+<UL>
+<LI> Util - general data structures like sets and maps
+<LI> Unix - system interfaces special to Unix
+<LI> INet - programming with sockets
+<LI> PP - pretty printing
+<LI> RegExp - regular expression pattern matching
+<LI> HTML - HTML parsing and processing
+<LI> Reactive - Sugarcube-like reactive programming
+</UL>
+The documentation for the SML/NJ Library is incomplete.  However, much
+of the Util component and the RegExp component of the library are
+covered in the <A HREF="Manual/toc.html"><strong>SML/NJ Library
+Manual</strong></A>.  For documentation of Util modules not covered
+here, see the comments in the source files for the various signature
+modules (e.g. src/smlnj-lib/Util/hash-table-sig.sml).
+<p>
+For other components, the corresponding source directories
+(e.g. src/smlnj-lib/Unix) contain README files, and further
+documentation can be gleaned from the source files, particularly the
+signature files.
+<p>
+To assist in converting code from earlier versions of SML/NJ, there is a brief 
+<A HREF="PORTING">Porting Guide</A>
+that lists name changes, deletions, and additions in the library
+relative to the 0.3beta release from 1994.  This Porting Guide is
+also found in the smlnj-lib source directory in the file named PORTING.
+<p>
+<blockquote>
+<strong>NOTE:</strong>.  In order to compile a program that uses
+	the SML/NJ Library under CM, you need to include "smlnj-lib.cm" in the
+	program's CM description file.  This will work assuming the
+	CM path is set up properly to find the standard libraries; if
+	not, you may have to set the path manually (<code>CM.set_path</code>) or
+	via the CM_PATH environment variable.
+</blockquote>
+</blockquote>
+<HR>
+<CENTER><STRONG>
+| <A HREF="../../index.html">SML/NJ Home Page</A> | <br>
+| <A HREF="../index.html">SML/NJ Documentation Home Page</A> |
+</STRONG></CENTER>
+<HR>
+Send your comments to <A HREF="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</A><BR>
+<FONT SIZE="-3">
+  Copyright &#169; 1998,
+  <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.
+  <BR>
+</FONT>
+</BODY>
+</HTML>

@@ -1,0 +1,135 @@
+<!-- HTML/staticenv.html -->
+
+<!-- COPYRIGHT (c) 1997 AT\|@AMP\|T Laboratories. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The STATICENV signature</TITLE>
+</HEAD>
+<BODY>
+<BODY><H3>The <CODE>STATICENV</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="STATICENV:SIG:SPEC"><CODE>STATICENV</CODE></A><BR>
+<B>structure </B><A NAME="StaticEnv:STR:SPEC"><CODE>Compiler.StaticEnv</CODE></A><B> : </B>STATICENV<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:STATICENV.staticEnv:TY:SPEC" HREF="#SIG:STATICENV.staticEnv:TY">staticEnv</A><BR>
+<B>type</B> <A NAME="SIG:STATICENV.binding:TY:SPEC" HREF="#SIG:STATICENV.binding:TY">binding</A><BR>
+<B>exception</B> <A NAME="SIG:STATICENV.Unbound:EXN:SPEC" HREF="#SIG:STATICENV.Unbound:EXN">Unbound</A><BR>
+<B>exception</B> <A NAME="SIG:STATICENV.SpecialEnv:EXN:SPEC" HREF="#SIG:STATICENV.SpecialEnv:EXN">SpecialEnv</A><BR>
+<B>val</B> <A NAME="SIG:STATICENV.empty:VAL:SPEC" HREF="#SIG:STATICENV.empty:VAL">empty</A> <B>:</B> staticEnv         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.look:VAL:SPEC" HREF="#SIG:STATICENV.look:VAL">look</A> <B>:</B> (staticEnv * Symbol.symbol) -&gt; binding         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.bind:VAL:SPEC" HREF="#SIG:STATICENV.bind:VAL">bind</A> <B>:</B> (Symbol.symbol * binding * staticEnv) -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.special:VAL:SPEC" HREF="#SIG:STATICENV.special:VAL">special</A> <B>:</B> ((Symbol.symbol -&gt; binding) * (unit -&gt; Symbol.symbol list)) -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.atop:VAL:SPEC" HREF="#SIG:STATICENV.atop:VAL">atop</A> <B>:</B> (staticEnv * staticEnv) -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.consolidate:VAL:SPEC" HREF="#SIG:STATICENV.consolidate:VAL">consolidate</A> <B>:</B> staticEnv -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.consolidateLazy:VAL:SPEC" HREF="#SIG:STATICENV.consolidateLazy:VAL">consolidateLazy</A> <B>:</B> staticEnv -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.app:VAL:SPEC" HREF="#SIG:STATICENV.app:VAL">app</A> <B>:</B> ((Symbol.symbol * binding) -&gt; unit) -&gt; staticEnv -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.map:VAL:SPEC" HREF="#SIG:STATICENV.map:VAL">map</A> <B>:</B> (binding -&gt; binding) -&gt; staticEnv -&gt; staticEnv         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.fold:VAL:SPEC" HREF="#SIG:STATICENV.fold:VAL">fold</A> <B>:</B> (((Symbol.symbol * binding) * 'a) -&gt; 'a) -&gt; 'a -&gt; staticEnv -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:STATICENV.sort:VAL:SPEC" HREF="#SIG:STATICENV.sort:VAL">sort</A> <B>:</B> staticEnv -&gt; (Symbol.symbol * binding) list         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:STATICENV.staticEnv:TY"><CODE><B>type</B> staticEnv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.binding:TY"><CODE><B>type</B> binding</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.Unbound:EXN"><CODE><B>exception</B> Unbound</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.SpecialEnv:EXN"><CODE><B>exception</B> SpecialEnv</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.empty:VAL"><CODE>empty
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.look:VAL"><CODE>look (<VAR>st</VAR>, <VAR>sy</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.bind:VAL"><CODE>bind (<VAR>sy</VAR>, <VAR>bi</VAR>, <VAR>st</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.special:VAL"><CODE>special (<VAR>f</VAR>, <VAR>g</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.atop:VAL"><CODE>atop (<VAR>st</VAR>, <VAR>st2</VAR>)
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.consolidate:VAL"><CODE>consolidate <VAR>st</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.consolidateLazy:VAL"><CODE>consolidateLazy <VAR>st</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.app:VAL"><CODE>app <VAR>f</VAR> <VAR>st</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.map:VAL"><CODE>map <VAR>f</VAR> <VAR>st</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.fold:VAL"><CODE>fold <VAR>f</VAR> <VAR>a</VAR> <VAR>st</VAR>
+          </CODE></A>
+<DD>
+    
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:STATICENV.sort:VAL"><CODE>sort <VAR>st</VAR>
+          </CODE></A>
+<DD>
+<BR>
+
+</DL>
+<HR>
+</BODY></BODY>
+</HTML>

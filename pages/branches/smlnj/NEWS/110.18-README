@@ -1,0 +1,110 @@
+			S  M  L   /   N  J
+
+                  1  1  0  .  1  8      N  E  W  S
+			
+  		         July 2, 1999
+
+				WARNING
+
+  	This version is intended for compiler hackers.
+	We are in the midst of substantial structural changes,
+	and this is a snapshot.
+
+       http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+Summary:
+  
+  1) Infra-structure  to support new CM.
+  2) Replaced several files used in comp-lib with those 
+     from the Standard ML Library.
+
+Note 1: smlnj-lib will now be required in order to compile the compiler.
+
+Note 2: There is no impact in the speed of compiling the compiler as a
+        result of these changes. The compiler heap image on the alpha
+        actual shrunk from 7.9M to 7.8M.
+
+
+SML/NJ Lib changes:
+
+  Files deleted:
+    comp-lib/ordkey.sig 
+    comp-lib/binary-dict.sml
+    comp-lib/dynamic.sml 
+    comp-lib/mapf.sml 	
+    comp-lib/sort.sml	
+    comp-lib/intmapf.sml	
+    comp-lib/strghash.sml
+
+  Files changed:
+    viscomp-lib.cm
+    CodeGen/cpscompile/spill.sml
+    FLINT/clos/closure.sml
+    FLINT/clos/cps-split.sml
+    FLINT/cps/switch.sml
+    FLINT/flint/flintutil.sml
+    FLINT/flint/tvarcvt.sml
+    FLINT/kernel/ltybasic.sml
+    FLINT/kernel/ltydict.sml
+    FLINT/kernel/ltyextern.sml
+    FLINT/kernel/ltykernel.sml
+    FLINT/main/literals.sml
+    FLINT/opt/collect.sml
+    FLINT/opt/fcontract.sml
+    FLINT/opt/fixfix.sml
+    FLINT/opt/loopify.sml
+    FLINT/reps/coerce.sml
+    FLINT/trans/matchcomp.sml
+    FLINT/trans/translate.sml
+    FLINT/trans/transtypes.sml
+    MiscUtil/bignums/realconst.sml
+    MiscUtil/profile/profile.sml
+    Parse/lex/ml.lex
+    Parse/lex/tokentable.sml
+    Parse/parse/ml.grm
+    Semant/basics/env.sml
+    Semant/basics/symbol.sig
+    Semant/elaborate/elabsig.sml
+    Semant/elaborate/elabutil.sml
+    Semant/modules/entityenv.sml
+    Semant/modules/entpath.sml
+    Semant/modules/epcontext.sml
+    Semant/modules/instantiate.sml
+    Semant/modules/modules.sig
+    Semant/modules/modules.sml
+    Semant/modules/moduleutil.sml
+    Semant/modules/sigmatch.sml
+    Semant/pickle/pickmod.sml
+    Semant/pickle/shareread.sml
+    Semant/pickle/sharewrite.sml
+    Semant/pickle/unpickmod.sml
+    Semant/statenv/cmstatenv.sml
+    Semant/statenv/statenv.sml
+    Semant/types/eqtypes.sml
+    Semant/types/tuples.sml
+    Semant/types/typesutil.sml
+    TopLevel/environ/dynenv.sml
+    TopLevel/environ/environ.sml
+    TopLevel/environ/persmap.sml
+    TopLevel/environ/symenv.sml
+    TopLevel/main/version.sml
+    TopLevel/viscomp/control.sig
+    TopLevel/viscomp/control.sml
+
+
+
+CM Infra-structure changes:
+
+  Files added:
+    compiler/TopLevel/batch/smlfile.sml
+
+  Files changed:
+    cm/compile/cunit.sml
+    compiler/MiscUtil/util/errormsg.sig
+    compiler/MiscUtil/util/errormsg.sml
+    compiler/TopLevel/batch/binfile.sig
+    compiler/TopLevel/batch/binfile.sml
+    compiler/TopLevel/main/compile.sml
+    compiler/TopLevel/viscomp/generic-vc.sig
+    compiler/TopLevel/viscomp/generic-vc.sml
+    compiler/viscomp-lib.cm

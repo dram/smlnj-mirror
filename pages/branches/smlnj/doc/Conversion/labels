@@ -1,0 +1,79 @@
+types.html
+----------
+root: 1.1.
+"Checking"	 1.1.2.
+"Value"		 1.1.2.1.
+"Literals"	 1.1.2.2.
+"Defaulting"	 1.1.2.3.
+"Explicit"	 1.1.3.
+"LocalDT"	 1.1.4.
+"Replication"	 1.1.5.
+"Real-equality"	 1.1.6.
+
+core.html
+---------
+root: 1.2.
+"Rebind"	 1.2.1.
+"Infix"		 1.2.2.
+"NoRebind"	 1.2.3.
+
+modules.html
+------------
+root: 1.3.
+"SigDefs"	 1.3.1.
+"ReplSpecs"	 1.3.2.
+"WhereType"	 1.3.3.
+"LocalSharing"	 1.3.4.
+"SharingVsDefn"	 1.3.5.
+"NoDefShare"	 1.3.6.
+"StrSharing"	 1.3.7.
+"IncludeSigExp"	 1.3.8.
+"Opaque"	 1.3.9.
+"Equality"	 1.3.10.
+"Obsolete"	 1.3.11.
+"NoMultSpec"	 1.3.12.
+"Include"	 1.3.13.
+
+deviations.html
+---------------
+root: 1.4. SML/NJ Deviations 
+"ValRec"	 1.4.1.
+"WithTypeScope"  1.4.2.
+
+core-extensions.html
+---------------
+root: 1.5. SML/NJ Core Extensions
+"OrPatterns"	 1.5.1. or patterns
+"Vectors"	 1.5.2. vector expressions and patterns
+
+mod-extensions.html
+-------------------
+root: 1.6. SML/NJ Module Extensions
+"HOF"		 1.6.1. higher-order functors
+"StrDefSpecs"	 1.6.2. structure definition specs
+"WhereStruct"	 1.6.3. <code>where</code> clause for structure definitions
+"LayeredRedef"	 1.6.4. Layered redefinitions ignored
+"MergingInclude" 1.6.5. type spec merging with <code>include</code>
+
+libraries.html
+--------------
+root: 2. Library and Environment Changes
+
+"BasicTypes" 2.1. Basic Types
+"Arithmetic" 2.1.1. Arithmetic
+"Chars" 2.1.2. Characters and Strings
+"Lists" 2.1.3. Lists
+
+"IO" 2.2. Input/Output
+"TextIO" 2.2.1. TextIO
+"Print" 2.2.2. The print function
+
+"System" 2.3. System Facilities
+"Use" 2.3.1. Invoking the compiler
+"BasisOS" 2.3.2. OS structure in Basis
+"BasisPosix" 2.3.3. Posix structure in Basis
+"Unix" 2.3.4. The Unix structure
+
+"SMLNJ" 2.4. SML/NJ Facilities
+"SMLofNJ" 2.4.1. The SMLofNJ Structure
+"Flags" 2.4.2. Useful control flags
