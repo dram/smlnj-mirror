@@ -12,19 +12,26 @@
 These pages contain planning and other information related to the
 development of SML/NJ.  The purpose is to coordinate between the
 geographically dispersed subgroups of the sml-nj community.  These
-pages are currently not being publiced beyond the sml-nj mailing
+pages are currently not being publicized beyond the sml-nj mailing
 list.
 <p>
 We want these pages to keep track of who is doing what, when, and why,
-and to map dependencies between efforts.  These pages are maintained
-by Lal and Dave, so please send them updates and corrections and
-relevant links.  Also suggestions are welcome as to what additional
-information should be maintained here.  For instance, it would be
-useful to document procedures used for overall source and version
-control for SML/NJ.
+and to map dependencies between efforts.  We also maintain documentation
+on how to use the CVS repositories at Yale and SourceForge to maintain
+the SML/NJ source code and web pages.
+
+These pages are maintained by Lal and Dave, so please send them
+updates and corrections and relevant links.  Also suggestions are
+welcome as to what additional information should be maintained here.
+
 <p>
 <h3>News</h3>
 <DL> 
+<DT> <strong>SML/NJ web pages installed at SourceForge [10/17/01]</strong> [dbm]
+<DD> The SML/NJ web pages have been installed in the smlnj project CVS
+repository, and checked out into the project web page directory.
+See the section on the <a href="#SF">SML/NJ SourceForge project</a> below.
+<p>
 <DT> <strong>June 2001 SML/NJ Meeting</strong> [dbm]
 <DD> A status/planning meeting was held June 12, 2001 at Bell Labs.
 See the <a href="meeting.6.12.01.txt">meeting record</a>.  Send any
@@ -38,15 +45,33 @@ corrections to dbm.
 sample of version from 110.0.3 to 110.26.  See the Benchmarks section
 below.
 <p>
-<DT> <strong>Bug reports</strong>
-<DD> The bug report files have been brought up to date
-as of 21 Feb 2000.  As usual, see bugs.1401-1600, openbugs, and sortedbugs
-in
-<blockquote>
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs/">
-ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs/</a>.
-</blockquote>
 </DL>
+<p>
+<a name="SF">
+<h3>SML/NJ SourceForge project</h3>
+The <a href="https://sourceforge.net/projects/smlnj/">
+SML/NJ SourceForge project</a> is now in use and under active development.
+See the SourceForge <a href="sf-howto.html">HOWTO</a> page for instructions
+on using the smlnj project.
+
+Currently the CVS repository contains the bugs directory (module bugs) and the
+SML/NJ web pages (module htdocs, which is an alias for module pages).  The
+htdocs module is checkout out into the main project directory (/home/groups/s/sm/smlnj)
+to provide a mirror of the web pages at www.smlnj.org, which is served by
+SourceForge.
+
+The copy of the web pages at Bell Labs is now also a working copy
+checked out from the SourceForge repository.  For the time being, both
+the Bell Labs URL (<a href="http://cm.bell-labs.com/what/smlnj">
+http://cm.bell-labs.com/what/smlnj</a>) and the
+SourceForge URL (<a href="http://www.smlnj.org">http://www.smlnj.org</a>)
+will be maintained from this repository, so they should remain in sync.
+
+The plan is to move the source repository from Yale to SourceForge in
+the future.  This relocation will increase the number of people who
+can help to maintain the repository.
+
+<p>
 <p>
 <h3>Yale CVS Repository</h3>
 We are using the Yale CVS Repository to hold the master code for

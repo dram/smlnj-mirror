@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>SML/NJ Project Howto</title>
+  </head>
+
+  <body BGCOLOR="ffffff">
+    <h1>SML/NJ Project Howto</h1>
+
+This is a collection of hints and pointers to help new users of 
+SourceForge and CVS to use the facilities of the SML/NJ project.
+For general information on using SourceForge, see the
+<a href="http://sourceforge.net/docman/?group_id=1">
+SourceForge Documentation Manager</a> and the 
+"Getting Started with SourcForge" link on that page under the
+heading "General Documentation".
+<p>
+Note: <em>loginname</em> stands for the SourceForge user login name.
+<p>
+<h3> Project directory </h3>
+The SML/NJ project directory path is:
+<pre>
+   /home/groups/s/sm/smlnj/
+</pre>
+This directory contains subdirectories <code>htdocs</code> and <code>cgi-bin</code>.
+<p>
+
+<h3>Login to sourceforge user account</h3>
+<pre>
+   ssh -l loginname smlnj.sourceforge.net
+</pre>
+Your home directory will look something like: <code>/home/users/m/ma/macqueen</code>.
+
+<h3>Setting up CVS access</h3>
+<ol>
+<li> In your user Account Maintenance page, go to "Shell Account Information"
+     and click [Edit Keys] next to "CVS/SSH Shared Keys".  Insert contents
+     of ~/.ssh/identity.pub file on your local machine into the text box.
+     Make sure that when you cut and paste your key that it remains a single 
+     line of text!  Sometimes spurious line breaks are added when your
+     key is printed, and these will prevent CVS from working.  You can verify
+     that it worked by checking the contents of the .ssh/authorized_keys
+     file in your SourceForge home directory.
+<p>
+<li> Set CVS_RSH:
+<pre>
+     export CVS_RSH=ssh
+</pre>
+<li> Run ssh-agent and ssh-add for convenience, to avoid having to repeatedly
+type in your ssh passphrase or SourceForge password:
+<pre>
+     eval `ssh-agent`
+     ssh-add -p &lt;&lt;EOF
+     your pass phrase
+     EOF
+</pre>
+These last three commands can be, and probably should be, added to your 
+.profile or .login file.  "your pass phrase" refers to the pass phrase
+that you gave when you created your ssh identity files with ssh-keygen.
+Note that some versions of ssh do not support the -p flag, in which case
+you will have to run ssh-add interactively and type in your pass phrase.
+Unfortunately, the version of ssh available on the SourceForge shell servers
+is one of these.
+<li> Set CVSROOT:
+<pre>
+     export CVSROOT=<SF loginname>@cvs.smlnj.sourceforge.net:/cvsroot/smlnj
+</pre>
+<li> Execute cvs commands (without needing -d arguments, passwords,
+or pass phrases), e.g.: 
+<pre>
+     cvs update bugs
+</pre>
+</ol>
+
+<h3> Updating web pages </h3>
+You can copy an individual html source file (localfile) to the smlnj
+sourceforge site by executing a command like:
+<pre>
+   scp localfile loginname@smlnj.sourceforge.net:/home/groups/s/sm/smlnj/htdocs/
+</pre>
+However, updating the site web pages should be done by working on a
+checked-out copy of the web pages (module "pages" in the project
+CVS repository).  
+<p>
+Then to actually update the pages, you login to your SourceForge account
+and do
+<pre>
+   cd /home/groups/s/sm/smlnj/htdocs
+   ... set up cvs ...
+   export CVSROOT=<loginname>@cvs.smlnj.sourceforge.net:/cvsroot/smlnj
+   cvs update pages
+</pre>
+In order to do the cvs operations on your SourceForge shell server, it
+is a good idea to run ssh-keygen there to generate a new ssh key, and
+then add that key to the end of your .ssh/authorized_keys file.  You can
+also define CVS_RSH and run ssh-agent in your .profile at
+SourceForge to make things simpler.  Since the ssh at SourceForge does
+not appear to accept a pass phrase on standard input, you'll have to run
+ssh-add interactively after you log in.
+<p>
+    <hr>
+    <address><a href="mailto:macqueen@users.sourceforge.net">Dave MacQueen</a></address>
+<!-- Created: Fri Feb 16 12:36:42 EST 2001 -->
+<!-- hhmts start -->
+Last modified: Wed Feb 21 14:10:48 EST 2001
+<!-- hhmts end -->
+  </body>
+</html>
