@@ -1,0 +1,1399 @@
+Number: 1601
+Title:       SML/NJ terminates with `unexpected fault, signal = 11'
+Keywords:    SIGSEGV, codegen
+Submitter:   Leif Kornstaedt <kornstae@ps.uni-sb.de>
+Date:        01/24/2001
+Version:     Standard ML of New Jersey, Version 110.0.6, October 31, 1999
+System:      x86-linux
+Severity:    major
+Problem:     SML/NJ terminates with `unexpected fault, signal = 11'
+Code:        Alas, it's longish
+  See /home/sml/Dev/bugs/1601/smlnj-bug.
+
+Transcript:
+
+Standard ML of New Jersey, Version 110.0.6, October 31, 1999 [CM; autoload enabled]
+- CM.make ();
+[...]
+[introducing new bindings into toplevel environment...]
+val it = () : unit
+- Main.flattenFile "test";
+-- Parsing...
+-- Abstraction...
+84.10-84.21: warning: structure or functor `__pervasive' shadows previous one
+93.10-93.21: warning: structure or functor `__pervasive' shadows previous one
+114.54-114.57: warning: type `exn' shadows previous one
+170.11-170.15: warning: type `unit' shadows previous one
+171.9-171.12: warning: type `exn' shadows previous one
+187.13-187.18: warning: type `order' shadows previous one
+187.24-187.28: warning: value or constructor `LESS' shadows previous one
+187.31-187.36: warning: value or constructor `EQUAL' shadows previous one
+187.39-187.46: warning: value or constructor `GREATER' shadows previous one
+202.9-202.13: warning: type `unit' shadows previous one
+203.9-203.12: warning: type `exn' shadows previous one
+219.13-219.18: warning: type `order' shadows previous one
+241.13-241.16: warning: type `ref' shadows previous one
+256.13-256.16: warning: type `ref' shadows previous one
+277.13-277.17: warning: type `bool' shadows previous one
+277.20-277.25: warning: value or constructor `false' shadows previous one
+277.28-277.32: warning: value or constructor `true' shadows previous one
+292.13-292.17: warning: type `bool' shadows previous one
+350.21-350.24: warning: type `alt' shadows previous one
+350.27-350.30: warning: value or constructor `FST' shadows previous one
+350.39-350.42: warning: value or constructor `SND' shadows previous one
+373.13-373.16: warning: type `alt' shadows previous one
+416.16-416.22: warning: type `option' shadows previous one
+416.25-416.29: warning: value or constructor `NONE' shadows previous one
+416.32-416.36: warning: value or constructor `SOME' shadows previous one
+438.13-438.19: warning: type `option' shadows previous one
+488.16-488.20: warning: type `list' shadows previous one
+488.23-488.26: warning: value or constructor `nil' shadows previous one
+488.31-488.33: warning: value or constructor `::' shadows previous one
+534.13-534.17: warning: type `list' shadows previous one
+794.11-794.15: warning: type `char' shadows previous one
+795.11-795.17: warning: type `string' shadows previous one
+808.11-808.12: warning: value or constructor `<' shadows previous one
+809.11-809.13: warning: value or constructor `<=' shadows previous one
+810.11-810.12: warning: value or constructor `>' shadows previous one
+811.11-811.13: warning: value or constructor `>=' shadows previous one
+848.9-848.13: warning: type `char' shadows previous one
+849.9-849.15: warning: type `string' shadows previous one
+879.23-879.24: warning: value or constructor `<' shadows previous one
+880.23-880.24: warning: value or constructor `>' shadows previous one
+881.23-881.25: warning: value or constructor `<=' shadows previous one
+882.23-882.25: warning: value or constructor `>=' shadows previous one
+959.9-959.15: warning: type `string' shadows previous one
+962.14-962.18: warning: structure or functor `Char' shadows previous one
+988.11-988.12: warning: value or constructor `<' shadows previous one
+989.11-989.12: warning: value or constructor `>' shadows previous one
+990.11-990.13: warning: value or constructor `<=' shadows previous one
+991.11-991.13: warning: value or constructor `>=' shadows previous one
+1012.9-1012.15: warning: type `string' shadows previous one
+1015.14-1015.18: warning: structure or functor `Char' shadows previous one
+1044.23-1044.24: warning: value or constructor `<' shadows previous one
+1045.23-1045.24: warning: value or constructor `>' shadows previous one
+1046.23-1046.25: warning: value or constructor `<=' shadows previous one
+1047.23-1047.25: warning: value or constructor `>=' shadows previous one
+1113.14-1113.20: warning: structure or functor `String' shadows previous one
+1236.11-1236.14: warning: type `int' shadows previous one
+1248.8-1248.9: warning: value or constructor `~' shadows previous one
+1249.11-1249.12: warning: value or constructor `+' shadows previous one
+1250.11-1250.12: warning: value or constructor `-' shadows previous one
+1251.11-1251.12: warning: value or constructor `*' shadows previous one
+1252.11-1252.14: warning: value or constructor `div' shadows previous one
+1253.11-1253.14: warning: value or constructor `mod' shadows previous one
+1257.11-1257.12: warning: value or constructor `<' shadows previous one
+1258.11-1258.12: warning: value or constructor `>' shadows previous one
+1259.11-1259.13: warning: value or constructor `<=' shadows previous one
+1260.11-1260.13: warning: value or constructor `>=' shadows previous one
+1263.8-1263.11: warning: value or constructor `abs' shadows previous one
+1281.9-1281.12: warning: type `int' shadows previous one
+1293.8-1293.9: warning: value or constructor `~' shadows previous one
+1294.11-1294.12: warning: value or constructor `+' shadows previous one
+1295.11-1295.12: warning: value or constructor `-' shadows previous one
+1296.11-1296.12: warning: value or constructor `*' shadows previous one
+1297.11-1297.14: warning: value or constructor `div' shadows previous one
+1298.11-1298.14: warning: value or constructor `mod' shadows previous one
+1300.11-1300.12: warning: value or constructor `<' shadows previous one
+1301.11-1301.12: warning: value or constructor `>' shadows previous one
+1302.11-1302.13: warning: value or constructor `<=' shadows previous one
+1303.11-1303.13: warning: value or constructor `>=' shadows previous one
+1310.8-1310.11: warning: value or constructor `abs' shadows previous one
+1375.16-1375.20: warning: value or constructor `sign' shadows previous one
+1401.11-1401.15: warning: type `word' shadows previous one
+1426.8-1426.9: warning: value or constructor `+' shadows previous one
+1427.8-1427.9: warning: value or constructor `-' shadows previous one
+1428.8-1428.9: warning: value or constructor `*' shadows previous one
+1429.8-1429.11: warning: value or constructor `div' shadows previous one
+1430.8-1430.11: warning: value or constructor `mod' shadows previous one
+1455.9-1455.13: warning: type `word' shadows previous one
+1472.23-1472.24: warning: value or constructor `+' shadows previous one
+1473.23-1473.24: warning: value or constructor `-' shadows previous one
+1474.23-1474.24: warning: value or constructor `*' shadows previous one
+1475.23-1475.26: warning: value or constructor `div' shadows previous one
+1476.23-1476.26: warning: value or constructor `mod' shadows previous one
+1503.20-1503.26: warning: value or constructor `source' shadows previous one
+1564.34-1564.38: warning: value or constructor `LESS' shadows previous one
+1564.41-1564.46: warning: value or constructor `EQUAL' shadows previous one
+1564.49-1564.56: warning: value or constructor `GREATER' shadows previous one
+1595.34-1595.38: warning: value or constructor `LESS' shadows previous one
+1595.41-1595.46: warning: value or constructor `EQUAL' shadows previous one
+1595.49-1595.56: warning: value or constructor `GREATER' shadows previous one
+1619.11-1619.15: warning: type `real' shadows previous one
+1648.9-1648.13: warning: type `real' shadows previous one
+1684.11-1684.15: warning: type `real' shadows previous one
+1687.14-1687.18: warning: structure or functor `Math' shadows previous one
+1687.40-1687.44: warning: type `real' shadows previous one
+1700.8-1700.9: warning: value or constructor `~' shadows previous one
+1701.11-1701.12: warning: value or constructor `+' shadows previous one
+1702.11-1702.12: warning: value or constructor `-' shadows previous one
+1703.11-1703.12: warning: value or constructor `*' shadows previous one
+1704.11-1704.12: warning: value or constructor `/' shadows previous one
+1709.8-1709.11: warning: value or constructor `abs' shadows previous one
+1717.11-1717.12: warning: value or constructor `<' shadows previous one
+1718.11-1718.12: warning: value or constructor `>' shadows previous one
+1719.11-1719.13: warning: value or constructor `<=' shadows previous one
+1720.11-1720.13: warning: value or constructor `>=' shadows previous one
+1781.9-1781.13: warning: type `real' shadows previous one
+1784.14-1784.18: warning: structure or functor `Math' shadows previous one
+1788.20-1788.21: warning: value or constructor `~' shadows previous one
+1789.23-1789.24: warning: value or constructor `+' shadows previous one
+1790.23-1790.24: warning: value or constructor `-' shadows previous one
+1791.23-1791.24: warning: value or constructor `*' shadows previous one
+1792.23-1792.24: warning: value or constructor `/' shadows previous one
+1795.23-1795.24: warning: value or constructor `<' shadows previous one
+1796.23-1796.24: warning: value or constructor `>' shadows previous one
+1797.23-1797.25: warning: value or constructor `<=' shadows previous one
+1798.23-1798.25: warning: value or constructor `>=' shadows previous one
+1814.8-1814.11: warning: value or constructor `abs' shadows previous one
+1878.46-1878.52: warning: value or constructor `source' shadows previous one
+1897.23-1897.29: warning: value or constructor `source' shadows previous one
+1901.24-1901.30: warning: value or constructor `source' shadows previous one
+1906.23-1906.29: warning: value or constructor `source' shadows previous one
+1910.16-1910.20: warning: value or constructor `sign' shadows previous one
+1926.32-1926.35: warning: value or constructor `src' shadows previous one
+1927.25-1927.29: warning: value or constructor `esym' shadows previous one
+1927.33-1927.37: warning: value or constructor `src1' shadows previous one
+1928.33-1928.37: warning: value or constructor `src2' shadows previous one
+1964.14-1964.20: warning: type `vector' shadows previous one
+2005.12-2005.18: warning: type `vector' shadows previous one
+2222.12-2222.17: warning: type `array' shadows previous one
+2223.12-2223.18: warning: type `vector' shadows previous one
+2270.12-2270.17: warning: type `array' shadows previous one
+2271.12-2271.18: warning: type `vector' shadows previous one
+2429.11-2429.12: warning: value or constructor `+' shadows previous one
+2430.11-2430.12: warning: value or constructor `-' shadows previous one
+2432.11-2432.12: warning: value or constructor `<' shadows previous one
+2433.11-2433.12: warning: value or constructor `>' shadows previous one
+2434.11-2434.13: warning: value or constructor `<=' shadows previous one
+2435.11-2435.13: warning: value or constructor `>=' shadows previous one
+2452.9-2452.10: warning: type `t' shadows previous one
+-- Elaboration...
+-- Translation...
+-- Flattening...
+-- Value Propagation...
+/usr/bin/sml-cm: Fatal error -- unexpected fault, signal = 11, code = 0x40555c6e
+
+Comments:
+ [jhr, 1/24/01]
+  I'd like to understand what you are doing during "Value Propagation",
+  since that is where the problem occurs.  Also, are you using unsafe
+  operations or compiler hooks, or is your code vanilla SML?
+
+ [jhr, 1/24/01]
+  There seems to be some architecture sensitivity to this bug.  Here are the
+  results of running `use "Bug.sml";' on various machines:
+
+  x86-linux:	core dump
+
+  sparc-solaris:	terminates with a result
+
+  mipseb-irix:	uncaught exception Lookup
+		    raised at: backend-common/ValuePropagationPhase.sml:79.24-79.34
+
+  alpha-dunix:	uncaught exception Lookup
+		    raised at: backend-common/ValuePropagationPhase.sml:79.24-79.34
+
+ [Kornstaedt]
+  A note on what the program *should* be doing:  It is the front-end and
+  middle-end of the language Alice, which is an extension of SML.
+  The function "Mail.flattenFile" runs the front-end and middle-end on
+  the input file given as argument, which is a part of the basis library
+  (interspersed with declarations needed to access primitive operations).
+  It *should* return an intermediate representation or raise an exception.
+
+  If it is of any interest to you, I could produce diffs between the version
+  I sent you and the version that was in our CVS repository at that time
+  (which worked)?
+
+ [jhr, 1/24/00]
+  That might be useful.
+
+Fix: 
+Test: 
+Owner: ?
+Status: open
+----------------------------------------------------------------------
+Number: 1602
+Title: Nonexhaustive match failure during compilation
+Keywords: modules, types
+Submitter: Neophytos Michael   nmichael@cs.princeton.edu
+Date: 02/01/01
+Version: 110.0.7
+System: Sparc Solaris 5.8
+Subsystem: SML compiler
+Severity: minor
+Problem:
+  The program below causes an exception from the compiler.  The program
+  is compiled using CM.  The program is incorrect since signature Absyn
+  is non-existent but the compiler shouldn't raise an exception like
+  that.
+
+Code:
+  signature SSS =
+  sig
+    structure A : Absyn
+    val foo : A.foo -> A.bar
+  end;
+
+  structure sss : SSS =
+  struct
+    structure A = Absyn
+    fun foo x = x
+  end;
+
+Transcript:
+
+  - [starting dependency analysis]
+  [parsing a.sml]
+  [dependency analysis completed]
+  [compiling a.sml -> CM/sparc-unix/a.sml.bin]
+  a.sml:3.3-4.28 Error: unbound signature: Absyn
+  a.sml:9.17-9.22 Error: unbound structure: Absyn
+
+  uncaught exception nonexhaustive match failure
+    raised at: modules/sigmatch.sml:845.14
+	       modules/sigmatch.sml:884.25
+	       modules/sigmatch.sml:966.24
+	       elaborate/elabmod.sml:1223.8
+	       util/stats.sml:164.40
+	       sched/recompile.sml:206.38-206.41
+
+Comments:
+ [dbm, 2/28/01]
+  Bug disappears if declarations are followed by ";".
+Fix:
+Test: bug1602.1.sml
+Owner: dbm
+Status: open
+----------------------------------------------------------------------
+Number: 1603
+Title: Unbound exception from recursive datatype replication
+Keywords: 
+Submitter: Allen Leung <leunga@cs.nyu.edu>
+Date: 11/23/00
+Version: 110.32?
+System: -
+Severity: major
+Problem: 
+  An Unbound exception is raised while elaborating a functor declaration
+  containing a datatype replication declaration with a recursive datatype.
+Code:
+  (* This causes an Unbound exception *)  
+  signature FOO = sig type hey = string datatype foo = A | B of hey end
+  structure Foo = struct type hey = string datatype foo = A | B of hey end
+  signature BAR = sig structure Foo : FOO datatype bar = datatype Foo.foo end
+  functor Bar() : BAR =
+  struct
+     structure Foo = Foo
+     datatype bar = datatype Foo.foo
+  end
+
+  (* But this is okay *)
+  signature FOO = sig type hey = string datatype foo = A | B of string end
+  structure Foo = struct type hey = string datatype foo = A | B of string end
+  signature BAR = sig structure Foo : FOO datatype bar = datatype Foo.foo end
+  functor Bar() : BAR =
+  struct
+     structure Foo = Foo
+     datatype bar = datatype Foo.foo
+  end
+Transcript:
+Comments:
+Fix:
+Test:
+Owner: dbm
+Status: open
+----------------------------------------------------------------------
+Number: 1604
+Title: suboptimal type error message
+Keywords: error messages, type checking
+Submitter: David B. Benson   <dbenson@eecs.wsu.edu>
+Date: 10/13/00
+Version: 110.0.6
+System: -
+Severity: medium 
+Problem: 
+  In the example below, I think the operator domain error message ought to read
+
+    operator domain: ?.Substitutions.Map.Key.ord_key list list
+
+  since the error comes from leaving off the <where> clause in the line
+
+    structure Map : ORD_MAP (* where type Key.ord_key = string *)
+
+  in the Substitutions : SUBSTITUTIONS signature.
+
+Transcript:
+  Standard ML of New Jersey, Version 110.0.6, October 31, 1999 ...
+  [snip]
+  [compiling ScanSubstitute.sml -> CM/x86-unix/ScanSubstitute.sml.bin]
+  ScanSubstitute.sml:30.9-32.41 Error: operator and operand don't agree [tycon mismatch]
+    operator domain: ?.Substitutions.ord_key list list
+    operand:         string list list
+    in expression:
+      ((List.foldl (fn <pat> => <exp>)) Substitutions.Map.empty) aliases
+Comments:
+  I can provide the entire source code, but it is spread over many directories 
+  and subdirectories of .sml files.
+Fix:
+Test:
+Owner: dbm
+Status: open
+----------------------------------------------------------------------
+Number: 1605
+Title: out-of-date example of ML-lex in lexgen.{doc,tex}
+Keywords: "ML-lex ", "inputc", "open_in", "IO", "output"
+Submitter: Richard Bowers   cszrjb@comp.leeds.ac.uk
+Date: 02/07/01
+Version: 110
+System: -
+Subsystem: ML-Lex
+Severity: minor
+Problem:
+  The example of the ML-lex prog (how to use the output) doesn't work!!
+  I think it is that there are calls to functions which don't exist
+  anymore.
+Code:
+  1: val error = fn x => output(std_out,x ^ "\n")
+  2: val lexer = Mlex.makeLexer( inputc (open_in "{filename}"));
+Transcript:
+  1: SML:9.21-9.27 Error: unbound variable or constructor: output
+     SML:9.28-9.35 Error: unbound variable or constructor: std_out
+  2: similar to above
+
+Comments:
+Fix:
+  update documentation for SML '97
+Test: 
+Owner: dbm
+Status: open
+----------------------------------------------------------------------
+Number: 1606
+Title:       absolute paths in .run-sml prevent moving installation
+Keywords:    scripts command
+Submitter:   John D. Ramsdell <ramsdell@mitre.org>
+Date:        Wed Feb 21 09:41:33 2001
+Version:     110.0.7
+System:      all
+Severity:    minor
+Problem:     The use of absolute paths makes moving installations break
+Comments:
+  The enclosed patch works with the Borne, Korn, and Born Again Shell
+ [jhr, 2/21/01]
+  The fact that one cannot move the installation is a known problem.
+  In addition to the path in the script, there is the problem with
+  the CM path.  Unfortunately, your fix is not portable.  I would
+  recommend either symbolic links or editing the script as workarounds.
+Fix:
+  bash-2.01$ diff -u .run-sml.orig  .run-sml
+  --- .run-sml.orig	Wed Feb 21 09:23:34 2001
+  +++ .run-sml	Wed Feb 21 09:41:33 2001
+  @@ -21,7 +21,8 @@
+   #
+
+   # the path of the directory in which executables (like this file) are kept.
+  -BIN_DIR=/afs/rcf.mitre.org/project/malcode/user/ramsdell/sml/bin
+  +WHOLE_COMMAND=`command -v "$0"`
+  +BIN_DIR=`dirname "$WHOLE_COMMAND"`
+
+   # the path of the directory in which the runtime system executables are kept.
+   RUN_DIR=$BIN_DIR/.run
+
+Test: 
+Owner: jhr
+Status: open (or not a bug)
+----------------------------------------------------------------------
+Number: 1607
+Title: inaccurate transcendentals (Math.sin)
+Keywords: Math, transcendentals
+Submitter: Allen Leung <leunga@cs.nyu.edu>
+Date: 2/22/01
+Version: 110.32.1
+System: x86-linux
+Severity: high
+Problem: 
+  Math.sin does not return accurate result.
+Transcript:
+  Math.sin Math.pi;
+  val it = 1.22460635382E~16 : real
+Comments:
+  I think this has something to do with the recent change of 
+  generating inlined x86 transcendental instructions, 
+  and the funky 64-bit/80-bit precision mismatch in the architecture.
+Fix:
+Test: bug1607.1.sml
+Owner: ?
+Status: open
+----------------------------------------------------------------------
+Number: 1608
+Title: where clauses in sig causes compiler bug: unexpected DATATYPE 354
+Keywords: signature, where
+Submitter: Allen Leung   leunga@cs.nyu.edu
+Date: 02/28/01
+Version: 110.32.1
+System: Any/All Any Unix 
+Subsystem: SML compiler
+Severity: minor
+Problem:
+  Code such as 
+
+    signature FOO = sig ... end where ...
+  
+  triggers a compiler bug: 
+
+    Error: Compiler bug: Instantiate: unexpected DATATYPE 354
+
+    uncaught exception Error
+      raised at: ../compiler/MiscUtil/util/errormsg.sml:54.14-54.19
+		 ../compiler/Semant/modules/instantiate.sml:1476.8
+		 ../compiler/Semant/modules/instantiate.sml:1577.6       
+
+Code:
+
+signature CELLS_BASIS =
+sig
+   type cellkindInfo
+   type cellkindDesc
+   datatype cellkind = GP | FP | CC | MEM | CTRL
+      | MISC_KIND of cellkindInfo ref
+   datatype cell =
+      CELL of {id   : int, col  : cellColor ref, desc : cellkindDesc }
+   and cellColor =
+         MACHINE of int | PSEUDO | ALIASED of cell | SPILLED
+   structure HashTable : MONO_HASH_TABLE where type Key.hash_key = cell
+   structure ColorTable : MONO_HASH_TABLE where type Key.hash_key = cell
+
+end
+
+structure CellsInternal =
+struct
+
+   datatype cellkindInfo = INFO of {name:string, nickname:string}
+   datatype cellkind = GP | FP | CC | MEM | CTRL
+      | MISC_KIND of cellkindInfo ref (* client defined *)
+   datatype cellkindDesc =
+        DESC of
+        {kind             : cellkind,
+         counter          : int ref,
+         low              : int,
+         high             : int,
+         toString         : int -> string,
+         toStringWithSize : int * int -> string,
+         defaultValues    : (int * int) list,
+         physicalRegs     : cell Array.array ref,
+         zeroReg          : int option
+        }
+   and cell = CELL of {id   : int, col  : cellColor ref, desc : cellkindDesc }
+   and cellColor = MACHINE of int | PSEUDO | ALIASED of cell | SPILLED
+end
+                              
+structure CellsBasis : CELLS_BASIS =
+struct
+
+   structure I = CellsInternal
+
+   datatype cellkind     = datatype I.cellkind
+   datatype cellkindInfo = datatype I.cellkindInfo
+   datatype cellkindDesc = datatype I.cellkindDesc
+   datatype cell         = datatype I.cell
+   datatype cellColor    = datatype I.cellColor
+
+   fun error msg = (print msg; raise Match)
+
+    fun hashCell _ = error "hashCell"
+    fun hashColor _ = error "hashColor"
+    fun sameCell _ = error "sameCell"
+    fun sameColor _ = error "sameColor"
+
+    structure HashTable =
+      HashTableFn(type hash_key = cell
+                  val hashVal = hashCell
+                  val sameKey = sameCell)
+
+    structure ColorTable =
+      HashTableFn(type hash_key = cell
+                  val hashVal = hashColor
+                  val sameKey = sameColor)
+
+end
+
+signature CELLS_COMMON =
+sig
+   include CELLS_BASIS
+end
+         where type cellkind     = CellsBasis.cellkind
+             and type cellkindDesc = CellsBasis.cellkindDesc
+             and type cellkindInfo = CellsBasis.cellkindInfo
+             and type cell         = CellsBasis.cell
+             and HashTable = CellsBasis.HashTable
+             and ColorTable = CellsBasis.ColorTable                   
+
+Transcript:
+leunga@react-ilp.cs.nyu.edu:~/SML/src/MLRISC++{12}> sml
+Standard ML of New Jersey v110.32.1 [FLINT v1.5], January 4, 2001
+- use "BUG.sml";
+[opening BUG.sml]
+[autoloading]
+[autoloading done]
+Error: Compiler bug: Instantiate: unexpected DATATYPE 354
+
+uncaught exception Error
+  raised at: ../compiler/MiscUtil/util/errormsg.sml:54.14-54.19
+             ../compiler/Semant/modules/instantiate.sml:1476.8
+             ../compiler/Semant/modules/instantiate.sml:1577.6
+             ../compiler/MiscUtil/util/stats.sml:190.40
+             ../compiler/Semant/elaborate/elabmod.sml:1369.33
+             ../compiler/MiscUtil/util/stats.sml:190.40
+             ../compiler/TopLevel/interact/evalloop.sml:60.55
+             ../compiler/TopLevel/interact/evalloop.sml:251.25-251.28
+             ../compiler/TopLevel/interact/evalloop.sml:60.55
+             ../compiler/TopLevel/main/compile.sml:231.13-231.58
+             ../compiler/MiscUtil/util/stats.sml:190.40
+             ../compiler/TopLevel/interact/evalloop.sml:60.55
+-                             
+Comments:
+  The same code works in 110.0.6, 110.26 etc.
+
+ [dbm, 2/28/01]
+  This seems to be a reoccurence of bug 1414.
+
+Fix:
+Test: bug1608.1.sml
+Owner: dbm
+Status: open
+----------------------------------------------------------------------
+Number: 1609
+Title: CM_PATH and PATH variables only set for user doing the install
+Keywords: 
+Submitter: Richard Duran   duranr@utep.edu
+Date: 03/07/01
+Version: 110.0.6
+System: x86 Windows NT 4.0 SP 6a
+Subsystem: Installation
+Severity: minor
+Problem:
+When I installed the software as distributed with the
+High Assurance Transformation System (HATS v.1.3.8) from
+Sandia Nat'l Labs, I noticed that the CM_PATH and PATH
+variables were set to the installing users local
+environment, rather than the global system enviroment
+(and I did the installation as Administrator). As a
+result the software didn't work.
+
+I was able to get around this by creating CM_PATH as
+a system variable, appending C:/sml/bin to the PATH system
+variable, and deleting the CM_PATH and PATH user variables
+that were created by the installation (I probably didn't
+need to do this last step, but I figured it was cleaner to
+do so).
+
+If this has been corrected, you may want to contact
+Victor Winter (vlwinte@sandia.gov) about it.
+
+Fix:
+  Fixed setup.rul in windows/configwin/win32 to set environment variables
+  at the system level rather than user level.
+Test: 
+Owner: dbm
+Status: fixed in 110.0.7
+----------------------------------------------------------------------
+Number: 1610
+Title: parsing OR-patterns with char literals
+Keywords: parsing, OR-patterns, char literals
+Submitter: Dave MacQueen
+Date: 5/7/2001
+Version: 110.0.7
+System: -
+Severity: medium
+Problem: 
+  In an OR pattern with character literals, the trailing literals have
+  to be separated from the "|" by spaces (on the right).  This is not
+  necessary for int literals.
+Transcript:
+  - fun f (SOME[(#"t" | #"f")]) = true | f _ = false;
+  val f = fn : char list option -> bool
+  - fun f (SOME[(#"t"| #"f")]) = true | f _ = false;
+  val f = fn : char list option -> bool
+  - fun f (SOME[(1|2)]) = true | f _ = false;
+  val f = fn : int list option -> bool
+  - fun f (SOME[(#"t"|#"f")]) = true | f _ = false;
+  stdIn:46.5-46.47 Error: non-constructor applied to argument in pattern
+  - 
+Comments:
+Fix: 
+Test: bug1610.1.sml
+Owner: dbm, jhr
+Status: open
+----------------------------------------------------------------------
+Number: 1611
+Title: top-level Empty not equal to List.Empty
+Keywords: exceptions, Empty, List, top-level
+Submitter: Lal George <george@research.bell-labs.com>
+Date: 5/9/01
+Version: 110.20 and later
+System: -
+Severity: major
+Problem: 
+  The top level binding of exception Empty is different
+  from List.Empty
+Transcript:
+  - hd [] handle Empty => 1;
+  val it = 1 : int
+  - hd [] handle List.Empty => 1;
+
+  uncaught exception Empty
+    raised at: smlnj/init/pervasive.sml:191.19-191.24
+	       stdIn:2.28
+	       ../compiler/TopLevel/interact/evalloop.sml:60.55
+	       ../compiler/TopLevel/main/compile.sml:231.13-231.58
+	       ../compiler/MiscUtil/util/stats.sml:190.40
+	       ../compiler/TopLevel/interact/evalloop.sml:60.55
+  - 
+Comments:
+Fix:
+  In src/system/Basis/Implementation/list.sml, the declaration of
+  Empty should be 
+
+    exception Empty = Empty
+
+  so that it is equated with the Empty defined in Pervasives
+  (file src/system/init/pervasives.sml).
+Test: bug1611.1.sml
+Owner: dbm
+Status: fixed in 110.33
+----------------------------------------------------------------------
+Number: 1612
+Title: poor code generation for nested loops
+Keywords: FLINT, optimization, code generation, performance
+Submitter: John Reppy   jhr@research.bell-labs.com
+Date: 06/12/01
+Version: 110.33
+System: Any/All Any Unix 
+Subsystem: SML compiler
+Severity: medium
+Problem:
+Code generation for nested loops creates inefficient code.
+
+Code:
+structure A = struct
+
+    fun applyF (f : (int * int) -> unit, n : int) = let
+	  fun lp_i i = if (i < n)
+		then let
+		  fun lp_j j = if (j < n)
+		        then (f(i, j); lp_j(j+1))
+		        else ()
+		  in
+		    lp_j 0; lp_i(i+1)
+		  end
+		else ()
+	  in
+	    lp_i 0
+	  end
+
+  end;
+
+structure Main =
+  struct
+
+    fun main () = A.applyF(fn _ => (), 10000)
+
+  end
+
+Transcript:
+
+Comments:
+
+Fix:
+
+Test: 
+Owner: Zhong
+Status: open
+----------------------------------------------------------------------
+Number: 1613
+Title:       Fatal error -- unexpected fault (on x86-linux, sparc-solaris)
+Keywords:    codegen/parser?
+Submitter:   Stefan Sorensen <sts@daimi.au.dk>
+Date:        06/14/2001
+Version:     110.0.7
+System:      sparc-solaris2.7, x86-linux
+Severity:    major
+Problem:     
+
+  The code included below generates an unexpected fault (SIGSEGV) on
+  some architectures / os revisions - A RedHat 7.1 system (kernel
+  2.4.3, glibc 2.2.3) and a sparc-solaris 2.7 system raises the fault
+  - a RedHat 6.2 (kernel 2.2.17, glibc 2.1.3) didn't (but does with a
+  larger example). mipbeb-irix and hppa-hpux gave no errors at all.
+
+  If a whitespace is added in line 17 of foo.sml, the fault no longer
+  occurs (parser bug?).
+
+Code:        
+------ start foo.sml ------
+datatype ''a ms =  
+    !! of ''a ms
+  | empty;
+    
+datatype type1 = A1;
+type type2 = int;
+datatype type3 = C1 | C2 | C3 | C4;
+datatype type4 = D1 | D2 | D3 | D4;
+datatype type5 = E1 | E2;
+
+type type6={
+	    A66:(type1 ms) ref,
+	    A68:(type1 ms) ref,
+	    A70:(type2 ms) ref,
+	    A72:(type2 ms) ref,
+	    A74:(type2 ms) ref,
+   A76:(type1 ms) ref,
+A80:(type2 ms) ref,
+A82:(type2 ms) ref,
+A83:(type1 ms) ref,
+A84:(type1 ms) ref,
+A86:(type2 ms) ref,
+A88:(type2 ms)ref,
+A90:(type2 ms)ref,
+A92:(type2 ms)ref,
+A94:(type2 ms)ref,
+A96:(type2 ms)ref,
+A98:(type1 ms)ref,
+A100:(type1 ms)ref,
+A101:(type1 ms)ref,
+A103:(type2 ms)ref,
+A105:(type2 ms)ref,
+A107:(type2 ms)ref,
+A109:(type2 ms)ref,
+A111:(type1 ms)ref,
+A113:(type2 ms)ref,
+A115:(type2 ms)ref,
+A117:(type1 ms)ref,
+A118:(type1 ms)ref,
+A120:(type4 ms)ref,
+A122:(type5 ms)ref,
+A124:(type3 ms)ref,
+A126:(type2 ms)ref,
+A129:(type1 ms)ref,
+A130:(type2 ms)ref,
+A131:(type1 ms)ref,
+A133:(type2 ms)ref,
+A135:(type2 ms)ref,
+A136:(type2 ms)ref,
+A137:(type2 ms)ref,
+A138:(type2 ms)ref,
+A139:(type2 ms)ref,
+A140:(type1 ms)ref,
+A141:(type1 ms)ref,
+A143:(type2 ms)ref,
+A144:(type2 ms)ref,
+A145:(type2 ms)ref,
+A146:(type2 ms)ref,
+A147:(type2 ms)ref,
+A148:(type2 ms)ref,
+A150:(type2 ms)ref,
+A151:(type2 ms)ref,
+A152:(type2 ms)ref,
+A153:(type2 ms)ref,
+A154:(type2 ms)ref,
+A155:(type2 ms)ref,
+A156:(type2 ms)ref,
+A157:(type2 ms)ref,
+A159:(type2 ms)ref,
+A161:(type2 ms)ref,
+A163:(type2 ms)ref,
+A165:(type2 ms)ref,
+A167:(type2 ms)ref,
+A168:(type2 ms)ref,
+A169:(type2 ms)ref,
+A170:(type2 ms)ref,
+A172:(type2 ms)ref,
+A174:(type2 ms)ref,
+A176:(type2 ms)ref,
+A178:(type2 ms)ref,
+A179:(type2 ms)ref,
+A180:(type2 ms)ref,
+A181:(type2 ms)ref,
+A182:(type2 ms)ref,
+A184:(type1 ms)ref,
+A185:(type1 ms)ref,
+A186:(type1 ms)ref,
+A188:(type1 ms)ref,
+A189:(type2 ms)ref,
+A190:(type1 ms)ref,
+A192:(type3 ms)ref,
+A194:(type3 ms)ref,
+A196:(type5 ms)ref,
+A198:(type2 ms)ref,
+A201:(type3 ms)ref,
+A203:(type3 ms)ref,
+A204:(type5 ms)ref,
+A205:(type2 ms)ref,
+A207:(type2 ms)ref,
+A208:(type2 ms)ref,
+A209:(type2 ms)ref,
+A211:(type3 ms)ref,
+A213:(type3 ms)ref,
+A214:(type5 ms)ref,
+A215:(type2 ms)ref,
+A217:(type1 ms)ref,
+A218:(type2 ms)ref,
+A219:(type1 ms)ref,
+A220:(type2 ms)ref,
+A222:(type1 ms)ref,
+A223:(type2 ms)ref,
+A224:(type1 ms)ref,
+A225:(type2 ms)ref,
+A227:(type1 ms)ref,
+A228:(type2 ms)ref,
+A229:(type1 ms)ref,
+A230:(type2 ms)ref,
+A232:(type1 ms)ref,
+A233:(type2 ms)ref,
+A234:(type1 ms)ref,
+A235:(type2 ms)ref,
+A237:(type2 ms)ref,
+A239:(type2 ms)ref,
+A240:(type2 ms)ref,
+A242:(type2 ms)ref,
+A243:(type2 ms)ref,
+A246:(type1 ms)ref,
+A247:(type2 ms)ref,
+A248:(type1 ms)ref,
+A249:(type2 ms)ref,
+A251:(type1 ms)ref,
+A252:(type2 ms)ref,
+A253:(type1 ms)ref,
+A254:(type2 ms)ref,
+A256:(type3 ms)ref,
+A258:(type5 ms)ref,
+A260:(type3 ms)ref,
+A262:(type2 ms)ref,
+A265:(type3 ms)ref,
+A267:(type5 ms)ref,
+A268:(type3 ms)ref,
+A269:(type2 ms)ref,
+A271:(type3 ms)ref,
+A273:(type5 ms)ref,
+A274:(type3 ms)ref,
+A275:(type2 ms)ref,
+A277:(type2 ms)ref,
+A278:(type2 ms)ref,
+A279:(type2 ms)ref,
+A281:(type1 ms)ref,
+A282:(type2 ms)ref,
+A283:(type1 ms)ref,
+A284:(type2 ms)ref,
+A286:(type1 ms)ref,
+A287:(type2 ms)ref,
+A288:(type1 ms)ref,
+A289:(type2 ms)ref,
+A291:(type1 ms)ref,
+A292:(type2 ms)ref,
+A293:(type1 ms)ref,
+A294:(type2 ms)ref,
+A296:(type1 ms)ref,
+A297:(type2 ms)ref,
+A298:(type1 ms)ref,
+A299:(type2 ms)ref,
+A301:(type2 ms)ref,
+A302:(type2 ms)ref,
+A303:(type2 ms)ref,
+A304:(type2 ms)ref,
+A305:(type2 ms)ref,
+A307:(type1 ms)ref,
+A308:(type2 ms)ref,
+A309:(type1 ms)ref,
+A310:(type2 ms)ref,
+A312:(type1 ms)ref,
+A313:(type2 ms)ref,
+A314:(type1 ms)ref,
+A315:(type2 ms)ref,
+A317:(type2 ms)ref,
+A318:(type1 ms)ref,
+A319:(type2 ms)ref,
+A320:(type1 ms)ref,
+A322:(type2 ms)ref,
+A323:(type1 ms)ref,
+A324:(type2 ms)ref,
+A325:(type2 ms)ref,
+A326:(type1 ms)ref,
+A328:(type3 ms)ref,
+A329:(type5 ms)ref,
+A331:(type3 ms)ref,
+A332:(type2 ms)ref,
+A334:(type1 ms)ref,
+A335:(type2 ms)ref,
+A336:(type1 ms)ref,
+A337:(type2 ms)ref,
+A338:(type2 ms)ref,
+A340:(type1 ms)ref,
+A341:(type2 ms)ref,
+A342:(type1 ms)ref,
+A343:(type2 ms)ref,
+A345:(type2 ms)ref,
+A346:(type2 ms)ref,
+A347:(type2 ms)ref,
+A348:(type2 ms)ref,
+A349:(type2 ms)ref,
+A351:(type1 ms)ref,
+A352:(type1 ms)ref,
+A353:(type1 ms)ref,
+A355:(type1 ms)ref,
+A357:(type2 ms)ref,
+A359:(type2 ms)ref,
+A361:(type2 ms)ref,
+A363:(type2 ms)ref,
+A365:(type2 ms)ref,
+A367:(type2 ms)ref,
+A370:(type1 ms)ref,
+A371:(type2 ms)ref,
+A372:(type1 ms)ref,
+A374:(type1 ms)ref,
+A375:(type2 ms)ref,
+A376:(type1 ms)ref,
+A378:(type1 ms)ref,
+A379:(type2 ms)ref,
+A380:(type1 ms)ref,
+A382:(type1 ms)ref,
+A383:(type2 ms)ref,
+A384:(type2 ms)ref,
+A385:(type1 ms)ref,
+A387:(type2 ms)ref,
+A388:(type2 ms)ref,
+A389:(type2 ms)ref,
+A390:(type2 ms)ref,
+A392:(type2 ms)ref,
+A393:(type2 ms)ref,
+A394:(type2 ms)ref,
+A396:(type1 ms)ref,
+A397:(type2 ms)ref,
+A398:(type1 ms)ref,
+A399:(type2 ms)ref,
+A401:(type1 ms)ref,
+A402:(type1 ms)ref,
+A403:(type1 ms)ref,
+A404:(type1 ms)ref,
+A406:(type1 ms)ref,
+A408:(type3 ms)ref,
+A411:(type1 ms)ref,
+A413:(type3 ms)ref,
+A416:(type1 ms)ref,
+A418:(type5 ms)ref
+};
+
+fun foo ()={
+A66=ref empty
+,A68=ref empty
+,A70=ref empty
+,A72=ref empty
+,A74=ref empty
+,A76=ref empty
+,A80=ref empty
+,A82=ref empty
+,A83=ref empty
+,A84=ref empty
+,A86=ref empty
+,A88=ref empty
+,A90=ref empty
+,A92=ref empty
+,A94=ref empty
+,A96=ref empty
+,A98=ref empty
+,A100=ref empty
+,A101=ref empty
+,A103=ref empty
+,A105=ref empty
+,A107=ref empty
+,A109=ref empty
+,A111=ref empty
+,A113=ref empty
+,A115=ref empty
+,A117=ref empty
+,A118=ref empty
+,A120=ref empty
+,A122=ref empty
+,A124=ref empty
+,A126=ref empty
+,A129=ref empty
+,A130=ref empty
+,A131=ref empty
+,A133=ref empty
+,A135=ref empty
+,A136=ref empty
+,A137=ref empty
+,A138=ref empty
+,A139=ref empty
+,A140=ref empty
+,A141=ref empty
+,A143=ref empty
+,A144=ref empty
+,A145=ref empty
+,A146=ref empty
+,A147=ref empty
+,A148=ref empty
+,A150=ref empty
+,A151=ref empty
+,A152=ref empty
+,A153=ref empty
+,A154=ref empty
+,A155=ref empty
+,A156=ref empty
+,A157=ref empty
+,A159=ref empty
+,A161=ref empty
+,A163=ref empty
+,A165=ref empty
+,A167=ref empty
+,A168=ref empty
+,A169=ref empty
+,A170=ref empty
+,A172=ref empty
+,A174=ref empty
+,A176=ref empty
+,A178=ref empty
+,A179=ref empty
+,A180=ref empty
+,A181=ref empty
+,A182=ref empty
+,A184=ref empty
+,A185=ref empty
+,A186=ref empty
+,A188=ref empty
+,A189=ref empty
+,A190=ref empty
+,A192=ref empty
+,A194=ref empty
+,A196=ref empty
+,A198=ref empty
+,A201=ref empty
+,A203=ref empty
+,A204=ref empty
+,A205=ref empty
+,A207=ref empty
+,A208=ref empty
+,A209=ref empty
+,A211=ref empty
+,A213=ref empty
+,A214=ref empty
+,A215=ref empty
+,A217=ref empty
+,A218=ref empty
+,A219=ref empty
+,A220=ref empty
+,A222=ref empty
+,A223=ref empty
+,A224=ref empty
+,A225=ref empty
+,A227=ref empty
+,A228=ref empty
+,A229=ref empty
+,A230=ref empty
+,A232=ref empty
+,A233=ref empty
+,A234=ref empty
+,A235=ref empty
+,A237=ref empty
+,A239=ref empty
+,A240=ref empty
+,A242=ref empty
+,A243=ref empty
+,A246=ref empty
+,A247=ref empty
+,A248=ref empty
+,A249=ref empty
+,A251=ref empty
+,A252=ref empty
+,A253=ref empty
+,A254=ref empty
+,A256=ref empty
+,A258=ref empty
+,A260=ref empty
+,A262=ref empty
+,A265=ref empty
+,A267=ref empty
+,A268=ref empty
+,A269=ref empty
+,A271=ref empty
+,A273=ref empty
+,A274=ref empty
+,A275=ref empty
+,A277=ref empty
+,A278=ref empty
+,A279=ref empty
+,A281=ref empty
+,A282=ref empty
+,A283=ref empty
+,A284=ref empty
+,A286=ref empty
+,A287=ref empty
+,A288=ref empty
+,A289=ref empty
+,A291=ref empty
+,A292=ref empty
+,A293=ref empty
+,A294=ref empty
+,A296=ref empty
+,A297=ref empty
+,A298=ref empty
+,A299=ref empty
+,A301=ref empty
+,A302=ref empty
+,A303=ref empty
+,A304=ref empty
+,A305=ref empty
+,A307=ref empty
+,A308=ref empty
+,A309=ref empty
+,A310=ref empty
+,A312=ref empty
+,A313=ref empty
+,A314=ref empty
+,A315=ref empty
+,A317=ref empty
+,A318=ref empty
+,A319=ref empty
+,A320=ref empty
+,A322=ref empty
+,A323=ref empty
+,A324=ref empty
+,A325=ref empty
+,A326=ref empty
+,A328=ref empty
+,A329=ref empty
+,A331=ref empty
+,A332=ref empty
+,A334=ref empty
+,A335=ref empty
+,A336=ref empty
+,A337=ref empty
+,A338=ref empty
+,A340=ref empty
+,A341=ref empty
+,A342=ref empty
+,A343=ref empty
+,A345=ref empty
+,A346=ref empty
+,A347=ref empty
+,A348=ref empty
+,A349=ref empty
+,A351=ref empty
+,A352=ref empty
+,A353=ref empty
+,A355=ref empty
+,A357=ref empty
+,A359=ref empty
+,A361=ref empty
+,A363=ref empty
+,A365=ref empty
+,A367=ref empty
+,A370=ref empty
+,A371=ref empty
+,A372=ref empty
+,A374=ref empty
+,A375=ref empty
+,A376=ref empty
+,A378=ref empty
+,A379=ref empty
+,A380=ref empty
+,A382=ref empty
+,A383=ref empty
+,A384=ref empty
+,A385=ref empty
+,A387=ref empty
+,A388=ref empty
+,A389=ref empty
+,A390=ref empty
+,A392=ref empty
+,A393=ref empty
+,A394=ref empty
+,A396=ref empty
+,A397=ref empty
+,A398=ref empty
+,A399=ref empty
+,A401=ref empty
+,A402=ref empty
+,A403=ref empty
+,A404=ref empty
+,A406=ref empty
+,A408=ref empty
+,A411=ref empty
+,A413=ref empty
+,A416=ref empty
+,A418=ref empty
+}:type6;
+fun bar 0 = foo() | bar n = (foo(); bar (n-1));
+--- end foo.sml ---
+
+Transcript:
+
+$ sml < bar.sml
+Standard ML of New Jersey, Version 110.0.7, September 28, 2000 [CM; autoload enabled]
+- use "foo.sml";
+[opening foo.sml]
+datatype 'a ms = !! of 'a ms | empty
+datatype type1 = A1
+type type2 = int
+datatype type3 = C1 | C2 | C3 | C4
+datatype type4 = D1 | D2 | D3 | D4
+datatype type5 = E1 | E2
+GC #0.0.0.0.1.15:   (0 ms)
+type type6 =
+  {A100:type1 ms ref, A101:type1 ms ref, A103:type2 ms ref, A105:type2 ms ref,
+   A107:type2 ms ref, A109:type2 ms ref, A111:type1 ms ref, A113:type2 ms ref,
+   A115:type2 ms ref, A117:type1 ms ref, A118:type1 ms ref, A120:type4 ms ref,
+   A122:type5 ms ref, A124:type3 ms ref, A126:type2 ms ref, A129:type1 ms ref,
+   A130:type2 ms ref, A131:type1 ms ref, A133:type2 ms ref, A135:type2 ms ref,
+   A136:type2 ms ref, A137:type2 ms ref, A138:type2 ms ref, A139:type2 ms ref,
+   A140:type1 ms ref, A141:type1 ms ref, A143:type2 ms ref, A144:type2 ms ref,
+   A145:type2 ms ref, A146:type2 ms ref, A147:type2 ms ref, A148:type2 ms ref,
+   A150:type2 ms ref, A151:type2 ms ref, A152:type2 ms ref, A153:type2 ms ref,
+   A154:type2 ms ref, A155:type2 ms ref, A156:type2 ms ref, A157:type2 ms ref,
+   A159:type2 ms ref, A161:type2 ms ref, A163:type2 ms ref, A165:type2 ms ref,
+   A167:type2 ms ref, A168:type2 ms ref, A169:type2 ms ref, A170:type2 ms ref,
+   A172:type2 ms ref, A174:type2 ms ref, A176:type2 ms ref, A178:type2 ms ref,
+   A179:type2 ms ref, A180:type2 ms ref, A181:type2 ms ref, A182:type2 ms ref,
+   A184:type1 ms ref, A185:type1 ms ref, A186:type1 ms ref, A188:type1 ms ref,
+   A189:type2 ms ref, A190:type1 ms ref, A192:type3 ms ref, A194:type3 ms ref,
+   A196:type5 ms ref, A198:type2 ms ref, A201:type3 ms ref, A203:type3 ms ref,
+   A204:type5 ms ref, A205:type2 ms ref, A207:type2 ms ref, A208:type2 ms ref,
+   A209:type2 ms ref, A211:type3 ms ref, A213:type3 ms ref, A214:type5 ms ref,
+   A215:type2 ms ref, A217:type1 ms ref, A218:type2 ms ref, A219:type1 ms ref,
+   A220:type2 ms ref, A222:type1 ms ref, A223:type2 ms ref, A224:type1 ms ref,
+   A225:type2 ms ref, A227:type1 ms ref, A228:type2 ms ref, A229:type1 ms ref,
+   A230:type2 ms ref, A232:type1 ms ref, A233:type2 ms ref, A234:type1 ms ref,
+   A235:type2 ms ref, A237:type2 ms ref, A239:type2 ms ref, A240:type2 ms ref,
+   A242:type2 ms ref, A243:type2 ms ref, A246:type1 ms ref, A247:type2 ms ref,
+   A248:type1 ms ref, A249:type2 ms ref, A251:type1 ms ref, A252:type2 ms ref,
+   GC #0.0.0.1.2.36:   (0 ms)
+A253:type1 ms ref, A254:type2 ms ref, A256:type3 ms ref, A258:type5 ms ref,
+   A260:type3 ms ref, A262:type2 ms ref, A265:type3 ms ref, A267:type5 ms ref,
+   A268:type3 ms ref, A269:type2 ms ref, A271:type3 ms ref, A273:type5 ms ref,
+   A274:type3 ms ref, A275:type2 ms ref, A277:type2 ms ref, A278:type2 ms ref,
+   A279:type2 ms ref, A281:type1 ms ref, A282:type2 ms ref, A283:type1 ms ref,
+   A284:type2 ms ref, A286:type1 ms ref, A287:type2 ms ref, A288:type1 ms ref,
+   A289:type2 ms ref, A291:type1 ms ref, A292:type2 ms ref, A293:type1 ms ref,
+   A294:type2 ms ref, A296:type1 ms ref, A297:type2 ms ref, A298:type1 ms ref,
+   A299:type2 ms ref, A301:type2 ms ref, A302:type2 ms ref, A303:type2 ms ref,
+   A304:type2 ms ref, A305:type2 ms ref, A307:type1 ms ref, A308:type2 ms ref,
+   A309:type1 ms ref, A310:type2 ms ref, A312:type1 ms ref, A313:type2 ms ref,
+   A314:type1 ms ref, A315:type2 ms ref, A317:type2 ms ref, A318:type1 ms ref,
+   A319:type2 ms ref, A320:type1 ms ref, A322:type2 ms ref, A323:type1 ms ref,
+   A324:type2 ms ref, A325:type2 ms ref, A326:type1 ms ref, A328:type3 ms ref,
+   A329:type5 ms ref, A331:type3 ms ref, A332:type2 ms ref, A334:type1 ms ref,
+   A335:type2 ms ref, A336:type1 ms ref, A337:type2 ms ref, A338:type2 ms ref,
+   A340:type1 ms ref, A341:type2 ms ref, A342:type1 ms ref, A343:type2 ms ref,
+   A345:type2 ms ref, A346:type2 ms ref, A347:type2 ms ref, A348:type2 ms ref,
+   A349:type2 ms ref, A351:type1 ms ref, A352:type1 ms ref, A353:type1 ms ref,
+   A355:type1 ms ref, A357:type2 ms ref, A359:type2 ms ref, A361:type2 ms ref,
+   A363:type2 ms ref, A365:type2 ms ref, A367:type2 ms ref, A370:type1 ms ref,
+   A371:type2 ms ref, A372:type1 ms ref, A374:type1 ms ref, A375:type2 ms ref,
+   A376:type1 ms ref, A378:type1 ms ref, A379:type2 ms ref, A380:type1 ms ref,
+   A382:type1 ms ref, A383:type2 ms ref, A384:type2 ms ref, A385:type1 ms ref,
+   A387:type2 ms ref, A388:type2 ms ref, A389:type2 ms ref, A390:type2 ms ref,
+   A392:type2 ms ref, A393:type2 ms ref, A394:type2 ms ref, A396:type1 ms ref,
+   A397:type2 ms ref, A398:type1 ms ref, A399:type2 ms ref, A401:type1 ms ref,
+   A402:type1 ms ref, A403:type1 ms ref, A404:type1 ms ref, A406:type1 ms ref,
+   A408:type3 ms ref, A411:type1 ms ref, A413:type3 ms ref, A416:type1 ms ref,
+   A418:type5 ms ref, A66:type1 ms ref, A68:type1 ms ref, A70:type2 ms ref,
+   A72:type2 ms ref, A74:type2 ms ref, A76:type1 ms ref, A80:type2 ms ref,
+   A82:type2 ms ref, A83:type1 ms ref, A84:type1 ms ref, A86:type2 ms ref,
+   A88:type2 ms ref, A90:type2 ms ref, A92:type2 ms ref, A94:type2 ms ref,
+   A96:type2 ms ref, A98:type1 ms ref}
+GC #0.0.0.1.3.84:   (10 ms)
+GC #0.0.0.1.4.108:   (0 ms)
+GC #0.0.0.1.5.174:   (0 ms)
+GC #0.0.0.1.6.314:   (0 ms)
+GC #0.0.0.1.7.442:   (0 ms)
+GC #0.0.0.2.8.451:   (10 ms)
+val foo = fn : unit -> type6
+GC #0.0.0.2.9.484:   (0 ms)
+val bar = fn : int -> type6
+val it = () : unit
+- bar 100000;
+/usr/bin/sml: Fatal error -- unexpected fault, signal = 11, code = 0x403c8e78
+
+Comments:
+
+  The contents of foo.sml must be exactly as given and is must be
+  invoked with 'use'.
+
+Fix:         
+Test: bug1613.1.sml (foo.sml)
+Owner: ?
+Status: open
+----------------------------------------------------------------------
+Number: 1614
+Title: signal handling bug on x86
+Keywords: signals, continuations, x86
+Submitter: Matthias Blume   blume@research.bell-labs.com
+Date: 06/25/01
+Version: 110.33(+)
+System: x86 Linux 
+Subsystem: SML compiler
+Severity: major
+Problem:
+Installing a (trivial) timer interrupt handler (e.g., 
+Signals.HANDLER #3) and setting up the interval timer
+causes segmentation faults on x86.  (At least I was unable
+to reproduce this problem on the Sparc.  Don't know about
+other architectures.)
+
+The version of the compiler that was tested is 110.33 + patches.
+(Without these patches, signal handling is broken on _all_
+architectures due to record-sizing problem in the runtime.)
+
+Code:
+structure Idle = struct
+    fun idleloop () = let
+        fun idle (x) =
+            if x < 0 then () else let val y = x - 1 in idle y; idle y end
+    in
+        idle (10);
+        idleloop ()
+    end
+end;
+
+structure Test = struct
+    local
+        open SMLofNJ
+        open Cont
+        open IntervalTimer
+        open Signals
+    in
+        fun doit () =
+            (setHandler (sigALRM, HANDLER (fn (_, _, k) => k));
+             setIntTimer (SOME (Time.fromMilliseconds 2000));
+             Idle.idleloop ())
+    end
+end;	
+
+val _ = Test.doit ();
+
+Transcript:
+$ sml idle.sml test.sml 
+Standard ML of New Jersey v110.33 [FLINT v1.5], May 23, 2001
+[opening idle.sml]
+structure Idle : sig val idleloop : unit -> 'a end
+[opening test.sml]
+[autoloading]
+[autoloading done]
+structure Test : sig val doit : unit -> 'a end
+- Test.doit ();
+stdIn:1.1-1.13 Warning: type vars not generalized because of
+   value restriction are instantiated to dummy types (X1,X2,...)
+/home/blume/bin/sml: Fatal error -- unexpected fault, signal = 11, code = 0x804ca6a
+$ 
+
+Comments:
+
+Fix:
+ [Matthias, 6/26/01] There was a missing line in restoreregs
+  that caused "pc" not to be loaded correctly (actually,
+  not to be loaded at all).
+
+Test: 
+Owner: Lal, jhr, Matthias
+Status: fixed in 110.33+
+----------------------------------------------------------------------

@@ -1,0 +1,257 @@
+415. [Andrew] late error detection in parsing
+416. [dbm] equality property checking in functor parameter matching
+417. [] cosmetic error message suggestion
+454. [] running out of memory
+592. [dbm] unhelpful error messages for record type mismatches
+675. [] prettyprinter doesn't sense System.Print.linewidth
+725. [] fragility of quote/antiquote implementation
+730. [] reappearance of bug 705 on RS/6000
+735. [dbm] bad type error message
+745. [] Prettyprinter produces bad output when printing records
+753. [] pretty printer prints syntactically incorrect text
+774. [] aliased exceptions are pattern-matched in the wrong order
+779. [Andrew] val rec syntax overly restrictive
+784. [dbm] unnatural type error messages
+801. [] pretty printing problems
+827. [] exportML including future evaluations
+852. [dbm] include merging types
+854. [] excessive spilling with large let expressions
+856. [zhong] unique constructors not representationally transparent
+857. [dbm] type error message points to wrong place
+876. [dbm] uninformative type error message
+883. [Andrew] ML-Yacc can lose on multiline comments
+895. [dbm] printing type unit when hidden
+914. [Andrew] "foo1" style names in productions in mlyacc
+929. [dbm] failure of respecifying type after include
+933. [Andrew] bogus message after explicit "raise Match"
+934. [] Control.CG.misc4 when retargeting
+939. [dbm] confusing type error message
+948. [] heap images too large
+958. [] Ctrl-Z under AIX 4.1 
+977. [] sml > "a non-tty device" can cause GC failures
+1003. [] extra newline in non-exhaustive match warning
+1004. [jhr] blastIn and blastOut fail on objects containing code
+1017. [dbm] another hard-to-read error message
+1022. [] image files grow
+1030. [] string literals in presence of CM-library on Alpha
+1045. [dbm] better message for missing spec in signature match
+1054. [dbm] sequential withtype is broken
+1058. [dbm] misleading error message
+1060. [blume] modmap cleanup expensive
+1081. [dbm] difficult type error message
+1084. [dbm] hole in value restriction implementation (bottom type)
+1086. [dbm] illegal signature decl inside structure not rejected
+1095. [dbm] inadaquate type error message
+1118. [jhr, Andrew] Compiler bug: 222 in prof
+1119. [] excessive memory usage (same as 1131?) 
+1120. [] profiling on Linux
+1125. [dbm] Unbound raised instead of proper error for sig inside functor
+1131. [jhr] Failure to reclaim garbage (new new runtime)
+1135. [Andrew, Matthias] CM compiling files that haven't changed (fixed? Matthias)
+1154. [Andrew] CM insists on recompiling sources in a stable library
+1163. [] Wrong match compiler warning
+1165. [jhr,dbm] wrong type name printed for OS.Process.success
+1168. [] Interrupt within a 'use'
+1172. [dbm] error message about non-constructor in pattern needs more info
+1180. [jhr] bug in blastRead, blastWrite?
+1181. [dbm,Zhong] tmp argument naming in front end
+1183. [Zhong, dbm] distorted abstract syntax printed in type error message
+1186. [dbm] type printing in multi-declaration
+1193. [Zhong] Memory leak due to ref cells
+1208. [dbm] unimplemented strexp syntax
+1210. [jhr, Lal] weak pointers to strings cause SML to crash
+1212. [dbm] where structure when signatures differ
+1220. [dbm] type definition masks datatype
+1233. [Zhong?] funny printing of multiple bindings in a declaration
+1242. [dbm] error recovery in open could be better
+1254. [dbm] Disagreements between SML/NJ and Defn: datatype replication
+1259. [dbm] Mistakenly inadmissable signature.
+1261. [dbm, Appel] explicit type parameter with "val rec" not supported
+1282. [dbm] sharing syntax not consistent with SML 97
+1286. [dbm] Flexible records and as patterns
+1287. [dbm] SML'97 scoping restrictions on local datatypes
+1292. [dbm] val rec (fun) should be able to rebind constructor id
+1299. [dbm,jhr] some error messages aren't being sent to stderr
+1300. [dbm] type printing of datacon domain
+1301. [Andrew, Lal] too big real literal yields uncaught exception BadReal
+1302. [jhr] handling differing newline conventions across OSes
+1306. [dbm,Zhong] Refutable patterns and generalization
+1307. [?] Illegal escapes in strings not recognized
+1309. [Zhong, Andrew] SML/NJ not safe for space
+1310. [Andrew] ML-Yacc fails to accept double backslash strings in .grm file
+1311. [dbm] odd secondary typing error after incorrect datatype decl
+1314. [Lal] ml-burg loops on invalid character in input file
+1319. [jhr, Andrew] Real.toManExp on Intel
+1321. [dbm] printing of datatype = datatype in signatures
+1323. [Zhong, Andrew] "uncaught exception RegMap" on hppa
+1324. [dbm] Equality check in where type
+1328. [dbm] non-legal respecifications and redeclarations
+1329. [dbm] Problem with realisation in where type
+1331. [jhr] eXene example code out of date
+1332. [dbm] signature mistakenly rejected
+1334. [dbm] problem with type checking abstype
+1339. [dbm] overstrict structure consistency checking in instantiate?
+1344. [jhr] Unimplemented real conversions
+1346. [dbm] Compiler bug: ModuleUtil: getStr: bad entity
+1348. [Riccardo?] "Out of environment space" on Windows
+1349. [Lal, jhr?] segmentation faults on Linux
+1351. [dbm] Datatype replication within abstypes
+1355. [Lal] exportFn image size increase on alpha32x-osf1
+1356. [Matthias] Inflexibility in installation and CM
+1358. [dbm, Andrew] bad error message line numbers in interactive system
+1360. [Zhong?] uncaught exception FPRegEA (or RegMap)
+1362. [jhr?] Real.toManExp o Real.fromManExp
+1366. [dbm, Zhong] opaque signatures and functor specs
+1367. [jhr] "Internal error: undefined sigTbl entry for signal 2"
+1368. [jhr] 1+2 = 102 in IntInf
+1370. [dbm, Andrew] op keyword pedantry  
+1371. [jhr] signal-sysdep.h on HPUX10.01
+1375. [jhr] Word31.fromString disagrees with Basis Library specification
+1378. [jhr] Incorrect behaviour of String.from{C}String on nonprintable chars
+1380. [jhr] Scan.[s]scanf does not allow ordinary [ character 
+1381. [Andrew] ml-yacc looping
+1382. [Zhong?] space leak in CML
+1383. [jhr] Basis Library Specification of Char.toCString and String.toCString
+1387. [jhr] scanning hex numbers from strings
+1388. [jhr,Andrew] SML/NJ does not follow Basis Library Spec on div, mod, quot, rem
+1389. [Lal?] core dump on Sparc/Solaris
+1390. [dbm] incorrect parsing of sigb sequences
+1392. [dbm, Andrew] bad regions for "match nonexhaustive" messages
+1394. [dbm, Andrew] "*" not allowed as record label pattern abbreviation
+1395. [jhr, Lorenz] OS.FileSys.modTime fails for open file on Windows 95.
+1396. [Zhong] uncaught exception ltUnbound (secondary error)
+1398. [Andrew] bus error in using Compiler.Profile
+1400. [dbm] Prettyprinter bug
+1401. [jhr,erg] Posix.Process.waitpid_nh is buggy.
+1402. [jhr,erg] Word.fmt incorrectly uses lowercase letters for hex digits.
+1403. [jhr,erg] Possible bug is Posix.FileSys.pathconf
+1405. [jhr,erg] Posix.TTY discrepancy with Basis Library spec
+1406. [jhr,erg] STRING does not agree with Basis Library spec
+1408. [jhr,erg] OrdSet.app order doesn't agree with comment
+1410. [Andrew?] no comments in %header
+1413. [jhr] can read from instream from process created by Unix.execute
+1415. [jhr] Date.fmt raises Date on large strings
+1416. [jhr] Date.fmt produces incorrect results on %j, %U, %W, and %<other>
+1418. [Blume] CM.set_path is a constant function
+1419. [dbm] incorrect printing of signature containing "where type"
+1420. [dbm] improper printing of "multiple defs at tycon spec" warning message
+1424. [dbm] inadaquate signature matching error message
+1427. [jhr] End-of-file marks in Stream IO
+1429. [jhr] two problems with StreamIO.setPosOut
+1430. [Lorenz?] heap2exec broken
+1431. [Andrew] yypos in ml-lex is off by one (or two)
+1433. [dbm] eqtype u=t doesn't force eqtype [partially fixed]
+1434. [dbm] bogus "Error: non-constructor applied to argument in pattern: ::"
+1435. [Andrew] ML-Yacc documentation needs to be updated
+1436. [Lorenz, Zhong] representation exception raised by C function
+1437. [jhr] Unix.signal missing
+1439. [jhr, Andrew] OS.FileSys.access raises inappropriate SysErr exception
+1443. [Lal, jhr] Real.toManExp broken -- wrong exponent returned. 
+1444. [jhr] First Century Blues
+1447. [jhr?} Real.fmt fails on large real number
+1449. [Lal?] FFT benchmark gives wrong answers.
+1451. [jhr, Andrew] Math.sin(large number) is wrong
+1452. [jhr, Andrew] Math.sinh(small number)=0.0
+1453. [dbm, Zhong] Compiler bug: LtyExtern: incorrect lambda types in lt_select
+1454. [dbm, Wadler] Unexpected force of lazy suspension in pattern match
+1456. [jhr] Int.sameSign
+1460. [Lorenz, Riccardo] CM.stabilize(') fails when calling BinIO under Win32
+1462. [jhr, Emden] Error in "g" format handling
+1464. [dbm] unnecessary instantiation of local nongeneralized types
+1465. [dbm] Type variables not as general as Definition
+1466. [jhr] GC signal never sent
+1467. [Zhong] Looping functions fail in FLINT
+1468. [Lorenz, Riccardo] ccalls crashes on Cfunction(fn _ => Cvoid)
+1470. [dbm, Zhong] compilation blowup (in FLINT?)
+1472. [dbm] datatype involving real are treated as equality types
+1473. [jhr] weak pointer to a string causes core dump
+1476. [jhr] Missing operation in WORD
+1478. [Lorenz, Riccardo] Fatal Error win32:fault_handler
+1479. [jhr] failure to run under IRIX 6.5
+1481. [dbm, Zhong] Error: Compiler bug: EntityEnv: lookEP.1
+1483. [dbm] confusing type error messages (literals, IntInf)
+1484. [Zhong] reorder optimization disabled by FLINT
+1485. [Zhong] quadratic(?) blowup compiling long sequence of val bindings
+1486. [jhr, Andrew] Math.pow gives questionable results
+1487. [dbm, Andrew] parentheses not permitted in val rec binding
+1488. [jhr] Array.fromList of empty list generates bogus "empty" array
+1489. [dbm] bad type of equality function defined for abstype
+1490. [jhr] double error message for bad string constant
+1491. [Zhong] Polymorphic Computation Too Slow
+1492. [Zhong] Compile-time performance problem with long list value
+1493. [Riccardo] NT Installer messes up PATH in the registrry
+1494. [dbm] rebound datatype prints incorrectly
+1497. [jhr] bug in IntInf.scan StringCvt.HEX
+1499. [dbm] Uncaught exception during compilation of bad signature
+1501. [jhr] Memory leak
+1504. [Lorenz, Riccardo] problem compiling smlnj-c on linux (red hat 6.0)
+1505. [dbm] opaque functor signature match
+1506. [jhr] Uncaught Overflow/Div exceptions not printed correctly at top level
+1508. [?] problems with profiler
+1511. [dbm] Compiler problem "tyvarType: CONty"
+1518. [jhr] Posix.IO.FLock.flock type disagrees with basis library spec
+1519. [Lal, Allen] Compiler bug: HppaCG.incOffset - spill area too small [NO REPRO]
+1520. [dbm] Output of type variables
+1521. [?] random crashes on AMD K6-III [NO REPRO]
+1522. [dbm] Replication of replicated datatype - not allowed
+1523. [Lorenz] installing SML/NJ-C Foreign Function Interface library
+1524. Bus Error
+1526. [jhr] double-quote representation in strings and characters
+1527. [jhr] assertion failure and unknown tag
+1528. [Zhong] Compiler bug: LtyKernel: unexpected TC_FIX freevars in tc_aux
+1529. [jhr] The sign of ~0.0
+1531. [jhr] Basis library discrepancies in IntInf and POSIX_FLAGS
+1532. [] Date:DATE missing fromString [FIX]
+1533. [jhr] installation failure on Solaris 2.7
+1534. [Zhong, dbm, ?] polymorphic equality for concrete eqtypes ...
+1535. [] Large ml-yacc generated file fails to compile on HP-UX
+1537. [Zhong, Stefan, Lal, Allen] compiler blowup with large andalso expression
+1538. [Leung] mlyacc generates bad code
+1539. [jhr, Zhong] Array equality uses polyEqual
+1541. [dbm] Array2.array equality type incorrect
+1542. [dbm] No syntax error when the equals identifier ("=") is re-bound
+1543. [jhr] DivZero exception in FreeBSD-current [Fix Included]
+1548. [dbm] open and signature matching with polymorphic type constructors
+1551. [?] unexpected behavior with bogus escape sequence in a string
+1552. [dbm] Nonexaustive match failure during compilation
+1553. [dbm] "dependency cycle in instantiate" insufficiently informative
+1557. [jhr] OS.Path.toString raises no exception InvalidArc; InvalidArc not implemented
+1560. [dbm] Compiler bug: Reconstruct: rator in profiling mode
+1563. [Matthias] redundant pathconfig contents with multiple builds
+1564. [dbm] signature prettyprinting not correct
+1565. [dbm] Overflow exception while loading IntInf
+1567. [dbm,Zhong] Error: Compiler bug: InlInfo: Wrong field in INL_STR !
+1568. [jhr] installing under digital unix (tru64) 5.0
+1569. [jhr] segfault in BuildLiterals
+1570. [Zhong, Stefan] RecoverLty exception
+1573. [jhr, dbm] ARRAY array tycon should be an eqtype
+1574. [jhr?] Segmentation fault in gc, alpha dunix only
+1575. [Riccardo?] Bad response to EOF on standard input on Windows 98
+1578. [dbm] invalid datatype replication causes compiler bug
+1580. [dbm,Zhong] uncaught exception ltUnbound
+1581. [?] Problem with constant strings in ML-Lex
+1583. [dbm] datatype foo = datatype bar raises Unbound exception
+1584. [dbm] Premature Overloading Resolution
+1587. [jhr, Lal?] Problem with Real.rem
+1588. [Riccardo?] BinIO.inputAll raises Subscript (Windows)
+1589. [jhr] incorrect implementation for Posix.TTY
+1590. [Matthias] compilation manager reads tool files from wrong directory
+1592. [?] Math.pow is not accurate
+1593. [?] Pattern matching on word constants causes overflow in the compiler
+1594. [jhr] linker errors on FreeBSD 4.x
+1595. [dbm] suspicious signatures printed when using datatype replication
+1596. [Zhong, dbm] TransTypes: unexpected FORMAL kind in tycTyc-h
+1598. [?] IntInf broken on Windows
+1599. [dbm] Nonexhaustive binding failure during compilation of incorrect program
+1600. [?] Word literals are not printed correctly in error messages
+1601. [?] SML/NJ terminates with `unexpected fault, signal = 11'
+1602. [dbm] Nonexhaustive match failure during compilation (secondary)
+1603. [dbm] Unbound exception from recursive datatype replication
+1604. [dbm] suboptimal type error message
+1605. [dbm] out-of-date example of ML-lex in lexgen.{doc,tex}
+1606. [jhr] absolute paths in .run-sml prevent moving installation
+1607. [?] inaccurate transcendentals (Math.sin)
+1608. [dbm] where clauses in sig causes compiler bug: unexpected DATATYPE 354
+1610. [dbm,jhr] parsing OR-patterns with char literals
+1612. [Zhong] poor code generation for nested loops
+1613. [?] Fatal error -- unexpected fault (on x86-linux, sparc-solaris)

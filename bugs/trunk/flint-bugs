@@ -1,0 +1,31 @@
+======================================================================
+Probably Flint related
+======================================================================
+856. [zhong] unique constructors not representationally transparent
+1396. [Zhong] uncaught exception ltUnbound (secondary error)
+1453. [dbm, Zhong] Compiler bug: LtyExtern: incorrect lambda types in lt_select
+1467. [Zhong] Looping functions fail in FLINT
+1470. [dbm, Zhong] compilation blowup (in FLINT?)
+1484. [Zhong] reorder optimization disabled by FLINT
+1485. [Zhong] quadratic(?) blowup compiling long sequence of val bindings
+1491. [Zhong] Polymorphic Computation Too Slow
+1492. [Zhong] Compile-time performance problem with long list value
+1528. [Zhong] Compiler bug: LtyKernel: unexpected TC_FIX freevars in tc_aux
+1535. [] Large ml-yacc generated file fails to compile on HP-UX
+1537. [Zhong, Stefan, Lal, Allen] compiler blowup with large andalso expression
+1567. [dbm,Zhong] Error: Compiler bug: InlInfo: Wrong field in INL_STR !
+1570. [Zhong, Stefan] RecoverLty exception
+1580. [dbm, Zhong] uncaught exception ltUnbound
+1596. [Zhong, dbm] TransTypes: unexpected FORMAL kind in tycTyc-h
+
+======================================================================
+Maybe Flint related
+======================================================================
+1193. [Zhong] Memory leak due to ref cells
+1233. [Zhong?] funny printing of multiple bindings in a declaration
+1309. [Zhong, Andrew] SML/NJ not safe for space
+1323. [Zhong, Andrew] "uncaught exception RegMap" on hppa
+1360. [Zhong?] uncaught exception FPRegEA (or RegMap)
+1382. [Zhong?] space leak in CML
+1534. [Zhong, dbm, ?] polymorphic equality for concrete eqtypes ...
+1539. [jhr, Zhong] Array equality uses polyEqual
