@@ -12,7 +12,7 @@ for tree in config base smlnj-lib MLRISC ml-yacc \
             ckit cml eXene smlnj-c lexgen ml-burg ml-lex heap2asm nlffi
 do
   if [ -d $tree -a -d $tree/.svn ] ; then
-      echo Refreshing ${tree}...
+      echo Checking ${tree}...
       cd $tree
       svn status
       cd $here
