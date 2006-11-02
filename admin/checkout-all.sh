@@ -5,20 +5,48 @@ if [ $# -ge 1 ] ; then
     cd $1
 fi
 
-gf=svn://smlnj-gforge.cs.uchicago.edu/smlnj
+gf=svn://smlnj-gforge.cs.uchicago.edu
+smlnj=$gf/smlnj
 
-svn checkout $gf/config/trunk config
-svn checkout $gf/sml/trunk base
-svn checkout $gf/smlnj-lib/trunk smlnj-lib
-svn checkout $gf/MLRISC/trunk MLRISC
-svn checkout $gf/ml-yacc/trunk ml-yacc
+checkout(){
+    if [ $# = 2 ] ; then
+	target=$2
+	case $1 in
+	    svn://* )
+		source=$1
+		;;
+	    * )
+		source=$smlnj/$1/trunk
+		;;
+	esac
+    else
+	source=$smlnj/$1/trunk
+	target=$1
+    fi
+    if [ ! -d $target ] ; then
+	echo Checking out $source as $target.
+	svn checkout $source $target
+    else
+	echo Tree $target already exists.
+    fi
+}
 
-svn checkout $gf/ckit/trunk ckit
-svn checkout $gf/cml/trunk cml
-svn checkout $gf/eXene/trunk eXene
-svn checkout $gf/smlnj-c/trunk smlnj-c
-svn checkout $gf/lexgen/trunk lexgen
-svn checkout $gf/ml-burg/trunk ml-burg
-svn checkout $gf/ml-lex/trunk ml-lex
-svn checkout $gf/heap2asm/trunk heap2asm
-svn checkout $gf/nlffi/trunk nlffi
+
+checkout config
+checkout sml base
+checkout smlnj-lib
+checkout MLRISC
+checkout ml-yacc
+
+checkout ckit
+checkout cml
+checkout eXene
+checkout smlnj-c
+checkout lexgen
+checkout ml-burg
+checkout ml-lex
+checkout heap2asm
+checkout nlffi
+
+checkout $gf/ml-lpt/ml-ulex ml-ulex
+checkout $gf/ml-lpt/ml-antlr ml-antlr
