@@ -37,6 +37,8 @@ checkout sml base
 checkout smlnj-lib
 checkout MLRISC
 checkout ml-yacc
+checkout trace-debug-profile
+checkout pgraph
 
 checkout ckit
 checkout cml

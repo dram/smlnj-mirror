@@ -8,7 +8,7 @@ gf=svn://smlnj-gforge.cs.uchicago.edu/smlnj
 
 here=`pwd`
 
-for tree in config base smlnj-lib MLRISC ml-yacc \
+for tree in config base smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
             ckit cml eXene smlnj-c lexgen ml-burg ml-lex heap2asm nlffi \
 	    ml-antlr ml-ulex
 do
