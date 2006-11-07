@@ -1,5 +1,18 @@
 #!/bin/sh
 
+command=checkout
+
+if [ $# -ge 1 ] ; then
+    case $1 in
+	--export|-e)
+	    command=export
+	    shift
+	    ;;
+	*)
+	    ;;
+    esac
+fi
+
 if [ $# -ge 1 ] ; then
     mkdir $1
     cd $1
@@ -25,7 +38,7 @@ checkout(){
     fi
     if [ ! -d $target ] ; then
 	echo Checking out $source as $target.
-	svn checkout $source $target
+	svn $command $source $target
     else
 	echo Tree $target already exists.
     fi
