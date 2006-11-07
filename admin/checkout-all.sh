@@ -50,5 +50,4 @@ checkout ml-lex
 checkout heap2asm
 checkout nlffi
 
-checkout $gf/ml-lpt/ml-ulex ml-ulex
-checkout $gf/ml-lpt/ml-antlr ml-antlr
+checkout $gf/ml-lpt ml-lpt
