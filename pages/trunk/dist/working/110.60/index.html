@@ -13,7 +13,7 @@
 <h3>Downloads</h3>
 
 <dl>
-  <dt>Unix</dt>
+  <dt><b>Unix</b></dt>
   <dd>
     The only file you need to download manually is
     <a
@@ -23,7 +23,7 @@
     automatically downloads any additional files it might need.
     For more information, see <a href="NOTES/INSTALL">INSTALL</a>.
    </dd>
-  <dt>MacOS X</dt>
+  <dt><b>MacOS X</b></dt>
   <dd>
     You can use the "generic Unix" procedure above, or you can install
     a pre-built system using the installer package in
@@ -31,15 +31,26 @@
     (or <a href="http://smlnj.cs.uchicago.edu/dist/working/110.60/smlnj-for-intel-mac-110.60.dmg">smlnj-for-intel-mac-110.60.dmg</a> for Intel Macs).
     For more information, see <a href="NOTES/MACOSXINSTALL">MACOSXINSTALL</a>.
    </dd>
-  <dt>Microsoft Windows</dt>
+  <dt><b>Microsoft Windows</b></dt>
   <dd>
     Download
     <a href="http://smlnj.cs.uchicago.edu/dist/working/110.60/smlnj.zip">smlnj.zip</a>
     and follow the instructions in <a href="NOTES/WININSTALL">WININSTALL</a>.
   </dd>
-  <dt><b><font size="+1" color="red">New!</font></b> Direct access to subversion repository</dt>
+  <dt><b><font size="+1" color="red">New!</font> Direct access to subversion repository</b></dt>
   <dd>
-      <i>Explanation to be filled in...</i>
+      For information on how to use access the subversion repository,
+      see the <tt>release-110.60</tt> entry of the
+      <a href="NOTES/HISTORY">HISTORY</a> file.
+      <br>
+      <b>Warning:</b>  When pulling the latest sources via subversion,
+      there is no guarantee that <tt>config/install.sh</tt> will operate
+      successfully due to a lack of usable bootfiles.
+      In this case you might be able to
+      generate new bootfiles using the bootstrap compiler (of an older
+      version).  However, even that can be very difficult or even impossible,
+      in which case you will have to wait for the next working version to
+      be released.
   </dd>
 </dl>
 
