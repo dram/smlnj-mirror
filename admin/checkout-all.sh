@@ -57,7 +57,6 @@ checkout ckit
 checkout cml
 checkout eXene
 checkout smlnj-c
-checkout lexgen
 checkout ml-burg
 checkout ml-lex
 checkout heap2asm

@@ -12,7 +12,7 @@ gf=svn://smlnj-gforge.cs.uchicago.edu/smlnj
 here=`pwd`
 
 for tree in config sml smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
-            ckit cml eXene smlnj-c lexgen ml-burg ml-lex heap2asm nlffi
+            ckit cml eXene smlnj-c ml-burg ml-lex heap2asm nlffi
 do
   svn cp $gf/$tree/trunk $gf/$tree/releases/release-$relno -m "Release $relno"
 done
