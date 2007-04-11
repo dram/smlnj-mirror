@@ -215,7 +215,7 @@ case $OPSYS in
 		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML 
 YYY
         ;;
- linux | aix | irix6 | solaris | dunix)
+ linux | aix | irix6 | solaris | dunix | darwin)
 	$KSH <<-YYY 1>$TMPFILE 2>&1
 		ulimit -t $CPULIMIT
 		(echo "(*#line 0 \\"$srcFile\\"*)"; cat $file) | \
