@@ -186,10 +186,10 @@ fi
 
 $ECHO -u2 ${CMD} Building special version of SML for $OPSYS ...
 $SML @SMLquiet @SMLdebug=/dev/null << xxx 1>/dev/null
-  	Compiler.Control.primaryPrompt:="";
-  	Compiler.Control.secondaryPrompt:="";
-        Compiler.Control.Print.printLength := 1000;
-	CM.verbose (SOME false);
+  	Control.primaryPrompt:="";
+  	Control.secondaryPrompt:="";
+        Control.Print.printLength := 1000;
+	#set(CM.Control.verbose) false;
   	(SMLofNJ.exportML "$TSML"; ());
 xxx
 
