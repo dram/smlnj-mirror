@@ -1,6 +1,6 @@
 val it = () : unit
 val g = fn : 'a -> 'a
-m002b-fl.sml:16.12-20.15 Error: operator and operand don't agree [equality type required]
+m002b-fl.sml:19.15-19.22 Error: operator and operand don't agree [equality type required]
   operator domain: ''Z * ''Z
   operand:         ('Y -> 'Y) * ('X -> 'X)
   in expression:

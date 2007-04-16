@@ -1,5 +1,5 @@
 val it = () : unit
-r025b-fl.sml:13.1-15.18 Error: expression doesn't match constraint [tycon mismatch]
+r025b-fl.sml:15.5-15.14 Error: expression doesn't match constraint [tycon mismatch]
   expression: ?.u
   constraint: ?.t
   in expression:

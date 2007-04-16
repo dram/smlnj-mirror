@@ -2,7 +2,7 @@
 (* have to turn off matchRedundantError flag for these two functions *)
 (* Inexhaustive, with unused rules: *)
 
-Compiler.Control.MC.matchRedundantError := false;
+Control.MC.matchRedundantError := false;
 
 fun f2 ([], [])       = 111 
   | f2 (x::xr, y::yr) = 222

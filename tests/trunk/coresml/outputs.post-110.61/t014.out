@@ -1,8 +1,8 @@
 val it = () : unit
-val MAXDOUBLE = 1.79769313486e308 : real
-val MINDOUBLE = 4.94065645841e~324 : real
+val MAXDOUBLE = 1.79769313486E308 : real
+val MINDOUBLE = 4.94065645841E~324 : real
 val pi = 3.14159265359 : real
-val eps = 1e~14 : real
+val eps = 1E~14 : real
 infix seq
 val seq = fn : 'a * 'b -> 'b
 val check1 = fn : ('a -> real) * 'a * real -> string

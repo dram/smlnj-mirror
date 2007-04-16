@@ -53,14 +53,3 @@ val minii = fn : int * int -> int
 val eei1 = true : bool
 val eew1 = true : bool
 val eec1 = true : bool
-t016.sml:85.13-85.26 Error: operator and operand don't agree [equality type required]
-  operator domain: ''Z * ''Z
-  operand:         real * real
-  in expression:
-    117.0 = 117.0
-t016.sml:85.35-85.49 Error: operator and operand don't agree [equality type required]
-  operator domain: ''Z * ''Z
-  operand:         real * real
-  in expression:
-    117.1 <> 117.0
-

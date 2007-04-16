@@ -2,7 +2,7 @@
 (* testmatc.sml --- test the match compiler 1996-07-10, 1997-02-03 *)
 
 (* turn off redundant match error *)
-Compiler.Control.MC.matchRedundantError := false;
+Control.MC.matchRedundantError := false;
 
 fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
 

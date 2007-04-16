@@ -82,7 +82,7 @@ val eew1 = 0wx12345 = 0wx12345 andalso 0wx12345 <> 0wx12354;
 val eec1 = #"A" = #"A" andalso #"C" <> #"D";
 val eeg1 = 
     "abc" = "abc" andalso "abc" <> "ABC" 
-    andalso 117.0 = 117.0 andalso 117.1 <> 117.0
+(*    andalso 117.0 = 117.0 andalso 117.1 <> 117.0 *)
     andalso [1] = [1] andalso [0] <> [1]
     andalso [0w117] = [0w117] andalso [0w118] <> [0w117];
 

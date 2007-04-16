@@ -1,7 +1,7 @@
 val it = () : unit
 exception A of int
 val r = {ex=A(-),name="Foo"} : {ex:exn, name:string}
-r044b-fl.sml:16.1-16.29 Error: constructor and argument don't agree in pattern [tycon mismatch]
+r044b-fl.sml:16.5-16.29 Error: constructor and argument don't agree in pattern [tycon mismatch]
   constructor: int -> exn
   argument:    bool
   in pattern:
