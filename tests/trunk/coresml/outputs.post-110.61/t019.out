@@ -1,16 +1,14 @@
 val it = () : unit
 val it = () : unit
-t019.sml:7.1-9.28 Warning: match redundant and nonexhaustive
-          (nil,nil) => ...
-          (x :: xr,y :: yr) => ...
-    -->   (nil,nil) => ...
-  
+val check' = fn : (unit -> bool) -> string
+val checkres1 = fn : ('a -> ''b) -> ('a * ''b) list -> string
+val checkres2 = fn : ('a -> 'b -> ''c) -> ('a * 'b * ''c) list -> string
 val f2 = fn : 'a list * 'b list -> int
-t019.sml:11.27-13.30 Warning: match redundant and nonexhaustive
-          (nil,nil) => ...
-          (x :: xr,y :: yr) => ...
-    -->   (nil,nil) => ...
-  
 val f2c = fn : 'a list -> 'b list -> int
-t019.sml:15.14-15.23 Error: unbound variable or constructor: checkres1
+val test3a = "OK" : string
+val test3b = "OK" : string
+val test3c = "OK" : string
+val test4a = "OK" : string
+val test4b = "OK" : string
+val test4c = "OK" : string
 

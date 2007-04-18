@@ -53,3 +53,5 @@ val minii = fn : int * int -> int
 val eei1 = true : bool
 val eew1 = true : bool
 val eec1 = true : bool
+val eeg1 = true : bool
+

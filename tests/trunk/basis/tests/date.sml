@@ -2,40 +2,42 @@
    PS 1995-03-20, 1995-05-12, 1996-07-05
 *)
 
-structure Date = struct
-  exception NotImplemented
-  open Date
-  fun fromString _ = raise NotImplemented
-end
-
-infix 1 seq
-fun e1 seq e2 = e2;
-fun check b = if b then "OK" else "WRONG";
-fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
-
-fun range (from, to) p = 
-    let open Int 
-    in
-	(from > to) orelse (p from) andalso (range (from+1, to) p)
-    end;
-
-fun checkrange bounds = check o range bounds;
-
 local
-    open Time Date 
-    fun date h = 
-	toString(fromTimeLocal(now() + fromReal (3600.0 * real h))) ^ "\n";
-    fun nowdate () = Date.fromTimeLocal(now());
-    fun mkdate(y,mo,d,h,mi,s) =
-	 Date.date{year=y, month=mo, day=d, hour=h, minute=mi, second=s, 
-	  offset=NONE}
-    fun cmp(dt1, dt2) = compare(mkdate dt1, mkdate dt2)
 
-    fun fromto dt = 
-	toString (Option.valOf(Date.fromString (toString dt))) = toString dt
+  structure Date = struct
+    exception NotImplemented
+    open Date
+    fun fromString _ = raise NotImplemented
+  end
 
-    fun tofrom s = 
-	toString (Option.valOf(Date.fromString s)) = s
+  infix 1 seq
+  fun e1 seq e2 = e2;
+  fun check b = if b then "OK" else "WRONG";
+  fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
+
+  fun range (from, to) p = 
+      let open Int 
+      in
+          (from > to) orelse (p from) andalso (range (from+1, to) p)
+      end;
+
+  fun checkrange bounds = check o range bounds;
+
+  open Time Date 
+  fun date h = 
+      toString(fromTimeLocal(now() + fromReal (3600.0 * real h))) ^ "\n";
+  fun nowdate () = Date.fromTimeLocal(now());
+  fun mkdate(y,mo,d,h,mi,s) =
+       Date.date{year=y, month=mo, day=d, hour=h, minute=mi, second=s, 
+        offset=NONE}
+  fun cmp(dt1, dt2) = compare(mkdate dt1, mkdate dt2)
+
+  fun fromto dt = 
+      toString (Option.valOf(Date.fromString (toString dt))) = toString dt
+
+  fun tofrom s = 
+      toString (Option.valOf(Date.fromString s)) = s
+
 in
     
 val _ = 

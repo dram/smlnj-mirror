@@ -5,6 +5,6 @@ type A = int
 type B = A
 type C = B tree
 val x = (-,2) : C * A
-val y = <poly-record> : 'a tree * B
+val y = (-,2) : 'a tree * B
 val test = true : bool
 

@@ -4,6 +4,15 @@
 
 Control.MC.matchRedundantError := false;
 
+fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
+
+fun checkres1 f argres = 
+    check'(fn _ => List.all (fn (arg, res) => f arg = res) argres)
+
+fun checkres2 f argres = 
+    check'(fn _ => List.all (fn (arg1, arg2, res) => f arg1 arg2 = res) argres)
+;
+
 fun f2 ([], [])       = 111 
   | f2 (x::xr, y::yr) = 222
   | f2 ([], [])       = 333;

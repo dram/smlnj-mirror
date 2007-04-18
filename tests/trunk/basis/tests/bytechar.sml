@@ -1,6 +1,7 @@
 (* test/bytechar.sml -- test cases for Byte and Char, suitable for ASCII
    PS 1994-12-10, 1995-05-11, 1995-11-10, 1996-09-30 *)
 
+local 
 
 infix 1 seq
 fun e1 seq e2 = e2;
@@ -15,10 +16,8 @@ fun range (from, to) p =
 
 fun checkrange bounds = check o range bounds;
 
-
-local 
-
 in 
+
 val test1 = checkrange (0,255) (fn i => 
     (Word8.toInt o Byte.charToByte o Byte.byteToChar o Word8.fromInt) i = i);
 
@@ -43,53 +42,55 @@ val test8 =
 	  (Byte.bytesToString o Word8Vector.fromList o map Word8.fromInt)
 	   [65, 66, 68, 67]);
 
-val test9 = check("" = Byte.unpackString(Word8Array.fromList [], 0, SOME 0));
-
-local 
+local  (* local 1 *)
     val arr = Word8Array.tabulate(10, fn i => Word8.fromInt(i+65))
-in
-val test10a = check("" = Byte.unpackString(arr, 0, SOME 0));
-val test10b = check("" = Byte.unpackString(arr, 10, SOME 0) 
- 		   andalso "" = Byte.unpackString(arr, 10, NONE));
-val test10c = check("BCDE" = Byte.unpackString(arr, 1, SOME 4));
-val test10d = (Byte.unpackString(arr, ~1, SOME 0) seq "WRONG")
-              handle Subscript => "OK" | _ => "WRONG";
-val test10e = (Byte.unpackString(arr, 11, SOME 0) seq "WRONG")
-              handle Subscript => "OK" | _ => "WRONG";
-val test10f = (Byte.unpackString(arr, 0, SOME ~1) seq "WRONG")
-              handle Subscript => "OK" | _ => "WRONG";
-val test10g = (Byte.unpackString(arr, 0, SOME 11) seq "WRONG")
-              handle Subscript => "OK" | _ => "WRONG";
-val test10h = (Byte.unpackString(arr, 10, SOME 1) seq "WRONG")
-              handle Subscript => "OK" | _ => "WRONG";
-val test10i = (Byte.unpackString(arr, ~1, NONE) seq "WRONG")
-              handle Subscript => "OK" | _ => "WRONG";
-val test10j = (Byte.unpackString(arr, 11, NONE) seq "WRONG")
-              handle Subscript => "OK" | _ => "WRONG";
-end
+    val wasl = Word8ArraySlice.slice
 
-local 
     val vec = Word8Vector.tabulate(10, fn i => Word8.fromInt(i+65))
+    val wvsl = Word8VectorSlice.slice
 in
-val test11a = check("" = Byte.unpackStringVec(vec, 0, SOME 0));
-val test11b = check("" = Byte.unpackStringVec(vec, 10, SOME 0) 
- 		   andalso "" = Byte.unpackStringVec(vec, 10, NONE));
-val test11c = check("BCDE" = Byte.unpackStringVec(vec, 1, SOME 4));
-val test11d = (Byte.unpackStringVec(vec, ~1, SOME 0) seq "WRONG")
+
+val test9 = check("" = Byte.unpackString(wasl(Word8Array.fromList [], 0, SOME 0)));
+
+val test10a = check("" = Byte.unpackString(wasl(arr, 0, SOME 0)));
+val test10b = check("" = Byte.unpackString(wasl(arr, 10, SOME 0)) 
+ 		   andalso "" = Byte.unpackString(wasl(arr, 10, NONE)));
+val test10c = check("BCDE" = Byte.unpackString(wasl(arr, 1, SOME 4)));
+val test10d = (Byte.unpackString(wasl(arr, ~1, SOME 0)) seq "WRONG")
               handle Subscript => "OK" | _ => "WRONG";
-val test11e = (Byte.unpackStringVec(vec, 11, SOME 0) seq "WRONG")
+val test10e = (Byte.unpackString(wasl(arr, 11, SOME 0)) seq "WRONG")
               handle Subscript => "OK" | _ => "WRONG";
-val test11f = (Byte.unpackStringVec(vec, 0, SOME ~1) seq "WRONG")
+val test10f = (Byte.unpackString(wasl(arr, 0, SOME ~1)) seq "WRONG")
               handle Subscript => "OK" | _ => "WRONG";
-val test11g = (Byte.unpackStringVec(vec, 0, SOME 11) seq "WRONG")
+val test10g = (Byte.unpackString(wasl(arr, 0, SOME 11)) seq "WRONG")
               handle Subscript => "OK" | _ => "WRONG";
-val test11h = (Byte.unpackStringVec(vec, 10, SOME 1) seq "WRONG")
+val test10h = (Byte.unpackString(wasl(arr, 10, SOME 1)) seq "WRONG")
               handle Subscript => "OK" | _ => "WRONG";
-val test11i = (Byte.unpackStringVec(vec, ~1, NONE) seq "WRONG")
+val test10i = (Byte.unpackString(wasl(arr, ~1, NONE)) seq "WRONG")
               handle Subscript => "OK" | _ => "WRONG";
-val test11j = (Byte.unpackStringVec(vec, 11, NONE) seq "WRONG")
+val test10j = (Byte.unpackString(wasl(arr, 11, NONE)) seq "WRONG")
               handle Subscript => "OK" | _ => "WRONG";
-end
+
+val test11a = check("" = Byte.unpackStringVec(wvsl(vec, 0, SOME 0)));
+val test11b = check("" = Byte.unpackStringVec(wvsl(vec, 10, SOME 0)) 
+ 		   andalso "" = Byte.unpackStringVec(wvsl(vec, 10, NONE)));
+val test11c = check("BCDE" = Byte.unpackStringVec(wvsl(vec, 1, SOME 4)));
+val test11d = (Byte.unpackStringVec(wvsl(vec, ~1, SOME 0)) seq "WRONG")
+              handle Subscript => "OK" | _ => "WRONG";
+val test11e = (Byte.unpackStringVec(wvsl(vec, 11, SOME 0)) seq "WRONG")
+              handle Subscript => "OK" | _ => "WRONG";
+val test11f = (Byte.unpackStringVec(wvsl(vec, 0, SOME ~1)) seq "WRONG")
+              handle Subscript => "OK" | _ => "WRONG";
+val test11g = (Byte.unpackStringVec(wvsl(vec, 0, SOME 11)) seq "WRONG")
+              handle Subscript => "OK" | _ => "WRONG";
+val test11h = (Byte.unpackStringVec(wvsl(vec, 10, SOME 1)) seq "WRONG")
+              handle Subscript => "OK" | _ => "WRONG";
+val test11i = (Byte.unpackStringVec(wvsl(vec, ~1, NONE)) seq "WRONG")
+              handle Subscript => "OK" | _ => "WRONG";
+val test11j = (Byte.unpackStringVec(wvsl(vec, 11, NONE)) seq "WRONG")
+              handle Subscript => "OK" | _ => "WRONG";
+
+end (* local 1 *)
 
 val test18 = check(not (Char.contains "" (Char.chr 65))
                    andalso not (Char.contains "aBCDE" (Char.chr 65))
@@ -109,7 +110,8 @@ val test19 = check(Char.notContains "" (Char.chr 65)
 
 val test20 = check(Char.ord Char.maxChar = Char.maxOrd);
 
-local 
+local (* local 2 *)
+
 fun mycontains s c = 
     let val stop = String.size s
 	fun h i = i < stop andalso (c = String.sub(s, i) orelse h(i+1))
@@ -192,7 +194,8 @@ val test35a =
 	   map succ (List.take(allchars, 255)) = List.drop(allchars, 1));
 val test35b = (succ maxChar seq "WRONG")
               handle Chr => "OK" | _ => "WRONG";
-end
+
+end (* local 2 *)
 
 
 (* Test cases for SML character escape functions. *)
@@ -380,4 +383,5 @@ val test43 =
 		"\\x100",
 		"\\xG"])
     end;
-end
+
+end (* local *)
