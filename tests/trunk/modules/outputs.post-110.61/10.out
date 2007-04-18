@@ -1,0 +1,20 @@
+val it = () : unit
+signature FULLSET =
+  sig
+    type elem
+    val g : elem -> unit
+  end
+functor BS(B: sig type u end) :
+          sig
+            strange tycon: [E]
+            val f : 'a -> unit
+          end
+functor FS(B: sig type u end) :
+          sig
+            type elem
+            val g : elem -> unit
+          end
+structure E : FULLSET
+val ff = fn : E.elem -> int
+val h = fn : int -> unit
+

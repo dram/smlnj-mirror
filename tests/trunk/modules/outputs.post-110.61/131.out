@@ -1,0 +1,28 @@
+val it = () : unit
+signature TOK =
+  sig
+    datatype t = TOK
+  end
+signature LEX =
+  sig
+    type t
+    val x : t
+  end
+signature P =
+  sig
+    structure T :
+      sig
+        datatype t = TOK
+      end
+    val y : T.t
+  end
+functor F(<param>: sig
+                     structure X : <sig>
+                     structure T : <sig>
+                     sharing type T.t = X.t
+                   end) :
+         sig
+           structure T : <sig>
+           val y : T.t
+         end
+

@@ -1,0 +1,22 @@
+val it = () : unit
+functor F(A: sig
+               type t
+               val x : t
+             end) :
+         sig
+           val y : s
+           strange tycon: [E]
+         end
+structure S :
+  sig
+    val y : s
+    type s = int
+  end
+structure S' :
+  sig
+    val y : s
+    type s = int
+  end
+structure A : sig val a : bool end
+structure B : sig val a : int end
+

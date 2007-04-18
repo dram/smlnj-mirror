@@ -1,0 +1,16 @@
+val it = () : unit
+signature U = sig type t end
+functor T(<param>: sig type s end) : sig strange tycon: [E] end
+functor F(<param>: sig type s end) :
+         sig
+           structure Y : <sig>
+           strange tycon: [E]
+           val y : Y.t -> s
+         end
+structure A :
+  sig
+    structure Y : <sig>
+    datatype s = EE of Y.t
+    val y : Y.t -> s
+  end
+

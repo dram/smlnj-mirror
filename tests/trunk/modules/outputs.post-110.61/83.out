@@ -1,0 +1,7 @@
+val it = () : unit
+[autoloading]
+[autoloading done]
+83.sml:37.1-40.4 Error: type x does not match definitional specification
+83.sml:53.1-56.4 Error: unmatched type specification: int
+Error: Compiler bug: ModuleUtil: unexpected binding in strPrimElemInBinds
+

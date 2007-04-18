@@ -1,0 +1,33 @@
+val it = () : unit
+signature S1 =
+  sig
+    eqtype t
+    val x : t
+  end
+funsig FS1(A: sig
+                eqtype t
+                val x : t
+              end) :
+          sig structure C : <sig> end
+222.sml:19.16 Warning: calling polyEqual
+functor F(<param>: sig
+                     functor G : <fctsig>
+                     structure A : <sig>
+                   end) :
+         sig
+           structure B : <sig>
+           val y : bool
+         end
+structure a : S1
+functor g(A: sig
+               eqtype t
+               val x : t
+             end) :
+         sig structure C : <sig> end
+structure b :
+  sig
+    structure B : <sig>
+    val y : bool
+  end
+val it = true : bool
+

@@ -1,0 +1,12 @@
+val it = () : unit
+signature T6 =
+  sig
+    structure A : sig type t end
+    structure B : sig type s = A.t end
+  end
+functor F(X: sig
+               structure A : <sig>
+               structure B : <sig>
+             end) :
+         sig val f : (X.t -> int) * X.B.s -> int end
+

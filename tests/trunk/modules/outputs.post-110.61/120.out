@@ -1,0 +1,15 @@
+val it = () : unit
+signature S = sig type t end
+signature P =
+  sig
+    structure A : sig type t end
+    structure B : sig type t end
+    sharing B = A
+  end
+functor F(X: sig
+               structure A : <sig>
+               structure B : <sig>
+               sharing B = A
+             end) :
+         sig end
+

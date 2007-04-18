@@ -1,0 +1,45 @@
+val it = () : unit
+[autoloading]
+[autoloading done]
+signature POINT =
+  sig
+    type point
+    val <= : point * point -> bool
+  end
+signature INTERVAL =
+  sig
+    type interval
+    type point
+    val mk : point * point -> interval
+    val left : interval -> point
+    val right : interval -> point
+  end
+functor Interval(P: sig
+                      type point
+                      val <= : point * point -> bool
+                    end) :
+                sig
+                  type interval
+                  type point
+                  val mk : point * point -> interval
+                  val left : interval -> point
+                  val right : interval -> point
+                end
+structure IntPoint : POINT
+functor G(<param>: sig functor Interv : <fctsig> end) :
+         sig structure NatNumInt : <sig> end
+functor RealInterval(P: sig
+                          type point
+                          val <= : point * point -> bool
+                        end) :
+                    sig
+                      type interval
+                      type point
+                      val mk : point * point -> interval
+                      val left : interval -> point
+                      val right : interval -> point
+                    end
+structure ResultG : sig structure NatNumInt : <sig> end
+structure TG : INTERVAL
+val testG = 9.0 : ResultG.NatNumInt.point
+

@@ -1,0 +1,12 @@
+val it = () : unit
+signature S =
+  sig
+    type t
+    val x : int
+  end
+functor F(X: sig
+               type t
+               val x : int
+             end) :
+         sig end
+

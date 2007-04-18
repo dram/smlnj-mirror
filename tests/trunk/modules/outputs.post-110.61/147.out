@@ -1,0 +1,7 @@
+val it = () : unit
+signature S =
+  sig
+    datatype t = T
+  end
+structure A : S
+

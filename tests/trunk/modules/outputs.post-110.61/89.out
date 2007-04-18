@@ -1,0 +1,5 @@
+val it = () : unit
+functor F(A: sig type t end) : sig type t end
+structure S : sig type t = int end
+structure T : sig type t = int end
+

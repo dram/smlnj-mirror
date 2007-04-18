@@ -1,0 +1,9 @@
+val it = () : unit
+functor F(X: sig
+               datatype d = A | B of d
+             end) :
+         sig
+           datatype p = P of X.d
+           val bug : p
+         end
+

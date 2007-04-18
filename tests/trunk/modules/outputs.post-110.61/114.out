@@ -1,0 +1,15 @@
+val it = () : unit
+signature S1 = sig type t end
+signature S2 =
+  sig
+    type u
+    structure A : sig type t end
+    sharing type A.t = u
+  end
+functor F(X: sig
+               type u
+               structure A : <sig>
+               sharing type A.t = u
+             end) :
+         sig end
+

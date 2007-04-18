@@ -1,0 +1,4 @@
+val it = () : unit
+162.sml:7.1-12.4 Error: type definition spec inside of sharing at: A.t
+162.sml:14.9-14.30 Error: type definition spec inside of sharing at: X.A.t
+

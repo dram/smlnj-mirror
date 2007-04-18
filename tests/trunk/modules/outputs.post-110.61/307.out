@@ -1,0 +1,14 @@
+val it = () : unit
+signature S =
+  sig
+    eqtype A
+    eqtype T
+    val e : T
+    val c : A * T -> T
+    val d : T -> A * T
+  end
+307.sml:20.19 Warning: calling polyEqual
+wrong TCs in tc_select
+PRIM(I)
+Error: Compiler bug: LtyExtern: LtyExtern.tc_bug
+

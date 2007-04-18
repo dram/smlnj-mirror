@@ -1,0 +1,27 @@
+val it = () : unit
+signature S1 =
+  sig
+    val x : unit
+    datatype t = K
+  end
+signature S2 =
+  sig
+    structure C :
+      sig
+        val x : unit
+        datatype t = K
+      end
+    val foo : C.t -> unit
+  end
+functor mkGraph(<param>: sig
+                           structure C : <sig>
+                           structure U : <sig>
+                           sharing C = U.C
+                         end) :
+               sig
+                 val x : unit
+                 strange tycon: [E]
+                 structure C : <sig>
+                 val foo : C.t -> unit
+               end
+

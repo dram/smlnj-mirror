@@ -1,0 +1,15 @@
+val it = () : unit
+signature S =
+  sig
+    type t
+    val x : t
+  end
+functor F(<param>: sig
+                     type s
+                     structure C : <sig>
+                     datatype u = K of s
+                     structure D : <sig>
+                     sharing type C.t = u
+                   end) :
+         sig end
+

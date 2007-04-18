@@ -1,0 +1,31 @@
+val it = () : unit
+signature TAB =
+  sig
+    datatype term = T
+  end
+signature PAR =
+  sig
+    structure PT :
+      sig
+        datatype term = T
+      end
+    val x : PT.term
+    structure P1 : sig val x1 : PT.term end
+  end
+signature SIGX =
+  sig structure P :
+        sig
+          structure PT : <sig>
+          val x : PT.term
+          structure P1 : <sig>
+        end end
+15.sml:27.20 Warning: calling polyEqual
+15.sml:26.16 Warning: calling polyEqual
+15.sml:25.16 Warning: calling polyEqual
+functor Join(<param>: sig structure P : <sig> end) :
+            sig
+              val a : bool
+              val b : bool
+              val c : bool
+            end
+

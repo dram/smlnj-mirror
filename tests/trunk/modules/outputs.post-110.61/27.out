@@ -1,0 +1,17 @@
+val it = () : unit
+functor F1(X: sig
+                type t
+                val x : t
+              end) :
+          sig
+            structure A : <sig>
+            strange tycon: [E]
+            val x : X.t
+          end
+structure S1 :
+  sig
+    structure A : <sig>
+    type t = int
+    val x : X.t
+  end
+

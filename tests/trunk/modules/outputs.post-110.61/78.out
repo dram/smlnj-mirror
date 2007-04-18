@@ -1,0 +1,12 @@
+val it = () : unit
+functor F(<param>: sig end) :
+         sig
+           val x : s
+           strange tycon: [E]
+         end
+structure S :
+  sig
+    val x : s
+    type s = int
+  end
+

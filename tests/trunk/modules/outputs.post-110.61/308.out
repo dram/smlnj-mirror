@@ -1,0 +1,3 @@
+val it = () : unit
+308.sml:1.1-7.4 Error: type definition spec inside of sharing at: s
+

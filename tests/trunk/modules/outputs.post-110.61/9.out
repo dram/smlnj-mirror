@@ -1,0 +1,7 @@
+val it = () : unit
+signature SET = sig type a end
+signature GRAPH = sig structure A : sig type a end end
+functor F(X: sig type t end) : sig type a end
+functor G(Y: sig type s end) : sig structure A : <sig> end
+structure D : GRAPH
+

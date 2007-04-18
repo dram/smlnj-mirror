@@ -1,0 +1,9 @@
+val it = () : unit
+signature SIG0 = sig type s end
+signature SIG1 =
+  sig
+    structure S : sig type s end
+    type t = S.s
+  end
+295.sml:15.1-20.4 Error: type definition spec inside of sharing at: u
+

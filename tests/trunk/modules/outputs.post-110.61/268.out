@@ -1,0 +1,12 @@
+val it = () : unit
+functor PF(<param>: sig end) :
+          sig
+            strange tycon: [E]
+          end
+structure B :
+  sig
+    datatype reader = Rd
+  end
+signature S = sig val mkReader : B.reader end
+structure P : S
+

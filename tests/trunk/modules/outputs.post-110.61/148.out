@@ -1,0 +1,6 @@
+val it = () : unit
+functor F(X: sig type t end) : sig strange tycon: [E] end
+functor G(Y: sig type u end) : sig structure A : <sig> end
+structure B : sig type u = int end
+structure S : sig structure A : <sig> end
+

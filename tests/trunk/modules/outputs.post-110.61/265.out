@@ -1,0 +1,7 @@
+val it = () : unit
+signature X = sig end
+functor Apply(<param>: sig functor F : <fctsig> end) :
+             sig functor <functor> : <fctsig> end
+functor FUN(<param>: sig functor G : <fctsig> end) :
+           sig functor <functor> : <fctsig> end
+

@@ -1,0 +1,32 @@
+val it = () : unit
+signature S1 = sig type t end
+signature S2 =
+  sig
+    structure T : sig type t end
+    datatype r = Kr of T.t
+  end
+signature S3 =
+  sig
+    type s
+    datatype t = Kt of s
+  end
+signature S4 =
+  sig
+    structure C :
+      sig
+        structure T : <sig>
+        datatype r = Kr of T.t
+      end
+    structure D :
+      sig
+        structure T : <sig>
+        datatype r = Kr of T.t
+      end
+    structure E :
+      sig
+        type s
+        datatype t = Kt of s
+      end
+    sharing type C.T.t = E.t
+  end
+

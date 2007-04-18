@@ -1,0 +1,8 @@
+val it = () : unit
+signature GRAPH = sig type e end
+signature GRAM = sig type s end
+signature LRG = sig structure L : sig type e end end
+functor Graph(X: sig type e end) : sig strange tycon: [E] end
+functor LrGraph(G: sig type s end) : sig structure L : <sig> end
+structure Graph : LRG
+

@@ -1,0 +1,17 @@
+val it = () : unit
+functor F1(X: sig
+                type t
+                val x : t
+              end) :
+          sig
+            strange tycon: [E]
+            val z1 : unit
+            val z2 : unit
+          end
+structure B :
+  sig
+    type u = ?.B.A.s * int
+    val z1 : unit
+    val z2 : unit
+  end
+

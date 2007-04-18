@@ -1,0 +1,15 @@
+val it = () : unit
+signature S1 =
+  sig
+    type t
+    eqtype s
+    sharing type s = t
+  end
+30.sml:13.21 Warning: calling polyEqual
+functor F(X: sig
+               type t
+               eqtype s
+               sharing type s = t
+             end) :
+         sig val f : X.s -> bool end
+

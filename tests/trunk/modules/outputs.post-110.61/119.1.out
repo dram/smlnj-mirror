@@ -1,0 +1,5 @@
+val it = () : unit
+signature S1 = sig type t = int end
+signature S2 = sig type t end
+119.1.sml:11.1-17.4 Error: type definition spec inside of sharing at: A.t
+

@@ -1,0 +1,3 @@
+val it = () : unit
+296.sml:1.1-6.4 Error: type definition spec inside of sharing at: t
+

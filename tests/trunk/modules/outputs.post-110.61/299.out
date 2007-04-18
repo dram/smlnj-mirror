@@ -1,0 +1,20 @@
+val it = () : unit
+signature S1 = sig type t end
+signature S2 =
+  sig
+    structure T : sig type t end
+    datatype r = Kr of T.t
+  end
+signature S3 =
+  sig
+    type s
+    datatype t = Kt of s
+  end
+functor F(<param>: sig
+                     structure C : <sig>
+                     structure D : <sig>
+                     structure E : <sig>
+                     sharing type E.t = C.T.t
+                   end) :
+         sig end
+

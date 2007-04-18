@@ -1,0 +1,9 @@
+val it = () : unit
+functor F(<param>: sig
+                     type t1
+                     type t2
+                     datatype s = TOKEN of t2
+                     sharing type s = t1
+                   end) :
+         sig end
+

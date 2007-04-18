@@ -1,0 +1,22 @@
+val it = () : unit
+signature S =
+  sig
+    datatype t = A | B of t
+    val test : t -> unit
+  end
+structure A : S
+functor F(X: sig
+               datatype t = A | B of t
+               val test : t -> unit
+             end) :
+         sig
+           strange tycon: [E]
+           val f : X.t -> bool
+         end
+structure B :
+  sig
+    datatype t = A | B of X.t
+    val f : X.t -> bool
+  end
+val x = true : bool
+

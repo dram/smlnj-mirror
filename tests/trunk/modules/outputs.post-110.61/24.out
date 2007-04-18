@@ -1,0 +1,17 @@
+val it = () : unit
+signature SIG1 =
+  sig
+    type s
+    val y : s
+  end
+functor F4(X: sig
+                type t
+                val x : t
+              end) :
+          sig
+            type s
+            val y : s
+          end
+structure B4 : SIG1
+val x4 = 5 : int
+

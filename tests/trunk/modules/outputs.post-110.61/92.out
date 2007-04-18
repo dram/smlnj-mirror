@@ -1,0 +1,11 @@
+val it = () : unit
+signature S =
+  sig
+    datatype d = D
+  end
+structure E :
+  sig
+    datatype d = D
+  end
+functor F(<param>: sig structure A : <sig> end) : sig val x : E.d end
+

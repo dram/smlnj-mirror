@@ -1,0 +1,13 @@
+val it = () : unit
+functor F(<param>: sig end) :
+         sig
+           structure M : <sig>
+           structure C : <sig>
+         end
+structure S :
+  sig
+    structure M : <sig>
+    structure C : <sig>
+  end
+val x = V : S.M.s
+

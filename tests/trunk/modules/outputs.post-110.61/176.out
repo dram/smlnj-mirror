@@ -1,0 +1,14 @@
+val it = () : unit
+signature CSIG = sig type const end
+signature TSIG =
+  sig
+    type root
+    datatype const = REGLIST of root
+  end
+functor CallGc(<param>: sig
+                          structure C : <sig>
+                          structure T : <sig>
+                          sharing type T.const = C.const
+                        end) :
+              sig end
+

@@ -1,0 +1,14 @@
+val it = () : unit
+functor Bug(<param>: sig end) :
+           sig
+             strange tycon: [E]
+             strange tycon: [E]
+             strange tycon: [E]
+           end
+structure Bug :
+  sig
+    datatype foo = Foo
+    type bar = int
+    type baz = bar list
+  end
+

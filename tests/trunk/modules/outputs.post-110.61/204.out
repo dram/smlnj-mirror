@@ -1,0 +1,15 @@
+val it = () : unit
+functor Dict(<param>: sig type t end) : sig type dict end
+functor T(<param>: sig type t end) :
+         sig
+           structure U : <sig>
+           strange tycon: [E]
+           val x : s
+         end
+structure A :
+  sig
+    structure U : <sig>
+    datatype s = EE of U.dict | FF
+    val x : s
+  end
+

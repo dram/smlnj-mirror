@@ -1,0 +1,27 @@
+val it = () : unit
+functor F(X: sig
+               type t
+               val x : t
+             end) :
+         sig
+           strange tycon: [E]
+           val x : X.t
+         end
+structure B :
+  sig
+    datatype t = c
+    val x : t
+  end
+structure C :
+  sig
+    type t = t
+    val x : X.t
+  end
+structure D :
+  sig
+    type t = t
+    val x : X.t
+  end
+57.sml:21.21 Warning: calling polyEqual
+val x = true : bool
+

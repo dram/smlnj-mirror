@@ -1,0 +1,9 @@
+val it = () : unit
+signature S =
+  sig
+    type s
+    type t
+    sharing type t = s
+  end
+276.sml:12.1-17.4 Error: type definition spec inside of sharing at: u
+

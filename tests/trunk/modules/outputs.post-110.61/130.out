@@ -1,0 +1,24 @@
+val it = () : unit
+signature S =
+  sig
+    structure A : sig type s end
+    structure B : sig type t = A.s end
+  end
+signature T =
+  sig
+    structure C :
+      sig
+        structure A : <sig>
+        structure B : <sig>
+      end
+    type t = C.A.s
+  end
+functor F(X: sig
+               structure A : <sig>
+               structure B : <sig>
+             end) :
+         sig
+           structure C : <sig>
+           type t = C.A.s
+         end
+

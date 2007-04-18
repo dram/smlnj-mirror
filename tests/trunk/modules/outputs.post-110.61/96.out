@@ -1,0 +1,4 @@
+val it = () : unit
+96.sml:22.1-27.4 Error: structure definition spec inside of sharing at: D.C
+96.sml:29.9-29.29 Error: structure definition spec inside of sharing at: X.D.C
+
