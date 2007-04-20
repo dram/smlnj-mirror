@@ -14,33 +14,37 @@
 *)
 
 
-infix 1 seq;
-fun e1 seq e2 = e2;
-fun check b = if b then "OK" else "WRONG";
-fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
-
-fun range (from, to) p = 
-    let open Int 
-    in
-	(from > to) orelse (p from) andalso (range (from+1, to) p)
-    end;
-
-fun checkrange bounds = check o range bounds;
 
 
 local
-    open OS.FileSys
-    (* Clean up: *)
-    val _ = (rmDir "testdir") handle OS.SysErr _ => (); 
-    val _ = (rmDir "testdir2") handle OS.SysErr _ => (); 
-in
+  infix 1 seq;
+  fun e1 seq e2 = e2;
+  fun check b = if b then "OK" else "WRONG";
+  fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
 
-val testlink = "basis/tests/testlink"
-val README = "basis/tests/README"
-val testcycl = "basis/tests/testcycl"
-val testbadl = "basis/tests/testbadl"
-val hardlinkA = "basis/tests/hardlinkA"
-val hardlinkB = "basis/tests/hardlinkB"
+  fun range (from, to) p = 
+      let open Int 
+      in
+          (from > to) orelse (p from) andalso (range (from+1, to) p)
+      end;
+
+  fun checkrange bounds = check o range bounds;
+
+  open OS.FileSys
+  (* Clean up: *)
+  val _ = (rmDir "testdir") handle OS.SysErr _ => (); 
+  val _ = (rmDir "testdir2") handle OS.SysErr _ => (); 
+
+  val cdir = getDir();
+
+  val testlink = "basis/tests/testlink"
+  val README = "basis/tests/README"
+  val testcycl = "basis/tests/testcycl"
+  val testbadl = "basis/tests/testbadl"
+  val hardlinkA = "basis/tests/hardlinkA"
+  val hardlinkB = "basis/tests/hardlinkB"
+
+in
 
 val test1a = (mkDir "testdir" seq "OK") handle _ => "WRONG";
 val test1b = (mkDir "testdir" seq "WRONG")
@@ -50,16 +54,12 @@ val test2 = check'(fn _ => isDir "testdir");
     
 val test3a = check'(fn _ => access("testdir", [A_READ, A_EXEC, A_WRITE]));
 
-local 
-    val cdir = getDir();
-in
-    val test4a = (chDir cdir seq "OK") handle _ => "WRONG";
-    val test4b = check'(fn _ => cdir = getDir());
-    val _ = chDir "testdir";
-    val test4c = check'(fn _ => cdir <> getDir());
-    val _ = chDir "..";
-    val test4d = check'(fn _ => cdir = getDir());
-end;
+val test4a = (chDir cdir seq "OK") handle _ => "WRONG";
+val test4b = check'(fn _ => cdir = getDir());
+val _ = chDir "testdir";
+val test4c = check'(fn _ => cdir <> getDir());
+val _ = chDir "..";
+val test4d = check'(fn _ => cdir = getDir());
 
 val _ = rename{old = "testdir", new = "exists.not"};
 
@@ -95,14 +95,14 @@ local
     val dstr = openDir "testdir";
 in
     val test7a = 
-	check'(fn _ => "" = readDir dstr
-	       andalso "" = readDir dstr
-	       andalso "" = readDir dstr);
+	check'(fn _ => not(isSome(readDir dstr))
+	       andalso not(isSome(readDir dstr))
+	       andalso not(isSome(readDir dstr)));
     val _ = rewindDir dstr;
     val test7b = 
-	check'(fn _ => "" = readDir dstr
-	       andalso "" = readDir dstr
-	       andalso "" = readDir dstr);
+	check'(fn _ => not(isSome(readDir dstr))
+	       andalso not(isSome(readDir dstr))
+	       andalso not(isSome(readDir dstr)));
     val _ = closeDir dstr;
     val test7c = (readDir dstr seq "WRONG")
  	         handle OS.SysErr _ => "OK" | _ => "WRONG";
