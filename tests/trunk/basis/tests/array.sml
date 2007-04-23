@@ -2,20 +2,20 @@
    PS 1994-12-10, 1995-06-14, 1995-11-07 *)
 
 
-infix 1 seq
-fun e1 seq e2 = e2;
-fun check b = if b then "OK" else "WRONG";
-fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
-
-fun range (from, to) p = 
-    let open Int 
-    in
-	(from > to) orelse (p from) andalso (range (from+1, to) p)
-    end;
-
-fun checkrange bounds = check o range bounds;
-
 local 
+
+  infix 1 seq
+  fun e1 seq e2 = e2;
+  fun check b = if b then "OK" else "WRONG";
+  fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
+
+  fun range (from, to) p = 
+      let open Int 
+      in
+          (from > to) orelse (p from) andalso (range (from+1, to) p)
+      end;
+
+  fun checkrange bounds = check o range bounds;
 
   structure AS = ArraySlice
   open Array 

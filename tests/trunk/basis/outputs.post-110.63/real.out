@@ -23,34 +23,25 @@ val test7c = ["OK","OK"] : string list
 val test8 = "OK" : string
 val chk = <hidden-value> : string * real -> string
 val chk = fn : string * real -> string
-val test9a = ["OK","OK","OK","OK","OK","OK","OK","OK","OK"]
-  : string list
+val test9a = ["OK","OK","OK","OK","OK","OK","OK","OK","OK"] : string list
 val test9b =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
-val test9c =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
+val test9c = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
-val test9d =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
+val test9d = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
-val test9e =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
+val test9e = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
-val test9f =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
+val test9f = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
-val test9g =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
+val test9g = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
-val test9h =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
+val test9h = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
-val test9i =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
+val test9i = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
-val test9j =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
+val test9j = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
 val test10 = ["OK","OK","OK","OK","OK","OK","OK","OK"] : string list
 val test11a = "OK" : string

@@ -10,8 +10,6 @@ val getExn = fn : (unit -> 'a) -> exn
 val prExn = fn : string * exn -> unit
 exception E1
 exception E2 = E1
-  
-
 Should be `E1 or E2':
   E1
   E1
@@ -28,8 +26,8 @@ Should be `Size':
   Size
   size
 Should be `Div':
-  Div
-  divide by zero
+  Overflow
+  overflow
 Should be `Chr':
   Chr
   Chr
@@ -46,4 +44,6 @@ Should be `SysErr':
   SysErr
   SysErr: No such file or directory [noent]
 Should be `Io':
+  Io
   Io: openOut failed on ".", Is a directory
+

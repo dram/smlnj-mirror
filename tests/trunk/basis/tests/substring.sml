@@ -1,39 +1,42 @@
 (* test/substring.sml 1995-04-27, 1997-06-03 *)
 
-infix 1 seq
-fun e1 seq e2 = e2;
-fun check b = if b then "OK" else "WRONG";
-fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
-
-fun range (from, to) p = 
-    let open Int 
-    in
-	(from > to) orelse (p from) andalso (range (from+1, to) p)
-    end;
-
-fun checkrange bounds = check o range bounds;
-
-
 local 
-    open Char Substring
-    fun base2 (a, b) = (base a, base b)
+  infix 1 seq
+  fun e1 seq e2 = e2;
+  fun check b = if b then "OK" else "WRONG";
+  fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
 
-    val s1 = ""				(* String.size s1 =  0 *)
-    and s2 = "ABCDE\tFGHI";		(* String.size s2 = 10 *)
-    val ss1 = all s1			(* size s1 =  0 *)
-    and ss2 = all s2;			(* size s2 = 10 *)
+  fun range (from, to) p = 
+      let open Int 
+      in
+          (from > to) orelse (p from) andalso (range (from+1, to) p)
+      end;
 
-    val sa = "AAAAaAbAABBBB";		(* String.size sa = 14 *)
-    (*            45678      *)
+  fun checkrange bounds = check o range bounds;
 
-    val ssa1 = extract(sa, 4, SOME 0)	(* size ssa1 = 0 *)
-    val ssa2 = extract(sa, 4, SOME 5)	(* size ssa2 = 5 *)
+  open Char Substring
+  fun base2 (a, b) = (base a, base b)
 
-    val ss3 = extract("junk this is a   (clear)textjunk", 4, SOME 24);
-    (*                       456789012345678901234567        *)
+  val s1 = ""				(* String.size s1 =  0 *)
+  and s2 = "ABCDE\tFGHI";		(* String.size s2 = 10 *)
+  val ss1 = full s1			(* size s1 =  0 *)
+  and ss2 = full s2;			(* size s2 = 10 *)
+
+  val sa = "AAAAaAbAABBBB";		(* String.size sa = 14 *)
+  (*            45678      *)
+
+  val ssa1 = extract(sa, 4, SOME 0)	(* size ssa1 = 0 *)
+  val ssa2 = extract(sa, 4, SOME 5)	(* size ssa2 = 5 *)
+
+  val ss3 = extract("junk this is a   (clear)textjunk", 4, SOME 24);
+  (*                       456789012345678901234567        *)
+
+  fun finda c = c <> #"A";
+  fun findb c = c <> #"B";
+
+  fun eqspan(sus1, sus2, res) = base(span(sus1, sus2)) = base res
 
 in
-
 
 val test1a = 
     check'(fn _ => 
@@ -63,8 +66,8 @@ val test1h =
     check'(fn _ =>
 	   string ssa1 = ""
 	   andalso string ssa2 = "aAbAA"
-	   andalso s1 = string (all s1) 
-	   andalso s2 = string (all s2));
+	   andalso s1 = string (full s1) 
+	   andalso s2 = string (full s2));
 
 val test2a = 
     check'(fn _ => 
@@ -192,11 +195,8 @@ val test14 =
 	   andalso GREATER = compare(ssa2, triml 1 ssa2)
 	   andalso LESS = compare(trimr 1 ssa2, ssa2)
 	   andalso GREATER = compare(ssa2, trimr 1 ssa2)
-	   andalso LESS = compare(all "AB", ssa2)
-	   andalso GREATER = compare(ssa2, all "AB"));
-
-fun finda c = c <> #"A";
-fun findb c = c <> #"B";
+	   andalso LESS = compare(full "AB", ssa2)
+	   andalso GREATER = compare(ssa2, full "AB"));
 
 val test15 = 
     check'(fn _ =>
@@ -286,8 +286,8 @@ val test24 =
 val test25 = 
     check'(fn _ => 
 	   null(tokens (fn _ => true) ss3)
-	   andalso null(tokens (fn _ => false) (all ""))
-	   andalso null(tokens (contains " ()") (all "(()())(( ()"))
+	   andalso null(tokens (fn _ => false) (full ""))
+	   andalso null(tokens (contains " ()") (full "(()())(( ()"))
 	   andalso ["this","is","a","clear","text"] = 
                            map string (tokens (contains " ()") ss3));
 
@@ -372,19 +372,17 @@ val test31 =
 	   andalso not (isPrefix "aAbAAB" ssa2)
 	   andalso not (isPrefix "aAbAAB" ssa1))
 
-fun eqspan(sus1, sus2, res) = base(span(sus1, sus2)) = base res
-
 val test32a = check'(fn _ =>
-   eqspan(substring(sa, 0, 0), substring(sa, 0, 13), all sa)
-   andalso eqspan(substring(sa, 0, 13), substring(sa, 13, 0), all sa)
+   eqspan(substring(sa, 0, 0), substring(sa, 0, 13), full sa)
+   andalso eqspan(substring(sa, 0, 13), substring(sa, 13, 0), full sa)
    andalso eqspan(substring(sa, 5, 0), substring(sa, 5, 0), substring(sa, 5,0))
-   andalso eqspan(substring(sa, 0, 5), substring(sa, 5, 8), all sa)
-   andalso eqspan(substring(sa, 0, 13), substring(sa, 0, 13), all sa)
+   andalso eqspan(substring(sa, 0, 5), substring(sa, 5, 8), full sa)
+   andalso eqspan(substring(sa, 0, 13), substring(sa, 0, 13), full sa)
    andalso eqspan(substring(sa, 5, 4), substring(sa, 2, 4), substring(sa,5,1))
    andalso eqspan(substring(sa, 2, 5), substring(sa, 6, 3), substring(sa, 2,7))
    andalso eqspan(substring("abcd", 1, 0), substring("abcd", 1, 2), 
 		  substring("abcd", 1, 2))
-   andalso eqspan(substring("", 0, 0), substring("", 0, 0), all ""))
+   andalso eqspan(substring("", 0, 0), substring("", 0, 0), full ""))
 
 val test32b = (span(substring("a", 0, 0), substring("b", 0, 0)) seq "WRONG") 
               handle Span => "OK" | _ => "WRONG";

@@ -1,16 +1,4 @@
 val it = () : unit
-infix 1 seq
-val seq = fn : 'a * 'b -> 'b
-val check = fn : bool -> string
-val check' = fn : (unit -> bool) -> string
-val range = fn : int * int -> (int -> bool) -> bool
-val checkrange = fn : int * int -> (int -> bool) -> string
-val testlink = "basis/tests/testlink" : string
-val README = "basis/tests/README" : string
-val testcycl = "basis/tests/testcycl" : string
-val testbadl = "basis/tests/testbadl" : string
-val hardlinkA = "basis/tests/hardlinkA" : string
-val hardlinkB = "basis/tests/hardlinkB" : string
 val test1a = "OK" : string
 val test1b = "OK" : string
 val test2 = "OK" : string

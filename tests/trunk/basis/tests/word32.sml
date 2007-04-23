@@ -2,31 +2,60 @@
    complement machine whose Int.precision = SOME 31 
    PS 1995-03-19, 1995-07-12, 1995-11-06, 1996-04-01, 1996-10-01 *)
 
-infix 1 seq;
-fun e1 seq e2 = e2;
-fun check b = if b then "OK" else "WRONG";
-fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
+local 
+  infix 1 seq;
+  fun e1 seq e2 = e2;
+  fun check b = if b then "OK" else "WRONG";
+  fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
 
-fun range (from, to) p = 
-    let open Int 
-    in
-	(from > to) orelse (p from) andalso (range (from+1, to) p)
-    end;
+  fun range (from, to) p = 
+      let open Int 
+      in
+          (from > to) orelse (p from) andalso (range (from+1, to) p)
+      end;
 
-fun checkrange bounds = check o range bounds;
+  fun checkrange bounds = check o range bounds;
 
+  (* Isn't this disgusting: *)
+  val [gt,  lt,  ge,   le] = 
+      [op>, op<, op>=, op<=] : (int * int -> bool) list
+  val [add, sub, mul, idiv,   imod] = 
+      [op+, op-, op*, op div, op mod] : (int * int -> int) list
 
-    (* Isn't this disgusting: *)
-    val [gt,  lt,  ge,   le] = 
-	[op>, op<, op>=, op<=] : (int * int -> bool) list
-    val [add, sub, mul, idiv,   imod] = 
-	[op+, op-, op*, op div, op mod] : (int * int -> int) list
-    open Word32;
-    val op > = gt and op < = lt and op >= = ge and op <= = le;
-    val op + = add and op - = sub and op * = mul 
-    and op div = idiv and op mod = imod;
-    val i2w = fromInt
-    and w2i = toInt;
+  open Word32;
+
+  val op > = gt and op < = lt and op >= = ge and op <= = le;
+  val op + = add and op - = sub and op * = mul 
+  and op div = idiv and op mod = imod;
+  val i2w = fromInt
+  and w2i = toInt;
+
+  val itow = Word.fromInt
+
+  fun chk f (s, r) = 
+      check'(fn _ => 
+             case f s of
+                 SOME res => res = i2w r
+               | NONE     => false)
+
+  fun chkScan fmt = chk (StringCvt.scanString (scan fmt))
+
+  val maxposint = valOf Int.maxInt;
+  val maxnegint = Int.~(maxposint) - 1;
+  fun pwr2 0 = 1 
+    | pwr2 n = 2 * pwr2 (n-1);
+  fun rwp i 0 = i
+    | rwp i n = rwp i (n-1) div 2;
+
+  fun fromToString i = 
+      fromString (toString (fromInt i)) = SOME (fromInt i);
+
+  fun scanFmt radix i = 
+      let val w = fromInt i
+          val s = fmt radix w
+      in StringCvt.scanString (scan radix) s = SOME w end;
+
+in
 
 val test1 = checkrange (0, 1025)
     (fn i => i = w2i (i2w i));
@@ -50,15 +79,6 @@ val test7b = checkrange (0, 513)
 
 val test8a = check (~1 = Word32.toIntX (notb (i2w 0)));
 val test8b = check (0 = w2i (notb (i2w ~1)));
-
-val maxposint = valOf Int.maxInt;
-val maxnegint = ~maxposint - 1;
-fun pwr2 0 = 1 
-  | pwr2 n = 2 * pwr2 (n-1);
-fun rwp i 0 = i
-  | rwp i n = rwp i (n-1) div 2;
-
-val itow = Word.fromInt
 
 val test9a = checkrange (0,29)
     (fn k => pwr2 k = w2i (<< (i2w 1, itow k)));
@@ -97,11 +117,7 @@ val test11f = check (i2w 0 <= i2w 1);
 val test11g = check (i2w 0 < i2w maxposint);
 val test11h = check (i2w maxposint < i2w maxnegint);
 val test11i = check (i2w maxnegint < i2w ~1);
-end;
 
-(* local  *)
-    open Word32
-(*in*)
 val test12a = checkrange(0, 300) (fn k => w2i (i2w k + i2w 17) = add(k, 17));
 val test12b = checkrange(0, 300) (fn k => Word32.toIntX (i2w k - i2w 17) = sub(k, 17));
 val test12c = checkrange(0, 300) (fn k => w2i (i2w k * i2w 17) = mul(k, 17));
@@ -130,19 +146,12 @@ val test12n = check(w2i (i2w ~1 div i2w 2) = maxposint);
 val test12o = check(w2i (i2w ~1 mod i2w 2) = 1);
 val test12p = check(w2i (i2w ~1 div i2w 100) = idiv(maxposint, 50));
 *)
+
 val test12q = check(w2i (i2w ~1 mod i2w 10) = 5);
 val test12r = (i2w 17 div i2w 0 seq "WRONG") 
               handle Div => "OK" | _ => "WRONG";
 val test12s = (i2w 17 mod i2w 0 seq "WRONG") 
               handle Div => "OK" | _ => "WRONG";
-
-fun chk f (s, r) = 
-    check'(fn _ => 
-	   case f s of
-	       SOME res => res = i2w r
-	     | NONE     => false)
-
-fun chkScan fmt = chk (StringCvt.scanString (scan fmt))
 
 val test13a = 
     List.map (chk fromString)
@@ -258,18 +267,8 @@ val test17b =
 	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+", 
 	    "+1", "~1", "-1"];
 
-(* end;*)
+end;
 
-local 
-    fun fromToString i = 
-	fromString (toString (fromInt i)) = SOME (fromInt i);
-
-    fun scanFmt radix i = 
-	let val w = fromInt i
-	    val s = fmt radix w
-	in StringCvt.scanString (scan radix) s = SOME w end;
-
-in
 val test18 = 
     check'(fn _ => range (0, 1200) fromToString);
 
@@ -284,5 +283,5 @@ val test21 =
 
 val test22 = 
     check'(fn _ => range (0, 1200) (scanFmt StringCvt.HEX));
-end
 
+end

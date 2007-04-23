@@ -1,22 +1,20 @@
 (* test/unixpath.sml 6 -- for Unix, 1995-05-23 *)
 
-
-infix 1 seq
-fun e1 seq e2 = e2;
-fun check b = if b then "OK" else "WRONG";
-fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
-
-fun range (from, to) p = 
-    let open Int 
-    in
-	(from > to) orelse (p from) andalso (range (from+1, to) p)
-    end;
-
-fun checkrange bounds = check o range bounds;
-
-
 local 
-    open OS.Path
+  infix 1 seq
+  fun e1 seq e2 = e2;
+  fun check b = if b then "OK" else "WRONG";
+  fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
+
+  fun range (from, to) p = 
+      let open Int 
+      in
+          (from > to) orelse (p from) andalso (range (from+1, to) p)
+      end;
+
+  fun checkrange bounds = check o range bounds;
+
+  open OS.Path
 in
     
 val test1a = 
@@ -139,33 +137,33 @@ val test6b = (concat ("a", "/b") seq "WRONG")
 
 val test7a = 
     check'(fn _ => 
-	   mkAbsolute("/a/b", "/c/d") = "/a/b"
-	   andalso mkAbsolute("/", "/c/d") = "/"
-	   andalso mkAbsolute("a/b", "/c/d") = "/c/d/a/b");
-val test7b = (mkAbsolute("a", "c/d") seq "WRONG")
+	   mkAbsolute{path="/a/b", relativeTo="/c/d"} = "/a/b"
+	   andalso mkAbsolute{path="/", relativeTo="/c/d"} = "/"
+	   andalso mkAbsolute{path="a/b", relativeTo="/c/d"} = "/c/d/a/b");
+val test7b = (mkAbsolute{path="a", relativeTo="c/d"} seq "WRONG")
              handle Path => "OK" | _ => "WRONG";
-val test7c = (mkAbsolute("/a", "c/d") seq "WRONG")
+val test7c = (mkAbsolute{path="/a", relativeTo="c/d"} seq "WRONG")
               handle Path => "OK" | _ => "WRONG";
 
 val test8a = 
     check'(fn _ => 
-	   mkRelative("a/b", "/c/d") = "a/b"
-	   andalso mkRelative("/", "/a/b/c")	   = "../../.." 
-	   andalso mkRelative("/a/", "/a/b/c")	   = "../../" 
-	   andalso mkRelative("/a/b/", "/a/c")	   = "../b/"     
-	   andalso mkRelative("/a/b", "/a/c/")	   = "../b"      
-	   andalso mkRelative("/a/b/", "/a/c/")	   = "../b/"     
-	   andalso mkRelative("/", "/")		   = "."	      
-	   andalso mkRelative("/", "/.")	   = "."	      
-	   andalso mkRelative("/", "/..")	   = "."	      
-	   andalso mkRelative("/", "/a")	   = ".."	      
-	   andalso mkRelative("/a/b/../c", "/a/d") = "../b/../c" 
-	   andalso mkRelative("/a/b", "/c/d")      = "../../a/b"
-	   andalso mkRelative("/c/a/b", "/c/d")    = "../a/b"
-	   andalso mkRelative("/c/d/a/b", "/c/d")  = "a/b");
-val test8b = (mkRelative("/a", "c/d") seq "WRONG")
+	   mkRelative{path="a/b", relativeTo="/c/d"} = "a/b"
+	   andalso mkRelative{path="/", relativeTo="/a/b/c"}	   = "../../.." 
+	   andalso mkRelative{path="/a/", relativeTo="/a/b/c"}	   = "../../" 
+	   andalso mkRelative{path="/a/b/", relativeTo="/a/c"}	   = "../b/"     
+	   andalso mkRelative{path="/a/b", relativeTo="/a/c/"}	   = "../b"      
+	   andalso mkRelative{path="/a/b/", relativeTo="/a/c/"}	   = "../b/"     
+	   andalso mkRelative{path="/", relativeTo="/"}		   = "."	      
+	   andalso mkRelative{path="/", relativeTo="/."}	   = "."	      
+	   andalso mkRelative{path="/", relativeTo="/.."}	   = "."	      
+	   andalso mkRelative{path="/", relativeTo="/a"}	   = ".."	      
+	   andalso mkRelative{path="/a/b/../c", relativeTo="/a/d"} = "../b/../c" 
+	   andalso mkRelative{path="/a/b", relativeTo="/c/d"}      = "../../a/b"
+	   andalso mkRelative{path="/c/a/b", relativeTo="/c/d"}    = "../a/b"
+	   andalso mkRelative{path="/c/d/a/b", relativeTo="/c/d"}  = "a/b");
+val test8b = (mkRelative{path="/a", relativeTo="c/d"} seq "WRONG")
               handle Path => "OK" | _ => "WRONG";
-val test8c = (mkRelative("a", "c/d") seq "WRONG")
+val test8c = (mkRelative{path="a", relativeTo="c/d"} seq "WRONG")
               handle Path => "OK" | _ => "WRONG";
 
 val test9a = let

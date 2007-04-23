@@ -3,37 +3,47 @@
 *)
 
 
-infix 1 seq
-fun e1 seq e2 = e2;
-fun check b = if b then "OK" else "WRONG";
-fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
-
-fun range (from, to) p = 
-    let open Int 
-    in
-	(from > to) orelse (p from) andalso (range (from+1, to) p)
-    end;
-
-fun checkrange bounds = check o range bounds;
-
-
 local 
-    open TextIO
 
-    fun fileSize s = 
-	let val is = openIn s
-	in size (inputAll is) before closeIn is end;
+  infix 1 seq
+  fun e1 seq e2 = e2;
+  fun check b = if b then "OK" else "WRONG";
+  fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
 
-    fun dup 0 s = s
-      | dup n s = dup (n-1) (s^s)
+  fun range (from, to) p = 
+      let open Int 
+      in
+          (from > to) orelse (p from) andalso (range (from+1, to) p)
+      end;
 
-    val longstring = dup 16 "abcdefg"
+  fun checkrange bounds = check o range bounds;
+
+  open TextIO
+
+  fun fileSize s = 
+      let val is = openIn s
+      in size (inputAll is) before closeIn is end;
+
+  fun dup 0 s = s
+    | dup n s = dup (n-1) (s^s)
+
+  val longstring = dup 16 "abcdefg"
+
+  fun checkEmpty(is: instream) : bool =
+      not(isSome(inputLine is))
+
+  fun checkLine(is: instream, s: string) : bool =
+      case inputLine is
+        of SOME s1 => s = s1
+         | NONE => false
+
+  (* setting up some test files *)
+  val empty  = openOut "empty.dat";
+  val small  = openOut "small1.dat";
+  val medium = openOut "medium.dat";
+  val text   = openOut "text.dat";
+
 in
-
-val empty  = openOut "empty.dat";
-val small  = openOut "small1.dat";
-val medium = openOut "medium.dat";
-val text   = openOut "text.dat";
 
 val test1 = 
     check'(fn _ => 
@@ -278,8 +288,8 @@ val test12a =
     check'(fn _ => 
 	   let val is = openIn "empty.dat"
 	   in 
-	       (inputLine is = ""
-		andalso inputLine is = "")
+	       (checkEmpty is andalso
+                checkEmpty is)
 	       before closeIn is
 	   end);
 
@@ -287,8 +297,8 @@ val test12b =
     check'(fn _ => 
 	   let val is = openIn "small1.dat"
 	   in 
-	       (inputLine is = "+\n"
-		andalso inputLine is = "")
+	       (checkLine(is, "+\n") andalso
+                checkEmpty is)
 	       before closeIn is
 	   end);
 
@@ -296,10 +306,10 @@ val test12c =
     check'(fn _ => 
 	   let val is = openIn "text.dat"
 	   in 
-	       (inputLine is = "Line 1\n"
-	       andalso inputLine is = "Line 2\n"
-	       andalso inputLine is = "Line 3\n"
-	       andalso inputLine is = "")
+	       (checkLine(is, "Line 1\n") andalso
+	        checkLine(is, "Line 2\n") andalso
+                checkLine(is, "Line 3\n") andalso
+                checkEmpty is)
 	       before closeIn is
 	   end);
 
@@ -307,8 +317,8 @@ val test12d =
     check'(fn _ => 
 	   let val is = openIn "medium.dat"
 	   in 
-	       (inputLine is = longstring ^ "\n"
-	       andalso inputLine is = "")
+	       (checkLine(is, longstring ^ "\n")
+	       andalso checkEmpty is)
 	       before closeIn is
 	   end);
 
