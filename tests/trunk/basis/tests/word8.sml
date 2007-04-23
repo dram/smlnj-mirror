@@ -2,39 +2,39 @@
    two's complement machine whose Int.precision = SOME 31 
    PS 1995-03-30, 1995-07-12, 1995-11-06, 1996-04-01, 1996-10-01 *)
 
+local
 
-infix 1 seq;
-fun e1 seq e2 = e2;
-fun check b = if b then "OK" else "WRONG";
-fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
+  infix 1 seq;
+  fun e1 seq e2 = e2;
+  fun check b = if b then "OK" else "WRONG";
+  fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
 
-fun range (from, to) p = 
-    let open Int 
-    in
-	(from > to) orelse (p from) andalso (range (from+1, to) p)
-    end;
+  fun range (from, to) p = 
+      let open Int 
+      in
+          (from > to) orelse (p from) andalso (range (from+1, to) p)
+      end;
 
-fun checkrange bounds = check o range bounds;
+  fun checkrange bounds = check o range bounds;
 
+  fun pwr2 0 = 1 
+    | pwr2 n = 2 * pwr2 (n-1);
+  fun rwp i 0 = i
+    | rwp i n = rwp i (n-1) div 2;
 
-local 
-    fun pwr2 0 = 1 
-      | pwr2 n = 2 * pwr2 (n-1);
-    fun rwp i 0 = i
-      | rwp i n = rwp i (n-1) div 2;
+  (* Isn't this disgusting: *)
+  val [gt,  lt,  ge,   le] = 
+      [op>, op<, op>=, op<=] : (int * int -> bool) list
+  val [add, sub, mul, idiv,   imod] = 
+      [op+, op-, op*, op div, op mod] : (int * int -> int) list
+  open Word8;
+  val op > = gt and op < = lt and op >= = ge and op <= = le;
+  val op + = add and op - = sub and op * = mul 
+  and op div = idiv and op mod = imod;
+  val i2W = Word.fromInt
+  val i2w = fromInt
+  and w2i = toInt
 
-    (* Isn't this disgusting: *)
-    val [gt,  lt,  ge,   le] = 
-	[op>, op<, op>=, op<=] : (int * int -> bool) list
-    val [add, sub, mul, idiv,   imod] = 
-	[op+, op-, op*, op div, op mod] : (int * int -> int) list
-    open Word8;
-    val op > = gt and op < = lt and op >= = ge and op <= = le;
-    val op + = add and op - = sub and op * = mul 
-    and op div = idiv and op mod = imod;
-    val i2W = Word.fromInt
-    val i2w = fromInt
-    and w2i = toInt
 in
 
 val test1 = checkrange (0, 255) 

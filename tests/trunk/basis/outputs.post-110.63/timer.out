@@ -1,26 +1,21 @@
 val it = () : unit
-infix 1 seq
-val seq = fn : 'a * 'b -> 'b
-val check = fn : bool -> string
-val check' = fn : (unit -> bool) -> string
-val range = fn : int * int -> (int -> bool) -> bool
-val checkrange = fn : int * int -> (int -> bool) -> string
 
-Each line below should show roughly the same User, System, and Gc times:
-User: 0.110  System: 0.000  Gc: 0.000  Real: 0.118
-User: 0.110  System: 0.000  Gc: 0.000  Real: 0.117
-User: 0.120  System: 0.000  Gc: 0.000  Real: 0.117
-User: 0.120  System: 0.000  Gc: 0.000  Real: 0.120
-User: 0.110  System: 0.000  Gc: 0.000  Real: 0.110
-User: 0.110  System: 0.000  Gc: 0.000  Real: 0.109
-User: 0.110  System: 0.000  Gc: 0.000  Real: 0.110
-User: 0.110  System: 0.000  Gc: 0.000  Real: 0.109
+Each line below should show roughly the same User and System times:
+User: 0.019  System: 0.000  Real: 0.019
+User: 0.019  System: 0.000  Real: 0.019
+User: 0.019  System: 0.000  Real: 0.019
+User: 0.019  System: 0.000  Real: 0.019
+User: 0.019  System: 0.000  Real: 0.019
+User: 0.019  System: 0.000  Real: 0.019
+User: 0.019  System: 0.000  Real: 0.019
+User: 0.019  System: 0.000  Real: 0.019
 val test1 = "OK" : string
 val test2 = "OK" : string
 val test3 = "OK" : string
 val ctmr =
   CPUT
-    {gc=TIME {sec=0,usec=20000},sys=TIME {sec=0,usec=150000},
-     usr=TIME {sec=0,usec=710000}} : Timer.cpu_timer
+    {gc={sys=TIME {usec=0},usr=TIME {usec=145942}},
+     nongc={sys=TIME {usec=725235},usr=TIME {usec=563918}}}
+  : Timer.cpu_timer
 val test4 = "OK" : string
 

@@ -1,10 +1,4 @@
 val it = () : unit
-infix 1 seq
-val seq = fn : 'a * 'b -> 'b
-val check = fn : bool -> string
-val check' = fn : (unit -> bool) -> string
-val range = fn : int * int -> (int -> bool) -> bool
-val checkrange = fn : int * int -> (int -> bool) -> string
 val test1a = "OK" : string
 val test1b = "OK" : string
 val test1c = "OK" : string
@@ -41,8 +35,6 @@ val test9h = "OK" : string
 val test12 = "OK" : string
 val test13 = "OK" : string
 val test14 = "OK" : string
-val finda = fn : char -> bool
-val findb = fn : char -> bool
 val test15 = "OK" : string
 val test16 = "OK" : string
 val test17 = "OK" : string
@@ -70,7 +62,6 @@ val test30d = "OK" : string
 val test30e = "OK" : string
 val test30f = "OK" : string
 val test31 = "OK" : string
-val eqspan = fn : substring * substring * substring -> bool
 val test32a = "OK" : string
 val test32b = "OK" : string
 val test32c = "OK" : string

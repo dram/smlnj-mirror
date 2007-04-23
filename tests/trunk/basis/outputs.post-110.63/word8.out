@@ -1,14 +1,4 @@
 val it = () : unit
-infix 1 seq
-val seq = fn : 'a * 'b -> 'b
-val check = fn : bool -> string
-val check' = fn : (unit -> bool) -> string
-val range = fn : int * int -> (int -> bool) -> bool
-val checkrange = fn : int * int -> (int -> bool) -> string
-word8.sml:29.5-30.59 Warning: binding not exhaustive
-          add :: sub :: mul :: idiv :: <pat> :: <pat> = ...
-word8.sml:27.5-28.51 Warning: binding not exhaustive
-          gt :: lt :: ge :: le :: nil = ...
 val test1 = "OK" : string
 val test2 = "OK" : string
 val test3 = "OK" : string

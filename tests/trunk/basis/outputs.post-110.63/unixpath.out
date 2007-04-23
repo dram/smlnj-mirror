@@ -1,10 +1,4 @@
 val it = () : unit
-infix 1 seq
-val seq = fn : 'a * 'b -> 'b
-val check = fn : bool -> string
-val check' = fn : (unit -> bool) -> string
-val range = fn : int * int -> (int -> bool) -> bool
-val checkrange = fn : int * int -> (int -> bool) -> string
 val test1a = "OK" : string
 val test1b = "OK" : string
 val test1c = "OK" : string

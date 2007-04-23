@@ -185,12 +185,13 @@ fi
 
 
 $ECHO -u2 ${CMD} Building special version of SML for $OPSYS ...
-$SML @SMLquiet @SMLdebug=/dev/null -Ccm.verbose=false << xxx 1>/dev/null
+$SML @SMLquiet @SMLdebug=/dev/null << xxx 1>/dev/null
   	Control.primaryPrompt:="";
   	Control.secondaryPrompt:="";
         Control.printWarnings := false;
 	let val {set,...}=CM.Control.verbose in set false end;
         Control.Print.printLength := 1000;
+        Control.Print.printDepth := 10;
   	(SMLofNJ.exportML "$TSML"; ());
 xxx
 
