@@ -11,6 +11,9 @@ functor F(A: sig
          sig functor G : <fctsig> end
 structure a : S1
 structure b : sig functor G : <fctsig> end
-structure c : sig structure B : <sig> end
+structure c :
+  sig
+    structure B : <sig>
+  end
 val it = true : bool
 

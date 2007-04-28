@@ -5,11 +5,13 @@ signature S1 =
     val x : t
   end
 signature S2 =
-  sig structure T :
-        sig
-          type t
-          val x : t
-        end end
+  sig
+    structure T :
+      sig
+        type t
+        val x : t
+      end
+  end
 signature S3 =
   sig
     type s

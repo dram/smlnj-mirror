@@ -9,7 +9,10 @@ signature S3 =
     type u
     val y : u
   end
-functor F(<param>: sig structure X : <sig> end) : sig strange tycon: [E] end
+functor F(<param>: sig
+                     structure X : <sig>
+                   end) :
+         sig strange tycon: [E] end
 functor G(U: sig
                type u
                val y : u
@@ -25,7 +28,10 @@ signature S3 =
     type u
     val y : u
   end
-functor F(<param>: sig structure X : <sig> end) : sig strange tycon: [E] end
+functor F(<param>: sig
+                     structure X : <sig>
+                   end) :
+         sig strange tycon: [E] end
 functor G(U: sig
                type u
                val y : u

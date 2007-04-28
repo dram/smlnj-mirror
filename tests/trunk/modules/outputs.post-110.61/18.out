@@ -4,5 +4,8 @@ signature SIG =
     type t
     structure A : sig val y : t end
   end
-functor F(<param>: sig structure X : <sig> end) : sig val z : t end
+functor F(<param>: sig
+                     structure X : <sig>
+                   end) :
+         sig val z : t end
 

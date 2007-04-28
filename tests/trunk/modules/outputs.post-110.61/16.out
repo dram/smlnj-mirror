@@ -5,11 +5,13 @@ signature S1 =
     val x : s
   end
 signature S2 =
-  sig structure K2 :
-        sig
-          type s
-          val x : s
-        end end
+  sig
+    structure K2 :
+      sig
+        type s
+        val x : s
+      end
+  end
 functor F(X: sig end) :
          sig
            structure K2 : <sig>

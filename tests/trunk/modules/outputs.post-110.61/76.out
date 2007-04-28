@@ -1,6 +1,12 @@
 val it = () : unit
 structure S : sig val x : 'a list end
-functor F(A: sig type t end) : sig structure B : <sig> end
-structure A : sig structure B : <sig> end
+functor F(A: sig type t end) :
+         sig
+           structure B : <sig>
+         end
+structure A :
+  sig
+    structure B : <sig>
+  end
 structure S : sig val x : int list end
 

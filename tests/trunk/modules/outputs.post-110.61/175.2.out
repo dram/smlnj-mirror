@@ -1,3 +1,6 @@
 val it = () : unit
-functor F(A: sig end) : sig structure S : <sig> end
+functor F(A: sig end) :
+         sig
+           structure S : <sig>
+         end
 

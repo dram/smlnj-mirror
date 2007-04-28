@@ -23,11 +23,11 @@ functor Interval(P: sig
                   val left : interval -> point
                   val right : interval -> point
                 end
-[autoloading]
-[autoloading done]
 structure IntPoint : POINT
 structure T : INTERVAL
 val test = 9 : T.point
 functor G(<param>: sig functor Interv : <fctsig> end) :
-         sig structure NatNumInt : <sig> end
+         sig
+           structure NatNumInt : <sig>
+         end
 

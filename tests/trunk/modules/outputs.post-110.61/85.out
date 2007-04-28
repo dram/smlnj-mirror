@@ -1,5 +1,3 @@
 val it = () : unit
-[autoloading]
-[autoloading done]
 85.sml:5.15-5.41 Error: unbound structure: Control in path Compiler.Control.internals
 

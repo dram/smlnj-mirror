@@ -6,11 +6,13 @@ signature S1 =
     datatype r = Kr of U.t
   end
 signature S2 =
-  sig structure T :
-        sig
-          structure U : <sig>
-          datatype r = Kr of U.t
-        end end
+  sig
+    structure T :
+      sig
+        structure U : <sig>
+        datatype r = Kr of U.t
+      end
+  end
 signature S3 =
   sig
     type s

@@ -1,5 +1,8 @@
 val it = () : unit
-signature S0 = sig structure D : sig end end
+signature S0 =
+  sig
+    structure D : sig end
+  end
 signature S2 =
   sig
     structure C : sig end
@@ -7,7 +10,10 @@ signature S2 =
   end
 signature S1 =
   sig
-    structure A : sig structure D : <sig> end
+    structure A :
+      sig
+        structure D : <sig>
+      end
     structure B :
       sig
         structure C : <sig>

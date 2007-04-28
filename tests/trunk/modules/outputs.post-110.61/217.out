@@ -1,4 +1,10 @@
 val it = () : unit
-functor g(<param>: sig functor f : <fctsig> end) : sig structure b : <sig> end
-structure c : sig structure b : <sig> end
+functor g(<param>: sig functor f : <fctsig> end) :
+         sig
+           structure b : <sig>
+         end
+structure c :
+  sig
+    structure b : <sig>
+  end
 

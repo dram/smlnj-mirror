@@ -8,7 +8,9 @@ funsig FS1(A: sig
                 eqtype t
                 val x : t
               end) :
-          sig structure C : <sig> end
+          sig
+            structure C : <sig>
+          end
 225.sml:19.16 Warning: calling polyEqual
 functor F(<param>: sig
                      functor G : <fctsig>
@@ -23,7 +25,9 @@ functor g(A: sig
                eqtype t
                val x : t
              end) :
-         sig structure C : <sig> end
+         sig
+           structure C : <sig>
+         end
 structure b :
   sig
     structure B : <sig>

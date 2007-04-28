@@ -5,7 +5,5 @@ signature AS =
     structure A : sig type b end
     val b0 : A.b
   end
-[autoloading]
-[autoloading done]
 structure S : AS
 

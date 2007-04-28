@@ -1,5 +1,11 @@
 val it = () : unit
-functor G(Y: sig type u end) : sig structure E : <sig> end
-structure B : sig structure E : <sig> end
+functor G(Y: sig type u end) :
+         sig
+           structure E : <sig>
+         end
+structure B :
+  sig
+    structure E : <sig>
+  end
 val foo = fn : B.E.u -> unit
 

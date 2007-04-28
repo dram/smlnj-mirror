@@ -1,4 +1,13 @@
 val it = () : unit
-signature S7 = sig structure A : sig structure A1 : <sig> end end
-functor F7(X: sig structure A : <sig> end) : sig end
+signature S7 =
+  sig
+    structure A :
+      sig
+        structure A1 : <sig>
+      end
+  end
+functor F7(X: sig
+                structure A : <sig>
+              end) :
+          sig end
 

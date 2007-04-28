@@ -7,7 +7,9 @@ functor F2(X: sig
                 datatype d = D of int
               end) :
           sig val x : X.d end
-functor G2(Y: sig structure A : <sig> end) :
+functor G2(Y: sig
+                structure A : <sig>
+              end) :
           sig
             val x : Y.A.d
             structure A : <sig>

@@ -19,7 +19,10 @@ signature S4 =
   end
 signature S3 =
   sig
-    structure A : sig structure A1 : <sig> end
+    structure A :
+      sig
+        structure A1 : <sig>
+      end
     structure BAR :
       sig
         type t

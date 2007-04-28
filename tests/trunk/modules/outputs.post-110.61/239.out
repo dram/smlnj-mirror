@@ -12,7 +12,10 @@ functor Square(<param>: sig
                           functor Prod : <fctsig>
                         end) :
               sig val e : real end
-functor F(<param>: sig structure N : <sig> end) : sig val e : real end
+functor F(<param>: sig
+                     structure N : <sig>
+                   end) :
+         sig val e : real end
 structure A : SIG
 val it = 0.0 : real
 

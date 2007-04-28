@@ -4,7 +4,10 @@ signature SIG =
     type t
     val v : t
   end
-functor MapIndex(X: sig structure F : <sig> end) : sig strange tycon: [E] end
+functor MapIndex(X: sig
+                      structure F : <sig>
+                    end) :
+                sig strange tycon: [E] end
 functor MapSquare(G: sig
                        type t
                        val v : t

@@ -10,7 +10,10 @@ structure D :
     structure A : <sig>
     structure B : <sig>
   end
-signature S = sig structure E : sig type t end end
+signature S =
+  sig
+    structure E : sig type t end
+  end
 69.sml:26.7-26.20 Error: pattern and expression in val dec don't agree [literal]
   pattern:    ?.X.t
   expression:    int

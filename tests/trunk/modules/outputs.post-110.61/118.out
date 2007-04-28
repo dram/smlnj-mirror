@@ -5,7 +5,10 @@ signature S1 =
   end
 signature S2 =
   sig
-    structure A : sig structure B : <sig> end
+    structure A :
+      sig
+        structure B : <sig>
+      end
     structure C :
       sig
         datatype d = D

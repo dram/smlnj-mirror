@@ -1,17 +1,31 @@
 val it = () : unit
 signature SET = sig type r end
-signature GRAPH = sig structure E : sig type r end end
+signature GRAPH =
+  sig
+    structure E : sig type r end
+  end
 signature GRAM =
   sig
     datatype s = TERM
   end
-signature LGRAPH = sig structure L : sig structure E : <sig> end end
+signature LGRAPH =
+  sig
+    structure L :
+      sig
+        structure E : <sig>
+      end
+  end
 functor F(X: sig type t end) : sig type r end
-functor G(Y: sig type u end) : sig structure E : <sig> end
+functor G(Y: sig type u end) :
+         sig
+           structure E : <sig>
+         end
 functor H(Z: sig
                datatype s = TERM
              end) :
-         sig structure L : <sig> end
+         sig
+           structure L : <sig>
+         end
 structure A :
   sig
     datatype s = TERM

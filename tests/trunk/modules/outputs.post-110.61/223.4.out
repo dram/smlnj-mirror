@@ -1,7 +1,18 @@
 val it = () : unit
 signature S = sig end
-funsig FS(<param>: sig structure X : <sig> end) : sig end
-functor F(<param>: sig functor G : <fctsig> end) : sig structure B : <sig> end
-functor G0(<param>: sig structure Z : <sig> end) : sig structure C : <sig> end
+funsig FS(<param>: sig
+                     structure X : <sig>
+                   end) :
+         sig end
+functor F(<param>: sig functor G : <fctsig> end) :
+         sig
+           structure B : <sig>
+         end
+functor G0(<param>: sig
+                      structure Z : <sig>
+                    end) :
+          sig
+            structure C : <sig>
+          end
 223.4.sml:17.15-17.32 Error: unmatched structure specification: Z
 

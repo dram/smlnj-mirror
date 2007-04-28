@@ -1,5 +1,8 @@
 val it = () : unit
 signature S0 = sig type u end
 structure D : S0
-functor F2(A: sig structure C : <sig> end) : sig end
+functor F2(A: sig
+                structure C : <sig>
+              end) :
+          sig end
 

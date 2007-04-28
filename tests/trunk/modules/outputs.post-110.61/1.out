@@ -7,7 +7,10 @@ signature S1 =
 signature S2 =
   sig
     structure A : sig end
-    structure C : sig structure A : <sig> end
+    structure C :
+      sig
+        structure A : <sig>
+      end
     sharing C.A = A
   end
 1.sml:24.12-24.25 Error: operator and operand don't agree [tycon mismatch]

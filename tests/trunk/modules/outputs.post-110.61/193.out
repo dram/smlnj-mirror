@@ -4,13 +4,17 @@ structure A :
     datatype t = K1 | K2 of t
   end
 signature S =
-  sig structure B :
-        sig
-          datatype t = K1 | K2 of t
-        end end
+  sig
+    structure B :
+      sig
+        datatype t = K1 | K2 of t
+      end
+  end
 signature S1 =
-  sig structure B :
-        sig
-          datatype t = datatype t
-        end end
+  sig
+    structure B :
+      sig
+        datatype t = datatype t
+      end
+  end
 

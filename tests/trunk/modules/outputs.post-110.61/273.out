@@ -1,6 +1,4 @@
 val it = () : unit
-[autoloading]
-[autoloading done]
 signature POINT =
   sig
     type point
@@ -27,7 +25,9 @@ functor Interval(P: sig
                 end
 structure IntPoint : POINT
 functor G(<param>: sig functor Interv : <fctsig> end) :
-         sig structure NatNumInt : <sig> end
+         sig
+           structure NatNumInt : <sig>
+         end
 functor RealInterval(P: sig
                           type point
                           val <= : point * point -> bool
@@ -39,7 +39,10 @@ functor RealInterval(P: sig
                       val left : interval -> point
                       val right : interval -> point
                     end
-structure ResultG : sig structure NatNumInt : <sig> end
+structure ResultG :
+  sig
+    structure NatNumInt : <sig>
+  end
 structure TG : INTERVAL
 val testG = 9.0 : ResultG.NatNumInt.point
 

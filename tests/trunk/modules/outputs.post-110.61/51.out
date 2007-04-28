@@ -2,5 +2,7 @@ val it = () : unit
 functor F(X: sig
                datatype d = A
              end) :
-         sig structure S : <sig> end
+         sig
+           structure S : <sig>
+         end
 

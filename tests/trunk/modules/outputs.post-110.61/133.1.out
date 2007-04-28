@@ -1,6 +1,15 @@
 val it = () : unit
 signature S = sig end
-structure A : sig structure U : <sig> end
-signature T = sig structure X : sig end end
-functor F(<param>: sig end) : sig structure X : <sig> end
+structure A :
+  sig
+    structure U : <sig>
+  end
+signature T =
+  sig
+    structure X : sig end
+  end
+functor F(<param>: sig end) :
+         sig
+           structure X : <sig>
+         end
 

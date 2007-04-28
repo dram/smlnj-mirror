@@ -11,8 +11,12 @@ signature FunctorSig =
     type 'a C
     val map : ('a -> 'b) -> 'a C -> 'b C
   end
-functor MapIndex(<param>: sig structure F : <sig> end) :
+functor MapIndex(<param>: sig
+                            structure F : <sig>
+                          end) :
                 sig functor <functor> : <fctsig> end
-functor MapSquare(<param>: sig structure G : <sig> end) :
+functor MapSquare(<param>: sig
+                             structure G : <sig>
+                           end) :
                  sig functor <functor> : <fctsig> end
 

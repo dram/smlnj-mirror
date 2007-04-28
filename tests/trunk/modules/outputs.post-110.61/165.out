@@ -13,5 +13,7 @@ functor G(Y: sig
                type t
                val x : t
              end) :
-         sig structure Z : <sig> end
+         sig
+           structure Z : <sig>
+         end
 
