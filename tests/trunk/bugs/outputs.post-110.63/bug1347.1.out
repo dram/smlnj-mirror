@@ -1,0 +1,25 @@
+val it = () : unit
+signature INNER =
+  sig
+    datatype a = A
+    datatype b = B of a
+  end
+signature OUTER =
+  sig
+    structure Inner :
+      sig
+        datatype a = A
+        datatype b = B of a
+      end
+    datatype b = datatype Inner.b
+  end
+functor Test(<param>: sig
+                        structure Inner : <sig>
+                        structure Outer : <sig>
+                        sharing Inner = Outer.Inner
+                      end) :
+            sig
+              val good : Inner.b -> int
+              val bad : Inner.b -> int
+            end
+

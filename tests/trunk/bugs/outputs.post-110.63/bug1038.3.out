@@ -1,0 +1,14 @@
+val it = () : unit
+signature SIGA = sig type t end
+signature SIGB =
+  sig
+    datatype tt = TT
+    datatype t = T of tt
+  end
+functor F(<param>: sig
+                     structure A : <sig>
+                     structure B : <sig>
+                     sharing type B.t = A.t
+                   end) :
+         sig end
+

@@ -1,0 +1,43 @@
+val it = () : unit
+signature BASICACCESS =
+  sig
+    type ('a,'b) index
+    type ('a,'b) range
+    val first : ('a,'b) range -> ('a,'b) index
+    val succ : ('a,'b) index -> ('a,'b) index
+    val done : ('a,'b) index -> bool
+  end
+functor GeneralIteration(<param>: sig
+                                    structure Access : <sig>
+                                  end) :
+                        sig val apply : (('a,'b) index -> 'c)
+                                        -> ('a,'b) range -> unit end
+functor GeneralArray(<param>: sig
+                                structure Index : <sig>
+                              end) :
+                    sig
+                      strange tycon: [E]
+                      structure ValueIndex : <sig>
+                      structure Value : <sig>
+                      val array : (unit,'a) range * 'a -> (unit,'a) array
+                      val apply : (('a,'b) ValueIndex.index -> 'c)
+                                  -> ('a,'b) ValueIndex.range -> unit
+                    end
+structure BasicArrayIndex :
+  sig
+    type ('a,'b) index = int * int
+    type ('a,'b) range = int
+    val first : ('a,'b) range -> ('a,'b) index
+    val succ : ('a,'b) index -> ('a,'b) index
+    val done : ('a,'b) index -> bool
+  end
+structure Arrays :
+  sig
+    type ('a,'b) array = 'b Array.array * ('a,'b) BasicArrayIndex.range
+    structure ValueIndex : <sig>
+    structure Value : <sig>
+    val array : (unit,'a) range * 'a -> (unit,'a) array
+    val apply : (('a,'b) ValueIndex.index -> 'c)
+                -> ('a,'b) ValueIndex.range -> unit
+  end
+

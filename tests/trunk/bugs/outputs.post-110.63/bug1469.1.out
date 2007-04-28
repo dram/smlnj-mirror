@@ -1,0 +1,150 @@
+val it = () : unit
+val it = () : unit
+
+[After convert ...]
+
+v270(v275[C],v273[PR0]) =
+   v276(v277[PV]) =
+      v276("bogus")
+   v274(v278[PV]) =
+      v276("bogus")
+   makeref((I)0) -> v271[PV]
+   {v271} -> v272
+   v275(v272)
+
+
+[After cpstrans ...]
+
+v270(v275[C],v273[PR0]) =
+   v276(v277[PV]) =
+      v276("bogus")
+   v274(v278[PV]) =
+      v276("bogus")
+   makeref((I)0) -> v271[PV]
+   {v271} -> v272
+   v275(v272)
+
+
+[After cpsopt ...]
+
+v270(v275[C],v273[PR0]) =
+   v276(v279[I]) =
+      v276((I)0)
+   makeref((I)0) -> v271[PV]
+   {v271} -> v272
+   v275(v272)
+
+
+[After cpsopt-code ...]
+
+v270(v275[C],v273[PR1]) =
+   v276(v279[I]) =
+      v276((I)0)
+   makeref((I)0) -> v271[PV]
+   {v271} -> v272
+   v275(v272)
+
+
+[After closure ...]
+
+v287(v288[PV],v270[PV],v283[C],v284[PV],v285[PV],v286[PV],v273[PR1]) =
+   makeref((I)0) -> v271[PV]
+   {v271} -> v289
+   v283(v283,v284,v285,v286,v289)
+
+Starting feedback...Finished
+v287	E  5	2
+*********************************************** 
+v287(v288[PV],v270[PV],v283[C],v284[PV],v285[PV],v286[PV],v273[PR1]) =
+   makeref((I)0) -> v271[PV]
+   {v271} -> v289
+   v283(v283,v284,v285,v286,v289)
+*********************************************** 
+val x = ref 0 : int ref
+
+[After convert ...]
+
+v301(v314[C],v307[PR2]) =
+   v316(v317[PV]) =
+      v316("bogus")
+   v313(v318[PV]) =
+      v316("bogus")
+   v307.0 -> v308[PV]
+   v290(v315[C],v294[I]) =
+      unboxedassign(v308,v294)
+      v315((I)0)
+   {v290} -> v306
+   v314(v306)
+
+
+[After cpstrans ...]
+
+v301(v314[C],v307[PR2]) =
+   v316(v317[PV]) =
+      v316("bogus")
+   v313(v318[PV]) =
+      v316("bogus")
+   v307.0 -> v308[PV]
+   v290(v315[C],v294[I]) =
+      unboxedassign(v308,v294)
+      v315((I)0)
+   {v290} -> v306
+   v314(v306)
+
+
+[After cpsopt ...]
+
+v301(v314[C],v307[PR2]) =
+   v316(v319[I]) =
+      v316((I)0)
+   v307.0 -> v308[PV]
+   v290(v315[C],v294[I]) =
+      unboxedassign(v308,v294)
+      v315((I)0)
+   {v290} -> v306
+   v314(v306)
+
+
+[After cpsopt-code ...]
+
+v301(v314[C],v307[PR3]) =
+   v316(v319[I]) =
+      v316((I)0)
+   v307.0 -> v308[PV]
+   v290(v315[C],v294[I]) =
+      unboxedassign(v308,v294)
+      v315((I)0)
+   {v290} -> v306
+   v314(v306)
+
+
+[After closure ...]
+
+v334(v335[PV],v301[PV],v323[C],v324[PV],v325[PV],v326[PV],v307[PR3]) =
+   v307.0 -> v336[PV]
+   v327(v343[PV],v342[PV],v341[C],v340[PV],v339[PV],v338[PV],v337[I]) =
+      v342.1 -> v344[PV]
+      unboxedassign(v344,v337)
+      v341(v341,v340,v339,v338,(I)0)
+   {RK_ESCAPE 2,(L)v327,v336} -> v345
+   {v345} -> v346
+   v323(v323,v324,v325,v326,v346)
+
+Starting feedback...Finished
+v334	E  6	3
+v327	E  1	2
+*********************************************** 
+v334(v335[PV],v301[PV],v323[C],v324[PV],v325[PV],v326[PV],v307[PR3]) =
+   v307.0 -> v336[PV]
+   {RK_ESCAPE 2,(L)v327,v336} -> v345
+   {v345} -> v346
+   v323(v323,v324,v325,v326,v346)
+*********************************************** 
+*********************************************** 
+v327(v343[PV],v342[PV],v341[C],v340[PV],v339[PV],v338[PV],v337[I]) =
+   v342.1 -> v344[PV]
+   unboxedassign(v344,v337)
+   v341(v341,v340,v339,v338,(I)0)
+*********************************************** 
+val f = fn : int -> unit
+

@@ -1,0 +1,15 @@
+val it = () : unit
+signature DB =
+  sig
+    datatype transaction = TRANSACTION of lockinfo
+    datatype lockinfo = READLOCK of unit
+  end
+functor Evolve(Db: sig
+                     datatype transaction = TRANSACTION of lockinfo
+                     datatype lockinfo = READLOCK of unit
+                   end) :
+              sig
+                datatype transaction = TRANSACTION of lockinfo
+                datatype lockinfo = READLOCK of unit
+              end
+

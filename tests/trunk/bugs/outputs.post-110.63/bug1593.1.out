@@ -1,0 +1,9 @@
+val it = () : unit
+
+unexpected exception (bug?) in SML/NJ: Overflow [overflow]
+  raised at: <file ../compiler/CodeGen/main/mlriscGen.sml>
+             ../compiler/Basics/stats/stats.sml:198.40
+             ../compiler/Basics/stats/stats.sml:198.40
+             ../compiler/Basics/stats/stats.sml:198.40
+             ../compiler/TopLevel/interact/evalloop.sml:44.55
+

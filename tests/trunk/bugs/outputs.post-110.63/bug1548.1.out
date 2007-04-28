@@ -1,0 +1,10 @@
+val it = () : unit
+functor F(V: sig
+               type t
+               val v : t
+             end) :
+         sig
+           type 'a u
+           val v : 'a u
+         end
+

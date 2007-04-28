@@ -1,0 +1,27 @@
+val it = () : unit
+val cint = fn : 'a -> ('a -> 'b) * 'c * 'd * 'e * 'f -> 'b
+val capp = fn
+  : ('a * ('b * 'c -> 'd) * 'e * 'f * 'g -> 'b) * 
+    ('a * ('b * 'c -> 'd) * 'e * 'f * 'g -> 'c)
+    -> 'a * ('b * 'c -> 'd) * 'e * 'f * 'g -> 'd
+val cadd = fn
+  : ('a * 'b * ('c * 'd -> 'e) * 'f * 'g -> 'c) * 
+    ('a * 'b * ('c * 'd -> 'e) * 'f * 'g -> 'd)
+    -> 'a * 'b * ('c * 'd -> 'e) * 'f * 'g -> 'e
+val csel = fn
+  : ('a * 'b * 'c * ('d * 'e * 'f -> 'g) * 'h -> 'd) * 
+    ('a * 'b * 'c * ('d * 'e * 'f -> 'g) * 'h -> 'e) * 
+    ('a * 'b * 'c * ('d * 'e * 'f -> 'g) * 'h -> 'f)
+    -> 'a * 'b * 'c * ('d * 'e * 'f -> 'g) * 'h -> 'g
+val cabs = fn
+  : ('a * 'b * 'c * 'd * ('e -> 'f) -> 'e)
+    -> 'a * 'b * 'c * 'd * ('e -> 'f) -> 'f
+val cembed = fn : 'a -> 'b * 'c * 'd * 'e * 'f -> 'a
+val cif = fn
+  : ((int -> 'a) * ('b * 'a -> 'c) * 'd * ('e * 'f * 'f -> 'b) * ('g -> 'f)
+     -> 'e) * 'g * 'g
+    -> 'h
+       -> (int -> 'a) * ('b * 'a -> 'c) * 'd * ('e * 'f * 'f -> 'b) * 
+          ('g -> 'f)
+          -> 'c
+

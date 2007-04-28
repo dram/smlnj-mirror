@@ -1,0 +1,48 @@
+val it = () : unit
+structure Segfault :
+  sig
+    type word = word
+    val wordSize : int
+    val toLarge : word -> word
+    val toLargeX : word -> word
+    val fromLarge : word -> word
+    val toLargeWord : word -> word
+    val toLargeWordX : word -> word
+    val fromLargeWord : word -> word
+    val toLargeInt : word -> IntInf.int
+    val toLargeIntX : word -> IntInf.int
+    val fromLargeInt : IntInf.int -> word
+    val toInt : word -> int
+    val toIntX : word -> int
+    val fromInt : int -> word
+    val orb : word * word -> word
+    val xorb : word * word -> word
+    val andb : word * word -> word
+    val notb : word -> word
+    val << : word * Word31.word -> word
+    val >> : word * Word31.word -> word
+    val ~>> : word * Word31.word -> word
+    val + : word * word -> word
+    val - : word * word -> word
+    val * : word * word -> word
+    val div : word * word -> word
+    val mod : word * word -> word
+    val compare : word * word -> order
+    val > : word * word -> bool
+    val >= : word * word -> bool
+    val < : word * word -> bool
+    val <= : word * word -> bool
+    val ~ : word -> word
+    val min : word * word -> word
+    val max : word * word -> word
+    val scan : StringCvt.radix
+               -> (char,'a) StringCvt.reader -> (word,'a) StringCvt.reader
+    val fromString : string -> word option
+    val fmt : StringCvt.radix -> word -> string
+    val toString : word -> string
+    val F : word * word * word -> word
+    val <<< : word * ?.Word31Imp.word -> word
+    val sub : 'a vector * int -> 'a
+    val hash : word vector * (word * word * word * word) -> word
+  end
+

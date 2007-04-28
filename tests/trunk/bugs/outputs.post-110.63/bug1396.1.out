@@ -1,0 +1,8 @@
+val it = () : unit
+val x = fn : 'a -> int
+bug1396.1.sml:4.3-4.6 Error: unresolved flexible record
+  pattern: {y=y,...}
+**** hmmm, I didn't find the variable 314
+** Lvar ** v314 is unbound *** 
+Error: Compiler bug: CheckLty: unexpected lambda code in checkLty
+

@@ -1,0 +1,13 @@
+val it = () : unit
+signature S = sig type t end
+functor F1(<param>: sig
+                      structure X : <sig>
+                      structure Y : <sig>
+                    end) :
+          sig val x : int end
+functor F2(<param>: sig
+                      structure X : <sig>
+                      structure Y : <sig>
+                    end) :
+          sig val x : int end
+

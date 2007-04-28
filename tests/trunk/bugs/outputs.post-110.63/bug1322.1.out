@@ -1,0 +1,29 @@
+val it = () : unit
+signature MONAD =
+  sig
+    type 'a T
+    val unit : 'a -> 'a T
+    val bind : 'a T -> ('a -> 'b T) -> 'b T
+  end
+structure IdMonad :
+  sig
+    type 'a T = 'a
+    val unit : 'a -> 'a
+    val bind : 'a -> ('a -> 'b) -> 'b
+  end
+functor StMonad(<param>: sig
+                           structure Monad : <sig>
+                           type State
+                         end) :
+               sig
+                 structure M : <sig>
+                 val update : ('a -> 'b) -> 'a -> ('b * 'a) T
+                 val read : State -> (State * State) T
+               end
+structure StMonad :
+  sig
+    structure M : <sig>
+    val update : ('a -> 'b) -> 'a -> ('b * 'a) T
+    val read : State -> (State * State) T
+  end
+

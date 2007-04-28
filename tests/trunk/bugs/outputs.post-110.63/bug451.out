@@ -1,0 +1,36 @@
+val it = () : unit
+signature A =
+  sig
+    structure Base : sig end
+  end
+signature P = sig end
+functor A(<param>: sig
+                     structure P : <sig>
+                   end) :
+         sig
+           structure Base : <sig>
+         end
+signature B =
+  sig
+    structure Base : sig end
+  end
+functor B(<param>: sig
+                     structure P : <sig>
+                     structure A : <sig>
+                     sharing A.Base = P
+                   end) :
+         sig
+           structure Base : <sig>
+         end
+functor Q(<param>: sig
+                     structure P : <sig>
+                     structure A : <sig>
+                     structure B : <sig>
+                     sharing B.Base = A.Base = P
+                   end) :
+         sig end
+structure P : sig end
+structure A : A
+structure B : B
+structure Q : sig end
+

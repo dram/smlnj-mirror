@@ -1,0 +1,16 @@
+val it = () : unit
+signature T =
+  sig
+    type p
+    structure A : sig type s end
+    val f1 : unit -> A.s list
+  end
+functor PD(<param>: sig type t end) : sig val f2 : (unit -> t) -> t end
+functor TF(<param>: sig
+                      structure P : <sig>
+                    end) :
+          sig
+            type r = s list
+            val g : p -> r option
+          end
+

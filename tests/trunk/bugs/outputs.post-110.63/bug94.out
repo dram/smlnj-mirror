@@ -1,0 +1,13 @@
+val it = () : unit
+functor mkDummy(<param>: sig end) : sig end
+functor mkLalr(<param>: sig end) :
+              sig
+                strange tycon: [E]
+              end
+functor mkTable(<param>: sig end) :
+               sig
+                 structure Dummy : <sig>
+                 structure Lalr : <sig>
+                 val x : Lalr.lcore -> int
+               end
+

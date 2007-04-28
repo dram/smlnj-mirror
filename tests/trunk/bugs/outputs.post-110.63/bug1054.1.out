@@ -1,0 +1,8 @@
+val it = () : unit
+functor BugFun(<param>: sig end) :
+              sig
+                strange tycon: [E]
+                strange tycon: [E]
+                strange tycon: [E]
+              end
+

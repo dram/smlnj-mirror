@@ -1,0 +1,11 @@
+val it = () : unit
+signature TS1 =
+  sig
+    eqtype t
+    val f : t -> t
+  end
+functor SF(<param>: sig
+                      structure T1 : <sig>
+                    end) :
+          sig val test : t list -> bool end
+

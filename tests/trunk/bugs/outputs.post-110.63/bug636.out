@@ -1,0 +1,7 @@
+val it = () : unit
+val v = #[1,2,3] : int vector
+val a = 1 : int
+val b = 2 : int
+val c = 3 : int
+val it = 1 : int
+

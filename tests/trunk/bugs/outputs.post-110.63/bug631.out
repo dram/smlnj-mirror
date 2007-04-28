@@ -1,0 +1,6 @@
+val it = () : unit
+structure Interface : sig val ast : string -> Ast.dec end
+
+uncaught exception Io [Io: openIn failed on "bug631.sml", No such file or directory]
+  raised at: Basis/Implementation/IO/text-io-fn.sml:784.25-784.71
+

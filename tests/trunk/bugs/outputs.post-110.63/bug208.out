@@ -1,0 +1,8 @@
+val it = () : unit
+functor MipsCoder(<param>: sig val emit : 'a -> unit end) :
+                 sig
+                   val needs : 'a -> bool
+                   val pass : bool -> bool option -> unit
+                   val assemble : bool option -> unit
+                 end
+

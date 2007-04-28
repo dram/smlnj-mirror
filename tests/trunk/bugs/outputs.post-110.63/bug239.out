@@ -1,0 +1,20 @@
+val it = () : unit
+signature A =
+  sig
+    type A
+    datatype Foo = FOO of A
+  end
+signature B = sig type B end
+signature C =
+  sig
+    datatype C = C of int -> int
+  end
+functor XYZZY(<param>: sig
+                         structure A : <sig>
+                         structure B : <sig>
+                         structure C : <sig>
+                         sharing type B.B = C.C
+                         sharing type B.B = A.A
+                       end) :
+             sig end
+

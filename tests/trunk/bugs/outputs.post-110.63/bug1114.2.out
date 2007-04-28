@@ -1,0 +1,12 @@
+val it = () : unit
+functor TYPE(<param>: sig end) :
+            sig
+              strange tycon: [E]
+            end
+structure Type :
+  sig
+    datatype ty = Tyc of string
+  end
+structure P : sig val pp_type : ?.PrettyPrint.PP.stream -> Type.ty -> unit end
+val test_type = bool : Type.ty
+

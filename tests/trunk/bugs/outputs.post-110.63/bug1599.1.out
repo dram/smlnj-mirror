@@ -1,0 +1,37 @@
+val it = () : unit
+signature SIG1 = sig type t end
+signature SIG2 =
+  sig
+    type t
+    val f : t -> unit
+  end
+signature SIG3 =
+  sig
+    structure S : sig type t end
+  end
+functor MkA(<param>: sig
+                       structure S1 : <sig>
+                     end) :
+           sig
+             structure S : <sig>
+           end
+functor MkB(<param>: sig
+                       structure A : <sig>
+                     end) :
+           sig
+             structure S : <sig>
+           end
+functor MkC(<param>: sig
+                       structure Ta : <sig>
+                       structure B : <sig>
+                     end) :
+           sig end
+structure A :
+  sig
+    type t = int
+    val f : 'a -> unit
+  end
+structure B : SIG3
+bug1599.1.sml:38.15-39.35 Error: unmatched structure specification: Ta
+Error: Compiler bug: SigMatch:unTYCent
+

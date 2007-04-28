@@ -1,0 +1,18 @@
+val it = () : unit
+signature POINT = sig type point end
+signature INTERVAL =
+  sig
+    type point
+    val mk : point * point -> unit
+  end
+functor Interval(P: sig type point end) :
+                sig
+                  type point
+                  val mk : point * point -> unit
+                end
+structure IntPoint : POINT
+functor G(<param>: sig functor Interv : <fctsig> end) :
+         sig
+           structure NatNumInt : <sig>
+         end
+

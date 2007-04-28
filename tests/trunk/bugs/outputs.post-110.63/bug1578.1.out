@@ -1,0 +1,3 @@
+val it = () : unit
+Error: Compiler bug: TypesUtil: extractDcons
+

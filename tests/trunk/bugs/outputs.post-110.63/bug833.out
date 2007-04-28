@@ -1,0 +1,35 @@
+val it = () : unit
+signature S =
+  sig
+    datatype dt = foo
+  end
+functor I(X: sig
+               datatype dt = foo
+             end) :
+         sig
+           datatype dt = foo
+         end
+structure A :
+  sig
+    datatype dt = foo
+  end
+functor R(<param>: sig functor F : <fctsig> end) :
+         sig functor <functor> : <fctsig> end
+functor P(Y: sig
+               datatype dt = foo
+             end) :
+         sig
+           structure C : <sig>
+         end
+structure B :
+  sig
+    structure C : <sig>
+  end
+opening B
+  structure C :
+    sig
+      datatype dt = foo
+    end
+opening C
+  datatype dt = foo
+

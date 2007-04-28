@@ -1,0 +1,8 @@
+val it = () : unit
+functor f(<param>: sig
+                     structure S : <sig>
+                     structure T : <sig>
+                     sharing T = S
+                   end) :
+         sig val b : bool end
+

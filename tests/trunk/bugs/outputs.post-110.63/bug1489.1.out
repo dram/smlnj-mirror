@@ -1,0 +1,8 @@
+val it = () : unit
+type t
+val mk = fn : int -> t
+val eq = fn : t * t -> bool
+val x = - : t
+val y = - : t
+val it = false : bool
+

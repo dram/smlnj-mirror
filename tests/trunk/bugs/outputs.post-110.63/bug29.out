@@ -1,0 +1,8 @@
+val it = () : unit
+<instream>:1.9-1.14 Error: unbound structure: Foo in path Foo.x
+
+uncaught exception Error
+  raised at: ../compiler/TopLevel/interact/evalloop.sml:63.48-63.56
+             ../compiler/TopLevel/interact/evalloop.sml:44.55
+             ../compiler/TopLevel/interact/evalloop.sml:291.17-291.20
+

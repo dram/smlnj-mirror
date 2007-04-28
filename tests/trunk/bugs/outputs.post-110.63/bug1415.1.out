@@ -1,0 +1,5 @@
+val it = () : unit
+
+uncaught exception Date
+  raised at: Basis/Implementation/date.sml:78.41-78.45
+

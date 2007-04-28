@@ -1,0 +1,8 @@
+val it = () : unit
+bug1499.1.sml:5.5-8.15 Error: duplicate specifications for type constructor t in signature
+
+unexpected exception (bug?) in SML/NJ: Unbound [Unbound]
+  raised at: ../compiler/Elaborator/elaborate/elabmod.sml:1510.39-1510.49
+             ../compiler/Basics/stats/stats.sml:198.40
+             ../compiler/TopLevel/interact/evalloop.sml:44.55
+

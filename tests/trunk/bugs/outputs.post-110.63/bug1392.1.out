@@ -1,0 +1,9 @@
+val it = () : unit
+structure S :
+  sig
+    val x : int
+    val y : int
+    val f : 'a list -> int
+    val z : int
+  end
+

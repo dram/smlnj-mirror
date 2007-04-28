@@ -1,0 +1,5 @@
+val it = () : unit
+signature TRIVSIG = sig end
+functor A(X: sig end) : sig end
+functor B(X: sig end) : sig end
+

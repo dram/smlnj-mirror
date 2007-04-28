@@ -1,0 +1,9 @@
+val it = () : unit
+val it = 1E308 : real
+
+unexpected exception (bug?) in SML/NJ: BadReal [BadReal]
+  raised at: ../compiler/MiscUtil/bignums/realconst.sml:237.54-237.63
+             ../compiler/Basics/stats/stats.sml:198.40
+             ../compiler/Basics/stats/stats.sml:198.40
+             ../compiler/TopLevel/interact/evalloop.sml:44.55
+

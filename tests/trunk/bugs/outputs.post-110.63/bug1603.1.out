@@ -1,0 +1,26 @@
+val it = () : unit
+signature FOO =
+  sig
+    type hey = string
+    datatype foo = A | B of hey
+  end
+structure Foo :
+  sig
+    type hey = string
+    datatype foo = A | B of hey
+  end
+signature BAR =
+  sig
+    structure Foo :
+      sig
+        type hey = string
+        datatype foo = A | B of hey
+      end
+    datatype foo = datatype Foo.foo
+  end
+
+unexpected exception (bug?) in SML/NJ: Unbound [Unbound]
+  raised at: ../compiler/Elaborator/elaborate/elabmod.sml:1475.39-1475.49
+             ../compiler/Basics/stats/stats.sml:198.40
+             ../compiler/TopLevel/interact/evalloop.sml:44.55
+

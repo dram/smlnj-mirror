@@ -1,0 +1,7 @@
+val it = () : unit
+functor F(<param>: sig
+                     structure X : <sig>
+                     structure Y : <sig>
+                   end) :
+         sig val f : t * Y.t list -> t list end
+

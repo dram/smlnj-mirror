@@ -1,0 +1,10 @@
+val it = () : unit
+functor F(<param>: sig
+                     datatype a = A of int * int
+                   end) :
+         sig end
+bug965.sml:4.15-4.39 Error: value type in structure doesn't match signature spec
+    name: A
+  spec:   int * int -> ?.a
+  actual: int -> ?.a
+

@@ -1,0 +1,40 @@
+val it = () : unit
+signature SUM =
+  sig
+    type type1
+    type type2
+    datatype t = Type1 of type1 | Type2 of type2
+  end
+signature SET =
+  sig
+    type element
+    type t
+    val empty : t
+    val extend : t * element -> t
+  end
+structure UnitSet :
+  sig
+    type element = unit
+    type t = bool
+    val empty : bool
+    val extend : 'a * unit -> bool
+  end
+functor SumSet(<param>: sig
+                          structure Sum : <sig>
+                          structure Set1 : <sig>
+                          structure Set2 : <sig>
+                        end) :
+              sig
+                type element = Sum.t
+                type t
+                val empty : t
+                val extend : t * element -> t
+              end
+structure UnitUnit :
+  sig
+    type type1 = unit
+    type type2 = unit
+    datatype t = Type1 of type1 | Type2 of type2
+  end
+structure UnitUnitSet : SET?
+

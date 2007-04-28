@@ -1,0 +1,9 @@
+val it = () : unit
+functor Broken(S: sig val perform : (unit -> 'a) -> 'a end) :
+              sig
+                val period : int
+                val name : string
+                val n : int
+                val proc : unit -> 'a
+              end
+

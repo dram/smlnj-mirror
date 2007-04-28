@@ -1,0 +1,19 @@
+val it = () : unit
+signature S =
+  sig
+    type t
+    datatype u = C1
+    datatype v = C2 of t
+  end
+functor F(<param>: sig type t end) :
+         sig
+           type t = t
+           datatype u = C1
+           datatype v = C2 of t
+         end
+structure M1 : S?
+structure M2 :
+  sig
+    datatype v = C2 of M1.t
+  end
+

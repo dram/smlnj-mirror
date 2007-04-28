@@ -1,0 +1,13 @@
+val it = () : unit
+signature SIG = sig type v end
+functor F(<param>: sig end) :
+         sig
+           structure S : <sig>
+           structure T : <sig>
+         end
+structure S :
+  sig
+    structure S : <sig>
+    structure T : <sig>
+  end
+

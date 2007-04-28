@@ -1,0 +1,7 @@
+val it = () : unit
+signature SIG =
+  sig
+    structure Z : sig end
+  end
+bug1332.sml:8.1-14.4 Error: structure definition spec inside of sharing at: B.Z
+

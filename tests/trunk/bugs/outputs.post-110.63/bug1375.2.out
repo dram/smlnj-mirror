@@ -1,0 +1,5 @@
+val it = () : unit
+
+uncaught exception Overflow [overflow]
+  raised at: Basis/Implementation/num-scan.sml:166.50-166.58
+

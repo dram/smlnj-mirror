@@ -1,0 +1,4 @@
+val it = () : unit
+datatype 'a tree = Stree of 'a list * (string * 'a tree) list
+val insert = fn : (string list * 'a) * 'b tree -> 'b tree
+

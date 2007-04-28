@@ -1,0 +1,12 @@
+val it = () : unit
+val ppconsumer = {consumer=fn,flush=fn,linewidth=fn}
+  : {consumer:string -> unit, flush:unit -> unit, linewidth:unit -> int}
+val fname = "/dev/null" : string
+val instream = - : TextIO.instream
+val source =
+  {anyErrors=ref false,errConsumer={consumer=fn,flush=fn,linewidth=fn},
+   fileOpened="/dev/null",interactive=false,
+   sourceMap={linePos=ref [(2,1)],resynchPos=ref [(2,"/dev/null",1)]},
+   sourceStream=-} : Source.inputSource
+val it = () : unit
+

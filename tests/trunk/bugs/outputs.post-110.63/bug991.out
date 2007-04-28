@@ -1,0 +1,9 @@
+val it = () : unit
+signature S =
+  sig
+    type 'a t
+    type s
+  end
+signature T = sig type u = int end
+bug991.sml:19.22 Error: unbound type constructor: v
+

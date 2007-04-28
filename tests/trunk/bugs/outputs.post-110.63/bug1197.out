@@ -1,0 +1,24 @@
+val it = () : unit
+signature ABSYN =
+  sig
+    datatype expr = Int of int
+  end
+signature INTERP =
+  sig
+    structure AbSyn :
+      sig
+        datatype expr = Int of int
+      end
+    val evaluate : AbSyn.expr -> AbSyn.expr
+  end
+functor Interp(<param>: sig
+                          structure A : <sig>
+                        end) :
+              sig
+                structure AbSyn : <sig>
+                val evaluate : AbSyn.expr -> AbSyn.expr
+              end
+structure Absyn : ABSYN
+structure E : INTERP?
+val x = Int 3 : Absyn.expr
+

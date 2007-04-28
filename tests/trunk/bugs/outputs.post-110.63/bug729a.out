@@ -1,0 +1,88 @@
+val it = () : unit
+signature ELEMENT =
+  sig
+    type element
+    val put : TextIO.outstream -> element -> unit
+  end
+signature EQ =
+  sig
+    type element
+    val put : TextIO.outstream -> element -> unit
+    val eq : element -> element -> bool
+  end
+signature ORDERED =
+  sig
+    type element
+    val put : TextIO.outstream -> element -> unit
+    val eq : element -> element -> bool
+    val compare : element -> element -> bool
+  end
+signature TERM =
+  sig
+    structure C :
+      sig
+        type element
+        val put : TextIO.outstream -> element -> unit
+        val eq : element -> element -> bool
+      end
+    structure V :
+      sig
+        type element
+        val put : TextIO.outstream -> element -> unit
+        val eq : element -> element -> bool
+        val gensym : element -> element
+      end
+    structure F :
+      sig
+        type element
+        val put : TextIO.outstream -> element -> unit
+        val eq : element -> element -> bool
+        val arity : element -> int
+      end
+    structure S :
+      sig
+        type element
+        val put : TextIO.outstream -> element -> unit
+        val empty : element
+        val compose : element -> element -> element
+      end
+    type term
+    type constant
+    type variable
+    type function
+    type substitution
+    sharing type S.element = substitution
+    sharing type F.element = function
+    sharing type V.element = variable
+    sharing type C.element = constant
+  end
+functor Term(<param>: sig
+                        structure C' : <sig>
+                        structure F' : <sig>
+                        structure V' : <sig>
+                      end) :
+            sig
+              structure C : <sig>
+              structure V : <sig>
+              structure F : <sig>
+              structure S : <sig>
+              type term
+              type constant
+              type variable
+              type function
+              type substitution
+              val compare : term -> term -> bool
+              sharing type S.element = substitution
+              sharing type F.element = function
+              sharing type V.element = variable
+              sharing type C.element = constant
+            end
+structure StringLanguage :
+  sig
+    structure Sym : <sig>
+    structure Fun : <sig>
+    structure X : <sig>
+    structure Terms1 : <sig>
+    structure Terms2 : <sig>
+  end
+
