@@ -3,7 +3,6 @@ signature T6 =
   sig
     structure A : sig eqtype t end
   end
-35.2.sml:11.29 Warning: calling polyEqual
 functor F(X: sig
                structure A : <sig>
              end) :

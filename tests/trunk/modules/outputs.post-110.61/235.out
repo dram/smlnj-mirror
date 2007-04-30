@@ -17,7 +17,6 @@ signature L1 =
         sharing type t = nest2.u
       end
   end
-235.sml:34.17 Warning: calling polyEqual
 functor f(<param>: sig end) :
          sig
            structure nest1 : <sig>

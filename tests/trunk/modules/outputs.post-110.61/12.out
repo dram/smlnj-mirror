@@ -31,8 +31,5 @@ structure A :
     datatype s = TERM
   end
 structure B : LGRAPH
-12.sml:45.12-45.57 Warning: match nonexhaustive
-          x :: _ => ...
-  
 val foo = fn : B.L.E.r -> unit
 

@@ -5,13 +5,11 @@ signature S =
     datatype bb = BB of aa
     val eq_bb : bb -> bb -> bool
   end
-34.sml:15.24 Warning: calling polyEqual
 structure s : S
 signature T =
   sig
     type aa
     val eq_aa : aa -> aa -> bool
   end
-34.sml:27.23 Warning: calling polyEqual
 structure t : T
 

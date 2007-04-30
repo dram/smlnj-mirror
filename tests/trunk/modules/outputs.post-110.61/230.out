@@ -14,7 +14,6 @@ funsig FS1(A: sig
                 val x : t
               end) :
           sig functor G : <fctsig> end
-230.sml:26.15 Warning: calling polyEqual
 functor K(<param>: sig functor H : <fctsig> end) :
          sig
            structure a : <sig>

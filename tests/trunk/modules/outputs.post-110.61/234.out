@@ -1,5 +1,4 @@
 val it = () : unit
-234.sml:23.14 Warning: calling polyEqual
 signature S =
   sig
     eqtype t
@@ -27,7 +26,6 @@ functor OP(X: sig
             structure s : <sig>
             val w : bool
           end
-234.sml:29.14 Warning: calling polyEqual
 functor OP2(X: sig
                  eqtype t
                  val x : t
@@ -54,18 +52,9 @@ structure d :
     structure s : <sig>
     val w : bool
   end
-234.sml:40.6 Warning: calling polyEqual
-234.sml:40.26 Warning: calling polyEqual
-234.sml:40.46 Warning: calling polyEqual
 val it = true : bool
-234.sml:42.8 Warning: calling polyEqual
-234.sml:42.32 Warning: calling polyEqual
-234.sml:42.56 Warning: calling polyEqual
 val it = true : bool
 structure c2 : S
 structure d2 : S
-234.sml:49.6 Warning: calling polyEqual
-234.sml:49.27 Warning: calling polyEqual
-234.sml:49.48 Warning: calling polyEqual
 val it = true : bool
 

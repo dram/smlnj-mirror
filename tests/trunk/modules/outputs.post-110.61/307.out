@@ -7,8 +7,6 @@ signature S =
     val c : A * T -> T
     val d : T -> A * T
   end
-307.sml:20.19 Warning: calling polyEqual
-wrong TCs in tc_select
-PRIM(I)
-Error: Compiler bug: LtyExtern: LtyExtern.tc_bug
+functor E() 
+
 

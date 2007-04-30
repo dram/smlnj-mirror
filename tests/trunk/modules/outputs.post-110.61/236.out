@@ -1,5 +1,4 @@
 val it = () : unit
-236.sml:10.15 Warning: calling polyEqual
 functor f(<param>: sig end) :
          sig
            structure a : <sig>

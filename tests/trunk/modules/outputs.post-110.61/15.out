@@ -21,9 +21,6 @@ signature SIGX =
         structure P1 : <sig>
       end
   end
-15.sml:27.20 Warning: calling polyEqual
-15.sml:26.16 Warning: calling polyEqual
-15.sml:25.16 Warning: calling polyEqual
 functor Join(<param>: sig
                         structure P : <sig>
                       end) :

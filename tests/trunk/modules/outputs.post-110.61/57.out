@@ -22,6 +22,5 @@ structure D :
     type t = t
     val x : X.t
   end
-57.sml:21.21 Warning: calling polyEqual
 val x = true : bool
 

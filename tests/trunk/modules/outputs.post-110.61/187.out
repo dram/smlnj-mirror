@@ -6,7 +6,6 @@ signature S =
     eqtype t
     sharing type t = d
   end
-187.sml:13.22 Warning: calling polyEqual
 functor F(X: sig
                type s
                datatype d = D of s

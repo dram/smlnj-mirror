@@ -6,7 +6,6 @@ signature T1 =
     val x : t1
     sharing type t2 = t1
   end
-31.sml:14.16 Warning: calling polyEqual
 functor F(X: sig
                type t1
                eqtype t2

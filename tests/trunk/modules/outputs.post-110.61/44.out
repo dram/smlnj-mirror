@@ -11,5 +11,5 @@ signature SIG =
   operator domain: ''Z * ''Z
   operand:         X.d * X.d
   in expression:
-    D (mka (fn <pat> => <exp>)) = D (mka (fn <pat> => <exp>))
+    D (mka (fn x => x)) = D (mka (fn x => x))
 

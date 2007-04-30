@@ -10,7 +10,6 @@ funsig FS(<param>: sig
          sig
            structure C : <sig>
          end
-223.sml:19.16 Warning: calling polyEqual
 functor F(<param>: sig
                      functor G : <fctsig>
                      structure Y : <sig>
