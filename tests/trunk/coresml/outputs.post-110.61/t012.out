@@ -2,5 +2,5 @@ val it = () : unit
 datatype xxx = P | Q of {key:(xxx ref * xxx ref) list}
 val z = ref P : xxx ref
 val it = () : unit
-val it = ref (Q {key=[(#,#),(#,#)]}) : xxx ref
+val it = ref (Q {key=[(%0,%0),(%0,%0)]}) as %0 : xxx ref
 

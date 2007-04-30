@@ -1,0 +1,7 @@
+Expected failures:
+
+1. On ppc, the following tests in test/t013.sml fail because we generate
+Overflow rather than Div for divide by zero (or mod by zero).
+
+(100 div 0     seq  "WRONG") handle Div => "OK" | _ => "WRONG EXN";
+(100 mod 0     seq  "WRONG") handle Div => "OK" | _ => "WRONG EXN";

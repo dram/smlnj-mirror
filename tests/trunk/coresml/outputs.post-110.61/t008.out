@@ -6,5 +6,5 @@ datatype 'a arex
   | TIP of 'a
 type 'a binary = 'a arex * 'a arex
 type 'a unary = 'a arex
-val a1 = MINUS (ADD (TIP 1,SUB (#,#))) : int arex
+val a1 = MINUS (ADD (TIP 1,SUB (TIP 2,TIP 5))) : int arex
 
