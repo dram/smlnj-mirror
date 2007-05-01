@@ -1,0 +1,5 @@
+val it = () : unit
+type 'a t = int
+val f = fn : 'a -> 'a t
+val g = fn : int -> 'a
+

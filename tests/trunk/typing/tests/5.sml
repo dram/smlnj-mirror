@@ -6,7 +6,7 @@
    the value restriction *)
 
 let val x = ref []
-    fun g () = !x  (* better not generalize *)
+    fun g () = hd(!x)  (* better not generalize *)
  in x := [1];
     g()()    (* try to apply contents of x as function *)
 end;

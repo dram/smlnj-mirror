@@ -1,0 +1,5 @@
+val it = () : unit
+val f = fn : 'a -> int
+17.sml:5.1-5.14 Error: unresolved flex record (hidden)
+  type: {y:'Y; 'Z}
+

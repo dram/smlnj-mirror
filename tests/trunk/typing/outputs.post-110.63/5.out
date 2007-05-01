@@ -1,4 +1,6 @@
 val it = () : unit
-5.sml:9.20-12.6 Error: unclosed comment
-5.sml:13.1 Error: syntax error found at EOF
+5.sml:11.5-11.10 Error: operator is not a function [literal]
+  operator: int
+  in expression:
+    (g ()) ()
 
