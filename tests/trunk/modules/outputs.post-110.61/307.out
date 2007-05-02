@@ -7,6 +7,9 @@ signature S =
     val c : A * T -> T
     val d : T -> A * T
   end
-functor E() 
-
+functor E(<param>: sig
+                     functor F : <fctsig>
+                     functor G : <fctsig>
+                   end) :
+         sig functor <functor> : <fctsig> end
 
