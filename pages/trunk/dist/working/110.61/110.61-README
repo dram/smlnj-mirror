@@ -53,5 +53,5 @@ Basis:
 Language processing tools (ml-lpt):
 
     - The implementations of our new language processing tools
-      (ml-ulex, ml-antlr) have been improved, but documenation is
+      (ml-ulex, ml-antlr) have been improved, but documentation is
       not yet up-to-date.
