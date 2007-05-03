@@ -15,54 +15,24 @@
 <hr width="30%">
 
 <a name="SF-mirror">
-<h3>SML/NJ web site now mirrored at SourceForge</h3>
+<h3>SML/NJ web site now hosted at the University of Chicago</h3>
 </a>
            
 <blockquote>
 <a name="SF-mirror">The master copy of the SML/NJ web pages is now
-kept in the CVS repository of the smlnj SourceForge project (see
-</a> <a href="#sourceforge">previous item on SourceForge
-projects</a>).
-The <a href="http://cm.bell-labs.com/cm/cs/what/smlnj">
-Bell-Labs-hosted site</a> is now joined by <a
-href="http://www.smlnj.org/">www.smlnj.org</a>, which mirrors the
-same pages from the repository.
-</blockquote>
-
-<a name="macosx">
-<h3>Working version 110.33 supports Mac OS X and experimentat FFI</h3>
-</a>
-
-<blockquote>
-<a name="macosx">The recently released</a>
-<a href="NEWS/110.33-README.html">110.33</a>
-working version runs under Mac OS X.  It also introduces
-Matthias Blume's new, experimental FFI, NLFFI ("No-Longer Foreign Function
-Interface").    Currently NLFFI is available only under x86-linux, but it
-is being ported to other architectures.
-</blockquote>
-
-<a name="smlnj.exe">
-<h3>New 110.0.7 smlnj.exe works on Windows 9X</h3>
-</a>
-
-<blockquote>
-<a name="smlnj.exe">The original version of the Windows installer,
-smlnj.exe, for 110.0.7 had a problem when running under Windows 95/98/ME
-that caused error messages abound undefined strings like PRODUCT_NAME.  This
-problem has been corrected in a new</a>
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj.exe">
-smlnj.exe</a>
-now available in the usual 110.0.7
-<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/">ftp</a> and
-<a href="http://cm.bell-labs.com/cm/cs/what/smlnj/dist">http</a>
-distribution directories.                                 
-    
-<p>This new smlnj.exe (as of 23 March 01) also corrects a problem
-where installation only set the user PATH and CM_PATH environment
-variables.  Now the installer sets these variables at the system level
-for all users.  Installation must be done from an administrator
-account.</p>
+kept in the svn repository of the smlnj gforge project at the
+university of Chicago (svn://smlnj-gforge.uchicago.edu/smlnj/pages).
+<p>
+The web pages are mirrored at the SML/NJ sourceforge project
+<href="http://smlnj.sourceforge.net/">smlnj.sourceforge.net</a>,
+which should mirror the same pages from the repository. [There may
+be some lag however, because the smlnj-gforge svn repository cannot
+be checked out at the sourceforge server and the pages have to be
+updated manually.]
+<p>
+System source code, libraries, utilities, benchmarks, and test suites
+are also now hosted primarily in the smlnj-gforge.uchicago.edu
+repository.
 </blockquote>
 
 <a name="sourceforge">
@@ -82,7 +52,7 @@ Jersey (smlnj)</a> project at
 <a href="http://www.smlnj.org/">www.smlnj.org</a>
 is intended to be the future home of SML/NJ
 (including web pages, releases, CVS repository, etc.).
- </blockquote>
+</blockquote>
 
 <a name="prog-smlnj">
 <h3>New SML/NJ tutorial by Riccardo Pucella</h3>
@@ -102,70 +72,6 @@ This is a first draft of the Notes, and Riccardo welcomes
 corrections and suggestions.
 </blockquote>
 
-<a name="sml-mode">
-<h3>New version of sml-mode added to contrib/emacs</h3>
-</a>
-
-<blockquote>
-<a href="mailto:monnier@cs.yale.edu">Stefan Monnier's</a>
-latest version, 3.9.5, of the sml-mode package for emacs has been added 
-to the <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/emacs">
-contrib/emacs</a> directory.
-</blockquote>
-
-<a name="110.0.7">
-<h3>Patch Release 110.0.7</h3>
-</a>                                                              
-   
-<blockquote>
-A new minor release version
-<a href="NEWS/110-README.html">110.0.7</a>
-is now available.  This is the sixth patch release for
-version 110 (110.0.4 was not released).  This patch release fixes a
-long-standing bug in signal handling.  It also includes a number of
-SML/NJ Library enhancements and fixes and some fixes to CM and eXene,
-and a small number of other bug fixes.  See the
-<a href="NEWS/110-PATCH-HISTORY"> 110-PATCH-HISTORY</a> file for
-details. With this release, we are also making the distribution files
-available for download via http as well as ftp.  See the
-<a href="dist/110.0.7.html"> 110.0.7 distribution page</a>.
-[<strong>Note:</strong> The original smlnj.exe installer for
-Windows had incorrect CM tool paths.  This has been corrected by a new
-smlnj.exe as of October 18, 2000.]
-</blockquote>
-
-<a name="Version-111">                                           
-<h3>Plans for the next release (Version 111)</h3>
-</a>                                                              
-             
-<blockquote>
-
-Meanwhile, work continues on the next release, 
-which we hope to have ready for a beta release "real soon now". The next 
-release will not contain any major language or Basis library changes, but 
-there will be major internal changes, including:                        
-
-<ul>
-<li>A new runtime system with improved management of virtual memory.</li>
-<li>New support for foreign functions (C) based on IDL.</li>
-<li>Conformance with the soon to be published SML Basis spec.</li>
-<li>MLRISC code generators for all architectures.</li>
-<li>The FLINT representation has partially replaced the old cps
-representation in the back end.</li>
-</ul>
-
-In addition, there will be a couple significant language extensions:
-lazy datatypes and lazy functions over such datatypes, functional
-record concatenation (a "with" operation), and mutable records whose
-fields can be updated.
-                         
-<p>Most features of Version 111 are implemented in current working
-versions.  The main missing elements are the new runtime system and a
-MIPS code generator.</p>
-
-</blockquote>
-                                                                        
-                   
 <a href="software.html#SOFTWARE:WORKING-VERSIONS">
 <h3>Working Versions</h3>
 </a>

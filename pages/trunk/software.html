@@ -22,53 +22,51 @@
 the current release  version number is 110.0.7, representing the 7th patch
 release of 110, but we will refer to this version as 110 for short.</em>
 ) </p>
+<p>  </p>
                
-  <p>  </p>
-               
-  <h3>Installation Instructions</h3>
+<h3>Installation Instructions</h3>
                  
-  <p> To download and install SML/NJ 110, follow these  <a href="install/index.html"><strong>
-    installation instructions</strong></a>.  <a name="Mirrors">         
+<p> To download and install SML/NJ 110, follow these  <a href="install/index.html"><strong> installation instructions</strong></a>.  <a name="Mirrors">         
    
-  <h3> The Distribution Files </h3>
-      </a> </p>
+<h3> The Distribution Files </h3>
+</a> </p>
                
 The files making up the Version 110 distribution are available via http
 from this <a href="dist/release/110.0.7/index.html"> index </a> page.
 
-The following sites mirror the distributions (if you run a mirror site not listed 
- here, please let us know):                             
-      <ul>
-     <li><a href="ftp://rodin.stanford.edu/pub/smlnj">  	<strong>Stanford 
-University  (California)</strong> </a> </li>
-            <li><a href="ftp://flint.cs.yale.edu/pub/smlnj"> 	<strong>Yale
- University  (Connecticut)</strong> </a> </li>
-            <li><a href="ftp://ftp.diku.dk/pub/smlnj"> <strong>DIKU (Denmark)</strong>
-     </a> </li>
-            <li><a href="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj"><strong>Cambridge
-  (UK)</strong></a> </li>
-            <li><a href="ftp://sunsite.doc.ic.ac.uk/computing/programming/languages/ml/smlnj/">
-     <strong>SunSITE (UK)</strong></a> </li>
-            <li><a href="ftp://ftp.ntua.gr/pub/lang/smlnj"><strong>National 
+<!--
+The following sites mirror the distributions (if you run a mirror site
+not listed here, please let us know):
+<ul>
+<li><a href="ftp://rodin.stanford.edu/pub/smlnj"><strong>Stanford 
+University (California)</strong> </a> </li>
+<li><a href="ftp://flint.cs.yale.edu/pub/smlnj"><strong>Yale
+University (Connecticut)</strong> </a> </li>
+<li><a href="ftp://ftp.diku.dk/pub/smlnj"> <strong>DIKU (Denmark)</strong> </a> </li>
+<li><a href="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj"><strong>Cambridge
+(UK)</strong></a> </li>
+<li><a href="ftp://sunsite.doc.ic.ac.uk/computing/programming/languages/ml/smlnj/">
+<strong>SunSITE (UK)</strong></a> </li>
+<li><a href="ftp://ftp.ntua.gr/pub/lang/smlnj"><strong>National 
  Technical Univ. of Athens (Greece)</strong></a> </li>
-            <li><a href="ftp://ropas.kaist.ac.kr/pub/smlnj/"><strong>KAIST
+<li><a href="ftp://ropas.kaist.ac.kr/pub/smlnj/"><strong>KAIST
  (Korea)</strong></a>   </li>
-            <li><a href="http://gd.tuwien.ac.at/languages/smlnj/"><strong>
+<li><a href="http://gd.tuwien.ac.at/languages/smlnj/"><strong>
  Vienna   Univ. of Technology, Austria</strong></a> (<a href="ftp://gd.tuwien.ac.at/languages/smlnj/">
     ftp version</a>) </li>
-                               
+-->                               
       </ul>
                                   
-      <h3> Previous Releases </h3>
+<h3> Previous Releases </h3>
 <a href="NEWS/93-README.html">
 Version  0.93</a> (released in 1993) is still available but is no
 longer supported.
                              
-      <h2><a name="SOFTWARE:WORKING-VERSIONS"> Working Versions </a></h2>
-Working versions are created for 
-internal  development purposes and vary in reliability and stability.  Some 
-are robust  enough for noncritical research use, others are not.  Please pay
-careful  attention to the README or NEWS file for each version before attempting
+<h2><a name="SOFTWARE:WORKING-VERSIONS"> Working Versions </a></h2>
+Working versions are created for internal development purposes and
+vary in reliability and stability. Most are robust enough for
+noncritical research use, others are not.  Please pay careful
+attention to the README or NEWS file for each version before attempting
 to  use it.
 
 Current and recent working versions are listed in the
@@ -76,13 +74,13 @@ Current and recent working versions are listed in the
 which gives access to README files for recent working
 versions and the ftp directories for working versions that are currently
 available for downloading.  The <a href="install/index.html">
-installation   instructions</a> for the release version will generally work,
-<em>mutatis   mutandis</em>, for working versions. </p>
-Some older working versions can be found at </a><a href="ftp://ftp.research.bell-labs.com/dist/smlnj/working">ftp://ftp.research.bell-labs.com/dist/smlnj/working</a>.
-     <p>
-     We generally announce new versions (including working versions) on
-     comp.lang.ml, comp.lang.functional, freshmeat.net, and our
-     development mailing list <img src="smlnj-list-logo.jpg" align=center>.</p>
+installation instructions</a> for the release version will generally work,
+<em>mutatis mutandis</em>, for working versions. </p>
+
+<p>
+We generally announce new versions (including working versions) on
+comp.lang.ml, comp.lang.functional, freshmeat.net, and our
+development mailing list <img src="smlnj-list-logo.jpg" align=center>.</p>
                                
 <p> After version 110.9.1, the older "cmachine" (i.e. non-MLRISC) code 
 generators were replaced by new MLRISC code
@@ -90,114 +88,81 @@ generators, except for the MIPS architecture, which is currently not
 supported in the latest working version.  Work on a new MIPS MLRISC
 code generator is in progress.</p>
                                
-      <p>  </p>
-                               
-      <hr>  <a name="packages">                             
-      <h2> Packages </h2>
-          </a>                             
-      <p> The directory  </p>
-                               
-      <blockquote> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/packages/">
-     ftp://ftp.research.bell-labs.com/dist/smlnj/packages/</a>. </blockquote>
-     contains software packages that are not part of the core SML/NJ distribution.
-   Currently, this directory contains:                                  
+<p>  </p>
+<hr>  <a name="packages">                             
+<h2> Packages </h2> </a>                             
+<p> The directory  </p>
+
+contains software packages that are not part of the core SML/NJ distribution.
+Currently, this directory contains:                                  
   
         <ul>
      <li> <a href="doc/ckit/index.html"><strong>
 ckit</strong></a>, a C front    end. </li>
                                        
         </ul>
-      <a name="benchmarks">                                     
-        <h2> Benchmarks </h2>
-            </a>                                     
-        <p> A set of programs used as a "benchmark suite" for Standard ML
-  is available at: </p>
+<a name="benchmarks">                                     
+<h2> Benchmarks </h2> </a>                                     
+<p> A set of programs used as a "benchmark suite" for Standard ML
+is available by svn checkout at
+	    svn://smlnj-gforge.cs.uchicago.edu/smlnj/benchmarks.
+</p>
                                        
-        <blockquote> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/benchmarks/">
-     ftp://ftp.research.bell-labs.com/dist/smlnj/benchmarks/</a>. </blockquote>
-                                                  
-          <h2> SML/NJ Compiler Test Suites </h2>
+<h2> SML/NJ Compiler Test Suites </h2>
                                                  
-          <p> The regression test suites used for the SML/NJ compiler are 
-  available at: </p>
+<p> The regression test suites used for the SML/NJ compiler are 
+available by svn checkout at svn://smlnj-gforge.cs.uchicago.edu/smlnj/tests. </p>
                                                
-          <blockquote> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/testing/">
-     ftp://ftp.research.bell-labs.com/dist/smlnj/testing/</a>. </blockquote>
-                                                           
-            <h2> <a name="contrib">Contributed Software</a> </h2>
-                                                         
-            <p> Some contributed software packages can be found at </p>
+<h2> <a name="contrib">Contributed Software</a> </h2>
+<p> Some contributed software packages can be found at (<em>location to be
+determined</em>)</p>
                                                        
-            <blockquote> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/">
-     ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/</a>. </blockquote>
-     Currently this directory contains:                                 
-                           
-              <dl>
-              <dt>
-     <strong>emacs</strong> </dt>
-                <dd> The sml-mode package provides an emacs mode for editing 
-  sml code under Gnu emacs and running the sml top-level as a subprocess of
-  emacs.  Originally developed by Matthew J. Morley, it is now maintained 
+Currently this directory contains:                                 
+<dl>
+<dt>
+<strong>emacs</strong> </dt>
+<dd> The sml-mode package provides an emacs mode for editing 
+sml code under Gnu emacs and running the sml top-level as a subprocess of
+emacs.  Originally developed by Matthew J. Morley, it is now maintained 
 by Stefan Monnier (monnier at iro dot umontreal dot ca).
-  <a href="doc/Emacs/sml-mode.html">
-    Online documentation</a> is available here.  The latest sml-mode tarball
-  is available at <a href="http://www.iro.umontreal.ca/~monnier/elisp/">
-    http://www.iro.umontreal.ca/~monnier/elisp/</a>.
-                      
-                  <p> </p>
-                      </dd>
-                  <dt><strong>tools</strong> </dt>
-                    <dd> Various software tools, including:              
-                                                                        
-     
-                      <ul>
-     <li> <a href="doc/heap2exec/index.html">
- heap2exec</a>, Lorenz Huelsbergen's   "heap2exec" utility for building Unix
-executables from heap images and the   SML/NJ runtime executable. </li>
-                            <li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/tools/lexgenmos.tar.Z">
-     lexgenmos.tar.Z</a>, a translation of the Moscow ML lexer generator, 
-which  produces lexers that run a bit faster than the improved ML-Lex in working
- version 110.7. </li>
-                                                                         
-                     
-                      </ul>
-                                                                        
-                       
-                      <p> </p>
-                          </dd>
-                      <dt><strong>lib</strong> </dt>
-                        <dd> Some contributed or "borrowed" libraries, including: 
-                                                                         
-                                   
-                          <ul>
-     <li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/CGI.tar.Z">
-     CGI.tar.Z</a>, a port of Moscow ML's CGI library.  </li>
-                                <li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/Util.tar.Z">
-     Util.tar.Z</a>, utility modules contributed by Nikolai Bjorner and Matthias
-  Blume. </li>
-                                <li> <a href="ftp://ftp.research.bell-labs.com/dist/smlnj/contrib/lib/getopt.tar.Z">
-     getopt.tar.Z</a>, a port (via Haskell) of the GNU getopt library. </li>
-                                                                        
-                                      
-                          </ul>
-     </dd>
-                          </dl>
-                                                                        
+<a href="doc/Emacs/sml-mode.html">Online documentation</a>
+is available here.  The latest sml-mode tarball
+is available at <a href="http://www.iro.umontreal.ca/~monnier/elisp/">
+http://www.iro.umontreal.ca/~monnier/elisp/</a>.
+<p> </p>
+</dd>
+<dt><strong>tools</strong> </dt>
+<dd> Various software tools, including:              
+<ul>
+<li> <a href="doc/heap2exec/index.html">heap2exec</a>,
+Lorenz Huelsbergen's "heap2exec" utility for building Unix
+executables from heap images and the SML/NJ runtime executable. </li>
+</ul>
+<p> </p>
+</dd>
+<dt><strong>lib</strong> </dt>
+<dd> Some contributed or "borrowed" libraries, including: 
+<ul>
+<li> Util.tar.Z, utility modules contributed by Nikolai Bjorner and Matthias
+Blume. </li>
+<li> getopt.tar.Z, a port (via Haskell) of the GNU getopt library. </li>
+</ul>
+</dd>
+</dl>
                                         
-                          <p> Additional packages will be added as they become
-  available. New contributions are eagerly sought!  </p>
-                              </blockquote>
-                                                                        
+<p> Additional packages will be added as they become available.
+New contributions are eagerly sought!
+</p>
+</blockquote>
                                           
-                          <hr>                                          
+<hr>                                          
                                                                   
-                          <center><strong> | <a href="index.html">
+<center><strong> | <a href="index.html">
 SML/NJ Home Page</a> | </strong></center>
-                                                                        
                                         
 <hr> Send your comments to <img src="smlnj-list-logo.jpg" align=center><br>
 
-<font size="-3">Copyright &copy; 2004-2005, the SML/NJ Fellowship</a>.
+<font size="-3">Copyright &copy; 2004-2007, the SML/NJ Fellowship</a>.
 </font>                                                           
                                                 
 </body>
