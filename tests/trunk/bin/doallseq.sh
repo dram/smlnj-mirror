@@ -32,8 +32,8 @@ do
 		exit 1
        esac
 done
-bin/ndotest.sh coresml -diff -sml $SMLX
-bin/ndotest.sh typing -diff -sml $SMLX
-bin/ndotest.sh modules -diff -sml $SMLX
-bin/ndotest.sh basis -diff -sml $SMLX
-bin/ndotest.sh bugs -diff -sml $SMLX
+bin/dotest.sh coresml -diff -sml $SMLX
+bin/dotest.sh typing -diff -sml $SMLX
+bin/dotest.sh modules -diff -sml $SMLX
+bin/dotest.sh basis -diff -sml $SMLX
+bin/dotest.sh bugs -diff -sml $SMLX
