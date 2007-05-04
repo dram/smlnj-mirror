@@ -3,23 +3,26 @@
 <title><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>SML/NJ 110.63 NEWS</title>
+<title>SML/NJ 110.63.1 NEWS</title>
 </head>
 
 <body>
 <div align="center">
 <big><b>
-                         Standard ML of New Jersey
+                       Standard ML of New Jersey
 <br/>
-                   Version 110.62 NEWS
+                         Version 110.63.1 NEWS
 <br/>
-                           March 22, 2007
+                              May 3, 2007
 <br/>
 <br/>
                                 WARNING
 </b><br/>
-        This working version is believed to be stable, but
-        we have not run our full regression-test suite.
+        This working version is believed to be stable, and 
+        has passed the regression test suite. However, there is
+        quite a bit of new code in the FLINT middle end and 
+        at the interface between the Front End and FLINT, so
+        this is not considered a mature working release.
 </big>
 </div>
 
@@ -29,33 +32,39 @@
   <dt>SML/NJ HOME:</dt>
   <dd><a href="http://www.smlnj.org/index.html"><tt>http://www.smlnj.org/index.html</tt></a></dd>
   <dt>FILES:</dt>
-  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.63/"><tt>http://smlnj.cs.uchicago.edu/dist/working/110.63/</tt></a></dd>
+  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.63/"><tt>http://smlnj.cs.uchicago.edu/dist/working/110.63.1/</tt></a></dd>
 </dl>
 
 <hr>
 
 <h3>Summary:</h3>
 
-    This release is primarily a bugfix release.
-
+This release includes new code merged from the primop-branch-3 development
+branch. Many of the changes affect FLINT and its interaction with the
+front end, and particularly the system for supporting primops
+(primitive operations).
+ 
 <h3>Details:</h3>
 
 <dl>
-  <dt>installer:</dt>
-  <dd>
-    <ul>
-      <li>Eliminated any mention of lexgen.  (Lexgen was an early precursor
-	to ml-ulex.)</li>
-    </ul>
-  </dd>
 
-  <dt>command-line tools</dt>
+  <dt>Front End and FLINT:</dt>
   <dd>
     <ul>
       <li>
-	Fixed typo in ml-build script that prevented library anchors
-	from being registered.
+	Implemented a new scheme for defining primops and tracking
+        and analyzing their types in the type checker and in FLINT.
       </li>
+      <li>
+        Improved signature printing by making it faithfully reflect
+        the original order of specification or definition.
+      </li>
+      <li>
+        Began to streamline the type system of the plambda and flint
+        intermediate languages.
+      </li>
+      <li>
+        Fixed some minor bugs in the type checker and module system.
     </ul>
   </dd>
 
@@ -63,56 +72,38 @@
   <dd>
     <ul>
       <li>
-	Fixed a number of inconsistencies between the Posix.TTY structure
-	and the Basis specification.  Thanks to Adam Chilpala.
+	Fixed a bug in the implementation of order operations
+        and min and max for Int32. Fixed a few other bugs in the Basis
+        that were revealed by running the regression tests.
       </li>
     </ul>
   </dd>
 
-  <dt>CM:</dt>
+  <dt>Regression Tests:</dt>
   <dd>
     <ul>
       <li>
-	Fixed bug in CM's parallel make facility that failed to have
-	the master re-link modules after letting slaves compile them.
+	Revised the regression test suite and brought the tests and
+        reference outputs up to date.  Cleaned up test scripts.
       </li>
     </ul>
   </dd>
 
-  <dt>MLRISC:</dt>
+  <dt>ml-lpt:</dt>
   <dd>
     <ul>
-      <li>
-	x86MCEmitter crashed when the immediate operand to MOVB was outside
-	of the range -128 ... 127.   Only the low order 8 bits of the
-	immediate operand are now significant.
-      <p></li>
-      <li>
-	Added preliminary support in MLRISC for Staged Allocation, a technique
-	for specifying calling conventions.  See
-	<blockquote align="center">
-		<a href="http://www.eecs.harvard.edu/~nr/pubs/staged-abstract.html">
-		<tt>http://www.eecs.harvard.edu/~nr/pubs/staged-abstract.html</tt></a>
-	</blockquote>
-	Initially, this mechanism is being used to generate C calls for the
-	AMD64.
-      <p></li>
-      <li>
-	Fixed bogus operand sizes in AMD64 instruction spilling.
-      </li>
+       Major revisions, including addition of a table-based mode for
+       lexical analyzers with large numbers of states.
     </ul>
   </dd>
-</dl>
 
   <dt>runtime:</dt>
   <dd>
     <ul>
-      <li>Fixed a problem with files that have very large numbers of literals.
-	When SaveCState was called with two values to save, a subsequent
-	GC could cause the RestoreCState to fail because the saved state had been
-	promoted to tagless pair.</li>
     </ul>
   </dd>
+
+</dl>
 
 </body>
 </html>
