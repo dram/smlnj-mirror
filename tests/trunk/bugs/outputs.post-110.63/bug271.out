@@ -13,5 +13,5 @@ signature SymbolSig =
   end
 bug271.sml:22.19-24.40 Error: unbound signature: ValSig
 bug271.sml:22.19-24.40 Error: unbound signature: SymSig
-Error: Compiler bug: Unify: tyconEqprop: ERRORtyc
+bug271.sml:22.9-46.8 Error: unmatched value specification: update
 

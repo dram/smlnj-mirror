@@ -33,5 +33,4 @@ structure A :
   end
 structure B : SIG3
 bug1599.1.sml:38.15-39.35 Error: unmatched structure specification: Ta
-Error: Compiler bug: SigMatch:unTYCent
 
