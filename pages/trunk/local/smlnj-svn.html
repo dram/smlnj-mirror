@@ -1,0 +1,197 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>SML/NJ SVN Howto</title>
+  </head>
+
+  <body>
+    <h1>SML/NJ SVN Howto</h1>
+
+The repository now hosts a number of semi-independent toplevel trees:
+<ul>
+<li>admin -- repository administration</li>
+<li>pages -- the web site</li>
+<li>sml -- a rump of what used to be the entire SML/NJ source tree;
+it should be checked out as "base" (see below)</li>
+<li>config -- shell scripts etc. for configuration and installation</li>
+<li>MLRISC -- the MLRISC library</li>
+<li>ckit -- the CKIT library</li>
+<li>nlffi -- the NLFFI sources consisting of the runtime library (lib) and the generator tool (gen)</li>
+</ul>
+... and so forth
+
+<p>
+To compile and install SML/NJ, one needs to create a root directory (of arbitrary name, let's call it "root" for the purpose of this explanation) and then populate it with various sub-trees by checking out parts of this repository (and potentially other repositories).
+
+The default layout populates root with:
+<ul>
+<li>config
+<li>base
+<li>smlnj-lib
+<li>MLRISC
+<li>ml-yacc
+<li>ml-lex
+<li>nlffi
+<li>ckit
+<li>cml
+<li>eXene
+<li>ml-burg
+<li>lexgen
+<li>ml-lpt
+<li>heap2asm
+<li>smlnj-c
+</ul>
+(Not all of these trees are always necessary.)
+
+<p>
+Let gf=svn://smlnj-gforge.cs.uchicago.edu
+and smlnj=$gf/smlnj
+
+<p>
+By default, a tree T is obtained by performing
+<pre>
+   svn co $smlnj/T/trunk T
+</pre>
+There currently are two exceptions to this:
+<pre>
+   svn co $smlnj/sml/trunk base
+   svn co $gf/ml-lpt/ml-lpt ml-lpt
+</pre>
+To simplify the creation of the default layout one can use the scripts in $gf/admin. Do:
+<pre>
+   svn co $smlnj/admin admin
+</pre>
+and put the admin directory in your shell's PATH. To create the default layout, you can now run
+<pre>
+   checkout-all.sh root
+</pre>
+which creates the root directory and populates it as described above. Without the optional argument, checkout-all.sh populates the current directory.
+<p>
+To perform svn update on all subtrees, run
+<pre>
+   refresh-all.sh
+</pre>
+from within root. Similarly, to perform svn stat on all subtrees, use stat-all.sh.
+<p>
+Commits should be done on a per-tree basis by hand.
+
+
+<h3> Recipies </h3>
+
+The following are more detailed recipies for performing typical tasks.
+<p>
+<h4>
+I. Preparation
+</h4>
+
+Assume that the path for your local smlnj development directory
+is the value of shell variable <code>SMLDEV</code> (e.g. in my case,
+<code>SMLDEV=~/sml/Dev</code>).
+
+<ol>
+<li>define some shell variables
+<pre>
+  $ export gf=svn://smlnj-gforge.cs.uchicago.edu/
+  $ export smlnj=$gf/smlnj
+</pre>
+</li>
+<li>In your <code>$SMLDEV</code> directory, create a directory gf
+<pre>
+  $ cd $SMLDEV
+  $ mkdir gf
+</pre>
+
+<li>Go to gf and checkout the admin directory
+<pre>
+  $ cd gf
+  $ svn co $smlnj/admin
+</pre>
+This creates subdirectory gf/admin containing some shell
+scripts to automate checking out the full source code, checking
+status, etc.
+</li>
+
+<li>Add $SMLDEV/gf/admin to your shell PATH.</li>
+</ol>
+<p>
+Of course, you could put this checkout somewhere else, such in your
+personal bin file, or in /usr/local/bin if you have permission. In
+this case, step 4 would not be necessary.
+
+
+<h4>II. To check out a working copy of the trunk smlnj code and build the compiler
+</h4>
+<ol>
+<li>Assuming you are in your development directory, create a working
+directory and check out the required top level subdirectories. This
+can be done in one step by giving checkout-all.sh a directory name
+as an argument, e.g.:
+<pre>
+  $ checkout-all.sh smlnj
+</pre>
+</li>
+<li>Change to the new working directory and run the install script:
+<pre>
+  $ cd smlnj
+  $ config/install.sh
+</pre>
+</li>
+<li>If you do not have an existing ml-yacc in your <code>PATH</code>,
+then this may fail because of the order in which svn checks out
+certain ml-yacc source files. In this case, you can recover by
+executing
+<pre>
+  $ touch ml-yacc/src/yacc.grm.sig ml-yacc/src/yacc.grm.sml
+</pre>
+to make these younger than ml-yacc/src/yacc.grm.  This is a temporary
+problem until the build scripts are modified to take care of this.
+</li>
+</ol>
+
+<h4>III. To check out a private development branch</h4>
+<p>
+In this example, the branch is named <code>primop-branch-3</code>, and is based
+on the top-level repository directory <code>$smlnj/sml</code>.
+
+<ol>
+<li>To check what branches exist under a top-level directory, like
+<code>sml</code> (= <code>base</code>), do
+<pre>
+  $ svn list $gf/sml/branches/
+</pre>
+</li>
+<li>Create target directory, here called primop3, and change to it.
+<pre>
+  $ mkdir primop3
+  $ cd primop3
+</pre>
+</li>
+<li>In the target primop3 directory do
+<pre>
+  $ svn co svn://smlnj-gforge.cs.uchicago.edu/smlnj/sml/branches/primop-branch-3
+</pre>
+or (given the definition of shell variable <code>smlnj</code> from part I above) 
+<pre>
+  $ svn co $smlnj/sml/branches/primop-branch-3 base
+</pre>
+This checks out the primop-branch-3 code for the sml directory, locally renamed
+as "base".
+</li>
+<li>Run checkout-all.sh to get the rest of the source code (assuming gf/admin
+has been added to the PATH)
+<pre>
+  $ checkout-all.sh
+</pre>
+</li>
+<li>Run config/install.sh to build the compiler.
+</li>
+</ol>
+
+    <hr>
+    <address><a href="mailto:dbm@cs.uchicago.edu">David MacQueen</a></address>
+<!-- Created: Thu Dec  7 15:06:34 CST 2006 -->
+<!-- hhmts start -->
+Last modified: Fri Dec  8 12:53:01 CST 2006
+<!-- hhmts end -->
+  </body>
+</html>
