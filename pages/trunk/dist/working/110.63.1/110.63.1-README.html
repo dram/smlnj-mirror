@@ -22,7 +22,9 @@
         has passed the regression test suite. However, there is
         quite a bit of new code in the FLINT middle end and 
         at the interface between the Front End and FLINT, so
-        this is not considered a mature working release.
+        this is not considered a mature working release. We anticipate
+        that Version 110.64 will follow shortly, after further
+        testing and debugging.
 </big>
 </div>
 
@@ -55,17 +57,22 @@ front end, and particularly the system for supporting primops
       <li>
 	Implemented a new scheme for defining primops and tracking
         and analyzing their types in the type checker and in FLINT.
+        Improved the way that the type checker captures type
+        information used by the translate phase to calculate 
+        FLINT types.
       </li>
       <li>
         Improved signature printing by making it faithfully reflect
-        the original order of specification or definition.
+        the original order of specifications or (for inferred
+        signatures) definitions.
       </li>
       <li>
-        Began to streamline the type system of the plambda and flint
+        First phase of streamlining the type system of the plambda and flint
         intermediate languages.
       </li>
       <li>
-        Fixed some minor bugs in the type checker and module system.
+        Fixed some bugs in the type checker and module system, and at
+        least one FLINT bug.
     </ul>
   </dd>
 
@@ -74,7 +81,7 @@ front end, and particularly the system for supporting primops
     <ul>
       <li>
 	Fixed a bug in the implementation of order operations
-        and min and max for Int32. Fixed a few other bugs in the Basis
+        and min and max for Int32. Fixed several other bugs in the Basis
         that were revealed by running the regression tests.
       </li>
     </ul>
@@ -85,7 +92,8 @@ front end, and particularly the system for supporting primops
     <ul>
       <li>
 	Revised the regression test suite and brought the tests and
-        reference outputs up to date.  Cleaned up test scripts.
+        reference outputs up to date. Added a few new tests. Cleaned
+        up the test scripts.
       </li>
     </ul>
   </dd>
