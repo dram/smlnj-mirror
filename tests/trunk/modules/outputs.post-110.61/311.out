@@ -1,0 +1,5 @@
+val it = () : unit
+311.sml:24.23-24.27 Error: unbound left hand side in where (structure): T
+311.sml:53.43-53.74 Error: unbound functor: MissingFn
+311.sml:52.9-53.75 Error: unmatched structure specification: CCall
+
