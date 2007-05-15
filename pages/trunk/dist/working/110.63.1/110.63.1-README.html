@@ -27,7 +27,7 @@
         testing and debugging.
 </big>
 </div>
-
+<p>
 <hr>
 
 <dl>
@@ -87,6 +87,28 @@ front end, and particularly the system for supporting primops
     </ul>
   </dd>
 
+  <dt>ml-lpt:</dt>
+  <dd>
+    <ul>
+<li>Preliminary commit of large ml-lpt revisions (more to come for 110.64).
+The ml-antlr specification format has changed: declarations such as
+&#037-tokens and nonterminal definitions can occur *multiple* times in the
+same specification.  The semantics are such that each new declaration
+extends the previous ones.  Grammar extension constructs have also
+changed.  We now allow type annotations on nonterminals.  Finally,
+the refcell construct is now implemented using SML's regular reference
+cells, so the :== and !! notation has been deprecated.  All of these
+changes will appear in the 110.64 user guide for ml-lpt.
+<\li>
+<li>
+The ml-antlr tool now does much more checking of specifications, and
+its error messages have been greatly improved.  There has also been
+some work on the error repair process for generated parsers, but this
+will be further improved in 110.64.
+</li>
+    </ul>
+  </dd>
+
   <dt>Regression Tests:</dt>
   <dd>
     <ul>
@@ -95,20 +117,6 @@ front end, and particularly the system for supporting primops
         reference outputs up to date. Added a few new tests. Cleaned
         up the test scripts.
       </li>
-    </ul>
-  </dd>
-
-  <dt>ml-lpt:</dt>
-  <dd>
-    <ul>
-       Major revisions, including addition of a table-based mode for
-       lexical analyzers with large numbers of states.
-    </ul>
-  </dd>
-
-  <dt>runtime:</dt>
-  <dd>
-    <ul>
     </ul>
   </dd>
 
