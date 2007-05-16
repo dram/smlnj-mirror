@@ -4,12 +4,6 @@
 
 local
 
-  structure Date = struct
-    exception NotImplemented
-    open Date
-    fun fromString _ = raise NotImplemented
-  end
-
   infix 1 seq
   fun e1 seq e2 = e2;
   fun check b = if b then "OK" else "WRONG";
@@ -82,8 +76,8 @@ val test3 =
     check'(fn _ => 
 	   List.all fromto 
 	   [mkdate(1995,Aug,22,4,0,1),
-	    mkdate(1996,Apr, 5, 0, 7, 21),
-	    mkdate(1996,Mar, 5, 6, 13, 58)]);
+	    mkdate(1996,Apr,5,0,7,21),
+	    mkdate(1996,Mar,5,6,13,58)]);
 
 val test4 = 
     check'(fn _ => 

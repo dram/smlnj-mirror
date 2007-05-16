@@ -1,15 +1,16 @@
-This is now:                    Wed Apr 18 16:18:57 2007
-This is an hour from now:       Wed Apr 18 17:18:57 2007
-This is a day from now:         Thu Apr 19 16:18:57 2007
-This is a week from now:        Wed Apr 25 16:18:57 2007
-This is 120 days from now:      Thu Aug 16 16:18:57 2007
-This is 160 days from now:      Tue Sep 25 16:18:57 2007
-This is 200 days from now:      Sun Nov  4 15:18:57 2007
-This is 240 days from now:      Fri Dec 14 15:18:57 2007
+val it = () : unit
+This is now:                    Wed May 16 13:26:14 2007
+This is an hour from now:       Wed May 16 14:26:14 2007
+This is a day from now:         Thu May 17 13:26:14 2007
+This is a week from now:        Wed May 23 13:26:14 2007
+This is 120 days from now:      Thu Sep 13 13:26:14 2007
+This is 160 days from now:      Tue Oct 23 13:26:14 2007
+This is 200 days from now:      Sun Dec  2 12:26:14 2007
+This is 240 days from now:      Fri Jan 11 12:26:14 2008
 This is the epoch (UTC):        Thu Jan  1 00:00:00 1970
 This is the number of the day:  001
 This is today's weekday:        Wednesday
-This is the name of this month: April
+This is the name of this month: May
 val test1 = "OK" : string
 val test2 = "OK" : string
 val test3 = "OK" : string
