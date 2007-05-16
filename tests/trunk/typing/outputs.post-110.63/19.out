@@ -1,0 +1,5 @@
+val it = () : unit
+type 'a t = 'a
+val f = fn : ('a t * 'a t -> bool) -> 'a -> 'a -> bool
+val x = fn : int -> int -> bool
+

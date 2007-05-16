@@ -1,0 +1,18 @@
+val it = () : unit
+signature BS =
+  sig
+    type 'a t
+    val f : int -> 'a t
+  end
+structure B :
+  sig
+    type 'a t = bool * int
+    val f : int -> 'a t
+  end
+functor F(X: sig
+               type 'a t
+               val f : int -> 'a t
+             end) :
+         sig end
+structure A : sig end
+
