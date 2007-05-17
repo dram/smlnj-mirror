@@ -1,4 +1,4 @@
-Control.CG.smdebugging := true;
+Control.Elab.smdebugging := true;
 
 signature S0 = 
 sig

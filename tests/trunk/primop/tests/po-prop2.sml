@@ -1,4 +1,4 @@
-Control.internals := true;
+Control.Elab.internals := true;
 Control.FLINT.printFctTypes := true;
 Control.FLINT.print := true;
 

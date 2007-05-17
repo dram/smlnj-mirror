@@ -1,4 +1,4 @@
-Control.internals := true;
+Control.Elab.internals := true;
 Control.FLINT.printFctTypes := true;
 Control.FLINT.print := true;
 
@@ -7,7 +7,7 @@ signature S =
       val x : int * int -> int
   end
 
-structure M :> = 
+structure M :> S = 
   struct 
       val x = Int.+
   end
