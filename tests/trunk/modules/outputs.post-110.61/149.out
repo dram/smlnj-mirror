@@ -1,6 +1,6 @@
 val it = () : unit
 signature S = sig type t end
-functor F(X: sig type t end) : sig strange tycon: [E] end
+functor F(X: sig type t end) : sig type s end
 structure R : S
 structure A : sig type s = R.t end
 

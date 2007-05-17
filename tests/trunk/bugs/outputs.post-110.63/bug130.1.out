@@ -6,9 +6,9 @@ structure S :
   end
 functor F(<param>: sig type t end) :
          sig
-           strange tycon: [E]
+           type T
            val fs : 'a T -> 'a T
-           strange tycon: [E]
+           type FT
            val ff : FT -> t T
          end
 structure SF :

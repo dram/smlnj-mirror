@@ -4,7 +4,7 @@ functor F1(X: sig
                 val x : t
               end) :
           sig
-            strange tycon: [E]
+            type u
             val z1 : unit
             val z2 : unit
           end

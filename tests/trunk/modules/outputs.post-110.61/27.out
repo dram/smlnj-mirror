@@ -5,7 +5,7 @@ functor F1(X: sig
               end) :
           sig
             structure A : <sig>
-            strange tycon: [E]
+            type t
             val x : X.t
           end
 structure S1 :

@@ -9,7 +9,7 @@ functor L(<param>: sig
                      val u : Base.word
                    end) :
          sig
-           strange tycon: [E]
+           type word
            val u : word
          end
 structure W' : F

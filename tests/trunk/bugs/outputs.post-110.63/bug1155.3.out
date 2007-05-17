@@ -9,8 +9,8 @@ functor F(Y: sig
                type t = s
              end) :
          sig
-           strange tycon: [E]
-           strange tycon: [E]
+           type s
+           type t
          end
 structure A :
   sig

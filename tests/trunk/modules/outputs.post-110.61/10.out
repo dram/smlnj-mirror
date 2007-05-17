@@ -6,7 +6,7 @@ signature FULLSET =
   end
 functor BS(B: sig type u end) :
           sig
-            strange tycon: [E]
+            type e
             val f : 'a -> unit
           end
 functor FS(B: sig type u end) :

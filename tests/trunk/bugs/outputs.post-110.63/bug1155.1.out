@@ -11,7 +11,7 @@ functor G(Y: sig
              end) :
          sig
            structure A : <sig>
-           strange tycon: [E]
+           type t
          end
 functor H(Z: sig type s end) :
          sig

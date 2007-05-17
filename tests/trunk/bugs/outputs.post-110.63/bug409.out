@@ -16,7 +16,7 @@ functor GeneralArray(<param>: sig
                                 structure Index : <sig>
                               end) :
                     sig
-                      strange tycon: [E]
+                      type array
                       structure ValueIndex : <sig>
                       structure Value : <sig>
                       val array : (unit,'a) range * 'a -> (unit,'a) array

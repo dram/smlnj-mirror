@@ -9,7 +9,7 @@ functor MapIndex(F: sig
                       val v : t
                     end) :
                 sig
-                  strange tycon: [E]
+                  type t
                   val v : F.t
                 end
 functor H(<param>: sig type u end) :

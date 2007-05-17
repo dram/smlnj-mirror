@@ -8,14 +8,14 @@ funsig FSIG(<param>: sig end) :
 functor FUN(<param>: sig functor F : <fctsig> end) :
            sig
              structure S : <sig>
-             strange tycon: [E]
-             strange tycon: [E]
+             type a
+             type b
              val g : S.a -> S.b
            end
 functor F0(<param>: sig end) :
           sig
-            strange tycon: [E]
-            strange tycon: [E]
+            type a
+            type b
             val f : a -> b
           end
 structure A :

@@ -13,7 +13,7 @@ functor F(P: sig
                structure X : <sig>
              end) :
          sig
-           strange tycon: [E]
+           type u
            val y : P.u
          end
 functor G(U: sig

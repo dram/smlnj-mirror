@@ -6,15 +6,15 @@ signature S_sig =
   end
 functor S(<param>: sig end) :
          sig
-           strange tycon: [E]
+           type T
            val fs : 'a T -> 'a T
          end
 functor F(<param>: sig type t end) :
          sig
            structure S1 : <sig>
-           strange tycon: [E]
+           type T
            val fs : 'a S1.T -> 'a S1.T
-           strange tycon: [E]
+           type FT
            val ff : FT -> t S1.T
          end
 

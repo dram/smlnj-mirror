@@ -1,7 +1,7 @@
 val it = () : unit
 functor PF(<param>: sig end) :
           sig
-            strange tycon: [E]
+            type reader
           end
 structure B :
   sig

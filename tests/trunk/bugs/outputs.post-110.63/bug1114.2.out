@@ -1,7 +1,7 @@
 val it = () : unit
 functor TYPE(<param>: sig end) :
             sig
-              strange tycon: [E]
+              type ty
             end
 structure Type :
   sig

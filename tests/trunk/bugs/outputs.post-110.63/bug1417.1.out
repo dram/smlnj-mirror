@@ -11,6 +11,6 @@ functor Evolve(Db: sig
                      datatype alloc_class = ALLOC_CLASS of unit
                    end) :
               sig
-                strange tycon: [E]
+                type partition_classes
               end
 

@@ -1,0 +1,3 @@
+val it = () : unit
+315.sml:25.18-26.25 Error: structure def spec for B not matched
+

@@ -5,7 +5,7 @@ signature LRG =
   sig
     structure L : sig type e end
   end
-functor Graph(X: sig type e end) : sig strange tycon: [E] end
+functor Graph(X: sig type e end) : sig type e end
 functor LrGraph(G: sig type s end) :
                sig
                  structure L : <sig>

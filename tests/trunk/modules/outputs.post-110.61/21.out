@@ -4,7 +4,7 @@ functor F1(X: sig
                 val x : t
               end) :
           sig
-            strange tycon: [E]
+            type s
             val y : X.t list
           end
 structure B1 :

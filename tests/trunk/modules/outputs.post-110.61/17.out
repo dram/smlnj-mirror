@@ -20,7 +20,7 @@ functor mkGraph(<param>: sig
                          end) :
                sig
                  val x : unit
-                 strange tycon: [E]
+                 type t
                  structure C : <sig>
                  val foo : C.t -> unit
                end

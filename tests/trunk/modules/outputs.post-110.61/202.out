@@ -1,12 +1,12 @@
 val it = () : unit
 functor Dict(<param>: sig type t end) :
             sig
-              strange tycon: [E]
+              type dict
             end
 functor T(<param>: sig type t end) :
          sig
            structure U : <sig>
-           strange tycon: [E]
+           type s
            val x : U.dict -> s
          end
 structure A :

@@ -17,8 +17,8 @@ functor Connectbug(<param>: sig
                               val resolve : address -> Lower.address
                             end) :
                   sig
-                    strange tycon: [E]
-                    strange tycon: [E]
+                    type address
+                    type session
                     val session : session
                   end
 structure AA :

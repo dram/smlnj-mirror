@@ -4,7 +4,7 @@ signature S2 =
     structure A : sig type t end
     datatype u = ITEM of A.t
   end
-functor F(X: sig type v end) : sig strange tycon: [E] end
+functor F(X: sig type v end) : sig type w end
 functor G(Y: sig
                structure A : <sig>
                datatype u = ITEM of A.t

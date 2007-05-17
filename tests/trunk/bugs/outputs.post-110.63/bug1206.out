@@ -101,7 +101,7 @@ functor T(S: sig
              end) :
          sig
            structure U : <sig>
-           strange tycon: [E]
+           type v
            val cre : int -> v
          end
 structure OP :

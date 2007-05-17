@@ -4,7 +4,7 @@ functor F(<param>: sig
                      val y : t
                    end) :
          sig
-           strange tycon: [E]
+           type r
            val x : r
          end
 structure S :

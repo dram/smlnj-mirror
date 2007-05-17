@@ -3,7 +3,7 @@ functor F(X: sig
                datatype d = A | B of d
              end) :
          sig
-           strange tycon: [E]
+           type p
            val bug : p
          end
 structure Bug :

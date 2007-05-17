@@ -1,0 +1,42 @@
+Summary of regression failures for 110.63
+5/17/07
+
+coresml:
+
+ r012c-fl.sml
+   first error message is spurious
+
+ t013.sml
+   n Div 0 raises Overflow instead of Div [ppc specific]
+
+
+basis:
+
+ real.sml
+   fails test11c because of inaccurate printing of reals with large mantissa
+
+ timer.sml
+   Timer.cpu_timer prints as ?.InternalTime.cpu_timer
+
+ word.sml, word8.sml, word32.sml
+   n div 0 raises Overflow instead of Div [ppc specific]
+
+
+typing:
+
+
+modules:
+ 316.sml, 316.1.sml: 
+
+    Former printing bug (caused by the spec being ERRORtyc) is
+    partially fixed , but printing of type elements in an inferred
+    functor result signature is incomplete, and we don't print the
+    arity properly if arity > 0.  A better fix would replace the
+    ERRORtyc spec in the inferred signature with a new DUMMYtyc
+    constructor that carried the name and arity of the tyc element.
+
+    A more expensive fix might print the functor result signature
+    by instantiating the functor parameter sig and applying the
+    functor to the instantiation, then printing the result structure.
+
+bugs:

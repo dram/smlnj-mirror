@@ -9,7 +9,7 @@ structure Symtab : sig type ident = string end
 functor lex(symtab: sig type ident end) :
            sig
              structure Symtab : <sig>
-             strange tycon: [E]
+             type lexeme
            end
 structure Lex : LEX
 

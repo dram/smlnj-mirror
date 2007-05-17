@@ -3,8 +3,8 @@ signature SIG = sig exception Error of string end
 functor F(X: sig exception Error of string end) :
          sig
            exception Error of string
-           strange tycon: [E]
-           strange tycon: [E]
+           type Exp
+           type Val
            val extend_one : ''a * 'b * (''a -> 'b) -> ''a -> 'b
            val extend_env : ''a list * 'b list * (''a -> 'b) -> ''a -> 'b
            val meaning : Exp -> 'a -> (Val -> unit) -> unit

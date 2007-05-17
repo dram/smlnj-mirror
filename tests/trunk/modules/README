@@ -5,3 +5,8 @@
 287-288: bug 1296
 
 297-306: sharing/def-spec conflicts
+
+310-315: test that structure def specs are checked properly
+
+316, 316.1: printing of type components of inferred functor result
+            signatures

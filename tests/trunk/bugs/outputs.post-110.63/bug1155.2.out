@@ -10,8 +10,8 @@ functor G(Y: sig
                type t = s
              end) :
          sig
-           strange tycon: [E]
-           strange tycon: [E]
+           type s
+           type t
          end
 functor H(<param>: sig type u end) :
          sig

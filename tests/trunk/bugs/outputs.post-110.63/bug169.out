@@ -2,7 +2,7 @@ val it = () : unit
 functor F(<param>: sig end) :
          sig
            val mk_t : t
-           strange tycon: [E]
+           type t
          end
 structure f :
   sig

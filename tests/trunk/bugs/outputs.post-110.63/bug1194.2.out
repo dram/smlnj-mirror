@@ -7,6 +7,6 @@ functor F(<param>: sig
                      structure X : <sig>
                    end) :
          sig
-           strange tycon: [E]
+           type p
          end
 

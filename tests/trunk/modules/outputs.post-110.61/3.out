@@ -1,5 +1,5 @@
 val it = () : unit
-functor F(X: sig type t end) : sig strange tycon: [E] end
+functor F(X: sig type t end) : sig type s end
 functor G(<param>: sig type u end) :
          sig
            structure A : <sig>

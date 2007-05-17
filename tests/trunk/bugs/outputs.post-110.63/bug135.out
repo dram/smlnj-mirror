@@ -15,10 +15,10 @@ signature U =
   end
 functor absT(<param>: sig type Open end) :
             sig
-              strange tycon: [E]
+              type Open
               val Shut : Open -> Shut
               val Open : Shut -> Open
-              strange tycon: [E]
+              type Shut
             end
 structure b : T
 bug135.sml:48.1-48.18 Error: operator and operand don't agree [equality type required]

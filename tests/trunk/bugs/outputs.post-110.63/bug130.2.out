@@ -6,7 +6,7 @@ structure S :
   end
 functor F(X: sig type t end) :
          sig
-           strange tycon: [E]
+           type FT
            val ff : FT -> X.t S.T
          end
 structure SF :

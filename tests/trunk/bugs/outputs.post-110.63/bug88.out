@@ -2,12 +2,12 @@ val it = () : unit
 signature A = sig type t end
 functor F1(a: sig type t end) :
           sig
-            strange tycon: [E]
+            type t2
           end
 functor F2(a: sig type t end) :
           sig
             structure S : <sig>
-            strange tycon: [E]
+            type t2
           end
 structure SA : sig type t = int end
 structure F2SA :

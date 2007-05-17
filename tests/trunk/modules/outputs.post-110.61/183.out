@@ -10,7 +10,7 @@ functor F(X: sig
                val test : t -> unit
              end) :
          sig
-           strange tycon: [E]
+           type s
            val f : X.t -> bool
          end
 structure B :

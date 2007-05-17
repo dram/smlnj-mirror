@@ -1,7 +1,7 @@
 val it = () : unit
 functor F(X: sig end) :
          sig
-           strange tycon: [E]
-           strange tycon: [E]
+           type t
+           type s
          end
 

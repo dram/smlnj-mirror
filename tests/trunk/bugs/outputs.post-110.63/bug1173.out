@@ -5,7 +5,7 @@ structure I : S
 functor F(T: sig type t end) :
          sig
            structure dummy : <sig>
-           strange tycon: [E]
+           type t
            val one : T.t -> T.t
            val two : dummy.t -> dummy.t
          end

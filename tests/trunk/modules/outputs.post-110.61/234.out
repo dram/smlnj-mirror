@@ -21,7 +21,7 @@ functor OP(X: sig
                 structure s : <sig>
               end) :
           sig
-            strange tycon: [E]
+            type t
             val x : X.t
             structure s : <sig>
             val w : bool

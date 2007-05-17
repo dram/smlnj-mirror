@@ -1,0 +1,4 @@
+val it = () : unit
+signature FOO = sig type t end
+functor F(A: sig type t end) : sig type s end
+

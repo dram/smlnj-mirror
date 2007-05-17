@@ -12,11 +12,11 @@ functor Eval(<param>: sig
                       end) :
             sig
               structure Syntax : <sig>
-              strange tycon: [E]
-              strange tycon: [E]
-              strange tycon: [E]
-              strange tycon: [E]
-              strange tycon: [E]
+              type Name
+              type Prim
+              type Atom
+              type Exp
+              type M
               val make_formal : Syntax.M -> Syntax.M
             end
 

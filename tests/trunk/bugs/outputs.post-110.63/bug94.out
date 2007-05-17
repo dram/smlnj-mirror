@@ -2,7 +2,7 @@ val it = () : unit
 functor mkDummy(<param>: sig end) : sig end
 functor mkLalr(<param>: sig end) :
               sig
-                strange tycon: [E]
+                type lcore
               end
 functor mkTable(<param>: sig end) :
                sig

@@ -12,7 +12,7 @@ signature S3 =
 functor F(P: sig
                structure X : <sig>
              end) :
-         sig strange tycon: [E] end
+         sig type s end
 functor G(U: sig
                type u
                val y : u

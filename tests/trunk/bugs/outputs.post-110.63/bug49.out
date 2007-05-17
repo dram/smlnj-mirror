@@ -3,7 +3,7 @@ signature Sig = sig type t end
 structure S1 : sig type t = int end
 functor G(X: sig type t end) :
          sig
-           strange tycon: [E]
+           type s
          end
 structure S2 :
   sig

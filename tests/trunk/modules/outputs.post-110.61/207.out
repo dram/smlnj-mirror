@@ -1,10 +1,10 @@
 val it = () : unit
 signature U = sig type t end
-functor T(<param>: sig type s end) : sig strange tycon: [E] end
+functor T(<param>: sig type s end) : sig type t end
 functor F(<param>: sig type s end) :
          sig
            structure Y : <sig>
-           strange tycon: [E]
+           type s
            val y : Y.t -> s
          end
 structure A :

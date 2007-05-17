@@ -1,7 +1,7 @@
 val it = () : unit
 functor Dict(X: sig type s end) :
             sig
-              strange tycon: [E]
+              type dict
             end
 functor T(<param>: sig end) :
          sig
