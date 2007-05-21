@@ -6,13 +6,13 @@ signature S_sig =
   end
 functor S(<param>: sig end) :
          sig
-           type T
+           type 'a T
            val fs : 'a T -> 'a T
          end
 functor F(<param>: sig type t end) :
          sig
            structure S1 : <sig>
-           type T
+           type 'a T
            val fs : 'a S1.T -> 'a S1.T
            type FT
            val ff : FT -> t S1.T

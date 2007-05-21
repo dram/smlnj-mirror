@@ -8,7 +8,7 @@ functor PFUN(<param>: sig
                         structure S : <sig>
                       end) :
             sig
-              type symTab
+              type 'a symTab
               type guide
             end
 structure S :

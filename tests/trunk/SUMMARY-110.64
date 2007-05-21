@@ -40,3 +40,17 @@ modules:
     functor to the instantiation, then printing the result structure.
 
 bugs:
+
+  bug3.sml, bug538.sml, bug1092.2.sml
+    printing full path for some types when printing bindings resulting
+    from an open decl
+
+  bug130.1.sml
+    printing of full type paths (S.T) instead of local path (T)
+
+  bug247.sml
+    error messages differ because of different paths for sml
+
+  bug908.1.sml, bug908.2.sml
+    [PPC only] Overflow raised instead of expected Div
+

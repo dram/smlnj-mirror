@@ -4,7 +4,7 @@ functor F(X: sig
                val x : t
              end) :
          sig
-           strange tycon: [E]
+           type  t
            val x : X.t
          end
 structure B :

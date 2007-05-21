@@ -16,7 +16,7 @@ functor GeneralArray(<param>: sig
                                 structure Index : <sig>
                               end) :
                     sig
-                      type array
+                      type ('a,'b) array
                       structure ValueIndex : <sig>
                       structure Value : <sig>
                       val array : (unit,'a) range * 'a -> (unit,'a) array

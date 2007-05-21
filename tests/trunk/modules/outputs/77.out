@@ -5,7 +5,7 @@ functor F(A: sig
              end) :
          sig
            val y : s
-           strange tycon: [E]
+           type  s
          end
 structure S :
   sig

@@ -7,6 +7,6 @@ functor F(<param>: sig
                      structure X : <sig>
                    end) :
          sig
-           type p
+           type  'a p
          end
 
