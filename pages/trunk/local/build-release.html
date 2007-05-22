@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>Building a Release</title>
+  </head>
+
+  <body>
+    <h1>Building a Release</h1>
+This is a very preliminary rough draft of a HOWTO page on building
+a release of SML/NJ.
+
+The main steps in building a release are as follows:
+<ul>
+<li>
+Create the directory to contain the release.  E.g. in a working copy
+of the pages project, svn add directory dist/working/110.n, where n is
+the release number. Then commit the change, and update the web-site
+copy of the pages project at /stages/web_static/smlnj/htdocs.
+</li>
+<li>
+Write 110.n-README.txt and 110.n-README.html files and commit them.
+Also update NOTES/HISTORY file.
+</li>
+<li>
+Run the allcross script in base/system to build boot directories for 
+all the architectures and create tarballs from them. Copy these
+tarballs to the dist/working/110.n directory created in the first step.
+</li>
+<li>
+Export source directories and create tarballs and transfer them to
+the distribution directory.
+</li>
+<li>
+Create .dmg file for Mac OS X installation, and a Windows .zip file.
+(Details?). Add these to the distribution directory.
+</li>
+<li>
+Add a link to dist/working/110.n/110.n-README.html to
+dist/index.html.
+</li>
+</ul>
+
+    <hr>
+    <address><a href="mailto:dbm@cs.uchicago.edu">David MacQueen</a></address>
+<!-- Created: Mon May  7 13:30:08 CDT 2007 -->
+<!-- hhmts start -->
+Last modified: Tue May 22 17:35:49 CDT 2007
+<!-- hhmts end -->
+  </body>
+</html>
