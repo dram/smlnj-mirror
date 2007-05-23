@@ -18,9 +18,13 @@ local
   fun checkrange bounds = check o range bounds;
 
   open Time Date 
+  val baseTime = Time.fromSeconds 1179938250
+      (* an arbitrary reference time to use instead of 
+       * now() to provide consistent output. Have to find
+       * another way to test Time.now *)
   fun date h = 
-      toString(fromTimeLocal(now() + fromReal (3600.0 * real h))) ^ "\n";
-  fun nowdate () = Date.fromTimeLocal(now());
+      toString(fromTimeLocal(baseTime + fromReal (3600.0 * real h))) ^ "\n";
+  val baseDate = Date.fromTimeLocal(baseTime);
   fun mkdate(y,mo,d,h,mi,s) =
        Date.date{year=y, month=mo, day=d, hour=h, minute=mi, second=s, 
         offset=NONE}
@@ -46,11 +50,11 @@ val _ =
      print "This is the epoch (UTC):        "; 
      print (toString(fromTimeUniv zeroTime) ^ "\n");   
      print "This is the number of the day:  "; 
-     print (fmt "%j" (nowdate()) ^ "\n");
+     print (fmt "%j" baseDate ^ "\n");
      print "This is today's weekday:        ";
-     print (fmt "%A" (nowdate()) ^ "\n");
+     print (fmt "%A" baseDate ^ "\n");
      print "This is the name of this month: ";
-     print (fmt "%B" (nowdate()) ^ "\n"));
+     print (fmt "%B" baseDate ^ "\n"));
 
 val test1 = 
 check'(fn _ => 
@@ -86,4 +90,8 @@ val test4 =
 	   "Mon Feb  5 04:25:16 1996",
 	   "Sat Jan  6 04:25:16 1996"])
     
+val test5 = (* after bug1416 *)
+    check'(fn _ => 
+             fmt("%j %U %W") baseDate = "143 20 21");
+
 end
