@@ -1,0 +1,5 @@
+bug627.sml, bug627.1.sml:
+  Unsafe.blastRead and Unsafe.blastWrite don't work, cause Bus error
+  moved to tests.special so they don't abort tests
+
+  

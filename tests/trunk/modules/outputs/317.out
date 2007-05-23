@@ -1,0 +1,10 @@
+val it = () : unit
+signature S1 = sig type t end
+funsig FSIG(<param>: sig end) : sig type t end
+functor G(<param>: sig functor F : <fctsig> end) :
+         sig
+           structure A : <sig>
+           type g
+           val f : A.t -> g
+         end
+
