@@ -3,18 +3,18 @@
 
 structure Blast =
 struct
-  val s : string = SMLNJVersion.banner
+  val test : string = SMLNJVersion.banner
   structure B = BinIO
   fun outblast () = let
-	val s = B.openOut "/tmp/testblast"
+	val outs = B.openOut "/tmp/testblast"
 	in
-	  B.output(s, Unsafe.blastWrite s); B.closeOut s
+	  B.output(outs, Unsafe.blastWrite test); B.closeOut outs
 	end
   fun inblast () = let
-	val s = B.openIn "/tmp/testblast"
-	val res : string = Unsafe.blastRead(B.inputAll s)
+	val ins = B.openIn "/tmp/testblast"
+	val res : string = Unsafe.blastRead(B.inputAll ins)
 	in
-	  B.closeIn s;
+	  B.closeIn ins;
 	  print "Got back: "; print res; print " : from testblast\n"
 	end
   val _ = outblast ()
