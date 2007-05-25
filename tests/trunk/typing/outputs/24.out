@@ -1,0 +1,6 @@
+val it = () : unit
+datatype 'a rec_t = Recurse of 'a rec_t -> 'a -> 'a
+val mkrec = fn : ('a rec_t -> 'a -> 'a) -> 'a -> 'a
+val f = fn : int -> int
+val x = 0 : int
+

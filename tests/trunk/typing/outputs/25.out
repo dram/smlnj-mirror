@@ -1,0 +1,5 @@
+val it = () : unit
+datatype 'a rec_t = Recurse of 'a rec_t -> 'a -> 'a
+executing
+val f = fn : int -> int
+

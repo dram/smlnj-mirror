@@ -8,7 +8,7 @@ This is 160 days from now:      Tue Oct 30 11:37:30 2007
 This is 200 days from now:      Sun Dec  9 10:37:30 2007
 This is 240 days from now:      Fri Jan 18 10:37:30 2008
 This is the epoch (UTC):        Thu Jan  1 00:00:00 1970
-This is the number of the day:  001
+This is the number of the day:  143
 This is today's weekday:        Wednesday
 This is the name of this month: May
 val test1 = "OK" : string
