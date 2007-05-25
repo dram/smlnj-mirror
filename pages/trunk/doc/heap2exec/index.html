@@ -14,9 +14,15 @@ executables from SML/NJ heap images.
 heap2exec wraps the binary smlnj runtime image and an smlnj heap image
 into one executable image.
 <p>
-The source code for heap2exec is in the file heap2asm.tgz in the
-release distribution, but it is automatically installed in the
-smlnj bin directory when running config/install.sh.
+heap2exec is a shell script that makes use of the heap2asm tool.
+The heap2asm tool is installed in the smlnj bin directory when
+running config/install.sh if heap2asm is specified in config/targets.
+heap2asm is not installed by default because it only works for
+ppc-unix (Mac OS X) and x86-unix (Mac OS X, linux, etc.)
+<p>
+The source code for heap2asm is in the file 
+<a href="http://www.smlnj.org/dist/working/current/heap2asm.tgz">
+heap2asm.tgz</a> in the release distributions.
 <p>
 
 <h3>Directions</h3>
@@ -38,7 +44,7 @@ Currently heap2exec is supported on ppc-unix (Mac OS X), and x86-unix.
     <address><a href="mailto:dbm@cs.uchicago.edu">Dave MacQueen</a></address>
 <!-- Created: Wed Feb 10 14:20:13 EST 1999 -->
 <!-- hhmts start -->
-Last modified: Fri May 25 17:44:33 CDT 2007
+Last modified: Fri May 25 18:02:52 CDT 2007
 <!-- hhmts end -->
   </body>
 </html>
