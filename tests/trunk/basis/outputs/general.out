@@ -26,8 +26,8 @@ Should be `Size':
   Size
   size
 Should be `Div':
-  Overflow
-  overflow
+  Div
+  divide by zero
 Should be `Chr':
   Chr
   Chr
