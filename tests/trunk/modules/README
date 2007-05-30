@@ -10,3 +10,16 @@
 
 316, 316.1: printing of type components of inferred functor result
             signatures
+
+
+==========================
+Bugs:
+
+224.sml: (type printing in error message)
+  Type of B.C.A.x printed as ?.B.t (should be B.C.A.t?)
+  Type of A.x printed as ?.t (should be A.t?)
+
+229.sml: (type printing in error message)
+  Type of c.B.x printed as ?.c.t, should be c.B.t.
+
+257.sml: ? in type paths in error message?  (probably not a bug)
