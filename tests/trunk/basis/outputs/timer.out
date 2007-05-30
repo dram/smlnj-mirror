@@ -12,10 +12,6 @@ User: 0.019  System: 0.000  Real: 0.019
 val test1 = "OK" : string
 val test2 = "OK" : string
 val test3 = "OK" : string
-val ctmr =
-  CPUT
-    {gc={sys=TIME {usec=0},usr=TIME {usec=145942}},
-     nongc={sys=TIME {usec=725235},usr=TIME {usec=563918}}}
-  : Timer.cpu_timer
+val ctmr = - : Timer.cpu_timer
 val test4 = "OK" : string
 
