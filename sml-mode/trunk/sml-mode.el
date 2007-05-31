@@ -1,6 +1,6 @@
 ;;; sml-mode.el --- Major mode for editing (Standard) ML
 
-;; Copyright (C) 1999,2000,2004  Stefan Monnier
+;; Copyright (C) 1999,2000,2004,2007  Stefan Monnier
 ;; Copyright (C) 1994-1997  Matthew J. Morley
 ;; Copyright (C) 1989       Lars Bo Nielsen
 
@@ -78,7 +78,7 @@
 ;;; VARIABLES CONTROLLING INDENTATION
 
 (defcustom sml-indent-level 4
-  "*Indentation of blocks in ML (see also `sml-structure-indent')."
+  "Indentation of blocks in ML (see also `sml-indent-rule')."
   :group 'sml
   :type '(integer))
 
