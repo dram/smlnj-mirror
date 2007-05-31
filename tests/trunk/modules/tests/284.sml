@@ -26,7 +26,7 @@ Should this be equivalent to:
     type u
     sharing type t = u
   end
-  where type t = s
+  where type t = int
 
 which is legal, or should it be equivalent to:
 

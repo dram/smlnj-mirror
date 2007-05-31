@@ -1,31 +1,31 @@
 (* 257.sml *)
 
-signature T =
+signature S =
 sig
-  type parse_context
-  structure Tacticals :
+  type p
+  structure A :
     sig
-      type tactic_tree
+      type t
     end
-  val parse : unit -> Tacticals.tactic_tree list
+  val f : unit -> A.t list
   (* option type error not even discovered here *)
 end;
 
-functor PD(type result_type):
+functor F(type r):
   sig
-    val parse : (unit -> result_type) -> result_type
+    val f : (unit -> r) -> r
   end = 
 struct
-  fun parse f = f()
+  fun f x = x()
 end;
 
-functor FUN(structure P : T) : 
+functor G(structure X : S) :
   sig
-    type resulttype = (P.Tacticals.tactic_tree list)
-    val mkTactic : P.parse_context -> resulttype option
+    type u = (X.A.t list)
+    val g : X.p -> u option
   end = 
 struct
-  type resulttype = P.Tacticals.tactic_tree list
-  structure TacticParser = PD(type result_type = resulttype)
-  fun mkTactic(root,context) = TacticParser.parse P.parse 
+  type u = X.A.t list
+  structure B = F(type r = u)
+  fun g(x,y) = B.f X.f 
 end;
