@@ -101,6 +101,18 @@ ml-lpt as well as AMD64 support have been updated.
 	Timer.cpu_timer, etc. type printing corrected (by making Timer
 	have opaque sig constraint in <tt>basis/Implementation/timer.sml</tt>)
       </li>
+      <li>
+	Added missing <tt>toLarge</tt>/<tt>fromLarge</tt> operations to <tt>Word</tt><i>N</i> modules.
+      </li>
+      <li>
+	Added missing <tt>InvalidArc</tt> to <tt>OS.Path</tt>.
+      </li>
+      <li>
+	Fixed bug in printing negative time values.
+      </li>
+      <li>
+	<tt>Char.fromString</tt> now handles the <tt>\u</tt><i>xxxx</i> escape sequence.
+      </li>
     </ul>
   </dd>
 
@@ -130,6 +142,15 @@ ml-lpt as well as AMD64 support have been updated.
 	The code that caused plugin installation as part of running a
 	tool's "build" script has been removed.  (The build script is for
 	building, not for installing.)
+      </li>
+    </ul>
+  </dd>
+
+  <dt>SML/NJ Library</dt>
+  <dd>
+    <ul>
+      </li>
+	Added <tt>next</tt> function to <tt>Fifo</tt> and <tt>Queue</tt> modules.
       </li>
     </ul>
   </dd>
@@ -195,17 +216,6 @@ ml-lpt as well as AMD64 support have been updated.
     </ul>
   </dd>
 
-  <dt>Regression Tests:</dt>
-  <dd>
-    <ul>
-      <li>
-	Revised the regression test suite and brought the tests and
-        reference outputs up to date. Added a few new tests. Cleaned
-        up the test scripts.
-      </li>
-    </ul>
-  </dd>
-
   <dt>AMD64 support:</dt>
   <dd>
     <ul>
@@ -216,6 +226,17 @@ ml-lpt as well as AMD64 support have been updated.
       </li>
       <li>
 	Added FSQRT instructions for the AMD64 code generator.
+      </li>
+    </ul>
+  </dd>
+
+  <dt>Regression Tests:</dt>
+  <dd>
+    <ul>
+      <li>
+	Revised the regression test suite and brought the tests and
+        reference outputs up to date. Added a few new tests. Cleaned
+        up the test scripts.
       </li>
     </ul>
   </dd>
