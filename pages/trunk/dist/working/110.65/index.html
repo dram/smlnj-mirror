@@ -1,0 +1,162 @@
+<!-- Copyright (c) 2007 The Fellowship of SML/NJ -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+  <head>
+    <title>110.65 Distribution</title>
+  </head>
+<BODY BGCOLOR="ffffff">
+<h1>110.65 Distribution Files</h1>
+<body>
+<HR>
+
+<h3>Downloads</h3>
+
+<dl>
+  <dt><b>Unix</b></dt>
+  <dd>
+    The only file you need to download manually is
+    <a
+    href="http://smlnj.cs.uchicago.edu/dist/working/110.65/config.tgz">config.tgz</a>.
+    Unpack, configure by editing <tt>config/targets</tt>, and install
+    by running <tt>config/install.sh</tt>.  The installer
+    automatically downloads any additional files it might need.
+    For more information, see <a href="NOTES/INSTALL">INSTALL</a>.
+   </dd>
+  <dt><b>MacOS X</b></dt>
+  <dd>
+    You can use the "generic Unix" procedure above, or you can install
+    a pre-built system using the installer package in
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/smlnj-ppc-110.65.dmg">smlnj-ppc-110.65.dmg</a>
+    (or <a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/smlnj-x86-110.65.dmg">smlnj-x86-110.65.dmg</a> for Intel Macs).
+    For more information, see <a href="NOTES/MACOSXINSTALL">MACOSXINSTALL</a>.
+   </dd>
+  <dt><b>Microsoft Windows</b></dt>
+  <dd>
+    Download
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/smlnj.zip">smlnj.zip</a>
+    and follow the instructions in <a href="NOTES/WININSTALL">WININSTALL</a>.
+  </dd>
+  <dt><b>Direct access to subversion repository</b></dt>
+  <dd>
+      For information on how to use access the subversion repository,
+      refer to our <a href="../../../svn.html">subversion recipe page</a>.
+      <br>
+      <b>Warning:</b>  When pulling the latest sources via subversion,
+      there is no guarantee that <tt>config/install.sh</tt> will operate
+      successfully due to a lack of usable bootfiles.
+      In this case you might be able to
+      generate new bootfiles using the bootstrap compiler (of an older
+      version).  However, even that can be very difficult or even impossible,
+      in which case you will have to wait for the next working version to
+      be released.
+  </dd>
+</dl>
+
+<h3>Documentation</h3>
+<menu>
+<!--
+<li><a href="110.65-README">110.65-README</a>
+-->
+<li><a href="110.65-README.html">110.65-README.html</a>
+<!--
+<li><a href="NOTES/BOOT">BOOT</a>
+-->
+<li><a href="NOTES/HISTORY">HISTORY</a>
+<li><a href="NOTES/INSTALL">INSTALL</a>
+<li><a href="NOTES/WININSTALL">WININSTALL</a>
+<li><a href="NOTES/MACOSXINSTALL">MACOSXINSTALL</a>
+<li><a href="NOTES/CYGWININSTALL">CYGWININSTALL</a>
+</menu>
+
+<h3>Binary Files</h3>
+<menu>
+<!--
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/boot.alpha32-unix.tgz">boot.alpha32-unix.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/boot.hppa-unix.tgz">boot.hppa-unix.tgz</a>
+-->
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/boot.ppc-unix.tgz">boot.ppc-unix.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/boot.sparc-unix.tgz">boot.sparc-unix.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/boot.x86-unix.tgz">boot.x86-unix.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/boot.x86-win32.tgz">boot.x86-win32.tgz</a>
+</menu>
+
+<h3>Source files</h3>
+<menu>
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/config.tgz">config.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/cm.tgz">cm.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/compiler.tgz">compiler.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/runtime.tgz">runtime.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/system.tgz">system.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/MLRISC.tgz">MLRISC.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/smlnj-lib.tgz">smlnj-lib.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/ckit.tgz">ckit.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/nlffi.tgz">nlffi.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/cml.tgz">cml.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/eXene.tgz">eXene.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/ml-lex.tgz">ml-lex.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/ml-yacc.tgz">ml-yacc.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/ml-burg.tgz">ml-burg.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/ml-lpt.tgz">ml-lpt.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/lexgen.tgz">lexgen.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/pgraph.tgz">pgraph.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/trace-debug-profile.tgz">trace-debug-profile.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/heap2asm.tgz">heap2asm.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/smlnj-c.tgz">smlnj-c.tgz</a>
+</p>
+</menu>
+
+<h3>Mac OS X Disk Image</h3>
+<menu>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/smlnj-ppc-110.65.dmg">smlnj-ppc-110.65.dmg</a> (for PPC)</li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/smlnj-x86-110.65.dmg">smlnj-x86-110.65.dmg</a> (for x86)</li>
+</menu>
+
+<h3>MS Windows .zip archive</h3>
+<menu>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.65/smlnj.zip">smlnj.zip</a>
+</menu>
+
+<!--
+<h3>RPM Packages</h3>
+<menu>
+<li>Coming soon.
+</menu>
+-->
+
+
+<HR>
+<CENTER><STRONG>
+| <A HREF="../../../index.html">SML/NJ Home Page</A> |
+</STRONG></CENTER>
+<HR>
+
+Send your comments to <img src="../../../smlnj-list-logo.jpg" align=center>.<br>
+<FONT SIZE="-3">
+  Copyright &#169; 2007, SML/NJ Fellowship.
+  <BR>
+</FONT>
+</BODY>
+</HTML>
