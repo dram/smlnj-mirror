@@ -1,3 +1,16 @@
+2007-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sml-mode.el (sml-mode-variables): Set comment-quote-nested instead of
+	comment-nested.  Set comment-end-skip.
+	(sml-first-starter-p): New function.
+	(sml-indent-starter): Use it to fix an indentation bug.
+	(sml-mlton-command, sml-mlton-mainfile): New vars.
+	(sml-mlton-typecheck): New command.
+	(sml-defuse-file): New var.
+	(sml-defuse-def-regexp, sml-defuse-use-regexp-format): New consts.
+	(sml-defuse-file, sml-defuse-symdata-at-point): New functions.
+	(sml-defuse-set-file, sml-defuse-jump-to-def): New commands.
+
 2005-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sml-move.el (sml-find-match-forward): Avoid infinite looping if the

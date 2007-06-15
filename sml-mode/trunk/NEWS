@@ -1,3 +1,9 @@
+Changes since 4.0:
+
+* Simple support to parse errors and warnings in MLton's output.
+
+* Simple support for MLton's def-use files.
+
 Changes since 3.9.5:
 
 * No need to add the dir to your load-path any more.

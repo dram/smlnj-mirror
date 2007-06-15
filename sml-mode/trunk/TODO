@@ -1,3 +1,6 @@
+* Add support for MLton's def-use info (see http://mlton.org/Emacs)
+
+* Add an sml-mlb-mode for ML Basis files (see http://mlton.org/Emacs)
 
 * improve M-C-f and M-C-b (they too often don't do the right thing) and
   add M-C-k and other such sexp-chunked operations.
@@ -11,8 +14,6 @@
   relative to `let', for example).
 
 * use symbols instead of strings for `sym'.
-
-* ignore warnings in C-x ` ????
 
 * recognize irrefutable patterns (with "Capital"-heuristics, for example:
   a regexp like "\\([(),]\\|[_a-z][_a-z0-9]*\\)+").
