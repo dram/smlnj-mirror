@@ -1,4 +1,11 @@
-* Add support for MLton's def-use info (see http://mlton.org/Emacs)
+* file-name completion in sml-cm-mode.
+
+* Don't always jump to the *sml* buffer when you send a snippet of code.
+
+* Fix inferior-sml-mode's TAB completion of filenames so it doesn't append
+  a space.
+
+* Improve support for MLton's def-use info (see http://mlton.org/Emacs)
 
 * Add an sml-mlb-mode for ML Basis files (see http://mlton.org/Emacs)
 

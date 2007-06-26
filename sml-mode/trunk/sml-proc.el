@@ -1,6 +1,6 @@
 ;;; sml-proc.el --- Comint based interaction mode for Standard ML.
 
-;; Copyright (C) 1999, 2000, 2003, 2004, 2005  Stefan Monnier
+;; Copyright (C) 1999, 2000, 2003, 2004, 2005, 2007  Stefan Monnier
 ;; Copyright (C) 1994-1997  Matthew J. Morley
 ;; Copyright (C) 1989       Lars Bo Nielsen
 
@@ -561,14 +561,16 @@ be executed to change the compiler's working directory\; a trailing
     (comint-send-string proc str)
     (when and-go (switch-to-sml nil))))
 
-(defun sml-compile (command)
+(defun sml-compile (command &optional and-go)
   "Pass a COMMAND to the SML process to compile the current program.
 
 You can then use the command \\[next-error] to find the next error message
 and move to the source code that caused it.
 
 Interactively, prompts for the command if `compilation-read-command' is
-non-nil.  With prefix arg, always prompts."
+non-nil.  With prefix arg, always prompts.
+
+Prefix arg AND-GO also means to `switch-to-sml' afterwards."
   (interactive
    (let* ((dir default-directory)
 	  (cmd "cd \"."))
@@ -614,7 +616,8 @@ non-nil.  With prefix arg, always prompts."
     (setq dir (expand-file-name dir))
     (with-current-buffer (sml-proc-buffer)
       (setq default-directory dir)
-      (sml-send-string (concat (format sml-cd-command dir) "; " command) t t))))
+      (sml-send-string (concat (format sml-cd-command dir) "; " command)
+                       t and-go))))
 
 ;;; PARSING ERROR MESSAGES
 
