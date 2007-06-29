@@ -355,6 +355,9 @@ TAB file name completion, as in shell-mode, etc.."
   (setq comint-prompt-regexp sml-prompt-regexp)
   (sml-mode-variables)
 
+  ;; Make TAB add a " rather than a space at the end of a file name.
+  (set (make-local-variable 'comint-completion-addsuffix) '(?/ . ?\"))
+
   (set (make-local-variable 'font-lock-defaults)
        inferior-sml-font-lock-defaults)
   ;; For sequencing through error messages:
