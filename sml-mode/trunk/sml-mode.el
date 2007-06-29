@@ -992,6 +992,18 @@ See also `edit-kbd-macro' which is bound to \\[edit-kbd-macro]."
 
 (defvar sml-mlton-mainfile nil)
 
+(defconst sml-mlton-error-regexp-alist
+  ;; I wish they just changed MLton to use one of the standard
+  ;; error formats.
+  `(("^\\(?:Error\\|\\(Warning\\)\\): \\(.+\\) \\([0-9]+\\)\\.\\([0-9]+\\)\\.$"
+     2 3 4
+     ;; If subgroup 1 matched, then it's a warning, otherwise it's an error.
+     ,@(if (fboundp 'compilation-fake-loc) '((1))))))
+
+(eval-after-load "compile"
+  '(dolist ((x sml-mlton-error-regexp-alist))
+     (add-to-list 'compilation-error-regexp-alist x)))
+
 (defun sml-mlton-typecheck (mainfile)
   "typecheck using MLton."
   (interactive
@@ -1000,14 +1012,8 @@ See also `edit-kbd-macro' which is bound to \\[edit-kbd-macro]."
            (read-file-name "Main file: "))))
   (save-some-buffers)
   (require 'compile)
-  (add-to-list
-   'compilation-error-regexp-alist
-   ;; I wish they just changed MLton to use one of the standard
-   ;; error formats.
-   `("^\\(?:Error\\|\\(Warning\\)\\): \\(.+\\) \\([0-9]+\\)\\.\\([0-9]+\\)\\."
-     2 3 4
-     ;; If subgroup 1 matched, then it's a warning, otherwise it's an error.
-     ,@(if (fboundp 'compilation-fake-loc) '((1)))))
+  (dolist ((x sml-mlton-error-regexp-alist))
+    (add-to-list 'compilation-error-regexp-alist x))
   (with-current-buffer (find-file-noselect mainfile)
     (compile (concat sml-mlton-command
                      " -stop tc "       ;Stop right after type checking.

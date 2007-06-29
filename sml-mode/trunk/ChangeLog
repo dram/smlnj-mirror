@@ -1,3 +1,13 @@
+2007-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sml-mode.el (sml-mlton-error-regexp-alist): New var.
+	(sml-mlton-typecheck): Use it.
+	(compilation-error-regexp-alist): Add entries after loading "compile"
+	so that M-x compile works.
+
+	* sml-proc.el (inferior-sml-mode): Make TAB add a " rather than a space
+	at the end of a file name.
+
 2007-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sml-mode.el (sml-mode-variables): Set comment-quote-nested instead of
