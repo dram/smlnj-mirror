@@ -864,6 +864,11 @@ signature, structure, and functor by default.")
 	     (define-abbrev sml-mode-abbrev-table ,name "" ',fsym nil 'system)
 	   (wrong-number-of-arguments
 	    (define-abbrev sml-mode-abbrev-table ,name "" ',fsym)))
+         (when (fboundp 'abbrev-put)
+           (let ((abbrev (abbrev-symbol ,name sml-mode-abbrev-table)))
+             (abbrev-put abbrev :case-fixed t)
+             (abbrev-put abbrev :enable-function
+                         (lambda () (not (nth 8 (syntax-ppss)))))))
 	 (define-skeleton ,fsym
 	   ,(format "SML-mode skeleton for `%s..' expressions" name)
 	   ,interactor
@@ -1011,7 +1016,7 @@ See also `edit-kbd-macro' which is bound to \\[edit-kbd-macro]."
            (read-file-name "Main file: "))))
   (save-some-buffers)
   (require 'compile)
-  (dolist ((x sml-mlton-error-regexp-alist))
+  (dolist (x sml-mlton-error-regexp-alist)
     (add-to-list 'compilation-error-regexp-alist x))
   (with-current-buffer (find-file-noselect mainfile)
     (compile (concat sml-mlton-command

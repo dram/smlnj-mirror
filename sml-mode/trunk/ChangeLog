@@ -1,5 +1,15 @@
 2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* sml-mode.el (sml-def-skeleton): If possible, only expand for
+	lower-case abbrevs and not inside strings or comments.
+	(sml-mlton-typecheck): Typo.
+
+	* sml-proc.el (sml-proc-comint-input-filter-function): New function.
+	(inferior-sml-mode): Use it.
+	(sml-update-cursor): Don't forget errors here any more.
+
+2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* sml-util.el (defmap, defsyntax): Avoid defconst.
 	(flatten): Remove.
 

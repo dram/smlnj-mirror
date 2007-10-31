@@ -308,6 +308,17 @@ If prefix argument ECHO is set, then it only reports on the current state."
       (progn (call-interactively 'run-sml)
 	     (get-buffer-process (current-buffer)))))
 
+(defun sml-proc-comint-input-filter-function (str)
+  ;; `compile.el' in Emacs-22 fails to notice that file location info from
+  ;; errors should be recomputed afresh (without using stale info from
+  ;; earlier compilations).  We used to cause a refresh in sml-send-string,
+  ;; but this doesn't catch the case when the user types commands directly
+  ;; at the prompt.
+  (compilation-forget-errors)       ;Has to run before compilation-fake-loc.
+  (if (and (fboundp 'compilation-fake-loc) sml-temp-file)
+      (compilation-fake-loc (cdr sml-temp-file) (car sml-temp-file)))
+  str)
+
 (defun inferior-sml-next-error-hook ()
   ;; Try to recognize SML/NJ type error message and to highlight finely the
   ;; difference between the two types (in case they're large, it's not
@@ -386,6 +397,8 @@ TAB file name completion, as in shell-mode, etc.."
 
   ;; Make TAB add a " rather than a space at the end of a file name.
   (set (make-local-variable 'comint-completion-addsuffix) '(?/ . ?\"))
+  (add-hook 'comint-input-filter-functions
+            'sml-proc-comint-input-filter-function nil t)
 
   (set (make-local-variable 'font-lock-defaults)
        inferior-sml-font-lock-defaults)
@@ -664,9 +677,10 @@ Prefix arg AND-GO also means to `switch-to-sml' afterwards."
   ;; Update buffer local variable.
   (set-marker sml-error-cursor (1- (process-mark (sml-proc))))
   (setq sml-endof-error-alist nil)
-  (compilation-forget-errors)
-  (if (and (fboundp 'compilation-fake-loc) sml-temp-file)
-      (compilation-fake-loc (cdr sml-temp-file) (car sml-temp-file)))
+  ;; This is now done in comint-input-filter-functions.
+  ;; (compilation-forget-errors)       ;Has to run before compilation-fake-loc.
+  ;; (if (and (fboundp 'compilation-fake-loc) sml-temp-file)
+  ;;     (compilation-fake-loc (cdr sml-temp-file) (car sml-temp-file)))
   (if (markerp compilation-parsing-end)
       (set-marker compilation-parsing-end sml-error-cursor)
     (setq compilation-parsing-end sml-error-cursor)))
