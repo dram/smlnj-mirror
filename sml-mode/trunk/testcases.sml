@@ -1,9 +1,14 @@
-(* Copyright 1999, 2004 Stefan Monnier <monnier@gnu.org> *)
+(* Copyright 1999, 2004, 2007 Stefan Monnier <monnier@gnu.org> *)
 
 (let val a = 1 val b = 2
      val c = 3
  in 1
  end);
+
+(* From "Christopher Dutchyn" <cdutchyn@cs.ubc.ca> *)
+(case foo of
+  (* FIXME: The line gets unindented by 2 every time you hit TAB :-( *)
+  | BAR => baz)
 
 (* sml-mode here treats the second `=' as an equal op because it assumes
  * that the first is the definitional equal for the structure.  FIXME!  *)

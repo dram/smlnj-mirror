@@ -228,6 +228,7 @@ See `compilation-error-regexp-alist' for a description of the format.")
 ;; font-lock support
 (defconst inferior-sml-font-lock-keywords
   `(;; prompt and following interactive command
+    ;; FIXME: Actually, this should already be taken care of by comint.
     (,(concat "\\(" sml-prompt-regexp "\\)\\(.*\\)")
      (1 font-lock-prompt-face)
      (2 font-lock-command-face keep))
@@ -236,8 +237,9 @@ See `compilation-error-regexp-alist' for a description of the format.")
     ;; SML/NJ's irritating GC messages
     ("^GC #.*" . font-lock-comment-face)
     ;; error messages
-    ,@(mapcar (lambda (ra) (cons (car ra) 'font-lock-warning-face))
-	      sml-error-regexp-alist))
+    ,@(unless (fboundp 'compilation-fake-loc)
+        (mapcar (lambda (ra) (cons (car ra) 'font-lock-warning-face))
+                sml-error-regexp-alist)))
   "Font-locking specification for inferior SML mode.")
 
 (defface font-lock-prompt-face

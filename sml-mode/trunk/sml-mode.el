@@ -217,7 +217,7 @@ and `unicode'."
 	      (cons "andalso" (decode-char 'ucs 8896))
 	      (cons "orelse" (decode-char 'ucs 8897))
 	      ;; (cons "as" (decode-char 'ucs 8801))
-	      (cons "not" (decode-char 'ucs 160))
+	      (cons "not" (decode-char 'ucs 172))
 	      (cons "div" (decode-char 'ucs 247))
 	      (cons "*" (decode-char 'ucs 215))
 	      (cons "o"  (decode-char 'ucs 9675))

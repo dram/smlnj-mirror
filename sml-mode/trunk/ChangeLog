@@ -1,5 +1,14 @@
 2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* testcases.sml: Add (old) buggy case from Christopher Dutchyn.
+
+	* sml-proc.el (inferior-sml-font-lock-keywords): Don't add
+	error-regexps if compile.el already highlights them anyway.
+
+	* sml-mode.el (sml-font-lock-symbols-alist): Fix char for "not".
+
+2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* sml-mode.el (sml-def-skeleton): If possible, only expand for
 	lower-case abbrevs and not inside strings or comments.
 	(sml-mlton-typecheck): Typo.
