@@ -1,3 +1,19 @@
+2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sml-util.el (defmap, defsyntax): Avoid defconst.
+	(flatten): Remove.
+
+	* sml-mode.el (sml-calculate-indentation): Avoid previous-line.
+	(sml-keywords-regexp): Avoid the need for `flatten'.
+	(sml-defuse-jump-to-def): Fix typo.
+
+	* sml-defs.el (sml-syms-re): Don't use `flatten'.
+	(sml-sexp-head-symbols-re, sml-starters-indent-after)
+	(sml-non-nested-of-starter-re): Avoid the need for `flatten'.
+
+	* sml-proc.el (inferior-sml-next-error-hook): New fun.
+	(inferior-sml-mode): Use it.
+
 2007-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sml-mode.el (sml-mlton-error-regexp-alist): New var.

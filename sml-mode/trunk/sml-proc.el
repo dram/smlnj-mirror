@@ -14,7 +14,7 @@
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or (at
+;; published by the Free Software Foundation; either version 3, or (at
 ;; your option) any later version.
 
 ;; This program is distributed in the hope that it will be useful, but
@@ -308,6 +308,32 @@ If prefix argument ECHO is set, then it only reports on the current state."
       (progn (call-interactively 'run-sml)
 	     (get-buffer-process (current-buffer)))))
 
+(defun inferior-sml-next-error-hook ()
+  ;; Try to recognize SML/NJ type error message and to highlight finely the
+  ;; difference between the two types (in case they're large, it's not
+  ;; always obvious to spot it).
+  (save-current-buffer
+    (when (and (derived-mode-p 'sml-mode 'inferior-sml-mode)
+               (boundp 'next-error-last-buffer)
+               (bufferp next-error-last-buffer)
+               (set-buffer next-error-last-buffer)
+               (derived-mode-p 'inferior-sml-mode)
+               ;; The position of `point' is not guaranteed :-(
+               (looking-at ".*\n  operator domain: "))
+      (ignore-errors (require 'smerge-mode))
+      (if (not (fboundp 'smerge-refine-subst))
+          (remove-hook 'next-error-hook 'inferior-sml-next-error-hook)
+        (save-excursion
+          (let ((b1 (match-end 0))
+                e1 b2 e2)
+            (when (re-search-forward "\n  in expression:\n" nil t)
+              (setq e2 (match-beginning 0))
+              (when (re-search-backward "\n  operand:         " b1 t)
+                (setq e1 (match-beginning 0))
+                (setq b2 (match-end 0))
+                (smerge-refine-subst b1 e1 b2 e2
+                                     '((face . smerge-refined-change)))))))))))
+
 (define-derived-mode inferior-sml-mode comint-mode "Inferior-SML"
   "Major mode for interacting with an inferior ML process.
 
@@ -354,6 +380,9 @@ DEL converts tabs to spaces as it moves back.
 TAB file name completion, as in shell-mode, etc.."
   (setq comint-prompt-regexp sml-prompt-regexp)
   (sml-mode-variables)
+
+  ;; We have to install it globally, 'cause it's run in the *source* buffer :-(
+  (add-hook 'next-error-hook 'inferior-sml-next-error-hook)
 
   ;; Make TAB add a " rather than a space at the end of a file name.
   (set (make-local-variable 'comint-completion-addsuffix) '(?/ . ?\"))

@@ -1,10 +1,10 @@
 ;;; sml-defs.el --- Various definitions for sml-mode
 
-;; Copyright (C) 1999,2000,2003,2005  Stefan Monnier <monnier@cs.yale.edu>
+;; Copyright (C) 1999,2000,2003,2005,2007  Stefan Monnier <monnier@gnu.org>
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
+;; the Free Software Foundation; either version 3 of the License, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -125,8 +125,8 @@ notion of \"the end of an outline\".")
 ;; regexps
 ;;
 
-(defun sml-syms-re (&rest syms)
-  (concat "\\<" (regexp-opt (flatten syms) t) "\\>"))
+(defun sml-syms-re (syms)
+  (concat "\\<" (regexp-opt syms t) "\\>"))
 
 ;;
 
@@ -143,23 +143,23 @@ notion of \"the end of an outline\".")
   "Symbols matching the `end' symbol.")
 
 ;; (defconst sml-user-begin-symbols-re
-;;   (sml-syms-re "let" "abstype" "local" "struct" "sig" "in" "with")
+;;   (sml-syms-re '("let" "abstype" "local" "struct" "sig" "in" "with"))
 ;;   "Symbols matching (loosely) the `end' symbol.")
 
 (defconst sml-sexp-head-symbols-re
-  (sml-syms-re "let" "abstype" "local" "struct" "sig" "in" "with"
-	       "if" "then" "else" "case" "of" "fn" "fun" "val" "and"
-	       "datatype" "type" "exception" "open" "infix" "infixr" "nonfix"
-	       sml-module-head-syms
-	       "handle" "raise")
+  (sml-syms-re `("let" "abstype" "local" "struct" "sig" "in" "with"
+                 "if" "then" "else" "case" "of" "fn" "fun" "val" "and"
+                 "datatype" "type" "exception" "open" "infix" "infixr" "nonfix"
+                 ,@sml-module-head-syms
+                 "handle" "raise"))
   "Symbols starting an sexp.")
 
 ;; (defconst sml-not-arg-start-re
-;;   (sml-syms-re "in" "of" "end" "andalso")
+;;   (sml-syms-re '("in" "of" "end" "andalso"))
 ;;   "Symbols that can't be found at the head of an arg.")
 
 ;; (defconst sml-not-arg-re
-;;   (sml-syms-re "in" "of" "end" "andalso")
+;;   (sml-syms-re '("in" "of" "end" "andalso"))
 ;;   "Symbols that should not be confused with an arg.")
 
 (defconst sml-=-starter-syms
@@ -185,7 +185,7 @@ notion of \"the end of an outline\".")
        "do" "with" "withtype")))))
 
 (defconst sml-starters-indent-after
-  (sml-syms-re "let" "local" "struct" "in" "sig" "with")
+  (sml-syms-re '("let" "local" "struct" "in" "sig" "with"))
   "Indent after these.")
 
 (defconst sml-delegate
@@ -230,7 +230,7 @@ for all symbols and in all lines starting with the given symbol."
   "Regexp of compound symbols (pairs of symbols to be considered as one).")
 
 (defconst sml-non-nested-of-starter-re
-  (sml-syms-re "datatype" "abstype" "exception")
+  (sml-syms-re '("datatype" "abstype" "exception"))
   "Symbols that can introduce an `of' that shouldn't behave like a paren.")
 
 (defconst sml-starters-syms

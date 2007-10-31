@@ -21,7 +21,7 @@
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or (at
+;; published by the Free Software Foundation; either version 3, or (at
 ;; your option) any later version.
 
 ;; This program is distributed in the hope that it will be useful, but
@@ -159,13 +159,13 @@ Full documentation will be available after autoloading the function."))
 ;; font-lock setup
 
 (defconst sml-keywords-regexp
-  (sml-syms-re "abstraction" "abstype" "and" "andalso" "as" "before" "case"
-	       "datatype" "else" "end" "eqtype" "exception" "do" "fn"
-	       "fun" "functor" "handle" "if" "in" "include" "infix"
-	       "infixr" "let" "local" "nonfix" "of" "op" "open" "orelse"
-	       "overload" "raise" "rec" "sharing" "sig" "signature"
-	       "struct" "structure" "then" "type" "val" "where" "while"
-	       "with" "withtype" "o")
+  (sml-syms-re '("abstraction" "abstype" "and" "andalso" "as" "before" "case"
+                 "datatype" "else" "end" "eqtype" "exception" "do" "fn"
+                 "fun" "functor" "handle" "if" "in" "include" "infix"
+                 "infixr" "let" "local" "nonfix" "of" "op" "open" "orelse"
+                 "overload" "raise" "rec" "sharing" "sig" "signature"
+                 "struct" "structure" "then" "type" "val" "where" "while"
+                 "with" "withtype" "o"))
   "A regexp that matches any and all keywords of SML.")
 
 (defconst sml-tyvarseq-re
@@ -559,14 +559,13 @@ If anyone has a good algorithm for this..."
 
 	;; Continued string ? (Added 890113 lbn)
 	(and (looking-at "\\\\")
-	     (save-excursion
-	       (if (save-excursion (previous-line 1)
-				   (beginning-of-line)
-				   (looking-at "[\t ]*\\\\"))
-		   (progn (previous-line 1) (current-indentation))
-		 (if (re-search-backward "[^\\\\]\"" nil t)
-		     (1+ (current-column))
-		   0))))
+             (or (save-excursion (forward-line -1)
+                                 (if (looking-at "[\t ]*\\\\")
+                                     (current-indentation)))
+                 (save-excursion
+                   (if (re-search-backward "[^\\\\]\"" nil t)
+                       (1+ (current-column))
+                     0))))
 
 	;; Closing parens.  Could be handled below with `sml-indent-relative'?
 	(and (looking-at "\\s)")
@@ -1001,7 +1000,7 @@ See also `edit-kbd-macro' which is bound to \\[edit-kbd-macro]."
      ,@(if (fboundp 'compilation-fake-loc) '((1))))))
 
 (eval-after-load "compile"
-  '(dolist ((x sml-mlton-error-regexp-alist))
+  '(dolist (x sml-mlton-error-regexp-alist)
      (add-to-list 'compilation-error-regexp-alist x)))
 
 (defun sml-mlton-typecheck (mainfile)
@@ -1066,7 +1065,7 @@ See also `edit-kbd-macro' which is bound to \\[edit-kbd-macro]."
       (with-current-buffer (find-file-noselect (sml-defuse-file))
         (goto-char (point-min))
         (unless (re-search-forward
-                 (format sml-defuse-use-format
+                 (format sml-defuse-use-regexp-format
                          (concat "\\(?:"
                                  ;; May be an absolute file name.
                                  (regexp-quote (nth 3 symdata))
