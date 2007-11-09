@@ -340,6 +340,10 @@ If prefix argument ECHO is set, then it only reports on the current state."
   ;;   operand:         (Hstring * int) * (Hstring * int)
   ;;   in expression:
   ;;     HSTRING.ieq (h1,h2)
+  ;; vparse.sml:1861.6-1922.14 Error: case object and rules don't agree [tycon mismatch]
+  ;;   rule domain: STConstraints list list option
+  ;;   object: STConstraints list option
+  ;;   in expression:
   (save-current-buffer
     (when (and (derived-mode-p 'sml-mode 'inferior-sml-mode)
                (boundp 'next-error-last-buffer)
@@ -348,7 +352,7 @@ If prefix argument ECHO is set, then it only reports on the current state."
                (derived-mode-p 'inferior-sml-mode)
                ;; The position of `point' is not guaranteed :-(
                (looking-at (concat ".*\\[tycon mismatch\\]\n"
-                                   "  \\(operator domain\\|expression\\): +")))
+                                   "  \\(operator domain\\|expression\\|rule domain\\): +")))
       (ignore-errors (require 'smerge-mode))
       (if (not (fboundp 'smerge-refine-subst))
           (remove-hook 'next-error-hook 'inferior-sml-next-error-hook)
@@ -358,8 +362,9 @@ If prefix argument ECHO is set, then it only reports on the current state."
             (when (re-search-forward "\n  in \\(expression\\|declaration\\):\n"
                                      nil t)
               (setq e2 (match-beginning 0))
-              (when (re-search-backward "\n  \\(operand\\|result type\\): +"
-                                        b1 t)
+              (when (re-search-backward
+                     "\n  \\(operand\\|result type\\|object\\): +"
+                     b1 t)
                 (setq e1 (match-beginning 0))
                 (setq b2 (match-end 0))
                 (smerge-refine-subst b1 e1 b2 e2
