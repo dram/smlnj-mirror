@@ -1,3 +1,7 @@
+2007-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sml-proc.el (inferior-sml-next-error-hook): Make it match one more format.
+
 2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* testcases.sml: Add (old) buggy case from Christopher Dutchyn.

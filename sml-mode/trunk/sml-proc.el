@@ -325,6 +325,21 @@ If prefix argument ECHO is set, then it only reports on the current state."
   ;; Try to recognize SML/NJ type error message and to highlight finely the
   ;; difference between the two types (in case they're large, it's not
   ;; always obvious to spot it).
+  ;;
+  ;; Sample messages:
+  ;; 
+  ;; Data.sml:31.9-33.33 Error: right-hand-side of clause doesn't agree with function result type [tycon mismatch]
+  ;;   expression:  Hstring
+  ;;   result type:  Hstring * int
+  ;;   in declaration:
+  ;;     des2hs = (fn SYM_ID hs => hs
+  ;;                | SYM_OP hs => hs
+  ;;                | SYM_CHR hs => hs)
+  ;; Data.sml:35.44-35.63 Error: operator and operand don't agree [tycon mismatch]
+  ;;   operator domain: Hstring * Hstring
+  ;;   operand:         (Hstring * int) * (Hstring * int)
+  ;;   in expression:
+  ;;     HSTRING.ieq (h1,h2)
   (save-current-buffer
     (when (and (derived-mode-p 'sml-mode 'inferior-sml-mode)
                (boundp 'next-error-last-buffer)
@@ -332,16 +347,19 @@ If prefix argument ECHO is set, then it only reports on the current state."
                (set-buffer next-error-last-buffer)
                (derived-mode-p 'inferior-sml-mode)
                ;; The position of `point' is not guaranteed :-(
-               (looking-at ".*\n  operator domain: "))
+               (looking-at (concat ".*\\[tycon mismatch\\]\n"
+                                   "  \\(operator domain\\|expression\\): +")))
       (ignore-errors (require 'smerge-mode))
       (if (not (fboundp 'smerge-refine-subst))
           (remove-hook 'next-error-hook 'inferior-sml-next-error-hook)
         (save-excursion
           (let ((b1 (match-end 0))
                 e1 b2 e2)
-            (when (re-search-forward "\n  in expression:\n" nil t)
+            (when (re-search-forward "\n  in \\(expression\\|declaration\\):\n"
+                                     nil t)
               (setq e2 (match-beginning 0))
-              (when (re-search-backward "\n  operand:         " b1 t)
+              (when (re-search-backward "\n  \\(operand\\|result type\\): +"
+                                        b1 t)
                 (setq e1 (match-beginning 0))
                 (setq b2 (match-end 0))
                 (smerge-refine-subst b1 e1 b2 e2
