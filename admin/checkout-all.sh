@@ -23,7 +23,7 @@ smlnj=$gf/smlnj
 
 # checkout source target
 checkout(){
-    source=$1trunk
+    source=$1/trunk
     target=$2
     if [ ! -d $target ] ; then
 	echo Checking out $source as $target
@@ -59,4 +59,4 @@ smlnj ml-lex
 smlnj heap2asm
 smlnj nlffi
 
-checkout $gf ml-lpt ml-lpt
+checkout $gf/ml-lpt ml-lpt
