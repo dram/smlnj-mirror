@@ -21,45 +21,42 @@ fi
 gf=svn://smlnj-gforge.cs.uchicago.edu
 smlnj=$gf/smlnj
 
+# checkout source target
 checkout(){
-    if [ $# = 2 ] ; then
-	target=$2
-	case $1 in
-	    svn://* )
-		source=$1
-		;;
-	    * )
-		source=$smlnj/$1/trunk
-		;;
-	esac
-    else
-	source=$smlnj/$1/trunk
-	target=$1
-    fi
+    source=$1trunk
+    target=$2
     if [ ! -d $target ] ; then
-	echo Checking out $source as $target.
+	echo Checking out $source as $target
 	svn $command $source $target
     else
 	echo Tree $target already exists.
     fi
 }
 
+# checkout from smlnj tree
+smlnj(){
+    checkout $smlnj/$1/trunk $1
+}
 
-checkout config
-checkout sml base
-checkout smlnj-lib
-checkout MLRISC
-checkout ml-yacc
-checkout trace-debug-profile
-checkout pgraph
+smlnjbase(){
+    checkout $smlnj/$1/trunk $2
+}
 
-checkout ckit
-checkout cml
-checkout eXene
-checkout smlnj-c
-checkout ml-burg
-checkout ml-lex
-checkout heap2asm
-checkout nlffi
+smlnj config
+smlnjbase sml base
+smlnj smlnj-lib
+smlnj MLRISC
+smlnj ml-yacc
+smlnj trace-debug-profile
+smlnj pgraph
 
-checkout $gf/ml-lpt ml-lpt
+smlnj ckit
+smlnj cml
+smlnj eXene
+smlnj smlnj-c
+smlnj ml-burg
+smlnj ml-lex
+smlnj heap2asm
+smlnj nlffi
+
+checkout $gf ml-lpt ml-lpt
