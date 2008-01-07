@@ -8,7 +8,6 @@ revisionOf(){
 }
 
 procPropLine(){
-    base=$1
     while read f1 f2 f3 ; do
 	if [ x$f1 != x ] ; then
 	    case $f2 in
@@ -16,7 +15,7 @@ procPropLine(){
 		    echo $f1 $f2 $f3
 		    ;;
 		*)
-		    rev=`revisionOf $base/$f1`
+		    rev=`revisionOf $f2`
 		    echo $f1 -r${rev} $f2
 		    ;;
 	    esac
@@ -34,8 +33,8 @@ todir="$2"
 
 svn cp $fromdir $todir
 
-svn propget svn:externals $fromdir | procPropLine $fromdir >$propfile
+svn propget svn:externals $fromdir | procPropLine >$propfile
 
-echo svn propset svn:externals --file $propfile --quiet $todir
+svn propset svn:externals --file $propfile --quiet $todir
 
 exit 0

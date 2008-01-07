@@ -35,11 +35,11 @@ checkout(){
 
 # checkout from smlnj tree
 smlnj(){
-    checkout $smlnj/$1/trunk $1
+    checkout $smlnj/$1 $1
 }
 
 smlnjbase(){
-    checkout $smlnj/$1/trunk $2
+    checkout $smlnj/$1 $2
 }
 
 smlnj config
