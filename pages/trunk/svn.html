@@ -55,7 +55,7 @@ The default layout populates root with:
 Not all of these trees are always necessary.
 
 <p>
-Let <tt>gf=svn://smlnj-gforge.cs.uchicago.edu</tt>
+Let <tt>gf=https://smlnj-gforge.cs.uchicago.edu/svn</tt>
 and <tt>smlnj=$gf/smlnj</tt>.
 
 <p>
@@ -66,7 +66,7 @@ By default, a tree <tt>T</tt> is obtained by performing
 There currently are two exceptions to this:
 <pre>
    svn co $smlnj/sml/trunk base
-   svn co $gf/ml-lpt ml-lpt
+   svn co $gf/ml-lpt/trunk ml-lpt
 </pre>
 
 <h3>Scripts</h3>
@@ -148,7 +148,7 @@ is the value of shell variable <code>SMLDEV</code> (e.g. in my case,
 <ol>
 <li>define some shell variables
 <pre>
-  $ export gf=svn://smlnj-gforge.cs.uchicago.edu
+  $ export gf=https://smlnj-gforge.cs.uchicago.edu/svn
   $ export smlnj=$gf/smlnj
 </pre>
 </li>
@@ -225,7 +225,7 @@ on the top-level repository directory <code>$smlnj/sml</code>.
 </li>
 <li>In the target primop3 directory do
 <pre>
-  $ svn co svn://smlnj-gforge.cs.uchicago.edu/smlnj/sml/branches/primop-branch-3 base
+  $ svn co https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/sml/branches/primop-branch-3 base
 </pre>
 or (given the definition of shell variable <code>smlnj</code> from part I above) 
 <pre>
