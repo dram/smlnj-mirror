@@ -7,7 +7,7 @@ fi
 
 relno=$1
 
-gf=svn://smlnj-gforge.cs.uchicago.edu/smlnj
+gf=https://smlnj-gforge.cs.uchicago.edu/svn/smlnj
 
 here=`pwd`
 

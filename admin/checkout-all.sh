@@ -18,7 +18,7 @@ if [ $# -ge 1 ] ; then
     cd $1
 fi
 
-gf=svn://smlnj-gforge.cs.uchicago.edu
+gf=https://smlnj-gforge.cs.uchicago.edu/svn
 smlnj=$gf/smlnj
 
 # checkout source target

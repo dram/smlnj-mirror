@@ -4,8 +4,6 @@ if [ $# -ge 1 ] ; then
     cd $1
 fi
 
-gf=svn://smlnj-gforge.cs.uchicago.edu/smlnj
-
 here=`pwd`
 
 for tree in config base smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
