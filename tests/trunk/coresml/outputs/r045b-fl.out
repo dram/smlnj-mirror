@@ -4,7 +4,5 @@ r045b-fl.sml:15.5-15.32 Error: pattern and expression in val dec don't agree [ty
   pattern:    {name:int; 'Z}
   expression:    {name:string, used:bool}
   in declaration:
-    {name=u : int,...} =
-      (case r
-        of {name=u : int,...} => {1=u})
+    {name=u : int,...} = r
 

@@ -1,0 +1,35 @@
+Summary of regression failures for 110.63
+5/17/07
+
+basis:
+
+ real.sml
+   fails test11c because of inaccurate printing of reals with large mantissa
+
+bugs:
+
+  bug3.sml, bug130.1.sml, bug538.sml
+    printing of full type paths (S.T) instead of local path (T) (e.g. in inferred
+    signature of functor F in bug130.1.sml)
+
+  bug1307.sml (see also bug1490.1.sml, bug1551.1.sml)
+    escape sequence \k causes unclosed string exception
+    (should it cause bad escape sequence error instead?)
+    But earlier duplicate error messages has been corrected.
+
+  bug1388.1.sml
+    architecture dependent: div32 and quot32 are "OK" on ppc, "WRONG(DIV)" on x86
+
+  bug1415.1.sml
+    Date is now implemented, but is output of Date.fmt correct?
+
+  bug1451.1.sml
+    architecture dependent: seems correct on ppc, wrong on x86?
+
+  bug1509.1.sml
+    architecture dependent: correct (Overflow) on ppc, Div on x86
+
+  bug1607.1.sml
+    value printed is architecture dependent (e.g. 0.0 for ppc, 1.22460635382E~16 for x86)
+
+

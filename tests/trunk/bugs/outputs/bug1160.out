@@ -3,7 +3,5 @@ bug1160.sml:3.5-3.18 Error: pattern and expression in val dec don't agree [tycon
   pattern:    'Z * 'Y
   expression:    bool
   in declaration:
-    (_,x) =
-      (case true
-        of (_,x) => {1=x})
+    (_,x) = true
 
