@@ -1,5 +1,5 @@
 val it = () : unit
 val f = fn : 'a -> 'a
 val x = (fn,[]) : ('a -> 'a) * 'b list
-val g = fn : ?.X1 -> ?.X1
+val g = fn : 'a -> 'a
 
