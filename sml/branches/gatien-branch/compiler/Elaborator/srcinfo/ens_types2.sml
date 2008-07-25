@@ -1,4 +1,4 @@
-structure Ens_types2 = 
+structure DBTypes = 
 struct
     type file = string
 
