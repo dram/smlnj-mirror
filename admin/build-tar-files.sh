@@ -42,6 +42,8 @@ base_dirs="\
     system \
   "
 
+cd base
 for d in $base_dirs ; do
-  tar cfz $d.tgz base/$d
+  tar cfz ../$d.tgz $d
 done
+
