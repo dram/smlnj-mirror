@@ -24,6 +24,31 @@ The repository hosts a number of semi-independent toplevel trees:
 </ul>
 ... and so forth.
 
+<h4>Anonymous repository access</h4>
+
+Many of the instructions below assume that you have access to the
+Subversion repository.  If you are having trouble with access, you can
+do an anonymous check out using the username "anonsvn" and the
+password "anonsvn".  For example, to check out the <tt>admin</tt>
+tree, you would do the following:
+
+<pre>
+ $ svn co --username anonsvn https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/admin admin
+</pre>
+
+If prompted, use "anonsvn" for the password.  Following this step, you
+should be able to use <tt>admin/checkout-all.sh</tt> to get the
+remaining source trees without trouble (see below).  More information about
+the repository can be found at the <a
+href="http://smlnj-gforge.cs.uchicago.edu/scm/?group_id=15">SML/NJ
+GForge SCM page</a>.
+
+<h4>Web access to the repository</h4>
+
+You can also browse the SML/NJ repositories using the
+<a href="http://smlnj-gforge.cs.uchicago.edu/scm/viewvc.php/?root=smlnj">ViewVC</a>
+page for SML/NJ.
+
 <h3>Directory layout</h3>
 
 To compile and install SML/NJ, one needs to create a root directory
@@ -214,7 +239,7 @@ on the top-level repository directory <code>$smlnj/sml</code>.
 <li>To check what branches exist under a top-level directory, like
 <code>sml</code> (= <code>base</code>), do
 <pre>
-  $ svn list $gf/sml/branches/
+  $ svn list $smlnj/sml/branches/
 </pre>
 </li>
 <li>Create target directory, here called primop3, and change to it.
@@ -248,7 +273,7 @@ has been added to the PATH)
     <address>David MacQueen and Matthias Blume</address>
 <!-- Created: Thu Dec  7 15:06:34 CST 2006 -->
 <!-- hhmts start -->
-Last modified: Mon May  7 12:28:48 CDT 2007
+Last modified: Wed Feb 18 14:53:26 CST 2009
 <!-- hhmts end -->
   </body>
 </html>
