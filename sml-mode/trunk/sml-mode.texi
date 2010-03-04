@@ -242,7 +242,7 @@ Matthias Blume (@samp{blume@@kurims.kyoto-u.ac.jp}) provided a sml-make
 which was replaced by sml-compile.
 
 @item
-Monnier Stefan (@samp{monnier@@cs.yale.edu}) completely reworked the
+Monnier Stefan (@samp{monnier@@iro.umontreal.ca}) completely reworked the
 indentation engine as well as most of the rest of the code and is
 the current maintainer since after version 3.4.
 

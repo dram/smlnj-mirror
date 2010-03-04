@@ -1,7 +1,7 @@
 -*- text -*-
 
 Here are the current known bugs.
-If you find any other, send it to <monnier+lists.emacs.sml@flint.cs.yale.edu>.
+If you find any other, send it to <monnier@iro.umontreal.ca>.
 
 * M-x next-error and other compile.el support doesn't work on XEmacs.
 

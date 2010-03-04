@@ -1,6 +1,6 @@
 ;;; sml-util.el --- Utility functions for sml-mode
 
-;; Copyright (C) 1999-2000, 2007  Stefan Monnier <monnier@cs.yale.edu>
+;; Copyright (C) 1999-2000, 2007, 2010  Stefan Monnier <monnier@iro.umontreal.ca>
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
