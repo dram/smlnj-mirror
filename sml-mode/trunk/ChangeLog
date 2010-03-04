@@ -1,6 +1,16 @@
+2010-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Release version 4.1.
+
+	* sml-mode.el: Don't setup load-path here any more.
+	* Makefile ($(PACKAGE)-startup.el): Recreate from scratch every time.
+	Setup load-path.
+	(dist): Try to update it to use Svn rather than CVS.
+
 2007-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* sml-proc.el (inferior-sml-next-error-hook): Make it match one more format.
+	* sml-proc.el (inferior-sml-next-error-hook): Make it match one
+	more format.
 
 2007-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1,4 +1,4 @@
-(* Copyright 1999, 2004, 2007 Stefan Monnier <monnier@gnu.org> *)
+(* Copyright 1999, 2004, 2007, 2010 Stefan Monnier <monnier@gnu.org> *)
 
 (let val a = 1 val b = 2
      val c = 3
@@ -17,7 +17,10 @@ struct
 val bar = 0
 val ber = 1;
 val sdfg = 1
+val tut = fn (x,y) z y e r =>
+             body
 end
+
 
 (x := 1;
  case x of

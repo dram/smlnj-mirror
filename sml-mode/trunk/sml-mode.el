@@ -1,6 +1,6 @@
 ;;; sml-mode.el --- Major mode for editing (Standard) ML
 
-;; Copyright (C) 1999,2000,2004,2007  Stefan Monnier
+;; Copyright (C) 1999,2000,2004,2007,2010  Stefan Monnier
 ;; Copyright (C) 1994-1997  Matthew J. Morley
 ;; Copyright (C) 1989       Lars Bo Nielsen
 
@@ -387,7 +387,6 @@ Regexp match data 0 points to the chars."
 
 ;;; MORE CODE FOR SML-MODE
 
-;;;###autoload (add-to-list 'load-path (file-name-directory load-file-name))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.s\\(ml\\|ig\\)\\'" . sml-mode))
 

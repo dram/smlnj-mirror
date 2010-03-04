@@ -1,6 +1,6 @@
 # Makefile for emacs-lisp package
 
-# Copyright (C) 1998, 1999, 2004, 2007  Stefan Monnier <monnier@gnu.org>
+# Copyright (C) 1998, 1999, 2004, 2007, 2010  Stefan Monnier <monnier@gnu.org>
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -110,8 +110,9 @@ install_info: $(PACKAGE).info
 install_startup:
 	$(MKDIR) $(lispdir)
 	@if grep $(PACKAGE) $(lispdir)/site-start.el >/dev/null 2>&1 || \
-	   grep $(PACKAGE) $(startupfile) >/dev/null 2>&1 || \
-	   grep $(PACKAGE) $(lispdir)/default.el >/dev/null 2>&1; then \
+	    grep $(PACKAGE) $(startupfile) >/dev/null 2>&1 || \
+	    grep $(PACKAGE) $(lispdir)/default.el >/dev/null 2>&1; \
+	then \
 	    echo "**********************************************************" ;\
 	    echo "*** It seems you already have some setup code" ;\
 	    echo "*** for $(PACKAGE) in your startup files." ;\
@@ -146,21 +147,27 @@ distclean: clean
 ######################################################################
 
 $(PACKAGE)-startup.el: $(ELFILES)
-	[ -f $@ ] || echo '' >$@
+	echo "\
+	;;; $@ --- automatically extracted autoloads\n\
+	;;; Code:\n\
+	(add-to-list 'load-path\n\
+	             (or (file-name-directory load-file-name) (car load-path)))\n\
+	" >$@
 	$(EMACS) --batch --eval '(setq generated-autoload-file "'`pwd`'/$@")' -f batch-update-autoloads "."
 
 ##
 
-TAG = $(shell echo v$(VERSION) | tr '.' '_')
+#TAG = $(shell echo v$(VERSION) | tr '.' '_')
+URL="$(sed -n -e '5p' .svn/entries)"
+TAG="$(dirname "$URL")/releases/$(PACKAGE)-$(VERSION)"
 ftpdir=/u/monnier/html/elisp/
 cvsmodule=$(shell cat CVS/Repository)
 cvsroot=$(shell cat CVS/Root)
 
 dist:
-	cvs tag -F $(TAG) &&\
-	cd $(TMP) &&\
-	cvs -d $(cvsroot) export -r $(TAG) -d $(PACKAGE)-$(VERSION) $(cvsmodule) &&\
-	cd $(PACKAGE)-$(VERSION) &&\
+	svn cp . "$(TAG)" &&\
+	svn export "$(TAG)" "$(TMP)/$(PACKAGE)-$(VERSION)" &&\
+	cd "$(TMP)/$(PACKAGE)-$(VERSION)" &&\
 	gmake info $(PACKAGE)-startup.el &&\
 	cd .. &&\
 	ztar $(PACKAGE)-$(VERSION) &&\

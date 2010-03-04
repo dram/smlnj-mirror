@@ -1,5 +1,18 @@
 Changes since 4.0:
 
+* Switch to GPLv3+.
+
+* When possible (i.e. running under Emacs>=23), be case-sensitive when
+  expanding abbreviations, and don't expand them in comments and strings.
+
+* When you `next-error' to a type error, highlight the actual parts of the
+  types that differ.
+
+* Flush the recorded errors not only upon sml-compile and friends, but also
+  when typing commands directly at the prompt.
+
+* New command sml-mlton-typecheck.
+
 * Simple support to parse errors and warnings in MLton's output.
 
 * Simple support for MLton's def-use files.
