@@ -10,8 +10,8 @@
 ;;	Steven Gilmore (?)
 ;;	Matthew Morley <mjm@scs.leeds.ac.uk> (aka <matthew@verisity.com>)
 ;;	Matthias Blume <blume@cs.princeton.edu> (aka <blume@kurims.kyoto-u.ac.jp>)
-;;      (Stefan Monnier) monnier@cs.yale.edu
-;; Maintainer: (Stefan Monnier) monnier+lists/emacs/sml@flint.cs.yale.edu
+;;      (Stefan Monnier) <monnier@iro.umontreal.ca>
+;; Maintainer: (Stefan Monnier) <monnier@iro.umontreal.ca>
 ;; Keywords: SML
 ;; $Revision$
 ;; $Date$

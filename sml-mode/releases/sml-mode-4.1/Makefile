@@ -168,7 +168,7 @@ dist:
 	svn cp . "$(TAG)" &&\
 	svn export "$(TAG)" "$(TMP)/$(PACKAGE)-$(VERSION)" &&\
 	cd "$(TMP)/$(PACKAGE)-$(VERSION)" &&\
-	gmake info $(PACKAGE)-startup.el &&\
+	$(MAKE) info $(PACKAGE)-startup.el &&\
 	cd .. &&\
 	ztar $(PACKAGE)-$(VERSION) &&\
 	rm -rf $(PACKAGE)-$(VERSION)

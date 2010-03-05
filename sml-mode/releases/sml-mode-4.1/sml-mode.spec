@@ -8,7 +8,7 @@ Release:	0.1
 Group:		Applications/Editors
 Copyright:	GPL
 Packager:	Stefan Monnier
-Source:		ftp://flint.cs.yale.edu/pub/monnier/%{name}/%{name}.tar.gz
+Source:		http://iro.umontreal.ca/~monnier/elisp/%{name}.tar.gz
 Buildroot:	%{_tmppath}/%{name}-buildroot
 BuildPreReq:	emacs >= 20 xemacs >= 21
 BuildArch:	noarch
