@@ -199,10 +199,7 @@ type, strickly speaking, and we have acknowledged that fact in SML
 '97.  As you observed, this means that datatypes involving reals won't
 be equality types either, and that real literals are no longer
 accepted in pattern matching.  This issue is discussed in some detail
-on the following web page:
-
-  http://www.cs.bell-labs.com/~jhr/sml/basis/pages/real.html
-
+in the Basis section documenting the Real module.
 The "workaround" is simply to use Real.== to test equality of
 two real numbers.  For datatypes defined using reals, you'll
 have to define your own equality function on the datatype in terms
@@ -330,7 +327,7 @@ exist?
 ---------
 A: There is a description of higher-order modules at:
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/features.html
+  http://www.smlnj.org/doc/features.html
 
 
 1.2.1. Signatures
@@ -340,7 +337,7 @@ Q: What happened to "open" (and "local") in signatures?
 A: These were dropped in SML '97.  See the Conversion Guide (Section x.x.x).
 
 
-Q: Norman Ramsey <legoland.research.bell-labs.com!nr>
+Q: Norman Ramsey
 I'm not sure how to 'merge' signatures
 
   signature A = sig val x : int end
@@ -798,7 +795,7 @@ Q: What is the SML '97 equivalent of "ordof" in SML/NJ 0.93?
 A: The old ordof function is equivalent to Char.ord o String.sub.  You
 can find documentation for SML/NJ at our web site
 
-	http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+	http://www.smlnj.org/index.html
 
 There you can find a porting guide that explains how to port your
 SML'90 programs to SML'97.  
@@ -831,13 +828,13 @@ Int.toString, Real.toString.
 
 For information on SML'97 and how to translate some of the pre-97 code
 to SML'97 + Basis code, have a look at
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Conversion/index.html
+  http://www.smlnj.org/doc/Conversion/index.html
 
 The Basis Library documentation:
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/basis/pages/sml-std-basis.html
+  http://www.smlnj.org/Basis
 
 General information on SML/NJ:
-  http://cm.bell-labs.com/cm/cs/what/smlnj/
+  http://www.smlnj.org
 
 
 Q: Are there textbooks that are based on the new SML '97 defition?
@@ -904,7 +901,7 @@ Q: What support does SML/NJ provide for writing pretty printers?
 A: The built-in pretty printing facilities are in Compiler.PrettyPrint,
 documented in
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Compiler/pages/prettyprint.html
+  http://www.smlnj.org/doc/Compiler/pages/prettyprint.html
 
 There is a utility module that provides some useful extensions to this
 pretty printing interface in
@@ -1394,7 +1391,7 @@ SMLofNJ.exportFn can be called in the interactive system to produce
 a heap image file that can be run as a stand-alone application.  The
 exportFn function is documented at
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/SMLofNJ/pages/smlnj.html
+  http://www.smlnj.org/doc/SMLofNJ/pages/smlnj.html
 
 3.7. Memory management
 
@@ -1411,9 +1408,7 @@ A: Yes (wizard answer?)
 Q: Is there a compiler test suite for SML/NJ?
 ----------
 A: Yes, there is a set of compiler test suites for SML/NJ, and they
-are available at:
-
-  ftp://ftp.research.bell-labs.com/dist/smlnj/testing
+are available in the SML/NJ svn repository, under project testing.
 
 
 4. Usage
@@ -1437,7 +1432,7 @@ Manager (CM) to manage a set of source files.  CM is built into the
 sml-cm version of the compiler in 110.0.3.  Documentation on CM is
 available at:
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/CM
+  http://www.smlnj.org/doc/CM
 
 
 Q: How does one use the .bin files produced by CM?  How do they get
@@ -1542,7 +1537,7 @@ and can be changed by setting these references:
 The documentation for the Compiler.Control structure is at the
 following URL:
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Compiler/pages/control.html
+  http://www.smlnj.org/doc/Compiler/pages/control.html
 
 
 4.2. loading libraries
@@ -1689,7 +1684,7 @@ Let me know if you would like a copy.
 
 The SMLNJ-C library now has it's own web page.  
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/SMLNJ-C/index.html
+  http://www.smlnj.org/doc/SMLNJ-C/index.html
 
 
 4.5. I/O
@@ -1734,16 +1729,16 @@ A: SML/NJ 109.25 implements (most of) the 1996 version of SML.  A major part
 of the changes in the 1996 version is a completely new basis library.  This
 is documented at:
 
-	http://www.research.att.com/~jhr/sml/basis/index.html
+	http://www.smlnj.org/Basis
 
 The I/O operations live in the TextIO and BinIO structures.
 A: You might also find a chart I made useful.  It compares the old
 SML/NJ top level environment with the new SML 96 Basis environment.
 You'll find it at the URL
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/top-level-comparison
+  http://www.smlnj.org/top-level-comparison
 
-The main SML/NJ web site is at http://cm.bell-labs.com/cm/cs/what/smlnj.
+The main SML/NJ web site is at http://www.smlnj.org.
 
 
 4.6. Top Level
@@ -1994,19 +1989,17 @@ be able to recompile the compiler from the SML source (if. for
 instance, you have modified the source).  The installation
 instructions are at:
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/install.html
+  http://www.smlnj.org/software.html
 
 
-Q: I am using Slackware ,Linux 2.0.0. Which files should I d/l
+Q: I am using Slackware Linux 2.0.0. Which files should I d/l
 to run sml?
 
 This is explained in
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/install.html
+  http://www.smlnj.org/software.html
 
-At the minimum, you need 110-config.tar.Z, 110-runtime.tar.Z,
-110-bin.x86-unix.tar.Z, and 110-cm.tar.Z, but you will probably
-want some of the libraries too.
+At the minimum, you need config.tgz.
 
 
 Q: How can I load CML into SML, and how can I make an executable from
@@ -2022,11 +2015,9 @@ A: We don't provide any tests.  Generally, if the install script
 finishes without errors, things should be fine, since the compiler
 gets exercised quite a bit during the installation process.
 
-There is a set of SML/NJ regression tests available in 
-
-  ftp://ftp.research.bell-labs.com/dist/smlnj/testing
-
-but this would be overkill for your purposes.
+There is a set of SML/NJ regression tests available in the
+testing project of the svn repository, but this would be overkill
+for your purposes.
 
 
 Q: I have installed SML/NJ on my Linux box sucessfully.  However, it
@@ -2076,7 +2067,7 @@ documentation for the individual modules.  For now, look at the source
 code of the signatures, which are generally commented.  [Where do you
 find the source code?]  The Porting Guide at
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/smlnj-lib/PORTING
+  http://www.smlnj.org/doc/smlnj-lib/PORTING
 
 is of some use in relating old names to new.
 
@@ -2099,10 +2090,10 @@ ML in the comp.lang.functional newsgroup, which covers functional
 programming in general.  These newsgroups are mentioned in our
 web page at the following URL:
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/index.html
+  http://www.smlnj.org/doc/index.html
 
 We're also happy to accept questions directed to
-sml-nj@research.bell-labs.com, which reaches the SML/NJ development
+smlnj-dev-list@lists.sourceforge.net, which reaches the SML/NJ development
 group.
 
 
@@ -2156,11 +2147,9 @@ with COM/CORBA (especially for Standard ML and Haskell) and for concrete
 applications using such an integration (I didn't find anything in the FAQ).
 ---------
 A: There is H/Direct for Haskell, being developed by Eric Meier and Simon
-Peyton-Jones.  We (specifically Riccardo Pucella) are developing an
-analog of H/Direct for SML/NJ here at Bell Labs.  Contact Riccardo
-at riccardo@research.bell-labs.com for further information.  This
-package will initially only support COM and COM's IDL, but there is
-potential for a CORBA library in the future.
+Peyton-Jones.  Riccardo Pucella once worked on an
+analog of H/Direct for SML/NJ.  Contact Riccardo for further
+information.
 
 
 8. Support
@@ -2169,9 +2158,8 @@ Q: Is there a technical support phone number for SML/NJ?
 Q: How can I get technical support for SML/NJ?
 ---------
 A: There is no "technical support phone #" (this is FREE software, after all).
-You can send bug reports to sml-bugs@research.bell-labs.com and general
-questions to sml-nj@research.bell-labs.com.  You might also try posting
-questions to comp.lang.ml.  We try to answer questions as quickly as possible.
+First look at the web site, http://www.smlnj.org.  If you can't find
+what you need there, try emailing us at sml-dev-list@lists.sourceforge.net.
 
 SML/NJ is an "open source" system, so potentially any advanced user can
 learn the internals of the system and voluntarily help to support and
@@ -2188,7 +2176,7 @@ status of a particular bug?
 --------
 A: The various bug records are available at
 
-  ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs.
+    http://www.smlnj.org/bugs/index.html
 
 
 9. SML '90 to SML '97 (SML/NJ 0.93 to SML/NJ 110) Conversion
@@ -2264,14 +2252,14 @@ will go.  Related variables are
 which determine how much of a long list or string (respectively) gets
 printed.  See the URL
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Compiler/pages/printcontrol.html
+  http://www.smlnj.org/doc/Compiler/pages/printcontrol.html
 
 
 Q: Where can I find docomentation about graphical interfaces in SML.
 --------
 A: There are two main choices right now: eXene and sml_tk.  There is
 an eXene manual, but it's not available at our web site now.  You'll
-have to ask John Reppy for documentation (jhr@research.bell-labs.com).
+have to ask John Reppy for documentation.
 For sml_tk, look at
 
   http://www.informatik.uni-bremen.de/~cxl/sml_tk/
@@ -2285,7 +2273,7 @@ A: Yes, we have ML-Lex and ML-Yacc for building lexical analyzers and
 parsers.  Look under the "Documentation" heading on the SML/NJ web
 page:
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+  http://www.smlnj.org
 
 There are other compiler-oriented tools like ML-Burg and MLRISC for
 building compiler back-ends (code generators), but I suspect you are
@@ -2293,7 +2281,7 @@ mainly interested in front-end tools.  What kind of compiler building
 project are you interested in?  There are a bunch of projects involving
 compiler research using SML/NJ.  See under our Links page:
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj/links.html
+  http://www.smlnj.org/links.html
 
 By the way, you might get in touch with the Foxnet group at CMU
 (Bob Harper, Peter Lee, and their students and postdocs).  They
@@ -2315,15 +2303,15 @@ is a well formed comment?
 A: tokenized?
 
 
-Q: Is there a mailing list on SML/NJ I could join (other than comp.lang.ml
-that is)?
+Q: Is there a mailing list on SML/NJ I could join (other than
+comp.lang.ml that is)?
 ---------
-A: Lal George (george@research.bell-labs.com) maintains a mailing list
-for announcements of new working (i.e. developmental) versions, for 
-those brave users eager to try the latest thing.  Otherwise, we use
-comp.lang.ml for all public news, or our Web pages at
+A: Lal George maintains a mailing list for announcements of new
+working (i.e. developmental) versions, for those brave users eager to
+try the latest thing.  Otherwise, we use comp.lang.ml for all public
+news, or our Web pages at
 
-  http://cm.bell-labs.com/cm/cs/what/smlnj
+  http://www.smlnj.org
 
 
 Q: Will every release of sml/nj be free, also for commercial purposes.

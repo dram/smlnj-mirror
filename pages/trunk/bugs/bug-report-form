@@ -15,13 +15,18 @@ Test: *
 Owner: *
 Status: *
 
-Please fill out as many of the fields as you can, as
-completely as you can.  In particular, it is very important
-to supply code that will reproduce the problem, if at all
-possible.  Unless we can reproduce the problem ourselves it
-is unlikely we will be able to eliminate the bug.
+Before using this bug report form, please consider instead
+using the on-line bug report form available at
+
+    https://smlnj-gforge.cs.uchicago.edu/bugform.php
+
+If this is not possible, please fill out as many of the fields as you
+can, as completely as you can.  In particular, it is very important to
+supply code that will reproduce the problem, if at all possible.
+Unless we can reproduce the problem ourselves it is unlikely we will
+be able to eliminate the bug.
 
 Fields with * will be filled out by us.  Please replace the
 descriptions in angle brackets with your information.
 
-Please email bug reports to sml-bugs@research.bell-labs.com.
+Then email the completed form to smlnj-dev-list@lists.sourceforge.net.
