@@ -22,31 +22,22 @@ named old-site-from-cvs.  We should remove this once we have
 confirmed that everything works ok.  Once this is the case,
 we should do the same with the "main" site (currently hosted
 by SourceForge) to avoid consistency problems.
-
-<p>
-I am planning to make some minor changes to the web site, and I
-want to work exclusively with subversion from now on.  (In
-particular, I want to put instructions on how to work with the
-new svn-based repository on the web site.)
 </blockquote>
 
-Currently the web server for www.smlnj.org is at sourceforge, and
-the path for the directory containing the web pages is
-<pre>
-   /home/groups/s/sm/smlnj/htdocs
-</pre>
 If you want to edit the smlnj pages, you should check out your
 own working copy of the pages/trunk directory, make your edits
 in your working copy, and then commit them to the svn repository.
-
 <p>
 Your changes can can be made visible at the
-<a href="http://smlnj.cs.uchicago.edu">UofC smlnj mirror site</a>
-at http://smlnj.cs.uchicago.edu by doing an svn update in the
-htdocs directory mentioned above. To make them appear at the
-sourceforge web site that serves www.smlnj.org, the changed files
-will need to be transfered to the above sourceforge htdocs directory.
-[Can we do this by rsyncing the UofC htdocs directory to sourceforge?]
+<a href="http://www.smlnj.edu">main UofC smlnj site</a>
+(also available at URL http://smlnj.cs.uchicago.edu) by doing an svn update in the
+htdocs directory mentioned above.
+
+Formerly the web server for www.smlnj.org was at sourceforge, and
+the path for the directory containing the web pages was
+<pre>
+   /home/groups/s/sm/smlnj/htdocs
+</pre>
 
     <hr>
     <address><a href="mailto:dbm@cs.uchicago.edu">David MacQueen</a></address>
