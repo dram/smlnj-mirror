@@ -78,11 +78,13 @@ The default layout populates root with:
 </ul>
 
 Not all of these trees are always necessary.
-
 <p>
-Let <tt>gf=https://smlnj-gforge.cs.uchicago.edu/svn</tt>
-and <tt>smlnj=$gf/smlnj</tt>.
-
+Suppose we have added the following shell definitions to our
+environment:
+<pre>
+   gf=https://smlnj-gforge.cs.uchicago.edu/svn
+   smlnj=$gf/smlnj
+</pre>
 <p>
 By default, a tree <tt>T</tt> is obtained by performing
 <pre>
@@ -117,7 +119,6 @@ This creates the root directory and populates it as described
 above. Without the optional argument, <tt>checkout-all.sh</tt> does
 not create a new root directory and treats the current directory
 "<tt>.</tt>" as the root instead.
-
 <p>
 If some subtrees already exist, then <tt>checkout-all.sh</tt> will
 skip them.  This is useful when working on a custom version of one or
@@ -191,6 +192,7 @@ is the value of shell variable <code>SMLDEV</code> (e.g. in my case,
 This creates subdirectory gf/admin containing some shell
 scripts to automate checking out the full source code, checking
 status, etc.
+<p>
 </li>
 
 <li>Add $SMLDEV/gf/admin to your shell PATH.</li>
@@ -258,6 +260,7 @@ or (given the definition of shell variable <code>smlnj</code> from part I above)
 </pre>
 This checks out the primop-branch-3 code for the sml directory, locally renamed
 as "base".
+<p>
 </li>
 <li>Run checkout-all.sh to get the rest of the source code (assuming gf/admin
 has been added to the PATH)

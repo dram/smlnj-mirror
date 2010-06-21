@@ -44,11 +44,14 @@ The default layout populates root with:
 (Not all of these trees are always necessary.)
 
 <p>
-Let gf=https://smlnj-gforge.cs.uchicago.edu/svn
-and smlnj=$gf/smlnj
-
+Suppose we have added the following shell definitions to our
+environment:
+<pre>
+   gf=https://smlnj-gforge.cs.uchicago.edu/svn
+   smlnj=$gf/smlnj
+</pre>
 <p>
-By default, a tree T is obtained by performing
+By default, a working copy of tree T is obtained by performing
 <pre>
    svn co $smlnj/T/trunk T
 </pre>

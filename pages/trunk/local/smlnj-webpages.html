@@ -7,43 +7,53 @@
   <body>
     <h1>Updating smlnj web pages</h1>
 
-[Matthias Blume, 11/7/06]
-<blockquote>
-I replaced the contents of
-<pre>
-   /stage/web_static/smlnj/htdocs
-</pre>
-on the UofC server by checking out
+The smlnj web site is maintained as an svn repository with URL
 <pre>
    https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/pages/trunk
 </pre>
-The old CVS-based content is still available in a sub-directory
-named old-site-from-cvs.  We should remove this once we have
-confirmed that everything works ok.  Once this is the case,
-we should do the same with the "main" site (currently hosted
-by SourceForge) to avoid consistency problems.
-</blockquote>
-
+The actual server page sources are located at
+<pre>
+   /stage/web_static/smlnj/htdocs
+</pre>
+on the UofC servers. This is a working directory checked out
+from the repository mentioned above.
+<p>
 If you want to edit the smlnj pages, you should check out your
-own working copy of the pages/trunk directory, make your edits
+own working copy of the pages/trunk project, make your edits
 in your working copy, and then commit them to the svn repository.
 <p>
-Your changes can can be made visible at the
-<a href="http://www.smlnj.edu">main UofC smlnj site</a>
-(also available at URL http://smlnj.cs.uchicago.edu) by doing an svn update in the
-htdocs directory mentioned above.
-
+Your changes can then be made visible at the main
+<a href="http://www.smlnj.org">www.smlnj.org</a> URL, which is
+an alias for 
+<a href="http://smlnj.cs.uchicago.edu">smlnj.cs.uchicago.edu</a>,
+by doing an svn update in the htdocs directory mentioned above.
+<p>
+<blockquote>
+<strong>NOTE:</strong> Certain distribution-specific files are not in
+the repository. In particular, dist/working/110.xx/NOTES, which
+contains some documentation files like MACOSXINSTALL. These files
+have to be edited directly in the corresponding site source directories.
+</blockquote>
+<p>
+This page and other local developer documentation are found in
+the local subdirectory of the pages directory. This local
+site is password protected (user: smlnj, password: semantix),
+and there are no links to it from the main smlnj web site.
+<p>
+<blockquote>
 Formerly the web server for www.smlnj.org was at sourceforge, and
-the path for the directory containing the web pages was
+the directory containing the web pages was located at:
 <pre>
    /home/groups/s/sm/smlnj/htdocs
 </pre>
+But this old version is no longer maintained.
+</blockquote>
 
-    <hr>
+   <hr>
     <address><a href="mailto:dbm@cs.uchicago.edu">David MacQueen</a></address>
 <!-- Created: Thu Dec  7 12:52:40 CST 2006 -->
 <!-- hhmts start -->
-Last modified: Thu Dec  7 15:55:09 CST 2006
+Last modified: Thu Jun  21 10:43:00 CST 2010
 <!-- hhmts end -->
   </body>
 </html>
