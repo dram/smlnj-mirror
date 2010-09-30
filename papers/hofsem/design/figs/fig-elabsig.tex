@@ -1,0 +1,123 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Gamma,\Upsilon,\Sigma\vdash sigexp \Rightarrow_{sig} \Sigma'$}
+	
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash x \Rightarrow_{sig} \Gamma(x)}
+{\strut} 
+\label{eq:emptysig}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash sigexp~\textbf{where type}~p = C^\lambda\Rightarrow_{sig}\mathsf{rebind}(p,\mathbb{C}^\lambda,\Sigma')}
+	{\begin{array}{c}
+	  \Gamma,\Upsilon,\Sigma\vdash sigexp\Rightarrow_{sig}\Sigma'\qquad
+	  \Sigma'(p) = (\rho,n)\\ \Gamma,\Upsilon\vdash C^\lambda \Rightarrow_{tyc} \mathfrak{C}^\lambda\qquad 
+          \Gamma,\Upsilon,\Sigma\Sigma'\vdash C^\lambda \searrow^{tyc} \mathfrak{C}^\lambda \\
+          \Upsilon\vdash \mathfrak{C}^\lambda \searrow^{tyc} 
+          \mathbb{C}^\lambda\qquad |\mathbb{C}^\lambda|=n
+	 \end{array}} 
+\label{eq:wheretype}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash \textbf{sig } specs \textbf{ end} \Rightarrow_{sig} \Sigma'}
+	{\begin{array}{c}
+	\Gamma,\Upsilon,\Sigma\vdash specs \Rightarrow_{specs} \Sigma'
+	\end{array}} 
+\label{eq:sigspecs}
+\end{equation}
+
+$\mathsf{rebind}(p,\mathbb{C}^\lambda,\Sigma)$ replaces the
+binding $[x\mapsto (\rho,n)]$ in $\Sigma$ with $[x \mapsto 
+\mathbb{C}^\lambda]$ where $p$ ends in $x$. 
+
+\fbox{$\Gamma,\Upsilon,\Sigma\vdash specs \Rightarrow_{specs} \Sigma$}
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash \emptyset_{specs} \Rightarrow_{specs} \emptyset_{sig}}
+{\strut}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash spec,specs \Rightarrow_{specs} \Sigma'\Sigma''}
+{\Gamma,\Upsilon,\Sigma\vdash spec \Rightarrow_{spec} \Sigma' \qquad \Gamma,\Upsilon,\Sigma\Sigma'\vdash specs \Rightarrow_{specs} \Sigma''}
+\label{eq:specs}
+\end{equation}
+
+}
+\caption{Signature elaboration}
+\label{fig:elabsig}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+	~\\[2mm]
+	\fbox{$\Gamma, \Upsilon, \Sigma \vdash spec \Rightarrow_{spec} \Sigma'$}
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash\textbf{type
+                  }\vec{\alpha}~t\Rightarrow_{spec} [t\mapsto (\rho,|\vec{\alpha}|)]}
+{(\rho\textrm{ fresh in }\Gamma\textrm{ and
+                  }\Upsilon)} 
+\end{equation}
+% Do we need to extend the static environment during elaboration of
+% the subsequent specs? The only reason we might need to is to support
+% relativization. I think we have to. 
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash\textbf{type }t=C^\lambda\Rightarrow_{spec} [t\mapsto \mathbb{C}^\lambda]}
+{\Gamma,\Upsilon\vdash C^\lambda \Rightarrow_{tyc} \mathfrak{C}^\lambda\qquad \Upsilon,\Sigma\vdash \mathfrak{C}^\lambda \searrow^{tyc}
+ \mathbb{C}^\lambda}
+\label{eq:typedefspec}
+\end{equation}
+
+\begin{equation}
+              \infer{\Gamma,\Upsilon,\Sigma\vdash\textbf{val }x:T
+                 \Rightarrow_{spec} [x\mapsto\mathbb{T}]}
+{\Gamma,\Upsilon\vdash T \Rightarrow_{te} \mathfrak{T}\qquad \Upsilon,\Sigma\vdash \mathfrak{T} \searrow^{tyc} \mathbb{T}}
+\label{eq:valspec}
+\end{equation}
+
+\begin{equation}
+\infer{\begin{array}{c}
+    \Gamma,\Upsilon,\Sigma\vdash\textbf{structure }x :
+                  sigexp
+                  \Rightarrow_{spec} [x\mapsto
+                  (\rho,\Sigma')]
+\end{array}}
+		{\begin{array}{c}
+                    \Gamma,\Upsilon,\Sigma\vdash sigexp
+                    \Rightarrow_{sig}
+                    \Sigma'\qquad
+                    (\rho~\textrm{fresh in }\Gamma\textrm{ and
+                    }\Upsilon) 
+              \end{array}}
+\end{equation}
+
+\begin{equation}
+\infer{\begin{array}{c}
+\Gamma,\Upsilon,\Sigma\vdash\textbf{functor }f(X: sigexp_1):sigexp_2\\
+   \Rightarrow_{spec} [f\mapsto(\rho,\Pi\rho_x:\Sigma_1.\Sigma_2)]
+\end{array}}
+		{\begin{array}{c}
+\Gamma,\Upsilon,\Sigma\vdash sigexp_1 \Rightarrow_{sig}
+\Sigma_1 \qquad
+(\rho_x\textrm{ and }\rho~\textrm{fresh in }\Gamma\textrm{ and }\Upsilon )\\
+\Gamma,\Upsilon,\Sigma[X\mapsto(\rho_x,\Sigma_1)]\vdash
+sigexp_2 \Rightarrow_{sig} \Sigma_2\\
+% \qquad \psi=\langle\lambda\rho_x.\Sigma_2 ;
+%  \Upsilon\rangle % [4/8/10] Is this the correct closure environment? Can \Sigma_2 mention local entities? Yes, but those are local, therefore, they should be interpreted locally and not by the closure, which only interpret nonlocal entities.  
+\end{array}}
+\label{eq:fctspec}
+\end{equation}
+
+	}
+	\caption{Signature spec elaboration}
+	\label{fig:elabspec}
+\end{figure}

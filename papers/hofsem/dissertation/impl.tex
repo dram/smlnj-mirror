@@ -1,0 +1,35 @@
+%!TEX root = main.tex
+
+\chapter{Implementation in SML/NJ}\label{ch:impl}
+
+The semantics in this dissertation departs from the implementation (as
+of SML/NJ 110.70) in
+SML/NJ in a number of significant ways. Whereas the THO semantics
+constructs entity expressions for all module expressions, SML/NJ
+distinguishes between expressions based on whether they are inside a
+functor. For those expressions outside of a functor, no entity
+expression needs to be constructed since all tycons including
+datatypes are nonvolatile because they have a single, fixed
+instantiation. SML/NJ's distinction between volatile and nonvolatile
+contexts (\ie, in functor or outside) is an optimization that skips
+the construction of entity expressions during elaboration of all
+expressions outside of any functor. 
+
+A major difference is how relativization is performed. SML/NJ uses a
+construct called the \emph{entity path context} to memoize the inverse
+lookup of the entity environment for the canonical entity path to a
+given entity. The entity path context must be threaded through the
+entire elaboration process and complicates the elaboration process. 
+ 
+For structure entities, SML/NJ assigns each a stamp to optimize
+equality checks. In SML90, this stamp was used to implement structure
+sharing, but the post-SML97 versions only use the stamp as a shortcut
+during typechecking. Because SML/NJ supports sharing type constraints, signature
+instantiation is more involved. It must resolve all sharing, which it
+does using an algorithm adapted from the Patterson-Wegman linear unification algorithm \cite{PattersonWegman}.
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

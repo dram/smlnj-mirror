@@ -1,0 +1,56 @@
+
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+        ~\\[2mm]
+
+        \fbox{$E\vdash c :: k$}
+          \begin{equation}
+              \infer{E\vdash \alpha :: E(\alpha)}
+              {\strut}
+              \label{eq:f-k-var}
+          \end{equation}
+
+          \begin{equation}
+              \infer{E \vdash \inj(\tau^n) :: \Omega_1 \to \ldots \Omega_n \to \Omega}
+              {\strut}
+              \label{eq:f-k-at}
+          \end{equation}
+
+          \begin{equation}
+              \infer{E \vdash \newx(n) :: \Omega_1 \to \ldots \Omega_n
+                \to \Omega}
+              {\strut}
+              \label{eq:f-k-new}
+          \end{equation}
+
+          \begin{equation}
+              \infer{E \vdash (\lambda\alpha::k.c) :: k \to k'}
+              {E[\alpha::k]\vdash c :: k'}
+              \label{eq:f-k-lam}
+          \end{equation}
+
+          \begin{equation}
+              \infer{E \vdash c_1(c_2) :: k_2}
+              {E\vdash c_1 :: k_1 \to k_2\qquad E\vdash c_2 :: k_1}
+              \label{eq:f-k-app}
+           \end{equation}
+
+           \begin{equation}
+             \infer{E \vdash \{l_1=c_1,\ldots,l_n=c_n\} 
+               :: \{l_1::k_1,\ldots,l_n::k_n\}}
+             {E\vdash c_1::k_1\ldots E\vdash c_n::k_n}
+             \label{eq:f-k-rec}
+           \end{equation}
+
+           \begin{equation}
+             \infer{E\vdash c.l :: k}
+             {E\vdash c :: \{lks\}\qquad l::k\in\{lks\}}
+             \label{eq:f-k-proj}
+           \end{equation}
+            
+        }
+        \caption{F$_\omega$ well-kinding}
+        \label{fig:fomega-kinding}
+\end{figure}

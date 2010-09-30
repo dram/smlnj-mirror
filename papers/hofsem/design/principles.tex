@@ -1,0 +1,215 @@
+\documentclass[9pt]{sigplanconf}
+\usepackage{cite} % sort citations 
+\usepackage{amsmath,xspace,aux/math-envs,aux/math-cmds,aux/code,aux/proof,stmaryrd}
+\input{aux/code}
+\input{aux/mac}
+\input{aux/defs}
+\input{syntax}
+
+\bibliographystyle{plain}
+
+\begin{document}
+	\permission{\copyright ACM, 2008. http://doi.acm.org/10.1145/nnnnnn.nnnnnn}
+	%\conferenceinfo{ML'07,} {October 5, 2007, Freiburg, Germany.}
+	\CopyrightYear{2008}
+	\copyrightdata{978-1-59593-676-9/07/0010}
+	
+\title{Principles for an Extensible Module System}
+\authorinfo{}{University of Chicago}{}
+\maketitle
+
+\begin{abstract}
+The ML module system has inspired a series of formalism describing the workings and mechanisms of variations. These formalisms are quite varied and run the gamut from Leroy's presentation based on syntactic mechanisms alone, to Harper-Lillibridge and Dreyer-Crary-Harper's type-theoretic approach, to the elaboration semantics approach as represented by the Definition. 	
+\end{abstract}
+
+\category{D.3.1}{Programming Languages}{Formal Definitions and Theory}
+\category{D.3.3}{Programming Languages}{Language Constructs and Features}[Abstract data types, Modules] 
+\category{F.3.3}{Logics and Meanings of Programs}{Studies of Program Constructs}[Type structure]
+
+\terms 
+Languages, Theory
+
+\keywords
+modularity, translucent sum, singleton types, type theory, elaboration semantics, abstract data types, functors, generativity
+
+{
+\section{Outline}
+\begin{enumerate}
+	\item ML module system is powerful because:
+	\begin{enumerate}
+		\item functors can be typechecked independent of functor applications
+		\item enforces type abstraction by opaque ascription
+		\item hierarchical modularity
+		\item higher-order functors
+		\item type definitions
+	\end{enumerate}
+	\item Background
+	\begin{enumerate}
+		\item Modular module\cite{leroy00} provides a syntactic model 
+		\begin{enumerate}
+			\item Functorized over core language syntax and typechecker
+			\item Core language must be aware of paths
+			\item functor can only be applied to rooted path (can be extended to anonymous argument module if parameter dependency in the result signature can be reduced away)
+			\item Because notion of core language (especially types) is abstract, the system is not easily extensible to richly typed languages. 
+			\item Does not support shadowing in core language declarations. Shadowing would fundamentally break syntactic notion of opaque ascription. 
+		\end{enumerate}
+		\item Definition \cite{mthm97} provides a semantic approach
+		\item Harper-Lillibridge\cite{lillibridge94}, Dreyer-Crary-Harper\cite{dhc03} provide a type theoretic model
+		\begin{enumerate}
+			\item purity
+			\item totality/partiality
+			\item static vs. dynamic effects; strong and weak sealing
+			\item comparability and projectibility
+		\end{enumerate}
+		\item Harper-Pierce \cite{ATTAPL} provides high-level design principles and issues
+		\begin{enumerate}
+			\item sharing type constraints cannot always be expanded out as claimed by Pierce-Harper. Symmetric constraints are necessary in the absence of an ability for type definitions to reference their enclosing signatures and thus specifications that come after the type definition in question. 
+			\item determinacy versus static/dynamic
+			\item first-class modules
+			\item In Stone, full signatures are called ``very precise'' versus abstract; he argues that the avoidance problem is one reason why translucent sums do not have full signatures (most precise); also that restricting all programs to Leroy's named form guarantees the existence of ``most-specific'' interfaces. This terminology leads to the term ``natural interface'' -- the most precise interface that can be computed without appealing to strengthening (M-SELF). 
+		\end{enumerate}
+		\item Treatments of first-class modules
+		\begin{enumerate}
+			\item Harper-Lillibridge
+			\item Russo \cite{russo00}
+			\item Dreyer-Crary-Harper
+		\end{enumerate}
+		\item Leroy \cite{Leroy-generativity} gives a module system where type generativity and SML90-style definitional sharing = path equivalence + A-normalization (for functor applications) + S-normalization (a consolidation of sharing constraints). Leroy shows that a module system with generative datatypes (but no constructors), sharing between type paths, and abstract type specifications can be expressed in terms of a module system with generative datatypes and manifest types. Leroy's simplified module system does not include value specifications and datatype constructors both of which can constrain the order in which specifications must be written in and therefore result in situations where sharing constraints cannot be in general reduced to manifest types. 
+	\end{enumerate}
+	\item Design space: Propagation of types 
+	\begin{enumerate}
+		\item Primarily through functor application
+		\item Shao fully transparent signature calculus
+		\item SML90 - only explicit sharing equations and structure (identity) sharing 
+		\item SML93 - plus definitional sharing
+		\item SML97 - plus where type and definitional specs; structure identity sharing eliminated
+		\item existential types, dependent sums, translucent sums, singleton kinds/signatures, Shao flexroot
+	\end{enumerate}
+	\item Key problem in modularity: modularizing types and their interpretations
+	\begin{enumerate}
+		\item Example: Symbol table versus Ord
+		\item type class an imperfect solution because limits interpretation to a single instance and the type to only generative nonstructured types (i.e., datatypes)
+		\item applicative functors imperfect because they permit too much sharing
+		\item constructors of higher kind
+		\item relationship to expression problem?
+	\end{enumerate}
+	\item True higher-order functors (MacQueen-Tofte 94) -- {\bf full transparency}
+	\begin{enumerate}
+		\item functor parameter type information should be propagated through functor application; in other words, should transparent signature matching semantics carry over to higher-order functor setting?
+		\item Shao \cite{shao98} cites optimal propagation of types (ensuring that inlined and separately compiled modules receive the same typing) as a benefit of full transparency
+		\item \begin{verbatim}
+			signature FPS = sig type t end
+			signature FRS = sig type t end
+			structure M = struct type t = int end
+			functor F(X: FPS): FRS = 
+			  struct type t = X.t end
+			functor G(functor F(X: FPS):FRS) = 
+			  struct structure R = F(M) end
+		\end{verbatim}
+		\item \verb|t = int| should propagate through the HO functor application to \verb|G(F).R|
+		\item type definitions in signatures insufficient because not all parameter functor F's will propagate this type information
+		\item MacQueen-Tofte 94 appears to be the only module system that accounts for this class of type sharing
+		\item Unfortunately, this feature apparently conflicts with separate compilation as noted by Dreyer-Crary-Harper \cite{dhc03}
+		\item Primary criticism of stamp-based operational semantics is the difficulty of extending such a semantics
+		\item The MT94 semantics also stratifies the stamp computation in the peculiar way 
+		\item Shao \cite{shao99} offers an alternative example for fully transparent higher-order functors\\
+		\begin{verbatim}
+			signature S = sig type t val x : t end
+			funsig FS = fsig (X:S): S
+			structure S = struct type t=int val x=1 end
+			functor F1(X:S) = struct type t=X.t val x=X.x end
+			functor F2(X:S) = struct type t=int val x=1 end
+			functor APPS(F:FS) = F(S)
+			structure R = 
+			  struct structure R1 = APPS(F1)
+				 structure R2 = APPS(F2)
+				 val res = (R1.x = R2.x)
+			  end
+		\end{verbatim}
+		\item Shao offers a signature language based on gathering all flexible components in a higher-order type constructor that can be applied to obtain the fully transparent signature at a later point. The resultant signature language superficially resembles applicative functors. However, applications in the signature language must be on paths. Consequently, it does not address fully transparency in the general case. 
+		\item Shao \cite{shao98} extends MacQueen-Tofte fully transparency modules with support for type definitions, type sharing (normalized into type definitions), and hidden module components. 
+	\end{enumerate}
+	\item Extending modules to support signature bindings as components
+	\begin{enumerate}
+		\item In ML modules, structures can be arranged in a hierarchy. This feature enables flexible namespace management. In contrast, signatures cannot be arranged in such a hierarchy. In the ML module system, signatures must be defined at the top-level and can never be enclosed in any other signature or module. For complex hierarchies such the SML/NJ's Control module that contains layers of submodules, the corresponding signature CONTROL and the signatures of the submodules PRINT and ELAB are related only incidentally by occurrence in structure specifications in CONTROL. This shortcoming in the signature language unnecessarily pollutes the signature namespace and complicates browsing through and working with highly nested hierarchies. It would be desirable to permit (transparent) signature specifications within signatures. For added flexibility and perhaps increased expressiveness, it may be useful permit signature definitions within structures and functors. Furthermore, in order for modules to match these signatures enriched with signature specifications, modules must permit corresponding signature definitions. 
+		\item Leroy \cite{leroy94} offers an example that introducing signature bindings into structures would add polymorphic modules and F$_\omega$-like type operators. In particular, he offers 
+		\begin{verbatim}
+			functor(x: sig signature X end) (m{x.X/X})
+		\end{verbatim}
+		as an encoding of $\Lambda X.m$
+		\item Swasey \cite{swasey06} and Leroy \cite{leroy94} both cite Harper Lillibridge's proof of the undecidability of $\lambda^{\rightarrow,\exists,\exists=}$ as reason for their skepticism that such a feature can be added to a module system without breaking type-checking
+		\item Harper and Lillibridge's proof establishes that in a type calculus with opaque and binary sums, subtyping is undecidable in the presence of a Forget rule that forgets transparency. The example they use is a subtyping relation on transparent and opaque sums containing a type constructor with a contravariant subtyping rule such as $T\rightarrow \alpha'$
+		\item Adding signature components does not necessarily provide parametric polymorphism in the style of System F because functor application uses coercive subtyping 
+	\end{enumerate}
+	\item Polymorphism and modules
+	\begin{enumerate}
+		\item Interaction with Hindley-Milner polymorphism in core language
+		\item Moscow ML's first-class modules provides first-class polymorphism
+		\item Example: polymorphic data structures, continuation monad \cite{kahrs94}
+	\end{enumerate}
+	\item Claim: Instantiation is an analysis process that can detect cyclic sharing and other behaviors that may result in an unrealizable signature (though certainly not all behaviors)
+\end{enumerate}	
+
+The key observation in Leroy's syntactic presentation of a module system is that we can check a sense of type equality by comparing rooted paths that uniquely determine type identity. Unfortunately, this technique suffers from the inability to support core and module language level shadowing of bindings. 
+ 
+True separate compilation poses an interesting challenge in the ML module system. In order to have true separate compilation, the surface signature language must be able to express the full signature of all structures and functors. Even in a module language that only supports first-order functors, this requirement proves to be a problem because the signature language would be unable to express generative types in the body of a functor. Generative types in the body of a functor do not have externally expressible names prior to functor application. 
+
+\begin{figure}
+	\tiny
+\begin{tabular}{|l|l|l|l|l|l|l|l|}
+	\hline
+System & higher-order & first-class & sep comp & rec mod & app fct & gen & phase sep\\
+	\hline
+	HL \cite{lillibridge94} & & \checkmark & & & & \\
+	\hline
+	Leroy 94 & & & & & & \\
+	\hline
+	Russo \cite{russo01} & & \checkmark & & \checkmark & & \\
+	\hline
+	DCH (\cite{dhc03}) & & & & & & \\
+	\hline
+	RTG (\cite{dreyer05}) & & & & & & \\
+	\hline
+	$\lambda^{\llparenthesis~\rrparenthesis}$ (\cite{ATTAPL}) & & & & & & \\
+	\hline
+	$\lambda^S$ (\cite{ATTAPL}) & & N & & N & N & N \\
+	\hline
+	MT94 (\cite{mt94}) & \checkmark & & & & & \checkmark & \checkmark \\
+	\hline
+\end{tabular}
+\end{figure}
+%Would a completely nondependent module calculus work? More to the point, signature specs may depend on module terms, but is there a way to avoid this kind of dependence? 
+
+\input{figs/fig-njmod}
+\input{figs/fig-statsem}
+\input{figs/fig-rlzn}
+\input{figs/fig-evalent}
+\input{figs/fig-eval-fctent}
+ \input{figs/fig-entdec}
+\input{figs/fig-elabsig}
+\input{figs/fig-elabmod}
+\input{figs/fig-elabtyc}
+\input{figs/fig-extractsig}
+
+\section{Comparison to MacQueen-Tofte}
+In MacQueen-Tofte, signatures support higher-order functors by including a functor signature environment, denoted $\Phi$, that maps functor maps to functor signatures. Because functor signature components may depend on specifications that came earlier in the enclosing structure signature, the system introduces a binding $\lambda\rho$ that binds $\rho$, the entity variable representing the entire enclosing structure signature. 
+
+The MT structure signatures require this $\lambda\rho$ binding because they incorporate functor signature environments indexed by functor paths, $\Phi$. Without the $\lambda\rho$-binding, $\Phi$ cannot depend on entities in the enclosing signatures. Structure matching first looks up all $fp$s in $\Phi$ and then attempts to match the static functor with $\Phi[\varphi/\rho]$.
+
+In contrast, in the current language, SML/NJ no longer permits nonlocal forms of sharing of the flavor illustrated in the example in the MT94 paper. Instead, structure definitions can express the same sharing. Signature specifications contain the signatures and realizations for structure definitions ({\it i.e.}, $\rho,\Sigma=\Sigma$ and $\rho,\Sigma=_{\overline{\rho}} \Sigma$) at the point of structure signature matching. These definition structure signatures and realizations are filled in during signature elaboration by looking up the static environment and entity path context.  
+
+\input{primarycomp}
+
+\section{Relationship to Harper-Stone Semantics}
+
+\input{siglang}
+
+\section{FLINT Compilation}
+The goal of FLINT compilation was to enable all type-based optimizations to work across module boundaries by compiling the module calculus into System F. 
+
+\input{figs/fig-nrc.tex}
+\input{figs/fig-tgc.tex}
+}
+
+\bibliography{modules}
+\end{document}

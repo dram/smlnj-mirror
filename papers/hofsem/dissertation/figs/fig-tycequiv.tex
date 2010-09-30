@@ -1,0 +1,53 @@
+
+\begin{figure}
+\centering
+\small
+\fixedCodeFrame{
+~\\[0.5mm]
+\begin{equation}
+\infer{\Upsilon\vdash \mathbb{C}^s_1 \equiv \mathbb{C}^s_2}
+{\Upsilon(\mathbb{C}^s_1) \Downarrow_{mt} \mathfrak{C}^{nf}_1\qquad
+  \Upsilon(\mathbb{C}^s_2) \Downarrow_{mt} \mathfrak{C}^{nf}_2\qquad
+  \mathfrak{C}^{nf}_1 \equiv_\alpha \mathfrak{C}^{nf}_2 }
+\label{eq:mtequiv}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash \lambda\vec{\alpha}.\mathbb{C}^s_1 \equiv \lambda\vec{\beta}.\mathbb{C}^s_2}
+{\begin{array}{c}
+|\vec{\alpha}|=|\vec{\beta}|\qquad \Upsilon\vdash \mathbb{C}^s_1
+\equiv \{\vec{\alpha}/\vec{\beta}\}\mathbb{C}^s_2 
+\end{array}}
+\label{eq:tcequiv}
+\end{equation}
+}
+\caption{Monotype and tycon equivalence}
+\label{fig:mt-tyc-equiv}
+\end{figure}
+
+\begin{figure}
+\centering
+\small
+\fixedCodeFrame{
+~\\[0.5mm]
+\fbox{$\Upsilon\vdash \mathbb{T}_1 \equiv \mathbb{T}_2$}
+
+\begin{equation}
+\infer{\Upsilon\vdash \mathsf{typ}(\mathbb{C}^s_1) 
+  \equiv \mathsf{typ}(\mathbb{C}^s_2)}
+{\Upsilon\vdash \mathbb{C}^s_1 \equiv \mathbb{C}^s_2}
+\label{eq:teequiv-typ}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash \forall\vec{\alpha}.\mathbb{C}^s_1 
+  \equiv \forall\vec{\beta}.\mathbb{C}^s_2}
+{|\vec{\alpha}|=|\vec{\beta}|\qquad\Upsilon\vdash\mathbb{C}^s_1 \equiv
+\{\vec{\alpha}/\vec{\beta}\}\mathbb{C}^s_2}
+\label{eq:teequiv-forall}
+\end{equation}
+}
+\caption{Type expression equivalence}
+\label{fig:typeequiv}
+\end{figure}
+

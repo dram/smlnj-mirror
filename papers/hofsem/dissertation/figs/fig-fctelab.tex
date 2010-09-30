@@ -1,0 +1,45 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Gamma,\Upsilon\vdash fctexp \Rightarrow_{fct} (F, \theta, \Upsilon^{lcl})$}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon\vdash p \Rightarrow_{fct} (F, \vec{\rho}, \Upsilon')}
+{\Gamma(p) = (\vec{\rho}, F)\qquad F= (\Sigma^f, \langle\theta; \Upsilon'\rangle)}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon\vdash \mathbf{functor}(X:sigexp)=strexp \Rightarrow_{fct} (F, \theta, \emptyset_{ee})}
+{\begin{array}{c}
+  \Gamma,\Upsilon,\emptyset_{sig} \vdash sigexp \Rightarrow_{sig}
+  \Sigma_{par}\qquad
+  \Upsilon\vdash\Sigma_{par}\uparrow\Upsilon_{par}\\
+ \Gamma' = \Gamma[X\mapsto(\rho_x,(\Sigma_{par},\langle\Upsilon_{par},\Upsilon\rangle))] \\
+ \Gamma',\Upsilon[\rho_x\mapsto\Upsilon_{par}]
+  \vdash strexp \Rightarrow_{str}
+  (M_{res},\varphi_{res},\Upsilon^{lcl}_{res})\\
+  M_{res} = (\rho_{res}, \Sigma_{res},\Upsilon_{res})\qquad
+  \psi = \langle\lambda\rho_x.\varphi_{res};\Upsilon\rangle\\
+  F = (\Pi(X:\Sigma_{par}).\Sigma_{res}, \psi)
+ \end{array}}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon\vdash \mathbf{letfct}~decs~\mathbf{in}~fctexp \Rightarrow_{fct} ( F, \theta, \Upsilon_{def}\Upsilon^{lcl}_{body}) }
+{\begin{array}{c}
+\Gamma,\Upsilon\vdash
+decs\Rightarrow_{decl}(\eta_{def},\Gamma_{def},\Upsilon_{def})\\
+\Gamma\Gamma_{def},\Upsilon\Upsilon_{def}\vdash fctexp
+\Rightarrow_{fct} (F, \varphi_{body},
+\Upsilon^{lcl}_{body})\\
+\theta = \mathbf{let}~\eta_{def}~\mathbf{in}~\varphi_{body}\\
+\end{array}}
+\end{equation}
+}
+\caption{Functor elaboration}
+\label{fig:fctelab}
+\end{figure}

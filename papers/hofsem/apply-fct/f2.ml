@@ -1,0 +1,1 @@
+module f2 = functor (X:SIG) -> struct type t = int val x = 1 end

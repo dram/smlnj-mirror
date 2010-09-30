@@ -1,0 +1,5 @@
+\beamer@endinputifotherversion {3.07pt}
+\beamer@sectionintoc {1}{Type of a Structure}{17}{0}{1}
+\beamer@sectionintoc {2}{Entity Calculus}{31}{0}{2}
+\beamer@sectionintoc {3}{Elaboration}{46}{0}{3}
+\beamer@sectionintoc {4}{Soundness}{64}{0}{4}

@@ -1,0 +1,114 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Upsilon,\Sigma_a,\rho_u\vdash \Sigma_s \Rightarrow_{coerce}
+  (\Upsilon', \eta)$}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma_a, \rho_a \vdash
+  \emptyset_{sig} \Rightarrow_{coerce} (\emptyset_{ee}, \bullet)}
+{\strut}
+\label{eq:coerceempty}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma_a, \rho_a \vdash [x\mapsto
+  \mathbb{T}]\Sigma_s \Rightarrow_{coerce} (\Upsilon', \eta)}
+{\begin{array}{c}
+\Upsilon \vdash \Sigma_a(x) \equiv \mathbb{T}\\
+\Upsilon ,\Sigma_a, \rho_a \vdash \Sigma_s  \Rightarrow_{coerce}
+(\Upsilon', \eta)
+\end{array}}
+\label{eq:coerceval}
+\end{equation}
+
+
+\begin{equation}
+\infer{\begin{array}{c}
+\Upsilon,\Sigma_a,\rho_u\vdash 
+  [t\mapsto(\rho, n)]\Sigma_s\\
+ \Rightarrow_{coerce}
+ ([\rho\mapsto\Upsilon(\rho_a)]\Upsilon',[\rho=_{def}\rho_u\rho_a]\eta)
+\end{array}}
+{\begin{array}{c}
+\Sigma_a(t) = (\rho_a, n')\qquad
+\Upsilon, \Sigma_a, \rho_a \vdash \Sigma_s
+  \Rightarrow_{coerce} (\Upsilon',\eta)\qquad n = n'
+  \end{array}
+}
+\label{eq:coerceopen}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma_a,\rho_u\vdash
+  [t\mapsto(\rho,n)]\Sigma_s 
+  \Rightarrow_{coerce} ( 
+  [\rho\mapsto\mathfrak{C}^\lambda]\Upsilon', [\rho=_{def}\mathbb{C}^\lambda]\eta)}
+{\begin{array}{c}
+\Sigma_a(t) = \mathbb{C}^\lambda\qquad |\mathbb{C}^\lambda| = n\qquad \Upsilon\vdash \mathbb{C}^\lambda = \mathfrak{C}^\lambda\\
+\Upsilon, \Sigma_a, \rho_u \vdash \Sigma_s \Rightarrow_{coerce} (\Upsilon', \eta)
+\end{array}}
+\label{eq:coerceopenwithdef}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma_a,\rho_u \vdash [t\mapsto\mathbb{C}^{\lambda}_s]
+  \Sigma_s \Rightarrow_{coerce} (\Upsilon',\eta)}
+{\begin{array}{c}
+\Sigma_a(t) = 
+\mathbb{C}^{\lambda}_a\qquad
+\Upsilon \vdash \mathbb{C}^{\lambda}_a \equiv \mathbb{C}^{\lambda}_s \\
+\Upsilon,\Sigma_a,\rho_u \vdash \Sigma_s
+\Rightarrow_{coerce} (\Upsilon',\eta)
+\end{array}}
+\label{eq:coercedefdef}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma_a,\rho_u \vdash [t\mapsto\mathbb{C}^{\lambda}_s]
+  \Sigma_s \Rightarrow_{coerce} (\Upsilon',\eta)}
+{\begin{array}{c}
+\Sigma_a(t) = (\rho,n)\qquad
+n=|\mathbb{C}^{\lambda}_s|\qquad\Upsilon\vdash\mathbb{C}^\lambda_s\equiv\Upsilon(\rho) \\
+\Upsilon,\Sigma_a,\rho_u \vdash \Sigma_s
+\Rightarrow_{coerce} (\Upsilon',\eta)
+\end{array}}
+\label{eq:coercedefwithdt}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma_a,\rho_u \vdash
+  [x\mapsto (\rho_s,\Sigma_s)]\Sigma_s \Rightarrow_{coerce}
+  (\Upsilon',[\rho_s = \varphi_c]\eta' )}
+{\begin{array}{c}
+\Sigma_a(x) = (\rho_x,\Sigma_x)\\
+\Upsilon\vdash ((\Sigma_x, \Upsilon(\rho_x)), \rho_u\rho_x) : 
+\Sigma_s \Rightarrow_{match} ((\Sigma_{c},R_{c}), \varphi_c)\\
+\Upsilon[\rho_s\mapsto R_c],\Sigma_a,\rho_u\vdash \Sigma_s \Rightarrow_{coerce}
+(\Upsilon',\eta')
+\end{array}}
+\label{eq:coercestr}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma_a,\rho_u \vdash
+  [f\mapsto(\rho_s,\Sigma^f_s)]\Sigma_s \Rightarrow_{coerce}
+  ([\rho_s \mapsto \psi_c]\Upsilon',[\rho_s = \theta_c]\eta)}
+{\begin{array}{c}
+\Sigma_a(f) = (\rho_a,\Sigma^f_a)\\ \Upsilon \vdash
+((\Sigma^f_a, \Upsilon(\rho_a)),  \rho_u\rho_a ) : \Sigma^f_s
+\Rightarrow_{fsgmtch} (\psi_c, \theta_c)\\
+\Upsilon[\rho_s\mapsto \psi_c],\Sigma_a,\rho_u\vdash \Sigma_s
+\Rightarrow_{coerce} (\Upsilon',\eta)\\
+\end{array}
+}
+\label{eq:coercefct}
+\end{equation}
+}
+\caption{Structure signature matching}
+\label{fig:specmtch}
+\end{figure}

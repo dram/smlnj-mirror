@@ -1,0 +1,76 @@
+Shao
+Transparent Modules with Fully Syntactic Signatures [ICFP 99]
+
+Sec 1.2.
+Definitions of terms given as design disiderata.
+
+(a) fully syntactic signatures: the interface between separate parts (components) of a program must be explicitly expressible in the syntactic signature language. With respect to functors imported into a component, this means that the complete static information needed to compile uses of that functor is provided by an explicit signature for the functor. 
+
+  -- so precisely what static information is required for the use of a higher-order functor like Apply?
+     Does it need to express how the static action of the argument functor affects the result?
+     If not, then the result becomes independent of the static action of the argument, and therefore
+     presumably "abstract".  This will contradict (c) below.
+
+(b) simple, type-theoretic semantics. This usually implies that types are viewed as syntactic, or
+    syntax driven. Type theoretic implies declarative and state-free.
+
+  -- This makes it hard to deal with "static effects" such as the creation of new types (generativity).
+     Workarounds like existential type quantifiers (and their scope extrusion) put this phenomenon off
+     onto implicit alpha-conversion, where new types are identified with existentially quantified type
+     variables and alpha-conversion is appealed to make sure they don't get confused with "old" types.
+
+(c) fully transparent higher-order functors: "higher-order functors should be a \emph{natural} extension of 
+    first-order ones".  We can interpret this to mean that the static semantics of functor application
+    agrees with the "natural" beta-reduction model, where the static behavior of an argument functor
+    is substituted for the argument variable in the body, as though the body itself were instantiated
+    by substitution of its argument modules (beta-reduction).
+
+  -- The difficulty is trying to reconcile this natural static semantics with (a) and (b) in the case
+     of higher-order functors.
+
+(d) opaque types and signatures: This means that type abstraction should be supported by a form of
+    opaque signature ascription. The obvious effect of this is that the types exported from such an
+    ascription are new, freshly generated types. This means we need to model tycon generation even
+    if the core language has only "derived/defineable" types.
+
+(e) efficient elaboration and implementation. This means that the semantics must be "simple" enough
+    to have a reasonably straightforward and efficient implementation. It should also be the case
+    that the algorithms embodied in the implementation should be sufficiently "transparent" that the
+    static behavior of the elaborator is not mysterious to the programmer.
+
+------------------
+Comment: I claim that the goals (a), (b), and (c) are inherently contradictory. It is not possible
+to capture the natural, beta-reduction based static semantics in a "type-theoretic" framework with
+signatures that capture the higher-order functor behaviors.  At least without incorporating the
+full static calculus that accounts for the definition, generation, and propagation of tycons into
+the signature language and having the signatures reiterate the static guts of the modules they
+characterize.
+
+This is analagous to having function types that are expressive enough to make it possible to compute
+the value of a function from its type alone.
+
+
+------------------ 
+Terminology note: In a simple type system we have a set of primitive constructors and all types are
+definable in terms of those primitives. That is, any new type name is just an abbreviation for a
+term built out of primities (and possibly simple kinded lambda abstraction). If lambda abstraction
+and corresponding application is part of the system, we assume that all type expressions reduce to
+normal forms involving only the primitives (and it is these normal forms that are used to determine
+type equivalence).
+
+The defined types in such a system can be called "defined" or "derived" or "abbreviations". Their use
+can always be eliminated by substituting their definitions (and possibly beta reducing, if they are
+non-nullary). Lets settle on "derived" as the terminology of choice.
+
+If the type system is enriched with constructs for generating fresh atomic tycons, the terminology
+extends naturally: a derived tycon is definable in terms of primitives and generated tycons and
+can be eliminated by replacement by its defining expression.
+
+This terminology is related to our terminology of "primary" and "secondary" tycons, though the
+latter terms were originally introduced to make distictions between "abstract" and "transparent"
+tycon specs in signatures. A primary tycon in that context is a generated, atomic tycon, and
+a secondary tycon is derived (or defined) in terms of primary tycons and primitive tycons.
+------------------
+
+
+

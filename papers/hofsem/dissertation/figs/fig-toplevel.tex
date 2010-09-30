@@ -1,0 +1,33 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+
+\fbox{$\Gamma,\Upsilon\vdash^{top} d^t~\mathsf{ok}$}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon\vdash^{top} \circ~\mathsf{ok}}
+{\strut}
+\label{eq:topempty}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon\vdash^{top} \mathbf{signature}~x=sigexp,d^t~\mathsf{ok} }
+{\Gamma,\Upsilon,\emptyset_{sig}\vdash sigexp \Rightarrow_{sig}
+  \Sigma\qquad \Gamma[x\mapsto\Sigma],\Upsilon\vdash^{top} d^t~\mathsf{ok} }
+\label{eq:sigdec}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon\vdash^{top} d^m, d^t~\mathsf{ok} }
+{\Gamma,\Upsilon\vdash d^m \Rightarrow_{decl}
+  (\eta,\Gamma',\Upsilon')\qquad \Gamma',\Upsilon'\vdash^{top} d^t~\mathsf{ok} }
+\label{eq:topmoddec}
+\end{equation}
+}
+\caption{Top level declarations}
+\label{fig:toplevel}
+\end{figure}

@@ -1,0 +1,34 @@
+%!TEX root = ../main.tex
+
+\begin{figure}
+\hrule
+\[
+\begin{array}{lrcl}
+\textrm{Core declarations} & d^c & ::= & \mathsf{val}~
+x=e~|~\mathsf{type}~t=C^\lambda~|~\mathsf{datatype}~\vec{\alpha}~t\\
+        & spec & ::= & \mathsf{structure}~x :
+        sigexp~|~\mathsf{type}~\vec{\alpha}~t\\
+        & & ~~| & \mathsf{type}~t = C^\lambda\\ 
+	& & ~~| & \mathsf{functor}~f(x:sigexp_1) : sigexp_2\\
+        & & ~~| & \mathsf{val}~x:T\\
+        & specs & ::= & \emptyset_{specs}~|~spec, specs\\
+	& sigexp & ::= &
+        x~|~\mathsf{sig}~spec~\mathsf{end}~|~sigexp~\mathsf{where~
+          type}~p=C^\lambda\\
+%        & & ~~| & sigexp~\mathsf{where}~p_1=p_2\\
+	& strexp & ::= & p~|~\mathsf{struct} ~d^m~\mathsf{end}
+        ~|~p(strexp)\\
+        & & ~~| & strexp:sigexp~|~strexp:>sigexp\\
+\textrm{Module decls}	& d^m & ::= & \circ~|~\mathsf{structure}~x = strexp,
+d^m\\
+       & & ~~| & \mathsf{functor}
+       ~f(x:sigexp)=strexp, d^m~|~d^c, d^m\\
+\textrm{Top level decls} & d^t & ::= & \circ~|~\mathbf{signature}~x=sigexp,d^t~|~d^m,d^t
+
+\end{array}
+\]
+\hrule
+\caption{Surface module language}
+\label{fig:modlang}
+\end{figure}
+

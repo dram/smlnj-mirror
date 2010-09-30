@@ -1,0 +1,767 @@
+\documentclass{beamer}
+\usepackage{listings,amsmath,../../design/aux/proof}
+\usepackage{pgf,pgfarrows,pgfnodes,tikz}
+
+%\input{../../design/syntax}
+
+\newcommand{\letx}{\ensuremath{\mathsf{let}}}
+\newcommand{\lettycline}[2]{\ensuremath{\begin{array}{l}
+\mathsf{let~tyc}~#1\\\mathsf{in}~#2\end{array}}}
+\newcommand{\tyc}{\ensuremath{\mathsf{tyc}}}
+\newcommand{\inx}{\ensuremath{\mathsf{in}}}
+\newcommand{\inlet}{\ensuremath{\mathsf{in~let}}}
+\newcommand{\letin}[2]{\ensuremath{\mathsf{let}~#1~\mathsf{in}~#2}}
+\newcommand{\newx}{\ensuremath{\mathsf{new}}}
+\newcommand{\chk}{\ding{51}}
+\newcommand{\ex}{\ding{55}}
+
+\lstset{escapeinside=`',columns=fullflexible}
+\setbeamercovered{invisible}
+\usetheme{Luebeck}
+%\usecolortheme{seagull}
+%\useinnertheme{rectangles}
+%\useoutertheme{infolines}
+
+\mode<presentation>
+\setbeamertemplate{navigation symbols}{}
+
+\lstset{language=ML,basicstyle=\small}
+
+\tikzstyle{every picture}+=[remember picture]
+\everymath{\displaystyle}
+\tikzstyle{na} = [baseline=-.5ex]
+\tikzstyle{arr} = [line width=2pt,->]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=5em, text centered, rounded corners, minimum height=4em]
+
+
+\title[A True Higher-Order Module System]{A True Higher-Order Module System}
+\author{George Kuan}
+%\institute{University of Chicago}
+\date{Dissertation Defense\\ May 3, 2010}
+
+\begin{document}
+	
+	\begin{frame}
+		\maketitle
+	\end{frame}
+
+	\begin{frame}[fragile]
+		\frametitle{Higher-Order Modules}
+		\begin{itemize}[<+->] 
+			\item[]
+		\begin{lstlisting}
+		signature T = sig type t end
+		functor Apply(functor F(X:T):T) (M:T) = F(M)
+		\end{lstlisting}
+			\item[]
+		\begin{lstlisting}
+		functor Id(X:sig type t end) = X
+		structure N = Apply (functor F=Id) (struct type t = int end)
+		\end{lstlisting}
+			\item[] \alert<.>{Expect N.t = int}
+			\item[]
+		\begin{lstlisting}
+		functor Const(X:sig type t end) = struct type t = bool end
+		structure R = Apply (functor F=Const) (struct type t = int end)
+		\end{lstlisting}
+			\item[] \alert<.>{Expect R.t = bool}
+		\end{itemize}
+	\end{frame}
+	
+	% \begin{frame}[fragile]
+	% 	\frametitle{True Higher-Order Semantics (2)}
+	% 	\begin{itemize}[<+->]
+	% 	\item[]
+	% 	\begin{lstlisting}
+	% 	functor F() = 
+	% 	struct 
+	% 	  datatype t = S of int 
+	% 	  val m = S 0 
+	% 	end	
+	% 	\end{lstlisting}
+	% 	
+	% 	\item[]
+	% 	\begin{lstlisting}
+	% 	structure M0 = F()
+	% 	\end{lstlisting}
+	% 	
+	% 	\item[]
+	% 	\begin{lstlisting}
+	% 	structure M1 = F()
+	% 	\end{lstlisting}
+	% 	
+	% 	\item[] \alert{M0.t $\ne$ M1.t}
+	% 	\end{itemize}
+	% \end{frame}
+
+		\begin{frame}[fragile]
+			\frametitle{Approaches (1)}
+			\begin{enumerate}[<+->]
+				\item Syntactic (Applicative Functors [Leroy 1995])~\\
+
+	functor Apply(functor F(X:T):T) (M:T) \\
+	  : sig type t=\tikz[baseline]{\node[fill=blue!20,anchor=base](t1){F(M).t}} end = F(M) 	
+
+				\item[] \hspace{10em}\tikz[na] \node[coordinate] (n1) {}; \alert<.>{can only be treated superficially} 
+				\item Semantic [MacQueen-Tofte 1994]~\\
+
+	functor Apply(functor F(X:T):T) (M:T) \\
+	~~: sig type t end = F(M) 	\\[3mm]
+
+
+	Dependence of result type t on F and M is inferred by the compiler
+
+			\end{enumerate}
+
+			\begin{tikzpicture}[overlay]
+				\path[->]<2-> (n1) edge [bend left] (t1);
+			\end{tikzpicture}
+		\end{frame}
+
+
+
+		\begin{frame}[fragile]
+			\frametitle{Approaches (2)}
+			\begin{lstlisting}
+			functor F(functor G(X:T):T) = 
+			struct 
+			  datatype s = S of int 
+			  structure M = G(struct type t = s end)
+			  type u = M.t
+			end	
+			\end{lstlisting}
+
+			\uncover<2->{Syntactic approach breaks down.}\\
+			\only<3->{A descriptive signature would have to involve static effects and the  actions taken by formal functor G.}
+
+		\end{frame}
+			
+	\begin{frame}
+		\frametitle{True Higher-Order Semantics }
+		\begin{block}{Functor Action}
+		A \alert{function action} is the way in which a functor computes its output types from its parameter types, namely: 
+		\begin{enumerate} 
+			\item type generativity 
+			\item functor actions of formal functors
+		\end{enumerate}
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Motivation}
+		\begin{block}{Syntactic Approaches}
+			All module type information is syntactic
+			\begin{enumerate}
+				\item Give up non-syntactic module type information
+				\item Try to express more module type information syntactically 
+			\end{enumerate}
+		\end{block}
+		\vspace{4mm}
+		\begin{block}{Semantic Approach}
+			Some module type information is semantic (functor actions)
+		\end{block}
+	\end{frame}
+	
+	\begin{frame}[fragile]
+		\frametitle{Motivation}
+		\begin{enumerate}
+			\itemsep=4mm
+			\item Restricting to syntactic module types is analogous to restricting a language to $\lambda$-terms where each $\lambda$ is given a really powerful dependent type that computes the result of the $\lambda$
+			\item An abstract model of current SML/NJ implementation of higher-order modules
+			\item A more detailed and realistic expansion of MacQueen-Tofte~1994 and  Shao~1998 
+			\item True higher-order semantics without re-elaboration
+		\end{enumerate}
+	\end{frame}
+		
+	\begin{frame}
+		\frametitle{Outline}
+		\tableofcontents
+	\end{frame}
+	
+	\section{Type of a Structure}
+
+\begin{frame}
+	\frametitle{Type of a Structure}
+	{\Large Big Question: What is the ``type'' of a structure?}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Signatures}
+structure A = struct\\
+~~datatype $\alpha$ t = c of $\alpha$\\
+~~structure M = struct datatype t = d val x = c d end\\
+end\\[2mm]
+
+\only<1>{Syntactic}\only<2->{{\color{blue}Semantic}} Signature\\[1mm]
+sig\\
+~~type $\alpha$ t \tikz[na] \node[coordinate] (n0) {};\uncover<2->{{\color{blue}$\rho_0$}}\\
+~~structure M \uncover<2->{{\color{blue}$\rho_M$}}: sig~type~ t~\uncover<2->{{\color{blue}$\rho_1$}}~val~x: \only<1>{\tikz[na] \node[coordinate,yshift=3mm] (t0) {};\alert{??}} \only<2->{{\color{blue}\tikz[baseline]{\node[anchor=base](t1) {$\rho_0(\rho_1)$};}}}
+%~val~k : \only<1>{$(\alpha, $ t}\only<2->{{\color{blue}\tikz[baseline]{\node[anchor=base] (t2) {$\forall\alpha.\rho_1(\alpha,\rho_0)$}; }}} 
+end\\
+end\\[3mm]
+\only<2>{Because type names can shadow, syntactic names are insufficient}
+\only<3>{Need unshadowable \alert{entity variables} (\emph{aka} internal names  [Harper-Lillibridge 94]) and \alert{entity paths} (\emph{e.g.}, $\rho_M\rho_1$)}
+\only<4>{\hspace{8em}\tikz{\node (s0) {relativized types};}}
+\uncover<5->{
+Abbreviated: 
+\[\left\{\begin{array}{l}
+t : (\rho_0, 1),\\
+M : (\rho_M, \{t : (\rho_1, 0),~x : \rho_0(\rho_1) \})\\
+\end{array}
+\right\}
+\]}
+\begin{tikzpicture}[overlay]
+	\path[arr]<1> (n0) edge [bend left] (t0);
+	
+	\path[arr]<4> (s0) edge [bend right] (t1);
+	%\path[arr]<4> (s0) edge [bend right] (t2);
+\end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Type of a Structure}
+	functor F() = struct\\
+	~~structure M = struct datatype~t end\\
+	~~val x : M.t = ...\\
+	end\\
+	\vspace{1em}
+	structure A = F()\\[2em]
+
+	\only<1-2>{What is the module ``type'' for A?}
+	\uncover<2->{
+	$\left\{\begin{array}{l}
+	M:(\rho_M, \{t : (\rho_t, 0)\}),~x : \rho_M\rho_t
+	\end{array}
+	\right\}
+	$\\[1em]}
+
+	\only<+>{A semantic signature is not the complete module ``type''.}
+	\uncover<+>{Need an \alert{entity environment} mapping entity variables to static entities (tycons, structures, and functors) $\{ \rho_M\mapsto\{\rho_t\mapsto \tau^0\} \}$\\ $\tau^0$ is a fresh atomic semantic tycon}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Entity Environments}
+	functor F() = struct\\
+	~~structure M = struct datatype~t end\\
+	~~val x : M.t = ...\\
+	end\\[1em]
+\begin{itemize}[<+->]
+	\item[] structure A = F() \hspace{4em} $\rho_A \mapsto \{ \rho_M\mapsto\{\rho_t\mapsto \tau^{0}_a\} \}$
+	\item[] structure B = F() \hspace{4em} $\rho_B \mapsto \{ \rho_M\mapsto\{\rho_t\mapsto \tau^0_b\} \}$
+\end{itemize}
+\uncover<2>{Each time F is applied, we get 
+ a fresh atomic tycon}	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Full Signature}
+	\begin{equation*}
+		\tikz[baseline]{\node[fill=blue!20,anchor=base] (n0) {$\left\{\begin{array}{l}
+	M:(\rho_M, \{t : (\rho_t, 0)\}),~x : \rho_M\rho_t
+	\end{array}
+	\right\}$};}
+	+ \tikz[baseline]{\node[fill=red!20,anchor=base] (n1) {$\{ \rho_M\mapsto\{\rho_t\mapsto \tau^0\} \}$};}
+	\end{equation*}
+	
+	\begin{tikzpicture}[overlay]
+		\node[above of=n0] (t0) {signature (fixed)};
+		\node[above of=n1] {realization (volatile)};
+	\end{tikzpicture}
+
+\vspace{3em}
+\uncover<2->{
+	\begin{tikzpicture}[node distance=4cm, auto]
+		\node[block] (n2) {M.t};
+		\node[block, right of=n2] (n3) {$\rho_M\rho_t$};
+		\node[block, right of=n3] (n4) {$\tau^0$};
+		
+		\path[arr] (n2) edge node {signature} (n3);
+		\path[arr] (n3) edge node {entity env} (n4);
+	\end{tikzpicture}}
+	
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Type of a Structure}
+	{\Large But what is a functor entity?}
+% \begin{itemize}[<+->]
+% 	\item[] 
+% 	\item[] An entity function $\lambda\rho.\varphi$ such that $\varphi$ is a structure entity expression that evaluates to a structure entity (realization)
+% \end{itemize}
+
+\uncover<2>{
+\begin{tikzpicture}[auto,node distance=3cm]
+	\node (par) {R$_{par}$};
+	\node[block,right of=par] (lam) {entity function};
+	\node[right of=lam] (res) {R$_{res}$};
+	
+	\path[arr] (par) edge (lam);
+	\path[arr] (lam) edge (res); 
+	
+\end{tikzpicture}}
+\end{frame}
+
+\section{Entity Calculus}
+
+% \begin{frame}
+% 	\frametitle{Entity Calculus}
+% 	\begin{enumerate}
+% 		\item Entity variable ($\rho$): unshadowable variable for static content (tycons, structures, and functors)
+% 		\item Entity path ($\rho_0\rho_1\rho_2$): path into structure hierarchy 
+% 		\item Entity environment: a finite map from entity variables to tycon, structure, and functor entities
+% 	\end{enumerate}
+% \end{frame}
+
+\begin{frame}
+	\frametitle{Entity Calculus (1)}
+{\only<3>{\color{red}}datatype v}\\
+functor F(X:sig type t end) = struct\\
+~~{\only<2->{\color{blue}}datatype $(\alpha,\beta)$ u}\\
+~~{\only<2,4>{\color{red}}type s = (X.t,v) u}\\
+end\\[2em]
+	\only<2>{A {\bf tycon entity} is either 
+	\begin{itemize}
+		\item an atomic tycon (\emph{e.g.}, {\only<2>{\color{blue}}$\tau^2_u$})
+		\item or normal form semantic tycon (\emph{e.g.}, {\only<2>{\color{red}}$\lambda().\tau^2_u(\tau^0_t,\tau^0_v)$})
+	\end{itemize}}
+	\only<3>{A {\bf structure entity} $R$ is a pair of entity environments $\langle\{{\color{blue}\rho_u\mapsto\tau^2_u,~\rho_s\mapsto\lambda().\tau^2_u(\tau^0_t,\tau^0_v)}\},~~\{{\color{red}\rho_v\mapsto\tau^0_v}\}\rangle$\\[2mm]
+	a local one defining all entities in the structure and a closure environment \\[2mm]
+	$\tau^0_t$ is a dummy atomic tycon to stand in for the tycon in the functor argument }
+	\uncover<4>{A {\bf functor entity} is a closure: a $\lambda$-expression mapping structure entity to an expression that evaluates to a structure entity $\lambda\rho_x.\{{\color{blue}\rho_u = \newx(2)}, {\color{red}\rho_s = \lambda().\rho_u(\rho_x\rho_t,\rho_v)} \}$ + $\{\rho_v\mapsto \tau^0_v\}$}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Entity Calculus (2)}
+	\begin{itemize}
+		\item[] Tycon entity expression:
+		\[\zeta ::= \newx(n)~|~\mathbb{C}^\lambda \textrm{(relativized tycons)}\]
+		\item[] Structure entity expression:
+		\[ \varphi ::= \vec{\rho}~|~\{ \eta \}~|~\theta(\varphi)~|~ \letin{\eta}{\varphi}\]
+		
+		\item[] Functor entity expression:
+		\[ \theta ::= \vec{\rho}~|~\lambda\rho.\varphi~|~\lambda\rho.\Sigma \]
+		
+		\item[] Entity declaration:
+		\[ \eta ::= \circ~|~\rho = \zeta,\eta~|~\rho = \varphi,\eta~|~\rho = \theta,\eta\]
+		
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Life-Cycle of a Type}
+
+\begin{tikzpicture}[node distance= 4.5cm,auto]
+	\uncover<1->{\node[block] (sy) {Syntactic};}
+	\uncover<2->{\node[block, right of=sy] (se) {Semantic};}
+	\uncover<3->{\node[block, right of=se] (re) {Relativized};}
+
+	\uncover<2->{\node[node distance=2cm,below of=se] (statenv) {static env};}
+	\uncover<3->{\node[node distance=1cm,,below of=statenv] {entity env};}
+	\uncover<3->{\node[node distance=2cm,below of=re] (semsig) {semantic sig};}
+	\uncover<3->{\node[node distance=1cm,below of=semsig]  {entity expr};}
+		
+	\uncover<2->{\path[arr] (sy) edge node {\only<2>{\color{red}}elaborates} (se);}
+	\uncover<3->{\path[arr] ([yshift=-5mm]se.north east) edge node {\only<3>{\color{red}}relativizes} ([yshift=-5mm]re.north west);}
+	\uncover<3->{\path[arr] (se) edge [loop above] node {\only<3,4>{\color{red}}evaluates} (se);}
+	\uncover<4->{\path[arr] ([yshift=5mm]re.south west) edge node {\only<4>{\color{red}}instantiates} ([yshift=5mm]se.south east);}
+	
+
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Functor Actions}
+	\begin{itemize}[<+->]
+		\item[]
+	\begin{lstlisting}
+	functor Apply(X:sig functor F(Y:sig type t end):sig type t end
+	                    structure M: sig type t end
+	                end) =
+	struct structure R = X.F(X.M) end
+	\end{lstlisting}
+	\item[]
+	\[\lambda\rho_x.\{\rho_r=\rho_x\rho_f(\rho_x\rho_m)\}\]
+		\item[]
+	\begin{lstlisting}
+	functor G() = struct datatype t end	
+	\end{lstlisting}
+	\item[]
+	\[\lambda().\{\rho_t=new(0)\}\]
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Full Functor Signature}
+	\begin{lstlisting}
+	datatype v 
+	functor F() = struct datatype t val a : v end	
+	\end{lstlisting}
+	
+	\tikz[baseline]{\node[fill=blue!20,anchor=base] (sem) {Semantic functor signature};} + \tikz[baseline]{\node[fill=red!20,anchor=base] (ent) {Entity function (closure)};}
+	
+	\begin{tikzpicture}
+	\node[below of=sem] {$\Pi().
+	\{t : (\rho_t, 0),~a : \rho_v \}$};
+	\node[below of=ent] {$\langle\lambda().\{\rho_t = \newx(0)\},~\{\rho_v\mapsto \tau^0\}\rangle$};
+	\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Constructing Full Signatures and Entity Expressions}
+	Full signatures and entity expressions are produced by \alert{elaboration} in two interweaving modes:
+	
+	\begin{tikzpicture}[auto, node distance=4cm]
+		\node[block] (cc) {Compilation mode};
+		\node[block,right of=cc] (dm) {Direct mode};
+		
+		\path[arr] (cc.north) edge [bend left] node {entexps (compilation)} (dm.north);
+		\path[arr] (dm.south) edge [bend left] node {entenvs (evaluation)} (cc.south);
+	\end{tikzpicture}
+
+\end{frame}
+
+	% \begin{frame}[fragile]
+	% 	\frametitle{Type System}
+	% 
+	% 	functor Symbols(functor F(X:T):T) = \\
+	% 	struct \\
+	% 	~~~datatype t = S of \tikz[baseline]{\node[fill=red!20,anchor=base](t0){int}} \\
+	% 	~~~structure M = F(struct type t= \tikz[baseline]{\node[fill=red!20,anchor=base](t2){t}} end)\\
+	% 	~~~type u = \tikz[baseline]{\node[fill=red!20,anchor=base](t3){M.t * bool}}\\
+	% 	end	\\
+	% 
+	% 	\begin{enumerate}[<+->]
+	% 		\item Syntactic types \tikz[na] \node[coordinate] (n0) {}; 
+	% 		\item[] \hspace{15em} \tikz[na] \node[coordinate] (n1) {}; symbolic paths			 
+	% 		\item Semantic types
+	% 		\begin{enumerate}
+	% 			\item no paths: symbolic paths looked up
+	% 			\item generated datatypes and opaque tycons manifested (represented as $\tau^n$ where $n$ is arity) 
+	% 			\item can be evaluated (by $\beta$-reduction) to a normal form
+	% 		\end{enumerate}
+	% 		\item Relativized
+	% 	\end{enumerate}
+	% 	
+	% 	\begin{tikzpicture}[overlay]
+	% 		\path[->]<1-> (n0) edge [bend right] (t0);
+	% 		\path[->]<1-> (n0) edge [bend right] (t2);
+	% 		\path[->]<1-> (n0) edge [bend right] (t3);
+	% 		\path[->]<2-> (n1) edge [bend left] (t3.south west);
+	% 	\end{tikzpicture}
+	% \end{frame}
+	
+
+	\section{Elaboration}
+	
+	\begin{frame}
+		\frametitle{Structure Elaboration}
+		$\Gamma,\Upsilon\vdash strexp \Rightarrow_{str} (M, \varphi)$
+		
+		\begin{enumerate}[<+->]
+			\item $\Gamma$ is the static environment mapping symbols to semantic tycons, full signatures, full functor signatures 
+			\item $\Upsilon$ is the entity environment
+			\item Full signature $M=\langle \Sigma, R\rangle$ where $\Sigma$ is the semantic signature and $R$ is the structure entity
+			\item Structure entity expression $\varphi$: Evaluates to an $R'$ isomorphic to $R$ under the current entity environment $\Upsilon$. 
+		\end{enumerate}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Functor Application}
+
+		\begin{equation*} 
+		\infer{\begin{array}{c}
+		\Gamma,\Upsilon\vdash p(strexp)\Rightarrow_{str}
+		((\Sigma_{body},R_{app}),\varphi_{app})
+		\end{array}}
+			{\begin{array}{c}
+		\alert<1>{\Gamma(p) = (\vec{\rho}, (\Pi X:\Sigma_{par}.\Sigma_{body}, \langle\theta, \Upsilon'\rangle))}\\
+		\alert<2>{\Gamma,\Upsilon\vdash strexp\Rightarrow_{str}
+		(M,\varphi)}\\ 
+		\alert<3>{\Upsilon\vdash (M,\varphi) : \Sigma_{par} \Rightarrow_{match} (R_{c},\varphi_{c})}\\
+		\alert<4>{\varphi_{app} = \theta(\varphi_{c})}\qquad \alert<5>{\Upsilon'\Upsilon\vdash \varphi_{app} \Downarrow_{str} R_{app}}
+		\end{array}}
+		\label{eq:strapp}
+		\end{equation*}
+		
+	\begin{enumerate}
+		\item<1-> Lookup symbolic path p in static environment 
+		\item<2-> Elaborate argument
+		\item<3-> Coerce argument to formal parameter form
+		\item<4-> Form entity expression
+		\item<5-> Evaluate entity expression (no re-elaboration of functor)
+	\end{enumerate}
+	\end{frame}
+
+	\begin{frame}[fragile]
+			\frametitle{Signature Matching}
+
+	\[\Upsilon \vdash ((\Sigma_a, R_a), \varphi) : \Sigma_s \Rightarrow_{match} (R_c, \varphi_c)\]
+	
+	\begin{enumerate}[<+->]
+		\item Coerces full signature $(\Sigma_a, R_a)$ to form of spec $\Sigma_s$ and produces a coerced structure entity expression $\varphi_c$ from $\varphi$
+		\item Fill in (\emph{i.e.}, instantiate) open tycons with actuals in $R_a$
+		\item Verify type definitional specs 
+		\item Functor signature matching 
+		\item Construct a coercion that rebinds actual $\rho$'s to spec variables\\
+		actual: $((\{t:(\rho_t',0)\},~\langle\{\rho_t'\mapsto \tau^0\},\emptyset\}),~~\{ \rho_t'=\newx(0) \})$\\
+		spec: $\{t:(\rho_t, 0)\}$\\
+		coercion: let $\rho_{raw}=\{ \rho_t'=\newx(0) \}$ in $\{\rho_t = \rho_{raw}\rho_t'\}$  
+
+	\end{enumerate}
+
+		\end{frame}
+
+	\begin{frame}
+		\frametitle{Signature Matching (2)}
+		\begin{itemize}[<+->]
+			\itemsep=2cm
+			\item[]
+		If $\Upsilon\vdash ((\Sigma_a, R_a), \varphi) : \Sigma_s \Rightarrow_{match} (R_c, \varphi_c)$, then for all $x : s\in \Sigma_s$, there exists $x : s'\in \Sigma_a$ such that $R_c(s) = R_a(s')$.
+		\item[]
+		If $\Upsilon\vdash ((\Sigma_a, R_a), \varphi) : \Sigma_s \Rightarrow_{match} (R_c, \varphi_c)$, then $\Upsilon\vdash \varphi_c \Downarrow_{str} R'$ such that $R'$ and $R_c$ are isomorphic.
+		\end{itemize}
+	\end{frame}
+		
+	\begin{frame}
+		\frametitle{Other Elaboration Semantics}
+		\begin{enumerate}[<+->]
+			\item Base structure: extract a semantic signature from a static environment by \emph{relativizing} types/type expressions (also relevant during signature elaboration)
+			\item Functor declaration and opaque ascription: instantiation of formal parameter
+		\end{enumerate}
+	\end{frame}
+	
+	\section{Soundness}
+	\begin{frame}
+		\frametitle{Translation}
+		% \begin{tikzpicture}[node distance=3cm, auto]
+		% 	\node (absyn) {absyn};
+		% 	\node[block,right of=absyn] (elab) {Elaboration};
+		% 	\node[block,right of=elab] (trans) {Translation};
+		% 	\node[right of=trans] (ome) {System F$_\omega$};
+		% 	
+		% 	\path[arr] (absyn) edge (elab);
+		% 	\path[arr] (elab) edge (trans);
+		% 	\path[arr] (trans) edge (ome);
+		% \end{tikzpicture}
+		
+		\begin{enumerate}[<+->]
+			\itemsep=4mm
+			\item To show soundness, use a translation to System~F$_\omega$
+			\item A translation of elaborated module language to a standard System F$_\omega$ enriched with records and new 
+			\item Factors structures into static and value parts (phase~separation~[Harper, Mitchell, Moggi 1990])
+			\item Constructs type- and value-level coercions (signature~matching)
+		\end{enumerate}
+	\end{frame}
+	
+	\begin{frame}[fragile]
+		\frametitle{Translation}
+		\begin{lstlisting}
+		functor F(X:sig type s end) = 
+		struct 
+		  datatype w 
+		  val n : w -> w = fn z : w => z 
+		end
+		\end{lstlisting}
+
+		\[\lettycline{\widehat{f}=\lambda\widehat{x}::\{s::\Omega\}.\{ w = \newx(0) \}}
+		  {\letx~f = \Lambda \widehat{x}::\{s::\Omega\}.\Lambda
+		      \widehat{f_{res}}::\{ w :: \Omega \} . \lambda x::\{\}.\{n = \lambda z:(\widehat{f_{res}}.w).z\}\\
+		    \inx~\ldots}
+		\]\\[3mm]		
+		
+		$\widehat{\bullet}$ indicates type part of $\bullet$.
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{(Relative) Soundness}
+		\begin{tikzpicture}[auto]
+			\node (strexp) {strexp};
+			\node[right of=strexp,node distance=8cm] (e) {$e_\omega$};
+			\node[below of=strexp,node distance=2cm] (M) {M};
+			\node[right of=M,node distance=8cm] (t) {t};
+			
+			\path[arr] (strexp) edge node {translation} (e);
+			\path[arr] (e) edge node {F$_\omega$ typing} (t);
+			\path[arr] (strexp) edge node {elaboration} (M);
+			\path[arr] (M) edge node {type translation} (t);			
+		\end{tikzpicture}
+		% \begin{block}{Theorem}
+		% 	If a structure expression $strexp$ elaborates to a full signature $M$ and $strexp$ translates to an F$_\omega$ expression $e_\omega$, then $e_\omega$ has F$_\omega$ type t and $M$ also translates to t.
+		% \end{block} 
+		\vspace{4mm}\\
+		Proof: Induction on a strengthened version of the above. The proof depends on the correctness of type and value coercion, signature matching, and signature instantiation.
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Main Ideas}
+		\begin{enumerate}
+			\itemsep=3mm
+			\item Factoring module type information (full signature) into semantic signature and realization
+			\item Entity calculus encodes functor actions
+			\item Elaboration semantics in compilation and direct modes
+			\item Coercive signature matching
+		\end{enumerate}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Related Work: Syntactic Approach}
+		\begin{itemize}
+			\item CMU
+		\begin{itemize}
+			\item Harper-Lillibridge 1994, Harper-Stone 1997
+			\item Dreyer-Crary-Harper 2003
+			\item Harper-Pierce 2005
+			\item Dreyer 2005, 2007
+			\item Dreyer-Blume 2007
+			\item Dreyer-Rossberg 2009
+			\item Rossberg-Russo-Dreyer 2010
+		\end{itemize}
+			\item Leroy 1994, 1995, 1996, 2000
+			\item Biswas 1995, Russo 2000
+			\item Shao 1998, 1999
+			\item Govereau 2005
+			\item Montagu and R\'emy 2009
+		\end{itemize}
+	\end{frame}
+		
+	\begin{frame}
+		\frametitle{Related Work: Semantic Approach}
+		\begin{itemize}
+			\itemsep=3mm
+			\item MacQueen-Tofte 1994
+			\item Cr\'egut and MacQueen 1994
+			\item Shao 1998
+			\item Kuan and MacQueen 2009
+		\end{itemize}	
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Future Work}
+		\begin{enumerate}
+			\itemsep=1cm
+			\item Relationship to type classes
+			\item Exceptions and modules
+			\item Type inference and modules
+		\end{enumerate}
+	\end{frame}
+		
+	\begin{frame}
+		\frametitle{Conclusion}
+		\begin{itemize}
+			\itemsep=4mm
+			\item HO module semantics is analogous to $\beta$-reduction semantics
+			\item Module types are and should be semantic
+			\item One neither has to give up generative datatypes/functors nor true higher-order semantics for a practical semantics
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{}
+		{\Huge Thank You}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Syntactic Signature}
+		Syntactic signatures are comprised of specs:
+	\begin{columns}[t]
+		\begin{column}{.7\textwidth}
+			\begin{itemize}[<alert@+(1)>]
+			\item[] \tikz[na] \node[coordinate] (n0) {}; type ($\alpha$, $\beta$) t 
+			\item[] \tikz[na] \node[coordinate] (n1) {}; type s = int 
+			\item[] \tikz[na] \node[coordinate] (n2) {}; structure M : sig type u end 
+			\item[] \tikz[na] \node[coordinate] (n4) {}; val a : (M.u, s) t 
+			\item[] \tikz[na] \node[coordinate] (n3) {}; functor F(X:T) : T 
+			\end{itemize}
+		\end{column}
+		\begin{column}{.3\textwidth}
+	\begin{itemize}
+		\item[]<2-> \alert<2>{open tycon}
+		\item[]<3-> \alert<3>{type definition}
+		\item[]<4-> \alert<4>{structure}
+		\item[]<5-> \alert<5>{value}
+		\item[]<6-> \alert<6>{functor}
+	\end{itemize}
+		\end{column}
+		\end{columns}
+
+		\begin{tikzpicture}[overlay]
+			\path[arr]<7> (n1) edge [bend left] (n0);
+			\path[arr]<7> (n1) edge [bend right] (n2);
+
+			\path[arr]<8> (n2) edge [bend left] (n0);
+			\path[arr]<8> (n2) edge [bend left] (n1);
+
+			\path[arr]<9> (n4) edge [bend left] (n0);
+			\path[arr]<9> (n4) edge [bend left] (n1);
+			\path[arr]<9> (n4) edge [bend left] (n2);
+
+			\path[arr]<10> (n3) edge [bend left] (n0);
+			\path[arr]<10> (n3) edge [bend left] (n1);
+			\path[arr]<10> (n3) edge [bend left] (n2);
+		\end{tikzpicture}
+	\end{frame}
+	
+		\begin{frame}[fragile]
+			\frametitle{Relativization}
+	\begin{lstlisting}
+	functor f() = 
+	struct
+	  datatype t = S of int
+	  type u = t
+	  val x : u = S 1
+	end
+	\end{lstlisting}
+		
+		\begin{block}{How to represent u in the signature?}
+		\[ \lambda().\{ \rho_t = \newx(0), \rho_u = \rho_t \} \]
+		\[ x : \rho_u \] 	
+		\end{block}
+		\end{frame}
+		
+	\begin{frame}
+		\frametitle{Relativization}
+		\begin{enumerate}
+			\item Value and definitional tycon bindings must be relativized
+			\item Look up first occurrence of atomic tycons in entity environment, the entity path mapping to that occurrence is the canonical entity path
+			\item Replace atomic tycons with canonical entity path, entity paths which always point to the current instantiation given the current entity environment
+		\end{enumerate}
+		
+	\end{frame}
+		
+		\begin{frame}[fragile]
+			\frametitle{Signature Extraction}
+			\begin{lstlisting}
+			struct
+			datatype t
+			structure A = struct type u = t end
+			functor F(X:sig type s end) = struct type v = X.s end
+			end
+			\end{lstlisting}
+			
+			\begin{eqnarray*}
+			  & & t\mapsto (\rho_0, \tau^0) \\
+			  & & A\mapsto \{u\mapsto (\rho_1, \rho_0)\} \\
+			  & & F\mapsto (\rho_2, \Pi\rho_3:\{s\mapsto (\rho_4, 0)\}.\{v\mapsto \lambda().\rho_3\rho_4\})
+			\end{eqnarray*}
+		\end{frame}
+
+
+		\begin{frame}
+			\frametitle{Elaboration}
+		  	\begin{itemize}
+			    \item<1->    $\Gamma,\Upsilon,\Sigma\vdash sigexp \Rightarrow_{sig} \Sigma'$  signature elaboration
+			    \item<2->   $\Gamma,\Upsilon,\Sigma\vdash fsgexp \Rightarrow_{fsg} \Sigma^f$  functor signature elaboration
+			    \item<3-> $\Upsilon^{clo},\Upsilon^{lcl}\vdash \Sigma \uparrow \Upsilon^{lcl}$  signature instantiation
+			    \item<4-> $\Upsilon\vdash\Gamma\hookrightarrow \Sigma$ signature extraction
+			    \item<5-> $\Upsilon\vdash(M,\varphi):\Sigma\Rightarrow_{match} (M_c,\varphi_c)$  signature matching
+			    \item<6-> $\Upsilon\vdash F \preceq \Sigma^f \Rightarrow_{fsgmtch} (\psi_c, \theta_c)$ functor signature matching
+			    \item<7-> $\Gamma,\Upsilon\vdash d^m \Rightarrow_{decl} (\eta,\Gamma',\Upsilon')$  module declaration elaboration
+			    \item<8-> $\Gamma,\Upsilon\vdash strexp \Rightarrow_{str} (M, \varphi)$  structure expression elaboration
+			\end{itemize}
+			
+		\end{frame}
+\end{document}

@@ -1,0 +1,24 @@
+\begin{figure}
+\centering
+\small
+\hrule
+\[
+\begin{array}{rcll}
+    \tau^n & \in & \mathrm{Tycs} & n\textrm{ is arity}: \Omega^n\Rightarrow \Omega\\
+\\
+    \mathfrak{C}^s & ::= & \alpha~|~\mathfrak{C}^\lambda(\vv{\mathfrak{C}^s}) & \textrm{semantic monotype}\\
+    \mathfrak{C}^\lambda & ::= &
+    \lambda\vec{\alpha}.\mathfrak{C}^s~|~\tau^n & \textrm{semantic tycon}\\
+    \mathfrak{T} & ::= &
+    \mathsf{typ}(\mathfrak{C}^s)~|~\forall\vec{\alpha}.\mathfrak{C}^s
+    & \textrm{semantic type expression}\\
+    \mathfrak{C}^{nf} & ::= &
+    \alpha~|~\tau^n(\vv{\mathfrak{C}^{nf}}) & \textrm{normal form monotypes}\\
+% Why both the C^s and \lambda forms? Is the C^s form necessary at
+% this point? 
+\end{array}
+\]
+\hrule
+\caption{Semantic type system}
+\label{fig:semtypesystem}
+\end{figure}

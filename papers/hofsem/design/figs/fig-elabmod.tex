@@ -1,0 +1,196 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Gamma,\Upsilon\vdash d^m \Rightarrow_{decl} (\eta, \Gamma', \Upsilon')$}
+
+	\begin{equation} 
+          \infer{\Gamma,\Upsilon\vdash \circ
+            \Rightarrow_{decl} (\bullet, \emptyset_{se},
+            \emptyset_{ee})}{\strut}  
+          \label{eq:emptydecl}
+        \end{equation}
+
+        \begin{equation}
+          \infer{\Gamma,\Upsilon\vdash \mathbf{val}~x=e,d^m
+            \Rightarrow_{decl} (\eta, [x\mapsto\mathfrak{T}]\Gamma', \Upsilon')}
+          {\Gamma \vdash e \Rightarrow_{core} \mathfrak{T} \qquad
+            \Gamma[x\mapsto\mathfrak{T}], \Upsilon \vdash d^m \Rightarrow_{decl}
+            (\eta, \Gamma', \Upsilon')}
+          \label{eq:valdecl}
+        \end{equation}
+
+	\begin{equation} 
+          \infer{\begin{array}{l} 
+              \Gamma,\Upsilon\vdash \mathbf{type}~t=C^\lambda,d^m
+              \Rightarrow_{decl}(\eta,[t\mapsto \mathfrak{C}^\lambda]\Gamma',\Upsilon')
+	\end{array}}
+	{\begin{array}{c}
+            \Gamma,\Upsilon \vdash C^\lambda \Rightarrow_{tyc} \mathfrak{C}^\lambda\qquad
+            \Gamma[t\mapsto \mathfrak{C}^\lambda],\Upsilon\vdash
+            d^m\Rightarrow_{decl}(\eta,\Gamma',
+            \Upsilon')
+          \end{array}} 
+        \label{eq:typedefdecl}
+      \end{equation}
+
+        \begin{equation} 
+       \infer{\begin{array}{c}
+           \Gamma,\Upsilon\vdash
+         \mathbf{datatype}~\vec{\alpha}~t,d^m\\
+         \Rightarrow_{decl}([\rho_t =_{tyc} \newx(n)]\eta, [t\mapsto
+         \tau^n]\Gamma', [\rho_t\mapsto \tau^n]\Upsilon')
+       \end{array}}
+{\begin{array}{c}
+    n=|\vec{\alpha}|\qquad
+    \Gamma[t\mapsto\tau^n],\Upsilon[\rho_t\mapsto \tau^n]\vdash d^m \Rightarrow_{decl} (\eta, \Gamma',
+    \Upsilon')\\ (\rho_t\textrm{ and }\tau\textrm{ are fresh})
+\end{array}}
+      \label{eq:dtdecl}
+        \end{equation}
+
+\begin{equation} 
+          \infer{\begin{array}{c}
+              \Gamma,\Upsilon\vdash \mathbf{structure}~X=strexp,d^m\\
+  \Rightarrow_{decl} ([\rho=_{str}\varphi]\eta, [X\mapsto (\rho, M)]\Gamma',
+  [\rho\mapsto R]\Upsilon')
+\end{array}}
+	{\begin{array}{c}
+\Gamma,\Upsilon\vdash strexp\Rightarrow_{str} (M, \varphi)\qquad 
+M = (\Sigma,R)\qquad (\rho~\textrm{fresh})\\
+\Gamma[X\mapsto (\rho, M)],\Upsilon[\rho\mapsto R]\vdash d^m\Rightarrow_{decl}(\eta, \Gamma', \Upsilon')
+	\end{array}} 
+      \label{eq:strdecl}
+\end{equation}
+
+
+	\begin{equation} 
+          \infer{\begin{array}{c}
+              \Gamma,\Upsilon\vdash
+              \mathbf{functor}~f(X:sigexp)=strexp,d^m \\
+              \Rightarrow_{decl} ([\rho=_{fct}\theta]\eta, [f\mapsto(\rho,(\Pi\rho_x:\Sigma_x.\Sigma_{res},\psi))]\Gamma',
+              [\rho\mapsto\psi]\Upsilon')
+            \end{array}}
+	        {\begin{array}{c} 
+                    \Gamma,\Upsilon, \emptyset_{sig} \vdash
+                    sigexp\Rightarrow_{sig} \Sigma_x\qquad
+                    \Upsilon,\emptyset_{ee}\vdash \Sigma_x \uparrow
+                    \Upsilon_x \\
+                    R_x = \langle \Upsilon_x,\Upsilon \rangle\\
+                    \Gamma[X\mapsto(\rho_x, (\Sigma_x,
+                   R_x))],\Upsilon[\rho_x\mapsto R_x]\vdash
+                    strexp\Rightarrow_{str}((\Sigma_{res},\_),\varphi)\\
+                    % \Upsilon_\Delta is out of scope at the
+                    % declaration level, so it is dropped. 
+        \theta =
+        \lambda\rho_x.\varphi\qquad \psi =
+        \langle\theta;\Upsilon\rangle\\
+	\Gamma [f\mapsto(\rho,(\Pi
+        \rho_x:\Sigma_x.\Sigma_{res},\psi))],
+        \Upsilon[\rho\mapsto\psi]\vdash
+        d^m \Rightarrow_{decl}(\eta,\Gamma',\Upsilon')\\
+        % No need for extending entity environment because \rho_F
+        % won't be looked up
+	(\rho_x,\rho~\textrm{fresh})\\
+        %\Gamma, \Upsilon \vdash \emptyset_{se}\gamma \hookrightarrow (M_{ext}, \eta_{ext})
+	         \end{array}} 
+               \label{eq:fctdecl}
+        \end{equation}
+}
+\vspace{1em}
+The resultant $\Upsilon$ must be the local entity environment in order
+for the structure expression judgment for struct $d^m$ end to properly
+construct a structure realization. 
+\caption{Module declaration elaboration}
+\label{fig:elabmod}
+\end{figure}
+
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+~\\[2mm]
+\fbox{$\Gamma,\Upsilon\vdash strexp \Rightarrow_{str} (M,\varphi)$}
+	\begin{equation} 
+\infer{\Gamma,\Upsilon\vdash p \Rightarrow_{str} (M, \vec{\rho})}
+	          {\Gamma(p)=(\vec{\rho}, M)} 
+\label{eq:strpath}
+\end{equation}
+
+	\begin{equation} 
+\infer{\Gamma,\Upsilon\vdash \mathbf{struct}~d^m~\mathbf{end}
+  \Rightarrow_{str} ( (\Sigma,\langle \Uloc,\Upsilon\rangle),\llparenthesis\eta\rrparenthesis)}
+	{\begin{array}{c}
+\Gamma,\Upsilon\vdash d^m\Rightarrow_{decl}(\eta,\Gamma', \Uloc)\qquad
+\Upsilon \Uloc \vdash\Gamma'\hookrightarrow \Sigma
+\end{array}} 
+\label{eq:basestr}
+\end{equation}
+
+% [4/8/2010] How do local environments work with functor entities? 
+\begin{equation} 
+\infer{\begin{array}{c}
+\Gamma,\Upsilon\vdash p(strexp)\Rightarrow_{str}
+((\Sigma_{body},R_{app}),\varphi_{app})
+\end{array}}
+	{\begin{array}{c}
+\Gamma(p) = (\vec{\rho}, (\Pi X:\Sigma_{par}.\Sigma_{body}, \langle\theta; \Upsilon'\rangle))\\
+\Gamma,\Upsilon\vdash strexp\Rightarrow_{str}
+(M,\varphi)\\ 
+\Upsilon\vdash (M,\varphi) : \Sigma_{par} \Rightarrow_{match} (R_{c},\varphi_{c})\\
+\varphi_{app} = \vec{\rho}(\varphi_{c})\qquad \Upsilon\vdash \varphi_{app} \Downarrow_{str} R_{app}
+\end{array}}
+\label{eq:strapp}
+\end{equation}
+
+	\begin{equation} 
+\infer
+	{\Gamma,\Upsilon\vdash \mathbf{let}~d^m~\mathbf{in}~strexp\Rightarrow_{str}(M,\mathbf{let}~\eta_{def}~\mathbf{in}~\varphi)}
+	{\begin{array}{c}\Gamma,\Upsilon\vdash d^m\Rightarrow_{decl}(\eta_{def},\Gamma_{def},\Upsilon_{def})\\ \Gamma_{def},\Upsilon_{def}\vdash strexp\Rightarrow_{str}(M, \varphi)
+\end{array}} 
+\label{eq:letexp}
+\end{equation}
+
+\begin{equation} 
+\infer{\begin{array}{c}
+\Gamma,\Upsilon\vdash strexp : sigexp
+ \Rightarrow_{str} ((\Sigma_{spec},R_c),\varphi_c)
+\end{array}}
+{\begin{array}{c}
+	   \Gamma,\Upsilon,\emptyset_{sig}\vdash sigexp \Rightarrow_{sig} \Sigma_{spec} \qquad
+	   \Gamma,\Upsilon\vdash strexp \Rightarrow_{str} (M_{u},\varphi_{u})\\
+	   \Upsilon\vdash (M_{u},\varphi_u) : \Sigma_{spec} \Rightarrow_{match} (R_c,\varphi_{c})
+\end{array}} 
+\label{eq:transascription}
+\end{equation}
+     
+ \begin{equation} 
+\infer{\begin{array}{c}
+\Gamma,\Upsilon \vdash strexp :> sigexp 
+\Rightarrow_{str}
+   ((\Sigma_{spec},\langle\Upsilon_{spec},\Upsilon\rangle),
+   \varphi_{c})
+\end{array}}
+{\begin{array}{cc}
+\Gamma,\Upsilon,\emptyset_{sig}\vdash sigexp
+     \Rightarrow_{sig} \Sigma_{spec}\qquad
+   \Gamma,\Upsilon\vdash strexp \Rightarrow_{str} (M_u, \varphi_u)\\
+  \Upsilon\vdash (M_u,\varphi_u) : \Sigma_{spec}
+  \Rightarrow_{match} (R_{c},\varphi_{c})\\
+  \Upsilon, \emptyset_{ee} \vdash \Sigma_{spec} \uparrow \Upsilon_{spec}
+% Does it matter whether we return the uncoerced or coerced varphi?
+% The compiler returns the coerced version.  
+\end{array}
+}
+\label{eq:opaqueascription}
+\end{equation}
+
+}
+\caption{Structure expression elaboration}
+\label{fig:strexpelab}
+\end{figure}
+

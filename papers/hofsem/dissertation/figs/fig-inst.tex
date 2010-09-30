@@ -1,0 +1,59 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Upsilon^{clo}, \Upsilon^{lcl}_1\vdash \Sigma \uparrow \Upsilon^{lcl}_2$}
+% Instantiation only returns the local entity environment for the
+% realization 
+
+\begin{equation}
+\infer{\Upsilon^{clo},\Upsilon^{lcl}\vdash \emptyset_{sig} \uparrow \emptyset_{ee}}
+{\strut} 
+\label{eq:inst-empty}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon^{clo},\Upsilon^{lcl} \vdash [x \mapsto \mathbb{C}^\lambda]\Sigma \uparrow
+  \Upsilon'}
+{\Upsilon^{clo},\Upsilon^{lcl}\vdash \Sigma\uparrow\Upsilon'
+ }
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon^{clo},\Upsilon^{lcl}\vdash [x \mapsto \mathbb{T}]\Sigma \uparrow \Upsilon'}
+{\Upsilon^{clo},\Upsilon^{lcl}\vdash \Sigma \uparrow \Upsilon'}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon^{clo},\Upsilon^{lcl} \vdash [x \mapsto (\rho, n)]\Sigma \uparrow
+  [\rho \mapsto \tau^{n}]\Upsilon'}
+{\Upsilon^{clo},\Upsilon^{lcl}[\rho\mapsto\tau^n]\vdash \Sigma \uparrow \Upsilon'\qquad(\tau\textrm{ is fresh
+    in }\Upsilon^{clo}\textrm{ and }\Upsilon^{lcl})} 
+\label{eq:inst-open}
+ \end{equation}
+
+\begin{equation}
+\infer{\Upsilon^{clo},\Upsilon^{lcl}\vdash [x \mapsto (\rho,\Sigma')]\Sigma \uparrow
+  [\rho\mapsto \langle \Upsilon', \Upsilon^{clo}\Upsilon^{lcl} \rangle]\Upsilon''}
+{\Upsilon^{clo},\Upsilon^{lcl}\vdash \Sigma'\uparrow\Upsilon'\qquad
+\Upsilon^{clo},\Upsilon^{lcl}[\rho\mapsto\langle\Upsilon',\Upsilon^{clo}\Upsilon^{lcl}\rangle]\vdash
+\Sigma\uparrow\Upsilon''}
+\label{eq:inst-str}
+\end{equation}
+
+% The closure entity environment here includes local entities. Will
+% this give the incorrect realizations? 
+\begin{equation}
+\infer{\Upsilon^{clo},\Upsilon^{lcl}\vdash [x \mapsto (\rho, \Pi \rho_x:\Sigma_x.\Sigma_r)]\Sigma \uparrow
+  [\rho\mapsto \langle \lambda \rho_x.\Sigma_r ; \Upsilon^{clo}\Upsilon^{lcl}\rangle]\Upsilon'}
+{\Upsilon^{clo},\Upsilon^{lcl}[\rho\mapsto \langle \lambda \rho_x.\Sigma_r ; \Upsilon^{clo}\Upsilon^{lcl}\rangle]\vdash \Sigma\uparrow\Upsilon'}
+\label{eq:inst-fct}
+\end{equation}
+
+}
+\caption{Signature instantiation}
+\label{fig:siginst}
+\end{figure}

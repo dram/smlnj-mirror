@@ -1,0 +1,62 @@
+
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+
+\fbox{$\Upsilon,\Sigma\vdash \mathfrak{C}^s \searrow^{mt}
+  \mathbb{C}^s$}
+
+\begin{equation}
+\Upsilon,\Sigma\vdash \alpha \searrow^{mt} \alpha
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma\vdash \tau^n(\vv{\mathfrak{C}^s}) \searrow^{mt}
+  \vec{\rho}(\vv{\mathbb{C}^s})}
+{\begin{array}{c}
+\vv{\rho}=\inv(\Upsilon,\tau^n)\qquad \Upsilon,\Sigma\vdash
+  \vv{\mathfrak{C}^s} \searrow^{mt} \vv{\mathbb{C}^s}
+\end{array}}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma\vdash \lambda\vv{\alpha}.\mathfrak{C}^s_1(\vv{\mathfrak{C}^s}) \searrow^{mt}
+  \mathbb{C}^s}
+{\begin{array}{c}
+\lambda\vv{\alpha}.\mathfrak{C}^s_1(\vv{\mathfrak{C}^s}) \Downarrow_{mt} \mathfrak{C}^s_2\qquad \Upsilon,\Sigma\vdash
+  \mathfrak{C}^s_2 \searrow^{mt} \mathbb{C}^s
+\end{array}}
+\end{equation}
+
+
+\fbox{$\Upsilon,\Sigma\vdash \mathfrak{C}^\lambda \searrow^{tyc} \mathbb{C}^\lambda$}
+
+\begin{equation} 
+  \infer{\Upsilon,\Sigma\vdash\lambda\vv{\alpha}.\mathfrak{C}^s
+  \searrow^{tyc}
+  \lambda\vv{\alpha}.\mathbb{C}^s}
+{\Upsilon,\Sigma\vdash \mathfrak{C}^s \searrow^{mt} \mathbb{C}^s}
+\end{equation}
+
+\fbox{$\Upsilon,\Sigma\vdash \mathfrak{T} \searrow^{te}
+  \mathbb{T}$}
+\begin{equation}
+\infer{\Upsilon,\Sigma\vdash \mathsf{typ}(\mathfrak{C}^s)
+  \searrow^{te} \mathsf{typ}(\mathbb{C}^s)}
+{\Upsilon,\Sigma\vdash \mathfrak{C}^s \searrow^{mt} \mathbb{C}^s}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon,\Sigma\vdash \forall\vv{\alpha}.\mathfrak{C}^s
+  \searrow^{te} \forall\vv{\alpha}.\mathbb{C}^s}
+{\Upsilon,\Sigma\vdash \mathfrak{C}^s \searrow^{mt} \mathbb{C}^s}
+\end{equation}
+
+}
+\caption{Relativization with signature spec lookup}
+\label{fig:relativize-sig}
+\end{figure}

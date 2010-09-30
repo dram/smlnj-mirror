@@ -1,0 +1,59 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+\centering
+
+\fixedCodeFrame{
+\small
+~\\[0.5mm]
+\fbox{$\Upsilon\vdash \eta \Downarrow_{decl} \Upsilon'$}
+\begin{equation}
+	\infer{\Upsilon\vdash\bullet\Downarrow_{decl} \emptyset_{ee}}
+        {\strut}
+\label{eq:entdecempty}
+\end{equation}
+
+\begin{equation}
+	 \infer{\Upsilon\vdash\rho=_{str}\varphi,\eta\Downarrow_{decl}[\rho\mapsto R]\Upsilon'}
+	{\Upsilon\vdash\varphi\Downarrow_{str}R\qquad 
+          \Upsilon[\rho\mapsto R]\vdash\eta\Downarrow_{decl}
+          \Upsilon'} 
+\label{eq:entdecstr}
+\end{equation}
+	
+\begin{equation}
+	\infer{\Upsilon\vdash\rho=_{fct}\theta,\eta\Downarrow_{decl}[\rho\mapsto\psi]\Upsilon'}
+	  {\Upsilon\vdash\theta\Downarrow_{fct}\psi\qquad 
+            \Upsilon[\rho\mapsto\psi]\vdash\eta\Downarrow_{decl}
+            \Upsilon'}
+\label{eq:entdecfct}
+\end{equation}
+
+\begin{equation}
+	\infer{\Upsilon\vdash\rho=_{tyc}\newx(n),\eta\Downarrow_{decl}
+          [\rho\mapsto\tau^n]\Upsilon'}
+	    {\begin{array}{c}
+                \Upsilon[\rho\mapsto\tau^n]\vdash\eta\Downarrow_{decl}\Upsilon'\qquad
+            (\tau\textrm{ is fresh in }\Upsilon)
+          \end{array}} 
+\label{eq:entdecnew}
+\end{equation}
+
+\begin{equation}
+         \infer{\Upsilon\vdash[\rho=_{def}\mathbb{C}^\lambda],\eta\Downarrow_{decl}
+           [\rho\mapsto\mathbb{C}^\lambda]\Upsilon'}
+         {\Upsilon[\rho\mapsto\mathbb{C}^\lambda]\vdash\eta\Downarrow_{decl}
+           \Upsilon'}
+         \label{eq:entdectypedef}
+\end{equation}
+
+\begin{equation}
+         \infer{\Upsilon\vdash[\rho=_{def}\vec{\rho}],\eta\Downarrow_{decl}
+           [\rho\mapsto\Upsilon(\vec{\rho})]\Upsilon'}
+         {\Upsilon[\rho\mapsto\Upsilon(\vec{\rho})]\vdash \eta
+           \Downarrow_{decl} \Upsilon'}
+         \label{eq:entdecalias}
+\end{equation}
+}
+\caption{Entity declaration semantics}
+\label{fig:entdecsems}
+\end{figure}

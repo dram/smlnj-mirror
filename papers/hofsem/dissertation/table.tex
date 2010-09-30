@@ -1,0 +1,69 @@
+%--- POLARIZATION RATIO DATA TABLE ---%
+\begin{deluxetable}{rrccccccccccrc}
+
+%\onehalfspacing
+%\singlespacing
+\setstretch{1.17}
+
+%\setlength{\tabcolsep}{0.04in}
+%\tabletypesize{\footnotesize}     %use tiny fonts
+\tablecolumns{14}
+\rotate
+\tablewidth{0pt}
+\tableheadfrac{0}
+\tablecaption{
+Polarization, Temperature, \& Spectral Data for points in OMC-1
+\label{tbl-points}}
+\tablehead{
+\colhead{} & \colhead{} & \colhead{} & \colhead{} & \colhead{} &
+\multicolumn{2}{c}{Single $T$ Fit\tablenotemark{b}} & \colhead{} &
+\multicolumn{5}{c}{Two $T$ Fit\tablenotemark{c}} & \colhead{}
+\\
+\cline{6-7} \cline{9-13}
+\\
+\colhead{$\Delta$RA\tablenotemark{a}} &
+\colhead{$\Delta$Dec\tablenotemark{a}} & \colhead{$P(100)$} &
+\colhead{$P(350)$} & \colhead{$\underline{P(100)}$} & \colhead{$T$} &
+\colhead{$\beta$} & \colhead{} & \colhead{$T_1$} & \colhead{$T_2$} &
+\colhead{$\underline{W_1}$} & \colhead{$\underline{F_1}$} &
+\colhead{$\underline{p_1}$} & \colhead{Best}
+\\
+\colhead{(arcsec)} & \colhead{(arcsec)} & \colhead{(\%)} &
+\colhead{(\%)} & \colhead{$P(350)$} & \colhead{(K)} & \colhead{} &
+\colhead{} & \colhead{(K)} & \colhead{(K)} & \colhead{$W_2$} &
+\colhead{$F_2$} & \colhead{$p_2$} & \colhead{Fit\tablenotemark{d}}
+}
+
+\startdata
+-103 &  -82 &  2.5 &  2.3 & 1.1 & 44  & 1.5 & & 31\tablenotemark{e} & \nodata &  \nodata & \nodata & \nodata &  \\
+-101 &   27 &  7.3 &  3.3 & 2.2 & 44  & 1.7 & & 40\tablenotemark{e} & \nodata & \nodata & \nodata &  \nodata &  \\
+-96 &  -56 &  3.5 &  2.1 & 1.7 & 38  & 1.8 & & 30  & 44  &  9.0 & 1.5\phn &  0.06 &  \\
+-93 &  160 &  8.0 &  3.7 & 2.2 & \nodata & \nodata & & \nodata & \nodata & \nodata & \nodata & \nodata &  \\
+-83 &   -5 &  6.4 &  2.7 & 2.3 & 41  & 1.8 & & 35  & 56  & 38 & 3.3\phn &  0.0002 &  \\
+-78 &  -88 &  1.9 &  1.7 & 1.1 & 40  & 1.7 & & 30  & 48  & 22 & 2.0\phn &  0.47 &  \\
+-74 &  128 &  7.2 &  3.4 & 2.2 & 36  & 1.7 & & 27  & 41  & 12 & 1.6\phn &  0.01 &  \\
+-71 &  -63 &  3.0 &  2.0 & 1.5 & 38  & 1.9 & & 32  & 47  & 20 & 2.9\phn &  0.08 &  \\
+-69 &   46 &  6.7 &  3.6 & 1.9 & 39  & 1.8 & & 32  & 48  & 15 & 1.9\phn &  0.03 &  \\
+-64 &  -37 &  4.4 &  2.4 & 1.8 & 37  & 1.9 & & 31  & 40  &  1.9 & 0.52 & -0.33 &  \\
+-60 &  179 &  7.5 &  3.6 & 2.1 & \nodata & \nodata & & \nodata & \nodata & \nodata &  \nodata &   \nodata &  \\
+-51 &   14 &  5.7 &  2.7 & 2.1 & 41  & 1.7 & & 28  & 43  &  4.1 & 0.44 & -0.10 &  \\
+-46 &  -69 &  2.1 &  2.0 & 1.1 & 40  & 1.7 & & 25  & 40  &  4.1 & 0.36 &  0.84 & * \\
+-42 &  147 &  6.9 &  3.3 & 2.1 & 40  & 1.8 & & 31  & 45  &  7.9 & 1.1\phn & -0.04 &  \\
+-38 &  -45 &  3.9 &  2.5 & 1.5 & 39  & 1.8 & & 26  & 40  &  2.9 & 0.37 &  0.08 &  \\
+-37 &   64 &  6.0 &  3.0 & 2.0 & 38  & 1.9 & & 34  & 59  & 98 & 6.3\phn &  0.01 &  \\
+-32 &  -19 &  4.3 &  2.6 & 1.6 & 41  & 1.8 & & 25  & 41  &  1.8 & 0.14 & -0.19 &  \\
+-23 &  115 &  5.2 &  2.6 & 2.0 & 37  & 1.9 & & 33  & 58  &  120  & 7.0\phn &  0.02 &  \\
+\enddata
+
+\tablecomments{Some points with polarization data did not have
+adequate flux data to construct a SED.  Therefore, no temperature or
+spectral fits are reported.}
+\tablenotetext{a}{Position Offsets from BN at
+$5\hour32\minute46\fs7$, $-5\arcdeg24\arcmin17\arcsec$ (1950);
+$5\hour35\minute14\fs2$, $-5\arcdeg22\arcmin24\arcsec$ (2000).}
+\tablenotetext{b}{Results of single temperature ($T$) and spectral
+index ($\beta$) fits. See \S\S\ \ref{sec-1t} and \ref{sec-beta}.}
+
+\etspacing
+
+\end{deluxetable}

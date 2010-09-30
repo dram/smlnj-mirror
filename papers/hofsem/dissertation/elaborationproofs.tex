@@ -1,0 +1,802 @@
+%!TEX root = main.tex
+
+\chapter{Semantics Proofs}\label{ch:proofs}
+
+\section{Type System}
+
+\begin{lemma}[Monotypes are strongly normalizing]\label{lem:tycred}
+If $\mathfrak{C}^s \Downarrow \mathfrak{C}^s_1$ and $\mathfrak{C}^s \Downarrow \mathfrak{C}^s_2$, then $\mathfrak{C}^s_1 = \mathfrak{C}^s_2$ and $\mathfrak{C}^s_1$ is a $\mathfrak{C}^{nf}$. 
+\end{lemma}
+\begin{proof}
+There is a precise embedding of the monotype language in the simply-typed $\lambda$-calculus. Because the simply-typed $\lambda$-calculus is strongly normalizing, so this the monotype language. 
+\end{proof}
+
+% \begin{lemma}
+% If $\mathfrak{C}^s \Downarrow \mathfrak{C}^s_1$ and $\mathfrak{C}^s \Downarrow \mathfrak{C}^s_2$, then $\mathfrak{C}^s_1 = \mathfrak{C}^s_2$ and $\mathfrak{C}^s_1$ is a $\mathfrak{C}^{nf}$. 
+% \end{lemma}
+% \begin{proof}[by induction on the derivation]
+% \begin{description}
+% \item[$\mathfrak{C}^s = \alpha$] $\alpha$ is in normal form. 
+% \item[$\mathfrak{C}^s = \mathfrak{C}^\lambda(\vec{\mathfrak{C}^s_0})$] 
+%   \begin{description}
+%      \item[$\mathfrak{C}^\lambda=\lambda\vec{\alpha}.\mathfrak{C}^s_3$] $\mathfrak{C}^s$ reduces to $\mathfrak{C}^s_3\{\vec{\mathfrak{C}^s_0}/\vec{\alpha}\}$. 
+%      \item[$\mathfrak{C}^\lambda=\tau^n$] By induction, $\vec{\mathfrak{C}^s}$ strongly normalizes to $\vec{\mathfrak{C}^{nf}}$. By definition, $\tau^n(\vec{\mathfrak{C}^{nf}})$ is in normal form. 
+%   \end{description}
+% \end{description}
+% \end{proof}
+
+\begin{lemma}[Inversion]
+\begin{enumerate}
+\item If $\Delta\vdash \alpha:\Omega$, then $\alpha \in \Delta$.
+\item If $\Delta\vdash \mathfrak{C}^\lambda(\vec{\mathfrak{C}^s}) : \Omega$, then $\Delta\vdash \mathfrak{C}^\lambda:\Omega^n\Rightarrow\Omega$, $|\vec{\mathfrak{C}^s}|=n$, and $\Delta\vdash\mathfrak{C}^s_i:\Omega$ for all $i\in[1,n]$. 
+\item If $\Delta\vdash\lambda\vec{\alpha}.\mathfrak{C}^s:\Omega^n\Rightarrow\Omega$, then $\Delta[\alpha_1]\ldots[\alpha_n]\vdash\mathfrak{C}^s:\Omega$.
+\item If $\Delta\vdash\mathsf{typ}(\mathfrak{C}^s):\Omega$, then $\Delta\vdash \mathfrak{C}^s : \Omega$.
+\item If $\Delta\vdash\forall\vec{\alpha}.\mathfrak{C}^s : \Omega$, then $\Delta[\alpha_1]\ldots[\alpha_n]\vdash \mathfrak{C}^s : \Omega$. 
+\end{enumerate}
+\end{lemma}
+\begin{proof} By syntax-directedness of kind system and inspection
+\end{proof}
+
+\begin{lemma}[Kind Preservation]
+If $\emptyset_{knds}\vdash\mathfrak{C}^s:\Omega$ and $\mathfrak{C}^s \Downarrow_{tyc} \mathfrak{C}^{nf}$, then $\emptyset_{knds}\vdash\mathfrak{C}^{nf} : \Omega$. 
+\end{lemma}
+\begin{proof}[by induction on the typing derivation]
+The interesting case is the application rule (\ref{eq:semtypeapp}). By inversion $\emptyset_{knds}\vdash\mathfrak{C}^\lambda : \Omega^n \Rightarrow \Omega$ and $\emptyset_{knds} \vdash \mathfrak{C}^s_i:\Omega\forall i\in[1,n]$ (0). By definition, $\mathfrak{C}^\lambda$ must be following two cases:
+\begin{description}
+\item[$\lambda\vec{\alpha}.\mathfrak{C'}^s_1$] Then by the $\beta$-reduction rule,  $\mathfrak{C}^s_i\Downarrow_{tyc} \mathfrak{C}^{nf}_i$ (1) and $\mathfrak{C}^s \Downarrow_{tyc} \mathfrak{C'}^s\{\vec{\mathfrak{C}^{nf}} /\vec{\alpha}\}$ (2). By induction for (0) and (1), $\emptyset_{knds}\vdash \mathfrak{C}^{nf}_i : \Omega$ for all $i\in[1,n]$ (3).  If $\mathfrak{C'}^s = \alpha$, then done by (3). If $\mathfrak{C'}^s$ is an application, then done by induction. 
+\item[$\tau^n$] Vacuously true 
+\end{description}
+\end{proof}
+ 
+\begin{lemma}[Progress]
+If $\emptyset_{knds}\vdash\mathfrak{C}^s:\Omega$, then $\mathfrak{C}^s \Downarrow \mathfrak{C}^{nf}$. 
+\end{lemma}
+\begin{proof}[by induction on the typing derivation]
+\end{proof}
+
+\section{Entity Calculus}
+\begin{lemma}[Extended Entity Environment Lookup Terminates]\label{lem:entenvlookupterm}
+$\Upsilon(\vec{\rho})$ terminates.
+\end{lemma}
+\begin{proof}[by induction on the length of $\vec{\rho}$]
+\end{proof}
+
+\begin{lemma}[Entity evaluation terminates]
+The following evaluation derivations terminate (has a finite derivation):
+\begin{enumerate}
+\item $\Upsilon\vdash\varphi\Downarrow_{str}R$
+\item $\Upsilon\vdash\eta\Downarrow_{decl}\Upsilon'$
+\item $\Upsilon\vdash\theta\Downarrow_{fct} \psi$
+\end{enumerate}
+\end{lemma}
+\begin{proof}[by the size of the entity expression (excluding the closure environments) and entity environment]
+\begin{enumerate}
+\item \begin{description}
+\item[Rule~\ref{eq:exppath}] This follows from lem.~\ref{lem:entenvlookupterm}.
+\item[Rule~\ref{eq:expdec}] This follows from (2) by induction.
+\item[Rule~\ref{eq:expapp}] The entity expression calculus is a simply-typed $\lambda$ (which known to be strongly normalizing) where types are implicit. 
+
+By induction (3), the functor entity evaluation terminates. By induction (1), the argument structure entity evaluation terminates. The functor entity $\psi=\langle\rho_{arg}.\varphi';\Upsilon^{clo}\rangle$ must have either been in the entity environment $\Upsilon$ or be $\langle \theta;\Upsilon \rangle$.
+
+Because either $|\Upsilon^{clo}| < |\Upsilon|$ or $|\Upsilon^{clo}| = |\Upsilon|$ for the respective cases above, $|\Upsilon^{clo}| \le |\Upsilon|$. By assumption, $|R_{arg}|<|\varphi|+|\Upsilon|$. 
+ 
+If the former, then $|\psi| < |\Upsilon| < |\theta(\varphi)| + |\Upsilon|$. By induction (1), the evaluation of $\varphi'$ must terminate. 
+
+If the latter, then $|\psi| = |\theta| + |\Upsilon| < |\theta| + |\Upsilon| + |\varphi|$. By induction (1), the evaluation of $\varphi'$ must terminate. 
+\item[Rule~\ref{eq:expappformal}] By induction (3), the functor entity evaluation terminates. By induction (1), the argument structure entity evaluation terminates. By lem.~\ref{lem:instterminates}, instantiation terminates. 
+\item[Rule~\ref{eq:explet}] By induction (2), entity declaration terminates. By induction (1), the evaluation of the body of the let terminates. Therefore the whole rule terminates. 
+\end{description}
+\item \begin{description}
+  \item[Rule~\ref{eq:entdecempty}] Trivial because no premises
+  \item[Rule~\ref{eq:entdecnew}] By induction (2) 
+  \item[Rule~\ref{eq:entdecstr}] By induction (1) and (2)
+  \item[Rule~\ref{eq:entdecfct}] By induction (1) and (2)
+\end{description}
+\item For functor entity expressions, this is trivial. By inspection, each of the rules does not depend on any premise with the sole exception of entity environment lookup, which is known to terminate by lem.~\ref{lem:entenvlookupterm}. They are single-step rules that always apply and will terminate. 
+\end{enumerate}
+\end{proof}
+
+\begin{lemma}\label{lem:entevalclosed}
+If $\Upsilon \vdash \varphi \Downarrow_{str} R$, then
+$\Upsilon\subseteq R$.
+
+If $\Upsilon\vdash \eta \Downarrow_{decl} \Upsilon'$, then 
+$\Upsilon \subseteq \Upsilon'$.
+
+If $\Upsilon\vdash \theta \Downarrow_{fct}
+\langle\theta;\Upsilon'\rangle$, then $\Upsilon\subseteq\Upsilon'$. 
+\end{lemma}
+\begin{proof}[by inspection of rules]
+\end{proof}
+
+\section{Elaboration}
+
+\subsection{Type Elaboration}
+\begin{lemma}[Monotype Elaboration Preserves Kinding]\label{lem:mtpreservation}
+If $\Gamma,\Delta\vdash C^s : \Omega$ and $\Gamma,\Upsilon\vdash C^s \Rightarrow_{mt} \mathfrak{C}^s$, then $\Delta\vdash \mathfrak{C}^s : \Omega$. 
+\end{lemma}
+\begin{proof}[by induction on the derivation of $\Gamma,\Delta\vdash C^s : \Omega$]
+\begin{description}
+\item[Rule~\ref{eq:syntypevar} (tyvar)] $C^s = \alpha$, therefore rule~\ref{eq:alpha} is the only applicable elaboration rule. By inversion of the syntactic type kinding, $\alpha\in \Delta$ so $\Delta\vdash \alpha : \Omega$ by rule~\ref{eq:semtypevar}.
+\item[Rule~\ref{eq:syntypeapp} (app)] $C^s = p(\vec{C^s})$, therefore rule~\ref{eq:tycapp} is the only applicable elaboration rule. Let $n=|\vec{C^s}|$. By inversion of the syntactic type kinding, $\Gamma,\Delta\vdash \vec{C^s}_i : \Omega \forall i\in[1,n]$. By inversion of rule~\ref{eq:syntypeapp}, $\Gamma,\Upsilon\vdash C^s_i  \Rightarrow_{mt} \mathfrak{C}^s_i \forall i\in[1,n]$. By induction, $\Delta\vdash \mathfrak{C}^s_i : \Omega \forall i\in[1,n]$.
+\end{description}
+\end{proof}
+
+\begin{lemma}[Tycon Elaboration Preserves Kinding]
+If $\Gamma,\Delta\vdash C^\lambda : \Omega^n \Rightarrow \Omega$ and $\Gamma,\Upsilon\vdash C^\lambda \Rightarrow_{tyc} \mathfrak{C}^\lambda$, $\Delta\vdash \mathfrak{C}^\lambda : \Omega^n \Rightarrow \Omega$.
+\end{lemma}
+\begin{proof}
+This follows directly from lem.~\ref{lem:mtpreservation}.
+\end{proof}
+
+% \begin{lemma}
+% If $\Gamma,\Delta\vdash\mathfrak{C}^s_1:\Omega$ and $\forall i\in[1..|\vec{\mathfrak{C}^s_2}|].\Gamma,\Delta\vdash\mathfrak{C}^s_{2i} : \Omega$, $\mathfrak{C}^s_1\{\vec{\mathfrak{C}^s_2}/\vec{\alpha}\}$
+% \end{lemma}
+
+\subsection{Signature Elaboration}
+
+\begin{lemma}\label{lem:fullyrelativized}
+If $AT(\Sigma) = \emptyset$, for all $\Sigma_i\in\Gamma.AT(\Sigma_i)=\emptyset$, and $\Gamma,\Upsilon,\Sigma\vdash sigexp \Rightarrow_{sig} \Sigma'$, then $AT(\Sigma') = \emptyset$. 
+\end{lemma}
+\begin{proof}[by induction on the derivation]
+\begin{description}
+\item[Rule~\ref{eq:emptysig}] By assumption, $AT(\Gamma(x)) = \emptyset$. 
+\item[Rule~\ref{eq:wheretype}] By induction, $AT(\Sigma') = \emptyset$. By definition of $\mathbb{C}^\lambda$, $AT(\mathbb{C}^\lambda) = \emptyset$. 
+\item[Rule~\ref{eq:sigspecs}] This depends on the above property holding for $\Gamma,\Upsilon,\Sigma\vdash spec \Rightarrow_{spec} \Sigma'$. The open tycon case is trivial. The type and val spec cases are true by definition. The structure and functor cases are by induction. 
+\end{description}
+\end{proof}
+
+\begin{lemma}\label{lem:tyconTyc}
+If $\Gamma\vdash C^\lambda \Rightarrow_{tyc} \mathfrak{C}^\lambda$, then $AT(\mathfrak{C}^\lambda) \subseteq AT(\Gamma)$. 
+\end{lemma}
+
+\begin{lemma}\label{lem:tyconElabStr}
+If $AT(\Gamma) \subseteq AT(\Upsilon)$ and $\Gamma,\Upsilon\vdash strexp \Rightarrow_{str} ((\Sigma, R), \varphi)$, then $AT(M) \subseteq AT(R)$. 
+\end{lemma}
+
+\begin{lemma}\label{lem:tyconSig}
+If $AT(\Gamma) \subseteq AT(\Upsilon)$ and $\Gamma,\Upsilon,\emptyset_{sig}\vdash sigexp \Rightarrow_{sig} \Sigma_x$, then $AT(\Sigma_x) \subseteq AT(\Upsilon)$. 
+\end{lemma}
+
+\begin{lemma}\label{lem:tyconDecl}
+If $AT(\Gamma) \subseteq AT(\Upsilon)$ and $\Gamma,\Upsilon\vdash d^m \Rightarrow_{decl} (\eta,\Gamma',\Upsilon')$, then $AT(\Gamma') \subseteq AT(\Upsilon')$. 
+\end{lemma}
+\begin{proof}[by induction on the derivation of $\Gamma,\Upsilon\vdash d^m \Rightarrow_{decl} (\eta,\Gamma',\Upsilon')$]
+\begin{description}
+\item[Rule~\ref{eq:emptydecl} (empty)] $AT(\emptyset_{se}) \subseteq AT(\emptyset_{ee})$. 
+\item[Rule~\ref{eq:valdecl} (val)] Requires $AT(\mathfrak{T}) \subseteq AT(\Upsilon)$. Because $\Rightarrow_{core}$ cannot generate new atomic tycons, $AT(\mathfrak{T}) \subseteq AT(\Gamma) \cup AT(\Upsilon) \subseteq AT(\Upsilon)$ by assumption. By induction, $AT(\Gamma') \subseteq AT(\Upsilon')$. 
+\item[Rule~\ref{eq:typedefdecl} (typedef)] By lem.~\ref{lem:tyconTyc}, $AT(\mathfrak{C}^\lambda \subseteq AT(\Gamma)$. Therefore $AT(\mathfrak{C}^\lambda) \subseteq AT(\Upsilon)$. By induction, $AT(\Gamma') \subseteq AT(\Upsilon')$. 
+
+\item[Rule~\ref{eq:dtdecl} datatype] By assumption $AT(\Gamma)\subseteq AT(\Upsilon)$. By extension, $AT(\Gamma[t\mapsto \tau^n]) \subseteq AT(\Upsilon[\rho_t \mapsto \tau^n])$. By induction $AT(\Gamma') \subseteq AT(\Upsilon')$. 
+
+\item[Rule~\ref{eq:strdecl} structure] By lem.~\ref{lem:tyconElabStr}, $AT(M) \subseteq AT(R)$. Thus, $AT(\Gamma[X\mapsto (\rho, M)]) \subseteq AT(\Upsilon[\rho\mapsto R])$. By induction, $AT(\Gamma') \subseteq AT(\Upsilon')$. 
+
+\item[Rule~\ref{eq:fctdecl} functor] By lem.~\ref{lem:tyconSig}, $AT(\Sigma_x) \subseteq AT(\Upsilon)$. Certainly, $AT(\Gamma[X\mapsto (\rho,(\Sigma_x,R_x))]) \subseteq AT(\Upsilon[\rho_x\mapsto R_x])$. All tycons in $\Sigma_{res}$ are relativized so $AT(\Sigma_{res}) = \emptyset$. Therefore $AT(\Gamma[f\mapsto (\rho,(\Pi\rho_x:\Sigma_x.\Sigma_{res},\psi))]) \subseteq AT(\Upsilon[\rho\mapsto \psi])$. By induction, $AT(\Gamma'') \subseteq AT(\Upsilon'')$.  
+\end{description}
+
+\end{proof} 
+
+\begin{lemma}\label{lem:entenvStrElab}
+If $\Gamma,\Upsilon\vdash strexp \Rightarrow_{str}
+((\Sigma,R),\varphi)$ and $EV(\Gamma)\subseteq dom(\Upsilon)$, then
+$EV(\Sigma,R) \subseteq dom(R)$ and $EV(\varphi)\subseteq dom(R)$. 
+\end{lemma}
+
+\begin{lemma}\label{lem:entenvSigElab}
+If $\Gamma,\Upsilon,\emptyset_{sig}\vdash sigexp \Rightarrow_{sig} \Sigma$ and $EV(\Gamma) \subseteq dom(\Upsilon)$, then $EV(\Sigma)\subseteq dom(\Upsilon)$. 
+% This doesn't sound right. Signature elaboration definitely produces new entity variables, but it shouldn't reference any undefined variables. 
+\end{lemma}
+
+\begin{definition}\label{def:interprets}
+$\Upsilon$ interprets $\Sigma$ if for all specs in $\Sigma$, one of the
+following must be true:
+\begin{enumerate}
+\item If the spec is an open tycon $(\rho,n)$, then $\Upsilon(\rho)=\tau^n$
+  or $\Upsilon(\rho)=\mathbb{C}^\lambda$ such that $\Upsilon\vdash
+  \mathbb{C}^\lambda :: \Omega^n \to \Omega$. 
+\item If the spec is a structure $(\rho,\Sigma)$, then $\Upsilon(\rho)=R'$. 
+\item If the spec is a functor $(\rho,\Sigma^f)$, then 
+  $\Upsilon(\rho)=\psi$. 
+\end{enumerate}
+\end{definition}
+
+
+\begin{lemma}\label{lem:interprets}
+If $\Upsilon$ interprets the extracted signature of $\Gamma$ and 
+$\Gamma,\Upsilon\vdash strexp \Rightarrow_{str} ((\Sigma, R),
+\varphi)$, then $R$ interprets $\Sigma$.
+\end{lemma}
+\begin{proof}
+The proof for module declaration elaboration is by inspection. 
+For structure expressions, the base structure, and let expression rely
+on the proof for module declaration. The functor application and two
+ascription cases rely on signature matching preserving the
+\emph{interprets} relationship. For signature matching, we can see
+that the resultant entity environment does indeed interpret the spec
+signature by inspection. 
+\end{proof}
+
+
+
+\subsection{Module Declaration Elaboration}
+\begin{lemma}[Synchronization of Static and Entity Environments]
+If $\Gamma,\Upsilon\vdash \vdash d^m \Rightarrow_{decl} (\eta, \Gamma', \Upsilon')$ and $EV(\Gamma)\subseteq dom(\Upsilon)$, then $EV(\Gamma')\subseteq dom(\Upsilon')$. 
+\end{lemma}
+\begin{proof}[by induction on the derivations]
+\begin{description}
+\item[Rules~\ref{eq:valdecl},~\ref{eq:typedefdecl}, and~\ref{eq:dtdecl}] $\mathfrak{T}$, $\mathfrak{C}^\lambda$, $\tau^n$ are semantic and therefore contain no entity variables. 
+\item[Rule~\ref{eq:strdecl}]  By lem.~\ref{lem:entenvStrElab}, $EV(M) \subseteq dom(\Upsilon)\cup dom(R)$. By induction, $EV(\Gamma')\subseteq dom(\Upsilon')$. It follows that $EV([X\mapsto(\rho,M)]\Gamma') \subseteq dom([\rho\mapsto R]\Upsilon')$. 
+\item[Rule~\ref{eq:fctdecl}] By lem.~\ref{lem:installvars}, $EV(\Gamma[X\mapsto(\rho_x(\Sigma_x,R_x))]) \subseteq dom(\Upsilon[\rho_x\mapsto R_x])$. By lem.~\ref{lem:entenvStrElab}, $EV(\Sigma_{res},R_{res})\subseteq dom(\Upsilon)\cup dom(R_{res})$. 
+\end{description}
+\end{proof}
+
+The following lemmas guarantee that semantic signatures and semantic
+functor signatures in full signatures and full functor signatures
+are closed by the structure entity and functor entity respectively. 
+
+\begin{lemma}\label{lem:RclosesSigInFullSig}
+If $\Gamma,\Upsilon\vdash \structure~X=strexp,d^m\Rightarrow_{decl} (\_, [X\mapsto(\rho,(\Sigma,R))]\Gamma', \_)$, then for all relativized paths $\vec{\rho}$ in $\Sigma$, there exists an entity $\upsilon$ such that $R(\vec{\rho})=\upsilon$.
+\end{lemma}
+
+\begin{lemma}
+If $\Gamma,\Upsilon\vdash \functor~f(X:sigexp)=strexp,d^m 
+\Rightarrow_{decl}
+(\_,[f\mapsto(\rho,(\Pi\rho_x:\Sigma_x,\Sigma_{res},\psi))]\Gamma'',\_)$
+and $\Upsilon\vdash\Sigma_x\uparrow\Upsilon_x$,
+then for all entity paths $\vec{\rho}$ in $\Sigma_{res}$, 
+$\langle\Upsilon_x,\Upsilon\rangle(\vec{\rho})$ is defined. 
+\end{lemma}
+
+
+% \begin{lemma}[Canonical Forms for Types]
+% If $\Gamma,\Delta\vdash C^s : \Omega$, then $C^s$ must be one of the following:
+% \begin{enumerate}
+% \item $p(\vec{C}^s)$
+% \item $\alpha$
+% \end{enumerate}
+% If $\Gamma,\Delta\vdash C^\lambda : \Omega^n \Rightarrow \Omega$, then $C^\lambda = \lambda\vec{\alpha}.C^s$. 
+% \end{lemma}
+
+% \begin{lemma}
+% If $\Gamma,\Delta\vdash p(\vec{C}^s) : \Omega$, then $\Gamma(p) = \tau^n$. 
+% \end{lemma}
+% \begin{proof}
+% By inversion, $\Gamma,\Delta\vdash \Gamma(p) : \Omega^n \Rightarrow \Omega$. 
+% By canonical forms lemma, 
+% \end{proof}
+
+% \begin{lemma}
+% If $\Gamma,\Delta\vdash x(\vec{C}^s) : \Omega$ and $x$ is singleton, then $\Gamma(x) = \tau^n$. 
+% \end{lemma}
+% \begin{proof}
+% By inversion $\Gamma(x):\Omega^n \Rightarrow \Omega$. 
+% \end{proof}
+
+
+\subsection{Signature Instantiation}
+\begin{lemma}[Signature Instantiation Terminates]\label{lem:instterminates}
+$\Upsilon\vdash \Sigma \uparrow \Upsilon'$ terminates.
+\end{lemma}
+\begin{proof}[by induction on length of semantic signature]
+All the rules work on a strict subsequence of the semantic signature $\Sigma$ except rule~\ref{eq:inst-str} (the structure spec instantiation rule). Even in that case, the structure spec signature $\Sigma'$ is clearly less than the length of $[x\mapsto(\rho,\Sigma')]\Sigma$. 
+\end{proof}
+
+\begin{lemma}\label{lem:installvars}
+If $\Upsilon^{clo},\Upsilon^{lcl}\vdash \Sigma \uparrow \Upsilon$, then $EV(\Sigma)\subseteq dom(\Upsilon)\cup dom(\Upsilon^{clo}) \cup dom(\Upsilon^{lcl})$
+\end{lemma}
+
+\subsubsection{Signature Matching}
+\begin{lemma}\label{lem:matchrealizes}
+If $\Upsilon \vdash ((\Sigma_a,R_a),\varphi) : \Sigma_s \Rightarrow_{match} (R_c,
+\varphi_c)$, then for all $[x\mapsto s]\in\Sigma_s$, $[x\mapsto
+s']\in\Sigma_a$ such that $R_c(s)=s'$.
+\end{lemma}
+\begin{proof}[by straightforward induction on the derivation]
+\end{proof}
+
+The induction on the two lemmas, lem.~\ref{lem:coerce-strexp}
+and~\ref{lem:match-strexp} require that they be proved
+simultaneously. 
+
+\begin{lemma}\label{lem:coerce-strexp}
+If $\Upsilon,\Sigma_a,\rho_u \vdash \Sigma_s 
+\Rightarrow_{coerce} (\Upsilon', \eta)$, $EV(\Sigma_s)\subseteq
+dom(\Upsilon)$, 
+$R_u \subseteq \Upsilon$, 
+and $\forall\vec{\rho}\in dom(R_u).R_u(\vec{\rho}) = \Upsilon(\vec{\rho})$, 
+then $\Upsilon[\rho_u\mapsto R_u] \vdash \eta 
+\Downarrow_{decl} \Upsilon'$
+\end{lemma}
+\begin{proof}[by simultaneous induction on the derivation of
+  $\Rightarrow_{coerce}$ and the lemma below]
+\begin{description}
+\item[Rule~\ref{eq:coerceopen}] $\Upsilon[\rho_u\mapsto R_u] \vdash 
+[\rho=_{def}\rho_u\rho_a]
+  \Downarrow_{decl} [\rho \mapsto \upsilon]$ such that $\upsilon =
+  \Upsilon[\rho_u\mapsto R_u](\rho_u\rho_a) =
+  R_u(\rho_a)=\Upsilon(\rho_a)$.
+By induction, we are done. 
+\item[Rule~\ref{eq:coercestr}] $\Upsilon[\rho_u\mapsto R_u]\vdash \rho_u\rho_x
+  \Downarrow_{str} \Upsilon[\rho_u\mapsto R_u](\rho_u\rho_x) = \Upsilon(\rho_x)$.  
+$\Upsilon[\rho_u\mapsto R_u] \vdash
+  [\rho_s=_{str} \varphi_c] \Downarrow_{decl} [\rho_s\mapsto
+  \upsilon]$ such that $\upsilon=R_c$ because $\Upsilon\vdash\varphi_c
+  \Downarrow_{str} R_c$ by lem.~\ref{lem:match-strexp}.
+\end{description}
+All the other cases are essentially the same as the above two cases.   
+\end{proof}
+
+\begin{lemma}\label{lem:match-strexp}
+If $\Upsilon \vdash ((\Sigma_a,R_a),\varphi) : \Sigma_s
+\Rightarrow_{match} (R_c,\varphi_c)$,
+$\Upsilon\vdash\varphi\Downarrow_{str} R_a$, and $EV(\Sigma_a)\subseteq
+dom(R_a)$, 
+then $\Upsilon\vdash \varphi_c \Downarrow_{str} R_c$. 
+\end{lemma}
+\begin{proof}
+This lemma follows from lem.~\ref{lem:coerce-strexp}.
+\end{proof}
+
+
+\subsection{Translation} 
+
+\begin{lemma}[Correctness of Coercion]\label{lem:coercion}
+If $E\vdash \{lts_u\}::k$, $E\vdash
+\rho_u : \{lts_u\}$, $E\vdash \alpha :: k'$, $E\vdash c :: k'$, 
+for all $l\in dom(lts)$ $l \in dom(lts_u)$ and 
+$t\{c/\alpha\}=t_u$ such that $l:t \in lts$ and $l:t_u \in lts_u$, and
+ $\coerce(\rho_u,c,lts) = e_\omega$, then $E\vdash e_\omega : \{lts\{c/\alpha\}\}$. 
+\end{lemma}
+\begin{proof}[by induction on the structure of $lts$]
+If $lts=\{\}$, then $e_\omega=\{\}$. $E\vdash \{\} : \{\}$ by
+rule~\ref{eq:frec}. Otherwise, $lts=\{l_0:t_0\}\uplus lts'$ in which
+case $\coerce(\rho_u,c,\{l_0:t_0\}\uplus lts') = \{l_0 =
+\rho_u.l_0\}\uplus les$ such that $les = \coerce(\rho_u, c, lts')$. By
+induction, $E\vdash \coerce(\rho_u, c, lts') : \{lts'\{c/\alpha\}\}$. By
+assumption, $l_0\in dom(lts_u)$. Therefore, $l_0:t_{u_0}\in
+lts_u$. By assumption, $t_{c_0}\{c/\alpha\}=t_{u_0}$ where
+$l_0:t_{c_0}\in lts_c$. Certainly, $\{l_0 = \rho_u.l_0\} : t_{u_0} =
+t_{c_0}\{c/\alpha\}$. It follows that $E \vdash e_\omega : \{l_0 :
+t_{c_0}, lts'\}\{c/\alpha\} = \{lts\{c/\alpha\}\}$.  
+\end{proof}
+
+\begin{lemma}\label{lem:kndprogresses}
+For all $\Sigma$, there exists a $k$ such that $\vdash
+\Sigma\leadsto_{knd} k$. 
+\end{lemma}
+\begin{proof}[by induction on the structure of $\Sigma$]
+\end{proof}
+
+\begin{lemma}\label{lem:f-nf-type}
+For all $\mathfrak{C}^{nf}$, there exists a $t$ such that $\vdash
+\mathfrak{C}^{nf}\leadsto^{nf}_{type} t$. 
+\end{lemma}
+\begin{proof}[by induction on the structure of $\mathfrak{C}^{nf}$]
+\end{proof}
+
+\begin{lemma}[Closed semantic types translate]\label{lem:closedsemtypes}
+\begin{enumerate}
+\item If $EV(\mathbb{T})\subseteq dom(\Upsilon)$, then $\Upsilon\vdash
+\mathbb{T} \leadsto^t_{type} t$
+
+\item If $EV(\Sigma)\subseteq dom(\Upsilon)$, then
+$\Upsilon\vdash\Sigma\leadsto_{type} t$. 
+
+\item If $EV(\mathbb{C}^s) \subseteq dom(\Upsilon)$ and
+  $TV(\mathbb{C}^s\subseteq \Delta$, then
+  $\Delta,\Upsilon\vdash\mathbb{C}^s \leadsto^{tyc}_{type} t$. 
+
+\end{enumerate}
+\end{lemma}
+\begin{proof}[by induction on the size of the term]
+\begin{enumerate}
+\item The proof for this derivation follows directly from the proof of (3)
+\item We consider the cases.
+\begin{description}
+\item[$\Sigma=\emptyset_{sig}$] By rule~\ref{eq:fty-empty}
+\item[$\Sigma=spec\Sigma'$] 
+    Consider the cases for spec.
+    \begin{description}
+      \item[$\mathbb{T}$] By assumption $EV(\mathbb{T})\subseteq
+        dom(\Upsilon)$. By induction (1), $\Upsilon\vdash \mathbb{T}
+        \leadsto^t_{type} t$. By induction (2), $\Upsilon\vdash
+        \Sigma'\leadsto_{type} t'$. 
+By rule~\ref{eq:fty-val}, $\Upsilon\vdash[x\mapsto\mathbb{T}]\Sigma'
+\leadsto_{type} \{x:t\}\uplus t'$. 
+        \item[$\mathbb{C}^\lambda$] By induction (2),
+          $\Upsilon\vdash\Sigma'\leadsto_{type} t'$. By
+          rule~\ref{eq:fty-typedef}, we are done.
+        \item[$(\rho,n)$] Similar reasoning as above
+        \item[$(\rho,(\Sigma_0,R))$] By induction (2),
+          $\Upsilon\vdash\Sigma_0\leadsto_{type} t$ and
+          $\Upsilon\vdash\Sigma'\leadsto_{type} t'$. By
+          rule~\ref{eq:fty-str}, we are done.
+        \item[$(\rho,(\Pi\rho_x:\Sigma_x.\Sigma,\psi))$] By induction
+          (2), $\Upsilon\vdash\Sigma_x\leadsto_{type} t_x$,
+          $\Upsilon\vdash\Sigma\leadsto_{type} t$, and
+          $\Upsilon\vdash\Sigma'\leadsto_{type} t'$. By
+          rule~\ref{eq:fty-fct}, we are done. 
+    \end{description}
+
+\end{description}
+\item Rule~\ref{eq:f-tyc-type-var} is by
+  assumption. Rule~\ref{eq:f-tyc-type-app} relies on normalization of
+  semantic tycon evaluation and lem.~\ref{lem:f-nf-type}. 
+\end{enumerate}
+\end{proof}
+
+\begin{lemma}[Tycon Substitution]\label{lem:tyc-subst}
+If $E\vdash e_\omega \leadsto_{type} t$, $E(\alpha) = k$, and $E\vdash
+c :: k$, 
+then $E\vdash e_\omega\{c/\alpha\} \leadsto_{type} t\{c/\alpha\}$. 
+\end{lemma}
+\begin{proof}[by induction on the derivation of $\leadsto_{type}$]
+\end{proof}
+
+\begin{lemma}[Correctness of Type Synthesis]\label{lem:typesyn-correct}
+If $R$ is closed, $R\vdash \Sigma \leadsto_{type} lts$, 
+$l:\mathbb{T}\in \Sigma$, $R\vdash \mathbb{T}
+\leadsto^t_{type} t$, and $l:t'\in lts$ such that $t'$ is not a record
+type, then $t=t'$.
+\end{lemma}
+
+\begin{lemma}[Correctness of Relativized Type Translation]\label{lem:relty-trans}
+If $R(\mathbb{T})=R'(\mathbb{T}')$ and $R\vdash\mathbb{T}
+\leadsto^t_{type} t$, then $R'\vdash\mathbb{T}' \leadsto^t_{type} t$. 
+\end{lemma}
+\begin{proof}
+\end{proof}
+
+\begin{lemma}\label{lem:spec-translation-wellkinded}
+If $R$ interprets $\Sigma$, $\vdash \Sigma \leadsto_{knd} k$, and $R \vdash \Sigma
+\leadsto_{spec} lcs$, then $R \vdash \{ lcs \} :: k$. 
+\end{lemma}
+\begin{proof}[by induction on the derivation of $R\vdash \Sigma
+  \leadsto_{spec} lcs$]
+Both $\vdash \Sigma \leadsto_{knd} k$ and $R\vdash \Sigma
+\leadsto_{spec} lcs$ ignore $[x\mapsto\mathbb{T}]$ and
+$[x\mapsto\mathbb{C}^\lambda]$ specs. For open tycon specs,
+$[x\mapsto(\rho,n)]\Sigma'\leadsto_{knd} \{\rho::\Omega^n\to \Omega\}
+\uplus k'$ by rule~\ref{eq:f-semsig-opentype}. By
+rule~\ref{eq:transspec-opentype}, $lcs is \rho=\inj(R(\rho)), lcs'$
+such that $R\vdash \Sigma' \leadsto_{spec} lcs'$ for
+$\Sigma=[x\mapsto(\rho,n)]\Sigma'$. By def.~\ref{def:interprets},
+$R(\rho) = \tau^n$. Therefore $\inj(R(\rho)) :: \Omega^n \to \Omega$. 
+\end{proof}
+
+\begin{lemma}\label{lem:tyc-translation-wellkinded}
+If $R$ interprets $\Sigma$, $\vdash \Sigma \leadsto_{knd} k$, $\vdash (\Sigma, R)
+\leadsto_{tyc} c$, then $R\vdash c :: k$. 
+\end{lemma}
+\begin{proof}
+This proof follows directly from lem.~\ref{lem:spec-translation-wellkinded}.
+\end{proof}
+
+\begin{theorem}[Translation Preserves Well-Typing]
+If $EV(\Gamma)\subseteq dom(\Upsilon)$, 
+$\Gamma,\Upsilon\vdash strexp \Rightarrow_{str}
+(\widehat{strexp},(\Sigma,R),\_)$,
+$\Upsilon\vdash\Gamma\hookrightarrow\Sigma'$, 
+$\Upsilon\vdash \Sigma' \leadsto_{type} \{ lts \}$, and
+$\widehat{strexp} \leadsto_{exp} e_{\omega}$, then
+$\mathsf{env}(lts)\vdash e_\omega : t$ 
+and $R\vdash\Sigma \leadsto_{type} t$. 
+
+If $EV(\Gamma)\subseteq dom(\Upsilon)$, 
+$\Gamma,\Upsilon\vdash d^m \Rightarrow_{decl} (\widehat{d^m}, \_, \Gamma',
+\Upsilon')$, $\Upsilon\Upsilon'\vdash \Gamma' \hookrightarrow \Sigma'$,
+$\widehat{d^m} \leadsto_{dec} d$, then $\mathsf{env}(lts) \vdash d :_{dec} E'$
+where $\Upsilon\vdash \Sigma \leadsto_{type} \{lts\}$, $ \Upsilon\Upsilon'\vdash
+\Sigma' \leadsto_{type} \{ lts' \}$, and $\env(lts')=E'$. 
+\end{theorem}
+\begin{proof}[By induction on the derivation of $\Gamma,\Upsilon\vdash
+  strexp \Rightarrow_{str} (\widehat{strexp}, (\Sigma,R),\varphi)$]
+\begin{description}
+\item[Structure expressions]~
+\begin{description}
+\item[Rule~\ref{eq:strpath} (structure path)] The rule says
+  $\Gamma,\Upsilon\vdash p \Rightarrow_{str}
+  (p\an{\vec{\rho}},(\Sigma,R),\vec{\rho})$. 
+  By inversion of
+  $\Rightarrow_{str}$, $\Gamma(p) = (\vv{\rho}, M)$ where
+  $M=(\Sigma,R)$. 
+  By definition,
+  $[x\mapsto(\rho, M)]\in\Gamma$ such $p$ ends in a singleton
+  $x$. 
+  By definition of
+  signature extraction (rule~\ref{eq:extrastr}),
+  $[x\mapsto(\rho,\Sigma)]\in\Sigma'$. 
+ 
+By rule~\ref{eq:transexp-path}, $
+  p\an{\vec{\rho}}\leadsto_{exp} \vec{\rho}$.
+By lem.~\ref{lem:RclosesSigInFullSig}, $EV(\Sigma)\subseteq dom(R)$. 
+By lem.~\ref{lem:closedsemtypes}, $R\vdash\Sigma\leadsto_{type} t$ and
+$\Upsilon\vdash\Sigma'\leadsto_{type} t'$. 
+By rule~\ref{eq:fty-str},   
+$\Upsilon\vdash[x\mapsto(\rho,M)]\Sigma' \leadsto_{type} \{\rho:t\}
+\uplus t' = \{lts\}$. 
+By rule~\ref{eq:fproj}, $\mathsf{env}(lts)\vdash \vec{\rho} : t$. 
+
+\item[Rule~\ref{eq:basestr} (base structure)] By induction and
+  reasoning similar to the above. 
+
+\item[Rule~\ref{eq:strapp} (application)] The nontrivial case is the
+  application rule. 
+
+$\widehat{strexp} = p\an{\vec{\rho},\rho_{par}}
+(\widehat{strexp_x}\an{M_c,\rho_u})$. 
+
+By inversion of
+  rule~\ref{eq:strapp}, $\Gamma(p) = (\vec{\rho},(\Pi
+  \rho_{par}:\Sigma_{par}.\Sigma_{body},\psi))$ (b.1), 
+$\Gamma,\Upsilon\vdash strexp_x
+  \Rightarrow_{str} (M_x,\varphi_x)$ (b.2), 
+$\Upsilon\vdash(M_x,\varphi_x):\Sigma_{par}
+  \Rightarrow_{match} (R_c,\varphi_c)$ (b.3), 
+$\varphi_{app} =
+  \vec{\rho}(\varphi_c)$ (b.4), and
+  $\Upsilon\vdash\varphi_{app}\Downarrow_{str} R_{app}$ (b.5).
+  
+This is a caveat for (b.1). $\Gamma(p)$ contains a $\psi$ if $p$ is a
+real functor. If it is a formal functor, $\Gamma(p)$ will only have
+the entity variable and functor signature. The $\psi$ will have to be
+produced from $\Upsilon(\vec{\rho})$. In either case, we can get a
+full functor signature. 
+
+By assumption, $\Upsilon\vdash\Gamma\hookrightarrow \Sigma'$ 
+and $\Upsilon\vdash\Sigma'\leadsto_{type} \{ lts \}$. Let $\rho$ be
+the last entity variable in $\vec{\rho}$ and $f$ be the final symbol
+in $p$. Then by definition of signature extraction, 
+$[f\mapsto(\rho, \Pi \rho_{par}:\Sigma_{par}.\Sigma_{body})] \in
+\Sigma'$. Thus, $\Upsilon\vdash [f\mapsto(\rho, \Pi
+\rho_{par}:\Sigma_{par}.\Sigma_{body})]\Sigma'' \leadsto_{type} 
+\{ \rho : \forall\rho_{par} :: k.t_{par} \to t_{body}\} \uplus t''$ By
+inversion, $\vdash \Sigma_{par} \leadsto_{knd} k$ (c.1), $\Upsilon\vdash
+\Sigma_{par} \leadsto_{type} t_{par}$ (c.2), $\Upsilon\vdash
+\Sigma_{body} \leadsto_{type} t_{body}$ (c.3), and $\Upsilon\vdash
+\Sigma'' \leadsto_{type} t''$ (c.4).  
+ 
+Because $\{ \rho : \forall\rho_{par} ::k.t_{par} \to t_{body}\} \in
+lts$, $E(\vec{\rho}) = \forall\rho_{par} ::k.t_{par} \to t_{body}$. 
+
+  By assumption and rule~\ref{eq:transexp-app},
+  $\Gamma,\Upsilon\vdash p\an{\vec{\rho},\rho_{par}}
+(\widehat{strexp_x}\an{M_c,\rho_u}) \leadsto_{exp}
+  \letin{\rho_u=e_{\omega_x}}{\vec{\rho}[c](e_{\omega_c})}$ 
+where $\vdash M_c \leadsto_{tyc} c$,
+  $\widehat{strexp_x} \leadsto_{exp} e_{\omega_x}$ (a.0),
+  $R_c\vdash \Sigma_{par}\leadsto_{type} \{lts_c\}$ (a.1),
+  and $e_{\omega_c}=\coerce(\rho_u,c)$ (a.2). 
+  Let $M_c = (\Sigma_{par}, R_c)$ and $t_{par} = \{lts_c\}$.
+
+By rule~\ref{eq:fvar}, $E\vdash \vec{\rho} : \forall\rho_{par} ::
+k.t_{par} \to t_{body}$. By lem.~\ref{lem:tyc-translation-wellkinded},
+$E \vdash c :: k$. By rule~\ref{eq:ftapp}, $E\vdash \vec{\rho}[c] :
+t_{par}\{c/\rho_{par}\}_{tyc} \to t_{body}\{c/\rho_{par}\}_{tyc}$. 
+
+Let $M_x = (\Sigma_x, R_x)$. 
+By (b.2), (a.0), and the original assumptions, $E\vdash e_{\omega_x} :
+t_x$ and $R_x \vdash \Sigma_x \leadsto_{type} \{ lts_x \}$. 
+
+By definition, $\coerce(\rho_u, \{ lts_{par} \}) =
+\{x_1=\rho_u.x)_1,\ldots, x_n=\rho_u.x_n\}$ where $x_i:t_i\in
+lts_{par}$. 
+
+$E[\rho_u=e_{\omega_x}]\vdash x_1=\rho_u.x_1 :_{dec} x_1:t_1'$ such
+that $\forall i\in[1,n] x_i:t_i'\in lts_x$. 
+
+By definition of tycon synthesis, $c = \{ lcs \}$ where $R_c\vdash
+\Sigma_{par} \leadsto_{spec} lcs$ such that:
+\begin{enumerate}
+\item $\forall [x\mapsto(\rho_i,n)]\in\Sigma_{par}$ $\rho_i =
+c_i\in lcs$ such that $c_i = \inj(R_c(\rho_i))$.
+ By lem.~\ref{lem:matchrealizes}, for all $[x\mapsto (\rho_i, n)]\in
+\Sigma_{par}$, $[x\mapsto s']\in\Sigma_x$ such that $R_c(\rho_i)=R_x(s')$. 
+Therefore, $t_i\{\{\rho_i=\inj(R_c(\rho_i))\}/\rho\}_{tyc}=
+t_i\{\{\rho_i=R_x(s')\}/\rho\}_{tyc} = t_i'$.
+\item $\forall [x\mapsto(\rho_i,\Sigma)]\in \Sigma_{par}$ $\rho_i = \{
+  lcs_i \}$ such that $R(\rho_i)\vdash \Sigma \leadsto_{spec}
+  lcs_i$. This case goes through by induction. 
+\item $\forall
+  [x\mapsto(\rho_i,\Pi\rho_{par}':\Sigma_{par}'.\Sigma_{body}')]
+\in\Sigma_{par}$ $\rho_i =
+  \lambda\rho_{par}'::k.c'$ such that $\vdash \Sigma_{par}'
+  \leadsto_{knd} k$ and $\vdash R_c(\rho_i) \leadsto^{strexp}_{tyc}
+  c'$. 
+\end{enumerate} (d.1)
+
+Thus, $E[\rho_u=e_{\omega_x}] \vdash \coerce(\rho_u, \{ lts_{par} \})
+: \{lts_{par}\}\{c/\rho\}_{tyc}$. 
+Recall that $e_{\omega_c} =  \coerce(\rho_u, \{ lts_{par} \})$. 
+Let $E' = E[\rho_u=e_{\omega_x}]$. 
+  By rule~\ref{eq:fapp}, $E'\vdash  
+  \vec{\rho}[c](e_{\omega_c}) : t_{body}\{c/\rho_{par}\}$.
+
+Let $t_{body} = \{ lts_{body} \}$. 
+Since $\Upsilon \subseteq R_{app}$, by (c.3) and reasoning similar to (d.1), 
+$R_{app} \vdash \Sigma_{body} \leadsto_{type}
+lts_{body}\{c/\rho_{par}\}$. 
+
+% %%% 
+
+
+
+ 
+% Want to show $t_i' = t_i\{\{lcs\}/\rho\}$
+
+% $Labels(\Sigma_{par})\subseteq Labels(\Sigma_x)$
+% Since $R_x \vdash \Sigma_x \leadsto_{type} t_x$, 
+% $R_c \vdash \Sigma_{par} \leadsto_{type} t_c$, and 
+
+% If $\Upsilon\vdash ((\Sigma_a,R_a),\varphi) : \Sigma_s
+% \Rightarrow_{match} (R_c, \varphi_c)$, then for all $x\mapsto\mathbb{T}_s \in
+% \Sigma_s$, $R_c \vdash \Sigma_x(x) \equiv \mathbb{T}_s$. 
+
+% For all $y\mapsto\mathbb{T}_s\in\Sigma_s$, 
+% $R_c \vdash \Sigma_x(y) \equiv \mathbb{T}_s$. 
+% Implies $R_c(\mathbb{T}_x) = R_c(\mathbb{T}_s)$. 
+
+
+
+% By lem.~\ref{lem:relty-trans}, $R_c \vdash [x\mapsto \mathbb{T}]
+% \leadsto_{type} t_x$. $R_c\vdash \Sigma$ lem.~\ref{lem:typesyn-correct}, 
+
+% Goal: $R_c \vdash \Sigma_{par} \leadsto_{type} \{lts_{par} \}
+% \{c/\rho\}_{tyc}=t_c$
+% $t_c= \{\overline{x:t\{c/\rho\}_{tyc}}\}\uplus \{\overline{\rho:\{lts\}}\}
+%   \uplus \{\overline{\rho:\forall\alpha::k.t_1\to
+%     t_2\{c/\rho\}_{tyc}}\}$
+% Need to show $\{\overline{x:t\{c/\rho\}_{tyc}\} = \{\overline{x:t'}\}$
+%   where $x:t'\in lts_x$ such that $R_x \vdash \Sigma_x \leadsto_{type}
+%   lts_x$.  
+
+
+% For all $x:t\in lts_x$, $R_x \vdash \mathbb{T} \leadsto^t_{type} t$
+% such that $[x\mapsto\mathbb{T}] \in \Sigma_x$. 
+
+
+% By inversion of rule~\ref{eq:coerceval}, $R_x\Upsilon\vdash
+% \Sigma_x(x) \equiv \mathbb{T}$ for all $[x\mapsto \mathbb{T}]\in
+% \Sigma_{par}$. 
+
+% By inversion of rule~\ref{eq:sigmatch} ($\Upsilon\vdash ((\Sigma_x,
+% R_x), \varphi_x) : \Sigma_{par} \Rightarrow_{match} (R_c,
+% \varphi_c)$), $R_x\Upsilon,\Sigma_x,\rho_u\vdash\Sigma_{par}
+% \Rightarrow_{coerce} (\Upsilon', eta)$ such that
+% $R_c=\langle\Upsilon',\Upsilon\rangle$.  
+
+% Means for all $[l:t]\in lts_{par}$ $R_c \vdash \mathbb{T}^t_{type} t\{c/\rho\}_{tyc}$
+
+% %%%%% 
+
+% $R_x \vdash \Sigma_x \leadsto_{type} t_x$ implies for all
+% $\vec{\rho}\in \Sigma_x$, $R_x(\vec{\rho})(R(\vv{\mathbb{C}^s}))
+% \Downarrow_{mt} \mathfrak{C}^{nf}$ and $\vdash \mathfrak{C}^{nf}
+% \leadsto^{nf}_{type} t$. 
+
+
+ 
+
+% For all $[x\mapsto \mathbb{T}]\in \Sigma_{par}$,  $R_c(\mathbb{T}) =
+% R_x(\mathbb{T}_x)$. 
+% %This implies $(\Sigma_x-\mathsf{valspecs}(\Sigma_x - \Sigma_{par}),
+% %R_x) = (\Sigma_{par},  
+
+% $M_x = (\Sigma_{par}, R_{par}R_c)$. 
+% $E[\rho_u:t_x] \vdash \coerce(\rho_u,t_{par}) : t_{par} \{c/\rho\}_{tyc} $
+
+% %%%%%
+
+
+% Let $\Sigma^f = \Pi \rho_{par}:\Sigma_{par}.\Sigma_{body}$
+%   Let $f$ be the last symbol in $p$ and $\rho$ be the last entity variable in entity path $\vec{\rho}$. 
+% By (b.1) and definition of signature extraction,
+% $f\mapsto(\rho,\Sigma^f)\in\Sigma'$. 
+%    By lem.~\ref{lem:kndprogresses}, $\vdash \Sigma_{par} \leadsto_{knd} k$. 
+ 
+% % everything starts breaking down here. The body signature is not
+% % closed w.r.t. the entity environment. It is open with respect to the
+% % parameter variable \rho_{par}
+%   By assumption, $EV(\Sigma_{body}) \cup EV(\Sigma') \subseteq
+%    dom(\Upsilon)$. By lem.~\ref{lem:closedsemtypes},
+%   $\Upsilon\vdash \Sigma_{body} \leadsto_{type} t_{body}$ (c.0), and
+%    $\Upsilon\vdash \Sigma'\leadsto_{type} t'$. 
+%   By rule~\ref{eq:fty-fct}, $\{\rho : \forall\rho_{par}::k.t_{par} \to
+%   t_{body}\}\in E$. 
+%   By rule \ref{eq:fproj}, $E\vdash \vec{\rho} : (\forall\rho_{par}::k.t_{par} \to t_{body})$. 
+
+%   By induction on (b.2), $E\vdash e_{\omega_x} : t_x$ where $\Upsilon\vdash
+%   \Sigma' \leadsto_{type} E$ and $R_x\vdash \Sigma_x \leadsto_{type}
+%   t_x$. By definition of $\leadsto_{type}$, $t_x = \{ lts_u\}$. 
+%   So, by rule~\ref{eq:fdecrest}, $E'=E[\rho_u:t_x]$.  
+%   By lem.~\ref{lem:matchrealizes}, there exists a tycon substitution
+%   (namely, the structure entity $R_c$) that makes the
+%   field types of $t_{par}$ and $t_x$ equivalent. 
+%   By lem.~\ref{lem:coercion}, $E\vdash
+%   e_{\omega_c} : t_{par}\{c/\rho_{par}\}$. 
+
+%   By rule \ref{eq:ftapp}, $E\vdash \vec{\rho}[c] : (t_{par} \to
+%   t_{body})\{c/\rho_{par}\} = t_{par}\{c/\alpha\} \to t_{body}\{c/\rho_{par}\}$. 
+
+%  Want to show $R_{app}\vdash \Sigma_{body} \leadsto_{type}
+%  t_{body}\{c/\rho_{par}\}$. By lem.~\ref{lem:match-strexp}, $\Upsilon\vdash
+%  \varphi_c \Downarrow_{str} R_c$. By lem.~\ref{lem:entevalclosed} and
+%  (b.5), $R_c \subseteq R_{app}$. 
+ 
+\end{description}
+\item[Module declarations] These cases are straightforward given the structure
+  expression proof. 
+\end{description}
+\end{proof}
+
+% \begin{lemma}
+% If $\Upsilon$ is well-formed and 
+% $\Upsilon\vdash \Upsilon(\vec{\rho}) :: \Omega^n \to
+% \Omega$, then $\vec{\rho}(\varphi)\Downarrow_{str} $. 
+% \end{lemma}
+
+% \begin{lemma}
+% $\Upsilon(\vec{\rho}) = \langle\theta;\Upsilon^{clo} \rangle$.
+% Either $\theta=\lambda\rho_{par}.\varphi$ or
+% $\theta=\lambda\rho_{par}.\Sigma_{body}$. 
+% If $\Upsilon\vdash\vec{\rho}(\varphi_{arg}) \Downarrow_{str} R$, then  
+% $\{\rho_{arg}/\rho_{par}\} $
+% \end{lemma}
+
+% \begin{lemma}
+% If all tycons in $\Upsilon$ are well-kinded and 
+% $\Upsilon\vdash \Sigma \leadsto_{tyc} lcs$, 
+% then $\Upsilon\vdash \{lcs\} :: k$.
+% \end{lemma}
+% \begin{proof}[by induction on the derivation]
+% \end{proof}
+
+ % \begin{lemma}
+% If all tycons in $\Upsilon$ are well-kinded, 
+% $\Upsilon\vdash \Sigma \leadsto_{type} t$, $\vdash (\Sigma, R)
+% \leadsto_{tyc} c$, $\Upsilon \subseteq R$, and 
+% $\Upsilon\vdash \Sigma \leadsto_{type} t$, then 
+% $R\vdash \Sigma \leadsto_{type} t\{c/\rho\}$. 
+% \end{lemma}
+% \begin{proof}
+
+% \end{proof}
+
+% \begin{lemma}
+% If $\Upsilon\vdash [x\mapsto(\rho,\Pi\rho_x:\Sigma_x.\Sigma)]]\Sigma'
+% \leadsto_{type} \{\rho:\forall\rho_x::k.t_x \to t\}\uplus t'$ and $\vdash \langle
+% \Sigma, R\rangle \leadsto_{tyc} c$, 
+% then $R \vdash \Sigma \leadsto_{type} t\{c/\rho_x\}$
+% \end{lemma}
+% \begin{proof}
+% A proof by induction on the derivation of $\vdash ( \Sigma,
+% R) \leadsto_{tyc} c$ implies induction on the derivation of
+% $R\vdash \Sigma \leads_{spec} lcs$.
+
+% The first nontrivial case is
+% rule~\ref{eq:transspec-opentype}. The rule adds
+% $\rho_{t}=\mathsf{inj}(R(\rho))$ to the tycon record for a spec
+% $[x\mapsto(\rho_{t},n)]$. But the $\leadsto_{type}$ rule ignores open
+% specs, so certainly $\{\}\{c/\rho_x\} = \{\}$ (\ie, $lts\{c/\rho_x\} =
+% lts$ and translating $[x\mapsto(\rho_{t},n)]$ under $R$ has no effect). 
+
+% For rule~\ref{eq:transspec-str}, the spec is
+% $[x\mapsto(\rho_{str},\Sigma_{str}\)]$ and the $\rho_{str}=\{lcs\}$. 
+% By inversion, $R(\rho_{str}) \vdash \Sigma_{str} \leadsto_{spec}
+% lcs$. By induction, $R(\rho_{str}) \vdash \Sigma_{str} \leadsto_{type}
+% lts\{lcs/\rho_x\}$. By rule~\ref{eq:fty-str}, $R\vdash
+% [x\mapsto(\rho_{str},\Sigma_{str})]\Sigma' \leadsto_{type}
+% \{\rho_{str} : \{lts\{\{lcs\}/\rho_x\}\}\}\uplus t'\{\{lcs'\}/\rho_x\} =
+% (\{\rho_{str} : \{lts\}\}\uplus t')\{\{lcs,lcs'\}/\rho_x\}$ where
+% $dom(lcs)\cap dom(lcs') = \emptyset$. 
+
+% For rule~\ref{eq:transspec-fct}, the spec is
+% $[f\mapsto(\rho_{f},\Sigma^f)]$ and the tycon record field is $\rho_f
+% = \lambda \rho_x::k.\varphi$. By inversion of
+% rule~\ref{eq:trans-fctspec}, $\vdash \Sigma_x \leadsto_{knd} k$. 
+% \end{proof}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

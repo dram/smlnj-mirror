@@ -1,0 +1,57 @@
+%!TEX root = ../main.tex
+
+\begin{figure}
+\hrule
+
+\[\begin{array}{rcll}
+Path & = & \textrm{set of all symbolic paths}\\
+Tyc_{syn} & = & \textrm{set of all closed syntactic tycons}\\
+\Delta & ::= &\emptyset_{knds}~|~\Delta[\alpha] & \textrm{kind environment}\\
+\Gamma & : & Path \rightharpoonup Tyc_{syn} & \textrm{static environment}
+ \end{array}
+\]
+
+\fbox{$\Gamma,\Delta\vdash C^s : \Omega$}
+
+\begin{equation}
+\infer{\Gamma,\Delta \vdash \alpha : \Omega}{\alpha \in \Delta}
+\label{eq:syntypevar}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Delta \vdash p(\vec{C^s}) : \Omega}
+{\Gamma, \Delta \vdash
+  \Gamma(p) :  \Omega^n \Rightarrow \Omega
+  \qquad |\vec{C^s}| = n \qquad \Gamma,\Delta\vdash C^s_i : \Omega
+  ~\forall i\in [1,n]}
+\label{eq:syntypeapp}
+\end{equation}
+
+\fbox{$\Gamma,\Delta\vdash C^\lambda : \Omega^n \to \Omega$}
+
+\begin{equation}
+\infer{\Gamma,\Delta \vdash \lambda\vec{\alpha}.C^s :
+  \Omega^n\Rightarrow \Omega}{\Gamma,\Delta
+  [\alpha_1]\ldots[\alpha_n] \vdash C^s : \Omega}
+\label{eq:syntypelam}
+\end{equation}
+
+\fbox{$\Gamma\vdash T : \Omega$}
+
+\begin{equation}
+\infer{\Gamma\vdash \mathsf{typ}(C^s) : \Omega}{\Gamma,\emptyset_{knds} \vdash
+  C^s : \Omega}
+\label{eq:syntypeinj}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma \vdash \forall\vec{\alpha}.C^s :
+  \Omega}{\Gamma,[\alpha_1]\ldots[\alpha_n]
+  \vdash C^s : \Omega}
+\label{eq:syntypeforall}
+\end{equation}
+
+\hrule
+\caption{Well-kinding of syntactic tycons}
+\label{fig:kindingsyntactic}
+\end{figure}

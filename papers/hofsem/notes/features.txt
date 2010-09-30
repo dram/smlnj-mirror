@@ -1,0 +1,50 @@
+Features/Non-features of the language being modelled
+
+Features
+
+1. describes the semantics of the SML/NJ H.O. module system \emph{as
+it is}, including such features as shadowing and the resulting
+inexplicit/hidden types.
+
+2. generative type definitions in the Core language in the form of
+datatypes (but without dealing with data constructors)
+
+3. predicative polymorphism (at the level of signature value specs,
+which are presumed to be matched by inferred polymorphic types for
+core value declarations).
+
+4. shadowing of bindings (rebinding of identifiers), leading to
+\emph{hidden} tycons, i.e. tycons that occur in the static environment
+that have no valid name/path relative to that environment.
+
+5. higher-order functors
+   - "fully transparent", meaning full propagation of static
+   information through functor applications in accord with static
+   level beta-reduction semantics
+
+6. non-applicative generative functors
+   each application, \emph{even to the same argument}, can produce
+   distinct new tycons
+
+7. modules are 2nd class
+
+8. deals with signature inference for both simple structures and functor
+   results [relativization mechanisms]
+
+...
+
+
+Non-features
+------------
+
+1. impredicative polymorphism (not in SML)
+
+2. 1st class modules (not in SML)
+
+3. applicative functors (not in SML)
+
+4. recursive modules (not in SML)
+
+...
+
+

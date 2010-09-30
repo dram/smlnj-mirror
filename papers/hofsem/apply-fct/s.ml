@@ -1,0 +1,1 @@
+module S = struct type t = int let x = 1 end

@@ -1,0 +1,5 @@
+Comments from the Committee
+
+The consensus desiderata for ML modules remains an enriched signature language, recursion, and first-class modules (motivated in part by the need for a plug-in architecture). Also something that might be useful would be a theory of linkage. There needs to be more work to motivate HO functors. 
+
+Goal: bulk of technical results ready by December so I can begin the job search. 

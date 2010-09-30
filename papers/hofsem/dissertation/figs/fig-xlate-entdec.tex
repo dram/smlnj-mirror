@@ -1,0 +1,17 @@
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+        ~\\[2mm]
+        \begin{equation}
+          \coerce(\rho_u, lts) = \left\{ \begin{array}{ll}
+              \{\} & lts = \{\}\\
+              \{l_0=\rho_u.l_0\} & lts = \{l_0:t_0\}\uplus lts'\\
+              \uplus\coerce(\rho_u, lts')
+         \end{array} \right.
+        \end{equation}
+
+       }
+        \caption{Coercion of dynamic components}
+        \label{fig:xlate-entdec}
+\end{figure}

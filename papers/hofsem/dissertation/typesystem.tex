@@ -1,0 +1,69 @@
+
+\chapter{Type System}\label{ch:typesystem}
+
+\input{figs/fig-typesystem}
+
+The syntactic type system consists of monotypes, type constructors (\emph{tycons}), and type expressions (\emph{aka} types). The monokind $\Omega$ and arrow kind $\Omega^n \Rightarrow \Omega$ classify monotypes and tycons respectively. As can be seen from the form of the arrow kind, the syntactic type system does not support higher-kinded tycons but it does support multi-arity tycons where the $n$ is a natural number indicating the arity of the tycon. Furthermore, the core language does not support impredicative polymorphism. Universal quantifiers for polymorphism are added in a semantic type system introduced later in this chapter. In the surface type language, the only type expressions that can occur on the right hand side of type definitions are type variables, arrow types, and type applications. Type functions are only introduced by the type definition construct in the core language. 
+
+The kind and tycon language follow a significantly simplified version of Dreyer's language\cite{dreyerthesis}. The tycon language is an impredicative variant of System F$_\omega$ for simplicity, although the core language does not take advantage of impredicativity because the tycon expressions are an elaborated version of the core language types, which do not contain universal quantifiers at all since the quantifiers are added at the module declaration level. Type expressions ($T$) classify core language terms.  Monotypes may be of two forms. Type variables ($\alpha$) come from a denumerable set. The tycon application form ($p(\vv{C^s})$) requires the type operator to named by the symbolic path $p$. By letting the argument of the application be an empty vector, the form can represent all simple types as an application of a nullary type operator to an empty argument vector. 
+
+Wrapping an $n$-ary $\lambda$-abstraction around a monotype produces a tycon. 
+The $\lambda$ tycon denotes type functions parameterized by tycon variables $\vec{\alpha}$. The vector of tycon parameters may be empty thus permitting nullary type functions, which represent nullary tycons. 
+
+In the syntactic tycon language, $\lambda$-abstractions are $n$-ary and not curried, so applications must be saturated. Using the $\lambda$-abstraction to represent even nullary tycons ensures that the semantics can distinguish definitional tycons, \emph{i.e.}, they are exactly those wrapped with an outer $\lambda$-abstraction. $C^\lambda$ are the only syntactic tycons, but semantic tycons, described in sec.~\ref{sec:semtypesys}, add forms corresponding to datatype tycons. This does not reduce the expressiveness of the tycon language at all. In fact, it is a very close match to the tycon language in ML, considerably closer than more general languages found in previous treatments. 
+
+ The universal type expression ($\forall\vec{\alpha}.C^s$) represents polymorphism. Universal quantifiers only occur at the structure declaration level.
+
+\section{Kind System}\label{sec:typesystem-kindsystem}
+\input{figs/fig-wellkinding}     
+
+The well-kinding judgments (Fig.~\ref{fig:kindingsyntactic}) are of the form $\Gamma,\Delta\vdash C : K$
+where $C$ is $C^s, C^\lambda,$ and $T$. The static environment
+$\Gamma$ is used to interpret symbolic paths in monotype application
+forms $p(\vv{C^s})$. At this point, one can think of $\Gamma$ as a
+finite partial map from symbolic paths to syntactic tycons. In chapter~\ref{ch:homods}, static environments will be formally defined. $\Gamma(p)$ calculates a tycon, either a defined tycon or a tycon produced by datatype declaration, which is internal, accessible by a type variable. $\Delta$s represent the kind environment, which contains all the bound type variables, which by default have kind $\Omega$. Again, only monokinds are necessary here because the syntactic type system does not support higher-kinded tycons. Also noteworthy is that type variables $\alpha$ can only be of the monokind (rule~\ref{eq:syntypevar}). 
+
+The tycon application kinding rule (\ref{eq:syntypeapp}) checks that the operator tycon path is well-kinded, the correct number of arguments is supplied and that each of the arguments is well-kinded with kind $\Omega$. The notation $C^s_i$ denotes the $i$th element in the $\vv{C^s}$ vector. The rest of the rules ensure that the types and tycons are closed with respect to type variables (\ie, all type variables are in $\Delta$). 
+
+\section{Semantic Type System}\label{sec:semtypesys}
+
+\input{figs/fig-semtypesystem}
+
+The foregoing type system is purely syntactic. There is no semantics for evaluating the type expressions and tycons. Syntactic types cannot be evaluated directly due to the presence of the uninterpreted symbolic paths. Fig.~\ref{fig:semtypesystem} gives a \emph{semantic} type language that replaces the symbolic paths in the tycon application form with tycons. Semantic monotypes, tycons, and type expressions are distinguished from their syntactic counterparts by the Fraktur script ($\mathfrak{C}$). The semantic type language is first-order and simply-kinded.The Tycs set is the set of all tycon symbols $\tau^n$, distinct from syntactic symbols. Each such tycon has an assigned arity $n$. The elements in Tycs will be called \emph{atomic tycons}.  All primitive tycons such as int, bool, and arrow fall into the Tycs set and all generated datatype tycons will be elements of Tycs. 
+
+The semantic type system consists of semantic monotypes ($\mathfrak{C}^s$), semantic tycons ($\mathfrak{C}^\lambda$), and semantic type expressions ($\mathfrak{T}$) each of which corresponds to the respective syntactic type system version. Semantic monotypes differ from syntactic monotypes in that semantic tycons replace symbolic paths in the application form. Semantic tycons consist of both a $\lambda$ form that represents definitional tycons and a $\tau^n$ form, a concrete, atomic tycon from Tycs, which is intended to represent tycons generated by datatype declarations, opaque ascription, and functor applications. The arity of well-formed tycons can always be calculated directly, $|\tau^n| = n$ and $|\lambda\vec{\alpha}.\mathfrak{C}^s|$. 
+
+\input{figs/fig-wellkinding-semantic}
+
+Fig.~\ref{fig:kindingsemantic} gives a kind system for semantic monotypes, tycons, and type expressions. This kind system differs from the the previous one in fig.~\ref{fig:kindingsyntactic} in that the application rule~\ref{eq:semtypeapp} no longer needs to look up a static environment for a symbolic path, because there are no symbolic paths. The simplifies the kind system in that the static environment can be dropped. To handle atomic tycons, the kind system also adds rule~\ref{eq:semtypeatomic} that gives it the arrow kind $\Omega^n\Rightarrow\Omega$ to match its arity. Thus, the role of this kind system is solely to verify that arities match up and that the types are closed with respect to type variables.  
+
+\subsection{Notation}\label{sec:typesystem-notation}
+Let $\mathfrak{C}^\lambda$ be a semantic tycon. $|\mathfrak{C}^\lambda|$ refers to the arity of the tycon. If the tycon is an atomic tycon $\tau^n$, then $|\tau^n|=n$. If the tycon is a $\lambda\vec{\alpha}.\mathfrak{C}^s$, then the arity is the length of the $\vec{\alpha}$. The $|\cdot|$ notation is also carried over in the obvious way to relativized tycons. $\mathfrak{C}^{nf}_1 \equiv_\alpha \mathfrak{C}^{nf}_2$ is the equivalence of two semantic monotypes module $\alpha$-renaming of type variables,\ie~the two monotypes are isomorphic up to $\alpha$-renaming of type variables. 
+
+\subsection{Evaluation}
+Semantic type expressions and monotypes can be evaluated by a $\beta$-reduction rule in Fig.~\ref{fig:semtyceval} to a normal form $\mathfrak{C}^{nf}$. Note that the normal form of atomic tycons with 0-arity is $\tau^0()$. 
+
+\input{figs/fig-tyceval}
+
+The evaluation rule is the typical big-step call-by-value $\beta$-reduction modified to accept a vector of arguments. Since the semantic type language is analogous to a simply-typed $\lambda$-calculus (actually a first-order simply-typed $\lambda$-calculus enriched with constants), the language is strongly normalizing (lem.~\ref{lem:tycred}). 
+
+\begin{lemma}[Monotypes are strongly normalizing]
+If $\mathfrak{C}^s \Downarrow_{mt} \mathfrak{C}^s_1$ and $\mathfrak{C}^s \Downarrow_{mt} \mathfrak{C}^s_2$, then $\mathfrak{C}^s_1 = \mathfrak{C}^s_2$ and $\mathfrak{C}^s_1$ is a $\mathfrak{C}^{nf}$. 
+\end{lemma}
+
+Not only are the types strongly-normalizing, the semantic type language also has preservation and progress properties. 
+
+\begin{lemma}[Kind Preservation]
+If $\emptyset_{knds}\vdash\mathfrak{C}^s:\Omega$ and $\mathfrak{C}^s \Downarrow_{mt} \mathfrak{C}^{nf}$, then $\emptyset_{knds}\vdash\mathfrak{C}^{nf} : \Omega$. 
+\end{lemma}
+ 
+\begin{lemma}[Progress]
+If $\emptyset_{knds}\vdash\mathfrak{C}^s:\Omega$, then $\mathfrak{C}^s \Downarrow_{mt} \mathfrak{C}^{nf}$. 
+\end{lemma}
+
+The connection between the syntactic and semantic type systems will be made clear in chapter~\ref{ch:homods}.  
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

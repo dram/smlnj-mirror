@@ -1,0 +1,56 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+
+\fixedCodeFrame{
+\small
+~\\[0.5mm]
+\fbox{$\Upsilon\vdash\varphi\Downarrow_{str} R$}
+
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+
+\begin{equation}
+	\infer{\Upsilon\vdash\vec{\rho}\Downarrow_{str}\Upsilon(\vec{\rho})}
+        {\strut}
+\label{eq:exppath}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash\llparenthesis\eta\rrparenthesis\Downarrow_{str}\langle\Upsilon',\Upsilon\rangle}
+{\Upsilon\vdash\eta\Downarrow_{decl}\Upsilon'}
+\label{eq:expdec}
+\end{equation}
+	
+\begin{equation}
+\infer{\Upsilon\vdash\vec\rho(\varphi)\Downarrow_{str}R}
+{\begin{array}{c}
+  \Upsilon\vdash\vec{\rho}\Downarrow_{fct}\langle\lambda\rho_{arg}.\varphi';\Uclo\rangle
+  \qquad
+  \Upsilon\vdash\varphi\Downarrow_{str}R_{arg}\\ 
+\Uclo[\rho_{arg}\mapsto R_{arg}]\vdash\varphi'\Downarrow_{str}R
+\end{array}}
+\label{eq:expapp}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash\vec{\rho}(\varphi)\Downarrow_{str}\langle
+  \Upsilon_{res}, \Uclo[\rho_{arg}\mapsto R_{arg}]\rangle}
+{\begin{array}{c}
+  \Upsilon\vdash\vec{\rho}\Downarrow_{fct}\langle\lambda\rho_{arg}.\Sigma;\Uclo\rangle
+  \qquad
+  \Upsilon\vdash\varphi\Downarrow_{str}R_{arg}\\ 
+\Uclo[\rho_{arg}\mapsto R_{arg}]\vdash\Sigma\uparrow \Upsilon_{res}
+\end{array}}
+\label{eq:expappformal}
+\end{equation}
+	
+\begin{equation}
+\infer{\Upsilon\vdash\mathbf{let}~\eta~\mathbf{in}~\varphi\Downarrow_{str}R}
+{\Upsilon\vdash\eta\Downarrow_{decl}\Upsilon'\qquad
+\Upsilon\Upsilon'\vdash\varphi\Downarrow_{str}R}
+\label{eq:explet}
+\end{equation}
+}
+\caption{Entity expression semantics}
+\label{fig:entsems}
+\end{figure}

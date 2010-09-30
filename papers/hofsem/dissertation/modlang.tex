@@ -1,0 +1,89 @@
+\chapter{Surface Language}\label{ch:surfacelang}
+\input{figs/fig-microml}
+
+\section{Core Language}
+
+The surface language (Fig.~\ref{fig:modlang}) closely follows SML/NJ's syntax with a few exceptions. There are three forms of core level declarations: value, type definition, and datatype. For type definitions, the type parameters are written in an explicit $\lambda$-abstraction form $\mathsf{type}~t = \lambda\vec{\alpha}.C^s$ instead of $\mathsf{type}~\vec{\alpha}~t=C^s$. Definitional type specs use a similar notation. For simplicity, the data constructor part of datatype declarations is omitted. The interesting behavior is the datatype declaration's generation of a fresh atomic tycon.
+
+The core language is a simple one comprised of an implicitly typed expression language ($e$) and a simple declaration language ($d^c$). There are three forms of declarations in the core language, value declarations, type definitions, and datatype declaration. For simplicity's sake, datatype declarations only declare the name and parameters (arity) of a generative tycon. 
+
+\section{Signatures} 
+A signature is a tree of static information for a structure. This object is a hierarchy because it must reflect the hierarchical nesting of structures. The hierarchy can be considered a tree where the internal nodes are structure specifications (\emph{i.e.}, a signature for a named structure) and the leaves are static entities for tycons and functors. 
+
+Signatures are defined as a sequence of comma separated specs. Value specs use the notation $\mathsf{val}~x:\forall\vec{\alpha}.C^s$ instead of $\mathsf{val}~\vec{\alpha}~x=C^s$. Each sequence is terminated by the empty spec $\emptyset_{specs}$. Signature expressions include a variable form, base signature $\mathsf{sig}~spec~\mathsf{end}$, and a signature expression modified by a where type clause. Signature declarations are always at top level.
+
+In signatures, there are two kinds of tycon specifications, definitional and open. \emph{Definitional tycon specs} (abbreviated as \emph{definitional specs}) constrain tycons that can be matched. \emph{Open tycon specs} (abbreviated as \emph{open specs}) only declare the name and arity of a tycon that must be present in a matching structure.
+
+\begin{singlespace}
+\begin{lstlisting}
+type ('a, 'b) s = 'a list * 'b (* definitional *)
+type ('a,'b) t                      (* open *)
+\end{lstlisting}
+\end{singlespace}
+
+Definitional specs are intended to match type definitions in structures. Open specs can match type definitions, datatype declarations, and abstract types (\ie, a type component made abstract by opaque ascription) in structures. 
+
+Signature expressions may be the base form that contains specs. The where type form of signature expressions is a generalization of SML's mechanisms. The where type form adds the type definitions on the right hand side to the structure spec (signature expression) identified on the left hand side. 
+
+Since signature expressions support the base form of signatures and these expressions are found in signature specs, module declarations, and top level declarations, this amounts to the possibility of inline base signatures throughout the language. The presence of inline signatures must be accounted for during elaboration. 
+
+%The mechanism subsumes the structure definition spec form found in SML. Structure definition specs, which have the form \lstinline{sig structure M : sig ... end = A end} where A is a previously defined structure, can be encoded as \lstinline{sig structure M : sig ... end end where M = A}. These special forms of signature expressions will be discussed further in a later section. 
+
+\section{Module Calculus}
+
+Structure expressions can be a path $p$, a base structure, a functor
+application (where the functor occurs only as a symbolic path $p$),
+transparent signature ascription, and opaque signature ascription. A
+module declaration is a sequence of structure, functor, and core
+declarations. $\circ$ denotes the empty structure declaration that
+terminates every sequence of structure declarations. At the top level,
+in addition to module declarations, one may also have signature
+declarations. The top level declaration sequence is terminated by an
+empty top level declaration $\circ$. 
+
+The semantics of transparent and opaque ascription follow that of Standard ML. Unlike some of the more recent module systems, Standard ML's signature ascription is always a coercion on the structure to the form specified in the signature. In the transparent case, this amounts to dropping any value bindings or type declarations omitted in the signature. However, when a signature's open spec is matched against a structure's type definition, the resulting coerced structure will reveal that type definition. In the opaque case, this kind of type definitions is occluded. 
+
+\section{Primary and Secondary Components}\label{sec:primaries}
+The form of a functor argument is constrained by the functor parameter signature possibly modified by a where type definition. In the parameter signature, there can be structure specifications, formal functor specifications, structure/type sharing constraints, and the two classes of type specifications. The open and definitional specs in functor formal parameter signatures are worth special mention. The tycon names declared by these specs may occur in the functor body. When typechecking these occurrences, a free instantiation (\ie, dummy instantiation) of the tycon is used. SML/NJ also supports a rich notion of symmetric type sharing constraints, that will be deferred for future work. Where type constraints can turn open specs into definitional ones when pushed down. Open specs that remain open specs after the resolution of all sharing and where type constraints correspond to these free instantiations. These free instantiations are called \emph{formal} tycons. These are exactly the flexible tycons mentioned in Shao~\cite{shao98}. 
+
+In the presence of type sharing constraints, which induce an equivalence class of formal tycons, each equivalence class has a canonical representative called a \emph{primary} tycon. Without type sharing constraints, all formal tycons are primary.
+These primary tycons are the essential components that must be kept to maintain the semantics of functor application (\ie, the type application associated with the functor application). References to all other members of the equivalence class should be redirected to the associated primary type component. The remaining type components (from definitional specs) are \emph{secondary} and therefore should be fully derivable from the primary tycons and externally defined types. Secondary types do not have to be explicitly represented in the parameter signature because all occurrences of these secondary types can be expanded out according to their definitions. 
+
+\begin{lstlisting}
+functor F(X:sig type s type t type u = s * t sharing type t = s end) = ...
+\end{lstlisting}
+
+	In the above example, \lstinline{s} can be primary, representative for the equivalence class containing both \lstinline{s} and \lstinline{t}, and \lstinline{u} is secondary. Primary tycons are the ones that must be instantiated each time a functor is applied. The primary tycons must then be substituted into the secondary tycons or, alternatively, looked up in an environment described in chapter~\ref{ch:entitycalc}. 
+ 
+\section{Nonvolatile and Volatile Type Constructors}\label{sec:volatile}
+In the module system, tycons can be classified as either nonvolatile or volatile. \emph{Nonvolatile tycons} are atomic tycons in the initial static and entity environments. Open type specs in signatures, datatype declarations, and tycons defined relative to former two give rise to \emph{volatile tycons},{\it i.e.}, they may be instantiated to a particular tycon by functor application or signature matching. Moreover, volatile tycons can be instantiated multiple times through different functor applications or signature matching. Although volatile tycons overlap with the notion of abstract types, they are not the same. The defining characteristic of volatile tycons is that their actual instantiation will be supplied at a later point and they can have multiple instantiations within a program. The instantiation used changes depending on the context, thus the tycon is volatile. In cases such as transparent signature ascription, a volatile tycon may be perfectly transparent. 
+
+Volatile types themselves can be classified as primary (open tycon specs in functor formal parameters and signatures) and secondary (tycons defined relative to primary volatile tycons). 
+
+\begin{lstlisting}
+functor F(X: sig
+      type a (* primary, volatile *)
+      type b = int (* secondary, nonvolatile *)
+      structure M0 : 
+      sig
+         type c (* primary, volatile *)
+         type d = a (* secondary, volatile *)
+      end
+      end) =
+  struct
+     type u = X.a list (* secondary, volatile *)
+     structure M1 : 
+        sig 
+           type v (* spec, not a tycon *)
+        end = struct
+        type v = X.M0.c * int (* secondary, volatile *)
+     end
+  end
+\end{lstlisting}
+
+The above example illustrates some of the complexities of volatile types. Types X.a and X.M0.c are obviously volatile. Definitional types X.M0.d, u, and M1.v are also volatile because they are defined in terms of volatile types. 
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

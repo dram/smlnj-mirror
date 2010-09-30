@@ -1,0 +1,35 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\[
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+\begin{array}{rcll}
+	d & ::= &\signature~s=\sig{\overline{spec}}\\
+	  & ~~\bnfalt& \local~\overline{d}~\inx~\overline{d}~\en\\
+	  & ~~\bnfalt&~ld\\
+	ld & ::= & \structure~X~=~m\\
+	   & ~~\bnfalt&\functor~F\overline{(X:sigexp)}~cnstr = m\\
+	   & ~~\bnfalt&\val~x=e~\bnfalt~\type~\overline{\alpha}~t=\tau\\
+	   & ~~\bnfalt&\local~\overline{ld}~\inx~\overline{ld}~\en\\
+	   & ~~\bnfalt&\open~\overline{q}\\
+	m & ::= & q~\bnfalt~\struct{\overline{ld}}~\bnfalt~q~arg~\bnfalt~\letx~\overline{d}~\inx~m~\en\\
+	  & ~~\bnfalt~&~m:sigexp~\bnfalt~m:>sigexp\\
+	arg & ::= & ( \overline{d} )~\overline{arg}~\bnfalt~(m)~arg~\bnfalt~(m)~\bnfalt~(\overline{d})\\
+	cnstr & ::= & :~sigexp~\bnfalt~:>~sigexp\\
+	sigexp & ::= & s~\bnfalt~\sig{\overline{spec}}~\bnfalt~sigexp~\where~\type~\overline{\alpha}~q=\tau\\
+	spec & ::= & \structure~q:sigexp[=q]\\
+	     & ~~\bnfalt &\functor~q~\overline{(X:sigexp)} : sigexp\\
+	     & ~~\bnfalt &\type~\overline{\alpha}~t[=\tau]~\bnfalt~\val~x:\tau~\bnfalt~\sharing~\type~p=p\\
+	     & ~~\bnfalt &\sharing~p=p~\bnfalt~\exception~exn\\
+	     & ~~\bnfalt & \eqtype~\overline{\alpha}~t[=\tau]\\
+	\tau & ::= & \tau\rightarrow\tau~\bnfalt~\Int~\bnfalt~t\\
+\end{array}
+\]
+}
+The overline notation indicates a vector of the components. 
+\caption{Module surface language: Design caveat -- In SML/NJ the AST permits signature declarations within structures. The parser, however, does not support this. The surface language follows the parser. The implementation AST has an Abstract Structure form, but the parser does not seem to ever produce it. }
+\label{fig:pureml}
+\end{figure}

@@ -1,0 +1,237 @@
+
+\begin{figure}
+  \centering
+  \fixedCodeFrame{
+    \small
+    ~\\[2mm]
+    \fbox{$\vdash \Sigma \leadsto_{knd} k$}
+    \begin{equation}
+      \infer{\vdash \emptyset_{sig} \leadsto_{knd} \{ \}}
+      {\strut}
+      \label{eq:f-semsig-empty}
+    \end{equation}
+
+    \begin{equation}
+      \infer{\vdash [x\mapsto\mathbb{T}]\Sigma \leadsto_{knd} k}
+      {\vdash \Sigma \leadsto_{knd} k}
+      \label{eq:f-semsig-val}
+    \end{equation}
+
+    \begin{equation}
+      \infer{\vdash [x\mapsto\mathbb{C}^\lambda]\Sigma \leadsto_{knd} k}
+      {\vdash \Sigma \leadsto_{knd} k}
+      \label{eq:f-semsig-typedef}
+    \end{equation}
+
+    \begin{equation}
+      \infer{\vdash [x\mapsto(\rho,n)]\Sigma \leadsto_{knd} \{\rho::\Omega^n\to\Omega\}\uplus k}
+      {\vdash \Sigma \leadsto_{knd} k}
+      \label{eq:f-semsig-opentype}
+     \end{equation}
+
+    \begin{equation}
+      \infer{\vdash [x\mapsto(\rho,\Sigma)]\Sigma' \leadsto_{knd} \{\rho::k\}\uplus k'}
+      {\vdash \Sigma \leadsto_{knd} k\qquad\vdash \Sigma' \leadsto_{knd} k'}
+      \label{eq:f-semsig-str}
+    \end{equation}
+
+    \begin{equation}
+      \infer{\vdash [x\mapsto(\rho,\Pi\rho_x:\Sigma_x.\Sigma)]\Sigma' 
+        \leadsto_{knd} \{\rho::k_x\to k\}\uplus k'}
+      {\vdash \Sigma_x \leadsto_{knd} k_x\qquad \vdash \Sigma\leadsto_{knd} k
+        \qquad \vdash \Sigma' \leadsto_{knd} k'}
+      \label{eq:f-semsig-fct}
+    \end{equation}
+  }
+\caption{F$_\omega$ kind synthesis}
+\label{fig:semsigtokinds}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+        ~\\[2mm]
+     \fbox{$\vdash M \leadsto_{tyc} c$}
+        
+        \begin{equation}
+          \infer{\vdash (\Sigma, \langle \Upsilon^{lcl},\Upsilon^{clo} \rangle) 
+            \leadsto_{tyc} \{ lcs \}}
+          {\Upsilon^{clo}\Upsilon^{lcl}\vdash \Sigma \leadsto_{spec} lcs}
+          \label{eq:transfullsig}
+        \end{equation}
+
+        \fbox{$\Upsilon\vdash \Sigma \leadsto_{spec} lcs$}
+        
+        \begin{equation}
+          \infer{\Upsilon\vdash \emptyset_{sig} \leadsto_{spec} \{ \} }
+          {\strut}
+          \label{eq:transspec-empty}
+        \end{equation}
+
+        \begin{equation}
+          \infer{\Upsilon\vdash [x\mapsto\mathfrak{T}]\Sigma \leadsto_{spec} lcs}
+          {\Upsilon\vdash \Sigma \leadsto_{spec} lcs}
+          \label{eq:transspec-val}
+        \end{equation}
+
+        \begin{equation}
+          \infer{\Upsilon\vdash [x\mapsto\mathfrak{C}^\lambda]\Sigma \leadsto_{spec} lcs}
+          {\Upsilon\vdash \Sigma \leadsto_{spec} lcs}
+          \label{eq:transspec-typedef}
+        \end{equation}
+
+        \begin{equation}
+          \infer{\Upsilon\vdash [x\mapsto(\rho, n)]\Sigma 
+            \leadsto_{spec} \rho=\inj(\Upsilon(\rho)),lcs}
+          {\Upsilon\vdash \Sigma\leadsto_{spec} lcs}
+          \label{eq:transspec-opentype}
+        \end{equation}
+
+        \begin{equation}
+          \infer{\Upsilon\vdash [x\mapsto(\rho, \Sigma)]\Sigma'
+            \leadsto_{spec} \rho=\{lcs\},lcs'}
+          {\Upsilon(\rho)\vdash \Sigma \leadsto_{spec} lcs\qquad 
+            \Upsilon\vdash \Sigma' \leadsto_{spec} lcs'}
+          \label{eq:transspec-str}
+        \end{equation}
+
+        \begin{equation}
+          \infer{\Upsilon\vdash [x\mapsto (\rho, \Sigma^f)]\Sigma
+               \leadsto_{spec} \rho=c, lcs'}
+             {\vdash (\Sigma^f, \Upsilon(\rho)) \leadsto_{fctspec} c\qquad 
+               \Upsilon\vdash \Sigma \leadsto_{spec} lcs'}
+           \label{eq:transspec-fct}
+         \end{equation}
+
+\fbox{$\vdash F \leadsto_{fctspec} c$}
+         \begin{equation}
+           \infer{\vdash (\Pi\rho:\Sigma.\Sigma',
+             \langle\lambda\rho.\varphi;\Upsilon\rangle)
+             \leadsto_{fctspec} \lambda\rho::k.c}
+           {\vdash \Sigma \leadsto_{knd} k\qquad \vdash \varphi
+             \leadsto^{strexp}_{tyc} c }
+           \label{eq:trans-fctspec}
+           \end{equation}
+        }
+\caption{F$_\omega$ tycon synthesis}
+\label{fig:f-tycon-synthesis}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \fixedCodeFrame{
+    \small
+    ~\\[2mm]
+    \fbox{$\vdash \mathfrak{C}^{nf} \leadsto^{nf}_{type} t$}
+    \begin{equation}
+      \infer{\vdash \alpha \leadsto^{nf}_{type} \alpha}
+      {\strut}
+    \end{equation}
+
+    \begin{equation}
+      \infer{\vdash \tau^n\left(\vv{\mathfrak{C}^{nf}}\right) 
+        \leadsto^{nf}_{type} \mathsf{inj}(\tau^n)(t_1)\ldots(t_n)}
+      {\vdash\mathfrak{C}^{nf}_1 \leadsto^{nf}_{type} t_1 \ldots 
+        \vdash \mathfrak{C}^{nf}_2 \leadsto^{nf}_{type} t_n}
+     \end{equation}
+
+    \fbox{$\Delta,\Upsilon\vdash \mathbb{C}^s \leadsto^{tyc}_{type} t$}
+    
+    \begin{equation}
+      \infer{\Delta,\Upsilon\vdash \alpha \leadsto^{tyc}_{type} \alpha}
+      {\alpha\in\Delta}
+      \label{eq:f-tyc-type-var}
+    \end{equation}
+
+    \begin{equation}
+      \infer{\Delta,\Upsilon\vdash \vec{\rho}\left(\vv{\mathbb{C}^s}\right) 
+          \leadsto^{tyc}_{type} t}
+      {\begin{array}{c}
+          \vv{\mathfrak{C}^s}~s.t.~\Delta,\Upsilon\vdash\mathbb{C}^s_i\Downarrow_{mt}\mathfrak{C}^s_i~\forall
+        \mathbb{C}^s_i \in \vv{\mathbb{C}^s}\\
+        \Upsilon(\vec{\rho})(\vv{\mathfrak{C}^s})
+        \Downarrow_{mt} 
+        \mathfrak{C}^{nf}
+      \qquad \vdash\mathfrak{C}^{nf}\leadsto^{nf}_{type} t
+    \end{array}}
+    \label{eq:f-tyc-type-app}
+    \end{equation}
+
+    \fbox{$\Upsilon\vdash \mathbb{T} \leadsto^t_{type} t$}
+    
+    \begin{equation}
+      \infer{\Upsilon\vdash \mathsf{typ}(\mathbb{C}^s) \leadsto^t_{type} t}
+      {\emptyset_{knd},\Upsilon\vdash \mathbb{C}^s \leadsto^{tyc}_{type} t }
+    \end{equation}
+
+    \begin{equation}
+      \infer{\Upsilon\vdash \forall\vec{\alpha}.\mathbb{C}^s 
+        \leadsto^t_{type} \forall\vec{\alpha}.t}
+      {[\vec{\alpha}],\Upsilon\vdash \mathbb{C}^s \leadsto^t_{type} t}
+    \end{equation}
+}
+\caption{F$_\omega$ synthesis of types from normal form semantic tycons, relativized monotypes, and type expressions}
+\label{fig:f-semtyc-mt-te}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \fixedCodeFrame{
+    \small
+    ~\\[2mm]
+
+    \fbox{$\Upsilon\vdash \Sigma \leadsto_{type} lts$}
+
+    \begin{equation}
+      \infer{\Upsilon\vdash \emptyset_{sig} \leadsto_{type} \{\}}
+      {\strut}
+      \label{eq:fty-empty}
+     \end{equation}
+
+     \begin{equation}
+       \infer{\Upsilon\vdash [x\mapsto\mathbb{T}]\Sigma' \leadsto_{type} x:t, lts}
+       {\Upsilon\vdash\mathbb{T}\leadsto^{t}_{type} t\qquad
+         \Upsilon\vdash\Sigma'\leadsto_{type} lts}
+       \label{eq:fty-val}
+     \end{equation}
+
+     \begin{equation}
+       \infer{\Upsilon\vdash [x\mapsto\mathbb{C}^\lambda]\Sigma' \leadsto_{type} lts}
+       {\Upsilon\vdash\Sigma' \leadsto_{type} lts}
+       \label{eq:fty-typedef}
+     \end{equation}
+
+     \begin{equation}
+       \infer{\Upsilon\vdash [x\mapsto(\rho,n)]\Sigma' \leadsto_{type} lts}
+       {\Upsilon\vdash \Sigma' \leadsto_{type} lts}
+       \label{eq:fty-opentyc}
+     \end{equation}
+
+    \begin{equation}
+      \infer{\Upsilon\vdash [x\mapsto(\rho,\Sigma)]\Sigma' 
+        \leadsto_{type} \rho:\{lts\}, lts'}
+      {\Upsilon(\rho)\vdash \Sigma \leadsto_{type} lts\qquad 
+        \Upsilon\vdash \Sigma' \leadsto_{type} lts'}
+      \label{eq:fty-str}
+    \end{equation}
+
+    \begin{equation}
+      \infer{\begin{array}{c}
+          \Upsilon\vdash [x\mapsto(\rho,\Pi\rho_x:\Sigma_x.\Sigma)]\Sigma'\\ 
+        \leadsto_{type} \rho:(\forall\rho_x::k.\{lts_x\}\to \{lts\}),
+        lts'
+      \end{array}}
+      {\begin{array}{c}\vdash \Sigma_x \leadsto_{knd} k\qquad
+ \Upsilon\vdash \Sigma_x \leadsto_{type} lts_x \\
+      \Upsilon\vdash \Sigma \leadsto_{type} lts\qquad \Upsilon\vdash \Sigma'
+      \leadsto_{type} lts'
+    \end{array}}
+    \label{eq:fty-fct}
+    \end{equation}
+
+    }
+\caption{F$_\omega$ type synthesis}
+\label{fig:fty-sig}
+\end{figure}
+

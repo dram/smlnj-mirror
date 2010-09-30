@@ -1,0 +1,84 @@
+
+
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+        ~\\[2mm]
+        \fbox{$E\vdash e_\omega : t$}
+
+        \begin{equation}
+          \infer{E\vdash x : E(x)}{\vdash E(x)~\mathsf{type}}
+        \label{eq:fvar}
+        \end{equation}
+        
+        \begin{equation}
+          \infer{E\vdash (\lambda x:t.e_\omega) : t\to t'}
+          {E[x:t]\vdash e_\omega : t'}
+          \label{eq:flam}
+          \end{equation}
+
+          \begin{equation}
+            \infer{E\vdash e_{\omega_1}(e_{\omega_2}) : t_2}
+            {E\vdash e_{\omega_1} : t_1 \to t_2\qquad E\vdash e_{\omega_2} : t_1 }
+            \label{eq:fapp}
+          \end{equation}
+
+          \begin{equation}
+            \infer{E\vdash (\Lambda\alpha::k.e_\omega) : (\forall\alpha::k.t)}
+            {E[\alpha::k]\vdash e_\omega : t}
+            \label{eq:ftfun}
+            \end{equation}
+            
+            \begin{equation}
+              \infer{E\vdash e_\omega[c] : t'\{c/\alpha\}}
+              {E\vdash e_\omega : \forall\alpha::k.t'\qquad 
+                E\vdash c :: k }
+              \label{eq:ftapp}
+              \end{equation}
+            
+           \begin{equation}
+              \infer{E\vdash
+                \{l_0=e_{\omega_0},\ldots,l_n=e_{\omega_n}\} : 
+                \{l_0:t_0,\ldots,l_n:t_n\} }
+              {E\vdash e_{\omega_0} : t_0 \ldots E\vdash e_{\omega_n} : t_n }
+              \label{eq:frec}
+           \end{equation}
+
+           \begin{equation}
+             \infer{E\vdash e_\omega.l_i : t_i}
+             {E\vdash e_\omega : \{\ldots,l_i:t_i,\ldots\}}
+             \label{eq:fproj}
+             \end{equation}
+
+           \begin{equation}
+             \infer{E\vdash \letin{d}{e_\omega} : t}
+             {E\vdash d :_{dec} E'\qquad E'\vdash e_\omega : t}
+             \label{eq:flet}
+           \end{equation}
+
+           \begin{equation}
+             \infer{E \vdash \lettyc{\alpha = c}{e_\omega} :: t}
+             {E\vdash c :: k\qquad E[\alpha::k]\vdash e_\omega :: t}
+             \label{eq:flettyc}
+           \end{equation}
+
+           %%%%%
+           \fbox{$E\vdash d :_{dec} E'$} 
+           %%%%%
+
+           \begin{equation}
+             \infer{E\vdash \emptyset_{\omega dec} :_{dec} E}{\strut}
+             \label{eq:fdecempty}
+           \end{equation}
+
+           \begin{equation}
+             \infer{E\vdash x=e;d :_{dec} E'}
+             {E\vdash e : t\qquad E[x:t]\vdash d :_{dec} E'}
+             \label{eq:fdecrest}
+             \end{equation}
+
+       }
+        \caption{F$_\omega$ Type System}
+        \label{fig:fomegatype}
+\end{figure}

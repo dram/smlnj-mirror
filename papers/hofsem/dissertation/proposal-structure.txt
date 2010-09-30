@@ -1,0 +1,35 @@
+Proposal
+
+Set candidacy exam for Fri 1/16 (Dave arrives on Wed)
+Contrasts between Harper-Stone and Definition semantics (certain edge cases) One discrepancy is in the handling of nonuniform types (irregular recursion)
+
+Def'n admits but doesn't require this: a t = ... a t ... a t ... ==> \a. s = ... s ... s ... (a simple type generator)
+Harper-Stone restricts recursion to this regular recursion. 
+
+
+Set regular writing time
+
+
+Identify core problems
+Methodology & approach
+Background
+
+
+
+In modules, components are named, but in MixML, they are not necessarily named. Module expressions such as link X = [int] with [3] are considered inconsistent by the reference implementation. 
+
+Todo
+
+(1) Make sure we identified all subtle points such as export-only projection limitation + binding workaround, asymmetric selection in recursive 
+
+What does it mean to select out signature components? There are situations where projection from a incomplete module is well-defined: 
+{t=[:0],x=[:int]}.x
+{t=[:0],x=[:t]}.t
+
+Also, the other way around is a little tricky:
+m={l0=cm,l1=im} where cm is complete and im is not.
+m.l0 is illegal
+m.l1 is ok
+
+Dreyer inspired by Bracha/Cook, Bracha/Lindstrom
+What do C linkers do for cross-module linking?

@@ -1,0 +1,20 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Gamma,\Upsilon \vdash C \Downarrow_{tyc} C$}
+\[
+\begin{array}{c}
+\Gamma,\Upsilon \vdash \alpha \Downarrow_{tyc} \alpha\\
+\\
+\infer{\Gamma,\Upsilon\vdash (\lambda \alpha.C_1) C_2 \Downarrow_{tyc} C}
+{\Gamma,\Upsilon\vdash C_1\{C_2/\alpha\} \Downarrow_{tyc} C}
+\end{array}
+\]
+}
+\caption{Tycon Reduction}
+\label{fig:tycred}
+\end{figure}

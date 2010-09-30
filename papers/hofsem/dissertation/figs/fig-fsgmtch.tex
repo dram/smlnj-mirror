@@ -1,0 +1,62 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Upsilon\vdash F : \Sigma^f \Rightarrow_{fsgmtch} (\psi_c, \theta_c)$}
+\begin{equation}
+\infer{
+\begin{array}{c}
+\Upsilon\vdash (\rho_f,
+\Pi\rho:\Sigma_{apar}.\Sigma_{ares},\langle\lambda\rho.\varphi;\Upsilon^{clo}\rangle)
+: (\Pi\rho':\Sigma_{spar}.\Sigma_{sres})\\
+ \Rightarrow_{fsgmtch} (\langle\theta_c;\Upsilon\rangle, \theta_c)
+\end{array}
+}
+{\begin{array}{c}
+\Upsilon^{clo},\Upsilon\vdash \Sigma_{apar} \uparrow \Upsilon_{apar}\\
+  \Upsilon\vdash ((\Sigma_{apar}, \langle\Upsilon_{apar},\Upsilon^{clo}\Upsilon\rangle), \rho) :
+  \Sigma_{spar} \Rightarrow_{match} (M_c, \varphi_c)\\
+M_c = (\Sigma_c, \Upsilon_c) \\
+\Upsilon^{clo},\Upsilon[\rho'\mapsto\langle\Upsilon_c,\Upsilon^{clo}\Upsilon\rangle]\vdash \Sigma_{sres} \uparrow \Upsilon_{sres}\\
+ \Upsilon\vdash ((\Sigma_{sres},
+ \langle\Upsilon_{sres},\Upsilon^{clo}\Upsilon\rangle), \varphi) :\Sigma_{ares}\\
+ \Rightarrow_{match} (M_c', \varphi_c')\\
+\theta_c = \lambda\rho'.\varphi_c'
+\end{array}
+}
+\label{eq:fsgmtch-real}
+\end{equation}
+
+\begin{equation}
+\infer{
+  \begin{array}{c}
+      \Upsilon\vdash (\rho_f, \Pi\rho : \Sigma_{apar}. \Sigma_{ares},
+      \langle \lambda\rho.\Sigma_{fb}; \Upsilon^{clo} \rangle) : 
+      (\Pi \rho' : \Sigma_{spar}.\Sigma_{sres})\\
+      \Rightarrow_{fsgmtch} (\langle \theta_c; \Upsilon\rangle,
+      \theta_c)
+   \end{array}}
+{\begin{array}{c}
+\Upsilon^{clo},\Upsilon\vdash \Sigma_{apar} \uparrow \Upsilon_{apar}\\
+  \Upsilon\vdash ((\Sigma_{apar}, \langle\Upsilon_{apar},\Upsilon^{clo}\Upsilon\rangle), \rho) :
+  \Sigma_{spar}\\ \Rightarrow_{match} (M_c, \varphi_c)\\
+M_c = (\Sigma_c, \Upsilon_c) \\
+\Upsilon^{clo},\Upsilon[\rho'\mapsto\langle\Upsilon_c,\Upsilon^{clo}\Upsilon\rangle]
+\vdash \Sigma_{sres} \uparrow \Upsilon_{sres} \\
+\Upsilon[\rho\mapsto\langle\Upsilon_{apar},\Upsilon^{clo}\Upsilon\rangle] \vdash \Sigma_{fb} \uparrow \Upsilon_{fb}\\
+ \Upsilon\vdash ((\Sigma_{sres},
+ \langle\Upsilon_{sres},\Upsilon^{clo}\Upsilon\rangle), ) :\Sigma_{ares}
+ \Rightarrow_{match} (M_c', \varphi_c')\\
+\theta_c = \lambda\rho'.\varphi_c'
+\end{array}
+}
+\label{eq:fsgmtch-formal}
+\end{equation}
+}
+
+\caption{Functor signature matching}
+\label{fig:fsgmtch}
+\end{figure}

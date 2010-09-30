@@ -1,0 +1,13 @@
+* mention MacQueen, POPL 86 (\cite{macqueen:popl86}) in the introduction.
+
+* emphasize that this is a formalization of a fully realized design implemented over a decade ago in SML/NJ.
+  \cite{km:ifl09}
+
+* contrast with other designs and formalized semantics
+
+  particularly Shao99, the closest alternative, also influenced or inspired by SML/NJ implementation.
+    note that Shao starts from a system AMC (Abstract Module Calculus) which is based on 
+    both {lillibridge94} and {leroy94}
+
+  also chc03 ("A type system for higher-order modules")
+

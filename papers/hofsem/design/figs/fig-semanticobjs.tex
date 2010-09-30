@@ -1,0 +1,22 @@
+%!TEX root = ../main.tex
+\begin{figure}
+	\hrule
+\[\begin{array}{rcll}
+       s^p & ::= &  arity~|~\Sigma~|~\Sigma^f& \textrm{primary spec}\\
+       \Sigma & ::= & \emptyset_{sig}~|~[x\mapsto (\rho,
+       s^p)]\Sigma & \textrm{semantic signature}\\
+       & ~~| & [x\mapsto \mathbb{C}^\lambda]\Sigma~|~[x\mapsto
+       \mathbb{T}]\Sigma \\ 
+	M & ::= & (\Sigma, R) & \textrm{full signature}\\
+        \Sigma^f & ::= & \Pi\rho:\Sigma.\Sigma & \textrm{functor signature}\\
+	F & ::= & (\Sigma^f, \psi) & \textrm{full functor signature}\\
+        \gamma & ::= &
+        \mathfrak{T}~|~\mathfrak{C}^\lambda~|~\Sigma~|~\Sigma^f & \textrm{static binding}\\
+        & ~~| & (\rho, M)~|~(\rho,
+        F) \\
+	\Gamma & ::= & \emptyset_{se}~|~\Gamma[x\mapsto \gamma] &
+        \textrm{static environment}\\
+\end{array}\]
+\caption{Semantic representations}
+\label{fig:semanticobjs}
+\end{figure}

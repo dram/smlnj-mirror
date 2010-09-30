@@ -1,0 +1,14 @@
+\frametitle {Signature Extraction}
+\begin{lstlisting}
+struct
+datatype t
+structure A = struct type u = t end
+functor F(X:sig type s end) = struct type v = X.s end
+end
+\end{lstlisting}
+
+\begin{eqnarray*}
+  & & t\mapsto (\rho_0, \tau^0) \\
+  & & A\mapsto \{u\mapsto (\rho_1, \rho_0)\} \\
+  & & F\mapsto (\rho_2, \Pi\rho_3:\{s\mapsto (\rho_4, 0)\}.\{v\mapsto \lambda().\rho_3\rho_4\})
+\end{eqnarray*}

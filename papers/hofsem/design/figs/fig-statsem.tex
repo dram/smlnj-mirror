@@ -1,0 +1,34 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\[
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+\begin{array}{ll}
+	\infer[\rlabel{local}]{\begin{array}{l}\Gamma\vdash\local~\overline{d_1}~\inx~\overline{d_2}~\en\\
+	\Rightarrow(\underline{\local}~\underline{\overline{d_1}}~\inx~\underline{\overline{d_2}}~\en,entdec,\Gamma_2,\Delta)\end{array}}
+		{\Gamma\vdash\overline{d_1}\Rightarrow(\underline{\overline{d_1}},entdec_1,\Gamma_1,\Delta_1)\\ 
+ \Gamma\oplus\Gamma_1\vdash\overline{d_2}\Rightarrow(\underline{\overline{d_2}},entdec_2,\Gamma_2,\Delta_2)}
+\\
+\qquad
+\\
+\infer[\rlabel{type}]{\Gamma\vdash\type~\overline{\alpha}~t=\tau\Rightarrow(,entdec,\Gamma,\Delta)}
+{\strut}
+\\
+\qquad
+\\
+\infer[\rlabel{sig}]{\Gamma\vdash\sig{\overline{spec}}\Rightarrow(\sig{\overline{spec}},\bullet,\Gamma',\emptyset)}{\strut}
+\\
+\qquad
+\\
+\infer[\rlabel{structure}]{\Gamma\vdash\struct{\overline{ld}}\Rightarrow\struct{\overline{ld}}}{}
+\end{array}
+\]
+}
+The underline notation denotes the elaborated version of the nonterminal, i.e., the explicitly typed and elaborated variant.
+\nocaptionrule
+\caption{Static Semantics}
+\label{fig:statsem}
+\end{figure}

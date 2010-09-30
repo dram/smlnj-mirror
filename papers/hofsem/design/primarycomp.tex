@@ -1,0 +1,9 @@
+\section{Primary and secondary components}
+The form of a functor argument is constrained by the functor parameter signature possibly modified by a where type definition. In the parameter signature, there are structure specifications, formal functor specifications, structure/type sharing constraints, and two classes of type specifications. Type specifications may be abstract or definitional. Abstract type specifications that remain abstract after the elaborator resolves all sharing and where type constraints are called flexible or primary components. These primary type components are those essential components that must be kept to maintain the semantics of functor application (i.e., the type application associated with the functor application). The specific function of primary type components is to capture a canonical representative of an equivalence class of abstract types induced by type sharing constraints. Each equivalence class has exactly one primary type component that serves as a representative element. References to all other members of the equivalence class should be redirected to the associated primary type component. The remaining type components are secondary and therefore should be fully derivable from the primary components and externally defined types. Secondary types do not have to be explicitly represented in the parameter signature because all occurrences of these secondary types can be expanded out according to their definitions. 
+
+\begin{lstlisting}
+functor F(type s type t type u = s * t
+          sharing type t = s) = ...
+\end{lstlisting}
+
+In the above example, \lstinline|s| can be primary, representative for the equivalence class containing both \lstinline|s| and \lstinline|t|, and \lstinline|u| is secondary.
