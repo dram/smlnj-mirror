@@ -1,0 +1,27 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+
+~\\[2mm]
+
+\fbox{$\Upsilon\vdash (M, \varphi) : \Sigma \Rightarrow_{match} (R_c,\varphi_{c})$}
+
+\begin{equation}
+\infer{\Upsilon\vdash
+  ((\Sigma_{a},\langle\Upsilon_{a},\Upsilon^{clo}\rangle), \varphi) : \Sigma_{s}
+  \Rightarrow_{match} (
+  \langle\Upsilon',\Upsilon\rangle,\letx~\rho_u=\varphi~\inx~\llparenthesis \eta \rrparenthesis)}
+{\begin{array}{c}
+    (\rho_u\textrm{ is fresh in }\Upsilon)\qquad
+    \Upsilon_{a}\Upsilon^{clo}\Upsilon, \Sigma_{a},\rho_u \vdash \Sigma_{s}
+    \Rightarrow_{coerce} (\Upsilon', \eta)
+ \end{array}}
+\label{eq:sigmatch}
+\end{equation}
+}
+\caption{Signature matching elaboration}
+\label{fig:sigmatch}
+\end{figure}

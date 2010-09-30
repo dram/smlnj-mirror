@@ -1,0 +1,18 @@
+\begin{figure}
+\hrule
+
+\[
+\begin{array}{rcll}
+p & ::= & x~|~p.x  & \textrm{symbolic paths}\\
+K & ::= & \Omega~|~\Omega^n \Rightarrow \Omega & \textrm{kinds} \\
+C^s & ::= & \alpha~|~p(\vv{C^s}) & \textrm{monotypes}\\
+C^\lambda & ::= & \lambda\vec{\alpha}.C^s & \textrm{closed tycons}\\
+T & ::= &
+\mathsf{typ}(C^s)~|~\forall\vec{\alpha}.C^s & \textrm{closed types} \\
+e & ::= & p~|~\lambda x.e~|~e_1 e_2 & \textrm{terms}
+\end{array}
+\]
+
+\caption{Surface type system}
+\label{fig:typesystem}
+\end{figure}

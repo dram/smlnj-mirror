@@ -1,0 +1,133 @@
+
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+        ~\\[1mm]
+
+           \[\begin{array}{rcl} decl & ::= &
+            \mathbf{val}~x=e~|~\mathbf{type}~t=C^\lambda~|~\dt~\vec{\alpha}~x~\\
+             & ~~| & \mathbf{structure}~x\an{\rho}=strexp\\
+            & ~~| & \mathbf{functor}~f\an{\ldots}(X:sigexp)=strexp 
+            \end{array}\]
+
+        ~\\[1mm]
+
+        \fbox{$ d^m \leadsto_{dec} d$}
+
+        \begin{equation}
+          \infer{ \circ \leadsto_{dec}
+            \emptyset_{\omega dec}}{\strut}
+          \label{eq:transdec-empty}
+       \end{equation}
+
+        \begin{equation}
+          \infer{ \mathbf{val}~x=e \leadsto_{dec} x=e_\omega}
+          { e \leadsto_{exp} e_\omega}
+          \label{eq:transdec-val}
+        \end{equation}
+
+       \begin{equation}
+          \infer{ \mathbf{type}~t=C^\lambda\leadsto_{dec}
+            \emptyset_{\omega dec}}
+          {\strut}
+          \label{eq:transdec-typedef}
+        \end{equation}
+
+       \begin{equation}
+           \infer{
+             \dt~\vec{\alpha}~x\leadsto_{dec}
+             \emptyset_{\omega dec}}
+           {\strut}
+           \label{eq:transdec-dt}
+       \end{equation}
+
+         \begin{equation}
+            \infer{ \structure~x\an{\rho}=strexp\leadsto_{dec}
+              \rho=e_\omega}
+            { strexp \leadsto_{exp} e_\omega}
+            \label{eq:transdec-str}
+          \end{equation}
+
+        \begin{equation}
+          \infer{
+            \begin{array}{c}
+              \mathbf{functor}~f\an{\rho,F,\Upsilon_{ins}}(X:sigexp)=strexp\\
+            \leadsto_{dec} \rho=\Lambda \rho_x::k.\lambda
+            \rho_x:t.e_\omega
+          \end{array}}
+          {\begin{array}{c}
+              F=(\Pi\rho_x:\Sigma_{par}.\Sigma', \psi)\qquad
+            \vdash \Sigma_{par} \leadsto_{knd} k\\
+            \Upsilon_{ins}\vdash \Sigma_{par}
+            \leadsto_{type} t\qquad
+             strexp \leadsto_{exp}  e_\omega
+          \end{array}}
+          \label{eq:transdec-fct}
+        \end{equation}
+
+        \begin{equation}
+          \infer{ decl,d^m \leadsto_{dec} d_1; d_2 }
+          { decl \leadsto_{dec} d_1\qquad
+           d^m \leadsto_{dec} d_2}
+        \label{eq:transdec-comp}
+        \end{equation}
+            }
+\caption{Translation for declarations}
+\label{fig:transdec}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \fixedCodeFrame{
+    \small
+    ~\\[2mm]
+\fbox{$strexp \leadsto_{exp} e_\omega$}
+           
+    \begin{equation}
+    \infer{  p\an{\vec{\rho}} \leadsto_{exp} \vec{\rho}}
+    {\strut}
+    \label{eq:transexp-path}
+     \end{equation}
+
+    \begin{equation}
+       \infer{  \mathsf{struct}~d^m~\mathsf{end}
+         \leadsto_{exp} \mathbf{let}~d~\mathbf{in}~e_\omega}
+       {  d^m \leadsto_{dec} d\qquad
+         e_\omega=\{\rho_i=\rho_i,\ldots\} \forall \rho_i \in dom(d) \textrm{
+         and }\rho_i\textrm{ is not a type}}
+     \label{eq:transexp-basestruct}
+     \end{equation}
+
+     \begin{equation}
+       \infer{ \begin{array}{c}
+         p\an{\vec{\rho},\rho_{par}}
+         (strexp\an{M_c,\rho_u}) 
+         \leadsto_{exp}
+         \letin{\rho_u=e_{\omega_u}}{\vec{\rho}[c](e_{\omega_c})}
+       \end{array}}
+       {\begin{array}{c}  
+           strexp \leadsto_{exp} e_\omega\qquad
+           M_c \leadsto_{tyc}  c\qquad M_c=(\Sigma, R) \\
+           R\vdash \Sigma\leadsto_{type} lts_c\qquad
+           e_{\omega_c} = \coerce(\rho_u,c,\{lts_c\})
+         \end{array}}
+       \label{eq:transexp-app}
+     \end{equation}
+
+     \begin{equation}
+       \infer{  strexp : sigexp \leadsto_{exp} e_\omega}
+       {  strexp \leadsto_{exp} e_\omega}
+     \label{eq:transexp-transparent}
+     \end{equation}
+
+     \begin{equation}
+       \infer{ strexp :> sigexp
+         \leadsto_{exp} e_\omega}
+       {strexp \leadsto_{exp} e_\omega}
+       \label{eq:transexp-opaque}
+     \end{equation}     
+    }
+        \caption{Translation of structure expressions to System F$_\omega$}
+        \label{fig:transexp}
+\end{figure}

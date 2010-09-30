@@ -1,0 +1,116 @@
+%!TEX root = formalsys.tex
+
+\section{Metatheoretic Properties} 
+$\Upsilon$ is a sequence of bindings of entity variables to entities. Let ($\sqsubseteq_{ee}, \Upsilon$) be the total ordering of the bindings in $\Upsilon$ according to the ordering in the sequence. For example, for $\Upsilon = [\rho_0 \mapsto \tau^0][\rho_1 \mapsto \tau^0][\rho_2 \mapsto \tau^0]$, $[\rho_0 \mapsto \tau^0] \sqsubseteq_{ee} [\rho_2 \mapsto \tau^0]$. 
+
+$\Upsilon, \Sigma$, and $\Gamma$ are sequences of bindings. The first two are injective but $\Gamma$ is not. In either case, the notation $b \in \Upsilon$ denotes that the binding $b$ is in the sequence of bindings $\Upsilon$. 
+
+\begin{definition}
+$\Gamma(x)$ denotes the rightmost binding such that $[y\mapsto \gamma] \in \Gamma$ and $x=y$. 
+\end{definition}
+
+
+\begin{lemma}
+For instantiation, let the set of all entity variables $V$ be such that $\rho\in V$ iff $[x\mapsto(\rho,s^v)]$ is in the signature. It must be the case that $V\cap dom(\Upsilon) = \emptyset$.
+\end{lemma}
+\begin{proof}
+\begin{description}
+\item[Rule (38) (opaque signature match)] $\Rightarrow_{sig}$ produced $\Sigma_{spec}$ such that all $\rho$'s fresh in $\Gamma,\Upsilon$, dom($\Upsilon_{spec}$)$\cap EV(\Gamma) = \emptyset$ and $dom(\Upsilon_{spec})\cap EV(\Upsilon) = \emptyset$. 
+\end{description}
+\end{proof}
+
+Properties of $\Upsilon$: 
+\begin{enumerate}
+\item $\Upsilon$ is injective
+\end{enumerate}
+
+
+\begin{definition}[$\Upsilon(\vec{\rho})$]
+If $\vec{\rho}$ is singleton $\rho_0$, $\Upsilon(\rho_0) = \upsilon$ such that $[\rho_0\mapsto\upsilon] \in \Upsilon$ of which there is one because $\Upsilon$ is injective. 
+\end{definition}
+
+\begin{definition}[$\Upsilon^{-1}(\tau^n)$]
+Let $\rho$ such that $[\rho\mapsto\tau^n]$ is in $\Upsilon$ and it is the least binding in $\Upsilon$ that maps to $\tau^n$. 
+\end{definition}
+
+\begin{definition}
+Let $\Sigma(x)$ denote $spec$ where $[x\mapsto spec] \in \Sigma$.
+\end{definition}
+
+\begin{lemma}
+
+\end{lemma}
+
+\section{Key Properties From Other Work}
+\begin{theorem}[Strong Normalization of Tycons]
+If $\emptyset,\emptyset\vdash C^s :: K$, then there exists $\tau^n$ such that $C^s \mapsto^*  \tau^n$
+\end{theorem}
+
+\begin{proof}[by induction on the derivation of well-kinding]
+\begin{enumerate}
+\item Type Variable: Type variable is not closed. 
+\item Application: By inversion, 
+\item Projection
+\item Universal quantification
+\end{enumerate}
+\end{proof}
+
+
+Shao proves the NRC to TGC (System F$_\omega$) elaboration terminates, that the elaboration process produces unique (principal) typings, that the elaboration relation preserves typing.  
+
+\begin{theorem}[Termination]
+Suppose B is a well-formed basis and d is an NRC declaration, if d is
+normalized with respect to B, then elaboration $B\vdash^d
+d:N;D;R\Rightarrow \bullet$ always terminates. Similar proposition
+holds for module expressions. 
+\end{theorem}
+\begin{proof}[by contradiction]
+Suppose that elaboration does not terminate. Then there is an infinite
+elaboration derivation tree. One can construct a corresponding
+derivation tree for the simply-typed lambda calculus (extended with
+records and integers) operational
+semantics. Functor realizations correspond to function closures that
+calculuate the total number of functor applications. But that would mean that there exists a non-terminating
+simply-typed lambda calculus term. Contradiction. 
+\end{proof}
+
+\begin{definition}
+A well-formed basis $B=(\Delta,N,D,R)$ preserves TGC typing if
+\begin{enumerate}
+\item for each type component $p_t \in defPaths(D)$, suppose $D(p_t)$ has kind $\kappa_t$, and $\mu_t = m2t(R(p_t))$, then $\Delta \triangleright \mu_t ::\kappa_t$;
+\item for each structure component $p_s \in defPaths(D)$, suppose $M_s = D(p_s)$ and $r_s = R(p_s)$ and $\vdash^x M_s \Rightarrow \kappa_t$ and $\vdash^x (M_s, r_s) \Rightarrow \mu_t;\sigma_t$, then $\Delta\triangleright \mu_t::\kappa_t$ and $\Delta\triangleright\sigma_t$;
+\item for each functor component $p_f \in defPaths(D)$, suppose $M_f = D(p_f)$ and $r_f = R(p_f)$ and $\vdash^x M_f \Rightarrow \kappa_t$ and $\vdash^x (M_f,r_f) \Rightarrow \mu_t;\sigma_t$, then there exists TGC entities $\kappa'_t, \kappa''_t, \mu'_t, \sigma'_t$, and $\sigma''_t$ such that $\kappa_t = \kappa'_t \to \kappa''_t$ and $\Delta \triangleright \mu_t \equiv_t (\lambda s_i::\kappa'_t.\mu'_t)::\kappa_t$ and $\Delta\triangleright \sigma_t \equiv_t (\forall s_i::\kappa'_t.\sigma'_t\to\sigma''_t)$; furthermore, if $r_f = (m'_b, B',\bullet)$, then B' preserves TGC typing as well. 
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}[Shao Type Preservation]
+Given a well-formed basis B, suppose B preserves TGC typing and $\Delta$ and $\Gamma$ are its derived TGC kind and type environments, then
+\begin{enumerate}
+\item for each NRC module expression m\_, if m\_ is normalized with respect to B and $B \vdash^m m\_: N; M\_; r\_ \Rightarrow e_t$ and $\vdash^x M\_ \Rightarrow \kappa_t$ and $\vdash^x (M\_,r\_) \Rightarrow \mu_t;\sigma_t$, then $\Delta\triangleright\mu_t::\kappa_t$ and $\Delta;\Gamma\vdash^t e_t : \sigma_t$;
+\item for each NRC module declaration d, if d is normalized with respect to B and $B\vdash^d d: N;D;R \Rightarrow d_t$, and $\Gamma'$ is a the derived TGC type environment constructed from R and D, then $B\oplus(\emptyset_\Delta,N,D,R)$ preserves TGC typing and $\Delta;\Gamma\vdash^t d_t:\Gamma'$. 
+\end{enumerate}
+\end{theorem}
+\begin{proof}[by induction on the derivations.]
+\end{proof}
+
+Dreyer et al show Soundness of Elaboration and Decidability of Elaboration (this is straightforward except for the nondeterministic signature matching instantiation). 
+\begin{theorem}[Dreyer Soundness]
+Provided $\Gamma\vdash \Box$ we have:
+\begin{enumerate}
+\item If $\Gamma\vdash T: \kappa \leadsto \tau$, then $\Gamma\vdash \tau:\kappa$
+\item If $\Gamma\vdash E:\tau\leadsto e$, then $\Gamma\vdash e:\tau$
+\item If $\Gamma\vdash \tau \le \tau' \leadsto f$ and $\Gamma\vdash \tau:\Omega$ and $\Gamma\vdash \tau':\Omega$, then $\Gamma\vdash f:\tau \to \tau'$. 
+\item If $\Gamma\vdash S\leadsto \Xi$, then $\Gamma\vdash \Xi:\Omega$. 
+\item If $\Gamma\vdash D\leadsto \Xi$, then $\Gamma\vdash \Xi:\Omega$.
+\item If $\Gamma\vdash M:\Xi\leadsto e$, then $\Gamma\vdash e:\Xi$. 
+\item If $\Gamma\vdash B:\Xi\leadsto e$, then $\Gamma\vdash e:\Xi$.
+\item If $\Gamma\vdash P:\Sigma\leadsto e$, then $\Gamma\vdash e:\Sigma$.
+\item If $\Gamma\vdash \Xi \le \Xi'\leadsto f$ and $\Gamma\vdash \Xi:\Omega$ and $\Gamma\vdash \Xi':\Omega$, then $\Gamma\vdash f : \Xi\to \Xi'$. 
+\item If $\Gamma\vdash \Sigma \le \exists \overline{\alpha}.\Sigma' \uparrow \overline{\tau} \leadsto f$ and $\Gamma\vdash \Sigma:\Omega$ and $\Gamma,\overline{\alpha}\vdash\Sigma':\Omega$, then $\overline{\Gamma\vdash \tau:\kappa_\alpha}$ and $\Gamma\vdash f:\Sigma\to\Sigma'[\overline{\tau}/\overline{\alpha}]$. 
+\end{enumerate}
+\end{theorem}
+\begin{proof}[by induction on the derivations. Proved in Coq.]
+\end{proof}
+
+
+

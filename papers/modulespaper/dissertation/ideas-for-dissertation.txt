@@ -1,0 +1,114 @@
+Ideas
+
+* static "effects"
+  - sealing and generativity (fresh types)
+  - reln with nominal typing
+
+* conflict between HO functors (type functionals) and ...
+
+* clean semantics of "true" HO functors 
+
+* signature calculus
+  - ordering, merging, extension, restriction
+  - signature functions
+
+* recursion in a module system (RMC?) [self recursion unnecessary]
+
+* comparisons
+  - Scala, Dreyer/Rossberg mixins, OO class mixins, problem of open recursion
+
+=> towards a successor ML
+
+* pragmatic principles of module system design
+  transparency, "obviousness", declarative semantics
+
+* boundary between core type system and module system
+  - extent to which module system can be "abstracted" over core type system
+
+signature S0 = sig type t end
+signature S1 = sig type u type v end
+signature S2 = S0 andalso S1
+
+signature S2' = S0 andalso (S1 as S moving S.u => S.t)
+why do we need "as"?
+
+Terms
+------
+
+Generative: fresh abstract types each functor application no matter what the argument is
+
+Applicative: Can specify in the signature that abstract type for new application is the same as the old one -- but only for "simple" functor/aopplications
+
+- how to define module equivalence
+
+True HO: 
+  functor Apply(functor F(X:sig type t))
+
+Apply(F,X) = F(X)
+Apply(F,G,X)  = F(G,X)
+
+functor Apply(functor F(X:S):S, structure A:S):
+  sig type t = F(A).t end
+
+module LiftProd = 
+  functor (X: sig type t end) -> struct type t = X.t * X.t end
+
+module H =
+  functor (G:functor (X:T)->T)
+    -> struct
+         module Apply =
+           functor (X:sig 
+                        module F:FS
+                        module M:T
+                      end)
+                   -> X.F(G(X.M))
+         module R=Apply(struct
+                          module F=Id
+                          module M=struct type t = unit end
+                        end)
+       end
+
+include S0 include S1
+
+include S0 
+include S1
+versus
+structure M0:S0
+structure M1:S1
+sharing type M0.t = M1.t
+open M0 M1
+
+alternatively Limited Shadowing Semantics
+
+terminology: mergeable, compatible, signature consistency 
+
+How does that relate to realizability, inhabitability of a signature and general type inhabitability
+
+There is also the category of signatures (universal algebra)
+Goguen before OBJ (LISP conference 81 (modules for HOPE))
+Look also at MacQueen 81
+
+CLEAR specification language Goguen & Burstall (functor & abstractions models/theories)
+Maude descended from OBJ from CLEAR
+
+Siek on multiple inheritance
+
+    int -> int
+\/a.a->int   \/b.int->b
+      \/ab.a->b
+
+sig
+  structure M:S0
+  structure N:S1 where type t = int
+end
+union
+sig 
+  structure M:S1
+
+Idea: use where clause to explicitly reconcile types in include
+
+Category-theoretic embedding of signature in sig (category of interfaces)
+
+sig S0 U S2
+
+semantics of CLEAR OBJ family

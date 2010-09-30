@@ -1,0 +1,9 @@
+\frametitle {Signature Calculi (4)}
+\begin{block}{Parameterized signatures}
+\begin{lstlisting}
+signature SIG0(M:sig type t end)
+  = sig type t = M.t end
+\end{lstlisting}
+\end{block}
+%signature SIG1(X) = sig structure M : X end
+% Interesting Question: How does this impact phase distinction?

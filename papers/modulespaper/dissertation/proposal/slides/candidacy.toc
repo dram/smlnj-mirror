@@ -1,0 +1,5 @@
+\beamer@endinputifotherversion {3.01pt}
+\beamer@sectionintoc {1}{Higher-Order Functors}{2}{0}{1}
+\beamer@sectionintoc {2}{Separate Compilation}{19}{0}{2}
+\beamer@sectionintoc {3}{Signature Calculi}{22}{0}{3}
+\beamer@sectionintoc {4}{Conclusion}{29}{0}{4}

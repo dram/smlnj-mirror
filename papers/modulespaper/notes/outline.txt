@@ -1,0 +1,183 @@
+Outline
+
+3.Module language
+[Describes the structure of the module language, including its surface syntax, and some of its properties.]
+
+A. types  [surface syntax]
+  i. "monotypes" (C^s) -- type expressions of kind \Omega that may contain free type variables
+      -- consist of type variables, or applications of tycon names given as symbolic paths
+  ii. type constructors (tycons: C^\lambda)
+      -- monotype expressions closed by lambda abstraction
+      -- no free type variables
+      -- represent _defined_ type constructors
+  iii. types (T)
+      -- either closed monotype expressions (coerced by typ operator), or monotype closed by polymorphic
+         quantification
+  iv. kinds
+      -- basic constructors denoted by paths are assigned kinds
+      -- type variables are all of kind \Omega
+      -- there are standard kinding rules for monotypes and constructors (we omit presenting or discussing them)
+
+  [[ discussion of semantic types and the translation from syntactic to semantic type does not
+     belong here. ]]
+
+B. Core language
+
+C. Module language
+   i. signatures
+   ii. structures
+   iii. functors
+   iv. primary vs secondary tycon (specs) in signatures
+   v. volatile vs nonvolatile tycons
+
+   [[ make sure that the primary/secondary and volatile/nonvolatile terminologies are going to
+      be used and are worth the space devoted to them here.]]
+
+
+4. Semantic representations
+This section explains the internal semantic structures used to represent types/tycons, signatures,
+and modules.
+
+[[ There are a lot of concepts to cover here:
+    semantic signatures
+    entity variables 
+    entity paths
+    relativization 
+    semantic types and tycons (including entity paths in relativized types)
+    entity environments 
+    realizations
+      tycons
+      structures
+      functors
+   full-signatures (structures and functors)
+    entities
+    static environments  (symbols to static reps)
+
+and it is tricky to figure out how to order all these interdependent ideas.
+The definitions are given in 3 figures: fig:semtypesystem, fig:entities, fig:semanticobjs.
+fig:semtypesystem has to be modified or augmented to include entity paths (replacing symbolic
+paths in the surface type syntax.
+
+Have a problem of redundancy in terminology, where realization and entity are overlapping
+and almost synonymous. Could possibly drop "realization"?
+
+Let figures speak for themselves as far as possible.  Don't needlessly reiterate the same
+information in the text. The text should bring out the subtleties and motivations.
+]]
+
+A. Main ideas
+   i. factoring static content of a module into signature and complementary << realization >> [fig:semanticobjs]
+      -- (structure) signature is template with holes to fill at open tycon specs
+         [analagous to flexroot components in Shao99]
+      -- need for unique, unshadowable internal variables for static components: << entitiy variables >>
+         needed due to shadowing and hidden types when inferring signatures for structures
+      -- navigate realizations using << entity paths >> rather than symbolic paths
+      -- << relativization >> of tycon references (using entity paths) to deal with << volatility >>
+
+  ii. realizations (extra information complementing signatures) consists of << entities >>
+      -- three kinds of entities: tycon, structure, and functor
+         correspond to the three kinds of components that carry tycons (at least potentially for functors)
+
+B. representation of semantic signatures (\Sigma) [fig:semanticobjs]
+  i. structure sig (\Sigma): sequence of spec bindings name |-> (entvar, spec)
+  ii. tycon specs
+     -- open
+     -- definitional : definitions are << relativized >>
+  iii. structure specs
+  iv. functor specs
+  v. value specs -- types are << relativized >>
+     -- elaborator constructs relatized types directly from syntactic types
+     -- relativization is connected with primary/secondary, volatile/nonvolatile classifications
+
+C. structure realization [fig:entities]
+  i. complete static representation of structure = signature + << realization >>
+     -- call this the << full signature >> [analagous to "instantiated signature" in Shao99]
+  ii. str realization is finite map from static component entity variables to << static entities >>
+         (an << entity environment >>)
+  iii. static entities mapped to in entity environments
+       -- tycon => << semantic tycon >>  (these won't be relativized!)
+       -- structure => str realization == entity environment
+       -- functor => a << functor action >> = function from parameter realization to result realization
+  iv. entity environment is an ordered sequence of entity bindings (\pro, \upsilon)
+      -- ordering is technically necessary for a deterministic "inverse lookup" function described later
+         used in the relativization of types
+  v. structure realization split into two entity envs: local and closure (R = <\Uloc,\Uclo>)
+     -- technical issue connected with relativization of inferred types in signature inference
+     -- for lookup, we regard them as a single, combined entity environment
+
+D. functor realization [fig:entities]
+  i. encodes the << functor action >>, which is a function mapping input realizations to
+     output realizations
+  ii. the functor action is represented as a closure of a lambda expression in the
+    << entity calculus >> [fig:entities]
+  iii. entity calculus is an applied lambda calculus whose values are entities
+    -- assume call-by-value evaluation
+    -- functions in the entity calculus represented by closures wrt entity envs
+    -- CLAIM: entity calculus is normalizing (implicitly kinded by signatures (?) )
+  iv. new operation for tycon entity expressions means that entity calculus has effects
+    -- evaluation of entity expressions creates new tycons
+    -- claim this doesn't affect normalization (cite?)
+
+E. full signatures [fig:semanticobjs]
+  i. structures : full static representation is a <\Sigma, R> pair
+  ii. functors : same as for structures: pair of signature and functor realization
+
+F. Static environment
+  i. maps symbols to static representations
+  ii. two phase path lookup
+    -- lookup symbolic path in signature, translating to entity path as we go along
+    -- if the final item is an open tycon spec, then use entpath to lookup actual tycon in the 
+       realization environment and return it
+    -- if the final item is a defined tycon, use the _innermost_ realization to interpret it
+    -- if the final item is a module spec, use the entity path to get its realization and return
+       sig-realization full signature
+
+------------------------
+
+5. Elaboration (translation from syntax to semantics)
+[[Note auxiliary processes used during elaboration:
+   1. signature matching
+   2. signature instantiation
+   3. signature inference
+   4. functor application (evaluating functor actions]
+
+Note also dual-mode elaboration: direct and compilation.
+  -- direct builds semantic representations (& type checks)
+  -- compilation produces entity expressions
+  -- relevant to elaboration within a functor
+
+figures:  ???
+]]
+
+A.
+
+B.
+
+C.
+
+I. Overview of elaboration
+   A. Purpose
+   B. Example
+   C. Elaboration modes
+
+II. Representation
+   A. Notation
+   B. Semantic objects
+
+III. Elaboration
+   A. Signatures
+   B. Instantiation
+   C. Extraction
+   D. Signature matching
+   E. Structure elaboration
+
+-------------------------
+
+Translation section
+
+* Fomega enriched with a type-level new operator and records
+
+* Representing coercions due to signature matching by selecting out
+formal tycons, value components, structures, and functors. 
+
+2. 

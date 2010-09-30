@@ -1,0 +1,108 @@
+% ---- Chicago Thesis Style ---- %
+%\documentclass[truedoublespace]{ccw_chithesis}
+\documentclass[singlespace,tocchapterhead]{ccw_chithesis}
+\usepackage{astroextras}
+\usepackage{natbib}
+\citestyle{apj}
+
+% ---- ApJ submission style ---- %
+% -- Change \chapter to \section, etc. -- %
+%\documentclass[12pt, preprint]{aastex}
+%\documentclass[numberedappendix]{emulateapj}
+%\usepackage{mathptmx}
+%\slugcomment{Thesis draft: \today}
+%\shorttitle{SDSS EDR Quasar Equivalent Widths}
+%\shortauthors{Wiegert}
+
+
+%% Definitions of useful commands
+\newcommand{\foo}[1]{\textbf{TODO: {#1}}}
+%\newcommand{\foo}[1]{}
+\newcommand{\mgii}{Mg~\textsc{ii}}
+\newcommand{\ciii}{C~\textsc{iii}]}
+\newcommand{\civ}{C~\textsc{iv}}
+\newcommand{\oiii}{[O~\textsc{iii}]}
+\newcommand{\feii}{Fe~\textsc{ii}}
+\newcommand{\uband}{{u^\ast}}
+\newcommand{\gband}{{g^\ast}}
+\newcommand{\rband}{{r^\ast}}
+\newcommand{\iband}{{i^\ast}}
+\newcommand{\zband}{{z^\ast}}
+\newcommand{\Msolar}{M_\sun}
+\newcommand{\mean}[1]{\left\langle{#1}\right\rangle}
+\newcommand{\sgn}{\mbox{sgn}}
+
+\begin{document}
+
+% ---- Chicago Thesis Style ---- %
+\title{Constraining Compact Dark Matter with Quasar Equivalent Widths from
+  the Sloan Digital Sky Survey Early Data Release}
+% -- PUT \footnote INSIDE \title environment -- %
+%\footnote{Dissertation submitted to the Department of Physics,
+%  University of Chicago, in partial fulfillment of the
+%  requirements for the Ph.D. degree.}
+\author{Craig C. Wiegert}
+\department{Physics}
+\division{Physical Sciences}
+\degree{Doctor of Philosophy}
+\date{Draft as of \today}
+%\date{August 2003}
+\maketitle
+\makecopyright
+
+\dedication
+\begin{center}
+\emph{Dedication.}
+\end{center}
+
+% ---- ApJ submission style ---- %
+%\affil{Department of Physics, Enrico Fermi Institute}
+%\affil{The University of Chicago, Chicago, IL 60637}
+%\email{wiegert@oddjob.uchicago.edu}
+
+\begin{abstract}
+Abstract.
+\end{abstract}
+
+% -- Move Acknowledgments before Appendices for ApJ Submission -- %
+\acknowledgments{Acknowledgments.}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+
+% ---- ApJ submission style ---- %
+%\keywords{gravitational lensing --- dark matter --- quasars: emission
+%lines}
+
+% Remove \mainmatter for ApJ submission
+\mainmatter
+
+\chapter{Introduction}
+\label{cha:intro}
+
+From beginning\ldots
+
+\chapter{Conclusions}
+\label{cha:conclude}
+
+\ldots{}to end.
+
+%\appendix
+%\chapter{First appendix}
+%\label{app:1}
+
+% ---- Chicago Thesis Style ---- %
+\newpage
+\addcontentsline{toc}{chapter}{References}
+\begin{singlespace}
+\bibliography{bibtex_file1,bibtex_file2}
+\bibliographystyle{apj}
+\end{singlespace}
+
+% Figures and tables, if you decide to leave them to the end
+%\input{figure}
+%\input{table}
+
+\end{document}

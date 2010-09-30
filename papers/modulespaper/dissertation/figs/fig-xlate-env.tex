@@ -1,0 +1,15 @@
+
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+        ~\\[2mm]
+        \fbox{$\Upsilon\vdash \Sigma \leadsto_{env} E$}
+          \begin{equation}
+            \infer{\Upsilon\vdash [x\mapsto(\rho,\Sigma)]\Gamma' \leadsto_{env} [\rho:t]E'}
+            {\Upsilon(\rho)\vdash \Sigma \leadsto_{env} }
+          \end{equation}
+        }
+        \caption{Environment synthesis}
+        \label{fig:f-env-syn}
+\end{figure}

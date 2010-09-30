@@ -1,0 +1,29 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+	\[
+	\setlength{\tabcolsep}{0ex}
+	\renewcommand{\arraystretch}{1.1}
+	\begin{array}{rcll}
+		p_s & ::= & s_i~|~p_s.s_i\\
+		p_f & ::= & f_i~|~p_s.f_i\\
+		p_t & ::= & t_i~|~p_s.t_i\\
+		D & ::= & \epsilon~|~D~D'~|~type~t_i::\kappa_c\\
+		  & ~~| & type~t_i::\kappa_c = \mu_c~|~structure~s_i:M_s\\
+		  & ~~| & functor~f_i:M_f\\
+		M_s & ::= & sig~D~end\\
+		M_f & ::= & fsig(s_i:M_s)M'_s\\
+		\kappa_c & ::= & \Omega~|~\Omega\rightarrow\kappa_c\\
+		\mu_c & ::= & p_t~|~int~|~\mu_c \rightarrow \mu'_c~|~\lambda t_i::\Omega.\mu_c~|~\mu_c[\mu'_c]\\
+		d & ::= & \epsilon~|~d d'~|~local~d~in~d'~end~|~type~t_i::\kappa_c = \mu_c\\
+		  & ~~| & structure~s_i=m_s~|~functor~f_i=m_f\\
+		m_s & ::= & p_s~|~f_i(s_i)~|~(s_i:M_s)~|~m_b\\
+		m_b & ::= & struct~d~end\\
+		m_f & ::= & p_f~|~funct (s_i:M_s)m_b
+	\end{array}
+	\]
+	}
+\caption{Normalized module calculus NRC}
+\end{figure}

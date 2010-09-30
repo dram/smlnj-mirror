@@ -1,0 +1,40 @@
+%!TEX root = ../main.tex
+
+\begin{figure}
+\hrule
+\[
+\begin{array}{lrcl}
+\textrm{Decls} & d^c & ::= & \mathsf{val}~x=e~
+|~\mathsf{type}~t=C^\lambda\\
+ & & ~~| & \mathsf{datatype}~\vec{\alpha}~t\\
+        & spec & ::= & \mathsf{structure}~x :
+        sigexp~|~\mathsf{type}~\vec{\alpha}~t\\
+        & & ~~| & \mathsf{type}~t = C^\lambda\\ 
+	& & ~~| & \mathsf{functor}~f(x:sigexp_1) : sigexp_2\\
+        & & ~~| & \mathsf{val}~x:T\\
+        & specs & ::= & \emptyset_{specs}~|~spec, specs\\
+	& sigexp & ::= &
+        x~|~\mathsf{sig}~specs~\mathsf{end}\\
+        & & ~~| & sigexp~\mathsf{where~
+          type}~p=C^\lambda\\
+	& strexp & ::= & p\an{\vec{\rho}}~|~\mathsf{struct} ~d^m~\mathsf{end}\\
+        & & ~~| & p\an{\vec{\rho},\rho_{par}}(strexp\an{M,\rho_u})\\
+        & & ~~| & strexp:sigexp\\
+        & & ~~| & strexp:>sigexp\\
+\textrm{Mod decls}	& d^m & ::= & \circ~|~\mathsf{structure}~x\an{\rho} = strexp,
+d^m\\
+       & & ~~| & \mathsf{functor}\an{\rho,F,\Upsilon}
+       ~f(x:sigexp)\\
+       & &  & =strexp, d^m\\
+       & & ~~| & d^c, d^m\\
+\textrm{Top decls} & d^t & ::= &
+\circ~|~\mathsf{signature}~x=sigexp,d^t\\ 
+& & ~~| & d^m,d^t
+
+\end{array}
+\]
+\hrule
+\caption{Annotated module language}
+\label{fig:annotatedlang}
+\end{figure}
+

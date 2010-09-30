@@ -1,0 +1,448 @@
+%!TEX root = main.tex
+
+
+
+\chapter{SML/NJ Elaboration Semantics}\label{ch:smlnjsem}
+\section{Signatures}
+\fbox{$\Gamma,\Upsilon,C_{ep},C_{sig}\vdash sigexp \Rightarrow_{sig} \Sigma$}\\
+Signatures elaborate in the context of the following semantic objects:
+\begin{description}
+	\item[static environment ($\Gamma$)] The static environment interprets any nonlocal symbolic paths mapping them to semantic representations.
+	\item[entity environment ($\Upsilon$)] The entity environment interprets all external entity paths in datatype and datatype replication specifications and any other relativized type expressions. 
+	\item[entity path context ($C_{ep}$)] The entity path context helps relativize types in where clauses, type, exception, and datatype/replication specifications. The elaborator also looks up the entity path context to obtain the entity path for structure definition specs. [so structure references are also relativized in certain circumstances] This is an auxiliary implementation mechanism used only in the process of building static representations -- not part of the representations themselves. 
+        \item[signature context ($C_{sig}$)] A signature context is a list of spec elements, specifically, structure spec elements. These spec elements are semantic representations, the product of elaborating earlier or outer scope syntactic specs. It plays a very specialized role. When elaborating datatype replication specs, the tycon of the datatype being replicated may be either relativized or unrelativized. If the tycon has been relativized, then the elaborator needs to look up the original tycon spec. The tycon spec must be either in the same or an outer context, both of which are recorded in the signature context. [seems sightly unexpected that the static environment can't play this role.]
+\end{description}
+The signature elaboration process produces a semantic representation of a signature ($\Sigma$ in fig.~\ref{fig:semanticobjs}). 
+
+The main steps of signature elaboration are:
+\begin{enumerate}
+        \item Elaborate outer where definitions -- the ones applying directly to the current signature
+        \item Check for duplicate names
+	\item Relativize types for value, type, and data constructor specifications
+	\item Decorate static component specs with fresh entity variables 
+        \item Push where definitions down to relevant type specification [does this process involve adjusting any relative references, i.e., entity paths?]
+\end{enumerate}
+
+Signature elaboration proceeds by first eliminating where type constraints by translating the constraints into a list of relativized semantic definitional type constructors. This list of type constructors is put aside until the very end of signature elaboration. At that point, the elaborator goes through all the specs in the signature and applies all applicable definitional constraints. In SML/NJ, definitional constraints only apply to open types and datatypes. The precludes the possibility of overconstraining a tycon with multiple potentially contradictory definitions such as the following:
+
+\begin{lstlisting}
+signature S = sig type t = int end where type t = bool
+\end{lstlisting}
+
+However, observe that not all overconstraining by type definitions and where type results in contradiction. I describe a policy that relaxes the semantics of where type to permit definitional type names on the left hand side in a later section. 
+
+For functor signatures, the elaborator first processes the parameter signature and then elaborates the functor body signature using a static environment extended with a binding mapping the parameter's symbolic name to a full signature where the free instantiation realization which will be subsequently ignored. The resultant body signature and parameter signature with parameter entity variable are put together as the semantic representation of the functor signature. 
+
+When elaborating structure specs, we have a special case. In order to elaborate any specs that may follow a structure spec, we need to extend the static environment with a binding for the structure spec. Unfortunately, we do not have a full signature for that structure spec because there is no realization. Hence, the elaborator creates a placeholder free instantiation as in the case above.  
+
+During signature elaboration, the elaboration of a spec may require the result of the elaboration of previous specs. The notation $\Gamma[\Sigma_1]$ puts the result of the elaboration of the preceding specs in the static environment by dropping the entity variables because static environment bindings do not include entity variables. 
+
+The rebind function rebinds q to a new spec in the semantic signature. 
+\section{Functor Signatures}
+\fbox{$\Gamma,\Upsilon,C_{ep},C_{sig}\vdash fsgexp \Rightarrow_{fsg} S^f$}\\
+Functor signatures elaborate in a context of:
+\begin{description}
+\item[static environment]
+\item[entity environment]
+\item[signature context] 
+\item[entity path context]
+\end{description}
+Elaboration produces a semantic representation of a functor signature.
+
+The main steps are:
+\begin{enumerate}
+\item Elaborate the parameter signature expression
+\item Extend the static environment with a binding from parameter name to parameter signature. This binding is the same as the special binding form used for structure specs. 
+\item Extend the signature context with a binding from parameter name to decorated structure spec (with a fresh entity variable for the functor parameter) corresponding to the parameter structure. The elaborator needs this decorated structure spec because the body of the functor may contain datatype replication specs that replicate some datatype whose tycon is declared in the parameter. 
+\item Elaborate the body signature expression
+\end{enumerate}
+
+\subsection{Signature Instantiation}
+\fbox{$\Upsilon\vdash\Sigma\uparrow\Upsilon'$}\\
+Signature instantiation produces a free instantiation of the given signature $\Sigma$ with the least amount of type sharing necessary to satisfy the signature. 
+
+
+\section{Declarations}
+\fbox{$\Gamma,\Upsilon,C_{ep},C_{elab}\vdash decl \Rightarrow_{decl} (\eta, \Gamma', \Upsilon')$}\\
+Elaboration of declaration uses the following context:
+\begin{description}
+	\item[static environment] Elaboration augments static environments with new bindings corresponding to the declarations. It also uses them to interpret external symbolic paths. 
+	\item[entity environment] The elaborator builds up an entity environment for structures inside of functors 
+	\item[elaboration context ($C_{elab}$)] The elaboration context distinguishes between top level, in structure, in functor, and in signature contexts. The primary distinction is whether elaboration is occurring inside a functor or not. When inside of a functor, entity declarations must be produced whereas they are unnecessary for other contexts. The point when the elaborator first enters into a functor also partitions externally-defined type constructors which are rigid and locally-defined type constructors which are flexible. 
+	\item[entity path context] The entity path context is used to relativize entity paths. 
+\end{description}
+The elaboration process yields the following principal results:
+\begin{description}
+	\item[typed abstract syntax]
+	\item[entity declaration]
+	\item[static environment]
+	\item[entity environment]
+\end{description}
+
+\subsection{Structure Declaration}
+The main steps of structure declaration elaborations are:
+\begin{enumerate}
+	\item elaborate signature expressions if any
+	\item elaborate structure definiens expression
+	\item signature matching
+	\item build entity environment from entity environments produced by first two steps
+	\item build typed abstract syntax from coercion
+	\item add binding to full signature to static environment
+\end{enumerate}
+
+A structure declaration consists of a name, constraining signature expression, and definiens expression. The elaborator first elaborates both the signature expression and the structure definition (a structure expression). Then the elaborator does signature matching on the resultant semantic signature, full signature, typed abstract syntax, and entity expression for the structure to produce a typed abstract syntax declaration, full signature, and entity expression for the coerced structure. The entity environment delta from elaborating the structure does not play a role in signature matching. 
+
+If a signature constraint is present, the entity environment delta from the structure will need to be extended with a binding that maps an entity variable for the short-lived temporary binding of the uncoerced structure. This new entity environment will be combined with a binding for entity variable for the coerced realization and the contextual entity environment to yield the final result entity environment. 
+
+The full signature of the possibly coerced structure is combined with the typed abstract syntax to produce a structure binding in typed abstract syntax. The principal results of structure declaration elaboration include this typed abstract syntax, a static environment extended with a binding for the relativized coerced full signature, the final result entity environment, and an entity declaration mapping the entity variable for the coerced structure to the entity expression for the same.
+
+[Idea: The only difference between the bindStr in the STRB and the resStr in the LETstr part of the STRB is the dynamic access. Couldn't bindStr be used in both places?]
+[Idea: The cruft of ascription handling in elabStrbs is likely due to the lingering presence of AbsDec along with the currently used forms of Transparent and Opaque constraints. Eliminate AbsDec and things may simplify. ]
+[Idea: The elaboration code for signature constraints is duplicated in the elabStr[ConstrainedStr] and elabStrbs case. This duplication does not appear necessary. Can't ConstrainedStr be expanded into a structure binding or vice versa?]
+
+\subsection{Signature Declaration}
+The main steps of signature declaration elaboration are:
+\begin{enumerate}
+\item elaborate signature expression
+\item instantiate resultant signature
+\item add signature to static environment
+\end{enumerate}
+
+For signature declarations which can only occur at the top level, the elaborator may attempt to instantiate the elaborated signature to serve as a sanity check. This check is not necessary for correctness, but it does eliminate certain uninhabitable signatures at elaboration-time. [Idea: Why don't we do something similar for functor signatures?]
+
+\subsection{Functor Declaration}
+\begin{enumerate}
+\item elaborate functor 
+\item build typed abstract syntax
+\item extend entity environment with entity declaration from functor elaboration if in functor according to elaboration context
+\item add full functor signature to the static environment
+\end{enumerate}
+Upon elaboration of a functor declaration, the elaborator must extend the entity environment with the delta produced during elaboration of the functor and a binding for the functor entity. Furthermore, the functor entity declaration must be produced. If this functor declaration is not nested, the extended entity environment and entity declaration are unnecessary.
+
+[Idea: Currying value-level functions has definite benefits in terms of partial evaluation. Is currying functor parameters as prevalent and if so does it carry the same benefits?]
+
+\section{Structures}%\marginpar{The entenv $\Upsilon'$ is a delta produced by coercive signature constraints. Also formal parameter delta entenv in functor application}
+\fbox{$\Gamma,\Upsilon,C_{ep},C_{elab}\vdash strexp \Rightarrow_{str} (M, \varphi, \Upsilon')$}\\
+Structures elaborate in the following context:
+\begin{description}
+	\item[static environment]
+	\item[entity environment]  
+	\item[elaboration context] The explanation is in the above section. 
+	\item[entity path context] The elaborator will look up functors (as in functor application) in the entity path context. The resultant entity path will be used to fill out the entity expression for the functor application. Structure variables will also be looked up in the entity path context to translate it into a corresponding entity expression. 
+\end{description}
+The principal results are:
+\begin{description}
+	\item[typed abstract syntax] Binds a symbolic name to the possibly coerced full signature and a body comprised of a let-expression with the typed abstract syntax from the uncoerced structure and the bindings extracted from the static environment 
+	\item[full signature (M)] The full signature is the principal product of structure expression elaboration. It gives the static description of the structure expression. 
+	\item[entity expression] This entity expression is used to form the entity declaration in the case where the above structure expression is found inside of another functor's body, thus necessitating recording of the entity function. 
+	\item[entity environment]
+\end{description}
+
+\subsection{Base Form}
+The main steps of base structure expression elaboration are the following:
+\begin{enumerate}
+	\item elaborate declarations
+	\item extract full signature from resultant static environment 
+	\item combine entity environments from first two steps
+	\item build typed abstract syntax
+\end{enumerate}
+The elaborator deals with the basic form of a structure by elaborating the constituent declarations and extracting the signature the resultant static environment. The elaborator can infer or extract a full signature from the static environment derived during elaboration of a structure. Extraction forms a list of specifications such that each value, data constructor, structure, functor, and type constructor binding in the static environment has a corresponding specification. Entity variables for each specification is obtained by looking up the entity path context. 
+
+Extraction computes the specifications from the full signatures of the structures and functors. Type constructor specifications are minimal. They only mention the name and arity of the said type constructor, thus are opaque.
+
+More interestingly, extraction must also build entity declarations and entity environments to go along with each specification. The entity declarations are simply declarations that bind the a fresh entity variable to the entity path of the static entity. The result entity environments bind this fresh entity variable to the realization. All structure, functor, and value bindings are also returned as part of the result. 
+
+
+
+The entity environments and declarations produced by declaration elaboration and signature extraction are combined with the contextual entity environment and used to form the final structure realization. The elaborator must concatenate the entity environment from declaration elaboration onto the result entity environment because of possible inexplicitness. The extracted signature and realization are combined to form the full signature. The entity declarations from elaboration and extraction are sequenced together to form the final structure entity expression. The typed abstract syntax from declaration elaboration and the bindings from extraction and the static environment bindings returned from extraction are combined to form the typed abstract syntax for this structure. 
+
+\subsection{Signature Extraction}
+\fbox{$C_{ep},C_{elab}\vdash \Gamma \hookrightarrow (M,\eta)$}\\
+Signature extraction requires the following environments:
+\begin{description}
+\item[static environment] The static environment is decomposed into its bindings from which the elaborator builds a signature.
+\item[entity path context] The entity path context is used to look up the entity paths (\emph{i.e.}, the relativized entity paths) for each binding in the static environment. It will also be used to relativize entity paths. 
+\item[elaboration context ($C_{elab}$)] Types will be relativized only if elaboration context is in functor. 
+\end{description}
+
+The process produces the following:
+\begin{description}
+	\item[spec elements (elems)] specs produced by relativizing types in static environment bindings and reverse lookup of structures in the entity path context
+	\item[static environment bindings (bindings)] the list keeps only the structure, functor, tycon, value, and data constructor bindings. These bindings will become the let-body in the typed abstract syntax.
+	\item[entity declaration ($\eta$)] This entity declaration contains an entity declaration for each static (\emph{i.e.}, non-value) spec. The entity declaration is either a variable entity or a constant entity depending on whether there is a corresponding entity path in the entity path context. They are propagated directly through elaboration. 
+	\item[entity environment ($\Upsilon'$)] The entity environment, which will be the extracted (inferred) structure realization, is extended with the entities from structure, functor, and tycon bindings. 
+\end{description}
+
+When signature extraction looks at an entity, there are two main cases:
+\begin{description}
+\item[tycon] Volatile tycons have stamps which uniquely identify them in the static environment. By exhaustively scanning through the static environment, signature extraction builds up the entity path leading up to the binding occurrence (not applied occurrence) of that entity. The binding occurrence of the entity is unique in a module system without sharing type constraints. In the presence of sharing type constraints, the canonical entity path for an entity can be defined as the path leading up to the first binding occurrence where first is first in terms of syntactic ordering. 
+\item[structure and functor] Structure and functor entities must be extended with its binding occurrence entity variable. This entity variable will identify the associated spec in the signature and by extension help calculate the entity path. 
+\end{description}
+
+When signature extraction encounters an entity that entity may or may not be already in the entity environment. If it is already there, then 
+
+Note that entity environments are not injective during entity evaluation because entity paths will be looked up and another entity variable may now be mapped to that entity. Because these entity environments are ultimately used during elaboration when propagated through by functor application elaboration, this means that the entity environment may be non-injective throughout elaboration.
+
+\begin{lstlisting}
+functor F(X:sig type t end) = 
+struct
+  type u = X.t
+end
+\end{lstlisting}
+
+\begin{lemma}\label{lem:entenv-inj}
+The entity environment is injective during elaboration. 
+\end{lemma}
+\begin{proof}
+Entity environments are constructed by signature instantiation, structure expression elaboration, signature extraction, functor elaboration, signature matching, and entity evaluation. 
+
+During entity 
+\begin{description}
+\item[entity evaluation] Entity evaluation constructs new entity environments by binding fresh entity variables to the result of entity evaluation. Will an entity declaration or expression ever evaluate to an entity that already occurs in the entity environment? Yes, evaluating an entity path will look it up in the entity environment thereby yielding an entity that already exists in the environment. 
+\end{description}
+\end{proof}
+
+\begin{lemma}
+There exists a retraction of the entity environment lookup function.
+\end{lemma}
+\begin{proof}
+This follows from lem.~\ref{lem:entenv-inj}. 
+\end{proof}
+      
+Static environment bindings contain tycons, signatures, and functor signatures necessary to reconstitute the specs in a signature. Given a static environment binding for a static entity, the corresponding entry in the entity path context gives the relativized entity path. If the relativized entity path is a single entity variable, that entity variable is the one for this signature spec. Otherwise, a fresh entity variable is used for the spec. In this latter case, the entity declaration will either be equal to the realization of the entity or an entity path depending on whether the entity is in the entity path context. 
+ 
+Signature and functor signature bindings are not permitted inside of structures so signature synthesis ignores them.        
+
+\subsection{Functor Application}
+\fbox{$\Gamma,C_{ep}\vdash {}^\theta{}F({}^\varphi{}M) \leadsto (M_{res}, \varphi_{res})$}\\
+Functor application requires the following:
+\begin{description}
+\item[static environment ($\Gamma$)] The static environment is used to signature match the argument full signature to the formal parameter signature.
+\item[entity path context ($C_{ep}$)] The entity path context is used as the evaluation entity environment when evaluating the application of the entity function.
+\item[full functor signature ($F$)] This is the full functor signature for the functor in the application.
+\item[functor entity expression ($\theta$)] This is the functor entity expression for the functor in the application. This will be used to constructor the application structure entity expression. 
+\item[full signature ($M$)] This is the full signature for the argument structure. 
+\item[structure entity expression ($\varphi$)] This is the structure entity expression for the argument structure. This entity expression will be coerced by signature matching, the result of which will be used to construct the application structure entity expression. 
+\end{description}
+
+The process results in:
+\begin{description}
+	\item[full signature ($M_{res}$)] This is the full signature of the functor application result. 
+	\item[entity expression ($\varphi_{res}$)] This is the application structure entity expression, memoizing all latent functor actions. 
+\end{description}
+
+The main steps of functor application elaboration are:
+\begin{enumerate}
+	\item look up functor in static environment
+	\item elaborate argument structure expression
+	\item extend entity environment with uncoerced structure realization
+	\item signature match uncoerced argument with formal functor parameter signature
+	\item evaluate functor body entity expression with coerced argument realization 
+\end{enumerate}
+After elaborating the argument structure expression and functor, the elaborator looks up the entity path for the functor to form either a functor variable or constant entity expression. [Can constant be eliminated?] Then, the elaborator does signature matching on the functor formal parameter signature and the actual argument structure using the closure entity environment in the functor realization. The elaborator then evaluates the functor body replacing the formal parameter with the coerced argument realization. The resultant evaluated functor body realization is combined with the functor body signature to form the full signature of the result. The coerced argument full signature is also used to produce the usual typed abstract syntax and structure entity expression, an apply. 
+                   
+The semantics for static functor application varies considerable among ML variants. Leroy's semantics only permits applying functors to paths, thus requiring all functor arguments to be A-normalized. DCH does not impose coercive signature matching in the functor argument. The key distinction of GEN's semantics is the judgment $\vdash \varphi_{app} \Downarrow \Upsilon_{app}$. This judgment evaluates only the static content of the functor application. In DCH, the argument structure is substituted directly into the result signature, thus requiring a complex theory of projectibility. 
+   
+\section{Functors}
+\fbox{$\Gamma,\Upsilon,C_{ep},C_{elab} \vdash fctexp \Rightarrow_{fct} (F, \theta, \delta\Upsilon')$}\\
+Functor elaboration assumes a context consisting of:
+\begin{description}
+	\item[static environment]
+	\item[entity environment]
+	\item[elaboration context]
+	\item[entity path context]
+\end{description}
+
+and produces four principal results
+\begin{description}
+	\item [typed abstract syntax] comprised of a functor binding containing a copy of the full functor signature and and the typed abstract syntax for a functor containing the full signature for the free instantiation of the parameter, the full signature of the functor body, and the typed abstract syntax for the body
+	\item [full functor signature (F)]
+	\item [functor entity expression]
+	\item [delta entity environment]
+\end{description}
+
+\subsection{Functor Variable}
+The main steps of functor variable elaboration are:
+\begin{enumerate}
+\item look up symbolic path to functor in static environment to get full functor signature
+\item look up functor in entity path context to get relativized entity path
+\item if there is an ascribed functor signature, elaborate the functor signature and signature match full functor signature and ascribed functor signature to yield the coercion
+\end{enumerate}
+
+\subsection{Base Functor}
+The main steps of functor elaboration are:
+\begin{enumerate}
+	\item elaborate the formal parameter signature expression 
+	\item instantiate formal parameter signature 
+	\item extend entity environment and static environment by binding parameter expression and parameter's full signature
+	\item elaborate functor result signature
+	\item elaborate functor body using the environments from step 3
+	\item signature match functor body with functor body signature
+	\item build functor entity expression, full functor signature, and typed abstract syntax
+\end{enumerate}
+          
+Functors elaborate by elaborating the parameter signature expression and instantiating the resultant semantic parameter signature. The elaborator then elaborates the functor body using an entity environment extended with the resultant free instantiation of the parameter signature, a static environment extended with the full signature, an elaboration context that differentiates between type constructors from inside and outside of any/all functors marking those type constructors as volatile, and an entity path context that is extended with the entity variable for the functor parameter. The entity expression from the functor body is used to form the functor entity expression ($\lambda\rho_{param}.bodyExp$). The full signature from the functor body is used to form the full functor signature. The functor realization's closure environment is the current context entity environment.
+
+Some functors are themselves a result of functor application. The elaborator treats these by expanding the syntax tree to a let-expression where the only definition is a structure application and the body is a functor variable that extracts out the functor component of the definition. 
+ 
+For functor-level let-expressions, the typed abstract syntax of the elaborated definition (a declaration) and body (a functor) are sequenced. The entity declarations are collected in a let entity expression. The resultant entity environments are also concatenated. 
+
+Functor variables may include a transparent ascription in which case the functor signature must be elaborated and the elaborator must match the functor with the functor signature possibly yielding a coercion expression. 
+
+
+
+\section{Signature Matching}
+\subsection{Structure Signature Matching} 
+\fbox{$\Gamma,\Upsilon\vdash {}^\varphi M \preceq \Sigma \rightrightarrows ( M_{coerced}, \varphi_{coerced})$}\\
+Structure signature matching involves the following:
+\begin{description}
+\item[semantic signature ($\Sigma$)] the ascribed signature to be matched against
+\item[full signature ($M$)] the full signature of the structure to be matched
+\item[structure entity expression ($\varphi$)] 
+\item[entity environment ($\Upsilon$)]
+\item[static environment ($\Gamma$)]
+\end{description}
+
+The process produces the following results:
+\begin{description}
+\item[full signature ($M'$)] the full signature of the coerced structure
+\item[structure entity expression ($\varphi'$)] an entity expression representing the coerced structure. 
+\end{description}
+
+The steps to structure signature matching is quite substantial:
+\begin{enumerate}
+\item match the elements in the ascribed signature 
+  \begin{enumerate}
+  \item get the element's entity variable from the signature
+  \item look up that entity variable in the full signature of the uncoerced structure to get the realization for that element
+  \item match the spec with the realization
+  \item produce the thinned representations
+  \end{enumerate}
+\item check that sharing constraints are followed in the result entity environment
+\item build the full signature for the coerced structure (signature is the ascribed signature and realization is the result entity environment)
+\item build typed abstract syntax that binds symbolic structure name to full signature and a let-expression with coerced typed abstract syntax declarations and bindings from matching the elements
+\end{enumerate}
+      
+For structure specs, the matching requires the following steps:
+\begin{enumerate}
+\item look up the element's entity variable and the uncoerced's structure's full signature as above
+\item look up the realization for any structure definitional spec and match those with the uncoerced structure
+\item match the uncoerced structure's full signature with the structure spec
+\item extend the entity environment with the coerced realization
+\item produce an entity declaration with the entity expression from the coercion
+\item return this extended entity environment, this entity declaration, the binding from the coercion, and the typed abstract syntax from the coercion
+\end{enumerate}
+
+For functor specs:
+\begin{enumerate}
+\item look up the element's entity variable and full functor signature
+\item match the functor spec with the full functor signature noting the entity path to the functor element
+\end{enumerate}
+
+For value specs:
+\begin{enumerate}
+\item look up the symbolic name of the spec in the signature part of the full signature to get the corresponding uncoerced spec (\emph{i.e.}, the actual type)
+\item match the types according to core language typing discipline
+\item record any instantiations due to the coercion from the core language type match in the typed abstract syntax and bindings
+\end{enumerate}
+
+\subsection{Functor signature matching}
+\fbox{$\Gamma,\Upsilon\vdash F \preceq S^f \rightrightarrows (F_{coerced}, \theta_{coerced})$}\\
+Functor signature matching requires:
+\begin{description}
+\item[functor signature ($S^f$)] the ascribed functor signature (the ``spec'')
+\item[full functor signature ($F$)] the full functor signature for the functor to be coerced
+\item[entity environment ($\Upsilon$)]
+\item[static environment ($\Gamma$)]
+\end{description}
+
+The process produces the following results:
+\begin{description}
+\item[full functor signature ($F_{coerced}$)] the coerced full functor signature
+\item[functor entity expression ($\theta_{coerced}$)] the coerced functor entity expression
+\end{description}
+
+\begin{enumerate}
+\item Instantiate the formal parameter signature from the spec and given entity environment
+\item Take that realization and form a full signature for the spec formal parameter
+\item Evaluate the functor application of the actual functor to the spec full signature 
+\item Match the full signature from the application result to the specified functor result signature using the entity expression from the evaluation and entity environment extended with the spec formal parameter signature's full signature (from 1)
+\item build the coerced functor realization using the given entity environment (not the extended one) a let-expression with the uncoerced functor realization as the definiens and entity expression from the coercion in the previous step as the body.
+\item return the coerced full functor signature
+\end{enumerate}
+
+\input{../design/figs/fig-nrc.tex}
+\input{../design/figs/fig-tgc.tex}
+
+\section{Comparisons to Existing Accounts}
+\subsection{Abstract Approach}
+The abstract approach relies on signature subsumption and strengthening to propagate types for functor application. 
+
+\subsection{Shao}
+
+\subsection{Parameterized Signatures (Jones)}
+Jones proposed using signatures parameterized on type constructors to express type propagation\cite{jones96}. Under this system, the apply functor is expressed as the following:
+\begin{lstlisting}
+signature S t = sig ... end
+functor apply(functor f(x:S t):S u
+                      structure a:S t): S u
+                  = f a
+\end{lstlisting}
+
+This proposal argues removing type components from structures and wholly relying on type constructor parameters in these parameterized signatures to express type relationships. The resulting system only requires higher-order and first-class polymorphism and records, which encode the value-only structures. First-class polymorphism permits what amounts to functor application over first-class structures. Jones' approach is similar to Shao's in that it uses higher-order type constructors to encode type sharing. Under this scheme, all types must be declared at the top level. This idea follows Harper, Mitchell, and Moggi's observation of phase splitting\cite{hmm:phasedist}. The difference, however, is that Jones proposes such a separation of type and value modules in the surface language. 
+
+The drawback in this approach is that the programmer will have to know \emph{a priori} the types that must be propagated. Jones' approach separates type abstraction concerns from the module system. However, this means that the scope of such type parameters are no longer restricted. Even when type components in modules are once again permitted, expressing the correct type sharing will force the programmer to lift type components to the top level, thus negating the advantage of the module system in favor of a simpler type-theoretic explanation.
+
+This technique does not support more general forms of functor actions such as generative datatypes though Jones suggests using core language existentials or abstypes. 
+
+\subsection{Dynamic ML}
+Dynamic ML suggests the addition of a where type definition (where datatype) that shares a datatype and its constructors such that no new datatype is generated \cite{gilmore97dynamic}. The where datatype definition can be derived from the composition of datatype replication and a regular where type definition both at the signature level. 
+
+\begin{lstlisting}
+functor F(structure M : SIG where datatype t = A of int | B of bool)
+
+functor F(datatype t = datatype t structure M : SIG where type t = t)
+\end{lstlisting}
+
+This encoding is incomplete. The replicated datatype in the functor parameter must be hidden so that only M.t remains. Furthermore, the replicated data constructors are in the functor parameter but not M. 
+
+\section{Comparison with SML/NJ}
+Currying adds a minor complication that can be encoded by expanding the functor out to a nested functor signature. %\marginpar{Encoding tricks can be treated separately elsewhere.}
+
+\subsubsection{Datatype Replication Specs}
+Datatype replication is treated specially. The tycon which is being replicated may occur in a few contexts:
+
+\begin{description}
+\item[functor parameter]~\\
+\begin{lstlisting}
+functor F(X:sig datatype t = A end) =
+struct
+   structure M : sig datatype t = datatype X.t end
+end
+\end{lstlisting}
+\item[earlier spec]~\\
+\begin{lstlisting}
+sig
+  datatype t = A
+  datatype u = datatype t
+end
+\end{lstlisting}
+\item[outer scope]~\\
+  \begin{lstlisting}
+    sig
+      structure M :
+         sig
+           datatype t = A
+           structure N :
+             sig
+               datatype u = datatype t
+             end
+          end
+     end
+  \end{lstlisting}
+\end{description}
+
+%\marginpar{datatype u = datatype t, t is source and u is target}
+The source tycon, the tycon that is being replicated, must be either a generative tycon of kind datatype or a relativized tycon. In the generative tycon case, the elaborator will relativize the tycon, wrap the resulting relativized tycon in a definitional tycon, and add the data constructor specs to the cumulative elements list. To elaborate the remainder of the signature specs, the static environment is extended with a new relativized tycon for this new tycon. %\marginpar{a bit unclear}
+
+In the relativized case (that is the target tycon was relativized), the elaborator looks up the entity path in the signature context to obtain the datatype family. From the datatype family, the elaborator extracts the member of interest and constructs a definitional tycon around the original relativized target tycon. This definitional tycon is added to the elaborated elements list. A new relativized tycon (for this replication) is added to the static environment. The elaborator then adds the data constructor specs, checking that each relativized parameter tycon is bound in the entity environment. 

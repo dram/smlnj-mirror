@@ -1,0 +1,21 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+	\[
+	\setlength{\tabcolsep}{0ex}
+	\renewcommand{\arraystretch}{1.1}
+	\begin{array}{rcll}
+		\kappa_t & ::= & \Omega~|~\kappa_t\rightarrow\kappa'_t~|~\{l::\kappa_t,\ldots,l'::\kappa'_t\}\\
+		\mu_t & ::= & \alpha~|~Int~|~\mu_t\rightarrow\mu'_t~|~\lambda\alpha::\kappa_t.\mu_t~|~\mu_t[\mu'_t]\\
+		      & ~~| & \{l=\mu_t,\ldots,l'=\mu'_t\}~|~\mu_t.l\\
+		\sigma_t & ::= & T(\mu_t)~|~\sigma_t\rightarrow\mu'_t~|~\{l:\sigma_t,\ldots,l':\sigma'_t\}~|~\forall\alpha::\kappa_t.\sigma_t\\
+		e_t & ::= & x~|~i~|~\lambda x:\sigma_t.e_t~|~@e_t e'_t~|~\Lambda\alpha::\kappa_t.e_t~|~e_t[\mu_t]\\
+		    & ~~| & \{l=e_t,\ldots,l'=e'_t\}~|~e_t.l~|~let~d_t~in~e_t]\\
+		d_t & ::= & \epsilon~|~(x=e_t);d_t
+	\end{array}
+	\]
+	}
+	\caption{F$_\omega$-based target calculus TGC}
+\end{figure}

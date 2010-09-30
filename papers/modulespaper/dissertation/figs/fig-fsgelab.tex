@@ -1,0 +1,29 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Gamma,\Upsilon,\Sigma\vdash fsgexp \Rightarrow_{fsg} \Sigma^f$}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash x \Rightarrow_{fsg} \Sigma^f}
+{\Gamma(x) = \Sigma^f}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Upsilon,\Sigma\vdash \mathbf{functor}
+  (X:sigexp_{par}):sigexp_{res} \Rightarrow_{fsg}
+  \Pi \rho_{par}:\Sigma_{par}.\Sigma_{res}}
+{\begin{array}{c}
+\Gamma,\Upsilon,\Sigma\vdash sigexp_{par} \Rightarrow_{sig}
+  \Sigma_{par}\qquad (\rho_{par}\textrm{ is fresh})\\
+\Gamma,\Upsilon,\Sigma[X\mapsto(\rho_{par},\Sigma_{par})]\vdash
+ sigexp_{res} \Rightarrow_{sig} \Sigma_{res}
+\end{array}}
+\end{equation}
+}
+\caption{Functor signature elaboration}
+\label{fig:fsgelab}
+\end{figure}

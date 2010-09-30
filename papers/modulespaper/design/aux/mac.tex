@@ -1,0 +1,279 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% mac.tex
+%%
+%% Umut A. Acar
+%% Macros for adaptive computation paper.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\AFL}{\textsf{AFL}\xspace}
+\newcommand{\IFL}{\textsf{IFL}\xspace}
+\newcommand{\MFL}{\textsf{MFL}\xspace}
+\newcommand{\AMFL}{\textsf{AMFL}\xspace}
+%\newcommand{\SAL}{\textsf{SAL}\xspace}
+\newcommand{\SLF}{\textsf{SLf}\xspace}
+\newcommand{\SLI}{\textsf{SLi}\xspace}
+\newcommand{\afl}{\AFL}
+\newcommand{\ifl}{\IFL}
+\newcommand{\mfl}{\MFL}
+\newcommand{\amfl}{\AMFL}
+%\newcommand{\sal}{\SAL}
+\newcommand{\slf}{\SLF}
+\newcommand{\sli}{\SLI}
+
+\newcommand{\readarrow}{\ensuremath{\Longrightarrow}}
+
+
+\newcommand{\cutspace}{\vspace{-4mm}}
+
+\newcommand{\bomb}[1]{\fbox{\mbox{\emph{\bf {#1}}}}}
+
+%\renewcommand{\paragraph}[1]{{\bf {#1}}}
+% formatting stuff
+\newcommand{\codecolsep}{1ex}
+
+%\newcommand{\todo}[1]{{\bf{[NOTE:{#1}]}}}
+\newcommand{\todo}[1]{}
+
+\newcommand{\rlabel}[1]{\mbox{\small{\bf ({#1})}}}
+
+\newcommand{\tablerow}{\\[5ex]}
+\newcommand{\tableroww}{\\[7ex]}
+\newcommand{\tableline}{
+\vspace*{2ex}\\
+\hline\\ 
+\vspace*{2ex}}
+
+% Don't care
+\newcommand{\dontcare}{\_}
+
+
+%% filter and quicksort stuff
+\newcommand{\ncf}[2]{C^{fil}_{\ensuremath{{#1},{#2}}}}
+\newcommand{\ncq}[1]{C^{qsort}_{\ensuremath{#1}}}
+\newcommand{\nuf}[3]{P^{fil}_{#1,(\ensuremath{{#2},{#3}})}}
+\newcommand{\nuq}[2]{P^{qsort}_{(\ensuremath{{#1},{#2}})}}
+
+%% shorthands
+\newcommand{\ddg}{{\sc ddg}}
+\newcommand{\ncpa}{change-propagation algorithm}
+\newcommand{\adg}{{\sc adg}}
+\newcommand{\nwrite}{\texttt{write}}
+\newcommand{\nread}{\texttt{read}}
+\newcommand{\nmodr}{\texttt{mod}}
+\newcommand{\ttt}[1]{\texttt{#1}}
+\newcommand{\nmodl}{\texttt{modl}}
+\newcommand{\nnil}{\ttt{NIL}}
+\newcommand{\ncons}[2]{\ttt{CONS({\ensuremath{#1},\ensuremath{#2}})}}
+\newcommand{\nfilter}{\texttt{filter}}
+\newcommand{\nfilterp}{\texttt{filter'}}
+\newcommand{\naqsort}{\texttt{qsort'}}
+\newcommand{\nqsort}{\texttt{qsort}}
+\newcommand{\nqsortp}{\texttt{qsort'}}
+\newcommand{\nnewMod}{\texttt{newMod}}
+\newcommand{\nchange}{\texttt{change}}
+\newcommand{\npropagate}{\texttt{propagate}}
+\newcommand{\ndest}{\texttt{d}}
+\newcommand{\ninit}{\texttt{init}}
+
+
+
+%% Comment sth out. 
+\newcommand{\out}[1] {}
+\newcommand{\sthat}{\ensuremath{~|~}}
+
+%% definitions
+\newcommand{\defi}[1]{{\bfseries\itshape #1}}
+
+
+% Code listings.
+\newcounter{codeLineCntr}
+\newcommand{\codeLine}
+ {\refstepcounter{codeLineCntr}{\thecodeLineCntr}}
+\newcommand{\codeLineL}[1]
+ {\refstepcounter{codeLineCntr}\label{#1}{\thecodeLineCntr}}
+
+\newenvironment{codeListing}
+ {\setcounter{codeLineCntr}{0}
+%  \fontsize{10}{12}
+ % the first one is width the second is height
+ \fontsize{9}{11}
+  \vspace{-.1in}
+  \ttfamily\begin{tabbing}}
+  {\end{tabbing}
+   \vspace{-.1in}}
+
+\newenvironment{codeListing8}
+ {\setcounter{codeLineCntr}{0}
+  \fontsize{8}{10}
+  \vspace{-.1in}
+  \ttfamily
+  \begin{tabbing}}
+ {\end{tabbing}
+ \vspace{-.1in}
+}
+
+\newenvironment{codeListing8h}
+ {\setcounter{codeLineCntr}{0}
+  \fontsize{8.5}{10.5}
+  \vspace{-.1in}
+  \ttfamily
+  \begin{tabbing}}
+ {\end{tabbing}
+ \vspace{-.1in}
+}
+
+
+\newenvironment{codeListing9}
+ {\setcounter{codeLineCntr}{0}
+  \fontsize{9}{11}
+  \vspace{-.1in}
+  \ttfamily
+  \begin{tabbing}}
+ {\end{tabbing}
+ \vspace{-.1in}
+}
+
+\newenvironment{codeListing10}
+ {\setcounter{codeLineCntr}{0}
+  \fontsize{10}{12}
+  \vspace{-.1in}
+  \ttfamily
+  \begin{tabbing}}
+ {\end{tabbing}
+ \vspace{-.1in}
+}
+
+
+\newenvironment{codeListingNormal}
+ {\setcounter{codeLineCntr}{0}
+  \vspace{-.1in}
+  \ttfamily
+  \begin{tabbing}}
+ {\end{tabbing}
+ \vspace{-.1in}
+}
+
+\newcommand{\codeFrame}[1]
+{\begin{center}\fbox{\parbox[t]{5in}{#1}}\end{center}
+% \vspace*{-.15in}
+}
+
+\newcommand{\fixedCodeFrame}[1]
+{
+\vspace*{-4mm}
+\begin{center}
+\fbox{
+\vspace*{-2mm}
+\parbox[t]{0.999\columnwidth}{
+\vspace*{-2mm}
+#1
+}
+}\end{center}
+\vspace*{-4mm}
+}
+
+% Footnote commands.
+\newcommand{\footnotenonumber}[1]{{\def\thempfn{}\footnotetext{#1}}}
+
+% Margin notes - use \notesfalse to turn off notes.
+\setlength{\marginparwidth}{0.6in}
+\reversemarginpar
+\newif\ifnotes
+\notestrue
+\newcommand{\longnote}[1]{
+  \ifnotes
+    {\medskip\noindent Note:\marginpar[\hfill$\Longrightarrow$]
+      {$\Longleftarrow$}{#1}\medskip}
+  \fi}
+\newcommand{\note}[1]{
+  \ifnotes
+    {\marginpar{\raggedright{\tiny #1}}}
+  \fi}
+
+% Stuff not wanted.
+\newcommand{\punt}[1]{}
+
+% Sectioning commands.
+\newcommand{\subsec}[1]{\subsection{\boldmath #1 \unboldmath}}
+\newcommand{\subheading}[1]{\subsubsection*{#1}}
+\newcommand{\subsubheading}[1]{\paragraph*{#1}}
+
+% Reference shorthands.
+\newcommand{\spref}[1]{Modified-Store Property~\ref{sp:#1}}
+\newcommand{\prefs}[2]{Properties~\ref{p:#1} and~\ref{p:#2}}
+\newcommand{\pref}[1]{Property~\ref{p:#1}}
+
+
+\newcommand{\partref}[1]{Part~\ref{part:#1}}
+\newcommand{\chref}[1]{Chapter~\ref{ch:#1}}
+\newcommand{\chreftwo}[2]{Chapters \ref{ch:#1} and~\ref{ch:#2}}
+\newcommand{\chrefthree}[3]{Chapters \ref{ch:#1}, and~\ref{ch:#2}, and~\ref{ch:#3}}
+\newcommand{\secref}[1]{Section~\ref{sec:#1}}
+\newcommand{\subsecref}[1]{Subsection~\ref{subsec:#1}}
+\newcommand{\secreftwo}[2]{Sections \ref{sec:#1} and~\ref{sec:#2}}
+\newcommand{\secrefthree}[3]{Sections \ref{sec:#1},~\ref{sec:#2},~and~\ref{sec:#3}}
+\newcommand{\appref}[1]{Appendix~\ref{app:#1}}
+\newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\figreftwo}[2]{Figures \ref{fig:#1} and~\ref{fig:#2}}
+\newcommand{\figpageref}[1]{page~\pageref{fig:#1}}
+\newcommand{\tabref}[1]{Table~\ref{tab:#1}}
+\newcommand{\stref}[1]{step~\ref{step:#1}}
+\newcommand{\caseref}[1]{case~\ref{case:#1}}
+\newcommand{\lineref}[1]{line~\ref{line:#1}}
+\newcommand{\linereftwo}[2]{lines \ref{line:#1} and~\ref{line:#2}}
+\newcommand{\linerefthree}[3]{lines \ref{line:#1},~\ref{line:#2},~and~\ref{line:#3}}
+\newcommand{\linerefrange}[2]{lines \ref{line:#1} through~\ref{line:#2}}
+\newcommand{\thmref}[1]{Theorem~\ref{thm:#1}}
+\newcommand{\thmreftwo}[2]{Theorems \ref{thm:#1} and~\ref{thm:#2}}
+\newcommand{\thmpageref}[1]{page~\pageref{thm:#1}}
+\newcommand{\lemref}[1]{Lemma~\ref{lem:#1}}
+\newcommand{\lemreftwo}[2]{Lemmas \ref{lem:#1} and~\ref{lem:#2}}
+\newcommand{\lemrefthree}[3]{Lemmas \ref{lem:#1},~\ref{lem:#2},~and~\ref{lem:#3}}
+\newcommand{\lempageref}[1]{page~\pageref{lem:#1}}
+\newcommand{\corref}[1]{Corollary~\ref{cor:#1}}
+\newcommand{\defref}[1]{Definition~\ref{def:#1}}
+\newcommand{\defreftwo}[2]{Definitions \ref{def:#1} and~\ref{def:#2}}
+\newcommand{\defpageref}[1]{page~\pageref{def:#1}}
+%\newcommand{\eqref}[1]{Equation~(\ref{eq:#1})}
+\newcommand{\eqreftwo}[2]{Equations (\ref{eq:#1}) and~(\ref{eq:#2})}
+\newcommand{\eqpageref}[1]{page~\pageref{eq:#1}}
+\newcommand{\ineqref}[1]{Inequality~(\ref{ineq:#1})}
+\newcommand{\ineqreftwo}[2]{Inequalities (\ref{ineq:#1}) and~(\ref{ineq:#2})}
+\newcommand{\ineqpageref}[1]{page~\pageref{ineq:#1}}
+\newcommand{\itemref}[1]{Item~\ref{item:#1}}
+\newcommand{\itemreftwo}[2]{Item~\ref{item:#1} and~\ref{item:#2}}
+
+% Useful shorthands.
+\newcommand{\abs}[1]{\left| #1\right|}
+\newcommand{\card}[1]{\left| #1\right|}
+\newcommand{\norm}[1]{\left\| #1\right\|}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+  \renewcommand{\choose}[2]{{{#1}\atopwithdelims(){#2}}}
+\newcommand{\ang}[1]{\langle#1\rangle}
+\newcommand{\paren}[1]{\left(#1\right)}
+\newcommand{\prob}[1]{\Pr\left\{ #1 \right\}}
+\newcommand{\expect}[1]{\mathrm{E}\left[ #1 \right]}
+\newcommand{\expectsq}[1]{\mathrm{E}^2\left[ #1 \right]}
+\newcommand{\variance}[1]{\mathrm{Var}\left[ #1 \right]}
+\newcommand{\twodots}{\mathinner{\ldotp\ldotp}}
+
+% Standard number sets.
+\newcommand{\reals}{{\mathrm{I}\!\mathrm{R}}}
+\newcommand{\integers}{\mathbf{Z}}
+\newcommand{\naturals}{{\mathrm{I}\!\mathrm{N}}}
+\newcommand{\rationals}{\mathbf{Q}}
+\newcommand{\complex}{\mathbf{C}}
+
+% Special styles.
+\newcommand{\proc}[1]{\ifmmode\mbox{\textsc{#1}}\else\textsc{#1}\fi}
+\newcommand{\procdecl}[1]{
+  \proc{#1}\vrule width0pt height0pt depth 7pt \relax}
+  \newcommand{\func}[1]{\ifmmode\mathrm{#1}\else\textrm{#1}fi} %
+%  Multiple cases.  
+\renewcommand{\cases}[1]{\left\{
+  \begin{array}{ll}#1\end{array}\right.}
+  \newcommand{\cif}[1]{\mbox{if $#1$}} 
+
+%% spacing hacks
+\newcommand{\longpage}{\enlargethispage{\baselineskip}}
+\newcommand{\shortpage}{\enlargethispage{-\baselineskip}}

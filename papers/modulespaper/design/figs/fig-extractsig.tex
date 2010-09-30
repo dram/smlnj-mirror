@@ -1,0 +1,117 @@
+%!TEX root = ../principles.tex
+
+% Observation: Don't need the entire static environment as context
+% because all symbolic names should have already been reduced
+% away. The place where the entire static environment does play a role
+% is in relativization of type expressions for values and (derived) tycon
+% expressions. 
+
+% There are some fundamental flaws in the rules as given. First, there
+% is no base case, for the empty static environment. That would
+% establish what the realization part of the resultant full signature
+% really is. Second, none of the rules extend the realization part of
+% the full signature at this point. Thus, I expect the resultant
+% realization to end up empty anyway. 
+
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+        ~\\[2mm]
+	\fbox{$\Upsilon\vdash \Gamma \hookrightarrow \Sigma $}
+               \begin{equation}
+                 \infer{\Upsilon\vdash\emptyset_{se}\hookrightarrow
+                   \emptyset_{sig}}
+                 {\strut}
+               \end{equation}
+
+		\begin{equation} 
+                  \infer{\Upsilon\vdash
+                    [x\mapsto \mathfrak{T}]\Gamma \hookrightarrow
+                  [x\mapsto \mathbb{T}]\Sigma_r
+                  }
+		{\begin{array}{c}
+                  \Upsilon\vdash \mathfrak{T} \searrow^{te}
+                  \mathbb{T}\qquad
+                  \Upsilon\vdash \Gamma \hookrightarrow \Sigma_r
+                \end{array}} 
+\label{eq:extraval}
+            \end{equation}
+% The value binding rule doesn't add any entity decl. It merely adds a value spec with a relativized version of value binding's type.
+
+% There are no open tycon bindings in the static environment. All tycons in the static environment are defined or instantiated. 
+% Perhaps combine \upharpoonright and C_{ep}() notation together because one is just an extension to type expressions
+              %\begin{equation} \infer{\begin{array}{c} C_{ep},C_{elab}\vdash
+               % [q\mapsto[=t]]\Gamma\\ \hookrightarrow
+                %(([q\mapsto (\rho, \mathsf{arity}(t))]\Sigma, \Upsilon),
+                %\eta)\end{array}}
+              %{C_{ep},C_{elab}\vdash\Gamma\hookrightarrow((\Sigma,\Upsilon),
+               % \eta)\qquad C_{ep}(t)=[\rho]} & \\[5mm]
+              \begin{equation} 
+\infer{\Upsilon\vdash [t\mapsto \mathfrak{C}^\lambda]\Gamma \hookrightarrow [t\mapsto \mathbb{C}^\lambda]\Sigma_r}
+{\Upsilon\vdash \mathfrak{C}^\lambda
+  \searrow^{tyc} \mathbb{C}^\lambda\qquad \Upsilon\vdash \Gamma \hookrightarrow
+  \Sigma_r}
+\label{eq:extratypedef}
+\end{equation}
+
+% SML/NJ's representation of tycon entities included type definitions
+% (represented by an entity path). In this new semantics, there is no
+% need for any form other than new(arity). 
+% The question remains, what is the relationship between the scoping
+% in the entity environment and in the static environment. That is to
+% say, do we expect \Upsilon^{-1}(\tau^n) to be anything other than
+% singleton? If so, what is an example?
+\begin{equation} 
+\infer{\Upsilon\vdash[t\mapsto\tau^n]\Gamma \hookrightarrow [t\mapsto (\rho, n)]\Sigma_r}
+{\inv(\Upsilon,\tau^n)=\rho\qquad\Upsilon\vdash
+  \Gamma \hookrightarrow\Sigma_r} 
+\label{eq:extraatomictyc}
+\end{equation}
+
+% The interesting part about producing a tycon spec is how we compute the entity variable. The tycon definition may be local, in which case we can reuse that tycon's (RHS) entity variable. Otherwise, we need to produce a new entity variable and a corresponding entity declaration mapping this new entity variable to a CONSTtyc or a VARtyc for new and nonlocal tycons respectively. 
+% What we need is a judgment that produces an entity variable, entity environment, and entity declarations from a static entity.
+\begin{equation}
+  \infer{\begin{array}{c}
+      \Upsilon\vdash[x\mapsto (\rho, (\Sigma_1,R_1))]\Gamma_r\hookrightarrow [x\mapsto
+                (\rho,\Sigma_1)]\Sigma_r
+              \end{array}}
+              {\begin{array}{c}
+                  \Upsilon\vdash\Gamma_r\hookrightarrow \Sigma_r
+                \end{array}}
+\label{eq:extrastr}
+            \end{equation}
+
+% The structure binding rule first looks up the entity path for the full signature 
+% If the structure has an entity path which is a singleton, then it uses that as entity variable in the structure spec we are producing. 
+% If the entity path is not singleton, then the entdec is a structure e_new = ep such that ep is the non-singleton entity path. It is this e_new that is used in the structure spec. 
+% Otherwise, no entity path exists yet so we produce a CONSTstr with the realization from the full signature, mapping a e_new to it. 
+% In the latter two cases, the entity is not local so we need to add a
+% local version of the entity to the entity environment, mapping e_new
+% to rlzn.  
+              \begin{equation} 
+                \infer{\Upsilon\vdash[f\mapsto (\rho, (\Sigma^f_1,\psi))]\Gamma_r \hookrightarrow [f\mapsto (\rho,\Sigma^f_1)]\Sigma_r}
+              {\begin{array}{c}
+                 \Upsilon\vdash\Gamma_r\hookrightarrow\Sigma_r
+              \end{array}} 
+\label{eq:extrafct}
+              \end{equation}
+
+              % Ignoring signature and functor signature
+              % bindings. Since this is the cumulative static
+              % environment, it may contain top-level declared
+              % signatures and functor signatures. 
+             %\begin{equation}
+             %\infer{\Upsilon\vdash[x\mapsto \Sigma]\Gamma\hookrightarrow \Sigma'}
+             %{\Upsilon\vdash\Gamma\hookrightarrow \Sigma'}
+             %\end{equation}
+
+             %\begin{equation}
+             %\infer{\Gamma_0,\Upsilon\vdash[x\mapsto\Sigma^f]\Gamma\hookrightarrow (M,\eta)}
+             %{\Gamma_0,\Upsilon\vdash\Gamma\hookrightarrow (M,\eta)} 
+             %\end{equation}
+
+	}
+\caption{Signature extraction}
+\label{fig:extractsig}
+\end{figure}

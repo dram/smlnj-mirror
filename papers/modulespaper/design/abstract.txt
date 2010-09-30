@@ -1,0 +1,19 @@
+Title: A Higher-Order Module System with Generative Types 
+
+Abstract
+
+Several dialects of ML have extended the module system to support higher-order modules, improving support for modular programming and elevating the module system to a full functional language. But there are significant
+differences in the semantics of higher-order modules embodied in these designs. With the exception of Standard ML of New Jersey and MLton, higher-order modules in these dialects do not obey natural $\beta$-reduction semantics for higher-order functor application (\emph{true higher-order semantics}). Most of the existing formal accounts of module system semantics also fall short of true higher-order semantics because they separate higher-order functors from type generativity, thus failing to account for interactions between higher-order modules and generative datatype declarations and type abstraction. Their limitations arise from an attempt to reconcile higher-order modules with ``true'' separate compilation.
+          
+This paper presents a new formal account of a module system with true higher-order semantics, superseding the ``re-elaboration'' semantics described in MacQueen and Tofte (ESOP 94). It is based on compiling the static content of a functor into a static entity calculus with generative effects that cleanly isolates and expresses the higher-order semantics. The semantics is validated by relating it to a translation semantics for compiling the module system to a variant of System F$_\omega$. It is more complete and realistic than other formal accounts because it corresponds closely to the implementation of true higher-order modules used in SML/NJ since the mid 1990s (Kuan and MacQueen, IFL 09).
+
+
+------------------------
+235 words in the abstract body, so it can be expanded somewhat (65 words).
+
+[DBM: I've dropped the part about exploring the design space and the signature calculus, since we really don't have space here to do much in those areas. We will have to focus on the presentation and justification of the
+design and semantics as it relates to higher-order functors. I also want to make the point that this is based
+on a fully realized and implemented design.
+
+Note also the revised title, which I think is more precisely descriptive.
+] 

@@ -1,0 +1,125 @@
+\documentclass[truedoublespace,tocchapterhead]{ccw_chithesis}
+%\documentclass[tocchapterhead]{ccw_chithesis}
+\usepackage{listings,amsmath,stmaryrd,pifont,../design/aux/bussproofs,esvect}
+\usepackage{../design/aux/code,../design/aux/math-envs,../design/aux/math-cmds,../design/aux/code,../design/aux/proof}
+\usepackage{pgf,pgfarrows,pgfnodes,tikz}
+%\usepackage[pdftex]{graphicx}
+\usepackage[top=1in, bottom=1.3in, left=1in, right=1in]{geometry}
+
+\input{../design/aux/mac}
+\input{config}
+\input{../design/syntax}
+
+\setcounter{tocdepth}{1}
+
+\bibliographystyle{plain}
+
+\begin{document}
+	\title{A True Higher-Order Module System}
+	\author{George Kuan}
+	\department{Computer Science}
+	\division{Physical Sciences}
+	\degree{Doctor of Philosophy}
+	\date{JUNE 2010}
+	\maketitle
+	\makecopyright
+	  
+	\dedication
+	\begin{center}
+		\emph{To my dearest wife}
+                
+	\end{center}
+		  	    
+	\tableofcontents
+	\listoffigures
+	%\listoftables
+
+	\acknowledgments{Acknowledgments.}
+                I owe a great debt of gratitude to my advisor, Dave
+                MacQueen, who has guided me and taught me much of what
+                I know about programming language semantics and module
+                system semantics. His detailed feedback was very
+                insightful and critical to the writing of this
+                dissertation. I am also very thankful to John Reppy
+                and Matthias Blume for serving on my committee and
+                their helpful feedback. My special thanks goes out to my early 
+                collaborator Robby Findler who pointed me to many opportunities 
+                and taught me the ``street smarts'' of the academic world. 
+
+                I cannot thank enough the rest of the Department of Computer Science and the Division of Physical Sciences for their tireless and superhuman effort in supporting me in my study. In particular, I would like to especially thank Nita Yack and Anne Rogers of the Department of Computer Science for working miracles. I thank Rick Hefley and Jennifer Woods from the Dean's Office of the Physical Science Division. My special thanks also goes out to Brooke Noonan of the Graduate Affairs Office. My thanks goes out to Sharon Salveter for her mentoring and guidance for the teaching aspect of my graduate career. I thank Margaret Jaffey for helping me out with the ins and outs of the formal requirements of graduate work. I also thank Donna Brooms for helping me in the numerous practical matters at the University. 
+
+                My thanks goes out to my officemates Chunyan Song, Mike Rainey, Matthew 
+                Jacobs, Adam Shaw, Aaron Turon, Ioan Raicu, and Jon Riehl. Thank you 
+                for your good humor and insightful conversations. I
+                also thank the other PLs students Lars Bergstrom and
+                Casey Klein. The TTI-Chicago people were also
+                extremely supportive and in many ways, their
+                interesting ideas, vibrant energy, and feedback helped
+                shape my research and enriched my graduate
+                career. Special thanks are due to Umut Acar, Amal
+                Ahmed, Wonseok Chae, Derek Dreyer, and Xinyu Feng. 
+
+                I also have to thank the Mobile Software Labs researchers at DOCOMO Labs USA for inviting me to work on a research internship as part of their FAST Project for Automated Mobile Software specification, verification, and testing. I thank Ajay Chander, Dinakar Dhjurati, and Dachuan Yu. 
+
+                As for my friends from church, the Lin family, Paul and Laura Chang, Li Chen, Ningzhong and
+                Ying, Jason and Sue Montgomery, Isaac and Ariel Chen, Howard and Barb Perino, and Frankie Wong, thank you all for inviting me to your home week after week. Your faithfulness encouraged me in most difficult times. 
+%I thank Grace Liu, Jinju Culp, Andy Lamb, and Leslie Mondrian for . To my fellow Chicago students, Li Cai, Isaac Cheng, Cory Liu, and Yang Xu, thank you for your companionship and fellowship.
+
+                I am very grateful to my aunt who has raised my
+                brother and me. She is always a source of
+                encouragement and inspiration. Thanks to my uncles who
+                are role models. Last but not least I would like to thank my wonderful wife, who was so
+                patient and supportive of my work. 
+	
+	\begin{abstract}
+          The ML module system is a powerful and expressive
+          language for modular programming and enforcing data
+          abstraction. Several dialects of ML have extended the module
+          system with support for higher-order modules, which improves
+          support for modular programming and elevates the module
+          system to a full functional language. With the exception of
+          Standard ML of New Jersey and MLton, higher-order modules in
+          all these dialects do not obey natural $\beta$-reduction
+          semantics for higher-order functor application (\emph{true
+            higher-order semantics}). The design space and semantics
+          of a true higher-order module system have not been
+          thoroughly explored. Most of the existing formal accounts of module system semantics neglect true
+          higher-order semantics by separating higher-order functors
+          from type generativity, which limits the flexibility of
+          higher-order functors. The accounts which consider
+          higher-order module semantics neglect to account for
+          interactions between higher-order modules and key core
+          language features such as generative datatype declarations. True higher-order semantics also
+          paradoxically complicates true separate compilation. 
+          
+In this dissertation, I contribute (1) a novel formal account of a
+module system with true higher-order semantics, (2) a static entity calculus
+that cleanly isolates and expresses the higher-order semantics, (3) an
+exploration of the design space of higher-order module semantics
+including true separate compilation and the signature calculus, and
+(4) a translation semantics for compiling the module system to a
+variant of System F$_\omega$. 
+	\end{abstract}
+
+	\mainmatter
+	       
+	\input{intro}
+	\input{background}
+	\input{architecting}
+        \input{typesystem}
+        \input{modlang}  
+        \input{entitycalc}
+	\input{hofct}
+        \input{translation} 
+       \input{conclusion} 
+
+         \appendix
+	\input{smlnj-sem}  
+	\input{impl}
+        \input{elaborationproofs}
+	\input{notation-index}
+
+        \singlespacing
+        \bibliography{../design/modules}
+   
+\end{document}

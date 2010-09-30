@@ -1,0 +1,25 @@
+\newcommand{\ie}{\emph{i.e.}}
+\newcommand{\etal}{\emph{et al.}}
+\newcommand{\chk}{\ding{51}}
+\newcommand{\ex}{\ding{55}}
+
+\lstdefinelanguage{smlnj}{morekeywords={where},}
+
+\lstloadlanguages{ML,[Objective]caml,smlnj}
+\lstset{basicstyle=\footnotesize\sffamily,
+        columns=fullflexible,
+        %keywordstyle=\underbar,
+		basewidth=0.55em,
+		language=ML,
+                alsolanguage=smlnj,
+		numberstyle=\tiny,
+	    mathescape=true,
+		%aboveskip=0pt,
+		%belowskip=-10pt
+                lineskip=-8pt
+		}
+\newenvironment{lstlistingsingle}
+{\begin{singlespace}\begin{lstlisting}}
+{\end{lstlisting}\end{singlespace}}
+
+		

@@ -1,0 +1,317 @@
+%!TEX root = main.tex
+
+\chapter{The Design Space}\label{ch:designspace}
+
+The simplest ML module system features only hierarchical composition of structures, type components in structures, transparent signature ascription, and first-order functors. Beyond this set of features lies a design space subject to debate. The module system design space is a rich one consisting of several functional dimensions. Much of the design space revolves around the module system's abstraction enforcement through opaque sealing and how that interacts with the other features of the module language. 
+
+Dreyer frames the design space in terms of phase-separability and purity with respect to static and dynamic effects. In contrast, the goal of the THO semantics to focus on a simple framework for combining higher-order functors and type generativity. Type generativity is the central issue in the THO semantics. Although the semantics does not add anything new to the discussion of first-class and recursive modules, it appears that it neither complicates nor simplifies the issues concerning these two features.  
+
+
+\section{Applicative Versus Generative Functor Semantics}
+A chief point of contention is the support of applicative versus generative semantics for functors and the various attempts at supporting both. The central argument of applicative functor semantics is that a functor applied multiple times to the same path should produce results with the same type components. The original motivation was the support of higher-order functors with syntactic signatures. Subsequently, researchers have found few other examples where applicative functors have proven to be useful. One frequently cited example is the set functor (fig.~\ref{fig:setfunctor}). The claim is that one would want to apply the set functor multiple times to the same argument, opaquely ascribe each result, and still expect each result's corresponding types to be equivalent. 
+
+\begin{figure}
+\hrule
+~
+\begin{center}
+\begin{tabular}{c}
+\begin{lstlisting}
+functor SetFn(K: sig type t ... end) = 
+struct
+  type set = K.t list
+  val empty = [] 	
+  fun isEmpty = ...
+  ...
+end :>
+  sig 
+     type set
+     val empty : set
+     val isEmpty : set -> bool
+     ...
+  end
+
+structure IntKey = struct type t = int ... end
+structure I0 = SetFn(IntKey)
+structure I1 = SetFn(IntKey)
+
+IO.isEmpty(I1.empty)
+\end{lstlisting}
+\end{tabular}
+\end{center}
+\hrule
+\caption{Set functor}
+\label{fig:setfunctor}
+\end{figure}
+
+\lstset{language=[Objective]caml}
+\begin{figure}
+\hrule
+~
+\begin{center}
+\begin{tabular}{c}
+\lstinputlisting{../apply-fct/ex4/fct.ml}
+\end{tabular}
+\end{center}
+\hrule
+\caption{fct.ml}
+\label{fig:fctml}
+\end{figure}
+
+\begin{figure}
+\hrule
+\begin{center}
+\begin{tabular}{c}
+\lstinputlisting{../apply-fct/ex4/apply.ml}
+\end{tabular}
+\end{center}
+\hrule
+\caption{apply.ml }
+\label{fig:apply1}
+\end{figure}
+
+Separating a functor F and the argument K into different files (figs.~\ref{fig:fctml} and~\ref{fig:apply1}), loading either of them more than once, and applying the functor will cause the types I.t and I0.t to be unequal under applicative semantics because they are either applications of the same syntactic functor to two different modules K (loading K twice gives rise to two different syntactic modules) or different syntactic functors to the same syntactic K.  
+
+The above examples also come up in batch compilation. If both functor S and argument module K are defined in a compilation unit F (fig.~\ref{fig:fml}), then applicative semantics deems the client module in fig.~\ref{fig:apply2} well-typed.
+
+\begin{figure}
+\hrule
+~
+\begin{center}
+\begin{tabular}{c}
+  \lstinputlisting{../apply-fct/ex5/f.ml}
+\end{tabular}
+\end{center}
+\hrule
+\caption{f.ml}
+\label{fig:fml}
+\end{figure}
+
+\begin{figure}
+  \hrule
+~
+\begin{center}
+\begin{tabular}{c}
+	\lstinputlisting{../apply-fct/ex5/apply.ml}
+\end{tabular}
+\end{center}
+\hrule
+	\caption{apply.ml (batch compilation)}
+        \label{fig:apply2}
+\end{figure}
+
+\lstset{language=ML}
+
+Independently developed compilation units may each use an int set which is derived from independent applications of the generic set functor to an int key structure. The programmer might want these compilation units to exchange set values. Consider the example in fig.~\ref{fig:intkeyexample}. Unfortunately, applicative functors cannot help in this latter case. Because separate compilation loads the IntKey source twice, I0 and I1 are effectively applied to two different structures from a syntactic perspective. 
+
+\begin{figure}
+\hrule
+~
+\begin{center}
+\begin{tabular}{l|l}
+A & B \\
+\begin{lstlisting}
+structure IntKey = struct type t = int ... end
+\end{lstlisting}
+
+&
+\begin{lstlisting}
+structure IntKey = struct type t = int ... end
+\end{lstlisting}
+\\
+\begin{lstlisting}
+structure I0 = SetFn(IntKey)
+\end{lstlisting} & 
+
+\begin{lstlisting}
+structure I1 = SetFn(IntKey)	
+\end{lstlisting}
+\end{tabular}
+\end{center}
+\hrule
+\caption{Set functor separate compilation}
+\label{fig:intkeyexample}
+\end{figure}
+
+Within a single compilation unit, the utility of applicative functor semantics seems questionable. If a functor has already been applied to an argument once, there is no need to apply it again. The result of the original functor application still exists and should be accessible. If the goal is to manage the namespace, then SML's semantics of structure abbreviations sharing types even opaquely ascribed ones is sufficient.  
+
+Another problem with applicative functor semantics is that it is incompatible with type generativity. Consider the following example:
+
+			\begin{lstlisting}
+			functor F(functor G(X:T):T) = 
+			struct 
+			  datatype s = S of int 
+			  structure M = G(struct type t = s end)
+			  type u = M.t
+			end	
+			\end{lstlisting}
+
+The semantics of datatypes is such that every application of F should produce a fresh tycon for s. The functor application of G depends on both the formal functor G and the fresh tycon s. The actual tycon s passed to the functor G is not known until F is applied, thus the dependency certainly cannot be expressed in terms of an applicative functor path. 
+
+The other potential application is in distributed memory systems. Multiple computing nodes may each apply a functor to the same argument and then try to exchange values of a type in the result. Such a scenario will likely require runtime types. One argument in favor of applicative functors is in the construction of Okasaki's bootstrapped heaps \cite{okasaki}. However, even in that case, 
+
+In OCaml, the syntax reflects the absence of generativity: there is no functor definition syntax that admits an empty parameter \lstinline{functor F() = ...}. Because the identity of functor body types depends on a syntactic parameter, each functor application must have one. Applicative functors are also incompatible with shadowing, a standard feature in functional languages. Because its notion of type equality is syntactic, OCaml does not support shadowing of type declarations in structures. For example, the following does not elaborate in OCaml:
+
+\begin{lstlisting}
+module M = struct type t = A type t = B val x = A end
+\end{lstlisting}
+
+\subsection{Generative Functors}\label{sec:ftgf}
+There are implicitly two types of functors, those that have static effects, \emph{generative} functors, and those that do not, \emph{pure} functors. In the higher-order case, pure functors can be fully described using applicative functor-like syntactic extensions. The application of a functor to the same argument twice should give the same result because pure functor arguments are truly referentially transparent. This observation is certainly false when considering generative functors which have static effects. 
+
+Type generativity is typically modeled using existential types. Each time an existential type is unpacked, a fresh abstract type is created. Dreyer, Crary, and Harper \cite{dhc03} advocated treating opaque sealing as a computational effect, a runtime fresh type generation. Dreyer \cite{dreyer05} reconciles this account of generative types with recursion via a backpatching type semantics. 
+
+\subsubsection{Type Sharing}
+Type sharing is necessary to support type-safe composition of modules. When a functor is parameterized over two modules which each declare an abstract type, the elaborator assumes that the two types are different. Consider the following example:
+
+\begin{lstlisting}
+signature S0 = sig
+  type t 
+  val a : t
+end
+
+signature S1 = sig
+  type t
+  val f : t -> int
+end
+
+functor F(structure X:S0 
+	      structure Y:S1) = struct
+  val y = Y.f(X.a)
+end	
+\end{lstlisting}
+
+The above functor will not type check because there is no reason to believe \emph{a priori} that X.t and Y.t are equivalent. F can certainly be applied to X and Y such that X.t $\ne$ Y.t. If F is applied to X and Y such that X.t = Y.t, then this is an instance of the \emph{diamond import problem}. Simply put, when a single component, which may be a type or a structure, is exported in two different structures, it must be reconciled, retaining its identity and thus reflexive equivalence. The ML solution to this problem is type sharing. \emph{Type sharing} can be expressed in four forms. \lstinline{sharing type} constraints specifies equivalences on symbolic paths to types. The right hand side of \lstinline{sharing type} must consist of only symbolic paths to types. 
+
+\begin{lstlisting}
+functor F(structure X:S0
+	      structure Y:S1
+	      sharing type X.t = Y.t) = 
+	...	
+\end{lstlisting} 
+
+\lstinline{where type}, which is derived from the categorical notion of fibrations, defines abstract type specs \emph{post hoc}. The left hand side of the \lstinline{where type} should be a signature S1 containing the type to be constrained. The right hand side consists of the name of the type t in S1 and an arbitrary type expression such as X.t or X.t list. 
+
+\begin{lstlisting}
+functor F(structure X:S0
+	      structure Y:S1 where type t = X.t) = 
+	...	
+\end{lstlisting}
+
+Definitional type specs constrains type specs inside of signatures. Consequently, they only apply if the signature is expanded out in the functor formal parameter. From the perspective of implementation, \lstinline{where type} elaborates to definitional type specs by pushing down the \lstinline{where type} definition to the relevant type spec. 
+
+\begin{lstlisting}
+functor F(structure X:S0
+	      structure Y:sig 
+	        type t = X.t
+	        val f : t -> int
+	      end) = ...	
+\end{lstlisting}
+
+The type sharing can also be expressed in terms of signatures parameterized on structures. This alternative was considered and rejected during the initial development of the ML module system in favor of \lstinline{where type} and \lstinline{sharing type} because parameterized signatures require programmers to anticipate all such sharing when writing the signatures. 
+
+\begin{lstlisting}
+signature S2(Z) = sig
+  type t = Z.t
+  val f : t -> int
+end
+
+functor F(structure X:S0
+	      structure Y:S2(X)) = 
+	...	
+\end{lstlisting}
+
+\section{First- Versus Second-Class Modules}
+In most dialects of ML, the module system is second-class, meaning that there is a clear demarcation between the core and module languages. Module expressions cannot depend on the result of core language computations. Core language expressions can only access core language components in modules. They cannot operate on whole modules. This restriction is lifted in module systems with first-class modules, which in practice are useful for supporting plugins. The example for first-class modules often involve some runtime condition that determines the optimal abstract data structure to use, made available as modules, as illustrated by the example given by Dreyer~\cite{dreyerthesis}: 
+~
+\begin{lstlisting}
+structure M = if n < 20 then LinkedList else HashTable	
+\end{lstlisting}
+
+The above is a kind of optimization that does not require first-class modules in their full generality. Neither, I would argue, does it fit with the main roles of a module system. Because the types in the structures LinkedList and HashTable may be completely different, the static description of M cannot be determined at compile-time. To avoid all the associated issues, language designers have often decided to limit first-class modules by requiring that such module expressions are opaquely ascribed to a single signature, an encoding which is a variation on existential types. Two proposals for first-class modules, Dreyer \cite{dreyerthesis} and Rossberg \cite{rossberg06}, take this approach. 
+
+\begin{lstlisting}
+structure M = if n < 20 then LinkedList else HashTable 
+  :> sig type t type item val insert : t * item -> t ... end 	
+\end{lstlisting}
+
+
+
+\section{Recursive Modules}
+In contrast to the triviality of mutual recursion in most programming languages, recursion at the module level is highly involved for module systems in statically-typed languages. Both the dynamic and static semantics are complicated by the static typing in the module system. Instead of the simple fixed point semantics for recursive module evaluation, the presence of type generativity necessitates alternatives because otherwise datatypes and opaque ascription will have generated new tycons for each recursive call. Even in the absence of datatype declarations and opaque ascriptions, ref cells and assignment in the core language are enough to complicate recursion at the module level. The standard work-around is to adopt Scheme's backpatching semantics except for the static part of the module. 
+
+Backpatching semantics, however, must be made statically safe by ensuring that no recursive variable is used before it is backpatched. Furthermore, recursive modules should be amenable to separate compilation. Dreyer \cite{dreyerthesis} uses the concept of evaluability to enforce safety where a module is evaluable if it does not dereference an unbackpatched recursive variable. The characterization of evaluability is imprecise. The type system based on evaluability cannot determine the safety of some module expressions. 
+
+The problem of type inference for recusive modules is complicated. In Dreyer's language, all recursive variables must be explicitly typed. Dreyer considers extending type inference to recursive variables, but this would require a complicated effect inference technique that produces large and complex types that possibly lack principality in the first place. 
+
+%\subsection{Double Vision Problem}
+
+\section{Signature Ascription}
+Where the core language has type ascriptions, existing module systems support ascribing signatures to module expressions. Ascriptions are even more important in the module system than in the core language because module languages are explicitly typed and some forms of ascription serve as the primary means for enforcing data abstraction. 
+ 
+Opaque ascription (\emph{i.e.}, sealing) should be construed as a deliberate design choice on the part of the programmer to make a type unique and incomparable. When using opaque ascription, the semantics should be simple. Alternative forms of opaque ascription such as the forms proposed by Dreyer \cite{dreyerthesis} and Govereau \cite{govereau:tr05} that make a type unique in some cases yet simultaneously comparable introduces a new set of issues that complicate the module system.    
+
+\section{Separate Compilation}
+Early module systems had two main guiding principles. First, modules should be partitioned into interface and implementation. The interface describes the form of a module, the implementation the details and mechanisms. Second, one should be able to compile modules independently from one another with only the aid of interfaces to resolve intermodule dependencies. In languages with simple type systems, reconciling these two goals is usually quite straightforward. 
+
+The fundamental tension between separate compilation and an expressive, flexible module system is this: separate compilation requires the language to expose as much as possible in the interface or signature language but the goal of modularity is to keep a distinction between interface and implementation. Reconciling these two goals is a challenge in the ML language because of the presence of static effects. These effects, embodied in type generativity, are computed during the compiler elaboration process. Normally, a signature language should only contain information about the form of the module being described. Inclusion of static effect information would amount to adding information about the implementation. I contend that including static effects would run against the purpose of signatures. Moreover, it would entail significant code duplication and encourage further breakdown of the distinction between interface and implementation. 
+
+As Russo~\cite{russothesis} noted because ML type information is spread between signature and realization, module clients that depend on the realization cannot be typechecked separately from the module. 
+
+Normal ML syntactic signatures cannot even distinguish between functors that contain static effects and those that do not much less the nature of the static effect. For example, a functor body signature may contain a datatype declaration. Naively, an elaborator might consider this an indication that the functor body has a static effect, generating a fresh datatype upon each application. However, this assumption is incorrect because this specification matches both datatype replication declarations, which do not generate a fresh type,  \emph{bona fide} generative datatype declarations. 
+
+\begin{lstlisting}
+datatype t = K
+structure M : sig datatype t = K end = 
+struct
+  datatype t = datatype t (* pure *)
+end	
+\end{lstlisting} 
+
+Furthermore, the signature spec could have been \lstinline{type t} or \lstinline{datatype t = datatype t}. Consequently, an elaborator cannot handle the special case of pure functors by looking at the functor signature because they are indistinguishable from the signature. 
+
+In order to support true separate compilation, the syntactic signature language must be extended with the entire entity calculus. The essence of the entity calculus is a small, simple language to express functor actions including type generativity. However, programming directly in the entity calculus would be an onerous task. One must account for all the potential functor actions when writing functor signatures. It would be much simpler to have the compiler produce entity expressions for describing functor actions as the elaboration semantics in the previous chapters has done. 
+
+\subsection{Target Calculi and Type Sharing}
+ML compilers often use enriched System F$_\omega$-like intermediate languages. Unlike the module system, System F$_\omega$ does not have any native support for type sharing. Naively compiling the type sharing example in sec.~\ref{sec:ftgf} produces $\Lambda t. \lambda a:t \Lambda s.\lambda f:s\rightarrow int. f(a)$, which is ill-typed. There are a number of solutions to this problem. 
+\begin{enumerate}
+\item Singleton kinds express the type sharing as a kinding of type $s$: $\Lambda.\lambda a:t.\Lambda s:\{t\}.\lambda f:s\rightarrow int.f(a)$. This technique is used in the TIL/TILT compilers and the Harper-Stone semantics. 
+\item The $s$ dependency can be abstracted and expressed in terms of System F$_\omega$'s type constructors and expressions: $\lambda t.\lambda a:t.\lambda f:(\lambda s.s\rightarrow int)~t.f(a)$
+\item FLINT preprocesses type sharing by replacing defined type names with their definitions: $\Lambda t.\lambda a:t.\lambda f:t \rightarrow int. f(a)$
+\end{enumerate}
+
+\subsection{Alternatives}
+Despite its difficulty, true separate compilation is still desirable. As others have noted, one solution is to distinguish between compilation units and modules. Indeed, OCaml, Moscow ML, and Swasey's SMLSC take exactly this approach. In OCaml, each separate OCaml source file is a compilation unit which is a kind of quasi-module which must be coupled with an mli interface file. Because there is no compilation unit-level parameterization, the question of higher-order functors does not apply. Moscow ML only considers an opaquely seal module to be a compilation unit.    
+
+\subsection{Relationship to Type Classes}
+As Wehr notes, module encodings in terms of type classes also conflict with separate compilation. Because type classes are ordinarily transparent, they pose lead to type propagation problems similar to module systems.  
+
+\subsection{Comparison to Shao}
+Shao's calculus KMC aims to support both separate compilation and full transparency in higher-order modules by means of higher-order type constructors. The calculus is based on Harper-Lillibridge and Leroy's abstract approach, utilizing existentials for abstract types. The general idea is to factor out all the volatile components to a single higher-order type constructor. Inside of functor signatures, one can use selectors to project out the volatiles from this type constructor. Signatures are then parameterized by this higher-order type constructor. 
+
+The Apply functor's signature would be $\lambda u_1:K.\Pi X:(\exists u_2.SIG[u_2]).(SIG[u_1[\overline{X}]])$. The higher-order type constructor $u_1$ plays a role similar to structure realizations and functor realization parameter. However, whereas structure realizations are completely distinct and nonoverlapping with signatures in M, the higher-order tycon is mixed in with syntactic signatures. This affords Shao's calculus the possibility of separate compilation.  
+
+KMC's main limitation, however, is that it is still not flexible enough to express generative types and abstract types. Though KMC can model opaque sealing via existential types, it still cannot type check programs such as the following:
+
+\begin{lstlisting}
+signature SIG = sig type t val x : t end
+funsig FSIG(X: SIG) = SIG
+
+structure S = struct type t = int val x = 1 end
+
+functor APPS (F:FSIG) = F(S)
+
+functor G2(X: SIG) = 
+struct 
+  datatype t = A 
+  val x = A
+end
+\end{lstlisting}
+
+%\section{Entity Paths: Naming and Construction}
+%\subsection{Related}
+%\emph{Russo's hybrid deBruijn index}
+%\emph{Harper-Lillibridge's internal names}
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

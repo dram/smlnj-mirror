@@ -1,0 +1,63 @@
+
+
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+
+\fbox{$\Upsilon\vdash \mathfrak{C}^s \searrow^{mt}
+  \mathbb{C}^s$}
+
+\begin{equation}
+\Upsilon\vdash \alpha \searrow^{mt} \alpha
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash \tau^n(\vv{\mathfrak{C}^s}) \searrow^{mt}
+  \vv{\rho}(\vv{\mathbb{C}^s})}
+{\begin{array}{c}
+\vv{\rho}=\inv(\Upsilon,\tau^n)\qquad \Upsilon\vdash
+  \vv{\mathfrak{C}^s} \searrow^{mt} \vv{\mathbb{C}^s}
+\end{array}}
+\label{eq:relativize-tau-app}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash
+  \lambda\alpha.\mathfrak{C}^s(\vv{\mathfrak{C}^s_1})
+  \searrow^{mt} \mathbb{C}^s}
+{\lambda\alpha.\mathfrak{C}^s(\vv{\mathfrak{C}^s_1}) \Downarrow_{mt}
+  \mathfrak{C}^s_2\qquad \Upsilon\vdash \mathfrak{C}^s_2
+  \searrow^{mt} \mathbb{C}^s}
+\label{eq:relativize-lambda-app}
+\end{equation}
+
+\fbox{$\Upsilon\vdash \mathfrak{C}^\lambda \searrow^{tyc} \mathbb{C}^\lambda$}
+\begin{equation} 
+  \infer{\Upsilon\vdash\lambda\vv{\alpha}.\mathfrak{C}^s
+  \searrow^{tyc}
+  \lambda\vv{\alpha}.\mathbb{C}^s}
+{\Upsilon\vdash \mathfrak{C}^s \searrow^{mt} \mathbb{C}^s}
+\end{equation}
+
+\fbox{$\Upsilon\vdash \mathfrak{T} \searrow^{te}
+  \mathbb{T}$}
+\begin{equation}
+\infer{\Upsilon\vdash \mathsf{typ}(\mathfrak{C}^s)
+  \searrow^{te} \mathsf{typ}(\mathbb{C}^s)}
+{\Upsilon\vdash \mathfrak{C}^s \searrow^{mt} \mathbb{C}^s}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash \forall\vv{\alpha}.\mathfrak{C}^s
+  \searrow^{te} \forall\vv{\alpha}.\mathbb{C}^s}
+{\Upsilon\vdash \mathfrak{C}^s \searrow^{mt} \mathbb{C}^s}
+\end{equation}
+
+}
+\caption{Relativization}
+\label{fig:eprelativize}
+\end{figure}

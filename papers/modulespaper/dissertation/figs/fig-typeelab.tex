@@ -1,0 +1,60 @@
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+\setlength{\tabcolsep}{0ex}
+\renewcommand{\arraystretch}{1.1}
+~\\[2mm]
+\fbox{$\Gamma,\Sigma\vdash C^s \Rightarrow_{mt} \mathfrak{C}^s$}
+
+\begin{equation}
+\Gamma,\Sigma\vdash \alpha \Rightarrow_{mt} \alpha
+\label{eq:alpha}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma,\Sigma\vdash p(\vv{C^s}) \Rightarrow_{mt}
+ \mathfrak{C}^s_a}
+{\begin{array}{c}
+\Gamma,\Sigma\vdash C^s_i \Rightarrow_{mt} \mathfrak{C}^s_i~\forall i\in[1,|\vv{C^s}|]\\
+(\mathsf{entpath}(\Gamma,\Sigma,p))(\vv{\mathfrak{C}^s}) \Downarrow_{tyc} \mathfrak{C}^s_a
+\end{array}}
+\label{eq:tycapp}
+\end{equation}
+
+\fbox{$\Gamma,\Sigma\vdash C^\lambda 
+\Rightarrow_{tyc} \mathfrak{C}^\lambda$}
+
+\begin{equation}
+\infer{\Gamma,\Sigma\vdash \lambda\vec{\alpha}.C^s
+  \Rightarrow_{tyc}\lambda\vec{\alpha}.\mathfrak{C}^s}
+  {\Gamma,\Sigma\vdash C^s \Rightarrow_{mt} \mathfrak{C}^s}
+% This rule is necessary to permit relativization of type definitions
+% that area always enclosed by a single lambda. 
+\end{equation}
+
+\fbox{$\Gamma,\Sigma\vdash T \Rightarrow_{te} \mathfrak{T}$}
+
+\begin{equation}
+\infer{\Gamma, \Sigma\vdash \mathsf{typ}(C^s) 
+\Rightarrow_{te} \mathsf{typ}(\mathfrak{C}^s)}
+{\Gamma, \Sigma\vdash C^s \Rightarrow_{mt} \mathfrak{C}^s}
+\end{equation}
+
+\begin{equation}
+\infer{\Gamma, \Sigma\vdash \forall\vec{\alpha}.C^s \Rightarrow_{te}
+  \forall\vec{\alpha}.\mathfrak{C}^s}
+{\Gamma, \Sigma\vdash C^s \Rightarrow_{mt} \mathfrak{C}^s}
+\end{equation}
+
+\begin{equation*}
+\mathsf{entpath}(\Gamma,\Sigma,p) = \left\{ \begin{array}{ll}
+\mathsf{EP}(\Sigma,p)& \textrm{if }p\in\Sigma\\
+ \Gamma_{ep}(p) & \textrm{o.w.}
+\end{array}
+\right. 
+\end{equation*}
+}
+\caption{Monotype and tycon elaboration}
+\label{fig:tyconelab}
+\end{figure}

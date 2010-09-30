@@ -1,0 +1,30 @@
+
+\begin{figure}
+	\centering
+	\fixedCodeFrame{
+	\small
+        ~\\[2mm]
+        \[
+        \begin{array}{rcll}
+           k & ::= & \Omega~|~k\to k~|~\{l_0::k_0,\ldots,l_n::k_n\} & \textrm{kinds}\\
+           c & ::= &
+           \alpha~|~\inj(\tau^n)~|~\newx(n)~|~\lambda\alpha:k.c~|~c(c)~& \textrm{tycons}\\
+           & ~~| & \{l_0=c_0,\ldots,l_n=c_n\}~|~c.l\\
+ 
+           t & ::= & \mathsf{ty}(c)~|~\forall\alpha::k.t~|~\{l_0:t_0,\ldots,l_n:t_n\} & \textrm{types}\\
+            e_{\omega} & ::= & x~|~\lambda
+            x:t.e_{\omega}~|~e_{\omega}(e_{\omega})~|~\Lambda\alpha::k.e_{\omega}~|~e_{\omega}[c]\\
+            &~~| & ~\{l_0=e_{\omega},\ldots,l_n=e_{\omega}\}~|~e_{\omega}.l\\
+            & ~~| & \mathrm{let}~d~\mathrm{in}~e_{\omega}~|~\lettyc{\alpha=c}{e_\omega} & \textrm{exprs}\\
+            v & ::= & \lambda x:t.e_{\omega}~|~\Lambda\alpha::k.e_{\omega} &
+            \textrm{values} \\
+            d & ::= & \emptyset_{\omega dec}~|~x=e_\omega;d & \textrm{decl}\\
+            E & ::= & \emptyset_{\omega env}~|~E,\alpha::k~|~E,x:t &
+            \textrm{environs} 
+        \end{array}
+        \]\\
+        Let $t \to t'$ be shorthand for $\to^2(t,t')$. 
+      }
+      \caption{System F$_{\omega}$} 
+      \label{fig:fomega}
+\end{figure}

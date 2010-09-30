@@ -1,0 +1,16 @@
+\chapter{Conclusion}\label{ch:conclusion}
+
+The design of higher-order module systems is indeed rich and complex. Much of the richness is due to the introduction of functor actions and transparent signature matching semantics. While the $\beta$-reduction semantics for functor applications is both natural and intuitive, supporting such semantics in the presence of higher-order functors requires the richer static representation that the entity calculus affords. This present account improves the state-of-the-art in module system semantics by providing a formal account of true higher-order semantics and type generativity without resorting to re-elaboration of functor bodies.  
+
+\section{Future Work}\label{sec:futurework}
+
+The entity calculus is a simple and natural way to represent module computation. It remains a question whether it can be easily adapted to support recursive modules while maintaining the strong normalization property. 
+
+The main argument that the design of the entity calculus makes is that functor actions should be calculated by the elaborator and not written down in a syntactic signatures. This kind of functor action inference suggests that inference may be able to play a larger role in module system semantics. 
+
+Definitional specifications such as definitional type specs and definitional structure specs are common in many implementations of the ML module system. For symmetry, it would seem natural that definitional functor specs would also be permitted. However, to the best of the author's knowledge, this kind of definitional spec has not been investigated. 
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

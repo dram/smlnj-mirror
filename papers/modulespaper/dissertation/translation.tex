@@ -1,0 +1,499 @@
+
+\chapter{Translation}\label{ch:translation}
+
+One way to show the soundness of the module system is to provide a
+translation to an applied F$_\omega$ language. What this translation
+amounts to is a decoupling of the static content from the dynamic
+content of modules. Module systems that permit decoupling are
+said to admit \emph{phase separation}. 
+
+The elaboration semantics given in the previous chapter is sufficient
+and self-contained. However, to support translation into F$_\omega$,
+the elaboration must be instrumented to annotate module language terms
+with their full signatures, full functor signatures, signature
+matching coercions, and free instantiation of functor parameters. 
+
+\section{Annotated Module Language}
+
+\input{figs/fig-annotated}
+
+Fig.~\ref{fig:annotatedlang} gives the grammar for the module language
+annotated with semantic objects from elaboration. The semantic objects
+are enclosed by angle brackets $\an{}$. Structure paths must be
+annotated with the entity path corresponding to that symbolic
+path. The functor path in a functor application should be annotated
+with its entity path and the entity variable for the formal
+parameter. The entity variable for the formal parameter is necessary
+for producing the necessary coercions to get the type and value
+content of an argument structure into the proper form. The argument
+structure should be annotated with its coercion full signature and coercion
+structure entity expression. The associated entity variable should
+annotate both structure and functor declarations. The functor
+declaration further requires the annotation of a full functor
+signature and free instantiation entity environment. All this
+information is readily available during the elaboration process. Thus,
+annotating is straightforward. Below, I show a select modified rule:  
+
+\begin{equation} 
+\infer{
+\begin{array}{c}
+\Gamma,\Upsilon\vdash p(strexp)\Rightarrow_{str}
+(p\an{\vec{\rho},\rho_{par}}(strexp\an{M_{c},\rho_u}),(\Sigma_{body},R_{app}),\varphi_{app})
+\end{array}}
+	{
+\begin{array}{c}
+\Gamma(p) = (\vec{\rho}, (\Pi \rho_{par}:\Sigma_{par}.\Sigma_{body},
+\langle\theta; \Upsilon'\rangle)) \qquad
+\Gamma,\Upsilon\vdash strexp\Rightarrow_{str}
+(M,\varphi)\\ 
+\Upsilon\vdash (M,\varphi) : \Sigma_{par} \Rightarrow_{match}
+(M_{c},\letin{\rho_u=\varphi}{\llparenthesis \eta \rrparenthesis})\\
+\varphi_{app} = \vec{\rho}(\varphi_{c})\qquad \Upsilon\vdash \varphi_{app} \Downarrow_{str} R_{app}
+\end{array}}
+\label{eq:annotating-strapp}
+\end{equation}
+
+As shown in the above rule, the entity path for the functor and the
+functor parameter entity variable are in the
+static environment at elaboration time. The coercion full signature
+$M_c$ and entity variable $\rho_u$ for the uncoerced argument
+structure. 
+
+%coercion entity expression $\varphi_c$ are produced by
+%signature matching. 
+
+%The signature matching semantics
+% (rule~\ref{eq:sigmatch}) guarantee that the coercion entity expression
+% is always of the form $\letin{\rho_u=\varphi_u}{\llparenthesis \eta
+%   \rrparenthesis}$, a fact that will be used later in this chapter.  
+ 
+\section{Target Language: F$_\omega$}
+\input{figs/fig-fomega}
+
+Fig.~\ref{fig:fomega} gives the grammar for the applied
+F$_\omega$. The language is nearly identical to the one Shao
+used~\cite{shao98}. It is an F$_\omega$ core enriched with record
+types and declarations. 
+
+An F$_\omega$ kind $k$ is either a monokind or an arrow kind. A tycon
+$c$ can be a type variable, an atomic tycon $\mathsf{inj}(\tau^n)$, an
+explicitly kinded tycon-level $\lambda$ abstraction, and a tycon
+application. The tycon for a record is represented as
+$\{l_0 : c_0,\ldots,l_n : c_n\}$ where $l_i$'s are record field labels and
+$c_i$'s are the tycons for the fields corresponding to those
+labels. The tycon form $c.l$ can project out the field type of field
+$l$ assuming that $c$ is a record type containing a field of that
+label. Type expressions $t$ are either a tycon or an explicitly quantified
+and kinded polymorphic type $\forall\alpha::k.t$. Unlike the version of
+the F$_\omega$ type system given by Shao, this type
+system includes atomic tycons. Also, this type system simplifies
+Shao's by subsuming base types (int) and arrow types $\tau\to\tau'$ using an atomic tycon
+and type application $\to^2(\tau)(\tau')$. Types $t$ omit arrow and
+record types from Shao's version. 
+
+F$_\omega$ expressions include variables, an explicitly-typed
+$\lambda$-abstractions, applications of expressions, an explicitly-kinded type
+abstraction $\Lambda\alpha::k.e_\omega$, and type application
+$e_\omega[c]$. An expression can also be a record expression
+$\{l_0=e_{\omega_0},\ldots,l_n=e_{\omega_n}\}$, a record field
+projection $e_\omega.l$, or a let expression. Within let expressions
+are declarations, which are sequences of variables bound to
+expressions terminated by $\cdot$, the empty declaration. The same
+environment is used for both kinding $\alpha::k$ and typing $x:t$. Note that the
+abstraction ($\lambda x:t.e_\omega$) and type application
+$e_{\omega}[t]$ both permit application to polymorphic types
+$\forall\alpha::k.t$. This is necessary because functors and
+functor applications in the module language support abstraction over
+polymorphic types ($\mathsf{functor}~F(X:\mathsf{sig~val}~id :
+\forall\alpha.\alpha\to\alpha~\mathsf{end})=\mathsf{struct~end}$) and
+application to such types. When these are translated to F$_\omega$,
+the polymorphism must be maintained. 
+
+\subsection{Kind System}
+\input{figs/fig-fomega-kinding}
+
+Fig.~\ref{fig:fomega-kinding} describes well-kinding of F$_\omega$
+tycons. The kind system is standard. The judgment relies only on the
+kind part of the environment. Rule~\ref{eq:f-k-at} gives the curried
+kind for the $n$-ary atomic tycon. The resultant kind is curried $n$
+times.  Rules~\ref{eq:f-k-rec}
+and~\ref{eq:f-k-proj} kind record tycons and record projection tycons
+respectively in the usual way. 
+
+\subsection{Type System}
+\input{figs/fig-fomega-typesystem}
+
+Fig.~\ref{fig:fomegatype} gives the type system for
+F$_\omega$. $\vdash t~\mathsf{type}$ is an axiom. In particular
+$\vdash k~\mathsf{type}$ is not true. Type application
+(rule~\ref{eq:ftapp}) assumes that the left-hand side has a type
+$\lambda\alpha.k.t'$. The type of the type application is
+$t'\{t/\alpha\}$. Rule~\ref{eq:frec} gives the record tycon
+$\{l_0:c_0,\ldots,l_n:c_n\}$ for a
+record expression $\{l_0=e_0, \ldots, l_n=e_n\}$ as long as all its
+field expressions have the correct type,\ie, $e_i : t_i$. 
+
+The notation $\{c/\alpha\}_{tyc}$ denotes tycon substitution. This
+kind of substitution does not act on values that may coincidentally
+share the same name $\alpha$. This distinct form of substitution is
+necessary because tycons and values will have distinct namespaces. 
+    
+\section{Translation Semantics}
+The translation rules all assume an annotated module language that was
+produced by an error-free elaboration. Since the program was
+successfully elaborated, the semantics can make some assumptions about
+the program, especially what variables will or will not be accessed,
+and thereby simplify the rules. 
+
+\input{figs/fig-xlate}
+
+The notation $dom(d)$ here denotes the set of
+all the bound names,\ie, the $\rho$ in $\rho=e$. 
+
+Fig.~\ref{fig:transdec} gives the rules for translating module
+declarations to F$_\omega$ declarations. Rule~\ref{eq:transdec-empty}
+is the empty declaration case. Rule~\ref{eq:transdec-val} translates
+the core language expression $e$ to a corresponding $e_\omega$. Unlike
+the static entity case, shadowing a previous variable $x$ is harmless
+so $x$ will be used as the variable to
+bind. Rules~\ref{eq:transdec-typedef} and~\ref{eq:transdec-dt} do not
+produce F$_\omega$ expressions because type definitions and datatype
+declarations play no role in the
+dynamic semantics. Rules~\ref{eq:transdec-str}
+and~\ref{eq:transdec-fct} must produce declarations binding the entity
+variable of the structure or functor instead of the syntactic
+variable. % Is this necessary? Yes, structures and functors are static
+          % entities but these rules only care about the dynamic
+          % components for which there is no avoidance problem. 
+The rule~\ref{eq:transdec-fct} will use the judgment $\vdash \Sigma
+\leadsto_{sig} k$ defined in Fig.~\ref{fig:semsigtokinds} to extract
+the kind information from the semantic signature for the functor
+parameter. The type for the F$_\omega$ $\lambda$ abstraction is
+calculated separately from the same semantic signature. 
+
+Fig.~\ref{fig:transexp} gives the translation of the module
+language to F$_\omega$. Rule~\ref{eq:transexp-app} translates
+structure applications. The functor being applied can be translated by
+translating its entity path to the corresponding F$_\omega$ record
+projection form. The actual argument structure expression is
+translated to $e_\omega$, but the functor is expecting a parameter of
+the form defined in full signature $M$. The associated coercion
+structure expression $\letin{\rho_u=\varphi_u}{\llparenthesis \eta
+  \rrparenthesis}$ can help produce coerced type and value
+arguments. For the type argument, the rule translates the coercion entity
+declaration to F$_\omega$ via the $\tycon$ function defined in
+Fig.~\ref{fig:xlate-entdec}. For the value argument, reusing the
+uncoerced expression by aliasing $\rho_{par} = \rho_u$ is sufficient
+because the prior elaboration already guarantees that none of
+components in $\rho_u$ that is not specified in the formal parameter
+signature will be accessed. Furthermore, none of the variables are
+being renamed. 
+   
+\input{figs/fig-xlate-sig}
+
+The F$_\omega$ kinds, tycons, and types for tycon content of structures, type
+content of structures, and structures themselves are record kinds,
+record tycons, and record types respectively. Each label-field pair is
+a pair of an entity variable and the kind, tycon, and type of the
+entity referred to by that entity variable. Let $lks$, $lcs$, and $lts$ be a sequence of record label-field for
+kinds, tycons, and types respectively. The notation
+$lks\uplus lks'$ appends two record kinds. The notation is extended in
+the usual way to append tycons and types. No shadowing is expected
+because all records field names will be entity variables. 
+
+Fig.~\ref{fig:semsigtokinds} gives the rules for producing $F_\omega$
+kinds from semantic signatures. Value specs and type definition specs
+do not contribute to the kind (rules~\ref{eq:f-semsig-val} and~
+\ref{eq:f-semsig-typedef}). Open tycon specs do
+contribute. Rule~\ref{eq:f-semsig-opentype} produces the kind field
+$\rho::\Omega^n \Rightarrow \Omega$ such that $n$ is the arity of the
+open tycon spec. Rules~\ref{eq:f-semsig-str} and~\ref{eq:f-semsig-fct}
+construct kinds for structure and functor specs from the semantic
+signature and functor signature respectively. 
+
+Fig.~\ref{fig:f-tycon-synthesis} defines the judgment
+that calculates the tycons from the full signature of a
+structure. Again, value specs, and type definition specs do not
+contribute to the tycon (rules~\ref{eq:transspec-val} and~\ref{eq:transspec-typedef}). Rule~\ref{eq:transspec-opentype} translates
+an open spec by
+looking up the entity environment for the tycon entity associated with
+the open tycon spec. The rule~\ref{eq:transspec-str} translates the
+structure spec signature in the context of the entity environment
+calculated from the structure entity
+($\Upsilon(\rho)=\langle\Upsilon^{lcl},\Upsilon^{clo}\rangle=\Upsilon^{clo}\Upsilon^{lcl}$).
+To calculate the tycon for a functor component,
+rule~\ref{eq:transspec-fct} must supply rule~\ref{eq:trans-fctspec}
+the functor signature and entity from looking up the entity
+environment. Rule~\ref{eq:trans-fctspec} calculates the kind for the
+functor parameter using the parameter signature and also the tycon for
+the functor body from the functor body signature and closure entity
+environment. The judgment relies on $\vdash \varphi
+\leadsto^{strexp}_{tyc} c$ which translates the structure entity
+expression to the corresponding F$_\omega$ tycon expression, which is
+the same because there is an embedding of the structure entity
+expression language to the F$_\omega$ tycon expression language. The
+above statement fully defines $\vdash \varphi
+\leadsto^{strexp}_{tyc} c$. 
+
+Fig.~\ref{fig:fty-sig} gives the rules
+for producing $F_\omega$ types from semantic signatures. These two
+judgments decompose semantic signatures into kinds (for classifying
+the static components) and types (for classifying the dynamic
+components). Kind synthesis is used in rule~\ref{eq:fty-fct} to
+produce the kind annotation for the polymorphic quantifier. 
+
+Let the $\mathsf{env}(lts) = [\rho:t]$ where $\rho_i:t_i \in lts$ for the purpose of fig.~\ref{fig:xlate-entdec}. 
+  
+\input{figs/fig-xlate-entdec}
+    
+Fig.~\ref{fig:xlate-entdec} defines the function $\coerce$ that
+coerces an F$_\omega$ expression $e_\omega$ to a record type $lts$. 
+It thins out the value part by dropping components not
+in the specified type. The resultant expression should have the target
+type $\{lts\}\{c/\rho\}_{tyc}$ where $lts$ is parameterized by
+$\rho$. The type-level coercion was already taken care of by
+F$_\omega$ tycon synthesis. 
+
+\begin{lemma}[Correctness of Value-Level Coercion]
+If $E\vdash \{lts_u\}::k$, $E\vdash
+\rho_u : \{lts_u\}$, for all $l\in dom(lts_u)\cap dom(lts_c)$
+$t_c\{c/\alpha\}=t_u$ such that $l:t_c \in lts_c$ and $l:t_u \in lts_u$, and
+ $\coerce(\rho_u,c,lts_c) = e_\omega$, then $E\vdash e_\omega : \{lts_c\{c/\alpha\}\}$. 
+\end{lemma}
+
+\section{Soundness}
+
+\begin{theorem}
+If a closed structure expression $strexp$ elaborates to $(M, \_)$ and $strexp$
+translates to $e_\omega$, then $\vdash e_\omega : t$ and $\vdash M \leadsto_{type} t$. 
+\end{theorem}
+
+The proof of the above lemma is sketched out in more detail in the
+proof appendix. It relies on much of the same machinery as Shao's
+proof~\cite{shao98}. The proof diverges in Shao's memoization of
+pre-translated F$_\omega$ tycon and types in the functor
+representation during elaboration of the functor. Furthermore, this
+proof must deal with the coercive signature matching semantics which
+is not present in Shao's main elaboration-translation semantics. 
+
+\section{Type Generativity}
+
+Shao's calculus and many of the related accounts of the module system
+do not fully support the type generativity present in ML. Type
+generativity stems from two constructs, opaque ascription and datatype
+declarations. 
+
+Seemingly benign examples that feature datatype declarations are not supported. 
+
+\begin{lstlisting}
+structure M = 
+struct 
+  datatype t
+  val id : t -> t = fn x:t => x
+end
+\end{lstlisting}
+
+\begin{lstlisting}
+functor F() = 
+struct
+  datatype t
+  val id : t -> t = fn x:t => x
+end
+\end{lstlisting}
+
+Datatype declarations are an interesting case because unlike the rest
+of the static content of a module, datatype declarations translate to
+F$_\omega$ tycons that are not referentially transparent. Whereas all
+other forms of F$_\omega$ tycons can be duplicated and be supplied as
+arguments to type applications, the tycons from datatype declarations
+cannot. This is because the identity of the tycon from a datatype must
+be maintained. The tycon cannot be copied. Consequently, such a tycon
+must be bound (by the special let tyc form) to a type variable that is
+in the scope of all subsequent occurrences. It turns out that in
+general, the expressions constructing these tycons are exactly the
+entity expressions from the module system. The referentially
+transparent static content such as type definitions can continue to be packaged together in a tycon record to which $\Lambda$ type abstractions can
+be directly applied. 
+
+Another difference between datatype declarations and type definitions
+is what is translated into F$_\omega$. For datatype declarations, the
+entity expression is translated. For type definitions, the full
+signature is directly translated to an F$_\omega$ tycon. 
+
+Translation decomposes functors into a tycon part and a value
+part. The hat notation $\widehat{x}$ denotes the variable is a type
+variable that refers to the type part of a structure or functor x. Let
+$k$ represent $\Omega^0 \to \Omega$. 
+
+\begin{lstlisting}
+functor f(x:sig type s type t end) = struct datatype w type v = x.t end
+\end{lstlisting}
+ 
+\[\lettycline{\widehat{f}=\lambda \widehat{x}::\{s::k,t::k\}.\{w =
+  \newx(0), v=\widehat{x}.t \}}
+{\letin{f = \Lambda\widehat{x}::\{s::k, 
+t:: k
+    \}.\lambda x:\{\}.\{\}}
+ {\ldots}}
+\]
+
+For the above example functor $f$, the primary tycon part is a tycon
+function $\lambda \widehat{x}
+. \{w = \newx(0) \}$, which is exactly a straightforward
+translation of the structure entity expression for the functor
+body. The value part is $\Lambda\widehat{x}::\{s::k, 
+t :: k \}.\lambda x.\{\}.\{\}$. The
+secondary tycon part $v = \widehat{x}.t$ corresponds to the type definitions
+\lstinline{type v = x.t}.
+
+The above translation is sufficient in absence of value components,
+whose type annotations may refer to tycons (the type part of the
+functor). The value components in the functor parameter may refer to
+tycons in the functor parameter. The value components in the functor
+body may refer to tycons in either the functor parameter or
+body. However, since the tycons in the functor body are not accessible
+until the type part of the functor is applied, the value part of the
+functor must take an extra type parameter, the result of applying the
+type part of the functor. 
+
+\begin{lstlisting}
+functor f(x:sig type s end) = struct datatype w val n : w -> w = fn z : w => z end
+\end{lstlisting}
+
+\[\lettycline{\widehat{f}=\lambda\widehat{x}::\{s::k\}.\{ w = \newx(0) \}}
+  {\letin{f = \Lambda \widehat{x}::\{s::k\}.\Lambda
+      \widehat{f_{res}}::\{ w :: k \} . \lambda x::\{\}.\{n = \lambda z:\widehat{f_{res}}.w\}
+    }{\ldots}}
+\]
+
+The first curried type abstraction $\Lambda\widehat{x}::\{s::k\}$ is
+the type part of the functor parameter. The second type
+abstraction $\Lambda \widehat{f_{res}}::\{ w :: k \}$ is for the
+result of applying the type part $\widehat{f}$ to the same type part
+of the functor argument $\widehat{x}$. The type annotation in the
+body of the value part $n$ can refer to the tycon $w$ through
+$\widehat{f_{res}}.w$. 
+ 
+Functor application must coerce both the tycon and value parts
+of the argument structure. 
+
+\begin{lstlisting}
+structure m = f(struct datatype s type t = s end)
+\end{lstlisting}
+
+\[\begin{array}{l}
+  \letx~\tyc~\widehat{u} = \{s'=\newx(0) \}\\
+  \inlet~\tyc~\widehat{m} = \widehat{f}(\{s = \widehat{u}.s', t =
+  \widehat{u}.s' \})\\
+  \inlet~m = f[\{s = \widehat{u}.s', t =
+  \widehat{u}.s'\}](\{ \})\\
+  \inx~\ldots
+ \end{array}\]
+
+In the above example, the translation first decomposes the argument
+structure into a
+primary tycon part $\{s'=\newx(0)\}$, a value part $\{ \}$, and a
+secondary tycon part $t = \widehat{u}.s'$. Note that the entity
+variable for the argument structure $s'$ that is distinct from
+the entity variable in the formal parameter $s$. The entity
+variable $\widehat{u}$ binds the raw, uncoerced primary tycon part of the
+argument structure. The raw, uncoerced secondary tycon part is
+directly inlined because the syntactic functor application inlines the
+argument structure. The tycon part of $\widehat{f}$ is applied to the coerced
+tycon part of the argument structure, $\widehat{f}(\{s=\widehat{u}.s',
+t=\widehat{u}.s'\})$ where $\widehat{f}$ here refers to the tycon
+function bound in the previous example. The value part of $f$ is
+applied to the coerced tycon and value parts of the argument
+structure, $f[\{s=\widehat{u}.s',t=\widehat{u}.s'\}]
+(\{\})$.
+
+Since the tycon part of functor is a translation of the functor entity
+expression, the tycon part also represents the nested functors in the
+functor body. 
+
+\begin{lstlisting}
+functor f() = struct functor g() = struct datatype t end end
+\end{lstlisting}
+
+\[ \begin{array}{l}
+\letx~\tyc~\widehat{f} = \lambda().\{\widehat{g} = \lambda().\{ t =
+\newx(0) \} \}\\
+   \inlet~f = \Lambda()::\{\}.\lambda():\{\}.\{\}
+\end{array}
+\]
+
+The tycon part of the nested functor $g$ is $\lambda().\{t =
+\newx(0)\}$. Thus, the tycon part $\widehat{f}$ must be the first line in the
+example above. In this example, the value part is degenerate since
+there are no value components. 
+
+Formal functors are handled in the same way as above. 
+
+\begin{lstlisting}
+functor f(x:sig functor g(y: sig type t end) : sig type v end end) =
+struct end
+
+structure m = f(struct functor g(y: sig type t end) = struct type v = y.t end end)
+\end{lstlisting}
+
+The above example translates to the following F$_\omega$ program.
+\[\begin{array}{l}
+\letx~\tyc~\widehat{f} = \lambda\widehat{x}::\{\widehat{g}::\{\widehat{y}::\{t :: k\}\}\to\{ v :: k \}\}.\{\}\\
+\inlet~f = \Lambda\widehat{x}::\{ \widehat{g}::\{\widehat{y}::\{t :: k\}\}\to\{ v :: k \}
+\}.\lambda x:\{ g : \forall\widehat{y}::\{ t ::
+k \}\to \{ v :: k \}\}. \{\} \}\\
+\inlet~\tyc~\widehat{u} = \{ \rho_g' = \lambda\rho_y'.\{ \} \}\\
+\inlet~u = \{ g' = \Lambda \widehat{y'}::\{ \widehat{g'} :: \{ t'
+:: k\} \to
+\{ v' :: k\} \}.\lambda y'.\{ \} \}\\
+\inlet~\tyc~\widehat{m} = \widehat{f}(\{\widehat{g} = u.\widehat{g'} \})\\
+\inlet~m = f[\{ \widehat{g} = \lambda \widehat{y'} :: \{ \}  . \{ v' =
+\widehat{y'}.t  \} \}](\{ g = u.g' \})
+\end{array}\]
+
+The arrow kinds are given to the tycon abstractions representing the formal functor, reflective of how functors can be viewed as type operators. 
+The tycon and value parts
+of the uncoerced functor argument are $\{\widehat{g'}=\lambda \widehat{y'}. \{
+\}\}$ and
+$\{g'=\lambda y'.\{\}\}$ respectively.  
+
+Support for type generativity requires some modification of the
+translation rules for functor declaration and functor application.
+
+        \begin{equation}
+          \infer{
+            \begin{array}{c}
+              \mathbf{functor}~f\an{\rho,F,\Upsilon_{ins}}(X:sigexp)=strexp\\
+            \leadsto_{dec} \rho=_{tyc} \theta, \rho=\Lambda \rho_x::k.\lambda
+            \rho_x:t.e_\omega
+          \end{array}}
+          {\begin{array}{c}
+              F=(\Pi\rho_x:\Sigma_{par}.\Sigma', \langle\theta; \Upsilon^{clo}\rangle)\qquad
+            \vdash \Sigma_{par} \leadsto_{knd} k\qquad \Upsilon_{ins}\vdash \Sigma_{par}
+            \leadsto_{type} t\\
+             strexp \leadsto_{exp}  e_\omega
+          \end{array}}
+       \end{equation}
+
+     \begin{equation}
+       \infer{ \begin{array}{c}
+         \structure~x\an{\rho_x}=p\an{\vec{\rho},\rho_{par}}
+         (strexp\an{M_c,\rho_u}) \\
+         \leadsto_{exp}
+         \letx~\tyc~\rho_x= \vec{\rho}(\coerce_{tyc}(\rho_u,c)) \inx~\letx~\rho_x=
+         \vec{\rho}(\coerce_{tyc}(\rho_u,c)),
+         \letin{\rho_u=e_{\omega_u}}{\vec{\rho}[c](e_{\omega_c})}
+       \end{array}}
+       {\begin{array}{c}  
+           strexp \leadsto_{exp} e_\omega\qquad
+           M_c \leadsto_{tyc}  c\qquad M_c=(\Sigma, R) \\
+           R\vdash \Sigma\leadsto_{type} lts_c\qquad
+           e_{\omega_c} = \coerce(\rho_u,c,\{lts_c\})
+         \end{array}}
+     \end{equation}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

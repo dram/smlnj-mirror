@@ -1,0 +1,47 @@
+\documentclass[12pt]{report}
+
+% This is a stripped-down version of the *chithesis.cls class file,
+% used to produce the abstract page for Bell & Howell, as required
+% by the Dissertation Office.
+
+\setlength{\oddsidemargin}{0.5in}  % really 1.5in
+\setlength{\evensidemargin}{0.5in}  % really 1.5in
+\setlength{\textwidth}{6in}
+\setlength{\topmargin}{0in}   % really 1in
+\setlength{\textheight}{8.45in}
+\setlength{\footskip}{0.25in}
+
+\RequirePackage{setspace}[1998/04/8]
+\newcommand{\etspacing}{\setstretch{1.37}}
+\DeclareOption{truedoublespace}{\renewcommand{\etspacing}{\doublespacing}}
+\DeclareOption{doublespace}{\renewcommand{\etspacing}{\setstretch{1.37}}}
+\DeclareOption{onehalfspace}{\renewcommand{\etspacing}{\onehalfspacing}}
+\DeclareOption{singlespace}{\renewcommand{\etspacing}{\singlespacing}}
+
+\newcommand{\Msolar}{M_\odot}
+
+\begin{document}
+
+% Choose \doublespacing for the actual abstract.
+\doublespacing
+
+\begin{list}{}{\setlength{\leftmargin}{2em}
+\setlength{\labelwidth}{0em} \setlength{\labelsep}{0em}
+\setlength{\itemindent}{-2em}
+}
+\item \textbf{Constraining Compact Dark Matter with Quasar Equivalent
+    Widths from the Sloan Digital Sky Survey Early Data Release}
+\item \textbf{Craig C. Wiegert}
+\item \textbf{\bf Advisor: Joshua Frieman, Professor of Astronomy \&
+    Astrophysics}
+\end{list}
+
+\begin{center}
+\textbf{\Large Abstract}
+\end{center}
+
+Paragraph 1.
+
+Paragraph 2.
+
+\end{document}

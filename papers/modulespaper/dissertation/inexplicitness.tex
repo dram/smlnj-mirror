@@ -1,0 +1,7 @@
+%!TEX root = main.tex
+
+\subsection{Inexplicitness}
+
+The problem of inexplicit types manifests itself the avoidance problem. The avoidance problem says that there is no best principal syntactic signature for the expression \lstinline{let X = struct type t = int val x = 1 end :> sig type t val x : t end in struct val y = X.t end}. For a statically impure X, the expression does not have a principal signature that \emph{avoids} mentioning X. The approach for giving a principal signature is to promote the signature of the let expression to a matching supersignature, but there is no single best supersignature. Instead, there are a lot of incomparable supersignatures. This same problem occurs even at the level of functor application. If the argument in a functor application is impure, then the functor body's principal syntactic signature cannot avoid mentioning the argument. 
+
+[It appears that the problem of avoidance is not a question of purity but of the transparency of types. Using Dreyer's weakest sealing, the basic sealing that only hides the definition of types without introducing any dependencies, the problem of avoidance remains.]

@@ -1,0 +1,41 @@
+%!TEX root = ../main.tex
+\begin{figure}
+\centering
+% \fixedCodeFrame{
+\small
+% ~\\[1mm]
+\[
+\begin{array}{rcll}
+   \rho & \in & \mathrm{EntityVars} & \textrm{entity variables}\\
+
+	 \Upsilon & ::= & \emptyset_{ee}~\bnfalt~\Upsilon [\rho\mapsto\upsilon] & \textrm{entity environment} \\
+	R & ::= & \langle \Uloc, \Uclo \rangle& \textrm{structure entity} \\ 
+	\psi & ::= & \langle
+        \lambda\rho.\varphi;\Upsilon\rangle~|~\langle \lambda\rho.\Sigma;\Upsilon\rangle & \textrm{functor entity}\\ 
+	\upsilon & ::= &
+        \psi~|~R~|~\tau^n~|~\mathfrak{C}^\lambda & \textrm{static entity} 
+\end{array}
+\]
+\hrulefill
+\[
+\begin{array}{rcll}
+        \multicolumn{3}{l}{\textrm{Tycon entity expression}}\\
+        \zeta & ::= & \vec{\rho}~|~\newx(n)~|~\mathbb{C}^\lambda\\
+	\multicolumn{3}{l}{\textrm{Structure entity expression}}\\
+	\varphi & ::= & \vec{\rho} & \textrm{entity path}\\
+	     & ~~\bnfalt & \llparenthesis \eta \rrparenthesis & \textrm{entity declaration}\\
+	     & ~~\bnfalt & \vec{\rho}(\varphi) & \textrm{functor application}\\
+	     & ~~\bnfalt & \letx~\eta~\inx~\varphi & \textrm{local definition}\\
+	\theta & ::= &
+        \vec{\rho}~\bnfalt~\lambda\rho.\varphi~\bnfalt~\lambda\rho.\Sigma
+        & \textrm{functor entity expression}\\
+	\eta & ::= & \bullet~|~[\rho=_{tyc}\zeta]\eta~| & \\
+        & ~~\bnfalt &  ~[\rho =_{str}  \varphi]\eta~|~[\rho=_{fct}\theta]\eta
+        & \textrm{entity declarations}\\
+          
+\end{array}
+\]
+% }
+\caption{Static entities and entity expressions}
+\label{fig:entities}
+\end{figure}

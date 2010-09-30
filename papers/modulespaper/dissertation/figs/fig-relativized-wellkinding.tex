@@ -1,0 +1,44 @@
+
+\begin{figure}
+\hrule
+
+\begin{equation}
+\infer{\Upsilon, \Delta \vdash \alpha :: \Omega}
+{\alpha \in \Delta}
+\label{eq:r-k-var}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon, \Delta \vdash \vec{\rho}(\vv{\mathbb{C}^s}) :: \Omega}
+{\Upsilon, \Delta \vdash \Upsilon(\vec{\rho}) :: \Omega^n \to \Omega\qquad
+ \Upsilon, \Delta \vdash \mathbb{C}^s_i~\forall \mathbb{C}^s_i \in \vv{\mathbb{C}^s}}
+\label{eq:r-k-app}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon \vdash \lambda\vec{\alpha}.\mathbb{C}^s 
+:: \Omega^n \to \Omega}
+{n=|\vec{\alpha}|\qquad\alpha_i\in\vec{\alpha}~i\in[1,n]\qquad
+\Upsilon, [\alpha_1]\ldots[\alpha_n] \vdash \mathbb{C}^s :: \Omega}
+\label{eq:r-k-abs}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash\mathsf{typ}(\mathbb{C}^s) :: \Omega}
+{\Upsilon,\emptyset_{knd}\vdash \mathbb{C}^s :: \Omega}
+\label{eq:r-k-typ}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash \forall\vec{\alpha}.\mathbb{C}^s :: \Omega}
+{n=|\vec{\alpha}|\qquad\alpha_i\in\vec{\alpha}~i\in[1,n]\qquad \Upsilon,[\alpha_1]\ldots[\alpha_n]\vdash \mathbb{C}^s :: \Omega}
+\label{eq:r-k-fa}
+\end{equation}
+
+\hrule 
+
+\caption{Well-kinding of relativized monotypes, tycons, and types}
+\label{fig:relativized-wellkinding}
+\end{figure}
+
+

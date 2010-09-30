@@ -1,0 +1,217 @@
+\documentclass[12pt]{article}
+\bibliographystyle{plain}
+
+\begin{document}
+\section{Draft Outline -- Higher order modules, signatures, and separate compilation}				
+\begin{enumerate}
+	\item Introduction to language support for program modularity
+	\begin{enumerate}
+		\item In early languages
+		\begin{enumerate}
+			\item Ad hoc extralinguistic linking model: Cedar/Mesa, Cardelli \cite{cardelli97}
+			\item Functional language, application as linkage: ML 
+		\end{enumerate}
+		\item Modularity and object-oriented programming\\
+Krishnamurti, Felleisen, and Friedman's Extensible Visitor patterns solves the expression problem but in an unsafe manner. Is there a way to modify this solution so that it type checks? 
+		\item Type classes
+	\end{enumerate}
+	\item Introducing the ML-family of module system
+	\begin{enumerate}
+		\item Key features
+		\begin{enumerate}
+			\item type components
+			\item hierarchical composition
+			\item parameterization
+			\item abstract (opaque) types, relatively defined types, translucent types, and type definitions 
+			\item higher-order modules
+			\item first-class modules
+		\end{enumerate}
+		\item ML module system is powerful because:
+		\begin{enumerate}
+			\item functors can be typechecked independent of functor applications
+			\item enforces type abstraction by opaque ascription
+			\item hierarchical modularity
+			\item higher-order functors
+			\item type definitions
+		\end{enumerate}		
+		\item Principles and metrics for module system design (ML design principles vs. linkage model principles)
+		\begin{enumerate}
+			\item Landin's principle of correspondence
+			\item Transparency and propagation of types
+			\item Inference/syntactic overhead vs. predictability (ease of reasoning)
+			\item Composability 
+			\item Garcia et al criteria
+			\item Design space: Propagation of types 
+			\begin{enumerate}
+				\item Primarily through functor application
+				\item Shao fully transparent signature calculus
+				\item SML90 - only explicit sharing equations and structure (identity) sharing 
+				\item SML93 - plus definitional sharing
+				\item SML97 - plus where type and definitional specs; structure identity sharing eliminated
+				\item existential types, dependent sums, translucent sums, singleton kinds/signatures, Shao flexroot
+			\end{enumerate}
+			\item Key problem in modularity: modularizing types and their interpretations
+			\begin{enumerate}
+				\item Example: Symbol table versus Ord
+				\item type class an imperfect solution because limits interpretation to a single instance and the type to only generative nonstructured types (i.e., datatypes)
+				\item applicative functors imperfect because they permit too much sharing
+				\item constructors of higher kind
+				\item relationship to expression problem?
+			\end{enumerate}	
+					
+		\end{enumerate}
+		\item Evaluation of existing module system designs
+		\begin{enumerate}
+			\item Harper-Lillibridge
+			\item Leroy/OCaml
+			\item Modular module\cite{leroy00} provides a syntactic model 
+			\begin{enumerate}
+				\item Functorized over core language syntax and typechecker
+				\item Core language must be aware of paths
+				\item functor can only be applied to rooted path (can be extended to anonymous argument module if parameter dependency in the result signature can be reduced away)
+				\item Because notion of core language (especially types) is abstract, the system is not easily extensible to richly typed languages. 
+				\item Does not support shadowing in core language declarations. Shadowing would fundamentally break syntactic notion of opaque ascription. 
+			\end{enumerate}
+			\item Dreyer-Rossberg MixML
+			\item Definition \cite{mthm97} provides a semantic approach
+			\item Harper-Lillibridge\cite{lillibridge94}, Dreyer-Crary-Harper\cite{dhc03} provide a type theoretic model
+			\begin{enumerate}
+				\item purity
+				\item totality/partiality
+				\item static vs. dynamic effects; strong and weak sealing
+				\item comparability and projectibility
+			\end{enumerate}
+			\item Harper-Pierce \cite{ATTAPL} provides high-level design principles and issues
+			\begin{enumerate}
+				\item sharing type constraints cannot always be expanded out as claimed by Pierce-Harper. Symmetric constraints are necessary in the absence of an ability for type definitions to reference their enclosing signatures and thus specifications that come after the type definition in question. 
+				\item determinacy versus static/dynamic
+				\item first-class modules
+				\item In Stone, full signatures are called ``very precise'' versus abstract; he argues that the avoidance problem is one reason why translucent sums do not have full signatures (most precise); also that restricting all programs to Leroy's named form guarantees the existence of ``most-specific'' interfaces. This terminology leads to the term ``natural interface'' -- the most precise interface that can be computed without appealing to strengthening (M-SELF). 
+			\end{enumerate}			
+			\item Treatments of first-class modules
+				\begin{enumerate}
+					\item Harper-Lillibridge
+					\item Russo \cite{russo00}
+					\item Dreyer-Crary-Harper
+				\end{enumerate}
+			\item Leroy \cite{Leroy:generativity} gives a module system where type generativity and SML90-style definitional sharing = path equivalence + A-normalization (for functor applications) + S-normalization (a consolidation of sharing constraints). Leroy shows that a module system with generative datatypes (but no constructors), sharing between type paths, and abstract type specifications can be expressed in terms of a module system with generative datatypes and manifest types. Leroy's simplified module system does not include value specifications and datatype constructors both of which can constrain the order in which specifications must be written in and therefore result in situations where sharing constraints cannot be in general reduced to manifest types. 
+			\item Flatt-Felleisen \cite{ff98} and Owens-Flatt \cite{owensflatt06} develop a module system semantics based on distinct hierarchically composable modules and recursively linkable units. 
+		\end{enumerate}
+	\end{enumerate}
+	\item Main challenges and problems
+	\begin{enumerate}
+		\item higher-order modules (true v. applicative) including full transparency vs. true separate compilation (signature language completeness)
+		\begin{enumerate}
+			\item functor parameter type information should be propagated through functor application; in other words, should transparent signature matching semantics carry over to higher-order functor setting?
+			\item Shao \cite{shao98} cites optimal propagation of types (ensuring that inlined and separately compiled modules receive the same typing) as a benefit of full transparency
+			\item Elaboration process infers a complete and adequate static description (in an $F_\omega$-like type language) of a HO module 
+			\item Elaboration language is generative types + $F_\omega$-like type language (still distinct from module representation)
+			\item \begin{verbatim}
+				signature FPS = sig type t end
+				signature FRS = sig type t end
+				structure M = struct type t = int end
+				functor F(X: FPS): FRS = 
+				  struct type t = X.t end
+				functor G(functor F(X: FPS):FRS) = 
+				  struct structure R = F(M) end
+			\end{verbatim}
+			\item \verb|t = int| should propagate through the HO functor application to \verb|G(F).R|
+			\item type definitions in signatures insufficient because not all parameter functor F's will propagate this type information
+			\item MacQueen-Tofte 94 appears to be the only module system that accounts for this class of type sharing
+			\item Unfortunately, this feature apparently conflicts with separate compilation as noted by Dreyer-Crary-Harper \cite{dhc03}
+			\item Primary criticism of stamp-based operational semantics is the difficulty of extending such a semantics
+			\item The MT94 semantics also stratifies the stamp computation in the peculiar way 
+			\item Shao \cite{shao99} offers an alternative example for fully transparent higher-order functors\\
+			\begin{verbatim}
+				signature S = sig type t val x : t end
+				funsig FS = fsig (X:S): S
+				structure S = struct type t=int val x=1 end
+				functor F1(X:S) = struct type t=X.t val x=X.x end
+				functor F2(X:S) = struct type t=int val x=1 end
+				functor APPS(F:FS) = F(S)
+				structure R = 
+				  struct structure R1 = APPS(F1)
+					 structure R2 = APPS(F2)
+					 val res = (R1.x = R2.x)
+				  end
+			\end{verbatim}
+			\item Shao offers a signature language based on gathering all flexible components in a higher-order type constructor that can be applied to obtain the fully transparent signature at a later point. The resultant signature language superficially resembles applicative functors. However, applications in the signature language must be on paths. Consequently, it does not address fully transparency in the general case. 
+			\item Shao \cite{shao98} extends MacQueen-Tofte fully transparent modules with support for type definitions, type sharing (normalized into type definitions), and hidden module components. 
+		\end{enumerate}
+		\item Extending modules to support signature bindings as components
+		\begin{enumerate}
+			\item In ML modules, structures can be arranged in a hierarchy. This feature enables flexible namespace management. 
+			\item Leroy \cite{leroy94} offers an example that introducing signature bindings into structures would add polymorphic modules and F$_\omega$-like type operators. In particular, he offers 
+			\begin{verbatim}
+				functor(x: sig signature X end) (m{x.X/X})
+			\end{verbatim}
+			as an encoding of $\Lambda X.m$
+			\item Swasey \cite{swasey06} and Leroy \cite{leroy94} both cite Harper Lillibridge's proof of the undecidability of $\lambda^{\rightarrow,\exists,\exists=}$ as reason for their skepticism that such a feature can be added to a module system without breaking type-checking
+			\item Harper and Lillibridge's proof establishes that in a type calculus with opaque and binary sums, subtyping is undecidable in the presence of a Forget rule that forgets transparency. The example they use is a subtyping relation on transparent and opaque sums containing a type constructor with a contravariant subtyping rule such as $T\rightarrow \alpha'$
+			\item Adding signature components does not necessarily provide parametric polymorphism in the style of System F because functor application uses coercive subtyping 
+		\end{enumerate}
+		\item Polymorphism and modules
+		\begin{enumerate}
+			\item Interaction with Hindley-Milner polymorphism in core language
+			\item Moscow ML's first-class modules provides first-class polymorphism
+			\item Example: polymorphic data structures, continuation monad \cite{kahrs94}
+		\end{enumerate}
+		\item Claim: Instantiation is an analysis process that can detect cyclic sharing and other behaviors that may result in an unrealizable signature (though certainly not all behaviors)
+		\item signature calculus
+		\item module subtyping (signature subtyping - Ramsey et al)
+		\item Sealing - abstraction
+		\item generativity (static effects)
+	\end{enumerate}
+	\item Formal account of SML/NJ higher-order modules
+	\begin{enumerate}
+		\item Basic semantic objects
+		\item Elaboration semantics
+		\item Typechecking
+	\end{enumerate}
+	\item Signature calculus extensions
+	\begin{enumerate}
+		\item include semantics and relationship to MixML\\
+		\item Signature as components
+		\begin{enumerate}
+			\item signature in signatures and as components
+				\begin{enumerate}
+					\item Signature definitions -- looks straightforward...
+					\item Abstract signature variable -- more mysterious
+					\item Consider bounded polymorphism to give it a little more meaning
+				\end{enumerate}
+			\item abstraction over signature (signature polymorphism)
+		\end{enumerate}		
+		\item Signature variables \cite{jones96}
+		\item Polymorphism
+		\item Ramsey's signature calculus enables after the fact modification of the signature including adding new type, value, module, and functor binding components. Adding new module or functor bindings may accomplish something similar to multimethods. 
+		\item explicit surface signature language that fully expresses functor body in terms of functor argument static actions
+	\end{enumerate}
+	\item Inference and module systems
+	\begin{enumerate}
+		\item Inspiration from type classes and first-class polymorphism
+		\item Partial inference for modules
+	\end{enumerate}
+	\item Applications of the module system
+	\begin{enumerate}
+		\item 1st class modules
+		\item type functionals vs. applicative functors
+		\item existential types
+		\item treatment of implied associated types 
+		\item effects (exceptions and specs that enforce purity)
+	\end{enumerate}
+	\item Methodology
+	\begin{enumerate}
+		\item Formal elaboration semantics and type systems
+		\item Experimental prototypes evaluated according to Garcia et al and other evaluative criteria
+		\item Compilation performance benchmarks (time to compile and compiled code performances)
+		\item Hypotheses (to-be-theorems)
+		\begin{enumerate}
+			\item Type soundness of higher-order modules
+			\item Full transparency vs. separate compilation (decidability?)
+			\item Decidability of signature component type checking
+		\end{enumerate}
+	\end{enumerate}
+\end{enumerate}
+Two main directions: true higher-order module system semantics and alternative to MixML
+\bibliography{design/modules}
+\end{document}

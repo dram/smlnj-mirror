@@ -1,0 +1,33 @@
+%!TEX root = ../principles.tex
+\begin{figure}
+\centering
+\fixedCodeFrame{
+\small
+~\\[2mm]
+\fbox{$\Upsilon\vdash\theta\Downarrow_{fct}\psi$}
+\begin{equation}
+\infer{\Upsilon\vdash\vec{\rho}\Downarrow_{fct}\Upsilon(\vec{\rho})}
+{\strut} 
+\label{eq:fctentpath}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash\lambda\rho.\varphi
+\Downarrow_{fct}\langle
+  \lambda\rho.\varphi;\Upsilon\rangle}
+{\strut}	
+\label{eq:fctentlam}
+\end{equation}
+
+\begin{equation}
+\infer{\Upsilon\vdash\lambda\rho.\Sigma \Downarrow_{fct} \langle
+  \lambda\rho.\Sigma; \Upsilon
+  \rangle}
+{\strut}
+\label{eq:fctentformal}
+\end{equation}
+
+}
+\caption{Functor entity evaluation}
+\label{fig:fctenteval}
+\end{figure}

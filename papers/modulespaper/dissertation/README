@@ -1,0 +1,38 @@
+LaTeX2e UofC Thesis Macros
+==========================
+
+latest version 26 Jan 2006
+by Craig Wiegert <cwiegert@alumni.uchicago.edu>
+
+
+This bundle contains a LaTeX2e document class file and assorted files
+implementing a style for University of Chicago dissertations.  The
+original implementation was written by Nathan Dunfield and Bryan Clair,
+and has been modified over the years by a cast of grad students
+including Martin Pergler, Brad Holden, Luisa Rebull, and John
+Vaillancourt.
+
+The files include:
+
+* ccw_chithesis.cls - the thesis class
+* astroextras.sty - used to be a part of the class file; split into its
+  own file to keep the thesis class discipline-neutral
+* apj.bst - my slightly revised version of a standard BibTeX style file
+  for author-year cites
+* template.tex - sample thesis template, including commented-out
+  sections pertaining to (ApJ) journal submission
+* figure.tex - sample figure from John's package
+* table.tex - sample table from John's package
+* bh_abstract.tex - separate file to produce B&H abstract
+* oldthesis.tar - archive of older versions of the thesis class file
+
+
+NOTE: The thesis class file contains a bunch of useful comments in the
+header that are worth reading.  In order to use the thesis class file,
+you will need a reasonably current version (1998/04/08) of the
+"setspace" style as well as the "footmisc" style.  These can be found on
+the Comprehensive TeX Archive Network (www.ctan.org) if your local
+distribution doesn't have them (and if that's the case, bug your
+sysadmin for a long overdue upgrade).  Also, BibTeX is your friend;
+learn how to use it!  If you want author-year citations, check out the
+"natbib" package, and also look into "astronat".

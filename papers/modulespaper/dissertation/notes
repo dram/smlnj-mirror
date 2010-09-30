@@ -1,0 +1,644 @@
+instance Eq Int
+  where 
+    eq : Eq Int => ... compare ...
+
+instance Ord Int
+   where 
+     compare : Ord Int => ... eq ...
+
+Local inference for functor applications
+
+Is finding the LUB the same as instantiation? 
+No. Inst. gives a fresh type instance. LUB is an existing type.
+
+functor F(X:sig type t val g : t -> unit end) =
+
+structure M = F(struct val g = \t.(t+1; ()) end)
+
+F: \Pi(X:sig type t val g : t -> unit end).(sig type u = X.t val b : u -> unit end)
+
+sig val g : int -> unit end <: [C/t]X_{sig} <-- an higher-order type constructor a la Shao?
+
+sig end <: sig type t end <-- [C/t] \Sigma_arg <: Inst(\Sigma_{formal}) where C is a univariable 
+
+Local inference application rule has a premise that every other instantiation of X in T is a supertype. That is, [U/X]T is the lub of S. 
+
+context
+
+epcontext
+entity paths relativization
+
+Why relativization?
+
+because we must include local hierarchy 
+components in realization
+
+A:sig 
+   type t 
+   structure B : sig type u = t end
+  end
+
+str B's rlzn must include t
+because B' may be selected out by aliasing 
+
+ structure C = A.B
+
+relativization is w.r.t. an epcontext
+
+structure A [e_A] = 
+  struct
+    structure B = struct type u [e_u] end
+    functor F(X:sig type t [e_t] end) =
+      struct
+        val a : X.t = ...
+      end : sig
+        val a : X.t 
+      end
+  end
+
+type s
+structure B = 
+struct
+  type u 
+  val v : u * s
+end
+
+relativize tyc
+  applies only to GEN and DEFtycs
+  look up tycid in epctxt
+  and constructs PATHtyc
+
+lookup first looks locals
+  if not there, look in outer
+  else have path p 
+    return p - lookCotnext
+
+  enterOpen
+    BaseStr
+    AppStr when elaboration app
+    EvalStr in structure entdec and apply case.
+
+mapPaths : epc * fullsig.
+  BaseFct
+
+bindStrPath: epc * strid * ev
+  binds id to ev+bindContext
+  BaseFct: binds paramStriId to ev+bindContext
+   state here in locals should be entirely unnecessary 
+     probably only here for performance
+
+closedStr body
+  (look & bindcontext are nil)
+  for elaborating resultsig
+  and functor body and datatype specs
+
+epcontext ::= 
+  LAYER {
+    locals : pathmap ref
+    lookCtx: EntPath
+    bindCtx: rEntPath
+    outer: epcontext }
+
+lookCtx and bindCtx are reversals of each other
+
+Idea:
+
+DSU - inference of type transformer/coercions by combinator and subtyping (ideal model lattice)
+
+Ideal model addresses denotation for polymorphic type 
+An ideal is a downward closed closed under certain limits chain. Polymorphic type is universe of ideals which itself is an ideal. Relies on Bonach f.p.
+
+==================================================
+The Role of Relativization
+
+The idea is that once we get a tycon we need a way to map it back to the corresponding entity path such that we reference the correct volatile tycon. When the volatile tycon is ``instantiated'', the entity path must be updated(?). 
+
+Relativization plays in a role in signature extraction. 
+0) Value bindings in the static environment must be relativized. 
+1) Definitional type binding in the static environment must be relativized in the inferred signature. 
+
+
+structure A =
+struct
+  structure B = struct datatype u end
+  functor F(X:sig type t end) = 
+  struct
+    val a : X.t * B.u = ...
+  end :
+   sig
+     val a : X.t * B.u
+   end
+end
+
+B |-> (e_B, {u |-> (e_u, 0)})
+X |-> (e_X, {t |-> (e_t, 0)})
+[e_X,e_t]
+
+In the above example, X.t is volatile whereas B.u is not. When inferring the signature from the body of F, we have the formal tycon X.t in the static environment. It isn't sufficient to search through the static environment to build the correct entity path because of two reasons:
+
+0. The tycon of interest may have been shadowed as is in the case in the example below.
+1. It may be impossible to find the tycon by name.(?)
+2. tycons have stamps but structures don't necessarily have them, hence when signature extraction needs to look up the entity path for a structure (by looking at its full signature), we would be out of luck. 
+
+When inferring the signature from F's body, there are two static environments, the static environment produced by elaborating F's body and the contextual static environment when entering into the body. 
+
+For F's body: [a |-> GENtyc(FORMAL) * GENtyc(DATA)] 
+For the context: [B |-> (e_B, {u |-> (e_u, GENtyc(DATA))}, rlzn_B)]
+                 [X |-> (e_X, {t |-> (e_t, GENtyc(FORMAL))}, rlzn_X)]
+
+Idea: If volatile tycons (or at least the parts of volatile tycons that make them volatile) are always GENtycs, then we can use the GENtyc's stamp to locate the tycon in the static environment while reconstructing the entity path. This technique would work even if a tycon is shadowed because stamps are unique. 
+
+(?) This technique doesn't work for tycons in general, because definitional tycons do not necessarily have stamps. 
+
+functor F( ) =
+struct
+  datatype t = A
+  val x = A 
+end
+
+The above example + shadowing requires relativization
+
+x's type needs to be relativized
+If GENtyc produced in functor it must be relativized because it is volatile.
+
+structure X = struct datatype u end
+functor F(X:sig type t end)
+
+functor F(X:sig type t end) = 
+struct type u = X.t end
+
+structure B = F(struct datatype t end)
+
+functor F( ) = 
+struct
+  datatype t [e_0] = A
+  datatype t [e_1] = B
+  val x = A <-- must relativize
+end
+
+[t |-> (e_0, 0)][t |-> (e_1, 0)]  
+
+possible approach 0: embed entity path in tycon representation?
+
+structure A = struct ... end
+
+functor F( ) = 
+struct 
+  structure B = A 
+end
+
+constStr. 
+
+Relativization for tycons is necessary because they can be orphaned through shadowing. Can structures orphaned? It isn't clear, because structures must be referred to explicitly. They can be aliased or opened. 
+
+structure A = struct datatype t = K end
+open A
+structure A = struct end
+structure B = struct
+  structure ... 
+end
+
+structure A = struct structure B = struct end end
+open A
+(* B in static now but still only one entity.
+   Is B local, nonlocal, or new here?
+ *)
+structure A = struct end
+structure C = struct
+  structure D = B
+end
+
+structure A = struct structure B = struct end end
+structure C = struct
+  structure D : sig structure B : sig end = B end = 
+    struct structure B = struct end end
+end
+
+The other major piece of functionality is mapPaths. The idea is that parameter instantiation may introduce new tycons. These new tycons must be mapped back to their respective entity paths. If the tycon to entity path mapping is computed directly from the static environment or the entity path is embedded in the tycon, then this step would be unnecessary. 
+
+
+Is there a simpler way to represent this indirection construction (entity environment and entity declarations extended to point to prior ones)?
+
+There are three possible cases:
+
+1) Entity is brand new, never before included in the entity environment or entity declarations. In this case, we add bindings to this new realization to both. 
+
+2) Entity was locally declared. It is already in the entity environment and the entity declarations by case 1. In this case, we just reuse the old entity variable. 
+
+structure M = 
+struct
+  datatype t = A
+  type u = t
+end
+
+In this case, perhaps it would be possible to add a duplicate entity environment binding and entity declaration. Would that lead to any nasty side-effects?
+
+3) Entity was declared in an outer scope. It is in the entity environment and entity declaration but not as a local entry. Therefore, we generate a new entity variable and add local entity environment binding to the realization and an entity declaration that points back to the entity path of the nonlocal original declaration of the entity. 
+
+struct
+  datatype t = A
+  structure B = 
+  struct
+    type u = t
+  end
+end
+
+=========================
+
+In Govereau's system, he claims that there is no declaration that produces a generative type that is not abstract, but datatype declarations could potentially be one of these cases. 
+
+One observation Govereau makes is that the static environment must be ordered because types are dependent. Bindings in the right hand side of the environment may refer to bindings in the left hand side. 
+
+The combination of applicative and generative types leads to a soundness problem similar to what is found in Russo's Moscow ML system. 
+
+The main contribution appears to be a syntactic way to represent generativity that obviates the need for a Dreyer-like effect system for managing the interaction between applicative and generative types, or more precisely, functors. The language uses distinct declarations for generative and non-generative abstract types. The type system declaratively partitions the static environment into two corresponding to the lexical scope inside and outside a functor. 
+
+The paper claims that if a type is defined "under functor" but does not depend on a generative type defined under a functor, then it can be coerced to non-generative. Would this criterion apply to an example such as functor F() = struct datatype t end? 
+
+Why is making the distinction between generative and non-generative types at the individual spec level necessary? Wouldn't it be possible to emulate such behavior by lifting the individual type to a singleton module? 
+
+structure M = 
+struct
+  structure U :> sig type u end = struct type u = int end 
+  structure V :>> sig type v end = struct type v = bool end
+end
+
+using Dreyer's :>> weak sealing operator. 
+
+The claimed win is that although the syntactic purity judgment is not as fine-grain as DCH's effect system, it is simpler to work with. 
+
+One disclosed limitation to both Govereau and Russo's systems is that a non-generative functor cannot have any generative types that are used in the body of the functor. 
+==================================================
+Dreyer TLDI 2010
+It appears that signature declaration can occur inside of signatures, at least from the syntax. Include can be applied to arbitrary signature expressions not just signature ids, same with sealing.
+
+It appears to permit syntax such as:
+
+signature S0 = 
+sig
+  signature S1 = sig type t end
+end
+
+signature S0 = 
+sig
+  signature S1 = sig type t end
+  structure M : S1
+end
+
+Signatures can be a binding form:
+
+structure M = 
+struct
+  signature S = sig type t end
+end
+
+Also, it appears that this isn't just an accident or a mere syntactic convenience because a signature can be a path:
+
+signature S' = M.S
+
+It is curious why Dreyer et al don't run into problems with higher-order polymorphism and problems with typechecking. 
+
+So it is possible to write the following:
+functor F (signature S) (X: S) = struct end
+
+==================================================
+
+About notation in the dissertation:
+
+semantic tycons may contain entity paths (representing relativized path tycons) and open generative tycons. 
+
+A major part that needs significant explanation is how this system relates to the abstract approach's singleton signatures (kinds). Why don't we need singleton kinds? What device plays the analogous role? 
+
+According to DCH, singletons express sharing and selfification. Because the generative module calculus does not require selfification, that role is unnecessary. 
+What mechanism do we want to use to express sharing? 
+
+==================================================
+
+Where dissertation improves upon MacQueen-Tofte
+
+MacQueen-Tofte's semantics only supports structure sharing. By extending the semantics with a core language semantics, the dissertation semantics also supports type sharing. 
+
+Factoring of structures and functors into signature and realizations. 
+
+==================================================
+
+structure M = struct datatype t = K end
+functor F() = 
+struct
+  type u = M.t 
+end
+
+Is entity environment 1-1 (invertible)?
+
+functor F(X Y sharing type X.t = Y.t) =
+struct
+  type u = Y.t 
+end
+
+This seems to violate uniqueness of entity path for tycon. 
+Need to use a convention (ordering precedence). This will force injection. 
+
+
+For the example:
+
+struct
+  datatype t = A
+  type u = t list 
+end
+
+What happens?
+
+Inferred signature: [t |-> (e_t, 0)][u |-> (e_u, [e_t] list)]
+Entity environment: {e_t |-> t_0, e_u |-> t_0 list}
+Entity declaration: e_t = new 0, e_u = 
+
+Also need to redefine static environment binding for structures to include its entity variable to support reverse lookup. 
+
+==================================================
+
+Interestingly, I think if entity environments are at all injective, it is because of the entity binding reuse optimization. 
+
+functor F(X:sig type t end) =
+struct
+  type s = X.t
+  type u = X.t
+end
+
+For example, in the above, only a single entity environment binding is added because u is just an alias. If we don't do this optimization, then there will be two entity environment bindings to the entity X.t. 
+
+Another problem with the injectivity of the entity environment is the fact that all subenvironments in the entity environment are closed and therefore duplicate bindings. 
+
+functor F(X:sig type t end) = 
+struct
+  functor G() = struct type u = X.t end
+  structure M0 = G()
+  structure M1 = G()
+end
+
+In the above example, besides the entity environment closure issue, e_u |-> X.t_0 in M0's environment and e_u1 |-> X.t_0 in M1's environment. However, both the closure and entity evaluation case appear to only involve entities duplicated across subenvironments and not in the same environment. 
+
+Thankfully, opening a structure does not affect the entity environment, only the static environment. 
+
+Perhaps injectivity only applies to a subset of the entity environment, in particular what happens if we consider only the primary volatile components? Alternatively, deftycs must be assigned stamps, which can be used to distinguish between bindings to the same tycon. 
+
+==================================================
+
+Ideas: 
+
+1) Reduce tycons before relativization (only retract primaries)
+   This is undesirable in the implementation because types get larger and less readable, loss of information. 
+2) Distinguish tycons by a stamp in deftycs
+
+Can't use entity variable because it doesn't work for X.t list. 
+
+
+The new conjecture is that if only primary tycons are added to the entity enviroment, then the entity environment can form a retraction. 
+
+Is exp-app still a problem? More precisely, will the functor argument structure realization be considered primary?
+
+First, let us define primaries in this context. Tycons are primary when they are open and therefore undefined in terms of any other tycons. Primary and secondary tycons can be easily distinguished because secondary tycons including secondary volatiles are definitional tycons. 
+
+Are there primary and secondary (or derived) semantic structures (full signature) and semantic functors (full functor signature)? Although semantic structures and functors are not relativized in a value spec, they may be relativized when occuring in a structure or functor binding in a static environment. This happens during signature extraction. Depending on how the elaborator handles the following, it may be an example of a secondary structure:
+
+structure A = struct end;
+
+signature M = 
+sig
+  structure N : sig end = A
+end
+
+Functors components don't have definitional specs because functors don't carry tycons. But the problem is, operationally how do you check this? 
+
+There doesn't seem to be any equivalent form for functors. Functor specs are always primary it appears. 
+
+Entity evaluation adds a mapping from the functor formal parameter entity variable to the functor argument in the functor closure entity environment. Can the functor argument realization already be in the functor closure entity environment? I can't see why not.
+
+structure M = struct end
+functor F(X:sig end) = struct end
+structure N = F(M)
+
+M's realization should clearly be in the F's closure. The entity evaluation for the functor application will try to add M's realization again. This violates the injectivity of the primaries entity environment. But this is exactly why need to augment an entity variable in structure realizations and the same for functors. 
+
+So again, the question reduces down to only a question about primary tycons. In that case, the entity evaluation rule doesn't add any duplicate primary tycons if the functor argument realization does not contain any duplicate primary tycons. There is an induction argument here. Entity declaration evaluation has a similar issue. It will add a binding to the structure realization of structure entity declarations. 
+
+Slightly more worrisome is the tycon entity declaration evaluation. This rule adds a tycon to the entity environment. 
+
+functor G() = 
+struct 
+  functor F() = 
+  struct
+    datatype t = A
+  end
+
+  structure M0 = F()
+  structure M1 = F()
+end
+
+The above generates distinct tycons M0.t and M1.t. 
+
+The question remains whether tycon entity declarations may contain primary volatiles. Consequently, there is a lemma here. 
+
+We create tycon entity declarations in the following places:
+1. Structure declaration (tycon definition) -- This is obviously going to be a secondary tycon. But what happens if the declaration is a datatype declaration? Well, the semantics are such that a datatype declaration will have to generate a fresh tycon upon entity evaluation. (?) 
+
+2. Signature extraction -- Signature extraction may also put in a tycon entity declaration. Because static environment bindings for tycons are always for definitional tycons, the entity declaration must only be for secondary tycons. 
+
+Note that signature elaboration does not produce entity declarations. 
+
+It appears that entity declarations 
+
+Side note: The convention of entity declarations without anything distinguishing tycon, structure, and functor cases doesn't work all the time because the entity path (relativized) form is present in all three cases. 
+
+Other than entity evaluation, tycons are added to entity environments by the following:
+1. Instantiation??
+2. Signature extraction - Signature extraction produces an entity environment from the static environment. The static environment only contains tycon definitions. Thus the tycon in question must be secondary.
+
+Note that structure declaration elaboration does not add any tycon map to the entity environment.  
+
+Important Questions:
+1. Instantiation definitely adds primary tycons into the entity environment. That's it's primary purpose. The question is whether these primary volatiles are duplicated. 
+2. 
+
+What does the elaborator do with the entity environment produced by instantiation? 
+1. Uses it to elaborate the functor body
+
+Note: for the functor declaration rule, what entity environment do we use to elaborate the rest of the structure declarations?
+
+
+Instantiation for the system in the absence of sharing type constraints should be pretty much trivial (just generate fresh tycons for tycon elements). 
+
+Need an appendix talking about sharing type constraints. 
+
+
+Relationship between signature inclusion (merging) and chaining of where type.
+S = sig type t end
+S' = S where type t = int
+S'' = S' where type t = int
+
+OO nominal subtype polymorphism versus parameteric polymorphism 
+What are the difference in denotations? 
+
+Sam Kamen: denotation to OO language but not types?
+
+
+Instantiation takes an entity environment and a signature, producing an entity environment. 
+
+In Dreyer's thesis, definitional tycons are represented as type-level lambdas. Definitional tycons are essentially eta expansions of tycons. His tycon language is an impredicative System Fomega style language, which he chose for simplicity. Indeed, the tycon and type language are consolidated in Dreyer's presentation. 
+
+In our language, lambdas are already used in the entity calculus. 
+
+The problem with using eta-expansion to represent definitional tycons in the entity environment is that the tycons may very well be parameterized so I can't blindly put in a nullary eta-expansion. Moreover, the type variables over which the tycon is parameterized has to be calculated. 
+
+
+=========================
+
+Reason why deftycon in both signature and entity environment
+If deftycon contains volatile, the spec contains volatile but corresponding entity environment entity will have already interpreted. But the entities don't have to be pre-interpreted. This is just an optimization. 
+
+The new setup is that deftycons are no longer considered entities because they can be reduced and substituted away at will. Meanwhile, the real static content that must be kept track of is the primary volatiles. 
+
+The change can potentially simplify quite a few things. Entity environments need only contain primary volatiles. Semantic signatures don't need to keep entity variables for deftycons because they don't have any corresponding entity environment entry. 
+
+==================================================
+
+Signature specs such as 
+
+type ('a,'b) t = u 
+
+Are they elaborated such that u is relativized where applicable? 
+
+==================================================
+
+Injectivity of primary volatiles entity environment:
+
+The claim is that an entity environment containing only primary volatiles is injective. 
+
+exp-app adds a structure realization to the closure entity environment. Is this needed anymore? 
+
+type entity decl evaluation adds a tycon to the entity environment. Is this tycon primary? I think for this to work, the tycon must be restricted to at least only volatile ones that can be evaluated to a volatile tycon entity. 
+
+Signature instantiation produces tycon entity bindings but we can certainly make it ignore all secondary (deftyc) specs and thus only produce primary volatile entity bindings. That still doesn't answer the question of how should functor signatures be instantiated though. 
+
+The where type rule for signature elaboration rebinds a symbol in a semantic signature, but the tycon results from elaborating a syntactic type. 
+
+What is tyc entity evaluation? It still isn't defined. 
+
+The semantic signature elements can definitely contain relativized paths. 
+
+Aside: Should tycons be reduced as early as type elaboration? 
+
+==================================================
+
+Motivation for True HO functors: Functor application semantics is just beta-reduction. Why should functor application semantics be anything else? 
+
+Avoidance is important because tycons are tied to syntax. Taking our semantic approach, just because a tycon loses its name isn't too important. 
+
+new(arity) should denote both a constructor that generates a new incomparable tycon and the tycon itself. The existence indicates that it is inequivalent to any other tycon. A new tycon itself is drawn from an infinite set whose only properties are that each has an associated arity and an theory of equality (i.e., reflexivity). 
+
+Maybe structure realization should get its own metavariable.
+
+The normalization policy is full normalization. We can use beta equality: (\a.C)C' = [C'/a]C
+
+==================================================
+
+Dreyer refers to what I term _open specification_ as _opaque specification_. That terminology is imprecise. A specification does not say anything about opacity. 
+Dreyer and Blume's solution to generative types still uses an explicit existential quantification. A "type context" keeps track of whether type variables are undefined, defined, or implicit (necessary for their liberal typechecking policy). Inside of semantic signatures, all specifications are definitional. The only difference is that "opaque specification" are definitional with respect to the existentially quanitified abstract type variables. This fits well with the selfification policy in Harper-Lillibridge. 
+
+Dreyer's depiction of Harper-Stone's IL is the following:
+
+Tycon A ::= \alpha | A \to A | \lambda(\overline{\alpha}).A | A(A)
+
+EL tycon con ::= P | \alpha | con \to con | \lambda(\overline{\alpha}).con | con(\overline{con})
+
+Aside: Should type variables and bound type names be distinguished? Are they ever legitimately the same? 
+
+Neis et al's dynamic type generation primitive is a core language construct that generates fresh type names that hide the implementation type. The form new \alpha = \tau in e originates from Rossberg's Generativity and dynamic opacity for abstract types paper in PPDP03. Again, the type system distinguishes between type and value contexts. Type contexts contain undefined and defined type variables \Delta ::= \epsilon | \Delta,\alpha | \Delta,\alpha\approx\tau. The new construct produces one of these \alpha\approx\tau bindings. A type "compatibility" judgment \Delta \vdash \tau \approx \tau looks up those kind of bindings. In their language, type names and variables are equivalent. The dynamic semantics for new assumes hygiene through an implicit alpha conversion. 
+
+==================================================
+
+new(arity) only belongs in the entity calculus especially entity declarations. They never occur inside types either syntactically or semantically. 
+
+Polymorphism does not belong in the constructor level. It only applies to types. It seems that most of the prior work does not follow Dreyer's thesis. 
+
+Need to be clear what the language shares and doesn't share with Fomega. 
+
+To generate new tycons in signature instantiation, we need to make sure the tycon is fresh with respect to the whole static environment (not just the entity environment) because there may be top-level nonvolatiles such as datatypes that are not in the entity environment. Have to also search through all static environment bindings including for values because types may have been shadowed. 
+
+Lemma: Freshness side condition guarantees that tycon will not be confused with another tycon. 
+
+==================================================
+
+In the abstract, true higher-order functors doesn't need "at the static level"
+
+...representing the type-level mapping performed by a functor using a static lambda calculus with static effects --> representing the type-level mapping and static effects performed by a functor using a static lambda calculus. No need to put 1993, already indicated previous implementation was version 0.93. 
+
+==================================================
+
+Signatures has volatile (open) and nonvolatile components. The where type constraint should only apply to open types, and therefore there should definitely be an entity variable associated with that type name. 
+
+Does it add any more expressive power if the where type right hand side is an arbitrary tycon rather than a syntactic type expression? It would then be possible to write sig type t end where type t = \x.x \x.x where the arity is determined by the result of the type normalization of the right hand side rather than a direct arity. 
+
+==================================================
+
+Need first-order kinding judgment for syntactic type constructors
+Desugaring functors will give higher-order tycons. 
+
+==================================================
+
+Neis et al's G calculus's new operator does not do what we want. It
+generates new type names dynamically, but only to make casts fail. The
+generated type name is still "compatible" with the representation
+type. 
+
+==================================================
+
+What is the difference between THO and NRC? 
+
+NRC has an initial preprocessing phase that alpha-converts all
+variables with unique stamps. Unlike THO where entity variables are
+relegated only to semantic signatures, NRC stamped variables are
+pervasive. 
+
+NRC keeps the "type part" of functor body and pretranslated Fomega
+tycons (and types) in functor realizations.
+
+NRC makes signature coercions explicit during the SRC->NRC translation
+so signature matching for NRC is just equivalence. 
+
+NRC "type" part of a structure includes only the flexible
+components. Flexible here does exactly mean primary volatile. 
+
+c2m reduces syntactic types to semantic types by interpreting types
+using the realization.
+
+m2c should do the opposite, but it seems that it was intended as a
+kind of relativization scheme. But since value components are not part
+of the language, it isn't used. 
+
+m2t maps semantic tycons to Fomega ones.  
+
+====================================================
+
+Examples for necessity of sharing type constraints 
+
+structure M0 : sig
+  type u 
+  type v 
+end
+structure M1 : sig
+  type w = M0.v
+  type s = int * w
+end
+sharing type M0.u = M1.s
+
+
+structure M0 : sig
+  type u
+  type v
+end
+structure M1 : sig
+  datatype d
+  type w = M0.v * d
+  type s = int * w
+end
+sharing type M0.u = M1.s

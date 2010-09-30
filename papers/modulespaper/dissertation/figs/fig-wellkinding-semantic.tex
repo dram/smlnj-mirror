@@ -1,0 +1,54 @@
+\begin{figure}
+\hrule
+
+\fbox{$\Delta\vdash \mathfrak{C}^s : \Omega$}
+
+\begin{equation}
+\infer{\Delta \vdash \alpha : \Omega}{\alpha \in \Delta}
+\label{eq:semtypevar}
+\end{equation}
+
+\begin{equation}
+\infer{\Delta \vdash \mathfrak{C}^\lambda(\vec{\mathfrak{C}^s}) : \Omega}
+{\Delta \vdash
+  \mathfrak{C}^\lambda :  \Omega^n \Rightarrow \Omega
+  \qquad |\vec{\mathfrak{C}^s}| = n \qquad \Delta\vdash \mathfrak{C}^s_i : \Omega
+  ~\forall i\in [1,n]}
+\label{eq:semtypeapp}
+\end{equation}
+
+\fbox{$\vdash \mathfrak{C}^\lambda : \Omega^n \to \Omega$} 
+
+\begin{equation}
+\infer{\vdash \lambda\vec{\alpha}.\mathfrak{C}^s :
+  \Omega^n\to \Omega}
+{
+  [\alpha_1]\ldots[\alpha_n] \vdash \mathfrak{C}^s : \Omega}
+\end{equation}
+
+\begin{equation}
+\infer{\vdash \tau^n : \Omega^n \to \Omega}
+{\strut}
+\label{eq:semtypeatomic}
+\end{equation}
+
+\fbox{$\vdash \mathfrak{T} : \Omega$} 
+
+\begin{equation}
+\infer{\vdash \mathsf{typ}(\mathfrak{C}^s) : \Omega}
+{\emptyset_{knds} \vdash  \mathfrak{C}^s : \Omega}
+\label{eq:semtype-typ}
+\end{equation}
+
+\begin{equation}
+\infer{ \vdash \forall\vec{\alpha}.\mathfrak{C}^s :
+  \Omega}
+{[\alpha_1]\ldots[\alpha_n]
+  \vdash \mathfrak{C}^s : \Omega}
+\label{eq:semtype-fa}
+\end{equation}
+
+\hrule
+\caption{Well-kinding of semantic tycons}
+\label{fig:kindingsemantic}
+\end{figure}

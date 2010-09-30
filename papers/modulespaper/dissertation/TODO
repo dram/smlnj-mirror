@@ -1,0 +1,18 @@
+
+Relativization rules
+
+In the static environment, are tycons definitely unrelativized? Static environment bindings are produced by elaboration. The structure declaration elaboration rule may add tycons that result directly from tycon elaboration. That appears to be the only way tycons can get in there. Moreover, static environments are only extended, existing bindings are not changed. 
+
+How do we do tycon reduction? Should we reduce under lambda tycons? What does a normal form for tycons look like? For relativization, we have some requirements and assumptions we make about the normal form. What are those? 
+
+3/13/10
+
+The funsig form isn't actually included in the grammar. It can only occur in toplevel declarations and not inside of structures. Actually, why do we need a separate functor signature elaboration judgment? Signature spec elaboration already has a case for functor specs. I don't think funsig is needed. In any case, it is in the wrong place. 
+
+3/30/10
+
+For signature extraction, the entity environment and the static environment must be synchronized. 
+
+4/1/10
+
+Formally define \Upsilon^{-1} that chooses the earliest match (the least).

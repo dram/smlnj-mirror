@@ -1,0 +1,58 @@
+Issues
+
+0. have to take great care to avoid wasting text on explaining 
+routine facts about figures and rules. Let the figures stand on their
+own, and be very selective in choosing what points need further explanation.
+
+1. Notation for tycon kinds: fig-typesystem.tex used "->" while other
+figures and text used "=>".  I've changed it to "=>" in the figure.
+
+2. It is conceivable to drop polymorphic types in the core language,
+since it is a fairly secondary issue (Shao99 doesn't include them).
+But it isn't clear that this would save a significant amount of space.
+
+3. The well-kinding rules for syntactic and semantic types are
+standard and routine, so I've deleted the corresponding figures and
+limited the discussion to just noting that the languages have standard
+well-kinding rules, which are omitted.
+
+4. Same for discussion of normalization of type expressions.  This is
+well-understood and routine (at least for our intended audience).
+
+5. For things like the surface module language (fig:modlang), let the
+reader study the figure. We don't need to waste a lot of text on 
+reiterating what the syntax definitions say. Just briefly mention
+highlights that may not be sufficiently obvious.
+
+6. We will probably end up just summarizing the translation section,
+and omitting all the corresponding figures. Budget at most one column
+for this.  Will require careful summarizing.
+
+7. Modified versions of dissertation figs are being moved to 
+design/figs. One common modification is to remove the lower \hrule,
+since the SIGPLAN figures already come with a lower \hrule.
+Also renaming figure files to agree with the figure labels
+(e.g. fig:modlang <-> figs/fig-modlang.tex --- was fig-microml.tex).
+
+8. In syntax.tex introduced two abbreviations
+     \Uloc for \Upsilon_{l}  (replacing \Upsilon^{lcl})
+     \Uclo for \Upsilon_{c}  (replacing \Upsilon^{clo})
+   Updated main.tex and relevant figures in design/fig, but
+   there are probably figures in dissertation/figs that will
+   need to be updated (and copied over to design/figs).
+
+9. The rule for evaluating entity declarations for defined tycons
+is incorrect (eq:entdectypedef in fig-entdec.tex).  It needs to
+evaluate the relativized tycon expression against the entity
+environment to get a nonrelativized (absolute) tycon. I didn't
+put this rule in the paper -- it's relatively routine.
+[There is a global invariant that all tycons in realizations,
+or any entity environments are absolute (i.e. are not relativized).
+Thus before you can add a tycon binding to an entenv its 
+relativized definition has to be instantiated relative to the
+context entenv.]
+
+10. The three columns devoted to relativization (Sections
+4.4 -- 4.6 are way to much.  This should be cut down to probably
+less than a column -- maybe a half column.
+

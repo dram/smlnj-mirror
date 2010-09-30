@@ -1,0 +1,52 @@
+\message{ !name(main.tex)}%\documentclass[truedoublespace,tocchapterhead]{ccw_chithesis}
+\documentclass[tocchapterhead]{ccw_chithesis}
+\usepackage{listings,amsmath,stmaryrd,pifont,../design/aux/bussproofs,esvect}
+\usepackage{../design/aux/code,../design/aux/math-envs,../design/aux/math-cmds,../design/aux/code,../design/aux/proof}
+\usepackage[pdftex]{graphicx}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+
+\input{../design/aux/mac}
+\input{config}
+\input{../design/syntax}
+
+\setcounter{tocdepth}{1}
+
+\bibliographystyle{plain}
+
+\begin{document}
+
+\message{ !name(notation-index.tex) !offset(-18) }
+
+\chapter{Notation Index}
+
+\begin{tabular}{|l|l|l|}
+\hline
+Notation & Description & Page\\
+\hline
+$p.x~K~\Omega~C^s~C^\lambda~T~\vv{C^s}~\mathsf{typ}$ & surface syntax & \pageref{fig:semtypesystem}\\
+\hline
+$\Delta$ & kind environment & \pageref{fig:kindingsyntactic}\\
+$C^s_i$ & indexing a vector of monotypes & \pageref{sec:typesystem-kindsystem}\\
+$|\ldots|$ & arity & \pageref{sec:typesystem-notation}\\
+\hline
+$\Upsilon[\rho\mapsto \upsilon]$ & entity environment & \pageref{fig:entities}\\
+$\langle\Upsilon^{lcl}, \Upsilon^{clo}\rangle$ & structure entity & \pageref{fig:entities}\\
+$\langle\lambda\rho.\varphi; \Upsilon\rangle$ & functor entity & \pageref{fig:entities}\\
+$\llparenthesis~~\rrparenthesis$ & base entity expression & \pageref{fig:entities}\\
+$EV(\cdot)$ & free entity variables & \pageref{sec:entitycalc-notation}\\
+$\Upsilon(\vec{\rho})$ & entity environment lookup & \pageref{sec:entitycalc-notation}\\
+$\Upsilon\Upsilon'$ & entity environment concatenation & \pageref{sec:entitycalc-notation}\\
+$R(\vec{\rho})$ & structure entity lookup & \pageref{sec:entitycalc-notation}\\
+$\Upsilon \subseteq \Upsilon'$ & entity environment containment & \pageref{sec:entitycalc-notation}\\
+
+\hline
+\end{tabular}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 
+
+\message{ !name(main.tex) !offset(74) }
+
+\end{document}
