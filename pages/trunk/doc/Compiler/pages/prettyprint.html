@@ -9,7 +9,7 @@
 </HEAD>
 <BODY><H3>The <CODE>PRETTYPRINT</CODE> signature</H3>
 <P>
-<A HREF="compiler.html#SIG:VISCOMP.PrettyPrint:STR:SPEC">Compiler.PrettyPrint</A> implements a facility for defining and installing user-defined prettyprinters over (monomorphic) user-defined types for use by the top-level loop of the SML compiler.  The underlying algorithm is that of Oppen (TOPLAS, 1980).  There are more expressive prettyprinting languages around, notably that of PPML, but the Oppen interface has the benefit of being efficiently implementable.  Thus it is a good option for modest prettyprinting tasks that need to be quick, such as the printing of SML values.  These same prettyprinting facilities are used by the compiler for such tasks as printing values in the interactive top level and printing expressions in error messages.
+<A HREF="compiler.html#SIG:VISCOMP.PrettyPrint:STR:SPEC">PrettyPrint</A> implements a facility for defining and installing user-defined prettyprinters over (monomorphic) user-defined types for use by the top-level loop of the SML compiler.  The underlying algorithm is that of Oppen (TOPLAS, 1980).  There are more expressive prettyprinting languages around, notably that of PPML, but the Oppen interface has the benefit of being efficiently implementable.  Thus it is a good option for modest prettyprinting tasks that need to be quick, such as the printing of SML values.  These same prettyprinting facilities are used by the compiler for such tasks as printing values in the interactive top level and printing expressions in error messages.
 <P>
 The high-level view is that the user will define a prettyprinter for a datatype and install it in a prettyprinter table.  When it comes time for the compiler to print a value, it looks first in the prettyprinter table, to see if a prettyprinter is installed for that type.  If so, it calls the prettyprinter on the value, otherwise, it calls the default printing routine.
 <P>
@@ -18,7 +18,7 @@ The Oppen algorithm provides a <I>block</I> abstraction:  a block establishes a 
 <H4>Synopsis</H4>
 <BLOCKQUOTE>
 <CODE><B>signature </B><A NAME="PRETTYPRINT:SIG:SPEC"><CODE>PRETTYPRINT</CODE></A><BR>
-<B>structure </B><A NAME="PrettyPrint:STR:SPEC"><CODE>Compiler.PrettyPrint</CODE></A><B> : </B>PRETTYPRINT<BR>
+<B>structure </B><A NAME="PrettyPrint:STR:SPEC"><CODE>PrettyPrint</CODE></A><B> : </B>PRETTYPRINT<BR>
 </CODE>
 </BLOCKQUOTE>
 <HR>
