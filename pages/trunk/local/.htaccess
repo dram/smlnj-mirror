@@ -1,4 +1,4 @@
-AuthUserFile /var/www/vhost/smlnj/htdocs/local/.http_passwd
+AuthUserFile /stage/web_static/smlnj/htdocs/local/.http_passwd
 AuthName Project
 AuthType Basic
 require valid-user
