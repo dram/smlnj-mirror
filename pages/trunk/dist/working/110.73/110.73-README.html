@@ -2,6 +2,28 @@
 <html>
 <head>
 <title>SML/NJ 110.72 NEWS</title>
+<style>
+  dd {
+    margin-bottom: 0.5em;
+  }
+  li {
+    margin-bottom: 0.5em;
+  }
+  .code {
+    font-family: "Courier", monospace;
+    white-space: pre;
+    font-size: smaller;
+  }
+  table.buglist {
+    margin-left: 1em;
+  }
+  td.bugid {
+    font-weight: bold;
+    padding-right: 1em;
+    padding-left: 0px;
+    margin-left: 0px;
+  }
+</style>
 </head>
 
 <body>
@@ -40,17 +62,17 @@ new library for working with HTML 4, as well as many bug fixes.
 
 <dl>
 
- <dt>CM</dt>
+ <dt>CM:</dt>
  <dd>
    <ul>
       <li>
 	Added boolean literals (true and false) to the conditional-expression
 	syntax in CM.  Thus, you can write<br/>
-	<code>
-	#if true<br>
-	  structure Foo<br>
-	#endif<br>
-	</code>
+	<blockquote class="code">
+#if true
+  structure Foo
+#endif
+	</blockquote>
 	in a CM file.  This change is meant to make it easier to use autoconf
 	to configure the build process of an SML application.
       </li>
@@ -67,7 +89,7 @@ new library for working with HTML 4, as well as many bug fixes.
    </ul>
  </dd><p>
 
-  <dt>SML/NJ Library</dt>
+  <dt>SML/NJ Library:</dt>
   <dd>
     <ul>
       <li>
@@ -94,20 +116,23 @@ new library for working with HTML 4, as well as many bug fixes.
     </ul>
   </dd>
 
-  <dt>Concurrent ML</dt>
+  <dt>Concurrent ML:</dt>
   <dd>
     <ul>
       <li>
       The paths used to specify the CML versions of libraries in a CM file have been
       rationalized (bug #68)
-      <div>
-        $cml/basis.cm          -- the CML version of $/basis.cm
-	$cml/cml.cm             -- core CML features
-	$cml/cml-lib.cm        -- CML library code (currently merged
-                                    into $cml/cml-lib/smlnj-lib.cm)
-	$cml/trace-cml.cm    -- TraceCML library for debugging
-	$cml/smlnj-lib.cm     -- CML version of the $/smlnj-lib.cm
-      </div>
+      <blockquote class="code">
+$cml/basis.cm         -- the CML version of $/basis.cm
+$cml/cml.cm           -- core CML features
+$cml/cml-lib.cm       -- CML library code
+$cml/trace-cml.cm     -- TraceCML library for debugging
+$cml/smlnj-lib.cm     -- CML version of the $/smlnj-lib.cm library
+$cml/inet-lib.cm      -- CML version of the $/inet-lib.cm library
+$cml/unix-lib.cm      -- CML version of the $/unix-lib.cm library
+      </blockquote>
+      Note that the old naming scheme is still supported, but may be removed
+      in some future version.
       </li>
       <li>
         Added Barriers module to CML.
@@ -133,32 +158,21 @@ new library for working with HTML 4, as well as many bug fixes.
     <a href="https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs/">bug tracker</a> 
     for more details.
     </p>
-    <dl>
-      <dt>38</dt>
-      <dd>CM bug in calling ML-Lex/Yacc in Windows</dd>
-      <dt>39</dt>
-      <dd>SML/NJ doesn't build on NetBSD out of the box</dd>
-      <dt>49</dt>
-      <dd>Slight syntactic difference between ml-lex and ml-ulex in backward compatibility mode</dd>
-      <dt>50</dt>
-      <dd>CM can't invoke ml-yacc or ml-lex on Windows</dd>
-      <dt>55</dt>
-      <dd>HashCons equality test doesn't work because tags aren't incremented</dd>
-      <dt>56</dt>
-      <dd>CM still can't invoke ml-yacc on Windows</dd>
-      <dt>59</dt>
-      <dd>Non-blocking socket functions broken</dd>
-      <dt>61</dt>
-      <dd>Problem with quoting, CM, and Windows</dd>
-      <dt>63</dt>
-      <dd>Comments not lexed correctly in mlyacc grammar files</dd>
-      <dt>67</dt>
-      <dd>Installation fails on mac OSX (10.7, Lion)</dd>
-      <dt>68</dt>
-      <dd>CM anchors for CML need rationalization</dd>
-      <dt>69</dt>
-      <dd>String.scan function missing from basis library</dd>
-    </dl>
+    <table class="buglist">
+      <tr><td class="bugid">38</td><td>CM bug in calling ML-Lex/Yacc in Windows</td></tr>
+      <tr><td class="bugid">39</td><td>SML/NJ doesn't build on NetBSD out of the box</td></tr>
+      <tr><td class="bugid">49</td><td>Slight syntactic difference between ml-lex and ml-ulex in backward compatibility mode</td></tr>
+      <tr><td class="bugid">50</td><td>CM can't invoke ml-yacc or ml-lex on Windows</td></tr>
+      <tr><td class="bugid">55</td><td>HashCons equality test doesn't work because tags aren't incremented</td></tr>
+      <tr><td class="bugid">56</td><td>CM still can't invoke ml-yacc on Windows</td></tr>
+      <tr><td class="bugid">59</td><td>Non-blocking socket functions broken</td></tr>
+      <tr><td class="bugid">61</td><td>Problem with quoting, CM, and Windows</td></tr>
+      <tr><td class="bugid">63</td><td>Comments not lexed correctly in mlyacc grammar files</td></tr>
+      <tr><td class="bugid">67</td><td>Installation fails on mac OSX (10.7, Lion)</td></tr>
+      <tr><td class="bugid">68</td><td>CM anchors for CML need rationalization</td></tr>
+      <tr><td class="bugid">69</td><td>String.scan function missing from basis library</td></tr>
+      <tr><td class="bugid">70</td><td>confusing error message when trying to install on 64-bit Linux without 32-bit support</td></tr>
+    </table>
     <p>The following unnumbered bugs were also fixed:
     </p>
     <ul>
