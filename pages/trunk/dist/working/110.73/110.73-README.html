@@ -11,7 +11,7 @@
 <br/>
                           Version 110.73 NEWS
 <br/>
-                           May ??, 2011
+                           May 16, 2011
 <br/>
 <br/>
 </b>
@@ -31,59 +31,149 @@
 <hr>
 
 <h3>Summary:</h3>
-
-SML/NJ 110.73 adds a new flag for determining the heap suffix, new
-directives and MLton compatibility to ML-Ulex and ML-Antlr, and fixes
-several bugs.
+<p>
+SML/NJ 110.73 provides a number of new library features, including a
+new library for working with HTML 4, as well as many bug fixes. 
+</p>
 
 <h3>Details:</h3>
 
 <dl>
 
-  <dt>General:</dt>
+ <dt>CM</dt>
+ <dd>
+   <ul>
+      <li>
+	Added boolean literals (true and false) to the conditional-expression
+	syntax in CM.  Thus, you can write<br/>
+	<code>
+	#if true<br>
+	  structure Foo<br>
+	#endif<br>
+	</code>
+	in a CM file.  This change is meant to make it easier to use autoconf
+	to configure the build process of an SML application.
+      </li>
+   </ul>
+ </dd>
+
+ <dt>ML-Yacc:</dt>
+ <dd>
+   <ul>
+     <li>
+	Fixed ml-yacc examples to respect the changed signatures with respect
+	to TextIO.inputLine.
+     </li>
+   </ul>
+ </dd><p>
+
+  <dt>SML/NJ Library</dt>
   <dd>
     <ul>
-      <li>Added "@SMLsuffix" flag to sml command.  This can be used to
-      get the suffix for heap files.</li>
+      <li>
+	Added findExe function to PathUtil module.
+      </li>
+      <li>
+	Modified the implementation of GetOpt.usageInfo so that if the help
+	string has embedded newlines, then the extra lines are properly
+	indented.
+      </li>
+      <li>
+	Changed the interface of JSONStreamParser to support both parsing files
+	and TextIO.instreams.
+      </li>
+      <li>
+        Added HTML4 library.
+      </li>
+      <li>
+	Fixed bug in hashed cons library (bug #55).
+      </li>
+      <li>
+	Added array iterators to DynamicArray module.
+      </li>
+    </ul>
+  </dd>
 
-      <li>Fixed an overrun during major GC. If the string arena was
-      nearly full, it was possible for alignment padding added during
-      copy to the to-space to overrun the allocated size.</li>
-
-      <li>Fixed the Win32 unable to print long strings bug.</li>
-
-      <li>Fixed performance bugs in List module by making @ and foldr
-      be tail recursive.</li>
-
-
+  <dt>Concurrent ML</dt>
+  <dd>
+    <ul>
+      <li>
+      The paths used to specify the CML versions of libraries in a CM file have been
+      rationalized (bug #68)
+      <div>
+        $cml/basis.cm          -- the CML version of $/basis.cm
+	$cml/cml.cm             -- core CML features
+	$cml/cml-lib.cm        -- CML library code (currently merged
+                                    into $cml/cml-lib/smlnj-lib.cm)
+	$cml/trace-cml.cm    -- TraceCML library for debugging
+	$cml/smlnj-lib.cm     -- CML version of the $/smlnj-lib.cm
+      </div>
+      </li>
+      <li>
+        Added Barriers module to CML.
+      </li>
+      <li>
+        Fixed the Win32 socket and polling implementation to work correctly
+	with CML. Signature of poll was wrong and didn't handle sockets at all.
+      </li>
+    </ul>
+  </dd>
+  <dt>MLRISC:</dt>
+  <dd>
+    <ul>
+      <li>
+      Added support for the RTDSC and RTDSCP instructions to the amd64 code generator.
+      </li>
     </ul>
   </dd><p>
 
- <dt>ML-Ulex:</dt>
- <dd>
-   <ul>
-     <li>Added "--strict-sml" flag to ml-ulex for MLton
-     compatibility.</li>
-
-     <li>Added %header directive to the ml-ulex scanner generator.
-     Also updated the documentation.</li>
-
-     <li>The ml-ulex program has been ported to build under
-     mlton.</li>
-
-   </ul>
- </dd><p>
-
- <dt>ML-Antlr:</dt>
- <dd>
-   <ul>
-     <li>Added %header directive to the ml-antlr parser generator.
-     Also updated the documentation.</li>
-
-     <li>The ml-antlr program has been ported to build under
-     mlton.</li>
-   </ul>
- </dd><p>
+  <dt>Bugs:</dt>
+  <dd>
+    <p>Here is a list of tracked bugs fixed by this release, please see the
+    <a href="https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs/">bug tracker</a> 
+    for more details.
+    </p>
+    <dl>
+      <dt>38</dt>
+      <dd>CM bug in calling ML-Lex/Yacc in Windows</dd>
+      <dt>39</dt>
+      <dd>SML/NJ doesn't build on NetBSD out of the box</dd>
+      <dt>49</dt>
+      <dd>Slight syntactic difference between ml-lex and ml-ulex in backward compatibility mode</dd>
+      <dt>50</dt>
+      <dd>CM can't invoke ml-yacc or ml-lex on Windows</dd>
+      <dt>55</dt>
+      <dd>HashCons equality test doesn't work because tags aren't incremented</dd>
+      <dt>56</dt>
+      <dd>CM still can't invoke ml-yacc on Windows</dd>
+      <dt>59</dt>
+      <dd>Non-blocking socket functions broken</dd>
+      <dt>61</dt>
+      <dd>Problem with quoting, CM, and Windows</dd>
+      <dt>63</dt>
+      <dd>Comments not lexed correctly in mlyacc grammar files</dd>
+      <dt>67</dt>
+      <dd>Installation fails on mac OSX (10.7, Lion)</dd>
+      <dt>68</dt>
+      <dd>CM anchors for CML need rationalization</dd>
+      <dt>69</dt>
+      <dd>String.scan function missing from basis library</dd>
+    </dl>
+    <p>The following unnumbered bugs were also fixed:
+    </p>
+    <ul>
+      <li>
+	Changed the Win32 implementation of validArc to support directories
+	with extended characters (umlauts, etc.).
+      </li>
+      <li>
+        Fixed Real.toString and Real.fmt to include sign for negative zero.
+      </li>
+      <li>
+        Fixed the bug with Win32 calls to OS.Process.system not quoting the string.
+      </li>
+    </ul>
+  </dd>
 
 </body>
 </html>
