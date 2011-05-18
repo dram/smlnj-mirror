@@ -9,7 +9,7 @@ future we plan to provide a meta-package which lets
 users select the components to be installed.
 
 The current installer lets the user choose an installation
-root directory.  The default is /usr/local/smlnj.
+root directory.  The default is /usr/local/smlnj-110.73.
 The SML/NJ-specific "bin" directory containing the
 "sml" command and its siblings is not automatically
 added to the shell's search path, though.
