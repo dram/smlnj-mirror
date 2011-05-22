@@ -145,9 +145,18 @@ divided by operating system (Linux, OS X, Windows).
 </li><li> Enable building all targets.
 <ol><li> <tt>$ cp config/targets config/targets.customized</tt>
 </li><li> <tt> $ vi config/targets.customized</tt>
-
 </li></ol>
-</li><li> Build the exported copy and remove the boot file.
+</li>
+<li> Note that if you are building on Snow Leopard, then you have to modify the makefile
+to guarantee that the runtime will work on Leopard.
+The floowing linker flags are neede when linking the various static libraries that make up
+the runtime system:
+<blockquote><tt>
+-isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5
+</tt></blockquote>
+</li>
+
+<li> Build the exported copy and remove the boot file.
 <ol><li> Plain-old "<tt>$ config/install.sh</tt>"
 </li><li> <tt>$ rm boot.x86-unix.tgz</tt>
 </li></ol>
