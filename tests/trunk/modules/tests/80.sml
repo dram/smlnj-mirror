@@ -19,5 +19,4 @@ structure S1 = F();
 structure S2 = F();
 
 (* verify that S1.C.t and S2.C.t are equivalent *)
-val h(f: S1.C.t->unit, x: S2.C.t) = f x;
-
+fun h(f: S1.C.t->unit, x: S2.C.t) = f x;

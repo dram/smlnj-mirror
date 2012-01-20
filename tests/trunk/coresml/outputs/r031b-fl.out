@@ -5,7 +5,7 @@ r031b-fl.sml:16.11-16.14 Error: operator and operand don't agree [literal]
   operand:         int
   in expression:
     A 5
-r031b-fl.sml:16.4-16.34 Error: constructor and argument don't agree in pattern [literal]
+r031b-fl.sml:16.23-16.26 Error: constructor and argument don't agree in pattern [literal]
   constructor: 'a -> exn
   argument:    int
   in pattern:

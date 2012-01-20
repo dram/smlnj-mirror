@@ -1,6 +1,6 @@
 val it = () : unit
 val r = {name="Foo",used=true} : {name:string, used:bool}
-r046b-fl.sml:15.5-15.48 Error: pattern and constraint don't agree [tycon mismatch]
+r046b-fl.sml:15.5-15.44 Error: pattern and constraint don't agree [tycon mismatch]
   pattern:    real
   constraint:    int
   in pattern:
