@@ -1,0 +1,31 @@
+1. Real.fmt regression failure (x86-darwin).
+
+This is a known issue mentioned in several of the SUMMARY files in the tests
+directory, so I assume we will continue to live with this.
+
+test11c in basis/tests/real.sml fails.  This tests the strings produced by 
+Real.fmt(StringCvt.FIX (SOME n)) for various values of n (0, 1, 2, 6).
+This is what is produced by 110.74: 
+
+- val x = 91827364509182.0;
+- Real.fmt(StringCvt.FIX (SOME 0)) x;
+val it = "91827364509182" : string
+- Real.fmt(StringCvt.FIX (SOME 1)) x;
+val it = "91827364509182.1" : string
+- Real.fmt(StringCvt.FIX (SOME 2)) x;
+val it = "91827364509182.10" : string
+- Real.fmt(StringCvt.FIX (SOME 6)) x;
+val it = "91827364509182.100000" : string
+
+The expected strings (according to basis/tests/real.out) are:
+
+"91827364509182", 
+"91827364509182.0", 
+"91827364509182.00",
+"91827364509182.000000"
+
+2. Apparent regression failure on timer.sml is due to variations
+in exact times -- not a true regression.
+
+dbm
+1/21/2012

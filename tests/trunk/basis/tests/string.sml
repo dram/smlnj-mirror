@@ -244,9 +244,7 @@ val test20 =
 	    "\\^a",
 	    "\\^z",
 	    "\\   a",
-	    "\\   a\\B",
-	    "\\   \\"]);
-
+	    "\\   a\\B"]);
 
 (* Test cases for C string escape functions *)
 
