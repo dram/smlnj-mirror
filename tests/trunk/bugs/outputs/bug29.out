@@ -1,5 +1,5 @@
 val it = () : unit
-<instream>:1.9-1.14 Error: unbound structure: Foo in path Foo.x
+<instream>:1.10-1.15 Error: unbound structure: Foo in path Foo.x
 
 uncaught exception Error
   raised at: ../compiler/TopLevel/interact/evalloop.sml:66.19-66.27

@@ -1,6 +1,6 @@
 val it = () : unit
-val it = 0.0 : real
-val it = ~1.0 : real
-val it = 1.0 : real
-val it = 0.0 : real
+val it = ~0.984807753 : real
+val it = ~0.3420201433 : real
+val it = 0.8660254038 : real
+val it = 0.6427876097 : real
 

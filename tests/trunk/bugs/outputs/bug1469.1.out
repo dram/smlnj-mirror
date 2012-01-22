@@ -3,148 +3,140 @@ val it = () : unit
 
 [After convert ...]
 
-v275(v280[C],v278[PR0]) =
-   v281(v282[PV]) =
-      v281("bogus")
-   v279(v283[PV]) =
-      v281("bogus")
-   makeref((I)0) -> v276[PV]
-   {v276} -> v277
-   v280(v277)
+v267(v272[C],v270[PR0]) =
+   v273(v274[PV]) =
+      v273("bogus")
+   v271(v275[PV]) =
+      v273("bogus")
+   makeref((I)0) -> v268[PV]
+   {v268} -> v269
+   v272(v269)
 
 
 [After cpstrans ...]
 
-v275(v280[C],v278[PR0]) =
-   v281(v282[PV]) =
-      v281("bogus")
-   v279(v283[PV]) =
-      v281("bogus")
-   makeref((I)0) -> v276[PV]
-   {v276} -> v277
-   v280(v277)
+v267(v272[C],v270[PR0]) =
+   v273(v274[PV]) =
+      v273("bogus")
+   v271(v275[PV]) =
+      v273("bogus")
+   makeref((I)0) -> v268[PV]
+   {v268} -> v269
+   v272(v269)
 
 
 [After cpsopt ...]
 
-v275(v280[C],v278[PR0]) =
-   v281(v284[I]) =
-      v281((I)0)
-   makeref((I)0) -> v276[PV]
-   {v276} -> v277
-   v280(v277)
+v267(v272[C],v270[PR0]) =
+   makeref((I)0) -> v268[PV]
+   {v268} -> v269
+   v272(v269)
 
 
 [After cpsopt-code ...]
 
-v275(v280[C],v278[PR1]) =
-   v281(v284[I]) =
-      v281((I)0)
-   makeref((I)0) -> v276[PV]
-   {v276} -> v277
-   v280(v277)
+v267(v272[C],v270[PR1]) =
+   makeref((I)0) -> v268[PV]
+   {v268} -> v269
+   v272(v269)
 
 
 [After closure ...]
 
-v292(v293[PV],v275[PV],v288[C],v289[PV],v290[PV],v291[PV],v278[PR1]) =
-   makeref((I)0) -> v276[PV]
-   {v276} -> v294
-   v288(v288,v289,v290,v291,v294)
+v283(v284[PV],v267[PV],v279[C],v280[PV],v281[PV],v282[PV],v270[PR1]) =
+   makeref((I)0) -> v268[PV]
+   {v268} -> v285
+   v279(v279,v280,v281,v282,v285)
 
 Starting feedback...Finished
-v292	E  5	2
+v283	E  5	2
 *********************************************** 
-v292(v293[PV],v275[PV],v288[C],v289[PV],v290[PV],v291[PV],v278[PR1]) =
-   makeref((I)0) -> v276[PV]
-   {v276} -> v294
-   v288(v288,v289,v290,v291,v294)
+v283(v284[PV],v267[PV],v279[C],v280[PV],v281[PV],v282[PV],v270[PR1]) =
+   makeref((I)0) -> v268[PV]
+   {v268} -> v285
+   v279(v279,v280,v281,v282,v285)
 *********************************************** 
 val x = ref 0 : int ref
 
 [After convert ...]
 
-v306(v319[C],v312[PR2]) =
-   v321(v322[PV]) =
-      v321("bogus")
-   v318(v323[PV]) =
-      v321("bogus")
-   v312.0 -> v313[PV]
-   v295(v320[C],v299[I]) =
-      unboxedassign(v313,v299)
-      v320((I)0)
-   {v295} -> v311
-   v319(v311)
+v297(v310[C],v303[PR2]) =
+   v312(v313[PV]) =
+      v312("bogus")
+   v309(v314[PV]) =
+      v312("bogus")
+   v303.0 -> v304[PV]
+   v286(v311[C],v290[I]) =
+      unboxedassign(v304,v290)
+      v311((I)0)
+   {v286} -> v302
+   v310(v302)
 
 
 [After cpstrans ...]
 
-v306(v319[C],v312[PR2]) =
-   v321(v322[PV]) =
-      v321("bogus")
-   v318(v323[PV]) =
-      v321("bogus")
-   v312.0 -> v313[PV]
-   v295(v320[C],v299[I]) =
-      unboxedassign(v313,v299)
-      v320((I)0)
-   {v295} -> v311
-   v319(v311)
+v297(v310[C],v303[PR2]) =
+   v312(v313[PV]) =
+      v312("bogus")
+   v309(v314[PV]) =
+      v312("bogus")
+   v303.0 -> v304[PV]
+   v286(v311[C],v290[I]) =
+      unboxedassign(v304,v290)
+      v311((I)0)
+   {v286} -> v302
+   v310(v302)
 
 
 [After cpsopt ...]
 
-v306(v319[C],v312[PR2]) =
-   v321(v324[I]) =
-      v321((I)0)
-   v312.0 -> v313[PV]
-   v295(v320[C],v299[I]) =
-      unboxedassign(v313,v299)
-      v320((I)0)
-   {v295} -> v311
-   v319(v311)
+v297(v310[C],v303[PR2]) =
+   v303.0 -> v304[PV]
+   v286(v311[C],v290[I]) =
+      unboxedassign(v304,v290)
+      v311((I)0)
+   {v286} -> v302
+   v310(v302)
 
 
 [After cpsopt-code ...]
 
-v306(v319[C],v312[PR3]) =
-   v321(v324[I]) =
-      v321((I)0)
-   v312.0 -> v313[PV]
-   v295(v320[C],v299[I]) =
-      unboxedassign(v313,v299)
-      v320((I)0)
-   {v295} -> v311
-   v319(v311)
+v297(v310[C],v303[PR3]) =
+   v303.0 -> v304[PV]
+   v286(v311[C],v290[I]) =
+      unboxedassign(v304,v290)
+      v311((I)0)
+   {v286} -> v302
+   v310(v302)
 
 
 [After closure ...]
 
-v339(v340[PV],v306[PV],v328[C],v329[PV],v330[PV],v331[PV],v312[PR3]) =
-   v312.0 -> v341[PV]
-   v332(v348[PV],v347[PV],v346[C],v345[PV],v344[PV],v343[PV],v342[I]) =
-      v347.1 -> v349[PV]
-      unboxedassign(v349,v342)
-      v346(v346,v345,v344,v343,(I)0)
-   {RK_ESCAPE 2,(L)v332,v341} -> v350
-   {v350} -> v351
-   v328(v328,v329,v330,v331,v351)
+v329(v330[PV],v297[PV],v318[C],v319[PV],v320[PV],v321[PV],v303[PR3]) =
+   v303.0 -> v331[PV]
+   v322(v338[PV],v337[PV],v336[C],v335[PV],v334[PV],v333[PV],v332[I]) =
+      v337.1 -> v339[PV]
+      unboxedassign(v339,v332)
+      v336(v336,v335,v334,v333,(I)0)
+   {RK_ESCAPE 2,(L)v322,v331} -> v340
+   {v340} -> v341
+   v318(v318,v319,v320,v321,v341)
 
 Starting feedback...Finished
-v339	E  6	3
-v332	E  1	2
+v329	E  6	3
+v322	E  1	2
 *********************************************** 
-v339(v340[PV],v306[PV],v328[C],v329[PV],v330[PV],v331[PV],v312[PR3]) =
-   v312.0 -> v341[PV]
-   {RK_ESCAPE 2,(L)v332,v341} -> v350
-   {v350} -> v351
-   v328(v328,v329,v330,v331,v351)
+v329(v330[PV],v297[PV],v318[C],v319[PV],v320[PV],v321[PV],v303[PR3]) =
+   v303.0 -> v331[PV]
+   {RK_ESCAPE 2,(L)v322,v331} -> v340
+   {v340} -> v341
+   v318(v318,v319,v320,v321,v341)
 *********************************************** 
 *********************************************** 
-v332(v348[PV],v347[PV],v346[C],v345[PV],v344[PV],v343[PV],v342[I]) =
-   v347.1 -> v349[PV]
-   unboxedassign(v349,v342)
-   v346(v346,v345,v344,v343,(I)0)
+v322(v338[PV],v337[PV],v336[C],v335[PV],v334[PV],v333[PV],v332[I]) =
+   v337.1 -> v339[PV]
+   unboxedassign(v339,v332)
+   v336(v336,v335,v334,v333,(I)0)
 *********************************************** 
 val f = fn : int -> unit
 

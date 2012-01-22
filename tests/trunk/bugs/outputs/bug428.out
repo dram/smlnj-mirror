@@ -107,7 +107,7 @@ signature DEBUGUTILS =
   sig val wrap : bool ref
                  -> string
                     -> (unit -> 'a) -> (unit -> unit) -> ('a -> unit) -> 'a end
-bug428.sml:118.1-134.2 Error: duplicate specifications for structure Wr caused by include
-bug428.sml:118.1-134.2 Error: duplicate specifications for structure Pp caused by include
+bug428.sml:118.1-135.1 Error: duplicate specifications for structure Wr caused by include
+bug428.sml:118.1-135.1 Error: duplicate specifications for structure Pp caused by include
 bug428.sml:133.14-133.35 Error: nonlocal path in type sharing: bool
 

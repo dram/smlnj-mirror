@@ -5,5 +5,5 @@ signature S1 =
     val x : t
   end
 signature S2 = sig type t = string end
-bug954.sml:16.3-17.14 Error: duplicate specifications for type t caused by include
+bug954.sml:16.3-18.1 Error: duplicate specifications for type t caused by include
 

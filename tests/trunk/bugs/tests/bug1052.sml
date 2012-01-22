@@ -6,5 +6,5 @@ val ppconsumer = {consumer = Control.Print.say,
 		  flush = Control.Print.flush};
 val fname = "/dev/null";
 val instream = TextIO.openIn fname;
-val source = Source.newSource(fname,1,instream,false,ppconsumer);
+val source = Source.newSource(fname,instream,false,ppconsumer);
 Source.closeSource source;

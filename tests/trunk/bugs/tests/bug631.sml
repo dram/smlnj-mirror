@@ -6,7 +6,7 @@ structure Interface = struct
     open Environment
   in fun ast name =
 	 let val f = TextIO.openIn name
-	     val source = Source.newSource (name,0,f,false,
+	     val source = Source.newSource (name,f,false,
                              ErrorMsg.defaultConsumer())
 	       
 	  in SmlFile.parse source

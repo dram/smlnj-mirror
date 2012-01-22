@@ -1,0 +1,84 @@
+Bug Regression Notes for 110.74
+
+3.   type printed with absolute rather than relative path
+     related to 130.1, 538 below
+
+27.  printing of absyn: "::" not printed as infix (bug)
+
+29.  positions in input stream shifted by 1
+     (related to off-by-one lexer problem?)
+     reference output updated (but should it be?)
+
+77.  more accurate region, reference output updated
+     (single position region for one-character identifier)
+
+130.1. Change in printing types imported via open decl. 110.74 prints full paths
+       instead of local relative paths.
+
+156.  more accurate region, reference output updated
+
+235.  region changed (wrap), reference output updated
+
+247.  error message changed (includes path of sml executable)
+
+256.1.  more accurate region, reference output updated
+
+256.2.  more accurate region, reference output updated
+
+276.1.  region changed (wrap), reference output updated
+
+428.   region changed (wrap), reference output updated
+
+481.   region changed (wrap), reference output updated
+
+538.   type printed with absolute rather than relative path
+       (see 3. and 130.1)
+
+615.   order of symbols in environment differs, output updated
+
+631.   change in type of Source.newSource; test is broken anyway?
+       test modified to correct call of Source.newSource
+
+636.   bug, printing of int variable bindings resulting from vector pattern
+       declaration
+
+637.   region changed (wrap), reference output updated
+
+828.   change in contents of String module
+
+927, 928, 929, 954.  region changed (wrap), reference output updated
+
+1227.  discrepencies in some small reals
+
+1250.  Strange message for a Bind exception
+
+1388.1. div32 and quot32 tests now produce "WRONG(DIV)" instead of "OK"
+        rem32 result changed from "WRONG(exn)" to "WRONG(DIV)"
+
+1416.1.  %z changed to %Z in Date.fmt string argument (%z not defined according
+        to Basis manual).  But %Z information not available.
+
+1434.1  more accurate region, reference output updated
+
+1444.1  bug fix?  reference output updated
+
+1446.2  region in output improved, reference output updated
+
+1451.1. nether reference outputs nor 110.74 outputs are accurate
+	reference output updated with (approximately) correct values
+
+1469.1. internal variable numbers vary. ref output updated
+
+1499.1. region improved, reference output updated
+
+1529.1. bug fixed, reference output updated
+
+1544.1. datatype syntax changed so "datatype = = =" no longer parses (too bad)
+        change associated with fix of bug #77
+        reference output updated
+
+1602.1.  more accurate region, reference output updated
+
+-------------
+dbm
+1/21/2012
