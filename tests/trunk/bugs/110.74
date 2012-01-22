@@ -1,6 +1,6 @@
 Bug Regression Notes for 110.74
 
-3.   type printed with absolute rather than relative path
+3.   [FAIL] type printed with absolute rather than relative path
      related to 130.1, 538 below
 
 27.  printing of absyn: "::" not printed as infix (bug)
@@ -12,7 +12,7 @@ Bug Regression Notes for 110.74
 77.  more accurate region, reference output updated
      (single position region for one-character identifier)
 
-130.1. Change in printing types imported via open decl. 110.74 prints full paths
+130.1. [FAIL] Change in printing types imported via open decl. 110.74 prints full paths
        instead of local relative paths.
 
 156.  more accurate region, reference output updated
@@ -31,7 +31,7 @@ Bug Regression Notes for 110.74
 
 481.   region changed (wrap), reference output updated
 
-538.   type printed with absolute rather than relative path
+538.   [FAIL] type printed with absolute rather than relative path
        (see 3. and 130.1)
 
 615.   order of symbols in environment differs, output updated
@@ -48,9 +48,11 @@ Bug Regression Notes for 110.74
 
 927, 928, 929, 954.  region changed (wrap), reference output updated
 
-1227.  discrepencies in some small reals
+1052.  change in Source.inputSource, reference output updated
 
-1250.  Strange message for a Bind exception
+1227.  [FAIL] discrepencies in some small reals
+
+1250.  [FAIL] Strange message for a Bind exception
 
 1388.1. div32 and quot32 tests now produce "WRONG(DIV)" instead of "OK"
         rem32 result changed from "WRONG(exn)" to "WRONG(DIV)"
@@ -77,7 +79,7 @@ Bug Regression Notes for 110.74
         change associated with fix of bug #77
         reference output updated
 
-1602.1.  more accurate region, reference output updated
+1602.1.  region changed (wrap), reference output updated
 
 -------------
 dbm

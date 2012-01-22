@@ -1,0 +1,13 @@
+Coresml Regression Notes for 110.74
+
+General
+  * line positions are 1-based, probably should be 0-based (as in emacs?)
+  * region end charactor position (column) are always 1 too large
+    this sometimes causes and end of line position to wrap to the first
+    position on the following line
+
+r046b-fl.sml
+  region too wide in "pattern and constraint don't agree" error message
+
+s003a-fl.sml
+  region too wide for duplicate type variable error message

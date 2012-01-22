@@ -1,0 +1,10 @@
+110.74, 1/21/2012
+
+x86-darwin
+
+  coresml: see coresml/110.74
+  typing: no change (clean)
+  modules: no change (open bugs)
+  basis: no change (t11c in real.sml fails)
+  bugs: see bugs/110.74
+
