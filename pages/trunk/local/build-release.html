@@ -2,6 +2,9 @@
 <html>
   <head>
     <title>Building a Release</title>
+<style type="text/css">
+ol.a {list-style-type:lower-alpha;}
+</style>
   </head>
 
   <body>
@@ -142,8 +145,10 @@ not have release branches.
 </li></ul>
 </li></ol>
 
-<h2>Building a DMG</h2>
-<ol><li> Export the SML/NJ repository.
+<h2>Building a OS X package and dmg</h2>
+<p> See the document <a href="osx-package-build.txt">osx-package-build.txt</a>.
+
+<!--
 <ul><li> Example: <tt>admin/checkout-all.sh --export</tt> from some directory named after the new version.
 </li></ul>
 </li><li> Enable building all targets.
@@ -184,29 +189,92 @@ the runtime system:
 </li></ol>
 <p>References: Apple's "Software Delivery Guide" (should be available from ADC, or inside of Xcode).
 </p>
+-->
 
-<h2>Building a MSI</h2>
+<h2>Building a Windows installer (MSI)</h2>
 
-<p>I (<a href="mailto:jriehl@spaceship.com">jriehl@spaceship.com</a>)
-have been delegating this task to Lars Bergstrom (<a
-href="mailto:larsberg@cs.uchicago.edu">larsberg@cs.uchicago.edu</a>),
-and he usually sends me something in a day or so.  However, he has
-sent the following instructions via email:
+<p>Steps preceded by [cygwin] are performed in the cygwin shell.<br>
+Steps preceded by [vc++] are performed in the Visual C++ command
+prompt.
 </p>
-<blockquote>
-To do it, though, all you have to do is build as normal and then run  
-config\WinSetup\buildSetup.bat. All of the files necessary to build  
-the installer are checked in.<br>
-<br>
-- Lars
+
+<ol>
+<li> Install cygwin
+<ul>
+   <li>URL: <tt>http://www.cygwin.com</tt></li>
+   <li>package selection should include:
+     <ul>
+       <li>wget</li>
+       <li>binutils</li>
+       <li>svn  (included in default install in cygwin 1.7)</li>
+     </ul>
+</ul>
+</li><br>
+
+<li>Install Visual C++ Express
+<ul>
+   <li>URL: <tt>http://msdn.microsoft.com/vstudio</tt></li>
+   <li>search for Visual C++ Express to find download page</li>
+</ul>
+</li><br>
+
+<li>[cygwin] create a directory to build a release. This directory path
+   must not contain a number.<br>
+   (in my case: /home/dbm/smlnj/release or c:\cygwin\home\dbm\smlnj\release)
+</li><br>
+
+<li>[cygwin] in /home/dbm/smlnj directory,
+<ol class="a">
+   <li>create gf subdirectory</li>
+   <li>create gf/abbrev shell script that defines $gf and $smlnj as
+   usual</li>
+</ol>   
+</li><br>
+
+<li>[cygwin] run fg/abbrev script, defining $gf and $smlnj</li><br>
+
+<li>[cygwin] <tt>cd gf; svn co $smlnj/admin</tt><br>
+   Create gf/admin directory with the usual scripts.
+</li><br>
+
+<li>[cygwin] <tt>cd ../smlnj/release</tt><br>
+    Go to build directory.</li>
+</li><br>
+
+<li>[cygwin] <tt>../../gf/admin/checkout-all.sh</tt><br>
+   Run checkout-all.sh script to check out the source files.
+</li><br>
+
+<li>[cygwin] <tt>wget http://www.smlnj.org/dist/working/110.74/boot.x86-win32.tgz</tt><br>
+   Manually fetch to boot tarball for Windows.
+</li><br>
+
+<li>[cygwin] <tt>tar xzvf boot.x86-win32.tgz</tt><br>
+   Manually untar the boot tarball.
+</li><br>
+
+<li>[vc++] go to <tt>C:\cygwin\home\dbm\smlnj\release</tt>
+</li><br>
+
+<li>[vc++] <tt>set SMLNJ_HOME=C:\cygwin\home\dbm\smlnj\release</tt><br>
+    Define SMLNJ_HOME variable.
+</li><br>
+
+<li>[vc++] <tt>config\install.bat</tt><br>
+</li><br>
+
+<li>[vc++] <tt>config\WinSetup\buildSetup.bat</tt><br>
+    The file <tt>smlnj.msi</tt> produced is the final installer for Windows.
+</li>
+</ol>
+
 </blockquote>
 
-<p>I would encourage the next build manager get his/her hands on a
-Windows box and try this out.</p>
-
     <hr>
-    <address><a href="mailto:dbm@cs.uchicago.edu">David MacQueen</a> and <a href="mailto:jriehl@spaceship.com">Jon Riehl</a></address>
+    <address><a href="mailto:dbm@cs.uchicago.edu">David MacQueen</a>
+and <a href="mailto:larsberg@cs.uchicago.edu">Lars Bergstrom</a>
+and <a href="mailto:jriehl@spaceship.com">Jon Riehl</a></address>
 <!-- Created: Mon May  7 13:30:08 CDT 2007 -->
-<!-- hhmts start -->Last modified: Mon Jan 23 15:03:54 CST 2012 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: Wed Feb  1 12:16:08 CST 2012 <!-- hhmts end -->
   </body>
 </html>

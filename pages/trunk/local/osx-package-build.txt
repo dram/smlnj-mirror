@@ -1,0 +1,163 @@
+Building OSX Installer Packages
+-------------------------------
+
+These instructions should work for OS X 10.5 through 10.7, but have
+only been tested on 10.7.  Note that building on 10.7 requires that
+/Developer/SDKs/MacOSX10.5.sdk be present, and this sdk is not present
+by default in XCode 4.2.
+
+Let $V be the version of SML/NJ for which we are creating a dmg file, let
+$ROOT be the directory in which we start, and let $ARCH be the target 
+architecture (x86 or ppc).
+
+We also assume that a copy of the SML/NJ logo background image is
+available (the file background.jpg). This file can be extracted from
+an existing package, but in the future a copy will be found at
+config/MacResources/background.jpg.]
+
+1) create a directory for the distribution
+
+	mkdir smlnj-$V
+
+2) export the sources
+
+	cd smlnj-$V
+	svn export https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/config/trunk config
+
+3) build (this assumes that the tar files are already available for download)
+
+	config/install.sh
+
+   This will download the necessary compiler, library, and tools
+   sources (as determined by config/targets).and the boot.$ARCH-unix.tgz
+   tarball and build the bin and lib directories.
+
+   Note that you may have to build the runtime by hand, depending on
+   where your version of the 10.5 SDK lives.  Check if
+   /Developer/SDKs/MacOSX10.5.sdk exists; if necessary it can be
+   copied from an XCode 3.x directory if available. If building on
+   10.7 Lion, it is also possible to modify
+   base/runtime/objs/mk.x86-darwin to build a package that will only
+   work for Lion.
+
+4) Remove tar files
+
+	rm *.tgz
+
+5) copy $V-README.html and license.html into smlnj-$V. The
+   $V-README.html file can be obtained from a working copy of
+   the $V files. license.html can be obtained from the smlnj.org
+   web site (or a working copy of the pages svn project).
+
+
+5) Change owner and group of $V to root:wheel
+
+        sudo chown -R root:wheel smlnj-$V
+
+   This owner and group will be preserved by the installer.
+
+
+PackageMaker Phase [assuming Version 3.0.5, included with XCode 4.2]
+--------------------------------------------------------------------
+[References: XCode internal documentation for PackageMaker, and a
+legacy, out of date document titled "Software Delivery Guide".]
+
+
+6) Launch the PackageMaker application
+   (/Developer/Applications/Utilities/PackageMaker).
+
+   [Note: This procedure starts from scratch, not using an existing
+    PackageMaker document (e.g. smlnj-x86-110.73.pmdoc) from a previous
+    version.
+    It may be possible to automate steps 6, 7, and 8 as a shell
+    script.  See the MLton distribution for an example.]
+
+   a. Click the "Package" item at the top of the left-hand sidebar:
+	Configuration
+	    Title		  Standard ML of New Jersey $V
+	    User Sees             Easy Install Only
+	    Install Destination   Volume selected by user
+	    Certificate           N/A
+	    Description 	  The Standard ML of New Jersey system for Mac OS X 10.5
+                                  or later, Intel [resp. PowerPC] architecture
+	Requirements - nothing
+	Actions - nothing
+
+   b. Under the "Contents" header on the left-hand sidebar, click + at
+      the bottom of the side-bar. In the Open dialog window that pops
+      down, select the smlnj-$V directory, adding it to the
+      contents. The new item will be called "smlnj-110".
+
+      * Select the outer item (probably named smlnj-110)
+      Choice:
+	Configuration
+	    Choice Name	smlnj-$V  (modifies name of Contents item in
+              left side bar)
+	    Identifier: org.smlnj.$V.$ARCH  ($V = e.g. 110-74, not 110.74)
+            Initial State
+              Selected: checked (default)
+	      Enabled:  checked (default)
+	      Hidden:   not checked (default)
+	    Destination	/usr/local/smlnj-$V
+	      Allow alternate volume:  checked
+	    Tooltip:  SML/NJ 110.74 installer
+	    Description:  as above for "Package"
+        Requirements: empty (default)
+
+      * Select the folder under the outer (smlnj-110.74) Contents item
+      Package: smlnj-110
+	Configuration
+	    Install			  $ROOT/smlnj-$V
+	    Destination		      	  /usr/local/smlnj-$V
+	    Allow custom location         checked
+	    Package Identifier	      	  org.smlnj.$V.$ARCH.pkg
+	    Package Version		  1.0  [default]
+	    Restart Action		  None [default]
+	    Require admin authentication  checked
+       	    Package Location		  Self-Contained [default]
+
+       Contents:  Verify that owner is set to root and group is wheel
+
+       Components:  Leave all unchecked.
+
+       Scripts
+	    Postinstall		$ROOT/smlnj-$V/config/MacResources/postinstall
+	    [Postupgrade	$ROOT/smlnj-$V/config/MacResources/postupgrade]
+
+          [Note: Postupgrade does not appear as an entry.]
+
+
+7) Edit Interface: click on the Edit Interface icon in the upper right corner
+
+  a) Drag background.jpg to first screen (or choose it by file name in Background
+     tap to the right).  Unfortunately, there is not much control over scaling
+     and positioning of the image.  Try Scaling: To-Fit.
+
+  b) Click the Continue button to get to "Welcome Panel".  Leave as Default.
+
+  c) Click the Continue button to get to "Read Me". Select the readme file
+     $HOME/smlnj-$V/$V-README.html.
+
+  d) Click the Continue button to get to "License". Select the license file
+     $HOME/smlnj-$V/license.html.
+
+  e) Click the Continue button to get to "Conclusion". Leave as Default.
+     [Here we could add a notice about where the system has been installed.]
+
+  f) Close the Interface Editor window.
+
+
+8) Build the package by clicking the Build button in the tool bar at the top,
+   specifying the name (and location!) of the package file to be saved
+   (e.g. $ROOT/smlnj-$ARCH-$V.pkg).
+
+
+9) Assuming that works, we can now build the DMG file
+
+	hdiutil create -fs HFS+ -srcfolder smlnj-$ARCH-$V -volname smlnj-$V smlnj-$ARCH-$V.dmg
+	hdiutil internet-enable -yes smlnj-$ARCH-$V.dmg
+
+
+----------------------------------------------------------------------
+David MacQueen
+2/1/12
