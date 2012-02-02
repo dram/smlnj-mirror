@@ -14,105 +14,66 @@
 <blockquote> This page provides pointers to the SML/NJ software distributions
   and installation instructions.             
   <hr>              
-  <h2>Current Release</h2>
+
+<h2>Current Release</h2>
                  
-  <p> The current release of SML/NJ is <a href="NEWS/110-README.html">
-<strong> Version 110</strong></a>, originally introduced in February
-1998. Version   110 runs under Unix, Windows 95 or Windows NT.  (<em>The
-the current release  version number is 110.0.7, representing the 7th patch
-release of 110, but we will refer to this version as 110 for short.</em>
-) </p>
-<p>  </p>
+<p> The current release of SML/NJ is <a href="NEWS/110-README.html">
+<strong>Version 110.74</strong></a>, announced on Jan 31, 2012.
+Version 110.74 runs under Linux, Mac OS X (10.5 and later) and Windows (XP, Vista, and 7).
+</p>
+<p>
+We generally announce new versions on
+comp.lang.ml, comp.lang.functional, freshmeat.net, and our
+development mailing list <img src="smlnj-list-logo.jpg" align=center>.</p>
+</p>
+<p> </p>
                
 <h3>Installation Instructions</h3>
                  
-<p> To download and install SML/NJ 110, follow these  <a href="install/index.html"><strong> installation instructions</strong></a>.  <a name="Mirrors">         
+<p> To download and install the current version of SML/NJ, follow
+these <a href="install/index.html"><strong> installation
+instructions</strong></a>.
    
 <h3> The Distribution Files </h3>
 </a> </p>
                
-The files making up the Version 110 distribution are available via http
-from this <a href="dist/release/110.0.7/index.html"> index </a> page.
+The files making up the current version's distribution are available via http
+from this <a href="dist/working/current/index.html"> index </a> page.
 
-<!--
-The following sites mirror the distributions (if you run a mirror site
-not listed here, please let us know):
-<ul>
-<li><a href="ftp://rodin.stanford.edu/pub/smlnj"><strong>Stanford 
-University (California)</strong> </a> </li>
-<li><a href="ftp://flint.cs.yale.edu/pub/smlnj"><strong>Yale
-University (Connecticut)</strong> </a> </li>
-<li><a href="ftp://ftp.diku.dk/pub/smlnj"> <strong>DIKU (Denmark)</strong> </a> </li>
-<li><a href="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj"><strong>Cambridge
-(UK)</strong></a> </li>
-<li><a href="ftp://sunsite.doc.ic.ac.uk/computing/programming/languages/ml/smlnj/">
-<strong>SunSITE (UK)</strong></a> </li>
-<li><a href="ftp://ftp.ntua.gr/pub/lang/smlnj"><strong>National 
- Technical Univ. of Athens (Greece)</strong></a> </li>
-<li><a href="ftp://ropas.kaist.ac.kr/pub/smlnj/"><strong>KAIST
- (Korea)</strong></a>   </li>
-<li><a href="http://gd.tuwien.ac.at/languages/smlnj/"><strong>
- Vienna   Univ. of Technology, Austria</strong></a> (<a href="ftp://gd.tuwien.ac.at/languages/smlnj/">
-    ftp version</a>) </li>
--->                               
-      </ul>
-                                  
-<h3> Previous Releases </h3>
-<a href="NEWS/93-README.html">
-Version  0.93</a> (released in 1993) is still available but is
-obsolete and no longer supported. It is mainly of historical interest
-for code archeology.
-                             
-<h2><a name="SOFTWARE:WORKING-VERSIONS"> Working Versions </a></h2>
-Working versions are created for internal development purposes and
-vary in reliability and stability. Most are robust enough for
-noncritical research use, others are not.  Please pay careful
-attention to the README or NEWS file for each version before attempting
-to  use it.
+<h2><a name="SOFTWARE:WORKING-VERSIONS"> Previous Versions </a></h2>
 
-Current and recent working versions are listed in the
-<a href="dist/working/index.html">Working Versions</a> index,
-which gives access to README files for recent working
-versions and the ftp directories for working versions that are currently
+Current and recent versions are listed in the
+<a href="dist/working/index.html">Versions</a> index,
+which gives access to README files for recent
+versions and the file distribution pages for versions that are currently
 available for downloading.  The <a href="install/index.html">
-installation instructions</a> for the release version will generally work,
-<em>mutatis mutandis</em>, for working versions. </p>
+installation instructions</a> for the current version will generally work,
+<em>mutatis mutandis</em>, for older versions. </p>
 
 <p>
-We generally announce new versions (including working versions) on
-comp.lang.ml, comp.lang.functional, freshmeat.net, and our
-development mailing list <img src="smlnj-list-logo.jpg" align=center>.</p>
-                               
-<p> After version 110.9.1, the older "cmachine" (i.e. non-MLRISC) code 
-generators were replaced by new MLRISC code
-generators, except for the MIPS architecture, which is currently not
-supported in the latest working version.  Work on a new MIPS MLRISC
-code generator is in progress.</p>
-                               
+<a href="NEWS/93-README.html">
+Version  0.93</a> (released in 1993) is still available for
+historical purposes, but is obsolete and no longer supported.
+Versions of the code dating back as far as 1987 are also available
+on request.
+</p>
 <p>  </p>
-<hr>  <a name="packages">                             
-<h2> Packages </h2> </a>                             
-<p> The directory  </p>
 
-contains software packages that are not part of the core SML/NJ distribution.
-Currently, this directory contains:                                  
-  
-        <ul>
-     <li> <a href="doc/ckit/index.html"><strong>
-ckit</strong></a>, a C front    end. </li>
-                                       
-        </ul>
 <a name="benchmarks">                                     
 <h2> Benchmarks </h2> </a>                                     
 <p> A set of programs used as a "benchmark suite" for Standard ML
 is available by svn checkout at
-	    https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/benchmarks.
+<a href="https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/benchmarks/trunk">
+https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/benchmarks.</a>
 </p>
                                        
 <h2> SML/NJ Compiler Test Suites </h2>
                                                  
 <p> The regression test suites used for the SML/NJ compiler are 
-available by svn checkout at https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/tests. </p>
+available by svn checkout at
+<a href="https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/tests/trunk">
+https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/tests/trunk</a>.
+</p>
                                                
 <h2> <a name="contrib">Contributed Software</a> </h2>
 <p> Some contributed software packages can be found at (<em>location to be
