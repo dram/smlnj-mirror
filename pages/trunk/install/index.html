@@ -131,7 +131,7 @@ distribution.
 For Debian and Ubuntu, you will need two packages: <tt>gcc-multilib</tt>, 
 and <tt>ia32-libs</tt>. These can be installed using apt-get:
 <pre>
-      apt-get install gcc-multilib g++-multilib ia32-libs
+      apt-get install gcc-multilib ia32-libs
 </pre>
 For Red Hat Fedora (e.g. Fedora 16), you will need to install
 glibc-devel(i686):
@@ -143,7 +143,8 @@ install the rpm package libgcc-multilib, e.g.:
 <pre>
       rpm -ivh libgcc-multilib-4.4.2-5.x86_64.rpm
 </pre>
-where the <tt>libgcc-multilib</tt> package can be downloaded from the rpmseek web site.
+where the <tt>libgcc-multilib</tt> package can be downloaded from the
+rpmseek web site (yum does not appear to know about this package).
 
 </blockquote>
 <HR>
