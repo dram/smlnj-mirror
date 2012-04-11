@@ -143,34 +143,6 @@ notion of \"the end of an outline\".")
   '("signature" "structure" "functor" "abstraction"))
 
 
-(defconst sml-begin-syms
-  '("let" "abstype" "local" "struct" "sig")
-  "Symbols matching the `end' symbol.")
-
-(defconst sml-begin-syms-re
-  (sml-syms-re sml-begin-syms)
-  "Symbols matching the `end' symbol.")
-
-;; (defconst sml-user-begin-symbols-re
-;;   (sml-syms-re '("let" "abstype" "local" "struct" "sig" "in" "with"))
-;;   "Symbols matching (loosely) the `end' symbol.")
-
-(defconst sml-sexp-head-symbols-re
-  (sml-syms-re `("let" "abstype" "local" "struct" "sig" "in" "with"
-                 "if" "then" "else" "case" "of" "fn" "fun" "val" "and"
-                 "datatype" "type" "exception" "open" "infix" "infixr" "nonfix"
-                 ,@sml-module-head-syms
-                 "handle" "raise"))
-  "Symbols starting an sexp.")
-
-;; (defconst sml-not-arg-start-re
-;;   (sml-syms-re '("in" "of" "end" "andalso"))
-;;   "Symbols that can't be found at the head of an arg.")
-
-;; (defconst sml-not-arg-re
-;;   (sml-syms-re '("in" "of" "end" "andalso"))
-;;   "Symbols that should not be confused with an arg.")
-
 (defconst sml-=-starter-syms
   (list* "|" "val" "fun" "and" "datatype" "type" "abstype" "eqtype"
 	 sml-module-head-syms)
@@ -178,77 +150,6 @@ notion of \"the end of an outline\".")
 (defconst sml-=-starter-re
   (concat "\\S.|\\S.\\|" (sml-syms-re (cdr sml-=-starter-syms)))
   "Symbols that can be followed by a `='.")
-
-(defun sml-preproc-alist (al)
-  "Expand an alist AL where keys can be lists of keys into a normal one."
-  (reduce (lambda (x al)
-	    (let ((k (car x))
-		  (v (cdr x)))
-	      (if (consp k)
-		  (append (mapcar (lambda (y) (cons y v)) k) al)
-		(cons x al))))
-	  al
-	  :initial-value nil
-	  :from-end t))
-
-(defconst sml-indent-rule
-  (sml-preproc-alist
-   `(("struct" . 0)
-     (,sml-module-head-syms "d=" 0)
-     ("local" "in" 0)
-     ;;("of" . (3 nil))
-     ;;("else" . (sml-indent-level 0))
-     ;;(("in" "fun" "and" "of") . (sml-indent-level nil))
-     ("if" "else" 0)
-     (,sml-=-starter-syms nil)
-     (("abstype" "case" "datatype" "if" "then" "else" "sharing" "infix" "infixr"
-       "let" "local" "nonfix" "open" "raise" "sig" "struct" "type" "val" "while"
-       "do" "with" "withtype")))))
-
-(defconst sml-starters-indent-after
-  (sml-syms-re '("let" "local" "struct" "in" "sig" "with"))
-  "Indent after these.")
-
-(defconst sml-delegate
-  (sml-preproc-alist
-   `((("of" "else" "then" "d=") . (not (sml-bolp)))
-     ("in" . t)))
-  "Words which might delegate indentation to their parent.")
-
-(defcustom sml-symbol-indent
-  '(("fn" . -3)
-    ("of" . 1)
-    ("|" . -2)
-    ("," . -2)
-    (";" . -2)
-    ;;("in" . 1)
-    ("d=" . 2))
-  "Special indentation alist for some symbols.
-An entry like (\"in\" . 1) indicates that a line starting with the
-symbol `in' should be indented one char further to the right.
-This is only used in a few specific cases, so it does not work
-for all symbols and in all lines starting with the given symbol."
-  :group 'sml
-  :type '(repeat (cons string integer)))
-
-(defconst sml-open-paren
-  (sml-preproc-alist
-   `((,(list* "with" "in" sml-begin-syms) ,sml-begin-syms-re "\\<end\\>")))
-  "Symbols that should behave somewhat like opening parens.")
-
-(defconst sml-close-paren
-  `(("in" "\\<l\\(ocal\\|et\\)\\>")
-    ("with" "\\<abstype\\>")
-    ("withtype" "\\<\\(abs\\|data\\)type\\>")
-    ("end" ,sml-begin-syms-re)
-    ("then" "\\<if\\>")
-    ("else" "\\<if\\>" (sml-bolp))
-    ("of" "\\<case\\>")
-    ("d=" nil))
-  "Symbols that should behave somewhat like close parens.")
-
-(defconst sml-agglomerate-re "\\<else[ \t]+if\\>"
-  "Regexp of compound symbols (pairs of symbols to be considered as one).")
 
 (defconst sml-non-nested-of-starter-re
   (sml-syms-re '("datatype" "abstype" "exception"))
@@ -261,9 +162,6 @@ for all symbols and in all lines starting with the given symbol."
 	    "open" "type" "val" "and"
 	    "withtype" "with"))
   "The starters of new expressions.")
-
-(defconst sml-exptrail-syms
-  '("if" "then" "else" "while" "withtype" "do" "case" "of" "raise" "fn"))
 
 (defconst sml-pipeheads
    '("|" "of" "fun" "fn" "and" "handle" "datatype" "abstype")

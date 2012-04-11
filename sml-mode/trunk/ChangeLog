@@ -1,5 +1,24 @@
 2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Move non-SMIE indentation code to a separate file.
+	* sml-oldindent.el: Rename from sml-move.el.
+	* makefile.pkg (ELFILES): Adjust.
+	* sml-mode.el (sml-indent-line, sml-find-comment-indent)
+	(sml-calculate-indentation, sml-bolp, sml-first-starter-p)
+	(sml-indent-starter, sml-indent-relative, sml-indent-pipe)
+	(sml-find-forward, sml-indent-arg, sml-get-indent, sml-dangling-sym)
+	(sml-delegated-indent, sml-get-sym-indent, sml-indent-default)
+	(sml-current-indentation, sml-find-matching-starter):
+	Move to sml-oldindent.el.
+	(comment-quote-nested, compilation-error-regexp-alist): Declare.
+	* sml-defs.el (sml-begin-syms, sml-begin-syms-re)
+	(sml-sexp-head-symbols-re, sml-preproc-alist, sml-indent-rule)
+	(sml-starters-indent-after, sml-delegate, sml-symbol-indent)
+	(sml-open-paren, sml-close-paren, sml-agglomerate-re)
+	(sml-exptrail-syms): Move to sml-oldindent.el.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Get rid of ancient compatibility and small utility file.
 	* sml-proc.el (inferior-sml-mode-map): Don't use defmap.
 	* sml-move.el (sml-internal-syntax-table): Don't use defsyntax.
