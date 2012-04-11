@@ -1,6 +1,5 @@
 PACKAGE = sml-mode
-ELFILES	= sml-compat.el sml-util.el sml-defs.el sml-move.el sml-mode.el \
-	sml-proc.el
+ELFILES	= sml-defs.el sml-move.el sml-mode.el sml-proc.el
 
 default: elcfiles
 

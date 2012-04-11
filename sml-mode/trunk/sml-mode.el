@@ -13,8 +13,6 @@
 ;;      (Stefan Monnier) <monnier@iro.umontreal.ca>
 ;; Maintainer: (Stefan Monnier) <monnier@iro.umontreal.ca>
 ;; Keywords: SML
-;; $Revision$
-;; $Date$
 
 ;; This file is not part of GNU Emacs, but it is distributed under the
 ;; same conditions.
@@ -70,7 +68,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'sml-util)
 (require 'sml-move)
 (require 'sml-defs)
 
@@ -324,8 +321,11 @@ Regexp match data 0 points to the chars."
 ;; Code to handle nested comments and unusual string escape sequences
 ;;
 
-(defsyntax sml-syntax-prop-table
-  '((?\\ . ".") (?* . "."))
+(defvar sml-syntax-prop-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\\ "." st)
+    (modify-syntax-entry ?* "." st)
+    st)
   "Syntax table for text-properties")
 
 ;; For Emacsen that have no built-in support for nested comments
@@ -1211,7 +1211,7 @@ If the point directly precedes a symbol for which an SML form exists,
 the corresponding form is inserted."
   (interactive)
   (let ((abbrev-mode (not abbrev-mode))
-	(last-command-char ?\ )
+	(last-command-event ?\ )
 	;; Bind `this-command' to fool skeleton's special abbrev handling.
 	(this-command 'self-insert-command))
     (call-interactively 'self-insert-command)))
@@ -1371,7 +1371,8 @@ See also `edit-kbd-macro' which is bound to \\[edit-kbd-macro]."
         (let ((line (string-to-number (match-string 3)))
               (char (string-to-number (match-string 4))))
           (pop-to-buffer (find-file-noselect (match-string 2)))
-          (goto-line line)
+          (goto-char (point-min))
+          (forward-line (1- line))
           (forward-char (1- char)))))))
 
 ;;;

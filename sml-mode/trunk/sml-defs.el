@@ -1,6 +1,6 @@
 ;;; sml-defs.el --- Various definitions for sml-mode
 
-;; Copyright (C) 1999,2000,2003,2005,2007  Stefan Monnier <monnier@gnu.org>
+;; Copyright (C) 1999,2000,2003,2005,2007,2012  Stefan Monnier
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,8 +22,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'sml-util)
-
 
 (defgroup sml ()
   "Editing SML code."
@@ -40,37 +38,48 @@ notion of \"the end of an outline\".")
 ;;; Internal defines
 ;;; 
 
-(defmap sml-mode-map
-  ;; smarter cursor movement
-  '((forward-sexp	. sml-user-forward-sexp)
-    (backward-sexp	. sml-user-backward-sexp)
+(defvar sml-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Smarter cursor movement.
+    ;; (define-key map [remap forward-sexp] 'sml-user-forward-sexp)
+    ;; (define-key map [remap backward-sexp] 'sml-user-backward-sexp)
     ;; Text-formatting commands:
-    ("\C-c\C-m"	. sml-insert-form)
-    ("\C-c\C-i"	. sml-mode-info)
-    ("\M-|"	. sml-electric-pipe)
-    ("\M-\ "	. sml-electric-space)
-    ("\;"	. sml-electric-semi)
-    ("\M-\t"	. sml-back-to-outer-indent)
+    (define-key map "\C-c\C-m" 'sml-insert-form)
+    (define-key map "\C-c\C-i" 'sml-mode-info)
+    (define-key map "\M-|" 'sml-electric-pipe)
+    (define-key map "\M-\ " 'sml-electric-space)
+    (define-key map "\;" 'sml-electric-semi)
+    (define-key map "\M-\t" 'sml-back-to-outer-indent)
     ;; Process commands added to sml-mode-map -- these should autoload
-    ("\C-c\C-l"	. sml-load-file)
-    ("\C-c\C-c" . sml-compile)
-    ("\C-c\C-s" . switch-to-sml)
-    ("\C-c\C-r" . sml-send-region)
-    ("\C-c\C-b" . sml-send-buffer)
-    ([(meta shift down-mouse-1)] . sml-drag-region))
-  "The keymap used in `sml-mode'."
-  ;; :inherit sml-bindings
-  :group 'sml)
+    (define-key map "\C-c\C-l" 'sml-load-file)
+    (define-key map "\C-c\C-c" 'sml-compile)
+    (define-key map "\C-c\C-s" 'switch-to-sml)
+    (define-key map "\C-c\C-r" 'sml-send-region)
+    (define-key map "\C-c\C-b" 'sml-send-buffer)
+    (define-key map [(meta shift down-mouse-1)] 'sml-drag-region)
+    map)
+  "The keymap used in `sml-mode'.")
 
-(defsyntax sml-mode-syntax-table
-  `((?\*   . ,(if sml-builtin-nested-comments-flag ". 23n" ". 23"))
-    (?\(   . "()1")
-    (?\)   . ")(4")
-    ("._'" . "_")
-    (",;"  . ".")
+(defconst sml-builtin-nested-comments-flag
+  (ignore-errors
+    (not (equal (let ((st (make-syntax-table)))
+		  (modify-syntax-entry ?\* ". 23n" st) st)
+		(let ((st (make-syntax-table)))
+		  (modify-syntax-entry ?\* ". 23" st) st))))
+  "Non-nil means this Emacs understands the `n' in syntax entries.")
+
+(defvar sml-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\* (if sml-builtin-nested-comments-flag
+                                 ". 23n" ". 23") st)
+    (modify-syntax-entry ?\( "()1" st)
+    (modify-syntax-entry ?\) ")(4" st)
+    (mapc (lambda (c) (modify-syntax-entry c "_" st)) "._'")
+    (mapc (lambda (c) (modify-syntax-entry c "." st)) ",;")
     ;; `!' is not really a prefix-char, oh well!
-    ("~#!" . "'")
-    ("%&$+-/:<=>?@`^|"	 . "."))
+    (mapc (lambda (c) (modify-syntax-entry c "'"  st)) "~#!")
+    (mapc (lambda (c) (modify-syntax-entry c "."  st)) "%&$+-/:<=>?@`^|")
+    st)
   "The syntax table used in `sml-mode'.")
 
 
@@ -169,6 +178,18 @@ notion of \"the end of an outline\".")
 (defconst sml-=-starter-re
   (concat "\\S.|\\S.\\|" (sml-syms-re (cdr sml-=-starter-syms)))
   "Symbols that can be followed by a `='.")
+
+(defun sml-preproc-alist (al)
+  "Expand an alist AL where keys can be lists of keys into a normal one."
+  (reduce (lambda (x al)
+	    (let ((k (car x))
+		  (v (cdr x)))
+	      (if (consp k)
+		  (append (mapcar (lambda (y) (cons y v)) k) al)
+		(cons x al))))
+	  al
+	  :initial-value nil
+	  :from-end t))
 
 (defconst sml-indent-rule
   (sml-preproc-alist

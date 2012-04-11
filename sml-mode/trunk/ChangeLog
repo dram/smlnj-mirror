@@ -1,8 +1,24 @@
 2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Get rid of ancient compatibility and small utility file.
+	* sml-proc.el (inferior-sml-mode-map): Don't use defmap.
+	* sml-move.el (sml-internal-syntax-table): Don't use defsyntax.
+	* sml-mode.el (sml-syntax-prop-table): Don't use defsyntax.
+	(sml-electric-space): `last-command-char' -> `last-command-event'.
+	(sml-defuse-jump-to-def): Don't use goto-line from Elisp.
+	* sml-defs.el (sml-mode-map): Don't use defmap.
+	(sml-mode-syntax-table): Don't use defsyntax.
+	(sml-preproc-alist, sml-builtin-nested-comments-flag):
+	Move from sml-util.el.
+	* sml-compat.el, sml-utils.el: Remove.
+	* makefile.pkg (ELFILES): Update.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Add SMIE support.
 	* .bzrignore: New file.
 	* makefile.pkg (test): Use sml-mode-startup.
+
 	* sml-mode.el (sml-use-smie): New config var.
 	(sml-smie-grammar, sml-indent-separator-outdent): New vars.
 	(sml-smie-rules, sml-smie-definitional-equal-p)

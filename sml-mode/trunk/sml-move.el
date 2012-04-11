@@ -1,6 +1,6 @@
 ;;; sml-move.el --- Buffer navigation functions for sml-mode
 
-;; Copyright (C) 1999, 2000, 2004, 2007  Stefan Monnier <monnier@gnu.org>
+;; Copyright (C) 1999,2000,2004,2007,2012  Stefan Monnier <monnier@gnu.org>
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,19 +23,19 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'sml-util)
 (require 'sml-defs)
 
-(defsyntax sml-internal-syntax-table
-  '((?_  . "w")
-    (?'  . "w")
-    (?.  . "w")
-    ;; treating `~' as a word constituent is not quite right, but
+(defvar sml-internal-syntax-table
+  (let ((st (make-syntax-table sml-mode-syntax-table)))
+    (modify-syntax-entry ?_ "w" st)
+    (modify-syntax-entry ?' "w" st)
+    (modify-syntax-entry ?. "w" st)
+    ;; Treating `~' as a word constituent is not quite right, but
     ;; close enough.  Think about 12.3E~2 for example.  Also `~' on its
     ;; own *is* a nonfix symbol.
-    (?~  . "w"))
-  "Syntax table used for internal sml-mode operation."
-  :copy sml-mode-syntax-table)
+    (modify-syntax-entry ?~ "w" st)
+    st)
+  "Syntax table used for internal sml-mode operation.")
 
 ;;; 
 ;;; various macros
@@ -156,7 +156,7 @@ This assumes that we are `looking-at' the OP."
     t))
 
 ;;; 
-;;; read a symbol, including the special "op <sym>" case
+;;; Read a symbol, including the special "op <sym>" case
 ;;; 
 
 (defmacro sml-move-read (&rest body)
