@@ -1,6 +1,8 @@
 Changes since 4.1:
 
-* Support for SMIE.
+* New indentation code using SMIE when available.
+
+* Support for electric-layout-mode and electric-indent-mode.
 
 Changes since 4.0:
 

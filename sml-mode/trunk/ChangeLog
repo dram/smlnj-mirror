@@ -1,5 +1,28 @@
 2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Use SMIE by default and make sml-oldindent optional.
+	* sml-mode.el: Only load sml-oldindent if necessary.
+	(sml-use-smie): Default to t.
+	(sml-smie-datatype-|-p): Better handle incomplete datatype branch.
+	(sml-mode): Use prog-mode.  Setup electric-layout and electric-indent.
+	(sml-mode-variables): Always setup SMIE if possible.
+	(sml-imenu-create-index, sml-funname-of-and, sml-electric-pipe)
+	(sml-beginning-of-defun, sml-defuse-symdata-at-point)
+	(sml-yacc-font-lock-keywords, sml-yacc-indentation):
+	Avoid sml-oldindent functions.
+	(sml-find-forward): Move from sml-oldindent and re-implement.
+	(sml-electric-semi): Use self-insert-command so electric-layout and
+	electric-indent can do their job.
+	(sml-smie-find-matching-starter, sml-find-matching-starter)
+	(sml-smie-skip-siblings, sml-skip-siblings): New functions.
+	* sml-oldindent.el (sml-starters-indent-after, sml-exptrail-syms):
+	Remove, unused.
+	(sml-find-forward): Move back to sml-mode.el.
+	(sml-old-find-matching-starter): Rename from sml-find-matching-starter.
+	(sml-old-skip-siblings): Move&rename from sml-mode:sml-skip-siblings.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Move non-SMIE indentation code to a separate file.
 	* sml-oldindent.el: Rename from sml-move.el.
 	* makefile.pkg (ELFILES): Adjust.
@@ -11,6 +34,7 @@
 	(sml-current-indentation, sml-find-matching-starter):
 	Move to sml-oldindent.el.
 	(comment-quote-nested, compilation-error-regexp-alist): Declare.
+
 	* sml-defs.el (sml-begin-syms, sml-begin-syms-re)
 	(sml-sexp-head-symbols-re, sml-preproc-alist, sml-indent-rule)
 	(sml-starters-indent-after, sml-delegate, sml-symbol-indent)

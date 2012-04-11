@@ -69,10 +69,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'sml-defs)
-(require 'sml-oldindent)
-
-(defvar sml-use-smie nil)
-(when sml-use-smie (require 'smie nil 'noerror))
+(require 'smie nil 'noerror)
 
 (condition-case nil (require 'skeleton) (error nil))
 
@@ -84,7 +81,7 @@
   :type '(integer))
 
 (defcustom sml-indent-args sml-indent-level
-  "*Indentation of args placed on a separate line."
+  "Indentation of args placed on a separate line."
   :group 'sml
   :type '(integer))
 
@@ -101,10 +98,13 @@
 ;; seems nicer...")
 
 (defcustom sml-electric-semi-mode nil
-  "*If non-nil, `\;' will self insert, reindent the line, and do a newline.
+  "If non-nil, `\;' will self insert, reindent the line, and do a newline.
 If nil, just insert a `\;'.  (To insert while t, do: \\[quoted-insert] \;)."
   :group 'sml
   :type 'boolean)
+(when (fboundp 'electric-layout-mode)
+  (make-obsolete-variable 'sml-electric-semi-mode
+                          'electric-layout-mode "Emacs-24"))
 
 (defcustom sml-rightalign-and t
   "If non-nil, right-align `and' with its leader.
@@ -359,6 +359,10 @@ Regexp match data 0 points to the chars."
 
 ;;; Indentation with SMIE
 
+(defvar sml-use-smie t)
+(unless (and sml-use-smie (fboundp 'smie-setup))
+  (require 'sml-oldindent))
+
 (defconst sml-smie-grammar
   (when (fboundp 'smie-prec2->grammar)
     ;; We have several problem areas where SML's syntax can't be handled by an
@@ -574,11 +578,12 @@ Assumes point is right before the \"of\" symbol."
 Assumes point is right before the | symbol."
   (save-excursion
     (forward-char 1)                    ;Skip the |.
-    (sml-smie-forward-token-1)          ;Skip the tag.
-    (member (sml-smie-forward-token-1)
-            '("|" "of" "in" "datatype" "and" "exception" "abstype" "infix"
-              "infixr" "nonfix" "local" "val" "fun" "structure" "functor"
-              "signature"))))
+    (let ((after-type-def
+           '("|" "of" "in" "datatype" "and" "exception" "abstype" "infix"
+             "infixr" "nonfix" "local" "val" "fun" "structure" "functor"
+             "signature")))
+      (or (member (sml-smie-forward-token-1) after-type-def) ;Skip the tag.
+          (member (sml-smie-forward-token-1) after-type-def)))))
 
 (defun sml-smie-forward-token-1 ()
   (forward-comment (point-max))
@@ -642,15 +647,15 @@ Assumes point is right before the | symbol."
 	      (column (progn (goto-char (match-beginning 2)) (current-column)))
 	      (location
 	       (progn (goto-char (match-end 0))
-		      (sml-forward-spaces)
+		      (forward-comment (point-max))
 		      (when (looking-at sml-tyvarseq-re)
 			(goto-char (match-end 0)))
 		      (point)))
-	      (name (sml-forward-sym)))
+	      (name (sml-smie-forward-token)))
 	  ;; Eliminate trivial renamings.
 	  (when (or (not (member kind '("structure" "signature")))
 		    (progn (search-forward "=")
-			   (sml-forward-spaces)
+			   (forward-comment (point-max))
 			   (looking-at "sig\\|struct")))
 	    (push (cons (concat (make-string (/ column 2) ?\ ) name) location)
 		  alist)))))
@@ -661,8 +666,13 @@ Assumes point is right before the | symbol."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.s\\(ml\\|ig\\)\\'" . sml-mode))
 
+(unless (fboundp 'prog-mode) (defalias 'prog-mode 'fundamental-mode))
+(defvar comment-quote-nested)
+(defvar electric-indent-chars)
+(defvar electric-layout-rules)
+
 ;;;###autoload
-(define-derived-mode sml-mode fundamental-mode "SML"
+(define-derived-mode sml-mode prog-mode "SML"
   "\\<sml-mode-map>Major mode for editing ML code.
 This mode runs `sml-mode-hook' just before exiting.
 \\{sml-mode-map}"
@@ -676,26 +686,34 @@ This mode runs `sml-mode-hook' just before exiting.
   (set (make-local-variable 'paragraph-separate)
        (concat "\\([ \t]*\\*)?\\)?\\(" paragraph-separate "\\)"))
   (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'electric-indent-chars)
+       (cons ?\; (if (boundp 'electric-indent-chars)
+                     electric-indent-chars '(?\n))))
+  (set (make-local-variable 'electric-layout-rules)
+       `((?\; . ,(lambda ()
+                   (save-excursion
+                     (skip-chars-backward " \t;")
+                     (unless (or (bolp)
+                                 (progn (skip-chars-forward " \t;")
+                                        (eolp)))
+                       'after))))))
   ;; For XEmacs
   (easy-menu-add sml-mode-menu)
   ;; Compatibility.  FIXME: we should use `-' in Emacs-CVS.
   (unless (boundp 'skeleton-positions) (set (make-local-variable '@) nil))
   (sml-mode-variables))
 
-(defvar comment-quote-nested)
-
 (defun sml-mode-variables ()
   (set-syntax-table sml-mode-syntax-table)
   (setq local-abbrev-table sml-mode-abbrev-table)
   ;; Setup indentation and sexp-navigation.
-  (cond
-   ((and sml-use-smie (fboundp 'smie-setup))
+  (when (fboundp 'smie-setup)
     (smie-setup sml-smie-grammar #'sml-smie-rules
                 :backward-token #'sml-smie-backward-token
                 :forward-token #'sml-smie-forward-token))
-   (t
+  (unless (and sml-use-smie (fboundp 'smie-setup))
     (set (make-local-variable 'forward-sexp-function) 'sml-user-forward-sexp)
-    (set (make-local-variable 'indent-line-function) 'sml-indent-line)))
+    (set (make-local-variable 'indent-line-function) 'sml-indent-line))
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start) "(* ")
   (set (make-local-variable 'comment-end) " *)")
@@ -707,64 +725,70 @@ This mode runs `sml-mode-hook' just before exiting.
 (defun sml-funname-of-and ()
   "Name of the function this `and' defines, or nil if not a function.
 Point has to be right after the `and' symbol and is not preserved."
-  (sml-forward-spaces)
+  (forward-comment (point-max))
   (if (looking-at sml-tyvarseq-re) (goto-char (match-end 0)))
-  (let ((sym (sml-forward-sym)))
-    (sml-forward-spaces)
+  (let ((sym (sml-smie-forward-token)))
+    (forward-comment (point-max))
     (unless (or (member sym '(nil "d="))
-		(member (sml-forward-sym) '("d=")))
+		(member (sml-smie-forward-token) '("d=")))
       sym)))
+
+(defun sml-find-forward (re)
+  (while (progn (forward-comment (point-max))
+                (not (looking-at re)))
+    (or (ignore-errors (forward-sexp 1) t) (forward-char 1))))
 
 (defun sml-electric-pipe ()
   "Insert a \"|\".
 Depending on the context insert the name of function, a \"=>\" etc."
+  ;; FIXME: Make it a skeleton.
   (interactive)
-  (sml-with-ist
-   (unless (save-excursion (skip-chars-backward "\t ") (bolp)) (insert "\n"))
-   (insert "| ")
-   (let ((text
-	  (save-excursion
-	    (backward-char 2)		;back over the just inserted "| "
-	    (let ((sym (sml-find-matching-starter sml-pipeheads
-						  (sml-op-prec "|" 'back))))
-	      (sml-forward-sym)
-	      (sml-forward-spaces)
-	      (cond
-	       ((string= sym "|")
-		(let ((f (sml-forward-sym)))
-		  (sml-find-forward "\\(=>\\|=\\||\\)\\S.")
-		  (cond
-		   ((looking-at "|") "") ;probably a datatype
-		   ((looking-at "=>") " => ") ;`case', or `fn' or `handle'
-		   ((looking-at "=") (concat f "  = "))))) ;a function
-	       ((string= sym "and")
-		;; could be a datatype or a function
-		(setq sym (sml-funname-of-and))
-		(if sym (concat sym "  = ") ""))
-	       ;; trivial cases
-	       ((string= sym "fun")
-		(while (and (setq sym (sml-forward-sym))
-			    (string-match "^'" sym))
-		  (sml-forward-spaces))
-		(concat sym "  = "))
-	       ((member sym '("case" "handle" "fn" "of")) " => ")
-	       ;;((member sym '("abstype" "datatype")) "")
-	       (t ""))))))
+  (unless (save-excursion (skip-chars-backward "\t ") (bolp)) (insert "\n"))
+  (insert "| ")
+  (let ((text
+         (save-excursion
+           (backward-char 2)		;back over the just inserted "| "
+           (let ((sym (sml-find-matching-starter sml-pipeheads
+                                                 ;; (sml-op-prec "|" 'back)
+                                                 )))
+             (sml-smie-forward-token)
+             (forward-comment (point-max))
+             (cond
+              ((string= sym "|")
+               (let ((f (sml-smie-forward-token)))
+                 (sml-find-forward "\\(=>\\|=\\||\\)\\S.")
+                 (cond
+                  ((looking-at "|") "")      ;probably a datatype
+                  ((looking-at "=>") " => ") ;`case', or `fn' or `handle'
+                  ((looking-at "=") (concat f "  = "))))) ;a function
+              ((string= sym "and")
+               ;; could be a datatype or a function
+               (setq sym (sml-funname-of-and))
+               (if sym (concat sym "  = ") ""))
+              ;; trivial cases
+              ((string= sym "fun")
+               (while (and (setq sym (sml-smie-forward-token))
+                           (string-match "^'" sym))
+                 (forward-comment (point-max)))
+               (concat sym "  = "))
+              ((member sym '("case" "handle" "fn" "of")) " => ")
+              ;;((member sym '("abstype" "datatype")) "")
+              (t ""))))))
 
-     (insert text)
-     (indent-according-to-mode)
-     (beginning-of-line)
-     (skip-chars-forward "\t |")
-     (skip-syntax-forward "w")
-     (skip-chars-forward "\t ")
-     (when (eq ?= (char-after)) (backward-char)))))
+    (insert text)
+    (indent-according-to-mode)
+    (beginning-of-line)
+    (skip-chars-forward "\t |")
+    (skip-syntax-forward "w")
+    (skip-chars-forward "\t ")
+    (when (eq ?= (char-after)) (backward-char))))
 
 (defun sml-electric-semi ()
   "Insert a \;.
 If variable `sml-electric-semi-mode' is t, indent the current line, insert
 a newline, and indent."
   (interactive)
-  (insert "\;")
+  (self-insert-command 1)
   (if sml-electric-semi-mode
       (reindent-then-newline-and-indent)))
 
@@ -793,21 +817,52 @@ If anyone has a good algorithm for this..."
                   (setq indent 0))))
             (backward-delete-char-untabify (- start-column indent)))))))
 
+(defun sml-smie-find-matching-starter (syms)
+  (let ((halfsexp nil)
+        tok)
+    ;;(sml-smie-forward-token)
+    (while (not (or (bobp)
+                    (member (nth 2 (setq tok (smie-backward-sexp halfsexp)))
+                            syms)))
+      (cond
+       ((null (car tok)) nil)
+       ((numberp (car tok)) (setq halfsexp 'half))
+       (t (goto-char (cadr tok)))))
+    (if (nth 2 tok) (goto-char (cadr tok)))
+    (nth 2 tok)))
+
+(defun sml-find-matching-starter (syms)
+  (cond
+   ((and sml-use-smie (fboundp 'smie-backward-sexp))
+    (sml-smie-find-matching-starter syms))
+   ((fboundp 'sml-old-find-matching-starter)
+    (sml-old-find-matching-starter syms))))
+
+(defun sml-smie-skip-siblings ()
+  (let (tok)
+    (while (and (not (bobp))
+                (progn (setq tok (smie-backward-sexp 'half))
+                       (cond
+                        ((null (car tok)) t)
+                        ((numberp (car tok)) t)
+                        (t nil)))))
+    (if (nth 2 tok) (goto-char (cadr tok)))
+    (nth 2 tok)))
+
 (defun sml-skip-siblings ()
-  (while (and (not (bobp)) (sml-backward-arg))
-    (sml-find-matching-starter sml-starters-syms))
-  (when (looking-at "in\\>\\|local\\>")
-    ;;skip over `local...in' and continue
-    (forward-word 1)
-    (sml-backward-sexp nil)
-    (sml-skip-siblings)))
+  (cond
+   ((and sml-use-smie (fboundp 'smie-backward-sexp))
+    (sml-smie-skip-siblings))
+   ((fboundp 'sml-old-skip-siblings)
+    (sml-old-skip-siblings))
+   (t (up-list -1))))
 
 (defun sml-beginning-of-defun ()
   (let ((sym (sml-find-matching-starter sml-starters-syms)))
     (if (member sym '("fun" "and" "functor" "signature" "structure"
 		      "abstraction" "datatype" "abstype"))
-	(save-excursion (sml-forward-sym) (sml-forward-spaces)
-			(sml-forward-sym))
+	(save-excursion (sml-smie-forward-token) (forward-comment (point-max))
+			(sml-smie-forward-token))
       ;; We're inside a "non function declaration": let's skip all other
       ;; declarations that we find at the same level and try again.
       (sml-skip-siblings)
@@ -1036,14 +1091,14 @@ See also `edit-kbd-macro' which is bound to \\[edit-kbd-macro]."
 
 (defun sml-defuse-symdata-at-point ()
   (save-excursion
-    (sml-forward-sym)
-    (let ((symname (sml-backward-sym)))
+    (sml-smie-forward-token)
+    (let ((symname (sml-smie-backward-token)))
       (if (equal symname "op")
-          (save-excursion (setq symname (sml-forward-sym))))
+          (save-excursion (setq symname (sml-smie-forward-token))))
       (when (string-match "op " symname)
         (setq symname (substring symname (match-end 0)))
         (forward-word)
-        (sml-forward-spaces))
+        (forward-comment (point-max)))
       (list symname
             ;; Def-use files seem to count chars, not columns.
             ;; We hope here that they don't actually count bytes.
@@ -1165,7 +1220,7 @@ If nil, align it with previous cases."
 	       (save-match-data
 		 (goto-char (match-beginning 0))
 		 (unless (or (re-search-forward "\\<of\\>" (match-end 0) 'move)
-			     (progn (sml-forward-spaces)
+			     (progn (forward-comment (point-max))
 				    (not (looking-at "("))))
 		   sml-yacc-bnf-face))))
 	  (4 font-lock-builtin-face t t))
@@ -1203,15 +1258,18 @@ If nil, align it with previous cases."
 	   ((looking-at "|")
 	    (if (numberp sml-yacc-indent-pipe) sml-yacc-indent-pipe
 	      (backward-sexp 1)
-	      (while (progn (sml-backward-spaces)
+	      (while (progn (forward-comment (- (point)))
 			    (/= 0 (skip-syntax-backward "w_"))))
-	      (sml-backward-spaces)
+	      (forward-comment (- (point)))
 	      (if (not (looking-at "\\s-$"))
 		  (1- (current-column))
 		(skip-syntax-forward " ")
 		(- (current-column) 2))))))
 	;; default to SML rules
-	(sml-calculate-indentation))))
+        (cond
+         ((and sml-use-smie (fboundp 'smie-indent-calculate))
+          (smie-indent-calculate))
+         ((fboundp 'sml-calculate-indentation) (sml-calculate-indentation))))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.grm\\'" . sml-yacc-mode))

@@ -78,10 +78,6 @@
        "let" "local" "nonfix" "open" "raise" "sig" "struct" "type" "val" "while"
        "do" "with" "withtype")))))
 
-(defconst sml-starters-indent-after
-  (sml-syms-re '("let" "local" "struct" "in" "sig" "with"))
-  "Indent after these.")
-
 (defconst sml-delegate
   (sml-preproc-alist
    `((("of" "else" "then" "d=") . (not (sml-bolp)))
@@ -122,9 +118,6 @@ for all symbols and in all lines starting with the given symbol."
 
 (defconst sml-agglomerate-re "\\<else[ \t]+if\\>"
   "Regexp of compound symbols (pairs of symbols to be considered as one).")
-
-(defconst sml-exptrail-syms
-  '("if" "then" "else" "while" "withtype" "do" "case" "of" "raise" "fn"))
 
 (defvar sml-internal-syntax-table
   (let ((st (make-syntax-table sml-mode-syntax-table)))
@@ -525,7 +518,7 @@ Point should be just before the symbol ORIG-SYM and is not preserved."
     (if (member sym '(";" "d=")) (setq sym nil))
     (if sym (sml-get-sym-indent sym)
       ;; FIXME: this can take a *long* time !!
-      (setq sym (sml-find-matching-starter sml-starters-syms))
+      (setq sym (sml-old-find-matching-starter sml-starters-syms))
       (if (or (sml-first-starter-p)
               ;; Don't align with `and' because it might be specially indented.
               (and (or (equal orig-sym "and") (not (equal sym "and")))
@@ -543,8 +536,8 @@ Point should be just before the symbol ORIG-SYM and is not preserved."
        (sml-delegated-indent))))
 
 (defun sml-indent-pipe ()
-  (let ((sym (sml-find-matching-starter sml-pipeheads
-					(sml-op-prec "|" 'back))))
+  (let ((sym (sml-old-find-matching-starter sml-pipeheads
+                                            (sml-op-prec "|" 'back))))
     (when sym
       (if (string= sym "|")
 	  (if (sml-bolp) (current-column) (sml-indent-pipe))
@@ -558,14 +551,6 @@ Point should be just before the symbol ORIG-SYM and is not preserved."
 	  (sml-forward-sym)
 	  (sml-forward-spaces)
 	  (+ pipe-indent (current-column)))))))
-
-(defun sml-find-forward (re)
-  (sml-forward-spaces)
-  (while (and (not (looking-at re))
-	      (progn
-		(or (ignore-errors (forward-sexp 1) t) (forward-char 1))
-		(sml-forward-spaces)
-		(not (looking-at re))))))
 
 (defun sml-indent-arg ()
   (and (save-excursion (ignore-errors (sml-forward-arg)))
@@ -705,7 +690,7 @@ Optional argument STYLE is currently ignored."
     (current-column)))
 
 
-(defun sml-find-matching-starter (syms &optional prec)
+(defun sml-old-find-matching-starter (syms &optional prec)
   (let (sym)
     (ignore-errors
       (while
@@ -713,6 +698,15 @@ Optional argument STYLE is currently ignored."
 		 (setq sym (save-excursion (sml-forward-sym)))
 		 (not (or (member sym syms) (bobp)))))
       (if (member sym syms) sym))))
+
+(defun sml-old-skip-siblings ()
+  (while (and (not (bobp)) (sml-backward-arg))
+    (sml-old-find-matching-starter sml-starters-syms))
+  (when (looking-at "in\\>\\|local\\>")
+    ;; Skip over `local...in' and continue.
+    (forward-word 1)
+    (sml-backward-sexp nil)
+    (sml-old-skip-siblings)))
 
 (provide 'sml-oldindent)
 
