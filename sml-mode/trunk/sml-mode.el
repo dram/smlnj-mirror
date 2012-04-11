@@ -68,21 +68,22 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'sml-defs)
 (require 'smie nil 'noerror)
 
 (condition-case nil (require 'skeleton) (error nil))
+
+(defgroup sml ()
+  "Editing SML code."
+  :group 'languages)
 
 ;;; VARIABLES CONTROLLING INDENTATION
 
 (defcustom sml-indent-level 4
   "Indentation of blocks in ML (see also `sml-indent-rule')."
-  :group 'sml
   :type '(integer))
 
 (defcustom sml-indent-args sml-indent-level
   "Indentation of args placed on a separate line."
-  :group 'sml
   :type '(integer))
 
 ;; (defvar sml-indent-align-args t
@@ -100,7 +101,6 @@
 (defcustom sml-electric-semi-mode nil
   "If non-nil, `\;' will self insert, reindent the line, and do a newline.
 If nil, just insert a `\;'.  (To insert while t, do: \\[quoted-insert] \;)."
-  :group 'sml
   :type 'boolean)
 (when (fboundp 'electric-layout-mode)
   (make-obsolete-variable 'sml-electric-semi-mode
@@ -111,7 +111,6 @@ If nil, just insert a `\;'.  (To insert while t, do: \\[quoted-insert] \;)."
 If nil:					If t:
 	datatype a = A				datatype a = A
 	and b = B				     and b = B"
-  :group 'sml
   :type 'boolean)
 
 ;;; OTHER GENERIC MODE VARIABLES
@@ -158,6 +157,151 @@ Full documentation will be available after autoloading the function."))
   (autoload 'sml-send-buffer	"sml-proc"   sml-no-doc t))
 
 ;; font-lock setup
+
+(defvar sml-outline-regexp
+  ;; `st' and `si' are to match structure and signature.
+  "\\|s[ti]\\|[ \t]*\\(let[ \t]+\\)?\\(fun\\|and\\)\\>"
+  "Regexp matching a major heading.
+This actually can't work without extending `outline-minor-mode' with the
+notion of \"the end of an outline\".")
+
+;;
+;; Internal defines
+;;
+
+(defvar sml-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Smarter cursor movement.
+    ;; (define-key map [remap forward-sexp] 'sml-user-forward-sexp)
+    ;; (define-key map [remap backward-sexp] 'sml-user-backward-sexp)
+    ;; Text-formatting commands:
+    (define-key map "\C-c\C-m" 'sml-insert-form)
+    (define-key map "\C-c\C-i" 'sml-mode-info)
+    (define-key map "\M-|" 'sml-electric-pipe)
+    (define-key map "\M-\ " 'sml-electric-space)
+    (define-key map "\;" 'sml-electric-semi)
+    (define-key map [backtab] 'sml-back-to-outer-indent)
+    ;; Process commands added to sml-mode-map -- these should autoload.
+    (define-key map "\C-c\C-l" 'sml-load-file)
+    (define-key map "\C-c\C-c" 'sml-compile)
+    (define-key map "\C-c\C-s" 'switch-to-sml)
+    (define-key map "\C-c\C-r" 'sml-send-region)
+    (define-key map "\C-c\C-b" 'sml-send-buffer)
+    map)
+  "The keymap used in `sml-mode'.")
+
+(defconst sml-builtin-nested-comments-flag
+  (ignore-errors
+    (not (equal (let ((st (make-syntax-table)))
+		  (modify-syntax-entry ?\* ". 23n" st) st)
+		(let ((st (make-syntax-table)))
+		  (modify-syntax-entry ?\* ". 23" st) st))))
+  "Non-nil means this Emacs understands the `n' in syntax entries.")
+
+(defvar sml-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\* (if sml-builtin-nested-comments-flag
+                                 ". 23n" ". 23") st)
+    (modify-syntax-entry ?\( "()1" st)
+    (modify-syntax-entry ?\) ")(4" st)
+    (mapc (lambda (c) (modify-syntax-entry c "_" st)) "._'")
+    (mapc (lambda (c) (modify-syntax-entry c "." st)) ",;")
+    ;; `!' is not really a prefix-char, oh well!
+    (mapc (lambda (c) (modify-syntax-entry c "'"  st)) "~#!")
+    (mapc (lambda (c) (modify-syntax-entry c "."  st)) "%&$+-/:<=>?@`^|")
+    st)
+  "The syntax table used in `sml-mode'.")
+
+
+(easy-menu-define sml-mode-menu sml-mode-map "Menu used in `sml-mode'."
+  '("SML"
+    ("Process"
+     ["Start default ML compiler" run-sml		t]
+     ["-" nil nil]
+     ["run CM.make"		sml-compile	t]
+     ["load ML source file"	sml-load-file	t]
+     ["switch to ML buffer"	switch-to-sml	t]
+     ["--" nil nil]
+     ["send buffer contents"	sml-send-buffer	t]
+     ["send region"		sml-send-region	t]
+     ["send paragraph"		sml-send-function t]
+     ["goto next error"		next-error	(featurep 'sml-proc)]
+     ["---" nil nil]
+     ;; ["Standard ML of New Jersey" sml-smlnj	(fboundp 'sml-smlnj)]
+     ;; ["Poly/ML"			sml-poly-ml	(fboundp 'sml-poly-ml)]
+     ;; ["Moscow ML"		sml-mosml	(fboundp 'sml-mosml)]
+     ["Help for Inferior ML"	(describe-function 'inferior-sml-mode)
+      :active (featurep 'sml-proc)])
+    ["electric pipe"     sml-electric-pipe t]
+    ["insert SML form"   sml-insert-form t]
+    ("Forms" :filter sml-forms-menu)
+    ("Format/Mode Variables"
+     ["indent region"             indent-region t]
+     ["outdent"                   sml-back-to-outer-indent t]
+     ;; ["-" nil nil]
+     ;; ["set indent-level"          sml-indent-level t]
+     ;; ["set pipe-indent"           sml-pipe-indent t]
+     ;; ["--" nil nil]
+     ;; ["toggle type-of-indent"     sml-type-of-indent t]
+     ;; ["toggle nested-if-indent"   sml-nested-if-indent t]
+     ;; ["toggle electric-semi-mode" sml-electric-semi-mode t]
+     )
+    ["-----" nil nil]
+    ["SML mode help (brief)"       describe-mode t]
+    ["SML mode *info*"             sml-mode-info t]
+    ["Remove overlay"    (sml-error-overlay 'undo)
+     :visible (or (and (boundp 'sml-error-overlay)
+                       sml-error-overlay)
+                  (not (fboundp 'compilation-fake-loc)))
+     :active (and (boundp 'sml-error-overlay)
+                  (overlayp sml-error-overlay)
+                  (overlay-start sml-error-overlay))
+     ]))
+
+;; Make's sure they appear in the menu bar when sml-mode-map is active.
+;; On the hook for XEmacs only -- see easy-menu-add in auc-menu.el.
+;; (defun sml-mode-menu-bar ()
+;;   "Make sure menus appear in the menu bar as well as under mouse 3."
+;;   (and (eq major-mode 'sml-mode)
+;;        (easy-menu-add sml-mode-menu sml-mode-map)))
+;; (add-hook 'sml-mode-hook 'sml-mode-menu-bar)
+
+;;
+;; regexps
+;;
+
+(defun sml-syms-re (syms)
+  (concat "\\<" (regexp-opt syms t) "\\>"))
+
+;;
+
+(defconst sml-module-head-syms
+  '("signature" "structure" "functor" "abstraction"))
+
+
+(defconst sml-=-starter-syms
+  (list* "|" "val" "fun" "and" "datatype" "type" "abstype" "eqtype"
+	 sml-module-head-syms)
+  "Symbols that can be followed by a `='.")
+(defconst sml-=-starter-re
+  (concat "\\S.|\\S.\\|" (sml-syms-re (cdr sml-=-starter-syms)))
+  "Symbols that can be followed by a `='.")
+
+(defconst sml-non-nested-of-starter-re
+  (sml-syms-re '("datatype" "abstype" "exception"))
+  "Symbols that can introduce an `of' that shouldn't behave like a paren.")
+
+(defconst sml-starters-syms
+  (append sml-module-head-syms
+	  '("abstype" "datatype" "exception" "fun"
+	    "local" "infix" "infixr" "sharing" "nonfix"
+	    "open" "type" "val" "and"
+	    "withtype" "with"))
+  "The starters of new expressions.")
+
+(defconst sml-pipeheads
+   '("|" "of" "fun" "fn" "and" "handle" "datatype" "abstype")
+   "A `|' corresponds to one of these.")
 
 (defconst sml-keywords-regexp
   (sml-syms-re '("abstraction" "abstype" "and" "andalso" "as" "before" "case"
@@ -360,8 +504,6 @@ Regexp match data 0 points to the chars."
 ;;; Indentation with SMIE
 
 (defvar sml-use-smie t)
-(unless (and sml-use-smie (fboundp 'smie-setup))
-  (require 'sml-oldindent))
 
 (defconst sml-smie-grammar
   (when (fboundp 'smie-prec2->grammar)
@@ -882,7 +1024,6 @@ a newline, and indent."
 
 (defcustom sml-max-name-components 3
   "Maximum number of components to use for the current function name."
-  :group 'sml
   :type 'integer)
 
 (defun sml-current-fun-name ()
@@ -1210,19 +1351,16 @@ See also `edit-kbd-macro' which is bound to \\[edit-kbd-macro]."
 
 (defcustom sml-yacc-indent-action 16
   "Indentation column of the opening paren of actions."
-  :group 'sml
   :type 'integer)
 
 (defcustom sml-yacc-indent-pipe nil
   "Indentation column of the pipe char in the BNF.
 If nil, align it with `:' or with previous cases."
-  :group 'sml
   :type 'integer)
 
 (defcustom sml-yacc-indent-term nil
   "Indentation column of the (non)term part.
 If nil, align it with previous cases."
-  :group 'sml
   :type 'integer)
 
 (defvar sml-yacc-font-lock-keywords
@@ -1291,5 +1429,8 @@ If nil, align it with previous cases."
   (set (make-local-variable 'font-lock-defaults) sml-yacc-font-lock-defaults))
 
 (provide 'sml-mode)
+
+(unless (and sml-use-smie (fboundp 'smie-setup))
+  (require 'sml-oldindent))
 
 ;;; sml-mode.el ends here

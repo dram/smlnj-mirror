@@ -23,7 +23,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'sml-defs)
+(require 'sml-mode)
 
 (defun sml-preproc-alist (al)
   "Expand an alist AL where keys can be lists of keys into a normal one."

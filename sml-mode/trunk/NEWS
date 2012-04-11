@@ -2,11 +2,14 @@ Changes since 4.1:
 
 * New indentation code using SMIE when available.
 
-* sml-back-to-outer-indent is now on S-tab (aka `backtab') rather than M-tab.
+* `sml-back-to-outer-indent' is now on S-tab (aka `backtab') rather than M-tab.
 
 * Support for electric-layout-mode and electric-indent-mode.
 
-* sml-mark-defun tries to be more clever.
+* `sml-mark-defun' tries to be more clever.
+
+* A single file (sml-mode.el) is needed unless you want to use an interactive
+  process like SML/NJ, or if your Emacs does not provide SMIE.
 
 Changes since 4.0:
 

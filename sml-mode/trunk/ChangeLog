@@ -1,5 +1,12 @@
 2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Merge sml-defs.el into sml-mode.el.
+	* sml-mode.el: Merge code from sml-defs.el.
+	Remove ":group 'sml" since they're now redundant.
+	* makefile.pkg (ELFILES): Adjust.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* sml-mode.el (sml-mark-function): New implementation using SMIE.
 	* sml-defs.el (sml-mode-map): Use backtab.
 	Remove leftover unused sml-drag-region binding.
