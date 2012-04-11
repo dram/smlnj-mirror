@@ -49,14 +49,13 @@ notion of \"the end of an outline\".")
     (define-key map "\M-|" 'sml-electric-pipe)
     (define-key map "\M-\ " 'sml-electric-space)
     (define-key map "\;" 'sml-electric-semi)
-    (define-key map "\M-\t" 'sml-back-to-outer-indent)
-    ;; Process commands added to sml-mode-map -- these should autoload
+    (define-key map [backtab] 'sml-back-to-outer-indent)
+    ;; Process commands added to sml-mode-map -- these should autoload.
     (define-key map "\C-c\C-l" 'sml-load-file)
     (define-key map "\C-c\C-c" 'sml-compile)
     (define-key map "\C-c\C-s" 'switch-to-sml)
     (define-key map "\C-c\C-r" 'sml-send-region)
     (define-key map "\C-c\C-b" 'sml-send-buffer)
-    (define-key map [(meta shift down-mouse-1)] 'sml-drag-region)
     map)
   "The keymap used in `sml-mode'.")
 

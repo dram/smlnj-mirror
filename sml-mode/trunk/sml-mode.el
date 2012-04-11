@@ -792,13 +792,24 @@ a newline, and indent."
   (if sml-electric-semi-mode
       (reindent-then-newline-and-indent)))
 
-;;; INDENTATION !!!
+;;; Misc
 
 (defun sml-mark-function ()
-  "Synonym for `mark-paragraph' -- sorry.
-If anyone has a good algorithm for this..."
+  "Mark the surrounding function.  Or try to at least."
   (interactive)
-  (mark-paragraph))
+  (if (not (fboundp 'smie-setup))
+      (mark-paragraph)
+    ;; FIXME: Provide beginning-of-defun-function so mark-defun "just works".
+    (let ((start (point)))
+      (sml-beginning-of-defun)
+      (let ((beg (point)))
+        (smie-forward-sexp 'halfsexp)
+        (if (or (< start beg) (> start (point)))
+            (progn
+              (goto-char start)
+              (mark-paragraph))
+          (push-mark nil t t)
+          (goto-char beg))))))
 
 (defun sml-back-to-outer-indent ()
   "Unindents to the next outer level of indentation."

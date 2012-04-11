@@ -1,5 +1,11 @@
 2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* sml-mode.el (sml-mark-function): New implementation using SMIE.
+	* sml-defs.el (sml-mode-map): Use backtab.
+	Remove leftover unused sml-drag-region binding.
+
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	Use SMIE by default and make sml-oldindent optional.
 	* sml-mode.el: Only load sml-oldindent if necessary.
 	(sml-use-smie): Default to t.
