@@ -1,6 +1,6 @@
 ;;; sml-mode.el --- Major mode for editing (Standard) ML
 
-;; Copyright (C) 1999,2000,2004,2007,2010  Stefan Monnier
+;; Copyright (C) 1999,2000,2004,2007,2010-2012  Stefan Monnier
 ;; Copyright (C) 1994-1997  Matthew J. Morley
 ;; Copyright (C) 1989       Lars Bo Nielsen
 
@@ -73,6 +73,10 @@
 (require 'sml-util)
 (require 'sml-move)
 (require 'sml-defs)
+
+(defvar sml-use-smie nil)
+(when sml-use-smie (require 'smie nil 'noerror))
+
 (condition-case nil (require 'skeleton) (error nil))
 
 ;;; VARIABLES CONTROLLING INDENTATION
@@ -352,6 +356,273 @@ Regexp match data 0 points to the chars."
   '(sml-font-lock-keywords nil nil ((?_ . "w") (?' . "w")) nil
     (font-lock-syntactic-keywords . sml-font-lock-syntactic-keywords)))
 
+
+;;; Indentation with SMIE
+
+(defconst sml-smie-grammar
+  (when (fboundp 'smie-prec2->grammar)
+    ;; We have several problem areas where SML's syntax can't be handled by an
+    ;; operator precedence grammar:
+    ;;
+    ;; "= A before B" is "= A) before B" if this is the
+    ;;   `boolean-=' but it is "= (A before B)" if it's the `definitional-='.
+    ;;   We can work around the problem by tweaking the lexer to return two
+    ;;   different tokens for the two different kinds of `='.
+    ;; "of A | B" in a "case" we want "of (A | B, but in a `datatype'
+    ;;   we want "of A) | B".
+    ;; "= A | B" can be "= A ) | B" if the = is from a "fun" definition,
+    ;;   but it is "= (A | B" if it is a `datatype' definition (of course, if
+    ;;   the previous token introducing the = is `and', deciding whether
+    ;;   it's a datatype or a function requires looking even further back).
+    ;; "functor foo (...) where type a = b = ..." the first `=' looks very much
+    ;;   like a `definitional-=' even tho it's just an equality constraint.
+    ;;   Currently I don't even try to handle `where' at all.
+    (smie-prec2->grammar
+     (smie-merge-prec2s
+      (smie-bnf->prec2
+       '((exp ("if" exp "then" exp "else" exp)
+              ("case" exp "of" branches)
+              ("let" decls "in" cmds "end")
+              ("struct" decls "end")
+              ("sig" decls "end")
+              (sexp)
+              (sexp "handle" branches)
+              ("fn" sexp "=>" exp))
+         ;; "simple exp"s are the ones that can appear to the left of `handle'.
+         (sexp (sexp ":" type) ("(" exps ")")
+               (sexp "orelse" sexp)
+               (marg ":>" type)
+               (sexp "andalso" sexp))
+         (cmds (cmds ";" cmds) (exp))
+         (exps (exps "," exps) (exp))   ; (exps ";" exps)
+         (branches (sexp "=>" exp) (branches "|" branches))
+         ;; Operator precedence grammars handle separators much better then
+         ;; starters/terminators, so let's pretend that let/fun are separators.
+         (decls (sexp "d=" exp)
+                (sexp "d=" databranches)
+                (funbranches "|" funbranches)
+                (sexp "=of" type)       ;After "exception".
+                ;; FIXME: Just like PROCEDURE in Pascal and Modula-2, this
+                ;; interacts poorly with the other constructs since I
+                ;; can't make "local" a separator like fun/val/type/...
+                ("local" decls "in" decls "end")
+                ;; (decls "local" decls "in" decls "end")
+                (decls "functor" decls)
+                (decls "signature" decls)
+                (decls "structure" decls)
+                (decls "type" decls)
+                (decls "open" decls)
+                (decls "and" decls)
+                (decls "infix" decls)
+                (decls "infixr" decls)
+                (decls "nonfix" decls)
+                (decls "abstype" decls)
+                (decls "datatype" decls)
+                (decls "exception" decls)
+                (decls "fun" decls)
+                (decls "val" decls))
+         (type (type "->" type)
+               (type "*" type))
+         (funbranches (sexp "d=" exp))
+         (databranches (sexp "=of" type) (databranches "d|" databranches))
+         ;; Module language.
+         ;; (mexp ("functor" marg "d=" mexp)
+         ;;       ("structure" marg "d=" mexp)
+         ;;       ("signature" marg "d=" mexp))
+         (marg (marg ":" type) (marg ":>" type))
+         (toplevel (decls) (exp) (toplevel ";" toplevel)))
+       ;; '(("local" . opener))
+       ;; '((nonassoc "else") (right "handle"))
+       '((nonassoc "of") (assoc "|")) ; "case a of b => case c of d => e | f"
+       '((nonassoc "handle") (assoc "|")) ; Idem for "handle".
+       '((assoc "->") (assoc "*"))
+       '((assoc "val" "fun" "type" "datatype" "abstype" "open" "infix" "infixr"
+                "nonfix" "functor" "signature" "structure" "exception"
+                ;; "local"
+                )
+         (assoc "and"))
+       '((assoc "orelse") (assoc "andalso") (nonassoc ":"))
+       '((assoc ";")) '((assoc ",")) '((assoc "d|")))
+
+      (smie-precs->prec2
+       '((nonassoc "andalso")                     ;To anchor the prec-table.
+         (assoc "before")                         ;0
+         (assoc ":=" "o")                         ;3
+         (nonassoc ">" ">=" "<>" "<" "<=" "=")    ;4
+         (assoc "::" "@")                         ;5
+         (assoc "+" "-" "^")                      ;6
+         (assoc "/" "*" "quot" "rem" "div" "mod") ;7
+         (nonassoc " -dummy- ")))                 ;Bogus anchor at the end.
+      ))))
+
+(defvar sml-indent-separator-outdent 2)
+
+(defun sml-smie-rules (kind token)
+  ;; I much preferred the pcase version of the code, especially while
+  ;; edebugging the code.  But that will have to wait until we get rid of
+  ;; support for Emacs-23.
+  (case kind
+    (:elem (case token
+             (basic sml-indent-level)
+             (args  sml-indent-args)))
+    (:list-intro (member token '("fn")))
+    (:after
+     (cond
+      ((equal token "struct") 0)
+      ((equal token "=>") (if (smie-rule-hanging-p) 0 2))
+      ((equal token "in") (if (smie-rule-parent-p "local") 0))
+      ((equal token "of") 3)
+      ((member token '("(" "{" "[")) (if (not (smie-rule-hanging-p)) 2))
+      ((equal token "else") (if (smie-rule-hanging-p) 0)) ;; (:next "if" 0)
+      ((member token '("|" "d|" ";" ",")) (smie-rule-separator kind))
+      ((equal token "d=")
+       (if (and (smie-rule-parent-p "val") (smie-rule-next-p "fn")) -3))))
+    (:before
+     (cond
+      ((equal token "=>") (if (smie-rule-parent-p "fn") 3))
+      ((equal token "of") 1)
+      ;; In case the language is extended to allow a | directly after of.
+      ((and (equal token "|") (smie-rule-prev-p "of")) 1)
+      ((member token '("|" "d|" ";" ",")) (smie-rule-separator kind))
+      ;; Treat purely syntactic block-constructs as being part of their parent,
+      ;; when the opening statement is hanging.
+      ((member token '("let" "(" "[" "{"))
+       (if (smie-rule-hanging-p) (smie-rule-parent)))
+      ;; Treat if ... else if ... as a single long syntactic construct.
+      ;; Similarly, treat fn a => fn b => ... as a single construct.
+      ((member token '("if" "fn"))
+       (and (not (smie-rule-bolp))
+            (smie-rule-prev-p (if (equal token "if") "else" "=>"))
+            (smie-rule-parent)))
+      ((equal token "and")
+       ;; FIXME: maybe "and" (c|sh)ould be handled as an smie-separator.
+       (cond
+        ((smie-rule-parent-p "datatype") (if sml-rightalign-and 5 0))
+        ((smie-rule-parent-p "fun" "val") 0)))
+      ((equal token "d=")
+       (cond
+        ((smie-rule-parent-p "datatype") (if (smie-rule-bolp) 2))
+        ((smie-rule-parent-p "structure" "signature") 0)))
+      ;; Indent an expression starting with "local" as if it were starting
+      ;; with "fun".
+      ((equal token "local") (smie-indent-keyword "fun"))
+      ;; FIXME: type/val/fun/... are separators but "local" is not, even though
+      ;; it appears in the same list.  Try to fix up the problem by hand.
+      ;; ((or (equal token "local")
+      ;;      (equal (cdr (assoc token smie-grammar))
+      ;;             (cdr (assoc "fun" smie-grammar))))
+      ;;  (let ((parent (save-excursion (smie-backward-sexp))))
+      ;;    (when (or (and (equal (nth 2 parent) "local")
+      ;;                   (null (car parent)))
+      ;;              (progn
+      ;;                (setq parent (save-excursion (smie-backward-sexp "fun")))
+      ;;                (eq (car parent) (nth 1 (assoc "fun" smie-grammar)))))
+      ;;      (goto-char (nth 1 parent))
+      ;;      (cons 'column (smie-indent-virtual)))))
+      ))))
+
+(defun sml-smie-definitional-equal-p ()
+  "Figure out which kind of \"=\" this is.
+Assumes point is right before the = sign."
+  ;; The idea is to look backward for the first occurrence of a token that
+  ;; requires a definitional "=" and then see if there's such a definitional
+  ;; equal between that token and ourselves (in which case we're not
+  ;; a definitional = ourselves).
+  ;; The "search for =" is naive and will match "=>" and "<=", but it turns
+  ;; out to be OK in practice because such tokens very rarely (if ever) appear
+  ;; between the =-starter and the corresponding definitional equal.
+  ;; One known problem case is code like:
+  ;; "functor foo (structure s : S) where type t = s.t ="
+  ;; where the "type t = s.t" is mistaken for a type definition.
+  (let ((re (concat "\\(" sml-=-starter-re "\\)\\|=")))
+    (save-excursion
+      (and (re-search-backward re nil t)
+           (or (match-beginning 1)
+               ;; If we first hit a "=", then that = is probably definitional
+               ;; and  we're an equality, but not necessarily.  One known
+               ;; problem case is code like:
+               ;; "functor foo (structure s : S) where type t = s.t ="
+               ;; where the first = is more like an equality (tho it doesn't
+               ;; matter much) and the second is definitional.
+               ;;
+               ;; FIXME: The test below could be used to recognize that the
+               ;; second = is not a mere equality, but that's not enough to
+               ;; parse the construct properly: we'd need something
+               ;; like a third kind of = token for structure definitions, in
+               ;; order for the parser to be able to skip the "type t = s.t"
+               ;; as a sub-expression.
+               ;;
+               ;; (and (not (looking-at "=>"))
+               ;;      (not (eq ?< (char-before))) ;Not a <=
+               ;;      (re-search-backward re nil t)
+               ;;      (match-beginning 1)
+               ;;      (equal "type" (buffer-substring (- (match-end 1) 4)
+               ;;                                      (match-end 1))))
+               )))))
+
+(defun sml-smie-non-nested-of-p ()
+  ;; FIXME: Maybe datatype-|-p makes this nested-of business unnecessary.
+  "Figure out which kind of \"of\" this is.
+Assumes point is right before the \"of\" symbol."
+  (save-excursion
+    (and (re-search-backward (concat "\\(" sml-non-nested-of-starter-re
+                                     "\\)\\|\\<case\\>") nil t)
+         (match-beginning 1))))
+
+(defun sml-smie-datatype-|-p ()
+  "Figure out which kind of \"|\" this is.
+Assumes point is right before the | symbol."
+  (save-excursion
+    (forward-char 1)                    ;Skip the |.
+    (sml-smie-forward-token-1)          ;Skip the tag.
+    (member (sml-smie-forward-token-1)
+            '("|" "of" "in" "datatype" "and" "exception" "abstype" "infix"
+              "infixr" "nonfix" "local" "val" "fun" "structure" "functor"
+              "signature"))))
+
+(defun sml-smie-forward-token-1 ()
+  (forward-comment (point-max))
+  (buffer-substring-no-properties
+   (point)
+   (progn
+     (or (/= 0 (skip-syntax-forward "'w_"))
+         (skip-syntax-forward ".'"))
+     (point))))
+
+(defun sml-smie-forward-token ()
+  (let ((sym (sml-smie-forward-token-1)))
+    (cond
+     ((equal "op" sym)
+      (concat "op " (sml-smie-forward-token-1)))
+     ((member sym '("|" "of" "="))
+      ;; The important lexer for indentation's performance is the backward
+      ;; lexer, so for the forward lexer we delegate to the backward one.
+      (save-excursion (sml-smie-backward-token)))
+     (t sym))))
+
+(defun sml-smie-backward-token-1 ()
+  (forward-comment (- (point)))
+  (buffer-substring-no-properties
+   (point)
+   (progn
+     (or (/= 0 (skip-syntax-backward ".'"))
+         (skip-syntax-backward "'w_"))
+     (point))))
+
+(defun sml-smie-backward-token ()
+  (let ((sym (sml-smie-backward-token-1)))
+    (unless (zerop (length sym))
+      ;; FIXME: what should we do if `sym' = "op" ?
+      (let ((point (point)))
+	(if (equal "op" (sml-smie-backward-token-1))
+	    (concat "op " sym)
+	  (goto-char point)
+	  (cond
+	   ((string= sym "=") (if (sml-smie-definitional-equal-p) "d=" "="))
+	   ((string= sym "of") (if (sml-smie-non-nested-of-p) "=of" "of"))
+           ((string= sym "|") (if (sml-smie-datatype-|-p) "d|" "|"))
+	   (t sym)))))))
+
 ;;;;
 ;;;; Imenu support
 ;;;;
@@ -405,8 +676,6 @@ This mode runs `sml-mode-hook' just before exiting.
   (set (make-local-variable 'paragraph-separate)
        (concat "\\([ \t]*\\*)?\\)?\\(" paragraph-separate "\\)"))
   (set (make-local-variable 'require-final-newline) t)
-  ;; forward-sexp-function is an experimental variable in my hacked Emacs.
-  (set (make-local-variable 'forward-sexp-function) 'sml-user-forward-sexp)
   ;; For XEmacs
   (easy-menu-add sml-mode-menu)
   ;; Compatibility.  FIXME: we should use `-' in Emacs-CVS.
@@ -416,7 +685,16 @@ This mode runs `sml-mode-hook' just before exiting.
 (defun sml-mode-variables ()
   (set-syntax-table sml-mode-syntax-table)
   (setq local-abbrev-table sml-mode-abbrev-table)
-  (set (make-local-variable 'indent-line-function) 'sml-indent-line)
+  ;; Setup indentation and sexp-navigation.
+  (cond
+   ((and sml-use-smie (fboundp 'smie-setup))
+    (smie-setup sml-smie-grammar #'sml-smie-rules
+                :backward-token #'sml-smie-backward-token
+                :forward-token #'sml-smie-forward-token))
+   (t
+    (set (make-local-variable 'forward-sexp-function) 'sml-user-forward-sexp)
+    (set (make-local-variable 'indent-line-function) 'sml-indent-line)))
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'comment-start) "(* ")
   (set (make-local-variable 'comment-end) " *)")
   (set (make-local-variable 'comment-start-skip) "(\\*+\\s-*")

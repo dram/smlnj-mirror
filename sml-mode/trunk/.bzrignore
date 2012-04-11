@@ -1,0 +1,3 @@
+*.elc
+sml-mode-startup.el
+testcases.sml.new

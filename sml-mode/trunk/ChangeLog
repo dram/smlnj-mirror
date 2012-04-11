@@ -1,3 +1,18 @@
+2012-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add SMIE support.
+	* .bzrignore: New file.
+	* makefile.pkg (test): Use sml-mode-startup.
+	* sml-mode.el (sml-use-smie): New config var.
+	(sml-smie-grammar, sml-indent-separator-outdent): New vars.
+	(sml-smie-rules, sml-smie-definitional-equal-p)
+	(sml-smie-non-nested-of-p, sml-smie-datatype-|-p)
+	(sml-smie-forward-token-1, sml-smie-forward-token)
+	(sml-smie-backward-token-1, sml-smie-backward-token): New functions.
+	(sml-mode): Don't set forward-sexp-function.
+	(sml-mode-variables): Set it here instead, and setup SMIE instead
+	if applicable.
+
 2010-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Release version 4.1.
