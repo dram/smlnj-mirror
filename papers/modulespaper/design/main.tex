@@ -91,14 +91,14 @@ higher-order modules.
 
 The syntactic type system (Figure \ref{fig:typesystem}) consists of
 monotypes, type constructors (\emph{tycons}), and type expressions
-(\emph{aka} types). The monokind $\Omega$ and arrow kind $\Omega^n
+(\emph{aka} \emph{types}). The monokind $\Omega$ and arrow kind $\Omega^n
 \Rightarrow \Omega$ classify monotypes and tycons respectively. As can
 be seen from the form of the arrow kind, the syntactic type system
 does not support higher-kinded tycons but it does support multi-arity
 tycons where the $n$ is a natural number indicating the arity of the
 tycon. Furthermore, the core language does not support impredicative
 polymorphism. Universal quantifiers for polymorphism are added in a
-semantic type system introduced later in this chapter. In the surface
+semantic type system introduced later in this section. In the surface
 type language, the only type expressions that can occur on the right
 hand side of type definitions are type variables, arrow types, and
 type applications. Type functions are only introduced by the type
@@ -119,7 +119,7 @@ There are standard well-kinding judgments of the form
 $\Gamma,\Delta\vdash C^s : \Omega$, $\Gamma \vdash C^\lambda : K$ and
 $\Gamma \vdash T : \Omega$, where a static environment $\Gamma$ maps
 symbolic paths to kinds, and $\Delta$s represents the set of all bound
-type variables that presumed to be in scope. Type variables are of
+type variables that are presumed to be in scope. Type variables are of
 kind $\Omega$. The rules for the well-kinding judgements are routine
 and are omitted.
 
@@ -1215,25 +1215,42 @@ $\theta_c$.
 
 \section{Module Elaboration}\label{sec:modelab}
 
-The module elaboration judgment calls for a static environment and an entity environment as its context. The static environment serves to elaborate tycons and structures, by looking up symbolic paths. The entity environment plays a role in signature elaboration and instantiation of functor parameters. 
+The module elaboration judgment calls for a static environment and an
+entity environment as its context. The static environment serves to
+elaborate tycons and structures, by looking up symbolic paths. The
+entity environment plays a role in signature elaboration and
+instantiation of functor parameters.
 
-Fig.~\ref{fig:elabmod} gives the rules for elaborating module declarations. The judgment computes an entity declaration, a static environment, and an entity environment for the module declarations. The two environments will only contain bindings representing the information in the module declarations and not the closure. Each module declaration elaboration rule calculates a semantic representation of the declaration value (\emph{i.e.}, type expressions, (definitional) tycons, atomic tycons, full signatures, and full functor signatures) and binds that representation in the static environment (and the entity environment if the entity in question is primary). 
+Fig.~\ref{fig:elabmod} gives the rules for elaborating module
+declarations. The judgment computes an entity declaration, a static
+environment, and an entity environment for the module
+declarations. The two environments will only contain bindings
+representing the information in the module declarations and not the
+closure. Each module declaration elaboration rule calculates a
+semantic representation of the declaration value (\emph{i.e.}, type
+expressions, (definitional) tycons, atomic tycons, full signatures,
+and full functor signatures) and binds that representation in the
+static environment (and the entity environment if the entity in
+question is primary).
 
 Rules~\ref{eq:valdecl} and~\ref{eq:typedefdecl} elaborate values to a
 semantic type expression and syntactic tycon to semantic tycon
-respectively. Rule~\ref{eq:valdecl} assumes a core expression elaboration (typechecking) judgment of the form $\Gamma\vdash e \Rightarrow_{core} \mathfrak{T}$, which is standard. Neither of these produce any entity declarations and
-entity environment because they do not contain static
-entities. Rule~\ref{eq:dtdecl} generates a fresh atomic tycon $\tau^n$
-for a datatype. This atomic tycon is bound in both the static and
-entity environments. The elaborator further produces an entity
-declaration $\rho_t =_{tyc} \newx(n)$ that records the functor action
-attributed to the datatype declaration. The entity declaration is
-reserved for evaluation upon functor application of the possible
-enclosing functor. When evaluated, it will produce another atomic
-tycon distinct from the $\tau^n$ generated here. Rule~\ref{eq:strdecl}
-elaborates the structure expression to a full signature and a
-structure entity expression. Rule~\ref{eq:fctdecl} elaborates a
-functor declaration via several steps: 
+respectively. Rule~\ref{eq:valdecl} assumes a core expression
+elaboration (typechecking) judgment of the form $\Gamma\vdash e
+\Rightarrow_{core} \mathfrak{T}$, which is standard. Neither of these
+produce any entity declarations and entity environment because they do
+not contain static entities. Rule~\ref{eq:dtdecl} generates a fresh
+atomic tycon $\tau^n$ for a datatype. This atomic tycon is bound in
+both the static and entity environments. The elaborator further
+produces an entity declaration $\rho_t =_{tyc} \newx(n)$ that records
+the functor action attributed to the datatype declaration. The entity
+declaration is reserved for evaluation upon functor application of the
+possible enclosing functor. When evaluated, it will produce another
+atomic tycon distinct from the $\tau^n$ generated
+here. Rule~\ref{eq:strdecl} elaborates the structure expression to a
+full signature and a structure entity
+expression. Rule~\ref{eq:fctdecl} elaborates a functor declaration via
+several steps:
 \begin{enumerate}
 \item elaborate the functor parameter signature $\Sigma_x$
 \item instantiate it $\Upsilon_x$
@@ -1372,15 +1389,16 @@ components in $\rho_u$ that is not specified in the formal parameter
 signature will be accessed. Furthermore, none of the variables are
 being renamed. 
 
-The F$_\omega$ kinds, tycons, and types for tycon content of structures, type
-content of structures, and structures themselves are record kinds,
-record tycons, and record types respectively. Each label-field pair is
-a pair of an entity variable and the kind, tycon, and type of the
-entity referred to by that entity variable. Let $lks$, $lcs$, and $lts$ be a sequence of record label-field for
-kinds, tycons, and types respectively. The notation
-$lks\uplus lks'$ appends two record kinds. The notation is extended in
-the usual way to append tycons and types. No shadowing is expected
-because all records field names will be entity variables. 
+The F$_\omega$ kinds, tycons, and types for tycon content of
+structures, type content of structures, and structures themselves are
+record kinds, record tycons, and record types respectively. Each
+label-field pair is a pair of an entity variable and the kind, tycon,
+and type of the entity referred to by that entity variable. Let $lks$,
+$lcs$, and $lts$ be a sequence of record label-field for kinds,
+tycons, and types respectively. The notation $lks\uplus lks'$ appends
+two record kinds. The notation is extended in the usual way to append
+tycons and types. No shadowing is expected because all records field
+names will be entity variables.
 
 Fig.~\ref{fig:semsigtokinds} gives the rules for producing $F_\omega$
 kinds from semantic signatures. Value specs and type definition specs
@@ -1493,8 +1511,9 @@ must be bound (by the special let tyc form) to a type variable that is
 in the scope of all subsequent occurrences. It turns out that in
 general, the expressions constructing these tycons are exactly the
 entity expressions from the module system. The referentially
-transparent static content such as type definitions can continue to be packaged together in a tycon record to which $\Lambda$ type abstractions can
-be directly applied. 
+transparent static content such as type definitions can continue to be
+packaged together in a tycon record to which $\Lambda$ type
+abstractions can be directly applied.
 
 Another difference between datatype declarations and type definitions
 is what is translated into F$_\omega$. For datatype declarations, the
