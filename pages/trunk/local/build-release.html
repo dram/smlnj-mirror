@@ -2,150 +2,223 @@
 <html>
   <head>
     <title>Building a Release</title>
-<style type="text/css">
-ol.a {list-style-type:lower-alpha;}
-</style>
+    <style type="text/css">
+      ol a {list-style-type: lower-alpha;}
+      ol > li {margin-bottom: 0.5em;}
+    </style>
   </head>
 
   <body>
     <h1>Building a Release</h1>
 The main steps in building a release are as follows:
 <ul>
-<li>
-Create the directory to contain the release.  E.g. in a working copy
-of the pages project, svn add directory dist/working/110.n, where n is
-the release number. Then commit the change, and update the web-site
-copy of the pages project at /stages/web_static/smlnj/htdocs.
-</li>
-<li>
-Write 110.n-README.txt and 110.n-README.html files and commit them.
-Also update NOTES/HISTORY file.
-</li>
-<li>
-Run the allcross script in base/system to build boot directories for 
-all the architectures and create tarballs from them. Copy these
-tarballs to the dist/working/110.n directory created in the first step.
-</li>
-<li>
-Export source directories and create tarballs and transfer them to
-the distribution directory.
-</li>
-<li>
-Create .dmg file for Mac OS X installation, and a Windows .zip file.
-(Details?). Add these to the distribution directory.
-</li>
-<li>
-Add a link to dist/working/110.n/110.n-README.html to
-dist/index.html.
-</li>
+  <li>
+  Create the directory to contain the release.  E.g. in a working copy
+  of the pages project, svn add directory dist/working/110.n, where n is
+  the release number. Then commit the change, and update the web-site
+  copy of the pages project at <tt>/stages/web_static/smlnj/htdocs</tt>.
+  </li>
+  <li>
+  Write 110.n-README.txt and 110.n-README.html files and commit them.
+  Also update NOTES/HISTORY file.
+  </li>
+  <li>
+  Run the allcross script in base/system to build boot directories for 
+  all the architectures and create tarballs from them.
+  Copy these tarballs to the <tt>dist/working/110.n</tt> directory created in the first step.
+  </li>
+  <li>
+  Export source directories and create tarballs and transfer them to
+  the distribution directory.
+  </li>
+  <li>
+  Create .dmg file for Mac OS X installation, and a Windows .zip file.
+  (Details?). Add these to the distribution directory.
+  </li>
+  <li>
+  Add a link to dist/working/110.n/110.n-README.html to
+  dist/index.html.
+  </li>
 </ul>
 
 Following are specific instructions for building a SML/NJ release,
 divided by operating system (Linux, OS X, Windows).
 
 <h2>Building on UNIX</h2>
-<ol><li> Update current copy, or check out a fresh copy:
-<ul><li> <tt>$ ./admin/refresh-all.sh</tt>
-</li><li> Or from a CS machine: <tt>svn co --username <i>yourusernamehere</i> <a href="https://smlnj-gforge/svn/smlnj/admin" class="external free" title="https://smlnj-gforge/svn/smlnj/admin" rel="nofollow">https://smlnj-gforge/svn/smlnj/admin</a></tt>, then <tt>./admin/checkout-all.sh</tt>.
-</li></ul>
-</li><li> Compile to fixed point:
-<ul><li> <tt>$ cd base/system</tt>
+<ol>
+  <li>
+    Update current copy, or check out a fresh copy:
+    <ul>
+      <li> <tt>$ ./admin/refresh-all.sh</tt></li>
+      <li> Or from a CS machine: <tt>svn co --username <i>yourusernamehere</i>
+        <a href="https://smlnj-gforge/svn/smlnj/admin" class="external free" title="https://smlnj-gforge/svn/smlnj/admin" rel="nofollow">https://smlnj-gforge/svn/smlnj/admin</a></tt>,
+        then <tt>./admin/checkout-all.sh</tt>.
+      </li>
+    </ul>
+  </li>
+  <li>
+    Compile to fixed point:
+    <ul>
+      <li> <tt>$ cd base/system</tt></li>
+      <li> <tt>$ ./fixpt</tt></li>
+    </ul>
+  </li>
+  <li>
+    Take the <tt>.bin</tt> and <tt>.boot</tt> files and make them the official ones.
+    <ul>
+      <li>
+        This depends on how many iterations it took to reach a fixed point.
+        For example, if <tt>fixpt</tt> took two iterations on a x86 UNIX platform (the postfix
+        notation follows a <i>CPU-OS</i> convention), then you would do the following:
+        <ul>
+	  <li> <tt>$ rm -rf sml.bin.* sml.boot.*</tt></li>
+	  <li> <tt>$ mv sml2.bin.x86-unix sml.bin.x86-unix</tt></li>
+	  <li> <tt>$ mv sml2.boot.x86-unix sml.boot.x86-unix</tt></li>
+	</ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    Generate new library and heap files.
+    <ul>
+      <li> <tt>$ ./makeml</tt></li>
+    </ul>
+  </li>
+  <li>
+    Test the build.
+    <ul>
+      <li> <tt>$ ./testml</tt></li>
+    </ul>
+  </li>
+  <li>
+    Remove the old libraries.
+    <ul>
+      <li> <tt>$ rm -rf ../../lib/*</tt></li>
+      <li> <tt>$ rm -rf ../../bin/.heap/*</tt></li>
+      <li> <tt>$ ./installml</tt></li>
+      <li> (To check everything &mdash; make sure everything is enabled in <tt>config/targets</tt>.)</li>
+    </ul>
+  </li>
+  <li>
+    Build a working installation.
+    <ul>
+      <li> <tt>$ cd ../..</tt></li>
+      <li> <tt>$ ./config/install.sh</tt></li>
+    </ul>
+  </li>
+  <li>
+    Edit the version number.
+    <ul>
+      <li> <tt>$ $EDITOR ./config/version</tt></li>
+    </ul>
+  </li>
+  <li>
+    Build to another fixed point in <tt>base/system</tt>.
+    <ul>
+      <li> <tt>$ cd base/system</tt></li>
+      <li> <tt>$ ./fixpt</tt></li>
+    </ul>
+  </li>
+  <li>
+    Repeat steps above, starting at step after <tt>fixpt</tt>, and
+    ending after running <tt>config/install.sh</tt>.
+    <ul>
+      <li> Can omit step involving <tt>testml</tt>.  (<i>Which seems broken in my notes anyway.</i>)</li>
+    </ul>
+  </li>
+  <li>
+    Cross compile and generate tarballs for the bin files:
+    <ul>
+      <li> <tt>$ cd base/system</tt></li>
+      <li> <tt>$ ./allcross</tt></li>
+    </ul>
+    The <tt>allcross</tt> script will cross compile for all targets and produce gzipped tar files
+    (<i>e.g.</i>, <tt>boot.x86-uniz.tgz</tt>).
+  </li>
+  <li>
+    Edit/update the history file.
+    <ul>
+      <li> <tt>.../base/NOTES/HISTORY</tt>: Add a new log entry similar to others.</li>
+      <li>
+        <tt>.../base/READMES/</tt>: Copy previous version's README and edit; older
+        versions give examples of format expectations.
+        <ul>
+          <li> Cut and paste relevant entries in <tt>HISTORY</tt> and format them.</li>
+          <li>
+	    Also check the SML/NJ Library's change log (<tt>smlnj-lib/CHANGES</tt>), since
+	    those changes often do not make it into the <tt>HISTORY</tt> file.
+          </li>
+	</ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    Update web pages.
+    <ul>
+      <li>
+        Go to the relevant SML/NJ web server directory.
+        <ul>
+          <li>
+            On the UChicago CS cluster at: <tt>/stage/web_static/smlnj/htdocs/dist/working</tt>.
+            Ideally this all under Subversion control, but this convention isn't being
+	    followed 100%.
+          </li>
+        </ul>
+      </li>
+      <li> Add directory for 110.XX.</li>
+      <li> Copy previous index file over and update links.</li>
+<!-- this step is now hndled by the allcross script
+      <li>
+        Build tarballs:
+        <ul>
+          <li> <tt>$ for i in alpha32-unix ...; do f=sml.boot.$i; t=boot.$i.tgz; tar cfz $t $f/*; done</tt></li>
+        </ul>
+      </li>
+-->
+      <li> Copy tarballs and README notes into the release directory.</li>
+    </ul>
+  </li>
+  <li>
+    Tag the release.
+    <ul>
+      <li>
+        <tt>$ ./admin/make-release.sh</tt><br/>
+	Note that each major directory under smlnj has its own trunk and
+	release branches, <i>e.g.</i>, <tt>$smlnj/sml/trunk</tt>,
+	<tt>$smlnj/sml/releases/release-110.74</tt>, except for <tt>ml-lpt</tt>,
+	which does not have release branches.
+      </li>
+    </ul>
+  </li>
+  <li>
+    Create source tarballs.
+    <ul>
+      <li> <tt>$ ./admin/build-tar-files.sh</tt></li>
+   </ul>
+  </li>
+  <li>
+    Create DMG files for Mac <a href="#dmg-files"><i>(See below)</i>.</a>
+  </li>
+  <li>
+    Create MSI files for Windows <a href="#msi-files"><i>(See below)</i>.</a>
+  </li>
+  <li>
+    Sanity checks:
+    <ul>
+      <li> Download, install, and run tests.</li>
+    </ul>
+  </li>
+  <li>
+    Update links:
+    <ul>
+      <li> Symbolic link at <tt>/stage/web_static/smlnj/htdocs/dist/working/current</tt></li>
+      <li> Table at <tt>/stage/web_static/smlnj/htdocs/dist/working/index.html</tt></li>
+      <li> What's new and links in <tt>/stage/web_static/smlnj/htdocs/index.html</tt></li>
+    </ul>
+  </li>
+</ol>
 
-</li><li> <tt>$ ./fixpt</tt>
-</li></ul>
-</li><li> Take the <tt>.bin</tt> and <tt>.boot</tt> files and make them the official ones.
-<ul><li> This depends on how many iterations it took to reach a fixed point.  For example, if <tt>fixpt</tt> took two iterations on a x86 UNIX platform (the postfix notation follows a <i>CPU-OS</i> convention), then you'd do the following:
-
-<ul><li> <tt>$ rm -rf sml.bin.* sml.boot.*</tt>
-</li><li> <tt>$ mv sml2.bin.x86-unix sml.bin.x86-unix</tt>
-</li><li> <tt>$ mv sml2.boot.x86-unix sml.boot.x86-unix</tt>
-</li></ul>
-</li></ul>
-</li><li> Generate new library and heap files.
-<ul><li> <tt>$ ./makeml</tt>
-</li></ul>
-
-</li><li> Test the build.
-<ul><li> <tt>$ ./testml</tt>
-</li></ul>
-</li><li> Remove the old libraries.
-<ul><li> <tt>$ rm -rf ../../lib/*</tt>
-</li><li> <tt>$ rm -rf ../../bin/.heap/*</tt>
-</li><li> <tt>$ ./installml</tt>
-
-</li><li> (To check everything - make sure everything is enabled in <tt>config/targets</tt>.)
-</li></ul>
-</li><li> Build a working installation.
-<ul><li> <tt>$ cd ../..</tt>
-</li><li> <tt>$ ./config/install.sh</tt>
-</li></ul>
-</li><li> Edit the version number.
-<ul><li> <tt>$ $EDITOR ./config/version</tt>
-
-</li></ul>
-</li><li> Build to another fixed point in <tt>base/system</tt>.
-<ul><li> <tt>$ cd base/system</tt>
-</li><li> <tt>$ ./fixpt</tt>
-</li></ul>
-</li><li> Repeat steps above, starting at step after <tt>fixpt</tt> , and ending after running <tt>config/install.sh</tt>.
-
-<ul><li> Can omit step involving <tt>testml</tt>.  (<i>Which seems broken in my notes anyway.</i>)
-</li></ul>
-</li><li> Cross compile.
-<ul><li> <tt>$ cd base/system</tt>
-</li><li> <tt>$ ./allcross</tt>
-</li></ul>
-</li><li> Edit/update the history file.
-
-<ul><li> <tt>.../base/NOTES/HISTORY</tt>: Add a new log entry similar to others.
-</li><li> <tt>.../base/READMES/</tt>: Copy previous READ and edit; older versions give examples of format expectations.
-<ul><li> Cut and paste relevant entries in HISTORY and format them.
-</li><li> Also check the SML/NJ Library's change log (smlnj-lib/CHANGES), since those changes often do not make it into the HISTORY file.
-</li></ul>
-</li></ul>
-</li><li> Update web pages.
-<ol><li> Go to the relevant SML/NJ web server directory.
-<ul><li> On the UChicago CS cluster at: <tt>/stage/web_static/smlnj/htdocs/dist/working</tt>
-
-<ul><li> Ideally this all under Subversion control, but this convention isn't being followed 100%.
-</li></ul>
-</li></ul>
-</li><li> Add directory for 110.XX.
-</li><li> Copy previous index file over and update links.
-</li><li> Build tarballs:
-<ul><li> <tt>$ for i in alpha32-unix ...; do f=sml.boot.$i; t=boot.$i.tgz; tar cfz $t $f/*; done</tt>
-</li></ul>
-</li><li> Copy tarballs and readme notes into release directory.
-</li></ol>
-
-</li><li> Tag the release.
-<ul><li> <tt>$ ./admin/make-release.sh</tt><br> 
-Note that each major directory under smlnj has its own trunk and
-release branches, e.g. <tt>$smlnj/sml/trunk</tt>,
-<tt>$smlnj/sml/releases/release-110.74</tt>.  <tt>ml-lpt</tt> does
-not have release branches.
-</li></ul>
-</li><li> Create source tarballs.
-<ul><li> <tt>$ ./admin/build-tar-files.sh</tt>
-</li></ul>
-</li><li> Create DMG files for Mac.
-<ul><li> <i>(See below...)</i>
-</li></ul>
-</li><li> Create MSI files for Windows.
-<ul><li><i>(See further below...)</i>
-</li></ul>
-</li><li> Sanity checks.
-<ul><li> Download, install, and run tests.
-</li></ul>
-</li><li> Update links.
-<ul><li> Symbolic link at <tt>/stage/web_static/smlnj/htdocs/dist/working/current</tt>
-</li><li> Table at <tt>/stage/web_static/smlnj/htdocs/dist/working/index.html</tt>
-</li><li> What's new and links in <tt>/stage/web_static/smlnj/htdocs/index.html</tt>
-
-</li></ul>
-</li></ol>
-
-<h2>Building a OS X package and dmg</h2>
+<a name="dmg-files"><h2>Building a OS X package and dmg</h2></a>
 <p> See the document <a href="osx-package-build.txt">osx-package-build.txt</a>.
 
 <!--
@@ -191,7 +264,7 @@ the runtime system:
 </p>
 -->
 
-<h2>Building a Windows installer (MSI)</h2>
+<a name="msi-files"><h2>Building a Windows installer (MSI)</h2></a>
 
 <p>Steps preceded by [cygwin] are performed in the cygwin shell.<br>
 Steps preceded by [vc++] are performed in the Visual C++ command
