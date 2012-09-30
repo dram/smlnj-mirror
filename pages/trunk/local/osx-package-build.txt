@@ -1,10 +1,10 @@
 Building OSX Installer Packages
 -------------------------------
 
-These instructions should work for OS X 10.5 through 10.7, but have
+These instructions should work for OS X 10.5 through 10.8, but have
 only been tested on 10.7.  Note that building on 10.7 requires that
 /Developer/SDKs/MacOSX10.5.sdk be present, and this sdk is not present
-by default in XCode 4.2.
+by default in XCode 4.2+.  (as of 110.75, we have removed this dependency).
 
 Let $V be the version of SML/NJ for which we are creating a dmg file, let
 $ROOT be the directory in which we start, and let $ARCH be the target 
@@ -32,6 +32,7 @@ config/MacResources/background.jpg.]
    sources (as determined by config/targets).and the boot.$ARCH-unix.tgz
    tarball and build the bin and lib directories.
 
+   [** as of 110.75, this paragraph no longer applies **]
    Note that you may have to build the runtime by hand, depending on
    where your version of the 10.5 SDK lives.  Check if
    /Developer/SDKs/MacOSX10.5.sdk exists; if necessary it can be
@@ -157,7 +158,10 @@ legacy, out of date document titled "Software Delivery Guide".]
 	hdiutil create -fs HFS+ -srcfolder smlnj-$ARCH-$V -volname smlnj-$V smlnj-$ARCH-$V.dmg
 	hdiutil internet-enable -yes smlnj-$ARCH-$V.dmg
 
+10) Pakage signing
+    http://developer.apple.com/library/mac/#documentation/ToolsLanguages/Conceptual/OSXWorkflowGuide/DistributingApplicationsOutside/DistributingApplicationsOutside.html
 
 ----------------------------------------------------------------------
-David MacQueen
-2/1/12
+David MacQueen [02/01/12]
+Updated by John Reppy [09/30/12]
+

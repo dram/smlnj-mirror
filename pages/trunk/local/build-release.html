@@ -191,10 +191,15 @@ divided by operating system (Linux, OS X, Windows).
     </ul>
   </li>
   <li>
-    Create source tarballs.
+    Create source tarballs:
     <ul>
-      <li> <tt>$ ./admin/build-tar-files.sh</tt></li>
-   </ul>
+      <li> <tt>$ mkdir tmp</tt></li>
+      <li> <tt>$ cd tmp</tt></li>
+      <li> <tt>$ svn export https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/admin</tt></li>
+      <li> <tt>$ ./admin/build-tar-files.sh 110.XX</tt></li>
+      <li> Copy tarballs into the release directory.</li>
+    </ul>
+    We use a temporary directory for this step to avoid including the <tt>.svn</tt> metadata.
   </li>
   <li>
     Create DMG files for Mac <a href="#dmg-files"><i>(See below)</i>.</a>
