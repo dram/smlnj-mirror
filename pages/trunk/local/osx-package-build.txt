@@ -123,9 +123,7 @@ legacy, out of date document titled "Software Delivery Guide".]
 
        Scripts
 	    Postinstall		$ROOT/smlnj-$V/config/MacResources/postinstall
-	    [Postupgrade	$ROOT/smlnj-$V/config/MacResources/postupgrade]
-
-          [Note: Postupgrade does not appear as an entry.]
+	    Postupgrade		$ROOT/smlnj-$V/config/MacResources/postupgrade
 
 
 7) Edit Interface: click on the Edit Interface icon in the upper right corner
@@ -153,13 +151,16 @@ legacy, out of date document titled "Software Delivery Guide".]
    (e.g. $ROOT/smlnj-$ARCH-$V.pkg).
 
 
-9) Assuming that works, we can now build the DMG file
-
-	hdiutil create -fs HFS+ -srcfolder smlnj-$ARCH-$V -volname smlnj-$V smlnj-$ARCH-$V.dmg
-	hdiutil internet-enable -yes smlnj-$ARCH-$V.dmg
-
-10) Pakage signing
+9) Pakage signing
+    **** this section is incomplete ****
     http://developer.apple.com/library/mac/#documentation/ToolsLanguages/Conceptual/OSXWorkflowGuide/DistributingApplicationsOutside/DistributingApplicationsOutside.html
+
+	productsign --sign "Developer ID Installer: John Reppy" smlnj-$ARCH-$V.pkg signed/$ARCH-$V.pkg
+
+10) Assuming that works, we can now build the DMG file
+
+	hdiutil create -fs HFS+ -srcfolder smlnj-$ARCH-$V -volname smlnj-$V signed/smlnj-$ARCH-$V.dmg
+	hdiutil internet-enable -yes smlnj-$ARCH-$V.dmg
 
 ----------------------------------------------------------------------
 David MacQueen [02/01/12]
