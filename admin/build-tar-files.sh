@@ -13,6 +13,10 @@ path_to_me=`dirname $0`
 #
 $path_to_me/checkout-all.sh --export
 
+# cleanup stuff that shouldn't be in the release
+#
+rm -rf smlnj-lib/Dev
+
 dirs="\
     MLRISC \
     ckit \
