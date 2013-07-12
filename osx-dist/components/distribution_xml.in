@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <installer-gui-script minSpecVersion="1">
     <title>SML/NJ Version ${version}</title>
-    <background file="smlnj.jpg" />
-    <license file="smlnj.dst/license.html" />
+    <background file="components/smlnj.jpg" />
+    <license file="components/license.html" />
     <readme file="smlnj.dst/VERSION-README.html" />
-    <conclusion file="conclusion.rtf" />
-    <pkg-ref id="com.atlassian.atlassian-plugin-sdk">
+    <conclusion file="components/conclusion.html" />
+    <pkg-ref id="org.smlnj.x86">
         <bundle-version/>
     </pkg-ref>
     <options customize="never" require-scripts="false" rootVolumeOnly="true"/>
     <choices-outline>
         <line choice="default">
-            <line choice="com.atlassian.atlassian-plugin-sdk"/>
+            <line choice="org.smlnj.x86"/>
         </line>
     </choices-outline>
     <choice id="default"/>
-    <choice id="com.atlassian.atlassian-plugin-sdk" visible="false">
-        <pkg-ref id="com.atlassian.atlassian-plugin-sdk"/>
+    <choice id="org.smlnj.x86" visible="false">
+        <pkg-ref id="org.smlnj.x86"/>
     </choice>
     <pkg-ref id="org.smlnj.x86" version="VERSION" onConclusion="none">smlnj.pkg</pkg-ref>
 </installer-gui-script>
