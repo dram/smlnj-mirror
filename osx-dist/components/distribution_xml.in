@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <installer-gui-script minSpecVersion="1">
-    <title>SML/NJ Version ${version}</title>
+    <title>SML/NJ Version VERSION</title>
     <background file="components/smlnj.jpg" />
     <license file="components/license.html" />
     <readme file="smlnj.dst/VERSION-README.html" />

@@ -7,7 +7,12 @@
 VERSION=$1
 CONFIGURL=http://smlnj.cs.uchicago.edu/dist/working/$VERSION/config.tgz
 DISTROOT=smlnj.dst
+ID=org.smlnj.x86
 ROOT=$(pwd)
+
+# you need a developer ID to sign the final package
+#
+SIGN="Developer ID Installer: John Reppy"
 
 if [ -d $ROOT ] ; then
   echo "please remove $ROOT first"
@@ -52,12 +57,11 @@ sed -e "s/VERSION/$VERSION/g" components/distribution_xml.in > distribution.xml
 
 # build package
 #
-pkgbuild --scripts components/scripts/ --install-location /usr/local/smlnj --root $DISTROOT smlnj.pkg
+pkgbuild --identifier $ID --scripts components/scripts/ --install-location /usr/local/smlnj --root $DISTROOT smlnj.pkg
 
 # build distribution package
 #
-productbuild --sign "Mac Developer: Rich Manalang (3U78U4KMEF)" \
-  --distribution distribution.xml --package-path . ./smlnj-x86-$VERSION.pkg
+productbuild --sign "$SIGN" --distribution distribution.xml --package-path . ./smlnj-x86-$VERSION.pkg
 
 # cleanup
 #
