@@ -3,23 +3,29 @@
 # Script to build the installer package for x86 on Mac OS X (10.7+)
 #
 
-# FIXME: check for VERSION argument!!!
+# get the version number
+#
+if [ $# != 1 ] ; then
+  echo "usage: build-pkg.sh version"
+  exit 1
+fi
 VERSION=$1
+
 CONFIGURL=http://smlnj.cs.uchicago.edu/dist/working/$VERSION/config.tgz
 DISTROOT=smlnj.dst
-ID=org.smlnj.x86
+ID=org.smlnj.x86.pkg
 ROOT=$(pwd)
 
 # you need a developer ID to sign the final package
 #
 SIGN="Developer ID Installer: John Reppy"
 
-if [ -d $ROOT ] ; then
-  echo "please remove $ROOT first"
+if [ -d $DISTROOT ] ; then
+  echo "please remove $DISTROOT first"
   exit 1
 fi
-mkdir $ROOT
-cd $ROOT
+mkdir $DISTROOT
+cd $DISTROOT
 
 # first we need to download and unbundle the config directory for the release
 #
@@ -57,12 +63,12 @@ sed -e "s/VERSION/$VERSION/g" components/distribution_xml.in > distribution.xml
 
 # build package
 #
-pkgbuild --identifier $ID --scripts components/scripts/ --install-location /usr/local/smlnj --root $DISTROOT smlnj.pkg
+pkgbuild --identifier $ID --scripts components/scripts/ --install-location /usr/local/Xsmlnj --root $DISTROOT smlnj.pkg
 
 # build distribution package
 #
-productbuild --sign "$SIGN" --distribution distribution.xml --package-path . ./smlnj-x86-$VERSION.pkg
+productbuild --sign "$SIGN" --distribution ./distribution.xml --package-path components ./smlnj-x86-$VERSION.pkg
 
 # cleanup
 #
-#rm distribution.xml
+#rm -rf distribution.xml $DISTROOT smlnj.pkg
