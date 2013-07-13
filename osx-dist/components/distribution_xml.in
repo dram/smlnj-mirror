@@ -1,22 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <installer-gui-script minSpecVersion="1">
     <title>SML/NJ Version VERSION</title>
-    <background file="smlnj.jpg" mime-type="image/jpeg" />
+    <background file="smlnj.jpg" mime-type="image/jpeg" alignment="topleft" />
+    <options customize="never" require-scripts="false"/>
+    <readme file="readme.html" mime-type="text/html" />
     <license file="license.html" mime-type="text/html" />
-    <readme file="smlnj.dst/VERSION-README.html" mime-type="text/html" />
     <conclusion file="conclusion.html" mime-type="text/html" />
-    <pkg-ref id="org.smlnj.x86.pkg">
-        <bundle-version/>
-    </pkg-ref>
-    <options customize="never" require-scripts="false" rootVolumeOnly="true"/>
-    <choices-outline>
-        <line choice="default">
-            <line choice="org.smlnj.x86.pkg"/>
-        </line>
-    </choices-outline>
-    <choice id="default"/>
-    <choice id="org.smlnj.x86.pkg" visible="false">
-        <pkg-ref id="org.smlnj.x86.pkg"/>
+    <os-version min="10.6" />
+    <options customize="never" require-scripts="false"/>
+    <choice id="choice8" visible="false">
+	<pkg-ref id="org.smlnj.x86.pkg" version="VERSION">smlnj.pkg</pkg-ref>
     </choice>
-    <pkg-ref id="org.smlnj.x86.pkg" version="VERSION" onConclusion="none">smlnj.pkg</pkg-ref>
+    <choices-outline>
+        <line choice="choice8" />
+    </choices-outline>
 </installer-gui-script>
