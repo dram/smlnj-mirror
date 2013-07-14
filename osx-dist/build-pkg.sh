@@ -15,6 +15,7 @@ CONFIGURL=http://smlnj.cs.uchicago.edu/dist/working/$VERSION/config.tgz
 DISTROOT=smlnj.dst
 ID=org.smlnj.x86.pkg
 ROOT=$(pwd)
+RSRC=Resources
 
 # you need a developer ID to sign the final package
 #
@@ -57,9 +58,18 @@ rm *tgz
 #
 cd $ROOT
 
-# patch distribution file for version
+# create the resources directory and fill it
 #
-sed -e "s/VERSION/$VERSION/g" components/distribution_xml.in > distribution.xml
+if [ -d $RSRC ] ; then
+  rm -rf $RSRC
+fi
+mkdir $RSRC
+sed -e "s/VERSION/$VERSION/g" components/distribution_xml.in > $RSRC/distribution.xml
+cp -p components/smlnj-background.jpg $RSRC/background.jpg
+#cp -p components/welcome.html $RSC/welcome.html
+cp -p $DISTROOT/$VERSION-README.html $RSRC/readme.html
+cp -p components/license.html $RSRC/license.html
+cp -p components/conclusion.html $RSRC/conclusion.html
 
 # build package
 #
@@ -67,8 +77,9 @@ pkgbuild --identifier $ID --scripts components/scripts/ --install-location /usr/
 
 # build distribution package
 #
-productbuild --sign "$SIGN" --distribution ./distribution.xml --package-path components ./smlnj-x86-$VERSION.pkg
+productbuild --sign "$SIGN" --package-path components --resources $RSRC \
+    --distribution $RSRC/distribution.xml ./smlnj-x86-$VERSION.pkg
 
 # cleanup
 #
-#rm -rf distribution.xml $DISTROOT smlnj.pkg
+#rm -rf $RSRC $DISTROOT smlnj.pkg
