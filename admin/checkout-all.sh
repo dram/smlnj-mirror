@@ -60,3 +60,5 @@ smlnj heap2asm
 smlnj nlffi
 
 checkout $gf/ml-lpt ml-lpt
+smlnj doc
+
