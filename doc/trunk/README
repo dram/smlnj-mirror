@@ -1,0 +1,5 @@
+This directory tree contains general documentation for the SML/NJ system.  It
+is meant as a supplement to more specific documentation for the tools (e.g.,
+CM and ML-LPT) and libraries that are distributed with the system.  The documentation
+is written using the asciidoc (http://asciidoc.org) tool.
+

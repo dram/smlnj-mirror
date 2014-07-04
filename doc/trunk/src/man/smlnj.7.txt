@@ -1,0 +1,22 @@
+SMLNJ(1)
+=========
+:doctype: manpage
+
+NAME
+----
+SMLNJ - an implementation of the Standard ML language with supporting tools and libraries.
+
+DESCRIPTION
+-----------
+
+AUTHOR
+------
+sml(1) was originally created by Andrew Appel and David MacQueen in 1989.
+The system is currently maintained by David MacQueen and John Reppy.
+
+COPYING
+-------
+
+SEE-ALSO
+--------
+sml(1)

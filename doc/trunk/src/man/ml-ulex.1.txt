@@ -1,0 +1,28 @@
+ML-ULEX(1)
+==========
+:doctype: manpage
+
+NAME
+----
+ml-ulex - a Unicode-compatible lexical analyser generator
+
+SYNOPSIS
+--------
+*ml-ulex* ['OPTIONS'] 'FILE'
+
+DESCRIPTION
+-----------
+
+OPTIONS
+-------
+
+AUTHOR
+------
+ml-ulex(1) was written by Aaron Turon.
+
+COPYING
+-------
+
+SEE-ALSO
+--------
+ml-antlr(1)

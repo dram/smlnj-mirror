@@ -1,0 +1,31 @@
+SML(1)
+======
+:doctype: manpage
+
+NAME
+----
+sml - an interactive Standard ML system
+
+SYNOPSIS
+--------
+*sml* ['OPTIONS']
+
+DESCRIPTION
+-----------
+It is an incremental, interactive compiler that accepts declarations and expressions
+to be evaluated from standard input.
+
+OPTIONS
+-------
+
+AUTHOR
+------
+sml(1) was originally created by Andrew Appel and David MacQueen in 1989.
+The system is currently maintained by David MacQueen and John Reppy.
+
+COPYING
+-------
+
+SEE-ALSO
+--------
+smlnj(7)

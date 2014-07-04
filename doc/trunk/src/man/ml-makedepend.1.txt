@@ -1,0 +1,28 @@
+ML-MAKEDEPEND(1)
+================
+:doctype: manpage
+
+NAME
+----
+ml-makedepend - makefile dependency generator for SML/NJ programs
+
+SYNOPSIS
+--------
+*ml-makedepend* ['OPTIONS'] 'FILE'
+
+DESCRIPTION
+-----------
+
+OPTIONS
+-------
+
+AUTHOR
+------
+ml-antlr(1) was written by Aaron Turon.
+
+COPYING
+-------
+
+SEE-ALSO
+--------
+ml-build(1), sml(1), smlnj(7)
