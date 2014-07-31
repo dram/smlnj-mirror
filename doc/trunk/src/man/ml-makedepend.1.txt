@@ -8,17 +8,24 @@ ml-makedepend - makefile dependency generator for SML/NJ programs
 
 SYNOPSIS
 --------
-*ml-makedepend* ['OPTIONS'] 'FILE'
+*ml-makedepend* ['OPTIONS'] 'project.cm' 'target'
 
 DESCRIPTION
 -----------
 
 OPTIONS
 -------
+*-f* 'makefile'::
+
+*-n*::
+
+*-a* 'arch'::
+
+*-o* 'os'::
 
 AUTHOR
 ------
-ml-antlr(1) was written by Aaron Turon.
+ml-makedepend(1) was written by Matthias Blume.
 
 COPYING
 -------

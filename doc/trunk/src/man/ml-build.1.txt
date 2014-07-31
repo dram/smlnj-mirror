@@ -8,17 +8,28 @@ ml-build - command-line build tool for SML/NJ programs
 
 SYNOPSIS
 --------
-*ml-build* ['OPTIONS'] 'FILE'
+*ml-build* [-S 'setup'] 'group.cm' ['main' ['heap-image']]
 
 DESCRIPTION
 -----------
+The *ml-build* is a command-line tool for building applications from SML source
+files using the Compilation Manager and SML/NJ compiler.
 
 OPTIONS
 -------
 
+EXAMPLES
+--------
+
+`ml-build sources.cm`::
+
+`ml-build sources.cm Main.main`::
+
+`ml-build sources.cm Main.main prog`::
+
 AUTHOR
 ------
-ml-antlr(1) was written by Aaron Turon.
+Written by Matthias Blume.
 
 COPYING
 -------

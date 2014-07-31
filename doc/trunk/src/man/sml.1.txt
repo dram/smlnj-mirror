@@ -8,7 +8,7 @@ sml - an interactive Standard ML system
 
 SYNOPSIS
 --------
-*sml* ['OPTIONS']
+*sml* ['SML-OPTIONS'] ['OPTIONS'] ['FILES']
 
 DESCRIPTION
 -----------
@@ -18,9 +18,72 @@ to be evaluated from standard input.
 OPTIONS
 -------
 
+*@SMLload*='IMAGE'::
+  specifies heap image
+
+*@SMLrun*='RUNTIME'::
+  specifies runtime system
+
+*@SMLversion*::
+  echo the version of SML/NJ to standard output and then exit
+
+*@SMLsuffix*::
+  echo the heap suffix for the system to standard output and then exit
+
+*@SMLalloc*='SIZE'::
+  Specify the prefered sice of the
+
+*@SMLcmdname*='NAME'::
+  set command name
+
+*@SMLverbose*::
+  show heap image load progress
+
+*@SMLquiet*::
+  load heap image silently (default)
+
+*@SMLobjects*::
+  show list of executable objects
+
+*@SMLdebug*='FILE'::
+  write debugging info to file
+
+*-D*<name>=<v>::
+  set CM variable to given value)
+*-D*<name>::
+  set CM variable to 1)
+*-U*name::
+  unset CM variable)
+*-C*<control>=<v>::
+  set named control)
+*-H*::
+  produce complete help listing)
+*-h*::
+  produce minimal help listing)
+*-h*<level>::
+  help with obscurity limit)
+*-S*::
+  list all current settings)
+*-s*<level>::
+  limited list of settings)
+*-E*::
+  list all environment variables)
+*-e*<level>::
+  limited list of environment variables)
+
+<file>.cm        (CM.make or CM.autoload)
+*-m*::
+  switch to CM.make
+*-a*::
+  switch to CM.autoload; default
+*<file>.sig       (use)
+*<file>.sml       (use)
+*<file>.fun       (use)
+
+
 AUTHOR
 ------
-sml(1) was originally created by Andrew Appel and David MacQueen in 1989.
+sml(1) was originally created by Andrew Appel and David MacQueen in 1987.
 The system is currently maintained by David MacQueen and John Reppy.
 
 COPYING

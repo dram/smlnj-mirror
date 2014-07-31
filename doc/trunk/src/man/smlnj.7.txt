@@ -9,9 +9,33 @@ SMLNJ - an implementation of the Standard ML language with supporting tools and 
 DESCRIPTION
 -----------
 
+Compiled programs in the SML/NJ system are represented using a pair of the
+runtime system executable and a _heap image_ file.  Heap images have a filename
+suffix that is based on the architecture and operating system.
+
 AUTHOR
 ------
-sml(1) was originally created by Andrew Appel and David MacQueen in 1989.
+The Standard ML of New Jersey system was originally created by Andrew Appel
+and David MacQueen in 1987.
+Many people have contributed to the project over the years.
+These include (but are not limited to)
+Lars Bergstrom,
+Matthias Blume,
+Emden Gansner,
+Lal George,
+Lorenz Huelsbergen,
+Christopher League,
+Allen Leung,
+Stefan Monnier,
+Riccardo Pucella,
+Mike Rainey,
+John Reppy,
+Bratin Saha,
+Zhong Shao,
+David Tarditti,
+Andrew Tolmach,
+Valery Trifonov,
+Aaron Turon.
 The system is currently maintained by David MacQueen and John Reppy.
 
 COPYING
