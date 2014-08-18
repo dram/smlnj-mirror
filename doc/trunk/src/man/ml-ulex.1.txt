@@ -13,8 +13,34 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
+Ml-ulex is a lexer generator.
+
 OPTIONS
 -------
+
+*--dot*::
+  generate DOT output (http://www.graphviz.org[]).  The generated file will be named +file.dot+,
+  where +file+ is the input file.
+
+*--match*::
+  enter interactive matching mode.  This will allow interactive testing of the machine; presently, only the \texttt{INITIAL} start state is available for testing
+  (see Section~\ref{sec:start-states} for details on start states).
+
+*--ml-lex-mode*::
+  operate in *ml-lex* compatibility mode.  See Section~\ref{sec:lex-compat} for details.
+
+*--table-based*::
+  generate a table-based lexer.
+
+*--fn-based*::
+  generate a lexer that represents states as functions and transitions as tail calls.
+
+*--minimize*::
+  generate a minimal machine.  Note that this is slow, and is almost never necessary.
+
+*--strict-sml*::
+  generate strict SML (_i.e._, do not use SML/NJ extensions).  This flag
+  is useful if you want to use the output with a different SML system.
 
 AUTHOR
 ------
@@ -22,6 +48,10 @@ ml-ulex(1) was written by Aaron Turon.
 
 COPYING
 -------
+Copyright (C) 2014 The Fellowship of SML/NJ
+
+This is free software; see the source for copying  conditions.   There  is  NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 SEE-ALSO
 --------

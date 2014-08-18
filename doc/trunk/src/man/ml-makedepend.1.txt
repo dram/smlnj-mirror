@@ -13,6 +13,9 @@ SYNOPSIS
 DESCRIPTION
 -----------
 
+Ml-makedepend is a tool for generating dependency information to allow the
+Unix *make*(1) program to be used to build SML/NJ programs.
+
 OPTIONS
 -------
 *-f* 'makefile'::
@@ -29,6 +32,10 @@ ml-makedepend(1) was written by Matthias Blume.
 
 COPYING
 -------
+Copyright (C) 2014 The Fellowship of SML/NJ
+
+This is free software; see the source for copying  conditions.   There  is  NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 SEE-ALSO
 --------

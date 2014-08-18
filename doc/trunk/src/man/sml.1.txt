@@ -88,6 +88,10 @@ The system is currently maintained by David MacQueen and John Reppy.
 
 COPYING
 -------
+Copyright (C) 2014 The Fellowship of SML/NJ
+
+This is free software; see the source for copying  conditions.   There  is  NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 SEE-ALSO
 --------
