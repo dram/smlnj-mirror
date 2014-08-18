@@ -8,7 +8,7 @@ ml-build - command-line build tool for SML/NJ programs
 
 SYNOPSIS
 --------
-*ml-build* [-S 'setup'] 'group.cm' ['main' ['heap-image']]
+*ml-build* ['OPTIONS'] 'group.cm' ['main' ['heap-image']]
 
 DESCRIPTION
 -----------
@@ -18,8 +18,14 @@ files using the Compilation Manager and SML/NJ compiler.
 OPTIONS
 -------
 
-*-S* ::
+*-S*  'setup'::
   not sure what this is for
+
+*-C*'control'::
+
+*-D*'name'::
+
+*-U*'name'::
 
 EXAMPLES
 --------

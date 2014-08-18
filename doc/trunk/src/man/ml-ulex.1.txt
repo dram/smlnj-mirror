@@ -8,7 +8,7 @@ ml-ulex - a Unicode-compatible lexical analyser generator
 
 SYNOPSIS
 --------
-*ml-ulex* ['OPTIONS'] 'FILE'
+*ml-ulex* ['OPTIONS'] 'file'
 
 DESCRIPTION
 -----------

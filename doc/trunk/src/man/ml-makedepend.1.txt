@@ -19,12 +19,28 @@ Unix *make*(1) program to be used to build SML/NJ programs.
 OPTIONS
 -------
 *-f* 'makefile'::
-
-*-n*::
+  Specify the name of the makefile to which the dependency information is appended.  If this
+  option is _not_ given, then the output is appended to the end of the file +makefile+
+  (or +Makefile+).  It is an error if neither file exists and the *-f* option is not specified.
 
 *-a* 'arch'::
+  specifies the name a make variable for architecture-specific filenames and paths
+  (the default is +ARCH+).
 
 *-o* 'os'::
+  specifies the name a make variable for operating-system-specific filenames and paths
+  (the default is +OPSYS+).
+
+*-n*::
+  generates full filenames and paths with any architecture or operating-system-specific
+  parts expanded out to their definition for the host system.  If this option is specified,
+  then any *-a* and *-o* options are ignored.
+
+*-C*'control'::
+
+*-D*'name'::
+
+*-U*'name'::
 
 AUTHOR
 ------

@@ -8,7 +8,7 @@ ml-antlr - an LL(k) parser generator
 
 SYNOPSIS
 --------
-*ml-antlr* ['OPTIONS'] 'FILE'
+*ml-antlr* ['OPTIONS'] 'file'
 
 DESCRIPTION
 -----------
