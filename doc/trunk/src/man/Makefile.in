@@ -11,6 +11,7 @@ INSTALL =	@INSTALL@
 @SET_MAKE@
 
 A2X =		@A2X@
+ASCIIDOC =	@ASCIIDOC@
 
 # Section 1 pages
 #
@@ -29,12 +30,22 @@ TXT_FILES =	$(TXT1_FILES) $(TXT7_FILES)
 MAN1_PAGES =	$(TXT1_FILES:.txt=)
 MAN7_PAGES =	$(TXT7_FILES:.txt=)
 
-HTML =		$(TXT_FILES:.txt=)
+HTML =		$(TXT_FILES:.txt=.html)
 
+.PHONEY:	man
 man:		$(MAN1_PAGES) $(MAN7_PAGES)
+		mkdir -p man/man1 man/man7
+		cp -p $(MAN1_PAGES) @ROOT_DIR@/man/man1
+		cp -p $(MAN7_PAGES) @ROOT_DIR@/man/man7
+
+.PHONEY:	html
+html:		$(HTML)
 
 % : %.txt
 	$(A2X) --doctype manpage --format manpage $<
+
+%.html : %.txt
+	$(ASCIIDOC) -d manpage -b html5 $<
 
 #################### Cleanup ####################
 
@@ -43,6 +54,7 @@ CLEAN_SUBDIRS =
 CLEAN_FILES =
 
 DISTCLEAN_FILES +=	Makefile \
-			$(MAN1_PAGES) $(MAN2_PAGES)
+			$(MAN1_PAGES) $(MAN2_PAGES) \
+			$(HTML)
 
 include @ROOT_DIR@/mk/clean-rules.gmk

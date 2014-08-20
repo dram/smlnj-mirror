@@ -10,7 +10,7 @@ SHELL =		@SHELL@
 INSTALL =	@INSTALL@
 @SET_MAKE@
 
-.PHONY:		help website html hardcopy clean distclean devclean
+.PHONY:		help man html hardcopy clean distclean devclean
 
 help:
 	@echo "This Makefile supports the following targets:"
@@ -30,7 +30,7 @@ help:
 	@echo "                   repository."
 
 man:
-	(cd src; $(MAKE) MAN_ROOT=@ROOT_DIR@/man man)
+	(cd src; $(MAKE) man)
 
 html:
 	(cd src; $(MAKE) all-html)
@@ -48,6 +48,8 @@ DISTCLEAN_FILES +=	Makefile config.status config.log \
 			autom4te*.cache \
 			man htdocs hardcopy
 
-DEVCLEAN_FILES =	configure
+DEVCLEAN_FILES =	configure \
+			man/man1/*.1 \
+			man/man7/*.7
 
 include @ROOT_DIR@/mk/clean-rules.gmk

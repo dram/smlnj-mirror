@@ -63,5 +63,5 @@ $(IMAGE_DST_FILES):
 
 include @MK_DIR@/clean-rules.gmk
 
-CLEAN_SUBDIRS =	$(SUBDIRS)
+CLEAN_SUBDIRS =	$(DOC_SUBDIRS)
 

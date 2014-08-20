@@ -1,10 +1,10 @@
-SMLNJ(1)
-=========
+SMLNJ(7)
+========
 :doctype: manpage
 
 NAME
 ----
-SMLNJ - an implementation of the Standard ML language with supporting tools and libraries.
+SML/NJ - an implementation of the Standard ML language with supporting tools and libraries.
 
 DESCRIPTION
 -----------
