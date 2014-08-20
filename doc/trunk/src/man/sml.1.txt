@@ -34,7 +34,7 @@ OPTIONS
   Specify the prefered sice of the
 
 *@SMLcmdname*='NAME'::
-  set command name
+  set the command name; this is the value returned by +CommandLine.name()+.
 
 *@SMLverbose*::
   show heap image load progress
@@ -67,20 +67,24 @@ OPTIONS
 *-h*::
   produce minimal help listing
 
-*-h*<level>::
+*-h*'level'::
   help with obscurity limit
 
 *-S*::
-  list all current settings
+  list all the controls along with their default value
 
-*-s*<level>::
-  limited list of settings
+*-s*'level'::
+  limited list of settings.
+  The number of levels of the control heirarchy is controled by 'level', with 0 printing
+  just the root of the heirarchy.
 
 *-E*::
   list all the controls along with their corresponding environment variables
 
-*-e*<level>::
-  limited list of environment variables
+*-e*'level'::
+  limited list of environment variables;
+  The number of levels of the control heirarchy is controled by 'level', with 0 printing
+  just the root of the heirarchy.
 
 *-m*::
   switch to CM.make
