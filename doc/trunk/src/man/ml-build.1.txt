@@ -18,8 +18,9 @@ files using the Compilation Manager and SML/NJ compiler.
 OPTIONS
 -------
 
-*-S*  'setup'::
-  not sure what this is for
+*-S*  'setup.cm'::
+  load and execute the code specified by the CM file 'setup.cm' prior to the main
+  build process.  This option allows one to customizes the compiler via side-effect.
 
 *-C*'control'::
 
