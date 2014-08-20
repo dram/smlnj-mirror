@@ -36,11 +36,17 @@ OPTIONS
   parts expanded out to their definition for the host system.  If this option is specified,
   then any *-a* and *-o* options are ignored.
 
-*-C*'control'::
+*-C*'ctl'='value'::
+  set the control 'ctl' to 'value'.
 
-*-D*'name'::
+*-D*'name'='value'::
+  define the CM variable 'name' to have the given value.
+
+*-D*'name::
+  define the CM variable 'name' to have the value 1.
 
 *-U*'name'::
+  remove any definition of the CM variable 'name'.
 
 AUTHOR
 ------
