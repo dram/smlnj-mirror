@@ -48,37 +48,58 @@ OPTIONS
 *@SMLdebug*='FILE'::
   write debugging info to file
 
-*-D*<name>=<v>::
-  set CM variable to given value)
-*-D*<name>::
-  set CM variable to 1)
-*-U*name::
-  unset CM variable)
-*-C*<control>=<v>::
-  set named control)
-*-H*::
-  produce complete help listing)
-*-h*::
-  produce minimal help listing)
-*-h*<level>::
-  help with obscurity limit)
-*-S*::
-  list all current settings)
-*-s*<level>::
-  limited list of settings)
-*-E*::
-  list all environment variables)
-*-e*<level>::
-  limited list of environment variables)
+*-C*'ctl'='value'::
+  set the control 'ctl' to 'value'.
 
-<file>.cm        (CM.make or CM.autoload)
+*-D*'name'='value'::
+  define the CM variable 'name' to have the given value.
+
+*-D*'name::
+  define the CM variable 'name' to have the value 1.
+
+*-U*'name'::
+  remove any definition of the CM variable 'name'.
+
+
+*-H*::
+  produce complete help listing
+
+*-h*::
+  produce minimal help listing
+
+*-h*<level>::
+  help with obscurity limit
+
+*-S*::
+  list all current settings
+
+*-s*<level>::
+  limited list of settings
+
+*-E*::
+  list all the controls along with their corresponding environment variables
+
+*-e*<level>::
+  limited list of environment variables
+
 *-m*::
   switch to CM.make
+
 *-a*::
   switch to CM.autoload; default
-*<file>.sig       (use)
-*<file>.sml       (use)
-*<file>.fun       (use)
+
+'file.cm'::
+  run +CM.make+ or +CM.autoload+ on 'file.cm' and then return to the SML prompt.
+  Which command is run is determined by the *-m* and *-a* flags.
+
+'file.sig'::
+  execute +use+ 'file.sig' before entering the SML top-level loop.
+
+'file.sml'::      (use)
+  execute +use+ 'file.sml' before entering the SML top-level loop.
+
+'file.fun'::       (use)
+  execute +use+ 'file.fun' before entering the SML top-level loop.
 
 
 AUTHOR

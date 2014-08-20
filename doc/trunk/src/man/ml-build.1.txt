@@ -18,15 +18,21 @@ files using the Compilation Manager and SML/NJ compiler.
 OPTIONS
 -------
 
-*-S*  'setup.cm'::
-  load and execute the code specified by the CM file 'setup.cm' prior to the main
-  build process.  This option allows one to customizes the compiler via side-effect.
+*-C*'ctl'='value'::
+  set the control 'ctl' to 'value'.
 
-*-C*'control'::
+*-D*'name'='value'::
+  define the CM variable 'name' to have the given value.
 
-*-D*'name'::
+*-D*'name::
+  define the CM variable 'name' to have the value 1.
 
 *-U*'name'::
+  remove any definition of the CM variable 'name'.
+
+*-S* 'setup.cm'::
+  load and execute the code specified by the CM file 'setup.cm' prior to the main
+  build process.  This option allows one to customizes the compiler via side-effect.
 
 EXAMPLES
 --------
