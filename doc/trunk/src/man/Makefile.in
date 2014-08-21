@@ -13,6 +13,10 @@ INSTALL =	@INSTALL@
 A2X =		@A2X@
 ASCIIDOC =	@ASCIIDOC@
 
+SMLNJ_VERSION =	@PACKAGE_VERSION@
+
+ATTRS =		--attribute="version=$(SMLNJ_VERSION)"
+
 # Section 1 pages
 #
 TXT1_FILES =	ml-antlr.1.txt \
@@ -42,10 +46,10 @@ man:		$(MAN1_PAGES) $(MAN7_PAGES)
 html:		$(HTML)
 
 % : %.txt
-	$(A2X) --doctype manpage --format manpage $<
+	$(A2X) $(ATTRS) -d manpage -f manpage $<
 
 %.html : %.txt
-	$(ASCIIDOC) -d manpage -b html5 $<
+	$(ASCIIDOC) $(ATTRS) -d manpage -b html5 $<
 
 #################### Cleanup ####################
 

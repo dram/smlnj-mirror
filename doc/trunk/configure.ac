@@ -5,7 +5,7 @@ dnl All rights reserved.
 dnl
 dnl This the configuration script for autoconf version 2.60+.
 
-AC_INIT(smlnj-doc,110.77,sml3d@mailman.cs.uchicago.edu)
+AC_INIT(smlnj-doc,110.77,sml@mailman.cs.uchicago.edu)
 
 AC_PREREQ(2.60)
 AC_COPYRIGHT([[COPYRIGHT (c) 2014 The Fellowship of SML/NJ (http://www.smlnj.org)]])

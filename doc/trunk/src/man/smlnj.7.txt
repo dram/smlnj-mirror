@@ -1,6 +1,9 @@
 SMLNJ(7)
 ========
-:doctype: manpage
+:doctype:	manpage
+:man source:	AsciiDoc
+:man version:	{version}
+:man manual:	SML/NJ Manual
 
 NAME
 ----
@@ -24,11 +27,13 @@ Matthias Blume,
 Emden Gansner,
 Lal George,
 Lorenz Huelsbergen,
+George Kuan,
 Christopher League,
 Allen Leung,
 Stefan Monnier,
 Riccardo Pucella,
 Mike Rainey,
+Jon Riehl,
 John Reppy,
 Bratin Saha,
 Zhong Shao,
