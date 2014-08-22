@@ -7,7 +7,7 @@ SMLNJ(7)
 
 NAME
 ----
-SML/NJ - an implementation of the Standard ML language with supporting tools and libraries.
+smlnj - an implementation of the Standard ML language with supporting tools and libraries.
 
 DESCRIPTION
 -----------
