@@ -276,19 +276,19 @@ prompt.
 </p>
 
 <ol>
-<li> Install cygwin
+<li> Install cygwin (32-bit version)
 <ul>
    <li>URL: <tt>http://www.cygwin.com</tt></li>
    <li>package selection should include:
      <ul>
-       <li>wget</li>
+       <li>wget or curl</li>
        <li>binutils</li>
-       <li>svn  (included in default install in cygwin 1.7)</li>
+       <li>svn (included in default install in cygwin 1.7)</li>
      </ul>
 </ul>
 </li><br>
 
-<li>Install Visual C++ Express
+<li>Install Visual C++ Express (or VisualStudio)
 <ul>
    <li>URL: <tt>http://msdn.microsoft.com/vstudio</tt></li>
    <li>search for Visual C++ Express to find download page</li>
@@ -302,13 +302,11 @@ prompt.
 
 <li>[cygwin] in /home/dbm/smlnj directory,
 <ol class="a">
-   <li>create gf subdirectory</li>
-   <li>create gf/abbrev shell script that defines $gf and $smlnj as
-   usual</li>
+   <li><tt>mkdir gf</tt></li>
+   <li><tt>export gf=https://smlnj-gforge.cs.uchicago.edu/svn</tt></li>
+   <li><tt>export smlnj=$gf/smlnj</tt></li>
 </ol>   
 </li><br>
-
-<li>[cygwin] run fg/abbrev script, defining $gf and $smlnj</li><br>
 
 <li>[cygwin] <tt>cd gf; svn co $smlnj/admin</tt><br>
    Create gf/admin directory with the usual scripts.
@@ -318,11 +316,11 @@ prompt.
     Go to build directory.</li>
 </li><br>
 
-<li>[cygwin] <tt>../../gf/admin/checkout-all.sh</tt><br>
-   Run checkout-all.sh script to check out the source files.
+<li>[cygwin] <tt>../../gf/admin/checkout-all.sh -e</tt><br>
+   Run checkout-all.sh script to export the source files.
 </li><br>
 
-<li>[cygwin] <tt>wget http://www.smlnj.org/dist/working/110.74/boot.x86-win32.tgz</tt><br>
+<li>[cygwin] <tt>wget http://www.smlnj.org/dist/working/$VERSION/boot.x86-win32.tgz</tt><br>
    Manually fetch to boot tarball for Windows.
 </li><br>
 
