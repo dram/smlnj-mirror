@@ -26,7 +26,7 @@ if test -d $MANDIR -a -d doc/man ; then
   cd doc/man
   for d in man* ; do
     mkdir -p $MANDIR/$d || exit 1
-    cp -p $d/*.1 $MANDIR/$d/
+    cp -p $d/* $MANDIR/$d/
   done
 fi
 
