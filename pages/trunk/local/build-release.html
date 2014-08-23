@@ -10,36 +10,42 @@
 
   <body>
     <h1>Building a Release</h1>
-The main steps in building a release are as follows:
-<ul>
-  <li>
-  Create the directory to contain the release.  E.g. in a working copy
-  of the pages project, svn add directory dist/working/110.n, where n is
-  the release number. Then commit the change, and update the web-site
-  copy of the pages project at <tt>/stages/web_static/smlnj/htdocs</tt>.
-  </li>
-  <li>
-  Write 110.n-README.txt and 110.n-README.html files and commit them.
-  Also update NOTES/HISTORY file.
-  </li>
-  <li>
-  Run the allcross script in base/system to build boot directories for 
-  all the architectures and create tarballs from them.
-  Copy these tarballs to the <tt>dist/working/110.n</tt> directory created in the first step.
-  </li>
-  <li>
-  Export source directories and create tarballs and transfer them to
-  the distribution directory.
-  </li>
-  <li>
-  Create .dmg file for Mac OS X installation, and a Windows .zip file.
-  (Details?). Add these to the distribution directory.
-  </li>
-  <li>
-  Add a link to dist/working/110.n/110.n-README.html to
-  dist/index.html.
-  </li>
-</ul>
+    <p>
+    In the discussion below, we use <tt>$VERSION</tt> to represent the release version in
+    question (<i>e.g.</i>, 110.77).
+    </p>
+    <p>
+    The main steps in building a release are as follows:
+    </p>
+    <ul>
+      <li>
+      Create the directory to contain the release.  E.g. in a working copy
+      of the pages project, <tt>svn add directory dist/working/$VERSION</tt>, where n is
+      the release number. Then commit the change, and update the web-site
+      copy of the pages project at <tt>/stages/web_static/smlnj/htdocs</tt>.
+      </li>
+      <li>
+      Write the <tt>$VERSION-README.html</tt> file and commit it.
+      Also update the HISTORY file.
+      </li>
+      <li>
+      Run the allcross script in base/system to build boot directories for 
+      all the architectures and create tarballs from them.
+      Copy these tarballs to the <tt>dist/working/$VERSION</tt> directory created in the first step.
+      </li>
+      <li>
+      Export source directories and create tarballs and transfer them to
+      the distribution directory.
+      </li>
+      <li>
+      Create .dmg file for Mac OS X installation, and a Windows .zip file.
+      (Details?). Add these to the distribution directory.
+      </li>
+      <li>
+      Add a link to </tt>dist/working/$VERSION/$VERSION-README.html</tt> to
+      <tt>dist/index.html</tt>.
+      </li>
+    </ul>
 
 Following are specific instructions for building a SML/NJ release,
 divided by operating system (Linux, OS X, Windows).
@@ -52,7 +58,7 @@ divided by operating system (Linux, OS X, Windows).
       <li> <tt>$ ./admin/refresh-all.sh</tt></li>
       <li> Or from a CS machine: <tt>svn co --username <i>yourusernamehere</i>
         <a href="https://smlnj-gforge/svn/smlnj/admin" class="external free" title="https://smlnj-gforge/svn/smlnj/admin" rel="nofollow">https://smlnj-gforge/svn/smlnj/admin</a></tt>,
-        then <tt>./admin/checkout-all.sh</tt>.
+        then <tt>$ ./admin/checkout-all.sh</tt>.
       </li>
     </ul>
   </li>
@@ -137,9 +143,9 @@ divided by operating system (Linux, OS X, Windows).
   <li>
     Edit/update the history file.
     <ul>
-      <li> <tt>.../base/NOTES/HISTORY</tt>: Add a new log entry similar to others.</li>
+      <li> <tt>../base/NOTES/HISTORY</tt>: Add a new log entry similar to others.</li>
       <li>
-        <tt>.../base/READMES/</tt>: Copy previous version's README and edit; older
+        <tt>../base/READMES/</tt>: Copy previous version's README and edit; older
         versions give examples of format expectations.
         <ul>
           <li> Cut and paste relevant entries in <tt>HISTORY</tt> and format them.</li>
@@ -164,7 +170,7 @@ divided by operating system (Linux, OS X, Windows).
           </li>
         </ul>
       </li>
-      <li> Add directory for 110.XX.</li>
+      <li> Add a directory for <tt>$VERSION</tt>.</li>
       <li> Copy previous index file over and update links.</li>
 <!-- this step is now hndled by the allcross script
       <li>
@@ -184,7 +190,7 @@ divided by operating system (Linux, OS X, Windows).
         <tt>$ ./admin/make-release.sh</tt><br/>
 	Note that each major directory under smlnj has its own trunk and
 	release branches, <i>e.g.</i>, <tt>$smlnj/sml/trunk</tt>,
-	<tt>$smlnj/sml/releases/release-110.74</tt>, except for <tt>ml-lpt</tt>,
+	<tt>$smlnj/sml/releases/release-$VERSION</tt>, except for <tt>ml-lpt</tt>,
 	which does not have release branches.
       </li>
     </ul>
@@ -195,10 +201,37 @@ divided by operating system (Linux, OS X, Windows).
       <li> <tt>$ mkdir tmp</tt></li>
       <li> <tt>$ cd tmp</tt></li>
       <li> <tt>$ svn export https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/admin</tt></li>
-      <li> <tt>$ ./admin/build-tar-files.sh 110.XX</tt></li>
-      <li> Copy tarballs into the release directory.</li>
+      <li> <tt>$ ./admin/build-tar-files.sh $VERSION</tt></li>
     </ul>
-    We use a temporary directory for this step to avoid including the <tt>.svn</tt> metadata.
+  </li>
+  <li>
+    <p>
+    Create the documentation tarball (note that the previous step will have exported
+    a copy of the documentation source, but will not have created a tarball for it).
+    </p>
+    <p>
+    The first step is to generate the documentation:
+    </p>
+    <ul>
+      <li> <tt>$ cd doc</tt>
+      <li> <tt>$ autoconf -Iconfig</tt>
+      <li> <tt>$ configure</tt>
+      <li> <tt>$ make man</tt>
+    </ul>
+    <p>
+    The second step is to create the tarball.
+    </p>
+    <ul>
+      <li> <tt>$ tar -zcf ../doc.tgz doc</tt>
+    </ul>
+  </li>
+  <li>
+    <p>
+    Copy tarballs into the release directory.
+    </p>
+    <ul>
+      <li> <tt>$ scp *.tgz linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/$VERSION</tt>
+    </ul>
   </li>
   <li>
     Create DMG files for Mac <a href="#dmg-files"><i>(See below)</i>.</a>
@@ -297,42 +330,42 @@ prompt.
 
 <li>[cygwin] create a directory to build a release. This directory path
    must not contain a number.<br>
-   (in my case: /home/dbm/smlnj/release or c:\cygwin\home\dbm\smlnj\release)
+   (in my case: <tt>/home/dbm/smlnj/release</tt> or <tt>c:\cygwin\home\dbm\smlnj\release</tt>)
 </li><br>
 
 <li>[cygwin] in /home/dbm/smlnj directory,
-<ol class="a">
-   <li><tt>mkdir gf</tt></li>
-   <li><tt>export gf=https://smlnj-gforge.cs.uchicago.edu/svn</tt></li>
-   <li><tt>export smlnj=$gf/smlnj</tt></li>
-</ol>   
+<ul class="a">
+   <li><tt>$ mkdir gf</tt></li>
+   <li><tt>$ export gf=https://smlnj-gforge.cs.uchicago.edu/svn</tt></li>
+   <li><tt>$ export smlnj=$gf/smlnj</tt></li>
+</ul>   
 </li><br>
 
-<li>[cygwin] <tt>cd gf; svn co $smlnj/admin</tt><br>
+<li>[cygwin] <tt>$ cd gf; svn co $smlnj/admin</tt><br>
    Create gf/admin directory with the usual scripts.
 </li><br>
 
-<li>[cygwin] <tt>cd ../smlnj/release</tt><br>
+<li>[cygwin] <tt>$ cd ../smlnj/release</tt><br>
     Go to build directory.</li>
 </li><br>
 
-<li>[cygwin] <tt>../../gf/admin/checkout-all.sh -e</tt><br>
+<li>[cygwin] <tt>$ ../../gf/admin/checkout-all.sh -e</tt><br>
    Run checkout-all.sh script to export the source files.
 </li><br>
 
-<li>[cygwin] <tt>wget http://www.smlnj.org/dist/working/$VERSION/boot.x86-win32.tgz</tt><br>
+<li>[cygwin] <tt>$ curl -O http://www.smlnj.org/dist/working/$VERSION/boot.x86-win32.tgz</tt><br>
    Manually fetch to boot tarball for Windows.
 </li><br>
 
-<li>[cygwin] <tt>tar xzvf boot.x86-win32.tgz</tt><br>
+<li>[cygwin] <tt>$ tar xzvf boot.x86-win32.tgz</tt><br>
    Manually untar the boot tarball.
 </li><br>
 
-<li>[vc++] go to <tt>C:\cygwin\home\dbm\smlnj\release</tt>
+<li>[vc++] <tt>set SMLNJ_HOME=C:\cygwin\home\dbm\smlnj\release</tt><br>
+    Define <tt>SMLNJ_HOME</tt> variable.
 </li><br>
 
-<li>[vc++] <tt>set SMLNJ_HOME=C:\cygwin\home\dbm\smlnj\release</tt><br>
-    Define SMLNJ_HOME variable.
+<li>[vc++] <tt>chdir %SMLNJ_HOME%</tt>
 </li><br>
 
 <li>[vc++] <tt>config\install.bat</tt><br>
@@ -341,15 +374,15 @@ prompt.
 <li>[vc++] <tt>config\WinSetup\buildSetup.bat</tt><br>
     The file <tt>smlnj.msi</tt> produced is the final installer for Windows.
 </li>
+
+<li>[cygwin] <tt>$ scp smlnj.msi linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/$VERSION/smlnj-$VERSION.msi</tt><br>
+    Copy the MSI file to the distribution directory; we add a <tt>$VERSION</tt> tag so that folks can
+    keep multiple downloads distinct.
+</li>
 </ol>
 
-</blockquote>
-
     <hr>
-    <address><a href="mailto:dbm@cs.uchicago.edu">David MacQueen</a>
-and <a href="mailto:larsberg@cs.uchicago.edu">Lars Bergstrom</a>
-and <a href="mailto:jriehl@spaceship.com">Jon Riehl</a></address>
 <!-- Created: Mon May  7 13:30:08 CDT 2007 -->
-<!-- hhmts start -->Last modified: Wed Feb  1 12:16:08 CST 2012 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: August 23, 2014 <!-- hhmts end -->
   </body>
 </html>
