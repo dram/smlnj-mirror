@@ -23,44 +23,49 @@
 <dl>
   <dt><b>Unix</b></dt>
   <dd>
+    <p>
     The only file you need to download manually is
-    <a
-    href="http://smlnj.cs.uchicago.edu/dist/working/110.77/config.tgz">config.tgz</a>.
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.77/config.tgz">config.tgz</a>.
     Unpack, configure by editing <tt>config/targets</tt>, and install
     by running <tt>config/install.sh</tt>.  The installer
     automatically downloads any additional files it might need.
     For more information, see <a href="NOTES/INSTALL">INSTALL</a>.
-   </dd>
+    </p>
+  </dd>
   <dt><b>MacOS X</b></dt>
   <dd>
     <p>
     You can use the "generic Unix" procedure above, or you can install
     a pre-built system using the installer package in either
-    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.77/smlnj-ppc-110.77.dmg">smlnj-ppc-110.77.dmg</a> for PPC/Mac OS X 10.5 (Leopard),
-    or <a href="http://smlnj.cs.uchicago.edu/dist/working/110.77/smlnj-x86-110.77.pkg">smlnj-x86-110.77.pkg</a> for Intel/Mac OS X 10.6 (Snow Leopard)
-    or later.
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.77/smlnj-x86-110.77.pkg">smlnj-x86-110.77.pkg</a> (for Intel/Mac OS X 10.6 Snow Leopard
+    or later)
+    or <a href="http://smlnj.cs.uchicago.edu/dist/working/110.77/smlnj-ppc-110.77.dmg">smlnj-ppc-110.77.dmg</a> (for PPC/Mac OS X 10.5 Leopard).
     For more information, see <a href="#macos-installer">below</a>.
     </p>
    </dd>
   <dt><b>Microsoft Windows</b></dt>
   <dd>
+    <p>
     Download
-    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.77/smlnj.msi">smlnj.msi</a>
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.77/smlnj-110.77.msi">smlnj-110.77.msi</a>
     and follow the instructions in <a href="NOTES/WININSTALL">WININSTALL</a>.
+    </p>
   </dd>
   <dt><b>Direct access to subversion repository</b></dt>
   <dd>
-      For information on how to use access the subversion repository,
-      refer to our <a href="../../../svn.html">subversion recipe page</a>.
-      <br>
-      <b>Warning:</b>  When pulling the latest sources via subversion,
-      there is no guarantee that <tt>config/install.sh</tt> will operate
-      successfully due to a lack of usable bootfiles.
-      In this case you might be able to
-      generate new bootfiles using the bootstrap compiler (of an older
-      version).  However, even that can be very difficult or even impossible,
-      in which case you will have to wait for the next working version to
-      be released.
+    <p>
+    For information on how to use access the subversion repository,
+    refer to our <a href="../../../svn.html">subversion recipe page</a>.
+    <br>
+    <b>Warning:</b>  When pulling the latest sources via subversion,
+    there is no guarantee that <tt>config/install.sh</tt> will operate
+    successfully due to a lack of usable bootfiles.
+    In this case you might be able to
+    generate new bootfiles using the bootstrap compiler (of an older
+    version).  However, even that can be very difficult or even impossible,
+    in which case you will have to wait for the next working version to
+    be released.
+    </p>
   </dd>
 </dl>
 
@@ -146,7 +151,7 @@
 
 <h3>Installer package for Mac OX X 10.6+ on Intel (Snow Leopard or later)<a id="macos-installer"></a></h3>
 <p>
-As of this release, the Mac OS X installer (on Intel) puts SML/NJ in the directory <tt>/usr/local/sml</tt>.
+As of this release, the Mac OS X installer (on Intel) puts SML/NJ in the directory <tt>/usr/local/smlnj</tt>.
 Future releases will update this installation in place (<i>i.e.</i>, overwrite it).
 If you wish to install at a different location, you should use the build procedure for Unix systems.
 </p>
