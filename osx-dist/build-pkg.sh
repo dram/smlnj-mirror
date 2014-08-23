@@ -103,7 +103,7 @@ pkgbuild --identifier $ID --scripts components/scripts/ --install-location /usr/
 
 # build distribution package
 #
-if [ $SIGN = none ] ; then
+if [ x"$SIGN" = xnone ] ; then
   echo "$CMD: building unsigned package smlnj-x86-$VERSION.pkg"
   productbuild --package-path components --resources $RSRC \
       --distribution $RSRC/distribution.xml ./smlnj-x86-$VERSION.pkg
