@@ -8,7 +8,6 @@ set +x
 here=`pwd`
 path_to_me=`dirname $0`
 
-
 # export all source files
 #
 $path_to_me/checkout-all.sh --export

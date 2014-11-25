@@ -1,4 +1,7 @@
 #!/bin/sh
+#
+# "tag" a release snapshot by copying all of the trees into a fresh release tree.
+#
 
 if [ $# -lt 1 ] ; then
     echo Usage: $0 '<release-number>'
