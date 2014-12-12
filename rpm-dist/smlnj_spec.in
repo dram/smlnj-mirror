@@ -3,7 +3,7 @@
 
 Summary:        Standard ML of New Jersey
 Name:           smlnj
-Version:        110.77
+Version:        VERSION
 Release:        1
 URL:            http://www.smlnj.org/
 License:        http://www.smlnj.org/license.html
