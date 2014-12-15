@@ -24,7 +24,7 @@ entry should be:
 
     [yyy/mm/dd]::
     +
-    Description ...
+    ... description ...
     +
     owner:[Your Name,URL]
 
@@ -64,6 +64,24 @@ More information about asciidoc can be found at http://asciidoc.org.
 //////////////////////////////////////////////////////////////////////
 
 == Recent updates
+
+//--------------------------------------------------------------------
+[2014/12/13]::
++
+Preliminary cleanups before changes to overloading.
++
+Minor cleanup in +Elaborator/elaborate/elabcore+ (function +elabOVERLOADdec+)
+and in +ElabData/types/typesutil.sml+ (function  +matchScheme+). Preparing for
+a new method of handling type checking of overloaded operators. [Note
+that there is no reason for the options field of +OVLDvar+ to be a
+reference -- it is never updated. Changing this requires corresponding
+change in pickling.]
++
+Also added an +etopdebugging+ flag (+ElabControl+) for debugging in
++elabtop.sml+. Modified ++elabcontrol.++{++sml++,++sig++} and
++elabtop.sml+. Also rearranged ast and absyn printing in +evalloop.sml+.
++
+owner:[David MacQueen,http://cs.uchicago.edu/~dbm]
 
 //--------------------------------------------------------------------
 [2014/10/23]::

@@ -35,7 +35,7 @@ case "$host_os" in
   ;;
 esac
 SRC_DIR=$ROOT_DIR/src
-OUT_DIR=$ROOT_DIR/out
+OUT_DIR=$ROOT_DIR/doc
 MK_DIR=$ROOT_DIR/mk
 SRC_CONFIG_DIR=$SRC_DIR/config
 SRC_STYLES_DIR=$SRC_DIR/styles
