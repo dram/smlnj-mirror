@@ -18,7 +18,7 @@ IMAGES_DST =		$(HTML_DST_ROOT)/images
 
 include @MK_DIR@/doc-rules.gmk
 
-DOC_SUBDIRS =		man
+DOC_SUBDIRS =		changelog man
 
 STYLE_IN_FILES =	$(notdir $(wildcard styles/*.in))
 STYLE_DST_FILES =	$(addprefix $(STYLES_DST)/,$(STYLE_IN_FILES:_css.in=.css)))

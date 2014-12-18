@@ -87,6 +87,7 @@ dnl ***** Makefiles *****
   mk/doc-rules.gmk:config/doc-rules_gmk.in
   Makefile
   src/Makefile
+  src/changelog/Makefile
   src/man/Makefile
 )
 

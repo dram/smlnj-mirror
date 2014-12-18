@@ -1,7 +1,7 @@
 Standard ML of New Jersey Change Log
 ====================================
 The Fellowship of SML/NJ
-110.78, December 15, 2014:
+{version}, {releasedate}:
 
 //////////////////////////////////////////////////////////////////////
 This change log is in ASCII doc format.  An HTML version of the
