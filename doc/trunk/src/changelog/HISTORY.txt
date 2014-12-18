@@ -24,9 +24,13 @@ entry should be:
 
     [yyy/mm/dd]::
     +
-    ... description ...
+    Description ...
     +
     owner:[Your Name,URL]
+
+Note that we put "+" at the beginning of blank lines.  Entries are items
+in a labeled list and the "+" character keeps eveything in the same list
+element.
 
 Here is a quick asciidoc cheat sheet:
 
@@ -39,11 +43,16 @@ Here is a quick asciidoc cheat sheet:
 					a link to the bug report.
     owner:[name,url]			displays name with URL link.
 
-
+Sub lists should be bracketed with lines containing just "--".
 Bulleted list items start with a single dash or one to five
 asterisks followed by some white space then some text. Numberd
 list items begin one to five period characters, followed by
 some white space then the item text.
+
+Literal (verbatim) blocks are delimited by
+.....................
+   stuff
+.....................
 
 Superscripts and subscripts are denoted by putting ^ (or ~)
 around the text to superscripted (superscripted).  For example,
@@ -67,8 +76,6 @@ More information about asciidoc can be found at http://asciidoc.org.
 
 //--------------------------------------------------------------------
 [2014/12/13]::
-+
-Preliminary cleanups before changes to overloading.
 +
 Minor cleanup in +Elaborator/elaborate/elabcore+ (function +elabOVERLOADdec+)
 and in +ElabData/types/typesutil.sml+ (function  +matchScheme+). Preparing for
@@ -1595,8 +1602,8 @@ to the directory layout.  Here is a table:
 |  +src/cm/pgraph+            | => | +pgraph+              |
 |                             |    |                       |
 |  +src/READMES+              | => | +base/READMES+        |
-|  ++src/$++__notefile__      | => | ++base/NOTES/$++__notefile__
-|     for _notefile_ in +BOOT+ +CVSNOTES+ +CYGWININSTALL+
+|  ++src/$++__note__      | => | ++base/NOTES/$++__note__
+|     for _note_ in +BOOT+ +CVSNOTES+ +CYGWININSTALL+
       +HISTORY+ +INSTALL+ +MACOSXINSTALL+ +WININSTALL+
 |                             |    |                       |
 |  +src/smlnj-lib+            | => | +smlnj-lib+           |
@@ -1790,7 +1797,7 @@ MLRISC changes:
   3) added DarwinPseudoOp functor that supports Darwin's assembler syntax.
   4) added support for 64-bit integer literals
 +
-owner:[John Reppy]
+owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //====================================================================
 == Version 110.58; 2006/03/03
@@ -2073,7 +2080,7 @@ owner:[Allen Leung]
 +
 Fixed *ml-lex* to recognize "\r" as representing carriage return.
 +
-owner:[John Reppy]
+owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2005/07/27]::
@@ -2081,7 +2088,7 @@ owner:[John Reppy]
 Fixed *ml-yacc* to work on files with non-native end-of-line
 encodings (_e.g._, Windows text file on a Unix system).
 +
-owner:[John Reppy]
+owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2005/07/20]::
@@ -2089,14 +2096,14 @@ owner:[John Reppy]
 Added changes from Dominic Evans (oldmanuk (at) gmail (dot) com)
 to support HPUX 11.
 +
-owner:[John Reppy]
+owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2005/07/06]::
 +
 Changes to the SML/NJ library.  See smlnj-lib/CHANGES for details.
 +
-owner:[John Reppy]
+owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2005/07/06]::
@@ -2104,7 +2111,7 @@ owner:[John Reppy]
 Fixed reversed logic for deciding whether to "copy up" or "copy down"
 in *-array-slice.sml.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/05/31]::
@@ -2132,14 +2139,14 @@ Added support scripts for Mac OS X PackageMaker and modified
 config/install.sh so that it supports re-dumping a heap image
 after customization.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/05/18]::
 +
 Un-overloaded / to work around bug in overloading resolution code.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/05/16]::
@@ -2159,7 +2166,7 @@ Internally, redump_heap winds the dynamic execution context back to
 the point where the original heap image was created and re-executes
 the heap image generation code in the boot code.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/05/09]::
@@ -2168,7 +2175,7 @@ Added a hack to the existing hack known as Word64 to make fromString
 behave correctly.  I am still not sure whether Word64.scan will work
 as specified with respect to the interaction of radix and prefix.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/05/04]::
@@ -2184,14 +2191,14 @@ owner:[Allen Leung]
 Fixed a bug in the implementation of div and mod for IntInf.
 Thanks to Neophytos Michael for reporting the problem.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/05/04]::
 +
 Added a "join" combinator to the ParserComb module in smlnj-lib.cm.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/02/28]::
@@ -2200,7 +2207,7 @@ Fixed serious bug (brown paper bag variety) in new implementation of
 structure Atom in CML.  (I had accidentally used a mailbox instead of
 an mvar, leaving the door open for races.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.53; 2005/02/25
@@ -2213,7 +2220,7 @@ Brought back SMLofNJ.Susp.  The underlying suspension type is the one
 implemented in Core -- which means that it is the same as the one used
 by the lazy extension.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/02/24]::
@@ -2221,7 +2228,7 @@ owner:[Matthias Blume]
 Simpler and at the same time more general implementation of structure
 Atom in CML.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/02/15]::
@@ -2229,7 +2236,7 @@ owner:[Matthias Blume]
 Created new "tools" directory under "src" and moved "TraceDebugProf"
 there.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/02/10]::
@@ -2238,7 +2245,7 @@ Implemented "long long" arguments and results for NLFFI.  (Only the
 PPC/MacOS implementation is complete, the other backends still need to
 be updated.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/01/24]::
@@ -2247,7 +2254,7 @@ Minor cleanup in ML-Yacc rule printing mechanism.  This should fix a
 problem with certain "as" patterns which previously got rendered
 using incorrect syntax.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/01/18]::
@@ -2255,7 +2262,7 @@ owner:[Matthias Blume]
 Made time profiling code (interrupt handler) in runtime system aware
 of new array representation.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/01/14]::
@@ -2283,21 +2290,21 @@ For example, run
 This will create a standalone executable called "mly" which you can
 then invoke directly as a command.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/01/07]::
 +
 fixed off-by-one error in ML_STRING macro (globals.c)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/23]::
 +
 Made *ml-build* script "smarter" (but only very little).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/21]::
@@ -2310,7 +2317,7 @@ data structure access seems to work.)
   (On the Mac, it is big-endian.  And that's currently our only
   PPC platform.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/21]::
@@ -2319,7 +2326,7 @@ Some cleanup in the $c/memory.cm library: separated some concerns by
 moving allocation code and memory access code each into their own
 files.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/17]::
@@ -2340,7 +2347,7 @@ The changes:
    - HashString.hashString' -> HashString.hashSubstring
    - bug fix in UnivariateStats
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/15]::
@@ -2350,7 +2357,7 @@ owner:[Matthias Blume]
 - "de-compressed" (aka. un-obfuscated) code for UnivariateStats and
   added some comments
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.52; 2004/12/15
@@ -2361,7 +2368,7 @@ owner:[Matthias Blume]
 +
 More on the space problem (this time for *Win32*).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/14]::
@@ -2371,14 +2378,14 @@ spaces in filenames a bit better.  But beware: the current "solution"
 is likely still full of bugs and inherently incomplete.  (We need to
 do away with those shell scripts for a comprehensive solution.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/13]::
 +
 Fixed bug in code for *ml-makedepend*.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/09]::
@@ -2386,7 +2393,7 @@ owner:[Matthias Blume]
 Added two simple but potentially useful statistics modules to SML/NJ Library.
 (See CHANGES file there.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/01]::
@@ -2399,14 +2406,14 @@ smlnj-lib:
   strings from substrings unless necessary.
   (Also see CHANGES file for smlnj-lib.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/24]::
 +
 Made sure CML compiles when Position = Int64.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/24]::
@@ -2430,7 +2437,7 @@ reading it character-by-character.  That test was successful.
 In support of 64-bit positions, a number of new functions have been
 added to the runtime system.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/23]::
@@ -2438,7 +2445,7 @@ owner:[Matthias Blume]
 Fixed a problem with unhelpful error messages related to problems with
 .cm- or .sml files that appear as part of the sml command line.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.51; 2004/11/18
@@ -2447,15 +2454,15 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2004/11/18]::
 +
-Enabled dlopen and friends for FreeBSD (as recommended by Johannes 5
+Enabled +dlopen+ and friends for *FreeBSD* (as recommended by Johannes 5
 Joemann).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/17]::
 +
-   Added support for MLTree constructs LIVE and KILL
+Added support for +MLTree+ constructs +LIVE+ and +KILL+
 to all the architectures.
 +
 owner:[Allen Leung]
@@ -2463,53 +2470,53 @@ owner:[Allen Leung]
 //--------------------------------------------------------------------
 [2004/11/13]::
 +
-- Stripped down the versiontool: It now only handles the version number.
+- Stripped down the +versiontool:+ It now only handles the version number.
   The date string is generated at bootstrap time (during makeml).
 +
 - In a previous commit, fixed a minor issue with how polyequal is being
   translated.  In particular, the code now "looks through" abstractions.
   This results in slightly fewer polyEqual warnings and hopefully slightly
   more efficient code.  Important examples for where this matters are
-  the new int64 and word64 types.
+  the new +int64+ and +word64+ types.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/12]::
 +
-Structure Int64 fully hooked in.  (The implementation is not very
+Structure +Int64+ fully hooked in.  (The implementation is not very
 efficient, though.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/11]::
 +
-All the pieces of Word64 are now there, with the exception of the
-conversions from and to LargeWord. (Eventually these need to be identities,
-but for the time being they don't even make sense because LargeWord is
+All the pieces of +Word64+ are now there, with the exception of the
+conversions from and to +LargeWord+. (Eventually these need to be identities,
+but for the time being they don't even make sense because +LargeWord+ is
 32-bit wide.)
 +
-Also started to add similar support for Int64, but major pieces of that
+Also started to add similar support for +Int64+, but major pieces of that
 are still missing.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/11]::
 +
-Structure Word64 is now (almost) complete, word literals and patterns
+Structure +Word64+ is now (almost) complete, word literals and patterns
 seem to work.  There are a few odd pieces missing.  In particular,
-I didn't do the {from,to}LargeWord parts because LargeWord is still Word32
-at the moment.
+I didn't do the {++from++,++to++}++LargeWord++ parts because +LargeWord+
+is still +Word32+ at the moment.
 +
-Making Word64 official would mean that LargeWord becomes Word64.  But
+Making +Word64+ official would mean that +LargeWord+ becomes +Word64+.  But
 this requires extreme care because most word-word conversions have to
-go through LargeWord, so making a mistake means loss of efficiency or
+go through +LargeWord+, so making a mistake means loss of efficiency or
 worse.  Eventually there will be a solution similar to (but actually
-simpler than) what I did with IntInf.
+simpler than) what I did with +IntInf+.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/10]::
@@ -2517,7 +2524,7 @@ owner:[Matthias Blume]
 More 64-bit hacking (but still not even half-way there yet).
 Also, some assorted improvements to the handling of 8-bit words.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/09]::
@@ -2525,7 +2532,7 @@ owner:[Matthias Blume]
 Started adding some infrastructure for supporting 64-bit int- and
 word-types.  (Still in its very early stages.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.50; 2004/10/28
@@ -2544,7 +2551,7 @@ owner:[Matthias Blume]
   (As a result, a version change can be done by just editing
    config/version, the rest is now automatic.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/27]::
@@ -2552,7 +2559,7 @@ owner:[Matthias Blume]
 BackTrace.monitor now also reports the source of the exception that
 triggered the trace.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/27]::
@@ -2566,7 +2573,7 @@ the x86 c-calls code in MLRISC:
     (the callee already pops the implicit argument which points to
      the space reserved for the result)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/24]::
@@ -2622,7 +2629,7 @@ New libraries:
    $smlnj-tdp/coverage.cm
       -- when loaded causes the coverage plugin to be installed
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/18]::
@@ -2631,7 +2638,7 @@ Added an "obsolete" warning for the "group owner" syntax to CM's parser.
 +
 Eliminated group owner specs from .cm files throughout the source tree.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/15]::
@@ -2667,7 +2674,7 @@ when the code in question explicitly invokes BackTrace.trigger().
 Coverage (and execution frequency-) information must be queried
 explicitly by calling Coverage.not_covered and Coverage.hot_spots.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/14]::
@@ -2675,7 +2682,7 @@ owner:[Matthias Blume]
 Snapshot of a significant overhaul of how the trace/debug/profile support
 is hooked into the system (specifically: Core and SMLofNJ.Internals).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/13]::
@@ -2698,7 +2705,7 @@ one has to say
 +
  sml -Ctdp.instrument=true
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/11]::
@@ -2707,7 +2714,7 @@ Made some minor modifications to elabcore.sml to have source regions
 be propagated more tightly -- resulting in better (_i.e._, smaller)
 regions being reported in error- and debug messages.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/08]::
@@ -2720,7 +2727,7 @@ Most seriously, this fixes a problem with CM's "shell" tool.  The tool
 is supposed to accept a tool argument called "source", but this did
 not work because of the clash with the keyword.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/07]::
@@ -2733,7 +2740,7 @@ Assorted cleanup work:
   - simplified tokentable implementation
   - fixed some minor spelling errors
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/06]::
@@ -2744,7 +2751,7 @@ superfluous sanity checks at runtime down the road.
 +
 Some minor cleanup of the btrace code.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/01]::
@@ -2754,7 +2761,7 @@ tool.  (Still, since the master does two passes over the code for
 CMB.make, the release number gets bumped twice when slaves are
 attached.  I don't know if this is worth fixing...)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/30]::
@@ -2771,7 +2778,7 @@ owner:[Matthias Blume]
   Also, loading the versiontool does not work when rebuilding the system
   because CM is not properly initialized at that time.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/29]::
@@ -2796,58 +2803,68 @@ during development without invalidating existing binfiles.
 In any case, every CMB.make updates the date information in version.sml.
 (This is the date that is printed in the banner.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/28]::
 +
 Some cleanup of the controls code.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/27]::
 +
 Added two pieces of functionality to the Controls interface:
 +
-1.   val save'restore: 'a control -> unit -> unit
+[source,sml]
+------------
+val save'restore: 'a control -> unit -> unit
+------------
 +
-   grabs the current value of the control in stage 1 and restores it
-   in stage 2.
+grabs the current value of the control in stage 1 and restores it
+in stage 2.
 +
-2.   val set' : 'a control * 'a -> unit -> unit
+[source,sml]
+------------
+val set' : 'a control * 'a -> unit -> unit
+------------
 +
-   stores the given value into the control in stage 2 (_i.e._, delayed)
-   but does all error checking in stage 1.
-   (This is for string controls that need to do parse their argument --
-    something that might fail.  In some cases, notably in CM, one
-    already knows the intended argument but wants to delay the actual
-    assignment until a time when error recovery would be more difficult.)
+stores the given value into the control in stage 2 (_i.e._, delayed)
+but does all error checking in stage 1.
+(This is for string controls that need to do parse their argument --
+something that might fail.  In some cases, notably in CM, one
+already knows the intended argument but wants to delay the actual
+assignment until a time when error recovery would be more difficult.)
 +
-Changed the handling of controls in tool arguments to classes "sml" and
-"lazysml":
-   - use Controls.save'restore as a more robust way of restoring the
+Also changed the handling of controls in tool arguments to classes "+sml+" and
+"+lazysml+":
+--
+   - use +Controls.save'restore+ as a more robust way of restoring the
      old value (in particular: without having to re-parse the string)
-   - use controls to handle the "overload" keyword in the init group
+   - use controls to handle the "+overload+" keyword in the init group
      (I believe this change actually fixes a long-standing obscure bug.)
+--
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/27]::
 +
-Added a new tool class called "lazysml" to CM's tool chest.  The only
-difference to "sml" is that compilation is done with Control.lazysml
-set to true.  A source of class "lazysml" is automatically recognized
-by a file name suffix of ".lml".
+Added a new tool class called "+lazysml+" to CM's tool chest.  The only
+difference to "+sml+" is that compilation is done with +Control.lazysml+
+set to true.  A source of class "+lazysml+" is automatically recognized
+by a file name suffix of "+.lml+".
 +
-In addition to the above feature, the original class "sml" now also
-supports a tool argument "lazy" which has the same effect.  As a
+In addition to the above feature, the original class "+sml+" now also
+supports a tool argument "+lazy+" which has the same effect.  As a
 result, the following three lines are equivalent:
 +
+....................
     foo.sml : lazysml
     foo.sml : sml (lazy)
     foo.sml (lazy)
+....................
 +
 The setting goes into effect both during parsing and during
 compilation.  The original setting is restored right after parsing and
@@ -2855,31 +2872,33 @@ after compilation, respectively.
 +
 In addition to all the above, there is also a general mechanism to set
 ANY of the "controls" that are available at the command line via
-"-C..." on a per-sml-file basis.  The same rules that apply for "lazy"
-apply as well. (In fact, "lazy" is implemented as a special case of
+"+-C...+" on a per-sml-file basis.  The same rules that apply for "+lazy+"
+apply as well. (In fact, "+lazy+" is implemented as a special case of
 the general mechanism.)
 +
-The .cm file syntax uses a new keyword tool argument called "with".
+The +.cm+ file syntax uses a new keyword tool argument called "+with+".
 There are several ways of indicating the desired settings:
 +
+....................
     foo.sml (with:parser.quotations=true)
     foo.sml (with:(name:parser.quotations value:true))
     foo.sml (with:(name:name1 value:value1 name:name2 value:value2 ...))
     foo.sml (with:(name1=value1 name2=value2 ...))
     foo.sml (with:(name1=value1 name:name2 value:value2 name3=value3 ...))
+....................
 +
-    etc.
-+
-Another possible abbreviation is to leave out the =v or value:v part
+Another possible abbreviation is to leave out the +=v+ or +value:v+ part
 if the name refers to a boolean control (in which case the value is
 taken to be true).  Thus, one could get lazy sml also by saying:
 +
+....................
     foo.sml (with:parser.lazy-keyword=true)
     foo.sml (with:parser.lazy-keyword)
     foo.sml (with:(name:parser.lazy-keyword value:true))
     foo.sml (with:(name:parser.lazy-keyword))
+....................
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/24]::
@@ -2887,7 +2906,7 @@ owner:[Matthias Blume]
 Turned message about "emiting long form of branch" off by default.
 Added a control flag to turn it back on when desired.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/24]::
@@ -2895,7 +2914,7 @@ owner:[Matthias Blume]
 Applied patch for setting rounding modes under Mac OS X.  Thanks to
 Melissa O'Neill for providing the code!
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/23]::
@@ -2908,7 +2927,7 @@ owner:[Matthias Blume]
    variables that can be used to control internal settings.
    (This uses the new API mentioned in 1.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.49; 2004/09/13
@@ -2929,7 +2948,7 @@ owner:[Matthias Blume]
 Fixed the signal masking code to properly nest mask/unmask operations
 on a per-signal basis.
 +
-owner:[John Reppy]
+owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2004/09/08]::
@@ -2937,7 +2956,7 @@ owner:[John Reppy]
 Bumped the heap magic number to 0x09082004 to account for the changed
 layout of the ML frame under MacOS X.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/03]::
@@ -2953,7 +2972,7 @@ owner:[Allen Leung]
 +
 Added some exports to src/compiler/core.cm upon request by J. Joemann.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/30]::
@@ -2965,7 +2984,7 @@ Upon request by Johannes Joemann:
   the code compiles but has yet to be tested in anger
 - removed mlrisc from list of default targets (config/targets)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/27]::
@@ -2973,7 +2992,7 @@ owner:[Matthias Blume]
 Added ptreql primop to structure InlineT (upon request from Larry
 Paulson).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/15]::
@@ -3028,7 +3047,7 @@ Fiddled with handling of command-line options:
   * bug fixes: short (erroneous) arguments are no longer ignored
     completely
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/04]::
@@ -3052,7 +3071,7 @@ Added low-level support for choosing C calling conventions by
 twiddling the type of rawccall.  (See
 src/compiler/Semant/types/cproto.sml for details.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/02]::
@@ -3060,7 +3079,7 @@ owner:[Matthias Blume]
 Backed out of change to win32-filesys.c.  The earlier patch to
 get_file_time caused CM to produce files with the wrong time stamp.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/02]::
@@ -3069,7 +3088,7 @@ Added NLFFI support for *Win32*, adapted from a patch provided by David
 Hansel.  This is currently completely untested.  Also, the issue
 concerning stdcall vs. ccall is still unresolved.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/07/30]::
@@ -3088,7 +3107,7 @@ Gearing up towards 110.47...
   - applied patch for incorrect GetFileTime under win32
   - toSeconds -> toMilliseconds in Win32/win32-process.sml
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/07/21]::
@@ -3099,7 +3118,7 @@ owner:[Matthias Blume]
 - Started to produce what is supposed to become better (_i.e._, comprehensive)
   documentation of what ml-nlffigen does and produces.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/07/14]::
@@ -3111,7 +3130,7 @@ information to the code generator.
 However, the actual architecture-specific implementation of function
 arguments and results that are C unions is still not implemented.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/07/14]::
@@ -3153,7 +3172,7 @@ owner:[Allen Leung]
   of ml-nlffigen.
 - minor code tweaks
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.46.1; 2004/07/12
@@ -3173,7 +3192,7 @@ Note:  1. You have to make a new, clean build of the runtime system.
 +
 Version bumped to 110.46.1 to account for runtime data format changes.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/06/18]::
@@ -3183,7 +3202,7 @@ is returned every time one of the {text,bin}{In,Out}streamOf functions
 is invoked on the same proc.  This is not what the spec currently
 says -- although IMO it arguably should.  (See discussion below.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.46; 2004/06/17
@@ -3217,14 +3236,14 @@ PS: I don't understand the original space leak argument anymore.  If
 a proc hangs on to the imperative stream, then I/O operations on those
 will advance the state of the cached stream and avoid the space leak.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/28]::
 +
 Added signature PACK_REAL and exported functor PrimIO.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/25]::
@@ -3245,7 +3264,7 @@ CM.make.  Fortunately, enclosing the same group in two different
 libraries A and B which are not part of the same program does not
 cause real problems.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/20]::
@@ -3257,7 +3276,7 @@ compiled correctly.)
 Also, included a minor addition to ml-build.bat analogous to what was
 done in blume-20040519-ml-build.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/19]::
@@ -3271,7 +3290,7 @@ This required a minor change to install.sh because the name of the
 metadata directory (default: .cm) is actually configurable at
 installation time.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/18]::
@@ -3279,7 +3298,7 @@ owner:[Matthias Blume]
 Added Posix.IO.mk{Bin,Text}{Reader,Writer} by lifting their respective
 implementations from internal modules PosixBinPrimIO and PosixTextPrimIO.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/11]::
@@ -3343,7 +3362,7 @@ Keep up the good work!
 +
 David
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/11]::
@@ -3351,7 +3370,7 @@ owner:[Matthias Blume]
 Fixed two bugs in installml script.  (Thanks to Vesa A. Norrman for
 the patch.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/11]::
@@ -3359,7 +3378,7 @@ owner:[Matthias Blume]
 Added support for *nlffi* under netbsd.  (Thanks to Vesa A. Norrman for
 the patch.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/11]::
@@ -3367,7 +3386,7 @@ owner:[Matthias Blume]
 As per request by Adam Chlipala <adam@hcoop.net>, extended various
 export lists in compiler-related .cm-files.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/05/11]::
@@ -3380,7 +3399,7 @@ everything.  (Notice that this refers to source code only.  Compiled
 code is still only installed for modules that were requested explicitly
 or which are required for other modules that were requested explicitly.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/04/23]::
@@ -3389,7 +3408,7 @@ Fixed IEEEReal.scan (and .fromString) so that if there is an overflow
 in the exponent calculation we get INF or ZERO (depending on the mantissa
 and the sign of the exponent).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/04/23]::
@@ -3397,7 +3416,7 @@ owner:[Matthias Blume]
 The *ml-build* script now terminates with a non-0 status when something
 goes wrong.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/04/22]::
@@ -3405,7 +3424,7 @@ owner:[Matthias Blume]
 Made exception Option to be the same as exception Option.Option
 (as it should be).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/03/19]::
@@ -3438,7 +3457,7 @@ owner:[Allen Leung]
 Fixed problem with IntInf.fmt (sign would show up on the right instead
 of on the left for BIN, OCT, and HEX).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/03/04]::
@@ -3447,7 +3466,7 @@ Fixed problem with installer script (unix only) where bin/ml-yacc and
 friends pointed (via symlinks) to absolute locations instead of just
 .run-sml.  This was reported by Vesa A Norrman.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.45; 2004/02/13
@@ -3458,7 +3477,7 @@ owner:[Matthias Blume]
 +
 Improved handling of exceptions at the interactive toplevel.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/01/26]::
@@ -3466,7 +3485,7 @@ owner:[Matthias Blume]
 Type of top-level "app" corrected.
 Added code for setting vp_limitPtrMask to *Win32*-specific runtime.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/11/18]::
@@ -3475,7 +3494,7 @@ owner:[Matthias Blume]
 - POSIX_FLAGS -> BIT_FLAGS according to spec
 - some other minor discrepancies wrt. spec eliminated
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.44; 2003/11/06
@@ -3492,7 +3511,7 @@ backward-compatibility feature when I first introduced the new CM.
 Now that things have been stable for a long time and going back to the
 old CM is not an option, there is no reason to keep it around.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/11/03]::
@@ -3500,14 +3519,14 @@ owner:[Matthias Blume]
 Made installer honor INSTALLDIR variable again.  (Thanks to Chris
 Richards for pointing out the problem and providing the solution.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/10/01]::
 +
 MLRISC bug fix from Lal.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/30]::
@@ -3516,14 +3535,14 @@ owner:[Matthias Blume]
 2. Improved .bat files (for *Win32* port) to make things work under Win95.
    (thanks to Aaron S. Hawley for this one)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/26]::
 +
 Added missing wrapper for privilege "primitive" in $smlnj/viscomp/core.cm.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.43.3; 2003/09/26
@@ -3550,7 +3569,7 @@ be B.u, but B is unavailable at toplevel, then A.t gets printed as
 a chain of DEFtycs not farther than there are corresponding toplevel
 names in the current environment.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/24]::
@@ -3573,7 +3592,7 @@ The new scheme guarantees that the ML code responsible for the installation
 is in sync with the APIs of the main system.  Also, the installer is
 somewhat faster because the installer script is precompiled.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/24]::
@@ -3584,7 +3603,7 @@ and CML_SOCKET in terms of SYNCHRONOUS_SOCKET.  Removed superfluous
 implementations of non-blocking operations from CML's Socket
 structure.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/24]::
@@ -3609,7 +3628,7 @@ owner:[Matthias Blume]
 +
 5. Changed Real64.precision from 52 to 53.  Minor cleanup in Real64 code.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.43.2; 2003/09/22
@@ -3621,7 +3640,7 @@ owner:[Matthias Blume]
 Made a new interim version and bootfiles for developer's bootstrapping
 convenience.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/19]::
@@ -3633,7 +3652,7 @@ owner:[Matthias Blume]
    during installation); once installation is complete, the name is
    fixed
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.43.1; 2003/09/18
@@ -3645,7 +3664,7 @@ owner:[Matthias Blume]
 Made a new interim version and bootfiles for developer's bootstrapping
 convenience.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/18]::
@@ -3660,7 +3679,7 @@ owner:[Matthias Blume]
    For example, fromLargeInt never needs to look at more than 3 "big
    digits" to get its 53 bits of precision.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/17]::
@@ -3676,14 +3695,14 @@ integer counterparts.
 Made all(?) the slice-related changes to the Basis and made everything
 compile again...
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/15]::
 +
 Fixed bug in Real.fromLargeInt.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/13]::
@@ -3693,7 +3712,7 @@ standalone tool after installing it, otherwise libraries that
 need *ml-lex* or *ml-yacc* won't compile the first time the installer
 runs).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/12]::
@@ -3704,7 +3723,7 @@ owner:[Matthias Blume]
  - minor installer improvements / bugfixes
  - changed default @SMLalloc parameter for x86/celeron to 64k
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //====================================================================
 == Version 110.43; 2003/09/09
@@ -3734,7 +3753,7 @@ Other changes:
     (under Win32, the volume name is case-insensitive, and the
     OS.Path code compares volume names for equality)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/08]::
@@ -3744,7 +3763,7 @@ when given an empty string.  This is what the spec says, and incidentally,
 CM depends on it.  (CM otherwise goes into an infinite loop in certain
 cases when presented with the name of a non-existing .cm file.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/09/04]::
@@ -3784,7 +3803,7 @@ owner:[Matthias Blume]
  14. Functor PrimIO now takes two additional arguments (VectorSlice and
      ArraySlice).
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/08/28]::
@@ -3857,7 +3876,7 @@ Throughout the code:
 	(_e.g._, comparison with 0) where this seems appropriate.
 +
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/08/13]::
@@ -3953,7 +3972,7 @@ Unrelated bug fixes:
   - Added getDevice to PP/src/pp-debug-fn.sml.  (Would not compile
     otherwise.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/06/17]::
@@ -3969,7 +3988,7 @@ owner:[Dave MacQueen]
 +
 Tried to eliminated most cases of polymorphic equality.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/05/21]::
@@ -3981,7 +4000,7 @@ Two changes:
   2. Cleaned up the *entire* source tree so that CMB.make goes through
      without a single non-exhaustive match- or bind warning.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/05/17]::
@@ -3998,7 +4017,7 @@ owner:[Matthias Blume]
 2. The ErrorMsg.Error exception is now caught and absorbed by the
    interactive loop.
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2003/05/16]::
