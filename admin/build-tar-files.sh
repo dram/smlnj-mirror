@@ -35,7 +35,7 @@ dirs="\
   "
 
 for d in $dirs ; do
-  tar cfz $d.tgz $d
+  tar -cfz $d.tgz $d
 done
 
 base_dirs="\
@@ -45,8 +45,15 @@ base_dirs="\
     system \
   "
 
-cd base
+cd $here/base
 for d in $base_dirs ; do
-  tar cfz ../$d.tgz $d
+  tar -cfz ../$d.tgz $d
 done
 
+# building the documentation requires configuring it and then generating the manual pages
+#
+cd $here/doc
+autoconf -Iconfig || exit 1
+make man || exit 1
+cd $here
+tar -cfz doc.tar.gz doc

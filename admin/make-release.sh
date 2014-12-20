@@ -1,4 +1,4 @@
-#!/bin/sh
+e!/bin/sh
 #
 # "tag" a release snapshot by copying all of the trees into a fresh release tree.
 #
@@ -17,5 +17,6 @@ here=`pwd`
 for tree in config sml smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
             ckit cml eXene smlnj-c ml-burg ml-lex heap2asm nlffi doc
 do
+  echo "tagging $tree..."
   svn cp $gf/$tree/trunk $gf/$tree/releases/release-$relno -m "Release $relno"
 done
