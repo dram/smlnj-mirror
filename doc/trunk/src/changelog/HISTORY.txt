@@ -3,6 +3,13 @@ Standard ML of New Jersey Change Log
 The Fellowship of SML/NJ
 {version}, {releasedate}:
 
+This file documents changes to the Standard ML of New Jersey system since
+March of 2000 (around Version 110.26).  The change log  primarily covers
+the compiler, the compilation manager (*CM*), the *MLRISC* library, and
+the runtime system.  There are occasional entries about other components
+(_e.g._, the *SML/NJ Library* and *ML-LPT*), but these components have
+their own change logs that should be consulted.
+
 //////////////////////////////////////////////////////////////////////
 This change log is in ASCII doc format.  An HTML version of the
 change log can be generated using the command
@@ -70,9 +77,18 @@ tool.
 
 More information about asciidoc can be found at http://asciidoc.org.
 
+NOTE: the original HISTORY file was converted to ASCIIDOC using a Perl
+script.  This script gets the basic structure for entries correct,
+but there still needs to be a fair bit of editing to add ASCIIDOC
+markup, fix indentation issues, nested lists, etc.  Working from most
+recent to oldest, I've edited back to release 110.46 (2004/06/17).
+
 //////////////////////////////////////////////////////////////////////
 
-== Recent updates
+// == Recent updates
+
+//====================================================================
+== Version 110.78; 2014/12/25
 
 //--------------------------------------------------------------------
 [2014/12/19]::
@@ -84,7 +100,7 @@ operator is inconsistent with its context. 23 files updated, including
 major changes in +overload.sml+, +types.sml+, +unify.sml+, +elabcore.sml+,
 +typesutil.sml+. The overload declaration is still used in
 +pervasives.sml+, where the order of the specified instances of an
-ordering determines the default interpretation (i.e. the first one).
+ordering determines the default interpretation (_i.e._, the first one).
 +
 The +SCHEME+ and +LITERAL+ forms of tyvars are replaced by a new
 +OVLD+ form that tracks potential instantiations of the type of the
@@ -93,7 +109,20 @@ overloaded vars or literals.
 owner:[David MacQueen,http://cs.uchicago.edu/~dbm]
 
 //--------------------------------------------------------------------
+[2014/12/18]::
++
+Moved +base/NOTES/HISTORY+ file to +doc/src/changelog/HISTORY.txt+
+and converted it to http://asciidoc.org[ASCIIDOC] format.  Have also
+moved the +README+ files from +base/READMES+ to +doc/src/release-notes+.
+These changes are part of a general effort to rationalize and improve
+the documentation of the *SML/NJ* system.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2014/12/13]::
++
+Preliminary cleanups before changes to overloading
 +
 Minor cleanup in +Elaborator/elaborate/elabcore+ (function +elabOVERLOADdec+)
 and in +ElabData/types/typesutil.sml+ (function  +matchScheme+). Preparing for
@@ -140,6 +169,22 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
 
 //--------------------------------------------------------------------
+[2014/08/21]::
++
+Created new +doc+ tree in *SML/NJ* repository.  Currently this
+tree just holds the sources for UNIX-style manual pages for
+the command-line tools (fixing bug bugref:[35]).  The documentation
+is written using the http://asciidoc.org[ASCIIDOC] format.  Use
+the following *svn* command to checkout a copy of the documentation tree:
++
+[source,sh]
+-----------
+svn co https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/doc/trunk doc
+-----------
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2014/08/19]::
 +
 Compiling the runtime system on *cygwin* was failing because the file
@@ -152,8 +197,8 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2014/08/19]::
 +
-Added the actionToString' and repairToString' functions
-to the AntlrRepair structure.  These functions allow one to
+Added the +actionToString'+ and +repairToString'+ functions
+to the +AntlrRepair+ structure.  These functions allow one to
 specialize the printing of tokens based on whether they are
 being added or deleted.
 +
@@ -1704,42 +1749,51 @@ get rid of the extra level of indirection represented by "src".)
 +
 The layout is now as follows:
 +
-  toplevel tree name | default repository
-                     | (using gf=svn://smlnj-gforge.cs.uchicago.edu/smlnj)
-  -------------------+----------------------------------------------------
-  config	     | $gf/config/trunk
-                     |
-  base               | $gf/sml/trunk
-                     |
-  smlnj-lib	     | $gf/smlnj-lib/trunk
-  MLRISC             | $gf/MLRISC/trunk
-                     |
-  ml-yacc	     | $gf/ml-yacc/trunk
-  ml-lex	     | $gf/ml-lex/trunk
-  ml-burg	     | $gf/ml-burg/trunk
-  lexgen	     | $gf/lexgen/trunk
-  heap2asm	     | $gf/heap2asm/trunk
-                     |
-  cml                | $gf/cml/trunk
-  eXene		     | $gf/eXene/trunk
-  ckit		     | $gf/ckit/trunk
-  nlffi		     | $gf/nlffi/trunk
-                     |
-  smlnj-c	     | $gf/smlnj-c/trunk
+[frame="none",width="90%",cols="<2,<3",options="header"]
+|===========================================================
+| toplevel tree name | default repository
+                       (using +svn://smlnj-gforge.cs.uchicago.edu/smlnj+ for +$gf+)
 +
-In $gf/admin there are a few useful shell scripts for checking out
+| +config+	     | +$gf/config/trunk+
++
+| +base+             | +$gf/sml/trunk+
++
+| +smlnj-lib+	     | +$gf/smlnj-lib/trunk+
+| +MLRISC+           | +$gf/MLRISC/trunk+
++
+| +ml-yacc+	     | +$gf/ml-yacc/trunk+
+| +ml-lex+	     | +$gf/ml-lex/trunk+
+| +ml-burg+	     | +$gf/ml-burg/trunk+
+| +lexgen+	     | +$gf/lexgen/trunk+
+| +heap2asm+	     | +$gf/heap2asm/trunk+
++
+| +cml+              | +$gf/cml/trunk+
+| +eXene+            | +$gf/eXene/trunk+
+| +ckit+	     | +$gf/ckit/trunk+
+| +nlffi+            | +$gf/nlffi/trunk+
++
+| +smlnj-c+	     | +$gf/smlnj-c/trunk+
+|===========================================================
++
+In +$gf/admin+ there are a few useful shell scripts for checking out
 and maintaining the entire collection of trees:
 +
-   admin/checkout-all.sh [dir]
-      -- optionally creates dir and checks out all trees from their
-         default repositories; if dir is missing, checkout into .
-   admin/refresh-all.sh [dir]
-      -- looks at all trees (from the above list) in dir (default: .)
-         and runs "svn update" if the tree exists and is under
-         subversion control;
-         non-existing or non-subversion trees are skipped
-   admin/stat-all.sh [dir]
-      -- like refresh-all.sh, but runs "svn stat" instead
+--
++admin/checkout-all.sh+ [__dir__]::
++
+optionally creates _dir_ and checks out all trees from their
+default repositories; if _dir_ is missing, checkout into the
+current working directory.
++
++admin/refresh-all.sh+ [__dir__]::
+looks at all trees (from the above list) in _dir_ (default: .)
+and runs "+svn update+" if the tree exists and is under
+subversion control;
+non-existing or non-subversion trees are skipped
++
++admin/stat-all.sh+ [__dir__]::
+like +refresh-all.sh+, but runs "+svn stat+" instead
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -1760,24 +1814,31 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 +
 I am freezing 110.59.  Changes other than the version-number increase:
 +
-  eXene:
+--
+eXene::
 +
-     * committed changes to eXene from Alley Stoughton:
-         "fixed bugs in X authorization and resource handling, as well
-          as in the pile and viewport widgets"
+committed changes to eXene from Alley Stoughton:
+"fixed bugs in X authorization and resource handling, as well
+ as in the pile and viewport widgets"
 +
-  Runtime:
-    * fixed linking problem with NetBSD 3.x.
+Runtime::
 +
-  Lexgen:
-    * lexgen tool handles non-ascii characters in 7-bit mode the same
+  fixed linking problem with *NetBSD 3.x*.
++
+Lexgen::
++
+--
+    * *lexgen* tool handles non-ascii characters in 7-bit mode the same
       way that *ml-lex* does
 +
     * lexgen propagates exceptions the same way that *ml-lex* does
+--
 +
-  CML:
-    * Fixed a bug in the SyncVar polling functions (iGetPoll,
-      mTakePoll, and mGetPoll) that could lead to livelock.
+CML::
++
+Fixed a bug in the +SyncVar+ polling functions (+iGetPoll+,
++mTakePoll+, and +mGetPoll+) that could lead to livelock.
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -1802,7 +1863,7 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 [2006/04/20]::
 +
 Committed patches received from Johannes 5 Joemann (joemann@befree.free.de)
-that enable heap2exec under Linux and FreeBSD.
+that enable *heap2exec* under +Linux+ and +FreeBSD+.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -1810,10 +1871,13 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 [2006/04/14]::
 +
 MLRISC changes:
-  1) renamed GAS_PSEUDO_OPS to AS_PSEUDO_OPS and put it in its own file.
-  2) added support for NOTB and XORB operators in pseudo-op expressions
-  3) added DarwinPseudoOp functor that supports Darwin's assembler syntax.
-  4) added support for 64-bit integer literals
++
+--
+. renamed +GAS_PSEUDO_OPS+ to +AS_PSEUDO_OPS+ and put it in its own file.
+. added support for +NOTB+ and +XORB+ operators in pseudo-op expressions
+. added +DarwinPseudoOp+ functor that supports Darwin's assembler syntax.
+. added support for 64-bit integer literals
+--
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
@@ -1824,7 +1888,7 @@ owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2006/03/01]::
 +
-Incorporated several bugfixes to lexgen.  Compiler now compiles to
+Incorporated several bugfixes to *lexgen*.  Compiler now compiles to
 fixpoint when using lexgen instead of *ml-lex*.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -1832,7 +1896,7 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2006/02/28]::
 +
-Removed ml-flex and added lexgen instead, using Aaron Turon's newly
+Removed *ml-flex* and added *lexgen* instead, using Aaron Turon's newly
 provided tarball.  The generated lexers still have problems.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -1840,24 +1904,24 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2006/02/26]::
 +
-Removed ml-flex' dependency on regexp-lib.cm.  Turned installation
-of ml-flex on by default.
+Removed *ml-flex*'s dependency on *regexp-lib.cm*.  Turned installation
+of *ml-flex* on by default.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2006/02/24]::
 +
-Added ml-flex sources.  Partially integrated, but should not be
-turned on yet!  (Read: leave it commented-out in config/targets!)
+Added *ml-flex* sources.  Partially integrated, but should not be
+turned on yet!  (Read: leave it commented-out in ++config/targets++!)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2006/02/23]::
 +
-Changes to support building on x86-64 systems (using the 32-bit mode).
-Also cleaned up signal handling on Linux.  Support for pre-2.2 Linux
+Changes to support building on *x86-64* systems (using the 32-bit mode).
+Also cleaned up signal handling on *Linux*.  Support for pre-2.2 *Linux*
 kernels dropped.
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
@@ -1865,7 +1929,7 @@ owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2006/02/22]::
 +
-  CM has changed.  Updated the script for rebuilding the MLRISC generated
+*CM* has changed.  Updated the script for rebuilding the *MLRISC* generated
 files.
 +
 owner:[Allen Leung]
@@ -1883,33 +1947,33 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2006/02/13]::
 +
-Changed MLRISC x86 CCalls for partial support of MacOS X ABI.
+Changed *MLRISC* x86 +CCalls+ for partial support of *Mac OS X* ABI.
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2006/02/06]::
 +
-Changes to support MacOS X on Intel hardware.  The C-calls support in
-MLRISC must also be updated to support the MacOS X ABI.
+Changes to support *Mac OS X* on Intel hardware.  The C-calls support in
+MLRISC must also be updated to support the *Mac OS X* ABI.
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2005/12/16]::
 +
-Improved error reporting and handling in CM.
+Improved error reporting and handling in *CM*.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/11/21]::
 +
-Enabling $/html-lib.cm in config/preloads did not work.  This is fixed
-now.  (Since the anchor mapping for html-lib.cm is not yet in effect
-at the time when config/preloads is processed, the library has to
+Enabling +$/html-lib.cm+ in +config/preloads+ did not work.  This is fixed
+now.  (Since the anchor mapping for +html-lib.cm+ is not yet in effect
+at the time when +config/preloads+ is processed, the library has to
 be referred to by another name.  In 110.57 this would be
-$SMLNJ-LIB/HTML/html-lib.cm.  I arranged for $smlnj/smlnj-lib/html-lib.cm
++$SMLNJ-LIB/HTML/html-lib.cm+.  I arranged for +$smlnj/smlnj-lib/html-lib.cm+
 to be valid as well.)
 +
 Thanks to Todd Wilson (Fresno) for alerting me to this issue.
@@ -1923,10 +1987,10 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/11/19]::
 +
-Fixed a problem in config/install.sh where it tries to "fish" the
-name of the CM metadata directory from the wrong place (because
-the physical location of basis.cm has changed).  Also, corrected the
-path anchor for $/html-lib.cm.  (Thanks to M. Fluet for pointing out
+Fixed a problem in +config/install.sh+ where it tries to "fish" the
+name of the *CM* metadata directory from the wrong place (because
+the physical location of +basis.cm+ has changed).  Also, corrected the
+path anchor for +$/html-lib.cm+.  (Thanks to M. Fluet for pointing out
 these problems.)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -1946,25 +2010,25 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/11/15]::
 +
-Added simple implementation of Array2.copy.  (Warning: mostly untested.)
+Added simple implementation of +Array2.copy+.  (Warning: mostly untested.)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/11/15]::
 +
-Reversed change to src/system/smlnj/internals/versiontool.cm.  This
+Reversed change to +src/system/smlnj/internals/versiontool.cm+.  This
 file gets loaded as a tool -- by the equivalent of CM.make during the
-run of CMB.make.  Thus, CMB's path configuration is meaningless for
+run of +CMB.make+.  Thus, CMB's path configuration is meaningless for
 it.  Instead, it has the status of "user code", so it should use
-$/basis.cm to refer to the Basis library.  (At least that's true for
++$/basis.cm+ to refer to the Basis library.  (At least that's true for
 the purpose of bootstrapping the previous change.  In the future it
-might make sense to have versiontool.cm refer to
-$smlnj/basis/basis.cm, _i.e._, the version of the Basis that the
+might make sense to have +versiontool.cm+ refer to
++$smlnj/basis/basis.cm+, _i.e._, the version of the Basis that the
 compiler itself uses.)
 +
-Also patched src/system/testml to have it activate those extra anchor
-bindings in config/extrapathconfig.
+Also patched +src/system/testml+ to have it activate those extra anchor
+bindings in +config/extrapathconfig+.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -1974,22 +2038,26 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 This change affects the way the following libraries are tied into
 the system:
 +
+....................
    $/basis.cm
    $/smlnj-lib.cm
    $/pp-lib.cm
    $/controls-lib.cm
    $/html-lib.cm
    $/ml-yacc-lib.cm
+....................
 +
 These libraries are now internally (as seen from the source code
 of the implementation itself) known by the following names:
 +
+....................
    $smlnj/basis/basis.cm
    $smlnj/smlnj-lib/smlnj-lib.cm
    $smlnj/smlnj-lib/pp-lib.cm
    $smlnj/smlnj-lib/controls-lib.cm
    $smlnj/smlnj-lib/html-lib.cm
    $smlnj/ml-yacc/ml-yacc-lib.cm
+....................
 +
 This makes it possible to work with code that requires different
 versions of these libraries, and which refers to these libraries using
@@ -1998,7 +2066,7 @@ words, one can un-define or re-define those default names without
 compromising the proper functioning of the compiler itself.
 +
 A similar procedure had already been performed for several of the
-MLRISC libraries that are linked into the compiler.  I did some
+*MLRISC* libraries that are linked into the compiler.  I did some
 cleanup on this code.
 +
 A new file in the config directory (named extrapathconfig) is
@@ -2010,8 +2078,8 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/11/07]::
 +
-Fixed erroneous out-of-bounds test in the "update" function of
-various *ArraySlice modules.  (Thanks to Vesa A. Norrman for pointing
+Fixed erroneous out-of-bounds test in the "+update+" function of
+various *++ArraySlice++ modules.  (Thanks to Vesa A. Norrman for pointing
 out the problem.)
 +
 Pushed some Basis changes through ML-Lex, CML, and eXene.
@@ -2021,8 +2089,8 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2005/11/07]::
 +
-Fixed a Basis incompatibility: The depreciated function Substring.all
-was removed (use Substring.full instead).
+Fixed a Basis incompatibility: The depreciated function +Substring.all+
+was removed (use +Substring.full+ instead).
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
@@ -2036,18 +2104,21 @@ owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2005/11/02]::
 +
+--
 * Runtime system bootstrap code now accepts hex digits in BOOTLIST
   in either upper case or lower case format.
-* Pushed changes to names of Pack<N>{Big,Little} structures through
+* Pushed changes to names of ++Pack++<__N__>{++Big++,++Little++}
+  structures through
   CML and eXene.
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/11/02]::
 +
-Fixed a Basis incompatibility: Pack<N>{Big,Little} structures should
-be called PackWord<N>{Big,Little}.
+Fixed a Basis incompatibility: ++Pack++<__N__>{++Big++,++Little++}
+structures should be named ++PackWord++<__N__>{++Big++,++Little++}.
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
@@ -2065,8 +2136,8 @@ owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2005/10/25]::
 +
-Added interval sets to utility library (signatures INTERVAL_DOMAIN
-and INTERVAL_SET, and functor IntervalSetFn).
+Added interval sets to utility library (signatures +INTERVAL_DOMAIN+
+and +INTERVAL_SET+, and functor +IntervalSetFn+).
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
@@ -2081,14 +2152,14 @@ owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 [2005/10/14]::
 +
 Bug fix a bug found by Carl Hauser.
-There was a typo in the reload code for FCMP in x86SpillInstr.sml.
+There was a typo in the reload code for +FCMP+ in +x86SpillInstr.sml+.
 +
 owner:[Allen Leung]
 
 //--------------------------------------------------------------------
 [2005/10/14]::
 +
-Removed some debugging code in file x86Asm.sml.
+Removed some debugging code in file +x86Asm.sml+.
 The function emit_operand was printing out debugging output.
 +
 owner:[Allen Leung]
@@ -2096,7 +2167,7 @@ owner:[Allen Leung]
 //--------------------------------------------------------------------
 [2005/07/27]::
 +
-Fixed *ml-lex* to recognize "\r" as representing carriage return.
+Fixed *ml-lex* to recognize "+\r+" as representing carriage return.
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
@@ -2112,14 +2183,14 @@ owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 [2005/07/20]::
 +
 Added changes from Dominic Evans (oldmanuk (at) gmail (dot) com)
-to support HPUX 11.
+to support *HPUX 11*.
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2005/07/06]::
 +
-Changes to the SML/NJ library.  See smlnj-lib/CHANGES for details.
+Changes to the *SML/NJ Library*.  See smlnj-lib/CHANGES for details.
 +
 owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 
@@ -2127,14 +2198,14 @@ owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 [2005/07/06]::
 +
 Fixed reversed logic for deciding whether to "copy up" or "copy down"
-in *-array-slice.sml.
+in *++-array-slice.sml++.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/05/31]::
 +
-A typo in the cygwin code fixed.
+A typo in the Cygwin code fixed.
 +
 owner:[Allen Leung]
 
@@ -2153,8 +2224,8 @@ owner:[Allen Leung]
 //--------------------------------------------------------------------
 [2005/05/18]::
 +
-Added support scripts for Mac OS X PackageMaker and modified
-config/install.sh so that it supports re-dumping a heap image
+Added support scripts for *Mac OS X PackageMaker* and modified
++config/install.sh+ so that it supports re-dumping a heap image
 after customization.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -2172,15 +2243,18 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 Added mechanism for re-creating a heap file for the interactive system
 after configuration variables have been changed.
 +
+[source,sml]
+------------
    CM.redump_heap : string -> unit
+------------
 +
-This is much like SMLofNJ.exportML, but starting from the resulting
-heap does not return to the caller of CM.redump_heap but
+This is much like +SMLofNJ.exportML+, but starting from the resulting
+heap does not return to the caller of +CM.redump_heap+ but
 restarts the interactive system from scratch.  The original call of
-CM.redump_heap does not return but ends the interactive session.
-Thus, CM.redump_heap is a lot like SMLofNJ.exportFn.
++CM.redump_heap+ does not return but ends the interactive session.
+Thus, +CM.redump_heap+ is a lot like +SMLofNJ.exportFn+.
 +
-Internally, redump_heap winds the dynamic execution context back to
+Internally, +redump_heap+ winds the dynamic execution context back to
 the point where the original heap image was created and re-executes
 the heap image generation code in the boot code.
 +
@@ -2189,8 +2263,8 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/05/09]::
 +
-Added a hack to the existing hack known as Word64 to make fromString
-behave correctly.  I am still not sure whether Word64.scan will work
+Added a hack to the existing hack known as +Word64+ to make +fromString+
+behave correctly.  I am still not sure whether +Word64.scan+ will work
 as specified with respect to the interaction of radix and prefix.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -2206,7 +2280,7 @@ owner:[Allen Leung]
 //--------------------------------------------------------------------
 [2005/05/04]::
 +
-Fixed a bug in the implementation of div and mod for IntInf.
+Fixed a bug in the implementation of +div+ and +mod+ for +IntInf+.
 Thanks to Neophytos Michael for reporting the problem.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -2214,7 +2288,8 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/05/04]::
 +
-Added a "join" combinator to the ParserComb module in smlnj-lib.cm.
+Added the +join+ combinator to the +ParserComb+ module in the
+*SML/NJ Library*.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -2222,8 +2297,8 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 [2005/02/28]::
 +
 Fixed serious bug (brown paper bag variety) in new implementation of
-structure Atom in CML.  (I had accidentally used a mailbox instead of
-an mvar, leaving the door open for races.)
+structure +Atom+ in *CML*.  (I had accidentally used a +mailbox+ instead of
+an +mvar+, leaving the door open for races.)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -2234,8 +2309,8 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/02/25]::
 +
-Brought back SMLofNJ.Susp.  The underlying suspension type is the one
-implemented in Core -- which means that it is the same as the one used
+Brought back +SMLofNJ.Susp+.  The underlying suspension type is the one
+implemented in Core, which means that it is the same as the one used
 by the lazy extension.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -2244,14 +2319,14 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 [2005/02/24]::
 +
 Simpler and at the same time more general implementation of structure
-Atom in CML.
++Atom+ in *CML*.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2005/02/15]::
 +
-Created new "tools" directory under "src" and moved "TraceDebugProf"
+Created new "+tools+" directory under "+src+" and moved "+TraceDebugProf+"
 there.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -2259,7 +2334,7 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/02/10]::
 +
-Implemented "long long" arguments and results for NLFFI.  (Only the
+Implemented "+long long+" arguments and results for NLFFI.  (Only the
 PPC/MacOS implementation is complete, the other backends still need to
 be updated.)
 +
@@ -2285,13 +2360,12 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/01/14]::
 +
-Implemented new (but still experimental) heap2exec facility.  This is
+Implemented new (but still experimental) *heap2exec* facility.  This is
 tested under Mac OS X and should work under Linux (will test shortly).
 It will probably also work on the Sparc (will test some time later).
+Also removed old "+HACKED_STANDALONE+" hack from runtime
 +
-  - removed old "HACKED_STANDALONE" hack from runtime
-+
-To be able to test this, uncomment the request for "heap2asm" in
+To be able to test *heap2exec*, uncomment the request for "+heap2asm+" in
 config/targets prior to installation.  (Notice that this is different
 from "heap2exec" mentioned below.  Not a typo.)
 +
@@ -2299,13 +2373,13 @@ To perform an actual test, run the command
 +
    $ bin/heap2exec heapfile execfile
 +
-(You can put heap2exec on your shell's path.)
+(You can put *heap2exec* on your shell's path.)
 +
 For example, run
 +
   $ bin/heap2exec bin/.heap/ml-yacc.ppc-darwin mly
 +
-This will create a standalone executable called "mly" which you can
+This will create a standalone executable called "+mly+" that you can
 then invoke directly as a command.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -2313,7 +2387,7 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2005/01/07]::
 +
-fixed off-by-one error in ML_STRING macro (globals.c)
+fixed off-by-one error in +ML_STRING+ macro (+globals.c+)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -2327,20 +2401,20 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/12/21]::
 +
-* Implemented access to signed and unsigned long long data in NLFFI.
+* Implemented access to signed and unsigned long long data in *NLFFI*.
 (The parameter-passing part of the picture has not complete. But
 data structure access seems to work.)
 +
-* Fixed CM's incorrect assumption that the PPC is little-endian.
+* Fixed *CM*'s incorrect assumption that the PPC is little-endian.
   (On the Mac, it is big-endian.  And that's currently our only
-  PPC platform.)
+  *PPC* platform.)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/21]::
 +
-Some cleanup in the $c/memory.cm library: separated some concerns by
+Some cleanup in the +$c/memory.cm+ library: separated some concerns by
 moving allocation code and memory access code each into their own
 files.
 +
@@ -2349,10 +2423,10 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/12/17]::
 +
-    The Unix I/O library of SML/NJ on cygwin does not understand
+The Unix I/O library of SML/NJ on Cygwin does not understand
 Windows style pathname, so problems arise when +SMLNJ_HOME+ is set
-to a Windows style pathname.  _run-sml now converts +SMLNJ_HOME+
-to a POSIX pathname on cygwin.
+to a Windows style pathname.  The _run-sml script now
+converts +SMLNJ_HOME+ to a POSIX pathname on Cygwin.
 +
 owner:[Allen Leung]
 
@@ -2362,17 +2436,17 @@ owner:[Allen Leung]
 Last-minute changes incorporated into 110.52.  Release tag moved.
 +
 The changes:
-   - HashString.hashString' -> HashString.hashSubstring
-   - bug fix in UnivariateStats
+   - +HashString.hashString'+ -> +HashString.hashSubstring+
+   - bug fix in +UnivariateStats+
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/12/15]::
 +
-- HashString.hashString' -> HashString.hashSubstring
-- corresponding changes in atom.sml
-- "de-compressed" (aka. un-obfuscated) code for UnivariateStats and
+- +HashString.hashString' -> HashString.hashSubstring
+- corresponding changes in +atom.sml+
+- "de-compressed" (aka. un-obfuscated) code for +UnivariateStats+ and
   added some comments
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -2416,37 +2490,47 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/12/01]::
 +
-smlnj-lib:
+Updates to *SML/NJ Library*
 +
-  Added function HashString.hashString' for substrings.
-  Hand-inlined CharVector.foldl into HashString (for speed).
-  Modified implementation of structure Atom to avoid extracting
-  strings from substrings unless necessary.
-  (Also see CHANGES file for smlnj-lib.)
+--
+  * Added function +HashString.hashString'+ for substrings.
+  * Hand-inlined +CharVector.foldl+ into +HashString+ (for speed).
+  * Modified implementation of structure +Atom+ to avoid extracting
+    strings from substrings unless necessary.
+--
 +
-owner:[Matthias Blume,http://www.tti-c.org/blume/]
-
-//--------------------------------------------------------------------
-[2004/11/24]::
-+
-Made sure CML compiles when Position = Int64.
+(Also see CHANGES file for smlnj-lib.)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/11/24]::
 +
-The compiler can now be compiled in a mode that makes structure Position
-equal to Int64.  The default, however, is unchanged (Position = Int31)
+Made sure *CML* compiles when the +Position+ structure is +Int64+.
++
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
+
+//--------------------------------------------------------------------
+[2004/11/24]::
++
+The compiler can now be compiled in a mode that makes structure +Position+
+equal to +Int64+.  The default, however, is unchanged (+Position+ is +Int31+)
 for the time being.
 +
 To enable 64-bit positions, use the following procedure:
 +
-1. Start sml
-2. Autoload $smlnj/cmb.cm (if not already autoloaded)
-3. Type
-      #set (CMB.symval "USE_64_BIT_POSITIONS") (SOME 1);
-4. Run CMB.make() as usual.
+--
+. Start sml
+. Autoload $smlnj/cmb.cm (if not already autoloaded)
+. Type
++
+[source,sml]
+------------
+#set (CMB.symval "USE_64_BIT_POSITIONS") (SOME 1);
+------------
++
+. Run +CMB.make()+ as usual.
+--
 +
 This is barely tested.  The only test so far was a little SML program
 counting the number of characters in an 8-gigabyte file by
@@ -2461,7 +2545,7 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 [2004/11/23]::
 +
 Fixed a problem with unhelpful error messages related to problems with
-.cm- or .sml files that appear as part of the sml command line.
++.cm+ or +.sml+ files that appear as part of the *sml* command line.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -2566,8 +2650,8 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
   - Default contents of config/srcarchiveurl uses $VERSION and
     normally does not have to be edited to reflect a version change.
 +
-  (As a result, a version change can be done by just editing
-   config/version, the rest is now automatic.)
+(As a result, a version change can be done by just editing
++config/version+, the rest is now automatic.)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -2583,7 +2667,7 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 [2004/10/27]::
 +
 This is the HISTORY entry for two earlier commits, both concerning
-the x86 c-calls code in MLRISC:
+the *x86* c-calls code in *MLRISC*:
 +
   - added a missing LOAD in the code that deals with struct arguments
   - made sure the caller does not add the wrong number of bytes to the
@@ -2596,8 +2680,8 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/10/24]::
 +
-   John discovered a bug in the syntax of fucomip.
-   The opcodes FU?COMIP? have been changed to
+John discovered a bug in the syntax of +fucomip+.
+The opcodes ++FU++?++COMIP++? have been changed to
 +
        fu?comip? %st(i), %st
 +
@@ -2609,58 +2693,74 @@ owner:[Allen Leung]
 Added a mechanism for getting back-trace information from standalone
 programs.  Here is how it works:
 +
-   1. The part of the program from which you want to get backtrace
-      information (usually the whole program) should be wrapped with
-      BackTrace.monitor.  This is a (unit->'a)->'a function, and your
-      main program could be modified from something like
+--
+. The part of the program from which you want to get backtrace
+  information (usually the whole program) should be wrapped with
+  BackTrace.monitor.  This is a +(unit->'a)->'a+ function, and your
+  main program could be modified from something like
 +
-         fun main (pgm, args) = ...
+[source,sml]
+------------
+fun main (pgm, args) = ...
+------------
 +
-     to
+to
 +
-        fun main (pgm, args) = BackTrace.monitor (fn () => ...)
+[source,sml]
+------------
+fun main (pgm, args) = BackTrace.monitor (fn () => ...)
+------------
 +
-   2. To be able to access BackTrace.monitor, you have to add
-      library $smlnj-tdp/plugins.cm to the .cm file that contains your
-      main function.
+. To be able to access +BackTrace.monitor+, you have to add the
+  library +$smlnj-tdp/plugins.cm+ to the +.cm+ file that contains your
+  main function.
 +
-   3. Remove all compiled code (_i.e._, all the .cm/ subdirectories that
-      CM might have created in the past for your project).
+. Remove all compiled code (_i.e._, all the .cm/ subdirectories that
+  *CM* might have created in the past for your project).
 +
-   4. Build the system using this command line:
+. Build the system using this command line:
 +
-         ml-build -Ctdp.instrument=true \$smlnj-tdp/back-trace.cm \
-                  myprog.cm MyProg.main myprog
+[source,sh]
+------------
+ml-build -Ctdp.instrument=true \$smlnj-tdp/back-trace.cm myprog.cm MyProg.main myprog
+------------
 +
-      instead of the usual
+instead of the usual
 +
-         ml-build myprog.cm MyProg.main myprog
+[source,sh]
+------------
+ml-build myprog.cm MyProg.main myprog
+------------
+--
 +
-I changed a library name:
+I changed the library name +$/trace-debug-profile.cm+ to +$smlnj-tdp/plugins.cm+,
+and added the following new libraries:
 +
-   $/trace-debug-profile.cm --> $smlnj-tdp/plugins.cm
+--
++$smlnj-tdp/back-trace.cm+::
 +
-New libraries:
+when loaded causes the back-trace plugin to be installed
 +
-   $smlnj-tdp/back-trace.cm
-      -- when loaded causes the back-trace plugin to be installed
-   $smlnj-tdp/coverage.cm
-      -- when loaded causes the coverage plugin to be installed
++$smlnj-tdp/coverage.cm+::
++
+when loaded causes the coverage plugin to be installed
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/18]::
 +
-Added an "obsolete" warning for the "group owner" syntax to CM's parser.
+Added an "obsolete" warning for the "group owner" syntax to *CM*'s parser.
 +
-Eliminated group owner specs from .cm files throughout the source tree.
+Eliminated group owner specs from +.cm+ files throughout the source tree.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/15]::
 +
+--
 * Test coverage tool added!
 * Further reorganization of tracing-, debugging-, and profiling support:
 +
@@ -2670,35 +2770,36 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
     - only the instrumentation mechanism is now left in the compiler proper
     - BackTrace module is a plugin which is NOT plugged in by default
     - Coverage module is another such plugin
+--
 +
 To get the benefits of any of these plugin modules, the code in
-question must be compiled with tdp instrumentation turned on.  This
-can be done by setting SMLofNJ.Internals.TDP.mode to true.
-(The ref cell is also controlled via the -Ctdp.instrument=... switch.)
+question must be compiled with TDP instrumentation turned on.  This
+can be done by setting +SMLofNJ.Internals.TDP.mode+ to +true+.
+(The ref cell is also controlled via the +-Ctdp.instrument=...+ switch.)
 +
 Plugins are selected at link time.  (Pre-compiled instrumented code
 can be re-loaded with different plugins in effect.)  When an
 instrumented module is linked, whatever plugins are at that time
 enabled will come into effect for that module.
 +
-To enable the back-trace plugin, load library $/trace-debug-profile.cm
-and invoke BackTrace.install() (_e.g._, from the interactive prompt).
+To enable the back-trace plugin, load library +$/trace-debug-profile.cm+
+and invoke +BackTrace.install()+ (_e.g._, from the interactive prompt).
 To enable the coverage plugin, load the same library and invoke
-Coverage.install().
++Coverage.install()+.
 +
 Back-traces are generated automatically on uncaught exceptions and
-when the code in question explicitly invokes BackTrace.trigger().
+when the code in question explicitly invokes +BackTrace.trigger()+.
 +
 Coverage (and execution frequency-) information must be queried
-explicitly by calling Coverage.not_covered and Coverage.hot_spots.
+explicitly by calling +Coverage.not_covered+ and +Coverage.hot_spots+.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/10/14]::
 +
-Snapshot of a significant overhaul of how the trace/debug/profile support
-is hooked into the system (specifically: Core and SMLofNJ.Internals).
+Snapshot of a significant overhaul of how the +trace/debug/profile+ support
+is hooked into the system (specifically: +Core+ and +SMLofNJ.Internals+).
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -2857,6 +2958,7 @@ assignment until a time when error recovery would be more difficult.)
 +
 Also changed the handling of controls in tool arguments to classes "+sml+" and
 "+lazysml+":
++
 --
    - use +Controls.save'restore+ as a more robust way of restoring the
      old value (in particular: without having to re-parse the string)
@@ -2929,7 +3031,7 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/09/24]::
 +
-Applied patch for setting rounding modes under Mac OS X.  Thanks to
+Applied patch for setting rounding modes under *Mac OS X*.  Thanks to
 Melissa O'Neill for providing the code!
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -2937,13 +3039,15 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/09/23]::
 +
-1. Changed definition of type ControlRegistry.registry_tree to
-   include control_info (_i.e._, the name of the controlling environment
-   variable).
+--
+. Changed definition of type +ControlRegistry.registry_tree+ to
+  include control_info (_i.e._, the name of the controlling environment
+  variable).
 +
-2. Added command-line flags -e and -E to print the names of environment
-   variables that can be used to control internal settings.
-   (This uses the new API mentioned in 1.)
+. Added command-line flags ++-e++ and ++-E++ to print the names of
+  environment variables that can be used to control internal settings.
+  (This uses the new API mentioned in 1.)
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -2954,11 +3058,11 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/09/13]::
 +
-Put target "mlrisc" back into the default list.
+Put target "+mlrisc+" back into the default list.
 (There is no harm in having it, and some users have expressed their
-wish to have "mlrisc" included by default.)
+wish to have "+mlrisc+" included by default.)
 +
-owner:[Matthias Blume]
+owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/13]::
@@ -2971,15 +3075,15 @@ owner:[John Reppy,http://www.cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2004/09/08]::
 +
-Bumped the heap magic number to 0x09082004 to account for the changed
-layout of the ML frame under MacOS X.
+Bumped the heap magic number to +0x09082004+ to account for the changed
+layout of the ML frame under *Mac OS X*.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/09/03]::
 +
-   Added a patch to _arch-n-opsys to enable the Cygwin runtime.
+Added a patch to _arch-n-opsys to enable the Cygwin runtime.
 The Cygwin runtime is turned on by setting the environment
 variable SMLNJ_CYGWIN_RUNTIME to 1.
 +
@@ -2997,17 +3101,19 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 +
 Upon request by Johannes Joemann:
 +
+--
 - improved ML code of installer to fall back to coping when renaming
   fails (_i.e._, when source and target are on different file systems);
   the code compiles but has yet to be tested in anger
-- removed mlrisc from list of default targets (config/targets)
+- removed +mlrisc+ from list of default targets (+config/targets+)
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/27]::
 +
-Added ptreql primop to structure InlineT (upon request from Larry
+Added +ptreql+ primop to structure +InlineT+ (upon request from Larry
 Paulson).
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -3017,21 +3123,24 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 +
 Another bug fix from Carl Hauser:
 +
+....................
 diff /net/niflab/smlnj48/src/MLRISC/graphs/udgraph.sml udgraph.sml
 > 48c48
 > <              | rmv((e as (k,_))::es,L) = rmv(es,if k = i then es else
 > e::L)
 > ---
 > >              | rmv((e as (k,_))::es,L) = rmv(es,if k = i then L else e::L)
-> Without this, any deletion of an edge in an undirected graph does severe
-> violence to the graph.
+....................
++
+Without this, any deletion of an edge in an undirected graph does severe
+violence to the graph.
 +
 owner:[Allen Leung]
 
 //--------------------------------------------------------------------
 [2004/08/10]::
 +
-   The IBM/MacOS syntax switch on PPC was incorrectly swapped.
+The IBM/MacOS syntax switch on *PPC* was incorrectly swapped.
 +
 owner:[Allen Leung]
 
@@ -3044,11 +3153,11 @@ owner:[Allen Leung]
 +
 Bug fix from Carl Hauser:
 +
-single_source_shortest_paths in dijkstra.sml was observed to get wrong
-answers (by comparing to single_source_shortest_paths in bellman-ford.sml).
++single_source_shortest_paths+ in +dijkstra.sml+ was observed to get wrong
+answers (by comparing to +single_source_shortest_paths+ in +bellman-ford.sml+).
 +
-The problem is that following the expression A.update(dist,s,Num.zero)
-it is necessary to update the priority queue using Q.decreaseWeight(Q,s).
+The problem is that following the expression +A.update(dist,s,Num.zero)+
+it is necessary to update the priority queue using +Q.decreaseWeight(Q,s)+.
 +
 owner:[Allen Leung]
 
@@ -3057,24 +3166,28 @@ owner:[Allen Leung]
 +
 Fiddled with handling of command-line options:
 +
-  * sml now quits after processing the command line
-    if -H, -S, -h<n>, or -s<n> appears as the last
+--
+  * *sml* now quits after processing the command line
+    if ++-H++, ++-S++, ++-h++<__n__>, or ++-s++<__n__> appears as the last
     command-line argument
-  * a new option -q terminates the session when encountered on
+  * a new option +-q+ terminates the session when encountered on
     the command line; subsequent arguments will be ignored
   * bug fixes: short (erroneous) arguments are no longer ignored
     completely
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/04]::
 +
+--
   - Added minimal IBM assembly syntax support for PowerPC.
 +
-  - Cygwin: manually changed the file cygwin.def.  Some exported symbols have
+  - Cygwin: manually changed the file +cygwin.def+.  Some exported symbols have
     been altered in the runtime.  We need an automatic way to keep the file
     in sync.
+--
 +
 owner:[Allen Leung]
 
@@ -3087,22 +3200,22 @@ owner:[Allen Leung]
 +
 Added low-level support for choosing C calling conventions by
 twiddling the type of rawccall.  (See
-src/compiler/Semant/types/cproto.sml for details.)
++src/compiler/Semant/types/cproto.sml+ for details.)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/02]::
 +
-Backed out of change to win32-filesys.c.  The earlier patch to
-get_file_time caused CM to produce files with the wrong time stamp.
+Backed out of change to +win32-filesys.c+.  The earlier patch to
++get_file_time+ caused *CM* to produce files with the wrong time stamp.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/08/02]::
 +
-Added NLFFI support for *Win32*, adapted from a patch provided by David
+Added *NLFFI* support for *Win32*, adapted from a patch provided by David
 Hansel.  This is currently completely untested.  Also, the issue
 concerning stdcall vs. ccall is still unresolved.
 +
@@ -3113,63 +3226,67 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 +
 Gearing up towards 110.47...
 +
-- various minor bugfixes to ml-nlffigen
-- a beginning of a manual for nlffi
+--
+* various minor bugfixes to ml-nlffigen
 +
-- eliminated 'export name=value' in config/install.sh as this does
+* a beginning of a manual for nlffi
++
+* eliminated 'export name=value' in config/install.sh as this does
   not work with certain versions of /bin/sh
   (Thanks to David King at Motorola for catching this.)
 +
-- several bugfixes provided or suggested by David Hansel at Reactive Systems:
-  - added a test for tm==NULL to gmtime.c and localtime.c
-  - applied patch for incorrect GetFileTime under win32
-  - toSeconds -> toMilliseconds in Win32/win32-process.sml
+* several bugfixes provided or suggested by David Hansel at Reactive Systems:
+  - added a test for +tm==NULL+ to +gmtime.c+ and +localtime.c+
+  - applied patch for incorrect +GetFileTime+ under +win32+
+  - +toSeconds+ -> +toMilliseconds+ in +Win32/win32-process.sml+
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/07/21]::
 +
-- Fixed minor issue in ml-nlffigen: Now generate structure T_foo
-  for a typedef to an incomplete type, but leave out the "typ" member.
+--
+- Fixed minor issue in *ml-nlffigen*: Now generate structure +T_foo+
+  for a typedef to an incomplete type, but leave out the "+typ+" member.
   (This is just for consistency.)
 - Started to produce what is supposed to become better (_i.e._, comprehensive)
-  documentation of what ml-nlffigen does and produces.
+  documentation of what *ml-nlffigen* does and produces.
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/07/14]::
 +
-Added C_UNION to c-calls/c-types.sml and updated the machinery
-(ml-nlffigen, cproto.sml) that conveys C function interface
+Added +C_UNION+ to +c-calls/c-types.sml+ and updated the machinery
+(*ml-nlffigen*, +cproto.sml+) that conveys *C* function interface
 information to the code generator.
 +
 However, the actual architecture-specific implementation of function
-arguments and results that are C unions is still not implemented.
+arguments and results that are *C* unions is still not implemented.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
 //--------------------------------------------------------------------
 [2004/07/14]::
 +
-    Added these instructions to the PowerPC architecture:
-    LBZU(X), LHZU(X), LWZU(X),
-    STWU(X), STFDU, STFSU
+Added these instructions to the PowerPC architecture:
+    +LBZU+(+X+), +LHZU+(+X+), +LWZU+(+X+),
+    +STWU+(+X+), +STFDU+, +STFSU+,
+etc...
 +
-    etc...
-+
-    Note: I haven't added their instruction encoding into the description.
+Note: I haven't added their instruction encoding into the description.
 +
 owner:[Allen Leung]
 
 //--------------------------------------------------------------------
 [2004/07/13]::
 +
-   Added the two instructions LWARX and STWCX to the PowerPC
+Added the two instructions +LWARX+ and +STWCX+ to the PowerPC
 instruction set.
 +
-   A (untested) rewrite of loop-structure.sml.  The old version
+A (untested) rewrite of +loop-structure.sml+.  The old version
 is completely broken.
 +
 owner:[Allen Leung]
@@ -3177,18 +3294,23 @@ owner:[Allen Leung]
 //--------------------------------------------------------------------
 [2004/07/13]::
 +
-- use paramAlloc to report c-calls with too many arguments
+--
+- use +paramAlloc+ to report c-calls with too many arguments
   (for PPC version where parameter area is pre-allocated)
-- added ccall_maxargspace to machspec (to implement the above)
+- added +ccall_maxargspace+ to machspec (to implement the above)
 - made "make" commend in CM's "make" tool configurable
 - added option (default: on) for passing the name of the SML/NJ's "bin"
   directory to "make"; the call looks like this:
 +
-     make <options> SMLNJ_BINDIR=<dir> <target>
+[source,sh]
+-----------
+make <options> SMLNJ_BINDIR=<dir> <target>
+-----------
 +
-  This can be used by the Makefile to, _e.g._, pick the "right" version
-  of ml-nlffigen.
+This can be used by the Makefile to, _e.g._, pick the "right" version
+of *ml-nlffigen*.
 - minor code tweaks
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -3202,11 +3324,14 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 NLFFI under Mac OS X now working (sort of).  This is largely untested,
 though.
 +
-Note:  1. You have to make a new, clean build of the runtime system.
-       2. There are new BOOTFILES, you have to use them!
-          (Doing the bootstrap process yourself would be *very* painful!
-           If you absolutely have to do it, build the system under
-           a different architecture and then cross-compile.)
+.Note:
+--
+  . You have to make a new, clean build of the runtime system.
+  . There are new BOOTFILES, you have to use them!
+    (Doing the bootstrap process yourself would be *very* painful!
+     If you absolutely have to do it, build the system under
+     a different architecture and then cross-compile.)
+--
 +
 Version bumped to 110.46.1 to account for runtime data format changes.
 +
@@ -3215,9 +3340,9 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/06/18]::
 +
-Changed the implementation of structure Unix so that the same stream
-is returned every time one of the {text,bin}{In,Out}streamOf functions
-is invoked on the same proc.  This is not what the spec currently
+Changed the implementation of structure +Unix+ so that the same stream
+is returned every time one of the {++text++,++bin++}{++In++,++Out++}++streamOf++
+functions is invoked on the same proc.  This is not what the spec currently
 says -- although IMO it arguably should.  (See discussion below.)
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
@@ -3259,7 +3384,7 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2004/05/28]::
 +
-Added signature PACK_REAL and exported functor PrimIO.
+Added signature +PACK_REAL+ and exported functor +PrimIO+.
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 

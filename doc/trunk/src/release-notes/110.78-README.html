@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>SML/NJ 110.77 NEWS</title>
+<title>SML/NJ 110.78 NEWS</title>
 <style>
   div.smlnj-banner {
     font-weight: bold;
@@ -44,7 +44,7 @@
 <br/>
                           Version 110.78 NEWS
 <br/>
-                           December 15, 2014
+                           December 25, 2014
 <br/>
 <br/>
 </div>
@@ -55,8 +55,8 @@
   <dt>SML/NJ HOME:</dt>
   <dd><a href="http://www.smlnj.org/index.html"><tt>http://www.smlnj.org/index.html</tt></a></dd>
   <dt>FILES:</dt>
-  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.77/index.html">
-    <tt>http://smlnj.cs.uchicago.edu/dist/working/110.77/</tt></a>
+  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/index.html">
+    <tt>http://smlnj.cs.uchicago.edu/dist/working/110.78/</tt></a>
   </dd>
 </dl>
 
@@ -64,7 +64,8 @@
 
 <h3>Summary:</h3>
 <p>
-The primary purpose of this release is bug fixes and performance improvements.
+The primary purpose of this release is improvements to libraries and tools, with some
+important bug fixes too.
 </p>
 
 <h3>Details:</h3>
@@ -73,6 +74,18 @@ The primary purpose of this release is bug fixes and performance improvements.
   <dt class="component">SML/NJ compiler:</dt>
   <dd>
     <p>
+    Major revision of the machinery for overloading resolution for both operators (vars)
+    and literals, now using a common mechanism. These changes fixes bug <b>#52</b>
+    by improving the error message when an overloaded operator is inconsistent with its context.
+    Updated 23 files, including major changes in <code>overload.sml</code>, <code>types.sml</code>,
+    <code>unify.sml</code>, <code>elabcore.sml</code>, <code>typesutil.sml</code>.
+    The overload declaration is still used in <code>pervasives.sml</code>, where the order
+    of the specified instances of an ordering determines the default interpretation (<em>i.e.</em>,
+    the first one).</p>
+    </p>
+    <p>The <code>SCHEME</code> and <code>LITERAL</code> forms of tyvars are replaced by a new
+    <code>OVLD</code> form that tracks potential instantiations of the type of the
+    overloaded vars or literals.
     </p>
   </dd>
   <dt class="component">SML/NJ Library:</dt>
@@ -93,7 +106,7 @@ The primary purpose of this release is bug fixes and performance improvements.
   <dt class="component">SML/NJ runtime:</dt>
   <dd>
     <p>
-    Added <tt>-D_FILE_OFFSET_BITS=64</tt> flag to <tt>x86-linux</tt> makefile.  This flag
+    Added <code>-D_FILE_OFFSET_BITS=64</code> flag to <tt>x86-linux</tt> makefile.  This flag
     is necessary to avoid spurious <tt>EOVERFLOW</tt> errors on some versions of
     Linux.  The problem appears to be limited to large file systems that
     have more than 2<sup>32</sup> inodes.
@@ -114,14 +127,14 @@ The primary purpose of this release is bug fixes and performance improvements.
     when making repairs.
     </p>
   </dd>
-  <dt class="component">SML/NJ Library:</dt>
+  <dt class="component">Documentation:</dt>
   <dd>
     <p>
-    </p>
-  </dd>
-  <dt class="component">Documentation</dt>
-  <dd>
-    <p>
+    Moved <tt>base/NOTES/HISTORY</tt> file to <tt>doc/src/changelog/HISTORY.txt</tt>
+    and converted it to <a href="http://asciidoc.org">ASCIIDOC</a> format.  Also
+    moved the <tt>README</tt> files from <tt>base/READMES</tt> to <tt>doc/src/release-notes</tt>.
+    These changes are part of a general effort to rationalize and improve
+    the documentation of the <strong>SML/NJ</strong> system.</p>
     </p>
   </dd>
 </ul>
@@ -133,6 +146,7 @@ The primary purpose of this release is bug fixes and performance improvements.
     for more details.
     </p>
     <table class="buglist">
+      <tr><td class="bugid">52</td><td>nonsensical type error message</td></tr>
 <!--      <tr><td class="bugid">XXX</td><td>DESCRIPTION</td></tr> -->
     </table>
     <p>The following unnumbered bugs were also fixed:
