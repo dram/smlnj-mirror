@@ -75,6 +75,24 @@ More information about asciidoc can be found at http://asciidoc.org.
 == Recent updates
 
 //--------------------------------------------------------------------
+[2014/12/19]::
++
+Major revision of the machinery for overloading resolution for both
+operators (vars) and literals, now using a common mechanism. This fixes 
+bug bugref:[52] by improving the error message when an overloaded
+operator is inconsistent with its context. 23 files updated, including
+major changes in +overload.sml+, +types.sml+, +unify.sml+, +elabcore.sml+,
++typesutil.sml+. The overload declaration is still used in
++pervasives.sml+, where the order of the specified instances of an
+ordering determines the default interpretation (i.e. the first one).
++
+The +SCHEME+ and +LITERAL+ forms of tyvars are replaced by a new
++OVLD+ form that tracks potential instantiations of the type of the
+overloaded vars or literals.
++
+owner:[David MacQueen,http://cs.uchicago.edu/~dbm]
+
+//--------------------------------------------------------------------
 [2014/12/13]::
 +
 Minor cleanup in +Elaborator/elaborate/elabcore+ (function +elabOVERLOADdec+)
