@@ -55,5 +55,9 @@ done
 cd $here/doc
 autoconf -Iconfig || exit 1
 make man || exit 1
+#
+# cleanup
+make distclean
+# build tar file
 cd $here
 tar -cfz doc.tar.gz doc
