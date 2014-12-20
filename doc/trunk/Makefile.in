@@ -45,11 +45,9 @@ CLEAN_SUBDIRS =		src
 CLEAN_FILES =		
 
 DISTCLEAN_FILES +=	Makefile config.status config.log \
-			autom4te*.cache \
-			man htdocs hardcopy
+			autom4te*.cache
 
 DEVCLEAN_FILES =	configure \
-			man/man1/*.1 \
-			man/man7/*.7
+			man htdocs hardcopy
 
 include @ROOT_DIR@/mk/clean-rules.gmk
