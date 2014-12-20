@@ -1,0 +1,67 @@
+# Makefile for SML/NJ documentation
+#
+# COPYRIGHT (c) 2014 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
+# @configure_input@
+#
+
+# default target base
+#
+TARGET_BASE =		http://smlnj.org
+
+# root path to place generated HTML files
+#
+HTML_DST_ROOT =		@ROOT_DIR@/htdocs
+STYLES_DST =		$(HTML_DST_ROOT)/styles
+IMAGES_DST =		$(HTML_DST_ROOT)/images
+
+include @MK_DIR@/doc-rules.gmk
+
+DOC_SUBDIRS =		changelog man
+
+STYLE_IN_FILES =	$(notdir $(wildcard styles/*.in))
+STYLE_DST_FILES =	$(addprefix $(STYLES_DST)/,$(STYLE_IN_FILES:_css.in=.css)))
+IMAGE_FILES =		$(notdir $(wildcard images/*.png images/*jpg))
+IMAGE_DST_FILES =	$(addprefix $(IMAGES_DST)/,$(IMAGE_FILES))
+
+.PHONY: man
+man:
+	(cd man; $(MAKE) man)
+
+.PHONY:	all-html
+all-html:	$(HTML_DST_ROOT) $(STYLE_DST_FILES) $(IMAGE_DST_FILES)
+	for dir in $(DOC_SUBDIRS) ; do \
+	  dstdir=$(HTML_DST_ROOT)/$$dir ; \
+	  mkdir -p $$dstdir ; \
+	  (cd $$dir; $(MAKE) DST_DIR=$$dstdir TARGET_BASE=$(TARGET_BASE) DOC_BASE=$(TARGET_BASE)/$$dir html); \
+	done
+	(cd web; $(MAKE) DST_DIR=$(HTML_DST_ROOT) TARGET_BASE=$(TARGET_BASE) DOC_BASE=$(TARGET_BASE) html)
+
+$(HTML_DST_ROOT):
+	mkdir -p $(HTML_DST_ROOT)
+
+# Rules to build the CSS files for the web pages
+#
+$(STYLE_DST_FILES):
+	mkdir -p $(STYLES_DST)
+	for f in $(STYLE_IN_FILES:_css.in=) ; do \
+	  $(CONF_DIR)/gen-css.sh styles/"$$f"_css.in > $(STYLES_DST)/$$f.css ; \
+	done
+
+$(STYLES_DST)/%.css:	styles/%_css.in
+	mkdir -p $(STYLES_DST)
+	$(CONF_DIR)/gen-css.sh $< > $@
+
+# Rules to build the image files for the web pages
+#
+$(IMAGE_DST_FILES):
+	mkdir -p $(IMAGES_DST)
+	for f in $(IMAGE_FILES) ; do \
+	    cp -p images/$$f $(IMAGES_DST) ; \
+	done
+
+include @MK_DIR@/clean-rules.gmk
+
+CLEAN_SUBDIRS =	$(DOC_SUBDIRS)
+

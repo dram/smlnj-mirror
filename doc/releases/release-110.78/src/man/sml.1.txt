@@ -1,0 +1,123 @@
+SML(1)
+======
+:doctype: manpage
+
+NAME
+----
+sml - an interactive Standard ML system
+
+SYNOPSIS
+--------
+*sml* ['SML-OPTIONS'] ['OPTIONS'] ['FILES']
+
+DESCRIPTION
+-----------
+It is an incremental, interactive compiler that accepts declarations and expressions
+to be evaluated from standard input.
+
+OPTIONS
+-------
+
+*@SMLload*='IMAGE'::
+  specifies heap image
+
+*@SMLrun*='RUNTIME'::
+  specifies runtime system
+
+*@SMLversion*::
+  echo the version of SML/NJ to standard output and then exit
+
+*@SMLsuffix*::
+  echo the heap suffix for the system to standard output and then exit
+
+*@SMLalloc*='SIZE'::
+  Specify the prefered sice of the
+
+*@SMLcmdname*='NAME'::
+  set the command name; this is the value returned by +CommandLine.name()+.
+
+*@SMLverbose*::
+  show heap image load progress
+
+*@SMLquiet*::
+  load heap image silently (default)
+
+*@SMLobjects*::
+  show list of executable objects
+
+*@SMLdebug*='FILE'::
+  write debugging info to file
+
+*-C*'ctl'='value'::
+  set the control 'ctl' to 'value'.
+
+*-D*'name'='value'::
+  define the CM variable 'name' to have the given value.
+
+*-D*'name::
+  define the CM variable 'name' to have the value 1.
+
+*-U*'name'::
+  remove any definition of the CM variable 'name'.
+
+
+*-H*::
+  produce complete help listing
+
+*-h*::
+  produce minimal help listing
+
+*-h*'level'::
+  help with obscurity limit
+
+*-S*::
+  list all the controls along with their default value
+
+*-s*'level'::
+  limited list of settings.
+  The number of levels of the control heirarchy is controled by 'level', with 0 printing
+  just the root of the heirarchy.
+
+*-E*::
+  list all the controls along with their corresponding environment variables
+
+*-e*'level'::
+  limited list of environment variables;
+  The number of levels of the control heirarchy is controled by 'level', with 0 printing
+  just the root of the heirarchy.
+
+*-m*::
+  switch to CM.make
+
+*-a*::
+  switch to CM.autoload; default
+
+'file.cm'::
+  run +CM.make+ or +CM.autoload+ on 'file.cm' and then return to the SML prompt.
+  Which command is run is determined by the *-m* and *-a* flags.
+
+'file.sig'::
+  execute +use+ 'file.sig' before entering the SML top-level loop.
+
+'file.sml'::      (use)
+  execute +use+ 'file.sml' before entering the SML top-level loop.
+
+'file.fun'::       (use)
+  execute +use+ 'file.fun' before entering the SML top-level loop.
+
+
+AUTHOR
+------
+sml(1) was originally created by Andrew Appel and David MacQueen in 1987.
+The system is currently maintained by David MacQueen and John Reppy.
+
+COPYING
+-------
+Copyright (C) 2014 The Fellowship of SML/NJ
+
+This is free software; see the source for copying  conditions.   There  is  NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+SEE-ALSO
+--------
+smlnj(7)
