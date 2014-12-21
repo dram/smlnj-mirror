@@ -64,4 +64,5 @@ autoconf -Iconfig || exit 1
 make doc || exit 1
 #
 # build tar files
-tar -czf $here/doc.tar.gz doc
+tar -czf $here/doc.tgz doc
+
