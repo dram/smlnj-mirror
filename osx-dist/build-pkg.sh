@@ -74,7 +74,9 @@ fi
 # get the other files to include in the distribution
 #
 cp -p $ROOT/components/license.html .
-svn export https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/sml/trunk/READMES/$VERSION-README.html
+#
+# as of 110.78, README is included in doc/html/readme/
+#svn export https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/sml/trunk/READMES/$VERSION-README.html
 
 # cleanup
 #
@@ -93,7 +95,7 @@ mkdir $RSRC
 sed -e "s/VERSION/$VERSION/g" components/distribution_xml.in > $RSRC/distribution.xml
 cp -p components/smlnj-background.jpg $RSRC/background.jpg
 sed -e "s/VERSION/$VERSION/g" components/welcome_html.in > $RSRC/welcome.html
-cp -p $DISTROOT/$VERSION-README.html $RSRC/readme.html
+cp -p $DISTROOT/doc/html/readme/$VERSION-README.html $RSRC/readme.html
 cp -p components/license.html $RSRC/license.html
 cp -p components/conclusion.html $RSRC/conclusion.html
 
