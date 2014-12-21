@@ -10,7 +10,7 @@ SHELL =		@SHELL@
 INSTALL =	@INSTALL@
 @SET_MAKE@
 
-.PHONY:		help man html hardcopy clean distclean devclean
+.PHONY:		help doc clean distclean devclean
 
 help:
 	@echo "This Makefile supports the following targets:"
