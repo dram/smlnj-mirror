@@ -113,9 +113,10 @@ divided by operating system (Linux, OS X, Windows).
     </ul>
   </li>
   <li>
-    Edit the version number.
+    Update the <tt>version</tt> and <tt>releasedate</tt> files in the <tt>config</tt> directory.
     <ul>
-      <li> <tt>$ $EDITOR ./config/version</tt></li>
+      <li> <tt>$ echo $VERSION >> ./config/version</tt></li>
+      <li> <tt>$ echo $DATE >> ./config/releasedate</tt></li>
     </ul>
   </li>
   <li>
@@ -132,7 +133,9 @@ divided by operating system (Linux, OS X, Windows).
     </ul>
   </li>
   <li>
+    <p>
     Cross compile and generate tarballs for the bin files:
+    </p>
     <ul>
       <li> <tt>$ cd base/system</tt></li>
       <li> <tt>$ ./allcross</tt></li>
@@ -141,14 +144,16 @@ divided by operating system (Linux, OS X, Windows).
     (<i>e.g.</i>, <tt>boot.x86-uniz.tgz</tt>).
   </li>
   <li>
+    <p>
     Edit/update the history file.
+    </p>
     <ul>
-      <li> <tt>../base/NOTES/HISTORY</tt>: Add a new log entry similar to others.</li>
+      <li> <tt>../doc/src/changelog/HISTORY.txt</tt>: Add a new version section header.</li>
       <li>
-        <tt>../base/READMES/</tt>: Copy previous version's README and edit; older
+        <tt>../doc/src/releasenotes/</tt>: Copy previous version's README and edit; older
         versions give examples of format expectations.
         <ul>
-          <li> Cut and paste relevant entries in <tt>HISTORY</tt> and format them.</li>
+          <li> Cut and paste relevant entries from <tt>HISTORY.txt</tt> and format them.</li>
           <li>
 	    Also check the SML/NJ Library's change log (<tt>smlnj-lib/CHANGES</tt>), since
 	    those changes often do not make it into the <tt>HISTORY</tt> file.
@@ -158,7 +163,9 @@ divided by operating system (Linux, OS X, Windows).
     </ul>
   </li>
   <li>
+    <p>
     Update web pages.
+    </p>
     <ul>
       <li>
         Go to the relevant SML/NJ web server directory.
@@ -184,7 +191,9 @@ divided by operating system (Linux, OS X, Windows).
     </ul>
   </li>
   <li>
+    <p>
     Tag the release.
+    </p>
     <ul>
       <li>
         <tt>$ ./admin/make-release.sh</tt><br/>
@@ -196,14 +205,17 @@ divided by operating system (Linux, OS X, Windows).
     </ul>
   </li>
   <li>
+    <p>
     Create source tarballs:
+    </p>
     <ul>
       <li> <tt>$ mkdir tmp</tt></li>
       <li> <tt>$ cd tmp</tt></li>
       <li> <tt>$ svn export https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/admin</tt></li>
-      <li> <tt>$ ./admin/build-tar-files.sh $VERSION</tt></li>
+      <li> <tt>$ ./admin/build-tar-files.sh</tt></li>
     </ul>
   </li>
+  <!-- the doc.tgz file is not created by the build-tar-files.sh script [2014-12-21]
   <li>
     <p>
     Create the documentation tarball (note that the previous step will have exported
@@ -225,6 +237,7 @@ divided by operating system (Linux, OS X, Windows).
       <li> <tt>$ tar -zcf ../doc.tgz doc</tt>
     </ul>
   </li>
+  -->
   <li>
     <p>
     Copy tarballs into the release directory.
