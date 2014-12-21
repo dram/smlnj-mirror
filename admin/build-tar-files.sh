@@ -2,6 +2,9 @@
 #
 # create the source tar files for a distribution
 #
+# usage:
+#	admin/build-tar-files.sh
+#
 
 set +x
 
@@ -35,7 +38,7 @@ dirs="\
   "
 
 for d in $dirs ; do
-  tar -czf $d.tgz $d
+  tar -czf $here/$d.tgz $d
 done
 
 base_dirs="\
@@ -47,17 +50,21 @@ base_dirs="\
 
 cd $here/base
 for d in $base_dirs ; do
-  tar -czf ../$d.tgz $d
+  tar -czf $here/$d.tgz $d
 done
 
 # building the documentation requires configuring it and then generating the manual pages
 #
-cd $here/doc
+cd $here
+cd doc
 autoconf -Iconfig || exit 1
+./configure
+#
+# generate the man pages into $here/doc/doc/man
 make man || exit 1
 #
 # cleanup
 make distclean
-# build tar file
-cd $here
-tar -czf doc.tar.gz doc
+# build tar files
+cd $here/doc
+tar -czf $here/doc.tar.gz doc
