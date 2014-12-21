@@ -19,6 +19,8 @@ SMLNJ_VERSION =	@SMLNJ_VERSION@
 SMLNJ_DATE =	@SMLNJ_DATE@
 
 MAN_OUT_DIR =	@OUT_DIR@/man
+HTML_OUT_DIR =	@OUT_DIR@/html/man
+WEB_OUT_DIR =	@WEB_OUT_DIR@/man
 
 ATTRS =		--attribute=version=$(SMLNJ_VERSION) \
 		--attribute=releasedate="$(SMLNJ_DATE)"
@@ -40,15 +42,23 @@ TXT_FILES =	$(TXT1_FILES) $(TXT7_FILES)
 MAN1_PAGES =	$(TXT1_FILES:.txt=)
 MAN7_PAGES =	$(TXT7_FILES:.txt=)
 
-HTML =		$(TXT_FILES:.txt=.html)
+MAN1_HTML =	$(TXT1_FILES:.txt=.html)
+MAN7_HTML =	$(TXT7_FILES:.txt=.html)
+HTML =		$(MAN1_HTML) $(MAN7_HTML)
 
-.PHONEY:	man
-man:		$(MAN1_PAGES) $(MAN7_PAGES)
+.PHONY:		doc
+doc:		man html
 		mkdir -p $(MAN_OUT_DIR)/man1 $(MAN_OUT_DIR)/man7
 		cp -p $(MAN1_PAGES) $(MAN_OUT_DIR)/man1
 		cp -p $(MAN7_PAGES) $(MAN_OUT_DIR)/man7
+		mkdir -p $(HTML_OUT_DIR)/man1 $(HTML_OUT_DIR)/man7
+		cp -p $(MAN1_HTML) $(HTML_OUT_DIR)/man1
+		cp -p $(MAN7_HTML) $(HTML_OUT_DIR)/man7
+		
+.PHONY:		man
+man:		$(MAN1_PAGES) $(MAN7_PAGES)
 
-.PHONEY:	html
+.PHONY:		html
 html:		$(HTML)
 
 % : %.txt

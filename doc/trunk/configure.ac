@@ -36,12 +36,14 @@ case "$host_os" in
 esac
 SRC_DIR=$ROOT_DIR/src
 OUT_DIR=$ROOT_DIR/doc
+WEB_OUT_DIR=$ROOT_DIR/htdocs
 MK_DIR=$ROOT_DIR/mk
 SRC_CONFIG_DIR=$SRC_DIR/config
 SRC_STYLES_DIR=$SRC_DIR/styles
 
 AC_SUBST(ROOT_DIR)
 AC_SUBST(OUT_DIR)
+AC_SUBST(WEB_OUT_DIR)
 AC_SUBST(SRC_DIR)
 AC_SUBST(MK_DIR)
 AC_SUBST(SRC_CONFIG_DIR)
@@ -72,7 +74,18 @@ AC_ARG_WITH([date],
   [SMLNJ_DATE=$withval],
   [SMLNJ_DATE=none])
 if test x"$SMLNJ_DATE" = xnone ; then
-  SMLNJ_DATE=`date "+%B %d, %Y"`
+  if test x"$SMLNJ_VERSION" = xworking ; then
+    #
+    # for working versions, we just use the current date
+    #
+    SMLNJ_DATE=`date "+%B %d, %Y"`
+  else
+    if test -r ../config/releasedate ; then
+      SMLNJ_DATE=`cat ../config/releasedate`
+    else
+      SMLNJ_DATE=`date "+%B %d, %Y"`
+    fi
+  fi
 fi
 AC_MSG_NOTICE(["SML/NJ release date: $SMLNJ_DATE"])
 AC_SUBST(SMLNJ_DATE)

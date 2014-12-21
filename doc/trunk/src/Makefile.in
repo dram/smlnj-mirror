@@ -10,11 +10,18 @@
 #
 TARGET_BASE =		http://smlnj.org
 
-# root path to place generated HTML files
+# place to put documentation for doc target
 #
-HTML_DST_ROOT =		@ROOT_DIR@/htdocs
-STYLES_DST =		$(HTML_DST_ROOT)/styles
-IMAGES_DST =		$(HTML_DST_ROOT)/images
+DOC_DIR =		@OUT_DIR@
+HTML_DST_ROOT =		$(DOC_DIR)/html
+STYLES_DST =		$(HTML_DST_ROOT)/styles  # not used yet
+IMAGES_DST =		$(HTML_DST_ROOT)/images  # not used yet
+
+# root path to place generated HTML files for the SML/NJ web site
+#
+WEB_HTMLDST_ROOT =	@ROOT_DIR@/htdocs
+WEB_STYLES_DST =	$(WEB_HTML_DST_ROOT)/styles
+WEB_IMAGES_DST =	$(WEB_HTML_DST_ROOT)/images
 
 include @MK_DIR@/doc-rules.gmk
 
@@ -25,41 +32,22 @@ STYLE_DST_FILES =	$(addprefix $(STYLES_DST)/,$(STYLE_IN_FILES:_css.in=.css)))
 IMAGE_FILES =		$(notdir $(wildcard images/*.png images/*jpg))
 IMAGE_DST_FILES =	$(addprefix $(IMAGES_DST)/,$(IMAGE_FILES))
 
-.PHONY: man
-man:
-	(cd man; $(MAKE) man)
+.PHONY:		doc
+doc:		$(DOC_DIR) readmes
+		(cd man; $(MAKE) man)
+		for dir in $(DOC_SUBDIRS) ; do \
+		  (cd $$dir; $(MAKE) doc); \
+		done
 
-.PHONY:	all-html
-all-html:	$(HTML_DST_ROOT) $(STYLE_DST_FILES) $(IMAGE_DST_FILES)
-	for dir in $(DOC_SUBDIRS) ; do \
-	  dstdir=$(HTML_DST_ROOT)/$$dir ; \
-	  mkdir -p $$dstdir ; \
-	  (cd $$dir; $(MAKE) DST_DIR=$$dstdir TARGET_BASE=$(TARGET_BASE) DOC_BASE=$(TARGET_BASE)/$$dir html); \
-	done
-	(cd web; $(MAKE) DST_DIR=$(HTML_DST_ROOT) TARGET_BASE=$(TARGET_BASE) DOC_BASE=$(TARGET_BASE) html)
+$(DOC_DIR):
+	mkdir -p $(DOC_DIR)
 
-$(HTML_DST_ROOT):
-	mkdir -p $(HTML_DST_ROOT)
-
-# Rules to build the CSS files for the web pages
+# copy the HTML README files into the doc/html/README directory
 #
-$(STYLE_DST_FILES):
-	mkdir -p $(STYLES_DST)
-	for f in $(STYLE_IN_FILES:_css.in=) ; do \
-	  $(CONF_DIR)/gen-css.sh styles/"$$f"_css.in > $(STYLES_DST)/$$f.css ; \
-	done
-
-$(STYLES_DST)/%.css:	styles/%_css.in
-	mkdir -p $(STYLES_DST)
-	$(CONF_DIR)/gen-css.sh $< > $@
-
-# Rules to build the image files for the web pages
-#
-$(IMAGE_DST_FILES):
-	mkdir -p $(IMAGES_DST)
-	for f in $(IMAGE_FILES) ; do \
-	    cp -p images/$$f $(IMAGES_DST) ; \
-	done
+.PHONY:		readmes
+readmes:
+	mkdir -p $(HTML_DST_ROOT)/readme
+	cp -p release-notes/*.html $(HTML_DST_ROOT)/readme
 
 include @MK_DIR@/clean-rules.gmk
 

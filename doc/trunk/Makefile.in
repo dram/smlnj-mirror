@@ -15,12 +15,7 @@ INSTALL =	@INSTALL@
 help:
 	@echo "This Makefile supports the following targets:"
 	@echo "  help          -- print this message."
-	@echo "  man           -- generate the SML/NJ manual pages into the"
-	@echo "                   directory @ROOT_DIR@/man"
-	@echo "  html          -- generate the HTML documentation into the"
-	@echo "                   directory @ROOT_DIR@/htdocs"
-	@echo "  hardcopy      -- generate PDF documentation into the"
-	@echo "                   directory @ROOT_DIR@/hardcopy"
+	@echo "  doc           -- generate the documentation for the distribution into @OUT_DIR@"
 	@echo "  clean         -- remove intermediate files generated during building"
 	@echo "  distclean     -- remove files generated during configuration"
 	@echo "                   and building; the resulting tree has the same"
@@ -29,14 +24,8 @@ help:
 	@echo "  devclean      -- remove everything that is not part of the SVN"
 	@echo "                   repository."
 
-man:
-	(cd src; $(MAKE) man)
-
-html:
-	(cd src; $(MAKE) all-html)
-
-hardcopy:
-	(cd src; $(MAKE) all-pdf)
+doc:
+	(cd src; $(MAKE) doc)
 
 #################### Cleanup ####################
 
