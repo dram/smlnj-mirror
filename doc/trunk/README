@@ -5,4 +5,5 @@ is written using the asciidoc (http://asciidoc.org) tool.
 
 	src/changelog	-- changelog for SML/NJ system
 	src/man		-- UNIX manual pages for command-line programs
+	src/releasenotes -- the README files for the SML/NJ releases
 
