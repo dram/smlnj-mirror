@@ -12,12 +12,13 @@ INSTALL =	@INSTALL@
 
 ASCIIDOC =	@ASCIIDOC@
 
-SMLNJ_VERSION =	@PACKAGE_VERSION@
-RELEASE_DATA =	@RELEASE_DATE@
+SMLNJ_VERSION =	@SMLNJ_VERSION@
+SMLNJ_DATE =	@SMLNJ_DATE@
 
 OUT_DIR =	@OUT_DIR@
 
-ATTRS =		--attribute="version=$(SMLNJ_VERSION)" \
+ATTRS =		--attribute=version=$(SMLNJ_VERSION) \
+		--attribute=releasedate="$(SMLNJ_DATE)" \
 		--attribute=source-highlighter=pygments
 
 TXT_FILES =	HISTORY.txt

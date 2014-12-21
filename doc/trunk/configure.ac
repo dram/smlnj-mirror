@@ -5,7 +5,7 @@ dnl All rights reserved.
 dnl
 dnl This the configuration script for autoconf version 2.60+.
 
-AC_INIT(smlnj-doc,110.77,sml@mailman.cs.uchicago.edu)
+AC_INIT([smlnj-doc],[1.0],[],[],[http://smlnj.org])
 
 AC_PREREQ(2.60)
 AC_COPYRIGHT([[COPYRIGHT (c) 2014 The Fellowship of SML/NJ (http://www.smlnj.org)]])
@@ -46,6 +46,36 @@ AC_SUBST(SRC_DIR)
 AC_SUBST(MK_DIR)
 AC_SUBST(SRC_CONFIG_DIR)
 AC_SUBST(SRC_STYLES_DIR)
+
+dnl
+dnl ******************** get SML/NJ release number and date ********************
+dnl
+SMLNJ_DATE=`date "+%B %d, %Y"`
+
+AC_ARG_WITH([version],
+  AC_HELP_STRING([--with-version], ["specify the SML/NJ release version"]),
+  [SMLNJ_VERSION=$withval],
+  [SMLNJ_VERSION=none])
+if test x"$SMLNJ_VERSION" = xnone ; then
+  if test -r ../config/version ; then
+    SMLNJ_VERSION=`cat ../config/version`
+    AC_MSG_NOTICE(["SML/NJ release version: $SMLNJ_VERSION"])
+  else
+    SMLNJ_VERSION="working"
+    AC_MSG_NOTICE(["SML/NJ working version"])
+  fi
+fi
+AC_SUBST(SMLNJ_VERSION)
+
+AC_ARG_WITH([date],
+  AC_HELP_STRING([--with-date], ["specify the SML/NJ release date"]),
+  [SMLNJ_DATE=$withval],
+  [SMLNJ_DATE=none])
+if test x"$SMLNJ_DATE" = xnone ; then
+  SMLNJ_DATE=`date "+%B %d, %Y"`
+fi
+AC_MSG_NOTICE(["SML/NJ release date: $SMLNJ_DATE"])
+AC_SUBST(SMLNJ_DATE)
 
 dnl
 dnl ******************** check for documentation tools ********************
