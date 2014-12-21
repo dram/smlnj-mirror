@@ -1,9 +1,8 @@
 SMLNJ(7)
 ========
 :doctype:	manpage
-:man source:	AsciiDoc
+:man source:	SML/NJ
 :man version:	{version}
-:man manual:	SML/NJ Manual
 
 NAME
 ----

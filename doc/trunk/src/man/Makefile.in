@@ -11,13 +11,17 @@ INSTALL =	@INSTALL@
 @SET_MAKE@
 
 A2X =		@A2X@
+# disable xmllint, since there seem to be issues with finding the DTD [2014-12-21]
+A2X_FLAGS =	-L --verbose
 ASCIIDOC =	@ASCIIDOC@
 
-SMLNJ_VERSION =	@PACKAGE_VERSION@
+SMLNJ_VERSION =	@SMLNJ_VERSION@
+SMLNJ_DATE =	@SMLNJ_DATE@
 
 MAN_OUT_DIR =	@OUT_DIR@/man
 
-ATTRS =		--attribute="version=$(SMLNJ_VERSION)"
+ATTRS =		--attribute=version=$(SMLNJ_VERSION) \
+		--attribute=releasedate="$(SMLNJ_DATE)"
 
 # Section 1 pages
 #
@@ -48,7 +52,7 @@ man:		$(MAN1_PAGES) $(MAN7_PAGES)
 html:		$(HTML)
 
 % : %.txt
-	$(A2X) $(ATTRS) -d manpage -f manpage $<
+	$(A2X) $(A2X_FLAGS) $(ATTRS) -d manpage -f manpage $<
 
 %.html : %.txt
 	$(ASCIIDOC) $(ATTRS) -d manpage -b html5 $<
