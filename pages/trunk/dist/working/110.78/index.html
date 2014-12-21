@@ -1,0 +1,194 @@
+<!-- Copyright (c) 2014 The Fellowship of SML/NJ -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+  <head>
+    <title>110.78 Distribution</title>
+  </head>
+  <style>
+    dd {
+      margin-bottom: 0.5em;
+    }
+    .file-list a {
+      font-family: "Courier", monospace;
+    }
+  </style>
+<BODY BGCOLOR="ffffff">
+<h1>110.78 Distribution Files</h1>
+<body>
+<HR>
+
+<h3>Downloads</h3>
+
+<dl>
+  <dt><b>Unix</b></dt>
+  <dd>
+    <p>
+    The only file you need to download manually is
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/config.tgz">config.tgz</a>.
+    Unpack, configure by editing <tt>config/targets</tt>, and install
+    by running <tt>config/install.sh</tt>.  The installer
+    automatically downloads any additional files it might need.
+    For more information, see <a href="NOTES/INSTALL">INSTALL</a>.
+    </p>
+  </dd>
+  <dt><b>MacOS X</b></dt>
+  <dd>
+    <p>
+    You can use the "generic Unix" procedure above, or you can install
+    a pre-built system using the installer package in either
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/smlnj-x86-110.78.pkg">smlnj-x86-110.78.pkg</a> (for Intel/Mac OS X 10.6 Snow Leopard
+    or later)
+    or <a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/smlnj-ppc-110.78.dmg">smlnj-ppc-110.78.dmg</a> (for PPC/Mac OS X 10.5 Leopard).
+    For more information, see <a href="#macos-installer">below</a>.
+    </p>
+   </dd>
+  <dt><b>Microsoft Windows</b></dt>
+  <dd>
+    <p>
+    Download
+    <a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/smlnj-110.78.msi">smlnj-110.78.msi</a>
+    and follow the instructions in <a href="NOTES/WININSTALL">WININSTALL</a>.
+    </p>
+  </dd>
+  <dt><b>Direct access to subversion repository</b></dt>
+  <dd>
+    <p>
+    For information on how to use access the subversion repository,
+    refer to our <a href="../../../svn.html">subversion recipe page</a>.
+    <br>
+    <b>Warning:</b>  When pulling the latest sources via subversion,
+    there is no guarantee that <tt>config/install.sh</tt> will operate
+    successfully due to a lack of usable bootfiles.
+    In this case you might be able to
+    generate new bootfiles using the bootstrap compiler (of an older
+    version).  However, even that can be very difficult or even impossible,
+    in which case you will have to wait for the next working version to
+    be released.
+    </p>
+  </dd>
+</dl>
+
+<h3>Documentation</h3>
+<ul class="file-list">
+<li><a href="110.78-README.html">110.78-README.html</a>
+<li><a href="HISTORY.html">CHANGE LOG</a>
+<li><a href="INSTALL">INSTALL</a>
+<li><a href="WININSTALL">WININSTALL</a>
+<li><a href="MACOSXINSTALL">MACOSXINSTALL</a>
+<li><a href="CYGWININSTALL">CYGWININSTALL</a>
+</ul>
+
+<h3>Binary Files</h3>
+<ul class="file-list">
+<!--
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/boot.alpha32-unix.tgz">boot.alpha32-unix.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/boot.hppa-unix.tgz">boot.hppa-unix.tgz</a>
+-->
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/boot.ppc-unix.tgz">boot.ppc-unix.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/boot.sparc-unix.tgz">boot.sparc-unix.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/boot.x86-unix.tgz">boot.x86-unix.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/boot.x86-win32.tgz">boot.x86-win32.tgz</a>
+</ul>
+
+<h3>Source files</h3>
+<ul class="file-list">
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/config.tgz">config.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/cm.tgz">cm.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/compiler.tgz">compiler.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/runtime.tgz">runtime.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/system.tgz">system.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/MLRISC.tgz">MLRISC.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/smlnj-lib.tgz">smlnj-lib.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/ckit.tgz">ckit.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/nlffi.tgz">nlffi.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/cml.tgz">cml.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/eXene.tgz">eXene.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/ml-lpt.tgz">ml-lpt.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/ml-lex.tgz">ml-lex.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/ml-yacc.tgz">ml-yacc.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/ml-burg.tgz">ml-burg.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/pgraph.tgz">pgraph.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/trace-debug-profile.tgz">trace-debug-profile.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/heap2asm.tgz">heap2asm.tgz</a>
+</p>
+
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/smlnj-c.tgz">smlnj-c.tgz</a>
+</p>
+</ul>
+
+<h3>Documentation</h3>
+<ul class="file-list">
+<p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/doc.tgz">doc.tgz</a>
+</p>
+
+<h3>Installer package for Mac OX X 10.6+ on Intel (Snow Leopard or later)<a id="macos-installer"></a></h3>
+<p>
+As of this release, the Mac OS X installer (on Intel) puts SML/NJ in the directory <tt>/usr/local/smlnj</tt>.
+Future releases will update this installation in place (<i>i.e.</i>, overwrite it).
+If you wish to install at a different location, you should use the build procedure for Unix systems.
+</p>
+<ul class="file-list">
+<li>
+  <a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/smlnj-x86-110.78.pkg">smlnj-x86-110.78.pkg</a>
+  &mdash; signed installer package for Mac OS S 10.6 (Snow Leopard) or later on x86
+</li>
+</ul>
+
+<h3>Mac OS X Disk Image for Mac OS X 10.5 (Leopard) on PPC</h3>
+<ul class="file-list">
+<li>
+  <a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/smlnj-ppc-110.78.dmg">smlnj-ppc-110.78.dmg</a>
+  &mdash; for Mac OS X 10.5 (Leopard) on PPC
+</li>
+</ul>
+
+<h3>MS Windows installer</h3>
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.78/smlnj-110.78.msi">smlnj-110.78.msi</a>
+</ul>
+
+<!--
+<h3>RPM Packages</h3>
+<ul class="file-list">
+<li>Coming soon.
+</ul>
+-->
+
+
+<HR>
+<CENTER><STRONG>
+| <A HREF="../../../index.html">Home</A>
+| <A HREF="../index.html">Downloads</A>
+|
+</STRONG></CENTER>
+<HR>
+
+Send your comments to <img src="../../../smlnj-list-logo.jpg" align=center>.<br>
+<FONT SIZE="-3">
+  Copyright &#169; 2014, SML/NJ Fellowship.
+  <BR>
+</FONT>
+</BODY>
+</HTML>
