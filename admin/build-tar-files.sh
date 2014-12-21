@@ -54,17 +54,14 @@ for d in $base_dirs ; do
 done
 
 # building the documentation requires configuring it and then generating the manual pages
+# and HTML files
 #
-cd $here
-cd doc
+cd $here/doc
 autoconf -Iconfig || exit 1
 ./configure
 #
-# generate the man pages into $here/doc/doc/man
-make man || exit 1
+# generate the documentation into $here/doc/doc
+make doc || exit 1
 #
-# cleanup
-make distclean
 # build tar files
-cd $here/doc
 tar -czf $here/doc.tar.gz doc
