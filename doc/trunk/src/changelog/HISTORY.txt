@@ -14,7 +14,7 @@ their own change logs that should be consulted.
 This change log is in ASCII doc format.  An HTML version of the
 change log can be generated using the command
 
-	asciidoc -b html --attribute=source-highlighter=pygments -f HISTORY-html.conf HISTORY.txt
+	make html
 
 An entry should be made for _every_ commit to the repository.
 The entries in this file will be used when creating the README
@@ -96,7 +96,7 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 Major revision of the machinery for overloading resolution for both
 operators (vars) and literals, now using a common mechanism. This fixes 
 bug bugref:[52] by improving the error message when an overloaded
-operator is inconsistent with its context. 23 files updated, including
+operator is inconsistent with its context. Updated 23 files, including
 major changes in +overload.sml+, +types.sml+, +unify.sml+, +elabcore.sml+,
 +typesutil.sml+. The overload declaration is still used in
 +pervasives.sml+, where the order of the specified instances of an
