@@ -1,0 +1,31 @@
+Unfinished tasks
+
+* withtype
+* make abstypes abstract
+
+* save and restore pervasive signatures
+* make BasicIO and Byte_array abstractions
+* change name of Overloads structure
+* change name of Byte_array (and its components)
+* unopen Byte_array in pervasives
+* Extensions structure (?) in pervasives to contain nonstandard stuff
+* change name of SymbolTable structure
+
+* simultaneous structure and functor declarations (& signatures?)
+* infix specs in signatures
+* alternate functor forms
+* functors without result signatures
+* "open" and "include" for signatures
+* open signatures (allow free occurrences of type constructors and structures)
+
+* pretty-printing abstract syntax
+* (pretty-) printing signatures and structures
+* normalizing type variable when printing types (e.g. 'a 'b 'c ...)
+* printing complete paths for type constructors
+* detecting when type constructors are hidden
+
+* "set" primitive for records
+
+* direct binding of type constructors
+* weak type variables
+* equality types

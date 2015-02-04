@@ -1,0 +1,45 @@
+Standard ML of New Jersey version 0.36, 4 July 1989
+
+Release notes by Andrew Appel.
+
+Changes since version 0.33:
+
+1.  Support for Sun-4 (SPARC) thanks to John Reppy at Cornell;
+    Encore (NS32032), NeXT (also Mach on other 68020 machines), and 
+    Sony NEWS (68020-based workstation), thanks to James O'Toole at MIT.
+
+2.  An interpreter for faster compilation (4x) but slower execution (18x).
+    Set System.Control.interp := true to enable this mode.  Use the -i
+    or -ionly to makeml to set this option as the default.
+
+3.  Delay and Force primitives (meant for internal use only) for research
+    in lazy evaluation.
+
+4.  Bug fixes:   reading 2049-byte files works now.  Separate compilation
+    shouldn't dump core.  Miscellaneous others.
+
+5.  A code generator generator implemented by Johan Lilius,
+    Jari Porra, & Jussi Rintanen of Helsinki University of Technology 
+    is include in the Standard ML Software Library: see src/lib/twig.
+
+6.  Various internal efficiency improvements; the CMACHINE signature was
+    simplified a bit; the format of generational-gc update lists was changed;
+    the CPS optimizer was beefed up.
+
+Forthcoming in future releases:
+
+- Mach support for Vax and other machines.
+
+- Macintosh (native operating system) and Intel-386 ports are under development
+at the University of Pennsylvania.
+
+- Our MIPS code generator seems to work now (thanks to Norman Ramsey at
+Princeton ), but we are having problems with the operating system on the
+DECstation 3100.  We hope to release a version of SML-NJ for the DECstation in
+August 1989.
+
+- Our next release will contain an improved version of ML-Yacc by David
+Tarditi at Princeton, more efficient and with a better interface.
+
+- We are continuing to make progress on the debugger, which may be ready late
+in 1989.

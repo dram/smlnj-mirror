@@ -1,0 +1,8 @@
+This is the first profiling test run.  Purelinked closures
+have just been implemented.  KNOWN strings and reals and CONST's
+are still copied into closures.  Both profiling compilers produced
+identical code (mo.flat).  Results are in prof.1.
+Why are the number of closures, strings, and records of length 2 different?
+I don't know; the compilers seem functionally identically, were run
+on the same source, and produced the same object files.
+This is a version of the compiler somewhere between mlsave.13 and mlsave.14.

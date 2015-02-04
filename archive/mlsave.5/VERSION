@@ -1,0 +1,67 @@
+Version 5
+10/2/87
+
+Changed from version 4:
+
+{boot/perv.sml}
+Fixed input so that it checks for a negative count, and raises io_failure
+ on closed streams (non-standard).
+
+{runtime/run.c}
+Fixed a minor bug in runtime for uncaught exceptions--string valued
+ exceptions weren't printing properly.
+
+{build/invoke.sml,link}
+Changed the name of boot/overload.sml to boot/overloads.sml to avoid
+ conflict with typing/overloads.sml.
+
+{build/invoke.sml}
+Changed invoke.sml so that boot/overloads.sml is loaded instead of compiled;
+ now no bogus .mo file is produced.
+
+{build/compile.sml}
+Minor bug fix in build/compile.sml.
+
+{env/envaccess.sig,env/envaccess.sig,parse/parse.sml}
+Changed the "e_" convention to capitalization.  Enforced only in rules--valdecs,
+ function names, etc. are unaffected.
+
+{runtime/{M68,VAX}.prim.s}
+Changed runtime exceptions to conform to the capitalization convention.
+
+{build/compile.sml}
+Added a new exec "printslots" in build/compile.sml.  It takes the next word
+ of input as the name of a structure and prints out the values in each slot.
+
+{absyn/absyn.sml,translate/translate.sml}
+Fixed a bug which caused "handle"'s but not "handlex"'s to complain about
+ exhaustiveness.
+
+{print/printval.sml}
+Changed string printing so that quotes are printed in the interactive system,
+ characters are escaped properly with \, etc.
+
+{build/invoke.sml}
+Changed bootEnv so boot/assembly is only loaded; no bogus Initial.mo and Dummy.mo
+ are created.
+
+{print/printval.sml}
+Fixed dataconstructor printing.  Works now for infix operators, and
+ parenthesizes correctly.
+
+
+
+Known bugs:
+Unhoisted linked code seems broken.
+substr is called with bad args--(s,i,0) where i is outside the string s.
+In the interactive system, type
+	val a as b::_ = [1,2,3]
+ and you get
+	val a = [1,2,3] : int list
+	val b = uncaught exception Intmap
+ Looks like another invoke bug.
+Top level bindings should not report on exhaustiveness, but they do.
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.
+ref does not print with proper parens; it must have a strange type.

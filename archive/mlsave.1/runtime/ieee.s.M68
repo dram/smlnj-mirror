@@ -1,0 +1,154 @@
+#
+# All the m68code for ML reals assumes that NaN's and INF's are never generated
+# and therefore do not need to be handled.
+# This code does not produce NaN's or INF's as long as none are passed to it
+# and overflow, underflow, and operr are handled.
+#
+# Floating exceptions raised (assuming NaN's and INF's are never passed to
+# functions):
+#	OPERR - (div) for 0.0/0.0 (does NOT also cause DZ)
+#	DZ - (div) for (in range) / 0.0
+#	OVERFLOW/UNDERFLOW - (add,div,sub,mul) as appropriate
+#
+	.globl	f68881_used
+	.globl _floor_v
+	.globl _scalb_v
+	.globl _logb_v
+	.globl _finite
+	.align 2
+# checks that the float will fit in a 31-bit integer before converting;
+#  otherwise an operr will result
+_floor_v:
+	movl sp@(4),a0
+	fmoved a0@,fp0		| check that the float is in integer range
+	fcmpl #0x40000000,fp0	| higher than highest 31-bit integer
+	fbge out_of_range
+	fcmpl #0xbfffffff,fp0	| lower than lowest 31-bit integer
+	fble out_of_range
+	ftstx fp0		| handle positive and negative cases separately
+	fblt 1f
+# positive numbers
+	fintrzx fp0,fp0		| round towards zero (down)
+	fmovel fp0,d0
+	asll #1,d0
+	addql #1,d0
+	rts
+# negative numbers
+1:	fintrzx fp0,fp0		| round towards zero (up)
+	fmovel fp0,d0
+	subql #1,d0		| push 1 lower
+	asll #1,d0
+	addql #1,d0
+	rts
+out_of_range:
+	pea	1f
+	jsr	_raise_float
+	.data
+	.align 4
+1:	.long 5
+	.ascii	"floor\0\0\0"
+	.text
+
+	.align 2
+# returns 0 on 0.
+_logb_v:
+	movl sp@(4),a0
+	fgetexpd a0@,fp0
+	fmovel fp0,d0
+	rts
+#
+# original version - could cause overflow/underflow exception
+#
+#	.align 2
+#_scalb_v:
+#	movl sp@(4),d0
+#	asrl #1,d0
+#	movl sp@(8),a0
+#	fmoved a0@,fp0
+#	fscalel d0,fp0		| possible overflow/underflow here.
+#	fmoved fp0,a6@		| possible overflow/underflow here.
+#	movl #21,a6@(-4)
+#	movl a6,d0
+#	addl #12,a6
+#	rts
+
+#
+# new version - slower, but cannot raise an exception
+#
+_scalb_v:
+	movl	sp@(4),a0		| a0 = real*int
+	movl	a0@(4),d2		| grab add value and shift to exponent
+	andl	#0xfffffffe,d2		|  field
+	cmpl	#0x00001000,d2		| prevent possible integer overflow
+	bge	ovfl			|  exception from being raised
+	cmpl	#0xffffe000,d2		|  on the asll
+	ble	unfl
+	movl	a0@,a0
+	moveml	a0@,d0/d1		| d0/d1 = old float
+	movl	d0,d3
+	andl	#0x800fffff,d3		| grab exponent
+	beql	1f			| 0?
+	asll	#19,d2
+	addl	d2,d3			| check out the new exponent
+	ble	unfl			| too small?
+	cmpl	#0x80000000,d3
+	bge	ovfl			| too large?
+	addl	d0,d2			| d0/d1 = new float
+	movl	d1,d0
+	movl	d0,a6@(4)		| allocate and return new ML real
+	movl	d2,a6@
+	movl 	#21,a6@(-4)
+	movl	a6,d0
+	addl	#12,a6
+	rts
+1:	movl	a0,d0			| d0/d1 = 0; return same
+	rts
+ovfl:	pea	1f
+	jsr	_raise_float
+	.data
+	.align	4
+1:	.long	8
+	.ascii	"overflow"
+	.text
+unfl:	pea	1f
+	jsr	_raise_float
+	.data
+	.align	4
+1:	.long	9
+	.ascii	"underflow\0\0\0"
+	.text
+
+#
+# is this even needed if NaN's and INF's are never generated?
+#
+	.align 2
+_finite:
+	movl #1,d0
+	movl sp@(4),a0
+	fmoved a0@,fp0
+	fmovel fpsr,d1
+	andl #0x0c000000,d1	| INF or NaN?
+	bne 1f
+	movl #3,d0
+1:	rts
+
+.globl _raise_float
+_raise_float:
+	lea	_float_e,a0
+	movl	a0,d0		|  do this because can only allocate from d0
+	movl	d0,a6@(4)
+	movl	sp@(4),a6@
+	movl	#5,a6@(-4)
+	movl	a6,d0
+	lea	a6@(12),a6
+	movl	d7,sp
+	movl	sp@+,d7
+	rts
+	.data
+	.globl _float_e
+	.align 4
+_float_e:
+	.long	1f
+1:	.long	5
+	.ascii	"float\0\0\0"
+	.text

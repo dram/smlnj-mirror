@@ -1,0 +1,89 @@
+(* conrep.sml *)
+
+structure ConRep = struct
+
+local open Basics BasicTypes in
+
+fun count predicate
+  = let fun test (a::rest) = if predicate a then 1 + test rest else test rest
+	  | test nil = 0
+     in test
+    end
+
+datatype choice = YES | NO | MAYBE
+
+type tycstatus = {b:choice,u:choice}
+
+funf [DATACON{rep as ref UNDECIDED,
+				const=false,...}],...}) =
+	(rep := TRANSPARENT; boxed tyc)
+  | boxed ( DATAtyc{dcons=ref [DATACON{rep as ref TRANSPARENT,
+				vtype=CONty(_,[ty,_]),...}],...}) =
+	boxedty ty
+  | boxed (tyc as DATAtyc{dcons=ref (dcons as (DATACON{rep=ref UNDECIDED,...})::_),
+		   ...}) =
+	let val consts = count (fn (DATACON{const,...}) => const) dcons
+	    fun appu(DATACON{const=false,vtype=CONty(_,[ty,_]),...}) =
+		    boxedty ty = NO
+	      | appu _ = false
+	    val appus = count appu dcons
+	    val unbs = if appus=1 andalso consts=0 then 1 else consts
+	    val len = length dcons
+	    val _ = (print "consts=";print consts;
+		     print"  appus=";print appus;
+		     print"  unbs=";print unbs;
+		     print"  len=";print len; print "\n")
+	    fun decide (i,j,((d as DATACON{rep,const=true,...})::rest)) =
+		    (rep := CONSTANT i; decide(i+1,j,rest))
+	      | decide (i,j,((d as DATACON{rep,const=false,
+					   vtype=CONty(_,[ty,_]),...})
+			     ::rest)) =
+		    (if appus=1 andalso consts = 0 andalso boxedty ty = NO
+			    then (rep := TRANSU; decide(i,j,rest))
+		     else if unbs = len-1 andalso boxedty ty = YES
+			    then (rep := TRANSB; decide(i,j,rest))
+		     else (rep := TAGGED j; decide(i,j+1,rest))
+		     ; PrintBasics.printDcon d; print " = ";
+		       PrintBasics.printRep (!rep); print "\n"; ()   )
+	      | decide (_,_,nil) = ()
+	 in decide(0,0,dcons);
+	    boxed tyc
+	end
+  | boxed (DATAtyc{dcons=ref dcons,...}) =
+	   (case (exists((fn c => boxedcon c = YES),dcons),
+		  exists((fn c => boxedcon c = MAYBE),dcons),
+		  exists((fn c => boxedcon c = NO),dcons))
+	     of (true,false,false) => YES
+	      | (false,false,true) => NO
+	      | _ => MAYBE)
+  | boxed (RECORDtyc {labels=nil,...}) = NO
+  | boxed (RECORDtyc _) = YES
+  | boxed (TYPEtyc{def,...}) = boxedty def
+  | boxed (tyc as ATOMtyc {name,...}) =
+	if eqTycon(tyc, !arrowTycon) orelse  eqTycon(tyc, !realTycon)
+	    orelse  eqTycon(tyc, !exnTycon) orelse eqTycon(tyc,!arrayTycon)
+	    orelse eqTycon(tyc,!byte_arrayTycon)
+          then {b=YES,u=NO}
+	else if eqTycon(tyc, !intTycon)
+	    then {b=NO,u=YES}
+	    else {b=YES,u=YES}
+  | boxed _ = {b=YES,u=YES}
+
+and boxedcon (d as DATACON{rep,vtype,...}) =
+	case !rep
+	 of TAGGED _ => YES
+	  | CONSTANT _ => NO
+	  | TRANSPARENT => MAYBE
+	  | TRANSB => YES
+	  | TRANSU => NO
+	  | REF => YES
+	  | VARIABLE _ => YES
+	  | UNDECIDED => MAYBE
+
+and boxedty (ty as CONty(ref tyc,_)) = boxed tyc
+  | boxedty (VARty(TYVAR{status=ref(INSTANTIATED ty),...})) = boxedty ty
+  | boxedty _ = {b=YES,u=YES}
+
+end (* local *)
+
+end (* structure ConRep *)

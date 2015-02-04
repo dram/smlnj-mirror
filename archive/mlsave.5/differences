@@ -1,0 +1,190 @@
+absyn/absyn.sml
+absyn/bareabsyn.sig
+absyn/bareabsyn.sml
+absyn/printabsyn.sml
+basics/access.sig
+basics/access.sml
+basics/basics.sig
+basics/basics.sml
+basics/basictypes.sig
+basics/basictypes.sml
+basics/conrep.sml
+basics/lambda.sml
+basics/printbas.sml
+basics/printtype.sml
+basics/symbol.sml
+basics/table.sml
+basics/token.sml
+8c8
+< 	 | DO | DARROW | FN | FUN | FUNCTOR | HANDLE | HANDLEX | HASH
+---
+> 	 | DO | DARROW | FN | FUN | FUNCTOR | HANDLE | HANDLEX 
+26c26
+< 	 | DO | DARROW | FN | FUN | FUNCTOR | HANDLE | HANDLEX | HASH 
+---
+> 	 | DO | DARROW | FN | FUN | FUNCTOR | HANDLE | HANDLEX 
+65d64
+<        | HASH => "HASH"
+basics/tuples.sig
+basics/tuples.sml
+49c49
+< 	   let val newlabel = SymbolTable.StringToSymbol(makestring i)
+---
+> 	   let val newlabel = SymbolTable.StringToSymbol("#" ^ makestring i)
+bignums/bigint.sig
+bignums/bigint.sml
+bignums/bitops.sml
+bignums/realconst.sml
+boot/Loader.sml
+boot/assembly.sml
+boot/perv.sml
+boot/pervsig.sml
+boot/prim.sml
+build/compile.sml
+build/glue.sml
+build/invoke.sml
+codegen/backpatch.sml
+codegen/cgoptions.sml
+codegen/codegen.sml
+codegen/codenv.sml
+codegen/machine.sig
+codegen/opt.sml
+env/env.sml
+env/envaccess.sig
+env/envaccess.sml
+lex/ascii.sml
+lex/charbuff.sml
+lex/errormsg.sml
+lex/scan.sml
+267c267
+<     t_sp,   t_symb, t_quot, t_symb, t_symb, t_symb, t_symb, t_alph,
+---
+>     t_sp,   t_symb, t_quot, t_strg, t_symb, t_symb, t_symb, t_alph,
+303,304c303,304
+< 	       comlev : int ref,
+< 	       linenum : int ref}
+---
+> 	       linenum : int ref,
+> 	       comlev : int ref}
+338,342c338
+< fun closeSource {stream,nextchar,nexttok,filename,linenum,comlev} =
+< 	close_in stream
+< (*
+< fun closeSource ({stream,...} : source) = close_in stream
+<   -- didn't work - must be a type error *)
+---
+> fun closeSource ({stream,...}:source) = close_in stream
+lex/symtab.sml
+86c86
+<     val reserved = array(80,T.ID);
+---
+>     val reserved = array(50,T.ID);
+119d118
+< 	InitSymbol("#",T.HASH);
+m68/m68ascode.sml
+m68/m68coder.sig
+m68/m68gen.sml
+m68/m68glue.sml
+m68/m68mcode.sml
+m68/m68peep.sml
+m68/m68prim.sml
+parse/first.sml
+parse/parse.sig
+parse/parse.sml
+157,162c157,161
+< 	        if lbp > bp
+< 		 then let val id = getSymbol()
+< 		          val rhs = parse ((fn x=>g(id,e,x)),rbp,elem())
+< 		       in parse(f,bp,rhs)
+< 		      end
+< 	         else f e
+---
+> 		 let val id = getSymbol()
+> 		  in if lbp > bp
+> 			 then f(parse((fn x=>g(id,e,x)),rbp,elem()))
+> 			 else parse((fn x=>g(id, f e, x)),rbp,elem())
+> 	         end
+240,257d238
+< fun selector() =
+<     let fun sel1 id = 
+< 	    let val v = namedLvar id
+< 		val tyref = ref UNKNOWNty
+< 		val v1 = VALvar{name=id,access=LVAR(v),vtype=tyref}
+< 		val v2 = VALvar{name=id,access=PATH[v],vtype=tyref}
+< 	     in FNexp[RULE(RECORDpat{fields=[(id,VARpat v1)],
+< 				     flex=true,
+< 				     typ=ref UNKNOWNty, pats=ref nil},
+< 			   VARexp(ref v2))]
+< 	    end
+<      in case !NextToken
+< 	  of ID => sel1(ident())
+< 	   | INT => sel1(SymbolTable.StringToSymbol(makestring(!IntValue))
+< 		         before Advance())
+< 	   | _ => (Complain "illegal selector function"; BOGUSexp)
+<     end
+< 
+264,270c245,247
+< 		   of ID => field(ident())
+< 		    | INT => field(SymbolTable.StringToSymbol(makestring(!IntValue))
+< 				   before Advance())
+< 		    | DOTDOTDOT => nil
+< 		    | _ => Condemn("label expected")
+< 	         and field id =(id,
+< 			        if At(separator) then parseOne()
+---
+> 		   of ID => let val id = ident()
+> 			     in (id,
+> 			         if At(separator) then parseOne()
+273c250,253
+< 			       :: (if At(COMMA) then lablist() else nil)
+---
+> 			    end
+> 			    :: (if At(COMMA) then lablist() else nil)
+> 		    | DOTDOTDOT => nil
+> 		    | _ => Condemn("label expected")
+430d409
+< 	| HASH => (Advance(); selector())
+1361,1364c1340
+< 			           pat=let val v = newVAR(ref nil, itsym)
+< 				        in bindVAR(itsym,v);
+< 					    VARpat v
+< 				       end,
+---
+> 			           pat=VARpat(newVAR(ref nil, itsym)),
+print/printdec.sig
+print/printdec.sml
+print/printval.sig
+print/printval.sml
+translate/equal.sml
+translate/mc.sml
+translate/mcopt.sml
+translate/mcprint.sml
+translate/nonrec.sml
+translate/translate.sml
+translate/unboxed.sml
+typing/overload.sig
+typing/overload.sml
+171c171,172
+< 	     printSym name; newline(); raisex overld)
+---
+> 	     printSym name; newline();
+> 	     ())
+typing/sigmatch.sml
+typing/typecheck.sig
+typing/typecheck.sml
+typing/typesutil.sig
+typing/typesutil.sml
+util/binsort.sml
+util/dynamic.sml
+util/intmap.sml
+util/intset.sml
+util/list2.sml
+util/printutil.sml
+util/sort.sml
+vax/vaxascode.sml
+vax/vaxcoder.sig
+vax/vaxgen.sml
+vax/vaxglue.sml
+vax/vaxmcode.sml
+vax/vaxpeep.sml
+vax/vaxprim.sml

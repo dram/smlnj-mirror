@@ -1,0 +1,115 @@
+#
+# The vaxcode for ML reals assumes that no function is ever passed a reserved
+# operand (ROP) and no ROP is ever produced by the ML system.  This is true of
+# the assembly code here.
+#
+# Floating exceptions raised (assuming ROP's are never passed to functions):
+#	DIVIDE BY ZERO - (div)
+#	OVERFLOW/UNDERFLOW - (add,div,sub,mul) as appropriate
+#
+	.globl _floor_v
+	.globl _scalb_v
+	.globl _logb_v
+	.globl _finite
+	.text
+
+# floor raises integer overflow if the float is out of 32-bit range,
+# so the float is tested before conversion, to make sure it is in (31-bit)
+# range
+	.align 2
+_floor_v:
+	.long 1f
+1:	movg *4(sp),r0
+	cmpg r0,$0g1073741824.0		# higher than highest 31-bit integer
+	bgeq out_of_range
+	cmpg r0,$0g-1073741825.0	# lower than lowest 31-bit integer
+	bleq out_of_range
+	cvtgl r0,r0
+	tstg *4(sp)
+	bgeq 1f
+	cvtlg r0,r1		# handle negative
+	cmpg *4(sp),r1
+	beql 1f
+	decl r0
+1:	ashl $1,r0,r0
+	incl r0
+	rsb
+out_of_range:
+	pushal 1f
+	jsb _raise_float
+	.align 2
+1:	.long 5
+	.ascii	"floor\0\0\0"
+
+_logb_v:
+	.long 1f
+1:	bicl3	$0xffff800f,*4(sp),r0	# grab exponent
+	beql    1f			# if zero, return same
+	ashl	$-4,r0,r0
+	subl2	$1025,r0		# unbias
+1:	addl2	r0,r0
+	incl	r0
+	rsb
+
+#
+# is this even needed if ROP's don't exist?
+#
+_finite:
+	.long 1f
+1:	movl	$1,r0
+	bicw3	$0xf,4(sp),r1		# grab sign and exponent
+	cmpw	r1,$0x8000		# sign=1 and exp=0 is reserved
+	beql	1f			# reserved => false
+	movl	$3,r0			# else true
+1:	rsb
+
+_scalb_v:
+	.long 1f
+1:	movl	4(sp),r0		# r0 = real*integer
+	bicl3	$1,4(r0),r2		# grab add value and shift to exponent
+	ashl	$3,r2,r2		#  field
+	movq	*(r0),r0		# r0/r1 = old float
+	bicl3	$0xffff800f,r0,r3	# grab exponent
+	beql	1f			# 0?
+	addl2	r2,r3			# check out the new exponent
+	bleq	under			# too small?
+	cmpl	r3,$0x8000
+	bgeq	over			# too large?
+	addl2	r2,r0			# r0 = new float
+	movq	r0,(r12)		# allocate and return new ML real
+	movl 	$21,-4(r12)
+	movl	r12,r0
+	addl2	$12,r12
+	rsb
+1:	movl	*4(sp),r0		# r0 = 0; return same
+	rsb
+over:	pushal	1f
+	jsb	_raise_float
+	.align	2
+1:	.long	8
+	.ascii	"overflow"
+under:	pushal	1f
+	jsb	_raise_float
+	.align	2
+1:	.long	9
+	.ascii	"underflow\0\0\0"
+
+	.globl _raise_float
+	.align 2
+_raise_float:
+	moval _float_e,4(r12)
+	movl  4(sp),(r12)
+	movl  $5,-4(r12)
+	movl  r12,r0
+	addl2 $12,r12
+	movl r13,sp
+	movl (sp)+,r13
+	rsb
+	.data
+	.globl _float_e
+	.align 2
+_float_e:
+	.long	1f
+1:	.long	5
+	.ascii	"float\0\0\0"
+	.text

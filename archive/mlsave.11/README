@@ -1,0 +1,65 @@
+Standard ML Compiler of New Jersey
+Beta 1 Release, November 2, 1987
+
+This is the first unofficial beta release of the new Standard ML compiler,
+also known as "Standard ML of New Jersey".  Subsequent versions are expected
+to come out on a roughly monthly basis, i.e. at the end of November and the
+end of December.  We hope that the January release will be the first
+general, non-test, release.  Of course, bug-reports, comments, and
+constructive criticism are eagerly sought.  Send comments and bug reports to
+
+   David MacQueen
+   Room 2C-322
+   AT&T Bell Laboratories
+   Murray Hill, NJ 07974
+   USA
+   Phone: 201-582-7691
+   Net: macqueen%btl@relay.cs.net or macqueen@research.att.com
+
+Instructions for installing and booting the compiler are in the file
+INSTALL.
+
+This version is basically functional, but it has a number of cosmetic
+deficiencies and missing features.  See the file VERSION for
+information about some known bugs and incomplete or missing features.
+Notable omissions are sharing and weak polymorphic types for
+references and exceptions.  Because of this the type system is
+actually insecure, though if only monomorphic reference and exception
+types are used there will be no problems.  By the November version,
+sharing will be working and the type checker will have been largely
+rewritten to include weak variables.  Equality types are not yet implemented,
+though the interim implementation of equality will allow code using equality
+types to work (equality is polymorphic, and raises an exception when it
+is given bad arguments).  Abstype is implemented by a temporary kludge
+that causes some anomalies in printing.
+
+The exception syntax has changed to the new form (exceptions as
+constructors).  The old syntax is still accepted, but when using the old
+syntax the keywords "exception", "raise", and "handle" must be changed to
+"exceptionx", "raisex", and "handlex".
+
+Functors take a single named structure parameter in this version.  The next
+version will also accept the alternative syntax (in which the parameter has
+the form of a structure body).
+
+Selectors are implemented.  The hash sign (#) is a keyword symbol that
+combines with a label immediately following it to denote a selector; e.g.
+"# a" or "#a" or "#2".  There is no special lexical class of sharped symbols.
+
+The pervasive environment defined in the file boot/perv.sml is fairly
+complete.  There are a couple of differences from the specifications in the
+last edition of the Standard ML report, and a number of new functions.  The
+function "use" takes a simple string as argument (the old version can be defined
+as "app use").  There is an infix operator called "before" that acts like a
+binary, left-associative PROG1 (or alternatively as an uncurried,
+call-by-value K combinator)--it evaluates its two arguments and returns the
+value of the first. (There is some disagreement about the name "before"--I
+now think "after" would be better.  Any other suggestions would be welcome.)
+There is a built-in, pervasive datatype called option defined by
+
+  datatype 'a option = NONE | SOME of 'a
+
+The names of the components of the structure Byte_array are unfortunate.
+I would prefer that they parallel the names used in Array as closely as
+possible.  In this version, Byte_array is open in the pervasive environment,
+but it probably should not be.

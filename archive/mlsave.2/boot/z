@@ -1,0 +1,3 @@
+structure A = struct
+  fun f(a:'a list) = length a
+end

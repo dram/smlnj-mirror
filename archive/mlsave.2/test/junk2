@@ -1,0 +1,5 @@
+structure X =
+struct
+  val f: 'a -> 'a = InLinePrim.-
+  val b = (f 1, f true)
+end

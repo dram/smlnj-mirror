@@ -1,0 +1,14 @@
+#!/bin/csh
+#
+# make a working copy of the compiler source directory
+# $1 = original source directory
+# $2 = new directory to make
+#
+# the original source files should be write protected
+#
+mkdir $2
+(cd $2; mkdir absyn basics bignums boot build codegen env lex m68 parse print \
+      translate typing util vax bin doc runtime)
+foreach A (all `(cd $1; ls */*.{sig,sml} bin/* doc/* runtime/*)`)
+ln $1/$A $2/$A
+end

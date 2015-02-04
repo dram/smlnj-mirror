@@ -1,0 +1,3 @@
+structure Loader = struct
+val _ = (print "hello\n"; flush_out std_out)
+end

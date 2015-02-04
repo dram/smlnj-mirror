@@ -1,0 +1,53 @@
+SML/NJ Early Versions from DBM's 9-track tapes
+  Pontis Systems in Chicago attempted to recover contents of nine 9-track tapes
+  from Bell Labs around October 2012. Some contents was extracted from 7 of the 9 tapes.
+  Most of the content is early versions of SML/NJ (1,2,3,4,5,6,11,22,35,36), but there
+  are also copies of source code for Cardelli's compilers (1984) and Edinburgh
+  Standard ML (1985).
+  
+Tape1.zip
+Directory 36, containing SML/NJ Version 0.36, 4 July 1989 (renamed mlsave.36 for consistency).
+  src appears to be complete.
+
+Tape2.zip
+Directory mlsave.22, containing mo.cps, mo.vax, and src.  (SML/NJ Version 0.22, date?)
+  src is incomplete (only absyn, basics, bignums, boot). mo contains object files corresponding
+  to the original source files, including those that are missing.  Tape contents
+  were probably truncated.
+  This may be the first version distributed outside BL/Princeton (or possibly Version 11 was first).
+
+Tape3.zip
+Directory "tape3 2" (renamed tape3).  Contains:
+  dbm : dbm home directory snapshot, Dec 1986 (dates range from Aug 83 to Dec 86)
+    dbm/ml contains notes, comments, etc on SML design (see e.g. edin/meeting),
+    as well as pscr, Pascal source for "ML under VAX" (dated April/May 84),
+    BL ML course in Sept 83.
+  ml:
+    mlkit: Source for Pose 4.1 of Unix ML
+    sml: Source for Edinbrugh SML (for VAX/Unix 4.2bsd) as of May 1985 "standardization" meeting
+    news: sources for Polymorphism news letters
+
+Tape4.zip
+Directory "tape4 2". Contains:
+  mlsave.4: SML/NJ Version 4, September 25 (1887)
+  mlsave.5: SML/NJ Version 5, 2 October 1887
+  mlsave.6: SML/NJ Version 6, 8 October 1987
+
+Tape5.zip
+tape5 - a truncated Tar archive, which unpacks to:
+  mlsave.1: SML/NJ Version 1, 14 August 1987
+  mlsave.2: SML/NJ Version 2, 11 September 1987
+  mlsave.3: SML/NJ Version 3, 11 September 1987 (merger of Version 2 and Version 2.tyj)
+  mlsave.4: incomplete copy of Version 4, containing only link and mo
+
+Tape6.zip
+Directory "tape6 2". Contains:
+  mlprof.1: initial profiling version, between Versions 13 and 14
+  mlsave.11: SML/NJ Version 11, 9 November 1987  (possibly distributed?)
+  
+Tape9.zip
+Directory 35 (renamed mlsave.35). SML/NJ Version 35, date unknown (no Version
+file), but probably first half of 1989 based on date of Version 36.
+  src
+  mo.m68
+  mo.vax

@@ -1,0 +1,39 @@
+structure Nonrec =
+struct
+local open Access Basics Absyn
+in
+    exceptionx isrec
+
+    fun nonrec (VALRECdec[RVB{var=var as VALvar{access=LVAR(lvar),...},
+		              exp,resultty,tyvars}]) =
+	let val rec findexp =
+		fn VARexp(ref(VALvar{access=PATH[v],...})) =>
+					if v=lvar then raisex isrec else ()
+		 | VARexp(ref(VALvar{access=_,...})) => ()
+	         | RECORDexp l => app (fn (lab,e)=>findexp e) l
+		 | SEQexp l => app findexp l
+		 | APPexp (a,b) => (findexp a; findexp b)
+		 | CONSTRAINTexp (e,_) => findexp e
+		 | HANDLEexp (e, HANDLERX h) => (findexp e; findexp h)
+		 | RAISEXexp e => findexp e
+		 | LETexp (d,e) => (finddec d; findexp e)
+		 | CASEexp (e,l) => (findexp e; app (fn RULE (_,e) => findexp e) l)
+		 | FNexp l =>  app (fn RULE (_,e) => findexp e) l
+		 | _ => ()
+	    and finddec =
+		fn VALdec vbl => app (fn (VB{exp,...})=>findexp exp) vbl
+		 | VALRECdec rvbl => app (fn(RVB{exp,...})=>findexp exp) rvbl
+		 | LOCALdec (a,b) => (finddec a; finddec b)
+		 | SEQdec l => app finddec l
+		 | _ => ()
+	 in findexp exp;
+	    VALdec[VB{pat=VARpat var, tyvars=tyvars,
+		      exp = case resultty of 
+				SOME ty => CONSTRAINTexp(exp,ty)
+			      | NONE => exp}]
+	end
+
+      | nonrec _ = raisex isrec
+
+end (* local *)
+end (* struct *)

@@ -1,0 +1,37 @@
+exceptionx Interrupt : unit
+exceptionx Interrupt = interrupt
+exceptionx bind : unit
+exceptionx boxity
+exceptionx boxity : unit
+exceptionx byte_array
+exceptionx byte_array: unit
+exceptionx chr
+exceptionx chr: unit
+exceptionx div : unit
+exceptionx div : unit = Assembly.div
+exceptionx equal
+exceptionx equal : unit
+exceptionx float : string
+exceptionx floor:unit and sqrt:unit and exp:unit and ln:unit
+exceptionx hd : unit
+exceptionx interrupt : unit
+exceptionx interrupt : unit = Assembly.interrupt
+exceptionx io_failure : string
+exceptionx io_failure : string = Assembly.io_failure
+exceptionx io_failure: string
+exceptionx match : unit
+exceptionx mod : unit
+exceptionx nth : unit
+exceptionx ord
+exceptionx ord: unit
+exceptionx overflow : unit
+exceptionx overflow : unit = Assembly.overflow
+exceptionx subscript
+exceptionx subscript: unit
+exceptionx substr
+exceptionx substring : unit
+exceptionx substring = PreString.substr
+exceptionx tl : unit
+exceptionx unimplemented_real_operator : unit
+exceptionx varstruct : unit
+exceptionx varstruct = bind

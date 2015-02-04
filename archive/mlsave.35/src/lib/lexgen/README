@@ -1,0 +1,17 @@
+  Lexical analyzer generator for Standard ML.
+        Version 1.1, February 1989
+
+Copyright (c) 1989 by Andrew W. Appel, James S. Mattson, David R. Tarditi
+
+This software comes with ABSOLUTELY NO WARRANTY.
+This software is subject only to the GNU GENERAL PUBLIC LICENSE
+(in the file "LICENSE", distributed with this software, and available
+from the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139).
+You may copy and distribute this software; see the LICENSE
+for details and restrictions.
+
+
+Files of interest:
+
+lexgen.doc		- User's manual for ML-Lex
+lexgen.sml		- ML version of Lex

@@ -1,0 +1,23 @@
+Version 4, September 25
+
+Changed from version 3:
+The runtime system is completely converted to the new tag system:
+    * got rid of the NEWTAGS #define in runtime;
+    * added the correct tags to data defined in the runtime system.
+A bug in floating point exceptions on the M68 was fixed.
+Fixed up compile a bit; somehow toggle was the old version.
+Added new debug info to the garbage collector, flag GCDEBUG.
+Added a function Lsave to compile which toggles flags so % works right.
+Added a function dumpMap to invoke and compile which prints out the mapping
+      of lvars to structures.
+Fixed a subtle bug in BasicIO.input;  note that this input is non-standard,
+      since it raises io_failure when applied to a closed stream, while
+      the standard specifies that it should return "".  The same may
+      be true of lookahead and input_line.  Also input should check for
+      a negative count.
+Changed to the new string format.
+Added refs to profile counting.
+
+Known bugs:
+<val it> is still broken.
+Unhoisted linked code seems broken.

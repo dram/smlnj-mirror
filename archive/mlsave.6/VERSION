@@ -1,0 +1,36 @@
+=========================================================================
+Version 6
+October 8, 1987
+
+=========================================================================
+Changes:
+
+{print/printval.sml}
+Fixed a minor bug in printing infix constructors.
+
+Nullary exceptions were changed.  Instead of being a ref to a string
+ they are a record of the ref applied to unit.  Standard exceptions
+ in runtime/{M68,VAX}.prim.s were changed accordingly.  The user
+ can now say "handle div =>" instead of "handle div() =>".
+Many capitalized value names were uncapitalized.  A few remain in perv,
+ and others where it makes sense, for example DECON, which looks like
+ a constructor.
+The function before and the datatype 'a option were moved to perv.
+
+
+=========================================================================
+Known bugs:
+
+Unhoisted linked code seems broken.
+substr is called with bad args--(s,i,0) where i is outside the string s.
+In the interactive system, type
+	val a as b::_ = [1,2,3]
+ and you get
+	val a = [1,2,3] : int list
+	val b = uncaught exception Intmap
+ Looks like another invoke bug.
+Top level bindings should not report on exhaustiveness, but they do.
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.
+ref does not print with proper parens; it must have a strange type.

@@ -1,0 +1,498 @@
+	.data
+	.align	2
+	.globl	_runvec
+_runvec:
+	.long	_div_e
+	.long	_float_e
+	.long	_interrupt_e
+	.long	_io_failure_e
+	.long	_overflow_e
+	.long	_array_v
+	.long	_array0_v
+	.long	_boot_v
+	.long	_close_v
+	.long	_create_v
+	.long	_export_v
+	.long	_fionread_v
+	.long	_floor_v
+	.globl	_isattyslot
+_isattyslot:
+	.long	_isatty_v
+	.long	_logb_v
+	.globl	_openslot
+_openslot:
+	.long	_openf_v
+	.globl	_ovstruct_v
+	.long	_ovstruct_v
+	.globl	_pstruct_v
+	.long	_pstruct_v
+	.long	_read_v
+	.long	_scalb_v
+	.long	_seql_v
+	.long	_write_v
+
+
+	.text
+	.align	2
+_div_e:	.long	1f
+1:	.long	3
+	.ascii	"div\0"
+	.align	2
+_overflow_e:
+	.long	1f
+1:	.long	8
+	.ascii	"overflow"
+	.align	2
+_interrupt_e:	.long	1f
+1:	.long	9
+	.ascii	"interrupt\0\0\0"
+	.align	2
+_io_failure_e:	.long	1f
+1:	.long	10
+	.ascii	"io_failure\0\0"
+	.align	2
+
+	.align	2
+	.long	1
+_array0_v:
+
+	.align	2
+_array_v:
+	.long 1f
+1:	ashl $-1,*4(sp),r1		# r0 = length;
+#profiling info:  remove otherwise.
+#.set ARRAY,0
+#.set ARRAYSIZE,1
+#addl2 $1,(ARRAY*4)(r10)
+#addl2 r1,(ARRAYSIZE*4)(r10)
+#end profiling info.
+	ashl $3,r1,r0
+	incl r0
+	clrl -4(r12)[r1]		# allocate
+	movl r0,-4(r12)
+	movl r12,r0
+	movl 4(sp),r2
+	movl 4(r2),r2		# get default value
+	jbr 2f
+1:	movl r2,(r12)+
+2:	sobgeq	r1,1b
+	addl2 $4,r12
+	rsb
+
+	.align 2
+_create_v: .long 1f
+1:	movl	4(sp),r0
+	ashl	$-1,r0,r1
+	addl2	$22,r0
+	ashl	$-3,r0,r0
+#profiling info:  remove otherwise.
+#.set STRINGS,2
+#.set STRINGSIZE,3
+#addl2 $1,(STRINGS*4)(r10)
+#addl2 r0,(STRINGSIZE*4)(r10)
+#subl2 $1,(STRINGSIZE*4)(r10)
+#end profiling info.
+	ashl	$3,r0,r2
+	subl2	$3,r2
+	ashl	$2,r0,r3
+	clrl	-8(r12)[r0]
+	movl	r1,(r12)
+	movl	r2,-4(r12)
+	movl	r12,r0
+	addl2	r3,r12
+	rsb
+	
+
+
+	.align 2
+_boot_v:	.long 1f
+1:	addl3 4(sp),$8,r0
+	movl  r0,(ap)
+	movl  $9,-4(ap)
+	movl	ap,r0
+	addl2 $8,ap
+	rsb
+
+	.align	2
+_seql_v: .long 1f
+1:	movl	4(sp),r0
+	movl	4(r0),r1
+	movl	(r0),r0
+	cmpl	r0,r1
+	jeql	2f
+	bisb3	r0,r1,r2
+	blbs	r2,3f
+	addl3	$3,(r0),r2
+	ashl	$-2,r2,r2
+1:	cmpl	(r0)+,(r1)+
+	jneq	3f
+	sobgeq	r2,1b
+2:	movl	$3,r0
+	rsb
+3:	movl	$1,r0
+	rsb
+
+_raise_io_failure:
+	moval _io_failure_e,4(r12)
+	movl  4(sp),(r12)
+	movl  $5,-4(r12)
+	movl  r12,r0
+	addl2 $12,r12
+	movl r13,sp
+	movl (sp)+,r13
+	rsb
+
+#    datatype flags = APPEND | READ | WRITE  (* on BSD:   01011 | 0 | 03001 *)
+_flags:	.long	0	# dummy
+	.long	01011	# APPEND
+	.long	0	# dummy
+	.long	0	# READ
+	.long	0	# dummy
+	.long	03001	# WRITE
+
+	.align	2
+_openf_v:
+	.long	1f
+1:	movl	$0666,12(r12)	# do this now because no regs across allocate
+	movl	4(sp),r0
+	movl	4(r0),r1	# flags
+	movl	_flags[r1],8(r12)
+	addl3	$4,(r0),4(r12)
+	movl	$3,(r12)	# arg count
+	chmk	$5
+	jcs	_cannot
+	addl2	r0,r0
+	incl	r0
+	rsb
+_cannot: pushal	1f
+	jsb	_raise_io_failure
+	.align	2
+1: .long	4
+	.ascii	"open"
+
+	.align 2
+	.globl	_openf_v9
+_openf_v9:
+	.long	1f
+1:	movl	4(sp),r0
+	movl	4(r0),r1
+	cmpl	r1,$5	# write
+	jeql	_open_write
+	cmpl	r1,$3
+	jeql	_open_read
+_open_append:
+	pushal	1f
+	jsb	_raise_io_failure
+	.align	2
+1:	.long	22
+	.ascii	"append not implemented\0\0"
+_open_read:
+	movl	$0,8(r12)
+	addl3	$4,*4(sp),4(r12)
+	movl	$2,(r12)
+2:	chmk	$5
+	jcs	_cannot
+	addl2	r0,r0
+	incl	r0
+	rsb
+_open_write:
+	movl	$0666,8(r12)
+	addl3	$4,*4(sp),4(r12)
+	movl	$2,(r12)
+	chmk	$8
+	jcs	_cannot
+	movl	$1,8(r12)
+	jbr	2b
+
+
+	.align	2
+_close_v: .long	1f
+1:	ashl	$-1,4(sp),4(r12)
+	movl	$1,(r12)
+	chmk	$6
+	jcs	1f
+	movl	$1,r0
+	rsb
+1:	pushal	1f
+	jsb	_raise_io_failure
+	.align	2
+1:	.long	5
+	.ascii	"close\0\0\0"
+	
+	.align	2
+_read_v: .long	1f
+1:	movl	4(sp),r0
+	movl	*4(r0),r0
+	movl	r0,12(r12)
+	movl	4(sp),r0	# no ptrs across allocate
+	addl3	4(r0),$4,8(r12)
+	ashl	$-1,(r0),4(r12)
+	movl	$3,(r12)
+	chmk	$3
+	jcs	1f
+	addl2	r0,r0
+	incl	r0
+	rsb
+1:	pushal	1f
+	jsb	_raise_io_failure
+	.align	2
+1:	.long 4
+	.ascii "read"
+
+	.align	2
+_write_v: .long	1f
+1:	movl	4(sp),r0
+	ashl	$-1,8(r0),r0
+	movl	r0,12(r12)
+	movl	4(sp),r0	# no ptrs across allocate
+	addl3	4(r0),$4,8(r12)
+	ashl	$-1,(r0),4(r12)
+	movl	$3,(r12)
+	chmk	$4
+	jcs	1f
+	addl2	r0,r0
+	incl	r0
+	rsb
+1:	pushal	1f
+	jsb	_raise_io_failure
+	.align	2
+1:	.long 5
+	.ascii "write\0\0\0"
+
+.globl	_sigsetmask
+
+.align 2
+.globl _handleinterrupt
+_handleinterrupt:
+	.word 0x4000	# enable overflow
+	movl 28(sp),ap		# restore r12 (r12 - r15 scrambled)
+	movl 32(sp),r13
+	pushl	$0
+	calls	$1,_sigsetmask
+	movl	r13,sp
+	movl (sp)+,r13
+	moval 1f,r0
+	rsb
+.align 2
+1:	.long 1
+	.long _interrupt_e
+
+# NOTE -> os/machine dependent
+.set     FPE_INTOVF_TRAP,    0x1
+.set     FPE_INTDIV_TRAP,    0x2
+.set     FPE_FLTOVF_TRAP,    0x3
+.set     FPE_FLTDIV_TRAP,    0x4
+.set     FPE_FLTUND_TRAP,    0x5
+.data
+code: .long 0
+.text
+.align 2
+.globl _handlefpe
+_handlefpe:
+	.word 0x4000	# enable overflow
+	movl 8(ap),code		# grab code
+	movl 28(sp),ap		# restore r12
+	movl 32(sp),r13
+	pushl $0
+	calls $1,_sigsetmask
+	cmpl $FPE_INTDIV_TRAP,code
+	jeql _handleintdiv
+	cmpl $FPE_INTOVF_TRAP,code
+	jeql _handleintovfl
+	cmpl $FPE_FLTOVF_TRAP,code
+	jeql _handlefloatovfl
+	cmpl $FPE_FLTUND_TRAP,code
+	jeql _handlefloatunfl
+	cmpl $FPE_FLTDIV_TRAP,code
+	jeql _handlefloatdiv
+	pushal	1f
+	jsb	_raise_float
+	.align	2
+1:	.long	28
+	.ascii	"strange floating point error"
+_handleintdiv:
+	movl r13,sp
+	movl (sp)+,r13
+	moval 1f,r0
+	rsb
+.align 2
+1:	.long 1
+	.long _div_e
+# integer overflow should have some other exception.
+_handleintovfl:
+	movl r13,sp
+	movl (sp)+,r13
+	moval 1f,r0
+	rsb
+.align 2
+1:	.long 1
+	.long _overflow_e
+_handlefloatovfl:
+	pushal	1f
+	jsb	_raise_float
+	.align	2
+1:	.long	8
+	.ascii	"overflow"
+_handlefloatunfl:
+	pushal	1f
+	jsb	_raise_float
+	.align	2
+1:	.long	9
+	.ascii	"underflow\0\0\0"
+_handlefloatdiv:
+	pushal	1f
+	jsb	_raise_float
+	.align	2
+1:	.long	14
+	.ascii	"divide by zero\0\0"
+
+
+.data
+	.align	2
+	.globl	_bottom
+_bottom: .long 0
+.text	
+
+	.align	2
+	.globl	_apply
+	.globl	_profvec
+_apply:
+	.word	0x4ffe	# save all regs but r0; allow integer overflow
+	pushl	fp
+	moval	_profvec,r10
+	moval	0,r11
+	pushal	_handle	# establish exception handler
+	pushl	$0
+	movl	sp,r13
+	movl	sp,_bottom
+	pushl	4(ap)
+	pushl	8(ap)
+	addl3	_freestart,$4,r12
+	clrl	r1
+	clrl	r2
+	clrl	r3
+	clrl	r4
+	clrl	r5
+	clrl	r6
+	clrl	r7
+	clrl	r8
+	clrl	r9
+	movl	4(sp),r0
+_go:	jsb	*0(r0)
+	addl2	$8,sp
+	addl2	$8,sp
+_return:
+	subl3	$4,r12,_freestart
+	movl	(sp)+,fp
+	ret
+	
+	.globl	_uncaught
+_handle:
+	pushl	r0
+	calls	$1,_uncaught
+	addl2	$4,sp
+	clrl	r0
+	jbr	_return
+
+	.globl	_ghandle_bsd
+	.align	2
+_ghandle_bsd:
+	.word	0xfc0
+	movl	12(ap),r0
+	pushal	8(r0)
+	pushal	20(fp)
+	pushal  -24(ap)
+	calls	$3,_callgc_vaxbsd
+	ret
+
+	.globl	_ghandle_v9
+	.align	2
+_ghandle_v9:
+	.word	0xf80
+	pushl	fp
+	calls	$3,_callgc_vaxv9
+ 	ret
+
+	.globl	_specialgc
+	.globl	_export
+	.globl	_isexport
+	.globl	_exportfile
+_export_v: .long    1f
+1:	movl	4(sp),_exportfile
+	moval	2f,_specialgc
+	clrl	0x3fff0000	#invoke the garbage collector
+2:	movl	_isexport,r0
+	rsb
+
+
+.data
+6:	.long	0
+.text
+
+#  WARNING!   not re-entrant    WARNING!
+_fionread_v: .long	    1f
+1:	moval	6b,12(r12)
+	movl	$0x4004667f,8(r12)
+	ashl	$-1,4(sp),4(r12)
+	movl	$3,(r12)
+	chmk	$54
+	jcs	1f
+	ashl	$1,6b,r0
+	incl	r0
+	rsb
+1:	pushal	1f
+	jsb	_raise_io_failure
+	.align	2
+1:	.long 9
+	.ascii "can_input\0\0\0"
+
+	.globl	_isatty_v9
+_isatty_v9: .long 1f
+1:	pushal 1f
+	jsb	_raise_io_failure
+	.align 2
+1:	.long	6
+	.ascii "isatty\0\0"
+
+_isatty_v: .long	    1f
+1:	moval	6b,12(r12)
+	movl	$0x40067408,8(r12)
+	ashl	$-1,4(sp),4(r12)
+	movl	$3,(r12)
+	chmk	$54
+	jcs	1f
+	movl	$3,r0
+	rsb
+1:	movl	$1,r0
+	rsb
+
+.data
+_spsave: .long	0
+.text
+	.globl _restart
+        .globl _old_high
+	.globl _usrstack
+_restart:
+	.word	0x4ffe	# save all regs but r0; allow integer overflow
+	movl	_spsave,r0
+	movl	_old_high,r1
+	movl	_usrstack,r2
+1:	movl	(r1)+,(r0)+
+	cmpl	r0,r2
+	jlss	1b
+	movl	_spsave,sp
+	movl	sp,fp
+	movl	$1,r0
+	ret
+
+	.globl	_mysetjmp
+_mysetjmp: .word 0
+	movl	sp,_spsave
+	movl	sp,r0
+	movl	_old_high,r1
+	movl	_usrstack,r2
+1:	movl	(r0)+,(r1)+
+	cmpl	r0,r2
+	jlss	1b
+	movl	$0,r0
+	ret

@@ -1,0 +1,16 @@
+structure S =
+struct
+  val x = 3
+  val y = true
+end
+
+structure U =
+struct
+  structure W = S
+  val a = W.y
+end
+
+structure V =
+struct
+  val b = U.W.x
+end

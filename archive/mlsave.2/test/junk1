@@ -1,0 +1,5 @@
+structure X =
+struct
+  val f: 'a -> 'a = (fn x => x)
+  val b = (f 1, f true)
+end

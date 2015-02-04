@@ -1,0 +1,23 @@
+signature SS =
+sig
+  val y : bool
+end
+
+structure S(*: SS*) =
+struct
+  val x = 3
+  val y = false
+end
+
+
+structure U =
+struct
+  structure W:SS = S
+  val a = W.y
+end
+(*
+structure V =
+struct
+  val b = U.W.x
+end
+*)

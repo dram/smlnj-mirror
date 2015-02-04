@@ -1,0 +1,48 @@
+New features of SML of NJ Version 0.22 (October 10, 1988)
+
+This file describes the most notable changes since version 0.20.  (Version 0.21
+was a local version that was not distributed.)
+
+
+1. Bugs
+
+A few bugs have been fixed; exportFn works again; the system runs under the
+latest version (4.0) of Sun Unix on a Sun-3.  See src/doc/bugs for the
+remaining known bugs.  The next release with many more bug fixes will
+probably follow fairly shortly.
+
+
+2. Sharable text segments
+
+We now have an option to run sml with the compiler read-only and sharable
+(in the Unix text segment).  This should help on systems where several
+people are running sml at once, and also improves garbage-collector performance.
+See src/doc/INSTALL for more info.
+
+
+3. CPS code generator
+
+We are including the source code for the new cps code generator with
+this release for those who would like an early look at it.  This code
+generator is still under development and works only on Vaxes at this
+point.
+
+
+4. Installation
+
+The maker script for building the interactive image has been reorganized
+and new scripts maker.batch and maker.run have been added to simplify
+making batch systems and compiling the runtime system.  See src/doc/INSTALL
+and src/doc/BATCHINSTALL for details.
+
+
+5. Lexer generator
+
+The directory src/lib is a new directory for contributed software.
+The programs included here do not come under the terms of the AT&T
+license.  The first contributed software is a lexical analyzer
+generator similar to the Unix lex utility.  It is in src/lib/lexgen.
+lexgen has been used to generate a new lexical analyzer for the
+compiler.  The specification is in src/lex/ml.lex.
+
+

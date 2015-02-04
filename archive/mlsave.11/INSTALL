@@ -1,0 +1,235 @@
+Standard ML Compiler of New Jersey
+Beta 1 Release, November 2, 1987
+
+
+                      Installing and Booting SML
+
+Files:
+
+The distribution comes as a directory mlcomp.b1 (b1 stands for beta 1).
+It includes source and object code for Sun3 workstations and Vaxes running
+either 4.3BSD or V9 Unix.  G_floating point is required for the Vax
+version.
+
+The contents of this directory are as follows (as printed by ls -F):
+
+INSTALL	   all	      build/	 m68/	    print/     util/
+README	   basics/    codegen/	 mo.m68/    runtime/   vax/
+VERSION	   bignums/   env/	 mo.vax/    translate/
+absyn/	   boot/      lex/	 parse/	    typing/
+
+
+INSTALL
+   This file.
+
+README
+   Description of this release.
+
+VERSION 
+   This contains the version number and date, together with an incremental
+   log of of changes and a list of known bugs and omissions.
+
+all
+   This is a command script for the batch compiler.  It is used to generate
+   new object files from the compiler source files.
+
+mo.m68, mo.vax
+   mo.m68 and mo.vax contain the object files for all the compiler's modules.
+   The compiler generates an object file for each module (structure or functor).
+   The object file for a module named A will be named A.mo.
+
+absyn/, basics/, etc
+   These directories contain the source code for the compiler, organized
+   as a collection of subsystems.
+
+runtime/
+   This directory contains the c and assembly source files for building
+   the runtime system.
+
+
+The batch compiler:
+
+To support bootstrapping, we have been using an insecure precursor of separate
+compilation.  We have a "batch", or file-oriented, version of the compiler
+that generates a ".mo" object file for each module compiled.  The program
+accepts commands on its standard input.  The list of commands is:
+
+     !file      => compile the file.
+     *file      => assemble the file.
+     <file      => parse the file.
+     >file      => export to a file.
+     %          => print the last generated lambda (intermediate code).
+     #word      => comment; ignored.
+     @directory => look for files in a directory.  directory should end in /.
+     ~function  => execute a function.
+     ^flag      => toggle a flag.
+     ?          => print this help message.
+
+There should be no space between the command character and the argument
+string.  Arguments should not be quoted.
+
+The compile command, "!", causes the named file to be compiled, generating an
+object file A.mo for each module A defined in the file.  The assemble
+command, "*", generates an assembly listing A.s (this file can be assembled
+to produce the corresponding .mo file).  The parse command, "<", causes the
+file to be parsed and type-checked, but produces no output files.  These
+three commands all update the symbol table with the bindings defined in the
+file.  The file must contain only signature, structure, and functor
+declarations.
+
+The export command ">" exports the current state of the compiler to an
+executable file with the given name.  This is a way of preserving the
+symbol table state of the compiler.
+
+The execute ("~") and toggle ("^") commands are mainly used to control debugging
+facilities, which are not explained here.  Typing "^" alone on a line produces
+a list of possible flags.
+
+The command interpreter is defined in build/compile.sml.
+
+
+To build the runtime system:
+
+   Go to the runtime directory, which contains the source code for the runtime
+   system.  Link the appropriate machine-specific makefile to "makefile".
+   makefile.m68 is for Sun3's, makefile.v9 is for Vaxes running V9 Unix, and
+   makefile.bsd is for Vaxes running 4.3BSD.  Then make the runtime system,
+   which produces an executable program called (for no good reason) nml.
+
+      1. cd .../mlcomp.b1/runtime
+
+      2. ln makefile.{m68 | bsd | v9} makefile
+
+      3. make
+
+
+To build an interactive sml:
+
+   Go the main ML directory (e.g. mlcomp.b1).  Any implicit paths are relative
+   to this directory.
+
+      1. cd .../mlcomp.b1
+
+   Symbolically link mo to mo.m68 for Suns or mo.vax for Vaxes (by default,
+   the system loader looks for object files in a directory "mo" in its current
+   directory).  WARNING: if the wrong object file directory is linked to
+   mo, then step 3 will immediately fail.
+
+      2. ln -s mo.{m68 | vax} mo
+
+   Run runtime/nml with either IntM68 (for the Sun) or IntVax (for Vax).
+   This will cause loading and linking of the appropriate object files,
+   followed by compilation of the boot files to create the initial static
+   environment.  The <size> parameter is the size of the initial heap
+   semispace in kilobytes; the copy garbage collector uses two semispaces.
+   When recompiling the compiler, we use 5000, but much smaller sizes will
+   work (the default is 300 if no -h <size> is given).  The garbage collector
+   will double the arena size if it starts to fill up.
+
+      3. runtime/nml -h <size> {IntM68 | IntVax}
+
+   The system should print the top-level prompt "-".  Now create an executable
+   image of the system using the function "exportML" (here we use "sml" as
+   the name of the executable, but of course you are free to choose another
+   name).
+
+      4. exportML "sml";
+
+   The interactive system can now be exited by typing ^D.  Then you can run ML
+   without having to load the initial environment just by typing "sml" to the
+   shell.  If you want to add a startup message, just change step 4 to:
+
+      4'. (exportML "sml"; print "your message here\n"; ());
+
+
+To build a batch compiler:
+
+   Go the main ML directory (e.g. mlcomp.b1).  Symbolically link the
+   appropriate object directory, mo.m68 (for Sun3) or mo.vax (for Vax) to mo.
+
+      1. cd .../mlcomp.b1
+
+      2. ln -s mo.{m68 | vax} mo
+
+   The object files will be loaded and linked as for compile, and the initial
+   environment will be loaded.  As a byproduct of this step, a new PervFunc.mo
+   file is produced.  This file is used by the runtime system to build the
+   runtime structure containing the initial environment during bootup.
+   Unless you have made changes to the Initial environment and are recompiling
+   the entire system, this file will be identical to the PervFunc.mo in
+   the mo directory, and can be discarded.
+
+      3. runtime/nml -h <size> {CompM68 | CompVax}
+
+   When this is successfully completed, the system will prompt with the message
+   "hello there".  You are now talking to the batch command interpreter.
+   Dump an executable image of the batch compiler to a file named "batch"
+   (or whatever name you prefer).
+
+      4. >batch
+
+      5. type ^D to exit.
+
+   Now you can run the batch compiler by typing "batch".  You can give it
+   commands interactively, or by redirecting its input from a file, as is
+   done below with the command script all.
+
+
+To boot ML (e.g. after changing some source files):
+
+   Use an existing compiler (batch) to generate a new set of object files:
+
+       1. go to the main directory (mlcomp.b1)
+
+       2. batch < all >& diagnostics &
+
+   This will compile all the source files, generating corresponding .mo
+   files in the main directory.  It will also generate a number of checkpoint
+   images, from upto.absyn to upto.all (see the command script all).  If there
+   are errors, one can use an edited version of all and restart using the last
+   checkpoint image preceding the error.
+
+   Make a new mo directory, say mo.new, and move the new .mo files into it.
+   Also, make sure that the PervFunc.mo that was produced along with the
+   compiler batch is also moved or linked into this directory -- .mo files
+   compiled by a given instance of the compiler should be loaded together
+   with that compiler's PervFunc.mo.
+
+       3. mkdir mo.new
+	  mv *.mo new  -- including last PervFunc.mo
+
+       4. rm mo; ln -s mo.new mo
+
+       5. make a new batch compiler and interactive system as above.
+
+       6. As a check, it is suggested that you use the new compiler to
+          recompile the source code.  The resulting .mo files should be
+          identical to previous set of .mo files.  Sometimes more than
+          one iteration is necessary (for example if the INITIAL
+          signature in boot/perv.sml has changed).  The bootstrapping is
+          successful when two successive iterations produce identical
+	  .mo files.
+
+   As a shortcut, if some files are changed in ways that do not affect
+   the relevant signatures, these files alone can be compiled using the
+   upto.all checkpoint image and the resulting .mo files substituted for
+   the old versions.  This avoids the time-consuming process of recompiling
+   the entire system.
+
+
+Cross compiling:
+
+To cross-compile object code for the Vax on a Sun, for instance, make
+a Vax compiler using
+
+   runtime/nml -h <size> CompVax
+   ...
+   "hello there"
+   >mlc.vax
+
+Then use mlc.vax to generate .mo files and place them in a directory mo.vax,
+along with the PervFunc.mo generated when building mlc.vax.  These object
+files can then be moved to a Vax and used to build a new batch compiler and
+interactive system.  To cross-compile Sun code on a Vax, use CompM68
+to build a Sun compiler mlc.m68 on the vax and then use mlc.m68 to
+produce the Sun object files, which are placed in mo.m68.

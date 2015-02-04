@@ -1,0 +1,43 @@
+signature SS =
+sig
+  val y : bool
+  val z : string
+end
+
+signature FS =
+sig
+  val b : int
+  val c : bool
+  val e : string
+  val d : int
+end
+
+structure S(*: SS*) =
+struct
+  val x = 3
+  val y = false
+  val z = "abc"
+end
+
+functor F(X:SS):FS =
+struct
+  val b = S.x
+  val c = X.y
+  val e = X.z
+  val d = 4
+end
+(*
+structure M = F(S)
+
+
+structure U =
+struct
+  structure W:SS = S
+  val a = W.y
+end
+
+structure V =
+struct
+  val b = U.W.x
+end
+*)

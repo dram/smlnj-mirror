@@ -1,0 +1,258 @@
+#!/bin/sh
+#
+
+IMAGE=""
+MACHINE=""
+OPSYS=""
+MODULEKIND="Int"
+SHARE="TRUE"
+DEFS=""
+CLEAN="TRUE"
+MKRUN="TRUE"
+RUNTIME="runtime"
+NOBOOT=""
+ASMBLR="as"
+COMMAND=""
+IONLY=""
+
+#
+# gc params
+HEAP=2048
+RATIO=20
+SOFTLIMIT=4096
+
+#
+# try to guess the machine type
+#
+if [ -f /bin/sun3 ] && /bin/sun3; then
+	set - -sun3 $*
+elif [ -f /bin/sun4 ] && /bin/sun4; then
+	set - -sun4 $*
+fi
+
+#
+# process options
+#
+while test "$#" != "0"
+do
+	case $1 in
+		-m68|-sun3)
+			MACHINE=M68
+			OPSYS=BSD
+			DEFS="$DEFS -DSUN3"
+		;;
+		-sparc|-sun4)
+			MACHINE=SPARC
+			OPSYS=BSD
+		;;
+		-vax)
+			MACHINE=VAX
+		;;
+		-bsd)
+			OPSYS=BSD
+		;;
+		-v9)
+			OPSYS=V9
+		;;
+		-ultrix)
+			OPSYS=ULTRIX
+		;;
+		-batch)
+			MODULEKIND=Comp
+		;;
+		-noshare)
+			SHARE=""
+		;;
+		-run)
+			MKRUN="TRUE"
+			NOBOOT="TRUE"
+		;;
+		-norun)
+			MKRUN=""
+			CLEAN=""
+		;;
+		-i)
+			COMMAND="System.Control.interp := true;"
+	        ;;
+		-ionly)
+			COMMAND="System.Control.interp := true;"
+			IONLY="TRUE"
+		;;
+		-noclean)
+			CLEAN=""
+		;;
+		-o)
+			shift
+			if test "$#" = "0"
+			then
+				echo "makeml: must supply image name for -o option"
+				exit 1
+			fi
+			IMAGE=$1
+		;;
+		-runtime)
+			shift
+			if test "$#" = "0"
+			then
+				echo "makeml: must supply runtime directory for -runtime option"
+				exit 1
+			fi
+			RUNTIME=$1
+		;;
+		-mo)
+			shift
+			if test "$#" = "0"
+			then
+				echo "makeml: must supply mo directory for -mo option"
+				exit 1
+			fi
+			MO=$1
+		;;
+		-h)
+			shift
+			if test "$#" = "0"
+			then
+				echo "makeml: must supply argument for -h option"
+				exit 1
+			fi
+			HEAP=$1
+		;;
+		-r)
+			shift
+			if test "$#" = "0"
+			then
+				echo "makeml: must supply argument for -r option"
+				exit 1
+			fi
+			RATIO=$1
+		;;
+		-m)
+			shift
+			if test "$#" = "0"
+			then
+				echo "makeml: must supply argument for -m option"
+				exit 1
+			fi
+			SOFTLIMIT=$1
+		;;
+		-D*)
+			DEFS="$DEFS $1"
+		;;
+		*)
+			echo "makeml: unrecognized option $1"
+			exit 1
+		;;
+	esac
+	shift
+done
+
+if test -z "$IMAGE"
+then
+	if test "$MODULEKIND" = Int
+	then
+		IMAGE=sml
+	else
+		IMAGE=batch
+	fi
+fi
+
+case $MACHINE in
+	M68)
+		CFL="-n -Bstatic -f68881"
+		if test "$OPSYS" != BSD
+		then
+			echo "makeml: bad os ($OPSYS) for m68"
+			exit 1
+		fi
+		if test -z "$MO"
+		then
+			MO="../mo.m68"
+		fi
+		MODULE="$MODULEKIND"M68
+	;;
+	SPARC)
+		CFL="-n -Bstatic"
+		if test "$OPSYS" != BSD
+		then
+			echo "makeml: bad os ($OPSYS) for sparc"
+			exit 1
+		fi
+		if test -z "$MO"
+		then
+			MO="../mo.sparc"
+		fi
+		MODULE="$MODULEKIND"Sparc
+	;;
+	VAX)
+		if test "$OPSYS" = ULTRIX
+		then
+			DEFS="$DEFS -DBSD"
+		fi
+		if test -z "$MO"
+		then
+			MO="../mo.vax"
+		fi
+		MODULE="$MODULEKIND"Vax
+	;;
+	*)
+		echo "makeml: must specify machine type"
+		exit 1
+	;;
+esac
+
+if test -n "$IONLY"
+then
+MODULE="IntNull"
+fi
+
+MOFILES="$MODULE.mos"
+DEFS="$DEFS -D$OPSYS"
+
+
+if test -n "$CLEAN"
+then
+	echo "(cd $RUNTIME; make clean)"
+	(cd $RUNTIME; make clean)
+fi
+
+echo rm -f mo
+rm -f mo
+
+echo ln -s $MO mo
+ln -s $MO mo
+
+if test -n "$MKRUN"
+then
+	echo "(cd $RUNTIME; rm -f run allmo.o)"
+	(cd $RUNTIME; rm -f run allmo.o)
+
+	if test -n "$SHARE"
+	then
+		echo "(cd $RUNTIME; make MACHINE=$MACHINE linkdata)"
+		(cd $RUNTIME; make MACHINE=$MACHINE linkdata)
+
+		echo "$RUNTIME/linkdata [$RUNTIME/$MOFILES] > $RUNTIME/allmo.o"
+		$RUNTIME/linkdata `cat $RUNTIME/$MOFILES` > $RUNTIME/allmo.o
+	fi
+
+	ARG="MACHINE=$MACHINE 'DEFS=$DEFS' 'CFL=$CFL' 'ASMBLR=$ASMBLR'"
+	echo "(cd $RUNTIME; make $ARG)"
+	(cd $RUNTIME; eval make $ARG)
+fi
+
+if test -n "$NOBOOT"
+then
+	exit 0
+fi
+
+if test "$MODULEKIND" = Int
+then
+	STARTUP='('$COMMAND' exportML "'$IMAGE'"; output std_out System.version; output std_out "\n");'
+	echo echo $STARTUP '|' $RUNTIME/run -m $SOFTLIMIT -r $RATIO -h $HEAP $MODULE
+	echo $STARTUP | $RUNTIME/run -m $SOFTLIMIT -r $RATIO -h $HEAP $MODULE
+else
+	echo "$RUNTIME/run -m $SOFTLIMIT -r $RATIO -h $HEAP $MODULE"
+	$RUNTIME/run -m $SOFTLIMIT -r $RATIO -h $HEAP $MODULE <<XXX
+>$IMAGE
+XXX
+fi

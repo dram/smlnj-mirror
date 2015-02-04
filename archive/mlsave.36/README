@@ -1,0 +1,109 @@
+Standard ML of New Jersey
+Version 0.36, 4 July 1989
+
+This file describes the latest release of the Standard ML of New
+Jersey compiler.  It is currently available under licensing from AT&T.
+
+We are eager to receive your bug-reports, comments, and constructive
+criticism.  The documentation is still in a primitive state, but your
+comments on the installation instructions and manual would be
+appreciated.  Any error message beginning with "Compiler bug"
+definitely indicates a bug in the compiler and should be reported.
+Please use an appropriate variation on the bug reporting form in the
+file doc/bug.form and send comments and bug reports to:
+
+   David MacQueen
+   Room 2C-322
+   AT&T Bell Laboratories
+   Murray Hill, NJ 07974
+   USA
+   Phone: 201-582-7691
+   Net: macqueen@research.att.com
+
+Instructions for installing the compiler are in the file doc/INSTALL.
+
+The main changes relative to version 0.33 are described in the file
+doc/NEWS.36.  This is still a preliminary version -- it is fairly
+complete and robust, but it has a number of cosmetic deficiencies,
+missing features, and known bugs.
+
+Format of the Distribution
+
+The compiler is being distributed in two forms: (1) as a tar file on
+tape containing a directory mldist, and (2) as a set of compressed tar
+files accessible by arpanet ftp from the host research.att.com,
+directory /u/mldist (contact Dave MacQueen for the login id and
+password).
+
+1. Tape distribution
+
+Extracting the contents of the tape using tar -x yields a single directory
+named mldist.  The contents of mldist are as follows (as printed by ls -F):
+
+    README          mo.m68/         src/
+    doc/            mo.vax/
+
+README (this file) contains some general information on the current release.
+
+The mo.vax and mo.m68 directories contain the Vax and Motorola MC68020 object
+files for the compiler.
+
+The src directory contains the source code of the compiler.
+
+src/lib contains contributed software.  At the moment, this consists of
+a lexical analizer generator (src/lib/lexgen) and a parser generator
+(src/lib/mlyacc).
+
+The doc directory contains a number of documentation files for installing and
+using the compiler:
+
+  INSTALL 	directions for installing the interactive Standard ML system.
+
+  BATCHINSTALL	directions for using the interim batch system and bootstrapping
+		the compiler.
+
+  NEWS.xx	general information on changes and new features in version xx.
+
+  help		hints for beginners on using the system.
+
+  differences	a (partial) list of differences between our compiler and the
+		Edinburgh compiler.
+
+  weak-types	a very brief explanation of weak type variables.
+
+  callcc	an explanation of the new callcc primitives.
+
+  profiling	an explanation of how to use the profiling facilities.
+
+  bugs		current list of known bugs (please check this before submitting
+		bug reports).
+
+  bug.form	suggested format for bug reports.
+
+  refman/	TeX sources for an incomplete, provisional reference manual.
+
+  examples/	A collection of example programs.  We would like to collect 
+		additional examples contributed by users.  Please mail your
+		example programs to macqueen@research.att.com.
+
+  papers/	source files (troff -ms or TeX) for papers describing the compiler.
+
+
+2. Ftp distribution
+
+The ftp distribution contains the same material as the tape distribution,
+made available as compressed tar files.
+
+  doc.tar.Z    : the doc directory containing documentation
+  src.tar.Z    : the src directory containing source code
+  mo.m68.tar.Z : the mo.m68 directory of m68 object files
+  mo.vax.tar.Z : the mo.vax directory of vax object files
+
+NOTE: Ftp should be put into binary mode before transferring these files.
+
+After the files are transferred they should be uncompressed using the
+uncompress command and then extracted using tar into a directory called
+mldist.  It may not be necessary to transfer all the files; if you do not
+intend to run the compiler on a Vax, for instance, there is no need to ftp the
+mo.vax.tar.Z .Z files.  The mo.cps.tar.Z is only necessary for
+those who would like to try the cps style code generator.
