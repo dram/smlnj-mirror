@@ -22,6 +22,8 @@ ATTRS =		--attribute=version=$(SMLNJ_VERSION) \
 		--attribute=releasedate="$(SMLNJ_DATE)" \
 		--attribute=source-highlighter=pygments
 
+CONF =		--conf-file=../conf/HISTORY-html.conf
+
 TXT_FILES =	HISTORY.txt
 
 HTML =		$(TXT_FILES:.txt=.html)

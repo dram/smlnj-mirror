@@ -87,6 +87,30 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 
 // == Recent updates
 
+//--------------------------------------------------------------------
+[2015/05/27]::
++
+Added support for SuccessorML lexical extensions:
+--
+  - "_" as a separator in numeric literals; e.g., ++123_456++, ++0wxff_ff_ff_f3++,
+    ++123_456.1++, ...
+
+  - end-of-line comments, which are denoted using ++(*)++.  End-of-line comments
+    properly nest into conventional block comments.  For example, the following
+    block comment is well formed: 
++
+[source,sml]
+------------
+(*
+fun f x = x (*) my identity function *)
+*)
+------------
++
+  - binary literals for both integers and words; e.g., ++0b0101_1110++, or
+    ++0wb1101++.
+--
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
 //====================================================================
 == Version 110.78; 2014/12/24
 
@@ -5581,6 +5605,7 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/02/14]::
 +
+--
 Fixed the MLRISC bug sent by Markus Wenzel regarding the compilation
 of Isabelle on the x86.
 +
@@ -5612,14 +5637,15 @@ From Allen:
      both u and v are of low degree, but that's clearly not necessarily true.
 +
 +
-* 02/12/2002:
+* 02/12/2002: 
 +
-    Here's the patch.  HOL now compiles.
+    Here's the patch.  HOL now compiles. 
 +
     I don't know how this impact on performance (compile
     time or runtime).  This bug caused the RA (especially on the x86)
     to go thru the potential spill phase when there are still nodes on the
     freeze queue.
+--
 +
 owner:[Lal George]
 
@@ -5627,7 +5653,7 @@ owner:[Lal George]
 [2002/02/13]::
 +
 Fixed a bug in ml-nlffigen that was introduced with one of the previous
-updates.
+updates. 
 +
 owner:[Matthias Blume]
 
@@ -5636,14 +5662,15 @@ owner:[Matthias Blume]
 +
 Added new priority queue export symbols (which have just been added to
 smlnj-lib.cm) to CML's version of smlnj-lib.cm.  (Otherwise CML would
-not compile and the installer would choke.)
+not compile and the installer would choke.) 
 +
 owner:[Matthias Blume]
 
 //--------------------------------------------------------------------
 [2002/02/13]::
 +
-1. More tweaks to ml-nlffigen:
+--
+. More tweaks to ml-nlffigen:
 +
    - better internal datastructures (resulting in slight speedup)
    - "-match" option requires exact match
@@ -5651,11 +5678,12 @@ owner:[Matthias Blume]
      other structs/unions or within typedefs get a fresh counter; their
      tag will be prefixed by a concatenation of their parents' tags)
    - bug fixes (related to calculation of transitive closure of types
-     to be included in the output)
+     to be included in the output) 
 +
-2. Minor Basis updates:
+. Minor Basis updates:
 +
    - added implementations for List.collate and Option.app
+--
 +
 owner:[Matthias Blume]
 
@@ -5665,7 +5693,7 @@ owner:[Matthias Blume]
 Added a "-gensym" option to command line of ml-nlffigen.  This can be
 used to specify a "stem" -- a string that is inserted in all "gensym'd"
 names (ML structure names that correspond to unnamed C structs, unions,
-and enums), so that separate runs of ml-nlffigen do not clash.
+and enums), so that separate runs of ml-nlffigen do not clash. 
 +
 owner:[Matthias Blume]
 
@@ -5687,8 +5715,10 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/02/08]::
 +
-1. The installer (config/install.sh) has gotten smarter:
+--
+. The installer (config/install.sh) has gotten smarter:
 +
+--
      - Configuration options are a bit easier to specify now
        (in config/targets).
      - Bug in recognizing .tar.bz2 files fixed.
@@ -5699,26 +5729,26 @@ owner:[Matthias Blume]
        variable INSTALL_QUIETLY to "true".  "Quieter" does not mean
        "completely silent", though.
      - Build HashCons library as part of smlnj-lib.
+--
 +
-2. A new scheme for assigning persistent identifiers to compilation
+. A new scheme for assigning persistent identifiers to compilation
    units (and, by extension, to types etc.) has been put into place.
    This fixes a long-standing bug where types and even dynamic values
    can get internally confused, thereby compromising type safety
-   (abstraction) and dynamic correctness.  See
-+
-     http://cm.bell-labs.com/cm/cs/who/blume/pid-confusion.tgz
-+
-   for an example of how things could go wrong until now.
+   (abstraction) and dynamic correctness.  See 
+     http://cm.bell-labs.com/cm/cs/who/blume/pid-confusion.tgz[] 
+   for an example of how things could go wrong until now. 
 +
    The downside of the new scheme is that pids are not quite as
    persistent as they used to be: CM will generate a fresh pid
    for every compilation unit that it thinks it sees for the first
    time.  That means that if you compile starting from a clean, fresh
    source tree at two different times, you end up with different
-   binaries.
+   binaries. 
 +
    Cutoff recompilation, however, has not been compromised because
-   CM keeps pid information in special caches between runs.
+   CM keeps pid information in special caches between runs. 
+--
 +
 owner:[Matthias Blume]
 
@@ -5738,36 +5768,39 @@ owner:[Lal George]
 //--------------------------------------------------------------------
 [2002/02/06]::
 +
-1. A bug fix from Allen.
-+
-    A typo causes extra fstp %st(0)'s to be generated at compensation
+--
+. A bug fix from Allen:
+    A typo causes extra +fstp %st(0)+ instructions to be generated at compensation
     edges, which might cause stack underflow traps at runtime.  This
-    occurs in fft where there are extraneous fstps right before the 'into'
+    occurs in fft where there are extraneous fstps right before the +into+
     trap instruction (in this case they are harmless since none of the
     integers overflow.)
-+
-2. Pulled out various utility modules that were embedded in the modules
+. Pulled out various utility modules that were embedded in the modules
    of the register allocator. I need these modules for other purposes, but
    they are not complete enough to put into a library (just yet).
+--
 +
 owner:[Lal George]
 
 //--------------------------------------------------------------------
 [2002/01/31]::
 +
-1. C-calls on Sparc needlessly allocated a huge chunk (96 bytes)
-   of extra stack space by mistake.  Fixed.
-+
-2. Bug in logic of handling of command-line options in ml-nlffigen fixed.
+--
+. Fixed a bug where C-calls on SPARC needlessly allocated a huge chunk (96 bytes)
+   of extra stack space by mistake.
+. Bug in logic of handling of command-line options in ml-nlffigen fixed.
+--
 +
 owner:[Matthias Blume]
 
 //--------------------------------------------------------------------
 [2002/01/30]::
 +
-   MLRISC bug fixes:
-   1. Fixed a bindings computation bug in the 'nowhere' program generator tool.
-   2. MachineInt.fromString was negating its value.
+MLRISC bug fixes:
+--
+. Fixed a bindings computation bug in the 'nowhere' program generator tool.
+. MachineInt.fromString was negating its value.
+--
 +
 owner:[Allen Leung]
 
@@ -5814,15 +5847,17 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/01/28]::
 +
-1. Retracted earlier 110.38.  (The Release_110_38 tag has been replaced
-   with blume-Release_110_38-retracted.)
-+
-2. Fixed a problem with incorrect rounding modes in real64.sml.
+--
+. Retracted earlier 110.38.  (The Release_110_38 tag has been replaced
+   with blume-Release_110_38-retracted.) 
+
+. Fixed a problem with incorrect rounding modes in real64.sml.
    (Thanks to Andrew Mccreight <andrew.mccreight@yale.edu>.)
-+
-3. A bug in ml-nlffigen related to the handling of unnamed structs, unions,
+
+. A bug in ml-nlffigen related to the handling of unnamed structs, unions,
    and enums fixed.  The naming of corresponding ML identifiers should
    now be consistent again.
+--
 +
 owner:[Matthias Blume]
 
@@ -7134,7 +7169,7 @@ owner:[Matthias Blume]
 +
   MLRISC features.
 +
-  1. Fix to CMPXCHG instructions.
+  1. Fix to +CMPXCHG+ instructions.
   2. Changed RA interface to allow annotations in callbacks.
   3. Added a new method to the stream interface to allow annotations updates.
 +
