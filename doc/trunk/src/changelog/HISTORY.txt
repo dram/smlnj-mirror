@@ -90,9 +90,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2015/05/27]::
 +
-Added support for SuccessorML lexical extensions:
+Added support for SuccessorML lexical extensions.  These can be enabled
+using the command-line option ++-Cparser.succ-ml=true++ or the assignment
++
+[source,sml]
+------------
+Control.succML := true;
+------------
++
+at the REPL.  The extensions are as follows:
 --
-  - "_" as a separator in numeric literals; e.g., ++123_456++, ++0wxff_ff_ff_f3++,
+  - "_" as a separator in numeric literals; __e.g.__, ++123_456++, ++0wxff_ff_ff_f3++,
     ++123_456.1++, ...
 
   - end-of-line comments, which are denoted using ++(*)++.  End-of-line comments
@@ -106,7 +114,7 @@ fun f x = x (*) my identity function *)
 *)
 ------------
 +
-  - binary literals for both integers and words; e.g., ++0b0101_1110++, or
+  - binary literals for both integers and words; __e.g.__, ++0b0101_1110++, or
     ++0wb1101++.
 --
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
