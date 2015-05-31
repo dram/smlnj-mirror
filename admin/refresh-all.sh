@@ -6,7 +6,7 @@ fi
 
 here=`pwd`
 
-for tree in config base smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
+for tree in admin config base smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
             ckit cml eXene smlnj-c ml-burg ml-lex heap2asm nlffi \
             ml-lpt smldoc doc
 do
