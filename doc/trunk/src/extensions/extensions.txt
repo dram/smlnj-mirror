@@ -73,7 +73,7 @@ literal.  For example,
 are valid numeric literals under this extension, but the following are not:
 [source,sml]
 ------------
-  123__456		(* two underscores in a row *)
+  123._456		(* underscore not proceeded by digit *)
   0wx_ff_ff_ff_f3	(* leading underscore *)
 ------------
 
@@ -82,8 +82,8 @@ hexidecimal literals, the syntax uses a leading "++0b++" to signal a binary
 literal.  Examples include
 [source,sml]
 ------------
-  0b0101_1110	(* the same as 0x56 or 86 *)
-  0wb1101	(* the same as 0wD or 13 *)
+  0b0101_1110	(* the same value as 0x56 or 86 *)
+  0wb1101	(* the same value as 0wD or 13 *)
 ------------
 
 ==== Line comments (SML/NJ 110.79)
