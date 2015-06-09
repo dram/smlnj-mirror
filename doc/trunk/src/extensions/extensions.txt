@@ -36,7 +36,39 @@ _TO BE WRITTEN_
 
 === Lazy datatypes and functions
 
+SML/NJ provides support for lazy data structures with an extension to the datatype
+and function declaration forms (+val rec+).  There are a number of ways to enable
+this feature, depending on the ??
+
+* From the command-line, you can use the ++-Clazysml=true++ flag when launching
+  SML/NJ.
+
+* From the REPL, you can enable the feature using the SML command:
++
+[source,sml]
+------------
+  Control.lazysml := true;
+------------
+
+* In a CM, file you can specify that a source file uses the lazy keyword in a number
+  of different ways.  The following three lines all have the effect of enabling the
+  ++lazy++ keyword during compilation of the file.
+[source,sml]
+------------
+  foo.sml : lazysml
+  foo.sml : sml (lazy)
+  foo.sml (with:parser.lazy-keyword=true)
+------------
+
 _TO BE WRITTEN_
+
+[source,sml]
+------------
+  datatype lazy 'a stream = Nil | Cons of 'a * 'a stream;
+
+  fun lazy map f Nil =  Nil
+         | map f (Cons(x,xs))  =  Cons(f x, map f xs);
+------------
 
 === Quotation/antiquotation
 
