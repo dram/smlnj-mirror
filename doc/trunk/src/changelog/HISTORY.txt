@@ -88,6 +88,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2015/06/11]::
++
+Added Mac OS X 10.11 (El Capitan) to the list of operating systems
+recognized by the ++.arch-n-opsys++ script.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2015/05/27]::
 +
 Added support for SuccessorML lexical extensions.  These can be enabled
