@@ -90,8 +90,8 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2015/07/08]::
 +
-Added Linux 4.* kernels to the list of operating systems
-recognized by the ++.arch-n-opsys++ script.
+Added Linux 4.* kernels to the list of operating systems recognized
+by the ++.arch-n-opsys++ script (fixes bug bugref:[134]).
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
