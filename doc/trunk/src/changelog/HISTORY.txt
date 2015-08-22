@@ -90,14 +90,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2015/08/22]::
 +
-Fixed bug bugref:[136].
+Fixed bug bugref:[136] (Incorrect raising of exceptions in Real.fmt and Time.fmt).
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2015/07/23]::
 +
-Fixed bug bugref:[135].
+Fixed bug bugref:[135] (Fails to build on Linux PowerPC).
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
