@@ -88,6 +88,13 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2015/08/22]::
++
+Fixed bug bugref:[136].
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2015/07/23]::
 +
 Fixed bug bugref:[135].
