@@ -44,7 +44,7 @@
 <br/>
                           Version 110.79 NEWS
 <br/>
-                           September ??, 2015
+                            October 1, 2015
 <br/>
 <br/>
 </div>
@@ -64,8 +64,11 @@
 
 <h3>Summary:</h3>
 <p>
-The primary purpose of this release is improvements to libraries and tools, with some
-important bug fixes too.
+This release incudes new Basis Library modules and the start of support for
+<a href="https://github.com/SMLFamily/Proposed-Definition-of-Successor-ML"><b>Successor ML</b></a>,
+which is an evolution of the Standard ML language.
+It also has support for the latest version of Mac OS X (El Capitan) and Linux 4.x kernels,
+improvements to the documentation, and various bug fixes.
 </p>
 
 <h3>Details:</h3>
@@ -84,18 +87,10 @@ important bug fixes too.
         <dd></dd>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-003-Additional-operations-on-sequences"><b>[2015-003]</b> Additional operations on sequences</a></dt>
         <dd></dd>
-<!--
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-004-Addition-of-Buffer-module"><b>[2015-004]</b> Addition of Buffer module</a></dt>
-        <dd></dd>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-005-Addition-of-Fn-module"><b>[2015-005]</b> Addition of Fn module</a></dt>
-        <dd></dd>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-006-Additional-string-conversion-functionality"><b>[2015-006]</b> Additional string conversion functionality</a></dt>
         <dd></dd>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-007-Addition-of-Ref-module"><b>[2015-007]</b> Addition of Ref module</a></dt>
         <dd></dd>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-008-Additional-math-functions"><b>[2015-008]</b> Additional math functions</a></dt>
-        <dd></dd>
--->
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-009-Policy-for-exceptions-and-partial-applications"><b>[2015-009]</b> Policy for exceptions and partial applications</a></dt>
         <dd></dd>
     </dl>
@@ -106,8 +101,39 @@ important bug fixes too.
   <dt class="component">Successor ML:</dt>
   <dd>
     <p>
-    Successor ML is collection of proposed enhancements to the Standard ML language.
-    </p>
+    <a href="https://github.com/SMLFamily/Proposed-Definition-of-Successor-ML"><b>Successor ML</b></a>
+    is collection of proposed enhancements to the <b>Standard ML</b> language.
+    In collaboration with the <a href="http://mlton.org"><b>MLton</b></a> implementors, we are
+    starting to add support for these features the <b>SML/NJ</b>.
+    In this release, we has added support for the lexical extensions to the language:
+    <ul>
+      <li>
+        Underscore ("<span class="code">_</span>") as a separator in numeric literals;
+	<it>e.g.</it>, <span class="code">123_456</span>,
+        <span class="code">0wxff_ff_ff_f3</span>, <span class="code">123_456.1</span>, ...
+      </li>
+      <li>
+	end-of-line comments, which are denoted using <span class="code">(*)</span>.  End-of-line comments
+	properly nest into conventional block comments.  For example, the following
+	block comment is well formed:
+	<div class=code>
+	(*
+	fun f x = x (*) my identity function *)
+	*)
+	</div>
+      </li>
+      <li>
+	binary literals for both integers and words;
+	<it>e.g.</it>, <span class="code">0b0101_1110</span>, or
+	<span class="code">0wb1101</span>.
+      </li>
+    </ul>
+    These features can be enabled using the command-line option <tt>-Cparser.succ-ml=true</tt>
+    or by using the assignment
+    <div class=code>
+    Control.succML := true;
+    </div>
+    at the REPL.
   </dd>
 </ul>
 
@@ -155,7 +181,7 @@ We have verified that the system builds and runs on the following systems.
 </table>
 </div>
 <p>
-We believe that it runs on any recent Linux distribute that has support for 32-bit
+We believe that it runs on any recent Linux distribution that has support for 32-bit
 executables, as well as on BSD variants, SPARC/Solaris, and PPC/AIX, but we have not
 tested these systems.
 </p>

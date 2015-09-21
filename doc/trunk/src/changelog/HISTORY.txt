@@ -89,6 +89,12 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 
 //--------------------------------------------------------------------
 [2015/09/21]::
+Improvements to the error messages produced by the *ml-ulex* lexer generator.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2015/09/21]::
 Added +Ref+ structure and +REF+ signature to Basis implementation
 (https://github.com/SMLFamily/BasisLibrary/wiki/2015-007-Addition-of-Ref-module[
 Basis Library Proposal 2015-007]).
@@ -147,7 +153,7 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 [2015/05/27]::
 +
 Added support for *Successor ML* lexical extensions.  These can be enabled
-using the command-line option ++-Cparser.succ-ml=true++ or the assignment
+using the command-line option ++-Cparser.succ-ml=true++ or by the assignment
 +
 [source,sml]
 ------------
