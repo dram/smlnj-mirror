@@ -4015,8 +4015,8 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 +
 This is a major update which comes with a version number bump
 (110.42.99 -- yes, we are really close to 110.43 :-), NEW BOOTFILES,
-and an implementation of IntInf in the Basis.
-+
+and an implementation of +IntInf+ in the Basis.
+
 There are a fairly large number of related changes and updates throughout
 the system:
 +
@@ -4028,11 +4028,12 @@ Basis:
 +
 compiler:
 	* Added support for a built-in intinf type.
+        --
 	  - literals
 	  - pattern matching
-	  - conversion shortcuts (Int32.fromLarge o Int.toLarge etc.)
+	  - conversion shortcuts (+Int32.fromLarge o Int.toLarge+ etc.)
 	  - overloading on literals and operations
-+
+        --
 	This required adding a primitive type intinf, some additional
 	primops, and implementations for several non-trivial intinf
 	operations in Core.  (The intinf type is completely abstract
@@ -4042,7 +4043,7 @@ compiler:
 	does not print its usual warning in this case (since polyequal
 	is the right thing to do there).
 +
-	* Improved the organization of structure InlineT.
+	* Improved the organization of structure +InlineT+.
 +
 	* A word about conversion primops:
 	If conversions involving intinf do not cancel out during
@@ -4106,52 +4107,53 @@ This patch restores SML/NJ's ability to run under win32.  There are a
 number of changes, including fixes for several bugs that had gone
 unnoticed until now:
 +
-  - uname "CYGWIN_NT*" is recognized as win32 (This is relevant only when
-    trying to run the win32 version from within cygwin.)
-+
-  - There are a number of simple .bat scripts that substitute for their
-    corresponding Unix shell-scripts.  (See below.)
-+
-  - The internals of *ml-build* have been modified slightly.  The main
-    difference is that instead of calling ".link-sml" (or link-sml.bat)
-    using OS.Process.system, the ML process delegates this task back
-    to the script.  Otherwise problems arise in mixed environments such
-    as Cygwin where scripts look and work like Unix scripts, but
-    where OS.Process.system cannot run them.
-+
-  - In CM, the srcpath pickler used native pathname syntax -- which
-    is incorrect in the case of cross-compilation.  The new pickle format
-    is independent of platform-specific naming conventions.
-+
-  - Path configuration files (such as lib/pathconfig) can now choose
-    between native and standard syntax.  Placing a line of the form
+--
+* uname "CYGWIN_NT*" is recognized as win32 (This is relevant only when
+  trying to run the win32 version from within cygwin.)
+
+* There are a number of simple .bat scripts that substitute for their
+  corresponding Unix shell-scripts.  (See below.)
+
+* The internals of *ml-build* have been modified slightly.  The main
+  difference is that instead of calling ".link-sml" (or link-sml.bat)
+  using +OS.Process.system+, the ML process delegates this task back
+  to the script.  Otherwise problems arise in mixed environments such
+  as Cygwin where scripts look and work like Unix scripts, but
+  where OS.Process.system cannot run them.
+
+* In CM, the srcpath pickler used native pathname syntax -- which
+  is incorrect in the case of cross-compilation.  The new pickle format
+  is independent of platform-specific naming conventions.
+
+* Path configuration files (such as lib/pathconfig) can now choose
+  between native and standard syntax.  Placing a line of the form
 +
         standard!
 +
-    into the file causes all subsequent paths to be interpreted using
-    CM standard pathname syntax (= Unix conventions); a line
+into the file causes all subsequent paths to be interpreted using
+CM standard pathname syntax (= Unix conventions); a line
 +
         native!
 +
-    switches back to native style.  This was needed so that
-    path config files can be written portably, see src/system/pathconfig.
+switches back to native style.  This was needed so that
+path config files can be written portably, see src/system/pathconfig.
+
+* Runtime system:
 +
-  - Runtime system:
-+
-      - win32-filesys.c:  get_file_time and set_file_time now
-        access modification time, not creation time.
-+
-      - I/O code made aware of new array representation.
-+
-      - Bug fixes in X86.prim.masm.
-+
-   - src/system/makeml made aware of win32. (For use under cygwin
-        and other Unix-environments for windows.)
-+
-   - In Basis, fixed off-by-one error in win32-io.sml (function vecF)
-     which caused BinIO.inputAll to fail consistently.
-+
-.bat scripts:
+  - ++win32-filesys.c++:  +get_file_time+ and +set_file_time+ now
+    access modification time, not creation time.
+
+  - I/O code made aware of new array representation.
+
+  - Bug fixes in +X86.prim.masm+.
+
+  - +src/system/makeml+ made aware of win32. (For use under cygwin
+       and other Unix-environments for windows.)
+
+  - In Basis, fixed off-by-one error in win32-io.sml (function vecF)
+    which caused BinIO.inputAll to fail consistently.
+
+* .bat scripts:
 +
    Windows .bat scripts assume that +SMLNJ_HOME+ is defined.
 +
@@ -4169,13 +4171,14 @@ unnoticed until now:
      libraries are being installed (_i.e._, you get only those that
      are part of the compiler.)
    - link-sml.bat:  analogous to .link-sml, but not currently used
-+
-Unrelated bug fixes:
-+
+
+* Unrelated bug fixes:
+
   - ml-nlffigen now exports structures ST_* corresponding to incomplete
     types.
   - Added getDevice to PP/src/pp-debug-fn.sml.  (Would not compile
     otherwise.)
+--
 +
 owner:[Matthias Blume,http://www.tti-c.org/blume/]
 
@@ -4212,12 +4215,12 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 +
 1. Added cases for IF, WHILE, ANDALSO, and ORELSE to Absyn.
 +
-   This mainly affects the quality of error messages.  However, some
-   of the code is now more straightforward than before. (Treatment of
-   the above four constructs in translate.sml is much simpler than
-   the "macro-expansion" that was going on before.  Plus, the mach-
-   compiler no longer gets invoked just to be able to compile an
-   if-expression.)
+This mainly affects the quality of error messages.  However, some
+of the code is now more straightforward than before. (Treatment of
+the above four constructs in translate.sml is much simpler than
+the "macro-expansion" that was going on before.  Plus, the mach-
+compiler no longer gets invoked just to be able to compile an
+if-expression.)
 +
 2. The ErrorMsg.Error exception is now caught and absorbed by the
    interactive loop.
@@ -4227,29 +4230,31 @@ owner:[Matthias Blume,http://www.tti-c.org/blume/]
 //--------------------------------------------------------------------
 [2003/05/16]::
 +
-    Ported the runtime system to cygwin, which uses the unix
+Ported the runtime system to cygwin, which uses the unix
 x86-unix bin files.  Missing/buggy features:
-+
-   o getnetbyname, getnetbyaddr: these functions seem to be missing in
+--
+   * getnetbyname, getnetbyaddr: these functions seem to be missing in
      the Cygwin library.
-   o Ctrl-C handling may be flaky.
-   o Windows system calls and Windows I/O are not supported.
+   * Ctrl-C handling may be flaky.
+   * Windows system calls and Windows I/O are not supported.
+--
+A new set of binfiles is located at:
 +
-   A new set of binfiles is located at:
+http://www.dorsai.org/~leunga/boot.x86-unix.tgz[]
 +
-     http://www.dorsai.org/~leunga/boot.x86-unix.tgz
-+
-   This is only needed for bootstrapping the cygwin version of smlnj.
-   Other x86 versions can use the existing binfiles.
+This is only needed for bootstrapping the cygwin version of smlnj.
+Other x86 versions can use the existing binfiles.
 +
 owner:[Allen Leung]
 
 //--------------------------------------------------------------------
 [2003/04/08]::
 +
+--
 1. Added a target 'mlrisc' to installer.
 +
 2. Added missing elements to structure ListPair.
+--
 +
 owner:[Matthias Blume]
 
@@ -4360,9 +4365,9 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/06/25]::
 +
-Fixed a bug in translation of INLMAX (and INLMIN) for the floating-point
-case.  (The sense of the +isNaN+ test was reversed -- which made min and
-max always return their first argument.)
+Fixed a bug in translation of +INLMAX+ (and +INLMIN+) for the floating-point
+case.  (The sense of the +isNaN+ test was reversed -- which made +min+ and
++max+ always return their first argument.)
 +
 owner:[Matthias Blume]
 
@@ -4376,7 +4381,7 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/06/10]::
 +
-I back-ported my implementation of IEEEReal.fromString from the
+I back-ported my implementation of +IEEEReal.fromString+ from the
 idlbasis-devel branch so that we can test it.
 +
 Another small change is that ppDec tries to give more information
@@ -4390,7 +4395,7 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/05/31]::
 +
-Resurrected SMLofNJ.Internals.BTrace.mode.  (It accidentally fell by
+Resurrected +SMLofNJ.Internals.BTrace.mode+.  (It accidentally fell by
 the wayside when I switched over to using Controls everywhere.)
 +
 owner:[Matthias Blume]
@@ -4442,13 +4447,13 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/05/20]::
 +
-- Added ControlUtil structure to control-lib.cm.
+- Added +ControlUtil+ structure to +control-lib.cm+.
 - Use it throughout.
-- Used Controls facility to define MLRISC controls (as opposed to
-  registering MLRISC control ref cells with Controls after the fact)
+- Used Controls facility to define *MLRISC* controls (as opposed to
+  registering *MLRISC* control ref cells with Controls after the fact)
 - Fixed messed-up controls priorities.
 +
-* Removed again all the stuff from config/preloads that one wouldn't
+* Removed again all the stuff from +config/preloads+ that one wouldn't
   be able to preload at the time the initial heap image is built.
   (Many libraries, _e.g._, CML, do not exist yet at this time.  The
    only libraries that can be preloaded via config/preloads are those
@@ -4467,8 +4472,8 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/05/18]::
 +
-o Made the mdl tool stuff compile and run again.
-o I've disabled all the stuff that depends on RTL specifications; they
+* Made the mdl tool stuff compile and run again.
+* I've disabled all the stuff that depends on RTL specifications; they
   are all badly broken anyway.
 +
 owner:[Allen Leung]
@@ -4476,14 +4481,14 @@ owner:[Allen Leung]
 //--------------------------------------------------------------------
 [2002/05/17]::
 +
-1. John Reppy made several modifications to the SML/NJ library.
+1. John Reppy made several modifications to the *SML/NJ Library*.
    In particular, there is a shiny new controls-lib.cm.
 +
 2. Pushed new controls interface through compiler so that everything
    compiles again.
 +
-3. Added FormatComb and FORMAT_COMB to the CML version of the
-   SML/NJ library (so that CML compiles again).
+3. Added +FormatComb+ and +FORMAT_COMB+ to the *CML* version of the
+   *SML/NJ Library* (so that *CML* compiles again).
 +
 4. Modified init scripts because XXX_DEFAULT environment variables
    are no longer with us.  (Boot-time initialization is now done
@@ -4495,19 +4500,19 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/05/15]::
 +
-	All pseudo-ops emitted before the first segment declaration
-such as TEXT, DATA, and BSS directives are assumed to be global
+All pseudo-ops emitted before the first segment declaration
+such as +TEXT+, +DATA+, and +BSS+ directives are assumed to be global
 declarations and are emitted first in the assembly file. This is
 useful in a number of situations where one has pseudo-ops that are not
 specific to any segment, and also works around the constraint that one
-cannot have client pseudo-ops in the TEXT segment.
+cannot have client pseudo-ops in the +TEXT+ segment.
 +
-	Because no segment is associated with these declarations it is
+Because no segment is associated with these declarations it is
 an error to allocate any space or objects before the first segment
 directive and an exception will be raised. However, we cannot make
 this check for client pseudo-ops.
 +
-	These top level declarations are a field in the CFG graph_info.
+These top level declarations are a field in the CFG +graph_info+.
 In theory you can continue to add to this field after the CFG has been
 built -- provided you know what you are doing;-)
 +
@@ -4743,8 +4748,11 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/03/23]::
 +
-  1. Changes to FLINT primops:
+--
+1. Changes to FLINT primops:
 +
+[source,sml]
+------------
     (* make a call to a C-function;
      * The primop carries C function prototype information and specifies
      * which of its (ML-) arguments are floating point. C prototype
@@ -4762,52 +4770,66 @@ owner:[Matthias Blume]
     *)
   | RAW_RECORD of {tag:bool,sz:int}
   and ccall_type = CCALL_INT32 | CCALL_REAL64 | CCALL_ML_PTR
+------------
+
+2.  These CPS primops are now overloaded:
 +
-  2.  These CPS primops are now overloaded:
-+
+[source,sml]
+------------
        rawload of {kind:numkind}
        rawstore of {kind:numkind}
+------------
 +
-      The one argument form is:
+The one argument form is:
 +
+[source,sml]
+------------
          rawload {kind} address
+------------
 +
-      The two argument form is:
+The two argument form is:
 +
+[source,sml]
+------------
          rawload {kind} [ml object, byte-offset]
+------------
 +
-  3. RAW_CCALL/RCC now takes two extra arguments:
+3. RAW_CCALL/RCC now takes two extra arguments:
 +
      a. The first is whether the C call is reentrant, _i.e._, whether
         ML state should be saved and restored.
      b. The second argument is a string argument specifying the name of
         library and the C function.
 +
-     These things are currently not handled in the code generator, yet.
+These things are currently not handled in the code generator, yet.
 +
-  4. In CProto,
+4. In CProto,
 +
-     An encoding type of "bool" means "ml object" and is mapped into
-     C prototype of PTR.  Note that "bool" is different than "string",
-     even though "string" is also mapped into PTR, because "bool"
-     is assigned an CPS type of BOGt, while "string" is assigned INT32t.
+An encoding type of "bool" means "ml object" and is mapped into
+C prototype of PTR.  Note that "bool" is different than "string",
+even though "string" is also mapped into PTR, because "bool"
+is assigned an CPS type of BOGt, while "string" is assigned INT32t.
 +
-  5. Pickler/unpicker
+5. Pickler/unpicker
 +
-     Changed to handle RAW_RECORD and newest RAW_CCALL
+Changed to handle +RAW_RECORD+ and newest +RAW_CCALL+
 +
-  6. MLRiscGen,
+6. MLRiscGen,
 +
-     a. Changed to handle the new rawload/rawstore/rawrecord operators.
-     b. Code for handling C Calls has been moved to a new module CPSCCalls,
-        in the file CodeGen/cpscompile/cps-c-calls.sml
+a. Changed to handle the new rawload/rawstore/rawrecord operators.
+b. Code for handling C Calls has been moved to a new module CPSCCalls,
+   in the file +CodeGen/cpscompile/cps-c-calls.sml+
 +
-  7. Added the conditional move operator
+7. Added the conditional move operator
 +
+[source,sml]
+------------
          condmove of branch
+------------
 +
-     to cps.  Generation of this is still buggy so it is currently
-     disabled.
+to cps.  Generation of this is still buggy so it is currently
+disabled.
+--
 +
 owner:[Allen Leung]
 
@@ -4860,7 +4882,6 @@ many of which are small, boring, and un-interesting. Also setting:
 +
 will display clusters that are larger than the value set by the above.
 +
-+
 owner:[Lal George]
 
 //--------------------------------------------------------------------
@@ -4874,13 +4895,14 @@ owner:[Matthias Blume]
 //--------------------------------------------------------------------
 [2002/03/21]::
 +
-  Fixed a potential problem in cfg edge splitting.
+Fixed a potential problem in cfg edge splitting.
 +
 owner:[Allen Leung]
 
 //--------------------------------------------------------------------
 [2002/03/21]::
 +
+--
   1. Recoded the buggy parts of x86-fp.
 +
      a. All the block reordering code has been removed.
@@ -4919,6 +4941,7 @@ owner:[Allen Leung]
      NOTE: the machine description stuff in the repository is still broken.
            Again, I can't put my fixes in because that involves
            changes to MLTREE.
+--
 +
 owner:[Allen Leung]
 
@@ -5551,6 +5574,7 @@ owner:[Allen Leung]
 +
 A wild mix of changes, some minor, some major:
 +
+--
 * All C FFI-related libraries are now anchored under $c:
     $/c.cm      --> $c/c.cm
     $/c-int.cm  --> $c/internals/c-int.cm
@@ -5592,6 +5616,7 @@ A wild mix of changes, some minor, some major:
 +
 * As a result of the above, signature POINTER_TO_INCOMPLETE_TYPE has
   been vastly simplified.
+--
 +
 owner:[Matthias Blume]
 
