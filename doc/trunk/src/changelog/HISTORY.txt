@@ -88,9 +88,35 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2015/09/21]::
+Added +Ref+ structure and +REF+ signature to Basis implementation
+(https://github.com/SMLFamily/BasisLibrary/wiki/2015-007-Addition-of-Ref-module[
+Basis Library Proposal 2015-007]).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2015/09/21]::
+Added +Fn+ structure and +FN+ signature to Basis implementation
+(https://github.com/SMLFamily/BasisLibrary/wiki/2015-005-Addition-of-Fn-module[
+Basis Library Proposal 2015-005]).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2015/08/22]::
 +
-Fixed bug bugref:[136] (Incorrect raising of exceptions in Real.fmt and Time.fmt).
+Fixed bug bugref:[136] (Incorrect raising of exceptions in +Real.fmt+
+and +Time.fmt+).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2015/08/14]::
++
+Added +Either+ structure and +EITHER+ signature to Basis implementation
+(https://github.com/SMLFamily/BasisLibrary/wiki/2015-002-Addition-of-Either-module[
+Basis Library Proposal 2015-002]).
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
@@ -120,7 +146,7 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2015/05/27]::
 +
-Added support for SuccessorML lexical extensions.  These can be enabled
+Added support for *Successor ML* lexical extensions.  These can be enabled
 using the command-line option ++-Cparser.succ-ml=true++ or the assignment
 +
 [source,sml]
@@ -129,9 +155,10 @@ Control.succML := true;
 ------------
 +
 at the REPL.  The extensions are as follows:
++
 --
-  - "_" as a separator in numeric literals; __e.g.__, ++123_456++, ++0wxff_ff_ff_f3++,
-    ++123_456.1++, ...
+  - Underscore ("++_++") as a separator in numeric literals; __e.g.__, ++123_456++,
+    ++0wxff_ff_ff_f3++, ++123_456.1++, ...
 
   - end-of-line comments, which are denoted using ++(*)++.  End-of-line comments
     properly nest into conventional block comments.  For example, the following
@@ -147,6 +174,11 @@ fun f x = x (*) my identity function *)
   - binary literals for both integers and words; __e.g.__, ++0b0101_1110++, or
     ++0wb1101++.
 --
++
+This change is the beginning of a program to add *Successor ML* feature to *SML/NJ*;
+See https://github.com/SMLFamily/Proposed-Definition-of-Successor-ML[] for more
+details.
++
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
 //====================================================================
