@@ -24,6 +24,8 @@
   .code {
     font-family: "Courier", monospace;
     white-space: pre;
+  }
+  span.code {
     font-size: smaller;
   }
   table.buglist {
@@ -82,18 +84,45 @@ improvements to the documentation, and various bug fixes.
     </p>
     <dl>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-001-Correction-to-ListPair"><b>[2015-001]</b> Correction to ListPair</a></dt>
-        <dd></dd>
+        <dd>SML/NJ already implemented the semantics described in this proposal.
+        </dd>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-002-Addition-of-Either-module"><b>[2015-002]</b> Addition of Either module</a></dt>
-        <dd></dd>
+        <dd>This change adds the <span class="code">Either</span> structure to the Basis Library.
+        </dd>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-003-Additional-operations-on-sequences"><b>[2015-003]</b> Additional operations on sequences</a></dt>
-        <dd></dd>
+        <dd>This change adds operations to the <span class="code">Array</span>,
+	  <span class="code">List</span>, <span class="code">ListPair</span>, <span class="code">Option</span>,
+	  and <span class="code">Vector</span> structures, and to the <span class="code">MONO_ARRAY</span>
+	  and <span class="code">MONO_VECTOR</span> signatures.
+        </dd>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-005-Addition-of-Fn-module"><b>[2015-005]</b> Addition of Fn module</a></dt>
-        <dd></dd>
+        <dd>This change adds the <span class="code">Fn</span> structure to the Basis Library.
+        </dd>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-007-Addition-of-Ref-module"><b>[2015-007]</b> Addition of Ref module</a></dt>
-        <dd></dd>
+        <dd>This change adds the <span class="code">Ref</span> structure to the Basis Library.
+        </dd>
       <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-009-Policy-for-exceptions-and-partial-applications"><b>[2015-009]</b> Policy for exceptions and partial applications</a></dt>
-        <dd></dd>
+        <dd>This change standardizes the generation of exceptions when partially applying curried basis functions.
+          The change fixed bug <b>136</b>.
+        </dd>
     </dl>
+    <p>
+      It is very unlikely that these changes will break existing code, but there are
+      a few scenarios in which the code might break.
+      (For example, the <b>MLRISC</b> library had two modules that implemented
+      extensions of the <span class="code">ARRAY</span> signature and which required
+      modification to compile.)
+      In such cases, we recommend update the source code, but it is also possible to compile
+      against the old version of the Basis Library by changing the line
+      <div class="code">
+      $/basis.cm
+      </div>
+      to
+      <div class="code">
+      $/basis-2004.cm
+      </div>
+      in your CM files.
+    </p>
   </dd>
 </ul>
 
@@ -108,7 +137,7 @@ improvements to the documentation, and various bug fixes.
     In this release, we has added support for the lexical extensions to the language:
     <ul>
       <li>
-        Underscore ("<span class="code">_</span>") as a separator in numeric literals;
+        Allow underscore ("<span class="code">_</span>") as a separator in numeric literals;
 	<it>e.g.</it>, <span class="code">123_456</span>,
         <span class="code">0wxff_ff_ff_f3</span>, <span class="code">123_456.1</span>, ...
       </li>
