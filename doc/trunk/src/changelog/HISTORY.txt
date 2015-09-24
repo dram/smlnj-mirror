@@ -88,6 +88,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2015/09/24]::
++
+Fixed bug bugref:[45] (Compiler bug in specialize phase).  This bug
+was in +compiler/FLINT/opt/fcontract.sml+ and was the result of a bad
+interaction between eta contraction and inlining.  As part of the fix,
+I cleaned up the code in this part of FLINT a bit.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2015/09/21]::
 Improvements to the error messages produced by the *ml-ulex* lexer generator.
 +
