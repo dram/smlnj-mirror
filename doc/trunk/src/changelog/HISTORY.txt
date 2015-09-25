@@ -85,7 +85,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 
 //////////////////////////////////////////////////////////////////////
 
-// == Recent updates
+== Recent updates
+
+//====================================================================
+// == Version 110.79; 2015/10/01
+
+//--------------------------------------------------------------------
+[2015/09/25]::
++
+Added implementations of +PackReal64Big+ and +PackReal64Little+.
+This addition addresses feature request reqref:[82]
+(Implementations of +PACK_REAL+ missing).  The implementation
+uses the approach suggested by
+https://github.com/msullivan/sml-util/blob/master/libs/pack-real.sml[Michael Sullivan].
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2015/09/24]::
