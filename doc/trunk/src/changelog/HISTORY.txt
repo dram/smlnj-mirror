@@ -48,6 +48,8 @@ Here is a quick asciidoc cheat sheet:
     http:/some.website.org/path[]	URL
     bugref:[123]			displays as "#123" with
 					a link to the bug report.
+    reqref:[123]			displays as "#123" with a
+					link to the feature request.
     owner:[name,url]			displays name with URL link.
 
 Sub lists should be bracketed with lines containing just "--".
@@ -93,7 +95,69 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2015/09/25]::
 +
-Added implementations of +PackReal64Big+ and +PackReal64Little+.
+Implemented the changes for
+https://github.com/SMLFamily/BasisLibrary/wiki/2015-003-Additional-operations-on-sequences[
+Basis Library Proposal 2015-003].  This propsal added operations to
+the following signatures:
++
+[source,sml]
+------------
+signature ARRAY
+signature LIST
+signature LIST_PAIR
+signature MONO_ARRAY
+signature MONO_VECTOR
+signature OPTION
+signature STRING
+signature TEXT
+signature VECTOR
+------------
++
+and the following structures:
++
+[source,sml]
+------------
+structure Array : ARRAY
+structure CharArray : MONO_ARRAY
+structure CharVector : MONO_VECTOR
+structure List : LIST
+structure ListPair : LIST_PAIR
+structure Option : OPTION
+structure Real64Array : MONO_ARRAY
+structure Real64Vector : MONO_VECTOR
+structure String : STRING
+structure Text : TEXT
+structure Vector : VECTOR
+structure Word8Array : MONO_ARRAY
+structure Word8Vector : MONO_VECTOR
+------------
++
+While it is very unlikely that these changes will break existing code, there are
+a few scenarios in which the code might break.
+(For example, the <b>MLRISC</b> library had two modules that implemented
+extensions of the <span class="code">ARRAY</span> signature and which required
+modification to compile.)
+In such cases, we recommend update the source code, but it is also possible to compile
+against the old version of the Basis Library by changing the line
++
+--------
+$/basis.cm
+--------
++
+to
++
+--------
+$/basis-2004.cm
+--------
++
+in your CM files.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2015/09/25]::
++
+Added the optional implementations of +PackReal64Big+ and +PackReal64Little+.
 This addition addresses feature request reqref:[82]
 (Implementations of +PACK_REAL+ missing).  The implementation
 uses the approach suggested by
