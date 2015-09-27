@@ -26,9 +26,22 @@
   .code {
     font-family: "Courier", monospace;
     white-space: pre;
+    color: darkblue;
   }
   span.code {
     font-size: smaller;
+  }
+  span.kw {
+    font-family: "Courier", monospace;
+    font-weight: bold;
+    color: darkgreen;
+  }
+  span.com {
+    font-style: italic;
+    color: indianred;
+  }
+  span.exe {
+    font-weight: bold;
   }
   table.buglist {
     margin-left: 2em;
@@ -116,10 +129,22 @@ improvements to the documentation, and various bug fixes.
     </dl>
     <p style="margin-bottom: 0pt;">
       It is very unlikely that these changes will break existing code, but there are
-      a few scenarios in which the code might break.
-      (For example, the <b>MLRISC</b> library had two modules that implemented
+      a couple of scenarios in which the code might break.  The first is conflicts created
+      by the use of <span class="kw">open</span>.  For example, the implementation
+      of <span class="exe">ml-yacc</span> had declarations of the form
+      <div class="code">
+      <span class="kw">open</span> Array List
+      </div>
+      which created a type error because <span class="code">List.sub</span> shadowed
+      <span class="code">Array.sub</span>.
+    </p>
+    <p>
+      The second class of problem is when a module implements one of the affected Basis
+      signatures.  For example, the <b>MLRISC</b> library had two modules that implemented
       extensions of the <span class="code">ARRAY</span> signature and which required
-      modification to compile.)
+      modification to compile.
+    </p>
+    <p>
       In such cases, we recommend update the source code, but it is also possible to compile
       against the old version of the Basis Library by changing the line
     </p>
@@ -159,9 +184,9 @@ improvements to the documentation, and various bug fixes.
 	properly nest into conventional block comments.  For example, the following
 	block comment is well formed:
 	<div class=code>
-	(*
+	<span class="com">(*
 	fun f x = x (*) my identity function *)
-	*)
+	*)</span>
 	</div>
       </li>
       <li>

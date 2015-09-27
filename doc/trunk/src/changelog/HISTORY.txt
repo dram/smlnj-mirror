@@ -133,12 +133,10 @@ structure Word8Vector : MONO_VECTOR
 ------------
 +
 While it is very unlikely that these changes will break existing code, there are
-a few scenarios in which the code might break.
-(For example, the <b>MLRISC</b> library had two modules that implemented
-extensions of the <span class="code">ARRAY</span> signature and which required
-modification to compile.)
-In such cases, we recommend update the source code, but it is also possible to compile
-against the old version of the Basis Library by changing the line
+a a couple scenarios in which the code might break.  Namely, when use of +open+
+introduces conflicts and when user code implements one of the affected Basis Library
+signatures.  Both of these examples occurred in the *SML/NJ* source code; the former
+in the *ml-yacc* sources and the latter in the *MLRISC* sources.
 +
 --------
 $/basis.cm
