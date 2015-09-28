@@ -93,6 +93,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Version 110.79; 2015/10/01
 
 //--------------------------------------------------------------------
+[2015/09/28]::
++
+New implementation of +Date+ structure in the Basis, which fixes bugs
+bugref:[138] (Incorrect behavior for Date.fromTimeLocal) and
+bugref:[139] (Date.date is broken).  Note that some more thought should
+be given to the correct semantics of +Date.date+ when dealing with
+offsets.  For example, should an offset of +23 hours produce the same
+date as an offset of -1 hours?  Currently our implementation produces
+different results (by a day) for these two situations.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2015/09/25]::
 +
 Implemented the changes for
