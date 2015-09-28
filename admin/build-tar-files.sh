@@ -46,6 +46,7 @@ base_dirs="\
     compiler \
     runtime \
     system \
+    old-basis \
   "
 
 cd $here/base
