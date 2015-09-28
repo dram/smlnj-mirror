@@ -95,6 +95,25 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2015/09/28]::
 +
+Added the directory +base/old-basis+ to support backward-compatible
+views of the *Basis Library*.  You can use these by replacing the
+line
++
+--------
+$/basis.cm
+--------
++
+with
++
+--------
+$/basis-2004.cm
+--------
++
+in your CM files.
+
+//--------------------------------------------------------------------
+[2015/09/28]::
++
 New implementation of +Date+ structure in the Basis, which fixes bugs
 bugref:[138] (Incorrect behavior for Date.fromTimeLocal) and
 bugref:[139] (Date.date is broken).  Note that some more thought should
@@ -110,7 +129,7 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 +
 Implemented the changes for
 https://github.com/SMLFamily/BasisLibrary/wiki/2015-003-Additional-operations-on-sequences[
-Basis Library Proposal 2015-003].  This propsal added operations to
+Basis Library Proposal 2015-003].  This proposal added operations to
 the following signatures:
 +
 [source,sml]
@@ -150,18 +169,6 @@ a a couple scenarios in which the code might break.  Namely, when use of +open+
 introduces conflicts and when user code implements one of the affected Basis Library
 signatures.  Both of these examples occurred in the *SML/NJ* source code; the former
 in the *ml-yacc* sources and the latter in the *MLRISC* sources.
-+
---------
-$/basis.cm
---------
-+
-to
-+
---------
-$/basis-2004.cm
---------
-+
-in your CM files.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 

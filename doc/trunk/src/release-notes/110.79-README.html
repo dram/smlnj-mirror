@@ -23,6 +23,10 @@
   li {
     margin-bottom: 0.5em;
   }
+  span.important {
+    color: red;
+    text-weight: bold;
+  }
   .code {
     font-family: "Courier", monospace;
     white-space: pre;
@@ -101,6 +105,8 @@ improvements to the documentation, and various bug fixes.
   <dd>
     <p>
     This version implements a number of proposed improvements to the Basis Library.
+    <span class="important">Note that these are <i>proposals</i>
+    that have not yet been ratified and which are subject to change!</span>
     Specifically, the following proposals are supported by this version of SML/NJ:
     </p>
     <dl>
@@ -145,7 +151,7 @@ improvements to the documentation, and various bug fixes.
       modification to compile.
     </p>
     <p>
-      In such cases, we recommend update the source code, but it is also possible to compile
+      In such cases, we recommend updating the source code, but it is also possible to compile
       against the old version of the Basis Library by changing the line
     </p>
     <div class="code">
@@ -158,7 +164,10 @@ improvements to the documentation, and various bug fixes.
     $/basis-2004.cm
     </div>
     <p style="margin-top: 0pt;">
-      in your CM files.
+      in your CM files.  Note that backward-compatible version of the Basis Library is only
+      available if the <tt>old-basis</tt> target in <tt>config/targets</tt>
+      was requested when <b>SML/NJ</b> was built (this target is requested
+      by default).
     </p>
   </dd>
 </dl>
