@@ -95,6 +95,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2015/09/28]::
 +
+Added support for a *Successor ML* tool to CM.  This tool allows one
+to specify that a source file +fool.sml+ is *Successor ML* source code in the
+following ways:
++
+--------
+foo.sml : succ-ml
+foo.sml : sml (succ-ml)
+foo.sml (succ-ml)
+--------
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2015/09/28]::
++
 Added the directory +base/old-basis+ to support backward-compatible
 views of the *Basis Library*.  You can use these by replacing the
 line

@@ -3,14 +3,21 @@
 <head>
 <title>SML/NJ 110.79 Release Notes</title>
 <style type="text/css">
+  body {
+    font-size: 12pt;
+  }
   div.smlnj-banner {
     font-weight: bold;
-    font-size: x-large;
+    font-size: 200%;
     text-align: center;
     margin-top: 1.5em;
     margin-bottom: 1.5em;
   }
+  h3 {
+    font-size: 140%;
+  }
   dt.component {
+    font-size: 120%;
     font-weight: bold;
   }
   dd {
@@ -33,7 +40,7 @@
     color: darkblue;
   }
   span.code {
-    font-size: smaller;
+    font-size: 80%;
   }
   span.kw {
     font-family: "Courier", monospace;
@@ -49,6 +56,7 @@
   }
   table.buglist {
     margin-left: 2em;
+    font-size: 100%;
   }
   td.bugid {
     font-weight: bold;
@@ -104,9 +112,9 @@ improvements to the documentation, and various bug fixes.
   <dt class="component">Basis Library:</dt>
   <dd>
     <p>
-    This version implements a number of proposed improvements to the Basis Library.
+    This version implements a number of proposed improvements to the <b>Basis Library</b>.
     <span class="important">Note that these are <i>proposals</i>
-    that have not yet been ratified and which are subject to change!</span>
+    that have not yet been ratified and are subject to change!</span>
     Specifically, the following proposals are supported by this version of SML/NJ:
     </p>
     <dl>
@@ -152,7 +160,7 @@ improvements to the documentation, and various bug fixes.
     </p>
     <p>
       In such cases, we recommend updating the source code, but it is also possible to compile
-      against the old version of the Basis Library by changing the line
+      against the old version of the <b>Basis Library</b> by changing the line
     </p>
     <div class="code">
     $/basis.cm
@@ -164,11 +172,20 @@ improvements to the documentation, and various bug fixes.
     $/basis-2004.cm
     </div>
     <p style="margin-top: 0pt;">
-      in your CM files.  Note that backward-compatible version of the Basis Library is only
+      in your CM files.  Note that backward-compatible version of the <b>Basis Library</b> is only
       available if the <tt>old-basis</tt> target in <tt>config/targets</tt>
       was requested when <b>SML/NJ</b> was built (this target is requested
       by default).
     </p>
+    <p style="margin-bottom: 0pt;">
+      We have also added implementations of the following optional <b>Basis Library</b>
+      structures:
+    </p>
+    <div class="code">
+      <span class="kw">structure</span> PackReal64Big : PACK_REAL
+      <span class="kw">structure</span> PackReal64Little : PACK_REAL
+      <span class="kw">structure</span> PackRealBig : PACK_REAL
+      <span class="kw">structure</span> PackRealLittle : PACK_REAL
   </dd>
 </dl>
 
@@ -189,9 +206,9 @@ improvements to the documentation, and various bug fixes.
         <span class="code">0wxff_ff_ff_f3</span>, <span class="code">123_456.1</span>, ...
       </li>
       <li>
-	end-of-line comments, which are denoted using <span class="code">(*)</span>.  End-of-line comments
-	properly nest into conventional block comments.  For example, the following
-	block comment is well formed:
+	end-of-line comments, which are denoted using <span class="code">(*)</span>.
+        End-of-line comments properly nest into conventional block comments.  For example,
+	the following block comment is well formed:
 	<div class=code>
 	<span class="com">(*
 	fun f x = x (*) my identity function *)
@@ -211,9 +228,33 @@ improvements to the documentation, and various bug fixes.
     <div class=code>
     Control.succML := true;
     </div>
-    <p style="margin-top: 0pt;">
-    at the REPL.
+    <p style="margin-top: 0pt; margin-bottom: 0pt;">
+    at the REPL.  It is also possible to mark individual source files as
+    being &quot;<b>Successor ML</b>&quot; sources in a CM file.  There are
+    several ways to do so; the easiest is to specify that they should be
+    handled by the &quot;<tt>succ-ml</tt>&quot; tool:
     </p>
+    <div class="code">
+      foo.sml : succ-ml
+    </div>
+    <p stype="margin-top: 0pt; margin-bottom: 0pt;">
+    Alternatively, one can give the &quot;<tt>succ-ml</tt>&quot; argument to the
+    &quot;<tt>sml</tt>&quot; tool:
+    </p>
+    <div class="code">
+      foo.sml : sml (succ-ml)
+      foo.sml (succ-ml)
+    </div>
+    <p stype="margin-top: 0pt; margin-bottom: 0pt;">
+    It is also possible to enable them by setting the control flag
+    using the <span class="kw">with</span> keyword in a CM file as
+    illustrated by the following equivalent forms:
+    <div class="code">
+      foo.sml (<span class="kw">with</span>: parser.succ-ml)
+      foo.sml (<span class="kw">with</span>: parser.succ-ml=true)
+      foo.sml (<span class="kw">with</span>:(<span class="kw">name</span>:parser.succ-ml))
+      foo.sml (<span class="kw">with</span>:(<span class="kw">name</span>:parser.succ-ml <span class="kw">value</span>:true))
+    </div>
   </dd>
 </dl>
 
