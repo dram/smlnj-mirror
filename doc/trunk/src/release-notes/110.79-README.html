@@ -147,9 +147,11 @@ and many bug fixes.
       a couple of scenarios in which the code might break.  The first is conflicts created
       by the use of <span class="kw">open</span>.  For example, the implementation
       of <span class="exe">ml-yacc</span> had declarations of the form
-      <div class="code">
-      <span class="kw">open</span> Array List
-      </div>
+    </p>
+    <div class="code">
+    <span class="kw">open</span> Array List
+    </div>
+    <p style="margin-top: 0pt;">
       which created a type error because <span class="code">List.sub</span> shadowed
       <span class="code">Array.sub</span>.
     </p>
@@ -187,6 +189,29 @@ and many bug fixes.
       <span class="kw">structure</span> PackReal64Little : PACK_REAL
       <span class="kw">structure</span> PackRealBig : PACK_REAL
       <span class="kw">structure</span> PackRealLittle : PACK_REAL
+    </div>
+  </dd>
+</dl>
+
+<dl>
+  <dt class="component">SML/NJ Library:</dt>
+  <dd>
+    <p>
+    Added additional array operations <span class="code">toList</span>,
+    <span class="code">fromVector</span>, and <span class="code">toVector</span> to
+    <span class="code">BitArray</span> module so that it matches the new
+    proposed <b>Basis Library</b> specification.
+    </p>
+  </dd>
+</dl>
+
+<dl>
+  <dt class="component">Concurrent ML:</dt>
+  <dd>
+    <p>
+    Added the additional <b>Basis Library</b> modules described above
+    to the <b>CML</b> version of the library.
+    </p>
   </dd>
 </dl>
 
@@ -238,7 +263,7 @@ and many bug fixes.
     <div class="code">
       foo.sml : succ-ml
     </div>
-    <p stype="margin-top: 0pt; margin-bottom: 0pt;">
+    <p style="margin-top: 0pt; margin-bottom: 0pt;">
     Alternatively, one can give the &quot;<tt>succ-ml</tt>&quot; argument to the
     &quot;<tt>sml</tt>&quot; tool:
     </p>
@@ -246,10 +271,11 @@ and many bug fixes.
       foo.sml : sml (succ-ml)
       foo.sml (succ-ml)
     </div>
-    <p stype="margin-top: 0pt; margin-bottom: 0pt;">
+    <p style="margin-top: 0pt; margin-bottom: 0pt;">
     It is also possible to enable them by setting the control flag
     using the <span class="kw">with</span> keyword in a CM file as
     illustrated by the following equivalent forms:
+    </p>
     <div class="code">
       foo.sml (<span class="kw">with</span>: parser.succ-ml)
       foo.sml (<span class="kw">with</span>: parser.succ-ml=true)
