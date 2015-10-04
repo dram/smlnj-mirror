@@ -77,7 +77,7 @@
 <br>
                           Version 110.79 NEWS
 <br>
-                            October 1, 2015
+                            October 4, 2015
 </div>
 
 <hr>
@@ -93,11 +93,12 @@
 
 <h3>Summary:</h3>
 <p>
-This release incudes new Basis Library modules and the start of support for
+This release is fairly substantial and incudes new
+<a href="https://github.com/SMLFamily/BasisLibrary/wiki/Home"><b>Basis Library</b></a> modules and the start of support for
 <a href="https://github.com/SMLFamily/Proposed-Definition-of-Successor-ML"><b>Successor ML</b></a>,
 which is an evolution of the Standard ML language.
 It also has support for the latest version of Mac OS X (El Capitan) and Linux 4.x kernels,
-improvements to the documentation, and various bug fixes.
+and many bug fixes.
 </p>
 
 <h3>Details:</h3>
@@ -113,7 +114,7 @@ improvements to the documentation, and various bug fixes.
   <dd>
     <p>
     This version implements a number of proposed improvements to the <b>Basis Library</b>.
-    <span class="important">Note that these are <i>proposals</i>
+    <span class="important">Note that these improvements are <i>proposals</i>
     that have not yet been ratified and are subject to change!</span>
     Specifically, the following proposals are supported by this version of SML/NJ:
     </p>
@@ -275,6 +276,7 @@ improvements to the documentation, and various bug fixes.
       <tr><td class="bugid">137</td><td>Adapt Linux PPC build to use mkstemp instead of tmpnam</td></tr>
       <tr><td class="bugid">138</td><td>Incorrect behavior for Date.fromTimeLocal</td></tr>
       <tr><td class="bugid">139</td><td>Date.date is broken</td></tr>
+      <tr><td class="bugid">140</td><td>Lookup failure in closure.sml when compiling Twelf</td></tr>
 <!--      <tr><td class="bugid">XXX</td><td>DESCRIPTION</td></tr> -->
     </table>
 <!--
