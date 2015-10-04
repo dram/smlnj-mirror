@@ -11,8 +11,10 @@
   <body>
     <h1>Building a Release</h1>
     <p>
-    In the discussion below, we use <tt>$VERSION</tt> to represent the release version in
-    question (<i>e.g.</i>, 110.77).
+    In the discussion below, we use <tt><i>$VERSION</i></tt> to represent the release version in
+    question (<i>e.g.</i>, <tt>110.79</tt>), <tt><i>$ARCH</i></tt> to represent the host
+    architecture (<i>e.g.</i>, <tt>x86</tt>), and <tt><i>$OS</i></tt> to represent the host
+    operating system.
     </p>
     <p>
     The main steps in building a release are as follows:
@@ -20,18 +22,18 @@
     <ul>
       <li>
       Create the directory to contain the release.  E.g. in a working copy
-      of the pages project, <tt>svn add directory dist/working/$VERSION</tt>, where n is
+      of the pages project, <tt>svn add directory dist/working/<i>$VERSION</i></tt>, where n is
       the release number. Then commit the change, and update the web-site
       copy of the pages project at <tt>/stages/web_static/smlnj/htdocs</tt>.
       </li>
       <li>
-      Write the <tt>$VERSION-README.html</tt> file and commit it.
+      Write the <tt><i>$VERSION</i>-README.html</tt> file and commit it.
       Also update the HISTORY file.
       </li>
       <li>
       Run the allcross script in base/system to build boot directories for 
       all the architectures and create tarballs from them.
-      Copy these tarballs to the <tt>dist/working/$VERSION</tt> directory created in the first step.
+      Copy these tarballs to the <tt>dist/working/<i>$VERSION</i></tt> directory created in the first step.
       </li>
       <li>
       Export source directories and create tarballs and transfer them to
@@ -42,18 +44,22 @@
       (Details?). Add these to the distribution directory.
       </li>
       <li>
-      Add a link to </tt>dist/working/$VERSION/$VERSION-README.html</tt> to
+      Add a link to </tt>dist/working/<i>$VERSION</i>/<i>$VERSION</i>-README.html</tt> to
       <tt>dist/index.html</tt>.
       </li>
     </ul>
 
+<p>
 Following are specific instructions for building a SML/NJ release,
 divided by operating system (Linux, OS X, Windows).
+</p>
 
 <h2>Building on UNIX</h2>
 <ol>
   <li>
+    <p>
     Update current copy, or check out a fresh copy:
+    </p>
     <ul>
       <li> <tt>$ ./admin/refresh-all.sh</tt></li>
       <li> Or from a CS machine: <tt>svn co --username <i>yourusernamehere</i>
@@ -63,19 +69,32 @@ divided by operating system (Linux, OS X, Windows).
     </ul>
   </li>
   <li>
+    <p>
     Compile to fixed point:
+    </p>
     <ul>
       <li> <tt>$ cd base/system</tt></li>
       <li> <tt>$ ./fixpt</tt></li>
     </ul>
+    <p>
+      This script will produce two directories: <tt>sml.boot.<i>$ARCH-$OS</i></tt>
+      and <tt>sml.bin.<i>$ARCH-$OS</i></tt>.
+    </p>
+    <p>
+      <b>Note:</b> prior to 110.79, the <tt>fixpt</tt> script left the result in directories
+      that were indexed by iteration (<i>e.g.</i>, <tt>sml2.bin.x86-unix</tt>).
+      Use the "<tt>-save</tt>" option to the <tt>fixpt</tt> command to force the old
+      behavior.
+    </p>
   </li>
+<!--  No longer needed; the fixpt script does this step now [2015-10-04]
   <li>
     Take the <tt>.bin</tt> and <tt>.boot</tt> files and make them the official ones.
     <ul>
       <li>
         This depends on how many iterations it took to reach a fixed point.
         For example, if <tt>fixpt</tt> took two iterations on a x86 UNIX platform (the postfix
-        notation follows a <i>CPU-OS</i> convention), then you would do the following:
+        notation follows a <i>$ARCH-$OS</i> convention), then you would do the following:
         <ul>
 	  <li> <tt>$ rm -rf sml.bin.* sml.boot.*</tt></li>
 	  <li> <tt>$ mv sml2.bin.x86-unix sml.bin.x86-unix</tt></li>
@@ -84,49 +103,66 @@ divided by operating system (Linux, OS X, Windows).
       </li>
     </ul>
   </li>
+-->
   <li>
+    <p>
     Generate new library and heap files.
+    </p>
     <ul>
       <li> <tt>$ ./makeml</tt></li>
     </ul>
   </li>
   <li>
+    <p>
     Test the build.
+    </p>
     <ul>
       <li> <tt>$ ./testml</tt></li>
     </ul>
   </li>
   <li>
-    Remove the old libraries.
+    <p>
+    Install the new code (the "<tt>-clean</tt> flag removes the old libraies and heap images).
+    </p>
     <ul>
-      <li> <tt>$ rm -rf ../../lib/* ../../bin/.heap/*</tt></li>
-      <li> <tt>$ ./installml</tt></li>
+      <li> <tt>$ ./installml -clean</tt></li>
       <li> (To check everything &mdash; make sure everything is enabled in <tt>config/targets</tt>.)</li>
     </ul>
   </li>
   <li>
+    <p>
     Build a working installation.
+    </p>
     <ul>
       <li> <tt>$ cd ../..</tt></li>
       <li> <tt>$ ./config/install.sh</tt></li>
     </ul>
   </li>
   <li>
+    <p>
     Update the <tt>version</tt> and <tt>releasedate</tt> files in the <tt>config</tt> directory.
+    </p>
     <ul>
-      <li> <tt>$ echo $VERSION >> ./config/version</tt></li>
-      <li> <tt>$ echo $DATE >> ./config/releasedate</tt></li>
+      <li> <tt>$ cd config</tt></li>
+      <li> <tt>$ echo <i>$VERSION</i> &gt; ./config/version</tt></li>
+      <li> <tt>$ echo <i>$DATE</i> &gt; ./config/releasedate</tt></li>
+      <li> <tt>$ svn commit -m "updating version number to <i>$VERSION</i></tt></li>
+      <li> <tt>$ cd ..</tt></li>
     </ul>
   </li>
   <li>
+    <p>
     Build to another fixed point in <tt>base/system</tt>.
+    </p>
     <ul>
       <li> <tt>$ cd base/system</tt></li>
       <li> <tt>$ ./fixpt</tt></li>
     </ul>
   </li>
   <li>
-    Repeat steps 2 through 7 above.
+    <p>
+    Repeat steps 2 through 6 above.
+    </p>
     <ul>
       <li> Can omit step involving <tt>testml</tt>.  (<i>Which seems broken in my notes anyway.</i>)</li>
     </ul>
@@ -139,8 +175,10 @@ divided by operating system (Linux, OS X, Windows).
       <li> <tt>$ cd base/system</tt></li>
       <li> <tt>$ ./allcross</tt></li>
     </ul>
+    <p>
     The <tt>allcross</tt> script will cross compile for all targets and produce gzipped tar files
     (<i>e.g.</i>, <tt>boot.x86-uniz.tgz</tt>).
+    </p>
   </li>
   <li>
     <p>
@@ -176,7 +214,7 @@ divided by operating system (Linux, OS X, Windows).
           </li>
         </ul>
       </li>
-      <li> Add a directory for <tt>$VERSION</tt>.</li>
+      <li> Add a directory for <tt><i>$VERSION</i></tt>.</li>
       <li> Copy previous index file over and update links.</li>
 <!-- this step is now hndled by the allcross script
       <li>
@@ -186,7 +224,10 @@ divided by operating system (Linux, OS X, Windows).
         </ul>
       </li>
 -->
-      <li> Copy tarballs and README notes into the release directory.</li>
+      <li>
+	Copy the <tt>boot</tt> tarballs and <tt><i>$VERSION</i>-README.html</tt> file
+        into the release directory.
+      </li>
     </ul>
   </li>
   <li>
@@ -198,7 +239,7 @@ divided by operating system (Linux, OS X, Windows).
         <tt>$ ./admin/make-release.sh</tt><br/>
 	Note that each major directory under smlnj has its own trunk and
 	release branches, <i>e.g.</i>, <tt>$smlnj/sml/trunk</tt>,
-	<tt>$smlnj/sml/releases/release-$VERSION</tt>, except for <tt>ml-lpt</tt>,
+	<tt>$smlnj/sml/releases/release-<i>$VERSION</i></tt>, except for <tt>ml-lpt</tt>,
 	which does not have release branches.
       </li>
     </ul>
@@ -242,7 +283,7 @@ divided by operating system (Linux, OS X, Windows).
     Copy tarballs into the release directory.
     </p>
     <ul>
-      <li> <tt>$ scp *.tgz linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/$VERSION</tt>
+      <li> <tt>$ scp *.tgz linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt>
     </ul>
   </li>
   <li>
@@ -365,7 +406,7 @@ prompt.
    Run checkout-all.sh script to export the source files.
 </li><br>
 
-<li>[cygwin] <tt>$ curl -O http://www.smlnj.org/dist/working/$VERSION/boot.x86-win32.tgz</tt><br>
+<li>[cygwin] <tt>$ curl -O http://www.smlnj.org/dist/working/<i>$VERSION</i>/boot.x86-win32.tgz</tt><br>
    Manually fetch to boot tarball for Windows.
 </li><br>
 
@@ -387,8 +428,8 @@ prompt.
     The file <tt>smlnj.msi</tt> produced is the final installer for Windows.
 </li>
 
-<li>[cygwin] <tt>$ scp smlnj.msi linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/$VERSION/smlnj-$VERSION.msi</tt><br>
-    Copy the MSI file to the distribution directory; we add a <tt>$VERSION</tt> tag so that folks can
+<li>[cygwin] <tt>$ scp smlnj.msi linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i>/smlnj-<i>$VERSION</i>.msi</tt><br>
+    Copy the MSI file to the distribution directory; we add a <tt><i>$VERSION</i></tt> tag so that folks can
     keep multiple downloads distinct.
 </li>
 </ol>
