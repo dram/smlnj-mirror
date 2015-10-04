@@ -1,6 +1,12 @@
 Building OSX Installer Packages
 -------------------------------
 
+These are old instructions, which still apply for the PowerPC builds.
+For the x86, use the script in
+
+	https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/osx-dist
+
+====================
 These instructions should work for OS X 10.5 through 10.8, but have
 only been tested on 10.7.  Note that building on 10.7 requires that
 /Developer/SDKs/MacOSX10.5.sdk be present, and this sdk is not present

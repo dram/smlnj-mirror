@@ -383,14 +383,15 @@ prompt.
 
 <li>[cygwin] create a directory to build a release. This directory path
    must not contain a number.<br>
-   (in my case: <tt>/home/dbm/smlnj/release</tt> or <tt>c:\cygwin\home\dbm\smlnj\release</tt>)
+   (in my case: <tt>/home/jhr/Work/smlnj/release</tt> or <tt>c:\cygwin\home\jhr\Work\smlnj\release</tt>)
 </li><br>
 
-<li>[cygwin] in /home/dbm/smlnj directory,
+<li>[cygwin] in /home/jhr/Work/smlnj directory,
 <ul class="a">
    <li><tt>$ mkdir gf</tt></li>
    <li><tt>$ export gf=https://smlnj-gforge.cs.uchicago.edu/svn</tt></li>
    <li><tt>$ export smlnj=$gf/smlnj</tt></li>
+   <li><tt>$ export VERSION=xxx.yy</tt></li>
 </ul>   
 </li><br>
 
@@ -398,12 +399,17 @@ prompt.
    Create gf/admin directory with the usual scripts.
 </li><br>
 
-<li>[cygwin] <tt>$ cd ../smlnj/release</tt><br>
+<li>[cygwin] <tt>$ cd ../release</tt><br>
     Go to build directory.</li>
 </li><br>
 
-<li>[cygwin] <tt>$ ../../gf/admin/checkout-all.sh -e</tt><br>
+<li>[cygwin] <tt>$ ../gf/admin/checkout-all.sh -e</tt><br>
    Run checkout-all.sh script to export the source files.
+</li><br>
+
+<li>[cygwin] <tt>$ touch smlnj-lib/HTML4/*.l.sml smlnj-lib/HTML4/*.g.sml</tt><br>
+   Ensure that the generated files look more recent than the parser/lexer
+   specifications.
 </li><br>
 
 <li>[cygwin] <tt>$ curl -O http://www.smlnj.org/dist/working/<i>$VERSION</i>/boot.x86-win32.tgz</tt><br>
@@ -414,7 +420,7 @@ prompt.
    Manually untar the boot tarball.
 </li><br>
 
-<li>[vc++] <tt>set SMLNJ_HOME=C:\cygwin\home\dbm\smlnj\release</tt><br>
+<li>[vc++] <tt>set SMLNJ_HOME=C:\cygwin\home\jhr\Work\smlnj\release</tt><br>
     Define <tt>SMLNJ_HOME</tt> variable.
 </li><br>
 
@@ -436,6 +442,6 @@ prompt.
 
     <hr>
 <!-- Created: Mon May  7 13:30:08 CDT 2007 -->
-<!-- hhmts start -->Last modified: August 23, 2014 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: October 4, 2015 <!-- hhmts end -->
   </body>
 </html>
