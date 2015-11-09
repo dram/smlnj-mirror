@@ -90,6 +90,26 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 // == Recent updates
 
+//--------------------------------------------------------------------
+[2015/11/09]::
++
+Fixed bug  bugref:[147] (Hexadecimal escapes in strings are not supported).
+We previously did not support Unicode escapes in string literals.  We now
+do so, with non-ascii codepoints being mapped to the UTF-8 encoding.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2015/10/28]::
++
+Partial fix for the noisy exception-stack traces on the +Error+ exception.
+The cases that are handled by this change are applying +use+ to a non-existent
+file and when there are compilation errors in a program being built by
++CM.make+.  What remains to be handled is the situation where +CM.make+ is
+applied to a non-existent file.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
 //====================================================================
 == Version 110.79; 2015/10/04
 
@@ -97,7 +117,8 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 [2015/10/04]::
 +
 Patched +base/compiler/FLINT/clos/closure.sml+ so that *Twelf* will
-build again (bugref:[140]).
+build again.  Fixes bug bugref:[140] (Lookup failure in +closure.sml+
+when compiling *Twelf*).
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
@@ -139,8 +160,8 @@ in your CM files.
 [2015/09/28]::
 +
 New implementation of +Date+ structure in the Basis, which fixes bugs
-bugref:[138] (Incorrect behavior for Date.fromTimeLocal) and
-bugref:[139] (Date.date is broken).  Note that some more thought should
+bugref:[138] (Incorrect behavior for +Date.fromTimeLocal+) and
+bugref:[139] (+Date.date+ is broken).  Note that some more thought should
 be given to the correct semantics of +Date.date+ when dealing with
 offsets.  For example, should an offset of +23 hours produce the same
 date as an offset of -1 hours?  Currently our implementation produces
