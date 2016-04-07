@@ -89,6 +89,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 
 //====================================================================
 // == Recent updates
+
+//--------------------------------------------------------------------
+[2016/04/07]::
++
+Fixed bug bugref:[155] (Misleading printing of word literals in
+error messages).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
 //--------------------------------------------------------------------
 [2016/04/02]::
 +
