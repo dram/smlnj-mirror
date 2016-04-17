@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>SML/NJ 110.79 Release Notes</title>
+<title>SML/NJ 110.80 Release Notes</title>
 <style type="text/css">
   body {
     font-size: 12pt;
@@ -38,9 +38,6 @@
     font-family: "Courier", monospace;
     white-space: pre;
     color: darkblue;
-  }
-  span.code {
-    font-size: 80%;
   }
   span.kw {
     font-family: "Courier", monospace;
@@ -85,8 +82,8 @@
   <dt>SML/NJ HOME:</dt>
   <dd><a href="http://www.smlnj.org/index.html"><tt>http://www.smlnj.org/index.html</tt></a></dd>
   <dt>FILES:</dt>
-  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.79/index.html">
-    <tt>http://smlnj.cs.uchicago.edu/dist/working/110.79/</tt></a>
+  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.80/index.html">
+    <tt>http://smlnj.cs.uchicago.edu/dist/working/110.80/</tt></a>
   </dd>
 </dl>
 <hr>
@@ -144,9 +141,11 @@ and many bug fixes.
       a couple of scenarios in which the code might break.  The first is conflicts created
       by the use of <span class="kw">open</span>.  For example, the implementation
       of <span class="exe">ml-yacc</span> had declarations of the form
-      <div class="code">
+    </p>
+    <div class="code">
       <span class="kw">open</span> Array List
-      </div>
+    </div>
+    <p>
       which created a type error because <span class="code">List.sub</span> shadowed
       <span class="code">Array.sub</span>.
     </p>
@@ -181,6 +180,18 @@ and many bug fixes.
 <dl>
   <dt class="component">SML/NJ Library:</dt>
   <dd>
+    <p style="margin-bottom: 0pt;">
+    A number of changes to the <span class="code">ORD_SET</span> signature.
+    The following functions were added:
+    </p>
+    <div class="code">
+    <span class="kw">val</span> minItem <span class="kw">:</span> set <span class="kw">-></span> item
+    <span class="kw">val</span> maxItem <span class="kw">:</span> set <span class="kw">-></span> item
+    <span class="kw">val</span> toList  <span class="kw">:</span> set <span class="kw">-></span> item list
+    </div>
+    <p style="margin-top: 0pt;">
+    In addition, the function <span class="code">listItems</span> is now considered deprecated.
+    </p>
     <p>
     Added the function <span class="code">Controls.help</span> for getting the help
     string from a control.
@@ -189,7 +200,7 @@ and many bug fixes.
     Added the functions <span class="code">mkOption</span>, <span class="code">mkOptionReqArg</span>,
     and <span class="code">mkOptionFlag</span> to the <span class="code">Controls</span> module.
     These functions make it easier to package controls as command-line options.
-    They provide an alternative to the usual approach of using a "--C<ctl>=<value> form for
+    They provide an alternative to the usual approach of using a "--C&lt;ctl&gt;=&lt;value&gt; form for
     all of the controls.
     </p>
     <p>
@@ -198,7 +209,7 @@ and many bug fixes.
     (<span class="kw">functor</span> <span class="code">SplaySetFn</span>).
     </p>
   </dd>
-</dt>
+</dl>
 
 <dl>
   <dt class="component">Successor ML:</dt>
@@ -235,7 +246,7 @@ and many bug fixes.
     <div class="code">
       foo.sml : succ-ml
     </div>
-    <p stype="margin-top: 0pt; margin-bottom: 0pt;">
+    <p style="margin-top: 0pt; margin-bottom: 0pt;">
     Alternatively, one can give the &quot;<tt>succ-ml</tt>&quot; argument to the
     &quot;<tt>sml</tt>&quot; tool:
     </p>
@@ -243,10 +254,11 @@ and many bug fixes.
       foo.sml : sml (succ-ml)
       foo.sml (succ-ml)
     </div>
-    <p stype="margin-top: 0pt; margin-bottom: 0pt;">
+    <p style="margin-top: 0pt; margin-bottom: 0pt;">
     It is also possible to enable them by setting the control flag
     using the <span class="kw">with</span> keyword in a CM file as
     illustrated by the following equivalent forms:
+    </p>
     <div class="code">
       foo.sml (<span class="kw">with</span>: parser.succ-ml)
       foo.sml (<span class="kw">with</span>: parser.succ-ml=true)
@@ -265,6 +277,8 @@ and many bug fixes.
     <table class="buglist">
       <tr><td class="bugid">144</td><td>Splay sets are broken</td></tr>
       <tr><td class="bugid">147</td><td>Hexadecimal escapes in strings are not supported</td></tr>
+      <tr><td class="bugid">154</td><td>Return code for ml-ulex when there is an error</td></tr>
+      <tr><td class="bugid">155</td><td>Misleading printing of word literals in error messages</td></tr>
 <!--      <tr><td class="bugid">XXX</td><td>DESCRIPTION</td></tr> -->
     </table>
     <p>The following unnumbered bugs were also fixed:
@@ -275,7 +289,12 @@ and many bug fixes.
 	in the interactive loop so that we no longer get an exception traceback
 	from syntax and type errors in user code.
       </li>
-    </ul>
+       <li class="bug">
+	Fixed a bug in the implementation of <i>ml-lex-mode</i> in <b>ml-ulex</b>.
+        The '<span class="code">\h</span>' escape was not supported (it is supposed to match
+        the character range <span class="code">[\128-\255]</span>).
+      </li>
+   </ul>
 
 <h3>Supported systems:</h3>
 <blockquote>
