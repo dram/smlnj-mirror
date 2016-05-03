@@ -91,6 +91,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2016/05/03]::
++
+Fixed bug bugref:[156] (sml resumes after SIGSTOP with bogus exception
+report).  The fix is a bit of a hack: I modified the +non_bt_hdl+
+function in +evalloop.sml+ to match an +IO.Io+ exception with
+the appropriate shape for this situation.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2016/04/07]::
 +
 Fixed bug bugref:[154] (Return code for ml-ulex when there is an error).
