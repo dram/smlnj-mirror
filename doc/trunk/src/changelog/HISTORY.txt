@@ -91,6 +91,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2016/05/11]::
++
+Implemented the changes for
+https://github.com/SMLFamily/BasisLibrary/wiki/2016-001-Add-popCount-to-WORD-signature[
+Basis Library Proposal 2016-001].  This proposal added the +popCount+
+function to the +WORD+ signature.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2016/05/03]::
 +
 Fixed bug bugref:[156] (sml resumes after SIGSTOP with bogus exception
