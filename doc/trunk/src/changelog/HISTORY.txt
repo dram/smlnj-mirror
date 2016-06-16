@@ -91,6 +91,13 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2016/06/16]::
++
+Fixed bug bugref:[150] (Add title to batch script).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2016/05/11]::
 +
 Implemented the changes for
