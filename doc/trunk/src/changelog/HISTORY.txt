@@ -91,6 +91,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2016/08/04]::
++
+Fixed bug bugref:[166] (Can't install SML/NJ in directories containing
+spaces).  Thanks to Eugene Sharygin for the patch.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2016/06/21]::
 +
 Fixed incorrect dividend sign extension before 32-bit divide in amd64
