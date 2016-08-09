@@ -91,6 +91,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2016/08/09]::
++
+Fixed bug bugref:[145] (Internal exception occurs on bogus annotation instead of typechecking diagnostic).
+Added missing OVLD_UB case in function failMessage in compiler/Elaborator/types/unify.sml.
++
+owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
+
+//--------------------------------------------------------------------
 [2016/08/04]::
 +
 Fixed bug bugref:[166] (Can't install SML/NJ in directories containing
