@@ -74,7 +74,7 @@
 <br>
                           Version 110.80 NEWS
 <br>
-                            ??SOME DATE??
+                            August 19, 2016
 </div>
 
 <hr>
@@ -113,29 +113,45 @@ and many bug fixes.
     Specifically, the following proposals are supported by this version of SML/NJ:
     </p>
     <dl>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-001-Correction-to-ListPair"><b>[2015-001]</b> Correction to ListPair</a></dt>
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-001-Correction-to-ListPair">
+        <b>[2015-001]</b> Correction to ListPair</a></dt>
         <dd>SML/NJ already implemented the semantics described in this proposal.
         </dd>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-002-Addition-of-Either-module"><b>[2015-002]</b> Addition of Either module</a></dt>
-        <dd>This change adds the <span class="code">Either</span> structure to the Basis Library.
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-002-Addition-of-Either-module">
+        <b>[2015-002]</b> Addition of Either module</a></dt>
+        <dd>This change adds the <span class="code">Either</span> structure to the Basis Library.<br/>
+          In version 110.80, we have added the functions <span class="code">mapLeft</span>,
+          <span class="code">mapRight</span>, <span class="code">appLeft</span>, and
+          <span class="code">appRight</span> functions to the <span class="code">Either</span>
+          module.
         </dd>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-003-Additional-operations-on-sequences"><b>[2015-003]</b> Additional operations on sequences</a></dt>
-        <dd>This change adds operations to the <span class="code">Array</span>,
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-003-Additional-operations-on-sequences">
+        <b>[2015-003]</b> Additional operations on sequences</a></dt>
+        <dd>
+          This change adds operations to the <span class="code">Array</span>,
 	  <span class="code">List</span>, <span class="code">ListPair</span>, <span class="code">Option</span>,
 	  and <span class="code">Vector</span> structures, and to the <span class="code">MONO_ARRAY</span>
-	  and <span class="code">MONO_VECTOR</span> signatures.
+	  and <span class="code">MONO_VECTOR</span> signatures.<br/>
+          In version 110.80, we have added the functions <span class="code">unzipMap</span>,
+          <span class="code">unzipMapi</span>, <span class="code">find</span>, and
+          <span class="code">findi</span> functions to the <span class="code">ListPair</span>
+          module.
         </dd>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-005-Addition-of-Fn-module"><b>[2015-005]</b> Addition of Fn module</a></dt>
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-005-Addition-of-Fn-module">
+        <b>[2015-005]</b> Addition of Fn module</a></dt>
         <dd>This change adds the <span class="code">Fn</span> structure to the Basis Library.
         </dd>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-007-Addition-of-Ref-module"><b>[2015-007]</b> Addition of Ref module</a></dt>
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-007-Addition-of-Ref-module">
+        <b>[2015-007]</b> Addition of Ref module</a></dt>
         <dd>This change adds the <span class="code">Ref</span> structure to the Basis Library.
         </dd>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-009-Policy-for-exceptions-and-partial-applications"><b>[2015-009]</b> Policy for exceptions and partial applications</a></dt>
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2015-009-Policy-for-exceptions-and-partial-applications">
+        <b>[2015-009]</b> Policy for exceptions and partial applications</a></dt>
         <dd>This change standardizes the generation of exceptions when partially applying curried basis functions.
           The change fixed bug <b>136</b>.
         </dd>
-      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2016-001-Add-popCount-to-WORD-signature"><B>[2016-001]</b>
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2016-001-Add-popCount-to-WORD-signature">
+        <b>[2016-001]</b> Add popCount to WORD signature</a></dt>
 	<dd>This change adds the <span class="code">popCount</span> function to the <span class="code">WORD</span>
 	  signature.
         </dd>

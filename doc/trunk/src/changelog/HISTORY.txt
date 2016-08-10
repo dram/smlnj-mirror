@@ -91,6 +91,22 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 // == Recent updates
 
 //--------------------------------------------------------------------
+[2016/08/10]::
++
+Added the +unzipMap+, +unzipMapi+, +find+, and +findi+ functions
+to the +ListPair+ module.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2016/08/10]::
++
+Added the +mapLeft+, +mapRight+, +appLeft+, and +appRight+ functions
+to the +Either+ module.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2016/08/09]::
 +
 Fixed bug bugref:[145] (Internal exception occurs on bogus annotation
