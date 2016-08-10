@@ -171,7 +171,12 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 +
 Fixed bug bugref:[147] (Hexadecimal escapes in strings are not supported).
 We previously did not support Unicode escapes in string literals.  We now
-do so, with non-ascii codepoints being mapped to the UTF-8 encoding.
+do so, [line-through]#with non-ascii codepoints being mapped to the
+UTF-8 encoding# with escape values in the range 0..255 being mapped to the
+corresponding 8-bit character.  Values outside that range are flagged
+as an error.
++
+_Revised August 4, 2016_
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
