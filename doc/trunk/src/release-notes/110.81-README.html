@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<title>SML/NJ 110.80 Release Notes</title>
+<title>SML/NJ 110.81 Release Notes</title>
 <style type="text/css">
   body {
     font-size: 12pt;
@@ -75,9 +75,9 @@
 <div class="smlnj-banner">
                        Standard ML of New Jersey
 <br>
-                          Version 110.80 NEWS
+                          Version 110.81 NEWS
 <br>
-                            August 19, 2016
+                            ????
 </div>
 
 <hr>
@@ -85,8 +85,8 @@
   <dt>SML/NJ HOME:</dt>
   <dd><a href="http://www.smlnj.org/index.html"><span class="tt">http://www.smlnj.org/index.html</span></a></dd>
   <dt>FILES:</dt>
-  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.80/index.html">
-    <span class="tt">http://smlnj.cs.uchicago.edu/dist/working/110.80/</span></a>
+  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/index.html">
+    <span class="tt">http://smlnj.cs.uchicago.edu/dist/working/110.81/</span></a>
   </dd>
 </dl>
 <hr>
@@ -199,6 +199,12 @@ It also has support for the upcoming version of macOS Sierra.
 </dl>
 
 <dl>
+  <dt class="component">SML/NJ Library:</dt>
+  <dd>
+  </dd>
+</dl>
+
+<dl>
   <dt class="component">Successor ML:</dt>
   <dd>
     <p style="margin-bottom: 0pt;">
@@ -206,10 +212,17 @@ It also has support for the upcoming version of macOS Sierra.
     is collection of proposed enhancements to the <b>Standard ML</b> language.
     In collaboration with the <a href="http://mlton.org"><b>MLton</b></a> implementors, we are
     starting to add support for these features the <b>SML/NJ</b>.
-    This release does not include any new features over what was supported in version 110.79
-    (<i>i.e.</i>, lexical extensions).
-    We plan to start adding syntactic extensions to the core language in the next release.
+    In this release, we have added support for the syntactic extensions to the language:
     </p>
+    <ul>
+      <li>
+	Allow vertical bars in front of the first constructor in a
+	<span class="kw">datatype</span> definition and in front of the first pattern in a
+	<span class="kw">case</span> expression.
+<!-- what about "fun"?? -->
+      </li>
+<!-- other stuff: ";" and "," at end of sequence; "do" for "val () =" -->
+    </ul>
     <p class="compact">
     The <b>Successor ML</b> features can be enabled using the command-line
     option <span class="tt">-Cparser.succ-ml=true</span> or by using the assignment
@@ -254,53 +267,6 @@ It also has support for the upcoming version of macOS Sierra.
   </dd>
 </dl>
 
-<dl>
-  <dt class="component">SML/NJ Library:</dt>
-  <dd>
-    <p style="margin-bottom: 0pt;">
-    A number of changes to the <span class="code">ORD_SET</span> signature.
-    The following functions were added:
-    </p>
-    <div class="code">
-    <span class="kw">val</span> minItem <span class="kw">:</span> set <span class="kw">-></span> item
-    <span class="kw">val</span> maxItem <span class="kw">:</span> set <span class="kw">-></span> item
-    <span class="kw">val</span> toList  <span class="kw">:</span> set <span class="kw">-></span> item list
-    </div>
-    <p style="margin-top: 0pt;">
-    In addition, the function <span class="code">listItems</span> is now considered deprecated.
-    </p>
-    <p>
-    Added the function <span class="code">Controls.help</span> for getting the help
-    string from a control.
-    </p>
-    <p>
-    Added the functions <span class="code">mkOption</span>, <span class="code">mkOptionReqArg</span>,
-    and <span class="code">mkOptionFlag</span> to the <span class="code">Controls</span> module.
-    These functions make it easier to package controls as command-line options.
-    They provide an alternative to the usual approach of using a
-    &quot;<span class="tt">--C</span>&lt;ctl&gt;<span class="tt">=</span>&lt;value&gt;&quot;
-    form for all of the controls.
-    </p>
-    <p>
-    Fixed a bug (#144) in the implementation of the <span class="code">all</span> function in the
-    splay-tree implementation of sets
-    (<span class="kw">functor</span> <span class="code">SplaySetFn</span>).
-    </p>
-    <p>
-    Fixed a bug (#167) in the way that the <span class="code">GetOpt</span> module handles long
-    arguments.
-    Previously, it was not possible to have one long argument that was a prefix of another
-    (<i>e.g.</i>, &quot;<span class="tt">--foo</span>&quot; and &quot;<span class="tt">--foobar</span>&quot;).
-    The new behavior is to allow long-option prefixes to overlap with other long options, but to
-    favor an exact match over prefix matches.
-    For example, if the long options are &quot;<span class="tt">--foo</span>,&quot;
-    &quot;<span class="tt">--foobar</span>,&quot; and &quot;<span class="tt">--foobaz</span>,&quot; then
-    &quot;<span class="tt">--foo</span>&quot; will match the first, but &quot;<span class="tt">--foob</span>&quot;
-    will be flagged as ambiguous.
-    </p>
-  </dd>
-</dl>
-
 <h3>Bugs:</h3>
     <p>
     Here is a list of tracked bugs fixed (or closed) with this release, please see the
@@ -308,37 +274,8 @@ It also has support for the upcoming version of macOS Sierra.
     for more details.
     </p>
     <table class="buglist">
-      <tr><td class="bugid">144</td><td>Splay sets are broken</td></tr>
-      <tr><td class="bugid">145</td><td>Internal exception occurs on bogus annotation instead of typechecking diagnostic</td></tr>
-      <tr><td class="bugid">146</td><td>Problems building on recent versions of 64-bit Ubuntu</td></tr>
-      <tr><td class="bugid">147</td><td>Hexadecimal escapes in strings are not supported</td></tr>
-<!-- TODO: test the fix on Windows and then close out the bug. -->
-      <tr><td class="bugid">150</td><td>Add title to batch script</td></tr>
-      <tr><td class="bugid">151</td><td>Error installing from source on Mac OS X</td></tr>
-      <tr><td class="bugid">154</td><td>Return code for ml-ulex when there is an error</td></tr>
-      <tr><td class="bugid">155</td><td>Misleading printing of word literals in error messages</td></tr>
-      <tr><td class="bugid">156</td><td>SML resumes after SIGSTOP with bogus exception report</td></tr>
-      <tr><td class="bugid">161</td><td>MLRISC incorrect dividend sign extension before 32-bit divide in x86_64</td></tr>
-      <tr><td class="bugid">164</td><td>Inaccurate install instructions, ia32-libs have been deprecated</td></tr>
-<!-- TODO: test the fix -->
-      <tr><td class="bugid">166</td><td>Can't install SML/NJ in directories containing spaces</td></tr>
-      <tr><td class="bugid">167</td><td>Bug in handling of long options in GetOpt</td></tr>
 <!--      <tr><td class="bugid">XXX</td><td>DESCRIPTION</td></tr> -->
     </table>
-    <p>The following unnumbered bugs were also fixed:
-    </p>
-    <ul class="buglist">
-      <li class="bug">
-	Fixed the handling of the <span class="code">Error</span> exception
-	in the interactive loop so that we no longer get an exception traceback
-	from syntax and type errors in user code.
-      </li>
-       <li class="bug">
-	Fixed a bug in the implementation of <i>ml-lex-mode</i> in <b>ml-ulex</b>.
-        The '<span class="code">\h</span>' escape was not supported (it is supposed to match
-        the character range <span class="code">[\128-\255]</span>).
-      </li>
-   </ul>
 
 <h3>Supported systems:</h3>
 <blockquote>

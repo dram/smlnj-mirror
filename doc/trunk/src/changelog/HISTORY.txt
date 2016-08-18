@@ -90,6 +90,9 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 // == Recent updates
 
+//====================================================================
+== Version 110.80; 2016/08/19
+
 //--------------------------------------------------------------------
 [2016/08/16]::
 +
@@ -104,7 +107,7 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2016/08/10]::
 +
-Added the +unzipMap+, +unzipMapi+, +find+, and +findi+ functions
+Added the proposed +unzipMap+, +unzipMapi+, +find+, and +findi+ functions
 to the +ListPair+ module.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
@@ -112,8 +115,8 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2016/08/10]::
 +
-Added the +mapLeft+, +mapRight+, +appLeft+, and +appRight+ functions
-to the +Either+ module.
+Added the proposed +mapLeft+, +mapRight+, +appLeft+, and +appRight+
+functions to the +Either+ module.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
