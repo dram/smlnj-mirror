@@ -99,7 +99,7 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 Fixed bugref:[151] (Error installing from source on Mac OS X).  The fix
 involves both changes to the +config/install.sh+ script and the
 +mk.x86-darwin+ makefile.  With this fix, we include the +SDK+ argument
-to the +/usr/bin/as+ only when the OS version is 10.10 (Yosimite) or
+to the +/usr/bin/as+ only when the OS version is 10.10 (Yosemite) or
 later.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
