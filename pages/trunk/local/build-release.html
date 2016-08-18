@@ -31,7 +31,7 @@
       Also update the HISTORY file.
       </li>
       <li>
-      Run the allcross script in base/system to build boot directories for 
+      Run the allcross script in base/system to build boot directories for
       all the architectures and create tarballs from them.
       Copy these tarballs to the <tt>dist/working/<i>$VERSION</i></tt> directory created in the first step.
       </li>
@@ -161,7 +161,7 @@ divided by operating system (Linux, OS X, Windows).
   </li>
   <li>
     <p>
-    Repeat steps 2 through 6 above.
+    Repeat steps 3 through 6 above.
     </p>
     <ul>
       <li> Can omit step involving <tt>testml</tt>.  (<i>Which seems broken in my notes anyway.</i>)</li>
@@ -226,7 +226,9 @@ divided by operating system (Linux, OS X, Windows).
 -->
       <li>
 	Copy the <tt>boot</tt> tarballs and <tt><i>$VERSION</i>-README.html</tt> file
-        into the release directory.
+        into the release directory.<br>
+        <tt>$ scp *.tgz linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt><br>
+        <tt>$ scp doc/doc/html/HISTORY.html linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt><br>
       </li>
     </ul>
   </li>
@@ -341,7 +343,7 @@ the runtime system:
 </li></ul>
 </li><li> Build and test the <tt>.mpkg</tt> file.
 </li><li> Create the DMG file using Disk Utility application.
-<ul><li> Specifically, use the "File &gt; New &gt; Disk Image from Folder" command. 
+<ul><li> Specifically, use the "File &gt; New &gt; Disk Image from Folder" command.
 
 </li></ul>
 </li><li> Test the DMG file.
@@ -392,7 +394,7 @@ prompt.
    <li><tt>$ export gf=https://smlnj-gforge.cs.uchicago.edu/svn</tt></li>
    <li><tt>$ export smlnj=$gf/smlnj</tt></li>
    <li><tt>$ export VERSION=xxx.yy</tt></li>
-</ul>   
+</ul>
 </li><br>
 
 <li>[cygwin] <tt>$ cd gf; svn co $smlnj/admin</tt><br>
