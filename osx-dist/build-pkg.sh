@@ -101,7 +101,7 @@ cp -p components/conclusion.html $RSRC/conclusion.html
 
 # build package
 #
-pkgbuild --identifier $ID --scripts components/scripts/ --install-location /usr/local/Xsmlnj --root $DISTROOT smlnj.pkg
+pkgbuild --identifier $ID --scripts components/scripts/ --install-location /usr/local/smlnj --root $DISTROOT smlnj.pkg
 
 # build distribution package
 #
