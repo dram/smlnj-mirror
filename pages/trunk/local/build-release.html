@@ -238,7 +238,7 @@ divided by operating system (Linux, OS X, Windows).
     </p>
     <ul>
       <li>
-        <tt>$ ./admin/make-release.sh</tt><br/>
+        <tt>$ ./admin/make-release.sh <i>$VERSION</i></tt><br/>
 	Note that each major directory under smlnj has its own trunk and
 	release branches, <i>e.g.</i>, <tt>$smlnj/sml/trunk</tt>,
 	<tt>$smlnj/sml/releases/release-<i>$VERSION</i></tt>, except for <tt>ml-lpt</tt>,
@@ -257,7 +257,7 @@ divided by operating system (Linux, OS X, Windows).
       <li> <tt>$ ./admin/build-tar-files.sh</tt></li>
     </ul>
   </li>
-  <!-- the doc.tgz file is not created by the build-tar-files.sh script [2014-12-21]
+  <!-- the doc.tgz file is now created by the build-tar-files.sh script [2014-12-21]
   <li>
     <p>
     Create the documentation tarball (note that the previous step will have exported
@@ -282,11 +282,18 @@ divided by operating system (Linux, OS X, Windows).
   -->
   <li>
     <p>
-    Copy tarballs into the release directory.
+    Copy tarballs and documentation into the release directory.
     </p>
     <ul>
-      <li> <tt>$ scp *.tgz linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt>
+      <li> <tt>$ release_dir=linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt>
+      <li> <tt>$ scp *.tgz $release_dir</tt>
+      <li> <tt>$ scp doc/doc/html/HISTORY.html $release_dir</tt>
+      <li> <tt>$ scp doc/doc/html/readme/<i>$VERSION</i>-README.html $release_dir</tt>
     </ul>
+    <p>
+    Once the files have been copied, you should <b>ssh</b> into <tt>linux.cs.uchicago.edu</tt>
+    and check the file permissions, which should be &quot;<tt>rw-rw-r--</tt>.&quot;
+    </p>
   </li>
   <li>
     Create DMG files for Mac <a href="#dmg-files"><i>(See below)</i>.</a>
@@ -311,7 +318,42 @@ divided by operating system (Linux, OS X, Windows).
 </ol>
 
 <a name="dmg-files"><h2>Building a OS X package and dmg</h2></a>
-<p> See the document <a href="osx-package-build.txt">osx-package-build.txt</a>.
+<p>
+There is an automated script for building a signed installer for macOS (n&eacute;e Mac OS X).
+First check out from svn:
+</p>
+<blockquote><tt>
+$ svn co https://smlnj-gforge.cs.uchicago.edu/svn/smlnj/osx-dist<br/>
+$ cd osx-dist
+</tt></blockquote>
+<p>
+The command
+<blockquote><tt>
+$ ./build-pkg.sh <i>$VERSION</i>
+</tt></blockquote>
+<p>
+will build the signed installer package file
+<tt>smlnj-x86-<i>$VERSION</i>.pkg</tt>.
+This script assumes that the distribution files have already been uploaded
+to the standard distribution site (Step 15 above) and that the targets file is
+initialized correctly.
+</p>
+<p>
+The signing of the package depends on the user having the correct developer
+certificate.  The script currently knows about John Reppy's cert, but the
+script can be generalized by adding other user IDs.
+</p>
+<p>
+Instructions for older versions of the installation process can be found
+in the document <a href="osx-package-build.txt">osx-package-build.txt</a>.
+</p>
+<p>
+Once the installer is built, it needs to be copied to the release directory
+(do not forget to check permissions once the file is copied!).
+</p>
+<ul>
+  <li> <tt>$ scp smlnj-x86-<i>$VERSION</i>.pkg $release_dir</tt>
+</ul>
 
 <!--
 <ul><li> Example: <tt>admin/checkout-all.sh --export</tt> from some directory named after the new version.
