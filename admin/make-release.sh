@@ -1,4 +1,4 @@
-e!/bin/sh
+#!/bin/sh
 #
 # "tag" a release snapshot by copying all of the trees into a fresh release tree.
 #
