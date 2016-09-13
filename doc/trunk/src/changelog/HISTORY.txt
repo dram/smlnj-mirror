@@ -90,6 +90,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 // == Recent updates
 
+[2016/09/12]::
++
+Fixed bug bugref:[153] (Enabling Successor ML features is delayed).
+We now use a function ++Control.setSuccML++ to switch to/from *Successor ML*
+mode in the REPL. The function resets the parser, so the next input will
+be correctly parsed.  The ++Control.succML++ flag is no longer visibile
+in the REPL.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
 //--------------------------------------------------------------------
 [2016/09/12]::
 +
