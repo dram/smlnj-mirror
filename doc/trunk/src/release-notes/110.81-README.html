@@ -119,6 +119,14 @@ It also has support for the upcoming version of macOS Sierra.
 <dl>
   <dt class="component">Successor ML:</dt>
   <dd>
+    <p>
+    The 110.81 release adds additional support for <b>Successor ML</b> syntactic extensions.
+    </p>
+    <p>
+      We have changed the way that <b>Successor ML</b> features are enabled from the REPL.
+      The function <span class="code">Control.setSuccML</span> is used to enable or disable
+      <b>Successor ML</b> (pass the argument <span class="code">true</span> to enable).
+    </p>
   </dd>
 </dl>
 
@@ -142,7 +150,8 @@ It also has support for the upcoming version of macOS Sierra.
     <p>The following unnumbered bugs were also fixed:
     </p>
     <ul class="buglist">
-   </ul>
+      <li>Parser bugfix: we now allow `*` as a field label in record-punning patterns.</li>
+    </ul>
 
 <h3>Supported systems:</h3>
 <blockquote>

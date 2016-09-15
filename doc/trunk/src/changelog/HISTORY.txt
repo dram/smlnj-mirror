@@ -90,6 +90,30 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 // == Recent updates
 
+[2016/09/14]::
++
+Added support for Successor ML record-expression-punning syntax.  For
+example, one can now write
+```sml
+fun f x = {x}
+```
+which defines a function with type `'a -> {x:'a}`.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+[2016/09/14]::
++
+Fixed a bug in the parser.  Asterix (`*`) was not allowed as a record label
+when using the record-pattern-punning syntax.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+[2016/09/14]::
++
+Added support for `do exp` *Successor ML* syntax.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
 [2016/09/12]::
 +
 Fixed bug bugref:[153] (Enabling Successor ML features is delayed).
