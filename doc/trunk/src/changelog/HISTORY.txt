@@ -92,6 +92,39 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 
 [2016/09/14]::
 +
+Eliminated dependency of PlambdaType from the front end by adding a
+type TKind.tkind which is a simplified standin for PlambdaType.tkind
+for use during elaboration. TKind.tkind values are translated on
+demand to PlambdaType.tkind in trans/transtypes.sml. Types still has
+a tycpath type but it is defined using TKind.tkind now. New structure
+SigPropList replaces ModulePropLists
+(Semant/modules/module-plists.sml) for use in instantiate.sml.
+Instantiate is build directly as a structure so the functor
+application in Semant/modules/instantiate.sml no longer exists.
++
+Files changed:
++
+--
+- ElabData/basics/debindex.sig  (moved here from Elaborator/basics)
+- ElabData/basics/debindex.sml  (ditto)
+- ElabData/basics/sig-plist.sml (new)
+- ElabData/basics/tkind.sml     (new)
+- ElabData/types/types.sig
+- ElabData/types/types.sml
+- Elaborator/modules/instantiate.sml
+- Elaborator/print/ppmod.sml
+- FLINT/trans/transtkind.sml    (new)
+- FLINT/trans/transtypes.sml
+- TopLevel/interact/evalloop.sml
+- ElabData/elabdata.cm  
+- Elaborator/elaborate.cm  
+- core.cm
+--
++
+owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
+
+[2016/09/14]::
++
 Added support for Successor ML record-expression-punning syntax.  For
 example, one can now write
 ```sml
@@ -135,6 +168,7 @@ Added boolean field +stripped+ to DATATYPE variant of tyckind in
 to true are disallowed in datatype replications.
 +
 Files changed:
++
 --
 - compiler/ElabData/types/types.sig 
 - compiler/ElabData/types/types.sml
