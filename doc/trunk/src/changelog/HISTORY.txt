@@ -90,6 +90,33 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 // == Recent updates
 
+[2016/09/15]::
++
+Further cleanup of the separation of FLINT from the front-end.
+Eliminated all references to ModulePropLists (module-plists.sml) in
+the front end and pickling, and moved module-plists from
+Semant/modules to FLINT/trans.  ModulePropLists is now only used
+in FLINT/trans/translate.sml.
++
+Revision: 4314
++
+Files changed:
++
+--
+- compiler/ElabData/modules/modules.sml  (cleaned up)
+- compiler/Elaborator/print/ppmod.sml (cleaned up)
+- compiler/FLINT/trans/module-plists.sml (moved from Semant/modules)
+- compiler/Semant/modules/instantiate-param.sml (deleted)
+- compiler/Semant/pickle/pickmod.sml (no longer mentions property lists)
+- compiler/Semant/pickle/unpickmod.sml (ditto)
+- compiler/Semant/statenv/prim.sml
+- compiler/Semant/types/tp-var-info.sml  (deleted)
+- compiler/core.cm  (modified for move of module-plists.sml)
+--
++
+owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
+
+
 [2016/09/14]::
 +
 Eliminated dependency of PlambdaType from the front end by adding a
