@@ -90,13 +90,23 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 // == Recent updates
 
+//--------------------------------------------------------------------
+[2016/09/15]::
++
+Working on 64-bit support.  Changes include making code generation
+dependent on the target word size and abstracting over the BIBOP
+representation in the runtime system.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2016/09/15]::
 +
 Further cleanup of the separation of FLINT from the front-end.
-Eliminated all references to ModulePropLists (module-plists.sml) in
+Eliminated all references to +ModulePropLists+ (+module-plists.sml+) in
 the front end and pickling, and moved module-plists from
-Semant/modules to FLINT/trans.  ModulePropLists is now only used
-in FLINT/trans/translate.sml.
+Semant/modules to FLINT/trans.  +ModulePropLists+ is now only used
+in +FLINT/trans/translate.sml+.
 +
 Revision: 4314
 +
@@ -116,7 +126,7 @@ Files changed:
 +
 owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
 
-
+//--------------------------------------------------------------------
 [2016/09/14]::
 +
 Eliminated dependency of PlambdaType from the front end by adding a
@@ -150,6 +160,7 @@ Files changed:
 +
 owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
 
+//--------------------------------------------------------------------
 [2016/09/14]::
 +
 Added support for Successor ML record-expression-punning syntax.  For
@@ -161,6 +172,7 @@ which defines a function with type `'a -> {x:'a}`.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
+//--------------------------------------------------------------------
 [2016/09/14]::
 +
 Fixed a bug in the parser.  Asterix (`*`) was not allowed as a record label
@@ -168,12 +180,14 @@ when using the record-pattern-punning syntax.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
+//--------------------------------------------------------------------
 [2016/09/14]::
 +
 Added support for `do exp` *Successor ML* syntax.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
+//--------------------------------------------------------------------
 [2016/09/12]::
 +
 Fixed bug bugref:[153] (Enabling Successor ML features is delayed).
