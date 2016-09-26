@@ -88,7 +88,7 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-// == Recent updates
+== Recent updates
 
 //--------------------------------------------------------------------
 [2016/09/15]::
@@ -113,15 +113,15 @@ Revision: 4314
 Files changed:
 +
 --
-- compiler/ElabData/modules/modules.sml  (cleaned up)
-- compiler/Elaborator/print/ppmod.sml (cleaned up)
-- compiler/FLINT/trans/module-plists.sml (moved from Semant/modules)
-- compiler/Semant/modules/instantiate-param.sml (deleted)
-- compiler/Semant/pickle/pickmod.sml (no longer mentions property lists)
-- compiler/Semant/pickle/unpickmod.sml (ditto)
-- compiler/Semant/statenv/prim.sml
-- compiler/Semant/types/tp-var-info.sml  (deleted)
-- compiler/core.cm  (modified for move of module-plists.sml)
+- +compiler/ElabData/modules/modules.sml+  (cleaned up)
+- +compiler/Elaborator/print/ppmod.sml+ (cleaned up)
+- +compiler/FLINT/trans/module-plists.sml+ (moved from +Semant/modules+)
+- +compiler/Semant/modules/instantiate-param.sml+ (deleted)
+- +compiler/Semant/pickle/pickmod.sml+ (no longer mentions property lists)
+- +compiler/Semant/pickle/unpickmod.sml+ (ditto)
+- +compiler/Semant/statenv/prim.sml+
+- +compiler/Semant/types/tp-var-info.sml+  (deleted)
+- +compiler/core.cm+  (modified for move of +module-plists.sml+)
 --
 +
 owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
@@ -142,20 +142,20 @@ application in Semant/modules/instantiate.sml no longer exists.
 Files changed:
 +
 --
-- ElabData/basics/debindex.sig  (moved here from Elaborator/basics)
-- ElabData/basics/debindex.sml  (ditto)
-- ElabData/basics/sig-plist.sml (new)
-- ElabData/basics/tkind.sml     (new)
-- ElabData/types/types.sig
-- ElabData/types/types.sml
-- Elaborator/modules/instantiate.sml
-- Elaborator/print/ppmod.sml
-- FLINT/trans/transtkind.sml    (new)
-- FLINT/trans/transtypes.sml
-- TopLevel/interact/evalloop.sml
-- ElabData/elabdata.cm  
-- Elaborator/elaborate.cm  
-- core.cm
+- +ElabData/basics/debindex.sig+  (moved here from +Elaborator/basics+)
+- +ElabData/basics/debindex.sml+  (ditto)
+- +ElabData/basics/sig-plist.sml+ (new)
+- +ElabData/basics/tkind.sml+     (new)
+- +ElabData/types/types.sig+
+- +ElabData/types/types.sml+
+- +Elaborator/modules/instantiate.sml+
+- +Elaborator/print/ppmod.sml+
+- +FLINT/trans/transtkind.sml+    (new)
+- +FLINT/trans/transtypes.sml+
+- +TopLevel/interact/evalloop.sml+
+- +ElabData/elabdata.cm+
+- +Elaborator/elaborate.cm+
+- +core.cm+
 --
 +
 owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
@@ -211,29 +211,38 @@ to true are disallowed in datatype replications.
 Files changed:
 +
 --
-- compiler/ElabData/types/types.sig 
-- compiler/ElabData/types/types.sml
-- compiler/ElabData/types/typesutil.sml 
-- compiler/ElabData/types/core-basictypes.sml 
-- compiler/Elaborator/types/basictypes.sml
-- compiler/Elaborator/types/eqtypes.sml
-- compiler/Elaborator/modules/evalent.sml
-- compiler/Elaborator/modules/sigmatch.sml
-- compiler/Elaborator/modules/instantiate.sml
-- compiler/Elaborator/print/ppabsyn.sml
-- compiler/Elaborator/print/pptype.sml
-- compiler/Elaborator/elaborate/elabcore.sml
-- compiler/Elaborator/elaborate/elabmod.sml
-- compiler/Elaborator/elaborate/elabtype.sml
-- compiler/Elaborator/elaborate/elabsig.sml
-- compiler/Semant/pickle/pickmod.sml
-- compiler/Semant/pickle/unpickmod.sml
-- compiler/MiscUtil/print/ppobj.sml
-- compiler/FLINT/trans/transtypes.sml
-- compiler/FLINT/trans/pequal.sml
+- +compiler/ElabData/types/types.sig+
+- +compiler/ElabData/types/types.sml+
+- +compiler/ElabData/types/typesutil.sml+
+- +compiler/ElabData/types/core-basictypes.sml+
+- +compiler/Elaborator/types/basictypes.sml+
+- +compiler/Elaborator/types/eqtypes.sml+
+- +compiler/Elaborator/modules/evalent.sml+
+- +compiler/Elaborator/modules/sigmatch.sml+
+- +compiler/Elaborator/modules/instantiate.sml+
+- +compiler/Elaborator/print/ppabsyn.sml+
+- +compiler/Elaborator/print/pptype.sml+
+- +compiler/Elaborator/elaborate/elabcore.sml+
+- +compiler/Elaborator/elaborate/elabmod.sml+
+- +compiler/Elaborator/elaborate/elabtype.sml+
+- +compiler/Elaborator/elaborate/elabsig.sml+
+- +compiler/Semant/pickle/pickmod.sml+
+- +compiler/Semant/pickle/unpickmod.sml+
+- +compiler/MiscUtil/print/ppobj.sml+
+- +compiler/FLINT/trans/transtypes.sml+
+- +compiler/FLINT/trans/pequal.sml+
 --
 +
 owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
+
+//--------------------------------------------------------------------
+[2016/08/20]::
++
+Change the interface to +AMD64Gen+ in *MLRISC*; the +signBit+ and
+++negateSignBit++ callbacks now return an +MLTree.rexp+ (instead of a
+label).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
 //====================================================================
 == Version 110.80; 2016/08/19
