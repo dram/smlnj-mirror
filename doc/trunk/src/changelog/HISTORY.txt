@@ -91,6 +91,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2016/10/15]::
++
+Added ++--debug++ command-line option to *ml-antlr*.
+This flag causes <b>ml-antlr</b> to generate debug actions that print
+the left-hand-side non-terminal of the production.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2016/09/15]::
 +
 Working on 64-bit support.  Changes include making code generation
@@ -234,6 +243,15 @@ Files changed:
 --
 +
 owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
+
+//--------------------------------------------------------------------
+[2016/08/31]::
++
+Added +%tokentype+ directive to *ml-antlr*; this directive allows users
+to specify the token datatype externally, which is necessary in order
+to share a lexer with two different *ml-antlr* parsers.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2016/08/20]::
