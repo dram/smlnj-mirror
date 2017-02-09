@@ -91,6 +91,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2016/02/09]::
++
+Linux distributions are starting to require that the stack be marked
+as non-executable in applications.  Because the runtime system includes
+assembly code, this marking was not happening.  We've added ++.section++
+directives to the ++PPC.prim.asm++ and ++X86.prim.asm++ files as
+per https://wiki.gentoo.org/wiki/Hardened/GNU_stack_quickstart#Patching[].
+Thanks to Daniel Moerner for reporting this issue and for providing
+a pointer the to fix.
+
+//--------------------------------------------------------------------
 [2016/10/15]::
 +
 Added ++--debug++ command-line option to *ml-antlr*.
