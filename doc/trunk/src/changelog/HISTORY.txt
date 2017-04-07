@@ -102,6 +102,13 @@ Thanks to Daniel Moerner for reporting this issue and for providing
 a pointer the to fix.
 
 //--------------------------------------------------------------------
+[2017/04/07]::
++
+Fixed bug bugref:[179] (ml-ulex writing debug messages to stdOut).
+Both **ml-ulex** and **ml-antlr** now direct their debug and status messages
+to ++stdErr++ (instead of ++stdOut++).
+
+//--------------------------------------------------------------------
 [2016/10/15]::
 +
 Added ++--debug++ command-line option to *ml-antlr*.
