@@ -91,7 +91,23 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
-[2016/02/09]::
+[2017/04/28]::
++
+Fixed bug bugref:[129] (Symbolic identifiers are allowed as strids).
++
+owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
+
+//--------------------------------------------------------------------
+[2017/04/07]::
++
+Fixed bug bugref:[179] (ml-ulex writing debug messages to stdOut).
+Both **ml-ulex** and **ml-antlr** now direct their debug and status messages
+to ++stdErr++ (instead of ++stdOut++).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2017/02/09]::
 +
 Linux distributions are starting to require that the stack be marked
 as non-executable in applications.  Because the runtime system includes
@@ -100,13 +116,8 @@ directives to the ++PPC.prim.asm++ and ++X86.prim.asm++ files as
 per https://wiki.gentoo.org/wiki/Hardened/GNU_stack_quickstart#Patching[].
 Thanks to Daniel Moerner for reporting this issue and for providing
 a pointer the to fix.
-
-//--------------------------------------------------------------------
-[2017/04/07]::
 +
-Fixed bug bugref:[179] (ml-ulex writing debug messages to stdOut).
-Both **ml-ulex** and **ml-antlr** now direct their debug and status messages
-to ++stdErr++ (instead of ++stdOut++).
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
 //--------------------------------------------------------------------
 [2016/10/15]::
