@@ -142,8 +142,8 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 +
 Further cleanup of the separation of FLINT from the front-end.
 Eliminated all references to +ModulePropLists+ (+module-plists.sml+) in
-the front end and pickling, and moved module-plists from
-Semant/modules to FLINT/trans.  +ModulePropLists+ is now only used
+the front end and in pickling, and moved ++module-plists++ from
+++Semant/modules++ to ++FLINT/trans++.  +ModulePropLists+ is now only used
 in +FLINT/trans/translate.sml+.
 +
 Revision: 4314
@@ -167,15 +167,15 @@ owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
 //--------------------------------------------------------------------
 [2016/09/14]::
 +
-Eliminated dependency of PlambdaType from the front end by adding a
-type TKind.tkind which is a simplified standin for PlambdaType.tkind
-for use during elaboration. TKind.tkind values are translated on
-demand to PlambdaType.tkind in trans/transtypes.sml. Types still has
-a tycpath type but it is defined using TKind.tkind now. New structure
-SigPropList replaces ModulePropLists
-(Semant/modules/module-plists.sml) for use in instantiate.sml.
-Instantiate is build directly as a structure so the functor
-application in Semant/modules/instantiate.sml no longer exists.
+Eliminated dependency of ++PlambdaType++ from the front end by adding a
+type ++TKind.tkind++ which is a simplified standin for ++PlambdaType.tkind++
+for use during elaboration. ++TKind.tkind++ values are translated on
+demand to ++PlambdaType.tkind++ in ++trans/transtypes.sml++. Types still has
+a ++tycpath++ type but it is defined using ++TKind.tkind++ now. The new structure
+++SigPropList++ replaces ++ModulePropLists++
+(++Semant/modules/module-plists.sml++) for use in ++instantiate.sml++.
+++Instantiate++ is now defined directly as a structure so the functor
+application in ++Semant/modules/instantiate.sml++ no longer exists.
 +
 Files changed:
 +
@@ -202,11 +202,19 @@ owner:[Dave MacQueen,http://cs.uchicago.edu/~dbm]
 [2016/09/14]::
 +
 Added support for Successor ML record-expression-punning syntax.  For
-example, one can now write
-```sml
+example, one can now define a function ++f++ as
++
+[source,sml]
+----------------
 fun f x = {x}
-```
-which defines a function with type `'a -> {x:'a}`.
+----------------
++
+which is equivalent to the definition
++
+[source,sml]
+----------------
+fun f x = {x = x}
+----------------
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
