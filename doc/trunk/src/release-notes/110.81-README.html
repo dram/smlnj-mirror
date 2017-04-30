@@ -93,12 +93,11 @@
 
 <h3>Summary:</h3>
 <p>
-This release is primarily a bugfix release, but it does add some additional
-support for
+This release fixes a number of bugs and includes code cleanup in the compiler and
+runtime system that helps prepare the ground for 64-bit support.
+There is also some additional support for
 <a href="https://github.com/SMLFamily/Proposed-Definition-of-Successor-ML"><b>Successor ML</b></a>,
 which is an evolution of the Standard ML language.
-We have also been cleaning up the front-end of the compiler and preparing the ground for
-64-bit support.
 </p>
 
 <h3>Details:</h3>
@@ -134,11 +133,11 @@ We have also been cleaning up the front-end of the compiler and preparing the gr
     </p>
   </dd>
 
-  <dt class="component">Compiler Cleanup:</dt>
+  <dt class="component">Compiler</dt>
   <dd>
     <p>
     This version eliminates dependencies on FLINT types in the front
-  end.  In particular, uses of <span class="code">PlambdaType</span> have been eliminated.
+    end.  In particular, uses of <span class="code">PlambdaType</span> have been eliminated.
     </p>
   </dd>
 
