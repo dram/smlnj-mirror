@@ -8,7 +8,7 @@ here=`pwd`
 
 for tree in admin config base smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
             ckit cml eXene smlnj-c ml-burg ml-lex heap2asm nlffi \
-            ml-lpt smldoc doc
+            asdl ml-lpt smldoc doc
 do
   if [ -d $tree -a -d $tree/.svn ] ; then
       echo Refreshing ${tree}...

@@ -59,6 +59,7 @@ smlnj ml-lex
 smlnj heap2asm
 smlnj nlffi
 
+checkout $gf/asdl asdl
 checkout $gf/ml-lpt ml-lpt
 checkout $gf/smldoc smldoc
 

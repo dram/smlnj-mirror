@@ -32,6 +32,7 @@ upgrade ml-lex
 upgrade heap2asm
 upgrade nlffi
 
+upgrade asdl
 upgrade ml-lpt
 upgrade smldoc
 
