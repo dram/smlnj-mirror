@@ -214,21 +214,21 @@ divided by operating system (Linux, OS X, Windows).
           </li>
         </ul>
       </li>
-      <li> Add a directory for <tt><i>$VERSION</i></tt>.</li>
-      <li> Copy previous index file over and update links.</li>
-<!-- this step is now hndled by the allcross script
-      <li>
-        Build tarballs:
-        <ul>
-          <li> <tt>$ for i in alpha32-unix ...; do f=sml.boot.$i; t=boot.$i.tgz; tar cfz $t $f/*; done</tt></li>
-        </ul>
+      <li> Add a directory for <tt><i>$VERSION</i></tt> in <tt>dist/working</tt>.</li>
+      <li> Create <tt><i>$VERSION</i>/index.html</tt> by copying the file from the previous
+        release and then updating it with the correct links.
       </li>
--->
       <li>
-	Copy the <tt>boot</tt> tarballs and <tt><i>$VERSION</i>-README.html</tt> file
+        Define an alias for the distribution directory.<br>
+        <tt>$ release_dir=linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt>
+      </li>
+      <li>
+	Copy the <tt>boot</tt> tarballs and various documentation files
         into the release directory.<br>
-        <tt>$ scp *.tgz linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt><br>
-        <tt>$ scp doc/doc/html/HISTORY.html linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt><br>
+        <tt>$ scp base/system/*.tgz $release_dir</tt><br>
+        <tt>$ scp base/NOTES/CYGWININSTALL $release_dir</tt><br>
+        <tt>$ scp base/NOTES/INSTALL $release_dir</tt><br>
+        <tt>$ scp base/NOTES/WININSTALL $release_dir</tt><br>
       </li>
     </ul>
   </li>
@@ -257,35 +257,11 @@ divided by operating system (Linux, OS X, Windows).
       <li> <tt>$ ./admin/build-tar-files.sh</tt></li>
     </ul>
   </li>
-  <!-- the doc.tgz file is now created by the build-tar-files.sh script [2014-12-21]
   <li>
     <p>
-    Create the documentation tarball (note that the previous step will have exported
-    a copy of the documentation source, but will not have created a tarball for it).
-    </p>
-    <p>
-    The first step is to generate the documentation:
+    Copy source tarballs and documentation into the release directory.
     </p>
     <ul>
-      <li> <tt>$ cd doc</tt>
-      <li> <tt>$ autoconf -Iconfig</tt>
-      <li> <tt>$ configure</tt>
-      <li> <tt>$ make man</tt>
-    </ul>
-    <p>
-    The second step is to create the tarball.
-    </p>
-    <ul>
-      <li> <tt>$ tar -zcf ../doc.tgz doc</tt>
-    </ul>
-  </li>
-  -->
-  <li>
-    <p>
-    Copy tarballs and documentation into the release directory.
-    </p>
-    <ul>
-      <li> <tt>$ release_dir=linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt>
       <li> <tt>$ scp *.tgz $release_dir</tt>
       <li> <tt>$ scp doc/doc/html/HISTORY.html $release_dir</tt>
       <li> <tt>$ scp doc/doc/html/readme/<i>$VERSION</i>-README.html $release_dir</tt>
@@ -478,7 +454,7 @@ prompt.
     The file <tt>smlnj.msi</tt> produced is the final installer for Windows.
 </li>
 
-<li>[cygwin] <tt>$ scp smlnj.msi linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i>/smlnj-<i>$VERSION</i>.msi</tt><br>
+<li>[cygwin] <tt>$ scp smlnj.msi $release_dir/smlnj-<i>$VERSION</i>.msi</tt><br>
     Copy the MSI file to the distribution directory; we add a <tt><i>$VERSION</i></tt> tag so that folks can
     keep multiple downloads distinct.
 </li>
