@@ -93,9 +93,11 @@
 
 <h3>Summary:</h3>
 <p>
-This release fixes a number of bugs and includes code cleanup in the compiler and
-runtime system that helps prepare the ground for 64-bit support.
-There is also some additional support for
+This release has some fairly substantial <i>under-the-hood</i> changes to the compiler
+to clean up the interface between the front-end and FLINT, and changes to the
+compiler and runtime system to prepare the ground for 64-bit support.
+The release also contains some bug fixes and adds
+additional support for
 <a href="https://github.com/SMLFamily/Proposed-Definition-of-Successor-ML"><b>Successor ML</b></a>,
 which is an evolution of the Standard ML language.
 </p>
@@ -168,7 +170,7 @@ which is an evolution of the Standard ML language.
     <p>
     Change the interface to <span class="code">AMD64Gen</span>; the
     <span class="code">signBit</span> and <span class="code">negateSignBit</span>
-    callbacks now returns an <span class="code">MLTree.rexp</span> (instead of a label).
+    callback functions now return an <span class="code">MLTree.rexp</span> (instead of a label).
     </p>
   </dd>
 
