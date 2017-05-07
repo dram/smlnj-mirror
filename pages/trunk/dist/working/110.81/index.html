@@ -1,22 +1,29 @@
-<!-- Copyright (c) 2014 The Fellowship of SML/NJ -->
+<!-- Copyright (c) 2017 The Fellowship of SML/NJ -->
 
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<!DOCTYPE html>
 <HTML>
-  <head>
-    <title>110.81 Distribution</title>
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <title>SML/NJ 110.81 Distribution</title>
   <style>
+    body {
+      background-color: white;
+    }
     dd {
       margin-bottom: 0.5em;
     }
     .file-list a {
       font-family: "Courier", monospace;
     }
+    span.tt {
+      font-family: "Courier", monospace;
+    }
   </style>
-<BODY BGCOLOR="ffffff">
-<h1>110.81 Distribution Files</h1>
+</head>
 <body>
-<HR>
+<h1>SML/NJ 110.81 Distribution Files</h1>
+
+<hr />
 
 <h3>Downloads</h3>
 
@@ -26,8 +33,8 @@
     <p>
     The only file you need to download manually is
     <a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/config.tgz">config.tgz</a>.
-    Unpack, configure by editing <tt>config/targets</tt>, and install
-    by running <tt>config/install.sh</tt>.  The installer
+    Unpack, configure by editing <span class="tt">config/targets</span>, and install
+    by running <span class="tt">config/install.sh</span>.  The installer
     automatically downloads any additional files it might need.
     For more information, see <a href="INSTALL">INSTALL</a>.
     </p>
@@ -56,9 +63,9 @@
     <p>
     For information on how to use access the subversion repository,
     refer to our <a href="../../../svn.html">subversion recipe page</a>.
-    <br>
+    <br />
     <b>Warning:</b>  When pulling the latest sources via subversion,
-    there is no guarantee that <tt>config/install.sh</tt> will operate
+    there is no guarantee that <span class="tt">config/install.sh</span> will operate
     successfully due to a lack of usable bootfiles.
     In this case you might be able to
     generate new bootfiles using the bootstrap compiler (of an older
@@ -71,84 +78,73 @@
 
 <h3>Documentation</h3>
 <ul class="file-list">
-<li><a href="110.81-README.html">README</a>
-<li><a href="HISTORY.html">CHANGE LOG</a>
-<li><a href="INSTALL">INSTALL</a>
-<li><a href="WININSTALL">WININSTALL</a>
-<li><a href="MACOSXINSTALL">MACOSXINSTALL</a>
-<li><a href="CYGWININSTALL">CYGWININSTALL</a>
+<li><a href="110.81-README.html">README</a></li>
+<li><a href="HISTORY.html">CHANGE LOG</a></li>
+<li><a href="INSTALL">INSTALL</a></li>
+<li><a href="WININSTALL">WININSTALL</a></li>
+<li><a href="MACOSXINSTALL">MACOSXINSTALL</a></li>
+<li><a href="CYGWININSTALL">CYGWININSTALL</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/doc.tgz">doc.tgz</a></li>
 </ul>
 
 <h3>Binary Files</h3>
 <ul class="file-list">
-<!--
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.alpha32-unix.tgz">boot.alpha32-unix.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.hppa-unix.tgz">boot.hppa-unix.tgz</a>
--->
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.ppc-unix.tgz">boot.ppc-unix.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.sparc-unix.tgz">boot.sparc-unix.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.x86-unix.tgz">boot.x86-unix.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.x86-win32.tgz">boot.x86-win32.tgz</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.ppc-unix.tgz">boot.ppc-unix.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.sparc-unix.tgz">boot.sparc-unix.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.x86-unix.tgz">boot.x86-unix.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/boot.x86-win32.tgz">boot.x86-win32.tgz</a></li>
 </ul>
 
 <h3>Source files</h3>
 <ul class="file-list">
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/config.tgz">config.tgz</a>
-</p>
-
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/cm.tgz">cm.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/compiler.tgz">compiler.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/runtime.tgz">runtime.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/system.tgz">system.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/MLRISC.tgz">MLRISC.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/smlnj-lib.tgz">smlnj-lib.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/old-basis.tgz">old-basis.tgz</a>
-</p>
-
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ckit.tgz">ckit.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/nlffi.tgz">nlffi.tgz</a>
-</p>
-
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/cml.tgz">cml.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/eXene.tgz">eXene.tgz</a>
-</p>
-
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ml-lpt.tgz">ml-lpt.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ml-lex.tgz">ml-lex.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ml-yacc.tgz">ml-yacc.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ml-burg.tgz">ml-burg.tgz</a>
-</p>
-
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/pgraph.tgz">pgraph.tgz</a>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/trace-debug-profile.tgz">trace-debug-profile.tgz</a>
-</p>
-
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/heap2asm.tgz">heap2asm.tgz</a>
-</p>
-
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/smlnj-c.tgz">smlnj-c.tgz</a>
-</p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/config.tgz">config.tgz</a></li>
 </ul>
 
-<h3>Documentation</h3>
 <ul class="file-list">
-<p>
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/doc.tgz">doc.tgz</a>
-</p>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/cm.tgz">cm.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/compiler.tgz">compiler.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/runtime.tgz">runtime.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/system.tgz">system.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/MLRISC.tgz">MLRISC.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/smlnj-lib.tgz">smlnj-lib.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/old-basis.tgz">old-basis.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ckit.tgz">ckit.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/nlffi.tgz">nlffi.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/cml.tgz">cml.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/eXene.tgz">eXene.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ml-lpt.tgz">ml-lpt.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ml-lex.tgz">ml-lex.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ml-yacc.tgz">ml-yacc.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/ml-burg.tgz">ml-burg.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/pgraph.tgz">pgraph.tgz</a></li>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/trace-debug-profile.tgz">trace-debug-profile.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/heap2asm.tgz">heap2asm.tgz</a></li>
+</ul>
+
+<ul class="file-list">
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/smlnj-c.tgz">smlnj-c.tgz</a></li>
 </ul>
 
 <h3>Installer package for Mac OX X 10.6+ on Intel (Snow Leopard or later)<a id="macos-installer"></a></h3>
 <p>
-As of this release, the Mac OS X installer (on Intel) puts SML/NJ in the directory <tt>/usr/local/smlnj</tt>.
-Future releases will update this installation in place (<i>i.e.</i>, overwrite it).
+The Mac OS X installer (on Intel) puts SML/NJ in the directory
+<span class="tt">/usr/local/smlnj</span>; if you have a previous version installed, then it will
+be updated in place.
 If you wish to install at a different location, you should use the build procedure for Unix systems.
 </p>
 <ul class="file-list">
@@ -159,16 +155,14 @@ If you wish to install at a different location, you should use the build procedu
 </ul>
 
 <h3>Mac OS X Disk Image for Mac OS X 10.5 (Leopard) on PPC</h3>
-<ul class="file-list">
-<li>
-  <a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/smlnj-ppc-110.81.dmg">smlnj-ppc-110.81.dmg</a>
-  &mdash; for Mac OS X 10.5 (Leopard) on PPC
-</li>
-</ul>
+<p>
+We no longer have access to a working PowerPC Mac, so we are no longer providing
+a Mac OS X/PowerPC installer.  If you wish to install SML/NJ 110.81 on such a
+machine, you should use the build procedure for Unix systems.
 
 <h3>MS Windows installer</h3>
 <ul class="file-list">
-<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/smlnj-110.81.msi">smlnj-110.81.msi</a>
+<li><a href="http://smlnj.cs.uchicago.edu/dist/working/110.81/smlnj-110.81.msi">smlnj-110.81.msi</a></li>
 </ul>
 
 <!--
@@ -178,19 +172,15 @@ If you wish to install at a different location, you should use the build procedu
 </ul>
 -->
 
-
-<HR>
-<CENTER><STRONG>
+<hr />
+<div style="text-align:center;"><STRONG>
 | <A HREF="../../../index.html">Home</A>
 | <A HREF="../index.html">Downloads</A>
 |
-</STRONG></CENTER>
-<HR>
+</STRONG></div>
+<hr />
 
-Send your comments to <img src="../../../smlnj-list-logo.png" align=center>.<br>
-<FONT SIZE="-3">
-  Copyright &#169; 2017, SML/NJ Fellowship.
-  <BR>
-</FONT>
-</BODY>
-</HTML>
+Send comments to <img src="../../../smlnj-list-logo.png" alt="smlnj-dev-list" style="vertical-align: middle;"><br />
+<span style="font-size: small">Copyright &#169; 2017, SML/NJ Fellowship.</span><br />
+</body>
+</html>
