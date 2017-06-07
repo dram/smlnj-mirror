@@ -91,6 +91,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2017/06/07]::
++
+Updated _arch-n-os script to recognize macOS 10.13 (High Sierra)
+as a valid target.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2017/05/17]::
 +
 Fixed a bug in the way that JSON string values were being printed.
