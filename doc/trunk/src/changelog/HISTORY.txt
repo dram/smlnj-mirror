@@ -91,6 +91,28 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2017/08/12]::
++
+Changed the way that we test for allocation-space addresses in minor GCs.
+Instead of using the BIBOP, we now do a pointer range test.  On 32-bit
+systems, this change results in a small (~0.13%) performance boost, but
+we expect a bigger impact on 64-bit hardware, where the cost of BIBOP
+probes will be higher and there are more registers available to hold
+the nursery bounds.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2017/08/12]::
++
+Fixed some issues in build-literals.c.  These were mostly false
+positives in the assertions, but there was also a bug in the way
+that the available space was tracked that could conceivably
+result in a crash (but was very unlikely).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2017/06/07]::
 +
 Updated _arch-n-os script to recognize macOS 10.13 (High Sierra)
