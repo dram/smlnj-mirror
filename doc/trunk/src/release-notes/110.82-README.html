@@ -113,6 +113,10 @@ which is an evolution of the Standard ML language.
   <dd>
   </dd>
 
+  <dt class="component">Run-time system</dt>
+  <dd>
+  </dd>
+
   <dt class="component">SML/NJ Library:</dt>
   <dd>
   </dd>
@@ -134,12 +138,18 @@ which is an evolution of the Standard ML language.
     for more details.
     </p>
     <table class="buglist">
+      <tr><td class="bugid">185</td><td>Bring command line help text into parity with man page.</td></tr>
 <!--      <tr><td class="bugid">XXX</td><td>DESCRIPTION</td></tr> -->
     </table>
     <p>The following unnumbered bugs were also fixed:
     </p>
     <ul class="buglist">
       <li>JSON Library: printing of strings was fixed to match JSON specification.</li>
+      <li>Eliminated false positives in assertion checking in
+        <span class="tt">build-literals.c</span>.
+        Also fixed a bookkeeping bug in the tracking of available space in
+	<span class="tt">build-literals.c</span>.
+      </li>
     </ul>
 
 <h3>Supported systems:</h3>

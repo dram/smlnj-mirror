@@ -91,6 +91,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2017/08/28]::
++
+Fixed bug bugref:[185] (Bring command line help text into parity with man page).
+Added missing options (++@SMLversion++ and ++@SMLsuffix++) to the
+help message that is printed for the command "++sml -h++".  Also
+adjusted the order of options in the help message, and in the man
+page, so that the orders match.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2017/08/12]::
 +
 Changed the way that we test for allocation-space addresses in minor GCs.
@@ -160,7 +171,7 @@ assembly code, this marking was not happening.  We've added ++.section++
 directives to the ++PPC.prim.asm++ and ++X86.prim.asm++ files as
 per https://wiki.gentoo.org/wiki/Hardened/GNU_stack_quickstart#Patching[].
 Thanks to Daniel Moerner for reporting this issue and for providing
-a pointer the to fix.
+a pointer to the fix.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
