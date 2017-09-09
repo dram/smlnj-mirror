@@ -79,6 +79,17 @@ All paths are relative the the `base` module.
 * The `base/compiler/CodeGen/amd64` code generator will probably need some cleanup,
   since it was written for a pseudo-64-bit implementation.
 
+### MLRISC issues
+
+There are some issues with the current MLRISC support for AMD64.
+
+* The binary instruction encoding in the `amd64.mdl` was never completed
+
+* The instruction selection mechanism in `amd64/mltree/amd64.sml` is based on
+  the register-poor `x86`, instead of a RISC-type architecture.  This choice
+  may explain the poor floating-point performance for this architecture in
+  the Manticore compiler.
+
 ### Basis Library issues
     
 * Default integer types: `Int31.int` for 32-bit machines and `Int63.int` for 64-bit
@@ -103,8 +114,10 @@ problems.
 
 To support a 64-bit address space, we will need to implement the multi-level
 BIBOP support.  We should probably increase the size of the `BIBOP_PAGE_SZB`
-to 256K (18 bits), but we will still need a 3-level table to cover a 48-bit
+to 256K (18 bits), but we will still need a 2-level table to cover a 48-bit
 virtual address space.  An alternative might be some form of hashing.
+*UPDATE* experiments show that the two-level table works best, but we
+replace bibop tests in the minor-gc with address-range tests.
 
 Object descriptors can be left as is for now (low 7 bits), which will allow
 the length field to support much bigger objects.  We will want to add a
