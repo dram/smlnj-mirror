@@ -93,7 +93,7 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2017/09/18]::
 +
-Fixed bug bugref:[173] (status code returned by sml REPL).  This fix
+Fixed bug bugref:[183] (status code returned by sml REPL).  This fix
 restores the version 110.79 behavior of having +sml foo.sml+ exit with
 a non-zero status when there is a type-checking error in ++foo.sml++.
 It also cleans up the error messages associated with +use+ when there
