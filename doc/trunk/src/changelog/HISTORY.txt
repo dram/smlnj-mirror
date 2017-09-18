@@ -93,6 +93,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2017/09/18]::
 +
+Removed FLINT primops (and their CPS counterparts) that are not
+in the +InlineT+ structure and, thus, are never used by the compiler.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2017/09/18]::
++
 Fixed bug bugref:[123] (missing nonexhaustive bind warning). The +mkVBs+
 function in +FLINT/trans/translate.sml++ was adding a redundant default
 rule by calling ++ElabUtil.completeMatch++ after a default rule had
