@@ -93,6 +93,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2017/09/18]::
 +
+Fixed bug bugref:[123] (missing nonexhaustive bind warning). The mkVBs
+function in FLINT/trans/translate.sml was adding a redundant default
+rule by calling ElabUtil.completeMatch after a default rule had
+already been explicitly added to the match for a let binding.
++
+owner:[David MacQueen,http://cs.uchicago.edu/~dbm]
+
+//--------------------------------------------------------------------
+[2017/09/18]::
++
 Fixed bug bugref:[183] (status code returned by sml REPL).  This fix
 restores the version 110.79 behavior of having +sml foo.sml+ exit with
 a non-zero status when there is a type-checking error in ++foo.sml++.
