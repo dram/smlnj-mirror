@@ -77,8 +77,8 @@ checkout(){
     source=$1/$release
     target=$2
     if [ ! -d $target ] ; then
-	echo Checking out $source as $target
-	svn $command $source $target
+	echo "svn $command $revision $source $target"
+	svn $command $revision $source $target
     else
 	echo Tree $target already exists.
     fi
