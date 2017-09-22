@@ -42,6 +42,10 @@ All paths are relative the the `base` module.
     - `compiler/CodeGen/cpscompile/spill-new.sml`
     - `compiler/CodeGen/cpscompile/mlriscGen.sml`
 
+* The conversion from PLambda to FLINT has a 31-bit assumption
+  Files:
+    - `compiler/FLINT/plambda/flintnm.sml`
+
 * The `CPS.cty` datatype needs to be extended to include an `INT64t` constant
   (or perhaps an `INTt of int` constructor).<br/>
   **Note:** there is an interaction between this issue and the wrapping/unwrapping
@@ -72,12 +76,21 @@ All paths are relative the the `base` module.
     - `compiler/CodeGen/cpscompile/limit.sml`
     - `compiler/CodeGen/cpscompile/spill-new.sml`
 
-* Should the default machine-spec word size be changed to 64?<br/>
+* Should the default machine-spec word size be changed to 64?  Also, what (if any)
+  relation is there between the `Target` module and the machine specification?<br/>
   Files:
     - `base/compiler/CodeGen/main/machspec.sml`
 
 * The `base/compiler/CodeGen/amd64` code generator will probably need some cleanup,
   since it was written for a pseudo-64-bit implementation.
+
+* To support cross compiling from 32-bit hosts to 64-bit targets, we will need to
+  replace fixed-precision representations of literals with IntInf.int.  This change
+  has already been made for the CPS representation, but it will also need to be
+  done for the FLINT representation, and for some of the CPS-related passes.</br>
+    - `base/compiler/FLINT/cps/switch.sml`
+    - `base/compiler/FLINT/main/literals.sml`
+    - `base/compiler/CodeGen/main/mlriscGen.sml`
 
 ### MLRISC issues
 
@@ -91,7 +104,7 @@ There are some issues with the current MLRISC support for AMD64.
   the Manticore compiler.
 
 ### Basis Library issues
-    
+
 * Default integer types: `Int31.int` for 32-bit machines and `Int63.int` for 64-bit
   machines.
 
