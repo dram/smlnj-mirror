@@ -1,0 +1,54 @@
+tycons and ptnums and FLINT primtycs
+
+In 110.81 FLINT has identifying "ptnum" values to PRIMITIVE tycons
+(e.g. intTycon). These are used to translate front-end primitive
+tycons to FLINT's primitive type constructors (ptyc and primtyc
+in FLINT/kernel/primtyc.sml).
+
+Files:
+ElabData/basics/core-ptnum.sml  (* obsolete, deleted *)
+Elaborator/basics/ptnum.sml     (* obsolete, deleted *)
+ElabData/types/core-basictypes.sml  (* merged into basictypes.sml and deleted *)
+Elaborator/types/basictypes.sml
+FLINT/kernel/primtyc.sml        (* mapping from primtycnum to primtyc *)
+
+(* based on basictypes.sml and primtyc.sml *)
+[[tycon => int (ptnums) => PrimTyc.ptyc]]
+arrowTycon       => ptn_arrow  => PT_ARROW
+intTycon         => ptn_int31  => PT_INT31
+word32Tycon      => ptn_int32  => PT_INT32
+intinfTycon      => ptn_intinf => PT_INTINF
+realTycon        => ptn_real   => PT_REAL
+wordTycon        => ptn_int31  => PT_INT31
+word8Tycon       => ptn_int31  => PT_INT31
+stringTycon      => ptn_string => PT_STRING
+charTycon        => ptn_int31  => PT_INT31
+exnTycon         => ptn_exn    => PT_EXN
+contTycon        => ptn_cont   => PT_CONT
+ccontTycon       => ptn_ccont  => PT_CCONT
+arrayTycon       => ptn_array  => PT_ARRAY
+vectorTycon      => ptn_vector => PT_VECTOR
+objectTycon      => ptn_obj    => PT_OBJ
+c_functionTycon  => ptn_cfun   => PT_CFUN
+word8arrayTycon  => ptn_barray => PT_BARRAY
+real64arrayTycon => ptn_rarray => PT_RARRAY
+spin_lockTycon   => ptn_slock  => PT_SLOCK
+
+(datatypes with "psuedo" ptns)
+refTycon  => ptn_ref => PT_REF   - in FLINT/trans/transtypes.sml
+listTycon (=> ptn_list => PT_LIST; not used)
+optionTycon (=> ptn_option => PT_OPTION; not used)
+
+(special ptns; used, but no associated primitive tycons)
+_ => ptn_void => PT_VOID
+
+(unused ptns and their FLINT ptycs)
+_ => ptn_etag => PT_ETAG
+_ => ptn_boxed => PT_BOXED
+_ => ptn_tgd => PT_TGD
+_ => ptn_utgd => PT_UTGD
+_ => ptn_tnsp => PT_TNSP
+_ => ptn_dyn => PT_DYN
+
+These have now (110.82) been eliminated and primtyc.sml now maps
+directly from front-end tycons to primtyc constructors (pt_fromtyc).

@@ -1,0 +1,45 @@
+
+Primops in 110.81
+-----------------
+
+Files:
+Semant/statenv
+  prim.sml  (structure PrimEnv, containing primEnv)
+  primoptypemap.sml
+
+FLINT/
+  kernel/
+    primop.sml
+  trans/
+    primopmap.sml
+    translate.sml
+
+In the front-end, primops are represented by strings (names). These are
+defined in prim.sml in the value allPrimops, which is used to build the
+InLine structure (which probably should have been called the Primop structure).
+The corresponding types for the primops are defined in a red-black mapping
+primopTypes (used to define the function primopTypeMap) in primoptypemap.sml.
+This type map is used to assign types when building the InLine structure, and
+also in FLINT/trans/translate.sml.
+
+In FLINT, primops are defined as a datatype PrimOp.primop in kernel/primop.sml,
+and the primop names from InLine are mapped to corresponding primop values
+using the map primops (yielding function primopMap) in PrimOpMap (trans/primopmap.sml).
+
+Primops in 110.82
+-----------------
+
+Files:
+Semant/prim/
+  primop-bindings.sml
+  prim-env.sml
+Semant/prim/
+  primoptypemap.sml  (* obsolete, to be deleted *)
+
+ElabData/prim/
+  primop.{sig,sml}
+  primop-id.{sig,sml}
+  primop-bind.sml
+  cproto.sml
+  prim-c-types.sml  (* another version of MLRISC/c-calls/c-types.sml *)
+
