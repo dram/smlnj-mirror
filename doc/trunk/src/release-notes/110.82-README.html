@@ -152,6 +152,11 @@ which is an evolution of the Standard ML language.
         Also fixed a bookkeeping bug in the tracking of available space in
 	<span class="tt">build-literals.c</span>.
       </li>
+      <li>Fixed a bug in the <span class="code">IntInf.mod</span> and
+        <span class="code">IntInf.rem</span> operators,
+        where the <span class="code">Div</span> exception was <b>not</b>
+	getting raised when both arguments are zero.
+      </li>
     </ul>
 
 <h3>Supported systems:</h3>

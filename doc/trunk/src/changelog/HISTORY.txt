@@ -91,6 +91,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2017/10/01]::
++
+Fixed unnumbered bug in ++IntInf.mod++ and ++IntInf.rem++ functions,
+where the ++Div++ exception was *not* getting raised when both
+arguments are ++0++.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2017/09/18]::
 +
 Removed FLINT primops (and their CPS counterparts) that are not
