@@ -46,6 +46,32 @@ All paths are relative the the `base` module.
   Files:
     - `compiler/FLINT/plambda/flintnm.sml`
 
+* The representation of FLINT assumes four kinds of integer literals: `INT`, `INT32`,
+  `WORD`, and `WORD32`.  These are reduced to two kinds when converting to CPS (`INT`
+  and `INT32`).  The FLINT representation of constructors in switch statements has
+  a similar breakdown.  It is not clear if the word vs. int distinction is important
+  for FLINT, but we should generalize the names to represent tagged vs. untagged integers
+  and use `IntInf.int` to represent the actual values.  We may also want to add a
+  size attribute, so that we can support heap-allocated literals (e.g., `Int64.int` on
+  32-bit machines or `IntInf.int`) in the future.</br>
+  Files:
+    - `compiler/FLINT/cps/convert.sml`
+    - `compiler/FLINT/flint/chkflint.sml`
+    - `compiler/FLINT/flint/flint.sig`
+    - `compiler/FLINT/flint/flint.sml`
+    - `compiler/FLINT/flint/ppflint.sml`
+    - `compiler/FLINT/opt/fcontract.sml`
+    - `compiler/FLINT/opt/lift.sml`
+    - `compiler/FLINT/opt/recover.sml`
+    - `compiler/FLINT/plambda/chkplexp.sml`
+    - `compiler/FLINT/plambda/flintnm.sml`
+    - `compiler/FLINT/plambda/plambda.sig`
+    - `compiler/FLINT/plambda/plambda.sml`
+    - `compiler/FLINT/plambda/pplexp.sml`
+    - `compiler/FLINT/plambda/reorder.sml`
+    - `compiler/FLINT/plambda/rpplexp.sml`
+    - `compiler/FLINT/trans/translate.sml`
+
 * The `CPS.cty` datatype needs to be extended to include an `INT64t` constant
   (or perhaps an `INTt of int` constructor).<br/>
   **Note:** there is an interaction between this issue and the wrapping/unwrapping
