@@ -10,10 +10,18 @@ ElabData/basics/core-ptnum.sml  (* obsolete, deleted *)
 Elaborator/basics/ptnum.sml     (* obsolete, deleted *)
 ElabData/types/core-basictypes.sml  (* merged into basictypes.sml and deleted *)
 Elaborator/types/basictypes.sml
-FLINT/kernel/primtyc.sml        (* mapping from primtycnum to primtyc *)
+FLINT/kernel/primtyc.{sig,sml}  (* mapping from primtycnum to primtyc *)
 
-(* based on basictypes.sml and primtyc.sml *)
-[[tycon => int (ptnums) => PrimTyc.ptyc]]
+Integer ptnums are defined in ElabData/basics/core-ptnum.sml and
+Elaborator/basics/ptnum.sml. These are associated with particular
+primitive tycons (as the parameter to the PRIMITIVE constructor) when
+these are defined in ElabData/types/core-basictypes.sml or
+Elaborator/types/basictypes.sml.  The ptnums are then mapped to
+FLINT's version of primitive types in FLINT/kernel/primtyc.sml.
+
+(* mappings defined in (core-)basictypes.sml and primtyc.sml *)
+[[tycon          => ptnum: int => PrimTyc.ptyc]]
+
 arrowTycon       => ptn_arrow  => PT_ARROW
 intTycon         => ptn_int31  => PT_INT31
 word32Tycon      => ptn_int32  => PT_INT32
@@ -50,5 +58,11 @@ _ => ptn_utgd => PT_UTGD
 _ => ptn_tnsp => PT_TNSP
 _ => ptn_dyn => PT_DYN
 
-These have now (110.82) been eliminated and primtyc.sml now maps
-directly from front-end tycons to primtyc constructors (pt_fromtyc).
+
+110.82 Changes
+--------------
+
+In 110.82, ptnums have been eliminated and primtyc.sml now maps
+directly from front-end tycons to primtyc constructors in the
+function pt_fromtyc defined in FLINT/kernel/primtyc.sml.
+

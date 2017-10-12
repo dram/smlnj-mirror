@@ -14,7 +14,9 @@ FLINT/
     primopmap.sml
     translate.sml
 
-In the front-end, primops are represented by strings (names). These are
+New Primops (110.82)
+
+In 110.81, front-end primops are represented by strings (names). These are
 defined in prim.sml in the value allPrimops, which is used to build the
 InLine structure (which probably should have been called the Primop structure).
 The corresponding types for the primops are defined in a red-black mapping
@@ -33,13 +35,52 @@ Files:
 Semant/prim/
   primop-bindings.sml
   prim-env.sml
-Semant/prim/
-  primoptypemap.sml  (* obsolete, to be deleted *)
+  (* Semant/prim/primoptypemap.sml, obsolete and deleted *)
 
 ElabData/prim/
   primop.{sig,sml}
   primop-id.{sig,sml}
   primop-bind.sml
   cproto.sml
-  prim-c-types.sml  (* another version of MLRISC/c-calls/c-types.sml *)
+  prim-c-types.sml  (* duplicate version of MLRISC/c-calls/c-types.sml *)
+
+[Note: There is probably no justification for splitting these files
+between Semant and ElabData. All the primop-related files should be in
+ElabData/prim. Fixing this will require updating the relevant cm files.]
+
+In 110.82, the primop datatype has been moved from FLINT/kernel/primop.sml
+to ElabData/prim/primop.{sig,sml}, allowing these primop values to be
+used in the front-end, specifically in the construction of the InLine
+structure in Semant/prim/prim-env.sml.
+
+The association between a primop name (a string), its (intrinsic)
+type, and the corresponding primop value is represented by the type
+primop_bind defined in PrimopBind (ElabData/prim/primop-bind.sml). The
+set of all such primop bindings is collected in the list
+PrimopBindings.prims (Semant/prim/primop-bindings.sml).
+
+The list of prims is then used in PrimEnv (Semant/prim/prim-env.sml)
+to construct the InLine structure that is bound in the primitive
+environment.
+
+prim-c-types.sml is a duplicate of the file
+MLRISC/c-calls/c-types.sml, which defines a type c_proto, which is
+referred to in the types of the RAW_CCALL constructor in PrimOp.
+This duplication should be fixed (as should the duplication of the
+file within MLRISC itself!).  The argument of RAW_CCALL is an option
+type and the value supplied in the construction of PrimopBindings is
+NONE. Perhaps the use of the c_proto type (and hence the PrimCTypes
+structure) could be avoided in PrimOp, eliminating the dependency.
+
+cproto.sml defines a structure CProto. This is not needed for primops
+in the front-end.  It is used only in FLINT/trans/translate.sml and
+FLINT/cps/convert.sml.  It therefore probably does not belong in
+ElabData/prim (or in the front-end in general).
+
+
+
+
+
+
+
 
