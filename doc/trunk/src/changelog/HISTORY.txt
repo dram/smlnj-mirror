@@ -3,7 +3,7 @@ Standard ML of New Jersey Change Log
 The Fellowship of SML/NJ
 {version}, {releasedate}:
 
-This file documents changes to the Standard ML of New Jersey system since
+This file documents changes to the *Standard ML of New Jersey* system since
 March of 2000 (around Version 110.26).  The change log  primarily covers
 the compiler, the compilation manager (*CM*), the *MLRISC* library, and
 the runtime system.  There are occasional entries about other components
@@ -105,6 +105,14 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2017/09/20]::
 +
+Various bits of cleanup in the handling of primitive operations, such
+as removing the +ptnum+ mechanism for translating from Absyn to FLINT.
++
+owner:[David MacQueen,http://cs.uchicago.edu/~dbm]
+
+//--------------------------------------------------------------------
+[2017/09/20]::
++
 Added +Target+ module, which specifies the properties of the target
 (__e.g.__, the size in bits of the default int type).  Reworked the
 generation of the +InlineT+ structure to be target specific.
@@ -123,7 +131,7 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 [2017/09/18]::
 +
 Fixed bug bugref:[123] (missing nonexhaustive bind warning). The +mkVBs+
-function in +FLINT/trans/translate.sml++ was adding a redundant default
+function in +FLINT/trans/translate.sml+ was adding a redundant default
 rule by calling ++ElabUtil.completeMatch++ after a default rule had
 already been explicitly added to the match for let bindings.
 +
@@ -185,7 +193,7 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 [2017/05/17]::
 +
 Fixed a bug in the way that JSON string values were being printed.
-The code previously assumed that C-style esaping will work, but
+The code previously assumed that C-style escaping will work, but
 that is not true for "\'" (as well as for control and non-ASCII
 characters).  The new implementation assumes that the string value
 is UTF-8 and uses the "\\u" escape sequences for characters outside
