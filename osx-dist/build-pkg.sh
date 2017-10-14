@@ -19,7 +19,7 @@ ID=org.smlnj.x86.pkg
 ROOT=$(pwd)
 RSRC=Resources
 
-# you need a developer ID to sign the final package; 
+# you need a developer ID to sign the final package;
 #
 case x"$USER" in
   xjhr) SIGN="Developer ID Installer: John Reppy" ;;
@@ -95,9 +95,13 @@ mkdir $RSRC
 sed -e "s/VERSION/$VERSION/g" components/distribution_xml.in > $RSRC/distribution.xml
 cp -p components/smlnj-background.jpg $RSRC/background.jpg
 sed -e "s/VERSION/$VERSION/g" components/welcome_html.in > $RSRC/welcome.html
-cp -p $DISTROOT/doc/html/readme/$VERSION-README.html $RSRC/readme.html
 cp -p components/license.html $RSRC/license.html
 cp -p components/conclusion.html $RSRC/conclusion.html
+
+# copy the readme, while adjusting the fontsize for the installer panel
+#
+sed -e 's/font-size: 12pt;/font-size: 9pt;/' \
+  $DISTROOT/doc/html/readme/$VERSION-README.html > $RSRC/readme.html
 
 # build package
 #
