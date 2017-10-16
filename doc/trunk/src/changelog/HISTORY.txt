@@ -88,7 +88,27 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-//== Recent updates
+== Recent updates
+
+//--------------------------------------------------------------------
+[2017/10/16]::
++
+Moved the check for whether a int or word literal is in range for
+its type from the absyn->plambda translation to the overload
+resolver (++compiler/Elaborator/types/overload.sml++).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2017/10/14]::
++
+Part 1 of an overhaul of the way that the compiler treats int/word
+literals.  The end goal is to use ++IntInf.int++ to represent literals
+throughout all phases of the compiler.  In this step, we changed the
+representation of literals in the ++Absyn++ representation (earlier
+representations already used IntInf.int).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
 //====================================================================
 == Version 110.82; 2017/10/16
