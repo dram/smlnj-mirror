@@ -394,15 +394,14 @@ prompt.
 </ul>
 </li><br>
 
-<li>Install Visual C++ Express (or VisualStudio)
+<li>Install Visual Studio (or Visual Studio Community)
 <ul>
-   <li>URL: <tt>http://msdn.microsoft.com/vstudio</tt></li>
-   <li>search for Visual C++ Express to find download page</li>
+   <li><tt>https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio</tt></li>
 </ul>
 </li><br>
 
 <li>[cygwin] create a directory to build a release. This directory path
-   must not contain a number.<br>
+   must not contain a number or spaces.<br>
    (in my case: <tt>/home/jhr/Work/smlnj/release</tt> or <tt>c:\cygwin\home\jhr\Work\smlnj\release</tt>)
 </li><br>
 
@@ -423,8 +422,10 @@ prompt.
     Go to build directory.</li>
 </li><br>
 
-<li>[cygwin] <tt>$ ../gf/admin/checkout-all.sh -e</tt><br>
-   Run checkout-all.sh script to export the source files.
+<li>[cygwin] <tt>$ ../gf/admin/checkout-all.sh --release $VERSION -e</tt><br>
+   Run checkout-all.sh script to export the source files; the <tt>--release</tt> option
+   requires that <tt>make-release</tt> was already run to tag the release sources
+   (as described above).
 </li><br>
 
 <li>[cygwin] <tt>$ touch smlnj-lib/HTML4/*.l.sml smlnj-lib/HTML4/*.g.sml</tt><br>
@@ -462,6 +463,6 @@ prompt.
 
     <hr>
 <!-- Created: Mon May  7 13:30:08 CDT 2007 -->
-<!-- hhmts start -->Last modified: October 4, 2015 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: October 18, 2017 <!-- hhmts end -->
   </body>
 </html>
