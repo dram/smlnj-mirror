@@ -105,18 +105,20 @@ sed -e 's/font-size: 12pt;/font-size: 9pt;/' \
 
 # build package
 #
-pkgbuild --identifier $ID --scripts components/scripts/ --install-location /usr/local/smlnj --root $DISTROOT smlnj.pkg
+PKG_OPTS="--identifier $ID --version $VERSION --scripts components/scripts/ \
+  --install-location /usr/local/smlnj --root $DISTROOT"
+pkgbuild $PKG_OPTS smlnj.pkg
 
 # build distribution package
 #
+BUILD_OPTS="--package-path components --resources $RSRC \
+  --distribution $RSRC/distribution.xml ./smlnj-x86-$VERSION.pkg"
 if [ x"$SIGN" = xnone ] ; then
   echo "$CMD: building unsigned package smlnj-x86-$VERSION.pkg"
-  productbuild --package-path components --resources $RSRC \
-      --distribution $RSRC/distribution.xml ./smlnj-x86-$VERSION.pkg
+  productbuild $BUILD_OPTS
 else
   echo "$CMD: building signed package smlnj-x86-$VERSION.pkg"
-  productbuild --sign "$SIGN" --package-path components --resources $RSRC \
-      --distribution $RSRC/distribution.xml ./smlnj-x86-$VERSION.pkg
+  productbuild --sign "$SIGN" $BUILD_OPTS
 fi
 
 # cleanup
