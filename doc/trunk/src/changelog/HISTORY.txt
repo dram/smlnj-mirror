@@ -91,6 +91,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/04/12]::
++
+Fix bug bugref:[194] (++Real.fromString++ overflows or hangs).  There
+were two issues here.  First, the +Overflow+ exception was being raised
+when scanning large exponents, but it was not being handled by the
+scanning code.  The second issue was that scaling loop for large
+exponents that did not overflow did not terminate once infinity (or zero)
+was reached, so it could take a long time.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2017/10/16]::
 +
 Moved the check for whether a int or word literal is in range for
