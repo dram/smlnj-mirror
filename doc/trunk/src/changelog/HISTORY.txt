@@ -91,6 +91,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/04/13]::
++
+Removed real patterns from Absyn and FLINT, since they are not allowed
+by SML'93 and were not present in the AST representation.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2018/04/12]::
 +
 Fix bug bugref:[194] (++Real.fromString++ overflows or hangs).  There
