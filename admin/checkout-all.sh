@@ -19,7 +19,7 @@ command=checkout
 revision=""
 release=""
 
-function usage {
+usage() {
   echo "usage: checkout-all.sh [-e | --export] [-r ARG | --revision ARG] [--release ARG] [dir]"
   exit $1
 }
