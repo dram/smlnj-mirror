@@ -91,6 +91,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/04/20]::
++
+Fix for bug bugref:[191] (Compiler crash when handling large reals).
+We now issue a warning for real literals that will round to zero and
+an error for real literals that are too large to represent.  There
+still needs to be done some work to support sub-normal literal values
+(these are currently rounded to zero).
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2018/04/14]::
 +
 Changed the representation of real literals from strings to ++RealLit.t++.
@@ -108,7 +119,7 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 //--------------------------------------------------------------------
 [2018/04/12]::
 +
-Fix bug bugref:[194] (++Real.fromString++ overflows or hangs).  There
+Fix for bug bugref:[194] (++Real.fromString++ overflows or hangs).  There
 were two issues here.  First, the +Overflow+ exception was being raised
 when scanning large exponents, but it was not being handled by the
 scanning code.  The second issue was that scaling loop for large
