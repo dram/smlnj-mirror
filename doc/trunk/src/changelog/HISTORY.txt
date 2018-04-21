@@ -91,6 +91,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/04/21]::
++
+Improved the reporting of errors involving literal values.  We now
+use the original source text when describing the value in the error
+message.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2018/04/20]::
 +
 Fix for bug bugref:[191] (Compiler crash when handling large reals).
