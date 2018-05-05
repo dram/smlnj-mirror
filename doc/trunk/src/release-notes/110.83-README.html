@@ -115,6 +115,18 @@ There are many under-the-hood changes to the compiler to make supporting both 32
 <dl>
   <dt class="component">Compiler</dt>
   <dd>
+    <p>
+      Changed the <span class="code">Absyn</code, <span class="code">PLambda</code>,
+      <span class="code">FLINT</code>, and <span class="code">CPS</code> IRs to
+      represent integer and word literals as <span class="code">IntInf.int</code>
+      values.  This change removes unnecessary complexity in code generation, improves
+      constant folding, and lays the groundwork for 64-bit support.
+    </p>
+    <p>
+      Improved the reporting of errors involving literal values.  We now
+      use the original source text when describing the value in the error
+      message.
+    </p>
   </dd>
 
   <dt class="component">Run-time system</dt>

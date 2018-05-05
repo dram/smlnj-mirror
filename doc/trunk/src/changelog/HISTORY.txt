@@ -91,6 +91,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/05/05]::
++
+Completed overhaul of the way that int/word literals are handled in
+the compiler.  We now use `IntInf.int` to represent the values in
+all IRs.  This change also results in better CPS contraction, since
+we now perform constant folding for both signed and unsigned values
+at all sizes.  We were also able to get rid of the tricky code that
+worries about large tagged integer values that might cause overflow
+during code generation.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2018/04/21]::
 +
 Improved the reporting of errors involving literal values.  We now
