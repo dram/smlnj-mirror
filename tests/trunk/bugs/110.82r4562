@@ -167,7 +167,7 @@ bug1360.2.sml 	   ...  openbug (unchanged)
 bug1360.3.sml 	   ...  openbug (unchanged)
   FIXED
 bug1364.1.sml 	   ...  openbug (unchanged)
-  BUG
+  BUG (Mistakenly accepted datatype spec when signature matching)
 bug1366.1.sml 	   ...  openbug (unchanged)
   CHECK
 bug1368.1.sml 	   ...  openbug (unchanged)
@@ -215,7 +215,7 @@ bug1419.1.sml 	   ...  openbug (unchanged)
 bug1433.1.sml 	   ...  openbug (unchanged)
   FIXED
 bug1433.2.sml 	   ...  openbug (unchanged)
-  BUG
+  BUG (eqtype and wheretype clash)
 bug1433.3.sml 	   ...  openbug (unchanged)
   FIXED
 bug1434.1.sml 	   ...  openbug (unchanged)
