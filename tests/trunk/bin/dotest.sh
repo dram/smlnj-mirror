@@ -27,10 +27,10 @@ fi
 SUFFIX="$ARCH-$OPSYS"
 
 function printUsage {
- $ECHO -u2 "dotest.sh testdir "
- $ECHO -u2 "    [-sml <sml-path>]     default=$SMLX"
- $ECHO -u2 "    [-diff]               default=off"
- $ECHO -u2 "    [-help]"
+ $ECHO -u2 "dotest.sh [options] testdir "
+ $ECHO -u2 "    -sml <sml-path>]     default=$SMLX"
+ $ECHO -u2 "    -diff               default=off"
+ $ECHO -u2 "    -help"
 }
 
 while [[ $# -ne 0 ]]
