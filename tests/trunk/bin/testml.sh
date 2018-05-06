@@ -2,7 +2,7 @@
 #set -x
 
 #
-# testml.sh [-T <testDir>] [-sml <sml>] [-tmp <tmpName>] [-depositOnly] 
+# testml.sh [-T <testDir>] [-sml <sml>] [-tmp <tmpName>] [-depositOnly]
 # 	    [-cpu <limit>]
 #
 CMD=${0##*/}\>
@@ -22,8 +22,8 @@ TESTMODE="TESTONLY"
 OPENBUGSLIST=$TESTDIR/openbugs
 
 # default ARCH and OPSYS
-ARCH=${ARCH:-sparc}
-OPSYS=${OPSYS:-solaris}
+ARCH=${ARCH:-x86}
+OPSYS=${OPSYS:-darwin}
 
 #
 # use the arch-n-opsys script to determine the ARCH/OS if possible
@@ -44,7 +44,7 @@ SUFFIX="$ARCH-$OPSYS"
 
 function printUsage {
  $ECHO -u2 "testml.sh testdir"
- $ECHO -u2 "    [-f <testfile>]"        
+ $ECHO -u2 "    [-f <testfile>]"
  $ECHO -u2 "    [-tmp <tmpfileName>   default=$TSML and $TMPFILE]"
  $ECHO -u2 "    [-sml <executable>    default=$SML]"
  $ECHO -u2 "    [-cpu <cpulimit>      default=$CPULIMIT]"
@@ -63,11 +63,11 @@ then
     exit 1
 else
     case $1 in
-      -*) 
+      -*)
 	printUsage
 	exit 1
 	;;
-      *)      
+      *)
 	TESTDIR=$1
 	shift
 	;;
@@ -136,7 +136,7 @@ do
 		BADDIR=$1; shift
 		;;
 	  -help)
-		 printUsage 
+		 printUsage
 		 exit 0
 	        ;;
 	  *)
@@ -144,12 +144,12 @@ do
 	        printUsage
 		exit 1
 	esac
-done		
+done
 
 
 #
 # Do the requisite directories and files exist
-#			
+#
 if [[ ! (-d $TESTDIR/tests) ]]
 then
   $ECHO -u2 ${CMD} Error: Testing directory does not contain tests/
@@ -159,13 +159,13 @@ then
   $ECHO -u2 ${CMD} Error: Testing directory does not contain outputs/
   exit 1
 elif [[ ! (-a $OPENBUGSLIST) ]]
-then 
+then
   $ECHO -u2 ${CMD} Error: openbugs files does not exist - $OPENBUGSLIST
   exit 1
 elif [[ (-a $BADDIR) ]]
 then
   $ECHO -u2 ${CMD} Error: $BADDIR directory/file already exist--please delete
-  exit 1  
+  exit 1
 fi
 
 #
@@ -206,7 +206,7 @@ xxx
 #fi
 
 
-function testMLFile 
+function testMLFile
 {
 $ECHO -u2 -n "."
 case $OPSYS in
@@ -214,25 +214,25 @@ case $OPSYS in
         # ulimit is broken on hppa (any other ways to limit cpu time?)
 	$KSH <<-YYY 1>$TMPFILE 2>&1
 		(echo "(*#line 0 \"$srcFile\"*)"; cat $file) | \
-		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML 
+		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML
 YYY
         ;;
  linux | aix | irix6 | solaris | dunix | darwin)
 	$KSH <<-YYY 1>$TMPFILE 2>&1
 		ulimit -t $CPULIMIT
 		(echo "(*#line 0 \\"$srcFile\\"*)"; cat $file) | \
-		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML 
+		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML
 YYY
         ;;
  *)
 	$KSH -x <<-YYY 1>$TMPFILE 2>&1
 		ulimit -t $CPULIMIT
 		(echo "(*#line 0 \"$srcFile\"*)"; cat $file) | \
-		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML 
+		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML
 YYY
         ;;
 esac
-}	
+}
 
 
 function compareOutput
@@ -262,7 +262,7 @@ function compareOutput
 
 #
 # GO FOR IT!!
-# 
+#
 if [[ "$TESTFILE" != "" ]]
 then
   TESTS="$TESTFILE"
@@ -280,7 +280,7 @@ do
 	# does srcFile have valid extension
 	if [[ ${srcFile%%.sml} = $srcFile ]]
 	then continue;
-	fi 
+	fi
 	if [[ ! (-a $file) ]]
 	then continue;
 	fi
@@ -319,5 +319,5 @@ done
 #
 rm -f $TSML.$SUFFIX $TMPFILE /tmp/testblast
 
-	
+
 exit 0

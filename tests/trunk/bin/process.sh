@@ -6,12 +6,12 @@
 #      script LOG
 #      testml [testml options] 2>/dev/null
 #
-# For all tests that fail or possible bug fixes, the source code and 
+# For all tests that fail or possible bug fixes, the source code and
 # the conflicting outputs are concatenated.
 # For openbugs and new test cases, the source file and generated output
 # is concatenated.
 
-# 
+#
 # Usage process.sh  [-log <log-file>] [-test <test-dir>] [-bad <baddir>]
 #
 
@@ -20,8 +20,8 @@
 #
 
 # default ARCH and OPSYS
-ARCH=${ARCH:-sparc}
-OPSYS=${OPSYS:-solaris}
+ARCH=${ARCH:-x86}
+OPSYS=${OPSYS:-darwin}
 #
 # use the arch-n-opsys script to determine the ARCH/OS if possible
 #
@@ -58,11 +58,11 @@ then
     exit 1
 else
     case $1 in
-      -*) 
+      -*)
 	printUsage
 	exit 1
 	;;
-      *)      
+      *)
 	TESTDIR=$1
 	shift
 	;;
@@ -92,7 +92,7 @@ do
 		fi
 		BADDIR=$1; shift
 		;;
-      -diff)    
+      -diff)
 		DIFF=1
 		;;
       -help)
@@ -110,11 +110,11 @@ done
 #
 if [[ ! (-d $TESTDIR/tests) ]]
 then
-	echo "process> $TESTDIR does not contain a tests subdirecotry"
+	echo "process> $TESTDIR does not contain a tests subdirectory"
 	exit 1
 elif [[ ! (-d $TESTDIR/outputs) ]]
 then
-	echo "process> $TESTDIR does not contain an outputs subdirecotry"
+	echo "process> $TESTDIR does not contain an outputs subdirectory"
 	exit 1
 fi
 
@@ -168,7 +168,7 @@ function newFiles
     for f in $NEW
     do
 	  echo :::::::::::::::::::::::::::$f::::::::::::::::::::::::::::
-	  cat $TESTDIR/tests/$f	  
+	  cat $TESTDIR/tests/$f
 	  echo ---------------------------new----------------------------
 	  cat $BADDIR/${f%.sml}.out
 	  echo " "
@@ -195,7 +195,7 @@ function unchangedFiles
     done
 }
 
-function banner 
+function banner
 {
   echo "**************************************************"
   print $BANNER
@@ -216,11 +216,11 @@ changedFiles "$FIXED"
 
 BANNER="\t\tNEW TEST CASES"
 banner
-newFiles 
+newFiles
 
 
 BANNER="\t\tOPENBUGS"
 banner
-unchangedFiles 
+unchangedFiles
 
 

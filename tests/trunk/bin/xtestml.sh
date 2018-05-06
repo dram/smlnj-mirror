@@ -2,7 +2,7 @@
 #set -x
 
 #
-# testml.sh [-T <testDir>] [-sml <sml>] [-tmp <tmpName>] [-depositOnly] 
+# testml.sh [-T <testDir>] [-sml <sml>] [-tmp <tmpName>] [-depositOnly]
 # 	    [-cpu <limit>]
 #
 CMD=${0##*/}\>
@@ -22,8 +22,8 @@ OPENBUGSLIST=$TESTDIR/openbugs
 LOGFILE=$TESTDIR/LOG.$SUFFIX
 DIFF=0
 
-ARCH=sparc
-OPSYS=solaris
+ARCH=x86
+OPSYS=darwin
 
 #
 # use the arch-n-opsys script to determine the ARCH/OS if possible
@@ -42,7 +42,7 @@ SUFFIX="$ARCH-$OPSYS"
 
 function printUsage {
  $ECHO -u2 "xtestml.sh testdir"
- $ECHO -u2 "    [-f <testfile>]"        
+ $ECHO -u2 "    [-f <testfile>]"
  $ECHO -u2 "    [-tmp <tmpfileName>   default=$TSML and $TMPFILE]"
  $ECHO -u2 "    [-sml <executable>    default=$SML]"
  $ECHO -u2 "    [-cpu <cpulimit>      default=$CPULIMIT]"
@@ -62,11 +62,11 @@ if [[ $# -eq 0 ]] then
     exit 1
 else
     case $1 in
-      -*) 
+      -*)
 	printUsage
 	exit 1
 	;;
-      *)      
+      *)
 	TESTDIR=$1
 	shift
 	;;
@@ -136,11 +136,11 @@ while [[ $# -ne 0 ]] do
 		fi
 		LOGFILE=$1; shift
 		;;
-          -diff)    
+          -diff)
 		DIFF=1
 		;;
 	  -help)
-		 printUsage 
+		 printUsage
 		 exit 0
 	        ;;
 	  *)
@@ -148,24 +148,24 @@ while [[ $# -ne 0 ]] do
 	        printUsage
 		exit 1
 	esac
-done		
+done
 
 
 #
 # Do the requisite directories and files exist
-#			
+#
 if [[ ! (-d $TESTDIR/tests) ]] then
   $ECHO ${CMD} Error: Testing directory does not contain tests/
   exit 1
 elif [[ ! (-d $TESTDIR/outputs) ]] then
   $ECHO ${CMD} Error: Testing directory does not contain outputs/
   exit 1
-elif [[ ! (-a $OPENBUGSLIST) ]] then 
+elif [[ ! (-a $OPENBUGSLIST) ]] then
   $ECHO ${CMD} Error: openbugs files does not exist - $OPENBUGSLIST
   exit 1
 elif [[ (-a $BADDIR) ]] then
   $ECHO ${CMD} Error: $BADDIR directory/file already exist--please delete
-  exit 1  
+  exit 1
 fi
 
 #
@@ -201,14 +201,14 @@ xxx
 #fi
 
 
-function testMLFile 
+function testMLFile
 {
 	$KSH <<-YYY 1>$TMPFILE 2>&1
 		ulimit -t $CPULIMIT
 		(echo "(*#line 0 \"$srcFile\"*)"; cat $file) | \
-		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML 
+		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML
 	YYY
-}	
+}
 
 
 function compareOutput
@@ -244,7 +244,7 @@ function compareOutput
 
 #
 # GO FOR IT!!
-# 
+#
 if [[ "$TESTFILE" != "" ]] then
   TESTS="$TESTFILE"
 else
@@ -259,7 +259,7 @@ for file in $TESTS; do
   $ECHO -u2 "srcFile = $srcFile"
   $ECHO -u2 "outFile = $outFile"
 	# does srcFile have valid extension
-	if [[ ${srcFile%%.sml} = $srcFile ]] then continue; fi 
+	if [[ ${srcFile%%.sml} = $srcFile ]] then continue; fi
 	if [[ ! (-a $file) ]] then continue; fi
 
 	case $TESTMODE in
@@ -271,7 +271,7 @@ for file in $TESTS; do
 		if [[ ! ( -r $outFile) ]] ; then
 		        mv $TMPFILE $BADDIR/${srcFile%%.sml}.out
 			$ECHO " output file does not exist!!"
-		else 
+		else
 		    $ECHO -u2 "about to compare"
 			compareOutput
 		    $ECHO -u2 "finished compare"
@@ -301,12 +301,12 @@ done >> $LOGFILE
 #      script LOG
 #      testml [testml options] 2>/dev/null
 #
-# For all tests that fail or possible bug fixes, the source code and 
+# For all tests that fail or possible bug fixes, the source code and
 # the conflicting outputs are concatenated.
 # For openbugs and new test cases, the source file and generated output
 # is concatenated.
 
-# 
+#
 # Usage process.sh  [-log <log-file>] [-test <test-dir>] [-bad <baddir>]
 #
 
@@ -320,7 +320,7 @@ done >> $LOGFILE
 #
 # test if the output directory and LOG file exists
 #
-if [[ ! ( -d $BADDIR) ]] then 
+if [[ ! ( -d $BADDIR) ]] then
 	echo "process> output directory ($BADDIR) does not exist."
 	exit 1
 elif [[ ! ( -a $LOGFILE) ]] then
@@ -364,7 +364,7 @@ function newFiles
 {
     for f in $NEW; do
 	  echo :::::::::::::::::::::::::::$f::::::::::::::::::::::::::::
-	  cat $TESTDIR/tests/$f	  
+	  cat $TESTDIR/tests/$f
 	  echo ---------------------------new----------------------------
 	  cat $BADDIR/${f%.sml}.out
 	  echo " "
@@ -389,7 +389,7 @@ function unchangedFiles
     done
 }
 
-function banner 
+function banner
 {
   echo "**************************************************"
   print $1
@@ -419,5 +419,5 @@ unchangedFiles >> $RESULTS
 #
 rm -f $TSML.$SUFFIX $TMPFILE $LOGFILE
 
-	
+
 exit 0
