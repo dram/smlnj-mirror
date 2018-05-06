@@ -1,0 +1,292 @@
+This is a status report of running the "bugs" tests using revision 4562
+of the compiler/basis, which is a post-110.82/pre-110.83 version.
+
+The report is broken into two groups: first the tests that "failed".  Most of
+these are because of changes in the error messages, etc.  The second group
+are the "openbugs".  Each test has been marked as "OK", "BUG", "FIXED" (for
+open bugs), or "CHECK" (for tests where the status needs more investigation).
+
+Tests that "passed" are omitted from the lists
+
+
+### Test failures
+
+bug102.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1084.sml 	   ...  **** fail
+  OK (basis line number change in exception)
+bug1085.1.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1088.2.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1156.sml 	   ...  **** fail
+  OK (test is broken by the addition of List.sub)
+bug1160.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1167.1.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1178.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1182.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1216.sml 	   ...  **** fail
+  OK (parser-error-message syntax; change in token names)
+bug1227.sml 	   ...  **** fail
+  CHECK (differences in floating-point results)
+bug1250.sml 	   ...  **** fail
+  BUG (added to bug database as #199)
+bug130.1.sml 	   ...  **** fail
+  OK (change in printing of signature)
+bug1316.1.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1316.2.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1316.3.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1316.4.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1325.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1326.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug1340.1.sml 	   ...  **** fail
+  OK (WORD signature now includes popCount)
+bug1374.1.sml 	   ...  **** fail
+  OK (error is now caught by parser)
+bug1399.1.sml 	   ...  **** fail
+  OK (change in printing of type)
+bug1469.1.sml 	   ...  **** fail
+  OK (change in printing of CPS)
+bug19.1.sml 	   ...  **** fail
+  OK (parser-error-message syntax; change in token names)
+bug19.2.sml 	   ...  **** fail
+  OK (parser-error-message syntax; change in token names)
+bug21.sml 	   ...  **** fail
+  OK (parser-error-message syntax; change in token names)
+bug247.sml 	   ...  **** fail
+  OK (different sml paths printed)
+bug254.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug27.sml 	   ...  **** fail
+  OK (error message syntax)
+bug280.sml 	   ...  **** fail
+  OK (parser-error-message syntax; change in token names)
+bug29.sml 	   ...  **** fail
+  OK (old behavior was a bug)
+bug3.sml 	   ...  **** fail
+  BUG (regression: incorrect printing of type)
+bug301.sml 	   ...  **** fail
+  OK (parser-error-message syntax; change in token names)
+bug327.sml 	   ...  **** fail
+  OK (error-message syntax)
+bug35.1.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug35.2.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug423.sml 	   ...  **** fail
+  BUG? (syntax change, but looks like it should be an open bug)
+bug538.sml 	   ...  **** fail
+  OK (signature printing syntax)
+bug539.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug577.sml 	   ...  **** fail
+  OK (change in VECTOR signature)
+bug588.sml 	   ...  **** fail
+  BUG (regression: should print an error message)
+bug590.sml 	   ...  **** fail
+  BUG (according to the definition, '_1abcd is a valid type variable)
+bug607.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug612.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug636.sml 	   ...  **** fail
+  BUG (regression: printing int values as "-")
+bug71.sml 	   ...  **** fail
+  CHECK (not sure what the correct behavior is supposed to be for this test)
+bug721c.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug721d.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug828.sml 	   ...  **** fail
+  OK (changes in signatures of Basis modules)
+bug83.sml 	   ...  **** fail
+  OK (parser-error-message syntax; change in token names)
+bug836.1.sml 	   ...  **** fail
+  OK (error-message syntax)
+bug836.2.sml 	   ...  **** fail
+  OK (error-message syntax)
+bug845.sml 	   ...  **** fail
+  OK (parser-error-message syntax; change in token names)
+bug949.1.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug949.2.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+bug949.3.sml 	   ...  **** fail
+  OK (type-error-message syntax)
+
+### Open Bugs
+
+bug1047.sml 	   ...  openbug (unchanged)
+  FIXED (this bug is fixed in the library, but the test has the incorrect code)
+bug107.sml 	   ...  **** possible bug fix
+  FIXED (same as #191)
+bug1209.sml 	   ...  openbug (unchanged)
+  CHECK
+bug1254.sml 	   ...  **** possible bug fix
+  FIXED
+bug1261.sml 	   ...  **** possible bug fix
+  BUG (the difference is a change in parser-error-message syntax)
+bug1300.sml 	   ...  openbug (unchanged)
+  BUG (printing of Int32.int type as ?.int32)
+bug1319.sml 	   ...  openbug (unchanged)
+  BUG (Real.Real.toManExp on subnormal numbers)
+bug1321.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1322.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1322.2.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1324.sml 	   ...  openbug (unchanged)
+  BUG (Equality check in where type)
+bug1328.1.sml 	   ...  openbug (unchanged)
+  BUG (redefinition of 'true', 'it')
+bug1328.2.sml 	   ...  openbug (unchanged)
+  BUG (redefinition of 'true', 'it')
+bug1329.sml 	   ...  openbug (unchanged)
+  BUG (Problem with realisation in where type)
+bug1338.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1344.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1351.sml 	   ...  openbug (unchanged)
+  CHECK (the original bug is fixed, but unclear if constructor 'B' should support '=')
+bug1360.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1360.2.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1360.3.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1364.1.sml 	   ...  openbug (unchanged)
+  BUG
+bug1366.1.sml 	   ...  openbug (unchanged)
+  CHECK
+bug1368.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1370.sml 	   ...  openbug (unchanged)
+  BUG (op keyword pedantry)
+bug1375.1.sml 	   ...  openbug (unchanged)
+  BUG (scanning of decimal word values)
+bug1375.2.sml 	   ...  **** possible bug fix
+  FIXED (raising Overflow is correct behaviour)
+bug1383.1.sml 	   ...  openbug (unchanged)
+  BUG (incorrect String.toString behavior on embedded nul characters)
+bug1387.1.sml 	   ...  **** possible bug fix
+  FIXED
+bug1388.1.sml 	   ...  **** possible bug fix
+  BUG (incorrect exception raised)
+bug1390.1.sml 	   ...  **** possible bug fix
+  BUG (the difference is a change in parser-error-message syntax)
+bug1392.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1392.2.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1394.1.sml 	   ...  **** possible bug fix
+  FIXED
+bug1400.1.sml 	   ...  openbug (unchanged)
+  BUG (Prettyprinter bug)
+bug1401.1.sml 	   ...  openbug (unchanged)
+  BUG (Posix.Process.waitpid_nh is buggy)
+bug1402.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1413.1.sml 	   ...  openbug (unchanged)
+  BUG (problems with Unix.execute)
+bug1415.1.sml 	   ...  openbug (unchanged)
+  BUG (although the test appears to work, the code is still broken)
+bug1416.1.sml 	   ...  **** possible bug fix
+  FIXED (test should be changed to use constant input instead of Time.now()!)
+bug1417.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1417.2.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1417.3.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1419.1.sml 	   ...  openbug (unchanged)
+  BUG (incorrect printing of signature containing "where type")
+bug1433.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1433.2.sml 	   ...  openbug (unchanged)
+  BUG
+bug1433.3.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1434.1.sml 	   ...  openbug (unchanged)
+  BUG ('open' of non-existent structure breaks environment)
+bug1443.1.sml 	   ...  openbug (unchanged)
+  BUG (toManExp is broken; see bug bug1319 too)
+bug1444.1.sml 	   ...  openbug (unchanged)
+  BUG (Partially fixed, but the day of the month should be two digits)
+bug1445.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1446.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1446.2.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1447.1.sml 	   ...  openbug (unchanged)
+  BUG (incorrect real to string conversion)
+bug1449.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1451.1.sml 	   ...  **** possible bug fix
+  CHECK (floating-point results)
+bug1452.1.sml 	   ...  openbug (unchanged)
+  BUG (Math.sin implementation)
+bug1456.1.sml 	   ...  openbug (unchanged)
+  BUG (Int.sameSign is incorrect when one of the arguments is 0 and the other is > 0)
+bug1465.1.sml 	   ...  **** possible bug fix
+  BUG ('_ and ''1 are valid type variables)
+bug1472.1.sml 	   ...  openbug (unchanged)
+  BUG (datatype involving real are treated as equality types)
+bug1483.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1486.1.sml 	   ...  openbug (unchanged)
+  BUG (this bug is the same as bug #109 in the new database)
+bug1487.1.sml 	   ...  **** possible bug fix
+  BUG (the difference is a change in parser-error-message syntax)
+bug1489.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1490.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1494.1.sml 	   ...  openbug (unchanged)
+  BUG (printing of datatype rebinding in REPL)
+bug1497.1.sml 	   ...  **** possible bug fix
+  FIXED
+bug1498.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1509.1.sml 	   ...  openbug (unchanged)
+  FIXED (note that the fix leads to bug1388)
+bug1522.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1529.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1541.1.sml 	   ...  openbug (unchanged)
+  BUG (Array2.array should always be an eqaulity type)
+bug1542.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1542.2.sml 	   ...  openbug (unchanged)
+  BUG (rebind '=' as an exception)
+bug1548.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1551.1.sml 	   ...  openbug (unchanged)
+  BUG (should report illegal string escape)
+bug1553.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1573.1.sml 	   ...  openbug (unchanged)
+  BUG? (I'm not convinced that this is a bug; more like a weakness in SML)
+bug1580.1.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1580.2.sml 	   ...  openbug (unchanged)
+  FIXED
+bug1587.1.sml 	   ...  openbug (unchanged)
+  BUG (Real.rem does not return whole numbers on whole number arguments)
+bug1593.1.sml 	   ...  **** possible bug fix
+  FIXED
+bug1600.1.sml 	   ...  **** possible bug fix
+  FIXED
