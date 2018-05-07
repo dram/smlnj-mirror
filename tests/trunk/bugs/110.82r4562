@@ -241,6 +241,7 @@ bug1452.1.sml 	   ...  openbug (unchanged)
   BUG (Math.sin implementation)
 bug1456.1.sml 	   ...  openbug (unchanged)
   BUG (Int.sameSign is incorrect when one of the arguments is 0 and the other is > 0)
+  *** FIXED in r4574
 bug1465.1.sml 	   ...  **** possible bug fix
   BUG ('_ and ''1 are valid type variables)
   *** FIXED in r4571
