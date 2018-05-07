@@ -91,6 +91,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/05/07]::
++
+Fixed various minor parsing and scanning issues:
++
+--
+* correct syntax for type variables
+* signature/structure/functor IDs should always be alpha IDs
+* the equality ID (`=`) cannot appear in a binding context
+--
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2018/05/05]::
 +
 Completed overhaul of the way that int/word literals are handled in
