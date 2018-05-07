@@ -93,6 +93,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2018/05/07]::
 +
+The `sameSign` function returned incorrect results in the `Int31`
+and `Int32` modules.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
+[2018/05/07]::
++
 Fixed various minor parsing and scanning issues:
 +
 --
