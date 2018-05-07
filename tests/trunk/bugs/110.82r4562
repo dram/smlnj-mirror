@@ -95,6 +95,7 @@ bug588.sml 	   ...  **** fail
   BUG (regression: should print an error message)
 bug590.sml 	   ...  **** fail
   BUG (according to the definition, '_1abcd is a valid type variable)
+  *** FIXED in r4571
 bug607.sml 	   ...  **** fail
   OK (type-error-message syntax)
 bug612.sml 	   ...  **** fail
@@ -242,6 +243,7 @@ bug1456.1.sml 	   ...  openbug (unchanged)
   BUG (Int.sameSign is incorrect when one of the arguments is 0 and the other is > 0)
 bug1465.1.sml 	   ...  **** possible bug fix
   BUG ('_ and ''1 are valid type variables)
+  *** FIXED in r4571
 bug1472.1.sml 	   ...  openbug (unchanged)
   BUG (datatype involving real are treated as equality types)
 bug1483.1.sml 	   ...  openbug (unchanged)
@@ -272,6 +274,7 @@ bug1542.1.sml 	   ...  openbug (unchanged)
   FIXED
 bug1542.2.sml 	   ...  openbug (unchanged)
   BUG (rebind '=' as an exception)
+  *** FIXED in r4571
 bug1548.1.sml 	   ...  openbug (unchanged)
   FIXED
 bug1551.1.sml 	   ...  openbug (unchanged)
