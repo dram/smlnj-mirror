@@ -1,4 +1,4 @@
-(* bug419.sml *)
+(* bug0419.sml *)
 (* requires CML *)
 
 local open CML
@@ -9,7 +9,7 @@ fun placeBuffer () =
 	val b = channel () 
 	val a = channel ()
 	fun input_int (s:string) =
-	    fold (fn(a,r) => ord(a) - ord("0") + 10 * r) (tl (rev(explode s))) 0;
+	    fold (fn(a,r) => ord(a) - ord(#"0") + 10 * r) (tl (rev(explode s))) 0;
 
 	fun P1 x   = (CIO.print( "Waiting for Input on Channel a? \n");
 		let
