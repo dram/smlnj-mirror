@@ -8,7 +8,7 @@ structure I :
     val map : 'a intmap -> int -> 'a
   end =
 struct
-  open Array List
+  open List Array
   infix 9 sub
   datatype 'a bucket = NIL | B of (int * 'a * 'a bucket)
   datatype 'a intmap =
