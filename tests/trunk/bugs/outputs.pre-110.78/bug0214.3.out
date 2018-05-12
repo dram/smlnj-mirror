@@ -1,0 +1,83 @@
+val it = () : unit
+signature TREE =
+  sig
+    datatype 'a T = Br of 'a * 'a T * 'a T | Lf
+  end
+functor TreeFUN(<param>: sig end) :
+               sig
+                 datatype 'a T = Br of 'a * 'a T * 'a T | Lf
+               end
+nonfix sub
+signature ARRAYOPS =
+  sig
+    structure Tree :
+      sig
+        datatype 'a T = Br of 'a * 'a T * 'a T | Lf
+      end
+    exception E
+    val sub : 'a Tree.T * int -> 'a
+    val update : 'a Tree.T * int * 'a -> 'a Tree.T
+    val hirem : 'a Tree.T * int -> 'a Tree.T
+  end
+functor ArrayOpsFUN(<param>: sig
+                               structure Tree : <sig>
+                             end) :
+                   sig
+                     structure Tree : <sig>
+                     exception E
+                     val sub : 'a Tree.T * int -> 'a
+                     val update : 'a Tree.T * int * 'a -> 'a Tree.T
+                     val hirem : 'a Tree.T * int -> 'a Tree.T
+                   end
+signature ARRAY =
+  sig
+    type 'a T
+    exception Sub
+    exception Update
+    exception Hirem
+    val empty : 'a T
+    val sub : 'a T * int -> 'a
+    val update : 'a T * int * 'a -> 'a T
+    val hiext : 'a T * 'a -> 'a T
+    val hirem : 'a T -> 'a T
+  end
+functor ArrayFUN(<param>: sig
+                            structure ArrayOps : <sig>
+                          end) :
+                sig
+                  type 'a T
+                  exception Sub
+                  exception Update
+                  exception Hirem
+                  val empty : 'a T
+                  val sub : 'a T * int -> 'a
+                  val update : 'a T * int * 'a -> 'a T
+                  val hiext : 'a T * 'a -> 'a T
+                  val hirem : 'a T -> 'a T
+                end
+structure Tree : TREE
+structure ArrayOps : ARRAYOPS
+structure Array : ARRAY
+opening Array
+  datatype 'a T = ...
+  exception Sub
+  exception Update
+  exception Hirem
+  val empty : 'a T
+  val sub : 'a T * int -> 'a
+  val update : 'a T * int * 'a -> 'a T
+  val hiext : 'a T * 'a -> 'a T
+  val hirem : 'a T -> 'a T
+val it = Array (Br ("A",Lf,Lf),1) : string T
+val it = Array (Br ("A",Br ("B",Lf,Lf),Lf),2) : string T
+val it = Array (Br ("A",Br ("B",Lf,Lf),Br ("C",Lf,Lf)),3) : string T
+val tletters = Array (Br ("A",Br ("B",Br ("D",Lf,Lf),Lf),Br ("C",Lf,Lf)),4)
+  : string T
+val tdag = Array (Br ("A",Br ("B",Br ("dagger",Lf,Lf),Lf),Br ("C",Lf,Lf)),4)
+  : string T
+val it = "D" : string
+val it = "dagger" : string
+val it = Array (Br ("A",Br ("B",Lf,Lf),Br ("C",Lf,Lf)),3) : string T
+val it = Array (Br ("A",Br ("B",Lf,Lf),Lf),2) : string T
+val it = true : bool
+

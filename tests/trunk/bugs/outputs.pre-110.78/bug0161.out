@@ -1,0 +1,14 @@
+val it = () : unit
+signature SIG = sig type t end
+functor F(X: sig type t end) : sig type t end
+functor F'(X: sig type t end) : sig type t end
+functor G(X: sig type t end) : sig type t end
+functor H(X: sig type t end) : sig type t end
+functor H'(X: sig type t end) : sig type t end
+signature SIG = sig type t end
+functor F(X: sig type t end) : sig type t end
+functor F'(X: sig type t end) : sig type t end
+functor G(X: sig type t end) : sig type t end
+functor H(X: sig type t end) : sig type t end
+functor H'(X: sig type t end) : sig type t end
+

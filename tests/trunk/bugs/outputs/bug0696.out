@@ -23,7 +23,7 @@ signature AB_SIG =
     val dom : (''b,'a) t -> ''b list
   end
 structure goo : AB_SIG
-bug0696.sml:34.9-34.33 Error: operator and operand don't agree [tycon mismatch]
+bug0696.sml:34.9-34.33 Error: operator and operand do not agree [tycon mismatch]
   operator domain: (''Z,'Y) A.t
   operand:         string option
   in expression:

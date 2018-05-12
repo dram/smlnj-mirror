@@ -1,0 +1,5 @@
+val it = () : unit
+val cl = ref [] : int ?.Cont.cont list ref
+val it = 42 : int
+Error: throw from one top-level expression into another
+

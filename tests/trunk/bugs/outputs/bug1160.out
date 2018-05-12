@@ -1,5 +1,5 @@
 val it = () : unit
-bug1160.sml:3.5-3.18 Error: pattern and expression in val dec don't agree [tycon mismatch]
+bug1160.sml:3.5-3.18 Error: pattern and expression in val dec do not agree [tycon mismatch]
   pattern:    'Z * 'Y
   expression:    bool
   in declaration:

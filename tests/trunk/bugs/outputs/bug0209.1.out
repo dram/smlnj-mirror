@@ -11,7 +11,7 @@ structure C :
     structure B : <sig>
     type s = B.s1
   end
-bug0209.1.sml:13.17-13.22 Error: operator and operand don't agree [equality type required]
+bug0209.1.sml:13.17-13.22 Error: operator and operand do not agree [equality type required]
   operator domain: ''Z * ''Z
   operand:         C.s * C.s
   in expression:

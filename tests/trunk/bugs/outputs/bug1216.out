@@ -4,5 +4,5 @@ functor F(A: sig end) : sig functor <functor> : <fctsig> end
 structure V : sig end
 structure X : sig end
 structure Y : sig end
-bug1216.sml:9.17 Error: syntax error found at ID
+bug1216.sml:9.17 Error: syntax error found at IDA
 

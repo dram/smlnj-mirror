@@ -1,0 +1,6 @@
+val it = () : unit
+val x = ~2147483648 : Int32.int
+
+uncaught exception Div [divide by zero]
+  raised at: <file stdIn>
+

@@ -1,0 +1,3 @@
+val it = () : unit
+bug1499.1.sml:5.5-9.1 Error: duplicate specifications for type constructor t in signature
+

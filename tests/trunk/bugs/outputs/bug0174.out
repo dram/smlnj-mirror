@@ -1,2 +1,25 @@
 val it = () : unit
+signature ASig =
+  sig
+    datatype POP = a | b
+  end
+signature BSig =
+  sig
+    structure DT :
+      sig
+        datatype POP = a | b
+      end
+    val f : DT.POP -> unit
+  end
+functor AFun(<param>: sig end) :
+            sig
+              datatype POP = a | b
+            end
+functor BFun(<param>: sig
+                        structure DT : <sig>
+                      end) :
+            sig
+              structure DT : <sig>
+              val f : DT.POP -> unit
+            end
 

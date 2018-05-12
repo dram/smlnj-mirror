@@ -1,0 +1,6 @@
+val it = () : unit
+signature X = sig end
+functor Apply(<param>: sig functor F : <fctsig> end) :
+             sig functor <functor> : <fctsig> end
+bug0921.sml:10.8 Error: unbound structure: G
+

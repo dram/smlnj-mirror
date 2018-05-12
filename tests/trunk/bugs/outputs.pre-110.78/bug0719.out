@@ -1,0 +1,3 @@
+val it = () : unit
+structure Foo : sig val f : ?.X1 -> ?.X1 end
+

@@ -1,0 +1,17 @@
+val it = () : unit
+signature F =
+  sig
+    type word
+    val u : word
+  end
+functor L(<param>: sig
+                     structure Base : <sig>
+                     val u : Base.word
+                   end) :
+         sig
+           type word
+           val u : word
+         end
+structure W' : F
+structure s : F
+

@@ -1,4 +1,7 @@
 val it = () : unit
-bug590.sml:4.9 Error: illegal token
-bug590.sml:4.10-4.16 Error: syntax error: deleting  WILD INT ID
+bug0590.sml:4.5-4.20 Error: pattern and expression in val dec do not agree [overload - user bound tyvar]
+  pattern:    '_1abcd
+  expression:    [int ty]
+  in declaration:
+    x : '_1abcd = 3
 

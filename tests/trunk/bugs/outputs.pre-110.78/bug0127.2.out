@@ -1,0 +1,18 @@
+val it = () : unit
+signature SIG =
+  sig
+    structure S :
+      sig
+        type t
+        val x : t
+      end
+    structure T : sig eqtype t end
+    sharing T = S
+  end
+functor f(X: sig
+               structure S : <sig>
+               structure T : <sig>
+               sharing T = S
+             end) :
+         sig val b : bool end
+

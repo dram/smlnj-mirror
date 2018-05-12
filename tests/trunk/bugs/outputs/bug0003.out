@@ -7,7 +7,7 @@ structure S :
 opening S
   
   datatype t = A
-  val x : t
+  val x : S.t
 structure S : sig end
 val it = A : t
 

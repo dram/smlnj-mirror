@@ -1,0 +1,13 @@
+val it = () : unit
+bug285.tarmail:2.19-2.29 Error: unbound variable or constructor: REfS0icLCb
+bug285.tarmail:2.29-2.31 Error: unbound variable or constructor: \&
+bug285.tarmail:2.31-2.36 Error: unbound variable or constructor: S4KoZ
+bug285.tarmail:2.36 Error: unbound variable or constructor: `
+bug285.tarmail:2.37-2.41 Error: unbound variable or constructor: JYQh
+bug285.tarmail:1.1-1.6 Error: unbound variable or constructor: xbtoa
+bug285.tarmail:1.7-1.12 Error: unbound variable or constructor: Begin
+bug285.tarmail:2.1-2.4 Error: unbound structure: + in path +.\
+bug285.tarmail:2.4-2.13 Error: unbound variable or constructor: KZfVAg0Vp
+bug285.tarmail:2.13-2.15 Error: unbound variable or constructor: $+
+bug285.tarmail:2.15-2.18 Error: unbound variable or constructor: sF4
+

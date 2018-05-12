@@ -14,7 +14,7 @@ signature L_F =
       end
     val r : t
   end
-bug1386.1.sml:21.14-21.26 Error: operator and operand don't agree [tycon mismatch]
+bug1386.1.sml:21.14-21.26 Error: operator and operand do not agree [tycon mismatch]
   operator domain: ?.cat * ?.cat
   operand:         ?.cat * ?.t
   in expression:

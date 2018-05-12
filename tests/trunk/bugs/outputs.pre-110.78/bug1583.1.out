@@ -1,0 +1,50 @@
+val it = () : unit
+signature FOO =
+  sig
+    type bar = string
+    datatype foo = A | B | C of bar
+  end
+structure Foo :
+  sig
+    type bar = string
+    datatype foo = A | B | C of bar
+  end
+signature BAR =
+  sig
+    structure Foo :
+      sig
+        type bar = string
+        datatype foo = A | B | C of bar
+      end
+    datatype foo = datatype Foo.foo
+  end
+functor Bar(<param>: sig end) :
+           sig
+             structure Foo : <sig>
+             datatype foo = datatype Foo.foo
+           end
+signature FOO =
+  sig
+    type bar = string
+    datatype foo = A | B | C of string
+  end
+structure Foo :
+  sig
+    type bar = string
+    datatype foo = A | B | C of string
+  end
+signature BAR =
+  sig
+    structure Foo :
+      sig
+        type bar = string
+        datatype foo = A | B | C of string
+      end
+    datatype foo = datatype Foo.foo
+  end
+functor Bar(<param>: sig end) :
+           sig
+             structure Foo : <sig>
+             datatype foo = datatype Foo.foo
+           end
+

@@ -95,8 +95,8 @@ opening Operators
     | UMINUS
     | UNION
     | XOR
-  val operName : operator -> string
-  val arity : operator -> int
+  val operName : Operators.operator -> string
+  val arity : Operators.operator -> int
 datatype exp
   = APP of operator * exp list
   | ENUM of string

@@ -1,7 +1,7 @@
 val it = () : unit
-bug1316.2.sml:3.5-3.19 Error: right-hand-side of clause doesn't agree with function result type [overload]
-  expression:  'Z -> 'Z
-  result type:  'Z
+bug1316.2.sml:3.5-3.19 Error: right-hand-side of clause doesn't agree with function result type [overload conflict]
+  expression:  [+ ty] -> [+ ty]
+  result type:  [+ ty]
   in declaration:
     f =
       (fn arg =>

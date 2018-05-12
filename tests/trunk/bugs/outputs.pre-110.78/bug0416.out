@@ -1,0 +1,28 @@
+val it = () : unit
+signature PSIG =
+  sig
+    eqtype 'a symTab
+    datatype guide = G1 | G2 of guide symTab
+  end
+functor PFUN(<param>: sig
+                        structure S : <sig>
+                      end) :
+            sig
+              type 'a symTab
+              type guide
+            end
+structure S :
+  sig
+    datatype 'a symTab = Empty
+  end
+structure P :
+  sig
+    datatype 'a symTab = ...
+    datatype guide = G1 | G2 of guide symTab
+  end
+functor MFUN(<param>: sig
+                        structure X : <sig>
+                      end) :
+            sig val z : bool end
+structure M : sig val z : bool end
+

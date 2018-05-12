@@ -31,6 +31,9 @@ opening String
   val fromString : String.string -> string option
   val toCString : string -> String.string
   val fromCString : String.string -> string option
+  val rev : string -> string
+  val implodeRev : char list -> string
+  val concatWithMap : string -> ('a -> string) -> 'a list -> string
 opening List
   datatype 'a list = :: of 'a * 'a list | nil
   exception Empty
@@ -59,6 +62,26 @@ opening List
   val all : ('a -> bool) -> 'a list -> bool
   val tabulate : int * (int -> 'a) -> 'a list
   val collate : ('a * 'a -> order) -> 'a list * 'a list -> order
+  val unfoldl : ('a -> ('b * 'a) option) -> 'a -> 'b list
+  val unfoldr : ('a -> ('b * 'a) option) -> 'a -> 'b list
+  val reduce : ('a * 'a -> 'a) -> 'a -> 'a list -> 'a
+  val appi : (int * 'a -> unit) -> 'a list -> unit
+  val mapi : (int * 'a -> 'b) -> 'a list -> 'b list
+  val mapPartiali : (int * 'a -> 'b option) -> 'a list -> 'b list
+  val foldli : (int * 'a * 'b -> 'b) -> 'b -> 'a list -> 'b
+  val foldri : (int * 'a * 'b -> 'b) -> 'b -> 'a list -> 'b
+  val findi : (int * 'a -> bool) -> 'a list -> (int * 'a) option
+  val revMap : ('a -> 'b) -> 'a list -> 'b list
+  val revMapi : (int * 'a -> 'b) -> 'a list -> 'b list
+  val revMapPartial : ('a -> 'b option) -> 'a list -> 'b list
+  val revMapPartiali : (int * 'a -> 'b option) -> 'a list -> 'b list
+  val concatMap : ('a -> 'b list) -> 'a list -> 'b list
+  val concatMapi : (int * 'a -> 'b list) -> 'a list -> 'b list
+  val foldMapl : ('a * 'c -> 'c) -> ('b -> 'a) -> 'c -> 'b list -> 'c
+  val foldMapr : ('a * 'c -> 'c) -> ('b -> 'a) -> 'c -> 'b list -> 'c
+  val splitAt : 'a list * int -> 'a list * 'a list
+  val update : 'a list * int * 'a -> 'a list
+  val sub : 'a list * int -> 'a
 opening IO
   exception Io of {cause:exn, function:string, name:string}
   exception BlockingNotSupported

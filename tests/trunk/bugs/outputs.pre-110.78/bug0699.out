@@ -1,0 +1,3 @@
+val it = () : unit
+bug0699.sml:5.3-7.18 Error: unbound signature: SIGU
+

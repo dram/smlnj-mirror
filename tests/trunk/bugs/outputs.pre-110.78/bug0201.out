@@ -1,0 +1,7 @@
+val it = () : unit
+structure A :
+  sig
+    datatype foo = Bar of int
+  end
+bug0201.sml:5.1-9.4 Error: type foo' must be a datatype
+

@@ -1,0 +1,33 @@
+val it = () : unit
+structure Ast :
+  sig
+    datatype Mode = Mode of {body:ModeBodyDecl, ifc:Ifc option}
+    datatype Ifc = IfcBody
+    datatype Decl = Decl
+    datatype ModeBodyDecl = ModeBodyDeclBody of ModeBody
+    datatype ModeBody
+      = ModeBody of {children_sect:unit, exec_sect:unit list,
+                     handler_sect:unit list, trans_sect:unit list * unit list}
+  end
+opening Ast
+  
+  datatype Mode = Mode of {body:Ast.ModeBodyDecl, ifc:Ast.Ifc option}
+  datatype Ifc = IfcBody
+  datatype Decl = Decl
+  datatype ModeBodyDecl = ModeBodyDeclBody of Ast.ModeBody
+  datatype ModeBody
+    = ModeBody of {children_sect:unit, exec_sect:unit list,
+                   handler_sect:unit list, trans_sect:unit list * unit list}
+val z3 =
+  {body=ModeBodyDeclBody
+          (ModeBody
+             {children_sect=(),exec_sect=[],handler_sect=[],
+              trans_sect=([],[])}),ifc=SOME IfcBody}
+  : {body:ModeBodyDecl, ifc:Ifc option}
+val it =
+  Mode
+    {body=ModeBodyDeclBody
+            (ModeBody
+               {children_sect=(),exec_sect=[],handler_sect=[],
+                trans_sect=([],[])}),ifc=SOME IfcBody} : Mode
+

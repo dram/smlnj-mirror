@@ -1,5 +1,5 @@
 val it = () : unit
-bug1034.sml:4.1-4.37 Error: operator and operand don't agree [tycon mismatch]
+bug1034.sml:4.1-4.37 Error: operator and operand do not agree [tycon mismatch]
   operator domain: string
   operand:         Word8Vector.vector
   in expression:

@@ -1,0 +1,4 @@
+val it = () : unit
+val k = fn : 'a -> 'b -> 'a
+val f = fn : ?.X1 -> int
+

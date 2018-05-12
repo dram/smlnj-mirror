@@ -1,0 +1,5 @@
+val it = () : unit
+
+uncaught exception Bind [nonexhaustive binding failure]
+  raised at: bug1250.sml:4.5-4.29
+

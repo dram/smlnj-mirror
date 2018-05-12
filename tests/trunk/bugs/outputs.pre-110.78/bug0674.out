@@ -1,0 +1,12 @@
+val it = () : unit
+val e =
+  {dynamic=-,
+   static=BIND
+            (0wx6D6C,"hd",
+             (VALbind
+                (VALvar
+                   {access=PATH (EXTERN #,112),btvs=ref [],
+                    path=SPATH [SYMBOL #],prim=NonPrim,
+                    typ=ref (POLYty {sign=#,tyfun=#})}),NONE),EMPTY),
+   symbolic=-} : Environment.environment
+

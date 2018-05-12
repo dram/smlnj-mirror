@@ -1,5 +1,5 @@
 val it = () : unit
-bug0905.sml:11.23-11.32 Error: operator and operand don't agree [tycon mismatch]
+bug0905.sml:11.23-11.32 Error: operator and operand do not agree [tycon mismatch]
   operator domain: ?.X1 list ref * ?.X1 list
   operand:         ?.X1 list ref * t list
   in expression:

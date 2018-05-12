@@ -1,0 +1,3 @@
+val it = () : unit
+bug1433.1.sml:3.18-3.44 Error: eqtype spec with a definition: u
+

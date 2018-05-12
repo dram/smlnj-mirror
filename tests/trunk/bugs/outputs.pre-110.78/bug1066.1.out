@@ -1,0 +1,4 @@
+val it = () : unit
+val f = fn : unit -> 'a list
+val it = [] : ?.X1 list
+

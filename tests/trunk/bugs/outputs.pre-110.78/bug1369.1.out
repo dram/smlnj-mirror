@@ -1,0 +1,45 @@
+val it = () : unit
+signature SIG0 =
+  sig
+    structure B :
+      sig
+        structure A : <sig>
+      end
+  end
+signature SIG1 =
+  sig
+    structure C :
+      sig
+        structure B : <sig>
+      end
+    structure D :
+      sig
+        structure B : <sig>
+      end
+  end
+signature SIG2 =
+  sig
+    structure C :
+      sig
+        structure B : <sig>
+      end
+    structure D :
+      sig
+        structure B : <sig>
+      end
+    sharing D = C
+  end
+functor F(X: sig
+               structure C : <sig>
+               structure D : <sig>
+               sharing D = C
+             end) :
+         sig end
+functor H(Y: sig
+               structure C : <sig>
+               structure D : <sig>
+             end) :
+         sig
+           structure E : <sig>
+         end
+

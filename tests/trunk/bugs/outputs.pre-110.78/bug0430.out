@@ -1,0 +1,15 @@
+val it = () : unit
+signature S2 =
+  sig
+    structure A : sig type t end
+    datatype u = ITEM of A.t
+  end
+functor F(X: sig type v end) : sig type w end
+functor G(Y: sig
+               structure A : <sig>
+               datatype u = ITEM of A.t
+             end) :
+         sig
+           structure B : <sig>
+         end
+

@@ -1,0 +1,12 @@
+val it = () : unit
+signature SS =
+  sig
+    datatype 'a t = K
+  end
+functor F(<param>: sig
+                     structure X : <sig>
+                   end) :
+         sig
+           type  'a p
+         end
+

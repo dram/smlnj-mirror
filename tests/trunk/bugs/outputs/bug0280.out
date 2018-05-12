@@ -1,5 +1,5 @@
 val it = () : unit
-bug280.sml:3.20-3.32 Error: syntax error: deleting  INFIX ID END
-bug280.sml:5.1-5.15 Error: syntax error: deleting  SIGNATURE ID EQUALOP
-bug280.sml:5.16 Error: syntax error found at SIG
+bug0280.sml:3.20-3.32 Error: syntax error: deleting  INFIX IDS END
+bug0280.sml:5.1-5.15 Error: syntax error: deleting  SIGNATURE IDA EQUALOP
+bug0280.sml:5.16 Error: syntax error found at SIG
 

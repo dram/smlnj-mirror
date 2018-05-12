@@ -1,0 +1,9 @@
+val it = () : unit
+signature S = sig type t end
+structure A : S
+functor F1(X: sig type t = t end) : sig val x : X.t end
+functor F2(X: sig
+                structure B : <sig>
+              end) :
+          sig val x : A.t end
+

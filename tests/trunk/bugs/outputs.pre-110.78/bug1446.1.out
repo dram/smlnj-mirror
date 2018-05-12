@@ -1,0 +1,8 @@
+val it = () : unit
+val it = () : unit
+infixr 5 >>
+datatype series! = >> of int * series! ?.susp
+type series = series! ?.susp
+val recip = fn : unit -> series! ?.susp
+val recip_ = fn : unit -> series!
+

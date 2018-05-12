@@ -1,3 +1,3 @@
 val it = () : unit
-bug1088.2.sml:3.1-3.11 Error: int constant too large
+bug1088.2.sml:3.1-3.11 Error: literal '1103515245' is too large for type int
 

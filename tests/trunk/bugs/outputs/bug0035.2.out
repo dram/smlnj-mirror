@@ -4,8 +4,8 @@ signature FORMULA =
     type formula
     val NUM : formula
   end
-bug35.2.sml:13.8-13.40 Error: right-hand-side of clause doesn't agree with function result type [tycon mismatch]
-  expression:  int * F.formula
+bug0035.2.sml:13.8-13.40 Error: right-hand-side of clause doesn't agree with function result type [tycon mismatch]
+  expression:  [int ty] * F.formula
   result type:  F.formula
   in declaration:
     parse = (fn () => (0,F.NUM): F.formula)

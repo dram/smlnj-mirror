@@ -1,0 +1,8 @@
+val it = () : unit
+signature SIG =
+  sig
+    datatype d = D of unit
+  end
+functor Twice(<param>: sig functor F : <fctsig> end) :
+             sig functor TwiceF : <fctsig> end
+

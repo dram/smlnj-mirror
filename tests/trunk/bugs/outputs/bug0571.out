@@ -1,5 +1,5 @@
 val it = () : unit
-bug0571.sml:4.38-4.43 Error: operator and operand don't agree [circularity]
+bug0571.sml:4.38-4.43 Error: operator and operand do not agree [circularity]
   operator domain: {x:'Z, y:'Y, z:{'X}}
   operand:         {'X}
   in expression:

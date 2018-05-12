@@ -1,9 +1,9 @@
 val it = () : unit
 bug1316.1.sml:3.8-3.10 Error: infix operator "::" used without "op" in fun dec
 bug1316.1.sml:3.8-3.10 Error: data constructor :: used without argument in pattern
-bug1316.1.sml:3.5-3.22 Error: right-hand-side of clause doesn't agree with function result type [overload]
-  expression:  'Z -> 'Y -> 'Y
-  result type:  'Y
+bug1316.1.sml:3.5-3.22 Error: right-hand-side of clause doesn't agree with function result type [overload conflict]
+  expression:  'Z -> [+ ty] -> [+ ty]
+  result type:  [+ ty]
   in declaration:
     f =
       (fn arg =>

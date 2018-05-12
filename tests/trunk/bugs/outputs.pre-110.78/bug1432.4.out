@@ -1,0 +1,24 @@
+val it = () : unit
+signature S1 =
+  sig
+    datatype d = D
+  end
+structure GlobalS1 :
+  sig
+    datatype d = D
+  end
+signature S2 =
+  sig
+    structure N :
+      sig
+        datatype d = D
+      end
+  end
+functor F(X: sig
+               structure N : <sig>
+             end) :
+         sig
+           structure MyS1 : <sig>
+           val b : bool
+         end
+

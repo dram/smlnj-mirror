@@ -16,7 +16,7 @@ datatype exp
 datatype image = IMAGE of lexeme list
 datatype lexeme = ATOMIC of atomic | RATOR of string * int * fixity
 datatype atomic = ATOMimage of string | PARENS of image
-val noparens = fn : rator * ('a * precedence * fixity) * associativity -> bool
+val noparens = fn : rator * ('a * int * fixity) * associativity -> bool
 type infixop = rator
 type prefix = rator
 datatype stack
@@ -33,7 +33,7 @@ val image = fn : atom -> image
 val parenthesize = fn : image -> image
 val infix_image = fn : image * rator * image -> image
 val bracket = fn
-  : (rator * image) * associativity * ('a * precedence * fixity) -> image
+  : (rator * image) * associativity * ('a * int * fixity) -> image
 val unparse = fn : exp -> image
 infix 7 **
 infix 6 ++

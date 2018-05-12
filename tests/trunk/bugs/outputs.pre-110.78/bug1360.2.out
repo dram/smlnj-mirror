@@ -1,0 +1,5 @@
+val it = () : unit
+val i = fn : 'a -> int
+val f = fn : (unit -> 'a) * ('a -> int) -> int
+functor G(<param>: sig type t end) : sig end
+

@@ -1,0 +1,8 @@
+val it = () : unit
+signature NUM = sig val n : int end
+functor LeftSection(<param>: sig
+                               structure A : <sig>
+                               functor BinOp : <fctsig>
+                             end) :
+                   sig functor <functor> : <fctsig> end
+

@@ -4,9 +4,9 @@ signature SIG =
     type EA
     val fopt : (EA * EA -> unit) option
   end
-bug254.sml:16.9-16.16 Error: operator and operand don't agree [literal]
+bug0254.sml:16.9-16.16 Error: operator and operand do not agree [overload conflict]
   operator domain: M.EA
-  operand:         int
+  operand:         [int ty]
   in expression:
     g 2
 

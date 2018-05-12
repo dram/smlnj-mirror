@@ -1,10 +1,7 @@
 val it = () : unit
-bug607.sml:5.33-5.44 Error: operator and operand don't agree [literal]
-  operator domain: bool * bool
-  operand:         bool * int
+bug0607.sml:5.33-5.44 Error: operator and operand do not agree [overload conflict]
+  operator domain: [+ ty] * [+ ty]
+  operand:         bool * [int ty]
   in expression:
     hd (! b) + 1
-bug607.sml:5.41 Error: overloaded variable not defined at type
-  symbol: +
-  type: bool
 

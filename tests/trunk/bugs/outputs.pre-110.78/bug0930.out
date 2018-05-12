@@ -1,0 +1,4 @@
+val it = () : unit
+signature S_SIG = sig end
+structure S : S_SIG
+

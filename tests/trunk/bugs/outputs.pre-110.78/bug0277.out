@@ -1,0 +1,7 @@
+val it = () : unit
+signature S1 = sig type d end
+functor F(X: sig type d end) :
+         sig
+           datatype a = C of X.d
+         end
+

@@ -1,7 +1,7 @@
 val it = () : unit
-bug539.sml:6.12-6.23 Error: operator and operand don't agree [literal]
+bug0539.sml:6.12-6.23 Error: operator and operand do not agree [overload conflict]
   operator domain: string * string
-  operand:         int * string
+  operand:         [int ty] * string
   in expression:
     hd (! r) ^ "hi"
 

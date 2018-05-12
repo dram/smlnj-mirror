@@ -7,9 +7,9 @@ structure S :
 functor F(<param>: sig type t end) :
          sig
            type 'a T
-           val fs : 'a T -> 'a T
+           val fs : 'a S.T -> 'a S.T
            type FT
-           val ff : FT -> t T
+           val ff : FT -> t S.T
          end
 structure SF :
   sig

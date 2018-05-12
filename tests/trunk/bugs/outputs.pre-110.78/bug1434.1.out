@@ -1,0 +1,4 @@
+val it = () : unit
+bug1434.1.sml:5.3-5.9 Error: unbound structure: B
+bug1434.1.sml:6.8-6.12 Error: non-constructor applied to argument in pattern: ::
+

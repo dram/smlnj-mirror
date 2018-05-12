@@ -1,0 +1,30 @@
+val it = () : unit
+val it = () : unit
+signature UTILS = <sig>
+structure Utils : UTILS
+signature TYPEVAR = <sig>
+structure Typevar : TYPEVAR
+signature GNDVAR = <sig>
+structure Gndvar : GNDVAR
+signature TERM = <sig>
+structure Term : TERM
+signature TP = <sig>
+structure Tp : TP
+signature BASIS = <sig>
+structure Basis : BASIS
+signature PAIR = <sig>
+structure Pair : PAIR
+signature SUBST = <sig>
+structure Subst : SUBST
+signature EXPANSION = <sig>
+structure Expansion : EXPANSION
+signature LIFT = <sig>
+structure Lift : LIFT
+signature CHAIN = <sig>
+structure Chain : CHAIN
+signature UNIFY = <sig>
+structure Unify : UNIFY
+signature PP = <sig>
+structure Pp : PP
+structure Test : <sig>
+

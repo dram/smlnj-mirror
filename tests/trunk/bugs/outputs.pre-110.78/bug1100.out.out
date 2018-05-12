@@ -1,0 +1,6 @@
+val it = () : unit
+bug1100.out:11.26-11.30 Error: syntax error: deleting  SIG ID
+bug1100.out:15.17-15.28 Error: syntax error: deleting  ID ID SIG
+bug1100.out:16.27-16.46 Error: syntax error: deleting  STRUCTURE ID
+bug1100.out:16.50-17.28 Error: syntax error: deleting  SIG ID END
+

@@ -1,0 +1,18 @@
+val it = () : unit
+signature A = sig type t end
+functor F1(a: sig type t end) :
+          sig
+            type t2
+          end
+functor F2(a: sig type t end) :
+          sig
+            structure S : <sig>
+            type t2
+          end
+structure SA : sig type t = int end
+structure F2SA :
+  sig
+    structure S : <sig>
+    datatype t2 = f of a.t
+  end
+

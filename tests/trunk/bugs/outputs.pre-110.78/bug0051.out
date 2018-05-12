@@ -1,0 +1,7 @@
+val it = () : unit
+functor F(S: sig
+               type t
+               val x : t
+             end) :
+         sig val y : S.t end
+

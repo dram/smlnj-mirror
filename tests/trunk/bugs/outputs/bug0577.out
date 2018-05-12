@@ -21,6 +21,9 @@ opening Vector
   val exists : ('a -> bool) -> 'a vector -> bool
   val all : ('a -> bool) -> 'a vector -> bool
   val collate : ('a * 'a -> order) -> 'a vector * 'a vector -> order
+  val toList : 'a vector -> 'a list
+  val append : 'a vector * 'a -> 'a vector
+  val prepend : 'a * 'a vector -> 'a vector
 val update = fn : 'a vector * int * 'a -> 'a vector
 val reverse = fn : 'a vector -> 'a vector
 val bug = fn : int -> int vector

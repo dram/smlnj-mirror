@@ -1,0 +1,13 @@
+val it = () : unit
+signature A =
+  sig
+    eqtype 'a t
+    datatype d = C | D of int t
+  end
+structure Z :
+  sig
+    type 'a t = bool
+    datatype d = C | D of bool t
+  end
+structure X : A
+

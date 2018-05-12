@@ -1,0 +1,11 @@
+val it = () : unit
+functor F(<param>: sig end) :
+         sig
+           type d
+         end
+functor G(<param>: sig end) :
+         sig
+           structure A : <sig>
+           val x : A.d
+         end
+

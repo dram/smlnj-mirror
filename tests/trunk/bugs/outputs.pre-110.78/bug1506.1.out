@@ -1,0 +1,6 @@
+val it = () : unit
+val f = fn : int -> 'a
+
+uncaught exception Overflow [overflow]
+  raised at: <file stdIn>
+

@@ -1,8 +1,8 @@
 val it = () : unit
 datatype AA = A | B
-bug1085.1.sml:5.5-5.19 Error: pattern and expression in val dec don't agree [tycon mismatch]
+bug1085.1.sml:5.5-5.19 Error: pattern and expression in val dec do not agree [tycon mismatch]
   pattern:    AA
-  expression:    'Z -> int
+  expression:    'Z -> [int ty]
   in declaration:
     B = (fn x => 90)
 

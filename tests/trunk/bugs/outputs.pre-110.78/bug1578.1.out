@@ -1,0 +1,3 @@
+val it = () : unit
+bug1578.1.sml:7.7-7.30 Error: rhs of datatype replication not a datatype
+

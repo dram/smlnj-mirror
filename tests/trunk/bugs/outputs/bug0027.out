@@ -1,6 +1,6 @@
 val it = () : unit
-bug27.sml:3.5-4.41 Error: clauses don't all have same number of patterns
-bug27.sml:3.5-4.41 Error: parameter or result constraints of clauses don't agree [tycon mismatch]
+bug0027.sml:3.5-4.41 Error: clauses do not all have same number of patterns
+bug0027.sml:3.5-4.41 Error: parameter or result constraints of clauses do not agree [tycon mismatch]
   this clause:      'Z list * 'Y -> 'X
   previous clauses:      'W list -> 'X
   in declaration:

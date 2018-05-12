@@ -1,4 +1,4 @@
 val it = () : unit
 val b = inf : real
-bug836.2.sml:4.7-4.17 Error: int constant too large
+bug0836.2.sml:4.7-4.17 Error: literal '1111111111' is too large for type int
 

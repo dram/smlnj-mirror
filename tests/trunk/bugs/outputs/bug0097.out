@@ -33,7 +33,7 @@ functor FastIntMap(<param>: sig end) :
                     val emptyMap : 'a map
                   end
 functor ValFct(<param>: sig end) : sig type value end
-bug0097.sml:70.20-70.25 Error: operator and operand don't agree [tycon mismatch]
+bug0097.sml:70.20-70.25 Error: operator and operand do not agree [tycon mismatch]
   operator domain: char
   operand:         sym
   in expression:

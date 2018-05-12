@@ -1,4 +1,8 @@
 val it = () : unit
+val it = () : unit
+bug1392.1.sml:12.7-12.16 Warning: match nonexhaustive
+          nil => ...
+  
 structure S :
   sig
     val x : int

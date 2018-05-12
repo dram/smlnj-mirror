@@ -1,8 +1,8 @@
 val it = () : unit
 val g = fn : string -> int -> int
-bug949.2.sml:4.1-4.5 Error: operator and operand don't agree [literal]
+bug0949.2.sml:4.1-4.5 Error: operator and operand do not agree [overload conflict]
   operator domain: string
-  operand:         int
+  operand:         [int ty]
   in expression:
     g 12
 

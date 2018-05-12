@@ -1,0 +1,12 @@
+val it = () : unit
+signature INT = sig type t = int end
+structure ONE : INT
+structure TWO : INT
+functor F(<param>: sig
+                     structure A : <sig>
+                     structure B : <sig>
+                     sharing B = A
+                   end) :
+         sig end
+structure THREE : sig end
+

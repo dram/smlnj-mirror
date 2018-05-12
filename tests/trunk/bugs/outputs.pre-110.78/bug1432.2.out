@@ -1,0 +1,16 @@
+val it = () : unit
+signature S1 =
+  sig
+    datatype dt = DT
+  end
+structure GlobalS1 :
+  sig
+    datatype dt = DT
+  end
+functor F(X: sig
+               structure NestedS1 : <sig>
+             end) :
+         sig
+           structure MyS1 : <sig>
+         end
+

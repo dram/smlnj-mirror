@@ -1,0 +1,6 @@
+val it = () : unit
+val insert1 = fn
+  : {key:''a, value:'b} list
+    -> {key:''a, value:'b} -> {key:''a, value:'b} list
+val foo = 100 : int
+

@@ -1,0 +1,3 @@
+val it = () : unit
+../smlnj/bin/sml: Fatal error -- Uncaught exception Io with <unknown> raised at Basis/Implementation/IO/text-io-fn.sml:443.14-443.56
+

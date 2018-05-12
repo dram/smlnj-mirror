@@ -1,0 +1,6 @@
+val it = () : unit
+signature S =
+  sig
+    datatype t = datatype int
+  end
+

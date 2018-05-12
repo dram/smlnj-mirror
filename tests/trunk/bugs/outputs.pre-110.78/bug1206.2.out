@@ -1,0 +1,14 @@
+val it = () : unit
+functor T(<param>: sig type t end) :
+         sig
+           structure U : <sig>
+           type s
+           val x : s -> int
+         end
+structure A :
+  sig
+    structure U : <sig>
+    datatype s = EE of U.u
+    val x : s -> int
+  end
+

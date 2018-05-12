@@ -1,7 +1,7 @@
 val it = () : unit
-bug1316.3.sml:3.5-7.26 Error: right-hand-side of clause doesn't agree with function result type [overload]
-  expression:  'Z * 'Y * 'Y option
-  result type:  'Z * 'Y * 'Y
+bug1316.3.sml:3.5-7.26 Error: right-hand-side of clause doesn't agree with function result type [overload conflict]
+  expression:  'Z * [> ty] * [> ty] option
+  result type:  'Z * [> ty] * [> ty]
   in declaration:
     test =
       (fn (a,l,i,NONE) => (a,i,l)

@@ -2,7 +2,7 @@ val it = () : unit
 datatype 'a A = A of 'a ref
 val f = fn : unit -> unit
 val f1 = fn : unit -> unit
-bug0341.sml:4.1-4.7 Error: operator and operand don't agree [equality type required]
+bug0341.sml:4.1-4.7 Error: operator and operand do not agree [equality type required]
   operator domain: ''Z * ''Z
   operand:         (unit -> unit) * (unit -> unit)
   in expression:

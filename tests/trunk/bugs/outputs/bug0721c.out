@@ -1,6 +1,6 @@
 val it = () : unit
-bug721c.sml:6.38-6.44 Error: operator and operand don't agree [literal]
-  operator domain: int
+bug0721c.sml:6.38-6.44 Error: operator and operand do not agree [overload conflict]
+  operator domain: [int ty]
   operand:         bool
   in expression:
     f true

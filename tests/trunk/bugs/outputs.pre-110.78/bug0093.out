@@ -1,0 +1,22 @@
+val it = () : unit
+signature T = sig type 'a token end
+signature L =
+  sig
+    structure T : sig type 'a token end
+  end
+functor P(<param>: sig
+                     structure L : <sig>
+                   end) :
+         sig
+           structure T : <sig>
+         end
+structure L :
+  sig
+    structure T : <sig>
+  end
+structure B :
+  sig
+    structure T : <sig>
+  end
+val x = (5,"","") : int * string * string
+

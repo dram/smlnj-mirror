@@ -1,9 +1,9 @@
 val it = () : unit
 bug1325.sml:3.44-3.66 Error: unbound structure: Filesys in path Posix.Filesys.O_RDONLY
-bug1325.sml:3.5-3.70 Error: operator and operand don't agree [literal]
+bug1325.sml:3.5-3.70 Error: operator and operand do not agree [overload conflict]
   operator domain: string * ?.POSIX_FileSys.open_mode * 
                    ?.POSIX_FileSys.O.BF.flags
-  operand:         string * _ * int
+  operand:         string * _ * [int ty]
   in expression:
     Posix.FileSys.openf ("/etc/passwd",<errorvar>,0)
 

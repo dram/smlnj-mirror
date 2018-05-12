@@ -1,0 +1,16 @@
+val it = () : unit
+functor F(X: sig functor G : <fctsig> end) :
+         sig
+           structure A : <sig>
+         end
+structure Rint :
+  sig
+    structure A : <sig>
+  end
+structure Rbool :
+  sig
+    structure A : <sig>
+  end
+val x = 3 : Rint.A.t
+val y = true : Rbool.A.t
+

@@ -1,0 +1,5 @@
+val it = () : unit
+datatype a = A1 | A2 of a
+datatype b = B1 | B2 of b vector
+val f = fn : a -> b
+

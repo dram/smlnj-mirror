@@ -1,0 +1,120 @@
+val it = () : unit
+structure Mil :
+  sig
+    type tc = int
+    type tv = int
+    type pv = int
+    datatype texp
+      = Funtype of texp list * texp
+      | Typeapp of tc * texp list
+      | Typevar of tv
+    datatype tscm = Tscm of tv list * texp
+    datatype export = Name of (pv * texp) * string | Type of texp * string
+    datatype desc
+      = Enum
+      | FlatRec
+      | FlatVarRec
+      | OneNull of pv * desc
+      | Record
+      | Value
+      | VarRec
+    datatype alg
+      = Conc of tc * tv list * prim list
+      | Term of tc * tv list * variant list * desc
+    datatype prim = Prim of pv * texp
+    datatype variant = Variant of pv * texp * pv list
+    datatype vdec = Vdec of tscm * pv
+    datatype fdec = Fdec of tscm * pv * pv list * stmnt
+    datatype ldec = Ldec of pv * stmnt
+    datatype stmnt
+      = Assign of pv * rhs * stmnt
+      | Block of vdec list * fdec list * ldec list * stmnt
+      | Case of desc * pv * calt list
+      | Goto of pv
+      | Halt
+      | Return of exp
+    datatype rhs
+      = App of pv * exp list
+      | Cata of tc * pv * exp * exp
+      | Exp of exp
+      | Papp of pv * exp list
+    datatype exp
+      = Const of texp * string
+      | Dref of texp * desc * pv * pv * pv
+      | Var of texp * pv
+    datatype calt = Calt of pv * stmnt
+    datatype module
+      = Module of export list * alg list list * vdec list * fdec list * stmnt
+  end
+structure MilC :
+  sig
+    exception StdExcept of string * string
+    val fail : string -> 'a
+    val comma : 'a -> string
+    val unzip : 'a -> 'b list * 'c list
+    val eqmember : ''a -> ''a list -> bool
+    val map2 : ('a * 'b -> 'c) -> 'a list -> 'b list -> 'c list
+    val empty : unit -> 'a list
+    val extend : 'a -> 'b -> 'a
+    val apply : 'a -> 'b -> 'c option
+    datatype ppi = IN of int | LI of string list | UN
+    val sepflat : 'a -> 'b -> 'c list
+    val sep : 'a -> 'b -> 'c list
+    val sym2str : 'a -> int -> string
+    type tc = int
+    type tv = int
+    type pv = int
+    datatype texp
+      = Funtype of texp list * texp
+      | Typeapp of tc * texp list
+      | Typevar of tv
+    datatype tscm = Tscm of tv list * texp
+    datatype export = Name of (pv * texp) * string | Type of texp * string
+    datatype desc
+      = Enum
+      | FlatRec
+      | FlatVarRec
+      | OneNull of pv * desc
+      | Record
+      | Value
+      | VarRec
+    datatype alg
+      = Conc of tc * tv list * prim list
+      | Term of tc * tv list * variant list * desc
+    datatype prim = Prim of pv * texp
+    datatype variant = Variant of pv * texp * pv list
+    datatype vdec = Vdec of tscm * pv
+    datatype fdec = Fdec of tscm * pv * pv list * stmnt
+    datatype ldec = Ldec of pv * stmnt
+    datatype stmnt
+      = Assign of pv * rhs * stmnt
+      | Block of vdec list * fdec list * ldec list * stmnt
+      | Case of desc * pv * calt list
+      | Goto of pv
+      | Halt
+      | Return of exp
+    datatype rhs
+      = App of pv * exp list
+      | Cata of tc * pv * exp * exp
+      | Exp of exp
+      | Papp of pv * exp list
+    datatype exp
+      = Const of texp * string
+      | Dref of texp * desc * pv * pv * pv
+      | Var of texp * pv
+    datatype calt = Calt of pv * stmnt
+    datatype module
+      = Module of export list * alg list list * vdec list * fdec list * stmnt
+    val pv_error : int -> 'a
+    val mono_error : string -> 'a
+    val ho_error : string -> 'a
+    val get_tc : int -> string
+    val get_pv : int -> string
+    val l2str : int -> string
+    val exported_pvs : 'a list
+    val imported_pvs : 'a list
+    val is_imported_pv : ''a -> bool
+    val is_exported_pv : ''a -> bool
+    val codegen : int -> string -> 'a -> module -> ppi list
+  end
+

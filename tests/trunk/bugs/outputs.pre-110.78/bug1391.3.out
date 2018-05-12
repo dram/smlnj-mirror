@@ -1,0 +1,12 @@
+val it = () : unit
+signature SIG =
+  sig
+    structure A :
+      sig
+        datatype ('a,'b) dt = C
+      end
+    datatype dt = datatype A.dt
+  end
+structure S : SIG
+val it = C : (unit,unit) S.A.dt
+

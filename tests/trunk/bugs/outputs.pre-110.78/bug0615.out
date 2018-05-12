@@ -1,0 +1,20 @@
+val it = () : unit
+val it =
+  ["VAL$hd","FIX$>=","VAL$*","TYC$real","TYC$bool","VAL$div","VAL$false",
+   "VAL$real","VAL$>=","VAL$NONE","VAL$!","VAL$Chr","VAL$ceil","TYC$order",
+   "VAL$abs","VAL$Match","VAL$ignore","FIX$:=","VAL$Size","VAL$~","VAL$nil",
+   "FIX$::","VAL$:=","VAL$tl","FIX$o","VAL$Fail","VAL$::","VAL$use","VAL$not",
+   "STR$_Core","TYC$string","VAL$o","VAL$chr","VAL$rev","FIX$mod",
+   "VAL$isSome","FIX$^","TYC$char","VAL$print","VAL$revAppend","VAL$mod",
+   "VAL$Overflow","TYC$ref","VAL$floor","TYC$unit","VAL$^","TYC$array",
+   "VAL$ref","TYC$exn","VAL$Empty","TYC$word","TYC$int","VAL$Option",
+   "VAL$GREATER","VAL$ord","FIX$<>","FIX$<=","VAL$map","VAL$length",
+   "TYC$substring","VAL$<>","VAL$null","VAL$EQUAL","VAL$<=","VAL$substring",
+   "VAL$trunc","VAL$explode","VAL$Domain","VAL$Bind","TYC$list","VAL$foldr",
+   "FIX$@","VAL$LESS","FIX$>","TYC$vector","FIX$=","VAL$implode","VAL$Div",
+   "FIX$<","VAL$Span","VAL$foldl","VAL$exnName","VAL$vector","VAL$round",
+   "VAL$@","VAL$valOf","VAL$true","VAL$>","VAL$getOpt","VAL$=","VAL$<",
+   "TYC$option","VAL$concat","FIX$before","VAL$exnMessage","FIX$/","VAL$str",
+   "VAL$SOME","FIX$-","VAL$size","FIX$+","VAL$before","FIX$*","VAL$Subscript",
+   "VAL$/","VAL$app","VAL$-","FIX$div","VAL$+"] : string list
+

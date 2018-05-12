@@ -1,0 +1,32 @@
+val it = () : unit
+signature NUMBER = sig type t end
+signature VEC =
+  sig
+    structure Number : sig type t end
+    type t
+    val fromSeq : Number.t vector -> t
+    val toSeq : t -> Number.t vector
+  end
+functor PointFromVector(<param>: sig
+                                   structure Vec : <sig>
+                                 end) :
+                       sig
+                         structure Vec : <sig>
+                       end
+signature GEOMETRY_PRIMS =
+  sig
+    structure Point :
+      sig
+        structure Vec : <sig>
+      end
+  end
+functor GeometryPrims2d(<param>: sig
+                                   structure Number : <sig>
+                                 end) :
+                       sig
+                         structure Point : <sig>
+                       end
+structure RealNumber : sig type t = real end
+structure RealGeometryPrims2d : GEOMETRY_PRIMS
+val foo = [|6.0,0.0|] : RealNumber.t array
+

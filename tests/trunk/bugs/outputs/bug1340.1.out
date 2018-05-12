@@ -40,6 +40,7 @@ structure Segfault :
     val fromString : string -> word option
     val fmt : StringCvt.radix -> word -> string
     val toString : word -> string
+    val popCount : word -> int
     val F : word * word * word -> word
     val <<< : word * ?.Word31Imp.word -> word
     val sub : 'a vector * int -> 'a

@@ -1,0 +1,7 @@
+val it = () : unit
+datatype A = B | C of A ref
+val x = C (ref B) : A
+val y = ref B : A ref
+val it = () : unit
+val it = C (ref (C %0)) as %0 : A
+

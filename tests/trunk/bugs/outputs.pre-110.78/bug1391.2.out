@@ -1,0 +1,15 @@
+val it = () : unit
+signature SIG =
+  sig
+    structure A :
+      sig
+        datatype ('a,'b) dt = C
+      end
+    datatype dt = datatype A.dt
+  end
+functor Fun(X: sig
+                 structure A : <sig>
+                 datatype dt = datatype A.dt
+               end) :
+           sig end
+

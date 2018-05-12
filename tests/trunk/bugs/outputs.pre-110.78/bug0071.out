@@ -1,0 +1,7 @@
+val it = () : unit
+[opening bug71/y.sml]
+[use failed: Io: openIn failed on "bug71/y.sml", No such file or directory]
+
+uncaught exception Error
+  raised at: ../compiler/TopLevel/interact/interact.sml:24.14-24.28
+

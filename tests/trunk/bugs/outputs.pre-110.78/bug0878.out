@@ -1,0 +1,41 @@
+val it = () : unit
+signature MONOID =
+  sig
+    type t
+    val plus : t * t -> t
+    val e : t
+  end
+funsig PROD(<param>: sig
+                       structure M : <sig>
+                       structure N : <sig>
+                     end) :
+           sig
+             type t
+             val plus : t * t -> t
+             val e : t
+           end
+functor Square(<param>: sig
+                          structure X : <sig>
+                          functor Prod : <fctsig>
+                        end) :
+              sig
+                type t
+                val plus : t * t -> t
+                val e : t
+              end
+structure IntMonoid : MONOID
+functor Prod(<param>: sig
+                        structure M : <sig>
+                        structure N : <sig>
+                      end) :
+            sig
+              type t
+              val plus : t * t -> t
+              val e : t
+            end
+structure IntPairMonoid : MONOID
+opening IntPairMonoid
+  type t = IntMonoid.t * IntMonoid.t
+  val plus : t * t -> t
+  val e : t
+
