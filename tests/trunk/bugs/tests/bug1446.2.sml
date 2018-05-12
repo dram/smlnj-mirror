@@ -2,6 +2,8 @@
 
 Control.lazysml := true;
 
+infixr 5 >>;
+
 datatype lazy series = >> of int * series;
 
 fun lazy tail (x>>xs) = xs;
