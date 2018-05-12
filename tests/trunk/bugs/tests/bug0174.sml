@@ -20,6 +20,6 @@ functor BFun (structure DT : ASig) : BSig =
 struct
   structure DT = DT
   open DT
-  val f = fn _ => outputc std_out "Is Running\n"
+  val f = fn _ => TextIO.output(TextIO.stdOut, "Is Running\n")
 end;
 
