@@ -1,3 +1,0 @@
-val it = () : unit
-bug117.2.sml:18.1-23.4 Error: inconsistent equality properties in type sharing
-

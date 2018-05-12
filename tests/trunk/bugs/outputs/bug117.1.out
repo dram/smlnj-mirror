@@ -1,3 +1,0 @@
-val it = () : unit
-bug117.1.sml:20.3-23.1 Error: duplicate specifications for variable or constructor Dummy in signature
-

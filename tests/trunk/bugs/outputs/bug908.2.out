@@ -1,5 +1,0 @@
-val it = () : unit
-
-uncaught exception Div [divide by zero]
-  raised at: bug908.2.sml:3.10-3.13
-

@@ -1,0 +1,6 @@
+val it = () : unit
+bug0274.sml:6.6-6.45 Error: match redundant
+          x as (_,_) => ...
+    -->   (y,z) => ...
+  
+

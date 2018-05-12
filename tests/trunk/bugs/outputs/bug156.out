@@ -1,4 +1,0 @@
-val it = () : unit
-datatype d = A of int | B of bool
-bug156.sml:6.7-6.10 Error: non-constructor applied to argument in pattern: C
-

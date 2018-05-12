@@ -1,0 +1,3 @@
+val it = () : unit
+bug0109.sml:2.1-8.4 Error: dependency cycle in instantiate
+

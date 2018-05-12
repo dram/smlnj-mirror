@@ -1,0 +1,4 @@
+val it = () : unit
+signature sig0 = sig type t end
+bug0928.sml:7.3-9.1 Error: duplicate specifications for type t caused by include
+

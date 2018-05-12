@@ -1,0 +1,5 @@
+val it = () : unit
+
+uncaught exception Div [divide by zero]
+  raised at: bug0908.1.sml:3.7-3.10
+

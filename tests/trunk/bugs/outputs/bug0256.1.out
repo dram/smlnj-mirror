@@ -1,0 +1,4 @@
+val it = () : unit
+datatype 'a stack = empty | stk of 'a * 'a stack
+bug0256.1.sml:5.9-5.12 Error: data constructor stk used without argument in pattern
+

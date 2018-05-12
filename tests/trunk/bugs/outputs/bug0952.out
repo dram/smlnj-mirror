@@ -1,0 +1,7 @@
+val it = () : unit
+bug0952.sml:6.23-6.39 Error: operator and operand don't agree [tycon mismatch]
+  operator domain: t * t list
+  operand:         t * ?.X1 list
+  in expression:
+    x :: ! ll
+
