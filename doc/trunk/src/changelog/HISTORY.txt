@@ -91,6 +91,23 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/05/12]::
++
+The lexer gave an unmatched close comment error on "++*)++", when it
+should have scanned it as the tokens "++*++" "**)**".  This bug was
+number 330 in the old bug database.
++
+**Note**: there is some ambiguity as to what the correct behavior
+should be here.  The Definition of Standard ML (1997) only says that
+unmatched __open__ comments should be signalled as errors, but the
+Commentary on the Definition of Standard ML says otherwise in
+Appendix D.  **SML/NJ** started signalling an error in version 0.71,
+but we choose to revert to accepting this sequence, since to match
+the 1997 Definition.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2018/05/07]::
 +
 The `sameSign` function returned incorrect results in the `Int31`
