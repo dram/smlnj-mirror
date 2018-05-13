@@ -1,0 +1,150 @@
+This is a status report of running the "bugs" tests using revision 4591
+of the compiler/basis, which is a post-110.82/pre-110.83 version.
+
+The report is broken into two groups: first the tests that "failed".  Most of
+these are because of changes in the error messages, etc.  The second group
+are the "openbugs".  Each test has been marked as "OK", "BUG", "FIXED" (for
+open bugs), or "CHECK" (for tests where the status needs more investigation).
+
+Tests that "passed" are omitted from the lists
+
+
+### Test failures
+
+bug0419.sml 	   ...  **** fail
+  -- old CML bug test; needs to be updated
+
+bug0423.sml 	   ...  **** fail
+  -- printing of `Vector` structure's signature as `VECTOR_2015?`
+
+### Open Bugs
+
+bug0027.sml 	   ...  **** fail
+  -- printing of Absyn in error messages does not respect fixity
+
+bug0071.sml 	   ...  **** fail
+  -- weird `use` semantics
+
+bug0588.sml 	   ...  **** fail
+  -- compiler bug in translate
+
+bug0636.sml 	   ...  **** fail
+  -- printing integer values as abstract values in REPL
+
+bug1250.sml 	   ...  **** fail
+  -- compiler bug: Bind exception in pretty printing (this bug is likely
+     the same as #190 in the new bugs database)
+
+bug1261.sml 	   ...  openbug (unchanged)
+  -- bug in parser with combination of type variable bindings and `rec`
+
+bug1300.sml 	   ...  openbug (unchanged)
+  -- same as bug 1399.1
+
+bug1319.sml 	   ...  openbug (unchanged)
+  -- bug with implementation of `Real.toManExp`
+
+bug1324.sml 	   ...  openbug (unchanged)
+  -- bug with interaction between `eqtype` and `where type`
+
+bug1328.1.sml 	   ...  openbug (unchanged)
+bug1328.2.sml 	   ...  openbug (unchanged)
+  -- redefinition of special identifiers (`it`, `true`, and `false`)
+
+bug1329.sml 	   ...  openbug (unchanged)
+  -- problem with `where type`
+
+bug1351.sml 	   ...  openbug (unchanged)
+  -- original bug is fixed, but there is a problem with the constructor `B` being
+     made visible and the abstract type `A` incorrectly supports equality (see
+     pages 20 & 23 of Definition).
+
+bug1366.1.sml 	   ...  openbug (unchanged)
+  -- potential issue with higher-order functors and opaque signature matching
+
+bug1370.sml 	   ...  openbug (unchanged)
+  -- bug in parsing of `op` followed by a longid
+
+bug1375.1.sml 	   ...  openbug (unchanged)
+  -- `Word.fromString` incorrectly handles `0wa`; returns 10 instead of 0
+
+bug1383.1.sml 	   ...  openbug (unchanged)
+  -- incorrect handling of escape sequences in `Char.toCString`.
+
+bug1388.1.sml 	   ...  **** possible bug fix
+   -- runtime bug: dividing minInt by ~1 produces `Div` exception instead of `Overflow`
+
+bug1390.1.sml 	   ...  openbug (unchanged)
+bug1394.1.sml 	   ...  openbug (unchanged)
+
+bug1399.1.sml 	   ...  **** fail
+  -- printing of builtin types (e.g., `Int32.int` as `?.int32`)
+
+bug1400.1.sml 	   ...  openbug (unchanged)
+  -- internal error in pretty printer
+
+bug1401.1.sml 	   ...  openbug (unchanged)
+  -- possible runtime system bug in `Posix.Process.waitpid_nh`
+
+bug1413.1.sml 	   ...  openbug (unchanged)
+  -- runtime system issue with Unix.execute and closing streams
+
+bug1419.1.sml 	   ...  openbug (unchanged)
+  -- printing of signature does not reflect the actual signature
+
+bug1433.2.sml 	   ...  openbug (unchanged)
+  -- eqtype and wheretype clash (may be related to bug1329)
+
+bug1434.1.sml 	   ...  openbug (unchanged)
+  -- `open` of unbound structure breaks environment
+
+bug1443.1.sml 	   ...  openbug (unchanged)
+  -- bug with implementation of `Real.toManExp` (also see bug1319)
+
+bug1444.1.sml 	   ...  openbug (unchanged)
+  -- `Date.toString` is missing leading `0` on day of month when it is less
+     than 10.  The fix is to switch from using the `asctime` function to
+     using `Date.fmt` as specified in the Basis Library specification.
+
+bug1447.1.sml 	   ...  openbug (unchanged)
+  -- bug in Real.fmt; a spurious `.1` is added when converting round real
+     numbers above 91827364509181.0 to a string.
+
+bug1451.1.sml 	   ...  **** possible bug fix
+  -- Math.sin on very large arguments (see http://www.netlib.org/fdlibm/ for
+     possible solution)
+
+bug1452.1.sml 	   ...  openbug (unchanged)
+  -- Math.sin on very small arguments (see http://www.netlib.org/fdlibm/ for
+     possible solution)
+
+bug1472.1.sml 	   ...  openbug (unchanged)
+  -- datatype involving real is treated as an equality type
+
+bug1486.1.sml 	   ...  openbug (unchanged)
+  -- `Math.pow` gives non-integer results on integer arguments; this is the same
+     as bug #109 in the new bug database (see http://www.netlib.org/fdlibm/ for
+     possible solution)
+
+bug1487.1.sml 	   ...  openbug (unchanged)
+  -- parentheses not permitted in `val rec` binding
+
+bug1494.1.sml 	   ...  openbug (unchanged)
+  -- pretty printing rebound datatype in REPL
+
+bug1509.1.sml 	   ...  openbug (unchanged)
+  -- same as bug1388
+
+bug1541.1.sml 	   ...  **** possible bug fix
+  -- `Array2.array` should always be an equality type (like `Array.array` and `ref`).
+
+bug1551.1.sml 	   ...  openbug (unchanged)
+  -- invalid escape sequence in string/character literal is reported as an unclosed
+     string.
+
+bug1573.1.sml 	   ...  **** possible bug fix
+  -- the `ARRAY` signature does not reflect that `array` is an equality type.
+     This is more a weakness in the SML language than a bug.
+
+bug1587.1.sml 	   ...  openbug (unchanged)
+  -- bug in `Real.rem` on whole numbers (bug is probably in `Real.mod`)
