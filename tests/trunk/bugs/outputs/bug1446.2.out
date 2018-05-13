@@ -1,7 +1,11 @@
 val it = () : unit
 val it = () : unit
+infixr 5 >>
 datatype series! = >> of int * series! ?.susp
 type series = series! ?.susp
-bug1446.2.sml:7.16-7.19 Error: non-constructor applied to argument in pattern
-bug1446.2.sml:7.25-7.27 Error: unbound variable or constructor: xs
+val tail = fn : series! ?.susp -> series! ?.susp
+val tail_ = fn : series! ?.susp -> series!
+val plus = fn : series! ?.susp * series! ?.susp -> series! ?.susp
+val plus_ = fn : series! ?.susp * series! ?.susp -> series!
+val it = $$ : series! ?.susp
 
