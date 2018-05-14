@@ -1,5 +1,5 @@
 val it = () : unit
-bug1573.1.sml:5.7-5.40 Error: operator and operand don't agree [equality type required]
+bug1573.1.sml:5.7-5.40 Error: operator and operand do not agree [equality type required]
   operator domain: ''Z * ''Z
   operand:         'Y A.array * 'X A.array
   in expression:

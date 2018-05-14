@@ -11,9 +11,6 @@ Tests that "passed" are omitted from the lists
 
 ### Test failures
 
-bug0419.sml 	   ...  **** fail
-  -- old CML bug test; needs to be updated
-
 bug0423.sml 	   ...  **** fail
   -- printing of `Vector` structure's signature as `VECTOR_2015?`
 
@@ -62,9 +59,6 @@ bug1351.sml 	   ...  openbug (unchanged)
 bug1366.1.sml 	   ...  openbug (unchanged)
   -- potential issue with higher-order functors and opaque signature matching
 
-bug1370.sml 	   ...  openbug (unchanged)
-  -- bug in parsing of `op` followed by a longid
-
 bug1375.1.sml 	   ...  openbug (unchanged)
   -- `Word.fromString` incorrectly handles `0wa`; returns 10 instead of 0
 
@@ -72,10 +66,15 @@ bug1383.1.sml 	   ...  openbug (unchanged)
   -- incorrect handling of escape sequences in `Char.toCString`.
 
 bug1388.1.sml 	   ...  **** possible bug fix
-   -- runtime bug: dividing minInt by ~1 produces `Div` exception instead of `Overflow`
+  -- runtime bug: dividing minInt by ~1 produces `Div` exception instead of `Overflow`
 
 bug1390.1.sml 	   ...  openbug (unchanged)
+  -- the original bug was "incorrect parsing of sigb sequences", but it appears to
+     have been fixed by forbidding the use of `and` to connect signature declarations.
+
 bug1394.1.sml 	   ...  openbug (unchanged)
+  -- the original bug is fixed, but there is some ambiguity w.r.t. when derived
+     forms should be expanded vs. when fixity is determined
 
 bug1399.1.sml 	   ...  **** fail
   -- printing of builtin types (e.g., `Int32.int` as `?.int32`)
