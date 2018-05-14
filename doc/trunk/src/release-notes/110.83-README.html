@@ -89,7 +89,7 @@
 <br>
                           Version 110.83 NEWS
 <br>
-                            ??, 2018
+                            June 1, 2018
 </div>
 
 <hr>
@@ -116,16 +116,17 @@ There are many under-the-hood changes to the compiler to make supporting both 32
   <dt class="component">Compiler</dt>
   <dd>
     <p>
-      Changed the <span class="code">Absyn</code, <span class="code">PLambda</code>,
-      <span class="code">FLINT</code>, and <span class="code">CPS</code> IRs to
-      represent integer and word literals as <span class="code">IntInf.int</code>
+      Changed the <span class="code">Absyn</span>, <span class="code">PLambda</span>,
+      <span class="code">FLINT</span>, and <span class="code">CPS</span> IRs to
+      represent integer and word literals as <span class="code">IntInf.int</span>
       values.  This change removes unnecessary complexity in code generation, improves
       constant folding, and lays the groundwork for 64-bit support.
     </p>
     <p>
       Improved the reporting of errors involving literal values.  We now
       use the original source text when describing the value in the error
-      message.
+      message.  We also give an error in the front-end when real literals
+      are too large (instead of letting the code generator fail).
     </p>
   </dd>
 
@@ -145,27 +146,39 @@ There are many under-the-hood changes to the compiler to make supporting both 32
       <tr><td class="bugid">194</td><td>Real.fromString overflows or hangs</td></tr>
 <!--      <tr><td class="bugid">XXX</td><td>DESCRIPTION</td></tr> -->
     </table>
-<!-->
     <p>The following unnumbered bugs were also fixed:
     </p>
     <ul class="buglist">
-      <li>JSON Library: printing of strings was fixed to match JSON specification.</li>
-      <li>Eliminated false positives in assertion checking in
-        <span class="tt">build-literals.c</span>.
-        Also fixed a bookkeeping bug in the tracking of available space in
-	<span class="tt">build-literals.c</span>.
-      </li>
-      <li>Fixed a bug in the <span class="code">IntInf.mod</span> and
-        <span class="code">IntInf.rem</span> operators,
-        where the <span class="code">Div</span> exception was <b>not</b>
-	getting raised when both arguments are zero.
+      <li>
+	Fixed the scanning of type variables to agree with the Definition
+        (<i>e.g.</i>, <span class="code">'1</span> and <span class="code">'_</span>
+	are now accepted as type variables).
       </li>
       <li>
-        Fixed a runtime-system build issue on <b>macOS</b> for the situation where <b>Xcode</b>
-        in installed, but <span class="tt">/usr/include</span> does not exist.
+	Modified the parser to enforce the restriction that module-language
+	identifiers must be alphanumeric (not symbolic).
+      </li>
+      <li>
+	Modified the parser to disallow the rebinding of <span class="code">=</span>.
+	Note that we still allow the syntax
+	<span class="code"><span class="kw">val</span> <span class="kw">op</span> = = ...</span>
+	because it is needed
+	when bootstrapping the initial Basis environment.
+      </li>
+      <li>
+	Fixed the behavior of <span class="code">Int.sameSign</span> and
+	<span class="code">Int32.sameSign</span> to correctly handle the situation
+	where one argument was zero and the other was greater than zero.
+      </li>
+      <li>
+	Fixed the scanner to allow unmatched close comment sequences
+	(<i>e.g.</i>, <span class="code">(<span class="kw">op</span> *)(2,3)</span>).
+      </li>
+      <li>
+	Fixed the parser's handling of <span class="kw">op</span> combined with
+	long identifiers.
       </li>
     </ul>
--->
 
 <h3>Supported systems:</h3>
 <blockquote>

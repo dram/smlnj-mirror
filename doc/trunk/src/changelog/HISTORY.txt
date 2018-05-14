@@ -91,11 +91,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/05/13]::
++
+Fixed a bug in the parsing of bindings involving the `op` keyword.
+The parser was more restrictive than the definition.  This change
+fixes bug number 1370 from the old openbugs list.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2018/05/12]::
 +
 The lexer gave an unmatched close comment error on "++*)++", when it
-should have scanned it as the tokens "++*++" "**)**".  This bug was
-number 330 in the old bug database.
+should have scanned it as the tokens "++*++" "**)**".  This change
+fixes bug number 330 in the old openbugs list.
 +
 **Note**: there is some ambiguity as to what the correct behavior
 should be here.  The Definition of Standard ML (1997) only says that
@@ -123,7 +132,9 @@ Fixed various minor parsing and scanning issues:
 --
 * correct syntax for type variables
 * signature/structure/functor IDs should always be alpha IDs
-* the equality ID (`=`) cannot appear in a binding context
+* the equality ID (`=`) cannot appear in a binding context.  Note that
+  we still allow the syntax `val op = = ...` because it is needed to
+  parse the file `system/smlnj/init/built-in.sml`.
 --
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
@@ -182,9 +193,9 @@ owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 Fix for bug bugref:[194] (++Real.fromString++ overflows or hangs).  There
 were two issues here.  First, the +Overflow+ exception was being raised
 when scanning large exponents, but it was not being handled by the
-scanning code.  The second issue was that scaling loop for large
-exponents that did not overflow did not terminate once infinity (or zero)
-was reached, so it could take a long time.
+scanning code.  The second issue was that the scaling loop for large
+exponents did not immediately terminate once infinity (or zero) was
+reached, so it could take a long time.
 +
 owner:[John Reppy,http://cs.uchicago.edu/~jhr]
 
