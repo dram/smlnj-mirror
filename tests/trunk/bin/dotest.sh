@@ -5,8 +5,18 @@
 #
 
 CMD=${0##*/}\>
+
+# determine the default path to SML/NJ
+if [ -x /usr/local/smlnj/bin/sml ] ; then
+  SML_PATH=/usr/local/smlnj/bin/sml
+elif [ -x /usr/local/bin/sml ] ; then
+  SML_PATH=/usr/local/bin/sml
+else
+  SML_PATH=sml
+fi
+SMLX=${SML:-"$SML_PATH"}
+
 ECHO=print
-SMLX=${SML:-"/usr/local/sml/bin/sml"}
 DIFFS=
 
 # default ARCH and OPSYS

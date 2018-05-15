@@ -7,8 +7,17 @@
 #
 CMD=${0##*/}\>
 
+# determine the default path to SML/NJ
+if [ -x /usr/local/smlnj/bin/sml ] ; then
+  SML_PATH=/usr/local/smlnj/bin/sml
+elif [ -x /usr/local/bin/sml ] ; then
+  SML_PATH=/usr/local/bin/sml
+else
+  SML_PATH=sml
+fi
+SML=${SML:-"$SML_PATH"}
+
 CPULIMIT=400
-SML=${SML:-"/usr/local/bin/sml"}
 KSH=/bin/ksh
 #DIFF=/bin/diff
 #DIFF=/opt/gnu/bin/diff

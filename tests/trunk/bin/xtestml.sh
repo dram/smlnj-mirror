@@ -9,7 +9,7 @@ CMD=${0##*/}\>
 
 # defaults
 CPULIMIT=400
-SML=/usr/local/bin/sml
+SML=sml
 KSH=/bin/ksh
 DIFF=/bin/diff
 ECHO=print
