@@ -8,7 +8,7 @@
 
 (* This requires two links to be present in the current directory:
 	testlink -> README
-	testcycl -> testcycl 
+	testcycl -> testcycl
 	testbadl -> exists.not
    Moreover, the file README must exist and the file exists.not not.
 *)
@@ -22,8 +22,8 @@ local
   fun check b = if b then "OK" else "WRONG";
   fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
 
-  fun range (from, to) p = 
-      let open Int 
+  fun range (from, to) p =
+      let open Int
       in
           (from > to) orelse (p from) andalso (range (from+1, to) p)
       end;
@@ -32,8 +32,8 @@ local
 
   open OS.FileSys
   (* Clean up: *)
-  val _ = (rmDir "testdir") handle OS.SysErr _ => (); 
-  val _ = (rmDir "testdir2") handle OS.SysErr _ => (); 
+  val _ = (rmDir "testdir") handle OS.SysErr _ => ();
+  val _ = (rmDir "testdir2") handle OS.SysErr _ => ();
 
   val cdir = getDir();
 
@@ -51,7 +51,7 @@ val test1b = (mkDir "testdir" seq "WRONG")
              handle OS.SysErr _ => "OK" | _ => "WRONG";
 
 val test2 = check'(fn _ => isDir "testdir");
-    
+
 val test3a = check'(fn _ => access("testdir", [A_READ, A_EXEC, A_WRITE]));
 
 val test4a = (chDir cdir seq "OK") handle _ => "WRONG";
@@ -65,7 +65,7 @@ val _ = rename{old = "testdir", new = "exists.not"};
 
 val test5 = (rmDir "exists.not" seq "OK") handle _ => "WRONG";
 
-val test6a = (openDir "exists.not" seq "WRONG") 
+val test6a = (openDir "exists.not" seq "WRONG")
              handle OS.SysErr _ => "OK" | _ => "WRONG";
 val test6b = (isDir "exists.not" seq "WRONG")
              handle OS.SysErr _ => "OK" | _ => "WRONG";
@@ -91,15 +91,15 @@ val test6l = check'(fn _ => not (access("exists.not", [])));
 
 val _ = mkDir "testdir";
 
-local 
+local
     val dstr = openDir "testdir";
 in
-    val test7a = 
+    val test7a =
 	check'(fn _ => not(isSome(readDir dstr))
 	       andalso not(isSome(readDir dstr))
 	       andalso not(isSome(readDir dstr)));
     val _ = rewindDir dstr;
-    val test7b = 
+    val test7b =
 	check'(fn _ => not(isSome(readDir dstr))
 	       andalso not(isSome(readDir dstr))
 	       andalso not(isSome(readDir dstr)));
@@ -112,59 +112,59 @@ in
  	         handle _ => "WRONG"
 end
 
-val test8a = 
+val test8a =
     check'(fn _ => fullPath "." = getDir ());
-val test8b = 
-    check'(fn _ => fullPath testlink = getDir() ^ "/" ^ README);
+val test8b =
+    check'(fn _ => fullPath README = getDir() ^ "/" ^ README);
 val test8c = (fullPath testcycl seq "WRONG")
  	     handle OS.SysErr _ => "OK" | _ => "WRONG";
 val test8d = (fullPath testbadl seq "WRONG")
  	     handle OS.SysErr _ => "OK" | _ => "WRONG";
-val test8e = 
+val test8e =
     check'(fn _ => realPath "." = ".");
-val test8f = 
+val test8f =
     check'(fn _ => realPath testlink = README);
 val test8g = (realPath testcycl seq "WRONG")
  	     handle OS.SysErr _ => "OK" | _ => "WRONG";
 val test8h = (realPath testbadl seq "WRONG")
  	     handle OS.SysErr _ => "OK" | _ => "WRONG";
 
-val test9a = 
-    check'(fn _ => 
+val test9a =
+    check'(fn _ =>
 	   setTime (README, SOME (Time.fromReal 1E6)) = ());
-val test9b = 
+val test9b =
     check'(fn _ => modTime README = Time.fromReal 1E6);
-    
+
 val test10a = (remove "testdir" seq "WRONG")
               handle OS.SysErr _ => "OK" | _ => "WRONG";
-val test10b = 
-    check'(fn _ => 
+val test10b =
+    check'(fn _ =>
 	   rename{old = "testdir", new = "testdir2"} = ());
-val test10c = 
+val test10c =
     check'(fn _ => isDir "testdir2");
 
-val test11a = 
+val test11a =
     check'(fn _ => not (access ("testdir", [])));
-val test11b = 
+val test11b =
     check'(fn _ => access(testlink, []));
-val test11c = 
+val test11c =
     check'(fn _ => not (access(testbadl, [])));
 
-val test12a = 
-    check'(fn _ => isLink testcycl 
+val test12a =
+    check'(fn _ => isLink testcycl
 	   andalso isLink testlink
 	   andalso isLink testbadl);
-val test12b = 
+val test12b =
     check'(fn _ => not (isLink "testdir2"
 			orelse isLink README));
 val test12c = (isLink "basis/tests/exists.not" seq "WRONG")
               handle OS.SysErr _ => "OK" | _ => "WRONG";
 
-val test13a = 
+val test13a =
     check'(fn _ => readLink testcycl = "testcycl");
-val test13b = 
+val test13b =
     check'(fn _ => readLink testlink = "README");
-val test13c = 
+val test13c =
     check'(fn _ => readLink testbadl = "exists.not");
 val test13d = (readLink "testdir2" seq "WRONG")
               handle OS.SysErr _ => "OK" | _ => "WRONG";
@@ -173,19 +173,19 @@ val test13e = (readLink "basis/tests/exists.not" seq "WRONG")
 
 val test14 = (tmpName () seq "OK");
 
-val test15a = 
-    check'(fn _ => 
+val test15a =
+    check'(fn _ =>
 	   fileId "." = fileId "."
 	   andalso fileId testlink = fileId README
  	   andalso fileId "." <> fileId README);
-val test15b = 
+val test15b =
     check'(fn _ => compare(fileId ".", fileId ".") = EQUAL
 	   andalso compare(fileId ".", fileId README) <> EQUAL
 	   andalso compare(fileId testlink, fileId README) = EQUAL
-	   andalso (compare(fileId ".", fileId README) = LESS 
+	   andalso (compare(fileId ".", fileId README) = LESS
 		    andalso compare(fileId README, fileId ".") = GREATER
-		    orelse 
-		    compare(fileId ".", fileId README) = GREATER 
+		    orelse
+		    compare(fileId ".", fileId README) = GREATER
 		    andalso compare(fileId README, fileId ".") = LESS));
 val test15c = (fileId "basis/tests/exists.not" seq "WRONG")
               handle OS.SysErr _ => "OK" | _ => "WRONG";
@@ -194,8 +194,8 @@ val test15d = (fileId "testbadl" seq "WRONG")
 val test15e = (fileId "testcycl" seq "WRONG")
               handle OS.SysErr _ => "OK" | _ => "WRONG";
 (* Unix only: *)
-val test15f = 
-       check'(fn _ => 
+val test15f =
+       check'(fn _ =>
 	   fileId hardlinkA = fileId hardlinkB
 	   andalso compare(fileId hardlinkA, fileId hardlinkB) = EQUAL);
 
