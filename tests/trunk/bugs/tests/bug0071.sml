@@ -3,6 +3,6 @@
 uses auxiliary file bug0071/y.sml
 *)
 
-val x = (use "bug0071/y.sml"; let exception X in raise X end);
+val x = (use "bugs/tests/bug0071/y.sml"; let exception X in raise X end);
 x;
 

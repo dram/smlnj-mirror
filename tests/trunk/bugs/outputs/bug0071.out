@@ -1,7 +1,7 @@
 val it = () : unit
-[opening bug71/y.sml]
-[use failed: Io: openIn failed on "bug71/y.sml", No such file or directory]
+[opening bugs/tests/bug0071/y.sml]
+val x = 4 : int
 
-uncaught exception Error
-  raised at: ../compiler/TopLevel/interact/interact.sml:24.14-24.28
+uncaught exception X
+  raised at: bug0071.sml:6.67
 

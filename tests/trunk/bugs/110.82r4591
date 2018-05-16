@@ -1,6 +1,8 @@
 This is a status report of running the "bugs" tests using revision 4591
 of the compiler/basis, which is a post-110.82/pre-110.83 version.
 
+** Updated for r4599 **.
+
 The report is broken into two groups: first the tests that "failed".  Most of
 these are because of changes in the error messages, etc.  The second group
 are the "openbugs".  Each test has been marked as "OK", "BUG", "FIXED" (for
@@ -61,6 +63,7 @@ bug1366.1.sml 	   ...  openbug (unchanged)
 
 bug1375.1.sml 	   ...  openbug (unchanged)
   -- `Word.fromString` incorrectly handles `0wa`; returns 10 instead of 0
+      FIXED
 
 bug1383.1.sml 	   ...  openbug (unchanged)
   -- incorrect handling of escape sequences in `Char.toCString`.
