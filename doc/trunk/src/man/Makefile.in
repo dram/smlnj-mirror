@@ -1,6 +1,6 @@
 # Makefile for SML/NJ Manual pages
 #
-# COPYRIGHT (c) 2014 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # @configure_input@
@@ -10,10 +10,7 @@ SHELL =		@SHELL@
 INSTALL =	@INSTALL@
 @SET_MAKE@
 
-A2X =		@A2X@
-# disable xmllint, since there seem to be issues with finding the DTD [2014-12-21]
-A2X_FLAGS =	-L --verbose
-ASCIIDOC =	@ASCIIDOC@
+ASCIIDOCTOR =	@ASCIIDOCTOR@
 
 SMLNJ_VERSION =	@SMLNJ_VERSION@
 SMLNJ_DATE =	@SMLNJ_DATE@
@@ -54,7 +51,7 @@ doc:		man html
 		mkdir -p $(HTML_OUT_DIR)/man1 $(HTML_OUT_DIR)/man7
 		cp -p $(MAN1_HTML) $(HTML_OUT_DIR)/man1
 		cp -p $(MAN7_HTML) $(HTML_OUT_DIR)/man7
-		
+
 .PHONY:		man
 man:		$(MAN1_PAGES) $(MAN7_PAGES)
 
@@ -62,10 +59,10 @@ man:		$(MAN1_PAGES) $(MAN7_PAGES)
 html:		$(HTML)
 
 % : %.txt
-	$(A2X) $(A2X_FLAGS) $(ATTRS) -d manpage -f manpage $<
+	$(ASCIIDOCTOR) $(ATTRS) -d manpage -b manpage $<
 
 %.html : %.txt
-	$(ASCIIDOC) $(ATTRS) -d manpage -b html5 $<
+	$(ASCIIDOCTOR) $(ATTRS) -d manpage -b html5 $<
 
 #################### Cleanup ####################
 
