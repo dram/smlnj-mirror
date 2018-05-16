@@ -91,6 +91,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/05/16]::
++
+Fix a bug where "++0w++" was being accepted as a prefix for a hexidecimal
+word value in ++Word.fromString++/++scan++ (ignoring case, only "++0x++"
+and "++0wx++" are valid prefixes).  This change fixes bug number 1375
+from the old openbugs list.
++
+owner:[John Reppy,http://cs.uchicago.edu/~jhr]
+
+//--------------------------------------------------------------------
 [2018/05/13]::
 +
 Fixed a bug in the parsing of bindings involving the `op` keyword.

@@ -178,6 +178,11 @@ There are many under-the-hood changes to the compiler to make supporting both 32
 	Fixed the parser's handling of <span class="kw">op</span> combined with
 	long identifiers.
       </li>
+      <li>
+	Fixed scanning of prefixes of word values in strings to match Basis
+	Library specification ("<span class="code">0w</code>" is <b>not</b>
+	a valid prefix for hexadecimal values).
+      </li>
     </ul>
 
 <h3>Supported systems:</h3>
