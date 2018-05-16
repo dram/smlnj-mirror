@@ -1,5 +1,5 @@
 (* test/word8.sml -- some test cases for Word8, appropriate for a
-   two's complement machine whose Int.precision = SOME 31 
+   two's complement machine whose Int.precision = SOME 31
    PS 1995-03-30, 1995-07-12, 1995-11-06, 1996-04-01, 1996-10-01 *)
 
 local
@@ -9,27 +9,27 @@ local
   fun check b = if b then "OK" else "WRONG";
   fun check' f = (if f () then "OK" else "WRONG") handle _ => "EXN";
 
-  fun range (from, to) p = 
-      let open Int 
+  fun range (from, to) p =
+      let open Int
       in
           (from > to) orelse (p from) andalso (range (from+1, to) p)
       end;
 
   fun checkrange bounds = check o range bounds;
 
-  fun pwr2 0 = 1 
+  fun pwr2 0 = 1
     | pwr2 n = 2 * pwr2 (n-1);
   fun rwp i 0 = i
     | rwp i n = rwp i (n-1) div 2;
 
   (* Isn't this disgusting: *)
-  val [gt,  lt,  ge,   le] = 
+  val [gt,  lt,  ge,   le] =
       [op>, op<, op>=, op<=] : (int * int -> bool) list
-  val [add, sub, mul, idiv,   imod] = 
+  val [add, sub, mul, idiv,   imod] =
       [op+, op-, op*, op div, op mod] : (int * int -> int) list
   open Word8;
   val op > = gt and op < = lt and op >= = ge and op <= = le;
-  val op + = add and op - = sub and op * = mul 
+  val op + = add and op - = sub and op * = mul
   and op div = idiv and op mod = imod;
   val i2W = Word.fromInt
   val i2w = fromInt
@@ -37,46 +37,46 @@ local
 
 in
 
-val test1 = checkrange (0, 255) 
+val test1 = checkrange (0, 255)
     (fn i => i = w2i (i2w i));
 
-val test2 = checkrange (~1000, 1000) 
-    (fn i => let val r = w2i (i2w i) 
+val test2 = checkrange (~1000, 1000)
+    (fn i => let val r = w2i (i2w i)
 	     in 0 <= r andalso r < 256 end);
 
-val test3 = checkrange (~128, 127) 
+val test3 = checkrange (~128, 127)
     (fn i => i = toIntX (i2w i));
 
 val test4 = checkrange (~1000, 1000)
-    (fn i => let val r = toIntX (i2w i) 
+    (fn i => let val r = toIntX (i2w i)
 	     in ~128 <= r andalso r < 128 end);
 
-val test5a = checkrange (0,15) 
+val test5a = checkrange (0,15)
     (fn i => (i+240) div 2 * 2 + 1
              = w2i (orb (i2w i, i2w 241)));
 val test5b = checkrange (0,255)
     (fn i => i = w2i (orb (i2w i, i2w i)));
 val test5c = checkrange (~1000,1000)
-    (fn i => let val r = w2i (andb (i2w 2047, i2w i)) 
+    (fn i => let val r = w2i (andb (i2w 2047, i2w i))
 	     in 0 <= r andalso r < 256 end);
-val test6a = checkrange (0,15) 
+val test6a = checkrange (0,15)
     (fn i => i div 2 * 2 = w2i (andb (i2w i, i2w 254)));
 val test6b = checkrange (0,255)
     (fn i => i = w2i (andb (i2w i, i2w i)));
 val test6c = checkrange (~1000,1000)
-    (fn i => let val r = w2i (andb (i2w 2047, i2w i)) 
+    (fn i => let val r = w2i (andb (i2w 2047, i2w i))
 	     in 0 <= r andalso r < 256 end);
-val test7a = checkrange (0,15) 
+val test7a = checkrange (0,15)
     (fn i => i+240 = w2i (xorb (i2w i, i2w 240)));
 val test7b = checkrange (0, 255)
     (fn i => 0 = w2i (xorb (i2w i, i2w i)));
 val test7c = checkrange (~1000,1000)
-    (fn i => let val r = w2i (xorb (i2w 0, i2w i)) 
+    (fn i => let val r = w2i (xorb (i2w 0, i2w i))
 	     in 0 <= r andalso r < 256 end);
 val test8a = check (255 = w2i (notb (i2w 0)));
 val test8b = check (0 = w2i (notb (i2w 255)));
 val test8c = checkrange (~1000,1000)
-    (fn i => let val r = w2i (notb (i2w i)) 
+    (fn i => let val r = w2i (notb (i2w i))
 	     in 0 <= r andalso r < 256 end);
 
 val test9a = checkrange (0,7)
@@ -89,7 +89,7 @@ val test9c = checkrange (~50,50)
 val test9d = checkrange (~50,50)
     (fn k => let val r = w2i (>> (i2w 1, i2W k))
 	     in 0 <= r andalso r < 256 end);
-val test9e = checkrange (0, 127) 
+val test9e = checkrange (0, 127)
     (fn i => 2 * i = w2i (<< (i2w i, i2W 1)));
 val test9f = checkrange (0, 255)
     (fn i => i div 2 = w2i (>> (i2w i, i2W 1)));
@@ -139,26 +139,26 @@ val test12p = (Word8.div(i2w 0, i2w 256) seq "WRONG")
 val test12q = (Word8.mod(i2w 0, i2w 256) seq "WRONG")
               handle Div => "OK" | _ => "WRONG";
 
-fun chk f (s, r) = 
-    check'(fn _ => 
+fun chk f (s, r) =
+    check'(fn _ =>
 	   case f s of
 	       SOME res => res = i2w r
 	     | NONE     => false)
 
 fun chkScan fmt = chk (StringCvt.scanString (scan fmt))
 
-val test13a = 
+val test13a =
     List.map (chk fromString)
              [("21", 33),
 	      ("0", 0),
 	      ("ff", 255),
 	      ("FF", 255),
 	      (" \n\t21Grap", 33),
-	      ("0w21", 33),
+	      ("0w21", 0),
 	      ("0w0", 0),
-	      ("0wff", 255),
-	      ("0wFF", 255),
-	      (" \n\t0w21Grap", 33),
+	      ("0wff", 0),
+	      ("0wFF", 0),
+	      (" \n\t0w21Grap", 0),
 	      ("0x21", 33),
 	      ("0x0", 0),
 	      ("0xff", 255),
@@ -176,23 +176,23 @@ val test13a =
 	      ("0w ", 0),
 	      ("0wx", 0),
 	      ("0wX", 0),
-	      ("0wx1", 1),
+	      ("0wx12", 18),
 	      ("0wX1", 1),
 	      ("0wx ", 0),
 	      ("0wX ", 0)];
 
-val test13b = 
+val test13b =
     List.map (fn s => case fromString s of NONE => "OK" | _ => "WRONG")
-	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+", 
-	    "+1", "~1", "-1", "GG"];	    
+	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+",
+	    "+1", "~1", "-1", "GG"];
 
-val test13c = (fromString "100" seq "WRONG") 
+val test13c = (fromString "100" seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test13d = (fromString "FFFFFFFFFFFFFFF" seq "WRONG") 
+val test13d = (fromString "FFFFFFFFFFFFFFF" seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test14a = 
+val test14a =
     List.map (chkScan StringCvt.DEC)
              [("123", 123),
 	      ("0", 0),
@@ -202,6 +202,14 @@ val test14a =
 	      ("0w0", 0),
 	      ("0w255", 255),
 	      (" \n\t0w123crap", 123),
+	      ("0wx123", 0),
+	      ("0wx0", 0),
+	      ("0wX255", 0),
+	      (" \n\t0wX123crap", 0),
+	      ("0x123", 0),
+	      ("0x0", 0),
+	      ("0X255", 0),
+	      (" \n\t0X123crap", 0),
 	      ("0", 0),
 	      ("0w", 0),
 	      ("0W1", 0),
@@ -214,20 +222,20 @@ val test14a =
 	      ("0wx ", 0),
 	      ("0wX ", 0)];
 
-val test14b = 
-    List.map (fn s => case StringCvt.scanString (scan StringCvt.DEC) s 
+val test14b =
+    List.map (fn s => case StringCvt.scanString (scan StringCvt.DEC) s
 	              of NONE => "OK" | _ => "WRONG")
-	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+", 
-	    "+1", "~1", "-1", "ff"];	    
+	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+",
+	    "+1", "~1", "-1", "ff"];
 
-val test14c = (StringCvt.scanString (scan StringCvt.DEC) "256" seq "WRONG") 
+val test14c = (StringCvt.scanString (scan StringCvt.DEC) "256" seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test14d = (StringCvt.scanString (scan StringCvt.DEC) "9999999999999999" 
-	       seq "WRONG") 
+val test14d = (StringCvt.scanString (scan StringCvt.DEC) "9999999999999999"
+	       seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test15a = 
+val test15a =
     List.map (chkScan StringCvt.BIN)
              [("10010", 18),
 	      (" \n\t10010crap", 18),
@@ -245,22 +253,22 @@ val test15a =
 	      ("0wx ", 0),
 	      ("0wX ", 0)];
 
-val test15b = 
-    List.map (fn s => case StringCvt.scanString (scan StringCvt.BIN) s 
+val test15b =
+    List.map (fn s => case StringCvt.scanString (scan StringCvt.BIN) s
 	              of NONE => "OK" | _ => "WRONG")
-	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+", 
+	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+",
 	    "+1", "~1", "-1", "2", "8", "ff"];
 
-val test15c = (StringCvt.scanString (scan StringCvt.BIN) "100000000" 
-	       seq "WRONG") 
+val test15c = (StringCvt.scanString (scan StringCvt.BIN) "100000000"
+	       seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test15d = (StringCvt.scanString (scan StringCvt.BIN) 
-	       "1111111111111111111111111111111111111111111111111111111111" 
-	       seq "WRONG") 
+val test15d = (StringCvt.scanString (scan StringCvt.BIN)
+	       "1111111111111111111111111111111111111111111111111111111111"
+	       seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test16a = 
+val test16a =
     List.map (chkScan StringCvt.OCT)
              [("207", 135),
 	      ("0", 0),
@@ -282,31 +290,31 @@ val test16a =
 	      ("0wx ", 0),
 	      ("0wX ", 0)];
 
-val test16b = 
-    List.map (fn s => case StringCvt.scanString (scan StringCvt.OCT) s 
+val test16b =
+    List.map (fn s => case StringCvt.scanString (scan StringCvt.OCT) s
 	              of NONE => "OK" | _ => "WRONG")
-	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+", 
+	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+",
 	    "+1", "~1", "-1", "8", "ff"];
 
-val test16c = (StringCvt.scanString (scan StringCvt.OCT) "400" seq "WRONG") 
+val test16c = (StringCvt.scanString (scan StringCvt.OCT) "400" seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test16d = (StringCvt.scanString (scan StringCvt.OCT) 
-	       "7777777777777777777777777777777777777777777" seq "WRONG") 
+val test16d = (StringCvt.scanString (scan StringCvt.OCT)
+	       "7777777777777777777777777777777777777777777" seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test17a = 
+val test17a =
     List.map (chkScan StringCvt.HEX)
              [("21", 33),
 	      ("0", 0),
 	      ("ff", 255),
 	      ("FF", 255),
 	      (" \n\t21Grap", 33),
-	      ("0w21", 33),
+	      ("0w21", 0),
 	      ("0w0", 0),
-	      ("0wff", 255),
-	      ("0wFF", 255),
-	      (" \n\t0w21Grap", 33),
+	      ("0wff", 0),
+	      ("0wFF", 0),
+	      (" \n\t0w21Grap", 0),
 	      ("0x21", 33),
 	      ("0x0", 0),
 	      ("0xff", 255),
@@ -329,42 +337,42 @@ val test17a =
 	      ("0wx ", 0),
 	      ("0wX ", 0)];
 
-val test17b = 
-    List.map (fn s => case StringCvt.scanString (scan StringCvt.HEX) s 
+val test17b =
+    List.map (fn s => case StringCvt.scanString (scan StringCvt.HEX) s
 	              of NONE => "OK" | _ => "WRONG")
-	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+", 
+	   ["", "-", "~", "+", " \n\t", " \n\t-", " \n\t~", " \n\t+",
 	    "+1", "~1", "-1"];
 
-val test17c = (StringCvt.scanString (scan StringCvt.HEX) "100" seq "WRONG") 
+val test17c = (StringCvt.scanString (scan StringCvt.HEX) "100" seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-val test17d = (StringCvt.scanString (scan StringCvt.HEX) 
-	       "FFFFFFFFFFFFFFFFFF" seq "WRONG") 
+val test17d = (StringCvt.scanString (scan StringCvt.HEX)
+	       "FFFFFFFFFFFFFFFFFF" seq "WRONG")
               handle Overflow => "OK" | _ => "WRONG";
 
-local 
-    fun fromToString i = 
+local
+    fun fromToString i =
 	fromString (toString (fromInt i)) = SOME (fromInt i);
 
-    fun scanFmt radix i = 
+    fun scanFmt radix i =
 	let val w = fromInt i
 	    val s = fmt radix w
 	in StringCvt.scanString (scan radix) s = SOME w end;
 
 in
-val test18 = 
+val test18 =
     check'(fn _ => range (0, 255) fromToString);
 
-val test19 = 
+val test19 =
     check'(fn _ => range (0, 255) (scanFmt StringCvt.BIN));
 
-val test20 = 
+val test20 =
     check'(fn _ => range (0, 255) (scanFmt StringCvt.OCT));
 
-val test21 = 
+val test21 =
     check'(fn _ => range (0, 255) (scanFmt StringCvt.DEC));
 
-val test22 = 
+val test22 =
     check'(fn _ => range (0, 255) (scanFmt StringCvt.HEX));
 end
 end;

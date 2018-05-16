@@ -156,22 +156,26 @@ val test12s = (i2w 17 mod i2w 0 seq "WRONG")
 val test13a =
     List.map (chk fromString)
              [("20Af", 8367),
-	      (" \n\t20AfGrap", 8367),
-	      ("0w20Af", 8367),
-	      (" \n\t0w20AfGrap", 8367),
+	      (" \n\t20AfGrap", 8367),		(* no prefix OK *)
+	      ("0wx20Af", 8367),
+	      (" \n\t0wx20AfGrap", 8367),	(* "0wx" prefix OK *)
+	      ("0x20Af", 8367),
+	      (" \n\t0x20AfGrap", 8367),	(* "0x" prefix OK *)
+	      ("0w20Af", 0),
+	      (" \n\t0w20AfGrap", 0),		(* "0w" prefix => 0 *)
 	      ("0", 0),
 	      ("0w", 0),
 	      ("0W1", 0),
-	      ("0wa", 0),
 	      ("0w ", 0),
 	      ("0wx", 0),
 	      ("0wX", 0),
 	      ("0wx1", 1),
 	      ("0wX1", 1),
+	      ("0wxa", 10),
+	      ("0wX12", 18),
 	      ("0wx ", 0),
 	      ("0wX ", 0),
-	      ("0x1", 1),
-	      ("0xab", 171];
+	      ("0xab", 171)];
 
 val test13b =
     List.map (fn s => case fromString s of NONE => "OK" | _ => "WRONG")
@@ -257,11 +261,11 @@ val test17a =
 	      ("0", 0),
 	      ("0w", 0),
 	      ("0w ", 0),
-	      ("0w1", 1),
+	      ("0w1", 0),
 	      ("0W1", 0),
 	      ("0wx", 0),
 	      ("0wX", 0),
-	      ("0wx1", 1),
+	      ("0wx12", 18),
 	      ("0wX1", 1)];
 
 val test17b =

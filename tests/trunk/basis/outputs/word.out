@@ -50,8 +50,8 @@ val test12q = "OK" : string
 val test12r = "OK" : string
 val test12s = "OK" : string
 val test13a =
-  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
-  : string list
+  ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
+   "OK","OK","OK","OK","OK","OK"] : string list
 val test13b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
 val test14a =

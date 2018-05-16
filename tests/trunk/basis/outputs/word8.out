@@ -56,15 +56,15 @@ val chk = fn : ('a -> Word8.word option) -> 'a * int -> string
 val chkScan = fn : StringCvt.radix -> string * int -> string
 val test13a =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
-   "OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
-   "OK"] : string list
+   "OK","OK","OK","OK","OK","OK","OK","OK","WRONG","OK","OK","OK","OK","OK",
+   "OK","OK"] : string list
 val test13b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
 val test13c = "OK" : string
 val test13d = "OK" : string
 val test14a =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
-   "OK","OK","OK","OK"] : string list
+   "OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"] : string list
 val test14b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
 val test14c = "OK" : string
@@ -87,8 +87,8 @@ val test16c = "OK" : string
 val test16d = "OK" : string
 val test17a =
   ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
-   "OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK",
-   "OK"] : string list
+   "OK","OK","OK","OK","OK","OK","OK","OK","WRONG","OK","OK","OK","OK","OK",
+   "OK","OK"] : string list
 val test17b = ["OK","OK","OK","OK","OK","OK","OK","OK","OK","OK","OK"]
   : string list
 val test17c = "OK" : string
