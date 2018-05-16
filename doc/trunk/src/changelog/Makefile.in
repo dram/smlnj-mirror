@@ -1,6 +1,6 @@
 # Makefile for SML/NJ Changelog
 #
-# COPYRIGHT (c) 2014 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # @configure_input@
@@ -10,7 +10,7 @@ SHELL =		@SHELL@
 INSTALL =	@INSTALL@
 @SET_MAKE@
 
-ASCIIDOC =	@ASCIIDOC@
+ASCIIDOCTOR =	@ASCIIDOCTOR@
 
 SMLNJ_VERSION =	@SMLNJ_VERSION@
 SMLNJ_DATE =	@SMLNJ_DATE@
@@ -19,10 +19,9 @@ HTML_OUT_DIR =	@OUT_DIR@/html
 WEB_OUT_DIR =	@WEB_OUT_DIR@
 
 ATTRS =		--attribute=version=$(SMLNJ_VERSION) \
-		--attribute=releasedate="$(SMLNJ_DATE)" \
-		--attribute=source-highlighter=pygments
+		--attribute=releasedate="$(SMLNJ_DATE)"
 
-CONF =		--conf-file=../conf/HISTORY-html.conf
+CONF =		-r ../conf/changelog-macros.rb
 
 TXT_FILES =	HISTORY.txt
 
@@ -39,7 +38,7 @@ doc:		html
 html:		$(HTML)
 
 %.html : %.txt
-	$(ASCIIDOC) $(ATTRS) $(CONF) -b html5 $<
+	$(ASCIIDOCTOR) $(ATTRS) $(CONF) -b html5 $<
 
 #################### Cleanup ####################
 

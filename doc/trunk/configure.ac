@@ -12,7 +12,7 @@ AC_COPYRIGHT([[COPYRIGHT (c) 2014 The Fellowship of SML/NJ (http://www.smlnj.org
 AC_CONFIG_SRCDIR(src/man/smlnj.7.txt)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
- 
+
 dnl
 dnl get host information
 dnl
@@ -93,34 +93,16 @@ AC_SUBST(SMLNJ_DATE)
 dnl
 dnl ******************** check for documentation tools ********************
 dnl
-AC_PATH_PROGS([ASCIIDOC], [asciidoc], [none])
-AC_PATH_PROGS([A2X], [a2x], [none])
-AC_PATH_PROGS([HIGHLIGHTER], [pygmentize], [none])
-AC_PATH_PROGS([DBLATEX], [dblatex], [none])
+AC_PATH_PROGS([ASCIIDOCTOR], [asciidoctor], [none])
 
 dnl
 dnl error check for availability of tools
 dnl
-if test x"$ASCIIDOC" = xnone -o x"$A2X" = xnone ; then
-  AC_MSG_ERROR([documentation generation requires asciidoc])
-fi
-if test x"$HIGHLIGHTER" = xnone ; then
-  AC_MSG_ERROR([documentation generation requires a source highlighter tool])
+if test x"$ASCIIDOCTOR" = xnone ; then
+  AC_MSG_ERROR([documentation generation requires asciidoctor])
 fi
 
-dnl
-dnl get the path to the asciidoc cofiguration files
-dnl
-if test x"$ASCIIDOC" != xnone ; then
-  AC_MSG_CHECKING([path to asciidoc configuration files])
-  ASCIIDOC_CONF_DIR=`$ASCIIDOC -v /dev/null 2>&1 | head -n 1 | sed 's|.*reading: \(.*\)/asciidoc.conf|\1|'`
-  AC_MSG_RESULT([$ASCIIDOC_CONF_DIR])
-fi
-AC_SUBST(ASCIIDOC)
-AC_SUBST(A2X)
-AC_SUBST(ASCIIDOC_CONF_DIR)
-AC_SUBST(HIGHLIGHTER)
-AC_SUBST(DBLATEX)
+AC_SUBST(ASCIIDOCTOR)
 
 dnl
 dnl ******************** write output ********************
