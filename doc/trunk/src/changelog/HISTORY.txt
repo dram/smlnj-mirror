@@ -94,6 +94,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/05/18]::
++
+Added `MONO_BUFFER` signature, with instances `CharBuffer` and `Word8Buffer`,
+to Basis implementation
+(https://github.com/SMLFamily/BasisLibrary/wiki/2018-001-Addition-of-monomorphic-buffers[
+Basis Library Proposal 2018-001]).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/05/16]::
 +
 Fix a bug where "`0w`" was being accepted as a prefix for a hexidecimal
@@ -124,8 +134,8 @@ should be here.  The Definition of Standard ML (1997) only says that
 unmatched __open__ comments should be signalled as errors, but the
 Commentary on the Definition of Standard ML says otherwise in
 Appendix D.  **SML/NJ** started signalling an error in version 0.71,
-but we choose to revert to accepting this sequence, since to match
-the 1997 Definition.
+but we choose to revert to accepting this sequence, to match
+the 1997 Definition (and the behavior of other systems).
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 

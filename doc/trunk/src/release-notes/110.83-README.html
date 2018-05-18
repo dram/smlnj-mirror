@@ -4,7 +4,7 @@
 <title>SML/NJ 110.83 Release Notes</title>
 <style type="text/css">
   body {
-    font-size: 12pt;
+    font-size: 14pt;
   }
   div.smlnj-banner {
     font-weight: bold;
@@ -113,6 +113,27 @@ There are many under-the-hood changes to the compiler to make supporting both 32
 <h3>Details:</h3>
 
 <dl>
+  <dt class="component">Basis Library:</dt>
+  <dd>
+    <p>
+    This version continues to track proposed Basis Library improvements.
+    <span class="important">Note that these improvements are <i>proposals</i>
+    that have not yet been ratified and are subject to change!</span>
+    Specifically, the following proposals are supported by this version of SML/NJ:
+    </p>
+    <dl>
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2018-001-Addition-of-monomorphic-buffers">
+        <b>[2018-001]</b> Addition of monomorphic buffers</a></dt>
+        <dd>This change adds the <span class="code">MONO_BUFFER</span> signature
+	  to the Basis Library, with instances <span class="code">CharBuffer</span>
+	  and <span class="code">Word8Buffer</span>.
+        </dd>
+    </dl>
+    <p>
+      We also fixed a number of cases where our implementation of Basis functions
+      did not agree with the specification.  These fixes are detailed below.
+    </p>
+  </dd>
   <dt class="component">Compiler</dt>
   <dd>
     <p>
@@ -125,7 +146,7 @@ There are many under-the-hood changes to the compiler to make supporting both 32
     <p>
       Improved the reporting of errors involving literal values.  We now
       use the original source text when describing the value in the error
-      message.  We also give an error in the front-end when real literals
+      message.  We also report an error in the front-end when real literals
       are too large (instead of letting the code generator fail).
     </p>
   </dd>
@@ -180,7 +201,7 @@ There are many under-the-hood changes to the compiler to make supporting both 32
       </li>
       <li>
 	Fixed scanning of prefixes of word values in strings to match Basis
-	Library specification ("<span class="code">0w</code>" is <b>not</b>
+	Library specification ("<span class="code">0w</span>" is <b>not</b>
 	a valid prefix for hexadecimal values).
       </li>
     </ul>
