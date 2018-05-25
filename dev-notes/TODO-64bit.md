@@ -46,7 +46,8 @@ All paths are relative the the `base` module.
   Files:
     - `compiler/FLINT/plambda/flintnm.sml`
 
-* The representation of FLINT assumes four kinds of integer literals: `INT`, `INT32`,
+*  **[DONE]**
+  The representation of FLINT assumes four kinds of integer literals: `INT`, `INT32`,
   `WORD`, and `WORD32`.  These are reduced to two kinds when converting to CPS (`INT`
   and `INT32`).  The FLINT representation of constructors in switch statements has
   a similar breakdown.  It is not clear if the word vs. int distinction is important
@@ -72,7 +73,8 @@ All paths are relative the the `base` module.
     - `compiler/FLINT/plambda/rpplexp.sml`
     - `compiler/FLINT/trans/translate.sml`
 
-* The `CPS.cty` datatype needs to be extended to include an `INT64t` constant
+*  **[DONE]**
+  The `CPS.cty` datatype needs to be extended to include an `INT64t` constant
   (or perhaps an `INTt of int` constructor).<br/>
   **Note:** there is an interaction between this issue and the wrapping/unwrapping
   of 32-bit integers discussed above.<br/>
@@ -110,7 +112,8 @@ All paths are relative the the `base` module.
 * The `base/compiler/CodeGen/amd64` code generator will probably need some cleanup,
   since it was written for a pseudo-64-bit implementation.
 
-* To support cross compiling from 32-bit hosts to 64-bit targets, we will need to
+* **[DONE]**
+  To support cross compiling from 32-bit hosts to 64-bit targets, we will need to
   replace fixed-precision representations of literals with IntInf.int.  This change
   has already been made for the CPS representation, but it will also need to be
   done for the FLINT representation, and for some of the CPS-related passes.</br>
