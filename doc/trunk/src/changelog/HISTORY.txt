@@ -94,6 +94,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/05/26]::
++
+Fixed open bug number 1383: `Char.toCString #"\000"` returned `"\\0"`, instead
+of `"\\000"`, which caused `String.toCString` to produce invalid results.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/05/19]::
 +
 Fix for bug bugref:201[] (The AMD64.cm library is missing).
