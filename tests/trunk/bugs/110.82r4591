@@ -1,7 +1,7 @@
 This is a status report of running the "bugs" tests using revision 4591
 of the compiler/basis, which is a post-110.82/pre-110.83 version.
 
-** Updated for r4599 **.
+** Updated for r4613 **.
 
 The report is broken into two groups: first the tests that "failed".  Most of
 these are because of changes in the error messages, etc.  The second group
@@ -20,28 +20,36 @@ bug0423.sml 	   ...  **** fail
 
 bug0027.sml 	   ...  **** fail
   -- printing of Absyn in error messages does not respect fixity
+     BUG 204
 
 bug0071.sml 	   ...  **** fail
   -- weird `use` semantics
 
 bug0588.sml 	   ...  **** fail
   -- compiler bug in translate
+     BUG 200
 
 bug0636.sml 	   ...  **** fail
   -- printing integer values as abstract values in REPL
+     BUG 205
 
 bug1250.sml 	   ...  **** fail
   -- compiler bug: Bind exception in pretty printing (this bug is likely
      the same as #190 in the new bugs database)
+     BUG 190, 199
 
 bug1261.sml 	   ...  openbug (unchanged)
   -- bug in parser with combination of type variable bindings and `rec`
+     BUG 206
 
 bug1300.sml 	   ...  openbug (unchanged)
-  -- same as bug 1399.1
+  -- printing of builtin types (e.g., `Int32.int` as `?.int32`); this bug is
+     the same as bug 1399.1
+     BUG 207
 
 bug1319.sml 	   ...  openbug (unchanged)
   -- bug with implementation of `Real.toManExp`
+     BUG 208
 
 bug1324.sml 	   ...  openbug (unchanged)
   -- bug with interaction between `eqtype` and `where type`
@@ -63,10 +71,11 @@ bug1366.1.sml 	   ...  openbug (unchanged)
 
 bug1375.1.sml 	   ...  openbug (unchanged)
   -- `Word.fromString` incorrectly handles `0wa`; returns 10 instead of 0
-      FIXED
+     FIXED
 
 bug1383.1.sml 	   ...  openbug (unchanged)
   -- incorrect handling of escape sequences in `Char.toCString`.
+     FIXED
 
 bug1388.1.sml 	   ...  **** possible bug fix
   -- runtime bug: dividing minInt by ~1 produces `Div` exception instead of `Overflow`
@@ -81,6 +90,7 @@ bug1394.1.sml 	   ...  openbug (unchanged)
 
 bug1399.1.sml 	   ...  **** fail
   -- printing of builtin types (e.g., `Int32.int` as `?.int32`)
+     BUG 207
 
 bug1400.1.sml 	   ...  openbug (unchanged)
   -- internal error in pretty printer
@@ -102,6 +112,7 @@ bug1434.1.sml 	   ...  openbug (unchanged)
 
 bug1443.1.sml 	   ...  openbug (unchanged)
   -- bug with implementation of `Real.toManExp` (also see bug1319)
+     BUG 208
 
 bug1444.1.sml 	   ...  openbug (unchanged)
   -- `Date.toString` is missing leading `0` on day of month when it is less
