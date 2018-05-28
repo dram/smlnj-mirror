@@ -165,7 +165,7 @@ There are many under-the-hood changes to the compiler to make supporting both 32
     <table class="buglist">
       <tr><td class="bugid">191</td><td>Compiler crash when handling large reals</td></tr>
       <tr><td class="bugid">194</td><td>Real.fromString overflows or hangs</td></tr>
-      <tr><td class="bugid">201</td><td>The AMD64.cm library is missing</td></tr> -->
+      <tr><td class="bugid">201</td><td>The AMD64.cm library is missing</td></tr>
 <!--      <tr><td class="bugid">XXX</td><td>DESCRIPTION</td></tr> -->
     </table>
     <p>The following unnumbered bugs were also fixed:
@@ -206,8 +206,8 @@ There are many under-the-hood changes to the compiler to make supporting both 32
 	a valid prefix for hexadecimal values).
       </li>
       <li>
-        Fixed <span class="code">Char.toCString</span> to produce <span class="code">"\\000"</span>
-        for the nul character (instead of <span class="code">"\\0"</span>).
+        Fixed <span class="code">Char.toCString</span> to produce <span class="code">"\000"</span>
+        (instead of <span class="code">"\0"</span>) for the nul character.
       </li>
       <li>
         Fixed the scanner to produce the correct error message for bad escape sequences in string
