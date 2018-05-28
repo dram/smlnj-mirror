@@ -153,6 +153,8 @@ bug1487.1.sml 	   ...  openbug (unchanged)
 
 bug1494.1.sml 	   ...  openbug (unchanged)
   -- pretty printing rebound datatype in REPL
+     The original bug is fixed, but should it print as "datatype foo = datatype bar"?
+     CHECK
 
 bug1509.1.sml 	   ...  openbug (unchanged)
   -- same as bug1388
