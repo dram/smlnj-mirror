@@ -53,21 +53,25 @@ bug1319.sml 	   ...  openbug (unchanged)
 
 bug1324.sml 	   ...  openbug (unchanged)
   -- bug with interaction between `eqtype` and `where type`
+     BUG 210
 
-bug1328.1.sml 	   ...  openbug (unchanged)
 bug1328.2.sml 	   ...  openbug (unchanged)
   -- redefinition of special identifiers (`it`, `true`, and `false`)
+     BUG 209
 
 bug1329.sml 	   ...  openbug (unchanged)
   -- problem with `where type`
+     BUG 211
 
 bug1351.sml 	   ...  openbug (unchanged)
   -- original bug is fixed, but there is a problem with the constructor `B` being
      made visible and the abstract type `A` incorrectly supports equality (see
      pages 20 & 23 of Definition).
+     BUG 212
 
 bug1366.1.sml 	   ...  openbug (unchanged)
   -- potential issue with higher-order functors and opaque signature matching
+     CHECK
 
 bug1375.1.sml 	   ...  openbug (unchanged)
   -- `Word.fromString` incorrectly handles `0wa`; returns 10 instead of 0
@@ -79,14 +83,18 @@ bug1383.1.sml 	   ...  openbug (unchanged)
 
 bug1388.1.sml 	   ...  **** possible bug fix
   -- runtime bug: dividing minInt by ~1 produces `Div` exception instead of `Overflow`
+     Same as bug 1509
+     BUG 213
 
 bug1390.1.sml 	   ...  openbug (unchanged)
   -- the original bug was "incorrect parsing of sigb sequences", but it appears to
      have been fixed by forbidding the use of `and` to connect signature declarations.
+     CHECK
 
 bug1394.1.sml 	   ...  openbug (unchanged)
   -- the original bug is fixed, but there is some ambiguity w.r.t. when derived
-     forms should be expanded vs. when fixity is determined
+     forms should be expanded vs. when fixity is determined.
+     CHECK
 
 bug1399.1.sml 	   ...  **** fail
   -- printing of builtin types (e.g., `Int32.int` as `?.int32`)
@@ -94,6 +102,7 @@ bug1399.1.sml 	   ...  **** fail
 
 bug1400.1.sml 	   ...  openbug (unchanged)
   -- internal error in pretty printer
+     BUG 214
 
 bug1401.1.sml 	   ...  openbug (unchanged)
   -- possible runtime system bug in `Posix.Process.waitpid_nh`
@@ -147,6 +156,7 @@ bug1494.1.sml 	   ...  openbug (unchanged)
 
 bug1509.1.sml 	   ...  openbug (unchanged)
   -- same as bug1388
+     BUG 213
 
 bug1541.1.sml 	   ...  **** possible bug fix
   -- `Array2.array` should always be an equality type (like `Array.array` and `ref`).
