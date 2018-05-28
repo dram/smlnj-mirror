@@ -1,7 +1,7 @@
 This is a status report of running the "bugs" tests using revision 4591
 of the compiler/basis, which is a post-110.82/pre-110.83 version.
 
-** Updated for r4613 **.
+** Updated for r4618 **
 
 The report is broken into two groups: first the tests that "failed".  Most of
 these are because of changes in the error messages, etc.  The second group
@@ -164,6 +164,7 @@ bug1541.1.sml 	   ...  **** possible bug fix
 bug1551.1.sml 	   ...  openbug (unchanged)
   -- invalid escape sequence in string/character literal is reported as an unclosed
      string.
+     FIXED
 
 bug1573.1.sml 	   ...  **** possible bug fix
   -- the `ARRAY` signature does not reflect that `array` is an equality type.
