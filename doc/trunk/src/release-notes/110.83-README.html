@@ -209,6 +209,10 @@ There are many under-the-hood changes to the compiler to make supporting both 32
         Fixed <span class="code">Char.toCString</span> to produce <span class="code">"\\000"</span>
         for the nul character (instead of <span class="code">"\\0"</span>).
       </li>
+      <li>
+        Fixed the scanner to produce the correct error message for bad escape sequences in string
+        literals.
+      </li>
     </ul>
 
 <h3>Supported systems:</h3>
