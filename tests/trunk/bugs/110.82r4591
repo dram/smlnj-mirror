@@ -1,7 +1,7 @@
 This is a status report of running the "bugs" tests using revision 4591
 of the compiler/basis, which is a post-110.82/pre-110.83 version.
 
-** Updated for r4618 **
+** Updated for r4623 **
 
 The report is broken into two groups: first the tests that "failed".  Most of
 these are because of changes in the error messages, etc.  The second group
@@ -24,6 +24,7 @@ bug0027.sml 	   ...  **** fail
 
 bug0071.sml 	   ...  **** fail
   -- weird `use` semantics
+     CHECK
 
 bug0588.sml 	   ...  **** fail
   -- compiler bug in translate
@@ -150,6 +151,7 @@ bug1486.1.sml 	   ...  openbug (unchanged)
 
 bug1487.1.sml 	   ...  openbug (unchanged)
   -- parentheses not permitted in `val rec` binding
+     FIXED
 
 bug1494.1.sml 	   ...  openbug (unchanged)
   -- pretty printing rebound datatype in REPL
