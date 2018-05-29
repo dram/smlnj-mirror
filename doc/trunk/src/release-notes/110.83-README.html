@@ -131,7 +131,7 @@ There are many under-the-hood changes to the compiler to make supporting both 32
     </dl>
     <p>
       We also fixed a number of cases where our implementation of Basis functions
-      did not agree with the specification.  These fixes are detailed below.
+      did not agree with the specification.  Those fixes are detailed below.
     </p>
   </dd>
   <dt class="component">Compiler</dt>
@@ -147,7 +147,7 @@ There are many under-the-hood changes to the compiler to make supporting both 32
       Improved the reporting of errors involving literal values.  We now
       use the original source text when describing the value in the error
       message.  We also report an error in the front-end when real literals
-      are too large (instead of letting the code generator fail).
+      are too large to be represented (instead of letting the code generator fail).
     </p>
   </dd>
 
@@ -214,7 +214,7 @@ There are many under-the-hood changes to the compiler to make supporting both 32
         literals.
       </li>
       <li>
-	Fixed parser to allow parentheses around `val rec` patterns.
+	Fixed parser to allow parentheses around <span class="code">val rec</span> patterns.
       </li>
     </ul>
 
