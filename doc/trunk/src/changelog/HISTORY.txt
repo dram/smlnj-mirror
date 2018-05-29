@@ -94,6 +94,13 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2018/05/29]::
++
+Fixed parser to allow parentheses around `val rec` patterns.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/05/28]::
 +
 Fixed the scanner to produce the correct error message for bad escape
