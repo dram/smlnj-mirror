@@ -128,6 +128,7 @@ bug1444.1.sml 	   ...  openbug (unchanged)
   -- `Date.toString` is missing leading `0` on day of month when it is less
      than 10.  The fix is to switch from using the `asctime` function to
      using `Date.fmt` as specified in the Basis Library specification.
+     FIXED
 
 bug1447.1.sml 	   ...  openbug (unchanged)
   -- bug in Real.fmt; a spurious `.1` is added when converting round real
@@ -138,7 +139,7 @@ bug1451.1.sml 	   ...  **** possible bug fix
      possible solution)
 
 bug1452.1.sml 	   ...  openbug (unchanged)
-  -- Math.sin on very small arguments (see http://www.netlib.org/fdlibm/ for
+  -- Math.sinh on very small arguments (see http://www.netlib.org/fdlibm/ for
      possible solution)
 
 bug1472.1.sml 	   ...  openbug (unchanged)
