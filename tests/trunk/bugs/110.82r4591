@@ -1,7 +1,7 @@
 This is a status report of running the "bugs" tests using revision 4591
 of the compiler/basis, which is a post-110.82/pre-110.83 version.
 
-** Updated for r4623 **
+** Updated for r4634 **
 
 The report is broken into two groups: first the tests that "failed".  Most of
 these are because of changes in the error messages, etc.  The second group
@@ -41,7 +41,7 @@ bug1250.sml 	   ...  **** fail
 
 bug1261.sml 	   ...  openbug (unchanged)
   -- bug in parser with combination of type variable bindings and `rec`
-     BUG 206
+     BUG 206 (FIXED for 110.83)
 
 bug1300.sml 	   ...  openbug (unchanged)
   -- printing of builtin types (e.g., `Int32.int` as `?.int32`); this bug is
