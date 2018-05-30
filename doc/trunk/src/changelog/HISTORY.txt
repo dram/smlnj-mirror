@@ -91,24 +91,43 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-== Recent updates
+//== Recent updates
+
+//====================================================================
+== Version 110.83; 2018/06/01
 
 //--------------------------------------------------------------------
 [2018/05/29]::
 +
-Cleaned up match compiler code (FLINT/trans/matchcomp.sml) and added
-typing and functionality comments. Added debugging and printing
-infrastructure, including new FLINT/trans/mcprint.sml file, and new
-debugging flag in Control.MC.
+Fixed bugref:206[] (Parsing of explicit type variables and val rec
+is broken).  This bug was also bug number 1261 in the old bugs list.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2018/05/29]::
 +
-Fixed parser to allow parentheses around `val rec` patterns.
+Fixed minor bug in Date.toString (missing leading "0" for day of month).
+This issue was bug number 1444 in the old bugs list.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2018/05/29]::
++
+Cleaned up match compiler code (`FLINT/trans/matchcomp.sml`) and added
+typing and function comments.  Added debugging and printing
+infrastructure, including new `FLINT/trans/mcprint.sml` file, and new
+`Control.MC.debugging` flag.
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
+[2018/05/29]::
++
+Fixed parser to allow parentheses around `val rec` patterns.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2018/05/28]::
@@ -121,7 +140,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2018/05/26]::
 +
-Fixed open bug number 1383: `Char.toCString #"\000"` returned `"\\0"`,
+Fixed old bug number 1383: `Char.toCString #"\000"` returned `"\\0"`,
 instead of `"\\000"`, which caused `String.toCString` to produce invalid
 results.
 +
@@ -150,7 +169,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 Fix a bug where "`0w`" was being accepted as a prefix for a hexidecimal
 word value in `Word.fromString`/`scan` (ignoring case, only "`0x`"
 and "`0wx`" are valid prefixes).  This change fixes bug number 1375
-from the old openbugs list.
+from the old bugs list.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
@@ -159,7 +178,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 +
 Fixed a bug in the parsing of bindings involving the `op` keyword.
 The parser was more restrictive than the definition.  This change
-fixes bug number 1370 from the old openbugs list.
+fixes bug number 1370 from the old bugs list.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
@@ -167,13 +186,13 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 [2018/05/12]::
 +
 The lexer gave an unmatched close comment error on "`*)`", when it
-should have scanned it as the tokens "`*`" "**)**".  This change
-fixes bug number 330 in the old openbugs list.
+should have scanned it as the tokens "`*`" "`)`".  This change
+fixes bug number 330 in the old bugs list.
 +
 **Note**: there is some ambiguity as to what the correct behavior
-should be here.  The Definition of Standard ML (1997) only says that
+should be here.  The __Definition of Standard ML__ (1997) only says that
 unmatched __open__ comments should be signalled as errors, but the
-Commentary on the Definition of Standard ML says otherwise in
+__Commentary on the Definition of Standard ML__ (1991) says otherwise in
 Appendix D.  **SML/NJ** started signalling an error in version 0.71,
 but we choose to revert to accepting this sequence, to match
 the 1997 Definition (and the behavior of other systems).
@@ -2701,16 +2720,14 @@ committed changes to eXene from Alley Stoughton:
 +
 Runtime::
 +
-  fixed linking problem with *NetBSD 3.x*.
+fixed linking problem with *NetBSD 3.x*.
 +
 Lexgen::
 +
---
     * *lexgen* tool handles non-ascii characters in 7-bit mode the same
       way that *ml-lex* does
 +
     * lexgen propagates exceptions the same way that *ml-lex* does
---
 +
 CML::
 +
