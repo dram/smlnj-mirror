@@ -96,9 +96,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2018/05/29]::
 +
-Fixed parser to allow parentheses around `val rec` patterns.
+Cleaned up match compiler code (FLINT/trans/matchcomp.sml) and added
+typing and functionality comments. Added debugging and printing
+infrastructure, including new FLINT/trans/mcprint.sml file, and new
+debugging flag in Control.MC.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2018/05/29]::
++
+Fixed parser to allow parentheses around `val rec` patterns.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
 //--------------------------------------------------------------------
 [2018/05/28]::
