@@ -99,8 +99,10 @@ cp -p components/license.html $RSRC/license.html
 cp -p components/conclusion.html $RSRC/conclusion.html
 
 # copy the readme, while adjusting the fontsize for the installer panel
+# NOTE: this command relies on the fact that there is only one absolute
+# font-size command in the README file (the others are relative)
 #
-sed -e 's/font-size: 12pt;/font-size: 9pt;/' \
+sed -E 's/font-size: [0-9]+pt;/font-size: 9pt;/' \
   $DISTROOT/doc/html/readme/$VERSION-README.html > $RSRC/readme.html
 
 # build package
