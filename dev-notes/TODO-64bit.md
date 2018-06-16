@@ -4,6 +4,11 @@
 
 All paths are relative the the `base` module.
 
+* Change `SMLGCType` to have tagged and native integer types, instead of `I31` and `I32`.<br/>
+  Files:
+    - `compiler/CodeGen/cpscompile/smlnj-gctype.sig`
+    - `compiler/CodeGen/cpscompile/smlnj-gctype.sml`
+
 * **[DONE]**
   Add `amd64` as an architecture that CM knows about<br/>
   Files:
@@ -44,17 +49,19 @@ All paths are relative the the `base` module.
     - `compiler/CodeGen/cpscompile/spill-new.sml`
     - `compiler/CodeGen/cpscompile/mlriscGen.sml`
 
-* The FLINT primitive types have 31 and 32-bit integer types (`PT_INT31` and `PT_INT32`)
+* **[DONE]**
+  The FLINT primitive types have 31 and 32-bit integer types (`PT_INT31` and `PT_INT32`)
   as well as a mapping from `Types.tycon` to FLINT `primtyc`.</br>
   Files:
     - `compiler/FLINT/kernel/primtyc.sig`
     - `compiler/FLINT/kernel/primtyc.sml`
 
-* The conversion from PLambda to FLINT has a 31-bit assumption
+* **[DONE]**
+  The conversion from PLambda to FLINT has a 31-bit assumption
   Files:
     - `compiler/FLINT/plambda/flintnm.sml`
 
-*  **[DONE]**
+* **[DONE]**
   The representation of FLINT assumes four kinds of integer literals: `INT`, `INT32`,
   `WORD`, and `WORD32`.  These are reduced to two kinds when converting to CPS (`INT`
   and `INT32`).  The FLINT representation of constructors in switch statements has
