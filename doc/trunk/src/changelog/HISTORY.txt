@@ -93,6 +93,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2018/06/15]::
++
+Fixed a compiler bug (`arg ty lists wrong length`) in `unifyTy` that
+could occur when one of the type constructors is the `ERRORtyc`.
+This occurs because the `ERRORtyc` is equal to any other type
+constructor, which (incorrectly) implies that the number of type
+arguments should be equal.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.83; 2018/06/01
 
