@@ -12,7 +12,9 @@ All paths are relative the the `base` module.
 * The assumption that 31-bit integers are the default `int` type is
   pervasive in the primitive operations.  A major example of this
   assumption are the primitive operations for converting between integer
-  representations.
+  representations.<br/>
+  Files:
+    - `compiler/Semant/prim/primop-bindings.sml`
 
 * The `Word8` operations are currently being implemented using special
   renamed versions of the `Int31` primitive operations (*e.g.*, `i31add_8`).<br/>
