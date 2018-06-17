@@ -136,6 +136,12 @@ All paths are relative the the `base` module.
     - `base/compiler/FLINT/main/literals.sml`
     - `base/compiler/CodeGen/main/mlriscGen.sml`
 
+* various 32-bit dependencies in FLINT [**dbm**]<br/>
+    - `compiler/FLINT/trans/pequal.sml`
+    - `compiler/FLINT/trans/matchcomp.sml`
+    - `compiler/FLINT/trans/translate.sml`
+    - `compiler/FLINT/reps/equal.sml`
+
 ### MLRISC issues
 
 There are some issues with the current MLRISC support for AMD64.
@@ -154,14 +160,15 @@ There are some issues with the current MLRISC support for AMD64.
 
 * Implementation of `IntInf` assumes 32-bit integers.<br/>
   Files:
-    - system/smlnj/init/core-intinf.sml
+    - `compiler/FLINT/cpsopt/infcnv.sml`
+    - `system/smlnj/init/core-intinf.sml`
 
 * The `InlineT` module may need to be conditionally compiled based on word size,
   since it has `Int31` and `Word31` submodules.  Alternatively, we can change
   these to `TaggedInt` and `TaggedWord` modules that are resolved to 31-bit
   integers on 32-bit targets and 63-bit integers on 64-bit targets.<br/>
   Files:
-    - system/smlnj/init/built-in.sml
+    - `system/smlnj/init/built-in.sml`
 
 ### Runtime system issues
 
