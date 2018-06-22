@@ -40,7 +40,7 @@ the first two header fields, but not the `wordsz` or `numsaved` fields.
 ## Opcodes
 
 The following is a list of the symbolic opcodes used in the interpreter.
-We describe the instruction encoding below.
+The instruction encoding is described below.
 
 * **INT**(*n*) literal value in the default (tagged) integer or
     word type (`Int.int` or `Word.word`).  The value `n` should be
@@ -104,7 +104,7 @@ list here.
 
 * support for 32-bit string literals for the type `WideString.string`
 
-* support for array literals (like vectors, but mutable)
+* support for packed records (once the compiler generates such objects)
 
 
 ## Instruction encoding
