@@ -136,6 +136,11 @@ TODO
 	<span class="code">unifyTy</span> that could occur when one of the type constructors
 	is the <span class="code">ERRORtyc</span> (because a type error had been detected).
       </li>
+      <li>
+	Fixed a bug in the implementation of monomorphic buffers:
+	the functions <span class="code">CharBuffer.add1</span> and
+	<span class="code">Word8Buffer.add1</span> had an incorrect length
+	test.
     </ul>
 
 <h3>Supported systems:</h3>

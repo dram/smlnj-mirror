@@ -94,6 +94,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2018/08/19]::
++
+Fixed a bug in the implementation of monomorphic buffers: the functions
+`CharBuffer.add1` and `Word8Buffer.add1` had an incorrect length
+test.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/06/15]::
 +
 Fixed a compiler bug (`arg ty lists wrong length`) in `unifyTy` that
