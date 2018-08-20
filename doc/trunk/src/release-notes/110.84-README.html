@@ -111,6 +111,15 @@ TODO
 <h3>Details:</h3>
 
 <dl>
+  <dt class="component">SML/NJ Library</dt>
+  <dd>
+    <p>
+      Added pretty printing (<span class="code">SExpPP</span>) to the S-Expression library.
+    </p>
+  </dd>
+</dl>
+
+<dl>
   <dt class="component">Compiler</dt>
   <dd>
     <p>
@@ -141,6 +150,12 @@ TODO
 	the functions <span class="code">CharBuffer.add1</span> and
 	<span class="code">Word8Buffer.add1</span> had an incorrect length
 	test.
+      </li>
+      <li>
+	Fixed a bug in the <span class="code">SExp.same</span> function, where
+	lists of unequal length would compare as equal if the shorter list was
+	a prefix of the longer list.
+      </li>
     </ul>
 
 <h3>Supported systems:</h3>
