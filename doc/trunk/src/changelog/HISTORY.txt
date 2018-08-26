@@ -6169,16 +6169,16 @@ owner:smlnj.org[Lal George]
 //--------------------------------------------------------------------
 [2002/03/03]::
 +
-  Added #[ ... ] expressions to mlrisc tools
+Added `#[ ... ]` expressions to mlrisc tools
 +
 owner:smlnj.org[Allen Leung]
 
 //--------------------------------------------------------------------
 [2002/02/27]::
 +
-- made types in structure C and C_Debug to be equal
-- got rid of code duplication (c-int.sml vs. c-int-debug.sml)
-- there no longer is a C_Int_Debug (C_Debug is directly derived from C)
+- made types in structure `C` and `C_Debug` to be equal
+- got rid of code duplication (`c-int.sml` vs. `c-int-debug.sml`)
+- there no longer is a `C_Int_Debug` (`C_Debug` is directly derived from `C`)
 +
 owner:www.tti-c.org/~blume[Matthias Blume]
 
@@ -7486,9 +7486,9 @@ owner:www.tti-c.org/~blume[Matthias Blume]
 //--------------------------------------------------------------------
 [2001/07/31]::
 +
-    There was a bug where call instructions would mysteriously
-    vanish. The call instruction had to be one that returned
-    a floating point value.
+There was a bug where call instructions would mysteriously
+vanish. The call instruction had to be one that returned
+a floating point value.
 +
 owner:smlnj.org[Lal George]
 
@@ -7498,61 +7498,68 @@ owner:smlnj.org[Lal George]
 I have dramatically simplified the interface for CELLS in MLRISC.
 +
 In summary, the cells interface is broken up into three parts:
+--
+1. `CellsBasis : CELLS_BASIS`
 +
-  1. CellsBasis : CELLS_BASIS
+`CellsBasis` is a top level structure and common for all
+architectures.  it contains the definitions of basic datatypes
+and utility  functions over these types.
 +
-	CellsBasis is a top level structure and common for all
-        architectures.  it contains the definitions of basic datatypes
-        and utility  functions over these types.
+2. `functor Cells() : CELLS`
 +
-  2. functor Cells() : CELLS
+Cells generates an interface for CELLS that incorporates the
+specific resources on the target architecture, such as the
+presence of special register classes, their number and size,
+and various useful substructures.
 +
-	Cells generates an interface for CELLS that incorporates the
-	specific resources on the target architecture, such as the
-	presence of special register classes, their number and size,
-	and various useful substructures.
+3. __<ARCH>__++CELLS++
 +
-  3. <ARCH>CELLS
+_e.g._, `SparcCells: SPARCCELLS`
 +
-	_e.g._ SparcCells: SPARCCELLS
+__<ARCH>__++CELLS++ usually contains additional bindings for special
+registers  on the architecture, such as:
 +
-        <ARCH>CELLS usually contains additional bindings for special
-	registers  on the architecture, such as:
+[source,sml]
+------------
+        val r0 : cell          (* register zero *)
+        val y : cell           (* Y register *)
+        val psr : cell         (* processor status register *)
+        ...
+------------
 +
-		val r0 : cell		(* register zero *)
-		val y : cell		(* Y register *)
-		val psr : cell		(* processor status register *)
-		...
-+
-        The structure returned by applying the Cells functor is opened
-        in this interface.
+The structure returned by applying the Cells functor is opened
+in this interface.
 +
 The main implication of all this is that the datatypes for cells is
-split between CellsBasis and CELLS -- a fairly simple change for user
+split between `CellsBasis` and `CELLS` -- a fairly simple change for user
 code.
 +
-In the old scheme the CELLS interface had a definitional binding of
+In the old scheme the `CELLS` interface had a definitional binding of
 the form:
 +
-	signature CELLS = sig
-+
- 	   structure CellsBasis = CellsBasis
-+
-	   ...
-+
-        end
+[source,sml]
+------------
+        signature CELLS =
+          sig
+            structure CellsBasis = CellsBasis
+            ...
+          end
+------------
 +
 With all the sharing constraints that goes on in MLRISC, this old
 design  quickly leads to errors such as:
 +
-	"structure definition spec inside of sharing ... "
-+
+[source]
+--------
+        structure definition spec inside of sharing ...
+--------
 +
 and appears to require an unacceptable amount of sharing and where
 constraint hackery.
 +
 I think this error message (the interaction of definitional specs and
 sharing) requires more explanation on our web page.
+--
 +
 owner:smlnj.org[Lal George]
 
@@ -7563,71 +7570,79 @@ This update puts together a fairly extensive but straightforward change
 to the way the libraries that implement the interactive system are
 organized:
 +
-   The biggest change is the elimination of structure Compiler.  As a
-   replacement for this structure, there is now a CM library
-   (known as $smlnj/compiler.cm or $smlnj/compiler/current.cm)
-   that exports all the substructures of the original structure Compiler
-   directly.  So instead of saying Compiler.Foo.bar one now simply
-   says Foo.bar.  (The CM libraries actually export a collection of
-   structures that is richer than the collection of substructures of
-   structure Compiler.)
+The biggest change is the elimination of structure `Compiler`.  As a
+replacement for this structure, there is now a CM library
+(known as `$smlnj/compiler.cm` or `$smlnj/compiler/current.cm`)
+that exports all the substructures of the original `Compiler` structure
+directly.  So instead of saying `Compiler.Foo.bar` one now simply
+says `Foo.bar`.  (The CM libraries actually export a collection of
+structures that is richer than the collection of substructures of
+structure `Compiler`.)
 +
-   To make the transition smooth, there is a separate library called
-   $smlnj/compiler/compiler.cm which puts together and exports the
-   original structure Compiler (or at least something very close to it).
+To make the transition smooth, there is a separate library called
+`$smlnj/compiler/compiler.cm` that puts together and exports the
+original structure `Compiler` (or at least something very close to it).
 +
-   There are five members of the original structure Compiler
-   that are not exported directly but which instead became members
-   of a new structure Backend (described by signature BACKEND).  These are:
-   structure Profile (: PROFILE), structure Compile (: COMPILE), structure
-   Interact (: INTERACT), structure Machine (: MACHINE), and val
-   architecture (: string).
+There are five members of the original structure `Compiler`
+that are not exported directly but which instead became members
+of a new structure `Backend` (described by signature `BACKEND`).
+These are:
 +
-   Structure Compiler.Version has become structure CompilerVersion.
+[source,sml]
+------------
+	structure Profile  : PROFILE
+	structure Compile  : COMPILE
+	structure Interact : INTERACT
+	structure Machine  : MACHINE
+
+	val architecture : string
+------------
 +
-   Cross-compilers for alpha32, hppa, ppc, sparc, and x86 are provided
-   by $smlnj/compiler/<arch>.cm where <arch> is alpha32, hppa, ppc, sparc,
-   or x86, respectively.
-   Each of these exports the same frontend structures that
-   $smlnj/compiler.cm exports.  But they do not have a structure Backend
-   and instead export some structure <Arch>Backend where <Arch> is Alpha32,
-   Hppa, PPC, Sparc, or X86, respectively.
+Structure `Compiler.Version` has become structure `CompilerVersion`.
 +
-   Library $smlnj/compiler/all.cm exports the union of the exports of
-   $smlnj/compiler/<arch>.cm
+Cross-compilers for alpha32, hppa, ppc, sparc, and x86 are provided
+by $smlnj/compiler/<arch>.cm where <arch> is alpha32, hppa, ppc, sparc,
+or x86, respectively.
+Each of these exports the same frontend structures that
+$smlnj/compiler.cm exports.  But they do not have a structure Backend
+and instead export some structure <Arch>Backend where <Arch> is Alpha32,
+Hppa, PPC, Sparc, or X86, respectively.
 +
-   There are no structures <Arch>Compiler anymore, use
-   $smlnj/compiler/<arch>.cm instead.
+Library $smlnj/compiler/all.cm exports the union of the exports of
+$smlnj/compiler/<arch>.cm
 +
-   Library host-compiler-0.cm is gone.  Instead, the internal library
-   that instantiates CM is now called cm0.cm.  Selection of the host
-   compiler (backend) is no longer done here but. (Responsibility for it
-   now lies with $smlnj/compiler/current.cm.  This seems to be more
-   logical.)
+There are no structures <Arch>Compiler anymore, use
+$smlnj/compiler/<arch>.cm instead.
 +
-   Many individual files have been moved or renamed.  Some files have
-   been split into multiple files, and some "dead" files have been deleted.
+Library host-compiler-0.cm is gone.  Instead, the internal library
+that instantiates CM is now called cm0.cm.  Selection of the host
+compiler (backend) is no longer done here but. (Responsibility for it
+now lies with $smlnj/compiler/current.cm.  This seems to be more
+logical.)
++
+Many individual files have been moved or renamed.  Some files have
+been split into multiple files, and some "dead" files have been deleted.
 +
 Aside from these changes to library organization, there are also changes
 to the way the code itself is organized:
 +
-   Structure Binfile has been re-implemented in such a way that it no
-   longer needs any knowledge of the compiler.  It exclusively deals
-   with the details of binfile layout.  It no longer invokes the
-   compiler (for the purpose of creating new prospective binfile
-   content), and it no longer has any knowledge of how to interpret
-   pickles.
+Structure Binfile has been re-implemented in such a way that it no
+longer needs any knowledge of the compiler.  It exclusively deals
+with the details of binfile layout.  It no longer invokes the
+compiler (for the purpose of creating new prospective binfile
+content), and it no longer has any knowledge of how to interpret
+pickles.
 +
-   Structure Compile (: COMPILE) has been stripped down to the bare
-   essentials of compilation.  It no longer deals with linking/execution.
-   The interface has been cleaned up considerably.
+Structure `Compile` has been stripped down to the bare
+essentials of compilation.  It no longer deals with linking/execution.
+The interface has been cleaned up considerably.
 +
-   Utility routines for dealing with linking and execution have been
-   moved into their own substructures.
+Utility routines for dealing with linking and execution have been
+moved into their own substructures.
 +
-   (The ultimate goal of these changes is to provide a light-weight
-   binfile loader/linker (at least for, _e.g._, stable libraries) that
-   does not require CM or the compiler to be present.)
+(The ultimate goal of these changes is to provide a light-weight
+binfile loader/linker (at least for, _e.g._, stable libraries) that
+does not require CM or the compiler to be present.)
 +
 CM documentation has been updated to reflect the changes to library
 organization.
