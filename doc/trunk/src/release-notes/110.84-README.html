@@ -89,61 +89,96 @@
 <br>
                           Version 110.84 NEWS
 <br>
-                            ??, 2018
+                           September 1, 2018
 </div>
 
 <hr>
 <dl>
   <dt>SML/NJ HOME:</dt>
-  <dd><a href="http://www.smlnj.org/index.html"><span class="tt">http://www.smlnj.org/index.html</span></a></dd>
+  <dd><a href="https://www.smlnj.org/index.html"><span class="tt">https://smlnj.org</span></a></dd>
   <dt>FILES:</dt>
-  <dd><a href="http://smlnj.cs.uchicago.edu/dist/working/110.84/index.html">
-    <span class="tt">http://smlnj.cs.uchicago.edu/dist/working/110.84/</span></a>
+  <dd><a href="https://smlnj.org/dist/working/110.84/index.html">
+    <span class="tt">https://smlnj.org/dist/working/110.84/</span></a>
   </dd>
 </dl>
 <hr>
 
 <h3>Summary:</h3>
 <p>
-TODO
+  This is a minor release whose primary purpose is to support future changes to the
+  compiler's implementation.
+<p>
+</p>
+  This release introduces a new implementation of the
+  <i>Abstract Syntax Description Library</i> (ASDL).
+  It also adds support for Mac OS X 10.14 (Mojave) and includes a few other
+  enhancements and bug fixes.
 </p>
 
 <h3>Details:</h3>
 
 <dl>
+  <dt class="component">ASDL</dt>
+  <dd>
+    <p>
+      This release of SML/NJ includes a beta-version of a new implementation of the
+      <i>Abstract Syntax Description Library</i> (ASDL), which was originally designed
+      and implemented by Daniel Wang as part of the Zephyr project.  ASDL allows one
+      to declare a collection of inductive types and then use the <b>asdlgen</b> tool
+      to generate an implementation of the types with pickler/unpickler operations.
+      We plan to replace the compiler's current environment pickler with ASDL and
+      eventually also use it in a new LLVM-based backend.
+    </p>
+    <p>
+      While the previous versions of ASDL supported many different target languages,
+      the new version currently only supports SML and C++ (and C++ support is
+      incomplete).
+    </p>
+    <p>
+      See the ASDL Manual (Version 3.0) for details about the specification
+      language and the <b>asdlgen</b> tool.
+    </p>
+  </dd>
   <dt class="component">SML/NJ Library</dt>
   <dd>
     <p>
-      Added pretty printing (<span class="code">SExpPP</span>) to the S-Expression library.
+      Added pretty printing (<span class="code"><span class="kw">structure</span> SExpPP</span>)
+      to the S-Expression library.
     </p>
   </dd>
-</dl>
-
-<dl>
-  <dt class="component">Compiler</dt>
+  <dt class="component">Installer</dt>
   <dd>
     <p>
-      TODO
+      A couple of changes were made to the installer
+     (<span class="code">base/base/system/smlnj/installer</span>).
     </p>
+    <ul>
+      <li>
+        The name of build scripts used for the <b>prog</b> and <b>dprog</b> actions
+	was changed from "<span class="code">build</span>" to
+	"<span class="code">build.sh</span>" on Unix systems (it is still
+	"<span class="code">build.bat</span>" on Windows).
+      </li>
+      <li>
+        A new <b>config</b> action was added that causes a configuration script
+        to be run.  The script should be named <b>config.sh</b> (or <b>config.bat</b>
+        on Windows).
+      </li>
+    </ul>
   </dd>
 </dl>
 
 <h3>Bugs:</h3>
     <p>
-    Here is a list of tracked bugs fixed (or closed) with this release, please see the
-    <a href="https://smlnj-gforge.cs.uchicago.edu/projects/smlnj-bugs/">bug tracker</a>
-    for more details.
-    </p>
-    <table class="buglist">
-<!--      <tr><td class="bugid">XXX</td><td>DESCRIPTION</td></tr> -->
-    </table>
-    <p>The following unnumbered bugs were also fixed:
+      There are no numbered bug fixes in this release, but the following
+      unnumbered bugs were fixed:
     </p>
     <ul class="buglist">
       <li>
-	Fixed a compiler bug (<span class="code">arg ty lists wrong length</span>) in
+	Fixed a compiler bug ("<span class="code">arg ty lists have wrong length</span>") in
 	<span class="code">unifyTy</span> that could occur when one of the type constructors
-	is the <span class="code">ERRORtyc</span> (because a type error had been detected).
+	is the <span class="code">ERRORtyc</span> (because a type error had been previously
+        detected).
       </li>
       <li>
 	Fixed a bug in the implementation of monomorphic buffers:
@@ -181,6 +216,7 @@ tested some of them:
   <tr><td></td> <td>Mac OS X 10.11 (El Capitan)</td> <td></td></tr>
   <tr><td></td> <td>macOS 10.12 (Sierra)</td> <td>Tested</td></tr>
   <tr><td></td> <td>macOS 10.13 (High Sierra)</td> <td>Tested</td></tr>
+  <tr><td></td> <td>macOS 10.14 (Mojave)</td> <td>Tested (see note below)</td></tr>
   <tr><td></td> <td>Ubuntu 16.04.3 LTS</td> <td>Tested</td></tr>
   <tr><td></td> <td>Other Linux variants</td><td></td></tr>
   <tr><td></td> <td>BSD variants</td><td></td></tr>
@@ -190,6 +226,18 @@ tested some of them:
 </table>
 </div>
 </blockquote>
+<p>
+Apple is in the process of deprecating 32-bit support in macOS.  With macOS 10.14
+(Mojave), it is no longer possible to compile 32-bit applications, such as the
+SML/NJ runtime system.  Thus, while it is possible to install SML/NJ using the
+<a href="https://smlnj.org/dist/working/110.84/smlnj-x86-110.84.pkg">
+installer</a>, installing using the <b>config/install.sh</b> script will not
+work without extra effort.
+</p>
+<p>
+We have been working on 64-bit support since 110.82 we expect to have it in place
+before the release of macOS 10.15.
+</p>
 
 </body>
 </html>

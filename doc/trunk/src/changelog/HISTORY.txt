@@ -94,6 +94,35 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2018/08/28]::
++
+A beta-release of ASDL library and *asdlgen* tool have been added to
+the system.
+There is a CM tool for ASDL, which recognizes the `.asdl` file suffix.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2018/08/28]::
++
+Two changes to the installer (`base/base/system/smlnj/installer`):
+--
+1. The build scripts for programs are now named `build.sh` (instead of
+   `build`) on Unix systems.
+2. The *config* action has been added to support module configuration.
+--
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2018/08/27]::
++
+Added `RENAME` extension style to CM tool support.  This extension
+style allows arbitrary file names to be generated from the base name.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/08/19]::
 +
 Fixed a bug in the implementation of monomorphic buffers: the functions
