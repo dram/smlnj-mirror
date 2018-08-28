@@ -6,6 +6,10 @@
 # @configure_input@
 #
 
+SHELL =         @SHELL@
+INSTALL =       @INSTALL@
+@SET_MAKE@
+
 # default target base
 #
 TARGET_BASE =		http://smlnj.org
@@ -25,7 +29,7 @@ WEB_IMAGES_DST =	$(WEB_HTML_DST_ROOT)/images
 
 include @MK_DIR@/doc-rules.gmk
 
-DOC_SUBDIRS =		changelog extensions man
+DOC_SUBDIRS =		changelog extensions man manuals
 
 STYLE_IN_FILES =	$(notdir $(wildcard styles/*.in))
 STYLE_DST_FILES =	$(addprefix $(STYLES_DST)/,$(STYLE_IN_FILES:_css.in=.css)))
@@ -52,4 +56,3 @@ readmes:
 include @MK_DIR@/clean-rules.gmk
 
 CLEAN_SUBDIRS =	$(DOC_SUBDIRS)
-

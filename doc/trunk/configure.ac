@@ -91,7 +91,7 @@ AC_MSG_NOTICE(["SML/NJ release date: $SMLNJ_DATE"])
 AC_SUBST(SMLNJ_DATE)
 
 dnl
-dnl ******************** check for documentation tools ********************
+dnl ******************** check for asciidoctor ********************
 dnl
 AC_PATH_PROGS([ASCIIDOCTOR], [asciidoctor], [none])
 
@@ -105,6 +105,17 @@ fi
 AC_SUBST(ASCIIDOCTOR)
 
 dnl
+dnl ******************** check for latexmk ********************
+dnl
+AC_PATH_PROGS([LATEXMK], [latexmk], [none])
+
+if test x"$LATEXMK" = xnone ; then
+  AC_MSG_ERROR([documentation generation requires latexmk (from texlive)])
+fi
+
+AC_SUBST(LATEXMK)
+
+dnl
 dnl ******************** write output ********************
 dnl
 AC_CONFIG_FILES(
@@ -115,6 +126,7 @@ dnl ***** Makefiles *****
   src/changelog/Makefile
   src/extensions/Makefile
   src/man/Makefile
+  src/manuals/Makefile
 )
 
 AC_OUTPUT

@@ -29,28 +29,9 @@ STYLES_DST_DIR =	$(DST_DIR)/styles
 #
 DOCBIN_DIR =		@ROOT_DIR@/bin
 
-# source code directories (used to extract signatures)
-#
-SML3D_SRC_DIR =		@SML3D_DIR@/src
-OPENCL_SRC_DIR =	@SML3D_DIR@/src/opencl
-
 # paths and flags for documentation toolchain
 #
-ASCIIDOC_CONF_DIR =	@ASCIIDOC_CONF_DIR@
+ASCIIDOCTOR =   	@ASCIIDOCTOR@
 
-ASCIIDOC =		@ASCIIDOC@
-ASCIIDOCFLAGS =		--attribute=lang=en \
-			--attribute=sml3d-docbin=$(DOCBIN_DIR) \
-			--conf-file=$(CONF_DIR)/sml3d-asciidoc.conf
-ASCIIDOCFLAGS_HTML =	-b html5 \
-			--attribute=linkcss \
-			--attribute=stylesdir=$(STYLES_URL) \
-			--attribute=imagesdir=$(IMAGES_URL) \
-			--attribute=source-highlighter=pygments \
-			--attribute=baseurl=$(TARGET_BASE) \
-			--attribute=docurl=$(DOC_BASE) \
-			--conf-file=$(CONF_DIR)/sml3d-web.conf
-ASCIIDOCFLAGS_DOCBOOK45 = -b docbook45
-
-DBLATEX =		@DBLATEX@
-DBLATEX_FLAGS =		-t pdf -p $(CONF)/dblatex.xsl -s $(CONF)/dblatex.sty
+LATEXMK =		@LATEXMK@
+LATEXMK_PDF =		$(LATEXMK) -pdf
