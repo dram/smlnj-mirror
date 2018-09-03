@@ -30,6 +30,7 @@ dirs="\
     ml-lex \
     ml-lpt \
     ml-yacc \
+    asdl \
     nlffi \
     pgraph \
     smlnj-c \
@@ -38,6 +39,21 @@ dirs="\
   "
 
 for d in $dirs ; do
+  #
+  # some directories require special pre-processing
+  #
+  case $d in
+    asdl)
+      cd asdl
+      autoheader -Iconfig
+      autoconf -Iconfig
+      rm -rf autom4te.cache
+      cd $here
+    ;;
+  esac
+  #
+  # build the tarball
+  #
   tar -czf $here/$d.tgz $d
 done
 
@@ -59,11 +75,14 @@ done
 #
 cd $here/doc
 autoconf -Iconfig || exit 1
+rm -rf autom4te.cache
 ./configure
 #
 # generate the documentation into $here/doc/doc
+@
 make doc || exit 1
 #
-# build tar files
+# build tar file of generated documentation
+#
 tar -czf $here/doc.tgz doc
 
