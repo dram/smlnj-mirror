@@ -216,6 +216,12 @@
     lists of unequal length would compare as equal if the shorter list was
     a prefix of the longer list.
   </li>
+  <li>
+    Fixed a bug where the <span class="code">findi</span> function in the various
+    slice structures (<i>e.g.</i>, <span class="code">Word8ArraySlice</span>)
+    passed the wrong index value to the predicate function (the index is supposed
+    to be relative to the start of the slice, not the underlying vector or array).
+  </li>
 </ul>
 
 <h3>Supported systems:</h3>

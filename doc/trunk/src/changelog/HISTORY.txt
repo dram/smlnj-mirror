@@ -97,6 +97,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Version 110.84; 2018/09/03
 
 //--------------------------------------------------------------------
+[2018/09/03]::
++
+Reimplemented the array/vector-slice modules to use a (base, start, length)
+representation (as does Substring in system/smlnj/init/substring.sml).  Also
+fixed a bug in the slice findi functions, where the index being passed to the
+predicate function was not adjusted to be slice-relative.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/09/02]::
 +
 Implemented https://github.com/SMLFamily/BasisLibrary/wiki/2018-002-Additional-slice-operations[
