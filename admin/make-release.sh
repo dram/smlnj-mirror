@@ -14,7 +14,7 @@ gf=https://smlnj-gforge.cs.uchicago.edu/svn/smlnj
 
 here=`pwd`
 
-for tree in config sml smlnj-lib MLRISC ml-yacc trace-debug-profile pgraph \
+for tree in config sml smlnj-lib MLRISC asdl ml-yacc trace-debug-profile pgraph \
             ckit cml eXene smlnj-c ml-burg ml-lex heap2asm nlffi doc
 do
   echo "tagging $tree..."
