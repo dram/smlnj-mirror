@@ -93,12 +93,32 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.84; 2018/09/03
+
+//--------------------------------------------------------------------
+[2018/09/02]::
++
+Implemented https://github.com/SMLFamily/BasisLibrary/wiki/2018-002-Additional-slice-operations[
+Basis Library proposal 2018-002 (Additional slice operations)].
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2018/09/02]::
++
+Improved implementation of `CharVectorSlice.map` and `CharVectorSlice.mapi`
+to not build intermediate list of results.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2018/08/28]::
 +
 A beta-release of ASDL library and *asdlgen* tool have been added to
-the system.
-There is a CM tool for ASDL, which recognizes the `.asdl` file suffix.
+the system.  This version of the tool implements SML support, but the
+C++ support is not complete.  There is a CM tool for ASDL, which
+recognizes the `.asdl` file suffix.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
@@ -136,7 +156,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 +
 Fixed a compiler bug (`arg ty lists wrong length`) in `unifyTy` that
 could occur when one of the type constructors is the `ERRORtyc`.
-This occurs because the `ERRORtyc` is equal to any other type
+This bug occurs because the `ERRORtyc` is equal to any other type
 constructor, which (incorrectly) implies that the number of type
 arguments should be equal.
 +

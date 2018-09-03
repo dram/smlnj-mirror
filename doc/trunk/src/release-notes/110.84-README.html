@@ -89,7 +89,7 @@
 <br>
                           Version 110.84 NEWS
 <br>
-                           September 1, 2018
+                           September 3, 2018
 </div>
 
 <hr>
@@ -131,14 +131,39 @@
     </p>
     <p>
       While the previous versions of ASDL supported many different target languages,
-      the new version currently only supports SML and C++ (and C++ support is
-      incomplete).
+      the new version currently only supports SML and C++ (note that C++ support is
+      currently incomplete).
     </p>
     <p>
       See the ASDL Manual (Version 3.0) for details about the specification
       language and the <b>asdlgen</b> tool.
     </p>
+    <p>
+      Also note that ASDL is not currently part of the Windows installation.
+    </p>
   </dd>
+  <dt class="component">Basis Library:</dt>
+  <dd>
+    <p>
+    This version adds support for the Basis Library proposal:
+    </p>
+    <dl>
+      <dt><a href="https://github.com/SMLFamily/BasisLibrary/wiki/2018-002-Additional-slice-operations">
+        <b>[2018-002]</b> Additional slice operations</a></dt>
+        <dd>
+	  This proposal adds four functions to the various slice structures:
+	  <span class="code">triml</span>,
+	  <span class="code">trimr</span>,
+	  <span class="code">splitAt</span>, and
+	  <span class="code">getVec</span>.
+        </dd>
+      </dt>
+    </dl>
+    <p>
+    <span class="important">Note that this change is a <i>proposal</i>
+    that have not yet been ratified and is subject to change!</span>
+    </p>
+  </dt>
   <dt class="component">SML/NJ Library</dt>
   <dd>
     <p>
@@ -169,29 +194,29 @@
 </dl>
 
 <h3>Bugs:</h3>
-    <p>
-      There are no numbered bug fixes in this release, but the following
-      unnumbered bugs were fixed:
-    </p>
-    <ul class="buglist">
-      <li>
-	Fixed a compiler bug ("<span class="code">arg ty lists have wrong length</span>") in
-	<span class="code">unifyTy</span> that could occur when one of the type constructors
-	is the <span class="code">ERRORtyc</span> (because a type error had been previously
-        detected).
-      </li>
-      <li>
-	Fixed a bug in the implementation of monomorphic buffers:
-	the functions <span class="code">CharBuffer.add1</span> and
-	<span class="code">Word8Buffer.add1</span> had an incorrect length
-	test.
-      </li>
-      <li>
-	Fixed a bug in the <span class="code">SExp.same</span> function, where
-	lists of unequal length would compare as equal if the shorter list was
-	a prefix of the longer list.
-      </li>
-    </ul>
+<p>
+  There are no numbered bug fixes in this release, but the following
+  unnumbered bugs were fixed:
+</p>
+<ul class="buglist">
+  <li>
+    Fixed a compiler bug ("<span class="code">arg ty lists have wrong length</span>") in
+    <span class="code">unifyTy</span> that could occur when one of the type constructors
+    is the <span class="code">ERRORtyc</span> (because a type error had been previously
+    detected).
+  </li>
+  <li>
+    Fixed a bug in the implementation of monomorphic buffers:
+    the functions <span class="code">CharBuffer.add1</span> and
+    <span class="code">Word8Buffer.add1</span> had an incorrect length
+    test.
+  </li>
+  <li>
+    Fixed a bug in the <span class="code">SExp.same</span> function, where
+    lists of unequal length would compare as equal if the shorter list was
+    a prefix of the longer list.
+  </li>
+</ul>
 
 <h3>Supported systems:</h3>
 <blockquote>
