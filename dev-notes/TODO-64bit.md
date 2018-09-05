@@ -1,5 +1,25 @@
 ## TODO list for 64-bit migration
 
+### Design questions
+
+On 32-bit machines, we currently have `Int31.int` as the default integer type, `Int32.int`
+as a boxed integer type, and `Int64.int` represented as a pair of integers.
+The plan is to make `Int63.int` the default integer type on 64-bit machines, with `Int32.int`
+as an *unboxed* type and `Int64.int` as a regular boxed type without the special representation.
+Currently we use the default tagged integer type for all smaller integer types
+(*e.g.*, `Int8.int` is represented as `Int31.int` at runtime).
+
+From the point of view of the compiler, there are three properties of integer types
+that we might want to track:
+
+1. the number of bits of precision (we have been using `0` for arbitrary precision)
+
+2. is the type signed (with overflow checking) or unsigned?
+
+3. is the type boxed or unboxed?
+
+The last of these properties is ignored until CPS and code generation.
+
 ### Compiler issues
 
 All paths are relative the the `base` module.
@@ -164,10 +184,34 @@ There are some issues with the current MLRISC support for AMD64.
     - `system/smlnj/init/core-intinf.sml`
 
 * The `InlineT` module may need to be conditionally compiled based on word size,
-  since it has `Int31` and `Word31` submodules.  Alternatively, we can change
-  these to `TaggedInt` and `TaggedWord` modules that are resolved to 31-bit
-  integers on 32-bit targets and 63-bit integers on 64-bit targets.<br/>
+  since it has `Int31` and `Word31` submodules.  Furthermore, there are many
+  Basis Library modules that use `InlineT.Int31` and `InlineT.Word31` for
+  index arithmetic, etc.  We might change these to `TaggedInt` and `TaggedWord`
+  modules that are resolved to 31-bit   integers on 32-bit targets and 63-bit
+  integers on 64-bit targets.<br/>
   Files:
+    - `system/Basis/Implementation/array.sml`
+    - `system/Basis/Implementation/array-slice.sml`
+    - `system/Basis/Implementation/char-array.sml`
+    - `system/Basis/Implementation/char-array-slice.sml`
+    - `system/Basis/Implementation/char-buffer.sml`
+    - `system/Basis/Implementation/char-vector.sml`
+    - `system/Basis/Implementation/char-vector-slice.sml`
+    - `system/Basis/Implementation/num-scan.sml`
+    - `system/Basis/Implementation/pack-real64-native.sml`
+    - `system/Basis/Implementation/pack-real64-swap.sml`
+    - `system/Basis/Implementation/real64-array.sml`
+    - `system/Basis/Implementation/real64-array-slice.sml`
+    - `system/Basis/Implementation/real64.sml`
+    - `system/Basis/Implementation/string.sml`
+    - `system/Basis/Implementation/vector.sml`
+    - `system/Basis/Implementation/vector-slice.sml`
+    - `system/Basis/Implementation/word8-array.sml`
+    - `system/Basis/Implementation/word8-array-slice.sml`
+    - `system/Basis/Implementation/word8-buffer.sml`
+    - `system/Basis/Implementation/word8-vector.sml`
+    - `system/Basis/Implementation/word8-vector-slice.sml`
+    - `system/Basis/Implementation/word8.sml`
     - `system/smlnj/init/built-in.sml`
 
 ### Runtime system issues
@@ -179,7 +223,7 @@ problems.
 To support a 64-bit address space, we will need to implement the multi-level
 BIBOP support.  We should probably increase the size of the `BIBOP_PAGE_SZB`
 to 256K (18 bits), but we will still need a 2-level table to cover a 48-bit
-virtual address space.  An alternative might be some form of hashing.
+virtual address space.  An alternative might be some form of hashing. <br/>
 *UPDATE* experiments show that the two-level table works best, but we
 replace bibop tests in the minor-gc with address-range tests.
 
