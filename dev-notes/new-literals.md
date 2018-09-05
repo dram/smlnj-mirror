@@ -44,13 +44,13 @@ The instruction encoding is described below.
 
 * **INT**(*n*) literal value in the default (tagged) integer or
     word type (`Int.int` or `Word.word`).  The value `n` should be
-    in the range -2^*w*-1^ to 2^*w*^-1 when encoded as a w-bit 2's complement
+    in the range -2^w-1^ to 2^w-1^-1 when encoded as a w-bit 2's complement
     integer.  The width *w* will be 31 or 63 depending on the host
     architecture.
 
 * **INT32**(*n*) 32-bit literal value for either the type `Int32.int` or `Word32.int`.
 
-* **INT64**(*n*) 64-bit literal value for either the type `Int32.int` or `Word32.int`.
+* **INT64**(*n*) 64-bit literal value for either the type `Int64.int` or `Word64.int`.
 
 * **BIGINT**(*n*) arbitrary precision integer literal (currently not used).
 
@@ -95,7 +95,7 @@ The instruction encoding is described below.
 
 * **RETURN**
     signals the end of the program; the stack depth should be one and that value
-    is popped and returns as the result.
+    is popped and returned as the result.
 
 ### Future extensions
 
@@ -240,7 +240,7 @@ In the encoding below, we use the following conventions:
     **BIGINT**(*b*) --- for bigint literals in the range -128..127.
 
 * `00011100` (`0x1C` *h*) <br />
-    **BIGINT**(*h*) --- for bigint literals in the range -64768..64767.
+    **BIGINT**(*h*) --- for bigint literals in the range -32768..32767.
 
 * `00011101` (`0x1D` *w*) <br />
     **BIGINT**(*w*) --- for bigint literals in the range -2147483648..2147483647.
