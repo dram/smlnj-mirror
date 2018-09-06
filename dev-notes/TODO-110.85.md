@@ -11,3 +11,5 @@
 
 * Switch environment pickling to use ASDL
 
+* Switch to new encoding of literals (see new-literals.md)
+
