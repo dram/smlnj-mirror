@@ -157,7 +157,7 @@ All paths are relative the the `base` module.
     - `base/compiler/CodeGen/main/mlriscGen.sml`
 
 * various 32-bit dependencies in FLINT [**dbm**]<br/>
-    - `compiler/FLINT/trans/pequal.sml`
+    - `compiler/FLINT/trans/pequal.sml` **[DONE]**
     - `compiler/FLINT/trans/matchcomp.sml`
     - `compiler/FLINT/trans/translate.sml`
     - `compiler/FLINT/reps/equal.sml`

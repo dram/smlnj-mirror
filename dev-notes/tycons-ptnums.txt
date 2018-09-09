@@ -1,9 +1,9 @@
 tycons and ptnums and FLINT primtycs
 
-In 110.81 FLINT has identifying "ptnum" values to PRIMITIVE tycons
-(e.g. intTycon). These are used to translate front-end primitive
-tycons to FLINT's primitive type constructors (ptyc and primtyc
-in FLINT/kernel/primtyc.sml).
+In 110.81 FLINT has identifying "ptnum" values assigned to PRIMITIVE
+tycons (e.g. intTycon). These are used as intermediaries in the
+translation of front-end primitive tycons to FLINT's primitive type
+constructors (ptyc and primtyc in FLINT/kernel/primtyc.sml).
 
 Files:
 ElabData/basics/core-ptnum.sml  (* obsolete, deleted *)

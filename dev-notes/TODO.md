@@ -14,3 +14,12 @@ in the SML/NJ compiler.
 * All of the intermediate representations (FLINT, CPS, etc.) use the same LambdaVar.lvar
   type to represent variables.  There should be distinct types for these to avoid
   potential confusion and errors.
+
+* FLINT types (`FLINT/kernel`) need a thorough overhaul. There are too
+  many layers of type representations, and the complexity of Nadathur
+  closures is probably unjustified. Even the hash-consing of types may
+  no longer be justified -- depends on the space blowup without
+  it. FLINT primative types for numbers do not distinguish between
+  signed and unsigned numbers (i.e. ints and words). Should they?
+  
+  
