@@ -93,6 +93,26 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2018/09/12]::
++
+Modified the `InfCnv` (now named `IntInfCnv`) structure to remove
+32-bit dependencies.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2018/09/11]::
++
+Reimplemented the `Switch` module (int `base/compiler/FLINT/cps`).  The
+new implementation follows the same basic design as before, but the code
+is better organized and documented, and it now uses the concrete `CPS`
+representations, instead of being parameterized over an abstraction of
+them.  It also now uses binary search for boxed (e.g., `Int32.int`)
+switches.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.84; 2018/09/03
 
