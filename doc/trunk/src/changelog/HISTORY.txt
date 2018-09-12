@@ -116,6 +116,16 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2018/09/11]::
 +
+Modified Pequal (in base/compiler/FLINT/trans/pequal.sml) and
+Translate (in base/compiler/FLINT/trans/translate.sml) to remove
+32-bit dependencies. though further changes will be required to
+properly handle int64 and word64 types when defaultIntSz = 64.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
+[2018/09/11]::
++
 Reimplemented the `Switch` module (int `base/compiler/FLINT/cps`).  The
 new implementation follows the same basic design as before, but the code
 is better organized and documented, and it now uses the concrete `CPS`
