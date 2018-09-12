@@ -24,6 +24,30 @@ The last of these properties is ignored until CPS and code generation.
 
 All paths are relative the the `base` module.
 
+* The `RK_I32BLOCK` constructor in the `CPS.record_kind` datatype should be generalized
+  to allow for 64-bits.  It is used for literals, boxed 32-bit values, and for 32-bit
+  values in closures.  The best idea might be to merge it with the `RK_FBLOCK`
+  constructor to define a `RK_RAW` record kind that can hold floats (both 32 and 64-bit)
+  and 32 or 64-bit integers.</br>
+  **Note:** that the `RAW_RECORD` primop, which is used for C interface support (nlffi).<br>
+  Files:
+    - `compiler/FLINT/cps/cps.sig`
+    - `compiler/FLINT/cps/cps.sml`
+    - `compiler/FLINT/cps/ppcps.sml`
+    - `compiler/FLINT/cps/convert.sml`
+    - `compiler/FLINT/main/literals.sml`
+    - `compiler/FLINT/clos/closure.sml`
+    - `compiler/CodeGen/main/mlriscGen.sml`
+
+* The `Word64.word` and `Int64.int` types are currently implemented by conversion
+  to pairs of `Word32.word` values in the translation from Absyn to PLambda.  The
+  actual implementation of 64-bit arithmetic is in SML.<br>
+  Files:
+    - `compiler/FLINT/trans/literal-to-num.sml`
+    - `compiler/FLINT/trans/translate.sml`
+    - `system/smlnj/init/core-int64.sml`
+    - `system/smlnj/init/core-word64.sml`
+
 * Change `SMLGCType` to have tagged and native integer types, instead of `I31` and `I32`.<br/>
   Files:
     - `compiler/CodeGen/cpscompile/smlnj-gctype.sig`
