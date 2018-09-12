@@ -41,7 +41,8 @@ All paths are relative the the `base` module.
 
 * The `Word64.word` and `Int64.int` types are currently implemented by conversion
   to pairs of `Word32.word` values in the translation from Absyn to PLambda.  The
-  actual implementation of 64-bit arithmetic is in SML.<br>
+  actual implementation of 64-bit arithmetic is in SML and uses the `CVT64` primop
+  to support the conversion.<br>
   Files:
     - `compiler/FLINT/trans/literal-to-num.sml`
     - `compiler/FLINT/trans/translate.sml`
