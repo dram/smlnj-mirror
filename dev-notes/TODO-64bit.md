@@ -29,7 +29,8 @@ All paths are relative the the `base` module.
   values in closures.  The best idea might be to merge it with the `RK_FBLOCK`
   constructor to define a `RK_RAW` record kind that can hold floats (both 32 and 64-bit)
   and 32 or 64-bit integers.</br>
-  **Note:** that the `RAW_RECORD` primop, which is used for C interface support (nlffi).<br>
+  **Note:** that the `RAW_RECORD` primop, which is used for C interface support (nlffi)
+  is translated to `RK_I32BLOCK`.<br>
   Files:
     - `compiler/FLINT/cps/cps.sig`
     - `compiler/FLINT/cps/cps.sml`
