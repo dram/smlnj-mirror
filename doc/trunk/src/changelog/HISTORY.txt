@@ -96,6 +96,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2018/09/12]::
 +
+The CPS optimizer had a mechanism for checking the CPS against the FLINT
+types, which required maintaining a mapping from lvars to their FLINT
+types.  This code has long since bit-rotted and cannot even handle a
+simple expression like `1+2`.  Therefore, I've removed the mapping (a hash
+table) from the CPS optimizer and the vestigial code that modified it
+in the various CPS optimization passes.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2018/09/12]::
++
 Modified the `InfCnv` (now named `IntInfCnv`) structure to remove
 32-bit dependencies.
 +
