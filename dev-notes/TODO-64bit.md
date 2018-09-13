@@ -186,7 +186,7 @@ All paths are relative the the `base` module.
     - `compiler/FLINT/trans/pequal.sml` **[DONE]**
     - `compiler/FLINT/trans/matchcomp.sml`
     - `compiler/FLINT/trans/translate.sml` **[DONE]**
-    - `compiler/FLINT/reps/equal.sml`
+    - `compiler/FLINT/reps/equal.sml` **[DONE]**
 
 ### MLRISC issues
 
