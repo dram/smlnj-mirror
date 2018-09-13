@@ -60,10 +60,12 @@ All paths are relative the the `base` module.
   Files:
     - `cm/main/specific-symval-fn.sml`
 
-* The assumption that 31-bit integers are the default `int` type is
+* **[dbm]**
+  The assumption that 31-bit integers are the default `int` type is
   pervasive in the primitive operations.  A major example of this
   assumption are the primitive operations for converting between integer
-  representations.<br/>
+  representations.  We should change the names of these operations to
+  use `word`/`int` instead of `w31`/`i31`, etc.<br/>
   Files:
     - `compiler/Semant/prim/primop-bindings.sml`
 
@@ -153,7 +155,7 @@ All paths are relative the the `base` module.
     - `compiler/CodeGen/cpscompile/mlriscGen.sml`
     - `compiler/CodeGen/cpscompile/smlnj-gctype.sml`
 
-* Support for generating switch code (`do_switch_gen`) assume 32-bit words.<br/>
+* **[DONE]** Support for generating switch code (`do_switch_gen`) assume 32-bit words.<br/>
   Files:
     - `base/compiler/FLINT/cps/convert.sml`
     - `base/compiler/FLINT/cps/switch.sml`
@@ -182,11 +184,11 @@ All paths are relative the the `base` module.
     - `base/compiler/FLINT/main/literals.sml`
     - `base/compiler/CodeGen/main/mlriscGen.sml`
 
-* various 32-bit dependencies in FLINT [**dbm**]<br/>
-    - `compiler/FLINT/trans/pequal.sml` **[DONE]**
-    - `compiler/FLINT/trans/matchcomp.sml` **[DONE]**
-    - `compiler/FLINT/trans/translate.sml` **[DONE]**
-    - `compiler/FLINT/reps/equal.sml` **[DONE]**
+* **[DONE]** various 32-bit dependencies in FLINT<br/>
+    - `compiler/FLINT/trans/pequal.sml`
+    - `compiler/FLINT/trans/matchcomp.sml`
+    - `compiler/FLINT/trans/translate.sml`
+    - `compiler/FLINT/reps/equal.sml`
 
 ### MLRISC issues
 
@@ -204,17 +206,18 @@ There are some issues with the current MLRISC support for AMD64.
 * Default integer types: `Int31.int` for 32-bit machines and `Int63.int` for 64-bit
   machines.
 
-* Implementation of `IntInf` assumes 32-bit integers.<br/>
+* The implementation of `IntInf` assumes 32-bit integers.<br/>
   Files:
     - `compiler/FLINT/cpsopt/infcnv.sml`
     - `system/smlnj/init/core-intinf.sml`
 
-* The `InlineT` module may need to be conditionally compiled based on word size,
+* **[dbm]**
+  The `InlineT` module may need to be conditionally compiled based on word size,
   since it has `Int31` and `Word31` submodules.  Furthermore, there are many
   Basis Library modules that use `InlineT.Int31` and `InlineT.Word31` for
-  index arithmetic, etc.  We might change these to `TaggedInt` and `TaggedWord`
-  modules that are resolved to 31-bit   integers on 32-bit targets and 63-bit
-  integers on 64-bit targets.<br/>
+  index arithmetic, etc.  We might change these to `Int` and `Word`
+  modules that are resolved to 31-bit integers on 32-bit targets and 63-bit
+  integers on 64-bit targets (i.e., based on the default integer size).<br/>
   Files:
     - `system/Basis/Implementation/array.sml`
     - `system/Basis/Implementation/array-slice.sml`
@@ -246,7 +249,7 @@ The runtime system has been 64-bit clean for many years, but it has never been
 used for targets where the ML word size is 64-bits, so there could be some
 problems.
 
-To support a 64-bit address space, we will need to implement the multi-level
+**[DONE]** To support a 64-bit address space, we will need to implement the multi-level
 BIBOP support.  We should probably increase the size of the `BIBOP_PAGE_SZB`
 to 256K (18 bits), but we will still need a 2-level table to cover a 48-bit
 virtual address space.  An alternative might be some form of hashing. <br/>
@@ -276,7 +279,7 @@ There are a few library modules that assume 32-bit integers.
 
 ### General discussion
 
-Ideally, we can devise a single way to parameterize the compiler on target sizes
+**[DONE]** Ideally, we can devise a single way to parameterize the compiler on target sizes
 from front to back.
 
 It would also be nice to address support for 32-bit floats at the same time, since
