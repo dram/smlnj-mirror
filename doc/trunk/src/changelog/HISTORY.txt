@@ -94,6 +94,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2018/09/13]::
++
+Further cleanup for 64BIT in function atomeq in PEqual.
+(base/compiler/FLINT/trans/pequal.sml).
+Added numKind, intEqTy, and uintEqTy functions.
+numKind can be extended when int64 and word64 are treated as primitive
+until (at least) CPS.
+
+//--------------------------------------------------------------------
 [2018/09/12]::
 +
 Fixed 64BIT issue in module MatchComp
