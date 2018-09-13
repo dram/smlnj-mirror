@@ -184,7 +184,7 @@ All paths are relative the the `base` module.
 
 * various 32-bit dependencies in FLINT [**dbm**]<br/>
     - `compiler/FLINT/trans/pequal.sml` **[DONE]**
-    - `compiler/FLINT/trans/matchcomp.sml`
+    - `compiler/FLINT/trans/matchcomp.sml` **[DONE]**
     - `compiler/FLINT/trans/translate.sml` **[DONE]**
     - `compiler/FLINT/reps/equal.sml` **[DONE]**
 
