@@ -96,12 +96,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2018/09/12]::
 +
+Fixed 64BIT issue in module MatchComp
+(base/compiler/FLINT/trans/matchcomp.sml).
+Added int64Ty and word64Ty cases to function numCon.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
+[2018/09/12]::
++
 Fixed 64BIT issue in module Equal
 (base/compiler/FLINT/reps/equal.sml).
 Exports just one function: equal_branch, which is called once in
 reps/wrapping.sml to type-specialize branches on calls to POLYEQUAL.
 +
-owner:cs.uchicago.edu/~jhr[John Reppy]
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
 //--------------------------------------------------------------------
 [2018/09/12]::
