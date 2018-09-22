@@ -50,10 +50,12 @@ All paths are relative the the `base` module.
     - `system/smlnj/init/core-int64.sml`
     - `system/smlnj/init/core-word64.sml`
 
-* Change `SMLGCType` to have tagged and native integer types, instead of `I31` and `I32`.<br/>
+* **[DONE]**
+  Change `SMLGCType` to have tagged and native integer types, instead of `I31` and `I32`.<br/>
   Files:
     - `compiler/CodeGen/cpscompile/smlnj-gctype.sig`
     - `compiler/CodeGen/cpscompile/smlnj-gctype.sml`
+    - `compiler/CodeGen/main/mlriscGen.sml`
 
 * **[DONE]**
   Add `amd64` as an architecture that CM knows about<br/>
@@ -152,7 +154,7 @@ All paths are relative the the `base` module.
     - `compiler/FLINT/clos/cps-split.sml`
     - `compiler/CodeGen/cpscompile/cps-c-calls.sml`
     - `compiler/CodeGen/cpscompile/invokegc.sml`
-    - `compiler/CodeGen/cpscompile/mlriscGen.sml`
+    - `compiler/CodeGen/main/mlriscGen.sml`
     - `compiler/CodeGen/cpscompile/smlnj-gctype.sml`
 
 * **[DONE]** Support for generating switch code (`do_switch_gen`) assume 32-bit words.<br/>
