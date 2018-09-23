@@ -22,4 +22,6 @@ in the SML/NJ compiler.
   it. FLINT primative types for numbers do not distinguish between
   signed and unsigned numbers (i.e. ints and words). Should they?
   
-  
+* The `unboxedFloats` flag in the `MACH_SPEC` signature is true for all targets; can
+  we get rid of it?
+
