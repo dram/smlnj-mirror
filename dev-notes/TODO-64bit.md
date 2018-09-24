@@ -282,7 +282,8 @@ replace bibop tests in the minor-gc with address-range tests.
 
 Object descriptors can be left as is for now (low 7 bits), which will allow
 the length field to support much bigger objects.  We will want to add a
-`SEQ_word64` kind tag for vectors/arrays.
+`SEQ_word64` kind tag for vectors/arrays, which will require a change in
+runtime representations.
 
 ### SML/NJ Library issues
 
