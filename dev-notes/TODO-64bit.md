@@ -76,10 +76,10 @@ All paths are relative the the `base` module.
   Files:
     - `compiler/DEVNOTES/Primops/primop-list`
     - `compiler/FLINT/trans/primopmap.sml`
-    - `compiler/Semant/statenv/prim.sml`
-    - `compiler/Semant/statenv/primoptypemap.sml`
+    - `compiler/Semant/prim/primop-bindings.sml`
 
-* For the 64-bit target, the `Int32.int` type can be represented as an unboxed
+* **[DONE**
+  For the 64-bit target, the `Int32.int` type can be represented as an unboxed
   tagged integer.  This means that the CPS `i32wrap` and `i32unwrap` operations
   should be generalized in some way.<br/>
   **Note:** there are existing CPS operations `iwrap` and `iunwrap` defined, but
@@ -138,7 +138,7 @@ All paths are relative the the `base` module.
     - `compiler/FLINT/plambda/rpplexp.sml`
     - `compiler/FLINT/trans/translate.sml`
 
-*  **[DONE]**
+* **[DONE]**
   The `CPS.cty` datatype needs to be extended to include an `INT64t` constant
   (or perhaps an `INTt of int` constructor).<br/>
   **Note:** there is an interaction between this issue and the wrapping/unwrapping
