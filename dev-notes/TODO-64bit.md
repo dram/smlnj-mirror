@@ -14,9 +14,12 @@ that we might want to track:
 
 1. the number of bits of precision (we have been using `0` for arbitrary precision)
 
-2. is the type signed (with overflow checking) or unsigned?
+2. the number of bits in the representation (currently types smaller than the default
+   tagged type are represented using the default tagged type)
 
-3. is the type boxed or unboxed?
+3. is the type signed (with overflow checking) or unsigned?
+
+4. is the type boxed or unboxed?
 
 The last of these properties is ignored until CPS and code generation.
 
@@ -39,6 +42,21 @@ All paths are relative the the `base` module.
     - `compiler/FLINT/main/literals.sml`
     - `compiler/FLINT/clos/closure.sml`
     - `compiler/CodeGen/main/mlriscGen.sml`
+
+* The `ObjectDesc.tag_raw32` value is used to tag `RK_I32BLOCK` records.  The runtime
+  currently has both raw 32-bit and raw 64-bit header tags, but their meaning would be
+  somewhat dependent on the word size (it is not clear that we even need `tag_raw32`
+  on a 64-bit machine).  While the `tag_raw32` value is only used in a couple of places,
+  it is mentioned in comments in several files.<br>
+  Files:
+    - `compiler/CodeGen/cpscompile/cps-c-calls.sml` (comment)
+    - `compiler/CodeGen/main/mlriscGen.sml`
+    - `compiler/CodeGen/main/object-desc.sig`
+    - `compiler/CodeGen/main/object-desc.sml`
+    - `compiler/ElabData/prim/primop.sig` (comment)
+    - `compiler/ElabData/prim/primop.sml` (comment)
+    - `system/Basis/Implementation/Unsafe/object.sml` (numeric value used in `rep`)
+    - `system/smlnj/init/core.sml` (numeric value used in `polyequal`)
 
 * The `Word64.word` and `Int64.int` types are currently implemented by conversion
   to pairs of `Word32.word` values in the translation from Absyn to PLambda.  The
@@ -72,7 +90,11 @@ All paths are relative the the `base` module.
     - `compiler/Semant/prim/primop-bindings.sml`
 
 * The `Word8` operations are currently being implemented using special
-  renamed versions of the `Int31` primitive operations (*e.g.*, `i31add_8`).<br/>
+  renamed versions of the `Int31` primitive operations (*e.g.*, `i31add_8`).
+  This implementation is consistent with the current strategy of implementing
+  smaller integer sizes (*e.g.*, bytes) as the default tagged integer type,
+  but we might want to push the actual size info through the compiler to
+  enable range-based optimizations.<br/>
   Files:
     - `compiler/DEVNOTES/Primops/primop-list`
     - `compiler/FLINT/trans/primopmap.sml`
