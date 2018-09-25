@@ -204,15 +204,45 @@ All paths are relative the the `base` module.
   replace fixed-precision representations of literals with IntInf.int.  This change
   has already been made for the CPS representation, but it will also need to be
   done for the FLINT representation, and for some of the CPS-related passes.</br>
+  Files:
     - `base/compiler/FLINT/cps/switch.sml`
     - `base/compiler/FLINT/main/literals.sml`
     - `base/compiler/CodeGen/main/mlriscGen.sml`
 
 * **[DONE]** various 32-bit dependencies in FLINT<br/>
+  Files:
     - `compiler/FLINT/trans/pequal.sml`
     - `compiler/FLINT/trans/matchcomp.sml`
     - `compiler/FLINT/trans/translate.sml`
     - `compiler/FLINT/reps/equal.sml`
+
+### Basis Library issues
+
+* The `CoreIntInf` assumes 32-bit integers and uses many 31-bit-specific primops.
+  It also implements functions for converting to/from `Int64.int` (which is represented
+  as two 32-bit integers).<br/>
+  Files:
+    - `system/smlnj/init/core-intinf.sml`
+
+* The `system/smlnj/init/built-in.sml` file needs to have two different versions
+  for 32 and 64-bits.  The 32-bit version is missing native 64-bit types.<br/>
+  Files:
+    - `system/smlnj/init/built-in32.sml` (renamed file)
+    - `system/smlnj/init/built-in64.sml` (new file)
+    - `system/smlnj/init/init.cmi`
+
+* The `CoreInt64` and `CoreWord64` modules are not needed on 64-bit machines, since
+  the native code generator can support the operations.<br/>
+    - `system/smlnj/init/core-int64.sml`
+    - `system/smlnj/init/core-word64.sml`
+    - `system/smlnj/init/pervasive.sml`
+
+* The `polyequal` function in the `Core` structure handles boxed 32-bit values, but not
+  boxed 64-bit values.<br/>
+    - `system/smlnj/init/core.sml`
+
+* The `system/smlnj/init/pervasive.sml` file assumes 32-bits; it may need two versions
+  (like the `built-in.sml` file).
 
 ### MLRISC issues
 
