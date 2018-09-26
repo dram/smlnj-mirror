@@ -216,6 +216,17 @@ All paths are relative the the `base` module.
     - `compiler/FLINT/trans/translate.sml`
     - `compiler/FLINT/reps/equal.sml`
 
+### MLRISC issues
+
+There are some issues with the current MLRISC support for AMD64.
+
+* The binary instruction encoding in `amd64.mdl` was never completed
+
+* The instruction selection mechanism in `amd64/mltree/amd64.sml` is based on
+  the register-poor `x86`, instead of a RISC-type architecture.  This choice
+  may explain the poor floating-point performance for this architecture in
+  the Manticore compiler.
+
 ### Basis Library issues
 
 * The `CoreIntInf` assumes 32-bit integers and uses many 31-bit-specific primops.
@@ -243,19 +254,6 @@ All paths are relative the the `base` module.
 
 * The `system/smlnj/init/pervasive.sml` file assumes 32-bits; it may need two versions
   (like the `built-in.sml` file).
-
-### MLRISC issues
-
-There are some issues with the current MLRISC support for AMD64.
-
-* The binary instruction encoding in the `amd64.mdl` was never completed
-
-* The instruction selection mechanism in `amd64/mltree/amd64.sml` is based on
-  the register-poor `x86`, instead of a RISC-type architecture.  This choice
-  may explain the poor floating-point performance for this architecture in
-  the Manticore compiler.
-
-### Basis Library issues
 
 * Default integer types: `Int31.int` for 32-bit machines and `Int63.int` for 64-bit
   machines.
@@ -317,17 +315,10 @@ runtime representations.
 
 ### SML/NJ Library issues
 
-There are a few library modules that assume 32-bit integers.
+There are a couple of library modules that assume 32-bit integers.
 
-  * The various hash-table modules round up table size assuming that the
-    size is a 31-bit integer.<br/>
-    Files:
-      - `Util/hash-set-fn.sml`
-      - `Util/hash-table-rep.sml`
-      - `Util/hash-table.sml`
-      - `Util/hash-set-fn.sml`
-
-  * The `Rand` and `Random` modules are 31-bit specific.<br/>
+  * The `Rand` and `Random` modules are 32-bit specific and make specific reference
+    to the `Word31` and `Int32` structures.<br/>
     Files:
       - `Util/rand.sml`
       - `Util/random.sml`
