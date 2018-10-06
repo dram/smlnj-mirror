@@ -76,11 +76,3 @@ cproto.sml defines a structure CProto. This is not needed for primops
 in the front-end.  It is used only in FLINT/trans/translate.sml and
 FLINT/cps/convert.sml.  It therefore probably does not belong in
 ElabData/prim (or in the front-end in general).
-
-
-
-
-
-
-
-
