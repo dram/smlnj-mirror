@@ -94,21 +94,42 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2018/10/08]::
++
+Fix for bug bugref:216[] (run-time system fatal error with large top-level
+value).  The problem was in the code for building literals.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/09/23]::
 +
 Change CPS operators for wrapping/unwrapping integer and float values to
 be word-size flexible.  We now use a single `wrap` (and `unwrap`) operator
 that is parameterized by a `numkind` value.  We also changed the `wrap`/`unwrap`
 operators to `box`/`unbox`.  The mapping from old operators to new ones
-is as follows:<br/>
-`wrap`		==>	`box`
-`unwrap`	==>	`unbox`
-`iwrap`		==>	`wrap(INT defaultIntSz)`
-`iunwrap`	==>	`unwrap(INT defaultIntSz)`
-`i32wrap`	==>	`wrap(INT 32)`
-`i32unwrap`	==>	`unwrap(INT 32)`
-`fwrap`		==>	`wrap(FLOAT 64)`
-`funwrap`	==>	`unwrap(FLOAT 64)`
+is as follows:
++
+[%autowidth,cols=">10,^1,<25"]
+|===
+
+| `wrap`	| =>	| `box`
+
+| `unwrap`	| =>	| `unbox`
+
+| `iwrap`	| =>	| `wrap(INT defaultIntSz)`
+
+| `iunwrap`	| =>	| `unwrap(INT defaultIntSz)`
+
+| `i32wrap`	| =>	| `wrap(INT 32)`
+
+| `i32unwrap`	| =>	| `unwrap(INT 32)`
+
+| `fwrap`	| =>	| `wrap(FLOAT 64)`
+
+| `funwrap`	| =>	| `unwrap(FLOAT 64)`
+
+|===
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
@@ -450,6 +471,15 @@ when scanning large exponents, but it was not being handled by the
 scanning code.  The second issue was that the scaling loop for large
 exponents did not immediately terminate once infinity (or zero) was
 reached, so it could take a long time.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2017/10/22]::
++
+Moved the Version-1 literal building code into `gc/old-literals.c`.
+This file can be removed once the compiler generates the Version-2
+literal bytecode.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
