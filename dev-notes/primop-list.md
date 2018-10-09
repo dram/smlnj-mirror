@@ -29,6 +29,32 @@ internal representation becomes target-specific in many cases.
 
 ## Naming conventions
 
+Operations that "belong" to a specific type (*e.g.*, addition) have an initial
+prefix that specifies the type as follows:
+
+  * "`int`" -- default tagged integer type (*i.e.*, either `Int31.int` or `Int63.int`)
+  * "`word`" -- default tagged word type (*i.e.*, either `Word31.word` or `Word63.word`)
+  * "`int32`" -- 32-bit integers
+  * "`word32`" -- 32-bit words
+  * "`int64`" -- 64-bit integers
+  * "`word64`" -- 64-bit words
+  * "`intinf`" -- arbitrary precision integers
+  * "`real32`" -- 32-bit real numbers (not yet supported)
+  * "`real64`" -- 64-bit real numbers
+  * "`ptr`" -- machine address
+  * "`barr`" -- bytearray (used for arrays of `Word8.word` and `char`)
+  * "`bvec`" -- bytevector (used for strings and vectors of `Word8.word`)
+  * "`arr`" -- polymorphic arrays
+  * "`vec`" -- polymorphic vectors
+
+We use the attribute "`raw`" to denote direct machine operations that are not
+directly accesible in the Basis Library (*e.g.*, shift operations, where the basis
+versions clamp the shift amount to the word size, but the raw versions do not).
+
+We use the attribute "`unsafe`" for operations that could potentially result in
+a crash (*e.g.*, array subscript operations that do not check the index against
+the array bounds).
+
 ## Primitive operators
 
 ### Size-independent primops
@@ -54,7 +80,7 @@ internal representation becomes target-specific in many cases.
   * `! : 'a ref -> 'a`<br/>
     `P.DEREF`
 
-  * `:= : xx`<br/>
+  * `:= : 'a ref * 'a -> unit`<br/>
     `P.ASSIGN`
 
   * `makeref : 'a ref * 'a -> unit`<br/>
@@ -145,72 +171,95 @@ internal representation becomes target-specific in many cases.
   * `objlength : 'a -> int`<br/>
     `P.OBJLENGTH`
 
-  * `unboxedupdate : 'a array * int * 'a -> unit`<br/>
-    `P.UNBOXEDUPDATE`
-
-
-#### Boolean operations
-  * `inlnot : bool -> bool`<br/>
+  * `bool_not : bool -> bool`<br/>
     `P.INLNOT`
 
 
 #### Bytearray and bytevector operations
-  * `ordof : 'a * int -> 'b`<br/>
-    `P.NUMSUBSCRIPT{kind=P.INT 8, checked=false, immutable=true}`
+Operations on byte/char array/vectors.  We renamed these to make it clear
+which operations do bounds checking and which do not.
 
-  * `store : 'a * int * 'b -> unit`<br/>
-    `P.NUMUPDATE{kind=P.INT 8, checked=false}`
+  * `bvec_unsafe_sub : 'a * int -> 'b`<br/>
+    subscript from byte vector without bounds checking
+    (`P.NUMSUBSCRIPT{kind=P.INT 8, checked=false, immutable=true}`)
 
-  * `inlbyteof : 'a * int -> 'b`<br/>
-    `P.NUMSUBSCRIPT{kind=P.INT 8, checked=true, immutable=false}`
+  * `barr_unsafe_sub : 'a * int -> 'b`<br/>
+    subscript from byte array without bounds checking
+    (`P.NUMSUBSCRIPT{kind=P.INT 8, checked=false, immutable=false}`)
 
-  * `inlstore : 'a * int * 'b -> unit`<br/>
-    `P.NUMUPDATE{kind=P.INT 8, checked=true}`
+  * `barr_unsafe_update : 'a * int * 'b -> unit`<br/>
+    update byte array without bounds checking
+    (`P.NUMUPDATE{kind=P.INT 8, checked=false}`)
 
-  * `inlordof : 'a * int -> 'b`<br/>
-    `P.NUMSUBSCRIPT{kind=P.INT 8, checked=true, immutable=true}`
+  * `bvec_sub : 'a * int -> 'b`<br/>
+    subscript from byte vector
+    (`P.NUMSUBSCRIPT{kind=P.INT 8, checked=true, immutable=true}`)
+
+  * `barr_sub : 'a * int -> 'b`<br/>
+    subscript from byte array
+    (`P.NUMSUBSCRIPT{kind=P.INT 8, checked=true, immutable=false}`)
+
+  * `barr_update : 'a * int * 'b -> unit`<br/>
+    update byte array
+    (`P.NUMUPDATE{kind=P.INT 8, checked=true}`)
 
 
 #### Polymorphic array and vector
   * `mkarray : int * 'a -> 'a array`<br/>
-    `P.INLMKARRAY`
+    create a polymorphic array
+    (`P.INLMKARRAY`)
 
-  * `arrSub : 'a array * int -> 'a`<br/>
-    `P.SUBSCRIPT`
+  * `arr_unsafe_sub : 'a array * int -> 'a`<br/>
+    subscript from polymorphic array without bounds checking
+    (`P.SUBSCRIPT`)
 
-  * `arrChkSub : 'a array * int -> 'a`<br/>
-    `P.INLSUBSCRIPT`
+  * `arr_sub : 'a array * int -> 'a`<br/>
+    subscript from polymorphic array
+    (`P.INLSUBSCRIPT`)
 
-  * `vecSub : 'a vector * int -> 'a`<br/>
-    `P.SUBSCRIPTV`
+  * `vec_unsafe_sub : 'a vector * int -> 'a`<br/>
+    subscript from polymorphic vector without bounds checking
+    (`P.SUBSCRIPTV`)
 
-  * `vecChkSub : 'a vector * int -> 'a`<br/>
-    `P.INLSUBSCRIPTV`
+  * `vec_sub : 'a vector * int -> 'a`<br/>
+    subscript from polymorphic vector
+    (`P.INLSUBSCRIPTV`)
 
-  * `arrUpdate : 'a array * int * 'a -> unit`<br/>
-    `P.UPDATE`
+  * `arr_unsafe_update : 'a array * int * 'a -> unit`<br/>
+    update a polymorphic array without bounds checking
+    (`P.UPDATE`)
 
-  * `arrChkUpdate : 'a array * int * 'a -> unit`<br/>
-    `P.INLUPDATE`
+  * `arr_update : 'a array * int * 'a -> unit`<br/>
+    update a polymorphic array
+    (`P.INLUPDATE`)
+
+  * `arr_unboxed_update : 'a array * int * 'a -> unit`<br/>
+    update a polymorphic array with an unboxed value, which means that there is
+    no store-list entry created for the update.
+    `P.UNBOXEDUPDATE`
 
 
 #### Sequence operations
   * `newArray0 : unit -> 'a`<br/>
     `P.NEW_ARRAY0`
 
-  * `getSeqData : 'a -> 'b`<br/>
+  * `seq_get_data : 'a -> 'b`<br/>
     `P.GET_SEQ_DATA`
 
-  * `recordSub : 'a * int -> 'b`<br/>
+  * `unsafe_record_sub : 'a * int -> 'b`<br/>
     `P.SUBSCRIPT_REC`
 
   * `raw64Sub : 'a * int -> real64`<br/>
+    Unclear what purpose this primop serves
     `P.SUBSCRIPT_RAW64`
 
 
 ### Numeric primops
 
 #### Default tagged integer operations
+These are the primitive operations on the default tagged integer
+type (`Int.int`).
+
   * `int_add : int * int -> int`<br/>
     `P.ARITH{oper=P.ADD, overflow=true, kind=P.INT <int-size>}`
 
@@ -278,6 +327,9 @@ internal representation becomes target-specific in many cases.
     `P.INLABS (P.INT <int-size>)`
 
 #### Default tagged word operations
+These are the primitive operations on the default tagged word
+type (`Word.word`).
+
   * `word_mul : word * word -> word`<br/>
     `P.ARITH{oper=P.MUL, overflow=false, kind=P.INT <int-size>}`
 
