@@ -46,6 +46,7 @@ prefix that specifies the type as follows:
   * "`bvec`" -- bytevector (used for strings and vectors of `Word8.word`)
   * "`arr`" -- polymorphic arrays
   * "`vec`" -- polymorphic vectors
+  * "`seq`" -- sequence types (arrays and vectors)
 
 We use the attribute "`raw`" to denote direct machine operations that are not
 directly accesible in the Basis Library (*e.g.*, shift operations, where the basis
@@ -165,10 +166,8 @@ the array bounds).
   * `identity : 'a -> 'a`<br/>
     `P.INLIDENTITY`
 
-  * `length : 'a -> int`<br/>
-    `P.LENGTH`
-
   * `objlength : 'a -> int`<br/>
+    extracts the length field from an object's header word.
     `P.OBJLENGTH`
 
   * `bool_not : bool -> bool`<br/>
@@ -240,10 +239,19 @@ which operations do bounds checking and which do not.
 
 
 #### Sequence operations
+Sequence values (*e.g.*, `string`, `'a array`, `RealVector.vector`, *etc*.)
+are represented by a header consisting of a length (in elements) and a data
+pointer to the raw sequence data.
+
   * `newArray0 : unit -> 'a`<br/>
     `P.NEW_ARRAY0`
 
-  * `seq_get_data : 'a -> 'b`<br/>
+  * `seq_length : 'a -> int`<br/>
+    get the length field from a sequence header
+    `P.LENGTH`
+
+  * `seq_data : 'a -> 'b`<br/>
+    get the length field from a sequence header
     `P.GET_SEQ_DATA`
 
   * `unsafe_record_sub : 'a * int -> 'b`<br/>
