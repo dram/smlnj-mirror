@@ -108,10 +108,10 @@ the array bounds).
   * `<> : ''a * ''a -> bool`<br/>
     `P.POLYNEQ`
 
-  * `ptreql : 'a * 'a -> bool`<br/>
+  * `ptr_eql : 'a * 'a -> bool`<br/>
     `P.PTREQL`
 
-  * `ptrneq : 'a * 'a -> bool`<br/>
+  * `ptr_neq : 'a * 'a -> bool`<br/>
     `P.PTRNEQ`
 
 
@@ -329,10 +329,10 @@ type (`Int.int`).
   * `int_le : int * int -> bool`<br/>
     `P.CMP{oper=P.LTE, kind=P.INT <int-size>}`
 
-  * `int_eq : int * int -> bool`<br/>
+  * `int_eql : int * int -> bool`<br/>
     `P.CMP{oper=P.EQL, kind=P.INT <int-size>}`
 
-  * `int_ne : int * int -> bool`<br/>
+  * `int_neq : int * int -> bool`<br/>
     `P.CMP{oper=P.NEQ, kind=P.INT <int-size>}`
 
   * `int_min : int * int -> int`<br/>
@@ -399,10 +399,10 @@ type (`Word.word`).
   * `word_le : word * word -> bool`<br/>
     `P.CMP{oper=P.LTE, kind=P.UINT <int-size>}`
 
-  * `word_eq : word * word -> bool`<br/>
+  * `word_eql : word * word -> bool`<br/>
     `P.CMP{oper=P.EQL, kind=P.UINT <int-size>}`
 
-  * `word_ne : word * word -> bool`<br/>
+  * `word_neq : word * word -> bool`<br/>
     `P.CMP{oper=P.NEQ, kind=P.UINT <int-size>}`
 
   * `word_raw_rshift : word * word -> word`<br/>
@@ -474,10 +474,10 @@ type (`Word.word`).
   * `int32_le : int32 * int32 -> bool`<br/>
     `P.CMP{oper=P.LTE, kind=P.INT 32}`
 
-  * `int32_eq : int32 * int32 -> bool`<br/>
+  * `int32_eql : int32 * int32 -> bool`<br/>
     `P.CMP{oper=P.EQL, kind=P.INT 32}`
 
-  * `int32_ne : int32 * int32 -> bool`<br/>
+  * `int32_neq : int32 * int32 -> bool`<br/>
     `P.CMP{oper=P.NEQ, kind=P.INT 32}`
 
   * `int32_min : int32 * int32 -> int32`<br/>
@@ -543,10 +543,10 @@ type (`Word.word`).
   * `int64_le : int64 * int64 -> bool`<br/>
     `P.CMP{oper=P.LTE, kind=P.INT 64}`
 
-  * `int64_eq : int64 * int64 -> bool`<br/>
+  * `int64_eql : int64 * int64 -> bool`<br/>
     `P.CMP{oper=P.EQL, kind=P.INT 64}`
 
-  * `int64_ne : int64 * int64 -> bool`<br/>
+  * `int64_neq : int64 * int64 -> bool`<br/>
     `P.CMP{oper=P.NEQ, kind=P.INT 64}`
 
   * `int64_min : int64 * int64 -> int64`<br/>
