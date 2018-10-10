@@ -56,3 +56,8 @@ target plus an additional "wish-list" of long-term goals.
   * The `unboxedFloats` flag in the `MACH_SPEC` signature is true for all targets; can
     we get rid of it?
 
+  * Rewrite of pattern-match compilation to be an source to source translation of the
+    `Absyn` IR.  Include direct translation of "or" patterns and support for Successor
+    ML views.
+
+  * Add support for `Real32.real`, including arrays and vectors.
