@@ -269,10 +269,20 @@ These are the primitive operations on the default tagged integer
 type (`Int.int`).
 
   * `int_add : int * int -> int`<br/>
+    Signed integer addition with overflow checking.
     `P.ARITH{oper=P.ADD, overflow=true, kind=P.INT <int-size>}`
 
+  * `int_unsafe_add : int * int -> int`<br/>
+    Signed integer addition *without* overflow checking.
+    `P.ARITH{oper=P.ADD, overflow=false, kind=P.INT <int-size>}`
+
   * `int_sub : int * int -> int`<br/>
+    Signed integer subtraction with overflow checking.
     `P.ARITH{oper=P.SUB, overflow=true, kind=P.INT <int-size>}`
+
+  * `int_unsafe_sub : int * int -> int`<br/>
+    Signed integer subtraction *without* overflow checking.
+    `P.ARITH{oper=P.SUB, overflow=false, kind=P.INT <int-size>}`
 
   * `int_mul : int * int -> int`<br/>
     `P.ARITH{oper=P.MUL, overflow=true, kind=P.INT <int-size>}`
