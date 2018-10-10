@@ -128,6 +128,14 @@
       supporting 64-bit targets.  See the <a href="https://smlnj.org/dist/working/110.85/HISTORY.html">
       change log</a> for details.
     </p>
+    <p>
+      The <span class="code">getPseudo</span> and <span class="code">setPseudo</span>
+      functions were removed from the <span class="code">Unsafe</span> structure, since
+      they were no longer supported by the code generator.
+      We also removed the <span class="code">getpseudo</span>, <span class="code">setpseudo</span>,
+      <span class="code">setmark</span>, and <span class="code">dispose</span> functions
+      from the <span class="code">InlineT</span> structure (these are not visible to user code).
+    </p>
   </dd>
 </dl>
 

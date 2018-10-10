@@ -94,6 +94,27 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2018/10/10]::
++
+Removed several unsupported primitive operators from the compiler.
+In the CPS IR, these were `free`, `acclink`, `setpseudo`, `setmark`, and
+`getpseudo`.  The pseudo-register operations were not supported in the
+code generator, while the others were no-ops.  The corresponding
+operators `GETPSEUDO`, `SETPSEUDO`, `SETMARK`, and `DISPOSE` were removed
+from `ElabData/prim/primop.sml` and their bindings were removed from
+`Semant/prim/primop-bindings.sml` and the `InlineT` and `Unsafe`
+structures.
++
+The `AllocProf` module in the compiler was also disabled, since it
+relied on the pseudo registers for recording profile information at
+runtime.  Furthermore, uses of the `acclink` primitive operation in
+`FLINT/cps/closure.sml` when static profiling is enabled were removed.
++
+These changes were committed as revision 4886.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/10/08]::
 +
 Fix for bug bugref:216[] (run-time system fatal error with large top-level
