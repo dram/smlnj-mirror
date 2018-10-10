@@ -122,12 +122,6 @@ the array bounds).
   * `setvar : 'a -> unit`<br/>
     `P.SETVAR`
 
-  * `setpseudo : 'a * int -> unit`<br/>
-    `P.SETPSEUDO`
-
-  * `getpseudo : int -> 'a`<br/>
-    `P.GETPSEUDO`
-
   * `mkspecial : int * 'a -> 'b`<br/>
     `P.MKSPECIAL`
 
@@ -146,14 +140,13 @@ the array bounds).
   * `gettag : 'a -> int`<br/>
     `P.GETTAG`
 
-  * `setmark : 'a -> unit`<br/>
-    `P.SETMARK`
-
-  * `dispose : 'a -> unit`<br/>
-    `P.DISPOSE`
+  * `objlength : 'a -> int`<br/>
+    extracts the length field from an object's header word.
+    `P.OBJLENGTH`
 
 
 #### Inline operations
+These primops are Basis Library functions that should be inlined for efficiency.
   * `compose : ('b -> 'c) * ('a -> 'b) -> 'a -> 'c`<br/>
     `P.INLCOMPOSE`
 
@@ -166,12 +159,12 @@ the array bounds).
   * `identity : 'a -> 'a`<br/>
     `P.INLIDENTITY`
 
-  * `objlength : 'a -> int`<br/>
-    extracts the length field from an object's header word.
-    `P.OBJLENGTH`
-
   * `bool_not : bool -> bool`<br/>
     `P.INLNOT`
+
+Some additional candidates for inlined operations include `hd`, `tl`, `null`, `chr`, and `ord`.
+If the compiler had the `option` and `order` datatypes builtin (like `bool` and `list`),
+then `valOf`, `isSome`, `isNone` and some of the `compare` functions could be inlined.
 
 
 #### Bytearray and bytevector operations
