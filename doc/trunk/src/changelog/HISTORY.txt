@@ -94,6 +94,32 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2018/11/10]::
++
+**Xcode** 10.1, which is Apple's development environment for **macOS 10.14
+Mojave**, does not include the libraries needed to build 32-bit executables,
+such as the SML/NJ runtime, although 32-bit programs will still run.
++
+To support building on Mojave, I added a new Makefile (`mk.x86-darwin18`)
+for the runtime system and modified the `config/install.sh`
+script to use this makefile when necessary.  This new makefile expects
+that the `MacOSX10.13.sdk` directory from **Xcode** 9 has been
+copied into the **Xcode** 10 SDKs directory.  Note that updating **Xcode**
+from the AppStore will likely remove the 10.13 SDK, so you should keep
+a copy in a safe place.
++
+The **Xcode** SDKs live in `Platforms/MacOSX.platform/Developer/SDKs`
+under the `Developer` directory.  One can determine the path to the
+current developer directory using the command
++
+[source,shell]
+--------------
+% xcode-select -p
+--------------
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/10/10]::
 +
 Removed several unsupported primitive operators from the compiler.
