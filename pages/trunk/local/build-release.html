@@ -55,6 +55,9 @@ divided by operating system (Linux, OS X, Windows).
 </p>
 
 <h2>Building on UNIX</h2>
+<p>
+  <b>Note:</b> the script <tt>admin/prepare-release.sh</tt> will do steps 1&ndash;10.
+</p>
 <ol>
   <li>
     <p>
@@ -144,8 +147,8 @@ divided by operating system (Linux, OS X, Windows).
     </p>
     <ul>
       <li> <tt>$ cd config</tt></li>
-      <li> <tt>$ echo <i>$VERSION</i> &gt; ./config/version</tt></li>
-      <li> <tt>$ echo <i>$DATE</i> &gt; ./config/releasedate</tt></li>
+      <li> <tt>$ echo <i>$VERSION</i> &gt; version</tt></li>
+      <li> <tt>$ echo <i>$DATE</i> &gt; releasedate</tt></li>
       <li> <tt>$ svn commit -m "updating version number to <i>$VERSION</i>"</tt></li>
       <li> <tt>$ cd ..</tt></li>
     </ul>
