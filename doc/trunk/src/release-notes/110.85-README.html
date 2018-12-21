@@ -89,7 +89,7 @@
 <br>
                           Version 110.85 NEWS
 <br>
-                           December ??, 2018
+                           December 22, 2018
 </div>
 
 <hr>
@@ -105,19 +105,29 @@
 
 <h3>Summary:</h3>
 <p>
-  This is a minor release that mostly consists of internal changes to the compiler,
-  plus some bug fixes.
+  This release fixes a critical bug in runtime system, as well has including
+  some additional changes to the compiler.
 <p>
 
 <h3>Details:</h3>
 
 <dl>
-  <dt class="component">ASDL</dt>
+  <dt class="component">Installation</dt>
   <dd>
+    <p>
+      While the <a href="https://smlnj.org/dist/working/110.85/smlnj-x86-110.85.pkg">installer</a>
+      for 110.85 works on macOS 10.14 Mojave, building from source requires some extra steps.
+    </p>
+    <p>
+      We have added a new Makefile (<span class="tt">mk.x86-darwin18</span>)
+      for the runtime system and modified the <span class="tt">config/install.sh</span>
+      script to use this makefile when necessary.  This new makefile expects
+      that the <span class="tt">MacOSX10.13.sdk</span> directory from <b>Xcode 9</b> has been
+      copied into the <b>Xcode 10</b> SDKs directory. See the
+      <a href="https://smlnj.org/dist/working/110.85/HISTORY.html">change log</a> for more
+      details.
+    </p>
   </dd>
-  <dt class="component">Basis Library:</dt>
-  <dd>
-  </dt>
   <dt class="component">SML/NJ Library</dt>
   <dd>
     <p>
@@ -188,12 +198,11 @@ tested some of them:
 </div>
 </blockquote>
 <p>
-Apple is in the process of deprecating 32-bit support in macOS.  With macOS 10.14
-(Mojave), it is no longer possible to compile 32-bit applications, such as the
-SML/NJ runtime system.  Thus, while it is possible to install SML/NJ using the
-<a href="https://smlnj.org/dist/working/110.85/smlnj-x86-110.85.pkg">
-installer</a>, installing using the <b>config/install.sh</b> script will not
-work without extra effort.
+Apple is in the process of deprecating 32-bit support in macOS.
+With macOS 10.14 Mojave, compiling 32-bit applications, such as the SML/NJ
+runtime system, requires using an older SDK.
+The SML/NJ <a href="https://smlnj.org/dist/working/110.85/smlnj-x86-110.85.pkg">
+installer</a>, however, works without issue on macOS 10.14 Mojave.
 </p>
 <p>
 We have been working on 64-bit support since 110.82 we expect to have it in place

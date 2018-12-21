@@ -183,30 +183,30 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2018/09/13]::
 +
-Further cleanup for 64BIT in function atomeq in PEqual.
-(base/compiler/FLINT/trans/pequal.sml).
-Added numKind, intEqTy, and uintEqTy functions.
-numKind can be extended when int64 and word64 are treated as primitive
-until (at least) CPS.
+Further cleanup for 64BIT in function `atomeq` in `PEqual`.
+(`base/compiler/FLINT/trans/pequal.sml`).
+Added `numKind`, `intEqTy`, and `uintEqTy` functions.
+The `numKind` function should be extended once `int64` and `word64` are treated as primitive
+types in the compiler.
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
 //--------------------------------------------------------------------
 [2018/09/12]::
 +
-Fixed 64BIT issue in module MatchComp
-(base/compiler/FLINT/trans/matchcomp.sml).
-Added int64Ty and word64Ty cases to function numCon.
+Fixed 64BIT issue in module `MatchComp`
+(`base/compiler/FLINT/trans/matchcomp.sml`).
+Added `int64Ty` and `word64Ty` cases to function `numCon`.
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
 //--------------------------------------------------------------------
 [2018/09/12]::
 +
-Fixed 64BIT issue in module Equal
-(base/compiler/FLINT/reps/equal.sml).
-Exports just one function: equal_branch, which is called once in
-reps/wrapping.sml to type-specialize branches on calls to POLYEQUAL.
+Fixed 64BIT issue in module `Equal`
+(`base/compiler/FLINT/reps/equal.sml`).
+Exports just one function: `equal_branch`, which is called once in
+`reps/wrapping.sml` to type-specialize branches on calls to `POLYEQUAL`.
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
@@ -233,10 +233,10 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2018/09/11]::
 +
-Modified Pequal (in base/compiler/FLINT/trans/pequal.sml) and
-Translate (in base/compiler/FLINT/trans/translate.sml) to remove
+Modified `Pequal` (in `base/compiler/FLINT/trans/pequal.sml`) and
+`Translate` (in `base/compiler/FLINT/trans/translate.sml`) to remove
 32-bit dependencies. though further changes will be required to
-properly handle int64 and word64 types when defaultIntSz = 64.
+properly handle `int64` and `word64` types when `defaultIntSz` = 64.
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
