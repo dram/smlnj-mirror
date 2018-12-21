@@ -94,6 +94,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2018/12/21]::
++
+Updated `runtime/objs/cygwin.def` so that the runtime system will build
+on 32-bit Cygwin.  Also updated installation script to suggest using
+the 32-bit version of Cygwin when a user tries to install it on Cygwin64.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2018/11/10]::
 +
 **Xcode** 10.1, which is Apple's development environment for **macOS 10.14
