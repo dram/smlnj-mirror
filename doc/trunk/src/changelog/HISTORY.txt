@@ -96,6 +96,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2018/12/21]::
 +
+Modified `config/install.sh` to look for a pre-Mojave SDK when trying
+to install on macOS 10.14 Mojave.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2018/12/21]::
++
 Updated `runtime/objs/cygwin.def` so that the runtime system will build
 on 32-bit Cygwin.  Also updated installation script to suggest using
 the 32-bit version of Cygwin when a user tries to install it on Cygwin64.
