@@ -10,7 +10,7 @@ Directory 36, containing SML/NJ Version 0.36, 4 July 1989 (renamed mlsave.36 for
   src appears to be complete.
 
 Tape2.zip
-Directory mlsave.22, containing mo.cps, mo.vax, and src.  (SML/NJ Version 0.22, date?)
+Directory mlsave.22, containing mo.cps, mo.vax, and src.  (SML/NJ Version 0.22, 18 Oct 1988?)
   src is incomplete (only absyn, basics, bignums, boot). mo contains object files corresponding
   to the original source files, including those that are missing.  Tape contents
   were probably truncated.
@@ -29,7 +29,7 @@ Directory "tape3 2" (renamed tape3).  Contains:
 
 Tape4.zip
 Directory "tape4 2". Contains:
-  mlsave.4: SML/NJ Version 4, September 25 (1887)
+  mlsave.4: SML/NJ Version 4, 24 September 1887
   mlsave.5: SML/NJ Version 5, 2 October 1887
   mlsave.6: SML/NJ Version 6, 8 October 1987
 
@@ -51,3 +51,49 @@ file), but probably first half of 1989 based on date of Version 36.
   src
   mo.m68
   mo.vax
+
+--------------------------------------------------------------------------------
+
+Additional material from 4 QIC tapes, read with the help of Vaughn Pratt.
+
+Tape1:
+  mlsave.20: SML/NJ Version 0.20, 13 June 1988 (src/doc/VERSION.20)
+  mlsave.21: SML/NJ Version 0.21, 29 August 1988 (from file creation dates, no doc)
+  mlsave.22: SML/NJ Version 0.22, 9 September 1988 (src/doc/VERSION.22)
+  mlsave.23: SML/NJ Version 0.23, 9 November 1988 (from file creation dates, no VERSION.23)
+
+Tape2:
+  mldist.33: SML/NJ Version 0.33, 31 March 1989 (from file creation dates; src only)
+  mldist.39: SML/NJ Version 0.39, 22 August 1989 (from file creation dates; src only)
+  mldist.44: SML/NJ Version 0.44, 29 November 1989 (from file creation dates)
+  mldist.53: SML/NJ Version 0.53, 21 March 1990 (from file creation dates)
+  mldist.54: SML/NJ Version 0.54, 29 March 1990 (from file creation dates; src only)
+  mldist.57: SML/NJ Version 0.57, 10 May 1990 (from file creation dates)
+  mldist.59: SML/NJ Version 0.59, 4 June 1990 (doc/NEWS)
+  mldist.60: SML/NJ Version 0.60, 13 July 1990 (doc/NEWS and file creation dates)
+  mldist.61: SML/NJ Version 0.61, 25 July 1990 (from file creation dates)
+  mldist.62: SML/NJ Version 0.62, 1 August 1990 (doc/NEWS)
+  mldist.63: SML/NJ Version 0.63, 11 August 1990 (from file creation dates; src only)
+  mldist.64: SML/NJ Version 0.64, 25 August 1990 (doc/NEWS)
+  mldist.65: SML/NJ Version 0.65, 10 September 1990 (doc/NEWS)
+    [missing SML/NJ Version 0.66, 2 October 1990]
+  mldist.67: SML/NJ Version 0.67, 21 November 1990 (from file creation dates)
+  mldist.68: SML/NJ Version 0.68, 14 March 1991 (from file creation dates)
+  mldist.69: SML/NJ Version 0.69, 3 April 1991 (doc/NEWS)
+  mldist.70: SML/NJ Version 0.70, 1 July 1991 (doc/NEWS)
+  mldist.71: SML/NJ Version 0.71, 31 July 1991 (from file creation dates)
+  mldist.72: SML/NJ Version 0.72, 28 August 1991 (from file creation dates; src only)
+  mldist.73: SML/NJ Version 0.73, 10 September 1991 (doc/NEWS)
+  mldist.74: SML/NJ Version 0.74, 10 October 1991 (from file creation dates; src only)
+     [pre-release of Version 0.75, see README]
+  sml386: SML/NJ Version 0.75? port to i386, 7 February 1992 (from file creation dates)
+
+Tape4:
+  mlsave.33: SML/NJ Version 0.33, 5 April 1989 (supercedes Tape2 version)
+  mlsave.35: SML/NJ Version 0.35, 14 June 1989 (from file creation dates)
+  mlsave.36: SML/NJ Version 0.36, 4 July 1989 (doc/NEWS.36)
+    [missing SML/NJ Version 0.37, 9 August 1989]
+  mlsave.38: SML/NJ Version 0.38, 22 August 1989 (from file creation dates)
+  mlsave.39: SML/NJ Version 0.39, 8 September 1989 (doc/NEWS.39, supercedes Tape2 version)
+  
+  
