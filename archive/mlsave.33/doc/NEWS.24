@@ -1,0 +1,37 @@
+New features of SML of NJ Version 0.24 (November 22, 1989)
+
+1. Profiler
+
+A call-count and statistical profiler has been implemented.  See
+operating instructions in the README file, and the paper provided in
+src/doc/papers/profiling.
+
+
+2. Runtime reorganization
+
+The runtime system has been reorganized to reduce the need for assembly
+language and provide a standard interface for Unix system calls and
+C code.  It should become possible to add special purpose C code to
+the runtime system, for instance to provide an X windows interface.
+Many of the assembly language functions have been replaced by more
+portible C implementations and uses of the system call interface.
+See src/doc/VERSION.24 for some more details.
+
+
+3. Memory Management tuning
+
+The variable
+
+  System.Control.Runtime.ratio : int ref
+
+can be used to control the garbage collection behavior to some extent,
+in conjunction with the Unix limit variable (in the csh).  See the
+discussion in README.
+
+
+4. Simple gnu emacs sml mode
+
+A simple gnu emacs sml mode was contributed by Mitch Wand.  It can be
+found in src/lib/sml.el.  If you have a better mode or make improvements
+on this version, please send them in to macqueen@research.att.com for
+inclusion in future releases.

@@ -1,0 +1,52 @@
+\chapter{Equality}
+
+The semantics of equality testing is not yet final (at least in the
+current implementation).  This chapter just describes the behavior of
+the current implementation.  In one author's opinion, the testing for
+equality of values whose type is not known at compile-time is a grave
+mistake, as it severely constrains the implementation.
+
+The equality function \verb"op = : 'a * 'a -> bool" is available at
+all types \verb"'a".  However, function-values cannot successfully be
+compared for equality; an attempt to test the equality of two
+functions will raise an exception as described below.
+
+Two values are tested for equality as follows, depending on the kind
+of value:
+\begin{description}
+\item[Primitive types] like integers, reals, and strings have
+equality functions with the conventional behavior.
+
+\item[Function types] cannot be compared.  Testing two functions for equality
+will raise the \verb"Equal" exception.
+
+\item[Reference types:] On references, equality means identity; a
+reference is equal to itself and to no other references, regardless
+of similar contents.
+
+\item[Record types] may be compared even if they have functions as
+compenents.  Records containing functions may be found unequal (if
+non-functional fields are unequal, and are examined first), or
+the \verb"Equal" exception may be raised; testing is in alphabetical
+order of field names.
+
+\item[Datatypes] may be compared for equality even if built from
+function types.  Two elements of a datatype are equal if they employ
+the same constructor applied to equal values; testing the equality of
+such values might lead to an exception being raised.
+
+\item[Opaque types] from functor parameters and abstractions are
+tested for equality as if they were not opaque.
+\end{description}
+
+The compiler may give a warning message on testing equality of a type
+which must always raise an exception.
+
+Some implementations of ML prohibit (statically) the compilation of
+equality over types which are built from function-values.  To this
+end, ``equality type variables'' are used to stand for the set of
+types that admit equality, just as ordinary type variables stand for
+the set of all types.  Equality type variables are written with two
+initial apostrophes.  In implementations with the more permissive
+equality mechanism, equality type variables may be used; but they might not
+be checked more restrictively than ordinary type variables.

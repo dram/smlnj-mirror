@@ -1,0 +1,20 @@
+Sample form for reporting bugs in SML of NJ
+
+This is a suggested form for submitting bug reports; feel free to alter it
+to suit your needs, but try to include the essential information (e.g. it
+is not always convenient or appropriate to separate code and compiler messages).
+Bug reports are most useful if you can narrow down the cause of the bug
+to as small a fragment of code as possible.  Also, please check src/doc/bugs
+to see if your bug is already known.  Suggestions on how to improve the compiler
+are also welcome, even if they don't identify a specific bug.  Examples of
+unhelpful error messages are also useful.
+-------------------------------------------
+
+Submitter: (name, institution, and email address)
+Date:
+Version: (e.g. 0.18 -- check the value of "System.version")
+System: (e.g. Sun3/SunOS 3.4, Vax/Ultrix, Vax/4.3BSD)
+Problem: (short description of problem)
+Code: (minimal code fragment that causes bug)
+Messages: (compiler messages associated with bug)
+Comments: (additional comments or suggestions)

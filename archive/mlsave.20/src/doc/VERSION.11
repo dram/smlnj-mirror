@@ -1,0 +1,227 @@
+==============================================================================
+Standard ML of New Jersey, Version 11
+11/9/87
+From (internal) Version 10
+==============================================================================
+Changes:
+
+{absyn/{bareabsyn.sml,bareabsyn.sig,printabsyn.sml}
+{build/invoke,parse/parse,print/printdec,translate/translate}.sml
+Added abstract syntax constructor for signature declarations.  Fixed a bug
+in the interactive system where a semicolon following a signature caused
+an error.  Top-level processing and some printing routines had to be
+changed to cope.
+
+{util/errormsg.sml}
+Added the signature ERRORMSG.
+
+{codegen/{codenv,codegen}}.sml
+Got rid of two redundant matches, got rid of the CONST constructor from
+access (it was never used), general cleanup.
+
+{basics/basics,boot/perv}.sml
+Moved internals to the Control structure.
+
+{boot/perv}.sml
+Improved implode.
+
+{lex/symtab}.sml
+Minor cleanup; file assumed that Byte_array was open.
+
+{{boot/perv,boot/assembly}.sml,runtime/{{VAX,M68}.prim.s,callgc.c}}
+Added a structure Timer to System which has a few timing structures.
+A new function was added to Assembly to support it.  The garbage
+collector sequence was modified to keep track of the total time spent
+in garbage collection; this is used to throw out time spent in garbage
+collection.
+
+{runtime/callgc.c}
+The garbage timer was returning the wrong time--there was a rounding error,
+and moveback was not included in major garbage collection time.
+
+{runtime/VAX.prim.s}
+Implemented open_append for v9.
+
+{runtime/{{VAX,M68}.prim.s,export.c},boot/{pervsig.sml,{perv,assembly}.sml}}
+_export1_v was added to prim, and _export1_v was added to Assembly.
+export1 was added to General.  Commandline arguments are not yet implemented.
+
+{parse/parse,env/env,boot/perv}.sml
+Cleanup: removed debug and debugStr from parse; moved debugLook and
+debugCollect flags from env to control.
+
+{boot/perv,all,codegen/cgoptions.sml}
+Moved CGoptions into Control.
+
+{boot/{perv,pervsig,assembly}.sml,runtime/{VAX,M68}.prim.s}
+Added system and cd to General; added a few fields to Assembly to do so.
+
+{util/{intmap,union}.sml,basics/basics.{sig,sml},absyn/bareabsyn.{sig,sml},
+typing/{sharing,sigmatch}.sml,parse/{first,parse}.sml}
+Added sharing constraints and sharing checking (typing/sharing.sml and
+util/union.sml are new).
+
+{absyn/{bareabsyn.{sig,sml},printabsyn.sml}, typing/sigmatch.sml, parse/
+{first,parse}.sml}
+Added "abstraction" declaration.  New abstract syntax constructur ABSdec.
+
+
+==============================================================================
+Known bugs: (tyj)
+
+system and cd may raise exceptions.
+
+Problem with flushing streams on exit: we do our own buffering, so _exit
+doesn't flush.  But how to get from the runtime code to Pervasives to
+flush?  One possibility: a ref in Assembly, but communicating the opposite
+direction.
+
+On startup, an export1 executable should set std_out ttyflushing; again, this
+must be done in Pervasives.  Also streams that were open before export
+must now be closed.
+
+Note timers will act strangely across exports.
+
+CLEANUP
+On exit: streams.  On restart (from export): ttys; streams; timers.
+
+- 432E432;
+Error: Real constant out of range
+- it;
+val it = uncaught exception Boxity
+
+
+Poor error message on:
+- fun f hd::tl = 4;
+Error: expected EQUAL, found ID (::)
+Error: nonfix-identifier expected
+Error: unbound variable bogus
+Error: type error: operator and operand don't agree
+operator : ((??*?? list) -> ?? list)
+operand : (??*('x1911A list -> 'x1911A list))
+expression:
+  bogus :: tl
+- 
+The "unbound variable bogus" is confusing.
+
+"abstraction" is not implemented; as a result, byte_arrays are printed as
+ strings, and streams are printed in their hidden form.
+
+The behavior of the system when it reaches limits is sometimes bizarre.
+For instance, on a Sun, if the system runs out of stack space it
+will die with "Illegal instruction".  Note that the stack limit can
+be changed with the limit command; and hopefully this bug will disappear
+with the next version of the code generator.
+
+Implode is stupid.
+
+Unhoisted linked code seems broken.
+
+Top level bindings should not report on exhaustiveness, but they do.
+
+-          8.69169476570297E~309;	(* inaccurate real *)
+> val it = 8.69169476570301E~309 : real
+-          8.69169476570301E~309;	(* possibly a printing error? *)
+> val it = 8.69169476570305E~309 : real
+
+Exceptions do not print by name/value; only "-".  This cannot be fixed
+ unless the runtime representation of exceptions is changed radically--
+ it must be modified to include type information, and may not be
+ worth the effort.
+Also, a declaration "exception b = a" can be a bit deceiving; the runtime
+ name of b will be that of a.  Fixing this would also require a significant
+ change in the runtime format of exceptions.
+What should the interactive system print when it catches an exception?  It
+ knows about some exceptions like Float and Io_failure, so it could
+ print their full values.  This would be confusing, though, since no
+ other exceptions would be printed in full; a user would think there
+ was something wrong with his exception when the name and not the value
+ was printed.
+
+Byte_array is open in the initial environment; it should be present but
+ unopened.  Some of our source assumes it is open, though.
+
+==============================================================================
+Notes: (tyj)
+
+Printing of types needs to be cleaned up: <hidden> and paths are needed;
+ type variables should be normalized to 'a, 'b, etc.; attention to
+ precedence of "->", etc., would reduce the number of parens; it would be
+ nice if the compiler spit out the signature of a structure as it was
+ parsed or opened.
+Should the compiler force the capitalization convention for constructor names
+ as well as exception names?  Should it discourage all other capitalized values?
+ Right now it only complains if an exception is uncapitalized.  Maybe it
+ should complain if a capitalized variable is introduced in a pattern.
+The construct "val _ =" turns up all the time, so the match compiler has
+ been changed so that _ counts as a variable in a pattern (the "binding
+ contains no variables" message won't turn up).  It would be nice to unhack
+ this by providing a "do" declaration, since "val _"  isn't very intuitive.
+Maybe testcase_string should be changed.  Right now an equality function
+ is generated for each case.  Perhaps inline string equality; can the
+ offset be found by name?
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.
+It might be a good idea to have a stringdepth parameter in the printing
+ routines which would control the max length to print string values.
+Functions mentioned in documentation but missing in the compiler:
+    execute; system; export; import; export1; math functions.
+
+==============================================================================
+Notes: (dbm)
+
+Bad error messages
+
+* "unbound str in str"
+
+* message for circular type unification, as in "fun f x = f;"
+
+
+Bugs
+
+* New versions of bootEnv functions do not leave signatures of pervasive
+  and its substructures defined.
+
+* Identification of string and byte_array types (need abstraction implemented)
+  
+* In printing specs in signature match error messages, IND is printed in types.
+
+* uncaught exception Notfound from bogus type identifier in a signature
+  (e.g. "infodf" in envaccess.sig).
+
+* no checking for duplicated specifications in signatures.  this should be done
+  when building the signature symbol table
+
+* signatures for Pervasives and its substructures are thrown away after
+  booting (bootenv).
+
+* simultaneous structure and functor declarations not implemented
+
+* functor declarations require result signatures
+
+Optimizations and simplifications
+
+* stupid expansion of simple function definitions into case form (FUNdec
+  in Absyn).  E.g.
+
+    fun f x = x  ==>
+    val rec f = fn arg => case arg of x => x
+
+* fix type abbreviations so that in simple cases the name is bound to the
+  old type constructor (or a copy) rather than to type function.
+
+* string hashing primitive in Assembly
+
+
+Housekeeping
+
+* eliminate nonexhaustive/redundant matches
+
+* binding functions in EnvAccess are inconsistent in what they return.  Some
+  return unit, others the variable that is bound.
+
+* move useful debugging flags into control, eliminate unnecessary debugging 
+  messages.
+
+* change the name of SymbolTable structure to something like Symbols or SymbolSet.

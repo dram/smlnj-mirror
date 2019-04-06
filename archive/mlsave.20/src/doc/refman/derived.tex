@@ -1,0 +1,111 @@
+\chapter{Derived forms}
+\label{derived}
+ML is equipped with a number of {\em derived forms}, which in no way
+add to the power of the language, as each is expressible in terms of
+the more primitive constructs.
+\section{Expressions and patterns}
+\begin{tabular}{@{}l l}
+{\bf Derived Form}&{\bf Equivalent Form} \\ \hline
+\multicolumn{2}{l}{\bf Types:} \\
+${\rm ty}_1$ \verb"*" \rep{2} \verb"*" ${\rm ty}_n$ &
+\verb"{" 1 : ${\rm ty}_1$ , \rep{2} , $n$ : ${\rm ty}_n$ \verb"}"  \\ \hline
+\multicolumn{2}{l}{\bf Expressions:} \\ 
+\verb"()" & \verb"{ }"   {\it (no space between ``\/\verb"()"'')} \\ \xskip
+\verb"(" ${\rm exp}_1$ \verb"," \rep{2} \verb"," ${\rm exp}_n$ \verb")" &
+\verb"{" 1 \verb"=" ${\rm exp}_1$ , \rep{2} ,
+$n$ \verb"=" ${\rm exp}_n$  \verb"}" \\ \xskip
+\verb"case" exp \verb"of" match & ( \verb"fn" match ) ( exp ) \\ \xskip
+\verb"#" lab & \verb"fn {" lab \verb"= x , ...} => x" \\ \xskip
+\verb"if" exp \verb"then" ${\rm exp}_1$ \verb"else" ${\rm exp}_2$ &
+\verb"case" exp \verb"of true =>" ${\rm exp}_1$ \\
+& \ \ \ \ \ \ \ \ \ \  \verb"| false =>" ${\rm exp}_2$ \\ \xskip
+${\rm exp}_1$ \verb"orelse" ${\rm exp}_2$ &
+\verb"if" ${\rm exp}_1$ \verb"then true else" ${\rm exp}_2$ \\ \xskip
+${\rm exp}_1$ \verb"andalso" ${\rm exp}_2$ &
+\verb"if" ${\rm exp}_1$ \verb"then" ${\rm exp}_2$ \verb"else false" \\ \xskip
+( ${\rm exp}_1$ ; \rep{1} ; ${\rm exp}_n$ ; exp) &
+\verb"case"  ${\rm exp}_1$ \verb"of _ =>" \underline{\ \ \ } \verb"=>" \\
+& \ \ \  \verb"case"  ${\rm exp}_n$ \verb"of _ =>" exp \\ \xskip
+\verb"let" dec \verb"in" ${\rm exp}_1$ ; \rep{1} ; ${\rm exp}_n$ \verb"end"
+&
+\verb"let" dec \verb"in" ( ${\rm exp}_1$ ; \rep{1} ; ${\rm exp}_n$) \verb"end"
+\\ \xskip
+\verb"while" ${\rm exp}_1$ \verb"do" ${\rm exp}_2$ &
+\parbox[t]{2.5in}{\begin{raggedright}
+\verb"let val rec f = fn () =>" \\
+\ \ \verb"if"  ${\rm exp}_1$ \verb"then (" ${\rm exp}_2$ \verb"; f()) else ()"
+\\
+\verb" in f() end"
+\end{raggedright}} \\ \xskip
+\verb"[" ${\rm exp}_1$ , \rep{0} , ${\rm exp}_n$ \verb"]" &
+${\rm exp}_1$ \verb"::" \rep{0} \verb"::" ${\rm exp}_n$ \verb":: nil" \\
+\hline
+\pagebreak[1]
+{\bf Derived Form}&{\bf Equivalent Form} \\ \hline
+\multicolumn{2}{l}{\bf Patterns:} \\ 
+\verb"()" & \verb"{ }"   {\it (no space between ``\/\verb"()"'')} \\ \xskip
+\verb"(" ${\rm pat}_1$ \verb"," \rep{2} \verb"," ${\rm pat}_n$ \verb")" &
+\verb"{" 1 \verb"=" ${\rm pat}_1$ , \rep{2} ,
+$n$ \verb"=" ${\rm pat}_n$  \verb"}" \\ \xskip
+
+\verb"[" ${\rm pat}_1$ , \rep{0} , ${\rm pat}_n$ \verb"]" &
+${\rm pat}_1$ \verb"::" \rep{0} \verb"::" ${\rm pat}_n$ \verb":: nil" \\ \xskip
+\verb"{" \underline{\ \ \ } , id , \underline{\ \ \ } \verb"}" &
+\verb"{" \underline{\ \ \ } , id \verb"=" id , \underline{\ \ \ } \verb"}" \\ \xskip
+\verb"{" \underline{\ \ \ } , id \verb"as" pat, \underline{\ \ \ } \verb"}" &
+\verb"{" \underline{\ \ \ } , id \verb"=" id \verb"as" pat, \underline{\ \ \ } \verb"}" \\ \xskip
+\verb"{" \underline{\ \ \ } , id : ty , \underline{\ \ \ } \verb"}" &
+\verb"{" \underline{\ \ \ } , id \verb"=" id : ty , \underline{\ \ \ } \verb"}" \\
+\hline
+\end{tabular}
+
+Each derived form is identical semantically to its ``equivalent
+form.''  The type-checking of each derived form is also defined by
+that of its equivalent form.  The precedence among all primitive and
+derived forms is shown in Appendix~\ref{grammar}.
+
+The derived type ${\rm ty}_1$ \verb"*" \rep{2} \verb"*" ${\rm ty}_n$
+is called an (n--)tuple type, and the values of this type are called
+(n--)tuples.
+
+The final derived pattern allows a label and its associated value to
+be elided in a record pattern, when they are the same identifier.
+
+\section{Bindings and declarations}
+
+A syntax class {\bf fb} of function bindings is used as a convient
+form of value binding for (possibly recursive) function declarations.
+The equivalent form of each function binding is an ordinary value
+binding.  These new function bindings must be declared by \verb"fun",
+not by \verb"val"; however, functions may still be declared using
+\verb"val" or \verb"val rec" along with \verb"fn" expressions.
+
+\begin{tabular}{@{}l l}
+\multicolumn{1}{c}{\bf Derived Form}&
+\multicolumn{1}{c}{\bf Equivalent Form} \\ \hline
+\multicolumn{2}{l}{\bf Function bindings {\rm fb}:} \\
+& id = \verb"fn" $x_1$ \verb"=>" \rep{1} \verb"=> fn" $x_n$ \verb"=>" \\
+ & \ \ \verb"case (" $x_1,$ \underline{\ \ \ } $, x_n$ \verb")" \\
+\ id ${\rm apat}_{11}$ \rep{1} ${\rm apat}_{1n}$ cst = ${\rm exp}_1$ &
+\ \ \verb"of" ( ${\rm apat}_{11}$ , \rep{1} , ${\rm apat}_{1n}$  \verb"=>" ${\rm exp}_1$ cst \\
+\verb"|" \underline{\ \ \ } & \ \ \verb"|" \underline{\ \ \ } \\
+\verb"|" id ${\rm apat}_{m1}$ \rep{1} ${\rm apat}_{mn}$ cst = ${\rm exp}_m$ &
+\ \ \ \verb"|" ( ${\rm apat}_{m1}$ , \rep{1} , ${\rm apat}_{mn}$  \verb"=>" ${\rm exp}_m$ cst \\
+
+ & \\
+${\rm fb}_1$ and \rep{1} and ${\rm fb}_n$ &
+${\rm vb}_1$ and \rep{1} and ${\rm vb}_n$ \\
+&{\it (where ${\rm vb}_i$ is the equivalent of\/ ${\rm fb}_i$) } \\
+\hline
+\multicolumn{2}{l}{\bf Declarations:} \\
+\verb"fun" fb & \verb"val rec" vb \\
+&{\it (where \/{\rm vb} is the equivalent of\/ {\rm fb}) } \\
+& \\
+exp & \verb"val it =" exp \\
+\hline
+\end{tabular}
+In the table above, ``cst'' stands for an optional type constraint---a colon
+followed by a type expression.
+The last derived declaration (using ``it'') is only allowed at
+top-level, for treating top-level expressions as degenerate
+declarations; ``it'' is just a normal value variable.

@@ -1,0 +1,13 @@
+#!/bin/csh
+#
+# make an ML batch compiler
+# current directory should be $MLDIST/src  (the ML source directory)
+# $1 = object file directory (e.g. $MLDIST/mo.m68 or $MLDIST/mo.vax)
+# $2 = name of main object file (CompM68 or CompVax)
+# $3 = name of resulting batch compiler (e.g batch.m68 or batch.vax)
+#
+rm -f mo
+ln -s $1 mo
+runtime/run -g -h 5000 $2 >& diagnostics << input 
+>$3
+input

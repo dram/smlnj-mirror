@@ -1,0 +1,23 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+ <head>
+  <title>Index of /ml/tape4/mlsave.38/lib/twig</title>
+ </head>
+ <body>
+<h1>Index of /ml/tape4/mlsave.38/lib/twig</h1>
+<table><tr><th><img src="/icons/blank.gif" alt="[ICO]"></th><th><a href="?C=N;O=A">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th><th><a href="?C=D;O=A">Description</a></th></tr><tr><th colspan="5"><hr></th></tr>
+<tr><td valign="top"><img src="/icons/back.gif" alt="[DIR]"></td><td><a href="/ml/tape4/mlsave.38/lib/">Parent Directory</a></td><td>&nbsp;</td><td align="right">  - </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="analyzer.lex.sml">analyzer.lex.sml</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right"> 27K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/tex.gif" alt="[   ]"></td><td><a href="man.tex">man.tex</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right"> 19K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="parser.sml">parser.sml</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right"> 12K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="main.sml">main.sml</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right">8.5K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="automata.sml">automata.sml</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right">7.7K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="runtime.sml">runtime.sml</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right">7.4K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/text.gif" alt="[TXT]"></td><td><a href="analyzer.lex">analyzer.lex</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right">2.8K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/text.gif" alt="[TXT]"></td><td><a href="example.mtw">example.mtw</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right">1.3K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="lexer.sml">lexer.sml</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right">765 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="invoke.sml">invoke.sml</a></td><td align="right">04-Jul-1989 07:27  </td><td align="right">390 </td><td>&nbsp;</td></tr>
+<tr><th colspan="5"><hr></th></tr>
+</table>
+<address>Apache/2.2.15 (CentOS) Server at thue.stanford.edu Port 80</address>
+</body></html>

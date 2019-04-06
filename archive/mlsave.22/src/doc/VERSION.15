@@ -1,0 +1,206 @@
+==============================================================================
+Standard ML of New Jersey, Beta Release 3 (Internal Version 15)
+1/7/88
+From Version 14
+==============================================================================
+Changes: (tyj)
+
+{boot/perv.sml,runtime/{M68,VAX}.prim.s}
+Minor fix so that timing statistics and garbage collection times are
+reset on startup from exportML.
+
+{runtime/{makefile.*,run.c,prof.c,callgc.c}}
+Added a flag GCPROFILE and code to print out cumulative garbage collection
+information as nml exits.
+
+{codegen/{codenv,codegen}.sml}
+Fixed a closure printing bug.  Abstracted Env from codegen a bit more.
+
+{parse/parse.sml}
+Changed the parser to accept = for =>, and vice versa, after printing an
+error message.
+
+{vax/vaxmcode.sml,m68/m68mcode.sml,build/invoke.sml,bignums/realconst.sml}
+Fixed a float printing/out of range error.
+
+{env/prim.sml,translate/mcprint.sml}
+Changed lambda printing so that SELECT(i,VAR 0) prints out as the
+appropriate inline function; had to export inLineNames from Prim to
+do this.
+
+{runtime/prof.c}
+Minor improvement to profile printing: link and access percentages are
+now printed.
+
+{codegen/{opt,reopen}.sml}
+Integrated Andrew's reopening changes and reduce improvements.
+
+{codegen/{codenv,codegen}.sml}
+Added the purelink closure strategy.  CGoptions.chained works again.
+
+==============================================================================
+Changes (dbm)
+
+{print/printdec.sml}
+Minor bug fix to printTyc to add a newline.
+
+{basics/{basics.*,basictypes.sml,typesutil.*,printtype.sml}, env/prim.sml,
+ typing/{typecheck, sigmatch}.sml, parse/parse.sml}
+Added weak type variables, changed the definitions of tyvar and ty.  The
+representation of POLYty types now includes a "weakness signature" for the
+bound variables.  Many changes in typesutil.sml and typecheck.sml to support
+type checking with weak variables (see particulary instantiate in typesutil.sml
+and expType and decType in typecheck.sml).
+
+{basics/table.sml, env/env.sml, codegen/codegen.sml, boot/perv.sig}
+Added weak type specifications for Array.array and Table.new and eliminated
+illegal occurrences of expressions like "ref nil".
+
+
+==============================================================================
+Known bugs:
+
+There is a bug involving constructor representation.  The compiler
+examines the structure of the datatype and tries to determine an efficient
+runtime representation for it.  For example, for the list datatype, nil
+can be represented as an integer, and :: can just be a pointer to its
+tuple argument (integers and tuples are distinct).  This fails in our system
+at the structure level.  For example:
+signature S = sig
+    type 'a t
+    datatype 'a list = nil | :: of 'a t
+end
+structure A : S = struct
+    datatype 'a list = nil | :: of 'a t
+    withtype 'a t = 'a * 'a list
+end
+Here the compiler can deduce the efficient representation for the
+(local) list datatype in structure A; but this cannot be deduced in
+the signature S (an object of type 'a t might not be a pointer).
+This will break our system (a fix is in the works).
+
+In the interactive mode, parser error recovery should be suppressed
+(but isn't); the parser may continue to look for input after an error,
+when the user would expect to be back at top level.
+
+The behavior of the system when it reaches limits is sometimes bizarre.
+For instance, on a Sun, if the system runs out of stack space it
+will die with "Illegal instruction".  Note that the stack limit can
+be changed with the limit command; and hopefully this particular bug will
+disappear with the next version of the code generator.
+
+Top level bindings should not report on exhaustiveness, but they do.
+
+system, cd, and execute may need to raise exceptions (they don't).
+execute is buggy.  Use with caution.
+
+- 432E432;
+Error: Real constant out of range
+- it;
+val it = uncaught exception Boxity
+
+Poor error message on:
+- fun f hd::tl = 4;
+Error: expected EQUAL, found ID (::)
+Error: nonfix-identifier expected
+Error: unbound variable bogus
+Error: type error: operator and operand don't agree
+operator : ((??*?? list) -> ?? list)
+operand : (??*('x1911A list -> 'x1911A list))
+expression:
+  bogus :: tl
+- 
+The "unbound variable bogus" is confusing.
+
+-          8.69169476570297E~309;	(* inaccurate real; *)
+> val it = 8.69169476570301E~309 : real
+-          8.69169476570301E~309;	(* possibly a printing error? *)
+> val it = 8.69169476570305E~309 : real
+
+==============================================================================
+Notes: (tyj)
+
+Exceptions do not print by name/value; only "-".  This cannot be fixed
+ unless the runtime representation of exceptions is changed radically--
+ it must be modified to include type information, and may not be
+ worth the effort.
+Also, a declaration "exception b = a" can be a bit deceiving; the runtime
+ name of b will be that of a.  Fixing this would also require a significant
+ change in the runtime format of exceptions.
+What should the interactive system print when it catches an exception?  It
+ knows about some exceptions like Float and Io_failure, so it could
+ print their full values.  This would be confusing, though, since no
+ other exceptions would be printed in full; a user would think there
+ was something wrong with his exception when the name and not the value
+ was printed.
+
+Printing of types needs to be cleaned up: <hidden> and paths are needed;
+ attention to precedence of "->", etc., would reduce the number of parens;
+ it would be nice if the compiler spit out the signature of a structure as
+ it was parsed or opened.
+Should the compiler force the capitalization convention for constructor names
+ as well as exception names?  Should it discourage all other capitalized values?
+ Right now it only complains if an exception is uncapitalized.  Maybe it
+ should complain if a capitalized variable is introduced in a pattern.
+The construct "val _ =" turns up all the time, so the match compiler has
+ been changed so that _ counts as a variable in a pattern (the "binding
+ contains no variables" message won't turn up).  It would be nice to unhack
+ this by providing a "do" declaration, since "val _"  isn't very intuitive.
+Maybe testcase_string should be changed.  Right now an equality function
+ is generated for each case.
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.
+Timers will act strangely across exports.
+
+Squash together CONpat and APPpat?
+
+Think about a cleaner machine interface.  Currently have:
+		+---------+-------------------+
+		| Codegen |      Perv         |
+		+---------+--------+----------+
+		| Machine | Inline |          |
+		+---------+--------+ Assembly |
+		|       Coder      |          |
+		+------------------+----------+
+Possibly Assembly could be built on coder or machine.  There would be macros
+for system calls, etc.  This might make sense for register allocation.
+Also we would like to be able to handle machine dependencies better.  For
+example, some machines require software emulation of floats, others have
+hardware functions for sin, cos, etc.  Right now there is no clean way
+to do all of this at once, for some functions and not others, etc.
+
+
+==============================================================================
+Notes: (dbm)
+
+Bad error messages
+
+* message for circular type unification, as in "fun f x = f;"
+
+
+Bugs
+
+* no checking for duplicated specifications in signatures.  this should be done
+  when building the signature symbol table
+
+Optimizations and simplifications
+
+* stupid expansion of simple function definitions into case form (FUNdec
+  in Absyn).  E.g.
+
+    fun f x = x  ==>
+    val rec f = fn arg => case arg of x => x
+
+* fix type abbreviations so that in simple cases the name is bound to the
+  old type constructor (or a copy) rather than to type function.
+
+* string hashing primitive in Assembly
+
+
+Housekeeping
+
+* eliminate nonexhaustive/redundant matches
+
+* binding functions in EnvAccess are inconsistent in what they return.  Some
+  return unit, others the variable that is bound.

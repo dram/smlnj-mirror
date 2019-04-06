@@ -1,0 +1,27 @@
+# 
+mail sufrin%prg.oxford.ac.uk@nss.cs.ucl.ac.uk \
+nick \
+jhr@svax.cs.cornell.edu \
+<<ZZZ
+
+Patch to fix exportFn, in release 0.20:
+
+/*  At end of callgc.c: */
+
+extern int edata;
+
+restart_gc()
+{
+ arenasize = (old_high-arenabase)*3;
+ lastbreak = (int)&edata;
+ if (arenasize < 1024 * 200) arenasize = 1024 * 200;
+ arenasize = (findbreak(arenabase+arenasize)-arenabase);
+ arstart = arenabase+arenasize/2;
+ freestart = (char *)arstart;
+}    
+
+/* In run.c, in function "restartFn", right after  "restart=0": */
+
+restart_gc();
+
+ZZZ

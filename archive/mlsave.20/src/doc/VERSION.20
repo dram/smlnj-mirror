@@ -1,0 +1,136 @@
+==============================================================================
+Standard ML of New Jersey
+Version 0.20, 13 June 1988
+
+==============================================================================
+Changes  (dbm)
+
+{basics/{basics.{sig,sml}, typesutil.sml, printtype.sml}, env/envaccess.sml,
+ parse/parse.sml}
+Eliminated UNDEFtyc as a form of tycon and made it a tyckind instead.  This
+means that name and arity of an UNDEFtyc are determined just as for other
+tycons.  Eliminated the Tycon exception in typesutil and called impossible
+where Tycon was raised before (tycStamp, etc.).
+
+{basics/{basics.{sig,sml}, absyn/printabsyn.sml, print/printdec.sml,
+ env/envaccess.sml, parse/parse.sml}
+Change UNDEFtyc to take an optional symbol parameter which indicates the
+revised name in case of an identity type declaration in a withtype clause.
+(There is still a bug in the printing, since a declaration like
+
+  datatype foo = A
+  withtype t = int;
+
+will print the second declaration as "type t = t".  This is because the
+backpatching puts the new name in the defining type as well as in the defined
+type binding. [bug 48])
+
+{typing/typecheck.sml, env/envaccess.sml, parse/parse.sml}
+Fixed bug L.21 (polymorphic reference).  In generalizeTy, weakness is compared
+to current abs level rather than 0.  abs is now passed as a parameter to 
+generalizePat and generalizeTy.
+  Fixing this revealed several errors in envaccess.sml and parse.sml where
+local declarations like "val bl = ref nil" had been passed before.  These were
+fixed by supplying appropriate type constraints (but this is no longer
+necessary due to a later fix that relaxes this requirement).
+
+{basics/typesutil.{sig,sml}, print/printdec.sml, typing/typecheck.sml}
+Fixed bug L.27.  This was caused by not expanding out abbreviations in the
+rator type of an application when deciding which error message to print in
+the APPexp case of expType.  Moved headReduceType from printdec.sml to
+typesutil.sml and used it in typecheck.sml to reduce the rator type.
+
+{typing/sharing.sml}
+Fixed bug 38(E.67).  Added handlers for Notfound_Table in sMerge function
+to trap and ignore the exceptions that occur when a component appears in
+only one of two structures that are constrained to share.
+
+{basics/typesutil.sml}
+Fixed bug 34 (L.20).  Added two Instantiate handlers in unifyTy function.
+
+{print/printval.sml}
+Fixed bug 32(L.19).  Added missing base case (for depth = 0) to function
+printDcon in printval.sml.
+
+{parse/parse.sml}
+Fixed bug 28.  Put protectTyvar around parsing of top level expression
+in function interdec.
+
+{basics/typesutil.sml, typing/sigmatch.sml}
+Fixed bug causing a uncaught Bind exception (from TypesUtil.lookTycPath) when
+a structure component was missing during signature matching and it was followed
+by a type spec mentioning the missing substructure.  Caused lookTycPath to
+raise an exception and typeInContext return ERRORty in this case, and
+changed SigMatch.compareTypes to not complain if the spec was ERRORty.
+
+{env/envaccess.sml}
+Fixed bug 44. Reversed order of path returned by search function within
+iterFct.
+
+{parse/parse.sml}
+Made it possible to have free structure variables in signatures.  Changed
+symPath (was spath -- old strPath and symPath eliminated), qid (added qid0),
+and tyconQid inside of sign.
+
+{basics/{basics.{sig,sml},basictypes.sml,typesutil.{sig,sml},typing/sigmatch.sml,
+ parse/parse.sml, basics/tokens.sml,lex/symbols.sml}
+Implemented equality types.  Also simplified type variables by merging
+METAARG and METALAM into a single META form, where METAARG status is indicated
+by depth = infinity.
+
+{build/invoke.sml, basics/typesutil.sig, parse/misc.sml, parse/parse.sml}
+Fixed bug 3 (IntMap exception).  Also fixed related but unrecorded bug having
+to do with identity exception declarations.  Opening a structure at top
+level now dumps the bindings in the structure into the top level environment.
+Added the function Misc.dumpStructure to do this -- it translates the
+open declaration into corresponding sequence of declarations.  Separated
+out the accumulated junk at the beginning of parse.sml into a separate
+structure Misc (in parse/misc.sml).  This still needs further reorganization.
+
+{parse/parse.sml,env/{env.sml,envaccess.sml}}
+Fixed bug with functor parameters not being visible on RHS of functor declaration.
+
+{parse/parse.sml,basics/token.sml,lex/symbols.sml}
+Added include keyword as signature specification.  Parse.(sign) now contains
+a function dumpSig which copies an existing sig into the environment of the
+sig being defined, changing stamps and paths appropriately.
+
+{env/{env.sml,envaccess.{sig,sml}},parse/parse.sml}
+Changed the behavior of Env.collectTable, EnvAccess.build... to use the
+STRLAYER as the environment delimiter when building structures.  Added closeStr
+to Env; it is used to close off a structure build using realize from a signature.
+
+{env/envaccess.{sig,sml},print/printdec.sml,basics/typesutil.{sig,sml}
+ boot/{system.sig,perv.sml}}
+Added printing of signatures and structures after top-level declarations.
+This required a change in binderGt in EnvAccess and its export from EnvAccess.
+binderGt is now a simple ordering predicate on binders and can be used to
+sort lists of binders, such as one returned by Table.list.  Added function
+printableType to TypesUtil to create printable versions of types in
+signature specifications.  Added System.Control.Print.signatures flag
+to control printing of signatures.
+
+{parse/{first.sml,parse.sml}}
+Added Andrew's changes allowing "monster" structures containing signature
+and structure declarations.  These will even be allowed in structure
+declarations not constrained by signatures.
+
+==============================================================================
+Changes  (tyj)
+
+{boot/perv.sml}
+floor was raising the Float exception rather than the Floor exception.
+
+{runtime/VAX.prim.s}
+raise_systemcall used the C function mak_str, which modifies freestart,
+but didn't modify r12.  Also, use of mak_str and c_alloc from ML code
+means that registers might hold bogus pointers during allocation, a problem
+with the new code generator.
+
+{translate/{mc,mcopt}.sml,boot/{perv.sml,system.sig}}
+Modified the match compiler to return results through function calls
+(which can save space if a large result appears in many branches of a
+decision tree).  This can be controlled with the flag
+System.Control.MC.expandResult (default true).  The function call idea
+should work well with cps, but should not be used in the old code
+generator (it made the code larger, and function calls are more expensive).

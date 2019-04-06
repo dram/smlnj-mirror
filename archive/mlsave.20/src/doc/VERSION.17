@@ -1,0 +1,269 @@
+==============================================================================
+Standard ML of New Jersey, Internal Version 17
+2/12/88
+From Version 16
+==============================================================================
+Changes: (tyj)
+
+{boot/perv.sml}
+Yet another minor fix to execute.  Forgot to close a couple
+of file descriptors.
+
+{runtime/VAX.prim.s}
+Modified bsd version to use fork instead of vfork.
+
+{build/invoke.sml}
+Fixed the problem where prLambda had to be called twice in the
+interactive system to print the proper lambda.
+
+{boot/perv.sml}
+Changed execute to handle SystemCall and raise Io_failure if
+necessary.
+
+(dbm)
+{basics/tuples.{sig,sml},
+ basics/typesutil.{sig,sml},
+ absyn/bareabsyn.{sig,sml},
+ absyn/printabsyn.sml,
+ print/printdec.sml,
+ typing/typecheck.sml,
+ parse/parse.sml,
+ translate/equal.sml,
+ translate/translate.sml,
+ build/invoke.sml}
+Changed abstract syntax of type bindings (tb) so that printdec could 
+print an accurate response to type declarations.  Changed abstract 
+syntax of exception bindings (eb) to distinguish generative and identity
+exception declarations.  Cleaned up parsing of exception declarations.
+Changed type checking of exception declarations to require that type
+variables in the argument type have the required degree of weakness
+(which must be explicitly specified by the user).
+
+==============================================================================
+To do:
+
+Handle SIGPIPE properly.
+Work on the manual.  ML stuff and SML of New Jersey oddities.
+Floating point: accuracy/printing bug; use Sun assembly math functor to
+ test accuracy of ml version; send mail to Berkeley; finalize floating
+ exceptions, list all possibilities, and write up justification;
+ fix arctan to accept proper range.
+Examine div and mod to make sure that they match the standard.
+Check that the assembly version assembles properly.
+Printing of types needs to be cleaned up: <hidden> and paths are needed;
+ attention to precedence of "->", etc., would reduce the number of parens;
+ it would be nice if the compiler spit out the signature of a structure as
+ it was parsed or opened.
+Make command-line args and the environment accessible in the interactive
+ system.  Currently they are available only to exportFn'd functions.  A
+ similar arrangement is possible for exportML and normal startup,
+ but it is not as easily accomplished, because the stack must be preserved
+ in those cases.  The solution would be to purge the stack of the
+ environment & command-line arguments, storing them higher on the stack
+ temporarily, restoring the stack (if starting up an exportML),
+ then putting the command-line args and environment into the heap in ML format.
+ It looks like this change, or something like it, is necessary; right now,
+ when an exportML starts up, it restores the stack to the state before
+ the exportML; in particular, the environment becomes the environment of the
+ person who made the original image.  This comes into play on system and
+ execute.  The ideal arrangement would be that the person invoking
+ exportML get his own environment.  This would change exportFn too, since
+ it currently deletes the environment from the stack.  Handlers, which are
+ absolute pointers into the stack, seem to be the major stumbling block.
+Better control of heapsize seems necessary.  For example, on an
+ exportFn the resulting image rarely needs a heapsize like that of
+ the entire compiler.  It would be best if the heapsize could be
+ adjusted dynamically from ML.  Most likely this would be done by
+ forcing a major collection and readjusting the arenasize, etc.,
+ parameters in callgc.
+Let the user add to Pervasives, or add bindings to the initial environment.
+Unify the batch and interactive systems by functorizing the symbol table.
+Fix simplegc so that export works.
+Add a 90% criterion for doubling to the generational garbage collector.
+Get rid of the GCPROFILE flag, and put in an ML flag like gcmessages.
+ Maybe make a function the user can call to dump the summary.
+Construct an interface for all the profiling data.  This would be useful
+ if some code were compiled with profiling on; other code could call
+ profiled code and then print out profiling information.  Instead of
+ having the profiling info printed out by C code, it should be done in
+ ML.  Almost everything is there to do this now.
+See how much difference the m68 trapv flag makes.
+Make some form of Machine which spits out debugging info for the assembly
+ version (path, tail, etc.).
+Possibly make a Unix structure and put all the system calls there; this
+ would allow the user to fork, for example, or do raw i/o.
+Provide a way to exit with return value, as in Unix; this would be most useful
+ for exportFn'd functions.
+Resolve the globalhandle/dumpCore redundancy.
+Maybe testcase_string should be changed.  Right now an equality function
+ is generated for each case.
+Allow patterns of multiple left-hand sides with a single result:
+       fn (i as 1|2|3|4|5) => ...
+       fn (VAR v|FN(v,_)) => ...     (* some type-checking is needed *)
+Squash together CONpat and APPpat?
+
+==============================================================================
+Notes: (tyj)
+
+There is a hole in ML exception handling caused by interrupt.
+Interrupts can occur while the system is handling another
+exception, so repeated interrupts can always escape, no
+matter how many nested handles are provided.  One fix might
+be to turn off interrupt as it is raised, and allow the user
+to turn it on again.
+
+Exceptions do not print by name/value; only "-".  This cannot be fixed
+ unless the runtime representation of exceptions is changed radically--
+ it must be modified to include type information, and may not be
+ worth the effort.
+Also, a declaration "exception b = a" can be a bit deceiving; the runtime
+ name of b will be that of a.  Fixing this would also require a significant
+ change in the runtime format of exceptions.
+What should the interactive system print when it catches an exception?  It
+ knows about some exceptions like Float and Io_failure, so it could
+ print their full values.  This would be confusing, though, since no
+ other exceptions would be printed in full; a user would think there
+ was something wrong with his exception when the name and not the value
+ was printed.
+
+Should the compiler force the capitalization convention for constructor names
+ as well as exception names?  Should it discourage all other capitalized values?
+ Right now it only complains if an exception is uncapitalized.  Maybe it
+ should complain if a capitalized variable is introduced in a pattern.
+
+The construct "val _ =" turns up all the time, so the match compiler has
+ been changed so that _ counts as a variable in a pattern (the "binding
+ contains no variables" message won't turn up).  It would be nice to unhack
+ this by providing a "do" declaration, since "val _"  isn't very intuitive.
+
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.  There doesn't seem to be a fix for
+ this.
+
+Timers are invalid across exports.
+
+Think about a cleaner machine interface.  Currently we have:
+		+---------+-------------------+
+		| Codegen |      Perv         |
+		+---------+--------+----------+
+		| Machine | Inline |          |
+		+---------+--------+ Assembly |
+		|       Coder      |          |
+		+------------------+----------+
+Possibly Assembly could be built on coder or machine.  There would be macros
+for system calls, etc.  This might make sense for register allocation.
+Also we would like to be able to handle machine dependencies better.  For
+example, some machines require software emulation of floats, others have
+hardware functions for sin, cos, etc.  Right now there is no clean way
+to do all of this at once, for some functions and not others, etc.
+
+==============================================================================
+Known bugs:
+
+Subtle bug in exportML: it exports the environment of the person who
+originally booted the system, and this environment is restored when
+the image is started up.  This effects system, execute, and
+subsequent exportML's.  On startup, exportFN destroys the environment
+and command-line args, and this too could have adverse effects on
+those functions.
+
+File descriptors open in the ML system remain open on a call of system.
+I haven't decided what I want to do about this yet.  We
+might like only stdin, stdout, and stderr to remain open.
+Note that if the parent closes one of them, the it will be closed in the
+child as well (it inherits them rather than getting new ones).
+Note that
+        ioctl(fd,FIOCLEX,(void *)0)
+will cause a file descriptor to be closed on an exec.  This could be
+called after each open (but shouldn't be called on pipes).
+Another possibility is just to leave them all open.
+
+A write to a stream created by execute could raise SIGPIPE if the
+process has died; this is not handled properly (no one catches the
+exception).  A bug in v9 makes it possible for a SIGPIPE to be
+raised on a read on a descriptor connected to a dead process, but
+this won't occur in BSD or the Sun versions.
+
+There is a bug involving constructor representation.  The compiler
+examines the structure of a datatype and tries to determine an efficient
+runtime representation for it.  For example, for the list datatype, nil
+can be represented as an integer, and :: can just be a pointer to its
+tuple argument (integers and tuples are distinct).  This fails in our system
+at the structure level.  For example:
+signature S = sig
+    type 'a t
+    datatype 'a list = nil | :: of 'a t
+end
+structure A : S = struct
+    datatype 'a list = nil | :: of 'a t
+    withtype 'a t = 'a * 'a list
+end
+Here the compiler can deduce the efficient representation for the
+(local) list datatype in structure A; but this cannot be deduced in
+the signature S (an object of type 'a t might not be a pointer).
+
+In the interactive mode, parser error recovery should be suppressed
+(but isn't); the parser may continue to look for input after an error,
+when the user would expect to be back at top level.
+
+The behavior of the system when it reaches limits is sometimes bizarre.
+For instance, on a Sun, if the system runs out of stack space it
+will die with "Illegal instruction".  This is because the signal can't
+be handled since the stack is full.  A possible fix would be to use a
+separate stack to handle signals, but the handler would have to be
+smart, since SIGSEGV would be raised.  Note that the stack limit can
+be changed with the limit command; and hopefully this particular bug will
+disappear with the next version of the code generator.
+
+Top level bindings should not report on exhaustiveness, but they do.
+
+Poor error message (parens are needed around the hd::tl pattern):
+- fun f hd::tl = 4;
+Error: expected EQUAL, found ID (::)
+Error: nonfix-identifier expected
+Error: unbound variable bogus
+Error: type error: operator and operand don't agree
+operator : ((??*?? list) -> ?? list)
+operand : (??*('x1911A list -> 'x1911A list))
+expression:
+  bogus :: tl
+- 
+The "unbound variable bogus" in particular is confusing.
+
+(* This actually only occurs on the sun, and the number is denormalized. *)
+-          8.69169476570297E~309;	(* inaccurate real; *)
+> val it = 8.69169476570301E~309 : real
+-          8.69169476570301E~309;	(* possibly a printing error? *)
+> val it = 8.69169476570305E~309 : real
+
+==============================================================================
+Notes: (dbm)
+
+Bad error messages
+
+* message for circular type unification, as in "fun f x = f;"
+
+
+Bugs
+
+* no checking for duplicated specifications in signatures.  this should be done
+  when building the signature symbol table
+
+Optimizations and simplifications
+
+* stupid expansion of simple function definitions into case form (FUNdec
+  in Absyn).  E.g.
+
+    fun f x = x  ==>
+    val rec f = fn arg => case arg of x => x
+
+* string hashing primitive in Assembly
+
+
+Housekeeping
+
+* eliminate nonexhaustive/redundant matches
+
+* binding functions in EnvAccess are inconsistent in what they return.  Some
+  return unit, others the variable that is bound.

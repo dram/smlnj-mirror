@@ -1,0 +1,26 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+ <head>
+  <title>Index of /ml/tape4/mlsave.38/lib/mlyacc</title>
+ </head>
+ <body>
+<h1>Index of /ml/tape4/mlsave.38/lib/mlyacc</h1>
+<table><tr><th><img src="/icons/blank.gif" alt="[ICO]"></th><th><a href="?C=N;O=A">Name</a></th><th><a href="?C=M;O=D">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th><th><a href="?C=D;O=A">Description</a></th></tr><tr><th colspan="5"><hr></th></tr>
+<tr><td valign="top"><img src="/icons/back.gif" alt="[DIR]"></td><td><a href="/ml/tape4/mlsave.38/lib/">Parent Directory</a></td><td>&nbsp;</td><td align="right">  - </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="ml.grm">ml.grm</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right">7.7K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="mlyacc.grm">mlyacc.grm</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right">4.3K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/text.gif" alt="[TXT]"></td><td><a href="mlyacc.main">mlyacc.main</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right">422 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="pascal.grm">pascal.grm</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right">6.4K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/text.gif" alt="[TXT]"></td><td><a href="pascal.lex">pascal.lex</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right">2.7K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="sample.grm">sample.grm</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right">825 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="sample.input">sample.input</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right"> 26 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="sample.lex">sample.lex</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right">433 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="sample.sml">sample.sml</a></td><td align="right">08-Feb-1989 10:50  </td><td align="right">492 </td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="mlyacc.lex">mlyacc.lex</a></td><td align="right">22-Mar-1989 10:57  </td><td align="right">3.2K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="mlyacc.sml">mlyacc.sml</a></td><td align="right">22-Mar-1989 10:57  </td><td align="right">176K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="mlyacc.doc">mlyacc.doc</a></td><td align="right">31-Mar-1989 12:28  </td><td align="right"> 15K</td><td>&nbsp;</td></tr>
+<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="mlyacc.hdr.sml">mlyacc.hdr.sml</a></td><td align="right">30-May-1989 11:18  </td><td align="right">103K</td><td>&nbsp;</td></tr>
+<tr><th colspan="5"><hr></th></tr>
+</table>
+<address>Apache/2.2.15 (CentOS) Server at thue.stanford.edu Port 80</address>
+</body></html>

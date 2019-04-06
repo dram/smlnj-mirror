@@ -1,0 +1,252 @@
+==============================================================================
+Standard ML of New Jersey, Version 13
+12/16/87
+From Version 12
+==============================================================================
+Changes: (tyj)
+
+{codegen/{codegen.sml,codenv.sml,opt.sml}}
+reduce was copying strings and reals unnecessarily; got rid of this and
+used KNOWN access instead.  To make things clean, I restored the CONST
+access type to handle strings of length 1, and ints as well.  This is
+redundant with reduce.
+
+{build/{invoke.sml,compile.sml},boot/{system.sig,perv.sml}}
+Added a flag reduce to toggle beta/eta reduction.
+
+{all,bin/make.working,codegen/{codegen.sml,switcher.sml}}
+Made Switcher into a functor and moved it out of codegen into its own file.
+
+{boot/perv.sml}
+Fixed Peter's bug--polymorphic equality on strings was broken.
+
+{boot/{perv.sml,system.sig,perv.sig},codegen/codegen.sml}
+Merged some of Andrew's reopening closures code.
+
+{boot/{perv.sml,system.sig},build/compile.sml}
+Added a flag dumpCore to Control which causes an image to be saved in the
+batch system on an error when globalhandle is set to false.  It defaults to
+true.
+
+{boot/{perv.{sig,sml},initial.sig}}
+Changed exportML to return false when returning and true when starting up.
+Needed it to make the dumpCore change to work right.
+
+{boot/{perv.sig,perv.sml,initial.sig,system.sig,assembly.{sig,sml}}}
+Changed the types of input, output, exists, and the ByteArray structure.
+Added the Range exception for ByteArray.
+Renamed ExtendedIO to IO and flattened it.
+Changed the signature of revapp to be consistent with that of app.
+input: {build/compile,lex/lex}.sml
+output: {bignums/bigint,build/{compile,invoke},lex/lex,{vax/vax,m68/m68}ascode}.sml
+exists: {codegen/{codenv,opt},parse/parse,translate/{mc,translate,unboxed},
+	util/{intset,topsort}}.sml
+ByteArray: {bignums/bigint,codegen/backpatch,lex/{charbuff,symbols}}.sml
+	   Got rid of bogus byte_array code in basics/basictypes.{sml,sig}
+
+{lex/lex.sml}
+Changed the scanner so form feed is handled as whitespace.
+
+{boot/{{assembly,system}.sig,{perv,loader}.sml},build/invoke.sml}
+Integrated more of Andrew's changes.
+Added the file reopen.sml and changed all and bin/make.working accordingly.
+
+==============================================================================
+Changes (dbm):
+
+{basics/table.sml,env/envaccess.{sig,sml},translate/translate.sml,build/invoke.sml}
+Stale binding removal.  Moved getvars from translate.sml to invoke.sml and made it
+return two lists, the old lvars that will be hidden by the declaration and the new
+lvars that are to be bound.  Added get???vars functions to envaccess.sml to support
+this.
+
+{parse/parse.sml}
+Fixed access field of param when passed to str in fctb1 (was LVAR, when
+PATH was needed).  This fixes a bug that prevented new form functor syntax
+from working.  See test/functor/t2 for example.
+
+{parse/parse.sml}
+In sign, added check for pervasive structures in tyconQid and cause error
+when found.  This was causing an impossible error with type specs like
+"Byte_array.byte_array".  Could allow free references to pervasive structures,
+but these would require a different version of the get function to follow the
+symbolic path from the pervasive structure (the usual qid ?).
+
+{typing/sigmatch.sml}
+applyFunctor/instTyc: fixed DATAtyc case to use old dcons components instead
+of ref nil.  This fixes a bug with datacons in functors (bugs/datacons).
+
+{typing/sharing.sml}
+Added trueTycStamp to fix bug in type sharing because of abbreviation
+type constructors.  This fix should go away when abbreviations are treated
+properly.
+
+{typing/sharing.sml}
+fixed findTyc so that global type constructor names (e.g "int") can appear
+in type sharing specs.  this still does not allow type expressions as in
+"sharing type t = int list".
+
+{translate/translate.sml}
+Changed transStr to fix a bug with struct...end expressions occurring
+as functor parameters (argument thinning was not being done in this case).
+
+==============================================================================
+Known bugs:
+
+There is a bug involving constructor representation.  The compiler
+examines the structure of the datatype and tries to determine an efficient
+runtime representation for it.  For example, for the list datatype, nil
+can be represented as an integer, and :: can just be a pointer to its
+tuple argument (integers and tuples are distinct).  This fails in our system
+at the structure level.  For example:
+signature S = sig
+    type 'a t
+    datatype 'a list = nil | :: of 'a t
+end
+structure A : S = struct
+    datatype 'a list = nil | :: of 'a t
+    withtype 'a t = 'a * 'a list
+end
+Here the compiler can deduce the efficient representation for the
+(local) list datatype in structure A; but this cannot be deduced in
+the signature S (an object of type 'a t might not be a pointer).
+This will break our system (a fix is in the works).
+
+In the interactive mode, parser error recovery should be suppressed
+(but isn't); the parser may continue to look for input after an error,
+when the user would expect to be back at top level.
+
+There is a bug in the typechecker involving flexible records and as.  For
+example:
+	type A = {a:int,b:int}
+	fun f ({a=1,...}:A) = 0
+	  | f (foo as {b=1,...}) = 1
+ will not typecheck; an explicit typing will temporarily fix this:
+	fun f ({a=1,...}:A) = 0
+	  | f (foo as {b=1,...}:A) = 1
+
+The behavior of the system when it reaches limits is sometimes bizarre.
+For instance, on a Sun, if the system runs out of stack space it
+will die with "Illegal instruction".  Note that the stack limit can
+be changed with the limit command; and hopefully this particular bug will
+disappear with the next version of the code generator.
+
+Top level bindings should not report on exhaustiveness, but they do.
+
+system, cd, and execute may need to raise exceptions (they don't).
+execute is buggy.  Use with caution.
+
+- 432E432;
+Error: Real constant out of range
+- it;
+val it = uncaught exception Boxity
+
+Poor error message on:
+- fun f hd::tl = 4;
+Error: expected EQUAL, found ID (::)
+Error: nonfix-identifier expected
+Error: unbound variable bogus
+Error: type error: operator and operand don't agree
+operator : ((??*?? list) -> ?? list)
+operand : (??*('x1911A list -> 'x1911A list))
+expression:
+  bogus :: tl
+- 
+The "unbound variable bogus" is confusing.
+
+-          8.69169476570297E~309;	(* inaccurate real; *)
+> val it = 8.69169476570301E~309 : real
+-          8.69169476570301E~309;	(* possibly a printing error? *)
+> val it = 8.69169476570305E~309 : real
+
+==============================================================================
+Notes: (tyj)
+
+Squash together CONpat and APPpat?
+
+Exceptions do not print by name/value; only "-".  This cannot be fixed
+ unless the runtime representation of exceptions is changed radically--
+ it must be modified to include type information, and may not be
+ worth the effort.
+Also, a declaration "exception b = a" can be a bit deceiving; the runtime
+ name of b will be that of a.  Fixing this would also require a significant
+ change in the runtime format of exceptions.
+What should the interactive system print when it catches an exception?  It
+ knows about some exceptions like Float and Io_failure, so it could
+ print their full values.  This would be confusing, though, since no
+ other exceptions would be printed in full; a user would think there
+ was something wrong with his exception when the name and not the value
+ was printed.
+
+Think about a cleaner machine interface.  Currently have:
+		+---------+-------------------+
+		| Codegen |      Perv         |
+		+---------+--------+----------+
+		| Machine | Inline |          |
+		+---------+--------+ Assembly |
+		|       Coder      |          |
+		+------------------+----------+
+Possibly Assembly could be built on coder or machine.  There would be macros
+for system calls, etc.  This might make sense for register allocation.
+Also we would like to be able to handle machine dependencies better.  For
+example, some machines require software emulation of floats, others have
+hardware functions for sin, cos, etc.  Right now there is no clean way
+to do all of this at once, for some functions and not others, etc.
+
+Printing of types needs to be cleaned up: <hidden> and paths are needed;
+ attention to precedence of "->", etc., would reduce the number of parens;
+ it would be nice if the compiler spit out the signature of a structure as
+ it was parsed or opened.
+Should the compiler force the capitalization convention for constructor names
+ as well as exception names?  Should it discourage all other capitalized values?
+ Right now it only complains if an exception is uncapitalized.  Maybe it
+ should complain if a capitalized variable is introduced in a pattern.
+The construct "val _ =" turns up all the time, so the match compiler has
+ been changed so that _ counts as a variable in a pattern (the "binding
+ contains no variables" message won't turn up).  It would be nice to unhack
+ this by providing a "do" declaration, since "val _"  isn't very intuitive.
+Maybe testcase_string should be changed.  Right now an equality function
+ is generated for each case.  Perhaps inline string equality; can the
+ offset be found by name?
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.
+Timers will act strangely across exports.
+
+==============================================================================
+Notes: (dbm)
+
+Bad error messages
+
+* message for circular type unification, as in "fun f x = f;"
+
+
+Bugs
+
+* no checking for duplicated specifications in signatures.  this should be done
+  when building the signature symbol table
+
+Optimizations and simplifications
+
+* stupid expansion of simple function definitions into case form (FUNdec
+  in Absyn).  E.g.
+
+    fun f x = x  ==>
+    val rec f = fn arg => case arg of x => x
+
+* fix type abbreviations so that in simple cases the name is bound to the
+  old type constructor (or a copy) rather than to type function.
+
+* string hashing primitive in Assembly
+
+
+Housekeeping
+
+* eliminate nonexhaustive/redundant matches
+
+* binding functions in EnvAccess are inconsistent in what they return.  Some
+  return unit, others the variable that is bound.
+
+* in envaccess.sml, iter... functions are trying to catch Notfound_Table
+  exceptions raised by lookup functions, but these functions will not
+  raise that exception.

@@ -1,0 +1,178 @@
+Standard ML of New Jersey's Batch Compiler
+
+
+Description:
+
+The Standard ML of New Jersey batch compiler provides some (unsafe) separate
+compilation and cross compilation capabilities.  The batch system compiles
+files containing signature, structure, and functor declarations.  Compiling a
+module "Foo" produces a corresponding object file "Foo.mo", which contains the
+names of the other .mo files required to build the module, as well as the code
+of the module itself.  Modules are compiled separately, producing the necessary
+.mo files.
+
+A program is executed by passing a module name to the run-time system.  The
+run-time system starts a linker which loads in the module, finds out what
+other modules it depends on, recursively loads them and passes them to the
+original module.  The module then "builds" itself, by executing its top-level
+declarations and creating a run-time structure.  For example, the following
+module will build a run-time record containing foo, and as a side effect of
+building the record, "hello world" will be printed:
+
+	structure HelloWorld =
+	  struct
+	    val foo = print "hello world"
+	  end
+
+Thus programs will take the form of a collection of modules which are
+executed from a single structure.
+
+Using the batch system for separate compilation is unsafe since the .mo files
+contain no type information, only the names of necessary .mo files.  However,
+if each module has the correct signature, the run-time record will be
+type-correct; you can separately re-compile and link modules, as long as you
+don't change their signatures.
+
+
+Installation:
+
+The compiler is composed of two parts: a run-time system written in C and
+assembly language; and a number of ML object files which form the main part
+of the compiler.  The run-time system provides garbage collection, signal
+handling, and system calls; the rest of the compiler, including the
+standard library, is written in ML.  The .mo files for the compiler
+reside in the mo.vax and mo.m68 subdirectories of the ML distribution.
+The source for the compiler resides in the src subdirectory, and these
+instructions assume that this the current directory.
+
+To make a batch compiler, you simply build the run-time system, then have
+it link the appropriate ML object files together.
+
+To build the run-time system:
+
+1. cd runtime
+
+   Go to the runtime directory, which contains the source code for the run-time
+   system.
+
+2. ln makefile.{m68 | bsd | v9 | ult} makefile
+
+   Link the appropriate machine-specific makefile to "makefile". makefile.m68
+   is for Sun3's, makefile.v9 is for Vaxes running V9 Unix, makefile.bsd is for
+   Vaxes running 4.3BSD, and makefile.ult is for Vaxes running Ultrix.
+
+3. make
+
+   Make the run-time system, which produces an executable program called "run".
+
+4. cd ..
+
+   Return to the src directory.
+
+
+To build a batch compiler:
+
+1. ln -s ../mo.{m68 | vax} mo
+
+   Symbolically link the appropriate object directory to mo in the
+   src directory.  Use mo.m68 if you are running on a Sun3, and mo.vax
+   if you are running on a Vax.  The link is necessary because the
+   run-time system looks for the .mo files in a directory named mo.
+   WARNING: if you link the wrong directory, the next step will immediately
+   fail.
+
+2. runtime/run -h <n> <module>
+
+   Execute one of the batch compilers.
+
+   <module> should be the name of the module to execute.  The module CompM68
+   is a batch compiler which produces Motorola 68020 .mo files, while CompVax
+   produces Vax .mo files.
+
+   The -h <n> parameter sets the initial heapsize.  We have found that a heap
+   of about ten megabytes works well for compiling the compiler; the <n> should
+   be the desired halfsize, in kilobytes, of the heap.  For example, we use
+   5000 to get the ten-megabyte heap.  Much smaller heaps will work; in fact,
+   the default is 300.
+
+   As the command executes, you should see messages like "[Loading Foo]" and
+   "[Executing Bar]", which indicate the modules being linked in, and then
+   messages like "signature Pervasives" and "functor PervFunc", which are
+   batch-compiler messages indicating that the standard library is compiled.
+   As a byproduct of this step, new standard library files PervFunc.mo and
+   Math.mo are produced.  Unless you have made changes to the Initial
+   environment and are recompiling the entire system, they will be identical
+   to the PervFunc.mo and Math.mo in the mo directory, and may be discarded.
+   
+   When this is successfully completed, the system will prompt with the
+   message "hello there".  You are now talking to the batch command
+   interpreter.
+
+3. >batch
+
+   Dump an executable image of the batch compiler to a file named "batch"
+   (or whatever name you prefer).
+
+4. type ^D to exit.
+
+   Now you can run the batch compiler by typing "batch".  You can give it
+   commands interactively, or by redirecting its input from a file, as is
+   done below with the command script "all".
+
+
+To use the batch compiler:
+The batch compiler accepts commands on its standard input.  The list of
+commands is:
+
+     !file      => compile the file.
+     *file      => assemble the file.
+     <file      => parse the file.
+     >file      => export to a file.
+     %          => print the last generated lambda (intermediate code).
+     #word      => comment; ignored.
+     @directory => look for files in a directory.  directory should end in /.
+     ~function  => execute a function.
+     ^flag      => toggle a flag.
+     ?          => print this help message.
+
+There should be no space between the command character and the argument string,
+which should not be quoted.
+
+The execute ("~") and toggle ("^") commands are mainly used to control debugging
+facilities, which are not explained here.  Typing "^" alone on a line produces
+a list of possible flags.
+
+The compile command, "!", causes the named file to be compiled, generating an
+object file A.mo for each module A defined in the file.  The assemble command,
+"*", generates an assembly listing A.s that can be assembled to produce the
+corresponding .mo file.  The parse command, "<", causes the file to be parsed
+and type-checked, but produces no output files.  These three commands all
+update the symbol table with the bindings defined in the file.  The file must
+contain only signature, structure, and functor declarations.
+
+The export command ">" exports the current state of the compiler to an
+executable file with the given name.  This is a way of preserving the
+symbol table state of the compiler, and is useful for separate compilation;
+if you change a module without changing its signature, you can safely
+recompile it using the exported compiler (which contains the symbol table
+information from other modules that the modified module may require).
+For example, the file "all" in the src directory is a batch command
+script for compiling the compiler.  The last command in the file exports
+to a file "upto.all", which can recompile any module of the compiler.
+
+Once you have compiled all of your code, you only need to move it to the
+mo directory and execute it in the same way as CompM68 or CompVax:
+  runtime/run -h <n> Foo
+for a module Foo.  Note that the files PervFunc.mo, Math.mo, and Loader.mo
+must be in the mo directory, as they are used in booting up the system.
+
+
+A note on recompiling the compiler:
+If you change the compiler, you can recompile it with the batch system:
+	runtime/run -h <n> Comp{M68 | Vax} <all
+As a check, it is suggested that you use the resulting compiler to recompile
+the source code.  The resulting .mo files should be identical to the previous
+set of .mo files.  Sometimes more than one iteration is necessary (for example
+if the signature of PervFunc in boot/perv.sml has changed).  The bootstrapping
+is successful when two successive iterations produce identical .mo files.
+

@@ -1,0 +1,210 @@
+What's new in SML of NJ Version 0.33
+
+1. CPS code generator
+
+This version uses a new CPS (Continuation Passing Style) code
+generator.  The CPS code generator differs from the older code
+generator in the following ways:
+
+   (i) The code produced is about 50% faster.
+
+   (ii) The compiler generates code about half as quickly (this should
+gradually improve with future releases).
+
+   (iii) the new code generator does not use a stack.  This makes it easier
+to support experimental features like callcc and multiple processes.
+It also makes efficient garbage collection even more critical.
+
+   (iv) The cps code generator tends to build larger intermediate
+representations, so tuning of the runtime system becomes more
+important.  See the discussion of memory management in doc/INSTALL.
+
+
+2. The runtime system
+
+The runtime system has been extensively rewritten and cleaned up.  The
+amount of assembly code has been reduced (only 220 lines for the Vax,
+385 for the Sun), and the system call interface has been simplified.  The
+mechanism for initiating garbage collection has been made more robust.
+In the m68 version (for Sun 3), exhaustion of free space is detected
+by an explicit comparison rather than by trapping a segmentation fault.
+This finally eliminates persistent flakiness caused by the way the 68020
+recovers from segmentation faults.
+
+LaTeX source for a new paper describing the runtime system can be
+found in doc/papers/runtime.  This is still an early draft, but it should
+be helpful in understanding internals of the run time system.
+
+
+3. The pervasive environment
+
+The initial environment has been reorganized to make it possible to
+build a system whose pervasives (i.e., built-in bindings) correspond
+closely to those described in "The Definition of Standard ML, Version
+2" by R. Harper, R. Milner, and M. Tofte (ECS-LFCS-88-62, August 1988,
+hereafter referred to as the "Definition").  Note that in our humble
+opinion the "standard" environment is somewhat brain-damaged and is
+missing many important features (like arrays, bytearrays, etc).  See
+the file doc/environ for discussion of specific deficiencies of the
+environment described in the Definition and our proposed fixes, some
+of which are incorporated in the "New Jersey" environment.
+
+The default initial environment set up by the bootstrapping process is
+the richer, and more efficient, New Jersey environment.  However,
+loading the source file src/lib/standard.sml defines a structure named
+Standard that provides a close approximation to the "standard"
+environment.  Opening the structure Standard at the top level replaces
+any nonstandard bindings in the New Jersey environment.  The New
+Jersey environment is still there in the background, so any New Jersey
+bindings not rebound in Standard will still be visible.  In the future
+we may provide a mechanism (e.g. a function switchEnv: string -> unit)
+for completely replacing the base environment with a different version
+specified by a structure.  For example, `switchEnv "Standard"' would
+replace the existing base environment with the contents of Standard.
+
+The initial environment also contains:
+
+(1) The signatures ARRAY, BASICIO, BITS, BOOL, BYTEARRAY, GENERAL, IO,
+    INTEGER, LIST, REF, STRING, and REAL as defined in src/boot/perv.sig, 
+    and the signature SYSTEM as defined in src/boot/system.sig
+
+(2) The structures Array : ARRAY, BasicIO : BASICIO, Bits : BITS, etc.
+    These contain the New Jersey versions of bindings.
+
+(3) The structure NewJersey, which contains the complete New Jersey initial
+    environment except for the signatures in (1) above and the structure
+    NewJersey itself.
+
+It follows that even if Standard has been defined and opened, all New Jersey
+bindings are available via the structure NewJersey, or alternatively via
+the structures Array, IO, etc.
+
+Here are some differences between the New Jersey and Standard environments:
+
+  a.  The functions +, /, *, -, div, mod are an order of magnitude 
+      slower in Standard than in the New Jersey environment.  This is
+      because they are required to raise distinct exceptions (according
+      to the Definition), and because the treatment of negative arguments
+      of div and mod doesn't match what the hardware provides; that
+      complicates their implementation.  The NewJersey functions all raise
+      Overflow on results that won't fit in 31 bits (and Div on zero divisor
+      for div and mod).
+
+  b.  The functions div and mod return different results.
+
+  c.  input and output are curried in NewJersey (and in the IO structure),
+      but not in Standard.
+
+  d.  The New Jersey environment has many more functions in it, as described
+      in the appendix of our reference manual or the signatures in the files
+      src/boot/perv.sig and src/boot/system.sig.
+
+The New Jersey environment has changed slightly from previous releases,
+mostly to make the it more compatible with the Definition [IMPORTANT --
+THESE CHANGES MAY BREAK SOME PROGRAMS]:
+
+  a.  The exception Io_failure has been renamed Io for consistency
+      with the Definition.
+
+  b.  The exception Float has been renamed Real.  Float is still defined
+      as a synonym for Real.
+
+  c.  The identifier "length" is no longer overloaded: use "size" or
+      "String.size" for string lengths, "length" or "List.length" for
+      list lengths, and "Array.length" for array lengths.
+
+  d.  The functions "cd" and "system" are now components of the
+      System structure.
+
+  e.  Various components of the System structure have been moved
+      into the System.Unsafe substructure, and are not recommended for
+      casual use.
+
+  f.  The print functions (Integer.print, Real.print, String.print,
+      and the overloaded print), now return unit rather than their
+      argument.  This is because we found that in our code virtually
+      every call of print was followed by "; ()".
+
+We plan to provide a definition of the NewJersey structure in terms of
+the "standard" environment (analogous to the definition of Standard in
+lib/src/standard.sml).  This structure would enable any Standard ML
+system to run programs based on the New Jersey environment.  Such
+programs should not reference the System structure, of course.
+
+
+4. Command line arguments and Shell environment
+
+System.argv : unit -> string list
+System.environ : unit -> string list
+ 
+are new functions that return the list of command line arguments and
+the Unix shell environment, respectively.
+
+
+5. First-class continuations: callcc, throw, and cont (experimental)
+
+These are new experimental primitives to allow one to capture and use
+"first-class continuations".  See the file doc/callcc for
+documentation of these new facilities.
+
+
+6. Separate compilation (experimental)
+
+We have integrated code written by Nick Rothwell and Mads Tofte of
+Edinburgh that provides a preliminary, experimental form of secure (type
+checked) separate compilation.  There is a special declaration form:
+
+   import "filename"
+
+where "filename" is a string literal designating either a source file
+filename.sml or a binary file filename.bin.  If only the source file
+exists in the current directory, then it is compiled and the binary
+version is created.  If the binary version exists, it is loaded
+instead of the source file.
+
+As a consequence of adding this new facility, the identifier "import"
+has become a reserved word.  This may cause incompatibilities with
+existing code.
+
+
+7. mlyacc
+
+The new directory src/lib/mlyacc contains a yacc-like parser generator
+written in ML, with documentation.  The parser generator is used much
+like the Unix yacc utility, and the grammar specification language is
+essentially that of yacc.  The parser generator was written by David
+Tarditi of Princeton, based on an earlier effort by Nick Rothwell.
+Other, more sophisticated, interfaces to the parser generator will
+probably be provided in future releases.  As before, the directory
+src/lib/lexgen contains a lexical analyzer generator.
+
+
+8. Fixes
+
+A number of things that have been broken are now fixed.  This includes
+the garbage collector for the Sun 3, floating point operations on the
+Sun 3, exportFn, sqrt, and execute.  Unfortunately, many old bugs
+remain and the error messages are just as bad as ever.  We expect the
+next release to fix many of these problems.  Bug reports are welcome as
+ever, as are bug fixes.
+
+
+9. sml-mode for gnu emacs
+
+src/lib/emacs/sml-mode.el contains a gnu emacs elisp source file defining
+a fairly sophisticated sml-mode.  This is contributed by Lars Bo Nielsen
+and is licensed by the Free Software Foundation.  src/lib/emacs/outdent.el
+contains a small hack of our own.
+
+
+10. Things to come
+
+John Reppy has ported SML of NJ to the Sun 4 (SPARC) architecture and
+his code generator will be included in the next release.  A port to
+the MIPS architecture (DECstation 3100 under Ultrix) is in the works
+at Princeton, and a NeXT port is likely.  A port to the Mac II under
+the native Mac OS may also appear soon.
+
+We are working on a new licensing scheme similar to that used by the
+Free Software Foundation.  We hope to have this approved within three
+months, and we will keep you informed of new developments.

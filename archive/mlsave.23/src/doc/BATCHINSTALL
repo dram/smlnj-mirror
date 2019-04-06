@@ -1,0 +1,284 @@
+Standard ML of New Jersey's Batch Compiler
+
+
+Description:
+
+The Standard ML of New Jersey batch compiler provides some (unsafe)
+separate compilation and cross compilation capabilities.  The batch
+system compiles files containing signature, structure, and functor
+declarations.  Compiling a module "Foo" produces a corresponding
+object file "Foo.mo", which contains the names of the other .mo files
+required to build the module, as well as the code of the module
+itself.  Modules are compiled separately, producing the necessary .mo
+files.
+
+A program is executed by passing a module name to the run-time system.
+The run-time system starts a linker which loads in the module, finds
+out what other modules it depends on, recursively loads them and
+passes them to the original module.  The module then "builds" itself,
+by executing its top-level declarations and creating a run-time
+structure.  For example, the following module will build a run-time
+record containing foo, and as a side effect of building the record,
+"hello world" will be printed:
+
+	structure HelloWorld =
+	  struct
+	    val foo = print "hello world"
+	  end
+
+Thus programs will take the form of the collection of all modules on
+which the given top-level structure (transitively) depends.  The order
+in which the modules will be executed/created is determined by a
+postorder traversal of the (acyclic) dependence graph.
+
+Using the batch system for separate compilation is unsafe since the
+.mo files contain no type information, only the names of the modules
+(and hence .mo files) on which they directly depend.  However, if each
+module has the correct signature, the run-time record will be
+type-correct; you can separately re-compile and link modules, as long
+as you are careful not to change their signatures.
+
+
+Installation:
+
+The compiler is composed of two parts: a run-time system written in C and
+assembly language; and a number of ML object files which form the main part
+of the compiler.  The run-time system provides garbage collection, signal
+handling, and system calls; the rest of the compiler, including the
+standard library, is written in ML.  The .mo files for the compiler
+reside in the mo.vax and mo.m68 subdirectories of the ML distribution.
+The source for the compiler resides in the src subdirectory, and these
+instructions assume that this the current directory.
+
+To build a batch compiler:
+
+1. Go to the src subdirectory of mldist:
+
+     cd src
+
+2. Run the maker.batch script:
+
+     maker.batch <machine> <os> <share-option> <cg-option>
+
+   The parameters of the maker.batch shell script have the same meaning and
+   options as for the interactive system.  See src/doc/INSTALL.
+
+   As the command executes, you should see messages like "[Loading Foo]" and
+   "[Executing Bar]", which indicate the modules being linked in, and then
+   messages like "signature Pervasives" and "functor PervFunc", which are
+   batch-compiler messages indicating that the standard library is compiled.
+   
+   When the command successfully terminates, an executable image named
+   "batch" has been created in the current directory.  This is the batch
+   sml compiler.  If you wish to use a different name for this file, edit
+   the "maker.batch" script and change the definition of the variable
+   IMAGE.
+
+   Now you can run the batch compiler by typing "batch".  You can give it
+   commands interactively, or by redirecting its input from a file, as is
+   done below with the command script "all".
+
+
+Normally you will want to build a complete interactive or batch
+system, but there are occasions when you may want to build just the
+runtime system.  There is a shell script maker.run for doing this:
+
+1. Go to the src subdirectory of mldist:
+
+     cd src
+
+2. Run the maker.run script:
+
+     maker.run <machine> <os> <share-option> <cg-option>
+
+   The parameters of the maker.run shell script have the same meaning and
+   options as for maker and maker.batch.  When this script successfully
+   terminates, an executable image runtime/run will have been created.
+
+When invoked, runtime/run takes the name of a module (say "Foo") as a
+parameter.  It looks for a file mo/Foo.mo relative to the current directory
+and loades that file, and then recursively loads mo/Bar.mo for all modules
+Bar on which Foo depends.  Finally the code for creating the module Foo is
+executed.  For instance, to run the interactive system on a Vax, one could
+symbolically link mo to mldist/mo.vax and execute the command
+
+   runtime/run IntVax
+
+This causes mo/IntVax.mo to be loaded, together with all the modules
+on which it depends (essentially the whole compiler).  IntVax.mo
+(defined in src/build/glue.sml) causes the interactive top-level loop
+to be executed when the functor Interactive is applied.  Any program can
+be directly loaded and executed by the runtime system in this manner,
+not just the compiler.
+
+The runtime system accepts an optional flag -r:
+
+   runtime/run -r 7 Foo
+
+The -r flag takes a numeric value that specifies the ratio between total
+heap size and live heap data that the runtime system attempts to
+maintain, 7 in this example.
+
+
+Using the batch compiler:
+
+The batch compiler accepts commands on its standard input.  The list of
+commands is:
+
+     !file      => compile the file.
+     *file      => assemble the file.
+     <file      => parse the file.
+     >file      => export to a file.
+     %          => print the last generated lambda (intermediate code).
+     #word      => comment; ignored.
+     @directory => look for files in a directory.  directory should end in /.
+     ~function  => execute a function.
+     ^flag      => toggle a flag.
+     ?          => print this help message.
+
+There should be no space between the command character and the argument string,
+which should not be quoted.
+
+The execute ("~") and toggle ("^") commands are mainly used to control debugging
+facilities, which are not explained here.  Typing "^" alone on a line produces
+a list of possible flags.
+
+The compile command, "!", causes the named file to be compiled, generating an
+object file A.mo for each module A defined in the file.  The assemble command,
+"*", generates an assembly listing A.s that can be assembled to produce the
+corresponding .mo file.  The parse command, "<", causes the file to be parsed
+and type-checked, but produces no output files.  These three commands all
+update the symbol table with the bindings defined in the file.  The file must
+contain only signature, structure, and functor declarations.
+
+The export command ">" exports the current state of the compiler to an
+executable file with the given name.  This is a way of preserving the
+symbol table state of the compiler, and is useful for separate compilation;
+if you change a module without changing its signature, you can safely
+recompile it using the exported compiler (which contains the symbol table
+information from other modules that the modified module may require).
+For example, the file "all" in the src directory is a batch command
+script for compiling the compiler.  The last command in the file exports
+to a file "upto.all", which can recompile any module of the compiler.
+
+Once you have compiled all of your code, you only need to move it to the
+mo directory and execute it in the same way as CompM68 or CompVax:
+
+  runtime/run Foo
+
+for a module Foo.  Note that the files CoreFunc.mo, NewMath.mo (for Vax),
+Initial.mo, and Loader.mo must be in the mo directory, as they are
+used in booting up the system.
+
+
+A note on recompiling the compiler:
+
+WARNING: Before trying to recompile the compiler, unlimit stacksize or
+increase the default stacksize limit (2048K on Suns).  Otherwise
+recompilation will fail when the stacksize limit is exceeded (with an
+illegal instuction fault on the Sun).
+
+If you change the compiler, you can use the batch command script "all"
+to recompile it with the batch system:
+
+	batch < all
+
+or	runtime/run {CompM68 | CompVax} < all	
+
+This will generate new .mo files for all the modules in the compiler except
+for the "boot" modules (whose source files are found in src/boot):
+
+  CoreFunc.mo
+  NewMath.mo (not required for the Sun)
+  Initial.mo
+  Loader.mo
+
+Normally, the old versions of these files can be reused (i.e. copied
+from the old mo directory to the new one), but if one of these modules
+has been modified they will also have to be recompiled.  This can be done
+by running the batch system and giving it the command:
+
+  ~mBoot
+
+The newly generated .mo files should be moved into a new mo directory,
+say mldist/mo.new:
+
+	cd ..   (to mldist)
+	mkdir mo.new
+	mv src/*.mo mo.new
+
+After generating new .mo files for the compiler (including the boot
+modules if necessary), you should build a new batch compiler by
+symbolically linking mldist/mo.new to mldist/src/mo and recompiling
+the source code again by invoking runtime/run directly:
+
+	cd src
+	ln -s ../mo.new mo
+	runtime/run {CompM68 | CompVax} < all	
+
+(maker.batch can't be used here, since it would relink src/mo to one of
+the standard mo directories).  The resulting .mo files should be
+identical to the previous set of .mo files in mo.new.  Sometimes more
+than one iteration is necessary (for example if the signature of one
+of the boot modules has changed).  The bootstrapping is successful
+when two successive iterations produce identical .mo files.
+
+The last command in the all file causes an image of the batch compiler
+to be saved in the file upto.all.  This image containes the symbol table
+information for all the compiler modules.  It can be used to recompile
+individual files in the compiler after they have been modified (but beware
+of changes in signatures).
+
+
+Using the CPS Code Generator
+
+We are including the new cps (continuation passing style) code
+generator in this release even though it is still under development.
+At the moment, the cps code generator only works on the Vax, but it
+will work on the Sun in the next release.
+
+To save space in the distribution, the .mo files for the cps code
+generator have not been included in the mo.vax directory.  To generate
+them:
+
+(1) recompile the compiler following the instructions above, but using
+    the file "cps/all.cps" in place of "all".  
+
+(2) put the resulting .mo files in mldist/mo.vax (first checking carefully
+    that the recompilation was complete and successful -- the only change
+    should be the addition of several new .mo files).
+
+(3) execute
+
+        runtime/run CompVaxCPS < cps/all.cps
+
+    This produces new cps-style .mo files that have to be used with a
+    cps-style runtime system.
+
+(4) put the new .mo files in mldist/mo.vax.cps.
+
+(5) create a cps runtime system by executing
+
+        maker.run vax <os> share cps
+
+    (this will overwrite the old runtime/run).
+
+(6) recompile using the new .mo files and the new runtime
+
+	ln -s ../mo.vax.cps mo
+
+        runtime/run CompVaxCPS < cps/all.cps
+
+    and verify that the .mo files produced are identical to those in
+    mo.vax.cps.
+
+Alternately, steps 5 and 6 could be replaced by 
+
+	maker.batch vax <os> share cps
+	batch < cps/all.cps
+
+
+When mo.vax.cps has been generated and verified in this way, a cps
+interactive system can be build using the command
+
+	maker vax <os> share cps

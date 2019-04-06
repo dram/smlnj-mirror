@@ -1,0 +1,351 @@
+==============================================================================
+Standard ML of New Jersey, Internal Version 16
+2/5/88
+From Version 15
+==============================================================================
+Changes: (tyj)
+
+{codegen/{codegen,codenv,reopen}.sml,build/invoke.sml}
+Curried lookup.  Changed the Notfound_Codenv exception to Lookup,
+and made it internal (not exported from Codenv anymore).
+VARentry is no longer exported--augment now takes an lvar rather than
+an entry and does the right thing.  This means type Entry need
+no longer be exported.  Fixed codegen so that it handles the case
+APP(FN _,FN _) properly, by pushing a closure on the env rather than
+just a VARentry.  Plenty of changes in codenv for new and better
+closure strategies.
+
+{build/invoke.sml}
+Fixed a bug in the interactive system where the bytearray for the
+code was too long, causing bogus garbage bytes at the end of code
+and thus breaking string equality if a string happened to be at the
+end of the code generated.  I've patched this in to beta version 3
+(internal version 15) since we are still shipping it.
+
+{parse/parse.sml}
+Fixed bug E.34, where both an = and "of" were allowed in an
+exception declaration.
+
+{boot/{perv.sml,system.sig}}
+Added the flag path to Control.CG; default is false.  The path
+optimization doesn't work yet--don't try this out.
+
+{runtime/M68.prim.s}
+Fixed a typo bug in pipe_v which caused execute to die; the trap
+was never called.
+
+{boot/perv.sml}
+Minor fixes for execute.
+
+{runtime/callgc.c}
+Minor changes to make timers take gctime very slightly more accurate.
+
+{boot/{perv.sml,system.sig},m68/m68prim.sml}
+Moved the trapv flag into Control.CG.M68
+
+{runtime/{VAX,M68}.prim.s,boot/{assembly.{sig,sml},system.sig,perv.sml}}
+Added exception SystemCall of string to structure Assembly.  Also put
+it in structure System so other places can handle it.
+
+{runtime/{run.c,{VAX,M68}.prim.s}}
+Hooked in the code so that system calls raise exception SystemCall properly.
+The only user-visible functions which raise it are cd (if a file doesn't
+ exist, for example), system (if the command fails), and execute
+ (which may fail on a pipe, fork, or dup2 call).  No exception can be
+ raised in a fork once the child is created, since the child operates
+ asynchronously.  If it dies, it does so quietly.
+In the future all the system calls in assembly should raise SystemCall
+ (for example, close and open).  The functions in perv should then
+ handle SystemCall; this may provide more information about the failure.
+The strings raised with SystemCall will vary from system to system.
+
+{boot/assembly.sig}
+Changed the type of execute to return 'a; this is more appropriate than
+unit since it can never return.
+
+{boot/perv.sml,runtime/*.prim.s}
+Changed ALL system calls to raise SystemCall (instead of Io_failure).
+Changes in boot to reflect this.  Also slight cleanup of PreString
+structure in perv; sconcat has been renamed to ^ and given the proper
+fixity; substr was renamed substring.
+
+{boot/{perv.sml,assembly.{sml,sig}}
+Got rid of the Assembly definition of exception Io_failure; now it is
+defined as usual in structure IO.
+
+{runtime/{makefile,run.c,M68.{math,prim}.s}}
+Added a 68881-based math functor.  This change makes makefile.m68 different
+from the other two makefiles (they never differed before except in flag
+settings).
+
+{translate/equal}
+Made a quick fix for bug E.20 (involving polymorphic equality).  Should
+discuss efficiency with Dave when he returns.
+
+{build/invoke.sml}
+Fixed the printing bug involving out of range floats.
+
+{parse/parse.sml}
+Fixed the problem with numeric label parsing - {1=2,3=4} now works.
+Also, {...} is now accepted as a pattern, and
+	fun f {x:int} = x
+ works as well.
+
+{runtime/M68.prim.s}
+Changed fork to do a vfork.  This change should be propagated to
+the VAXBSD system as well.
+
+{parse/parse.sml}
+Fixed the parser to complain properly if clauses of a fun dec have different
+numbers of patterns.
+
+{typing/sigmatch.sml}
+Some clauses had different numbers of patterns.
+
+{bignums/bigint.sml,{vax/vax,m68/m68}prim.sml}
+Discovered a bug introduced way back in version 13, when bytearrays were
+changed.  fetch was changed to sub, and sub has a low fixity; there
+was a conflict with another infix operator.  Also, the floating comparison
+operations in m68 and floating equality in vax were busted too.  Since
+floats won't work at all without the fix, I've patched this into beta 3.
+
+{build/invoke.sml}
+Minor change to fix assembly language output.
+
+{runtime/VAX.prim.s}
+Minor fix to the floating point exception handler--the code raised
+on an FPE seems to be different in BSD and V9.  For instance,
+BSD might raise FPE_FLTDIV_FAULT while V9 raises FPE_FLTDIV_TRAP.
+But BSD has both, so I just made it check for both.
+
+{boot/perv.sml}
+Yet another fix for execute.  execute on a Sun uses a vfork instead
+of a fork, which is a bit dangerous since the child can modify the
+parent's data.  In particular, there was a bug which resulted in the
+stack being modified: Assembly.execute was the last call in the
+execute function, so the code generator arrange to pop the stack
+before executing it.  The solution was to add a bogus line of code
+after the Assembly.execute; it is never executed itself, but prevents
+the stack from being modified.
+
+{runtime/callgc.c}
+Fixed a bug I introduced myself.  callgc handles faults caused by
+adding to the store list differently than other memory faults.  In
+particular, it needs to know the length of the code produced by the
+markstore function defined in {vax/vax,m68/m68}prim.sml; the entire
+sequence is skipped over after the collection.  I changed the sequence
+in the m68 version and this broke the collector.
+
+{runtime/{makefile.*,run.c,export.c}}
+Minor fixes to allow nml to compile under ultrix.  Added a makefile.ultrix.
+Specifically ultrix uses machine/param.h while bsd uses machine/machparam.h,
+and sigmask is undefined in ultrix.
+
+{print/printdec.sml}
+Minor fix to printTyc, which did not print ABStyc properly.
+
+==============================================================================
+To do:
+
+Make sure execute works.  Decide where to put execute, cd and system.
+ system and cd kind of belong in System, but execute does too, since it
+ can raise the SystemCall exception, which can only be found
+ through System.  Maybe SystemCall, system, and cd should be moved
+ into IO, or execute should be moved to System.
+Change fork to vfork in the BSD version.
+Work on the manual.  ML stuff and SML of New Jersey oddities.
+Floating point: accuracy/printing bug; use Sun assembly math functor to
+ test accuracy of ml version; send mail to Berkeley; finalize floating
+ exceptions, list all possibilities, and write up justification;
+ fix arctan to accept proper range.
+Examine div and mod to make sure that they match the standard.
+Check that the assembly version assembles properly.
+Printing of types needs to be cleaned up: <hidden> and paths are needed;
+ attention to precedence of "->", etc., would reduce the number of parens;
+ it would be nice if the compiler spit out the signature of a structure as
+ it was parsed or opened.
+Make command-line args and the environment accessible in the interactive
+ system.  Currently they are available only to exportFn'd functions.  A
+ similar arrangement is possible for exportML and normal startup,
+ but it is not as easily accomplished, because the stack must be preserved
+ in those cases.  The solution would be to purge the stack of the
+ environment & command-line arguments, storing them higher on the stack
+ temporarily, restoring the stack (if starting up an exportML),
+ then putting the command-line args and environment into the heap in ML format.
+Better control of heapsize seems necessary.  For example, on an
+ exportFn the resulting image rarely needs a heapsize like that of
+ the entire compiler.  It would be best if the heapsize could be
+ adjusted dynamically from ML.  Most likely this would be done by
+ forcing a major collection and readjusting the arenasize, etc.,
+ parameters in callgc.
+Let the user add to Pervasives, or add bindings to the initial environment.
+Unify the batch and interactive systems by functorizing the symbol table.
+Fix simplegc so that export works.
+Add a 90% criterion for doubling to the generational garbage collector.
+Get rid of the GCPROFILE flag, and put in an ML flag like gcmessages.
+ Maybe make a function the user can call to dump the summary.
+Construct an interface for all the profiling data.  This would be useful
+ if some code were compiled with profiling on; other code could call
+ profiled code and then print out profiling information.  Instead of
+ having the profiling info printed out by C code, it should be done in
+ ML.  Almost everything is there to do this now.
+See how much difference the m68 trapv flag makes.
+Make some form of Machine which spits out debugging info for the assembly
+ version (path, tail, etc.).
+Possibly make a Unix structure and put all the system calls there; this
+ would allow the user to fork, for example, or do raw i/o.
+Provide a way to exit with return value, as in Unix; this would be most useful
+ for exportFn'd functions.
+Resolve the globalhandle/dumpCore redundancy.
+Maybe testcase_string should be changed.  Right now an equality function
+ is generated for each case.
+Allow patterns of multiple left-hand sides with a single result:
+       fn (i as 1|2|3|4|5) => ...
+       fn (VAR v|FN(v,_)) => ...     (* some type-checking is needed *)
+Squash together CONpat and APPpat?
+
+==============================================================================
+Notes: (tyj)
+
+Exceptions do not print by name/value; only "-".  This cannot be fixed
+ unless the runtime representation of exceptions is changed radically--
+ it must be modified to include type information, and may not be
+ worth the effort.
+Also, a declaration "exception b = a" can be a bit deceiving; the runtime
+ name of b will be that of a.  Fixing this would also require a significant
+ change in the runtime format of exceptions.
+What should the interactive system print when it catches an exception?  It
+ knows about some exceptions like Float and Io_failure, so it could
+ print their full values.  This would be confusing, though, since no
+ other exceptions would be printed in full; a user would think there
+ was something wrong with his exception when the name and not the value
+ was printed.
+
+Should the compiler force the capitalization convention for constructor names
+ as well as exception names?  Should it discourage all other capitalized values?
+ Right now it only complains if an exception is uncapitalized.  Maybe it
+ should complain if a capitalized variable is introduced in a pattern.
+
+The construct "val _ =" turns up all the time, so the match compiler has
+ been changed so that _ counts as a variable in a pattern (the "binding
+ contains no variables" message won't turn up).  It would be nice to unhack
+ this by providing a "do" declaration, since "val _"  isn't very intuitive.
+
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.  There doesn't seem to be a fix for
+ this.
+
+Timers are invalid across exports.
+
+Think about a cleaner machine interface.  Currently we have:
+		+---------+-------------------+
+		| Codegen |      Perv         |
+		+---------+--------+----------+
+		| Machine | Inline |          |
+		+---------+--------+ Assembly |
+		|       Coder      |          |
+		+------------------+----------+
+Possibly Assembly could be built on coder or machine.  There would be macros
+for system calls, etc.  This might make sense for register allocation.
+Also we would like to be able to handle machine dependencies better.  For
+example, some machines require software emulation of floats, others have
+hardware functions for sin, cos, etc.  Right now there is no clean way
+to do all of this at once, for some functions and not others, etc.
+
+==============================================================================
+Known bugs:
+
+Type printing bugs:
+- type j = string;
+type string
+- type a = (int * int);
+type a = (int*int)
+- type b = a;
+type a = (int*int)
+
+There is a bug involving constructor representation.  The compiler
+examines the structure of a datatype and tries to determine an efficient
+runtime representation for it.  For example, for the list datatype, nil
+can be represented as an integer, and :: can just be a pointer to its
+tuple argument (integers and tuples are distinct).  This fails in our system
+at the structure level.  For example:
+signature S = sig
+    type 'a t
+    datatype 'a list = nil | :: of 'a t
+end
+structure A : S = struct
+    datatype 'a list = nil | :: of 'a t
+    withtype 'a t = 'a * 'a list
+end
+Here the compiler can deduce the efficient representation for the
+(local) list datatype in structure A; but this cannot be deduced in
+the signature S (an object of type 'a t might not be a pointer).
+
+In the interactive mode, parser error recovery should be suppressed
+(but isn't); the parser may continue to look for input after an error,
+when the user would expect to be back at top level.
+
+The behavior of the system when it reaches limits is sometimes bizarre.
+For instance, on a Sun, if the system runs out of stack space it
+will die with "Illegal instruction".  This is because the signal can't
+be handled since the stack is full.  A possible fix would be to use a
+separate stack to handle signals, but the handler would have to be
+smart, since SIGSEGV would be raised.  Note that the stack limit can
+be changed with the limit command; and hopefully this particular bug will
+disappear with the next version of the code generator.
+
+Top level bindings should not report on exhaustiveness, but they do.
+
+Poor error message (parens are needed around the hd::tl pattern):
+- fun f hd::tl = 4;
+Error: expected EQUAL, found ID (::)
+Error: nonfix-identifier expected
+Error: unbound variable bogus
+Error: type error: operator and operand don't agree
+operator : ((??*?? list) -> ?? list)
+operand : (??*('x1911A list -> 'x1911A list))
+expression:
+  bogus :: tl
+- 
+The "unbound variable bogus" in particular is confusing.
+
+(* This actually only occurs on the sun, and the number is denormalized. *)
+-          8.69169476570297E~309;	(* inaccurate real; *)
+> val it = 8.69169476570301E~309 : real
+-          8.69169476570301E~309;	(* possibly a printing error? *)
+> val it = 8.69169476570305E~309 : real
+
+==============================================================================
+Notes: (dbm)
+
+Bad error messages
+
+* message for circular type unification, as in "fun f x = f;"
+
+
+Bugs
+
+* no checking for duplicated specifications in signatures.  this should be done
+  when building the signature symbol table
+
+Optimizations and simplifications
+
+* stupid expansion of simple function definitions into case form (FUNdec
+  in Absyn).  E.g.
+
+    fun f x = x  ==>
+    val rec f = fn arg => case arg of x => x
+
+* fix type abbreviations so that in simple cases the name is bound to the
+  old type constructor (or a copy) rather than to type function.
+
+* string hashing primitive in Assembly
+
+
+Housekeeping
+
+* eliminate nonexhaustive/redundant matches
+
+* binding functions in EnvAccess are inconsistent in what they return.  Some
+  return unit, others the variable that is bound.

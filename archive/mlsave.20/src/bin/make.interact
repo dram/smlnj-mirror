@@ -1,0 +1,13 @@
+#!/bin/csh
+#
+# make an interactive ML
+# current directory should be $MLDIST/src (the ml source directory)
+# $1 = object file directory (e.g. $MLDIST/mo.m68 or $MLDIST/mo.vax)
+# $2 = main object file (IntM68 or IntVax)
+# $3 = name of interactive ml (e.g sml)
+#
+rm -f mo
+ln -s $1 mo
+runtime/run -g -h 5000 $2 >& diagnostics << input 
+exportML "$3";
+input

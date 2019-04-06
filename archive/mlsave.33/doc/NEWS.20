@@ -1,0 +1,113 @@
+New features of SML of NJ Version 0.20
+
+This file describes the most notable changes since version 0.18.  (Version 0.19
+was a local version that was not distributed.)
+
+1. Bugs
+
+Quite a few bugs have been fixed, mostly relating to type checking and modules.
+See src/doc/bugs for the remaining known bugs.  
+
+
+2. Reference types
+
+The typing of references and arrays is less restrictive.  For
+instance, the following is now permitted, whereas it used to cause an
+error message:
+
+   let val r = ref [] in r := [1]; !r end;
+
+Thus locally declared reference variables like r in this example do not
+need to be explicitly constrained to have a monotype.
+
+
+3. Equality types
+
+Equality types are now implemented.  Equality types are those
+"hereditarily concrete" types whose values admit structural equality.
+The implementation of equality types involves the new signature
+specification keyword "eqtype" indicating that the specified type
+constructor admits equality, and special equality type variables
+starting with double single quotes (e.g. ''a) that are restricted to
+range over equality types.  
+
+An equality type is one containing only type constructors that "support
+equality".  The following type constructors support equality:
+
+   int, string, real
+   
+   any datatype whose constuctor argument types are equality types
+   (disregarding parameter type variables)
+
+   record type constructors
+
+   type constructors from functor parameters that are specified as eqtypes
+
+In addition, any reference or array type is an equality type.
+
+Abstract type constructors, "->", and exn do not support equality.
+
+
+4. Include specifications in signatures
+
+Include specifications allow one to include the specifications of a previously
+defined signature in a new signature.  The syntax is 
+
+   include SIG
+
+where SIG is the name of a signature.  For example, given the declaration
+
+   signature AA =
+   sig 
+     type t
+     val x : t
+   end
+
+the declaration 
+
+   signature BB =
+   sig
+     include AA
+     val y : t -> int
+   end
+
+is equivalent to
+
+   signature BB =
+   sig
+     type t
+     val x : t
+     val y : t -> int
+   end
+
+
+5. Free identifiers in signatures and structures
+
+Structure definitions can now contain free identifiers of any sort
+(values, constructors, exceptions, types), not just free signatures,
+structures and functors.  Signature definitions can contain free
+structure and type identifiers, as well as free signature identifiers.
+
+
+6. Printing of signatures and structures
+
+Signatures defined at top level are printed.  Structures defined at
+top level have their signatures printed (currently in full -- in the
+future only the name of the signature will be printed if it has one).
+Printing of signatures can be turned off by setting the flag
+System.Control.Print.signatures to false.
+
+
+7. Memory management improvements
+
+The runtime system manages memory better.  The system automatically
+resizes the heap on startup and during collections, allowing the
+system to perform more gracefully on systems with limited memory.
+
+The behavior and type of the flag controlling gc messages has changed:
+
+  System.Control.Runtime.gcmessages: int ref
+    when 0, no messages are printed
+    when 1, only major collections are reported
+    when 2, major collections and heap resizings are reported
+    when 3, minor and major collections and heap resizings are reported

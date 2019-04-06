@@ -1,0 +1,43 @@
+==============================================================================
+Standard ML of New Jersey
+Version 0.22, 9 September 1988
+
+==============================================================================
+Changes  (appel)
+
+{runtime/*}
+1. Fixed exportFn
+2. Made it work on Sun Unix 4.0 (important thing here was to use
+    the "-D static " feature to the loader, or equivalently, "-n" to cc.
+ parse/parse.sml}
+
+{lex}
+Installed new automatically-generated lexer.
+lex/charbuff.sml and lex/lex.sml disappear,
+lex/ml.lex.sml and lex/hookup.sml are new.
+lex/ml.lex.sml is machine-generated from lex/ml.lex
+
+
+{parse,envaccess}
+Turned lots of fatal errors into non-fatal errors (condemns into complains).
+
+{intmap.sml}
+intmaps are now dynamically sized.
+
+{boot/perv.sml}
+There's now a function Timer.check_timer_gc which just returns garbage-collector
+time since the timer was started; check_timer still returns just non-gc time.
+
+Fixed bug L.52 in biginput.
+
+
+===============================================================================
+changes (duba)
+
+{lex,parse}
+Made INT, ID, etc. carry their own values, instead of having side-effects
+to get the values.
+
+{prim, vaxprim, m68prim, opt, etc.}
+The primops are now described by constructors of a datatype instead of by
+integers.

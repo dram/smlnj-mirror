@@ -1,0 +1,129 @@
+Installing Standard ML of New Jersey
+
+Standard ML of New Jersey runs on the following systems, subject to the
+noted restrictions:
+
+  Vaxes running 4.3BSD or 4.2BSD Unix, V9 Unix, or Ultrix:
+   The floating point functions will work only on Vaxes which support g_floats.
+
+  Sun3 workstations:
+   The floating point package will not work on Suns without the 68881 chip.
+   Sun users should place a line
+
+	unlimit stacksize
+
+   or, if this causes problems,
+
+   	limit stacksize <size>  (with size >> the default 2M)
+
+   in their .cshrc; large ml programs may overflow past the default
+   stack limit, resulting in a mysterious "illegal instruction" error.
+
+If you have trouble installing the system and send us a help request, please
+include the version of the compiler (check the definition of the "version"
+variable in src/boot/perv.sml if in doubt), machine and operating system, and
+a complete input/output script which shows the problem.  For garbage
+collection or memory problems, include the amount of memory on your machine.
+
+
+The compiler will run both interactively and in batch mode.  Batch mode is a
+temporary, insecure precursor of separate compilation which we have used to
+bootstrap the compiler.  Most users will want to use the interactive system,
+but a description of the batch system is provided in src/doc/BATCHINSTALL for
+those expert users who wish to modify the compiler, cross compile, or support
+a large program of their own.  The rest of this file will tell you how to
+install the standard, interactive version.
+
+
+The heap and garbage collection:
+
+ML provides automatic data management through a garbage-collected heap.
+Since the heap is used extensively, choice of heap size will have a
+significant impact on performance.  The compiler determines an efficient
+heap size automatically on startup, resizes the heap as the amount of
+data grows, and complains if it runs out of memory (the interactive system
+can be booted in approximately 3 megabytes).  The compiler reports
+major garbage collections and heap adjustment statistics by default.
+
+
+A note on NFS:
+
+In previous versions we had reports of problems building the compiler
+on remotely mounted NFS file systems.  We believe that this problem
+is now fixed.
+
+
+The Standard ML distribution comes as a directory mldist; the following
+instructions assume that mldist is the current directory.
+
+To make an interactive system:
+
+1. Go to the src subdirectory of mldist:
+	cd src
+
+2. Make the appropriate interactive compiler:
+	maker sun bsd share	(for Sun3 workstations)
+   OR   maker vax bsd share	(for Vaxes running 4.3 BSD)
+   OR   maker vax ultrix share	(for Vaxes running Ultrix or 4.2 BSD)
+   OR   maker vax v9 share	(for Vaxes running V9 Unix)
+
+   Messages indicating that the compiler is loading, running, and compiling
+   the pervasive environment will appear; after the compiler is completely
+   loaded, it will be saved to a file "sml", and the make command will
+   exit.  sml should be installed in an appropriate bin directory on
+   your machine.  NOTE: Make sure that the directories src and src/runtime 
+   are writable by the user running the maker script.
+
+The interactive system can be started by executing the file "sml".  The
+system will start up by printing a version message, then the top-level
+prompt "-", indicating that you can now start typing at the interactive
+system.
+
+
+New in this version:
+
+Notice that the command to build the system has changed (see 2. above)
+relative to Version 0.20.  The maker shell script in the src directory
+takes four arguments, the first three of which are mandatory.  The
+arguments and the currently supported options are as follows:
+
+(1) the target machine:
+
+  sun	 - Sun 3 workstations using the MC68020 processor
+  vax	 - Vaxes supporting g_floats
+
+(2) the operating system of the target machine:
+
+  bsd    - 4.2BSD and 4.3BSD and SunOS 3.n or 4.0
+  ultrix - DEC Ultrix on the Vax
+  v9     - the local Bell Labs Unix variant
+
+(3) a flag specifying whether "sml" should be built with a sharable compiler:
+
+  share    -  make the compiler sharable
+  noshare  -  minimize the size of the runtime system (for exportFn)
+
+The "share" option causes "sml" to be built with the compiler object
+code read-only and sharable (in the Unix text segment of the runtime
+system, runtime/run).  This should help on systems where several people
+are running sml at once, and also improves garbage-collector
+performance.
+
+However, this causes a problem with "exportFn"; the executable image
+exported from a sharable compiler will always include the compiler
+object code and thus be considerably larger than necessary.  So when
+you are planning to create an image using exportFn you should use an
+old-style sml with the compiler object code loaded in the heap.  The
+"noshare" option creates such an sml.
+
+(4) code generator:
+
+  cps     - the experimental cps-style code generator (vax only)
+  <null>  - the old code generator
+
+The default, when no fourth argument is provided, is the old code
+generator.  The option "cps" causes the new CPS style code generator
+to be used.  This option is currently only available on the Vax.  The
+new code generator is still experimental and under continuing
+development.  It generates faster code at the expense of slower
+compilation.

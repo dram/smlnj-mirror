@@ -1,0 +1,565 @@
+\chapter{The standard library}
+\label{library}
+
+A standard set of values, types, exceptions, etc. are {\em
+pervasive}---they are in the initial environment and available in
+every structure.  This {\em standard library} is grouped into
+structures; each structure deals with the operations on one or two
+abstract types.  The signature of each of these modules, with an
+informal explanation of the semantics, is given in this chapter.
+
+\begin{verbatim}
+signature GENERAL =
+  sig
+    infix 3 o
+    infix before
+    exception Bind
+    exception Match
+    exception Interrupt
+    val o : ('b -> 'c) * ('a -> 'b) -> ('a -> 'c)
+    val before : ('a * 'b) -> 'a
+    val system : string -> unit
+    val cd : string -> unit
+    exception Equal
+    datatype 'a option = NONE | SOME of 'a
+    type exn
+    type unit
+  end
+
+abstraction General : GENERAL
+\end{verbatim}
+The structure \verb"General" contains various miscellaneous and
+general-purpose values, types, and exceptions.  The type \verb"exn"
+is the type of all exceptions.
+
+\section{List}
+\begin{verbatim}
+signature LIST =
+  sig
+    infixr 5 :: @
+    datatype 'a list = :: of ('a * 'a list) | nil
+    exception Hd
+    exception Tl
+    exception Nth
+    val hd : 'a list -> 'a
+    val tl : 'a list -> 'a list 
+    val null : 'a list -> bool 
+    val length : 'a list -> int 
+    val @ : 'a list * 'a list -> 'a list
+    val rev : 'a list -> 'a list 
+    val map :  ('a -> 'b) -> 'a list -> 'b list
+    val fold : (('a * 'b) -> 'b) -> 'a list -> 'b -> 'b
+    val revfold : (('a * 'b) -> 'b) -> 'a list -> 'b -> 'b
+    val app : ('a -> 'b) -> 'a list -> unit
+    val revapp : ('a -> 'b) -> 'a list -> unit
+    val nth : 'a list * int -> 'a 
+    val exists : ('a -> bool) -> 'a list -> bool
+  end
+\end{verbatim}
+The semantics of this module are defined by the
+following implementation.
+\begin{verbatim}
+abstraction List: LIST =
+  struct
+    infixr 5 :: @ 
+    infix 6 + -
+    datatype 'a list = :: of ('a * 'a list) | nil
+    exception Hd
+    fun hd (a::r) = a | hd nil = raise Hd
+    exception Tl
+    fun tl (a::r) = r | tl nil = raise Tl    
+    fun null nil = true | null _ = false
+    fun length nil = 0 | length (a::r) = 1 + length r
+    fun op @ (nil,l) = l | op @ (a::r, l) = a :: (r@l)
+    fun rev l = let fun f (nil, h) = h 
+                      | f (a::r, h) = f(r, a::h)
+                in  f(l,nil)
+                end
+    fun map f = let fun m nil = nil | m (a::r) = f a :: m r
+                in  m
+                end
+    fun fold f = let fun f2 nil = (fn b => b)
+                       | f2 (e::r) = (fn b => f(e,(f2 r b)))
+                 in  f2
+                 end
+    fun revfold f l = fold f (rev l)
+    fun app f l = (map f l; ())
+    fun revapp f l = app f (rev l)
+    exception Nth
+    fun nth(e::r,0) = e 
+      | nth(e::r,n) = nth(r,n-1)
+      | nth _ = raise Nth
+    fun exists f =
+          let fun g nil = false | g (h::t) = f h orelse g t
+          in  g
+          end
+  end
+\end{verbatim}
+\section{Array}
+\begin{verbatim}
+signature ARRAY =
+  sig
+    infix 3 sub
+    type 'a array
+    exception Subscript
+    val array : int * '1a -> '1a array
+    val sub : 'a array * int -> 'a
+    val update : 'a array * int * 'a -> unit
+    val length : 'a array -> int
+    val arrayoflist : 'a list -> 'a array
+  end
+\end{verbatim}
+Arrays may be made whose elements are any type.  \verb"array(n,x)"
+returns a new array of $n$ elements, indexed from $0$ to $n-1$,
+initialized to $x$.  \verb"a sub i" returns the $i^{th}$ element of
+the array $a$.  \verb"update(a,i,z)" sets the $i^{th}$ element of the
+array $a$ to the value $z$.
+
+Two arrays are equal if and only if they are the same array (created
+with the same call to \verb"array"); except that all arrays of length
+0 may be equal to each other, depending on the implementation.
+
+The following implementation defines the semantics of arrays, though
+in practice arrays are implemented much more efficiently.
+\begin{verbatim}
+abstraction Array : ARRAY =
+  struct
+   type 'a array = 'a ref list
+   exception Subscript
+   fun array(0,x) = nil | array(n,x) = ref x :: array(n-1,x)
+   fun a sub i = !(nth(a,i)) handle Nth => raise Subscript
+   fun update(a,i,z) = nth(a,i) := z handle Nth => raise Subscript
+   fun length a = List.length a
+   fun arrayoflist l = l
+  end
+\end{verbatim}
+\section{Input/Output}
+The input/output primitives are intended as a simple basis that may
+be compatibly superseded by a more comprehensive I/O system that
+provides for streams of arbitrary type or a richer repertoire of I/O
+operations.  The IO structure contains all I/O primitives; this
+structure will in all implementation
+match (with thinning) the BASICIO signature provided
+below, but may contain other primitives as well.
+
+\begin{verbatim}
+signature BASICIO = 
+  sig
+    type instream 
+    type outstream
+    exception Io_failure of string
+    val std_in : instream
+    val std_out : outstream
+    val open_in : string -> instream
+    val open_out : string -> outstream
+    val close_in : instream -> unit
+    val close_out : outstream -> unit
+    val output : outstream -> string -> unit
+    val input : instream -> int -> string
+    val lookahead : instream -> string
+    val end_of_stream : instream -> bool
+  end
+
+\end{verbatim}
+The type \verb"instream" is the type of input streams and the type
+\verb"outstream" is the type of output streams.  The exception
+\verb"Io_failure" is used to represent all of the errors that may
+arise in the course of performing I/O.  The value associated with
+this exception is a string representing the type of failure.  In
+general, any I/O operation may fail if, for any reason, the host
+system is unable to perform the requested task.  The value associated
+with the exception should describe the type of failure, insofar as
+this is possible.
+
+The standard prelude binds \verb"std_in" to an instream and
+\verb"std_out" to an outstream.  For interactive ML processes, these
+are expected to be associated with the user's terminal.  However, an
+implementation that supports the connection of processes to streams
+may associate one process's \verb"std_in" to another's
+\verb"std_out".
+
+The \verb"open_in" and \verb"open_out" primitives are used to
+associate a disk file with a stream.  The expression
+\verb"open_in(s)" creates a new instream whose producer is the file
+named \verb"s" and returns that stream as a value.
+Similarly, \verb"open_out(s)" creates a new \verb"outstream"
+associated with the file \verb"s", and returns that stream.
+
+The \verb"input" primitive is used to read characters from a stream.
+Evaluation of \verb"input s n" causes the removal of \verb"n"
+characters from the input stream \verb"s".  If fewer than \verb"n"
+characters are currently available, then the ML system will block
+until they become available from the producer associated with
+\verb"s"\footnote{The exact definition of ``available'' is
+implementation-dependent.  For instance, operating systems typically
+buffer terminal input on a line-by-line basis so that no characters
+are available until an entire line has been typed.}.
+If the end of stream is reached while processing an \verb"input",
+fewer than \verb"n" characters may be returned.  
+Attempting \verb"input" from a closed stream raises
+\verb"Io_failure".
+
+The function \verb"lookahead(s)" returns the next character on
+\verb"instream s" without removing it from the stream.  Input streams
+are terminated by the \verb"close_in" operation.  This primitive is
+provided primarily for symmetry and to support the re-use of
+unused streams on resource-limited systems.  The end of an input
+stream is detected by \verb"end_of_stream", a derived form that is
+defined as follows:
+\begin{verbatim}
+fun end_of_stream(s) = (lookahead(s)="")
+\end{verbatim}
+
+Characters are written to an \verb"outstream" with the \verb"output"
+primitive.  The string argument consists of the characters to be
+written to the given outstream.  The function \verb"close_out" is
+used to terminate an output stream.  Any further attempts to output
+to a closed stream cause \verb"Io_failure" to be raised.
+
+\begin{verbatim}
+(* Extended IO *)
+    structure BasicIO : BASICIO
+    val execute : string -> BasicIO.instream * BasicIO.outstream
+    val flush_out : BasicIO.outstream -> unit
+    val can_input : BasicIO.instream * int -> bool
+    val input_line : BasicIO.instream -> string
+    val open_append : string -> BasicIO.outstream
+    val is_term_in : BasicIO.instream -> bool
+    val is_term_out : BasicIO.outstream -> bool
+\end{verbatim}
+
+In addition to the basic I/O primitives, provision is made for some
+extensions that are likely to be provided by many implementations.
+The functions listed above are provided by Standard ML of New Jersey.
+
+The function \verb"execute" is used to create a pair of streams, one an
+\verb"instream" and one an \verb"outstream", and associate them with
+a process.  The string argument to \verb"execute" is the
+operating-system command that starts the process.
+
+The function \verb"flush_out" ensures that the consumer associated
+with an \verb"out_stream" has received all of the characters
+associated with that stream.  It is provided primarily to allow the
+ML user to circumvent undesirable buffering characteristics that may
+arise in connection with terminals and other processes.  All output
+streams are flushed when they are closed, and in many implementations
+an output stream is flushed whenever a newline character is written
+if that stream is connected to a terminal.
+
+The function \verb"can_input" returns the number of characters
+which may be read from its instream argument without blocking.
+For instance, a command processor may wish
+to test whether or not a user has typed ahead in order to avoid an
+unnecessary prompt.  The exact definition of ``currently available''
+is implementation specific, perhaps depending on such things as the
+processing mode of a terminal.
+
+The \verb"input_line" primitive returns a string consisting of the
+characters from an \verb"instream" up through, and including, the
+next end of line character.  If the end of stream is reached without
+reaching an end of line character, all remaining characters from the
+stream ({\em without} an end of line character) are returned.
+
+Files may be open for output while preserving their contents by using
+the \verb"open_append" primitive.  Subsequent \verb"output" to the
+outstream returned by this primitive is appended to the contents of
+the specified file.
+
+Basic support for the complexities of terminal I/O are provided.  The
+pair of functions \verb"is_term_in" and \verb"is_term_out" test
+whether or not a stream is associated with a terminal.  These
+functions are especially useful with \verb"std_in" and \verb"std_out"
+because they are opened as part of the standard prelude.  A terminal
+may be associated with a stream using the ordinary \verb"open_in" and
+\verb"open_out" functions; the naming convention to do this is
+implementation-dependent.  Terminal I/O is, in general, more complex
+than ordinary file I/O.   In most cases the \verb"ExtendedIO" module
+provided by an implementation will have additional operations to
+support mode control.  Since the details of such control operations
+are highly host-dependent, the functions that may be provided are
+left unspecified.
+\section{Bool}
+\begin{verbatim}
+signature BOOL =
+  sig
+    datatype bool = true | false
+    val not: bool -> bool
+    val print: bool -> bool
+    val makestring: bool -> string
+  end
+\end{verbatim}
+These are quite straightforward, and can be defined as follows:
+\begin{verbatim}
+abstraction Bool: BOOL =
+  struct
+    datatype bool = true | false
+    fun not true = false | not false = true
+    fun makestring true = "true" | makestring false = "false"
+    fun print b = (output(std_out, makestring b); b)
+  end
+\end{verbatim}
+\section{ByteArray}
+\begin{verbatim}
+signature BYTEARRAY =
+  sig
+    infix 3 sub
+    type bytearray
+    exception Subscript
+    exception Range
+    val array : int * int -> bytearray
+    val sub : bytearray * int -> int
+    val update : bytearray * int * int -> unit
+    val length : bytearray -> int
+    val extract : bytearray * int * int -> string
+    val fold : ((int * 'b) -> 'b) -> bytearray -> 'b -> 'b
+    val revfold : ((int * 'b) -> 'b) -> bytearray -> 'b -> 'b
+    val app : (int -> 'a) -> bytearray -> unit
+    val revapp : (int -> 'b) -> bytearray -> unit
+  end
+\end{verbatim}
+Byte arrays are just like arrays of integers, with the restriction
+that the values of the component integers must be between 0 and 255.
+The intent is that the implementation may store them more efficiently
+than the equivalent array.
+
+Note that, by default, the ByteArray structure is present but 
+not opened in the 
+initial environment.  The declaration \verb"open ByteArray" may be
+used to open it.
+
+Their semantics can be defined by this implementation:
+\begin{verbatim}
+abstraction ByteArray : BYTEARRAY =
+  struct
+    infix 3 sub
+    type bytearray = int array
+    exception Subscript = Array.Subscript
+    exception Range
+    fun check x = if x<0 orelse x>255 then raise Range else ()
+    fun array(i,x) = (check x; Array.array(i,x))
+    val length = Array.length
+    fun update(a,i,x) = (check x; Array.update(a,i,x))
+    val op sub = Array.sub
+    fun extract(b,i,0) = if i<0 orelse i>length(b)
+                          then raise Subscript  else ""
+      | extract(b,i,n) = chr(b sub i) ^ extract(b,i,n-1)
+    val fold =  . . .
+    val revfold =  . . .
+    val app = ...
+    val revapp = ...
+  end
+\end{verbatim}
+
+\section{Integer}
+\begin{verbatim}
+signature INTEGER = 
+  sig
+    infix 7 * div mod
+    infix 6 + -
+    infix 4 > < >= <=
+    exception Div
+    exception Mod
+    exception Overflow
+    type int
+    val ~ : int -> int
+    val * : int * int -> int
+    val div : int * int -> int
+    val mod : int * int -> int
+    val + : int * int -> int
+    val - : int * int -> int
+    val >  : int * int -> bool
+    val >= : int * int -> bool
+    val <  : int * int -> bool
+    val <= : int * int -> bool
+    val min : int * int -> int
+    val max : int * int -> int
+    val abs : int -> int
+    val print : int -> int
+    val makestring : int -> string
+  end
+\end{verbatim}
+This should be mostly self-explanatory.
+The function \verb"div" raises \verb"Div" on divide by zero,
+otherwise \verb"Overflow" if the result doesn't fit;  similarly
+\verb"mod" may raise \verb"Mod" or \verb"Overflow".  Other operators
+may raise \verb"Overflow" if the result doesn't fit into their
+representation.  Implementations
+may use infinite-precision integers, in which case \verb"Overflow"
+won't be raised.  Finite precision implementations should allow
+integers of at least 30 bits.  The author recommends that
+infinite-precision be added as a separate package.
+\section{Real}
+\begin{verbatim}
+signature REAL =
+  sig
+    infix 7 * /
+    infix 6 + -
+    infix 4 > < >= <=
+    type real
+    exception Floor and Sqrt and Exp and Ln
+    exception Float of string
+    val ~ : real -> real 
+    val + : (real * real) -> real 
+    val - : (real * real) -> real 
+    val * : (real * real) -> real 
+    val / : (real * real) -> real 
+    val > : (real * real) -> bool
+    val < : (real * real) -> bool
+    val >= : (real * real) -> bool
+    val <= : (real * real) -> bool
+    val abs : real ->  real
+    val real : int -> real
+    val floor : real -> int
+    val sqrt : real -> real
+    val sin : real -> real
+    val cos : real -> real
+    val arctan : real -> real
+    val exp : real -> real
+    val ln : real -> real
+    val print : real -> real
+    val makestring : real -> string
+  end
+\end{verbatim}
+\section{Ref}
+\begin{verbatim}
+signature REF = 
+  sig
+    infix 3 :=
+    val ! : 'a ref -> 'a
+    val := : 'a ref * 'a -> unit
+    val inc : int ref -> unit
+    val dec : int ref -> unit
+  end
+\end{verbatim}
+
+\begin{verbatim}
+abstraction Ref : REF = 
+  struct
+    fun ! (ref x) = x
+    val := (* not explainable in terms of other primitives *)
+    fun inc (x as ref i) = x := i+1
+    fun dec (x as ref i) = x := i-1
+  end
+\end{verbatim}
+\section{String}
+\begin{verbatim}
+signature STRING =
+  sig
+    infix 6 ^
+    infix 4 > < >= <=
+    type string
+    exception Substring
+    val length : string -> int
+    val size : string -> int
+    val substring : string * int * int -> string
+    val explode : string -> string list
+    val implode : string list -> string
+    val <= : string * string -> bool
+    val <  : string * string -> bool
+    val >= : string * string -> bool
+    val >  : string * string -> bool
+    val ^  : string * string -> string
+    exception Chr
+    val chr : int -> string 
+    exception Ord
+    val ord : string -> int 
+    val ordof : string * int -> int 
+    val print : string -> string
+  end
+\end{verbatim}
+Strings can be explained by the implementation below; though in
+practice a more efficient implementation will often be used.
+\begin{verbatim}
+abstraction String : STRING =
+  struct
+    infix 6 ^
+    infix 4 > < >= <=
+    type string = int list
+    exception Substring
+    val length = List.length
+    val size = length
+    fun substring(s,0,0) = nil
+      | substring(a::b,0,len) = a::substring(b,0,len-1)
+      | substring(nil,_,_) = raise Substring
+      | substring(a::b,i,len) = substring(b,i-1,len)
+    fun explode nil = nil
+      | explode (i::l) = [i] :: explode l
+    fun implode nil = nil
+      | implode (s::l) = s @ implode l
+    fun (_::_) > nil = true
+      | nil > (_::_) = false
+      | (i::r) > (j::s) = Integer.>(i,j) orelse i=j andalso r>s
+    fun a <= b = not (a>b)
+    fun a < b = b > a
+    fun a >= b = b <= a
+    val op ^ = op @
+    exception Chr
+    fun chr i = if i<0 orelse i>255 then raise Chr else [i]
+    exception Ord
+    fun ord nil = raise Ord | ord (i::r) = i
+    fun ordof(s,i) = nth s handle Nth => raise Ord
+    fun print s = (output(std_out,s); s)
+  end
+\end{verbatim}
+\section{Pervasives}
+\begin{verbatim}
+signature PERVASIVES =
+  sig
+    structure Ref : REF
+    structure List : LIST
+    structure Array : ARRAY
+    structure ByteArray : BYTEARRAY
+    structure IO : IO
+    structure Bool : BOOL
+    structure String : STRING
+    structure Integer : INTEGER
+    structure Real : REAL
+    structure General : GENERAL
+  end
+\end{verbatim}
+A module \verb"Pervasives", matching this signature, is defined.  The
+initial environment contains this structure, which has been
+recursively ``\verb"open"ed,'' so that (for example) \verb"nil" may
+be referred to as \verb"nil", \verb"List.nil", or
+\verb"Pervasives.List.nil".
+
+\section{Extensions}
+\begin{verbatim}
+signature Extensions =
+  sig
+        val use : string -> unit
+        val exportML : string -> bool
+        val exportFn : string * (string list * string list -> unit) -> unit
+        val exn_name : exn -> string
+  end
+\end{verbatim}
+The extensions to the standard may vary from implementation to
+implementation.  These are a suggested few.
+\begin{description}
+\item[\verb"use"]  Given a name of a file, \verb"use" compiles
+and executes its contents as if they were typed into the top-level
+prompt of the interactive system.  \verb"use" may be nested
+recursively.
+
+\item[\verb"exportML"]  Creates an executable file whose name is
+given by the argument.  When this file is executed, it is an ML
+system in exactly the same state as the one that wrote the file.  For
+example, the command
+\verb|(exportML "foo"; print "Hello");| writes a file that, when
+executed, prints \verb"Hello" and then returns to the top-level
+prompt.  exportML returns true when the executable file is run,
+and false when simply returning.
+
+\item[\verb"exportFn"]  Creates an executable file whose name is given
+by the first argument.  When this file is executed, it is an ML
+system that calls the function given as the second argument, then
+exits.  The ML system created will not have a compiler or a
+top-level, so it will be significantly more compact.
+The command-line arguments and environment
+are passed as the string list arguments to the
+function that is called.   \verb"exportFn" may terminate
+execution of the ML system that called it.
+
+\item[\verb"exn\_name"]   Given an exception value as an argument,
+returns the name of the exception constructor used to create it.
+\end{description}

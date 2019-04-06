@@ -1,0 +1,301 @@
+==============================================================================
+Standard ML of New Jersey
+Version 0.18, 7 March 1988
+
+==============================================================================
+Changes: (tyj)
+
+{print/printval.sml}
+Fixed a bug in printing datatypes:
+- datatype foo = B | A of (int * int)
+datatype foo
+con A : ((int*int) -> foo)
+con B : foo
+- B;
+val it = A uncaught exception Boxity
+- 
+The problem was that the dcon list was sorted by name, but
+printval expected a TRANSPARENT dcon to be at the root.
+
+{runtime/run.c}
+Modified the signal setup so that SIGPIPE is ignored.  This
+means that writes on a one-ended pipe will raise SystemCall
+rather than raising a SIGPIPE signal, so the error can now
+be handled in ML.
+
+{boot/perv.sml}
+Made a few fixes so that SystemCall is handled better.  The
+strings raised with Io_failure are still a mess.
+
+{runtime/callgc.c}
+Minor change to findbreak so that the system produces an error message and
+dies if it tries to allocate more memory than is available.
+
+{boot/perv.sml}
+Minor fix in execute for bug E.49.  The problem was that a pipe
+in v9 creates two file descriptors, both of which can read and
+write to each other.  In BSD and Sun unix, this goes only one way.
+Changing
+	    val (w0,r1) = Assembly.pipe()
+to
+	    val (r1,w0) = Assembly.pipe()
+fixed the problem.
+
+{boot/perv.sml}
+Minor fixes to ByteArray fold and revapp (bug E.42).
+
+{build/invoke.sml}
+Minor fix so that an export in a use file will start up properly;
+before, it would die with Io_failure as it tried to 'use' the rest
+of the file, which is closed on startup.  Now Io_failure is still
+raised, but it puts you back at top level.
+
+{{vax/vax,m68/m68}prim.sml,env/prim.sml}
+Added a few bogus inlines so that new cps code will compile properly.
+Also had to increase the size of the internal inline arrays.
+
+{runtime/{run.c,M68.prim.s}}
+Fixed the problem with floating point on the Sun; now it is
+possible to build a system which works even on Suns without
+a 68881 chip (any attempt to use floating point will raise
+the exception Float "68881 not installed).  Still need to decide
+how to distribute it (with -f68881?), also need to document it,
+and possibly fix the vax so that it does something similar
+for g_floats.
+
+{vax/vax{ascode.sml,mcode.sml,coder.sig}}
+Added a couple of opcodes for the new code generator.
+
+{basics/access.{sig,sml}}
+Added dupLvar, which makes a new lvar with the same name as the old.
+
+{env/env.sml,util/errormsg.sml}
+Curried flaggedmsg.
+
+{runtime/{makefile.*,{VAX,M68}.prim.s}
+Added a check for calls of create_s and create_b with 0 length.  It
+is only compiled with the GCDEBUG option.  This particular bug has
+caused me plenty of grief in the past, and this should prevent it
+in the future.
+
+{build/invoke.sml}
+Modified use so that it prints an error message if it cannot open
+a file and then raises Io_failure.
+
+{boot/{system.sig,perv.sml}}
+Added a field "version" to structure System, which gives the version
+number and its date.
+
+{boot/{system.sig,perv.sig,perv.sml}}
+Moved the SystemCall exception to General; system and cd are the
+only functions which can raise it, and they are in General.  Final
+placement of the three is undecided.
+
+{boot/perv.sml}
+Slight improvement on the regularity of error strings in Io_failure;
+now the strings are of the form "function: error".  Io_failure is likely
+to change in the future.
+
+{lex/lex.sml}
+Modified error recovery to use can_input better and avoid an infinite
+loop in v9.
+
+{parse/parse.sml,env/envaccess.sml}
+Took out the checks for capitalization convention on in rules and
+exception names.  This is more consistent, since we didn't do
+a complete job of enforcing the convention, and it would be difficult
+to do so.  The code remains but is commented out; all relevant
+places are marked with a comment including the string "Capitalization
+convention".
+
+{util/errormsg.sml}
+Changed flaggedmsg a bit: it used to check both debugging and its
+flag argument; now it checks only its flag argument.
+
+(Added 3/16)
+{runtime/{M68,VAX}.prim.s,boot/perv.sml}
+Fix for execute.  Previously there was a handle SystemCall around the
+Assembly.fork() in execute; this died on the sun since the sun uses
+vfork and the handler pops the stack on exit.  Now fork never raises
+SystemCall; instead it returns ~1 on error, and execute must check
+for this.
+
+{runtime/export.c}
+Added a check on the writes of the export, suggested by Nick.  Apparently
+under NFS the write may be partial and you should keep trying.
+
+{codegen/opt.sml}
+Used dupLvar instead of mkLvar in mapfree to preserve variable names.
+
+==============================================================================
+Changes: (dbm)
+
+{basics/{basics,basictypes,typesutil,printtype}.sml,env/envaccess.sml,
+ typing/sigmatch.sml,parse/parse.sml,translate/equal.sml}
+Added path component to tycon and str representations (replacing name, home
+fields).  The path component is a symbolic path that can be used to name the
+type constructor or structure.  It is propagated during parsing of declarations.
+The path component of tycon is used by PrintType.printTycon to print the 
+shortest name designating the tycon relative the current top-level environment.
+The path component of structures is not currently used but was included for
+potential use in debugging.
+
+{basics/printtype.sml,typing/typecheck.sml}
+Simplified the printing of types by (1) using capitalized tyvars to represent
+meta tyvars, and (2) taking account of precedence relations between ->, *,
+and postfixed constructors to reduce the number of parentheses used in printing
+types.  Also streamlined and improved the error messages for some type errors.
+The Unify exception now carries a string indicating the mode of failure of
+unification, and this is included in the error message.
+
+{basics/basics.*,basics/typesutil.sml,env/envaccess.sml,parse/parse.sml}
+Added arity checking during parsing of type terms, *except* within signatures.
+
+{parse/parse.sml}
+Added checking and improved analysis of errors in parsing of record types and
+expressions (function labels in Parse).  Nonpositive numeric labels are detected.
+Numeric fields may not use abbreviation in patterns.  Anomalous conditions in
+record types (like {a=int...}) are handled better.
+
+{envaccess.sml}
+Fix for bug E.39, which resulted from not detecting and following instantiated
+type variables.
+
+{parse/parse.sml}
+Fixed unreported bug that occurred in declarations like "structure S:SS = F(...)".
+The signature matching against SS was incompletely implemented. (function str
+of Parse).
+
+{envaccess.sml}
+Changed definition of unboundVAR so that an unbound variable x gets bound
+to a variable named x? with METAARG tyvar as type (rather than ERRORty).
+
+{runtime/makefile.*}
+Changed the name of the runtime program from "nml" to "run".
+
+==============================================================================
+To do:
+
+* Work on the manual.  ML stuff and SML of New Jersey oddities.
+* Floating point: accuracy/printing bug; use Sun assembly math functor to
+  test accuracy of ml version; send mail to Berkeley; finalize floating
+  exceptions, list all possibilities, and write up justification;
+  fix arctan to accept proper range.
+* Unify the batch and interactive systems by functorizing the symbol table.
+* Examine div and mod to make sure that they match the standard.
+* Check that the assembly version assembles properly.
+* Make command-line args and the environment accessible in the interactive
+  system.  Currently they are available only to exportFn'd functions.  A
+  similar arrangement is possible for exportML and normal startup,
+  but it is not as easily accomplished, because the stack must be preserved
+  in those cases.  The solution would be to purge the stack of the
+  environment & command-line arguments, storing them higher on the stack
+  temporarily, restoring the stack (if starting up an exportML),
+  then putting the command-line args and environment into the heap in ML format.
+  It looks like this change, or something like it, is necessary; right now,
+  when an exportML starts up, it restores the stack to the state before
+  the exportML; in particular, the environment becomes the environment of the
+  person who made the original image.  This comes into play on system and
+  execute.  The ideal arrangement would be that the person invoking
+  exportML get his own environment.  This would change exportFn too, since
+  it currently deletes the environment from the stack.  Handlers, which are
+  absolute pointers into the stack, seem to be the major stumbling block.
+* Better control of heapsize seems necessary.  For example, on an
+  exportFn the resulting image rarely needs a heapsize like that of
+  the entire compiler.  It would be best if the heapsize could be
+  adjusted dynamically from ML.  Most likely this would be done by
+  forcing a major collection and readjusting the arenasize, etc.,
+  parameters in callgc.
+* Fix simplegc so that export works.
+* Add a 90% criterion for doubling to the generational garbage collector.
+* Get rid of the GCPROFILE flag, and put in an ML flag like gcmessages.
+  Maybe make a function the user can call to dump the summary.
+* Construct an interface for all the profiling data.  This would be useful
+  if some code were compiled with profiling on; other code could call
+  profiled code and then print out profiling information.  Instead of
+  having the profiling info printed out by C code, it should be done in
+  ML.  Almost everything is there to do this now.
+* See how much difference the trapv flag makes.
+* Make some form of Machine which spits out debugging info for the assembly
+  version (path, tail, etc.).
+* Possibly make a Unix structure and put all the system calls there; this
+  would allow the user to fork, for example, or do raw i/o.
+* Provide a way to exit with return value, as in Unix; this would be most useful
+  for exportFn'd functions.
+* Resolve the globalhandle/dumpCore redundancy.
+* Maybe testcase_string should be changed.  Right now an equality function
+  is generated for each case.
+* Allow patterns of multiple left-hand sides with a single result:
+       fn (i as 1|2|3|4|5) => ...
+       fn (VAR v|FN(v,_)) => ...     (* some type-checking is needed *)
+* Squash together CONpat and APPpat.
+
+==============================================================================
+Notes: (tyj)
+
+can_input seems to cause compatibility problems; FIONREAD is not the
+same on different Unix's.  For instance, in v9 it currently returns
+the length of a file (and operates differently on streams).  For a while
+this caused an infinite loop bug when input was redirected to sml
+from a file; it has been temporarily hacked over. FIONREAD does
+not work on files at all on HP/UX, which is at least consistent with
+the manual.
+
+There is a hole in ML exception handling caused by interrupt.
+Interrupts can occur while the system is handling another
+exception, so repeated interrupts can always escape, no
+matter how many nested handles are provided.  One fix might
+be to turn off interrupt as it is raised, and allow the user
+to turn it on again.
+
+Exceptions do not print by name/value; only "-".  This cannot be fixed
+ unless the runtime representation of exceptions is changed to include
+ type information.  This could be done by changing the representation
+ from a ref to a string to a ref to a string*int, where the int would
+ be a type mapping.  Unfortunately, this doesn't handle polymorphic
+ exceptions well.
+Also, a declaration "exception b = a" can be a bit deceiving; the runtime
+ name of b will be that of a.  Fixing this would also require a significant
+ change in the runtime format of exceptions.  The same problem arises
+ in the renaming of types, for example type j = int * int.
+What should the interactive system print when it catches an exception?  It
+ knows about some exceptions like Float and Io_failure, so it could
+ print their full values.  This would be confusing, though, since no
+ other exceptions would be printed in full; a user would think there
+ was something wrong with his exception when the name and not the value
+ was printed.  If the type mapping solution were implemented, what
+ should we do for polymorphic exceptions?
+
+Should the compiler force the capitalization convention for constructor names
+ as well as exception names?  Should it discourage all other capitalized values?
+ Right now it only complains if an exception is uncapitalized.  Maybe it
+ should complain if a capitalized variable is introduced in a pattern.
+
+The construct "val _ =" turns up all the time, so the match compiler has
+ been changed so that _ counts as a variable in a pattern (the "binding
+ contains no variables" message won't turn up).  It would be nice to unhack
+ this by providing a "do" declaration, since "val _"  isn't very intuitive.
+
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.  There doesn't seem to be a fix for
+ this.
+
+Timers are invalid across exports.
+
+Think about a cleaner machine interface.  Currently we have:
+		+---------+-------------------+
+		| Codegen |      Perv         |
+		+---------+--------+----------+
+		| Machine | Inline |          |
+		+---------+--------+ Assembly |
+		|       Coder      |          |
+		+------------------+----------+
+Possibly Assembly could be built on coder or machine.  There would be macros
+for system calls, etc.  This might make sense for register allocation.
+Also we would like to be able to handle machine dependencies better.  For
+example, some machines require software emulation of floats, others have
+hardware functions for sin, cos, etc.  Right now there is no clean way
+to do all of this at once, for some functions and not others, etc.
+
+==============================================================================

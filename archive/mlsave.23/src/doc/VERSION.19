@@ -1,0 +1,152 @@
+==============================================================================
+Standard ML of New Jersey
+Version 0.19, 19 April 1988
+
+==============================================================================
+Changes:
+
+{boot/perv.sml}
+Added Andrew's fix for things escaping from Initial--the Inside structure
+is now the only thing which escapes.
+
+{runtime/*}
+Merged in Andrew's automatic heapsize stuff.
+
+{print/printval.sml}
+Removed a case from a redundant match.
+
+{{vax/vax,m68/m68}{as,m}code.sml}
+More changes for the new code generator.
+
+{codegen/opt.sml}
+Andrew's fix for multiple reductions; closetop and closestr modified to
+introduce meaningful names.
+
+{util/errormsg.sml,Makefile}
+Changed "Impossible error" to "Compiler bug".
+Added make install for v9.
+
+{build/invoke.sml}
+Now when an unexpected Intmap is raised, the interactive and batch systems
+catch it and produce a "Compiler bug" message.
+
+{translate/mcopt.sml}
+Fixed a bug in the match optimizer which caused an uncaught exception
+on patterns like (1,v as (1,2)).  The problem was that the inner record
+should have been expanded immediately, but I forgot to recognize layered
+and constrained patterns.
+
+==============================================================================
+To do:
+
+* Work on the manual.  ML stuff and SML of New Jersey oddities.
+* Floating point: accuracy/printing bug; use Sun assembly math functor to
+  test accuracy of ml version; send mail to Berkeley; finalize floating
+  exceptions, list all possibilities, and write up justification;
+  fix arctan to accept proper range.
+* Unify the batch and interactive systems by functorizing the symbol table.
+* Examine div and mod to make sure that they match the standard.
+* Check that the assembly version assembles properly.
+* Make command-line args and the environment accessible in the interactive
+  system.  Currently they are available only to exportFn'd functions.  A
+  similar arrangement is possible for exportML and normal startup,
+  but it is not as easily accomplished, because the stack must be preserved
+  in those cases.  The solution would be to purge the stack of the
+  environment & command-line arguments, storing them higher on the stack
+  temporarily, restoring the stack (if starting up an exportML),
+  then putting the command-line args and environment into the heap in ML format.
+  It looks like this change, or something like it, is necessary; right now,
+  when an exportML starts up, it restores the stack to the state before
+  the exportML; in particular, the environment becomes the environment of the
+  person who made the original image.  This comes into play on system and
+  execute.  The ideal arrangement would be that the person invoking
+  exportML get his own environment.  This would change exportFn too, since
+  it currently deletes the environment from the stack.  Handlers, which are
+  absolute pointers into the stack, seem to be the major stumbling block.
+* Fix simplegc so that export works.
+* Get rid of the GCPROFILE flag, and put in an ML flag like gcmessages.
+  Maybe make a function the user can call to dump the summary.
+* Construct an interface for all the profiling data.  This would be useful
+  if some code were compiled with profiling on; other code could call
+  profiled code and then print out profiling information.  Instead of
+  having the profiling info printed out by C code, it should be done in
+  ML.  Almost everything is there to do this now.
+* See how much difference the trapv flag makes.
+* Make some form of Machine which spits out debugging info for the assembly
+  version (path, tail, etc.).
+* Possibly make a Unix structure and put all the system calls there; this
+  would allow the user to fork, for example, or do raw i/o.
+* Provide a way to exit with return value, as in Unix; this would be most useful
+  for exportFn'd functions.
+* Resolve the globalhandle/dumpCore redundancy.
+* Maybe testcase_string should be changed.  Right now an equality function
+  is generated for each case.
+* Allow patterns of multiple left-hand sides with a single result:
+       fn (i as 1|2|3|4|5) => ...
+       fn (VAR v|FN(v,_)) => ...     (* some type-checking is needed *)
+* Squash together CONpat and APPpat.
+
+==============================================================================
+Notes: (tyj)
+
+can_input seems to cause compatibility problems; FIONREAD is not the
+same on different Unix's.  For instance, in v9 it currently returns
+the length of a file (and operates differently on streams).  For a while
+this caused an infinite loop bug when input was redirected to sml
+from a file; it has been temporarily hacked over. FIONREAD does
+not work on files at all on HP/UX, which is at least consistent with
+the manual.
+
+There is a hole in ML exception handling caused by interrupt.
+Interrupts can occur while the system is handling another
+exception, so repeated interrupts can always escape, no
+matter how many nested handles are provided.  One fix might
+be to turn off interrupt as it is raised, and allow the user
+to turn it on again.
+
+Exceptions do not print by name/value; only "-".  This cannot be fixed
+ unless the runtime representation of exceptions is changed to include
+ type information.  This could be done by changing the representation
+ from a ref to a string to a ref to a string*int, where the int would
+ be a type mapping.  Unfortunately, this doesn't handle polymorphic
+ exceptions well.
+Also, a declaration "exception b = a" can be a bit deceiving; the runtime
+ name of b will be that of a.  Fixing this would also require a significant
+ change in the runtime format of exceptions.  The same problem arises
+ in the renaming of types, for example type j = int * int.
+What should the interactive system print when it catches an exception?  It
+ knows about some exceptions like Float and Io_failure, so it could
+ print their full values.  This would be confusing, though, since no
+ other exceptions would be printed in full; a user would think there
+ was something wrong with his exception when the name and not the value
+ was printed.  If the type mapping solution were implemented, what
+ should we do for polymorphic exceptions?
+
+The construct "val _ =" turns up all the time, so the match compiler has
+ been changed so that _ counts as a variable in a pattern (the "binding
+ contains no variables" message won't turn up).  It would be nice to unhack
+ this by providing a "do" declaration, since "val _"  isn't very intuitive.
+
+Printing of infixes is slightly hacked because of the way infix is
+ implemented; fixity is a lexical/syntactic property with scope rather than
+ a property of a dataconstructor/value.  There doesn't seem to be a fix for
+ this.
+
+Timers are invalid across exports.
+
+Think about a cleaner machine interface.  Currently we have:
+		+---------+-------------------+
+		| Codegen |      Perv         |
+		+---------+--------+----------+
+		| Machine | Inline |          |
+		+---------+--------+ Assembly |
+		|       Coder      |          |
+		+------------------+----------+
+Possibly Assembly could be built on coder or machine.  There would be macros
+for system calls, etc.  This might make sense for register allocation.
+Also we would like to be able to handle machine dependencies better.  For
+example, some machines require software emulation of floats, others have
+hardware functions for sin, cos, etc.  Right now there is no clean way
+to do all of this at once, for some functions and not others, etc.
+
+==============================================================================

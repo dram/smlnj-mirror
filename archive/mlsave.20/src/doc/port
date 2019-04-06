@@ -1,0 +1,157 @@
+Here are some quick notes I jotted down about our ML compiler.
+I'm afraid they aren't complete or even well organized.
+Not all of this information is relevant to porting the
+system, but the background is necessary to explain
+what is relevant.
+
+
+Run-time representations:
+Run-time data is divided into boxed and unboxed data.
+Unboxed data can be represented in one word of memory,
+while boxed data requires more than one word.  Boxed datatypes
+are thus represented by a pointer, while unboxed data
+have a lower bit of one.  All boxed data lives in the heap,
+and must contain information for the garbage collector.
+In our system, a piece of boxed data is a pointer to the
+second of a number of consecutive words in the heap.  The first
+word is a garbage collector tag or descriptor which specifies the
+number of words in the record and the type of the record.
+
+Integers, which are unboxed, must have a lower bit of one,
+and are contained in the upper 31 bits of a word.  A
+3 in ML becomes a 5 in at run time.
+
+An exception constructor is represented by a ref cell which
+points at a string (the constructor name).
+
+An applied exception constructor is represented as a record
+of the exception constructor and its argument.  Nullary
+exception constructors are represented as an exception
+constructor applied to unit.
+
+Datatypes have various representations.  In the general
+case, they are tagged variants--a record of a tag
+(an ML integer identifying the constructor) and the argument.
+But if there are a number of nullary constructors in the datatype,
+and only one other (which must be boxed), the nullary constructors
+are ML integers, while the other constructor is distinguished by its
+lower bit.  If all the constructors of the datatype are nullary,
+then they are all represented by ML integers (for example,
+unit is represented by 1; false and true by 1 and 3 respectively).
+
+A structure is a record containing its elements in alphabetical order,
+except that exceptions are placed before all other elements.
+
+Strings of length one are ML integers.
+Other strings are records containing character data.  They are
+padded by zero bytes to align them to word boundaries.
+
+Bytearrays are much like strings, padded records containing
+character data.
+
+
+A boxed datatype is just a record, but there are different
+types which differ only in the tag:
+* A normal record, which contains ML data (and therefore possibly
+  other records on which the garbage collector must recur).
+* An array or ref cell, which again contains ML data.
+* A string containing non-ML data, which may or may not have
+  low bits set.
+* A bytearray, which is like a string but has a different
+  tag for equality purposes.
+* A closure, which contains ML data, but which must be handled
+  specially by the garbage collector.
+The garbage collector can collect a piece of data (and recursively
+collect everything it depends upon) just by looking at its tag.
+In most cases, the tag is just before the word pointed at, but
+this is not always true:
+* A function is represented by a pointer into a closure.  If there
+  is only one function in the closure, it is the first word of the
+  record, and there is no problem.  But sometimes more than one function
+  is in the closure; such a function would be represented as a pointer
+  into the middle of the record.  When it looks for the tag, it will
+  find instead a pointer to code (for another function).  Therefore we
+  must be able to distinguish code pointers from actual tags, and so all
+  tags have a lower bit of 1.  Then if all the functions of a closure
+  are allocated at its beginning, the garbage collector can just scan
+  back from the original pointer until it finds the tag.
+* Some records are embedded in the middle of a code block.  These are
+  generally used by functions in the block, which rely on their
+  relative displacement with respect to the rest of the block.
+  Thus if such a record is reachable, the entire block must be collected
+  as one.  Such records are preceded by a special descriptor called a back
+  pointer, which is used to find the descriptor of the entire block.
+  Sometimes there will be a second descriptor, indicating the type of
+  the record itself (e.g. string); sometimes it is not needed (as for
+  functions, which can only be reached from closures).
+The tags are defined in runtime/tags.h.
+
+
+
+
+Bootup:
+Each module compiled by the batch system is generated into
+a .mo file--A.mo for a module named A, for example.
+The file is a sequence of code fragments, each preceeded
+by a back pointer, or pointer to the top of the entire
+block (back pointers are needed by the garbage collector).
+The actual ml structure or functor can be constructe with
+the code block itself and modules free in the block.
+The first function of the closure applied to unit returns
+a tuple of the free modules required (a string list) and a second
+function.  The second function applied to the list of free
+modules returns the module itself.  This bootup process can
+be studied in greater detail by examining boot/loader.sml,
+or by taking a quick look at the assembly output for a simple module.
+
+Several modules (PervFunc, Initial, Math, and Loader itself) must
+be loaded by hand.  This happens in runtime/run.c.
+
+The interactive system vs. the batch system:
+The lookup function in the interactive system.
+
+
+
+The standard library:
+Much of the standard library is defined in ML, in the
+files boot/perv.sml and boot/math.sml.
+However, some of the standard functions need make system
+calls, or communicate with the runtime system in some way.
+The structure Assembly provides these services, and is
+defined in runtime/VAX.prim.s.
+In addition, many functions need to access inline functions,
+and these are defined in an InLine structure, which is
+hand-patched into the environment before compilation of the
+standard library by the function bootEnv in build/invoke.sml
+(which relies on code in boot/prim.sml).
+
+One special field of Assembly, pstruct, is used for bootstrap purposes.
+When the interactive system is loaded in, PervFunc.mo
+has already been loaded, and we would like to use that copy
+rather than create a new one.  A pointer to the structure
+is stored in pstruct as Invoke causes the bootup, and it
+is bound to an lvar for use in the interactive system.
+pstruct is also needed by the garbage collector, in case a
+garbage collection occurs while Initial is being constructed
+during bootup.
+Loader needs pstruct so that it can apply PervFunc to those
+modules which need it.
+
+
+Code generation:
+The code generator is defined mainly in codegen/codegen.sml
+ and codegen/switcher.sml.  It uses a number of functions
+ of an abstract machine (whose signature can be found in
+ codegen/machine.sig).  There is no documentation on the
+ machine functions, other than their use in Codegen and
+ the existing implementations.
+Code is generated from a lambda-calculus based intermediate
+ form, defined in basics/lambda.sml.
+Inline functions are defined in vax/vaxprim.sml.  They
+ are represented in the lambda language by a select off
+ VAR 0.
+vax/vaxascode.sml and vax/vaxmcode.sml define functions which
+ implement machine instructions needed by a machine.  ascode
+ emits assembly code while mcode emits actual machine code.
+codegen/backpatch.sml is a simple assembler which resolves
+ label references and jumps emitted by mcode.

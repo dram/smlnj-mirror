@@ -1,0 +1,64 @@
+#!/bin/sh
+# shell script for creating Standard ML batch compiler, normally named "batch"
+
+IMAGE=batch
+
+case $1 in
+  m68 ) MACHINE=M68
+	CFL="-n -f68881"
+	case $2 in
+	  bsd ) DEFS="-DBSD -DSUN3"
+		MO=mo.m68
+		MOFILES=CompM68.mos
+		MODULE=CompM68 ;;
+	  * ) echo 'usage: second argument must be "bsd" for sun'
+	      exit ;;
+	esac ;;
+  vax )
+	MACHINE=VAX
+	CFL=
+	case $2 in
+	  bsd ) DEFS=-DBSD ;;
+	  ultrix ) DEFS="-DBSD -DULTRIX" ;;
+	  v9 ) DEFS=-DV9 ;;
+	  * ) echo 'usage: second argument must be "bsd", "ultrix", or "v9"'
+	      exit ;;
+	esac
+	MO=mo.vax
+	MOFILES=CompVax.mos
+	MODULE=CompVax ;;
+  * )
+	echo Standard ML of New Jersey
+	echo For installation instructions, see doc/INSTALL.
+	exit ;;
+esac
+
+echo "(cd runtime; rm -f run; make clean)"
+(cd runtime; rm -f run; make clean)
+
+echo rm -f mo
+rm -f mo
+
+echo ln -s ../$MO mo
+ln -s ../$MO mo
+
+case $3 in
+  share )
+    echo "(cd runtime; make linkdata)"
+    (cd runtime; make linkdata)
+
+    echo "runtime/linkdata [runtime/$MOFILES] > runtime/allmo.o"
+    runtime/linkdata `cat runtime/$MOFILES` > runtime/allmo.o ;;
+  noshare ) ;;
+  * )
+    echo 'usage:  third argument must be "share" or "noshare"'
+    exit ;;
+esac
+
+ARG="MACHINE=$MACHINE 'DEFS=$DEFS' 'CFL=$CFL'"
+echo "(cd runtime; make $ARG)"
+(cd runtime; eval make $ARG)
+
+runtime/run -m 8192 -r 20 $MODULE <<XXX
+>$IMAGE
+XXX

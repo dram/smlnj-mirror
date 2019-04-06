@@ -1,0 +1,591 @@
+Known bugs, SML of NJ Version 0.18, 7 March 1988
+
+Key: L = local
+     E = Edinburgh
+     SB = Stony Brook
+     P = U Penn
+
+--------------------------------------------------------------------------------
+2. (L.3):  Mispelled nonnullary constructors in patterns
+Problem: 
+  Mispelling a constructor with arguments in a pattern leads to misleading
+  error messages.
+Version: 0.18
+Code:  (in typing/typecheck.sml)
+      ...
+	       app genType rvbs
+	   end
+       | EXCEPTIONdec(ebs) =>
+	   let fun checkWeak(VARty(ref(UNBOUND id))) =
+				       ^ -- should have been UBOUND
+		     if tyvarWeakness id > abs
+		     then condemn "type variable in exception type too strong"
+      ...
+Comment:
+  probably requires rewrite of pattern parsing [dbm]
+Status: open 
+
+--------------------------------------------------------------------------------
+4. (L.5):  duplicate specifications not checked
+Problem:
+  No checking for duplicated specifications in signatures.
+Version: 0.18
+Comment:
+  This should be done when building the signature symbol table.
+Status: open
+
+--------------------------------------------------------------------------------
+5. (L.6):  exportML environment
+Problem:
+  Subtle bug in exportML: it exports the environment of the person who
+  originally booted the system, and this environment is restored when
+  the image is started up.  This effects system, execute, and
+  subsequent exportML's.  On startup, exportFN destroys the environment
+  and command-line args, and this too could have adverse effects on
+  those functions.
+Version: 0.18
+Comment:
+  this will go away all by itself when the new code generator is installed.
+Status: open
+
+--------------------------------------------------------------------------------
+6. (L.7):  open file descriptors
+Problem:
+  File descriptors open in the ML system remain open on a call of system.
+Version: 0.18
+Comment:
+  I haven't decided what I want to do about this yet.  We
+  might like only stdin, stdout, and stderr to remain open.
+  Note that if the parent closes one of them, it will be closed in the
+  child as well (it inherits them rather than getting new ones).
+  Note that
+	  ioctl(fd,FIOCLEX,(void *)0)
+  will cause a file descriptor to be closed on an exec.  This could be
+  called after each open (but shouldn't be called on pipes).
+  Another possibility is just to leave them all open.
+Status: open
+
+--------------------------------------------------------------------------------
+7. (L.8):  constructor representation
+Problem:
+  There is a bug involving constructor representation.  The compiler
+  examines the structure of a datatype and tries to determine an efficient
+  runtime representation for it.  For example, for the list datatype, nil
+  can be represented as an integer, and :: can just be a pointer to its
+  tuple argument (integers and tuples are distinct).  This fails in our system
+  at the structure level.  For example:
+Version: 0.18
+Code:
+    signature S = sig
+	type 'a t
+	datatype 'a list = nil | :: of 'a t
+    end
+    structure A : S = struct
+	datatype 'a list = nil | :: of 'a t
+	withtype 'a t = 'a * 'a list
+    end
+Comment:
+  Here the compiler can deduce the efficient representation for the
+  (local) list datatype in structure A; but this cannot be deduced in
+  the signature S (an object of type 'a t might not be a pointer).
+Status: open
+
+--------------------------------------------------------------------------------
+8. (L.9):  interactive error recovery
+Problem:
+  In the interactive mode, parser error recovery should be suppressed
+  (but isn't); the parser may continue to look for input after an error,
+  when the user would expect to be back at top level.
+Version: 0.18
+Status: open
+
+--------------------------------------------------------------------------------
+9. (L.10):  behavior at limits (e.g. stack overflow)
+Problem:
+    The behavior of the system when it reaches limits is sometimes bizarre.
+    For instance, on a Sun, if the system runs out of stack space it
+    will die with "Illegal instruction".  This is because the signal can't
+    be handled since the stack is full.  A possible fix would be to use a
+    separate stack to handle signals, but the handler would have to be
+    smart, since SIGSEGV would be raised.  Note that the stack limit can
+    be changed with the limit command; and hopefully this particular bug will
+    disappear with the next version of the code generator.
+Version: 0.18
+Comments:
+    This will become irrelevant with new code generator, or at least
+    the behavior will change (it won't fail until memory is exhausted).
+Status: open
+
+--------------------------------------------------------------------------------
+10. (L.11):  exhaustiveness messages at top-level
+Problem: Top level bindings should not report on exhaustiveness, but they do.
+Version: 0.18
+Status: open
+
+--------------------------------------------------------------------------------
+11. (L.12):  poor error messages
+Problem: Poor error message (parens are needed around the hd::tl pattern):
+Version: 0.18
+Code:
+   -  fun f hd::tl = 4;
+Messages:
+    Error: expected EQUAL, found ID (::)
+    Error: expected nonfix-identifier, found ID ::
+    Error: unbound variable bogus
+    Error: type error: operator and operand don't agree
+    operator : ((wrong*wrong list) -> wrong list)
+    operand : (wrong*('aA list -> 'aA list))
+    expression:
+      bogus :: tl
+    - 
+Comment:
+    The "unbound variable bogus" in particular is confusing.
+Status: open
+
+--------------------------------------------------------------------------------
+12. (L.14):  loss of information in value printing
+Problem:
+  When printing values formed using constructors created by functor application,
+  the argument type of the constructor can sometimes be lost, resulting in
+  inability to print the value accurately.
+Version: 0.18
+Code:
+	- functor F(type t) =
+	= struct
+	=   datatype r = C of t end
+	= end;
+
+	- structure S = F(type t = int);
+
+	- S.C 3;
+  [1]   val it = C - : S.r
+
+  But
+  	- signature SS = sig type t datatype r = C of t end;
+
+        - structure S = struct type t = int  datatype r = C of t end;
+
+	- S.C;
+	val it = fn : ?.t -> S.r
+
+	- S.C 3;
+	val it = C 3 : S.r
+
+  and
+	- structure S': SS = struct type t = int  datatype r = C of t end;
+	- S'.C;
+	val it = fn : ?.t -> S'.r
+	- S'.C 3;
+	val it = C 3 : S'.r
+
+Comments:
+  It does not seem possible to recover the context from the structure S, because
+  there is no simple way to get back from the type S.r or the DATACON C to the 
+  structure environment.  This may be a reason for having type constructors
+  contain a pointer to their home structure rather than just the symbolic
+  path.  Another alternative would be to follow the path in S.r to find the
+  structure S so that we can use it as context for the type of C.
+Status: open (no longer prints ?.t in last two examples) 
+
+--------------------------------------------------------------------------------
+13. (L.15):  printing of types from abstraction structure
+Problem:
+  Printing of types from an abstraction is not quite right.
+Code: (test/sigs/test7)
+    signature FOO = 
+    sig
+       type T1 and T2
+       val x1: T1 and x2: T2
+       sharing type T1 = T2
+    end
+
+    abstraction Foo: FOO =
+    struct
+       datatype T1 = CON
+       type T2 = T1
+       val x1 = CON and x2 = CON
+    end
+
+    [Foo.x1,Foo.x2];
+Messages:
+    [-,-] : ?.T1   (* should be Foo.T1 *)
+Status: open
+
+--------------------------------------------------------------------------------
+14. (E.9):  Bad printing of list values
+Problem: list values printed with :: instead of [...]
+Version:
+Code:
+    datatype Foo = FOO of int list
+    val it = FOO [1, 2, 3]
+Messages:
+    FOO (1 :: 2 :: 3 :: nil): Foo
+Comments:
+Status: open
+
+--------------------------------------------------------------------------------
+15. (E.12):  Error message
+Problem: Unfortunate error message (I left out `type'):
+Version: ?
+Code: 
+	- signature STWO = sig structure X:SIG and Y:SIG sharing X.t=Y.t end;
+Messages:
+	Error: bad path is sharing specification
+Comments:
+   (It's also misspelled.)
+Status:  No change (except spelling is corrected).
+
+--------------------------------------------------------------------------------
+17. (E.25):  Inaccurate line numbers
+Problem:
+	Misleading line numbers for some things (eg. type errors in multi-line
+	datatype declarations). Could the system print something like
+	"Line 33ff", or a line range a la LaTeX, for these?
+Version:
+Code:
+Messages:
+Comments:
+Status: open
+
+--------------------------------------------------------------------------------
+18. (E.35a):  Bad error messages for illegal record expression
+Version: 0.19
+Problem:
+	inaccurate diagnostic for a bad record expression
+Code:
+	- {3};
+Messages:
+	Error: expected EQUAL after label, found INT
+Comment:
+Status: open
+
+--------------------------------------------------------------------------------
+19. (E.38):  Exception declaration with ":"
+Problem: This gives a type error rather than a syntax error: odd:
+Version: ?
+Code:
+	- signature FOO = sig exception Foo of string end;
+
+	- structure Foo: FOO = struct exception Foo: string end;
+		                                       =-> ^ <-=
+Messages:
+	Error: Type in structure doesn't match signature
+	name = Foo
+	spec = (string -> exn)
+	actual = exn
+Comments:
+  Without signature constraint ":FOO" in declaration of Foo you get a syntax
+  error: "expected END, found COLON".  With the signature, you get the above
+  type error but no complaint about the ":".
+Status: open
+
+--------------------------------------------------------------------------------
+20. (E.47):  "print" is overloaded rather than polymorphic
+Problem: print should be implemented as a pseudo-polymorphic function like =
+Version: 0.19
+Code:
+	- datatype Foo = FOO1 | FOO2;
+	- print FOO1;
+Messages:
+	Error: type error: no match for overloaded variable:
+	print
+Comments:
+	according to the original SML report, both "print" and "makestring"
+	should be polymorphic identity functions. In our [Edinburgh]
+	compiler, "print" is correctly polymorphic. "makestring" is
+	(incorrectly) overloaded, disallowing "makestring FOO1". Needless
+	to say, I want to be able to do "makestring" on datatypes.
+Status: open (print and makestring should be made polymorphic)
+
+--------------------------------------------------------------------------------
+21. (E.48):  Bad error recovery in the typechecker:
+Problem:
+Version: 0.15a
+Code:
+	- signature SIG = sig
+	     exception Foo of int
+	     val A: int
+	     val B: int
+	     val C: int
+	  end;
+
+	- structure S: SIG =
+	     struct
+		exception Foo: int
+			     ^
+		val A = 1
+		val B = 2
+		val C = 3
+	     end
+Messages:
+	Error: Type in structure doesn't match signature
+	name = Foo
+	spec = (int -> exn)
+	actual = exn
+	Error: unmatched val spec: A
+	Error: unmatched val spec: B
+	Error: unmatched val spec: C
+	^ there can be a lot of these!
+Comments:
+	Sometimes the exception error doesn't appear, just giving the unmatched
+	spec errors, rather misleadingly.
+Status: open
+
+--------------------------------------------------------------------------------
+22. (E.51):  inherited environment of subprocesses
+Problem:
+  subprocesses created via "execute" inherit the environment present when
+  the ML system was built.
+Version: 0.20
+Comments:
+  environment problems should go away with the new code generator.
+Status: open
+
+--------------------------------------------------------------------------------
+23. (E.54, E.64):  circularity in substructure relationship
+Problem:
+  No checking for circular sharing constraints.
+Version: 0.19
+Code:
+    - signature Sig =
+	sig
+	    structure D: sig
+			    structure E: sig end
+			 end
+
+	    sharing D = D.E
+	 end;
+Messages:
+  none
+Comments:
+  The signature will always fail to match an actual structure).
+Status: not (necessarily) a bug
+
+--------------------------------------------------------------------------------
+24. (E.56):  subprocess error recovery
+Problem:
+    I'm trying to put in some bullet-proof error recovery into my
+    subprocess software, so that "^C" at ML top-level doesn't
+    confuse the daemon. What happens if an "output" operation is
+    active when ^C is hit - does it do a partial write? I seem to be
+    getting some buffer corruption somewhere, as a partial write is
+    immediately followed by another complete write. It might make
+    my life easier if "output" could be guaranteed atomic under "^C"
+    (i.e. any single output operation will complete before Interrupt
+    gets raised).
+       Just a thought. I'll perhaps put timers into the daemon and ML code
+    so that they flush and restart properly - this may solve the problem.
+Version:  ?
+Comments:
+   [Andrew] there should be a way to enable and disable interrupt.
+Status: open
+
+--------------------------------------------------------------------------------
+26. (E.58):  export ML within a use
+Problem:
+	Awkward behaviour when exportML is called while a file is being
+	"use"'d - the saved state falls over with Io_failure. Shouldn't
+	restarting clear the use stack?
+Version:
+Code:
+Messages:
+Comments:
+Status:
+  Modified in version 18 so the image doesn't die.  It still raises
+  Io_failure, though. (tyj)
+
+--------------------------------------------------------------------------------
+29. (E.62):  use_string in structure definition
+Submitter: Nick
+Date: 3/24/88
+Version: 0.18
+Problem: use_string can cause uncaught Intmap exception
+Code:
+    - structure Foo =
+       struct
+	  val x = use_string(open_string "val _ = Foo.x;")
+       end;
+Messages: 
+    [opening <instream>]
+    [closing <instream>]
+    uncaught exception Intmap
+Comments: This code shouldn't work, but the Intmap exception should be caught.
+Status: open
+
+--------------------------------------------------------------------------------
+35. (L.23): Compiler bug: abstractType
+Submitter: Andrew
+Date: 4/6/88
+Version: 0.18
+Problem: type error in functor definition causes Compiler bug error
+Code:
+    signature FORMULA =
+     sig
+	 type formula
+	 val NUM : formula
+     end
+
+    functor Parse(F : FORMULA) = 
+    struct
+
+       fun parse() : F.formula = (0, F.NUM)
+    (*  val parse : unit -> F.formula = (fn () => (0, F.NUM))  -or-
+    (*  val parse : F.formula = (0, F.NUM) -- don't cause abstractType error *)
+
+    end
+Messages:
+    Error: expression and constraint don't agree (tycon mismatch)
+      expression: int * ?.formula
+      constraint: ?.formula
+      in expression:
+	(0,NUM)
+    Error: Compiler bug: abstractType
+Comments:
+Status: open.
+
+--------------------------------------------------------------------------------
+36. (L.26): overloading resolution and order of recursive definitions
+Submitter: Dave
+Date: 5/2/88
+Version: 0.18
+Problem: 
+    overloading resolution can depend on the order in which mutually
+    recursive definitions occur
+Code:
+    fun f x = length x
+    and g() = f "abc"
+      (* length is not resolved *)
+    fun g() = f "abc"
+    and f x = length x
+      (* length is resolved *)    
+Messages:
+Comments:
+    Maybe this will remain a "feature".
+Status: open
+
+--------------------------------------------------------------------------------
+40. (L.28): Exception aliasing (match compiler)
+Submitter: Dave
+Date: 5/12/88
+Version: 0.19
+Problem:
+   Match compiler doesn't cope with exception aliasing (through functor
+   parameters, for instance).
+   Exceptions in different structures with the same name, or identical
+   exceptions with different names can cause problems for the match
+   compiler.  Currently, in building the decision tree, the match
+   compiler examines constructor names to descriminate among them.
+   In a match like
+	  A.foo =>
+	| B.foo =>
+   the second rule will be found redundant, even if the exceptions are
+   different.  And in
+	  exception foo
+	  exception bar = foo
+
+	  bar =>
+	| foo =>
+   the second rule will not be recognized as redundant.
+   The situation is even worse for exceptions which are functor parameters.
+   For example:
+	structure A = struct exception foo end
+	structure B = struct exception foo end
+	functor F(exception foo) =
+	  struct
+	    fun f A.foo = 1
+	      | f foo = 2
+	      | f B.foo = 3
+	  end
+   Now in F(A.foo) the second case is redundant; in F(B.foo) the third case
+   is redundant; and in F(exception foo) no case is redundant.  Redundancy
+   can't be computed statically while compiling F; and the match compiler
+   can't build a fancy decision tree without watching for functor parameters.
+   Here, the only correct tree would be a case by case check; things get more
+   complicated when tuples are involved.
+   
+   One solution would be to assign stamps statically to exception declarations.
+   Exception specs would get a different class of stamp than exception
+   declarations.  This would allow us to correctly produce efficient matches
+   in most cases, and detect cases where the runtime-dependent check is
+   necessary.
+Code:
+Messages:
+Comments: a fairly nasty one!
+Status: open
+
+--------------------------------------------------------------------------------
+46. equality type checking and flexrecords
+Submitter: Dave
+Date: 6/3/88
+Version: 0.20
+Problem:
+    when flexrecords are used a nonequality type may be accepted in a context
+    where an equality record type is required
+Code:
+    fun f(r as {a,...},true) = (r = r)  (* checks only that a admits equality *)
+      | f({b,...},false) = b 3 (* oops, the b field is a function! *)
+Messages:
+    val f = fn : {a:''a,b:int -> bool} * bool -> bool
+    (* argument type is not an equality type *)
+Comments:
+    A fix probably requires a change in the way flexrecords are represented.
+Status: open
+
+--------------------------------------------------------------------------------
+48. printing of identity withtype declarations
+Submitter: Dave
+Date: 6/9/88
+Version: 0.20
+Problem:
+  A simple identity declaration in the withtype clause of a datatype declaration
+  will not be printed properly.
+Code:
+  datatype foo = A
+  withtype t = int;
+Messages:
+  datatype  foo
+  con A : foo
+  type  t = t
+Comments:
+  This happens because the backpatching of the type constructor puts the new
+  name in the defining type as well as in the defined type binding.
+Status: open
+
+--------------------------------------------------------------------------------
+50. free refs to sibling structures within a signature
+Submitter: Dave
+Date: 6/13/88
+Version: 0.20
+Problem:
+  Free references to a sibling structure in a signature are not allowed
+Code:
+  signature SS =
+  sig
+    structure A : sig type t end
+    structure B : sig  val x : A.t end
+  end
+Messages:
+  Error: free ref to sibling struct in sig not implemented
+Comments:
+  Outer signature env has default info, giving rise to Subscript exception when
+  attempting to interpret A.
+Status: open
+
+--------------------------------------------------------------------------------
+51. free refs to param struct in functor result signature
+Submitter: Dave
+Date: 6/13/88
+Version: 0.20
+Problem:
+  Free references to the functor parameter are not allowed in the result
+  signature.
+Code:
+  functor F(S: sig type t val x: t end) : sig val y : S.t end =
+  struct
+    val y = S.x
+  end
+Messages:
+  Error: unbound head structure: S
+    in path: S.t
+Comments: should be easy to fix
+Status: open
