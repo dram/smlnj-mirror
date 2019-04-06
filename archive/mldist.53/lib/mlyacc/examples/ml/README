@@ -1,0 +1,12 @@
+This is a sample parser for Standard ML.  The grammar contains a few bugs,
+so this almost parses Standard ML (known bug: the portion of the grammar
+for the types of tuples, try test/arrayext.sml to see this bug).
+
+To construct it, first use ML-Yacc on the file "ml.grm" to construct
+the files "ml.grm.sig" and "ml.grm.sml".  This can be done by loading
+ML-Yacc and typing "ParseGen.parseGen "ml.grm".  Then construct the
+lexer by using ML_Lex on the file ml.lex ("LexGen.lexGen "ml.lex"").
+
+Finally, load the background file "base.sml".  Then use "load.sml" to
+load all the files.  Some sample ML programs with syntax errors are in the
+directory test.

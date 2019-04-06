@@ -1,0 +1,62 @@
+This is TeX, C Version 2.93 (preloaded format=plain 89.1.24)  8 FEB 1990 13:16
+**&tex doc.tex
+(doc.tex (/usr/local/lib/tex/macros/nwmac.tex
+\textsize=\dimen16
+
+(/usr/local/lib/tex/macros/nwkernel.tex
+\codehsize=\dimen17
+\equivbox=\box16
+)
+\cont=\write0
+)
+[Using [[MIPSCODER]] to implement a [[CMACHINE]]] [1] (regs.tex) [2] [3]
+[4] [5] [6] [7] [8] [9] [10] [11] [12] [13] [14] (verbatim.tex)
+! I can't find file `itemize.tex'.
+l.646 \input itemize
+                    
+Please type another input file name: /n/nr/tex/macros/itemize.tex
+! I can't find file `/n/nr/tex/macros/itemize.tex'.
+l.646 \input itemize
+                    
+Please type another input file name: /u/nr/tex/macros/itemize.tex
+(/u/nr/tex/macros/itemize.tex
+\level=\count25
+\itemwidth=\dimen18
+) [A small assembler for the MIPS] [15] [16]
+[17] [18] [19] [Exporting functions for [[MIPSCODER]]] [20] [21] [22]
+[Sizes of [[instr]]s] [23] [24] [25] [26] [Generating the instructions]
+[27] [28]
+Overfull \hbox (1.44661pt too wide) in paragraph at lines 1333--1339
+[]\tenrm We be-gin im-ple-ment-ing \tentt in-strs \tenrm by con-sid-er-ing thos
+e that emit con-stants. String|
+
+\hbox(6.94444+1.94444)x361.34999, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm W
+.\kern-0.83334
+.\tenrm e
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+[29] [30] [31] [32] [33] [34] [35] [Optimization] [36] [37] [38] [39] [40]
+[Handling IEEE floating point constants] [41] [Emitters] [42] [43] [44]
+[45] [46] [Handling the MIPS opcodes] [Introduction]
+Overfull \hbox (0.98384pt too wide) in paragraph at lines 2234--2253
+[]\tenrm The biggest has-sle in con-vert-ing be-tween these in-te-ger pairs and
+ more mnemonic|
+
+\hbox(6.94444+1.94444)x361.34999, glue set - 1.0
+.\hbox(0.0+0.0)x20.0
+.\tenrm T
+.\tenrm h
+.\tenrm e
+.\glue 3.33333 plus 1.66666 minus 1.11111
+.etc.
+
+[Possible bugs] [47] [The opcode tables] [48] [49] [50]
+[The instruction fields] [51] [52] [53] [54]
+[The list of instructions and their formats] [55] [56] [57] [58]
+[Decoding instructions] [59] [60] [testing] [Defining ML functions] [61]
+[Handling error conditions] [62] [Leftover junk] [63] [64] [65] (doc.toc)
+[-1]
+Output written on doc.dvi (66 pages, 135580 bytes).

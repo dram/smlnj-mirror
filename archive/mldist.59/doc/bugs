@@ -1,0 +1,285 @@
+Outstanding bugs, SML of NJ Version 0.56, 13 April 1990
+
+------------------------------------------------------------------------------
+4. duplicate specifications not checked
+Problem:
+  No checking for duplicated specifications in signatures.
+Version: 0.18
+Comment:
+  This should be done when building the signature symbol table.
+Status: open
+-----------------------------------------------------------------------------
+86. incorrectly allows redefining of "="
+Submitter: Dave Berry
+Date: 3/15/89
+Version: 0.29
+Problem:
+    NJML handles the = symbol incorrectly in some cases.
+
+    - val op = = op = ;
+    - nonfix =;
+    - = (true, true);
+    Error: declaration or expression expected, found EQUAL
+Comment:
+    The = symbol may not be redefined (Definition, page 4).  The top definition
+    does seem to redefine =, despite the lack of response from the system.
+    I can't see anything in the Definition that forbids making = nonfix,
+    so I suppose it should be possible to use it in a nonfix way.
+Status: open
+-----------------------------------------------------------------------------
+139.  compiling with gcc doesn't work 
+Submitter: Brian Boutel, brian@comp.vuw.ac.nz
+Date: 9 November 1989
+Version: 0.36 & later
+System: HP/Sun 3
+Problem: compiling with gcc doesn't work 
+Description:
+
+    I have been trying again to port sml to H-P 68030 boxes running
+    MORE/bsd, using the Gnu C  compiler. 
+
+    We have a mix of Sun3 and H-P machines, and, although I have installed
+    sml on the suns, it would be convenient to have it available on the H-Ps as well.
+
+    The H-P port has not worked, and to separate the problems arising from
+    the Operating System from those arising from the use of gcc, I have
+    tried building sml on the suns with gcc (using the -traditional
+    option). The build completes, but the resulting sml dies immediately
+    while doing a major garbage collection. It does not get as far as
+    announcing itself as Standard ML of .....
+    I have tried various options, (optimiser on/off some of the gcc -f
+    options) without effect. Have you tried gcc? I am anxious to persue
+    this as  I think getting a gcc compiled version to run on the suns is
+    the right first step towards porting to the H-Ps. Can you offer any suggestions?
+
+    I am using sml version 0.36.  ( I tried today to ftp to
+    research.att.com to check for a later version, but found an empty
+    directory when logging on as anonymous, and was refused permission to
+    log on as mldist.)
+
+
+    Changes made to the source are summarised as
+
+    ------
+    gnu C compiler requires f68881 to be changed to m68881
+    Changed in makeml by introducing $CCOMP, set to GNUCC for machine hp300,
+    otherwise "", and testing it in defining CFL for M68
+
+    ----------------
+    for H-P, sys/exec.h defines MID_HP300 instead of M_68020
+    linkdata.c and export.c have conditional code if HP300 defined
+    makeml has to pass HP300 to make for linkdata
+    -------------
+    for H-P, callgc.c has FPE_TRAPV_TRAP undefined, and
+    TRAPV returns FPE_INTOVF_TRAP
+    so FPE_TRAPV_TRAP is defined as FPE_INTOVF_TRAP in callgc.c
+    ----------
+    _minitfp_ and _fp_state_mc68881 not defined anywhere for H-P
+    .globl omitted if HP300 in M68.prim.s
+    --------------------
+    run dies because stack clobbered by apply
+    Registers saved ala NeXT/MACH in saveregs/restoreregs in prim.s if GNUCC
+Comment: (appel) gcc works on some machines
+Status: open
+Status: open (not necessarily a bug)
+------------------------------------------------------------------------------
+184. bindings introduced by open are not printed
+Submitter: Andy Koenig
+Date: 1/30/90
+Version: 0.52
+Problem:
+  After a top level open, the bindings introduced are not printed
+Status: open
+--------------------------------------------------------------------------------
+185. exportML size
+Submitter: Soren Christensen,
+           University of Aarhus, Computer Science Dep.,
+           Denmark
+           schristensen@daimi.dk
+Date:      24 jan 90
+Version:   0.44
+System:    Sun4/280 / SunOS 4.0.1
+Severity:  ???
+Problem:
+Ussualy I have build my application by declaring a number of structures,
+this could be done using less than 45Mb of heapspace, even if I set the
+the flags like:
+
+ System.Control.CG.reducemore := 0;
+ System.Control.CG.rounds := 10;
+ System.Control.CG.bodysize := 20;
+
+The system produced from an "exportML" of this takes up app. 3Mb.
+
+>From "doc/optimize" I learned that the code could be optimized by
+enclosing it in one structure. I did like:
+
+structure whole :
+  sig
+   < ... >
+  end =
+struct
+ <The usual stuff ..>
+end;
+open whole;
+
+It meant that the heapsize had to be increased to 80 Mb and I had to reset
+the above flags.
+
+I observed a bug in the reporting of GC:
+...
+[Major collection... 76% used (18670576/24426980), 34260 msec]
+
+[Increasing heap to 59632k]
+
+[Major collection... -57% used (25033788/31118476), 44190 msec]
+
+[Increasing heap to 68216k]
+
+[Major collection... -35% used (30575468/34993364), 54880 msec]
+...
+
+The "-57%" should be "80%" and the "-35%" should be "87%".
+
+But the main problem  is that the CG before the "exportML" only decreases
+the heap to 49Mb, and then it stops with the message "export" - due to no
+disk space (?)
+
+Comments: (appel)  Setting these flags for optimization may cause the
+code generator to generate very large output.  Use at your own risk.
+
+Status: can't reproduce
+--------------------------------------------------------------------------------
+186. type error matching against bogus tycon
+Submitter: Dave
+Date: 1/12/90
+Version: 0.52?
+Messages:
+    Error: value type in structure doesn't match signature spec
+      name: instantiate
+      spec: Basics.tyvar * Basics.ty -> unit
+      actual: ?.bogus * ?.bogus -> unit
+Status: can't reproduce
+------------------------------------------------------------------------------
+189. confusing error message for bad clausal syntax
+Submitter: Carl Gunter
+Date: 1/4/90
+Version: 0.44/0.52
+Problem:
+  Parser error message is not as helpful as it could be.
+Transcript
+    - fun (f:('a pair -> int)) x = 2;
+    std_in:3.5-3.24 Error: illegal function symbol in clause
+Status: open
+-----------------------------------------------------------------------------
+206. unhelpful parser error message (new parser)
+Submitter: Dave
+Date: 3/15/90
+Version: 0.52
+Transcript:
+    - structure A =
+    = struct
+    =   val x = if true then if true then 1 else 2
+    = end;
+    std_in:4.1 Error: syntax error found at END
+    -
+Status: open
+-------------------------------------------------------------------------------
+208. bug in optimizer causing bad free variable
+Submitter: Appel & MacQueen
+Date: 4/27/90
+Version: 0.56
+Problem: impossible error in cpsopt phase, on MIPS machine,
+	 with default optimization settings
+Code: 
+     functor MipsCoder(val emit : 'a -> unit)  = struct
+       fun needs _ = true
+       fun pass now =
+       let fun gen inst =
+	      if now andalso needs() then ()
+	      else if now
+		 then let fun gen1() = gen(raise Match)
+		       in  case inst of
+			     NONE  => gen1()
+			   | SOME b =>
+			       let fun bc1f offset = ()
+				   fun bc1t offset = ()
+			       in  if inst=NONE then 
+					(emit((if b then bc1t else bc1f)
+						     inst); gen1()) 
+				   else ()
+			       end
+		       end
+		 else ()
+       in  gen
+       end
+       val assemble  = pass true
+     end
+Status: open
+--------------------------------------------------------------------------------
+219. parsing layered patterns
+Submitter: Andrew Appel
+Date: 5/90
+Version: 0.56 and later
+Severity: minor
+Problem: parsing of layered pattern is too liberal.  An atomic pattern is
+  accepted where a variable is required by the Definition syntax.
+Code:
+  let val (x) as (y :: z) = [1,2] in x end
+Comments:
+  Seems to require nontrivial change to the mlyacc grammar
+Status: open
+--------------------------------------------------------------------------------
+220. Match exception after error
+Submitter: John Reppy
+Date: 6/1/90
+Version: 0.58
+System: Sun 4
+Severity: minor
+Problem: uncaught exception Match after signature matching error
+Code:
+  signature S = sig
+    type foo
+    val f : int -> foo
+  end
+  
+  structure Foo : S = struct
+    datatype foo_t = Foo of int
+    val f = Foo
+  end
+
+Transcript:
+  xxx.sml:6.21-9.3 Error: unmatched type spec: foo
+  xxx.sml:6.21-9.3 Error: value type in structure doesn't match signature spec
+    name: f
+    spec:   int -> [closing xxx.sml]
+
+  uncaught exception Match
+  - 
+Status: open
+--------------------------------------------------------------------------------
+221. profiling broken
+Submitter: Benjamin Pierce (Benjamin.Pierce%proof.ergo.cs.cmu.edu
+Date: 5/22/1990
+System: 0.56 (and later)
+Problem:
+  Profiling provides call counts bug not timings.  For separately compiled
+  modules, profiling provides neither call counts nor timings.
+Transcript:
+ (1) for separately compiled code
+ %time  cumsecs     #call   ms/call  name
+            .00         0            (toplevel)
+            .00         0            (gc)
+            .00         0            (unprofiled)
+
+
+ (2) for "used" code
+ %time  cumsecs     #call   ms/call  name
+            .00      2398     .0000  anon.AType.==.anon
+            .00      2398     .0000  anon.AType.==
+            .00      2051     .0000  anon.Id.==.anon
+            .00      2051     .0000  anon.Id.==
+            .00      1890     .0000  anon.AType.apply_rule.anon
+	    [etc...]
+
+Status: open

@@ -1,0 +1,575 @@
+signature TYPECHECK=
+sig
+  local open ErrorMsg Basics BareAbsyn
+   in type occ
+      val Root : occ
+      val Rator : occ -> occ
+      val Rand : occ -> occ
+      val Abs: occ -> occ
+
+      type exp
+      type pat
+      type rule
+
+      val VARexp : occ * var ref * complainer -> exp
+      val CONexp : occ * datacon -> exp
+      val REALexp : string -> exp
+      val STRINGexp : string -> exp
+      val INTexp : int -> exp
+      val RECORDexp : (numberedLabsl * exp) list -> exp
+      val SEQexp : exp list -> exp
+      val APPexp : exp * exp * complainer -> exp
+      val CONSTRAINTexp : exp * ty * complainer -> exp
+      val HANDLEexp : exp * exp * complainer -> exp
+      val RAISEexp : exp * complainer -> exp
+      val LETexp:  dec * exp -> exp
+      val CASEexp: exp * exp * complainer -> exp
+      val FNexp : rule list * complainer -> exp
+      val MARKexp: exp * linenum * linenum -> exp
+
+      val RULE: pat * exp -> rule
+
+      val WILDpat: occ -> pat
+      val VARpat: occ * var -> pat
+      val INTpat: int -> pat
+      val REALpat: string -> pat
+      val STRINGpat: string -> pat
+      val CONpat: datacon -> pat
+      val RECORDpat: {fields: (Basics.label * pat) list, flex : bool} -> pat
+      val APPpat: datacon * pat * complainer -> pat
+      val CONSTRAINTpat: pat * ty * complainer -> pat
+      val LAYEREDpat: pat * pat -> pat
+
+      val VB: occ * pat * exp * tyvar list * complainer -> vb
+      val RVBvar: occ * Symbol.symbol -> var
+      val RVB: var * exp * ty option * tyvar list * complainer -> rvb
+      val VALRECdec: occ * rvb list * complainer -> dec
+
+      type clause
+      val CLAUSE: {pats:(pat * ty) list,
+		   resultty: ty option,
+		   exp: (exp * ty),
+		   occ: occ, err: complainer}  -> clause
+      val FB:  {var: var, clauses: clause list, tyvars: tyvar list} -> fb
+
+      val EBgen: occ * {exn: datacon, etype: ty option} * err -> eb
+
+      val unitPat : pat
+      val unitExp : exp
+      val truePat : pat
+      val trueExp : exp
+      val falsePat : pat
+      val falseExp : exp
+      val nilPat : pat
+      val nilExp : occ -> exp
+      val consExp : occ -> exp
+      val TUPLEexp : exp list -> exp
+      val TUPLEpat : pat list -> pat
+      val LISTexp : occ * exp list -> exp
+
+
+end
+
+structure Typecheck : TYPECHECK = struct
+
+(* sorting numbered fields, used in typing record expressions *)
+local
+  val maxFieldNum = 100
+  val buffer = array(maxFieldNum,
+	             (Symbol.symbol("bogus"), UNDEFty))
+in
+  fun sortNumbered(numberedFields) =
+      (app (fn (n,idty) => update(buffer,n,idty)) numberedFields;
+       let fun collect(i,l) = 
+	       if i<0 then l else collect(i-1,(buffer sub i)::l)
+	in collect(length(numberedFields)-1,nil)
+       end)
+end (* local *)
+
+exception NotThere
+
+local datatype absp = A of int*int*absp| C of int*int*absp | N
+in
+   type occ = int * int * int * absp
+   fun Rand (lamd,absd,wmax,A (_,_,_,x) = (lamd,absd,min(wmax,absd),x)
+     | Rand (lamd,absd,wmax,x) = (lamd,absd,min(wmax,absd),x)
+   fun Abs (lamd,_,wmax,A(_,absd,_,x)) = (lamd+1,absd,wmax,x) 
+     | Abs(x as (lamd,absd,wmax,_)) = (lamd+1,absd+1,wmax,C x)
+   fun Rator(x as (lamd,absd,wmax,_)) = (lamd,absd-1,wmax,A x)
+   val Root = (0,0,0,N)
+   fun lamdepth (lamd,_,_,_) = lamd
+   fun abscount (_,absd,_,_) = absd
+   fun wmax     (_,_,wm,_) = wm
+   fun toplevel (0,0,0,N) = true | toplevel _ = false
+end
+
+structure A = Absyn
+
+type exp = A.exp * ty
+type pat = A.pat * ty
+type rule = A.rule * ty
+
+fun generalizeTy(VALvar{typ as ref ty,name=[n],...}, userbound: tyvar list,
+		 occ:occ, err) : unit =
+    let fun complain() = 
+		(err COMPLAIN "nongeneric weak type variable";
+	     	 print "  "; printSym name; print " : ";
+		 printType ty; newline())
+	val index = ref 0  (* counts no of type variables bound *)
+	fun next() = !index before inc index
+	val sign = ref([]: {weakness:int,eq:bool} list)
+	val uenv = array(length userbound, UNDEFty)
+	fun pos(tv,tv'::rest) = if eqTyvar(tv,tv') then 0 else pos(tv,rest)+1
+	  | pos(_,[]) = raise NotThere
+	val menv = ref([]: (tyvar*ty) list)
+	fun lookup tv =
+	    let fun find [] = raise NotThere
+		  | find((tv',ty)::rest) = if eqTyvar(tv,tv') then ty 
+							      else find rest
+	     in find(!menv)
+	    end
+	fun bind(b as (_,ty)) = (menv := b::(!menv); ty)
+	fun gen(ty) =     
+	    case ty
+	     of VARty(tv as ref(META{depth,weakness,eq})) =>
+			if depth > lamdepth occ
+			  then if weakness > abscount occ
+			       then lookup tv
+			         handle NotThere =>
+			         (sign := {weakness=weakness,eq=eq} :: !sign;
+				  bind(tv,VARty(ref(IBOUND(next())))))
+			       else (if toplevel occ then complain() else ();
+				     ty)
+			  else ty (* raise SHARE *)
+	      | VARty(tv as ref(UBOUND{weakness,eq,...})) =>
+			 (let val i = pos(tv,userbound)
+			   in case (uenv sub i)
+			        of UNDEFty =>
+				   let val weakness = 
+				         if weakness > abscount occ
+					 then weakness
+					 else (complain(); abscount occ + 1)
+				       val new = VARty(ref(IBOUND(next())))
+			            in update(uenv,i,new);
+				       sign := {weakness=weakness,eq=eq}
+					        :: !sign;
+				       new
+				   end
+			         | ty => ty  (* raise SHARE *)
+			  end
+			  handle NotThere => ty)
+	      | VARty(ref(INSTANTIATED ty)) => gen ty
+	      | CONty(reftyc,args) => CONty(reftyc, map gen args) (*shareMap*)
+	      | FLEXRECORDty(ref(CLOSED ty)) => gen ty
+	      | FLEXRECORDty _ =>
+		   (err COMPLAIN "unresolved flex record in let pattern";
+		    PrintType.resetPrintType();
+		    print "  type: "; printType ty; newline();
+		    ERRORty)
+	      | ERRORty => ERRORty
+	      | _ => impossible "generalizeTy -- bad arg"
+        val ty = gen ty
+     in if !index > 0 
+	then typ := POLYty{sign = rev(!sign),
+		             tyfun = TYFUN{arity=(!index),body=ty}}
+	else ()
+    end
+
+fun generalizePat(pat: pat, userbound: tyvar list, occ: occ, err) =
+    let val rec gen = fn VARpat v => generalizeTy(v,userbound,occ,err)
+	       	       | RECORDpat{fields,...} => app (gen o #2) fields
+	               | APPpat(_,arg) => gen arg
+	               | CONSTRAINTpat(pat,_) => gen pat
+	               | LAYEREDpat(varPat,pat) => (gen varPat; gen pat)
+	               | _ => ()
+     in gen pat
+    end
+
+fun applyType(ratorTy: ty, randTy: ty) : ty =
+    let val resultType = VARty(mkTyvar defaultMETA)
+     in unifyTy(ratorTy, (randTy --> resultType));
+	resultType
+    end
+
+fun patTy occ = VARty(mkTyvar(META{depth=lamdepth occ,
+				    weakness=infinity,eq=false}))
+
+fun WILDpat occ = (A.WILDpat, patTy occ)
+fun VARpat(occ,v as VALvar{typ=refty,...}) = 
+	   let val t = patTy occ
+	    in refty := t; (A.VARpat v, t)
+	   end
+fun INTpat i = (A.INTpat i, intTy)
+fun REALpat r = (A.REALpat r, realTy)
+fun STRINGpat s = (A.STRINGpat s, stringTy)
+fun CONpat(d as DATACON{typ=ref ty,...}) =
+			(A.CONpat d, applyPoly(ty,0,infinity))
+fun RECORDpat({fields,flex,typ,...}) =
+	   (* fields assumed already sorted by label *)
+	   let val labtys =  map (fn (lab,(pat',ty)) => (lab,ty)) fields
+	       val labpats = map (fn (lab,(pat',_)) => (lab,pat')) fields
+	       val ty = if flex then FLEXRECORDty(ref(OPEN labtys))
+				else recordTy labtys
+	    in (A.RECORDpat{fields=labpats,flex=flex,
+			  typ= ref (if flex then ty else UNDEFty),
+			  pats=ref nil},
+		ty)
+	   end
+
+fun APPpat(d as DATACON{typ,rep,...},(arg,argty),err) =
+	(A.APPpat(d,arg),
+	 applyType(applyPoly((case rep of REF  => refPatType | _ => !typ),
+			     0,infinity),
+		   argty)
+	 handle Unify(mode) => 
+	   (err COMPLAIN("constructor and argument don't agree in pattern ("
+			  ^ mode ^ ")");
+	    PrintType.resetPrintType();
+	    print "  constructor: "; printType(!typ); newline();
+	    print "  argument:    "; printType argty; newline();
+	    print "  in pattern:"; newline();
+	    print "    "; printPat(pat,!printDepth); newline();
+	    ERRORty))
+
+fun CONSTRAINTpat((pat,ty),ty',err) =
+	   let val pat' = A.CONSTRAINTpat(pat,ty')
+	    in (pat',
+		     (unifyTy(ty, ty'); ty')
+		     handle Unify(mode) =>
+		       (err COMPLAIN("pattern and constraint don't agree ("
+			             ^ mode ^ ")");
+			PrintType.resetPrintType();
+			print "  pattern:    ";  printType ty; newline();
+			print "  constraint: "; printType ty'; newline();
+			print "  in pattern:"; newline();
+			print "    "; printPat(pat',!printDepth); newline();
+	        	ERRORty))
+	   end
+
+fun LAYEREDpat((varPat as VARpat(VALvar{typ,...}),vty),(pat,pty)) =
+	    (typ := pty; (A.LAYEREDpat(varPat,pat), pty))
+
+fun VARexp(occ, v as ref(VALvar{typ,access,...}),err) =
+	   let val ty = applyPoly(!typ,abscount occ,wmax occ)
+	    in if Prim.special access  (*  =, <>, :=, update  special cases *)
+	       then typ := ty
+	       else ();
+	       (A.VARexp v, ty)
+	   end
+  | VARexp(occ, v as ref(OVLDvar _),err) = (A.VARexp v, pushOverloaded(v, err))
+  | VARexp(_,_,err) = err BUG "expType -- bad VARexp"
+
+fun CONexp(occ, d as DATACON{typ,...}) = 
+		(A.CONexp d, applyPoly(!typ, abscount occ, wmax occ))
+fun INTexp i = (A.INTexp i, intTy)
+fun REALexp r = (A.REALexp r, realTy)
+fun STRINGexp s = (A.STRINGexp s, stringTy)
+
+fun RECORDexp(fields)
+	let val tyfields = map (fn (LABEL{name = id, number = n},(exp,ty)) => 
+				      (n, (id, ty)))
+				  fields
+	    val expfields = map (fn (lab,(exp,ty)) => (lab, exp)) fields
+	    in (A.RECORDexp expfields, recordTy(sortNumbered tyfields))
+	   end
+
+fun SEQexp exps = 
+	   let fun last [e] = e
+		 | last (e::rest) = last rest
+	    in (A.SEQexp(map #1 exps), #2(last exps))
+	   end
+
+fun APPexp((rator,ratorTy),(rand,randTy),err) =
+	(A.APPexp(rator,rand),
+	 applyType(ratorTy,randTy)
+	       handle Unify(mode) => 
+	       let val ratorTy = prune ratorTy
+		   val reducedRatorTy = headReduceType ratorTy
+		in PrintType.resetPrintType();
+		   if isArrowType(reducedRatorTy)
+		   then (err COMPLAIN("operator and operand don't agree ("
+				  ^ mode ^ ")");
+			 print "  operator domain: ";
+			 printType(domain reducedRatorTy); newline();
+			 print "  operand:         ";
+			 printType randTy)
+		   else (err COMPLAIN("operator is not a function");
+			 print "  operator: "; printType ratorTy);
+		   print "\n  in expression:\n    ";
+		   printExp(exp,4,!printDepth); newline();
+		   ERRORty
+	       end)
+
+fun CONSTRAINTexp((e,ety),ty,err) =
+	let val exp = A.CONSTRAINTexp(e,ty)
+	    in (exp,
+		  (unifyTy(ety, ty); ty)
+	          handle Unify(mode) =>
+	         (err loc COMPLAIN("expression and constraint don't agree ("
+			   ^ mode ^ ")");
+		  PrintType.resetPrintType();
+		  print "  expression: "; printType ety;
+		  print "\n  constraint: "; printType ty;
+		  print "\n  in expression:\n    ";
+		  printExp(e,4,!printDepth); newline();
+		  ERRORty))
+	   end
+
+fun HANDLEexp((e,ty),(h,ty),err) =
+	   (A.HANDLEexp(e,HANDLER h),
+	    (unifyTy(hty, exnTy --> ety); ety)
+	    handle Unify(mode) =>
+             let val hty = prune hty
+	      in PrintType.resetPrintType();
+    	         if ((unifyTy(domain hty,exnTy); false) handle Unify _ => true)
+    	           then (err COMPLAIN("handler domain is not exn");
+    		         print "  handler domain: "; printType(domain hty);
+    		         newline())
+    	           else (err COMPLAIN("expression and handler don't agree ("
+    		   			^ mode ^ ")");
+    		  	 print "  body:          "; printType ety;
+    		   	 print "\n  handler range: "; printType(range hty);
+    		   	 newline());
+	         ERRORty
+	     end)
+
+fun RAISEexp((e,ety),err) =
+	  (A.RAISEexp e,
+	   (unifyTy(ety,exnTy)
+	       handle Unify(mode) =>
+		(err COMPLAIN("argument of raise is not an exception");
+		 PrintType.resetPrintType();
+		 print "  raised: "; printType ety; newline());
+	    VARty(mkTyvar defaultMETA)))
+
+fun LETexp(d,(e,ty)) = (A.LETexp(d,e),ty)
+
+fun CASEexp((e,ety),(f as FNexp rules, rty),err) =
+	   (A.APPexp(f,e),
+	    applyType(rty,ety)
+	       handle Unify(mode) => 
+	       (err loc COMPLAIN("case object and rules don't agree ("
+			   ^ mode ^ ")");
+	        PrintType.resetPrintType();
+		print "  rule domain: "; printType(domain rty);
+		print "\n  object:      "; printType ety; newline();
+	        ERRORty))
+
+fun FNexp(rules as (rule,rty)::rest, err) = 
+     (A.FNexp(map #1 rules),
+      let fun checkrule (rule',rty') =
+   		    (unifyTy(rty, rty')
+   		     handle Unify(mode) =>
+   		       (err loc COMPLAIN("rules don't agree (" ^ mode ^ ")");
+   			PrintType.resetPrintType();
+   			print "  expected: "; printType rty; newline();
+   			print "  found:    "; printType rty'; newline();
+   			print "  rule:"; newline();
+   			print "    "; printRule(rule',4,!printDepth);
+   			newline();
+   			()))
+       in app checkrule rest; rty
+      end)
+  | FNexp(_,err) = err BUG "empty rule list in typecheck.FNexp"
+
+fun MARKexp((e,ty),locL,locR) => (A.MARKexp(e,loclL,locR),ty)
+
+fun RULE((pat,pty),(exp,ety)) = (A.RULE(pat,exp), pty --> ety)
+
+fun VB(occ,(pat,pty),(exp,ety),tyvars,err) =
+	(unifyTy(pat,ety)
+	  handle Unify(mode) =>
+		       (err COMPLAIN("pattern and expression\
+				 \ in val dec don't agree (" ^ mode ^ ")");
+		        PrintType.resetPrintType();
+		        print "  pattern:    "; printType pty; newline();
+			print "  expression: "; printType ety; newline());
+	 generalizePat(pat,tyvars,occ,err);
+	 A.VB{pat=pat,exp=exp,tyvars=tyvars})
+
+fun RVBvar(occ,name) = 
+	mkVALvar(name, ref(VARty(mkTyvar(META{depth= 1 + lamdepth occ,
+					weakness=infinity,eq=false}))))
+
+fun RVB(var as VALvar{typ,...},(exp,ety),resultty,tyvars,err) =
+       (case resultty
+	  of NONE => ()
+           | SOME ty => (unifyTy(!refty, ty); ())
+			handle Unify(mode) => 
+	        (err COMPLAIN("pattern and constraint\
+			      \ in val rec dec don't agree ("
+			      ^ mode ^ ")");
+		 PrintType.resetPrintType();
+	         print "  pattern:    "; printType (!refty);
+		 print "\n  constraint: "; printType ty; newline());
+	unifyTy(!refty, ety)
+        handle Unify(mode) =>
+	        (err COMPLAIN("pattern and expression\
+			      \ in val rec dec don't agree (" ^ mode ^ ")");
+		 PrintType.resetPrintType();
+	         print "  pattern:    "; printType (!refty);
+		 print "\n  expression: "; printType ety; newline());
+	A.RVB{var=var,exp=exp,resultty=resultty,tyvars=tyvars})
+	
+fun VALRECdec(occ,rvbs,err) =
+    (app (fn RVB{var=VALvar{name=[n],typ,...},tyvars,...} =>
+	     generalizeTy(var,tyvars,occ,err))
+         rvbs;
+     A.VALRECdec rvbs)
+
+datatype clause = CLAUSE of {pats:(pat * ty) list,
+			   resultty: ty option,
+			   exp: (exp * ty),
+			   occ: occ, err: complainer}
+
+fun FB{var: var, clauses: clause list, tyvars: tyvar list}
+
+
+fun EBgen(occ,eg as {exn,etype=NONE},err) = A.EBgen eg
+  | EBgen(occ,{exn,etype=SOME ty},err) = 
+	let fun checkWeak(VARty(ref(UBOUND{weakness,...}))) = 
+		 if weakness > abscount occ
+			  then err COMPLAIN "type variable in exception \
+						\type not weak enough"
+			  else ()
+	      | checkWeak(CONty(_,args)) = app checkWeak args
+	      | checkWeak _ = ()
+	 in checkWeak ty; A.EBgen eg
+        end
+
+val whileSym = Symbol.symbol "while" and argSym = Symbol.symbol "arg"
+fun ok _ s = ErrorMsg.impossible ("derived form: " ^ s)
+fun completeMatch(occ,rules) = 
+      rules @ [RULE(WILDpat occ, RAISEexp(CONexp(occ,!CoreInfo.exnMatch),ok))]
+
+val unitPat = RECORDpat{fields = nil, flex = false}
+val unitExp = RECORDexp nil
+
+val truePat = CONpat(trueDcon)
+val trueExp = (A.CONexp(trueDcon),boolTy)
+val falsePat = CONpat(falseDcon)
+val falseExp = (A.CONexp(falseDcon),boolTy)
+
+val nilPat = CONpat(nilDcon)
+fun nilExp occ = CONexp(occ,nilDcon)
+fun consExp occ = CONexp(occ,consDcon)
+
+fun TUPLEexp l = 
+   let fun addlabels(i,e::r) = 
+	     (LABEL{number=i-1, name=(Tuples.numlabel i)}, e) 
+	     :: addlabels(i+1, r)
+	 | addlabels(_, nil) = nil
+    in RECORDexp (addlabels(1,l))
+   end
+
+fun TUPLEpat l =
+   let fun addlabels(i,e::r) = (Tuples.numlabel i, e) :: addlabels(i+1, r)
+	 | addlabels(_, nil) = nil
+    in RECORDpat{fields = addlabels(1,l), flex = false}
+   end
+
+fun LISTexp(occ,[],err) = nilExp occ
+  | LISTexp(occ,e::rest,err) = 
+	APPexp(consExp(Rator occ), TUPLEexp[e,LISTexp(Rand occ,rest,err)],err)
+
+fun IFexp (a,b,c,err) =
+    CASEexp(a, FNexp([RULE(truePat,b), RULE(falsePat,c),
+		      RULE((A.WILDpat,boolTy),
+		           (A.RAISEexp(A.CONexp(!CoreInfo.exnMatch)),
+		            VARty(mkTyvar defaultMETA)))],err),err)
+
+fun ORELSEexp(a,b,err) = IFexp(a,trueExp,b,err)
+
+fun ANDALSOexp(a,b,err) = IFexp(a,b,falseExp,err)
+
+fun WHILEexp (occ,a,b,err) =
+    let val tyref = ref UNDEFty
+	val lvar = namedLvar(whileSym)
+	val fb = VALvar{name=[whileSym],
+		        access=LVAR(lvar),
+			typ=tyref}
+	val fa = VALvar{name=[whileSym],
+		      	access=PATH[lvar],
+			typ=tyref}
+        val id = fn x => x
+	val (markdec,markall,markend,markbody) =
+	    case (a,b)
+	     of (MARKexp(_,a1,a2), MARKexp(_,b1,b2)) =>
+		(fn e => MARKdec(e,a1,b2), fn e => MARKexp(e,a1,b2),
+		 fn e => MARKexp(e,b2,b2), fn e => MARKexp(e,b1,b2))
+	      | _ => (id,id,id,id)
+      in LETexp(
+	 markdec(
+	  VALRECdec[
+	    RVB{var=fb,
+		exp=markall(FNexp(completeMatch[
+		      RULE(unitPat,
+		           markall(IFexp(a,
+				markbody (SEQexp[b, APPexp(markend(VARexp(ref fa)),
+						  markend unitExp)]),
+			        markend unitExp)))])),
+		resultty = NONE,
+		tyvars = nil}]),
+	    APPexp(markall(VARexp (ref fa)), markend unitExp))
+    end
+
+fun LISTpat l = fold (fn (e,rest) => APPpat(consDcon, TUPLEpat[e,rest])) l nilPat
+
+fun FUNdec fbl =
+    let fun fb2rvb (FB {var, clauses as (CLAUSE{pats,...}::_),tyvars}) =
+	    let fun getvars (hd::tl) = mkVALvar(argSym,ref UNDEFty) :: getvars tl
+		  | getvars nil = nil;
+		val vars = getvars pats
+		fun not1(f,[a]) = a
+		  | not1(f,l) = f l
+		fun dovar (VALvar{access=LVAR n,name,typ}) =
+		       VARexp(ref(VALvar{access=PATH[n],name=name,typ=typ}))
+		  | dovar _ = ErrorMsg.impossible "Absyn.FUNdec.dovar"
+
+		fun doclause (CLAUSE{pats,exp,resultty=NONE}) =
+			      RULE(not1(TUPLEpat,pats), exp)
+		  | doclause (CLAUSE{pats,exp=MARKexp(exp',a,b),
+					  resultty=SOME ty}) =
+			      RULE(not1(TUPLEpat,pats), 
+				   MARKexp(CONSTRAINTexp(exp',ty),a,b))
+		  | doclause (CLAUSE{pats,exp,resultty=SOME ty}) =
+			      RULE(not1(TUPLEpat,pats),CONSTRAINTexp(exp,ty))
+
+	        fun last[x] = x | last (a::r) = last r
+		val mark =  case (hd clauses, last clauses)
+	                     of (CLAUSE{exp=MARKexp(_,a,_),...},
+				 CLAUSE{exp=MARKexp(_,_,b),...}) =>
+			         (fn e => MARKexp(e,a,b))
+			      | _ => fn e => e
+		fun makeexp [var] = FNexp(completeMatch(map doclause clauses))
+		  | makeexp vars = fold 
+				(fn (w,e) => FNexp(completeMatch
+						    [RULE(VARpat w,mark e)]))
+				vars
+				(CASEexp(TUPLEexp(map dovar vars),
+					 completeMatch(map doclause clauses)))
+	     in RVB {var=var,
+		     exp=makeexp vars,
+		     resultty=NONE,
+		     tyvars=tyvars}
+	    end
+          | fb2rvb _ = ErrorMsg.impossible "absyn.38"
+     in VALRECdec (map fb2rvb fbl)
+    end
+
+fun SELECTORexp id = 
+	let val v = namedLvar id
+	    val tyref = ref UNDEFty
+	    val v1 = VALvar{name=[id],access=LVAR v, typ=tyref}
+	    val v2 = VALvar{name=[id],access=PATH[v],typ=tyref}
+	 in FNexp(completeMatch[RULE(RECORDpat{fields=[(id,VARpat v1)], flex=true,
+				 typ= ref UNDEFty, pats=ref nil},
+			VARexp(ref v2))])
+	end
+
+end (* local open Access Basics ... *)
+end (* structure Absyn *)
+
+
+
+end

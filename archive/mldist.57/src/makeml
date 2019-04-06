@@ -1,0 +1,475 @@
+#!/bin/sh
+#
+# makeml - build the SML/NJ system
+#
+#set -x
+
+CMD="$0>"
+
+MESSAGE='"Warning: input and output are now uncurried, arithmetic exceptions" ^ chr 10 ^ "are re-arranged, div and mod are different; see doc/NEWS" ^ chr 10'
+MACHINE=""
+OPSYS="BSD"
+ENDIAN=""
+IMAGE=""
+MODULEKIND="Int"
+TARGET=""
+SHARE="TRUE"
+DEFS=""
+CLEAN="TRUE"
+MKRUN="TRUE"
+RUNTIME="runtime"
+NOBOOT=""
+AS="as"
+COMMAND=""
+IONLY=""
+CFL=""
+MOFILES=""
+USE_GCC=""
+SHELL="/bin/sh"
+
+#
+# gc params
+#
+HEAP=2048
+RATIO=20
+SOFTLIMIT=4096
+
+#
+# try to guess the machine type
+#
+if [ -f /bin/arch ]; then
+    case `/bin/arch` in
+	sun3)
+	    set - -sun3 $*
+	;;
+	sun4)
+	    set - -sun4 $*
+	;;
+    esac
+elif [ -f /hp-ux ]; then
+	set - -hpux $*
+fi
+
+#
+# process command-line options
+#
+while test "$#" != "0"
+do
+    case $1 in
+      #
+      # Options to specify machines
+      #
+	-m68)	MACHINE=M68; F68881="-f68881" ;;
+	-sparc) MACHINE=SPARC ;;
+	-vax)	MACHINE=VAX ;;
+	-mips)	MACHINE=MIPS ;;
+      #
+      # Options to specify operating systems
+      #
+	-sunos) OPSYS=SUNOS ;;
+	-mach) OPSYS=MACH ;;
+	-bsd)	OPSYS=BSD ;;
+	-more)	OPSYS=MORE ;;
+	-v9)	OPSYS=V9 ;;
+	-hpux)	OPSYS=HPUX ;;
+	-riscos)OPSYS=RISCos ;;
+      #
+      # options to specify machine & operating system
+      #
+	-sun3)
+	    MACHINE=M68
+	;;
+	-sun4)
+	    MACHINE=SPARC
+	;;
+	-next|-NeXT)
+	    MACHINE=M68
+	    OPSYS=NeXT
+	;;
+	-decstation|-DECstation)
+	    MACHINE=MIPS
+	    ENDIAN=Little
+	    OPSYS=BSD
+	;;
+	-encore)
+	    MACHINE=NS32
+	    OPSYS=BSD
+	    AS="as -j"
+	;;
+      #
+      # other options
+      #
+	-gcc)
+	    USE_GCC="TRUE"
+	;;
+	-batch)
+	    MODULEKIND=Comp
+	;;
+	-noshare)
+	    SHARE=""
+	;;
+	-pervshare)
+	    MOFILES="Perv.mos"
+	;;
+	-run)
+	    MKRUN="TRUE"
+	    NOBOOT="TRUE"
+	;;
+	-norun)
+	    MKRUN=""
+	    CLEAN=""
+	;;
+	-noclean)
+	    CLEAN=""
+	;;
+	-target)
+	    shift
+	    if test "$#" = "0"
+	    then
+		echo "$CMD must supply machine for -target option"
+		exit 1
+	    fi
+	    TARGET=$1
+	    MODULEKIND=Comp
+	;;
+	-i)
+	    COMMAND="System.Control.interp := true;"
+	    ;;
+	-ionly)
+	    COMMAND="System.Control.interp := true;"
+	    IONLY="TRUE"
+	;;
+	-o)
+	    shift
+	    if test "$#" = "0"
+	    then
+		echo "$CMD must supply image name for -o option"
+		exit 1
+	    fi
+	    IMAGE=$1
+	;;
+	-runtime)
+	    shift
+	    if test "$#" = "0"
+	    then
+		echo "$CMD must supply runtime directory for -runtime option"
+		exit 1
+	    fi
+	    RUNTIME=$1
+	;;
+	-mo)
+	    shift
+	    if test "$#" = "0"
+	    then
+		echo "$CMD must supply mo directory for -mo option"
+		exit 1
+	    elif test ! \( -d "$1" \)
+	    then
+		echo "$CMD mo directory $1 not found"
+		exit 1
+	    fi
+	    MO=$1
+	;;
+	-h)
+	    shift
+	    if test "$#" = "0"
+	    then
+		echo "$CMD must supply argument for -h option"
+		exit 1
+	    fi
+	    HEAP=$1
+	;;
+	-r)
+	    shift
+	    if test "$#" = "0"
+	    then
+		echo "$CMD must supply argument for -r option"
+		exit 1
+	    fi
+	    RATIO=$1
+	;;
+	-m)
+	    shift
+	    if test "$#" = "0"
+	    then
+		echo "$CMD must supply argument for -m option"
+		exit 1
+	    fi
+	    SOFTLIMIT=$1
+	;;
+	-D*)
+	    DEFS="$DEFS $1"
+	;;
+	*)
+	    echo "$CMD unrecognized option $1"
+	    exit 1
+	;;
+    esac
+    shift
+done
+
+if test -z "$IMAGE"
+then
+    if test "$MODULEKIND" = Int
+    then
+	if test -n "$IONLY"
+	then
+	    IMAGE=smli
+	else
+	    IMAGE=sml
+	fi
+    else
+	IMAGE=smlc
+    fi
+fi
+
+if test -n "$USE_GCC" -o "$OPSYS" = MORE
+then
+    F68881="-m68881"
+fi
+
+case $MACHINE in
+    M68)
+	case $OPSYS in
+	BSD)
+	    echo "for Sun-3 you must specify -sunos or -mach"
+	    exit 1
+	;;
+	SUNOS)
+	    DEFS="$DEFS -DBSD -Dsun3"
+	    CFL="-n -Bstatic $F68881"
+	;;
+        MACH)
+	    DEFS="$DEFS -DBSD -Dsun3"
+	    CFL="-n $F68881"
+	;;
+	MORE)
+	    OPSYS=BSD
+	    DEFS="$DEFS -DMORE -D__GNUC__"
+	    F68881="-m68881"			# gcc assumed
+	    CFL="-z -Bstatic $F68881"
+	;;
+	NeXT)
+	    DEFS="$DEFS -DBSD"
+	;;
+	HPUX)
+	;;
+	*)
+	    echo "$CMD invalid os for m68, use -NeXT, -hpux, -more or -bsd"
+	    exit 1
+	esac
+	MO=${MO-"../mo.m68"}
+	MODULE="$MODULEKIND"M68
+    ;;
+    SPARC)
+	case $OPSYS in
+	BSD)
+	    echo "for Sun-3 you must specify -sunos or -mach"
+	    exit 1
+	;;
+	SUNOS)
+	    DEFS="$DEFS -DBSD -Dsun4"
+	    CFL="-n -Bstatic"
+	;;
+	MACH)
+	    DEFS="$DEFS -DBSD -Dsun4"
+	    CFL="-n"
+	;;
+	*)
+		echo "$CMD invalid os for sparc, use -bsd"
+		exit 1
+	esac
+	MO=${MO-"../mo.sparc"}
+	MODULE="$MODULEKIND"Sparc
+    ;;
+    VAX)
+	case $OPSYS in
+	    BSD|V9) ;;
+	    *)
+		echo "$CMD invalid os for vax"
+		exit 1
+	    ;;
+	esac
+	MO=${MO-"../mo.vax"}
+	MODULE="$MODULEKIND"Vax
+    ;;
+    MIPS)
+	case $OPSYS in
+	  BSD|RISCos) ;;
+	  *)
+	    echo "$CMD invalid os for mips"
+	    exit 1
+	  ;;
+	esac
+	if test -z "$ENDIAN"
+	then
+	    echo "$CMD determining endianess"
+	    (cd $RUNTIME; cc -o endian endian.c)
+	    ENDIAN=`$RUNTIME/endian`
+	    (cd $RUNTIME; rm -f endian)
+	fi
+        case $ENDIAN$OPSYS in
+	     BigBSD) echo "On MIPS boxes, use -riscos, not -bsd"
+		     exit 1
+	     ;;
+             LittleRISCos) echo "On DEC boxes, use -bsd, not -riscos"
+			   exit 1
+ 	     ;;
+        esac
+	if test -z "$MO"
+	then
+	    case $ENDIAN in
+		Little) MO="../mo.mipsl" ;;
+		Big) MO="../mo.mipsb" ;;
+	     esac
+	fi
+	case $ENDIAN in
+	    Little) MODULE="$MODULEKIND"MipsLittle ;;
+	    Big) MODULE="$MODULEKIND"MipsBig ;;
+	esac
+    ;;
+    NS32)
+	MO=${MO-"../mo.ns32"}
+	MODULE="$MODULEKIND"NS32
+    ;;
+    *)
+	echo "$CMD must specify machine type"
+	exit 1
+    ;;
+esac
+
+if test -n "$TARGET"
+then
+    case $TARGET in
+	m68|M68)
+	    TARGET=M68
+	;;
+	sparc|Sparc|SPARC|sun4)
+	    TARGET=Sparc
+	;;
+	vax|Vax|VAX)
+	    TARGET=Vax
+	;;
+	mips|Mips|MIPS)
+	    echo "$CMD must specify MIPSL or MIPSB for -target option"
+	;;
+	mipsb|MipsB|MIPSB)
+	    TARGET=Mips
+	    TARGET_ENDIAN=Big
+	;;
+	mipsl|MipsL|MIPSL)
+	    TARGET=Mips
+	    TARGET_ENDIAN=Little
+	;;
+	ns32|NS32)
+	    TARGET=NS32
+	;;
+	*)
+	    echo "$CMD invalid argument to -target option"
+	    exit 1
+    esac
+    MODULE="$MODULEKIND"$TARGET"$TARGET_ENDIAN"
+fi
+
+if test -n "$IONLY"
+then
+    if test -n "$TARGET"
+    then
+	echo "$CMD -target and -ionly options are incompatible"
+	exit 1
+    fi
+    MODULE="IntNull"
+fi
+
+if test -z "$MOFILES"
+then
+    MOFILES="$MODULE.mos"
+fi
+
+DEFS="$DEFS -D$OPSYS"
+
+
+if test -n "$CLEAN"
+then
+    echo "$CMD (cd $RUNTIME; make clean)"
+    (cd $RUNTIME; make clean)
+fi
+
+echo "$CMD rm -f mo"
+rm -f mo
+
+echo "$CMD ln -s $MO mo"
+ln -s $MO mo
+
+if test -n "$MKRUN"
+then
+    echo "$CMD (cd $RUNTIME; rm -f run allmo.o)"
+    (cd $RUNTIME; rm -f run allmo.o)
+
+    if test -n "$SHARE"
+    then
+	ARG="MACHINE=$MACHINE 'DEFS=$DEFS -DRUNTIME=\\\"$RUNTIME\\\"' linkdata"
+	echo "$CMD (cd $RUNTIME; make $ARG)"
+	(cd $RUNTIME; eval make $ARG)
+	if test "$?" -ne "0"; then
+	    exit 1
+	fi
+
+	echo "$CMD $RUNTIME/linkdata [$RUNTIME/$MOFILES]"
+	$RUNTIME/linkdata `cat $RUNTIME/$MOFILES`
+	if test "$?" -ne "0"; then
+	    exit 1
+	fi
+    fi
+
+    if test -n "$USE_GCC"
+    then
+	GCC=${GCC-"gcc"}
+	BASEARG="CC=$GCC MACHINE=$MACHINE 'DEFS=$DEFS'"
+    else
+	BASEARG="MACHINE=$MACHINE 'DEFS=$DEFS'"
+    fi
+
+    if test "$MACHINE" = MIPS
+    then
+	ARG="$BASEARG 'CPP=/lib/cpp -P' 'CFL=$CFL' 'AS=$AS'"
+    else
+	ARG="$BASEARG CPP=/lib/cpp 'CFL=$CFL' 'AS=$AS'"
+    fi
+
+    if test "$OPSYS" = HPUX
+    then
+      # convert sun-style assembler code to HP syntax
+	echo "$CMD (cd $RUNTIME; ...)"
+	( cd $RUNTIME; \
+	  echo "$CMD   /lib/cpp -DHPUX -DASM M68.prim.s > prim.s"; \
+	  /lib/cpp -DHPUX -DASM M68.prim.s > prim.s; \
+	  echo "$CMD   emacs -batch -l sun2hp.el prim.s prim.s"; \
+	  emacs -batch -l sun2hp.el prim.s prim.s ; \
+	  echo "$CMD   as -o prim.o prim.s"; \
+	  as -o prim.o prim.s )
+    fi
+
+    echo "$CMD (cd $RUNTIME; make $ARG)"
+    (cd $RUNTIME; eval make $ARG)
+    if test "$?" -ne "0"; then
+	exit 1
+    fi
+fi
+
+if test -n "$NOBOOT"
+then
+    exit 0
+fi
+
+if test "$MODULEKIND" = Int
+then
+    STARTUP='('$COMMAND' exportML "'$IMAGE'"; output(std_out,System.version); output(std_out,(chr 10)); output(std_out, '$MESSAGE'));'
+    echo "$CMD echo $STARTUP | $RUNTIME/run -m $SOFTLIMIT -r $RATIO -h $HEAP $MODULE"
+    echo "$STARTUP" | $RUNTIME/run -m $SOFTLIMIT -r $RATIO -h $HEAP $MODULE
+else
+    echo "$CMD $RUNTIME/run -m $SOFTLIMIT -r $RATIO -h $HEAP $MODULE"
+    $RUNTIME/run -m $SOFTLIMIT -r $RATIO -h $HEAP $MODULE <<XXX
+>$IMAGE
+XXX
+fi
