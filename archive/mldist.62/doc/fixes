@@ -1,0 +1,78 @@
+212. polymorphic exception declarations
+Changed the type of the eb nonterminal in ml.grm to
+
+	| eb of eb list pathvstamped
+
+so that the tyvarset ("v" in pathvstamped) would be passed in.  Also changed
+the types of makeEB, makeEBof, and makeEB to
+
+    val makeEB:		symbol -> eb list pathvstamped
+    val makeEBof:	symbol * ty tsusp uvars * ErrorMsg.complainer
+	                  -> eb list pathvstamped
+    val makeEBeq:	symbol * symbol list * ErrorMsg.complainer
+			  -> eb list pathvstamped
+
+Only the definition of makeEBof was changed substantially.  The tyvars
+found in the etype phrase of the makeEBof case were subtracted from the
+tyvars passed from the context, and if there was a nonempty remainder an
+error message is output.  All tyvars appearing in the type of the exception
+must have been introduced before in the outer context.
+
+214. Compiler bug: EnvAccess.lookPath when printing
+Used both insttype (to instantiate bound tycons) and typeInContext (to instantiate
+relativized tycons) when instantiating the types of datacons in the datacons
+field of generated datatype tycons.  (function redefineCon).  This could be
+made more efficient by just doing it for newly generated datatypes, and by
+merging the two instantiation functions for this case to avoid double copying.
+
+217. simultaneous opens
+Changed the call of checkopen in EnvAccess.staleLvars from
+
+    checkopen(oldenv,v) isb
+to
+    checkopen(newenv,v) isb
+
+This should insure that structures opened in the same simultaneous open
+declaration are not deemed stale.  The newenv points to the oldenv, so this
+will still detect structures opened in oldenv.
+
+218. compiler bug after unbound variable [dbm, 0.60]
+Changed the impossible error in the default case of gen (within generalizeTy)
+to a call of "err loc CASCADE ...".
+
+222. equality on ref types [dbm, 0.60]
+Added inline checking for equality types when instantiating equality tyvars
+in Unify.instantiate[.scan].  instantiate no longer calls EqTypes.isEqType,
+so Unify no longer depends on EqType.  Checking would be more efficient if
+DEFtycs did not have to be expanded, i.e. if DEFtycs (and GENtycs) carried an
+equality propagation kind.
+
+224. weakness 0 type variables in let declaration [dbm, 0.60]
+Added constructor T to datatype absp in Typecheck to properly identify toplevel
+from occ parameter to generalizeTy.
+
+226/229. uncaught Match after signature spec error [dbm, 0.60]
+Added case in PrintType.printTycon to print the NULLtyc tycon.
+A missing tycon defaults to NULLtyc, which will cause val spec
+mismatches involving NULLtyc.
+
+239. INCONSISTENT exception raised in sharing analysis [dbm, 0.61]
+[fixed in 0.61, files: basics/eqtypes.sml]
+Changed the definition of the join function so that join(MAYBE,IND) = IND, and
+the definition of eqAnalyze.escan.tscan was altered slightly in the DATAtyc
+case.
+
+252/243. include broken in 0.59 (Compiler bug: Parse.includeSig.newTyc) [dbm, 0.61]
+[fixed in 0.61, files: parse/signs.sml]
+Added default case
+
+    | newTyc _ tyc = tyc
+
+to function Parse.includeSig.newTyc.  This allows the case where the tyc
+argument is a DEFtyc, which can arrise because of sharing, as illustrated
+by the bug code sample (bugs/code/bug252.sml).
+
+254. failure to detect type error [dbm, 0.61]
+[files: basics/unify.sml]
+Added missing case in scan function in Unify.instantiate.  The missing case
+was the default case for CONty(_,args).

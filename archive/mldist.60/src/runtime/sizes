@@ -1,0 +1,23 @@
+% size runtime/run sml
+
+Size of runtime/run:2195168
+
+        Section          Size     Physical Address      Virtual Address
+
+          .text       2162848            4194672              4194672
+          .init            32            6357520              6357520
+         .rdata          1584          268435456            268435456
+          .data         11440          268437040            268437040
+         .sdata           848          268448480            268448480
+          .sbss           304          268449328            268449328
+           .bss         18112          268449632            268449632
+
+Size of sml:2715840
+
+        Section          Size     Physical Address      Virtual Address
+
+          .text       2162848            4194672              4194672
+          .init            32            6357520              6357520
+         .rdata          1584          268435456            268435456
+          .data        551376          268437040            268437040
+%

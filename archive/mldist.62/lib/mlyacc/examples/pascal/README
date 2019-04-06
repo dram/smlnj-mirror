@@ -1,0 +1,23 @@
+This is a grammar for Berkeley Pascal, hacked to be SLR, though that is
+not necessary because ML-Yacc supports LALR(1).
+
+To load it, first load base.sml, the standard background for ML-Yacc, into
+Standard ML.  Then change to this directory and load the files
+pascal.grm.sig, pascal.grm.sml, pascal.lex.sml, and join.sml.
+
+Those using Standard ML of New Jersey can do this by invoking Standard ML in
+the root directory for ML-Yacc and typing the following commands at the
+Standard ML of New Jersey prompt (the % sign):
+
+	%use "base.sml"
+	%System.cd "examples/pascal"
+	%use "load.sml"
+
+The pascal parser can be invoked by applying the parse function that 
+from loading these files to a string containing the name of a file.  The
+subdirectory test contains some sample files, some with intentional syntax
+errors.
+
+
+
+

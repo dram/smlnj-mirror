@@ -1,0 +1,899 @@
+Outstanding bugs, SML of NJ Version 0.56, 13 April 1990
+
+------------------------------------------------------------------------------
+4. duplicate specifications not checked
+Problem:
+  No checking for duplicated specifications in signatures.
+Version: 0.18
+Comment:
+  This should be done when building the signature symbol table.
+Status: open
+-----------------------------------------------------------------------------
+86. incorrectly allows redefining of "="
+Submitter: Dave Berry
+Date: 3/15/89
+Version: 0.29
+Problem:
+    NJML handles the = symbol incorrectly in some cases.
+
+    - val op = = op = ;
+    - nonfix =;
+    - = (true, true);
+    Error: declaration or expression expected, found EQUAL
+Comment:
+    The = symbol may not be redefined (Definition, page 4).  The top definition
+    does seem to redefine =, despite the lack of response from the system.
+    I can't see anything in the Definition that forbids making = nonfix,
+    so I suppose it should be possible to use it in a nonfix way.
+Status: open
+------------------------------------------------------------------------------
+184. bindings introduced by open are not printed
+Submitter: Andy Koenig
+Date: 1/30/90
+Version: 0.52
+Problem:
+  After a top level open, the bindings introduced are not printed
+Status: open
+--------------------------------------------------------------------------------
+185. exportML size
+Submitter: Soren Christensen,
+           University of Aarhus, Computer Science Dep.,
+           Denmark
+           schristensen@daimi.dk
+Date:      24 jan 90
+Version:   0.44
+System:    Sun4/280 / SunOS 4.0.1
+Severity:  ???
+Problem:
+Ussualy I have build my application by declaring a number of structures,
+this could be done using less than 45Mb of heapspace, even if I set the
+the flags like:
+
+ System.Control.CG.reducemore := 0;
+ System.Control.CG.rounds := 10;
+ System.Control.CG.bodysize := 20;
+
+The system produced from an "exportML" of this takes up app. 3Mb.
+
+>From "doc/optimize" I learned that the code could be optimized by
+enclosing it in one structure. I did like:
+
+structure whole :
+  sig
+   < ... >
+  end =
+struct
+ <The usual stuff ..>
+end;
+open whole;
+
+It meant that the heapsize had to be increased to 80 Mb and I had to reset
+the above flags.
+
+I observed a bug in the reporting of GC:
+...
+[Major collection... 76% used (18670576/24426980), 34260 msec]
+
+[Increasing heap to 59632k]
+
+[Major collection... -57% used (25033788/31118476), 44190 msec]
+
+[Increasing heap to 68216k]
+
+[Major collection... -35% used (30575468/34993364), 54880 msec]
+...
+
+The "-57%" should be "80%" and the "-35%" should be "87%".
+
+But the main problem  is that the CG before the "exportML" only decreases
+the heap to 49Mb, and then it stops with the message "export" - due to no
+disk space (?)
+
+Comments: (appel)  Setting these flags for optimization may cause the
+code generator to generate very large output.  Use at your own risk.
+
+Status: can't reproduce
+--------------------------------------------------------------------------------
+186. type error matching against bogus tycon
+Submitter: Dave
+Date: 1/12/90
+Version: 0.52?
+Messages:
+    Error: value type in structure doesn't match signature spec
+      name: instantiate
+      spec: Basics.tyvar * Basics.ty -> unit
+      actual: ?.bogus * ?.bogus -> unit
+Status: can't reproduce
+------------------------------------------------------------------------------
+189. confusing error message for bad clausal syntax
+Submitter: Carl Gunter
+Date: 1/4/90
+Version: 0.44/0.52
+Problem:
+  Parser error message is not as helpful as it could be.
+Transcript
+    - fun (f:('a pair -> int)) x = 2;
+    std_in:3.5-3.24 Error: illegal function symbol in clause
+Status: open
+-----------------------------------------------------------------------------
+206. unhelpful parser error message (new parser)
+Submitter: Dave
+Date: 3/15/90
+Version: 0.52
+Transcript:
+    - structure A =
+    = struct
+    =   val x = if true then if true then 1 else 2
+    = end;
+    std_in:4.1 Error: syntax error found at END
+    -
+Status: open
+-------------------------------------------------------------------------------
+208. bug in optimizer causing bad free variable
+Submitter: Appel & MacQueen
+Date: 4/27/90
+Version: 0.56
+Problem: impossible error in cpsopt phase, on MIPS machine,
+	 with default optimization settings
+Code: 
+     functor MipsCoder(val emit : 'a -> unit)  = struct
+       fun needs _ = true
+       fun pass now =
+       let fun gen inst =
+	      if now andalso needs() then ()
+	      else if now
+		 then let fun gen1() = gen(raise Match)
+		       in  case inst of
+			     NONE  => gen1()
+			   | SOME b =>
+			       let fun bc1f offset = ()
+				   fun bc1t offset = ()
+			       in  if inst=NONE then 
+					(emit((if b then bc1t else bc1f)
+						     inst); gen1()) 
+				   else ()
+			       end
+		       end
+		 else ()
+       in  gen
+       end
+       val assemble  = pass true
+     end
+Status: open
+--------------------------------------------------------------------------------
+219. parsing layered patterns
+Submitter: Andrew Appel
+Date: 5/90
+Version: 0.56 and later
+Severity: minor
+Problem: parsing of layered pattern is too liberal.  An atomic pattern is
+  accepted where a variable is required by the Definition syntax.
+Code:
+  let val (x) as (y :: z) = [1,2] in x end
+Comments:
+  Seems to require nontrivial change to the mlyacc grammar
+Status: open
+--------------------------------------------------------------------------------
+221. profiling broken
+Submitter: Benjamin Pierce (Benjamin.Pierce%proof.ergo.cs.cmu.edu
+Date: 5/22/1990
+System: 0.56 (and later)
+Problem:
+  Profiling provides call counts bug not timings.  For separately compiled
+  modules, profiling provides neither call counts nor timings.
+Transcript:
+ (1) for separately compiled code
+ %time  cumsecs     #call   ms/call  name
+            .00         0            (toplevel)
+            .00         0            (gc)
+            .00         0            (unprofiled)
+
+
+ (2) for "used" code
+ %time  cumsecs     #call   ms/call  name
+            .00      2398     .0000  anon.AType.==.anon
+            .00      2398     .0000  anon.AType.==
+            .00      2051     .0000  anon.Id.==.anon
+            .00      2051     .0000  anon.Id.==
+            .00      1890     .0000  anon.AType.apply_rule.anon
+	    [etc...]
+
+Status: open
+--------------------------------------------------------------------------------
+223. nontty standard input and uncaught exceptions
+Submitter:	KINOSHITA Yoshiki	yoshiki@etl.go.jp
+Date:		4, June 1990
+Version:	SML of NJ 0.56
+System:		Sparc Station 330 (SUN4), SUN-OS 4.0.3 (generic version)
+Severity:	major
+Problem:	If the standard input is a pipe, the system ends
+		abnormally after it sends an error message.
+Code:		None.  The problem concerns with the interface to UNIX.
+Transcript:
+	% cat - | sml  
+	Standard ML of New Jersey, Version 0.56, 13 April 1990 
+	Warning: input and output are now uncurried, arithmetic exceptions 
+	are re-arranged, div and mod are different; see doc/NEWS 
+	val it = () : unit 
+	- foo; 
+	std_in:2.1-2.3 Error: unbound variable foo 
+	uncaught exception Stop 
+	^Z 
+	Stopped  
+	% jobs 
+	[1]  + Stopped              cat - | 
+	       Done                 sml 
+	%
+
+Comments:	This problem makes it impossible to use the system with
+		its input sent through a UNIX filter.
+  [jhr:
+    You might call this a feature.  It appears that the person who wrote
+    the top-level loop code (interact.sml), decided that exceptions
+    should only be caught at the top-level loop when std_in is a tty
+    (look at lines 292-309 in interact.sml).  The following work-around
+    avoids the problem
+
+      <jhr@rocky:76> cat - | sml
+      Standard ML of New Jersey, Version 0.59, 4 June 1990
+      Warning: input and output are now uncurried, arithmetic exceptions
+      are re-arranged, div and mod are different; see doc/NEWS
+      val it = () : unit
+      - set_term_in(std_in, true);
+      val it = () : unit
+      - foo;
+      std_in:3.1-3.3 Error: unbound variable foo
+      - 1+2;
+      val it = 3 : int
+      - 
+
+    But, maybe the code should change.  It isn't clear to me what the correct
+    semantics are in this case.  This problem came up here at Cornell when
+    Bill Aitken was using "rsh" to run sml on a remote machine.]
+Status: open
+--------------------------------------------------------------------------------
+231. equality property of DEFtyc
+Submitter:      Nick Rothwell
+Date:		6/21/90
+Version:        0.56?
+Severity:       major
+Problem:
+  A type abbreviation for an abstract type admits equality.
+Code:
+    abstype A = A
+    with
+      type B = A
+    end;
+
+    fn (x: B) => (x=x);
+
+Comments:
+   The type name associated with A (and therefore with B) should be
+   stripped of its equality attribute outside the "abstype".
+Status: open
+--------------------------------------------------------------------------------
+232. user bound type variable in exception declaration 
+Submitter:      Jo Blishen, Nick Rothwell
+Date:		6/20/90
+Version:	0.59
+Severity:       minor
+Problem:
+  User-bound tyvar is not generalized at val binding containing it.
+Transcript:
+  - fun f l = let exception E of '_a in (raise (E l)) handle E t => t end;
+  std_in:2.30-2.32 Error: unbound tyvars in exception declaration
+Comments:
+  According to the Definition '_a should be considered bound at the outermost
+  val (fun f l ...) where it is the type of the lambda-bound variable l.
+Status: open
+--------------------------------------------------------------------------------
+234. Compiler Bug: abstractBody.abstractType 1
+Submitter: deutsch@poly.polytechnique.fr.
+   Alain Deutsch,
+   Laboratoire d'Informatique de l'Ecole Polytechnique (LIX)
+   91128 Palaiseau Cedex
+   France.
+Date: Tue Jun 19 11:04:05 MET DST 1990
+Version: Standard ML of New Jersey, Version 0.56, 13 April 1990
+System: Sun 3/60, SunOS Release 4.0_Export
+Severity: major (?)
+Problem: Compiler Bug: abstractBody.abstractType 1
+Code: Too long, ommited.
+Transcript:
+   - use "/home/icsla/deutsch/ESTFM/basic_ev.sml";
+   [opening /home/icsla/deutsch/ESTFM/basic_ev.sml]
+   [reading Powerset.bin... done]
+   signature FunctionLattice
+   signature ProductLattice
+   signature OrderedSet
+   signature Lattice
+   signature Product
+   signature PartialFunction
+   signature TotalFunction
+   functor Powerset
+   [reading HashTable.bin... done]
+   signature arrayext
+   functor HashTable
+   functor arrayext
+   [reading lattice.sig.bin... done]
+   signature FunctionLattice
+   signature ProductLattice
+   signature OrderedSet
+   signature Lattice
+   signature Product
+   signature PartialFunction
+   signature TotalFunction
+   [reading Syntax.sig.bin... done]
+   signature Syntax
+   [reading StrgHash.sig.bin... done]
+   signature StrgHash
+   [reading Error.sig.bin... done]
+   signature Error
+   [reading ListUtilities.sig.bin... 
+   [Major collection... 66% used (2325300/3480644), 2680 msec]
+
+   [Increasing heap to 7023k]
+   done]
+   signature ListUtilities
+   [reading Io.sig.bin... done]
+   signature Io
+   [closing /home/icsla/deutsch/ESTFM/basic_ev.sml]
+   /home/icsla/deutsch/ESTFM/basic_ev.sml:20.3 Compiler Bug: abstractBody.abstractType 1
+   - 
+
+Comments: the bug is not systematic, and hard to reproduce, this is why the
+source code has been ommited, as I have not been able to isolate the faulty part
+of the source.
+
+Status: open (can't reproduce)
+--------------------------------------------------------------------------------
+235. repeated type variables in typdesc and datdesc
+Submitter:      Don Sannella <dts@informatik.uni-Bremen.de>
+Date:		6/13/90
+Version:        0.44?
+Severity:       major
+Problem:
+    The Definition of SML seems to allow repeated type variables in a typdesc and
+    datdesc, making the following signatures legal:
+
+    signature SIG1 =
+	 sig
+	    eqtype ('a,'a) t1
+	    type ('a,'a) t2
+	 end
+
+    signature SIG2 =
+	 sig
+	    datatype ('a,'a) t3 = foo of 'a
+	 end
+
+    Section 2.9 forbids repeated variables in a typbind and datbind, but I don't
+    see anything forbidding it in a typdesc or datdesc.  I assume below that the
+    omission of a syntactic restriction here was intentional.
+
+    Repeated type variables in a typdesc seem unproblematic if strange, since the
+    semantics only looks at the number of variables.  SML-NJ accepts SIG1 above,
+    and treats it the same as a signature without repeated type variables, which is
+    correct.
+
+    Repeated type variables in a datdesc are more of a problem, since the
+    constructors refer to them.  According to the Definition, foo in SIG2 above
+    gets type 'a -> ('a,'a) t3.  Both of the following structures then match SIG2:
+
+    structure A =
+	 struct
+	    datatype ('a,'b) t3 = foo of 'a
+	 end
+
+    structure B =
+	 struct
+	    datatype ('a,'b) t3 = foo of 'b
+	 end
+
+    SML-NJ (version 0.44a) says foo : 'a -> ('a,'b) t3, which is wrong.  The result
+    of this is that A matches SIG2 but B does not.  I don't know about Poly-SML,
+    since I don't have it here.
+Status: open
+--------------------------------------------------------------------------------
+240. concrete printing of abstype value
+Submitter:      Allen Leung. allen@sbcs.sunysb.edu
+Date:           July 12th, 1990
+Version:        v59    4 June, 1990
+System:         SUN 3 on bsd
+Severity:       minor
+Problem:        Toplevel printing of abstype is transparent.
+Code:           - abstype Foo = Foo of int
+                = with fun foo i = Foo i end
+                = val bar = foo 0;
+                > type Foo
+                > val foo = fn : int -> Foo
+                > val bar = Foo 0 : Foo    (* instead of - : Foo *)
+                -
+Transcript:     
+Comments:       Is this a new feature of v59+?
+                It does help debugging. 
+Status: open
+--------------------------------------------------------------------------------
+241. sharing constraint error ignored
+Submitter:      David Turner
+Date:           12 July '90
+Version:        0.59
+System:         Sun4
+Severity:       Slightly irritating
+Problem:        Ignores error in sharing constraint even though it
+		obviously detects it.
+
+Input:
+        - signature S = sig  type t  end;
+
+	- functor F
+	    (structure A : S
+	     structure B : S
+	    	sharing type B.t = A.s) = struct end;
+
+Output:
+	Error: unbound type in structure: s
+	functor F : <sig>
+
+Status: open
+--------------------------------------------------------------------------------
+242. incorrect forward referencing allowed
+Submitter:      Nick
+Date:		12 July '90
+Version:        0.56, 0.59
+System:         Irrelevant
+Severity:       Major (& Embarrassing?)
+Problem:        Incorrect forward referencing when analysing SPECs in
+		functor arguments.
+
+Input:
+	- signature SIG = sig  type t  end
+
+	- functor F(structure STR1: sig type t end sharing type STR1.t = Foo.t
+		    structure Foo: SIG
+		   ) = struct end;
+
+Output:
+	functor F: <sig>
+
+Status: open
+--------------------------------------------------------------------------------
+244. compiler bug on product of large integer constants on SPARC
+Submitter:      Bennet Vance (bennet@cse.ogi.edu)
+Date:		Jul  1, 1990
+Version:        0.59
+System:         Sun 4/60 - SunOS Release 4.0.3c
+Severity:       minor
+Problem:        compiler bug on large products of integer constants
+Transcript:
+
+	val it = () : unit
+	- 2*268435455;
+	val it = 536870910 : int
+	- 2*268435456;
+	Error: Compiler bug: [SparcCM.ashr]
+Status: open
+--------------------------------------------------------------------------------
+245. NeXT installation problem
+Submitter:      Lyman Taylor ( respond to lyman@portia.stanford.edu )
+Date:		07/12/90
+Version:        0.56
+System:         NeXT , 8M , hard disk , & OD  ( build done on OD )
+Severity:       major
+Problem:        install script does not excute
+Code:           none
+Transcript:    	following ouput of makeml ( machine name helen )
+
+helen> makeml -next
+makeml> (cd runtime; make clean)
+rm -f *.o lint.out prim.s linkdata allmo.s run
+makeml> rm -f mo
+makeml> ln -s ../mo.m68 mo
+makeml> (cd runtime; rm -f run allmo.o)
+makeml> (cd runtime; make MACHINE=M68 'DEFS= -DBSD -DNeXT -DRUNTIME=\"runtime\"' linkdata)
+cc -O  -DM68 -DBSD -DNeXT -DRUNTIME=\"runtime\" -o linkdata linkdata.c
+makeml> runtime/linkdata [runtime/IntM68.mos]
+runtime/linkdata> as runtime/allmo.s -o runtime/allmo.o
+makeml> (cd runtime; make MACHINE=M68 'DEFS= -DBSD -DNeXT' CPP=/lib/cpp 'CFL=' 'AS=as')
+cc -O  -DM68 -DBSD -DNeXT -c run.c
+ml_os.h:113: can't find include file `sys/syscall.h'
+*** Exit 1
+Stop.
+
+Comments:	I'm not skilled at development for the NeXT. I was just looking
+		to compile the latest version of SMLNJ so I could try it out
+		there is an older version ( 0.43 ) on the Sparcs around here
+		but the Next allows me to dump all this onto an OD so noone 
+		can complain about the space all the source is taking up.
+			
+Status: open
+--------------------------------------------------------------------------------
+246. repeated import consumes too much memory
+Submitter:      Peter Canning  <canning@hplabs.hp.com>
+Date:		27 June 1990
+Version:        0.56
+System:         HP900S370 (m68030)  HP-UX 7.0
+Severity:       major
+Problem:        repeated use of the import facility causes the heap to grow
+Code:           <example code that reproduces the problem>
+Transcript:     <transcript of session illustrating problem>
+Comments:
+    In particular, if I repeatedly modify a file, import the file, then run the
+    program defined in the file (the standard edit/compile/debug loop), my sml
+    image seems to grow (and never shink again).  When I was just using "use",
+    sml would garbage collect freqently, but the process size would stay between
+    4000 and 5000 Kbytes.  Using import (working on the same program), the
+    process has grown as large as 11000 Kbytes.  It appears that for some reason
+    some data related to importing/compiling files is not being reclaimed by the
+    garbage collector.
+Status: open
+--------------------------------------------------------------------------------
+247. close_out std_out
+Submitter: Mark R. Leone  <mleone@cs.cmu.edu>
+Date: Fri, 29 Jun 90 16:09:02 EDT
+Version: 0.59
+Problem:
+  If standard output is closed, the top level exits ungracefully:
+Transcript:
+    [r.ergo]/usr/mleone/sml/hypo-pl> sml
+    Standard ML of New Jersey, Version 0.59, 4 June 1990
+    Warning: input and output are now uncurried, arithmetic exceptions
+    are re-arranged, div and mod are different; see doc/NEWS
+    val it = () : unit
+    - close_out std_out;
+    Uncaught exception Io with "output "<std_out>": closed outstream"
+Status: open
+--------------------------------------------------------------------------------
+248. abstract types are not abstract
+Submitter:      Dave MacQueen
+Date:		7/16/90
+Version:        0.59 (0.57 and later)
+Severity:       major
+Problem:
+   Abstract types defined by abstype declarations are not made abstract
+  (i.e. converted from DATAtyc to ABStyc form), and their equality property
+  is not reset to NO.  Equality properties of types defined in terms of the
+  abstype are not recomputed (see bugs 231 and 240).
+Comments:
+  After the abstype body has been processed, the concrete form of the abstract
+  types must be replaced by the abstract form throughout the 'signature' of the
+  exported bindings (values, constructors, types).  Also equality properties
+  of exported types have to be reevaluated.
+  Currently, there is a function that attempts to transform the tycons in the
+  type checker, but it affects only the abstract syntax, and not the static
+  environment.  The problem results from the removal of the ref around tycons
+  in 0.57.
+--------------------------------------------------------------------------------
+250. interpreter broken
+Submitter:      Richard O'Neill (cmp7130%sys.uea.ac.uk@nsfnet-relay.ac.uk)
+Date:		Tue Jul 17 12:24:19 BST 1990
+Version:        0.59
+System:         Sun3, SunOS 4.1
+Severity:       Major
+Problem:
+
+In interpret mode, version 0.59 fails with no explanation when compiling a
+grammar from mlyacc (slightly modified to use 'import'), whilst in compile
+mode, the grammar is compiled correctly. Version 0.56 does not exhibit the same
+problem.
+
+This seems a significant problem since using compile mode takes significant
+time and memory. Equally, I cannot use version 0.56 due to some of its bugs
+which manifest themselves when compiling other modules.
+
+I have not included the files as they are rather long (being an mlyacc 
+generated parser and the relevant support files). I can supply you with a
+uuencoded compressed tar archive of them all if you desire.
+
+Transcript:
+
+unix% sml
+Standard ML of New Jersey, Version 0.59, 4 June 1990
+- System.Control.interp;
+val it = ref true : bool ref
+- import "clean.grm";
+[clean.grm.bin is out of date; recompiling]
+[reading clean.grm.sml]
+  [reading lib/token.sig.bin... done]
+[closing clean.grm.sml]
+IMPORT failed (compile-time exception: SystemCall)
+- import "clean.grm";
+[clean.grm.bin is out of date; recompiling]
+[reading clean.grm.sml]
+  [reading lib/token.sig.bin... done]
+  [reading clean.grm.sig.bin... done]
+
+[Major collection... 60% used (648480/1067380), 1900 msec]
+
+[Major collection... 96% used (1015412/1055228), 3000 msec]
+
+[Increasing heap to 3088k]
+
+[Major collection... 96% used (1526764/1586468), 4740 msec]
+
+[Increasing heap to 4640k]
+
+[Major collection... 96% used (2287536/2378284), 7480 msec]
+
+[Increasing heap to 6952k]
+
+[Major collection...
+[Increasing heap to 10528k]
+ 96% used (3515248/3635044), 11120 msec]
+
+[Increasing heap to 10632k]
+[closing clean.grm.sml]
+IMPORT failed (compile-time exception: Cascade)
+- ^D
+
+unix% old-sml
+Standard ML of New Jersey, Version 0.56, 13 April 1990
+val it = () : unit
+- System.Control.interp;
+val it = ref true : bool ref
+- import "clean.grm";
+[clean.grm.bin is out of date; recompiling]
+[reading clean.grm.sml]
+  [reading lib/token.sig.bin... ]
+  [lib/token.sig.bin is the wrong format; recompiling]
+  [closing lib/token.sig.bin]
+  [reading lib/token.sig.sml]
+    [reading lib/lrtable.sig.bin... ]
+    [lib/lrtable.sig.bin is the wrong format; recompiling]
+    [closing lib/lrtable.sig.bin]
+    [reading lib/lrtable.sig.sml]
+    [writing lib/lrtable.sig.bin... done]
+    [closing lib/lrtable.sig.sml]
+  [writing lib/token.sig.bin... done]
+  [closing lib/token.sig.sml]
+  [reading clean.grm.sig.bin... ]
+  [clean.grm.sig.bin is the wrong format; recompiling]
+  [closing clean.grm.sig.bin]
+  [reading clean.grm.sig.sml]
+    [reading lib/parserdata.sig.bin... ]
+    [lib/parserdata.sig.bin is the wrong format; recompiling]
+    [closing lib/parserdata.sig.bin]
+    [reading lib/parserdata.sig.sml]
+      [reading lib/token.sig.bin... ]
+      [import(s) of lib/token.sig are out of date; recompiling]
+      [closing lib/token.sig.bin]
+      [reading lib/token.sig.sml]
+        [reading lib/lrtable.sig.bin... done]
+      [writing lib/token.sig.bin... done]
+      [closing lib/token.sig.sml]
+      [reading lib/lrtable.sig.bin... done]
+    [writing lib/parserdata.sig.bin... done]
+    [closing lib/parserdata.sig.sml]
+  [writing clean.grm.sig.bin... done]
+  [closing clean.grm.sig.sml]
+
+
+[Major collection... 66% used (1058292/1581868), 3360 msec]
+
+[Increasing heap to 3249k]
+
+[Major collection... 96% used (1629952/1687576), 5020 msec]
+
+[Increasing heap to 4929k]
+
+[Major collection... 96% used (2478864/2562240), 7800 msec]
+
+[Increasing heap to 7481k]
+
+[Major collection... 30% used (1226344/3978648), 4200 msec]
+
+[Decreasing heap to 4153k]
+
+[Major collection... 92% used (1982616/2147092), 6060 msec]
+
+[Increasing heap to 6081k]
+
+[Major collection... 85% used (2731764/3199400), 8480 msec]
+
+[Increasing heap to 8593k]
+
+[Major collection... 62% used (2809816/4478688), 9180 msec]
+
+[Increasing heap to 8657k]
+
+[Major collection... 60% used (2770384/4573952), 8920 msec]
+
+[Major collection... 62% used (2804296/4452412), 8980 msec]
+
+[Increasing heap to 8721k]
+
+[Major collection... 67% used (3031468/4473120), 8700 msec]
+
+[Increasing heap to 9033k]
+[writing clean.grm.bin... done]
+[closing clean.grm.sml]
+signature Clean_TOKENS
+signature TOKEN
+signature PARSER_DATA
+signature Clean_LRVALS
+signature LR_TABLE
+functor CleanLrValsFun
+- ^D
+
+unix% sml
+Standard ML of New Jersey, Version 0.59, 4 June 1990
+- System.Control.interp := false;
+val it = () : unit
+- import "clean.grm";
+[reading clean.grm.bin... ]
+[clean.grm.bin is the wrong format; recompiling
+[closing clean.grm.bin]
+[reading clean.grm.sml]
+  [reading lib/token.sig.bin... ]
+  [lib/token.sig.bin is the wrong format; recompiling
+  [closing lib/token.sig.bin]
+  [reading lib/token.sig.sml]
+    [reading lib/lrtable.sig.bin... ]
+    [lib/lrtable.sig.bin is the wrong format; recompiling
+    [closing lib/lrtable.sig.bin]
+    [reading lib/lrtable.sig.sml]
+    [writing lib/lrtable.sig.bin... done]
+    [closing lib/lrtable.sig.sml]
+  [writing lib/token.sig.bin... done]
+  [closing lib/token.sig.sml]
+  [reading clean.grm.sig.bin... ]
+  [clean.grm.sig.bin is the wrong format; recompiling
+  [closing clean.grm.sig.bin]
+  [reading clean.grm.sig.sml]
+    [reading lib/parserdata.sig.bin... ]
+    [lib/parserdata.sig.bin is the wrong format; recompiling
+    [closing lib/parserdata.sig.bin]
+    [reading lib/parserdata.sig.sml]
+      [reading lib/token.sig.bin... done]
+      [reading lib/lrtable.sig.bin... done]
+    [writing lib/parserdata.sig.bin... done]
+    [closing lib/parserdata.sig.sml]
+  [writing clean.grm.sig.bin... done]
+  [closing clean.grm.sig.sml]
+
+[Major collection... 61% used (679180/1109552), 2060 msec]
+
+[Increasing heap to 2240k]
+
+[Major collection... 80% used (932040/1158752), 2780 msec]
+
+[Increasing heap to 2848k]
+
+[Major collection... 95% used (1403328/1463408), 4240 msec]
+
+[Increasing heap to 4272k]
+
+[Major collection... 96% used (2109420/2194020), 6680 msec]
+
+[Increasing heap to 6408k]
+
+[Major collection...
+[Increasing heap to 9656k]
+ 96% used (3255168/3361612), 10700 msec]
+
+[Increasing heap to 9824k]
+
+[Major collection... 36% used (1914068/5201708), 6400 msec]
+
+[Decreasing heap to 6208k]
+
+[Major collection... 85% used (2811340/3298792), 8620 msec]
+
+[Increasing heap to 8816k]
+
+[Major collection... 61% used (2810740/4607236), 8320 msec]
+
+[Major collection... 63% used (2882812/4569184), 8900 msec]
+
+[Increasing heap to 8928k]
+
+[Major collection... 57% used (2705236/4669212), 8360 msec]
+
+[Major collection... 61% used (2854268/4612180), 8560 msec]
+[writing clean.grm.bin... done]
+[closing clean.grm.sml]
+signature Clean_TOKENSsignature TOKENsignature PARSER_DATAsignature Clean_LRVALSsignature LR_TABLEfunctor CleanLrValsFun-
+
+Status: open
+--------------------------------------------------------------------------------
+251. omits tests for repeated bindings
+Submitter:      Dave Berry db@lfcs.ed.ac.uk
+Date:		18th July 1990
+Version:        0.59
+System:         All (I presume; actually tested on a Sun 3 with SunOS 4.0)
+Severity:       minor
+Problem:        omits tests for repeated bindings
+Code:           
+
+type t = int and t = string;
+
+exception E and E;
+
+val rec f = fn x => x + 1
+and f = fn n => if n > 0 then 1 else n * f (n - 1);
+
+Transcript:
+
+- type t = int and t = string;
+type  t = int
+type  t = string
+
+- exception E and E;
+exception E
+exception E
+
+- val rec f = fn x => x + 1
+= and f = fn n => if n > 0 then 1 else n * f (n - 1);
+val f = fn : int -> int
+val f = fn : int -> int
+
+Comments:
+
+I expect that few people would make these mistakes in "real"
+code, but they might be more common when teaching.
+
+The tests are made for repeated constructors in a datatype,
+and in some (non-recursive?) value bindings, e.g.
+
+- datatype a = A | A;
+std_in:3.14-3.18 Error: duplicate constructor name
+
+- val a = 1 and a = 2;
+std_in:2.5-2.19 Error: duplicate variable-name `a' in pattern(s)
+
+Page 9 is the relevant part of the definition.
+
+Status: open
+--------------------------------------------------------------------------------
+253.  SML Dumping core compiling mlyacc with -pervshare
+Submitter:      Richard O'Neill (cmp7130%sys.uea.ac.uk@nsfnet-relay.ac.uk)
+Date:		Wed Jul 18 16:18:47 BST 1990
+Version:        0.59
+System:         Sun3/50, SunOS 4.1
+Severity:       You decide...
+Problem:
+
+Attempting to compile mlyacc (as supplied with version 0.56 of SML of NJ) 
+with a '-pervshare' version of SML of NJ 0.59 causes a Segmentation Fault.
+
+This does not seem to happen with the sharable SML compiler.
+
+I have the core dump if that would help...
+
+Status: open
+------------------------------------------------------------------------------
+255. space leak with redeclaration of variables
+Submitter: John Reppy
+Date:	   7/24/90
+Version:   0.60
+Severity:  major
+Problem:
+    I think that there is a space leak in the top-level loop/environment.
+    If I keep redefining the same identifiers, the amount of live data
+    grows, when it should be fairly constant.  I assume that the problem
+    is that the top-level symbol table is holding onto something it shouldn't.
+Status: open
+------------------------------------------------------------------------------
+256. mcopt compiler bug with improper function definition
+Submitter: John Mitchell (jcm@iswim.stanford.edu)
+Date:      7/24/90
+Version:   0.60
+Severity:  critical
+Problem:
+    Compiler bug "r_o in mcopt" raised as a result of improper clausal
+    function definition.
+Transcript:
+    - datatype 'a stack = empty | stk of 'a *'a stack;
+    datatype 'a   stack
+    con empty : 'a stack
+    con stk : 'a * 'a stack -> 'a stack
+    - fun pop stk(e,s) = s;
+    Error: Compiler bug: r_o in mcopt
+
+    adding parens fixes the problem, so not serious as is:
+
+    fun pop (stk (e,s)) = s;
+    std_in:2.5-2.23 Warning: match not exhaustive
+	    stk (e,s) => ...
+    val pop = fn : 'a stack -> 'a stack
+Status: open

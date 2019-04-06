@@ -1,0 +1,126 @@
+			    opcode
+special	bcond	j	jal	beq	bne	blez	bgtz
+addi	addiu	slti	sltiu	andi	ori	xori	lui
+cop0	cop1	cop2	cop3	*	*	*	*
+*	*	*	*	*	*	*	*
+lb	lh	lwl	lw	lbu	lhu	lwr	*
+sb	sh	swl	sw	*	*	swr	*
+lwc0	lwc1	lwc2	lwc3	*	*	*	*
+swc0	swc1	swc2	swc3	*	*	*	*
+
+			    special
+sll	*	srl	sra	sllv	*	srlv	srav
+jr	jalr	*	*	syscall	break	*	*
+mfhi	mthi	mflo	mtlo	*	*	*	*
+mult	multu	div	divu	*	*	*	*
+add	addu	sub	subu	and'	or	xor	nor
+*	*	slt	sltu	*	*	*	*
+*	*	*	*	*	*	*	*
+*	*	*	*	*	*	*	*
+
+			    bcond
+bltz	bgez	*	*	*	*	*	*
+*	*	*	*	*	*	*	*
+bltzal	bgezal	*	*	*	*	*	*
+*	*	*	*	*	*	*	*
+
+
+			    cop1
+add_fmt	sub_fmt	mul_fmt	div_fmt	*	abs_fmt	mov_fmt	neg_fmt
+*	*	*	*	*	*	*	*
+*	*	*	*	*	*	*	*
+*	*	*	*	*	*	*	*
+cvt_s	cvt_d	*	*	cvt_w	*	*	*
+*	*	*	*	*	*	*	*
+c_f	c_un	c_eq	c_ueq	c_olt	c_ult	c_ole	c_ule
+c_sf	c_ngle	c_seq	c_ngl	c_lt	c_nge	c_le	c_ngt
+
+			fields
+op' 26 31
+rs 21 25
+rt 16 20
++immed 0 15
++offset 0 15
+base 21 25
+target 0 25
+rd 11 15
+shamt 6 10
+funct 0 5
+cond 16 20
+ft 16 20
+fmt 21 25
+fs 11 15
+fd 6 10
+
+			instructions
+add rd rs rt
+addi rt rs immed
+addiu rt rs immed
+addu rd rs rt
+and' rd rs rt
+andi rt rs immed
+beq rs rt offset
+bgez rs offset
+bgezal rs offset
+bgtz rs offset
+blez rs offset
+bltz rs offset
+bltzal rs offset
+bne rs rt offset
+break rt
+div rs rt
+divu rs rt
+j target
+jal target
+jalr rs rd
+jr rs
+lb rt offset base
+lbu rt offset base
+lh rt offset base
+lb rt offset base
+lhu rt offset base
+lui rt immed
+lw rt offset base
+lwl rt offset base
+lwr rt offset base
+mfhi rd
+mflo rd
+mthi rs
+mtlo rs
+mult rs rt
+multu rs rt
+nor rd rs rt
+or rd rs rt
+ori rt rs immed
+sb rt offset base
+sh rt offset base
+sll rd rt shamt
+sllv rd rt rs
+slt rd rs rt
+slti rt rs immed
+sltiu rt rs immed
+sltu rd rs rt
+sra rd rt shamt
+srav rd rt rs
+srl rd rt shamt
+srlv rd rt rs
+sub rd rs rt
+subu rd rs rt
+sw rt offset base
+swl rt offset base
+swr rt offset base
+syscall
+xor rd rs rt
+xori rt rs immed
+add_fmt fmt fd fs ft
+div_fmt fmt fd fs ft
+lwc1 ft offset base
+mul_fmt fmt fd fs ft
+neg_fmt fmt fd fs
+sub_fmt fmt fd fs ft
+swc1 ft offset base
+c_seq fmt fs ft
+c_lt fmt fs ft
+cop1 rs rt offset
+
+

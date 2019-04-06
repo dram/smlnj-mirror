@@ -1,0 +1,1936 @@
+Outstanding bugs, SML of NJ Version 0.56, 13 April 1990
+
+------------------------------------------------------------------------------
+4. duplicate specifications not checked
+Problem:
+  No checking for duplicated specifications in signatures.
+Version: 0.18
+Comment:
+  This should be done when building the signature symbol table.
+Status: open
+-----------------------------------------------------------------------------
+86. incorrectly allows redefining of "="
+Submitter: Dave Berry
+Date: 3/15/89
+Version: 0.29
+Problem:
+    NJML handles the = symbol incorrectly in some cases.
+
+    - val op = = op = ;
+    - nonfix =;
+    - = (true, true);
+    Error: declaration or expression expected, found EQUAL
+Comment:
+    The = symbol may not be redefined (Definition, page 4).  The top definition
+    does seem to redefine =, despite the lack of response from the system.
+    I can't see anything in the Definition that forbids making = nonfix,
+    so I suppose it should be possible to use it in a nonfix way.
+Status: open
+------------------------------------------------------------------------------
+184. bindings introduced by open are not printed
+Submitter: Andy Koenig
+Date: 1/30/90
+Version: 0.52
+Problem:
+  After a top level open, the bindings introduced are not printed
+Status: open
+------------------------------------------------------------------------------
+189. confusing error message for bad clausal syntax
+Submitter: Carl Gunter
+Date: 1/4/90
+Version: 0.44/0.52
+Problem:
+  Parser error message is not as helpful as it could be.
+Transcript
+    - fun (f:('a pair -> int)) x = 2;
+    std_in:3.5-3.24 Error: illegal function symbol in clause
+Status: open
+-----------------------------------------------------------------------------
+206. unhelpful parser error message (new parser)
+Submitter: Dave
+Date: 3/15/90
+Version: 0.52
+Transcript:
+    - structure A =
+    = struct
+    =   val x = if true then if true then 1 else 2
+    = end;
+    std_in:4.1 Error: syntax error found at END
+    -
+Status: open
+--------------------------------------------------------------------------------
+219. parsing layered patterns
+Submitter: Andrew Appel
+Date: 5/90
+Version: 0.56 and later
+Severity: minor
+Problem: parsing of layered pattern is too liberal.  An atomic pattern is
+  accepted where a variable is required by the Definition syntax.
+Code:
+  let val (x) as (y :: z) = [1,2] in x end
+Comments:
+  Seems to require nontrivial change to the mlyacc grammar
+Status: open
+--------------------------------------------------------------------------------
+221. profiling broken
+Submitter: Benjamin Pierce (Benjamin.Pierce%proof.ergo.cs.cmu.edu
+Date: 5/22/1990
+System: 0.56 (and later)
+Problem:
+  Profiling provides call counts bug not timings.  For separately compiled
+  modules, profiling provides neither call counts nor timings.
+Transcript:
+ (1) for separately compiled code
+ %time  cumsecs     #call   ms/call  name
+            .00         0            (toplevel)
+            .00         0            (gc)
+            .00         0            (unprofiled)
+
+
+ (2) for "used" code
+ %time  cumsecs     #call   ms/call  name
+            .00      2398     .0000  anon.AType.==.anon
+            .00      2398     .0000  anon.AType.==
+            .00      2051     .0000  anon.Id.==.anon
+            .00      2051     .0000  anon.Id.==
+            .00      1890     .0000  anon.AType.apply_rule.anon
+	    [etc...]
+
+Status: open
+--------------------------------------------------------------------------------
+223. nontty standard input and uncaught exceptions
+Submitter:	KINOSHITA Yoshiki	yoshiki@etl.go.jp
+Date:		4, June 1990
+Version:	SML of NJ 0.56
+System:		Sparc Station 330 (SUN4), SUN-OS 4.0.3 (generic version)
+Severity:	major
+Problem:	If the standard input is a pipe, the system ends
+		abnormally after it sends an error message.
+Code:		None.  The problem concerns with the interface to UNIX.
+Transcript:
+	% cat - | sml  
+	Standard ML of New Jersey, Version 0.56, 13 April 1990 
+	Warning: input and output are now uncurried, arithmetic exceptions 
+	are re-arranged, div and mod are different; see doc/NEWS 
+	val it = () : unit 
+	- foo; 
+	std_in:2.1-2.3 Error: unbound variable foo 
+	uncaught exception Stop 
+	^Z 
+	Stopped  
+	% jobs 
+	[1]  + Stopped              cat - | 
+	       Done                 sml 
+	%
+
+Comments:	This problem makes it impossible to use the system with
+		its input sent through a UNIX filter.
+  [jhr:
+    You might call this a feature.  It appears that the person who wrote
+    the top-level loop code (interact.sml), decided that exceptions
+    should only be caught at the top-level loop when std_in is a tty
+    (look at lines 292-309 in interact.sml).  The following work-around
+    avoids the problem
+
+      <jhr@rocky:76> cat - | sml
+      Standard ML of New Jersey, Version 0.59, 4 June 1990
+      Warning: input and output are now uncurried, arithmetic exceptions
+      are re-arranged, div and mod are different; see doc/NEWS
+      val it = () : unit
+      - set_term_in(std_in, true);
+      val it = () : unit
+      - foo;
+      std_in:3.1-3.3 Error: unbound variable foo
+      - 1+2;
+      val it = 3 : int
+      - 
+
+    But, maybe the code should change.  It isn't clear to me what the correct
+    semantics are in this case.  This problem came up here at Cornell when
+    Bill Aitken was using "rsh" to run sml on a remote machine.]
+Status: open
+--------------------------------------------------------------------------------
+232. user bound type variable in exception declaration 
+Submitter:      Jo Blishen, Nick Rothwell
+Date:		6/20/90
+Version:	0.59
+Severity:       minor
+Problem:
+  User-bound tyvar is not generalized at val binding containing it.
+Transcript:
+  - fun f l = let exception E of '_a in (raise (E l)) handle E t => t end;
+  std_in:2.30-2.32 Error: unbound tyvars in exception declaration
+Comments:
+  According to the Definition '_a should be considered bound at the outermost
+  val (fun f l ...) where it is the type of the lambda-bound variable l.
+Status: open
+--------------------------------------------------------------------------------
+235. repeated type variables in typdesc and datdesc
+Submitter:      Don Sannella <dts@informatik.uni-Bremen.de>
+Date:		6/13/90
+Version:        0.44?
+Severity:       major
+Problem:
+    The Definition of SML seems to allow repeated type variables in a typdesc and
+    datdesc, making the following signatures legal:
+
+    signature SIG1 =
+	 sig
+	    eqtype ('a,'a) t1
+	    type ('a,'a) t2
+	 end
+
+    signature SIG2 =
+	 sig
+	    datatype ('a,'a) t3 = foo of 'a
+	 end
+
+    Section 2.9 forbids repeated variables in a typbind and datbind, but I don't
+    see anything forbidding it in a typdesc or datdesc.  I assume below that the
+    omission of a syntactic restriction here was intentional.
+
+    Repeated type variables in a typdesc seem unproblematic if strange, since the
+    semantics only looks at the number of variables.  SML-NJ accepts SIG1 above,
+    and treats it the same as a signature without repeated type variables, which is
+    correct.
+
+    Repeated type variables in a datdesc are more of a problem, since the
+    constructors refer to them.  According to the Definition, foo in SIG2 above
+    gets type 'a -> ('a,'a) t3.  Both of the following structures then match SIG2:
+
+    structure A =
+	 struct
+	    datatype ('a,'b) t3 = foo of 'a
+	 end
+
+    structure B =
+	 struct
+	    datatype ('a,'b) t3 = foo of 'b
+	 end
+
+    SML-NJ (version 0.44a) says foo : 'a -> ('a,'b) t3, which is wrong.  The result
+    of this is that A matches SIG2 but B does not.  I don't know about Poly-SML,
+    since I don't have it here.
+Status: open
+--------------------------------------------------------------------------------
+241. sharing constraint error ignored
+Submitter:      David Turner
+Date:           12 July '90
+Version:        0.59
+System:         Sun4
+Severity:       Slightly irritating
+Problem:        Ignores error in sharing constraint even though it
+		obviously detects it.
+
+Input:
+        - signature S = sig  type t  end;
+
+	  functor F
+	    (structure A : S
+	     structure B : S
+	    	sharing type B.t = A.s) = struct end;
+
+Output:
+	Error: unbound type in structure: s
+	functor F : <sig>
+
+Status: about to be fixed (change "complain" to "err" in sharing.sml) in 0.65
+--------------------------------------------------------------------------------
+242. incorrect forward referencing allowed
+Submitter:      Nick
+Date:		12 July '90
+Version:        0.56, 0.59
+System:         Irrelevant
+Severity:       Major (& Embarrassing?)
+Problem:        Incorrect forward referencing when analysing SPECs in
+		functor arguments.
+
+Input:
+	- signature SIG = sig  type t  end
+
+	- functor F(structure STR1: sig type t end sharing type STR1.t = Foo.t
+		    structure Foo: SIG
+		   ) = struct end;
+
+Output:
+	functor F: <sig>
+
+Status: open
+--------------------------------------------------------------------------------
+244. compiler bug on product of large integer constants on SPARC
+Submitter:      Bennet Vance (bennet@cse.ogi.edu)
+Date:		Jul  1, 1990
+Version:        0.59
+System:         Sun 4/60 - SunOS Release 4.0.3c
+Severity:       minor
+Problem:        compiler bug on large products of integer constants
+Transcript:
+
+	val it = () : unit
+	- 2*268435455;
+	val it = 536870910 : int
+	- 2*268435456;
+	Error: Compiler bug: [SparcCM.ashr]
+Status: open
+--------------------------------------------------------------------------------
+245. NeXT installation problem
+Submitter:      Lyman Taylor ( respond to lyman@portia.stanford.edu )
+Date:		07/12/90
+Version:        0.56
+System:         NeXT , 8M , hard disk , & OD  ( build done on OD )
+Severity:       major
+Problem:        install script does not excute
+Code:           none
+Transcript:    	following ouput of makeml ( machine name helen )
+
+helen> makeml -next
+makeml> (cd runtime; make clean)
+rm -f *.o lint.out prim.s linkdata allmo.s run
+makeml> rm -f mo
+makeml> ln -s ../mo.m68 mo
+makeml> (cd runtime; rm -f run allmo.o)
+makeml> (cd runtime; make MACHINE=M68 'DEFS= -DBSD -DNeXT -DRUNTIME=\"runtime\"' linkdata)
+cc -O  -DM68 -DBSD -DNeXT -DRUNTIME=\"runtime\" -o linkdata linkdata.c
+makeml> runtime/linkdata [runtime/IntM68.mos]
+runtime/linkdata> as runtime/allmo.s -o runtime/allmo.o
+makeml> (cd runtime; make MACHINE=M68 'DEFS= -DBSD -DNeXT' CPP=/lib/cpp 'CFL=' 'AS=as')
+cc -O  -DM68 -DBSD -DNeXT -c run.c
+ml_os.h:113: can't find include file `sys/syscall.h'
+*** Exit 1
+Stop.
+
+Comments:	I'm not skilled at development for the NeXT. I was just looking
+		to compile the latest version of SMLNJ so I could try it out
+		there is an older version ( 0.43 ) on the Sparcs around here
+		but the Next allows me to dump all this onto an OD so noone 
+		can complain about the space all the source is taking up.
+			
+Status: fixed in 0.62? (jhr?)
+--------------------------------------------------------------------------------
+246. repeated import consumes too much memory
+Submitter:      Peter Canning  <canning@hplabs.hp.com>
+Date:		27 June 1990
+Version:        0.56
+System:         HP900S370 (m68030)  HP-UX 7.0
+Severity:       major
+Problem:        repeated use of the import facility causes the heap to grow
+Code:           <example code that reproduces the problem>
+Transcript:     <transcript of session illustrating problem>
+Comments:
+    In particular, if I repeatedly modify a file, import the file, then run the
+    program defined in the file (the standard edit/compile/debug loop), my sml
+    image seems to grow (and never shink again).  When I was just using "use",
+    sml would garbage collect freqently, but the process size would stay between
+    4000 and 5000 Kbytes.  Using import (working on the same program), the
+    process has grown as large as 11000 Kbytes.  It appears that for some reason
+    some data related to importing/compiling files is not being reclaimed by the
+    garbage collector.
+Status: open
+--------------------------------------------------------------------------------
+247. close_out std_out
+Submitter: Mark R. Leone  <mleone@cs.cmu.edu>
+Date: Fri, 29 Jun 90 16:09:02 EDT
+Version: 0.59
+Problem:
+  If standard output is closed, the top level exits ungracefully:
+Transcript:
+    [r.ergo]/usr/mleone/sml/hypo-pl> sml
+    Standard ML of New Jersey, Version 0.59, 4 June 1990
+    Warning: input and output are now uncurried, arithmetic exceptions
+    are re-arranged, div and mod are different; see doc/NEWS
+    val it = () : unit
+    - close_out std_out;
+    Uncaught exception Io with "output "<std_out>": closed outstream"
+Status: open
+--------------------------------------------------------------------------------
+250. interpreter broken
+Submitter:      Richard O'Neill (cmp7130%sys.uea.ac.uk@nsfnet-relay.ac.uk)
+Date:		Tue Jul 17 12:24:19 BST 1990
+Version:        0.59
+System:         Sun3, SunOS 4.1
+Severity:       Major
+Problem:
+
+In interpret mode, version 0.59 fails with no explanation when compiling a
+grammar from mlyacc (slightly modified to use 'import'), whilst in compile
+mode, the grammar is compiled correctly. Version 0.56 does not exhibit the same
+problem.
+
+This seems a significant problem since using compile mode takes significant
+time and memory. Equally, I cannot use version 0.56 due to some of its bugs
+which manifest themselves when compiling other modules.
+
+I have not included the files as they are rather long (being an mlyacc 
+generated parser and the relevant support files). I can supply you with a
+uuencoded compressed tar archive of them all if you desire.
+
+Transcript:
+
+unix% sml
+Standard ML of New Jersey, Version 0.59, 4 June 1990
+- System.Control.interp;
+val it = ref true : bool ref
+- import "clean.grm";
+[clean.grm.bin is out of date; recompiling]
+[reading clean.grm.sml]
+  [reading lib/token.sig.bin... done]
+[closing clean.grm.sml]
+IMPORT failed (compile-time exception: SystemCall)
+- import "clean.grm";
+[clean.grm.bin is out of date; recompiling]
+[reading clean.grm.sml]
+  [reading lib/token.sig.bin... done]
+  [reading clean.grm.sig.bin... done]
+
+[Major collection... 60% used (648480/1067380), 1900 msec]
+
+[Major collection... 96% used (1015412/1055228), 3000 msec]
+
+[Increasing heap to 3088k]
+
+[Major collection... 96% used (1526764/1586468), 4740 msec]
+
+[Increasing heap to 4640k]
+
+[Major collection... 96% used (2287536/2378284), 7480 msec]
+
+[Increasing heap to 6952k]
+
+[Major collection...
+[Increasing heap to 10528k]
+ 96% used (3515248/3635044), 11120 msec]
+
+[Increasing heap to 10632k]
+[closing clean.grm.sml]
+IMPORT failed (compile-time exception: Cascade)
+- ^D
+
+unix% old-sml
+Standard ML of New Jersey, Version 0.56, 13 April 1990
+val it = () : unit
+- System.Control.interp;
+val it = ref true : bool ref
+- import "clean.grm";
+[clean.grm.bin is out of date; recompiling]
+[reading clean.grm.sml]
+  [reading lib/token.sig.bin... ]
+  [lib/token.sig.bin is the wrong format; recompiling]
+  [closing lib/token.sig.bin]
+  [reading lib/token.sig.sml]
+    [reading lib/lrtable.sig.bin... ]
+    [lib/lrtable.sig.bin is the wrong format; recompiling]
+    [closing lib/lrtable.sig.bin]
+    [reading lib/lrtable.sig.sml]
+    [writing lib/lrtable.sig.bin... done]
+    [closing lib/lrtable.sig.sml]
+  [writing lib/token.sig.bin... done]
+  [closing lib/token.sig.sml]
+  [reading clean.grm.sig.bin... ]
+  [clean.grm.sig.bin is the wrong format; recompiling]
+  [closing clean.grm.sig.bin]
+  [reading clean.grm.sig.sml]
+    [reading lib/parserdata.sig.bin... ]
+    [lib/parserdata.sig.bin is the wrong format; recompiling]
+    [closing lib/parserdata.sig.bin]
+    [reading lib/parserdata.sig.sml]
+      [reading lib/token.sig.bin... ]
+      [import(s) of lib/token.sig are out of date; recompiling]
+      [closing lib/token.sig.bin]
+      [reading lib/token.sig.sml]
+        [reading lib/lrtable.sig.bin... done]
+      [writing lib/token.sig.bin... done]
+      [closing lib/token.sig.sml]
+      [reading lib/lrtable.sig.bin... done]
+    [writing lib/parserdata.sig.bin... done]
+    [closing lib/parserdata.sig.sml]
+  [writing clean.grm.sig.bin... done]
+  [closing clean.grm.sig.sml]
+
+
+[Major collection... 66% used (1058292/1581868), 3360 msec]
+
+[Increasing heap to 3249k]
+
+[Major collection... 96% used (1629952/1687576), 5020 msec]
+
+[Increasing heap to 4929k]
+
+[Major collection... 96% used (2478864/2562240), 7800 msec]
+
+[Increasing heap to 7481k]
+
+[Major collection... 30% used (1226344/3978648), 4200 msec]
+
+[Decreasing heap to 4153k]
+
+[Major collection... 92% used (1982616/2147092), 6060 msec]
+
+[Increasing heap to 6081k]
+
+[Major collection... 85% used (2731764/3199400), 8480 msec]
+
+[Increasing heap to 8593k]
+
+[Major collection... 62% used (2809816/4478688), 9180 msec]
+
+[Increasing heap to 8657k]
+
+[Major collection... 60% used (2770384/4573952), 8920 msec]
+
+[Major collection... 62% used (2804296/4452412), 8980 msec]
+
+[Increasing heap to 8721k]
+
+[Major collection... 67% used (3031468/4473120), 8700 msec]
+
+[Increasing heap to 9033k]
+[writing clean.grm.bin... done]
+[closing clean.grm.sml]
+signature Clean_TOKENS
+signature TOKEN
+signature PARSER_DATA
+signature Clean_LRVALS
+signature LR_TABLE
+functor CleanLrValsFun
+- ^D
+
+unix% sml
+Standard ML of New Jersey, Version 0.59, 4 June 1990
+- System.Control.interp := false;
+val it = () : unit
+- import "clean.grm";
+[reading clean.grm.bin... ]
+[clean.grm.bin is the wrong format; recompiling
+[closing clean.grm.bin]
+[reading clean.grm.sml]
+  [reading lib/token.sig.bin... ]
+  [lib/token.sig.bin is the wrong format; recompiling
+  [closing lib/token.sig.bin]
+  [reading lib/token.sig.sml]
+    [reading lib/lrtable.sig.bin... ]
+    [lib/lrtable.sig.bin is the wrong format; recompiling
+    [closing lib/lrtable.sig.bin]
+    [reading lib/lrtable.sig.sml]
+    [writing lib/lrtable.sig.bin... done]
+    [closing lib/lrtable.sig.sml]
+  [writing lib/token.sig.bin... done]
+  [closing lib/token.sig.sml]
+  [reading clean.grm.sig.bin... ]
+  [clean.grm.sig.bin is the wrong format; recompiling
+  [closing clean.grm.sig.bin]
+  [reading clean.grm.sig.sml]
+    [reading lib/parserdata.sig.bin... ]
+    [lib/parserdata.sig.bin is the wrong format; recompiling
+    [closing lib/parserdata.sig.bin]
+    [reading lib/parserdata.sig.sml]
+      [reading lib/token.sig.bin... done]
+      [reading lib/lrtable.sig.bin... done]
+    [writing lib/parserdata.sig.bin... done]
+    [closing lib/parserdata.sig.sml]
+  [writing clean.grm.sig.bin... done]
+  [closing clean.grm.sig.sml]
+
+[Major collection... 61% used (679180/1109552), 2060 msec]
+
+[Increasing heap to 2240k]
+
+[Major collection... 80% used (932040/1158752), 2780 msec]
+
+[Increasing heap to 2848k]
+
+[Major collection... 95% used (1403328/1463408), 4240 msec]
+
+[Increasing heap to 4272k]
+
+[Major collection... 96% used (2109420/2194020), 6680 msec]
+
+[Increasing heap to 6408k]
+
+[Major collection...
+[Increasing heap to 9656k]
+ 96% used (3255168/3361612), 10700 msec]
+
+[Increasing heap to 9824k]
+
+[Major collection... 36% used (1914068/5201708), 6400 msec]
+
+[Decreasing heap to 6208k]
+
+[Major collection... 85% used (2811340/3298792), 8620 msec]
+
+[Increasing heap to 8816k]
+
+[Major collection... 61% used (2810740/4607236), 8320 msec]
+
+[Major collection... 63% used (2882812/4569184), 8900 msec]
+
+[Increasing heap to 8928k]
+
+[Major collection... 57% used (2705236/4669212), 8360 msec]
+
+[Major collection... 61% used (2854268/4612180), 8560 msec]
+[writing clean.grm.bin... done]
+[closing clean.grm.sml]
+signature Clean_TOKENSsignature TOKENsignature PARSER_DATAsignature Clean_LRVALSsignature LR_TABLEfunctor CleanLrValsFun-
+
+Status: open
+--------------------------------------------------------------------------------
+251. omits tests for repeated bindings
+Submitter:      Dave Berry db@lfcs.ed.ac.uk
+Date:		18th July 1990
+Version:        0.59
+System:         All (I presume; actually tested on a Sun 3 with SunOS 4.0)
+Severity:       minor
+Problem:        omits tests for repeated bindings
+Code:           
+
+type t = int and t = string;
+
+exception E and E;
+
+val rec f = fn x => x + 1
+and f = fn n => if n > 0 then 1 else n * f (n - 1);
+
+Transcript:
+
+- type t = int and t = string;
+type  t = int
+type  t = string
+
+- exception E and E;
+exception E
+exception E
+
+- val rec f = fn x => x + 1
+= and f = fn n => if n > 0 then 1 else n * f (n - 1);
+val f = fn : int -> int
+val f = fn : int -> int
+
+Comments:
+
+I expect that few people would make these mistakes in "real"
+code, but they might be more common when teaching.
+
+The tests are made for repeated constructors in a datatype,
+and in some (non-recursive?) value bindings, e.g.
+
+- datatype a = A | A;
+std_in:3.14-3.18 Error: duplicate constructor name
+
+- val a = 1 and a = 2;
+std_in:2.5-2.19 Error: duplicate variable-name `a' in pattern(s)
+
+Page 9 is the relevant part of the definition.
+
+Status: open
+--------------------------------------------------------------------------------
+253.  SML Dumping core compiling mlyacc with -pervshare
+Submitter:      Richard O'Neill (cmp7130%sys.uea.ac.uk@nsfnet-relay.ac.uk)
+Date:		Wed Jul 18 16:18:47 BST 1990
+Version:        0.59
+System:         Sun3/50, SunOS 4.1
+Severity:       You decide...
+Problem:
+
+Attempting to compile mlyacc (as supplied with version 0.56 of SML of NJ) 
+with a '-pervshare' version of SML of NJ 0.59 causes a Segmentation Fault.
+
+This does not seem to happen with the sharable SML compiler.
+
+I have the core dump if that would help...
+
+Status: open
+--------------------------------------------------------------------------------
+255. space leak with redeclaration of variables
+Submitter: John Reppy
+Date:	   7/24/90
+Version:   0.60
+Severity:  major
+Problem:
+    I think that there is a space leak in the top-level loop/environment.
+    If I keep redefining the same identifiers, the amount of live data
+    grows, when it should be fairly constant.  I assume that the problem
+    is that the top-level symbol table is holding onto something it shouldn't.
+Transcript:
+Here is a simple demonstration of the space leak (60 bytes/iteration):
+
+  Standard ML of New Jersey, Version 0.60, 13 July 1990
+  val it = () : unit
+  - structure S = struct val _ = System.Unsafe.CInterface.gc 1 end;
+
+  [Major collection... 98% used (516680/526692), 610 msec]
+  structure S :
+    sig
+    end
+  - structure S = struct val _ = System.Unsafe.CInterface.gc 1 end;
+
+  [Major collection... 98% used (517100/525980), 550 msec]
+  structure S :
+    sig
+    end
+  - structure S = struct val _ = System.Unsafe.CInterface.gc 1 end;
+
+  [Major collection... 98% used (517160/526388), 550 msec]
+  structure S :
+    sig
+    end
+  - structure S = struct val _ = System.Unsafe.CInterface.gc 1 end;
+
+  [Major collection... 98% used (517220/526448), 550 msec]
+  structure S :
+    sig
+    end
+  - structure S = struct val _ = System.Unsafe.CInterface.gc 1 end;
+
+  [Major collection... 98% used (517280/526508), 540 msec]
+  structure S :
+    sig
+    end
+
+Comment: (appel) This is the top-level line-number information, and
+is a few bytes per line, regardless of size of defined structures.
+Status: not worth worrying about
+--------------------------------------------------------------------------------
+256. mcopt compiler bug with improper function definition
+Submitter: John Mitchell (jcm@iswim.stanford.edu)
+Date:      7/24/90
+Version:   0.60
+Severity:  critical
+Problem:
+    Compiler bug "r_o in mcopt" raised as a result of improper clausal
+    function definition.
+Transcript:
+    - datatype 'a stack = empty | stk of 'a *'a stack;
+    datatype 'a   stack
+    con empty : 'a stack
+    con stk : 'a * 'a stack -> 'a stack
+    - fun pop stk(e,s) = s;
+    Error: Compiler bug: r_o in mcopt
+
+    adding parens fixes the problem, so not serious as is:
+
+    fun pop (stk (e,s)) = s;
+    std_in:2.5-2.23 Warning: match not exhaustive
+	    stk (e,s) => ...
+    val pop = fn : 'a stack -> 'a stack
+
+Submitter:      Sergio Antoy, antoy@vtodie.cs.vt.edu
+Date:		8/9/90
+Version:        SML of NJ version number 056
+System:         DEC3100 V2.2 (Rev. 15)
+Severity:       
+Problem:        "using" following file sml generates "Compiler bug" msg
+Code:
+		datatype 'a Xlist
+		  = Xnil
+		  | Xcons of 'a * 'a Xlist
+		  | Xappend of 'a Xlist * 'a Xlist;
+
+		fun incr Xappend(Xnil,Xnil) = Xnil
+		  | incr Xappend(Xnil,Xcons(a,b)) = Xcons(a,b);
+Transcript:
+		goliat[8]% sml
+		Standard ML of New Jersey, Version 0.56, 13 April 1990
+		Warning: input and output are now uncurried, arithmetic exceptions
+		are re-arranged, div and mod are different; see doc/NEWS
+		val it = () : unit
+		- use "trans.sml";
+		[opening trans.sml]
+		datatype 'a   Xlist
+		con Xappend : 'a Xlist * 'a Xlist -> 'a Xlist
+		con Xcons : 'a * 'a Xlist -> 'a Xlist
+		con Xnil : 'a Xlist
+		Error: Compiler bug: r_o in mcopt
+		[closing trans.sml]
+		-
+Status: open
+--------------------------------------------------------------------------------
+257. Compiler bug: EnvAccess.lookPath with imported functors (bug 214 again)
+Submitter:      Richard O'Neill (cmp7130%sys.uea.ac.uk@nsfnet-relay.ac.uk)
+Date:		Mon Jul 30 11:52:10 BST 1990
+Version:        0,59, 0.60
+System:         Sun3/180, SunOS 4.1
+Severity:       Major
+Problem:
+
+Bug #214 ('Compiler bug: EnvAccess.lookPath occurs when printing a top level
+result') has not been laid to rest, it still occurs with imported functors.
+
+Transcript:
+
+unix% cat > one.sml
+
+functor classes () =
+    struct
+        datatype symbol_class = 
+            DataClass of data_class
+          | SpecialClass of special_class
+            
+        and data_class = Int | Real | Bool | String
+        and special_class = Any | None
+    end
+^D
+unix% cat > two.sml
+
+signature classes =
+    sig
+        datatype symbol_class = 
+            DataClass of data_class
+          | SpecialClass of special_class
+            
+        and data_class = Int | Real | Bool | String
+        and special_class = Any | None
+    end
+
+functor nodes ( structure Classes : classes ) =
+    struct
+        structure Classes = Classes
+        local
+            open Classes
+        in
+            datatype node =
+              ClassNode of symbol_class
+            | ValueNode of data_class
+        end
+    end
+^D
+unix% sml
+Standard ML of New Jersey, Version 0.60, 13 July 1990
+val it = () : unit
+- import "one" "two";
+[reading one.sml]
+[writing one.bin... done]
+[closing one.sml]
+functor classes
+[reading two.sml]
+[writing two.bin... done]
+[closing two.sml]
+signature classes
+functor nodes
+- structure Classes = classes ()
+= structure Nodes = nodes ( structure Classes = Classes )
+= open Classes Nodes ;
+structure Classes :
+  sig
+    datatype special_class
+      con Any : special_class
+      con None : special_class
+    datatype symbol_class
+      con DataClass : data_class -> symbol_class
+      con SpecialClass : special_class -> symbol_class
+    datatype data_class
+      con Bool : data_class
+      con Int : data_class
+      con Real : data_class
+      con String : data_class
+  end
+structure Nodes :
+  sig
+    structure Classes : sig...end
+    datatype node
+      con ClassNode : symbol_class -> node
+      con ValueNode : data_class -> node
+  end
+open Classes Nodes
+- ClassNode (DataClass Int);
+val it = ClassNode Error: Compiler bug: EnvAccess.lookPath
+- ValueNode Int;
+val it = ValueNode Int : node
+- ^D
+unix% sml
+Standard ML of New Jersey, Version 0.60, 13 July 1990
+val it = () : unit
+- app use ["one.sml","two.sml"];
+[opening one.sml]
+functor classes : <sig>
+[closing one.sml]
+[opening two.sml]
+signature classes =
+  sig
+    datatype special_class
+      con Any : special_class
+      con None : special_class
+    datatype symbol_class
+      con DataClass : data_class -> symbol_class
+      con SpecialClass : special_class -> symbol_class
+    datatype data_class
+      con Bool : data_class
+      con Int : data_class
+      con Real : data_class
+      con String : data_class
+  end
+functor nodes : <sig>
+[closing two.sml]
+val it = () : unit
+- structure Classes = classes ()
+= structure Nodes = nodes ( structure Classes = Classes )
+= open Classes Nodes ;
+structure Classes :
+  sig
+    datatype special_class
+      con Any : special_class
+      con None : special_class
+    datatype symbol_class
+      con DataClass : data_class -> symbol_class
+      con SpecialClass : special_class -> symbol_class
+    datatype data_class
+      con Bool : data_class
+      con Int : data_class
+      con Real : data_class
+      con String : data_class
+  end
+structure Nodes :
+  sig
+    structure Classes : sig...end
+    datatype node
+      con ClassNode : symbol_class -> node
+      con ValueNode : data_class -> node
+  end
+open Classes Nodes
+- ClassNode (DataClass Int);
+val it = ClassNode (DataClass Int) : node
+- ValueNode Int;
+val it = ValueNode Int : node
+- ^D
+--------------------------------------------------------------------------------
+258. System.Directory.cd failure
+Submitter: Dave MacQueen
+Date: 8/15/90
+Version: 0.63
+Problem:
+  System.Directory.cd applied to nonexistent directory name raises uncaught
+  exception
+Transcript:
+    - System.Directory.cd "foo";
+    uncaught exception SysError
+    -
+Status: open
+--------------------------------------------------------------------------------
+259. uncaught exception Match compiling normperv.sml
+Submitter:      Richard O'Neill (cmp7130%sys.uea.ac.uk@nsfnet-relay.ac.uk)
+Date:		Tue Aug 14 10:04:21 BST 1990
+Version:        0.63 (not in 0.62 or earlier)
+System:         Sun3/180, SunOS 4.1
+Severity:       Critical
+Problem:
+
+Version 0.63 has a new bug whereby it cannot compile dbguser/normperv.sml
+This prevents creating the '-debug' version.
+
+Transcript:
+
+unix% sml
+Standard ML of New Jersey, Version 0.63, 10 August 1990
+val it = () : unit
+- use "dbguser/normperv.sml";
+[opening dbguser/normperv.sml]
+[closing dbguser/normperv.sml]
+
+uncaught exception Match
+-
+
+Comments:
+
+Smlc, version 0.62, created the 680X0 '.mo' files from which a -pervshare
+runtime system was built using gcc. This runtime system was then used to build
+a normal and then a -debug system (which failed).
+
+I've marked the severity as critical because it is a critical problem for this
+version. For me however, its not so critical as I seem to be managing OK with
+0.62.
+Status: open
+--------------------------------------------------------------------------------
+261. Compiler Bug: abstractBody.abstractType 1 (same as 234?)
+Submitter:	George Beshers, beshers@sun2.brc.uconn.edu
+Date:		Aug 9, 1990
+Version:	0.56, sparc
+Severity:	Significant
+Problem:	Compiler generates
+	``Regex.sml:21.17 Compiler Bug: abstractBody.abstractType 1''
+		Note: this is somewhat delicate to reproduce.  If you
+		break the following into files and start a clean sml
+		and do "use Regex.sml;" it consistently generates
+		the error.  However, if you *repeat* the use Regex.sml
+		it compiles (however I have a lingering suspision about
+		the correctness of the code produced...).
+		On one occasion I tried "using" all the files in
+		sequence and that worked OK, at least the working
+		parts of the module did.
+
+		Also I have tried to cut parts of the Regex.sml
+		file and reproduce the error but without success.
+		In particular, the error is dependent on at least
+		some of the code appearing later in the file.
+
+Code:
+
+(*---------------------------- Ordinal.sml ---------------------*)
+
+
+signature ORD_RANGE =
+  sig
+    type elem
+    val ord : elem -> int
+    and de_ord : int -> elem
+  end
+
+functor NatFn() : ORD_RANGE =
+  struct
+    type elem = int
+    fun ord x = x
+    fun de_ord x = x
+  end
+
+functor CharFn() : ORD_RANGE =
+  struct
+    type elem = string
+    val ord = String.ord
+    val de_ord = chr
+  end
+
+
+(*------------------------ BitSet.sml ---------------------------*)
+
+
+import "Ordinal";
+
+signature BITSET =
+  sig
+    structure Elem : ORD_RANGE
+    exception NoSuchElement
+    type bitset
+    val empty: bitset
+    and	singleton : Elem.elem -> bitset
+    and range : Elem.elem * Elem.elem -> bitset
+    and setFromList : Elem.elem list -> bitset
+
+    and	exists : Elem.elem -> bitset -> bool
+    and union : bitset * bitset -> bitset
+    and intersect : bitset * bitset -> bitset
+    and difference : bitset * bitset -> bitset
+
+    val isempty : bitset -> bool
+    and eq : bitset * bitset -> bool
+    and subset : bitset * bitset -> bool
+    and subset': bitset * bitset -> bool
+
+    val select : bitset * (Elem.elem -> bool) -> bitset
+    val lowest : bitset -> Elem.elem
+    val lowest' : bitset -> Elem.elem -> Elem.elem
+    val highest : bitset -> Elem.elem
+    val highest' : bitset -> Elem.elem -> Elem.elem
+    val totOrder : bitset * bitset -> bool
+    val forall : bitset -> Elem.elem list
+    val makeString : bitset -> string
+  end;
+
+(* trivialized version *)
+functor BitSetFn(Elem1 : ORD_RANGE) : BITSET =
+  struct
+    structure Elem = Elem1
+    local
+      open Elem Bits
+      val bits_per_int = 30;
+      val all_bits = 1073741823        (* 077777777777 *)
+    in
+      datatype bitset = BS of {lo : int, hi : int, setx : int array}
+      val empty = BS{lo = 0, hi = ~1, setx = array(0, 0)}
+
+      fun singleton x = empty
+
+      fun range(l, h) = empty
+
+      fun exists x (BS{lo, hi, setx}) = false
+
+      fun union(set1, set2) = empty
+
+      exception NoSuchElement
+
+      fun lowest (BS{lo,...}) = de_ord lo
+
+      fun lowest' (BS{lo,...}) start = de_ord lo
+
+      fun highest (BS{hi,...}) = de_ord hi
+
+      fun highest' (BS{hi,...}) start = de_ord hi
+
+      fun reduce bs = empty
+
+      fun intersect(set1, set2) = empty
+
+      fun difference(set1, set2) = empty
+
+      fun isempty (BS{lo, hi,...}) = hi < lo
+
+      fun eq (set1, set2) = true
+
+      fun op subset(s1, s2) = isempty (reduce (difference (s1, s2)))
+
+      fun op subset'(s1, s2) = isempty (reduce (difference (s1, s2)))
+		       andalso (not (isempty (reduce (difference (s2, s1)))))
+
+      fun lowQuery (bs, q) =
+        let
+	  val BS{lo, hi, setx} = bs
+          val i = ref lo
+        in
+          de_ord (!i)
+        end
+      fun highQuery (bs, q) =
+        let
+	  val BS{lo, hi, setx} = bs
+          val i = ref hi
+        in
+          de_ord (!i)
+        end
+
+      fun select (bs, q) = bs
+
+      fun totOrder (set1, set2) = true
+
+      fun forall s = nil
+
+      fun makeString s = ""
+
+      fun setFromList (l' : Elem.elem list) = empty
+    end
+  end
+
+
+(*------------------------------ RedBlack.sml ------------------*)
+
+signature RED_BLACK =
+  sig type tree
+      type key
+      val empty : tree
+      val insert : key * tree -> tree
+      val lookup : key * tree -> key
+      exception notfound of key
+  end
+
+functor RedBlack(B : sig type key
+			 val > : key*key->bool
+		     end): RED_BLACK =
+struct
+ open B
+ datatype color = RED | BLACK
+ datatype tree = empty | tree of key * color * tree * tree
+ exception notfound of key
+
+ fun insert (key,t) =
+  let fun f empty = tree(key,RED,empty,empty)
+        | f (tree(k,BLACK,l,r)) =
+	    if key>k
+	    then case f r
+		 of r as tree(rk,RED, rl as tree(rlk,RED,rll,rlr),rr) =>
+			(case l
+			 of tree(lk,RED,ll,lr) =>
+				tree(k,RED,tree(lk,BLACK,ll,lr),
+					   tree(rk,BLACK,rl,rr))
+			  | _ => tree(rlk,BLACK,tree(k,RED,l,rll),
+						tree(rk,RED,rlr,rr)))
+		  | r as tree(rk,RED,rl, rr as tree(rrk,RED,rrl,rrr)) =>
+			(case l
+			 of tree(lk,RED,ll,lr) =>
+				tree(k,RED,tree(lk,BLACK,ll,lr),
+					   tree(rk,BLACK,rl,rr))
+			  | _ => tree(rk,BLACK,tree(k,RED,l,rl),rr))
+	          | r => tree(k,BLACK,l,r)
+	    else if k>key
+	    then case f l
+	         of l as tree(lk,RED,ll, lr as tree(lrk,RED,lrl,lrr)) =>
+			(case r
+			 of tree(rk,RED,rl,rr) =>
+				tree(k,RED,tree(lk,BLACK,ll,lr),
+					   tree(rk,BLACK,rl,rr))
+			  | _ => tree(lrk,BLACK,tree(lk,RED,ll,lrl),
+						tree(k,RED,lrr,r)))
+		  | l as tree(lk,RED, ll as tree(llk,RED,lll,llr), lr) =>
+			(case r
+			 of tree(rk,RED,rl,rr) =>
+				tree(k,RED,tree(lk,BLACK,ll,lr),
+					   tree(rk,BLACK,rl,rr))
+			  | _ => tree(lk,BLACK,ll,tree(k,RED,lr,r)))
+	          | l => tree(k,BLACK,l,r)
+	    else tree(key,BLACK,l,r)
+        | f (tree(k,RED,l,r)) =
+	    if key>k then tree(k,RED,l, f r)
+	    else if k>key then tree(k,RED, f l, r)
+	    else tree(key,RED,l,r)
+   in case f t
+      of tree(k,RED, l as tree(_,RED,_,_), r) => tree(k,BLACK,l,r)
+       | tree(k,RED, l, r as tree(_,RED,_,_)) => tree(k,BLACK,l,r)
+       | t => t
+  end
+
+
+ fun lookup (key,t) =
+  let fun look empty = raise (notfound key)
+	| look (tree(k,_,l,r)) =
+		if k>key then look l
+		else if key>k then look r
+		else k
+   in look t
+  end
+
+end
+
+
+(*------------------------ Regex.sml ------------------------*)
+
+
+import "Ordinal";
+import "BitSet";
+import "RedBlack";
+
+signature CHAR_REG_EXP =
+  sig
+    structure Alphabet : ORD_RANGE
+    structure AlphaSet : BITSET
+    structure range : ORD_RANGE
+    structure Set : BITSET
+    sharing type Set.Elem.elem = range.elem = int
+
+    type pattern
+
+    datatype Ch_Reg_Exp
+      = CONCAT of Ch_Reg_Exp list
+      | ALTERNATE of Ch_Reg_Exp list
+      | STAR of Ch_Reg_Exp
+      | PLUS of Ch_Reg_Exp
+      | OPTION of Ch_Reg_Exp
+      | LETTER of AlphaSet.bitset
+      | AUG   (* For internal use only *)
+
+    type Aug_Reg_Exp
+
+    val re_to_Aug : Ch_Reg_Exp -> {aug_re : Aug_Reg_Exp, count : int,
+				leafList : Aug_Reg_Exp list}
+
+    val Aug_to_Follow : {aug_re : Aug_Reg_Exp, count : int,
+			 leafList : Aug_Reg_Exp list} -> Set.bitset array
+
+    val Build_FSM :  {aug_re : Aug_Reg_Exp, count : int,
+			 leafList : Aug_Reg_Exp list} * Set.bitset array
+		     -> pattern
+
+    val Print : Aug_Reg_Exp -> unit
+  end
+
+functor Reg_ExpFn() (* : CHAR_REG_EXP *) =
+  struct
+      structure Alphabet = CharFn()
+      structure AlphaSet : BITSET = BitSetFn(Alphabet)
+      structure range = NatFn()
+      structure Set : BITSET = BitSetFn(range)
+
+      type InfoTy =
+	{
+	  fp : Set.bitset,
+	  lp : Set.bitset,
+	  null : bool
+	}
+
+      datatype pattern = Pat
+
+      datatype Ch_Reg_Exp
+	= CONCAT of Ch_Reg_Exp list
+	| ALTERNATE of Ch_Reg_Exp list
+	| STAR of Ch_Reg_Exp
+	| PLUS of Ch_Reg_Exp
+	| OPTION of Ch_Reg_Exp
+	| LETTER of AlphaSet.bitset
+	| AUG       (* Internal use only *)
+
+      datatype Aug_Reg_Exp
+	= AugCONCAT of InfoTy * Aug_Reg_Exp list
+	| AugALTERNATE of InfoTy * Aug_Reg_Exp list
+	| AugSTAR of InfoTy * Aug_Reg_Exp
+	| AugPLUS of InfoTy * Aug_Reg_Exp
+	| AugOPTION of InfoTy * Aug_Reg_Exp
+	| AugLETTER of InfoTy * AlphaSet.bitset
+	| AugAUG of InfoTy
+
+      fun mkInfo () =
+	 {
+	   Fpos = Set.empty,
+	   Lpos = Set.empty,
+	   Nullable = false
+	 }
+
+      fun info (AugCONCAT(inf, _)) = inf
+	| info (AugALTERNATE(inf, _)) = inf
+	| info (AugSTAR(inf, _)) = inf
+	| info (AugPLUS(inf, _)) = inf
+	| info (AugOPTION(inf, _)) = inf
+	| info (AugLETTER(inf, _)) = inf
+	| info (AugAUG(inf)) = inf
+
+(*      type 'a Aug = {aug_re : Aug_Reg_Exp, count : int,
+		 leafList : Aug_Reg_Exp list}
+*)
+      fun re_to_Aug re =
+        let
+	  fun app_map cnt nil = (nil : Aug_Reg_Exp list, cnt, nil)
+	    | app_map cnt (hd::tl) =
+	      let
+		val hd' = pass1(cnt, hd)
+		val {aug_re=ar, count=c, leafList=le} = hd'
+		val (arTl, cntTl, leTl) = app_map c tl
+	      in
+		(ar::arTl, cntTl, le@leTl)
+	      end
+	  and pass1 (counter, CONCAT(re_l)) =
+		let
+		  val (ar', cnt', le') = app_map counter re_l
+		  fun foldConcat (a, b) =
+		    let
+		      val {fp = fpA, lp = lpA, null = nuA} = a
+		      val {fp = fpB, lp = lpB, null = nuB} = b
+		      val n = nuA andalso nuB
+		      val fp' = if nuB then Set.union (fpA, fpB) else fpB
+		      val lp' = if nuA then Set.union (lpA, lpB) else lpA
+		    in
+		      print "foldConcat\n";
+			print "    given A ";
+			  print "  fpA="; print (Set.makeString fpA);
+			  print "  lpA="; print (Set.makeString lpA);
+			  print nuA; print "\n";
+			print "    given B ";
+			  print "  fpB="; print (Set.makeString fpB);
+			  print "  lpB="; print (Set.makeString lpB);
+			  print nuB; print "\n";
+			print "    results ";
+			  print "  fp'="; print (Set.makeString fp');
+			  print "  lp'="; print (Set.makeString lp');
+			  print n; print "\n";
+		      {fp = fp', lp = lp', null = n}
+		    end
+		  val base = {fp = Set.empty, lp = Set.empty, null = true}
+		  val _ = (print "    base ";
+			  print "  fp'="; print (Set.makeString (#fp base));
+			  print "  lp'="; print (Set.makeString (#lp base));
+			  print (#null base); print "\n")
+		  val info = revfold foldConcat (map info ar') base
+		in
+		  {aug_re = AugCONCAT(info, ar'), count = cnt',
+		      leafList = le'}
+		end
+	    | pass1 (counter, ALTERNATE(re_l)) =
+		  let
+		    val (ar', cnt', le') = app_map counter re_l
+		    fun foldAlt (a, b) =
+		      let
+			val {fp = hdA, lp = lpA, null = nuA} = a
+			val {fp = hdB, lp = lpB, null = nuB} = b
+		      in
+			{fp = Set.union (hdA, hdB),
+			 lp = Set.union (lpA, lpB),
+			 null = nuA orelse nuB}
+		      end
+		    val base = {fp = Set.empty, lp = Set.empty, null = false}
+		    val info = fold foldAlt (map info ar') base
+                  in
+		    {aug_re = AugALTERNATE(info, ar'), count = cnt',
+			leafList = le'}
+		  end
+	    | pass1 (counter, STAR(re)) =
+		  let
+		    val {aug_re=ar, count=c, leafList=le} = pass1(counter, re)
+		    val {fp = fp', lp = lp', null = nu} = info ar
+		    val info = {fp = fp', lp = lp', null = true}
+                  in
+		    {aug_re = AugSTAR(info, ar), count = c, leafList = le}
+		  end
+	    | pass1 (counter, PLUS(re)) =
+		  let
+		    val {aug_re=ar, count=c, leafList=le} = pass1(counter, re)
+		    val {fp = fp', lp = lp', null = nu} = info ar
+		    val info = {fp = fp', lp = lp', null = nu}
+                  in
+		    {aug_re = AugPLUS(info, ar), count = c, leafList = le}
+		  end
+	    | pass1 (counter, OPTION(re)) =
+		  let
+		    val {aug_re=ar, count=c, leafList=le} = pass1(counter, re)
+		    val {fp = fp', lp = lp', null = nu} = info ar
+		    val info = {fp = fp', lp = lp', null = true}
+                  in
+		    {aug_re = AugOPTION(info, ar), count = c, leafList = le}
+		  end
+	    | pass1 (counter, LETTER(a)) =
+		  let
+		    val c = Set.singleton counter
+		    val info = {fp = c, lp = c, null = false}
+		    val aug_r = AugLETTER(info, a)
+                  in
+		    {aug_re = aug_r, count = counter+1, leafList = [aug_r]}
+		  end
+	    | pass1 (counter, AUG) =
+		  let
+		    val c = Set.singleton counter
+		    val info = {fp = c, lp = c, null = false}
+		    val aug_r = AugAUG(info)
+                  in
+		    {aug_re = aug_r, count = counter+1, leafList = [aug_r]}
+		  end
+        in
+	  pass1 (0, CONCAT [re, AUG])
+        end
+
+
+
+      fun prFollow fp =
+	let
+	  val l = Array.length fp
+          fun prx i = (print i; print "  "; print (Set.makeString (fp sub i));
+		print "\n")
+	  fun p i = if i < l then (prx i; p (i + 1)) else ()
+	in
+	  p 0
+	end
+
+      fun Aug_to_Follow {aug_re, count, leafList} =
+	let
+	  val followPos = array(count, Set.empty)
+	  val count = ref 0
+	  fun updSet fp i = update(followPos, i,
+		Set.union(followPos sub i, fp))
+	  fun pass2 (AugCONCAT(inf, re_l)) =
+		let
+		  fun foldConcat (x, y) =
+		    let
+		      val updList = Set.forall y
+		      val {fp, lp, ...} = info x
+		      val updSet' = updSet fp
+		      fun ms nil = ""
+		        | ms (x::y) = (makestring x) ^ (ms y)
+		    in
+		      print ("[" ^ (ms updList) ^ "]" ^ "\n"); 
+		      print (Set.makeString lp ^ "\n");
+		      app updSet' updList;
+		      lp
+		    end
+		  val c = !count
+		in
+		  inc count;
+		  print "before fold "; print c; print "\n";
+		  prFollow followPos; print "\n";
+		  revfold foldConcat re_l Set.empty;
+		  print "after fold "; print c; print "\n";
+		  prFollow followPos; print "\n";
+		  app pass2 re_l;
+		  print "after app "; print c; print "\n";
+		  prFollow followPos; print "\n"
+		end
+	    | pass2 (AugALTERNATE(inf, re_l)) = app pass2 re_l
+	    | pass2 (AugSTAR(inf, re)) =
+		let
+		  val {fp, lp, ...} = info re
+		  val updSet' = updSet fp
+		in
+		  app updSet' (Set.forall lp);
+		  pass2 re
+		end
+	    | pass2 (AugPLUS(inf, re)) =
+		let
+		  val {fp, lp, ...} = info re
+		  val updSet' = updSet fp
+		in
+		  app updSet' (Set.forall lp);
+		  pass2 re
+		end
+	    | pass2 (AugOPTION(inf, re)) = pass2 re
+	    | pass2 (AugLETTER(inf, _)) = ()
+	    | pass2 (AugAUG(inf)) = ()
+	in
+	  pass2 aug_re;
+	  followPos
+        end
+
+	datatype transition = TR of AlphaSet.bitset * state
+	and state = ST of {posSet : Set.bitset,
+			        stId : int,
+			        trans : transition list}
+	fun le (ST{posSet = pS1,...}, ST{posSet = pS2,...}) =
+		Set.totOrder (pS1, pS2)
+        fun getPosSet (ST{posSet,...}) = posSet
+        structure table = RedBlack(struct type key = state
+					  val op > = le end)
+
+	fun Build_FSM ({aug_re, count, leafList}, followPos) =
+	  let
+	         (* get character set at position i *)
+	    fun cSetAt i =
+	      case nth (leafList, i) of
+                AugLETTER(inf, x) => x
+	      | AugAUG(_) => AlphaSet.empty
+
+		 (* test to see if character has transition at position i *)
+	    fun atPos c i = AlphaSet.exists c (cSetAt i)
+
+		 (* Is this position a final position *)
+	    fun final i =
+	      case nth (leafList, i) of
+	        AugAUG(_) => true
+              | _ => false
+
+		 (* return only those elements which match query *)
+	    fun sublist query l =
+	      let
+		fun ss nil = nil
+	          | ss (hd::tl) =
+		     let val x = (ss tl)
+		     in if query hd then hd::x else x
+		     end
+	      in
+		ss l
+              end
+
+	    val cnt = ref 1
+
+	    fun build_auto states unmarked =
+	      if unmarked = nil then states else
+	      let
+	        val T = hd unmarked
+		val _ = print ("build_auto " ^ (Set.makeString T) ^ "\n")
+		val allchar =
+		    let
+		      fun f (i, x)  = AlphaSet.union(cSetAt i, x)
+		    in
+		      fold f (Set.forall T) AlphaSet.empty
+		    end
+		val _ = print ("    allchar = " ^ (AlphaSet.makeString allchar)
+			^ "\n");
+		fun eachChar states unmarked trans allchar =
+		  if AlphaSet.isempty allchar then
+		    (states, unmarked, trans)
+		  else
+		    let
+		      val _ = print "eachChar\n"
+		      fun next cSet =
+			let
+			  val x = AlphaSet.lowest cSet
+			  val _ = print ("next cSet=" ^
+				  (AlphaSet.makeString cSet) ^ "  ")
+			  val _ = print (makestring (AlphaSet.Elem.ord x)
+				   ^ "\n")
+			  val posSet = Set.select (T, atPos x)
+			  val _ = print "Check\n"
+			  fun findSet i ch =
+			    if i = count then ch
+			    else
+			      let val y = if Set.exists i posSet then
+					    AlphaSet.intersect(ch, cSetAt i)
+					  else
+					    AlphaSet.difference(ch, cSetAt i)
+			      in
+				findSet (i + 1) y
+			      end
+			in
+			  (findSet 0 cSet, posSet)
+			end (* next *)
+
+		      val (cSet, posSet) = next allchar
+		      val _ = print ("     cSet=" ^ (AlphaSet.makeString cSet)
+				   ^ ", posSet = " ^ (Set.makeString posSet)
+				   ^ "\n")
+
+		      fun makeU s =
+			let
+			  fun f (i, x) = Set.union (followPos sub i, x)
+			in
+			  fold f (Set.forall posSet) Set.empty
+			end  (* makeU *)
+
+		      val U = makeU posSet
+		      val _ = print ("     U=" ^ (Set.makeString U) ^ "\n") 
+
+
+		      fun FindInsert st u =
+			let
+			  val dummy = ST{posSet = u, stId = 0, trans = []}
+			in
+			  (table.lookup(dummy, st), st, unmarked)
+			    handle table.notfound _ =>
+			      let
+				val u' = ST{posSet = u, stId = !cnt, trans=[]}
+				val st' = table.insert(u', st)
+			      in
+				inc cnt;
+				(u', st', unmarked@[u])
+			      end
+			end  (* FindInsert *)
+		      val (ToState, states', unmarked') = FindInsert states U
+		      val trans' = TR(cSet, ToState)::trans
+		    in
+		      eachChar states' unmarked' trans'
+			 (AlphaSet.difference (allchar, cSet))
+		    end  (* eachChar *)
+
+		val (states', unmarked', trans') =
+		    eachChar states unmarked [] allchar
+		val dummy = ST{posSet = T, stId = 0, trans = []}
+		val ST{stId = Tid,...} = table.lookup(dummy, states')
+		val s = ST{posSet = T, stId = Tid, trans = trans'}
+		val states2 = table.insert(s, states')
+	      in
+		build_auto states' (tl unmarked')
+	      end  (* build_auto *)
+	    val {fp = st',...} = info aug_re
+	    val startstate = ST{posSet = st', stId = 0, trans = []}
+	    val stTable = table.insert (startstate, table.empty)
+	    val autoList = build_auto stTable [st']
+	  in
+	    autoList
+	  end
+
+      fun Print re =
+        let
+          val depth = ref 0
+          fun printInfo ({fp, lp, null} : InfoTy) =
+	      (
+		print "Fpos=";
+		print (Set.makeString (fp));
+		print "  Lpos=";
+		print (Set.makeString (lp));
+		if null then
+		  print "  nullable\n"
+		else
+		  print "\n"
+	      )
+	  fun Pr (AugCONCAT(inf, re_l)) =
+	      (
+		print "CONCAT  ";
+		printInfo inf;
+	        app Pr1 re_l
+	      )
+	    | Pr (AugALTERNATE(inf, re_l)) =
+	      (
+		print "ALTERN  ";
+		printInfo inf;
+	        app Pr1 re_l
+	      )
+	    | Pr (AugSTAR(inf, re)) =
+	      (
+		print "KLEENE  ";
+		printInfo inf;
+	        Pr1 re
+	      )
+	    | Pr (AugPLUS(inf, re)) =
+	      (
+		print "POSITV  ";
+		printInfo inf;
+	        Pr1 re
+	      )
+	    | Pr (AugOPTION(inf, re)) =
+	      (
+		print "OPTION  ";
+		printInfo inf;
+	        Pr1 re
+	      )
+	    | Pr (AugLETTER(inf, _)) =
+	      (
+		print "LETTER  ";
+		printInfo inf
+	      )
+	    | Pr (AugAUG(inf)) =
+	      (
+		print "AUGMEN  ";
+		printInfo inf
+	      )
+          and
+	      Pr1 x =
+	      let
+		val i = ref 0;
+	      in
+		(
+		  while (!i) < (!depth) do
+		    (print "  "; inc i);
+		  inc depth;
+		  Pr x;
+		  dec depth
+	        )
+	      end
+        in
+	   Pr1 re
+        end;
+  end;
+
+
+structure RRP_Test = Reg_ExpFn();
+
+open RRP_Test;
+
+val a = LETTER(AlphaSet.singleton "a")
+val b = LETTER(AlphaSet.singleton "b")
+val c = LETTER(AlphaSet.singleton "c")
+val d = LETTER(AlphaSet.singleton "d")
+
+val a_b_c = ALTERNATE([a, b, c]);
+val aug = re_to_Aug a_b_c;
+Print (#aug_re aug);
+val fol = Aug_to_Follow aug;
+prFollow fol;
+print "Before Build_FSM\n";
+val t = Build_FSM(aug, fol);
+
+print "\n\n\n";
+val abc = CONCAT([a, b, c]);
+val aug' = re_to_Aug abc;
+Print (#aug_re aug');
+val fol' = Aug_to_Follow aug';
+prFollow fol';
+val t' = Build_FSM(aug', fol');
+
+
+
+
+(*------------------------------------------------------*)
+
+Status: open
+--------------------------------------------------------------------------------
+262. Using the LIBRARY with v0.62
+Submitter: "Soren P. Christensen" <schristensen@daimi.aau.dk>
+Date: Wed, 8 Aug 90 14:28:49 +0200
+Problem:
+I just tried to build the library found in /dist/ml/LIBRARY.tar.Z and
+this fails.  We are using a spark version of 0.62.  I am not dependent
+on the Library and the reson I report this is only so that you can use
+it in your testing.
+
+I had to make small changes like the definition of the quit function by
+means of cleanup.
+
+1)
+   There seems to be problems with the exceptions.
+
+---------------
+Transcript:
+Standard ML of New Jersey, Version 0.62, 1 August 1990
+val it = () : unit
+- fn () => (() handle Interrupt=>());
+val it = fn : unit -> unit
+- exception xx = Interrupt;
+std_in:3.16-3.24 Error: unbound exn: Interrupt
+- raise Interrupt;
+std_in:1.7-1.15 Error: unbound variable Interrupt
+std_in:1.1-1.15 Error: argument of raise is not an exception
+  raised: undef
+  in expression:
+    raise Interrupt
+
+----------------
+
+2)
+   later on it terminates with a runbind, I think this is related to the 
+exceptions too.
+
+Status: open
+--------------------------------------------------------------------------------
+263. problem with input via datakit con
+Submitter: pjw
+Date: 8/8/90
+Transcript:
+con tempel
+connected to tempel.mesgdcon on /net/dk/4
+$ cd /usr/dbm/sml/60/src
+$ sml
+Standard ML of New Jersey, Version 0.60, 13 July 1990
+val it = () : unit
+- -3;
+std_in:2.1 Error: nonfix identifier required
+std_in:2.1-2.2 Error: operator and operand don't agree (tycon mismatch)
+  operator domain: 'Z * 'Z
+  operand:         int
+  in expression:
+    - 3
+std_in:2.1 Error: overloaded variable "-" cannot be resolved
+uncaught Io exception (Loader): input "<std_in>": negative character count
+$ 
+Status: open
+--------------------------------------------------------------------------------
+264. No type-explicitness check in nj-sml
+Submitter: David Turner <dnt@lfcs.edinburgh.ac.uk>
+Date: 7/8/90
+Version  : SML of NJ 0.56 and 0.59
+System   : Sun
+Severity : Dunno, but its pretty anti-social
+
+Problem :
+
+   The compiler doesn't seem to check for type explicitness in
+   signatures (see section 5.8 and also rule 65 of the ML definition).
+   This means many signatures which can never be matched are still
+   accepted as valid signatures.
+
+Transcript :
+
+  - signature X = sig type t val x : t type t end;
+  signature X =
+    sig
+      type t
+      val x : ?.t
+    end
+
+Status: open
+--------------------------------------------------------------------------------
+265. strong type variables accepted in exception declarations
+Submitter:      Dave Berry, db@lfcs.ed.ac.uk
+Date:		Aug  7 1990
+Version:        0.56, 0.59
+Severity:       Minor (although it presumably means that the type system
+		can be broken!)
+Problem:        The compiler doesn't reject applicative type variables
+		in exception declarations.
+Code:           val id: 'a -> 'a =
+		  let exception dummy of 'a
+		  in fn x => x
+		  end;
+Transcript:     The above code produces:
+		val id = fn : 'a -> 'a
+
+Status: open
+--------------------------------------------------------------------------------
+267. sharing again
+From: Simon Finn <simon@abstract-hardware-ltd.co.uk>
+Date: Thu, 2 Aug 90 10:48:47 BST
+Version: d64
+Problem:
+The following program breaks Poly/ML v1.88 and  NJML v0.44a (the most recent version
+to which I have access) [breaks d64 as well].
+Code:
+signature S1 =
+sig
+  eqtype t
+  val x : t
+end;
+
+signature S2 =
+sig
+  structure A : sig end
+  structure C : sig structure A : S1 end
+  sharing A = C.A
+end;
+
+functor F(structure A:S1
+          structure B:S2
+          sharing A = B.A)  =
+struct
+  val y = (A.x = B.C.A.x)
+end;
+
+Transcript:
+Standard ML of New Jersey, Version d64, ? August 1990
+val it = () : unit
+- signature S1 =
+  sig
+    eqtype t
+    val x : t
+  end
+signature S2 =
+  sig
+    structure A : sig...end
+    structure C : sig...end
+  end
+std_in:21.11-21.25 Error: operator and operand don't agree (tycon mismatch)
+  operator domain: ?.t * ?.t
+  operand:         ?.t * ?.t
+  in expression:
+    = (A.x,B.C.A.x)
+
+Comment:
+This program is valid, since structure A shares with B.A which shares with B.C.A,
+hence A.t and B.C.A.t must be the same (equality) type. However:
+
+Status: open
+--------------------------------------------------------------------------------
+268. import, equality
+Submitter:      Jason Fischl <fischl@cpsc.ucalgary.ca>
+Date:		April 9, 1990
+Version:        0.44
+System:         Sparcstation 1
+Severity:       major
+
+Problem:       
+
+The module system has a bug in it with regard to equality types (I think).
+The following is a pretty concise description of what will cause the bug to
+occur.  
+
+
+Code:           
+(*-----------------FILE:  term.sig.sml----------------------*)
+
+signature termsig =
+sig
+
+datatype term =
+    Const of string
+  | Var of string
+  | Func of string * term list
+
+end;
+
+(*--------------FILE:  term.sml-------------------------*)
+
+import "term.sig";
+
+functor termFC ():termsig =
+
+struct
+
+datatype term =
+    Const of string
+  | Var of string
+  | Func of string * term list
+
+end;
+
+(*------------FILE: parse_term.sml---------------------------*)
+
+import "term.sig";
+
+functor parse_termFC (structure TERM:termsig) =
+struct
+
+open TERM
+
+fun term_nil x = (x:term list) = []
+
+end;
+
+(*---------------------------------------*)
+
+
+Transcript:     
+
+- import "parse_term";
+[parse_term.bin is out of date; recompiling]
+[reading parse_term.sml]
+  [reading term.sig.bin... done]
+parse_term.sml, line 11: Error: Compiler bug: tycStamp
+equal: type = ?.term list
+import: code generation failed
+[closing parse_term.sml]
+IMPORT failed (codegen)
+- 
+
+Comments:
+
+I couldn't find any reference to it in the bug reports so I had to assume it
+was all new.  It would have been much nicer if the error message had been a bit
+more descriptive.  All I knew was that it was a type problem.  There was no
+info as to which line the error occurred on or which function or anything
+really. 
+
+I would appreciate a reply at some point if you could manage since I am curious
+as to the nature of my problem.  Undoubtedly it will get me again!  
+
+Fix:  
+
+In order to fix the problem I had to define the fun term_nil inside the term
+functor and then also put it in the termsig signature.  This took me on the
+order of 8 hours to figure out!
+
+Status: open?

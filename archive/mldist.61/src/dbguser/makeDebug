@@ -1,0 +1,6 @@
+use "dbguser/userlevel.sml";
+System.Control.CG.rounds := 1;
+(exportML "smld";
+ print
+"Standard ML of New Jersey, Version 0.61 (with visual debugging), 24 July 1990\n"
+);

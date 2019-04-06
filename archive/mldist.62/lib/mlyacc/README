@@ -1,0 +1,71 @@
+Copyright (c) 1989, 1990 Andrew W. Appel and David R. Tarditi Jr.
+
+This directory contains ML-Yacc, an LALR parser generator for Standard ML.
+ML-Yacc is distributed subject to the terms of the accompanying ML-Yacc
+copyright notice, license, and disclaimer in the file COPYRIGHT.
+
+Files of interest (those marked with a * must be built by the person
+installing ML-Yacc)
+
+	* smlyacc.sml - the source code for smlyacc
+	* base.sml    - the standard base file for ML-Yacc
+	doc	      - documentation for ML-Yacc.  Please read this before
+			using ML-Yacc
+	examples      - sample parsers built with ML-Yacc
+	src	      - source code for ML-Yacc
+	Makefile      - makefile to construct smlyacc.sml and base.sml
+		        from source files
+	COPYRIGHT     - this software is distributed subject to the
+		        terms of this file.
+
+Installing ML-Yacc
+------------------
+
+   The person installing ML-Yacc must construct the files base.sml and
+smlyacc.sml from the source files.  A makefile is provided to help in
+this.  These files are constructed by concatenating files in the src
+directory together.
+
+   First construct base.sml, since it is used in smlyacc.sml.  To do
+this, type 'make ec' to construct a base file for an error-correcting
+parser.  Type 'make vanilla' to construct a base file for a plain vanilla
+LR parser.
+
+  Then type 'make smlyacc.sml' to construct the smlyacc.sml file. Load
+smlyacc.sml to create the ParseGen structure.
+
+  For a person doing intensive development work with ML-Yacc, we suggest you
+create a version of SML where base.sml is alway present.  Those users
+of Standard ML of New Jersey should load base.sml and then export an
+executable image.
+
+Changing the source files and bootstrapping ML-Yacc
+---------------------------------------------------
+
+   ML-Yacc uses the same base file as parsers created by users and uses
+an ML-Yacc specification for its parser.  Those users who wish to modify
+ML-Yacc should be careful to make sure that they can still load the
+modified version of ML-Yacc.
+
+   The following steps are suggested.  First, copy the directory mlyacc.
+Change to the new directory. Then, copy base.sml to some other file.
+Alter the makefile so that when the file smlyacc.sml is constructed, this
+other file is used (Example: copy base.sml to oldbase.sml and change the
+makefile).  Use the older version of ML-Yacc to create the files for the
+parser if one alters the file yacc.grm.  The user can now alter the files
+without accidentally bootstrapping ML-Yacc out of existence.
+
+   Once everything is complete and working correctly, the user should
+bootstrap ML-Yacc using the new version.  First, copy the specification
+yacc.grm and the files yacc.grm.sml and yacc.sig.sml to safe backup files.
+Alter yacc.grm if necessary to conform to the new specification format.
+Now load the new version of ML-Yacc.  You may want to save an executable
+version of this in case the following steps fail for some reason.  Run it on
+the specification file yacc.grm.  You should now be able to load the
+bootstrapped version of ML-Yacc using the new version of base.sml.
+
+   If you haven't saved any executable version of ML-Yacc, and the bootstrap
+fails (in which case either the specification is wrong or everything
+was not working correctly), copy the backup versions of yacc.grm.sml and
+yacc.sig.sml on to the new versions so that you can reconstruct the
+new but unbootstrapped ML-Yacc.

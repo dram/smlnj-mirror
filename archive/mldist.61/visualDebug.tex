@@ -1,0 +1,390 @@
+\documentstyle [11pt]{article}
+\setlength{\textheight}{8.8in}
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\topmargin}{-.1in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+
+\title{Visual Debugging for Standard ML of New Jersey}
+\author{Adam T. Dingle \\ Princeton University}
+\begin{document}
+\maketitle
+\section{Introduction}
+I have implemented an Emacs mode in which SML-NJ programs can be
+debugged in a visual way.  Events are displayed within the source text
+itself; an ML program can be single-stepped, breakpoints can be set,
+variables' values can be displayed and the call traceback can be
+examined by typing key sequences in the source text window.
+
+My implementation extends Lars Bo Nielsen's Emacs mode for
+editing SML programs, which is now part of the GNU Emacs distribution.
+
+The system is new, and this documentation is preliminary; your
+comments and suggestions are welcomed.
+
+\section{Setting Up}
+To set up, you must tell Emacs where the sml-mode Lisp code resides.
+Add the following lines to your .emacs file (located in your home
+directory).  (If you don't have an .emacs file, create one with these
+lines in it.)
+
+\begin{verbatim}
+;; sml-mode initializations
+
+; /u/atd/lib/emacs is where sml-mode.el (and sml-debug.el) live.
+(setq load-path (cons "/u/atd/lib/emacs" load-path))
+
+; Emacs should automatically enter sml-mode for any buffer whose
+; filename ends with ".sml".
+(setq auto-mode-alist (cons '("\\.sml$" . sml-mode) auto-mode-alist)) 
+
+; sml-mode.el should be automatically loaded when the commands
+; "sml-mode" or "sml-shell" are invoked.
+(autoload 'sml-mode "sml-mode" "Major mode for editing SML." t)
+(autoload 'sml-shell "sml-mode" "Inferior shell invoking SML." t)
+
+; Use "sml" as an abbreviation for "sml-shell", which is too long.
+(defun sml () (interactive) (sml-shell))
+
+;; sml-debug initializations
+
+; Until the version of sml that supports visual debugging is
+; merged with the sml you usually run, use this line to tell
+; Emacs where the debugging version is located.
+(setq sml-prog-name "/u/atd/t60/src/smld")	; version with debugging
+
+(setq sml-mode-hook 'sml-debug-mode)
+(setq sml-shell-hook 'sml-debug-shell)
+(autoload 'sml-debug-mode "sml-debug")
+(autoload 'sml-debug-shell "sml-debug")
+
+\end{verbatim}
+
+\section{Getting Started}
+From within Emacs, type the command \verb'M-x sml' to start up a
+window with SML running in it.  In that window, type
+\verb'usedbg "<filename>"' to compile and execute the contents of a
+file in passive debug mode.  Typically, the file will contain function
+definitions.  Type \verb'run "<command>"' to compile and execute a
+given command in active debug mode, which will allow you to step
+through the execution of the command in a visual way.  Typically, the
+command will call one of the functions that was loaded using the
+\verb'usedbg' command.
+
+In response to your \verb'run' command, an Emacs window named
+\verb'*sml-debug-command*' will be created containing the command to
+be run.  The first {\em event} will be displayed in brackets in that
+window; it will look something like
+
+\begin{verbatim}
+[START:4]
+\end{verbatim}
+where START indicates the type of the event and 4 is the current
+time.  (For various technical reasons time does not begin at 1.)
+
+Events are places in the ML program where you can stop execution to
+look at variable values.  You can use the Emacs key sequence \verb'M-s' to
+{\em step} (execute for a short time) until the next event is reached.
+(\verb'M-s', pronounced ``meta-s'', means that you should hold down
+the \verb'META' key (often labeled \verb'ALT') and press the \verb's'
+key.  If your keyboard does not have a \verb'META' key,
+type \verb'ESC' followed by \verb's'.  For more information, see an
+Emacs reference manual, or type \verb'C-h i' for information while in Emacs.)
+Try it.  Try stepping a number of times; see what different types of
+events you reach.
+
+Remarkably, the SML-NJ debugger also permits you to step {\em}
+backward in time.  The key sequence \verb'C-M-s' steps backward one unit in
+time.  Try stepping backward to the beginning of your program.
+
+You can also jump to arbitrary times in the program's execution: type
+\verb'M-<time> M-t' (that is,
+hold down the \verb'META' key while you type the time number,
+then type \verb't' while still holding down \verb'META'.  If your
+keyboard does not have a META key, type \verb'C-u <time> ESC t'.)
+
+You may occasionally notice that a step command moves for 2 time
+units, or that the \verb'M-t' command brings you to a time that is one
+unit away from the time you requested.  This happens because certain
+unimportant internal events (i.e. I/O events) are assigned time
+numbers but are ignored by the debugger.  This inconsistency in time
+numbering is a bug and will be fixed soon.
+
+\section{Selecting Events}
+
+You can use the commands \verb'M-n' and \verb'M-p'
+to browse through events in your ML
+program.  \verb'M-n' moves the {\em event cursor} to the next event in the
+source code; \verb'M-p' moves to the previous event.  These commands do not
+cause any part of your program to be executed, or change the current
+time; they are simply a way of looking at the events that exist.  The
+position of the event cursor is denoted by an event surrounded by
+square brackets; when you move the event cursor away from the current
+event, the current event remains visible, but is surrounded by a pair
+of angle brackets (\verb'<' \verb'>') to distinguish it from the event
+cursor.  Typing \verb'M-c' will move the event cursor back to the
+current event.
+
+Sometimes you may wish to move the event cursor to a point that is far
+away in your program text, or in a different source file than the one
+in which the event cursor currently rests.  To do so, move the Emacs
+cursor to the area of source code to which you wish to move the
+event cursor, then
+type the command \verb'M-e'.  The event cursor will jump to the event nearest
+to the Emacs cursor; you can then use the \verb'M-n' and
+\verb'M-p' commands to
+browse the events in that area.
+
+If you are running Emacs under X, you can select events even more
+easily.  Point to a character in your source code that is near the
+event that you would like to select, then hold down META and press the
+middle pointer button.
+
+\section{Breakpoints}
+
+To set a breakpoint at an event, move the event cursor to it and type
+the command \verb'M-k'.  The string \verb'bk:' will appear inside the event,
+indicating that a breakpoint is set at it.  The event will continue to
+be displayed even if you move the event cursor away from it.  Type \verb'M-k'
+again to remove the breakpoint at the event.
+
+Use the \verb'C-M-f' command to continue execution until the next breakpoint
+is reached.  The \verb'C-M-b' command moves backward in time until a
+breakpoint is reached.
+
+You can also set breakpoints at particular times: type
+\verb'M-<time> M-k'
+(that is, hold down the \verb'META' key while you type
+the time number, then type \verb'k' while still holding down \verb'META').
+As the \verb'M-t' command can be used to jump to a given time, time
+breakpoints are really only useful in conjunction with event
+breakpoints.  Repeating the same command will delete the breakpoint
+you just created.  Type \verb'C-M-k' to get a list of time breakpoints.
+
+The \verb'M-- M-k' command deletes all existing breakpoints.
+(\verb'M--' is ``meta-hyphen''.)
+
+You can associate an ML function with a breakpoint; the function is
+called whenever the breakpoint is reached.  The function might print
+out the value of one or more variables.  To associate a function with
+a breakpoint at a given event, move the event cursor to the event and
+type \verb'breakFunc <function>;' in the SML process window.  The
+function should have type \verb'unit -> unit'.
+
+For example, you might type
+
+\begin{verbatim}
+- breakFunc (fn () => showVal "a");
+\end{verbatim}
+
+To reset the function associated with a breakpoint at an event, move
+the event cursor to the event and type \verb'M-k M-k' (removing and
+reinstalling the breakpoint at the event).
+
+To associate a function with a breakpoint at a given time, type
+
+\begin{verbatim}
+- breakTimeFunc <time> <function>;
+\end{verbatim}
+To reset the function associated with a time breakpoint, type
+\begin{verbatim}
+- nofunc <time>;
+\end{verbatim}
+
+Soon, you will be able to evaluate arbitrary ML expressions in the
+debugger; then, you will be able to write break functions that choose
+to continue execution (using forward()) if a given ML expression is
+satisfied.  In this way, you will be able to make breakpoints conditional.
+
+\section{Examining variables and the call traceback}
+
+Type \verb'M-l' to examine the value of any variable that is currently
+in scope.  Enter the variable's name in the Emacs minibuffer, and its
+value will be printed out in the SML process window.  The event at which the
+variable's value was bound will become the selected event.  You may notice
+that if you
+move the event cursor away from the event and then return to it, you might
+not be able to find the event again;
+this is because not all events are normally
+displayed (see the introduction to section ~ref{event types} for details).
+
+If you are running Emacs under X, you can examine a variable by
+pointing to its name, holding down META and pressing the first mouse button.
+
+The {\em backtrace cursor} is used to examine the chain of function
+calls that led to the point where execution is currently stopped.
+\verb'M-u' moves the backtrace cursor, which initially rests on the current
+event, up one level in the function call chain.  The
+backtrace cursor contains the string \verb':bt' inside it, and also
+displays the time at which the corresponding function call occurred.
+The command \verb'M-d' moves the backtrace cursor down one level in
+the function call chain.  As a convenience, typing \verb'M-t' while a
+backtrace event is selected will jump to the time of the backtrace event.
+
+The command \verb'C-M-l' can be used to examine the value of a
+variable at the scope and time of the current backtrace event.  Under
+X, you can alternatively point to the name of the variable and press
+the first mouse button while holding down CTRL and META.
+
+\section{Finishing Up}
+
+The \verb'C-c C-d' command is used to exit an active debugging session.  It
+aborts execution of the command
+being run, removes all event labels from source code windows and deletes
+the \verb'*sml-debug-command*' buffer.  The window containing the SML
+process will remain, so that you can load new code or specify another
+command to run.
+
+While source code windows have events displayed in them, they are
+placed into Label mode, a read-only Emacs minor mode.  This prevents
+you from editing them and unintentionally saving event labels into
+your source files.  Before you edit a section of source code that is
+being debugged, you should use the \verb'C-c C-d' command to complete
+the debugging session and remove the labels.  If for some reason a
+window remains in Label mode after you have exited the debugging
+session (this should not happen) you can use the command \verb'C-x
+C-q' (exit-label-mode) to remove the labels from the window.
+
+\section{Command and Function Summary}
+The following commands are available within the window containing the
+sml process as well as within windows containing source code.
+\verb'<left>' and \verb'<middle>' refer to the left and middle pointer
+buttons when running under the X window system.
+
+\begin{center}
+\begin{tabular}{|ll|}    \hline
+Command & Description \\ \hline
+\verb'M-s'             & single-step \\
+\verb'C-M-s'           & single-step backwards \\
+\verb'M-<time> M-t'    & go to specified time \\
+\verb'M-n'             & select next event \\
+\verb'M-p'             & select previous event \\
+\verb'M-c'             & move event cursor to current event \\
+\verb'M-e'             & select event near cursor (source windows only) \\
+\verb'M-<middle>'      & select event near pointer (source windows only) \\
+\verb'M-k'             & toggle breakpoint at selected event \\
+\verb'M-<time> M-k'    & toggle breakpoint at given time \\
+\verb'C-M-k'           & list breakpoint times \\
+\verb'M-- M-k'         & delete all breakpoints \\
+\verb'C-M-f'           & execute forward to next breakpoint \\
+\verb'C-M-b'           & execute backward to previous breakpoint \\
+\verb'M-u'             & move backtrace cursor up the call chain \\
+\verb'M-d'             & move backtrace cursor down the call chain \\
+\verb'M-t'             & go to time of selected backtrace event \\
+\verb'M-l or M-<left>'    & show variable value and binding event \\
+\verb'C-M-l or C-M-<left>' & show variable value and binding event at \\ 
+                           & scope and time of backtrace event
+\verb'C-c C-d'         & exit debugging session, aborting command execution \\
+\hline
+\end{tabular}
+\end{center}
+
+The following ML functions are available and useful.
+
+\begin{verbatim}
+bfunc: (unit -> unit) -> unit
+\end{verbatim}
+
+Sets the break function for the breakpoint at the selected event.  (To
+reset the break function, select the event and type \verb'M-k' twice.) 
+
+\begin{verbatim}
+tfunc: int -> (unit -> unit) -> unit
+\end{verbatim}
+
+Sets the break function for the breakpoint at a given time.
+
+\begin{verbatim}
+nofunc: int -> unit
+\end{verbatim}
+
+Resets the break function for the breakpoint at a given time.
+
+\section{Event Types}
+The following event types may be displayed inside the event cursor; an
+example is given for each event type.
+
+Note that not every possible event exists in the program; often,
+several closely related events are combined into one event when no
+additional information would be obtainable by having several different
+events.  For example, in the code
+
+\begin{verbatim}
+let val a = 5
+    val b = 6
+    val c = 8
+[VAL] in ...
+\end{verbatim}
+
+only one VAL event is placed, not three; by stopping at the single VAL
+event, you will be able to examine any of the three declared values.
+
+\vspace{0.25in}
+\verb'VAL': Value binding event.  Occurs just after a value has been bound.
+
+\begin{verbatim}
+let val a = f(7) [VAL] in ...
+\end{verbatim}
+
+\verb'VALREC': Recursive value binding event.  Analagous to VAL.
+
+\begin{verbatim}
+let val rec f = fn x => if x = 0 then 1 else x * (f(x-1)) [VALREC] in ...
+\end{verbatim}
+
+\verb'FN': Function entry event.  Occurs just after a function has been
+entered.  If a function's argument consists of several different
+patterns, there will be a FN event for each.
+
+\begin{verbatim}
+fun f (SOME x) = [FN] g x
+  | f NONE = [FN] 0
+\end{verbatim}
+
+\verb'CASE': Case entry event; analogous to FN.
+
+\begin{verbatim}
+case d of SOME x => [CASE] g x
+        | NONE => [CASE] 0
+\end{verbatim}
+
+\verb'APP': Application event.  Occurs just before a function is applied to
+its argument; appears between the function and its argument.  When an
+infixed operator is applied, the event appears immediately following
+the operator.
+
+\begin{verbatim}
+let val a = myfun [APP] 7 in ...
+
+infix myOp
+let val b = 2 myOp [APP] 8 in ...
+       
+\end{verbatim}
+
+\verb'RAISE': Exception raising event.  Occurs just before an exception is
+raised.  You may notice RAISE events at various unexpected points in
+your code; RAISE events are generated implicitly whenever a pattern
+match may fail.  In the current implementation, RAISE events are
+sometimes generated even when they don't need to be there.
+
+\begin{verbatim}
+case v of SOME x => g x
+        | NONE => raise [RAISE] MyException
+\end{verbatim}
+
+\verb'HANDLE': Exception handling event.  Occurs when an exception is
+handled, before the exception handling code is actually executed.
+
+\begin{verbatim}
+fun myHd x = SOME (hd x) handle Hd [HANDLE] => NONE
+\end{verbatim}
+
+\verb'STRUCTURE', \verb'ABSTRACTION', \verb'FUNCTOR',
+\verb'FUNCTOR ENTRY',
+\verb'FUNCTOR APP', \verb'STRUCTURE END', \verb'STRUCTURE VAR',
+\verb'OPEN', \verb'LOCAL', \verb'LOCAL IN', \verb'LOCAL END' events:
+Straightforward, and less often encountered than the preceding events.
+To be documented later.
+
+\end{document}

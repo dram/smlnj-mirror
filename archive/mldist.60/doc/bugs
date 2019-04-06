@@ -1,0 +1,464 @@
+Outstanding bugs, SML of NJ Version 0.56, 13 April 1990
+
+------------------------------------------------------------------------------
+4. duplicate specifications not checked
+Problem:
+  No checking for duplicated specifications in signatures.
+Version: 0.18
+Comment:
+  This should be done when building the signature symbol table.
+Status: open
+-----------------------------------------------------------------------------
+86. incorrectly allows redefining of "="
+Submitter: Dave Berry
+Date: 3/15/89
+Version: 0.29
+Problem:
+    NJML handles the = symbol incorrectly in some cases.
+
+    - val op = = op = ;
+    - nonfix =;
+    - = (true, true);
+    Error: declaration or expression expected, found EQUAL
+Comment:
+    The = symbol may not be redefined (Definition, page 4).  The top definition
+    does seem to redefine =, despite the lack of response from the system.
+    I can't see anything in the Definition that forbids making = nonfix,
+    so I suppose it should be possible to use it in a nonfix way.
+Status: open
+-----------------------------------------------------------------------------
+182. uncaught exception after exportFn
+Submitter: Andy Koenig
+Date: 1/31/90
+Version: 0.49 (still in 0.52)
+Problem: 
+  Unwanted uncaught exception message printed after exportFn is called.
+Messages:
+    Standard ML of New Jersey, Version 0.49, 26 January 1990
+    val it = () : unit
+    - fun hello _ = print "hello world\n";
+    val hello = fn : 'a -> unit
+    - exportFn ("a.out", hello);
+
+    [Major collection... 98% used (492360/498444), 3900 msec]
+
+    [Major collection... 2% used (13020/494516), 100 msec]
+
+    [Decreasing heap to 254k]
+    uncaught exception SystemCall with "closed outstream"
+Comments: this can be cosmetically improved, but resumption after
+	an exportFn is not expected to be implemented
+Status: open
+------------------------------------------------------------------------------
+184. bindings introduced by open are not printed
+Submitter: Andy Koenig
+Date: 1/30/90
+Version: 0.52
+Problem:
+  After a top level open, the bindings introduced are not printed
+Status: open
+--------------------------------------------------------------------------------
+185. exportML size
+Submitter: Soren Christensen,
+           University of Aarhus, Computer Science Dep.,
+           Denmark
+           schristensen@daimi.dk
+Date:      24 jan 90
+Version:   0.44
+System:    Sun4/280 / SunOS 4.0.1
+Severity:  ???
+Problem:
+Ussualy I have build my application by declaring a number of structures,
+this could be done using less than 45Mb of heapspace, even if I set the
+the flags like:
+
+ System.Control.CG.reducemore := 0;
+ System.Control.CG.rounds := 10;
+ System.Control.CG.bodysize := 20;
+
+The system produced from an "exportML" of this takes up app. 3Mb.
+
+>From "doc/optimize" I learned that the code could be optimized by
+enclosing it in one structure. I did like:
+
+structure whole :
+  sig
+   < ... >
+  end =
+struct
+ <The usual stuff ..>
+end;
+open whole;
+
+It meant that the heapsize had to be increased to 80 Mb and I had to reset
+the above flags.
+
+I observed a bug in the reporting of GC:
+...
+[Major collection... 76% used (18670576/24426980), 34260 msec]
+
+[Increasing heap to 59632k]
+
+[Major collection... -57% used (25033788/31118476), 44190 msec]
+
+[Increasing heap to 68216k]
+
+[Major collection... -35% used (30575468/34993364), 54880 msec]
+...
+
+The "-57%" should be "80%" and the "-35%" should be "87%".
+
+But the main problem  is that the CG before the "exportML" only decreases
+the heap to 49Mb, and then it stops with the message "export" - due to no
+disk space (?)
+
+Comments: (appel)  Setting these flags for optimization may cause the
+code generator to generate very large output.  Use at your own risk.
+
+Status: can't reproduce
+--------------------------------------------------------------------------------
+186. type error matching against bogus tycon
+Submitter: Dave
+Date: 1/12/90
+Version: 0.52?
+Messages:
+    Error: value type in structure doesn't match signature spec
+      name: instantiate
+      spec: Basics.tyvar * Basics.ty -> unit
+      actual: ?.bogus * ?.bogus -> unit
+Status: can't reproduce
+------------------------------------------------------------------------------
+189. confusing error message for bad clausal syntax
+Submitter: Carl Gunter
+Date: 1/4/90
+Version: 0.44/0.52
+Problem:
+  Parser error message is not as helpful as it could be.
+Transcript
+    - fun (f:('a pair -> int)) x = 2;
+    std_in:3.5-3.24 Error: illegal function symbol in clause
+Status: open
+-----------------------------------------------------------------------------
+206. unhelpful parser error message (new parser)
+Submitter: Dave
+Date: 3/15/90
+Version: 0.52
+Transcript:
+    - structure A =
+    = struct
+    =   val x = if true then if true then 1 else 2
+    = end;
+    std_in:4.1 Error: syntax error found at END
+    -
+Status: open
+-------------------------------------------------------------------------------
+208. bug in optimizer causing bad free variable
+Submitter: Appel & MacQueen
+Date: 4/27/90
+Version: 0.56
+Problem: impossible error in cpsopt phase, on MIPS machine,
+	 with default optimization settings
+Code: 
+     functor MipsCoder(val emit : 'a -> unit)  = struct
+       fun needs _ = true
+       fun pass now =
+       let fun gen inst =
+	      if now andalso needs() then ()
+	      else if now
+		 then let fun gen1() = gen(raise Match)
+		       in  case inst of
+			     NONE  => gen1()
+			   | SOME b =>
+			       let fun bc1f offset = ()
+				   fun bc1t offset = ()
+			       in  if inst=NONE then 
+					(emit((if b then bc1t else bc1f)
+						     inst); gen1()) 
+				   else ()
+			       end
+		       end
+		 else ()
+       in  gen
+       end
+       val assemble  = pass true
+     end
+Status: open
+--------------------------------------------------------------------------------
+219. parsing layered patterns
+Submitter: Andrew Appel
+Date: 5/90
+Version: 0.56 and later
+Severity: minor
+Problem: parsing of layered pattern is too liberal.  An atomic pattern is
+  accepted where a variable is required by the Definition syntax.
+Code:
+  let val (x) as (y :: z) = [1,2] in x end
+Comments:
+  Seems to require nontrivial change to the mlyacc grammar
+Status: open
+--------------------------------------------------------------------------------
+220. Match exception after error
+Submitter: John Reppy
+Date: 6/1/90
+Version: 0.58
+System: Sun 4
+Severity: minor
+Problem: uncaught exception Match after signature matching error
+Code:
+  signature S = sig
+    type foo
+    val f : int -> foo
+  end
+  
+  structure Foo : S = struct
+    datatype foo_t = Foo of int
+    val f = Foo
+  end
+
+Transcript:
+  xxx.sml:6.21-9.3 Error: unmatched type spec: foo
+  xxx.sml:6.21-9.3 Error: value type in structure doesn't match signature spec
+    name: f
+    spec:   int -> [closing xxx.sml]
+
+  uncaught exception Match
+  - 
+Status: open
+--------------------------------------------------------------------------------
+221. profiling broken
+Submitter: Benjamin Pierce (Benjamin.Pierce%proof.ergo.cs.cmu.edu
+Date: 5/22/1990
+System: 0.56 (and later)
+Problem:
+  Profiling provides call counts bug not timings.  For separately compiled
+  modules, profiling provides neither call counts nor timings.
+Transcript:
+ (1) for separately compiled code
+ %time  cumsecs     #call   ms/call  name
+            .00         0            (toplevel)
+            .00         0            (gc)
+            .00         0            (unprofiled)
+
+
+ (2) for "used" code
+ %time  cumsecs     #call   ms/call  name
+            .00      2398     .0000  anon.AType.==.anon
+            .00      2398     .0000  anon.AType.==
+            .00      2051     .0000  anon.Id.==.anon
+            .00      2051     .0000  anon.Id.==
+            .00      1890     .0000  anon.AType.apply_rule.anon
+	    [etc...]
+
+Status: open
+--------------------------------------------------------------------------------
+223. nontty standard input and uncaught exceptions
+Submitter:	KINOSHITA Yoshiki	yoshiki@etl.go.jp
+Date:		4, June 1990
+Version:	SML of NJ 0.56
+System:		Sparc Station 330 (SUN4), SUN-OS 4.0.3 (generic version)
+Severity:	major
+Problem:	If the standard input is a pipe, the system ends
+		abnormally after it sends an error message.
+Code:		None.  The problem concerns with the interface to UNIX.
+Transcript:
+	% cat - | sml  
+	Standard ML of New Jersey, Version 0.56, 13 April 1990 
+	Warning: input and output are now uncurried, arithmetic exceptions 
+	are re-arranged, div and mod are different; see doc/NEWS 
+	val it = () : unit 
+	- foo; 
+	std_in:2.1-2.3 Error: unbound variable foo 
+	uncaught exception Stop 
+	^Z 
+	Stopped  
+	% jobs 
+	[1]  + Stopped              cat - | 
+	       Done                 sml 
+	%
+
+Comments:	This problem makes it impossible to use the system with
+		its input sent through a UNIX filter.
+  [jhr:
+    You might call this a feature.  It appears that the person who wrote
+    the top-level loop code (interact.sml), decided that exceptions
+    should only be caught at the top-level loop when std_in is a tty
+    (look at lines 292-309 in interact.sml).  The following work-around
+    avoids the problem
+
+      <jhr@rocky:76> cat - | sml
+      Standard ML of New Jersey, Version 0.59, 4 June 1990
+      Warning: input and output are now uncurried, arithmetic exceptions
+      are re-arranged, div and mod are different; see doc/NEWS
+      val it = () : unit
+      - set_term_in(std_in, true);
+      val it = () : unit
+      - foo;
+      std_in:3.1-3.3 Error: unbound variable foo
+      - 1+2;
+      val it = 3 : int
+      - 
+
+    But, maybe the code should change.  It isn't clear to me what the correct
+    semantics are in this case.  This problem came up here at Cornell when
+    Bill Aitken was using "rsh" to run sml on a remote machine.]
+Status: open
+--------------------------------------------------------------------------------
+230. printing reals on mips
+Submitter:      David MacQueen, Andrew Tolmach
+Date:		6/12/90
+Version:        0.59
+System:         MIPS, RISCos
+Severity:       critical
+Problem:
+    Uncaught exception Overflow when printing real numbers at top level.  Infinite
+    loop in other cases (e.g. code/bug230.sml).
+Transcript:
+    - 1.0;
+    val it =
+    uncaught exception Overflow
+    -
+Comment: works ok on Sun3 and Sun4.
+Status: open
+--------------------------------------------------------------------------------
+231. equality property of DEFtyc
+Submitter:      Nick Rothwell
+Date:		6/21/90
+Version:        0.56?
+Severity:       major
+Problem:
+  A type abbreviation for an abstract type admits equality.
+Code:
+    abstype A = A
+    with
+      type B = A
+    end;
+
+    fn (x: B) => (x=x);
+
+Comments:
+   The type name associated with A (and therefore with B) should be
+   stripped of its equality attribute outside the "abstype".
+Status: open
+--------------------------------------------------------------------------------
+232. 
+Submitter:      Jo Blishen, Nick Rothwell
+Date:		6/20/90
+Version:	0.59
+Severity:       minor
+Problem:
+  User-bound tyvar is not generalized at val binding containing it.
+Transcript:
+  - fun f l = let exception E of '_a in (raise (E l)) handle E t => t end;
+  std_in:2.30-2.32 Error: unbound tyvars in exception declaration
+Comments:
+  According to the Definition '_a should be considered bound at the outermost
+  val (fun f l ...) where it is the type of the lambda-bound variable l.
+Status: open
+--------------------------------------------------------------------------------
+234. Compiler Bug: abstractBody.abstractType 1
+Submitter: deutsch@poly.polytechnique.fr.
+   Alain Deutsch,
+   Laboratoire d'Informatique de l'Ecole Polytechnique (LIX)
+   91128 Palaiseau Cedex
+   France.
+Date: Tue Jun 19 11:04:05 MET DST 1990
+Version: Standard ML of New Jersey, Version 0.56, 13 April 1990
+System: Sun 3/60, SunOS Release 4.0_Export
+Severity: major (?)
+Problem: Compiler Bug: abstractBody.abstractType 1
+Code: Too long, ommited.
+Transcript:
+   - use "/home/icsla/deutsch/ESTFM/basic_ev.sml";
+   [opening /home/icsla/deutsch/ESTFM/basic_ev.sml]
+   [reading Powerset.bin... done]
+   signature FunctionLattice
+   signature ProductLattice
+   signature OrderedSet
+   signature Lattice
+   signature Product
+   signature PartialFunction
+   signature TotalFunction
+   functor Powerset
+   [reading HashTable.bin... done]
+   signature arrayext
+   functor HashTable
+   functor arrayext
+   [reading lattice.sig.bin... done]
+   signature FunctionLattice
+   signature ProductLattice
+   signature OrderedSet
+   signature Lattice
+   signature Product
+   signature PartialFunction
+   signature TotalFunction
+   [reading Syntax.sig.bin... done]
+   signature Syntax
+   [reading StrgHash.sig.bin... done]
+   signature StrgHash
+   [reading Error.sig.bin... done]
+   signature Error
+   [reading ListUtilities.sig.bin... 
+   [Major collection... 66% used (2325300/3480644), 2680 msec]
+
+   [Increasing heap to 7023k]
+   done]
+   signature ListUtilities
+   [reading Io.sig.bin... done]
+   signature Io
+   [closing /home/icsla/deutsch/ESTFM/basic_ev.sml]
+   /home/icsla/deutsch/ESTFM/basic_ev.sml:20.3 Compiler Bug: abstractBody.abstractType 1
+   - 
+
+Comments: the bug is not systematic, and hard to reproduce, this is why the
+source code has been ommited, as I have not been able to isolate the faulty part
+of the source.
+
+Status: open (can't reproduce)
+--------------------------------------------------------------------------------
+235. repeated type variables in typdesc and datdesc
+Submitter:      Don Sannella <dts@informatik.uni-Bremen.de>
+Date:		6/13/90
+Version:        0.44?
+Severity:       major
+Problem:
+    The Definition of SML seems to allow repeated type variables in a typdesc and
+    datdesc, making the following signatures legal:
+
+    signature SIG1 =
+	 sig
+	    eqtype ('a,'a) t1
+	    type ('a,'a) t2
+	 end
+
+    signature SIG2 =
+	 sig
+	    datatype ('a,'a) t3 = foo of 'a
+	 end
+
+    Section 2.9 forbids repeated variables in a typbind and datbind, but I don't
+    see anything forbidding it in a typdesc or datdesc.  I assume below that the
+    omission of a syntactic restriction here was intentional.
+
+    Repeated type variables in a typdesc seem unproblematic if strange, since the
+    semantics only looks at the number of variables.  SML-NJ accepts SIG1 above,
+    and treats it the same as a signature without repeated type variables, which is
+    correct.
+
+    Repeated type variables in a datdesc are more of a problem, since the
+    constructors refer to them.  According to the Definition, foo in SIG2 above
+    gets type 'a -> ('a,'a) t3.  Both of the following structures then match SIG2:
+
+    structure A =
+	 struct
+	    datatype ('a,'b) t3 = foo of 'a
+	 end
+
+    structure B =
+	 struct
+	    datatype ('a,'b) t3 = foo of 'b
+	 end
+
+    SML-NJ (version 0.44a) says foo : 'a -> ('a,'b) t3, which is wrong.  The result
+    of this is that A matches SIG2 but B does not.  I don't know about Poly-SML,
+    since I don't have it here.
+Status: open

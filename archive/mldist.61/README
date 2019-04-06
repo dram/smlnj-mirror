@@ -1,0 +1,29 @@
+This archive contains ML and Emacs Lisp code to support a visual Emacs
+interface for Andrew Tolmach's SML debugger.  Complete documentation
+is contained in the file visualDebug.tex.
+
+The .sml files should be copied into the dbguser directory of the sml
+distribution; they replace the existing dbguser files.  There is no
+need to re-makeml the compiler, since all of the new debugging code
+is installed at user level; to recreate the sml image, use
+"dbguser/userlevel.sml" and then exportML.  A file named "makeDebug"
+has been included to help you perform this step; type "sml <
+makeDebug" and a new executable called smld will be created; it will
+include the visual debugging code.
+
+The files sml-mode.el and sml-debug.el should be copied to a directory
+where emacs lisp code can be loaded.  If you copy them to a directory
+named ~/elisp, Emacs will be able to find them if you insert the line
+
+(setq load-path (cons "~/elisp" load-path))
+
+into your .emacs file.
+
+A file .sml.emacs has been included that contains startup code which
+you should insert into your .emacs file.
+
+Please contact me with any questions, suggestions or comments.
+
+Adam Dingle
+atd@cs.princeton.edu
+

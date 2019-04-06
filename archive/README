@@ -56,13 +56,13 @@ file), but probably first half of 1989 based on date of Version 36.
 
 Additional material from 4 QIC tapes, read with the help of Vaughn Pratt.
 
-Tape1:
+tape1:
   mlsave.20: SML/NJ Version 0.20, 13 June 1988 (src/doc/VERSION.20)
   mlsave.21: SML/NJ Version 0.21, 29 August 1988 (from file creation dates, no doc)
   mlsave.22: SML/NJ Version 0.22, 9 September 1988 (src/doc/VERSION.22)
   mlsave.23: SML/NJ Version 0.23, 9 November 1988 (from file creation dates, no VERSION.23)
 
-Tape2:
+tape2:
   mldist.33: SML/NJ Version 0.33, 31 March 1989 (from file creation dates; src only)
   mldist.39: SML/NJ Version 0.39, 22 August 1989 (from file creation dates; src only)
   mldist.44: SML/NJ Version 0.44, 29 November 1989 (from file creation dates)
@@ -88,7 +88,7 @@ Tape2:
      [pre-release of Version 0.75, see README]
   sml386: SML/NJ Version 0.75? port to i386, 7 February 1992 (from file creation dates)
 
-Tape4:
+tape4:
   mlsave.33: SML/NJ Version 0.33, 5 April 1989 (supercedes Tape2 version)
   mlsave.35: SML/NJ Version 0.35, 14 June 1989 (from file creation dates)
     [version from Tape9.zip above appears to be better]
