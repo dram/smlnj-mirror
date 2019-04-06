@@ -91,6 +91,7 @@ Tape2:
 Tape4:
   mlsave.33: SML/NJ Version 0.33, 5 April 1989 (supercedes Tape2 version)
   mlsave.35: SML/NJ Version 0.35, 14 June 1989 (from file creation dates)
+    [version from Tape9.zip above appears to be better]
   mlsave.36: SML/NJ Version 0.36, 4 July 1989 (doc/NEWS.36)
     [missing SML/NJ Version 0.37, 9 August 1989]
   mlsave.38: SML/NJ Version 0.38, 22 August 1989 (from file creation dates)
