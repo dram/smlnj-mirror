@@ -1,0 +1,294 @@
+Outstanding bugs, SML of NJ Version 0.56, 13 April 1990
+
+------------------------------------------------------------------------------
+4. duplicate specifications not checked
+Problem:
+  No checking for duplicated specifications in signatures.
+Version: 0.18
+Comment:
+  This should be done when building the signature symbol table.
+Status: open
+-----------------------------------------------------------------------------
+86. incorrectly allows redefining of "="
+Submitter: Dave Berry
+Date: 3/15/89
+Version: 0.29
+Problem:
+    NJML handles the = symbol incorrectly in some cases.
+
+    - val op = = op = ;
+    - nonfix =;
+    - = (true, true);
+    Error: declaration or expression expected, found EQUAL
+Comment:
+    The = symbol may not be redefined (Definition, page 4).  The top definition
+    does seem to redefine =, despite the lack of response from the system.
+    I can't see anything in the Definition that forbids making = nonfix,
+    so I suppose it should be possible to use it in a nonfix way.
+Status: open
+------------------------------------------------------------------------------
+184. bindings introduced by open are not printed
+Submitter: Andy Koenig
+Date: 1/30/90
+Version: 0.52
+Problem:
+  After a top level open, the bindings introduced are not printed
+Status: open
+-------------------------------------------------------------------------------
+189. confusing error message for bad clausal syntax
+Submitter: Carl Gunter
+Date: 1/4/90
+Version: 0.44/0.52
+Problem:
+  Parser error message is not as helpful as it could be.
+Transcript
+    - fun (f:('a pair -> int)) x = 2;
+    std_in:3.5-3.24 Error: illegal function symbol in clause
+Status: open
+-----------------------------------------------------------------------------
+206. unhelpful parser error message (new parser)
+Submitter: Dave
+Date: 3/15/90
+Version: 0.52
+Transcript:
+    - structure A =
+    = struct
+    =   val x = if true then if true then 1 else 2
+    = end;
+    std_in:4.1 Error: syntax error found at END
+    -
+Status: open
+-------------------------------------------------------------------------------
+219. parsing layered patterns
+Submitter: Andrew Appel
+Date: 5/90
+Version: 0.56 and later
+Severity: minor
+Problem: parsing of layered pattern is too liberal.  An atomic pattern is
+  accepted where a variable is required by the Definition syntax.
+Code:
+  let val (x) as (y :: z) = [1,2] in x end
+Comments:
+  Seems to require nontrivial change to the mlyacc grammar
+Status: open
+-------------------------------------------------------------------------------
+221. profiling broken
+Submitter: Benjamin Pierce (Benjamin.Pierce%proof.ergo.cs.cmu.edu
+Date: 5/22/1990
+System: 0.56 (and later)
+Problem:
+  Profiling provides call counts bug not timings.  For separately compiled
+  modules, profiling provides neither call counts nor timings.
+Transcript:
+ (1) for separately compiled code
+ %time  cumsecs     #call   ms/call  name
+            .00         0            (toplevel)
+            .00         0            (gc)
+            .00         0            (unprofiled)
+
+
+ (2) for "used" code
+ %time  cumsecs     #call   ms/call  name
+            .00      2398     .0000  anon.AType.==.anon
+            .00      2398     .0000  anon.AType.==
+            .00      2051     .0000  anon.Id.==.anon
+            .00      2051     .0000  anon.Id.==
+            .00      1890     .0000  anon.AType.apply_rule.anon
+	    [etc...]
+
+Comments:
+  Seems to be a result of constant propagation in cps optimization, which
+  is replicating the strings "constants" that hold the counters.
+Status: open
+-------------------------------------------------------------------------------
+242. incorrect forward referencing allowed
+Submitter:      Nick
+Date:		12 July '90
+Version:        0.56, 0.59
+System:         Irrelevant
+Severity:       Major (& Embarrassing?)
+Problem:        Incorrect forward referencing when analysing SPECs in
+		functor arguments.
+
+Input:
+	- signature SIG = sig  type t  end
+
+	- functor F(structure STR1: sig type t end sharing type STR1.t = Foo.t
+		    structure Foo: SIG
+		   ) = struct end;
+
+Output:
+	functor F: <sig>
+
+Status: open
+-------------------------------------------------------------------------------
+246. repeated import consumes too much memory
+Submitter:      Peter Canning  <canning@hplabs.hp.com>
+Date:		27 June 1990
+Version:        0.56
+System:         HP900S370 (m68030)  HP-UX 7.0
+Severity:       major
+Problem:        repeated use of the import facility causes the heap to grow
+Code:           <example code that reproduces the problem>
+Transcript:     <transcript of session illustrating problem>
+Comments:
+    In particular, if I repeatedly modify a file, import the file, then run the
+    program defined in the file (the standard edit/compile/debug loop), my sml
+    image seems to grow (and never shink again).  When I was just using "use",
+    sml would garbage collect freqently, but the process size would stay between
+    4000 and 5000 Kbytes.  Using import (working on the same program), the
+    process has grown as large as 11000 Kbytes.  It appears that for some reason
+    some data related to importing/compiling files is not being reclaimed by the
+    garbage collector.
+Status: open
+-------------------------------------------------------------------------------
+253. SML Dumping core compiling mlyacc with -pervshare
+Submitter:      Richard O'Neill (cmp7130%sys.uea.ac.uk@nsfnet-relay.ac.uk)
+Date:		Wed Jul 18 16:18:47 BST 1990
+Version:        0.59
+System:         Sun3/50, SunOS 4.1
+Severity:       You decide...
+Problem:
+
+Attempting to compile mlyacc (as supplied with version 0.56 of SML of NJ) 
+with a '-pervshare' version of SML of NJ 0.59 causes a Segmentation Fault.
+
+This does not seem to happen with the sharable SML compiler.
+
+I have the core dump if that would help...
+
+Status: open
+-------------------------------------------------------------------------------
+259. uncaught exception Match compiling normperv.sml
+Submitter:      Richard O'Neill (cmp7130%sys.uea.ac.uk@nsfnet-relay.ac.uk)
+Date:		Tue Aug 14 10:04:21 BST 1990
+Version:        0.63 (not in 0.62 or earlier)
+System:         Sun3/180, SunOS 4.1
+Severity:       Critical
+Problem:
+
+Version 0.63 has a new bug whereby it cannot compile dbguser/normperv.sml
+This prevents creating the '-debug' version.
+
+Transcript:
+
+unix% sml
+Standard ML of New Jersey, Version 0.63, 10 August 1990
+val it = () : unit
+- use "dbguser/normperv.sml";
+[opening dbguser/normperv.sml]
+[closing dbguser/normperv.sml]
+
+uncaught exception Match
+-
+
+Comments:
+
+Smlc, version 0.62, created the 680X0 '.mo' files from which a -pervshare
+runtime system was built using gcc. This runtime system was then used to build
+a normal and then a -debug system (which failed).
+
+I've marked the severity as critical because it is a critical problem for this
+version. For me however, its not so critical as I seem to be managing OK with
+0.62.
+Status: open
+-------------------------------------------------------------------------------
+264. No type-explicitness check in nj-sml
+Submitter: David Turner <dnt@lfcs.edinburgh.ac.uk>
+Date: 7/8/90
+Version  : SML of NJ 0.56 and 0.59
+System   : Sun
+Severity : Dunno, but its pretty anti-social
+
+Problem :
+
+   The compiler doesn't seem to check for type explicitness in
+   signatures (see section 5.8 and also rule 65 of the ML definition).
+   This means many signatures which can never be matched are still
+   accepted as valid signatures.
+
+Transcript :
+
+  - signature X = sig type t val x : t type t end;
+  signature X =
+    sig
+      type t
+      val x : ?.t
+    end
+
+Status: open
+-------------------------------------------------------------------------------
+267. sharing again
+From: Simon Finn <simon@abstract-hardware-ltd.co.uk>
+Date: Thu, 2 Aug 90 10:48:47 BST
+Version: d64
+Problem:
+The following program breaks Poly/ML v1.88 and  NJML v0.44a (the most recent version
+to which I have access) [breaks d64 as well].
+Code:
+signature S1 =
+sig
+  eqtype t
+  val x : t
+end;
+
+signature S2 =
+sig
+  structure A : sig end
+  structure C : sig structure A : S1 end
+  sharing A = C.A
+end;
+
+functor F(structure A:S1
+          structure B:S2
+          sharing A = B.A)  =
+struct
+  val y = (A.x = B.C.A.x)
+end;
+
+Transcript:
+Standard ML of New Jersey, Version d64, ? August 1990
+val it = () : unit
+- signature S1 =
+  sig
+    eqtype t
+    val x : t
+  end
+signature S2 =
+  sig
+    structure A : sig...end
+    structure C : sig...end
+  end
+std_in:21.11-21.25 Error: operator and operand don't agree (tycon mismatch)
+  operator domain: ?.t * ?.t
+  operand:         ?.t * ?.t
+  in expression:
+    = (A.x,B.C.A.x)
+
+Comment:
+This program is valid, since structure A shares with B.A which shares with B.C.A,
+hence A.t and B.C.A.t must be the same (equality) type. However:
+
+Status: open
+-------------------------------------------------------------------------------
+272. generalizing user bound type variables
+Submitter: Elsa
+Date: 9/7/90
+Version: 0.65
+Severity:       <minor, major, or critical>
+Problem:   user bound variables are occurring in the final type of a function.
+Code:
+   fun f(x) = let val y : 'a -> 'a = x in y y end;
+Transcript:     <transcript of session illustrating problem>
+   - fun f(x) = let val y : 'a -> 'a = x in y y end;
+   val f = fn : ('aU -> 'aU) -> 'a -> 'a   
+   - f (fn x: 'a => x);
+   std_in:2.1-2.16 Error: operator and operand don't agree (bound type var)
+     operator domain: 'aU -> 'aU
+     operand:	      'aU -> 'aU
+     in expression:
+       f ((fn <pat> : 'aU => x))
+Comments:
+  Error should be detected when function f is defined, rather than when it
+  is applied.
+Status: open

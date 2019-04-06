@@ -1,0 +1,82 @@
+Received: from Princeton.EDU (Princeton.EDU.) by fs.Princeton.EDU (4.0/1.105)
+	id AA21109; Fri, 29 Mar 91 11:27:29 EST
+Received: from bagate.BELL-ATL.COM by Princeton.EDU (5.61++/2.69/princeton)
+	id AA03543; Fri, 29 Mar 91 11:27:26 -0500
+Received: by bagate.bell-atl.com (Smail3.1.18.1)
+	id <m0jMMJ2-0000FMC@bagate.bell-atl.com>; Fri, 29 Mar 91 11:28 EST
+Received: from pizza by baks (4.1/SMI-4.0)
+	id AA07610; Fri, 29 Mar 91 11:13:53 EST
+Received: by pizza (4.1/SMI-4.0)
+	id AA01376; Fri, 29 Mar 91 11:14:01 EST
+From: drs@baks.bell-atl.com (Darrell Schiebel)
+Message-Id: <9103291614.AA01376@pizza>
+Subject: (diffs for AUX port of sml) (2 of 2)
+To: bagate!appel@Princeton.EDU
+Date: Fri, 29 Mar 91 11:13:55 EDT
+Cc: drs@bagate.bell-atl.com (Darrell Schiebel)
+X-Mailer: ELM [version 2.2 PL10]
+Status: RO
+
+
+Here are the file diffs I mentioned in my first message:
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Script started on Fri Mar 29 10:08:37 1991
+clam% diff auxml/src/makeml ml/src/makeml
+53,55d52
+< elif [ -f /mac ]; then
+<       set - -m68 aux $*
+<       echo "HERE\n"
+140d136
+<               aux) OPSYS=AUX ;;
+clam% diff auxml/src/runtime/M68.dep.c ml/src/runtime/M68.dep.c
+8d7
+< #ifndef AUX
+10,12d8
+< #else
+< #include <sys/signal.h>
+< #endif
+28d23
+<
+65c60
+<       die ("bogus signal not in ML: (%d, %#x)\n", sig, code);
+---
+>       die ("bogus signal not in ML: (%d, %#x)\n", signal, code);
+clam% diff auxml/src/runtime/Makefile ml/src/runtime/Makefile
+43,49d42
+< #AUX
+< MACHINE = M68
+< DEFS = -D_SYSV_SOURCE -DHPUX -D_BSD_SOURCE
+< CFL =
+< AS = gas
+< CC = gcc -traditional
+<
+55c48
+< DEFINES = -D$(MACHINE) $(DEFS) -D_BSD_SOURCE
+---
+> DEFINES = -D$(MACHINE) $(DEFS)
+96,97c89,90
+<        /lib/cpp -DASM $(DEFINES) $(MACHINE).prim.s > prim.s
+<        gas -o prim.o prim.s
+---
+>        $(CPP) -DASM $(DEFINES) $(MACHINE).prim.s > prim.s
+>        $(AS) -o prim.o prim.s
+clam% diff auxml/src/runtime/linkdata.c  ml/src/runtime/linkdata.c
+232d231
+< #ifndef AUX
+234,236d232
+< #else
+<     sprintf(cmd_buf = malloc(2*sizeof(RUNTIME)+32), "gas %s -o %s", as_buf, o_buf);
+< #endif
+clam% diff auxml/src/runtime/ml_os.h ml/src/runtime/ml_os.h
+58c58
+< #if defined(HPUX) || defined(AUX)
+---
+> #ifdef HPUX
+133,135d132
+< #elif defined(AUX)
+< #define SYS_open SYS_OPEN
+< #include <limits.h>
+clam% exit
+clam%
+script done on Fri Mar 29 10:37:44 1991

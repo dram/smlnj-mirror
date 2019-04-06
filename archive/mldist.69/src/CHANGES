@@ -1,0 +1,23 @@
+Changes since version 0.68:
+
+Generic.sml is now much faster
+
+System.Stats.codesize to measure cumulative bytes of machine code generated
+
+New debugger version
+
+ifdefs in runtime system for AUX operating system (Macintosh)
+ifdefs for version 2 of NeXT machine (not completely working yet)
+
+bug fixes in typecheck, sepcomp, env, tyvarset, envaccess, typesutil
+
+new version of mlyacc used (new parse/base.sml)
+minor tweaks to semantic actions in parse/ml.grm for marking declaration
+line numbers
+
+fix to mips code generator so that Unsafe.update works on constant arguments
+
+
+
+
+

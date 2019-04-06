@@ -1,0 +1,121 @@
+diff m68.sml ~appel/67/src/m68/m68.sml
+
+< val savedfpregs = map (Direct o FloatReg) [0,1,2,3,4,5,6,7]
+< val floatregs = [] : EA list
+93,98c91
+< fun move(src as Direct(FloatReg _),dst as Direct(FloatReg _)) = V.fmovex(src,dst
+)
+<   | move(src as Direct(FloatReg _), _) = ErrorMsg.impossible
+<     "m68/m68/move: Destination not a floating point register"
+<   | move(_, dst as Direct(FloatReg _)) = ErrorMsg.impossible
+<     "m68/m68/move: Source not a floating point register"
+<   | move(Immedlab l, dest as Direct(AddrReg x)) = V.lea(Address l, dest)
+---
+> fun move(Immedlab l, dest as Direct(AddrReg x)) = V.lea(Address l, dest)
+297c290
+< fun float f (fp1,fp2,fp3) = (V.fmovex(fp1,fp3); f(fp2,fp3))
+---
+> val fp0 = FloatReg 0
+299,314c292,297
+< fun loadfloat(src,dst) = case dst
+<                          of Direct(FloatReg fp) => V.fmoved(defer src, dst)
+<                           | _ => ErrorMsg.impossible
+<                                  "m68/m68/loadfloat: Bad destination register"
+< fun storefloat(src,dst) =
+<     case src
+<       of Direct(FloatReg fp) =>
+<       ((*
+<           * V.cmpl(dataptr,datalimit);
+<           * V.trapmi();
+<           *)
+<          V.movl(Immed(System.Tags.desc_real), PostInc dataptr');
+<          V.movl(dataptr,dst);
+<          V.fmoved(src, PostInc dataptr'))
+<        | _ => ErrorMsg.impossible "m68/m68/storefloat: Bad source register"
+<
+---
+> fun finishreal(c) = (
+>       V.cmpl(dataptr,datalimit);
+>       V.trapmi();
+>       V.movl(Immed(System.Tags.desc_real), PostInc dataptr');
+>       V.movl(dataptr,c);
+>       V.fmoved(Direct fp0, PostInc dataptr'))
+316,319c299,302
+< val mulg3 = float V.fmulx
+< val divg3 = float V.fdivx
+< val addg3 = float V.faddx
+< val subg3 = float V.fsubx
+---
+> fun float f (a,b,c) =
+>     (V.fmoved(defer a, Direct fp0);
+>      f(defer b, Direct fp0);
+>      finishreal c)
+320a304,310
+> (* fun mnegg (a,c) = (V.fnegd(defer a, Direct fp0); finishreal c) *)
+>
+> val mulg3 = float V.fmuld
+> val divg3 = float V.fdivd
+> val addg3 = float V.faddd
+> val subg3 = float V.fsubd
+>
+352,353c342,345
+< fun gbranch (cond, op1, op2, label) = (V.fcmpx(op2,op1);
+<                                      fbranch cond (defer label))
+---
+> fun gbranch (cond, op1, op2, label) =
+>       (V.fmoved(defer op1,Direct fp0);
+>          V.fcmpd(defer op2, Direct fp0);
+>          fbranch cond (defer label))
+
+------------------------------------------------------------
+diff m68ascode.sml ~appel/67/src/m68/m68ascode.sml
+
+347,353d346
+< fun fcmpx(arg as (src,dst)) = (emit "fcmpx "; emit2arg arg)
+< fun faddx(arg as (src,dst)) = (emit "faddx "; emit2arg arg)
+< fun fsubx(arg as (src,dst)) = (emit "fsubx "; emit2arg arg)
+< fun fmulx(arg as (src,dst)) = (emit "fmulx "; emit2arg arg)
+< fun fdivx(arg as (src,dst)) = (emit "fdivx "; emit2arg arg)
+< fun fmovex(arg as (src,dst)) = (emit "fmovex "; emit2arg arg)
+<
+
+------------------------------------------------------------
+diff m68coder.sig  ~appel/67/src/m68/m68coder.sig
+
+105,111d104
+< val fcmpx : EA * EA -> unit
+< val faddx : EA * EA -> unit
+< val fsubx : EA * EA -> unit
+< val fmulx : EA * EA -> unit
+< val fdivx : EA * EA -> unit
+< val fmovex : EA * EA -> unit
+<
+
+
+------------------------------------------------------------
+diff m68mcode.sml  ~appel/67/src/m68/m68mcode.sml
+
+474,490d473
+< local
+<     val badargs = "Bad arguments to floating point "
+< in
+< fun fcmpx(fp1 as Direct(FloatReg _),fp2 as Direct(FloatReg _))= emitF(56,fp1,fp2
+)
+<   | fcmpx _ = ErrorMsg.impossible (badargs ^ "fcmpx")
+< fun faddx(src as Direct(FloatReg _),dst as Direct(FloatReg _))= emitF(34,src,dst
+)
+<   | faddx _ = ErrorMsg.impossible (badargs ^ "faddx")
+< fun fsubx(src as Direct(FloatReg _),dst as Direct(FloatReg _))= emitF(40,src,dst
+)
+<   | fsubx _ = ErrorMsg.impossible (badargs ^ "fsubx")
+< fun fmulx(src as Direct(FloatReg _),dst as Direct(FloatReg _))= emitF(35,src,dst
+)
+<   | fmulx _ = ErrorMsg.impossible (badargs ^ "fmulx")
+< fun fdivx(src as Direct(FloatReg _),dst as Direct(FloatReg _))= emitF(32,src,dst
+)
+<   | fdivx _ = ErrorMsg.impossible (badargs ^ "fdivx")
+< fun fmovex(src as Direct(FloatReg _),dst as Direct(FloatReg _))= emitF(0,src,dst
+)
+<   | fmovex _ = ErrorMsg.impossible (badargs ^ "fmovex")
+< end
+<
