@@ -1,0 +1,36 @@
+This file attempts to list differences between SML of New Jersey
+and the Definition of Standard ML (Milner/Tofte/Harper).
+
+- The arithmetic overflow exceptions are all identified (see above).
+	Sum, Prod, Diff, Neg, Exp, Floor are all equivalent to Overflow
+	Div and Mod are equivalent, distinct from Overflow
+	Ln is a distinct exception; Sqrt is a distinct exception 
+- Strings carried by the Io exception are more informative in SML-NJ.
+- Different right-associative operators of the same precedence
+	associate to the right in SML-NJ.
+- The @ operator is right-associative in SML-NJ.
+- "local" and "open" specs in signatures have a different semantics
+		(see doc/localspec)
+- The symbol "=" can be re-bound (though usually you get a warning message)
+- The construct   val ... and rec ...   is not permitted; the "rec"
+	must immediately follow the "val".
+- The Definition prohibits some, but not all, signatures that could
+	never be matched by any structure.  We are more liberal about
+	such signatures.
+- The initial basis is a superset of the one described in the Definition.
+	See the appendix to the user manual (in doc/refman) for
+	details.  Also:
+
+	The infix operators "quot" and "rem" implement rounding-towards-zero
+	division and remainder; on nonnegative numbers they are equivalent
+	to "div" and "mod," but are always faster.
+
+	There are two new functions:
+		outputc =  curry(output)
+		inputc:   a curried input function, but with a difference:
+			inputc f n 
+			returns "" on end-of-stream, and otherwise
+			returns a string of length k, 0<k<=n,
+			depending on what is available and convenient.
+
+

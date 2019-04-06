@@ -1,0 +1,850 @@
+Changes since version 0.66, 0.67:
+
+Lal George's changes:
+
+src/cps/cmachine.sig:
+--------------------
+    Added:
+	val floatregs
+	val savedfpregs
+    Note: 
+	Comment about disjoint registers applies to these
+    Added:
+	val storefloat
+	val loadfloat
+
+
+src/cps/freemap.sml:
+--------------------
+    Added:
+	val cexp_freevars
+        fun cexp_freevars
+
+
+src/cps/cpsprint.sml
+--------------------
+    Added:
+	line 9:
+    Note:
+	Changed the way integers are printed.
+ 	Easy to confuse integers with lvars.
+
+src/cps/cpsopt.sml
+------------------
+    Changes: -
+    Note:
+	Fixes for version 67 to fix m68000 register allocation bug.
+
+
+src/cps/generic.sml
+-------------------
+    Added:
+     	datatype RegType
+	datatype Reg
+
+    Changed:
+	datatype frag
+    Note: 
+	The KNOWN constructor was changed to old the list of registers
+	assigned to a known function.
+
+    Added:
+	fun regtype2string
+	fun reg2string
+    Note:
+	These two functions are never used anywhere, but they
+	handy in debugging. 
+
+    Added:
+	exception GPregNum and FpregNum and ShadowNum
+        fun gpregNum
+        fun fpregNum
+        fun shadowNum
+    Note:
+	Returns the appropriate register number.
+
+    Changed:
+	fun standardformals
+    Note:
+	Returns a (Reg list) instead of an (int list).
+
+    Added:
+        val allfpregs
+    Note:
+	savedfpregs and floatregs must be disjoint
+
+    Added:
+	exception FPRegEA and GPRegEA
+	val gpregarr
+	val fpregarr
+        fun fpregEA
+	fun gpregEA
+
+    Added:
+	val max_fp_parameters
+    Note:
+	Similar to the calculation of maxfree.
+	A spare register is required for the shuffling.
+
+    Added:
+	fun collect
+    Note:
+	A utility function I seem to use a lot.
+
+    Added:
+	structure GetScratch
+    Note:
+	A structure was created to hide some of the internal state
+	and make the types more explicit.
+	The last floating point register is used as the temporary,
+	for swapping, i.e. fpregtemp.
+	Only registers [0..max_fp_parameters] of allfpregs are use
+	for parameter passing.
+	This fact is made use of in allocparams.
+
+    Relocated:
+	fun split
+
+    Added:
+	val cexp_freeevars
+	
+    Changed:
+	val regbindtable
+
+    Added:
+	fun fpregbind_exists
+	fun gpregbind_exists
+
+    Added:
+	exception GpregMap and FpregMap
+	fun gpregmap
+        fun fpregmap	
+	fun clean
+	fun live_regs
+
+    Added:
+	fun regbind
+    Note:
+	Returns the register binding for a CPS value datatype.
+	Asking for a floating point register binding for a CPS
+	value is an error. 
+	This must have been previously done using a loadfloat,
+	because there is considerable logic involved in allocating
+	a floating register.
+
+    Added:
+	val gpregbind
+	val fpregbind
+
+    Changed:
+	fun regmask
+    Note:
+	floating registers do not affect the register mask (at least
+	for the present).
+	Any live floating registers are not affected by the C-interface
+	i.e. they are callee-save registers.
+	This may change in the future.
+
+    Added:
+	fun nextuse
+    Note:
+	stole this from spill.sml
+
+
+    Added:
+	fun next_fp_use
+    Note:
+	May be desirable to allocate a special structure for these
+	to functions and import them into spill and generic.
+
+    Added:
+	fun preferred_register_asgn
+    Note:
+	The algorithm used in assign is not particularly efficient 
+	but has the merit of being simple.
+
+    Changed:
+	fun alloc
+	fun alloc.delete
+	val default
+	fun get
+    Note:
+	new definition of val proh 
+	alloc is always called for the allocation of a general purpose
+	register. However, the default register may well have a 
+	floating register binding.
+	The same applies to fun get.
+
+    Added:
+	fun partition_args
+    Note:
+	Moves registers to the right register class.
+	This makes it easier to shuffle later.
+	If an actual argument is required in both a floating and
+	general register then it will end up in a DPR register.
+	
+	The process is split into 3 phases.
+	 1. move_GPR_args moves arguments into GPRegs that do not have
+	    a GPReg binding.
+	 2. flush_fpregs removes all unnecessary bindings in floating registers.
+	 3. move_FPR_args moves arguments into FPRegs.
+
+    Added:
+	shuffle_regtype
+    Note:
+	This function used to be shuffle1
+
+	Move actual arguments into registers for function call.
+	Assumes that all the variable actuals have a binding in 
+	the correct register class.
+	If an actual is being passed in a floating and general 
+	register, then its binding must be a DPR register.
+	The function shuffles register of a specific type
+	i.e. FPReg, GPReg.
+		 
+    Added:
+	fun do_shuffle
+    Note:
+	This function sets the scene for shuffle_regtype
+
+    Changed:
+	fun shuffle
+    Note:
+	Changed to call do_shuffle
+
+    Changed:
+	allocparams
+    Note:
+	The register assignments determine the parameter passing convention.
+        This is complicated by the fact that an actual may not be in the
+	appropriate register class.
+	Even if an actual is in the correct register class it may not
+	be in a suitable register, since only a specific set of registers
+	can be used for parameter passing.
+	
+	pass1 is guided by the preferred register class.
+	If an actual is in the right register class and has not been 
+	assigned then it is marked as being assigned.
+	Otherwise an allocation is made.
+	The shadow register is used where appropriate. 
+
+	Pass2 simply allocates the floating point registers.
+
+    Changed:
+	stupidargs
+
+    Note:
+	Performs floating and general purpose register allocation in sequence.
+
+   
+    Added:
+	fun force_fpgetscratch
+
+    Note:
+	Allocates a floating register to be used for a variable in cexp.
+	If an allocation fails the following is performed.
+	1. All the variables with duplicate binding are collected.
+	2. If the preferred floating register has a duplicate then all is well.
+	3. Otherwise the duplicate used in the most distant future is
+	   allocated.
+	4. If no duplicates exist, then a floating register must be written
+	   out. The register used in the most distant future is written out.
+
+    Added:
+	 move_to_FPRs	
+    Note:
+	force_fpgetscratch is used to allocate the registers.
+	See comment regarding constants.
+
+    Added:
+	do_fp_primop
+    Note:
+	This is complicated because of the m68000 that does not have
+	three address floating point instructions.
+        For, PRIMOP(P.fadd, [x,y], [w], e), once registers we have 
+	allocated for x and y any one of them can be reused for w.
+        This is not correct for the m68000.
+
+	clean_fpregs is not strictly necessary because 
+	force_getfpscratch does not allocated a general purpose register.
+	However, better safe than sorry.
+
+    Added:
+	parallel_gen
+
+
+    Changed:
+	gen
+    Note:
+	A lot of changes here.
+	Most changes here are straight forward changes from 
+ 	regbind to gpregbind.
+	The only significant change is for APP nodes and calls to
+	parallel_gen and fcompare.
+
+    Added:
+	fcompare
+    Note:
+	Very similar to do_fp_primop
+
+src/mips/opcodes-table:
+-----------------------
+    Added:
+	format entry for the mov_fmt instruction
+    Note:
+	Be certain to run the Makefile.
+
+src/mips/mips.sml
+-----------------
+    Added:
+	val floatregs
+	val savedfpregs
+    Note:
+	These are disjoint and follow the parameter passing convention
+	specified by MIPS.
+
+    Changed:
+	fun move
+    Note:
+	Generates the mov_double instruction when both arguements are
+	floating point registers.
+
+    Removed:
+	val floatop1
+	val floatop2
+	val floatresult
+	(* comments *)
+
+
+    Removed:
+	fun finish_real
+    Note:
+	This code was really migrated with a few changes to storefloat
+
+    Added:
+	fun storefloat
+	fun loadfloat
+	fun cast_fp_EA
+	fun cast3instr
+    Note:
+	The last two functions are unfortunate.
+	The rest of the code generator does not know about floating
+	registers, but infers their presence from the context of the
+	instruction.
+	Unless there is a compelling reason to change, this is an
+	easy fix around.
+
+   Changed:
+	val mnegg
+	val mulg3
+	val divg3
+	val addg3
+	val subg3
+
+   Removed:
+	fun two_float
+	fun three_float
+   Note:
+	Not necessary since the floating instructions are called directly.
+
+   Changed:
+	fun gbranch
+   Note:
+	Arguments are already in floating registers.
+
+
+
+src/mips/mipscoder.sig
+----------------------
+   Changed:
+	datatype Register
+   Note:
+	Included floating point registers as another kind of register.
+
+   Added:
+	val mov_double
+
+
+
+src/mips/mipscoder.sml
+----------------------
+    Note:
+	This file contains a couple of changes I got from Zong
+	regarding a displacement calculation bug.
+
+    Changed:
+	datatype Register
+	datatype instr
+    Note:
+	instr includes a new pseudo instruction MOVEFLOAT
+
+    Added:
+	val mov_double
+
+    Changed:
+	fun showea
+	fun showinstr
+	fun newsize
+	fun gen
+	fun read_or_writes
+	fun depend
+	fun iscode
+
+    Note:
+	Most of the changes to these functions are in the obvious way,
+	with the exception of depend.
+
+
+src/m68/m68.sml
+---------------
+    Added:
+	val savedfpregs
+	val floatregs
+
+    Changed:
+	val move
+    Note:
+	Move should handle floating moves
+
+    Added:
+	val loadfloat
+	val storefloat
+    Note:
+	There is a bug in the old version that is corrected here.
+
+    Removed:
+	fun finishreal
+
+    Changed
+	fun move
+	fun float	
+	val mulg3 
+	val divg3 
+	val addg3 
+	val subg3 
+    Note:
+	These operations call the register to register versions
+	of the floating instructions.
+	
+    Changed:
+	fun gbranch
+    Note:
+	gbranch expects its arguments in floating registers.
+
+
+src/m68/m68ascode.sml  
+---------------------
+   Added:
+	fun fmoved 
+	fun fcmpx
+	fun faddx
+	fun fsubx
+	fun fmulx
+	fun fdivx
+	fun fmovex
+
+src/m68/m68coder.sig
+--------------------
+    Added:
+	val fcmpx
+	val faddx 
+	val fsubx 
+	val fmulx 
+	val fdivx 
+	val fmovex 
+
+    Note:
+	The instructions faddd, fsubd, fmuld,...  will never be
+	called, as the compiler uses only the register versions.
+	These have been left behind and could as well be cleaned 
+	out.
+  
+
+
+src/m68/m68mcode.sml
+--------------------
+    Added:
+	fun fcmpx
+	fun faddx
+	fun fsubx
+	fun fmulx
+	fun fdivx
+	fun fmovex
+
+
+src/m68/m68coder.sig
+
+    Added:
+	val fcmpx
+	val faddx
+	val fsubx
+	val fmulx
+	val fdivx
+	val fmovex
+
+
+src/sparc/sparc.sml
+-------------------
+    Added:
+	fun emit_fmov
+
+    Changed:
+	datatype EA
+    Note:
+	Included FDirect of fregister.
+	I find it rather odd to define the datatype fregister.
+	I think datatype register = REG of int | FREG of int
+	would have been more appropriate.
+	Doing this would have meant a major change to a fairly large file.
+
+
+    Added:
+	val savedfpregs
+	val floatregs
+    Note:
+	None of the floating registers are callee saved.
+
+    Changed:
+	fun move
+	fun floatOp
+    
+    Removed:
+	val f0
+	val f1
+	val f2
+	fun finishReal
+    
+
+    Added:
+	fun loadfloat
+	fun storefloat
+
+    Changed:
+	fun gbranch
+    Note:
+	Arguments are already in floating registers.
+
+
+src/sparc/sparcas.sml
+---------------------
+
+    Added:
+	I_fmov
+
+
+src/sparc/sparcmc.sml
+---------------------
+
+    Added:
+	val emit_fmov
+
+    Changed:
+	fun emitInstr
+    Note:
+	Recognizes I_fmov
+
+
+
+src/sparc/sparcinstr.sml
+------------------------
+    Changed:
+	datatype instruction
+    Note:
+	Included a floating move type instruction.
+
+    Changed:
+	fun rUseDef
+    Note:
+	All the floating registers are considered as a _single_ resource.
+
+    Changed:
+	fun hazard
+    Note:
+        The treatment of hazard resolution is a little sloppy here.
+
+src/vax/vax.sml
+---------------
+    Added:
+	val savedfpregs
+    Note:
+	Since the vax floating registers are simulated on the system
+	stack none of them are saved across the C-interface.
+  	Preventing these locations from getting trashed in the
+	C-interface may be a little tricky.
+
+    Added:
+	val fp_base
+    Note:
+	Did not want to hard wire sp' as the base register floating points.
+
+    Added:
+	val floatregs
+    Note:
+	Arbitrarily chose 16 registers.
+ 
+    Changed:
+	fun move
+    Note:
+	Made aware of floating moves
+
+    Added:
+	fun loadfloat
+
+    Removed:
+	fun finishreal
+
+    Added:
+	fun storefloat
+
+    Changed:
+	fun realop
+        fun gbranch
+    Note:
+	Each one of these use the floating registers directly.
+
+
+src/vax/vaxascode.sml
+---------------------
+    Added:
+	fun movg
+
+
+src/vax/vaxcoder.sig
+--------------------
+    Added:
+	val movg
+
+src/vax/vaxmcode.sml
+--------------------    
+    Added:
+	fun movg
+
+    Changed:
+	val bgequ
+    Note:
+	The original generated the wrong instruction for the complement 
+	operation.
+
+
+src/boot/system.sig
+--------------------
+   Added:
+	val floatreg_params
+   Note:
+	Assigns parameters to floating registers.
+
+
+src/boot/perv.sml
+-----------------
+   Added:
+	val floatreg_params
+
+
+src/boot/perv.sig
+-----------------
+
+   Changed:
+	val notb 
+   Note:
+	Signature was incorrect.
+
+src/runtime/signal.c
+--------------------
+
+    Changed: 
+	ML_val_t make_ml_sigh_arg
+    Note:
+	The machine specific assembly routine savefpregs is called
+	to dump the floating registers on the heap.
+	The references to the floating registers oare written out
+	after the code pointer and exception handler, so that they
+	always have a fixed offset from the start of the record.
+
+	Most of the changes here are to get the offset for the live
+	registers correct.
+
+    oChanged:
+	load_resume_state
+    Note:
+	The floating registers are restored using the assembly routine
+	restorefpregs.
+	Note that this passed the pointer to the starting address of the 
+	floating registers.
+	It is better to let C do this here, than to compute the address
+	form ml_cont in assembly code.
+
+
+src/runtime/run_ml.c
+--------------------
+    Changed:
+	static void run_ml
+    Note:
+	added heap check on REQ_SIGNAL
+
+
+src/runtime/ml_state.h
+----------------------
+    Added:
+	#define NSAVED_FPREGS
+    Note:
+	Each machine was given the above #define except for the C machine
+	and NS32.
+	Is the C machine code is not being distributed by us,
+	but the modifications should probably be made.
+
+src/runtime/MIPS.prim.s
+-----------------------
+    Added:
+	#define ml_allocptr_offset
+	#define ml_cont_offset
+    Note:
+	Just to prevent hard wiring
+
+    Added:
+	.globl savefpregs
+	.globl restorefpregs
+	savefpregs:
+	restorefpregs:
+	
+    Changed:
+	CLOSURE(floor_v)
+    Note:
+	Hack around MIPS assembler bug.
+
+
+
+src/runtime/M68.prim.s
+----------------------
+    Added:
+	#define ml_allocptr_offset
+     	_savefpregs:
+	_restorefpregs:
+
+
+
+src/runtime/VAX.prim.s
+----------------------
+    Added:
+	_savefpregs:
+	_restorefpregs:
+    Note:
+	Essentially nop
+
+
+
+src/runtime/SPARC.prim.s
+------------------------
+    Added:
+	_savefpregs:
+	_restorefpregs:
+    Note:
+	Essentially nop
+
+
+src/runtime/VAX.dep.c
+---------------------
+
+    Changed: 
+	SIGH_RET_TYPE ghandle
+    Note:
+	One of the conditionals dissassembles incorrectly.
+
+
+
+-----------------------------------------------------------------------------
+
+John Reppy's changes:
+
+CHANGES to 0.67
+
+  - installed Andrew's CPS fix
+
+  - fixed default SIGHUP signal handler
+
+  - changed type of System.CInterface.exit to int -> 'a
+
+  - added -cleanup option to makeml
+
+  - switch to "call 2" for loading base address register
+
+  - added capture as a new primop; added capture, escape and the type
+    'a control_cont to System.Unsafe
+
+  - fixed missing "notb" primop in codegen/interp.sml
+    (and added a better error message)
+
+  - added hexadecimal integer constants
+
+  - fixed "strange signal" on 0.0/0.0  bug (for suns and HPs)
+
+AFFECTED FILES
+  makeml
+  basics/access.sml
+  basics/primop.sig
+  boot/perv.sml
+  boot/system.sig
+  lex/ml.lex
+  lex/ml.lex.ml
+  codegen/interp.sml
+  cps/convert.sml
+  cps/cpsopt.sml
+  cps/generic.sml
+  env/prim.sml
+  runtime/ml_state.h
+  runtime/run_ml.c
+  runtime/exncode.c
+  sparc/sparc.sml
+  sparc/sparcas.sml
+  sparc/sparcinstr.sml
+  sparc/sparcmc.sml
+
+-------------------------------------------------------------------------
+
+Andrew Appel's changes:
+
+Changed the lambda language, so that constructors are now explicitly
+represented.  Added a new constructor-representation
+ VARIABLEc, for constant exceptions.
+
+Changed the parser:  1+if a then b else c  was legal, is no longer.
+
+Changed the shuffler in CPSgen to use arithtemp as the temporary variable,
+so it won't run out of registers.
+
+Fixed mipscoder so that very-long-distance jumps and address-references 
+are reliable (they used to fail occasionally).
+
+Made IO an abstraction, so users don't see internals of "stream" type.
+
+Fixed various bugs.
+
+-------------------------------------------------------------------------
+Zhong Shao's changes:
+
+Added #ifdef's to runtime system (  #if (CALLEESAVE>0)  )
+in preparation for callee-save register convention.
+
+Changed which registers are used as temporaries in MIPS.prim.s
+to avoid the callee-save registers.
+
+ /u/zsh/clos/70/src/runtime68. It's totally based on
+/u/appel/67/src/runtime so you can do the diff find the simple difference.
+Basically here are the modifications I made:
+
+1. mask.h ------- newly added, gives the masks for different # of calleesave
+                  registers
+2. MIPS.prim.s ------- main changes include masks and continuation represent-
+                  ations, also restoreregs and saveregs.
+3. run_ml.c ------- continuation indirection eliminated etc.
+4. cfuns.c ------- continuation indirection eliminated etc.
+5. ml_state.h ------- STD_ARGS_MASK is modified.
+
+
+6. Makefile ------- currently I use the default value for CALLEESAVE=3.
+                   you may change it to make CALLEESAVE = outside input etc.
+
+-----------------------------------------------------------------
+
+David MacQueen's changes:
+
+various fixes in typechecker, eqtypes.sml, eqtypes.sig

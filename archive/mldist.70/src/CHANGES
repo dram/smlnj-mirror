@@ -1,0 +1,226 @@
+Changes since 0.69:
+
+REPPY:
+I am working on a version directly derived from 0.69; the only changes
+I've made have been to the runtime system.  I have modified the following
+files:
+
+  M68.prim.s		Changed register mask for create_{bs} to preserve
+  MIPS.prim.s		the tag across GCs.
+  SPARC.prim.s
+  VAX.prim.s
+
+  SPARC.dep.c		added an "#ifdef MACH" so that SIGILL doesn't get
+			mapped to Overflow on SunOS machines.
+
+  cfuns.c		added Dave Tarditi's bug fix to ml_writev.
+
+  ml_os.h		added some changes to support NeXT 2.0.
+  export.c
+
+If I get some time, I'd like to split export.c into multiple, system
+dependent versions (e.g. NeXT.export.c, etc).  The #ifdefs are getting
+too deep.
+
+  - small change to SPARC.dep.c to print out more info. when the
+    "SIGEMT not related to gc" bug occurs.
+
+It would also be nice to get ml_connect_unix and ml_connect_inet
+working on the MIPS (but this is something I can't work on).
+
+MORRISSET:
+I'm working off of 0.69 (and will test all bugs reports that I can
+on this version).  I have two minor changes to the runtime:
+
+MIPS.dep.c:  Added the following line to keep signal handlers from
+being un-installed when a signal hits under Irix:
+
+#ifdef SGI
+#define _BSD_SIGNALS
+#endif
+
+signal.c:  Changed the signal handler for profiling to the following:
+
+SIGH_RET_TYPE handleprof ()
+{
+  extern ML_val_t current0[];
+  ML_val_t cur_barray = current0[1];
+
+  cur_barray[1] = (unsigned int)INT_incr(cur_barray[1],1);
+}
+
+I've also included Tarditi's writev bug fix.  One other change which
+I haven't incorporated yet is to callgc.c:
+
+line 217 should read: minorcollections = INT_incr(minorcollections,1);
+
+lines 292-294 should read:
+
+                      collected = INT_incr(collected, ((a+512)/1024));
+                      collectedfrom = INT_incr(collectedfrom, ((b+512)/1024));
+                      majorcollections = INT_incr(majorcollections,1);
+
+The old code was using  += (2*increment)  which isn't so wonderful since
+these are all ML_val_t (unsigned int *).
+
+I'll let folks know when I have the masterbugs list updated.  It may take
+a couple of days...
+
+
+SHAO:
+I am working on a version based on 0.69. Here are changes I made:
+
+runtime/MIPS.prim.s       at lines 105-108, macro for CONT(name), name 
+                          now points to tag_backptr instead of the 1st 
+                          instruction of the code.(if CALLEESAVE >0)
+
+                          at line 171, CLOSURE(return_c) should be 
+                          CONT(return_c)
+
+                          at line 460, register mask 0x7 should be
+                          closmask
+
+runtime/SPARC.prim.s      add #if (CALLEESAVE > 0) case, similar to 
+                          MIPS.prim.s in version 0.69 
+
+runtime/run_ml.c          MLState->ml_cont = PTR_CtoML(return_c+1)
+                          instead of old line 239-243
+
+cps/closure.sml           big changes to support calleesave registers
+                          but should not affect anyone
+
+cps/contmap.sml           newly added, a sub-module of closure.sml
+
+cps/freemap.sml           at line 117, (knownM v; knownM label) instead
+                          of only knownM label. 
+
+cps/generic.sml           change the standardformals function. If k = 
+                          !CG.calleesaves, GPR 3 .. GPR (k+2) will be 
+                          treated as calleesave registers. 
+
+                          standardformals definition is now moved inside 
+                          the codegen function to respond properly when 
+                          CG.calleesaves is changed during compiling time. 
+
+
+TOLMACH:
+I'm working on two versions, one fairly orthodox one based on 0.69 and a
+more bizarre one intended to support the concurrent debugger and based on 0.68.
+I'm hoping to abandon the latter soon, so I won't describe it here, but some
+features in it (mainly getvar/setvar, in a new formulation) will be 
+incorporated into my 0.69-based version soon.
+
+Changes to my 0.69-based version so far:
+
+all
+debug/*
+dbguser/*
+  Most files in here have been changed and new ones have been
+  added (and inserted in all); this should not affect anyone.
+
+basics/access.sml
+basics/primop.sig
+cps/convert.sml
+cps/generic.sml
+env/prim.sml
+  Two new primops, deflvar and uselvar, are added.  They provide a way to
+  fool cpsopt into thinking that certain lvars are being defined or used, and
+  hence must be kept live; they are then removed by generic. 
+  The point is to separate out the effect of instrumentation on register and
+  closure usage.  It may or may not be worthwhile to include these in the
+  standard release, but they're pretty harmless. 
+
+basics/access.sml
+  Added delay and force to pr_primop.
+
+boot/assembly.sig
+boot/dummy.sml
+boot/system.sig
+runtime/callgc.c
+runtime/cstruct.c
+  Added (lastratio:int ref) to the assembly vector.  This is updated after each
+  major collection to contain the actual ratio calculated by the collection
+  * 100.
+
+boot/fastlib.sml
+  Fixed bugs in defns. of dec and subscript.
+
+boot/perv.sml
+build/interact.sml
+boot/system.sig
+  Added debuginstrum as member of timing Stats.
+
+build/interact.sml
+boot/system.sig
+mips/mips.sml
+mips/mipscoder.sml
+runtime/MIPS.prim.s
+runtime/cfuns.c
+runtime/run_ml.c
+  Added support for instruction counting.
+
+build/interact.sml
+  Various changes to debugging support.  This should be separated out into
+  a new module sometime soon.
+
+codegen/interp.sml
+  Added case to allow interpreting constants.
+
+cps/generic.sml
+  Added resetGetScratch() routine.
+
+runtime/MIPS.prim.s
+  Fixed create_b/s problem by bruteforce technique of duplicating the
+  code.
+
+runtime/callgc.c
+  Fixed bugs in calculation of minorcollections,collected,collectedFrom, etc.
+  Also fixed minor collection message to avoid div/0 problem.
+
+=========================
+
+util/intmap.sml
+  Added code to make sure initial map size is a power of 2.
+
+runtime/MIPS.prim.s
+  Appel added a .frame directive and changed a .mask.  Don't know if this
+  is right or not?
+
+boot/perv.sml
+codegen/interp.sml
+basics/access.sml
+basics/primop.sig
+cps/convert.sml
+cps/generic.sml
+env/prim.sml
+cps/cmachine.sig
+mips/mips.sml
+sparc/sparc.sml
+m68/m68.sml
+vax/vax.sml
+runtime/{M68.prim.s,MIPS.prim.s,SPARC.prim.s,VAX.prim.s,callgc,c,
+	        cfuns.c,ml_state.h,run_ml.c,signal.c}
+  Added support for getvar/setvar primops. The cmachine is modified to
+  include a varptr EA and a boolean flag varptr_indexable (and to lose
+  globalvar). Each runtime (except for C) has been modified to give space
+  for the varptr: on MIPS register 20, on SPARC register %i5, 
+  on M68, register d3, and on VAX, a word in the "ML frame".
+  The c routines have been modified to always use the varptr as a root for GC,
+  and *not* to save/restore it on entry to ML signal handlers.
+  On VAX, the handling of the floating point "registers" has been cleaned
+  up slightly, and the code has been modified to leave the sp at the
+  bottom of the frame instead of the top!
+  The handling of register 25 and the icount register on MIPS has 
+  been cleaned up slightly, but the icount code has not been ifdefed
+  properly.
+  The proposed fix to checkheap has been added.
+  Note that all "getset" files also contain any changes made to the
+  standard versions as listed above.
+  Query: how does the mask definition work at "unknown" calls in the presence
+  of callee-save registers? Does the CG guarantee that these registers will
+  *always* contain valid roots for gc purposes?
+------------------------------------------------------------------
+GEORGE:
+
+Bug fixes in signal handling.
+Cleanup in saving of floating-point registers.

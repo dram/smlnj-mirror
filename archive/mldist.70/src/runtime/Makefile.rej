@@ -1,0 +1,12 @@
+***************
+*** 48
+- DEFINES = -D$(MACHINE) $(DEFS)
+--- 55 -----
++ DEFINES = -D$(MACHINE) $(DEFS) -D_BSD_SOURCE
+***************
+*** 89,90
+-        $(CPP) -DASM $(DEFINES) $(MACHINE).prim.s > prim.s
+-        $(AS) -o prim.o prim.s
+--- 96,97 -----
++        /lib/cpp -DASM $(DEFINES) $(MACHINE).prim.s > prim.s
++        gas -o prim.o prim.s

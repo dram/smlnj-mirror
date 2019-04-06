@@ -1,0 +1,483 @@
+signature DEBUGBINDINGS =
+sig
+  val looker: Symbol.symbol -> Basics.binding
+  val blookup: int -> System.Unsafe.object option
+  val bclear: unit -> unit
+end
+
+structure DebugBindings : DEBUGBINDINGS =
+struct
+  exception RunDebugBind
+  val btable = (ref (Intmap.new(32,RunDebugBind))):System.Unsafe.object Intmap.intmap ref
+
+  fun bclear () = btable := Intmap.new(32,RunDebugBind)
+  val bind = Intmap.add (!btable)
+  val lookup = Intmap.map (!btable)
+  fun blookup lv = (SOME (lookup lv)) handle RunDebugBind => NONE
+
+open DebugUtil DebugKernel DebugStatic DebugRun DebugInstrum 
+         Access Absyn Basics PrintAbsyn PrintBasics PrintUtil CalcType
+
+fun dbgprint (s:string) = if (!debugdebug) then print s else ()
+    
+fun protect f =
+  let val originalTime = currentTime()
+      fun reset () = (restoreTime (originalTime,0); (* ignoring interrupts !*)
+		      resetinthand())
+  in setinthand();
+     (f() before reset()) 
+	handle Unbound => (reset(); raise Unbound)
+  end
+
+fun evdataAt (time:int) = restoreTime (time,0)
+
+val eventsAt = eventsFor o #evn o evdataAt
+
+(* type chasing *)
+fun encfunct t () = 
+  let fun ef 0 = NONE
+        | ef t =
+	      let val {evn,lbt,...} = evdataAt t
+	      in case eventsFor evn of
+	           (FCTENTev(_)::_) =>
+			(case eventsAt (t-1) of
+			   ((FCTAPPev(MARKstr(s as APPstr(_),_,_)))::_)
+			     => SOME (s,t)
+			 | _ => debugPanic "DebugBindings.encfunct missing FCTAPPev")
+		 | _ => ef lbt
+	      end
+  in ef t
+  end
+
+fun chaseType (t,c) (exp:exp) = 
+  let val _ = if (!debugdebug) 
+	      then (print "fetching type for "; 
+			printExp (!debugEnv) (exp, 0, 1000); print "\n")
+	      else ();
+      fun enc (t,c) () =
+	    let fun ef (0,_)  = NOTENCLOSED
+		  | ef (t,c) =
+		      let val {evn,lbt,...} = evdataAt t
+		          fun f (nil) = ef (lbt,0)
+			    | f (FNev(RULE(pat,_))::_) = 
+				      ENCLOSED (pat,enc (lbt,0),argf (t-1))
+			    | f (HANDLEev(RULE(pat,_))::_) =
+				      ENCLOSED (pat,enc (lbt,0),argh (t-1))
+			    | f (_::rest) = f rest
+		      in f (tln(eventsFor evn,c))
+		      end
+	    in ef (t,c)
+	    end
+      and argf t () = 
+	    case hd(eventsAt t) of
+	      APPev(APPexp(_,exp)) => ARGS(exp,enc (t,0),encfunct t)
+            | _ => NOTAVAIL   (* caller not compiled debug? *)
+      and argh t () =
+	    case hd (eventsAt t) of
+	      RAISEev(MARKexp(RAISEexp exp,_,_)) => 
+					ARGS(exp,enc (t,0),encfunct t)
+	    | _ => NOTAVAIL (* implicit exception? *)
+      val typ = getType(exp, enc (t,c), encfunct t)
+   in if (!debugdebug) 
+      then (print "type is "; PrintType.printType std_out (!debugEnv) typ; print "\n")
+      else ();
+      typ
+  end
+
+fun chaseTycon t = deabstyc (encfunct t)
+
+fun chaseStr t = deabsstr (encfunct t)
+
+exception Unbound = Env.Unbound
+
+fun nthArgs (evn,n,args) =
+  let fun f (_,0,args) = args
+        | f (evt::rest,n,args) = f(rest,n-1,tln (args,argCnt evt))
+  in f (eventsFor evn,n,args)
+  end
+
+fun checkInStruct (symbol,checkf) (n:string, s:Structure) =
+     let val res = 
+       case s of 	
+         STRstr {table,...} => (checkf table (symbol n); true)
+				   handle Env.Unbound => false
+       | _ => debugPanic "DebugBindings.checkInStruct bad Structure"
+     in if (!debugdebug) 
+	then (print "checkinstruct "; print n; 
+	      print " "; print (makestring res); print "\n")
+	else ();
+	res
+     end
+
+val checkVARCONInStruct = checkInStruct (Symbol.varSymbol,EnvAccess.lookVARCON)
+
+val checkSTRInStruct = checkInStruct (Symbol.strSymbol,EnvAccess.lookSTR)
+
+val checkTYCInStruct = checkInStruct (Symbol.tycSymbol,EnvAccess.lookTYC)
+
+fun getSTRnb (t,c) : ((Symbol.symbol * Structure) list) =
+     case nth(eventsAt t,c) of
+       STRev (MARKdec(STRdec strbl,_,_),_) => 
+		map (fn STRB{strvar=STRvar{name=[nm],binding,...},...} => 
+				(nm,binding)) strbl
+     | ABSev (MARKdec(ABSdec strbl,_,_),_) =>
+		map (fn STRB{strvar=STRvar{name=[nm],binding,...},...} => 
+				(nm,binding)) strbl
+     | _ => []
+
+
+fun getFCTnb (t,c) : ((Symbol.symbol * Functor) list) =
+     case nth(eventsAt t,c) of
+       FCTev (MARKdec(FCTdec fctbl,_,_),_) => 
+		map (fn FCTB{fctvar=FCTvar{name,binding,...},...} =>
+				(name,binding)) fctbl
+     | _ => []
+
+
+fun getSIGs (t,c) : (signatureVar list) =
+     case nth(eventsAt t,c) of
+       SIGev (MARKdec(SIGdec svl,_,_)) => svl
+     | _ => []
+
+fun getFIXs (t,c) : (fixityVar list) = 
+     case nth(eventsAt t,c) of
+       FIXev (MARKdec(FIXdec {fixity,ops},_,_)) =>
+	      map (fn name => FIXvar{name=name,binding=fixity}) ops
+     | _ => []
+
+fun getopennb (t,c): ((string list * Structure) list) =
+     case nth(eventsAt t,c) of
+       OPENev (MARKdec(OPENdec svl,_,_)) =>
+		map (fn STRvar{name,binding,...} => 
+			(rev (map Symbol.name name),binding)) (rev svl)
+     | _ => []
+
+fun getfctarg (t,c) =
+      case nth(eventsAt t,c) of
+        FCTENTev (FCTB{param=STRvar{name=[nm],binding=formal,...},...}) => 
+	  let val binding =
+	         case eventsAt (t-1) of
+		   ((FCTAPPev(MARKstr(s as APPstr{str,...},_,_)))::_) =>
+		       (case str of
+			  STRstr{env as REL{s,...},...} => s sub 1
+			| _ => formal)
+   	         | _ => debugPanic "DebugBindings.getfctarg"
+	  in SOME (nm,binding)
+          end
+      | _ => NONE
+
+fun fetchSTR (t,c,i) : Structure = 
+     let val (_,binding) = nth (getSTRnb (t,c),i)
+     in binding
+     end handle Nth => let val SOME (_,binding) = getfctarg(t,c)
+		       in binding
+		       end
+
+fun findSTRAtBind (n,t,c) : int =
+  (index (fn (name,_) => Symbol.name name = n) (getSTRnb (t,c)))
+	handle Index => case getfctarg(t,c) of
+			  SOME(name,_) => if Symbol.name name = n then ~1
+					  else raise Unbound
+			| _ => raise Unbound
+
+fun findFCTAtBind (n,t,c) :int =
+  (index (fn (name,_) => Symbol.name name = n) (getFCTnb (t,c)))
+	handle Index => raise Unbound  
+
+fun findSIGAtBind (n,t,c) : int =
+  (index (fn (SIGvar{name,...}) => Symbol.name name = n) (getSIGs (t,c)))
+	handle Index => raise Unbound
+
+fun findFIXAtBind (n,t,c) : int =
+  (index (fn (FIXvar{name,...}) => Symbol.name name = n) (getFIXs (t,c)))
+        handle Index => raise Unbound
+
+fun getTYCs (t,c) : tycon list =
+      case nth(eventsAt t,c) of
+	TYPEev(MARKdec(TYPEdec tbl,_,_)) => map (fn TB{tyc,...} => tyc) tbl
+      | TYPEev(MARKdec(DATATYPEdec {datatycs=tycl,withtycs=tbl},_,_)) => 
+				tycl @ (map (fn TB{tyc,...} => tyc) tbl)
+      | TYPEev(MARKdec(ABSTYPEdec {abstycs=tycl,withtycs=tbl,...},_,_)) =>
+				tycl @ (map (fn TB{tyc,...} => tyc) tbl)
+      | _ => []
+
+fun findTYCAtBind (n,t,c) : int =
+  (index (fn tyc => Symbol.name (TypesUtil.tycName tyc) = n) (getTYCs (t,c)))
+	handle Index => raise Unbound
+
+fun getVALvars (t,c) : var list = 
+      case nth(eventsAt t,c) of
+	VALev(MARKdec(VALdec(vbl),_,_)) => vblextract (fn x => x) vbl
+      | VALRECev(MARKdec(VALRECdec(rvbl),_,_)) =>
+				map (fn RVB{var,...} => var) rvbl
+      | FNev(RULE(pat,_)) => patvars (fn x => x) pat
+      | HANDLEev(RULE(pat,_)) => patvars (fn x => x) pat
+      | CASEev(_,RULE(pat,_)) => patvars (fn x => x) pat
+      | _ => []
+
+fun getCONs (t,c) : datacon list =
+     let fun extract (GENtyc{kind=ref (DATAtyc dcl),...},acc) = dcl @ acc
+	   | extract (GENtyc{kind=ref (ABStyc tyc),...},acc) = extract (tyc,acc)
+           | extract (_,acc) = acc
+	 fun geteb (EBgen {exn,...},acc) = exn::acc
+	   | geteb (EBdef {exn,...},acc) = exn::acc
+     in
+      case nth(eventsAt t,c) of
+	TYPEev(MARKdec(DATATYPEdec{datatycs=tycl,...},_,_)) => 
+				fold extract tycl nil
+      | TYPEev(MARKdec(ABSTYPEdec{abstycs=tycl,...},_,_)) => 
+				fold extract tycl nil
+      | EXCEPTIONev(MARKdec(EXCEPTIONdec ebl,_,_)) => fold geteb ebl nil
+      | _ => []
+     end
+
+fun getOVLDvar (t,c) : var option =
+     case nth(eventsAt t,c) of
+       OVLDev(MARKdec(OVLDdec ovldvar,_,_)) => SOME ovldvar
+     | _ => NONE
+
+
+fun findVARCONAtBind (n,t,c) : int =
+  (((index (fn VALvar{name=[nm],...} => Symbol.name nm = n) (getVALvars (t,c))))
+     handle Index => 
+       (index (fn DATACON{name,...} => Symbol.name name = n) (getCONs (t,c))))
+	   handle Index =>  
+	      (case getOVLDvar (t,c) of
+		 SOME _ => 0
+	       | NONE => raise Unbound)
+
+datatype found = VALVAR | CON | OVLDVAR 
+
+fun foundwhat (t,c) :found  =
+     case nth(eventsAt t,c) of
+       VALev _ => VALVAR
+     | VALRECev _ => VALVAR
+     | FNev _ => VALVAR
+     | HANDLEev _ => VALVAR
+     | CASEev _ => VALVAR
+     | TYPEev _ => CON
+     | EXCEPTIONev _ => CON
+     | OVLDev _ => OVLDVAR
+     | _ => debugPanic "DebugBindings.foundwhat"
+
+fun checkvis(t,c,vc as(ec,ic)) =
+  case nth(eventsAt t,c) of
+    LOCALev(_) => if ic > 0 then
+		    (ec,ic-1)
+		  else if ec > 0 then
+		    (ec-1,ic)
+                  else vc
+  | LOCINev(_) => if ic = 0 andalso ec > 0 then
+		    (ec-1,ic+1)
+		  else vc
+  | LOCENDev(_) => if ic > 0 then
+		     (ec,ic+1)
+		   else (ec+1,ic)
+  | _ => vc
+
+fun findBind findAtBind	checkInStruct =
+   let fun lastbind t = (#lbt o evdataAt) t
+       fun count t = (length o eventsAt) t
+       fun find ([n],t,c) =
+             let fun loop (0,_,_) = raise Unbound
+                   | loop (t,c,vc as (_,ic)) = 
+				 if c < count t then
+				   if ic = 0 then
+                                     (t, c, findAtBind (n,t,c))
+		  		       handle Unbound => 
+				        (findInOpen (n,t,c) 
+				         handle Unbound =>
+				          (findInAnonFctarg (n,t,c) 
+					   handle Unbound =>
+				            loop (t,c+1,checkvis(t,c,vc))))
+				    else loop (t,c+1,checkvis(t,c,vc))
+		                  else loop(lastbind t,0,vc)
+	     in loop (t,c,(0,0))
+	     end
+         | find (n::r,t,c) =
+	     let val stx = findSTRBind (r,t,c)
+	     in if checkInStruct (n, fetchSTR stx)
+	        then find ([n], enterStruct stx,0)
+	        else raise Unbound
+	     end
+	 | find ([],_,_) = raise Unbound
+
+       and findInOpen (n,t,c) =
+	     let fun f ((sn,st)::r) = if checkInStruct (n,st)
+				      then let val stx = findSTRBind(sn,t,c)
+				           in find ([n], enterStruct stx,0)
+				           end
+				      else f r
+	           | f nil = raise Unbound
+ 	     in f (getopennb (t,c))
+	     end
+
+       and findInAnonFctarg (n,t,c) = 
+	     case (getfctarg (t,c)) of 
+	       SOME (name,st) => 
+		 if name = Misc.anonParamName andalso checkInStruct (n, st) 
+  	         then find ([n], t-2,0)  (* ??? *)
+	         else raise Unbound
+	     | _ => raise Unbound
+   in
+     find
+   end
+
+
+and findVARCONBind (nl,t,c) = findBind findVARCONAtBind checkVARCONInStruct (nl,t,c)
+and findSTRBind (nl,t,c) = findBind findSTRAtBind checkSTRInStruct (nl,t,c)
+
+and enterStruct (t,c,i) : int =
+  let
+    val _ = if (!debugdebug) then
+                    (print "entering "; print (t:int); print " "; 
+		     print (c:int); print " "; print (i:int); print "\n")
+            else ()
+    val t' = case getSTRnb(t,c) of
+               nil => t-2  (* FCTENTev: jump into parameter *)
+             | _ => let val {evn,args,...} = evdataAt t
+  		        val timearr:int array = 
+				 System.Unsafe.cast (hd (nthArgs(evn,c,args)))
+		    in (case nth(eventsFor evn,c) of
+			  STRev _ => timearr sub i
+			| ABSev _ => timearr sub i
+			| _ => debugPanic "DebugBindings.enterStruct bad ev")
+			  handle Nth => debugPanic "DebugBindings.enterStruct bad evn c"
+		    end
+    val t' = case hd (eventsAt t') of
+       	       STRVARev (MARKstr(VARstr(STRvar{name,...}),_,_)) =>
+	     	 enterStruct (findSTRBind (rev (map Symbol.name name),t',0))
+	     | STRVARev _ => debugPanic "DebugBindings.enterStruct bad STRVARev"
+	     | STRENDev _ => t'
+             | _ => debugPanic "DebugBindings.enterStruct bad event"
+  in if (!debugdebug) then
+	   (print "entered at "; print (t':int); print "\n")
+     else ();
+     t'     
+  end
+
+val findFCTBind = findBind findFCTAtBind (fn _ => false)
+val findSIGBind = findBind findSIGAtBind (fn _ => false)
+val findTYCBind = findBind findTYCAtBind checkTYCInStruct
+val findFIXBind = findBind findFIXAtBind (fn _ => false) (* ?? *)
+
+fun getVARCON (symbol:Symbol.symbol) : binding  =
+      let val n = Symbol.name symbol
+	  val _ = dbgprint ("getVARCON " ^ n ^ "\n")
+	  val (t,c,i) = findVARCONBind ([n], currentTime(),0) 
+      in case foundwhat (t,c) of
+	   VALVAR => 
+	     let val v = nth (getVALvars(t,c),i)
+		 val {evn,args,...} = evdataAt t
+		 val bv = nth (nthArgs(evn,c,args),i)
+		 val ty = chaseType (t,c) (VARexp(ref v))
+		 val lv = namedLvar symbol
+		 val _ = dbgprint "gotVALVAR\n"
+	     in bind(lv,bv);
+		VARbind(VALvar{access=PATH[lv],
+			       name=[symbol],
+			       typ=ref ty})
+             end
+	 | CON  =>
+  	     let val dc as (DATACON{const,rep,sign,...}) = 
+				nth (getCONs (t,c),i)
+		 val typ = chaseType(t,c) (CONexp dc)
+		 val rep = case rep of
+	  	  	     VARIABLE _ => 
+				let val {evn,args,...} = evdataAt t
+				    val ev = nth(nthArgs(evn,c,args),i)
+				    val lv = namedLvar symbol
+				in bind (lv,ev);
+				   VARIABLE (PATH[lv])
+				end
+	   	   	   | _ => rep
+		 val _ = dbgprint "gotCON\n"
+	     in CONbind(DATACON{name=symbol,const=const,
+				typ=typ,rep=rep,sign=sign})
+	     end
+	 | OVLDVAR => 
+	     let val SOME ovldvar = getOVLDvar(t,c)
+		 val _ = dbgprint "gotOVLDVAR\n"
+	     in VARbind(ovldvar)
+	     end
+      end
+
+  fun getSTR (symbol:Symbol.symbol) : binding =
+	let val n = Symbol.name symbol
+	    val _ = dbgprint ("getSTR " ^ n ^ "\n")
+	    val (t,c,i) = findSTRBind ([n], currentTime(),0)
+	    val s = fetchSTR (t,c,i)  (* this is the Structure field *)
+            val s = chaseStr t s
+	    val sobj =
+		if i >= 0 then 
+	          let val {evn,args,...} = evdataAt t
+		  in nth(nthArgs(evn,c,args),i+1)
+		  end
+	        else let val {args,...} = evdataAt (t-1)
+		     in hd args
+		     end
+	    val lv = namedLvar symbol
+	    val _ = dbgprint "gotSTR\n"
+        in bind (lv,sobj);
+	   STRbind(STRvar{name=[symbol],access=PATH[lv],binding=s})
+	end
+
+  fun getFCT (symbol:Symbol.symbol) : binding =
+        let val n = Symbol.name symbol
+	    val _ = dbgprint ("getFCT " ^ n ^ "\n")
+            val (t,c,i) = findFCTBind ([n], currentTime(),0)
+	    val (_,f) = nth (getFCTnb (t,c),i)  (* Functor field *)
+	    val {evn,args,...} = evdataAt t
+	    val fobj = nth(nthArgs(evn,c,args),i)
+	    val lv = namedLvar symbol
+	    val _ = dbgprint "gotFCT\n"
+        in bind (lv,fobj);
+	   FCTbind(FCTvar{name=symbol,access=PATH[lv],binding=f})
+	end
+
+  fun getSIG (symbol:Symbol.symbol) : binding =
+        let val n = Symbol.name symbol
+	    val _ = dbgprint ("getSIG " ^ n ^ "\n")
+	    val (t,c,i) = findSIGBind ([n],currentTime(),0)
+ 	    val sv = nth (getSIGs (t,c),i) (* signatureVar *)
+	    val _ = dbgprint "gotSIG\n"
+	in SIGbind(sv)
+        end
+
+  fun getTYC (symbol:Symbol.symbol) : binding = 
+	let val n = Symbol.name symbol
+	    val _ = dbgprint ("getTYC " ^ n ^ "\n")
+	    val (t,c,i) = findTYCBind ([n],currentTime(),0)
+	    val tycon = nth (getTYCs (t,c),i) 
+	    val tycon = chaseTycon t tycon
+	    val _ = dbgprint "gotTYC\n"
+        in TYCbind(tycon)
+	end
+
+  fun getFIX (symbol:Symbol.symbol) : binding =
+        let val n = Symbol.name symbol
+	    val _ = dbgprint ("getFIX " ^ n ^ "\n")
+	    val (t,c,i) = findFIXBind ([n],currentTime(),0)
+	    val fv = nth (getFIXs (t,c),i) (* fixityVar *)
+	    val _ = dbgprint "gotFIX\n"
+	in FIXbind(fv)
+        end
+
+  fun looker (symbol:Symbol.symbol) :binding =
+      let val space = Symbol.nameSpace symbol      
+      in
+      protect (fn () =>
+	  case space of
+	    Symbol.VARspace => getVARCON symbol
+	  | Symbol.TYCspace => getTYC symbol
+          | Symbol.SIGspace => getSIG symbol 
+          | Symbol.STRspace => getSTR symbol
+          | Symbol.FCTspace => getFCT symbol
+          | Symbol.FIXspace => getFIX symbol
+	  | Symbol.LABspace => raise Unbound
+	  | Symbol.TYVspace => raise Unbound)
+      end
+
+(* intended use: add SPECIAL (looker) to environment at an appropriate spot *)
+
+end (* structure *)

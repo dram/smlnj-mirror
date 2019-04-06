@@ -1,0 +1,134 @@
+72,76d71
+< 	| bexp of exp evstamped uvars
+< 	| cexp' of exp evstamped uvars
+< 	| dexp of exp evstamped uvars
+< 	| dexp' of exp evstamped uvars
+< 	| eexp of exp evstamped uvars
+101d95
+< 	| db' of symbol * int * datacon list withenv epathed
+125d118
+< 	| sdecs' of dec list withenv epathnstamped
+143a137,140
+> %right DARROW 
+> %left DO
+> %left ELSE
+> %left RAISE
+145d141
+< %right BAR
+273,281c269,271
+< exp	: dexp'		(dexp')
+< 	| eexp ORELSE 
+< 		dexp'	(fn st=> ORELSEexp(markexp(E eexp st,eexpleft,eexpright),
+< 				   		markexp(E dexp' st,dexp'left,dexp'right)),
+< 			 V eexp \/ V dexp')
+< 	| eexp HANDLE 
+< 		match	(fn st=> makeHANDLEexp(E eexp st, E match st),
+< 				 V eexp \/ V match)
+< 	| eexp			(eexp)
+---
+> exp	: exp HANDLE 
+> 		match	(fn st=> makeHANDLEexp(E exp st, E match st),
+> 				 V exp \/ V match)
+283,294c273,281
+< eexp	: eexp ORELSE
+< 		 eexp	(fn st=> ORELSEexp(markexp(E eexp1 st, eexp1left,eexp1right),
+< 					 markexp(E eexp2 st,eexp2left,eexpright)),
+< 			 V eexp1 \/ V eexp2)
+< 	| dexp		(dexp)
+< 
+< dexp	: dexp ANDALSO 
+< 		dexp	(fn st=> ANDALSOexp(markexp(E dexp1 st,dexp1left,dexp1right),
+< 				markexp(E dexp2 st,dexp2left,dexp2right)),
+< 			 V dexp1 \/ V dexp2)
+< 	| dexp 
+< 	    COLON ty	(fn (st as (env,_,_))=> CONSTRAINTexp(E dexp st,
+---
+> 	| exp ORELSE exp
+> 			(fn st=> ORELSEexp(markexp(E exp1 st, exp1left,exp1right),
+> 					 markexp(E exp2 st,exp2left,expright)),
+> 			 V exp1 \/ V exp2)
+> 	| exp ANDALSO exp
+> 			(fn st=> ANDALSOexp(markexp(E exp1 st,exp1left,exp1right),
+> 				markexp(E exp2 st,exp2left,exp2right)),
+> 			 V exp1 \/ V exp2)
+> 	| exp COLON ty	(fn (st as (env,_,_))=> CONSTRAINTexp(E exp st,
+296c283
+< 			 V dexp \/ V ty)
+---
+> 			 V exp \/ V ty)
+301,316c288
+< 
+< dexp'	: cexp'		(cexp')
+< 	| dexp ANDALSO 
+< 		cexp'	(fn st=> ANDALSOexp(markexp(E dexp st, 
+< 						dexpleft,dexpright),
+< 				    markexp(E cexp' st,cexp'left,cexp'right)),
+< 			 V dexp \/ V cexp')
+< 
+< cexp'	: app_exp bexp	(fn st =>  exp_finish(exp_parse'(E app_exp st, 
+< 					markexp(E bexp st, bexpleft,bexpright),
+< 					NONfix, error(bexpleft,bexpright)),
+< 						error(bexpright,bexpright)),
+< 			 V app_exp \/ V bexp)
+< 	| bexp		(bexp)
+< 
+< bexp	: FN match	(fn st=> markexp(FNexp(completeMatch(E match st)),
+---
+> 	| FN match	(fn st=> markexp(FNexp(completeMatch(E match st)),
+542,546c514,516
+< db	: db' AND db			(db' :: db)
+< 	| db'				([db'])
+< 
+< db'	: tyvars ident EQUAL constrs   (let val name = tycSymbol ident
+< 					 in (name,length tyvars,
+---
+> db	: db AND db			(db1 @ db2)
+> 	| tyvars ident EQUAL constrs   (let val name = tycSymbol ident
+> 					 in [(name,length tyvars,
+548c518
+< 						error(constrsleft,constrsright)))
+---
+> 						error(constrsleft,constrsright)))]
+577d546
+< 
+682c651,652
+< 						      error(qidleft,qidright)),qidleft,qidright))
+---
+> 						      error(qidleft,qidright)),
+> 					 qidleft,qidright))
+702,703d671
+< 	| LOCAL sdecs IN sdecs 
+< 		END sdecs 	(sequence(makeLOCALsdecs(sdecs1,sdecs2),sdecs3))
+706,718d673
+< sdecs'	: sdec sdecs'		(sequence(fn $ => 
+< 					    let val (s,e) = markdec(sdec $,sdecleft,sdecright) 
+< 					    in ([s],e)
+< 					    end,
+< 					  sdecs'))
+< 	| LOCAL sdecs IN sdecs 
+< 		END sdecs' 	(sequence(makeLOCALsdecs(sdecs1,sdecs2),sdecs'))
+< 
+< 	| LOCAL sdecs IN sdecs 
+< 		END	 	(makeLOCALsdecs(sdecs1,sdecs2))
+< 	| sdec			(fn $ => let val (s,e) = markdec(sdec $,sdecleft,sdecright)
+< 					 in ([s],e)
+< 					 end)
+722a678,679
+> 	| LOCAL sdecs IN sdecs 
+> 		END	 	(makeLOCALsdecs(sdecs1,sdecs2))
+748,752c705,710
+< interdec: sdecs'		(fn env=> let val (s,e)= sdecs'(env,[],true,Stampset.globalStamps)
+< 					  in markdec((SEQdec s,e),sdecs'left,sdecs'right)
+< 					  end)
+< 	| IMPORT importdec	(fn env =>(IMPORTdec importdec,env))
+< 	| exp		 	(fn env=>markdec(toplevelexp(env,exp,error,(expleft,expright)),
+---
+> interdec: sdec		(fn env=> markdec(sdec (env,[],true,
+> 						Stampset.globalStamps),
+> 					  sdecleft,sdecright))
+> 	| IMPORT 
+> 	     importdec	(fn env =>(IMPORTdec importdec,env))
+> 	| exp	 	(fn env=>markdec(toplevelexp(env,exp,error,(expleft,expright)),
+753a712,713
+> 	|		(fn env => (SEQdec nil, env))
+> 
