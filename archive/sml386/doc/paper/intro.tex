@@ -1,0 +1,50 @@
+\section{Introduction} \label{sec:intro}
+
+Standard ML of New Jersey \cite{bib:MLComp} is an implementation of
+the programming language Standard ML \cite{bib:smldef}. So far,
+Standard ML of New Jersey (SML\_NJ) has solely been available on
+machines that run under the UNIX operation system. The purpose of
+this paper is to report a port of SML\_NJ which runs on the Intel 80386
+processor under Microsoft Windows 3.0, one of the most common
+combinations for PC's.
+
+
+Our port of SML\_NJ consists of two parts: 
+\begin{enumerate} 
+\item Standard ML modules which the SML\_NJ code generator calls in order to
+produce 80386 machine code.
+\item A new runtime system written in C and 80386 assembly language.
+\end{enumerate}
+
+The first part is largely independent of Windows, i.e. it could be
+used for generating 80386 code that would run under other operating
+systems. The second part was necessitated by the fact that the runtime
+system has to run under Windows, which is very different from UNIX.
+
+The reson we wrote parts of the runtime system in assembly language is
+that SML\_NJ generates 32-bit code but no 32-bit C compiler is
+currently available under Windows.
+
+When a 32-bit version of Windows becomes available, a new runtime
+system, which more closly resembles the original runtime system, can
+be written.
+
+Few prerequisites are required to read this paper: familiarity with ML
+is neccesary and some knowledge about the Intel 80386 assembler is
+useful.
+
+The rest of this paper is organized as follows: in Section 2 we review
+those aspects of the 80386/Windows platform that are of particular
+interest in this context. In Section 3 we report the new runtime
+system and in Section 4 we describe the new code generator. Finally in
+Section 5 we show an example.
+
+Many of the technical details that are not covered in this paper can
+be found as comments in the source code. References are made to the
+relevant files, which are located in the {\em sml\/} distribution directory.
+
+
+
+
+
+

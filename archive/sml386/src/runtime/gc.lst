@@ -1,0 +1,1254 @@
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-1
+
+
+       1				;**************************************
+					***********************************
+       2				; gc.asm
+       3				;
+       4				; Copyright (c) 1991 by:    Department 
+					of Computer Science
+       5				;			    The Technic
+					al University of Denmark
+       6				;			    DK-2800 Lyn
+					gby
+       7				;
+       8				; 19 Dec. 1991	  Yngvi Skaalum Guttese
+					n     ysg@id.dth.dk
+       9				;
+      10				; This file contains the heart of the g
+					arbage collector, and is equivalent
+      11				; to the gc.c file in the UNIX version.
+      12				;
+      13				;                                      
+					                    Available regs.
+      14				;                          (tmp = eax i
+					s always available     bx = ebx ... )
+      15				;                                      
+					                <-- bx cx dx si di bp>
+      16				
+      17				    TITLE   Garbage Collection
+      18				
+      19				    PAGE    90,132
+      20				
+      21				    .386p
+      22				    .387
+      23				
+      24				    .LIST
+      25				
+      26 0000				_RUNCODE segment para use32 public 'CODE'
+      27				
+      28				    EXTRN   _store_preserve_a : DWORD
+      29				    EXTRN   _MLState_a        : DWORD
+      30				    EXTRN   _enterUse32     : FAR
+      31				
+      32 0000				_RUNCODE ends
+      33				
+      34 0000				_DATA   segment word public use16 'DATA'
+      35				
+      36				    EXTRN   _preserving     : WORD
+      37				    EXTRN   _wsUse32Data    : WORD
+      38				    EXTRN   _wsUse32Code    : WORD
+      39				    EXTRN   _runtime_seg    : WORD
+      40				
+      41 0000  00000000			    gmore       dd  ?           ; int ** (*gmore)()
+      42 0004  00000000			    to_lim      dd  ?           ; int **to_lim
+      43 0008  00000000			    to_lim0     dd  ?           ; int **to_lim0
+      44 000C  00000000			    lowest      dd  ?           ; int **lowest
+      45 0010  00000000			    highest     dd  ?           ; int **highest
+      46 0014  00000000			    repair      dd  ?           ; int repair
+      47 0018  00000000			    any_weak    dd  ?           ; int any_weak
+      48				
+      49 001C  00000000			    from_low    dd  ?
+      50 0020  00000000			    from_high   dd  ?
+      51 0024  00000000			    to_low      dd  ?
+      52 0028  00000000			    to_high     dd  ?
+      53 002C  00000000			    to_done     dd  ?
+      54 0030  00000000			    to_where    dd  ?
+      55 0034  00000000			    misc_roots  dd  ?
+      56 0038  00000000			    store_list  dd  ?
+      57 003C  00000000			    get_more    dd  ?
+      58 0040  00000000			    first_root  dd  ?
+      59				
+      60 0044				_DATA   ends
+      61				
+      62 0000				_TEXT   segment word public use16 'CODE'
+      63				
+      64				    assume cs:_TEXT, ds:_DATA, es:_DATA, gs:_DATA, fs:nothing, ss:_DATA
+      65				
+      66 = ebp				to_ptr      EQU <ebp>       ; int **to_ptr             ;<-- bx cx dx si di -->
+      67				
+      68				; NOTE: remember that EBP has SS as default segment register
+      69				; so we have to use segment override DS:... when used as a pointer
+      70				
+      71				extrn   _blast_write     : NEAR
+      72				
+      73				
+      74				;*************************************************************************
+      75				; xgc(refloc)
+      76				; int *refloc
+      77				;
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-2
+
+
+      78				;   Frame on entry:     [sp+0] -> return address
+      79				;                       refloc in ebx
+      80				;   On exit:
+      81				;           all regs are destroyed
+      82				
+      83 0000				xgc     proc NEAR
+      84				
+      85				    assume cs:_TEXT, ds:_RUNCODE, es:_RUNCODE, gs:_DATA, fs:nothing, ss:_DATA
+      86				
+      87 = ebx				refloc  EQU <ebx>   ; int * refloc
+      88 = edx				m       EQU <edx>   ; int *m
+      89				                                                       ;<-- -- cx -- si di -->
+      90 0000  67| 66| 8B 13		    mov     m,[refloc]              ; m = * refloc
+      91				
+      92				    ; if (is_ptr(m) && (m>=lowest) && (m<highest)) {
+      93				
+      94				    is_ptr  m                       ; if (is_ptr(m)) &&
+      95 0004  66| F7 C2 00000001    1	    test        m,1 
+      96 000B  0F 84 0010 R		    jz      @f
+      97 000F  C3			    ret
+      98 0010  65: 66| 3B 16 000C R	@@: cmp     m,lowest
+      99 0016  0F 83 001B R		    jae     @f                      ;    (m >= lowest) &&
+     100 001A  C3			    ret
+     101 001B  65: 66| 3B 16 0010 R	@@: cmp     m,highest
+     102 0021  0F 82 0026 R		    jb      @f                      ;    (m < highest)
+     103 0025  C3			    ret
+     104 0026				@@:
+     105 0026  66| 83 EA 04		    sub     m,4                     ; m--
+     106				; m is pointing at the tag now
+     107				
+     108				
+     109 002A				Lxgc_loop1:                         ; for (;;)
+     110				                                    ;   switch (get_tag(m)) { ...
+     111				
+     112				    get_tag tmp,m
+     113 002A  67| 66| 8B 02         1	    mov     tmp,[m]           ; 
+     114 002E  66| 83 E0 0F          1	    and     tmp,mask_tags     ; 
+     115 0032  67| 2E: FF 2C85 0000	    jmp     DWP cs:Lxgc_switch[tmp*4]
+     116       0354 R			
+     117				
+     118 003B				Lxgc_tag_backptr:
+     119				
+     120				    get_len tmp,m
+     121 003B  67| 66| 8B 02         1	    mov     tmp,[m]                   ; 
+     122 003F  66| C1 E8 04          1	    shr     tmp,width_tags            ; 
+     123 0043  66| C1 E0 02		    sal     tmp,2
+     124 0047  66| 2B D0		    sub     m,tmp                   ; m -= get_len(m)
+     125 004A  EB DE			    jmp     Lxgc_loop1              ; continue
+     126				
+     127 004C				Lxgc_tag_embedded:
+     128 004C				Lxgc_default:
+     129				
+     130 004C  66| 83 EA 04		    sub     m,4                     ; m--
+     131 0050  EB D8			    jmp     Lxgc_loop1              ; continue
+     132				
+     133 0052				Lxgc_tag_string:
+     134 0052				Lxgc_tag_bytearray:
+     135				
+     136 = edi				j       EQU <edi>   ; int **j
+     137 = ecx				len1    EQU <ecx>   ; int len1
+     138 = esi				tmp2    EQU <esi>   ; j+len1   (j+4*len1)
+     139				                                                       ;<-- -- -- -- -- -- -->
+     140 0052  66| 8B FD		    mov     j, to_ptr               ; j = to_ptr
+     141				    get_len len1,m
+     142 0055  67| 66| 8B 0A         1	    mov     len1,[m]                   ; 
+     143 0059  66| C1 E9 04          1	    shr     len1,width_tags            ; 
+     144 005D  66| 83 C1 07		    add     len1,7
+     145 0061  66| C1 E9 02		    shr     len1,2                  ; len1 = (get_len(m)+7) >> 2
+     146				                                    ; ( count in dwords )
+     147 0065  66| 8B F1		    mov     tmp2,len1
+     148 0068  66| C1 E6 02		    sal     tmp2,2
+     149 006C  66| 03 F7		    add     tmp2,j                  ; tmp2 = j+len1
+     150				
+     151 006F				Lxgc_loop2:
+     152				
+     153 006F  65: 66| 3B 36 0004 R	    cmp     tmp2,to_lim             ; while (j+len1>to_lim) {
+     154 0075  76 44			    jna     SHORT Lxgc2
+     155 0077  65: 66| 83 3E 0014 R	    cmp     repair,0                ;     if (repair)
+     156       00			
+     157 007E  0F 84 0098 R		    jz      Lxgc1
+     158 0082  65: 66| C7 06 0014 R	    mov     repair,0                ;         repair = 0
+     159       00000000			
+     160 008C  65: 66| A1 0008 R	    mov     tmp,to_lim0
+     161 0091  65: 66| A3 0004 R	    mov     to_lim,tmp              ;         to_lim = to_lim0
+     162 0096  EB D7			    jmp     Lxgc_loop2
+     163				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-3
+
+
+     164 0098				Lxgc1:
+     165 0098  66| 60			    pushad
+     166 009A  1E			    push    ds
+     167 009B  06			    push    es
+     168 009C  0F A8			    push    gs
+     169 009E  8C E8			    mov     ax,gs
+     170 00A0  8E D8			    mov     ds,ax
+     171 00A2  65: FF 16 0000 R		    call    word ptr gmore          ;     else
+     172 00A7  0F A9			    pop     gs
+     173 00A9  07			    pop     es
+     174 00AA  1F			    pop     ds
+     175 00AB  66| C1 E2 10		    sal     edx, 16
+     176 00AF  8B D0			    mov     dx,ax
+     177 00B1  65: 66| 89 16 0004 R	    mov     to_lim,edx              ;         to_lim = gmore()
+     178 00B7  66| 61			    popad
+     179 00B9  EB B4			    jmp     Lxgc_loop2              ; }
+     180				                                                       ;<-- -- -- -- si -- -->
+     181 00BB				Lxgc2:
+     182				
+     183				
+     184 = esi				i   EQU <esi>   ; int **i                              ;<-- -- -- -- -- -- -->
+     185				
+     186 00BB  66| 8B F2		    mov     i, m                    ; i = m
+     187 00BE  FC			    cld
+     188 00BF  67			    db  67h
+     189 00C0  F3/ 66| A5		    rep movsd                       ; do {*j++ = *i++} while (--len1>0)
+     190				
+     191				; len1 is free now
+     192				; i    is free now
+     193				
+     194 = esi				tmp2    EQU <esi>                                      ;<-- -- cx -- -- -- -->
+     195				
+     196 00C3  65: 66| 83 3E 0014 R	    cmp     repair,0                ; if (repair)
+     197       00			
+     198 00CA  74 46			    jz      SHORT Lxgc4
+     199 00CC  66| 8B C5		    mov     tmp,to_ptr
+     200 00CF  66| 83 C0 14		    add     tmp,5*4
+     201 00D3  65: 66| 3B 06 0004 R	    cmp     tmp,to_lim              ;   if (to_ptr+5<to_lim) {
+     202 00D9  73 23			    jae     SHORT Lxgc3
+     203 00DB  65: 66| A1 0004 R	    mov     tmp,to_lim
+     204 00E0  67| 66| 8B 72 04		    mov     tmp2,[m+4]
+     205 00E5  67| 66| 89 70 FC		    mov     [tmp-4],tmp2            ;       *--to_lim = m[1]
+     206 00EA  67| 66| 89 50 F8		    mov     [tmp-2*4],m
+     207 00EF  67| 66| 83 40 F8 04	    add     DWP [tmp-2*4],4         ;       *--to_lim = m+1
+     208 00F5  65: 66| 83 2E 0004 R	    sub     to_lim,2*4              ;   }
+     209       08			
+     210 00FC  EB 14			    jmp     SHORT Lxgc4
+     211				
+     212 00FE				Lxgc3:
+     213				                                    ;   else {
+     214 00FE  65: 66| C7 06 0014 R	    mov     repair,0                ;       repair = 0
+     215       00000000			
+     216 0108  65: 66| A1 0008 R	    mov     tmp,to_lim0             ;
+     217 010D  65: 66| A3 0004 R	    mov     to_lim,tmp              ;       to_lim = to_lim0 }
+     218				
+     219 0112				Lxgc4:
+     220				
+     221 0112  66| 8B C5		    mov     tmp,to_ptr
+     222 0115  66| 83 C0 04		    add     tmp,4
+     223 0119  67| 66| 89 42 04		    mov     DWP [m + 4], tmp        ; m[1] = 1 + to_ptr
+     224 011E  66| 8B EF		    mov     to_ptr,j                ; to_ptr = j
+     225 0121  67| 66| C7 02 0000	    mov     DWP [m], tag_forwarded  ; *m = tag_forwarded
+     226       0003			
+     227				
+     228				
+     229				
+     230 0129  67| 66| 8B 03		    mov     tmp,[refloc]
+     231 012D  66| 2B C2		    sub     tmp,m
+     232 0130  66| 83 E8 04		    sub     tmp,4
+     233 0134  67| 66| 03 42 04		    add     tmp,[m+4]
+     234 0139  67| 66| 89 03		    mov     [refloc],tmp            ; *refloc += m[1] -(m+1)
+     235 013D  C3			    ret
+     236				
+     237 013E				Lxgc_tag_array:                                        ;<-- -- cx -- si di -->
+     238				
+     239 013E  65: 83 3E 0000 E 00	    cmp     _preserving,0
+     240 0144  74 43			    je      SHORT Lxgc_tag_record           ; if (preserving)
+     241 0146  3E: 67| 66| C7 45	    mov     DWP ds:[to_ptr],16*3+1          ; *to_ptr++ = 16*3+1
+     242       00 00000031		
+     243 0150  3E: 67| 66| 89 55	    mov     DWP ds:[to_ptr+4],m
+     244       04			
+     245 0156  3E: 67| 66| 83 45	    add     DWP ds:[to_ptr+4],4             ; *to_ptr++ = m+1
+     246       04 04			
+     247 015D  3E: 67| 66| C7 45	    mov     DWP ds:[to_ptr+8],-1            ; *to_ptr++ = -1
+     248       08 FFFFFFFF		
+     249 0167  67| 66| A1 00000000 E	    mov     tmp,_store_preserve_a
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-4
+
+
+     250 016E  3E: 67| 66| 89 45	    mov     ds:[to_ptr+3*4],tmp             ; *to_ptr++ = store_preserve
+     251       0C			
+     252 0174  67| 66| 89 2D 0000	    mov     DWP [_store_preserve_a],to_ptr
+     253       0000 E			
+     254 017C  67| 66| 83 05 0000	    add     DWP [_store_preserve_a],4       ; store_preserve = to_ptr-3
+     255       0000 E 04		
+     256 0185  66| 83 C5 10		    add     to_ptr, 4*4
+     257				
+     258				; fall trough to tag_record
+     259				
+     260 0189				Lxgc_tag_record:
+     261				
+     262 = edi				j       EQU <edi>       ; int **j
+     263 = ecx				len1    EQU <ecx>       ; int len1
+     264 = esi				tmp2    EQU <esi>       ; j+len1   (j+4*len1)          ;<-- -- -- -- -- -- -->
+     265				
+     266 0189  66| 8B FD		    mov     j, to_ptr               ; j = to_ptr
+     267				    get_len len1,m
+     268 018C  67| 66| 8B 0A         1	    mov     len1,[m]                   ; 
+     269 0190  66| C1 E9 04          1	    shr     len1,width_tags            ; 
+     270 0194  66| 41			    inc     len1                    ; len1 = get_len(m)+1
+     271				                                    ; ( count in dwords )
+     272 0196  66| 8B F1		    mov     tmp2,len1
+     273 0199  66| C1 E6 02		    sal     tmp2,2
+     274 019D  66| 03 F7		    add     tmp2,j                  ; tmp2 = j+len1
+     275				
+     276 01A0				Lxgc_loop3:
+     277				
+     278 01A0  65: 66| 3B 36 0004 R	    cmp     tmp2,to_lim             ; while (j+len1>to_lim) {
+     279 01A6  76 44			    jna     SHORT Lxgc6
+     280 01A8  65: 66| 83 3E 0014 R	    cmp     repair,0                ;     if (repair)
+     281       00			
+     282 01AF  0F 84 01C9 R		    jz      Lxgc5
+     283 01B3  65: 66| C7 06 0014 R	    mov     repair,0                ;         repair = 0
+     284       00000000			
+     285 01BD  65: 66| A1 0008 R	    mov     tmp,to_lim0
+     286 01C2  65: 66| A3 0004 R	    mov     to_lim,tmp              ;         to_lim = to_lim0
+     287 01C7  EB D7			    jmp     Lxgc_loop3
+     288				
+     289 01C9				Lxgc5:
+     290 01C9  66| 60			    pushad
+     291 01CB  1E			    push    ds
+     292 01CC  06			    push    es
+     293 01CD  0F A8			    push    gs
+     294 01CF  8C E8			    mov     ax,gs
+     295 01D1  8E D8			    mov     ds,ax
+     296 01D3  65: FF 16 0000 R		    call    word ptr gmore          ;     else
+     297 01D8  0F A9			    pop     gs
+     298 01DA  07			    pop     es
+     299 01DB  1F			    pop     ds
+     300 01DC  66| C1 E2 10		    sal     edx, 16
+     301 01E0  8B D0			    mov     dx,ax
+     302 01E2  65: 66| 89 16 0004 R	    mov     to_lim,edx              ;         to_lim = gmore()
+     303 01E8  66| 61			    popad
+     304 01EA  EB B4			    jmp     Lxgc_loop3              ;    }
+     305				                                                       ;<-- -- -- -- si -- -->
+     306 01EC				Lxgc6:
+     307				
+     308 = esi				i   EQU <esi>   ; int **i                              ;<-- -- -- -- -- -- -->
+     309				
+     310 01EC  66| 8B F2		    mov     i, m                    ; i = m
+     311 01EF  FC			    cld
+     312 01F0  67			    db  67h
+     313 01F1  F3/ 66| A5		    rep movsd                       ; do {*j++ = *i++} while (--len1>0)
+     314				
+     315				; len1 is free now
+     316				; i    is free now
+     317				
+     318 = esi				tmp2    EQU <esi>                                      ;<-- -- cx -- -- -- -->
+     319				
+     320 01F4  65: 66| 83 3E 0014 R	    cmp     repair,0                ; if (repair)
+     321       00			
+     322 01FB  74 46			    jz      SHORT Lxgc8
+     323 01FD  66| 8B C5		    mov     tmp,to_ptr
+     324 0200  66| 83 C0 14		    add     tmp,5*4
+     325 0204  65: 66| 3B 06 0004 R	    cmp     tmp,to_lim              ;   if (to_ptr+5<to_lim) {
+     326 020A  73 23			    jae     SHORT Lxgc7
+     327 020C  65: 66| A1 0004 R	    mov     tmp,to_lim
+     328 0211  67| 66| 8B 72 04		    mov     tmp2,[m+4]
+     329 0216  67| 66| 89 70 FC		    mov     [tmp-4],tmp2            ;       *--to_lim = m[1]
+     330 021B  67| 66| 89 50 F8		    mov     [tmp-2*4],m
+     331 0220  67| 66| 83 40 F8 04	    add     DWP [tmp-2*4],4         ;       *--to_lim = m+1
+     332 0226  65: 66| 83 2E 0004 R	    sub     to_lim,2*4              ;   }
+     333       08			
+     334 022D  EB 14			    jmp     SHORT Lxgc8
+     335				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-5
+
+
+     336 022F				Lxgc7:
+     337				                                    ;   else {
+     338 022F  65: 66| C7 06 0014 R	    mov     repair,0                ;       repair = 0
+     339       00000000			
+     340 0239  65: 66| A1 0008 R	    mov     tmp,to_lim0             ;
+     341 023E  65: 66| A3 0004 R	    mov     to_lim,tmp              ;       to_lim = to_lim0 }
+     342				
+     343 0243				Lxgc8:
+     344				
+     345 0243  66| 8B C5		    mov     tmp,to_ptr
+     346 0246  66| 83 C0 04		    add     tmp,4
+     347 024A  67| 66| 89 42 04		    mov     DWP [m + 4], tmp        ; m[1] = 1 + to_ptr
+     348 024F  66| 8B EF		    mov     to_ptr,j                ; to_ptr = j
+     349 0252  67| 66| C7 02 0000	    mov     DWP [m], tag_forwarded  ; *m = tag_forwarded
+     350       0003			
+     351				
+     352				    ; fall trough to tag_forwarded
+     353				
+     354 025A				Lxgc_tag_forwarded:
+     355				
+     356 025A  67| 66| 8B 03		    mov     tmp,[refloc]
+     357 025E  66| 2B C2		    sub     tmp,m
+     358 0261  66| 83 E8 04		    sub     tmp,4
+     359 0265  67| 66| 03 42 04		    add     tmp,[m+4]
+     360 026A  67| 66| 89 03		    mov     [refloc],tmp            ; *refloc += m[1] -(m+1)
+     361 026E  C3			    ret
+     362				
+     363				
+     364				
+     365 026F				Lxgc_tag_suspension:                                   ;<-- -- cx -- si di -->
+     366				
+     367 = edi				j       EQU <edi>   ; int **j
+     368 = ecx				len1    EQU <ecx>   ; int len1
+     369 = esi				tmp2    EQU <esi>   ; j+len1   (j+4*len1)              ;<-- -- -- -- -- -- -->
+     370				
+     371 026F  66| 8B FD		    mov     j, to_ptr               ; j = to_ptr
+     372 0272  66| B9 00000002		    mov     len1,2                  ; len1 = 2
+     373				                                    ; ( count in dwords )
+     374 0278  66| 8B F1		    mov     tmp2,len1
+     375 027B  66| C1 E6 02		    sal     tmp2,2
+     376 027F  66| 03 F7		    add     tmp2,j                  ; tmp2 = j+len1
+     377				
+     378 0282				Lxgc_loop4:
+     379				
+     380 0282  65: 66| 3B 36 0004 R	    cmp     tmp2,to_lim             ; while (j+len1>to_lim) {
+     381 0288  76 44			    jna     SHORT Lxgc10
+     382 028A  65: 66| 83 3E 0014 R	    cmp     repair,0                ;     if (repair)
+     383       00			
+     384 0291  0F 84 02AB R		    jz      Lxgc9
+     385 0295  65: 66| C7 06 0014 R	    mov     repair,0                ;         repair = 0
+     386       00000000			
+     387 029F  65: 66| A1 0008 R	    mov     tmp,to_lim0
+     388 02A4  65: 66| A3 0004 R	    mov     to_lim,tmp              ;         to_lim = to_lim0
+     389 02A9  EB D7			    jmp     Lxgc_loop4
+     390				
+     391 02AB				Lxgc9:
+     392 02AB  66| 60			    pushad
+     393 02AD  1E			    push    ds
+     394 02AE  06			    push    es
+     395 02AF  0F A8			    push    gs
+     396 02B1  8C E8			    mov     ax,gs
+     397 02B3  8E D8			    mov     ds,ax
+     398 02B5  65: FF 16 0000 R		    call    word ptr gmore          ;     else
+     399 02BA  0F A9			    pop     gs
+     400 02BC  07			    pop     es
+     401 02BD  1F			    pop     ds
+     402 02BE  66| C1 E2 10		    sal     edx, 16
+     403 02C2  8B D0			    mov     dx,ax
+     404 02C4  65: 66| 89 16 0004 R	    mov     to_lim,edx              ;         to_lim = gmore()
+     405 02CA  66| 61			    popad
+     406 02CC  EB B4			    jmp     Lxgc_loop4              ;    }
+     407				                                                       ;<-- -- -- -- si -- -->
+     408 02CE				Lxgc10:
+     409				
+     410 = esi				i   EQU <esi>   ; int **i                              ;<-- -- -- -- -- -- -->
+     411				
+     412 02CE  66| 8B F2		    mov     i, m                    ; i = m
+     413 02D1  FC			    cld
+     414 02D2  67			    db  67h
+     415 02D3  F3/ 66| A5		    rep movsd                       ; do {*j++ = *i++} while (--len1>0)
+     416 02D6				@@:                                                    ;<-- -- cx -- si -- -->
+     417				
+     418				; len1 is free now
+     419				; i    is free now
+     420				
+     421 = esi				tmp2    EQU <esi>                                      ;<-- -- cx -- -- -- -->
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-6
+
+
+     422				
+     423 02D6  65: 66| 83 3E 0014 R	    cmp     repair,0                ; if (repair)
+     424       00			
+     425 02DD  74 46			    jz      SHORT Lxgc12
+     426 02DF  66| 8B C5		    mov     tmp,to_ptr
+     427 02E2  66| 83 C0 14		    add     tmp,5*4
+     428 02E6  65: 66| 3B 06 0004 R	    cmp     tmp,to_lim              ;   if (to_ptr+5<to_lim) {
+     429 02EC  73 23			    jae     SHORT Lxgc11
+     430 02EE  65: 66| A1 0004 R	    mov     tmp,to_lim
+     431 02F3  67| 66| 8B 72 04		    mov     tmp2,[m+4]
+     432 02F8  67| 66| 89 70 FC		    mov     [tmp-4],tmp2            ;       *--to_lim = m[1]
+     433 02FD  67| 66| 89 50 F8		    mov     [tmp-2*4],m
+     434 0302  67| 66| 83 40 F8 04	    add     DWP [tmp-2*4],4         ;       *--to_lim = m+1
+     435 0308  65: 66| 83 2E 0004 R	    sub     to_lim,2*4              ;   }
+     436       08			
+     437 030F  EB 14			    jmp     SHORT Lxgc12
+     438				
+     439 0311				Lxgc11:
+     440				                                    ;   else {
+     441 0311  65: 66| C7 06 0014 R	    mov     repair,0                ;       repair = 0
+     442       00000000			
+     443 031B  65: 66| A1 0008 R	    mov     tmp,to_lim0             ;
+     444 0320  65: 66| A3 0004 R	    mov     to_lim,tmp              ;       to_lim = to_lim0 }
+     445				
+     446 0325				Lxgc12:
+     447				
+     448 0325  66| 8B C5		    mov     tmp,to_ptr
+     449 0328  66| 83 C0 04		    add     tmp,4
+     450 032C  67| 66| 89 42 04		    mov     DWP [m + 4], tmp        ; m[1] = 1 + to_ptr
+     451 0331  66| 8B EF		    mov     to_ptr,j                ; to_ptr = j
+     452 0334  67| 66| C7 02 0000	    mov     DWP [m], tag_forwarded  ; *m = tag_forwarded
+     453       0003			
+     454				
+     455 033C  67| 66| 8B 03		    mov     tmp,[refloc]
+     456 0340  66| 2B C2		    sub     tmp,m
+     457 0343  66| 83 E8 04		    sub     tmp,4
+     458 0347  67| 66| 03 42 04		    add     tmp,[m+4]
+     459 034C  67| 66| 89 03		    mov     [refloc],tmp            ; *refloc += m[1] -(m+1)
+     460 0350  C3			    ret
+     461				
+     462 0351  87 DB 90			ALIGN 4
+     463				
+     464 0354				Lxgc_switch:    ; switch table
+     465				
+     466 0354  004C ---- R 0189 ----	    dd  Lxgc_default, Lxgc_tag_record
+     467	R			
+     468 035C  004C ---- R 025A ----	    dd  Lxgc_default, Lxgc_tag_forwarded
+     469	R			
+     470 0364  004C ---- R 003B ----	    dd  Lxgc_default, Lxgc_tag_backptr
+     471	R			
+     472 036C  004C ---- R 004C ----	    dd  Lxgc_default, Lxgc_tag_embedded
+     473	R			
+     474 0374  004C ---- R 013E ----	    dd  Lxgc_default, Lxgc_tag_array
+     475	R			
+     476 037C  004C ---- R 0052 ----	    dd  Lxgc_default, Lxgc_tag_bytearray
+     477	R			
+     478 0384  004C ---- R 026F ----	    dd  Lxgc_default, Lxgc_tag_suspension
+     479	R			
+     480 038C  004C ---- R 0052 ----	    dd  Lxgc_default, Lxgc_tag_string
+     481	R			
+     482				
+     483 0394				xgc endp
+     484				
+     485				;***************************************************************************
+     486				; Frame on entry:
+     487				;   esp   38 -> first_root      int *
+     488				;   esp + 34 -> get_more        int ** (*get_more)()
+     489				;   esp + 30 -> store_list      int **
+     490				;   esp + 26 -> misc_roots      int ***
+     491				;   esp + 22 -> to_where        int ***
+     492				;   esp + 18 -> to_done         int **
+     493				;   esp + 14 -> to_high         int **
+     494				;   esp + 10 -> to_low          int **
+     495				;   esp + 06 -> from_high       int **
+     496				;   esp + 02 -> from_low        int **
+     497				;   esp + 00 -> return adress
+     498				
+     499				
+     500				                                                       ;<-- bx cx dx si di -->
+     501				PUBLIC _gc
+     502				
+     503 0394				_gc  proc    NEAR
+     504				
+     505				    assume cs:_TEXT, ds:_DATA, es:_DATA, gs:_DATA, fs:nothing, ss:_DATA
+     506				
+     507 0394  55			    push    bp
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-7
+
+
+     508 0395  8B EC			    mov     bp, sp
+     509				
+     510 0397  56			    push    si
+     511 0398  57			    push    di
+     512 0399  1E			    push    ds
+     513				
+     514				
+     515 039A  8C D8			    mov     ax, ds
+     516 039C  8E C0			    mov     es, ax
+     517 039E  BF 001C R		    mov     di, offset from_low
+     518 03A1  8B F5			    mov     si, bp
+     519 03A3  83 C6 04			    add     si, 4
+     520 03A6  FC			    cld
+     521 03A7  B9 000A			    mov     cx, 10
+     522 03AA  F3/ 66| A5		    rep movsd                       ; copy the parameters so we can use the
+     523				                                    ; ebp register
+     524 03AD  A1 0000 E		    mov     ax, _wsUse32Data
+     525 03B0  8E D8			    mov     ds,ax
+     526 03B2  8E C0			    mov     es,ax
+     527 03B4  B8 ---- R		    mov     ax, _DATA
+     528 03B7  8E E8			    mov     gs,ax                   ; setup the segs.
+     529				
+     530				    assume cs:_TEXT, ds:_RUNCODE, es:_RUNCODE, gs:_DATA, fs:nothing, ss:_DATA
+     531				
+     532 03B9  65: 66| C7 06 0018 R	    mov     any_weak,0              ; any_weak = 0
+     533       00000000			
+     534 03C3  65: 66| A1 003C R	    mov     tmp,get_more
+     535 03C8  65: 66| A3 0000 R	    mov     gmore,tmp               ; gmore = get_more
+     536 03CD  65: 66| 8B 2E 002C R	    mov     to_ptr,to_done          ; to_ptr = to_done
+     537 03D3  65: 66| A1 0028 R	    mov     tmp,to_high
+     538 03D8  65: 66| A3 0008 R	    mov     to_lim0,tmp             ; to_lim0 = to_high
+     539 03DD  65: 66| A3 0004 R	    mov     to_lim,tmp              ; to_lim = to_high
+     540 03E2  65: 66| A1 001C R	    mov     tmp,from_low
+     541 03E7  65: 66| A3 000C R	    mov     lowest,tmp              ; lowest = from_low
+     542 03EC  65: 66| A1 0020 R	    mov     tmp,from_high
+     543 03F1  65: 66| A3 0010 R	    mov     highest,tmp             ; highest = from_high
+     544				
+     545 03F6  65: 66| C7 06 0014 R	    mov     repair,0
+     546       00000000			
+     547 0400  65: 66| 83 3E 0040 R	    cmp     first_root,0
+     548       00			
+     549 0407  0F 84 0501 R		    jz      Lgc4                    ; if (first_root) {
+     550				
+     551 040B  65: 66| C7 06 0014 R	    mov     repair,1                ; repair = 1
+     552       00000001			
+     553				
+     554 0415  65: 66| 8B 1E 0040 R	    mov     refloc,first_root
+     555 041B  E8 0000 R		    call    xgc                     ;   xgc(first_root)
+     556				
+     557 = edx				x           EQU <edx>               ;   int x
+     558 = edi				blast_begin EQU <edi>               ;   int **blast_begin
+     559				                                                       ;<-- bx cx -- si -- -->
+     560				
+     561 041E  65: 66| 8B 3E 0024 R	    mov     blast_begin,to_low      ;   blast_begin = to_low
+     562 0424  65: 66| 8B 16 002C R	    mov     x,to_done               ;   x = to_done
+     563				
+     564 042A				Lgc_loop1:
+     565				
+     566 042A  66| 3B D5		    cmp     x,to_ptr                ;   while (x<to_ptr) {
+     567 042D  73 72			    jae     SHORT Lgc2
+     568				
+     569 = ebx				p       EQU <ebx>   ; int p
+     570 = ecx				descr   EQU <ecx>   ; int descr
+     571				                                                       ;<-- -- -- -- si -- -->
+     572 042F  66| 8B DA		    mov     p,x
+     573 0432  66| 83 C3 04		    add     p,4                     ;       int p = x+4
+     574 0436  67| 66| 8B 0A		    mov     descr,[x]               ;       int descr = *x
+     575				
+     576				    contains_no_ptrs descr          ;       if contain_no_ptrs(descr) {
+     577 043A  66| F7 C1 00000002    1	    test        descr,2 
+     578 0441  74 15			    jz      SHORT Lgc1
+     579				    get_len tmp,x
+     580 0443  67| 66| 8B 02         1	    mov     tmp,[x]                   ; 
+     581 0447  66| C1 E8 04          1	    shr     tmp,width_tags            ; 
+     582 044B  66| 83 C0 07		    add     tmp,7
+     583 044F  66| 83 E0 FC		    and     tmp,NOT 3
+     584 0453  66| 03 D0		    add     x,tmp                   ;           x += ((get_len(x)+7)&~3)
+     585 0456  EB D2			    jmp     Lgc_loop1               ;           continue
+     586				                                    ;       }
+     587 0458				Lgc1:
+     588				
+     589				    get_lenz tmp,x
+     590 0458  67| 66| 8B 02         1	    mov     tmp,[x]                 ; 
+     591 045C  66| 83 E0 0F          1	    and     tmp,mask_tags           ; 
+     592 0460  66| 83 F8 0D          1	    cmp     tmp,tag_suspension      ; 
+     593 0464  0F 84 0473 R          1	    je      ??0000 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-8
+
+
+     594 0468  67| 66| 8B 02         2	    mov     tmp,[x]                   ; 
+     595 046C  66| C1 E8 04          2	    shr     tmp,width_tags            ; 
+     596 0470  EB 07 90              1	    jmp     ??0001 
+     597 0473                        1	??0000: 
+     598 0473  66| B8 00000001       1	    mov     tmp,1 
+     599 0479                        1	??0001: 
+     600 0479  66| C1 E0 02		    sal     tmp,2
+     601 047D  66| 83 C0 04		    add     tmp,4
+     602 0481  66| 03 D0		    add     x,tmp                   ;       x += get_lenz(x) * 4 + 4
+     603				
+     604 0484				Lgc_loop2:
+     605				
+     606				
+     607 0484  66| 8B DB		    mov     refloc,p                ;       do {
+     608 0487  66| 53			    push    p
+     609 0489  66| 52			    push    x
+     610 048B  66| 57			    push    blast_begin
+     611 048D  E8 0000 R		    call    xgc                     ;           xgc(p)
+     612 0490  66| 5F			    pop     blast_begin
+     613 0492  66| 5A			    pop     x
+     614 0494  66| 5B			    pop     p
+     615				
+     616 0496  66| 83 C3 04		    add     p,4                     ;           p+=4
+     617 049A  66| 3B DA		    cmp     p,x                     ;        }
+     618 049D  72 E5			    jb      Lgc_loop2               ;       while (p<x)
+     619				                                    ;
+     620 049F  EB 89			    jmp     Lgc_loop1               ;   }
+     621				
+     622 04A1				Lgc2:                                                  ;<-- bx cx -- si di -->
+     623				
+     624 04A1  65: 66| A1 0040 R	    mov     tmp,first_root
+     625 04A6  67| 66| FF 30		    push    dword ptr [tmp]
+     626 04AA  66| 52			    push    x
+     627 04AC  66| 57			    push    blast_begin
+     628 04AE  E8 0000 E		    call    _blast_write            ;   blast_write(blast_begin,x,*first_root)
+     629 04B1  83 C4 0C			    add     sp,12
+     630				
+     631 04B4  65: 66| 83 3E 0014 R	    cmp     repair,0                ;   if (repair) {
+     632       00			
+     633 04BB  0F 84 0501 R		    jz      Lgc4
+     634				
+     635 04BF				Lgc_loop9:
+     636				
+     637 = esi				tolim       EQU <esi>   ; to_lim alias ### REMEMBER TO UPDATE!! ###
+     638 = edi				tolim0      EQU <edi>   ; to_lim0 alias
+     639 = ebx				loc         EQU <ebx>   ;
+     640 = ecx				old         EQU <ecx>   ;
+     641				                                                       ;<-- -- -- -- -- -- -->
+     642				
+     643 04BF  65: 66| 8B 36 0004 R	    mov     tolim,to_lim
+     644 04C5  65: 66| 8B 3E 0008 R	    mov     tolim0,to_lim0
+     645 04CB				@@:
+     646 04CB  66| 3B F7		    cmp     tolim,tolim0            ;       while (to_lim<to_lim0) {
+     647 04CE  0F 83 04F3 R		    jnb     Lgc3
+     648 04D2  67| 66| 8B 1E		    mov     loc,[tolim]             ;           int *loc = *to_lim++
+     649 04D6  67| 66| 8B 4E 04		    mov     old,[tolim+4]           ;           int *old = *to_lim++
+     650 04DB  66| 83 C6 08		    add     tolim,2*4
+     651				
+     652 04DF  67| 66| 8B 03		    mov     tmp,[loc]
+     653 04E3  67| 66| 8B 40 FC		    mov     tmp,[tmp-4]
+     654 04E8  67| 66| 89 43 FC		    mov     [loc-4],tmp             ;           loc[-1] = (loc[0])[-1]
+     655				
+     656 04ED  67| 66| 89 0B		    mov     [loc],old               ;           loc[0] = old
+     657 04F1  EB D8			    jmp     @b
+     658				                                    ;       }
+     659 04F3				Lgc3:
+     660				
+     661 04F3  65: 66| 89 36 0004 R	    mov     to_lim,tolim            ; update to_lim
+     662				
+     663				
+     664				
+     665 04F9  1F			    pop     ds
+     666 04FA  5F			    pop     di
+     667 04FB  5E			    pop     si
+     668 04FC  5D			    pop     bp
+     669				
+     670 04FD  66| 2B C0		    sub     eax,eax
+     671 0500  C3			    ret                             ;       return 0
+     672				                                    ;   }
+     673				                                    ; }
+     674				                                                       ;<-- bx cx -- si di -->
+     675 0501				Lgc4:
+     676				
+     677				    ; do the refs
+     678				
+     679 = esi				px      EQU <esi>   ; int **px
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-9
+
+
+     680 = edi				r       EQU <edi>   ; int **r
+     681				                                                       ;<-- bx cx -- -- ---->
+     682				
+     683 0501  65: 66| 8B 36 0038 R	    mov     px,store_list           ; for (px=store_list; px!=1 ; px=px[2])
+     684 0507  E9 058B R		    jmp     Lgc_loop3_test          ; {
+     685				
+     686 050A				Lgc_loop3:
+     687				
+     688 050A  67| 66| 8B 7E 04		    mov     r,[px+4]                ;   r = px[1]
+     689 050F  66| D1 FF		    sar     r,1                     ;   r = px[1]>>1
+     690 0512  66| C1 E7 02		    sal     r,2                     ;   r = (int*) px[1]>>1
+     691 0516  67| 66| 03 3E		    add     r,[px]                  ;   r = px[0] + (px[1]>>1)
+     692				
+     693 051A  65: 66| 3B 3E 001C R	    cmp     r,from_low              ;   if (r>=from_low)
+     694 0520  0F 82 0531 R		    jnae    @f
+     695 0524  65: 66| 3B 3E 0020 R	    cmp     r,from_high             ;     && (r<from_high)
+     696 052A  0F 83 0531 R		    jnb     @f
+     697 052E  EB 56 90			    jmp     Lgc_loop3_continue      ;     continue
+     698				
+     699 0531				@@:
+     700				
+     701 0531  65: 83 3E 0000 E 00	    cmp     _preserving,0            ;   if (preserving) {
+     702 0537  0F 84 057C R		    jz      Lgc5
+     703				
+     704 053B  3E: 67| 66| C7 45	    mov     DWP ds:[to_ptr],16*3+1     ;       *to_ptr++ = 16*3+1
+     705       00 00000031		
+     706				
+     707 0545  67| 66| 8B 06		    mov     tmp,[px]
+     708 0549  3E: 67| 66| 89 45	    mov     ds:[to_ptr+4],tmp          ;       *to_ptr++ = px[0]
+     709       04			
+     710				
+     711 054F  67| 66| 8B 46 04		    mov     tmp,[px+4]
+     712 0554  3E: 67| 66| 89 45	    mov     ds:[to_ptr+2*4],tmp        ;       *to_ptr++ = px[1]
+     713       08			
+     714				
+     715 055A  67| 66| A1 00000000 E	    mov     tmp,_store_preserve_a
+     716 0561  3E: 67| 66| 89 45	    mov     ds:[to_ptr+3*4],tmp        ;       *to_ptr++ = store_preserve
+     717       0C			
+     718				
+     719 0567  66| 83 C5 10		    add     to_ptr,4*4              ;       adjust to_ptr
+     720				
+     721 056B  67| 66| 89 2D 0000	    mov     _store_preserve_a,to_ptr
+     722       0000 E			
+     723 0573  67| 66| 83 2D 0000	    sub     _store_preserve_a,3*4      ;       store_preserve = to_ptr-3
+     724       0000 E 0C		
+     725				                                    ;   }
+     726 057C				Lgc5:
+     727 057C  66| 56			    push    px
+     728				
+     729 057E  66| 8B DF		    mov     refloc,r                ;   xgc(r)
+     730 0581  E8 0000 R		    call    xgc
+     731				
+     732 0584  66| 5E			    pop     px                      ; }
+     733				
+     734				
+     735 0586				Lgc_loop3_continue:
+     736				
+     737 0586  67| 66| 8B 76 08		    mov     px,[px+2*4]             ;   px = px[2]
+     738				
+     739 058B				Lgc_loop3_test:
+     740				
+     741 058B  66| 83 FE 01		    cmp     px,1
+     742 058F  0F 85 050A R		    jne     Lgc_loop3               ;   px != 1 ?
+     743				                                                       ;<-- bx cx -- si di -->
+     744				; end of for loop
+     745				
+     746				
+     747				    ; do misc. roots
+     748				
+     749				
+     750 = esi				p       EQU <esi>   ; int ***p
+     751				                                                       ;<-- bx cx -- -- di -->
+     752 0593  65: 66| 8B 36 0034 R	    mov     p,misc_roots            ; p = misc_roots
+     753 0599  EB 10 90			    jmp     Lgc_loop4_test
+     754				
+     755 059C				Lgc_loop4:                          ; for (p = misc_roots ; *p ; p++) {
+     756				
+     757 059C  66| 56			    push    p
+     758 059E  67| 66| 8B 1E		    mov     refloc,[p]
+     759 05A2  E8 0000 R		    call    xgc                     ;   xgc(*p)
+     760 05A5  66| 5E			    pop     p                       ; }
+     761				
+     762 05A7  66| 83 C6 04		    add     p,4                     ;   p++
+     763				
+     764 05AB				Lgc_loop4_test:
+     765 05AB  67| 66| 83 3E 00		    cmp     DWP [p],0               ;   *p <> 0
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-10
+
+
+     766 05B0  75 EA			    jne     Lgc_loop4
+     767				                                                       ;<-- bx cx -- si di -->
+     768				
+     769				    ; Finish the new space
+     770				
+     771				
+     772 = esi				x       EQU <esi>   ; int x
+     773 = edi				p       EQU <edi>   ; int p
+     774 = ecx				descr   EQU <ecx>   ; int descr
+     775				                                                       ;<-- bx -- -- -- -- -->
+     776				
+     777 05B2  65: 66| 8B 36 0024 R	    mov   x,to_low                  ; x = to_low
+     778				
+     779 05B8				Lgc_loop5:
+     780				
+     781 05B8  66| 3B F5		    cmp     x,to_ptr                ; while (x<to_ptr) {
+     782 05BB  0F 83 064B R		    jnb     Lgc8
+     783				
+     784 05BF  66| 8B FE		    mov     p,x                     ;   p = x+4
+     785 05C2  66| 83 C7 04		    add     p,4
+     786				
+     787 05C6  67| 66| 8B 0E		    mov     descr,[x]               ;   descr = *x
+     788				
+     789				    contains_no_ptrs descr          ;    if (contains_no_ptrs(descr)) {
+     790 05CA  66| F7 C1 00000002    1	    test        descr,2 
+     791 05D1  74 15			    jz      SHORT Lgc6
+     792				
+     793				    get_len tmp,x
+     794 05D3  67| 66| 8B 06         1	    mov     tmp,[x]                   ; 
+     795 05D7  66| C1 E8 04          1	    shr     tmp,width_tags            ; 
+     796 05DB  66| 83 C0 07		    add     tmp,7
+     797 05DF  66| 83 E0 FC		    and     tmp, NOT 3
+     798 05E3  66| 03 F0		    add     x,tmp                   ;        x += ((get_len(x) + 7) & ~3)
+     799 05E6  EB D0			    jmp     Lgc_loop5               ;        continue }
+     800				
+     801 05E8				Lgc6:
+     802				
+     803				    get_lenz tmp,x
+     804 05E8  67| 66| 8B 06         1	    mov     tmp,[x]                 ; 
+     805 05EC  66| 83 E0 0F          1	    and     tmp,mask_tags           ; 
+     806 05F0  66| 83 F8 0D          1	    cmp     tmp,tag_suspension      ; 
+     807 05F4  0F 84 0603 R          1	    je      ??0002 
+     808 05F8  67| 66| 8B 06         2	    mov     tmp,[x]                   ; 
+     809 05FC  66| C1 E8 04          2	    shr     tmp,width_tags            ; 
+     810 0600  EB 07 90              1	    jmp     ??0003 
+     811 0603                        1	??0002: 
+     812 0603  66| B8 00000001       1	    mov     tmp,1 
+     813 0609                        1	??0003: 
+     814 0609  66| C1 E0 02		    sal     tmp,2
+     815 060D  66| 83 C0 04		    add     tmp,4
+     816 0611  66| 03 F0		    add     x,tmp                   ;   x += get_len(x) * 4 + 4
+     817				
+     818 0614  66| B8 0000000D		    mov     tmp,tag_suspension
+     819 061A  66| 83 C0 20		    add     tmp,2*power_tags
+     820 061E  66| 3B C1		    cmp     tmp,descr
+     821 0621  0F 85 0631 R		    jne     Lgc7                    ;   if (descr==tag_suspension+2*power_tags)
+     822 0625  65: 66| C7 06 0018 R	    mov     any_weak,1              ;       { any_weak = 1 ;
+     823       00000001			
+     824 062F  EB 87			    jmp     Lgc_loop5               ;         continue }
+     825				
+     826 0631				Lgc7:
+     827				
+     828 0631				Lgc_loop6:
+     829				
+     830 0631  66| 56			    push    x                       ;   do {
+     831 0633  66| 57			    push    p
+     832 0635  66| 8B DF		    mov     refloc,p
+     833 0638  E8 0000 R		    call    xgc                     ;       xgc(p)
+     834 063B  66| 5F			    pop     p
+     835 063D  66| 5E			    pop     x
+     836				
+     837 063F  66| 83 C7 04		    add     p,4                     ;       p += 4
+     838 0643  66| 3B FE		    cmp   p,x                       ;   }
+     839 0646  72 E9			    jb      Lgc_loop6               ;   while (p<x)
+     840				
+     841 0648  E9 05B8 R		    jmp     Lgc_loop5               ; }
+     842				                                                       ;<-- bx cx -- si di -->
+     843				
+     844				
+     845 064B				Lgc8:
+     846				
+     847 064B  65: 66| 83 3E 0018 R	    cmp     any_weak,0              ; if (any_weak)
+     848       00			
+     849 0652  0F 84 073F R		    jz      Lgc_out                 ; {
+     850				
+     851				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-11
+
+
+     852 = esi				x       EQU <esi>   ; int x
+     853 = edi				p       EQU <edi>   ; int *p
+     854 = ecx				descr   EQU <ecx>   ; int descr
+     855 = ebx				m       EQU <ebx>   ; int *m
+     856				                                                       ;<-- -- -- -- -- -- -->
+     857				
+     858 0656  65: 66| 8B 36 0024 R	    mov     x,to_low                ;   x = to_low
+     859				
+     860 065C				Lgc_loop7:
+     861				
+     862 065C  66| 3B F5		    cmp     x,to_ptr
+     863 065F  0F 83 073F R		    jnb     Lgc_out                 ;   while (x<to_ptr) {
+     864				
+     865 0663  66| 8B FE		    mov     p,x
+     866 0666  66| 83 C7 04		    add     p,4                     ;       int p=x+4
+     867				
+     868 066A  67| 66| 8B 0E		    mov     descr,[x]               ;       int descr=*x
+     869				
+     870				    contains_no_ptrs(descr)         ;       if (contain_no_ptrs(descr)) {
+     871 066E  66| F7 C1 00000002    1	    test        (descr),2 
+     872 0675  0F 84 068E R		    jz      Lgc9
+     873				
+     874				    get_len tmp,x
+     875 0679  67| 66| 8B 06         1	    mov     tmp,[x]                   ; 
+     876 067D  66| C1 E8 04          1	    shr     tmp,width_tags            ; 
+     877 0681  66| 83 C0 07		    add     tmp,7
+     878 0685  66| 83 E0 FC		    and     tmp, NOT 3
+     879 0689  66| 03 F0		    add     x,tmp                   ;           x += (get_len(x)+7) & ~3)
+     880 068C  EB CE			    jmp     Lgc_loop7               ;           continue }
+     881				
+     882 068E				Lgc9:
+     883				
+     884				    get_lenz tmp,x
+     885 068E  67| 66| 8B 06         1	    mov     tmp,[x]                 ; 
+     886 0692  66| 83 E0 0F          1	    and     tmp,mask_tags           ; 
+     887 0696  66| 83 F8 0D          1	    cmp     tmp,tag_suspension      ; 
+     888 069A  0F 84 06A9 R          1	    je      ??0004 
+     889 069E  67| 66| 8B 06         2	    mov     tmp,[x]                   ; 
+     890 06A2  66| C1 E8 04          2	    shr     tmp,width_tags            ; 
+     891 06A6  EB 07 90              1	    jmp     ??0005 
+     892 06A9                        1	??0004: 
+     893 06A9  66| B8 00000001       1	    mov     tmp,1 
+     894 06AF                        1	??0005: 
+     895 06AF  66| C1 E0 02		    sal     tmp,2
+     896 06B3  66| 83 C0 04		    add     tmp,4
+     897 06B7  66| 03 F0		    add     x,tmp                   ;   x += get_lenz(x)*4+4
+     898				
+     899 06BA  66| B8 0000000D		    mov     tmp,tag_suspension
+     900 06C0  66| 83 C0 20		    add     tmp,2*power_tags
+     901 06C4  66| 3B C8		    cmp     descr,tmp               ;   if (descr == tag_suspension + 2*power_tags)
+     902 06C7  75 93			    jne     Lgc_loop7
+     903				
+     904 06C9  67| 66| 8B 1F		    mov     m,[p]
+     905 06CD  66| 83 EB 04		    sub     m,4                     ;       int *m = *p - 1
+     906				
+     907 06D1  66| F7 C3 00000001	    test    m,1                     ;       if (!(m&1) &&
+     908 06D8  75 82			    jnz     Lgc_loop7
+     909 06DA  65: 66| 3B 1E 001C R	    cmp     m,from_low              ;           ( m >= from_low) &&
+     910 06E0  0F 82 065C R		    jb      Lgc_loop7
+     911 06E4  65: 66| 3B 1E 0020 R	    cmp     m,from_high             ;           ( m <= from_high) {
+     912 06EA  0F 87 065C R		    ja      Lgc_loop7
+     913				
+     914 06EE				Lgc_loop8:                          ;           for (;;) {
+     915				
+     916				    get_tag tmp,m
+     917 06EE  67| 66| 8B 03         1	    mov     tmp,[m]           ; 
+     918 06F2  66| 83 E0 0F          1	    and     tmp,mask_tags     ; 
+     919 06F6  67| 2E: FF 2C85 0000	    jmp     DWP cs:Lgc_switch[tmp*4]   ;       switch(get_tag(m)) {
+     920       0754 R			
+     921				
+     922 06FF				Lgc_tag_string:
+     923 06FF				Lgc_tag_bytearray:
+     924 06FF				Lgc_tag_array:
+     925 06FF				Lgc_tag_record:
+     926 06FF				Lgc_tag_suspension:
+     927				
+     928 06FF  67| 66| C7 07 0000	    mov     DWP [p],1               ;                   *p = 1
+     929       0001			
+     930 0707  67| 66| C7 47 FC 0000	    mov     DWP [p-4],tag_suspension+3*power_tags
+     931       003D			
+     932 0710  E9 065C R		    jmp     Lgc_loop7               ;                   p[-1] = tag_suspension+3*power_tags
+     933				                                    ;                   break
+     934 0713				Lgc_tag_forwarded:
+     935				
+     936 0713  67| 66| 8B 43 04		    mov     tmp,[m+4]
+     937 0718  67| 66| 01 07		    add     [p],tmp
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Page     1-12
+
+
+     938 071C  67| 66| 29 1F		    sub     [p],m
+     939 0720  67| 66| 83 2F 04		    sub     DWP [p],4               ;                   *p += m[1] - (m+1)
+     940 0725  E9 065C R		    jmp     Lgc_loop7               ;                   break
+     941				
+     942 0728				Lgc_tag_backptr:
+     943				
+     944				    get_len tmp,m
+     945 0728  67| 66| 8B 03         1	    mov     tmp,[m]                   ; 
+     946 072C  66| C1 E8 04          1	    shr     tmp,width_tags            ; 
+     947 0730  66| C1 E0 02		    sal     tmp,2
+     948 0734  66| 2B D8		    sub     m,tmp                   ;                   m -= get_len(m)
+     949 0737  EB B5			    jmp     Lgc_loop8               ;                   continue
+     950				
+     951 0739				Lgc_tag_embedded:
+     952 0739				Lgc_default:
+     953				
+     954 0739  66| 83 EB 04		    sub     m,4                     ;                   m--
+     955 073D  EB AF			    jmp     Lgc_loop8               ;                   continue
+     956				                                    ;               } switch
+     957				                                    ;           } for
+     958				                                    ;       } if
+     959				                                    ;   } if
+     960				                                    ; } while
+     961				                                                       ;<-- bx cx -- si di -->
+     962 073F				Lgc_out:
+     963				
+     964				
+     965 073F  65: 66| A1 0030 R	    mov     tmp,to_where
+     966 0744  65: 67| 66| 89 28	    mov     gs:[tmp],to_ptr            ; *to_where = to_ptr
+     967				
+     968 0749  66| B8 00000001		    mov     eax,1
+     969				
+     970 074F  1F			    pop     ds
+     971 0750  5F			    pop     di
+     972 0751  5E			    pop     si
+     973 0752  5D			    pop     bp
+     974 0753  C3			    ret                             ; return 1
+     975				
+     976				
+     977 0754				Lgc_switch:
+     978 0754  0739 ---- R 06FF ----	    dd  Lgc_default, Lgc_tag_record
+     979	R			
+     980 075C  0739 ---- R 0713 ----	    dd  Lgc_default, Lgc_tag_forwarded
+     981	R			
+     982 0764  0739 ---- R 0728 ----	    dd  Lgc_default, Lgc_tag_backptr
+     983	R			
+     984 076C  0739 ---- R 0739 ----	    dd  Lgc_default, Lgc_tag_embedded
+     985	R			
+     986 0774  0739 ---- R 06FF ----	    dd  Lgc_default, Lgc_tag_array
+     987	R			
+     988 077C  0739 ---- R 06FF ----	    dd  Lgc_default, Lgc_tag_bytearray
+     989	R			
+     990 0784  0739 ---- R 06FF ----	    dd  Lgc_default, Lgc_tag_suspension
+     991	R			
+     992 078C  0739 ---- R 06FF ----	    dd  Lgc_default, Lgc_tag_string
+     993	R			
+     994				
+     995 0794				_gc  endp
+     996				
+     997 0794				_TEXT ends
+     998				
+     999				end
+
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Symbols-1
+
+
+Macros:
+
+		N a m e			Lines
+
+CONTAINS_NO_PTRS . . . . . . . .  	   1
+GET_LEN  . . . . . . . . . . . .  	   2
+GET_LENZ . . . . . . . . . . . .  	   9
+GET_STRLEN . . . . . . . . . . .  	   4
+GET_TAG  . . . . . . . . . . . .  	   2
+IS_PTR . . . . . . . . . . . . .  	   1
+MAKE_DESC  . . . . . . . . . . .  	   1
+
+Segments and Groups:
+
+                N a m e         	Size	Length	 Align	Combine Class
+
+_DATA  . . . . . . . . . . . . .  	16 Bit	0044	WORD	PUBLIC	'DATA'
+_RUNCODE . . . . . . . . . . . .  	32 Bit	0000	PARA	PUBLIC	'CODE'
+_TEXT  . . . . . . . . . . . . .  	16 Bit	0794	WORD	PUBLIC	'CODE'
+
+Symbols:            
+
+                N a m e         	Type	 Value	 Attr
+
+ANY_WEAK . . . . . . . . . . . .  	L DWORD	0018	_DATA
+
+BLAST_BEGIN  . . . . . . . . . .  	TEXT  edi		
+
+DESCR  . . . . . . . . . . . . .  	TEXT  ecx		
+DWP  . . . . . . . . . . . . . .  	TEXT  dword ptr		
+
+FIRST_ROOT . . . . . . . . . . .  	L DWORD	0040	_DATA
+FROM_HIGH  . . . . . . . . . . .  	L DWORD	0020	_DATA
+FROM_LOW . . . . . . . . . . . .  	L DWORD	001C	_DATA
+
+GET_MORE . . . . . . . . . . . .  	L DWORD	003C	_DATA
+GMORE  . . . . . . . . . . . . .  	L DWORD	0000	_DATA
+
+HIGHEST  . . . . . . . . . . . .  	L DWORD	0010	_DATA
+
+I  . . . . . . . . . . . . . . .  	TEXT  esi		
+
+J  . . . . . . . . . . . . . . .  	TEXT  edi		
+
+LEN1 . . . . . . . . . . . . . .  	TEXT  ecx		
+LGC1 . . . . . . . . . . . . . .  	L NEAR	0458	_TEXT
+LGC2 . . . . . . . . . . . . . .  	L NEAR	04A1	_TEXT
+LGC3 . . . . . . . . . . . . . .  	L NEAR	04F3	_TEXT
+LGC4 . . . . . . . . . . . . . .  	L NEAR	0501	_TEXT
+LGC5 . . . . . . . . . . . . . .  	L NEAR	057C	_TEXT
+LGC6 . . . . . . . . . . . . . .  	L NEAR	05E8	_TEXT
+LGC7 . . . . . . . . . . . . . .  	L NEAR	0631	_TEXT
+LGC8 . . . . . . . . . . . . . .  	L NEAR	064B	_TEXT
+LGC9 . . . . . . . . . . . . . .  	L NEAR	068E	_TEXT
+LGC_DEFAULT  . . . . . . . . . .  	L NEAR	0739	_TEXT
+LGC_LOOP1  . . . . . . . . . . .  	L NEAR	042A	_TEXT
+LGC_LOOP2  . . . . . . . . . . .  	L NEAR	0484	_TEXT
+LGC_LOOP3  . . . . . . . . . . .  	L NEAR	050A	_TEXT
+LGC_LOOP3_CONTINUE . . . . . . .  	L NEAR	0586	_TEXT
+LGC_LOOP3_TEST . . . . . . . . .  	L NEAR	058B	_TEXT
+LGC_LOOP4  . . . . . . . . . . .  	L NEAR	059C	_TEXT
+LGC_LOOP4_TEST . . . . . . . . .  	L NEAR	05AB	_TEXT
+LGC_LOOP5  . . . . . . . . . . .  	L NEAR	05B8	_TEXT
+LGC_LOOP6  . . . . . . . . . . .  	L NEAR	0631	_TEXT
+LGC_LOOP7  . . . . . . . . . . .  	L NEAR	065C	_TEXT
+LGC_LOOP8  . . . . . . . . . . .  	L NEAR	06EE	_TEXT
+LGC_LOOP9  . . . . . . . . . . .  	L NEAR	04BF	_TEXT
+LGC_OUT  . . . . . . . . . . . .  	L NEAR	073F	_TEXT
+LGC_SWITCH . . . . . . . . . . .  	L NEAR	0754	_TEXT
+LGC_TAG_ARRAY  . . . . . . . . .  	L NEAR	06FF	_TEXT
+LGC_TAG_BACKPTR  . . . . . . . .  	L NEAR	0728	_TEXT
+LGC_TAG_BYTEARRAY  . . . . . . .  	L NEAR	06FF	_TEXT
+LGC_TAG_EMBEDDED . . . . . . . .  	L NEAR	0739	_TEXT
+LGC_TAG_FORWARDED  . . . . . . .  	L NEAR	0713	_TEXT
+LGC_TAG_RECORD . . . . . . . . .  	L NEAR	06FF	_TEXT
+LGC_TAG_STRING . . . . . . . . .  	L NEAR	06FF	_TEXT
+LGC_TAG_SUSPENSION . . . . . . .  	L NEAR	06FF	_TEXT
+LOC  . . . . . . . . . . . . . .  	TEXT  ebx		
+LOWEST . . . . . . . . . . . . .  	L DWORD	000C	_DATA
+LXGC1  . . . . . . . . . . . . .  	L NEAR	0098	_TEXT
+LXGC10 . . . . . . . . . . . . .  	L NEAR	02CE	_TEXT
+LXGC11 . . . . . . . . . . . . .  	L NEAR	0311	_TEXT
+LXGC12 . . . . . . . . . . . . .  	L NEAR	0325	_TEXT
+LXGC2  . . . . . . . . . . . . .  	L NEAR	00BB	_TEXT
+LXGC3  . . . . . . . . . . . . .  	L NEAR	00FE	_TEXT
+LXGC4  . . . . . . . . . . . . .  	L NEAR	0112	_TEXT
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Symbols-2
+
+
+LXGC5  . . . . . . . . . . . . .  	L NEAR	01C9	_TEXT
+LXGC6  . . . . . . . . . . . . .  	L NEAR	01EC	_TEXT
+LXGC7  . . . . . . . . . . . . .  	L NEAR	022F	_TEXT
+LXGC8  . . . . . . . . . . . . .  	L NEAR	0243	_TEXT
+LXGC9  . . . . . . . . . . . . .  	L NEAR	02AB	_TEXT
+LXGC_DEFAULT . . . . . . . . . .  	L NEAR	004C	_TEXT
+LXGC_LOOP1 . . . . . . . . . . .  	L NEAR	002A	_TEXT
+LXGC_LOOP2 . . . . . . . . . . .  	L NEAR	006F	_TEXT
+LXGC_LOOP3 . . . . . . . . . . .  	L NEAR	01A0	_TEXT
+LXGC_LOOP4 . . . . . . . . . . .  	L NEAR	0282	_TEXT
+LXGC_SWITCH  . . . . . . . . . .  	L NEAR	0354	_TEXT
+LXGC_TAG_ARRAY . . . . . . . . .  	L NEAR	013E	_TEXT
+LXGC_TAG_BACKPTR . . . . . . . .  	L NEAR	003B	_TEXT
+LXGC_TAG_BYTEARRAY . . . . . . .  	L NEAR	0052	_TEXT
+LXGC_TAG_EMBEDDED  . . . . . . .  	L NEAR	004C	_TEXT
+LXGC_TAG_FORWARDED . . . . . . .  	L NEAR	025A	_TEXT
+LXGC_TAG_RECORD  . . . . . . . .  	L NEAR	0189	_TEXT
+LXGC_TAG_STRING  . . . . . . . .  	L NEAR	0052	_TEXT
+LXGC_TAG_SUSPENSION  . . . . . .  	L NEAR	026F	_TEXT
+
+M  . . . . . . . . . . . . . . .  	TEXT  ebx		
+MASK_TAGS  . . . . . . . . . . .  	NUMBER	000F	
+MISC_ROOTS . . . . . . . . . . .  	L DWORD	0034	_DATA
+
+NROOTS . . . . . . . . . . . . .  	TEXT  9		
+
+OLD  . . . . . . . . . . . . . .  	TEXT  ecx		
+
+P  . . . . . . . . . . . . . . .  	TEXT  edi		
+POWER_TAGS . . . . . . . . . . .  	NUMBER	0010	
+PX . . . . . . . . . . . . . . .  	TEXT  esi		
+
+R  . . . . . . . . . . . . . . .  	TEXT  edi		
+REFLOC . . . . . . . . . . . . .  	TEXT  ebx		
+REPAIR . . . . . . . . . . . . .  	L DWORD	0014	_DATA
+
+STORE_LIST . . . . . . . . . . .  	L DWORD	0038	_DATA
+
+TAG_ARRAY  . . . . . . . . . . .  	NUMBER	0009	
+TAG_BACKPTR  . . . . . . . . . .  	NUMBER	0005	
+TAG_BYTEARRAY  . . . . . . . . .  	NUMBER	000B	
+TAG_EMBEDDE  . . . . . . . . . .  	NUMBER	0007	
+TAG_FORWARDED  . . . . . . . . .  	NUMBER	0003	
+TAG_RECORD . . . . . . . . . . .  	NUMBER	0001	
+TAG_STRING . . . . . . . . . . .  	NUMBER	000F	
+TAG_SUSPENSION . . . . . . . . .  	NUMBER	000D	
+TMP  . . . . . . . . . . . . . .  	TEXT  eax		
+TMP2 . . . . . . . . . . . . . .  	TEXT  esi		
+TOLIM  . . . . . . . . . . . . .  	TEXT  esi		
+TOLIM0 . . . . . . . . . . . . .  	TEXT  edi		
+TO_DONE  . . . . . . . . . . . .  	L DWORD	002C	_DATA
+TO_HIGH  . . . . . . . . . . . .  	L DWORD	0028	_DATA
+TO_LIM . . . . . . . . . . . . .  	L DWORD	0004	_DATA
+TO_LIM0  . . . . . . . . . . . .  	L DWORD	0008	_DATA
+TO_LOW . . . . . . . . . . . . .  	L DWORD	0024	_DATA
+TO_PTR . . . . . . . . . . . . .  	TEXT  ebp		
+TO_WHERE . . . . . . . . . . . .  	L DWORD	0030	_DATA
+
+WIDTH_TAGS . . . . . . . . . . .  	NUMBER	0004	
+
+X  . . . . . . . . . . . . . . .  	TEXT  esi		
+XGC  . . . . . . . . . . . . . .  	N PROC	0000	_TEXT	Length = 0394
+
+??0000 . . . . . . . . . . . . .  	L NEAR	0473	_TEXT
+??0001 . . . . . . . . . . . . .  	L NEAR	0479	_TEXT
+??0002 . . . . . . . . . . . . .  	L NEAR	0603	_TEXT
+??0003 . . . . . . . . . . . . .  	L NEAR	0609	_TEXT
+??0004 . . . . . . . . . . . . .  	L NEAR	06A9	_TEXT
+??0005 . . . . . . . . . . . . .  	L NEAR	06AF	_TEXT
+@0 . . . . . . . . . . . . . . .  	L NEAR	0010	_TEXT
+@1 . . . . . . . . . . . . . . .  	L NEAR	001B	_TEXT
+@2 . . . . . . . . . . . . . . .  	L NEAR	0026	_TEXT
+@3 . . . . . . . . . . . . . . .  	L NEAR	02D6	_TEXT
+@4 . . . . . . . . . . . . . . .  	L NEAR	04CB	_TEXT
+@5 . . . . . . . . . . . . . . .  	L NEAR	0531	_TEXT
+@CPU . . . . . . . . . . . . . .  	TEXT  3471		
+@FILENAME  . . . . . . . . . . .  	TEXT  gc		
+@VERSION . . . . . . . . . . . .  	TEXT  510		
+_blast_write . . . . . . . . . .  	L NEAR	0000	_TEXT	External
+_enterUse32  . . . . . . . . . .  	L FAR 	0000	_RUNCODE	External
+_gc  . . . . . . . . . . . . . .  	N PROC	0394	_TEXT	Global	Length = 0400
+_GLOBDEFN_ . . . . . . . . . . .  	NUMBER	0001	
+_MLState_a . . . . . . . . . . .  	V DWORD	0000	_RUNCODE	External
+_preserving  . . . . . . . . . .  	V WORD	0000	_DATA	External
+_runtime_seg . . . . . . . . . .  	V WORD	0000	_DATA	External
+_store_preserve_a  . . . . . . .  	V DWORD	0000	_RUNCODE	External
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+Garbage Collection                                          Symbols-3
+
+
+_TAGS  . . . . . . . . . . . . .  	NUMBER	0001	
+_wsUse32Code . . . . . . . . . .  	V WORD	0000	_DATA	External
+_wsUse32Data . . . . . . . . . .  	V WORD	0000	_DATA	External
+
+
+   1010 Source  Lines
+   1065 Total   Lines
+    149 Symbols
+
+  46484 + 367411 Bytes symbol space free
+
+      0 Warning Errors
+      0 Severe  Errors

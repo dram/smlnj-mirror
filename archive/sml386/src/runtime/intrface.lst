@@ -1,0 +1,188 @@
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+USE16/USE32 interface                                       Page     1-1
+
+
+       1				;**************************************
+					***********************************
+       2				; Copyright (c) 1991 by:   Department o
+					f Computer Science
+       3				;			   The Technica
+					l University of Denmark
+       4				;			   DK-2800 Lyng
+					by
+       5				;
+       6				;
+       7				; 19 Dec. 1991	      Yngvi Skaalum Gut
+					tesen	    ysg@id.dth.dk
+       8				;
+       9				; This file contains the code (restorer
+					egs) to perform the context-switch
+      10				; from USE16 code (the runtime system) 
+					to USE32 code (the ML code).
+      11				
+      12				    TITLE   USE16/USE32 interface
+      13				
+      14				    PAGE    90,132
+      15				
+      16				    .386p
+      17				    .387
+      18				
+      19				    .LIST
+      20				
+      21 0000				_RUNCODE segment para use32 public 'CODE'
+      22				
+      23				    EXTRN   _enterUse32       : FAR
+      24				    EXTRN   Use32Stack        : DWORD
+      25				
+      26 0000				_RUNCODE ends
+      27				
+      28 0000				_DATA   segment word public use16 'DATA'
+      29				
+      30				    EXTRN   _wsUse32Data    : WORD  ; the data and code selectors
+      31				    EXTRN   _wsUse32Code    : WORD  ; for the USE32 ML-heap
+      32				    
+      33 0000  0000			    off_enterUse32	DW ?	    ; the offset and segment addr. for
+      34 0002  0000			    seg_enterUse32	DW ?	    ; the USE32 entry rutine.
+      35				
+      36 0004  00000000			    dwUse16Stackpointer DD ?
+      37				
+      38 0008				_DATA   ends
+      39				
+      40 0000				_TEXT	segment word public use16 'CODE'
+      41				
+      42				    assume cs:_TEXT, ds:_DATA
+      43				
+      44				PUBLIC _restoreregs
+      45				
+      46 0000				_restoreregs PROC NEAR
+      47				
+      48				    assume  ds:_DATA, es:nothing, fs:nothing, gs:nothing
+      49				
+      50 0000  57			    push    di      ; save the C-compilers registers
+      51 0001  56			    push    si
+      52 0002  55			    push    bp
+      53 0003  1E			    push    ds
+      54				
+      55 0004  8C D8			    mov     ax, ds
+      56 0006  8E E8			    mov     gs, ax
+      57				
+      58 0008  A1 0000 E		    mov     ax, _wsUse32Data	  ; load the USE32 selectors
+      59 000B  8B 1E 0000 E		    mov     bx, _wsUse32Code
+      60				
+      61 000F  89 1E 0002 R		    mov     seg_enterUse32, bx		; load the addr. of the USE32
+      62 0013  66| BB 0000 E		    mov     ebx, offset _enterUse32	; entry rutine (enterUse32).
+      63 0019  89 1E 0000 R		    mov     off_enterUse32, bx
+      64				
+      65 001D  66| 89 26 0004 R		    mov     dwUse16StackPointer, esp    ; save the Use16 stack pointer
+      66				
+      67				
+      68 0022  8E D0			    mov     ss, ax                      ; setup the new use32 stack
+      69 0024  66| BC 0000 E		    mov     esp, OFFSET Use32Stack
+      70				
+      71				    assume  ss:_RUNCODE
+      72				
+      73 002A  8E D8			    mov     ds, ax                      ; ds = ML HEAP
+      74 002C  8E C0			    mov     es, ax                      ; es = ML HEAP
+      75				
+      76 002E  65: FF 1E 0000 R		    call    DWORD PTR gs:off_enterUse32
+      77				
+      78 0033  8C E8			    mov     ax, gs			; restore the segment registers
+      79 0035  8E C0			    mov     es, ax
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+USE16/USE32 interface                                       Page     1-2
+
+
+      80 0037  8E D8			    mov     ds, ax
+      81				
+      82 0039  8E D0			    mov     ss, ax                      ; restore the Use16 stack
+      83 003B  66| 8B 26 0004 R		    mov     esp, dwUse16StackPointer
+      84				
+      85				    assume  ss:_DATA
+      86				
+      87 0040  1F			    pop     ds      ; restore the C-compilers registers
+      88 0041  5D			    pop     bp
+      89 0042  5E			    pop     si
+      90 0043  5F			    pop     di
+      91				
+      92 0044  C3			    ret 	    ; return to the runtime system (run_ml)
+      93				
+      94 0045				_restoreregs ENDP
+      95				
+      96 0045				_TEXT ENDS
+      97				
+      98				END
+
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+USE16/USE32 interface                                       Symbols-1
+
+
+Macros:
+
+		N a m e			Lines
+
+CONTAINS_NO_PTRS . . . . . . . .  	   1
+GET_LEN  . . . . . . . . . . . .  	   2
+GET_LENZ . . . . . . . . . . . .  	   9
+GET_STRLEN . . . . . . . . . . .  	   4
+GET_TAG  . . . . . . . . . . . .  	   2
+IS_PTR . . . . . . . . . . . . .  	   1
+MAKE_DESC  . . . . . . . . . . .  	   1
+
+Segments and Groups:
+
+                N a m e         	Size	Length	 Align	Combine Class
+
+_DATA  . . . . . . . . . . . . .  	16 Bit	0008	WORD	PUBLIC	'DATA'
+_RUNCODE . . . . . . . . . . . .  	32 Bit	0000	PARA	PUBLIC	'CODE'
+_TEXT  . . . . . . . . . . . . .  	16 Bit	0045	WORD	PUBLIC	'CODE'
+
+Symbols:            
+
+                N a m e         	Type	 Value	 Attr
+
+DWP  . . . . . . . . . . . . . .  	TEXT  dword ptr		
+DWUSE16STACKPOINTER  . . . . . .  	L DWORD	0004	_DATA
+
+MASK_TAGS  . . . . . . . . . . .  	NUMBER	000F	
+
+NROOTS . . . . . . . . . . . . .  	TEXT  9		
+
+OFF_ENTERUSE32 . . . . . . . . .  	L WORD	0000	_DATA
+
+POWER_TAGS . . . . . . . . . . .  	NUMBER	0010	
+
+SEG_ENTERUSE32 . . . . . . . . .  	L WORD	0002	_DATA
+
+TAG_ARRAY  . . . . . . . . . . .  	NUMBER	0009	
+TAG_BACKPTR  . . . . . . . . . .  	NUMBER	0005	
+TAG_BYTEARRAY  . . . . . . . . .  	NUMBER	000B	
+TAG_EMBEDDE  . . . . . . . . . .  	NUMBER	0007	
+TAG_FORWARDED  . . . . . . . . .  	NUMBER	0003	
+TAG_RECORD . . . . . . . . . . .  	NUMBER	0001	
+TAG_STRING . . . . . . . . . . .  	NUMBER	000F	
+TAG_SUSPENSION . . . . . . . . .  	NUMBER	000D	
+TMP  . . . . . . . . . . . . . .  	TEXT  eax		
+
+Use32Stack . . . . . . . . . . .  	V DWORD	0000	_RUNCODE	External
+
+WIDTH_TAGS . . . . . . . . . . .  	NUMBER	0004	
+
+@CPU . . . . . . . . . . . . . .  	TEXT  3471		
+@FILENAME  . . . . . . . . . . .  	TEXT  intrface		
+@VERSION . . . . . . . . . . . .  	TEXT  510		
+_enterUse32  . . . . . . . . . .  	L FAR 	0000	_RUNCODE	External
+_GLOBDEFN_ . . . . . . . . . . .  	NUMBER	0001	
+_restoreregs . . . . . . . . . .  	N PROC	0000	_TEXT	Global	Length = 0045
+_TAGS  . . . . . . . . . . . . .  	NUMBER	0001	
+_wsUse32Code . . . . . . . . . .  	V WORD	0000	_DATA	External
+_wsUse32Data . . . . . . . . . .  	V WORD	0000	_DATA	External
+
+
+    219 Source  Lines
+    219 Total   Lines
+     41 Symbols
+
+  46900 + 384949 Bytes symbol space free
+
+      0 Warning Errors
+      0 Severe  Errors

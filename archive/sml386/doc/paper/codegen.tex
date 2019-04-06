@@ -1,0 +1,181 @@
+\section{The code generator}
+
+The SML\_NJ is nicely divided into a machine-independent front end and
+a machine-dependent back end. A single signature (called {\em
+CMACHINE\/}) defines the interface between the two. The back end
+consists of a few structures that --- together with a few structures
+in the front end --- are described below. At the end of this section
+some special aspects of the 80386 that has influence on the code
+generator are examined more closely.  The intention with this section
+is to give a survey of the code generator and the description is
+therefore kept at a very high level.
+
+\subsection{From CPS-expressions to machine code} \label{sec:CPStoMach}
+
+The front end transforms SML source code into CPS-expressions
+\cite{bib:ContClos,bib:ysgsml,bib:orbit,bib:rabbit}. The
+transformation of CPS-expressions into machine code is handled by the
+machine-independent functor {\em CPSgen\/}. {\em CPSgen\/} is
+parameterized on elementary code generating functions specified by the
+signature {\em CMACHINE\/}. That is, {\em CMACHINE\/} defines names
+for datatypes, variables, and functions that the front end will use
+when transforming CPS-expressions into machine code (see
+Figure~\ref{fig:CPSgen}).
+\input{cpsgen.fig} The {\em CPSgen\/} functor is located in the file
+{\em generic.sml\/}, and {\em CMACHINE\/} is found in {\em
+cmachine.sig\/}.
+
+\subsection{Backpatch and jumpsize-optimization}
+
+The back end has to handle relative addresses. That is, we have to
+backpatch relative jumps and other instructions that use relative
+addressing. To help in this, a machine-independent functor, {\em
+Backpatch\/}, is included in the compiler. {\em Backpatch\/} is
+parameterized on a machine-dependent structure {\em Jump\/} which
+contains the information needed to backpatch on a particular machine.
+{\em Backpatch} needs to know the size in bytes of the
+instructions that use relative addressing and how to emit code for
+these. The signatures {\em BACKPATCH\/} and {\em JUMP\/} are given
+in Figure~\ref{fig:BackPatch}.  \input{backpatc.fig} 
+
+The machine code generator can make use of the primitives named in
+{\em BACKPATCH\/} ({\em emitstring, newlabel, etc\/}) when
+implementing the functions in {\em CMACHINE\/}. For example the {\em
+emitstring()\/} is used every time a string (code or data) is put into
+the code (see Figure \ref{fig:I386xCod}). The full {\em Backpatch\/}
+functor, which is part of the general SML\_NJ system, can be found in
+the file {\em backpatch.sml\/}. The {\em Jump\/} structure for the
+80386 is found in the file {\em 386jumps.sml\/}.
+
+\subsection{The 80386 code generator}
+
+As mentioned in section \ref{sec:CPStoMach} we have to write a
+structure that matches the {\em CMACHINE\/} signature. A functor {\em
+CMach386} is used for this. The front end includes a batch compiler
+that can generate assembler code, so we need to generate both assembly
+code and machine code. The `argument' given to {\em CMach386}
+determines which one is generated.
+
+The signature {\em CODER386} defines a subset of the 80386
+instruction set and addressing modes, that is used in the code
+generation. Two functors which match this signature
+\begin{descit}{MCode386} generates machine code \end{descit}
+\begin{descit}{ACode386} generates assembly code \end{descit} 
+are outlined in Figure \ref{fig:I386xCod}. \input{i386xcod.fig}
+
+We see how the functor {\em MCode386\/} is parameterized on the
+machine-dependent {\em Jump\/} structure mentioned above, and how this
+structure is passed on to {\em Backpatch\/}. This is how we get access
+to the primitives named in the {\em BACKPATCH\/} signature. When
+generating assembly code we do not need to backpatch and therefore the
+{\em Jump\/} structure is unnecessary.  Instead symbolic labels are
+used. Notice that the primitives in {\em Backpatch\/} are used in the
+{\em MCode386} module only.
+
+These two functors are used to make a 80386 code generator to be
+passed on to {\em CPSgen\/}. Applying the functor {\em CMach386} to
+one of them results in a structure whose functions when called,
+generates code (machine or assembly) for the 80386.
+
+The signature {\em CODER386\/} is found in the file {\em
+386coder.sig\/}. The {\em Mcode386\/} and the {\em ACode386\/}
+functors are found in the files {\em 386mcode.sml\/} and {\em
+386acode.sml\/}.
+
+\subsection{Putting it together} \label{sec:glue}
+
+SML\_NJ includes an interactive system and a batchcompiler. The front
+end functor {\em IntShare\/} defines the interactive system, and {\em
+Batch\/} defines the batchcompiler. Figure~\ref{fig:glue}
+\input{glue.fig} shows how to build the interactive system and the
+batchcompiler for the 80386.  {\em Batch} takes 2 arguments; {\em M}
+that generates machine code and {\em A} that generates assembly code.
+{\em Intshare} takes three argument where one of them ({\em Machm\/})
+is the structure that generates the machine code. {\em Comp386} is the
+batchcompiler module and {\em Int386} is the interactive module.
+
+\subsection{Special conditions in 80386}
+
+The compiler was originally designed for the Vax and M680x0 family.
+Later on, code generators have been made for other architectures like
+MIPS and SPARC. The 80386 lacks some of their facilities and this has
+caused some problems.
+
+One problem is the number of general registers. The {\em CMACHINE\/}
+signature specifies a set of variables. These are supposed to be in
+registers. But the 80386 has only seven general registers, so we have
+to simulate some extra registers in the memory. Where should these be
+placed? Under Windows it is possible to use absolute addresses because
+we manually allocate a segment to hold the ML code and data, and
+therefore have control over what goes where. Thus we can allocate say
+the $4n$ lowest addresses in the ML-heap to hold the $n$ "memory
+registers". But in general (i.e. in other operating systems) we cannot
+use absolute addresses.
+
+The runtime system (written in C) defines a set of variables that
+compiled ML code uses. These (or theirs addresses) are placed in a
+C-structure whose address is passed on to the ML code when
+initializing the system. In the same way we could allocate space in
+the runtime system (e.g.  {\tt\mbox{int MemRegs[n]}}) and pass {\em
+MemRegs\/} to the ML code. But this would require some changes in the
+front end, and the goal was to implement the code generator without
+any changes at all in the front end.
+
+As a result of Continuation Passing Style, ML does not use the stack.
+We therefore have a static stack when running ML code, so the "memory
+registers" can be put on the stack in the same way as one would
+allocate space for local variables on the stack in a C-compiler.  This
+is what has been done here. But care must be taken when referring to
+these variables. Some registers in the 80386 are dedicated to special
+purposes in some instructions. Consequently, the stack is used by a few
+functions in the code generator to save the value of these registers,
+when necessary. But this is not a problem because we always know
+exactly how much has been pushed onto the stack.
+
+Using the stack to hold the memory registers has another advantage
+over absolute addresses in that we save 2 bytes in the code size on
+every reference to memory variables. The code size is a serious
+problem when running under Windows because we are restricted to 16
+Mbyte.
+
+Because the 80386 cannot perform memory to memory operations, a lot of
+moving to temporary registers takes place, which again contributes to
+the code size. This is a serious problem with the 80386 when running
+under Windows.
+
+Another problem with the Intel 80386 microprocessor is that it does
+not directly support PC-relative addressing. SML\_NJ provides
+facilities to handle this problem. The front end keeps track of the
+addressing requirements of each function and calls the {\em
+beginStdFn\/} in {\em CMACHINE\/} if it uses PC-relative addressing.
+One of the parameters to {\em beginStdFn\/} is the closure of the
+function so {\em beginStdFn} can load the base address and later use
+it for relative addressing (see the file {\em cmachine.sig} for
+details). But in version 0.66 of the compiler, the {\em needPC\/}
+function (located in {\em CPSgen\/}) that determine whether a function
+uses PC-relative addressing is constantly {\em true\/}:
+\begin{verbatim}
+    fun needPC cexp = true
+\end{verbatim}
+Thus, if the above technique is used, every function gets the extra
+overhead with calculating a function's base address. Hoping that many
+functions don't use PC-relative addressing I have chosen another
+technique. We need to generate code for instructions like {\em load
+effective address}:
+\begin{verbatim}
+    LEA reg1, (PC,offs)    ; reg1 := PC+offs
+\end{verbatim}
+This can be done by the following piece of code:
+\begin{verbatim}
+    1000: call  0           ; 1005 pushed (relative call)
+    1005: pop   eax         ; eax = 1005
+    1006: sub   eax, offs+5 ; +5 because the size of the call 
+                            ; instruction is 5 bytes
+\end{verbatim}
+This way we can simulate PC-relative addressing. The size of these
+three instructions is 12 bytes, so if this kind of addressing is
+performed often it is better to use {\em beginStdFn\/} as described
+above. The frequency of PC-relative addressing ought to be measured to
+determine which technique is better.
+
+This concludes the description of the 80386 code generator.

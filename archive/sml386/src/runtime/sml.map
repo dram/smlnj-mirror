@@ -1,0 +1,823 @@
+
+ Sml
+
+ Start     Length     Name                   Class
+ 0001:0000 0582AH     _TEXT                  CODE
+ 0002:0000 02CE6H     _RUNCODE               CODE
+ 0003:0000 00000H     _DATA                  CODE
+ 0003:0000 00010H     NULL                   BEGDATA
+ 0003:0010 00C36H     _DATA                  DATA
+ 0003:0C46 0000EH     CDATA                  DATA
+ 0003:0C54 00000H     XIFB                   DATA
+ 0003:0C54 00000H     XIF                    DATA
+ 0003:0C54 00000H     XIFE                   DATA
+ 0003:0C54 00000H     XIB                    DATA
+ 0003:0C54 00000H     XI                     DATA
+ 0003:0C54 00000H     XIE                    DATA
+ 0003:0C54 00000H     XPB                    DATA
+ 0003:0C54 00002H     XP                     DATA
+ 0003:0C56 00000H     XPE                    DATA
+ 0003:0C56 00000H     XCB                    DATA
+ 0003:0C56 00000H     XC                     DATA
+ 0003:0C56 00000H     XCE                    DATA
+ 0003:0C56 00000H     XCFB                   DATA
+ 0003:0C56 00000H     XCF                    DATA
+ 0003:0C56 00000H     XCFE                   DATA
+ 0003:0C56 0000CH     DBDATA                 DATA
+ 0003:0C62 00002H     XIQC                   DATA
+ 0003:0C64 00000H     CONST                  CONST
+ 0003:0C64 00019H     HDR                    MSG
+ 0003:0C7D 000B1H     MSG                    MSG
+ 0003:0D2E 00002H     PAD                    MSG
+ 0003:0D30 00001H     EPAD                   MSG
+ 0003:0D40 00018H     _BSS                   BSS
+ 0003:0D58 00000H     XOB                    BSS
+ 0003:0D58 00000H     XO                     BSS
+ 0003:0D58 00000H     XOE                    BSS
+ 0003:0D60 00D30H     c_common               BSS
+
+ Origin   Group
+ 0003:0   DGROUP
+
+ Address   Export                  Alias
+
+ 0001:09F6 About                   About
+ 0001:0588 MainWndProc             MainWndProc
+
+  Address         Publics by Name
+
+ 0001:09F6       About
+ 0000:0000  Imp  BEGINPAINT           (USER.39)
+ 0000:0000  Imp  CATCH                (KERNEL.55)
+ 0000:0000  Imp  CREATECARET          (USER.163)
+ 0000:0000  Imp  CREATEWINDOW         (USER.41)
+ 0000:0000  Imp  DEFWINDOWPROC        (USER.107)
+ 0000:0000  Imp  DESTROYCARET         (USER.164)
+ 0000:0000  Imp  DIALOGBOX            (USER.87)
+ 0000:0000  Imp  DISPATCHMESSAGE      (USER.114)
+ 0000:0000  Imp  ENDDIALOG            (USER.88)
+ 0000:0000  Imp  ENDPAINT             (USER.40)
+ 0000:0000  Imp  FATALAPPEXIT         (KERNEL.137)
+ 0000:0000  Imp  FATALEXIT            (KERNEL.1)
+ 0000:0000  Imp  FREEPROCINSTANCE     (KERNEL.52)
+ 0000:0000  Imp  GETCURRENTTIME       (USER.15)
+ 0000:0000  Imp  GETDC                (USER.66)
+ 0000:0000  Imp  GETFOCUS             (USER.23)
+ 0000:0000  Imp  GETMESSAGE           (USER.108)
+ 0000:0000  Imp  GETSTOCKOBJECT       (GDI.87)
+ 0000:0000  Imp  GETTEXTMETRICS       (GDI.93)
+ 0000:0000  Imp  GLOBAL16POINTERALLOC (WINMEM32.5)
+ 0000:0000  Imp  GLOBAL16POINTERFREE  (WINMEM32.6)
+ 0000:0000  Imp  GLOBAL32ALLOC        (WINMEM32.2)
+ 0000:0000  Imp  GLOBAL32CODEALIAS    (WINMEM32.7)
+ 0000:0000  Imp  GLOBAL32CODEALIASFREE (WINMEM32.8)
+ 0000:0000  Imp  GLOBAL32FREE         (WINMEM32.4)
+ 0000:0000  Imp  GLOBALALLOC          (KERNEL.15)
+ 0000:0000  Imp  GLOBALFREE           (KERNEL.17)
+ 0000:0000  Imp  GLOBALREALLOC        (KERNEL.16)
+ 0000:0000  Imp  HIDECARET            (USER.166)
+ 0000:0000  Imp  INITAPP              (USER.5)
+ 0000:0000  Imp  INITTASK             (KERNEL.91)
+ 0000:0000  Imp  INVALIDATERECT       (USER.125)
+ 0000:0000  Imp  LOADCURSOR           (USER.173)
+ 0000:0000  Imp  LOADICON             (USER.174)
+ 0000:0000  Imp  LOCALALLOC           (KERNEL.5)
+ 0000:0000  Imp  LOCALFREE            (KERNEL.7)
+ 0000:0000  Imp  LOCALREALLOC         (KERNEL.6)
+ 0000:0000  Imp  LOCKSEGMENT          (KERNEL.23)
+ 0000:0000  Imp  LSTRCPY              (KERNEL.88)
+ 0000:0000  Imp  LSTRLEN              (KERNEL.90)
+ 0001:0588       MainWndProc
+ 0000:0000  Imp  MAKEPROCINSTANCE     (KERNEL.51)
+ 0000:0000  Imp  OPENFILE             (KERNEL.74)
+ 0000:0000  Imp  OUTPUTDEBUGSTRING    (KERNEL.115)
+ 0000:0008  Abs  pAtomTable
+ 0000:0000  Imp  PEEKMESSAGE          (USER.109)
+ 0000:0006  Abs  PLOCALHEAP
+ 0000:0000  Imp  POSTQUITMESSAGE      (USER.6)
+ 0000:000E  Abs  pStackBot
+ 0000:000C  Abs  pStackMin
+ 0000:000A  Abs  pStackTop
+ 0000:0000  Imp  REGISTERCLASS        (USER.57)
+ 0000:0000  Imp  RELEASEDC            (USER.68)
+ 0003:0004       rsrvptrs
+ 0000:0000  Imp  SCROLLWINDOW         (USER.61)
+ 0000:0000  Imp  SELECTOBJECT         (GDI.45)
+ 0000:0000  Imp  SENDMESSAGE          (USER.111)
+ 0000:0000  Imp  SETCARETPOS          (USER.165)
+ 0000:0000  Imp  SHOWCARET            (USER.167)
+ 0000:0000  Imp  SHOWWINDOW           (USER.42)
+ 0003:08D0       STKHQQ
+ 0000:0000  Imp  TEXTOUT              (GDI.33)
+ 0000:0000  Imp  THROW                (KERNEL.56)
+ 0000:0000  Imp  TRANSLATEMESSAGE     (USER.113)
+ 0000:0000  Imp  UNLOCKSEGMENT        (KERNEL.24)
+ 0000:0000  Imp  UPDATEWINDOW         (USER.124)
+ 0002:2000       Use32Stack
+ 0000:0000  Imp  VALIDATERECT         (USER.127)
+ 0000:0000  Imp  WAITEVENT            (KERNEL.30)
+ 0001:0010       WINMAIN
+ 0003:0E36       _amount_desired
+ 0001:1662       _apply_ml_fn
+ 0003:1A76       _arenabase
+ 0003:01A8       _arenasize
+ 0003:1A86       _arend
+ 0003:0124       _ArgRegMap
+ 0003:194A       _argv
+ 0003:0D60       _argvBuf
+ 0002:2AC4       _array_v
+ 0003:1A8C       _arstart
+ 0001:5580       _atol
+ 0001:39CE       _blast_write
+ 0002:2A80       _callc_v
+ 0001:1AC0       _callgc0
+ 0003:1A60       _CatchBuf
+ 0001:13EE       _chatting
+ 0001:2692       _check_gc_timer
+ 0001:1A24       _check_heap
+ 0001:5670       _chmod
+ 0003:0E3A       _ch_read
+ 0003:0194       _collected0
+ 0002:207C       _collected0_a
+ 0003:0196       _collectedfrom0
+ 0002:2084       _collectedfrom0_a
+ 0001:2462       _compute_new_size
+ 0001:055C       _console_io
+ 0001:04C6       _console_read
+ 0001:02A2       _console_write
+ 0001:0A3A       _copy_params
+ 0002:2B44       _create_b_v
+ 0002:2BBC       _create_s_v
+ 0003:00EA       _cstruct
+ 0002:22A4       _cstruct_a
+ 0003:0040       _curline
+ 0003:0198       _current0
+ 0002:208C       _current0_a
+ 0002:20D0       _currentsave_a
+ 0003:1A40       _cxBuffer
+ 0003:1A2E       _cxChar
+ 0003:1A42       _cxClient
+ 0003:1A56       _cyBuffer
+ 0003:1A36       _cyChar
+ 0003:1A58       _cyClient
+ 0002:2070       _datalist_a
+ 0001:2296       _decrease_heapsize
+ 0001:1384       _die
+ 0003:1A3C       _dwDataAlias
+ 0003:0D40       _edata
+ 0003:1A90       _end
+ 0001:0E40       _enroll
+ 0002:29F1       _enterUse32
+ 0003:091F       _environ
+ 0003:08F8       _errno
+ 0001:479B       _exit
+ 0003:0010       _exit_sml
+ 0003:1A72       _fault_exn
+ 0001:4CD2       _fflush
+ 0002:2C38       _floor_v
+ 0001:4D44       _flushall
+ 0001:020E       _FreeSegments
+ 0003:193E       _garbagetime
+ 0001:3EC6       _gc
+ 0003:019A       _gcmessages0
+ 0002:2094       _gcmessages0_a
+ 0002:2200       _gcprof_a
+ 0003:1972       _gt0
+ 0003:1946       _g_sec
+ 0003:1A32       _g_usec
+ 0002:2A48       _handle_c
+ 0003:0E34       _hInst
+ 0003:1A28       _hWnd
+ 0001:2346       _increase_heapsize
+ 0001:0084       _InitApplication
+ 0001:00EE       _InitInstance
+ 0001:0144       _InitSegments
+ 0001:027E       _init_buf
+ 0001:3B26       _init_externlist
+ 0001:1826       _init_gc
+ 0001:144A       _init_mlstate
+ 0001:5651       _isalnum
+ 0001:562E       _isalpha
+ 0001:29D6       _isatty
+ 0001:5660       _iscntrl
+ 0001:563D       _isdigit
+ 0003:00EC       _isExported
+ 0001:565B       _isgraph
+ 0001:5638       _islower
+ 0001:5656       _isprint
+ 0001:564C       _ispunct
+ 0001:5647       _isspace
+ 0001:5633       _isupper
+ 0001:5642       _isxdigit
+ 0003:0DE0       _lastbreak
+ 0000:0000  Imp  _LCLOSE              (KERNEL.81)
+ 0000:0000  Imp  _LLSEEK              (KERNEL.84)
+ 0002:2C9C       _logb_v
+ 0000:0000  Imp  _LREAD               (KERNEL.82)
+ 0001:5282       _lseek
+ 0000:0000  Imp  _LWRITE              (KERNEL.86)
+ 0002:2040       _machine_id_a
+ 0003:019C       _majorcollections0
+ 0002:209C       _majorcollections0_a
+ 0001:2940       _make_str_list
+ 0001:544C       _malloc
+ 0003:019E       _minorcollections0
+ 0002:20A4       _minorcollections0_a
+ 0003:0132       _MLState
+ 0002:2010       _MLState_a
+ 0001:374E       _ml_access
+ 0001:44A2       _ML_alloc
+ 0001:287A       _ML_alloc_string
+ 0001:4474       _ML_alloc_write
+ 0001:3944       _ml_argv
+ 0001:37EA       _ml_atime
+ 0001:39E4       _ml_blast_in
+ 0001:3986       _ml_blast_out
+ 0001:36A0       _ml_chmod
+ 0001:2C50       _ml_connect_inet
+ 0001:2C3A       _ml_connect_unix
+ 0001:3800       _ml_ctime
+ 0001:3AD0       _ml_enablesig
+ 0001:395A       _ml_environ
+ 0001:294C       _ML_eqstr
+ 0001:392E       _ml_exec
+ 0001:39FA       _ml_export
+ 0001:3892       _ml_fionread
+ 0001:3A8A       _ml_flush_icache
+ 0001:37D4       _ml_fsize
+ 0001:37A8       _ml_ftype
+ 0001:3A96       _ml_gc
+ 0001:35FA       _ml_getdirent
+ 0001:377C       _ml_getfid
+ 0001:3970       _ml_gethostname
+ 0001:3792       _ml_getmod
+ 0001:37BE       _ml_getownid
+ 0001:3B10       _ml_getstorelist
+ 0001:3A10       _ml_gettime
+ 0001:382C       _ml_isatty
+ 0001:2C66       _ml_link
+ 0001:3AF0       _ml_masksigs
+ 0001:3816       _ml_mtime
+ 0001:2B32       _ml_open
+ 0001:387C       _ml_pipe
+ 0001:2CBC       _ml_read
+ 0001:2EE6       _ml_readi
+ 0001:3610       _ml_readlink
+ 0001:3866       _ml_select
+ 0001:35E4       _ml_send_obd
+ 0001:3A74       _ml_setglobal
+ 0001:3A5E       _ml_setitimer
+ 0001:2A9A       _ml_syscall
+ 0001:3918       _ml_system
+ 0001:3A48       _ml_timeofday
+ 0001:3626       _ml_truncate
+ 0001:2C7C       _ml_wait_for_in
+ 0001:2C9C       _ml_wait_for_out
+ 0001:3298       _ml_write
+ 0001:330C       _ml_writei
+ 0001:3400       _ml_writev
+ 0001:459B       _moveback
+ 0003:1A44       _msg
+ 0001:0248       _msg_loop
+ 0002:205C       _never0_a
+ 0003:1A1E       _new_high
+ 0003:1A82       _new_new_high
+ 0003:01AC       _new_size
+ 0003:1A5E       _objcount
+ 0003:0DE4       _objtbl
+ 0003:1A38       _old_high
+ 0001:0EC6       _openread
+ 0003:01B0       _preserving
+ 0003:0EFE       _ps
+ 0003:01A0       _pstruct0
+ 0002:20AC       _pstruct0_a
+ 0001:131A       _quit
+ 0001:15D4       _raise_ml_exn
+ 0001:29F8       _raise_syserror
+ 0003:01A2       _ratio0
+ 0002:20B4       _ratio0_a
+ 0003:0042       _reading
+ 0001:42E9       _REC_ALLOC1
+ 0001:4322       _REC_ALLOC2
+ 0001:4365       _REC_ALLOC3
+ 0001:43B2       _REC_ALLOC4
+ 0001:4409       _REC_ALLOC6
+ 0001:42C6       _REC_SEL
+ 0003:1A8A       _request
+ 0001:27BC       _resettimers
+ 0001:1918       _restart_gc
+ 0001:1714       _restart_ml
+ 0001:4506       _restoreregs
+ 0002:2A64       _return_c
+ 0002:20D4       _roots_a
+ 0001:0B1A       _run
+ 0002:2CE6       _RUNCODE_END
+ 0002:2000       _RUNCODE_START
+ 0003:1A30       _runtime_seg
+ 0002:2CBC       _scalb_v
+ 0003:01A4       _sighandler0
+ 0002:20BC       _sighandler0_a
+ 0003:01A6       _softmax0
+ 0002:20C4       _softmax0_a
+ 0001:55D8       _sprintf
+ 0001:543A       _stackavail
+ 0001:267A       _start_gc_timer
+ 0001:2714       _stop_gc_timer
+ 0003:01B2       _store_preserve
+ 0002:20CC       _store_preserve_a
+ 0003:0362       _string0
+ 0002:2054       _string0_a
+ 0001:44D1       _stringcompare
+ 0001:5564       _strlen
+ 0002:229C       _syserror_id0_a
+ 0003:0BF8       _sys_errlist
+ 0003:0C44       _sys_nerr
+ 0003:1A24       _s_sec
+ 0003:1A7A       _s_usec
+ 0001:27D6       _timer
+ 0003:0E3C       _tm
+ 0003:1A2A       _t_sec
+ 0003:1A7E       _t_usec
+ 0001:2B0E       _unixtodos
+ 0003:1A5A       _Use32HeapSize
+ 0003:0F1E       _winBuffer
+ 0001:52FC       _write
+ 0003:0E5C       _wsUse32Code
+ 0003:1A22       _wsUse32Data
+ 0003:197A       _xCaret
+ 0003:1A1C       _yCaret
+ 0003:0930       __aaltstkovr
+ 0003:08DC       __acfinfo
+ 0000:9876  Abs  __acrtmsg
+ 0000:9876  Abs  __acrtused
+ 0000:9876  Abs  __acrtused2
+ 0000:D6D6  Abs  __aDBdoswp
+ 0003:092E       __adbgmsg
+ 0003:0C5A       __aDBrterr
+ 0001:487A       __aFchkstk
+ 0003:08EA       __aintdiv
+ 0003:09AE       __amblksiz
+ 0001:4ABF       __amsg_exit
+ 0001:485A       __aNchkstk
+ 0001:5694       __aNldiv
+ 0001:572E       __aNlmul
+ 0001:5760       __aNuldiv
+ 0001:572E       __aNulmul
+ 0001:57C0       __aNulrem
+ 0003:09C0       __asizeC
+ 0003:09C1       __asizeD
+ 0001:4681       __astart
+ 0003:0C6C       __caption
+ 0001:5584       __catox
+ 0001:47AA       __cexit
+ 0003:09B0       __cfltcvt_tab
+ 0003:0948       __cflush
+ 0003:0926       __child
+ 0001:485A       __chkstk
+ 0001:46EE       __cinit
+ 0001:4ABA       __cintDIV
+ 0001:4804       __ctermsub
+ 0003:09C2       __ctype
+ 0003:09C2       __ctype_
+ 0001:47B4       __c_exit
+ 0003:0903       __doserrno
+ 0001:4B5A       __dosret0
+ 0001:4B6F       __dosretax
+ 0001:4B62       __dosreturn
+ 0003:0900       __dosvermajor
+ 0003:0901       __dosverminor
+ 0001:47A2       __exit
+ 0003:08EE       __fac
+ 0001:54C4       __ffree
+ 0001:4BB0       __flsbuf
+ 0001:549A       __fmalloc
+ 0003:0C48       __fpinit
+ 0000:9876  Abs  __fptaskdata
+ 0001:4854       __fptrap
+ 0001:5524       __frealloc
+ 0001:4C90       __getbuf
+ 0003:0929       __intno
+ 0003:197C       __iob
+ 0003:0E5E       __iob2
+ 0003:094A       __lastiob
+ 0001:4B7C       __maperror
+ 0001:4B2E       __myalloc
+ 0003:0905       __nfile
+ 0001:548A       __nfree
+ 0001:5450       __nmalloc
+ 0001:4ADC       __NMSG_TEXT
+ 0001:4B07       __NMSG_WRITE
+ 0001:54D4       __nrealloc
+ 0003:0903       __oserr
+ 0003:0907       __osfile
+ 0003:0900       __osmajor
+ 0003:0901       __osminor
+ 0003:0902       __osmode
+ 0003:0900       __osversion
+ 0001:4DAC       __output
+ 0003:0928       __ovlflag
+ 0003:092A       __ovlvec
+ 0003:0921       __pgmptr
+ 0003:08FE       __psp
+ 0003:08FC       __pspadr
+ 0001:48AE       __setargv
+ 0001:4A3C       __setenvp
+ 0003:09BE       __sigintoff
+ 0003:09BC       __sigintseg
+ 0003:08FA       __umaskval
+ 0003:0C5C       ___aDBexit
+ 0003:0C58       ___aDBswpchk
+ 0003:0C56       ___aDBswpflg
+ 0003:091B       ___argc
+ 0003:091D       ___argv
+ 0003:0C62       ___qczrinit
+
+  Address         Publics by Value
+
+ 0000:0000  Imp  OUTPUTDEBUGSTRING    (KERNEL.115)
+ 0000:0000  Imp  GLOBAL16POINTERFREE  (WINMEM32.6)
+ 0000:0000  Imp  GLOBALREALLOC        (KERNEL.16)
+ 0000:0000  Imp  LSTRLEN              (KERNEL.90)
+ 0000:0000  Imp  CREATECARET          (USER.163)
+ 0000:0000  Imp  VALIDATERECT         (USER.127)
+ 0000:0000  Imp  DEFWINDOWPROC        (USER.107)
+ 0000:0000  Imp  OPENFILE             (KERNEL.74)
+ 0000:0000  Imp  SHOWWINDOW           (USER.42)
+ 0000:0000  Imp  ENDDIALOG            (USER.88)
+ 0000:0000  Imp  LOCALREALLOC         (KERNEL.6)
+ 0000:0000  Imp  GETMESSAGE           (USER.108)
+ 0000:0000  Imp  _LREAD               (KERNEL.82)
+ 0000:0000  Imp  THROW                (KERNEL.56)
+ 0000:0000  Imp  SHOWCARET            (USER.167)
+ 0000:0000  Imp  GLOBAL32ALLOC        (WINMEM32.2)
+ 0000:0000  Imp  GLOBAL32CODEALIASFREE (WINMEM32.8)
+ 0000:0000  Imp  TEXTOUT              (GDI.33)
+ 0000:0000  Imp  _LCLOSE              (KERNEL.81)
+ 0000:0000  Imp  TRANSLATEMESSAGE     (USER.113)
+ 0000:0000  Imp  LSTRCPY              (KERNEL.88)
+ 0000:0000  Imp  LOCALALLOC           (KERNEL.5)
+ 0000:0000  Imp  GETFOCUS             (USER.23)
+ 0000:0000  Imp  GLOBALALLOC          (KERNEL.15)
+ 0000:0000  Imp  UPDATEWINDOW         (USER.124)
+ 0000:0000  Imp  FATALAPPEXIT         (KERNEL.137)
+ 0000:0000  Imp  _LWRITE              (KERNEL.86)
+ 0000:0000  Imp  DESTROYCARET         (USER.164)
+ 0000:0000  Imp  ENDPAINT             (USER.40)
+ 0000:0000  Imp  INVALIDATERECT       (USER.125)
+ 0000:0000  Imp  LOCKSEGMENT          (KERNEL.23)
+ 0000:0000  Imp  PEEKMESSAGE          (USER.109)
+ 0000:0000  Imp  GLOBALFREE           (KERNEL.17)
+ 0000:0000  Imp  GLOBAL32CODEALIAS    (WINMEM32.7)
+ 0000:0000  Imp  GETTEXTMETRICS       (GDI.93)
+ 0000:0000  Imp  GETSTOCKOBJECT       (GDI.87)
+ 0000:0000  Imp  SELECTOBJECT         (GDI.45)
+ 0000:0000  Imp  SENDMESSAGE          (USER.111)
+ 0000:0000  Imp  WAITEVENT            (KERNEL.30)
+ 0000:0000  Imp  SCROLLWINDOW         (USER.61)
+ 0000:0000  Imp  BEGINPAINT           (USER.39)
+ 0000:0000  Imp  CREATEWINDOW         (USER.41)
+ 0000:0000  Imp  INITAPP              (USER.5)
+ 0000:0000  Imp  UNLOCKSEGMENT        (KERNEL.24)
+ 0000:0000  Imp  DISPATCHMESSAGE      (USER.114)
+ 0000:0000  Imp  REGISTERCLASS        (USER.57)
+ 0000:0000  Imp  LOADCURSOR           (USER.173)
+ 0000:0000  Imp  INITTASK             (KERNEL.91)
+ 0000:0000  Imp  SETCARETPOS          (USER.165)
+ 0000:0000  Imp  LOADICON             (USER.174)
+ 0000:0000  Imp  GLOBAL16POINTERALLOC (WINMEM32.5)
+ 0000:0000  Imp  CATCH                (KERNEL.55)
+ 0000:0000  Imp  LOCALFREE            (KERNEL.7)
+ 0000:0000  Imp  GLOBAL32FREE         (WINMEM32.4)
+ 0000:0000  Imp  FREEPROCINSTANCE     (KERNEL.52)
+ 0000:0000  Imp  _LLSEEK              (KERNEL.84)
+ 0000:0000  Imp  RELEASEDC            (USER.68)
+ 0000:0000  Imp  GETCURRENTTIME       (USER.15)
+ 0000:0000  Imp  POSTQUITMESSAGE      (USER.6)
+ 0000:0000  Imp  DIALOGBOX            (USER.87)
+ 0000:0000  Imp  MAKEPROCINSTANCE     (KERNEL.51)
+ 0000:0000  Imp  HIDECARET            (USER.166)
+ 0000:0000  Imp  FATALEXIT            (KERNEL.1)
+ 0000:0000  Imp  GETDC                (USER.66)
+ 0000:0006  Abs  PLOCALHEAP
+ 0000:0008  Abs  pAtomTable
+ 0000:000A  Abs  pStackTop
+ 0000:000C  Abs  pStackMin
+ 0000:000E  Abs  pStackBot
+ 0000:9876  Abs  __acrtused2
+ 0000:9876  Abs  __acrtused
+ 0000:9876  Abs  __acrtmsg
+ 0000:9876  Abs  __fptaskdata
+ 0000:D6D6  Abs  __aDBdoswp
+ 0001:0010       WINMAIN
+ 0001:0084       _InitApplication
+ 0001:00EE       _InitInstance
+ 0001:0144       _InitSegments
+ 0001:020E       _FreeSegments
+ 0001:0248       _msg_loop
+ 0001:027E       _init_buf
+ 0001:02A2       _console_write
+ 0001:04C6       _console_read
+ 0001:055C       _console_io
+ 0001:0588       MainWndProc
+ 0001:09F6       About
+ 0001:0A3A       _copy_params
+ 0001:0B1A       _run
+ 0001:0E40       _enroll
+ 0001:0EC6       _openread
+ 0001:131A       _quit
+ 0001:1384       _die
+ 0001:13EE       _chatting
+ 0001:144A       _init_mlstate
+ 0001:15D4       _raise_ml_exn
+ 0001:1662       _apply_ml_fn
+ 0001:1714       _restart_ml
+ 0001:1826       _init_gc
+ 0001:1918       _restart_gc
+ 0001:1A24       _check_heap
+ 0001:1AC0       _callgc0
+ 0001:2296       _decrease_heapsize
+ 0001:2346       _increase_heapsize
+ 0001:2462       _compute_new_size
+ 0001:267A       _start_gc_timer
+ 0001:2692       _check_gc_timer
+ 0001:2714       _stop_gc_timer
+ 0001:27BC       _resettimers
+ 0001:27D6       _timer
+ 0001:287A       _ML_alloc_string
+ 0001:2940       _make_str_list
+ 0001:294C       _ML_eqstr
+ 0001:29D6       _isatty
+ 0001:29F8       _raise_syserror
+ 0001:2A9A       _ml_syscall
+ 0001:2B0E       _unixtodos
+ 0001:2B32       _ml_open
+ 0001:2C3A       _ml_connect_unix
+ 0001:2C50       _ml_connect_inet
+ 0001:2C66       _ml_link
+ 0001:2C7C       _ml_wait_for_in
+ 0001:2C9C       _ml_wait_for_out
+ 0001:2CBC       _ml_read
+ 0001:2EE6       _ml_readi
+ 0001:3298       _ml_write
+ 0001:330C       _ml_writei
+ 0001:3400       _ml_writev
+ 0001:35E4       _ml_send_obd
+ 0001:35FA       _ml_getdirent
+ 0001:3610       _ml_readlink
+ 0001:3626       _ml_truncate
+ 0001:36A0       _ml_chmod
+ 0001:374E       _ml_access
+ 0001:377C       _ml_getfid
+ 0001:3792       _ml_getmod
+ 0001:37A8       _ml_ftype
+ 0001:37BE       _ml_getownid
+ 0001:37D4       _ml_fsize
+ 0001:37EA       _ml_atime
+ 0001:3800       _ml_ctime
+ 0001:3816       _ml_mtime
+ 0001:382C       _ml_isatty
+ 0001:3866       _ml_select
+ 0001:387C       _ml_pipe
+ 0001:3892       _ml_fionread
+ 0001:3918       _ml_system
+ 0001:392E       _ml_exec
+ 0001:3944       _ml_argv
+ 0001:395A       _ml_environ
+ 0001:3970       _ml_gethostname
+ 0001:3986       _ml_blast_out
+ 0001:39CE       _blast_write
+ 0001:39E4       _ml_blast_in
+ 0001:39FA       _ml_export
+ 0001:3A10       _ml_gettime
+ 0001:3A48       _ml_timeofday
+ 0001:3A5E       _ml_setitimer
+ 0001:3A74       _ml_setglobal
+ 0001:3A8A       _ml_flush_icache
+ 0001:3A96       _ml_gc
+ 0001:3AD0       _ml_enablesig
+ 0001:3AF0       _ml_masksigs
+ 0001:3B10       _ml_getstorelist
+ 0001:3B26       _init_externlist
+ 0001:3EC6       _gc
+ 0001:42C6       _REC_SEL
+ 0001:42E9       _REC_ALLOC1
+ 0001:4322       _REC_ALLOC2
+ 0001:4365       _REC_ALLOC3
+ 0001:43B2       _REC_ALLOC4
+ 0001:4409       _REC_ALLOC6
+ 0001:4474       _ML_alloc_write
+ 0001:44A2       _ML_alloc
+ 0001:44D1       _stringcompare
+ 0001:4506       _restoreregs
+ 0001:459B       _moveback
+ 0001:4681       __astart
+ 0001:46EE       __cinit
+ 0001:479B       _exit
+ 0001:47A2       __exit
+ 0001:47AA       __cexit
+ 0001:47B4       __c_exit
+ 0001:4804       __ctermsub
+ 0001:4854       __fptrap
+ 0001:485A       __chkstk
+ 0001:485A       __aNchkstk
+ 0001:487A       __aFchkstk
+ 0001:48AE       __setargv
+ 0001:4A3C       __setenvp
+ 0001:4ABA       __cintDIV
+ 0001:4ABF       __amsg_exit
+ 0001:4ADC       __NMSG_TEXT
+ 0001:4B07       __NMSG_WRITE
+ 0001:4B2E       __myalloc
+ 0001:4B5A       __dosret0
+ 0001:4B62       __dosreturn
+ 0001:4B6F       __dosretax
+ 0001:4B7C       __maperror
+ 0001:4BB0       __flsbuf
+ 0001:4C90       __getbuf
+ 0001:4CD2       _fflush
+ 0001:4D44       _flushall
+ 0001:4DAC       __output
+ 0001:5282       _lseek
+ 0001:52FC       _write
+ 0001:543A       _stackavail
+ 0001:544C       _malloc
+ 0001:5450       __nmalloc
+ 0001:548A       __nfree
+ 0001:549A       __fmalloc
+ 0001:54C4       __ffree
+ 0001:54D4       __nrealloc
+ 0001:5524       __frealloc
+ 0001:5564       _strlen
+ 0001:5580       _atol
+ 0001:5584       __catox
+ 0001:55D8       _sprintf
+ 0001:562E       _isalpha
+ 0001:5633       _isupper
+ 0001:5638       _islower
+ 0001:563D       _isdigit
+ 0001:5642       _isxdigit
+ 0001:5647       _isspace
+ 0001:564C       _ispunct
+ 0001:5651       _isalnum
+ 0001:5656       _isprint
+ 0001:565B       _isgraph
+ 0001:5660       _iscntrl
+ 0001:5670       _chmod
+ 0001:5694       __aNldiv
+ 0001:572E       __aNlmul
+ 0001:572E       __aNulmul
+ 0001:5760       __aNuldiv
+ 0001:57C0       __aNulrem
+ 0002:2000       _RUNCODE_START
+ 0002:2000       Use32Stack
+ 0002:2010       _MLState_a
+ 0002:2040       _machine_id_a
+ 0002:2054       _string0_a
+ 0002:205C       _never0_a
+ 0002:2070       _datalist_a
+ 0002:207C       _collected0_a
+ 0002:2084       _collectedfrom0_a
+ 0002:208C       _current0_a
+ 0002:2094       _gcmessages0_a
+ 0002:209C       _majorcollections0_a
+ 0002:20A4       _minorcollections0_a
+ 0002:20AC       _pstruct0_a
+ 0002:20B4       _ratio0_a
+ 0002:20BC       _sighandler0_a
+ 0002:20C4       _softmax0_a
+ 0002:20CC       _store_preserve_a
+ 0002:20D0       _currentsave_a
+ 0002:20D4       _roots_a
+ 0002:2200       _gcprof_a
+ 0002:229C       _syserror_id0_a
+ 0002:22A4       _cstruct_a
+ 0002:29F1       _enterUse32
+ 0002:2A48       _handle_c
+ 0002:2A64       _return_c
+ 0002:2A80       _callc_v
+ 0002:2AC4       _array_v
+ 0002:2B44       _create_b_v
+ 0002:2BBC       _create_s_v
+ 0002:2C38       _floor_v
+ 0002:2C9C       _logb_v
+ 0002:2CBC       _scalb_v
+ 0002:2CE6       _RUNCODE_END
+ 0003:0004       rsrvptrs
+ 0003:0010       _exit_sml
+ 0003:0040       _curline
+ 0003:0042       _reading
+ 0003:00EA       _cstruct
+ 0003:00EC       _isExported
+ 0003:0124       _ArgRegMap
+ 0003:0132       _MLState
+ 0003:0194       _collected0
+ 0003:0196       _collectedfrom0
+ 0003:0198       _current0
+ 0003:019A       _gcmessages0
+ 0003:019C       _majorcollections0
+ 0003:019E       _minorcollections0
+ 0003:01A0       _pstruct0
+ 0003:01A2       _ratio0
+ 0003:01A4       _sighandler0
+ 0003:01A6       _softmax0
+ 0003:01A8       _arenasize
+ 0003:01AC       _new_size
+ 0003:01B0       _preserving
+ 0003:01B2       _store_preserve
+ 0003:0362       _string0
+ 0003:08D0       STKHQQ
+ 0003:08DC       __acfinfo
+ 0003:08EA       __aintdiv
+ 0003:08EE       __fac
+ 0003:08F8       _errno
+ 0003:08FA       __umaskval
+ 0003:08FC       __pspadr
+ 0003:08FE       __psp
+ 0003:0900       __osversion
+ 0003:0900       __osmajor
+ 0003:0900       __dosvermajor
+ 0003:0901       __dosverminor
+ 0003:0901       __osminor
+ 0003:0902       __osmode
+ 0003:0903       __oserr
+ 0003:0903       __doserrno
+ 0003:0905       __nfile
+ 0003:0907       __osfile
+ 0003:091B       ___argc
+ 0003:091D       ___argv
+ 0003:091F       _environ
+ 0003:0921       __pgmptr
+ 0003:0926       __child
+ 0003:0928       __ovlflag
+ 0003:0929       __intno
+ 0003:092A       __ovlvec
+ 0003:092E       __adbgmsg
+ 0003:0930       __aaltstkovr
+ 0003:0948       __cflush
+ 0003:094A       __lastiob
+ 0003:09AE       __amblksiz
+ 0003:09B0       __cfltcvt_tab
+ 0003:09BC       __sigintseg
+ 0003:09BE       __sigintoff
+ 0003:09C0       __asizeC
+ 0003:09C1       __asizeD
+ 0003:09C2       __ctype
+ 0003:09C2       __ctype_
+ 0003:0BF8       _sys_errlist
+ 0003:0C44       _sys_nerr
+ 0003:0C48       __fpinit
+ 0003:0C56       ___aDBswpflg
+ 0003:0C58       ___aDBswpchk
+ 0003:0C5A       __aDBrterr
+ 0003:0C5C       ___aDBexit
+ 0003:0C62       ___qczrinit
+ 0003:0C6C       __caption
+ 0003:0D40       _edata
+ 0003:0D60       _argvBuf
+ 0003:0DE0       _lastbreak
+ 0003:0DE4       _objtbl
+ 0003:0E34       _hInst
+ 0003:0E36       _amount_desired
+ 0003:0E3A       _ch_read
+ 0003:0E3C       _tm
+ 0003:0E5C       _wsUse32Code
+ 0003:0E5E       __iob2
+ 0003:0EFE       _ps
+ 0003:0F1E       _winBuffer
+ 0003:193E       _garbagetime
+ 0003:1946       _g_sec
+ 0003:194A       _argv
+ 0003:1972       _gt0
+ 0003:197A       _xCaret
+ 0003:197C       __iob
+ 0003:1A1C       _yCaret
+ 0003:1A1E       _new_high
+ 0003:1A22       _wsUse32Data
+ 0003:1A24       _s_sec
+ 0003:1A28       _hWnd
+ 0003:1A2A       _t_sec
+ 0003:1A2E       _cxChar
+ 0003:1A30       _runtime_seg
+ 0003:1A32       _g_usec
+ 0003:1A36       _cyChar
+ 0003:1A38       _old_high
+ 0003:1A3C       _dwDataAlias
+ 0003:1A40       _cxBuffer
+ 0003:1A42       _cxClient
+ 0003:1A44       _msg
+ 0003:1A56       _cyBuffer
+ 0003:1A58       _cyClient
+ 0003:1A5A       _Use32HeapSize
+ 0003:1A5E       _objcount
+ 0003:1A60       _CatchBuf
+ 0003:1A72       _fault_exn
+ 0003:1A76       _arenabase
+ 0003:1A7A       _s_usec
+ 0003:1A7E       _t_usec
+ 0003:1A82       _new_new_high
+ 0003:1A86       _arend
+ 0003:1A8A       _request
+ 0003:1A8C       _arstart
+ 0003:1A90       _end
+
+Program entry point at 0001:4681

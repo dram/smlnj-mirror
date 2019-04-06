@@ -1,0 +1,36 @@
+14a15
+> #include "prim.h"
+25c26
+< #ifdef M68
+---
+> #if defined(M68) || defined(C)
+102a104
+> #if (!defined(C))
+104a107
+> #endif
+114c117
+< #ifdef M68
+---
+> #if defined(M68) || defined(C)
+131a135
+> #if (!defined(C))
+132a137,139
+> #else
+>     argname = ML_alloc_string("bogus");
+> #endif
+190d196
+<     extern int	    datalist[];
+193c199
+<     for (d = PTR_CtoML(datalist);  d != MOLST_nil;  d = MOLST_next(d)) {
+---
+>     for (d = PTR_CtoML(datalist+1);  d != MOLST_nil;  d = MOLST_next(d)) {
+251a258
+> #if (!defined(C))
+256d262
+< 
+257a264,268
+> #else
+> 	p = openread(buf);
+> 	REC_ALLOC1(p, PTR_CtoML(p))
+> 	p = apply_ml_fn (p, ML_unit);
+> #endif

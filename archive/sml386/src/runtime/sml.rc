@@ -1,0 +1,20 @@
+#include "windows.h"
+#include "sml.h"
+
+SmlMenu MENU
+BEGIN
+    POPUP        "&Help"
+    BEGIN
+        MENUITEM "&About Sml...", IDM_ABOUT
+    END
+END
+
+AboutBox DIALOG 22, 17, 144, 75
+STYLE DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+CAPTION "Standard ML"
+BEGIN
+    CTEXT "D.T.H."                -1,       0,  5, 144,  8
+    CTEXT "Sml compiler"          -1,       0, 14, 144,  8
+    CTEXT "Version 1.0"           -1,       0, 34, 144,  8
+    DEFPUSHBUTTON "OK"          IDOK,      53, 59,  32, 14,      WS_GROUP
+END

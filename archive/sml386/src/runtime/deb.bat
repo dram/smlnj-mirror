@@ -1,0 +1,1 @@
+wdeb386 /S:\tools\windev\debug\krnl386.sym /s:\sml\sml.sym \windows\win.com /3 \sml\sml.exe Int386

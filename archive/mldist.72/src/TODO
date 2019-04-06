@@ -1,0 +1,12 @@
+Immediate
+---------
+1. get debugger to work
+3. change stamps so that the implementation of FREE and BOUND stamps
+   are completely independent of each other; check that we've changed
+   abstractfct.sml to avoid depending on current implementation
+3. add code to implement OPEN
+
+Intermediate
+------------
+1. printing functor signatures
+

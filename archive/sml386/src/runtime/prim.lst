@@ -1,0 +1,1808 @@
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-1
+
+
+       1				;**************************************
+					*********************************
+       2				; prim.asm
+       3				;
+       4				; Copyright (c) 1991 by:    Department 
+					of Computer Science
+       5				;			    The Technic
+					al University of Denmark
+       6				;			    DK-2800 Lyn
+					gby
+       7				;
+       8				; 19 Dec. 1991	    Yngvi Skaalum Gutte
+					sen	ysg@id.dth.dk
+       9				;
+      10				; This file contains the parts of the r
+					untime system which has to
+      11				; be located in the same address space 
+					as the compiled ML code. Also
+      12				; some utility functions which are call
+					ed directly from ML are located here.
+      13				
+      14				    .386p
+      15				    .387
+      16				
+      17 0000				_DATA       segment word public use16 '
+					DATA'
+      18				; this is the C data segment
+      19 0000				_DATA       ends
+      20				
+      21 0000				_TEXT       segment word public use16 '
+					CODE'
+      22				; this is the C code segment
+      23 0000				_TEXT       ends
+      24				
+      25				
+      26 0000				_RUNCODE    segment word public use32 '
+					CODE'
+      27				; this is the SML use32 code/dada segme
+					nt
+      28 0000				_RUNCODE    ends
+      29				
+      30				
+      31				include tags.inc
+      32			     C	;**************************************
+					***********************************
+      33			     C	; tags.inc
+      34			     C	;
+      35			     C	; 10/4/91   Yngvi Skaalum Guttesen
+      36			     C	;
+      37			     C	; This file has a corresponding ML stru
+					cture tags embedded in structure
+      38			     C	; Boot in the file boot\perv.sml
+      39			     C	
+      40			     C	IFNDEF _TAGS_
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-2
+
+
+      41			     C	
+      42 = 0001                      C	_TAGS   equ 1
+      43			     C	
+      44			     C	include globdefn.inc
+      45			     C	;**************************************
+					***********************************
+      46			     C	; globdefn.inc
+      47			     C	;
+      48			     C	; 10/4/91   Yngvi Skaalum Guttesen
+      49			     C	;
+      50			     C	
+      51			     C	
+      52 = 0004                      C	width_tags      equ     4
+      53 = 0010                      C	power_tags      equ    16
+      54 = 0001                      C	tag_record      equ     1   ; 0001
+      55 = 0009                      C	tag_array       equ     9   ; 1001
+      56 = 000B                      C	tag_bytearray   equ    11   ; 1011
+      57 = 000F                      C	tag_string      equ    15   ; 1111
+      58 = 0007                      C	tag_embedde     equ     7   ; 0111
+      59 = 000D                      C	tag_suspension  equ    13   ; 1101
+      60 = 0005                      C	tag_backptr     equ     5   ; 0101
+      61 = 0003                      C	tag_forwarded   equ     3   ; 0011
+      62			     C	
+      63 = 000F                      C	mask_tags       equ     power_tags-1
+      64			     C	
+      65			     C	;--------------------------------------
+					-----------------------------------
+      66			     C	; #define contains_no_ptrs(x) ((x)&2)
+      67			     C	
+      68			     C	contains_no_ptrs    MACRO x         ; Z
+					ero if x contains pointers
+      69			     C	    test        x,2
+      70			     C	    ENDM
+      71			     C	
+      72			     C	;--------------------------------------
+					-----------------------------------
+      73			     C	; #define is_ptr(x)   (!((int)(x)&1))
+      74			     C	
+      75			     C	is_ptr          MACRO x             ; Z
+					ero if x is a pointer
+      76			     C	    test        x,1
+      77			     C	    ENDM
+      78			     C	
+      79			     C	;--------------------------------------
+					-----------------------------------
+      80			     C	; #define get_len(x)    ( * (int *) (x)
+					 >> width_tags)
+      81			     C	
+      82			     C	get_len     MACRO x,y               ;; 
+					Returns the length of record in x
+      83			     C	    mov     x,[y]                   ;; 
+					pointet to by y. y points to the
+      84			     C	    shr     x,width_tags            ;; 
+					tag of the record
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-3
+
+
+      85			     C	    ENDM                            ;; 
+					x and y must be registers !
+      86			     C	
+      87			     C	;--------------------------------------
+					-----------------------------------
+      88			     C	; #define get_lenz(x)
+      89			     C	;       ((((* (int*) (x)) & mask_tags)=
+					=tag_suspension) ? 1 : get_len(x))
+      90			     C	
+      91			     C	get_lenz    MACRO x,y               ;; 
+					Returns the length of record in x
+      92			     C	    local   L1, L2                  ;; 
+					pointet to by y. y points to the
+      93			     C	    mov     tmp,[y]                 ;; 
+					tag of the record. If the tag is
+      94			     C	    and     tmp,mask_tags           ;; 
+					tag_suspension x=1.
+      95			     C	    cmp     tmp,tag_suspension      ;; 
+					x and y must be registers !
+      96			     C	    je      L1
+      97			     C	    get_len x,y
+      98			     C	    jmp     L2
+      99			     C	L1:
+     100			     C	    mov     x,1
+     101			     C	L2:
+     102			     C	    ENDM
+     103			     C	
+     104			     C	;--------------------------------------
+					-----------------------------------
+     105			     C	; #define get_strlen(x) ((( * (int *) (
+					x) >> width_tags) + 3)/4)
+     106			     C	
+     107			     C	get_strlen  MACRO x,y       ;; x = stri
+					nglength in dwords rounded up to 4
+     108			     C	    mov     x,[y]           ;; x and y 
+					must be registers
+     109			     C	    sar     x,width_tags
+     110			     C	    add     x,3
+     111			     C	    sar     x,2
+     112			     C	    ENDM
+     113			     C	
+     114			     C	;--------------------------------------
+					-----------------------------------
+     115			     C	; #define get_tag(x) ( * (int *) (x) & 
+					mask_tags)
+     116			     C	
+     117			     C	get_tag     MACRO x,y       ;; set x to
+					 the tags of the descriptor pointed
+     118			     C	    mov     x,[y]           ;; to by y
+     119			     C	    and     x,mask_tags     ;; x and y 
+					must be registers
+     120			     C	    ENDM
+     121			     C	
+     122			     C	
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-4
+
+
+     123			     C	
+     124			     C	;--------------------------------------
+					-----------------------------------
+     125			     C	; #define MAKE_DESC(l,t) ((l)*power_tag
+					s+(t))
+     126			     C	
+     127			     C	MAKE_DESC   MACRO   l,t
+     128			     C	    l*power_tags+t
+     129			     C	    ENDM
+     130			     C	
+     131			     C	
+     132			     C	ENDIF
+     133				include request.inc
+     134			     C	;request.inc
+     135			     C	;
+     136			     C	;COPYRIGHT (c) 1990 by AT&T Bell Labora
+					tories.
+     137			     C	;
+     138			     C	;These are the request codes for contro
+					lling the run_ml() loop.
+     139			     C	
+     140 = 0000                      C	REQ_RETURN      EQU 0
+     141 = 0001                      C	REQ_EXN         EQU 1
+     142 = 0002                      C	REQ_FAULT       EQU 2
+     143 = 0003                      C	REQ_GC1         EQU 3
+     144 = 0004                      C	REQ_CALLC       EQU 4
+     145 = 0005                      C	REQ_SIGNAL      EQU 5
+     146 = 0006                      C	REQ_SIG_RETURN  EQU 6
+     147 = 0007                      C	REQ_SIG_RESUME  EQU 7
+     148 = 0008                      C	REQ_SIG_RAISE   EQU 8
+     149 = 0009                      C	REQ_GC2         EQU 9
+     150 = 000A                      C	REQ_GC3         EQU 10
+     151				
+     152				
+     153 0000				_DATA   segment
+     154				
+     155				    EXTRN _request   : WORD
+     156				    EXTRN _fault_exn : WORD
+     157				
+     158 0000				_DATA   ends
+     159				
+     160 0000				_TEXT	segment word public use16 'CODE
+					'
+     161				
+     162				; the c library functions
+     163				
+     164				        EXTRN   _ml_syscall:FAR
+     165				        EXTRN   _ml_open:FAR
+     166				        EXTRN   _ml_connect_unix:FAR
+     167				        EXTRN   _ml_connect_inet:FAR
+     168				        EXTRN   _ml_link:FAR
+     169				        EXTRN   _ml_wait_for_in:FAR
+     170				        EXTRN   _ml_wait_for_out:FAR
+     171				        EXTRN   _ml_read:FAR
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-5
+
+
+     172				        EXTRN   _ml_readi:FAR
+     173				        EXTRN   _ml_write:FAR
+     174				        EXTRN   _ml_writei:FAR
+     175				        EXTRN   _ml_writev:FAR
+     176				        EXTRN   _ml_send_obd:FAR
+     177				        EXTRN   _ml_getdirent:FAR
+     178				        EXTRN   _ml_readlink:FAR
+     179				        EXTRN   _ml_truncate:FAR
+     180				        EXTRN   _ml_chmod:FAR
+     181				        EXTRN   _ml_access:FAR
+     182				        EXTRN   _ml_getfid:FAR
+     183				        EXTRN   _ml_getmod:FAR
+     184				        EXTRN   _ml_ftype:FAR
+     185				        EXTRN   _ml_getownid:FAR
+     186				        EXTRN   _ml_fsize:FAR
+     187				        EXTRN   _ml_atime:FAR
+     188				        EXTRN   _ml_ctime:FAR
+     189				        EXTRN   _ml_mtime:FAR
+     190				        EXTRN   _ml_isatty:FAR
+     191				        EXTRN   _ml_select:FAR
+     192				        EXTRN   _ml_pipe:FAR
+     193				        EXTRN   _ml_fionread:FAR
+     194				        EXTRN   _ml_system:FAR
+     195				        EXTRN   _ml_exec:FAR
+     196				        EXTRN   _ml_argv:FAR
+     197				        EXTRN   _ml_environ:FAR
+     198				        EXTRN   _ml_gethostname:FAR
+     199				        EXTRN   _ml_blast_out:FAR
+     200				        EXTRN   _ml_blast_in:FAR
+     201				        EXTRN   _ml_export:FAR
+     202				        EXTRN   _ml_gettime:FAR
+     203				        EXTRN   _ml_timeofday:FAR
+     204				        EXTRN   _ml_setitimer:FAR
+     205				        EXTRN   _ml_setglobal:FAR
+     206				        EXTRN   _ml_flush_icache:FAR
+     207				        EXTRN   _ml_gc:FAR
+     208				        EXTRN   _ml_enablesig:FAR
+     209				        EXTRN   _ml_masksigs:FAR
+     210				        EXTRN   _ml_getstorelist:FAR
+     211				
+     212 0000				_TEXT   ends
+     213				
+     214 0000				_RUNCODE    segment
+     215				
+     216				    assume  CS:_RUNCODE, DS:_RUNCODE, E
+					S:_RUNCODE, SS:_RUNCODE
+     217				    assume  GS:_DATA, FS:_TEXT
+     218				
+     219				    public  _RUNCODE_START, _RUNCODE_EN
+					D
+     220				
+     221 2000				    ORG 8192
+     222				
+     223 2000				_RUNCODE_START  LABEL   DWORD
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-6
+
+
+     224				
+     225				; register usage
+     226				; eax = temp1
+     227				; ecx = temp2
+     228				; ebx = general purpose regs    (ml_roo
+					ts[1])
+     229				; edx = general purpose regs    (ml_roo
+					ts[2])
+     230				; esi = general purpose regs    (ml_roo
+					ts[4])
+     231				; ebp = general purpose regs    (ml_roo
+					ts[5])
+     232				; edi = allocptr
+     233				
+     234 = ebx				misc1_reg   EQU <ebx>
+     235 = edx				misc2_reg   EQU <edx>
+     236 = esi				misc3_reg   EQU <esi>
+     237 = ebp				misc4_reg   EQU <ebp>
+     238 = edi				alloc_reg   EQU <edi>
+     239				
+     240				
+     241				; When entering the USE32 code the limi
+					tptr will be copyed onto
+     242				; the stack so we can save a byte in th
+					e  "cmp datalimit, allocptr"
+     243				; operation in the beginning of every M
+					L-function.
+     244				; So the stack layout will be
+     245				;       esp + 00  --> limitptr
+     246				;       esp + 04  --> return address
+     247				;       ...
+     248				
+     249				    public Use32Stack
+     250				
+     251 2000				Use32Stack  LABEL DWORD         ; Windo
+					ws needs a stak to work with
+     252 2000  00000000			stack_temp  DD ?                ; esp +
+					 08 local temporary variable
+     253 2004  000029A0 R		            DD offset do_gc1    ; esp +
+					 12
+     254 2008  000029B9 R		            DD offset do_gc2    ; esp +
+					 16
+     255 200C  000029D2 R		            DD offset trapv     ; esp +
+					 20
+     256				
+     257				; The MLState vector
+     258				
+     259				public _MLState_a
+     260				
+     261 2010				_MLState_a LABEL DWORD
+     262 2010  00000000			allocptr    DD ?            ; esp + 24
+     263 2014  00000000			limitptr    DD ?            ; esp + 28
+     264 2018  00000000			storeptr    DD ?            ; esp + 32
+     265 201C  00000000			exncont     DD ?            ; esp + 36
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-7
+
+
+     266 2020  00000000			stdarg      DD ?            ; esp + 40
+     267 2024  00000000			stdcont     DD ?            ; esp + 44
+     268 2028  00000000			stdclos     DD ?            ; esp + 48
+     269 202C  00000000			misc1       DD ?            ; esp + 52
+     270 2030  00000000			misc2       DD ?            ; esp + 56
+     271 2034  00000000			misc3       DD ?            ; esp + 60
+     272 2038  00000000			misc4       DD ?            ; esp + 64
+     273 203C  00000000			ml_pc       DD ?            ; esp + 68
+     274				
+     275				; Machine ID
+     276				
+     277				public _machine_id_a
+     278				
+     279				ALIGN 4
+     280				
+     281 2040  0000005F			_machine_id_a   DD  5*power_tags + tag_
+					string
+     282 2044  38 30 33 38 36 00	                DB  "80386",0,0,0,0,0,0
+					,0,0,0,0,0
+     283       00 00 00 00 00 00	
+     284       00 00 00 00		
+     285				
+     286				; this stuff comes from ml_objec.c
+     287				
+     288				public _string0_a
+     289				
+     290				ALIGN 4
+     291				
+     292 2054  0000000F			_string0_a      DD  0*power_tags + tag_
+					string
+     293 2058  00000000			                DD  0
+     294				
+     295				; this stuff comes from allmo.c
+     296				
+     297				public _never0_a, _datalist_a
+     298				
+     299				ALIGN 4
+     300				
+     301 205C  000000DF			_never0_a   DD  13*power_tags + tag_str
+					ing
+     302 2060  25 6E 65 76 65 72	            DB  "%never match%",0,0,0
+     303       20 6D 61 74 63 68	
+     304       25 00 00 00		
+     305				
+     306				ALIGN 4
+     307				
+     308 2070  00002060 R		_datalist_a DD  _never0_a+4
+     309 2074  00000000			            DD  0               ; PTR_C
+					toML(0)
+     310 2078  00000001			            DD  0*2+1           ; MOLST
+					_nil
+     311				
+     312				; this stuff comes from callgc.c
+     313				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-8
+
+
+     314				; #define refcell(z)      \
+     315				;     ML_val_t z[2] = {(ML_val_t)MAKE_D
+					ESC(1,tag_array), INT_CtoML(0)};
+     316				
+     317				refcell     MACRO   x
+     318				            PUBLIC  x
+     319				            x   DD  1*power_tags+tag_ar
+					ray, 0*2+1
+     320				            ENDM
+     321				
+     322				ALIGN 4
+     323				
+     324				refcell     _collected0_a
+     325 207C  00000019 00000001     1	            _collected0_a   DD  1*power
+					_tags+tag_array, 0*2+1 
+     326				refcell     _collectedfrom0_a
+     327 2084  00000019 00000001     1	            _collectedfrom0_a   DD  1*p
+					ower_tags+tag_array, 0*2+1 
+     328				refcell     _current0_a
+     329 208C  00000019 00000001     1	            _current0_a   DD  1*power_t
+					ags+tag_array, 0*2+1 
+     330				refcell     _gcmessages0_a
+     331 2094  00000019 00000001     1	            _gcmessages0_a   DD  1*powe
+					r_tags+tag_array, 0*2+1 
+     332				refcell     _majorcollections0_a
+     333 209C  00000019 00000001     1	            _majorcollections0_a   DD  
+					1*power_tags+tag_array, 0*2+1 
+     334				refcell     _minorcollections0_a
+     335 20A4  00000019 00000001     1	            _minorcollections0_a   DD  
+					1*power_tags+tag_array, 0*2+1 
+     336				refcell     _pstruct0_a
+     337 20AC  00000019 00000001     1	            _pstruct0_a   DD  1*power_t
+					ags+tag_array, 0*2+1 
+     338				refcell     _ratio0_a
+     339 20B4  00000019 00000001     1	            _ratio0_a   DD  1*power_tag
+					s+tag_array, 0*2+1 
+     340				refcell     _sighandler0_a
+     341 20BC  00000019 00000001     1	            _sighandler0_a   DD  1*powe
+					r_tags+tag_array, 0*2+1 
+     342				refcell     _softmax0_a
+     343 20C4  00000019 00000001     1	            _softmax0_a   DD  1*power_t
+					ags+tag_array, 0*2+1 
+     344				
+     345				public  _store_preserve_a, _currentsave
+					_a,_roots_a
+     346				
+     347 20CC  00000001			_store_preserve_a    DD 0*2+1    ; INT_
+					CtoML(0)
+     348 20D0  00000000			_currentsave_a       DD ?
+     349 20D4  0049[			_roots_a             DD  NROOTS+64 DUP 
+					(?)
+     350	   ????????		
+     351			 ]	
+     352				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-9
+
+
+     353				
+     354				; this stuff comes from cstruct.c
+     355				
+     356				PUBLIC _cstruct_a, _syserror_id0_a, _gc
+					prof_a
+     357				
+     358				ALIGN 4
+     359				
+     360 21F8  00000009			_array0_v        DD  0*power_tags + tag
+					_array
+     361 21FC  0000000B			_bytearray0_v    DD  0*power_tags + tag
+					_bytearray
+     362				
+     363 2200  000000CB			_gcprof_a       DD  12*power_tags + tag
+					_bytearray
+     364 2204  00000001			                DD  1
+     365 2208  00000001			                DD  1
+     366 220C  28 67 63 29		                DB  "(gc)"
+     367				
+     368				ALIGN 4
+     369				
+     370 = 0007				RUNVEC_SZ   = 7
+     371				
+     372 2210  00000071			_runvec         DD  RUNVEC_SZ*power_tag
+					s + tag_record
+     373 2214  00002AC4 R		                DD  _array_v
+     374 2218  00002A80 R		                DD  _callc_v
+     375 221C  00002B44 R		                DD  _create_b_v
+     376 2220  00002BBC R		                DD  _create_s_v
+     377 2224  00002C38 R		                DD  _floor_v
+     378 2228  00002C9C R		                DD  _logb_v
+     379 222C  00002CBC R		                DD  _scalb_v
+     380				
+     381 2230  0000003F			_div_s               DD  3*power_tags +
+					 tag_string
+     382 2234  44 69 76 00		                     DB  "Div",0
+     383				ALIGN 4
+     384				
+     385 2238  00000019			_div_id0             DD  1*power_tags +
+					 tag_array
+     386 223C  00002234 R		                     DD  _div_s + 4
+     387 2240  00000021			_div_e0              DD  2*power_tags +
+					 tag_record
+     388 2244  00000001			                     DD  1
+     389 2248  0000223C R		                     DD  _div_id0 + 4
+     390				
+     391 224C  0000008F			_overflow_s         DD  8*power_tags + 
+					tag_string
+     392 2250  4F 76 65 72 66 6C	                    DB  "Overflow"
+     393       6F 77			
+     394				ALIGN 4
+     395				
+     396 2258  00000019			_overflow_id0       DD  1*power_tags + 
+					tag_array
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-10
+
+
+     397 225C  00002250 R		                    DD  _overflow_s + 4
+     398 2260  00000021			_overflow_e0        DD  2*power_tags + 
+					tag_record
+     399 2264  00000001			                    DD  1
+     400 2268  0000225C R		                    DD  _overflow_id0 +
+					 4
+     401				
+     402 226C  000000CF			_unboundTable_s     DD  12*power_tags +
+					 tag_string
+     403 2270  55 6E 62 6F 75 6E	                    DB  "UnboundTable"
+     404       64 54 61 62 6C 65	
+     405				ALIGN 4
+     406				
+     407 227C  00000019			_unboundTable_id0   DD  1*power_tags + 
+					tag_array
+     408 2280  00002270 R		                    DD  _unboundTable_s
+					 + 4
+     409 2284  00000021			_unboundTable_e0    DD  2*power_tags + 
+					tag_record
+     410 2288  00000001			                    DD  1
+     411 228C  00002280 R		                    DD  _unboundTable_i
+					d0 + 4
+     412				
+     413 2290  0000008F			_syserror_s         DD  8*power_tags + 
+					tag_string
+     414 2294  53 79 73 65 72 72	                    DB  "Syserror"
+     415       6F 72			
+     416				ALIGN 2
+     417				
+     418 229C  00000019			_syserror_id0_a     DD  1*power_tags + 
+					tag_array
+     419 22A0  00002294 R		                    DD  _syserror_s + 4
+     420				
+     421 = 0017				CSTRUCT_SZ  = 23
+     422				
+     423 22A4  00000171			_cstruct_a  DD  CSTRUCT_SZ * power_tags
+					 + tag_record
+     424 22A8  00002214 R		            DD  _runvec + 4
+     425 22AC  00002244 R		            DD  _div_e0 + 4
+     426 22B0  00002264 R		            DD  _overflow_e0 + 4
+     427 22B4  000022A0 R		            DD  _syserror_id0_a + 4
+     428 22B8  00002288 R		            DD  _unboundTable_e0 + 4
+     429 22BC  000021FC R		            DD  _array0_v + 4
+     430 22C0  00002200 R		            DD  _bytearray0_v + 4
+     431 22C4  00002080 R		            DD  _collected0_a + 4
+     432 22C8  00002088 R		            DD  _collectedfrom0_a + 4
+     433 22CC  00002090 R		            DD  _current0_a + 4
+     434 22D0  00002070 R		            DD  _datalist_a
+     435 22D4  00000015			            DD   21                    
+					        ; NOFILE
+     436 22D8  00002308 R		            DD  _externlist0_a + 4
+     437 22DC  00002098 R		            DD  _gcmessages0_a + 4
+     438 22E0  00002204 R		            DD  _gcprof_a + 4
+     439 22E4  00002044 R		            DD  _machine_id_a + 4
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-11
+
+
+     440 22E8  000020A0 R		            DD  _majorcollections0_a + 
+					4
+     441 22EC  000020A8 R		            DD  _minorcollections0_a + 
+					4
+     442 22F0  00000005			            DD   2*2+1
+     443 22F4  000020B0 R		            DD  _pstruct0_a + 4
+     444 22F8  000020B8 R		            DD  _ratio0_a + 4
+     445 22FC  000020C0 R		            DD  _sighandler0_a + 4
+     446 2300  000020C8 R		            DD  _softmax0_a + 4
+     447				
+     448				; this stuff comes from cfuns.c
+     449				
+     450				FUNCTION    MACRO   ff,nn,ll
+     451					    DD	    3*power_tags+tag_re
+					cord
+     452				            DD      OFFSET ff
+     453				            DD      $+12
+     454				            DD      $+28
+     455				            DD      ll * power_tags+tag
+					_string
+     456				            DB      nn
+     457				            DB      16-ll DUP (0)
+     458				            ENDM
+     459				
+     460				LASTFUNC    MACRO   ff,nn,ll
+     461				            local   LAB,NEXT
+     462					    DD	    3*power_tags+tag_re
+					cord
+     463				            DD      OFFSET ff
+     464				            DD      $+12
+     465				            DD      1
+     466				            DD      ll * power_tags+tag
+					_string
+     467				            DB      nn
+     468				            DB      16-ll DUP (0)
+     469					    ENDM
+     470				
+     471				
+     472				
+     473 2304				_externlist0_a LABEL DWORD
+     474				    FUNCTION    _ml_syscall,        "sy
+					scall"        ,7
+     475 2304  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     476 2308  00000000 E            1	            DD      OFFSET _ml_syscall 
+     477 230C  00002318 R            1	            DD      $+12 
+     478 2310  0000232C R            1	            DD      $+28 
+     479 2314  0000007F              1	            DD      7 * power_tags+tag_
+					string 
+     480 2318  73 79 73 63 61 6C     1	            DB      "syscall" 
+     481 231F  0009[                 1	            DB      16-7 DUP (0) 
+     482				    FUNCTION    _ml_open        ,   "op
+					en"           ,4
+     483 2328  00000031              1		    DD	    3*power_tags+tag_re
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-12
+
+
+					cord 
+     484 232C  00000000 E            1	            DD      OFFSET _ml_open 
+     485 2330  0000233C R            1	            DD      $+12 
+     486 2334  00002350 R            1	            DD      $+28 
+     487 2338  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     488 233C  6F 70 65 6E           1	            DB      "open" 
+     489 2340  000C[                 1	            DB      16-4 DUP (0) 
+     490				    FUNCTION    _ml_connect_unix,   "co
+					nnect_unix"   ,12
+     491 234C  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     492 2350  00000000 E            1	            DD      OFFSET _ml_connect_
+					unix 
+     493 2354  00002360 R            1	            DD      $+12 
+     494 2358  00002374 R            1	            DD      $+28 
+     495 235C  000000CF              1	            DD      12 * power_tags+tag
+					_string 
+     496 2360  63 6F 6E 6E 65 63     1	            DB      "connect_unix" 
+     497 236C  0004[                 1	            DB      16-12 DUP (0) 
+     498				    FUNCTION    _ml_connect_inet,   "co
+					nnect_inet"   ,12
+     499 2370  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     500 2374  00000000 E            1	            DD      OFFSET _ml_connect_
+					inet 
+     501 2378  00002384 R            1	            DD      $+12 
+     502 237C  00002398 R            1	            DD      $+28 
+     503 2380  000000CF              1	            DD      12 * power_tags+tag
+					_string 
+     504 2384  63 6F 6E 6E 65 63     1	            DB      "connect_inet" 
+     505 2390  0004[                 1	            DB      16-12 DUP (0) 
+     506				    FUNCTION    _ml_link,           "li
+					nk"           ,4
+     507 2394  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     508 2398  00000000 E            1	            DD      OFFSET _ml_link 
+     509 239C  000023A8 R            1	            DD      $+12 
+     510 23A0  000023BC R            1	            DD      $+28 
+     511 23A4  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     512 23A8  6C 69 6E 6B           1	            DB      "link" 
+     513 23AC  000C[                 1	            DB      16-4 DUP (0) 
+     514				    FUNCTION    _ml_wait_for_in,    "wa
+					it_for_in"    ,11
+     515 23B8  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     516 23BC  00000000 E            1	            DD      OFFSET _ml_wait_for
+					_in 
+     517 23C0  000023CC R            1	            DD      $+12 
+     518 23C4  000023E0 R            1	            DD      $+28 
+     519 23C8  000000BF              1	            DD      11 * power_tags+tag
+					_string 
+     520 23CC  77 61 69 74 5F 66     1	            DB      "wait_for_in" 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-13
+
+
+     521 23D7  0005[                 1	            DB      16-11 DUP (0) 
+     522				    FUNCTION    _ml_wait_for_out,   "wa
+					it_for_out"   ,12
+     523 23DC  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     524 23E0  00000000 E            1	            DD      OFFSET _ml_wait_for
+					_out 
+     525 23E4  000023F0 R            1	            DD      $+12 
+     526 23E8  00002404 R            1	            DD      $+28 
+     527 23EC  000000CF              1	            DD      12 * power_tags+tag
+					_string 
+     528 23F0  77 61 69 74 5F 66     1	            DB      "wait_for_out" 
+     529 23FC  0004[                 1	            DB      16-12 DUP (0) 
+     530				    FUNCTION    _ml_read,           "re
+					ad"           ,4
+     531 2400  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     532 2404  00000000 E            1	            DD      OFFSET _ml_read 
+     533 2408  00002414 R            1	            DD      $+12 
+     534 240C  00002428 R            1	            DD      $+28 
+     535 2410  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     536 2414  72 65 61 64           1	            DB      "read" 
+     537 2418  000C[                 1	            DB      16-4 DUP (0) 
+     538				    FUNCTION    _ml_readi,          "re
+					adi"          ,5
+     539 2424  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     540 2428  00000000 E            1	            DD      OFFSET _ml_readi 
+     541 242C  00002438 R            1	            DD      $+12 
+     542 2430  0000244C R            1	            DD      $+28 
+     543 2434  0000005F              1	            DD      5 * power_tags+tag_
+					string 
+     544 2438  72 65 61 64 69        1	            DB      "readi" 
+     545 243D  000B[                 1	            DB      16-5 DUP (0) 
+     546				    FUNCTION    _ml_write,          "wr
+					ite"          ,5
+     547 2448  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     548 244C  00000000 E            1	            DD      OFFSET _ml_write 
+     549 2450  0000245C R            1	            DD      $+12 
+     550 2454  00002470 R            1	            DD      $+28 
+     551 2458  0000005F              1	            DD      5 * power_tags+tag_
+					string 
+     552 245C  77 72 69 74 65        1	            DB      "write" 
+     553 2461  000B[                 1	            DB      16-5 DUP (0) 
+     554				    FUNCTION    _ml_writei,         "wr
+					itei"         ,6
+     555 246C  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     556 2470  00000000 E            1	            DD      OFFSET _ml_writei 
+     557 2474  00002480 R            1	            DD      $+12 
+     558 2478  00002494 R            1	            DD      $+28 
+     559 247C  0000006F              1	            DD      6 * power_tags+tag_
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-14
+
+
+					string 
+     560 2480  77 72 69 74 65 69     1	            DB      "writei" 
+     561 2486  000A[                 1	            DB      16-6 DUP (0) 
+     562				    FUNCTION    _ml_writev,         "wr
+					itev"         ,6
+     563 2490  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     564 2494  00000000 E            1	            DD      OFFSET _ml_writev 
+     565 2498  000024A4 R            1	            DD      $+12 
+     566 249C  000024B8 R            1	            DD      $+28 
+     567 24A0  0000006F              1	            DD      6 * power_tags+tag_
+					string 
+     568 24A4  77 72 69 74 65 76     1	            DB      "writev" 
+     569 24AA  000A[                 1	            DB      16-6 DUP (0) 
+     570				    FUNCTION    _ml_send_obd,       "se
+					nd_obd"       ,8
+     571 24B4  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     572 24B8  00000000 E            1	            DD      OFFSET _ml_send_obd
+					 
+     573 24BC  000024C8 R            1	            DD      $+12 
+     574 24C0  000024DC R            1	            DD      $+28 
+     575 24C4  0000008F              1	            DD      8 * power_tags+tag_
+					string 
+     576 24C8  73 65 6E 64 5F 6F     1	            DB      "send_obd" 
+     577 24D0  0008[                 1	            DB      16-8 DUP (0) 
+     578				    FUNCTION    _ml_getdirent,      "ge
+					tdirent"      ,9
+     579 24D8  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     580 24DC  00000000 E            1	            DD      OFFSET _ml_getdiren
+					t 
+     581 24E0  000024EC R            1	            DD      $+12 
+     582 24E4  00002500 R            1	            DD      $+28 
+     583 24E8  0000009F              1	            DD      9 * power_tags+tag_
+					string 
+     584 24EC  67 65 74 64 69 72     1	            DB      "getdirent" 
+     585 24F5  0007[                 1	            DB      16-9 DUP (0) 
+     586				    FUNCTION    _ml_readlink,       "re
+					adlink"       ,8
+     587 24FC  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     588 2500  00000000 E            1	            DD      OFFSET _ml_readlink
+					 
+     589 2504  00002510 R            1	            DD      $+12 
+     590 2508  00002524 R            1	            DD      $+28 
+     591 250C  0000008F              1	            DD      8 * power_tags+tag_
+					string 
+     592 2510  72 65 61 64 6C 69     1	            DB      "readlink" 
+     593 2518  0008[                 1	            DB      16-8 DUP (0) 
+     594				    FUNCTION    _ml_truncate,       "tr
+					uncate"       ,8
+     595 2520  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-15
+
+
+     596 2524  00000000 E            1	            DD      OFFSET _ml_truncate
+					 
+     597 2528  00002534 R            1	            DD      $+12 
+     598 252C  00002548 R            1	            DD      $+28 
+     599 2530  0000008F              1	            DD      8 * power_tags+tag_
+					string 
+     600 2534  74 72 75 6E 63 61     1	            DB      "truncate" 
+     601 253C  0008[                 1	            DB      16-8 DUP (0) 
+     602				    FUNCTION    _ml_chmod,          "ch
+					mod"          ,5
+     603 2544  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     604 2548  00000000 E            1	            DD      OFFSET _ml_chmod 
+     605 254C  00002558 R            1	            DD      $+12 
+     606 2550  0000256C R            1	            DD      $+28 
+     607 2554  0000005F              1	            DD      5 * power_tags+tag_
+					string 
+     608 2558  63 68 6D 6F 64        1	            DB      "chmod" 
+     609 255D  000B[                 1	            DB      16-5 DUP (0) 
+     610				    FUNCTION    _ml_access,         "ac
+					cess"         ,6
+     611 2568  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     612 256C  00000000 E            1	            DD      OFFSET _ml_access 
+     613 2570  0000257C R            1	            DD      $+12 
+     614 2574  00002590 R            1	            DD      $+28 
+     615 2578  0000006F              1	            DD      6 * power_tags+tag_
+					string 
+     616 257C  61 63 63 65 73 73     1	            DB      "access" 
+     617 2582  000A[                 1	            DB      16-6 DUP (0) 
+     618				    FUNCTION    _ml_getfid,         "ge
+					tfid"         ,6
+     619 258C  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     620 2590  00000000 E            1	            DD      OFFSET _ml_getfid 
+     621 2594  000025A0 R            1	            DD      $+12 
+     622 2598  000025B4 R            1	            DD      $+28 
+     623 259C  0000006F              1	            DD      6 * power_tags+tag_
+					string 
+     624 25A0  67 65 74 66 69 64     1	            DB      "getfid" 
+     625 25A6  000A[                 1	            DB      16-6 DUP (0) 
+     626				    FUNCTION    _ml_getmod,         "ge
+					tmod"         ,6
+     627 25B0  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     628 25B4  00000000 E            1	            DD      OFFSET _ml_getmod 
+     629 25B8  000025C4 R            1	            DD      $+12 
+     630 25BC  000025D8 R            1	            DD      $+28 
+     631 25C0  0000006F              1	            DD      6 * power_tags+tag_
+					string 
+     632 25C4  67 65 74 6D 6F 64     1	            DB      "getmod" 
+     633 25CA  000A[                 1	            DB      16-6 DUP (0) 
+     634				    FUNCTION    _ml_ftype,          "ft
+					ype"          ,5
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-16
+
+
+     635 25D4  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     636 25D8  00000000 E            1	            DD      OFFSET _ml_ftype 
+     637 25DC  000025E8 R            1	            DD      $+12 
+     638 25E0  000025FC R            1	            DD      $+28 
+     639 25E4  0000005F              1	            DD      5 * power_tags+tag_
+					string 
+     640 25E8  66 74 79 70 65        1	            DB      "ftype" 
+     641 25ED  000B[                 1	            DB      16-5 DUP (0) 
+     642				    FUNCTION    _ml_getownid,       "ge
+					townid"       ,8
+     643 25F8  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     644 25FC  00000000 E            1	            DD      OFFSET _ml_getownid
+					 
+     645 2600  0000260C R            1	            DD      $+12 
+     646 2604  00002620 R            1	            DD      $+28 
+     647 2608  0000008F              1	            DD      8 * power_tags+tag_
+					string 
+     648 260C  67 65 74 6F 77 6E     1	            DB      "getownid" 
+     649 2614  0008[                 1	            DB      16-8 DUP (0) 
+     650				    FUNCTION    _ml_fsize,          "fs
+					ize"          ,5
+     651 261C  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     652 2620  00000000 E            1	            DD      OFFSET _ml_fsize 
+     653 2624  00002630 R            1	            DD      $+12 
+     654 2628  00002644 R            1	            DD      $+28 
+     655 262C  0000005F              1	            DD      5 * power_tags+tag_
+					string 
+     656 2630  66 73 69 7A 65        1	            DB      "fsize" 
+     657 2635  000B[                 1	            DB      16-5 DUP (0) 
+     658				    FUNCTION    _ml_atime,          "at
+					ime"          ,5
+     659 2640  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     660 2644  00000000 E            1	            DD      OFFSET _ml_atime 
+     661 2648  00002654 R            1	            DD      $+12 
+     662 264C  00002668 R            1	            DD      $+28 
+     663 2650  0000005F              1	            DD      5 * power_tags+tag_
+					string 
+     664 2654  61 74 69 6D 65        1	            DB      "atime" 
+     665 2659  000B[                 1	            DB      16-5 DUP (0) 
+     666				    FUNCTION    _ml_ctime,          "ct
+					ime"          ,5
+     667 2664  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     668 2668  00000000 E            1	            DD      OFFSET _ml_ctime 
+     669 266C  00002678 R            1	            DD      $+12 
+     670 2670  0000268C R            1	            DD      $+28 
+     671 2674  0000005F              1	            DD      5 * power_tags+tag_
+					string 
+     672 2678  63 74 69 6D 65        1	            DB      "ctime" 
+     673 267D  000B[                 1	            DB      16-5 DUP (0) 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-17
+
+
+     674				    FUNCTION    _ml_mtime,          "mt
+					ime"          ,5
+     675 2688  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     676 268C  00000000 E            1	            DD      OFFSET _ml_mtime 
+     677 2690  0000269C R            1	            DD      $+12 
+     678 2694  000026B0 R            1	            DD      $+28 
+     679 2698  0000005F              1	            DD      5 * power_tags+tag_
+					string 
+     680 269C  6D 74 69 6D 65        1	            DB      "mtime" 
+     681 26A1  000B[                 1	            DB      16-5 DUP (0) 
+     682				    FUNCTION    _ml_isatty,         "is
+					atty"         ,6
+     683 26AC  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     684 26B0  00000000 E            1	            DD      OFFSET _ml_isatty 
+     685 26B4  000026C0 R            1	            DD      $+12 
+     686 26B8  000026D4 R            1	            DD      $+28 
+     687 26BC  0000006F              1	            DD      6 * power_tags+tag_
+					string 
+     688 26C0  69 73 61 74 74 79     1	            DB      "isatty" 
+     689 26C6  000A[                 1	            DB      16-6 DUP (0) 
+     690				    FUNCTION    _ml_select,         "se
+					lect"         ,6
+     691 26D0  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     692 26D4  00000000 E            1	            DD      OFFSET _ml_select 
+     693 26D8  000026E4 R            1	            DD      $+12 
+     694 26DC  000026F8 R            1	            DD      $+28 
+     695 26E0  0000006F              1	            DD      6 * power_tags+tag_
+					string 
+     696 26E4  73 65 6C 65 63 74     1	            DB      "select" 
+     697 26EA  000A[                 1	            DB      16-6 DUP (0) 
+     698				    FUNCTION    _ml_pipe,           "pi
+					pe"           ,4
+     699 26F4  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     700 26F8  00000000 E            1	            DD      OFFSET _ml_pipe 
+     701 26FC  00002708 R            1	            DD      $+12 
+     702 2700  0000271C R            1	            DD      $+28 
+     703 2704  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     704 2708  70 69 70 65           1	            DB      "pipe" 
+     705 270C  000C[                 1	            DB      16-4 DUP (0) 
+     706				    FUNCTION    _ml_fionread,       "fi
+					onread"       ,8
+     707 2718  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     708 271C  00000000 E            1	            DD      OFFSET _ml_fionread
+					 
+     709 2720  0000272C R            1	            DD      $+12 
+     710 2724  00002740 R            1	            DD      $+28 
+     711 2728  0000008F              1	            DD      8 * power_tags+tag_
+					string 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-18
+
+
+     712 272C  66 69 6F 6E 72 65     1	            DB      "fionread" 
+     713 2734  0008[                 1	            DB      16-8 DUP (0) 
+     714				    FUNCTION    _ml_system,         "sy
+					stem"         ,6
+     715 273C  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     716 2740  00000000 E            1	            DD      OFFSET _ml_system 
+     717 2744  00002750 R            1	            DD      $+12 
+     718 2748  00002764 R            1	            DD      $+28 
+     719 274C  0000006F              1	            DD      6 * power_tags+tag_
+					string 
+     720 2750  73 79 73 74 65 6D     1	            DB      "system" 
+     721 2756  000A[                 1	            DB      16-6 DUP (0) 
+     722				    FUNCTION    _ml_exec,           "ex
+					ec"           ,4
+     723 2760  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     724 2764  00000000 E            1	            DD      OFFSET _ml_exec 
+     725 2768  00002774 R            1	            DD      $+12 
+     726 276C  00002788 R            1	            DD      $+28 
+     727 2770  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     728 2774  65 78 65 63           1	            DB      "exec" 
+     729 2778  000C[                 1	            DB      16-4 DUP (0) 
+     730				    FUNCTION    _ml_argv,           "ar
+					gv"           ,4
+     731 2784  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     732 2788  00000000 E            1	            DD      OFFSET _ml_argv 
+     733 278C  00002798 R            1	            DD      $+12 
+     734 2790  000027AC R            1	            DD      $+28 
+     735 2794  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     736 2798  61 72 67 76           1	            DB      "argv" 
+     737 279C  000C[                 1	            DB      16-4 DUP (0) 
+     738				    FUNCTION    _ml_environ,        "en
+					viron"        ,7
+     739 27A8  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     740 27AC  00000000 E            1	            DD      OFFSET _ml_environ 
+     741 27B0  000027BC R            1	            DD      $+12 
+     742 27B4  000027D0 R            1	            DD      $+28 
+     743 27B8  0000007F              1	            DD      7 * power_tags+tag_
+					string 
+     744 27BC  65 6E 76 69 72 6F     1	            DB      "environ" 
+     745 27C3  0009[                 1	            DB      16-7 DUP (0) 
+     746				    FUNCTION    _ml_gethostname,    "ge
+					thostname"    ,11
+     747 27CC  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     748 27D0  00000000 E            1	            DD      OFFSET _ml_gethostn
+					ame 
+     749 27D4  000027E0 R            1	            DD      $+12 
+     750 27D8  000027F4 R            1	            DD      $+28 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-19
+
+
+     751 27DC  000000BF              1	            DD      11 * power_tags+tag
+					_string 
+     752 27E0  67 65 74 68 6F 73     1	            DB      "gethostname" 
+     753 27EB  0005[                 1	            DB      16-11 DUP (0) 
+     754				    FUNCTION    _ml_blast_out,      "bl
+					as"           ,4
+     755 27F0  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     756 27F4  00000000 E            1	            DD      OFFSET _ml_blast_ou
+					t 
+     757 27F8  00002804 R            1	            DD      $+12 
+     758 27FC  00002818 R            1	            DD      $+28 
+     759 2800  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     760 2804  62 6C 61 73           1	            DB      "blas" 
+     761 2808  000C[                 1	            DB      16-4 DUP (0) 
+     762				    FUNCTION    _ml_blast_in,       "sa
+					lb"           ,4
+     763 2814  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     764 2818  00000000 E            1	            DD      OFFSET _ml_blast_in
+					 
+     765 281C  00002828 R            1	            DD      $+12 
+     766 2820  0000283C R            1	            DD      $+28 
+     767 2824  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     768 2828  73 61 6C 62           1	            DB      "salb" 
+     769 282C  000C[                 1	            DB      16-4 DUP (0) 
+     770				    FUNCTION    _ml_export,         "ex
+					port"         ,6
+     771 2838  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     772 283C  00000000 E            1	            DD      OFFSET _ml_export 
+     773 2840  0000284C R            1	            DD      $+12 
+     774 2844  00002860 R            1	            DD      $+28 
+     775 2848  0000006F              1	            DD      6 * power_tags+tag_
+					string 
+     776 284C  65 78 70 6F 72 74     1	            DB      "export" 
+     777 2852  000A[                 1	            DB      16-6 DUP (0) 
+     778				    FUNCTION    _ml_gettime,        "ge
+					ttime"        ,7
+     779 285C  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     780 2860  00000000 E            1	            DD      OFFSET _ml_gettime 
+     781 2864  00002870 R            1	            DD      $+12 
+     782 2868  00002884 R            1	            DD      $+28 
+     783 286C  0000007F              1	            DD      7 * power_tags+tag_
+					string 
+     784 2870  67 65 74 74 69 6D     1	            DB      "gettime" 
+     785 2877  0009[                 1	            DB      16-7 DUP (0) 
+     786				    FUNCTION    _ml_timeofday,      "ti
+					meofday"      ,9
+     787 2880  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-20
+
+
+     788 2884  00000000 E            1	            DD      OFFSET _ml_timeofda
+					y 
+     789 2888  00002894 R            1	            DD      $+12 
+     790 288C  000028A8 R            1	            DD      $+28 
+     791 2890  0000009F              1	            DD      9 * power_tags+tag_
+					string 
+     792 2894  74 69 6D 65 6F 66     1	            DB      "timeofday" 
+     793 289D  0007[                 1	            DB      16-9 DUP (0) 
+     794				    FUNCTION    _ml_setitimer,      "se
+					titimer"      ,9
+     795 28A4  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     796 28A8  00000000 E            1	            DD      OFFSET _ml_setitime
+					r 
+     797 28AC  000028B8 R            1	            DD      $+12 
+     798 28B0  000028CC R            1	            DD      $+28 
+     799 28B4  0000009F              1	            DD      9 * power_tags+tag_
+					string 
+     800 28B8  73 65 74 69 74 69     1	            DB      "setitimer" 
+     801 28C1  0007[                 1	            DB      16-9 DUP (0) 
+     802				    FUNCTION    _ml_setglobal,      "se
+					tg"           ,4
+     803 28C8  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     804 28CC  00000000 E            1	            DD      OFFSET _ml_setgloba
+					l 
+     805 28D0  000028DC R            1	            DD      $+12 
+     806 28D4  000028F0 R            1	            DD      $+28 
+     807 28D8  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     808 28DC  73 65 74 67           1	            DB      "setg" 
+     809 28E0  000C[                 1	            DB      16-4 DUP (0) 
+     810				    FUNCTION    _ml_flush_icache,   "ca
+					ch"           ,4
+     811 28EC  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     812 28F0  00000000 E            1	            DD      OFFSET _ml_flush_ic
+					ache 
+     813 28F4  00002900 R            1	            DD      $+12 
+     814 28F8  00002914 R            1	            DD      $+28 
+     815 28FC  0000004F              1	            DD      4 * power_tags+tag_
+					string 
+     816 2900  63 61 63 68           1	            DB      "cach" 
+     817 2904  000C[                 1	            DB      16-4 DUP (0) 
+     818				    FUNCTION    _ml_gc,             "gc
+					"             ,2
+     819 2910  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     820 2914  00000000 E            1	            DD      OFFSET _ml_gc 
+     821 2918  00002924 R            1	            DD      $+12 
+     822 291C  00002938 R            1	            DD      $+28 
+     823 2920  0000002F              1	            DD      2 * power_tags+tag_
+					string 
+     824 2924  67 63                 1	            DB      "gc" 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-21
+
+
+     825 2926  000E[                 1	            DB      16-2 DUP (0) 
+     826				    FUNCTION    _ml_enablesig,      "en
+					ablesig"      ,9
+     827 2934  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     828 2938  00000000 E            1	            DD      OFFSET _ml_enablesi
+					g 
+     829 293C  00002948 R            1	            DD      $+12 
+     830 2940  0000295C R            1	            DD      $+28 
+     831 2944  0000009F              1	            DD      9 * power_tags+tag_
+					string 
+     832 2948  65 6E 61 62 6C 65     1	            DB      "enablesig" 
+     833 2951  0007[                 1	            DB      16-9 DUP (0) 
+     834				    FUNCTION    _ml_masksigs,       "ma
+					sksigs"       ,8
+     835 2958  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     836 295C  00000000 E            1	            DD      OFFSET _ml_masksigs
+					 
+     837 2960  0000296C R            1	            DD      $+12 
+     838 2964  00002980 R            1	            DD      $+28 
+     839 2968  0000008F              1	            DD      8 * power_tags+tag_
+					string 
+     840 296C  6D 61 73 6B 73 69     1	            DB      "masksigs" 
+     841 2974  0008[                 1	            DB      16-8 DUP (0) 
+     842				    LASTFUNC    _ml_getstorelist,   "ge
+					tstorelist"   ,12
+     843 297C  00000031              1		    DD	    3*power_tags+tag_re
+					cord 
+     844 2980  00000000 E            1	            DD      OFFSET _ml_getstore
+					list 
+     845 2984  00002990 R            1	            DD      $+12 
+     846 2988  00000001              1	            DD      1 
+     847 298C  000000CF              1	            DD      12 * power_tags+tag
+					_string 
+     848 2990  67 65 74 73 74 6F     1	            DB      "getstorelist" 
+     849 299C  0004[                 1	            DB      16-12 DUP (0) 
+     850				
+     851				
+     852				
+     853				; there are three ways to initiate GC (
+					see 386.sml)
+     854				
+     855 29A0  8F 05 0000203C R		do_gc1: pop ml_pc
+     856 29A6  83 2D 0000203C R 09	        sub ml_pc, 9
+     857 29AD  65: 66| C7 05 0000	        mov _request, REQ_GC1
+     858       0000 E 0003		
+     859 29B7  EB 62			        jmp short _saveregs
+     860				
+     861 29B9  8F 05 0000203C R		do_gc2: pop ml_pc
+     862 29BF  83 2D 0000203C R 11	        sub ml_pc, 17
+     863 29C6  65: 66| C7 05 0000	        mov _request, REQ_GC2
+     864       0000 E 0009		
+     865 29D0  EB 49			        jmp short _saveregs
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-22
+
+
+     866				
+     867 29D2  8F 05 0000203C R		trapv:  pop ml_pc
+     868 29D8  65: 66| C7 05 0000	        mov _request, REQ_FAULT
+     869       0000 E 0002		
+     870 29E2  8D 05 00002264 R		        lea eax, [_overflow_e0+4]
+     871 29E8  65: 66| A3 00000000 E	        mov _fault_exn, ax
+     872 29EF  EB 2A			        jmp short _saveregs
+     873				
+     874				
+     875				CLOSURE         MACRO   name
+     876				                local   lab
+     877				                public  name
+     878				                align   4
+     879				                DD      1*power_tags + 
+					tag_record
+     880				        name:   DD      lab
+     881				                DD      7
+     882				                DD      tag_backptr
+     883				        lab:
+     884				                ENDM
+     885				
+     886				RAISE           MACRO
+     887				                mov     eax, exncont
+     888				                mov     stdcont, eax
+     889				                mov     eax, [eax]
+     890				                mov     stdclos, eax
+     891				                jmp     eax
+     892				                ENDM
+     893				
+     894				
+     895				DO_GC3          MACRO   x
+     896				                mov     ml_pc, OFFSET x
+     897				                mov     _request, REQ_G
+					C3
+     898				                jmp     _saveregs
+     899				                ENDM
+     900				
+     901				;**************************************
+					*******************
+     902				
+     903				PUBLIC _enterUse32
+     904				
+     905 29F1				_enterUse32:	; called from restorere
+					gs in intrface.asm
+     906 29F1  8B 3D 00002010 R		            mov     alloc_reg, allocptr
+     907 29F7  8B 1D 0000202C R		            mov     misc1_reg, misc1
+     908 29FD  8B 15 00002030 R		            mov     misc2_reg, misc2
+     909 2A03  8B 35 00002034 R		            mov     misc3_reg, misc3
+     910 2A09  8B 2D 00002038 R		            mov     misc4_reg, misc4
+     911 2A0F  FF 35 00002014 R		            push    limitptr
+     912 2A15  FF 25 0000203C R		            jmp     DWORD PTR [ml_pc]
+     913				
+     914 2A1B				_saveregs:	; return to the runtime
+					 system (restoreregs in intrface.asm)
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-23
+
+
+     915 2A1B  89 3D 00002010 R		            mov     allocptr, alloc_reg
+     916 2A21  89 1D 0000202C R		            mov     misc1, misc1_reg
+     917 2A27  89 15 00002030 R		            mov     misc2, misc2_reg
+     918 2A2D  89 35 00002034 R		            mov     misc3, misc3_reg
+     919 2A33  89 2D 00002038 R		            mov     misc4, misc4_reg
+     920 2A39  8F 05 00002014 R		            pop     limitptr
+     921 2A3F  66			            db      66h
+     922 2A40  CB			            retf
+     923				
+     924				CLOSURE _handle_c
+     925 2A41  87 DB 90              1	                align   4 
+     926 2A44  00000011              1	                DD      1*power_tags + 
+					tag_record 
+     927 2A48  00002A54 R            1	        _handle_c:   DD      ??0002 
+     928 2A4C  00000007              1	                DD      7 
+     929 2A50  00000005              1	                DD      tag_backptr 
+     930 2A54                        1	        ??0002: 
+     931 2A54  65: 66| C7 05 0000	            mov     _request, REQ_EXN
+     932       0000 E 0001		
+     933 2A5E  EB BB			            jmp     _saveregs
+     934				
+     935				CLOSURE _return_c
+     936 2A60  00000011              1	                DD      1*power_tags + 
+					tag_record 
+     937 2A64  00002A70 R            1	        _return_c:   DD      ??0003 
+     938 2A68  00000007              1	                DD      7 
+     939 2A6C  00000005              1	                DD      tag_backptr 
+     940 2A70                        1	        ??0003: 
+     941 2A70  65: 66| C7 05 0000	            mov     _request, REQ_RETUR
+					N
+     942       0000 E 0000		
+     943 2A7A  EB 9F			            jmp     _saveregs
+     944				
+     945				CLOSURE _callc_v
+     946 2A7C  00000011              1	                DD      1*power_tags + 
+					tag_record 
+     947 2A80  00002A8C R            1	        _callc_v:   DD      ??0004 
+     948 2A84  00000007              1	                DD      7 
+     949 2A88  00000005              1	                DD      tag_backptr 
+     950 2A8C                        1	        ??0004: 
+     951 2A8C  39 3D 00002014 R		L_callc_v:  cmp     limitptr, alloc_reg
+     952 2A92  0F 89 00002AB1 R		            jns     @f
+     953				            DO_GC3  L_callc_v
+     954 2A98  C7 05 0000203C R 2A8C 1	                mov     ml_pc, OFFSET L
+					_callc_v 
+     955 2AA2  65: 66| C7 05 0000    1	                mov     _request, REQ_G
+					C3 
+     956 2AAC  E9 00002A1B R         1	                jmp     _saveregs 
+     957 2AB1  65: 66| C7 05 0000	@@:         mov     _request, REQ_CALLC
+     958       0000 E 0004		
+     959 2ABB  E9 00002A1B R		            jmp     _saveregs
+     960				
+     961				
+     962				; allocate an array:
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-24
+
+
+     963				;           stdarg + 0 -> length
+     964				;           stdarg + 4 -> initial value
+					 (stdarg is a memory variable)
+     965				
+     966				CLOSURE _array_v
+     967 2AC0  00000011              1	                DD      1*power_tags + 
+					tag_record 
+     968 2AC4  00002AD0 R            1	        _array_v:   DD      ??0005 
+     969 2AC8  00000007              1	                DD      7 
+     970 2ACC  00000005              1	                DD      tag_backptr 
+     971 2AD0                        1	        ??0005: 
+     972				
+     973 2AD0  8B 0D 00002020 R		L_arr:      mov     ecx, stdarg
+     974 2AD6  8B 09			            mov     ecx, [ecx]
+     975 2AD8  D1 F9			            sar     ecx, 1             
+					     ; ecx = length (untagged)
+     976				
+     977 2ADA  89 0D 00002000 R		            mov     stack_temp, ecx
+     978 2AE0  C1 25 00002000 R 04	            sal     stack_temp, width_t
+					ags
+     979 2AE7  83 0D 00002000 R 09	            or      stack_temp, tag_arr
+					ay   ; stack_temp = new tag
+     980				
+     981 2AEE  8B C1			            mov     eax, ecx           
+					     ; check the heap limit
+     982 2AF0  C1 E0 02			            sal     eax, 2
+     983 2AF3  03 C7			            add     eax, alloc_reg
+     984 2AF5  39 05 00002014 R		            cmp     limitptr, eax
+     985 2AFB  0F 89 00002B1A R		            jns     @f
+     986				            DO_GC3  L_arr
+     987 2B01  C7 05 0000203C R 2AD0 1	                mov     ml_pc, OFFSET L
+					_arr 
+     988 2B0B  65: 66| C7 05 0000    1	                mov     _request, REQ_G
+					C3 
+     989 2B15  E9 00002A1B R         1	                jmp     _saveregs 
+     990 2B1A				@@:
+     991 2B1A  A1 00002000 R		            mov     eax, stack_temp
+     992 2B1F  AB			            stosd                      
+					 ; write the tag
+     993 2B20  A1 00002020 R		            mov     eax, stdarg
+     994 2B25  8B 40 04			            mov     eax, [eax+4]       
+					 ; eax = initial value
+     995 2B28  89 3D 00002020 R		            mov     stdarg, edi        
+					 ; return the adr. of the array
+     996				
+     997 2B2E  F3/ AB			            rep stosd                  
+					 ; we know that ecx>0
+     998				
+     999 2B30  A1 00002024 R		            mov     eax, stdcont
+    1000 2B35  8B 00			            mov     eax,[eax]
+    1001 2B37  A3 00002028 R		            mov     stdclos, eax
+    1002 2B3C  FF E0			            jmp     eax
+    1003				
+    1004				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-25
+
+
+    1005				CLOSURE _create_b_v
+    1006 2B3E  87 DB                 1	                align   4 
+    1007 2B40  00000011              1	                DD      1*power_tags + 
+					tag_record 
+    1008 2B44  00002B50 R            1	        _create_b_v:   DD      ??0006 
+    1009 2B48  00000007              1	                DD      7 
+    1010 2B4C  00000005              1	                DD      tag_backptr 
+    1011 2B50                        1	        ??0006: 
+    1012				
+    1013 2B50  8B 0D 00002020 R		L_byte:     mov     ecx, stdarg
+    1014 2B56  D1 F9			            sar     ecx, 1             
+					 ; ecx = length
+    1015				
+    1016 2B58  89 0D 00002000 R		            mov     stack_temp, ecx
+    1017 2B5E  C1 25 00002000 R 04	            sal     stack_temp, width_t
+					ags
+    1018 2B65  83 0D 00002000 R 0B	            or      stack_temp, tag_byt
+					earray  ; stack_temp = new tag
+    1019				
+    1020 2B6C  83 E1 FC			            and     ecx, NOT 3
+    1021 2B6F  8B C7			            mov     eax, alloc_reg
+    1022 2B71  03 C1			            add     eax, ecx
+    1023 2B73  39 05 00002014 R		            cmp     limitptr, eax
+    1024 2B79  0F 89 00002B98 R		            jns     @f
+    1025				            DO_GC3  L_byte
+    1026 2B7F  C7 05 0000203C R 2B50 1	                mov     ml_pc, OFFSET L
+					_byte 
+    1027 2B89  65: 66| C7 05 0000    1	                mov     _request, REQ_G
+					C3 
+    1028 2B93  E9 00002A1B R         1	                jmp     _saveregs 
+    1029 2B98				@@:
+    1030 2B98  A1 00002000 R		            mov     eax, stack_temp
+    1031 2B9D  AB			            stosd                      
+					 ; write the tag
+    1032 2B9E  89 3D 00002020 R		            mov     stdarg, alloc_reg
+    1033 2BA4  03 F9			            add     alloc_reg, ecx
+    1034 2BA6  2B C0			            sub     eax,eax
+    1035 2BA8  AB			            stosd   ; must clear the la
+					st 4 bytes
+    1036				
+    1037 2BA9  A1 00002024 R		            mov     eax, stdcont
+    1038 2BAE  8B 00			            mov     eax, [eax]
+    1039 2BB0  A3 00002028 R		            mov     stdclos, eax
+    1040 2BB5  FF E0			            jmp     eax
+    1041				
+    1042				CLOSURE _create_s_v
+    1043 2BB7  90                    1	                align   4 
+    1044 2BB8  00000011              1	                DD      1*power_tags + 
+					tag_record 
+    1045 2BBC  00002BC8 R            1	        _create_s_v:   DD      ??0007 
+    1046 2BC0  00000007              1	                DD      7 
+    1047 2BC4  00000005              1	                DD      tag_backptr 
+    1048 2BC8                        1	        ??0007: 
+    1049				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-26
+
+
+    1050 2BC8  8B 0D 00002020 R		L_str:      mov     ecx, stdarg
+    1051 2BCE  D1 F9			            sar     ecx, 1             
+					        ; ecx = length
+    1052				
+    1053 2BD0  89 0D 00002000 R		            mov     stack_temp, ecx
+    1054 2BD6  C1 25 00002000 R 04	            sal     stack_temp, width_t
+					ags
+    1055 2BDD  83 0D 00002000 R 0F	            or      stack_temp, tag_str
+					ing     ; stack_temp = new tag
+    1056				
+    1057 2BE4  83 E1 FC			            and     ecx, NOT 3
+    1058 2BE7  8B C7			            mov     eax, alloc_reg
+    1059 2BE9  03 C1			            add     eax, ecx
+    1060 2BEB  39 05 00002014 R		            cmp     limitptr, eax
+    1061 2BF1  0F 89 00002C10 R		            jns     @f
+    1062				            DO_GC3  L_str
+    1063 2BF7  C7 05 0000203C R 2BC8 1	                mov     ml_pc, OFFSET L
+					_str 
+    1064 2C01  65: 66| C7 05 0000    1	                mov     _request, REQ_G
+					C3 
+    1065 2C0B  E9 00002A1B R         1	                jmp     _saveregs 
+    1066 2C10				@@:
+    1067 2C10  A1 00002000 R		            mov     eax, stack_temp
+    1068 2C15  AB			            stosd                      
+					 ; write the tag
+    1069 2C16  89 3D 00002020 R		            mov     stdarg, alloc_reg
+    1070 2C1C  03 F9			            add     alloc_reg, ecx
+    1071 2C1E  2B C0			            sub     eax,eax
+    1072 2C20  AB			            stosd                      
+					 ; must clear the last 4 bytes
+    1073				
+    1074 2C21  A1 00002024 R		            mov     eax, stdcont
+    1075 2C26  8B 00			            mov     eax,[eax]
+    1076 2C28  A3 00002028 R		            mov     stdclos, eax
+    1077 2C2D  FF E0			            jmp     eax
+    1078				
+    1079 2C2F  0000			co_cw_new   dw ?
+    1080 2C31  0000			co_cw_save  dw ?
+    1081				
+    1082				CLOSURE _floor_v
+    1083 2C33  90                    1	                align   4 
+    1084 2C34  00000011              1	                DD      1*power_tags + 
+					tag_record 
+    1085 2C38  00002C44 R            1	        _floor_v:   DD      ??0008 
+    1086 2C3C  00000007              1	                DD      7 
+    1087 2C40  00000005              1	                DD      tag_backptr 
+    1088 2C44                        1	        ??0008: 
+    1089				
+    1090 2C44  9B D9 3D 00002C31 R	            fstcw   co_cw_save
+    1091 2C4B  66| A1 00002C31 R	            mov     ax, co_cw_save
+    1092 2C51  66| 25 F3FF		            and     ax, 0F3FFh         
+					; rounding down towards -infinity
+    1093 2C55  66| 0D 0400		            or      ax, 0400h
+    1094 2C59  66| A3 00002C2F R	            mov     co_cw_new, ax
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Page     1-27
+
+
+    1095 2C5F  9B D9 2D 00002C2F R	            fldcw   co_cw_new
+    1096				
+    1097 2C66  A1 00002020 R		            mov     eax, stdarg
+    1098 2C6B  DD 00			            fld     qword ptr [eax]
+    1099 2C6D  D9 FC			            frndint
+    1100 2C6F  DB 1D 00002020 R		            fistp   stdarg
+    1101 2C75  D1 25 00002020 R		            sal     stdarg,1
+    1102 2C7B  FF 05 00002020 R		            inc     stdarg
+    1103				
+    1104 2C81  9B D9 2D 00002C31 R	            fldcw   co_cw_save
+    1105				
+    1106 2C88  A1 00002024 R		            mov     eax, stdcont
+    1107 2C8D  8B 00			            mov     eax,[eax]
+    1108 2C8F  A3 00002028 R		            mov     stdclos, eax
+    1109 2C94  FF E0			            jmp     eax
+    1110				
+    1111				CLOSURE _logb_v
+    1112 2C96  87 DB                 1	                align   4 
+    1113 2C98  00000011              1	                DD      1*power_tags + 
+					tag_record 
+    1114 2C9C  00002CA8 R            1	        _logb_v:   DD      ??0009 
+    1115 2CA0  00000007              1	                DD      7 
+    1116 2CA4  00000005              1	                DD      tag_backptr 
+    1117 2CA8                        1	        ??0009: 
+    1118 2CA8  A1 00002024 R		            mov     eax, stdcont
+    1119 2CAD  8B 00			            mov     eax,[eax]
+    1120 2CAF  A3 00002028 R		            mov     stdclos, eax
+    1121 2CB4  FF E0			            jmp     eax
+    1122				
+    1123				CLOSURE _scalb_v
+    1124 2CB6  87 DB                 1	                align   4 
+    1125 2CB8  00000011              1	                DD      1*power_tags + 
+					tag_record 
+    1126 2CBC  00002CC8 R            1	        _scalb_v:   DD      ??000A 
+    1127 2CC0  00000007              1	                DD      7 
+    1128 2CC4  00000005              1	                DD      tag_backptr 
+    1129 2CC8                        1	        ??000A: 
+    1130 2CC8  8D 05 00002264 R		            lea     eax, _overflow_e0[4
+					]
+    1131 2CCE  A3 00002024 R		            mov     stdcont, eax
+    1132				            RAISE
+    1133 2CD3  A1 0000201C R         1	                mov     eax, exncont 
+    1134 2CD8  A3 00002024 R         1	                mov     stdcont, eax 
+    1135 2CDD  8B 00                 1	                mov     eax, [eax] 
+    1136 2CDF  A3 00002028 R         1	                mov     stdclos, eax 
+    1137 2CE4  FF E0                 1	                jmp     eax 
+    1138				
+    1139 2CE6				_RUNCODE_END:
+    1140				
+    1141 2CE6				_RUNCODE    ends
+    1142				
+    1143				            end
+
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Symbols-1
+
+
+Macros:
+
+		N a m e			Lines
+
+CLOSURE  . . . . . . . . . . . .  	   7
+CONTAINS_NO_PTRS . . . . . . . .  	   1
+DO_GC3 . . . . . . . . . . . . .  	   3
+FUNCTION . . . . . . . . . . . .  	   7
+GET_LEN  . . . . . . . . . . . .  	   2
+GET_LENZ . . . . . . . . . . . .  	   9
+GET_STRLEN . . . . . . . . . . .  	   4
+GET_TAG  . . . . . . . . . . . .  	   2
+IS_PTR . . . . . . . . . . . . .  	   1
+LASTFUNC . . . . . . . . . . . .  	   7
+MAKE_DESC  . . . . . . . . . . .  	   1
+RAISE  . . . . . . . . . . . . .  	   5
+REFCELL  . . . . . . . . . . . .  	   2
+
+Segments and Groups:
+
+                N a m e         	Size	Length	 Align	Combine Class
+
+_DATA  . . . . . . . . . . . . .  	16 Bit	0000	WORD	PUBLIC	'DATA'
+_RUNCODE . . . . . . . . . . . .  	32 Bit	2CE6	WORD	PUBLIC	'CODE'
+_TEXT  . . . . . . . . . . . . .  	16 Bit	0000	WORD	PUBLIC	'CODE'
+
+Symbols:            
+
+                N a m e         	Type	 Value	 Attr
+
+ALLOCPTR . . . . . . . . . . . .  	L DWORD	2010	_RUNCODE
+ALLOC_REG  . . . . . . . . . . .  	TEXT  edi		
+
+CO_CW_NEW  . . . . . . . . . . .  	L WORD	2C2F	_RUNCODE
+CO_CW_SAVE . . . . . . . . . . .  	L WORD	2C31	_RUNCODE
+CSTRUCT_SZ . . . . . . . . . . .  	NUMBER	0017	
+
+DO_GC1 . . . . . . . . . . . . .  	L NEAR	29A0	_RUNCODE
+DO_GC2 . . . . . . . . . . . . .  	L NEAR	29B9	_RUNCODE
+DWP  . . . . . . . . . . . . . .  	TEXT  dword ptr		
+
+EXNCONT  . . . . . . . . . . . .  	L DWORD	201C	_RUNCODE
+
+LIMITPTR . . . . . . . . . . . .  	L DWORD	2014	_RUNCODE
+L_ARR  . . . . . . . . . . . . .  	L NEAR	2AD0	_RUNCODE
+L_BYTE . . . . . . . . . . . . .  	L NEAR	2B50	_RUNCODE
+L_CALLC_V  . . . . . . . . . . .  	L NEAR	2A8C	_RUNCODE
+L_STR  . . . . . . . . . . . . .  	L NEAR	2BC8	_RUNCODE
+
+MASK_TAGS  . . . . . . . . . . .  	NUMBER	000F	
+MISC1  . . . . . . . . . . . . .  	L DWORD	202C	_RUNCODE
+MISC1_REG  . . . . . . . . . . .  	TEXT  ebx		
+MISC2  . . . . . . . . . . . . .  	L DWORD	2030	_RUNCODE
+MISC2_REG  . . . . . . . . . . .  	TEXT  edx		
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Symbols-2
+
+
+MISC3  . . . . . . . . . . . . .  	L DWORD	2034	_RUNCODE
+MISC3_REG  . . . . . . . . . . .  	TEXT  esi		
+MISC4  . . . . . . . . . . . . .  	L DWORD	2038	_RUNCODE
+MISC4_REG  . . . . . . . . . . .  	TEXT  ebp		
+ML_PC  . . . . . . . . . . . . .  	L DWORD	203C	_RUNCODE
+
+NROOTS . . . . . . . . . . . . .  	TEXT  9		
+
+POWER_TAGS . . . . . . . . . . .  	NUMBER	0010	
+
+REQ_CALLC  . . . . . . . . . . .  	NUMBER	0004	
+REQ_EXN  . . . . . . . . . . . .  	NUMBER	0001	
+REQ_FAULT  . . . . . . . . . . .  	NUMBER	0002	
+REQ_GC1  . . . . . . . . . . . .  	NUMBER	0003	
+REQ_GC2  . . . . . . . . . . . .  	NUMBER	0009	
+REQ_GC3  . . . . . . . . . . . .  	NUMBER	000A	
+REQ_RETURN . . . . . . . . . . .  	NUMBER	0000	
+REQ_SIGNAL . . . . . . . . . . .  	NUMBER	0005	
+REQ_SIG_RAISE  . . . . . . . . .  	NUMBER	0008	
+REQ_SIG_RESUME . . . . . . . . .  	NUMBER	0007	
+REQ_SIG_RETURN . . . . . . . . .  	NUMBER	0006	
+RUNVEC_SZ  . . . . . . . . . . .  	NUMBER	0007	
+
+STACK_TEMP . . . . . . . . . . .  	L DWORD	2000	_RUNCODE
+STDARG . . . . . . . . . . . . .  	L DWORD	2020	_RUNCODE
+STDCLOS  . . . . . . . . . . . .  	L DWORD	2028	_RUNCODE
+STDCONT  . . . . . . . . . . . .  	L DWORD	2024	_RUNCODE
+STOREPTR . . . . . . . . . . . .  	L DWORD	2018	_RUNCODE
+
+TAG_ARRAY  . . . . . . . . . . .  	NUMBER	0009	
+TAG_BACKPTR  . . . . . . . . . .  	NUMBER	0005	
+TAG_BYTEARRAY  . . . . . . . . .  	NUMBER	000B	
+TAG_EMBEDDE  . . . . . . . . . .  	NUMBER	0007	
+TAG_FORWARDED  . . . . . . . . .  	NUMBER	0003	
+TAG_RECORD . . . . . . . . . . .  	NUMBER	0001	
+TAG_STRING . . . . . . . . . . .  	NUMBER	000F	
+TAG_SUSPENSION . . . . . . . . .  	NUMBER	000D	
+TMP  . . . . . . . . . . . . . .  	TEXT  eax		
+TRAPV  . . . . . . . . . . . . .  	L NEAR	29D2	_RUNCODE
+
+Use32Stack . . . . . . . . . . .  	L DWORD	2000	_RUNCODE	Global
+
+WIDTH_TAGS . . . . . . . . . . .  	NUMBER	0004	
+
+??0002 . . . . . . . . . . . . .  	L NEAR	2A54	_RUNCODE
+??0003 . . . . . . . . . . . . .  	L NEAR	2A70	_RUNCODE
+??0004 . . . . . . . . . . . . .  	L NEAR	2A8C	_RUNCODE
+??0005 . . . . . . . . . . . . .  	L NEAR	2AD0	_RUNCODE
+??0006 . . . . . . . . . . . . .  	L NEAR	2B50	_RUNCODE
+??0007 . . . . . . . . . . . . .  	L NEAR	2BC8	_RUNCODE
+??0008 . . . . . . . . . . . . .  	L NEAR	2C44	_RUNCODE
+??0009 . . . . . . . . . . . . .  	L NEAR	2CA8	_RUNCODE
+??000A . . . . . . . . . . . . .  	L NEAR	2CC8	_RUNCODE
+@0 . . . . . . . . . . . . . . .  	L NEAR	2AB1	_RUNCODE
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Symbols-3
+
+
+@1 . . . . . . . . . . . . . . .  	L NEAR	2B1A	_RUNCODE
+@2 . . . . . . . . . . . . . . .  	L NEAR	2B98	_RUNCODE
+@3 . . . . . . . . . . . . . . .  	L NEAR	2C10	_RUNCODE
+@CPU . . . . . . . . . . . . . .  	TEXT  3471		
+@FILENAME  . . . . . . . . . . .  	TEXT  prim		
+@VERSION . . . . . . . . . . . .  	TEXT  510		
+_ARRAY0_V  . . . . . . . . . . .  	L DWORD	21F8	_RUNCODE
+_array_v . . . . . . . . . . . .  	L NEAR	2AC4	_RUNCODE	Global
+_BYTEARRAY0_V  . . . . . . . . .  	L DWORD	21FC	_RUNCODE
+_callc_v . . . . . . . . . . . .  	L NEAR	2A80	_RUNCODE	Global
+_collected0_a  . . . . . . . . .  	L DWORD	207C	_RUNCODE	Global
+_collectedfrom0_a  . . . . . . .  	L DWORD	2084	_RUNCODE	Global
+_create_b_v  . . . . . . . . . .  	L NEAR	2B44	_RUNCODE	Global
+_create_s_v  . . . . . . . . . .  	L NEAR	2BBC	_RUNCODE	Global
+_cstruct_a . . . . . . . . . . .  	L DWORD	22A4	_RUNCODE	Global
+_current0_a  . . . . . . . . . .  	L DWORD	208C	_RUNCODE	Global
+_currentsave_a . . . . . . . . .  	L DWORD	20D0	_RUNCODE	Global
+_datalist_a  . . . . . . . . . .  	L DWORD	2070	_RUNCODE	Global
+_DIV_E0  . . . . . . . . . . . .  	L DWORD	2240	_RUNCODE
+_DIV_ID0 . . . . . . . . . . . .  	L DWORD	2238	_RUNCODE
+_DIV_S . . . . . . . . . . . . .  	L DWORD	2230	_RUNCODE
+_enterUse32  . . . . . . . . . .  	L NEAR	29F1	_RUNCODE	Global
+_EXTERNLIST0_A . . . . . . . . .  	L DWORD	2304	_RUNCODE
+_fault_exn . . . . . . . . . . .  	V WORD	0000	_DATA	External
+_floor_v . . . . . . . . . . . .  	L NEAR	2C38	_RUNCODE	Global
+_gcmessages0_a . . . . . . . . .  	L DWORD	2094	_RUNCODE	Global
+_gcprof_a  . . . . . . . . . . .  	L DWORD	2200	_RUNCODE	Global
+_GLOBDEFN_ . . . . . . . . . . .  	NUMBER	0001	
+_handle_c  . . . . . . . . . . .  	L NEAR	2A48	_RUNCODE	Global
+_logb_v  . . . . . . . . . . . .  	L NEAR	2C9C	_RUNCODE	Global
+_machine_id_a  . . . . . . . . .  	L DWORD	2040	_RUNCODE	Global
+_majorcollections0_a . . . . . .  	L DWORD	209C	_RUNCODE	Global
+_minorcollections0_a . . . . . .  	L DWORD	20A4	_RUNCODE	Global
+_MLState_a . . . . . . . . . . .  	L DWORD	2010	_RUNCODE	Global
+_ml_access . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_argv . . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_atime  . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_blast_in . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_blast_out  . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_chmod  . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_connect_inet . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_connect_unix . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_ctime  . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_enablesig  . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_environ  . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_exec . . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_export . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_fionread . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_flush_icache . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_fsize  . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_ftype  . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_gc . . . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_getdirent  . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_getfid . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Symbols-4
+
+
+_ml_gethostname  . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_getmod . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_getownid . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_getstorelist . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_gettime  . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_isatty . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_link . . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_masksigs . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_mtime  . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_open . . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_pipe . . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_read . . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_readi  . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_readlink . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_select . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_send_obd . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_setglobal  . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_setitimer  . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_syscall  . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_system . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_timeofday  . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_truncate . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_wait_for_in  . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_wait_for_out . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_write  . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_writei . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_ml_writev . . . . . . . . . . .  	L FAR 	0000	_TEXT	External
+_never0_a  . . . . . . . . . . .  	L DWORD	205C	_RUNCODE	Global
+_OVERFLOW_E0 . . . . . . . . . .  	L DWORD	2260	_RUNCODE
+_OVERFLOW_ID0  . . . . . . . . .  	L DWORD	2258	_RUNCODE
+_OVERFLOW_S  . . . . . . . . . .  	L DWORD	224C	_RUNCODE
+_pstruct0_a  . . . . . . . . . .  	L DWORD	20AC	_RUNCODE	Global
+_ratio0_a  . . . . . . . . . . .  	L DWORD	20B4	_RUNCODE	Global
+_request . . . . . . . . . . . .  	V WORD	0000	_DATA	External
+_return_c  . . . . . . . . . . .  	L NEAR	2A64	_RUNCODE	Global
+_roots_a . . . . . . . . . . . .  	L DWORD	20D4	_RUNCODE	Global	Length = 0049
+_RUNCODE_END . . . . . . . . . .  	L NEAR	2CE6	_RUNCODE	Global
+_RUNCODE_START . . . . . . . . .  	L DWORD	2000	_RUNCODE	Global
+_RUNVEC  . . . . . . . . . . . .  	L DWORD	2210	_RUNCODE
+_SAVEREGS  . . . . . . . . . . .  	L NEAR	2A1B	_RUNCODE
+_scalb_v . . . . . . . . . . . .  	L NEAR	2CBC	_RUNCODE	Global
+_sighandler0_a . . . . . . . . .  	L DWORD	20BC	_RUNCODE	Global
+_softmax0_a  . . . . . . . . . .  	L DWORD	20C4	_RUNCODE	Global
+_store_preserve_a  . . . . . . .  	L DWORD	20CC	_RUNCODE	Global
+_string0_a . . . . . . . . . . .  	L DWORD	2054	_RUNCODE	Global
+_syserror_id0_a  . . . . . . . .  	L DWORD	229C	_RUNCODE	Global
+_SYSERROR_S  . . . . . . . . . .  	L DWORD	2290	_RUNCODE
+_TAGS  . . . . . . . . . . . . .  	NUMBER	0001	
+_UNBOUNDTABLE_E0 . . . . . . . .  	L DWORD	2284	_RUNCODE
+_UNBOUNDTABLE_ID0  . . . . . . .  	L DWORD	227C	_RUNCODE
+_UNBOUNDTABLE_S  . . . . . . . .  	L DWORD	226C	_RUNCODE
+
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:50:5
+                                                             Symbols-5
+
+
+
+    733 Source  Lines
+   1162 Total   Lines
+    192 Symbols
+
+  45394 + 352632 Bytes symbol space free
+
+      0 Warning Errors
+      0 Severe  Errors

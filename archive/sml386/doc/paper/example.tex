@@ -1,0 +1,91 @@
+\section{Example} \label{sec:example}
+
+In this sections we show how a simple function is compiled with the
+80386 code generator. The assembly code shown below is generated with
+the assemble command in the batch compiler (see the file {\em
+BATCHINSTALL\/}).
+
+\begin{verbatim}
+
+fun f x = if x=0 then 1 else x*f(x-1)
+
+\end{verbatim}
+
+is compiled into:
+
+\begin{footnotesize}
+\begin{verbatim}
+; [esp+00] is the datalimit ``register'' and holds the highest available addr.
+; [esp+12] holds the address of the rutine to initiate g.c.
+: [eps+20] holds the address of the rutine to handle overflow
+; [esp+40] is the standard argument ``register''
+; [esp+44] is the standard continuation ``register''
+; [esp+48] is the standard closure ``register''
+  ...
+
+L3:
+cmp   dword ptr [esp+0],edi     ; check the available memory
+jns @f
+call    dword ptr [esp+12]      ; and call garbage collection if necessary
+@@:
+cmp   dword ptr [esp+40],1      ; if x=0
+jne   L14
+mov   edx,dword ptr [ebp+0]     ; then continue with 1
+mov   dword ptr [esp+44],ebp
+mov   dword ptr [esp+40],3
+jmp   edx
+L14:                            ; else x*f(x-1)
+mov   eax,49
+stos  eax                       ; setup a closure with the argument x and
+lea   eax,L4                    ; the continuation for the multiplication L4
+stos  eax
+mov   eax,dword ptr [esp+40]
+stos  eax
+mov   eax,ebp
+stos  eax
+lea   ebp,dword ptr [edi+-12]
+sub   dword ptr [esp+40],2      ; x=x-1
+jno @f                          ; check for overflow
+call    dword ptr [esp+20]
+@@:
+jmp   L3                        ; make the call f(x-1)
+
+...
+
+L4:
+cmp   dword ptr [esp+0],edi     ; check the available memory
+jns @f
+call    dword ptr [esp+12]      ; and call G.C. if neseccary
+@@:
+mov   eax,dword ptr [esp+44]    ; make the multiplications
+mov   eax,dword ptr [eax+4]
+mov   dword ptr [esp+48],eax
+mov   ebx,dword ptr [esp+48]
+sar   ebx,1
+sub   dword ptr [esp+40],1
+mov   ecx,dword ptr [esp+40]
+imul  ecx,ebx
+mov   dword ptr [esp+40],ecx
+jno @f
+call    dword ptr [esp+20]
+@@:
+add   dword ptr [esp+40],1
+mov   eax,dword ptr [esp+44]
+mov   eax,dword ptr [eax+8]
+mov   dword ptr [esp+44],eax
+mov   eax,dword ptr [esp+44]
+mov   edx,dword ptr [eax+0]
+jmp   edx                      ; and continue
+...
+\end{verbatim}
+\end{footnotesize}
+
+Notice how the stack is used to simulate registers, and how the $EAX$
+and $ECX$ are used as tempory registers. In SML\_NJ an integer $i$ is
+represented as $i*2+1$, so the integer one (1) is represented as the
+integer three (3).
+
+
+
+
+

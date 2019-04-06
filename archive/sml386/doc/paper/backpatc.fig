@@ -1,0 +1,74 @@
+\begin{figure}
+\begin{footnotesize}
+\begin{verbatim}
+signature BACKPATCH =                       (* Machine-independent           *)
+sig
+    eqtype Label
+    type   JumpKind                         (* Note 1                        *)
+
+    val newlabel  : unit           -> Label (* Create a new label            *)
+
+    val define    : Label          -> unit  (* Associate a label with a point
+                                               in the code                   *)
+    val emitstring: string         -> unit  (* Insert a string into the code *)
+
+    val align     : unit           -> unit  (* Ensure that the next code is
+                                               on a 4-byte boundary          *)
+    val jump      : JumpKind*Label -> unit  (* Insert a JumpKind instruction 
+                                               into the code (note 2)        *)
+    val mark      : unit           -> unit  (* Insert a gc-tag in the code
+                                               (note 3)                      *)
+    val finish    : unit           -> string (* Initiate the backpatching.   *)
+end
+
+signature JUMPS =                               (* Machine-dependent         *)
+sig
+  type JumpKind
+  val sizejump : JumpKind*int*int*int -> int    (* return the size of the 
+                                                   JumpKind instruction      *)
+  val emitjump : JumpKind*int*int*int -> string (* emit code for the JumpKind
+                                                   instruction (note 1)      *)
+  val emitlong : int -> string                  (* insert a 32-bit litteral
+                                                   in the code               *)
+end
+
+functor Backpatch(Jump : JUMPS) : BACKPATCH =   (* Machine-independent       *)
+struct
+    open Jump
+    ...
+    datatype Desc = ... | JUMP of Jumpkind * Label * int ref * desc | ...
+    ...
+    fun jump(k,lab) = refs := JUMP(k,lab,ref 0, !refs)
+    ...
+end (* functor Backpatch *)
+\end{verbatim}
+
+{\em Note 1:} The JumpKind datatype is used to encode the different
+ instructions that uses relative addresses. The fragment of {\em
+ backpatch} shown here indicates how the "jumps" are inserted into a tree
+ to be backpatched later.
+
+{\em Note 2:} The code generator calls this function when instructed
+to generate code for an instruction that refers to a relative address
+(i.e.  to labels). {\em jump} makes a note of this instruction, and
+later when the backpatching in initiated, {\em Backpatch} can
+determine the size of the instruction (using {\em sizejump}) and how
+to emit code for it (using {\em emitjump}).
+
+{\em Note 3:} Garbage collection (GC) is explained in \protect\cite{bib:gc}.
+
+\end{footnotesize}
+\caption{The BACKPATCH and JUMP signatures
+    \protect\label{fig:BackPatch}}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+

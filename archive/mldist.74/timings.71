@@ -1,0 +1,47 @@
+smlc built with -m 50000
+MIPS Magnum, 72MB ram, diskless
+Standard ML of New Jersey, Version 0.71, 23 July 1991 (batch compiler)
+[globalhandle := false]
+[dumpCore := true]
+[setrounds()]
+[rounds := 10]
+[setbodysize()]
+[bodysize := 20]
+[setsoftmax()]
+[softmax := 50000000]
+[markabsyn := false]
+...
+45859 lines
+parse  237.700000s
+translate  12.800000s
+codeopt    0.0s
+convert    18.320000s
+cpsopt     366.290000s
+closure    140.800000s
+globalfix  1.780000s
+spill      17.630000s
+codegen    114.360000s
+freemap    20.110000s
+execution  0.0s
+GC time    854.340000s
+total(usr) 3462.360000s
+total(sys) 35.130000s
+collections: 4226 minor, 75 major
+1025660 collected from 19903843 possible (5%)
+code bytes: 2973752
+4752 knowngen
+430 knowncl
+20198 stdgen
+[globalhandle := true]
+[dumpCore := false]
+[Exporting to upto.all]
+
+[Major collection... 20% used (4024168/20023992), 3790 msec]
+
+[Decreasing heap to 19712k]
+
+[Major collection... 99% used (4036328/4036900), 3750 msec]
+Standard ML of New Jersey, Version 0.71, 23 July 1991 (batch compiler)
+[1]    Done                   ../bin/mipsb/smlc < all >& diagnostics
+3469.9u 37.8s 59:44 97% 1737+-2690k 882+1236io 34596pf+0w
+----------------------------------------------------------------------

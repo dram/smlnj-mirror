@@ -1,0 +1,17 @@
+\section{Conclusion} \label{sec:conclusion}
+
+We have succeded in porting the SML\_NJ version 0.66 to a PC running
+Windows. A general 80386 code generator is made, which can be used in
+other architectures based on the 80386 processor. The new runtime
+system lacks some of the facilities found in the UNIX version, but we
+will not continue working on the runtime system until new 32-bit
+versions of Windows and C compilers becomes available. The purpose of
+this project was to see if it was possible to implement the whole
+SML\_NJ system on a PC, and that we have proved.
+
+No changes have been made in the front end\footnote{We had to change
+some structure names because filenames in DOS can only be upto 8
+characters in length.}, so the whole system is implemented. Other
+compilers for a subset of ML are available on the PC, but this is the
+first time (to our knowledge) that a complete SML compiler runs on the
+PC.

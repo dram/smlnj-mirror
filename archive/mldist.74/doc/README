@@ -1,0 +1,197 @@
+		Standard ML of New Jersey
+	      Version 0.75, 10 November 1991
+
+	    by Andrew Appel and David MacQueen
+
+John Reppy	  Lal George	    Andrew Tolmach	Bruce Duba
+David Tarditi	  Greg Morrisett    Gene Rollins	Zhong Shao
+Trevor Jim	  James Mattson	    Norman Ramsey	Adam Dingle
+James O'Toole	  Nick Rothwell	    Kevin Mitchell	Mads Tofte
+Peter Weinberger
+	------------------------------------------------
+
+STANDARD ML OF NEW JERSEY COPYRIGHT NOTICE, LICENSE AND DISCLAIMER.
+
+Copyright 1989, 1990, 1991 by AT&T Bell Laboratories
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
+provided that the above copyright notice appear in all copies and that
+both the copyright notice and this permission notice and warranty
+disclaimer appear in supporting documentation, and that the name of
+AT&T Bell Laboratories or any AT&T entity not be used in advertising
+or publicity pertaining to distribution of the software without
+specific, written prior permission.
+
+AT&T disclaims all warranties with regard to this software, including
+all implied warranties of merchantability and fitness.  In no event
+shall AT&T be liable for any special, indirect or consequential
+damages or any damages whatsoever resulting from loss of use, data or
+profits, whether in an action of contract, negligence or other
+tortious action, arising out of or in connection with the use or
+performance of this software.
+
+	------------------------------------------------
+
+This file describes the latest release of the Standard ML of New
+Jersey compiler.  The main changes relative to previous versions are
+described in the file doc/NEWS.
+
+We are eager to receive your bug reports, comments, and constructive
+criticism.  The documentation is still in a primitive state, but your
+comments on the installation instructions and manual would be
+appreciated.  Any error message beginning with "Compiler bug"
+definitely indicates a bug in the compiler and should be reported.
+Please use an appropriate variation on the bug reporting form in the
+file doc/bug.form and send comments and bug reports to:
+
+   David MacQueen
+   Room 2C-322
+   AT&T Bell Laboratories
+   Murray Hill, NJ 07974
+   USA
+   phone: 201-582-7691
+   email: macqueen@research.att.com
+
+Instructions for installing the compiler are in the file doc/INSTALL.
+
+The primary means of distributing the compiler is anonymous internet
+ftp from hosts princeton.edu (ftp directory pub/ml) and
+research.att.com (ftp directory dist/ml).  For those who do not have
+internet access directly or indirectory, distribution by tape is
+possible as a last resort.
+
+FTP distribution
+
+To obtain the compiler by internet ftp, connect to host princeton.edu
+use login id "anonymous" with your name as password, and go to directory
+pub/ml ("cd pub/ml").  Then put ftp in binary mode ("binary") and "get"
+the relevant files in that directory.  An alternate site is research.att.com,
+directory "dist/ml".
+
+Host:		 Net Address:	Login:	    Passwd:	  Directory:
+princeton.edu	 128.112.128.1	anonymous   Your address  pub/ml
+research.att.com 192.20.225.2	anonymous   Your name	  dist/ml
+
+The directory pub/ml (dist/ml on research.att.com) contains a
+file named README that describes the current release and the following
+compressed tar files:
+
+  66.doc.tar.Z       : the doc directory containing documentation
+  66.src.tar.Z       : the src directory containing source code
+  66.lib.tar.Z       : the lib directory containing contributed software
+  66.mo.m68.tar.Z    : the mo.m68 directory of m68 object files
+  66.mo.vax.tar.Z    : the mo.vax directory of vax object files
+  66.mo.sparc.tar.Z  : the mo.sparc directory of sparc object files
+  66.mo.mipsl.tar.Z  : MIPS Little-endian object files (for DEC machines)
+  66.mo.mipsb.tar.Z  : MIPS Big-endian object files (for MIPS machines)
+
+You need only transfer the mo.*.tar.Z files that you need for your
+machines (e.g. mo.m68.tar.Z for Sun 3, NeXT, etc., mo.vax.tar.Z for
+Vax).  
+
+***************************************************************************
+NOTE: Ftp should be put into binary mode before transferring the compressed
+tar files.
+***************************************************************************
+
+Here is a sample dialog:
+
+   ftp
+   ftp> open princeton.edu
+   Name: anonymous
+   Password: <your name@host>
+   ftp> binary
+   ftp> cd pub/ml
+   ftp> get README
+   ftp> get 66.src.tar.Z
+   ftp> get 66.lib.tar.Z
+   ftp> get 66.doc.tar.Z
+   ftp> get 66.mo.m68.tar.Z
+   ftp> get 66.mo.vax.tar.Z
+   ftp> close
+   ftp> quit
+
+After the files are transferred they should be uncompressed using the
+uncompress command and then extracted using tar into a directory
+called mldist.  It may not be necessary to transfer all the files; if
+you do not intend to run the compiler on a Vax, for instance, there is
+no need to get the mo.vax.tar.Z file.
+
+For example:
+
+   mkdir mldist
+   mv 66.src.tar.Z mldist
+   cd mldist
+   uncompress -c 66.src.tar.Z | tar xf -
+
+will unpack the src directory.
+
+2. Description of files in the distribution
+
+README (this file) contains some general information on the distribution.
+
+The mo.vax, mo.m68, and mo.sparc directories contain the Vax, Motorola
+MC68020, and SPARC object files for the compiler.  The mo.mipsl and
+mo.mipsb contain Little-endian and Big-endian MIPS object files for
+the compiler.  (The National Semiconductor 32000 is not currently
+supported, but might be again in the future.)
+
+The src directory contains the source code of the compiler.
+
+lib contains contributed software.  At the moment, this consists of
+a lexical analizer generator (lib/lexgen), a parser generator
+(lib/mlyacc), a code generator generator (lib/mltwig), and a gnu emacs
+major editing mode (lib/emacs), and the sourcegroup separate compilation
+system.
+
+The doc directory contains a number of documentation files for installing and
+using the compiler:
+
+  INSTALL 	directions for installing the interactive Standard ML system.
+
+  BATCHINSTALL	directions for using the interim batch system and bootstrapping
+		the compiler.
+
+  NEWS		general information on changes and new features.  A number of
+		important features of the compiler are documented only in this
+		file, alas.
+
+  users		a mailing list of current site contacts.  Please inform us of
+		any updates or corrections.
+
+  help		hints for beginners on using the system.
+
+  differences	a (partial, out of date) list of differences between Standard
+		ML of New Jersey and the Edinburgh compiler.
+
+  weak-types	a very brief explanation of weak type variables.
+
+  callcc	an explanation of the new callcc primitives.
+
+  profiling	an explanation of how to use the profiling facilities.
+
+  optimize	hints on making your programs run faster
+
+  localspec	comments on "local" specifications in signatures
+
+  bugs		current list of known bugs (please check this before submitting
+		bug reports).
+
+  masterbugs    list of all bugs ever reported (most of which are fixed).
+
+  bug.form	suggested format for bug reports.
+
+  refman/	LaTeX sources for an incomplete, provisional reference manual.
+
+  examples/	A collection of example programs.  We would like to collect 
+		additional examples contributed by users.  Please mail your
+		example programs to macqueen@research.att.com.
+
+  man/		Manual pages for various system-building tools, and for sml.
+		These can be printed with "troff -man".
+
+  papers/	source files (troff -ms, TeX, or LaTeX) for papers describing 
+		the compiler.
+
+

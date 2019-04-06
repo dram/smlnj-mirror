@@ -1,0 +1,5 @@
+***************
+*** 60
+-       die ("bogus signal not in ML: (%d, %#x)\n", signal, code);
+--- 65 -----
++       die ("bogus signal not in ML: (%d, %#x)\n", sig, code);

@@ -1,0 +1,266 @@
+diff opcodes-table  ~appel/67/src/mips/opcodes-table
+
+118d117
+< mov_fmt fmt fd fs
+
+---------------------------------------------------------
+diff mips.sml  ~appel/67/src/mips/mips.sml
+
+50,54d49
+<     val floatregs = 
+< 	let fun f n m = if n > m then [] else n :: f (n+2) m
+< 	in Direct(FloatReg 30) :: map (Direct o FloatReg) (f 0 18)
+< 	end 
+<     val savedfpregs = map (Direct o FloatReg) [20,22,24,26,28] 
+66,73c61,62
+<     fun move (Direct(FloatReg fp1), Direct (FloatReg fp2)) =
+< 	M.mov_double(FloatReg fp1, FloatReg fp2)
+<       | move (Direct(FloatReg _), _) =
+< 	ErrorMsg.impossible "mips/mips/move: destination not a float register"
+<       | move (_, Direct(FloatReg _)) =
+< 	ErrorMsg.impossible "mips/mips/move: source not a float register" 
+<       | move (src, Direct dest) = M.move(src, dest)
+<       | move _ = ErrorMsg.impossible "mips/mips/move"
+---
+>     fun move (src,Direct dest) = M.move(src, dest)
+>       | move _ = ErrorMsg.impossible "destination of move not register in mips"
+307c296
+< 		    ErrorMsg.impossible "bad ibranch args 3 in mips"
+---
+>                     ErrorMsg.impossible "bad ibranch args 3 in mips"
+346a336,346
+>     (* We decided not to include floating point registers in our galaxy of   *)
+>     (* effective addresses.                                                  *)
+>     (* This means that floating point registers are used only at this level, *)
+>     (* and only to contain intermediate results.                             *)
+>     (* All operands and final results will be stored in memory, in the usual *)
+>     (* ML format (i.e. as 8-byte strings).                                   *)
+> 
+>     (* In fact, we can be much more strict than that, and claim that         *)
+>     (* all floating point operands will live in FPR0 and FPR2, and that all  *)
+>     (* results will appear in FPR0.                                          *)
+> 
+349c349,362
+< 
+---
+>     
+>     val floatop1 = Reg 0
+>     val floatop2 = Reg 2
+>     val floatresult = Reg 0
+>     
+>     (* One very common operation is to take the result of a floating point   *)
+>     (* operation and put it into a fresh record, newly allocated on the heap.*)
+>     (* This operation is traditionally called finish_real, and it takes one *)
+>     (* argument, the destination register for the new value.                 *)
+>     (* All real values on the heap are labelled as 8-byte strings.           *)
+>     (* To store a floating point, we store the least significant             *)
+>     (* word in the lower address, but we store the most significant word     *)
+>     (* first, in case that triggers a garbage collection.                    *)
+>     
+350a364
+>     
+354c368,380
+< 	      M.swc1(Reg(n+M.low_order_offset),ea,offset))
+---
+>     	  M.swc1(Reg(n+M.low_order_offset),ea,offset))
+>     
+>     fun finish_real (Direct result) = (
+>         store_float(floatresult,dataptr,4);
+>         M.move(real_tag,my_temp');
+>         M.sw(my_temp',dataptr,0);
+>         M.add(dataptr',Immed 4,result);
+>         M.add(dataptr',Immed 12,dataptr'))
+>       | finish_real _ = 
+>          ErrorMsg.impossible "ptr to result of real operation not register in mips"
+>     
+>     (* Loading a floating point quantity is analogous.                       *)
+>     
+359,385c385,408
+<     fun storefloat(src,dst) =
+< 	case (src,dst)
+< 	  of (Direct(FloatReg fpr),Direct (Reg result)) => 
+< 	      (store_float(Reg fpr, dataptr, 4);
+< 	       M.move(real_tag,my_temp');
+< 	       M.sw(my_temp',dataptr,0);
+< 	       M.add(dataptr',Immed 4,Reg result);
+< 	       M.add(dataptr',Immed 12,dataptr'))
+< 	   | (Direct(Reg _),_) => 
+< 		 ErrorMsg.impossible "mips: Source of storefloat is a GPReg"
+< 	   | (_, Direct(FloatReg _))=> 
+< 		 ErrorMsg.impossible "mips: Destination of storefloat is a FPReg"
+< 	   | _ => ErrorMsg.impossible "mips: Bad arguments to storefloat"
+<     fun loadfloat(src, dst) =
+< 	case dst of Direct(FloatReg fpr) => load_float(Reg fpr, src, 0)
+<                   | _ => ErrorMsg.impossible 
+< 			"mips: Bad destination register for loadfloat"
+<     fun cast_fp_EA(Direct(FloatReg fp)) = Reg fp
+<       | cast_fp_EA _ = 
+< 	ErrorMsg.impossible "mips: Did not find a FPR in cast_fp_EA"
+<     fun cast3instr inst (op1,op2,result) = 
+< 	inst(cast_fp_EA op1, cast_fp_EA op2, cast_fp_EA result)
+<     fun mnegg(op1,result) = M.neg_double(cast_fp_EA op1, cast_fp_EA result)
+<     val mulg3 = cast3instr M.mul_double
+<     val divg3 = cast3instr M.div_double
+<     val addg3 = cast3instr M.add_double
+<     val subg3 = cast3instr M.sub_double
+---
+>     
+>     (* Now we can do a general two- and three-operand floating point 
+> 	operation. *)
+>     (* The only parameter is the function in MipsCoder that                 *)
+>     (* emits the floating point register operation.                         *)
+>     
+>     fun two_float instruction (op1,result) = (
+>         load_float(floatop1,op1,0);
+>         instruction(floatop1,floatresult);
+>         finish_real(result))
+>     
+>     fun three_float instruction (op1,op2,result) = (
+>         load_float(floatop1,op1,0);
+>         load_float(floatop2,op2,0);
+>         instruction(floatop1,floatop2,floatresult);
+>         finish_real(result))
+>     
+>     val mnegg = two_float M.neg_double
+>     val mulg3 = three_float M.mul_double
+>     val divg3 = three_float M.div_double
+>     val addg3 = three_float M.add_double
+>     val subg3 = three_float M.sub_double
+>     
+>     
+386a410,415
+>         (* Floating point compare:                                          *)
+>         (* The Mips doesn't provide all six comparisons in hardware, so the *)
+>         (* next function does the comparison using only less than and equal.*)
+>         (* The result tells bcop1 whether to branch on condition true       *)
+>         (* or condition false.                                              *)
+>         
+394,399c423,427
+<     fun gbranch (cond, op1, op2, Immedlab label) = 
+< 	let val regop1 = cast_fp_EA op1
+< 	    val regop2 = cast_fp_EA op2
+< 	in  M.bcop1(compare(cond,regop1,regop2),label)
+< 	end
+<       | gbranch _ = ErrorMsg.impossible "insane gbranch target in mips.nw"
+---
+>         fun gbranch (cond, op1, op2, Immedlab label) = (
+>                 load_float(floatop1,op1,0);
+>                 load_float(floatop2,op2,0);
+>                 M.bcop1(compare(cond,floatop1,floatop2),label))
+>           | gbranch _ = ErrorMsg.impossible "insane gbranch target in mips.nw"
+400a429,430
+>     	
+> 
+
+
+
+---------------------------------------------------------
+diff mipscoder.sig ~appel/67/src/mips/mipscoder.sig
+
+46c28
+< datatype Register = Reg of int | FloatReg of int
+---
+> datatype Register = Reg of int
+125d106
+<     val mov_double: Register * Register -> unit
+137,138d117
+<
+<
+
+
+---------------------------------------------------------
+diff mipscoder.sml ~appel/67/src/mips/mipscoder.sml
+
+11c11
+<   datatype Register = Reg of int | FloatReg of int
+---
+>   datatype Register = Reg of int
+50a51
+>   
+58a60
+> 
+60d61
+<     | MOVEFLOAT of Register * Register (* MOVEFLOAT(src,dst) *)
+66a68
+> 
+68d69
+<   | showea(Direct(FloatReg fp)) = "f" ^ makestring fp
+112,113d112
+<   | MOVEFLOAT(fpr1,fpr2) =>
+< 	["move ", showea(Direct fpr1), ",", showea(Direct fpr2)]
+208d206
+<       val mov_double = keep MOVEFLOAT
+339,341c337,339
+<  fun adjust(last,i,_,nil) = i
+<    | adjust(last,i,_,(_,DEFINE lab)::rest) = (lab:=i; adjust(last,i,NONE,rest))
+<    | adjust(last,pos,pcptr,x as ((sizeref as ref size, inst) :: rest)) =
+---
+>  fun adjust(i,_,nil) = i
+>    | adjust(i,_,(_,DEFINE lab)::rest) = (lab:=i; adjust(i,NONE,rest))
+>    | adjust(pos,pcptr,x as ((sizeref as ref size, inst) :: rest)) =
+343c341
+<        then adjust(last,pos+1,SOME(pos+2),x)
+---
+>        then adjust(pos+1,SOME(pos+2),x)
+407d404
+< 		       | MOVEFLOAT _ => 1
+445c442
+< 	       val newsize = if last then size else max(size,newsize)
+---
+> 	       val newsize = max(size,newsize)
+447c444
+<        	       adjust(last,pos+newsize,pcptr,rest)
+---
+>        	       adjust(pos+newsize,pcptr,rest)
+607,610c604
+< 	   | MOVEFLOAT(FloatReg src, FloatReg dst) => 
+< 		 gen1(emit(mov_fmt(D_fmt,dst,src)))
+< 	   | MOVEFLOAT(_,_) =>  
+< 		 ErrorMsg.impossible "Argument to MOVEFLOAT not FloatReg"
+---
+> 
+720d713
+<       | MOVEFLOAT _ => false
+772,776c764
+< 	if i=j then ONE else OK
+<   | (LOAD(Floating,Reg i,_,_),MOVEFLOAT(FloatReg src, FloatReg dst)) =>
+< 	if i=src orelse i=src+1 orelse i=dst orelse i=dst+1 
+< 	then ONE
+< 	else OK 
+---
+> 					if i=j then ONE else OK
+794,795c782
+< 	if i=j orelse i+1=j then MANY else OK
+<   | (FLOAT(_,_,_,Reg i), MOVEFLOAT(FloatReg j,_)) => if i=j then MANY else OK
+---
+> 				if i=j orelse i+1=j then MANY else OK
+797,810d783
+<   | (MOVEFLOAT(_,FloatReg dst),SETFLOAT(_,Reg j,Reg k)) => 
+< 	if dst=j orelse dst=k then ZERO else OK
+<   | (MOVEFLOAT(_,FloatReg dst),FLOAT(_,Reg j,Reg k,Reg d)) =>
+< 	if dst=j orelse dst+1=j orelse dst=k orelse dst=k+1 orelse
+< 	    dst=d orelse dst=d+1 
+<         then ZERO
+< 	else OK
+<   | (MOVEFLOAT(FloatReg src,FloatReg dst),LOAD(Floating,Reg j,_,_)) => 
+< 	if dst=j orelse dst=j+1 then ZERO else OK
+<   | (MOVEFLOAT(_,FloatReg dst),STORE(Floating,Reg j,_,_)) =>
+< 	if dst=j orelse dst=j+1 then ZERO else OK
+<   | (MOVEFLOAT(_,FloatReg dst),MOVEFLOAT(FloatReg src,_)) => 
+< 	if dst=src orelse dst=src+1 then ZERO else OK
+<   | (MOVEFLOAT _, _) => OK
+1061c1034
+<           let val size = adjust (false,0,NONE,instrs)
+---
+>           let val size = adjust (0,NONE,instrs)
+1075c1048
+< 				         val s' = adjust(true,0,NONE,i')
+---
+> 				         val s' = adjust(0,NONE,i')
+1155c1128
+<     | MOVEFLOAT _ => true
+---
+>   
+
+
+

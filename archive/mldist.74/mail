@@ -1,0 +1,118 @@
+From europa!ark Tue Oct 22 16:41:13 1991
+Return-Path: <europa!ark>
+From: europa!ark
+Date: Tue, 22 Oct 91 16:00:36 EDT
+To: hunny!dbm
+
+By the way, pre-74 is quite a bit bigger than 0.66
+
+Executable size on disk went from 2.54 meg to 2.94 meg
+(text,data) went from (1.97 meg, 0.57 meg) to (2.48 meg, 0.46 meg)
+No idea if any of that is dead code.
+
+
+From europa!ark Tue Oct 22 17:00:09 1991
+Return-Path: <europa!ark>
+From: europa!ark
+Date: Tue, 22 Oct 91 14:07:28 EDT
+To: hunny!dbm
+
+Could the "bug" comment about pre-74 refer to the fact
+that even when I've built with "noshare", I still get a
+half-megabyte executable from
+
+	exportFn ("a.out", fn _ => () )
+
+??  That should really be fixed -- it's the sort of thing
+that makes the difference between being able to write plausible
+system commands in ML or not.
+
+
+From ange@hplb.hpl.hp.com Tue Oct 22 17:08:03 1991
+Return-Path: <alice!hplb.hpl.hp.com!ange>
+To: dbm@research.att.com (Dave MacQueen)
+In-Reply-To: Your message of Mon, 21 Oct 91 21:42:00 BST.
+             <m0kZB8Z-000p9UC@hunny.research.att.com> 
+Date: Tue, 22 Oct 91 13:29:45 BST
+From: Andy Norman <ange@hplb.hpl.hp.com>
+
+Hi Dave.
+
+Recently you wrote:
+
+> We have built pre-74 and done some testing on the following systems:
+
+>  SPARCstation/SunOS 4.1.1
+>  Sun 3/SunOS 4.1.1
+>  MIPS Magnums/Riscos 4.52
+>  SGI 4D/IRIX 3.3.1
+>  Vax/BSD4.3
+>  NeXT/NeXTstep 2.1
+
+> Please let us know if you successfully or unsuccessfully build and
+> exercise the system on other machine/os combinations.  Any reports of
+> problems would be greatly appreciated.
+
+Built on hp9000s425s/HP-UX 7.05 (68040-based system) with the tiny set of
+diffs I include at the end of this message.  Minimal testing I'm afraid since
+SML is no longer my main work activity.
+
+I hope this info helps...
+					-- ange --
+
+					ange@hplb.hpl.hp.com
+
+-------------------------------------------------------------------------------
+*** src/makeml~	Thu Oct 17 15:59:52 1991
+--- src/makeml	Tue Oct 22 11:53:14 1991
+***************
+*** 526,533 ****
+  	( cd $RUNTIME; \
+  	  unset PWD;
+  	  if test -z "$CALLEESAVE"; then CALLEESAVE="0"; fi;
+! 	  echo "$CMD   /lib/cpp -DCALLEESAVE=$CALLEESAVE -DHPUX -DASM M68.prim.s > prim.s"; \
+! 	  /lib/cpp -DCALLEESAVE=$CALLEESAVE -DHPUX -DASM M68.prim.s > prim.s; \
+  	  echo "$CMD   emacs -batch -l sun2hp.el prim.s prim.s"; \
+  	  emacs -batch -l sun2hp.el prim.s prim.s ; \
+  	  echo "$CMD   as -o prim.o prim.s"; \
+--- 526,533 ----
+  	( cd $RUNTIME; \
+  	  unset PWD;
+  	  if test -z "$CALLEESAVE"; then CALLEESAVE="0"; fi;
+! 	  echo "$CMD   /lib/cpp -DCALLEESAVE=$CALLEESAVE -DM68 -DHPUX -DASM M68.prim.s > prim.s"; \
+! 	  /lib/cpp -DCALLEESAVE=$CALLEESAVE -DM68 -DHPUX -DASM M68.prim.s > prim.s; \
+  	  echo "$CMD   emacs -batch -l sun2hp.el prim.s prim.s"; \
+  	  emacs -batch -l sun2hp.el prim.s prim.s ; \
+  	  echo "$CMD   as -o prim.o prim.s"; \
+*** src/runtime/export.c~	Tue Oct  8 04:41:46 1991
+--- src/runtime/export.c	Tue Oct 22 13:18:26 1991
+***************
+*** 124,129 ****
+--- 124,132 ----
+  #ifdef HPUX
+      E.a_magic.file_type = ZMAGIC;
+      E.a_magic.system_id = HP9000S200_ID;
++ #ifdef M_DATA_WTHRU
++     E.a_miscinfo |= M_DATA_WTHRU;
++ #endif
+  #else
+  #if defined(sun3) || (defined(SPARC) && !defined(MACH))
+      E.a_magic = NMAGIC;
+
+
+From nick@dcs.edinburgh.ac.uk Wed Oct 23 10:23:21 1991
+Return-Path: <alice!dcs.edinburgh.ac.uk!nick>
+Date: Wed, 23 Oct 1991 13:47:33 +0000
+To: Dave MacQueen <dbm@research.att.com>
+From: Nick Rothwell <nick@dcs.edinburgh.ac.uk>
+Subject: Re: pre-74 release.
+
+Sun4/Sparc:     builds OK, will exercise it over the next week or two.
+HP9000:         prim.s fails to assemble.
+DECstation:     Warnings for prim.s (.end/.ent mismatches) but otherwise
+                builds OK. Will exercise over the next week or two.
+
+Nick.
+
+
+

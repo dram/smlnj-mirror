@@ -1,0 +1,57 @@
+\begin{figure}
+\begin{footnotesize}
+\begin{verbatim}
+    (* The basic machine code generation *)
+    functor MCode386(Jumps : JUMPS386) : CODER386 =
+    struct
+        structure Emitter : BACKPATCH = Backpatch(Jumps)
+        open Jumps Emitter
+        ...
+        datatype EA = ...
+        ...
+        fun movl(x : EA, y : EA) = emitstring ( ...  (* build up the string 
+                                                        that constitute a 
+                                                        move instruction *)
+                                                ... )
+            (* notice how the emitstring from Backpatch is used *)
+        ...
+    end (* functor MCode386 *)
+
+    (* The basic assembly code generation *)
+    functor ACode386() : CODER386 =
+    struct
+        ....
+        datatype EA = ...
+        ...
+        fun movl(x : EA, y : EA) = (emit "mov   "; emit2args(x,y))
+        ...
+    end (* functor ACode386 *)
+
+    (* The abstract machine *)
+    functor CMach386( Coder : CODER386) : CMACHINE = 
+        ...
+        datatype EA = ...
+        ...
+        fun move(x : EA, y : EA) = Coder.movl(x,y)
+        ...
+    end (* functor CMach386 *)
+\end{verbatim}
+\begin{descit}{Note} When {\em CPSgen\/} calls the abstract instruction
+ {\em move()\/} one of the {\em movl()\/} functions will be called to
+ generate the desired code.
+\end{descit}
+\end{footnotesize}
+\caption{The basic code generators for the 80386 (machine and assembly code).
+    \protect\label{fig:I386xCod}}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,428 @@
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:4
+Garbage Collection                                          Page     1-1
+
+
+       1				;**************************************
+					***********************************
+       2				; moveback.asm
+       3				;
+       4				; 10/4/91   Yngvi Skaalum Guttesen
+       5				;
+       6				; This file contains the moveback funct
+					ion that adjusts the ML-heap
+       7				; after a G.C.
+       8				;
+       9				;                                      
+					                    Available regs.
+      10				;                          (tmp = eax i
+					s always available     bx = ebx ... )
+      11				;                                      
+					                <-- bx cx dx si di bp>
+      12				
+      13				    TITLE   Garbage Collection
+      14				
+      15				    PAGE    90,132
+      16				
+      17				    .386p
+      18				    .387
+      19				
+      20				    .LIST
+      21				
+      22 0000				_DATA   segment word public use16 'DATA'
+      23				
+      24				    EXTRN   _wsUse32Data    : WORD
+      25				
+      26 0000				_DATA   ends
+      27				
+      28 0000				_TEXT   segment word public use16 'CODE'
+      29				
+      30				    assume cs:_TEXT, ds:_DATA, es:_DATA, gs:_DATA, fs:nothing, ss:_DATA
+      31				
+      32				;********************************************************************
+      33				; Blockmove moves the "words" double words from "from" to "to".
+      34				;
+      35				; blockmove(int *from, int *to, int words)
+      36				;     if (!words) return ;
+      37				;     if (from<to && from+words>to)
+      38				;        {from += words ; to += words ;
+      39				;         do { *--to = *--from } while (--words>0) ;
+      40				;        }
+      41				;     else
+      42				;        do { *to++ = *from++ } while (--words>0) ;
+      43				;
+      44				;
+      45				; Frame on entry:   [sp+10] -> words
+      46				;                   [sp+06] -> to
+      47				;                   [sp+02] -> from
+      48				;                   [sp+00] -> return address
+      49				;
+      50				
+      51 = ecx				words   EQU <ecx>
+      52 = esi				from    EQU <esi>
+      53 = edi				to      EQU <edi>
+      54				
+      55 = [bp+12]			param3  EQU <[bp+12]>
+      56 = [bp+08]			param2  EQU <[bp+08]>
+      57 = [bp+04]			param1  EQU <[bp+04]>
+      58				
+      59				
+      60 0000				blockmove PROC NEAR
+      61				
+      62 0000  55			    push    bp
+      63 0001  8B EC			    mov     bp,sp
+      64				
+      65 0003  66| 51			    push    words
+      66				
+      67 0005  66| 8B 4E 0C		    mov     words,param3
+      68 0009  66| 0B C9		    or      words,words
+      69 000C  74 3D			    jz      SHORT Lblockmove_return       ; if (!words) return
+      70				
+      71 000E  66| 56			    push    from
+      72 0010  66| 57			    push    to
+      73				
+      74 0012  FC			    cld                     ; count up
+      75				
+      76 0013  66| 8B 76 04		    mov     from,param1
+      77 0017  66| 8B 7E 08		    mov     to,param2
+      78 001B  66| 3B F7		    cmp     from,to
+      79 001E  0F 83 0043 R		    jae     Lblockmove
+      80				
+      81 0022  66| 8B C1		    mov     tmp,words
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:4
+Garbage Collection                                          Page     1-2
+
+
+      82 0025  66| C1 E0 02		    shl     tmp,2
+      83 0029  66| 03 C6		    add     tmp,from        ; tmp = from + words
+      84				
+      85 002C  66| 3B C7		    cmp     tmp,to
+      86 002F  0F 86 0043 R		    jbe     Lblockmove
+      87				
+      88 0033  66| 8B C1		    mov     tmp,words
+      89 0036  66| 48			    dec     tmp
+      90 0038  66| C1 E0 02		    shl     tmp,2
+      91 003C  66| 03 F0		    add     from,tmp
+      92 003F  66| 03 F0		    add     from,tmp
+      93 0042  FD			    std                     ; count down
+      94				
+      95 0043				Lblockmove:
+      96				
+      97 0043  67			    db  67h
+      98 0044  F3/ 66| A5		    rep movsd
+      99				
+     100 0047  66| 5F			    pop     to
+     101 0049  66| 5E			    pop     from
+     102				
+     103 004B				Lblockmove_return:
+     104				
+     105 004B  66| 59			    pop     words
+     106 004D  5D			    pop     bp
+     107 004E  C3			    ret
+     108				
+     109 004F				blockmove endp
+     110				
+     111				;*************************************************************************
+     112				;
+     113				;     moveback(from_low, from_high, to_low, misc_roots)
+     114				;     long *from_low;
+     115				;     long *from_high;
+     116				;     long *to_low;
+     117				;     long **misc_roots;
+     118				;
+     119				;      #define INRANGE(x) (((int)(x) >= (int)from_low) && \
+     120				;			   ((int)(x) <	(int)from_high) )
+     121				;      #define ADJUST1(x) (INRANGE(x) ? (x) += offset : 0 )
+     122				;      #define ADJUST(x)  (is_ptr(x) ? ADJUST1(x) : 0)
+     123				;
+     124				;     {
+     125				;	  int *x, offset = sizeof(int)*(to_low-from_low);
+     126				;
+     127				;	  { int **p;
+     128				;	    for (p=misc_roots; *p; p++)
+     129				;		ADJUST(**p);
+     130				;	  }
+     131				;
+     132				;	  x=from_low;
+     133				;	  while (x<from_high)
+     134				;	      if (contains_no_ptrs(*x))
+     135				;		  x+= (get_len(x)+7)>>2;
+     136				;	      else {int i= get_lenz(x);
+     137				;		    ++x;
+     138				;		    do {ADJUST(*x); x++;} while (--i>0);
+     139				;		   }
+     140				;	  blockmove(from_low,to_low,from_high - from_low);
+     141				;     }
+     142				;
+     143				;
+     144				;Frame on entry:    sp + 00 -> return address
+     145				;                   sp + 02 -> from_low
+     146				;                   sp + 06 -> from_high
+     147				;                   sp + 10 -> to_low
+     148				;                   sp + 14 -> misc_roots
+     149				;
+     150				PUBLIC _moveback
+     151				
+     152 004F				_moveback    proc    NEAR
+     153				
+     154 004F  55			    push    bp
+     155 0050  8B EC			    mov     bp,sp
+     156				
+     157 0052  56			    push    si
+     158 0053  57			    push    di
+     159 0054  1E			    push    ds
+     160				
+     161 0055  A1 0000 E		    mov     ax, _wsUse32Data
+     162 0058  8E D8			    mov     ds, ax
+     163 005A  8E C0			    mov     es, ax
+     164				
+     165 = DWORD PTR [bp +  4]		flow    EQU <DWORD PTR [bp +  4]>
+     166 = DWORD PTR [bp +  8]		fhigh   EQU <DWORD PTR [bp +  8]>
+     167 = DWORD PTR [bp + 12]		tlow    EQU <DWORD PTR [bp + 12]>
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:4
+Garbage Collection                                          Page     1-3
+
+
+     168 = DWORD PTR [bp + 16]		misc    EQU <DWORD PTR [bp + 16]>
+     169				
+     170 = ebx				x       EQU <ebx>   ; int *x
+     171 = edi				offs    EQU <edi>   ; int offset
+     172 = esi				p       EQU <esi>   ; int **p
+     173 = ecx				i       EQU <ecx>   ; int i
+     174 = edx				tmp2    EQU <edx>
+     175				
+     176				ADJUST     macro   x
+     177				    local   Skip
+     178				
+     179				    is_ptr(x)
+     180				    jnz     SHORT Skip
+     181				
+     182				    cmp     x,flow
+     183				    jnae    SHORT Skip
+     184				    cmp     x,fhigh
+     185				    jnb     SHORT Skip
+     186				
+     187				    add     x,offs
+     188				
+     189				Skip:
+     190				    endm
+     191				
+     192 005C  66| 8B 7E 0C		    mov     offs,tlow
+     193 0060  66| 2B 7E 04		    sub     offs,flow           ; offset = sizeof(int)*(to_low-from_low)
+     194				
+     195				;   Do misc. roots
+     196				;   for (p=misc_roots ; *p ; p++) ADJUST(**p)
+     197				
+     198 0064  66| 8B 76 10		    mov     p,misc              ; p = misc_roots
+     199				
+     200 0068				Lmb_loop1_test:
+     201				
+     202 0068  67| 66| 8B 16		    mov     tmp2,[p]
+     203 006C  66| 83 FA 00		    cmp     tmp2,0              ; *p <> NULL
+     204 0070  74 25			    je      SHORT Lmb_loop1_done
+     205				
+     206 0072  67| 66| 8B 02		    mov     tmp,[tmp2]
+     207				    ADJUST  tmp
+     208 0076  66| A9 00000001       2	    test        (tmp),1 
+     209 007C  75 0F                 1	    jnz     SHORT ??0000 
+     210 007E  66| 3B 46 04          1	    cmp     tmp,flow 
+     211 0082  72 09                 1	    jnae    SHORT ??0000 
+     212 0084  66| 3B 46 08          1	    cmp     tmp,fhigh 
+     213 0088  73 03                 1	    jnb     SHORT ??0000 
+     214 008A  66| 03 C7             1	    add     tmp,offs 
+     215 008D                        1	??0000: 
+     216 008D  67| 66| 89 02		    mov     [tmp2],tmp          ; ADJUST(**p)
+     217				
+     218 0091  66| 83 C6 04		    add     p,4                 ; p++
+     219				
+     220 0095  EB D1			    jmp     Lmb_loop1_test
+     221				
+     222 0097				Lmb_loop1_done:
+     223				
+     224				;   Finish the new space
+     225				
+     226 0097  66| 8B 5E 04		    mov     x,flow              ; x = from_low
+     227				
+     228 009B				Lmb_loop2_test:
+     229				
+     230 009B  66| 3B 5E 08		    cmp     x,fhigh
+     231 009F  73 6D			    jnb     SHORT Lmb_loop2_end ; while (x<from_high) {
+     232				
+     233 00A1  67| 66| 8B 03		    mov     tmp,[x]
+     234				    contains_no_ptrs tmp
+     235 00A5  66| A9 00000002       1	    test        tmp,2 
+     236 00AB  74 15			    jz      SHORT Lmb1          ;   if (contains_no_ptrs)
+     237				    get_len tmp,x
+     238 00AD  67| 66| 8B 03         1	    mov     tmp,[x]                   ; 
+     239 00B1  66| C1 E8 04          1	    shr     tmp,width_tags            ; 
+     240 00B5  66| 83 C0 07		    add     tmp,7
+     241 00B9  66| 83 E0 FC		    and     tmp,NOT 3
+     242 00BD  66| 03 D8		    add     x,tmp               ;       x += (get_len(x)+7) >> 2
+     243 00C0  EB D9			    jmp     Lmb_loop2_test
+     244				
+     245 00C2				Lmb1:                           ;   else {
+     246				
+     247				    get_lenz i,x                ;       i = get_lenz(x)
+     248 00C2  67| 66| 8B 03         1	    mov     tmp,[x]                 ; 
+     249 00C6  66| 83 E0 0F          1	    and     tmp,mask_tags           ; 
+     250 00CA  66| 83 F8 0D          1	    cmp     tmp,tag_suspension      ; 
+     251 00CE  0F 84 00DD R          1	    je      ??0001 
+     252 00D2  67| 66| 8B 0B         2	    mov     i,[x]                   ; 
+     253 00D6  66| C1 E9 04          2	    shr     i,width_tags            ; 
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:4
+Garbage Collection                                          Page     1-4
+
+
+     254 00DA  EB 07 90              1	    jmp     ??0002 
+     255 00DD                        1	??0001: 
+     256 00DD  66| B9 00000001       1	    mov     i,1 
+     257 00E3                        1	??0002: 
+     258 00E3  66| 83 C3 04		    add     x,4                 ;       ++x
+     259				
+     260 00E7				Lmb_loop3:                      ;       do {
+     261				
+     262 00E7  67| 66| 8B 03		    mov     tmp,[x]
+     263				    ADJUST  tmp
+     264 00EB  66| A9 00000001       2	    test        (tmp),1 
+     265 00F1  75 0F                 1	    jnz     SHORT ??0003 
+     266 00F3  66| 3B 46 04          1	    cmp     tmp,flow 
+     267 00F7  72 09                 1	    jnae    SHORT ??0003 
+     268 00F9  66| 3B 46 08          1	    cmp     tmp,fhigh 
+     269 00FD  73 03                 1	    jnb     SHORT ??0003 
+     270 00FF  66| 03 C7             1	    add     tmp,offs 
+     271 0102                        1	??0003: 
+     272 0102  67| 66| 89 03		    mov     [x],tmp             ;           ADJUST(*x)
+     273				
+     274 0106  66| 83 C3 04		    add     x,4                 ;           x++
+     275				
+     276 010A  E2 DB			    loop    Lmb_loop3           ;       while (--i>0)
+     277				                                ;   }
+     278 010C  EB 8D			    jmp     Lmb_loop2_test      ; }
+     279				
+     280 010E				Lmb_loop2_end:
+     281				
+     282 010E  66| 8B 46 08		    mov     tmp,fhigh
+     283 0112  66| 2B 46 04		    sub     tmp,flow
+     284 0116  66| C1 F8 02		    sar     tmp,2
+     285 011A  66| 50			    push    tmp                 ; push from_high-from_low
+     286 011C  66| FF 76 0C		    push    tlow
+     287 0120  66| FF 76 04		    push    flow
+     288 0124  E8 0000 R		    call    blockmove           ; blockmove(from_low,to_low,from_high-from_low)
+     289 0127  83 C4 0C			    add     sp,3*4
+     290				
+     291 012A  1F			    pop     ds
+     292 012B  5F			    pop     di
+     293 012C  5E			    pop     si
+     294 012D  5D			    pop     bp
+     295				
+     296 012E  C3			    ret
+     297				
+     298 012F				_moveback    endp
+     299				
+     300				
+     301 012F				_TEXT ends
+     302				
+     303				end
+
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:4
+Garbage Collection                                          Symbols-1
+
+
+Macros:
+
+		N a m e			Lines
+
+ADJUST . . . . . . . . . . . . .  	   8
+CONTAINS_NO_PTRS . . . . . . . .  	   1
+GET_LEN  . . . . . . . . . . . .  	   2
+GET_LENZ . . . . . . . . . . . .  	   9
+GET_STRLEN . . . . . . . . . . .  	   4
+GET_TAG  . . . . . . . . . . . .  	   2
+IS_PTR . . . . . . . . . . . . .  	   1
+MAKE_DESC  . . . . . . . . . . .  	   1
+
+Segments and Groups:
+
+                N a m e         	Size	Length	 Align	Combine Class
+
+_DATA  . . . . . . . . . . . . .  	16 Bit	0000	WORD	PUBLIC	'DATA'
+_TEXT  . . . . . . . . . . . . .  	16 Bit	012F	WORD	PUBLIC	'CODE'
+
+Symbols:            
+
+                N a m e         	Type	 Value	 Attr
+
+BLOCKMOVE  . . . . . . . . . . .  	N PROC	0000	_TEXT	Length = 004F
+
+DWP  . . . . . . . . . . . . . .  	TEXT  dword ptr		
+
+FHIGH  . . . . . . . . . . . . .  	TEXT  DWORD PTR [bp +  8]		
+FLOW . . . . . . . . . . . . . .  	TEXT  DWORD PTR [bp +  4]		
+FROM . . . . . . . . . . . . . .  	TEXT  esi		
+
+I  . . . . . . . . . . . . . . .  	TEXT  ecx		
+
+LBLOCKMOVE . . . . . . . . . . .  	L NEAR	0043	_TEXT
+LBLOCKMOVE_RETURN  . . . . . . .  	L NEAR	004B	_TEXT
+LMB1 . . . . . . . . . . . . . .  	L NEAR	00C2	_TEXT
+LMB_LOOP1_DONE . . . . . . . . .  	L NEAR	0097	_TEXT
+LMB_LOOP1_TEST . . . . . . . . .  	L NEAR	0068	_TEXT
+LMB_LOOP2_END  . . . . . . . . .  	L NEAR	010E	_TEXT
+LMB_LOOP2_TEST . . . . . . . . .  	L NEAR	009B	_TEXT
+LMB_LOOP3  . . . . . . . . . . .  	L NEAR	00E7	_TEXT
+
+MASK_TAGS  . . . . . . . . . . .  	NUMBER	000F	
+MISC . . . . . . . . . . . . . .  	TEXT  DWORD PTR [bp + 16]		
+
+NROOTS . . . . . . . . . . . . .  	TEXT  9		
+
+OFFS . . . . . . . . . . . . . .  	TEXT  edi		
+
+P  . . . . . . . . . . . . . . .  	TEXT  esi		
+PARAM1 . . . . . . . . . . . . .  	TEXT  [bp+04]		
+PARAM2 . . . . . . . . . . . . .  	TEXT  [bp+08]		
+PARAM3 . . . . . . . . . . . . .  	TEXT  [bp+12]		
+POWER_TAGS . . . . . . . . . . .  	NUMBER	0010	
+
+TAG_ARRAY  . . . . . . . . . . .  	NUMBER	0009	
+TAG_BACKPTR  . . . . . . . . . .  	NUMBER	0005	
+TAG_BYTEARRAY  . . . . . . . . .  	NUMBER	000B	
+TAG_EMBEDDE  . . . . . . . . . .  	NUMBER	0007	
+TAG_FORWARDED  . . . . . . . . .  	NUMBER	0003	
+TAG_RECORD . . . . . . . . . . .  	NUMBER	0001	
+TAG_STRING . . . . . . . . . . .  	NUMBER	000F	
+TAG_SUSPENSION . . . . . . . . .  	NUMBER	000D	
+TLOW . . . . . . . . . . . . . .  	TEXT  DWORD PTR [bp + 12]		
+TMP  . . . . . . . . . . . . . .  	TEXT  eax		
+TMP2 . . . . . . . . . . . . . .  	TEXT  edx		
+TO . . . . . . . . . . . . . . .  	TEXT  edi		
+
+WIDTH_TAGS . . . . . . . . . . .  	NUMBER	0004	
+WORDS  . . . . . . . . . . . . .  	TEXT  ecx		
+
+X  . . . . . . . . . . . . . . .  	TEXT  ebx		
+
+??0000 . . . . . . . . . . . . .  	L NEAR	008D	_TEXT
+??0001 . . . . . . . . . . . . .  	L NEAR	00DD	_TEXT
+??0002 . . . . . . . . . . . . .  	L NEAR	00E3	_TEXT
+??0003 . . . . . . . . . . . . .  	L NEAR	0102	_TEXT
+@CPU . . . . . . . . . . . . . .  	TEXT  3471		
+@FILENAME  . . . . . . . . . . .  	TEXT  moveback		
+@VERSION . . . . . . . . . . . .  	TEXT  510		
+_GLOBDEFN_ . . . . . . . . . . .  	NUMBER	0001	
+_moveback  . . . . . . . . . . .  	N PROC	004F	_TEXT	Global	Length = 00E0
+_TAGS  . . . . . . . . . . . . .  	NUMBER	0001	
+_wsUse32Data . . . . . . . . . .  	V WORD	0000	_DATA	External
+
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:4
+Garbage Collection                                          Symbols-2
+
+
+
+    395 Source  Lines
+    427 Total   Lines
+     63 Symbols
+
+  46668 + 374941 Bytes symbol space free
+
+      0 Warning Errors
+      0 Severe  Errors

@@ -1,0 +1,16 @@
+\begin{figure}
+\begin{footnotesize}
+\begin{verbatim}
+functor CPSgen( Machine : CMACHINE ) =
+...
+fun gen cexp =       (* generate code for the CPS-expression cexp *)
+            ...
+            Machine.subl3t(immed 1, regbind v, arithtemp)
+            ...  end \end{verbatim} 
+
+\caption{ {\em CPSgen\/} converts CPS-expressions to machine code.
+Functions in the structure which CPSgen is applied to, shall generate
+the corresponding machine code, when called for by {\em CPSgen\/}.
+\protect\label{fig:CPSgen} } 
+\end{footnotesize} 
+\end{figure}

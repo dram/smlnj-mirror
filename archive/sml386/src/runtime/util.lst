@@ -1,0 +1,555 @@
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+Garbage Collection                                          Page     1-1
+
+
+       1				;**************************************
+					***********************************
+       2				; gc.asm
+       3				;
+       4				; Copyright (c) 1991 by:     Department
+					 of Computerscience
+       5				;			     The Techni
+					cal University of Denmark
+       6				;			     DK-2800 Ly
+					ngby
+       7				;
+       8				; 19 Dec. 1991	    Yngvi Skaalum Gutte
+					sen	ysg@id.dth.dk
+       9				;
+      10				; This file contains utility functions 
+					to handle the mixed USE16/USE32
+      11				; memory model. The functions are equiv
+					alent to the macros in ML_TYPES.H
+      12				; in the UNIX version.
+      13				;
+      14				;                                      
+					                    Available regs.
+      15				;                          (tmp = eax i
+					s always available     bx = ebx ... )
+      16				;                                      
+					                <-- bx cx dx si di bp>
+      17				
+      18				    TITLE   Garbage Collection
+      19				
+      20				    PAGE    90,132
+      21				
+      22				    .386p
+      23				    .387
+      24				
+      25				    .LIST
+      26				
+      27 0000				_RUNCODE segment para use32 public 'CODE'
+      28				
+      29				    EXTRN   _MLState_a        : DWORD
+      30				
+      31 0000				_RUNCODE ends
+      32				
+      33 0000				_DATA   segment word public use16 'DATA'
+      34				
+      35				    EXTRN   _wsUse32Data    : WORD
+      36				    EXTRN   _wsUse32Code    : WORD
+      37				    EXTRN   _runtime_seg    : WORD
+      38				
+      39 0000				_DATA   ends
+      40				
+      41 0000				_TEXT   segment word public use16 'CODE'
+      42				
+      43				    assume cs:_TEXT, ds:_DATA, es:_DATA, gs:_DATA, fs:_DATA, ss:_DATA
+      44				
+      45				
+      46				public _REC_SEL
+      47				
+      48				; #define REC_SEL(p,i)
+      49				
+      50 0000				_REC_SEL    PROC NEAR
+      51				
+      52				
+      53 = [bp+4]			param1  EQU <[bp+4]>
+      54 = [bp+8]			param2  EQU <[bp+8]>
+      55				
+      56 0000  55			    push    bp
+      57 0001  8B EC			    mov     bp,sp
+      58				
+      59 0003  A1 0000 E		    mov     ax, _wsUse32Data
+      60 0006  8E E8			    mov     gs, ax
+      61				
+      62				    assume  gs:_RUNCODE
+      63				
+      64 0008  66| 8B 46 08		    mov     eax, param2
+      65 000C  66| 8B 5E 04		    mov     ebx, param1
+      66 0010  67| 66| 8D 0483		    lea     eax, [ebx+eax*4]
+      67				
+      68 0015  65: 67| 66| 8B 00	    mov     eax, gs:[eax]
+      69				
+      70 001A  66| 8B D0		    mov     edx, eax
+      71 001D  66| C1 FA 10		    sar     edx, 16
+      72				
+      73 0021  5D			    pop     bp
+      74 0022  C3			    ret
+      75				
+      76 0023				_REC_SEL ENDP
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+Garbage Collection                                          Page     1-2
+
+
+      77				
+      78				public _REC_ALLOC1
+      79				
+      80 0023				_REC_ALLOC1 PROC NEAR
+      81				
+      82				    assume cs:_TEXT, ds:_DATA, es:_DATA, gs:_DATA, fs:_DATA, ss:_DATA
+      83				
+      84				
+      85 = [bp+4]			param1  EQU <[bp+4]>
+      86				
+      87 0023  55			    push    bp
+      88 0024  8B EC			    mov     bp,sp
+      89				
+      90 0026  A1 0000 E		    mov     ax, _wsUse32Data
+      91 0029  8E E8			    mov     gs, ax
+      92				
+      93				    assume  gs:_RUNCODE
+      94				
+      95 002B  66| BB 0000 E		    mov     ebx, OFFSET _MLState_a
+      96 0031  65: 67| 66| 8B 03	    mov     eax, gs:[ebx]
+      97 0036  65: 67| 66| 83 03	    add     DWP gs:[ebx], 8
+      98       08			
+      99				
+     100				
+     101 003C  65: 67| 66| C7 00	    mov     DWORD PTR gs:[eax], 1*power_tags + tag_record
+     102       00000011			
+     103				
+     104 0045  66| 8B 5E 04		    mov     ebx, param1
+     105 0049  65: 67| 66| 89 58	    mov     gs:[eax+4], ebx
+     106       04			
+     107				
+     108 004F  66| 83 C0 04		    add     eax, 4
+     109				
+     110 0053  66| 8B D0		    mov     edx, eax
+     111 0056  66| C1 FA 10		    sar     edx, 16
+     112				
+     113 005A  5D			    pop     bp
+     114 005B  C3			    ret
+     115				
+     116 005C				_REC_ALLOC1 ENDP
+     117				
+     118				public _REC_ALLOC2
+     119				
+     120 005C				_REC_ALLOC2 PROC NEAR
+     121				
+     122				    assume  gs:_RUNCODE
+     123				
+     124 = [bp+4]			param1  EQU <[bp+4]>
+     125 = [bp+8]			param2  EQU <[bp+8]>
+     126				
+     127 005C  55			    push    bp
+     128 005D  8B EC			    mov     bp,sp
+     129				
+     130 005F  A1 0000 E		    mov     ax, _wsUse32Data
+     131 0062  8E E8			    mov     gs, ax
+     132				
+     133 0064  66| BB 0000 E		    mov     ebx, OFFSET _MLState_a
+     134 006A  65: 67| 66| 8B 03	    mov     eax, gs:[ebx]
+     135 006F  65: 67| 66| 83 03	    add     DWP gs:[ebx], 12
+     136       0C			
+     137				
+     138				
+     139 0075  65: 67| 66| C7 00	    mov     DWORD PTR gs:[eax], 1*power_tags + tag_record
+     140       00000011			
+     141				
+     142 007E  66| 8B 5E 04		    mov     ebx, param1
+     143 0082  65: 67| 66| 89 58	    mov     gs:[eax+4], ebx
+     144       04			
+     145				
+     146 0088  66| 8B 5E 08		    mov     ebx, param2
+     147 008C  65: 67| 66| 89 58	    mov     gs:[eax+8], ebx
+     148       08			
+     149				
+     150 0092  66| 83 C0 04		    add     eax, 4
+     151				
+     152 0096  66| 8B D0		    mov     edx, eax
+     153 0099  66| C1 FA 10		    sar     edx, 16
+     154				
+     155 009D  5D			    pop     bp
+     156 009E  C3			    ret
+     157				
+     158 009F				_REC_ALLOC2 ENDP
+     159				
+     160				public _REC_ALLOC3
+     161				
+     162 009F				_REC_ALLOC3 PROC NEAR
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+Garbage Collection                                          Page     1-3
+
+
+     163				
+     164				    assume  gs:_RUNCODE
+     165				
+     166 = [bp+4]			param1  EQU <[bp+4]>
+     167 = [bp+8]			param2  EQU <[bp+8]>
+     168 = [bp+12]			param3  EQU <[bp+12]>
+     169				
+     170 009F  55			    push    bp
+     171 00A0  8B EC			    mov     bp,sp
+     172				
+     173 00A2  A1 0000 E		    mov     ax, _wsUse32Data
+     174 00A5  8E E8			    mov     gs, ax
+     175				
+     176 00A7  66| BB 0000 E		    mov     ebx, OFFSET _MLState_a
+     177 00AD  65: 67| 66| 8B 03	    mov     eax, gs:[ebx]
+     178 00B2  65: 67| 66| 83 03	    add     DWP gs:[ebx], 16
+     179       10			
+     180				
+     181				
+     182 00B8  65: 67| 66| C7 00	    mov     DWORD PTR gs:[eax], 1*power_tags + tag_record
+     183       00000011			
+     184				
+     185 00C1  66| 8B 5E 04		    mov     ebx, param1
+     186 00C5  65: 67| 66| 89 58	    mov     gs:[eax+4], ebx
+     187       04			
+     188				
+     189 00CB  66| 8B 5E 08		    mov     ebx, param2
+     190 00CF  65: 67| 66| 89 58	    mov     gs:[eax+8], ebx
+     191       08			
+     192				
+     193 00D5  66| 8B 5E 0C		    mov     ebx, param3
+     194 00D9  65: 67| 66| 89 58	    mov     gs:[eax+12], ebx
+     195       0C			
+     196				
+     197 00DF  66| 83 C0 04		    add     eax, 4
+     198				
+     199 00E3  66| 8B D0		    mov     edx, eax
+     200 00E6  66| C1 FA 10		    sar     edx, 16
+     201				
+     202 00EA  5D			    pop     bp
+     203 00EB  C3			    ret
+     204				
+     205 00EC				_REC_ALLOC3 ENDP
+     206				
+     207				public _REC_ALLOC4
+     208				
+     209 00EC				_REC_ALLOC4 PROC NEAR
+     210				
+     211				    assume  gs:_RUNCODE
+     212				
+     213 = [bp+4]			param1  EQU <[bp+4]>
+     214 = [bp+8]			param2  EQU <[bp+8]>
+     215 = [bp+12]			param3  EQU <[bp+12]>
+     216 = [bp+16]			param4  EQU <[bp+16]>
+     217				
+     218 00EC  55			    push    bp
+     219 00ED  8B EC			    mov     bp,sp
+     220				
+     221 00EF  A1 0000 E		    mov     ax, _wsUse32Data
+     222 00F2  8E E8			    mov     gs, ax
+     223				
+     224 00F4  66| BB 0000 E		    mov     ebx, OFFSET _MLState_a
+     225 00FA  65: 67| 66| 8B 03	    mov     eax, gs:[ebx]
+     226 00FF  65: 67| 66| 83 03	    add     DWP gs:[ebx], 20
+     227       14			
+     228				
+     229				
+     230 0105  65: 67| 66| C7 00	    mov     DWORD PTR gs:[eax], 1*power_tags + tag_record
+     231       00000011			
+     232				
+     233 010E  66| 8B 5E 04		    mov     ebx, param1
+     234 0112  65: 67| 66| 89 58	    mov     gs:[eax+4], ebx
+     235       04			
+     236				
+     237 0118  66| 8B 5E 08		    mov     ebx, param2
+     238 011C  65: 67| 66| 89 58	    mov     gs:[eax+8], ebx
+     239       08			
+     240				
+     241 0122  66| 8B 5E 0C		    mov     ebx, param3
+     242 0126  65: 67| 66| 89 58	    mov     gs:[eax+12], ebx
+     243       0C			
+     244				
+     245 012C  66| 8B 5E 10		    mov     ebx, param4
+     246 0130  65: 67| 66| 89 58	    mov     gs:[eax+16], ebx
+     247       10			
+     248				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+Garbage Collection                                          Page     1-4
+
+
+     249 0136  66| 83 C0 04		    add     eax, 4
+     250				
+     251 013A  66| 8B D0		    mov     edx, eax
+     252 013D  66| C1 FA 10		    sar     edx, 16
+     253				
+     254 0141  5D			    pop     bp
+     255 0142  C3			    ret
+     256				
+     257 0143				_REC_ALLOC4 ENDP
+     258				
+     259				
+     260				public _REC_ALLOC6
+     261				
+     262 0143				_REC_ALLOC6 PROC NEAR
+     263				
+     264				    assume  gs:_RUNCODE
+     265				
+     266 = [bp+4]			param1  EQU <[bp+4]>
+     267 = [bp+8]			param2  EQU <[bp+8]>
+     268 = [bp+12]			param3  EQU <[bp+12]>
+     269 = [bp+16]			param4  EQU <[bp+16]>
+     270 = [bp+20]			param5  EQU <[bp+20]>
+     271 = [bp+24]			param6  EQU <[bp+24]>
+     272				
+     273 0143  55			    push    bp
+     274 0144  8B EC			    mov     bp,sp
+     275				
+     276 0146  A1 0000 E		    mov     ax, _wsUse32Data
+     277 0149  8E E8			    mov     gs, ax
+     278				
+     279 014B  66| BB 0000 E		    mov     ebx, OFFSET _MLState_a
+     280 0151  65: 67| 66| 8B 03	    mov     eax, gs:[ebx]
+     281 0156  65: 67| 66| 83 03	    add     DWP gs:[ebx], 28
+     282       1C			
+     283				
+     284				
+     285 015C  65: 67| 66| C7 00	    mov     DWORD PTR gs:[eax], 1*power_tags + tag_record
+     286       00000011			
+     287				
+     288 0165  66| 8B 5E 04		    mov     ebx, param1
+     289 0169  65: 67| 66| 89 58	    mov     gs:[eax+4], ebx
+     290       04			
+     291				
+     292 016F  66| 8B 5E 08		    mov     ebx, param2
+     293 0173  65: 67| 66| 89 58	    mov     gs:[eax+8], ebx
+     294       08			
+     295				
+     296 0179  66| 8B 5E 0C		    mov     ebx, param3
+     297 017D  65: 67| 66| 89 58	    mov     gs:[eax+12], ebx
+     298       0C			
+     299				
+     300 0183  66| 8B 5E 10		    mov     ebx, param4
+     301 0187  65: 67| 66| 89 58	    mov     gs:[eax+16], ebx
+     302       10			
+     303				
+     304 018D  66| 8B 5E 14		    mov     ebx, param5
+     305 0191  65: 67| 66| 89 58	    mov     gs:[eax+20], ebx
+     306       14			
+     307				
+     308 0197  66| 8B 5E 18		    mov     ebx, param6
+     309 019B  65: 67| 66| 89 58	    mov     gs:[eax+24], ebx
+     310       18			
+     311				
+     312 01A1  66| 83 C0 04		    add     eax, 4
+     313				
+     314 01A5  66| 8B D0		    mov     edx, eax
+     315 01A8  66| C1 FA 10		    sar     edx, 16
+     316				
+     317 01AC  5D			    pop     bp
+     318 01AD  C3			    ret
+     319				
+     320 01AE				_REC_ALLOC6 ENDP
+     321				
+     322				public _ML_alloc_write
+     323				
+     324				
+     325 01AE				_ML_alloc_write PROC NEAR
+     326				
+     327				    assume  gs:_RUNCODE
+     328				
+     329 = [bp+4]			param1  EQU <[bp+4]>
+     330 = [bp+8]			param2  EQU <[bp+8]>
+     331				
+     332 01AE  55			    push    bp
+     333 01AF  8B EC			    mov     bp, sp
+     334				
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+Garbage Collection                                          Page     1-5
+
+
+     335 01B1  A1 0000 E		    mov     ax, _wsUse32Data
+     336 01B4  8E E8			    mov     gs, ax
+     337				
+     338 01B6  66| BB 0000 E		    mov     ebx, OFFSET _MLState_a
+     339 01BC  65: 67| 66| 8B 1B	    mov     ebx, gs:[ebx]
+     340 01C1  66| 8B 46 04		    mov     eax, param1
+     341 01C5  67| 66| 8D 1C83		    lea     ebx, [ebx+4*eax]
+     342				
+     343 01CA  66| 8B 46 08		    mov     eax, param2
+     344 01CE  65: 67| 66| 89 03	    mov     gs:[ebx], eax
+     345				
+     346 01D3  66| 8B D0		    mov     edx, eax
+     347 01D6  66| C1 FA 10		    sar     edx, 16
+     348				
+     349 01DA  5D			    pop     bp
+     350 01DB  C3			    ret
+     351				
+     352 01DC				_ML_alloc_write ENDP
+     353				
+     354				
+     355				public _ML_alloc
+     356				
+     357 01DC				_ML_alloc   PROC NEAR
+     358				
+     359				    assume  gs:_RUNCODE
+     360				
+     361 = [bp+4]			param1  EQU <[bp+4]>
+     362				
+     363 01DC  55			    push    bp
+     364 01DD  8B EC			    mov     bp,sp
+     365				
+     366 01DF  A1 0000 E		    mov     ax, _wsUse32Data
+     367 01E2  8E E8			    mov     gs, ax
+     368				
+     369 01E4  66| B9 0000 E		    mov     ecx, OFFSET _MLState_a
+     370 01EA  65: 67| 66| 8B 01	    mov     eax, gs:[ecx]
+     371				
+     372 01EF  66| 8B 5E 04		    mov     ebx, param1
+     373 01F3  66| 43			    inc     ebx
+     374 01F5  66| C1 E3 02		    sal     ebx, 2
+     375 01F9  65: 67| 66| 01 19	    add     gs:[ecx], ebx
+     376				
+     377 01FE  66| 83 C0 04		    add     eax, 4
+     378 0202  66| 8B D0		    mov     edx, eax
+     379 0205  66| C1 FA 10		    sar     edx, 16
+     380				
+     381 0209  5D			    pop     bp
+     382 020A  C3			    ret
+     383				
+     384 020B				_ML_alloc   ENDP
+     385				
+     386				public _stringcompare
+     387				
+     388 020B				_stringcompare   PROC NEAR
+     389				
+     390 = [bp+4]			param1  EQU <[bp+4]>
+     391 = [bp+8]			param2  EQU <[bp+8]>
+     392 = [bp+12]			param3  EQU <[bp+12]>
+     393				
+     394				    assume  es:_RUNCODE
+     395				
+     396 020B  55			    push    bp
+     397 020C  8B EC			    mov     bp,sp
+     398				
+     399 020E  A1 0000 E		    mov     ax, _wsUse32Data
+     400 0211  8E C0			    mov     es, ax
+     401				
+     402 0213  66| 8B 5E 04		    mov     ebx, param1
+     403 0217  66| 8B 56 08		    mov     edx, param2
+     404 021B  66| 8B 4E 0C		    mov     ecx, param3
+     405				
+     406 021F				Loopstringcompare:
+     407				
+     408 021F  67| E3 12		    jecxz   short Lstringcompare_eq
+     409 0222  26: 67| 8A 440B FF	    mov     al, es:[ebx-1*ecx-1]
+     410 0228  26: 67| 38 440A FF	    cmp     es:[edx-1*ecx-1], al
+     411 022E  75 0A			    jne     short Lstringcompare_neq
+     412 0230  66| 49			    dec     ecx
+     413 0232  EB EB			    jmp     short Loopstringcompare
+     414				
+     415 0234				Lstringcompare_eq:
+     416				
+     417 0234  B8 0001			    mov     ax,1
+     418 0237  99			    cwd
+     419				
+     420 0238  5D			    pop     bp
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+Garbage Collection                                          Page     1-6
+
+
+     421 0239  C3			    ret
+     422				
+     423 023A				Lstringcompare_neq:
+     424 023A  2B C0			    sub     ax,ax
+     425 023C  99			    cwd
+     426				
+     427 023D  5D			    pop     bp
+     428 023E  C3			    ret
+     429				
+     430 023F				_stringcompare ENDP
+     431				
+     432 023F				_TEXT ends
+     433				
+     434				end
+
+Microsoft (R) Macro Assembler Version 5.10                  12/20/91 12:51:3
+Garbage Collection                                          Symbols-1
+
+
+Macros:
+
+		N a m e			Lines
+
+CONTAINS_NO_PTRS . . . . . . . .  	   1
+GET_LEN  . . . . . . . . . . . .  	   2
+GET_LENZ . . . . . . . . . . . .  	   9
+GET_STRLEN . . . . . . . . . . .  	   4
+GET_TAG  . . . . . . . . . . . .  	   2
+IS_PTR . . . . . . . . . . . . .  	   1
+MAKE_DESC  . . . . . . . . . . .  	   1
+
+Segments and Groups:
+
+                N a m e         	Size	Length	 Align	Combine Class
+
+_DATA  . . . . . . . . . . . . .  	16 Bit	0000	WORD	PUBLIC	'DATA'
+_RUNCODE . . . . . . . . . . . .  	32 Bit	0000	PARA	PUBLIC	'CODE'
+_TEXT  . . . . . . . . . . . . .  	16 Bit	023F	WORD	PUBLIC	'CODE'
+
+Symbols:            
+
+                N a m e         	Type	 Value	 Attr
+
+DWP  . . . . . . . . . . . . . .  	TEXT  dword ptr		
+
+LOOPSTRINGCOMPARE  . . . . . . .  	L NEAR	021F	_TEXT
+LSTRINGCOMPARE_EQ  . . . . . . .  	L NEAR	0234	_TEXT
+LSTRINGCOMPARE_NEQ . . . . . . .  	L NEAR	023A	_TEXT
+
+MASK_TAGS  . . . . . . . . . . .  	NUMBER	000F	
+
+NROOTS . . . . . . . . . . . . .  	TEXT  9		
+
+PARAM1 . . . . . . . . . . . . .  	TEXT  [bp+4]		
+PARAM2 . . . . . . . . . . . . .  	TEXT  [bp+8]		
+PARAM3 . . . . . . . . . . . . .  	TEXT  [bp+12]		
+PARAM4 . . . . . . . . . . . . .  	TEXT  [bp+16]		
+PARAM5 . . . . . . . . . . . . .  	TEXT  [bp+20]		
+PARAM6 . . . . . . . . . . . . .  	TEXT  [bp+24]		
+POWER_TAGS . . . . . . . . . . .  	NUMBER	0010	
+
+TAG_ARRAY  . . . . . . . . . . .  	NUMBER	0009	
+TAG_BACKPTR  . . . . . . . . . .  	NUMBER	0005	
+TAG_BYTEARRAY  . . . . . . . . .  	NUMBER	000B	
+TAG_EMBEDDE  . . . . . . . . . .  	NUMBER	0007	
+TAG_FORWARDED  . . . . . . . . .  	NUMBER	0003	
+TAG_RECORD . . . . . . . . . . .  	NUMBER	0001	
+TAG_STRING . . . . . . . . . . .  	NUMBER	000F	
+TAG_SUSPENSION . . . . . . . . .  	NUMBER	000D	
+TMP  . . . . . . . . . . . . . .  	TEXT  eax		
+
+WIDTH_TAGS . . . . . . . . . . .  	NUMBER	0004	
+
+@CPU . . . . . . . . . . . . . .  	TEXT  3471		
+@FILENAME  . . . . . . . . . . .  	TEXT  util		
+@VERSION . . . . . . . . . . . .  	TEXT  510		
+_GLOBDEFN_ . . . . . . . . . . .  	NUMBER	0001	
+_MLState_a . . . . . . . . . . .  	V DWORD	0000	_RUNCODE	External
+_ML_alloc  . . . . . . . . . . .  	N PROC	01DC	_TEXT	Global	Length = 002F
+_ML_alloc_write  . . . . . . . .  	N PROC	01AE	_TEXT	Global	Length = 002E
+_REC_ALLOC1  . . . . . . . . . .  	N PROC	0023	_TEXT	Global	Length = 0039
+_REC_ALLOC2  . . . . . . . . . .  	N PROC	005C	_TEXT	Global	Length = 0043
+_REC_ALLOC3  . . . . . . . . . .  	N PROC	009F	_TEXT	Global	Length = 004D
+_REC_ALLOC4  . . . . . . . . . .  	N PROC	00EC	_TEXT	Global	Length = 0057
+_REC_ALLOC6  . . . . . . . . . .  	N PROC	0143	_TEXT	Global	Length = 006B
+_REC_SEL . . . . . . . . . . . .  	N PROC	0000	_TEXT	Global	Length = 0023
+_runtime_seg . . . . . . . . . .  	V WORD	0000	_DATA	External
+_stringcompare . . . . . . . . .  	N PROC	020B	_TEXT	Global	Length = 0034
+_TAGS  . . . . . . . . . . . . .  	NUMBER	0001	
+_wsUse32Code . . . . . . . . . .  	V WORD	0000	_DATA	External
+_wsUse32Data . . . . . . . . . .  	V WORD	0000	_DATA	External
+
+
+    529 Source  Lines
+    529 Total   Lines
+     55 Symbols
+
+  46554 + 375055 Bytes symbol space free
+
+      0 Warning Errors
+      0 Severe  Errors

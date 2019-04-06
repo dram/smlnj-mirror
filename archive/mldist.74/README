@@ -1,0 +1,98 @@
+Standard ML of New Jersey Version 0.75
+Oct 21, 1991
+
+This prerelease is being made available for testing in advance of the
+announcement of general availability of 0.75.  It can be found in 
+dist/ml/working on research.att.com and (soon) pub/ml/working on
+princeton.edu.  We would like to discover and fix as many problems as
+possible before announcing 0.75 on the sml-list mailing list.  We hope
+to send out that announcement around the end of October.
+
+Here are some significant changes since 0.66:
+
+* Static environments have been reimplemented.  This is a step toward
+  "first-class" environments, which should be available in the next
+  release.
+
+* The module system has been reimplemented (thanks to David Tarditi,
+  Greg Morrisett, Georges Gonthier, and Damien Doligez).
+  Multiple specifications in signatures are not allowed (they may have
+  been "allowed" before, but their effect was not specified).  This may
+  break some code, particularly if include specifications are used
+  heavily.
+
+* The interface for Arrays has been changed to conform to the new
+  "standard" agreed on by all implementors. The Array structure is no
+  longer open by default, and the function sub is no longer infix.
+  See doc/array.
+
+* Vectors and real arrays have been implemented for all machines.
+  Be warned that real arrays at the present are provisional
+  and improved speed is not guaranteed.  We know how to fix this and
+  are working on it.  See doc/array.
+
+* System.system now has the signature
+    val system : string -> int
+  where it returns the Unix status code of the sub-process.
+
+* The IO.execute function has a different signature and two forms:
+    val execute : (string * string list) -> (instream * outstream)
+    val execute_in_env : (string * string list * string list)
+          -> (instream * outstream)
+  The first of these allows command-line arguments to be passed
+  to the  program; the second also allows an environment to be
+  specified.  In both cases, the base name of the first argument
+  is prepended to the argument list.
+
+* Structure Compile added to pervasives to support Gene Rollins'
+  sourcegroups separate compilation system.  The older "import"
+  facility will still be supported in 0.75, but this will be the last
+  release in which we plan to supporting import.  We recommend that you
+  use sourcegroups for separate compilation in the future.  A new
+  version of sourcegroups is expected to be available with the release
+  of 0.75.
+
+* Callee-save registers (for 7% better performance on MIPS and 18% on SPARC).
+
+* In-line array update and subscript (for 25% better performance on
+  "real" programs that use arrays; program that do nothing but array
+  accesses are twice as fast).
+
+* The runtime system has been revised to support shared memory
+  multiprocessing, adding two new primitives - getvar and setvar.
+
+* Floating point performance should be improved. The SIMPLE benchmark
+  shows a 33% improvement in speed, while some toy programs have exhibited
+  an improvement of upto 2 times.
+
+* The parser conforms more closely to the syntax in the Definition, so that
+  1+if... doesn't work anymore; use parentheses:  1+(if...).  Similarly for
+  "case" and "fn".
+
+* callcc now has a weak polymorphic type in order to avoid a loophole in
+  the type system.  The structure System.Unsafe.PolyCont has the old, unsafe,
+  version of callcc, plus the primitives "capture" and "escape" that are like
+  callcc and throw but do NOT preserve the exception handler of the saved
+  continuation.  
+
+* Hexadecimal integer literals are supported using C syntax (e.g., 0x5e48).
+
+* There are 34 remaining "open" bug reports.  Many of these are cosmetic,
+  and some remain to be checked and may have been fixed.  See the files
+  doc/openbugs and doc/masterbugs.
+
+
+We have built 75 and done some testing on the following systems:
+
+ SPARCstation -- SunOS 4.1.1
+ Sun 3 -- SunOS 4.1.1
+ MIPS Magnum -- Riscos 4.52
+ SGI 4D -- IRIX 3.3.1
+ DECstation 5000 -- Ultrix ?
+ Vax -- BSD4.3
+ NeXT -- NeXTstep 2.1
+ HP/Apollo Series 400 -- HP-UX 7.05, HP-UX 8.0
+
+Please let us know if you successfully or unsuccessfully build and
+exercise the system on other machine/os combinations.  Any reports of
+problems would be greatly appreciated.

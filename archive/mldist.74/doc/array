@@ -1,0 +1,176 @@
+After some discussion amongst the implementors of
+Standard ML of New Jersey,  Poly/ML, and  Poplog ML
+we have agreed to standardize our implementation-provided Array facilities.
+
+Arrays are just sequences of elements all the same type, indexed by 
+integers.  Unlike most "library" functions, array subscripting should
+be provided directly by the compiler implementation because "core" Standard ML
+functions cannot implement efficient (constant-time) array indexing.
+
+There will be two kinds of indexable sequences, 
+	Vectors, which are not modifiable once created; and
+        Arrays, which are updateable.
+
+The structure    Vector : VECTOR   provides vectors, and 
+the structure    Array : ARRAY   provides arrays.  Here are their signatures:
+
+
+signature VECTOR =
+  sig eqtype 'a vector
+      exception Size
+      exception Subscript
+      val vector: 'a list -> 'a vector
+      val tabulate: int * (int -> 'a) -> 'a vector
+      val sub: 'a vector * int -> 'a
+      val length: 'a vector -> int
+  end
+
+signature ARRAY =
+  sig eqtype 'a array
+      exception Size
+      exception Subscript
+      val array: int * '_a -> '_a array
+      val arrayoflist: '_a list -> '_a array
+      val tabulate: int * (int -> '_a) -> '_a array
+      val sub: 'a array * int -> 'a
+      val update: 'a array * int * 'a -> unit
+      val length: 'a array -> int
+  end
+
+Here is a definition of the semantics of arrays and vectors in Standard ML.
+It is expected that actual implementations will be more efficient; in
+particular, "sub" "update" and "length" will take constant time.
+
+structure Vector : VECTOR =
+struct
+  datatype 'a vector = Vector of 'a list
+  exception Size
+  exception Subscript
+  val vector = Vector
+  fun tabulate(i,f) =
+     let fun tab j = if j<i then f(j) :: tab(j+1) else nil
+      in if i<0 then raise Size else Vector (tab 0)
+     end
+  fun sub(Vector nil, i) = raise Subscript
+    | sub(Vector(a::r), i) = if i>0 then sub(Vector r, i-1)
+	                     else if i<0 then raise Subscript
+	                     else a
+  fun length (Vector nil) = 0 | length (Vector (a::r)) = 1 + length (Vector r)
+end
+
+structure Array: ARRAY =
+struct datatype 'a array = Array of 'a ref Vector.vector
+       exception Size = Vector.Size
+       exception Subscript = Vector.Subscript
+       fun array(n,x) = Array(Vector.tabulate(n, fn _ => ref x))
+       fun arrayoflist l = Array(Vector.vector(map ref l))
+       fun tabulate(n,f) = Array(Vector.tabulate(n, fn x => ref(f x)))
+       fun sub(Array a, i) = !(Vector.sub(a,i))
+       fun update(Array a,i,v) = Vector.sub(a,i) := v
+       fun length (Array a) = Vector.length a
+end
+
+Notes:
+
+1.  An array (or vector) "a" is indexed using "sub"; arrays are modified
+    using "update."  Indices range from 0 to length(a)-1; 
+    indices out of range raise the Subscript exception.
+
+2.  The "Size" exception (for illegal vector or array creation) is different
+    from the "Subscript" exception.  Vector creation is quite different from
+    the index calculation, and deserves its own exception.
+    Vector.Size is identical to Array.Size, however; this simplifies both the
+    semantic definition (above) and the machine implementation, though
+    not by much in either case.
+
+3.  The "Vector.Subscript" exception is identical to "Array.Subscript", and
+    Array.sub and Array.update both raise the same exception.  This
+    is because the underlying implementation may have primitive indexing
+    logic that is shared between arrays and vectors, and it is important
+    to keep things simple for the implementation.  Or, if you prefer, it 
+    allows a simpler definition of the semantics of Array in terms of Vector.
+
+4.  The type  'a vector  is an equality type, if 'a is; i.e. vector is an
+    eqtype.  Two vectors are equal if their contents are equal; this implies
+    that all zero-length vectors are, of course, identical.
+
+5.  The type  'a array  is an equality type. Two arrays are equal if and only
+    if it is impossible to update one without changing the other.  This is by
+    analogy with "ref".  To continue the analogy with "ref", perhaps
+    arrays should be allowed to be compared for equality even if their 
+    elements are not equality types.  This is impossible to specify in 
+    a Standard ML signature at present; it might be possible in some future
+    version of the language. 
+
+6.  All zero-length arrays are equal to each other.  This is a consequence
+    of the definition of "array" in terms of "ref vector", or by the assumption
+    that two arrays are equal if and only if it is impossible to update one
+    without changing the other.
+
+7.  Because Standard ML provides no way of putting infix specifications in
+    signatures, and it is undesirable to clutter up the default environment
+    with a global fixity declaration, "sub" is nonfix by default.
+    We recommend a convention in which "sub" declared infix with precedence 9
+    whenever "Array" or "Vector" is opened, e.g.    
+		open Array   infix 9 sub
+    If in the future, Standard ML were to allow infix specifications in
+    signatures, one might expect that the specification "infix 9 sub" would
+    appear in the ARRAY and VECTOR signatures, but there is no guarantee of
+    this.  In any case, programs that use "open Array" or "open Vector" only
+    in conjunction with "infix 9 sub" will run correctly either way.
+
+8.  Neither Array nor Vector is open by default.
+	 
+9.  It is intended that the "sub", "update", and "length" all take constant
+    time (regardless of the length of the array or vector); the other operators
+    are expected to take linear time.
+
+10. It would be a fine idea to have some generally agreed-upon
+    mapping functions, etc., on arrays and vectors.  However, such functions
+    don't require cooperation from the implementors of ML systems, as is
+    necessary for constant-time random-access vectors and arrays.
+    Thus, such functions are not discussed here.
+
+
+					Andrew Appel
+
+
+
+
+
+Implenting the proposal in Standard ML of New Jersey requires:
+	1.  Array will no longer be opened by default.
+	2.  "sub" will no longer be infix by default; and the
+	    precedence recommended for "sub" in this note (precedence 9).
+	    is different from the previous default precedence (4).
+        3.  The exception Size is new, and will be raised instead of
+	    Subscript for attempts to make negative-length arrays.
+	4.  Vectors will be a new feature.
+        5.  It should no longer be possible to compare arrays whose elements
+	    are not eqtypes for equality.
+					A. W. Appel (appel@princeton.edu)
+
+
+Implementing the proposal in Poplog ML requires:
+
+        1. Creating the Vector structure.
+        2. Changing the array type to be an equality type.
+        3. Changing array construction to return a unique zero-length element.
+        4. Renaming the Array exception to Size and restoring it as a
+            distinct value.
+        5. Defining the tabulate function.
+        6. Moving our extra array functions into a separate module.
+        7. Removing the default infix declaration of "sub".
+
+					R. J. Duncan (robd@uk.ac.susx.cogs)
+
+
+Implementing the proposal in Poly/ML requires:
+	1. Zero-length arrays will be allowed (again).
+	2. Equality testing of arrays will be allowed.
+	3. The new exception Size will be created and array and arrayoflist
+	    will raise Size instead of Subscript.
+	4. tabulate will be added to the Array structure and signature.
+	5. Vector signature and structures will be added.
+
+					Dave Matthews (dcjm@lfcs.ed.ac.uk)

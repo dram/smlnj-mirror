@@ -1,0 +1,210 @@
+\section{The runtime system} \label{sec:runtime}
+
+In this section the organization of the new runtime system is
+described in terms of the existing SML\_NJ runtime systems.
+
+The SML\_NJ runtime system is written in C and assembler. It consists of:
+\begin{itemize}
+\item A carbage collector
+\item Small library functions written i assembler
+\item Small library functions written i C
+\item Facilities to handle Export and Import
+\item Facilities to handle signals (interrupts)
+\end{itemize}
+
+The runtime systems for the different UNIX versions are very alike.
+The differences are mostly expressed using \#IFDEF OPSYS ...
+\#ENDIF declarations in the C-code. When writing a runtime system for
+Windows we cannot simply reuse the original C-code. As mentioned in
+the previous section, there are problems with mixing USE16 C-code and
+USE32 ML-code. However, I have tried to maintain the original
+structure of the runtime system, and only made modifications where
+needed because of the mixed memory model and the restrictions made by
+Windows. (Before reading the C code of the new runtime system, the
+reader is advised first to look at the original runtime system written
+for UNIX, because the many non-standard C details in the Windows
+version reduce the clarity.)
+
+\subsection{Segments} \label{sec:segments}
+
+One of the first things the system does, when started, is to setup the
+USE32 segments that constitute the ML-heap. This is done by the code
+in the file {\em segments.c\/}. A USE32 segment (called {\em
+Use32Data\/}) is allocated and a code alias (called {\em Use32Code\/})
+is established.  These two constitute the ML-heap. The part of the
+runtime system that must lie on the ML-heap are placed in an assembler
+module (in the file {\em prim.asm}) which is compiled and linked into
+a segment (called {\em \_RUNCODE\/}). The contents of this segment is
+copied into the ML-heap by the code that set up the USE32 segments.
+
+\subsection{The inteface between ML and the runtime system}
+
+After the system is initialized, control is passed to the compiled ML
+code. A C structure which contains the addresses of relevant variables
+and functions in the runtime system is passed on to the ML code. To
+call a C library function the ML code looks up its address {\em
+faddr\/} in a table and calls the {\em call\_c\/} function with {\em
+faddr\/} as an argument.
+
+Our interface must handle the context switch from USE16 to USE32
+associated with the transfer of control from the runtime system
+(USE16) to the compiled ML code (USE32). When the ML code is entered,
+registers that the C compiler uses are saved on the stack. A C
+structure ({\em MLState\/}) holds the ML state. Before jumping to ML,
+registers are loaded from this structure.  When returning to the
+runtime system things happens in reverse order.
+
+When executing code in the runtime system the values in the segment
+registers are taken care of by the C compiler/linker and the Windows
+loader. Before jumping to the compiled ML-code we must load the
+segment registers with the correct values. DS is used as implicit
+segment register in most machine instructions. ES is used in string
+operations, and the SS segment register is used when ESP and EBP serve
+as index registers in memory references. DS, ES, and SS are loaded
+with the {\em Use32Data\/} value returned by {\em Global32Alloc\/},
+before jumping to the ML-code.  Care must be taken when switching
+stack in this way.  When the USE16 stack is used, the upper 16 bits of
+the stack pointer (ESP) are not used, and can have random values. When
+switching to the USE32 stack we must ensure that the ESP register
+contains a legal stack address. After a move to the SS register the
+80386 interrupt is disabled in one instruction, so we can handle this
+by the following code sequence:
+\begin{verbatim}
+    ...
+    mov ax, Use32Data
+    mov ss, ax                     ; no interrupts between
+    mov esp, Use32StackPointer     ; these two instructions
+    ...
+\end{verbatim}
+
+The context switch is handled by the function {\em restoreregs\/} in
+the file {\em interfce.asm\/} and by the functions {\em enterUse32\/}
+and {\em saveregs\/} in the file {\em prim.asm\/}, which also contains
+the variables and functions which must be placed in the ML-heap.
+
+\subsection{C library functions}
+
+The UNIX runtime system contains a number of C library functions that
+handle the interaction with the operating system. Some of these are
+UNIX specific and have no equivalent in Windows. In the Windows
+runtime system, these will generate a system exception if called:
+\begin{verbatim}
+    void foo(ML_val_t arg)
+    { raise_syserror("foo is not implemented under Windows!"); }
+\end{verbatim}
+
+Certain functions that are not crucial to the compiler and that are
+difficult to implement under Windows are not implemented yet, and will
+also generate a system exception, if called.
+
+The functions crucial to the compiler are all implemented. Some of
+these functions are UNIX specific and do not have an equivalent
+meaning in Windows, e.g. the masking and unmasking of signals. When
+called, those functions will perform some neutral action but will not
+cause a system exception. This will in some cases mean wrong return
+values to the ML system but these are not crucial. For example,
+Windows cannot perform all of the timer functions that are available
+in UNIX, so timing is not accurate in the Windows system. The C
+library functions are located in the file {\em callc.c\/}.
+
+Details about the interaction between the runtime system and the ML
+code and data are found in \cite{bib:ysgsml}, and in the comments in
+the files {\em prim.asm\/}, {\em gc.asm\/}, {\em interfce.asm\/}, and
+{\em util.asm\/}.
+
+\subsection{Assembly library functions}
+
+There are a number of assembler library functions that are called
+directly from compiled ML code. These are:
+\begin{itemize}
+\item {\em array(n,x)\/} allocates an array of length $n$, and initializes
+ its elements to $x$.
+\item {\em callc(f,a)\/} calls the C function whose address is $f$ with
+ the argument $a$.
+\item {\em create\_b(n)\/} allocates an uninitialized byte-array of length
+ $n$.
+\item {\em create\_s(n)\/} allocates a string of length $n$.
+\item {\em floor(x)\/} returns the "floor" of the real number $x$.
+\item {\em logb(x)\/} returns the exponent of the real number $x$.
+\item {\em scalb(x)\/} inserts a new exponent into the real number $x$.
+\end{itemize}
+
+Floating point operations are executed by using the 80387 math
+co-processor. We have added utility functions to handle the mixed
+memory model. Se comments in the file {\em util.asm\/}.
+
+
+\subsection{Garbage collection}
+
+The original garbage collector operates on the entire ML heap. Because
+it is difficult and inefficient to access USE32 data from the C code,
+We have implemented the heart of the garbage collector in assembler. It
+is actually just a "hand compilation" of the original garbage
+collector written in C, where 32-bit addresses and registers are used.
+The heart of the garbage collector is located in the file {\em
+gc.asm\/}, whereas other g.c. related functions are found in the file
+{\em callgc.c\/}.
+
+\subsection{Signal handling}
+
+In the UNIX version signal handlers have been implemented for a number
+of hardware signals. This is not possible in the Windows version. The
+whole signal machinery has been neutralized in the Windows version.
+The lack of signal handlers has some annoying consequences. For
+example it is not possible to stop an infinite loop with Ctrl-C.
+
+As shown in \cite{bib:gc} signals can, in a smooth way, be used to
+initiate garbage collection. All the existing implementations for UNIX
+use signals this way, either by allocating ahead until a pagefault
+occur, or by an explicit test for the available memory followed by an
+"interrupt on overflow". This can't be done in the Windows version.
+Instead we must make an explicit test and jump to a routine that can
+initiate the garbage collection when necessary.
+\begin{verbatim}
+                     ...
+                     cmp    datalimit, allocptr     |
+                     jno    no_overflow             |  8 bytes
+                     jmp    initiate_gc             |
+        no_overflow: ...
+\end{verbatim}
+
+instead of:
+\begin{verbatim}
+                     ...
+                     cmp    datalimit, allocptr     |
+                     into                           | 4 bytes
+                     ...
+\end{verbatim}
+
+This is unpleasant because it takes up space (we shall perform this
+check at the beginning of every function).
+
+\subsection{Export and Import}
+
+In the UNIX version it is possible to export the state to an
+executable file (a.out format). This is used to make stand alone
+programs, and in particular it is used when bootstrapping the system
+to make "ready to run" versions of the interactive system and the
+batch compiler. Because of the problems that Windows has in handling
+USE32 segment this is not possible in Windows.
+
+The ability to export the state to an executable file, has influence
+on the execution speed and the memory requirements. If exported to an
+executable file, the compiler code is located together with the runtime
+system below the base address of the ML heap, and will therefore not be
+collected when a major collection is performed \cite{bib:gc}. This
+would in our system mean higher execution speed because most of the
+time is spent doing major collections. Because the heap always is at
+least three times the size of the living data
+\cite{bib:gc,bib:runtimesystem}, the presence of the whole compiler on
+the heap contributes considerably to the memory requirements.
+
+In principle, we could simulate the export by writing the contents of
+the ML-heap together with the contents of the runtime system's data
+segment to a file, and then use a special version of the runtime
+system to load and execute this file. This has not been done yet;
+instead the runtime system can load *.mo files as described in the
+{\em howto-boot\/} file in the SML\_NJ documentation directory.
+
+
+

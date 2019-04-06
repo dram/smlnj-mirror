@@ -1,0 +1,10 @@
+The only changes in the front end are:
+
+1. Structure names of toplevel structures are shortened because DOS only
+   allows 8 character file names.
+
+2. Filenames are shortened to 8 characters.
+
+3. Most editors for the PC uses both LF and CR (0A and 0D) for
+   newline. Therefore the scanner has been changed to include the CR in
+   the white spaces ( ws=("\012"|"\013"...)*; )

@@ -1,0 +1,13 @@
+The system is installed with:
+
+	xcopy a:\*.* c:\*.* /s
+
+To run the interactive system from the commandline in the FILE/RUN menu 
+of the Program Manager enter:
+
+	\sml\src\sml.exe Int386
+
+
+To run the batchcompiler enter:
+
+	\sml\src\sml.exe Comp386

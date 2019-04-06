@@ -1,0 +1,154 @@
+\section{The 386/Windows platform}
+
+In this section we discuss those aspects of the 80386 and Windows,
+that are important in the context of SML\_NJ. Windows causes troubles
+in implementing the system on a PC. This is because Windows still is
+based on the old 8086 memory model where the memory is divided into
+64k segments. As explained in Section \ref{sec:80386}, this fits badly
+with the assumptions which SML\_NJ makes about storage usage; these
+assumptions are described in Section \ref{sec:assumptions}. In Section
+\ref{sec:windows} we describe how one can fit the two together.
+
+\subsection{Assumptions that SML\_NJ relies on} \label{sec:assumptions}
+
+The compiler operates with two basic datatypes --- integers and
+pointers --- both 32-bit\footnote{actually only 31 because the least
+significant bit is used as a tag bit to distinguish between integers
+and pointers \cite{bib:runtimesystem}.}. Thus it is desirable that the
+architecture supports 32-bit data and addresses. The way memory is
+allocated and the way the garbage collection is done
+\cite{bib:gc,bib:runtimesystem} assumes that the ML code and data are
+located in a single continuous memory block. Since compiled ML code
+accesses variables and functions in the runtime system through 32-bit
+pointers and {\em vise versa}, the runtime system should be in the
+same logical memory space as the ML code/data.
+
+The compiled ML code occasionally makes calls to the operating system,
+of which some are critical and other are of a more peripheral nature.
+That is, some of the system calls are used by the compiler itself
+whereas others just are for use in user applications. The critical
+system calls must be supported by the operating system, or at least it
+must be possible to simulate a corresponding action.
+
+Languages like ML make heavy use of memory, so the operating system
+should provide some kind of virtual memory.
+
+In the next two sections we will see how the 80386 and Windows meet
+these requirements. Only a brief overview together with the choices
+made will be given here. For a more elaborate discussion of the
+problems with choosing a memory model and how to build the system, the
+reader is referred to \cite{bib:ysgsml}.
+
+\subsection{The 80386} \label{sec:80386}
+
+The 80386 processor has 32-bit registers for manipulation of code and
+data. It is possible to address up to $2^{32}$ bytes (i.e.  4 Giga
+bytes), and the built-in paging mechanism makes virtual memory
+possible.
+
+The memory organization is of interest to us. The 80386 operates with two
+kinds of segments:
+
+\begin{descit}{USE16} these are 16-bit segments. An address consists 
+of a 16-bit segment address and a 16-bit offset. Code running in this
+type of segments by default uses 16-bit addresses and 16-bit data.
+Segment registers contain indices into a descriptor table that
+contains information about the type and location of the segment. With
+these segments the code and data has to be divided into 64K pieces,
+causing the well-known problems with managing large programs.
+\end{descit}
+\begin{descit}{USE32} these are 32-bit segments. An address consists of a
+ 16-bit segment selector and a 32-bit offset. Code running in this
+type of segments by default uses 32-bit data and 32-bit addresses.
+This makes it possible to have a flat 32-bit memory model where the
+memory consists of a single contiguous block.
+\end{descit}
+
+The same binary machine code will cause different actions in the two
+types of segments. When using USE16 segments, the 386 operates much
+like the predecessor 80286, only now 32-bit registers for manipulation
+of data are available. When using USE32 segments the processor acts
+like a real 32-bit processor.
+
+The 80386 operates with separate code and data. It is not possible to
+write into a code segment nor to execute code from a data segment. But
+by letting a code segment register and a data segment register point
+to the same physical memory, self-modifying code becomes possible.
+This is known as {\em segment aliasing\/}.
+
+The instruction set is comprehensive enough to implement the abstract
+machine that the front end generates code for. There are some problems
+in that the 386 has inherited many of the peculiarities from its
+predecessors. Some registers are dedicated to special purposes in some
+instructions and different addressing modes are available in different
+instructions. For details, see \cite{bib:ysgsml}.
+
+In short, the 80386 has what is needed to support the compiler.
+Unfortunately, Windows does not make all its capabilities available to
+the programmer.
+
+\subsection{Windows} \label{sec:windows}
+
+Although Windows in enhanced mode exploits some of the processors
+32-bit facilities, it continues to adhere the segmented memory model.
+It is not possible to implement a Windows application using an
+exclusively flat 32-bit memory model. Windows itself relies on 16-bit
+segments and a Windows application must contain at least one USE16
+segment to interact with Windows.
+
+Considerations about implementing the system using the USE16 memory
+model only, are given in \cite{bib:ysgsml}. Here I'll just state that
+it is not possible to get a satisfactory system within that model.
+Instead I'll explain how to run 32-bit programs under Windows.
+
+The dynamic-link library WINMEM32.DLL which comes with the Software
+Development Kit (SDK) provides a set of functions that allow an
+application to make use of the 32-bit capabilities of the 80386
+processor. It contains a function {\em Global32Alloc} that allocates a
+USE32 data segment (up to 16Mbytes) for which a code alias can be made
+with the function {\em Global32CodeAlias}, thus enabling segment
+aliasing.  This makes it possible to generate and run 32-bit ML code
+within Windows.
+
+As mentioned above (parts of) the runtime system should lie in the
+same address space as the ML code. We shall somehow move the runtime
+system into the ML-heap allocated with the {\em Global32Alloc}
+function. This can be done by collecting the relevant variables and
+functions of the runtime system in an assembler module, and then
+compiling and linking this module into a segment that can be copied
+into the ML-heap when initializing the system (the Microsoft C
+compiler cannot generate 32-bit code so we have to use the assembler).
+It is possible to access an USE32 segment from C code through a 64K
+"window" obtained by the {\em Global16PointerAlloc\/} function in the
+WINMEM32 library. This function allocates an USE16 alias to a portion
+(up to 64K) of the USE32 segment, but it is inconvenient and slow to
+use this technique when operating on larger portion of the ML heap.
+With the assembler one has completely control over and access to all
+the different kinds of segments.
+
+There are three types of functions in the runtime system:
+\begin{itemize}
+\item 
+functions that are called directly from the compiled ML-code must be
+placed in the ML-heap and therefore must be implemented in assembler.
+\item 
+functions that interact closely with the ML-heap; these could be
+implemented in C by using USE16 aliases to access the ML heap, but
+have been implemented in assembler for greater efficiency.
+\item
+functions that hardly interact with the ML-heap; these can without any
+ loss of efficiency be implemented in C.
+\end{itemize}
+
+The heart of the garbage collector is implemented in assembler
+together with some few utility functions (as are the functions that
+are called directly from ML). The rest of the runtime system is
+implemented in C.  Access to the ML-heap is obtained through 64K
+"windows" allocated with {\em Global16PointerAlloc\/} function.
+
+
+
+
+
+
+

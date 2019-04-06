@@ -1,0 +1,46 @@
+LAL
+---
+JMG
+---
+MLState is now passed to essentially every function in the runtime
+and is no longer accessed globally.  The (MACHINE).prim.s files were
+modified to save a pointer to the MLState vector on the stack when
+doing restoreregs and to grab it back off of the stack when doing a
+saveregs.  I've tested this out on all architectures but the VAX,
+so this will have to be checked out.
+
+Most "global" variables in the runtime (e.g. request, inSigHandler,
+handlerPending, etc.) are now part of the MLState structure.  This
+required changing all accesses to these values so that they go through
+the current MLState pointer.
+
+callgc0 has been broken up into a few pieces to facilitate GC synchronization.
+In the case where the # of processors is 1, the synchronization is bypassed.
+Two new routines: divideAllocArea() divides the allocation area up among
+the processors.  collect_roots() collects all of the processor's roots and
+passes them to gc().  
+
+gc() was modified so that (a) it takes a vector of store lists now and
+(b) it only does an i-cache flush when a code string is moved.  I'm not
+too sure that I got (b) right, so you might want to check it out carefully.
+
+Added the files mp.h, mp.c:  These provide the mp routines to initialize
+MLState vectors, allocate processors, and release processors.  There are
+stub routines for all machines/OS combinations that essentially do nothing
+except of course for the SGI.
+
+Added the files sync.h, sync.c: These provide spin_locks for both the
+runtime and ML.  For non SGI machines, these are just bool refs.  For
+the SGI, we use the hardware locks.
+
+Modified Makefile so that the runtime can be linked with a library
+(such as the multiprocessor library for the SGI).
+
+Modified makeml so that it has a new option "-mp n" which indicates that
+you want to build a runtime that can support up to n processors.  makeml
+complains if you use the "-mp" option on anything but the SGI.
+
+Modified (MACHINE).prim.s to add 2 new closures, try_lock_v and unlock_v
+which are routines to acquire and release spin_locks.  These closures were
+added to the RUNVEC in cstruct.c.  This required a slight addition to
+boot/assembly.sig and boot/dummy.sml.  

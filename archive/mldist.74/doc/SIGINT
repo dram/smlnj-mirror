@@ -1,0 +1,39 @@
+Handling SIGINT in SML/NJ:
+
+    SML/NJ supports a general purpose signal handling mechanism for
+handling signals (see doc/papers/ml-signals.ps).  For various technical
+reasons, it does not support the definition's exception Interrupt (the
+exception is defined, but never raised).  But, for many applications,
+the general-purpose signal mechanism is more complicated than necessary.
+In this note we show how to modify a top-level loop slightly to handle
+SIGINT.
+
+Say we have the following top-level loop:
+
+    fun topLoop () = (
+          (loopBody ())
+            handle Interrupt => ...;
+          topLoop()))
+
+we can rewite this as
+
+    fun topLoop () = (
+          (catchTopCont(); loopBody ())
+            handle Interrupt => ...;
+          topLoop()))
+
+where catchTopCont() hooks into the run-time system's default SIGINT
+handler:
+
+    fun catchTopCont () = (
+          System.Unsafe.toplevelcont :=
+            callcc (fn k => (
+              callcc (fn k' => (throw k k'));
+              raise Interrupt)))
+
+Note that these callcc's bind in the exception handler context of where
+catchTopCont() is called; thus it must be called in the scope of the
+top-level loop handler.  This function can be defined in a SML/NJ
+dependent prelude file (with it defined as a no-op for other versions
+of SML).
+

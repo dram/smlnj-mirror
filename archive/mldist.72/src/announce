@@ -1,0 +1,36 @@
+External:
+The major changes that are externally visible are:
+
+1. Arrays are no longer open by default.
+
+2. Subscript is no longer declared infix.
+   The standard recommends that infix 9 be used for subscript.
+
+3. System.Control.timings used to print timings
+   under the title 'codegen:' twice.
+   One was really generic and the other was the sum
+   from convert through to the end of scheduling/backpatching.
+   I have renamed the first to be 'generic:'.
+
+4. Vectors and floating arrays have been implemented for all
+   machines.
+   Be warned that floating arrays at the present are provisional
+   and improved speed is not guaranteed.
+   We know how to fix this and are working on it.
+
+Internal:
+1. Two new primops have been added to support floating arrays 
+   and an assembly routine for vector creation.
+
+2. Large number of changes have been made to the runtime system
+   to support multiprocessing.
+   The main change is that all runtime globals have been added
+   to the MLState vector.
+   A pointer to the  MLState vector is saved on the stack and
+   is now passed as an arguement to all the runtime routines
+   that uses its components.
+
+3. Multiprocessing specific support routines have been added.
+
+../LG
+   
