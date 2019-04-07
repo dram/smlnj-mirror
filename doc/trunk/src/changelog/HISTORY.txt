@@ -94,6 +94,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/04/07]::
++
+Reorganized the backend of the compiler by moving the CPS-related
+code into its own directory tree (`Compiler/CPS`) and replacing the
+`FLINTComp` functor with the `FLINTOpt` structure and the `CPSCompFn`
+functor.  The conversion from FLINT to CPS is part of the `CPSCompFn`
+functor, which takes the program representation all the way from
+FLINT to machine code segments.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//====================================================================
+== Version 110.85; 2018/12/22
+
+//--------------------------------------------------------------------
 [2018/12/21]::
 +
 Modified `config/install.sh` to look for a pre-Mojave SDK when trying

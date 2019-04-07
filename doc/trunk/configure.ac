@@ -127,6 +127,7 @@ dnl ***** Makefiles *****
   src/extensions/Makefile
   src/man/Makefile
   src/manuals/Makefile
+  src/release-notes/Makefile
 )
 
 AC_OUTPUT
