@@ -93,6 +93,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+[2019/04/08]::
++
+Starting to migrate the CPS IR toward the ASDL version.  Changed the
+names of the `CPS.P.arith` and `CPS.P.cmpop` constructors to be upper-case
+alpha IDs (many of them were symbolic identifiers).  Also split out the
+various utility functions into the new `CPSUtil` module (`CPS/cps/cps-util.sml`).
+Lastly, moved the `literals.sml` file from `FLINT/main` to `CPS/main` (where
+it belongs).
++
+Note that the `CPS.P.arith` datatype is now identical to the `Primop.arith`
+datatype
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/04/07]::
 +
