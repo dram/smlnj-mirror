@@ -1,0 +1,44 @@
+(*
+ * util/sources.cm: CM library description for CM utilities
+ *
+ *   Copyright (c) 1995 by AT&T Bell Laboratories
+ *
+ * author: Matthias Blume (blume@cs.princeton.edu)
+ *)
+Library
+
+	signature TABLE
+	structure Table
+
+	signature SET
+	structure Set
+
+	signature INTERRUPT
+	structure Interrupt
+
+	signature ABSPATH
+	structure AbsPath
+
+	signature FILE
+	structure File
+
+	structure TStamp
+
+is
+
+	(* various utilities *)
+
+	table.sig
+	table.sml
+	set.sig
+	set.sml
+	interrupt.sig
+	interrupt.sml
+
+	file.sig
+	file.sml
+
+	abspath.sig
+	abspath.sml
+
+	tstamp.sml

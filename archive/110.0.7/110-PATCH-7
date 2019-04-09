@@ -1,0 +1,90 @@
+                        Standard ML of New Jersey
+                    Version 110.0.7, September 9, 2000
+                  --------------------------------------
+
+
+       http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+This is the sixth patch release for version 110 (110.0.4 was not released).
+This patch release fixes a long-standing bug in signal handling.  It also
+includes a number of SML/NJ Library enhancements and fixes.
+
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+  1498. Specialized real arrays not pretty-printed correctly
+  1510. Signature matching bug makes "casts" possible
+  1556.	signal race condition
+  1559. non-empty string matches regular expression only in a non-empty way
+  1576. buggy Real.!=
+
+
+SML/NJ Library
+--------------
+
+ o Added Word versions of hash tables (WordHashTable), finite 
+   maps (WordRedBlackMap), and sets (WordRedBlackSet).
+
+ o fixed bug in Format module (infinity caused infinite loop).
+
+ o added anchored paths in CM files for NEW_CM.
+
+ o added implementation of LWORD in Format module.
+
+ o Fixed bug in dfa-engine.sml (bug number 1559).
+
+ o Added setFn to PList.newProp return type.
+
+ o Added sameHolder function to PropList module.
+
+ o Fixed a bug in the filter/filteri hash table functions: the number
+   of items in the table was not being recomputed.
+
+ o Added modify and modifyi iterators to hash tables.
+
+ o Added anchorLink style to HTMLDev structure in PP/devices.
+
+ o Added IntHashTable structure to Util library; this structure is
+   a specialization of hash tables to integer keys.
+
+ o Added default cases to avoid "match not exhaustive" warnings.
+
+ o Added GraphSCCFn functor to Util library, which implements a
+   strongly-connected components algorithm on directed graphs (written
+   by Matthias Blume).
+
+
+CML
+---
+
+ o Fixed some bugs in the withNack implementation.
+
+ o Modified RunCML.doit to install a dummy print hook.
+
+
+eXene
+-----
+
+ o Updated the examples directory so that all of the example programs
+   will compile.
+
+
+Platforms:
+----------
+
+  We have built and tested (with the regression suites) this version
+  on the following platforms:
+
+     x86-linux (Red Hat 5.1, Linux 2.0.35; Red Hat 6.1-2, Red Hat 7.0)
+     x86-win32 (Windows NT 4.0, Windows 2000)
+     x86-freeBSD (FreeBSD 3.2 - built but not tested)
+     sparc-solaris  (UltraSparc II, Solaris 2.5.1)
+     alpha32-dunix  (Digital Unix 4.0)
+     hppa-hpux (HPUX 10.20)
+     mipseb-irix6 (R10000, IRIX 6.5)
+
+  The system should build on rs6000-aix, but we no longer have access to
+  an rs6000-aix machine for testing.  Any volunteers?  This version will
+  not run on more recent PowerPC-based RS6000 machines, but current working
+  versions of SML/NJ will run under powerpc-aix.

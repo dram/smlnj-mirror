@@ -1,0 +1,232 @@
+<HTML>
+<HEADER>
+<TITLE>Standard ML of New Jersey version 110</TITLE></HEADER>
+<BODY BGCOLOR="ffffff">
+<center>
+<H2>Standard ML of New Jersey</H2>
+<H3>Version 110, Patch 7 (110.0.7), September 28, 2000</H3>
+</center>
+<br>
+<blockquote>
+
+This is Version 110.0.7 of Standard ML of New Jersey,
+also known as Version 110, Patch 7.
+The primary purpose of this patch version is to fix a bug in the
+implementation of signals that caused problems in CML, but a number of other
+bug fixes are included, as well as some enhancements.
+Specifically, the SML/NJ Library has had a number of additions.
+For details of changes, improvements,
+and bug fixes for this and previous 110 patch versions, read the
+<A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-PATCH-HISTORY">
+110-PATCH-HISTORY</A>.
+<p>
+Version 110 implements the SML '97 definition, including the new Basis
+library, with a few minor omissions and discrepancies that are
+documented in the
+<A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Conversion/index.html">
+SML '97 Conversion Guide</A>.  
+<p>
+Version 110 has been thoroughly tested and we believe it to be fairly
+free of serious bugs and instabilities.  As usual, the bug lists are
+available at:
+<BLOCKQUOTE>
+<A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs">
+ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs</A>
+</BLOCKQUOTE>
+We strongly urge that those who are still using SML/NJ 0.93 and those
+who have been using intermediate working versions should move to
+Version 110.
+<p>
+The Version 110 distribution includes:
+<menu>
+<li> the interactive SML/NJ compiler itself
+<li> CM - an itegrated compilation manager supporting separate
+	compilation, automatic dependency analysis, autoloading
+<li> The Standard ML of New Jersey Library (smlnj-lib)
+<li> CML - Concurrent ML
+<li> eXene - an elegant interface to X11 (based on CML)
+<li> SMLNJ-C library for interfacing to C code
+<li> <em>Visible Compiler</em> facilities for access to compiler internals
+<li> A programming toolset: ML-Lex, ML-Yacc, ML-Burg, execution profiler
+</menu>
+<p>
+<a name="Platforms">
+<h3>Systems supported</h3></a>
+SML/NJ 110 has been tested on these machine/OS combinations:
+<menu>
+<li> Sparc (Ultra II): Solaris 5.5.1 through Solaris 8
+<li> Alpha: Digital Unix 4.0
+<li> MIPS (R10000): IRIX 6.5
+<li> IA-32 (Pentium): Solaris 8, FreeBSD 3.2, Linux, Win98, WinNT, Win2000
+<li> HP HPPA: HPUX 10.1
+</menu>
+The IBM RS6000/AIX[3.2, 4.1] platform should also be supported, but we
+no longer have such a machine to test on.  The system may also run
+under Sparc/SunOS 4.x and MIPS/IRIX 5.x,6.[2-4], but hasn't been
+tested on those platforms.  Please let us know if you can successfully
+install on a configuration not listed above.
+<p>
+We recommend running SML/NJ on machines with at least 32MB of physical
+ram, which will be adaquate for small projects and classroom exercises.
+As usual, larger projects will run better with more ram.
+<p>
+There is a performance issue that may affect users running on machines
+with small swap spaces.  Because of new optimizations performed by the
+compiler and a conservative strategy for allocating virtual memory in
+the runtime system, Version 110 can require significantly more
+<em>virtual</em> memory than was used by 0.93, particularly during
+compilation of large source files, while at the same time using less
+<em>physical</em> memory than 0.93.  This means that if you have a small swap
+space allocated on your machine, you may need to increase the
+allocation in order to compile or run some large programs.  A future
+version of the runtime system will implement a tighter allocation
+scheme that will reduce virtual memory usage.
+
+<h3>Documentation</h3>
+
+The documentation for Version 110 is available at our web site
+<BLOCKQUOTE>
+<A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/index.html">
+http://cm.bell-labs.com/cm/cs/what/smlnj</A>
+</BLOCKQUOTE>
+including nearly final documentation of the
+<A HREF="http://www.cs.bell-labs.com/%7Ejhr/sml/basis/index.html">SML'97 Basis Library</A>
+and an 
+<A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Conversion/index.html">
+SML'97 Conversion Guide</A>
+that describes language changes.  Work is continuing to improve
+the content and organization of the documentation, so it would be
+worthwhile checking back periodically.  We welcome suggestions and corrections.
+<p>
+The directory tree of the
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/doc/SMLNJ/smlnj.tar.Z">
+SML/NJ web page documentation</a>, including the Basis web pages, is
+available for downloading as a compressed tar file. The
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/doc/Basis/SMLBasis.tar.gz">
+Basis documentation pages</a> are also available separately as a gzipped tar file.
+<blockquote>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/doc/SMLNJ/smlnj.tar.Z">
+ftp//ftp.research.bell-labs.com/dist/smlnj/doc/SMLNJ/smlnj.tar.Z</a><br>
+<a href="ftp://ftp.research.bell-labs.com/dist/smlnj/doc/Basis/SMLBasis.tar.gz">
+ftp//ftp.research.bell-labs.com/dist/smlnj/doc/Basis/SMLBasis.tar.gz</a>
+</blockquote>
+
+<h3>Distribution Files</h3>
+The Version 110 distribution files are available at
+<dl>
+<dt>
+Bell Labs (the master site)
+<dd>
+<A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/">
+ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/</A><br>
+<A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/dist/110.0.7.html">
+http://cm.bell-labs.com/cm/cs/what/smlnj/dist/110.0.7.html</A>
+<dt>
+Stanford University
+<dd>
+<A HREF="ftp://rodin.stanford.edu/pub/smlnj/release/110/">
+ftp://rodin.stanford.edu/pub/smlnj/release/110/</A>
+<dt>
+Yale University
+<dd>
+<A HREF="ftp://flint.cs.yale.edu/pub/smlnj/release/110/">
+ftp://flint.cs.yale.edu/pub/smlnj/release/110/</A>
+<dt>
+DIKU (Copenhagen University)
+<dd>
+<A HREF="ftp://ftp.diku.dk/pub/smlnj/release/110/">
+ftp://ftp.diku.dk/pub/smlnj/release/110/</A>
+<dt>
+Cambridge University
+<dd>
+<A HREF="ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj/release/110/">
+ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj/release/110/</A>
+<dt>
+SunSITE UK (Imperial College)
+<dd>
+<A HREF="ftp://sunsite.doc.ic.ac.uk/computing/programming/languages/ml/smlnj/release/110/">
+ftp://sunsite.doc.ic.ac.uk/computing/programming/languages/ml/smlnj/release/110/</A>
+<dt>
+National Technical Univ. of Athens
+<dd>
+<A HREF="ftp://ftp.ntua.gr/pub/lang/smlnj">
+ftp://ftp.ntua.gr/pub/lang/smlnj/release/110/</A>
+<dt>
+KAIST Korea
+<dd>
+<A HREF="ftp://compiler.kaist.ac.kr/pub/sml/release/110/">
+ftp://compiler.kaist.ac.kr/pub/sml/release/110/</A>
+</dl>
+The distribution consists of the following files (most of the files
+are in Unix compressed tar format, indicated by the ".tar.Z" suffix).
+<table>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-README">
+110-README</A><td>1 Kb<td>Read Me (this file)</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-PATCH-HISTORY"> 110-PATCH-HISTORY</A><td>96 Kb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<td>Information about bug fixes and changes in the 110 patch versions</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-HISTORY"> 110-HISTORY</A><td>96 Kb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<td>History of previous working versions</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-INSTALL"> 110-INSTALL</A><td>3 Kb<td>How to install</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/LICENSE">
+LICENSE</A><td>3 Kb<td>SML/NJ License</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj.exe"> smlnj.exe</A><td>6565 Kb<td>Self-installing EXE for Win '95 and NT</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/RPMS"> RPMS directory</A><td>6565 Kb<td>Linux RPM packages</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.alpha32-unix.tar.Z"> bin.alpha32-unix.tar.Z</A><td>4394 Kb<td>for DEC Alpha, Digital Unix 4.0</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.hppa-unix.tar.Z"> bin.hppa-unix.tar.Z.</A><td>4615 Kb<td>for HPPA processors</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.mipseb-unix.tar.Z"> bin.mipseb-unix.tar.Z</A><td>4188 Kb<td>for Silicon Graphics machines</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.rs6000-unix.tar.Z"> bin.rs6000-unix.tar.Z</A><td>4317 Kb<td>for IBM Power processors</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.sparc-unix.tar.Z"> bin.sparc-unix.tar.Z</A><td>4184 Kb<td>for SPARC processors</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.x86-unix.tar.Z"> bin.x86-unix.tar.Z</A><td>3440 Kb<td>for Intel Pentium processors running UNIX.</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/bin.x86-win32.tar.Z"> bin.x86-win32.tar.Z</A><td>3349 Kb<td>for Intel Pentium processors running Windows.</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/cm.tar.Z"> cm.tar.Z</A><td>524 Kb<td>Compilation Manager</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/cml.tar.Z"> cml.tar.Z</A><td>154 Kb<td>Concurrent ML</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/config.tar.Z"> config.tar.Z</A><td>10 Kb<td>Installation scripts</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/eXene.tar.Z"> eXene.tar.Z</A><td>1079 Kb<td>eXene window system</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-burg.tar.Z"> ml-burg.tar.Z</A><td>95 Kb<td>Burg code-generator generator</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-lex.tar.Z"> ml-lex.tar.Z</A><td>44 Kb<td>ML-Lex scanner generator</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/ml-yacc.tar.Z"> ml-yacc.tar.Z</A><td>148 Kb<td>ML-Yacc parser generator</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/runtime.tar.Z"> runtime.tar.Z</A><td>588 Kb<td>Runtime system</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/sml-nj.tar.Z"> sml-nj.tar.Z</A><td>1572 Kb<td>Source code for compiler</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj-c.tar.Z"> smlnj-c.tar.Z</A><td>102 Kb<td>ML-to-C library</tr>
+<tr><td><A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/smlnj-lib.tar.Z"> smlnj-lib.tar.Z</A><td>344 Kb<td>SML of NJ Library</tr>
+</table>
+<p>
+You will need at least the config.tar.Z, runtime.tar.Z, the
+bin.* files for the machines on which you intend to install the
+software, and the source files for the components (CM, ml-lex,
+ml-yacc, cml, eXene) that you want installed (these are defined in the
+config/targets file).  The file smlnj.exe can be used to
+automatically install SML/NJ on Windows 95 and NT, and the rpm package
+RPMS/smlnj-110.0.7-0.i386.rpm can be used to install under Linux
+(tested under Red Hat Linux 6.1).
+
+More detailed installation instructions are in the
+<A HREF="ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/110-INSTALL">110-INSTALL</A>
+file or at the web page:
+<blockquote>
+<A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/install/index.html">
+http://cm.bell-labs.com/cm/cs/what/smlnj/install/index.html</A>
+</blockquote>
+
+<h3>News about SML/NJ</h3>
+New releases of our software are announced in the netnews group comp.lang.ml.
+
+<h3>License</h3>
+Standard ML of New Jersey is distributed free of charge and with no
+warranty.  You may use, copy, modify, and distribute the software
+provided that you preserve the copyright notice and don't mention Bell
+Laboratories or Lucent Technologies in your advertising without prior
+written permission; see the <a HREF="../license.html">license</a> for
+the legal language.
+
+<h3>Contact Info</h3>
+If you have general questions or comments, please email them to
+<a href="mailto:sml-nj@research.bell-labs.com">sml-nj@research.bell-labs.com</a>.
+<p>
+Bug reports should be sent to
+<a href="mailto:sml-bugs@research.bell-labs.com">sml-bugs@research.bell-labs.com</a>
+using the <A HREF="http://cm.bell-labs.com/cm/cs/what/smlnj/bug-report-form">
+bug report form</A>.  Bug reports
+can also be submitted using our
+<A HREF="http://www.cs.princeton.edu/~appel/smlnj/bugform.cgi">online bug form</A>.
+</blockquote>
+</body>
+</html>

@@ -1,0 +1,2833 @@
+
+
+		    Standard ML of New Jersey
+			   Version 110
+			December 9, 1997
+
+	 ------------------------------------------------
+
+This file contains an edited version of the cummulative README files
+going back to 109-README.
+
+======================================================================
+109-README
+
+Version 109 of Standard ML of New Jersey (SML/NJ) is an internal working
+version that is probably stable enough for use by brave souls.  The
+transition from Version 93 to the next general release involves a complete
+reworking of almost the entire system.  Version 109 is perhaps 90% of the
+way there, but there are still changes to come.  Also, users should be
+aware that there may be further changes in some of the new interfaces before
+the next general release.
+
+This version works on the following machine/OS combinations:
+
+  Alpha; OSF/1 (V 2.0 or later; does not work under V 1.3)
+  HPPA; HPUX 9.x (requires gcc; may work under 10.x, but we haven't tested it)
+  MIPS; Irix 4.x
+  MIPS; Irix 5.x
+  RS/6000; AIX 3.x and AIX 4.x
+  SPARC; SunOs 4.x
+  SPARC; Solarix 2.x
+  x86; Linux
+  x86; Solaris 2.x (thanks to Mikael Pettersson)
+
+Here is a list of the files in the distribution.  Note that, unlike in previous
+versions, you do not need the compiler source (109-sml-nj.tar.Z) to install
+the system.
+
+  109-README			This file
+  109-INSTALL			Installation instructions
+  109-doc.tar.Z			Misc. documentation.
+  109-config.tar.Z		Configuration/installation scripts (REQUIRED)
+  109-runtime.tar.Z		Run-time system source (REQUIRED)
+  109-sml-nj.tar.Z		Source for compiler (optional)
+  109-cm.tar.Z			CM source
+  109-ml-yacc.tar.Z		ML-Yacc source
+  109-ml-lex.tar.Z		ML-Lex source
+  109-ml-burg.tar.Z		ML-Burg source
+  109-smlnj-lib.tar.Z		SML/NJ Library source
+				Compiler binaries for specific architectures:
+  109-bin.alpha32.tar.Z		  Alpha binaries
+  109-bin.hppa.tar.Z		  HPPA binaries
+  109-bin.mipseb.tar.Z		  Big-endian MIPS binaries
+  109-bin.rs6000.tar.Z		  RS/6000 binaries
+  109-bin.sparc.tar.Z		  Sparc binaries
+  109-bin.x86.tar.Z		  Intel x86 binaries.
+
+KNOWN BUGS
+In addition to reported open bugs, version 109 suffers from the following
+problems:
+
+  - virtual memory usage can be significantly higher than in 0.93, although
+    physical memory usage and garbage collection overhead is down.
+
+  - there is only partial documentation (what little there is can be
+    found in the doc directory).
+
+  - stopping sml using ^Z and then restarting it causes sml to lose contact
+    with the terminal input stream under Irix 4.0.5.  This doesn't appear to
+    be a problem with Irix 5.x.
+
+CHANGES FROM 108 to 109
+There have been many changes in the SML/NJ API since 108.  Most of these changes
+are related to moving towards the new Standard ML Standard Library (SMLSL).  We
+expect to make a draft of the SMLSL Manual available on the WWW in early
+February 1996; this will be announced on the comp.lang.ml newsgroup.
+
+Here is a list of the more significant changes (in no particular order):
+
+  - We have implemented a first pass at the SMLSL I/O interfaces.  There are
+    two structures: TextIO and BinIO that implement text and binary I/O
+    stacks.  There are three levels to an I/O stack: the imperative level,
+    which supports dynamic binding of I/O streams; the stream level, which
+    supports a functional style of input; and a primitive I/O level, which
+    supports unbuffered I/O.  There is also an IO structure that is mostly
+    compatible with the 0.93 IO structure.  This structure will move into
+    a compatibility library by version 110.
+
+  - The IO structure no longer supports execute_in_env and execute.  These are
+    Unix specific operations and don't belong in an OS independent module.
+    There is now a Unix structure that supports a somewhat more sophisticated
+    version of these operations; in addition, the Posix structure provides full
+    access to the IEEE Std. 1003.1b POSIX API.
+
+  - The exportFn operation now has a new type:
+
+	val exportFn : (string * ((string * string list) -> OS.Process.status)) -> 'a
+
+    As before, the first argument is the name of the file to export the heap image
+    to, and the second is the function to be exported.  The type of the exported
+    function has changed:  its first argument is argv[0] (i.e., the command
+    name), and the string list is the list of command-line arguments.
+    To get access to the environment, use OS.Process.getEnv, or
+    Posix.ProEnv.environ.
+
+  - The Array and Vector (and monomorphic versions) now provide a collection of
+    iteration operations (e.g., app, foldl, ...).  Note that opening both the
+    Array and List structure will result in the iterators from the first
+    structure opened to be masked by the second.
+
+  - The functions Array.arrayoflist and Vector.vector have been renamed
+    Array.fromList and Vector.fromList.  There is a top-level function
+    vector that is bound to Vector.fromList.
+
+  - The Integer structure has been renamed Int.
+
+  - There is full support for unsigned integers (called words in the SMLSL).
+    SML/NJ supports three sizes: 8-bit (structures Word8, Word8Vector, and
+    Word8Array), 31-bit (structure Word31 (aka Word)), and 32-bit (structure
+    Word32).  Word literals are overloaded over the various sizes (they default
+    to Word.word).  The syntax of a word literal is: 0wddd (decimal) and
+    0wxddd (hexadecimal).  For example: 0w1, 0wxFF, 0w128.
+
+  - The Bits and ByteArray no longer exist.  Use words for bit operations and
+    Word8Array/Word8Vector for sequences of bytes.
+
+  - The Pack{16,32}{Big,Little} structures provide support for the packing/unpacking
+    of word values from Word8.word arrays and vectors.
+
+  - There is a Date structure that provides conversions between time values and
+    dates.  This is a partial implementation of the SMLSL interface.
+
+  - The SML/NJ Library has been overhauled to better conform to the SMLSL.  In this
+    first pass, we mostly eliminated redundant modules.  We expect that for version
+    110 we will update some of the interfaces to follow the naming conventions
+    of the SMLSL.  Here is a summary of the Library changes:
+
+      - The ListUtil structure has been deleted: most of its operations can be
+	found in the List and ListPair structures of the SMLSL.
+
+      - The StringUtil structure has been deleted: most of its operations can be
+	found in the String, Substring, and Char structures of the SMLSL.
+
+      - The StringCvt structure has been deleted: conversions from strings can
+	be found in the various structures (e.g., Int.fromString, Bool.fromString).
+
+      - The MakeString structure has been deleted: conversions to strings can
+	be found in the various structures (e.g., Int.toString, Bool.toString).
+
+      - The Path structure has been deleted: use the OS.Path structure instead.
+
+      - The CType structure has been deleted: use the operations in the Char
+	structure instead.
+
+  - Version 109 does not support CML or eXene (108.5 was the last version to
+    do so).  A new implementation of CML is currently being tested; it should
+    be available by March.  Once the new version of CML is stable, we expect to
+    have eXene ported fairly quickly.
+
+  - The General.union datatype was eliminated.
+
+  - The structure System.Signals has been replaced by a pair of new top-level
+    structures: Signals and UnixSignals.  The interface of the Signals structure
+    is also different.
+    Warning: it is likely that this interface will continue to evolve.
+
+
+
+CHANGES FROM 107 to 108
+There were substantial changes in many aspects of the system.  Many of these
+changes have to do with the migration towards a new standard basis for SML
+(this basis will be supported by at least two other SML implementations).
+Note that while we believe those parts of the new basis that we have
+implemented to be fairly stable, it is quite possible that there may be
+further minor changes.
+
+The following structures have been deleted or significantly changed:
+
+  General		changed to conform with the new basis.
+  List			this has been changed to conform to the new basis
+  System.CleanUp	interface and implementation have changed
+  System.Control	various flags eliminated (e.g., gcmessages)
+  System.Directory	deleted
+  System.Timer		deleted
+  System.Unsafe.SysIO	many functions deleted (moved to Posix.IO).
+
+The following structures have been added:
+
+  ListPair
+  OS
+    OS.FileSys, OS.Path, OS.Process
+  Posix
+    Posix.Error, Posix.FileSys, Posix.IO,
+    Posix.ProcEnv, Posix.Process, Posix.Signal,
+    Posix.SysDB
+  Substring
+  Time
+  Timer
+
+These, and other changes, are described in more detail below:
+
+  - We have switched from using SC to CM for separate compilation.  CM is
+    both faster and significantly more robust than SC.  CM is required to
+    install and used the libraries that are included in the distribution.
+    There is a user's manual for CM in the doc directory.
+
+  - The General structure has been modified to conform with the standard
+    basis.  These changes include the elimination of the inc and dec
+    functions (which were also available at top-level).
+
+  - The old List structure has been replaced with one conforming to the new
+    basis.  Here is a summary of the changes:
+
+      * the functions List.nth and List.exists are no longer at top-level
+
+      * the function List.app requires its first argument to return unit.
+
+      * the functions List.fold and List.revfold have been replaced by
+	List.foldr and List.foldl.  Furthermore, they have the type:
+
+	  (('a * 'b) -> 'b) -> 'b -> 'a list -> 'b
+
+	I.e., the second and third arguments are swapped.
+
+      * There is a function List.concat, which implements the common idiom:
+
+	  fold (op @) l []
+
+      * The exception Nth no longer exists.  The function List.nth raises the
+	General.Subscript exception.
+
+      * The opening of the List structure causes the top-level binding of
+	String.concat to be masked, which may introduce type errors.
+
+  - There are new basis structures Time and Timer, which support access to
+    the current time of day, and to system timing.  The time type is now abstract.
+    The structure System.Timer does
+
+  - The new OS structure provides generic support for operating system
+    operations.  Programs written using this interface should work on
+    UNIX, WindowsNT, Window95, and MacOS implementations of SML.  The
+    structure OS.FileSys provides operations on the file system (these
+    replace the old System.Directory structure); the structure OS.Path
+    provides pathname manipulation; and the structure OS.Process provides
+    simple process management.
+
+  - The new standard basis specifies a POSIX 1003.1a binding for SML/NJ.  This
+    has mostly been implemented (the Posix.Tty structure is missing).  Many of
+    the UNIX functions in System.Unsafe.SysIO and System.Unix have been
+    superseded by their POSIX equivalents.
+
+  - The new ListPair structure supports operations on pairs of lists.
+
+  - The new Substring structure supports various string searching and
+    manipulation operations.  Also, the Char and String structures have
+    been enriched.
+
+  - The function System.exn_name has moved to SMLofNJ.exnName.
+
+  - The function System.system has been deleted; use OS.Process.system instead.
+
+
+CHANGES FROM 106 to 107
+Most of the changes are compiler improvements and bug fixes.  Most of the
+visible changes have to do with a reorganization of the ML callable C code.
+
+  - eXene has been ported to 107, and a snapshot is included in the release.
+    This is very much a working version, but there is some high-level
+    documentation in eXene/README.
+
+  - the function System.Unsafe.CInterface.c_string has been deleted (ML strings
+    are always NULL terminated in 107).  Also, the type of c_function has changed.
+
+  - the function System.Unsafe.CInterface.syscall has been eliminated.
+
+  - the implementation of System.Directory.getWD has been fixed.  We now use
+    the POSIX getcwd() to implement this.
+
+  - The ML callable C library in the run-time has been split into a collection
+    of libraries, which are organized by related function.  This organization
+    should make it somewhat easier to add C code to the system.  See the file
+    notes/HOWTO-ADD-C-CODE for more information.
+
+
+CHANGES FROM 103 to 106
+The last working version that was made available via ftp was 103; here is
+a list of the major changes since then:
+
+  - Version 106 uses a new run-time system with a multi-generational
+    collector.  This affects users and installers of the system in
+    several significant ways:
+
+      - The new run-time separates the run-time executable from the
+	ML heap images.  This means that an application (e.g., sml-sc)
+	consists of a run-time system and a heap image.  The run-time
+	executables depend on the architecture and OS, while the heap
+	image depends on the application and architecture.  There is a
+	standard driver shell script that gets created as part of the
+	installation process (see the 106-INSTALL file for details).
+	The "exportML" and "exportFn" commands generate heap images.
+
+      - The new collector tends to use more virtual memory than the
+        old collector, but less physical memory.  The virtual memory
+        performance will be improved before the next release, but you
+        may have trouble running this on machines with small swap spaces.
+
+  - Version 106 supports characters as a first class type.  Character
+    literals are written as length one strings preceeded by "#" (e.g.,
+    #"a", #" ", #"\"", #"\128").  The structure Char defines various
+    operations on characters.  As a result of this change, the signature
+    of the String structure has changed.  In particular, the functions
+    String.length, String.ord and String.ordof no longer exist, and the
+    functions implode and explode have different types.  The old versions
+    can be defined roughly as follows:
+
+      val length = String.size
+      val ordof = Char.ord o String.sub
+      fun ord s = ordof(s, 0)
+      val explode = (map Char.ord) o String.explode
+      val implode = String.implode o (map Char.chr)
+
+    The Ord exception is no longer raised, instead Subscript is raised.
+    Also, the Chr exception has been moved to the Char structure.
+
+  - As a result of the changes to the String and the addition of the Char
+    structure, ML-Lex, ML-Yacc, the SML/NJ Library, and CML have been changed.
+    In the case of ML-Lex and ML-Yacc, you will have to regenerate your
+    parsers/scanners using the new version, if you want to use 106.  There
+    were significant changes to some of the interfaces in the SML/NJ library
+    (e.g., CType, CharSet), but the changes to CML are all internal.  We
+    haven't ported eXene to 106 yet, but that will be done soon.
+
+  - Version 106 has a different signature for the Array and Vector structures.
+    The exceptions Subscript and Size have been moved to the General
+    structure.
+
+  - Version 106 has generic monomorphic array and vector signatures (MONO_ARRAY
+    and MONO_VECTOR).  Currently, the only implementation of these are the
+    CharVector and CharArray types, but the RealArray structure will be
+    switched over soon.  The type CharVector.vector is the same as String.string.
+
+  - Versions are now numbered as integers (i.e., 106 instead of 1.06).  The
+    signature of Compiler.Version has changed.
+
+  - The get_fd_out function was removed from the IO signature.
+
+CHANGES FROM 0.93 to 1.03
+  - The top-level environment was restructured; stuff that used to be in
+    System has been split into System and Compiler.  Note that the System
+    side of this split is definitely NOT stable; it will change again in
+    substantial ways.
+
+  - The bootstrapping process has changed radically from version 0.93.
+    If you don't know about sml-scb and "bin files", this version
+    is probably not for you.
+
+  - The "source groups" tool has been replaced with "SC", which generally works
+    better.
+
+
+======================================================================
+109.1-README
+
+This version fixes a number of small bugs in 109, adds support for
+FreeBSD (thanks to Jeff Hsu), and fixes some problems with PowerPC
+systems running AIX.  Note that there may still be some problems in
+the FreeBSD port.  It also contains a new version of CM, which should
+be more robust.  This new version now creates a "CM" directory where
+it puts bin files and dependency information (instead of ".depend",
+".mipseb", etc.).
+
+For more information, see the 109-README file in the 109 distribution.
+
+
+======================================================================
+109.4-README
+
+This version of SML/NJ incorporates a completely new implementation
+of the module system.  While this new implementation fixes a number
+of outstanding bugs, it may not be completely robust yet.
+
+
+======================================================================
+109.6-README
+
+NOTES on SML/NJ 109.6
+
+In this version of SML/NJ, we have removed the old I/O interfaces (0.93).
+We recommend that you wait until 109.7 before migrating your code,
+however, since the new I/O interfaces are going to undergo some changes.
+
+We have also removed the overloaded makestring and print functions.
+To convert primitive types to strings, use Int.toString, Bool.toString,
+etc.  The top-level print function is now bound to TextIO.print, which
+takes a string argument.  Note that TextIO.print always flushes its
+output stream, so it is not the most efficient way to do output.
+
+Versions of SML/NJ since 109.4 incorporate a completely new implementation
+of the module system.  While this new implementation fixes a number of
+outstanding bugs, it may not be completely robust yet.
+
+
+======================================================================
+109.7-README
+
+NOTES on SML/NJ 109.7
+
+In version 109.6, we removed the old I/O interfaces; in this version,
+we have provided an implementation of the current I/O API.  We do not
+expect any further significant changes.
+
+We have also removed the overloaded makestring and print functions.
+To convert primitive types to strings, use Int.toString, Bool.toString,
+etc.  The top-level print function is now bound to TextIO.print, which
+takes a string argument.  Note that TextIO.print always flushes its
+output stream, so it is not the most efficient way to do output.
+
+Versions of SML/NJ since 109.4 incorporate a completely new implementation
+of the module system.  While this new implementation fixes a number of
+outstanding bugs, it may not be completely robust yet.
+
+
+======================================================================
+109.11-README
+
+The major change over 109.10 is the addition of 32-bit signed
+integers (provided by the Int32 structure).  The default int
+type is still 31-bits.
+
+exportML and exportFn now automatically add the architecture
+suffix to a heap image (and the @SMLload option does the
+same).  Thus, one can write scripts to generate heap images
+in an architecture independent way, while still being able to
+support multiple architectures.
+
+
+======================================================================
+109.14-README
+
+This version of SML/NJ has a number of substantial changes over
+109.11 (109.12 and 109.13 were not made available for ftp).  The
+most significant change is that we now use the ``value restriction''
+rule for polymorphism (aka Wright's rule).  Under this rule, a let
+binding is polymorphic iff the r.h.s. is a value.  Using this restriction
+allows the type system to be simplified by removing the weak/imperative
+type variables.
+
+The structures LargestInt, LargestWord and LargestFloat have been
+renamed LargeInt, LargeWord and LargeReal (resp.) to be in compliance
+with the new basis specification.
+
+This version includes a new version of CML.  See src/cml/README for
+more information.
+
+We have revised the SML/NJ Library API to follow the naming conventions
+used by the SML Basis.  This version of the SML/NJ library is missing
+a couple of modules, but is otherwise fairly complete.  We have not yet
+written any documentation on porting applications to the new API.
+
+
+======================================================================
+109.15-README
+
+This version of SML/NJ is not much different from 109.14, but has a
+number of bug fixes and minor code clean-up.
+
+
+======================================================================
+109.16-README
+
+Here is a list of changes from 109.15 to 109.16:
+
+  - heap images now have a ".arch-opsys" suffix.  This avoids problems
+    with mixing heap images between SunOS and Solaris.  The run-time system
+    will automatically generate the correct suffix on export and loading.
+
+  - a number of minor internal changes to the run-time system.
+
+  - changes to CM, including a change in the way that stable libraries
+    are handled.
+
+  - The OS.IO interface was modified to correctly implement the SML'96
+    Basis Library.
+
+  - The Compiler.Index structure has been removed; this also changes the
+    interface to Compiler.Source.
+
+  - A number of changes/additions have been made to CML as part of the
+    porting of eXene.  EXene now mostly compiles under 109.16, but there
+    are a few missing features in CML that must be implemented before eXene
+    will work again.
+
+
+======================================================================
+109.17-README
+
+Changes since 109.16:
+
+  - Date.toString and Date.fmt have been implemented
+
+  - renamings:
+
+	use_stream  is now useStream
+	use_file    is now useFile
+	eval_stream is now evalStream
+
+  - ml lexer now supports #line directives inside comments.
+    The syntax is: (*#line n.m filename *)
+	n is the line number for the comment and
+	m is an optional column number
+	filename is an optional source file.
+
+  - numerous internal changes and bug fixes.
+
+
+=====================================================================
+109.18-README
+
+Version 109.18 has several new user-level features, as well as improvements
+in SML'96 basis compliance.
+
+				Changed:
+				--------
+Autoloading:
+    The most significant new feature is that we now enable autoloading
+    of library modules in the standard interactive environment.  Autoloading 
+    is a feature of CM that allows library modules to be loaded on demand.  
+    This means that one can use library modules in the interactive 
+    top-level loop, without having to load the library manually.  For 
+    example, here is an interaction:
+
+         Standard ML of New Jersey, Version 109.17, September 6, 1996 [CM; autoload enabled]
+         GC #0.0.0.0.1.4:   (8 ms)
+         - Format.format "[%d]" [Format.INT 5];
+         [Autoloading...]
+         ...
+         [Autoloading done.]
+         GC #0.0.0.0.3.41:   (9 ms)
+         val it = "[5]" : string
+         - 
+
+    The default configuration is to enable autoloading of the SML/NJ Util 
+    and Unix libraries.  You can edit config/targets prior to installation 
+    to change this.
+
+Library:
+    We have added a new application library to the SML/NJ library, which provides
+    support for parsing and generating HTML.  The library can be included in an
+    application by adding "html-lib.cm" to your sources.cm file.  There is no
+    documentation yet, but the source code can be found in src/smlnj-lib/HTML.
+
+
+
+				Bug fixes:
+				----------
+ml-lex:
+    There is a bug in ml-lex (109.17) when using the %count flag.  
+    The yylineno variable should get reinitialized to zero on each
+    call to makeLexer, but instead is globally allocated and never 
+    reset.
+
+pickling:
+   There was a bug in the way integers were read from pickles --
+   negative integers were not read back correctly.  
+
+datatype printing:
+   Fixed a bug in datatype printing. Despite large values of printDepth
+   and printLength, printing recursive datatypes terminated too quickly
+   with "-". 
+
+output buffering for TextIO:
+   The output buffering mode for TextIO outstreams is now set correctly on
+   initialization.  If the underlying I/O device is a TTY, then the buffering
+   mode is LINE_BUF; otherwise, it is BLOCK_BUF.
+
+
+
+				Internal:
+				--------
+Integer/word conversions:
+    Primitive operators have been created for integer/word conversions.
+    This implementation optimizes the composition of multiple conversions.
+    For example, something like:
+
+	val f = Word.toInt o Word.fromLargeWord o Word8.toLargeWord
+
+    gets translated into 3 primitive operations. The combination of
+    these three simplifies to a word32 copy. With a smart register 
+    allocator that copy can be eliminated.
+
+    SEE basics/primop.sig for a more detailed explanation.
+
+    *WARNING*: Word.toInt was previously implemented incorrectly -- it
+    was implemented identically to Word.toIntX! Further, there were
+    many places in the compiler where Word.toInt was used where 
+    Word.toIntX was intended. Note: (Word.toInt o Word.fromInt) is
+    not the identity function. In user code, this error will usually
+    manifest itself by an Overflow exception being raised unexpectedly.
+
+cm:
+   Added further support for autoloading of bin files.
+
+
+=====================================================================
+109.18-README-2nd
+
+Since putting out 109.18 we have discovered a bug in the autoloading
+mechanism in CM. If you try and open a top level structure in the
+interactive environment, you get an exception raised. If this is
+something that you need to do, then the workaround is to turn
+autoloading off. Execute:
+
+	CM.autoloading(SOME false);
+
+
+=====================================================================
+109.19-README
+
+	            1 0 9 . 1 9     N  E  W  S
+
+
+				Added
+C Interface:
+    The SML/NJ C interface is included with this version.  It consists
+    of two parts: a runtime component (src/runtime/c-libs/smlnj-ccalls)
+    and an SML/NJ library (src/smlnj-c).  See the README file in the
+    library for instructions on installing and using this interface.
+
+Autoloading:
+    Autoloading has been more robustly integrated.
+
+    Autoloading is a mechanism to hook CM entities (groups and libraries)
+    into the interactive top-level loop without actually pre-loading
+    them.  SML/NJ's compilation manager, CM, has provided an undocumented
+    implementation of the autoloader for a while.  Beginning with
+    version 109.18 we use this mechanism by default to offer
+    convenient access to the SML/NJ library from the interactive loop.
+
+    With CM it is generally not possible to use SML's ``open'' syntax at
+    top-level.  This restriction is necessary to make dependency analysis
+    tractable.  However, for the special case of analyzing interactive
+    input this restriction can be lifted.  All versions beginning 109.19
+    and later permit unrestircted use of ``open'' in the interactive loop --
+    regardless of whether autoloading is enabled or not.
+    
+    See section on Autoloading interface.
+
+
+				Changed
+Top-level environment:
+    We have cleaned up the top-level environment some more to bring it
+    closer to the SML'96 specification.  The most notable effect is that
+    Int.quot, Int.rem, Int.min and Int.max are no longer top-level
+    identifiers, and quot and rem are no longer infix.
+
+
+				Bug Fixes
+Recursive datatypes:
+    The RECty problem when printing recursive datatypes has been fixed.
+
+	
+				Internal
+Parallel copy:
+    MLRISC and all the associated code generators have a parallel copy
+    instruction that performs register-register copies in parallel. 
+    The semantics of the parallel copy imposes fewer dependencies on
+    the individual registers, thus enabling even more copies to be eliminated,
+    and it is also very compact. The compactness improves compile time and
+    space usage, thus encouraging increased usage of splits in the 
+    intermediate program.
+
+---------------------------------------------------------------------------
+				Autoloading Interface
+autoloading:
+    Structure CM contains the following definitions:
+
+	val autoloading: bool option -> bool
+
+    This function is used for enabling and disabling the autoloader.  With
+    an argument of NONE one can query the current status without actually
+    changing it.  The function always returns the previous setting.
+
+autoload:
+	val autoload: unit -> unit
+	val autoload': string -> unit
+
+    These functions behave like make and make', except they don't actually
+    load any module.  Later, when CM sees a use of some symbol that is
+    exported by the entity (only structures, signatures, functors, and
+    functor signatures are tracked), then all necessary compilation units
+    will automatically be linked into the running system.
+
+autoList:
+	val autoList: unit -> string list
+
+    This returns a list of all entities that are currently registered for
+    autoloading.
+
+clearAutoList:
+	val clearAutoList: unit -> unit
+
+    clearAutoList erases CM's memory of autoloaded modules.
+
+
+=====================================================================
+109.20-README
+
+ 	 	 1 0 9 . 2 0     N  E  W  S
+
+This version is primarily a launching pad for the Win32 and WindowsNT
+port, slated for 109.21. If you are using 109.19 and do not need any
+of the bug fixes here, then there is no reason to upgrade.
+
+			Changes:
+Compiler:
+  Added source for Win32 port
+  (run-time system support hasn't yet been merged in).
+
+  Further clean-up and bug fixing in Sockets interfaces.  
+  We got rid of the NetRPCDB structure, since RPC is not otherwise
+  supported.  The sockets API should be pretty stable now, and soon
+  there should be some documentation.
+
+  Minor interface change to SockUtil structure; added additional operations.
+
+CM:
+  Changed interface to CMR.retarget. Retarget now takes the bindir,
+  cpu, and os as parameters.
+
+
+
+			Bug fixes
+
+Compiler:
+  Fixed a code generation bug exhibited in floating point equality.
+  Example code removed duplicate floating point numbers from a list.
+
+  Insufficient patterns used to implement conversion primops. 
+  Bug triggered by aggressive inlining.
+
+  Fixed a bug in conversion primops reported in comp.lang.ml.
+
+CM:
+  Fixed bug with not using CM_PATH when exported via exportML.
+
+Library:
+  Fixed a bug in BinarySetFn.intersect and IntBinarySet.intersect.
+
+config:
+   Fixed a bug in the configuration of freebsd and netbsd.
+
+			Internal
+
+  Pseudo-op directives are now an abstract type in the MLRisc framework. 
+  This means that MLRisc and all the code generators can be specialized
+  over a level of pseudo-ops relevant to the needs of the compiler. 
+  Pseudo-ops in MLRisc are migrated 'wholesale' into the flowgraph of 
+  target machine instructions.
+
+
+=====================================================================
+109.21-README
+
+			1 0 9 . 2 1     N  E  W  S
+
+				Changed:
+
+  Compiler: 
+     Some unimplemented operations in the Socket structure 
+     were implemented.
+
+     Some internal changes were made to the implementation of I/O to 
+     better support Win32.
+
+  CM:
+     The batch compiler (CMB.make) now generates bin files to the 
+     directory "bin.<arch>-<opsys>", where <arch> is one of:
+         {sparc, mipseb, mipsel, rs6000, hppa, x86, alpha32} 
+     and <opsys> is one of:
+         {unix, win32}.
+
+  CML
+      now supports sockets.
+
+	                         New:
+
+  This version includes eXene (for the first time since 108.5).  The examples
+  have not yet been ported to SML'96, and eXene hasn't really been tested
+  much, but we expect that it should still work.  One big improvement: eXene
+  now understands symbolic hostnames for specifying the display (e.g.,
+  "glove:0.0" instead of "135.205.48.199:0.0").
+
+
+=====================================================================
+109.22-README
+
+			1 0 9 . 2 2     N E W S
+
+The main changes in this version, besides many bug fixes, are:
+
+  o SML'96 floating point compliance.
+ 
+  o Profiling support.
+
+  o Merge of UNIX and Win32 runtime sources.
+
+This file is available as 109.22-README.html from:
+  ftp://ftp.research.bell-labs.com/dist/smlnj/working/109.22
+
+
+				Note
+			(*--------------------*)
+
+Bug List:
+  The bug report records have been brought up to date.  The relevant
+  files are available in the directory:
+
+      ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs
+
+  See the file README.bugs in that directory for further information.
+
+DEC Alpha, OSF/1 3.2
+  There is a bug in OSF1 version 3.2 that causes an infinite loop during
+  installation. See the 109.22-README.OSF file for details and a workaround.
+
+
+
+Win32 Runtime:
+  Currently, building the win32 runtime requires MS Visual C++ 2.0
+  or greater, MASM 6.11 or greater, and NMAKE 1.5 or greater.  The
+  runtime is built via the command
+
+	nmake /f mk.x86-win32
+
+  from the DOS prompt in the src/runtime/objs directory.
+
+  The distribution contains a heap image, runtime system, and command 
+  to run sml under Win32, namely:
+
+	o sml.x86-win32
+ 	o run.x86-win32.exe
+	o sml.cmd
+
+  sml.cmd is just: run.x86-win32 @SMLload=sml.x86-win32
+
+
+
+			    	Bug fixes
+			(*--------------------*)
+
+Printing:
+  Some bugs affecting printing of datatype values have been corrected
+  (see bug 1092).
+
+  Printing of type names has been improved, but there will continue to
+  be some spurious "?"s in type paths until the latest module system is
+  incorporated.  This should be done by 109.23.
+
+
+Top level slowdown:
+  The main problem that caused slowdown of the top-level (bug 1060) 
+  has been fixed.
+
+
+Runtime system:
+  Installation on Linux 2.0 should now work.
+
+  Fixed a bug in implementation of polling on systems with select().
+
+  Fixed a problem with compiling system using the Solaris assembler 
+  on Sparc.
+
+SML/NJ library:
+  Fixed a bug in Array2.column.
+
+CML:
+  Fixed a bug in {TextIO,BinIO}.endOfStream
+
+  Wrapped the call to OS.IO.poll with an exception handler to avoid
+  problems with interrupts on some systems.
+
+  Added the UnixEnv structure to the CML library (imported from the 
+  SML/NJ library).
+
+eXene:
+  fixed uses of polymorphic equality on reals (use Real.== instead).
+
+  use DISPLAY shell variable with EXeneRun.run (instead of EXENE_DISPLAY).
+
+
+
+				Changes
+			(*--------------------*)
+SMLNJ Library:
+  The type array type in MONO_DYNAMIC_ARRAY is now an eqtype.
+
+
+Runtime:
+  Merged Win32 sources into the main run-time source tree.
+
+
+Profiling:
+  Timing and call-count profiling are now supported by the
+  structure Compiler.Profile.  Set the mode to LATENT to
+  generate profiling instrumentation, and to ACTIVE to generate
+  timing sampling.  Since profiling uses a time quantum of 10ms,
+  it is questionable as to whether the numbers are actually useful.
+
+
+Floating Point:
+  User level changes:
+     The Real64 and IEEEReal structure is now SML'96 compliant.
+     See http://cm.bell-labs.com/cm/cs/what/smlnj/index.html.
+     There are two significant user level changes:
+
+	   o The type real is no longer an eqtype, and
+
+	   o floating point arithmetic does not generated overflow or
+	     divide-by-zero exceptions.
+
+     1.0 / 0.0 returns 'inf', and 0.0 / 0.0 returns  'nan'. 
+     Trapping semantics can be obtained by wrapping the necessary operators 
+     with isNormal, e.g.:
+
+	   fun op +(x, y) = let
+	     val ans = Real.+(x,y)
+	   in
+	     if Real.isNormal ans then ans else raise General.Overflow
+	   end
+
+     It is important to check that existing floating point programs are
+     resilient to inf's and nan's as input. Inf's behave as one would 
+     expect, and the only thing to remember wrt nan's is that any operation 
+     over a nan returns a nan, and a nan compares false with anything else,
+     including itself! All nan's are quiet nan's, which is to say that their 
+     use does not signal an exception.
+
+     This simple semantics usually requires very little change to existing
+     programs. The Math64 structure required almost no change to work 
+     correctly with inf's and nan's. For example:
+
+	   - Math.atan (1.0/0.0);
+	   val it = 1.57079632679 : real		(* pi/2 *)
+	   -
+
+
+  Known bugs:
+     With the exception of pattern matching reals, there are a few
+     very minor bugs which will be cleared up in the next version. 
+     Most of these should go undetected in the interim.
+
+       o Negative 0.0 is not correctly represented internally. Therefore
+	 1.0 / ~0.0 returns inf instead of ~inf (minus infinity).
+
+       o Reals should not be allowed in pattern matching. 
+
+       o Real.toInt does not support all the IEEE rounding modes.
+
+       o Real.signBit does not handle ~0.0
+
+       o Real.class does not distinguish between quiet and signalling nan's. 
+
+       o Real.nextAfter is not implemented (needs assembly code).
+
+  Internal changes:
+     All the 14 IEEE comparison operators have been added from the CPS
+     language onwards. The pre-CPS phases should be careful not to
+     rewrite (for example):
+	   if Real.>(x,y) then e1 else e2
+     into,
+	   if Real.<=(x,y) then e2 else e1
+
+
+=====================================================================
+109.22-README.OSF
+
+There is a bug in OSF Version 3.2 and older that prevents SML/NJ 
+109.22 from being built. Here is a small example that illustrates 
+the problem:
+
+int main (void)
+{
+  double f = 1.0;
+
+  while (f != 0.0) {
+    printf ("f = %g\n", f);
+    f = f * 0.5;
+  }
+  return(0);
+}
+
+In SML/NJ we generate instructions with the /SUD extension; that is to
+say with: software completion, underflow enabled, and dynamic rounding
+mode set. In order to get this extension, it is necessary to compile
+the above with the following flags:
+
+	cc -fprm d -fptm su -resumption_safe
+
+where:
+  -fprm d 	    specifies dynamic rounding mode
+  -fptm su          specifies software completion with underflow enabled
+  -resumption_safe  ensures that registers do not clash in the trap
+		    shadow. 
+
+The output of the above program compiled in this way is:
+
+    f = 7.90505e-323
+    f = 3.95253e-323
+    f = 1.97626e-323
+    f = 9.88131e-324
+    f = 4.94066e-324
+    f = 4.94066e-324
+    f = 4.94066e-324
+     ...
+    (infinite loop)
+
+However, if compiled without dynamic rounding using:
+
+	cc -fptm su -resumption_safe
+
+things work correctly, and the program terminates after printing
+4.94066e-324. It appears that the OS is having trouble completing
+instructions that involve dynamic rounding. This problem does not
+exist in Digital Unix 4.0 (the successor to OSF/1 v3.2). The flags to
+get /SUD under Digital Unix 4.0 are:
+
+	cc -fprm d -ieee -scope_safe y.c
+
+Two solutions exist:
+
+    a) Upgrade to Digital Unix 4.0.
+
+    b) See if there is a patch for OSF 3.2.
+
+In the interim, I have created a tar file under osf3.2 that contains
+bin files using the /SU extension.  This is wrong, but it will only
+exhibit incorrect behavior when computations go outside the normal range
+and the rounding mode has been changed from the default. This will
+never occur in pre 109.22 programs.
+
+
+=====================================================================
+109.23-README
+
+		1  0  9  .  2  3    N  E  W  S
+
+  This version is intended to fix installation bugs discovered in
+  109.22 that proved to be major impediments. 
+
+Bug Fixes:
+  The Posix.Error structure now agrees with the documentation.
+
+  Changes to the run-time system to support the Posix.Error structure.
+
+  A bug in the CML Mailbox implementation has been fixed.
+
+
+
+Installation:
+  OSF/1 v3.2 and older:
+     There is a bug in OSF/1 v3.2 and older that prevents SML/NJ from
+     being built correctly. See:
+
+	  http://cm.bell-labs/cm/cs/what/smlnj/NEWS/109.22-README.OSF
+
+     As a temporary workaround the 109.23-bin.alpha32x-unix.tar.Z file
+     must be used with OSF/1 -- not 109.23-bin.alpha32-unix.tar.Z.
+     See the 109.23-INSTALL file.
+
+     For retargetting, "alpha32x" should be used as the cpu target 
+     name.
+
+  HPUX:
+     Problems with CML sockets on HPUX should now be fixed (this mostly
+     affects eXene), but has not been tested.
+
+=====================================================================
+109.24-README
+
+			S  M  L   /   N  J
+
+                 1  0  9  .  2  4       N  E  W  S
+
+[[ Apologies for announcing another version right after announcing
+   version 109.23. A disk failure is to blame for the late announcement
+   of 109.23. ]]
+
+
+This working release contains several major changes, all in
+preliminary stages.  The compiler elaboration phase has been almost
+completely rewritten, and the translation targets a new typed
+lambda intermediate language.  
+
+Many old bugs in the module system are fixed.  While we believe this
+version is robust new bugs are expected, as the system has not had the
+chance to be rigorously stress tested.
+
+
+Changes:
+
+   o The front-end is rewritten to support efficient and correct 
+     elaboration of (an approximation of) Standard ML 1996 plus 
+     higher-order modules.  More complete conformance to SML '96
+     will be available in future releases.
+
+   o The compiler now uses a new typed intermediate language
+     (FLINT) and a new set of type-directed compilation techniques. 
+     Most of these are work-in-progress and their benefits will be
+     visible in future releases.
+
+   o The compiler no longer imposes any restrictions on datatype
+     definitions during signature matching or functor application. 
+     For example, consider the declarations
+
+         signature SIG = 
+	  sig 
+	    type 'a t
+	    datatype 'a foo = A
+			    | B of 'a t
+	    val f : 'a -> 'a t 
+	  end
+	   
+	  functor F(S : SIG) = 
+	  struct
+	    fun g x = S.B(S.f x)
+	  end
+	   
+	  structure S = 
+	  struct
+	    datatype 'a foo = A
+			    | B of 'a * 'a foo
+	   
+	    type 'a t = 'a * 'a foo
+	   
+	    fun f x = (x, A)
+	  end       
+
+          structure T = F(S)
+
+     Compiling the above code in pre-109.24 will produce the following
+     error messages:
+
+        stdIn:13.15-13.18 Error: The constructor B of datatype foo
+        has different representations in the signature and the structure.  
+        Change the definition of the types carried by the constructors in the
+        functor formal parameter and the functor actual parameter so that
+        they are both abstract, or so that neither is abstract.
+
+     This is no longer the case in 109.24. Furthermore, data constructors
+     such as "B" in structure S will still use untagged record
+     representations.
+
+
+Keywords:
+     'where' is a new keyword.
+
+
+
+Incompatibilities:
+     Pattern matching against real constants is not allowed.
+
+=====================================================================
+109.25-README
+
+			S  M  L   /   N  J
+
+                 1  0  9  .  2  5       N  E  W  S
+			
+
+
+		        1 February, 1997
+
+This working release contains further SML'96 compliance and fixes many
+bugs introduced by the front end rewrite introduced in version 109.24. 
+Ftp as usual from ftp.research.bell-labs.com:/dist/smlnj/working/109.25.
+
+
+SML'96: Opaque signature constraints:
+
+  109.25 adds support for opaque signature matching, including a new
+  token ":>".  To illustrate, after the following definitions
+
+      signature S =
+      sig
+	type t
+	val x : t
+	val f : t -> int
+      end;
+
+      structure Trans : S =
+      struct
+	type t = int
+	val x = 3
+	fun f y = x
+      end;
+
+      structure Opaque :> S =
+      struct
+	type t = int
+	val x = 3
+	fun f (y: t) = x
+      end;
+
+  we can do
+
+      Trans.f 4;
+
+  because Trans.t is equivalent to int.  But Opaque.t is abstract
+  (or "opaque"), so 
+
+      Opaque.f 4;
+
+  will fail to type check, though
+
+      Opaque.f(Opaque.x);
+
+  type checks and returns 3.
+
+  The definition of Opaque is equivalent to the 0.93 declaration
+
+      abstraction Opaque : S =
+      struct
+	type t = int
+	val x = 3
+	fun f (y: t) = x
+      end;
+
+  Opaque signature constraints can also be used for functor result
+  signatures to make the result structure abstract, as in
+
+      functor OpaqueF () :> S =
+      struct
+	type t = int
+	val x = 3
+	fun f (y: t) = x
+      end;
+
+  Now when you define a structure by calling OpaqueF, as in
+
+      structure Opaque = OpaqueF ();
+
+  the type Opaque.t will be abstract.  The old "abstraction"
+  keyword did not allow one to define such abstract functors.
+
+  WARNING: The abstraction keyword will be eliminated in some future
+  release, so you are encouraged to replace uses of abstraction
+  with opaque signature constraints using ":>".
+
+
+Bug Fixes:
+ - Added List.Empty exception to top-level.
+
+ - Int and word literals are now represented by infinite
+  precision (IntInf.int) values instead of strings.  
+  These are still being converted to int/word in the translate phase,
+  but we will eventually push this representation
+  all the way back to the code generator.  This will facilitate more
+  complete constant folding and retargeting to 64-bit machines.
+
+ - Some DEC Alpha machines running OSF1/3.2 generate an illegal
+  instruction error when executing:  
+	cvtqlv	$f0,$f0
+  which happens to be a perfectly legal instruction for the alpha. 
+  This instruction was used to compute floor. To
+  get around this a different procedure that does not involve
+  cvtqlv has been used.
+
+ - Eliminate the spurious error message for non-generalization type 
+  variables
+
+ - Fixed part of the expandTycon bug.
+
+ - In pre-109.24, all abstype decs also exports the data constructors;
+  this is fixed by modifying the elabABSTYPE function.
+
+ - Modify the entityExp definition to correctly implement the
+  datatype generativity in functor body
+
+ - Fixing the Compiler bug on InlInfo: Wrong field in INL_STR !
+
+ - The top-level function print is now dynamically bound (initially
+  to TextIO.print).  This binding can be changed via the SMLofNJ.Internals
+  structure.
+
+ - Fixed a bug in {TextIO,BinIO}.canInput, where an exception would
+  be raised instead of being caught internally.
+
+ - Fixed the problem with turning profiling on, then off, and then
+  back on.
+
+ - Fixed bug 1114, which involves a problem installing a prettyprint
+  function for a datatype created by a functor application.
+
+ - Fixed bug 1115 relating to vector patterns.
+
+
+CML:
+
+ - Added documentation for the Multicast and TraceCML library modules.
+
+ - Made minor improvements to the implementation of TraceCML.
+
+ - Changes the the SML/NJ system (available in 109.25) now make it possible
+  to use the top-level print function in CML programs (it gets dynamically
+  rebound to CML's version of TextIO.print when a CML program starts running).
+
+ - Renamed CML.atEvt to CML.atTimeEvt.
+
+ - Added SimpleRPC:SIMPLE_RPC to the CML library.
+
+ - Fixed a bug in the I/O manager for the case when two I/O events became
+  enabled for the same thread at the same time.
+
+=====================================================================
+109.26-README
+
+
+			S  M  L   /   N  J
+
+                 1  0  9  .  2  6       N  E  W  S
+			
+
+		        26 March, 1997
+
+
+
+This version is primarily a bug fixing version and is likely to be 
+more robust than previous versions. The critical bugs are down to 24,
+and we hope to shoot down all of these before 109.27. This is
+definitely the best time to report bugs you think are critical. 
+
+This file is organized into the following categories:
+
+	- SML'96 Compliance
+	- Top Level Changes
+	- Numbered Bug Fixes
+	- Bug fixes without numbers
+	- Bugs reclassified as "not a bug", obsolete, or unreproducible
+	- CML
+ 	- SMLNJ-LIB
+ 	- CM
+
+
+SML'96 Compliance
+-----------------
+  Allows the datatype replication feature (declarations and
+  specifications of the form "datatype t = datatype A.B.s").  
+
+
+  The "datatype replication" feature is described in appendix G of the new
+  Definition of Standard ML (Revised) (Section G.6).  The syntactic form
+  is:
+
+    datatype tycon = datatype longtycon
+
+  and it can be used either as a declaration of a type or a specification
+  in a signature.
+
+  The purpose of datatype replication is to define a local alias of an
+  existing datatype, definied or specified earlier in the program or in
+  the top level basis.  A datatype replication declaration binds a new
+  name to the datatype designated by the longtycon identifier, and it implicitly
+  introduces the dataconstructors of that datatype into the local scope.
+
+  Here is an example of a datatype replication declaration.
+
+    structure R =
+    struct 
+      datatype t = A | B
+    end
+
+    structure S =
+    struct  
+      datatype s = datatype R.t
+      fun f A = true
+	| f B = false
+    end
+
+    val x = S.f(R.A)
+
+  In a specification, the datatype designated on the right hand side can
+  be an actual datatype in the current scope, or it can refer to a datatype
+  specified earlier in the signature.  Examples of both kinds appear in
+  the following example.
+
+    structure R =
+    struct 
+      datatype t = A | B
+    end
+
+    signature SIG =
+    sig
+      datatype u = C | D
+      structure S :
+	sig
+	  datatype t1 = datatype R.t
+	  datatype t2 = datatype u
+	end
+    end
+
+  The datatype keyword on the right hand side of a datatype replication
+  declaration or specification is a quotation device.  Thus
+
+    datatype t = u
+
+  defines t as a datatype with a dataconstructor u, while 
+
+    datatype t = datatype u
+
+  defines t to be an alias of the existing datatype u. The datatype 
+  replication is strictly an alias and does not generate a new type
+  or dataconstructors.
+
+  This is the last new feature of SML 96 to be added to SML/NJ.  However,
+  the treatment of sharing constraints is still more liberal than that
+  allowed in SML 96, so in version 109.27 or 110 the SML 96 restrictions
+  on sharing will be implemented and this is expected to break some code.
+
+
+Top Level Changes
+-----------------
+  The option type is no longer in general, but lives in its own structure.
+
+
+Numbered Bug Fixes
+------------------
+   274. weakness lost with flex record pattern
+   863. Compiler bug: PPObj.switch: none of the datacons matched
+   889. Compiler bug: PPObj.switch: none of the datacons matched
+   905. type insecurity with local around functor declaration
+   949. bad type error caused by integer literal overloading
+   952. unsound imperative types (same as 905)
+  1000. top-level printing of multiple occurrences of the same name
+  1011. mod operator causes core dump on Alpha
+  1022. image files grow
+  1066. uninstantiated VARty in pickmod
+  1097. implimentation of floor_a primitive on Alpha
+  1101. puzzling type error message
+  1103. OS_IO signature is not bound at top level
+  1105. message for uncaught exceptions has duplicated "exception"
+  1108. String.maxSize missnamed as String.maxLen
+  1116. performance problems in top level loop (check?)
+  1123. secondary error: nongeneralizable type variable
+  1124. exception STRANGE raised by compiler
+  1126. subscript error in prettyprinting
+  1130. printing datatype value
+  1137. Compiler bug: TransTypes: unexpected FORMAL kind in tycTyc-h
+  1139. Compiler bug: Translate: unexpected type variables in mkPE
+  1141. functor decl produces Compiler bug: ExpandTycon: expandTycon 2
+  1142. size of exportFn image
+  1143. Word.andb combined with toInt broken on x86
+  1144. exception Compile: "imported objects not found or inconsistent"
+  1145. large memory consumption
+  1148. ALPHA32.PRIM.ASM floor_a still uses unimplemented instruction
+  1149. spurious "nongeneralizable type variable" messages
+  1153. core dump
+  1155. type abbreviation identical to spec does not match (+ secondary)
+  1156. subscript raised for intmap entry that exists
+  1157. div and quot give incorrect answers
+  1158. datatype representation incorrect
+  1161. Win32.FileIO.getFileTime' not accessing correct time stamp
+  1162. uncaught exception Io: filePosIn failed on "foo" ...
+  1164. compiler bug after failure to generalize explicit type var
+  1166. where type causes Compiler bug: TypesUtil: tycStamp PATHtyc u
+  1171. where type on opaque functor result signature
+
+Bug Fixes without numbers
+-------------------------
+  As a temporary measure the compiler prints "<poly-record>" for top
+  level polymorphic values, e.g. (3, fn _ => 3). This will be fixed
+  more completely in 109.27. 
+
+  Fixing the coredump bug caused by duplicate top-level declarations.
+  For example, in almost any versions of SML/NJ, typing 
+          val x = "" val x = 3
+  would lead to core dump.  (related to bug 1000)
+
+  Fixed bug in reduction of (TEST(n,m) o COPY(p,n)) to 
+  COPY(p,m) when m = p. 
+
+  Fixed various bugs in which a register may be overwritten before being used. 
+
+  Real.isNormal 0.0 returned false. When the unbiased exponent is ~1023, an
+  explicit check for 0.0 must be performed.
+
+  Got rid of structure rebinding, since inlining is now preserved.
+
+  Moved stuff from System to SMLofNJ.
+
+  Fixed bug related to constant folding of operands to div. Manifest by
+  things like ~10 div 10000 giving incorrect answers.
+
+  Fixed a random access bug in TextIO and BinIO.
+
+  Several other undocumented bugs have also been fixed.
+
+
+Bugs reclassified as "not a bug", obsolete, or unreproducible
+--------------------------------------------------------------
+   481. redeclared constructors
+   865. inference for flex record patterns
+   886. unclear error msg regarding flex records
+   893. Bind exception while recompiling compiler with representation off
+   937. installing HOL90 on Alpha
+   946. runtime assertion failure on x86-linux
+   947. Compiler bug: not found in spill
+   955. Compiler bug: PPVal.switch: none of the datacons matched (Compiler)
+   967. Compiler bug: translate.transpath on unexpected access
+   977. sml > "a non-tty device" can cause GC failures
+  1054. sequential withtype is broken
+  1080. "Compiler bug: SigMatch.lookStr 2a" during signature match
+
+
+CML 
+---
+  added a mechanism to catch attempts to execute CML without
+  proper initialization.
+
+  added mSwap and mSwapEvt functions to SyncVar structure.
+
+  a number of bug fixes in the SyncVar structure.
+
+  Fixed bugs in the implementation of the pauseHook and schedulerHook in
+  RunCMLFn (missing atomicBegin).
+
+  Fixed bug in implementation of TraceCML when TraceToFile was set as the
+  destination.
+
+  Fixed bug in random access support in BinIOFn and TextIOFn (bug also in
+  SML/NJ implementation).
+
+  Added logging/unlogging for global mailboxes.
+
+  Fixed bug in the TraceCML.unwatchThread.  Also changed the implementation
+  to avoid potential races between unwatching a thread and its termination.
+
+  Various changes to the Scheduler module to improve robustness.  Added
+  an exception handler around the function in enqueueTmpThread.  Replaced
+  enqueueCurThread with enqueueAndSwitchCurThread, which keeps the thread
+  ID bookkeeping in the same place.  And fixed a bug(?) where atomicSwitchTo
+  was failing to set the current thread ID properly.
+
+  Added sendPoll operation on channels to CML structure.
+
+
+SMLNJ-LIB
+---------
+  Added a bunch of new operations to the ordered map modules (BinaryMapFn,
+  IntBinaryMap, ListMapFn, IntListFn, and SplayMapFn).  THe new operations
+  are:
+      val unionWith  : ('a * 'a -> 'a) -> ('a map * 'a map) -> 'a map
+      val unionWithi : (Key.ord_key * 'a * 'a -> 'a) -> ('a map * 'a map) -> 'a map
+      val intersectWith  : ('a * 'a -> 'a) -> ('a map * 'a map) -> 'a map
+      val intersectWithi : (Key.ord_key * 'a * 'a -> 'a) -> ('a map * 'a map) -> 'a map
+      val filter  : ('a -> bool) -> 'a map -> 'a map
+      val filteri : (Key.ord_key * 'a -> bool) -> 'a map -> 'a map
+      val mapPartial  : ('a -> 'b option) -> 'a map -> 'b map
+      val mapPartiali : (Key.ord_key * 'a -> 'b option) -> 'a map -> 'b map
+
+  Added IOUtil : IO_UTIL structure to the Util library.  This provides
+  support for dynamically rebinding stdIn and stdOut.
+
+  Added KeywordFn functor to the Util library.  This provides support for
+  implementing scanners, where keyword recognition is done outside the
+  basic lexical analysis.
+
+  Fixed several bugs in the ListSetFn functor.
+
+
+CM
+--
+  CM's automatic dependency analyzer now understands all new syntactic
+  elements of SML'96 (opaque signature matching, "where type = ...")
+ 
+  Treatment of nested comments in entity descriptions has been
+  changed: See notes below.
+
+  Interface to Tools in CM has changed. See notes below.
+
+
+  CM Comment Style
+  ----------------
+    Scheme-style comments (semicolon 'til end-of-line) are no longer
+    recognized when nested within ML-style comments.  Therefore, one can
+    now freely use ";" in ML-style comments.  However, removing an
+    entire section of a description file by surrounding it with "(*" "*)" 
+    no longer works in the rare case when Scheme-style comments contain
+    unbalanced ML-style comments.
+
+    OK: (* a few comments; and then some more... *)
+
+    BAD: (* this is not needed now...
+	  not-needed1.sml
+	  ...
+	  not-neededk.sml
+	  star-paren.sml   ; handles cases of *)
+	  still-not-needed.sml
+	  ...
+	  *)
+
+  CM Tool Configuration
+  ---------------------
+    To fix a problem related to the interaction between CM's tools and
+    stable libraries I had to rework the Tools interface.  Fortunately,
+    the implications for using the interface are small, although it will
+    be necessary for anyone who is currently using auxiliary tools not
+    distributed with CM to make minor updates to the code.
+
+    The major difference to earlier versions is that the filenames passed
+    to "rule"s, "validator"s, and "processor"s are all relative to the
+    directory that contains the corresponding description file ("the
+    context").  Furthermore, for the duration of the execution of a
+    "validator" or a "processor" CM changes its current working directory
+    to that context directory.
+
+    Example:
+
+	    $ cat sources.cm
+	    Group is
+		    parser/sources.cm
+		    program.sml
+	    $ cat parser/sources.cm
+	    Group is
+		    parser.grm
+	    $
+
+	Now, when running CM.make (); ml-yacc will be invoked with
+	its current working directory set to ./parser, and the file it
+	is called with is parser.grm.
+
+    There is one remaining catch:
+
+    The "rule" function associated with each of CM's tool classes might
+    also want to run with the cwd set to the context directory.  However,
+    most of the time this is not necessary (the "rule" calculates the names
+    of the tool's targets given the name of its source).  Some ``strange''
+    tools might actually want to inspect the content of the source in
+    order to be able to determine the target names.
+
+    I implemented a simple optimization that avoids unnecessary calls to
+    OS.FileSys.chDir when running rules by passing a "rule context" to
+    each rule.  The rule itself can then choose to pass a "rule thunk" to
+    the "rule context", to have the code run with the proper cwd set, or
+    it can simply choose to ignore the "rule context".  In the latter case
+    the cwd will in general not be set to the context, which means that
+    the source file name will not be resolved correctly when presented to
+    the OS' filesystem interface.
+
+    To make things easier to use (and to make this explanation more
+    difficult) "simple rules" have been added.  They have the same type
+    that "rules" used to have.  By calling CM.Tools.dontcare one can
+    conveniently convert a simple rule to one of the new ``fanzy'' rules.
+
+    Have a look at cm/tools/tools.sig.
+
+    It is very likely that all you need to do is replacing <yourrule>
+    (which now are of type simplerule) with (dontcare <yourrule>) at the
+    time when you register a class with CM using addToolClass. There are
+    examples for how this is done in
+
+	    cm/srctypes/{yacc,lex,burg,rcs}source.sml
+	    cm/noweb/nwsource.nw
+
+
+=====================================================================
+109.26-README-WIN32-SMLNJ
+
+Notes on the Win32 SML/NJ working version.
+
+This note describes:
+	(1) changes in the win32 binaries from the previous distribution
+	(2) installation of win32 binaries for Windows NT (3.51 or later)
+	    and Windows 95
+	(3) compilation of the SML/NJ runtime for win32
+	(4) building sml and tools under win32
+
+Decompressing (gunzip) and untarring (tar -xvf) 109.26-win32-smlnj.tar.gz 
+yields this README file and 109.26-win32-smlnj-binaries.tar which contains 
+win32 SML/NJ images and executables.
+
+(The tools "tar" and "gunzip" for win32 can be found on
+june.cs.washington.edu:pub/ntemacs/utilities/)
+
+Bugs and questions to sml-bugs@research.bell-labs.com
+
+
+109.26 Changes for Win32
+------------------------
+
+Win32 SML/NJ uses the same src tree as the Unix platforms.
+
+The previous win32 binary distribution was 109.25.  
+Here are the major changes for 109.26:
+
+	o fixed filetime bug that caused sml-cm to skip necessary compiles
+
+	o SML/NJ C interface enabled by default
+
+	o various runtime cleanup
+
+
+Installing Win32 SML/NJ binaries
+--------------------------------
+
+At this point, we assume you have ftp'd the SML/NJ Win32 distribution,
+uncompressed it (gunzip) and untarred it (tar -xvf).  The resulting
+109.26-win32-smlnj-binaries.tar file contains the images and executables.
+
+Select and create a directory for the installation.  Here we'll use c:\smlnj\
+Create an environment variable called SMLNJ_HOME and set it to c:\smlnj\
+
+In NT, environment variables are usually set via ControlPanel->System.
+In 95, they may be set per session with 'set' from a shell prompt or, 
+more persistently, via the 'autoexec.bat' startup file.
+
+Uncompress and untar the binary distribution in c:\smlnj\
+This will create the \bin subdirectory.  This directory is structured
+similarly to the Unix distributions.  That is, scripts to run sml and the tools
+are in \bin\, runtime executables are in \bin\.run\ and heap images
+are in \bin\.heap\
+
+You may now want to put %SMLNJ_HOME%\bin in your PATH.
+
+To conserve space, you can remove heap images (in \bin\.heap\) corresponding
+to unneeded tools.  You can also use sml-cm in lieu of sml; however,
+sml-cm uses a bit more space (disk and memory).
+
+Invoking the sml.bat, sml-cm.bat, ml-lex.bat, ml-yacc.bat and ml-burg.bat 
+scripts now respectively runs the compiler and tools.
+
+
+Compiling the runtime
+---------------------
+
+The following third-party tools are required to build the SML/NJ runtime 
+for win32:
+
+	(a) MS Visual C++, 2.0 or later
+	(b) MS Assembler (MASM), 6.11 or later
+	(c) MS NMAKE (part of VC++), 1.50 or later 
+
+(It should be straight forward to port to other compilers, assemblers,
+and make utilities.)
+
+Make sure the above tools are in the PATH environment variable and that
+the default locations for compiler include files are being used.
+
+To build the runtime, issue the command
+	nmake /f mk.x86-win32
+in SML/NJ's src\runtime\objs directory.
+
+Place the resulting 'run.x86-win32.exe' file in the bin\.run\ directory.
+
+Win32 SML/NJ runtime builds have only been tested on NT hosts.
+
+
+Compiling the compiler and tools
+--------------------------------
+
+Current Win32 SML/NJ development is being done in a ksh environment.
+In particular, we're using the MKS toolkit, but other ksh implementations
+for NT that have Unix tools (grep, sed, etc.) should work.
+
+The compiler can be built from a set of bin files using src\sml-nj\xmakeml
+
+sml-cm is used in the conventional manner to compile the compiler
+(make sure %SMLNJ_HOME%\bin is in your PATH).
+
+The tools sml-cm, ml-lex, ml-yacc and ml-burg may also be built in the
+conventional manner by issuing the "build" command in the respective
+directories.
+
+Place the resulting '*.x86-win32' images in the bin\.heap directory.
+
+Win32 SML/NJ compiler/tool builds have only been tested on NT hosts.
+
+
+=====================================================================
+109.26.1-README
+
+SML/NJ Version 109.26.1
+
+This minor version was created mainly to fix a bug in the type checker
+introduced in 109.26 (bug 1177).  This bug prevented the library
+smlnj-lib/html from compiling.  The bugs fixed in 109.26.1 include
+
+12. loss of information in value printing
+1160. Compiler bug: PPAbsyn: unexpected absyn expression in ppExp'
+1176. compiler bug printing type in error message
+1177. inappropriate nongeneralizable type variable error
+1182. Error: Compiler bug: PPType: printTyvar
+
+The type checker has also been modified to give precedence to the
+type of the defining occurence of function names in fun decs and
+val rec decs.  This will give more sensible error messages when
+defining and applied occurrences of function identifiers conflict
+in recursive function declarations.
+
+Further bug fixes and improvements are due in 109.27, which will be
+available during the week of April 7, 1997.
+
+
+=====================================================================
+109.27-README
+
+SML/NJ Version 109.27
+
+This version is mainly a bug fix version, with a couple more SML '97 language
+features added.  The next point version expected to be 110, which should
+complete the conversion to SML '97 by implementing changes in the behavior
+of sharing constraints, a language change that may break a fair amount of code.
+
+
+Numbered Bug Fixes:
+
+   12. loss of information in value printing
+  317. eqtypes and abstype
+  788. "open" reports an error (it should always work) (== 847)
+  797. error in example "fol" in mlyacc
+  847. opening structures with variables conflicting with constructors
+  936. failure translating abstype declarations
+ 1049. extraneous unresolved flex record error (classified "not a bug")
+ 1052. crash on closing an input source
+ 1136. sharing causes a type to loose its equality property (== 1152)
+ 1146. core dump on x86/linux
+ 1152. opaque signature matching with sharing looses equality property
+ 1160. Compiler bug: PPAbsyn: unexpected absyn expression in ppExp'
+ 1167. Compiler bug: boxity
+ 1169. problems printing polymorphic records (cosmetic fix)
+ 1170. where type problem
+ 1176. Compiler bug printing type in error message
+ 1177. inappropriate nongeneralizable type variable error
+ 1178. Overloaded constants in patterns
+ 1182. Error: Compiler bug: PPType: printTyvar
+ 1184. Compiler infinite loop
+ 1185. Compiler bug of DECON on data constructors
+ 1187. Compiler bug: Translate: unexpected tyvar LBOUND in mkPE
+ 1188. Compiler bug: Unify: instTyvar 
+ 1189. Opening Real crashes system
+ 1190. Exception values matching against exceptions in signatures
+ 1191. pattern matching in presence of datatype replication
+ 1192. datatype replication not implemented inside of expressions
+  -    a few redundant matches in the compiler are fixed.
+
+
+Type Checking
+-------------
+
+The type checker has been modified to give precedence to the type of
+the defining occurence of function names in fun decs and val rec decs.
+This will give more sensible error messages when defining and applied
+occurrences of function identifiers conflict in recursive function
+declarations.
+
+
+Language Changes
+----------------
+1. Simultaneous where type defintions in signatures
+
+Simultaneous type definitions in where clauses are now supported
+(fixing bug 1170).  Thus one can write declarations like
+
+  signature S' = S where type A.t = B.s list and type 'a u = int -> C.v
+
+2. Explicit binding of type variables in value declarations.
+
+It is now possible to add explicit type variable bindings to val, val
+rec, and fun declarations.  For example:
+
+  fun ('a,'b) f(x: 'a, y: 'b list) = (x, hd y)
+
+Within their scope, such type variables act like type constants, i.e.
+they cannot be instantiated to other types.  They are generalized at the
+associated declaration to yield a polimorphic type.  Thus the function
+f defined above has the type (All 'a, 'b).('a * 'b list) -> ('a * 'b).
+
+This fixes bug 1178.  
+
+
+Basis Changes
+-------------
+This version has a partial implementation of the proposed SML'97
+2-dimensional arrays.  The functions Array2.copy, Array2.appi,
+Array2.modifyi and Array2.foldi are not implemented yet (they
+will raise the Fail exception).
+
+
+=====================================================================
+109.28-README
+
+
+			S  M  L   /   N  J
+
+                 1  0  9  .  2  8       N  E  W  S
+			
+
+		        23 May, 1997
+
+
+This version consist of bug fixes, changes to CML, and the last
+set of language changes that make this implementation strictly
+conforming to SML'97. The language changes are related to sharing
+constraints and may require user code modifications.
+
+
+Numbered Bugs fixed:
+
+ 1015. formatting of real numbers is broken
+ 1019. floats and Word32 in same closure
+ 1035. spurious secondary error message
+ 1037. inconsistent type sharing with DEFtycs (Compiler bug)
+ 1040. Match exception after unbound signature name
+ 1042. sig match failure produces "Compiler bug: ElabMod: rebind(TYCspec)"
+ 1079. constructor types omitted when printing structure signature
+ 1100. Compiler bug secondary error elaborating bad functor (SML96)
+ 1113. inappropriate error message for missing @SMLload arg
+ 1138. undefined signature generates secondary error
+ 1150. secondary error - Compiler bug: ModuleUtil: fctId
+ 1151. equality on reals admitted  (actually fixed in 109.26 or earlier)
+ 1174. Compiler bug: SigMatch:packElems: STRspec (secondary error)
+ 1175. uncaught exception RegMap
+ 1179. unmatched type specification leads to a Compiler bug error (1174)
+ 1194. Compiler bug: TypesUtil: extractDcons
+ 1195. wrong unit type for CharVector.app
+ 1198. unnecessary "?." in printed type name
+ 1200. where type problem, rhs within current signature
+ 1201. ltUnbound in curried functor with where structure
+ 1202. Unbound in functor with where structure clause on parameter sig
+ 1203. structure def spec doesn't work
+ 1204. invalid paths in lhs of where clauses
+
+
+Language Changes.
+
+ Several more changes have been made to make the language conform more
+ strictly to the SML'97 revised definition, and these changes will
+ require user code to be modified.  The changes are:
+
+ 1. Scope of sharing constraints.
+
+   The paths in sharing constraints must now refer to components specified
+   within the signature containing the sharing constraint.  For example
+
+   signature S =
+   sig
+     type t
+     structure A :
+       sig
+	 type s
+	 sharing type s = t
+       end
+   end
+
+   is no longer legal, because the path t in the sharing constraint refers
+   to something outside the immediately enclosing signature.  To make this
+   signature legal, it can be rewritten in a couple ways:
+
+   signature S =
+   sig
+     type t
+     structure A :
+       sig
+	 type s = t  (* replacing sharing by a type definition *)
+       end
+   end
+
+   or
+
+   signature S =
+   sig
+     type t
+     structure A :
+       sig
+	 type s
+       end
+     sharing type A.s = t  (* lifting the sharing out a level *)
+   end
+
+
+   As a consequence of this restriction, it is no longer possible
+   to have "definitional" sharing constraints, which equate an
+   element of the current signature with a type or structure global
+   to the signature.  For types, these sharing constraints can be
+   replaced by either type definition specs or "where type" clauses.
+
+   Here is an example using "where type".
+
+   (* Old form *)
+   signature S =
+   sig
+     structure A : S0
+     sharing type A.t = U.s  (* illegal because U.s is global to signature *)
+   end
+
+   (* New form *)
+   signature S =
+   sig
+     structure A : S0
+       where type t = U.s  (* where clause modifying signature S0 *)
+   end
+
+
+   Now what about the corresponding situation involving structure
+   sharing instead of type sharing:
+
+   signature S =
+   sig
+     structure A : S0
+     sharing A.B = U.C  (* illegal because U.C is global to signature *)
+   end
+
+   In SML '97, the only way to fix this is to replace the definitional
+   structure sharing with a bunch of where type definitions:
+
+   signature S =
+   sig
+     structure A : S0
+       where type B.t = U.C.t
+	 and type 'a B.s = 'a U.C.s
+	 and type B.E.u = U.C.E.u
+	 ...
+   end
+
+   where the number of where type definitions depends on how many types
+   within A.B actually have to be defined for the purpose of the code
+   using signature S.  Since this set of types may not be obvious, one
+   can make sure by adding where type definitions for all the types 
+   specified within A.B's signature.
+
+   In SML/NJ, we are providing an additional construct, the "where
+   structure" clause, to make it simpler to replace definitional
+   structure sharing.  The new version using "where structure" would be:
+
+   signature S =
+   sig
+     structure A : S0
+       where structure B = U.C
+   end
+
+   We also provide a structure analogue of type definition specs, so
+   one can also write something like:
+
+   signature S =
+   sig
+     structure A :
+       sig 
+	 structure B : SIGB = U.C  (* structure definition spec *)
+	 ...
+       end
+   end
+
+   Here the signature SIGB is mandatory, even though one could in 
+   principle derive B's signature to be that of U.C.
+
+
+  2. No sharing with rigid types
+
+   The type elements refered to in type sharing constraints now have to
+   be "flexible", meaning that they are not defined in terms of other
+   types.
+
+   Thus the following example is illegal:
+
+   signature S =
+   sig
+     type s = int
+     type t
+     sharing type t = s
+   end;
+
+   This could be rewritten either as
+
+   signature S =
+   sig
+     type s = int
+     type t = s
+   end;
+
+   or 
+
+   signature S =
+   sig
+     type s
+     type t
+     sharing type t = s
+   end
+   where type s = int;
+
+
+   This restriction applies also to type sharing implied by structure
+   sharing.  However, SML/NJ weakens the restriction by always allowing
+   structure sharing when the structures involved have the same signature.
+
+   Thus
+
+   signature S1 = 
+   sig
+     type t = int
+   end
+
+   signature S2 =
+   sig
+     type t
+     type s = string
+   end
+
+   signature S3 =
+   sig
+     structure A: S1
+     structure B: S2
+     sharing A = B
+   end
+
+   is illegal, because it induces the sharing A.t = B.t where A.t is
+   "rigid" (i.e. defined).  However, we allow
+
+   signature S3 =
+   sig
+     structure A: S1
+     structure B: S1
+     sharing A = B
+   end
+
+   In our experience, structure sharing almost always relates structures
+   with the same signature, so practically speaking most structure
+   sharing constraints will continue to work.
+
+
+CML changes
+-----------
+
+The installation process now supports the creation of "cml-cm," which is
+a version of sml-cm with autoloading of CML enabled.  One still needs to
+use RunCML.doit to run CML programs, but this allows interactive composition
+of CML code (w/o direct use of CM).
+
+
+=====================================================================
+109.29-README
+
+
+			S  M  L   /   N  J
+
+                 1  0  9  .  2  9       N  E  W  S
+			
+        http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+		        13 June, 1997
+
+The changes in this release are primarily to get SML/NJ in compliance
+with the SML'97 Basis Library specification.  This version is expected
+to be the last point version  before the 110 beta release.
+
+
+Basis Changes:
+--------------
+
+  - Moved Chr exception from Char:CHAR to General:GENERAL.
+
+  - Added SML90 signature and structure.
+
+  - Removed old RealArray structure and added Real64Vector and
+    Real64Array structures.  These are also known as RealVector
+    and RealArray.
+
+  - added map and mapi functions to Vector:VECTOR, MONO_VECTOR (and
+    instances), and String:STRING.
+
+  - fixed the type of Byte.packString.
+
+  - added Substring.span operation and General.Span exception.
+
+  - added List.getItem and removed StringCvt.scanList.
+
+  - changed pollErr/isErr to pollPri/isPri in OS.IO.
+
+  - added CommandLine:COMMAND_LINE structure.  Also added getCmdName
+    to SMLofNJ structure.
+
+  - added fromCString/toCString to Char structure (fromCString isn't implemented
+    yet).  Also fixed implementation of Char.toString.
+
+  - added fromCString/toCString to String structure (fromCString isn't implemented
+    yet).
+
+  - many changes to the Posix structures:
+      - cleaned up the sharing constraints in POSIX signature
+      - replaced offset type by Position.int in FileSys and IO
+      - removed Posix.FileSys.file_type and moved isDir etc. predicates
+	into Posix.FileSys.ST structure.
+      - replaced the Posix.FileSys.nlink type with int.
+      - changed the return type of Posix.FileSys.ST.size (removed the option)
+      - renamed Posix.IO.Flock to Posix.IO.FLock.
+      - Replaced Posix.TTY.V.index type by int.
+      - Removed "cf" and "tc" prefixes from the names of operations in
+	the Posix.TTY structure.
+
+
+SML/NJ Library changes
+----------------------
+
+  - Added collate operation to ORD_MAP signature.
+
+  - Added compare operation to ORD_SET signature.
+
+  - Changed the type of and intersectWith[i] in the ORD_MAP signature to be
+    more general.
+
+  - Changed the type of the map function in the ORD_SET signature to return
+    a new set (instead of a list).
+
+
+CML and eXene changes
+---------------------
+
+  - Minor changes to track the changes in the basis APIs.
+
+
+Run-time system changes
+-----------------------
+
+  - The run-time system now recognizes the option @SMLcmdname=xxx, which
+    overrides the name taken from argv[0].  This is used by the .run-sml
+    script to pass in the command-name that the system was invoked by.
+
+Assembly output
+---------------
+  - It is now possible to print the target machine flowgraph during various 
+    phases of back end optimization. This feature is only available on the
+    DEC Alpha and Hppa. 
+
+    Compiler.Control.CG contains:
+
+	datatype mlrisc_phase = 
+	    NO_PHASE  
+          | AFTER_INSTR_SEL		(* after instruction selection *)
+  	  | AFTER_RA			(* after register allocation *)
+  	  | AFTER_SCHED			(* after instruction scheduling *)
+	  | PHASES of mlrisc_phase * mlrisc_phase
+
+	val printFlowgraph : mlrisc_phase ref
+	val printFlowgraphStream : TextIO.outstream ref
+
+   Setting the variable printFlowgraph to the back end phase of interest 
+   directs the flowgraph output to printFlowgraphStream (or TextIO.stdOut 
+   by default). Using AFTER_SCHED does not currently print anything.
+
+
+=====================================================================
+109.30-README
+
+
+			S  M  L   /   N  J
+
+                 1  0  9  .  3  0       N  E  W  S
+			
+        http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+		        13 June, 1997
+
+The changes in this release are primarily to get SML/NJ in compliance
+with the SML'97 Basis Library specification.  This version is expected
+to be the last point version  before the 110 beta release.
+
+
+Bugs fixed:
+-----------
+
+802. missing signature PRETTYPRINT
+842. sharing constraints in functor sig [moot in SML96]
+855. sharing in signatures [moot in SML96]
+1212. where structure when signatures differ [same as 1232]
+1214. Increased make time
+1224. representation foulup
+1225. SMLofNJ.Internals.GC.doGC doesn't work
+1227. Unaligned access generated from floating-point arrays
+1228. various Real functions on Alpha (partial fix)
+1229. Bugs in unionWith, unionWithi of smlnj-lib
+1230. bus-error due to representation problem
+1231. Compiler bug: ModuleUtil: unexpected binding in extractInfo
+1232. consistent definitional specs seen as inconsistent
+
+
+Compiler:
+---------
+
+* Syntax Change: "where structure" => "where"
+
+  The "structure" keyword has been dropped from the (not-yet-standard)
+  "where structure" clause.  The new syntax is
+
+      <sigexp> where <longstrid1> = <longstrid2>
+  
+  where longstrid1 is interpreted within the sigexp, while longstrid2
+  is interpreted in the context environment of the whole phrase (meaning
+  that longstrid2 cannot refer to components specified in sigexp.
+  The reason for this change is to make the "where" syntax consistent
+  with "sharing" syntax, where structure sharing specs do not include
+  "structure" while type sharing specs do include "type".
+
+  A where clause allows one to constrain a signature by defining a
+  structure component (at arbitrary nesting depth).  It is the 
+  structure analog of "where type" clauses.  There is also a
+  structure definition specification form that is analogous to type
+  definition specs.  It's syntax is:
+
+      structure <id> : <sigexp> = <longstrid>
+
+
+* New control flags
+
+Control.printWarnings : bool ref (default true)
+  When false, no warning messages are printed.
+
+Control.valueRestrictionWarn : bool ref (default false)
+  When true, a warning message is printed when local value declarations
+  are not assigned a polymorphic type because of the value restriction.
+
+Control.instantiateSigs : bool ref (default true)
+  When true, signatures defined by top-level declarations are instantiated
+  when they are defined to check that they are well-formed.  Passing the
+  instantiation test does not guarantee that a signature is satisfyable
+  however.
+
+Control.MC.matchRedundantWarn : bool ref (default true)
+  When true, a warning message is printed when redundant rules are detected
+  in a match.
+  
+Control.MC.matchRedundantError : bool ref (default true)
+  When true (and matchReundantWarn also true), redundant rules in a match
+  cause an error message.
+
+Note that the fact that matchRedundantError is true by default means
+that code that compiled before may fail to compile under 109.30.
+
+
+* Overloaded operator defaulting (as per SML'97)
+
+If the context of an overloaded operator (such as "+") does not determine
+a unique meaning for the operator, the compiler chooses a default meaning
+for the operator instead of generating an "unresolved overloading" error
+message.  The default version for most arithmetic and relational operators
+is the Int version (i.e. "+" defaults to Int.+, etc.).  The default version
+is the first meaning listed for the operator in src/boot/bind-overloads.sml.
+
+
+* Additional basis changes
+
+Added String.extract
+
+Added missing Real functions (some of these are stubs)
+
+
+Run-time system
+---------------
+
+Fixed bug 1225, and got rid of the Unbound exception.
+
+
+SML/NJ Library
+--------------
+
+Fixed a bug in the binary-tree and splay-tree implementations of the
+unionWith[i] and intersectWith[i] functions.  The bug caused the order
+of arguments to the merging function to be wrong in some cases.
+
+Fixed uses of System.Unsafe.
+
+Removed Array2:ARRAY2 from Util library, since the basis now defines these.
+
+Added MonoArrayFn functor for easy creation of monomorphic array structures.
+
+Added Atom.atom' operation for turning substrings into atoms.
+
+
+CML and eXene
+-------------
+
+Various minor changes to track changes in the compiler and
+SML/NJ Library.  See the CHANGES files for more details.
+
+
+=====================================================================
+109.31-README
+
+
+			S  M  L   /   N  J
+
+                 1  0  9  .  3  1       N  E  W  S
+			
+        http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+		        9 September, 1997
+
+This release is primarily a bug-fix release, with a few other changes.
+We believe that SML/NJ is now very close to being in compliance with
+the latest draft of the SML'97 Basis Library specification.  Assuming
+that this version is stable, we expect the next version to be 110.
+
+
+-----------------------------------------------------------------------
+***** IMPORTANT NOTE for RS/6000 AIX users *****
+
+We have changed the run-time system and RS/6000 code generator to support
+the PowerPC.  This means that it no longer supports the original Power
+architecture.  Also, the run-time will not build on AIX 3.x, but should
+build on AIX 4.x (because the assembler in the older version did not
+accept PPC instruction mnemonics).
+
+We are working on a port to MkLinux/PPC, it is not working yet.
+-----------------------------------------------------------------------
+
+
+Numbered Bugs fixed:
+--------------------
+
+ 720. when opening a structure at top-level, types are not printed
+ 799. bogus type name paths (?)
+ 874. scheduler improperly reordering instructions
+1159. extraneous types included in pervasive environment
+1196. discrepencies between Basis implementation and documentation
+1199. size of exportFn image
+1205. problem with "where structure" and curried functors (cf. 1201)
+1206. Compiler bug: TransTypes: unexpected FORMAL kind in tycTyc-h
+1207. unimplemented include syntax
+1213. CM dependency analysis  (not reproducible)
+1215. Unaligned access messages
+1218. increase in size of exportFn image [same as 1199?]
+1222. ref assignment not performed before overflow
+1223. Compiler bug: ModuleUtil: strId after unbound structure in functor
+1228. various Real functions on Alpha (parts 3,4)
+1234. EntityEnv.Unbound raised in functor application (1206)
+1236. TextIO.outputSubstr doesn't work on substrings containing \n
+1237. ml-yacc doesn't handle constructors with long names
+1238. Elaboration error involving where structure
+1239. Subscript-out-of-bounds error when opening a structure
+1240. Can't form pairs of reals
+1241. confused datatype constructors
+1243. Application of functor to different representations
+1244. Explicitly scoped type variable with 'val ... and' declaration
+1245. Pretty printer bug
+1246. Explicit scoping of type variables does not obey the standard
+1247. IntSet library module is wrong
+1248. blastWrite failures
+1249. Time.time type too small
+1250. Bind exception delayed by polymorphic generalization
+1251. where specs cause exception Unbound
+1252. Unbound exception on functor application
+1253. pretty printing nested polymorphic records
+1255. Disagreements between SML/NJ and Defn: datatype replication, part II
+1257. (spurious) dependency cycle in instantiate
+1260. Compiler bug (EntityEnv) when compiling ml-yacc.
+
+Unnumbered bug fixes:
+---------------------
+    . Add the extra field to signature to fix the sigmatch (tps.sml)
+    . Turn on the wrapper-sharing; this relieves a bit the problem 
+      of compilation time blow-up on exponential type-expressions 
+       (e.g., fun f x = x; f f f f f f f f f f f f f f f f f f 3)
+
+
+
+Language changes:
+-----------------
+
+A declaration such as:
+
+   val [x] = nil::nil
+
+is known as a refutable pattern binding since an exception can 
+potentially be raised  depending on the value of the right hand side.
+The value restriction rule has been tightened to disallow
+generalization for such bindings, even though the binding to x can
+be statically determined to be a value.
+
+This is a deviation from the SML'97 definition. The main justification
+is the simplicity it provides in the type-theoretic interpretation. 
+Raising the Bind exception is a side-effect, just like any other
+side-effects; so the value restriction should apply too. 
+
+
+Basis changes:
+--------------
+  - The Time.{to,from}{Seconds,Milliseconds,Microseconds} functions now use
+    LargeInt.int instead of Int.int.
+
+
+Compiler:
+---------
+
+Added implementations for Real.real{Floor,Ceil,Trunc}, which were missing.
+
+The following properties should hold about floating negation.
+	1. ~(r) should have a sign bit opposite from that of r.
+	2. ~(0.0) should have a sign bit opposite from 0.0
+	3. The literal value ~0.0 should be the same as ~(0.0)
+	4. ~0.0 should print as 0.0
+	5. Real.copySign(1.0,~0.0) = ~1.0
+	6. Real.~ should be implemented using the machine's floating-negate instr.
+All but #3 were already true in 109.30.  Fixing #3 required
+a change in coder/ieeereal.sml.
+
+The "abstraction" keyword is no longer recognized.  Use the SML'97 opaque
+signature constraint syntax instead.
+
+The non-SML keyword "overload" has been changed to "_overload".
+
+
+MLRISC back ends:
+-----------------
+The MLRISC language has been augmented with region information to
+propagate alias information to the back end. This  will be used in
+global scheduling algorithms to be released in a future version. For
+now memory disambiguation information is generated by turning on the
+flag: 
+	Compiler.Control.CG.memDisambiguate
+
+and is only available on the DEC Alpha. It can be viewed by printing
+the flowgraph. 
+	
+
+SML/NJ Library:
+---------------
+
+Added the Reactive library, which supports reactive scripting.  This is a
+first cut, and hasn't been extensively tested.
+
+Changed the names of SockUtil.sock{Recv,Send}* to SockUtil.{recv,send}*
+(since the sock prefix was redundant).
+
+Added a missing case to {ListSetFn,IntListSet}.isSubset.
+
+The fix in 109.30 for the unionWith bug was wrong.  Fixed it properly this
+time.
+
+
+Concurrent ML:
+--------------
+
+The entire startup/shutdown mechanism was rewritten as part of an effort
+to get RunCML.exportFn working.  See the src/cml/CHANGES file for details.
+
+
+EXene:
+------
+
+Minor changes to track the changes to CML and SML/NJ.
+
+
+=====================================================================
+109.32-README
+
+
+			S  M  L   /   N  J
+
+                 1  0  9  .  3  2       N  E  W  S
+			
+        http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+		        4 October, 1997
+
+This release is primarily a bug-fix release, with a few other changes.
+We believe that SML/NJ is now very close to being in compliance with
+the SML '97 Definition and the latest draft of the SML'97 Basis
+Library specification.  Assuming that this version is stable, we
+expect to announce version 110 in about two weeks.  Please try this
+version out and report any problems as soon as possible so that 
+they can be fixed in 110.
+
+
+-----------------------------------------------------------------------
+***** IMPORTANT NOTE for RS/6000 AIX users *****
+
+As of version 109.31, we have changed the run-time system and RS/6000
+code generator to support the PowerPC.  This means that it no longer
+supports the original Power architecture.  Also, the run-time will not
+build on AIX 3.x, but should build on AIX 4.x (because the assembler
+in the older version did not accept PPC instruction mnemonics).
+
+We are working on a port to MkLinux/PPC, it is not working yet.
+-----------------------------------------------------------------------
+
+
+Numbered Bugs fixed:
+--------------------
+  1075. Infinite loop during profiling
+  1133. "<null region>" in non-exhaustive match warning messages (cf 1112)
+  1206. Compiler bug: TransTypes: unexpected FORMAL kind in tycTyc-h
+  1236. TextIO.outputSubstr doesn't work on substrings containing \n
+  1237. ml-yacc doesn't handle constructors with long names
+  1272. Match exception raised in instantiate while elaborating sig
+  1273. control-c doesn't interrupt infinite loop
+  1274. secondary compiler bug caused by unbound signature
+  1275. mod and div broken on alpha
+  1276. Posix.TTY.getattr returns invalid object.
+  1277. Segmentation fault
+  1278. segmentation faults running Unix.execute
+  1279. frags and backquotes are confused
+  1280. structure sharing semantics
+  1281. Open in local-in-end can give "Compiler bug: PickMod: dontPickle"
+  1283. Representation exception raised during value pretty printing
+  1285. Compiler bug: LtyEnv: unexpected tycs in tcWhNorm-TC_PROJ
+
+
+Unnumbered bug fixes:
+---------------------
+  - A number of secondary errors and regression test failures have
+    been fixed.
+  - Fewer unnecessary "?"s appear in printed type names.
+  - Char.fromString now works for all escape sequences.
+
+
+Basis changes:
+--------------
+  - The Date structure interface has been changed in line with changes to the
+    SML Basis Library specification.  The Date.date type is now abstract.
+    The function Date.fromTime is now called Date.fromTimeLocal and
+    Date.fromUTC is now Date.fromTimeUniv.
+
+
+Compiler:
+---------
+  - The control flag Compiler.Control.MC.matchExhaustive used to control
+    whether warning messages were printed for nonexhaustive matches.  This
+    flag has been renamed matchNonExhaustiveWarn.  A new flag,
+    matchNonExhaustiveError, has been added to Compiler.Control.MC.  When
+    its value is true, nonexhaustive matches will generate error messages.
+
+  - The flag Compiler.Control.Print.printWarnings (default value true)
+    controls whether warning messages are printed.  Setting this flag
+    to false suppresses all warning messages.
+
+
+Run-time system:
+----------------
+
+  - The mktime function was fixed to raise an exception when the date is out
+    of the supported range.
+
+  - The allocation of Word32.word values was broken and has been fixed (wrong
+    descriptor).
+
+  - There was an off-by-one error in the initialization of the dirty card maps
+    when importing heap images.  In obscure cases, this caused live code objects
+    to be freed.
+
+
+
+Concurrent ML:
+--------------
+
+  - A bunch of bug fixes.  See cml/CHANGES for details.
+
+---------------------------------------------------------------------
+			Standard ML of New Jersey
+		      Version 110.0.0, December 9, 1997
+
+This is the long awaited Version 110 release of SML/NJ.  It implements
+the SML '97 definition, including the new Basis library (with a few
+minor documented discrepancies and omissions).
+
+Version 110 is much more thoroughly tested than previous working
+versions, and even than the 0.93 release version, and we believe it to
+be fairly free of serious bugs.  The bug lists are as usual available
+in dist/smlnj/working/bugs for reference.
+
+We are making a preliminary announcement of 110 to our "early
+adopters" list to get early feedback on any problems with this
+version.  After a week or two we plan to move 110 from the "working"
+directory to the "release" directory and announce to the world that
+110 is available.
+
+
+Recent Bug Fixes
+----------------
+Numbered bug fixes since 109.32:
+
+  1207. unimplemented include syntax
+  1228. -- various Real functions on Alpha
+  1284. bogus file created upon aborted run of ml-lex
+  1286. Flexible records and as patterns
+  1288. readDir returns "." and ".."
+  1289. readDir and rewindDir raise the wrong exception on closed dir stream
+  1290. OS.FileSys.fullPath raises exception on symbolic link
+  1291. OS.FileSys.readLink returns bogus results
+  1293. CharVector.mapi doesn't work with non-zero start index
+  1295. SMLofNJ.exportFn should complain about an empty name
+  1296. Datatype replication and signature matching.
+  1297. Compile time and space performance bug
+  1298. TransTypes: unexpected FORMAL kind in tycTyc-h
+  1303. CM file problems: multiple access not detected
+  1304. Type printing of exceptions on top-level
+  1305. translation of newlines in TextIO
+  1308. uncaught exception Representation in Version 109.32
+  1312. CM.autoloading always returns false
+  1313. CM autoloader doesn't cope with <returnStr>.<resultStr>
+  1315. bogus value created (probably representation bug)
+  1316. type checker loops on incorrect function declaration
+  1317. Error: Compiler bug: EntityEnv: lookEP.1
+
+
+A number of regression test failures have also been fixed in 110.
+Residual regression test failures or discrepancies are documented
+in the files in dist/smlnj/working/bugs/regression.  We plan to
+make our regression test suites and data available in
+dist/smlnj/working/test soon.
+
+
+Documentation
+-------------
+The documentation for Version 110 is available at our web site
+
+  http://cm.bell-labs.com/cm/cs/what/smlnj
+
+including nearly final documentation of the SML '97 Basis library and
+an SML '97 Conversion Guide that describes language changes but is
+still "under construction" at the moment.  Work is continuing to improve
+the content and organization of the documentation, so suggestions are
+welcome.
+
+The file 110-HISTORY contains slightly edited versions of the
+README files for working versions from 109 through 109.32.
+
+---------------------------------------------------------------------
+
+			Standard ML of New Jersey
+		    Version 110.0.1, January 12, 1998
+		    ---------------------------------
+
+This is the first patch release for version 110.  It fixes a few serious bugs
+that slipped through in version 110, as well as adding a couple of new features.
+
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+
+891. mllex state names not as general as advertized
+997. lexgen doesn't check for unmatched quotes
+1209. casting polymorphic functions and abstract types
+1318. incorrect sigmatch error in higher-order functor
+1320. path name syntax used by cm when compiling to x86
+1322. "Compiler bug: LambdaType: wrong TCs in tc_select"
+1325. raises exception in compiler while trying to print error message
+1326. nonexhaustive match failure in pretty printer
+1327. tycStamp secondary error
+
+
+Other changes
+-------------
+
+  - It is now possible to turn GC messages off and on, by using the function
+    SMLofNJ.Internals.GC.messages
+
+  - The implementation of OS.IO.poll has been fixed to agree with the basis
+    specification (order of results matches order of arguments).
+
+  - A potential infinite loop in runtime/c-libs/posix-filesys/getcwd.c was
+    fixed.
+
+  - Added a clear operation to the Queue and various hash table structures in
+    the SML/NJ library.
+
+---------------------------------------------------------------------
+
+			Standard ML of New Jersey
+		    Version 110.0.2, January 16, 1998
+		    ---------------------------------
+
+This is the second patch release for version 110.  It fixes a few serious bugs
+that slipped through in version 110 (and 110.0.1), as well as adding a couple
+of new features.  See the file 110-PATCH-1 for information on 110.0.1.
+
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+1335. nonexhaustive match failure in mips code generator
+1337. exporfFn in CML produces large images
+1338. uncaught Unbound while compiling MLKit
+
+
+Other changes
+-------------
+
+The Windows'95/NT version is now distributed as an InstallShield(tm)
+package (110-smlnj.exe).  This is a self-extracting archive. You execute
+it, it unpacks, and starts up the setup program by itself. From that point,
+it's pretty standard installation procedure common on Windows. The only
+thing maybe to note is that a reboot is strongly advised, to have the
+changes to the registry (PATH env. variable and such) take effect. Note
+that the archive does not contain the source code, except for the SML/NJ
+Library, which is provided in source, and the ml-yacc library. If one
+wants the source of ml-lex, ml-yacc, ml-burg, the runtime, the compiler,
+or CM, you have to download the appropriate compressed tar file.
+
+---------------------------------------------------------------------
+
+			Standard ML of New Jersey
+		    Version 110.0.3, January 30, 1998
+		    ---------------------------------
+
+This is the third patch release for version 110.  It fixes a few serious bugs
+that slipped through in the earlier patch releases.  See the files 110-README,
+110-PATCH-1, and 110-PATCH-2 for additional information.
+
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+1047. Not very random, random number generator ... (smlnj-lib)
+1337. exportFn in CML produces large images*
+1340. Segmentation fault on Sparc, x86, Alpha, and MIPS
+ -    Match exception related to span dependent loads on the hppa.
+
+* we thought that this had been fixed in 110.0.2, but were mistaken.
+
+
+Other changes
+-------------
+
+Problems with the InstallShield installation on Windows95 have been
+fixed.
+
+Installation problems under Linux have been fixed.
+
+Installation problems under gcc 2.8.0 on the x86 have been fixed.
+
+Made some minor additions to the Util library in the SML/NJ Library.
+
+Added the GetDpy utility module to eXene.  This provides simple support
+for getting the display and authentication information.
+

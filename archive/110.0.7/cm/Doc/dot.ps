@@ -1,0 +1,1084 @@
+%!PS-Adobe-2.0
+%%Creator: dot version 92c (09-01-94)
+%%For: (blume) Matthias Blume,GS,315,1795
+%%Title: G
+%%Pages: (atend)
+%%BoundingBox: 36 36 397 471
+%%EndComments
+%%BeginProlog
+save
+/DotDict 200 dict def
+DotDict begin
+
+%%BeginResource: procset
+/coord-font-family /Times-Roman def
+/default-font-family /Times-Roman def
+/coordfont coord-font-family findfont 8 scalefont def
+
+/InvScaleFactor 1.0 def
+/set_scale {
+	dup 1 exch div /InvScaleFactor exch def
+	dup scale
+} bind def
+
+% styles
+/solid { } bind def
+/dashed { [9 InvScaleFactor mul dup ] 0 setdash } bind def
+/dotted { [1 InvScaleFactor mul 6 InvScaleFactor mul] 0 setdash } bind def
+/invis {/fill {newpath} def /stroke {newpath} def /show {pop newpath} def} bind def
+/bold { 2 setlinewidth } bind def
+/filled { } bind def
+/unfilled { } bind def
+/rounded { } bind def
+/diagonals { } bind def
+
+% hooks for setting color 
+/nodecolor { sethsbcolor } bind def
+/edgecolor { sethsbcolor } bind def
+/graphcolor { sethsbcolor } bind def
+/nopcolor {pop pop pop} bind def
+
+/beginpage {	% i j npages
+	/npages exch def
+	/j exch def
+	/i exch def
+	/str 10 string def
+	npages 1 gt {
+		gsave
+			coordfont setfont
+			0 0 moveto
+			(\() show i str cvs show (,) show j str cvs show (\)) show
+		grestore
+	} if
+} bind def
+
+/set_font {
+	findfont exch
+	scalefont setfont
+} def
+
+/arrowhead {
+	/arrowwidth exch def
+	/arrowlength exch def
+	gsave
+		3 1 roll
+		translate
+			rotate
+			newpath
+			arrowlength arrowwidth 2 div moveto
+			0 0 lineto
+			arrowlength arrowwidth -2 div lineto
+		closepath fill
+		stroke
+	grestore
+} def
+
+% draw aligned label in bounding box aligned to current point
+% alignfactor tells what fraction to place on the left.
+% -.5 is centered.
+/alignedtext {			% text labelwidth fontsz alignfactor
+	/alignfactor exch def
+	/fontsz exch def
+	/width exch def
+	/text exch def
+	gsave
+		% even if node or edge is dashed, don't paint text with dashes
+		[] 0 setdash
+		currentpoint newpath moveto
+		text stringwidth pop
+		alignfactor mul fontsz -.3 mul rmoveto
+		text show
+	grestore
+} def
+
+/boxprim {				% xcorner ycorner xsize ysize
+		4 2 roll
+		moveto
+		2 copy
+		exch 0 rlineto
+		0 exch rlineto
+		pop neg 0 rlineto
+		closepath
+} bind def
+
+/ellipse_path {
+	/ry exch def
+	/rx exch def
+	/y exch def
+	/x exch def
+	matrix currentmatrix
+	newpath
+	x y translate
+	rx ry scale
+	0 0 1 0 360 arc
+	setmatrix
+} bind def
+
+/endpage { showpage } bind def
+
+/layercolorseq
+	[	% layer color sequence - darkest to lightest
+		[0 0 0]
+		[.2 .8 .8]
+		[.4 .8 .8]
+		[.6 .8 .8]
+		[.8 .8 .8]
+	]
+def
+
+/setlayer {/maxlayer exch def /curlayer exch def
+	layercolorseq curlayer get
+	aload pop sethsbcolor
+	/nodecolor {nopcolor} def
+	/edgecolor {nopcolor} def
+	/graphcolor {nopcolor} def
+} bind def
+
+/onlayer { curlayer ne {invis} if } def
+
+/onlayers {
+	/myupper exch def
+	/mylower exch def
+	curlayer mylower lt
+	curlayer myupper gt
+	or
+	{invis} if
+} def
+
+/curlayer 0 def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+14 default-font-family set_font
+% /arrowlength 10 def
+% /arrowwidth 5 def
+%%EndSetup
+%%Page: 1 (atend)
+%%PageBoundingBox: 36 36 397 471
+gsave
+35 35 362 436 boxprim clip newpath
+36 36 translate
+0 0 1 beginpage
+0.079982 set_scale
+0 0 translate 0 rotate
+0.000 0.000 0.000 graphcolor
+34.00 /Times-Roman set_font
+
+%	n91
+gsave 10 dict begin
+newpath 2274 4661 moveto
+2058 4661 lineto
+2058 4617 lineto
+2274 4617 lineto
+closepath
+stroke
+gsave 10 dict begin
+2166 4640 moveto (multicast.sml) 182 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n88
+gsave 10 dict begin
+newpath 2010 3892 moveto
+1792 3892 lineto
+1792 3848 lineto
+2010 3848 lineto
+closepath
+stroke
+gsave 10 dict begin
+1901 3871 moveto (../src/cml.sml) 184 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n91 -> n88
+gsave 10 dict begin
+dashed
+newpath 2158 4617 moveto
+2121 4507 1954 4024 1911 3899 curveto
+stroke
+1909 3892 74.05 10.00 5.00 arrowhead
+end grestore
+
+%	n90
+gsave 10 dict begin
+newpath 3235 3892 moveto
+2967 3892 lineto
+2967 3848 lineto
+3235 3848 lineto
+closepath
+stroke
+gsave 10 dict begin
+3101 3871 moveto (multicast-sig.sml) 233 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n91 -> n90
+newpath 2193 4617 moveto
+2327 4506 2922 4017 3068 3897 curveto
+stroke
+3074 3892 140.19 10.00 5.00 arrowhead
+
+%	n78
+gsave 10 dict begin
+newpath 4077 1583 moveto
+3809 1583 lineto
+3809 1539 lineto
+4077 1539 lineto
+closepath
+stroke
+gsave 10 dict begin
+3943 1562 moveto (../src/cml-sig.sml) 235 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n88 -> n78
+newpath 1938 3848 moveto
+2091 3755 2681 3389 2936 3122 curveto
+3142 2904 3260 2612 3363 2331 curveto
+stroke
+newpath 3363 2331 moveto
+3483 2084 3821 1697 3917 1589 curveto
+stroke
+3923 1583 135.00 10.00 5.00 arrowhead
+
+%	structure System
+gsave 10 dict begin
+gsave 10 dict begin
+2894 23 moveto (structure System) 227 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n88 -> structure System
+gsave 10 dict begin
+dotted
+newpath 1886 3848 moveto
+1823 3750 1575 3358 1513 3122 curveto
+1446 2866 1511 2594 1497 2331 curveto
+stroke
+newpath 1497 2331 moveto
+1447 1506 2666 249 2867 49 curveto
+stroke
+2872 44 135.00 10.00 5.00 arrowhead
+end grestore
+
+%	n87
+gsave 10 dict begin
+newpath 1815 3122 moveto
+1525 3122 lineto
+1525 3078 lineto
+1815 3078 lineto
+closepath
+stroke
+gsave 10 dict begin
+1670 3101 moveto (../src/cml-base.sml) 255 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n88 -> n87
+newpath 1894 3848 moveto
+1861 3738 1716 3255 1679 3129 curveto
+stroke
+1677 3122 74.05 10.00 5.00 arrowhead
+
+%	structure Bits
+gsave 10 dict begin
+gsave 10 dict begin
+893 3101 moveto (structure Bits) 182 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n88 -> structure Bits
+gsave 10 dict begin
+dotted
+newpath 1872 3848 moveto
+1729 3737 1086 3248 928 3127 curveto
+stroke
+922 3122 39.81 10.00 5.00 arrowhead
+end grestore
+
+%	n77
+gsave 10 dict begin
+newpath 3064 814 moveto
+2724 814 lineto
+2724 770 lineto
+3064 770 lineto
+closepath
+stroke
+gsave 10 dict begin
+2894 793 moveto (../src/cml-base-sig.sml) 306 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n78 -> n77
+newpath 3913 1539 moveto
+3762 1428 3095 939 2930 819 curveto
+stroke
+2924 814 39.81 10.00 5.00 arrowhead
+
+%	n78 -> structure System
+gsave 10 dict begin
+dotted
+newpath 3953 1539 moveto
+3998 1437 4177 1009 4105 792 curveto
+stroke
+end grestore
+
+%	n77 -> structure System
+gsave 10 dict begin
+dotted
+newpath 2894 770 moveto
+2894 660 2894 177 2894 51 curveto
+stroke
+2894 44 90.00 10.00 5.00 arrowhead
+end grestore
+
+%	n87 -> n77
+newpath 1675 3078 moveto
+1701 2975 1813 2535 1897 2309 curveto
+1994 2044 2093 1774 2248 1539 curveto
+2402 1304 2764 925 2866 820 curveto
+stroke
+2872 814 135.00 10.00 5.00 arrowhead
+
+%	n87 -> structure System
+gsave 10 dict begin
+dotted
+newpath 1663 3078 moveto
+1633 2977 1509 2560 1497 2331 curveto
+stroke
+end grestore
+
+%	n84
+gsave 10 dict begin
+newpath 2551 2353 moveto
+2223 2353 lineto
+2223 2309 lineto
+2551 2309 lineto
+closepath
+stroke
+gsave 10 dict begin
+2387 2332 moveto (../src/cml-compat.sml) 295 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n87 -> n84
+newpath 1691 3078 moveto
+1794 2967 2250 2478 2362 2358 curveto
+stroke
+2366 2353 128.66 10.00 5.00 arrowhead
+
+%	n86
+gsave 10 dict begin
+newpath 1853 2353 moveto
+1525 2353 lineto
+1525 2309 lineto
+1853 2309 lineto
+closepath
+stroke
+gsave 10 dict begin
+1689 2332 moveto (../src/cml-version.sml) 295 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n87 -> n86
+newpath 1671 3078 moveto
+1674 2968 1686 2485 1688 2360 curveto
+stroke
+1688 2353 90.00 10.00 5.00 arrowhead
+
+%	structure IO
+gsave 10 dict begin
+gsave 10 dict begin
+2937 2332 moveto (structure IO) 162 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n87 -> structure IO
+gsave 10 dict begin
+dotted
+newpath 1707 3078 moveto
+1889 2967 2695 2478 2893 2358 curveto
+stroke
+2901 2353 147.99 10.00 5.00 arrowhead
+end grestore
+
+%	structure List
+gsave 10 dict begin
+gsave 10 dict begin
+2676 2332 moveto (structure List) 180 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n87 -> structure List
+gsave 10 dict begin
+dotted
+newpath 1699 3078 moveto
+1843 2967 2483 2478 2641 2358 curveto
+stroke
+2647 2353 140.19 10.00 5.00 arrowhead
+end grestore
+
+%	structure String
+gsave 10 dict begin
+gsave 10 dict begin
+3213 2332 moveto (structure String) 210 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n87 -> structure String
+gsave 10 dict begin
+dotted
+newpath 1715 3078 moveto
+1937 2967 2927 2474 3163 2356 curveto
+stroke
+3169 2353 153.43 10.00 5.00 arrowhead
+end grestore
+
+%	structure SMLofNJ
+gsave 10 dict begin
+gsave 10 dict begin
+2057 2332 moveto (structure SMLofNJ) 263 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n87 -> structure SMLofNJ
+gsave 10 dict begin
+dotted
+newpath 1681 3078 moveto
+1737 2968 1979 2485 2042 2360 curveto
+stroke
+2046 2353 119.74 10.00 5.00 arrowhead
+end grestore
+
+%	n84 -> structure System
+gsave 10 dict begin
+dotted
+newpath 2397 2309 moveto
+2446 2205 2655 1765 2811 1561 curveto
+stroke
+newpath 2811 1561 moveto
+3115 1162 4263 1268 4105 792 curveto
+stroke
+newpath 4105 792 moveto
+3978 411 3214 128 2969 46 curveto
+stroke
+2963 44 18.43 10.00 5.00 arrowhead
+end grestore
+
+%	structure Export
+gsave 10 dict begin
+gsave 10 dict begin
+2387 1562 moveto (structure Export) 219 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n84 -> structure Export
+gsave 10 dict begin
+dotted
+newpath 2387 2309 moveto
+2387 2199 2387 1716 2387 1590 curveto
+stroke
+2387 1583 90.00 10.00 5.00 arrowhead
+end grestore
+
+%	n90 -> n78
+gsave 10 dict begin
+dashed
+newpath 3110 3848 moveto
+3152 3750 3317 3348 3356 3122 curveto
+3400 2862 3273 2578 3363 2331 curveto
+stroke
+end grestore
+
+%	n92
+gsave 10 dict begin
+newpath 1219 5431 moveto
+993 5431 lineto
+993 5387 lineto
+1219 5387 lineto
+closepath
+stroke
+gsave 10 dict begin
+1106 5410 moveto (cml-name.sml) 193 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n92 -> n88
+gsave 10 dict begin
+dashed
+newpath 1777 4639 moveto
+1855 4429 1891 4011 1899 3898 curveto
+stroke
+1899 3892 90.00 10.00 5.00 arrowhead
+end grestore
+
+%	n92 -> structure Bits
+gsave 10 dict begin
+dotted
+newpath 982 3870 moveto
+952 3650 908 3241 896 3128 curveto
+stroke
+895 3122 80.54 10.00 5.00 arrowhead
+newpath 982 4639 moveto
+982 4639 982 3870 982 3870 curveto
+stroke
+end grestore
+
+%	n1
+gsave 10 dict begin
+newpath 446 3892 moveto
+0 3892 lineto
+0 3848 lineto
+446 3848 lineto
+closepath
+stroke
+gsave 10 dict begin
+223 3871 moveto (../../smlnj-lib/106-lib-base.sml) 413 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n92 -> n1
+gsave 10 dict begin
+dashed
+newpath 1084 5387 moveto
+987 5292 608 4908 465 4661 curveto
+346 4454 252 4015 228 3899 curveto
+stroke
+227 3892 81.87 10.00 5.00 arrowhead
+end grestore
+
+%	n39
+gsave 10 dict begin
+newpath 954 3892 moveto
+464 3892 lineto
+464 3848 lineto
+954 3848 lineto
+closepath
+stroke
+gsave 10 dict begin
+709 3871 moveto (../../smlnj-lib/106-hash-string.sml) 456 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n92 -> n39
+gsave 10 dict begin
+dashed
+newpath 1103 5387 moveto
+1087 5285 1021 4863 982 4639 curveto
+stroke
+newpath 982 4639 moveto
+944 4409 770 4007 722 3898 curveto
+stroke
+719 3892 63.43 10.00 5.00 arrowhead
+end grestore
+
+%	n42
+gsave 10 dict begin
+newpath 1439 4661 moveto
+1023 4661 lineto
+1023 4617 lineto
+1439 4617 lineto
+closepath
+stroke
+gsave 10 dict begin
+1231 4640 moveto (../../smlnj-lib/hash-table.sml) 382 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n92 -> n42
+gsave 10 dict begin
+dashed
+newpath 1110 5387 moveto
+1128 5277 1206 4794 1226 4668 curveto
+stroke
+1227 4661 98.13 10.00 5.00 arrowhead
+end grestore
+
+%	structure Array
+gsave 10 dict begin
+gsave 10 dict begin
+1654 3871 moveto (structure Array) 206 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n92 -> structure Array
+gsave 10 dict begin
+dotted
+newpath 1132 5387 moveto
+1244 5292 1673 4915 1777 4639 curveto
+stroke
+newpath 1777 4639 moveto
+1855 4429 1708 4011 1665 3898 curveto
+stroke
+1663 3892 71.57 10.00 5.00 arrowhead
+end grestore
+
+%	n43
+gsave 10 dict begin
+newpath 879 4661 moveto
+477 4661 lineto
+477 4617 lineto
+879 4617 lineto
+closepath
+stroke
+gsave 10 dict begin
+678 4640 moveto (../../smlnj-lib/name-sig.sml) 367 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n92 -> n43
+gsave 10 dict begin
+dashed
+newpath 1094 5387 moveto
+1032 5277 764 4794 694 4668 curveto
+stroke
+690 4661 60.26 10.00 5.00 arrowhead
+end grestore
+
+%	n89
+gsave 10 dict begin
+newpath 2861 4661 moveto
+2625 4661 lineto
+2625 4617 lineto
+2861 4617 lineto
+closepath
+stroke
+gsave 10 dict begin
+2743 4640 moveto (../src/build.sml) 203 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n92 -> n89
+gsave 10 dict begin
+dashed
+newpath 1153 5387 moveto
+1388 5276 2439 4782 2690 4664 curveto
+stroke
+2696 4661 153.43 10.00 5.00 arrowhead
+end grestore
+
+%	n0
+gsave 10 dict begin
+newpath 441 3122 moveto
+5 3122 lineto
+5 3078 lineto
+441 3078 lineto
+closepath
+stroke
+gsave 10 dict begin
+223 3101 moveto (../../smlnj-lib/lib-base-sig.sml) 401 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n1 -> n0
+newpath 223 3848 moveto
+223 3738 223 3255 223 3129 curveto
+stroke
+223 3122 90.00 10.00 5.00 arrowhead
+
+%	n39 -> structure String
+gsave 10 dict begin
+dotted
+newpath 803 3848 moveto
+1145 3766 2334 3464 2892 3122 curveto
+3103 2993 3190 2488 3209 2360 curveto
+stroke
+3210 2353 98.13 10.00 5.00 arrowhead
+end grestore
+
+%	n39 -> structure Bits
+gsave 10 dict begin
+dotted
+newpath 714 3848 moveto
+740 3738 856 3255 886 3129 curveto
+stroke
+888 3122 105.95 10.00 5.00 arrowhead
+end grestore
+
+%	structure Char
+gsave 10 dict begin
+gsave 10 dict begin
+654 3101 moveto (structure Char) 193 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n39 -> structure Char
+gsave 10 dict begin
+dotted
+newpath 707 3848 moveto
+699 3738 665 3255 657 3129 curveto
+stroke
+656 3122 81.87 10.00 5.00 arrowhead
+end grestore
+
+%	n42 -> structure Bits
+gsave 10 dict begin
+dotted
+newpath 1222 4617 moveto
+1181 4517 1015 4103 982 3870 curveto
+stroke
+end grestore
+
+%	n40
+gsave 10 dict begin
+newpath 1469 3122 moveto
+1019 3122 lineto
+1019 3078 lineto
+1469 3078 lineto
+closepath
+stroke
+gsave 10 dict begin
+1244 3101 moveto (../../smlnj-lib/hash-key-sig.sml) 416 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n42 -> n40
+newpath 1239 4617 moveto
+1274 4518 1417 4111 1490 3892 curveto
+1564 3666 1329 3242 1261 3128 curveto
+stroke
+1257 3122 56.31 10.00 5.00 arrowhead
+
+%	n41
+gsave 10 dict begin
+newpath 1478 3892 moveto
+1010 3892 lineto
+1010 3848 lineto
+1478 3848 lineto
+closepath
+stroke
+gsave 10 dict begin
+1244 3871 moveto (../../smlnj-lib/hash-table-sig.sml) 433 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n42 -> n41
+newpath 1231 4617 moveto
+1234 4507 1242 4024 1244 3899 curveto
+stroke
+1244 3892 90.00 10.00 5.00 arrowhead
+
+%	n42 -> structure Array
+gsave 10 dict begin
+dotted
+newpath 1243 4617 moveto
+1304 4507 1569 4024 1638 3899 curveto
+stroke
+1642 3892 119.74 10.00 5.00 arrowhead
+end grestore
+
+%	n41 -> n40
+newpath 1244 3848 moveto
+1244 3738 1244 3255 1244 3129 curveto
+stroke
+1244 3122 90.00 10.00 5.00 arrowhead
+
+%	n43 -> n1
+newpath 665 4617 moveto
+599 4507 314 4024 240 3899 curveto
+stroke
+236 3892 60.26 10.00 5.00 arrowhead
+
+%	n89 -> n88
+newpath 2719 4617 moveto
+2599 4506 2062 4017 1930 3897 curveto
+stroke
+1925 3892 45.00 10.00 5.00 arrowhead
+
+%	n82
+gsave 10 dict begin
+newpath 4204 3892 moveto
+3910 3892 lineto
+3910 3848 lineto
+4204 3848 lineto
+closepath
+stroke
+gsave 10 dict begin
+4057 3871 moveto (../src/trace-cml.sml) 261 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n89 -> n82
+newpath 2781 4617 moveto
+2969 4506 3806 4017 4011 3897 curveto
+stroke
+4019 3892 147.99 10.00 5.00 arrowhead
+
+%	n83
+gsave 10 dict begin
+newpath 3658 3122 moveto
+3450 3122 lineto
+3450 3078 lineto
+3658 3078 lineto
+closepath
+stroke
+gsave 10 dict begin
+3554 3101 moveto (../src/cio.sml) 174 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n89 -> n83
+newpath 2760 4617 moveto
+2832 4519 3124 4123 3247 3892 curveto
+3360 3675 3506 3244 3545 3129 curveto
+stroke
+3547 3122 105.95 10.00 5.00 arrowhead
+
+%	n85
+gsave 10 dict begin
+newpath 2880 3122 moveto
+2606 3122 lineto
+2606 3078 lineto
+2880 3078 lineto
+closepath
+stroke
+gsave 10 dict begin
+2743 3101 moveto (../src/run-cml.sml) 240 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n89 -> n85
+newpath 2743 4617 moveto
+2743 4445 2743 3326 2743 3129 curveto
+stroke
+2743 3122 90.00 10.00 5.00 arrowhead
+
+%	n82 -> n78
+newpath 4057 3100 moveto
+4016 2839 4070 2571 4051 2309 curveto
+4034 2093 3967 1698 3948 1589 curveto
+stroke
+3947 1583 80.54 10.00 5.00 arrowhead
+
+%	n82 -> structure System
+gsave 10 dict begin
+dotted
+newpath 4459 3100 moveto
+4459 3100 4443 2309 4443 2309 curveto
+4431 2051 4444 1790 4389 1539 curveto
+4331 1278 4189 1044 4105 792 curveto
+stroke
+end grestore
+
+%	n82 -> structure String
+gsave 10 dict begin
+dotted
+newpath 4035 3848 moveto
+3942 3752 3573 3368 3438 3122 curveto
+3324 2914 3239 2477 3218 2360 curveto
+stroke
+3217 2353 81.87 10.00 5.00 arrowhead
+end grestore
+
+%	n79
+gsave 10 dict begin
+newpath 3717 2353 moveto
+3391 2353 lineto
+3391 2309 lineto
+3717 2309 lineto
+closepath
+stroke
+gsave 10 dict begin
+3554 2332 moveto (../src/run-cml-sig.sml) 291 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n82 -> n79
+newpath 4059 3848 moveto
+4065 3747 4091 3322 4057 3100 curveto
+stroke
+newpath 4057 3100 moveto
+4016 2841 3679 2464 3581 2359 curveto
+stroke
+3575 2353 45.00 10.00 5.00 arrowhead
+
+%	n80
+gsave 10 dict begin
+newpath 4431 2353 moveto
+4171 2353 lineto
+4171 2309 lineto
+4431 2309 lineto
+closepath
+stroke
+gsave 10 dict begin
+4301 2332 moveto (../src/cio-sig.sml) 225 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n82 -> n80
+newpath 4459 3100 moveto
+4501 2878 4354 2471 4312 2359 curveto
+stroke
+4310 2353 71.57 10.00 5.00 arrowhead
+newpath 4072 3848 moveto
+4140 3750 4411 3348 4459 3100 curveto
+stroke
+
+%	n81
+gsave 10 dict begin
+newpath 4431 3122 moveto
+4085 3122 lineto
+4085 3078 lineto
+4431 3078 lineto
+closepath
+stroke
+gsave 10 dict begin
+4258 3101 moveto (../src/trace-cml-sig.sml) 312 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n82 -> n81
+newpath 4063 3848 moveto
+4091 3738 4218 3255 4250 3129 curveto
+stroke
+4252 3122 105.95 10.00 5.00 arrowhead
+
+%	n79 -> n78
+newpath 3565 2309 moveto
+3621 2199 3865 1716 3928 1590 curveto
+stroke
+3932 1583 119.74 10.00 5.00 arrowhead
+
+%	n80 -> n78
+newpath 4291 2309 moveto
+4240 2199 4015 1716 3956 1590 curveto
+stroke
+3953 1583 66.80 10.00 5.00 arrowhead
+
+%	signature IO
+gsave 10 dict begin
+gsave 10 dict begin
+4267 1562 moveto (signature IO) 168 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n80 -> signature IO
+gsave 10 dict begin
+dotted
+newpath 4300 2309 moveto
+4295 2199 4274 1716 4268 1590 curveto
+stroke
+4268 1583 90.00 10.00 5.00 arrowhead
+end grestore
+
+%	n81 -> n78
+newpath 4253 3078 moveto
+4218 2906 3989 1787 3949 1590 curveto
+stroke
+3948 1583 81.87 10.00 5.00 arrowhead
+
+%	n81 -> n80
+newpath 4259 3078 moveto
+4265 2968 4292 2485 4300 2360 curveto
+stroke
+4300 2353 90.00 10.00 5.00 arrowhead
+
+%	n83 -> structure System
+gsave 10 dict begin
+dotted
+newpath 3573 3078 moveto
+3652 2982 3963 2598 4051 2353 curveto
+4094 2230 4146 915 4105 792 curveto
+stroke
+end grestore
+
+%	n83 -> structure IO
+gsave 10 dict begin
+dotted
+newpath 3536 3078 moveto
+3448 2968 3061 2485 2961 2360 curveto
+stroke
+2955 2353 49.40 10.00 5.00 arrowhead
+end grestore
+
+%	n83 -> structure String
+gsave 10 dict begin
+dotted
+newpath 3544 3078 moveto
+3495 2968 3281 2485 3226 2360 curveto
+stroke
+3223 2353 66.80 10.00 5.00 arrowhead
+end grestore
+
+%	n83 -> n79
+newpath 3554 3078 moveto
+3554 2968 3554 2485 3554 2360 curveto
+stroke
+3554 2353 90.00 10.00 5.00 arrowhead
+
+%	n83 -> n80
+newpath 3576 3078 moveto
+3683 2967 4158 2478 4275 2358 curveto
+stroke
+4279 2353 128.66 10.00 5.00 arrowhead
+
+%	structure ByteArray
+gsave 10 dict begin
+gsave 10 dict begin
+3887 2332 moveto (structure ByteArray) 270 34.00 -0.50 alignedtext
+end grestore
+end grestore
+
+%	n83 -> structure ByteArray
+gsave 10 dict begin
+dotted
+newpath 3564 3078 moveto
+3611 2968 3820 2485 3874 2360 curveto
+stroke
+3877 2353 113.20 10.00 5.00 arrowhead
+end grestore
+
+%	n85 -> n78
+newpath 2749 3078 moveto
+2781 2971 2923 2507 3079 2309 curveto
+3279 2051 3770 1687 3907 1587 curveto
+stroke
+3912 1583 141.34 10.00 5.00 arrowhead
+
+%	n85 -> structure System
+gsave 10 dict begin
+dotted
+newpath 2745 3078 moveto
+2755 2978 2794 2571 2804 2353 curveto
+2815 2089 2650 1770 2811 1561 curveto
+stroke
+end grestore
+
+%	n85 -> n84
+newpath 2733 3078 moveto
+2682 2968 2458 2485 2400 2360 curveto
+stroke
+2397 2353 66.80 10.00 5.00 arrowhead
+
+%	n85 -> structure List
+gsave 10 dict begin
+dotted
+newpath 2741 3078 moveto
+2731 2968 2690 2485 2679 2360 curveto
+stroke
+2678 2353 81.87 10.00 5.00 arrowhead
+end grestore
+
+%	n85 -> structure SMLofNJ
+gsave 10 dict begin
+dotted
+newpath 2723 3078 moveto
+2625 2967 2189 2478 2081 2358 curveto
+stroke
+2077 2353 51.34 10.00 5.00 arrowhead
+end grestore
+
+%	n85 -> n79
+newpath 2766 3078 moveto
+2882 2967 3398 2478 3525 2358 curveto
+stroke
+3530 2353 135.00 10.00 5.00 arrowhead
+endpage
+grestore
+%%PageTrailer
+%%Trailer
+%%Pages: 1
+end
+restore
+%%EOF

@@ -1,0 +1,152 @@
+(*
+ * sources.cm: Root description file for CM
+ *
+ *   Copyright (c) 1995 by AT&T Bell Laboratories
+ *
+ * author: Matthias Blume (blume@cs.princeton.edu)
+ *)
+Group
+
+	structure CM
+	structure CMB
+	structure CMR
+
+	signature CMTOOLS
+	signature COMPILATION_MANAGER
+
+	signature NOWEB_SOURCE
+	structure NowebSource
+
+is
+
+	(* global configuration and parameterization *)
+	config/config.sml
+
+	(* Generating DOT specifications to draw dependency graphs *)
+	dot/dot.sml
+	dot/dot.sig
+	dot/gen-dot.sml
+	dot/gen-dot.sig
+
+	(* Dependency analysis (sml-files, groups, ...) *)
+	analysis/imp-exp.sig
+	analysis/imp-exp.sml
+	analysis/group-dag.sig
+	analysis/group-dag.sml
+	analysis/sys-dag.sig
+	analysis/sys-dag.sml
+	analysis/traversal.sig
+	analysis/traversal.sml
+
+	(*
+	 * dealing with various types of sources,
+	 * in particular with SML files...
+	 *)
+	srctypes/fname-rules.sig
+	srctypes/fname-rules.sml
+	srctypes/smlsource.sig
+	srctypes/smlsource.sml
+	srctypes/lexsource.sml
+	srctypes/yaccsource.sml
+	srctypes/burgsource.sml
+	srctypes/rcssource.sml
+
+	(* Norman Ramsey's Noweb support *)
+# if defined(RUN_NOWEB)
+	noweb/nwsource.sml@noweb/nwsource.nw
+	noweb/nwadd.sml@noweb/nwsource.nw
+# else
+	noweb/nwsource.sml
+	noweb/nwadd.sml
+# endif
+
+	(* our own local concept of symbols *)
+	modname/moduleName.sig
+	modname/moduleName.sml
+
+	(* dealing with SML declarations *)
+	decl/convert.sig
+	decl/convert.sml
+	decl/decl.sig
+	decl/decl.sml
+	decl/moddecl.sig
+	decl/moddecl.sml
+
+	(* entity description *)
+	entity/lexer.sig
+	entity/lexer.sml
+	entity/description.sig
+	entity/description.sml
+
+	(* compiling, binary files, ... *)
+	compile/cunit.sig
+	compile/cunit.sml
+
+	compile/iid.sig
+	compile/iid.sml
+
+	(* interface to base system *)
+	sys/sources.cm
+
+	(* various utilities *)
+	util/sources.cm
+
+	(* making schedules from dependency graphs *)
+	sched/linear.sig
+	sched/linear.sml
+	sched/lists.sig
+	sched/lists.sml
+	sched/gen-lists.sig
+	sched/gen-lists.sml
+	sched/recompile.sig
+	sched/recompile.sml
+
+	(* driving the analysis/traversal, controlling verbosity... *)
+	driver/driver.sig
+	driver/driver.sml
+	driver/control.sig
+	driver/control.sml
+
+	(* CM autoloader *)
+	driver/autoload.sml
+	driver/autoload.sig
+
+	(* handling of architecture names *)
+	arch/arch.sig
+	arch/arch.sml
+	arch/symval.sig
+	arch/symval.sml
+
+	(* make a whole from the parts *)
+	cm/cm.sig
+	cm/cm.sml
+	cm/cleanup.sig
+	cm/cleanup.sml
+	cm/link.sml
+
+	cm/batch.sig
+	cm/batch.sml
+
+	cm/retarget.sml
+
+	cm/complain.sig
+	cm/complain.sml
+
+	(* `future' primitives for parallel make *)
+	futures/sources.cm
+
+	(* for testbed *)
+	sched/prune.sig
+	sched/prune.sml
+
+	tools/tools.sig
+	tools/tools.sml
+
+	(* making systems loadable stand-alone *)
+	standalone/standalone.sig
+	standalone/standalone.sml
+	standalone/gen-standalone.sig
+	standalone/gen-standalone.sml
+
+	(* timing statistics *)
+	stats/sources.cm

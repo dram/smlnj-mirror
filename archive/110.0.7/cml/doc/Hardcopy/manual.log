@@ -1,0 +1,194 @@
+This is TeX, Version 3.14159 (Web2c 7.0) (format=latex 97.4.30)  3 SEP 1998 16:15
+**manual
+(manual.tex
+LaTeX2e <1996/12/01>
+(/home/jhr/SGML/ML-Doc/lib/LaTeX/mldoc-book.cls
+Document Class: mldoc-book 1998/08/12
+(/opt/texk-7.0/lib/texmf/tex/latex/base/ifthen.sty
+Package: ifthen 1996/08/02 v1.0m Standard LaTeX ifthen package (DPC)
+)
+
+! LaTeX Error: File `prelim2e.sty' not found.
+
+Type X to quit or <RETURN> to proceed,
+or enter new name. (Default extension: sty)
+
+Enter file name: 
+(/home/jhr/papers/lib/macros/code.sty)
+(/opt/texk-7.0/lib/texmf/tex/latex/base/book.cls
+Document Class: book 1996/10/31 v1.3u Standard LaTeX document class
+(/opt/texk-7.0/lib/texmf/tex/latex/base/bk11.clo
+File: bk11.clo 1996/10/31 v1.3u Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@chapter=\count80
+\c@section=\count81
+\c@subsection=\count82
+\c@subsubsection=\count83
+\c@paragraph=\count84
+\c@subparagraph=\count85
+\c@figure=\count86
+\c@table=\count87
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/home/jhr/SGML/ML-Doc/lib/LaTeX/mldoc.sty
+\twiddlebox=\box26
+))
+(/opt/texk-7.0/lib/texmf/tex/latex/packages/psnfss/times.sty
+Package: times 1997/01/23 6.0 Times PSNFSS2e package
+) (manual.aux)
+\openout1 = `manual.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 6.
+LaTeX Font Info:    ... okay on input line 6.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 6.
+
+(/opt/texk-7.0/lib/texmf/tex/latex/fonts/adobe/times/ot1ptm.fd
+File: ot1ptm.fd 1997/09/30 Fontinst v1.6 font definitions for OT1/ptm.
+) (refman.tex
+(basics.tex
+Chapter 1.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <20.74> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <24.88> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1.
+(porting.tex
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14.4> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 4.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <10.95> on input line 11.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 11.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 11.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 12.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 13.
+ (/opt/texk-7.0/lib/texmf/tex/latex/fonts/adobe/courier/ot1pcr.fd
+File: ot1pcr.fd 1997/09/30 Fontinst v1.6 font definitions for OT1/pcr.
+)
+[1
+
+
+])) (core-cml.tex [2]
+Chapter 2.
+(cml.tex
+LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 7.
+LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <10> not available
+(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 13.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 15.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 15.
+
+Overfull \hbox (15.95325pt too wide) in paragraph at lines 19--20
+[]\OT1/pcr/b/n/10 val \OT1/pcr/m/n/10 ver-sion: $\OMS/cmsy/m/n/10 f[] \OT1/cmr/
+m/n/10 : []\OML/cmm/m/it/10 ;  [] \OT1/cmr/m/n/10 : [] []\OML/cmm/m/it/10 ;  []
+ \OT1/cmr/m/n/10 : []\OMS/cmsy/m/n/10 g$ 
+ []
+
+[3
+
+]
+LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <10> not available
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 144.
+ [4] [5] [6]
+Overfull \hbox (8.66603pt too wide) in paragraph at lines 269--270
+[]\OT1/pcr/m/n/10 choose []  \OT1/ptm/m/n/10.95 con-structs an event value that
+ rep-re-sents the non-deterministic choice
+ []
+
+[7]
+Overfull \hbox (4.45377pt too wide) in paragraph at lines 324--324
+[]                \OT1/pcr/m/n/10 year = 2000, month = Date.Jan, day = 0, 
+ []
+
+) (sync-var.tex [8] [9
+
+] [10] [11]) (mailbox.tex [12] [13
+
+]) (os.tex [14]
+
+LaTeX Warning: Reference `sig-OS' on page 15 undefined on input line 31.
+
+
+LaTeX Warning: Reference `str-CML_OS.Process' on page 15 undefined on input lin
+e 31.
+
+
+LaTeX Warning: Reference `str-CML_OS.IO' on page 15 undefined on input line 31.
+
+
+) (os-process.tex [15
+
+]
+
+LaTeX Warning: Reference `str-CML_OS.Process' on page 16 undefined on input lin
+e 30.
+
+) (os-io.tex [16
+
+]
+Overfull \hbox (49.8122pt too wide) in paragraph at lines 19--20
+[]\OT1/pcr/b/n/10.95 val \OT1/pcr/m/n/10.95 pollEvt: $[] [] \OMS/cmsy/m/n/10.95
+ ! [] [] []$[]| [] 
+ []
+
+
+LaTeX Warning: Reference `str-CML_OS.IO' on page 17 undefined on input line 28.
+
+
+)) (cml-lib.tex [17
+
+] [18
+
+]
+Chapter 3.
+(multicast.tex [19]) (trace-cml.tex [20]
+Overfull \hbox (2.51875pt too wide) in paragraph at lines 9--10
+[]\OT1/ptm/m/n/10.95 The \OT1/pcr/m/n/10 Trace-CML \OT1/ptm/m/n/10.95 also pro-
+vides hooks to de-tect un-ex-pected ter-mi-na-tion of threads.
+ []
+
+
+Overfull \hbox (39.0338pt too wide) in paragraph at lines 19--27
+[]\OT1/pcr/b/n/10 datatype \OT1/pcr/m/n/10 trace[]to[]
+ []
+
+[21
+
+]
+Overfull \hbox (33.65236pt too wide) in paragraph at lines 89--96
+[]\OT1/pcr/b/n/10.95 datatype \OT1/pcr/m/n/10.95 trace[]to[][] 
+ []
+
+[22]))) [23] (manual.aux)
+
+LaTeX Warning: There were undefined references.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 711 strings out of 10980
+ 8433 string characters out of 73634
+ 53087 words of memory out of 250001
+ 3575 multiletter control sequences out of 10000+0
+ 13560 words of font info for 41 fonts, out of 100000 for 500
+ 14 hyphenation exceptions out of 1000
+ 28i,7n,23p,805b,483s stack positions out of 300i,100n,500p,3000b,4000s
+
+Output written on manual.dvi (23 pages, 42356 bytes).

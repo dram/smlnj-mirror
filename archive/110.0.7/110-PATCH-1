@@ -1,0 +1,39 @@
+
+			Standard ML of New Jersey
+		    Version 110.0.1, January 12, 1998
+		    ---------------------------------
+
+This is the first patch release for version 110.  It fixes a few serious bugs
+that slipped through in version 110, as well as adding a couple of new features.
+
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+
+891. mllex state names not as general as advertized
+997. lexgen doesn't check for unmatched quotes
+1209. casting polymorphic functions and abstract types
+1318. incorrect sigmatch error in higher-order functor
+1320. path name syntax used by cm when compiling to x86
+1322. "Compiler bug: LambdaType: wrong TCs in tc_select"
+1325. raises exception in compiler while trying to print error message
+1326. nonexhaustive match failure in pretty printer
+1327. tycStamp secondary error
+
+
+Other changes
+-------------
+
+  - It is now possible to turn GC messages off and on, by using the function
+    SMLofNJ.Internals.GC.messages
+
+  - The implementation of OS.IO.poll has been fixed to agree with the basis
+    specification (order of results matches order of arguments).
+
+  - A potential infinite loop in runtime/c-libs/posix-filesys/getcwd.c was
+    fixed.
+
+  - Added a clear operation to the Queue and various hash table structures in
+    the SML/NJ library.
+

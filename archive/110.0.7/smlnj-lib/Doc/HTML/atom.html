@@ -1,0 +1,83 @@
+<!-- atom.html -->
+
+<!-- COPYRIGHT (c) 1996 AT\|@AMP\|T Bell Laboratories. -->
+
+<HTML>
+<HEAD>
+  <TITLE>The ATOM signature</TITLE>
+
+</HEAD>
+<BODY>
+<H1><A NAME="top-of-document">The SML/NJ Library Reference Manual</A></H1>
+<HR>
+
+<H3>The <CODE>ATOM</CODE> signature</H3>
+<P>
+The Atom structure provides hashed strings with fast equality testing. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="ATOM:SIG:SPEC"><CODE>ATOM</CODE></A><BR>
+<B>structure </B><A NAME="Atom:STR:SPEC"><CODE>Atom</CODE></A><B> : </B>ATOM<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A HREF="#SIG:ATOM.atom:TY" NAME="SIG:ATOM.atom:TY:SPEC">atom</A><BR>
+<B>val</B> <A HREF="#SIG:ATOM.atom:VAL" NAME="SIG:ATOM.atom:VAL:SPEC">atom</A> <B>:</B> string -&gt; atom         <BR>
+<B>val</B> <A HREF="#SIG:ATOM.toString:VAL" NAME="SIG:ATOM.toString:VAL:SPEC">toString</A> <B>:</B> atom -&gt; string         <BR>
+<B>val</B> <A HREF="#SIG:ATOM.sameAtom:VAL" NAME="SIG:ATOM.sameAtom:VAL:SPEC">sameAtom</A> <B>:</B> (atom * atom) -&gt; bool         <BR>
+<B>val</B> <A HREF="#SIG:ATOM.compare:VAL" NAME="SIG:ATOM.compare:VAL:SPEC">compare</A> <B>:</B> (atom * atom) -&gt; order         <BR>
+<B>val</B> <A HREF="#SIG:ATOM.hash:VAL" NAME="SIG:ATOM.hash:VAL:SPEC">hash</A> <B>:</B> atom -&gt; word         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+  <DT> <A NAME="SIG:ATOM.atom:TY"><CODE><B>type</B> atom</CODE></A>
+  <DD>
+    Atoms are hashed strings that support fast equality testing.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:ATOM.atom:VAL"><CODE>atom <VAR>s</VAR>           </CODE></A>
+  <DD>
+    creates an atom out of the string <VAR>s</VAR>.    Two calls to atom with the same argument will    return the same atom.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:ATOM.toString:VAL"><CODE>toString <VAR>at</VAR>           </CODE></A>
+  <DD>
+    returns the string that the atom <VAR>at</VAR> was created from.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:ATOM.sameAtom:VAL"><CODE>sameAtom (<VAR>at1</VAR>, <VAR>at2</VAR>)           </CODE></A>
+  <DD>
+    returns <CODE>true</CODE>, if the two atoms are the same.    This is a constant-time equality test.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:ATOM.compare:VAL"><CODE>compare (<VAR>at</VAR>, <VAR>at2</VAR>)           </CODE></A>
+  <DD>
+    returns the relative order of the two atoms according to some    internal ordering.    Note that this is <EM>not</EM>
+     the lexical ordering of the string    representations of the atoms.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:ATOM.hash:VAL"><CODE>hash <VAR>at</VAR>           </CODE></A>
+  <DD>
+    returns a hash value for the atom <VAR>at</VAR>.   
+    <BR>
+    <BR>
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+  AtomMap, AtomSet, AtomTable
+</BLOCKQUOTE>
+<HR>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="atom.html">TOP</A>
+   | <A HREF="">Parent</A> | <A HREF="">Root</A>
+   ]</B>
+<P>
+<I>Last Modified May 29, 1996</I><BR>
+Copyright &copy; 1996 AT&amp;T Research <BR>
+<HR>
+</BODY>
+</HTML>

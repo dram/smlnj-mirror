@@ -1,0 +1,186 @@
+			Standard ML of New Jersey
+	     Version 110, Patch 7 (110.0.7), September 28, 2000
+	     --------------------------------------------------
+
+This is Version 110.0.7 of Standard ML of New Jersey, also known as Version 110,
+Patch 7.  The primary purpose of this patch version is to fix a bug in the
+implementation of signals that caused problems in CML, but a number of other
+bug fixes are included, as well as some enhancements.  Specifically, the SML/NJ
+Library has had a number of additions.  For details of changes, improvements,
+and bug fixes for this and previous 110 patch versions, read the 110-PATCH-HISTORY
+file.
+
+Version 110 implements the SML '97 definition, including the new Basis
+library, with a few minor omissions and discrepancies that are
+documented in the SML '97 Conversion Guide available at:
+
+  http://cm.bell-labs.com/cm/cs/what/smlnj/doc/Conversion/index.html
+
+Version 110 has been thoroughly tested and we believe it to be fairly
+free of serious bugs and instabilities.  As usual, the bug lists are
+available at:
+
+  ftp://ftp.research.bell-labs.com/dist/smlnj/working/bugs
+
+We strongly urge that those who are still using SML/NJ 0.93 and those
+who have been using intermediate working versions should move to
+Version 110.
+
+The Version 110 distribution includes:
+  * the interactive SML/NJ compiler itself
+  * CM - an itegrated compilation manager supporting separate
+	compilation, automatic dependency analysis, autoloading
+  * The Standard ML of New Jersey Library (smlnj-lib)
+  * CML - Concurrent ML
+  * eXene - an elegant interface to X11 (based on CML)
+  * SMLNJ-C library for interfacing to C code
+  * Visible Compiler facilities for access to compiler internals
+  * A programming toolset: ML-Lex, ML-Yacc, ML-Burg, execution profiler
+
+Systems Supported
+-----------------
+SML/NJ 110 has been tested on these machine/OS combinations:
+
+   Sparc:  Solaris 5.5.1 through Solaris 8
+   Alpha:  Digital Unix 4.0
+   MIPS (R10000):  IRIX 6.5
+   IA-32 (Pentium):  Solaris 8, Linux, FreeBSD 3.2, Win98, WinNT, Win2000
+   HPPA: HPUX 10.1
+
+The IBM RS6000/AIX[3.2, 4.1] platform should also be supported, but we
+no longer have such a machine to test on.  The system may also run
+under Sparc/SunOS 4.x and MIPS/IRIX 5.x,6.[2-4], but hasn't been
+tested on those platforms.  Please let us know if you can successfully
+install on a configuration not listed above.
+
+We recommend running SML/NJ on machines with at least 32MB of physical
+ram, which will be adaquate for small projects and classroom exercises.
+As usual, larger projects will run better with more ram.
+
+There is a performance issue that may affect users running on machines
+with small swap spaces.  Because of new optimizations performed by the
+compiler and a conservative strategy for allocating virtual memory in
+the runtime system, Version 110 can require significantly more
+_virtual_ memory than was used by 0.93, particularly during
+compilation of large source files, while at the same time using less
+_physical_ memory than 0.93.  This means that if you have a small swap
+space allocated on your machine, you may need to increase the
+allocation in order to compile or run some large programs.  A future
+version of the runtime system will implement a tighter allocation
+scheme that will reduce virtual memory usage.
+
+Documentation
+-------------
+The documentation for Version 110 is available at our web site
+
+  http://cm.bell-labs.com/cm/cs/what/smlnj
+
+including nearly final documentation of the SML '97 Basis library and
+an SML '97 Conversion Guide that describes language changes but is
+still "under construction" at the moment.  Work is continuing to improve
+the content and organization of the documentation, so suggestions are
+welcome.
+
+Distribution Files
+------------------
+The Version 110 distribution files are available at
+
+  ftp://ftp.research.bell-labs.com/dist/smlnj/release/110/
+
+with mirror sites:
+
+  ftp://rodin.stanford.edu/pub/smlnj/release/110/
+  ftp://flint.cs.yale.edu/pub/smlnj/release/110/
+  ftp://ftp.diku.dk/pub/smlnj/release/110/
+  ftp://ftp.cl.cam.ac.uk/MIRRORED/smlnj/release/110/
+  ftp://sunsite.doc.ic.ac.uk/computing/programming/languages/ml/smlnj/release/110/
+  ftp://ftp.ntua.gr/pub/lang/smlnj/release/110/
+  ftp://compiler.kaist.ac.kr/pub/sml/release/110/
+
+The distribution consists of the following files (most of the files
+are in Unix compressed tar format, indicated by the ".tar.Z" suffix).
+
+  NOTE: with this patch release, we have dropped the "110-" prefix on the
+  source and binary tarballs making up the distribution.  This brings the
+  release practice in line with recent working versions.
+
+110-README                   1 KB   Read Me (this file)
+110-PATCH-HISTORY	     1 KB   Bug fixes and changes in 110 patch versions
+HISTORY                     96 KB   History of previous working versions
+INSTALL                      3 KB   How to install
+LICENCE			     1 KB   SML/NJ License
+bin.alpha32-unix.tar.Z    4394 KB   for DEC Alpha, Digital Unix 4.0
+bin.alpha32x-unix.tar.Z   4399 KB   for DEC Alpha, OSF/1 3.2 and older
+bin.hppa-unix.tar.Z       4615 KB   for HPPA processors
+bin.mipseb-unix.tar.Z     4188 KB   for Silicon Graphics machines
+bin.rs6000-unix.tar.Z     4317 KB   for IBM Power processors
+bin.sparc-unix.tar.Z      4184 KB   for SPARC processors
+bin.x86-unix.tar.Z        3440 KB   for Intel Pentium running UNIX.
+bin.x86-win32.tar.Z       3349 KB   for Intel Pentium running Windows.
+cm.tar.Z                   524 KB   Compilation Manager
+cml.tar.Z                  154 KB   Concurrent ML
+config.tar.Z                10 KB   Installation scripts
+eXene.tar.Z               1079 KB   eXene window system
+ml-burg.tar.Z               95 KB   Burg code-generator generator
+ml-lex.tar.Z                44 KB   ML-Lex scanner generator
+ml-yacc.tar.Z              148 KB   ML-Yacc parser generator
+runtime.tar.Z              588 KB   Runtime system (C source code)
+sml-nj.tar.Z              1572 KB   SML/NJ compiler source code
+smlnj-c.tar.Z              102 KB   ML-to-C library
+smlnj-lib.tar.Z            344 KB   SML of NJ Library
+smlnj.exe                 6565 KB   Self-installing EXE for Win '95 and NT
+RPMS/			            Linux rpm packages
+
+For manual installation, you will need at least the config.tar.Z,
+runtime.tar.Z, the bin.* files for the machines on which you
+intend to install the software, and the source files for the
+components (CM, ML-Lex, ML-Yacc, CML, eXene) that you want installed
+(these are defined in the config/targets file).  The file smlnj.exe
+can be used to automatically install SML/NJ on Windows 95 and NT, and
+the rpm package RPMS/smlnj-110.0.7-0.i386.rpm can be used to install
+under Linux (tested under Red Hat Linux 6.1).
+
+More detailed installation instructions are in the INSTALL file or
+at the web page
+
+  http://cm.bell-labs.com/cm/cs/what/smlnj/install.html
+
+
+News about SML/NJ
+-----------------
+New releases of our software are announced in the netnews group comp.lang.ml.
+
+
+SML/NJ Web Site
+---------------
+The main SML/NJ web site is at URL
+
+  http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+This web site has news, documentation, and links to resources like
+on-line tutorials, libraries, utilities, and ML-related projects.
+
+
+License
+-------
+Standard ML of New Jersey is distributed free of charge and with no
+warranty.  You may use, copy, modify, and distribute the software
+provided that you preserve the copyright notice and don't mention Bell
+Laboratories or Lucent Technologies in your advertising without prior
+written permission; see the LICENSE file for the legal language.
+
+
+Contact Info
+------------
+If you have general questions or comments, please email them to
+
+  sml-nj@research.bell-labs.com
+
+Bug reports should be sent to
+
+  sml-bugs@research.bell-labs.com
+
+using the bug report form.  Bug reports can also be submitted using our
+online bug form at
+
+  http://www.cs.princeton.edu/~appel/smlnj/bugform.cgi

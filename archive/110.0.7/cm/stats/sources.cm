@@ -1,0 +1,13 @@
+(*
+ * stats/sources.cm: timing statistics library
+ *
+ *   Copyright (c) 1997 by AT&T Bell Laboratories
+ *
+ * author: Matthias Blume (blume@cs.princeton.edu)
+ *)
+Library
+	signature STATS
+	structure Stats
+is
+	stats.sig
+	stats.sml

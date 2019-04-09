@@ -1,0 +1,327 @@
+\documentstyle{article}
+
+\author{Matthias Blume\\
+Department of Computer Science\\
+Princeton University}
+
+\title{{\bf CM}\\
+A Compilation Manager for SML/NJ\\
+{\em User Manual}}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+
+An overview.
+
+\section{Getting started}
+
+\subsection{A rudimentary entity description}
+
+For the casual user it is very easy to take advantage of {\em CM}.  Given a
+collection of {\sc Sml} source files one just needs to specify their names
+in a so-called {\em entity description file}.  For example, an entity
+comprised of files {\tt a.sml}, {\tt a.sig}, and {\tt main.sml} would be
+specified as
+
+\begin{verbatim}
+Group is
+      a.sml
+      a.sig
+      main.sml
+\end{verbatim}
+
+{\em CM}\/'s default behavior is to look for the entity description in a
+file named {\tt sources.cm}.  While it is possible to override the default
+it seems to be convenient to take advantage of its existence.  Filenames
+within {\tt sources.cm} (or any other entity description file) are either
+absolute filenames or filenames {\em relative to the directory the
+description file appears in}.
+
+\subsection{Admissible input language}
+
+Normally --- without {\em CM} --- the programmer would have to remember
+which order these files have to be processed in when loading them into an
+interactive {\em SML/NJ} session.  The order clearly depends upon the
+contents of these files, in particular upon the interrelationship between
+{\em imported} and {\em exported} identifiers.  With {\em CM} this is no
+longer necessary, since it automatically determines the correct ordering
+among source files.
+
+To make it possible to find a feasible ordering within a reasonable amount
+of time and to make sure that the resulting meaning of the program is the
+one the programmer had in mind there must be some restrictions placed on
+the admissible input language.
+
+\begin{enumerate}
+\item
+In each entity\footnote{An entity is the part of the program described by
+one particular entity description file.} and for each top-level identifier
+there can be at most one file in the entity containing definition's for
+this identifier.  However, there can be multiple definitions of the same
+name within the same file, because only the last one will count as a
+top-level definition.
+\item
+No source file can contain an {\bf open} declaration at top-level.  This is
+an important new restriction, which wasn't present before.  However, it
+must be noted that its absence in CM's predecessors is to be considered a
+bug.
+\item
+The program must not depend on the ordering of top-level side-effects,
+i.e. those which occur while the source files are being executed.  Note,
+that this restriction is not automatically enforced by {\em CM}, while the
+other ones are.
+\item
+{\em CM} only tracks {\bf signature}-, {\bf structure}-, {\bf functor}-,
+and {\bf funsig}-declarations.  This is not really a restriction, but one
+has to be aware of the fact that {\em CM} will miss dependencies created
+due to references to top-level {\bf val}-bindings etc.
+\end{enumerate}
+
+\subsection{Re-compilation and {\em make}}
+
+Once the entity description file has been set up and the sources are in
+place you must start an interactive {\em SML/NJ} session with {\em CM}
+loaded.  Usually this can be done by typing
+
+\begin{verbatim}
+sml-cm
+\end{verbatim}
+
+at the operating system's prompt.  This starts an ordinary interactive {\em
+SML/NJ} session with three additional predefined structures --- {\bf
+structure CM}, {\bf structure CMB}, and {\bf structure CMR}.  Unless you
+are modifying {\em SML/NJ}\/'s compiler sources you can focus on {\bf
+structure CM}.
+
+If your entity description file is named {\tt sources.cm}, then you
+can simply type
+
+\begin{verbatim}
+CM.make ();
+\end{verbatim}
+
+This will analyze your program and its interdependencies, determine an
+ordering among the various compile- and load-steps, and carry them out if
+necessary.  Provided there haven't been any errors or exceptions {\em CM}
+will introduce new top-level bindings afterwards.
+
+A similar command is
+
+\begin{verbatim}
+CM.recompile ();
+\end{verbatim}
+
+It performs the same analysis- and re-compilation-steps but avoids
+executing any of the compiled code.  The interactive top-level environment
+remains unaffected by {\tt CM.recompile ();}.
+
+\subsection{Transient and persistent by-products of the compilation}
+
+The most important by-products of compilation under {\em CM} are {\em
+object files}.  These are usually referred to as {\em bin-files} and
+contain machine code for the native architecture along with the
+accompanying information about changes to the static environment.
+
+In subsequent runs of {\tt CM.make ();} --- even after shutting down and
+restarting {\tt sml-cm} --- the compilation steps for source files which
+have a valid bin-file will be skipped.  Moreover, if you don't leave {\em
+CM}, then it won't even be necessary to re-load bin-files from the ambient
+file system.  {\em CM} uses an in-core cache for compiled units to avoid
+unnecessary input/output traffic.
+
+Bin-Files are stored in a sub-directory of the source file's directory.
+The name of this sub-directory is derived from the native machine
+architecture.  For example, on an Alpha workstation {\em CM} will store
+your bin-files in a directory called {\tt .alpha32}.
+
+Other by-products of {\em CM}\/'s work are the so-called {\em decl-files}.
+If nothing is known about a source file, then {\em CM} needs to parse it
+and extract all information relevant to dependency analysis.  The so
+obtained information is cached both in-core and in the file system to avoid
+repeatedly parsing the same file.  Decl-files are stored in a subdirectory
+called {\tt .depend}.
+
+\section{Concepts}
+
+{\em CM} is built around the concept of an {\em entity}.  Entities consist
+of collections of source files and are roughly divided into {\em groups}
+and {\em libraries}.  An associated {\em imports-from}---{\em exports-to}
+relation among entities arranges them into a {\em directed acyclic graph
+(DAG)}.  This relation is given {\em explicitely} by {\em entity
+descriptions}.
+
+{\em CM}\/'s task is to determine the per-source-file import--export
+relation. In doing so it takes advantage of the given per-entity relation.
+
+\subsection{Properties}
+
+But let's start by looking at the properties, which can be used to
+distinguish between different kinds of entities:
+
+\begin{description}
+
+\item[transparent] Definitions exported by a {\em transparent} entity are
+automatically re-exported by entities importing them, unless an explicit
+{\em export filter} prevents this.  Under certain conditions symbols
+defined by transparent entities are ultimately visible at the interactive
+top-level.
+
+\item[opaque] No definitions of an {\em opaque} entity will become visible
+at the interactive top-level.  Entities importing names from opque entities
+will not automatically re-export them. However, by including some or all of
+those names into the export filter of the importing entity one can
+explicitely force the re-export to take place. \\
+Entities are either {\em transparent} or opaque.
+
+\item[export filter] An explicitely given export filter limits the set of
+names exported by an entity.  If the export filter mentions a name which
+has been imported from another entity, then this name will be re-exported
+regardless of whether the other entity was {\em transparent} or {\em
+opaque} (see discussion below).
+
+\item[load-on-demand] Modules from {\em load-on-demand} entities are only
+incorporated into the final software system, if other parts of this system
+refer to them.
+
+\item[root] Some of the other properties do not mix well with an entity
+being used as the root of the dependency hierarchy.  In particular, opaque
+and load-on-demand entities\footnote{We will see that these two are really
+the same.} can't be used purposefully in this context, because
+load-on-demand will prevent loading anything at all while opaqueness will
+prevent making anything at all visible.\footnote{As a matter of fact, in
+{\em CM} you can use any entity as root entity: Under these special
+circumstances opaque or load-on-demand entities will be treated as being
+transparent and {\em load-always}.}
+
+\item[stability] Development on a {\em stable} entity has come to a
+(preliminary) conclusion --- the dependencies among sources of a stable
+entity are fixed, and the binaries do not change anymore.  This can be used
+to optimize {\em CM}\/'s work.
+
+\item[no sources] Provided the binary file and other supporting information
+is in place and up-to-date {\em CM} will not need to consult the contents
+of certain source files.  In fact, such source files do not even need to
+exist.  A special common case where this is guaranteed to be true is a {\em
+stable} entity.  Source files can be deleted to save disk space.
+
+\end{description}
+
+\subsection{Discussion}
+
+\subsubsection*{Symbol visibility}
+
+The description of {\em transparent} entities above purposefully omitted
+the exact set of conditions, which must be met in order for a symbol's
+definition to become visible at the interactive top-level.  When we just
+look at those rules alone, then they might seem to be chosen somewhat
+ad-hoc.  Therefore, let's discuss the intention which led us to chosing
+them before we are actually going to write them down.
+
+The purpose of every entity is to provide definitions of certain symbols to
+its {\em clients}.  A client is any direct ancestor of the given entity in
+the per-entity import--export relation.  The difference between different
+kinds of entities are largely determined by the way imported symbols are
+treated within clients.  Definitions of {\em transparent} entities will
+normally be re-exported by the client, while definitions of {\em opaque}
+entities generally will not.  {\em Export filters} can be used to modify
+this behavior at a symbol-by-symbol level.
+
+In order for a symbol to become visible at the top-level it must be
+re-exported along {\em some} path from the point if its definition all the
+way up to the root of the hierarchy.  Therefore, the general rule is: there
+must be at least one path from the definition of the symbol to the root of
+the hiearchy within the DAG defined by the per-entity import--export
+relation, which satisfies:
+\begin{itemize}
+\item every entity on this path must export this symbol;
+\item clients of opaque entities on the path\footnote{this means that both
+the opaque entity and the client are on the path} export the symbol {\em
+explicitely}, i.e. by including it into their export filters; and
+\item no entity along this path exports a different definition of the same
+symbol
+\end{itemize}
+
+\subsubsection*{Interconnections between properties}
+
+As hinted earlier it turns out that some of the properties must be treated
+as a unit rather than separately.
+
+{\em Opaque} entities should be {\em load-on-demand}, because otherwise we
+will waste precious system resources by loading modules, which can never be
+referenced.  It could be argued that garbage collection can take care of
+this problem, but the internal caching of {\em CM} will pose as an obstacle
+to the garbage collector.  Also, in addition to taking up memory resources
+one must consider the time spent compiling and loading such modules.
+
+Conversely, {\em load-on-demand} entities should be {\em opaque}.  If they
+were {\em transparent}, then we would be confronted with the question of
+whether only ``demanded'' parts or everything will become visible at the
+top-level.  In the former case the set of new top-level defintions would
+depend on the particular set of demands created by the software system,
+which in turn change with changes in the implementation.  In the latter
+case we can't avoid loading {\em everything}, because we can't predict
+which defintions will be used interactively.
+
+The {\em root} property is similarly linked to both {\em opaqueness} and
+{\em load-on-demand}.  This has already been explained in the previous
+section.
+
+On the other hand, {\em export filters}, {\em stability}, and the ability
+to overcome the {\em absence of sources} are relatively independend from
+the above and from each other.
+
+In conclusion we use the term {\em group} to denote {\em
+transparent} entities, the members of which are {\em always
+loaded}, while {\em opaque}, {\em load-on-demand} entities
+are called {\em libraries}.  Both groups and libraries can
+appear as the root of the dependency hierarchy, but
+libraries will be treated as if they were groups in this case.
+
+Source files from both groups and libraries can be missing,
+in particular if the entity is stable.  Groups {\em can} and
+libraries {\em must} have an explicit export filter.
+
+\section{Entity and their description files}
+
+An entity consists of a set of sources and a set of {\em
+sub-entities}.  The entity will be a client in the sense of
+the previous section's discussion of precisely those
+sub-entities.  Names exported by them can be referred to within
+sources of the entity.  It is necessary to require that
+
+\begin{itemize}
+\item the sets of exported names of the sub-entities are disjoint
+\item the sets of top-level names defined by each source are disjoint
+\end{itemize}
+
+Note that there {\em can} be multiple definitions of the same symbol, but
+they are confined to the case where a definition imported from a sub-entity
+is overridden within the client.
+
+Most sources maintained by {\em CM} will be written in {\sc Sml}, but
+sometimes we want to use program generators and other tools to compute the
+actual {\sc Sml} source from a source written in a different language.
+{\em CM}\/'s built-in dependency analyzer only understands {\sc Sml}, but
+it also provides hooks to run the appropriate tool should the {\sc Sml}
+source not be up-to-date.
+
+Currently there is support for the tools {\em ML-Yacc} --- a parser
+generator, {\em ML-Lex} --- a generator for lexical analyzers, and {\em
+ML-Burg} --- a code-generator-generator.
+
+Within entity description files one can associate source files with tools,
+but there are also suitable defaults which allow {\em CM} to infer the tool
+from the name of the source file.  This means that explicitly specified
+tool names will only occasionally be necessary.
+
+Sub-entities are specified by simply including the name of their respective
+description file into the set of sources.  A special built-in tool takes
+care of treating those files separately.\footnote{There are really {\em
+three} of those special tools, two of which have been included to provide
+some kind of backward compatibility to {\em SC}, which is {\em CM}\/'s
+precursor.}
+
+\end{document}

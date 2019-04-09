@@ -1,0 +1,136 @@
+<!-- uref.html -->
+
+<!-- COPYRIGHT (c) 1996 AT\|@AMP\|T Research. -->
+
+<HTML>
+<HEAD>
+  <TITLE>The UREF signature</TITLE>
+
+</HEAD>
+<BODY>
+<H1><A NAME="top-of-document">The SML/NJ Library Reference Manual</A></H1>
+<HR>
+
+<H3>The <CODE>UREF</CODE> signature</H3>
+<P>
+The UREF signature defines the interface to a union/find data type with ref-like interface. An implementation of this interface consists of the 
+<A HREF="uref.html#SIG:UREF.uref:TY:SPEC">uref</A> type constructor, with operations for creating a new uref, getting the contents of an element, checking for equality of two elements, and for joining two elements. The 
+<A HREF="uref.html#SIG:UREF.uref:TY:SPEC">uref</A> type is analogous to ref as expressed in the following table: 
+<TABLE COLS=3>
+  <COL ALIGN=LEFT><COL ALIGN=CENTER><COL ALIGN=CENTER>
+  <TBODY>
+    <TR><TH VALIGN=TOP>  <TH COLSPAN=2 VALIGN=TOP>Type   
+    <TR><TH VALIGN=TOP>Operation <TH VALIGN=TOP><CODE>'a ref</CODE>  <TH VALIGN=TOP><CODE>'a uref</CODE>   
+    <TR><TD VALIGN=TOP>Introduction     <TD VALIGN=TOP>ref     <TD VALIGN=TOP><A HREF="uref.html#SIG:UREF.uRef:VAL:SPEC"
+        >uRef</A>   
+    <TR><TD VALIGN=TOP>Elimination     <TD VALIGN=TOP>!     <TD VALIGN=TOP><A HREF="uref.html#SIG:UREF.!!:VAL:SPEC">!!</A>
+           
+    <TR><TD VALIGN=TOP>Equality     <TD VALIGN=TOP>=     <TD VALIGN=TOP><A HREF="uref.html#SIG:UREF.equal:VAL:SPEC">equal
+        </A>   
+    <TR><TD VALIGN=TOP>Update     <TD VALIGN=TOP>:=     <TD VALIGN=TOP><A HREF="uref.html#SIG:UREF.update:VAL:SPEC">update
+        </A>   
+    <TR><TD VALIGN=TOP>Union     <TD VALIGN=TOP>n.a.     <TD VALIGN=TOP><A HREF="uref.html#SIG:UREF.union:VAL:SPEC">union
+        </A>, <A HREF="uref.html#SIG:UREF.link:VAL:SPEC">link</A>,         <A HREF="uref.html#SIG:UREF.unify:VAL:SPEC">unify
+        </A>
+  </TBODY>
+</TABLE>
+ The main difference between references and urefs is in the <A HREF="uref.html#SIG:UREF.union:VAL:SPEC">union</A> operation. Without 
+<A HREF="uref.html#SIG:UREF.union:VAL:SPEC">union</A>, references and urefs can be used interchangebly (except in pattern matching). An assignment to a reference changes only the contents of the reference, but not the reference itself. In particular, any two references that were different (in the sense of the equality predicate = returning 
+<CODE>false</CODE>) before an assignment will still be so. Their contents may or may not be equal after the assignment, though. In contrast, applying the union operations (
+<A HREF="uref.html#SIG:UREF.link:VAL:SPEC">link</A>, <A HREF="uref.html#SIG:UREF.union:VAL:SPEC">union</A>, <A HREF="uref.html#SIG:UREF.unify:VAL:SPEC"
+>unify</A>) to two uref elements makes the two elements themselves equal (in the sense of the predicate <A HREF="uref.html#SIG:UREF.equal:VAL:SPEC"
+>equal</A> returning <CODE>true</CODE>). As a consequence their contents will also be identical: in the case of <A HREF="uref.html#SIG:UREF.link:VAL:SPEC"
+>link</A> and <A HREF="uref.html#SIG:UREF.union:VAL:SPEC">union</A> it will be the contents of one of the two unioned elements, in the case of 
+<A HREF="uref.html#SIG:UREF.unify:VAL:SPEC">unify</A> the contents is determined by a supplied unification function. 
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="UREF:SIG:SPEC"><CODE>UREF</CODE></A><BR>
+<B>structure </B><A NAME="SimpleURef
+  :STR:SPEC"><CODE>SimpleURef
+  </CODE></A><B> : </B>UREF<BR>
+<B>structure </B><A NAME="URef
+  :STR:SPEC"><CODE>URef
+  </CODE></A><B> : </B>UREF<BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> 'a <A HREF="#SIG:UREF.uref:TY" NAME="SIG:UREF.uref:TY:SPEC">uref</A><BR>
+<B>val</B> <A HREF="#SIG:UREF.uRef:VAL" NAME="SIG:UREF.uRef:VAL:SPEC">uRef</A> <B>:</B> 'a -&gt; 'a uref         <BR>
+<B>val</B> <A HREF="#SIG:UREF.equal:VAL" NAME="SIG:UREF.equal:VAL:SPEC">equal</A> <B>:</B> ('a uref * 'a uref) -&gt; bool         <BR>
+<B>val</B> <A HREF="#SIG:UREF.!!:VAL" NAME="SIG:UREF.!!:VAL:SPEC">!!</A> <B>:</B> 'a uref -&gt; 'a         <BR>
+<B>val</B> <A HREF="#SIG:UREF.update:VAL" NAME="SIG:UREF.update:VAL:SPEC">update</A> <B>:</B> ('a uref * 'a) -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:UREF.unify:VAL" NAME="SIG:UREF.unify:VAL:SPEC">unify</A> <B>:</B> (('a * 'a) -&gt; 'a) -&gt; ('a uref * 'a uref) -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:UREF.union:VAL" NAME="SIG:UREF.union:VAL:SPEC">union</A> <B>:</B> ('a uref * 'a uref) -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:UREF.link:VAL" NAME="SIG:UREF.link:VAL:SPEC">link</A> <B>:</B> ('a uref * 'a uref) -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+  <DT> <A NAME="SIG:UREF.uref:TY"><CODE><B>type</B> 'a uref</CODE></A>
+  <DD>
+    The type constructor for union/find references.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:UREF.uRef:VAL"><CODE>uRef <VAR>a</VAR>           </CODE></A>
+  <DD>
+    creates a new, distinct, uref cell.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:UREF.equal:VAL"><CODE>equal (<VAR>ur1</VAR>, <VAR>ur2</VAR>)           </CODE></A>
+  <DD>
+    returns <CODE>true</CODE> if and only if <VAR>ur1</VAR> and <VAR>ur2</VAR> are either    made by the same call to <A
+     HREF="uref.html#SIG:UREF.uRef:VAL:SPEC">uRef</A>, or if they have been    unioned by a call to <A HREF="uref.html#SIG:UREF.unify:VAL:SPEC"
+    >unify</A>, <A HREF="uref.html#SIG:UREF.union:VAL:SPEC">union</A> or <A HREF="uref.html#SIG:UREF.link:VAL:SPEC">link
+    </A>.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:UREF.!!:VAL"><CODE>!! <VAR>ur</VAR>           </CODE></A>
+  <DD>
+    returns the contents of <VAR>ur</VAR>.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:UREF.update:VAL"><CODE>update (<VAR>ur</VAR>, <VAR>x</VAR>)           </CODE></A>
+  <DD>
+    updates the contents of <VAR>ur</VAR> to be <VAR>x</VAR>.    This update affects all urefs that have been unioned with 
+    <VAR>ur</VAR>.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:UREF.unify:VAL"><CODE>unify <VAR>f</VAR> (<VAR>ur1</VAR>, <VAR>ur2</VAR>)           </CODE></A>
+  <DD>
+    makes <VAR>ur1</VAR> and <VAR>ur2</VAR> equal, and updates their value    to be the result of <CODE>f(<A HREF="uref.html#SIG:UREF.!!:VAL:SPEC">!!</A><VAR>ur1</VAR>, <A HREF="uref.html#SIG:UREF.!!:VAL:SPEC">!!</A><VAR>ur2</VAR>)</CODE>.    The function 
+    <VAR>f</VAR> is evaluated prior to unioning the urefs,    so if it raises an exception, no union takes place.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:UREF.union:VAL"><CODE>union (<VAR>ur1</VAR>, <VAR>ur2</VAR>)           </CODE></A>
+  <DD>
+    makes <VAR>ur1</VAR> and <VAR>ur2</VAR> equal; the contents of the unioned    element is the contents of one of <VAR>
+    ur1</VAR> and <VAR>ur2</VAR> before    the <CODE>union</CODE> operation.    After unioning, the elements <VAR>ur1</VAR>
+     and <VAR>ur2</VAR> will be    congruent in the sense that they are interchangeable in any context.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:UREF.link:VAL"><CODE>link (<VAR>ur1</VAR>, <VAR>ur2</VAR>)           </CODE></A>
+  <DD>
+    makes <VAR>ur1</VAR> and <VAR>ur2</VAR> equal; the contents of the linked    element is the contents of <VAR>ur2</VAR>
+     before the <CODE>link</CODE> operation.   
+    <BR>
+    <BR>
+</DL>
+<HR>
+<H4>Discussion</H4>
+<P>
+There are two implementations of the <A HREF="uref.html#UREF:SIG:SPEC">UREF</A> signature provided by     the library: the 
+<A HREF="uref.html#SimpleURef:STR:SPEC">SimpleURef</A> structure represents urefs using     a standard union/find data structure with path compression.     The 
+<A HREF="uref.html#URef:STR:SPEC">URef</A> structure adds ranks to balance union operations.   
+<HR>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="uref.html">TOP</A>
+   | <A HREF="">Parent</A> | <A HREF="">Root</A>
+   ]</B>
+<P>
+<I>Last Modified May 29, 1996</I><BR>
+Copyright &copy; 1996 AT&amp;T Research <BR>
+<HR>
+</BODY>
+</HTML>

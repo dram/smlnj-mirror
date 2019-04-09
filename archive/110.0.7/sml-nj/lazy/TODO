@@ -1,0 +1,57 @@
+
+TODO List for LazySML
+--------------------- 
+
+(Walid Taha)
+
+Things that MUST be done:
+
+A. Run current: [1/2]  (Slip due to Reppy's work at same time, and misc.
+                        (on *release*).)
+B. Bootstrap version:  [1]
+C. Integrating (ONLY) new files.  [1/2]
+D. Cleaning up and integrating matchcomp.  [1]
+E. Primop clean-up. [1/2]
+
+0. Scope of $ extend as far to the left as possible.  [1/2?]
+1. Proper threading of environments.  This is not quite 
+   right for modules yet.  [2]  Proper treatment of long path
+   names should also consequently be possible.
+2. Proper threading of environment in the local statement.  [1]
+?. Not printing the "Warning" message whenever the Y combinator is used 
+   (in a val rec lazy declaration).  [1 or 2]
+4. Limit "val lazy" to variables.  [1/2]
+5. Translating bench-marks (three, maybe four tests?) [3]
+6. Testing.  [2 or 3 days]
+7. Measurement.  (With nothing to compare against?)  [2]
+8. Inlining map (and not map_).  Meeting to discuss.  [1/2 if all is well.]
+
+9. Report on what I've been doing [3].
+
+10.  Getting numbers from the hbc compilers, if time allows.
+
+Total time: 20 days. 
+
+---------------------------------------------------------------------------------
+
+Style things (Things that I probably wont be able to do while I'm here.)
+
+1. Threading the CE environment that is currently internal to lazycomp through
+   the top-level.
+2. Not threading the CE environment through expX.  Currently, a ref cell
+   is used to emulate that threading (to encapsulate this information
+   for now.)
+
+Things that are a bit harder to do:
+
+1. Inlining:  a) doing it, and b) collecting number for 
+   performance.
+
+2. Printing better type-error messages.
+3. Echoing better information whenever a datatype is declared.
+4. Echoing better information whenever a function is declared.
+
+5. Proper propogation of mark-region information.
+
+6. Documentation
+

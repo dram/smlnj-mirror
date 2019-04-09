@@ -1,0 +1,3 @@
+This directory contains the OS/2 implementation of the SMLSL generic
+OS interfaces, and the OS/2 instantiation of the IO stacks.
+

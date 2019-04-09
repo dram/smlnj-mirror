@@ -1,0 +1,26 @@
+(* layer1.cm
+ *
+ * COPYRIGHT (c) 1999 Bell Labs, Lucent Technologies.
+ *
+ *)
+
+Group
+  signature CML_SOCKET
+  structure PreSock
+  structure CML_Socket
+is
+
+../core-cml/sources.cm
+#if defined(OPSYS_UNIX)
+../Unix/sources.cm
+#endif
+
+(* remove Posix reliance in pre-sock *)
+#if defined(OPSYS_WIN32)
+win32-pre-sock.sml
+#else
+pre-sock.sml
+#endif
+
+cml-socket-sig.sml
+cml-socket.sml

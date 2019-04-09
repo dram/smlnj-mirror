@@ -1,0 +1,51 @@
+\contentsline {section}{\numberline {1}Overview}{1}
+\contentsline {section}{\numberline {2}Why CM?}{1}
+\contentsline {section}{\numberline {3}Getting started}{3}
+\contentsline {section}{\numberline {4}Restrictions}{4}
+\contentsline {section}{\numberline {5}Hierarchical modularity}{5}
+\contentsline {subsection}{\numberline {5.1}Groups and subgroups}{5}
+\contentsline {subsection}{\numberline {5.2}Describing a group-hierarchy}{5}
+\contentsline {subsection}{\numberline {5.3}Tools and member classes}{6}
+\contentsline {subsection}{\numberline {5.4}Export filters}{7}
+\contentsline {subsection}{\numberline {5.5}Libraries}{8}
+\contentsline {subsection}{\numberline {5.6}Description files---the rules}{8}
+\contentsline {subsubsection}{\numberline {5.6.1}Aliases}{9}
+\contentsline {subsubsection}{\numberline {5.6.2}Syntax}{9}
+\contentsline {subsubsection}{\numberline {5.6.3}Path name syntax and portability}{9}
+\contentsline {subsubsection}{\numberline {5.6.4}The preprocessor}{10}
+\contentsline {section}{\numberline {6}Autoloading}{11}
+\contentsline {subsection}{\numberline {6.1}Controlling the autoloader}{12}
+\contentsline {section}{\numberline {7}Caches, missing sources, and stable entities}{12}
+\contentsline {subsection}{\numberline {7.1}Binfiles}{12}
+\contentsline {subsection}{\numberline {7.2}Declfiles}{12}
+\contentsline {subsection}{\numberline {7.3}Overcoming missing source files}{13}
+\contentsline {subsection}{\numberline {7.4}Stable entities}{13}
+\contentsline {section}{\numberline {8}Using the {\tt CM} structure}{13}
+\contentsline {subsection}{\numberline {8.1}The root description file}{13}
+\contentsline {subsection}{\numberline {8.2}Compilation}{14}
+\contentsline {subsubsection}{\numberline {8.2.1}Compilation errors}{15}
+\contentsline {subsection}{\numberline {8.3}Linearization}{15}
+\contentsline {subsection}{\numberline {8.4}Visualization}{16}
+\contentsline {subsection}{\numberline {8.5}Stabilization}{16}
+\contentsline {subsection}{\numberline {8.6}Preprocessor symbols}{18}
+\contentsline {subsection}{\numberline {8.7}Autoloader}{18}
+\contentsline {subsection}{\numberline {8.8}Miscellaneous}{18}
+\contentsline {section}{\numberline {9}Adding new tools to CM}{19}
+\contentsline {subsection}{\numberline {9.1}Basics}{19}
+\contentsline {subsection}{\numberline {9.2}Tool classes and classification}{20}
+\contentsline {subsection}{\numberline {9.3}Tools exception}{21}
+\contentsline {subsection}{\numberline {9.4}Recommended strategy for adding tools}{21}
+\contentsline {section}{\numberline {A}Using CM for compiling the compiler}{23}
+\contentsline {subsection}{\numberline {A.1}Introduction}{23}
+\contentsline {subsection}{\numberline {A.2}Batch compilation---{\tt structure CMB}}{23}
+\contentsline {subsection}{\numberline {A.3}Batch compilation---the internals}{23}
+\contentsline {subsubsection}{\numberline {A.3.1}Phases}{23}
+\contentsline {subsubsection}{\numberline {A.3.2}List-files}{24}
+\contentsline {subsection}{\numberline {A.4}Controlling the batch compiler}{24}
+\contentsline {subsubsection}{\numberline {A.4.1}Files}{24}
+\contentsline {subsubsection}{\numberline {A.4.2}Flags}{25}
+\contentsline {subsection}{\numberline {A.5}Cross-compilation and retargeting}{25}
+\contentsline {section}{\numberline {B}Installation and maintenance}{26}
+\contentsline {subsection}{\numberline {B.1}Installation}{26}
+\contentsline {subsection}{\numberline {B.2}Maintenance}{26}
+\contentsline {section}{\numberline {C}Compatibility with SC}{27}

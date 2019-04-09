@@ -1,0 +1,149 @@
+\section{Dealing with noweb files}
+
+The tricky part of dealing with noweb files is that you can put
+absolutely anything in a noweb file---it's a bit like an odd form of
+archive.
+I handle this in two ways.
+Straightforward mention of a noweb file by its name alone indicates
+conventional use of a single file to hold a signature and
+structure/functor. 
+The file is \texttt{foo.nw} is assumed to contain the two roots
+\texttt{foo.sig} and \texttt{foo.sml}, and they are assumed to be of
+class \texttt{sml}.
+When a noweb file doesn't obey this convention, each thing in the
+noweb file has to be mentioned in the form
+\texttt{\emph{root}@\emph{basename}.nw}, which stands for the
+extraction of the designated \texttt{\emph{root}} from the file
+\texttt{\emph{basename}.nw}.  (The \texttt{\emph{root}} is extracted
+into a file also named \texttt{\emph{root}}.)
+
+A further difficulty is that CM has to figure out whether to pass the
+\texttt{-L} option (for \verb+#line+) to \texttt{notangle}, and if so
+with what value.
+I have chosen to make this decision based on the class of the thing
+extracted.
+Different classes can use [[registerLineNumbering]] to indicate
+whether the option should be passed and with what value.
+Strings passed to [[registerLineNumbering]] must not contain single quotes.
+
+Finally, [[alwaysOverwrite]] can be used to force CM to overwrite
+extracted files whenever the noweb source changes.
+If [[always_overwrite]] is false, files are overwritten only when the
+new version differs from the old.
+
+<<nwsource.sml>>=
+signature NOWEB_SOURCE = sig
+  type class = string
+  val registerLineNumbering : class * string option -> string option
+     (* returns old numbering *)
+  val alwaysOverwrite : bool ref
+end
+@ 
+<<nwsource.sml>>=
+functor NowebSourceFun (structure Tools: CMTOOLS) : NOWEB_SOURCE = struct
+  local
+    val notangle = "notangle -t"
+    val class = "noweb"
+    val alwaysOverwrite = ref false
+
+    <<aux funs>>
+    fun rule name =
+      let val (pre, post) = split_at name
+          val base = remove_extension(post, "nw")
+          fun join ext = OS.Path.joinBaseExt{base=base, ext=SOME ext}
+      in  case pre
+            of NONE => [(join "sml", SOME "sml"), (join "sig", SOME "sml")]
+             | SOME prefix => [(prefix, NONE)]
+      end
+  
+    fun validator {source, targets} = 
+      Tools.stdTStampValidator {source = #2 (split_at source), targets=targets}
+  
+    <<line-numbering support>>
+
+    fun extract_file (source, (target, class)) =
+      let val (_, srcFile) = split_at source
+          val class = case class of SOME c => class
+                                  | NONE   => Tools.defaultClassOf target
+	  val numbering = case class of NONE => NONE | SOME c => lineNumbering c
+          val format_option = case numbering
+                                of NONE     => ""
+                                 | SOME fmt => concat ["-L'", fmt, "'"]
+          val overwrite = if !alwaysOverwrite then ">" else "| cpif"
+          val cmd = concat [notangle, " ", format_option, " -R'", target, "' ", 
+                            srcFile, " ", overwrite, " ", target]
+          val _ = app print ["[", cmd, "]\n"]
+      in
+          if (OS.Process.system cmd) = OS.Process.success then ()
+          else (
+            OS.FileSys.remove target;
+            raise Tools.ToolError { tool = "Noweb", msg = cmd }
+          )
+      end
+
+    fun processor {source, targets} =
+      let fun process target = 
+            if validator {source=source, targets=[target]} then 
+              ()
+            else 
+              extract_file(source, target)
+      in  app process targets
+      end
+  
+    fun sfx s = Tools.addClassifier 
+                      (Tools.stdSfxClassifier { sfx = s, class = class })
+  in
+    val _ = Tools.addToolClass { class = class,
+                           	 rule = Tools.dontcare rule,
+                                 validator = validator,
+                           	 processor = processor }
+    val _ = sfx "nw"
+    val alwaysOverwrite = alwaysOverwrite
+    val registerLineNumbering = registerLineNumbering
+    type class = string
+  end
+end
+@ 
+I build in only the numbering for class [["sml"]].
+Other classes will have to register a numbering.
+I assume numberings will be unique, so there's no need to provide for
+garbage collection.
+<<line-numbering support>>=
+local
+  val lineNumberings = ref [("sml", SOME "(*#line %L \"%F\"*)")]
+in
+  fun lineNumbering class =
+    let fun l [] = NONE
+          | l ((c, n)::t) = if class = c then n else l t
+    in  l (!lineNumberings)
+    end
+  fun registerLineNumbering (class, numbering) =
+    let val old = lineNumbering class
+    in  lineNumberings := (class, numbering) :: !lineNumberings;
+        old
+    end
+end
+@ 
+<<aux funs>>=
+fun split_at name =
+  let fun split (pre, #"@" :: post) = (SOME (implode (rev pre)), implode post)
+        | split (pre, c    :: post) = split(c::pre, post)
+        | split (pre, [])           = (NONE, implode (rev pre))
+  in  split([], explode name)
+  end
+@ 
+<<aux funs>>=
+fun remove_extension (name, ext') =
+  let val {base, ext} = OS.Path.splitBaseExt name
+  in  if ext = SOME ext' then base else name
+  end
+@ 
+<<nwadd.sml>>=
+structure NowebSource : NOWEB_SOURCE = NowebSourceFun (structure Tools = CM.Tools)
+@ 
+<<noweb/nwsource.sml>>=
+<<nwsource.sml>>
+@
+<<noweb/nwadd.sml>>=
+<<nwadd.sml>>
+@

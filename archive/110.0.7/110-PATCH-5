@@ -1,0 +1,90 @@
+                        Standard ML of New Jersey
+                    Version 110.0.5, September 9, 1999
+                    ----------------------------------
+
+
+       http://cm.bell-labs.com/cm/cs/what/smlnj/index.html
+
+This is the fourth patch release for version 110 (110.0.4 was not released).
+The primary purpose of this update is to fix problems in CML, but a number
+of other bug fixes are included, as well as some enhancements.
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+  1302. handling differing newline conventions across OSes
+  1352  Equality status of reals is compromised
+  1354. spurious? "possibly inconsistent structure definitions"
+  1357. rebinding of constructors and exceptions not allowed
+  1365. datatype representation across functor boundary
+  1368. 1+2 = 102 in IntInf  [in library]
+  1369. Unbound exception on structure sharing violation
+  1374. Datatype replication causes nonexhaustive match error.
+  1377. OS.FileSys.tmpName differs in unspecified behaviour on Windows and Unix
+  1382. space leak in CML
+  1384. incorrect complaint about "inconsistent structure definitions"
+  1386. redefinition of a type spec is not detected
+  1391. Compiler bug - TransTypes: unexpected wildcard-type in toTyc
+  1421. incorrect type comparison for val spec in signature match
+  1432. signature match fails for datatype specs if "where type" is used
+  1450. bugs in Array2.fromList and Array2.row
+  1463. Broken ARRAY2 Code
+  1477. assembler syntax nits for X86.prim.asm
+  1500. Runtime system on Linux with glibc2
+  1503. redefinition of `struct sigcontext' under red hat 6.0
+
+Other bug fixes:
+  Installation problems under Irix6.5 and RedHat 6.0 have been fixed.
+
+
+CM
+--
+
+ o Made changes in the lexing/parsing of source.cm files so that the
+   same files can work both with 110.0.5 and the new CM introduced with
+   110.20.
+
+
+SML/NJ Library
+--------------
+
+ o The Pretty printing and regular expression libraries are now built
+   as part of the SML/NJ Library installation.
+
+ o New implementations of functional sets and maps based on Chris Okasaki's
+   red-black tree implementation.  These are significantly faster than the
+   balanced binary tree implementations for most operations (the main exception
+   is union, which is slightly slower).
+
+ o A number of other new modules and minor bug fixes (see smlnj-lib/CHANGES
+   for details).
+
+
+Concurrent ML
+-------------
+
+ o CML now runs under  WindowsNT (and probably Windows98).  Support for sockets
+   on Windows is also included.
+
+
+eXene
+-----
+
+Various bug fixes; see eXene/CHANGES for details.
+
+
+Platforms:
+----------
+
+  We have built and tested (with the regression suites) this version
+  on the following platforms:
+
+     x86-linux (Red Hat 5.1, Linux 2.0.35)
+     x86-win32
+     sparc-solaris  (UltraSparc II, Solaris 2.5.1)
+     alpha32-dunix  (Digital Unix 4.0)
+     hppa-hpux (HPUX 10.20)
+     mipseb-irix6 (R10000, IRIX 6.4)
+
+  The system should build on rs6000-aix, but we no longer have access to
+  an rs6000-aix machine for testing.  Any volunteers?

@@ -1,0 +1,26 @@
+(*
+ * futures/sources.cm
+ *
+ *   Copyright (c) 1995 by AT&T Bell Laboratories
+ *
+ * author: Matthias Blume (blume@cs.princeton.edu)
+ *)
+Library
+
+	signature FUTURES
+	structure Futures
+
+is
+
+	futures.sig
+
+# if defined (WE_WANT_TO_USE_MP_RIGHT_NOW)
+
+	futures-mp.sml
+	mp/sources.cm
+
+# else
+
+	futures-gen.sml
+
+# endif

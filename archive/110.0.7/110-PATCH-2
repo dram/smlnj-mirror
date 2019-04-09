@@ -1,0 +1,32 @@
+
+			Standard ML of New Jersey
+		    Version 110.0.2, January 16, 1998
+		    ---------------------------------
+
+This is the second patch release for version 110.  It fixes a few serious bugs
+that slipped through in version 110 (and 110.0.1), as well as adding a couple
+of new features.  See the file 110-PATCH-1 for information on 110.0.1.
+
+
+Recent Bug Fixes
+----------------
+Numbered bugs fixed in this patch version:
+1335. nonexhaustive match failure in mips code generator
+1337. exportFn in CML produces large images
+1338. uncaught Unbound while compiling MLKit
+
+
+Other changes
+-------------
+
+The Windows 95/NT version is now distributed as an InstallShield(tm)
+package (110-smlnj.exe).  This is a self-extracting archive. You execute
+it, it unpacks, and starts up the setup program by itself. From that point,
+it's pretty standard installation procedure common on Windows. The only
+thing maybe to note is that a reboot is strongly advised, to have the
+changes to the registry (PATH env. variable and such) take effect. Note
+that the archive does not contain the source code, except for the SML/NJ
+Library, which is provided in source, and the ml-yacc library. If one
+wants the source of ml-lex, ml-yacc, ml-burg, the runtime, the compiler,
+or CM, you have to download the appropriate compressed tar file.
+

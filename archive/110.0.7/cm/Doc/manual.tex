@@ -1,0 +1,1895 @@
+\documentclass{article}
+\usepackage{times}
+\usepackage{epsfig}
+
+\marginparwidth0pt\oddsidemargin0pt\evensidemargin0pt\marginparsep0pt
+\topmargin0pt\advance\topmargin by-\headheight\advance\topmargin by-\headsep
+\textwidth6.7in\textheight9.1in %\renewcommand{\baselinestretch}{1.2}
+\columnsep0.25in
+
+\author{Matthias Blume\\
+Department of Computer Science\\
+Princeton University}
+
+\title{{\bf CM}\\
+A Compilation Manager for SML/NJ\\
+{\em User Manual}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 3pt minus 2pt}
+
+\newcommand{\nt}[1]{{\it #1}}
+\newcommand{\tl}[1]{{\bf #1}}
+\newenvironment{syntax}{\begin{tabbing} xyzwww \=\kill}{\end{tabbing}}
+\newcommand{\ar}{$\rightarrow$\ }
+\newcommand{\vb}{~$|$~}
+
+\begin{document}
+
+\bibliographystyle{alpha}
+
+\maketitle
+
+\section{Overview}
+
+CM is the compilation manager for Standard ML of New
+Jersey~\cite{milner89,appel91:sml}.  It is loosely based on its
+precursor SC~\cite{harper94:irm,harper-lee-pfenning-rollins-CM} and
+provides functionality similar to the well-known {\sc Unix}-program
+{\tt make}~\cite{feldman79}.
+
+CM simplifies the maintenance of large software systems by subdividing
+them into a hierarchy of groups and libraries.  Groups and
+libraries---collectively called entities---consist of individual SML
+source files, other groups, and other libraries.
+
+Unlike {\tt make}, which is meant to be a general-purpose tool not
+aimed at a specific language, CM provides automatic dependency
+analysis and a form of separate compilation known as cutoff
+recompilation~\cite{tichy94}.
+
+The compilation manager uses the hooks provided by SML/NJ's open
+compiler~\cite{appel94:sepcomp} and translates SML sources to produce
+binary object files called binfiles.  The SML sources themselves can
+be the result of executing other programs, which is accounted for by
+CM's tools mechanism.  Examples of such tools are the version control
+system RCS~\cite{tichy85:rcs}, the parser-generator
+ML-Yacc~\cite{tarditi90:yacc}, and the literate programming tool
+noweb~\cite{ramsey:simplified}.
+
+One important use for CM is the maintenance of SML/NJ's compiler,
+which is not quite the same as maintaining other SML
+programs~\cite{appel94:bootstrap}.  For that reason we offer a special
+interface, which facilitates controlling batch compilation,
+bootstrapping, and the process of retargeting the compiler to a
+different machine architecture.
+
+\section{Why CM?}
+
+The basic function of CM is to perform separate compilation, automatic
+dependency analysis, and selective recompilation for any SML program
+consisting of more than one compilation unit.  But when the number of
+compilation units is large, it becomes increasingly important
+that they themselves can be grouped together and that explicit export
+interfaces can be used to control namespaces. When there are many
+groups, then one may want to organize them into supergroups, and so
+on.
+
+\begin{figure}
+\centerline{\psfig{figure=example.ps}}
+\caption{{\bf Dependency hierarchy of CML.}{\small\advance\baselineskip-2pt
+Separate compilation can be used to break large programs into smaller
+pieces and to compile these smaller compilation units one at a time.
+But in most cases we cannot compile a compilation unit in complete
+isolation:  The result of the compilation depends on both the source
+file itself and on the result of compiling other units.
+Here {\tt trace-cml.sml} depends on {\tt cml-sig.sml}, which is
+indicated by the presence of directed paths from the former to
+the latter.  In fact, the graph contains as many as five such paths,
+although each one of them would be enough for a dependency to exist.
+}}
+\label{fig:cml-hier}
+\end{figure}
+
+Figure~\ref{fig:cml-hier} shows the dependency graph for CML's
+sources.  CML~\cite{reppy91:cml} is implemented as a regular SML/NJ
+program.  Without the help from a compilation manager one would have
+to invoke a number of {\tt use} commands---one for each source
+file---in order to load CML into SML/NJ.  Of course, the order in
+which the commands are issued is important here, because identifiers
+can only be referred to after they are defined.  Therefore, since {\tt
+run-cml.sml} refers to objects defined in {\tt cml-compat.sml} the
+former must be loaded after the latter.  More precisely, the sequence
+of {\tt use} commands has to be in topological order with respect to
+the dependency graph.  Normally the programmer does not have the
+benefit of looking at a diagram like figure~\ref{fig:cml-hier}; the
+task of manually maintaining sources in topological order is tedious
+and error-prone.
+
+One feasible ordering of CML's sources is
+\begin{verbatim}
+app use
+  ["cml-base-sig.sml", "cml-sig.sml", "run-cml-sig.sml",
+   "cio-sig.sml", "trace-cml-sig.sml", "trace-cml.sml",
+   "cio.sml", "cml-compat.sml", "run-cml.sml",
+   "cml-version.sml", "cml-base.sml", "cml.sml", "build.sml"];
+\end{verbatim}
+but clearly there are many others as well.  For example, {\tt
+cml-version.sml} could be moved further to the front of this list
+without harm.  CM's dependency analysis automates the task of
+determining a feasible ordering.
+
+But not every source depends on every other source. In fact, we hope
+that in a well-structured project there are relatively few
+interdependencies between source files.  Therefore, it is usually
+possible to perform selective recompilation when some but not all
+source files have been changed.
+
+The {\sc Unix} program {\tt make} uses a policy where not only the
+source that has been altered will be recompiled but also all of its
+predecessors in the dependency graph as well.  This mechanism can be
+overly pessimistic, because changes to one file might not have an
+actual influence on subsequent compilations of dependent units.  CM
+also recompiles a source whenever its own time stamp changes, but in
+addition it compares the outcome with the result of previous
+compilations of the same unit. Recompilation is terminated as soon as
+changes no longer propagate any further.
+
+Suppose we modify {\tt cml-version.sml} without changing its
+interface.  CM will recompile this unit and be done, because no
+further work is necessary, while {\tt make} would also process three
+other files---{\tt cml-base.sml}, {\tt cml.sml}, and {\tt build.sml}.
+
+\section{Getting started}
+
+The easiest way of getting started using CM is by treating the entire
+program---the ``system''---as one single group.  A group in its most
+basic form is just a collection of SML source files, which must be
+listed in an entity description file.
+
+Even though there will be more on syntax and semantics of entity
+description files, for now it is enough to start with two keywords:
+{\bf Group} and {\bf is}, followed by a list of source file names.
+For example, if we want to put {\tt main.sml}, {\tt table.sig}, and
+{\tt table.sml} into a single entity, then we must create a file {\tt
+sources.cm} containing:
+
+\begin{verbatim}
+Group is
+        main.sml    (* the application code *)
+        table.sig   (* interface to `table' abstraction *)
+        table.sml   (* implementation of `table' abstraction *)
+\end{verbatim}
+
+As shown in this example it is possible to use SML-style comments
+within entity description files.
+
+Once {\tt sources.cm} has been set up we can start CM, which is
+usually done by running the command {\tt sml-cm}.  This begins an
+interactive SML/NJ session and provides CM's functionality.
+
+The command
+
+\begin{verbatim}
+CM.make ();
+\end{verbatim}
+
+will now analyze the dependencies among components of the system,
+determine a feasible ordering of (re-)compilation steps, and continue
+to carry them out as necessary.  All CM commands are just SML
+expressions.
+
+\section{Restrictions}
+
+Without placing certain restrictions on SML source code it is a
+provably hard problem to perform reliable dependency analyses.
+Therefore, CM can only deal with SML source code that obeys
+the following two additional rules:
+{\samepage
+
+\begin{itemize}
+\item No symbol can be defined (at top level) in more than one source
+of the same entity (group or library).
+\item The use of {\tt open} is not allowed at the top level.
+\end{itemize}
+}
+
+It must also be noted that only occurrences of structures, signatures,
+functors, and functor signatures are tracked by CM's dependency
+analysis.  This in itself does not impose another restriction on the
+admissible input language, but it bears the danger of missing certain
+dependencies.  Good programming style demands keeping all other
+definitions inside structures and signatures---in which case there
+will be no problem.
+
+The analyzer does not make any attempt to take side-effects into
+account.  Consider the following situation: 
+
+File {\tt a.sml} defines:
+\begin{verbatim}
+(* file a.sml *)
+structure A = struct
+  val r = ref 0
+end
+\end{verbatim}
+
+Execution of {\tt b.sml} modifies the {\tt ref} cell:
+
+\begin{verbatim}
+(* file b.sml *)
+structure B = struct
+  val _ = A.r := 1
+end
+\end{verbatim}
+
+Now, if {\tt c.sml} refers to {\tt A.r} as well -- which value should
+it see?
+
+\begin{verbatim}
+(* file c.sml *)
+structure C = struct
+  val x = !A.r
+end
+\end{verbatim}
+
+Either {\tt 0} or {\tt 1} would be legal, and there is no way to
+prefer one over the other.
+
+Care must be taken with top-level side effects, because CM does not
+try to address this problem.  It is up to the programmer to make sure
+that the ordering of side-effects is either unambiguous or does not
+matter.  In the example above, to make sure that {\tt b.sml} is
+compiled and executed before {\tt c.sml}, one could add an otherwise
+unnecessary reference to structure {\tt B} to the code in {\tt c.sml}:
+
+\begin{verbatim}
+(* file c.sml *)
+structure C = struct
+  local
+    structure B = B
+  in
+    val x = !A.r
+  end
+end
+\end{verbatim}
+
+\section{Hierarchical modularity}
+
+Instead of using a single group one can divide a system into several
+groups and arrange them into a group hierarchy.  There are two main
+motivations for doing so:
+{\samepage
+\begin{enumerate}
+\item to make large systems more manageable by grouping related source
+files together
+\item to relax the restriction of only being allowed to have one
+definition for every top-level symbol
+\end{enumerate}
+}
+The second point deserves some elaboration: Normally---within one
+entity---we are forced to have at most one top-level definition for
+each symbol.  Without this restriction there could be ambiguities that
+prevent automatic dependency analysis from succeeding.
+
+However, the hierarchy of groups must be specified by the programmer
+explicitly. Therefore, there is no problem with having the same symbol
+defined in different groups or libraries, because the partial ordering
+for them is known in advance; CM does not have to infer it.
+
+In SML it is not allowed for definitions to form cycles across module
+boundaries.  In particular, {\tt structure A} from {\tt a.sml} cannot
+refer to {\tt structure B} in {\tt b.sml}, if at the same time {\tt
+structure B} refers to {\tt structure A}.  CM enforces this rule even
+if there is a sub-entity providing definitions for either {\tt A} or
+{\tt B}.  This would allow one to break the cycle, but in general it is
+not possible to unambiguously decide where.
+
+There is one exception.  Constructions like
+\begin{verbatim}
+structure A = A
+\end{verbatim}
+or variations thereof, which seem to form cycles of length one, are
+not considered cyclic definitions.  The use of {\tt A} is
+not in the scope of the definition of {\tt structure A}.  There is no
+way of changing this situation by reordering source files, because
+both use and definition are in the same compilation unit.  Therefore,
+CM will treat the use of {\tt A} as a reference to some
+definitions imported from a sub-entity.
+
+\subsection{Groups and subgroups}
+
+A group whose description file has been mentioned in some other
+entity's description becomes a subgroup of that other entity, which is
+then called the client of the group.  Sources of the client can refer
+freely to any of the symbols defined within and exported by the
+subgroup.  However, the client can also provide new definitions for
+any of the subgroup's symbols, thereby masking the original one.
+
+Imported symbols are available for re-export by the client.  The exact
+rules which govern re-export will be described later after libraries
+and export filters have been introduced.  So far we only deal with
+groups and subgroups without export filters.  In this simple but
+certainly common scenario all imported definitions will always be
+re-exported---with the exception of those that have been masked.  In
+effect, all non-masked definitions will ultimately become available at
+the interactive top level.
+
+\subsection{Describing a group-hierarchy}
+
+To turn a group into a client of some other group one only needs to
+mention the subgroup's description file somewhere among the list of
+sources of the client.  From now on we will refer to this list as the
+list of members.  Some of the members are sources, others are
+descriptions for sub-entities.  Usually CM will automatically identify
+description files in its member list by looking at the names: those
+ending in {\tt .cm} are treated as names of CM-style entity
+description files.  Relative filenames are regarded as being relative
+to the directory the description file appears in.
+
+Suppose we have a group consisting of {\tt a.sml} and {\tt b.sml},
+which needs to refer to a subgroup containing {\tt util/c.sml} and
+{\tt util/d.sml}.  In this case we could create a description file
+{\tt util/sources.cm} with:
+
+\begin{verbatim}
+Group is
+        c.sml
+        d.sml
+\end{verbatim}
+
+and another one---called {\tt sources.cm}---specifying:
+
+\begin{verbatim}
+Group is
+        a.sml
+        b.sml
+        util/sources.cm
+\end{verbatim}
+
+\subsection{Tools and member classes}
+
+Sometimes a member file is not a description file and also does not
+contain SML source code.  Such a file requires a different kind of
+processing before CM's analyzer can understand them.  The special
+processing is done by the built-in tools facility of CM, which in many
+cases will invoke auxiliary programs for this purpose.  For
+example, an ML-Yacc source file {\tt parser.grm} will first be fed to
+{\tt ml-yacc}, which produces two files: {\tt parser.grm.sig} and {\tt
+parser.grm.sml}.  These will then be treated as SML source files.
+
+CM tools can be combined into cascades.  Instead of specifying {\tt
+parser.grm} one can use the corresponding RCS archive {\tt
+parser.grm,v} instead.  CM will first run the {\tt co} command to
+check out a copy of {\tt parser.grm}, then feed the result into
+ML-Yacc to finally obtain {\tt parser.grm.sig} and {\tt
+parser.grm.sml}.
+
+Normally the decision of which tool to pick is made based on the name
+of the source file, but in general it can also be guided by explicit
+specifications in the description file: Any member name can  optionally
+be followed by a colon and the name of a member class.
+Currently CM knows about the classes {\tt Sml}, {\tt CMFile},
+{\tt SCGroup}, {\tt SCLibrary}, {\tt MLLex}, {\tt MLYacc}, {\tt
+MLBurg}, {\tt RCS}, and {\tt Noweb}. Class names are case-insensitive.
+
+Some class names are special to CM---they correspond to
+classes of members which do not need to be processed by tools but
+which can be analyzed directly.  Those classes are
+{\samepage
+\begin{description}
+\item[Sml:] plain SML sources
+\item[CMFile:] CM-style entity descriptions
+\item[SCGroup:] SC-style group descriptions
+\item[SCLibrary:] SC-style library descriptions
+\end{description}
+}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|c|} \hline
+{\tt .sig .sml .fun} & Sml \\
+{\tt .grm .y} & MLYacc~\cite{tarditi90:yacc} \\
+{\tt .lex .l} & MLLex~\cite{appel89:lex} \\
+{\tt .burg} & MLBurg~\cite{mlburg93} \\
+{\tt ,v } & RCS~\cite{tichy85:rcs} \\
+{\tt .cm } & CMFile \\
+{\tt .sc } & SCGroup \\
+{\tt .nw } & Noweb \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Default mapping from name suffixes to member classes}
+\label{tab:suffixes}
+\end{table}
+
+Since CM tries to guess the member class based upon the member's name
+it will rarely be necessary to specify class names explicitly.
+Table~\ref{tab:suffixes} shows the list of recognized file name
+suffixes and their corresponding class names. (Not all supported
+suffixes are shown in this table.  The unlisted ones embody SC legacy
+and will eventually disappear.)
+
+Every tool is associated with
+{\samepage
+\begin{itemize}
+\item a processor
+\item a rule for determining target file names from the name of the
+source file
+\item a set of conditions under which the processor is to be invoked
+\end{itemize}
+}
+
+The tools interface to CM allows for the seamless addition of new
+tools by writing a few lines of Standard ML (see section~\ref{sec:addtools}).
+Table~\ref{tab:tools} shows the specifications for the tools which are
+available by default.  The {\em out-of-date} condition mentioned in
+this table refers to the situation where at least one of the targets
+is either missing or older than the source.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{||c|c|c|c|c||}
+\hline
+member class & processor & source & targets & conditions \\
+\hline\hline
+{\bf MLYacc} & ml-yacc & {\em file} & {\em file}.sig & out-of-date \\
+             &         &            & {\em file}.sml & \\
+\hline
+{\bf MLLex} & ml-lex & {\em file} & {\em file}.sml & out-of-date \\
+\hline
+{\bf MLBurg} & ml-burg & {\em file}.burg & {\em file}.sml & out-of-date \\
+\cline{3-4}
+             &         & {\em file} & {\em file}.sml & \\
+\hline
+{\bf RCS} & co -q & {\em file},v & {\em file} & target missing \\
+\cline{3-4}
+          &       & RCS/{\em file},v & {\em file} & \\
+\hline
+{\bf Noweb} & notangle & {\em file}.nw & {\em file}.sig & out-of-date \\
+            &          &               & {\em file}.sml & \\
+\cline{3-4}
+            &          & {\em file}    & {\em file}.sig & \\
+            &          &               & {\em file}.sml & \\
+\cline{3-4}
+            &          & {\em root}@{\em file}.nw & {\em root} & \\
+\cline{3-4}
+            &          & {\em root}@{\em file} & {\em root} & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Available tools}
+\label{tab:tools}
+\end{table}
+
+\subsection{Export filters}
+
+Any entity can be equipped with an export filter.  The filter, which
+is simply a list of symbols, restricts the set of definitions
+exported.  Entities with export filters will export definitions for
+precisely the symbols listed, no matter whether they are defined in the
+entity itself or in one of the sub-entities that it is a client of.
+
+Export filters can be used to good effect in the case of libraries,
+where they are mandatory.  But even for groups they are often useful.
+Symbols used for the communication between individual sources of an
+entity but not meant to be visible from outside can conveniently be
+hidden this way.  Furthermore, export filters enable us to reduce the
+chance of clashes between different definitions for the same symbol.
+Another reason for using export filters is to restrict the set of
+symbols that will become visible at the interactive top level.
+
+During the process of recompilation CM always combines just the
+minimal set of static environments sufficient to build a suitable
+compilation environment for each given SML source.  By specifying
+export filters it is possible to further decrease the size of the
+compiler's internal data structures, which is something that can also
+contribute to reduced memory bandwidth and increased compilation
+speed.
+
+An export filter is specified as a list of symbols. It appears
+between the keywords {\tt Group} (or {\tt Library}) and {\tt is}.
+Since in SML we distinguish between symbols of different name spaces
+we must write {\tt structure} {\em struct-sym} for a structure symbol,
+{\tt signature} {\em sig-sym} for a signature symbol, {\tt functor}
+{\em fct-sym} for a functor symbol, and {\tt funsig} {\em fsig-sym}
+for a functor signature symbol.
+
+A group description with export filter could therefore look like this:
+{\samepage
+
+\begin{verbatim}
+Group
+        structure Table
+        signature TABLE
+        structure Main
+        functor A
+        funsig A
+is
+        main.sml
+        a/fct.sml
+        a/fsig.sml
+        table/sources.cm
+        RCS/parser.grm,v
+\end{verbatim}
+}
+
+\subsection{Libraries}
+
+Entities are either groups or libraries.  In many ways libraries
+are very similar to groups: both of them have a list of members, both
+of them contain SML sources and input for tools, and both of them can
+be clients to sub-entities.  The major difference between groups and
+libraries becomes apparent when we look at the terms and conditions
+under which symbols are exported.
+
+If an entity imports a symbol from a group, then the corresponding
+definition (besides being allowed to be masked) has the same status
+as any definition coming directly from a source of the client.  In
+particular, it will be exported to clients of the client unless hidden
+by the client's export filter.
+
+Symbols imported from libraries can be referred to from within sources
+of the client, but they will not automatically be re-exported to
+clients of the client.  (The client may still provide new definitions,
+therby masking the ones that are imported.)  Since libraries never
+appear at the root of the entity hierarchy this implies that
+definitions from libraries will not become visible at the interactive
+top level.  (The root entity is always treated as if it were a
+group---regardless of what the description says.  This way the
+programmer can force a library to be compiled, or to be loaded into
+the top-level environment.)
+
+Of course, this behavior can be modified: even symbols from libraries
+are subject to re-export provided they have been mentioned in the
+client's export filter explicitly.
+
+Here is the precise rule which governs symbol export:
+
+\begin{description}
+\item[An entity with export filter] exports all symbols listed in the
+filter regardless of their origin.
+\item[A group without export filter] exports all symbols defined in
+sources of the group and all symbols defined in subgroups of the group
+unless these imported symbols have been redefined and therefore are
+hidden.
+\item[A library without export filter] is normally not legal.
+However, for the purpose of backward-compatibility with SC it is
+possible to use SC-style libraries which do not have export
+filters.  In this case the library exports all symbols defined in
+sources of the library and all non-masked symbols defined in
+subgroups of the library. (This coincides with the rule for
+groups without export filter.)
+\end{description}
+
+If a symbol's definition is not used by any of the clients of a
+library, then it cannot be accessed at all.  CM will ignore the
+members of libraries whose exported definitions are not accessed; they
+will not be loaded and they will not be linked with the rest of the
+system.  Therefore, they behave in a way similar to members of
+libraries for other languages.
+
+\subsection{Description files---the rules}
+
+A CM-style library description file looks almost exactly like a
+group description file.  The only difference is that the initial
+keyword {\tt Group} is replaced with {\tt Library}.
+
+\subsubsection{Aliases}
+
+CM-style description files can also provide the functionality of a
+symbolic link.  Instead of actually listing the specification of a
+group or a library a description can ``point to'' another description.
+A file containing only
+\begin{quote}
+{\tt Alias} {\em name}
+\end{quote}
+\noindent behaves exactly like the description file identified by {\em
+name}.  To locate the aliased description, CM applies the same rules
+that are also used to find subgroups of groups.  If {\em name} is a
+relative pathname, then CM will first try to find it in the directory
+that contains the alias.  Upon failure it then consults an internal
+search path. See section~\ref{section:path} for details.
+
+The maximum nesting depth for aliases is limited to $32$.
+
+\subsubsection{Syntax}
+
+The full syntax of description files in BNF is:
+
+\begin{tabbing}
+\nt{very long non-terminal}~\= \ar \kill
+\nt{description-file} \> \ar \nt{group-description} \vb \nt{library-description} \vb \nt{alias} \\
+\nt{group-description} \> \ar \tl{Group} [ \nt{export-filter} ]
+  \tl{is} \nt{member-list} \\
+\nt{library-description} \> \ar \tl{Library} \nt{export-filter}
+\tl{is} \nt{member-list} \\
+\nt{export-filter} \> \ar \nt{export-symbol} \{ \nt{export-symbol} \} \\
+\nt{export-symbol} \> \ar \nt{name-space} {\tt Identifier} \\
+\nt{name-space} \> \ar \tl{structure} \vb \tl{signature} \vb
+  \tl{functor} \vb \tl{funsig} \\
+\nt{member-list} \> \ar \nt{member} \{ \nt{member} \} \\
+\nt{member} \> \ar {\tt Pathname} [ \tl{:} {\tt Class} ] \\
+\nt{alias} \> \ar \tl{Alias} {\tt Pathname}
+\end{tabbing}
+
+{\tt Identifier}, {\tt Pathname}, and {\tt Class} are lexical classes
+consisting of non-empty strings without white space, colons,
+parentheses, or semicolons.  Comments in the style of
+Standard ML (text between balanced pairs of {\tt (*} and {\tt *)}) or
+in the style of Scheme (text extending from a semicolon to the end of
+the line) are permitted.  They count as delimiters like white space.
+The class {\tt Pathname} also includes strings of characters enclosed
+in double-quotes ({\bf \verb|"|}).  No character except {\bf \verb|"|}
+has a special meaning there; a literal {\bf \verb|"|} that is to
+appear in a path name must be written twice.
+
+\subsubsection{Path name syntax and portability}
+
+Normally, pathnames are parsed according to CM's own ``standard''
+interpretation.  Forward- or back-slashes ({\bf \verb|/|} and {\bf
+\verb|\|}) are used to separate directory names from names of files
+and subdirectories.  Pathnames that start with a slash are absolute
+pathnames, others are relative to the directory that contains the CM
+description file.
+
+These conventions are independent of the underlying operating system
+and should work wherever there is a hierarchically structured file
+system.
+
+Pathnames specified using a string enclosed in double-quotes are
+considered native and will be interpreted according to the underlying
+operating system's conventions.  Therefore, such pathnames are
+inherently non-portable.  However, this syntax is mainly used in
+situations that are not portable to begin with:  explicit volume
+labels under MS-DOS, non-standard characters in file names, and so on.
+
+The recommended strategy for writing portable CM descriptions is to
+exclusively use relative pathnames in CM's standard syntax.  By
+relying on CM's built-in search path, libraries in central locations
+(which would normally require the use of absolute pathnames) can be
+named using simple file names.
+
+\subsubsection{The preprocessor}
+
+When reading a description file CM applies a simple, C-like
+preprocessor that allows for conditional compilation.  Currently there
+is no way to ``define'' symbols using preprocessor syntax; the
+conditionals are tested with respect to an environment defined in CM
+itself.  However, there are CM commands {\tt lookup}, {\tt define},
+{\tt undef}, and {\tt undefall} in structure {\tt CM.SymVal} that can
+be used to modify that environment.
+
+CM's preprocessor syntax is very similar to that used by the
+C-preprocessor: Lines that start with \verb|#| are treated specially.
+
+\begin{tabbing}
+\nt{nonpreprocline}~\=\kill
+\nt{line} \> \ar \nt{nonpreprocline} \\
+ \> \ar \nt{preproc} \\
+\nt{nonpreprocline} \> \ar line not starting with \verb+#+ \\
+\nt{preproc} \> \ar \nt{if} \{ \nt{line} \} \nt{elif-opt} \nt{else-opt} \nt{endif} \\
+ \> \ar \nt{error} \\
+\nt{if} \> \ar \nt{beginning-of-line} \verb|#| \tl{if} \nt{expression} \nt{end-of-line} \\
+\nt{elif-opt} \> \ar \{ \nt{elif} \{ \nt{line} \} \} \\
+\nt{elif} \> \ar \nt{beginning-of-line} \verb|#| \tl{elif} \nt{expression} \nt{end-of-line} \\
+\nt{else-opt} \> \ar [ \nt{else} \{ \nt{line} \} ] \\
+\nt{else} \> \ar \nt{beginning-of-line} \verb|#| \tl{else} \nt{end-of-line} \\
+\nt{error} \> \ar \nt{beginning-of-line} \verb|#| \tl{error}
+  \nt{text} \nt{end-of-line}
+\end{tabbing}
+
+Example:
+\begin{verbatim}
+Group is
+	a.sml
+	b.sml
+# if (SMLNJ_VERSION >= 109 || defined(structure SMLofNJ) )
+	util.sml
+# elif (SMLNJ_VERSION < 108)
+# error This version of SML/NJ is too old to support this software.
+# else
+	util-workaround.sml
+# endif
+\end{verbatim}
+
+Expressions denote integer quantities; $0$ is used for for false and
+non-zero values for true.
+There are four forms of atomic expressions:
+\begin{enumerate}
+\item Integer literals evaluate to the corresponding integer.
+\item A symbol evaluates to the value bound to that symbol---or to $0$
+if the symbol is not defined.
+\item The expression {\tt defined}({\it symbol})
+evaluates to $1$ if {\it symbol} is defined, or to $0$ if it is not
+defined.
+\item The forms: {\tt defined}({\tt signature} {\it sigid}), {\tt
+defined}({\tt structure} {\it strid}), {\tt defined}({\tt functor}
+{\it fctid}), and {\tt defined}({\tt funsig} {\it fsigid})
+test to see if the given ML module is defined in the base environment.
+\end{enumerate}
+
+Depending on architecture, operating system, and configuration one
+symbol out of each of the following groups will be predefined to $1$:
+
+\begin{description}
+\item[Operating system]
+\noindent\begin{verbatim}
+OPSYS_UNIX
+OPSYS_WIN32
+OPSYS_MACOS
+OPSYS_OS2
+\end{verbatim}
+\item[Architecture]
+\noindent\begin{verbatim}
+ARCH_SPARC
+ARCH_MIPS
+ARCH_ALPHA
+ARCH_X86
+ARCH_HPPA
+ARCH_RS6000
+ARCH_POWERPC
+\end{verbatim}
+\item[Byte order]
+\noindent\begin{verbatim}
+BIG_ENDIAN
+LITTLE_ENDIAN
+\end{verbatim}
+\item[Size of an ML value (pointer size)]
+\noindent\begin{verbatim}
+SIZE_32
+SIZE_64
+\end{verbatim}
+\end{description}
+
+Additionally, in version {\it xxx.yy} of the compiler
+\verb+SMLNJ_VERSION+ will be set to {\it xxx}, and
+\verb+SMLNJ_MINOR_VERSION+ evaluates to {\it yy}.
+
+Expressions are formed using a variety of binary operators, all of
+which are left-associative.  Operators are listed with increasing
+precedence. Those that appear on the same line have equal binding
+strength:
+\begin{verbatim}
+||
+&&
+== !=
+< <= > >=
++ -
+* /
+\end{verbatim}
+Logical disjunction \verb+||+ and conjunction \verb+&&+ are
+short-circuiting operations.  The unary operators for logical and
+numerical negation are \verb+!+ and \verb+-+,
+respectively. Parentheses can be used for grouping.
+
+\section{Autoloading}
+
+With autoloading enabled the command
+\begin{verbatim}
+CM.autoload' "util.cm";
+\end{verbatim}
+makes all definitions exported from the entity described by {\tt
+util.cm} available at the SML top-level.  However, it does that
+without actually compiling or loading anything.  CM will then monitor
+code entered at top level. If it finds that a symbol exported from
+{\tt util.cm} is being used and that the definition for that symbol
+has not already been supplied earlier, then it will calculate the
+minimal set of sources that need to be loaded in order to provide the
+desired definition.
+
+\subsection{Controlling the autoloader}
+
+\label{sec:autoload}
+
+\begin{verbatim}
+val autoloading: bool option -> bool
+\end{verbatim}
+This function is used for enabling and disabling the autoloader.  With
+an argument of {\tt NONE} one can query the current status without
+actually changing it.  The function always returns the previous
+setting.
+
+\begin{verbatim}
+val autoload: unit -> unit
+val autoload': string -> unit
+\end{verbatim}
+These two functions behave like make and make', except they do not
+actually load any module.  Later, when CM sees a use of some symbol
+that is exported by the entity (only structures, signatures, functors,
+and functor signatures are tracked), then all necessary compilation
+units will automatically be linked into the running system.
+
+\begin{verbatim}
+val autoList: unit -> string list
+\end{verbatim}
+A call to {\tt autoList} returns a list of all entities that are
+currently registered for autoloading. The internal registry of such
+entities can be erased by invoking {\tt clearAutoList}:
+\begin{verbatim}
+val clearAutoList: unit -> unit
+\end{verbatim}
+
+\section{Caches, missing sources, and stable entities}
+
+CM uses a variety of caches to speed up its analysis and recompilation
+steps.  In-core caches provide fast access to information as long as
+we do not terminate the CM session.  The ambient file system provides
+a second level of caches, which is used to remember the results of
+expensive operations from one session to the next.
+
+All cache files are stored in subdirectories of a directory called
+{\tt CM}, which itself appears in the directory where the corresponding
+source files are located.
+
+\subsection{Binfiles}
+
+The most important kind of cache is the binfile, because it enables us
+to avoid compiling sources over and over.  In addition, during an
+ongoing session compilation results are partially kept in main
+memory. This greatly reduces file system traffic.
+
+Binfiles are located in a subdirectory whose name is derived
+from the name of the target machine architecture and the flavor of
+operating system running on that platform.
+Table~\ref{tab:arch} shows the architectures which are currently
+supported together with their associated binfile directory names.
+The binfiles themselves use the suffix {\tt .bin}, which is simply
+glued to the end of the respective source file name.
+
+Example: On a Sparc runnning some form of {\sc Unix} the binfile for
+{\tt u/a.sml} is {\tt u/CM/sparc-unix/a.sml.bin}.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|ll|}
+\hline
+Architecture & binfile directory \\
+\hline
+DEC Alpha (32 bit) & {\tt CM/alpha32-}{\it os} \\
+Sparc & {\tt CM/sparc-}{\it os} \\
+%MIPS (little endian) & {\tt CM/mipsel-}{\it os} \\
+MIPS (big endian) & {\tt CM/mipseb-}{\it os} \\
+HP-PA & {\tt CM/hppa-}{\it os} \\
+IBM RS6000 & {\tt CM/rs6000-}{\it os} \\
+Intel x86 & {\tt CM/x86-}{\it os} \\
+bytecode & {\tt CM/bytecode-}{\it os} \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Supported architectures and associated binfile directory names}
+\label{tab:arch}
+\end{table}
+
+\subsection{Declfiles}
+
+Dependency analysis is also expensive, because it requires parsing
+source files.  However, very little information taken from each source
+is necessary to drive the analysis.  Therefore, CM extracts this
+information and caches it both in main memory and in the file system.
+
+The files used for this purpose are called dependency files.  They are
+stored in a subdirectory {\tt CM/DEPEND}.  For example, the declfile
+for {\tt u/a.sml} will be {\tt u/CM/DEPEND/a.sml}.
+
+Write errors on declfiles are ignored. When CM encounters an error
+while writing such a cache file it only keeps the corresponding
+in-core information.
+
+\subsection{Overcoming missing source files}
+
+In the presence of caches it is possible to overcome the absence of
+source files as long as the contents of those caches are usable.  In
+particular, if both the dependency file and the binfile are present,
+then CM might not need to consult the corresponding source file at
+all.
+
+However, there are situations where the source must be consulted
+regardless of whether the binfile exists or not, because the binfile
+also depends on the environment that was in effect when the source was
+compiled.  This environment was the result of compiling the source's
+ancestors in the dependency graph.  Changes in the compilation
+environment also require the source to be recompiled.
+
+\subsection{Stable entities}
+
+A stable entity is one whose development has (tentatively) come to
+some conclusion.  If we do not expect an entity to change in the near
+future, then we may decide to stabilize it.  Examples of stable
+entities are central libraries, which are installed and maintained by
+the system administator.
+
+After an entity has been stabilized we can be sure that binfiles will
+always be valid.  The process of stabilization also creates a special
+version of a dependency file---the stablefile---which contains a
+summary of what would have been stored in per-source dependency files.
+
+When CM encounters a stablefile it assumes the entity to be stable.
+It will not be necessary for any of the sources to be present.  Not
+even individual dependency files are necessary anymore.  Only
+stablefile and binfiles are required.
+
+For stable entities CM avoids most of its usual activity in the
+ambient file system. On computers with comparatively slow access to
+the file system this can considerably improve performance.  On many
+systems it will make no difference.
+
+The name of the stablefile is derived from the entity's description
+file name.  A rule very similar to the one used for binfiles is used.
+For example, on a Sparc-based {\sc Unix} system the stablefile for an
+entity described by {\tt u/sources.cm} will be {\tt
+u/CM/sparc-unix/sources.cm.stable}.
+
+\section{Using the {\tt CM} structure}
+
+The main functionality of CM can be accessed through members of
+{\tt structure CM}.  Earlier we saw an example of that when we
+described the {\tt CM.make()} command.  This section will
+give a complete description of items in {\tt structure CM}.
+
+\subsection{The root description file}
+
+Most actions of CM are driven by the result of some dependency
+analysis.  In order to perform such an analysis it is necessary to
+know the root entity of the hierarchy to be analyzed.  The explicit
+argument used by many functions for naming the root description file
+is a string.  Normally it will be considered a CM-style description
+file except if it ends in {\tt .sc}, in which case it will be treated
+as an SC-style description.
+
+Most of the time we can rely on built-in defaults.  All functions in
+the {\tt CM} structure that take an explicit root description as one
+of their arguments have a counterpart without such a parameter.  The
+counterpart implicitly uses an internal default parameter of the form
+\begin{verbatim}
+!rootfile
+\end{verbatim}
+The {\tt rootfile} reference cell is not directly accessible, but
+its value can be set via
+\begin{verbatim}
+val set_root: string -> unit
+\end{verbatim}
+Normally {\tt rootfile} contains {\tt "sources.cm"}, unless the
+operating system environment variable \verb|CM_ROOT| is set, in which
+case its value will be used.  Note, that {\tt !rootfile} is always
+treated as a CM-style description file---regardless of its name.
+
+The names of all functions taking explicit string arguments end
+with an apostrophe.  Names of the corresponding set of functions,
+which make use of the default, are almost the same---they just omit
+the trailing apostrophe.  Example:
+\begin{verbatim}
+CM.make ();
+\end{verbatim}
+is roughly equivalent to
+\begin{verbatim}
+CM.make' (!rootfile);
+\end{verbatim}
+We will always discuss both versions of these functions together in
+order to avoid unnecessary repetition.
+
+\subsection{Compilation}
+
+\begin{verbatim}
+val make': string -> unit
+val make: unit -> unit
+
+val recompile': string -> unit
+val recompile: unit -> unit
+\end{verbatim}
+
+{\tt CM.recompile()} analyzes the system and performs all necessary
+recompilation steps.  A recompilation step is necessary, if one of
+the following is true:
+{\samepage
+
+\begin{itemize}
+\item the binfile is missing
+\item the binfile is older than its source file
+\item a file that this source depends on has been recompiled and
+CM has discovered that the new version of the ancestor is not
+compatible with the existing binfile
+\end{itemize}
+}
+
+The last point is important: Unlike {\tt make} in {\sc Unix}, CM is
+often able to avoid recompiling certain units even if their ancestors
+had been recompiled.
+
+If the result of the ancestor's compilation is still compatible with
+the existing binfile, then no further action is necessary.  In
+particular, just {\tt touch}ing a file does not cause a recompilation
+of the entire system.  Also, if a change to a source file does not
+change the interface (the static environment) exported by the
+compilation unit, then it will not trigger subsequent recompilations
+of dependent files.  Such a behavior is sometimes referred to as
+cutoff recompilation.
+
+{\tt CM.recompile()} does not execute the code of any of the units
+and does not introduce any new bindings to the interactive top level.
+Furthermore, it does not keep compiled code in main memory to avoid
+wasting resources.
+
+{\tt CM.make()} performs the same analysis and recompilation steps
+which would have been performed by {\tt CM.recompile()}.  In addition
+to that it executes the code in all units (i.e., not only the
+ones which needed to be recompiled). If everything went without
+error, then it will also augment the interactive top level with new
+bindings for the symbols exported by the system.
+
+\subsubsection{Compilation errors}
+
+Obviously, when faced with an error during one of the compile steps,
+CM cannot proceed with compiling other files that depend on the one
+with the error.  However, this does not affect unrelated branches of
+the dependency graph.  Therefore, CM can ``keep going'', which
+is reminiscent of the behavior of {\tt make} in {\sc Unix} when
+it is called with the {\tt -k} command line flag.
+
+Calling
+
+\begin{verbatim}
+val keep_going: bool option -> bool
+\end{verbatim}
+
+with an argument of {\tt SOME true} will enable this feature.
+
+Since CM needs to run tools and parse source files before it can
+even start to build the dependency graph it cannot keep going
+after errors during any of those operations.  Until the set of
+dependencies is available, it is impossible to decide which
+branches of the graph will not be affected by an error.
+
+\subsection{Linearization}
+
+Export filters and CM's special rules for exporting symbols from
+libraries add something new to programming in SML: It is possible to
+construct systems that can be compiled using CM, but which have no
+legal ordering of {\tt use}-commands for the individual source files
+that would build a semantically equivalent program.
+Example:
+
+Suppose we have two source files---{\tt f1.sml} and {\tt
+f2.sml}---each of which defines two structures {\tt A} and {\tt B}.
+In {\tt g.sml} we want to access the {\tt A} which was defined in {\tt
+f1.sml} and at the same time the {\tt B} from {\tt f2.sml}.  But no
+matter how we order {\tt f1.sml} and {\tt f2.sml}---the definitions in
+the second will always mask both definitions in the first.
+Under CM we can put {\tt f1.sml} and {\tt f2.sml} into different
+subgroups and use export filters to avoid the unwanted masking.
+
+Nevertheless, in many cases things are not that convoluted and one can
+use a topologically sorted list of source files for this
+purpose.
+\begin{verbatim}
+val names': string -> string list
+val names: unit -> string list
+
+val binfiles': string -> string list
+val binfiles: unit -> string list
+
+val strings': string -> string list
+val strings: unit -> string list
+\end{verbatim}
+Each function---{\tt CM.names}, {\tt CM.binfiles}, and {\tt
+CM.strings}---returns a list of strings that is topologically sorted
+according to the same principle.  {\tt CM.names} produces lists of SML
+source file names, {\tt CM.binfiles} returns lists of binfile names,
+and calls to {\tt CM.strings} yield lists of descriptions for SML
+sources.  These descriptions are often just the file name---except
+when the SML source is the result of running some tool, in which case
+this fact will be mentioned in the description. (The string argument
+to {\tt names'}, {\tt binfiles'}, and {\tt strings'} is the name of
+the description file.)
+
+Let $S(s)$ be the SML source associated with string $s$.  The lists
+returned by any of the three functions described above share the
+property that if $s$ and $t$ are distinct members of the list and $s$
+appears before (to the left of) $t$, then $S(s)$ does not depend
+(either directly or indirectly) on $S(t)$.  This is what we mean when
+we say the lists are in topological order.
+
+{\tt CM.mkusefile} allows one to create a file with a topologically
+sorted list of {\tt use} commands.  The second or sole string argument
+is the name of the file to be written.
+\begin{verbatim}
+val mkusefile': string * string -> unit
+val mkusefile: string -> unit
+\end{verbatim}
+This can be useful for maintaining stand-alone versions of a system,
+but the technique of sequentially reading and compiling a collection
+of SML source files is inherently less expressive in its management of
+name spaces than what can be done with CM's groups, libraries, and
+export filters.
+
+Therefore, a much better alternative to {\tt CM.mkusefile} is {\tt
+CM.sa} ({\it sa} $\equiv$ {\it S}\/tand {\it A}\/lone).  This function
+also produces a small program expressed in SML source language that
+can subsequently be read and compiled by SML/NJ.
+\begin{verbatim}
+val sa': string * string -> unit
+val sa: string -> unit
+\end{verbatim}
+However, unlike the program written by {\tt mkusefile}, the one
+generated using {\tt CM.sa} uses special support that was built into
+SML/NJ and reproduces precisely the same treatment of namespaces that
+CM itself would use internally when running {\tt CM.make}.
+Furthermore, before compiling a source file the program will attempt
+to load the corresponding binfile.  This can be a useful aid when
+building systems that no longer depend on the presence of CM.  (CM
+itself can be bootstrapped using this facility.)
+
+\subsection{Visualization}
+
+Sometimes it is helpful to be able to look at a graphical
+representation of the dependency graph.  CM's dependency graphs are
+directed and acyclic.  The function {\tt CM.dot} can be used to
+produce input for the DOT program~\cite{north93:dot}, which is a tool for
+automatically drawing such graphs.  Figure~\ref{fig:dotsample} shows a
+DOT drawing of the dependency graph for the CML
+library~\cite{reppy91:cml}.
+\begin{verbatim}
+val dot': string * string -> unit
+val dot: string -> unit
+\end{verbatim}
+An invocation of this function writes a DOT-specification into the
+file that was named by the second (or sole) argument.
+DOT-specifications contain ordinary text.  Layout parameters are
+located near the top of the file.  Any text editor can be used to
+adjust them when necessary.
+
+DOT was developed at AT\&T Bell Laboratories.  Universities can obtain
+it in binary format free of charge after signing a license agreement.
+For further information contact {\tt north@research.att.com}.
+
+\begin{figure}
+\centerline{\psfig{figure=dot.ps}}
+\caption{DOT drawing of a dependency graph}
+\label{fig:dotsample}
+\end{figure}
+
+The pictures produced use ellipses for {\tt .sig}-files, rectangular
+boxes for {\tt .sml}-files, and diamond-shaped boxes for all others.
+Lines between nodes denote direct dependencies.  Lines are solid when
+the two nodes belong to the same entity. Dashed lines are used for edges
+which cross between different entities.  A dotted line connects a node to
+the name of a symbol imported from the base system.  These symbols are
+displayed as plain text labels.
+
+\subsection{Stabilization}
+
+Running {\tt CM.stabilize false} stabilizes the root entity of the
+system.  In the process of stabilization CM runs the equivalent of
+{\tt CM.recompile()} in order to update all of the binfiles.  After
+succeeding it continues by creating a stablefile.  If the entity to be
+stabilized refers to other entities, then those sub-entities should
+already be stable.  The process of stabilization can be made recursive
+by passing {\tt true} to {\tt CM.stabilize}.  This way not only the
+root entity but also all of its descendents will be stabilized.
+
+\begin{verbatim}
+val stabilize': string * bool -> unit
+val stabilize: bool -> unit
+\end{verbatim}
+In order to de-stabilize a stable entity one can invoke the {\tt
+CM.destabilize} command.
+\begin{verbatim}
+val destabilize': string -> unit
+val destabilize: unit -> unit
+\end{verbatim}
+
+\subsection{Preprocessor symbols}
+
+The top-level structure {\tt CM} contains a substructure {\tt SymVal}
+with the following functions:
+
+\begin{verbatim}
+val lookup: string -> int option
+val define: string * int -> unit
+val undef: string -> unit
+val undefall: unit -> unit
+\end{verbatim}
+
+Definitions for specific symbols can be added using {\tt define} and
+removed using {\tt undef}.  An invocation of {\tt undefall} clears all
+definitions.  The {\tt lookup} function provides a way of determining
+the current value associated with a given symbol.
+
+\subsection{Autoloader}
+
+Here is a summary of the functions used to control the autoloader. See
+section~\ref{sec:autoload} for details.
+
+\begin{verbatim}
+val autoloading: bool option -> bool
+
+val autoload: unit -> unit
+val autoload': string -> unit
+
+val autoList: unit -> string list
+val clearAutoList: unit -> unit
+\end{verbatim}
+
+\subsection{Miscellaneous}
+
+\label{section:path}
+
+CM maintains some internal state which is used to control its global
+behavior.  Part of this state is a set of boolean flags which can be
+manipulated by calling interface functions of type {\tt
+bool~option~->~bool}.  All of them always return the previous setting.
+An argument of {\tt SOME}~{\it x} is used to set the value to {\it x},
+{\tt NONE} only queries the current state without modifying it.
+\begin{verbatim}
+val keep_going: bool option -> bool   (* CM_KEEP_GOING   *)
+val verbose: bool option -> bool      (* CM_VERBOSE      *)
+val show_exports: bool option -> bool (* CM_SHOW_EXPORTS *)
+val parse_caching: int option -> int
+\end{verbatim}
+The comments show the names of {\sc Unix} environment variables, which
+can be used to set the initial values.  The values are controlled by
+setting the corresponding environment variable to either {\tt true} or
+{\tt false}.
+
+\verb|CM.keep_going| has been described before.  The {\tt verbose}
+flag (initially {\tt true}) can be used to silence CM's chatting about
+its current activities by setting it to {\tt false}.
+
+\verb|CM.show_exports|, when set to {\tt true}, will cause CM to
+report the set of symbols exported by filterless entities.  This
+feature is particularly useful when trying to convert SC-style
+libraries to CM.
+
+\verb|CM.parse_caching| limits the number of parse trees CM keeps in
+main memory.  Parse trees that are kept after dependency analysis
+might save time by avoiding reparsing the file during compilation.
+However, with large programs this can become rather unwieldy.
+\verb|CM.parse_caching| offers a way to tune CM's behavior here.
+
+\begin{verbatim}
+val set_path: string list option -> string list (* CM_PATH *)
+\end{verbatim}
+
+Normally CM interprets relative pathnames in descriptions as being
+relative to the directory the description file appears in.  The
+path---an internally kept string list---specifies a set of alternative
+directories, which CM must consider in the case that a named subentity
+cannot be found locally.  An initial path is taken from the {\sc Unix}
+environment variable \verb|CM_PATH| unless this is not present, in
+which case a built-in default will be used.  \verb|CM_PATH| must
+specify a list of directories. Under Unix the format is a
+colon-separated list of pathnames in the style of {\tt /bin/sh}'s {\tt
+PATH} variable, while on other systems CM uses the semicolon in place
+of the colon as its separator.
+
+One can change the path interactively by invoking \verb|CM.set_path|.
+This function also returns the old setting.  Passing {\tt NONE} as an
+argument can be used to query the current setting.
+
+\begin{verbatim}
+val sweep: unit -> unit
+val clear: unit -> unit
+\end{verbatim}
+
+{\tt CM.sweep()} and {\tt CM.clear()} are used to explicitely
+manipulate CM's in-core caches. 
+
+{\tt CM.sweep()} removes all internally cached binfiles that
+are no longer consistent with the external (file-system) cache or the
+respective sources.  For correctness this will never be necessary,
+because CM always performs consistency checks before using a
+cached item.  However, it can help to reduce memory usage.
+
+{\tt CM.clear()} empties all in-memory caches.
+
+\section{Adding new tools to CM}
+
+\label{sec:addtools}
+
+Structure {\tt CM.Tools:~CMTOOLS} is a repository of types and
+functions that are necessary when one wishes to add new tools to CM.
+It is not necessary to recompile CM when augmenting it this way.
+
+This interface for customizing CM is not as convenient as writing
+scripts for {\tt make}. Instead it was designed to be very general,
+because the full power of SML can be used.  For the most common
+situations there are useful pre-defined building blocks available in
+{\tt CM.Tools}.
+
+\subsection{Basics}
+
+Tools are associated with ``tool classes''.  Source files are
+classified according to what tool is needed to process them.
+
+CM's knowledge about a tool class consists of:
+\begin{enumerate}
+\item A {\em name} for the class. This is a simple string consisting
+of lower-case letters.
+\item A {\em rule}: The rule is a function from a member name (a
+string) to a ``target'' list, where each target is another member name
+together with an optional tool class. Most of the time member names
+refer to files, but this is not always the case, as can be seen in the
+case of the {\em root}@{\em file}.{\tt nw} notation for the {\tt
+noweb} tool.
+\item A {\em validator}: The validator takes a source file name and
+the target list as produced by the rule and determines whether or not
+the tool needs to be invoked at all.
+\item A {\em processor}: The processor implements the actual tool,
+i.e., it takes source file name and targets and runs the tool.
+\end{enumerate}
+
+\begin{verbatim}
+type fname = string
+type class = string
+type target = fname * class option
+\end{verbatim}
+
+Member names passed to rules, validators, and processors are exactly
+the ones that appear in the entity description file.  Relative names
+are resolved relative to the directory the description file appears
+in. We call this directory the ``context''.  When running a validator
+or a processor CM temporarily changes its working directory to the
+context to allow for relative filenames to be processed correctly.
+
+\begin{verbatim}
+type validator = { source: fname, targets: target list } -> bool
+type processor = { source: fname, targets: target list } -> unit
+\end{verbatim}
+
+Ideally, rules should also run with the working directory changed to
+the corresponding context.  However,  changing the working directory
+can be relatively expensive and is often not necessary for a rule to
+work correctly.  To account for that CM offers a somewhat involved
+interface for its rules, so it is up to the programmer to decide
+whether or not the context should be set or not.
+
+\begin{verbatim}
+type rulefn = unit -> target list
+type rulecontext = rulefn -> target list
+type rule = fname * rulecontext -> target list
+\end{verbatim}
+
+Generic rules take the name of the source and also a rule context as
+an argument.  It may subsequently pass a parameterless procedure (the
+``rule function'') to the rule context.  The function is then invoked
+with the working directory set properly.  Rules that do not care about
+the context can ignore their second argument.  Most of the time this
+will be the case when the target file names can be derived directly
+from the source name itself.  In more complicated situations it may be
+that the rule needs to open the file and inspect its contents.
+
+The most common rules (``simple rules'') will either always ignore the
+context or always use it.  This is captured by the type {\tt
+simplerule}.  Conversion routines {\tt dontcare} and {\tt withcontext}
+convert simple rules to generic ones.
+\begin{verbatim}
+type simplerule = fname -> target list
+
+val dontcare: simplerule -> rule
+val withcontext: simplerule -> rule
+\end{verbatim}
+
+Tools classes are registered with CM using the function {\tt
+addToolClass}:
+\begin{verbatim}
+val addToolClass:
+    { class: class, rule: rule,
+      validator: validator, processor: processor } -> unit
+\end{verbatim}
+
+\subsection{Tool classes and classification}
+
+The tool class can be determined in three different ways:
+
+\begin{enumerate}
+\item If the source name is a member in a CM description file, then it
+can be followed by a colon and the name of the corresponding tool
+class.  Internally, tool classes use lower-case names, tool names in
+CM description files are case-insensitive.
+\item If a source is the product of running a tool on another source,
+then the rule for that tool may have specified the tool class for its
+target.
+\item If the description file omits the class specification or if a
+tool's rule does not provide this information for one of its targets,
+then CM tries to infer the class name automatically.
+\end{enumerate}
+
+\subsubsection*{Automatic classification and classifiers}
+
+Automatic classification is done based on the name of the source.  In
+the most common case it is the filename extension (``suffix'') that is
+used to make the decision, but it is also possible to take more or all
+of the file's name into account.  Classification is done by
+``classifiers'', which come in two flavors:
+
+\begin{verbatim}
+datatype classifier =
+    SFX_CLASSIFIER of string -> class option
+  | GEN_CLASSIFIER of fname -> class option
+\end{verbatim}
+
+\begin{description}
+\item[Suffix classifier] A function from suffix strings to class
+option. (\verb+SFX_CLASSIFIER+)
+\item[General classifier] A function from source names
+to class option. (\verb+GEN_CLASSIFIER+)
+\end{description}
+
+Classifiers can be added using {\tt addClassifier}.
+\begin{verbatim}
+val addClassifier: classifier -> unit
+\end{verbatim}
+It is possible to invoke the built-in classification mechanism
+explicitly using the function {\tt defaultClassOf}:
+\begin{verbatim}
+val defaultClassOf: fname -> class option
+\end{verbatim}
+
+The {\tt CM.Tools} structure also contains some functions for
+conveniently creating the most common classifiers, validators, and
+processors:
+
+\begin{itemize}
+\item Make a classifier which looks for a specific file name suffix:
+\begin{verbatim}
+val stdSfxClassifier: { sfx: string, class: class } -> classifier
+\end{verbatim}
+\item Two validators---one verifies time stamp consistency, the other
+one only probes the existence of the targets:
+\begin{verbatim}
+val stdTStampValidator: validator
+val stdExistenceValidator: validator
+\end{verbatim}
+\item Make a processor that runs a given shell command with the source
+name as its only argument.  The {\tt tool} argument is used when
+raising the {\tt ToolError} exception upon failure (see
+section~\ref{sec:toolerror}).
+\begin{verbatim}
+val stdShellProcessor: { command: string, tool: string } -> processor
+\end{verbatim}
+\end{itemize}
+
+\subsection{Tools exception}
+
+\label{sec:toolerror}
+
+If a tool fails to complete its operation normally, then it can signal
+this condition by raising the exception {\tt ToolError}:
+\begin{verbatim}
+exception ToolError of {msg:string, tool:string}
+\end{verbatim}
+The fields {\tt msg} and {\tt tool} can contain arbitrary
+strings. However, {\tt tool} is intended to describe the tool that
+raised the exception, while {\tt msg} should give more detailed
+indication of what exactly went wrong.
+
+\subsection{Recommended strategy for adding tools}
+
+When adding new tools to CM we recommend writing a functor that takes
+the {\tt CM.Tools} structure as its argument.  This way the tool can
+easily be installed by instantiating the functor.
+
+Suppose one wants to extend CM with a tool for an improved version of
+ML-Yacc.  The old ML-Yacc should still be available, though.  Let's
+create a new class {\tt BetterYacc}, a processor that runs the command
+{\tt new-ml-yacc}, and have CM recognize files whose names end in {\tt
+.ngrm} or {\tt .ny} as input for this tool.
+
+The rule maps input file {\em x} to output files {\em x}{\tt .sig} and
+{\em x}{\tt .sml}---both of them classified as belonging to class {\tt
+Sml}.  The validator compares time stamps in the file system.
+
+The following sample code is highly stylized; experienced programmes
+could easily ``compress'' it to only a few lines:
+\begin{verbatim}
+functor YaccSourceFun (structure Tools: CMTOOLS) = struct
+    local
+        val command = "new-ml-yacc"
+
+        fun simplerule source = let
+            val smlfile = source ^ ".sml"
+            val sigfile = source ^ ".sig"
+            fun sml f = (f, SOME "sml")
+        in
+            [sml sigfile, sml smlfile]
+        end
+
+        val validator = Tools.stdTStampValidator
+
+        val processor =
+            Tools.stdShellProcessor { command = command,
+                                      tool = "Better-ML-Yacc" }
+
+        (* install BetterYacc class *)
+        open Tools
+        val class = "betteryacc"
+        fun sfx s =
+            addClassifier (stdSfxClassifier { sfx = s, class = class })
+    in
+        val _ = addToolClass { class = class,
+                               rule = dontcare simplerule,
+                               validator = validator,
+                               processor = processor }
+        val _ = sfx "ngrm"
+        val _ = sfx "ny"
+    end
+end
+\end{verbatim}
+
+
+\pagebreak
+
+\appendix
+
+\section{Using CM for compiling the compiler}
+
+\subsection{Introduction}
+
+For CM's precursor SC there existed a special batch version called
+SCB, which was used by those who work on SML/NJ's compiler itself.
+Recompiling compiler sources is closely related to the process of
+bootstrapping SML/NJ~\cite{appel94:bootstrap}.
+
+There is no separate ``batch'' version of CM; the functionality of
+batch compilation has been integrated into CM proper.  It is available
+through two additional top-level structures: {\tt CMB} and {\tt CMR}.
+
+\subsection{Batch compilation---{\tt structure CMB}}
+
+The batch compiler is implemented as a structure called {\tt CMB}
+which uses its own private copy of a full-fledged {\tt structure CM}.
+Its behavior has been modified in minor ways to account for the
+specifics of recompiling the compiler.
+
+In order to use {\tt CMB} it is necessary to run CM in the compiler's
+source directory.  Batch compilation is started by invoking {\tt
+CMB.make()}:
+\begin{verbatim}
+val make: unit -> unit
+\end{verbatim}
+
+\subsection{Batch compilation---the internals}
+
+{\tt CMB.make}'s work proceeds in several distinct phases.  Most of
+them are closely interrelated with the details of the interaction
+between SML/NJ's compiler and its run-time system as well as with the
+details of the boot procedure.
+
+\subsubsection{Phases}
+
+\begin{enumerate}
+\item Construction of the core environment by compiling some
+dedicated source files located in the {\tt boot} directory.
+This step compiles three files, the names of which
+are hardwired into {\tt CMB}:
+
+\begin{description}
+\item[boot/assembly.sig] defines a signature that describes the
+interface to the run-time system. (The run-time system is not written
+in SML.)
+\item[boot/dummy.sml] implements a structure that matches the
+run-time system's signature.  This structure is used as a placeholder
+in order to allow further compile-steps to proceed.  The actual code
+is never used, because the boot procedure will replace it with the
+actual run-time system.
+\item[boot/core.sml] implements the core environment.  This file
+is the only one that directly depends on the result of compiling {\tt
+boot/dummy.sml}.  Since the place of the latter will be taken by the
+run-time system we must compile {\tt boot/core.sml} in a special way
+to account for potential compatibility problems.
+\end{description}
+
+\item Compilation of the remaining sources in the boot directory in
+some fixed order. This order is specified in {\tt boot/all-files.cm}.
+The format of this file is an entity description file. However, CM
+does not perform dependency analysis but uses the order in which the
+members are listed.
+\item CM reads the description file {\tt boot/pervasives.cm} and
+compiles the members listed there.  Anything defined here will
+eventually make up the so-called pervasive environment, which serves
+as the initial basis for compiling the compiler sources proper.
+Now we have finished compiling the {\tt boot} directory.
+\item Analysis of dependencies among the compiler's source files.  The
+bulk of the compiler's sources can directly be understood by CM's
+dependency analyzer.
+\item Recompilation of the compiler's sources as far as necessary.
+This step also takes advantage of CM's basic functionality such as
+cutoff recompilation. However, there are some differences:
+\begin{itemize}
+\item All binfiles are stored in one single directory. Its name
+depends on target architecture and operating system.  For example,
+when compiling for a DEC Alpha machine running a flavor of Unix
+binfiles are placed into {\tt bin.alpha32-unix}. Note that this
+implies there can be {\em no} duplication of file names throughout the
+compiler sources (even within subdirectories and subgroups).
+\item The base environment for the compilation is the one constructed
+by compiling the {\tt boot} directory.
+\end{itemize}
+\item Generating list files (see below).
+\label{step:list}
+\end{enumerate}
+
+\subsubsection{List-files}
+
+In order to finally build a new SML/NJ system it is necessary to
+combine the various binfiles.  However, this cannot be done by CM or
+other SML programs.  The binfiles must be loaded into an empty
+run-time system.
+
+The boot mechanism of the run-time system reads certain list
+files.  They are used to record the names of binfiles that are
+needed to build a new compiler.  The two most important list
+files---{\tt BOOTLIST} and {\tt BINLIST}---are written by the batch
+compiler in step~\ref{step:list}.  Both of them (like all the other
+list-files as well) are located in the binfile directory.
+
+{\tt BOOTLIST} contains the names of binfiles for the various sources
+in the {\tt boot} directory.  However, neither {\tt assembly.sig} nor
+{\tt dummy.sml} are mentioned.
+
+{\tt BINLIST} lists all remaining binfiles necessary to build SML/NJ
+on the target machine.  In order to create this file CM selects one
+single compilation unit as the root of the dependency graph and writes
+a topologically sorted list of binfiles belonging to nodes reachable
+from this root.  The rootfile selected must define a structure whose
+name depends on the target architecture.  It consists of {\tt Int}
+concatenated with the stem that can be looked up in
+table~\ref{tab:structs}.  For example, for a target achitecture of
+``MIPS big endian'' the structure's name is {\tt IntMipsBig}. ({\em
+Int} stands for {\em Interactive}.)
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|lll|}
+\hline
+architecture & stem & binlist \\
+\hline
+DEC Alpha (32 bit) & {\tt Alpha32} & BINLIST.alpha32 \\
+Sparc & {\tt Sparc} & BINLIST.sparc \\
+%MIPS (little endian) & {\tt MipsLittle} & BINLIST.mipsel \\
+MIPS {big endian} & {\tt MipsBig} & BINLIST.mipseb \\
+HP-PA & {\tt Hppa} & BINLIST.hppa \\
+IBM RS6000 & {\tt RS6000 } & BINLIST.rs6000 \\
+Intel x86 & {\tt X86} & BINLIST.x86 \\
+bytecode & {\tt ByteCode} & BINLIST.bytecode\footnote{not yet supported} \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Target architectures, associated name stems, and list-files}
+\label{tab:structs}
+\end{table}
+
+In addition to {\tt BINLIST} there will be another list-file---{\tt
+SRCLIST}---naming the sources for these binfiles.  This file will be
+used to find the sources in the case that static environments must be
+re-created from sources at boot-time instead of simply extracting them
+from binfiles ({\tt xmakeml -elab} option).  Similarly, {\tt BOOTSRC}
+names the sources for binfiles listed in {\tt BOOTLIST}. Note that
+file names in {\tt BOOTLIST} and {\tt BINLIST} are relative to the
+binfile directory, while file names in {\tt BOOTSRC} and {\tt SRCLIST}
+are relative to the compiler's source directory.
+
+Finally, there will be a set of list-files---one per supported target
+architecture (table~\ref{tab:structs})---which specify names of
+binfiles for cross compilers.  Again, each of these files contains a
+topologically sorted list of binfiles.  Their creation proceeds
+completely analogous to creating {\tt BINLIST}: There must be one
+compilation unit defining some structure whose name depends on the
+cross compiler's target architecture.  This unit is selected as the
+root of the dependency graph used to produce the topological ordering.
+To obtain the name of the structure CM concatenates the stem shown in
+table~\ref{tab:structs} with {\tt VisComp}.  Example:  The structure
+pertaining to cross compilers for the HP-PA architecture is {\tt
+HppaVisComp}.
+
+\subsection{Controlling the batch compiler}
+
+\subsubsection{Files}
+
+There are three files that are used to control batch compilation.  All
+of them have the format of a group description without export filter.
+
+\begin{description}
+\item[boot/all-files.cm] The files {\tt boot/all-files.cm} lists the
+source files in directory {\tt boot} with the exception of
+\begin{itemize}
+\item {\tt boot/assembly.sig}
+\item {\tt boot/dummy.sml}
+\item {\tt boot/core.sml}, and
+\end{itemize}
+Even though it has the format of a group description it will not be
+used as input for a dependency analysis.  Instead, the order of
+members in this ``group'' matters---they are compiled top-to-bottom.
+\item[boot/pervasives.cm] After all members of {\tt boot/all-files.cm}
+have been compiled CM will continue to process the members of {\tt
+boot/pervasives.cm}.  Again, the members of this file is also not
+subject to dependency analysis.  The environment resulting from
+compiling {\tt boot/pervasives.cm} is remembered as the so-called
+pervasive environment or {\em initial basis}.
+\item[all-files.cm] File {\tt all-files.cm} is the root description
+for the remaining system.  It will serve as input to the dependency
+analyzer.  Therefore, the order of its members does not matter.
+\end{description}
+
+\subsubsection{Flags}
+
+{\tt CM} shares its internal state with {\tt CMB}.  This means that
+the interface functions described in section~\ref{section:path} can
+also be used to control the behavior of {\tt CMB}. Example:
+
+\begin{verbatim}
+CMB.CM.verbose (SOME false);
+CMB.CM.keep_going (SOME true);
+\end{verbatim}
+
+This is equivalent to
+
+\begin{verbatim}
+CM.verbose (SOME false);
+CM.keep_going (SOME true);
+\end{verbatim}
+
+\subsection{Cross-compilation and retargeting}
+
+Retargeting the batch compiler corresponds to creating a new
+instance of {\tt CMB}, the compiler of which has been replaced with
+one that produces code for a different architecture.  In order to be
+able to retarget we must already have a complete set of working
+binfiles for the compiler running on the host architecture.
+
+Structure {\tt CMR} contains the {\tt retarget} function, which is
+responsible for building a new {\tt CMB}.
+
+\begin{verbatim}
+structure CMR: sig
+  val retarget: { bindir: string, cpu: string, os: string } -> unit
+end
+\end{verbatim}
+
+For example, if the host machine is a DEC Alpha and we want to
+cross-compile for a Sparc running some flavor of {\sc Unix}, then we
+invoke:
+
+\begin{verbatim}
+CMR.retarget { bindir = "bin.alpha32", cpu = "sparc", os = "unix" };
+\end{verbatim}
+
+This command reads {\tt bin.alpha32/BINLIST.sparc} and loads the files
+listed therein.  The result is a compiler that produces code for a
+Sparc machine running {\sc Unix}, even though it itself still runs on the
+Alpha.  The new compiler is used to construct a new structure {\tt
+CMB} which then replaces the old one.
+
+Known CPU names are {\tt alpha32}, {\tt sparc},
+%{\tt mipsel},
+{\tt mipseb}, {\tt hppa}, {\tt rs6000}, {\tt x86}, and {\tt bytecode}.
+Operating system specifiers are {\tt unix}, {\tt macos}, {\tt os2},
+and {\tt win32}.
+
+Once CMR.retarget has completed successfully it suffices to run
+
+\begin{verbatim}
+CMB.make ();
+\end{verbatim}
+
+in order to produce Sparc binfiles for the compiler.
+
+\pagebreak
+
+\section{Installation and maintenance}
+
+Normally a working version of CM will be distributed as part of the
+SML/NJ system.  SML/NJ's installation procedure automatically builds
+CM and even uses it to install other parts of the system.
+
+The following paragraphs describe the steps necessary to be taken in
+the unlikely event that CM must be installed or maintained separately.
+
+\subsection{Installation}
+
+To build the first heap image for CM you must run the {\tt build}
+script.
+
+If everything is fine, then {\tt build} will create {\tt sml-cm.}{\em
+arch}-{\em os}, which subsequently needs to be moved to the
+appropriate heap directory.  Normally this will be something like {\tt
+../../bin/.heap/}.
+
+{\tt build} accepts a number of parameters that can be used to
+customize CM. Defaults are given in parentheses.
+
+\begin{description}
+\item[-sml {\it sml}] tells {\tt build} which command to run in order
+to launch SML/NJ's base system ({\tt sml}).
+\item[-yacc {\it yacc}] names the command for running ML-Yacc ({\tt
+ml-yacc}).
+\item[-lex {\it lex}] declares the command for running ML-Lex ({\tt
+ml-lex}).
+\item[-burg {\it burg}] does the same for ML-Burg ({\tt ml-burg}).
+\item[-rcs {\it co}] specifies the {\sc Unix} command responsible for
+checking out the most recent version of a file from its RCS archive
+({\tt co -q}).
+\item[-nll] tells CM that filenames have a limited length.  To
+cope with this it will avoid using the {\tt.bin}-suffix for
+binfiles. (Binfiles reside in dedicated directories, therefore it
+is not necessary for them to have a special suffix.)
+\item[-L {\it path}] defines the default search path for files.
+The {\it path} must be given as a colon-separated list of directories.
+Later this value can be overridden by calling \verb|CM.set_path|, or by
+starting {\tt sml-cm} with the \verb|CM_PATH| environment variable
+set.
+\item[-o {\it name}] specifies the name of the CM image file ({\tt
+sml-cm.}{\em arch}).
+\end{description}
+
+\subsection{Maintenance}
+
+Once an initial version has been set up CM itself can be used
+to maintain its own sources.  CM is an ordinary SML program.
+It has been divided into three entities: the root group described in
+{\tt sources.cm}, a group defining the interface to the base system
+described in {\tt sys/sources.cm}, and a library of utility functions.
+The library's description file is {\tt util/sources.cm}.
+
+After successfully recompiling the sources (by running {\tt CM.make
+()}) one can use the {\tt SMLofNJ.exportML} function in order to produce a
+new heap image.
+
+After making changes to CM's sources it is advisable to run
+\begin{verbatim}
+CM.sa "load-all";
+\end{verbatim}
+in order to provide {\tt build} with information necessary to recompile
+CM from scratch should this become necessary in the future.
+
+\section{Compatibility with SC}
+
+CM's precursor SC supported a notion of groups and
+libraries similar to the one used here.  However, there was no way of
+specifying export filters or explicit member classes.
+
+Furthermore, the property of being a library was not given as part of
+the entity's description.  SC's solution was to treat as
+library description files those members whose names were preceded by a
+minus sign.  This meant that the client had to know whether an entity
+was a group or a library.  There was no syntactic difference between
+group descriptions and library descriptions.
+
+In most cases it is easy to convert from SC's description
+files to a format suitable for CM.  In fact, in their most basic
+form SC's and CM's descriptions look very similar to
+each other.  To upgrade from the former to the latter simply add the
+line
+\begin{verbatim}
+Group is
+\end{verbatim}
+at the top of the description file and rename it from {\tt sources.sc}
+to {\tt sources.cm}.
+
+CM can also process SC-style description files directly.
+It does this by introducing the member classes {\tt SCGroup} and {\tt
+SCLibrary}.  By default, member names ending in {\tt .sc} are regarded
+as belonging to {\tt SCGroup}.
+
+Since it is impossible to use explicit class names within SC-style
+description files CM will rely solely on name suffixes and the leading
+minus sign to infer them.  The same set of rules given in
+table~\ref{tab:suffixes} applies here.
+
+The most serious deficiency of SC-style descriptions is that
+they do not provide a notation for specifying export filters.  One
+result of this is the undesirable ability to write libraries without
+export filters---something that has deliberately been disallowed in
+CM.
+
+CM's current support for old-style SC descriptions must be regarded as
+a temporary solution only.  It is expected to disappear in the future.
+
+\cleardoublepage
+
+\tableofcontents
+
+\pagebreak
+
+\bibliography{blume,appel,ml}
+
+\end{document}
