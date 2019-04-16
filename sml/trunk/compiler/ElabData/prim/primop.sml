@@ -280,24 +280,24 @@ structure Primop : PRIMOP =
       | prPrimop INLCOMPOSE = "inlcompose"
       | prPrimop INLBEFORE = "inlbefore"
       | prPrimop INLIGNORE = "inlignore"
-      | prPrimop (INL_ARRAY) = "inl_array"
-      | prPrimop (INL_VECTOR) = "inl_vector"
+      | prPrimop INL_ARRAY = "inl_array"
+      | prPrimop INL_VECTOR = "inl_vector"
       | prPrimop (INL_MONOARRAY kind) = "inl_monoarray_" ^ prNumkind kind
       | prPrimop (INL_MONOVECTOR kind) = "inl_monovector_" ^ prNumkind kind
-      | prPrimop (MARKEXN) = "markexn"
-      | prPrimop (MKETAG) = "mketag"
-      | prPrimop (WRAP) = "wrap"
-      | prPrimop (UNWRAP) = "unwrap"
+      | prPrimop MARKEXN = "markexn"
+      | prPrimop MKETAG = "mketag"
+      | prPrimop WRAP = "wrap"
+      | prPrimop UNWRAP = "unwrap"
     (* Primops to support new array representations *)
-      | prPrimop (NEW_ARRAY0) = "newarray0"
-      | prPrimop (GET_SEQ_DATA) = "getseqdata"
-      | prPrimop (SUBSCRIPT_REC) = "subscriptrec"
-      | prPrimop (SUBSCRIPT_RAW64) = "subscriptraw64"
+      | prPrimop NEW_ARRAY0 = "newarray0"
+      | prPrimop GET_SEQ_DATA = "getseqdata"
+      | prPrimop SUBSCRIPT_REC = "subscriptrec"
+      | prPrimop SUBSCRIPT_RAW64 = "subscriptraw64"
     (* Primops to support new experimental C FFI. *)
       | prPrimop (RAW_LOAD nk) = concat ["raw_load(", prNumkind nk, ")"]
       | prPrimop (RAW_STORE nk) = concat ["raw_store(", prNumkind nk, ")"]
       | prPrimop (RAW_CCALL _) = "raw_ccall"
-      | prPrimop (RAW_RECORD { fblock }) =
+      | prPrimop (RAW_RECORD{ fblock }) =
 	  concat ["raw_", if fblock then "fblock" else "iblock", "_record"]
       | prPrimop INLIDENTITY = "inlidentity"
       | prPrimop CVT64 = "cvt64"
