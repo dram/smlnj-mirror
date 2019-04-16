@@ -46,7 +46,7 @@ end = struct
 		C.SETTER (s, xl, cexp e)
 	    | cexp (C.LOOKER (l, xl, v, t, e)) =
 		C.LOOKER (l, xl, v, t, cexp e)
-	    | cexp (C.PURE (C.P.copy_inf sz, [x, f], v, t, e)) = if (sz = boxNumSz)
+	    | cexp (C.PURE (C.P.COPY_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
 		then let
 		  val k = LV.mkLvar ()
 		  val e' = cexp e
@@ -59,10 +59,10 @@ end = struct
 		  val e' = cexp e
 		  in
 		    C.FIX ([(C.CONT, k, [v], [t], e')],
-		      C.PURE (C.P.copy (sz, boxNumSz), [x], v', boxNumTy,
+		      C.PURE (C.P.COPY{from=sz, to=boxNumSz}, [x], v', boxNumTy,
 			C.APP (f, [C.VAR k, C.VAR v', zero])))
 		  end
-	    | cexp (C.PURE (C.P.extend_inf sz, [x, f], v, t, e)) = if (sz = boxNumSz)
+	    | cexp (C.PURE (C.P.EXTEND_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
 		then let
 		  val k = LV.mkLvar ()
 		  val e' = cexp e
@@ -75,10 +75,10 @@ end = struct
 		  val e' = cexp e
 		  in
 		    C.FIX ([(C.CONT, k, [v], [t], e')],
-		      C.PURE (C.P.extend (sz, boxNumSz), [x], v', boxNumTy,
+		      C.PURE (C.P.EXTEND{from=sz, to=boxNumSz}, [x], v', boxNumTy,
 			C.APP (f, [C.VAR k, C.VAR v', one])))
 		  end
-	    | cexp (C.ARITH (C.P.test_inf sz, [x, f], v, t, e)) = if (sz = boxNumSz)
+	    | cexp (C.ARITH (C.P.TEST_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
 		then let
 		  val k = LV.mkLvar ()
 		  val e' = cexp e
@@ -91,10 +91,10 @@ end = struct
 		  val e' = cexp e
 		  in
 		    C.FIX ([(C.CONT, k, [v'], [boxNumTy],
-			     C.ARITH (C.P.test (boxNumSz, sz), [C.VAR v'], v, t, e'))],
+			     C.ARITH (C.P.TEST{from=boxNumSz, to=sz}, [C.VAR v'], v, t, e'))],
 			   C.APP (f, [C.VAR k, x]))
 		  end
-	    | cexp (C.PURE (C.P.trunc_inf sz, [x, f], v, t, e)) = if (sz = boxNumSz)
+	    | cexp (C.PURE (C.P.TRUNC_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
 		then let
 		  val k = LV.mkLvar ()
 		  val e' = cexp e
@@ -107,7 +107,7 @@ end = struct
 		  val e' = cexp e
 		  in
 		    C.FIX ([(C.CONT, k, [v'], [boxNumTy],
-			     C.PURE (C.P.trunc (boxNumSz, sz), [C.VAR v'], v, t, e'))],
+			     C.PURE (C.P.TRUNC{from=boxNumSz, to=sz}, [C.VAR v'], v, t, e'))],
 			   C.APP (f, [C.VAR k, x]))
 		  end
 	    | cexp (C.ARITH (a, xl, v, t, e)) = C.ARITH (a, xl, v, t, cexp e)

@@ -177,11 +177,11 @@ functor CPStrans(MachSpec : MACH_SPEC) : sig
 		  | RCC(k,l,p,vl,wtl,ce) => (
 		      List.app addty wtl;
 		      RCC(k, l, p, map vtrans vl, wtl, cexptrans ce))
-		  | PURE(P.box,[u],w,t,ce) => (addvl(w,vtrans u); cexptrans ce)
-		  | PURE(P.unbox,[u],w,t,ce) => (
+		  | PURE(P.BOX, [u], w, t, ce) => (addvl(w,vtrans u); cexptrans ce)
+		  | PURE(P.UNBOX, [u], w, t, ce) => (
 		      case u of VAR z => addty(z, t) | _ => ();
 		      addvl(w,vtrans u); cexptrans ce)
-		  | PURE(p as P.wrap(P.INT sz), [u], w, t, ce) =>
+		  | PURE(p as P.WRAP(P.INT sz), [u], w, t, ce) =>
 		      if (sz <= Target.defaultIntSz)
 			then (  (* remove wrapping of tagged ints *)
 			  addvl(w, vtrans u);
@@ -189,7 +189,7 @@ functor CPStrans(MachSpec : MACH_SPEC) : sig
 			else (
 			  addty(w,t);
 			  PURE(p, [vtrans u], w, t, cexptrans ce))
-		  | PURE(p as P.unwrap(P.INT sz), [u], w, t, ce) =>
+		  | PURE(p as P.UNWRAP(P.INT sz), [u], w, t, ce) =>
 		      if (sz <= Target.defaultIntSz)
 			then (  (* remove unwrapping of tagged ints *)
 			  addvl(w,vtrans u);
@@ -197,18 +197,18 @@ functor CPStrans(MachSpec : MACH_SPEC) : sig
 			else (
 			  addty(w,t);
 			  PURE(p, [vtrans u], w, t, cexptrans ce))
-		  | PURE(p as P.wrap(P.FLOAT _), [u], w, t, ce) =>
+		  | PURE(p as P.WRAP(P.FLOAT _), [u], w, t, ce) =>
 		      if unboxedfloat
 			then (addty(w,t); PURE(p, [vtrans u], w, t, cexptrans ce))
 			else (addvl(w,vtrans u); cexptrans ce)
-		  | PURE(p as P.unwrap(P.FLOAT _), [u], w, t, ce) =>
+		  | PURE(p as P.UNWRAP(P.FLOAT _), [u], w, t, ce) =>
 		      if unboxedfloat
 			then (addty(w,t); PURE(p, [vtrans u], w, t, cexptrans ce))
 			else (addvl(w,vtrans u); cexptrans ce)
-		  | PURE(P.getcon,[u],w,t,ce) => (
+		  | PURE(P.GETCON,[u],w,t,ce) => (
 		      addty (w, t);
 		      SELECT(0,vtrans u,w,t,cexptrans ce))
-		  | PURE(P.getexn,[u],w,t,ce) => (
+		  | PURE(P.GETEXN,[u],w,t,ce) => (
 		      addty (w, t);
 		      SELECT(0,vtrans u,w,t,cexptrans ce))
 		  | PURE(p,vl,w,t,ce) => let

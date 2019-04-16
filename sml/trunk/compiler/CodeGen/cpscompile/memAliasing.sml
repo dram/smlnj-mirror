@@ -102,28 +102,27 @@ struct
     * Analyze a set of CPS functions
     *)
    fun analyze(cpsFunctions) = let
-       fun sizeOf(C.RECORD(rk,vs,x,k),hp) = sizeOf(k,allocRecord(rk,vs,hp))
-         | sizeOf(C.SELECT(off,v,x,cty,k),hp) = sizeOf(k,hp)
-         | sizeOf(C.OFFSET(off,v,x,k),hp) = sizeOf(k,hp)
-         | sizeOf(C.APP(f,vs),hp) = hp
-         | sizeOf(C.FIX _,hp) = error "sizeOf: FIX"
-         | sizeOf(C.SWITCH(v,x,ks),hp) = sizeOfs(ks,hp)
-         | sizeOf(C.BRANCH(p,_,x,k1,k2),hp) =
-             Int.max(sizeOf(k1,hp),sizeOf(k2,hp))
-         | sizeOf(C.SETTER(P.assign,vs,k),hp) = sizeOf(k,hp+storeListSize)
-         | sizeOf(C.SETTER(P.update,vs,k),hp) = sizeOf(k,hp+storeListSize)
-         | sizeOf(C.SETTER(_,vs,k),hp) = sizeOf(k,hp)
-         | sizeOf(C.PURE(P.mkspecial,vs,x,cty,k),hp) = sizeOf(k, hp + 2*cellSz)
-         | sizeOf(C.PURE(P.makeref,vs,x,cty,k),hp) = sizeOf(k, hp + 2*cellSz)
-         | sizeOf(C.PURE(P.wrap kind, _, _, _, k), hp) = sizeOf(k, wrapSize(kind, hp))
-         | sizeOf(C.PURE(P.newarray0,vs,x,cty,k),hp) = sizeOf(k,hp+array0Size)
-         | sizeOf(C.PURE(p,vs,x,cty,k),hp) = sizeOf(k,hp)
-         | sizeOf(C.ARITH(a,vs,x,cty,k),hp) = sizeOf(k,hp)
-         | sizeOf(C.LOOKER(lk,vs,x,cty,k),hp) = sizeOf(k,hp)
-	 | sizeOf(C.RCC(_,_,_,_,_,k),hp) = sizeOf(k,hp)
+       fun sizeOf (C.RECORD(rk,vs,x,k),hp) = sizeOf(k,allocRecord(rk,vs,hp))
+         | sizeOf (C.SELECT(off,v,x,cty,k),hp) = sizeOf(k,hp)
+         | sizeOf (C.OFFSET(off,v,x,k),hp) = sizeOf(k,hp)
+         | sizeOf (C.APP(f,vs),hp) = hp
+         | sizeOf (C.FIX _,hp) = error "sizeOf: FIX"
+         | sizeOf (C.SWITCH(v,x,ks),hp) = sizeOfs(ks,hp)
+         | sizeOf (C.BRANCH(p,_,x,k1,k2),hp) = Int.max(sizeOf(k1,hp),sizeOf(k2,hp))
+         | sizeOf (C.SETTER(P.ASSIGN,vs,k),hp) = sizeOf(k,hp+storeListSize)
+         | sizeOf (C.SETTER(P.UPDATE,vs,k),hp) = sizeOf(k,hp+storeListSize)
+         | sizeOf (C.SETTER(_,vs,k),hp) = sizeOf(k,hp)
+         | sizeOf (C.PURE(P.MKSPECIAL,vs,x,cty,k),hp) = sizeOf(k, hp + 2*cellSz)
+         | sizeOf (C.PURE(P.MAKEREF,vs,x,cty,k),hp) = sizeOf(k, hp + 2*cellSz)
+         | sizeOf (C.PURE(P.WRAP kind, _, _, _, k), hp) = sizeOf(k, wrapSize(kind, hp))
+         | sizeOf (C.PURE(P.NEWARRAY0,vs,x,cty,k),hp) = sizeOf(k,hp+array0Size)
+         | sizeOf (C.PURE(p,vs,x,cty,k),hp) = sizeOf(k,hp)
+         | sizeOf (C.ARITH(a,vs,x,cty,k),hp) = sizeOf(k,hp)
+         | sizeOf (C.LOOKER(lk,vs,x,cty,k),hp) = sizeOf(k,hp)
+	 | sizeOf (C.RCC(_,_,_,_,_,k),hp) = sizeOf(k,hp)
 
-       and sizeOfs([],hp)    = hp
-         | sizeOfs(k::ks,hp) = Int.max(sizeOf(k,hp),sizeOfs(ks,hp))
+       and sizeOfs ([],hp)    = hp
+         | sizeOfs (k::ks,hp) = Int.max(sizeOf(k,hp),sizeOfs(ks,hp))
 
        val locMap = IntHashTable.mkTable(37,NotFound) (* lvar -> loc *)
        val look   = IntHashTable.lookup locMap
@@ -268,69 +267,69 @@ struct
                (*
                 * These things are misnamed! There is nothing pure about them!
                 *)
-             | infer(C.PURE(P.objlength, [v], x, _, k), hp) =
+             | infer(C.PURE(P.OBJLENGTH, [v], x, _, k), hp) =
                  (objlength(x, v); infer(k, hp))
-             | infer(C.PURE(P.length, [v], x, _, k), hp) =
+             | infer(C.PURE(P.LENGTH, [v], x, _, k), hp) =
                  (length(x, v); infer(k, hp))
-             | infer(C.PURE(P.subscriptv,[a,i],x,_,k),hp) =
+             | infer(C.PURE(P.SUBSCRIPTV,[a,i],x,_,k),hp) =
                  (subscriptv(x, a, i); infer(k, hp))
-             | infer(C.PURE(P.pure_numsubscript{kind=P.INT 8},[a,i],x,_,k),hp) =
+             | infer(C.PURE(P.PURE_NUMSUBSCRIPT{kind=P.INT 8},[a,i],x,_,k),hp) =
                  (pure_numsubscript(x, a, i); infer(k, hp))
-             | infer(C.PURE(P.gettag, [v], x, _, k), hp) =
+             | infer(C.PURE(P.GETTAG, [v], x, _, k), hp) =
                  (gettag(x, v); infer(k, hp))
-             | infer(C.PURE(P.mkspecial,[i,v],x,cty,k),hp) =
+             | infer(C.PURE(P.MKSPECIAL,[i,v],x,cty,k),hp) =
                  (mkspecial(x,v,hp); infer(k,hp+8))
-             | infer(C.PURE(P.makeref,[v],x,cty,k),hp) =
+             | infer(C.PURE(P.MAKEREF,[v],x,cty,k),hp) =
                  (makeref(x,v,hp); infer(k,hp+8))
-	     | infer(C.PURE(P.wrap kind, [v], x, cty, k), hp) = (
+	     | infer(C.PURE(P.WRAP kind, [v], x, cty, k), hp) = (
 		 mkWrap(kind, x, v, hp);
 		 infer(k, wrapSize(kind, hp)))
-             | infer(C.PURE(P.getcon,[v],x,_,k), hp) =
+             | infer(C.PURE(P.GETCON,[v],x,_,k), hp) =
                  (getcon(x, v); infer(k, hp))
-             | infer(C.PURE(P.getexn,[v],x,_,k), hp) =
+             | infer(C.PURE(P.GETEXN,[v],x,_,k), hp) =
                  (getexn(x, v); infer(k, hp))
-             | infer(C.PURE(P.recsubscript,[a,i],x,_,k), hp) =
+             | infer(C.PURE(P.RECSUBSCRIPT,[a,i],x,_,k), hp) =
                  (recsubscript(x,a,i); infer(k, hp))
-             | infer(C.PURE(P.raw64subscript,[a,i],x,_,k), hp) =
+             | infer(C.PURE(P.RAW64SUBSCRIPT,[a,i],x,_,k), hp) =
                  (raw64subscript(x,a,i); infer(k, hp))
-             | infer(C.PURE(P.newarray0,_,x,cty,k),hp) =
+             | infer(C.PURE(P.NEWARRAY0,_,x,cty,k),hp) =
                  (newarray0(x,hp); infer(k,hp+array0Size))
              | infer(C.PURE(p,vs,x,cty,k),hp) = infer(k,hp)
 
              | infer(C.ARITH(a,vs,x,cty,k),hp) = infer(k,hp)
 
                (* Lookers *)
-             | infer(C.LOOKER(P.!,[v],x,_,k),hp) = (deref(x,v); infer(k,hp))
-             | infer(C.LOOKER(P.gethdlr,[],x,_,k),hp) = (gethdlr x; infer(k,hp))
-             | infer(C.LOOKER(P.subscript,[a,i],x,_,k),hp) =
+             | infer(C.LOOKER(P.DEREF,[v],x,_,k),hp) = (deref(x,v); infer(k,hp))
+             | infer(C.LOOKER(P.GETHDLR,[],x,_,k),hp) = (gethdlr x; infer(k,hp))
+             | infer(C.LOOKER(P.SUBSCRIPT,[a,i],x,_,k),hp) =
                  (subscript(x,a,i); infer(k,hp))
-             | infer(C.LOOKER(P.numsubscript{kind=P.INT 8},[a,i],x,_,k),hp) =
+             | infer(C.LOOKER(P.NUMSUBSCRIPT{kind=P.INT 8},[a,i],x,_,k),hp) =
                  (numsubscript8(x,a,i); infer(k,hp))
-             | infer(C.LOOKER(P.numsubscript{kind=P.FLOAT 64},[a,i],x,_,k),hp) =
+             | infer(C.LOOKER(P.NUMSUBSCRIPT{kind=P.FLOAT 64},[a,i],x,_,k),hp) =
                  (numsubscriptf64(x,a,i); infer(k,hp))
 
-             | infer(C.LOOKER(P.getvar,[],x,_,k),hp) = (getvar x; infer(k,hp))
+             | infer(C.LOOKER(P.GETVAR,[],x,_,k),hp) = (getvar x; infer(k,hp))
 
-	     | infer (C.LOOKER (P.rawload _, [a], x, _, k), hp) =
+	     | infer (C.LOOKER (P.RAWLOAD _, [a], x, _, k), hp) =
 	         (rawload (x, a); infer(k,hp))
 
                (* Setters *)
-             | infer(C.SETTER(P.assign, [a,v], k),hp) =
+             | infer(C.SETTER(P.ASSIGN, [a,v], k),hp) =
                  (assign(a,v); infer(k,hp+storeListSize))
-             | infer(C.SETTER(P.unboxedassign, [a,v], k),hp) =
+             | infer(C.SETTER(P.UNBOXEDASSIGN, [a,v], k),hp) =
                  (unboxedassign(a,v); infer(k,hp))
-             | infer(C.SETTER(P.update, [a,i,v], k),hp) =
+             | infer(C.SETTER(P.UPDATE, [a,i,v], k),hp) =
                  (update(a,i,v); infer(k,hp+storeListSize))
-             | infer(C.SETTER(P.unboxedupdate, [a,i,v], k), hp) =
+             | infer(C.SETTER(P.UNBOXEDUPDATE, [a,i,v], k), hp) =
                  (unboxedupdate(a,i,v); infer(k,hp))
-             | infer(C.SETTER(P.numupdate{kind=P.INT _}, [a,i,v], k),hp) =
+             | infer(C.SETTER(P.NUMUPDATE{kind=P.INT _}, [a,i,v], k),hp) =
                  (numupdate(a,i,v); infer(k,hp))
-             | infer(C.SETTER(P.numupdate{kind=P.FLOAT 64}, [a,i,v], k),hp) =
+             | infer(C.SETTER(P.NUMUPDATE{kind=P.FLOAT 64}, [a,i,v], k),hp) = (* REAL32: FIXME *)
                  (numupdateF64(a,i,v); infer(k,hp))
 
-             | infer(C.SETTER(P.sethdlr, [x], k), hp) = (sethdlr x; infer(k,hp))
-             | infer(C.SETTER(P.setvar, [x], k), hp) = (setvar x; infer(k,hp))
-	     | infer (C.SETTER (P.rawstore _, [a, x], k), hp) =
+             | infer(C.SETTER(P.SETHDLR, [x], k), hp) = (sethdlr x; infer(k,hp))
+             | infer(C.SETTER(P.SETVAR, [x], k), hp) = (setvar x; infer(k,hp))
+	     | infer (C.SETTER (P.RAWSTORE _, [a, x], k), hp) =
 	         (rawstore (a, x); infer (k, hp))
 
              | infer(e, hp) =

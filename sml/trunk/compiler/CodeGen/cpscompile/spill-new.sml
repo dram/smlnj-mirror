@@ -250,26 +250,26 @@ struct
 
       fun markPure (p, w) = (case p
             (* these pure operators actually allocate storage! *)
-	     of P.wrap(P.INT sz) => if (sz <= Target.defaultIntSz) then () else markrec(w, 0)
-	      | (P.wrap(P.FLOAT _) | P.newarray0 | P.makeref | P.mkspecial | P.rawrecord _) =>
+	     of P.WRAP(P.INT sz) => if (sz <= Target.defaultIntSz) then () else markrec(w, 0)
+	      | (P.WRAP(P.FLOAT _) | P.NEWARRAY0 | P.MAKEREF | P.MKSPECIAL | P.RAWRECORD _) =>
 		  markrec(w, 0)
               | _ => ()
 	    (* end case *))
 
-      fun markfp e =
-         case e of
-           CPS.APP _               => ()
-         | CPS.SWITCH(_,_,es)      => app markfp es
-         | CPS.SELECT(_,_,w,t,e)   => (fp(w,t); markfp e)
-         | CPS.RECORD(_,vl,w,e)    => (recUses vl; markrec(w, 0); markfp e)
-         | CPS.OFFSET(_,_,_,e)     => markfp e
-         | CPS.SETTER(_,_,e)       => markfp e
-         | CPS.LOOKER(_,_,w,t,e)   => (fp(w,t); markfp e)
-         | CPS.ARITH(_,_,w,t,e)    => (fp(w,t); markfp e)
-         | CPS.PURE(p,_,w,t,e)     => (markPure(p,w); fp(w,t); markfp e)
-	 | CPS.RCC(_,_,_,_,wtl,e)  => (app fp wtl; markfp e)
-         | CPS.BRANCH(_,_,_,e1,e2) => (markfp e1; markfp e2)
-         | CPS.FIX _ => error "FIX in Spill.markfp"
+      fun markfp e = (case e
+	   of CPS.APP _               => ()
+	    | CPS.SWITCH(_,_,es)      => app markfp es
+	    | CPS.SELECT(_,_,w,t,e)   => (fp(w,t); markfp e)
+	    | CPS.RECORD(_,vl,w,e)    => (recUses vl; markrec(w, 0); markfp e)
+	    | CPS.OFFSET(_,_,_,e)     => markfp e
+	    | CPS.SETTER(_,_,e)       => markfp e
+	    | CPS.LOOKER(_,_,w,t,e)   => (fp(w,t); markfp e)
+	    | CPS.ARITH(_,_,w,t,e)    => (fp(w,t); markfp e)
+	    | CPS.PURE(p,_,w,t,e)     => (markPure(p,w); fp(w,t); markfp e)
+	    | CPS.RCC(_,_,_,_,wtl,e)  => (app fp wtl; markfp e)
+	    | CPS.BRANCH(_,_,_,e1,e2) => (markfp e1; markfp e2)
+	    | CPS.FIX _ => error "FIX in Spill.markfp"
+	  (* end case *))
 
       val () = ListPair.app fp (args, argTypes) (* mark function parameters *)
       val () = markfp body                      (* mark function body *)
@@ -783,7 +783,7 @@ struct
          case findSpill w of
            NONE => e
          | SOME(spillRecord, off, cty) =>
-            CPS.SETTER(P.rawupdate cty,
+            CPS.SETTER(P.RAWUPDATE cty,
                [spillRecord, tagInt off,CPS.VAR w], e)
 
       (*
@@ -793,7 +793,7 @@ struct
         | createSpillRecord(numSpills, e) =
       let val (spillRecLvar,_) = genSpillRec()
           val m = numSpills * itemSize
-          val e = CPS.PURE(P.rawrecord NONE,[tagInt m],
+          val e = CPS.PURE(P.RAWRECORD NONE,[tagInt m],
                            spillRecLvar,U.BOGt,e)
       in  currentSpillRecord := NONE; (* clear *)
           e
@@ -819,7 +819,7 @@ struct
        *)
       fun initRecordItem(record, rk, offset, v, path, e) =
           proj(v, path,
-               fn x => CPS.SETTER(P.rawupdate(rkToCty rk),
+               fn x => CPS.SETTER(P.RAWUPDATE(rkToCty rk),
                          [CPS.VAR record, tagInt offset, CPS.VAR x], e))
 
       (*
@@ -827,10 +827,10 @@ struct
        *)
       fun createRecord(record, rk, len, consts, e) =
       let val e = emitSpill(record, e)
-          val p = P.rawupdate(rkToCty rk)
+          val p = P.RAWUPDATE(rkToCty rk)
           fun init((i, c),e) = CPS.SETTER(p,[CPS.VAR record, tagInt i, c], e)
           val e = foldr init e consts
-          val e = CPS.PURE(P.rawrecord(SOME rk),[tagInt len],record,U.BOGt,e)
+          val e = CPS.PURE(P.RAWRECORD(SOME rk),[tagInt len],record,U.BOGt,e)
       in  e
       end
 

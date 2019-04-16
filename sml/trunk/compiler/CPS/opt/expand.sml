@@ -231,13 +231,15 @@ fun expand {function=(fkind,fvar,fargs,ctyl,cexp),unroll,bodysize,click,afterClo
        end
      | LOOKER(_,vl,w,_,e) => (noteother w; prim(level,vl,e))
      | SETTER(_,vl,e) => prim(level,vl,e)
-     | ARITH(args as (P.arith{kind=P.FLOAT 64,...},_,_,_,_)) =>
+     | ARITH(args as (P.ARITH{kind=P.FLOAT 64,...},_,_,_,_)) =>
          primreal (level,args)
-     | ARITH(args as (P.round _, _,_,_,_)) => primreal (level,args)
+     | ARITH(args as (P.ROUND _, _,_,_,_)) => primreal (level,args)
      | ARITH(_,vl,w,_,e) => (noteother w; prim(level,vl,e))
-     | PURE(P.pure_arith{kind=P.FLOAT 64,...},[v],w,_,e) =>
+(* REAL32: FIXME *)
+     | PURE(P.PURE_ARITH{kind=P.FLOAT 64,...},[v],w,_,e) =>
 	          (notereal w; incsave(v,1); 4+(pass1 level e))
-     | PURE(P.real{tokind=P.FLOAT 64,...},vl,w,_,e) =>
+(* REAL32: FIXME *)
+     | PURE(P.REAL{to=P.FLOAT 64,...},vl,w,_,e) =>
 		  (notereal w; prim(level,vl,e))
      | PURE(_,vl,w,_,e) => (noteother w; prim(level,vl,e))
      | RCC(k,l,p,vl,wtl,e) =>

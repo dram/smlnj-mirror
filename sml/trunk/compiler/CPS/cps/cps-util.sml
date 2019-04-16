@@ -37,30 +37,30 @@ structure CPSUtil : sig
 	| ioper P.EQL = P.NEQ
 	| ioper P.NEQ = P.EQL
 
-      fun foper P.fEQ   = P.fULG
-	| foper P.fULG  = P.fEQ
-	| foper P.fGT   = P.fULE
-	| foper P.fGE   = P.fULT
-	| foper P.fLT   = P.fUGE
-	| foper P.fLE   = P.fUGT
-	| foper P.fLG   = P.fUE
-	| foper P.fLEG  = P.fUN
-	| foper P.fUGT  = P.fLE
-	| foper P.fUGE  = P.fLT
-	| foper P.fULT  = P.fGE
-	| foper P.fULE  = P.fGT
-	| foper P.fUE   = P.fLG
-	| foper P.fUN   = P.fLEG
-	| foper P.fsgn  = bug "fsgn has no opposite"
+      fun foper P.F_EQ  = P.F_ULG
+	| foper P.F_ULG = P.F_EQ
+	| foper P.F_GT  = P.F_ULE
+	| foper P.F_GE  = P.F_ULT
+	| foper P.F_LT  = P.F_UGE
+	| foper P.F_LE  = P.F_UGT
+	| foper P.F_LG  = P.F_UE
+	| foper P.F_LEG = P.F_UN
+	| foper P.F_UGT = P.F_LE
+	| foper P.F_UGE = P.F_LT
+	| foper P.F_ULT = P.F_GE
+	| foper P.F_ULE = P.F_GT
+	| foper P.F_UE  = P.F_LG
+	| foper P.F_UN  = P.F_LEG
+	| foper P.F_SGN = bug "fsgn has no opposite"
     in
-    fun opp P.boxed = P.unboxed
-      | opp P.unboxed = P.boxed
-      | opp P.strneq = P.streq
-      | opp P.streq = P.strneq
-      | opp P.peql = P.pneq
-      | opp P.pneq = P.peql
-      | opp (P.cmp{oper, kind}) = P.cmp{oper=ioper oper, kind=kind}
-      | opp (P.fcmp{oper, size}) = P.fcmp{oper=foper oper, size=size}
+    fun opp P.BOXED = P.UNBOXED
+      | opp P.UNBOXED = P.BOXED
+      | opp P.STREQL = P.STRNEQ
+      | opp P.STRNEQ = P.STREQL
+      | opp P.PEQL = P.PNEQ
+      | opp P.PNEQ = P.PEQL
+      | opp (P.CMP{oper, kind}) = P.CMP{oper=ioper oper, kind=kind}
+      | opp (P.FCMP{oper, size}) = P.FCMP{oper=foper oper, size=size}
     end (* local *)
 
     fun hasRCC cexp = (case cexp

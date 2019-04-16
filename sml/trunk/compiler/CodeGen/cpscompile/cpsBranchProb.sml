@@ -116,13 +116,13 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 	| cexp(CPS.BRANCH(cc, args, x, t, f)) =
 	    BRANCH(cc, args, x, cexp t, cexp f)
 	| cexp(CPS.SETTER(_, _, e)) = cexp e
-	| cexp(CPS.LOOKER(P.gethdlr, [], x, _, e)) = (insertInfo (x, HANDLER); cexp e)
+	| cexp(CPS.LOOKER(P.GETHDLR, [], x, _, e)) = (insertInfo (x, HANDLER); cexp e)
 	| cexp(CPS.LOOKER(_, _, _, _, e)) = cexp e
 	| cexp(CPS.ARITH(_, _, _, _, e)) = cexp e
 	| cexp(CPS.PURE(pure, _, x, _, e)) =
 	   (case pure
-	    of P.objlength => insertInfo(x, OBJLEN)
-	     | P.length => insertInfo(x, OBJLEN)
+	    of P.OBJLENGTH => insertInfo(x, OBJLEN)
+	     | P.LENGTH => insertInfo(x, OBJLEN)
 	     | _ => ()
 	    (*esac*);
 	    cexp e)
@@ -146,10 +146,10 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 	    (* pointer heuristic *)
 	    fun ph() =
 	      (case test
-		of P.boxed => SOME PH
-		 | P.unboxed => SOME notPH
-		 | P.peql => SOME notPH
-		 | P.pneq => SOME PH
+		of P.BOXED => SOME PH
+		 | P.UNBOXED => SOME notPH
+		 | P.PEQL => SOME notPH
+		 | P.PNEQ => SOME PH
 		 | _ => NONE
 	      (*esac*))
 
@@ -163,7 +163,7 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 
 	    in
 	      case (test, args)
-		of (P.cmp{oper, kind}, [v1, v2]) =>
+		of (P.CMP{oper, kind}, [v1, v2]) =>
 		   (case (oper, number v1, number v2)
 		     of (P.LT, _, Zero) => SOME notOH
 		      | (P.LTE, _, Zero) => SOME notOH
@@ -172,7 +172,6 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 		      | (P.LT, Zero, _)  => SOME OH
 		      | (P.LTE, Zero, _)  => SOME OH
 		      | (P.EQL, Num, _)  => SOME notOH
-
 
 		      | (P.GT, _, Zero)  => SOME OH
 		      | (P.GTE, _, Zero) => SOME OH
@@ -184,7 +183,7 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 		      | _ => NONE
 		   (*esac*))
 
-		 | (P.fcmp{oper, size}, [v1, v2]) =>
+		 | (P.FCMP{oper, size}, [v1, v2]) =>
 		    (* The wu-larus paper does not menetion floating point,
 		     * but what the hey ...
 		     * Note that the negation of LT is UGL, so we wont
@@ -192,13 +191,13 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 		     *)
 
 		    (case (oper, number v1, number v2)
-		     of (P.fLT, _, Zero) => SOME notOH
-		      | (P.fLE, _, Zero) => SOME notOH
-		      | (P.fEQ, _, Num) => SOME notOH
+		     of (P.F_LT, _, Zero) => SOME notOH
+		      | (P.F_LE, _, Zero) => SOME notOH
+		      | (P.F_EQ, _, Num) => SOME notOH
 
-		      | (P.fLT, Zero, _)  => SOME OH
-		      | (P.fLE, Zero, _)  => SOME OH
-		      | (P.fEQ, Num, _)  => SOME notOH
+		      | (P.F_LT, Zero, _)  => SOME OH
+		      | (P.F_LE, Zero, _)  => SOME OH
+		      | (P.F_EQ, Num, _)  => SOME notOH
 
 		      | _ => NONE
 		   (*esac*))
@@ -225,7 +224,7 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 
 	    fun boundsCheck() =
 	      (case (test, args)
-	       of (P.cmp{oper= P.LT, kind=P.UINT 31}, [v1,CPS.VAR v2]) =>
+	       of (P.CMP{oper= P.LT, kind=P.UINT 31}, [v1,CPS.VAR v2]) =>
 		  (case findInfo v2
 		    of SOME OBJLEN => SOME likely
 		     | _ => NONE)

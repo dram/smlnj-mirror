@@ -101,10 +101,10 @@ fun minl l =
    in f(infinity,l)
   end
 
-fun bfirst (P.boxed | P.pneq | P.strneq | P.cmp{oper=P.NEQ,...}) = true
+fun bfirst (P.BOXED | P.PNEQ | P.STRNEQ | P.CMP{oper=P.NEQ,...}) = true
   | bfirst _ = false
 
-fun bsecond (P.unboxed | P.peql | P.streq | P.cmp{oper=P.EQL,...}) = true
+fun bsecond (P.UNBOXED | P.PEQL | P.STREQL | P.CMP{oper=P.EQL,...}) = true
   | bsecond _ = false
 
 (** datatype used to represent the free variable information **)
@@ -221,7 +221,7 @@ fun mkgraph f = let
     end
     fun collect (SWITCH (_, _, el)) =
 	foldl (fn (x, a) => comb (collect x, a)) (IS.empty, []) el
-      | collect (SETTER (P.sethdlr, vl, e)) = combe (collect e, vl2sKUC vl)
+      | collect (SETTER (P.SETHDLR, vl, e)) = combe (collect e, vl2sKUC vl)
       | collect (RECORD (_, _, _, e) |
 		 SELECT (_, _, _, _, e) |
 		 OFFSET (_, _, _, e) |
@@ -644,7 +644,7 @@ and freevars(n,sn,ce) =
            val wl' = overL(new,rmvL(w,wl))
         in (PURE(p,vl,w,t,ce'),free',wl',gsz,fsz)
        end
-    | SETTER(p as P.sethdlr,vl,ce) =>
+    | SETTER(p as P.SETHDLR,vl,ce) =>
        let val (ce',free,wl,gsz,fsz) = freevars(n,sn,ce)
            val new = clean vl
            val free' = addV(new,sn,free)

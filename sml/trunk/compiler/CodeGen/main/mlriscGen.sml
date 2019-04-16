@@ -903,25 +903,27 @@ struct
                  | P.LT   => M.LT | P.LTE  => M.LE
                  | P.NEQ => M.NE | P.EQL => M.EQ
 
-          fun real64Cmp(oper, v, w) =
-          let  val fcond =
-                      case oper
-                        of P.fEQ => M.==
-                         | P.fULG => M.?<>
-                         | P.fUN => M.?
-                         | P.fLEG => M.<=>
-                         | P.fGT => M.>
-                         | P.fGE  => M.>=
-                         | P.fUGT => M.?>
-                         | P.fUGE => M.?>=
-                         | P.fLT => M.<
-                         | P.fLE  => M.<=
-                         | P.fULT => M.?<
-                         | P.fULE => M.?<=
-                         | P.fLG => M.<>
-                         | P.fUE  => M.?=
-			 | P.fsgn => error "unary fsgn used as binary operator"
-          in M.FCMP(64, fcond, fregbind v, fregbind w) end
+          fun real64Cmp(oper, v, w) = let
+                val fcond = (case oper
+		       of P.F_EQ => M.==
+			| P.F_ULG => M.?<>
+			| P.F_UN => M.?
+			| P.F_LEG => M.<=>
+			| P.F_GT => M.>
+			| P.F_GE  => M.>=
+			| P.F_UGT => M.?>
+			| P.F_UGE => M.?>=
+			| P.F_LT => M.<
+			| P.F_LE  => M.<=
+			| P.F_ULT => M.?<
+			| P.F_ULE => M.?<=
+			| P.F_LG => M.<>
+			| P.F_UE  => M.?=
+			| P.F_SGN => error "unary fsgn used as binary operator"
+		      (* end case *))
+		in
+		  M.FCMP(64, fcond, fregbind v, fregbind w)
+		end
 
           fun branchToLabel(lab) = M.JMP(M.LABEL lab,[])
 
@@ -1002,7 +1004,7 @@ struct
 		   * more than once.
 		   *)
 		    case looker
-		     of (P.numsubscript{kind=P.FLOAT _} | P.rawload {kind=P.FLOAT _}) =>
+		     of (P.NUMSUBSCRIPT{kind=P.FLOAT _} | P.RAWLOAD {kind=P.FLOAT _}) =>
 			  addCntTbl(x,COMPUTE)
                       | _ => ()
 		    (* end case *);
@@ -1011,7 +1013,7 @@ struct
                | RCC(_,_,_,vl,wl,e) => (addValues vl; app add wl; init e)
                | PURE(p,vl,x,t,e) => (
 		   case p
-		    of P.wrap(P.FLOAT _) => hasFloats := true
+		    of P.WRAP(P.FLOAT _) => hasFloats := true
                      | _ => ()
 		   (* end case *);
 		   addValues vl; add(x,t); init e)
@@ -1472,13 +1474,13 @@ raise ex)
               end
 
             (*** PURE ***)
-            | gen (PURE(P.real{fromkind=P.INT 31, tokind=P.FLOAT 64},
+            | gen (PURE(P.REAL{from=P.INT 31, to=P.FLOAT 64},
                        [v], x, _, e), hp) =
                 treeifyDefF64(x,M.CVTI2F(fty,ity,untagSigned(v)), e, hp)
-	    | gen (PURE(P.real{fromkind=P.INT 32, tokind=P.FLOAT 64},
+	    | gen (PURE(P.REAL{from=P.INT 32, to=P.FLOAT 64},
 		       [v], x, _, e), hp) =
 	        treeifyDefF64(x,M.CVTI2F(fty,ity,regbind v), e, hp)
-            | gen (PURE(P.pure_arith{oper, kind=P.FLOAT 64}, [v], x, _, e), hp) = let
+            | gen (PURE(P.PURE_ARITH{oper, kind=P.FLOAT 64}, [v], x, _, e), hp) = let
                 val r = fregbind v
               in
 		case oper
@@ -1490,7 +1492,7 @@ raise ex)
 		 | P.FTAN => computef64(x, M.FEXT(fty, E.FTANGENT r), e, hp)
 		 | _ => error "unexpected primop in pure unary float64"
               end
-            | gen (PURE(P.pure_arith{oper, kind=P.FLOAT 64}, [v,w], x, _, e), hp) =
+            | gen (PURE(P.PURE_ARITH{oper, kind=P.FLOAT 64}, [v,w], x, _, e), hp) =
               let val v = fregbind v
                   val w = fregbind w
                   val t =
@@ -1502,11 +1504,11 @@ raise ex)
 		     | _ => error "unexpected primop in pure binary float64"
               in  treeifyDefF64(x, t, e, hp)
               end
-            | gen (PURE(P.pure_arith{oper=P.ORB, kind}, [v,w], x, _, e), hp) =
+            | gen (PURE(P.PURE_ARITH{oper=P.ORB, kind}, [v,w], x, _, e), hp) =
                 defWithKind(kind, x, M.ORB(ity, regbind v, regbind w), e, hp)
-            | gen (PURE(P.pure_arith{oper=P.ANDB, kind}, [v,w], x, _, e), hp) =
+            | gen (PURE(P.PURE_ARITH{oper=P.ANDB, kind}, [v,w], x, _, e), hp) =
                 defWithKind(kind, x, M.ANDB(ity, regbind v, regbind w), e, hp)
-            | gen (PURE(P.pure_arith{oper, kind}, [v,w], x, ty, e), hp) = (case kind
+            | gen (PURE(P.PURE_ARITH{oper, kind}, [v,w], x, ty, e), hp) = (case kind
 		 of P.INT sz => if (sz <= Target.defaultIntSz)
 		      then (case oper
 			 of P.XORB   => defTAGINT(x, tagIntXor(v,w), e, hp)
@@ -1556,7 +1558,7 @@ raise ex)
 			(* end case *))
                   | _ => error "unexpected numkind in pure binary arithop"
 		(* end case *))
-            | gen (PURE(P.pure_arith{oper=P.NOTB, kind}, [v], x, _, e), hp) = let
+            | gen (PURE(P.PURE_ARITH{oper=P.NOTB, kind}, [v], x, _, e), hp) = let
 		val sz = (case kind
 		       of P.UINT sz => sz
 			| P.INT sz => sz
@@ -1566,7 +1568,7 @@ raise ex)
 		    then defTAGINT(x, M.SUB(ity, zero, regbind v), e, hp)
 		    else defINT(x, M.XORB(ity, regbind v, allOnes), e, hp)
 		end
-	    | gen (PURE(P.pure_arith{oper=P.NEG, kind}, [v], x, _, e), hp) = let
+	    | gen (PURE(P.PURE_ARITH{oper=P.NEG, kind}, [v], x, _, e), hp) = let
 		val sz = (case kind
 		       of P.UINT sz => sz
 			| P.INT sz => sz
@@ -1576,74 +1578,74 @@ raise ex)
 		    then defTAGINT (x, M.SUB (ity, two, regbind v), e, hp)
 		    else defINT (x, M.SUB(ity, zero, regbind v), e, hp)
 		end
-            | gen (PURE(P.copy(8, toSz), [v], x, _, e), hp) =
-		if (toSz <= Target.defaultIntSz)
+            | gen (PURE(P.COPY{from=8, to}, [v], x, _, e), hp) =
+		if (to <= Target.defaultIntSz)
 		  then copy (TAGINT, x, v, e, hp)
 		  else defINT (x, M.SRL(ity, regbind v, one), e, hp)
-            | gen (PURE(P.copy(fromSz, toSz), [v], x, _, e), hp) =
-		if (fromSz = toSz)
-		  then copyM(fromSz, x, v, e, hp)
-		else if (fromSz = Target.defaultIntSz) andalso (toSz = ity)
+            | gen (PURE(P.COPY{from, to}, [v], x, _, e), hp) =
+		if (from = to)
+		  then copyM(from, x, v, e, hp)
+		else if (from = Target.defaultIntSz) andalso (to = ity)
 		  then defINT (x, M.SRL(ity, regbind v, one), e, hp)
-		  else error "gen:PURE:copy"
-	    | gen (PURE(P.copy_inf _, _, _, _, _), hp) =
-	        error "gen:PURE:copy_inf"
-            | gen (PURE(P.extend(8, toSz), [v], x, _ ,e), hp) = let
+		  else error "gen:PURE:COPY"
+	    | gen (PURE(P.COPY_INF _, _, _, _, _), hp) =
+	        error "gen:PURE:COPY_INF"
+            | gen (PURE(P.EXTEND{from=8, to}, [v], x, _ ,e), hp) = let
 		val sa = IntInf.fromInt(Target.defaultIntSz - 8)
 		in
-		  if (toSz <= Target.defaultIntSz)
+		  if (to <= Target.defaultIntSz)
 		    then defTAGINT (x, M.SRA(ity, M.SLL(ity, regbind v, LI sa), LI sa), e, hp)
 		    else defINT (x, M.SRA(ity, M.SLL(ity, regbind v, LI sa), LI(sa+1)), e, hp)
 		end
-            | gen (PURE(P.extend(fromSz, toSz), [v], x, _ ,e), hp) =
-		if (fromSz = toSz)
-		  then copyM(fromSz, x, v, e, hp)
-		else if (fromSz = Target.defaultIntSz) andalso (toSz = ity)
+            | gen (PURE(P.EXTEND{from, to}, [v], x, _ ,e), hp) =
+		if (from = to)
+		  then copyM(from, x, v, e, hp)
+		else if (from = Target.defaultIntSz) andalso (to = ity)
 		  then defINT (x, M.SRA(ity, regbind v, one), e, hp)
-		  else error "gen:PURE:extend"
-	    | gen (PURE(P.extend_inf _, _, _, _, _), hp) =
-	        error "gen:PURE:extend_inf"
-            | gen (PURE(P.trunc(fromSz, toSz), [v], x, _, e), hp) =
-		if (fromSz = toSz)
-		  then copyM(fromSz, x, v, e, hp)
-		else if (toSz = 8)
-		  then if (fromSz <= Target.defaultIntSz)
+		  else error "gen:PURE:EXTEND"
+	    | gen (PURE(P.EXTEND_INF _, _, _, _, _), hp) =
+	        error "gen:PURE:EXTEND_INF"
+            | gen (PURE(P.TRUNC{from, to}, [v], x, _, e), hp) =
+		if (from = to)
+		  then copyM(from, x, v, e, hp)
+		else if (to = 8)
+		  then if (from <= Target.defaultIntSz)
 		    then defTAGINT (x, M.ANDB(ity, regbind v, LI 0x1ff), e, hp) (* mask includes tag bit *)
 		    else defTAGINT (x, tagUnsigned(M.ANDB(ity, regbind v, LI 0xff)), e, hp)
-		else if (fromSz = ity) andalso (toSz = Target.defaultIntSz)
+		else if (from = ity) andalso (to = Target.defaultIntSz)
 		  then defTAGINT (x, M.ORB(ity, M.SLL(ity, regbind v, one), one), e, hp)
 		  else error "gen:PURE:trunc"
-	    | gen (PURE(P.trunc_inf _, _, _, _, _), hp) =
-	        error "gen:PURE:trunc_inf"
-            | gen (PURE(P.objlength, [v], x, _, e), hp) =
+	    | gen (PURE(P.TRUNC_INF _, _, _, _, _), hp) =
+	        error "gen:PURE:TRUNC_INF"
+            | gen (PURE(P.OBJLENGTH, [v], x, _, e), hp) =
                 defTAGINT(x, orTag(getObjLength v), e, hp)
-            | gen (PURE(P.length, [v], x, t, e), hp) = select(1, v, x, t, e, hp)
-            | gen (PURE(P.subscriptv, [v, ix as NUM{ty={tag=true, ...}, ...}], x, t, e), hp) =
+            | gen (PURE(P.LENGTH, [v], x, t, e), hp) = select(1, v, x, t, e, hp)
+            | gen (PURE(P.SUBSCRIPTV, [v, ix as NUM{ty={tag=true, ...}, ...}], x, t, e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind v, mem))
                   val mem' = arrayRegion mem
               in  defBoxed(x, M.LOAD(ity, scaleWord(a, ix), mem'), e, hp)
               end
-            | gen (PURE(P.subscriptv, [v, w], x, _, e), hp) =
+            | gen (PURE(P.SUBSCRIPTV, [v, w], x, _, e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind v, mem))
                   val mem' = arrayRegion mem
               in  defBoxed(x, M.LOAD(ity, scaleWord(a, w), mem'), e, hp)
               end
-            | gen (PURE(P.pure_numsubscript{kind=P.INT 8}, [v,i], x, _, e), hp) =
+            | gen (PURE(P.PURE_NUMSUBSCRIPT{kind=P.INT 8}, [v,i], x, _, e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind v, mem))
                   val mem' = arrayRegion mem
               in defTAGINT(x,tagUnsigned(M.LOAD(8,scale1(a, i), mem')), e, hp)
               end
-            | gen (PURE(P.gettag, [v], x, _, e), hp) =
+            | gen (PURE(P.GETTAG, [v], x, _, e), hp) =
                 defTAGINT(x,
 		  tagUnsigned(M.ANDB(ity, getObjDescriptor v, LI(D.powTagWidth-1))),
 		  e, hp)
-            | gen (PURE(P.mkspecial, [i, v], x, _, e), hp) = let
+            | gen (PURE(P.MKSPECIAL, [i, v], x, _, e), hp) = let
                 val desc = (case i
 		       of NUM{ty={tag=true, ...}, ival} => LI(D.makeDesc(ival, D.tag_special))
 			| _ => M.ORB(ity, M.SLL(ity, untagSigned i, LW' D.tagWidth), LI D.desc_special)
@@ -1654,7 +1656,7 @@ raise ex)
 				  desc, [(v, offp0)], hp),
 		      e, hp+8)
 		end
-            | gen (PURE(P.makeref, [v], x, _, e), hp) = let
+            | gen (PURE(P.MAKEREF, [v], x, _, e), hp) = let
 		val tag = LI D.desc_ref
 		val mem = memDisambig x
                 in
@@ -1662,9 +1664,9 @@ raise ex)
                   emit(M.STORE(ity, M.ADD(addrTy, C.allocptr, LI'(hp+ws)), regbind' v, mem));
                   treeifyAlloc(x, hp+ws, e, hp+2*ws)
                 end
-            | gen (PURE(P.box, [u], w, _, e), hp) = copy(PTR, w, u, e, hp)
-            | gen (PURE(P.unbox, [u], w, _, e), hp) = copy(INT, w, u, e, hp)
-	    | gen (PURE(P.wrap kind, [u], w, _, e), hp) = (case kind
+            | gen (PURE(P.BOX, [u], w, _, e), hp) = copy(PTR, w, u, e, hp)
+            | gen (PURE(P.UNBOX, [u], w, _, e), hp) = copy(INT, w, u, e, hp)
+	    | gen (PURE(P.WRAP kind, [u], w, _, e), hp) = (case kind
 		 of P.FLOAT 64 => mkFblock([(u, offp0)],w,e,hp)
 (* REAL32: FIXME *)
 		  | P.INT sz => if (sz < ity)
@@ -1674,7 +1676,7 @@ raise ex)
 			else error(concat["wrap(INT ", Int.toString sz, ") is not implemented"])
 		  | _ => error "wrap: bogus kind"
 		(* end case *))
-	    | gen (PURE(P.unwrap kind, [u], w, _, e), hp) = (case kind
+	    | gen (PURE(P.UNWRAP kind, [u], w, _, e), hp) = (case kind
 		 of P.FLOAT 64 => fselect(0,u,w,e,hp)
 (* REAL32: FIXME *)
 		  | P.INT sz => if (sz < ity)
@@ -1686,25 +1688,25 @@ raise ex)
 		(* end case *))
 
                 (* Note: the gc type is unsafe! XXX *)
-            | gen (PURE(P.cast,[u],w,_,e), hp) = copy(PTR, w, u, e, hp)
+            | gen (PURE(P.CAST,[u],w,_,e), hp) = copy(PTR, w, u, e, hp)
 
-            | gen (PURE(P.getcon,[u],w,t,e), hp) = select(0,u,w,t,e,hp)
-            | gen (PURE(P.getexn,[u],w,t,e), hp) = select(0,u,w,t,e,hp)
-            | gen (PURE(P.getseqdata, [u], x, t, e), hp) = select(0,u,x,t,e,hp)
-            | gen (PURE(P.recsubscript, [v, NUM{ty={tag=true, ...}, ival}], x, t, e), hp) =
+            | gen (PURE(P.GETCON,[u],w,t,e), hp) = select(0,u,w,t,e,hp)
+            | gen (PURE(P.GETEXN,[u],w,t,e), hp) = select(0,u,w,t,e,hp)
+            | gen (PURE(P.GETSEQDATA, [u], x, t, e), hp) = select(0,u,x,t,e,hp)
+            | gen (PURE(P.RECSUBSCRIPT, [v, NUM{ty={tag=true, ...}, ival}], x, t, e), hp) =
                 select(IntInf.toInt ival, v, x, t, e, hp)
-            | gen (PURE(P.recsubscript, [v, w], x, _, e), hp) = let
+            | gen (PURE(P.RECSUBSCRIPT, [v, w], x, _, e), hp) = let
               (* no indirection! *)
                 val mem = arrayRegion(getRegion v)
                 in
 		  defTAGINT(x, M.LOAD(ity, scaleWord(regbind v, w), mem), e, hp)
                 end
-            | gen (PURE(P.raw64subscript, [v, i], x, _, e), hp) =
+            | gen (PURE(P.RAW64SUBSCRIPT, [v, i], x, _, e), hp) =
               let val mem = arrayRegion(getRegion v)
               in  treeifyDefF64(x, M.FLOAD(fty,scale8(regbind v, i), mem),
                                 e, hp)
               end
-            | gen (PURE(P.newarray0, [_], x, t, e), hp) =
+            | gen (PURE(P.NEWARRAY0, [_], x, t, e), hp) =
               let val hdrDesc = D.desc_polyarr
                   val dataDesc = D.desc_ref
                   val dataPtr = newReg PTR
@@ -1721,10 +1723,10 @@ raise ex)
                      allocHeaderPair(hdrDesc, hdrM, dataPtr, 0, hp+2*ws),
                         e, hp+5*ws)
               end
-            | gen (PURE(P.rawrecord NONE, [NUM{ty={tag=true, ...}, ival}], x, _, e), hp) =
+            | gen (PURE(P.RAWRECORD NONE, [NUM{ty={tag=true, ...}, ival}], x, _, e), hp) =
                 (* allocate space for CPS spilling *)
                 treeifyAlloc(x, hp, e, hp + IntInf.toInt ival * ws) (* no tag! *)
-            | gen (PURE(P.rawrecord(SOME rk), [NUM{ty={tag=true, ...}, ival}], x, _, e), hp) = let
+            | gen (PURE(P.RAWRECORD(SOME rk), [NUM{ty={tag=true, ...}, ival}], x, _, e), hp) = let
 	      (* allocate an uninitialized record with a tag *)
                 val (tag, fp) = (case rk (* tagged version *)
                        of (RK_FCONT | RK_FBLOCK) => (D.tag_raw64, true)
@@ -1752,72 +1754,48 @@ raise ex)
 		end
 
             (*** ARITH ***)
-            | gen (ARITH(P.arith{kind=P.INT sz, oper=P.NEG}, [v], x, _, e), hp) = (
+            | gen (ARITH(P.ARITH{kind=P.INT sz, oper=P.NEG}, [v], x, _, e), hp) = (
 		updtHeapPtr hp;
 		if (sz <= Target.defaultIntSz)
 		  then defTAGINT(x, M.SUBT(ity, two, regbind v), e, 0)
 		  else defINT(x, M.SUBT(ity, zero, regbind v), e, 0))
-            | gen (ARITH(P.arith{kind=P.INT sz, oper}, [v, w], x, _, e), hp) = (
+            | gen (ARITH(P.ARITH{kind=P.INT sz, oper}, [v, w], x, _, e), hp) = (
 		updtHeapPtr hp;
 		if (sz <= Target.defaultIntSz)
 		  then (case oper
 		     of P.ADD => defTAGINT(x, tagIntAdd(M.ADDT, v, w), e, 0)
 		      | P.SUB => defTAGINT(x, tagIntSub(M.SUBT, v, w), e, 0)
 		      | P.MUL => defTAGINT(x, tagIntMul(true, M.MULT, v, w), e, 0)
-		      | P.QUOT => defTAGINT(x, tagIntDiv(true, M.DIV_TO_ZERO, v, w), e, 0)
 		      | P.DIV => defTAGINT(x, tagIntDiv(true, M.DIV_TO_NEGINF, v, w), e, 0)
-		      | P.REM => defTAGINT(x, tagIntRem(true, M.DIV_TO_ZERO, v, w), e, 0)
 		      | P.MOD => defTAGINT(x, tagIntRem(true, M.DIV_TO_NEGINF, v, w), e, 0)
-		      | P.NEG => error "gen: ~ INT TAG"
-		      | P.ABS => error "gen: abs INT TAG"
-		      | P.FSQRT => error "gen: fsqrt INT TAG"
-		      | P.FSIN => error "gen: fsin INT TAG"
-		      | P.FCOS => error "gen: fcos INT TAG"
-		      | P.FTAN => error "gen: ftan INT TAG"
-		      | P.LSHIFT => error "gen: lshift INT TAG"
-		      | P.RSHIFT => error "gen: rshift INT TAG"
-		      | P.RSHIFTL => error "gen: rshiftl INT TAG"
-		      | P.ANDB => error "gen: andb INT TAG"
-		      | P.ORB => error "gen: orb INT TAG"
-		      | P.XORB => error "gen: xorb INT TAG"
-		      | P.NOTB => error "gen: notb INT TAG"
+		      | P.QUOT => defTAGINT(x, tagIntDiv(true, M.DIV_TO_ZERO, v, w), e, 0)
+		      | P.REM => defTAGINT(x, tagIntRem(true, M.DIV_TO_ZERO, v, w), e, 0)
+		      | _ => error(concat["gen: ", PPCps.arithopToString oper, " TAG INT"])
 		    (* end case *))
 		  else (case oper
 		     of P.ADD => arithINT(M.ADDT, v, w, x, e, 0)
 		      | P.SUB => arithINT(M.SUBT, v, w, x, e, 0)
 		      | P.MUL => arithINT(M.MULT, v, w, x, e, 0)
-		      | P.QUOT => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_ZERO,ty,x,y),
-					 v, w, x, e, 0)
 		      | P.DIV => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_NEGINF,ty,x,y),
-					 v, w, x, e, 0)
-		      | P.REM => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_ZERO,ty,x,y),
 					 v, w, x, e, 0)
 		      | P.MOD => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_NEGINF,ty,x,y),
 					 v, w, x, e, 0)
-		      | P.NEG => error "gen: ~ INT"
-		      | P.ABS => error "gen: abs INT"
-		      | P.FSQRT => error "gen: fsqrt INT"
-		      | P.FSIN => error "gen: fsin INT"
-		      | P.FCOS => error "gen: fcos INT"
-		      | P.FTAN => error "gen: ftan INT"
-		      | P.LSHIFT => error "gen: lshift INT"
-		      | P.RSHIFT => error "gen: rshift INT"
-		      | P.RSHIFTL => error "gen: rshiftl INT"
-		      | P.ANDB => error "gen: andb INT"
-		      | P.ORB => error "gen: orb INT"
-		      | P.XORB => error "gen: xorb INT"
-		      | P.NOTB => error "gen: notb INT"
+		      | P.QUOT => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_ZERO,ty,x,y),
+					 v, w, x, e, 0)
+		      | P.REM => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_ZERO,ty,x,y),
+					 v, w, x, e, 0)
+		      | _ => error(concat["gen: ", PPCps.arithopToString oper, " INT"])
 		    (* end case *)))
 
-	    | gen (ARITH(P.testu(fromSz, toSz), [v], x, _, e), hp) =
+	    | gen (ARITH(P.TESTU{from, to}, [v], x, _, e), hp) =
               (* Note: for testu operations we use a somewhat arcane method
                * to generate traps on overflow conditions. A better approach
                * would be to generate a trap-if-negative instruction available
                * on a variety of machines, e.g. mips and sparc (maybe others).
                *)
-		if (fromSz = toSz)
+		if (from = to)
 		  then let
-		    val gc = if (fromSz < ity) then TAGINT else INT
+		    val gc = if (from < ity) then TAGINT else INT
 		    val xreg = newReg gc
 		    val vreg = regbind v
 		    in
@@ -1825,7 +1803,7 @@ raise ex)
 		      emit(M.MV(ity, xreg, M.ADDT(ity, vreg, signBit)));
 		      def(gc, x, vreg, e, 0)
 		    end
-		else if (fromSz = ity) andalso (toSz = Target.defaultIntSz)
+		else if (from = ity) andalso (to = Target.defaultIntSz)
 		  then let
 		    val vreg = regbind v
 		    val tmp = newReg INT
@@ -1842,18 +1820,18 @@ raise ex)
 		      defineLabel lab;
 		      defTAGINT(x, tagUnsigned(vreg), e, 0)
 		    end
-	          else error "gen:ARITH:testu with unexpected precisions (not implemented)"
+	          else error "gen:ARITH:TESTU with unexpected precisions (not implemented)"
 
-	    | gen (ARITH(P.test(fromSz, toSz), [v], x, _, e), hp) =
-		if (fromSz = toSz)
-		  then copyM(fromSz, x, v, e, hp)
-		else if (fromSz = ity) andalso (toSz = Target.defaultIntSz)
+	    | gen (ARITH(P.TEST{from, to}, [v], x, _, e), hp) =
+		if (from = to)
+		  then copyM(from, x, v, e, hp)
+		else if (from = ity) andalso (to = Target.defaultIntSz)
 		  then (updtHeapPtr hp; defTAGINT(x, tagSigned(regbind v), e, 0))
-		  else error "gen:ARITH:test with unexpected precisions (not implemented)"
-	    | gen (ARITH(P.test_inf _, _, _, _, _), hp) =
-	        error "gen:ARITH:test_inf"
+		  else error "gen:ARITH:TEST with unexpected precisions (not implemented)"
+	    | gen (ARITH(P.TEST_INF _, _, _, _, _), hp) =
+	        error "gen:ARITH:TEST_INF"
 
-            | gen (ARITH(P.arith{oper, kind=P.FLOAT sz}, [v,w], x, _, e), hp) = let
+            | gen (ARITH(P.ARITH{oper, kind=P.FLOAT sz}, [v,w], x, _, e), hp) = let
                 val v = fregbind v
 		val w = fregbind w
 		val t = (case oper
@@ -1861,7 +1839,7 @@ raise ex)
 			| P.MUL => M.FMUL(sz, v, w)
 			| P.SUB => M.FSUB(sz, v, w)
 			| P.FDIV => M.FDIV(sz, v, w)
-			| _ => error "unexpected primop in binary float64"
+		        | _ => error(concat["gen: ", PPCps.arithopToString oper, " FLOAT"])
 		      (* end case *))
 		in
 (* REAL32: FIXME *)
@@ -1869,12 +1847,12 @@ raise ex)
 		end
 
             (*** LOOKER ***)
-            | gen (LOOKER(P.!, [v], x, _, e), hp) = let
+            | gen (LOOKER(P.DEREF, [v], x, _, e), hp) = let
 		val mem = arrayRegion(getRegion v)
 		in
 		  defBoxed (x, M.LOAD(ity, regbind v, mem), e, hp)
 		end
-            | gen (LOOKER(P.subscript, [v,w], x, _, e), hp) = let
+            | gen (LOOKER(P.SUBSCRIPT, [v,w], x, _, e), hp) = let
               (* get data pointer *)
 		val mem  = dataptrRegion v
 		val a    = markPTR(M.LOAD(ity, regbind v, mem))
@@ -1882,7 +1860,7 @@ raise ex)
 		in
 		  defBoxed (x, M.LOAD(ity, scaleWord(a, w), mem'), e, hp)
 		end
-            | gen (LOOKER(P.numsubscript{kind=P.INT 8}, [v, i], x, _, e), hp) = let
+            | gen (LOOKER(P.NUMSUBSCRIPT{kind=P.INT 8}, [v, i], x, _, e), hp) = let
               (* get data pointer *)
 		val mem  = dataptrRegion v
 		val a    = markPTR(M.LOAD(ity, regbind v, mem))
@@ -1891,7 +1869,7 @@ raise ex)
 		  defTAGINT(x, tagUnsigned(M.LOAD(8,scale1(a, i), mem')), e, hp)
 		end
 (* REAL32: FIXME *)
-            | gen (LOOKER(P.numsubscript{kind=P.FLOAT 64}, [v,i], x, _, e), hp) = let
+            | gen (LOOKER(P.NUMSUBSCRIPT{kind=P.FLOAT 64}, [v,i], x, _, e), hp) = let
               (* get data pointer *)
 		val mem  = dataptrRegion v
 		val a    = markPTR(M.LOAD(ity, regbind v, mem))
@@ -1899,38 +1877,38 @@ raise ex)
 		in
 		  treeifyDefF64(x, M.FLOAD(fty,scale8(a, i), mem'), e, hp)
 		end
-            | gen (LOOKER(P.gethdlr,[],x,_,e), hp) = defBoxed(x, C.exnptr(vfp), e, hp)
-            | gen (LOOKER(P.getvar, [], x, _, e), hp) = defBoxed(x, C.varptr(vfp), e, hp)
-            | gen (LOOKER(P.getspecial, [v], x, _, e), hp) =
+            | gen (LOOKER(P.GETHDLR,[],x,_,e), hp) = defBoxed(x, C.exnptr(vfp), e, hp)
+            | gen (LOOKER(P.GETVAR, [], x, _, e), hp) = defBoxed(x, C.varptr(vfp), e, hp)
+            | gen (LOOKER(P.GETSPECIAL, [v], x, _, e), hp) =
 	      (* special tag is in length field; we assume it is unsigned *)
                 defTAGINT(x, orTag(getObjLength v), e, hp)
-            | gen (LOOKER(P.rawload { kind }, [i], x, _, e), hp) =
+            | gen (LOOKER(P.RAWLOAD{ kind }, [i], x, _, e), hp) =
                 rawload (kind, regbind i, x, e, hp)
-            | gen (LOOKER(P.rawload { kind }, [i,j], x, _, e), hp) =
+            | gen (LOOKER(P.RAWLOAD{ kind }, [i,j], x, _, e), hp) =
                 rawload (kind, M.ADD(addrTy,regbind i, regbind j), x, e, hp)
 
             (*** SETTER ***)
-            | gen (SETTER(P.rawupdate(FLTt 64),[v,i,w],e),hp) = (
+            | gen (SETTER(P.RAWUPDATE(FLTt 64),[v,i,w],e),hp) = (
 (* REAL32: FIXME *)
                 emit(M.FSTORE(fty, scale8(regbind' v, i), fregbind w,R.memory));
                 gen(e, hp))
-            | gen (SETTER(P.rawupdate _, [v,i,w], e), hp) = (
+            | gen (SETTER(P.RAWUPDATE _, [v,i,w], e), hp) = (
                 emit(M.STORE(ity, scaleWord(regbind' v, i), regbind' w, R.memory));
                 gen(e, hp))
 
-            | gen (SETTER(P.assign, [a as VAR arr, v], e), hp) =
+            | gen (SETTER(P.ASSIGN, [a as VAR arr, v], e), hp) =
               let val ea = regbind a
                   val mem = arrayRegion(getRegion a)
               in  recordStore(ea, hp);
                   emit(M.STORE(ity, ea, regbind v, mem));
                   gen(e, hp+2*ws)
               end
-            | gen (SETTER(P.unboxedassign, [a, v], e), hp) =
+            | gen (SETTER(P.UNBOXEDASSIGN, [a, v], e), hp) =
               let val mem = arrayRegion(getRegion a)
               in  emit(M.STORE(ity, regbind a, regbind v, mem));
                   gen(e, hp)
               end
-            | gen (SETTER(P.update, [v,i,w], e), hp) =
+            | gen (SETTER(P.UPDATE, [v,i,w], e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind v, mem))
@@ -1943,7 +1921,7 @@ raise ex)
                   emit(M.STORE(ity, tmp, regbind w, mem'));
                   gen(e, hp+2*ws)
               end
-            | gen (SETTER(P.unboxedupdate, [v, i, w], e), hp) =
+            | gen (SETTER(P.UNBOXEDUPDATE, [v, i, w], e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind v, mem))
@@ -1951,7 +1929,7 @@ raise ex)
               in  emit(M.STORE(ity, scaleWord(a, i), regbind w, mem'));
                   gen(e, hp)
               end
-            | gen (SETTER(P.numupdate{kind=P.INT 8}, [s,i,v], e), hp) =
+            | gen (SETTER(P.NUMUPDATE{kind=P.INT 8}, [s,i,v], e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind s, mem))
@@ -1960,7 +1938,7 @@ raise ex)
               in  emit(M.STORE(8, ea, untagUnsigned(v), mem'));
                   gen(e, hp)
               end
-            | gen (SETTER(P.numupdate{kind=P.FLOAT 64},[v,i,w],e), hp) =
+            | gen (SETTER(P.NUMUPDATE{kind=P.FLOAT 64},[v,i,w],e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind v, mem))
@@ -1968,7 +1946,7 @@ raise ex)
               in  emit(M.FSTORE(fty,scale8(a, i), fregbind w, mem'));
                   gen(e, hp)
               end
-            | gen (SETTER(P.setspecial, [v, i], e), hp) =
+            | gen (SETTER(P.SETSPECIAL, [v, i], e), hp) =
               let val ea = M.SUB(ity, regbind v, LI 4)
                   val i' =
                     case i
@@ -1979,13 +1957,13 @@ raise ex)
               in  emit(M.STORE(ity, ea, i', mem));
                   gen(e, hp)
               end
-            | gen (SETTER(P.sethdlr,[x],e), hp) =
+            | gen (SETTER(P.SETHDLR,[x],e), hp) =
                 (emit(assign(C.exnptr(vfp), regbind x)); gen(e, hp))
-            | gen (SETTER(P.setvar,[x],e), hp) =
+            | gen (SETTER(P.SETVAR,[x],e), hp) =
                 (emit(assign(C.varptr(vfp), regbind x)); gen(e, hp))
-            | gen (SETTER (P.rawstore { kind }, [i, x], e), hp) = (
+            | gen (SETTER (P.RAWSTORE { kind }, [i, x], e), hp) = (
                 rawstore (kind, regbind i, x); gen (e, hp))
-            | gen (SETTER (P.rawstore { kind }, [i, j, x], e), hp) = (
+            | gen (SETTER (P.RAWSTORE { kind }, [i, j, x], e), hp) = (
                 rawstore (kind, M.ADD(addrTy, regbind i, regbind j), x);
 		gen (e, hp))
 	    | gen (RCC(arg as (_, _, _, _, wtl, e)), hp) = let
@@ -2017,16 +1995,16 @@ raise ex)
                 end
 
             (*** BRANCH  ***)
-            | gen (BRANCH(P.cmp{oper, kind}, [NUM v, NUM k], _, e, d), hp) =
+            | gen (BRANCH(P.CMP{oper, kind}, [NUM v, NUM k], _, e, d), hp) =
 		if evalCmp(kind, oper, #ival v, #ival k)
 		  then gen(e, hp)
 		  else gen(d, hp)
-            | gen (BRANCH(P.cmp{oper, kind=P.INT _}, vw, p, e, d), hp) =
+            | gen (BRANCH(P.CMP{oper, kind=P.INT _}, vw, p, e, d), hp) =
                 branch(p, signedCmp oper, vw, e, d, hp)
-            | gen (BRANCH(P.cmp{oper, kind=P.UINT _}, vw, p, e, d), hp) =
+            | gen (BRANCH(P.CMP{oper, kind=P.UINT _}, vw, p, e, d), hp) =
                 branch(p, unsignedCmp oper, vw, e, d, hp)
 (* REAL32: FIXME *)
-	    | gen (BRANCH(P.fcmp{oper=P.fsgn,size=64}, [v], p, d, e), hp) = let
+	    | gen (BRANCH(P.FCMP{oper=P.F_SGN,size=64}, [v], p, d, e), hp) = let
 	        val trueLab = newLabel ()
 	        val r = fregbind v
                 val r' = newReg INT
@@ -2043,32 +2021,32 @@ raise ex)
 		  genlab(trueLab, d, hp)
                 end
 (* REAL32: FIXME *)
-            | gen (BRANCH(P.fcmp{oper,size=64}, [v,w], p, d, e), hp) =
+            | gen (BRANCH(P.FCMP{oper,size=64}, [v,w], p, d, e), hp) =
               let val trueLab = newLabel ()
                   val cmp     = real64Cmp(oper, v, w)
               in  emit(M.BCC(cmp, trueLab));
                   genCont(e, hp);
                   genlab(trueLab, d, hp)
               end
-            | gen (BRANCH(P.peql, vw, p, e, d), hp) = branch(p, M.EQ, vw, e, d, hp)
-            | gen (BRANCH(P.pneq, vw, p, e, d), hp) = branch(p, M.NE, vw, e, d, hp)
-            | gen (BRANCH(P.strneq, [NUM{ty={tag=true, ...}, ival},v,w], p, d, e), hp) =
+            | gen (BRANCH(P.PEQL, vw, p, e, d), hp) = branch(p, M.EQ, vw, e, d, hp)
+            | gen (BRANCH(P.PNEQ, vw, p, e, d), hp) = branch(p, M.NE, vw, e, d, hp)
+            | gen (BRANCH(P.STRNEQ, [NUM{ty={tag=true, ...}, ival},v,w], p, d, e), hp) =
                 branchStreq(ival, v, w, e, d, hp)
-            | gen (BRANCH(P.streq, [NUM{ty={tag=true, ...}, ival},v,w],p,d,e), hp) =
+            | gen (BRANCH(P.STREQL, [NUM{ty={tag=true, ...}, ival},v,w],p,d,e), hp) =
                 branchStreq(ival, v, w, d, e, hp)
-            | gen (BRANCH(P.boxed, [x], p, a, b), hp) = branchOnBoxed(p, x, a, b, hp)
-            | gen (BRANCH(P.unboxed, [x], p, a, b), hp) = branchOnBoxed(p, x, b, a, hp)
+            | gen (BRANCH(P.BOXED, [x], p, a, b), hp) = branchOnBoxed(p, x, a, b, hp)
+            | gen (BRANCH(P.UNBOXED, [x], p, a, b), hp) = branchOnBoxed(p, x, b, a, hp)
             | gen (e, hp) = (PPCps.prcps e; print "\n"; error "genCluster.gen")
 
          end (*local*)
 
           fun fragComp() =
           let fun continue() = fcomp (Frag.next())
-              and fcomp(NONE) = ()
-                | fcomp(SOME(_, Frag.KNOWNFUN _)) = continue()
-                | fcomp(SOME(_, Frag.KNOWNCHK _)) = continue()
-                | fcomp(SOME(_, Frag.STANDARD{func=ref NONE, ...})) = continue()
-                | fcomp(SOME(lab,
+              and fcomp (NONE) = ()
+                | fcomp (SOME(_, Frag.KNOWNFUN _)) = continue()
+                | fcomp (SOME(_, Frag.KNOWNCHK _)) = continue()
+                | fcomp (SOME(_, Frag.STANDARD{func=ref NONE, ...})) = continue()
+                | fcomp (SOME(lab,
                         Frag.STANDARD{func as ref(SOME (zz as (k,f,vl,tl,e))),
                                               ...})) =
                   let val formals = ArgP.standard{fnTy=typmap f, argTys=tl, vfp=vfp}

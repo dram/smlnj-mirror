@@ -37,82 +37,74 @@ structure CPS : CPS =
       (* numkind includes kind and size *)
 	datatype numkind = INT of int | UINT of int | FLOAT of int
 
-	datatype arithop
-	  = ADD | SUB | MUL | DIV | MOD | QUOT | REM | FDIV
-	  | LSHIFT | RSHIFT | RSHIFTL | ANDB | ORB | XORB
-	  | NEG | ABS | NOTB
-	  | FSQRT | FSIN | FCOS | FTAN
-(*
-	datatype arithop = + | - | * | / | ~ | abs
-			 | fsqrt | fsin | fcos | ftan
-			 | lshift | rshift | rshiftl | andb | orb | xorb | notb
-			 | rem | div | mod
-*)
+	datatype arithop = datatype Primop.arithop
 
 	datatype cmpop = GT | GTE | LT | LTE | EQL | NEQ
-(*
-	datatype cmpop = > | >= | < | <= | eql | neq
-*)
 
       (* fcmpop conforms to the IEEE std 754 predicates. *)
 	datatype fcmpop
-	  = fEQ (* = *)  | fULG (* ?<> *) | fUN (* ? *)   | fLEG (* <=> *)
-	  | fGT (* > *)  | fGE  (* >= *)  | fUGT (* ?> *) | fUGE (* ?>= *)
-	  | fLT (* < *)  | fLE  (* <= *)  | fULT (* ?< *) | fULE (* ?<= *)
-	  | fLG (* <> *) | fUE  (* ?= *)  | fsgn
+	  = F_EQ (* = *)  | F_ULG (* ?<> *) | F_UN (* ? *)   | F_LEG (* <=> *)
+	  | F_GT (* > *)  | F_GE  (* >= *)  | F_UGT (* ?> *) | F_UGE (* ?>= *)
+	  | F_LT (* < *)  | F_LE  (* <= *)  | F_ULT (* ?< *) | F_ULE (* ?<= *)
+	  | F_LG (* <> *) | F_UE  (* ?= *)  | F_SGN
 
       (* These are two-way branches dependent on pure inputs *)
 	datatype branch
-	  = cmp of {oper: cmpop, kind: numkind}    (* numkind cannot be FLOAT *)
-	  | fcmp of {oper: fcmpop, size: int}
-	  | boxed | unboxed | peql | pneq
-	  | streq | strneq
+	  = CMP of {oper: cmpop, kind: numkind}
+	  | FCMP of {oper: fcmpop, size: int}
+	  | BOXED | UNBOXED | PEQL | PNEQ
+(* FIXME: make length part of string equality test
+          | streq of int | strneq of int (* streq n is defined on strings of length n *)
+*)
+	  | STREQL | STRNEQ
 	      (* streq(n,a,b) is defined only if strings a and b have
 		 exactly the same length n>1 *)
 
       (* These all update the store *)
 	datatype setter
-	  = numupdate of {kind: numkind}
-	  | unboxedupdate | update
-	  | unboxedassign | assign
-	  | sethdlr | setvar | setspecial
-	  | rawstore of {kind: numkind}
-	  | rawupdate of cty
+	  = NUMUPDATE of {kind: numkind}
+	  | UNBOXEDUPDATE | UPDATE
+	  | UNBOXEDASSIGN | ASSIGN
+	  | SETHDLR | SETVAR | SETSPECIAL
+	  | RAWSTORE of {kind: numkind}
+	  | RAWUPDATE of cty
 
       (* These fetch from the store, never have functions as arguments. *)
 	datatype looker
-	  = ! | subscript | numsubscript of {kind: numkind}
-	  | getspecial | gethdlr | getvar
-	  | rawload of {kind: numkind}
+	  = DEREF | SUBSCRIPT | NUMSUBSCRIPT of {kind: numkind}
+	  | GETSPECIAL | GETHDLR | GETVAR
+	  | RAWLOAD of {kind: numkind}
 
       (* These might raise exceptions, never have functions as arguments.*)
 	datatype arith
-	  = arith of {oper: arithop, kind: numkind}
-	  | test of int * int
-	  | testu of int * int
-	  | test_inf of int
-	  | round of {floor: bool, fromkind: numkind, tokind: numkind}
+	  = ARITH of {oper: arithop, kind: numkind}
+	  | TEST of {from: int, to: int}
+	  | TESTU of {from: int, to: int}
+	  | TEST_INF of int
+	  | ROUND of {floor: bool, from: numkind, to: numkind}
 
       (* These don't raise exceptions and don't access the store. *)
 	datatype pure
-	  = pure_arith of {oper: arithop, kind: numkind}
-	  | pure_numsubscript of {kind: numkind}
-	  | length | objlength | makeref
-	  | extend of int * int
-	  | trunc of int * int
-	  | copy of int * int
-	  | extend_inf of int
-	  | trunc_inf of int
-	  | copy_inf of int
-	  | real of {fromkind: numkind, tokind: numkind}
-	  | subscriptv
-	  | gettag | mkspecial | cast | getcon | getexn
-	  | box | unbox
+	  = PURE_ARITH of {oper: arithop, kind: numkind}
+	  | PURE_NUMSUBSCRIPT of {kind: numkind}
+	  | LENGTH | OBJLENGTH | MAKEREF
+	  | EXTEND of {from: int, to: int}
+	  | TRUNC of {from: int, to: int}
+	  | COPY of {from: int, to: int}
+	  | EXTEND_INF of int
+	  | TRUNC_INF of int
+	  | COPY_INF of int
+	  | REAL of {from: numkind, to: numkind}
+	  | SUBSCRIPTV
+	  | GETTAG | MKSPECIAL | CAST | GETCON | GETEXN
+	  | BOX | UNBOX
 	(* tagging/boxing of numbers; numkind should be either `INT` or `FLOAT` *)
-	  | wrap of numkind | unwrap of numkind
-	  | getseqdata | recsubscript | raw64subscript | newarray0
-	(* allocate uninitialized words from the heap *)
-	  | rawrecord of record_kind option
+	  | WRAP of numkind | UNWRAP of numkind
+          | GETSEQDATA | RECSUBSCRIPT | RAW64SUBSCRIPT | NEWARRAY0
+	(* allocate uninitialized words from the heap; optionally
+	 * initialize the tag.
+	 *)
+ 	  | RAWRECORD of record_kind option
 
       end (* P *)
 

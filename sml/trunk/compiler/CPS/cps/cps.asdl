@@ -149,8 +149,8 @@ module CPS_Prim (import CPS_Type) {
       = ARITH (arithop oper, numkind kind)
       | TEST (int from, int to)
       | TESTU (int from, int to)
-      | TESTINF (int)				-- conversion from IntInf.int
-      | ROUND (bool floor, numkind fromkind, numkind tokind)
+      | TEST_INF (int)				-- conversion from IntInf.int
+      | ROUND (bool floor, numkind from, numkind to)
 
   -- These don't raise exceptions and don't access the store.
     pure
@@ -160,16 +160,17 @@ module CPS_Prim (import CPS_Type) {
       | EXTEND (int from, int to)
       | TRUNC (int from, int to)
       | COPY (int from, int to)
-      | EXTENDINF (int)
-      | TRUNCINF (int)
-      | COPYINF (int)
-      | REAL (numkind fromkind, numkind tokind)
+      | EXTEND_INF (int)
+      | TRUNC_INF (int)
+      | COPY_INF (int)
+      | REAL (numkind from, numkind to)
       | SUBSCRIPTV
       | GETTAG | MKSPECIAL | WRAP | UNWRAP | CAST | GETCON | GETEXN
+      | BOX | UNBOX
+      | WRAP (numkind) | UNWRAP (numkind)
       | FWRAP | FUNWRAP | IWRAP | IUNWRAP | I32WRAP | I32UNWRAP
       | GETSEQDATA | RECSUBSCRIPT | RAW64SUBSCRIPT | NEWARRAY0
       | RAWRECORD (CPS_Type.record_kind?)	-- allocate uninitialized words from the heap
-      | CONDMOVE (branch)
 
 }
 

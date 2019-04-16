@@ -305,7 +305,7 @@ let val rec g1 =
   | BRANCH(i,vl,c,e1 as APP(VAR f1, [NUM{ival = 1, ...}]),
 		  e2 as APP(VAR f2, [NUM{ival = 0, ...}])) =>
        (case get f1
-	 of {info=FNinfo{body=ref(SOME(BRANCH(P.cmp{oper=P.NEQ,...},[NUM{ival = 0, ...}, VAR w2],_,_,_))),
+	 of {info=FNinfo{body=ref(SOME(BRANCH(P.CMP{oper=P.NEQ,...},[NUM{ival = 0, ...}, VAR w2],_,_,_))),
 			 args=[w1],specialuse,...},...} =>
               (* Handle IF IDIOM *)
     	      if f1=f2 andalso w1=w2
@@ -319,7 +319,7 @@ let val rec g1 =
   | SETTER(i,vl,e) => (app use vl; g1 e)
   | LOOKER(i,vl,w,_,e) => (app use vl; enterMISC0 w; g1 e)
   | ARITH(i,vl,w,_,e) => (app use vl; enterMISC0 w; g1 e)
-  | PURE(P.wrap kind, [u], w, _, e) => (use u; enterWRP(w, kind, u); g1 e)
+  | PURE(P.WRAP kind, [u], w, _, e) => (use u; enterWRP(w, kind, u); g1 e)
   | PURE(i,vl,w,_,e) => (app use vl; enterMISC0 w; g1 e)
   | RCC(k,l,p,vl,wtl,e) => (app use vl; app (enterMISC0 o #1) wtl; g1 e)
 in  g1
@@ -377,9 +377,9 @@ fun drop_body(APP(f,vl)) = (call_less f; app use_less vl)
   | drop_body(RCC(_,_,_,vl,_,e)) = (app use_less vl; drop_body e)
 end (* local *)
 
-fun setter (P.update, [_, _, NUM{ty={tag=true, ...}, ...}]) = P.unboxedupdate
-  | setter (P.update, _) = P.update
-  | setter (P.assign, [_, NUM{ty={tag=true, ...}, ...}]) = P.unboxedassign
+fun setter (P.UPDATE, [_, _, NUM{ty={tag=true, ...}, ...}]) = P.UNBOXEDUPDATE
+  | setter (P.UPDATE, _) = P.UPDATE
+  | setter (P.ASSIGN, [_, NUM{ty={tag=true, ...}, ...}]) = P.UNBOXEDASSIGN
   | setter (i, _) = i
 
 fun sameLvar(lvar, VAR lv) = lv = lvar
@@ -614,15 +614,15 @@ let val rec g' =
 	     else SWITCH(v', c, map g' el)
 	  | v' => SWITCH(v',c, map g' el)
 	(* end case *))
-   | LOOKER(P.gethdlr,_,w,t,e) =>
+   | LOOKER(P.GETHDLR,_,w,t,e) =>
       (if !CG.handlerfold
        then case hdlr
              of NONE => if used w
-                        then LOOKER(P.gethdlr,[],w,t,g (SOME(VAR w)) e)
+                        then LOOKER(P.GETHDLR,[],w,t,g (SOME(VAR w)) e)
 		        else (click "i"; g' e)
               | SOME w' => (click "j"; newname(w,w'); g' e)
-       else LOOKER(P.gethdlr,[],w,t,g (SOME(VAR w)) e))
-   | SETTER(P.sethdlr,[v],e) =>
+       else LOOKER(P.GETHDLR,[],w,t,g (SOME(VAR w)) e))
+   | SETTER(P.SETHDLR,[v],e) =>
       let val v' = ren v
 	  val e' = g (SOME v') e
 	  fun sameVar (VAR x, VAR y) = x = y
@@ -631,9 +631,9 @@ let val rec g' =
 	  then case hdlr
 		 of SOME v'' =>
 		     if sameVar (v', v'') then (click "k"; use_less v''; e')
-		     else SETTER(P.sethdlr,[v'],e')
-		  | _ => SETTER(P.sethdlr,[v'],e')
-	  else SETTER(P.sethdlr,[v'],e')
+		     else SETTER(P.SETHDLR,[v'],e')
+		  | _ => SETTER(P.SETHDLR,[v'],e')
+	  else SETTER(P.SETHDLR,[v'],e')
       end
 (* | SETTER(i,vl,e) => SETTER(i, map ren vl, g' e) *)
    | SETTER(i,vl,e) =>
@@ -651,30 +651,30 @@ let val rec g' =
 		   else LOOKER(i, vl', w, t, e')
 	       end
       end
-   | ARITH(P.test(p,n),[v],x,t,e as PURE(P.copy(n2,m),[v2],x2,t2,e2)) =>
+   | ARITH(P.TEST{from=p, to=n},[v],x,t,e as PURE(P.COPY{from=n2, to=m},[v2],x2,t2,e2)) =>
       if cvtPreCondition(n, n2, x, v2) andalso n = m then
-	(click "T(1)"; ARITH(P.test(p,m), [ren v], x2, t2, g' e2))
-      else ARITH(P.test(p,n), [ren v], x, t, g' e)
-   | ARITH(P.test_inf n,[v,f],x,t,e as PURE(P.copy(n2,m),[v2],x2,t2,e2)) =>
+	(click "T(1)"; ARITH(P.TEST{from=p, to=m}, [ren v], x2, t2, g' e2))
+      else ARITH(P.TEST{from=p, to=n}, [ren v], x, t, g' e)
+   | ARITH(P.TEST_INF n,[v,f],x,t,e as PURE(P.COPY{from=n2, to=m},[v2],x2,t2,e2)) =>
       if cvtPreCondition(n, n2, x, v2) andalso n = m then
-	(click "T(1)"; ARITH(P.test_inf m, [ren v, ren f], x2, t2, g' e2))
-      else ARITH(P.test_inf n, [ren v, ren f], x, t, g' e)
-   | ARITH(P.test(p,n),[v],x,t,e as ARITH(P.test(n2,m),[v2],x2,t2,e2)) =>
+	(click "T(1)"; ARITH(P.TEST_INF m, [ren v, ren f], x2, t2, g' e2))
+      else ARITH(P.TEST_INF n, [ren v, ren f], x, t, g' e)
+   | ARITH(P.TEST{from=p, to=n},[v],x,t,e as ARITH(P.TEST{from=n2, to=m},[v2],x2,t2,e2)) =>
       if cvtPreCondition(n, n2, x, v2) then
-	(click "T(2)"; ARITH(P.test(p,m), [ren v], x2, t2, g' e2))
-      else ARITH(P.test(p,n), [ren v], x, t, g' e)
-   | ARITH(P.test_inf n,[v, f],x,t,e as ARITH(P.test(n2,m),[v2],x2,t2,e2)) =>
+	(click "T(2)"; ARITH(P.TEST{from=p, to=m}, [ren v], x2, t2, g' e2))
+      else ARITH(P.TEST{from=p, to=n}, [ren v], x, t, g' e)
+   | ARITH(P.TEST_INF n,[v, f],x,t,e as ARITH(P.TEST{from=n2, to=m},[v2],x2,t2,e2)) =>
       if cvtPreCondition(n, n2, x, v2) then
-	(click "T(2)"; ARITH(P.test_inf m, [ren v, ren f], x2, t2, g' e2))
-      else ARITH(P.test_inf n, [ren v, ren f], x, t, g' e)
-   | ARITH(P.testu(p,n),[v],x,t,e as PURE(P.copy(n2,m),[v2],x2,t2,e2)) =>
+	(click "T(2)"; ARITH(P.TEST_INF m, [ren v, ren f], x2, t2, g' e2))
+      else ARITH(P.TEST_INF n, [ren v, ren f], x, t, g' e)
+   | ARITH(P.TESTU{from=p, to=n},[v],x,t,e as PURE(P.COPY{from=n2, to=m},[v2],x2,t2,e2)) =>
       if cvtPreCondition(n, n2, x, v2) andalso n = m then
-	(click "U(1)"; ARITH(P.testu(p,m), [ren v], x2, t2, g' e2))
-      else ARITH(P.testu(p,n), [ren v], x, t, g' e)
-   | ARITH(P.testu(p,n),[v],x,t,e as ARITH(P.testu(n2,m),[v2],x2,t2,e2)) =>
+	(click "U(1)"; ARITH(P.TESTU{from=p, to=m}, [ren v], x2, t2, g' e2))
+      else ARITH(P.TESTU{from=p, to=n}, [ren v], x, t, g' e)
+   | ARITH(P.TESTU{from=p, to=n},[v],x,t,e as ARITH(P.TESTU{from=n2, to=m},[v2],x2,t2,e2)) =>
       if cvtPreCondition(n, n2, x, v2) then
-	(click "U(2)"; ARITH(P.testu(p,m), [ren v], x2, t2, g' e2))
-      else ARITH(P.testu(p,n), [ren v], x, t, g' e)
+	(click "U(2)"; ARITH(P.TESTU{from=p, to=m}, [ren v], x2, t2, g' e2))
+      else ARITH(P.TESTU{from=p, to=n}, [ren v], x, t, g' e)
 
    | ARITH(i,vl,w,t,e) =>
       let val vl' = map ren vl
@@ -685,44 +685,44 @@ let val rec g' =
 	       | Overflow => ARITH(i, vl', w, t, g' e)
       end
 
-   | PURE(P.trunc(p,n), [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
-      fun skip() = PURE(P.trunc(p,n), [ren v], x, t, g' e)
+   | PURE(P.TRUNC{from=p, to=n}, [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
+      fun skip() = PURE(P.TRUNC{from=p, to=n}, [ren v], x, t, g' e)
       fun checkClicked(tok, n2, m, pureOp) =
 	if cvtPreCondition(n, n2, x, v2) then
 	  (click tok;
-	   PURE(pureOp(p,m), [ren v], x2, t2, g' e2))
+	   PURE(pureOp{from=p, to=m}, [ren v], x2, t2, g' e2))
 	else skip()
      in
        case pure
-	of P.trunc(n2,m) => checkClicked("R(1)", n2, m, P.trunc)
-         | P.copy(n2,m) =>
-	    if n2=m then checkClicked("R(2)", n2, m, P.trunc) else skip()
+	of P.TRUNC{from=n2, to=m} => checkClicked("R(1)", n2, m, P.TRUNC)
+         | P.COPY{from=n2, to=m} =>
+	    if n2=m then checkClicked("R(2)", n2, m, P.TRUNC) else skip()
 	 | _  => skip()
      end
-   | PURE(P.trunc_inf n, [v, f], x, t,
+   | PURE(P.TRUNC_INF n, [v, f], x, t,
 	  e as PURE(pure, [v2], x2, t2, e2)) => let
-      fun skip() = PURE(P.trunc_inf n, [ren v, ren f], x, t, g' e)
+      fun skip() = PURE(P.TRUNC_INF n, [ren v, ren f], x, t, g' e)
       fun checkClicked(tok, n2, m) =
 	if cvtPreCondition(n, n2, x, v2) then
 	  (click tok;
-	   PURE(P.trunc_inf m, [ren v, ren f], x2, t2, g' e2))
+	   PURE(P.TRUNC_INF m, [ren v, ren f], x2, t2, g' e2))
 	else skip()
      in
        case pure
-	of P.trunc(n2,m) => checkClicked("R(1)", n2, m)
-         | P.copy(n2,m) =>
+	of P.TRUNC{from=n2, to=m} => checkClicked("R(1)", n2, m)
+         | P.COPY{from=n2, to=m} =>
 	    if n2=m then checkClicked("R(2)", n2, m) else skip()
 	 | _  => skip()
      end
-   | PURE(P.extend(p,n), [v], x, t,
-	  e as PURE(P.extend_inf n2, [v2,f], x2, t2, e2)) =>
+   | PURE(P.EXTEND{from=p, to=n}, [v], x, t,
+	  e as PURE(P.EXTEND_INF n2, [v2,f], x2, t2, e2)) =>
 	 if cvtPreCondition(n,n2,x,v2) then
 	     (click "X(1')";
-	      PURE(P.extend_inf p, [ren v, ren f], x2, t2, g' e2))
+	      PURE(P.EXTEND_INF p, [ren v, ren f], x2, t2, g' e2))
 	 else
-	     PURE(P.extend(p,n), [ren v], x, t, g' e)
-   | PURE(P.extend(p,n), [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
-       fun skip() = PURE(P.extend(p,n), [ren v], x, t, g' e)
+	     PURE(P.EXTEND{from=p, to=n}, [ren v], x, t, g' e)
+   | PURE(P.EXTEND{from=p, to=n}, [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
+       fun skip() = PURE(P.EXTEND{from=p, to=n}, [ren v], x, t, g' e)
        fun checkClicked(tok, n2, pureOp) =
 	 if cvtPreCondition(n, n2, x, v2) then
 	   (click tok;
@@ -730,92 +730,92 @@ let val rec g' =
 	 else skip()
      in
        case pure
-	of P.extend(n2,m) => checkClicked("X(1)", n2, P.extend (p, m))
-         | P.copy(n2,m) =>
-	    if n2 = m then checkClicked("X(2)", n2, P.extend (p, m))
+	of P.EXTEND{from=n2, to=m} => checkClicked("X(1)", n2, P.EXTEND{from=p, to=m})
+         | P.COPY{from=n2, to=m} =>
+	    if n2 = m then checkClicked("X(2)", n2, P.EXTEND{from=p, to=m})
 	    else skip()
-	 | P.trunc(n2,m) =>
-	    if m >= p then checkClicked("X(3)", n2, P.extend (p, m))
-	    else checkClicked("X(4)", n2, P.trunc (p, m))
+	 | P.TRUNC{from=n2, to=m} =>
+	    if m >= p then checkClicked("X(3)", n2, P.EXTEND{from=p, to=m})
+	    else checkClicked("X(4)", n2, P.TRUNC{from=p, to=m})
 	 | _ => skip()
      end
-   | PURE(P.extend_inf p, [v,f], x, t,
-	  e as PURE(P.trunc_inf m, [v2, f2], x2, t2, e2)) =>
+   | PURE(P.EXTEND_INF p, [v,f], x, t,
+	  e as PURE(P.TRUNC_INF m, [v2, f2], x2, t2, e2)) =>
      let fun checkClicked(tok, pureOp) =
 	     if cvtPreCondition_inf(x, v2) then
 		 (click tok;
 		  use_less f; use_less f2;
 		  PURE(pureOp, [ren v], x2, t2, g' e2))
-	     else PURE (P.extend_inf p, [ren v, ren f], x, t, g' e)
+	     else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)
      in
-	 if m >= p then checkClicked("X(3')", P.extend(p, m))
-	 else checkClicked("X(4')", P.trunc(p, m))
+	 if m >= p then checkClicked("X(3')", P.EXTEND{from=p, to=m})
+	 else checkClicked("X(4')", P.TRUNC{from=p, to=m})
      end
-   | PURE(P.extend(p,n), [v], x, t, e as ARITH(a, [v2], x2, t2, e2)) => let
+   | PURE(P.EXTEND{from=p, to=n}, [v], x, t, e as ARITH(a, [v2], x2, t2, e2)) => let
        val v' = [ren v]
-       fun skip() = PURE(P.extend(p,n), v', x, t, g' e)
+       fun skip() = PURE(P.EXTEND{from=p, to=n}, v', x, t, g' e)
        fun checkClicked(tok, n2, m, arithOp) =
 	 if cvtPreCondition(n, n2, x, v2) then
 	   if m >= p then
-	     (click tok; PURE(P.extend(p,m), v', x2, t2, g' e2))
-	   else ARITH(arithOp(p,m), v', x2, t2, g' e2)
+	     (click tok; PURE(P.EXTEND{from=p, to=m}, v', x2, t2, g' e2))
+	   else ARITH(arithOp{from=p, to=m}, v', x2, t2, g' e2)
 	 else skip()
      in
        case a
-	of P.test(n2, m) => checkClicked("X(5)", n2, m, P.test)
-         | P.testu(n2, m) => checkClicked("X(6)", n2, m, P.testu)
+	of P.TEST{from=n2, to=m} => checkClicked("X(5)", n2, m, P.TEST)
+         | P.TESTU{from=n2, to=m} => checkClicked("X(6)", n2, m, P.TESTU)
 	 | _ => skip()
      end
-   | PURE(P.extend_inf p, [v, f], x, t,
-	  e as ARITH (P.test_inf m, [v2, f2], x2, t2, e2)) =>
+   | PURE(P.EXTEND_INF p, [v, f], x, t,
+	  e as ARITH (P.TEST_INF m, [v2, f2], x2, t2, e2)) =>
        if cvtPreCondition_inf (x, v2) then
 	   if m >= p then
 	       (click "X9"; use_less f; use_less f2;
-		PURE (P.extend (p, m), [ren v], x2, t2, g' e2))
-	   else ARITH (P.test (p, m), [ren v], x2, t2, g' e2)
-       else PURE (P.extend_inf p, [ren v, ren f], x, t, g' e)
-   | PURE (P.copy (p, n), [v], x, t,
-	   e as PURE (P.copy_inf n2, [v2, f2], x2, t2, e2)) =>
+		PURE (P.EXTEND{from=p, to=m}, [ren v], x2, t2, g' e2))
+	   else ARITH (P.TEST{from=p, to=m}, [ren v], x2, t2, g' e2)
+       else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)
+   | PURE (P.COPY{from=p, to=n}, [v], x, t,
+	   e as PURE (P.COPY_INF n2, [v2, f2], x2, t2, e2)) =>
        if cvtPreCondition (n, n2, x, v2) then
 	   (click "C(2)";
-	    PURE (P.copy_inf p, [ren v, ren f2], x2, t2, g' e2))
+	    PURE (P.COPY_INF p, [ren v, ren f2], x2, t2, g' e2))
        else
-	   PURE (P.copy (p, n), [ren v], x, t, g' e)
-   | PURE (P.copy (p, n), [v], x, t,
-	   e as PURE (P.extend_inf n2, [v2, f2], x2, t2, e2)) => let
-	 fun skip () = PURE (P.copy (p, n), [ren v], x, t, g' e)
+	   PURE (P.COPY{from=p, to=n}, [ren v], x, t, g' e)
+   | PURE (P.COPY{from=p, to=n}, [v], x, t,
+	   e as PURE (P.EXTEND_INF n2, [v2, f2], x2, t2, e2)) => let
+	 fun skip () = PURE (P.COPY{from=p, to=n}, [ren v], x, t, g' e)
 	 fun checkClicked(tok, pureOp) =
 	     if cvtPreCondition (n, n2, x, v2) then
 		 (click tok; PURE (pureOp, [ren v, ren f2], x2, t2, g' e2))
 	     else skip ()
      in
-	 if n > p then checkClicked("C(2')", P.copy_inf p)
-	 else if n = p then checkClicked("C(2')", P.extend_inf p)
+	 if n > p then checkClicked("C(2')", P.COPY_INF p)
+	 else if n = p then checkClicked("C(2')", P.EXTEND_INF p)
 	 else skip ()
      end
-   | PURE(P.copy(p,n), [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
+   | PURE(P.COPY{from=p, to=n}, [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
        val v' = [ren v]
-       fun skip () = PURE(P.copy(p,n), v', x, t, g' e)
+       fun skip () = PURE(P.COPY{from=p, to=n}, v', x, t, g' e)
        fun checkClicked(tok, n2, pureOp) =
 	 if cvtPreCondition(n, n2, x, v2) then
 	   (click tok; PURE(pureOp, v', x2, t2, g' e2))
 	 else skip()
      in
        case pure
-	of P.copy(n2,m) => checkClicked("C(1)", n2, P.copy (p, m))
-         | P.extend(n2,m) =>
-	    if n > p then checkClicked("C(2)", n2, P.copy (p, m))
-	    else if n = p then checkClicked("C(2)", n2, P.extend (p, m))
+	of P.COPY{from=n2, to=m} => checkClicked("C(1)", n2, P.COPY{from=p, to=m})
+         | P.EXTEND{from=n2, to=m} =>
+	    if n > p then checkClicked("C(2)", n2, P.COPY{from=p, to=m})
+	    else if n = p then checkClicked("C(2)", n2, P.EXTEND{from=p, to=m})
 	    else skip()
-   	 | P.trunc(n2,m) =>
-            if m >= p then checkClicked("C(3)", n2, P.copy (p, m))
-	    else if m < p then checkClicked("C(4)", n2, P.trunc (p, m))
+   	 | P.TRUNC{from=n2, to=m} =>
+            if m >= p then checkClicked("C(3)", n2, P.COPY{from=p, to=m})
+	    else if m < p then checkClicked("C(4)", n2, P.TRUNC{from=p, to=m})
 	    else skip()
 	 | _ => skip()
      end
-   | PURE (P.copy_inf p, [v, f], x, t,
-	   e as PURE (P.trunc_inf m, [v2, f2], x2, t2, e2)) => let
-	 fun skip () = PURE (P.copy_inf p, [ren v, ren f], x, t, g' e)
+   | PURE (P.COPY_INF p, [v, f], x, t,
+	   e as PURE (P.TRUNC_INF m, [v2, f2], x2, t2, e2)) => let
+	 fun skip () = PURE (P.COPY_INF p, [ren v, ren f], x, t, g' e)
 	 fun checkClicked (tok, pureOp) =
 	     if cvtPreCondition_inf (x, v2) then
 		(click tok;
@@ -823,37 +823,37 @@ let val rec g' =
 		 PURE (pureOp, [ren v], x2, t2, g' e2))
 	     else skip ()
      in
-	 if m >= p then checkClicked ("C(3)", P.copy (p, m))
-	 else if m < p then checkClicked ("C(4)", P.trunc (p, m))
+	 if m >= p then checkClicked ("C(3)", P.COPY{from=p, to=m})
+	 else if m < p then checkClicked ("C(4)", P.TRUNC{from=p, to=m})
 	 else skip ()
      end
-   | PURE(P.copy(p,n), [v], x, t, e as ARITH(a, [v2], x2, t2, e2)) => let
+   | PURE(P.COPY{from=p, to=n}, [v], x, t, e as ARITH(a, [v2], x2, t2, e2)) => let
        val v' = [ren v]
-       fun skip () = PURE(P.copy(p,n), v', x, t, g' e)
+       fun skip () = PURE(P.COPY{from=p, to=n}, v', x, t, g' e)
        fun checkClicked(tok, n2, class, arithOp) =
 	 if cvtPreCondition(n, n2, x, v2) then
 	   (click tok; class(arithOp, v', x2, t2, g' e2))
 	 else skip()
      in
        case a
-	of P.test(n2,m) =>
-	   if m >= p then checkClicked("C5", n2, PURE, P.copy (p, m))
-	   else checkClicked("C6", n2, ARITH, P.test (p, m))
-	 | P.testu(n2,m) =>
-	   if m > p then checkClicked("C7", n2, PURE, P.copy (p, m))
-	   else checkClicked("C8", n2, ARITH, P.testu (p, m))
+	of P.TEST{from=n2, to=m} =>
+	   if m >= p then checkClicked("C5", n2, PURE, P.COPY{from=p, to=m})
+	   else checkClicked("C6", n2, ARITH, P.TEST{from=p, to=m})
+	 | P.TESTU{from=n2, to=m} =>
+	   if m > p then checkClicked("C7", n2, PURE, P.COPY{from=p, to=m})
+	   else checkClicked("C8", n2, ARITH, P.TESTU{from=p, to=m})
 	 | _ => skip()
      end
-   | PURE (P.copy_inf p, [v, f], x, t,
-	   e as ARITH (P.test_inf m, [v2, f2], x2, t2, e2)) => let
+   | PURE (P.COPY_INF p, [v, f], x, t,
+	   e as ARITH (P.TEST_INF m, [v2, f2], x2, t2, e2)) => let
 	 fun checkClicked (tok, class, oper) =
 	     if cvtPreCondition_inf (x, v2) then
 		 (click tok; use_less f; use_less f2;
 		  class (oper, [ren v], x2, t2, g' e2))
-	     else PURE (P.copy_inf p, [ren v, ren f], x, t, g' e)
+	     else PURE (P.COPY_INF p, [ren v, ren f], x, t, g' e)
      in
-	 if m >= p then checkClicked ("C5", PURE, P.copy (p, m))
-	 else checkClicked ("C6", ARITH, P.test (p, m))
+	 if m >= p then checkClicked ("C5", PURE, P.COPY{from=p, to=m})
+	 else checkClicked ("C6", ARITH, P.TEST{from=p, to=m})
      end
    | PURE(i,vl,w,t,e) =>
       let val vl' = map ren vl
@@ -920,77 +920,77 @@ end
 
 (* statically evaluate a boolean test; either return the result or raise ConstFold *)
  and branch =
-    fn (P.unboxed, vl) => not(branch(P.boxed, vl))
-     | (P.boxed, [NUM{ty={tag, ...}, ...}]) => (click "n"; not tag)
-     | (P.boxed, [STRING s]) => (click "o"; true)
-     | (P.boxed, [VAR v]) => (case get v
+    fn (P.UNBOXED, vl) => not(branch(P.BOXED, vl))
+     | (P.BOXED, [NUM{ty={tag, ...}, ...}]) => (click "n"; not tag)
+     | (P.BOXED, [STRING s]) => (click "o"; true)
+     | (P.BOXED, [VAR v]) => (case get v
 	 of {info=RECinfo _, ...} => (click "p"; true)
 	  | _ => raise ConstFold)
-     | (P.cmp{oper=P.LT, ...}, [VAR v, VAR w]) =>
+     | (P.CMP{oper=P.LT, ...}, [VAR v, VAR w]) =>
 	  if v=w then (click "v"; false) else raise ConstFold
-     | (P.cmp{oper=P.LTE, ...}, [VAR v, VAR w]) =>
+     | (P.CMP{oper=P.LTE, ...}, [VAR v, VAR w]) =>
 	  if v=w then (click "v"; true) else raise ConstFold
-     | (P.cmp{oper=P.LT, kind=P.INT _}, [NUM i, NUM j]) => (
+     | (P.CMP{oper=P.LT, kind=P.INT _}, [NUM i, NUM j]) => (
 	  click "w"; #ival i < #ival j)
-     | (P.cmp{oper=P.LT, kind=P.UINT sz}, [NUM i, NUM j]) => (
+     | (P.CMP{oper=P.LT, kind=P.UINT sz}, [NUM i, NUM j]) => (
 	  click "w"; CA.uLess(sz, #ival i, #ival j))
-     | (P.cmp{oper=P.LTE, kind=P.INT _}, [NUM i, NUM j]) => (
+     | (P.CMP{oper=P.LTE, kind=P.INT _}, [NUM i, NUM j]) => (
 	  click "w"; #ival i <= #ival j)
-     | (P.cmp{oper=P.LTE, kind=P.UINT sz}, [NUM i, NUM j]) => (
+     | (P.CMP{oper=P.LTE, kind=P.UINT sz}, [NUM i, NUM j]) => (
 	  click "w"; CA.uLessEq(sz, #ival i, #ival j))
-     | (P.cmp{oper=P.GT, kind}, [w,v]) =>
-	  branch(P.cmp{oper=P.LT, kind=kind}, [v,w])
-     | (P.cmp{oper=P.GTE, kind}, vl) =>
-	  not (branch(P.cmp{oper=P.LT, kind=kind}, vl))
-     | (P.cmp{oper=P.EQL, kind=P.FLOAT _}, _) => raise ConstFold (* in case of NaN's *)
-     | (P.cmp{oper=P.EQL, ...}, [VAR v, VAR w]) =>
+     | (P.CMP{oper=P.GT, kind}, [w,v]) =>
+	  branch(P.CMP{oper=P.LT, kind=kind}, [v,w])
+     | (P.CMP{oper=P.GTE, kind}, vl) =>
+	  not (branch(P.CMP{oper=P.LT, kind=kind}, vl))
+     | (P.CMP{oper=P.EQL, kind=P.FLOAT _}, _) => raise ConstFold (* in case of NaN's *)
+     | (P.CMP{oper=P.EQL, ...}, [VAR v, VAR w]) =>
 	  if v=w then  (click "v"; true) else raise ConstFold
-     | (P.cmp{oper=P.EQL, ...}, [NUM i, NUM j]) => (click "w"; #ival i = #ival j)
-     | (P.cmp{oper=P.NEQ, kind}, vl) =>
-	  not(branch(P.cmp{oper=P.EQL, kind=kind}, vl))
-     | (P.peql, [NUM i, NUM j]) => (click "w"; #ival i = #ival j)
-     | (P.pneq, vl) => not(branch(P.peql, vl))
+     | (P.CMP{oper=P.EQL, ...}, [NUM i, NUM j]) => (click "w"; #ival i = #ival j)
+     | (P.CMP{oper=P.NEQ, kind}, vl) =>
+	  not(branch(P.CMP{oper=P.EQL, kind=kind}, vl))
+     | (P.PEQL, [NUM i, NUM j]) => (click "w"; #ival i = #ival j)
+     | (P.PNEQ, vl) => not(branch(P.PEQL, vl))
      | _ => raise ConstFold
 
   and arith =
-    fn (P.arith{oper=P.MUL, ...}, [NUM{ival=1, ...}, v]) => (click "F"; v)
-     | (P.arith{oper=P.MUL, ...}, [v, NUM{ival=1, ...}]) => (click "G"; v)
-     | (P.arith{oper=P.MUL, ...}, [v as NUM{ival=0, ...}, _]) => (click "H"; v)
-     | (P.arith{oper=P.MUL, ...}, [_, v as NUM{ival=0, ...}]) => (click "I"; v)
-     | (P.arith{oper=P.MUL, kind=P.INT sz}, [NUM i, NUM j]) => let
+    fn (P.ARITH{oper=P.MUL, ...}, [NUM{ival=1, ...}, v]) => (click "F"; v)
+     | (P.ARITH{oper=P.MUL, ...}, [v, NUM{ival=1, ...}]) => (click "G"; v)
+     | (P.ARITH{oper=P.MUL, ...}, [v as NUM{ival=0, ...}, _]) => (click "H"; v)
+     | (P.ARITH{oper=P.MUL, ...}, [_, v as NUM{ival=0, ...}]) => (click "I"; v)
+     | (P.ARITH{oper=P.MUL, kind=P.INT sz}, [NUM i, NUM j]) => let
 	  val x = CA.sMul(sz, #ival i, #ival j)
 	  in
 	    click "J"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.arith{oper=P.QUOT, ...}, [v, NUM{ival=1, ...}]) => (click "K"; v)
-     | (P.arith{oper=P.QUOT, ...}, [_, NUM{ival=0, ...}]) => raise ConstFold
-     | (P.arith{oper=P.QUOT, kind=P.INT sz}, [NUM i, NUM j]) => let
+     | (P.ARITH{oper=P.QUOT, ...}, [v, NUM{ival=1, ...}]) => (click "K"; v)
+     | (P.ARITH{oper=P.QUOT, ...}, [_, NUM{ival=0, ...}]) => raise ConstFold
+     | (P.ARITH{oper=P.QUOT, kind=P.INT sz}, [NUM i, NUM j]) => let
 	  val x = CA.sQuot(sz, #ival i, #ival j)
 	  in
 	    click "L"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.arith{oper=P.DIV, ...}, [v, NUM{ival=1, ...}]) => (click "K"; v)
-     | (P.arith{oper=P.DIV, ...}, [_, NUM{ival=0, ...}]) => raise ConstFold
-     | (P.arith{oper=P.DIV, kind=P.INT sz}, [NUM i, NUM j]) => let
+     | (P.ARITH{oper=P.DIV, ...}, [v, NUM{ival=1, ...}]) => (click "K"; v)
+     | (P.ARITH{oper=P.DIV, ...}, [_, NUM{ival=0, ...}]) => raise ConstFold
+     | (P.ARITH{oper=P.DIV, kind=P.INT sz}, [NUM i, NUM j]) => let
 	  val x = CA.sDiv(sz, #ival i, #ival j)
 	  in
 	    click "L"; NUM{ival = x, ty = #ty i}
 	  end
      (* FIXME: should we do anything for mod or rem here? *)
-     | (P.arith{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => (click "M"; v)
-     | (P.arith{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => (click "N"; v)
-     | (P.arith{oper=P.ADD, kind=P.INT sz}, [NUM i, NUM j]) => let
+     | (P.ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => (click "M"; v)
+     | (P.ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => (click "N"; v)
+     | (P.ARITH{oper=P.ADD, kind=P.INT sz}, [NUM i, NUM j]) => let
 	  val x = CA.sAdd(sz, #ival i, #ival j)
 	  in
 	    click "O"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.arith{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => (click "P"; v)
-     | (P.arith{oper=P.SUB, kind=P.INT sz}, [NUM i, NUM j]) => let
+     | (P.ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => (click "P"; v)
+     | (P.ARITH{oper=P.SUB, kind=P.INT sz}, [NUM i, NUM j]) => let
 	  val x = CA.sSub(sz, #ival i, #ival j)
 	  in
 	    click "Q"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.arith{oper=P.NEG, kind=P.INT sz}, [NUM i]) => let
+     | (P.ARITH{oper=P.NEG, kind=P.INT sz}, [NUM i]) => let
 	  val x = CA.sNeg(sz, #ival i)
 	  in
 	    click "X"; NUM{ival = x, ty = #ty i}
@@ -999,92 +999,92 @@ end
 
 (* pure arithmetic operations; raises ConstFold when there is no reduction *)
   and pure =
-    fn (P.pure_arith{oper=P.MUL, ...}, [NUM{ival=1, ...}, v]) => (click "F"; v)
-     | (P.pure_arith{oper=P.MUL, ...}, [v, NUM{ival=1, ...}]) => (click "G"; v)
-     | (P.pure_arith{oper=P.MUL, ...}, [v as NUM{ival=0, ...}, _]) => (click "H"; v)
-     | (P.pure_arith{oper=P.MUL, ...}, [_, v as NUM{ival=0, ...}]) => (click "I"; v)
+    fn (P.PURE_ARITH{oper=P.MUL, ...}, [NUM{ival=1, ...}, v]) => (click "F"; v)
+     | (P.PURE_ARITH{oper=P.MUL, ...}, [v, NUM{ival=1, ...}]) => (click "G"; v)
+     | (P.PURE_ARITH{oper=P.MUL, ...}, [v as NUM{ival=0, ...}, _]) => (click "H"; v)
+     | (P.PURE_ARITH{oper=P.MUL, ...}, [_, v as NUM{ival=0, ...}]) => (click "I"; v)
 (* FIXME: 32-bit dependent code *)
-     | (P.pure_arith{oper=P.MUL, kind=P.UINT sz}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.MUL, kind=P.UINT sz}, [NUM i, NUM j]) => let
           val x = CA.uMul(sz, #ival i, #ival j)
 	  in
 	    click "J"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => (click "M"; v)
-     | (P.pure_arith{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => (click "N"; v)
-     | (P.pure_arith{oper=P.ADD, kind=P.UINT sz}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => (click "M"; v)
+     | (P.PURE_ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => (click "N"; v)
+     | (P.PURE_ARITH{oper=P.ADD, kind=P.UINT sz}, [NUM i, NUM j]) => let
 	  val x = CA.uAdd(sz, #ival i, #ival j)
 	  in
 	    click "O"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => (click "P"; v)
-     | (P.pure_arith{oper=P.SUB, kind=P.UINT sz}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => (click "P"; v)
+     | (P.PURE_ARITH{oper=P.SUB, kind=P.UINT sz}, [NUM i, NUM j]) => let
 	  val x = CA.uSub(sz, #ival i, #ival j)
 	  in
 	    click "Q"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.RSHIFT, ...}, [i as NUM{ival=0, ...}, _]) => (click "S"; i)
-     | (P.pure_arith{oper=P.RSHIFT, ...}, [v, NUM{ival=0, ...}]) => (click "T"; v)
-     | (P.pure_arith{oper=P.RSHIFT, kind}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [i as NUM{ival=0, ...}, _]) => (click "S"; i)
+     | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [v, NUM{ival=0, ...}]) => (click "T"; v)
+     | (P.PURE_ARITH{oper=P.RSHIFT, kind}, [NUM i, NUM j]) => let
 	  val x = CA.sShR(sizeOfKind kind, #ival i, #ival j)
 	  in
 	    click "R"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.RSHIFTL, ...}, [i as NUM{ival=0, ...}, _]) => (click "S"; i)
-     | (P.pure_arith{oper=P.RSHIFTL, ...}, [v, NUM{ival=0, ...}]) => (click "T"; v)
-     | (P.pure_arith{oper=P.RSHIFTL, kind=P.UINT sz}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [i as NUM{ival=0, ...}, _]) => (click "S"; i)
+     | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [v, NUM{ival=0, ...}]) => (click "T"; v)
+     | (P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT sz}, [NUM i, NUM j]) => let
 	  val x = CA.uShR(sz, #ival i, #ival j)
 	  in
 	    click "R"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.LSHIFT, ...}, [v as NUM{ival=0, ...}, _]) => (click "Z"; v)
-     | (P.pure_arith{oper=P.LSHIFT, ...}, [v, NUM{ival=0, ...}]) => (click "1"; v)
-     | (P.pure_arith{oper=P.LSHIFT, kind=P.INT sz}, [NUM i, NUM j]) => (let
+     | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v as NUM{ival=0, ...}, _]) => (click "Z"; v)
+     | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v, NUM{ival=0, ...}]) => (click "1"; v)
+     | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.INT sz}, [NUM i, NUM j]) => (let
 	  val x = CA.sShL(sz, #ival i, #ival j)
 	  in
 	    click "Y"; NUM{ival = x, ty = #ty i}
 	  end handle Overflow => raise ConstFold)
-     | (P.pure_arith{oper=P.LSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) => let
 	  val x = CA.uShL(sz, #ival i, #ival j)
 	  in
 	    click "Y"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.ANDB, ...}, [v as NUM{ival=0, ...}, _]) => (click "0"; v)
-     | (P.pure_arith{oper=P.ANDB, ...}, [_, v as NUM{ival=0, ...}]) => (click "T"; v)
-     | (P.pure_arith{oper=P.ANDB, kind}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.ANDB, ...}, [v as NUM{ival=0, ...}, _]) => (click "0"; v)
+     | (P.PURE_ARITH{oper=P.ANDB, ...}, [_, v as NUM{ival=0, ...}]) => (click "T"; v)
+     | (P.PURE_ARITH{oper=P.ANDB, kind}, [NUM i, NUM j]) => let
 	  val x = CA.bAnd(sizeOfKind kind, #ival i, #ival j)
 	  in
 	    click "9"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.ORB, ...}, [NUM{ival=0, ...}, v]) => (click "3"; v)
-     | (P.pure_arith{oper=P.ORB, ...}, [v, NUM{ival=0, ...}]) => (click "4"; v)
-     | (P.pure_arith{oper=P.ORB, kind}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.ORB, ...}, [NUM{ival=0, ...}, v]) => (click "3"; v)
+     | (P.PURE_ARITH{oper=P.ORB, ...}, [v, NUM{ival=0, ...}]) => (click "4"; v)
+     | (P.PURE_ARITH{oper=P.ORB, kind}, [NUM i, NUM j]) => let
 	  val x = CA.bOr(sizeOfKind kind, #ival i, #ival j)
 	  in
 	    click "2"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.XORB, ...}, [NUM{ival=0, ...}, v]) => (click "6"; v)
-     | (P.pure_arith{oper=P.XORB, ...}, [v, NUM{ival=0, ...}]) => (click "7"; v)
-     | (P.pure_arith{oper=P.XORB, kind}, [NUM i, NUM j]) => let
+     | (P.PURE_ARITH{oper=P.XORB, ...}, [NUM{ival=0, ...}, v]) => (click "6"; v)
+     | (P.PURE_ARITH{oper=P.XORB, ...}, [v, NUM{ival=0, ...}]) => (click "7"; v)
+     | (P.PURE_ARITH{oper=P.XORB, kind}, [NUM i, NUM j]) => let
 	  val x = CA.bXor(sizeOfKind kind, #ival i, #ival j)
 	  in
 	    click "5"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.pure_arith{oper=P.NOTB,kind}, [NUM i]) => let
+     | (P.PURE_ARITH{oper=P.NOTB,kind}, [NUM i]) => let
 	  val x = CA.bNot(sizeOfKind kind, #ival i)
 	  in
 	    click "8"; NUM{ival = x, ty = #ty i}
 	  end
-     | (P.length, [STRING s]) => (click "V"; tagInt'(size s))
-     | (P.real{fromkind=P.INT _,tokind=P.FLOAT sz}, [NUM{ival, ...}]) =>
+     | (P.LENGTH, [STRING s]) => (click "V"; tagInt'(size s))
+     | (P.REAL{from=P.INT _,to=P.FLOAT sz}, [NUM{ival, ...}]) =>
 	(* NOTE: this conversion might lose precision *)
 	  REAL{rval = RealLit.fromInt ival, ty=sz}
-     | (P.unwrap(P.INT sz), [x as VAR v]) => (case get v
+     | (P.UNWRAP(P.INT sz), [x as VAR v]) => (case get v
 	   of {info=WRPinfo(P.INT sz', u), ...} => if (sz = sz')
 		then (click "U"; use_less x; u)
 		else bug "wrap/unwrap float size conflict"
 	    | _ => raise ConstFold
 	  (* end case *))
-     | (P.unwrap(P.FLOAT sz), [x as VAR v]) => (case get v
+     | (P.UNWRAP(P.FLOAT sz), [x as VAR v]) => (case get v
 	   of {info=WRPinfo(P.FLOAT sz', u), ...} => if (sz = sz')
 		then (click "U"; use_less x; u)
 		else bug "wrap/unwrap int size conflict"
