@@ -7,7 +7,6 @@ With the addition of 64-bit targets, the mapping from primop to
 internal representation becomes target-specific in many cases.
 
 
-
 ## Relavant source files
 
   * `compiler/ElabData/prim/primop.sml`<br/>
