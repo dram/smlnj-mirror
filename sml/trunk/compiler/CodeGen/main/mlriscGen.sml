@@ -1571,7 +1571,7 @@ raise ex)
 	    | gen (PURE(P.PURE_ARITH{oper=P.NEG, kind}, [v], x, _, e), hp) = let
 		val sz = (case kind
 		       of P.UINT sz => sz
-			| P.INT sz => sz
+			| P.INT sz => sz (* QUESTION: is this case possible? *)
 			| _ => error "unexpected numkind in pure ~ arithop")
 		in
 		  if (sz <= Target.defaultIntSz)
@@ -1831,6 +1831,11 @@ raise ex)
 	    | gen (ARITH(P.TEST_INF _, _, _, _, _), hp) =
 	        error "gen:ARITH:TEST_INF"
 
+(* NOTE: I don't think that this code can ever be executed, since the floating-point
+** primops are bound to "pure" operations in Semant/prim/primop-bindings.sml and
+** then converted to P.PURE_ARITH operations in CPS/convert/convert.sml.
+** [JHR; 2019-04-16]
+**
             | gen (ARITH(P.ARITH{oper, kind=P.FLOAT sz}, [v,w], x, _, e), hp) = let
                 val v = fregbind v
 		val w = fregbind w
@@ -1845,6 +1850,9 @@ raise ex)
 (* REAL32: FIXME *)
 		  treeifyDefF64(x, t, e, hp)
 		end
+**)
+            | gen (ARITH(P.ARITH{oper, kind=P.FLOAT _}, _, _, _, _), _) =
+		error(concat["gen: ", PPCps.arithopToString oper, " FLOAT"])
 
             (*** LOOKER ***)
             | gen (LOOKER(P.DEREF, [v], x, _, e), hp) = let

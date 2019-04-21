@@ -56,13 +56,15 @@ module CPS_Type {
       | RK_ESCAPE
       | RK_EXN
       | RK_CONT
-      | RK_FCONT
-      | RK_KNOWN
+      | RK_FCONT	-- flosure record for
+      | RK_KNOWN	-- closure record for known function
       | RK_BLOCK
       | RK_FBLOCK
       | RK_I32BLOCK
 
-    pkind = VPT | RPT (int) | FPT (int)
+    pkind = VPT         -- pointer to value of unknown size
+          | RPT (int)   -- pointer to record (RK_RECORD); argument is number of elements
+          | FPT (int)   -- pointer to block of floats (RK_FBLOCK); argument is number of floats
 
   -- kinds of integers: size in bits and tagged vs boxed
     intty = (int sz, bool tag)
@@ -157,12 +159,12 @@ module CPS_Prim (import CPS_Type) {
       = PURE_ARITH (arithop oper, numkind kind)
       | PURE_NUMSUBSCRIPT (numkind kind)
       | LENGTH | OBJLENGTH | MAKEREF
+      | COPY (int from, int to)
       | EXTEND (int from, int to)
       | TRUNC (int from, int to)
-      | COPY (int from, int to)
+      | COPY_INF (int)
       | EXTEND_INF (int)
       | TRUNC_INF (int)
-      | COPY_INF (int)
       | REAL (numkind from, numkind to)
       | SUBSCRIPTV
       | GETTAG | MKSPECIAL | WRAP | UNWRAP | CAST | GETCON | GETEXN
@@ -199,14 +201,13 @@ module CPS_Rep (
     fun_kind
       = CONT            -- continuation functions
       | KNOWN           -- general known functions
-      | KNOWN_REC       -- known recursive functions
+      | KNOWN_REC       -- known mutually-recursive functions
       | KNOWN_CHECK     -- known functions that need a heap limit check
-      | KNOWN_TAIL      -- tail-recursive kernal
+      | KNOWN_TAIL      -- tail-recursive known function
       | KNOWN_CONT      -- known continuation functions
       | ESCAPE          -- before the closure phase, any user function;
 			-- after the closure phase, escaping user function
-      | NO_INLINE_INTO	-- before the closure phase,
-			-- a user function inside of which no in-line expansions
+      | NO_INLINE_INTO	-- a user function inside of which no in-line expansions
 			-- should be performed;
 			-- does not occur after the closure phase
 

@@ -88,12 +88,12 @@ structure CPS : CPS =
 	  = PURE_ARITH of {oper: arithop, kind: numkind}
 	  | PURE_NUMSUBSCRIPT of {kind: numkind}
 	  | LENGTH | OBJLENGTH | MAKEREF
+	  | COPY of {from: int, to: int}
 	  | EXTEND of {from: int, to: int}
 	  | TRUNC of {from: int, to: int}
-	  | COPY of {from: int, to: int}
+	  | COPY_INF of int
 	  | EXTEND_INF of int
 	  | TRUNC_INF of int
-	  | COPY_INF of int
 	  | REAL of {from: numkind, to: numkind}
 	  | SUBSCRIPTV
 	  | GETTAG | MKSPECIAL | CAST | GETCON | GETEXN

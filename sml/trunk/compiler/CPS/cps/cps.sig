@@ -93,12 +93,12 @@ signature CPS =
 	  = PURE_ARITH of {oper: arithop, kind: numkind}
 	  | PURE_NUMSUBSCRIPT of {kind: numkind}
 	  | LENGTH | OBJLENGTH | MAKEREF
+	  | COPY of {from: int, to: int}
 	  | EXTEND of {from: int, to: int}
 	  | TRUNC of {from: int, to: int}
-	  | COPY of {from: int, to: int}
+	  | COPY_INF of int
 	  | EXTEND_INF of int
 	  | TRUNC_INF of int
-	  | COPY_INF of int
 	  | REAL of {from: numkind, to: numkind}
 	  | SUBSCRIPTV
 	  | GETTAG | MKSPECIAL | CAST | GETCON | GETEXN
@@ -128,14 +128,21 @@ signature CPS =
       | SELp of int * accesspath
 
     datatype fun_kind
-      = CONT
-      | KNOWN
-      | KNOWN_REC
-      | KNOWN_CHECK
-      | KNOWN_TAIL
-      | KNOWN_CONT
-      | ESCAPE
-      | NO_INLINE_INTO
+      = CONT		(* continuation function *)
+      | KNOWN		(* known function *)
+      | KNOWN_REC	(* known mutually-recursive functions *)
+      | KNOWN_CHECK	(* known function with GC check on entry *)
+      | KNOWN_TAIL	(* known tail-recursive function *)
+      | KNOWN_CONT	(* known continuation function *)
+      | ESCAPE		(* before the closure phase, any user function;
+			 * after the closure phase, escaping user function
+			 *)
+      | NO_INLINE_INTO	(* a user function inside of which no in-line expansions
+			 * should be performed.  This is used to mark eta-split
+			 * wrapper functions so that cpscontract does not inline
+			 * the function body into the wrapper.  Removed during
+			 * closure conversion.
+			 *)
 
     datatype cexp
       = RECORD of record_kind * (value * accesspath) list * lvar * cexp
