@@ -137,8 +137,9 @@ The `looker` datatype describes operations that read from mutable memory.
 
 ## Artithmetic operations
 
-  The `arithop` datatype is used by both the `ARITH` and `PURE_ARITH` constructors in
-  the `pure` and `arith` datatypes (resp.) to specify the arithmetic operation.
+The `arithop` datatype is used by both the `ARITH` and `PURE_ARITH` constructors in
+the `pure` and `arith` datatypes (resp.) to specify the arithmetic operation. <br/>
+**Note:** The CPS `arithop` type is currently the same as `Primop.arithop`.
 
   * `ADD` -- addition; used for signed (`ARITH`) and unsigned (`PURE_ARITH`) integer
     addition, and for floating-point addition (`PURE_ARITH`).
