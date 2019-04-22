@@ -48,37 +48,36 @@ fun path escapes fl =
         | g(d, SELECT(_,_,_,_,e)) = g(d, e)
         | g(d, OFFSET(_,_,_,e)) = g(d, e)
         | g(d, SWITCH(_,_,el)) = foldr Int.max 0 (map (fn e => g(d,e)) el)
-	| g(d, SETTER(P.assign, _, e)) = g(d+storeListSz, e)
-        | g(d, SETTER(P.update,_,e)) = g(d+storeListSz, e)
+	| g(d, SETTER(P.ASSIGN, _, e)) = g(d+storeListSz, e)
+        | g(d, SETTER(P.UPDATE,_,e)) = g(d+storeListSz, e)
             (*** should be +0 when unboxedfloat is turned on ***)
-        | g(d, ARITH(P.arith{kind=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
-        | g(d, ARITH(P.arith{kind=P.INT _,...},_,_,_,e)) = g(d+1, e)
-	| g(d, ARITH(P.testu _, _, _, _, e)) = g(d+1, e)
-	| g(d, ARITH(P.test _, _, _, _, e)) = g(d+1, e)
-	| g(d, ARITH(P.test_inf _, _, _, _, e)) =
+        | g(d, ARITH(P.ARITH{kind=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
+        | g(d, ARITH(P.ARITH{kind=P.INT _,...},_,_,_,e)) = g(d+1, e)
+	| g(d, ARITH(P.TESTU _, _, _, _, e)) = g(d+1, e)
+	| g(d, ARITH(P.TEST _, _, _, _, e)) = g(d+1, e)
+	| g(d, ARITH(P.TEST_INF _, _, _, _, e)) =
 	    error "9827489 test_inf in limit"
         | g(d, ARITH(_,_,_,_,e)) = g(d,e)
-        | g(d, PURE(P.pure_arith{kind=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
-        | g(d, PURE(P.real{tokind=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
-	| g(d, PURE(P.wrap(P.INT sz), _, _, _, e)) =
+        | g(d, PURE(P.PURE_ARITH{kind=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
+        | g(d, PURE(P.REAL{to=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
+	| g(d, PURE(P.WRAP(P.INT sz), _, _, _, e)) =
 	    if (sz = Target.mlValueSz)
 	      then g(d + 2, e)
 	    else if (sz <= Target.defaultIntSz)
 	      then error "unexpected tagged int wrap"
 	      else g(d + 2 + sz div Target.mlValueSz, e)  (* include word for alignment *)
-	| g(d, PURE(P.wrap(P.FLOAT sz), _, _, _, e)) =
+	| g(d, PURE(P.WRAP(P.FLOAT sz), _, _, _, e)) =
 	    if (sz > Target.mlValueSz)
 	      then g(d+4, e) (* assume we need alignment word *)
 	      else g(d+2, e)
-	| g(d, PURE(P.newarray0,_,_,_,e)) = g(d+5, e)
-	| g(d, PURE(P.makeref, _, _, _, e)) = g(d+2, e)
-	| g(d, PURE(P.mkspecial, _, _, _, e)) = g(d+2, e)
-        | g(d, PURE(P.rawrecord tag, [NUM{ty={tag=true, ...}, ival}],_,_,e)) =
+	| g(d, PURE(P.NEWARRAY0,_,_,_,e)) = g(d+5, e)
+	| g(d, PURE(P.MAKEREF, _, _, _, e)) = g(d+2, e)
+	| g(d, PURE(P.MKSPECIAL, _, _, _, e)) = g(d+2, e)
+        | g(d, PURE(P.RAWRECORD tag, [NUM{ty={tag=true, ...}, ival}],_,_,e)) =
              g (d+(IntInf.toInt ival)+(case tag of SOME _ => 1 | NONE => 0), e)
-	| g(d, PURE((P.trunc_inf _ | P.extend_inf _ | P.copy_inf _),
-		    _, _, _, e)) =
+	| g(d, PURE((P.TRUNC_INF _ | P.EXTEND_INF _ | P.COPY_INF _), _, _, _, e)) =
 	    error "23487978 *_inf in limit"
-        | g(d, LOOKER(P.numsubscript{kind=P.FLOAT 64},_,_,_,e)) = g(d+3, e)
+        | g(d, LOOKER(P.NUMSUBSCRIPT{kind=P.FLOAT 64},_,_,_,e)) = g(d+3, e)
         | g(d, SETTER(_,_,e)) = g(d,e)
         | g(d, LOOKER(_,_,_,_,e)) = g(d,e)
         | g(d, PURE(_,_,_,_,e)) = g(d,e)

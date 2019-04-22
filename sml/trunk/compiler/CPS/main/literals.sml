@@ -363,7 +363,7 @@ structure Literals : LITERALS =
 	  fun wrapfloat (sz, u, v, t) = if const u
 		then (enter(v, ZZ_RCD(RK_FBLOCK, [u])); Fn.id)
 		else let val (nu, hh) = lpsv u
-		      in (fn ce => hh(PURE(P.wrap(P.FLOAT sz), [nu], v, t, ce)))
+		      in (fn ce => hh(PURE(P.WRAP(P.FLOAT sz), [nu], v, t, ce)))
 		     end
 	(* fetch out the literal information *)
 	  fun getInfo () = let
@@ -475,7 +475,7 @@ structure Literals : LITERALS =
 		    in hh(ARITH(p, nl, v, t, loop e))
 		   end
 (* QUESTION: should there be a case for `P.WRAP(P.INT _)` here? *)
-	       | PURE (P.wrap(P.FLOAT sz), [u], v, t, e) => wrapfloat (sz, u, v, t) (loop e)
+	       | PURE (P.WRAP(P.FLOAT sz), [u], v, t, e) => wrapfloat (sz, u, v, t) (loop e)
 	       | PURE (p, ul, v, t, e) =>
 		   let val (nl, hh) = lpvs ul
 		    in hh(PURE(p, nl, v, t, loop e))
