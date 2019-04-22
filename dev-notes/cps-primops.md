@@ -59,7 +59,8 @@ tests.
       - `F_ULE` -- unordered, less than, or equal (`?<=`)
       - `F_LG` -- less than or greater than (`<>`)
       - `F_UE` -- unordered or equal (`?=`)
-      - `F_SGN` -- true if the sign bit of its argument is set
+
+  * `FSGN of int` -- true if the sign bit of its floating-point argument is set.
 
   * `BOXED` -- true if its argument is a pointer; *i.e.*, the lowest bit of
     the argument is 0.
@@ -315,9 +316,6 @@ The `pure` datatype collects together operations that cannot cause an exception.
 
 ## Ideas for improvement
 
-  * move the `F_SGN` operator (which is unary) from the `fcmp` datatype to the `branch`
-    datatype
-
   * replace the `STREQL` and `STRNEQ` branch operators with a pure operation `STRCMP` that
     has semantics like `strncmp` function in **C**.  This operation would allow more
     efficient binary searches to implement pattern matching over string literals.
@@ -329,6 +327,11 @@ The `pure` datatype collects together operations that cannot cause an exception.
     generator a bit, since many operations have to fetch the data pointer.  It could
     also make substrings and slices more efficient.
 
+  * Replace `RAW64SUBSCRIPT` with a `RAWSUBSCRIPT of numkind` to support packed
+    sequences of other sizes and types.  There should be matching `RAWSUBSCRIPTV`
+    and `RAWUPDATE` primops to support the exposed representation of arrays and
+    vectors as described above.
+
   * The `arithop` datatype could be made more precise by splitting it into pure and
     impure types.  Of the 21 constructors, 13 are always pure, two are always impure,
     and only six can appear as arguments to either `ARITH` or `PURE_ARITH`.  We might
@@ -336,7 +339,3 @@ The `pure` datatype collects together operations that cannot cause an exception.
     the phases of the compiler to streamline translation. <br/>
     Note: code generation for impure floating-point operations in `mlriscGen.sml`
     has been commented out, since it does not appear to be needed.
-
-  * Replace `RAW64SUBSCRIPT` with a `RAWSUBSCRIPT of numkind` to support packed
-    sequences of other sizes and types.
-
