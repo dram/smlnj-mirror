@@ -93,6 +93,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+
+//--------------------------------------------------------------------
+[2019/04/21]::
++
+Change to the CPS primops: moved the `F_SGN` operator (which is unary)
+from the `fcmp` datatype to the `branch` (and renamed it `FSGN`).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/04/21]::
 +
