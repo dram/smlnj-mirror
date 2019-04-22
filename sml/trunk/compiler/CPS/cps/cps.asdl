@@ -121,11 +121,11 @@ module CPS_Prim (import CPS_Type) {
       | F_ULE	-- ?<=
       | F_LG	-- <>
       | F_UE	-- ?=
-      | F_SGN
 
     branch
       = CMP (cmpop oper, bool signed)
       | FCMP (fcmpop oper, int size)
+      | FSGN (int)
       | BOXED | UNBOXED | PEQL | PNEQ
       | STREQL	-- STREQL(n,a,b) is defined only if length(a) = length(b) = n > 1
       | STRNEQ

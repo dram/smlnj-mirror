@@ -134,7 +134,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 
   (* cmpop: {oper: AP.cmpop, kind: AP.numkind} -> P.branch *)
     fun cmpop stuff = (case stuff
-	   of {oper,kind=AP.FLOAT size} => let
+	   of {oper, kind as AP.FLOAT size} => let
 		val rator = (case oper
 		      of AP.GT => P.F_GT
 		       | AP.GTE  => P.F_GE
@@ -142,8 +142,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		       | AP.LTE  => P.F_LE
 		       | AP.EQL  => P.F_EQ
 		       | AP.NEQ  => P.F_ULG
-		       | AP.FSGN => P.F_SGN
-		       | _       => bug "cmpop:kind=AP.FLOAT"
+		       | _       => bug("cmpop: oper=" ^ AP.prPrimop(AP.CMP stuff))
 		     (* end case *))
 		in
 		  P.FCMP{oper= rator, size=size}
@@ -161,7 +160,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		  | c AP.GTU = (check ("gtu", kind); P.GT )
 		  | c AP.EQL = P.EQL
 		  | c AP.NEQ = P.NEQ
-		  | c AP.FSGN = bug "cmpop:kind=AP.UINT"
+		  | c _ = bug("cmpop: oper=" ^ AP.prPrimop(AP.CMP stuff))
 		in
 		  P.CMP{oper=c oper, kind=numkind kind}
 		end
@@ -171,10 +170,11 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
     fun map_branch p = (case p
 	   of AP.BOXED => P.BOXED
 	    | AP.UNBOXED => P.UNBOXED
+	    | AP.CMP{oper=AP.FSGN, kind=AP.FLOAT sz} => P.FSGN sz
 	    | AP.CMP stuff => cmpop stuff
 	    | AP.PTREQL => P.PEQL
 	    | AP.PTRNEQ => P.PNEQ
-	    | _ => bug "unexpected primops in map_branch"
+	    | _ => bug(concat["unexpected primop ", AP.prPrimop p, " in map_branch"])
 	  (* end case *))
 
   (* primwrap: cty -> P.pure *)

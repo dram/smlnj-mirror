@@ -46,12 +46,13 @@ structure CPS : CPS =
 	  = F_EQ (* = *)  | F_ULG (* ?<> *) | F_UN (* ? *)   | F_LEG (* <=> *)
 	  | F_GT (* > *)  | F_GE  (* >= *)  | F_UGT (* ?> *) | F_UGE (* ?>= *)
 	  | F_LT (* < *)  | F_LE  (* <= *)  | F_ULT (* ?< *) | F_ULE (* ?<= *)
-	  | F_LG (* <> *) | F_UE  (* ?= *)  | F_SGN
+	  | F_LG (* <> *) | F_UE  (* ?= *)
 
       (* These are two-way branches dependent on pure inputs *)
 	datatype branch
 	  = CMP of {oper: cmpop, kind: numkind}
 	  | FCMP of {oper: fcmpop, size: int}
+	  | FSGN of int
 	  | BOXED | UNBOXED | PEQL | PNEQ
 (* FIXME: make length part of string equality test
           | streq of int | strneq of int (* streq n is defined on strings of length n *)

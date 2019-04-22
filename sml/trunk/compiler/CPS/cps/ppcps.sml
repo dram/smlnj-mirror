@@ -97,12 +97,12 @@ structure PPCps : PPCPS =
       | fcmpopToString P.F_ULE = "?<="
       | fcmpopToString P.F_UE = "?="
       | fcmpopToString P.F_UN = "?"
-      | fcmpopToString P.F_SGN = "sgn"
 
-    fun branchToString P.BOXED = "boxed"
-      | branchToString P.UNBOXED = "unboxed"
-      | branchToString (P.CMP{oper, kind}) = numkindToString kind ^ cmpopToString oper
+    fun branchToString (P.CMP{oper, kind}) = numkindToString kind ^ cmpopToString oper
       | branchToString (P.FCMP{oper, size}) = numkindToString (P.FLOAT size) ^ fcmpopToString oper
+      | branchToString (P.FSGN sz) = numkindToString (P.FLOAT sz) ^ "sgn"
+      | branchToString P.BOXED = "boxed"
+      | branchToString P.UNBOXED = "unboxed"
       | branchToString P.PEQL = "peql"
       | branchToString P.PNEQ = "pneq"
       | branchToString P.STREQL = "streql"

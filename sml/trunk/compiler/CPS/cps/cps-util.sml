@@ -51,16 +51,16 @@ structure CPSUtil : sig
 	| foper P.F_ULE = P.F_GT
 	| foper P.F_UE  = P.F_LG
 	| foper P.F_UN  = P.F_LEG
-	| foper P.F_SGN = bug "fsgn has no opposite"
     in
-    fun opp P.BOXED = P.UNBOXED
+    fun opp (P.CMP{oper, kind}) = P.CMP{oper=ioper oper, kind=kind}
+      | opp (P.FCMP{oper, size}) = P.FCMP{oper=foper oper, size=size}
+      | opp (P.FSGN _) = bug "fsgn has no opposite"
+      | opp P.BOXED = P.UNBOXED
       | opp P.UNBOXED = P.BOXED
       | opp P.STREQL = P.STRNEQ
       | opp P.STRNEQ = P.STREQL
       | opp P.PEQL = P.PNEQ
       | opp P.PNEQ = P.PEQL
-      | opp (P.CMP{oper, kind}) = P.CMP{oper=ioper oper, kind=kind}
-      | opp (P.FCMP{oper, size}) = P.FCMP{oper=foper oper, size=size}
     end (* local *)
 
     fun hasRCC cexp = (case cexp

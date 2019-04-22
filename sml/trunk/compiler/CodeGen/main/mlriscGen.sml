@@ -919,7 +919,6 @@ struct
 			| P.F_ULE => M.?<=
 			| P.F_LG => M.<>
 			| P.F_UE  => M.?=
-			| P.F_SGN => error "unary fsgn used as binary operator"
 		      (* end case *))
 		in
 		  M.FCMP(64, fcond, fregbind v, fregbind w)
@@ -2012,7 +2011,15 @@ raise ex)
             | gen (BRANCH(P.CMP{oper, kind=P.UINT _}, vw, p, e, d), hp) =
                 branch(p, unsignedCmp oper, vw, e, d, hp)
 (* REAL32: FIXME *)
-	    | gen (BRANCH(P.FCMP{oper=P.F_SGN,size=64}, [v], p, d, e), hp) = let
+            | gen (BRANCH(P.FCMP{oper,size=64}, [v,w], p, d, e), hp) =
+              let val trueLab = newLabel ()
+                  val cmp     = real64Cmp(oper, v, w)
+              in  emit(M.BCC(cmp, trueLab));
+                  genCont(e, hp);
+                  genlab(trueLab, d, hp)
+              end
+(* REAL32: FIXME *)
+	    | gen (BRANCH(P.FSGN 64, [v], p, d, e), hp) = let
 	        val trueLab = newLabel ()
 	        val r = fregbind v
                 val r' = newReg INT
@@ -2028,22 +2035,14 @@ raise ex)
 		  genCont(e, hp);
 		  genlab(trueLab, d, hp)
                 end
-(* REAL32: FIXME *)
-            | gen (BRANCH(P.FCMP{oper,size=64}, [v,w], p, d, e), hp) =
-              let val trueLab = newLabel ()
-                  val cmp     = real64Cmp(oper, v, w)
-              in  emit(M.BCC(cmp, trueLab));
-                  genCont(e, hp);
-                  genlab(trueLab, d, hp)
-              end
+            | gen (BRANCH(P.BOXED, [x], p, a, b), hp) = branchOnBoxed(p, x, a, b, hp)
+            | gen (BRANCH(P.UNBOXED, [x], p, a, b), hp) = branchOnBoxed(p, x, b, a, hp)
             | gen (BRANCH(P.PEQL, vw, p, e, d), hp) = branch(p, M.EQ, vw, e, d, hp)
             | gen (BRANCH(P.PNEQ, vw, p, e, d), hp) = branch(p, M.NE, vw, e, d, hp)
             | gen (BRANCH(P.STRNEQ, [NUM{ty={tag=true, ...}, ival},v,w], p, d, e), hp) =
                 branchStreq(ival, v, w, e, d, hp)
             | gen (BRANCH(P.STREQL, [NUM{ty={tag=true, ...}, ival},v,w],p,d,e), hp) =
                 branchStreq(ival, v, w, d, e, hp)
-            | gen (BRANCH(P.BOXED, [x], p, a, b), hp) = branchOnBoxed(p, x, a, b, hp)
-            | gen (BRANCH(P.UNBOXED, [x], p, a, b), hp) = branchOnBoxed(p, x, b, a, hp)
             | gen (e, hp) = (PPCps.prcps e; print "\n"; error "genCluster.gen")
 
          end (*local*)
