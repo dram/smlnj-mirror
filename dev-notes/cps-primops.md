@@ -5,6 +5,8 @@ This document describes the CPS primitive operators that are defined in the
 
 ## Representing type information
 
+CPS types (`cty`) have the following representation:
+
 ````sml
 datatype cty
   = NUMt of intty       (* integers of the given type *)
@@ -22,7 +24,7 @@ datatype numkind = INT of int | UINT of int | FLOAT of int
 
 ## Conditional branches
 
-The `branch` type represents the various comparisons and other conditional
+The `branch` datatype represents the various comparisons and other conditional
 tests.
 
   * `CMP of {oper: cmpop, kind: numkind}`
@@ -77,6 +79,7 @@ tests.
 
 
 ## Memory write operations
+
 The `setter` type describes operations that write to memory.
 
   * `NUMUPDATE of {kind: numkind}` -- array update for a packed monomorphic
@@ -103,33 +106,39 @@ The `setter` type describes operations that write to memory.
   * `RAWSTORE of {kind: numkind}` -- raw-memory store operation; used by the `RawMemInlineT`
     structure (`system/smlnj/init/rawmem.sml`) to support direct C-function calls.
 
-  * `RAWUPDATE of cty` --
+  * `RAWUPDATE of cty` -- update to raw record; used in spill phase (`cpscompile/spill-new.sml`)
+    to initialize the raw records defined for spill records.
 
 
 ## Memory read operations
+
+The `looker` datatype describes operations that read from mutable memory.
 
   * `DEREF` -- dereference a reference cell.
 
   * `SUBSCRIPT` -- fetch a value from a polymorphic array.  This operation first fetches
     the data pointer for the sequence and then the item from the data object.
 
-  * `NUMSUBSCRIPT of {kind: numkind}`
+  * `NUMSUBSCRIPT of {kind: numkind}` -- fetch a value from a packed monomorphic
+    array of numbers.  This operation first fetches the data pointer for the
+    sequence and uses it to implement the update.
 
   * `GETSPECIAL` -- get the kind field of a special object as a tagged integer value.
 
   * `GETHDLR` -- get the current exception-handler contunuation from the global
     exception-handler reference.
 
-  * `GETVAR`
+  * `GETVAR` -- get the contents of the global *var* register.
 
   * `RAWLOAD of {kind: numkind}` -- raw-memory store operation; used by the `RawMemInlineT`
     structure (`system/smlnj/init/rawmem.sml`) to support direct C-function calls.
     This primop is used both with one and two arguments; in the latter case, the source
     memory address is computed by adding the two arguments.
 
-## Type `arithop`
-  The `arithop` datatype is used by both the `ARITH` and `PURE_ARITH` constructors to
-  specify the arithmetic operation.
+## Artithmetic operations
+
+  The `arithop` datatype is used by both the `ARITH` and `PURE_ARITH` constructors in
+  the `pure` and `arith` datatypes (resp.) to specify the arithmetic operation.
 
   * `ADD` -- addition; used for signed (`ARITH`) and unsigned (`PURE_ARITH`) integer
     addition, and for floating-point addition (`PURE_ARITH`).
@@ -144,13 +153,17 @@ The `setter` type describes operations that write to memory.
     infinity.  Note that an explicit check for divide by zero is added
     during the translation from Absyn to FLINT.
 
-  * `MOD` -- (`ARITH` only)
+  * `MOD` -- signed integer remainder (`ARITH` only) with rounding toward negative
+    infinity.  Note that an explicit check for divide by zero is added
+    during the translation from Absyn to FLINT.
 
   * `QUOT` -- signed (`ARITH`) and unsigned (`PURE_ARITH`) integer division with
     rounding toward zero.  Note that an explicit check for divide by zero is added
     during the translation from Absyn to FLINT.
 
-  * `REM`
+  * `REM` -- signed (`ARITH`) and unsigned (`PURE_ARITH`) integer remainder with
+    rounding toward zero.  Note that an explicit check for divide by zero is added
+    during the translation from Absyn to FLINT.
 
   * `FDIV` -- floating-point division (`PURE_ARITH` only)
 
@@ -175,12 +188,22 @@ The `setter` type describes operations that write to memory.
 
   * `NOTB` -- bitwise logical-negation operation (`PURE_ARITH` only).
 
-  * `FSQRT` -- (`PURE_ARITH` only)
-  * `FSIN` -- (`PURE_ARITH` only)
-  * `FCOS` -- (`PURE_ARITH` only)
-  * `FTAN` -- (`PURE_ARITH` only)
+  * `FSQRT` -- floating-point square-root operation (`PURE_ARITH` only).  This operation is
+    in only used on systems that have hardware support for the operation.
+
+  * `FSIN` -- floating-point sine operation (`PURE_ARITH` only).  This operation is
+    in only used on systems that have hardware support for the operation.
+
+  * `FCOS` -- floating-point cosine operation (`PURE_ARITH` only).  This operation is
+    in only used on systems that have hardware support for the operation.
+
+  * `FTAN` -- floating-point tangent operation (`PURE_ARITH` only).  This operation is
+    in only used on systems that have hardware support for the operation.
 
 ## Impure arithmentic operations
+
+The `arith` datatype represents arithmetic operations that can cause an `Overflow`
+exception.
 
   * `ARITH of {oper: arithop, kind: numkind}` -- arithmetic operations that may raise the
     `Overflow` exception (note that division by zero is explicitly checked for by code
@@ -197,9 +220,13 @@ The `setter` type describes operations that write to memory.
   * `TEST_INF of int` -- checked conversion from arbitrary-precision signed integer
     to a fixed-size signed integer representation; the argunment is the size of the result.
 
-  * `ROUND of {floor: bool, from: numkind, to: numkind}`
+  * `ROUND of {floor: bool, from: numkind, to: numkind}` -- conversion from floating-point
+    to signed-integer representation.  If the `floor` field is true, then the conversion
+    returns the floor of the argument, otherwise it rounds the argument.
 
 ## Pure operations
+
+The `pure` datatype collects together operations that cannot cause an exception.
 
   * `PURE_ARITH of {oper: arithop, kind: numkind}`
     arithmetic operations that will **not** raise `Overflow` or `Div` exceptions.
