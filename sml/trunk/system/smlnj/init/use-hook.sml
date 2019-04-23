@@ -4,16 +4,21 @@
  * All rights reserved.
  *)
 
-structure UseHook =
-  struct
-    local
-      fun dummy (s: PrimTypes.string) = ()
-    in
+structure UseHook : sig
 
-    val useHook = PrimTypes.ref dummy
+  (* The type of the "use" hook.  The string is the file to use. *)
+    type hook = PrimTypes.string -> PrimTypes.unit
+
+    val useHook : hook PrimTypes.ref
+
+    val use : PrimTypes.string -> PrimTypes.unit
+
+  end = struct
+
+    type hook = PrimTypes.string -> PrimTypes.unit
+
+    val useHook = PrimTypes.ref (fn (_ : PrimTypes.string) => ())
 
     fun use s = InlineT.! useHook s
-
-    end
 
   end

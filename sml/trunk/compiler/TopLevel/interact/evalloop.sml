@@ -1,6 +1,6 @@
 (* evalloop.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -183,71 +183,77 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 		      end
 		  (* end case *))
 
-	    fun loop() = (oneUnit(); loop())
-	    in
-	      interruptable loop ()
-	    end (* function evalLoop *)
+	  fun loop() = (oneUnit(); loop())
+	  in
+	    interruptable loop ()
+	  end (* function evalLoop *)
 
-      fun withErrorHandling treatasuser { thunk, flush, cont = k } = let
-	    fun showhist' [s] = say (concat ["  raised at: ", s, "\n"])
-	      | showhist' (s::r) =
-		  (showhist' r; say (concat ["             ", s, "\n"]))
-	      | showhist' [] = ()
+  (* return the message for an exception *)
+    fun exnMsg (CompileExn.Compile s) = concat ["Compile: \"", s, "\""]
+      | exnMsg exn = General.exnMessage exn
 
-	    fun exnMsg (CompileExn.Compile s) = concat ["Compile: \"", s, "\""]
-	      | exnMsg exn = General.exnMessage exn
+  (* print the exception history for an exception *)
+    fun showhist exn = let
+	  fun show [s] = say (concat ["  raised at: ", s, "\n"])
+	    | show (s::r) =
+		(show r; say (concat ["             ", s, "\n"]))
+	    | show [] = ()
+	  in
+	    show (SMLofNJ.exnHistory exn)
+	  end
 
-	    fun showhist e = showhist' (SMLofNJ.exnHistory e)
+    fun uncaughtExnMessage (ExnDuringExecution exn) = uncaughtExnMessage exn
+      | uncaughtExnMessage exn = let
+	  val msg = exnMsg exn
+	  val name = exnName exn
+	  in
+	    if msg = name
+	      then say (concat ["\nuncaught exception ", name, "\n"])
+	      else say (concat ["\nuncaught exception ", name, " [", msg, "]\n"]);
+	    showhist exn
+	  end
 
-	    fun user_hdl (ExnDuringExecution exn) = user_hdl exn
-	      | user_hdl exn = let
-		  val msg = exnMsg exn
-		  val name = exnName exn
-		  in
-		    if msg = name
-		      then say (concat ["\nuncaught exception ", name, "\n"])
-		      else say (concat ["\nuncaught exception ", name, " [", msg, "]\n"]);
-		    showhist exn;
-		    flush ();
-		    k exn
-		  end
+    fun withErrorHandling treatAsUser { thunk, flush, cont = k } = let
+	  fun user_hdl exn = (
+		uncaughtExnMessage exn;
+		flush ();
+		k exn)
 
-	    fun bug_hdl exn = let
-		  val msg = exnMsg exn
-		  val name = exnName exn
-		  in say (concat ["\nunexpected exception (bug?) in SML/NJ: ",
-				  name," [", msg, "]\n"]);
-		     showhist exn;
-		     flush();
-		     k exn
-		  end
+	  fun bug_hdl exn = (
+		say (concat [
+		    "\nunexpected exception (bug?) in SML/NJ: ",
+		    exnName exn," [", exnMsg exn, "]\n"
+		  ]);
+		showhist exn;
+		flush();
+		k exn)
 
-	    fun non_bt_hdl e = (case e
-		   of EndOfFile => (say "\n")
-		    | (Interrupt | ExnDuringExecution Interrupt) =>
-			(say "\nInterrupt\n"; flush(); k e)
-		    | EM.Error => (flush(); k e)
-		    | CompileExn.Compile "syntax error" => (flush(); k e)
-		    | CompileExn.Compile s =>
-			(say(concat["\nuncaught exception Compile: \"", s,"\"\n"]);
-			 flush(); k e)
-		    | Isolate.TopLevelCallcc =>
-			(say("Error: throw from one top-level expression \
-			     \into another\n");
-			 flush (); k e)
-		    | (Execute.Link | ExnDuringExecution Execute.Link) =>
-			(flush (); k e)
-		    | ExnDuringExecution EM.Error => (flush(); k e)
-		    | ExnDuringExecution ParserControl.RESET_PARSER => (flush(); k e)
-		    | ExnDuringExecution exn => user_hdl exn
-		  (* the following handle Suspend/Resume on Unix (4 == Posix.Error.intr) *)
-		    | IO.Io{cause=OS.SysErr(_, SOME 4), ...} => (say "\n"; k e)
-		    | exn => if treatasuser then user_hdl exn else bug_hdl exn
-		  (* end case *))
-	    in
-	      (SMLofNJ.Internals.TDP.with_monitors false thunk)
-		handle e => non_bt_hdl e
-	    end (* withErrorHandling *)
+	  fun non_bt_hdl e = (case e
+		 of EndOfFile => (say "\n")
+		  | (Interrupt | ExnDuringExecution Interrupt) =>
+		      (say "\nInterrupt\n"; flush(); k e)
+		  | EM.Error => (flush(); k e)
+		  | CompileExn.Compile "syntax error" => (flush(); k e)
+		  | CompileExn.Compile s =>
+		      (say(concat["\nuncaught exception Compile: \"", s,"\"\n"]);
+		       flush(); k e)
+		  | Isolate.TopLevelCallcc =>
+		      (say("Error: throw from one top-level expression \
+			   \into another\n");
+		       flush (); k e)
+		  | (Execute.Link | ExnDuringExecution Execute.Link) =>
+		      (flush (); k e)
+		  | ExnDuringExecution EM.Error => (flush(); k e)
+		  | ExnDuringExecution ParserControl.RESET_PARSER => (flush(); k e)
+		  | ExnDuringExecution exn => user_hdl exn
+		(* the following handle Suspend/Resume on Unix (4 == Posix.Error.intr) *)
+		  | IO.Io{cause=OS.SysErr(_, SOME 4), ...} => (say "\n"; k e)
+		  | exn => if treatAsUser then user_hdl exn else bug_hdl exn
+		(* end case *))
+	  in
+	    (SMLofNJ.Internals.TDP.with_monitors false thunk)
+	      handle e => non_bt_hdl e
+	  end (* withErrorHandling *)
 
   (*** interactive loop, with error handling ***)
     fun interact () = let
