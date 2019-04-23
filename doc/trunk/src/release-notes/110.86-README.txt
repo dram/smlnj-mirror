@@ -12,13 +12,9 @@
 [subs=attributes]
 ++++
 <div class="smlnj-banner">
-	Standard ML of New Jersey
-<br/>
-        Release Notes
-<br/>
-	Version {version}
-<br/>
-	{date}
+  <span class="title"> Standard ML of New Jersey <br/> Release Notes </span>
+  <br/> <br/>
+  <span class="subtitle"> Version {version} <br/> {date} </span>
 </div>
 ++++
 
@@ -58,6 +54,35 @@ stream (like `TextIOPP`) or a character buffer (like `CharBufferPP`).
 A number of changes to internal representations as part of the preparation for
 supporting 64-bit targets.  See the {history}[change log] for details.
 
+=== Interactive System
+
+The implementation of the `use` function in the REPL has been rewritten to
+fix bugs [.bugid]#193#, [.bugid]#217#, and [.bugid]#219#.  The semantics of
+`use` is as follows:
+--
+  * If an invocation of `use` encounters a compilation error (either in the
+    initial file or in a nested invocation of `use`), then the compiler error
+    message will be printed and the call to `use` will immediately return `()`.
+
+  * If an invocation of `use` raises an exception during execution
+    of the compiled code (either in the initial file or in a nested
+    invocation of `use`), then the exception will be reported at
+    the top-level.
+
+  * Otherwise, if no errors or uncaught exceptions are encountered, then
+    `()` will be returned once the code in the used file has executed.
+--
+
+Note that any change to the global state or environment
+that occurs before an error is encountered, will **not** be rolled
+back.
+
+Files specified as command-line arguments to the **sml** command
+will be treated as if `use` was invoked on them.  If there is an
+error, then the error will be reported and the **sml** command
+will terminate with a non-zero exit status (at least on Unix).
+
+
 == Bugs
 
 Here is a list of tracked bugs fixed (or closed) with this release, please see the
@@ -66,8 +91,12 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
-| [.bugid]#xxx#
-| some bug description
+| [.bugid]#193#
+| SML/NJ does not print unhandled exceptions in loaded files
+| [.bugid]#217#
+| Unhandled exceptions no longer print anything when inside used file
+| [.bugid]#219#
+| "use" fails silently when a function inside a structure raises an exception
 |=======
 
 == Supported systems

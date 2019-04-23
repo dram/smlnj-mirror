@@ -3,24 +3,25 @@ body {
 }
 div.smlnj-banner {
   font-weight: bold;
-  font-size: 200%;
   text-align: center;
   margin-top: 1.5em;
   margin-bottom: 1.5em;
 }
-h3 {
+div.smlnj-banner span.title {
+  font-size: 200%;
+}
+div.smlnj-banner span.subtitle {
+  font-size: 150%;
+}
+h2 {
   font-size: 140%;
 }
-dt.component {
+h3 {
   font-size: 120%;
-  font-weight: bold;
 }
 dd {
   margin-left: 2em;
   margin-bottom: 0.5em;
-}
-ul.buglist {
-  margin-left: 1em;
 }
 li {
   margin-bottom: 0.5em;
@@ -58,11 +59,13 @@ table.buglist {
   margin-left: 2em;
   font-size: 100%;
 }
-span.bugid {
-  font-weight: bold;
+table.buglist span.bugid {
   padding-right: 1em;
   padding-left: 0px;
   margin-left: 0px;
+}
+span.bugid {
+  font-weight: bold;
 }
 p.compact {
   margin-top: 0pt;
