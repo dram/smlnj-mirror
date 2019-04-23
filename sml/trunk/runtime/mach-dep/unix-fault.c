@@ -1,3 +1,16 @@
+/*! \file unix-fault.c
+ *
+ * \author John Reppy
+ *
+ * Common code for handling arithmetic traps and signals.
+ */
+
+/*
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ */
+
+
 /* unix-fault.c
  *
  * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
@@ -47,7 +60,10 @@ void InitFaultHandlers (ml_state_t *msp)
 
 /* FaultHandler:
  *
- * Handle arithmetic faults (e.g., divide by zero, integer overflow).
+ * Handle arithmetic faults. Note that since floating-point arithmetic
+ * is non-trapping in SML and since the compiler generates code to
+ * explicitly test for division by zero, and arithmetic trap should be
+ * mapped to Overflow.
  */
 #if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
 
@@ -55,7 +71,7 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *c)
 {
     ucontext_t	    *scp = (ucontext_t *)c;
     ml_state_t	    *msp = SELF_VPROC->vp_state;
-    extern Word_t   request_fault[]; 
+    extern Word_t   request_fault[];
     int		    code = SIG_GetCode(si, scp);
 
 #ifdef SIGNAL_DEBUG
@@ -63,33 +79,13 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *c)
 	signal, code, SELF_VPROC->vp_inMLFlag);
 #endif
 
-    if (! SELF_VPROC->vp_inMLFlag) 
+    if (! SELF_VPROC->vp_inMLFlag)
 	Die ("bogus fault not in ML: sig = %d, code = %#x, pc = %#x)\n",
 	    signal, SIG_GetCode(si, scp), SIG_GetPC(scp));
 
-   /* Map the signal to the appropriate ML exception. */
-#if defined(HOST_X86) && defined(OPSYS_DARWIN)
-  /* NOTE: early versions of Mac OS X 10.4.x set the code to FPE_FLTDIV or
-   * FPE_FLTOVF, but 10.4.7 sets it to 0, so we need this workaround.  With
-   * 10.6, the correct FPE_INTOVF and FPE_INTDIV codes are now used.
-   */
-    if ((signal == SIGFPE) && (code == 0)) {
-	if (((Byte_t *)SIG_GetPC(scp))[-1] == INTO_OPCODE)
-	    code = FPE_INTOVF;
-	else
-	    code = FPE_INTDIV;
-    }
-#endif
-    if (INT_OVFLW(signal, code)) {
-	msp->ml_faultExn = OverflowId;
-	msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
-    }
-    else if (INT_DIVZERO(signal, code)) {
-	msp->ml_faultExn = DivId;
-	msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
-    }
-    else
-	Die ("unexpected fault, signal = %d, code = %#x", signal, code);
+   /* Map the signal to Overflow */
+    msp->ml_faultExn = OverflowId;
+    msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
 
     SIG_SetPC (scp, request_fault);
 
@@ -109,7 +105,7 @@ PVT SigReturn_t FaultHandler (
 #endif
 {
     ml_state_t	    *msp = SELF_VPROC->vp_state;
-    extern Word_t   request_fault[]; 
+    extern Word_t   request_fault[];
     int		    code = SIG_GetCode(info, scp);
 
 #ifdef SIGNAL_DEBUG
@@ -117,21 +113,14 @@ PVT SigReturn_t FaultHandler (
 	signal, SELF_VPROC->vp_inMLFlag);
 #endif
 
-    if (! SELF_VPROC->vp_inMLFlag) 
+    if (! SELF_VPROC->vp_inMLFlag)
 	Die ("bogus fault not in ML: sig = %d, code = %#x, pc = %#x)\n",
 	    signal, SIG_GetCode(info, scp), SIG_GetPC(scp));
 
    /* Map the signal to the appropriate ML exception. */
-    if (INT_OVFLW(signal, code)) {
-	msp->ml_faultExn = OverflowId;
-	msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
-    }
-    else if (INT_DIVZERO(signal, code)) {
-	msp->ml_faultExn = DivId;
-	msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
-    }
-    else
-	Die ("unexpected fault, signal = %d, code = %#x", signal, code);
+   /* Map the signal to Overflow */
+    msp->ml_faultExn = OverflowId;
+    msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
 
     SIG_SetPC (scp, request_fault);
 

@@ -206,7 +206,7 @@ void AllocGlobals (ml_state_t *msp)
 #define CSTRUCT_SZ	12
     ML_AllocWrite(msp,  0, MAKE_DESC(CSTRUCT_SZ, DTAG_record));
     ML_AllocWrite(msp,  1, RunVec);
-    ML_AllocWrite(msp,  2, DivId);
+    ML_AllocWrite(msp,  2, DivId); /* FIXME: we no longer need this field! */
     ML_AllocWrite(msp,  3, OverflowId);
     ML_AllocWrite(msp,  4, SysErrId);
     ML_AllocWrite(msp,  5, ProfCurrent);
@@ -267,7 +267,7 @@ void RecordGlobals ()
     RecordCSymbol ("RunVec.unlock",	PTR_CtoML(unlock_v+1));
 
   /* CStruct */
-    RecordCSymbol ("CStruct.DivId",		DivId);
+    RecordCSymbol ("CStruct.DivId",		DivId); /* FIXME: we can remove this */
     RecordCSymbol ("CStruct.OverflowId",	OverflowId);
     RecordCSymbol ("CStruct.SysErrId",		SysErrId);
     RecordCSymbol ("CStruct.machine_id",	PTR_CtoML(machine_id.s));

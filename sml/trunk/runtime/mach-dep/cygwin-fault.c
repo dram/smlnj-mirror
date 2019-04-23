@@ -3,8 +3,8 @@
  *
  * Even though cygwin behaves like "unix", its signal handling mechanism
  * is crippled.  I haven't been able to get/set the EIP addresses from
- * the siginfo_t and related data structures.  So here I'm using 
- * Windows and some gcc assembly hacks to get things done. 
+ * the siginfo_t and related data structures.  So here I'm using
+ * Windows and some gcc assembly hacks to get things done.
  */
 
 
@@ -185,7 +185,7 @@ PVT BOOL __stdcall ctrl_c_handler(DWORD type)
             return TRUE;
          }
          return FALSE;
-      default: 
+      default:
          return FALSE;
    }
 }
@@ -202,7 +202,7 @@ void InitFaultHandlers(ml_state_t * msp)
 }
 
 /*
- * This filter catches all exceptions. 
+ * This filter catches all exceptions.
  */
 PVT int page_fault_handler
    (EXCEPTION_RECORD * exn, void * foo, CONTEXT * c, void * bar)
@@ -212,37 +212,33 @@ PVT int page_fault_handler
    int code = exn->ExceptionCode;
    DWORD pc = (DWORD)exn->ExceptionAddress;
 
-   if (! SELF_VPROC->vp_inMLFlag)
-   {
+   if (! SELF_VPROC->vp_inMLFlag) {
       Die("cygwin:fault_handler: bogus fault not in ML: %#x\n", code);
    }
 
-   switch (code)
-   {
+   switch (code) {
       case EXCEPTION_INT_DIVIDE_BY_ZERO:
-         /* Say("Divide by zero at %p\n", pc); */
-         msp->ml_faultExn = DivId;
-         msp->ml_faultPC  = pc;
-         c->Eip = (DWORD)request_fault;
-         break;
       case EXCEPTION_INT_OVERFLOW:
+	/* all arithmetic exceptions get mapped to Overflow, since the compiler
+	 * generates code to check for divide by zero.
+	 */
          /* Say("Overflow at %p\n", pc); */
-         msp->ml_faultExn = OverflowId;
-         msp->ml_faultPC  = pc;
-         c->Eip = (DWORD)request_fault;
-         break;
+	msp->ml_faultExn = OverflowId;
+	msp->ml_faultPC  = pc;
+	c->Eip = (DWORD)request_fault;
+	break;
       default:
-         Die("cygwin:fault_handler: unexpected fault @%#x, code=%#x", pc, code);
+	Die("cygwin:fault_handler: unexpected fault @%#x, code=%#x", pc, code);
    }
    return FALSE;
 }
 
 asm (".equ __win32_exception_list,0");
-extern exception_list * 
+extern exception_list *
    _win32_exception_list asm ("%fs:__win32_exception_list");
 
 /*
- * This overrides the default RunML.  
+ * This overrides the default RunML.
  * It just adds a new exception handler at the very beginning before
  * ML is executed.
  */

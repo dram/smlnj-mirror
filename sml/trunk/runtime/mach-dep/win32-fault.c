@@ -1,8 +1,11 @@
-/* win32-fault.c
- *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+/*! \file win32-fault.c
  *
  * win32 code for handling traps (arithmetic overflow, div-by-0, ctrl-c, etc.).
+ */
+
+/*
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include <windows.h>
@@ -31,16 +34,17 @@ BOOL win32_isNT;
 /* static globals */
 PVT BOOL caught_cntrl_c = FALSE;
 
-void wait_for_cntrl_c()
+void wait_for_cntrl_c ()
 {
   /* we know a cntrl_c is coming; wait for it */
-  while (!caught_cntrl_c)
-    ;
+    while (!caught_cntrl_c) {
+	continue;
+    }
 }
 
 /* generic handler for win32 "signals" such as interrupt, alarm */
 /* returns TRUE if the main thread is running ML code */
-BOOL win32_generic_handler(int code)
+BOOL win32_generic_handler (int code)
 {
     vproc_state_t   *vsp = SELF_VPROC;
 
@@ -49,10 +53,7 @@ BOOL win32_generic_handler(int code)
 
     vsp->vp_limitPtrMask = 0;
 
-    if (vsp->vp_inMLFlag && 
-      (! vsp->vp_handlerPending) && 
-      (! vsp->vp_inSigHandler))
-    {
+    if (vsp->vp_inMLFlag && (! vsp->vp_handlerPending) && (! vsp->vp_inSigHandler)) {
 	vsp->vp_handlerPending = TRUE;
 	SIG_ZeroLimitPtr();
 	return TRUE;
@@ -64,22 +65,22 @@ BOOL win32_generic_handler(int code)
  * the win32 handler for ctrl-c
  */
 PVT
-BOOL cntrl_c_handler(DWORD fdwCtrlType) 
+BOOL cntrl_c_handler (DWORD fdwCtrlType)
 {
   int ret = FALSE;
 
   /* SayDebug("event is %x\n", fdwCtrlType); */
-  switch (fdwCtrlType) {
-    case CTRL_BREAK_EVENT:
-    case CTRL_C_EVENT: {
-      if (!win32_generic_handler(SIGINT)) {
-	caught_cntrl_c = TRUE;
+    switch (fdwCtrlType) {
+      case CTRL_BREAK_EVENT:
+      case CTRL_C_EVENT: {
+	if (!win32_generic_handler(SIGINT)) {
+	    caught_cntrl_c = TRUE;
+	}
+	ret = TRUE;  /* we handled the event */
+	break;
       }
-      ret = TRUE;  /* we handled the event */
-      break;
     }
-  }
-  return ret;  /* chain to other handlers */
+    return ret;  /* chain to other handlers */
 }
 
 
@@ -131,7 +132,7 @@ void InitFaultHandlers (ml_state_t *msp)
       Die ("win32:InitFaultHandlers: cannot duplicate thread handle");
     }
   }
-  
+
   /* install the ctrl-C handler */
   if (!SetConsoleCtrlHandler((PHANDLER_ROUTINE)cntrl_c_handler,TRUE)) {
     Die("win32:InitFaultHandlers: can't install cntrl_c_handler\n");
@@ -141,34 +142,33 @@ void InitFaultHandlers (ml_state_t *msp)
   SIG_InitFPE ();
 }
 
+/* fault_handler:
+ *
+ * Handle arithmetic faults. Note that since floating-point arithmetic
+ * is non-trapping in SML and since the compiler generates code to
+ * explicitly test for division by zero, and arithmetic trap should be
+ * mapped to Overflow.
+ */
 PVT bool_t fault_handler (int code, Word_t pc)
 {
-  ml_state_t	    *msp = SELF_VPROC->vp_state;
-  extern Word_t request_fault[];
+    ml_state_t *msp = SELF_VPROC->vp_state;
+    extern Word_t request_fault[];
 
-  if (! SELF_VPROC->vp_inMLFlag) 
-    Die ("win32:fault_handler: bogus fault not in ML: %#x\n", code);
+    if (! SELF_VPROC->vp_inMLFlag) {
+        Die ("win32:fault_handler: bogus fault not in ML: %#x\n", code);
+    }
 
-  /* Map the signal to the appropriate ML exception. */
-  switch (code) {
-    case EXCEPTION_INT_DIVIDE_BY_ZERO: 
-      msp->ml_faultExn = DivId;
-      msp->ml_faultPC = pc;
-      break;
-    case EXCEPTION_INT_OVERFLOW:
-      msp->ml_faultExn = OverflowId;
-      msp->ml_faultPC = pc;
-      break;
-    default:
-      Die ("win32:fault_handler: unexpected fault @%#x, code = %#x", pc, code);
-  }
-  return TRUE;
+  /* Map the signal to Overflow. */
+    msp->ml_faultExn = OverflowId;
+    msp->ml_faultPC = pc;
+
+    return TRUE;
 }
 
 /* restoreregs
  * this is where win32 handles traps
  */
-int restoreregs(ml_state_t *msp)
+int restoreregs (ml_state_t *msp)
 {
   extern Word_t request_fault[];
 

@@ -34,6 +34,7 @@ extern ml_val_t RunTimeCompUnit;
 extern ml_val_t MathVec;
 #endif
 
+/* FIXME: we no longer need this reference! */
 extern ml_val_t _Div_id0[];
 #define DivId		PTR_CtoML(_Div_id0+1)
 

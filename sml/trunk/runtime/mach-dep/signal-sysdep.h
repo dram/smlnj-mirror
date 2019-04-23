@@ -33,10 +33,6 @@
  *				registers) on machines that require it; otherwise
  *				it is defined to the empty statement.
  *
- * Predicates on signals, the arguments are (signal, code).
- *   INT_DIVZERO(s, c)
- *   INT_OVFLW(s, c)
- *
  * There are two ways to force a GC when a signal occurs.  For some machines,
  * this is done in an assembly routine called ZeroLimitPtr; for others, this
  * can be done directly by manipulating the signal context.  The following
@@ -179,8 +175,6 @@ extern void SetFSR(int);
     /** SPARC, SUNOS **/
 #    define USE_ZERO_LIMIT_PTR_FN
 #    define SIG_FAULT1		SIGFPE
-#    define INT_DIVZERO(s, c)	(((s) == SIGFPE) && ((c) == FPE_INTDIV_TRAP))
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) && ((c) == FPE_INTOVF_TRAP))
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)	((scp)->sc_pc)
 #    define SIG_SetPC(scp, addr)	{			\
@@ -201,8 +195,6 @@ extern void SetFSR(int);
 #  elif defined(OPSYS_SOLARIS)
     /** SPARC, SOLARIS **/
 #    define SIG_FAULT1	SIGFPE
-#    define INT_DIVZERO(s, c)		(((s) == SIGFPE) && ((c) == FPE_INTDIV))
-#    define INT_OVFLW(s, c)		(((s) == SIGFPE) && ((c) == FPE_INTOVF))
 
 #    define SIG_GetCode(info,scp)	((info)->si_code)
 
@@ -226,8 +218,6 @@ extern void SetFSR();
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGTRAP
 #    include <sys/sbd.h>  /* for EXC_OV */
-#    define INT_DIVZERO(s, c)	(((s) == SIGTRAP) && ((c) == BRK_DIVZERO))
-#    define INT_OVFLW(s, c)	(((s) == SIGTRAP) && ((c) == BRK_OVERFLOW))
 #    define SIG_GetCode(info, scp)	((info) ? (info) : (scp)->sc_fpc_csr)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
 #    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (long)(addr); }
@@ -238,9 +228,6 @@ extern void SetFSR();
     /** MIPS, IRIX 5.x **/
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGTRAP
-
-#    define INT_DIVZERO(s, c)		(((s) == SIGFPE) && ((c) == FPE_INTDIV))
-#    define INT_OVFLW(s, c)		(((s) == SIGFPE) && ((c) == FPE_INTOVF))
 
 #    define SIG_GetCode(info,scp)	((info)->si_code)
    /* We use a TRAP to signal zero divide on the mips, but IRIX 5.3 maps
@@ -263,8 +250,6 @@ extern void SetFSR();
 #    include <fpxcp.h>
 #    define SIG_FAULT1		SIGTRAP
 
-#    define INT_DIVZERO(s, c)	(((s) == SIGTRAP) && ((c) & FP_DIV_BY_ZERO))
-#    define INT_OVFLW(s, c)	(((s) == SIGTRAP) && ((c) == 0))
      PVT int SIG_GetCode (SigInfo_t info, SigContext_t *scp);
 #    define SIG_GetPC(scp)	((scp)->sc_jmpbuf.jmp_context.iar)
 #    define SIG_SetPC(scp, addr)	\
@@ -286,8 +271,6 @@ extern void SetFSR();
 #    define SIG_InitFPE()        set_fsr()
 #    define SIG_ResetFPE(scp)
 #    define SIG_FAULT1           SIGTRAP
-#    define INT_DIVZERO(s, c)	 ((s) == SIGTRAP)	/* This needs to be refined */
-#    define INT_OVFLW(s, c)	 ((s) == SIGTRAP)	/* This needs to be refined */
    /* info about siginfo_t is missing in the include files 4/17/2001 */
 #    define SIG_GetCode(info,scp) 0
   /* see /usr/include/mach/ppc/thread_status.h */
@@ -305,8 +288,6 @@ extern void SetFSR();
 
 #    define SIG_FAULT1		SIGILL
 
-#    define INT_DIVZERO(s, c)		(((s) == SIGILL) && ((c) == 0x84000000))
-#    define INT_OVFLW(s, c)		(((s) == SIGILL) && ((c) == 0x0))
 #    define SIG_GetPC(scp)		((scp)->nip)
 #    define SIG_SetPC(scp, addr)	{ (scp)->nip = (long)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	{ ((scp)->gpr[15] = 0); }
@@ -322,8 +303,6 @@ extern void SetFSR();
 
 #    define SIG_FAULT1          	SIGTRAP
 
-#    define INT_DIVZERO(s, c)           (((s) == SIGTRAP) && (((c) == 0) || ((c) == 0x2000) || ((c) == 0x4000)))
-#    define INT_OVFLW(s, c)             (((s) == SIGTRAP) && (((c) == 0) || ((c) == 0x2000) || ((c) == 0x4000)))
 #    define SIG_GetPC(scp)              ((scp)->regs->nip)
 #    define SIG_SetPC(scp, addr)        { (scp)->regs->nip = (long)(addr); }
 #    define SIG_ZeroLimitPtr(scp)       { ((scp)->regs->gpr[15] = 0); } /* limitptr = 15 (see src/runtime/mach-dep/PPC.prim.asm) */
@@ -334,9 +313,7 @@ extern void SetFSR();
 #  elif defined(OPSYS_OPENBSD)
    /** PPC, OpenBSD **/
 
-#   define SIG_FAULT1			SIGTRAP
-#   define INT_DIVZERO(s, c)		((s) == SIGTRAP)
-#   define INT_OVFLW(s, c)		((s) == SIGTRAP)
+#    define SIG_FAULT1			SIGTRAP
 #    define SIG_GetPC(scp)              ((scp)->sc_frame.srr0)
 #    define SIG_SetPC(scp, addr)        { (scp)->sc_frame.srr0 = (long)(addr); }
 #    define SIG_ZeroLimitPtr(scp)       { ((scp)->sc_frame.fixreg[15] = 0); } /* limitptr = 15 (see src/runtime/mach-dep/PPC.prim.asm) */
@@ -369,8 +346,6 @@ extern void SetFSR();
 
 #    define SIG_GetCode(info, scp)	info
 
-#    define INT_DIVZERO(s, c)  (((s) == SIGFPE) && ((c) == 13))
-#    define INT_OVFLW(s, c)    (((s) == SIGFPE) && ((c) == 12 || (c) == 14))
 #    define SIG_InitFPE()      set_fsr()
 
 #  endif
@@ -407,12 +382,6 @@ extern void SetFSR();
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->sc_gr4 = 0; }
 #    define SIG_GetCode(info, scp)	(info)
 
-    /* The SVR4 API for SIGFPE isn't implemented correctly */
-#    undef INT_DIVZERO
-#    undef INT_OVFLW
-#    define INT_DIVZERO(s, c)  (((s) == SIGFPE) && ((c) == 0xd))
-#    define INT_OVFLW(s, c)    (((s) == SIGFPE) && ((c) == 0xc || (c) == 0xe))
-
 #    define SIG_InitFPE()      set_fsr()
 
      typedef void SigReturn_t;
@@ -434,9 +403,6 @@ extern void SetFSR();
 
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGSEGV
-#    define INT_DIVZERO(s, c)	((s) == SIGFPE)
-#    define INT_OVFLW(s, c)	\
-	(((s) == SIGSEGV) && (((Byte_t *)c)[-1] == INTO_OPCODE))
 
 #    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_EIP])
 /* for linux, SIG_GetCode simply returns the address of the fault */
@@ -447,8 +413,6 @@ extern void SetFSR();
 #  elif defined(OPSYS_FREEBSD)
     /** x86, FreeBSD **/
 #    define SIG_FAULT1		SIGFPE
-#    define INT_DIVZERO(s, c)	(((s) == SIGFPE) && ((c) == FPE_INTDIV_TRAP))
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) && ((c) == FPE_INTOVF_TRAP))
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -461,8 +425,6 @@ extern void SetFSR();
     /** x86, NetBSD (version 2.x) **/
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGBUS
-#    define INT_DIVZERO(s, c)	0
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) || ((s) == SIGBUS))
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -475,8 +437,6 @@ extern void SetFSR();
     /** x86, NetBSD (version 3.x) **/
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGBUS
-#    define INT_DIVZERO(s, c)	0
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) || ((s) == SIGBUS))
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		(_UC_MACHINE_PC(scp))
@@ -487,8 +447,6 @@ extern void SetFSR();
     /** x86, OpenBSD **/
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGBUS
-#    define INT_DIVZERO(s, c)	0
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) || ((s) == SIGBUS))
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -518,14 +476,7 @@ extern void SetFSR();
 #  elif defined(OPSYS_DARWIN)
     /** x86, Darwin **/
 #    define SIG_FAULT1		SIGFPE
-/* NOTE: MacOS X 10.4.7 sets the code to 0, so we need to test the opcode. */
-#    define INTO_OPCODE		0xce	/* the 'into' instruction is a single */
-					/* instruction that signals Overflow */
-/* NOTE: In 10.6, Apple finally got it right, but earlier versions either used the
- * FPE_FLT* codes or set the code to zero.
- */
-#    define INT_DIVZERO(s, c)	(((s) == SIGFPE) && (((c) == FPE_INTDIV) || ((c) == FPE_FLTDIV)))
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) && (((c) == FPE_INTOVF) || ((c) == FPE_FLTOVF)))
+
     /* see /usr/include/mach/i386/thread_status.h */
 #    define SIG_GetCode(info,scp)	((info)->si_code)
 #    if ((__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ - 1040) <= 0)
@@ -555,9 +506,6 @@ extern void SetFSR();
 
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGSEGV
-#    define INT_DIVZERO(s, c)	((s) == SIGFPE)
-#    define INT_OVFLW(s, c)	\
-	(((s) == SIGSEGV) && (((Byte_t *)c)[-1] == INTO_OPCODE))
 
 #    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_RIP])
 /* for linux, SIG_GetCode simply returns the address of the fault */
@@ -568,8 +516,6 @@ extern void SetFSR();
 #  elif defined(OPSYS_FREEBSD)
     /** amd64, FreeBSD **/
 #    define SIG_FAULT1		SIGFPE
-#    define INT_DIVZERO(s, c)	(((s) == SIGFPE) && ((c) == FPE_INTDIV_TRAP))
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) && ((c) == FPE_INTOVF_TRAP))
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -582,8 +528,6 @@ extern void SetFSR();
     /** amd64, NetBSD (version 3.x) **/
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGBUS
-#    define INT_DIVZERO(s, c)	0
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) || ((s) == SIGBUS))
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((uc)->uc_mcontext.__gregs[_REG_RIP])
@@ -594,8 +538,6 @@ extern void SetFSR();
     /** amd64, OpenBSD **/
 #    define SIG_FAULT1		SIGFPE
 #    define SIG_FAULT2		SIGBUS
-#    define INT_DIVZERO(s, c)	0
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) || ((s) == SIGBUS))
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_rip)
@@ -626,8 +568,7 @@ extern void SetFSR();
 #  elif defined(OPSYS_DARWIN)
     /** amd64, Darwin **/
 #    define SIG_FAULT1		SIGFPE
-#    define INT_DIVZERO(s, c)	(((s) == SIGFPE) && (((c) == FPE_INTDIV) || ((c) == FPE_FLTDIV)))
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) && (((c) == FPE_INTOVF) || ((c) == FPE_FLTOVF)))
+
     /* see /usr/include/mach/i386/thread_status.h */
 #    define SIG_GetCode(info,scp)	((info)->si_code)
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext->__ss.__rip)
@@ -644,8 +585,7 @@ extern void SetFSR();
     /** Alpha AXP, OSF1 **/
 #    include <machine/fpu.h>
 #    define SIG_FAULT1		SIGFPE
-#    define INT_DIVZERO(s, c)	(((s) == SIGFPE) && ((c) == -2))
-#    define INT_OVFLW(s, c)	(((s) == SIGFPE) && ((c) == FPE_INTOVF_FAULT))
+
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
 #    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (long)(addr); }
 #    define SIG_GetCode(info, scp)	info
