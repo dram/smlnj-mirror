@@ -96,6 +96,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2019/04/21]::
 +
+Fix for bugref:213[] (`Int32.div` raises `Div` instead of `Overflow`
+when dividing `minInt` by `~1`).  Since the compiler generates an
+explicit test for division by zero, we know that the only arithmetic
+traps must be caused by other operations.  Therefore, we can just
+map any arithmetic trap to `Overflow`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/04/21]::
++
 Yet another attempt to get the implementation of `use` in the REPL
 working in a sensible way.
 +

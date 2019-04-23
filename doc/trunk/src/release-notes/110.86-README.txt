@@ -93,6 +93,8 @@ for more details.
 |=======
 | [.bugid]#193#
 | SML/NJ does not print unhandled exceptions in loaded files
+| [.bugid]#213#
+| `Int32.div` raises `Div` instead of `Overflow` when dividing `minInt` by `~1`
 | [.bugid]#217#
 | Unhandled exceptions no longer print anything when inside used file
 | [.bugid]#219#
