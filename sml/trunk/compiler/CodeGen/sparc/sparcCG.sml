@@ -1,7 +1,12 @@
-(*
+(* sparcCG.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  * Sparc specific backend
  *)
-structure SparcCG = 
+
+structure SparcCG =
   MachineGen
   ( structure MachSpec   = SparcSpec
     val abi_variant      = NONE
@@ -62,11 +67,11 @@ structure SparcCG =
 	  structure Asm = SparcAsmEmitter
          )
 
-    structure RA = 
+    structure RA =
        RISC_RA
          (structure I         = SparcInstr
           structure CFG       = SparcCFG
-          structure InsnProps = InsnProps 
+          structure InsnProps = InsnProps
           structure Rewrite   = SparcRewrite(SparcInstr)
 	  structure SpillInstr= SparcSpillInstr(SparcInstr)
           structure Asm       = SparcAsmEmitter
@@ -82,7 +87,7 @@ structure SparcCG =
           fun beforeRA _ = SpillTable.spillInit()
 
           val architecture = SparcSpec.architecture
-         
+
           fun pure(I.ANNOTATION{i,...}) = pure i
             | pure(I.INSTR(I.LOAD _)) = true
             | pure(I.INSTR(I.FLOAD _)) = true
@@ -92,28 +97,28 @@ structure SparcCG =
             | pure(I.INSTR(I.FPop2 _)) = true
             | pure _ = false
 
-          (* make copy *) 
-          structure Int = 
+          (* make copy *)
+          structure Int =
           struct
              val avail     = SparcCpsRegs.availR
              val dedicated = SparcCpsRegs.dedicatedR
 
 	     fun mkDisp loc = T.LI(T.I.fromInt(32, SpillTable.getRegLoc loc))
-             fun spillLoc{info, an, cell, id} = 
+             fun spillLoc{info, an, cell, id} =
 		  {opnd=I.Displace{base=fp, disp=mkDisp(RAGraph.FRAME id), mem=spill},
 		   kind=SPILL_LOC}
 
              val mode = RACore.NO_OPTIMIZATION
           end
 
-          structure Float = 
+          structure Float =
           struct
              val avail     = SparcCpsRegs.availF
              val dedicated = SparcCpsRegs.dedicatedF
 
 	      fun mkDisp loc = T.LI(T.I.fromInt(32, SpillTable.getFregLoc loc))
 
-             fun spillLoc(S, an, loc) = 
+             fun spillLoc(S, an, loc) =
 		I.Displace{base=fp, disp=mkDisp(RAGraph.FRAME loc), mem=spill}
 
              val mode = RACore.NO_OPTIMIZATION

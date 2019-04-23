@@ -97,13 +97,13 @@
  *			+-------------------+
  *	%sp+88:		|  temp for cvti2d  |
  *			+-------------------+
- *      %sp+84:		|  addr of _ml_udiv |
+ *      %sp+84:		|  addr of _ml_udiv |  -- unused
  *			+-------------------+
- *      %sp+80:		|  addr of _ml_umul |
+ *      %sp+80:		|  addr of _ml_umul |  -- unused
  *			+-------------------+
- *	%sp+76:		|  addr of _ml_div  |
+ *	%sp+76:		|  addr of _ml_div  |  -- unused
  *			+-------------------+
- *	%sp+72:		|  addr of _ml_mul  |
+ *	%sp+72:		|  addr of _ml_mul  |  -- unused
  *			+-------------------+
  *	%sp+68:		|     saved %g6     |
  *			+-------------------+
@@ -119,10 +119,6 @@
  */
 #define ML_FRAMESIZE 4096
 
-#define      MUL_OFFSET 72
-#define      DIV_OFFSET 76
-#define     UMUL_OFFSET 80
-#define     UDIV_OFFSET 84
 #define    FLOOR_OFFSET 92
 #define  MLSTATE_OFFSET 96
 #define  STARTGC_OFFSET 100
@@ -263,14 +259,6 @@ ENTRY(restoreregs)
 	mov	%i0,MLState			/* transfer MLState ptr to tmpreg4 */
 	std	%g6,[%sp+64]			/* save C registers %g6 & %g7 */
 	st	%i7, [%sp+i7_OFFSET]		/* save C return address */
-	set	_ml_mul,TMPREG4			/* set pointer to ml_mul */
-	st	TMPREG4,[%sp+MUL_OFFSET]
-	set	_ml_div,TMPREG4			/* set pointer to ml_div */
-	st	TMPREG4,[%sp+DIV_OFFSET]
-	set	_ml_umul,TMPREG4		/* set pointer to ml_umul */
-	st	TMPREG4,[%sp+UMUL_OFFSET]
-	set	_ml_udiv,TMPREG4		/* set pointer to ml_udiv */
-	st	TMPREG4,[%sp+UDIV_OFFSET]
 	ld	[MLState+AllocPtrOffMSP],ALLOCPTR
 	ld	[MLState+LimitPtrOffMSP],LIMITPTR
 	ld	[MLState+StorePtrOffMSP],STOREPTR
@@ -605,117 +593,6 @@ under:				/* handle underflow */
 	set	0,TMPREG1
 	ba	7b
 	nop
-
-/** Integer multiplication and division routines **/
-	.global .mul, .div, .umul, .udiv
-
-/* ml_mul:
- * multiply %o2 by %o3, returning the result in %o2
- * Note: this code assumes that .mul doesn't trash any global or input
- * registers.
- */
-_ml_mul:
-	save	%sp,-SA(WINDOWSIZE),%sp
-/** NOTE: if %g1, %g2, %g3 are not callee save, then this can be avoided **/
-/** NOTE: .mul doesn't use %g2, %g3, but the dynamic linking initialization
- ** does.
- **/
-	mov	%g1,%l1			  /* save %g1 which may get trashed */
-	mov	%g2,%l2
-	mov	%g3,%l3
-	mov	%i2,%o0
-	call	.mul
-	mov	%i3,%o1			  /* (delay slot) */
-	mov	%l1,%g1			  /* restore %g1 */
-	mov	%l2,%g2
-	mov	%l3,%g3
-	bnz	1f			  /* if z is clear, then overflow */
-	restore %o0,0,%o2		  /* result in %o2 (delay slot) */
-	retl
-	nop
-1:					/* handle overflow. */
-	t	ST_INT_OVERFLOW		  /* generate an Overflow exn.  We do this */
-					  /* via a trap to produce a SIGOVFL */
-
-/* ml_div:
- * divide %o2 by %o3, returning the result in %o2.
- * Note: .div uses %g1, %g2 and %g3, so we must save them.  We do this using the
- * locals of the new window, since .div is a leaf routine.
- */
-_ml_div:
-	save	%sp,-SA(WINDOWSIZE),%sp
-	addcc	%i3,%g0,%o1		/* %o1 is divisor (and check for zero) */
-	bz	1f
-				    /* save %g1, %g2 and %g3 (using new window) */
-/** NOTE: if %g1, %g2, %g3 are not callee save, then this can be avoided **/
-	mov	%g1,%l1			/* (delay slot) */
-	mov	%g2,%l2
-	mov	%g3,%l3
-	call	.div
-	mov	%i2,%o0			/* (delay slot) */
-				    /* restore %g1, %g2 and %g3 */
-	mov	%l3,%g3
-	mov	%l2,%g2
-	mov	%l1,%g1
-	ret
-	restore %o0,0,%o2		/* result in %o2 (delay slot) */
-1:				    /* handle zero divide */
-	restore				/* restore ML window */
-	t	ST_DIV0			/* generate a Div exn.  We do this via a */
-					/* trap to produce a SIGDIV */
-
-/* ml_umul:
- * multiply %o2 by %o3 (unsigned), returning the result in %o2.  This does
- * raise Overflow.
- * Note: this code assumes that .mul doesn't trash any global or input
- * registers.
- */
-_ml_umul:
-	save	%sp,-SA(WINDOWSIZE),%sp
-/** NOTE: if %g1, %g2, %g3 are not callee save, then this can be avoided **/
-/** NOTE: .mul doesn't use %g2, %g3, but the dynamic linking initialization
- ** does.
- **/
-	mov	%g1,%l1			  /* save %g1 which may get trashed */
-	mov	%g2,%l2
-	mov	%g3,%l3
-	mov	%i2,%o0
-	call	.umul
-	mov	%i3,%o1			  /* (delay slot) */
-	mov	%l1,%g1			  /* restore %g1 */
-	mov	%l2,%g2
-	mov	%l3,%g3
-	ret
-	restore %o0,0,%o2		  /* result in %o2 (delay slot) */
-
-
-/* ml_udiv:
- * divide %o2 by %o3 (unsigned), returning the result in %o2.
- * Note: .udiv uses %g1, %g2 and %g3, so we must save them.  We do this using the
- * locals of the new window, since .div is a leaf routine.
- */
-_ml_udiv:
-	save	%sp,-SA(WINDOWSIZE),%sp
-	addcc	%i3,%g0,%o1		/* %o1 is divisor (and check for zero) */
-	bz	1f
-				    /* save %g1, %g2 and %g3 (using new window) */
-/** NOTE: if %g1, %g2, %g3 are not callee save, then this can be avoided **/
-	mov	%g1,%l1			/* (delay slot) */
-	mov	%g2,%l2
-	mov	%g3,%l3
-	call	.udiv
-	mov	%i2,%o0			/* (delay slot) */
-				    /* restore %g1, %g2 and %g3 */
-	mov	%l3,%g3
-	mov	%l2,%g2
-	mov	%l1,%g1
-	ret
-	restore %o0,0,%o2		/* result in %o2 (delay slot) */
-1:				    /* handle zero divide */
-	restore				/* restore ML window */
-	t	ST_DIV0			/* generate a Div exn.  We do this via a */
-					/* trap to produce a SIGDIV */
-
 
 /* try_lock : spin_lock -> bool
  * low-level test-and-set style primitive for mutual-exclusion among 

@@ -1,9 +1,12 @@
-(* sparcMLTree.sml --- customize MLRISC for the Sparc.
- * 
- * COPYRIGHT (c) 1998 AT&T Bell Laboratories.
+(* sparcMLTree.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * customize MLRISC for the Sparc.
  *)
 
-structure SparcMLTree = 
+structure SparcMLTree =
   MLTreeF(structure Constant=SMLNJConstant
 	  structure Region=CPSRegions
 	  structure Extension=Sparc_SMLNJMLTreeExt
@@ -15,15 +18,15 @@ structure SparcMLTreeEval =
 	fun eq _ _ =  false
         val eqRext = eq		val eqFext = eq
         val eqCCext = eq	val eqSext = eq)
-					    
-structure SparcMLTreeHash = 
+
+structure SparcMLTreeHash =
     MLTreeHash
        (structure T = SparcMLTree
         fun h _ _ = 0w0
         val hashRext = h	val hashFext = h
         val hashCCext = h       val hashSext = h)
 
-structure SparcGasPseudoOps = 
+structure SparcGasPseudoOps =
    SparcGasPseudoOps(structure T=SparcMLTree
 		   structure MLTreeEval=SparcMLTreeEval)
 
@@ -31,10 +34,10 @@ structure SparcClientPseudoOps =
    SMLNJPseudoOps(structure Asm=SparcGasPseudoOps)
 
 structure SparcPseudoOps = PseudoOps(structure Client = SparcClientPseudoOps)
-	      
+
 structure SparcStream = InstructionStream(SparcPseudoOps)
 
-structure SparcMLTreeStream = 
+structure SparcMLTreeStream =
     MLTreeStream
       (structure T = SparcMLTree
        structure S = SparcStream)
@@ -44,7 +47,7 @@ structure SparcInstr = SparcInstr(SparcMLTree)
 
 structure SparcPseudoInstrs = SparcPseudoInstrs(SparcInstr)
 
-structure SparcProps = 
+structure SparcProps =
   SparcProps
     (structure SparcInstr = SparcInstr
      structure MLTreeEval = SparcMLTreeEval
@@ -53,14 +56,14 @@ structure SparcProps =
 
 structure SparcShuffle = SparcShuffle(SparcInstr)
 
-structure SparcAsmEmitter = 
+structure SparcAsmEmitter =
   SparcAsmEmitter(structure Instr=SparcInstr
 		  structure Shuffle=SparcShuffle
                   structure S = SparcStream
 		  structure MLTreeEval=SparcMLTreeEval
                   val V9 = false)
 
-structure SparcMCEmitter = 
+structure SparcMCEmitter =
   SparcMCEmitter(structure Instr=SparcInstr
 		 structure Assembler=SparcAsmEmitter
                  structure Stream = SparcStream
@@ -68,12 +71,10 @@ structure SparcMCEmitter =
 		 structure CodeString=CodeString)
 
 (* flowgraph data structure specialized to Sparc instructions *)
-structure SparcCFG = 
+structure SparcCFG =
   ControlFlowGraph
      (structure I = SparcInstr
       structure PseudoOps = SparcPseudoOps
       structure GraphImpl = DirectedGraph
       structure InsnProps = SparcProps
       structure Asm = SparcAsmEmitter)
-
-
