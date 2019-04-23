@@ -102,6 +102,10 @@ explicit test for division by zero, we know that the only arithmetic
 traps must be caused by other operations.  Therefore, we can just
 map any arithmetic trap to `Overflow`.
 +
+Also removed the old SPARC assembly code for multiplication and
+division.  The code generator always uses the native hardware
+instructions, so the assembly code is not needed.
++
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
