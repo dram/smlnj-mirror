@@ -97,9 +97,10 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 [2019/04/23]::
 +
 Improvements to the core 64-bit int and word modules in `system/smlnj/init`.
-Replaced `Int64.+`, `Int64.-`, `Word64.+` with versions from *Hacker's Delight*
-that use fewer conditional branches.  Also replaced the relational
-operators (`<`, `<=`, etc) with more direct implementations.
+Replaced `Int64.+`, `Int64.-`, `Word64.+`, and `Word64.*` with versions
+from *Hacker's Delight* that use fewer conditional branches.  Also
+replaced the relational operators (`<`, `<=`, etc) with more direct
+implementations.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
