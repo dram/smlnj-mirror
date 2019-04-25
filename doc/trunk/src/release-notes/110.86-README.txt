@@ -29,8 +29,9 @@ FILES::
 
 == Summary
 
-This release fixes a critical bug in runtime system, as well has including
-some additional changes to the compiler.
+This release mostly contains internal changes needed to support
+64-bit systems, but it also contains a few bug fixes and other
+improvements.
 
 == Details
 
