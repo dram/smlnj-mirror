@@ -51,8 +51,25 @@ stream (like `TextIOPP`) or a character buffer (like `CharBufferPP`).
 
 === Compiler
 
-A number of changes to internal representations as part of the preparation for
-supporting 64-bit targets.  See the {history}[change log] for details.
+We have made a number of changes to internal representations and
+implementation as part of the preparation for supporting 64-bit targets.
+We summarize these below (see the {HISTORY}[change log] for details).
+--
+  * Moved CPS related code out of the FLINT directory and into its own
+    `compiler/CPS` directory tree.
+
+  * Split out the utility code from the `CPS` structure into a new
+    `CPSUtil` structure.
+
+  * Renamed the various CPS primitive constructors so as to be compatible
+    with ASDL (*i.e.*, changed symbolic and lower-case constructor names to
+    upper-case identifiers).
+
+  * Moved the `F_SGN` constructor from the `fcmp` datatype to the `branch`
+    datatype (and renamed it `FSGN`).
+--
+
+We have also made improvements to the core 64-bit arithmetic operations.
 
 === Interactive System
 
