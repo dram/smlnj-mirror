@@ -25,4 +25,6 @@ implementation of SML/NJ.
 * register-assignments.numbers -- Numbers spreadsheet that describes the mapping from
   the CPS register model to hardware registers for the supported architectures.
 
+* runtime-rep.md -- describes the runtime representation of basic SML values.
+
 * tycons-ptnums.txt -- description of FLINT tycons and ptnums

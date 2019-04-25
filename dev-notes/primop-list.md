@@ -47,6 +47,9 @@ prefix that specifies the type as follows:
   * "`vec`" -- polymorphic vectors
   * "`seq`" -- sequence types (arrays and vectors)
 
+Following the type prefix may one or more attributes, which highlight properties
+of the operation.
+
 We use the attribute "`raw`" to denote direct machine operations that are not
 directly accesible in the Basis Library (*e.g.*, shift operations, where the basis
 versions clamp the shift amount to the word size, but the raw versions do not).
@@ -161,9 +164,15 @@ These primops are Basis Library functions that should be inlined for efficiency.
   * `bool_not : bool -> bool`<br/>
     `P.INLNOT`
 
-Some additional candidates for inlined operations include `hd`, `tl`, `null`, `chr`, and `ord`.
+Some additional candidates for inlined operations include `hd`, `tl`, `null`, `chr`,
+and `ord`.
+
 If the compiler had the `option` and `order` datatypes builtin (like `bool` and `list`),
-then `valOf`, `isSome`, `isNone` and some of the `compare` functions could be inlined.
+then `valOf`, `isSome`, `isNone` and some of the `compare` functions could also
+be inlined.
+
+In the long run, however, a better way to support inlining library functions would
+be through a reliable cross-module inliner.
 
 
 #### Bytearray and bytevector operations
@@ -250,7 +259,9 @@ pointer to the raw sequence data.
     `P.SUBSCRIPT_REC`
 
   * `raw64Sub : 'a * int -> real64`<br/>
-    Unclear what purpose this primop serves
+    gets an element from a packed tuple of 64-bit reals.  The only use of
+    this function is in the implementation of the `Unsafe.Object.nth`
+    function. <br/>
     `P.SUBSCRIPT_RAW64`
 
 
