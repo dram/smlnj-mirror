@@ -87,6 +87,7 @@ structure CoreWord64 =
 	    end
 *)
 
+(*
       fun mul64 ((hi1, lo1), (hi2, lo2)) = let
 	    val ((a1, b1), (c1, d1)) = (split16 hi1, split16 lo1)
 	    val ((a2, b2), (c2, d2)) = (split16 hi2, split16 lo2)
@@ -105,6 +106,38 @@ structure CoreWord64 =
 		     + locarry + diag1carry
 	    in
 	      (hi, lo)
+	    end
+*)
+  (* from Hacker's Delight (Figure 8.1); this version does not use conditionals
+   * and is about 7% faster.
+   *)
+      fun mul64 ((hi1, lo1), (hi2, lo2)) = let
+	    val a1 = (lo1 >> 0w16) val a0 = (lo1 & 0wxffff)
+	    val a3 = (hi1 >> 0w16) val a2 = (hi1 & 0wxffff)
+	    val b1 = (lo2 >> 0w16) val b0 = (lo2 & 0wxffff)
+	    val b3 = (hi2 >> 0w16) val b2 = (hi2 & 0wxffff)
+	    val t = a0 * b0;
+	    val acc0 = (t & 0wxffff)
+	    val t = a1 * b0 + (t >> 0w16)
+	    val acc1 = (t & 0wxffff)
+	    val t = a2 * b0 + (t >> 0w16)
+	    val acc2 = (t & 0wxffff)
+	    val t = a3 * b0 + (t >> 0w16)
+	    val acc3 = (t & 0wxffff)
+	    val t = a0 * b1 + acc1
+	    val acc1 = (t & 0wxffff)
+	    val t = a1 * b1 + acc2 + (t >> 0w16)
+	    val acc2 = (t & 0wxffff)
+	    val t = a2 * b1 + acc3 + (t >> 0w16)
+	    val acc3 = (t & 0wxffff)
+	    val t = a0 * b2 + acc2
+	    val acc2 = (t & 0wxffff)
+	    val t = a1 * b2 + acc3 + (t >> 0w16)
+	    val acc3 = (t & 0wxffff)
+	    val t = a0 * b3 + acc3
+	    val acc3 = (t & 0wxffff)
+	    in
+	      ((acc3 << 0w16) ++ acc2, (acc1 << 0w16) ++ acc0)
 	    end
 
       local
