@@ -18,9 +18,12 @@ structure CoreInt64 =
       infix 7 *     val op * = InLine.w32mul
       infix 6 + -   val op + = InLine.w32add     val op - = InLine.w32sub
       infix 5 << >> val op << = InLine.w32lshift val op >> = InLine.w32rshiftl
+      infix 5 ++    val op ++ = InLine.w32orb
       infix 5 &     val op & = InLine.w32andb
       infix 4 <     val op < = InLine.w32lt
+      infix 4 <=    val op <= = InLine.w32le
       infix 4 >     val op > = InLine.w32gt
+      infix 4 >=    val op >= = InLine.w32ge
       infix 4 <>    val op <> = InLine.w32ne
       infix 4 ==    val op == = InLine.w32eq
       val not = InLine.inlnot
@@ -37,6 +40,7 @@ structure CoreInt64 =
       fun negbit hi = hi & 0wx80000000
       fun isneg hi = negbit hi <> 0w0
 
+(*
       fun add64 ((hi1, lo1), (hi2, lo2)) =
 	  let val (hi, lo) = (hi1 + hi2, lo1 + lo2)
 	      val hi = if lo < lo1 then hi + 0w1 else hi
@@ -52,6 +56,51 @@ structure CoreInt64 =
 	  in if nb1 == negbit hi2 orelse nb1 == negbit hi then (hi, lo)
 	     else raise Assembly.Overflow
 	  end
+*)
+
+    (* these versions of addition and subtraction use fewer conditional
+     * branches and the underlying trapping arithmetic to signal Overflow.
+     * Experiments suggest that addition is ~16% faster and subtraction is
+     * ~10-12% faster.
+     * They are based on the implementation in Hacker's Delight by
+     * Henry S. Warren.
+     *)
+
+    (* bitcast conversions between Int32.int and Word32.word *)
+      val w2i : word32 -> int32 = InLine.copy_32_32_wi
+      val i2w : int32 -> word32 = InLine.copy_32_32_iw
+
+    (* bitwise equivalence '≡' *)
+      fun ^= (a, b) = InLine.w32notb(InLine.w32xorb(a, b))
+      infix 4 ^=
+
+      fun add64 ((hi1, lo1), (hi2, lo2)) = let
+	    val lo = lo1 + lo2
+	  (* from "Hacker's Delight": c = ((lo1 & lo2) | ((lo1 | lo2) & ¬lo)) >> 31 *)
+	    val c = ((lo1 & lo2) ++ ((lo1 ++ lo2) & InLine.w32notb lo)) >> 0w31
+	    val hi1' = w2i hi1
+	    val hi2' = w2i hi2
+	  (* we need this test to get Overflow right in the edge cases *)
+	    val hi = if InLine.i32le(hi1', hi2')
+		  then i2w(InLine.i32add(InLine.i32add(hi1', w2i c), hi2'))
+		  else i2w(InLine.i32add(InLine.i32add(hi2', w2i c), hi1'))
+	    in
+	      (hi, lo)
+	    end
+
+      fun sub64 ((hi1, lo1), (hi2, lo2)) = let
+	    val lo = lo1 - lo2
+	    val hi1' = w2i hi1
+	    val hi2' = w2i hi2
+	  (* from "Hacker's Delight": b = ((¬lo1 & lo2) | ((lo1 ≡ lo2) & lo)) >> 31 *)
+	    val b = ((InLine.w32notb lo1 & lo2) ++ ((lo1 ^= lo2) & lo)) >> 0w31
+	  (* we need this test to get Overflow right in the edge cases *)
+	    val hi = if InLine.i32le(hi1', hi2')
+		  then i2w(InLine.i32sub(InLine.i32sub(hi1', hi2'), w2i b))
+		  else i2w(InLine.i32sub(InLine.i32sub(hi1', w2i b), hi2'))
+	    in
+	      (hi, lo)
+	    end
 
       (* I am definitely too lazy to do this the pedestrian way, so
        * here we go... *)
@@ -67,6 +116,7 @@ structure CoreInt64 =
 
       fun mod64 (x, y) = sub64 (x, mul64 (div64 (x, y), y))
 
+(*
   (* NOTE: a more efficient implementation is to compare the high 32 bits using
    * signed < and the lower 32 bits using unsigned <.
    *)
@@ -82,6 +132,18 @@ structure CoreInt64 =
 	    (* end case *))
       val le64 = not o gt64
       val ge64 = not o lt64
+*)
+      fun lt64 ((hi1, lo1), (hi2, lo2)) =
+	    InLine.i32lt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 < lo2))
+
+      fun le64 ((hi1, lo1), (hi2, lo2)) =
+	    InLine.i32lt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 <= lo2))
+
+      fun gt64 ((hi1, lo1), (hi2, lo2)) =
+	    InLine.i32gt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 > lo2))
+
+      fun ge64 ((hi1, lo1), (hi2, lo2)) =
+	    InLine.i32gt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 >= lo2))
 
       fun abs64 (hi, lo) = if isneg hi then neg64 (hi, lo) else (hi, lo)
     in
@@ -95,9 +157,9 @@ structure CoreInt64 =
       val div = lift2 div64
       val mod = lift2 mod64
       val op < = lift2' lt64
-      val <= = lift2' le64
+      val op <= = lift2' le64
       val op > = lift2' gt64
-      val >= = lift2' ge64
+      val op >= = lift2' ge64
       val abs = lift1 abs64
     end (* local *)
 
