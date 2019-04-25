@@ -49,12 +49,22 @@ stream (like `TextIOPP`) or a character buffer (like `CharBufferPP`).
 
 === ASDL
 
+Further improvements to the new implementation of ASDL.
+--
+  * The interface to file and memory picklers was unified for the SML view.
+
+  * Added support for S-Expression pickling for the SML view (unpickling
+    has not yet been implemented).
+
+  * Significant editing of the documentation to make it more accurately
+    reflect the implementation.
+--
 
 === Compiler
 
 We have made a number of changes to internal representations and
 implementation as part of the preparation for supporting 64-bit targets.
-We summarize these below (see the {HISTORY}[change log] for details).
+We summarize these below (see the {history}[change log] for details).
 --
   * Moved CPS related code out of the FLINT directory and into its own
     `compiler/CPS` directory tree.
