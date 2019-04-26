@@ -174,7 +174,6 @@ be inlined.
 In the long run, however, a better way to support inlining library functions would
 be through a reliable cross-module inliner.
 
-
 #### Bytearray and bytevector operations
 Operations on byte/char array/vectors.  We renamed these to make it clear
 which operations do bounds checking and which do not.
@@ -202,7 +201,6 @@ which operations do bounds checking and which do not.
   * `barr_update : 'a * int * 'b -> unit`<br/>
     update byte array
     (`P.NUMUPDATE{kind=P.INT 8, checked=true}`)
-
 
 #### Polymorphic array and vector
   * `mkarray : int * 'a -> 'a array`<br/>
@@ -237,7 +235,6 @@ which operations do bounds checking and which do not.
     update a polymorphic array with an unboxed value, which means that there is
     no store-list entry created for the update.
     (`P.UNBOXEDUPDATE`)
-
 
 #### Sequence operations
 Sequence values (*e.g.*, `string`, `'a array`, `RealVector.vector`, *etc*.)
@@ -913,14 +910,14 @@ bound to `Word32` (even though there is a `Word64` structure).
 
 #### Conversions between integers and reals
 
-  * `floor_real64_to_int : real64 -> int`
-    `P.ROUND{floor=true, from=64, to=<int-size>}`
-
-  * `round_real64_to_int : real64 -> int`
-    `P.ROUND{floor=false, from=64, to=<int-size>}`
-
-  * `cvt_int_to_real64 : int -> real64`
+  * `cvt_int_to_real64 : int -> real64`<br />
     `P.REAL{from=<int-size>, to=64}`
 
-  * `cvt_int32_to_real64 : int32 -> real64`
+  * `cvt_int32_to_real64 : int32 -> real64`<br />
     `P.REAL{from=32, to=64}`
+
+  * `floor_real64_to_int : real64 -> int`<br />
+    `P.ROUND{floor=true, from=64, to=<int-size>}`
+
+  * `round_real64_to_int : real64 -> int`<br />
+    `P.ROUND{floor=false, from=64, to=<int-size>}`
