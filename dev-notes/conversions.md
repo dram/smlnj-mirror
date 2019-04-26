@@ -22,8 +22,8 @@ primitive conversion operators. Algebraic equations over these
 operators are easy to define and can be used to simplify composition
 of conversion operations.
 
-The five basic conversion operators are (in all cases, we assume
-that (n >= m):
+The five basic conversion operators are as follows (in all cases,
+we assume that (n >= m):
 
   TEST(n,m)	-- map an n-bit, 2's complement signed value to an 
 		   m-bit, 2's complement signed value; 
