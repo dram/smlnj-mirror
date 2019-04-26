@@ -82,7 +82,7 @@ structure CPS : CPS =
 	  | TEST of {from: int, to: int}
 	  | TESTU of {from: int, to: int}
 	  | TEST_INF of int
-	  | ROUND of {floor: bool, from: numkind, to: numkind}
+	  | REAL_TO_INT of {floor: bool, from: int, to: int}
 
       (* These don't raise exceptions and don't access the store. *)
 	datatype pure
@@ -95,7 +95,7 @@ structure CPS : CPS =
 	  | COPY_INF of int
 	  | EXTEND_INF of int
 	  | TRUNC_INF of int
-	  | REAL of {from: numkind, to: numkind}
+	  | INT_TO_REAL of {from: int, to: int}
 	  | SUBSCRIPTV
 	  | GETTAG | MKSPECIAL | CAST | GETCON | GETEXN
 	  | BOX | UNBOX

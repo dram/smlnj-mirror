@@ -63,7 +63,7 @@ structure PPCps : PPCPS =
       | arithopToString P.REM = "rem"
       | arithopToString P.FDIV = "/"
       | arithopToString P.NEG = "~"
-      | arithopToString P.ABS = "abs"
+      | arithopToString P.FABS = "fabs"
       | arithopToString P.FSQRT = "fsqrt"
       | arithopToString P.FSIN = "sin"
       | arithopToString P.FCOS = "cos"
@@ -134,9 +134,8 @@ structure PPCps : PPCPS =
       | arithToString (P.TEST{from, to}) = cvtParams ("test_", from, to)
       | arithToString (P.TESTU{from, to}) = cvtParams ("testu_", from, to)
       | arithToString (P.TEST_INF i) = "test_inf_" ^ cvtParam i
-      | arithToString (P.ROUND{floor, from, to}) = concat[
-	    if floor then "floor" else "round",
-	    numkindToString from, "to", numkindToString to
+      | arithToString (P.REAL_TO_INT{floor, from, to}) = concat[
+	    if floor then "floor_" else "round_", cvtParam from, "to", cvtParam to
 	  ]
 
     fun pureToString P.LENGTH = "length"
@@ -149,8 +148,8 @@ structure PPCps : PPCPS =
       | pureToString (P.TRUNC_INF i) = "trunc_inf_" ^ cvtParam i
       | pureToString (P.COPY_INF i) = concat ["copy_", cvtParam i, "_inf"]
       | pureToString (P.EXTEND_INF i) =  concat ["extend_", cvtParam i, "_inf"]
-      | pureToString (P.REAL{from, to}) =
-	  concat ["real", numkindToString from, "_", numkindToString to]
+      | pureToString (P.INT_TO_REAL{from, to}) =
+	  concat ["real", cvtParam from, "_", cvtParam to]
       | pureToString P.SUBSCRIPTV = "subscriptv"
       | pureToString (P.PURE_NUMSUBSCRIPT{kind}) = "numsubscriptv" ^ numkindToString kind
       | pureToString P.GETTAG = "gettag"

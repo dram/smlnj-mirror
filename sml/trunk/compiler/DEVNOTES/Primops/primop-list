@@ -688,7 +688,7 @@ structure P = PrimOp  (* defined in FLINT/kernel/primop.sml *)
 191  f64sgn,	 purefloat64 P.FSGN,	 real -> bool
 	InlineT.Real64.sgn :	 real -> bool
 
-192  f64abs,	 purefloat64 P.ABS,      real -> real
+192  f64abs,	 purefloat64 P.FABS,     real -> real
 	InlineT.Real64.abs :		 real -> real
 
 193  f64sin,	 purefloat64 P.FSIN,	 real -> real

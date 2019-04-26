@@ -355,7 +355,7 @@ structure PrimopBindings : sig
 	  ("f64eq", f64f64_b, float64cmp P.EQL) :-:
 	  ("f64ne", f64f64_b, float64cmp P.NEQ) :-:
 	  ("f64sgn", f64_b, float64cmp P.FSGN) :-:
-	  ("f64abs", f64_f64, purefloat64 P.ABS) :-:
+	  ("f64abs", f64_f64, purefloat64 P.FABS) :-:
 	  ("f64sin", f64_f64, purefloat64 P.FSIN) :-:
 	  ("f64cos", f64_f64, purefloat64 P.FCOS) :-:
 	  ("f64tan", f64_f64, purefloat64 P.FTAN) :-:
@@ -460,13 +460,13 @@ structure PrimopBindings : sig
     val prims = prims :-:
 	(* int to/from real conversions *)
 (* FIXME: the names of these should reflect both the source and destination types. *)
-	  ("floor", f64_i, P.ROUND{floor=true, fromkind=P.FLOAT 64, tokind=P.INT intSz}) :-:
-	  ("round", f64_i, P.ROUND{floor=false, fromkind=P.FLOAT 64, tokind=P.INT intSz}) :-:
-	  ("real", i_f64, P.REAL{fromkind=P.INT intSz, tokind=P.FLOAT 64}) :-:
-	  ("real32", i32_f64, P.REAL{fromkind=P.INT 32, tokind=P.FLOAT 64})
+	  ("floor", f64_i, P.ROUND{floor=true, from = 64, to = intSz}) :-:
+	  ("round", f64_i, P.ROUND{floor=false, from = 64, to = intSz}) :-:
+	  ("real", i_f64, P.REAL{from = intSz, to = 64}) :-:
+	  ("real32", i32_f64, P.REAL{from = 32, to = 64})
 (*
  :-:
-	  ("real64", i64_f64, P.REAL{fromkind=P.INT 64, tokind=P.FLOAT 64})
+	  ("real64", i64_f64, P.REAL{from = 64, to = 64})
 *)
 
   (*** integer/word conversion primops ***

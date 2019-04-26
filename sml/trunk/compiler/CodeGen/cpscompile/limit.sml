@@ -59,7 +59,7 @@ fun path escapes fl =
 	    error "9827489 test_inf in limit"
         | g(d, ARITH(_,_,_,_,e)) = g(d,e)
         | g(d, PURE(P.PURE_ARITH{kind=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
-        | g(d, PURE(P.REAL{to=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
+        | g(d, PURE(P.INT_TO_REAL{to=64,...},_,_,_,e)) = g(d+3, e)
 	| g(d, PURE(P.WRAP(P.INT sz), _, _, _, e)) =
 	    if (sz = Target.mlValueSz)
 	      then g(d + 2, e)

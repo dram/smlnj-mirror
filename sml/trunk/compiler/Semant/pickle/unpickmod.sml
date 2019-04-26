@@ -148,7 +148,7 @@ structure UnpickMod : UNPICKMOD = struct
 	#[P.GT, P.GTE, P.LT, P.LTE, P.LEU, P.LTU, P.GEU, P.GTU, P.EQL, P.NEQ, P.FSGN]
 
     val arithop_table =
-	#[P.ADD, P.SUB, P.MUL, P.NEG, P.FDIV, P.ABS, P.LSHIFT, P.RSHIFT, P.RSHIFTL,
+	#[P.ADD, P.SUB, P.MUL, P.NEG, P.FDIV, P.FABS, P.LSHIFT, P.RSHIFT, P.RSHIFTL,
 	  P.ANDB, P.ORB, P.XORB, P.NOTB, P.FSQRT, P.FSIN, P.FCOS, P.FTAN,
 	  P.QUOT, P.REM, P.DIV, P.MOD]
 
@@ -343,10 +343,8 @@ structure UnpickMod : UNPICKMOD = struct
 	      | po #"\107" = P.INLLSHIFT (numkind ())
 	      | po #"\108" = P.INLRSHIFT (numkind ())
 	      | po #"\109" = P.INLRSHIFTL (numkind ())
-	      | po #"\110" = P.ROUND { floor = bool (), fromkind = numkind (),
-				       tokind = numkind () }
-	      | po #"\111" = P.REAL { fromkind = numkind (),
-				      tokind = numkind ()}
+	      | po #"\110" = P.ROUND { floor = bool (), from = int (), to = int () }
+	      | po #"\111" = P.REAL { from = int (), to = int ()}
 	      | po #"\112" = P.NUMSUBSCRIPT { kind = numkind (),
 					      checked = bool (),
 					      immutable = bool () }

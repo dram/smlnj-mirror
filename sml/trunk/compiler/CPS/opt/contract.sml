@@ -1075,9 +1075,9 @@ end
 	    click "8"; NUM{ival = x, ty = #ty i}
 	  end
      | (P.LENGTH, [STRING s]) => (click "V"; tagInt'(size s))
-     | (P.REAL{from=P.INT _,to=P.FLOAT sz}, [NUM{ival, ...}]) =>
+     | (P.INT_TO_REAL{to, ...}, [NUM{ival, ...}]) =>
 	(* NOTE: this conversion might lose precision *)
-	  REAL{rval = RealLit.fromInt ival, ty=sz}
+	  REAL{rval = RealLit.fromInt ival, ty=to}
      | (P.UNWRAP(P.INT sz), [x as VAR v]) => (case get v
 	   of {info=WRPinfo(P.INT sz', u), ...} => if (sz = sz')
 		then (click "U"; use_less x; u)

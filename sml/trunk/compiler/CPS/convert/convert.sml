@@ -211,11 +211,10 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		PKA(P.ARITH{oper=oper,kind=numkind kind})
 	    | AP.ARITH{oper,kind,overflow=false} =>
 		PKP(P.PURE_ARITH{oper=oper,kind=numkind kind})
-	    | AP.ROUND{floor,fromkind,tokind} => PKA(P.ROUND{
-		  floor=floor, from=numkind fromkind, to=numkind tokind
-		})
-	    | AP.REAL{fromkind,tokind} =>
-		PKP(P.REAL{to=numkind tokind, from=numkind fromkind})
+	    | AP.ROUND{floor,from,to} =>
+		PKA(P.REAL_TO_INT{floor=floor, from=from, to=to})
+	    | AP.REAL{from,to} =>
+		PKP(P.INT_TO_REAL{from=from,to=to})
 
 	    | AP.SUBSCRIPTV => PKP P.SUBSCRIPTV
 	    | AP.MAKEREF =>    PKP P.MAKEREF

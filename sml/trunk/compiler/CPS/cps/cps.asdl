@@ -101,7 +101,7 @@ module CPS_Prim (import CPS_Type) {
     arithop
       = ADD | SUB | MUL | DIV | MOD | QUOT | REM | FDIV
       | LSHIFT | RSHIFT | RSHIFTL | ANDB | ORB | XORB
-      | NEG | ABS | NOTB
+      | NEG | FABS | NOTB
       | FSQRT | FSIN | FCOS | FTAN
 
     cmpop = GT | GTE | LT | LTE | EQL | NEQ
@@ -152,7 +152,7 @@ module CPS_Prim (import CPS_Type) {
       | TEST (int from, int to)
       | TESTU (int from, int to)
       | TEST_INF (int)				-- conversion from IntInf.int
-      | ROUND (bool floor, numkind from, numkind to)
+      | REAL_TO_INT (bool floor, int from, int to)
 
   -- These don't raise exceptions and don't access the store.
     pure
@@ -165,7 +165,7 @@ module CPS_Prim (import CPS_Type) {
       | COPY_INF (int)
       | EXTEND_INF (int)
       | TRUNC_INF (int)
-      | REAL (numkind from, numkind to)
+      | INT_TO_REAL (int from, int to)
       | SUBSCRIPTV
       | GETTAG | MKSPECIAL | WRAP | UNWRAP | CAST | GETCON | GETEXN
       | BOX | UNBOX

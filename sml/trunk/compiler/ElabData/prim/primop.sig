@@ -16,7 +16,7 @@ signature PRIMOP =
 
     datatype arithop
       = ADD | SUB | MUL | NEG			(* int or float *)
-      | FDIV | ABS | FSQRT | FSIN | FCOS | FTAN	(* floating point only *)
+      | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN (* floating point only *)
       | LSHIFT | RSHIFT | RSHIFTL		(* int only *)
       | ANDB | ORB | XORB | NOTB		(* int only *)
       | DIV | MOD | QUOT | REM			(* int only *)
@@ -54,10 +54,10 @@ signature PRIMOP =
       | EXTEND_INF of int          		(* E: intinf extensions, e.g. extend_8_inf *)
       | COPY_INF of int            		(* E: conversions to intinf, e.g. copy_8_inf *)
       | ROUND of {				(* E: floor, round *)
-	    floor: bool, fromkind: numkind, tokind: numkind
+	    floor: bool, from: int, to: int
 	  }
       | REAL of {				(* E: real, real32 *)
-	    fromkind: numkind, tokind: numkind
+	    from: int, to: int
 	  }
       | NUMSUBSCRIPT of {			(* E: L?: ordof, etc. *)
 	    kind: numkind, checked: bool, immutable: bool

@@ -41,7 +41,7 @@ signature CPS =
 	datatype arithop
 	  = ADD | SUB | MUL | DIV | MOD | QUOT | REM | FDIV
 	  | LSHIFT | RSHIFT | RSHIFTL | ANDB | ORB | XORB
-	  | NEG | ABS | NOTB
+	  | NEG | FABS | NOTB
 	  | FSQRT | FSIN | FCOS | FTAN
 
 	datatype cmpop = GT | GTE | LT | LTE | EQL | NEQ
@@ -87,7 +87,7 @@ signature CPS =
 	  | TEST of {from: int, to: int}
 	  | TESTU of {from: int, to: int}
 	  | TEST_INF of int
-	  | ROUND of {floor: bool, from: numkind, to: numkind}
+	  | REAL_TO_INT of {floor: bool, from: int, to: int}
 
       (* These don't raise exceptions and don't access the store. *)
 	datatype pure
@@ -100,7 +100,7 @@ signature CPS =
 	  | COPY_INF of int
 	  | EXTEND_INF of int
 	  | TRUNC_INF of int
-	  | REAL of {from: numkind, to: numkind}
+	  | INT_TO_REAL of {from: int, to: int}
 	  | SUBSCRIPTV
 	  | GETTAG | MKSPECIAL | CAST | GETCON | GETEXN
 	  | BOX | UNBOX

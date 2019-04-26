@@ -19,7 +19,7 @@ structure Primop : PRIMOP =
 
     datatype arithop
       = ADD | SUB | MUL | NEG			(* int or float *)
-      | FDIV | ABS | FSQRT | FSIN | FCOS | FTAN	(* floating point only *)
+      | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN (* floating point only *)
       | LSHIFT | RSHIFT | RSHIFTL		(* int only *)
       | ANDB | ORB | XORB | NOTB		(* int only *)
       | DIV | MOD | QUOT | REM			(* int only *)
@@ -57,10 +57,10 @@ structure Primop : PRIMOP =
       | EXTEND_INF of int          		(* E: intinf extensions, e.g. extend_8_inf *)
       | COPY_INF of int            		(* E: conversions to intinf, e.g. copy_8_inf *)
       | ROUND of {				(* E: floor, round *)
-	    floor: bool, fromkind: numkind, tokind: numkind
+	    floor: bool, from: int, to: int
 	  }
       | REAL of {				(* E: real, real32 *)
-	    fromkind: numkind, tokind: numkind
+	    from: int, to: int
 	  }
       | NUMSUBSCRIPT of {			(* E: L?: ordof, etc. *)
 	    kind: numkind, checked: bool, immutable: bool
@@ -193,7 +193,7 @@ structure Primop : PRIMOP =
     fun prPrimop (ARITH{oper, overflow, kind}) = let
 	  val rator = (case oper
 		 of ADD => "add" | SUB => "sub" | MUL => "mul" | NEG => "neg"
-		  | FDIV => "fdiv" | ABS => "abs"  | FSQRT => "fsqrt"
+		  | FDIV => "fdiv" | FABS => "fabs"  | FSQRT => "fsqrt"
 		  | FSIN => "fsin" | FCOS => "fcos" | FTAN => "ftan"
 		  | LSHIFT => "lshift" | RSHIFT => "rshift" | RSHIFTL => "rshift_l"
 		  | ANDB => "andb" | ORB => "orb" | XORB => "xorb" | NOTB => "notb"
@@ -223,13 +223,12 @@ structure Primop : PRIMOP =
       | prPrimop (TRUNC_INF i) = "trunc_inf_" ^ cvtParam i
       | prPrimop (EXTEND_INF i) = concat ["extend_", cvtParam i, "_inf"]
       | prPrimop (COPY_INF i) =  concat ["copy_", cvtParam i, "_inf"]
-      | prPrimop (ROUND{floor,fromkind,tokind}) = concat [
-	    if floor then "floor_" else "round_",
-	    prNumkind fromkind, "_", prNumkind tokind
+      | prPrimop (ROUND{floor,from,to}) = concat [
+	    if floor then "floor_f" else "round_f",
+	    Int.toString from, "_i", Int.toString to
 	  ]
-      | prPrimop(REAL{fromkind=INT 31,tokind=FLOAT 64}) = "real"
-      | prPrimop(REAL{fromkind,tokind}) = concat [
-	    "real_", prNumkind fromkind, "_", prNumkind tokind
+      | prPrimop(REAL{from,to}) = concat [
+	    "real_i", Int.toString from, "_f", Int.toString to
 	  ]
       | prPrimop(NUMSUBSCRIPT{kind,checked,immutable}) = concat [
 	    "numsubscript_", prNumkind kind,

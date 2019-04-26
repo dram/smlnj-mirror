@@ -1473,18 +1473,17 @@ raise ex)
               end
 
             (*** PURE ***)
-            | gen (PURE(P.REAL{from=P.INT 31, to=P.FLOAT 64},
-                       [v], x, _, e), hp) =
+(* 64BIT: REAL32: FIXME *)
+            | gen (PURE(P.INT_TO_REAL{from=31, to=64}, [v], x, _, e), hp) =
                 treeifyDefF64(x,M.CVTI2F(fty,ity,untagSigned(v)), e, hp)
-	    | gen (PURE(P.REAL{from=P.INT 32, to=P.FLOAT 64},
-		       [v], x, _, e), hp) =
+	    | gen (PURE(P.INT_TO_REAL{from=32, to=64}, [v], x, _, e), hp) =
 	        treeifyDefF64(x,M.CVTI2F(fty,ity,regbind v), e, hp)
             | gen (PURE(P.PURE_ARITH{oper, kind=P.FLOAT 64}, [v], x, _, e), hp) = let
                 val r = fregbind v
               in
 		case oper
                 of P.NEG => treeifyDefF64(x, M.FNEG(fty,r), e, hp)
-                 | P.ABS => treeifyDefF64(x, M.FABS(fty,r), e, hp)
+                 | P.FABS => treeifyDefF64(x, M.FABS(fty,r), e, hp)
 		 | P.FSQRT => treeifyDefF64(x, M.FSQRT(fty,r), e, hp)
 		 | P.FSIN => computef64(x, M.FEXT(fty, E.FSINE r), e, hp)
 		 | P.FCOS => computef64(x, M.FEXT(fty, E.FCOSINE r), e, hp)

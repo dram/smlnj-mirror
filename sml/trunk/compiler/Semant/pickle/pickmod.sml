@@ -284,7 +284,7 @@ in
 	  | arithopc P.MUL = "\002"
 	  | arithopc P.NEG = "\003"
 	  | arithopc P.FDIV = "\004"
-	  | arithopc P.ABS = "\005"
+	  | arithopc P.FABS = "\005"
 	  | arithopc P.LSHIFT = "\006"
 	  | arithopc P.RSHIFT = "\007"
 	  | arithopc P.RSHIFTL = "\008"
@@ -384,10 +384,10 @@ in
 	      | P.INLLSHIFT kind => ?107 $ [numkind kind]
 	      | P.INLRSHIFT kind => ?108 $ [numkind kind]
 	      | P.INLRSHIFTL kind => ?109 $ [numkind kind]
-	      | P.ROUND { floor, fromkind, tokind } =>
-		    ?110 $ [bool floor, numkind fromkind, numkind tokind]
-	      | P.REAL { fromkind, tokind } =>
-		    ?111 $ [numkind fromkind, numkind tokind]
+	      | P.ROUND { floor, from, to } =>
+		    ?110 $ [bool floor, int from, int to]
+	      | P.REAL { from, to } =>
+		    ?111 $ [int from, int to]
 	      | P.NUMSUBSCRIPT { kind, checked, immutable } =>
 		    ?112 $ [numkind kind, bool checked, bool immutable]
 	      | P.NUMUPDATE { kind, checked } =>

@@ -233,14 +233,13 @@ fun expand {function=(fkind,fvar,fargs,ctyl,cexp),unroll,bodysize,click,afterClo
      | SETTER(_,vl,e) => prim(level,vl,e)
      | ARITH(args as (P.ARITH{kind=P.FLOAT 64,...},_,_,_,_)) =>
          primreal (level,args)
-     | ARITH(args as (P.ROUND _, _,_,_,_)) => primreal (level,args)
+     | ARITH(args as (P.REAL_TO_INT _, _,_,_,_)) => primreal (level,args)
      | ARITH(_,vl,w,_,e) => (noteother w; prim(level,vl,e))
 (* REAL32: FIXME *)
      | PURE(P.PURE_ARITH{kind=P.FLOAT 64,...},[v],w,_,e) =>
-	          (notereal w; incsave(v,1); 4+(pass1 level e))
+	 (notereal w; incsave(v,1); 4+(pass1 level e))
 (* REAL32: FIXME *)
-     | PURE(P.REAL{to=P.FLOAT 64,...},vl,w,_,e) =>
-		  (notereal w; prim(level,vl,e))
+     | PURE(P.INT_TO_REAL{to=64,...},vl,w,_,e) => (notereal w; prim(level,vl,e))
      | PURE(_,vl,w,_,e) => (noteother w; prim(level,vl,e))
      | RCC(k,l,p,vl,wtl,e) =>
          (app (noteother o #1) wtl; prim(level,vl,e)) (* ? *)
