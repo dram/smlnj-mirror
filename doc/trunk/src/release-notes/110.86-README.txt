@@ -78,6 +78,8 @@ We summarize these below (see the {history}[change log] for details).
 
   * Moved the `F_SGN` constructor from the `fcmp` datatype to the `branch`
     datatype (and renamed it `FSGN`).
+
+  * Various other minor tweaks to the primitive operator types.
 --
 
 We have also made improvements to the core 64-bit arithmetic operations.

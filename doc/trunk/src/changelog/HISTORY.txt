@@ -94,6 +94,23 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/04/26]::
++
+Some minor primop cleanup.
++
+--
+* Changed the types of `Primop.ROUND` and `Primop.REAL`
+  to take bitwidths, instead of numkinds, since the kinds are always the same.
+  Also, the fields are now called `from` and `to` (instead of `fromkind` and
+  `tokind`) to be consistent with other conversion primops.
+* Renamed `ABS` to `FABS`, since it is only used on floating-point numbers.
+* Renamed the CPS primitive operator `ROUND` to `REAL_TO_INT` and the operator
+  `REAL` to `INT_TO_REAL`.
+--
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/04/23]::
 +
 Improvements to the core 64-bit int and word modules in `system/smlnj/init`.
