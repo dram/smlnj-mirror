@@ -144,7 +144,7 @@ the array bounds).
 
   * `objlength : 'a -> int`<br/>
     extracts the length field from an object's header word.
-    `P.OBJLENGTH`
+    (`P.OBJLENGTH`)
 
 
 #### Inline operations
@@ -236,7 +236,7 @@ which operations do bounds checking and which do not.
   * `arr_unboxed_update : 'a array * int * 'a -> unit`<br/>
     update a polymorphic array with an unboxed value, which means that there is
     no store-list entry created for the update.
-    `P.UNBOXEDUPDATE`
+    (`P.UNBOXEDUPDATE`)
 
 
 #### Sequence operations
@@ -249,11 +249,11 @@ pointer to the raw sequence data.
 
   * `seq_length : 'a -> int`<br/>
     get the length field from a sequence header
-    `P.LENGTH`
+    (`P.LENGTH`)
 
   * `seq_data : 'a -> 'b`<br/>
     get the length field from a sequence header
-    `P.GET_SEQ_DATA`
+    (`P.GET_SEQ_DATA`)
 
   * `unsafe_record_sub : 'a * int -> 'b`<br/>
     `P.SUBSCRIPT_REC`
@@ -262,7 +262,7 @@ pointer to the raw sequence data.
     gets an element from a packed tuple of 64-bit reals.  The only use of
     this function is in the implementation of the `Unsafe.Object.nth`
     function. <br/>
-    `P.SUBSCRIPT_RAW64`
+    (`P.SUBSCRIPT_RAW64`)
 
 
 ### Numeric primops
@@ -273,19 +273,19 @@ type (`Int.int`).
 
   * `int_add : int * int -> int`<br/>
     Signed integer addition with overflow checking.
-    `P.ARITH{oper=P.ADD, overflow=true, kind=P.INT <int-size>}`
+    (`P.ARITH{oper=P.ADD, overflow=true, kind=P.INT <int-size>}`)
 
   * `int_unsafe_add : int * int -> int`<br/>
     Signed integer addition *without* overflow checking.
-    `P.ARITH{oper=P.ADD, overflow=false, kind=P.INT <int-size>}`
+    (`P.ARITH{oper=P.ADD, overflow=false, kind=P.INT <int-size>}`)
 
   * `int_sub : int * int -> int`<br/>
     Signed integer subtraction with overflow checking.
-    `P.ARITH{oper=P.SUB, overflow=true, kind=P.INT <int-size>}`
+    (`P.ARITH{oper=P.SUB, overflow=true, kind=P.INT <int-size>}`)
 
   * `int_unsafe_sub : int * int -> int`<br/>
     Signed integer subtraction *without* overflow checking.
-    `P.ARITH{oper=P.SUB, overflow=false, kind=P.INT <int-size>}`
+    (`P.ARITH{oper=P.SUB, overflow=false, kind=P.INT <int-size>}`)
 
   * `int_mul : int * int -> int`<br/>
     `P.ARITH{oper=P.MUL, overflow=true, kind=P.INT <int-size>}`
