@@ -222,14 +222,13 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 		| _ => NONE
 	      (*esac*))
 
-	    fun boundsCheck() =
-	      (case (test, args)
-	       of (P.CMP{oper= P.LT, kind=P.UINT 31}, [v1,CPS.VAR v2]) =>
-		  (case findInfo v2
-		    of SOME OBJLEN => SOME likely
-		     | _ => NONE)
-		| _ => NONE
-	      (*esac*))
+	    fun boundsCheck() = (case (test, args)
+	           of (P.CMP{oper= P.LT, kind=P.UINT _}, [v1,CPS.VAR v2]) => (
+		  	case findInfo v2
+			 of SOME OBJLEN => SOME likely
+			  | _ => NONE)
+		    | _ => NONE
+	          (*esac*))
 
 	    fun combine(f, trueProb) =
 	      (case (f(), trueProb)

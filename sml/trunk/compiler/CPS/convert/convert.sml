@@ -362,13 +362,16 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 
 	 (* lpvar : F.value -> value *)
 	 fun lpvar (F.VAR v) = rename v
-	   | lpvar (F.INT{ival, ty=32}) = boxInt(32, ival)
-	   | lpvar (F.WORD{ival, ty=32}) = boxInt(32, ival)
-	   | lpvar (F.INT{ival, ty=31}) = tagInt ival
-	   | lpvar (F.WORD{ival, ty=31}) = tagInt ival
+	   | lpvar (F.INT{ival, ty}) =
+	       if (ty <= Target.defaultIntSz)
+		 then tagInt ival
+		 else boxInt(ty, ival)
+	   | lpvar (F.WORD{ival, ty}) =
+	       if (ty <= Target.defaultIntSz)
+		 then tagInt ival
+		 else boxInt(ty, ival)
 	   | lpvar (F.REAL r) = REAL r
 	   | lpvar (F.STRING s) = STRING s
-	   | lpvar v = bug(concat["lpvar (", PPFlint.toStringValue v, ")"])
 
 	 (* lpvars : F.value list -> value list *)
 	 fun lpvars vl =

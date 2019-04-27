@@ -60,7 +60,7 @@ val ident = fn le : L.lexp => le
 val (iadd_prim, uadd_prim) =
   let val lt_int = LT.ltc_int
       val intOpTy = LT.ltc_parrow(LT.ltc_tuple[lt_int,lt_int],lt_int)
-      val addu = PO.ARITH{oper=PO.ADD, overflow=false, kind=PO.UINT 31}
+      val addu = PO.ARITH{oper=PO.ADD, overflow=false, kind=PO.UINT Target.defaultIntSz}
    in (L.PRIM(PO.IADD,intOpTy,[]), L.PRIM(addu, intOpTy, []))
   end
 

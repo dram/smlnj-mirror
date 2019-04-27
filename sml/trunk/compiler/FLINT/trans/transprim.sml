@@ -142,7 +142,7 @@ structure TransPrim : sig
 		      (* end case *))
 		val argt = lt_tup [baselt kind, lt_int]
 		val cmpShiftAmt =
-		      L.PRIM(PO.CMP{oper=PO.LEU, kind=PO.UINT 31}, lt_icmp, [])
+		      L.PRIM(PO.CMP{oper=PO.LEU, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
 		in
 		  mkFn argt (fn p =>
 		    mkLet (L.SELECT(0, p)) (fn w =>

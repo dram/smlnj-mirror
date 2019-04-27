@@ -253,7 +253,8 @@ fun get_vn([],v) = NONE
 fun subset (x,y) = (case SL.difference(x,y) of [] => true | _ => false)
 
 (* check if a CPS type is a small constant size object *)
-fun smallObj (FLTt _ | NUMt{sz=31, tag=true}) = true
+fun smallObj (FLTt _) = true
+  | smallObj (NUMt{sz, tag}) = tag
   | smallObj _ = false
 
 (* check if a record_kind is sharable by a function of fun_kind *)

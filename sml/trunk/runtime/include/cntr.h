@@ -3,6 +3,8 @@
  * COPYRIGHT (c) 1992 AT&T Bell Laboratories
  *
  * Large counters for large (> 2^31) values.
+ *
+ * 64BIT: We can use 64bit integers from <stdint.h> for these.
  */
 
 #ifndef _CNTR_

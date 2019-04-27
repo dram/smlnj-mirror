@@ -377,7 +377,7 @@ fun abcOpt (pgm as (progkind, progname, progargs, progbody)) = let
 		      br as
 			 (F.BRANCH (p as (NONE,
 					  PO.CMP {oper=PO.LTU,
-						  kind=PO.UINT 31},
+						  kind=PO.UINT 31}, (* 64BIT: FIXME *)
 					  lt_cmp,
 					  nil),
 				    [val1, val2],

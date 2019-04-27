@@ -703,7 +703,7 @@ struct
                 hp+ws)
 
           (*
-           * Int 31 tag optimizations.
+           * Tagged integer optimizations.
            * Note: if the tagging scheme changes then we'll have to redo these.
            *)
 
@@ -774,8 +774,8 @@ struct
 			| (v, w) => (untag(signed, v), untag(signed, w))
 		      (* end case *))
 		in
-		(* The only way a 31-bit div can overflow is when the result gets retagged.
-		 * Therefore, we can use M.DIVS instead of M.DIVT.
+		(* The only way a tagged-int div can overflow is when the result
+		 * gets retagged, therefore we can use M.DIVS instead of M.DIVT.
 		 *)
 		  tag (signed,
 		       if signed then M.DIVS (drm, ity, v, w) else M.DIVU (ity, v, w))
