@@ -462,8 +462,8 @@ structure PrimopBindings : sig
 (* FIXME: the names of these should reflect both the source and destination types. *)
 	  ("floor", f64_i, P.ROUND{floor=true, from = 64, to = intSz}) :-:
 	  ("round", f64_i, P.ROUND{floor=false, from = 64, to = intSz}) :-:
-	  ("real", i_f64, P.REAL{from = intSz, to = 64}) :-:
-	  ("real32", i32_f64, P.REAL{from = 32, to = 64})
+	  ("real", i_f64, P.INT_TO_REAL{from = intSz, to = 64}) :-:
+	  ("real32", i32_f64, P.INT_TO_REAL{from = 32, to = 64})
 (*
  :-:
 	  ("real64", i64_f64, P.REAL{from = 64, to = 64})

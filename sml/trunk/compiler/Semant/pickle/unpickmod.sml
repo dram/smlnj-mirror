@@ -344,7 +344,7 @@ structure UnpickMod : UNPICKMOD = struct
 	      | po #"\108" = P.INLRSHIFT (numkind ())
 	      | po #"\109" = P.INLRSHIFTL (numkind ())
 	      | po #"\110" = P.ROUND { floor = bool (), from = int (), to = int () }
-	      | po #"\111" = P.REAL { from = int (), to = int ()}
+	      | po #"\111" = P.INT_TO_REAL { from = int (), to = int ()}
 	      | po #"\112" = P.NUMSUBSCRIPT { kind = numkind (),
 					      checked = bool (),
 					      immutable = bool () }

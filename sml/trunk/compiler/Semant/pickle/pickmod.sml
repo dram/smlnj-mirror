@@ -386,7 +386,7 @@ in
 	      | P.INLRSHIFTL kind => ?109 $ [numkind kind]
 	      | P.ROUND { floor, from, to } =>
 		    ?110 $ [bool floor, int from, int to]
-	      | P.REAL { from, to } =>
+	      | P.INT_TO_REAL { from, to } =>
 		    ?111 $ [int from, int to]
 	      | P.NUMSUBSCRIPT { kind, checked, immutable } =>
 		    ?112 $ [numkind kind, bool checked, bool immutable]

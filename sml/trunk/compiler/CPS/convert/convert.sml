@@ -213,7 +213,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		PKP(P.PURE_ARITH{oper=oper,kind=numkind kind})
 	    | AP.ROUND{floor,from,to} =>
 		PKA(P.REAL_TO_INT{floor=floor, from=from, to=to})
-	    | AP.REAL{from,to} =>
+	    | AP.INT_TO_REAL{from,to} =>
 		PKP(P.INT_TO_REAL{from=from,to=to})
 
 	    | AP.SUBSCRIPTV => PKP P.SUBSCRIPTV

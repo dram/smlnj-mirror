@@ -59,7 +59,7 @@ structure Primop : PRIMOP =
       | ROUND of {				(* E: floor, round *)
 	    floor: bool, from: int, to: int
 	  }
-      | REAL of {				(* E: real, real32 *)
+      | INT_TO_REAL of {			(* E: real, real32 *)
 	    from: int, to: int
 	  }
       | NUMSUBSCRIPT of {			(* E: L?: ordof, etc. *)
@@ -227,8 +227,8 @@ structure Primop : PRIMOP =
 	    if floor then "floor_f" else "round_f",
 	    Int.toString from, "_i", Int.toString to
 	  ]
-      | prPrimop(REAL{from,to}) = concat [
-	    "real_i", Int.toString from, "_f", Int.toString to
+      | prPrimop(INT_TO_REAL{from,to}) = concat [
+	    "int", Int.toString from, "_to_real", Int.toString to
 	  ]
       | prPrimop(NUMSUBSCRIPT{kind,checked,immutable}) = concat [
 	    "numsubscript_", prNumkind kind,

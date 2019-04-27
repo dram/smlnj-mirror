@@ -56,7 +56,7 @@ signature PRIMOP =
       | ROUND of {				(* E: floor, round *)
 	    floor: bool, from: int, to: int
 	  }
-      | REAL of {				(* E: real, real32 *)
+      | INT_TO_REAL of {			(* E: real, real32 *)
 	    from: int, to: int
 	  }
       | NUMSUBSCRIPT of {			(* E: L?: ordof, etc. *)
