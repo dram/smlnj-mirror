@@ -131,6 +131,13 @@ for more details.
 | "use" fails silently when a function inside a structure raises an exception
 |=======
 
+The following unnumbered bugs were also fixed:
+--
+  * The `Word32.toInt` function did not raise `Overflow` when given an
+    argument with its sign bit set (__e.g.__, `Word32.toInt 0wx8002DE32;`
+    would return `187954`).
+--
+
 == Supported systems
 
 We believe that SML/NJ will build and run on the following systems, but have only

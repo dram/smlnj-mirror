@@ -94,6 +94,23 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/04/27]::
++
+Split the translation of primops to PLambda out into its own file
+(`compiler/FLINT/trans/transprim.sml`).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/04/27]::
++
+Fixed regression: `Word32.toInt 0wx8002DE32;` would return `187954` instead
+of raising `Overflow`.  The problem was a mistake in the way that the overflow
+trap was being generated in `MLRiscGen`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/04/26]::
 +
 Some minor primop cleanup.
@@ -106,6 +123,8 @@ Some minor primop cleanup.
 * Renamed `ABS` to `FABS`, since it is only used on floating-point numbers.
 * Renamed the CPS primitive operator `ROUND` to `REAL_TO_INT` and the operator
   `REAL` to `INT_TO_REAL`.
+* Renamed the `Primop.REAL` to `Primop.INT_TO_REAL` so that it is not confused
+  with the other constructors named `REAL`.
 --
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
