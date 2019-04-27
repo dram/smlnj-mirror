@@ -3,7 +3,7 @@ type Color
 type A = int
 val x = - : Color
 val y = - : Color
-d005b-fl.sml:20.17-20.22 Error: operator and operand don't agree [equality type required]
+d005b-fl.sml:20.17-20.22 Error: operator and operand do not agree [equality type required]
   operator domain: ''Z * ''Z
   operand:         Color * Color
   in expression:

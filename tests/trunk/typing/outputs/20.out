@@ -1,7 +1,7 @@
 val it = () : unit
-20.sml:8.5-8.13 Error: operator and operand don't agree [overload]
-  operator domain: 'Z * 'Z
-  operand:         'Y list * int
+20.sml:8.5-8.13 Error: operator and operand do not agree [overload conflict]
+  operator domain: [+ ty] * [+ ty]
+  operand:         'Z list * [int ty]
   in expression:
     f (nil,5)
 

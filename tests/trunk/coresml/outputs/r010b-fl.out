@@ -1,7 +1,7 @@
 val it = () : unit
-r010b-fl.sml:13.5-13.34 Error: operator and operand don't agree [tycon mismatch]
+r010b-fl.sml:13.5-13.34 Error: operator and operand do not agree [tycon mismatch]
   operator domain: 'Z list
-  operand:         int * int * int
+  operand:         [int ty] * [int ty] * [int ty]
   in expression:
     rev (7,6,5)
 

@@ -1,9 +1,9 @@
 val it = () : unit
 val left = fn : 'a * 'b -> 'a
 val right = fn : 'a * 'b -> 'b
-4.sml:10.5-10.30 Error: operator and operand don't agree [literal]
+4.sml:10.5-10.30 Error: operator and operand do not agree [overload conflict]
   operator domain: string -> string
-  operand:         int -> int
+  operand:         [+ ty] -> [+ ty]
   in expression:
     (right later) (fn x => x + 2)
 

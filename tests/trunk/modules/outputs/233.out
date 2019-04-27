@@ -1,5 +1,5 @@
 val it = () : unit
-233.sml:8.7-8.20 Error: operator and operand don't agree [equality type required]
+233.sml:8.7-8.20 Error: operator and operand do not agree [equality type required]
   operator domain: ''Z * ''Z
   operand:         a.t * b.t
   in expression:

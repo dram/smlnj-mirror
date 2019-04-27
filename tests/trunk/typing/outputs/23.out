@@ -1,8 +1,8 @@
 val it = () : unit
 type ('a,'b) fst = 'a
 val g = fn : 'a -> ('a,'b) fst
-23.sml:9.13-9.26 Error: operator and operand don't agree [literal]
-  operator domain: int * int
+23.sml:9.13-9.26 Error: operator and operand do not agree [overload conflict]
+  operator domain: [+ ty] * [+ ty]
   operand:         bool * bool
   in expression:
     f (true,false)

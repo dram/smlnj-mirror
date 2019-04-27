@@ -15,7 +15,7 @@ signature S =
     structure B : sig val x : bool end
     sharing B = A
   end
-66.sml:19.14-19.30 Error: pattern and expression in val dec don't agree [tycon mismatch]
+66.sml:19.14-19.30 Error: pattern and expression in val dec do not agree [tycon mismatch]
   pattern:    ?.X.t
   expression:    bool
   in declaration:

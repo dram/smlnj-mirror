@@ -24,7 +24,7 @@ signature S2 =
       end
     sharing D = C.B
   end
-60.sml:22.21-22.36 Error: operator and operand don't agree [tycon mismatch]
+60.sml:22.21-22.36 Error: operator and operand do not agree [tycon mismatch]
   operator domain: ?.X.t * ?.X.t
   operand:         ?.X.t * ?.X.t
   in expression:

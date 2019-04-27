@@ -1,7 +1,7 @@
 val it = () : unit
 functor F(X: sig end) :
          sig
-           type  t
+           type t
            val x : t
          end
 functor G(X: sig end) :
@@ -17,7 +17,7 @@ structure D :
   sig
     structure A : <sig>
   end
-56.sml:27.17-27.30 Error: operator and operand don't agree [tycon mismatch]
+56.sml:27.17-27.30 Error: operator and operand do not agree [tycon mismatch]
   operator domain: C.A.t * C.A.t
   operand:         C.A.t * D.A.t
   in expression:

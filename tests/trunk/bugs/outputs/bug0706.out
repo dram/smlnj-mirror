@@ -11,7 +11,7 @@ signature QUEUE =
     exception E
     val hd : 'a T -> 'b T
   end
-bug0706.sml:21.1-21.29 Error: value type in structure doesn't match signature spec
+bug0706.sml:21.1-21.29 Error: value type in structure does not match signature spec
     name: hd
   spec:   'a Queue1.T -> 'b Queue1.T
   actual: 'a list -> 'a

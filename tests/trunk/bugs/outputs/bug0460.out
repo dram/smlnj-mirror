@@ -1,6 +1,6 @@
 val it = () : unit
 signature A = sig val s : (unit -> 'a) -> unit end
-bug0460.sml:4.1-4.43 Error: value type in structure doesn't match signature spec
+bug0460.sml:4.1-4.43 Error: value type in structure does not match signature spec
     name: s
   spec:   (unit -> 'a) -> unit
   actual: (unit -> 'a) -> 'a

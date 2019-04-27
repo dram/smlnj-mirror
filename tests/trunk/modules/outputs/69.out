@@ -14,9 +14,9 @@ signature S =
   sig
     structure E : sig type t end
   end
-69.sml:26.7-26.20 Error: pattern and expression in val dec don't agree [literal]
+69.sml:26.7-26.20 Error: pattern and expression in val dec do not agree [overload conflict]
   pattern:    ?.X.t
-  expression:    int
+  expression:    [int ty]
   in declaration:
     x : ?.X.t = 3
 

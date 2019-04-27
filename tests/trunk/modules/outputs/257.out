@@ -6,7 +6,7 @@ signature S =
     val f : unit -> A.t list
   end
 functor F(<param>: sig type r end) : sig val f : (unit -> r) -> r end
-257.sml:22.9-31.4 Error: value type in structure doesn't match signature spec
+257.sml:22.9-31.4 Error: value type in structure does not match signature spec
     name: g
   spec:   ?.p -> ?.u option
   actual: 'a * 'b -> ?.r

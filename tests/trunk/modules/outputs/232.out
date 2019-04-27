@@ -1,6 +1,6 @@
 val it = () : unit
 232.sml:4.64-4.67 Error: nonlocal path in type sharing: u
-232.sml:8.7-8.20 Error: operator and operand don't agree [equality type required]
+232.sml:8.7-8.20 Error: operator and operand do not agree [equality type required]
   operator domain: ''Z * ''Z
   operand:         a.t * b.t
   in expression:

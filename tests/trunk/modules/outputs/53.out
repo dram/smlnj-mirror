@@ -16,7 +16,7 @@ structure D :
     structure C : <sig>
   end
 53.sml:46.18-46.25 Error: nonlocal path in structure sharing: D.B
-53.sml:44.9-52.4 Error: value type in structure doesn't match signature spec
+53.sml:44.9-52.4 Error: value type in structure does not match signature spec
     name: v
   spec:   ?.A.t
   actual: ?.D.A.t

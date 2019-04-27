@@ -1,7 +1,7 @@
 val it = () : unit
-r017b-fl.sml:20.34-20.39 Error: operator and operand don't agree [literal]
+r017b-fl.sml:20.34-20.39 Error: operator and operand do not agree [overload conflict]
   operator domain: bool * bool
-  operand:         bool * int
+  operand:         bool * [int ty]
   in expression:
     y = 5
 

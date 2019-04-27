@@ -13,7 +13,7 @@ signature S2 =
       end
     sharing C.A = A
   end
-1.sml:24.12-24.25 Error: operator and operand don't agree [tycon mismatch]
+1.sml:24.12-24.25 Error: operator and operand do not agree [tycon mismatch]
   operator domain: ?.t * ?.t
   operand:         ?.t * ?.t
   in expression:

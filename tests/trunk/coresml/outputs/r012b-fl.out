@@ -1,7 +1,7 @@
 val it = () : unit
 exception exc_test
-r012b-fl.sml:15.5-15.34 Error: expression and handler don't agree [literal]
-  body:          int
+r012b-fl.sml:15.5-15.34 Error: expression and handler do not agree [overload conflict]
+  body:          [int ty]
   handler range:          bool
   in expression:
     1

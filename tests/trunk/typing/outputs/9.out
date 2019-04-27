@@ -1,7 +1,7 @@
 val it = () : unit
-9.sml:4.26-4.30 Error: operator and operand don't agree [literal]
+9.sml:4.26-4.30 Error: operator and operand do not agree [overload - user bound tyvar]
   operator domain: 'a
-  operand:         int
+  operand:         [int ty]
   in expression:
     x 10
 

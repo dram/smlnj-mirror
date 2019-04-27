@@ -1,8 +1,8 @@
 val it = () : unit
 r031c-fl.sml:14.4-14.22 Error: type variable in top level exception type
-r031c-fl.sml:16.4-16.7 Error: operator and operand don't agree [literal]
+r031c-fl.sml:16.4-16.7 Error: operator and operand do not agree [overload - user bound tyvar]
   operator domain: '_a
-  operand:         int
+  operand:         [int ty]
   in expression:
     A 5
 

@@ -6,7 +6,7 @@ bug0027.sml:3.5-4.41 Error: parameter or result constraints of clauses do not ag
   in declaration:
     compose = (fn nil => (fn x => x)
                 | (f :: fl,x) => (compose fl) (f x))
-bug27.sml:3.5-4.41 Error: right-hand-side of clause doesn't agree with function result type [circularity]
+bug0027.sml:3.5-4.41 Error: right-hand-side of clause does not agree with function result type [circularity]
   expression:  'Z
   result type:  'Z -> 'Z
   in declaration:

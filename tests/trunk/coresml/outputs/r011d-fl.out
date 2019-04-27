@@ -1,6 +1,6 @@
 val it = () : unit
-r011d-fl.sml:15.5-15.15 Error: expression doesn't match constraint [literal]
-  expression: int
+r011d-fl.sml:15.5-15.15 Error: expression does not match constraint [overload - user bound tyvar]
+  expression: [int ty]
   constraint: 'a
   in expression:
     1: 'a

@@ -1,6 +1,6 @@
 val it = () : unit
 type t = int -> int * bool
-r050b-fl.sml:17.5-17.26 Error: pattern and expression in val dec don't agree [tycon mismatch]
+r050b-fl.sml:17.5-17.26 Error: pattern and expression in val dec do not agree [tycon mismatch]
   pattern:    t
   expression:    int -> int * int
   in declaration:

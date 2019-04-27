@@ -2,7 +2,7 @@ val it = () : unit
 exception A
 val x = A(-) : exn
 val y = A(-) : exn
-m003a-fl.sml:18.5-18.17 Error: operator and operand don't agree [equality type required]
+m003a-fl.sml:18.5-18.17 Error: operator and operand do not agree [equality type required]
   operator domain: ''Z * ''Z
   operand:         exn * exn
   in expression:

@@ -1,5 +1,5 @@
 val it = () : unit
-r011e-fl.sml:15.5-15.31 Error: expression doesn't match constraint [UBOUND match]
+r011e-fl.sml:15.5-15.31 Error: expression does not match constraint [UBOUND match]
   expression: 'a -> 'a
   constraint: 'a -> 'b
   in expression:

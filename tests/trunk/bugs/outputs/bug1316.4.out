@@ -4,7 +4,7 @@ bug1316.4.sml:3.5-4.48 Error: types of rules do not agree [overload conflict]
   this rule: [+ ty] * [+ ty] list -> [+ ty] list
   in rule:
     (x,L) => x + hd L :: (addList x) (tl L)
-bug1316.4.sml:3.5-4.48 Error: right-hand-side of clause doesn't agree with function result type [overload conflict]
+bug1316.4.sml:3.5-4.48 Error: right-hand-side of clause does not agree with function result type [overload conflict]
   expression:  [+ ty] list -> [+ ty]
   result type:  [+ ty] list -> [+ ty] list
   in declaration:

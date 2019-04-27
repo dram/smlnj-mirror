@@ -5,7 +5,7 @@ signature S =
     val x : ('a,int) t
   end
 bug1511.1.sml:9.1-13.4 Error: type t does not match definitional specification
-bug1511.1.sml:9.1-13.4 Error: value type in structure doesn't match signature spec
+bug1511.1.sml:9.1-13.4 Error: value type in structure does not match signature spec
     name: x
   spec:   ('a,int) [E]
   actual: 'a -> 'a

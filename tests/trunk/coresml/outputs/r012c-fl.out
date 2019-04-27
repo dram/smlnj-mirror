@@ -1,7 +1,7 @@
 val it = () : unit
 datatype test = testcon
-r012c-fl.sml:15.5-15.30 Error: types of rules don't agree [tycon mismatch]
-  earlier rule(s): test -> int
+r012c-fl.sml:15.5-15.30 Error: types of rules do not agree [tycon mismatch]
+  earlier rule(s): test -> [int ty]
   this rule: exn -> 'Z
   in rule:
     exn => raise exn

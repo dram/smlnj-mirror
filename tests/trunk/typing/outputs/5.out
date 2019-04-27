@@ -1,6 +1,6 @@
 val it = () : unit
-5.sml:11.5-11.10 Error: operator is not a function [literal]
-  operator: int
+5.sml:11.5-11.10 Error: operator is not a function [overload conflict]
+  operator: [int ty]
   in expression:
     (g ()) ()
 

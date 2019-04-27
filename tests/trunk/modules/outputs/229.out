@@ -27,7 +27,7 @@ structure d :
     structure c : <sig>
   end
 val it = true : bool
-229.sml:39.7-39.22 Error: operator and operand don't agree [tycon mismatch]
+229.sml:39.7-39.22 Error: operator and operand do not agree [tycon mismatch]
   operator domain: a.t * a.t
   operand:         a.t * ?.c.t
   in expression:

@@ -1,5 +1,5 @@
 val it = () : unit
-r017k-fl.sml:15.47-15.52 Error: operator and operand don't agree [UBOUND match]
+r017k-fl.sml:15.47-15.52 Error: operator and operand do not agree [UBOUND match]
   operator domain: 'a
   operand:         'a -> 'a
   in expression:

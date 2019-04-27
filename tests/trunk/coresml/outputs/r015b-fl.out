@@ -1,7 +1,7 @@
 val it = () : unit
-r015b-fl.sml:13.9-15.22 Error: types of rules don't agree [literal]
+r015b-fl.sml:13.9-15.22 Error: types of rules do not agree [overload conflict]
   earlier rule(s): bool -> bool
-  this rule: int -> int
+  this rule: [+ ty] -> [+ ty]
   in rule:
     y => y + 3
 
