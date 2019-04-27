@@ -163,8 +163,8 @@ struct
   val zero = M.LI 0
   val one  = M.LI 1
   val two  = M.LI 2
-  val allOnes = M.LI(ConstArith.bNot(ity, 0))			(* machine word all 1s *)
-  val allOnes' = M.LI(ConstArith.bNot(Target.defaultIntSz, 0))	(* tagged int all 1s *)
+  val allOnes = M.LI(ConstArith.bNot(ity, 0))			(* machine-word all 1s *)
+  val allOnes' = M.LI(ConstArith.bNot(Target.defaultIntSz, 0))	(* tagged-int all 1s *)
   val signBit = M.LI(IntInf.<<(1, Word.fromInt ity - 0w1))
   val mlZero = one (* tagged zero *)
   val offp0 = CPS.OFFp 0
@@ -1802,7 +1802,7 @@ raise ex)
 		      def(gc, x, vreg, e, 0)
 		    end
 		else if (from = ity) andalso (to = Target.defaultIntSz)
-		  then let
+		  then let (* native word to tagged int conversion *)
 		    val vreg = regbind v
 		    val tmp = newReg INT
 		    val tmpR = M.REG(ity, tmp)
@@ -1813,7 +1813,9 @@ raise ex)
 		      emit(branchWithProb(
 			M.BCC(M.CMP(ity, M.LEU, vreg, tmpR),lab),
 			SOME Probability.likely));
-		      emit(M.MV(ity, tmp, M.SLL(ity, tmpR, one)));
+		    (* generate a trap by adding allOnes' to itself.  This code assumes that
+		     * ity = Target.defaultIntSz+1.
+		     *)
 		      emit(M.MV(ity, tmp, M.ADDT(ity, tmpR, tmpR)));
 		      defineLabel lab;
 		      defTAGINT(x, tagUnsigned(vreg), e, 0)
