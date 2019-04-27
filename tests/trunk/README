@@ -1,7 +1,7 @@
 		   SML/NJ Regression Testing
 		   =========================
 
-This directoy contains regression test suites and shell scripts for
+This directory contains regression test suites and shell scripts for
 running them.
 
 There are 5 active test suites, found in the directories:
