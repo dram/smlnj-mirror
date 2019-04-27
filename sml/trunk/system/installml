@@ -78,8 +78,8 @@ if [ ! -d $LIB_DIR ] ; then
 fi
 
 if $CLEAN ; then
-    echo "cleaning $twoup/lib and $MAIN_HEAP_DIR"
-    rm -rf $twoup/lib/* $MAIN_HEAP_DIR/*
+    echo "cleaning $MAIN_LIB_DIR and $MAIN_HEAP_DIR"
+    rm -rf $MAIN_LIB_DIR/* $MAIN_HEAP_DIR/*
 fi
 
 #
