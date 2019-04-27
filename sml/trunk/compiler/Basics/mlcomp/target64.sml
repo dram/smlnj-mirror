@@ -11,6 +11,7 @@ structure Target : TARGET =
 
     val mlValueSz = 64
     val defaultIntSz = 63
+    val fixedIntSz = 64
     val defaultRealSz = 64
     val is64 = true
 

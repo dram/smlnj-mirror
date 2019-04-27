@@ -16,6 +16,9 @@ signature TARGET =
   (* the size of the default "int" type (== mlValueSz-1) *)
     val defaultIntSz : int
 
+  (* the size of the FixedInt.int type *)
+    val fixedIntSz : int
+
   (* the default size of the "real" type (usually 64-bits) *)
     val defaultRealSz : int
 
