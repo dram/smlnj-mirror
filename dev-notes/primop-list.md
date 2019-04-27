@@ -911,10 +911,10 @@ bound to `Word32` (even though there is a `Word64` structure).
 #### Conversions between integers and reals
 
   * `cvt_int_to_real64 : int -> real64`<br />
-    `P.REAL{from=<int-size>, to=64}`
+    `P.INT_TO_REAL{from=<int-size>, to=64}`
 
   * `cvt_int32_to_real64 : int32 -> real64`<br />
-    `P.REAL{from=32, to=64}`
+    `P.INT_TO_REAL{from=32, to=64}`
 
   * `floor_real64_to_int : real64 -> int`<br />
     `P.ROUND{floor=true, from=64, to=<int-size>}`
