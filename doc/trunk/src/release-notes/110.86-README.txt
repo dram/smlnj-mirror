@@ -63,7 +63,7 @@ Further improvements to the new implementation of ASDL.
 === Compiler
 
 We have made a number of changes to internal representations and
-implementation as part of the preparation for supporting 64-bit targets.
+implementations as part of the preparation for supporting 64-bit targets.
 We summarize these below (see the {history}[change log] for details).
 --
   * Moved CPS related code out of the FLINT directory and into its own
@@ -83,6 +83,8 @@ We summarize these below (see the {history}[change log] for details).
 --
 
 We have also made improvements to the core 64-bit arithmetic operations.
+
+Culled unused flags from the `Control` structure (mostly from `Control.CG`).
 
 === Interactive System
 
