@@ -96,6 +96,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2019/04/28]::
 +
+Renamed `DTAG_raw32` to `DTAG_raw`, since the semantics on 64-bit systems
+will be to require word-size aligned raw data.  Also renamed `ML_AllocRaw32`
+to `ML_AllocRaw` and `ML_ShrinkRaw32` to `ML_ShrinkRaw` for similar reasons.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/04/28]::
++
 Removed unused flags from the `Control` structure; most of these came
 from `Control.CG`, where roughly 20 out of 60 flags were no longer used.
 +
