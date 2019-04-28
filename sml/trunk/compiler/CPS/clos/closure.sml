@@ -889,6 +889,7 @@ fun closureUbGen(cn, free, rk, fk, env) =
    in (mkClosure(cn, ul, cr, rk, fk, env), cr)
   end
 
+(* 64BIT: on 64-bit targets, there is no need to split the data *)
 fun closureUnboxed(cn,int32free,otherfree,fk,env) =
   (case (int32free, otherfree)
     of ([], []) => bug "unexpected case in closureUnboxed 333"

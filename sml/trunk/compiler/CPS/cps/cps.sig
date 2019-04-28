@@ -8,17 +8,14 @@ signature CPS =
   sig
 
     datatype record_kind
-      = RK_VECTOR
-      | RK_RECORD
-      | RK_SPILL
-      | RK_ESCAPE
-      | RK_EXN
-      | RK_CONT
-      | RK_FCONT
-      | RK_KNOWN
-      | RK_BLOCK
-      | RK_FBLOCK
-      | RK_I32BLOCK
+      = RK_VECTOR	(* vector *)
+      | RK_RECORD	(* SML record/tuple *)
+      | RK_ESCAPE	(* closure record for escaping function *)
+      | RK_CONT		(* closure record for continuation *)
+      | RK_FCONT	(* closure record for unboxed 64-bit aligned data *)
+      | RK_KNOWN	(* closure record for known function *)
+      | RK_FBLOCK	(* 64-bit aligned raw data record *)
+      | RK_I32BLOCK	(* word-aligned raw data record *)
 
     datatype pkind = VPT | RPT of int | FPT of int
 

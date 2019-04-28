@@ -170,13 +170,10 @@ structure PPCps : PPCPS =
     and rkstring rk = (case rk
 	   of RK_VECTOR => "RK_VECTOR"
 	    | RK_RECORD => "RK_RECORD"
-	    | RK_SPILL => "RK_SPILL"
 	    | RK_ESCAPE => "RK_ESCAPE"
-	    | RK_EXN => "RK_EXN"
 	    | RK_CONT => "RK_CONT"
 	    | RK_FCONT => "RK_FCONT"
 	    | RK_KNOWN => "RK_KNOWN"
-	    | RK_BLOCK => "RK_BLOCK"
 	    | RK_FBLOCK => "RK_FBLOCK"
 	    | RK_I32BLOCK => "RK_I32BLOCK"
 	  (* end case *))

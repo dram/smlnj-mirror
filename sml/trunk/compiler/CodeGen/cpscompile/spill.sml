@@ -1,6 +1,10 @@
 (* spill.sml
  *
  * Copyright 1996 by Bell Laboratories
+ *
+ * NOTE: this code has been superseded by the implementation in spill-new.sml.
+ * We have removed the RK_SPILL record kind from CPS, so it will no longer
+ * compile.
  *)
 
 signature SPILL = sig

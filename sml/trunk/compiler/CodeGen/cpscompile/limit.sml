@@ -94,7 +94,6 @@ fun path escapes fl =
                      else d+n
 	        | _ => d)
         | g(d, APP(_, _)) = d
-(*      | g(d, RECORD(RK_SPILL,vl,_,e)) = g(d + (length(vl) * 4) + 1,e) *)
         | g(d, FIX _) = error "8932 in limit"
 
       and h(d, RECORD(_,_,_,e)) = h(d+1, e)
