@@ -96,6 +96,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2019/04/27]::
 +
+Split the contraction of primitive operators out of the `Contract`
+structure into its own `ContractPrim` structure.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/04/27]::
++
 Split the translation of primops to PLambda out into its own file
 (`compiler/FLINT/trans/transprim.sml`).
 +
