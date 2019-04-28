@@ -45,7 +45,7 @@ signature CONTRACT = sig
                   -> CPS.function
 end (* signature CONTRACT *)
 
-functor Contract(MachSpec : MACH_SPEC) : CONTRACT =
+structure Contract : CONTRACT =
 struct
 
 open CPS
@@ -68,7 +68,7 @@ local
 in
 val tagIntTy = NUMt tt
 fun tagInt n = NUM{ival = n, ty = tt}
-fun tagInt' n = tagInt(IntInf.fromInt n)
+fun tagInt' n = tagInt(IntInf.fromInt n)	(* will be unused *)
 fun boxIntTy sz = NUMt(bt sz)
 fun boxInt {ival, ty} = NUM{ival = ival, ty = bt ty}
 end
@@ -174,7 +174,8 @@ fun equalUptoAlpha(ce1,ce2) =
   in  equ nil (ce1,ce2)
   end
 
-datatype info
+datatype info = datatype ContractPrim.info
+(*
   = FNinfo of {
 	args: lvar list,
 	body : cexp option ref,
@@ -187,6 +188,7 @@ datatype info
   | WRPinfo of P.numkind * value				(* P.wrap of a value *)
   | IFIDIOMinfo of {body : (lvar * cexp * cexp) option ref}
   | MISCinfo of cty
+*)
 
 fun contract {function=(fkind,fvar,fargs,ctyl,cexp), click, last, size=cpssize} =
 (* NOTE: the "last" argument is currently ignored. *)
@@ -389,6 +391,11 @@ fun cvtPreCondition(n:int, n2, x, v2) =
   n = n2 andalso usedOnce(x) andalso sameLvar(x, ren v2)
 fun cvtPreCondition_inf(x, v2) =
   usedOnce(x) andalso sameLvar(x, ren v2)
+
+(* contration for primops *)
+val arith = ContractPrim.arith
+val pure = ContractPrim.pure get
+val branch = ContractPrim.branch get
 
 val rec reduce = fn cexp => g NONE cexp
 and g = fn hdlr =>
@@ -676,14 +683,19 @@ let val rec g' =
 	(click "U(2)"; ARITH(P.TESTU{from=p, to=m}, [ren v], x2, t2, g' e2))
       else ARITH(P.TESTU{from=p, to=n}, [ren v], x, t, g' e)
 
-   | ARITH(i,vl,w,t,e) =>
-      let val vl' = map ren vl
-      in  (if !CG.arithopt
-	   then (newname(w,arith(i, vl')); app use_less vl'; g' e)
-	   else raise ConstFold)
-	  handle ConstFold => ARITH(i, vl', w, t, g' e)
-	       | Overflow => ARITH(i, vl', w, t, g' e)
-      end
+   | ARITH(rator, vl, w, t, e) => let
+       val vl' = List.map ren vl
+       in
+	 if !CG.arithopt
+	   then (case arith(rator, vl')
+	      of SOME v => (
+		   List.app use_less vl';
+		   newname (w, v);
+		   g' e)
+	       | NONE => ARITH(rator, vl', w, t, g' e)
+	     (* end case *))
+	   else ARITH(rator, vl', w, t, g' e)
+       end
 
    | PURE(P.TRUNC{from=p, to=n}, [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
       fun skip() = PURE(P.TRUNC{from=p, to=n}, [ren v], x, t, g' e)
@@ -855,242 +867,75 @@ let val rec g' =
 	 if m >= p then checkClicked ("C5", PURE, P.COPY{from=p, to=m})
 	 else checkClicked ("C6", ARITH, P.TEST{from=p, to=m})
      end
-   | PURE(i,vl,w,t,e) =>
-      let val vl' = map ren vl
-	  val {used,...} = get w
-      in  if !used=0 andalso !CG.deadvars
-	  then (click "m"; app use_less vl'; g' e)
-	  else ((if !CG.arithopt
-	         then (newname(w,pure(i, vl')); g' e)
-	         else raise ConstFold)
-	        handle ConstFold =>
-		    let val e' = g' e
-		    in  if !used=0 andalso deadup
-			then (app use_less vl'; click "*"; e')
-			else PURE(i, vl', w, t, e')
-		    end)
-      end
+   | PURE(rator, vl, w, t, e) => let
+       val vl' = List.map ren vl
+       val {used, ...} = get w
+       fun rest () = let
+	     val e' = g' e
+	     in
+	       if !used=0 andalso deadup
+		 then (List.app use_less vl'; click "*"; e')
+		 else PURE(rator, vl', w, t, e')
+	     end
+       in
+	 if !used=0 andalso !CG.deadvars
+	   then (click "m"; List.app use_less vl'; g' e)
+         else if !CG.arithopt
+	   then (case pure(rator, vl')
+	      of SOME v => (
+		   List.app use_less vl';
+		   newname(w, v);
+		   g' e)
+	       | NONE => rest()
+	    (* end case *))
+	   else rest()
+       end
    | RCC(k,l,p,vl,wtl,e) =>
      (* leave raw C calls alone *)
        RCC (k, l, p, map ren vl, wtl, g' e)
-   | BRANCH(i,vl,c,e1,e2) =>
-      let val vl' = map ren vl
-	  fun h() = (if !CG.branchfold andalso equalUptoAlpha(e1,e2)
-		     then (click "z";
-			   app use_less vl';
-			   newname(c,tagInt 0);
-			   drop_body e2;
-			   g' e1)
-		     else if !CG.comparefold
-		     then if branch(i,vl')
-			       then (newname(c,tagInt 0);
-				     app use_less vl';
-				     drop_body e2;
-				     g' e1)
-			       else (newname(c,tagInt 0);
-				     app use_less vl';
-				     drop_body e1;
-				     g' e2)
-		     else raise ConstFold)
-		 handle ConstFold => BRANCH(i, vl', c, g' e1, g' e2)
-	  fun getifidiom f =
-	    let val f' = ren f
-	    in  case f'
-		  of VAR v =>
-		      (case get v
-			 of {info=IFIDIOMinfo{body},...} => SOME body
-			  | _ => NONE)
-		   | _ => NONE
-	    end
-      in  case (e1,e2)
-           of (APP(VAR f, [NUM{ival=1, ...}]), APP(VAR f', [NUM{ival=0, ...}])) =>
-	       (case (f=f', getifidiom(VAR f))
-                  of (true,
-	              SOME(body as ref(SOME(c',a,b)))) =>
-		        (* Handle IF IDIOM *)
-		        (newname(c', VAR c);
-			 body:=NONE;
-			 (* NOTE: could use vl' here instead of vl. *)
-			 g'(BRANCH(i,vl,c,a,b)))
-	           | _ => h())
-	    | _ => h()
-      end
+   | BRANCH(rator, vl, c, e1, e2) => let
+       val vl' = List.map ren vl
+       fun skip () = if !CG.branchfold andalso equalUptoAlpha(e1, e2)
+	       then (
+		 click "z";
+		 app use_less vl';
+		 newname(c,tagInt 0);
+		 drop_body e2;
+		 g' e1)
+	       else BRANCH(rator, vl', c, g' e1, g' e2)
+       fun getifidiom f = (case ren f
+	      of VAR v => (case get v
+		    of {info=IFIDIOMinfo{body},...} => SOME body
+		     | _ => NONE
+		   (* end case *))
+	       | _ => NONE
+	     (* end case *))
+     (* first we try to contract the condition *)
+       val cond = if !CG.comparefold then branch (rator, vl') else NONE
+       in
+	 case cond
+	  of NONE => (case (e1, e2)
+	        of (APP(VAR f, [NUM{ival=1, ...}]), APP(VAR f', [NUM{ival=0, ...}])) =>
+		     if f=f'
+		       then (case getifidiom(VAR f)
+			  of SOME(body as ref(SOME(c', a, b))) => (
+			     (* handle "if idiom" *)
+			       newname(c', VAR c);
+			       body := NONE;
+			       g' (BRANCH(rator, vl, c, a, b))) (* NOTE: could use vl' here instead of vl. *)
+			   | _ => skip()
+			 (* end case *))
+		       else skip()
+		 | _ => skip()
+	       (* end case *))
+	   | SOME b => (
+	        List.app use_less vl';
+	        newname(c, tagInt 0);
+		if b then (drop_body e2; g' e1) else (drop_body e1; g' e2))
+	 (* end case *)
+       end
 in  g'
 end
-
-(* statically evaluate a boolean test; either return the result or raise ConstFold *)
- and branch =
-    fn (P.UNBOXED, vl) => not(branch(P.BOXED, vl))
-     | (P.BOXED, [NUM{ty={tag, ...}, ...}]) => (click "n"; not tag)
-     | (P.BOXED, [STRING s]) => (click "o"; true)
-     | (P.BOXED, [VAR v]) => (case get v
-	 of {info=RECinfo _, ...} => (click "p"; true)
-	  | _ => raise ConstFold)
-     | (P.CMP{oper=P.LT, ...}, [VAR v, VAR w]) =>
-	  if v=w then (click "v"; false) else raise ConstFold
-     | (P.CMP{oper=P.LTE, ...}, [VAR v, VAR w]) =>
-	  if v=w then (click "v"; true) else raise ConstFold
-     | (P.CMP{oper=P.LT, kind=P.INT _}, [NUM i, NUM j]) => (
-	  click "w"; #ival i < #ival j)
-     | (P.CMP{oper=P.LT, kind=P.UINT sz}, [NUM i, NUM j]) => (
-	  click "w"; CA.uLess(sz, #ival i, #ival j))
-     | (P.CMP{oper=P.LTE, kind=P.INT _}, [NUM i, NUM j]) => (
-	  click "w"; #ival i <= #ival j)
-     | (P.CMP{oper=P.LTE, kind=P.UINT sz}, [NUM i, NUM j]) => (
-	  click "w"; CA.uLessEq(sz, #ival i, #ival j))
-     | (P.CMP{oper=P.GT, kind}, [w,v]) =>
-	  branch(P.CMP{oper=P.LT, kind=kind}, [v,w])
-     | (P.CMP{oper=P.GTE, kind}, vl) =>
-	  not (branch(P.CMP{oper=P.LT, kind=kind}, vl))
-     | (P.CMP{oper=P.EQL, kind=P.FLOAT _}, _) => raise ConstFold (* in case of NaN's *)
-     | (P.CMP{oper=P.EQL, ...}, [VAR v, VAR w]) =>
-	  if v=w then  (click "v"; true) else raise ConstFold
-     | (P.CMP{oper=P.EQL, ...}, [NUM i, NUM j]) => (click "w"; #ival i = #ival j)
-     | (P.CMP{oper=P.NEQ, kind}, vl) =>
-	  not(branch(P.CMP{oper=P.EQL, kind=kind}, vl))
-     | (P.PEQL, [NUM i, NUM j]) => (click "w"; #ival i = #ival j)
-     | (P.PNEQ, vl) => not(branch(P.PEQL, vl))
-     | _ => raise ConstFold
-
-  and arith =
-    fn (P.ARITH{oper=P.MUL, ...}, [NUM{ival=1, ...}, v]) => (click "F"; v)
-     | (P.ARITH{oper=P.MUL, ...}, [v, NUM{ival=1, ...}]) => (click "G"; v)
-     | (P.ARITH{oper=P.MUL, ...}, [v as NUM{ival=0, ...}, _]) => (click "H"; v)
-     | (P.ARITH{oper=P.MUL, ...}, [_, v as NUM{ival=0, ...}]) => (click "I"; v)
-     | (P.ARITH{oper=P.MUL, kind=P.INT sz}, [NUM i, NUM j]) => let
-	  val x = CA.sMul(sz, #ival i, #ival j)
-	  in
-	    click "J"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.ARITH{oper=P.QUOT, ...}, [v, NUM{ival=1, ...}]) => (click "K"; v)
-     | (P.ARITH{oper=P.QUOT, ...}, [_, NUM{ival=0, ...}]) => raise ConstFold
-     | (P.ARITH{oper=P.QUOT, kind=P.INT sz}, [NUM i, NUM j]) => let
-	  val x = CA.sQuot(sz, #ival i, #ival j)
-	  in
-	    click "L"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.ARITH{oper=P.DIV, ...}, [v, NUM{ival=1, ...}]) => (click "K"; v)
-     | (P.ARITH{oper=P.DIV, ...}, [_, NUM{ival=0, ...}]) => raise ConstFold
-     | (P.ARITH{oper=P.DIV, kind=P.INT sz}, [NUM i, NUM j]) => let
-	  val x = CA.sDiv(sz, #ival i, #ival j)
-	  in
-	    click "L"; NUM{ival = x, ty = #ty i}
-	  end
-     (* FIXME: should we do anything for mod or rem here? *)
-     | (P.ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => (click "M"; v)
-     | (P.ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => (click "N"; v)
-     | (P.ARITH{oper=P.ADD, kind=P.INT sz}, [NUM i, NUM j]) => let
-	  val x = CA.sAdd(sz, #ival i, #ival j)
-	  in
-	    click "O"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => (click "P"; v)
-     | (P.ARITH{oper=P.SUB, kind=P.INT sz}, [NUM i, NUM j]) => let
-	  val x = CA.sSub(sz, #ival i, #ival j)
-	  in
-	    click "Q"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.ARITH{oper=P.NEG, kind=P.INT sz}, [NUM i]) => let
-	  val x = CA.sNeg(sz, #ival i)
-	  in
-	    click "X"; NUM{ival = x, ty = #ty i}
-	  end
-     | _ => raise ConstFold
-
-(* pure arithmetic operations; raises ConstFold when there is no reduction *)
-  and pure =
-    fn (P.PURE_ARITH{oper=P.MUL, ...}, [NUM{ival=1, ...}, v]) => (click "F"; v)
-     | (P.PURE_ARITH{oper=P.MUL, ...}, [v, NUM{ival=1, ...}]) => (click "G"; v)
-     | (P.PURE_ARITH{oper=P.MUL, ...}, [v as NUM{ival=0, ...}, _]) => (click "H"; v)
-     | (P.PURE_ARITH{oper=P.MUL, ...}, [_, v as NUM{ival=0, ...}]) => (click "I"; v)
-(* FIXME: 32-bit dependent code *)
-     | (P.PURE_ARITH{oper=P.MUL, kind=P.UINT sz}, [NUM i, NUM j]) => let
-          val x = CA.uMul(sz, #ival i, #ival j)
-	  in
-	    click "J"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => (click "M"; v)
-     | (P.PURE_ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => (click "N"; v)
-     | (P.PURE_ARITH{oper=P.ADD, kind=P.UINT sz}, [NUM i, NUM j]) => let
-	  val x = CA.uAdd(sz, #ival i, #ival j)
-	  in
-	    click "O"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => (click "P"; v)
-     | (P.PURE_ARITH{oper=P.SUB, kind=P.UINT sz}, [NUM i, NUM j]) => let
-	  val x = CA.uSub(sz, #ival i, #ival j)
-	  in
-	    click "Q"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [i as NUM{ival=0, ...}, _]) => (click "S"; i)
-     | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [v, NUM{ival=0, ...}]) => (click "T"; v)
-     | (P.PURE_ARITH{oper=P.RSHIFT, kind}, [NUM i, NUM j]) => let
-	  val x = CA.sShR(sizeOfKind kind, #ival i, #ival j)
-	  in
-	    click "R"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [i as NUM{ival=0, ...}, _]) => (click "S"; i)
-     | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [v, NUM{ival=0, ...}]) => (click "T"; v)
-     | (P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT sz}, [NUM i, NUM j]) => let
-	  val x = CA.uShR(sz, #ival i, #ival j)
-	  in
-	    click "R"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v as NUM{ival=0, ...}, _]) => (click "Z"; v)
-     | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v, NUM{ival=0, ...}]) => (click "1"; v)
-     | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.INT sz}, [NUM i, NUM j]) => (let
-	  val x = CA.sShL(sz, #ival i, #ival j)
-	  in
-	    click "Y"; NUM{ival = x, ty = #ty i}
-	  end handle Overflow => raise ConstFold)
-     | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) => let
-	  val x = CA.uShL(sz, #ival i, #ival j)
-	  in
-	    click "Y"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.ANDB, ...}, [v as NUM{ival=0, ...}, _]) => (click "0"; v)
-     | (P.PURE_ARITH{oper=P.ANDB, ...}, [_, v as NUM{ival=0, ...}]) => (click "T"; v)
-     | (P.PURE_ARITH{oper=P.ANDB, kind}, [NUM i, NUM j]) => let
-	  val x = CA.bAnd(sizeOfKind kind, #ival i, #ival j)
-	  in
-	    click "9"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.ORB, ...}, [NUM{ival=0, ...}, v]) => (click "3"; v)
-     | (P.PURE_ARITH{oper=P.ORB, ...}, [v, NUM{ival=0, ...}]) => (click "4"; v)
-     | (P.PURE_ARITH{oper=P.ORB, kind}, [NUM i, NUM j]) => let
-	  val x = CA.bOr(sizeOfKind kind, #ival i, #ival j)
-	  in
-	    click "2"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.XORB, ...}, [NUM{ival=0, ...}, v]) => (click "6"; v)
-     | (P.PURE_ARITH{oper=P.XORB, ...}, [v, NUM{ival=0, ...}]) => (click "7"; v)
-     | (P.PURE_ARITH{oper=P.XORB, kind}, [NUM i, NUM j]) => let
-	  val x = CA.bXor(sizeOfKind kind, #ival i, #ival j)
-	  in
-	    click "5"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.PURE_ARITH{oper=P.NOTB,kind}, [NUM i]) => let
-	  val x = CA.bNot(sizeOfKind kind, #ival i)
-	  in
-	    click "8"; NUM{ival = x, ty = #ty i}
-	  end
-     | (P.LENGTH, [STRING s]) => (click "V"; tagInt'(size s))
-     | (P.INT_TO_REAL{to, ...}, [NUM{ival, ...}]) =>
-	(* NOTE: this conversion might lose precision *)
-	  REAL{rval = RealLit.fromInt ival, ty=to}
-     | (P.UNWRAP(P.INT sz), [x as VAR v]) => (case get v
-	   of {info=WRPinfo(P.INT sz', u), ...} => if (sz = sz')
-		then (click "U"; use_less x; u)
-		else bug "wrap/unwrap float size conflict"
-	    | _ => raise ConstFold
-	  (* end case *))
-     | (P.UNWRAP(P.FLOAT sz), [x as VAR v]) => (case get v
-	   of {info=WRPinfo(P.FLOAT sz', u), ...} => if (sz = sz')
-		then (click "U"; use_less x; u)
-		else bug "wrap/unwrap int size conflict"
-	    | _ => raise ConstFold
-	  (* end case *))
-     | _ => raise ConstFold
 
 in  debugprint "Contract: "; debugflush();
     enterMISC0 fvar; app enterMISC0 fargs;
@@ -1106,5 +951,4 @@ in  debugprint "Contract: "; debugflush();
     end
 end
 
-end (* functor Contract *)
-
+end (* structure Contract *)

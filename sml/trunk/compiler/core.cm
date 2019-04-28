@@ -259,6 +259,7 @@ CPS/cps/cps.sml
 CPS/cps/ppcps.sml
 CPS/cps/cps-util.sml
 CPS/opt/contract.sml
+CPS/opt/contract-prim.sml
 CPS/opt/cpsopt.sml
 CPS/opt/eta.sml
 CPS/opt/etasplit.sml
