@@ -58,10 +58,6 @@ struct
   val matchRedundantError =
       flag ("error-redundant", "whether a redundant match is an error", true)
   (* matchRedundantError overrides matchRedundantWarn *)
-(*
-    val expandResult =
-	flag ("expand-result", "whether to expand result of match", false)
-*)
 end (* structure Control_MC *)
 
 
@@ -100,12 +96,7 @@ struct
       r
   end
 
-  val tailrecur = new (b, "tailrecur", "?", true)
-  val recordopt = new (b, "recordopt", "?", true)
-  val tail = new (b, "tail", "?", true)
-  val closureprint = new (b, "closureprint", "?", false)
-  val closureStrategy = new (i, "closure-strategy", "?", 0)
-  val lambdaopt = new (b, "lambdaopt", "?", true)
+  val closureStrategy = new (i, "closure-strategy", "?", 0)	(* see CPS/clos/closure.sml *)
   val cpsopt = new (sl, "cpsopt", "cps optimizer phases", [
 	  "first_contract", "eta", "zeroexpand", "last_contract"
 	])
@@ -115,7 +106,7 @@ struct
   val path = new (b, "path", "?", false)
   val betacontract = new (b, "betacontract", "?", true)
   val eta = new (b, "eta", "?", true)
-  val selectopt = new (b, "selectopt", "?", true)
+  val selectopt = new (b, "selectopt", "enable contraction of record select", true)
   val dropargs = new (b, "dropargs", "?", true)
   val deadvars = new (b, "deadvars", "?", true)
   val flattenargs = new (b, "flattenargs", "?", false)
@@ -126,62 +117,31 @@ struct
   val arithopt = new (b, "arithopt", "?", true)
   val betaexpand = new (b, "betaexpand", "?", true)
   val unroll = new (b, "unroll", "?", true)
-  val knownfiddle = new (b, "knownfiddle", "?", false)
   val invariant = new (b, "invariant", "?", true)
-  val targeting = new (i, "targeting", "?", 0)
   val lambdaprop = new (b, "lambdaprop", "?", false)
   val newconreps = new (b, "newconreps", "?", true)
   val boxedconstconreps = ElabControl.boxedconstconreps
   val unroll_recur = new (b, "unroll-recur", "?", true)
   val sharepath = new (b, "sharepath", "?", true)
   val staticprof = new (b, "staticprof", "?", false)
-  val hoistup = new (b, "hoistup", "?", false)
-  val hoistdown = new (b, "hoistdown", "?", false)
-  val recordcopy = new (b, "recordcopy", "?", true)
-  val recordpath = new (b, "recordpath", "?", true)
   val verbose = new (b, "verbose", "?", false)
   val debugcps = new (b, "debugcps", "?", false)
-  val misc4 = new (i, "misc4", "?", 0)
-  val argrep = new (b, "argrep", "?", true)
   val bodysize = new (i, "bodysize", "?", 20)
   val reducemore = new (i, "reducemore", "?", 15)
-  val alphac = new (b, "alphac", "?", true)
   val comment = new (b, "comment", "?", false)
   val knownGen = new (i, "known-gen", "?", 0)
   val knownClGen = new (i, "known-cl-gen", "?", 0)
   val escapeGen = new (i, "escape-gen", "?", 0)
   val calleeGen = new (i, "callee-gen", "?", 0)
   val spillGen = new (i, "spill-gen", "?", 0)
-  val foldconst = new (b, "foldconst", "?", true)
   val etasplit = new (b, "etasplit", "?", true)
   val printit = new (b, "printit", "whether to show CPS", false)
-  val printsize = new (b, "printsize", "?", false)
-  val scheduling = new (b, "scheduling", "?", true)
-  val cse = new (b, "cse", "?", false)
-  val optafterclosure = new (b, "opt-after-closure", "?", false)
-  val uncurry = new (b, "uncurry", "?", true)
-  val ifidiom = new (b, "if-idiom", "?", true)
-  val comparefold = new (b, "comparefold", "?", true)
-  val csehoist = new (b, "csehoist", "?", false)
-  val rangeopt = new (b, "rangeopt", "?", false)
-  val icount = new (b, "icount", "?", false)
+  val uncurry = new (b, "uncurry", "enable uncurrying optimization", true)
+  val ifidiom = new (b, "if-idiom", "enable if-idiom optimization", true)
+  val comparefold = new (b, "comparefold", "enable optimization of conditional tests", true)
   val debugRep = new (b, "debug-rep", "?", false)
-  val checklty1 = new (b, "checklty1", "?", false)
-  val checklty2 = new (b, "checklty2", "?", false)
-  val checklty3 = new (b, "checklty3", "?", false)
-  val flatfblock = new (b, "flatfblock", "?", true)
   val deadup = new (b, "deadup", "?", true)
-  val pollChecks = new (b, "poll-checks", "?", false)
-  val pollRatioAtoI = new (r, "poll-ratio-a-to-i", "?", 1.0)
-
-  val printFlowgraphStream = ref TextIO.stdOut
-
   val memDisambiguate = new (b, "mem-disambiguate", "?", false)
-  val controlDependence = new (b, "control-dependence", "?", false)
-  val flinton = new (b, "flinton", "?", true)
-
-  val compdebugging = new (b, "compdebugging", "?", false)
-
 end (* structure Control_CG *)
 
 
@@ -262,11 +222,6 @@ struct
     val interp = new ("interp", "?", false)
 
     val progressMsgs = new ("progressMsgs", "?", false)
-(*
-    val debugLook = ref false
-    val debugCollect = ref false
-    val debugBind = ref false
-*)
     val trackExn =
 	new ("track-exn",
 	     "whether to generate code that tracks exceptions", true)

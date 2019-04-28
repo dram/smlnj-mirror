@@ -1051,7 +1051,13 @@ fun layer(env,cfree,rk,fk,ccl) =
    in (cls,vls,hdr o nh,env,fvs,cvs,nfr@frames)
   end (* function layer *)
 
-(* build a general closure, CGoptions.closureStrategy matters *)
+(* build a general closure, CGoptions.closureStrategy matters:
+ *
+ *	1 = flat without aliasing
+ *	2 = flat with aliasing
+ *	3 = linked without aliasing
+ *	4 = flat with aliasing
+ *)
 fun closureBoxed(cn, fns, free, fk, ccl, env) =
   let val rk = boxedKind(fk)
       val (cls, vls, hdr, env, fvs, cvs, frames) =
