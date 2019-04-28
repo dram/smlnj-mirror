@@ -50,7 +50,7 @@ The descriptor tags are as follows:
 * `00001` (`0x01`) -- vector header object; the length field specifies the kind of vector.
 * `00010` (`0x02`) -- array header; the length field specifies the kind of array.
 * `00011` (`0x03`) -- polymorphic array data; also used for reference cells.
-* `00100` (`0x04`) -- 32-bit aligned non-pointer data
+* `00100` (`0x04`) -- word-size aligned non-pointer data
 * `00101` (`0x05`) -- 64-bit aligned non-pointer data
 * `00110` (`0x06`) -- special object; length field specifies kind and state of object.
 * `00111` (`0x07`) --
