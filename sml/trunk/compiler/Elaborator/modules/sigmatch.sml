@@ -322,7 +322,7 @@ let
        of x as SOME(btvs,ptvs) => x
         | NONE =>
           (err EM.COMPLAIN
-              "value type in structure doesn't match signature spec"
+              "value type in structure does not match signature spec"
               (fn ppstrm =>
                    (PPType.resetPPType();
                     PP.newline ppstrm;

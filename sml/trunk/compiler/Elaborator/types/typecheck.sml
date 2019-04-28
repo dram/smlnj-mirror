@@ -634,7 +634,7 @@ in
        | CONSTRAINTexp(e,ty) =>
 	   let val (e',ety) = expType(e,occ,tdepth,region)
 	    in if unifyErr{ty1=ety,name1="expression", ty2=ty, name2="constraint",
-			message="expression doesn't match constraint",
+			message="expression does not match constraint",
 			region=region,kind=ppExp,kindname="expression",
 			phrase=exp}
 		then (CONSTRAINTexp(e',MARKty(ty, region)),
@@ -849,7 +849,7 @@ and decType0(decl,occ,tdepth,region) : dec =
 				      in unifyErr{ty1=ety, name1="expression",
 					  ty2=rangety, name2="result type",
 					  message="right-hand-side of clause\
-					\ doesn't agree with function result type",
+					\ does not agree with function result type",
 					  region=region,kind=ppRVB,
 					  kindname="declaration",phrase=rvb};
 					 exp'
