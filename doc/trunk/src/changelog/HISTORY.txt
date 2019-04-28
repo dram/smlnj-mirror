@@ -94,6 +94,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/04/28]::
++
+Removed unused flags from the `Control.GC` structure (roughly 20 out
+of 60 flags were no longer used).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/04/27]::
 +
 Split the contraction of primitive operators out of the `Contract`
