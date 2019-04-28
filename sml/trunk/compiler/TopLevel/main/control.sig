@@ -95,8 +95,6 @@ sig
   val preserveLvarNames : bool ref
   val trackExn : bool ref
   val polyEqWarn : bool ref
-  val indexing : bool ref
-  val instSigs : bool ref
 
   val saveit : bool ref
   val saveAbsyn : bool ref

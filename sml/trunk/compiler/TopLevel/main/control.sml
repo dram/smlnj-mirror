@@ -228,8 +228,6 @@ struct
     (* warning message when call of polyEqual compiled: *)
     val polyEqWarn =
 	new ("poly-eq-warn", "whether to warn about calls of polyEqual", true)
-    val indexing = new ("indexing", "?", false)
-    val instSigs = new ("inst-sigs", "?", true)
 
     val preserveLvarNames = new ("preserve-names", "?", false)
     (* these are really all the same ref cell: *)
