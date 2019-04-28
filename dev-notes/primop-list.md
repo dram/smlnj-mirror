@@ -41,8 +41,8 @@ prefix that specifies the type as follows:
   * "`real32`" -- 32-bit real numbers (not yet supported)
   * "`real64`" -- 64-bit real numbers
   * "`ptr`" -- machine address
-  * "`barr`" -- bytearray (used for arrays of `Word8.word` and `char`)
-  * "`bvec`" -- bytevector (used for strings and vectors of `Word8.word`)
+  * "`w8arr`" -- bytearray (used for arrays of `Word8.word` and `char`)
+  * "`w8vec`" -- bytevector (used for strings and vectors of `Word8.word`)
   * "`arr`" -- polymorphic arrays
   * "`vec`" -- polymorphic vectors
   * "`seq`" -- sequence types (arrays and vectors)
@@ -178,27 +178,27 @@ be through a reliable cross-module inliner.
 Operations on byte/char array/vectors.  We renamed these to make it clear
 which operations do bounds checking and which do not.
 
-  * `bvec_unsafe_sub : 'a * int -> 'b`<br/>
+  * `w8vec_unsafe_sub : 'a * int -> 'b`<br/>
     subscript from byte vector without bounds checking
     (`P.NUMSUBSCRIPT{kind=P.INT 8, checked=false, immutable=true}`)
 
-  * `barr_unsafe_sub : 'a * int -> 'b`<br/>
+  * `w8arr_unsafe_sub : 'a * int -> 'b`<br/>
     subscript from byte array without bounds checking
     (`P.NUMSUBSCRIPT{kind=P.INT 8, checked=false, immutable=false}`)
 
-  * `barr_unsafe_update : 'a * int * 'b -> unit`<br/>
+  * `w8arr_unsafe_update : 'a * int * 'b -> unit`<br/>
     update byte array without bounds checking
     (`P.NUMUPDATE{kind=P.INT 8, checked=false}`)
 
-  * `bvec_sub : 'a * int -> 'b`<br/>
+  * `w8vec_sub : 'a * int -> 'b`<br/>
     subscript from byte vector
     (`P.NUMSUBSCRIPT{kind=P.INT 8, checked=true, immutable=true}`)
 
-  * `barr_sub : 'a * int -> 'b`<br/>
+  * `w8arr_sub : 'a * int -> 'b`<br/>
     subscript from byte array
     (`P.NUMSUBSCRIPT{kind=P.INT 8, checked=true, immutable=false}`)
 
-  * `barr_update : 'a * int * 'b -> unit`<br/>
+  * `w8arr_update : 'a * int * 'b -> unit`<br/>
     update byte array
     (`P.NUMUPDATE{kind=P.INT 8, checked=true}`)
 
