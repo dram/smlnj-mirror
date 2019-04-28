@@ -147,7 +147,7 @@ SayDebug("[%2d]: RAW32L(%d) [...]\n", pc-5, n);
 	    spaceReq = CONS_SZB + WORD_SZB + 4 * n;
 /* FIXME: for large objects, we should be allocating them in the 1st generation */
 	    GC_CHECK;
-	    ML_AllocWrite (msp, 0, MAKE_DESC(n, DTAG_raw32));
+	    ML_AllocWrite (msp, 0, MAKE_DESC(n, DTAG_raw));
 	    for (j = 1;  j <= n;  j++) {
 		i = GET32(lits); pc += 4;
 		ML_AllocWrite (msp, j, (ml_val_t)i);
@@ -205,7 +205,7 @@ SayDebug("\n");
 /* FIXME: for large strings, we should be allocating them in the 1st generation */
 	    GC_CHECK;
 	  /* allocate the data object */
-	    ML_AllocWrite(msp, 0, MAKE_DESC(j, DTAG_raw32));
+	    ML_AllocWrite(msp, 0, MAKE_DESC(j, DTAG_raw));
 	    ML_AllocWrite (msp, j, 0);  /* so word-by-word string equality works */
 	    res = ML_Alloc (msp, j);
 #ifdef DEBUG_LITERALS

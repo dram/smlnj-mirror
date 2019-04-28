@@ -529,7 +529,7 @@ ML_CODE_HDR(create_b_a)
 
 	/* allocate the data object */
 	slwi	atmp1,atmp2,TAG_SHIFTW	/* build descriptor in atmp1 */
-	ori	atmp1,atmp1,MAKE_TAG(DTAG_raw32)
+	ori	atmp1,atmp1,MAKE_TAG(DTAG_raw)
 	stw	atmp1,0(allocptr) 	/* store the data descriptor */
 	addi	allocptr,allocptr,4	/* allocptr++ */
 	addi	atmp3, allocptr, 0	/* atmp3 = data object */
@@ -565,7 +565,7 @@ ML_CODE_HDR(create_s_a)
 	bf	CR0_LT,create_s_a_large
 
 	slwi	atmp1,atmp2,TAG_SHIFTW	/* build descriptor in atmp3 */
-	ori	atmp1,atmp1,MAKE_TAG(DTAG_raw32)
+	ori	atmp1,atmp1,MAKE_TAG(DTAG_raw)
 	stw	atmp1,0(allocptr)	/* store descriptor */
 	addi	allocptr,allocptr,4	/* allocptr++ */
 	addi	atmp3,allocptr,0	/* atmp3 = data object */

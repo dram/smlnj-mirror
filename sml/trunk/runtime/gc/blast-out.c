@@ -314,7 +314,7 @@ PVT ml_val_t AllocBlastData (ml_state_t *msp, Addr_t sizeB)
 {
     heap_t	    *heap = msp->ml_heap;
     int		    nWords = BYTES_TO_WORDS(sizeB);
-    ml_val_t	    desc = MAKE_DESC(nWords, DTAG_raw32);
+    ml_val_t	    desc = MAKE_DESC(nWords, DTAG_raw);
     ml_val_t	    res;
 
 /** we probably should allocate space in the big-object region for these objects **/

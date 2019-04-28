@@ -33,10 +33,10 @@ ml_val_t _ml_win32_CONFIG_get_version_ex(ml_state_t *msp, ml_val_t arg)
   WORD_ALLOC(msp, platform, (Word_t)versionInfo.dwPlatformId);
 
   length = strlen(versionInfo.szCSDVersion);
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (length + 1));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
   strcpy_s(PTR_MLtoC(void, vec), length+1, versionInfo.szCSDVersion);
   SEQHDR_ALLOC (msp, csd, DESC_string, vec, length);
-                       
+
   REC_ALLOC5(msp, res, major, minor, build, platform, csd);
 
   return res;
@@ -70,15 +70,15 @@ ml_val_t _ml_win32_CONFIG_get_volume_information(ml_state_t *msp, ml_val_t arg)
   maxcomponent = INT_CtoML(maxComponentLength);
 
   length = strlen(szVolumeName);
-  vec1 = ML_AllocRaw32 (msp, BYTES_TO_WORDS (length + 1));
+  vec1 = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
   strcpy_s(PTR_MLtoC(void, vec1), length+1, szVolumeName);
   SEQHDR_ALLOC (msp, volume, DESC_string, vec1, length);
-                       
+
   length = strlen(szFilesystemName);
-  vec2 = ML_AllocRaw32 (msp, BYTES_TO_WORDS (length + 1));
+  vec2 = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
   strcpy_s(PTR_MLtoC(void, vec2), length+1, szFilesystemName);
   SEQHDR_ALLOC (msp, system, DESC_string, vec2, length);
-                       
+
   REC_ALLOC4(msp, res, volume, system, serial, maxcomponent);
   return res;
 }
@@ -94,7 +94,7 @@ ml_val_t _ml_win32_CONFIG_get_windows_directory(ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (dwSize+1));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (dwSize+1));
   strcpy_s(PTR_MLtoC(void, vec), dwSize+1, directory);
   SEQHDR_ALLOC (msp, res, DESC_string, vec, dwSize);
 
@@ -111,7 +111,7 @@ ml_val_t _ml_win32_CONFIG_get_system_directory(ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (dwSize+1));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (dwSize+1));
   strcpy_s(PTR_MLtoC(void, vec), dwSize+1, directory);
   SEQHDR_ALLOC (msp, res, DESC_string, vec, dwSize);
 
@@ -128,7 +128,7 @@ ml_val_t _ml_win32_CONFIG_get_computer_name(ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (dwSize+1));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (dwSize+1));
   strcpy_s(PTR_MLtoC(void, vec), dwSize+1, name);
   SEQHDR_ALLOC (msp, res, DESC_string, vec, dwSize);
 
@@ -145,7 +145,7 @@ ml_val_t _ml_win32_CONFIG_get_user_name(ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (dwSize));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (dwSize));
   strcpy_s(PTR_MLtoC(void, vec), dwSize, name);
   SEQHDR_ALLOC (msp, res, DESC_string, vec, dwSize-1);
 

@@ -767,7 +767,7 @@ PVT ml_val_t MajorGC_ForwardObj (heap_t *heap, aid_t maxAid, ml_val_t v, aid_t i
 	switch (GET_TAG(desc)) {
 	  case DTAG_forward:
 	    return PTR_CtoML(FOLLOW_FWDOBJ(obj));
-	  case DTAG_raw32:
+	  case DTAG_raw:
 	    len = GET_LEN(desc);
 	    break;
 	  case DTAG_raw64:

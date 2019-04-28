@@ -70,14 +70,14 @@
 #define	ediSpill	REGOFF(68,REG(esp)) /* edi=7 */
 #define stdlink		REGOFF(72,REG(esp))
 #define	stdclos		REGOFF(76,REG(esp))
-	
+
 #define ML_STATE_OFFSET 176
 #define mlstate_ptr	REGOFF(ML_STATE_OFFSET,REG(esp))
-#define freg8           184	     /* double word aligned */ 
+#define freg8           184	     /* double word aligned */
 #define	freg9           192
 #define freg31          368          /* 152 + (31-8)*8 */
 #define	fpTempMem	376	     /* freg31 + 8 */
-#define SpillAreaStart	512	     /* starting offset */	
+#define SpillAreaStart	512	     /* starting offset */
 #define ML_FRAME_SIZE	(8192)
 
 #define	via
@@ -93,15 +93,15 @@ WORD32(request_w,0)	/* place to put the request code */
 WORD32(CSYM(ML_X86Frame),0) /* ptr to the ml frame (gives C access to limitptr) */
 
 WORD32(SavedSP,0)      /* Value of stack pointer to restore */
-	
+
 #include "mlstate-offsets.h"	/** this file is generated **/
 
 /*
- * 386 function call conventions:  
+ * 386 function call conventions:
  *  [true for gcc and dynix3 cc; untested for others]
  *
  * 	Caller save registers: eax, ecx, edx
- * 	Callee save registers: ebx, esi, edi, and ebp. 
+ * 	Callee save registers: ebx, esi, edi, and ebp.
  * 	Floating point state is caller-save.
  * 	Arguments passed on stack.  Rightmost argument pushed first.
  * 	Word-sized result returned in %eax.
@@ -113,7 +113,7 @@ CALLEE_SAVE_M MACRO
 	PUSHL	REG(ebx)
 	PUSHL	REG(esi)
 	PUSHL	REG(edi)
-	PUSHL	REG(ebp)	
+	PUSHL	REG(ebp)
 ENDM
 #define CALLEE_SAVE CALLEE_SAVE_M
 
@@ -122,7 +122,7 @@ CALLEE_RESTORE_M MACRO
 	POPL	REG(edi)
 	POPL	REG(esi)
 	POPL	REG(ebx)
-ENDM 
+ENDM
 #define CALLEE_RESTORE CALLEE_RESTORE_M
 
 /* MOVE copies one memory location to another, using a specified temporary. */
@@ -192,7 +192,7 @@ ML_CODE_HDR(pollh_return_a)
 	MOVL	(IMMED(ML_unit),stdclos)
 	MOVL	(IMMED(ML_unit),pc)
 	JMP	CSYM(set_request)
-	
+
 /* pollh_resume:
  * Resume execution at the point at which a poll event occurred.
  */
@@ -213,9 +213,9 @@ ML_CODE_HDR(return_a)
 	JMP	CSYM(set_request)
 
 /* Request a fault.  The floating point coprocessor must be reset
- * (thus trashing the FP registers) since we don't know whether a 
- * value has been pushed into the temporary "register".	 This is OK 
- * because no floating point registers will be live at the start of 
+ * (thus trashing the FP registers) since we don't know whether a
+ * value has been pushed into the temporary "register".	 This is OK
+ * because no floating point registers will be live at the start of
  * the exception handler.
  */
 ENTRY(request_fault)
@@ -245,7 +245,7 @@ ENTRY(saveregs)
 	POPL	pc
 	MOVL	(IMMED(REQ_GC),request_w)
 	/* fall into set_request */
-	
+
 ENTRY(set_request)
 	/* temp holds mlstate_ptr, valid request in request_w  */
 	/* Save registers */
@@ -253,26 +253,26 @@ ENTRY(set_request)
 	MOVL	(allocptr, REGOFF(AllocPtrOffMSP,temp))
 	MOVL	(stdarg, REGOFF(StdArgOffMSP,temp))
 	MOVL	(stdcont, REGOFF(StdContOffMSP,temp))
-	
+
 #define	temp2 allocptr
 	/* note that we have left ML code */
 	MOVL	(REGOFF(VProcOffMSP,temp),temp2)
 	MOVL	(IMMED(0), REGOFF(InMLOffVSP,temp2))
-	
+
 	MOVL	(misc0, REGOFF(Misc0OffMSP,temp))
 	MOVL	(misc1, REGOFF(Misc1OffMSP,temp))
 	MOVL	(misc2, REGOFF(Misc2OffMSP,temp))
 
 	/* Save vregs before stack frame is popped. (?? - Blume) */
 	MOVE	(limitptr,temp2, REGOFF(LimitPtrOffMSP,temp))
-	MOVE	(exncont, temp2, REGOFF(ExnPtrOffMSP,temp)) 
+	MOVE	(exncont, temp2, REGOFF(ExnPtrOffMSP,temp))
 	MOVE	(stdclos, temp2, REGOFF(StdClosOffMSP,temp))
 	MOVE	(stdlink, temp2, REGOFF(LinkRegOffMSP,temp))
 	MOVE	(pc, temp2, REGOFF(PCOffMSP,temp))
 	MOVE	(storeptr,temp2, REGOFF(StorePtrOffMSP,temp))
 	MOVE	(varptr,  temp2, REGOFF(VarPtrOffMSP,temp))
-#undef	temp2	
-	
+#undef	temp2
+
 	/* return val of function is request code */
 	MOVL	(request_w,creturn)
 
@@ -474,7 +474,7 @@ ML_CODE_HDR(create_b_a)
 	/* allocate the data object */
 	MOVL	(temp,temp1)
 	SHLL	(IMMED(TAG_SHIFTW),temp1)
-	ORL	(IMMED(MAKE_TAG(DTAG_raw32)),temp1)
+	ORL	(IMMED(MAKE_TAG(DTAG_raw)),temp1)
 	MOVL	(temp1,REGOFF(0,allocptr))	/* store descriptor */
 	ADDL	(IMMED(4),allocptr)
 	MOVL	(allocptr,temp1)		/* temp1 is data object */
@@ -497,7 +497,7 @@ ANON_LAB:
 	MOVE	(stdlink,temp,pc)
 	JMP	CSYM(set_request)
 
-	
+
 /* create_s : int -> string */
 ML_CODE_HDR(create_s_a)
 	CHECKLIMIT
@@ -513,7 +513,7 @@ ML_CODE_HDR(create_s_a)
 
 	MOVL	(temp,temp1)
 	SHLL	(IMMED(TAG_SHIFTW),temp1)
-	ORL	(IMMED(MAKE_TAG(DTAG_raw32)),temp1)
+	ORL	(IMMED(MAKE_TAG(DTAG_raw)),temp1)
 	MOVL	(temp1,REGOFF(0,allocptr))	/* store descriptor */
 	ADDL	(IMMED(4),allocptr)
 
@@ -584,7 +584,7 @@ ANON_LAB:
 	POPL	misc1
 	POPL	misc0
 	CONTINUE
-	
+
 LABEL(CREATE_V_A_LARGE)
 	POPL	misc1
 	POPL	misc0
@@ -593,10 +593,10 @@ LABEL(CREATE_V_A_LARGE)
 	JMP	CSYM(set_request)
 #undef temp1
 #undef temp2
-	
-	
-/* try_lock: spin_lock -> bool. 
- * low-level test-and-set style primitive for mutual-exclusion among 
+
+
+/* try_lock: spin_lock -> bool.
+ * low-level test-and-set style primitive for mutual-exclusion among
  * processors.	For now, we only provide a uni-processor trivial version.
  */
 ML_CODE_HDR(try_lock_a)
@@ -609,7 +609,7 @@ ML_CODE_HDR(try_lock_a)
 	CONTINUE
 #endif
 
-/* unlock : releases a spin lock 
+/* unlock : releases a spin lock
  */
 ML_CODE_HDR(unlock_a)
 #if (MAX_PROCS > 1)
@@ -626,7 +626,7 @@ ML_CODE_HDR(unlock_a)
 #define FPOP	fstp FP_REG(st)	/* Pop the floating point register stack. */
 
 /* Temporary storage for the old and new floating point control
-   word.  We don't use the stack to for this, since doing so would 
+   word.  We don't use the stack to for this, since doing so would
    change the offsets of the pseudo-registers. */
 	DATA
 	ALIGN4
@@ -643,7 +643,7 @@ WORD16(new_controlwd,0)
  * point control word is initialized (undefined fields are left
  * unchanged).	Rounding control is set to "nearest" (although floor_a
  * needs "toward negative infinity").  Precision control is set to
- * "double".  The precision, underflow, denormal 
+ * "double".  The precision, underflow, denormal
  * overflow, zero divide, and invalid operation exceptions
  * are masked.  Next, seven of the eight available entries on the
  * floating point register stack are claimed (see x86/x86.sml).
@@ -653,13 +653,13 @@ WORD16(new_controlwd,0)
 ENTRY(FPEEnable)
 	finit
 	/* Temp space.Keep stack aligned. */
-	SUBL	(IMMED(4), REG(esp))   
+	SUBL	(IMMED(4), REG(esp))
 	/* Store FP control word. */
-	fstcw	IND_W_OFF(REG(esp),0)  
+	fstcw	IND_W_OFF(REG(esp),0)
 	/* Keep undefined fields, clear others. */
 	ANDW	(IMMED(HEXLIT(f0c0)), REGOFF(0,REG(esp)))
 	/* Set fields (see above). */
-	ORW	(IMMED(HEXLIT(023f)), REGOFF(0,REG(esp)))	
+	ORW	(IMMED(HEXLIT(023f)), REGOFF(0,REG(esp)))
 	fldcw	IND_W_OFF(REG(esp),0) /* Install new control word. */
 	ADDL	(IMMED(4), REG(esp))
 	RET
@@ -668,7 +668,7 @@ ENTRY(fegetround)
       SUBL    (IMMED(4),REG(esp))         /* allocate temporary space */
       FSTCW   IND_W_OFF(REG(esp),0)          /* store fp control word */
 	/* rounding mode is at bit 10 and 11 */
-      SARL    (IMMED(10),REGOFF(0,REG(esp))) 
+      SARL    (IMMED(10),REGOFF(0,REG(esp)))
       ANDL    (IMMED(3),REGOFF(0,REG(esp)))  /* mask two bits */
       MOVL    (REGOFF(0,REG(esp)),REG(eax))  /* return rounding mode */
       ADDL    (IMMED(4),REG(esp))                /* deallocate space */

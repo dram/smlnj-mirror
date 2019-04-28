@@ -53,7 +53,7 @@ ml_val_t ML_CString (ml_state_t *msp, const char *v)
 	int		n = BYTES_TO_WORDS(len+1);  /* count "\0" too */
 	ml_val_t	res;
 
-	res = ML_AllocRaw32 (msp, n);
+	res = ML_AllocRaw (msp, n);
       /* zero the last word to allow fast (word) string comparisons, and to
        * guarantee 0 termination.
        */
@@ -102,7 +102,7 @@ ml_val_t ML_AllocString (ml_state_t *msp, int len)
 
     ASSERT(len > 0);
 
-    res = ML_AllocRaw32 (msp, nwords);
+    res = ML_AllocRaw (msp, nwords);
 
   /* zero the last word to allow fast (word) string comparisons, and to
    * guarantee 0 termination.
@@ -115,13 +115,13 @@ ml_val_t ML_AllocString (ml_state_t *msp, int len)
 
 } /* end of ML_AllocString. */
 
-/* ML_AllocRaw32:
+/* ML_AllocRaw:
  *
- * Allocate an uninitialized chunk of raw32 data.
+ * Allocate an uninitialized chunk of raw data.
  */
-ml_val_t ML_AllocRaw32 (ml_state_t *msp, int nwords)
+ml_val_t ML_AllocRaw (ml_state_t *msp, int nwords)
 {
-    ml_val_t	desc = MAKE_DESC(nwords, DTAG_raw32);
+    ml_val_t	desc = MAKE_DESC(nwords, DTAG_raw);
     ml_val_t	res;
     Word_t	szb;
 
@@ -153,14 +153,14 @@ ml_val_t ML_AllocRaw32 (ml_state_t *msp, int nwords)
 
     return res;
 
-} /* end of ML_AllocRaw32. */
+} /* end of ML_AllocRaw. */
 
-/* ML_ShrinkRaw32:
+/* ML_ShrinkRaw:
  *
- * Shrink a freshly allocated Raw32 vector.  This is used by the input routines
+ * Shrink a freshly allocated raw-data vector.  This is used by the input routines
  * that must allocate space for input that may be excessive.
  */
-void ML_ShrinkRaw32 (ml_state_t *msp, ml_val_t v, int nWords)
+void ML_ShrinkRaw (ml_state_t *msp, ml_val_t v, int nWords)
 {
     int		oldNWords = OBJ_LEN(v);
 
@@ -171,17 +171,17 @@ void ML_ShrinkRaw32 (ml_state_t *msp, ml_val_t v, int nWords)
 
     if (oldNWords > SMALL_OBJ_SZW) {
 	arena_t	*ap = msp->ml_heap->gen[0]->arena[STRING_INDX];
-	ASSERT(ap->nextw - oldNWords == PTR_MLtoC(ml_val_t, v)); 
+	ASSERT(ap->nextw - oldNWords == PTR_MLtoC(ml_val_t, v));
 	ap->nextw -= (oldNWords - nWords);
     }
     else {
-	ASSERT(msp->ml_allocPtr - oldNWords == PTR_MLtoC(ml_val_t, v)); 
+	ASSERT(msp->ml_allocPtr - oldNWords == PTR_MLtoC(ml_val_t, v));
 	msp->ml_allocPtr -= (oldNWords - nWords);
     }
 
-    PTR_MLtoC(ml_val_t, v)[-1] = MAKE_DESC(nWords, DTAG_raw32);
+    PTR_MLtoC(ml_val_t, v)[-1] = MAKE_DESC(nWords, DTAG_raw);
 
-} /* end of ML_ShrinkRaw32 */
+} /* end of ML_ShrinkRaw */
 
 /* ML_AllocRaw64:
  *
@@ -272,7 +272,7 @@ ml_val_t ML_AllocBytearray (ml_state_t *msp, int len)
     int		nwords = BYTES_TO_WORDS(len);
     ml_val_t	res;
 
-    res = ML_AllocRaw32 (msp, nwords);
+    res = ML_AllocRaw (msp, nwords);
 
   /* zero the last word to allow fast (word) string comparisons, and to
    * guarantee 0 termination.

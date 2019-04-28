@@ -33,7 +33,7 @@
  *	%o6  	sp
  *   	%o7  	gcLink
  *
- *	%l0-4  misc regs	
+ *	%l0-4  misc regs
  *
  *	%i0	standard arg
  * 	%i1	standard cont
@@ -42,8 +42,8 @@
  *	%i4  	misc reg
  * 	%i5  	var ptr
  *	%i6  	fp (don't touch)
- *   	%i7  	misc reg 
- * 
+ *   	%i7  	misc reg
+ *
  */
 
 
@@ -56,7 +56,7 @@
 #define   STDCONT %i1		/* standard continuation (ml_cont) */
 #define   STDCLOS %i2		/* standard closure  (ml_clos)	*/
 #define    VARPTR %i5		/* var pointer       (ml_varptr)   */
-#define   STDLINK %g1		/* standard link     (ml_linkptr) */  
+#define   STDLINK %g1		/* standard link     (ml_linkptr) */
 #define  MISCREG0 %g2
 #define  MISCREG1 %g3
 #define  MISCREG2 %o0
@@ -64,7 +64,7 @@
 
 #define   ASMTMP  %o2		/* assembly temporary used in ML */
 #define   TMPREG1 ASMTMP
-#define   TMPREG2 %o3   
+#define   TMPREG2 %o3
 #define   TMPREG3 %o4
 #define   TMPREG4 %o5
 
@@ -79,7 +79,7 @@
  *
  *	%fp = %sp+4096
  *                      +-------------------+
- *                      |                   |	
+ *                      |                   |
  *                      .                   .
  *			|                   |
  *	%sp+116:	|  spill area       |
@@ -263,9 +263,9 @@ ENTRY(restoreregs)
 	ld	[MLState+LimitPtrOffMSP],LIMITPTR
 	ld	[MLState+StorePtrOffMSP],STOREPTR
 	ld	[MLState+PCOffMSP],PC
-	ld	[MLState+StdArgOffMSP],STDARG  
+	ld	[MLState+StdArgOffMSP],STDARG
 	ld	[MLState+StdContOffMSP],STDCONT
-	ld	[MLState+StdClosOffMSP],STDCLOS     
+	ld	[MLState+StdClosOffMSP],STDCLOS
 	ld 	[MLState+VarPtrOffMSP],VARPTR
 	ld	[MLState+LinkRegOffMSP],STDLINK
 	ld	[MLState+ExnPtrOffMSP],EXNCONT	/* restore exnptr */
@@ -404,7 +404,7 @@ ML_CODE_HDR(create_b_a)
 	nop
       /* Allocate the data object */
 	sll	TMPREG2,TAG_SHIFTW,TMPREG1	/* build data desc in tmp1 */
-	or	TMPREG1,MAKE_TAG(DTAG_raw32),TMPREG1
+	or	TMPREG1,MAKE_TAG(DTAG_raw),TMPREG1
 	st	TMPREG1,[ALLOCPTR]		/* store the data descriptor */
 	inc	4,ALLOCPTR			/* allocptr++ */
 	mov	ALLOCPTR,TMPREG3		/* tmp3 = data object */
@@ -439,7 +439,7 @@ ML_CODE_HDR(create_s_a)
 	nop
       /* Allocate the data object */
 	sll	TMPREG2,TAG_SHIFTW,TMPREG1	/* build data desc in tmp1 */
-	or	TMPREG1,MAKE_TAG(DTAG_raw32),TMPREG1
+	or	TMPREG1,MAKE_TAG(DTAG_raw),TMPREG1
 	st	TMPREG1,[ALLOCPTR]		/* store the data descriptor */
 	inc	4,ALLOCPTR			/* allocptr++ */
 	mov	ALLOCPTR,TMPREG3		/* tmp3 = data object */
@@ -520,7 +520,7 @@ ML_CODE_HDR(floor_a)
 	add	TMPREG2,TMPREG2,TMPREG2
 	add	TMPREG2,1,STDARG
 	CONTINUE
-	
+
 1:				/* handle negative case. */
 	fdtoi	%f0,%f2		    /* cvt to int (round towards 0) */
 	st	%f2,[%sp+FLOOR_OFFSET]
@@ -595,7 +595,7 @@ under:				/* handle underflow */
 	nop
 
 /* try_lock : spin_lock -> bool
- * low-level test-and-set style primitive for mutual-exclusion among 
+ * low-level test-and-set style primitive for mutual-exclusion among
  * processors.
  */
 ML_CODE_HDR(try_lock_a)
@@ -609,7 +609,7 @@ ML_CODE_HDR(try_lock_a)
 	CONTINUE
 #endif
 
-/* unlock : releases a spin lock 
+/* unlock : releases a spin lock
  */
 ML_CODE_HDR(unlock_a)
 #if (MAX_PROCS > 1)

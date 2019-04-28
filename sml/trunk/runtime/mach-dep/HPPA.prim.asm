@@ -13,12 +13,12 @@
 
 /* stack layout when executing in ML code. */
 
-/* 
+/*
 Note: stack grows from low to high memory addresses.
 
 low address ...
 	sp-116:		|     spill area      |
-			+---------------------+	
+			+---------------------+
 	sp-112:		|     $$umul	      |
        			+---------------------+
 	sp-44:		|      %r2-%r18       |
@@ -27,7 +27,7 @@ low address ...
 			+---------------------+
 	sp-32:		|     unused[2]       |
 			+---------------------+
-	sp-28:		|      startgc	      |	 		
+	sp-28:		|      startgc	      |
 			+---------------------+
 	sp-24:		|      $$mul	      |
 			+---------------------+
@@ -39,9 +39,9 @@ low address ...
 			+---------------------+
 	sp-8:		|     float64Tmp      |
 			+---------------------+
-	sp:	
+	sp:
 high addresses ...
-	
+
  */
 
 #define UDIV_OFFSET		-16
@@ -62,14 +62,14 @@ high addresses ...
    The SavedStackPtr location is used to restore the value of the stack
    pointer so that the layout above can be accessed. This is particularly
    relevant when an exception/trap is generated inside ml_mul, ml_div
-   and ml_udiv millicode. Registers that are trashed by the system 
-   millicode are saved on top of the stack together with a  
+   and ml_udiv millicode. Registers that are trashed by the system
+   millicode are saved on top of the stack together with a
    return address.  When an exception occurs, the exception trap
-   handler forces the program counter to resume at the address 
+   handler forces the program counter to resume at the address
    corresponding to request_fault. However, because of the extra stuff
    on the stack, request_fault does not see the layout it expects!
    The value in SavedStackPtr is used to restore the correct stack pointer.
-   The ML registers that were saved on the stack during the millicode 
+   The ML registers that were saved on the stack during the millicode
    call, are ones that are not required to resume the trap handler
    and can therefore be dropped on the floor.
 
@@ -122,8 +122,8 @@ high addresses ...
 
 
 	/******************************************************
- 	   All code must be in the data segment, since we 
-	   cannot distinguish between a code and data segment 
+ 	   All code must be in the data segment, since we
+	   cannot distinguish between a code and data segment
 	   offset.
 	 ******************************************************/
 
@@ -193,8 +193,8 @@ ML_CODE_HDR(callc_a)
 
    Saveregs0 is called from inside ML to invoke a gc. This is
    done using a BLE,n  instruction. The return address (in pc) with
-   nullification set, is at the wrong place unless one puts a NOP after 
-   the BLR,n. Saveregs0 is used to correct the off-by-four value in pc 
+   nullification set, is at the wrong place unless one puts a NOP after
+   the BLR,n. Saveregs0 is used to correct the off-by-four value in pc
    or %r31.
 
    Saveregs1 is called internally (or everywhere else) where the return
@@ -213,7 +213,7 @@ saveregs1
 
 set_request
 	ldil    L%SavedStackPtr, tmp1
-	ldo     R%SavedStackPtr(tmp1), tmp1	
+	ldo     R%SavedStackPtr(tmp1), tmp1
         ldw     0(tmp1), sp			/* restore stack pointer */
 
 	ldw	MLSTATE_OFFSET(sp), tmp1
@@ -253,9 +253,9 @@ restore_c_regs
         ldw     REGSAVE_OFFSET-60(sp), %r17
         ldw     REGSAVE_OFFSET-64(sp), %r18
 	LARGECONST(-ML_FRAMESIZE, tmp3)
-	add	tmp3, sp, sp		         /* discard the stack frame */ 
-	ldsid	(%r2), tmp1 
-	mtsp	tmp1, %sr1 
+	add	tmp3, sp, sp		         /* discard the stack frame */
+	ldsid	(%r2), tmp1
+	mtsp	tmp1, %sr1
 	be,n	0(%sr1, %r2)
 
 /* We need to find a way of creating a table of these constant
@@ -279,21 +279,21 @@ restoreregs
 	/* save the C registers */
 	stw	%r2,  REGSAVE_OFFSET(sp)
 	stw	%r3,  REGSAVE_OFFSET-4(sp)
-	stw	%r4,  REGSAVE_OFFSET-8(sp)  
-        stw     %r5,  REGSAVE_OFFSET-12(sp)  
-        stw     %r6,  REGSAVE_OFFSET-16(sp)  
-        stw     %r7,  REGSAVE_OFFSET-20(sp)  
-        stw     %r8,  REGSAVE_OFFSET-24(sp)  
-        stw     %r9,  REGSAVE_OFFSET-28(sp)  
-        stw     %r10, REGSAVE_OFFSET-32(sp) 
-        stw     %r11, REGSAVE_OFFSET-36(sp) 
-        stw     %r12, REGSAVE_OFFSET-40(sp) 
-        stw     %r13, REGSAVE_OFFSET-44(sp) 
-        stw     %r14, REGSAVE_OFFSET-48(sp) 
-        stw     %r15, REGSAVE_OFFSET-52(sp) 
-        stw     %r16, REGSAVE_OFFSET-56(sp) 
-        stw     %r17, REGSAVE_OFFSET-60(sp) 
-        stw     %r18, REGSAVE_OFFSET-64(sp) 
+	stw	%r4,  REGSAVE_OFFSET-8(sp)
+        stw     %r5,  REGSAVE_OFFSET-12(sp)
+        stw     %r6,  REGSAVE_OFFSET-16(sp)
+        stw     %r7,  REGSAVE_OFFSET-20(sp)
+        stw     %r8,  REGSAVE_OFFSET-24(sp)
+        stw     %r9,  REGSAVE_OFFSET-28(sp)
+        stw     %r10, REGSAVE_OFFSET-32(sp)
+        stw     %r11, REGSAVE_OFFSET-36(sp)
+        stw     %r12, REGSAVE_OFFSET-40(sp)
+        stw     %r13, REGSAVE_OFFSET-44(sp)
+        stw     %r14, REGSAVE_OFFSET-48(sp)
+        stw     %r15, REGSAVE_OFFSET-52(sp)
+        stw     %r16, REGSAVE_OFFSET-56(sp)
+        stw     %r17, REGSAVE_OFFSET-60(sp)
+        stw     %r18, REGSAVE_OFFSET-64(sp)
 
 	/* create ML stack frame */
         stw     carg0, MLSTATE_OFFSET(sp)
@@ -325,16 +325,16 @@ restoreregs
 	ldw	SigsRecvOffVSP(tmp4), tmp2
 	ldw	SigsHandledOffVSP(tmp4), tmp3
         combf,= tmp2, tmp3, pending_sigs
-	nop				
+	nop
 
 ml_go
 	mfsp	%sr5, tmp2  	  	       /* for indexed loads */
 	mtsp    tmp2, %sr3
 	/* The pc is used to compute the baseptr on return
-	 * to ML. The privelege level bits (30 and 31) need to be 
+	 * to ML. The privelege level bits (30 and 31) need to be
 	 * zeroed out before making the call.
 	 */
-	ldi	0-4, tmp2	
+	ldi	0-4, tmp2
 	and	pc, tmp2, pc
 	bv,n	0(pc)
 
@@ -344,11 +344,11 @@ pending_sigs
 	ldw	InSigHandlerOffVSP(tmp4), tmp2
 	combf,= tmp2, zero, ml_go
 	nop
-	
+
 	/* note that a handler trap is pending */
 	ldi	1, tmp2
 	stw	tmp2, HandlerPendingOffVSP(tmp4)
-	copy	limitptr,allocptr	
+	copy	limitptr,allocptr
 	b,n	ml_go
 END_PROC(restoreregs)
 
@@ -383,7 +383,7 @@ ML_CODE_HDR(array_a)
 	LSHIFT(tmp2, 2, tmp2)		    /* tmp2 = number of bytes to allocate */
 	add	tmp2, allocptr, tmp2	    /* tmp2 = address of end of array  */
 L$array_loop
-	stw	stdarg, 0(allocptr)	    
+	stw	stdarg, 0(allocptr)
 	addi	4, allocptr, allocptr
 	combf,= allocptr, tmp2, L$array_loop
 	nop
@@ -394,7 +394,7 @@ L$array_loop
 	addi	4, allocptr, allocptr	    /* allocptr++ */
 	copy	allocptr, stdarg	    /* result = header addr */
 	stw	tmp3, 0(allocptr)	    /* store pointer to data */
-	stw	tmp1, 4(allocptr)	   
+	stw	tmp1, 4(allocptr)
 	addi	8, allocptr, allocptr	    /* allocptr += 2 */
 	CONTINUE
 L$array_offline			/* off-line allocation of big arrays */
@@ -418,7 +418,7 @@ ML_CODE_HDR(create_r_a)
 	or	tmp1, tmp3, tmp1
 
 	ldi	4, tmp3			/* align start floating addr */
-	or	allocptr, tmp3, allocptr    
+	or	allocptr, tmp3, allocptr
 	stw	tmp1, 0(allocptr)	/* store data descriptor */
 	addi	4, allocptr, allocptr	/* allocptr++ */
 	copy 	allocptr, tmp3		/* tmp3 = data object */
@@ -447,7 +447,7 @@ ML_CODE_HDR(create_b_a)
 	CHECKLIMIT(create_b_checked)
 
 	RSHIFT(stdarg, 1, tmp2)		    /* tmp2 := length (untagged) */
-	addi	3, tmp2, tmp2		    /* tmp2 := length (words) */ 
+	addi	3, tmp2, tmp2		    /* tmp2 := length (words) */
 	RSHIFT(tmp2, 2, tmp2)
 	ldi 	SMALL_OBJ_SZW, tmp3	    /* is this a small object? */
 	combt,< tmp3, tmp2, L$bytearray_offline /* no */
@@ -455,17 +455,17 @@ ML_CODE_HDR(create_b_a)
 
 	/* allocate the data object */
 	LSHIFT(tmp2, TAG_SHIFTW, tmp1)	    /* descriptor in tmp1 */
-	ldi     0+MAKE_TAG(DTAG_raw32), tmp3
+	ldi     0+MAKE_TAG(DTAG_raw), tmp3
 	or	tmp1, tmp3, tmp1
 	stw 	tmp1, 0(allocptr)	    /* write out descriptor */
-	addi	4, allocptr, allocptr	    /* allocptr++  */ 
+	addi	4, allocptr, allocptr	    /* allocptr++  */
 	copy	allocptr, tmp3		    /* tmp3 = data object */
 	LSHIFT(tmp2, 2, tmp2)		    /* length in bytes */
 	add	tmp2, allocptr, allocptr    /* allocptr += length */
 
 	/* allocate the header object */
 	ldi	0+(DESC_word8arr), tmp1	    /* header descriptor */
-	stw	tmp1, 0(allocptr)		
+	stw	tmp1, 0(allocptr)
         addi	4, allocptr, allocptr	    /* allocptr++ */
 	stw	tmp3, 0(allocptr)	    /* header data field */
         stw	stdarg, 4(allocptr)	    /* header length field */
@@ -485,15 +485,15 @@ ML_CODE_HDR(create_s_a)
 
 	RSHIFT(stdarg, 1, tmp2)		/* tmp2 := length: untagged int */
 	addi	4, tmp2, tmp2		/* tmp2 := length in words */
-	RSHIFT(tmp2, 2, tmp2)		
+	RSHIFT(tmp2, 2, tmp2)
 	ldi	SMALL_OBJ_SZW, tmp3	/* is this a big object */
 	combt,< tmp3, tmp2, L$string_offline /* no */
         nop
 
 	/* allocate the data object */
 	LSHIFT(tmp2, TAG_SHIFTW, tmp1)	/* build descriptor in tmp1 */
-	ldi	0+MAKE_TAG(DTAG_raw32), tmp3
-	or	tmp1, tmp3, tmp1	
+	ldi	0+MAKE_TAG(DTAG_raw), tmp3
+	or	tmp1, tmp3, tmp1
 	stw	tmp1, 0(allocptr)	/* store descriptor */
 	addi	4, allocptr, allocptr	/* allocptr++ */
 	copy	allocptr, tmp3		/* tmp3 = data object */
@@ -588,7 +588,7 @@ ML_CODE_HDR(scalb_a)
 
 	ldi	2047, tmp1		/* max. ieee(exp) */
 	combt,<,n tmp1, tmp3, scalb_overflow
-	
+
 	ldil	L%0x800fffff, tmp1	/* tmp1 := sign bit + mantissa mask */
 	ldo	R%0x800fffff(tmp1), tmp1
 	and	tmp1, tmp2, tmp1	/* tmp1 := original sign and mantessa*/
@@ -599,7 +599,7 @@ ML_CODE_HDR(scalb_a)
 
 scalb_write_out				/* {tmp1, tmp2} live on entry */
 	ldi	4, tmp3			/* align allocation pointer */
-	or      tmp3, allocptr, allocptr     
+	or      tmp3, allocptr, allocptr
 	stw	tmp1, 4(allocptr)	/* store MSW */
 	stw	tmp2, 8(allocptr)	/* store LSW */
 	ldi	0+(DESC_reald),tmp3	/* store descriptor */
@@ -610,7 +610,7 @@ scalb_write_out				/* {tmp1, tmp2} live on entry */
 
 scalb_all_done
 	/* BUG: The compiler supports arithmetic over denormalized
-	 *  numbers, but  scalb barfs at them. Denormalized numbers 
+	 *  numbers, but  scalb barfs at them. Denormalized numbers
 	 *  are treated here as 0.0.
 	 */
    	CONTINUE
@@ -621,7 +621,7 @@ scalb_underflow
   	 */
 	ldi	0, tmp1
 	ldi	0, tmp2
-	b,n	scalb_write_out	
+	b,n	scalb_write_out
 
 scalb_overflow
 	ldil	L%0x7fffffff,tmp1
@@ -638,7 +638,7 @@ ML_CODE_HDR(floor_a)
     	ldi	0x60e, tmp1		/* set rounding mode to -inf */
     	stw	tmp1, 0-4(sp)		/* store in temp scratch */
     	fldws	0-4(sp), %fr0L
-    	fcnvfx,dbl,sgl %fr4, %fr4R 
+    	fcnvfx,dbl,sgl %fr4, %fr4R
 
 	stw	zero,0-4(sp)
     	fldws	0-4(sp),%fr0L
@@ -671,11 +671,11 @@ ML_CODE_HDR(unlock_a)
 
 		/* milli code routines */
 
-/* 
+/*
   millicode:
   inputs in %r26 (arg0) and %r25 (arg1)
   result in %r29 (ret1)
-  
+
   saved: %r25, %r26, %r1   --- trashed by millicode routines
          %r31	           --- trashed by BLE
 
@@ -700,7 +700,7 @@ ML_CODE_HDR(unlock_a)
 	addi	0-MILLI_LOCAL_AREA, sp, sp	!\
 	addi    0-4, pc, pc		!\
 	bv,n	0(pc)
-	
+
 #define InvokeMillicode(proc)		 \
 	millicodeSave			!\
 	ldil	L%proc, %r1		!\
@@ -715,7 +715,7 @@ ML_CODE_HDR(unlock_a)
 	.export ml_umul,ENTRY
 	.export ml_div,ENTRY
 	.export ml_udiv,ENTRY
-	
+
 floatingZero	.double 	0.0
 floatingOne	.double		1.0
 
@@ -732,7 +732,7 @@ floatingOne	.double		1.0
 	fdiv,dbl	%fr5, %fr4, %fr4		!\
 	fstds	%fr4, 0(sp)				!\
 	.label lab
-		
+
 ENTRY(ml_mul)
 	InvokeMillicode(do_mulI)
 ENTRY(ml_umul)
@@ -740,7 +740,7 @@ ENTRY(ml_umul)
 ENTRY(ml_udiv)
 	divByZeroCheck(noUdivByZero)
 	InvokeMillicode(do_divU)
-	
+
 ENTRY(ml_div)
 	divByZeroCheck(noDivByZero)
 	comibf,= 	0-1, %r25, mlDivNoOverflow
@@ -766,7 +766,7 @@ mlDivNoOverflow
 	.import $$divU,MILLICODE
 	.import $$muloI,MILLICODE
 	.import $$mulU,MILLICODE
-		
+
 	.export do_mulI,ENTRY
 	.export do_mulU,ENTRY
 	.export do_divI,ENTRY
@@ -781,7 +781,7 @@ do_divI
 do_divU
 	DoMillicode($$divU)
 
-		
+
     .export FlushICache,ENTRY
 FlushICache
 	.proc
@@ -793,29 +793,29 @@ FlushICache
 
 	depi	0,31,4,26	/* align address to cache line */
 	addi	15,25,25	/* align size upwards */
-	depi	0,31,4,25		    
+	depi	0,31,4,25
 	ldi	16,22		/* r22 := minimum cache line size */
 	ldi	-16,21		/* r21 := -(minimum cache line size) */
 
 fic_loop
 	fdc	0(2,26)
 	sync
-	/* fic can't use short pointer so 
+	/* fic can't use short pointer so
          * use the space reg set up above
-	 */	
-	fic,m	22(2,26)	
+	 */
+	fic,m	22(2,26)
 
 	nop			/* 7 cycle delay. See programming note */
 	nop			/* for SYNC in arch. ref. manual */
-	nop 
-	nop 
-	nop 
-	nop 
-	nop 
+	nop
+	nop
+	nop
+	nop
+	nop
 
 	addb,>=	21,25,fic_loop	/* add stride to count, branch */
-	nop 
-       .leave 
+	nop
+       .leave
        .procend
 
 
@@ -828,7 +828,7 @@ fic_loop
 set_fsr
 	.proc
 	.callinfo FRAME=64
-	.enter 
+	.enter
 	stw	zero,0-4(sp)
 	fldws	0-4(sp),%fr0L
 	.leave

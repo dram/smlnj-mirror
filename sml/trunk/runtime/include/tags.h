@@ -54,7 +54,7 @@
 #define DTAG_arr_hdr	HEXLIT(2)	/* array header; length is kind */
 #define DTAG_arr_data	HEXLIT(3)	/* polymorphic array data */
 #define DTAG_ref	DTAG_arr_data	/* reference cell */
-#define DTAG_raw32	HEXLIT(4)	/* 32-bit aligned non-pointer data */
+#define DTAG_raw	HEXLIT(4)	/* word-size aligned non-pointer data */
 #define DTAG_raw64	HEXLIT(5)	/* 64-bit aligned non-pointer data */
 #define DTAG_special	HEXLIT(6)	/* Special object; length is kind */
 #define DTAG_extern	HEXLIT(10)	/* external symbol reference (used in */

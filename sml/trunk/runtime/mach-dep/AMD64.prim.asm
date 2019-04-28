@@ -15,7 +15,7 @@
 #include "tags.h"
 #include "ml-request.h"
 #include "ml-limits.h"
-	
+
 #if defined(OPSYS_DARWIN)
 /* Note: although the MacOS assembler claims to be the GNU assembler, it appears to be
  * an old version (1.38), which uses different alignment directives.
@@ -47,7 +47,7 @@
  * R14 - limit ptr
  * R15 - store ptr
  * RIP - program counter (ml_pc)
- */   
+ */
 
 /* Registers (see amd64/amd64CpsRegs.sml): */
 #define temp		RAX
@@ -200,9 +200,9 @@ ML_CODE_HDR(return_a)
 	JMP(CSYM(set_request))
 
 /* Request a fault.  The floating point coprocessor must be reset
- * (thus trashing the FP registers) since we do not know whether a 
- * value has been pushed into the temporary "register".	 This is OK 
- * because no floating point registers will be live at the start of 
+ * (thus trashing the FP registers) since we do not know whether a
+ * value has been pushed into the temporary "register".	 This is OK
+ * because no floating point registers will be live at the start of
  * the exception handler.
  */
 ENTRY(request_fault)
@@ -252,14 +252,14 @@ ENTRY(set_request)
 
 	/* Save vregs before the stack frame is popped. */
 	MOVE(limitptr,temp2, REGOFF(LimitPtrOffMSP,temp))
-	MOVE(exncont, temp2, REGOFF(ExnPtrOffMSP,temp)) 
+	MOVE(exncont, temp2, REGOFF(ExnPtrOffMSP,temp))
 	MOVE(stdclos, temp2, REGOFF(StdClosOffMSP,temp))
 	MOVE(stdlink, temp2, REGOFF(LinkRegOffMSP,temp))
 	MOVE(pc, temp2, REGOFF(PCOffMSP,temp))
 	MOVE(storeptr,temp2, REGOFF(StorePtrOffMSP,temp))
 	MOVE(varptr,  temp2, REGOFF(VarPtrOffMSP,temp))
-#undef	temp2	
-	
+#undef	temp2
+
 	/* return val of function is request code */
 	MOV_Q(request_w,creturn)
 
@@ -275,7 +275,7 @@ ENTRY(set_request)
 	SEG_TEXT
 	ALIGNTEXT8
 ENTRY(restoreregs)
-	
+
 	/* MOV_Q(REGOFF(4,RSP), temp */	/* Get argument (MLState ptr). */
 	CALLEE_SAVE
 	MOV_Q(%rdi, temp)
@@ -291,7 +291,7 @@ ENTRY(restoreregs)
 	 */
 /*
 	MOV_L(ESP,EBX)
-	OR_L(CONST(4), ESP)		
+	OR_L(CONST(4), ESP)
 	SUB_L(CONST(4), ESP)		/ * stack grows from high to low * /
 	SUB_L(CONST(ML_FRAME_SIZE), ESP)
 	MOV_L(EBX,espsave)
@@ -300,7 +300,7 @@ ENTRY(restoreregs)
 	SUB_Q(CONST(ML_FRAME_SIZE),RSP)
 	MOV_Q(RBX,rspsave)
 #endif
-	
+
 #define temp2	RBX
       /* Initialize the ML stack frame. */
 	MOVE(REGOFF(ExnPtrOffMSP, temp),  temp2, exncont)
@@ -349,14 +349,14 @@ ENTRY(restoreregs)
 	/* handle signals */
 	movl	REGOFF(SigsRecvOffVSP,vsp),%edx
 	cmpl	REGOFF(SigsHandledOffVSP,vsp),%edx
-	
+
 #undef  tmpreg
 	JNE(pending)
 
 restore_and_jmp_ml:
 	popq	temp			/* restore temp to msp */
 	POP_Q(misc2)
-	
+
 jmp_ml:
 	cmpq	limitptr, allocptr
 	JMP(CODEPTR(REGOFF(PCOffMSP,temp)))	/* Jump to ML code. */
@@ -364,10 +364,10 @@ jmp_ml:
 
 pending:
 					/* Currently handling signal? */
-	CMP_L(CONST(0), REGOFF(InSigHandlerOffVSP,vsp))   
+	CMP_L(CONST(0), REGOFF(InSigHandlerOffVSP,vsp))
 	JNE(restore_and_jmp_ml)
 					/* handler trap is now pending */
-	movl	IMMED(1),HandlerPendingOffVSP(vsp) 
+	movl	IMMED(1),HandlerPendingOffVSP(vsp)
 
 	/* must restore here because limitptr is on stack */ /* XXX */
 	popq	temp			/* restore temp to msp */
@@ -390,17 +390,17 @@ ML_CODE_HDR(array_a)
 
 #define temp1 misc0
 #define temp2 misc1
-	pushq	misc0			     /* save misc0 */ 
+	pushq	misc0			     /* save misc0 */
 	pushq	misc1			     /* save misc1 */
-	
+
 	MOV_Q(temp, temp1)
 	salq	CONST(TAG_SHIFTW),temp1      /* build descriptor in temp1 */
 	orq	CONST(MAKE_TAG(DTAG_arr_data)),temp1
 	MOV_Q(temp1,REGIND(allocptr)	     /* store descriptor */
 	addq	CONST(8),allocptr	     /* allocptr++ */
 	MOV_Q(allocptr, temp1		     /* temp1 := array data ptr */
-	MOV_Q(REGOFF(8,stdarg), temp2	     /* temp2 := initial value */ 
-2:	
+	MOV_Q(REGOFF(8,stdarg), temp2	     /* temp2 := initial value */
+2:
 	MOV_Q(temp2, REGIND(allocptr)     /* initialize array */
 	addq	CONST(8), allocptr
 	subq	CONST(1), temp
@@ -410,7 +410,7 @@ ML_CODE_HDR(array_a)
 	MOV_Q(CONST(DESC_polyarr),REGIND(allocptr) /* descriptor in temp */
 	addq	CONST(8), allocptr	     /* allocptr++ */
 	MOV_Q(REGIND(stdarg), temp	     /* temp := length */
-	MOV_Q(allocptr, stdarg   	     /* result = header addr */ 
+	MOV_Q(allocptr, stdarg   	     /* result = header addr */
 	MOV_Q(temp1, REGIND(allocptr)	     /* store pointer to data */
 	MOV_Q(temp, REGOFF(8,allocptr)	     /* store length */
 	addq	CONST(16), allocptr
@@ -424,7 +424,7 @@ ML_CODE_HDR(array_a)
 	MOV_Q(CONST(REQ_ALLOC_ARRAY),request_w)
 	MOVE	(stdlink, temp, pc)
 	JMP(CSYM(set_request))
-	
+
 
 /* create_r : int -> realarray */
 ML_CODE_HDR(create_r_a)
@@ -480,7 +480,7 @@ ML_CODE_HDR(create_b_a)
 	/* allocate teh data object */
 	MOV_Q(temp, temp1		/* temp1 :=  descriptor */
 	shlq	CONST(TAG_SHIFTW),temp1
-	orq	CONST(MAKE_TAG(DTAG_raw32)),temp1
+	orq	CONST(MAKE_TAG(DTAG_raw)),temp1
 	MOV_Q(temp1, REGIND(allocptr)	/* store descriptor */
 	addq	CONST(4), allocptr	/* allocptr++ */
 	MOV_Q(allocptr, temp1		/* temp1 := data object */
@@ -508,7 +508,7 @@ ML_CODE_HDR(create_s_a)
 	CHECKLIMIT
 	MOV_Q(stdarg,temp)
 	sarq	CONST(1),temp		/* temp := length(untagged) */
-	addq	CONST(8),temp		
+	addq	CONST(8),temp
 	sarq	CONST(3),temp		/* temp := length(words) */
 	cmpq	CONST(SMALL_OBJ_SZW),temp
 	JGE(2f)
@@ -518,7 +518,7 @@ ML_CODE_HDR(create_s_a)
 
 	MOV_Q(temp, temp1)
 	shlq	CONST(TAG_SHIFTW),temp1	/* build descriptor in temp1 */
-	orq	CONST(MAKE_TAG(DTAG_raw32)), temp1
+	orq	CONST(MAKE_TAG(DTAG_raw)), temp1
 	MOV_Q(temp1, REGIND(allocptr)/* store the data pointer */
 	addq	CONST(8),allocptr	/* allocptr++ */
 
@@ -534,8 +534,8 @@ ML_CODE_HDR(create_s_a)
 	MOV_Q(temp1, REGIND(allocptr)/* header data field */
 	MOV_Q(stdarg, REGOFF(8,allocptr)	/* header length field */
 	MOV_Q(allocptr, stdarg		/* stdarg := header object */
-	addq	CONST(16), allocptr		
-	
+	addq	CONST(16), allocptr
+
 	popq	misc0			/* restore misc0 */
 #undef  temp1
 	CONTINUE
@@ -553,7 +553,7 @@ ML_CODE_HDR(create_v_a)
 	PUSH_Q(misc0)
 	PUSH_Q(misc1)
 #define	temp1	misc0
-#define temp2   misc1	
+#define temp2   misc1
 	MOV_Q(REGIND(stdarg),temp		/* temp := length(tagged) */
 	MOV_Q(temp, temp1)
 	sarq	CONST(1),temp1		/* temp1 := length(untagged) */
@@ -595,10 +595,10 @@ ML_CODE_HDR(create_v_a)
 	MOVE(stdlink, temp, pc)
 	JMP(CSYM(set_request))
 #undef  temp1
-#undef  temp2	
-	
-/* try_lock: spin_lock -> bool. 
- * low-level test-and-set style primitive for mutual-exclusion among 
+#undef  temp2
+
+/* try_lock: spin_lock -> bool.
+ * low-level test-and-set style primitive for mutual-exclusion among
  * processors.	For now, we only provide a uni-processor trivial version.
  */
 ML_CODE_HDR(try_lock_a)
@@ -611,7 +611,7 @@ ML_CODE_HDR(try_lock_a)
 	CONTINUE
 #endif
 
-/* unlock : releases a spin lock 
+/* unlock : releases a spin lock
  */
 ML_CODE_HDR(unlock_a)
 #if (MAX_PROCS > 1)
@@ -629,13 +629,13 @@ ML_CODE_HDR(unlock_a)
 
 
 /* Temporary storage for the old and new floating point control
-   word.  We don't use the stack to for this, since doing so would 
+   word.  We don't use the stack to for this, since doing so would
    change the offsets of the pseudo-registers. */
 	DATA
 	.align 8
-old_controlwd:	
+old_controlwd:
 	.word	0
-new_controlwd:	
+new_controlwd:
 	.word	0
 	TEXT
 	.align 8
@@ -646,7 +646,7 @@ new_controlwd:
  * point control word is initialized (undefined fields are left
  * unchanged).	Rounding control is set to "nearest" (although floor_a
  * needs "toward negative infinity").  Precision control is set to
- * "double".  The precision, underflow, denormal 
+ * "double".  The precision, underflow, denormal
  * overflow, zero divide, and invalid operation exceptions
  * are masked.  Next, seven of the eight available entries on the
  * floating point register stack are claimed (see x86/x86.sml).
@@ -671,11 +671,11 @@ ENTRY(fegetround)
 	SAR_L(CONST(10),REGIND(ESP))/* rounding mode is at bit 10 and 11 */
 	AND_L(CONST(3), REGIND(ESP))/* mask two bits */
 	MOV_L(REGIND(ESP),EAX)	/* return rounding mode */
-	ADD_L(CONST(4), ESP)	/* deallocate space */	
+	ADD_L(CONST(4), ESP)	/* deallocate space */
 	RET
-  	
+
 ENTRY(fesetround)
-	SUB_L(CONST(4), ESP)	/* allocate temporary space */	
+	SUB_L(CONST(4), ESP)	/* allocate temporary space */
 	FSTCW(REGIND(ESP))	/* store fp control word */
 	AND_W(CONST(0xf3ff), REGIND(ESP))	/* Clear rounding field. */
 	MOV_L(REGOFF(8,ESP), EAX)	/* new rounding mode */
@@ -722,7 +722,7 @@ ML_CODE_HDR(logb_a)
 	addq	CONST(1), temp		/* tag bit */
 	MOV_Q(temp, stdarg
 	CONTINUE
-	
+
 
 /* scalb : (real * int) -> real
  * Scale the first argument by 2 raised to the second argument.	 Raise

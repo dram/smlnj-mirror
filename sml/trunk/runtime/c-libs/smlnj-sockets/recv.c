@@ -29,7 +29,7 @@ ml_val_t _ml_Sock_recv (ml_state_t *msp, ml_val_t arg)
     if (REC_SEL(arg, 3) == ML_true) flag |= MSG_PEEK;
 
   /* allocate the vector; note that this might cause a GC */
-    vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS(nbytes));
+    vec = ML_AllocRaw (msp, BYTES_TO_WORDS(nbytes));
 
     s = PTR_MLtoC(char, vec);
     n = recv (sock, s, nbytes, flag);
@@ -48,7 +48,7 @@ ml_val_t _ml_Sock_recv (ml_state_t *msp, ml_val_t arg)
 
     if (n < nbytes) {
       /* we need to shrink the vector */
-	ML_ShrinkRaw32 (msp, vec, BYTES_TO_WORDS(n));
+	ML_ShrinkRaw (msp, vec, BYTES_TO_WORDS(n));
     }
 
     SEQHDR_ALLOC (msp, res, DESC_string, vec, n);

@@ -100,7 +100,7 @@ ml_val_t _ml_win32_REG_enum_key_ex(ml_state_t *msp, ml_val_t arg)
   long result = 0;
   long characters = 256;   /* 255 is the max key name size */
 
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (characters));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (characters));
   result = RegEnumKeyEx(key, index, PTR_MLtoC(void, vec), &characters, 0, NULL, NULL, NULL);
 
   /* return string option */
@@ -137,7 +137,7 @@ ml_val_t _ml_win32_REG_enum_value_ex(ml_state_t *msp, ml_val_t arg)
   }
 
   nameLen += 1;
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (nameLen));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (nameLen));
   result = RegEnumValue(key, index, PTR_MLtoC(void, vec), &nameLen, 0, NULL, NULL, NULL);
 
   /* return string option */
@@ -196,7 +196,7 @@ ml_val_t _ml_win32_REG_QueryString(ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (dwSize));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (dwSize));
   result = RegQueryValueEx(key, valueName, 0, NULL, PTR_MLtoC(void, vec), &dwSize);
   if (result != ERROR_SUCCESS) {
     return RAISE_SYSERR(msp,-1);
@@ -240,11 +240,11 @@ ml_val_t _ml_win32_REG_query_value_multi_string(ml_state_t *msp, ml_val_t arg)
   ptr = concatenated;
   while (dwSize > 0) {
 	nextToCopy = strlen(ptr);
-    vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (nextToCopy+1));
+    vec = ML_AllocRaw (msp, BYTES_TO_WORDS (nextToCopy+1));
     strcpy_s((PTR_MLtoC(char, vec)), nextToCopy+1, ptr);
     SEQHDR_ALLOC (msp, str, DESC_string, vec, nextToCopy);
     ptr += strlen(ptr)+1;
-    
+
     tail = res;
     LIST_cons(msp, res, str, tail);
 	dwSize -= (nextToCopy + 1);
@@ -337,7 +337,7 @@ ml_val_t _ml_win32_REG_set_value_string(ml_state_t *msp, ml_val_t arg)
 {
   return _ml_win32_REG_SetStringValue(msp, arg, REG_SZ);
 }
-  
+
 ml_val_t _ml_win32_REG_set_value_expand_string(ml_state_t *msp, ml_val_t arg)
 {
   return _ml_win32_REG_SetStringValue(msp, arg, REG_EXPAND_SZ);

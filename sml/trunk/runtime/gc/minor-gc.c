@@ -333,7 +333,8 @@ PVT ml_val_t MinorGC_ForwardObj (gen_t *gen1, ml_val_t v)
 	len = GET_LEN(desc);
 	arena = gen1->arena[ARRAY_INDX];
 	break;
-      case DTAG_raw32:
+/* 64BIT: on 64-bit machines, we can treat DTAG_raw and DTAG_raw64 the same */
+      case DTAG_raw:
 	len = GET_LEN(desc);
 	arena = gen1->arena[STRING_INDX];
 	break;

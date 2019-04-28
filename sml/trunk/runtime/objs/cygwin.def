@@ -76,7 +76,7 @@ EXPORTS
     ML_AllocBytearray @75
     ML_AllocCData @76
     ML_AllocCode @77
-    ML_AllocRaw32 @78
+    ML_AllocRaw @78
     ML_AllocRaw64 @79
     ML_AllocRealdarray @80
     ML_AllocString @81
@@ -84,7 +84,7 @@ EXPORTS
     ML_CData @83
     ML_CString @84
     ML_CStringList @85
-    ML_ShrinkRaw32 @86
+    ML_ShrinkRaw @86
     ML_SysConst @87
     ML_SysConstList @88
     ML_X86Frame @89 DATA

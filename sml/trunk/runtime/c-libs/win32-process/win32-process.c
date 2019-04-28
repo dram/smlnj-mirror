@@ -17,7 +17,7 @@
 
 
 /* _ml_win32_PS_create_process : string -> word32
- * 
+ *
  * Note: This function returns the handle to the created process
  *       This handle will need to be freed before the system releases
  *       the memory associated to the process.
@@ -71,12 +71,12 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles(ml_state_t *msp, ml_val_t 
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
 
-    // Create a pipe for the child process's STDOUT. 
-    if (!CreatePipe(&hStdoutRd, &hStdoutWr, &sa, 0)) 
+    // Create a pipe for the child process's STDOUT.
+    if (!CreatePipe(&hStdoutRd, &hStdoutWr, &sa, 0))
         return RAISE_SYSERR(msp,-1);
 
-    // Create a pipe for the child process's STDIN. 
-    if (!CreatePipe(&hStdinRd, &hStdinWr, &sa, 0)) 
+    // Create a pipe for the child process's STDIN.
+    if (!CreatePipe(&hStdinRd, &hStdinWr, &sa, 0))
         return RAISE_SYSERR(msp,-1);
 
     si.dwFlags = STARTF_USESTDHANDLES|STARTF_USESHOWWINDOW;
@@ -102,7 +102,7 @@ ml_val_t _ml_win32_PS_wait_for_single_object(ml_state_t *msp, ml_val_t arg)
     /* information is not ready, or error */
     obj = OPTION_NONE;
   }
-  else { 
+  else {
     /* WAIT_OBJECT_0 ... done, finished */
     /* get info and return SOME(exit_status) */
     GetExitCodeProcess (hProcess,&exit_code);
@@ -111,8 +111,8 @@ ml_val_t _ml_win32_PS_wait_for_single_object(ml_state_t *msp, ml_val_t arg)
     OPTION_SOME(msp,obj,p);
   }
   return obj;
-}  
-    
+}
+
 
 /* _ml_win32_PS_system : string -> word32
  *                       command
@@ -198,7 +198,7 @@ ml_val_t _ml_win32_PS_find_executable(ml_state_t *msp, ml_val_t arg)
   }
 
   length = strlen(szResultPath);
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (length + 1));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
   strcpy_s(PTR_MLtoC(void, vec), length+1, szResultPath);
   SEQHDR_ALLOC (msp, obj, DESC_string, vec, length);
   OPTION_SOME(msp, res, obj);

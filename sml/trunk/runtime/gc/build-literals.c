@@ -659,7 +659,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 /* FIXME: for large strings, we should be allocating them in the 1st generation */
 	    GC_CHECK;
 	  /* allocate the data object */
-	    ML_AllocWrite(msp, 0, MAKE_DESC(ui, DTAG_raw32));
+	    ML_AllocWrite(msp, 0, MAKE_DESC(ui, DTAG_raw));
 	    ML_AllocWrite (msp, ui, 0);  /* so word-by-word string equality works */
 	    res = ML_Alloc (msp, ui);
 #ifdef DEBUG_LITERALS
@@ -753,7 +753,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    spaceReq = 4*arg32.uArg + WORD_SZB;
 /* FIXME: for large objects, we should be allocating them in the 1st generation */
 	    GC_CHECK;
-	    ML_AllocWrite (msp, 0, MAKE_DESC(arg32.uArg, DTAG_raw32));
+	    ML_AllocWrite (msp, 0, MAKE_DESC(arg32.uArg, DTAG_raw));
 	    for (ui = 1;  ui <= arg32.uArg;  ui++) {
 		ML_AllocWrite (msp, ui, (ml_val_t)GetI32Arg(&(code[pc])));  pc += 4;
 	    }

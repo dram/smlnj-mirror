@@ -28,7 +28,7 @@ ml_val_t _ml_P_IO_read (ml_state_t *msp, ml_val_t arg)
 	return ML_string0;
 
   /* allocate the vector; note that this might cause a GC */
-    vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS(nbytes));
+    vec = ML_AllocRaw (msp, BYTES_TO_WORDS(nbytes));
     n = read (fd, PTR_MLtoC(char, vec), nbytes);
     if (n < 0)
 	return RAISE_SYSERR(msp, n);
@@ -37,7 +37,7 @@ ml_val_t _ml_P_IO_read (ml_state_t *msp, ml_val_t arg)
 
     if (n < nbytes) {
       /* we need to shrink the vector */
-	ML_ShrinkRaw32 (msp, vec, BYTES_TO_WORDS(n));
+	ML_ShrinkRaw (msp, vec, BYTES_TO_WORDS(n));
     }
 
     SEQHDR_ALLOC (msp, res, DESC_string, vec, n);

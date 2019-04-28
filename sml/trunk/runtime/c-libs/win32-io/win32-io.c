@@ -43,7 +43,7 @@ ml_val_t _ml_win32_IO_get_std_handle(ml_state_t *msp, ml_val_t arg)
 ml_val_t _ml_win32_IO_close(ml_state_t *msp, ml_val_t arg)
 {
   HANDLE h = (HANDLE) WORD_MLtoC(arg);
-  
+
   if (CloseHandle(h)) {
     return ML_unit;
   }
@@ -70,7 +70,7 @@ ml_val_t _ml_win32_IO_set_file_pointer(ml_state_t *msp, ml_val_t arg)
   return res;
 }
 
-/* remove CRs ('\r') from buf of size *np; sets *np to be the new buf size 
+/* remove CRs ('\r') from buf of size *np; sets *np to be the new buf size
  */
 PVT rm_CRs(char *buf,int *np)
 {
@@ -129,7 +129,7 @@ ml_val_t _ml_win32_IO_read_vec(ml_state_t *msp, ml_val_t arg)
   DWORD n;
 
   /* allocate the vector; note that this might cause a GC */
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (nbytes));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (nbytes));
   if (ReadFile(h,PTR_MLtoC(void, vec),nbytes,&n,NULL)) {
     if (n == 0) {
 #ifdef WIN32_DEBUG
@@ -139,7 +139,7 @@ ml_val_t _ml_win32_IO_read_vec(ml_state_t *msp, ml_val_t arg)
     }
     if (n < nbytes) {
       /* we need to shrink the vector */
-      ML_ShrinkRaw32 (msp, vec, BYTES_TO_WORDS(n));
+      ML_ShrinkRaw (msp, vec, BYTES_TO_WORDS(n));
     }
     /* allocate header */
     SEQHDR_ALLOC (msp, res, DESC_string, vec, n);
@@ -156,7 +156,7 @@ ml_val_t _ml_win32_IO_read_vec(ml_state_t *msp, ml_val_t arg)
 PVT bool_t check_cntrl_c(BOOL read_OK,int bytes_read)
 {
   /* this is a rude hack */
-  /* under NT and default console mode, on 
+  /* under NT and default console mode, on
    *  EOF: read_OK is true, and n > 0
    *   ^C: read_OK is true, and n == 0.  However, the cntrl_c handler is
    *       not always invoked before ReadConsole returns.
@@ -165,8 +165,8 @@ PVT bool_t check_cntrl_c(BOOL read_OK,int bytes_read)
    *  EOF: read_OK is true and n is 0
    *   ^C: read_OK is true, n is 0, but handler seems to always have been run
    */
-  if (read_OK &&  
-      (bytes_read == 0) && 
+  if (read_OK &&
+      (bytes_read == 0) &&
       win32_isNT) {
     /* guaranteed that a cntrl_c has occurred and has not been reset */
     /* wait for it to happen */
@@ -212,7 +212,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
   BOOL flag = FALSE;
 
   /* allocate the vector; note that this might cause a GC */
-  vec = ML_AllocRaw32 (msp, BYTES_TO_WORDS (nbytes));
+  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (nbytes));
 
   if (IS_CONIN(h)) {
     flag = ReadConsole(h,PTR_MLtoC(void,vec),nbytes,&n,NULL);
@@ -227,7 +227,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
       if (CRLF_EOFscan((char *)vec,&n)) {
 	n = 0;
       }
-    } 
+    }
     else {
       rm_CRs((char *)vec,&n);
     }
@@ -240,7 +240,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
     }
     if (n < nbytes) {
       /* shrink buffer */
-      ML_ShrinkRaw32 (msp, vec, BYTES_TO_WORDS(n));
+      ML_ShrinkRaw (msp, vec, BYTES_TO_WORDS(n));
     }
     /* allocate header */
     SEQHDR_ALLOC (msp, res, DESC_string, vec, n);
@@ -266,7 +266,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
 /* _ml_win32_IO_read_arr : (word32*word8array.array*int*int) -> int
  *                          handle buffer           n   start
  *
- * Read n bytes of data from the specified handle into the given array, 
+ * Read n bytes of data from the specified handle into the given array,
  * starting at start. Return the number of bytes read. Assume bounds
  * have been checked.
  *
@@ -287,7 +287,7 @@ ml_val_t _ml_win32_IO_read_arr(ml_state_t *msp, ml_val_t arg)
       SayDebug("_ml_win32_IO_read_arr: eof on device\n");
 #endif
     return INT_CtoML(n);
-  } 
+  }
 #ifdef WIN32_DEBUG
   SayDebug("_ml_win32_IO_read_arr: failing\n");
 #endif
@@ -297,7 +297,7 @@ ml_val_t _ml_win32_IO_read_arr(ml_state_t *msp, ml_val_t arg)
 /* _ml_win32_IO_read_arr_txt : (word32*char8array.array*int*int) -> int
  *                              handle buffer           n   start
  *
- * Read n bytes of data from the specified handle into the given array, 
+ * Read n bytes of data from the specified handle into the given array,
  * starting at start. Return the number of bytes read. Assume bounds
  * have been checked.
  *
@@ -325,7 +325,7 @@ ml_val_t _ml_win32_IO_read_arr_txt(ml_state_t *msp, ml_val_t arg)
       if (CRLF_EOFscan((char *)start,&n)) {
 	n = 0;
       }
-    } 
+    }
     else {
       rm_CRs((char *)buf,&n);
     }
@@ -339,7 +339,7 @@ ml_val_t _ml_win32_IO_read_arr_txt(ml_state_t *msp, ml_val_t arg)
         (GetLastError() == ERROR_BROKEN_PIPE)) { /* and pipe broken */
       /* this is an EOF on redirected stdin (ReadFile failed) */
       return INT_CtoML(0);
-    } 
+    }
   }
 #ifdef WIN32_DEBUG
   SayDebug("_ml_win32_IO_read_arr_txt: failing\n");
@@ -348,7 +348,7 @@ ml_val_t _ml_win32_IO_read_arr_txt(ml_state_t *msp, ml_val_t arg)
 }
 
 
-/* _ml_win32_IO_create_file: (string*word32*word32*word32*word32) -> word32 
+/* _ml_win32_IO_create_file: (string*word32*word32*word32*word32) -> word32
  *                            name   access share  create attr       handle
  *
  * create file "name" with access, share, create, and attr flags
@@ -423,22 +423,22 @@ ml_val_t _ml_win32_IO_write_buf(ml_state_t *msp, ml_val_t arg)
 }
 
 ml_val_t _ml_win32_IO_write_vec(ml_state_t *msp, ml_val_t arg)
-{ 
+{
   return _ml_win32_IO_write_buf(msp,arg);
 }
 
 ml_val_t _ml_win32_IO_write_arr(ml_state_t *msp, ml_val_t arg)
-{ 
+{
   return _ml_win32_IO_write_buf(msp,arg);
 }
 
 ml_val_t _ml_win32_IO_write_vec_txt(ml_state_t *msp, ml_val_t arg)
-{ 
+{
   return _ml_win32_IO_write_buf(msp,arg);
 }
 
 ml_val_t _ml_win32_IO_write_arr_txt(ml_state_t *msp, ml_val_t arg)
-{ 
+{
   return _ml_win32_IO_write_buf(msp,arg);
 }
 

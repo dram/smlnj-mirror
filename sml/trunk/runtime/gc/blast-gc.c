@@ -678,7 +678,8 @@ PVT ml_val_t BlastGC_ForwardObj (heap_t *heap, ml_val_t v, aid_t id)
 	switch (GET_TAG(desc)) {
 	  case DTAG_forward:
 	    return PTR_CtoML(FOLLOW_FWDOBJ(obj));
-	  case DTAG_raw32:
+/* 64BIT: on 64-bit machines, DTAG_raw and DTAG_raw64 can be handled in the same way */
+	  case DTAG_raw:
 	    len = GET_LEN(desc);
 	    break;
 	  case DTAG_raw64:

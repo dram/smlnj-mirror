@@ -65,12 +65,12 @@
 #define ATMP2		$21
 #define ATMP3		$22
 #define ATMP4		$23
-#define PTRTMP		$24	
+#define PTRTMP		$24
 
 /* The  ML stack frame has the following layout (set up by restoreregs):
  *			+-------------------+
- *	sp+124		|    ml_divlu       |	
- *			+-------------------+ 
+ *	sp+124		|    ml_divlu       |
+ *			+-------------------+
  *      sp+120          |    ml_divlv       |
  *			+-------------------+
  *	sp+116		|   pseudo reg 2    |
@@ -85,7 +85,7 @@
  *			+-------------------+
  *      sp+80:		|     saved $29     |
  *			+-------------------+
- *      sp+72:		|     saved $26     | 
+ *      sp+72:		|     saved $26     |
  *			+-------------------+
  *      sp+64:		|     saved $15     |
  *			+-------------------+
@@ -139,7 +139,7 @@
 	.align 3
 one_half:	.t_floating	0.5
 fsr_bits:	.quad		0x8a70000000000000
-				
+
 	TEXT
 
 
@@ -219,7 +219,7 @@ ENTRY(saveregs)
 
 	/* fall through */
 
-set_request:			
+set_request:
 	ldq	PTRTMP,MLSTATE_OFFSET(sp)	/* get the ML state ptr */
 	ldq	NEEDGC,VProcOffMSP(PTRTMP)	/* use NEEDGC for VProcPtr */
 	stl	zero,InMLOffVSP(NEEDGC)		/* note that we have left ML */
@@ -305,7 +305,7 @@ ENTRY(restoreregs)
 	ldl	PTRTMP,SigsHandledOffVSP(NEEDGC)
 	cmpeq	$28,PTRTMP,PTRTMP
 .set	at
-	bne	PTRTMP,pending_sigs 
+	bne	PTRTMP,pending_sigs
 	.end	restoreregs
 	.ent	ml_go
 ENTRY(ml_go)
@@ -317,7 +317,7 @@ ENTRY(ml_go)
 pending_sigs:	/* there are pending signals */
 					/* check if we are currently handling a signal */
 	ldl	PTRTMP,InSigHandlerOffVSP(NEEDGC)
-	bne	PTRTMP,ml_go	
+	bne	PTRTMP,ml_go
 					/* note that a handler trap is pending */
 	mov	1,PTRTMP
 	stl	PTRTMP,HandlerPendingOffVSP(NEEDGC)
@@ -385,8 +385,8 @@ ML_CODE_HDR(array_a)
 	stl	ATMP3,0(ALLOCPTR)	    /* store descriptor */
 	addq	ALLOCPTR,4		    /* allocptr++ */
 	mov	ALLOCPTR,ATMP3		    /* array data ptr in tmp3 */
-1:	
-	stl	STDARG,0(ALLOCPTR)	    /* initialize array */ 
+1:
+	stl	STDARG,0(ALLOCPTR)	    /* initialize array */
 	subl	ATMP2, 1, ATMP2
 	addq	ALLOCPTR,4
 	bne	ATMP2,1b
@@ -456,7 +456,7 @@ ML_CODE_HDR(create_b_a)
 	bgt	ATMP3,1f
 	/* allocate the data object */
 	sll	ATMP2,TAG_SHIFTW,ATMP1    /* build descriptor in atmp1 */
-	or	ATMP1,MAKE_TAG(DTAG_raw32),ATMP1
+	or	ATMP1,MAKE_TAG(DTAG_raw),ATMP1
 	stl	ATMP1,0(ALLOCPTR)	  /* store the data descriptor */
 	addq	ALLOCPTR,4		  /* allocptr++ */
 	mov	ALLOCPTR,ATMP3		  /* tmp3 = data object */
@@ -487,9 +487,9 @@ ML_CODE_HDR(create_s_a)
 	sra	ATMP2,2
 	subq	ATMP2,SMALL_OBJ_SZW,ATMP3
 	bgt	ATMP3,1f			/* is this a small object? */
-	
+
 	sll	ATMP2,TAG_SHIFTW,ATMP1		/* build descriptor in atmp3 */
-	or	ATMP1,MAKE_TAG(DTAG_raw32),ATMP1
+	or	ATMP1,MAKE_TAG(DTAG_raw),ATMP1
 	stl	ATMP1,0(ALLOCPTR)		/* store the data descriptor */
 	addq	ALLOCPTR,4	 	        /* allocptr++ */
 	mov	ALLOCPTR,ATMP3			/* tmp3 = data object */
@@ -521,7 +521,7 @@ ML_CODE_HDR(create_v_a)
 	sra	ATMP1,1,ATMP2		/* tmp2 := length (untagged) */
 	subq	ATMP2,SMALL_OBJ_SZW,ATMP3
 	bgt	ATMP3,1f		/* is this a small object? */
-	
+
 	sll	ATMP2,TAG_SHIFTW,ATMP2  /* build descriptor in tmp2 */
 	or	ATMP2,MAKE_TAG(DTAG_vec_data),ATMP2
 	stl	ATMP2,0(ALLOCPTR)	/* store descriptor */
@@ -579,7 +579,7 @@ ML_CODE_HDR(floor_a)
 	addl    ATMP1, ATMP1, ATMP1
 	addl	ATMP1, 1, STDARG
 
-	addq	$30, 16, $30 	
+	addq	$30, 16, $30
 	CONTINUE
 
 #else /* !NEW_FLOOR */
@@ -624,7 +624,7 @@ floor_negative_arg:
 	CONTINUE
 
 #endif
-	
+
 
 ML_CODE_HDR(logb_a)
 	ldq 	STDARG,(STDARG)	/* get argument */
@@ -664,7 +664,7 @@ ML_CODE_HDR(scalb_a)
 	CONTINUE
 
 /* ml_divlv
- * Incoming parameters in $16 and $17, result in $0	
+ * Incoming parameters in $16 and $17, result in $0
  */
 ENTRY(ml_divlv)			/* divide longword */
 	beq $17, divZero        /* check for div-by-zero */
@@ -672,15 +672,15 @@ ENTRY(ml_divlv)			/* divide longword */
 	bne $0, do_ml_divl	/* NO */
 	sublv $31, $16, $0	/* is dividend largest negative int */
 	trapb			/* YES */
-do_ml_divl:	
+do_ml_divl:
 	divl $16, $17, $0	/* do divl */
 	ret $31, ($26), 1
 
 
 /* ml_divlu
- * Incoming parameters in $16 and $17, result in $0	
+ * Incoming parameters in $16 and $17, result in $0
  */
-ENTRY(ml_divlu)			/* divide longwork unsigned */ 
+ENTRY(ml_divlu)			/* divide longwork unsigned */
 	beq $17, divZero	/* check for div-by-zero */
 	divlu $16, $17, $0	/* do divlu */
 	ret $31, ($26), 1
@@ -689,9 +689,9 @@ divZero:
 	lda $16, -2($31)	/* generate div-by-zero */
 	call_pal 0xaa		/* gentrap */
 
-		
+
 /* try_lock : spin_lock -> bool
- * low-level test-and-set style primitive for mutual-exclusion among 
+ * low-level test-and-set style primitive for mutual-exclusion among
  * processors.
  */
 ML_CODE_HDR(try_lock_a)
@@ -705,7 +705,7 @@ ML_CODE_HDR(try_lock_a)
 	CONTINUE
 #endif
 
-/* unlock : releases a spin lock 
+/* unlock : releases a spin lock
  */
 ML_CODE_HDR(unlock_a)
 #if (MAX_PROCS > 1)

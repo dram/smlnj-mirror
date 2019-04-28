@@ -10,7 +10,7 @@
 # but if it is not, then we assume that the 10.13 SDK is in the usual place.
 #
 ifeq ($(origin SDK), undefined)
-  DEVDIR =	$(shell xcode-select -p)
+  DEVDIR = $(shell xcode-select -p)
   SDK = $(DEVDIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk
 endif
 

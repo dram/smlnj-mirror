@@ -201,7 +201,7 @@ PVT void CheckStringArena (arena_t *ap)
 	desc = *p++;
 	if (isDESC(desc)) {
 	    switch (GET_TAG(desc)) {
-	      case DTAG_raw32:
+	      case DTAG_raw:
 	      case DTAG_raw64:
 		len = GET_LEN(desc);
 		break;

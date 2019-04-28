@@ -472,7 +472,7 @@ ML_CODE_HDR(create_b_a)
 	/* allocate teh data object */
 	MOV_L(temp, temp1)		/* temp1 :=  descriptor */
 	SHL_L(CONST(TAG_SHIFTW),temp1)
-	OR_L(CONST(MAKE_TAG(DTAG_raw32)),temp1)
+	OR_L(CONST(MAKE_TAG(DTAG_raw)),temp1)
 	MOV_L(temp1, REGIND(allocptr))	/* store descriptor */
 	ADD_L(CONST(4), allocptr)	/* allocptr++ */
 	MOV_L(allocptr, temp1)		/* temp1 := data object */
@@ -510,7 +510,7 @@ ML_CODE_HDR(create_s_a)
 
 	MOV_L(temp, temp1)
 	SHL_L(CONST(TAG_SHIFTW),temp1)	/* build descriptor in temp1 */
-	OR_L(CONST(MAKE_TAG(DTAG_raw32)), temp1)
+	OR_L(CONST(MAKE_TAG(DTAG_raw)), temp1)
 	MOV_L(temp1, REGIND(allocptr))/* store the data pointer */
 	ADD_L(CONST(4),allocptr)	/* allocptr++ */
 

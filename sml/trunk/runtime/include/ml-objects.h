@@ -161,7 +161,7 @@
 #define WORD_ALLOC(msp, p, w)	{				\
 	ml_state_t	*__msp = (msp);				\
 	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = MAKE_DESC(1, DTAG_raw32);			\
+	*__p++ = MAKE_DESC(1, DTAG_raw);			\
 	*__p++ = (ml_val_t)(w);					\
 	(p) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
 	__msp->ml_allocPtr = __p;				\
@@ -196,8 +196,8 @@ extern ml_val_t ML_AllocBytearray (ml_state_t *msp, int len);
 extern ml_val_t ML_AllocRealdarray (ml_state_t *msp, int len);
 extern ml_val_t ML_AllocArray (ml_state_t *msp, int len, ml_val_t initVal);
 extern ml_val_t ML_AllocVector (ml_state_t *msp, int len, ml_val_t initVal);
-extern ml_val_t ML_AllocRaw32 (ml_state_t *msp, int len);
-extern void ML_ShrinkRaw32 (ml_state_t *msp, ml_val_t v, int nWords);
+extern ml_val_t ML_AllocRaw (ml_state_t *msp, int len);
+extern void ML_ShrinkRaw (ml_state_t *msp, ml_val_t v, int nWords);
 extern ml_val_t ML_AllocRaw64 (ml_state_t *msp, int len);
 
 extern ml_val_t ML_SysConst (ml_state_t *msp, sysconst_tbl_t *tbl, int id);
