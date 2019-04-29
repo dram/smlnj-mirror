@@ -31,14 +31,17 @@ tests.
     Signed and unsigned integer comparison operations; the `oper` field specifies
     the comparison operator (described below) and the `kind` field specifies the
     kind of the arguments (cannot be `FLOAT`). <br/>
-    The comparison operators are as follows; their semantics of the first four
+    The comparison operators are as follows; the semantics of the first four
     operators depends on the `kind` field of the `CMP` constructor:
+
       - `GT` -- greater than
       - `GTE` -- greater than or equal
       - `LT` -- less than
       - `LTE` -- less than or equal
       - `EQL` -- equal
       - `NEQ` -- not equal
+
+    The definition of the `cmpop` datatype is in the `ArithOps` structure.
 
   * `FCMP of {oper: fcmpop, size: int}`
     Floating-point comparisons; the `oper` field specifies the comparison operator (described
@@ -136,80 +139,34 @@ The `looker` datatype describes operations that read from mutable memory.
     This primop is used both with one and two arguments; in the latter case, the source
     memory address is computed by adding the two arguments.
 
-## Artithmetic operations
-
-The `arithop` datatype is used by both the `ARITH` and `PURE_ARITH` constructors in
-the `pure` and `arith` datatypes (resp.) to specify the arithmetic operation. <br/>
-**Note:** The CPS `arithop` type is currently the same as `Primop.arithop`.
-
-  * `ADD` -- addition; used for signed (`ARITH`) and unsigned (`PURE_ARITH`) integer
-    addition, and for floating-point addition (`PURE_ARITH`).
-
-  * `SUB` -- subtraction; used for signed (`ARITH`) and unsigned (`PURE_ARITH`) integer
-    subtraction, and for floating-point subtraction (`PURE_ARITH`).
-
-  * `MUL` -- multiplication; used for signed (`ARITH`) and unsigned (`PURE_ARITH`) integer
-    multiplication, and for floating-point multiplication (`PURE_ARITH`).
-
-  * `DIV` -- signed integer division (`ARITH` only) with rounding toward negative
-    infinity.  Note that an explicit check for divide by zero is added
-    during the translation from Absyn to FLINT.
-
-  * `MOD` -- signed integer remainder (`ARITH` only) with rounding toward negative
-    infinity.  Note that an explicit check for divide by zero is added
-    during the translation from Absyn to FLINT.
-
-  * `QUOT` -- signed (`ARITH`) and unsigned (`PURE_ARITH`) integer division with
-    rounding toward zero.  Note that an explicit check for divide by zero is added
-    during the translation from Absyn to FLINT.
-
-  * `REM` -- signed (`ARITH`) and unsigned (`PURE_ARITH`) integer remainder with
-    rounding toward zero.  Note that an explicit check for divide by zero is added
-    during the translation from Absyn to FLINT.
-
-  * `FDIV` -- floating-point division (`PURE_ARITH` only)
-
-  * `LSHIFT` -- integer left-shift operation (`PURE_ARITH` only)
-
-  * `RSHIFT` -- integer right-shift operation (`PURE_ARITH` only) with sign propagation
-    (*a.k.a.* arithemetic right shift).
-
-  * `RSHIFTL` -- integer right-shift operation (`PURE_ARITH` only) with zero propagation
-    (*a.k.a.* logical right shift).
-
-  * `ANDB` -- bitwise-and operation (`PURE_ARITH` only).
-
-  * `ORB` -- bitwise-or operation (`PURE_ARITH` only).
-
-  * `XORB` -- bitwise-exclusive-or operation (`PURE_ARITH` only).
-
-  * `NEG` -- arithmetic negation; used for signed (`ARITH`) and unsigned (`PURE_ARITH`) integer
-    multiplication, and for floating-point multiplication (`PURE_ARITH`).
-
-  * `FABS` -- floating-point absolute value (`PURE_ARITH` only).
-
-  * `NOTB` -- bitwise logical-negation operation (`PURE_ARITH` only).
-
-  * `FSQRT` -- floating-point square-root operation (`PURE_ARITH` only).  This operation is
-    in only used on systems that have hardware support for the operation.
-
-  * `FSIN` -- floating-point sine operation (`PURE_ARITH` only).  This operation is
-    in only used on systems that have hardware support for the operation.
-
-  * `FCOS` -- floating-point cosine operation (`PURE_ARITH` only).  This operation is
-    in only used on systems that have hardware support for the operation.
-
-  * `FTAN` -- floating-point tangent operation (`PURE_ARITH` only).  This operation is
-    in only used on systems that have hardware support for the operation.
-
 ## Impure arithmentic operations
 
 The `arith` datatype represents arithmetic operations that can cause an `Overflow`
 exception.
 
-  * `ARITH of {oper: arithop, kind: numkind}` -- arithmetic operations that may raise the
-    `Overflow` exception (note that division by zero is explicitly checked for by code
-    that is added during the translation from Absyn to FLINT).
+  * `ARITH of {oper: arithop, sz: int}` -- signed-integer arithmetic operations
+    that may raise the `Overflow` exception (note that division by zero is explicitly
+    checked for by code that is added during the translation from Absyn to FLINT).
+    The arithmetic operators are as follows:
+
+      - `IADD` -- addition
+      - `ISUB` -- subtraction
+      - `IMUL` -- multiplication
+      - `IDIV` -- signed integer division with rounding toward negative
+	 infinity.  Note that an explicit check for divide by zero is added
+	 during the translation from Absyn to FLINT.
+      - `IMOD` -- signed integer remainder with rounding toward negative
+	 infinity.  Note that an explicit check for divide by zero is added
+	 during the translation from Absyn to FLINT.
+      - `IQUOT` -- signed integer division with rounding toward zero.
+	 Note that an explicit check for divide by zero is added
+	 during the translation from Absyn to FLINT.
+      - `IREM` -- signed integer remainder with rounding toward zero.
+	 Note that an explicit check for divide by zero is added
+	 during the translation from Absyn to FLINT.
+      - `INEG` -- arithmetic negation
+
+    The definition of the `arithop` datatype is in the `ArithOps` structure.
 
   * `TEST of {from: int, to: int}` -- checked conversion from larger signed to smaller
     signed integer representation; the `from` field is the size of the input and
@@ -230,8 +187,41 @@ exception.
 
 The `pure` datatype collects together operations that cannot cause an exception.
 
-  * `PURE_ARITH of {oper: arithop, kind: numkind}`
+  * `PURE_ARITH of {oper: pureop, kind: numkind}`
     arithmetic operations that will **not** raise `Overflow` or `Div` exceptions.
+
+      - `ADD` -- addition; used for unsigned-integer and floating-point addition.
+      - `SUB` -- subtraction; used for unsigned-integer and floating-point subtraction.
+      - `MUL` -- multiplication; ; used for unsigned-integer and floating-point
+        multiplication.
+      - `QUOT` -- unsigned-integer division with rounding toward zero.  Note that
+	an explicit check for divide by zero is added during the translation from
+	Absyn to FLINT.
+      - `REM` -- unsigned-integer remainder with rounding toward zero.  Note that
+	an explicit check for divide by zero is added during the translation from
+	Absyn to FLINT.
+      - `NEG` -- 2's complement negation without overflow.
+      - `LSHIFT` -- integer left-shift operation.
+      - `RSHIFT` -- integer right-shift operation with sign propagation
+	(*a.k.a.* arithemetic right shift).
+      - `RSHIFTL` -- integer right-shift operation with zero propagation
+	(*a.k.a.* logical right shift).
+      - `ORB` -- bitwise-or operation.
+      - `XORB` -- bitwise-exclusive-or operation.
+      - `ANDB` -- bitwise-and operation.
+      - `NOTB` -- bitwise logical-negation operation.
+      - `FDIV` -- floating-point division.
+      - `FABS` -- floating-point absolute value.
+      - `FSQRT` -- floating-point square-root operation.  This operation is
+	in only used on systems that have hardware support for the operation.
+      - `FSIN` -- floating-point sine operation.  This operation is
+	in only used on systems that have hardware support for the operation.
+      - `FCOS` -- floating-point cosine operation.  This operation is
+	in only used on systems that have hardware support for the operation.
+      - `FTAN` -- floating-point tangent operation.  This operation is
+	in only used on systems that have hardware support for the operation.
+
+    The definition of the `pureop` datatype is in the `ArithOps` structure.
 
   * `PURE_NUMSUBSCRIPT of {kind: numkind}` -- subscript operation on a monomorphic
     packed vector of numbers (currently `INT 8` is the only kind that is supported).
@@ -325,17 +315,10 @@ The `pure` datatype collects together operations that cannot cause an exception.
   * expose the representation of arrays and vectors to CPS so that CSE can be used to
     eliminate redundant memory operations.  This should also simplify the code
     generator a bit, since many operations have to fetch the data pointer.  It could
-    also make substrings and slices more efficient.
+    also make substrings and slices more efficient.  (See `new-sequence-primops.md`
+    for a proposal).
 
   * Replace `RAW64SUBSCRIPT` with a `RAWSUBSCRIPT of numkind` to support packed
     sequences of other sizes and types.  There should be matching `RAWSUBSCRIPTV`
     and `RAWUPDATE` primops to support the exposed representation of arrays and
     vectors as described above.
-
-  * The `arithop` datatype could be made more precise by splitting it into pure and
-    impure types.  Of the 21 constructors, 13 are always pure, two are always impure,
-    and only six can appear as arguments to either `ARITH` or `PURE_ARITH`.  We might
-    also want to make the representation of primitive operations more uniform throughout
-    the phases of the compiler to streamline translation. <br/>
-    Note: code generation for impure floating-point operations in `mlriscGen.sml`
-    has been commented out, since it does not appear to be needed.

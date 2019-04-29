@@ -164,8 +164,10 @@ These primops are Basis Library functions that should be inlined for efficiency.
   * `bool_not : bool -> bool`<br/>
     `P.INLNOT`
 
-Some additional candidates for inlined operations include `hd`, `tl`, `null`, `chr`,
-and `ord`.
+  * `char_chr : int -> char`<br/>
+     `P.INLCHR`
+
+Some additional candidates for inlined operations include `hd`, `tl`, and `null`.
 
 If the compiler had the `option` and `order` datatypes builtin (like `bool` and `list`),
 then `valOf`, `isSome`, `isNone` and some of the `compare` functions could also
@@ -270,52 +272,52 @@ type (`Int.int`).
 
   * `int_add : int * int -> int`<br/>
     Signed integer addition with overflow checking.
-    (`P.ARITH{oper=P.ADD, overflow=true, kind=P.INT <int-size>}`)
+    (`P.IARITH{oper=P.IADD, sz=<int-size>}`)
 
   * `int_unsafe_add : int * int -> int`<br/>
     Signed integer addition *without* overflow checking.
-    (`P.ARITH{oper=P.ADD, overflow=false, kind=P.INT <int-size>}`)
+    (`P.PURE_ARITH{oper=P.ADD, kind=P.UINT <int-size>}`)
 
   * `int_sub : int * int -> int`<br/>
     Signed integer subtraction with overflow checking.
-    (`P.ARITH{oper=P.SUB, overflow=true, kind=P.INT <int-size>}`)
+    (`P.IARITH{oper=P.ISUB, sz=<int-size>}`)
 
   * `int_unsafe_sub : int * int -> int`<br/>
     Signed integer subtraction *without* overflow checking.
-    (`P.ARITH{oper=P.SUB, overflow=false, kind=P.INT <int-size>}`)
+    (`P.PURE_ARITH{oper=P.SUB, kind=P.UINT <int-size>}`)
 
   * `int_mul : int * int -> int`<br/>
-    `P.ARITH{oper=P.MUL, overflow=true, kind=P.INT <int-size>}`
+    `P.IARITH{oper=P.IMUL, sz=<int-size>}`
 
   * `int_div : int * int -> int`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=true, kind=P.INT <int-size>}`
+    `P.IARITH{oper=P.IQUOT, sz=<int-size>}`
 
   * `int_mod : int * int -> int`<br/>
-    `P.ARITH{oper=P.REM, overflow=true, kind=P.INT <int-size>}`
+    `P.IARITH{oper=P.IREM, sz=<int-size>}`
 
   * `int_quot : int * int -> int`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=true, kind=P.INT <int-size>}`
+    `P.IARITH{oper=P.IQUOT, sz=<int-size>}`
 
   * `int_rem : int * int -> int`<br/>
-    `P.ARITH{oper=P.REM, overflow=true, kind=P.INT <int-size>}`
+    `P.IARITH{oper=P.IREM, sz=<int-size>}`
 
   * `int_orb : int * int -> int`<br/>
-    `P.ARITH{oper=P.ORB, overflow=false, kind=P.INT <int-size>}`
+    `P.PURE_ARITH{oper=P.ORB, kind=P.INT <int-size>}`
 
   * `int_xorb : int * int -> int`<br/>
-    `P.ARITH{oper=P.XORB, overflow=false, kind=P.INT <int-size>}`
+    `P.PURE_ARITH{oper=P.XORB, kind=P.INT <int-size>}`
 
   * `int_andb : int * int -> int`<br/>
-    `P.ARITH{oper=P.ANDB, overflow=false, kind=P.INT <int-size>}`
+    `P.PURE_ARITH{oper=P.ANDB, kind=P.INT <int-size>}`
 
   * `int_neg : word32 -> word32`<br/>
-    `P.ARITH{oper=P.NEG, overflow=true, kind=P.INT <int-size>}`
+    `P.IARITH{oper=P.INEG, sz=<int-size>}`
 
   * `int_raw_rshift : int * word -> int`<br/>
-    `P.ARITH{oper=P.RSHIFT, overflow=false, kind=P.INT <int-size>}`
+    `P.PURE_ARITH{oper=P.RSHIFT, kind=P.INT <int-size>}`
 
   * `int_raw_lshift : int * word -> int`<br/>
-    `P.ARITH{oper=P.LSHIFT, overflow=false, kind=P.INT <int-size>}`
+    `P.PURE_ARITH{oper=P.LSHIFT, kind=P.INT <int-size>}`
 
   * `int_gt : int * int -> bool`<br/>
     `P.CMP{oper=P.GT, kind=P.INT <int-size>}`
@@ -349,34 +351,34 @@ These are the primitive operations on the default tagged word
 type (`Word.word`).
 
   * `word_mul : word * word -> word`<br/>
-    `P.ARITH{oper=P.MUL, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT <int-size>}`
 
   * `word_div : word * word -> word`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.QUOT, kind=P.UINT <int-size>}`
 
   * `word_mod : word * word -> word`<br/>
-    `P.ARITH{oper=P.REM, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.REM, kind=P.UINT <int-size>}`
 
   * `word_add : word * word -> word`<br/>
-    `P.ARITH{oper=P.ADD, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.ADD, kind=P.UINT <int-size>}`
 
   * `word_sub : word * word -> word`<br/>
-    `P.ARITH{oper=P.SUB, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.SUB, kind=P.UINT <int-size>}`
 
   * `word_orb : word * word -> word`<br/>
-    `P.ARITH{oper=P.ORB, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.ORB, kind=P.UINT <int-size>}`
 
   * `word_xorb : word * word -> word`<br/>
-    `P.ARITH{oper=P.XORB, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.XORB, kind=P.UINT <int-size>}`
 
   * `word_andb : word * word -> word`<br/>
-    `P.ARITH{oper=P.ANDB, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.ANDB, kind=P.UINT <int-size>}`
 
   * `word_notb : word -> word`<br/>
-    `P.ARITH{oper=P.NOTB, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.NOTB, kind=P.UINT <int-size>}`
 
   * `word_neg : word -> word`<br/>
-    `P.ARITH{oper=P.NEG, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.NEG, kind=P.UINT <int-size>}`
 
   * `word_rshift : word * word -> word`<br/>
     `P.INLRSHIFT(P.UINT <int-size>)`
@@ -385,16 +387,16 @@ type (`Word.word`).
     `P.INLRSHIFTL(P.UINT <int-size>)`
 
   * `word_lshift : word * word -> word`<br/>
-    `P.ARITH{oper=P.LSHIFT, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT <int-size>}`
 
   * `word_raw_rshift : word * word -> word`<br/>
     `P.INLLSHIFT(P.UINT <int-size>)`
 
   * `word_raw_rshiftl : word * word -> word`<br/>
-    `P.ARITH{oper=P.RSHIFTL, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT <int-size>}`
 
   * `word_raw_lshift : word * word -> word`<br/>
-    `P.ARITH{oper=P.RSHIFT, overflow=false, kind=P.UINT <int-size>}`
+    `P.PURE_ARITH{oper=P.RSHIFT, kind=P.UINT <int-size>}`
 
   * `word_gt : word * word -> bool`<br/>
     `P.CMP{oper=P.GT, kind=P.UINT <int-size>}`
@@ -424,43 +426,43 @@ type (`Word.word`).
 
 #### 32-bit integer operations
   * `int32_add : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.ADD, overflow=true, kind=P.INT 32}`
+    `P.IARITH{oper=P.IADD, sz=32}`
 
   * `int32_sub : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.SUB, overflow=true, kind=P.INT 32}`
+    `P.IARITH{oper=P.ISUB, sz=32}`
 
   * `int32_mul : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.MUL, overflow=true, kind=P.INT 32}`
+    `P.IARITH{oper=P.IMUL, sz=32}`
 
   * `int32_div : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=true, kind=P.INT 32}`
+    `P.IARITH{oper=P.IQUOT, sz=32}`
 
   * `int32_mod : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.REM, overflow=true, kind=P.INT 32}`
+    `P.IARITH{oper=P.IREM, sz=32}`
 
   * `int32_quot : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=true, kind=P.INT 32}`
+    `P.IARITH{oper=P.IQUOT, sz=32}`
 
   * `int32_rem : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.REM, overflow=true, kind=P.INT 32}`
+    `P.IARITH{oper=P.IREM, sz=32}`
 
   * `int32_orb : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.ORB, overflow=false, kind=P.INT 32}`
+    `P.PURE_ARITH{oper=P.ORB, kind=P.INT 32}`
 
   * `int32_xorb : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.XORB, overflow=false, kind=P.INT 32}`
+    `P.PURE_ARITH{oper=P.XORB, kind=P.INT 32}`
 
   * `int32_andb : int32 * int32 -> int32`<br/>
-    `P.ARITH{oper=P.ANDB, overflow=false, kind=P.INT 32}`
+    `P.PURE_ARITH{oper=P.ANDB, kind=P.INT 32}`
 
   * `int32_neg : word32 -> word32`<br/>
-    `P.ARITH{oper=P.NEG, overflow=true, kind=P.INT 32}`
+    `P.IARITH{oper=P.INEG, sz=32}`
 
   * `int32_raw_rshift : int32 * word -> int32`<br/>
-    `P.ARITH{oper=P.RSHIFT, overflow=false, kind=P.INT 32}`
+    `P.PURE_ARITH{oper=P.RSHIFT, kind=P.INT 32}`
 
   * `int32_raw_lshift : int32 * word -> int32`<br/>
-    `P.ARITH{oper=P.LSHIFT, overflow=false, kind=P.INT 32}`
+    `P.PURE_ARITH{oper=P.LSHIFT, kind=P.INT 32}`
 
   * `int32_gt : int32 * int32 -> bool`<br/>
     `P.CMP{oper=P.GT, kind=P.INT 32}`
@@ -495,34 +497,34 @@ machines and are just wrappers for 63-bit tagged word operations
 on 64-bit machines.
 
   * `word32_mul : word32 * word32 -> word32`<br/>
-    `P.ARITH{oper=P.MUL, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT 32}`
 
   * `word32_div : word32 * word32 -> word32`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.QUOT, kind=P.UINT 32}`
 
   * `word32_mod : word32 * word32 -> word32`<br/>
-    `P.ARITH{oper=P.REM, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.REM, kind=P.UINT 32}`
 
   * `word32_add : word32 * word32 -> word32`<br/>
-    `P.ARITH{oper=P.ADD, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.ADD, kind=P.UINT 32}`
 
   * `word32_sub : word32 * word32 -> word32`<br/>
-    `P.ARITH{oper=P.SUB, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.SUB, kind=P.UINT 32}`
 
   * `word32_orb : word32 * word32 -> word32`<br/>
-    `P.ARITH{oper=P.ORB, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.ORB, kind=P.UINT 32}`
 
   * `word32_xorb : word32 * word32 -> word32`<br/>
-    `P.ARITH{oper=P.XORB, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.XORB, kind=P.UINT 32}`
 
   * `word32_andb : word32 * word32 -> word32`<br/>
-    `P.ARITH{oper=P.ANDB, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.ANDB, kind=P.UINT 32}`
 
   * `word32_notb : word32 -> word32`<br/>
-    `P.ARITH{oper=P.NOTB, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.NOTB, kind=P.UINT 32}`
 
   * `word32_neg : word32 -> word32`<br/>
-    `P.ARITH{oper=P.NEG, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.NEG, kind=P.UINT 32}`
 
   * `word32_rshift : word32 * word -> word`<br/>
     `P.INLRSHIFT(P.UINT 32)`
@@ -534,13 +536,13 @@ on 64-bit machines.
     `P.INLLSHIFT(P.UINT 32)`
 
   * `word32_raw_rshift : word32 * word -> word`<br/>
-    `P.ARITH{oper=P.RSHIFT, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.RSHIFT, kind=P.UINT 32}`
 
   * `word32_raw_rshiftl : word32 * word -> word`<br/>
-    `P.ARITH{oper=P.RSHIFTL, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT 32}`
 
   * `word32_raw_lshift : word32 * word -> word`<br/>
-    `P.ARITH{oper=P.LSHIFT, overflow=false, kind=P.UINT 32}`
+    `P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT 32}`
 
   * `word32_gt : word32 * word32 -> bool`<br/>
     `P.CMP{oper=P.GT, kind=P.UINT 32}`
@@ -568,43 +570,43 @@ on 64-bit machines.
 
 #### 64-bit integer operations
   * `int64_add : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.ADD, overflow=true, kind=P.INT 64}`
+    `P.IARITH{oper=P.IADD, sz=64}`
 
   * `int64_sub : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.SUB, overflow=true, kind=P.INT 64}`
+    `P.IARITH{oper=P.ISUB, sz=64}`
 
   * `int64_mul : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.MUL, overflow=true, kind=P.INT 64}`
+    `P.IARITH{oper=P.IMUL, sz=64}`
 
   * `int64_div : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=true, kind=P.INT 64}`
+    `P.IARITH{oper=P.IQUOT, sz=64}`
 
   * `int64_mod : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.REM, overflow=true, kind=P.INT 64}`
+    `P.IARITH{oper=P.IREM, sz=64}`
 
   * `int64_quot : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=true, kind=P.INT 64}`
+    `P.IARITH{oper=P.IQUOT, sz=64}`
 
   * `int64_rem : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.REM, overflow=true, kind=P.INT 64}`
+    `P.IARITH{oper=P.IREM, sz=64}`
 
   * `int64_orb : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.ORB, overflow=false, kind=P.INT 64}`
+    `P.PURE_ARITH{oper=P.ORB, kind=P.INT 64}`
 
   * `int64_xorb : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.XORB, overflow=false, kind=P.INT 64}`
+    `P.PURE_ARITH{oper=P.XORB, kind=P.INT 64}`
 
   * `int64_andb : int64 * int64 -> int64`<br/>
-    `P.ARITH{oper=P.ANDB, overflow=false, kind=P.INT 64}`
+    `P.PURE_ARITH{oper=P.ANDB, kind=P.INT 64}`
 
   * `int64_neg : word32 -> word32`<br/>
-    `P.ARITH{oper=P.NEG, overflow=true, kind=P.INT 64}`
+    `P.IARITH{oper=P.INEG, sz=64}`
 
   * `int64_raw_rshift : int64 * word -> int64`<br/>
-    `P.ARITH{oper=P.RSHIFT, overflow=false, kind=P.INT 64}`
+    `P.PURE_ARITH{oper=P.RSHIFT, kind=P.INT 64}`
 
   * `int64_raw_lshift : int64 * word -> int64`<br/>
-    `P.ARITH{oper=P.LSHIFT, overflow=false, kind=P.INT 64}`
+    `P.PURE_ARITH{oper=P.LSHIFT, kind=P.INT 64}`
 
   * `int64_gt : int64 * int64 -> bool`<br/>
     `P.CMP{oper=P.GT, kind=P.INT 64}`
@@ -636,34 +638,34 @@ on 64-bit machines.
 #### 64-bit word operations
 
   * `word64_mul : word64 * word64 -> word64`<br/>
-    `P.ARITH{oper=P.MUL, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT 64}`
 
   * `word64_div : word64 * word64 -> word64`<br/>
-    `P.ARITH{oper=P.QUOT, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.QUOT, kind=P.UINT 64}`
 
   * `word64_mod : word64 * word64 -> word64`<br/>
-    `P.ARITH{oper=P.REM, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.REM, kind=P.UINT 64}`
 
   * `word64_add : word64 * word64 -> word64`<br/>
-    `P.ARITH{oper=P.ADD, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.ADD, kind=P.UINT 64}`
 
   * `word64_sub : word64 * word64 -> word64`<br/>
-    `P.ARITH{oper=P.SUB, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.SUB, kind=P.UINT 64}`
 
   * `word64_orb : word64 * word64 -> word64`<br/>
-    `P.ARITH{oper=P.ORB, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.ORB, kind=P.UINT 64}`
 
   * `word64_xorb : word64 * word64 -> word64`<br/>
-    `P.ARITH{oper=P.XORB, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.XORB, kind=P.UINT 64}`
 
   * `word64_andb : word64 * word64 -> word64`<br/>
-    `P.ARITH{oper=P.ANDB, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.ANDB, kind=P.UINT 64}`
 
   * `word64_notb : word64 -> word64`<br/>
-    `P.ARITH{oper=P.NOTB, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.NOTB, kind=P.UINT 64}`
 
   * `word64_neg : word64 -> word64`<br/>
-    `P.ARITH{oper=P.NEG, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.NEG, kind=P.UINT 64}`
 
   * `word64_rshift : word64 * word -> word`<br/>
     `P.INLRSHIFT(P.UINT 64)`
@@ -675,13 +677,13 @@ on 64-bit machines.
     `P.INLLSHIFT(P.UINT 64)`
 
   * `word64_raw_rshift : word64 * word -> word`<br/>
-    `P.ARITH{oper=P.RSHIFT, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.RSHIFT, kind=P.UINT 64}`
 
   * `word64_raw_rshiftl : word64 * word -> word`<br/>
-    `P.ARITH{oper=P.RSHIFTL, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT 64}`
 
   * `word64_raw_lshift : word64 * word -> word`<br/>
-    `P.ARITH{oper=P.LSHIFT, overflow=false, kind=P.UINT 64}`
+    `P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT 64}`
 
   * `word64_gt : word64 * word64 -> bool`<br/>
     `P.CMP{oper=P.GT, kind=P.UINT 64}`
@@ -921,3 +923,17 @@ bound to `Word32` (even though there is a `Word64` structure).
 
   * `round_real64_to_int : real64 -> int`<br />
     `P.ROUND{floor=false, from=64, to=<int-size>}`
+
+### Character comparisons
+
+  * `char_lt : char * char -> bool`<br />
+    `P.CMP{oper=P.LT, kind=P.UINT <int-size>}`
+
+  * `char_lte : char * char -> bool`<br />
+    `P.CMP{oper=P.LTE, kind=P.UINT <int-size>}`
+
+  * `char_gt : char * char -> bool`<br />
+    `P.CMP{oper=P.GT, kind=P.UINT <int-size>}`
+
+  * `char_gte : char * char -> bool`<br />
+    `P.CMP{oper=P.GTE, kind=P.UINT <int-size>}`
