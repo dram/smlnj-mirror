@@ -37,7 +37,7 @@ functor MemDisambiguate(structure Cells: CELLS) : MEM_DISAMBIGUATION = struct
       fun record len = 4 + 4*len
     in
       case cexp
-      of C.RECORD(C.RK_FBLOCK, vl, _, e) => sizeOf(e, frecord(length vl))
+      of C.RECORD(C.RK_RAW64BLOCK, vl, _, e) => sizeOf(e, frecord(length vl))
        | C.RECORD(C.RK_FCONT, vl, _, e)  => sizeOf(e, frecord(length vl))
        | C.RECORD(C.RK_VECTOR, vl, _, e) => sizeOf(e, hp+record(length vl + 3))
        | C.RECORD(_, vl, _, e) => sizeOf(e, hp + record(length vl))

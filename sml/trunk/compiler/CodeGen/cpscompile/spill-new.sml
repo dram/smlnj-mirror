@@ -193,7 +193,8 @@ struct
      fun rmv(S, x) = Set.delete(S, x) handle _ => S
   end
 
-  fun rkToCty (CPS.RK_FCONT | CPS.RK_FBLOCK) = CPS.FLTt 64  (* REAL32: FIXME *)
+(* 64BIT: check this *)
+  fun rkToCty (CPS.RK_FCONT | CPS.RK_RAW64BLOCK) = CPS.FLTt 64  (* REAL32: FIXME *)
     | rkToCty _ = U.BOGt
 
   fun splittable CPS.RK_VECTOR = false (* not supported in backend (yet) *)

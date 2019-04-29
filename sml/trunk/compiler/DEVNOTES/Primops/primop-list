@@ -1032,10 +1032,10 @@ structure P = PrimOp  (* defined in FLINT/kernel/primop.sml *)
  * rawupdatexxx writes to the record.
  *)
 
-307  rawrecord,    P.RAW_RECORD{fblock = false},  int -> 'a
+307  rawrecord,    P.RAW_RECORD{align64 = false}, int -> 'a
 	RawMemInlineT.rawrecord :	     	  int -> 'a
 
-308  rawrecord64,  P.RAW_RECORD{fblock = true},	  int -> 'a
+308  rawrecord64,  P.RAW_RECORD{align64 = true},  int -> 'a
 	RawMemInlineT.rawrecord64 :	     	  int -> 'a
 
 309  rawselectw8,  P.RAW_LOAD (P.UINT 8),    'a * word32 -> word32

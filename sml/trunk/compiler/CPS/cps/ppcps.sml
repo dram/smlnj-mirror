@@ -174,8 +174,8 @@ structure PPCps : PPCPS =
 	    | RK_CONT => "RK_CONT"
 	    | RK_FCONT => "RK_FCONT"
 	    | RK_KNOWN => "RK_KNOWN"
-	    | RK_FBLOCK => "RK_FBLOCK"
-	    | RK_I32BLOCK => "RK_I32BLOCK"
+	    | RK_RAW64BLOCK => "RK_RAW64BLOCK"
+	    | RK_RAWBLOCK => "RK_RAWBLOCK"
 	  (* end case *))
 
     fun show0 say = let

@@ -129,9 +129,9 @@ structure Primop : PRIMOP =
    (* Allocate uninitialized storage on the heap.
     * The record is meant to hold short-lived C objects, i.e., they
     * are not ML pointers.  The representation is
-    * the same as RECORD with tag tag_raw32 or tag_fblock.
+    * the same as RECORD with tag tag_raw or tag_raw64.
     *)
-      | RAW_RECORD of { fblock: bool }  (* E: *)
+      | RAW_RECORD of { align64 : bool }  (* E: *)
 
     (* non-environmental primops (not found in InLine) *)
       | UNBOXEDASSIGN			(* assignment to integer reference *)
@@ -296,8 +296,7 @@ structure Primop : PRIMOP =
       | prPrimop (RAW_LOAD nk) = concat ["raw_load(", prNumkind nk, ")"]
       | prPrimop (RAW_STORE nk) = concat ["raw_store(", prNumkind nk, ")"]
       | prPrimop (RAW_CCALL _) = "raw_ccall"
-      | prPrimop (RAW_RECORD{ fblock }) =
-	  concat ["raw_", if fblock then "fblock" else "iblock", "_record"]
+      | prPrimop (RAW_RECORD{ align64 }) = if align64 then "raw64_record" else "raw_record"
       | prPrimop INLIDENTITY = "inlidentity"
       | prPrimop CVT64 = "cvt64"
 

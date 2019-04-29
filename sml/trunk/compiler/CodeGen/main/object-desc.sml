@@ -36,8 +36,7 @@ structure ObjectDesc :> OBJECT_DESC =
     val tag_arr_hdr	= mkTag 2
     val tag_arr_data	= mkTag 3
     val tag_ref		= tag_arr_data
-(* 64BIT: perhaps tag_raw32 should just map to tag_raw64 on 64-bit machines? *)
-    val tag_raw32	= mkTag 4
+    val tag_raw		= mkTag 4
     val tag_raw64	= mkTag 5
     val tag_special	= mkTag 6
     end (* local *)

@@ -355,7 +355,7 @@ structure UnpickMod : UNPICKMOD = struct
 	      | po #"\116" = P.RAW_LOAD (numkind ())
 	      | po #"\117" = P.RAW_STORE (numkind ())
 	      | po #"\118" = P.RAW_CCALL (SOME (ccall_info ()))
-	      | po #"\119" = P.RAW_RECORD { fblock = bool () }
+	      | po #"\119" = P.RAW_RECORD { align64 = bool () }
 	      | po #"\120" = P.INLMIN (numkind ())
 	      | po #"\121" = P.INLMAX (numkind ())
 	      | po #"\122" = P.INLABS (numkind ())

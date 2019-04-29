@@ -41,7 +41,7 @@ fun path escapes fl =
 	          IntHashTable.mkTable(32,Limit')
       val look = IntHashTable.lookup m
       val storeListSz = 2  (* size of store list entry *)
-      fun g(d, RECORD(RK_FBLOCK,vl,_,e)) = g(d + (length(vl) * 2) + 2,e)
+      fun g(d, RECORD(RK_RAW64BLOCK,vl,_,e)) = g(d + (length(vl) * 2) + 2,e)
         | g(d, RECORD(RK_FCONT,vl,_,e)) = g(d + (length(vl) * 2) + 2,e)
 	| g(d, RECORD(RK_VECTOR,vl,_,e)) = g(d + length(vl) + 4, e)
 	| g(d, RECORD(_,vl,_,e)) = g(d+length(vl)+1, e)

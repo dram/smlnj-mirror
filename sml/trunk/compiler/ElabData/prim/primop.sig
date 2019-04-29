@@ -126,9 +126,9 @@ signature PRIMOP =
    (* Allocate uninitialized storage on the heap.
     * The record is meant to hold short-lived C objects, i.e., they
     * are not ML pointers.  The representation is
-    * the same as RECORD with tag tag_raw32 or tag_fblock.
+    * the same as RECORD with tag tag_raw or tag_raw64.
     *)
-      | RAW_RECORD of { fblock: bool }  (* E: *)
+      | RAW_RECORD of { align64 : bool }  (* E: *)
 
     (* non-environmental primops (not found in InLine) *)
       | UNBOXEDASSIGN			(* assignment to integer reference *)

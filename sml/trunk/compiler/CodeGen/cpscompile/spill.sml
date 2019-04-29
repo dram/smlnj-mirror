@@ -171,7 +171,7 @@ fun spillit (fkind,func,vl,cl,body,skind) = let
 
 val (varsP, nvarP, varLen, rkind, sregN) =
   case skind
-   of FPRSPILL => (sublist floatP, not o floatP, maxfpfree, RK_FBLOCK, 0)
+   of FPRSPILL => (sublist floatP, not o floatP, maxfpfree, RK_RAW64BLOCK, 0)
     | GPRSPILL =>
         (if unboxedfloat then
               (sublist (not o floatP), floatP, maxgpfree, RK_SPILL, 1)
@@ -416,7 +416,6 @@ fun improve cexp =
       val rec pass1 =
 	fn SELECT(i,v,w,_,e) => (kill v; enter(w,(ref 0,i,v)); pass1 e)
 	 | OFFSET(i,v,w,e) => (kill v; pass1 e)
-(*       | RECORD(RK_FBLOCK,vl,w,e) => (app (kill o #1) vl; pass1 e) *)
 	 | RECORD(_,vl,w,e) => (app (use o #1) vl; pass1 e)
 	 | APP(v,vl) => (kill v; app kill vl)
 	 | FIX(l,e) => error "33832 in spill"
@@ -436,7 +435,6 @@ fun improve cexp =
              (case get(VAR w) of SOME _ => g e
 		               | NONE => SELECT(i,v,w,t,g e))
 	 | OFFSET(i,v,w,e) => OFFSET(i,v,w, g e)
-(*       | RECORD(k as RK_FBLOCK,vl,w,e) => RECORD(k,vl,w,g e) *)
 	 | RECORD(k,vl,w,e) => RECORD(k,map ren vl, w, g e)
 	 | e as APP(v,vl) => e
 	 | FIX(l,e) => error "33832 in spill"

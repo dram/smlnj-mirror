@@ -64,7 +64,7 @@ structure Literals : LITERALS =
       = LI_TOP of lit_val list
       | LI_BLOCK of (block_kind * lit_val list * lvar * lit_exp)
       | LI_F64BLOCK of (RealLit.t list * lvar * lit_exp)
-      | LI_I32BLOCK of (IntInf.int list * lvar * lit_exp)
+      | LI_RAWBLOCK of (IntInf.int list * lvar * lit_exp)
 
     fun rk2bk CPS.RK_VECTOR = LI_VECTOR
       | rk2bk CPS.RK_RECORD = LI_RECORD
@@ -145,7 +145,7 @@ structure Literals : LITERALS =
 		depth (rest, d+1, Int.max(maxDepth, d+length ls))
 	    | depth (LI_F64BLOCK(ls, _, rest), d, maxDepth) =
 		depth (rest, d+1, Int.max(maxDepth, d+length ls))
-	    | depth (LI_I32BLOCK(ls, _, rest), d, maxDepth) =
+	    | depth (LI_RAWBLOCK(ls, _, rest), d, maxDepth) =
 		depth (rest, d+1, Int.max(maxDepth, d+length ls))
 	  fun emitLitExp (env, exp, code) = let
 		fun emitLitVals ([], _, code) = code
@@ -180,7 +180,7 @@ structure Literals : LITERALS =
 			emitLitExp (v::env, rest, emitBlock(bk, ls, code))
 		    | (LI_F64BLOCK(ls, v, rest)) =>
 			emitLitExp (v::env, rest, emitF64Block(ls, code))
-		    | (LI_I32BLOCK(ls, v, rest)) =>
+		    | (LI_RAWBLOCK(ls, v, rest)) =>
 			emitLitExp (v::env, rest, emitI32Block(ls, code))
 		  (* end case *)
 		end
@@ -316,7 +316,7 @@ structure Literals : LITERALS =
 	        in
 		  case !reals
 		   of [] => ()
-		    | xs => (enter(rrtv, ZZ_RCD(RK_FBLOCK, g(xs,[]))); used rrtv)
+		    | xs => (enter(rrtv, ZZ_RCD(RK_RAW64BLOCK, g(xs,[]))); used rrtv)
 	        end
 	  end (* local of processing real literals *)
 	(* translation on the CPS values *)
@@ -361,7 +361,7 @@ structure Literals : LITERALS =
 		      end)
 	(* register a wrapped float literal *)
 	  fun wrapfloat (sz, u, v, t) = if const u
-		then (enter(v, ZZ_RCD(RK_FBLOCK, [u])); Fn.id)
+		then (enter(v, ZZ_RCD(RK_RAW64BLOCK, [u])); Fn.id)
 		else let val (nu, hh) = lpsv u
 		      in (fn ce => hh(PURE(P.WRAP(P.FLOAT sz), [nu], v, t, ce)))
 		     end
@@ -394,10 +394,10 @@ structure Literals : LITERALS =
 			| (ZZ_STR s) =>
 			    bug "currently we don't expect ZZ_STR in mklit"
 			(* lit   --- or we could inline string *)
-			| (ZZ_RCD(CPS.RK_FBLOCK, vs)) =>
+			| (ZZ_RCD(CPS.RK_RAW64BLOCK, vs)) =>
 			    LI_F64BLOCK(map unREAL vs, v, lit)
-			| (ZZ_RCD(CPS.RK_I32BLOCK, vs)) =>
-			    LI_I32BLOCK(map unINT32 vs, v, lit)
+			| (ZZ_RCD(CPS.RK_RAWBLOCK, vs)) =>
+			    LI_RAWBLOCK(map unINT32 vs, v, lit)
 			| (ZZ_RCD(rk, vs)) =>
 			    LI_BLOCK(rk2bk rk, map val2lit vs, v, lit)
 		    end
@@ -427,7 +427,7 @@ structure Literals : LITERALS =
 					  let val n = length vs
 					      val t =
 						case rk
-						 of RK_FBLOCK => PTRt(FPT n)
+						 of RK_RAW64BLOCK => PTRt(FPT n)
 						  | RK_VECTOR => CPSUtil.BOGt
 						  | _ => PTRt(RPT n)
 					   in fn ce => SELECT(i, rval, v, t, ce)

@@ -438,8 +438,8 @@ structure PrimopBindings : sig
 	 * the record as a ML object, in case it passes thru a gc boundary.
 	 * rawupdatexxx writes to the record.
 	 *)
-	  ("rawrecord", i_x, P.RAW_RECORD { fblock = false }) :-:
-	  ("rawrecord64", i_x, P.RAW_RECORD { fblock = true }) :-:
+	  ("rawrecord", i_x, P.RAW_RECORD { align64 = false }) :-:
+	  ("rawrecord64", i_x, P.RAW_RECORD { align64 = true }) :-:
 	  ("rawselectw8", xw32_w32, P.RAW_LOAD (P.UINT 8)) :-:
 	  ("rawselecti8", xw32_i32, P.RAW_LOAD (P.INT 8)) :-:
 	  ("rawselectw16", xw32_w32, P.RAW_LOAD (P.UINT 16)) :-:

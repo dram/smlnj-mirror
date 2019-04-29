@@ -264,7 +264,7 @@ fun sharable((RK_CONT|RK_FCONT),(ESCAPE|KNOWN)) = not (MachSpec.quasiStack)
 (* given a fun_kind return the appropriate unboxed closure kind *)
 (* need runtime support for RK_FCONT (new tags etc.) CURRENTLY NOT SUPPORTED *)
 fun unboxedKind (CONT | KNOWN_CONT) = RK_FCONT
-  | unboxedKind _ = RK_FBLOCK
+  | unboxedKind _ = RK_RAW64BLOCK
 
 (* given a fix kind return the appropriate boxed closure kind *)
 fun boxedKind (CONT | KNOWN_CONT) = RK_CONT
@@ -551,7 +551,7 @@ fun fetchClosures(env as Env(_,closureL,_,_),lives,fkind) =
 
       fun reusable2 (_,CR(_,{kind,...})) = sharable(kind,fkind)
 
-      fun fblock (_,CR(_,{kind=(RK_FBLOCK|RK_FCONT),...})) = true
+      fun fblock (_,CR(_,{kind=(RK_RAW64BLOCK|RK_FCONT),...})) = true
         | fblock _ = false
 
       val level = 4 (* should be made adjustable in the future *)
@@ -898,7 +898,7 @@ fun closureUnboxed(cn,int32free,otherfree,fk,env) =
            in #1(closureUbGen(cn, otherfree, rk, fk, env))
           end)
      | (_, []) =>
-         (let val rk = RK_I32BLOCK
+         (let val rk = RK_RAWBLOCK
            in #1(closureUbGen(cn, int32free, rk, fk, env))
           end)
      | _ =>
@@ -906,7 +906,7 @@ fun closureUnboxed(cn,int32free,otherfree,fk,env) =
               val cn1 = closureLvar()
               val ((nh1, env, nf1), cr1) =
                 closureUbGen(cn1, otherfree, rk1, fk, env)
-              val rk2 = RK_I32BLOCK
+              val rk2 = RK_RAWBLOCK
               val cn2 = closureLvar()
               val ((nh2, env, nf2), cr2) =
                 closureUbGen(cn2, int32free, rk2, fk, env)
@@ -930,7 +930,7 @@ fun closureUnboxed(cn,int32free,otherfree,fk,env) =
  *     val rk = unboxedKind(fk)
  *     val rk = case (int32free,otherfree)
  *               of ([],_) => rk
- *                | (_,[]) => RK_I32BLOCK
+ *                | (_,[]) => RK_RAWBLOCK
  *                | _ => bug "unimplemented int32 + float (nclosure.1)"
  *     val cr = CR(0,{functions=[],closures=[],values=nfree,
  *                    core=[],free=SL.enter(cn,nfree),kind=rk,stamp=cn})
@@ -1735,7 +1735,7 @@ val unboxedFree = utgpFree
 (* INT32: here is the place to filter out all 32-bit integers,
     put them into unboxedFree, then you have to find a way to put both
     32-bit integers and unboxed float numbers in the same record.
-   Currently, I use RK_FBLOCK to denote this kind of record_kind,
+   Currently, I use RK_RAW64BLOCK to denote this kind of record_kind,
    you might want to put all floats ahead of all 32-bit ints. *)
 (* val (allgpFree,unboxedFree) = partition isBoxed3 allgpFree *)
 
@@ -1963,7 +1963,7 @@ and close(ce,env,sn,csg,csf,ret) =
        let val (env,header) = fixAccess([v],env)
         in header(SWITCH(v,c,map (fn c => close(c,env,sn,csg,csf,ret)) l))
        end
-    | RECORD(k as RK_FBLOCK,l,v,c) =>
+    | RECORD(k as RK_RAW64BLOCK,l,v,c) =>
        let val (env,header) = fixAccess(map #1 l,env)
            val env = augValue(v,U.BOGt,env)
         in header(RECORD(k,l,v,close(c,env,sn,csg,csf,ret)))

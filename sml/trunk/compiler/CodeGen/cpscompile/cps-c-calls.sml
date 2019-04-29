@@ -181,7 +181,7 @@ functor CPSCCalls (
     * Pack live values into records.
     *
     * 1. Untagged stuff like INT32t or FLTt are packed into an unboxed record
-    *    with record tag tag_raw32.  Small stuff goes first so that there
+    *    with record tag tag_raw.  Small stuff goes first so that there
     *    will be at most one hole in the record due to alignment.
     * 2. Tagged stuff goes into a normal record with tag_record.
     *

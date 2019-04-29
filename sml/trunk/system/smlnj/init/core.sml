@@ -268,7 +268,7 @@ structure Core =
 		  | 0x0a (* tag_arr_hdr *) => peql(getData a, getData b)
 		  | 0x0e (* tag_arr_data and tag_ref *) => false
 (* 64BIT: FIXME *)
-		  | 0x12 (* tag_raw32 *) => i32eq(cast a, cast b)
+		  | 0x12 (* tag_raw *) => i32eq(cast a, cast b)
 		  | _ (* tagless pair *) => pairEq()
 		(* end case *)
 	      end)

@@ -989,7 +989,7 @@ struct
               fun init e =
               case e
               of RECORD(k,vl,x,e) => (
-                  case k of (RK_FCONT | RK_FBLOCK) => hasFloats := true | _ => ();
+                  case k of (RK_FCONT | RK_RAW64BLOCK) => hasFloats := true | _ => ();
                   addRecValues vl; add(x, CPSUtil.BOGt); init e)
                | SELECT(_,v,x,t,e) => (addValue v; add(x,t); init e)
                | OFFSET(_,v,x,e) => (addValue v; add(x, CPSUtil.BOGt); init e)
@@ -1262,7 +1262,7 @@ raise ex)
 	(* Allocate a record with machine-int-sized components *)
 	  and mkIntBlock (vl, w, e, hp) = let
                 val len = length vl
-		val desc = D.makeDesc' (len, D.tag_raw32)
+		val desc = D.makeDesc' (len, D.tag_raw)
 		in
 		  treeifyAlloc(w,
 		    allocRecord(markINT, memDisambig w, LI desc, vl, hp),
@@ -1436,10 +1436,10 @@ raise ex)
            *)
 
             (** RECORD **)
-          and gen (RECORD(RK_FCONT, vl, w, e), hp) = mkFblock(vl, w, e, hp)
-            | gen (RECORD(RK_FBLOCK, vl, w, e), hp) = mkFblock(vl, w, e, hp)
-            | gen (RECORD(RK_VECTOR, vl, w, e), hp) = mkVector(vl, w, e, hp)
-            | gen (RECORD(RK_I32BLOCK, vl, w, e), hp) = mkIntBlock(vl, w, e, hp)
+          and gen (RECORD(RK_VECTOR, vl, w, e), hp) = mkVector(vl, w, e, hp)
+	    | gen (RECORD(RK_FCONT, vl, w, e), hp) = mkFblock(vl, w, e, hp)
+            | gen (RECORD(RK_RAW64BLOCK, vl, w, e), hp) = mkFblock(vl, w, e, hp)
+            | gen (RECORD(RK_RAWBLOCK, vl, w, e), hp) = mkIntBlock(vl, w, e, hp)
             | gen (RECORD(_, vl, w, e), hp) = mkRecord(vl, w, e, hp)
 
             (*** SELECT ***)
@@ -1727,8 +1727,8 @@ raise ex)
             | gen (PURE(P.RAWRECORD(SOME rk), [NUM{ty={tag=true, ...}, ival}], x, _, e), hp) = let
 	      (* allocate an uninitialized record with a tag *)
                 val (tag, fp) = (case rk (* tagged version *)
-                       of (RK_FCONT | RK_FBLOCK) => (D.tag_raw64, true)
-			| RK_I32BLOCK => (D.tag_raw32, false)
+                       of (RK_FCONT | RK_RAW64BLOCK) => (D.tag_raw64, true)
+			| RK_RAWBLOCK => (D.tag_raw, false)
 			| RK_VECTOR => error "rawrecord VECTOR unsupported"
 			| _ => (D.tag_record, false)
 		      (* end case *))

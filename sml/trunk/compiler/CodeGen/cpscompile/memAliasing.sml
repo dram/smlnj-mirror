@@ -86,7 +86,8 @@ struct
 	   else hp + cellSz * (1 + sz div Target.mlValueSz)
      | wrapSize _ = error "wrapSize: bogus number kind"
 
-   fun allocRecord(C.RK_FBLOCK,vs,hp) = frecordSize(length vs,hp)
+(* 64BIT: FIXME *)
+   fun allocRecord(C.RK_RAW64BLOCK,vs,hp) = frecordSize(length vs,hp)
      | allocRecord(C.RK_FCONT,vs,hp)  = frecordSize(length vs,hp)
      | allocRecord(C.RK_VECTOR,vs,hp) = vectorSize(length vs,hp)
      | allocRecord(_,vs,hp) = recordSize(length vs,hp)
@@ -193,7 +194,7 @@ struct
            fun mkVector(x,vs,hp) = mkRec(PT.mkRecord,getPaths,x,vs,hp)
            fun mkNormalRecord(x,vs,hp) = mkRec(PT.mkRecord,getPaths,x,vs,hp)
 
-           fun mkRecord(C.RK_FBLOCK,x,vs,hp) = mkFRecord(x,vs,hp)
+           fun mkRecord(C.RK_RAW64BLOCK,x,vs,hp) = mkFRecord(x,vs,hp)
              | mkRecord(C.RK_FCONT,x,vs,hp) = mkFRecord(x,vs,hp)
              | mkRecord(C.RK_VECTOR,x,vs,hp) = mkVector(x,vs,hp)
              | mkRecord(_,x,vs,hp) = mkNormalRecord(x,vs,hp)

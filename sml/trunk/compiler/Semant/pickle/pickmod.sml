@@ -397,7 +397,7 @@ in
 	      | P.RAW_LOAD kind => ?116 $ [numkind kind]
 	      | P.RAW_STORE kind => ?117 $ [numkind kind]
 	      | P.RAW_CCALL (SOME i) => ?118 $ [ccall_info i]
-	      | P.RAW_RECORD { fblock } => ?119 $ [bool fblock]
+	      | P.RAW_RECORD { align64 } => ?119 $ [bool align64]
 
 	      | P.INLMIN kind => ?120 $ [numkind kind]
 	      | P.INLMAX kind => ?121 $ [numkind kind]

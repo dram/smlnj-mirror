@@ -24,8 +24,8 @@ signature OBJECT_DESC =
     val tag_vec_data : tag
     val tag_arr_hdr : tag
     val tag_arr_data : tag
-    val tag_raw32 : tag
-    val tag_raw64 : tag
+    val tag_raw : tag		(* word-aligned raw data *)
+    val tag_raw64 : tag		(* 64-bit aligned raw data *)
     val tag_special : tag
 
   (* build a descriptor from a tag and length *)

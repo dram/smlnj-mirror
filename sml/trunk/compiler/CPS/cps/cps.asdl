@@ -56,12 +56,12 @@ module CPS_Type {
       | RK_CONT		-- a continuation-closure record
       | RK_FCONT	-- closure record for unboxed 64-bit aligned data
       | RK_KNOWN	-- closure record for known function
-      | RK_FBLOCK	-- 64-bit aligned raw data record
-      | RK_I32BLOCK	-- word-aligned raw data record
+      | RK_RAW64BLOCK	-- 64-bit aligned raw data record
+      | RK_RAWBLOCK	-- word-aligned raw data record
 
     pkind = VPT         -- pointer to value of unknown size
           | RPT (int)   -- pointer to record (RK_RECORD); argument is number of elements
-          | FPT (int)   -- pointer to block of floats (RK_FBLOCK); argument is number of floats
+          | FPT (int)   -- pointer to block of floats (RK_RAW64BLOCK); argument is number of floats
 
   -- kinds of integers: size in bits and tagged vs boxed
     intty = (int sz, bool tag)

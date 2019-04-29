@@ -68,7 +68,8 @@ structure Object :> UNSAFE_OBJECT =
 		  if (InlineT.objlength obj = 1)
 		    then Ref
 		    else raise Fail "Unknown arr_data"
-	      | 0x12 (* tag_raw32 *) => Word32
+(* 64BIT: FIXME *)
+	      | 0x12 (* tag_raw *) => Word32
 	      | 0x16 (* tag_raw64 *) => Real
 	      | 0x1a (* tag_special *) => (case (InlineT.getspecial obj)
 		 of (0 | 1) => Susp
