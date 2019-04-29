@@ -164,6 +164,9 @@ signature PRIMOP =
     val ILT : primop
     val ILE : primop
     val IGE : primop
+
+  (** default word arithmetic and comparison operators *)
+    val UADD : primop
     val UIEQL : primop  (* for UINT kind, may not matter *)
 
     val mkIEQL : int -> primop   (* make equality primop for other sizes *)
@@ -171,7 +174,6 @@ signature PRIMOP =
 
     val prNumkind : numkind -> string
     val prPrimop: primop -> string
-    val mayRaise : primop -> bool
 
   (* This should return more than just a boolean.
    * True means "can not be dead-code eliminated" *)

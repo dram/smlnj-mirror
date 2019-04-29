@@ -171,6 +171,8 @@ structure Primop : PRIMOP =
     val IGE  = CMP{oper=GTE, kind=defaultIntKind}
     val ILE  = CMP{oper=LTE, kind=defaultIntKind}
 
+  (** default word arithmetic and comparison operators *)
+    val UADD = ARITH{oper=ADD, overflow=false, kind=defaultUIntKind}
     val UIEQL = CMP{oper=EQL, kind=defaultUIntKind}
 
     fun mkIEQL size = CMP{oper=EQL, kind=INT size}
@@ -317,18 +319,6 @@ structure Primop : PRIMOP =
 	    | INLIDENTITY => false
 	    | CVT64 => false
 	    | _ => true
-	  (* end case *))
-
-    fun mayRaise p = (case p
-	    of ARITH{overflow,...} => overflow
-	     | ROUND _ => true
-	     | INLMKARRAY => true
-	     | INLSUBSCRIPT => true
-	     | INLUPDATE => true
-	     | INLSUBSCRIPTV => true
-	     | NUMSUBSCRIPT{checked,...} => checked
-	     | NUMUPDATE{checked,...} => checked
-	     | _ => false
 	  (* end case *))
 
   end  (* structure PrimOp *)
