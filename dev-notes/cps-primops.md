@@ -186,7 +186,7 @@ the `pure` and `arith` datatypes (resp.) to specify the arithmetic operation. <b
   * `NEG` -- arithmetic negation; used for signed (`ARITH`) and unsigned (`PURE_ARITH`) integer
     multiplication, and for floating-point multiplication (`PURE_ARITH`).
 
-  * `ABS` -- floating-point absolute value (`PURE_ARITH` only).
+  * `FABS` -- floating-point absolute value (`PURE_ARITH` only).
 
   * `NOTB` -- bitwise logical-negation operation (`PURE_ARITH` only).
 
