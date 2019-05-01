@@ -98,6 +98,7 @@ structure Object :> UNSAFE_OBJECT =
 		    then InlineT.recordSub(obj, n)
 		    else raise Representation
 		end
+(* 64BIT: REAL32: FIXME -- this code assumes reals are two words!!! *)
 	    | Real => let val len = InlineT.Int31.rshift(InlineT.objlength obj, 1)
 		in
 		  if ((n < 0) orelse (len <= n))
