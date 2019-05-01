@@ -142,39 +142,24 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		       | AP.LTE  => P.F_LE
 		       | AP.EQL  => P.F_EQ
 		       | AP.NEQ  => P.F_ULG
-		       | _       => bug("cmpop: oper=" ^ AP.prPrimop(AP.CMP stuff))
 		     (* end case *))
 		in
 		  P.FCMP{oper= rator, size=size}
 		end
-	    | {oper, kind} => let
-		fun check (_, AP.UINT _) = ()
-		  | check (oper, _) = bug ("check" ^ oper)
-		fun c AP.GT  = P.GT
-		  | c AP.GTE = P.GTE
-		  | c AP.LT  = P.LT
-		  | c AP.LTE = P.LTE
-		  | c AP.LEU = (check ("leu", kind); P.LTE )
-		  | c AP.LTU = (check ("ltu", kind); P.LT )
-		  | c AP.GEU = (check ("geu", kind); P.GTE )
-		  | c AP.GTU = (check ("gtu", kind); P.GT )
-		  | c AP.EQL = P.EQL
-		  | c AP.NEQ = P.NEQ
-		  | c _ = bug("cmpop: oper=" ^ AP.prPrimop(AP.CMP stuff))
-		in
-		  P.CMP{oper=c oper, kind=numkind kind}
-		end
+	    | {oper, kind} => P.CMP{oper=oper, kind=numkind kind}
 	  (* end case *))
 
   (* map_branch:  AP.primop -> P.branch *)
     fun map_branch p = (case p
 	   of AP.BOXED => P.BOXED
 	    | AP.UNBOXED => P.UNBOXED
-	    | AP.CMP{oper=AP.FSGN, kind=AP.FLOAT sz} => P.FSGN sz
+	    | AP.FSGN sz => P.FSGN sz
 	    | AP.CMP stuff => cmpop stuff
 	    | AP.PTREQL => P.PEQL
 	    | AP.PTRNEQ => P.PNEQ
-	    | _ => bug(concat["unexpected primop ", AP.prPrimop p, " in map_branch"])
+	    | _ => bug(concat[
+		  "unexpected primop ", PrimopUtil.toString p, " in map_branch"
+		])
 	  (* end case *))
 
   (* primwrap: cty -> P.pure *)
@@ -207,14 +192,10 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 	    | AP.COPY_INF from => PKP (P.COPY_INF from)
 	    | AP.EXTEND_INF from => PKP (P.EXTEND_INF from)
 
-	    | AP.ARITH{oper,kind,overflow=true} =>
-		PKA(P.ARITH{oper=oper,kind=numkind kind})
-	    | AP.ARITH{oper,kind,overflow=false} =>
-		PKP(P.PURE_ARITH{oper=oper,kind=numkind kind})
-	    | AP.ROUND{floor,from,to} =>
-		PKA(P.REAL_TO_INT{floor=floor, from=from, to=to})
-	    | AP.INT_TO_REAL{from,to} =>
-		PKP(P.INT_TO_REAL{from=from,to=to})
+	    | AP.IARITH{oper, sz} => PKA(P.IARITH{oper=oper,sz=sz})
+	    | AP.PURE_ARITH{oper, kind} => PKP(P.PURE_ARITH{oper=oper,kind=numkind kind})
+	    | AP.REAL_TO_INT arg => PKA(P.REAL_TO_INT arg)
+	    | AP.INT_TO_REAL arg => PKP(P.INT_TO_REAL arg)
 
 	    | AP.SUBSCRIPTV => PKP P.SUBSCRIPTV
 	    | AP.MAKEREF =>    PKP P.MAKEREF
@@ -255,7 +236,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 	    | AP.RAW_RECORD{ align64 = false } => PKP (P.RAWRECORD (SOME RK_RAWBLOCK))
 	    | AP.RAW_RECORD{ align64 = true } => PKP (P.RAWRECORD (SOME RK_RAW64BLOCK))
 
-	    | _ => bug (concat["bad primop in map_primop: ", AP.prPrimop p, "\n"])
+	    | _ => bug (concat["bad primop in map_primop: ", PrimopUtil.toString p, "\n"])
 	  (* end case *))
 
   (***************************************************************************

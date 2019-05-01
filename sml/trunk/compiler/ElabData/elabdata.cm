@@ -60,7 +60,9 @@ Group
 	structure CoreAccess
 	structure BrowseStatEnv
 	structure PrimopId
+	structure ArithOps
 	structure Primop
+	structure PrimopUtil
 	structure PrimopBind
 	structure CProto
 	structure PrimCTypes
@@ -122,11 +124,13 @@ is
 	statenv/coreacc.sml
 	statenv/browse.sml
 
+	prim/arithops.sml
 	prim/primop.sig
 	prim/primop.sml
 	prim/primop-bind.sml
 	prim/primop-id.sig
 	prim/primop-id.sml
+	prim/primop-util.sml
 	prim/cproto.sml
 	prim/prim-c-types.sml
 

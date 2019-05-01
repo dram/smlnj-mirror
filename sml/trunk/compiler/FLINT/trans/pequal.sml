@@ -33,6 +33,7 @@ local structure DA = Access
       structure TU = TypesUtil
       structure SE = StaticEnv
       structure PO = Primop
+      structure PU = PrimopUtil
       structure PP = PrettyPrintNew
       open Types PLambda
       (* mentions Target *)
@@ -221,11 +222,11 @@ fun numKind tyc =
 
 fun atomeq (tyc, ty) =
     case numKind tyc
-     of SOME(PO.INT sz) => prim(PO.mkIEQL sz, intEqTy sz)
-      | SOME(PO.UINT sz) => prim(PO.mkUIEQL sz, uintEqTy sz)
+     of SOME(PO.INT sz) => prim(PU.mkIEQL sz, intEqTy sz)
+      | SOME(PO.UINT sz) => prim(PU.mkUIEQL sz, uintEqTy sz)
       | NONE =>
-	if TU.equalTycon(tyc, BT.boolTycon)   then prim(PO.IEQL,booleqty)
-	else if TU.equalTycon(tyc, BT.realTycon)   then prim(PO.FEQLd,realeqty)
+	if TU.equalTycon(tyc, BT.boolTycon)   then prim(PU.IEQL,booleqty)
+	else if TU.equalTycon(tyc, BT.realTycon)   then prim(PU.FEQLd,realeqty)
 	else if TU.equalTycon(tyc, BT.stringTycon) then getStrEq()
 	else if TU.equalTycon(tyc, BT.intinfTycon) then getIntInfEq()
 	else if TU.equalTycon(tyc, BT.refTycon)    then ptrEq(PO.PTREQL, ty)

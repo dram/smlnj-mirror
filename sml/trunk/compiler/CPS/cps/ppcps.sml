@@ -16,6 +16,7 @@ signature PPCPS =
   (* string conversions for various CPS.P types *)
     val numkindToString : CPS.P.numkind -> string
     val arithopToString : CPS.P.arithop -> string
+    val pureopToString : CPS.P.pureop -> string
     val cmpopToString : CPS.P.cmpop -> string
     val fcmpopToString : CPS.P.fcmpop -> string
     val branchToString : CPS.P.branch -> string
@@ -54,34 +55,11 @@ structure PPCps : PPCPS =
       | numkindToString (P.UINT bits) = "u" ^ Int.toString bits
       | numkindToString (P.FLOAT bits) = "f" ^ Int.toString bits
 
-    fun arithopToString P.ADD = "+"
-      | arithopToString P.SUB = "-"
-      | arithopToString P.MUL = "*"
-      | arithopToString P.DIV = "div"
-      | arithopToString P.MOD = "mod"
-      | arithopToString P.QUOT = "quot"
-      | arithopToString P.REM = "rem"
-      | arithopToString P.FDIV = "/"
-      | arithopToString P.NEG = "~"
-      | arithopToString P.FABS = "fabs"
-      | arithopToString P.FSQRT = "fsqrt"
-      | arithopToString P.FSIN = "sin"
-      | arithopToString P.FCOS = "cos"
-      | arithopToString P.FTAN = "tan"
-      | arithopToString P.RSHIFT = "rshift"
-      | arithopToString P.RSHIFTL = "rshiftl"
-      | arithopToString P.LSHIFT = "lshift"
-      | arithopToString P.ANDB = "andb"
-      | arithopToString P.ORB = "orb"
-      | arithopToString P.XORB = "xorb"
-      | arithopToString P.NOTB = "notb"
+    val arithopToString = ArithOps.arithopToString
 
-    fun cmpopToString P.GT = ">"
-      | cmpopToString P.LT = "<"
-      | cmpopToString P.GTE = ">="
-      | cmpopToString P.LTE = "<="
-      | cmpopToString P.EQL = "="
-      | cmpopToString P.NEQ = "<>"
+    val pureopToString = ArithOps.pureopToString
+
+    val cmpopToString = ArithOps.cmpopToString
 
     fun fcmpopToString P.F_EQ   = "="
       | fcmpopToString P.F_ULG = "?<>"
@@ -130,7 +108,7 @@ structure PPCps : PPCPS =
     val cvtParam = Int.toString
     fun cvtParams (prefix, from, to) = concat [prefix, cvtParam from, "_", cvtParam to]
 
-    fun arithToString (P.ARITH{oper, kind}) = arithopToString oper ^ numkindToString kind
+    fun arithToString (P.IARITH{oper, sz}) = arithopToString oper ^ cvtParam sz
       | arithToString (P.TEST{from, to}) = cvtParams ("test_", from, to)
       | arithToString (P.TESTU{from, to}) = cvtParams ("testu_", from, to)
       | arithToString (P.TEST_INF i) = "test_inf_" ^ cvtParam i
@@ -139,7 +117,7 @@ structure PPCps : PPCPS =
 	  ]
 
     fun pureToString P.LENGTH = "length"
-      | pureToString (P.PURE_ARITH{oper,kind}) = arithopToString oper ^ numkindToString kind
+      | pureToString (P.PURE_ARITH{oper,kind}) = pureopToString oper ^ numkindToString kind
       | pureToString P.OBJLENGTH = "objlength"
       | pureToString P.MAKEREF = "makeref"
       | pureToString (P.EXTEND{from, to}) = cvtParams ("extend_", from, to)

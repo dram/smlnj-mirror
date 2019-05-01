@@ -34,9 +34,14 @@ structure CPS : CPS =
       (* numkind includes kind and size *)
 	datatype numkind = INT of int | UINT of int | FLOAT of int
 
-	datatype arithop = datatype Primop.arithop
+      (* integer arithmetic operations that may overflow *)
+	datatype arithop = datatype ArithOps.arithop
 
-	datatype cmpop = GT | GTE | LT | LTE | EQL | NEQ
+      (* pure arithmetic operations that cannot overflow *)
+	datatype pureop = datatype ArithOps.pureop
+
+      (* generic comparison operations *)
+	datatype cmpop = datatype ArithOps.cmpop
 
       (* fcmpop conforms to the IEEE std 754 predicates. *)
 	datatype fcmpop
@@ -75,7 +80,7 @@ structure CPS : CPS =
 
       (* These might raise exceptions, never have functions as arguments.*)
 	datatype arith
-	  = ARITH of {oper: arithop, kind: numkind}
+	  = IARITH of {oper: arithop, sz: int}
 	  | TEST of {from: int, to: int}
 	  | TESTU of {from: int, to: int}
 	  | TEST_INF of int
@@ -83,7 +88,7 @@ structure CPS : CPS =
 
       (* These don't raise exceptions and don't access the store. *)
 	datatype pure
-	  = PURE_ARITH of {oper: arithop, kind: numkind}
+	  = PURE_ARITH of {oper: pureop, kind: numkind}
 	  | PURE_NUMSUBSCRIPT of {kind: numkind}
 	  | LENGTH | OBJLENGTH | MAKEREF
 	  | COPY of {from: int, to: int}

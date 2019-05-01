@@ -55,6 +55,7 @@ Group
 	(* stuff that lived (or should have) in Frontend (aka GenericVC) *)
 	structure Control
 	structure SymbolicEnv
+	structure ArithOps
 	structure Primop
 	structure PrimopBind
 	structure PrimEnv

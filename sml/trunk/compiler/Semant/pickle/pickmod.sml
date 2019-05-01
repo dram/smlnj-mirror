@@ -140,20 +140,20 @@ in
 		     dt = DTMap.empty, mb = MBMap.empty, mi = MI.emptyUmap }
 
     (* type info *)
-    val (NK, AO, CO, PO, CS, A, CR, LT, TC, TK,
-	 V, C, E, FK, RK, ST, MI, EQP, TYCKIND, DTI,
-	 DTF, TYCON, T, PI, VAR, SD, SG, FSG, SP, EN,
+    val (NK, AO, PAO, CO, PO, CS, A, CR, LT, TC,
+	 TK, V, C, E, FK, RK, ST, MI, EQP, TYCKIND,
+	 DTI, DTF, TYCON, T, PI, VAR, SD, SG, FSG, SP,
 	 STR, F, STE, TCE, STRE, FE, EE, ED, EEV, FX,
-	 B, DCON, DICT, FPRIM, FUNDEC, TFUNDEC, DATACON, DTMEM, NRD, OVERLD,
-         FCTC, SEN, FEN, SPATH, IPATH, STRID, FCTID, CCI, CTYPE, CCALL_TYPE,
-         SPE, TSI) =
+	 EN, B, DCON, DICT, FPRIM, FUNDEC, TFUNDEC, DATACON, DTMEM, NRD,
+         OVERLD, FCTC, SEN, FEN, SPATH, IPATH, STRID, FCTID, CCI, CTYPE,
+         CCALL_TYPE, SPE, TSI) =
 	( 1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
 	 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 	 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
 	 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
 	 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
 	 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-         61, 62)
+         61, 62, 63)
 
     (* this is a bit awful...
      * (we really ought to have syntax for "functional update") *)
@@ -264,45 +264,57 @@ in
 		    m := IntMap.insert (!m, i, i');
 		    i'
 		end
-    in
-	cvt
-    end
+	in
+	  cvt
+	end
 
     fun numkind arg = let
 	val op $ = PU.$ NK
 	fun nk (P.INT i) = "A" $ [int i]
 	  | nk (P.UINT i) = "B" $ [int i]
 	  | nk (P.FLOAT i) = "C" $ [int i]
-    in
-	nk arg
-    end
+	in
+	  nk arg
+	end
 
     fun arithop oper = let
 	val op $ = PU.$ AO
+	fun arithopc P.IADD = "\000"
+	  | arithopc P.ISUB = "\001"
+	  | arithopc P.IMUL = "\002"
+	  | arithopc P.IDIV = "\003"
+	  | arithopc P.IMOD = "\004"
+          | arithopc P.IQUOT = "\005"
+	  | arithopc P.IREM = "\006"
+	  | arithopc P.INEG = "\007"
+	in
+	  arithopc oper $ []
+	end
+
+    fun pureop oper = let
+	val op $ = PU.$ PAO
 	fun arithopc P.ADD = "\000"
 	  | arithopc P.SUB = "\001"
 	  | arithopc P.MUL = "\002"
-	  | arithopc P.NEG = "\003"
-	  | arithopc P.FDIV = "\004"
-	  | arithopc P.FABS = "\005"
+          | arithopc P.QUOT = "\003"
+	  | arithopc P.REM = "\004"
+	  | arithopc P.NEG = "\005"
 	  | arithopc P.LSHIFT = "\006"
 	  | arithopc P.RSHIFT = "\007"
 	  | arithopc P.RSHIFTL = "\008"
-	  | arithopc P.ANDB = "\009"
-	  | arithopc P.ORB = "\010"
-	  | arithopc P.XORB = "\011"
+	  | arithopc P.ORB = "\009"
+	  | arithopc P.XORB = "\010"
+	  | arithopc P.ANDB = "\011"
 	  | arithopc P.NOTB = "\012"
-          | arithopc P.FSQRT = "\013"
-	  | arithopc P.FSIN = "\014"
-	  | arithopc P.FCOS = "\015"
-	  | arithopc P.FTAN = "\016"
-          | arithopc P.QUOT = "\017"
-	  | arithopc P.REM = "\018"
-	  | arithopc P.DIV = "\019"
-	  | arithopc P.MOD = "\020"
-    in
-	arithopc oper $ []
-    end
+	  | arithopc P.FDIV = "\013"
+	  | arithopc P.FABS = "\014"
+          | arithopc P.FSQRT = "\015"
+	  | arithopc P.FSIN = "\016"
+	  | arithopc P.FCOS = "\017"
+	  | arithopc P.FTAN = "\018"
+	in
+	  arithopc oper $ []
+	end
 
     fun cmpop oper = let
 	val op $ = PU.$ CO
@@ -310,16 +322,11 @@ in
 	  | cmpopc P.GTE = "\001"
 	  | cmpopc P.LT = "\002"
 	  | cmpopc P.LTE = "\003"
-	  | cmpopc P.LEU = "\004"
-	  | cmpopc P.LTU = "\005"
-	  | cmpopc P.GEU = "\006"
-	  | cmpopc P.GTU = "\007"
-	  | cmpopc P.EQL = "\008"
-	  | cmpopc P.NEQ = "\009"
-	  | cmpopc P.FSGN = "\010"
-    in
-	cmpopc oper $ []
-    end
+	  | cmpopc P.EQL = "\004"
+	  | cmpopc P.NEQ = "\005"
+	in
+	  cmpopc oper $ []
+	end
 
     fun ctype t = let
 	val op $ = PU.$ CTYPE
@@ -372,41 +379,45 @@ in
 	fun fromto tag (from, to) = ?tag $ [int from, int to]
 	fun %?n = ?n $ []
 	in
-	    case p of
-		P.ARITH { oper, overflow, kind } =>
-		    ?100 $ [arithop oper, bool overflow, numkind kind]
-	      | P.CMP { oper, kind } => ?101 $ [cmpop oper, numkind kind]
-	      | P.TEST x => fromto 102 x
-	      | P.TESTU x => fromto 103 x
-	      | P.TRUNC x => fromto 104 x
-	      | P.EXTEND x => fromto 105 x
-	      | P.COPY x => fromto 106 x
-	      | P.INLLSHIFT kind => ?107 $ [numkind kind]
-	      | P.INLRSHIFT kind => ?108 $ [numkind kind]
-	      | P.INLRSHIFTL kind => ?109 $ [numkind kind]
-	      | P.ROUND { floor, from, to } =>
-		    ?110 $ [bool floor, int from, int to]
-	      | P.INT_TO_REAL { from, to } =>
-		    ?111 $ [int from, int to]
+	    case p
+	     of P.IARITH { oper, sz } => ?80 $ [arithop oper, int sz]
+	      | P.PURE_ARITH {oper, kind } => ?81 $ [pureop oper, numkind kind]
+	      | P.CMP { oper, kind } => ?82 $ [cmpop oper, numkind kind]
+	      | P.FSGN sz => ?83 $ [ int sz ]
+	      | P.TEST x => fromto 84 x
+	      | P.TESTU x => fromto 85 x
+	      | P.TRUNC x => fromto 86 x
+	      | P.EXTEND x => fromto 87 x
+	      | P.COPY x => fromto 88 x
+	      | P.INLDIV kind => ?89 $ [numkind kind]
+	      | P.INLMOD kind => ?90 $ [numkind kind]
+	      | P.INLQUOT kind => ?91 $ [numkind kind]
+	      | P.INLREM kind => ?92 $ [numkind kind]
+	      | P.INLLSHIFT kind => ?93 $ [numkind kind]
+	      | P.INLRSHIFT kind => ?94 $ [numkind kind]
+	      | P.INLRSHIFTL kind => ?95 $ [numkind kind]
+	      | P.REAL_TO_INT { floor, from, to } => ?96 $ [bool floor, int from, int to]
+	      | P.INT_TO_REAL { from, to } => ?97 $ [int from, int to]
 	      | P.NUMSUBSCRIPT { kind, checked, immutable } =>
-		    ?112 $ [numkind kind, bool checked, bool immutable]
+		    ?98 $ [numkind kind, bool checked, bool immutable]
 	      | P.NUMUPDATE { kind, checked } =>
-		    ?113 $ [numkind kind, bool checked]
-	      | P.INL_MONOARRAY kind => ?114 $ [numkind kind]
-	      | P.INL_MONOVECTOR kind => ?115 $ [numkind kind]
-	      | P.RAW_LOAD kind => ?116 $ [numkind kind]
-	      | P.RAW_STORE kind => ?117 $ [numkind kind]
-	      | P.RAW_CCALL (SOME i) => ?118 $ [ccall_info i]
-	      | P.RAW_RECORD { align64 } => ?119 $ [bool align64]
+		    ?99 $ [numkind kind, bool checked]
+	      | P.INL_MONOARRAY kind => ?100 $ [numkind kind]
+	      | P.INL_MONOVECTOR kind => ?101 $ [numkind kind]
+	      | P.RAW_LOAD kind => ?102 $ [numkind kind]
+	      | P.RAW_STORE kind => ?103 $ [numkind kind]
+	      | P.RAW_CCALL (SOME i) => ?104 $ [ccall_info i]
+	      | P.RAW_RECORD { align64 } => ?105 $ [bool align64]
 
-	      | P.INLMIN kind => ?120 $ [numkind kind]
-	      | P.INLMAX kind => ?121 $ [numkind kind]
-	      | P.INLABS kind => ?122 $ [numkind kind]
+	      | P.INLMIN kind => ?106 $ [numkind kind]
+	      | P.INLMAX kind => ?107 $ [numkind kind]
+	      | P.INLABS kind => ?108 $ [numkind kind]
 
-	      | P.TEST_INF i => ?123 $ [int i]
-	      | P.TRUNC_INF i => ?124 $ [int i]
-	      | P.EXTEND_INF i => ?125 $ [int i]
-	      | P.COPY_INF i => ?126 $ [int i]
+	      | P.TEST_INF i => ?109 $ [int i]
+	      | P.TRUNC_INF i => ?110 $ [int i]
+	      | P.EXTEND_INF i => ?111 $ [int i]
+	      | P.COPY_INF i => ?112 $ [int i]
+	      (** WARNING: last value must be < 128!! **)
 
            (* primop_table elements on unpickling *)
 	      | P.MKETAG => %?0
@@ -427,52 +438,46 @@ in
 	      | P.LENGTH => %?14
 	      | P.OBJLENGTH => %?15
 	      | P.CAST => %?16
-	      (* drop GETRUNVEC @ 17 *)
-	      | P.MARKEXN => %?18
-	      | P.GETHDLR => %?19
+	      | P.MARKEXN => %?17
+	      | P.GETHDLR => %?18
+	      | P.SETHDLR => %?19
 
-	      | P.SETHDLR => %?20
-	      | P.GETVAR => %?21
-	      | P.SETVAR => %?22
-	      (* drop | P.GETPSEUDO => %?23 *)
-	      (* drop | P.SETPSEUDO => %?24 *)
-	      (* drop | P.SETMARK => %?25 *)
-	      (* drop | P.DISPOSE => %?26 *)
-	      | P.MAKEREF => %?27
-	      | P.CALLCC => %?28
-	      | P.CAPTURE => %?29
+	      | P.GETVAR => %?20
+	      | P.SETVAR => %?21
+	      | P.MAKEREF => %?22
+	      | P.CALLCC => %?23
+	      | P.CAPTURE => %?24
+	      | P.THROW => %?25
+	      | P.DEREF => %?26
+	      | P.ASSIGN => %?27 (* NOTE: P.UNBOXEDASSIGN is defined below @ 30 *)
+	      | P.UPDATE => %?28
+	      | P.INLUPDATE => %?29
 
-	      | P.THROW => %?30
-	      | P.DEREF => %?31
-	      | P.ASSIGN => %?32 (* NOTE: P.UNBOXEDASSIGN is defined below @ 36 *)
-	      | P.UPDATE => %?33
-	      | P.INLUPDATE => %?34
-	      (* drop BOXEDUPDATE @ 35 *)
-	      | P.UNBOXEDUPDATE => %?36
-	      | P.GETTAG => %?37
-	      | P.MKSPECIAL => %?38
-	      | P.SETSPECIAL => %?39
+	      | P.UNBOXEDUPDATE => %?30
+	      | P.GETTAG => %?31
+	      | P.MKSPECIAL => %?32
+	      | P.SETSPECIAL => %?33
+	      | P.GETSPECIAL => %?34
+	      | P.INLNOT => %?35
+	      | P.INLCOMPOSE => %?36
+	      | P.INLBEFORE => %?37
+	      | P.INL_ARRAY => %?38
+	      | P.INL_VECTOR => %?39
 
-	      | P.GETSPECIAL => %?40
-              (* drop USELVAR @ 41 *)
-	      (* drop DEFLVAR @ 42 *)
-	      | P.INLNOT => %?43
-	      | P.INLCOMPOSE => %?44
-	      | P.INLBEFORE => %?45
-	      | P.INL_ARRAY => %?46
-	      | P.INL_VECTOR => %?47
-	      | P.ISOLATE => %?48
-	      | P.WCAST => %?49
+	      | P.ISOLATE => %?40
+	      | P.WCAST => %?41
+	      | P.NEW_ARRAY0 => %?42
+	      | P.GET_SEQ_DATA => %?43
+	      | P.SUBSCRIPT_REC => %?44
+	      | P.SUBSCRIPT_RAW64 => %?45
+	      | P.UNBOXEDASSIGN => %?46
+	      | P.RAW_CCALL NONE => %?47
+	      | P.INLIGNORE => %?48
+	      | P.INLIDENTITY => %?49
 
-	      | P.NEW_ARRAY0 => %?50
-	      | P.GET_SEQ_DATA => %?51
-	      | P.SUBSCRIPT_REC => %?52
-	      | P.SUBSCRIPT_RAW64 => %?53
-	      | P.UNBOXEDASSIGN => %?54
-	      | P.RAW_CCALL NONE => %?55
-	      | P.INLIGNORE => %?56
-	      | P.INLIDENTITY => %?57
-	      | P.CVT64 => %?58
+	      | P.CVT64 => %?50
+	      | P.INLCHR => %?51
+	      (** WARNING: last value must be < 80!! **)
     end
 
     fun consig arg = let

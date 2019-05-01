@@ -34,14 +34,30 @@ signature CPS =
       (* numkind includes kind and size *)
         datatype numkind = INT of int | UINT of int | FLOAT of int
 
-      (* NOTE: this type is defined in the Primop structure (ElabData/prim/primop.sml) *)
+      (* arithmetic operations that may overflow; for the division operators,
+       * we assume that the second argument is never zero (i.e., an explicit
+       * test for zero is done before the operation).
+       * NOTE: this type is defined in the ArithOps structure (ElabData/prim/arithops.sml)
+       *)
 	datatype arithop
-	  = ADD | SUB | MUL | DIV | MOD | QUOT | REM | FDIV
-	  | LSHIFT | RSHIFT | RSHIFTL | ANDB | ORB | XORB
-	  | NEG | FABS | NOTB
-	  | FSQRT | FSIN | FCOS | FTAN
+	  = IADD | ISUB | IMUL | IDIV | IMOD | IQUOT | IREM | INEG
 
-	datatype cmpop = GT | GTE | LT | LTE | EQL | NEQ
+      (* arithmetic operations that do not overflow; for the division operators,
+       * we assume that the second argument is never zero (i.e., an explicit
+       * test for zero is done before the operation).
+       * NOTE: this type is defined in the ArithOps structure (ElabData/prim/arithops.sml)
+       *)
+	datatype pureop
+	  = ADD | SUB | MUL | QUOT | REM | NEG
+	  | LSHIFT | RSHIFT | RSHIFTL
+	  | ORB | XORB | ANDB | NOTB
+	  | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN
+
+      (* comparison operators
+       * NOTE: this type is defined in the ArithOps structure (ElabData/prim/arithops.sml)
+       *)
+	datatype cmpop
+	  = GT | GTE | LT | LTE | EQL | NEQ
 
       (* fcmpop conforms to the IEEE std 754 predicates. *)
 	datatype fcmpop
@@ -80,7 +96,7 @@ signature CPS =
 
       (* These might raise exceptions, never have functions as arguments.*)
 	datatype arith
-	  = ARITH of {oper: arithop, kind: numkind}
+	  = IARITH of {oper: arithop, sz: int}
 	  | TEST of {from: int, to: int}
 	  | TESTU of {from: int, to: int}
 	  | TEST_INF of int
@@ -88,7 +104,7 @@ signature CPS =
 
       (* These don't raise exceptions and don't access the store. *)
 	datatype pure
-	  = PURE_ARITH of {oper: arithop, kind: numkind}
+	  = PURE_ARITH of {oper: pureop, kind: numkind}
 	  | PURE_NUMSUBSCRIPT of {kind: numkind}
 	  | LENGTH | OBJLENGTH | MAKEREF
 	  | COPY of {from: int, to: int}

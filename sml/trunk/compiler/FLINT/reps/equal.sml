@@ -105,14 +105,14 @@ fun equal (peqv, seqv) =
 		    let val prim = LT.tcd_prim tc
 		    in case PT.numSize prim  (* is it a PT_NUM? *)
 			of SOME sz =>
-			   BRANCH((NONE, PO.mkIEQL sz, numeqty sz, []), [x,y], te, fe)
+			   BRANCH((NONE, PrimopUtil.mkIEQL sz, numeqty sz, []), [x,y], te, fe)
 			 | NONE =>
 			   if PT.pt_eq(prim, PT.ptc_string) then
 			       branch(APP(VAR seqv, [x,y]), te, fe)
 			   else raise Poly
 		    end
 		else if LT.tc_eqv(tc,LT.tcc_bool) then
-		    BRANCH((NONE, PO.IEQL, booleqty, []), [x,y], te, fe)
+		    BRANCH((NONE, PrimopUtil.IEQL, booleqty, []), [x,y], te, fe)
 	        else if (LT.tcp_app tc) then
 	            let val (t, _) = LT.tcd_app tc
 		     in if LT.tcp_prim t then

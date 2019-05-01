@@ -274,7 +274,7 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
                    in LET([v], hdr(u), loop e)
                   end
               | PRIMOP((_,po,_,_), vs, v, e) =>
-                  (say ("\n####" ^ (PO.prPrimop po) ^ "####\n");
+                  (say(concat["\n####", PrimopUtil.toString po, "####\n"]);
                    bug "unexpected PRIMOP in loop"))
       in loop
      end (* function transform *)

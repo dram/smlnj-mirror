@@ -51,8 +51,7 @@ fun path escapes fl =
 	| g(d, SETTER(P.ASSIGN, _, e)) = g(d+storeListSz, e)
         | g(d, SETTER(P.UPDATE,_,e)) = g(d+storeListSz, e)
             (*** should be +0 when unboxedfloat is turned on ***)
-        | g(d, ARITH(P.ARITH{kind=P.FLOAT 64,...},_,_,_,e)) = g(d+3, e)
-        | g(d, ARITH(P.ARITH{kind=P.INT _,...},_,_,_,e)) = g(d+1, e)
+        | g(d, ARITH(P.IARITH _,_,_,_,e)) = g(d+1, e) (* QUESTION: why is this +1? *)
 	| g(d, ARITH(P.TESTU _, _, _, _, e)) = g(d+1, e)
 	| g(d, ARITH(P.TEST _, _, _, _, e)) = g(d+1, e)
 	| g(d, ARITH(P.TEST_INF _, _, _, _, e)) =
@@ -193,4 +192,3 @@ val nolimit = fn fl =>
 
 end (* local *)
 end (* structure Limit *)
-

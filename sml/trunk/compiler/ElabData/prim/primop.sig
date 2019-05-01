@@ -14,18 +14,26 @@ signature PRIMOP =
       | FLOAT of int
 (* QUESTION: what about IntInf.int? *)
 
+  (* arithmetic operations that may overflow; for the division operators,
+   * we assume that the second argument is never zero (i.e., an explicit
+   * test for zero is done before the operation).
+   *)
     datatype arithop
-      = ADD | SUB | MUL | NEG			(* int or float *)
-      | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN (* floating point only *)
-      | LSHIFT | RSHIFT | RSHIFTL		(* int only *)
-      | ANDB | ORB | XORB | NOTB		(* int only *)
-      | DIV | MOD | QUOT | REM			(* int only *)
+      = IADD | ISUB | IMUL | IDIV | IMOD | IQUOT | IREM | INEG
 
+  (* arithmetic operations that do not overflow; for the division operators,
+   * we assume that the second argument is never zero (i.e., an explicit
+   * test for zero is done before the operation).
+   *)
+    datatype pureop
+      = ADD | SUB | MUL | QUOT | REM | NEG
+      | LSHIFT | RSHIFT | RSHIFTL
+      | ORB | XORB | ANDB | NOTB
+      | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN
+
+  (* comparison operators *)
     datatype cmpop
-      = GT | GTE | LT | LTE			(* signed comparisons *)
-      | LEU | LTU | GEU | GTU			(* unsigned comparisons *)
-      | EQL | NEQ 				(* equality *)
-      | FSGN					(* floating point only *)
+      = GT | GTE | LT | LTE | EQL | NEQ
 
   (* datatype primop:
    * Various primitive operations. Those that are designated "inline" (L:) in
@@ -37,13 +45,22 @@ signature PRIMOP =
    * See dev-notes/conversions.md for an explanation of the conversion operators.
    *)
     datatype primop
-      = ARITH of {				(* E: arithmetic ops *)
-	    oper: arithop, overflow: bool, kind: numkind
+      = IARITH of {				(* E: integer arithmetic ops *)
+	    oper : arithop, sz : int		(* kind = INT sz *)
 	  }
+      | PURE_ARITH of {				(* E: arithmetic ops *)
+	    oper : pureop, kind : numkind
+	  }
+      | INLDIV of numkind			(* E: integer div *)
+      | INLMOD of numkind			(* E: integer mod *)
+      | INLQUOT of numkind			(* E: integer/word quot *)
+      | INLREM of numkind			(* E: integer/word rem *)
       | INLLSHIFT of numkind			(* E: left shift *)
       | INLRSHIFT of numkind			(* E: right shift *)
       | INLRSHIFTL of numkind			(* E: right shift logical *)
       | CMP of {oper: cmpop, kind: numkind}	(* E: generic compare *)
+      | FSGN of int				(* E: floating point sign test *)
+      | INLCHR					(* E: inline int to char conversion *)
       | TESTU of int * int         		(* E: conversions to int, e.g. testu_31_31 *)
       | TEST of int * int          		(* E: conversions to int, e.g. test_32_31_w *)
       | TRUNC of int * int        		(* E: truncations to smaller int/word, e.g. trunc_32_31_i *)
@@ -53,7 +70,7 @@ signature PRIMOP =
       | TRUNC_INF of int           		(* E: intinf truncations, e.g. trunc_inf_31 *)
       | EXTEND_INF of int          		(* E: intinf extensions, e.g. extend_8_inf *)
       | COPY_INF of int            		(* E: conversions to intinf, e.g. copy_8_inf *)
-      | ROUND of {				(* E: floor, round *)
+      | REAL_TO_INT of {			(* E: floor, round *)
 	    floor: bool, from: int, to: int
 	  }
       | INT_TO_REAL of {			(* E: real, real32 *)
@@ -151,33 +168,4 @@ signature PRIMOP =
 	CCR64 |				(* passed as real64 *)
 	CCML				(* passed as Unsafe.Object.object *)
 
-    val IADD : primop  (* default integer addition *)
-    val ISUB : primop  (* default integer subtraction *)
-    val IMUL : primop
-    val IDIV : primop
-    val INEG : primop
-
-    val FEQLd : primop
-    val IEQL : primop
-    val INEQ : primop
-    val IGT : primop
-    val ILT : primop
-    val ILE : primop
-    val IGE : primop
-
-  (** default word arithmetic and comparison operators *)
-    val UADD : primop
-    val UIEQL : primop  (* for UINT kind, may not matter *)
-
-    val mkIEQL : int -> primop   (* make equality primop for other sizes *)
-    val mkUIEQL : int -> primop  (* and for unsigned (kind = UINT) *)
-
-    val prNumkind : numkind -> string
-    val prPrimop: primop -> string
-
-  (* This should return more than just a boolean.
-   * True means "can not be dead-code eliminated" *)
-    val effect : primop -> bool
-
   end (* signature PRIM_OP *)
-

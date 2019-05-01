@@ -277,7 +277,7 @@ struct
 	  *)
 	 ((case d of NONE => say "IF PRIMOP("
                    | _ => say "IF GENOP(");
-	  say (PO.prPrimop primop);  say ", ";
+	  say (PrimopUtil.toString primop);  say ", ";
 	  printLty lty;  say ", ";
 	  printTycList tycs;  say ") ";
 	  printValList values; newline();
@@ -319,7 +319,7 @@ struct
 	 (printVar lvar;
           (case d of NONE => say " = PRIMOP("
                    | _ => say " = GENOP(");
-	  say (PO.prPrimop primop);  say ", ";
+	  say (PrimopUtil.toString primop);  say ", ";
 	  printLty lty;  say ", ";
 	  printTycList tycs;  say ") ";
 	  printValList values;

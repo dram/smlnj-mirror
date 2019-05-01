@@ -231,8 +231,6 @@ fun expand {function=(fkind,fvar,fargs,ctyl,cexp),unroll,bodysize,click,afterClo
        end
      | LOOKER(_,vl,w,_,e) => (noteother w; prim(level,vl,e))
      | SETTER(_,vl,e) => prim(level,vl,e)
-     | ARITH(args as (P.ARITH{kind=P.FLOAT 64,...},_,_,_,_)) =>
-         primreal (level,args)
      | ARITH(args as (P.REAL_TO_INT _, _,_,_,_)) => primreal (level,args)
      | ARITH(_,vl,w,_,e) => (noteother w; prim(level,vl,e))
 (* REAL32: FIXME *)

@@ -96,44 +96,35 @@ structure UnpickMod : UNPICKMOD = struct
 	  P.LENGTH,
 	  P.OBJLENGTH,
 	  P.CAST,
-          P.CAST, (* placeholder for GETRUNVEC!!! @ 17 *)
 	  P.MARKEXN,
 	  P.GETHDLR,
+	  P.SETHDLR,
 
-	  P.SETHDLR, (* 20 *)
-	  P.GETVAR,
+	  P.GETVAR, (* 20 *)
 	  P.SETVAR,
-	  P.CAST, (* placeholder for P.GETPSEUDO!!! @ 23 *)
-	  P.CAST, (* placeholder for P.SETPSEUDO!!! @ 24 *)
-	  P.CAST, (* placeholder for P.SETMARK!!! @ 25 *)
-	  P.CAST, (* placeholder for P.DISPOSE!!! @ 26 *)
 	  P.MAKEREF,
 	  P.CALLCC,
 	  P.CAPTURE,
-
-	  P.THROW,   (* 30 *)
+	  P.THROW,
 	  P.DEREF,
 	  P.ASSIGN,
 	  P.UPDATE,
 	  P.INLUPDATE,
-          P.CAST, (* placeholder for BOXEDUPDATE!!! @ 35 *)
-	  P.UNBOXEDUPDATE,
+
+	  P.UNBOXEDUPDATE, (* 30 *)
 	  P.GETTAG,
 	  P.MKSPECIAL,
 	  P.SETSPECIAL,
-
-	  P.GETSPECIAL, (* 40 *)
-          P.CAST, (* placeholder for USELVAR!!! @ 41 *)
-          P.CAST, (* placeholder for DEFLVAR!!! @ 42 *)
+	  P.GETSPECIAL,
 	  P.INLNOT,
 	  P.INLCOMPOSE,
 	  P.INLBEFORE,
 	  P.INL_ARRAY,
 	  P.INL_VECTOR,
-	  P.ISOLATE,
-	  P.WCAST,
 
-	  P.NEW_ARRAY0, (* 50 *)
+	  P.ISOLATE, (* 40 *)
+	  P.WCAST,
+	  P.NEW_ARRAY0,
 	  P.GET_SEQ_DATA,
 	  P.SUBSCRIPT_REC,
 	  P.SUBSCRIPT_RAW64,
@@ -141,16 +132,22 @@ structure UnpickMod : UNPICKMOD = struct
 	  P.RAW_CCALL NONE,
 	  P.INLIGNORE,
 	  P.INLIDENTITY,
-	  P.CVT64  (* 58 *)
+
+	  P.CVT64, (* 50 *)
+	  P.INLCHR
         ]
 
-    val cmpop_table =
-	#[P.GT, P.GTE, P.LT, P.LTE, P.LEU, P.LTU, P.GEU, P.GTU, P.EQL, P.NEQ, P.FSGN]
-
     val arithop_table =
-	#[P.ADD, P.SUB, P.MUL, P.NEG, P.FDIV, P.FABS, P.LSHIFT, P.RSHIFT, P.RSHIFTL,
-	  P.ANDB, P.ORB, P.XORB, P.NOTB, P.FSQRT, P.FSIN, P.FCOS, P.FTAN,
-	  P.QUOT, P.REM, P.DIV, P.MOD]
+	#[P.IADD, P.ISUB, P.IMUL, P.IDIV, P.IMOD, P.IQUOT, P.IREM, P.INEG]
+
+    val pureop_table =
+	#[P.ADD, P.SUB, P.MUL, P.QUOT, P.REM, P.NEG,
+	  P.LSHIFT, P.RSHIFT, P.RSHIFTL,
+	  P.ORB, P.XORB, P.ANDB, P.NOTB,
+	  P.FDIV, P.FABS, P.FSQRT, P.FSIN, P.FCOS, P.FTAN]
+
+    val cmpop_table =
+	#[P.GT, P.GTE, P.LT, P.LTE, P.EQL, P.NEQ]
 
     val eqprop_table =
 	#[T.YES, T.NO, T.IND, T.OBJ, T.DATA, T.ABS, T.UNDEF]
@@ -277,21 +274,36 @@ structure UnpickMod : UNPICKMOD = struct
 	    share nkM nk
 	end
 
+	local
+	  fun operator tbl = let
+		fun rator c =
+		      Vector.sub (tbl, Char.ord c)
+			handle General.Subscript => raise Format
+		in
+		  fn () => nonshare rator
+		end
+	in
+	val arithop = operator arithop_table
+	val pureop = operator pureop_table
+	val cmpop = operator cmpop_table
+	end (* local *)
+(*
 	fun arithop () = let
 	    fun ao c =
 		Vector.sub (arithop_table, Char.ord c)
 		handle General.Subscript => raise Format
-	in
-	    nonshare ao
-	end
+	    in
+	      nonshare ao
+	    end
 
 	fun cmpop () = let
 	    fun co c =
 		Vector.sub (cmpop_table, Char.ord c)
 		handle General.Subscript => raise Format
-	in
-	    nonshare co
-	end
+	    in
+	      nonshare co
+	    end
+*)
 
 	fun ctype () = let
 	    fun ct #"\020" = PrimCTypes.C_ARRAY (ctype (), int ())
@@ -332,43 +344,48 @@ structure UnpickMod : UNPICKMOD = struct
 	end
 
 	fun primop () = let
-	    fun po #"\100" = P.ARITH { oper = arithop (), overflow = bool (),
-				       kind = numkind () }
-	      | po #"\101" = P.CMP { oper = cmpop (), kind = numkind () }
-	      | po #"\102" = P.TEST (int (), int ())
-	      | po #"\103" = P.TESTU (int (), int ())
-	      | po #"\104" = P.TRUNC (int (), int ())
-	      | po #"\105" = P.EXTEND (int (), int ())
-	      | po #"\106" = P.COPY (int (), int ())
-	      | po #"\107" = P.INLLSHIFT (numkind ())
-	      | po #"\108" = P.INLRSHIFT (numkind ())
-	      | po #"\109" = P.INLRSHIFTL (numkind ())
-	      | po #"\110" = P.ROUND { floor = bool (), from = int (), to = int () }
-	      | po #"\111" = P.INT_TO_REAL { from = int (), to = int ()}
-	      | po #"\112" = P.NUMSUBSCRIPT { kind = numkind (),
+	    fun po #"\080" = P.IARITH { oper = arithop (), sz = int () }
+	      | po #"\081" = P.PURE_ARITH { oper = pureop (), kind = numkind () }
+	      | po #"\082" = P.CMP { oper = cmpop (), kind = numkind () }
+	      | po #"\083" = P.FSGN (int ())
+	      | po #"\084" = P.TEST (int (), int ())
+	      | po #"\085" = P.TESTU (int (), int ())
+	      | po #"\086" = P.TRUNC (int (), int ())
+	      | po #"\087" = P.EXTEND (int (), int ())
+	      | po #"\088" = P.COPY (int (), int ())
+	      | po #"\089" = P.INLDIV (numkind ())
+	      | po #"\090" = P.INLMOD (numkind ())
+	      | po #"\091" = P.INLQUOT (numkind ())
+	      | po #"\092" = P.INLREM (numkind ())
+	      | po #"\093" = P.INLLSHIFT (numkind ())
+	      | po #"\094" = P.INLRSHIFT (numkind ())
+	      | po #"\095" = P.INLRSHIFTL (numkind ())
+	      | po #"\096" = P.REAL_TO_INT { floor = bool (), from = int (), to = int () }
+	      | po #"\097" = P.INT_TO_REAL { from = int (), to = int ()}
+	      | po #"\098" = P.NUMSUBSCRIPT { kind = numkind (),
 					      checked = bool (),
 					      immutable = bool () }
-	      | po #"\113" = P.NUMUPDATE { kind = numkind (),
+	      | po #"\099" = P.NUMUPDATE { kind = numkind (),
 					   checked = bool () }
-	      | po #"\114" = P.INL_MONOARRAY (numkind ())
-	      | po #"\115" = P.INL_MONOVECTOR (numkind ())
-	      | po #"\116" = P.RAW_LOAD (numkind ())
-	      | po #"\117" = P.RAW_STORE (numkind ())
-	      | po #"\118" = P.RAW_CCALL (SOME (ccall_info ()))
-	      | po #"\119" = P.RAW_RECORD { align64 = bool () }
-	      | po #"\120" = P.INLMIN (numkind ())
-	      | po #"\121" = P.INLMAX (numkind ())
-	      | po #"\122" = P.INLABS (numkind ())
-	      | po #"\123" = P.TEST_INF (int ())
-	      | po #"\124" = P.TRUNC_INF (int ())
-	      | po #"\125" = P.EXTEND_INF (int ())
-	      | po #"\126" = P.COPY_INF (int ())
+	      | po #"\100" = P.INL_MONOARRAY (numkind ())
+	      | po #"\101" = P.INL_MONOVECTOR (numkind ())
+	      | po #"\102" = P.RAW_LOAD (numkind ())
+	      | po #"\103" = P.RAW_STORE (numkind ())
+	      | po #"\104" = P.RAW_CCALL (SOME (ccall_info ()))
+	      | po #"\105" = P.RAW_RECORD { align64 = bool () }
+	      | po #"\106" = P.INLMIN (numkind ())
+	      | po #"\107" = P.INLMAX (numkind ())
+	      | po #"\108" = P.INLABS (numkind ())
+	      | po #"\109" = P.TEST_INF (int ())
+	      | po #"\110" = P.TRUNC_INF (int ())
+	      | po #"\111" = P.EXTEND_INF (int ())
+	      | po #"\112" = P.COPY_INF (int ())
 	      | po c =
 		Vector.sub (primop_table, Char.ord c)
 		handle General.Subscript => raise Format
-	in
-	    share poM po
-	end
+	    in
+	      share poM po
+	    end
 
     in
 	{ pid = pid, string = string, symbol = symbol,

@@ -1752,35 +1752,35 @@ raise ex)
 		end
 
             (*** ARITH ***)
-            | gen (ARITH(P.ARITH{kind=P.INT sz, oper=P.NEG}, [v], x, _, e), hp) = (
+            | gen (ARITH(P.IARITH{sz=sz, oper=P.INEG}, [v], x, _, e), hp) = (
 		updtHeapPtr hp;
 		if (sz <= Target.defaultIntSz)
 		  then defTAGINT(x, M.SUBT(ity, two, regbind v), e, 0)
 		  else defINT(x, M.SUBT(ity, zero, regbind v), e, 0))
-            | gen (ARITH(P.ARITH{kind=P.INT sz, oper}, [v, w], x, _, e), hp) = (
+            | gen (ARITH(P.IARITH{sz=sz, oper}, [v, w], x, _, e), hp) = (
 		updtHeapPtr hp;
 		if (sz <= Target.defaultIntSz)
 		  then (case oper
-		     of P.ADD => defTAGINT(x, tagIntAdd(M.ADDT, v, w), e, 0)
-		      | P.SUB => defTAGINT(x, tagIntSub(M.SUBT, v, w), e, 0)
-		      | P.MUL => defTAGINT(x, tagIntMul(true, M.MULT, v, w), e, 0)
-		      | P.DIV => defTAGINT(x, tagIntDiv(true, M.DIV_TO_NEGINF, v, w), e, 0)
-		      | P.MOD => defTAGINT(x, tagIntRem(true, M.DIV_TO_NEGINF, v, w), e, 0)
-		      | P.QUOT => defTAGINT(x, tagIntDiv(true, M.DIV_TO_ZERO, v, w), e, 0)
-		      | P.REM => defTAGINT(x, tagIntRem(true, M.DIV_TO_ZERO, v, w), e, 0)
+		     of P.IADD => defTAGINT(x, tagIntAdd(M.ADDT, v, w), e, 0)
+		      | P.ISUB => defTAGINT(x, tagIntSub(M.SUBT, v, w), e, 0)
+		      | P.IMUL => defTAGINT(x, tagIntMul(true, M.MULT, v, w), e, 0)
+		      | P.IDIV => defTAGINT(x, tagIntDiv(true, M.DIV_TO_NEGINF, v, w), e, 0)
+		      | P.IMOD => defTAGINT(x, tagIntRem(true, M.DIV_TO_NEGINF, v, w), e, 0)
+		      | P.IQUOT => defTAGINT(x, tagIntDiv(true, M.DIV_TO_ZERO, v, w), e, 0)
+		      | P.IREM => defTAGINT(x, tagIntRem(true, M.DIV_TO_ZERO, v, w), e, 0)
 		      | _ => error(concat["gen: ", PPCps.arithopToString oper, " TAG INT"])
 		    (* end case *))
 		  else (case oper
-		     of P.ADD => arithINT(M.ADDT, v, w, x, e, 0)
-		      | P.SUB => arithINT(M.SUBT, v, w, x, e, 0)
-		      | P.MUL => arithINT(M.MULT, v, w, x, e, 0)
-		      | P.DIV => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_NEGINF,ty,x,y),
+		     of P.IADD => arithINT(M.ADDT, v, w, x, e, 0)
+		      | P.ISUB => arithINT(M.SUBT, v, w, x, e, 0)
+		      | P.IMUL => arithINT(M.MULT, v, w, x, e, 0)
+		      | P.IDIV => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_NEGINF,ty,x,y),
 					 v, w, x, e, 0)
-		      | P.MOD => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_NEGINF,ty,x,y),
+		      | P.IMOD => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_NEGINF,ty,x,y),
 					 v, w, x, e, 0)
-		      | P.QUOT => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_ZERO,ty,x,y),
+		      | P.IQUOT => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_ZERO,ty,x,y),
 					 v, w, x, e, 0)
-		      | P.REM => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_ZERO,ty,x,y),
+		      | P.IREM => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_ZERO,ty,x,y),
 					 v, w, x, e, 0)
 		      | _ => error(concat["gen: ", PPCps.arithopToString oper, " INT"])
 		    (* end case *)))
@@ -1830,29 +1830,6 @@ raise ex)
 		  else error "gen:ARITH:TEST with unexpected precisions (not implemented)"
 	    | gen (ARITH(P.TEST_INF _, _, _, _, _), hp) =
 	        error "gen:ARITH:TEST_INF"
-
-(* NOTE: I don't think that this code can ever be executed, since the floating-point
-** primops are bound to "pure" operations in Semant/prim/primop-bindings.sml and
-** then converted to P.PURE_ARITH operations in CPS/convert/convert.sml.
-** [JHR; 2019-04-16]
-**
-            | gen (ARITH(P.ARITH{oper, kind=P.FLOAT sz}, [v,w], x, _, e), hp) = let
-                val v = fregbind v
-		val w = fregbind w
-		val t = (case oper
-		       of P.ADD => M.FADD(sz, v, w)
-			| P.MUL => M.FMUL(sz, v, w)
-			| P.SUB => M.FSUB(sz, v, w)
-			| P.FDIV => M.FDIV(sz, v, w)
-		        | _ => error(concat["gen: ", PPCps.arithopToString oper, " FLOAT"])
-		      (* end case *))
-		in
-(* REAL32: FIXME *)
-		  treeifyDefF64(x, t, e, hp)
-		end
-**)
-            | gen (ARITH(P.ARITH{oper, kind=P.FLOAT _}, _, _, _, _), _) =
-		error(concat["gen: ", PPCps.arithopToString oper, " FLOAT"])
 
             (*** LOOKER ***)
             | gen (LOOKER(P.DEREF, [v], x, _, e), hp) = let

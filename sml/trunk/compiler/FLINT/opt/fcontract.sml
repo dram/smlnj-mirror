@@ -1056,7 +1056,7 @@ structure FContract :> FCONTRACT =
 
 		fun fcPrimop (po,vs,lv,le) = let
 		      val lvi = C.get lv
-		      val pure = not(PO.effect(#2 po))
+		      val pure = not(PrimopUtil.effect(#2 po))
 		      in if pure andalso C.dead lvi then (click_deadval();loop m le cont) else
 			  let val nvs = map substval vs
 			      val npo = cpo po

@@ -17,18 +17,11 @@ structure Primop : PRIMOP =
       | FLOAT of int
 (* QUESTION: what about IntInf.int? *)
 
-    datatype arithop
-      = ADD | SUB | MUL | NEG			(* int or float *)
-      | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN (* floating point only *)
-      | LSHIFT | RSHIFT | RSHIFTL		(* int only *)
-      | ANDB | ORB | XORB | NOTB		(* int only *)
-      | DIV | MOD | QUOT | REM			(* int only *)
+    datatype arithop = datatype ArithOps.arithop
 
-    datatype cmpop
-      = GT | GTE | LT | LTE			(* signed comparisons *)
-      | LEU | LTU | GEU | GTU			(* unsigned comparisons *)
-      | EQL | NEQ 				(* equality *)
-      | FSGN					(* floating point only *)
+    datatype pureop = datatype ArithOps.pureop
+
+    datatype cmpop = datatype ArithOps.cmpop
 
   (* datatype primop:
    * Various primitive operations. Those that are designated "inline" (L:) in
@@ -40,13 +33,22 @@ structure Primop : PRIMOP =
    * See dev-notes/conversions.md for an explanation of the conversion operators.
    *)
     datatype primop
-      = ARITH of {				(* E: arithmetic ops *)
-	    oper: arithop, overflow: bool, kind: numkind
+      = IARITH of {				(* E: integer arithmetic ops *)
+	    oper : arithop, sz : int		(* kind = INT sz *)
 	  }
+      | PURE_ARITH of {				(* E: arithmetic ops *)
+	    oper : pureop, kind : numkind
+	  }
+      | INLDIV of numkind			(* E: integer div *)
+      | INLMOD of numkind			(* E: integer mod *)
+      | INLQUOT of numkind			(* E: integer/word quot *)
+      | INLREM of numkind			(* E: integer/word rem *)
       | INLLSHIFT of numkind			(* E: left shift *)
       | INLRSHIFT of numkind			(* E: right shift *)
       | INLRSHIFTL of numkind			(* E: right shift logical *)
       | CMP of {oper: cmpop, kind: numkind}	(* E: generic compare *)
+      | FSGN of int				(* E: floating point sign test *)
+      | INLCHR					(* E: inline int to char conversion *)
       | TESTU of int * int         		(* E: word to int conversions, e.g. testu_31_31 *)
       | TEST of int * int          		(* E: int to smaller int conversions, e.g. test_32_31 *)
       | TRUNC of int * int        		(* E: int to smaller int/word truncation, e.g. trunc_32_31 *)
@@ -56,7 +58,7 @@ structure Primop : PRIMOP =
       | TRUNC_INF of int           		(* E: intinf truncations, e.g. trunc_inf_31 *)
       | EXTEND_INF of int          		(* E: intinf extensions, e.g. extend_8_inf *)
       | COPY_INF of int            		(* E: conversions to intinf, e.g. copy_8_inf *)
-      | ROUND of {				(* E: floor, round *)
+      | REAL_TO_INT of {			(* E: floor, round *)
 	    floor: bool, from: int, to: int
 	  }
       | INT_TO_REAL of {			(* E: real, real32 *)
@@ -153,172 +155,5 @@ structure Primop : PRIMOP =
 	CCI64 |				(* int64, currently unused *)
 	CCR64 |				(* passed as real64 *)
 	CCML				(* passed as Unsafe.Object.object *)
-
-    val defaultIntKind = INT Target.defaultIntSz  (* 31 or 63, depending on Target.is64 *)
-    val defaultUIntKind = UINT Target.defaultIntSz  (* 31 or 63, depending on Target.is64 *)
-
-  (** default integer arithmetic and comparison operators *)
-    val IADD = ARITH{oper=ADD, overflow=true, kind=defaultIntKind}
-    val ISUB = ARITH{oper=SUB, overflow=true, kind=defaultIntKind}
-    val IMUL = ARITH{oper=MUL, overflow=true, kind=defaultIntKind}
-    val IDIV = ARITH{oper=QUOT, overflow=true, kind=defaultIntKind}
-    val INEG = ARITH{oper=NEG, overflow=true, kind=defaultIntKind}
-
-    val IEQL = CMP{oper=EQL, kind=defaultIntKind}
-    val INEQ = CMP{oper=NEQ, kind=defaultIntKind}
-    val IGT  = CMP{oper=GT,  kind=defaultIntKind}
-    val ILT  = CMP{oper=LT,  kind=defaultIntKind}
-    val IGE  = CMP{oper=GTE, kind=defaultIntKind}
-    val ILE  = CMP{oper=LTE, kind=defaultIntKind}
-
-  (** default word arithmetic and comparison operators *)
-    val UADD = ARITH{oper=ADD, overflow=false, kind=defaultUIntKind}
-    val UIEQL = CMP{oper=EQL, kind=defaultUIntKind}
-
-    fun mkIEQL size = CMP{oper=EQL, kind=INT size}
-    fun mkUIEQL size = CMP{oper=EQL, kind=UINT size}
-
-  (** default floating-point equality operator *)
-    val FEQLd = CMP{oper=EQL, kind=FLOAT 64}
-
-(**************************************************************************
- *               OTHER PRIMOP-RELATED UTILITY FUNCTIONS                   *
- **************************************************************************)
-
-    fun prNumkind (INT bits) = "i" ^ Int.toString bits
-      | prNumkind (UINT bits) = "u" ^ Int.toString bits
-      | prNumkind (FLOAT bits) = "f" ^ Int.toString bits
-
-    val cvtParam = Int.toString
-    fun cvtParams (from, to) = concat [cvtParam from, "_", cvtParam to]
-
-    fun prPrimop (ARITH{oper, overflow, kind}) = let
-	  val rator = (case oper
-		 of ADD => "add" | SUB => "sub" | MUL => "mul" | NEG => "neg"
-		  | FDIV => "fdiv" | FABS => "fabs"  | FSQRT => "fsqrt"
-		  | FSIN => "fsin" | FCOS => "fcos" | FTAN => "ftan"
-		  | LSHIFT => "lshift" | RSHIFT => "rshift" | RSHIFTL => "rshift_l"
-		  | ANDB => "andb" | ORB => "orb" | XORB => "xorb" | NOTB => "notb"
-		  | DIV => "div" | MOD => "mod" | QUOT => "quot" | REM => "rem"
-		(* end case *))
-	  in
-	    concat [ rator, if overflow then "_" else "n_", prNumkind kind]
-	  end
-      | prPrimop (INLLSHIFT kind) =  "inllshift_"  ^ prNumkind kind
-      | prPrimop (INLRSHIFT kind) =  "inlrshift_"  ^ prNumkind kind
-      | prPrimop (INLRSHIFTL kind) = "inlrshiftl_" ^ prNumkind kind
-      | prPrimop (CMP{oper,kind}) = let
-	  val rator = (case oper
-		 of GT => ">_" | LT => "<_" | GTE => ">=_" | LTE => "<=_"
-		  | GEU => ">=U_" | GTU => ">U_" | LEU => "<=U_" | LTU => "<U_"
-		  | EQL => "=_" | NEQ => "<>_" | FSGN => "fsgn_"
-		(* end case *))
-	  in
-	    rator ^ prNumkind kind
-	  end
-      | prPrimop (TEST arg) = "test_" ^ cvtParams arg
-      | prPrimop (TESTU arg) = "testu_" ^ cvtParams arg
-      | prPrimop (EXTEND arg) = "extend_" ^ cvtParams arg
-      | prPrimop (TRUNC arg) = "trunc_" ^ cvtParams arg
-      | prPrimop (COPY arg) = "copy_" ^ cvtParams arg
-      | prPrimop (TEST_INF i) = "test_inf_" ^ cvtParam i
-      | prPrimop (TRUNC_INF i) = "trunc_inf_" ^ cvtParam i
-      | prPrimop (EXTEND_INF i) = concat ["extend_", cvtParam i, "_inf"]
-      | prPrimop (COPY_INF i) =  concat ["copy_", cvtParam i, "_inf"]
-      | prPrimop (ROUND{floor,from,to}) = concat [
-	    if floor then "floor_f" else "round_f",
-	    Int.toString from, "_i", Int.toString to
-	  ]
-      | prPrimop(INT_TO_REAL{from,to}) = concat [
-	    "int", Int.toString from, "_to_real", Int.toString to
-	  ]
-      | prPrimop(NUMSUBSCRIPT{kind,checked,immutable}) = concat [
-	    "numsubscript_", prNumkind kind,
-	    if checked then "c" else "",
-	    if immutable then "v" else ""
-	  ]
-      | prPrimop (NUMUPDATE{kind,checked}) = concat [
-	    "numupdate_", prNumkind kind, if checked then  "c" else ""
-	  ]
-      | prPrimop DEREF = "!"
-      | prPrimop ASSIGN = ":="
-      | prPrimop UNBOXEDASSIGN = "(unboxed):="
-      | prPrimop BOXED = "boxed"
-      | prPrimop UNBOXED = "unboxed"
-      | prPrimop CAST = "cast"
-      | prPrimop WCAST = "wcast"
-      | prPrimop PTREQL = "ptreql"
-      | prPrimop PTRNEQ = "ptrneq"
-      | prPrimop POLYEQL = "polyeql"
-      | prPrimop POLYNEQ = "polyneq"
-      | prPrimop GETHDLR = "gethdlr"
-      | prPrimop MAKEREF = "makeref"
-      | prPrimop SETHDLR = "sethdlr"
-      | prPrimop LENGTH = "length"
-      | prPrimop OBJLENGTH = "objlength"
-      | prPrimop CALLCC = "callcc"
-      | prPrimop CAPTURE = "capture"
-      | prPrimop ISOLATE = "isolate"
-      | prPrimop THROW = "throw"
-      | prPrimop SUBSCRIPT = "subscript"
-      | prPrimop UNBOXEDUPDATE = "unboxedupdate"
-      | prPrimop UPDATE = "update"
-      | prPrimop INLSUBSCRIPT = "inlsubscript"
-      | prPrimop INLSUBSCRIPTV = "inlsubscriptv"
-      | prPrimop INLUPDATE = "inlupdate"
-      | prPrimop INLMKARRAY = "inlmkarray"
-      | prPrimop SUBSCRIPTV = "subscriptv"
-      | prPrimop GETVAR = "getvar"
-      | prPrimop SETVAR = "setvar"
-      | prPrimop GETTAG = "gettag"
-      | prPrimop MKSPECIAL = "mkspecial"
-      | prPrimop SETSPECIAL = "setspecial"
-      | prPrimop GETSPECIAL = "getspecial"
-      | prPrimop (INLMIN nk) = "inlmin_" ^ prNumkind nk
-      | prPrimop (INLMAX nk) = "inlmax_" ^ prNumkind nk
-      | prPrimop (INLABS nk) = "inlabs_" ^ prNumkind nk
-      | prPrimop INLNOT = "inlnot"
-      | prPrimop INLCOMPOSE = "inlcompose"
-      | prPrimop INLBEFORE = "inlbefore"
-      | prPrimop INLIGNORE = "inlignore"
-      | prPrimop INL_ARRAY = "inl_array"
-      | prPrimop INL_VECTOR = "inl_vector"
-      | prPrimop (INL_MONOARRAY kind) = "inl_monoarray_" ^ prNumkind kind
-      | prPrimop (INL_MONOVECTOR kind) = "inl_monovector_" ^ prNumkind kind
-      | prPrimop MARKEXN = "markexn"
-      | prPrimop MKETAG = "mketag"
-      | prPrimop WRAP = "wrap"
-      | prPrimop UNWRAP = "unwrap"
-    (* Primops to support new array representations *)
-      | prPrimop NEW_ARRAY0 = "newarray0"
-      | prPrimop GET_SEQ_DATA = "getseqdata"
-      | prPrimop SUBSCRIPT_REC = "subscriptrec"
-      | prPrimop SUBSCRIPT_RAW64 = "subscriptraw64"
-    (* Primops to support new experimental C FFI. *)
-      | prPrimop (RAW_LOAD nk) = concat ["raw_load(", prNumkind nk, ")"]
-      | prPrimop (RAW_STORE nk) = concat ["raw_store(", prNumkind nk, ")"]
-      | prPrimop (RAW_CCALL _) = "raw_ccall"
-      | prPrimop (RAW_RECORD{ align64 }) = if align64 then "raw64_record" else "raw_record"
-      | prPrimop INLIDENTITY = "inlidentity"
-      | prPrimop CVT64 = "cvt64"
-
-  (* should return more than just a boolean:
-   * {Store,Continuation}-{read,write}
-   *)
-    fun effect p = (case p
-	   of ARITH{overflow,...} => overflow
-	    | (INLRSHIFT _ | INLRSHIFTL _) => false
-	    | CMP _ => false
-	    | (EXTEND _ | TRUNC _ | COPY _) => false
-	    | (PTREQL | PTRNEQ | POLYEQL | POLYNEQ) => false
-	    | (BOXED | UNBOXED) => false
-	    | (LENGTH | OBJLENGTH) => false
-	    | (CAST | WCAST) => false
-	    | (INLMIN _ | INLMAX _ | INLNOT | INLCOMPOSE | INLIGNORE) => false
-	    | (WRAP | UNWRAP) => false
-	    | INLIDENTITY => false
-	    | CVT64 => false
-	    | _ => true
-	  (* end case *))
 
   end  (* structure PrimOp *)

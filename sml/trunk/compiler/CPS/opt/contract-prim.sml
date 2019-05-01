@@ -71,29 +71,29 @@ structure ContractPrim : sig
 
   (* contraction for impure arithmetic operations *)
     fun arith (rator, args) = ((case (rator, args)
-	   of (P.ARITH{oper=P.MUL, ...}, [NUM{ival=1, ...}, v]) => SOME v
-	    | (P.ARITH{oper=P.MUL, ...}, [v, NUM{ival=1, ...}]) => SOME v
-	    | (P.ARITH{oper=P.MUL, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
-	    | (P.ARITH{oper=P.MUL, ...}, [_, v as NUM{ival=0, ...}]) => SOME v
-	    | (P.ARITH{oper=P.MUL, kind=P.INT sz}, [NUM i, NUM j]) =>
+	   of (P.IARITH{oper=P.IMUL, ...}, [NUM{ival=1, ...}, v]) => SOME v
+	    | (P.IARITH{oper=P.IMUL, ...}, [v, NUM{ival=1, ...}]) => SOME v
+	    | (P.IARITH{oper=P.IMUL, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
+	    | (P.IARITH{oper=P.IMUL, ...}, [_, v as NUM{ival=0, ...}]) => SOME v
+	    | (P.IARITH{oper=P.IMUL, sz=sz}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.sMul(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.ARITH{oper=P.QUOT, ...}, [v, NUM{ival=1, ...}]) => SOME v
-	    | (P.ARITH{oper=P.QUOT, ...}, [_, NUM{ival=0, ...}]) => NONE
-	    | (P.ARITH{oper=P.QUOT, kind=P.INT sz}, [NUM i, NUM j]) =>
+	    | (P.IARITH{oper=P.IQUOT, ...}, [v, NUM{ival=1, ...}]) => SOME v
+	    | (P.IARITH{oper=P.IQUOT, ...}, [_, NUM{ival=0, ...}]) => NONE
+	    | (P.IARITH{oper=P.IQUOT, sz=sz}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.sQuot(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.ARITH{oper=P.DIV, ...}, [v, NUM{ival=1, ...}]) => SOME v
-	    | (P.ARITH{oper=P.DIV, ...}, [_, NUM{ival=0, ...}]) => NONE
-	    | (P.ARITH{oper=P.DIV, kind=P.INT sz}, [NUM i, NUM j]) =>
+	    | (P.IARITH{oper=P.IDIV, ...}, [v, NUM{ival=1, ...}]) => SOME v
+	    | (P.IARITH{oper=P.IDIV, ...}, [_, NUM{ival=0, ...}]) => NONE
+	    | (P.IARITH{oper=P.IDIV, sz=sz}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.sDiv(sz, #ival i, #ival j), ty = #ty i})
 	    (* FIXME: should we do anything for mod or rem here? *)
-	    | (P.ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => SOME v
-	    | (P.ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => SOME v
-	    | (P.ARITH{oper=P.ADD, kind=P.INT sz}, [NUM i, NUM j]) =>
+	    | (P.IARITH{oper=P.IADD, ...}, [NUM{ival=0, ...}, v]) => SOME v
+	    | (P.IARITH{oper=P.IADD, ...}, [v, NUM{ival=0, ...}]) => SOME v
+	    | (P.IARITH{oper=P.IADD, sz=sz}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.sAdd(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => SOME v
-	    | (P.ARITH{oper=P.SUB, kind=P.INT sz}, [NUM i, NUM j]) =>
+	    | (P.IARITH{oper=P.ISUB, ...}, [v, NUM{ival=0, ...}]) => SOME v
+	    | (P.IARITH{oper=P.ISUB, sz=sz}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.sSub(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.ARITH{oper=P.NEG, kind=P.INT sz}, [NUM i]) =>
+	    | (P.IARITH{oper=P.INEG, sz=sz}, [NUM i]) =>
 		SOME(NUM{ival = CA.sNeg(sz, #ival i), ty = #ty i})
 	    | _ => NONE
 	  (* end case *))

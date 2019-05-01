@@ -61,7 +61,7 @@ val (iadd_prim, uadd_prim) = let
       val lt_int = LT.ltc_int
       val intOpTy = LT.ltc_parrow(LT.ltc_tuple[lt_int,lt_int],lt_int)
       in
-        (L.PRIM(PO.IADD, intOpTy, []), L.PRIM(PO.UADD, intOpTy, []))
+        (L.PRIM(PrimopUtil.IADD, intOpTy, []), L.PRIM(PrimopUtil.UADD, intOpTy, []))
       end
 
 fun bug msg = ErrorMsg.impossible("FlintNM: "^msg)
@@ -83,7 +83,7 @@ in
 
 fun flint_prim (po as (d, p, lt, ts), vs, v, e) =
   (case p
-    of (PO.BOXED  | PO.UNBOXED | PO.CMP _ | PO.PTREQL |
+    of (PO.BOXED  | PO.UNBOXED | PO.CMP _ | PO.FSGN _ | PO.PTREQL |
         PO.PTRNEQ | PO.POLYEQL | PO.POLYNEQ) =>
           (*** branch primops get translated into F.BRANCH ***)
           F.LET([v], F.BRANCH(po, vs, boolLexp true, boolLexp false), e)

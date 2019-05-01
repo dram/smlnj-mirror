@@ -25,7 +25,6 @@ structure PrimopBindings : sig
       val tu = BT.tupleTy
       fun ar(t1,t2) = BT.--> (t1, t2)
 
-      fun ap(tc,l) = T.CONty(tc, l)
       fun cnt t = T.CONty(BT.contTycon,[t])
       fun ccnt t = T.CONty(BT.ccontTycon,[t])
       fun rf t = T.CONty(BT.refTycon,[t])
@@ -191,6 +190,7 @@ structure PrimopBindings : sig
       val i64_pw32 = p0(ar(i64,tu[w32,w32]))
       val pw32_i64 = p0(ar(tu[w32,w32],i64))
 
+      val i_c = p0(ar(i, BT.charTy))
       val cc_b = binp BT.charTy
 
     (* The type of the RAW_CCALL primop (as far as the type checker is concerned)
@@ -212,23 +212,23 @@ structure PrimopBindings : sig
       val intSz = Target.defaultIntSz
 
     (* helper functions for primop definitions *)
-      fun bits' size oper = P.ARITH{oper=oper, overflow=false, kind=P.INT size}
+      fun bits' sz oper = P.PURE_ARITH{oper=oper, kind=P.INT sz}
       val bits32 = bits' 32
       val bits64 = bits' 64
       val bits = bits' intSz
 
-      fun int' size oper = P.ARITH{oper=oper, overflow=true, kind=P.INT size}
+      fun int' sz oper = P.IARITH{oper=oper, sz=sz}
       val int32 = int' 32
       val int64 = int' 64
       val int = int' intSz
 
-      fun word' size oper = P.ARITH{oper=oper, overflow=false, kind=P.UINT size}
+      fun word' sz oper = P.PURE_ARITH{oper=oper, kind=P.UINT sz}
       val word8  = word' 8
       val word32 = word' 32
       val word64 = word' 64
       val word = word' intSz
 
-      fun purefloat size oper = P.ARITH{oper=oper,overflow=false,kind=P.FLOAT size}
+      fun purefloat sz oper = P.PURE_ARITH{oper=oper, kind=P.FLOAT sz}
       val purefloat32 = purefloat 32
       val purefloat64 = purefloat 64
 
@@ -320,19 +320,19 @@ structure PrimopBindings : sig
   (* primops on target-independent types (int32, word32, real64) *)
     val prims = prims :-:
 	(* integer 32 primops *)
-	  ("i32mul", i32i32_i32, int32 P.MUL) :-:
-	  ("i32div", i32i32_i32, int32 P.DIV) :-:
-	  ("i32mod", i32i32_i32, int32 P.MOD) :-:
-	  ("i32quot", i32i32_i32, int32 P.QUOT) :-:
-	  ("i32rem", i32i32_i32, int32 P.REM) :-:
-	  ("i32add", i32i32_i32, int32 P.ADD) :-:
-	  ("i32sub", i32i32_i32, int32 P.SUB) :-:
+	  ("i32mul", i32i32_i32, int32 P.IMUL) :-:
+	  ("i32div", i32i32_i32, int32 P.IDIV) :-:
+	  ("i32mod", i32i32_i32, int32 P.IMOD) :-:
+	  ("i32quot", i32i32_i32, int32 P.IQUOT) :-:
+	  ("i32rem", i32i32_i32, int32 P.IREM) :-:
+	  ("i32add", i32i32_i32, int32 P.IADD) :-:
+	  ("i32sub", i32i32_i32, int32 P.ISUB) :-:
 	  ("i32orb", i32i32_i32, bits32 P.ORB) :-:
 	  ("i32andb", i32i32_i32, bits32 P.ANDB) :-:
 	  ("i32xorb", i32i32_i32, bits32 P.XORB) :-:
 	  ("i32lshift", i32i32_i32, bits32 P.LSHIFT) :-:
 	  ("i32rshift", i32i32_i32, bits32 P.RSHIFT) :-:
-	  ("i32neg", i32_i32, int32 P.NEG) :-:
+	  ("i32neg", i32_i32, int32 P.INEG) :-:
 	  ("i32lt", i32i32_b, int32cmp P.LT) :-:
 	  ("i32le", i32i32_b, int32cmp P.LTE) :-:
 	  ("i32gt", i32i32_b, int32cmp P.GT) :-:
@@ -354,7 +354,7 @@ structure PrimopBindings : sig
 	  ("f64lt", f64f64_b, float64cmp P.LT) :-:
 	  ("f64eq", f64f64_b, float64cmp P.EQL) :-:
 	  ("f64ne", f64f64_b, float64cmp P.NEQ) :-:
-	  ("f64sgn", f64_b, float64cmp P.FSGN) :-:
+	  ("f64sgn", f64_b, P.FSGN 64) :-:
 	  ("f64abs", f64_f64, purefloat64 P.FABS) :-:
 	  ("f64sin", f64_f64, purefloat64 P.FSIN) :-:
 	  ("f64cos", f64_f64, purefloat64 P.FCOS) :-:
@@ -458,10 +458,12 @@ structure PrimopBindings : sig
 	  ("rawupdatef64", xw32f64_u, P.RAW_STORE (P.FLOAT 64))
 
     val prims = prims :-:
+	(* int to char conversion *)
+	  ("inlchr", i_c, P.INLCHR) :-:
 	(* int to/from real conversions *)
 (* FIXME: the names of these should reflect both the source and destination types. *)
-	  ("floor", f64_i, P.ROUND{floor=true, from = 64, to = intSz}) :-:
-	  ("round", f64_i, P.ROUND{floor=false, from = 64, to = intSz}) :-:
+	  ("floor", f64_i, P.REAL_TO_INT{floor=true, from = 64, to = intSz}) :-:
+	  ("round", f64_i, P.REAL_TO_INT{floor=false, from = 64, to = intSz}) :-:
 	  ("real", i_f64, P.INT_TO_REAL{from = intSz, to = 64}) :-:
 	  ("real32", i32_f64, P.INT_TO_REAL{from = 32, to = 64})
 (*
@@ -617,18 +619,18 @@ structure PrimopBindings : sig
 	  fun mkcmp_c (name, rator) = (concat[i, name, "_c"], cc_b, intcmp rator)
 	  in
 	    prims :-:
-	      mk2("add", P.ADD) :-:
-	      mk2("sub", P.SUB) :-:
-	      mk2("mul", P.MUL) :-:
-	      mk2("div", P.DIV) :-:
-	      mk2("mod", P.MOD) :-:
-	      mk2("quot", P.QUOT) :-:
-	      mk2("rem", P.REM) :-:
+	      mk2("add", P.IADD) :-:
+	      mk2("sub", P.ISUB) :-:
+	      mk2("mul", P.IMUL) :-:
+	      mk2("div", P.IDIV) :-:
+	      mk2("mod", P.IMOD) :-:
+	      mk2("quot", P.IQUOT) :-:
+	      mk2("rem", P.IREM) :-:
 	      mk2_b("orb", P.ORB) :-:
 	      mk2_b("andb", P.ANDB) :-:
 	      mk2_b("xorb", P.XORB) :-:
 	      mk1_b("notb", P.NOTB) :-:
-	      mk1("neg", P.NEG) :-:
+	      mk1("neg", P.INEG) :-:
 	      mk2_b("lshift", P.LSHIFT) :-:
 	      mk2_b("rshift", P.RSHIFT) :-:
 	      mkcmp("lt", P.LT) :-:
@@ -639,8 +641,8 @@ structure PrimopBindings : sig
 	      mkcmp_c("gt", P.GT) :-:
 	      mkcmp("ge", P.GTE) :-:
 	      mkcmp_c("ge", P.GTE) :-:
-	      mk("ltu", ii_b, wordcmp P.LTU) :-:
-	      mk("geu", ii_b, wordcmp P.GEU) :-:
+	      mk("ltu", ii_b, wordcmp P.LT) :-:
+	      mk("geu", ii_b, wordcmp P.GTE) :-:
 	      mkcmp("eq", P.EQL) :-:
 	      mkcmp("ne", P.NEQ) :-:
 	      mk("min", ii_i, P.INLMIN (P.INT 31)) :-:

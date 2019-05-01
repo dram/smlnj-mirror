@@ -39,8 +39,7 @@ structure TransPrim : sig
     val lt_ipair = lt_tup [lt_int, lt_int]
     val lt_fixed_pair = lt_tup [lt_fixed_int, lt_fixed_int]
     val lt_icmp = lt_arw (lt_ipair, lt_bool)
-    val lt_ineg = lt_arw (lt_int, lt_int)
-    val lt_intop = lt_arw (lt_ipair, lt_int)
+    val lt_intop1 = lt_arw (lt_int, lt_int)
 
     val unitLexp = L.RECORD[]
 
@@ -56,7 +55,7 @@ structure TransPrim : sig
     val falseLexp = L.CON(falseDcon', [], unitLexp)
 
   (* unsigned comparison on tagged integers used for bounds checking *)
-    val LESSU = L.PRIM(PO.CMP{oper=PO.LTU, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
+    val LESSU = L.PRIM(PO.CMP{oper=PO.LT, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
 
     val lt_len = LT.ltc_poly([LT.tkc_mono], [lt_arw(LT.ltc_tv 0, lt_int)])
     val lt_upd = let
@@ -70,20 +69,35 @@ structure TransPrim : sig
 
  (* inline operators for numeric types *)
     fun inlops nk = let
-	  val (lt_arg, zero, overflow) = (case nk
-		 of PO.INT sz => (LT.ltc_num sz, L.INT{ival = 0, ty = sz}, true)
-		  | PO.UINT sz => (LT.ltc_num sz, L.WORD{ival = 0, ty = sz}, false)
+	  val (lt_arg, zero, negate) = (case nk
+		 of PO.INT sz => let
+		      val lt_arg = LT.ltc_num sz
+		      val lt_neg = lt_arw (lt_arg, lt_arg)
+		      in (
+			lt_arg, L.INT{ival = 0, ty = sz},
+			L.PRIM(PO.IARITH{oper = PO.INEG, sz = sz}, lt_neg, [])
+		      ) end
+		  | PO.UINT sz => let
+		      val lt_arg = LT.ltc_num sz
+		      val lt_neg = lt_arw (lt_arg, lt_arg)
+		      in (
+			lt_arg, L.WORD{ival = 0, ty = sz},
+			L.PRIM(PO.PURE_ARITH{oper = PO.NEG, kind = nk}, lt_neg, [])
+		      ) end
 (* REAL64: type will depend on size *)
-		  | PO.FLOAT sz => (LT.ltc_real, L.REAL{rval = RealLit.zero false, ty = sz}, false)
+		  | PO.FLOAT sz => let
+		      val lt_arg = LT.ltc_real
+		      val lt_neg = lt_arw (lt_arg, lt_arg)
+		      in (
+			lt_arg, L.REAL{rval = RealLit.zero false, ty = sz},
+			L.PRIM(PO.PURE_ARITH{oper = PO.NEG, kind = nk}, lt_neg, [])
+		      ) end
 		(* end case *))
 	  val lt_argpair = lt_tup [lt_arg, lt_arg]
 	  val lt_cmp = lt_arw (lt_argpair, lt_bool)
-	  val lt_neg = lt_arw (lt_arg, lt_arg)
 	  val less = L.PRIM (PO.CMP { oper = PO.LT, kind = nk }, lt_cmp, [])
 	  val greater = L.PRIM (PO.CMP { oper = PO.GT, kind = nk }, lt_cmp, [])
 	  val equal = L.PRIM (PO.CMP { oper = PO.EQL, kind = nk }, lt_cmp, [])
-	  val negate =
-		L.PRIM (PO.ARITH { oper = PO.NEG, overflow = overflow, kind = nk }, lt_neg, [])
 	  in {
 	    lt_arg = lt_arg, lt_argpair = lt_argpair, lt_cmp = lt_cmp,
 	    less = less, greater = greater, equal = equal,
@@ -91,9 +105,9 @@ structure TransPrim : sig
 	  } end
 
   (* shift primops *)
-    fun rshiftOp k = PO.ARITH{oper=PO.RSHIFT, overflow=false,  kind=k}
-    fun rshiftlOp k = PO.ARITH{oper=PO.RSHIFTL, overflow=false, kind=k}
-    fun lshiftOp k = PO.ARITH{oper=PO.LSHIFT,  overflow=false, kind=k}
+    fun rshiftOp k = PO.PURE_ARITH{oper=PO.RSHIFT, kind=k}
+    fun rshiftlOp k = PO.PURE_ARITH{oper=PO.RSHIFTL, kind=k}
+    fun lshiftOp k = PO.PURE_ARITH{oper=PO.LSHIFT, kind=k}
 
   (* zero literal for fiven word type*)
     fun lword0 (PO.UINT sz) = L.WORD{ival = 0, ty = sz}
@@ -142,7 +156,7 @@ structure TransPrim : sig
 		      (* end case *))
 		val argt = lt_tup [baselt kind, lt_int]
 		val cmpShiftAmt =
-		      L.PRIM(PO.CMP{oper=PO.LEU, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
+		      L.PRIM(PO.CMP{oper=PO.LTE, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
 		in
 		  mkFn argt (fn p =>
 		    mkLet (L.SELECT(0, p)) (fn w =>
@@ -221,6 +235,20 @@ structure TransPrim : sig
 		  mkFn lt_arg (fn x =>
 		    mkCOND (mkApp2 (greater, x, zero), x, L.APP(negate, x)))
 		end
+	(* inline Char.chr function *)
+	  fun inlChr () = (case coreExn ["Chr"]
+		 of SOME chrExn => let
+		      val wk = PO.UINT Tgt.defaultIntSz
+		      val geu = L.PRIM(PO.CMP{oper = PO.GTE, kind = wk}, lt_icmp, [])
+		      val c256 = L.INT{ival = 256, ty = Tgt.defaultIntSz}
+		      in
+			mkFn lt_int (fn i =>
+			  mkCOND(mkApp2 (geu, i, c256), mkRaise(chrExn, lt_int), i))
+		      end
+		  | NONE => (
+		      warn "no access to Chr exception";
+		      L.PRIM(PO.CAST, lt_intop1, []))
+		(* end case *))
 	(** Precision converting translation using a conversion
 	 *  primitive named in the second argument.
 	 *
@@ -263,7 +291,19 @@ structure TransPrim : sig
 		end
 	  in
 	    case prim
-	     of PO.INLLSHIFT k => inlineShift(lshiftOp, k, fn _ => lword0 k)
+	     of PO.INLDIV(k as (PO.INT sz)) =>
+		  inldiv (k, PO.IARITH{oper=PO.IDIV, sz=sz}, lt, ts)
+	      | PO.INLMOD(k as (PO.INT sz)) =>
+		  inldiv (k, PO.IARITH{oper=PO.IMOD, sz=sz}, lt, ts)
+	      | PO.INLQUOT(k as (PO.INT sz)) =>
+		  inldiv (k, PO.IARITH{oper=PO.IQUOT, sz=sz}, lt, ts)
+	      | PO.INLQUOT k =>
+		  inldiv (k, PO.PURE_ARITH{oper=PO.QUOT, kind=k}, lt, ts)
+	      | PO.INLREM(k as (PO.INT sz)) =>
+		  inldiv (k, PO.IARITH{oper=PO.IREM, sz=sz}, lt, ts)
+	      | PO.INLREM k =>
+		  inldiv (k, PO.PURE_ARITH{oper=PO.REM, kind=k}, lt, ts)
+	      | PO.INLLSHIFT k => inlineShift(lshiftOp, k, fn _ => lword0 k)
 	      | PO.INLRSHIFTL k => inlineShift(rshiftlOp, k, fn _ => lword0 k)
 	      | PO.INLRSHIFT k => let
 		(* preserve sign bit with arithmetic rshift *)
@@ -275,12 +315,6 @@ structure TransPrim : sig
 	      | PO.INLMIN nk => inlminmax (nk, false)
 	      | PO.INLMAX nk => inlminmax (nk, true)
 	      | PO.INLABS nk => inlabs nk
-
-	      | PO.ARITH { oper = (PO.DIV | PO.QUOT | PO.MOD | PO.REM),
-				 kind = nk as (PO.INT _ | PO.UINT _),
-				 overflow } =>
-		  inldiv (nk, prim, lt, ts)
-
 	      | PO.INLNOT => mkFn lt_bool (fn x => mkCOND(x, falseLexp, trueLexp))
 	      | PO.INLCOMPOSE => let
 		  val (t1, t2, t3) = (case ts
@@ -382,6 +416,8 @@ structure TransPrim : sig
 			  mkLet (L.SELECT(2, x)) (fn v =>
 			    boundsChk (i, a, tc1, LT.ltc_unit) (L.APP(oper, L.RECORD[a, i, v]))))))
 		  end
+	    (* int to char conversion *)
+	      | PO.INLCHR => inlChr()
 	    (* Precision-conversion operations involving IntInf.
 	     * These need to be translated specially by providing
 	     * a second argument -- the routine from _Core that
