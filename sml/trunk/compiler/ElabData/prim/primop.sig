@@ -37,8 +37,7 @@ signature PRIMOP =
 
   (* datatype primop:
    * Various primitive operations. Those that are designated "inline" (L:) in
-   * the comments are expanded into lambda code in terms of other operators,
-   * as are the "checked=true" versions of NUMSUBSCRIPT and NUMUPDATE (L?:).
+   * the comments are expanded into lambda code in terms of other operators.
    * "Environmental" primops (occurring in the InLine structure) are indicated
    * by "E:" in the comment.
    *
@@ -76,12 +75,12 @@ signature PRIMOP =
       | INT_TO_REAL of {			(* E: real, real32 *)
 	    from: int, to: int
 	  }
-      | NUMSUBSCRIPT of {			(* E: L?: ordof, etc. *)
-	    kind: numkind, checked: bool, immutable: bool
-	  }
-      | NUMUPDATE of {				(* E: L?: store, etc. *)
-	    kind: numkind, checked: bool
-	  }
+      | NUMSUBSCRIPT of numkind			(* E: unchecked numeric array subscript *)
+      | NUMSUBSCRIPTV of numkind		(* E: unchecked numeric vector subscript *)
+      | NUMUPDATE of numkind			(* E: unchecked numeric array update *)
+      | INLNUMSUBSCRIPT of numkind		(* E: L: checked numeric array subscript *)
+      | INLNUMSUBSCRIPTV of numkind		(* E: L: checked numeric vector subscript *)
+      | INLNUMUPDATE of numkind			(* E: L: checked numeric array update *)
       | SUBSCRIPT                  		(* E: polymorphic array subscript *)
       | SUBSCRIPTV				(* E: poly vector subscript *)
       | INLSUBSCRIPT				(* E: L: poly array subscript *)

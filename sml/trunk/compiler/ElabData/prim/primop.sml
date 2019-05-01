@@ -23,6 +23,10 @@ structure Primop : PRIMOP =
 
     datatype cmpop = datatype ArithOps.cmpop
 
+(* TODO: define a separate type of "inline primops" and have a single
+ * "INLINE of inlineop" constructor in primop.
+ *)
+
   (* datatype primop:
    * Various primitive operations. Those that are designated "inline" (L:) in
    * the comments are expanded into lambda code in terms of other operators,
@@ -64,12 +68,12 @@ structure Primop : PRIMOP =
       | INT_TO_REAL of {			(* E: real, real32 *)
 	    from: int, to: int
 	  }
-      | NUMSUBSCRIPT of {			(* E: L?: ordof, etc. *)
-	    kind: numkind, checked: bool, immutable: bool
-	  }
-      | NUMUPDATE of {				(* E: L?: store, etc. *)
-	    kind: numkind, checked: bool
-	  }
+      | NUMSUBSCRIPT of numkind			(* E: ordof, etc. *)
+      | NUMSUBSCRIPTV of numkind		(* E: ordof, etc. *)
+      | NUMUPDATE of numkind			(* E: store, etc. *)
+      | INLNUMSUBSCRIPT of numkind		(* E: L: ordof, etc. *)
+      | INLNUMSUBSCRIPTV of numkind		(* E: L: ordof, etc. *)
+      | INLNUMUPDATE of numkind			(* E: L: store, etc. *)
       | SUBSCRIPT                  		(* E: polymorphic array subscript *)
       | SUBSCRIPTV				(* E: poly vector subscript *)
       | INLSUBSCRIPT				(* E: L: poly array subscript *)
@@ -105,12 +109,12 @@ structure Primop : PRIMOP =
       | INLCOMPOSE				(* E: L: compose "op o"  operator *)
       | INLBEFORE				(* E: L: "before" operator *)
       | INLIGNORE				(* E: L: "ignore" function *)
+      | INLIDENTITY				(* E: polymorphic identity *)
     (* primops to support new array representations *)
       | NEW_ARRAY0				(* E: allocate zero-length array header *)
       | GET_SEQ_DATA				(* E: get data pointer from arr/vec header *)
       | SUBSCRIPT_REC				(* E: record subscript operation *)
       | SUBSCRIPT_RAW64				(* E: raw64 subscript operation *)
-      | INLIDENTITY				(* E: polymorphic identity *)
       | CVT64					(* E: convert between external and
 						 * internal representation of compiler
 						 * simulated 64-bit scalars, e.g. w64p *)

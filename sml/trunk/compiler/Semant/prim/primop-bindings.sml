@@ -244,14 +244,14 @@ structure PrimopBindings : sig
       val float32cmp = cmp (P.FLOAT 32)
       val float64cmp = cmp (P.FLOAT 64)
 
-      fun sub kind = P.NUMSUBSCRIPT{kind=kind, checked=false, immutable=false}
-      fun chkSub kind = P.NUMSUBSCRIPT{kind=kind, checked=true, immutable=false}
+      fun sub kind = P.NUMSUBSCRIPT kind
+      fun chkSub kind = P.INLNUMSUBSCRIPT kind
 
-      fun subv kind = P.NUMSUBSCRIPT{kind=kind, checked=false, immutable=true}
-      fun chkSubv kind = P.NUMSUBSCRIPT{kind=kind, checked=true, immutable=true}
+      fun subv kind = P.NUMSUBSCRIPTV kind
+      fun chkSubv kind = P.INLNUMSUBSCRIPTV kind
 
-      fun update kind = P.NUMUPDATE {kind=kind, checked=false}
-      fun chkUpdate kind = P.NUMUPDATE {kind=kind, checked=true}
+      fun update kind = P.NUMUPDATE kind
+      fun chkUpdate kind = P.INLNUMUPDATE kind
 
       infix :-:
       fun l :-: m = PrimopBind.mk m :: l
@@ -298,11 +298,11 @@ structure PrimopBindings : sig
           (* boolean operations *)
 	    ("inlnot", b_b, P.INLNOT) :-:
 	  (* bytearray and bytevector operations *)
-	    ("ordof", numSubTy, P.NUMSUBSCRIPT{kind=P.INT 8, checked=false, immutable=true}) :-:
-	    ("store", numUpdTy, P.NUMUPDATE{kind=P.INT 8, checked=false}) :-:
-	    ("inlbyteof", numSubTy, P.NUMSUBSCRIPT{kind=P.INT 8, checked=true, immutable=false}) :-:
-	    ("inlstore", numUpdTy, P.NUMUPDATE{kind=P.INT 8, checked=true}) :-:
-	    ("inlordof", numSubTy, P.NUMSUBSCRIPT{kind=P.INT 8, checked=true, immutable=true}) :-:
+	    ("ordof", numSubTy, P.NUMSUBSCRIPTV(P.INT 8)) :-:
+	    ("store", numUpdTy, P.NUMUPDATE(P.INT 8)) :-:
+	    ("inlbyteof", numSubTy, P.INLNUMSUBSCRIPT(P.INT 8)) :-:
+	    ("inlstore", numUpdTy, P.INLNUMUPDATE(P.INT 8)) :-:
+	    ("inlordof", numSubTy, P.INLNUMSUBSCRIPTV(P.INT 8)) :-:
 	  (* polymorphic array and vector *)
 	    ("mkarray", p1(ar(tu[i,v1],ay(v1))), P.INLMKARRAY) :-:
 	    ("arrSub", p1(ar(tu[ay(v1),i],v1)), P.SUBSCRIPT) :-:

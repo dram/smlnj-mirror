@@ -147,11 +147,6 @@ structure BasicTypes : BASICTYPES =
 
     val (realTycon, realTy) = mkPrimTycTy ("real", 0, T.NO)
 
-    val arrayTycon = mkPrimTyc ("array", 1, T.OBJ)
-    val vectorTycon = mkPrimTyc ("vector", 1, T.YES)
-
-    val (stringTycon, stringTy) = mkPrimTycTy ("string", 0, T.YES)
-
     val (charTycon, charTy) = mkPrimTycTy ("char", 0, T.YES)
 
     val (exnTycon, exnTy) = mkPrimTycTy ("exn", 0, T.NO)
@@ -162,13 +157,18 @@ structure BasicTypes : BASICTYPES =
     val arrayTycon = mkPrimTyc ("array", 1, T.OBJ)
     val vectorTycon = mkPrimTyc ("vector", 1, T.YES)
 
+    val (stringTycon, stringTy) = mkPrimTycTy ("string", 0, T.YES)
+    val (chararrayTycon, chararrayTy) = mkPrimTycTy("chararray", 0, T.OBJ)
+
+    val (word8vectorTycon, word8vectorTy) = mkPrimTycTy("word8vector", 0, T.YES)
+    val (word8arrayTycon, word8arrayTy) = mkPrimTycTy("word8array", 0, T.OBJ)
+
+    val real64arrayTycon = mkPrimTyc("real64array", 0, T.OBJ)
+(* TODO: real64vectorTycon *)
+
     val objectTycon = mkPrimTyc("object", 0, T.NO)
 
     val c_functionTycon = mkPrimTyc("c_function", 0, T.NO)
-
-    val word8arrayTycon = mkPrimTyc("word8array", 0, T.OBJ)
-
-    val real64arrayTycon = mkPrimTyc("real64array", 0, T.OBJ)
 
     val spin_lockTycon = mkPrimTyc("spin_lock", 0, T.NO)
 

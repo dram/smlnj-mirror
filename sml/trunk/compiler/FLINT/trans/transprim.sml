@@ -376,16 +376,23 @@ structure TransPrim : sig
 		  in
 		    inlSubscript (PO.SUBSCRIPT, argt, seqtc, t1)
 		  end
-	      | PO.NUMSUBSCRIPT{kind, checked=true, immutable} => let
+	      | PO.INLNUMSUBSCRIPT kind => let
 		  val (tc1, t1, t2) = (case ts
 			 of [a, b] => (a, lt_tyc a, lt_tyc b)
-			  | _ => bug "unexpected type for NUMSUBSCRIPT"
+			  | _ => bug "unexpected type for INLNUMSUBSCRIPT"
 			(* end case *))
 		  val argt = lt_tup [t1, lt_int]
 		  in
-		    inlSubscript (
-		      PO.NUMSUBSCRIPT{kind=kind, checked=false, immutable=immutable},
-		      argt, tc1, t2)
+		    inlSubscript (PO.NUMSUBSCRIPT kind, argt, tc1, t2)
+		  end
+	      | PO.INLNUMSUBSCRIPTV kind => let
+		  val (tc1, t1, t2) = (case ts
+			 of [a, b] => (a, lt_tyc a, lt_tyc b)
+			  | _ => bug "unexpected type for INLNUMSUBSCRIPTV"
+			(* end case *))
+		  val argt = lt_tup [t1, lt_int]
+		  in
+		    inlSubscript (PO.NUMSUBSCRIPTV kind, argt, tc1, t2)
 		  end
 	      | PO.INLUPDATE => let
 		  val oper = L.PRIM(PO.UPDATE, lt, ts)
@@ -402,11 +409,11 @@ structure TransPrim : sig
 			  mkLet (L.SELECT(2, x)) (fn v =>
 			    boundsChk (i, a, seqtc, LT.ltc_unit) (L.APP(oper, L.RECORD[a, i, v]))))))
 		  end
-	      | PO.NUMUPDATE{kind, checked=true} => let
-		  val oper = L.PRIM(PO.NUMUPDATE{ kind = kind, checked = false }, lt, ts)
+	      | PO.INLNUMUPDATE kind => let
+		  val oper = L.PRIM(PO.NUMUPDATE kind, lt, ts)
 		  val (tc1, t1, t2) = (case ts
 			 of [a, b] => (a, lt_tyc a, lt_tyc b)
-			  | _ => bug "unexpected type for NUMUPDATE"
+			  | _ => bug "unexpected type for INLNUMUPDATE"
 			(* end case *))
 		  val argt = lt_tup [t1, lt_int, t2]
 		  in

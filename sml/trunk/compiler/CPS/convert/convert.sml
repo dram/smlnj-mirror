@@ -212,18 +212,15 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 	    | AP.SUBSCRIPT_RAW64 => PKP P.RAW64SUBSCRIPT
 
 	    | AP.SUBSCRIPT => PKL P.SUBSCRIPT
-	    | AP.NUMSUBSCRIPT{kind,immutable=false,checked=false} =>
-		  PKL(P.NUMSUBSCRIPT{kind=numkind kind})
-	    | AP.NUMSUBSCRIPT{kind,immutable=true,checked=false} =>
-		  PKP(P.PURE_NUMSUBSCRIPT{kind=numkind kind})
+	    | AP.NUMSUBSCRIPT kind=> PKL(P.NUMSUBSCRIPT{kind=numkind kind})
+	    | AP.NUMSUBSCRIPTV kind => PKP(P.PURE_NUMSUBSCRIPT{kind=numkind kind})
 	    | AP.DEREF =>      PKL P.DEREF
 	    | AP.GETHDLR =>    PKL P.GETHDLR
 	    | AP.GETVAR  =>    PKL P.GETVAR
 	    | AP.GETSPECIAL => PKL P.GETSPECIAL
 
 	    | AP.SETHDLR => PKS P.SETHDLR
-	    | AP.NUMUPDATE{kind, checked=false} =>
-		  PKS(P.NUMUPDATE{kind=numkind kind})
+	    | AP.NUMUPDATE kind => PKS(P.NUMUPDATE{kind=numkind kind})
 	    | AP.UNBOXEDUPDATE => PKS P.UNBOXEDUPDATE
 	    | AP.UPDATE => PKS P.UPDATE
 	    | AP.ASSIGN => PKS P.ASSIGN

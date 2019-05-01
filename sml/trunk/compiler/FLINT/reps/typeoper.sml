@@ -477,8 +477,8 @@ fun mkuwp (tc, kenv, b, nt) =
     of NONE => (fn le => UNWRAPg(nt, b, le))
      | SOME hdr => hdr)
 
-val realSub = PO.NUMSUBSCRIPT{kind=PO.FLOAT 64, checked=false, immutable=false}
-val realUpd = PO.NUMUPDATE{kind=PO.FLOAT 64, checked=false}
+val realSub = PO.NUMSUBSCRIPT(PO.FLOAT 64)
+val realUpd = PO.NUMUPDATE(PO.FLOAT 64)
 
 fun rsubLexp (vs, t) =
   let val x = mkv()

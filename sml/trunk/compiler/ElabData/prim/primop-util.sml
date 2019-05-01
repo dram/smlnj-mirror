@@ -92,10 +92,10 @@ structure PrimopUtil : sig
       | toString (P.CMP{oper, kind}) = ArithOps.cmpopToString oper ^ prNumkind kind
       | toString (P.FSGN sz) = "fsgn_" ^ cvtParam sz
       | toString P.INLCHR = "inlchr"
-      | toString (P.TEST arg) = "test_" ^ cvtParams arg
       | toString (P.TESTU arg) = "testu_" ^ cvtParams arg
-      | toString (P.EXTEND arg) = "extend_" ^ cvtParams arg
+      | toString (P.TEST arg) = "test_" ^ cvtParams arg
       | toString (P.TRUNC arg) = "trunc_" ^ cvtParams arg
+      | toString (P.EXTEND arg) = "extend_" ^ cvtParams arg
       | toString (P.COPY arg) = "copy_" ^ cvtParams arg
       | toString (P.TEST_INF i) = "test_inf_" ^ cvtParam i
       | toString (P.TRUNC_INF i) = "trunc_inf_" ^ cvtParam i
@@ -105,47 +105,43 @@ structure PrimopUtil : sig
 	    if floor then "floor_real" else "round_real",
 	    Int.toString from, "_to_int", Int.toString to
 	  ]
-      | toString(P.INT_TO_REAL{from,to}) = concat [
+      | toString (P.INT_TO_REAL{from,to}) = concat [
 	    "int", Int.toString from, "_to_real", Int.toString to
 	  ]
-      | toString(P.NUMSUBSCRIPT{kind,checked,immutable}) = concat [
-	    "numsubscript_", prNumkind kind,
-	    if checked then "c" else "",
-	    if immutable then "v" else ""
-	  ]
-      | toString (P.NUMUPDATE{kind,checked}) = concat [
-	    "numupdate_", prNumkind kind, if checked then  "c" else ""
-	  ]
-      | toString P.DEREF = "!"
-      | toString P.ASSIGN = ":="
-      | toString P.UNBOXEDASSIGN = "(unboxed):="
-      | toString P.BOXED = "boxed"
-      | toString P.UNBOXED = "unboxed"
-      | toString P.CAST = "cast"
-      | toString P.WCAST = "wcast"
+      | toString (P.NUMSUBSCRIPT kind) = "numsubscript_" ^ prNumkind kind
+      | toString (P.NUMSUBSCRIPTV kind) = "numsubscriptv_" ^ prNumkind kind
+      | toString (P.NUMUPDATE kind) = "numupdate_" ^ prNumkind kind
+      | toString (P.INLNUMSUBSCRIPT kind) = "inlnumsubscript_" ^ prNumkind kind
+      | toString (P.INLNUMSUBSCRIPTV kind) = "inlnumsubscriptv_" ^ prNumkind kind
+      | toString (P.INLNUMUPDATE kind) = "inlnumupdate_" ^ prNumkind kind
+      | toString P.SUBSCRIPT = "subscript"
+      | toString P.SUBSCRIPTV = "subscriptv"
+      | toString P.INLSUBSCRIPT = "inlsubscript"
+      | toString P.INLSUBSCRIPTV = "inlsubscriptv"
+      | toString P.INLMKARRAY = "inlmkarray"
       | toString P.PTREQL = "ptreql"
       | toString P.PTRNEQ = "ptrneq"
       | toString P.POLYEQL = "polyeql"
       | toString P.POLYNEQ = "polyneq"
-      | toString P.GETHDLR = "gethdlr"
-      | toString P.MAKEREF = "makeref"
-      | toString P.SETHDLR = "sethdlr"
+      | toString P.BOXED = "boxed"
+      | toString P.UNBOXED = "unboxed"
       | toString P.LENGTH = "length"
       | toString P.OBJLENGTH = "objlength"
-      | toString P.CALLCC = "callcc"
-      | toString P.CAPTURE = "capture"
-      | toString P.ISOLATE = "isolate"
-      | toString P.THROW = "throw"
-      | toString P.SUBSCRIPT = "subscript"
-      | toString P.UNBOXEDUPDATE = "unboxedupdate"
-      | toString P.UPDATE = "update"
-      | toString P.INLSUBSCRIPT = "inlsubscript"
-      | toString P.INLSUBSCRIPTV = "inlsubscriptv"
-      | toString P.INLUPDATE = "inlupdate"
-      | toString P.INLMKARRAY = "inlmkarray"
-      | toString P.SUBSCRIPTV = "subscriptv"
+      | toString P.CAST = "cast"
+      | toString P.GETHDLR = "gethdlr"
+      | toString P.SETHDLR = "sethdlr"
       | toString P.GETVAR = "getvar"
       | toString P.SETVAR = "setvar"
+      | toString P.MAKEREF = "makeref"
+      | toString P.CALLCC = "callcc"
+      | toString P.CAPTURE = "capture"
+      | toString P.THROW = "throw"
+      | toString P.ISOLATE = "isolate"
+      | toString P.DEREF = "!"
+      | toString P.ASSIGN = ":="
+      | toString P.UPDATE = "update"
+      | toString P.INLUPDATE = "inlupdate"
+      | toString P.UNBOXEDUPDATE = "unboxedupdate"
       | toString P.GETTAG = "gettag"
       | toString P.MKSPECIAL = "mkspecial"
       | toString P.SETSPECIAL = "setspecial"
@@ -157,27 +153,29 @@ structure PrimopUtil : sig
       | toString P.INLCOMPOSE = "inlcompose"
       | toString P.INLBEFORE = "inlbefore"
       | toString P.INLIGNORE = "inlignore"
-      | toString P.INL_ARRAY = "inl_array"
-      | toString P.INL_VECTOR = "inl_vector"
-      | toString (P.INL_MONOARRAY kind) = "inl_monoarray_" ^ prNumkind kind
-      | toString (P.INL_MONOVECTOR kind) = "inl_monovector_" ^ prNumkind kind
-      | toString P.MARKEXN = "markexn"
-      | toString P.MKETAG = "mketag"
-      | toString P.WRAP = "wrap"
-      | toString P.UNWRAP = "unwrap"
+      | toString P.INLIDENTITY = "inlidentity"
     (* Primops to support new array representations *)
       | toString P.NEW_ARRAY0 = "newarray0"
       | toString P.GET_SEQ_DATA = "getseqdata"
       | toString P.SUBSCRIPT_REC = "subscriptrec"
       | toString P.SUBSCRIPT_RAW64 = "subscriptraw64"
+      | toString P.CVT64 = "cvt64"
     (* Primops to support new experimental C FFI. *)
       | toString (P.RAW_LOAD nk) = concat ["raw_load(", prNumkind nk, ")"]
       | toString (P.RAW_STORE nk) = concat ["raw_store(", prNumkind nk, ")"]
       | toString (P.RAW_CCALL _) = "raw_ccall"
       | toString (P.RAW_RECORD{ align64 }) =
 	  if align64 then "raw64_record" else "raw_record"
-      | toString P.INLIDENTITY = "inlidentity"
-      | toString P.CVT64 = "cvt64"
+      | toString P.UNBOXEDASSIGN = "(unboxed):="
+      | toString P.WCAST = "wcast"
+      | toString P.MARKEXN = "markexn"
+      | toString P.INL_ARRAY = "inl_array"
+      | toString P.INL_VECTOR = "inl_vector"
+      | toString (P.INL_MONOARRAY kind) = "inl_monoarray_" ^ prNumkind kind
+      | toString (P.INL_MONOVECTOR kind) = "inl_monovector_" ^ prNumkind kind
+      | toString P.MKETAG = "mketag"
+      | toString P.WRAP = "wrap"
+      | toString P.UNWRAP = "unwrap"
 
   (* should return more than just a boolean:
    * {Store,Continuation}-{read,write}

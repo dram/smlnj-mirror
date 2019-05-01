@@ -68,11 +68,14 @@ structure PrimEnv : PRIM_ENV =
 	    ("vector", BT.vectorTycon),
 	    ("object", BT.objectTycon),
 	    ("c_function", BT.c_functionTycon),
+	    ("word8vector", BT.word8vectorTycon),
 	    ("word8array", BT.word8arrayTycon),
 (* REAL32: real32array *)
+(* TODO: real64vector *)
 	    ("real64array", BT.real64arrayTycon),
 	    ("spin_lock", BT.spin_lockTycon),
 	    ("string", BT.stringTycon),
+            ("chararray", BT.chararrayTycon),
 	    ("char", BT.charTycon),
 	    ("exn", BT.exnTycon),
 	    ("frag", BT.fragTycon),

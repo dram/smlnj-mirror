@@ -362,24 +362,25 @@ structure UnpickMod : UNPICKMOD = struct
 	      | po #"\095" = P.INLRSHIFTL (numkind ())
 	      | po #"\096" = P.REAL_TO_INT { floor = bool (), from = int (), to = int () }
 	      | po #"\097" = P.INT_TO_REAL { from = int (), to = int ()}
-	      | po #"\098" = P.NUMSUBSCRIPT { kind = numkind (),
-					      checked = bool (),
-					      immutable = bool () }
-	      | po #"\099" = P.NUMUPDATE { kind = numkind (),
-					   checked = bool () }
-	      | po #"\100" = P.INL_MONOARRAY (numkind ())
-	      | po #"\101" = P.INL_MONOVECTOR (numkind ())
-	      | po #"\102" = P.RAW_LOAD (numkind ())
-	      | po #"\103" = P.RAW_STORE (numkind ())
-	      | po #"\104" = P.RAW_CCALL (SOME (ccall_info ()))
-	      | po #"\105" = P.RAW_RECORD { align64 = bool () }
-	      | po #"\106" = P.INLMIN (numkind ())
-	      | po #"\107" = P.INLMAX (numkind ())
-	      | po #"\108" = P.INLABS (numkind ())
-	      | po #"\109" = P.TEST_INF (int ())
-	      | po #"\110" = P.TRUNC_INF (int ())
-	      | po #"\111" = P.EXTEND_INF (int ())
-	      | po #"\112" = P.COPY_INF (int ())
+	      | po #"\098" = P.NUMSUBSCRIPT (numkind ())
+	      | po #"\099" = P.NUMSUBSCRIPTV (numkind ())
+	      | po #"\100" = P.NUMUPDATE (numkind ())
+	      | po #"\101" = P.INLNUMSUBSCRIPT (numkind ())
+	      | po #"\102" = P.INLNUMSUBSCRIPTV (numkind ())
+	      | po #"\103" = P.INLNUMUPDATE (numkind ())
+	      | po #"\104" = P.INL_MONOARRAY (numkind ())
+	      | po #"\105" = P.INL_MONOVECTOR (numkind ())
+	      | po #"\106" = P.RAW_LOAD (numkind ())
+	      | po #"\107" = P.RAW_STORE (numkind ())
+	      | po #"\108" = P.RAW_CCALL (SOME (ccall_info ()))
+	      | po #"\109" = P.RAW_RECORD { align64 = bool () }
+	      | po #"\110" = P.INLMIN (numkind ())
+	      | po #"\111" = P.INLMAX (numkind ())
+	      | po #"\112" = P.INLABS (numkind ())
+	      | po #"\113" = P.TEST_INF (int ())
+	      | po #"\114" = P.TRUNC_INF (int ())
+	      | po #"\115" = P.EXTEND_INF (int ())
+	      | po #"\116" = P.COPY_INF (int ())
 	      | po c =
 		Vector.sub (primop_table, Char.ord c)
 		handle General.Subscript => raise Format
