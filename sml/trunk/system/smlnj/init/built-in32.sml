@@ -349,6 +349,7 @@ structure InlineT =
       struct
 
         val maxOrd = 255
+
         exception Chr
 
       (* the following should be an inline operator *)
@@ -387,6 +388,9 @@ structure InlineT =
   (* The type of this ought to be float64array *)
     structure Real64Array =
       struct
+(* FIXME: this produces an incorrect header object (i.e., it is tagged as
+ * a polymorphic array, instead of an array of 64-bit objects.
+ *)
  	val newArray0 : unit -> Assembly.A.real64array = InLine.newArray0
         val length    : Assembly.A.real64array -> int = InLine.length
         val sub       : Assembly.A.real64array * int -> real = InLine.f64Sub
@@ -410,6 +414,9 @@ structure InlineT =
     structure Word8Array =
       struct
 	type array = Assembly.A.word8array
+(* FIXME: this produces an incorrect header object (i.e., it is tagged as
+ * a polymorphic array, instead of an array of bytes
+ *)
  	val newArray0 : unit -> array = InLine.newArray0
         val length    : array -> int = InLine.length
     (* BUG: using "ordof" for W8A.sub is dangerous, because ordof is
@@ -448,6 +455,9 @@ structure InlineT =
 	val create : int -> array
       end = struct
         type array = Assembly.A.word8array
+(* FIXME: this produces an incorrect header object (i.e., it is tagged as
+ * a polymorphic array, instead of an array of bytes
+ *)
 	val newArray0 : unit -> array = InLine.newArray0
 	val create = Assembly.A.create_b
       end
