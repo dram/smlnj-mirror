@@ -94,6 +94,74 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/05/01]::
++
+Replaced the `Primop.primop` constructors `NUMSUBSCRIPT` and `NUMUPDATE`
+with
++
+````sml
+| NUMSUBSCRIPT of numkind
+| NUMSUBSCRIPTV of numkind
+| NUMUPDATE of numkind
+| INLNUMSUBSCRIPT of numkind
+| INLNUMSUBSCRIPTV of numkind
+| INLNUMUPDATE of numkind
+````
++
+This design matches the naming conventions for polymorphic subscripting
+and updating.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/01]::
++
+Added `Primop.INLCHR` to implement `Char.chr` as an inline function.
+This change also required moving the definition of the `Chr`
+exception to the `Core` module so that it is accessible to the
+translate phase.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/01]::
++
+Major overhaul of the representation of primitive operators (both in
+the `Primop` and `CPS.P` structures).  The primitive arithmetic and
+comparison operations are now defined in the `ArithOps` structure
+(`ElabData/prim/arithops.sml`).  There are three datatypes defined
+in this module
++
+--
+* arithop -- integer arithmetic operations that may raise overflow
+* pureop -- arithmetic operations that are pure
+* cmpop -- comparison operations
+--
++
+These types are used in both the `Primop` and `CPS.P` modules,
+which makes the translation between representations more direct.
++
+Some details:
++
+--
+* inline division and modulo operations were added to the
+  `Primop.primop` datatype; the expansion of these in
+  the `TransPrim` module (`FLINT/trans/transprim.sml`)
+  adds explicit checks for division by zero.
+* the `FSGN` operator was added to the `Primop.primop` datatype,
+  since the new `cmpop` datatype does not include it (the
+  CPS IR already had FSGN as a separate `branch` constructor).
+* unsigned comparison operations are now represented by using
+  the `UINT` `numkind`, which is consistent with how they
+  are represented in `CPS`.
+* Renamed the primop `ROUND` to `REAL_TO_ROUND`.
+* the encodings for operators were revised in the pickler, resulting
+  in a more compact use of the numeric codes.
+--
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/04/28]::
 +
 Removed unused record kind constructors (`RK_SPILL`, `RK_EXN`, and
