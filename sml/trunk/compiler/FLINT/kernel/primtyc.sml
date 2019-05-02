@@ -169,27 +169,32 @@ structure PrimTyc :> PRIM_TYC =
 
   (* mapping from Types.tycon to primtycs *)
     val primTycons = [
-	    (BT.charTycon, numPrim 8),
+	  (* int types *)
 	    (BT.intTycon, PT_NUM Target.defaultIntSz),
+	    (BT.int32Tycon, numPrim 32),
+	    (BT.int64Tycon, numPrim 64),
+	  (* word types *)
 	    (BT.wordTycon, PT_NUM Target.defaultIntSz),
 	    (BT.word8Tycon, numPrim 8),
-	    (BT.int32Tycon, numPrim 32),
 	    (BT.word32Tycon, numPrim 32),
-	    (BT.int64Tycon, numPrim 64),
 	    (BT.word64Tycon, numPrim 64),
+	  (* other atomic types *)
 	    (BT.realTycon, PT_REAL 64),
-	    (BT.stringTycon, PT_STRING),
+	    (BT.charTycon, numPrim 8),
 	    (BT.exnTycon, PT_EXN),
-	    (BT.arrayTycon, PT_ARRAY),
 	    (BT.vectorTycon, PT_VECTOR),
+	    (BT.arrayTycon, PT_ARRAY),
+	    (BT.stringTycon, PT_STRING),
+	    (BT.chararrayTycon, PT_BARRAY),
+	    (BT.word8vectorTycon, PT_STRING),
+	    (BT.word8arrayTycon, PT_BARRAY),
+	    (BT.real64arrayTycon, PT_RARRAY),
 	    (BT.refTycon, PT_REF),
 	    (BT.contTycon, PT_CONT),
 	    (BT.ccontTycon, PT_CCONT),
 	    (BT.arrowTycon, PT_ARROW),
 	    (BT.objectTycon, PT_OBJ),
 	    (BT.c_functionTycon, PT_CFUN),
-	    (BT.word8arrayTycon, PT_BARRAY),
-	    (BT.real64arrayTycon, PT_RARRAY),
 	    (BT.spin_lockTycon, PT_SLOCK),
 	    (BT.intinfTycon, PT_NUM 0)
 	  ]

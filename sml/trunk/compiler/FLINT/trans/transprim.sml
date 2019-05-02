@@ -289,6 +289,12 @@ structure TransPrim : sig
 		  mkFn orig_arg_lt (fn x =>
 		    mkApp2 (L.PRIM (primop, new_lt, []), x, coreAcc coerceFnName))
 		end
+	(* useful error message *)
+	  fun unexpectedTy () = bug(concat[
+		  "unexpected type (", LT.lt_print lt, "; [",
+		  String.concatWithMap "," LT.tc_print ts, "]) for ",
+		  PrimopUtil.toString prim
+		])
 	  in
 	    case prim
 	     of PO.INLDIV(k as (PO.INT sz)) =>
@@ -319,7 +325,7 @@ structure TransPrim : sig
 	      | PO.INLCOMPOSE => let
 		  val (t1, t2, t3) = (case ts
 			 of [a,b,c] => (lt_tyc a, lt_tyc b, lt_tyc c)
-			  | _ => bug "unexpected type for INLCOMPOSE"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  val argt = lt_tup [lt_arw(t2, t3), lt_arw(t1, t2)]
 		  val f = mkv() and g = mkv()
@@ -332,7 +338,7 @@ structure TransPrim : sig
 	      | PO.INLBEFORE => let
 		  val (t1, t2) = (case ts
 			 of [a,b] => (lt_tyc a, lt_tyc b)
-			  | _ => bug "unexpected type for INLBEFORE"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  val argt = lt_tup [t1, t2]
 		  in
@@ -341,7 +347,7 @@ structure TransPrim : sig
 	      | PO.INLIGNORE => let
 		  val argt = (case ts
 			 of [a] => lt_tyc a
-			  | _ => bug "unexpected type for INLIGNORE"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  in
 		    mkFn argt (fn _ => unitLexp)
@@ -349,7 +355,7 @@ structure TransPrim : sig
 	      | PO.INLIDENTITY => let
 		  val argt = (case ts
 			 of [a] => lt_tyc a
-			  | _ => bug "unexpected type for INLIDENTITY"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  in
 		    mkFn argt (fn v => v)
@@ -359,7 +365,7 @@ structure TransPrim : sig
 	      | PO.INLSUBSCRIPTV => let
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)
-			  | _ => bug "unexpected ty for INLSUBSCRIPTV"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  val seqtc = LT.tcc_vector tc1
 		  val argt = lt_tup [lt_tyc seqtc, lt_int]
@@ -369,7 +375,7 @@ structure TransPrim : sig
 	      | PO.INLSUBSCRIPT => let
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)
-			  | _ => bug "unexpected ty for INLSUBSCRIPT"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  val seqtc = LT.tcc_array tc1
 		  val argt = lt_tup [lt_tyc seqtc, lt_int]
@@ -379,7 +385,7 @@ structure TransPrim : sig
 	      | PO.INLNUMSUBSCRIPT kind => let
 		  val (tc1, t1, t2) = (case ts
 			 of [a, b] => (a, lt_tyc a, lt_tyc b)
-			  | _ => bug "unexpected type for INLNUMSUBSCRIPT"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  val argt = lt_tup [t1, lt_int]
 		  in
@@ -388,7 +394,7 @@ structure TransPrim : sig
 	      | PO.INLNUMSUBSCRIPTV kind => let
 		  val (tc1, t1, t2) = (case ts
 			 of [a, b] => (a, lt_tyc a, lt_tyc b)
-			  | _ => bug "unexpected type for INLNUMSUBSCRIPTV"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  val argt = lt_tup [t1, lt_int]
 		  in
@@ -398,7 +404,7 @@ structure TransPrim : sig
 		  val oper = L.PRIM(PO.UPDATE, lt, ts)
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)
-			  | _ => bug "unexpected ty for INLUPDATE"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  val seqtc = LT.tcc_array tc1
 		  val argt = lt_tup [lt_tyc seqtc, lt_int, t1]
@@ -413,7 +419,7 @@ structure TransPrim : sig
 		  val oper = L.PRIM(PO.NUMUPDATE kind, lt, ts)
 		  val (tc1, t1, t2) = (case ts
 			 of [a, b] => (a, lt_tyc a, lt_tyc b)
-			  | _ => bug "unexpected type for INLNUMUPDATE"
+			  | _ => unexpectedTy ()
 			(* end case *))
 		  val argt = lt_tup [t1, lt_int, t2]
 		  in

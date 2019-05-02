@@ -14,6 +14,9 @@ signature BASICTYPES =
     val domain : Types.ty -> Types.ty
     val range : Types.ty -> Types.ty
 
+    val unitTycon : Types.tycon
+    val unitTy : Types.ty
+
     val intTycon : Types.tycon
     val intTy : Types.ty
 
@@ -25,9 +28,6 @@ signature BASICTYPES =
 
     val intinfTycon : Types.tycon
     val intinfTy : Types.ty
-
-    val realTycon  : Types.tycon
-    val realTy : Types.ty
 
     val wordTycon : Types.tycon
     val wordTy : Types.ty
@@ -41,14 +41,14 @@ signature BASICTYPES =
     val word64Tycon : Types.tycon
     val word64Ty : Types.ty
 
+    val realTycon  : Types.tycon
+    val realTy : Types.ty
+
     val charTycon  : Types.tycon
     val charTy : Types.ty
 
     val exnTycon : Types.tycon
     val exnTy : Types.ty
-
-    val contTycon : Types.tycon
-    val ccontTycon : Types.tycon
 
     val vectorTycon : Types.tycon
 
@@ -70,12 +70,12 @@ signature BASICTYPES =
 (* TODO: real64vector *)
     val real64arrayTycon : Types.tycon
 
+    val contTycon : Types.tycon
+    val ccontTycon : Types.tycon
+
     val objectTycon : Types.tycon
     val c_functionTycon : Types.tycon
     val spin_lockTycon : Types.tycon
-
-    val unitTycon : Types.tycon
-    val unitTy : Types.ty
 
     val recordTy : (Types.label * Types.ty) list -> Types.ty
     val tupleTy : Types.ty list -> Types.ty
@@ -88,6 +88,7 @@ signature BASICTYPES =
     val falseDcon : Types.datacon
     val trueDcon : Types.datacon
 
+(* NOTE: we might want to add option back in to allow inlining of valOf, etc. *)
     (*
      *  Unnecessary; removed by appel
      *  val optionTycon : Types.tycon

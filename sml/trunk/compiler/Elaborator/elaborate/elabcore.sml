@@ -129,12 +129,12 @@ datatype clauseKind = STRICT | LZouter | LZinner
  *  Perhaps PrimEnv should just export these VALvars. *)
 val dummyComplainer = (fn _ => fn _ => fn _ => ())
 val assignVar =
-    case LU.lookVal(PrimEnv.primEnv,SP.SPATH[S.strSymbol "InLine",S.varSymbol ":="],
+    case LU.lookVal(PrimEnv.primEnv,SP.SPATH[S.strSymbol "Inline",S.varSymbol ":="],
 		    dummyComplainer)
       of V.VAL v => v
        | _ => bug "lazy 1"
 val bangVar =
-    case LU.lookVal(PrimEnv.primEnv,SP.SPATH[S.strSymbol "InLine",S.varSymbol "!"],
+    case LU.lookVal(PrimEnv.primEnv,SP.SPATH[S.strSymbol "Inline",S.varSymbol "!"],
 		    dummyComplainer)
       of V.VAL v => v
        | _ => bug "lazy 2"

@@ -2,6 +2,10 @@
  *
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Note: the types that are defined here should also be added to the
+ * primTycons list in FLINT/kernel/primtyc.sml so that they can be
+ * translated to FLINT.
  *)
 
 structure BasicTypes : BASICTYPES =

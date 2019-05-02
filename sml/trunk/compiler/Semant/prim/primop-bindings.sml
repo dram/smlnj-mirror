@@ -1,10 +1,7 @@
 (* primop-bindings.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
- *
- * List of primop bindings that comprise the InlineT structure.  These are
- * represented as triples with names, types, and the actual primop.
  *)
 
 structure PrimopBindings : sig
@@ -17,726 +14,553 @@ structure PrimopBindings : sig
     structure BT = BasicTypes
     structure P = Primop
 
-    local
-      val v1 = T.IBOUND 0
-      val v2 = T.IBOUND 1
-      val v3 = T.IBOUND 2
+  (* type abbreviations *)
 
-      val tu = BT.tupleTy
-      fun ar(t1,t2) = BT.--> (t1, t2)
+    val tup = BT.tupleTy	(* tuple type constructor *)
+    val ar = BT.-->		(* function type constructor *)
 
-      fun cnt t = T.CONty(BT.contTycon,[t])
-      fun ccnt t = T.CONty(BT.ccontTycon,[t])
-      fun rf t = T.CONty(BT.refTycon,[t])
-      fun ay t = T.CONty(BT.arrayTycon,[t])
-      fun vct t = T.CONty(BT.vectorTycon,[t])
+  (* built in type constructors *)
+    fun contTy t = T.CONty(BT.contTycon,[t])
+    fun ccontTy t = T.CONty(BT.ccontTycon,[t])
+    fun refTy t = T.CONty(BT.refTycon,[t])
+    fun arrTy t = T.CONty(BT.arrayTycon,[t])
+    fun vecTy t = T.CONty(BT.vectorTycon,[t])
 
-      val u = BT.unitTy
-      val bo = BT.boolTy
-      val i = BT.intTy
-      val i32 = BT.int32Ty
-      val i64 = BT.int64Ty
-      val inf = BT.intinfTy
-      val w8 = BT.word8Ty
-      val w = BT.wordTy
-      val w32 = BT.word32Ty
-      val w64 = BT.word64Ty
-(* for future Real32 support
-      val f32 = BT.realTy
-*)
-      val f64 = BT.realTy
-      val s  = BT.stringTy
+  (* type variables *)
+    val tv1 = T.IBOUND 0
+    val tv2 = T.IBOUND 1
+    val tv3 = T.IBOUND 2
 
-      fun p0 t = t
-      fun p1 t = T.POLYty {sign=[false], tyfun=T.TYFUN {arity=1, body=t}}
-      fun ep1 t = T.POLYty {sign=[true], tyfun=T.TYFUN {arity=1, body=t}}
-      fun p2 t = T.POLYty {sign=[false,false], tyfun=T.TYFUN {arity=2, body=t}}
-      fun p3 t = T.POLYty {sign=[false,false,false], tyfun=T.TYFUN {arity=3, body=t}}
-      val numSubTy = p2(ar(tu[v1,i],v2))
-      val numUpdTy = p2(ar(tu[v1,i,v2],u))
+  (* polymorphic types *)
+    fun p1 t = T.POLYty {sign=[false], tyfun=T.TYFUN {arity=1, body=t}}
+    fun ep1 t = T.POLYty {sign=[true], tyfun=T.TYFUN {arity=1, body=t}}
+    fun p2 t = T.POLYty {sign=[false,false], tyfun=T.TYFUN {arity=2, body=t}}
+    fun p3 t = T.POLYty {sign=[false,false,false], tyfun=T.TYFUN {arity=3, body=t}}
 
-      fun unf t = p0(ar(t,t))
-      fun binf t = p0(ar(tu[t,t],t))
-      fun binp t = p0(ar(tu[t,t],bo))
-      fun shifter t = p0(ar(tu[t,w],t))
+  (* NOTE: we give the "inline" numeric subscript/update functions polymorphic
+   * types then constrain their type in the InlineT structure.  The instantiated
+   * type variables are used in the TransPrim structure to specialize the
+   * functions.
+   *)
+    val numSubTy = p2(ar(tup[tv1, BT.intTy], tv2))
+    val numUpdTy = p2(ar(tup[tv1, BT.intTy, tv2], BT.unitTy))
 
-      val w32_i32 = p0(ar(w32,i32))
-      val w32_f64 = p0(ar(w32,f64))
-      val w32w32_u = p0(ar(tu[w32,w32],u))
-      val w32i32_u = p0(ar(tu[w32,i32],u))
-      val w32f64_u = p0(ar(tu[w32,f64],u))
+  (* size and type of LargeWord.word *)
+    val (largeWSz, largeWTy) = if (Target.fixedIntSz = 64)
+	  then (64, BT.word64Ty)
+	  else (32, BT.word32Ty)
 
-      val i_x      = p1(ar(i,v1))
-      val xw32_w32 = p1(ar(tu[v1,w32],w32))
-      val xw32_i32 = p1(ar(tu[v1,w32],i32))
-      val xw32_f64 = p1(ar(tu[v1,w32],f64))
-      val xw32w32_u = p1(ar(tu[v1,w32,w32],u))
-      val xw32i32_u = p1(ar(tu[v1,w32,i32],u))
-      val xw32f64_u = p1(ar(tu[v1,w32,f64],u))
+  (* default sizes *)
+    val intSz = Target.defaultIntSz
+    val realSz = Target.defaultRealSz
 
-      val b_b = unf bo
+  (* construct the list left-to-right to reduce free-variable pressure *)
+    infix :-:
+    fun l :-: m = PrimopBind.mk m :: l
 
-      val f64_i = p0(ar(f64,i))
-      val i_f64 = p0(ar(i,f64))
-      val i32_f64 = p0(ar(i32,f64))
+  (* operations on monomorphic word/array representations *)
+    fun defineMonoSeqOps (tyName, elemTy, elemK, vecTy, arrTy, sz, prims) = let
+	  fun subTy seqTy = ar(tup[seqTy, BT.intTy], elemTy)
+	  fun updTy seqTy = ar(tup[seqTy, BT.intTy, elemTy], BT.unitTy)
+	  fun mkv (name, ty, p) = (concat[tyName, "_vec_", name], ty, p)
+	  fun mka (name, ty, p) = (concat[tyName, "_arr_", name], ty, p)
+	  in
+	    prims :-:
+	    mkv("sub", numSubTy, P.INLNUMSUBSCRIPTV elemK) :-:
+	    mkv("unsafe_sub", subTy vecTy, P.NUMSUBSCRIPTV elemK) :-:
+	    mkv("unsafe_update", updTy vecTy, P.NUMUPDATE elemK) :-:
+	    mka("sub", numSubTy, P.INLNUMSUBSCRIPT elemK) :-:
+	    mka("update", numUpdTy, P.INLNUMUPDATE elemK) :-:
+	    mka("unsafe_sub", subTy arrTy, P.NUMSUBSCRIPT elemK) :-:
+	    mka("unsafe_update", updTy arrTy, P.NUMUPDATE elemK)
+	  end
 
-      val w32_i = p0(ar(w32,i))
-      val i32_i = p0(ar(i32,i))
+  (* add operations for an integer type to the primop list *)
+    fun defineIntOps (prefix, ity, sz, prims) = let
+	  val nk = P.INT sz
+	  val i_i = ar(ity, ity)
+	  val ii_i = ar(tup[ity, ity], ity)
+	  val ii_b = ar(tup[ity, ity], BT.boolTy)
+	  fun mk (name, ty, p) = (prefix ^ name, ty, p)
+	  fun mk_ii_i (name, p) = mk(name, ii_i, p)
+	  fun iarith_ii_i (name, p) = mk_ii_i(name, P.IARITH{oper=p, sz=sz})
+	  fun cmp (name, p) = mk(name, ii_b, P.CMP{oper=p, kind=nk})
+	  in
+	    prims :-:
+	    iarith_ii_i("add", P.IADD) :-:
+	    iarith_ii_i("sub", P.ISUB) :-:
+	    iarith_ii_i("mul", P.IMUL) :-:
+	    mk_ii_i("div", P.INLDIV nk) :-:
+	    mk_ii_i("mod", P.INLMOD nk) :-:
+	    mk_ii_i("quot", P.INLQUOT nk) :-:
+	    mk_ii_i("rem", P.INLREM nk) :-:
+	    mk("neg", i_i, P.IARITH{oper=P.INEG, sz=sz}) :-:
+	    cmp("lt", P.LT) :-:
+	    cmp("le", P.LTE) :-:
+	    cmp("gt", P.GT) :-:
+	    cmp("ge", P.GTE) :-:
+	    cmp("eql", P.EQL) :-:
+	    cmp("neq", P.NEQ) :-:
+	    mk_ii_i("min", P.INLMIN nk) :-:
+	    mk_ii_i("max", P.INLMAX nk) :-:
+	    mk("abs", i_i, P.INLABS nk)
+	  end
 
-      val w64_i = p0(ar(w64,i))
-      val i64_i = p0(ar(i64,i))
+  (* add operations for a word type to the primop list *)
+    fun defineWordOps (prefix, wty, sz, prims) = let
+	  val nk = P.UINT sz
+	  val w_w = ar(wty, wty)
+	  val ww_w = ar(tup[wty, wty], wty)
+	  val shftTy = ar(tup[wty, BT.wordTy], wty)
+	  val ww_b = ar(tup[wty, wty], BT.boolTy)
+	  fun mk (name, ty, p) = (prefix ^ name, ty, p)
+	  fun mk_ww_w (name, p) = mk(name, ww_w, p)
+	  fun arith_ww_w (name, p) = mk_ww_w(name, P.PURE_ARITH{oper=p, kind=nk})
+	  fun shift (name, p) = mk(name, shftTy, p)
+	  fun cmp (name, p) = mk(name, ww_b, P.CMP{oper=p, kind=nk})
+	  in
+	    prims :-:
+	    arith_ww_w("add", P.ADD) :-:
+	    arith_ww_w("sub", P.SUB) :-:
+	    arith_ww_w("mul", P.MUL) :-:
+	    mk_ww_w("div", P.INLQUOT nk) :-:
+	    mk_ww_w("mod", P.INLREM nk) :-:
+	    mk("neg", w_w, P.PURE_ARITH{oper=P.NEG, kind=nk}) :-:
+	    arith_ww_w("orb", P.ORB) :-:
+	    arith_ww_w("xorb", P.XORB) :-:
+	    arith_ww_w("andb", P.ANDB) :-:
+	    shift("rshift", P.INLRSHIFT nk) :-:
+	    shift("rshiftl", P.INLRSHIFTL nk) :-:
+	    shift("lshift", P.INLLSHIFT nk) :-:
+	    shift("raw_rshift", P.PURE_ARITH{oper=P.RSHIFT, kind=nk}) :-:
+	    shift("raw_rshiftl", P.PURE_ARITH{oper=P.RSHIFTL, kind=nk}) :-:
+	    shift("raw_lshift", P.PURE_ARITH{oper=P.LSHIFT, kind=nk}) :-:
+	    mk("notb", w_w, P.PURE_ARITH{oper=P.NOTB, kind=nk}) :-:
+	    cmp("lt", P.LT) :-:
+	    cmp("le", P.LTE) :-:
+	    cmp("gt", P.GT) :-:
+	    cmp("ge", P.GTE) :-:
+	    cmp("eql", P.EQL) :-:
+	    cmp("neq", P.NEQ) :-:
+	    mk_ww_w("min", P.INLMIN nk) :-:
+	    mk_ww_w("max", P.INLMAX nk)
+	  end
 
-      val i_i32 = p0(ar(i,i32))
-      val i_w32 = p0(ar(i,w32))
+  (* add operations for a real type to the primop list *)
+    fun defineRealOps (prefix, rty, sz, prims) = let
+	  val nk = P.FLOAT sz
+	  val r_r = ar(rty, rty)
+	  val rr_r = ar(tup[rty, rty], rty)
+	  val rr_b = ar(tup[rty, rty], BT.boolTy)
+	  fun mk (name, ty, p) = (prefix ^ name, ty, p)
+	  fun mk_rr_r (name, p) = mk(name, rr_r, p)
+	  fun arith_rr_r (name, p) = mk_rr_r(name, P.PURE_ARITH{oper=p, kind=nk})
+	  fun arith_r_r (name, p) = mk(name, r_r, P.PURE_ARITH{oper=p, kind=nk})
+	  fun cmp (name, p) = mk(name, rr_b, P.CMP{oper=p, kind=nk})
+	  in
+	    prims :-:
+	    arith_rr_r("add", P.ADD) :-:
+	    arith_rr_r("sub", P.SUB) :-:
+	    arith_rr_r("mul", P.MUL) :-:
+	    arith_rr_r("div", P.FDIV) :-:
+	    arith_r_r("neg", P.NEG) :-:
+	    cmp("lt", P.LT) :-:
+	    cmp("le", P.LTE) :-:
+	    cmp("gt", P.GT) :-:
+	    cmp("ge", P.GTE) :-:
+	    cmp("eql", P.EQL) :-:
+	    cmp("neq", P.NEQ) :-:
+	    mk("sgn", ar(rty, BT.boolTy), P.FSGN sz) :-:
+	    mk_rr_r("min", P.INLMIN nk) :-:
+	    mk_rr_r("max", P.INLMAX nk) :-:
+	    arith_r_r("abs", P.FABS) :-:
+	    arith_r_r("sin", P.FSIN) :-:
+	    arith_r_r("cos", P.FCOS) :-:
+	    arith_r_r("tan", P.FTAN) :-:
+	    arith_r_r("sqrt", P.FSQRT)
+	  end
 
-      val i_i64 = p0(ar(i,i64))
-      val i_w64 = p0(ar(i,w64))
+  (* utility functions for conversions *)
+    fun extendChk (srcSz, dstSz) = if (srcSz < dstSz)
+	    then P.EXTEND(srcSz, dstSz)
+	  else if (srcSz = dstSz)
+	    then P.COPY(srcSz, dstSz)
+	    else P.TEST(srcSz, dstSz)
+    fun copy (srcSz, dstSz) = if (srcSz <= dstSz)
+	  then P.COPY(srcSz, dstSz)
+	  else P.TRUNC(srcSz, dstSz)
+    fun copyChk (srcSz, dstSz) = if (srcSz < dstSz)
+	  then P.COPY(srcSz, dstSz)
+	  else P.TESTU(srcSz, dstSz)
 
-      val w32_w = p0(ar(w32,w))
-      val i32_w = p0(ar(i32,w))
+  (* generate conversion operators for the int and word types of the given
+   * size.
+   *)
+    fun defineCvtOps (iTy, wTy, sz, prims) = let
+	  val (iName, wName) = if (sz = intSz)
+		then ("int", "word")
+		else let val s = Int.toString sz in ("int"^s, "word"^s) end
+	  val lgWName = "word" ^ Int.toString largeWSz
+	  fun nm (s, from, to) = concat[s, from, "_to_", to]
+	  fun iTo ty = ar(iTy, ty)
+	  fun wTo ty = ar(wTy, ty)
+	  fun iFrom ty = ar(ty, iTy)
+	  fun wFrom ty = ar(ty, wTy)
+	(* add conversions to/from default types when sz <> default size *)
+	  val prims = if (sz = intSz)
+		then prims
+		else prims :-:
+		  (iName ^ "_to_int", iTo BT.intTy, extendChk(sz, intSz)) :-:
+		  (wName ^ "_to_word", wTo BT.wordTy, copy(sz, intSz)) :-:
+		  ("int_to_" ^ iName, iFrom BT.intTy, extendChk(sz, intSz)) :-:
+		  ("word_to_" ^ wName, wFrom BT.wordTy, copy(sz, intSz))
+	(* add conversions to/from large word type when sz <> large word size *)
+	  val prims = if (sz = largeWSz)
+		then prims
+		else prims :-:
+		  (nm("", lgWName, wName), wFrom largeWTy, P.TRUNC(largeWSz, sz)) :-:
+		  (nm("unsigned_", wName, lgWName), wTo largeWTy, P.COPY(sz, largeWSz)) :-:
+		  (nm("signed_", wName, lgWName), wTo largeWTy, P.EXTEND(sz, largeWSz))
+	  in
+	    prims :-:
+	  (* int type to/from intinf *)
+	    (iName ^  "_to_intinf", iTo BT.intinfTy, P.EXTEND_INF sz) :-:
+	    ("intinf_to_" ^ iName, iFrom BT.intinfTy, P.TEST_INF sz) :-:
+	  (* word type to/from default int type *)
+	    ("int_to_" ^ wName, wFrom BT.intTy, copy(intSz, sz)) :-:
+	    (nm("unsigned_", wName, "int"), wTo BT.intTy, copyChk(sz, intSz)) :-:
+	    (nm("signed_", wName, "int"), wTo BT.intTy, extendChk(sz, intSz)) :-:
+	  (* word type to/from int inf *)
+	    ("unsigned_" ^ wName ^ "_to_intinf", wTo BT.intinfTy, P.COPY_INF sz) :-:
+	    ("signed_" ^ wName ^ "_to_intinf", wTo BT.intinfTy, P.EXTEND_INF sz) :-:
+	    ("intinf_to_" ^ wName, wFrom BT.intinfTy, P.TRUNC_INF sz)
+	  end
 
-      val w64_w = p0(ar(w64,w))
-      val i64_w = p0(ar(i64,w))
-
-      val w_w32 = p0(ar(w,w32))
-      val w_i32 = p0(ar(w,i32))
-
-      val w_w64 = p0(ar(w,w64))
-      val w_i64 = p0(ar(w,i64))
-
-      val w_i = p0(ar(w,i))
-      val i_w = p0(ar(i,w))
-
-      val w32_i32 = p0(ar(w32,i32))
-      val i32_w32 = p0(ar(i32,w32))
-
-      val w64_i64 = p0(ar(w64,i64))
-      val i64_w64 = p0(ar(i64,w64))
-
-      val i_i = unf i
-      val ii_i = binf i
-      val ii_b = binp i
-      val iw_i = shifter i
-
-      val w_w = unf w
-      val ww_w = binf w
-      val ww_b = binp w
-
-      val i32_i32 = unf i32
-      val i32i32_i32 = binf i32
-      val i32i32_b = binp i32
-
-      val i64_i64 = unf i64
-      val i64i64_i64 = binf i64
-      val i64i64_b = binp i64
-
-      val w32_w32 = unf w32
-      val w32w32_w32 = binf w32
-      val w32w32_b = binp w32
-      val w32w_w32 = shifter w32
-
-      val w64_w64 = unf w64
-      val w64w64_w64 = binf w64
-      val w64w64_b = binp w64
-      val w64w_w64 = shifter w64
-
-      val w8_w8 = unf w8
-      val w8w8_w8 = binf w8
-      val w8w8_b = binp w8
-      val w8w_w8 = shifter w8
-
-(* for future Real32 support
-      val f32_b = p0(ar(f32,bo))
-      val f32_f32 = unf f32
-      val f32f32_f32 = binf f32
-      val f32f32_b = binp f32
-*)
-
-      val f64_b = p0(ar(f64,bo))
-      val f64_f64 = unf f64
-      val f64f64_f64 = binf f64
-      val f64f64_b = binp f64
-
-      val w8_i = p0(ar(w8,i))
-      val i_w8 = p0(ar(i,w8))
-
-      val w8_i32 = p0(ar(w8,i32))
-      val w8_w32 = p0(ar(w8,w32))
-      val i32_w8 = p0(ar(i32,w8))
-      val w32_w8 = p0(ar(w32,w8))
-
-      val w8_i64 = p0(ar(w8,i64))
-      val w8_w64 = p0(ar(w8,w64))
-      val i64_w8 = p0(ar(i64,w8))
-      val w64_w8 = p0(ar(w32,w8))
-
-      val inf_i   = p0(ar(inf,i))
-      val inf_i32 = p0(ar(inf,i32))
-      val inf_i64 = p0(ar(inf,i64))
-      val inf_w8  = p0(ar(inf,w8))
-      val inf_w   = p0(ar(inf,w))
-      val inf_w32 = p0(ar(inf,w32))
-      val inf_w64 = p0(ar(inf,w64))
-      val i_inf   = p0(ar(i,inf))
-      val i32_inf = p0(ar(i32,inf))
-      val i64_inf = p0(ar(i64,inf))
-      val w8_inf  = p0(ar(w8,inf))
-      val w_inf   = p0(ar(w,inf))
-      val w32_inf = p0(ar(w32,inf))
-      val w64_inf = p0(ar(w64,inf))
-
-      val w64_pw32 = p0(ar(w64,tu[w32,w32]))
-      val pw32_w64 = p0(ar(tu[w32,w32],w64))
-      val i64_pw32 = p0(ar(i64,tu[w32,w32]))
-      val pw32_i64 = p0(ar(tu[w32,w32],i64))
-
-      val i_c = p0(ar(i, BT.charTy))
-      val cc_b = binp BT.charTy
-
-    (* The type of the RAW_CCALL primop (as far as the type checker is concerned)
-     * is:
-     *    word32 * 'a * 'b -> 'd
-     * However, the primop cannot be used without having 'a, 'b, and 'c
-     * monomorphically instantiated.  In particular, 'a will be the type of the
-     * ML argument list, 'c will be the type of the result, and 'b
-     * will be a type of a fake arguments.  The idea is that 'b will be
-     * instantiated with some ML type that encodes the type of the actual
-     * C function in order to be able to generate code according to the C
-     * calling convention.
-     * (In other words, 'b will be a completely ad-hoc encoding of a CTypes.c_proto
-     * value in ML types.  The encoding also contains information about
-     * calling conventions and reentrancy.)
-     *)
-      val rccType = p3(ar(tu[w32,v1,v2],v3))
-
-      val intSz = Target.defaultIntSz
-
-    (* helper functions for primop definitions *)
-      fun bits' sz oper = P.PURE_ARITH{oper=oper, kind=P.INT sz}
-      val bits32 = bits' 32
-      val bits64 = bits' 64
-      val bits = bits' intSz
-
-      fun int' sz oper = P.IARITH{oper=oper, sz=sz}
-      val int32 = int' 32
-      val int64 = int' 64
-      val int = int' intSz
-
-      fun word' sz oper = P.PURE_ARITH{oper=oper, kind=P.UINT sz}
-      val word8  = word' 8
-      val word32 = word' 32
-      val word64 = word' 64
-      val word = word' intSz
-
-      fun purefloat sz oper = P.PURE_ARITH{oper=oper, kind=P.FLOAT sz}
-      val purefloat32 = purefloat 32
-      val purefloat64 = purefloat 64
-
-      fun cmp kind oper = P.CMP{oper=oper, kind=kind}
-      val int32cmp = cmp (P.INT 32)
-      val int64cmp = cmp (P.INT 64)
-      val intcmp = cmp (P.INT intSz)
-
-      val word32cmp = cmp (P.UINT 32)
-      val word8cmp  = cmp (P.UINT 8)
-      val wordcmp = cmp (P.UINT intSz)
-
-      val float32cmp = cmp (P.FLOAT 32)
-      val float64cmp = cmp (P.FLOAT 64)
-
-      fun sub kind = P.NUMSUBSCRIPT kind
-      fun chkSub kind = P.INLNUMSUBSCRIPT kind
-
-      fun subv kind = P.NUMSUBSCRIPTV kind
-      fun chkSubv kind = P.INLNUMSUBSCRIPTV kind
-
-      fun update kind = P.NUMUPDATE kind
-      fun chkUpdate kind = P.INLNUMUPDATE kind
-
-      infix :-:
-      fun l :-: m = PrimopBind.mk m :: l
-    in
   (* size-independent primops *)
     val prims = [] :-:
-	  (* continuation operators *)
-	    ("callcc", p1(ar(ar(cnt(v1),v1),v1)), P.CALLCC) :-:
-	    ("throw", p2(ar(cnt(v1),ar(v1,v2))), P.THROW) :-:
-	    ("capture", p1(ar(ar(ccnt(v1),v1),v1)), P.CAPTURE) :-:
-	    ("isolate", p1(ar(ar(v1,u),cnt(v1))), P.ISOLATE) :-:
-	    ("cthrow", p2(ar(ccnt(v1),ar(v1,v2))), P.THROW) :-:
-	  (* reference operations *)
-	    ("!", p1(ar(rf(v1),v1)), P.DEREF) :-:
-	    (":=", p1(ar(tu[rf(v1),v1],u)), P.ASSIGN) :-:
-	    ("makeref", p1(ar(v1,rf(v1))), P.MAKEREF) :-:
-	  (* boxity tests *)
-	    ("boxed", p1(ar(v1,bo)), P.BOXED) :-:
-	    ("unboxed", p1(ar(v1,bo)), P.UNBOXED) :-:
-	  (* type casts *)
-	    ("cast", p2(ar(v1,v2)), P.CAST) :-:
-	  (* polymorphic equality tests *)
-	    ("=", ep1(ar(tu[v1,v1],bo)), P.POLYEQL) :-:
-	    ("<>", ep1(ar(tu[v1,v1],bo)), P.POLYNEQ) :-:
-	    ("ptreql", p1(ar(tu[v1,v1],bo)), P.PTREQL) :-:
-	    ("ptrneq", p1(ar(tu[v1,v1],bo)), P.PTRNEQ) :-:
-          (* runtime hooks *)
-	    ("getvar", p1(ar(u,v1)), P.GETVAR) :-:
-	    ("setvar", p1(ar(v1,u)), P.SETVAR) :-:
-	    ("mkspecial", p2(ar(tu[i,v1],v2)), P.MKSPECIAL) :-:
-	    ("getspecial", p1(ar(v1,i)), P.GETSPECIAL) :-:
-	    ("setspecial", p1(ar(tu[v1,i],u)), P.SETSPECIAL) :-:
-	    ("gethdlr", p1(ar(u,cnt(v1))), P.GETHDLR) :-:
-	    ("sethdlr", p1(ar(cnt(v1),u)), P.SETHDLR) :-:
-	    ("gettag", p1(ar(v1,i)), P.GETTAG) :-:
-	  (* *)
-	    ("compose", p3(ar(tu[ar(v2,v3),ar(v1,v2)],ar(v1,v3))), P.INLCOMPOSE) :-:
-	    ("before", p2(ar(tu[v1,v2],v1)), P.INLBEFORE) :-:
-	    ("ignore", p1(ar(v1,u)), P.INLIGNORE) :-:
-	    ("identity", p1(ar(v1,v1)), P.INLIDENTITY) :-:
-	    ("length", p1(ar(v1,i)), P.LENGTH) :-:
-	    ("objlength", p1(ar(v1,i)), P.OBJLENGTH) :-:
-	    ("unboxedupdate", p1(ar(tu[ay(v1),i,v1],u)), P.UNBOXEDUPDATE) :-:
-          (* boolean operations *)
-	    ("inlnot", b_b, P.INLNOT) :-:
-	  (* bytearray and bytevector operations *)
-	    ("ordof", numSubTy, P.NUMSUBSCRIPTV(P.INT 8)) :-:
-	    ("store", numUpdTy, P.NUMUPDATE(P.INT 8)) :-:
-	    ("inlbyteof", numSubTy, P.INLNUMSUBSCRIPT(P.INT 8)) :-:
-	    ("inlstore", numUpdTy, P.INLNUMUPDATE(P.INT 8)) :-:
-	    ("inlordof", numSubTy, P.INLNUMSUBSCRIPTV(P.INT 8)) :-:
-	  (* polymorphic array and vector *)
-	    ("mkarray", p1(ar(tu[i,v1],ay(v1))), P.INLMKARRAY) :-:
-	    ("arrSub", p1(ar(tu[ay(v1),i],v1)), P.SUBSCRIPT) :-:
-	    ("arrChkSub", p1(ar(tu[ay(v1),i],v1)), P.INLSUBSCRIPT) :-:
-	    ("vecSub", p1(ar(tu[vct(v1),i],v1)), P.SUBSCRIPTV) :-:
-	    ("vecChkSub", p1(ar(tu[vct(v1),i],v1)), P.INLSUBSCRIPTV) :-:
-	    ("arrUpdate", p1(ar(tu[ay(v1),i,v1],u)), P.UPDATE) :-:
-	    ("arrChkUpdate", p1(ar(tu[ay(v1),i,v1],u)), P.INLUPDATE) :-:
-	  (* new array representations *)
-	    ("newArray0", p1(ar(u,v1)), P.NEW_ARRAY0) :-:
-	    ("getSeqData", p2(ar(v1, v2)), P.GET_SEQ_DATA) :-:
-	    ("recordSub", p2(ar(tu[v1,i],v2)), P.SUBSCRIPT_REC) :-:
-	    ("raw64Sub", p1(ar(tu[v1,i],f64)), P.SUBSCRIPT_RAW64)
+	(* continuation operators *)
+	  ("callcc", p1(ar(ar(contTy tv1,tv1),tv1)), P.CALLCC) :-:
+	  ("throw", p2(ar(contTy tv1,ar(tv1,tv2))), P.THROW) :-:
+	  ("capture", p1(ar(ar(ccontTy tv1,tv1),tv1)), P.CAPTURE) :-:
+	  ("isolate", p1(ar(ar(tv1,BT.unitTy),contTy tv1)), P.ISOLATE) :-:
+	  ("cthrow", p2(ar(ccontTy tv1,ar(tv1,tv2))), P.THROW) :-:
+	(* reference operations *)
+	  ("!", p1(ar(refTy tv1,tv1)), P.DEREF) :-:
+	  (":=", p1(ar(tup[refTy tv1,tv1],BT.unitTy)), P.ASSIGN) :-:
+	  ("makeref", p1(ar(tv1,refTy tv1)), P.MAKEREF) :-:
+	(* boxity tests *)
+	  ("boxed", p1(ar(tv1,BT.boolTy)), P.BOXED) :-:
+	  ("unboxed", p1(ar(tv1,BT.boolTy)), P.UNBOXED) :-:
+	(* type casts *)
+	  ("cast", p2(ar(tv1,tv2)), P.CAST) :-:
+	(* polymorphic equality tests *)
+	  ("=", ep1(ar(tup[tv1,tv1],BT.boolTy)), P.POLYEQL) :-:
+	  ("<>", ep1(ar(tup[tv1,tv1],BT.boolTy)), P.POLYNEQ) :-:
+	  ("ptr_eql", p1(ar(tup[tv1,tv1],BT.boolTy)), P.PTREQL) :-:
+	  ("ptr_neq", p1(ar(tup[tv1,tv1],BT.boolTy)), P.PTRNEQ) :-:
+	(* runtime hooks *)
+	  ("getvar", p1(ar(BT.unitTy,tv1)), P.GETVAR) :-:
+	  ("setvar", p1(ar(tv1,BT.unitTy)), P.SETVAR) :-:
+	  ("mkspecial", p2(ar(tup[BT.intTy,tv1],tv2)), P.MKSPECIAL) :-:
+	  ("getspecial", p1(ar(tv1,BT.intTy)), P.GETSPECIAL) :-:
+	  ("setspecial", p1(ar(tup[tv1,BT.intTy],BT.unitTy)), P.SETSPECIAL) :-:
+	  ("gethdlr", p1(ar(BT.unitTy,contTy tv1)), P.GETHDLR) :-:
+	  ("sethdlr", p1(ar(contTy tv1,BT.unitTy)), P.SETHDLR) :-:
+	  ("gettag", p1(ar(tv1,BT.intTy)), P.GETTAG) :-:
+	  ("objlength", p1(ar(tv1, BT.intTy)), P.OBJLENGTH) :-:
+	  ("recordSub", p2(ar(tup[tv1,BT.intTy], tv2)), P.SUBSCRIPT_REC) :-:
+	  ("raw64Sub", p1(ar(tup[tv1, BT.intTy], BT.realTy)), P.SUBSCRIPT_RAW64) :-:
+	(* inline basis operations *)
+	  ("inl_compose", p3(ar(tup[ar(tv2,tv3),ar(tv1,tv2)],ar(tv1,tv3))), P.INLCOMPOSE) :-:
+	  ("inl_before", p2(ar(tup[tv1,tv2],tv1)), P.INLBEFORE) :-:
+	  ("inl_ignore", p1(ar(tv1,BT.unitTy)), P.INLIGNORE) :-:
+	  ("inl_identity", p1(ar(tv1,tv1)), P.INLIDENTITY) :-:
+	  ("inl_not", ar(BT.boolTy, BT.boolTy), P.INLNOT) :-:
+	  ("inl_chr", ar(BT.intTy, BT.charTy), P.INLCHR) :-:
+	  ("inl_ord", ar(BT.charTy, BT.intTy), P.CAST) :-:
+	(* polymorphic array and vector *)
+	  ("mkarray", p1(ar(tup[BT.intTy,tv1],arrTy tv1)), P.INLMKARRAY) :-:
+	  ("arr_unsafe_sub", p1(ar(tup[arrTy tv1,BT.intTy],tv1)), P.SUBSCRIPT) :-:
+	  ("arr_sub", p1(ar(tup[arrTy tv1,BT.intTy],tv1)), P.INLSUBSCRIPT) :-:
+	  ("vec_unsafe_sub", p1(ar(tup[vecTy tv1,BT.intTy],tv1)), P.SUBSCRIPTV) :-:
+	  ("vec_sub", p1(ar(tup[vecTy tv1,BT.intTy],tv1)), P.INLSUBSCRIPTV) :-:
+	  ("arr_unsafe_update", p1(ar(tup[arrTy tv1,BT.intTy,tv1],BT.unitTy)), P.UPDATE) :-:
+	  ("arr_update", p1(ar(tup[arrTy tv1,BT.intTy,tv1],BT.unitTy)), P.INLUPDATE) :-:
+	  ("arr_unboxed_update",
+	    p1(ar(tup[arrTy tv1,BT.intTy,tv1],BT.unitTy)), P.UNBOXEDUPDATE) :-:
+	(* generic sequence operations*)
+	  ("newArray0", p1(ar(BT.unitTy, tv1)), P.NEW_ARRAY0) :-:
+	  ("seq_length", p1(ar(tv1, BT.intTy)), P.LENGTH) :-:
+	  ("seq_data", p2(ar(tv1, tv2)), P.GET_SEQ_DATA)
 
-  (* primops on target-independent types (int32, word32, real64) *)
-    val prims = prims :-:
-	(* integer 32 primops *)
-	  ("i32mul", i32i32_i32, int32 P.IMUL) :-:
-	  ("i32div", i32i32_i32, int32 P.IDIV) :-:
-	  ("i32mod", i32i32_i32, int32 P.IMOD) :-:
-	  ("i32quot", i32i32_i32, int32 P.IQUOT) :-:
-	  ("i32rem", i32i32_i32, int32 P.IREM) :-:
-	  ("i32add", i32i32_i32, int32 P.IADD) :-:
-	  ("i32sub", i32i32_i32, int32 P.ISUB) :-:
-	  ("i32orb", i32i32_i32, bits32 P.ORB) :-:
-	  ("i32andb", i32i32_i32, bits32 P.ANDB) :-:
-	  ("i32xorb", i32i32_i32, bits32 P.XORB) :-:
-	  ("i32lshift", i32i32_i32, bits32 P.LSHIFT) :-:
-	  ("i32rshift", i32i32_i32, bits32 P.RSHIFT) :-:
-	  ("i32neg", i32_i32, int32 P.INEG) :-:
-	  ("i32lt", i32i32_b, int32cmp P.LT) :-:
-	  ("i32le", i32i32_b, int32cmp P.LTE) :-:
-	  ("i32gt", i32i32_b, int32cmp P.GT) :-:
-	  ("i32ge", i32i32_b, int32cmp P.GTE) :-:
-	  ("i32eq", i32i32_b, int32cmp P.EQL) :-:
-	  ("i32ne", i32i32_b, int32cmp P.NEQ) :-:
-	  ("i32min", i32i32_i32, P.INLMIN (P.INT 32)) :-:
-	  ("i32max", i32i32_i32, P.INLMAX (P.INT 32)) :-:
-	  ("i32abs", i32_i32, P.INLABS (P.INT 32)) :-:
-	(* float 64 primops *)
-	  ("f64add", f64f64_f64, purefloat64 P.ADD) :-:
-	  ("f64sub", f64f64_f64, purefloat64 P.SUB) :-:
-	  ("f64div", f64f64_f64, purefloat64 P.FDIV) :-:
-	  ("f64mul", f64f64_f64, purefloat64 P.MUL) :-:
-	  ("f64neg", f64_f64, purefloat64 P.NEG) :-:
-	  ("f64ge", f64f64_b, float64cmp P.GTE) :-:
-	  ("f64gt", f64f64_b, float64cmp P.GT) :-:
-	  ("f64le", f64f64_b, float64cmp P.LTE) :-:
-	  ("f64lt", f64f64_b, float64cmp P.LT) :-:
-	  ("f64eq", f64f64_b, float64cmp P.EQL) :-:
-	  ("f64ne", f64f64_b, float64cmp P.NEQ) :-:
-	  ("f64sgn", f64_b, P.FSGN 64) :-:
-	  ("f64abs", f64_f64, purefloat64 P.FABS) :-:
-	  ("f64sin", f64_f64, purefloat64 P.FSIN) :-:
-	  ("f64cos", f64_f64, purefloat64 P.FCOS) :-:
-	  ("f64tan", f64_f64, purefloat64 P.FTAN) :-:
-	  ("f64sqrt", f64_f64, purefloat64 P.FSQRT) :-:
-	  ("f64min", f64f64_f64, P.INLMIN (P.FLOAT 64)) :-:
-	  ("f64max", f64f64_f64, P.INLMAX (P.FLOAT 64)) :-:
-	(* float64 array *)
-	  ("f64Sub", numSubTy, sub (P.FLOAT 64)) :-:
-	  ("f64chkSub", numSubTy, chkSub (P.FLOAT 64)) :-:
-	  ("f64Update", numUpdTy, update (P.FLOAT 64)) :-:
-	  ("f64chkUpdate", numUpdTy, chkUpdate (P.FLOAT 64)) :-:
-	(* word8 primops *)
-	  ("w8orb", w8w8_w8, word P.ORB) :-:
-	  ("w8xorb", w8w8_w8, word P.XORB) :-:
-	  ("w8andb", w8w8_w8, word P.ANDB) :-:
-	  ("w8gt", w8w8_b, word8cmp P.GT) :-:
-	  ("w8ge", w8w8_b, word8cmp P.GTE) :-:
-	  ("w8lt", w8w8_b, word8cmp P.LT) :-:
-	  ("w8le", w8w8_b, word8cmp P.LTE) :-:
-	  ("w8eq", w8w8_b, word8cmp P.EQL) :-:
-	  ("w8ne", w8w8_b, word8cmp P.NEQ) :-:
-	(* word8 array and vector *)
-	  ("w8Sub", numSubTy, sub (P.UINT 8)) :-:		(* unused *)
-	  ("w8chkSub", numSubTy, chkSub (P.UINT 8)) :-:		(* unused *)
-	  ("w8subv", numSubTy, subv (P.UINT 8)) :-:		(* unused *)
-	  ("w8chkSubv", numSubTy, chkSubv (P.UINT 8)) :-:	(* unused *)
-	  ("w8update", numUpdTy, update (P.UINT 8)) :-:		(* unused *)
-	  ("w8chkUpdate", numUpdTy, chkUpdate (P.UINT 8)) :-:	(* unused *)
-	(* word32 primops *)
-	  ("w32mul", w32w32_w32, word32 P.MUL) :-:
-	  ("w32div", w32w32_w32, word32 P.QUOT) :-:
-	  ("w32mod", w32w32_w32, word32 P.REM) :-:
-	  ("w32add", w32w32_w32, word32 P.ADD) :-:
-	  ("w32sub", w32w32_w32, word32 P.SUB) :-:
-	  ("w32orb", w32w32_w32, word32 P.ORB) :-:
-	  ("w32xorb", w32w32_w32, word32 P.XORB) :-:
-	  ("w32andb", w32w32_w32, word32 P.ANDB) :-:
-	  ("w32notb", w32_w32, word32 P.NOTB) :-:
-	  ("w32neg", w32_w32, word32 P.NEG) :-:
-	  ("w32rshift", w32w_w32, word32 P.RSHIFT) :-:
-	  ("w32rshiftl", w32w_w32, word32 P.RSHIFTL) :-:
-	  ("w32lshift", w32w_w32, word32 P.LSHIFT) :-:
-	  ("w32gt", w32w32_b, word32cmp P.GT) :-:
-	  ("w32ge", w32w32_b, word32cmp P.GTE) :-:
-	  ("w32lt", w32w32_b, word32cmp P.LT) :-:
-	  ("w32le", w32w32_b, word32cmp P.LTE) :-:
-	  ("w32eq", w32w32_b, word32cmp P.EQL) :-:
-	  ("w32ne", w32w32_b, word32cmp P.NEQ) :-:
-	  ("w32ChkRshift", w32w_w32, P.INLRSHIFT(P.UINT 32)) :-:
-	  ("w32ChkRshiftl", w32w_w32, P.INLRSHIFTL(P.UINT 32)) :-:
-	  ("w32ChkLshift", w32w_w32, P.INLLSHIFT(P.UINT 32)) :-:
-	  ("w32min", w32w32_w32, P.INLMIN (P.UINT 32)) :-:
-	  ("w32max", w32w32_w32, P.INLMAX (P.UINT 32))
+  (* operations on word8 arrays/vectors *)
+    val prims = defineMonoSeqOps (
+	  "word8", BT.word8Ty, P.UINT 8, BT.word8vectorTy, BT.word8arrayTy, 8, prims)
 
-  (* primops for C FFI *)
-    val prims = prims :-:
-	(* load/store raw values *)
-	  ("raww8l", w32_w32, P.RAW_LOAD (P.UINT 8)) :-:
-	  ("rawi8l", w32_i32, P.RAW_LOAD (P.INT 8)) :-:
-	  ("raww16l", w32_w32, P.RAW_LOAD (P.UINT 16)) :-:
-	  ("rawi16l", w32_i32, P.RAW_LOAD (P.INT 16)) :-:
-	  ("raww32l", w32_w32, P.RAW_LOAD (P.UINT 32)) :-:
-	  ("rawi32l", w32_i32, P.RAW_LOAD (P.INT 32)) :-:
-	  ("rawf32l", w32_f64, P.RAW_LOAD (P.FLOAT 32)) :-:
-	  ("rawf64l", w32_f64, P.RAW_LOAD (P.FLOAT 64)) :-:
-	  ("raww8s", w32w32_u, P.RAW_STORE (P.UINT 8)) :-:
-	  ("rawi8s", w32i32_u, P.RAW_STORE (P.INT 8)) :-:
-	  ("raww16s", w32w32_u, P.RAW_STORE (P.UINT 16)) :-:
-	  ("rawi16s", w32i32_u, P.RAW_STORE (P.INT 16)) :-:
-	  ("raww32s", w32w32_u, P.RAW_STORE (P.UINT 32)) :-:
-	  ("rawi32s", w32i32_u, P.RAW_STORE (P.INT 32)) :-:
-	  ("rawf32s", w32f64_u, P.RAW_STORE (P.FLOAT 32)) :-:
-	  ("rawf64s", w32f64_u, P.RAW_STORE (P.FLOAT 64)) :-:
-	  ("rawccall", rccType, P.RAW_CCALL NONE) :-:
-	(* Support for direct construction of C objects on ML heap.
-	 * rawrecord builds a record holding C objects on the heap.
-	 * rawselectxxx index on this record.  They are of type:
-	 *    'a * Word32.word -> Word32.word
-	 * The 'a is to guarantee that the compiler will treat
-	 * the record as a ML object, in case it passes thru a gc boundary.
-	 * rawupdatexxx writes to the record.
-	 *)
-	  ("rawrecord", i_x, P.RAW_RECORD { align64 = false }) :-:
-	  ("rawrecord64", i_x, P.RAW_RECORD { align64 = true }) :-:
-	  ("rawselectw8", xw32_w32, P.RAW_LOAD (P.UINT 8)) :-:
-	  ("rawselecti8", xw32_i32, P.RAW_LOAD (P.INT 8)) :-:
-	  ("rawselectw16", xw32_w32, P.RAW_LOAD (P.UINT 16)) :-:
-	  ("rawselecti16", xw32_i32, P.RAW_LOAD (P.INT 16)) :-:
-	  ("rawselectw32", xw32_w32, P.RAW_LOAD (P.UINT 32)) :-:
-	  ("rawselecti32", xw32_i32, P.RAW_LOAD (P.INT 32)) :-:
-	  ("rawselectf32", xw32_f64, P.RAW_LOAD (P.FLOAT 32)) :-:
-	  ("rawselectf64", xw32_f64, P.RAW_LOAD (P.FLOAT 64)) :-:
-	  ("rawupdatew8", xw32w32_u, P.RAW_STORE (P.UINT 8)) :-:
-	  ("rawupdatei8", xw32i32_u, P.RAW_STORE (P.INT 8)) :-:
-	  ("rawupdatew16", xw32w32_u, P.RAW_STORE (P.UINT 16)) :-:
-	  ("rawupdatei16", xw32i32_u, P.RAW_STORE (P.INT 16)) :-:
-	  ("rawupdatew32", xw32w32_u, P.RAW_STORE (P.UINT 32)) :-:
-	  ("rawupdatei32", xw32i32_u, P.RAW_STORE (P.INT 32)) :-:
-	  ("rawupdatef32", xw32f64_u, P.RAW_STORE (P.FLOAT 32)) :-:
-	  ("rawupdatef64", xw32f64_u, P.RAW_STORE (P.FLOAT 64))
+  (* operations on char arrays/vectors *)
+    val prims = defineMonoSeqOps (
+	  "char", BT.charTy, P.UINT 8, BT.stringTy, BT.chararrayTy, 8, prims)
 
-    val prims = prims :-:
-	(* int to char conversion *)
-	  ("inlchr", i_c, P.INLCHR) :-:
-	(* int to/from real conversions *)
-(* FIXME: the names of these should reflect both the source and destination types. *)
-	  ("floor", f64_i, P.REAL_TO_INT{floor=true, from = 64, to = intSz}) :-:
-	  ("round", f64_i, P.REAL_TO_INT{floor=false, from = 64, to = intSz}) :-:
-	  ("real", i_f64, P.INT_TO_REAL{from = intSz, to = 64}) :-:
-	  ("real32", i32_f64, P.INT_TO_REAL{from = 32, to = 64})
-(*
- :-:
-	  ("real64", i64_f64, P.REAL{from = 64, to = 64})
-*)
+  (* operations on Real64 arrays *)
+    val prims = let
+        (* FIXME: these types really should be monomorphic!! *)
+	  val subTy = p1(ar(tup[tv1, BT.intTy], BT.realTy))
+	  val updTy = p1(ar(tup[tv1, BT.intTy, BT.realTy], BT.unitTy))
+	  val elemK = P.FLOAT 64
+	  fun mk (name, ty, p) = ("real64_arr_" ^ name, ty, p)
+	  in
+	    prims :-:
+	    mk("sub", numSubTy, P.INLNUMSUBSCRIPT elemK) :-:
+	    mk("update", numUpdTy, P.INLNUMUPDATE elemK) :-:
+	    mk("unsafe_sub", subTy, P.NUMSUBSCRIPT elemK) :-:
+	    mk("unsafe_update", updTy, P.NUMUPDATE elemK)
+	  end
+(* TODO: once we have real64vectors, we can define those operations too *)
 
-  (*** integer/word conversion primops ***
-   *   There are certain duplicates for the same primop (but with
-   *   different types).  In such a case, the "canonical" name
-   *   of the primop has been extended using a simple suffix
-   *   scheme.
+  (* default integer operations *)
+    val prims = defineIntOps ("int_", BT.intTy, intSz, prims)
+
+  (* extra operations for the default integer type, which essentially implement
+   * word operations on ints (these are used to simplify the Basis Library
+   * implementation).
+   *)
+    val prims = let
+	  val nk = P.UINT intSz
+	  val i_i = ar(BT.intTy, BT.intTy)
+	  val ii_i = ar(tup[BT.intTy, BT.intTy], BT.intTy)
+	  val iw_i = ar(tup[BT.intTy, BT.wordTy], BT.intTy)
+	  val ii_b = ar(tup[BT.intTy, BT.intTy], BT.boolTy)
+	  in
+	    prims :-:
+	  (* unchecked addition/subtraction *)
+	    ("int_unsafe_add", ii_i, P.PURE_ARITH{oper=P.ADD, kind=nk}) :-:
+	    ("int_unsafe_sub", ii_i, P.PURE_ARITH{oper=P.SUB, kind=nk}) :-:
+	  (* bitwise operations *)
+	    ("int_orb", ii_i, P.PURE_ARITH{oper=P.ORB, kind=nk}) :-:
+	    ("int_xorb", ii_i, P.PURE_ARITH{oper=P.XORB, kind=nk}) :-:
+	    ("int_andb", ii_i, P.PURE_ARITH{oper=P.ANDB, kind=nk}) :-:
+	    ("int_raw_rshift", iw_i, P.PURE_ARITH{oper=P.RSHIFT, kind=nk}) :-:
+	    ("int_raw_lshift", iw_i, P.PURE_ARITH{oper=P.LSHIFT, kind=nk}) :-:
+	    ("int_notb", i_i, P.PURE_ARITH{oper=P.NOTB, kind=nk}) :-:
+	    ("int_ltu", ii_b, P.CMP{oper=P.LT, kind=nk}) :-:
+	    ("int_geu", ii_b, P.CMP{oper=P.GTE, kind=nk})
+	  end
+
+  (* default word operations *)
+    val prims = defineWordOps ("word_", BT.wordTy, intSz, prims)
+
+  (* Int32 operations *)
+    val prims = defineIntOps ("int32_", BT.int32Ty, 32, prims)
+
+  (* Word8 operations *)
+    val prims = defineWordOps ("word8_", BT.word8Ty, 8, prims)
+
+  (* Word32 operations *)
+    val prims = defineWordOps ("word32_", BT.word32Ty, 32, prims)
+
+  (* Int64 operations *)
+    val prims = defineIntOps ("int64_", BT.int64Ty, 64, prims)
+
+  (* Word64 operations *)
+    val prims = defineWordOps ("word64_", BT.word64Ty, 64, prims)
+
+  (* conversions integers and words *)
+    val prims = defineCvtOps (BT.intTy, BT.wordTy, intSz, prims)
+    val prims = defineCvtOps (BT.int32Ty, BT.word32Ty, 32, prims)
+    val prims = defineCvtOps (BT.int64Ty, BT.word64Ty, 64, prims)
+
+  (* conversions for Word8
+   * NOTE: if we had an Int8.int type, then we could use defineCvtOps here!
+   *)
+    val prims = let
+	  val lgWName = "word" ^ Int.toString largeWSz
+	  fun wTo ty = ar(BT.word8Ty, ty)
+	  fun wFrom ty = ar(ty, BT.word8Ty)
+	  in
+	    prims :-:
+	    (lgWName ^ "_to_word8", wFrom largeWTy, P.TRUNC(largeWSz, 8)) :-:
+	    ("unsigned_word8_to_" ^ lgWName, wTo largeWTy, P.COPY(8, largeWSz)) :-:
+	    ("signed_word8_to_" ^ lgWName, wTo largeWTy, P.EXTEND(8, largeWSz)) :-:
+	  (* word type to/from default int type *)
+	    ("int_to_word8", wFrom BT.intTy, copy(intSz, 8)) :-:
+	    ("unsigned_word8_to_int", wTo BT.intTy, copyChk(8, intSz)) :-:
+	    ("signed_word8_to_int", wTo BT.intTy, extendChk(8, intSz)) :-:
+	  (* word type to/from int inf *)
+	    ("unsigned_word8_to_intinf", wTo BT.intinfTy, P.COPY_INF 8) :-:
+	    ("signed_word8_to_intinf", wTo BT.intinfTy, P.EXTEND_INF 8) :-:
+	    ("intinf_to_word8", wFrom BT.intinfTy, P.TRUNC_INF 8)
+	  end
+
+  (* some additional conversions that are used in system/smlnj/init/core-intinf.sml
+   * system/smlnj/init/core-int64.sml, and system/smlnj/init/core-word64.sml
    *)
     val prims = if Target.is64
-	  then prims :-:
-(* FIXME: we probably need additional operations here *)
-	    ("test_64_63_w", w64_i, P.TEST(64,63)) :-:
-	    ("test_64_63_i", i64_i, P.TEST(64,63)) :-:
-	    ("testu_63_63", w_i, P.TESTU(63,63)) :-:
-	    ("testu_64_63", w64_i, P.TESTU(64,63)) :-:
-	    ("testu_64_64", w64_i64, P.TESTU(64,64)) :-:
-	    ("copy_64_64_ii", i64_i64, P.COPY(64,64)) :-:
-	    ("copy_64_64_wi", w64_i64, P.COPY(64,64)) :-:
-	    ("copy_64_64_iw", i64_w64, P.COPY(64,64)) :-:
-	    ("copy_64_64_ww", w64_w64, P.COPY(64,64)) :-:
-	    ("copy_63_63_ii", i_i, P.COPY(63,63)) :-:
-	    ("copy_63_63_wi", w_i, P.COPY(63,63)) :-:
-	    ("copy_63_63_iw", i_w, P.COPY(63,63)) :-:
-	    ("copy_63_64_i", w_i64, P.COPY(63,64)) :-:
-	    ("copy_63_64_w", w_w64, P.COPY(63,64)) :-:
-	    ("copy_8_64_i", w8_i64, P.COPY(8,64)) :-:
-	    ("copy_8_64_w", w8_w64, P.COPY(8,64)) :-:
-	    ("copy_8_63", w8_i, P.COPY(8,63)) :-:
-	    ("extend_63_64_ii", i_i64, P.EXTEND(63,64)) :-:
-	    ("extend_63_64_iw", i_w64, P.EXTEND(63,64)) :-:
-	    ("extend_63_64_wi", w_i64, P.EXTEND(63,64)) :-:
-	    ("extend_63_64_ww", w_w64, P.EXTEND(63,64)) :-:
-	    ("extend_8_63", w8_i, P.EXTEND(8,63)) :-:
-	    ("extend_8_64_i", w8_i64, P.EXTEND(8,64)) :-:
-	    ("extend_8_64_w", w8_w64, P.EXTEND(8,64)) :-:
-	    ("trunc_64_63_i", i64_w, P.TRUNC(64,63)) :-:
-	    ("trunc_64_63_w", w64_w, P.TRUNC(64,63)) :-:
-	    ("trunc_63_8", i_w8, P.TRUNC(63,8)) :-:
-	    ("trunc_64_8_i", i64_w8, P.TRUNC(64,8)) :-:
-	    ("trunc_64_8_w", w64_w8, P.TRUNC(64,8))
-	  else prims :-:
-	    ("test_32_31_w", w32_i, P.TEST(32,31)) :-:
-	    ("test_32_31_i", i32_i, P.TEST(32,31)) :-:
-	    ("testu_31_31", w_i, P.TESTU(31,31)) :-:
-	    ("testu_32_31", w32_i, P.TESTU(32,31)) :-:
-	    ("testu_32_32", w32_i32, P.TESTU(32,32)) :-:
-	    ("copy_32_32_ii", i32_i32, P.COPY(32,32)) :-:
-	    ("copy_32_32_wi", w32_i32, P.COPY(32,32)) :-:
-	    ("copy_32_32_iw", i32_w32, P.COPY(32,32)) :-:
-	    ("copy_32_32_ww", w32_w32, P.COPY(32,32)) :-:
-	    ("copy_31_31_ii", i_i, P.COPY(31,31)) :-:
-	    ("copy_31_31_wi", w_i, P.COPY(31,31)) :-:
-	    ("copy_31_31_iw", i_w, P.COPY(31,31)) :-:
-	    ("copy_31_32_i", w_i32, P.COPY(31,32)) :-:
-	    ("copy_31_32_w", w_w32, P.COPY(31,32)) :-:
-	    ("copy_8_32_i", w8_i32, P.COPY(8,32)) :-:
-	    ("copy_8_32_w", w8_w32, P.COPY(8,32)) :-:
-	    ("copy_8_31", w8_i, P.COPY(8,31)) :-:
-	    ("extend_31_32_ii", i_i32, P.EXTEND(31,32)) :-:
-	    ("extend_31_32_iw", i_w32, P.EXTEND(31,32)) :-:
-	    ("extend_31_32_wi", w_i32, P.EXTEND(31,32)) :-:
-	    ("extend_31_32_ww", w_w32, P.EXTEND(31,32)) :-:
-	    ("extend_8_31", w8_i, P.EXTEND(8,31)) :-:
-	    ("extend_8_32_i", w8_i32, P.EXTEND(8,32)) :-:
-	    ("extend_8_32_w", w8_w32, P.EXTEND(8,32)) :-:
-	    ("trunc_32_31_i", i32_w, P.TRUNC(32,31)) :-:
-	    ("trunc_32_31_w", w32_w, P.TRUNC(32,31)) :-:
-	    ("trunc_31_8", i_w8, P.TRUNC(31,8)) :-:
-	    ("trunc_32_8_i", i32_w8, P.TRUNC(32,8)) :-:
-	    ("trunc_32_8_w", w32_w8, P.TRUNC(32,8))
-
-  (* conversion primops involving intinf *)
-    val prims = if Target.is64
-	  then prims :-:
-	    ("test_inf_31", inf_i, P.TEST_INF 63) :-:
-	    ("test_inf_32", inf_i32, P.TEST_INF 32) :-:
-	    ("test_inf_64", inf_i64, P.TEST_INF 64) :-:
-	    ("copy_8_inf", w8_inf, P.COPY_INF 8) :-:
-	    ("copy_8_inf_w", w8_inf, P.COPY_INF 8) :-:
-	    ("copy_31_inf_w", w_inf, P.COPY_INF 63) :-:
-	    ("copy_32_inf_w", w32_inf, P.COPY_INF 32) :-:
-	    ("copy_64_inf_w", w64_inf, P.COPY_INF 64) :-:
-	    ("copy_31_inf_i", i_inf, P.COPY_INF 63) :-:
-	    ("copy_32_inf_i", i32_inf, P.COPY_INF 32) :-:
-	    ("copy_64_inf_i", i64_inf, P.COPY_INF 64) :-:
-	    ("extend_8_inf", w8_inf, P.EXTEND_INF 8) :-:
-	    ("extend_8_inf_w", w8_inf, P.EXTEND_INF 8) :-:
-	    ("extend_31_inf_w", w_inf, P.EXTEND_INF 63) :-:
-	    ("extend_32_inf_w", w32_inf, P.EXTEND_INF 32) :-:
-	    ("extend_64_inf_w", w64_inf, P.EXTEND_INF 64) :-:
-	    ("extend_31_inf_i", i_inf, P.EXTEND_INF 63) :-:
-	    ("extend_32_inf_i", i32_inf, P.EXTEND_INF 32) :-:
-	    ("extend_64_inf_i", i64_inf, P.EXTEND_INF 64) :-:
-	    ("trunc_inf_8", inf_w8, P.TRUNC_INF 8) :-:
-	    ("trunc_inf_31", inf_w, P.TRUNC_INF 63) :-:
-	    ("trunc_inf_32", inf_w32, P.TRUNC_INF 32) :-:
-	    ("trunc_inf_64", inf_w64, P.TRUNC_INF 64)
-	  else prims :-:
-	    ("test_inf_31", inf_i, P.TEST_INF 31) :-:
-	    ("test_inf_32", inf_i32, P.TEST_INF 32) :-:
-	    ("test_inf_64", inf_i64, P.TEST_INF 64) :-:
-	    ("copy_8_inf", w8_inf, P.COPY_INF 8) :-:
-	    ("copy_8_inf_w", w8_inf, P.COPY_INF 8) :-:
-	    ("copy_31_inf_w", w_inf, P.COPY_INF 31) :-:
-	    ("copy_32_inf_w", w32_inf, P.COPY_INF 32) :-:
-	    ("copy_64_inf_w", w64_inf, P.COPY_INF 64) :-:
-	    ("copy_31_inf_i", i_inf, P.COPY_INF 31) :-:
-	    ("copy_32_inf_i", i32_inf, P.COPY_INF 32) :-:
-	    ("copy_64_inf_i", i64_inf, P.COPY_INF 64) :-:
-	    ("extend_8_inf", w8_inf, P.EXTEND_INF 8) :-:
-	    ("extend_8_inf_w", w8_inf, P.EXTEND_INF 8) :-:
-	    ("extend_31_inf_w", w_inf, P.EXTEND_INF 31) :-:
-	    ("extend_32_inf_w", w32_inf, P.EXTEND_INF 32) :-:
-	    ("extend_64_inf_w", w64_inf, P.EXTEND_INF 64) :-:
-	    ("extend_31_inf_i", i_inf, P.EXTEND_INF 31) :-:
-	    ("extend_32_inf_i", i32_inf, P.EXTEND_INF 32) :-:
-	    ("extend_64_inf_i", i64_inf, P.EXTEND_INF 64) :-:
-	    ("trunc_inf_8", inf_w8, P.TRUNC_INF 8) :-:
-	    ("trunc_inf_31", inf_w, P.TRUNC_INF 31) :-:
-	    ("trunc_inf_32", inf_w32, P.TRUNC_INF 32) :-:
-	    ("trunc_inf_64", inf_w64, P.TRUNC_INF 64)
+	  then prims (* 64BIT: FIXME *)
+	  else let
+	    in
+	      prims :-:
+	      ("trunc_int32_to_word", ar(BT.int32Ty, BT.wordTy), P.TRUNC(32, intSz)) :-:
+	      ("copy_int32_to_word32", ar(BT.int32Ty, BT.word32Ty), P.COPY(32, 32)) :-:
+	      ("copy_word_to_int32", ar(BT.wordTy, BT.int32Ty), P.COPY(intSz, 32)) :-:
+	      ("copy_word32_to_int32", ar(BT.word32Ty, BT.int32Ty), P.COPY(32, 32))
+	    end
 
   (* primops to go between abstract and concrete representation of
-   * 64-bit ints and words
+   * 64-bit ints and words for 32-bit targets
    *)
     val prims = if Target.is64
 	  then prims
-	  else prims :-:
-	    ("w64p", w64_pw32, P.CVT64) :-:
-	    ("p64w", pw32_w64, P.CVT64) :-:
-	    ("i64p", i64_pw32, P.CVT64) :-:
-	    ("p64i", pw32_i64, P.CVT64)
+	  else let
+	    val pw32 = tup[BT.word32Ty, BT.word32Ty]
+	    in
+	      prims :-:
+	      ("int64_to_pair", ar(BT.int64Ty, pw32), P.CVT64) :-:
+	      ("int64_from_pair", ar(pw32, BT.int64Ty), P.CVT64) :-:
+	      ("word64_to_pair", ar(BT.word64Ty, pw32), P.CVT64) :-:
+	      ("word64_from_pair", ar(pw32, BT.word64Ty), P.CVT64)
+	    end
 
-  (*** default integer primops (either 31 or 63 bits) ***
-   *   Many of the default primops are being abused for different types
-   *   (mostly Word8.word and also for char).  In these cases
-   *   there are suffixed alternative versions of the primop
-   *   (i.e., same primop, different type).
-   *)
+  (* Real64 operations *)
+    val prims = defineRealOps ("real64_", BT.realTy, 64, prims)
+
+(* REAL32: FIXME *)
+  (* real/int conversions *)
     val prims = let
-	  val i = "i" ^ Int.toString intSz
-	  fun mk (name, ty, rator) = (i ^ name, ty, rator)
-	  fun mk2 (name, rator) = mk(name, ii_i, int rator)
-	  fun mk2_b (name, rator) = mk(name, ii_i, bits rator)
-	  fun mk1 (name, rator) = mk(name, i_i, int rator)
-	  fun mk1_b (name, rator) = mk(name, i_i, bits rator)
-	  fun mkcmp (name, rator) = mk(name, ii_b, intcmp rator)
-	  fun mkcmp_c (name, rator) = (concat[i, name, "_c"], cc_b, intcmp rator)
+	  val r_i = ar(BT.realTy, BT.intTy)
+	  fun r2i (name, fl) =
+		(name, r_i, P.REAL_TO_INT{floor=fl, from=realSz, to=intSz})
+	  fun i2r (name, iTy, iSz) =
+		(name, ar(iTy, BT.realTy), P.INT_TO_REAL{from=iSz, to=realSz})
 	  in
 	    prims :-:
-	      mk2("add", P.IADD) :-:
-	      mk2("sub", P.ISUB) :-:
-	      mk2("mul", P.IMUL) :-:
-	      mk2("div", P.IDIV) :-:
-	      mk2("mod", P.IMOD) :-:
-	      mk2("quot", P.IQUOT) :-:
-	      mk2("rem", P.IREM) :-:
-	      mk2_b("orb", P.ORB) :-:
-	      mk2_b("andb", P.ANDB) :-:
-	      mk2_b("xorb", P.XORB) :-:
-	      mk1_b("notb", P.NOTB) :-:
-	      mk1("neg", P.INEG) :-:
-	      mk2_b("lshift", P.LSHIFT) :-:
-	      mk2_b("rshift", P.RSHIFT) :-:
-	      mkcmp("lt", P.LT) :-:
-	      mkcmp_c("lt", P.LT) :-:
-	      mkcmp("le", P.LTE) :-:
-	      mkcmp_c("le", P.LTE) :-:
-	      mkcmp("gt", P.GT) :-:
-	      mkcmp_c("gt", P.GT) :-:
-	      mkcmp("ge", P.GTE) :-:
-	      mkcmp_c("ge", P.GTE) :-:
-	      mk("ltu", ii_b, wordcmp P.LT) :-:
-	      mk("geu", ii_b, wordcmp P.GTE) :-:
-	      mkcmp("eq", P.EQL) :-:
-	      mkcmp("ne", P.NEQ) :-:
-	      mk("min", ii_i, P.INLMIN (P.INT 31)) :-:
-	      mk("max", ii_i, P.INLMAX (P.INT 31)) :-:
-	      mk("abs", i_i, P.INLABS (P.INT 31))
+	    r2i("floor_real64_to_int", true) :-:
+	    r2i("round_real64_to_int", false) :-:
+	    i2r("int_to_real64", BT.intTy, intSz) :-:
+	    (if Target.is64
+	      then i2r("int64_to_real64", BT.int64Ty, 64)
+	      else i2r("int32_to_real64", BT.int32Ty, 32))
 	  end
 
-  (*** default word primops (either 31 or 63 bits) ***
-   *   Many of the default primops are being abused for different types
-   *   (mostly Word8.word and also for char).  In these cases
-   *   there are suffixed alternative versions of the primop
-   *   (i.e., same primop, different type).
-   *)
+  (* Char operations *)
     val prims = let
-	  val w = "w" ^ Int.toString intSz
-	  fun mk (name, ty, rator) = (w ^ name, ty, rator)
-	  fun mk2 (name, rator) = mk(name, ww_w, word rator)
-	  fun mk1 (name, rator) = mk(name, w_w, word rator)
-	  fun mkcmp (name, rator) = mk(name, ww_b, wordcmp rator)
-	  fun mk2_8 (name, rator) = (concat[w, name, "_8"], w8w8_w8, word rator)
-	  fun mk1_8 (name, rator) = (concat[w, name, "_8"], w8_w8, word rator)
-	  fun mkcmp_8 (name, rator) = (concat[w, name, "_8"], w8w8_b, wordcmp rator)
+	  val cc_b = ar(tup[BT.charTy, BT.charTy], BT.boolTy)
+	  fun cmp (name, p) = ("char_"^name, cc_b, P.CMP{oper=p, kind=P.UINT intSz})
 	  in
 	    prims :-:
-	      mk2("mul", P.MUL) :-:
-	      mk2("div", P.QUOT) :-:
-	      mk2("mod", P.REM) :-:
-	      mk2("add", P.ADD) :-:
-	      mk2("sub", P.SUB) :-:
-	      mk2("orb", P.ORB) :-:
-	      mk2("xorb", P.XORB) :-:
-	      mk2("andb",  P.ANDB) :-:
-	      mk1("notb", P.NOTB) :-:
-	      mk1("neg", P.NEG) :-:
-	      mk2("rshift", P.RSHIFT) :-:
-	      mk2("rshiftl", P.RSHIFTL) :-:
-	      mk2("lshift", P.LSHIFT) :-:
-	      mkcmp("gt", P.GT) :-:
-	      mkcmp("ge", P.GTE) :-:
-	      mkcmp("lt", P.LT) :-:
-	      mkcmp("le", P.LTE) :-:
-	      mkcmp("eq", P.EQL) :-:
-	      mkcmp("ne", P.NEQ) :-:
-	      mk("ChkRshift", ww_w, P.INLRSHIFT(P.UINT 31)) :-:
-	      mk("ChkRshiftl", ww_w, P.INLRSHIFTL(P.UINT 31)) :-:
-	      mk("ChkLshift", ww_w, P.INLLSHIFT(P.UINT 31)) :-:
-	      mk("min", ww_w, P.INLMIN (P.UINT 31)) :-:
-	      mk("max", ww_w, P.INLMAX (P.UINT 31)) :-:
-	    (* (pseudo-)word8 primops *)
-	      mk2_8("mul", P.MUL) :-:
-	      mk2_8("div", P.QUOT) :-:
-	      mk2_8("mod", P.REM) :-:
-	      mk2_8("add", P.ADD) :-:
-	      mk2_8("sub", P.SUB) :-:
-	      mk2_8("orb", P.ORB) :-:
-	      mk2_8("xorb", P.XORB) :-:
-	      mk2_8("andb", P.ANDB) :-:
-	      mk1_8("notb", P.NOTB) :-:
-	      mk1_8("neg", P.NEG) :-:
-	      mk("rshift_8", w8w_w8, word P.RSHIFT) :-:
-	      mk("rshiftl_8", w8w_w8, word P.RSHIFTL) :-:
-	      mk("lshift_8", w8w_w8, word P.LSHIFT) :-:
-	      mkcmp_8("gt", P.GT) :-:
-	      mkcmp_8("ge", P.GTE) :-:
-	      mkcmp_8("lt", P.LT) :-:
-	      mkcmp_8("le", P.LTE) :-:
-	      mkcmp_8("eq", P.EQL) :-:
-	      mkcmp_8("ne", P.NEQ) :-:
-	      mk("ChkRshift_8", w8w_w8, P.INLRSHIFT(P.UINT 31)) :-:
-	      mk("ChkRshiftl_8", w8w_w8, P.INLRSHIFTL(P.UINT 31)) :-:
-	      mk("ChkLshift_8", w8w_w8, P.INLLSHIFT(P.UINT 31)) :-:
-	      mk("min_8", w8w8_w8, P.INLMIN (P.UINT 31)) :-:
-	      mk("max_8", w8w8_w8, P.INLMAX (P.UINT 31))
+	    cmp("lt", P.LT) :-:
+	    cmp("le", P.LTE) :-:
+	    cmp("gt", P.GT) :-:
+	    cmp("ge", P.GTE) :-:
+	    cmp("eql", P.EQL) :-:
+	    cmp("neq", P.NEQ)
 	  end
 
-    end (* local *)
+
+  (* primops for C FFI *)
+    val prims = let
+	(* representation of pointers to raw values *)
+	  val adrTy = if Target.is64 then BT.word64Ty else BT.word32Ty
+	(* The type of the RAW_CCALL primop (as far as the type checker is concerned)
+	 * is:
+	 *    adr * 'a * 'b -> 'd
+	 * where adr is a word type that is the same size as the machine's pointer
+	 * type.  The primop cannot be used without having 'a, 'b, and 'c
+	 * monomorphically instantiated.  In particular, 'a will be the type of the
+	 * ML argument list, 'c will be the type of the result, and 'b
+	 * will be a type of a fake arguments.  The idea is that 'b will be
+	 * instantiated with some ML type that encodes the type of the actual
+	 * C function in order to be able to generate code according to the C
+	 * calling convention.
+	 * (In other words, 'b will be a completely ad-hoc encoding of a CTypes.c_proto
+	 * value in ML types.  The encoding also contains information about
+	 * calling conventions and reentrancy.)
+	 *)
+	  val rccTy = p3(ar(tup[adrTy, tv1, tv2], tv3))
+	  fun mk (name, ty, p) = ("raw_" ^ name, ty, p)
+	  fun mkLd (name, ty, nk) =
+		("raw_load_" ^ name, ar(adrTy, ty), P.RAW_LOAD nk)
+	  fun mkSt(name, ty, nk) =
+		("raw_store_" ^ name, ar(tup[adrTy, ty], BT.unitTy), P.RAW_STORE nk)
+	  fun mkSub (name, ty, nk) =
+		("raw_sub_" ^ name, p1(ar(tup[tv1, adrTy], ty)), P.RAW_LOAD nk)
+	  fun mkUpd (name, ty, nk) = (
+		  "raw_update_" ^ name,
+		  p1(ar(tup[tv1, adrTy, ty], BT.unitTy)),
+		  P.RAW_STORE nk
+		)
+	  in
+	    prims :-:
+	    mk("ccall", rccTy, P.RAW_CCALL NONE) :-:
+	  (* Support for direct construction of C objects on ML heap.
+	   * rawrecord builds a record holding C objects on the heap.
+	   * rawselectxxx index on this record.  They are of type:
+	   *    'a * Word32.word -> Word32.word
+	   * The 'a is to guarantee that the compiler will treat
+	   * the record as a ML object, in case it passes thru a gc boundary.
+	   * rawupdatexxx writes to the record.
+	   *)
+	    mk("record", p1(ar(BT.intTy,tv1)), P.RAW_RECORD { align64 = false }) :-:
+	    mk("record64", p1(ar(BT.intTy,tv1)), P.RAW_RECORD { align64 = true }) :-:
+	  (* load/store raw values *)
+	    mkLd("word8", BT.word32Ty, P.UINT 8) :-:
+	    mkLd("int8", BT.int32Ty, P.INT 8) :-:
+	    mkLd("word16", BT.word32Ty, P.UINT 16) :-:
+	    mkLd("int16", BT.int32Ty, P.INT 16) :-:
+	    mkLd("word32", BT.word32Ty, P.UINT 32) :-:
+	    mkLd("int32", BT.int32Ty, P.INT 32) :-:
+	    mkLd("float32", BT.realTy, P.FLOAT 32) :-:
+	    mkLd("float64", BT.realTy, P.FLOAT 64) :-:
+	    mkSt("word8", BT.word32Ty, P.UINT 8) :-:
+	    mkSt("int8", BT.int32Ty, P.INT 8) :-:
+	    mkSt("word16", BT.word32Ty, P.UINT 16) :-:
+	    mkSt("int16", BT.int32Ty, P.INT 16) :-:
+	    mkSt("word32", BT.word32Ty, P.UINT 32) :-:
+	    mkSt("int32", BT.int32Ty, P.INT 32) :-:
+	    mkSt("float32", BT.realTy, P.FLOAT 32) :-:
+	    mkSt("float64", BT.realTy, P.FLOAT 64) :-:
+	  (* load/store raw values with offset *)
+	    mkSub("word8", BT.word32Ty, P.UINT 8) :-:
+	    mkSub("int8", BT.int32Ty, P.INT 8) :-:
+	    mkSub("word16", BT.word32Ty, P.UINT 16) :-:
+	    mkSub("int16", BT.int32Ty, P.INT 16) :-:
+	    mkSub("word32", BT.word32Ty, P.UINT 32) :-:
+	    mkSub("int32", BT.int32Ty, P.INT 32) :-:
+	    mkSub("float32", BT.realTy, P.FLOAT 32) :-:
+	    mkSub("float64", BT.realTy, P.FLOAT 64) :-:
+	    mkUpd("word8", BT.word32Ty, P.UINT 8) :-:
+	    mkUpd("int8", BT.int32Ty, P.INT 8) :-:
+	    mkUpd("word16", BT.word32Ty, P.UINT 16) :-:
+	    mkUpd("int16", BT.int32Ty, P.INT 16) :-:
+	    mkUpd("word32", BT.word32Ty, P.UINT 32) :-:
+	    mkUpd("int32", BT.int32Ty, P.INT 32) :-:
+	    mkUpd("float32", BT.realTy, P.FLOAT 32) :-:
+	    mkUpd("float64", BT.realTy, P.FLOAT 64)
+	  end
 
 (* Debugging *)
-(*
+(* *)
 fun prBind bind = let
       val n = PrimopBind.nameOf bind
       val ty = PrimopBind.typeOf bind
       val p = PrimopBind.defnOf bind
       in
 	Control_Print.say(concat[
-	    StringCvt.padLeft #" " 20 n, " = ",
-	    Primop.prPrimop p, "\n"
+	    StringCvt.padLeft #" " 24 n, " = ",
+	    PrimopUtil.toString p, "\n"
 	  ])
       end
 
 val _ = (
 	Control_Print.say "********************* Primop Bindings ********************\n";
+	Control_Print.say (concat[
+	    "* int size = ", Int.toString intSz,
+	    "; real size = ", Int.toString realSz,
+	    "; large word size = ", Int.toString largeWSz,
+	    "\n"
+	  ]);
+	Control_Print.say "********************\n";
 	List.app prBind prims;
 	Control_Print.say "********************\n")
-*)
+(* *)
 
-end (* structure PrimopBindings *)
+  end

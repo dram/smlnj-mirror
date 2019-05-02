@@ -176,7 +176,7 @@ structure PrimEnv : PRIM_ENV =
 	      }
 	 end
 
-  (* inLine structure *)
+  (* Inline structure *)
     val inLine = let
           val bottom = T.POLYty{sign=[false], tyfun=T.TYFUN{arity=1, body=T.IBOUND 0}}
 	  fun mkVarElement (offset, primBnd, (elems, primElems)) = let
@@ -188,7 +188,7 @@ structure PrimEnv : PRIM_ENV =
 		end
 	  val (allElements, primList) = List.foldri mkVarElement ([], []) PrimopBindings.prims
 	  val sigrec = {
-		  stamp=ST.special "inLineSig",
+		  stamp=ST.special "InLineSig",
 		  name=NONE, closed=true,
 		  fctflag=false,
 		  elements=allElements,
@@ -200,11 +200,11 @@ structure PrimEnv : PRIM_ENV =
 	    M.STR{
 		sign = M.SIG sigrec,
 		rlzn = {
-		    stamp=ST.special "inLineStr",
+		    stamp=ST.special "InlineStr",
 		    stub=NONE,
 		    entities=EE.empty,
 		    properties = PropList.newHolder (),  (* dbm: ??? *)
-		    rpath=IP.IPATH[S.strSymbol "inLine"]
+		    rpath=IP.IPATH[S.strSymbol "Inline"]
 		  },
 		access = A.nullAcc,
 		prim = primList
@@ -214,7 +214,7 @@ structure PrimEnv : PRIM_ENV =
   (* priming structures: PrimTypes and InLine *)
     val nameofPT = S.strSymbol "PrimTypes"
     val nameofUL = S.strSymbol "UnrolledList"
-    val nameofIL = S.strSymbol "InLine"
+    val nameofIL = S.strSymbol "Inline"
 
     val primEnv =
 	  SE.bind(nameofIL,B.STRbind inLine,
