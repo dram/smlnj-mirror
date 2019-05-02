@@ -94,7 +94,7 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //====================================================================
-== Version 110.85; 2019/05/02
+== Version 110.86; 2019/05/02
 
 //--------------------------------------------------------------------
 [2019/05/01]::
@@ -131,7 +131,9 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 Added `Primop.INLCHR` to implement `Char.chr` as an inline function.
 This change also required moving the definition of the `Chr`
 exception to the `Core` module so that it is accessible to the
-translate phase.
+translate phase.  The inline version of Char.chr will be enabled
+in the 110.87 release (we need the internal primop before we can
+use it).
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 

@@ -29,9 +29,10 @@ FILES::
 
 == Summary
 
-This release mostly contains internal changes needed to support
-64-bit systems, but it also contains a few bug fixes and other
-improvements.
+The main purpose of this release is to provide a stable checkpoint
+for a series of internal compiler changes, which are part of the
+effort to support  64-bit systems.  In addition, however, it also
+contains a number of bug fixes and other improvements.
 
 == Details
 
@@ -79,7 +80,7 @@ We summarize these below (see the {history}[change log] for details).
   * Moved the `F_SGN` constructor from the `fcmp` datatype to the `branch`
     datatype (and renamed it `FSGN`).
 
-  * Various other minor tweaks to the primitive operator types.
+  * Many changes to the internal representation of primitive operators.
 --
 
 We have also made improvements to the core 64-bit arithmetic operations.
@@ -90,7 +91,7 @@ Culled unused flags from the `Control` structure (mostly from `Control.CG`).
 
 The implementation of the `use` function in the REPL has been rewritten to
 fix bugs [.bugid]#193#, [.bugid]#217#, and [.bugid]#219#.  The semantics of
-`use` is as follows:
+`use` are as follows:
 --
   * If an invocation of `use` encounters a compilation error (either in the
     initial file or in a nested invocation of `use`), then the compiler error
@@ -107,11 +108,12 @@ fix bugs [.bugid]#193#, [.bugid]#217#, and [.bugid]#219#.  The semantics of
 
 Note that any change to the global state or environment
 that occurs before an error is encountered, will **not** be rolled
-back.
+back.  Also, wrapping calls to `use` in exception handlers or using
+`callcc` in combination with `use` may break it.
 
 Files specified as command-line arguments to the **sml** command
-will be treated as if `use` was invoked on them.  If there is an
-error, then the error will be reported and the **sml** command
+are treated as if `use` was invoked on them.  If there is an
+error, then the error is reported and the **sml** command
 will terminate with a non-zero exit status (at least on Unix).
 
 
@@ -136,8 +138,8 @@ for more details.
 The following unnumbered bugs were also fixed:
 --
   * The `Word32.toInt` function did not raise `Overflow` when given an
-    argument with its sign bit set (__e.g.__, `Word32.toInt 0wx8002DE32;`
-    would return `187954`).
+    argument with its sign bit set in some cases (__e.g.__,
+    `Word32.toInt 0wx8002DE32;` would return `187954`).
 --
 
 == Supported systems
