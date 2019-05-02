@@ -1,6 +1,10 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+--------------------------------------------------------------------------------
+SML/NJ 110.86
+-------------------
+
 [2019-01-07]
 	Renamed the function `CharBufferPP.openOut` to `openBuf`, and added the
 	`TextPP` structure that supports pretty printing to either an output
