@@ -1632,7 +1632,11 @@ raise ex)
                   val mem' = arrayRegion mem
               in  defBoxed(x, M.LOAD(ity, scaleWord(a, w), mem'), e, hp)
               end
-            | gen (PURE(P.PURE_NUMSUBSCRIPT{kind=P.UINT 8}, [v,i], x, _, e), hp) =
+(* FIXME: for some reason, `INT 8` has been used for word8/char vectors; we
+ * keep it around for now to support porting, but it really should be
+ * sign extending the result.
+ *)
+            | gen (PURE(P.PURE_NUMSUBSCRIPT{kind=(P.UINT 8|P.INT 8)}, [v,i], x, _, e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind v, mem))
@@ -1845,7 +1849,11 @@ raise ex)
 		in
 		  defBoxed (x, M.LOAD(ity, scaleWord(a, w), mem'), e, hp)
 		end
-            | gen (LOOKER(P.NUMSUBSCRIPT{kind=P.UINT 8}, [v, i], x, _, e), hp) = let
+(* FIXME: for some reason, `INT 8` has been used for word8/char arrays; we
+ * keep it around for now to support porting, but it really should be
+ * sign extending the result.
+ *)
+            | gen (LOOKER(P.NUMSUBSCRIPT{kind=(P.UINT 8|P.INT 8)}, [v, i], x, _, e), hp) = let
               (* get data pointer *)
 		val mem  = dataptrRegion v
 		val a    = markPTR(M.LOAD(ity, regbind v, mem))
@@ -1914,7 +1922,11 @@ raise ex)
               in  emit(M.STORE(ity, scaleWord(a, i), regbind w, mem'));
                   gen(e, hp)
               end
-            | gen (SETTER(P.NUMUPDATE{kind=P.UINT 8}, [s,i,v], e), hp) =
+(* FIXME: for some reason, `INT 8` has been used for word8/char arrays; we
+ * keep it around for now to support porting, but it really should be
+ * sign extending the result.
+ *)
+            | gen (SETTER(P.NUMUPDATE{kind=(P.UINT 8|P.INT 8)}, [s,i,v], e), hp) =
               let (* get data pointer *)
                   val mem  = dataptrRegion v
                   val a    = markPTR(M.LOAD(ity, regbind s, mem))

@@ -200,11 +200,11 @@ structure PrimEnv : PRIM_ENV =
 	    M.STR{
 		sign = M.SIG sigrec,
 		rlzn = {
-		    stamp=ST.special "InlineStr",
+		    stamp=ST.special "InLineStr",
 		    stub=NONE,
 		    entities=EE.empty,
 		    properties = PropList.newHolder (),  (* dbm: ??? *)
-		    rpath=IP.IPATH[S.strSymbol "Inline"]
+		    rpath=IP.IPATH[S.strSymbol "InLine"]
 		  },
 		access = A.nullAcc,
 		prim = primList
@@ -214,7 +214,7 @@ structure PrimEnv : PRIM_ENV =
   (* priming structures: PrimTypes and InLine *)
     val nameofPT = S.strSymbol "PrimTypes"
     val nameofUL = S.strSymbol "UnrolledList"
-    val nameofIL = S.strSymbol "Inline"
+    val nameofIL = S.strSymbol "InLine"
 
     val primEnv =
 	  SE.bind(nameofIL,B.STRbind inLine,
