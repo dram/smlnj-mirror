@@ -188,10 +188,16 @@ divided by operating system (Linux, OS X, Windows).
     Edit/update the history file.
     </p>
     <ul>
-      <li> <tt>../doc/src/changelog/HISTORY.txt</tt>: Add a new version section header.</li>
       <li>
+        <p>
+	<tt>../doc/src/changelog/HISTORY.txt</tt>: Add a new version section header.
+	</p>
+      </li>
+      <li>
+        <p>
         <tt>../doc/src/releasenotes/</tt>: Copy previous version's README and edit; older
         versions give examples of format expectations.
+        </p>
         <ul>
           <li> Cut and paste relevant entries from <tt>HISTORY.txt</tt> and format them.</li>
           <li>
@@ -199,6 +205,12 @@ divided by operating system (Linux, OS X, Windows).
 	    those changes often do not make it into the <tt>HISTORY</tt> file.
           </li>
 	</ul>
+        <p>
+	Note that since version 110.86, the README file is in
+        <a href="https://asciidoctor.org">AsciiDoc</a> format, so the HTML file
+	should be generated and added to the repository once the README is
+	complete.
+        </p>
       </li>
     </ul>
   </li>
@@ -263,6 +275,8 @@ divided by operating system (Linux, OS X, Windows).
   <li>
     <p>
     Copy source tarballs and documentation into the release directory.
+    (Remember that the README may have to be generated using
+     <a href="https://asciidoctor.org"><b>asciidoctor</b></a>.
     </p>
     <ul>
       <li> <tt>$ scp *.tgz $release_dir</tt>
