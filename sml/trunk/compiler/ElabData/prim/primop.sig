@@ -38,7 +38,7 @@ signature PRIMOP =
   (* datatype primop:
    * Various primitive operations. Those that are designated "inline" (L:) in
    * the comments are expanded into lambda code in terms of other operators.
-   * "Environmental" primops (occurring in the InLine structure) are indicated
+   * "Environmental" primops (occurring in the Inline structure) are indicated
    * by "E:" in the comment.
    *
    * See dev-notes/conversions.md for an explanation of the conversion operators.
@@ -146,7 +146,7 @@ signature PRIMOP =
     *)
       | RAW_RECORD of { align64 : bool }  (* E: *)
 
-    (* non-environmental primops (not found in InLine) *)
+    (* non-environmental primops (not found in Inline) *)
       | UNBOXEDASSIGN			(* assignment to integer reference *)
 
       | WCAST				(* ? *)

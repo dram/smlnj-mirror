@@ -1,29 +1,29 @@
 (* Copyright 1996 by AT&T Bell Laboratories *)
 (* access.sml *)
 
-structure Access : ACCESS = 
+structure Access : ACCESS =
 struct
 
 local structure LV = LambdaVar
       structure EM = ErrorMsg
       structure PS = PersStamps
       structure S = Symbol
-in 
+in
 
 fun bug msg = EM.impossible("Bugs in Access: "^msg)
 
 type lvar = LV.lvar
 type persstamp = PS.persstamp
 
-(* 
+(*
  * access: how to find the dynamic value corresponding to a variable.
  * An LVAR is just a lambda-bound variable --- a temporary used to denote
- * a binding in the current compilation unit. EXTERN refers to a binding 
- * defined externally (in other modules). PATH is an absolute address from 
- * a lambda-bound variable (i.e. we find the value of the lambda-bound 
- * variable, and then do selects from that). PATH's are kept in reverse 
+ * a binding in the current compilation unit. EXTERN refers to a binding
+ * defined externally (in other modules). PATH is an absolute address from
+ * a lambda-bound variable (i.e. we find the value of the lambda-bound
+ * variable, and then do selects from that). PATH's are kept in reverse
  * order. NO_ACCESS is used to denote built-in structures that do not
- * have corresponding dynamic objects (e.g., the built-in InLine is a 
+ * have corresponding dynamic objects (e.g., the built-in Inline is a
  * structure that declares all the built-in primitives --- it is likely
  * that NO_ACCESS will go away in the future once we have cleaned up the
  * bootstrap procedure.
@@ -35,7 +35,7 @@ datatype access
   | NO_ACCESS
 
 (*
- * conrep: how to decide the data representations for data constructors. 
+ * conrep: how to decide the data representations for data constructors.
  * All true datatypes are divided into four categories, depending on the
  * pair of parameters (m,n) where m is the number of constant constructors
  * and n is the number of value carrying constructors. REF, EXN, SUSP
@@ -43,25 +43,25 @@ datatype access
  * treating them as data constructors simplifies the match compilation.
  * LISTCONS and LISTNIL are special conreps for unrolled lists. The process
  * of assigning conreps probably should be performed on the intermediate
- * language instead. 
+ * language instead.
  *)
 datatype conrep
   = UNTAGGED                             (* 30 bit + 00; a pointer *)
   | TAGGED of int                        (* a pointer; 1st field is the tag *)
   | TRANSPARENT                          (* 32 bit value, singleton dcon dt *)
   | CONSTANT of int                      (* should be int31 *)
-  | REF                                  
-  | EXN of access                   
+  | REF
+  | EXN of access
   | SUSP of (access * access) option
-  | LISTCONS                              
+  | LISTCONS
   | LISTNIL
 
-(* See ElabData/types/core-basictypes.sml and 
- * Elaborator/types/basictypes.sml for samples 
- * 
+(* See ElabData/types/core-basictypes.sml and
+ * Elaborator/types/basictypes.sml for samples
+ *
  * FLINT/cps/switch.sml uses consig during representation analysis *)
-datatype consig                          
-  = CSIG of int * int                    (* # dcon tagged, # untagged *) 
+datatype consig
+  = CSIG of int * int                    (* # dcon tagged, # untagged *)
   | CNIL
 
 (****************************************************************************

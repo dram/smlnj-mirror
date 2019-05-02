@@ -1,6 +1,6 @@
 Below is an excerpt from translate.sml that is concerned with translation
 between intinf an finite precision integers (at least int32). It is followed
-by some questions for which we are seeking answers. To us it looks like 
+by some questions for which we are seeking answers. To us it looks like
 there are bugs here, but perhaps we are missing something.
 
 ------------------------------
@@ -25,7 +25,7 @@ in
 end
 
 
-fun transPrim (prim, lt, ts) = 
+fun transPrim (prim, lt, ts) =
   let fun g (PO.INLLSHIFT k) = inlineShift(lshiftOp, k, fn _ => lword0(k))
    ....
 
@@ -44,7 +44,7 @@ fun transPrim (prim, lt, ts) =
 	    inl_infPrec ("COPY", "finToInf", p, lt, false)
 
 	(* default handling for all other primops *)
-        | g p = PRIM(p, lt, ts) 
+        | g p = PRIM(p, lt, ts)
 
    in g prim
   end (* function transPrim *)
@@ -68,7 +68,7 @@ constructors. But from the excerpt from the primop catalog below, we
 see that there are several variants of these primops with different
 precisions.  inl_infPrec seems to assume the precision is always int32.
 What happens for other precisions?  Do we need to add missing variants
-of the operations for the other precisions to Core and arrange for 
+of the operations for the other precisions to Core and arrange for
 inl_infPrec
 
 5. For EXTEND_INF 32, for example the intrinsic type is int32 -> intinf.
@@ -94,7 +94,7 @@ The following declarations are in the Core structure:
 
 	val testInf = CoreIntInf.testInf
 	val truncInf = CoreIntInf.truncInf
-	(** ADDED copyInf ... because finToInf takes sign extension parameter *) 
+	(** ADDED copyInf ... because finToInf takes sign extension parameter *)
 	val copyInf = CoreIntInf.copyInf
 	val finToInf = CoreIntInf.finToInf
 
@@ -117,7 +117,7 @@ Where in the signature of CoreIntInf we have the following type specifications.
 
 Primops
 -------
-Here is a summary of all the primops that this section of transPrim 
+Here is a summary of all the primops that this section of transPrim
 could apply to (the numbers are from a complete primop catalog, and are
 intended to be used to identify primops in the front end).
 
@@ -125,7 +125,7 @@ The first item in each entry after the number is the name of the
 primop in Inline.  The next item is the primop value (using
 constructors from FLINT/kernel/primop.sml), and the final item is the
 "intrinsic type" of the primop, i.e. the type it is assigned in the
-InLine structure (Semant/statenv/prim.sml). The following indented
+Inline structure (Semant/statenv/prim.sml). The following indented
 lines, if present, give secondary bindings of the primop in
 intermediate structures like InlineT.IntInf, with their types, which
 may be specializations of the intrinsic type if the intrinsic type is
@@ -138,28 +138,28 @@ polymorphic.
 85   test_inf_32,     P.TEST_INF 32,    intinf -> int32
 	 InlineT.IntInf.test_int32 :	intinf -> int32
 	 InlineT.IntInf.fromLarge :	intinf -> int32
-	 InlineT.Int32.fromLarge :	intinf -> int32 
-	
+	 InlineT.Int32.fromLarge :	intinf -> int32
+
 86   test_inf_64,     P.TEST_INF 64,    intinf -> int64
 
 87   copy_8_inf,      P.COPY_INF 8,     word8 -> intinf
-	 InlineT.IntInf.copy_word8 : 	word8 -> intinf 
+	 InlineT.IntInf.copy_word8 : 	word8 -> intinf
 	 InlineT.Word8.toLargeInt :	word8 -> intinf
 
 88   copy_8_inf_w,    P.COPY_INF 8,     word8 -> intinf
-	
-89   copy_31_inf_w,   P.COPY_INF 31,    word -> intinf 
+
+89   copy_31_inf_w,   P.COPY_INF 31,    word -> intinf
 	InlineT.IntInf.copy_word31 : 	word -> intinf
-	InlineT.Word31.toLargeInt :	word -> intinf 
+	InlineT.Word31.toLargeInt :	word -> intinf
 
 90   copy_32_inf_w,   P.COPY_INF 32,    word32 -> intinf
 	InlineT.IntInf.copy_word32 :	word32 -> intinf
 	InlineT.Word32.toLargeInt :	word32 -> intinf
 
 91   copy_64_inf_w,   P.COPY_INF 64,    word64-> intinf
-92   copy_31_inf_i,   P.COPY_INF 31,    int -> intinf 
+92   copy_31_inf_i,   P.COPY_INF 31,    int -> intinf
 	InlineT.IntInf.copy_int31 : 	int -> intinf
- 	
+
 93   copy_32_inf_i,   P.COPY_INF 32,    int32 -> intinf
  	InlineT.IntInf.copy_int32 : 	int32 -> intinf
 
@@ -171,7 +171,7 @@ polymorphic.
 96   extend_8_inf_w,  P.EXTEND_INF 8,   word8 -> intinf
 97   extend_31_inf_w, P.EXTEND_INF 31,  word  -> intinf
 	InlineT.IntInf.extend_word31 : 	word -> intinf
-	InlineT.Word31.toLargeIntX :	word -> intinf 
+	InlineT.Word31.toLargeIntX :	word -> intinf
 
 98   extend_32_inf_w, P.EXTEND_INF 32,  word32 -> intinf
 	InlineT.IntInf.extend_word32 : 	word32 -> intinf
@@ -181,7 +181,7 @@ polymorphic.
 100  extend_31_inf_i, P.EXTEND_INF 31,  int -> intinf
 	InlineT.IntInf.extend_int31 : 	int -> intinf
 	InlineT.Int31.toLarge :		int -> intinf
-	
+
 101  extend_32_inf_i, P.EXTEND_INF 32,  int32 -> intinf
 	InlineT.IntInf.extend_int32 : 	int32 -> intinf
 	InlineT.Int32.toLarge :		int -> intinf

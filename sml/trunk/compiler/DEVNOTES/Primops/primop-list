@@ -7,7 +7,7 @@ are derived). Hence they are called "environmental" primops. Additional primops
 that are not found in the environment are defined in the PrimOp structure in
 FLINT (base/compiler/FLINT/kernel/primop.sml).
 
-The table is derived primarily from the definition of the InLine
+The table is derived primarily from the definition of the Inline
 structure that contains the "environmental" primops. This is defined
 in PrimEnv (Semant/statenv/prim.sml). The secondary bindings are
 found in the following modules:
@@ -25,7 +25,7 @@ The first item in each entry after the number is the name of the
 primop in Inline.  The next item is the primop value (using
 constructors from FLINT/kernel/primop.sml), and the final item is the
 "intrinsic type" of the primop, i.e. the type it is assigned in the
-InLine structure. The following indented lines, if present, give
+Inline structure. The following indented lines, if present, give
 secondary bindings of the primop in intermediate structures like
 InlineT.IntInf, with their types, which may be specializations of the
 intrinsic type if the intrinsic type is polymorphic.
@@ -134,7 +134,7 @@ structure P = PrimOp  (* defined in FLINT/kernel/primop.sml *)
 	 InlineT.ignore : 	'a -> unit
 
 30   identity,   P.INLIDENTITY, 'a -> 'a
-	 InlineT.identity :	'a -> 'a (* This is actually aliased to InLine.cast *)
+	 InlineT.identity :	'a -> 'a (* This is actually aliased to Inline.cast *)
 
 31   length,	 P.LENGTH,     		'a -> int
 	 InlineT.PolyArray.length :	'a array -> int
@@ -724,7 +724,7 @@ structure P = PrimOp  (* defined in FLINT/kernel/primop.sml *)
 	InlineT.Real64Array.chkUpdate :	   Assembly.A.real64array * int * real -> unit
 
 (*** word8 primops ***)
-(** InlineT.Word8 uses InLine.w31???_8 primops instead of these variants *)
+(** InlineT.Word8 uses Inline.w31???_8 primops instead of these variants *)
 
 203  w8orb,	 word31 P.ORB,      	 word8 * word8 -> word8
 204  w8xorb,	 word31 P.XORB,      	 word8 * word8 -> word8
@@ -738,7 +738,7 @@ structure P = PrimOp  (* defined in FLINT/kernel/primop.sml *)
 211  w8ne,	 word8cmp P.NEQ,      	 word8 * word8 -> bool
 
 (*** word8 array and vector ***)
-(** InlineT.Word8Array and Word8Vector use InLine.ordof, InLine.inlbyteof, ...
+(** InlineT.Word8Array and Word8Vector use Inline.ordof, Inline.inlbyteof, ...
     instead of these primops **)
 
 212  w8Sub,	   sub (P.UINT 8),  	 'a * int -> 'b
@@ -857,7 +857,7 @@ structure P = PrimOp  (* defined in FLINT/kernel/primop.sml *)
 
 253  w31rshiftl_8, word31 P.RSHIFTL,		word8 * word -> word8
      (** This may be a bug... InlineT.Word8.rshiftl is (incorrectly?)
-      ** aliased to InLine.w31rshift_8 **)
+      ** aliased to Inline.w31rshift_8 **)
 
 254  w31lshift_8,  word31 P.LSHIFT,		word8 * word -> word8
 	InlineT.Word8.lshift :			word8 * word -> word8

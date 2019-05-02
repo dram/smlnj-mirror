@@ -60,7 +60,7 @@ variable type. Or, since in most cases this is not relevant (it's
 represented by [] currently), it should be a type option.  This type
 would the the instantiated "variable type", i.e. based on a generic
 instantiation of the typ field of the VALvar, etc. [We could just use
-UNDEFty as the default, unneeded value instead of NONE, but using 
+UNDEFty as the default, unneeded value instead of NONE, but using
 ty option is cleaner and more explicit about what is going on.]
 
 Files affected:
@@ -86,10 +86,10 @@ Perhaps in the front end, primops can be respresented by a simple number
 (defined in the basic primop module). The mapping between primop numbers
 and their generic types could be implemented as a table or finite map.
 Generic primops that are used at different types could be split into a set
-of primop numbers, one for each final (variable) type. FLINT would be 
+of primop numbers, one for each final (variable) type. FLINT would be
 responsible for recognizing that several primop numbers represent the same
 generic underlying primop.  Then the primop numbers could be mapped to their
-exact (variable) type in the InLine module. One problem here is that some
+exact (variable) type in the Inline module. One problem here is that some
 type constructors appearing in variable types are not defined (yet) in
 the PrimTypes module -- presumably we could fix this by adding them as
 additional primite types. Examples are probably array and vector tycons.
@@ -98,9 +98,9 @@ notes
 7. InlInfo datatype ii/selectors and utility functions
 Why is the module ElabData/Basics/II (which defines the datatype ii
 and selectors) separate from module Semant/Basics/InlInfo (which
-defines utility functions and on the datatype ii)? 
+defines utility functions and on the datatype ii)?
 
-Functions in InlInfo appear to be used only in the TopLevel profiling 
+Functions in InlInfo appear to be used only in the TopLevel profiling
 hooks. The remaining use is in the ElabData/types/TypesUtil.isValue
 function. Unfortunately, there is some funny business going on in that
 the functions in InlInfo require the PrimOp module which is not
@@ -124,8 +124,8 @@ in the static environment?
 
 No. Although the root structure strrec's are entered into the static
 environment, all substructure information can only be found within the
-strrec of the root structure. 
- 
+strrec of the root structure.
+
 
 ======================================================================
 Old Primop Notes (from old primop branch, mostly obsolete)
@@ -191,7 +191,7 @@ into the tyvars that they contain, stripping off VARtys and following
 instantiations.  Note that instantiatePoly returns a list of type
 _expressions_ (VARty's) as its second result.
 
-    fun eqvTnspTy (specty: ty, actualty: ty) : (ty * tyvar list) = 
+    fun eqvTnspTy (specty: ty, actualty: ty) : (ty * tyvar list) =
       let val actualty = TU.prune actualty
 	  val (actInst, actInstTvs) = TU.instantiatePoly actualty
 	  val (specInst, specInstTvs) = TU.instantiatePoly specty
@@ -252,7 +252,7 @@ replaced by TU.instantiatePoly applied to specty, with tyvarType then
 mapped over the resulting specInstTvs. The simplified version of
 eqvTnspTy would be
 
-    fun eqvTnspTy (specty: ty) : (ty * tyvar list) = 
+    fun eqvTnspTy (specty: ty) : (ty * tyvar list) =
       let val (specInst, specInstTvs) = TU.instantiatePoly specty
        in (specInst, map TU.tyvarType specInstTvs)
       end
@@ -320,7 +320,7 @@ Here is the code for the VARexp case in expType (Elaborator/types/typecheck.sml)
 	      end)
 
 This uses ii2ty (passed as a parameter to the TypeCheckingFn, but uniquely
-defined to be InstantiateParam.ii2ty in Semant/types/typecheck.sml) to extract 
+defined to be InstantiateParam.ii2ty in Semant/types/typecheck.sml) to extract
 a type from the info field, if possible (i.e. when the VALvar is associated
 with a primop).
 
@@ -339,7 +339,7 @@ Primitive Types
 
   CorePrimTycNum (ElabData/basics/core-ptnum.sml)
       core prim-type numbers (essentially the same as Elaborator/basics/ptnum.sml
-      except only language-standard types are included) 
+      except only language-standard types are included)
       see: Elaborator/basics/ptnum.sml
       defs: CORE_PRIM_TYC_NUM, CorePrimTycNum
 
@@ -362,10 +362,10 @@ Primitive Types
       defs: BasicTypes
 
   PrimEnv: PRIM_ENV (Semant/statenv/prim.sml)
-      define static env primEnv, containing module bindings for 
-      primitive types (PrimTypes), primops (InLine), and unrolled
+      define static env primEnv, containing module bindings for
+      primitive types (PrimTypes), primops (Inline), and unrolled
       lists (UnrolledList)
-      defs: PRIM_ENV, PrimEnv: PRIM_ENV  
+      defs: PRIM_ENV, PrimEnv: PRIM_ENV
 
 
 Primops
@@ -376,10 +376,10 @@ Primops
       PrimOp imports CTypes, which are defined in MLRISC! (MLRISC/c-calls/ctype.sml)
 
   PrimEnv (Semant/statenv/prim.sml)
-      builds InLine structure, containing bindings to primops
+      builds Inline structure, containing bindings to primops
       this is where all primops are actually created and initially bound
       to identifiers. They will be rebound later in InLineT (below), and
-      then again in the Basis module definitions. What role does the 
+      then again in the Basis module definitions. What role does the
       intermediate InLineT play?
 
       Matthias revised this to assign accurate (final?) types to the
@@ -392,7 +392,7 @@ Inline Info
 
   II  (ElabData/basics/ii.sml)
       FLINT related information for inlining (why is this in elaborator?)
-      datatype ii used for "inline info".  Actual atomic inline info 
+      datatype ii used for "inline info".  Actual atomic inline info
       represented here by type exn (a hack to delay referencing the actual
       inline info representation defined in
       defs: II
@@ -403,7 +403,7 @@ Inline Info
       E to package primop-type pairs into the II.ii datatype.
       defs: INL_INFO, InlInfo: INL_INFO
 
-  [II has been folded into InlInfo, and the code of InlInfo has been 
+  [II has been folded into InlInfo, and the code of InlInfo has been
    simplified, eliminating the exn hack. Interface function names have
    bin changed (e.g. pureInfo => isPrimCast). ii2ty has been added with
    new name primopTy (moved from InstantiateParam).]
@@ -438,7 +438,7 @@ let
    nty = Y array -> int  (generic inst. of v.typ, Y a fresh type metavar)
 
    unify (sty, nty) ==>  X |-> Y array
- 
+
    After type generalization of the val binding:
    boundtvs = [Y]  (in VB)
    insts = [X]     (in VARexp)
@@ -482,7 +482,7 @@ If the SGC is true, then the "restore" function in Translate.mkPE is
 unnecessary, as the metavariables in question will only be used once.
 
 The SGC has been tested experimentally by removing the call of restore
-in mkPE, and bootstrapping the compiler.  The runtime check in mkPE 
+in mkPE, and bootstrapping the compiler.  The runtime check in mkPE
 that tests for previously used generalized metavariables was not
 triggered.
 
@@ -577,7 +577,7 @@ also used for ordinary user defined constructors?  Similarly for CONpat.
 ----------------------------------------------------------------------
 
 10. In ltykernel.sml (lty.sml), the datatype rflag only has one variant,
-and therefore doesn't seem to convey any useful information.  Was this 
+and therefore doesn't seem to convey any useful information.  Was this
 introduced to make some useful distinction in the future, but this
 distinction was never used or implemented?  Can we get rid of this
 useless flag?
@@ -588,7 +588,7 @@ relation because there are both rules:
 BOX <: MONO
 MONO <: BOX
 
-Is there is reason why we are not just using equality for now? Do we 
+Is there is reason why we are not just using equality for now? Do we
 really need a subkinding relation?  Or was this complication introduced
 in anticipation of some more refined analysis that never got implemented?
 
@@ -607,7 +607,7 @@ LtyExtern.
 13. In translate.sml, mkVar is calling mkAccInfo, which just drops the
  prim!!!
 
-  fun mkVar (v as V.VALvar{access, prim, typ, path}, d) = 
+  fun mkVar (v as V.VALvar{access, prim, typ, path}, d) =
 	mkAccInfo(access, prim, fn () => toLty d (!typ), getNameOp path)
     | mkVar _ = bug "unexpected vars in mkVar"
 

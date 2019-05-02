@@ -59,7 +59,7 @@ into the tyvars that they contain, stripping off VARtys and following
 instantiations.  Note that instantiatePoly returns a list of type
 _expressions_ (VARty's) as its second result.
 
-    fun eqvTnspTy (specty: ty, actualty: ty) : (ty * tyvar list) = 
+    fun eqvTnspTy (specty: ty, actualty: ty) : (ty * tyvar list) =
       let val actualty = TU.prune actualty
 	  val (actInst, actInstTvs) = TU.instantiatePoly actualty
 	  val (specInst, specInstTvs) = TU.instantiatePoly specty
@@ -118,7 +118,7 @@ i.e. eqvTnspTy could simply be replaced by TU.instantiatePoly applied to specty,
 with tyvarType then mapped over the resulting specInstTvs. The simplified
 version of eqvTnspTy would be
 
-    fun eqvTnspTy (specty: ty) : (ty * tyvar list) = 
+    fun eqvTnspTy (specty: ty) : (ty * tyvar list) =
       let val (specInst, specInstTvs) = TU.instantiatePoly specty
        in (specInst, map TU.tyvarType specInstTvs)
       end
@@ -185,7 +185,7 @@ Here is the code for the VARexp case in expType (Elaborator/types/typecheck.sml)
 	      end)
 
 This uses ii2ty (passed as a parameter to the TypeCheckingFn, but uniquely
-defined to be InlInfo.pureInfo in Semant/types/typecheck.sml) to extract 
+defined to be InlInfo.pureInfo in Semant/types/typecheck.sml) to extract
 a type from the info field, if possible (i.e. when the VALvar is associated
 with a primop).
 
@@ -201,13 +201,13 @@ What is the ultimate consumer of the boundtv field?
 Relevant Files
 
   Semant/statenv/prim.sml
-      define static env primEnv, containing primitive types (PrimTypes), 
-      primops (InLine), and unrolled lists (UnrolledList)
-      defs: PRIM_ENV, PrimEnv: PRIM_ENV  
+      define static env primEnv, containing primitive types (PrimTypes),
+      primops (Inline), and unrolled lists (UnrolledList)
+      defs: PRIM_ENV, PrimEnv: PRIM_ENV
 
   ElabData/basics/core-ptnum.sml
       core prim-type numbers (essentially the same as Elaborator/basics/ptnum.sml
-      except only language-standard types are included) 
+      except only language-standard types are included)
       see: Elaborator/basics/ptnum.sml
       defs: CORE_PRIM_TYC_NUM, CorePrimTycNum
 
