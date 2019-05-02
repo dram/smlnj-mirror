@@ -1,5 +1,5 @@
 :version: 110.86
-:date: May 16, 2018
+:date: May 2, 2019
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
