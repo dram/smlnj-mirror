@@ -93,6 +93,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.85; 2019/05/02
+
+//--------------------------------------------------------------------
+[2019/05/01]::
++
+Added `word8vector` and `chararray` to the primitive types that
+the compiler knows about.  These will be used in the rewriting
+of the `InlineT` structure.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/05/01]::
 +
