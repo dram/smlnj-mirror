@@ -138,7 +138,7 @@ structure PrimEnv : PRIM_ENV =
    **************************************************************************)
 
   (* We generate unique numbers for each primop, and bind them as components
-  of a structure InLine, with the generic type all = (All 'a).'a. The primop
+  of a structure Inline, with the generic type all = (All 'a).'a. The primop
   intrinsic types will be specified in a separate table used in the translate
   phase (and FLINT?).
   *)
@@ -188,7 +188,7 @@ structure PrimEnv : PRIM_ENV =
 		end
 	  val (allElements, primList) = List.foldri mkVarElement ([], []) PrimopBindings.prims
 	  val sigrec = {
-		  stamp=ST.special "InLineSig",
+		  stamp=ST.special "InlineSig",
 		  name=NONE, closed=true,
 		  fctflag=false,
 		  elements=allElements,
@@ -200,21 +200,21 @@ structure PrimEnv : PRIM_ENV =
 	    M.STR{
 		sign = M.SIG sigrec,
 		rlzn = {
-		    stamp=ST.special "InLineStr",
+		    stamp=ST.special "InlineStr",
 		    stub=NONE,
 		    entities=EE.empty,
 		    properties = PropList.newHolder (),  (* dbm: ??? *)
-		    rpath=IP.IPATH[S.strSymbol "InLine"]
+		    rpath=IP.IPATH[S.strSymbol "InLine"]	(* FIXME: rename to "Inline" *)
 		  },
 		access = A.nullAcc,
 		prim = primList
 	      }
 	  end
 
-  (* priming structures: PrimTypes and InLine *)
+  (* priming structures: PrimTypes and Inline *)
     val nameofPT = S.strSymbol "PrimTypes"
     val nameofUL = S.strSymbol "UnrolledList"
-    val nameofIL = S.strSymbol "InLine"
+    val nameofIL = S.strSymbol "InLine"	(* FIXME: rename to "Inline" *)
 
     val primEnv =
 	  SE.bind(nameofIL,B.STRbind inLine,
