@@ -6,9 +6,10 @@
  * Built-in math functions where there is hardware support for sqrt.
  *)
 
+(* REAL32: FIXME *)
 structure MathInlineT =
   struct
 
-    val sqrt : real -> real = InLine.f64sqrt
+    val sqrt : real -> real = InLine.real64_sqrt
 
   end

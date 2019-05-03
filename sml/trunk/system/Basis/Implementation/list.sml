@@ -20,13 +20,18 @@
 structure List : LIST =
   struct
 
-    val op +  = InlineT.DfltInt.+
-    val op -  = InlineT.DfltInt.-
-    val op <  = InlineT.DfltInt.<
-    val op <= = InlineT.DfltInt.<=
-    val op >  = InlineT.DfltInt.>
-    val op >= = InlineT.DfltInt.>=
+    val op +  = InlineT.Int.+
+    val op -  = InlineT.Int.-
+    val op <  = InlineT.Int.<
+    val op <= = InlineT.Int.<=
+    val op >  = InlineT.Int.>
+    val op >= = InlineT.Int.>=
 (*    val op =  = InlineT.= *)
+
+  (* fast add/subtract avoiding the overflow test *)
+    infix 6 -- ++
+    fun x -- y = InlineT.Int.fast_sub(x, y)
+    fun x ++ y = InlineT.Int.fast_add(x, y)
 
     datatype list = datatype list
 
@@ -57,10 +62,10 @@ structure List : LIST =
     fun getItem [] = NONE
       | getItem (x::r) = SOME(x, r)
 
-    fun nth (l,n) = let
+    fun nth (l, n) = let
           fun loop ((e::_),0) = e
             | loop ([],_) = raise Subscript
-            | loop ((_::t),n) = loop(t,n-1)
+            | loop ((_::t),n) = loop(t, n -- 1)
           in
             if n >= 0 then loop (l,n) else raise Subscript
           end
@@ -68,7 +73,7 @@ structure List : LIST =
     fun take (l, n) = let
           fun loop (l, 0) = []
             | loop ([], _) = raise Subscript
-            | loop ((x::t), n) = x :: loop (t, n-1)
+            | loop ((x::t), n) = x :: loop (t, n -- 1)
           in
             if n >= 0 then loop (l, n) else raise Subscript
           end
@@ -76,7 +81,7 @@ structure List : LIST =
     fun drop (l, n) = let
           fun loop (l,0) = l
             | loop ([],_) = raise Subscript
-            | loop ((_::t),n) = loop(t,n-1)
+            | loop ((_::t),n) = loop(t, n -- 1)
           in
             if n >= 0 then loop (l,n) else raise Subscript
           end
@@ -99,32 +104,32 @@ structure List : LIST =
 
     fun filter pred [] = []
       | filter pred (a::rest) = if pred a
-	  then a::(filter pred rest) 
+	  then a::(filter pred rest)
 	  else (filter pred rest)
 
     fun partition pred l = let
           fun loop ([],trueList,falseList) = (rev' trueList, rev' falseList)
-            | loop (h::t,trueList,falseList) = 
+            | loop (h::t,trueList,falseList) =
                 if pred h then loop(t, h::trueList, falseList)
                 else loop(t, trueList, h::falseList)
           in
 	    loop (l,[],[])
 	  end
 
-    fun exists pred = let 
+    fun exists pred = let
           fun f [] = false
             | f (h::t) = pred h orelse f t
           in f end
-    fun all pred = let 
+    fun all pred = let
           fun f [] = true
             | f (h::t) = pred h andalso f t
           in f end
 
-    fun tabulate (len, genfn) = 
+    fun tabulate (len, genfn) =
           if len < 0 then raise Size
           else let
             fun loop n = if n = len then []
-                         else (genfn n)::(loop(n+1))
+                         else (genfn n)::(loop(n ++ 1))
             in loop 0 end
 
     fun collate compare = let
@@ -156,14 +161,14 @@ structure List : LIST =
 
     fun appi f l = let
 	  fun appf (_, []) = ()
-	    | appf (i, x::xs) = (f(i, x); appf(i+1, xs))
+	    | appf (i, x::xs) = (f(i, x); appf(i ++ 1, xs))
 	  in
 	    appf (0, l)
 	  end
 
     fun mapi f l = let
 	  fun mapf (_, []) = []
-	    | mapf (i, x::xs) = (f(i, x) :: mapf(i+1, xs))
+	    | mapf (i, x::xs) = (f(i, x) :: mapf(i ++ 1, xs))
 	  in
 	    mapf (0, l)
 	  end
@@ -171,8 +176,8 @@ structure List : LIST =
     fun mapPartiali pred l = let
           fun mapp (_, [], l) = rev' l
             | mapp (i, x::r, l) = (case pred(i, x)
-                 of SOME y => mapp(i+1, r, y::l)
-                  | NONE => mapp(i+1, r, l)
+                 of SOME y => mapp(i ++ 1, r, y::l)
+                  | NONE => mapp(i ++ 1, r, l)
                 (* end case *))
           in
             mapp (0, l, [])
@@ -180,21 +185,21 @@ structure List : LIST =
 
     fun foldli f init l = let
           fun lp (_, [], acc) = acc
-	    | lp (i, x::xs, acc) = lp (i+1, xs, f(i, x, acc))
+	    | lp (i, x::xs, acc) = lp (i ++ 1, xs, f(i, x, acc))
 	  in
 	    lp (0, l, init)
 	  end
 
     fun foldri f init l = let
           fun lp (_, []) = init
-	    | lp (i, x::xs) = f (i, x, lp (i+1, xs))
+	    | lp (i, x::xs) = f (i, x, lp (i ++ 1, xs))
 	  in
 	    lp (0, l)
 	  end
 
     fun findi f l = let
 	  fun lp (_, []) = NONE
-	    | lp (i, x::xs) = if (f(i, x)) then SOME(i, x) else lp(i+1, xs)
+	    | lp (i, x::xs) = if (f(i, x)) then SOME(i, x) else lp(i ++ 1, xs)
 	  in
 	    lp (0, l)
 	  end
@@ -206,7 +211,7 @@ structure List : LIST =
 	    mapf (l, [])
 	  end
     fun revMapi f l = let
-	  fun mapf (i, x::xs, ys) = mapf (i+1, xs, f(i, x) :: ys)
+	  fun mapf (i, x::xs, ys) = mapf (i ++ 1, xs, f(i, x) :: ys)
 	    | mapf (_, [], ys) = ys
 	  in
 	    mapf (0, l, [])
@@ -224,8 +229,8 @@ structure List : LIST =
     fun revMapPartiali pred l = let
           fun mapp (_, [], l) = l
             | mapp (i, x::r, l) = (case pred(i, x)
-                 of SOME y => mapp(i+1, r, y::l)
-                  | NONE => mapp(i+1, r, l)
+                 of SOME y => mapp(i ++ 1, r, y::l)
+                  | NONE => mapp(i ++ 1, r, l)
                 (* end case *))
           in
             mapp (0, l, [])
@@ -239,7 +244,7 @@ structure List : LIST =
 	  end
     fun concatMapi f l = let
 	  fun mapf (_, [], l) = rev' l
-	    | mapf (i, x::r, l) = mapf (i+1, r, revAppend'(f(i, x), l))
+	    | mapf (i, x::r, l) = mapf (i ++ 1, r, revAppend'(f(i, x), l))
 	  in
 	    mapf (0, l, [])
 	  end
@@ -257,20 +262,19 @@ structure List : LIST =
     fun splitAt (l, n) = let
           fun loop (0, xs, prefix) = (rev' prefix, xs)
             | loop (_, [], _) = raise Subscript
-            | loop (n, x::xs, prefix) = loop (n-1, xs, x::prefix)
+            | loop (i, x::xs, prefix) = loop (i -- 1, xs, x::prefix)
           in
             if n >= 0 then loop (n, l, []) else raise Subscript
           end
 
-    fun update (l, i, y) = let
+    fun update (l, n, y) = let
 	  fun upd (0, x::xs, prefix) = revAppend'(prefix, y::xs)
 	    | upd (_, [], _) = raise Subscript
-	    | upd (i, x::xs, prefix) = upd (i-1, xs, x::prefix)
+	    | upd (i, x::xs, prefix) = upd (i -- 1, xs, x::prefix)
 	  in
-	    if (i < 0) then raise Subscript else upd(i, l, [])
+	    if (n < 0) then raise Subscript else upd(n, l, [])
 	  end
 
     val sub = nth
 
   end (* structure List *)
-

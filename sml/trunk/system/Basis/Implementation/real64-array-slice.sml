@@ -23,11 +23,8 @@ structure Real64ArraySlice : MONO_ARRAY_SLICE
 
   (* fast add/subtract avoiding the overflow test *)
     infix 6 -- ++
-(* 64BIT: FIXME *)
-    fun x -- y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x -
-					     InlineT.Word31.copyf_int31 y)
-    fun x ++ y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x +
-					     InlineT.Word31.copyf_int31 y)
+    fun x -- y = InlineT.Int.fast_sub(x, y)
+    fun x ++ y = InlineT.Int.fast_add(x, y)
 
   (* unchecked array/vector access functions *)
     val usub = InlineT.Real64Array.sub
@@ -46,12 +43,12 @@ structure Real64ArraySlice : MONO_ARRAY_SLICE
 
     fun sub (SL(base, start, len), i) =
 	(* check that 0 <= i < len *)
-	  if InlineT.DfltInt.geu(i, len)
+	  if InlineT.Int.geu(i, len)
 	    then raise Subscript
 	    else usub (base, start ++ i)
 
     fun update (SL(base, start, len), i, x) =
-	  if InlineT.DfltInt.geu(i, len)
+	  if InlineT.Int.geu(i, len)
 	    then raise Subscript
 	    else uupd (base, start ++ i, x)
 
@@ -65,11 +62,11 @@ structure Real64ArraySlice : MONO_ARRAY_SLICE
     fun slice (arr, start, olen) = let
 	  val al = alength arr
 	(* check that 0 <= start <= length arr *)
-	  val _ = if InlineT.DfltInt.ltu(al, start) then raise Subscript else ()
+	  val _ = if InlineT.Int.ltu(al, start) then raise Subscript else ()
 	  val avail = al -- start
 	  val len = (case olen
 		 of NONE => avail
-		  | SOME n => if InlineT.DfltInt.ltu(avail, n) (* check: 0 <= n <= avail *)
+		  | SOME n => if InlineT.Int.ltu(avail, n) (* check: 0 <= n <= avail *)
 		      then raise Subscript
 		      else n
 		(* end case *))
@@ -79,12 +76,12 @@ structure Real64ArraySlice : MONO_ARRAY_SLICE
 
     fun subslice (SL(base, start, len), i, olen) = let
 	(* check that 0 <= i <= len *)
-	  val _ = if InlineT.DfltInt.ltu(len, i) then raise Subscript else ()
+	  val _ = if InlineT.Int.ltu(len, i) then raise Subscript else ()
 	  val start' = start ++ i
 	  val avail = len -- i
 	  val len' = (case olen
 		 of NONE => avail
-		  | SOME n => if InlineT.DfltInt.ltu(avail, n) (* check: 0 <= n <= avail *)
+		  | SOME n => if InlineT.Int.ltu(avail, n) (* check: 0 <= n <= avail *)
 		      then raise Subscript
 		      else n
 		(* end case *))
@@ -306,7 +303,7 @@ structure Real64ArraySlice : MONO_ARRAY_SLICE
 	  (SL(base, start, 0), slice)
       | splitAt (SL(base, start, len), i) = let
 	(* check that 0 <= i <= len *)
-	  val _ = if InlineT.DfltInt.ltu(len, i) then raise Subscript else ()
+	  val _ = if InlineT.Int.ltu(len, i) then raise Subscript else ()
 	  in
 	    (SL(base, start, i), SL(base, start ++ i, len -- i))
 	  end

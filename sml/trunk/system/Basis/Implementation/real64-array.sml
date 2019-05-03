@@ -9,11 +9,8 @@ structure Real64Array : MONO_ARRAY =
 
     (* fast add/subtract avoiding the overflow test *)
     infix -- ++
-(* 64BIT: FIXME *)
-    fun x -- y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x -
-					     InlineT.Word31.copyf_int31 y)
-    fun x ++ y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x +
-					     InlineT.Word31.copyf_int31 y)
+    fun x -- y = InlineT.Int.fast_sub(x, y)
+    fun x ++ y = InlineT.Int.fast_add(x, y)
 
 
   (* unchecked access operations *)
@@ -30,7 +27,7 @@ structure Real64Array : MONO_ARRAY =
     val maxLen = Core.max_length
 
     fun array (0, _) = InlineT.Real64Array.newArray0()
-      | array (len, v) = if (InlineT.DfltInt.ltu(maxLen, len))
+      | array (len, v) = if (InlineT.Int.ltu(maxLen, len))
 	    then raise General.Size
 	    else let
 	      val arr = Assembly.A.create_r len
@@ -42,7 +39,7 @@ structure Real64Array : MONO_ARRAY =
 	      end
 
     fun tabulate (0, _) = InlineT.Real64Array.newArray0()
-      | tabulate (len, f) = if (InlineT.DfltInt.ltu(maxLen, len))
+      | tabulate (len, f) = if (InlineT.Int.ltu(maxLen, len))
 	    then raise General.Size
 	    else let
 	      val arr = Assembly.A.create_r len
@@ -199,7 +196,7 @@ structure Real64Array : MONO_ARRAY =
     fun collate c (a1, a2) = let
 	val l1 = length a1
 	val l2 = length a2
-	val l12 = InlineT.Int31.min (l1, l2)
+	val l12 = InlineT.Int.min (l1, l2)
 	fun col i =
 	    if i >= l12 then IntImp.compare (l1, l2)
 	    else case c (usub (a1, i), usub (a2, i)) of

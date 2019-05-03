@@ -14,13 +14,12 @@ structure Word8Buffer :> MONO_BUFFER
 
     structure A = InlineT.Word8Array
     structure V = InlineT.Word8Vector
-    structure W31 = InlineT.Word31		(* 64BIT: FIXME *)
+    structure Word = InlineT.Word
 
   (* fast add/subtract avoiding the overflow test *)
     infix 6 -- ++
-(* 64BIT: FIXME *)
-    fun x -- y = W31.copyt_int31 (W31.copyf_int31 x - W31.copyf_int31 y)
-    fun x ++ y = W31.copyt_int31 (W31.copyf_int31 x + W31.copyf_int31 y)
+    fun x -- y = InlineT.Int.fast_sub(x, y)
+    fun x ++ y = InlineT.Int.fast_add(x, y)
 
     type elem = Word8.word
 
@@ -71,7 +70,7 @@ structure Word8Buffer :> MONO_BUFFER
 	  end
 
     fun copy {src=BUF{content=ref src, len=ref n, ...}, dst, di} =
-	  if (0 <= di) andalso W31.<(W31.fromInt(di ++ n), W31.fromInt(A.length dst))
+	  if (0 <= di) andalso Word.<(Word.fromInt(di ++ n), Word.fromInt(A.length dst))
 	    then let
 	      fun cpy (di, si) = if (si < n)
 		    then (A.update(dst, di, A.sub(src, si)); cpy (di ++ 1, si ++ 1))
@@ -84,7 +83,7 @@ structure Word8Buffer :> MONO_BUFFER
     fun length (BUF{len=ref n, ...}) = n
 
     fun sub (BUF{content=ref arr, len=ref n, ...}, i) =
-          if W31.<(W31.fromInt i, W31.fromInt n)
+          if Word.<(Word.fromInt i, Word.fromInt n)
             then raise Subscript
             else A.sub(arr, i)
 

@@ -8,45 +8,45 @@ structure Word8Imp : WORD =
   struct
 
     structure W8 = InlineT.Word8
-    structure W31 = InlineT.Word31	(* 64BIT: FIXME *)
+    structure Word = InlineT.Word
     structure LW = Word32Imp
 
-    type word = Word8.word		(* 31 bits *)
+    type word = Word8.word		(* tagged word *)
 
     val wordSize = 8
     val wordSizeW = 0w8
-    val wordShift = InlineT.Word31.-(0w31, wordSizeW)
+    val wordShift = InlineT.Word.-(0w31, wordSizeW)
     fun adapt oper args = W8.andb(oper args, 0wxFF)
 
     val toInt   : word -> int = W8.toInt
     val toIntX  : word -> int = W8.toIntX
     val fromInt : int -> word = W8.fromInt
 
-    val toLarge : word -> LargeWord.word = W8.toLargeWord
-    val toLargeX = W8.toLargeWordX
-    val fromLarge = W8.fromLargeWord
+    val toLarge : word -> LargeWord.word = W8.toLarge
+    val toLargeX = W8.toLargeX
+    val fromLarge = W8.fromLarge
 
   (* same as above, but deprecated *)
     val toLargeWord = toLarge
     val toLargeWordX = toLargeX
     val fromLargeWord = fromLarge
 
-    val toLargeInt  : word -> LargeInt.int = LW.toLargeInt o toLargeWord
+    val toLargeInt  : word -> LargeInt.int = LW.toLargeInt o toLarge
     val toLargeIntX : word -> LargeInt.int = W8.toLargeIntX
     val fromLargeInt: LargeInt.int -> word = W8.fromLargeInt
 
 
   (** These should be inline functions **)
-    fun << (w : word, k) = if (InlineT.DfltWord.<=(wordSizeW, k))
+    fun << (w : word, k) = if (Word.<=(wordSizeW, k))
 	  then 0w0
 	  else adapt W8.lshift (w, k)
-    fun >> (w : word, k) = if (InlineT.DfltWord.<=(wordSizeW, k))
+    fun >> (w : word, k) = if (Word.<=(wordSizeW, k))
 	  then 0w0
 	  else W8.rshiftl(w, k)
-    fun ~>> (w : word, k) = if (InlineT.DfltWord.<=(wordSizeW, k))
+    fun ~>> (w : word, k) = if (Word.<=(wordSizeW, k))
 	  then adapt W8.rshift (W8.lshift(w, wordShift), 0w31)
 	  else adapt W8.rshift
-	    (W8.lshift(w, wordShift), InlineT.DfltWord.+(wordShift, k))
+	    (W8.lshift(w, wordShift), Word.+(wordShift, k))
 
     val orb  : word * word -> word = W8.orb
     val xorb : word * word -> word = W8.xorb

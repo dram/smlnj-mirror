@@ -1,6 +1,7 @@
 (* pre-basis.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This contains definitions of various Basis types that are
  * abstract but need to be concrete to the basis implementation.
@@ -12,9 +13,9 @@ structure PreBasis =
   struct
 
     local
-      val op - = InlineT.DfltInt.-
-      val op + = InlineT.DfltInt.+
-      val op < = InlineT.DfltInt.<
+      val op - = InlineT.Int.-
+      val op + = InlineT.Int.+
+      val op < = InlineT.Int.<
     in
 
 
@@ -23,7 +24,7 @@ structure PreBasis =
    * representation.
    *)
     open Time
-    
+
 
   (***************************************************************************
    * These definitions are part of the StringCvt structure, but are defined here
@@ -32,7 +33,7 @@ structure PreBasis =
 
     fun scanString scanFn s = let
 	  val n = InlineT.CharVector.length s
-	  fun getc i = 
+	  fun getc i =
 	    if (i < n) then SOME(InlineT.CharVector.sub(s, i), i+1) else NONE
 	  in
 	    case (scanFn getc 0)
@@ -70,6 +71,5 @@ structure PreBasis =
 	  end
 
     end (* local *)
-  end;
 
-
+  end

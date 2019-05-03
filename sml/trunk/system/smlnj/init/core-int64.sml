@@ -14,28 +14,28 @@ structure CoreInt64 =
     local
       structure CII = CoreIntInf
 
-      infix o       val op o = InLine.compose
-      infix 7 *     val op * = InLine.w32mul
-      infix 6 + -   val op + = InLine.w32add     val op - = InLine.w32sub
-      infix 5 << >> val op << = InLine.w32lshift val op >> = InLine.w32rshiftl
-      infix 5 ++    val op ++ = InLine.w32orb
-      infix 5 &     val op & = InLine.w32andb
-      infix 4 <     val op < = InLine.w32lt
-      infix 4 <=    val op <= = InLine.w32le
-      infix 4 >     val op > = InLine.w32gt
-      infix 4 >=    val op >= = InLine.w32ge
-      infix 4 <>    val op <> = InLine.w32ne
-      infix 4 ==    val op == = InLine.w32eq
-      val not = InLine.inlnot
+      infix o       val op o = InLine.inl_compose
+      infix 7 *     val op * = InLine.word32_mul
+      infix 6 + -   val op + = InLine.word32_add     val op - = InLine.word32_sub
+      infix 5 << >> val op << = InLine.word32_lshift val op >> = InLine.word32_rshiftl
+      infix 5 ++    val op ++ = InLine.word32_orb
+      infix 5 &     val op & = InLine.word32_andb
+      infix 4 <     val op < = InLine.word32_lt
+      infix 4 <=    val op <= = InLine.word32_le
+      infix 4 >     val op > = InLine.word32_gt
+      infix 4 >=    val op >= = InLine.word32_ge
+      infix 4 <>    val op <> = InLine.word32_neq
+      infix 4 ==    val op == = InLine.word32_eql
+      val not = InLine.inl_not
 
-      fun lift1' f = f o InLine.i64p
-      fun lift1 f = InLine.p64i o lift1' f
-      fun lift2' f (x, y) = f (InLine.i64p x, InLine.i64p y)
-      fun lift2 f = InLine.p64i o lift2' f
+      fun lift1' f = f o InLine.int64_to_pair
+      fun lift1 f = InLine.int64_from_pair o lift1' f
+      fun lift2' f (x, y) = f (InLine.int64_to_pair x, InLine.int64_to_pair y)
+      fun lift2 f = InLine.int64_from_pair o lift2' f
 
       fun neg64 (0wx80000000, 0w0) = raise Assembly.Overflow
-	| neg64 (hi, 0w0) = (InLine.w32neg hi, 0w0)
-	| neg64 (hi, lo) = (InLine.w32notb hi, InLine.w32neg lo)
+	| neg64 (hi, 0w0) = (InLine.word32_neg hi, 0w0)
+	| neg64 (hi, lo) = (InLine.word32_notb hi, InLine.word32_neg lo)
 
       fun negbit hi = hi & 0wx80000000
       fun isneg hi = negbit hi <> 0w0
@@ -67,23 +67,23 @@ structure CoreInt64 =
      *)
 
     (* bitcast conversions between Int32.int and Word32.word *)
-      val w2i : word32 -> int32 = InLine.copy_32_32_wi
-      val i2w : int32 -> word32 = InLine.copy_32_32_iw
+      val w2i : word32 -> int32 = InLine.copy_word32_to_int32
+      val i2w : int32 -> word32 = InLine.copy_int32_to_word32
 
     (* bitwise equivalence '≡' *)
-      fun ^= (a, b) = InLine.w32notb(InLine.w32xorb(a, b))
+      fun ^= (a, b) = InLine.word32_notb(InLine.word32_xorb(a, b))
       infix 4 ^=
 
       fun add64 ((hi1, lo1), (hi2, lo2)) = let
 	    val lo = lo1 + lo2
 	  (* from "Hacker's Delight": c = ((lo1 & lo2) | ((lo1 | lo2) & ¬lo)) >> 31 *)
-	    val c = ((lo1 & lo2) ++ ((lo1 ++ lo2) & InLine.w32notb lo)) >> 0w31
+	    val c = ((lo1 & lo2) ++ ((lo1 ++ lo2) & InLine.word32_notb lo)) >> 0w31
 	    val hi1' = w2i hi1
 	    val hi2' = w2i hi2
 	  (* we need this test to get Overflow right in the edge cases *)
-	    val hi = if InLine.i32le(hi1', hi2')
-		  then i2w(InLine.i32add(InLine.i32add(hi1', w2i c), hi2'))
-		  else i2w(InLine.i32add(InLine.i32add(hi2', w2i c), hi1'))
+	    val hi = if InLine.int32_le(hi1', hi2')
+		  then i2w(InLine.int32_add(InLine.int32_add(hi1', w2i c), hi2'))
+		  else i2w(InLine.int32_add(InLine.int32_add(hi2', w2i c), hi1'))
 	    in
 	      (hi, lo)
 	    end
@@ -93,11 +93,11 @@ structure CoreInt64 =
 	    val hi1' = w2i hi1
 	    val hi2' = w2i hi2
 	  (* from "Hacker's Delight": b = ((¬lo1 & lo2) | ((lo1 ≡ lo2) & lo)) >> 31 *)
-	    val b = ((InLine.w32notb lo1 & lo2) ++ ((lo1 ^= lo2) & lo)) >> 0w31
+	    val b = ((InLine.word32_notb lo1 & lo2) ++ ((lo1 ^= lo2) & lo)) >> 0w31
 	  (* we need this test to get Overflow right in the edge cases *)
-	    val hi = if InLine.i32le(hi1', hi2')
-		  then i2w(InLine.i32sub(InLine.i32sub(hi1', hi2'), w2i b))
-		  else i2w(InLine.i32sub(InLine.i32sub(hi1', w2i b), hi2'))
+	    val hi = if InLine.int32_le(hi1', hi2')
+		  then i2w(InLine.int32_sub(InLine.int32_sub(hi1', hi2'), w2i b))
+		  else i2w(InLine.int32_sub(InLine.int32_sub(hi1', w2i b), hi2'))
 	    in
 	      (hi, lo)
 	    end
@@ -134,21 +134,22 @@ structure CoreInt64 =
       val ge64 = not o lt64
 *)
       fun lt64 ((hi1, lo1), (hi2, lo2)) =
-	    InLine.i32lt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 < lo2))
+	    InLine.int32_lt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 < lo2))
 
       fun le64 ((hi1, lo1), (hi2, lo2)) =
-	    InLine.i32lt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 <= lo2))
+	    InLine.int32_lt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 <= lo2))
 
       fun gt64 ((hi1, lo1), (hi2, lo2)) =
-	    InLine.i32gt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 > lo2))
+	    InLine.int32_gt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 > lo2))
 
       fun ge64 ((hi1, lo1), (hi2, lo2)) =
-	    InLine.i32gt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 >= lo2))
+	    InLine.int32_gt(w2i hi1, w2i hi2) orelse ((hi1 == hi2) andalso (lo1 >= lo2))
 
       fun abs64 (hi, lo) = if isneg hi then neg64 (hi, lo) else (hi, lo)
     in
-      val extern = InLine.i64p
-      val intern = InLine.p64i
+(* NOTE: these are also defined in InLineT.Int64; do we need both definitions? *)
+      val extern = InLine.int64_to_pair
+      val intern = InLine.int64_from_pair
 
       val ~ = lift1 neg64
       val op + = lift2 add64

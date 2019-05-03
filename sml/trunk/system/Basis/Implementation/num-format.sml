@@ -15,8 +15,9 @@ structure NumFormat : sig
 
   end = struct
 
+(* 64BIT: FIXME *)
     structure W = InlineT.Word32
-    structure I = InlineT.Int31
+    structure I = InlineT.Int
     structure I32 = InlineT.Int32
 
     val op < = W.<
@@ -88,6 +89,4 @@ structure NumFormat : sig
 	    (* end case *)
 	  end
 
-  end;
-
-
+  end

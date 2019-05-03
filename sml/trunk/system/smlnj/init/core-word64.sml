@@ -12,24 +12,24 @@ structure CoreWord64 =
   struct
 
     local
-      infix o val op o : ('b -> 'c) * ('a -> 'b) -> 'a -> 'c = InLine.compose
-      val not : bool -> bool = InLine.inlnot
-      infix 7 *     val op * : word32 * word32 -> word32 = InLine.w32mul
+      infix o val op o : ('b -> 'c) * ('a -> 'b) -> 'a -> 'c = InLine.inl_compose
+      val not : bool -> bool = InLine.inl_not
+      infix 7 *     val op * : word32 * word32 -> word32 = InLine.word32_mul
       infix 6 + -
-      val op + : word32 * word32 -> word32 = InLine.w32add
-      val op - : word32 * word32 -> word32 = InLine.w32sub
+      val op + : word32 * word32 -> word32 = InLine.word32_add
+      val op - : word32 * word32 -> word32 = InLine.word32_sub
       infix 5 << >>
-      val op << : word32 * word -> word32 = InLine.w32lshift
-      val op >> : word32 * word -> word32 = InLine.w32rshiftl
-      infix 5 ++    val op ++ = InLine.w32orb
-      infix 5 &     val op & : word32 * word32 -> word32 = InLine.w32andb
-      infix 4 <     val op < = InLine.w32lt
-      infix 4 <=    val op <= = InLine.w32le
-      infix 4 >     val op > = InLine.w32gt
-      infix 4 >=    val op >= = InLine.w32ge
+      val op << : word32 * word -> word32 = InLine.word32_lshift
+      val op >> : word32 * word -> word32 = InLine.word32_rshiftl
+      infix 5 ++    val op ++ = InLine.word32_orb
+      infix 5 &     val op & : word32 * word32 -> word32 = InLine.word32_andb
+      infix 4 <     val op < = InLine.word32_lt
+      infix 4 <=    val op <= = InLine.word32_le
+      infix 4 >     val op > = InLine.word32_gt
+      infix 4 >=    val op >= = InLine.word32_ge
 
-      val w64p : word64 -> word32 * word32 = InLine.w64p
-      val p64w : word32 * word32 -> word64 = InLine.p64w
+      val w64p : word64 -> word32 * word32 = InLine.word64_to_pair
+      val p64w : word32 * word32 -> word64 = InLine.word64_from_pair
 
       fun lift1' f = f o w64p
       fun lift1 f = p64w o lift1' f
@@ -38,8 +38,8 @@ structure CoreWord64 =
 
       fun split16 w32 = (w32 >> 0w16, w32 & 0wxffff)
 
-      fun neg64 (hi, 0w0) = (InLine.w32neg hi, 0w0)
-	| neg64 (hi, lo) = (InLine.w32notb hi, InLine.w32neg lo)
+      fun neg64 (hi, 0w0) = (InLine.word32_neg hi, 0w0)
+	| neg64 (hi, lo) = (InLine.word32_notb hi, InLine.word32_neg lo)
 
 (*
       fun add64 ((hi1, lo1), (hi2, lo2)) =
@@ -55,17 +55,17 @@ structure CoreWord64 =
      *)
 
     (* bitcast conversions between Int32.int and Word32.word *)
-      val w2i : word32 -> int32 = InLine.copy_32_32_wi
-      val i2w : int32 -> word32 = InLine.copy_32_32_iw
+      val w2i : word32 -> int32 = InLine.copy_word32_to_int32
+      val i2w : int32 -> word32 = InLine.copy_int32_to_word32
 
     (* bitwise equivalence '≡' *)
-      fun ^= (a, b) = InLine.w32notb(InLine.w32xorb(a, b))
+      fun ^= (a, b) = InLine.word32_notb(InLine.word32_xorb(a, b))
       infix 4 ^=
 
       fun add64 ((hi1, lo1), (hi2, lo2)) = let
 	    val lo = lo1 + lo2
 	  (* from "Hacker's Delight": c = ((lo1 & lo2) | ((lo1 | lo2) & ¬lo)) >> 31 *)
-	    val c = ((lo1 & lo2) ++ ((lo1 ++ lo2) & InLine.w32notb lo)) >> 0w31
+	    val c = ((lo1 & lo2) ++ ((lo1 ++ lo2) & InLine.word32_notb lo)) >> 0w31
 	    val hi = hi1 + hi2 + c
 	    in
 	      (hi, lo)
@@ -80,7 +80,7 @@ structure CoreWord64 =
       fun sub64 ((hi1, lo1), (hi2, lo2)) = let
 	    val lo = lo1 - lo2
 	  (* from "Hacker's Delight": b = ((¬lo1 & lo2) | ((lo1 ≡ lo2) & lo)) >> 31 *)
-	    val b = ((InLine.w32notb lo1 & lo2) ++ ((lo1 ^= lo2) & lo)) >> 0w31
+	    val b = ((InLine.word32_notb lo1 & lo2) ++ ((lo1 ^= lo2) & lo)) >> 0w31
 	    val hi = hi1 - hi2 - b
 	    in
 	      (hi, lo)
@@ -152,13 +152,13 @@ structure CoreWord64 =
       fun mod64 (x, y) = sub64 (x, mul64 (div64 (x, y), y))
 
       fun lt64 ((hi1, lo1), (hi2, lo2)) =
-	    (hi1 < hi2) orelse (InLine.w32eq (hi1, hi2) andalso lo1 < lo2)
+	    (hi1 < hi2) orelse (InLine.word32_eql (hi1, hi2) andalso lo1 < lo2)
       fun gt64 ((hi1, lo1), (hi2, lo2)) =
-            (hi1 > hi2) orelse (InLine.w32eq (hi1, hi2) andalso (lo1 > lo2))
+            (hi1 > hi2) orelse (InLine.word32_eql (hi1, hi2) andalso (lo1 > lo2))
       fun le64 ((hi1, lo1), (hi2, lo2)) =
-	    (hi1 < hi2) orelse (InLine.w32eq (hi1, hi2) andalso (lo1 <= lo2))
+	    (hi1 < hi2) orelse (InLine.word32_eql (hi1, hi2) andalso (lo1 <= lo2))
       fun ge64 ((hi1, lo1), (hi2, lo2)) =
-            (hi1 > hi2) orelse (InLine.w32eq (hi1, hi2) andalso (lo1 >= lo2))
+            (hi1 > hi2) orelse (InLine.word32_eql (hi1, hi2) andalso (lo1 >= lo2))
 
     in
     val extern = w64p

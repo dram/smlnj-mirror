@@ -15,9 +15,9 @@ structure Char : sig
 
     structure C = InlineT.Char
 
-    val op + = InlineT.DfltInt.+
-    val op - = InlineT.DfltInt.-
-    val op * = InlineT.DfltInt.*
+    val op + = InlineT.Int.+
+    val op - = InlineT.Int.-
+    val op * = InlineT.Int.*
 
     val itoc : int -> char = InlineT.cast
     val ctoi : char -> int = InlineT.cast
@@ -32,12 +32,12 @@ structure Char : sig
     fun pred (c : char) : char = let
 	  val c' = (ctoi c - 1)
 	  in
-	    if InlineT.DfltInt.< (c', 0) then raise General.Chr else (itoc c')
+	    if InlineT.Int.< (c', 0) then raise General.Chr else (itoc c')
 	  end
     fun succ (c : char) : char = let
 	  val c' = (ctoi c + 1)
 	  in
-	    if InlineT.DfltInt.< (maxOrd, c') then raise General.Chr else (itoc c')
+	    if InlineT.Int.< (maxOrd, c') then raise General.Chr else (itoc c')
 	  end
 
     val chr = C.chr
@@ -57,10 +57,10 @@ structure Char : sig
     local
       fun mkArray (s, sLen) = let
 	    val cv = Assembly.A.create_s(maxOrd+1)
-	    fun init i = if InlineT.DfltInt.<= (i, maxOrd)
+	    fun init i = if InlineT.Int.<= (i, maxOrd)
 		  then (InlineT.CharVector.update(cv, i, #"\000"); init(i+1))
 		  else ()
-	    fun ins i = if InlineT.DfltInt.< (i, sLen)
+	    fun ins i = if InlineT.Int.< (i, sLen)
 		  then (
 		    InlineT.CharVector.update (
 		      cv, ord(InlineT.CharVector.sub(s, i)), #"\001");
@@ -122,7 +122,7 @@ structure Char : sig
     fun inSet (c, s) = let
 	  val m = ord(InlineT.CharVector.sub(ctypeTbl, ord c))
 	  in
-	    (InlineT.DfltInt.andb(m, s) <> 0)
+	    (InlineT.Int.andb(m, s) <> 0)
 	  end
 
   (* predicates on integer coding of Ascii values *)
@@ -137,7 +137,7 @@ structure Char : sig
     fun isGraph c	= inSet(c, 0x17)
     fun isPrint c	= inSet(c, 0x97)
     fun isCntrl c	= inSet(c, 0x20)
-    fun isAscii c    	= InlineT.DfltInt.< (ord c, 128)
+    fun isAscii c    	= InlineT.Int.< (ord c, 128)
 
     val offset = ctoi #"a" - ctoi #"A"
     fun toUpper c = if (isLower c) then itoc(ctoi c - offset) else c
@@ -212,7 +212,7 @@ structure Char : sig
 				 	   then let
 				 	     val n = 100*(cvt d1) + 10*(cvt d2) + (cvt d3)
 				 	     in
-						if InlineT.DfltInt.<(n, 256)
+						if InlineT.Int.<(n, 256)
 						  then SOME(chr n, rep''')
 						  else NONE
 					      end
@@ -263,7 +263,7 @@ structure Char : sig
 	    else let
 	      val c' = ord c
 	      in
-		if InlineT.DfltInt.>(c', 32)
+		if InlineT.Int.>(c', 32)
 		  then PreString.concat2("\\", itoa c')
 		  else PreString.concat2("\\^",
 		    InlineT.PolyVector.sub (PreString.chars, c'+64))

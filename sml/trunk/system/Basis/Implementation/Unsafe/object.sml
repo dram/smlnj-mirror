@@ -1,6 +1,7 @@
 (* object.sml
  *
- * COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure Object :> UNSAFE_OBJECT =
@@ -99,7 +100,7 @@ structure Object :> UNSAFE_OBJECT =
 		    else raise Representation
 		end
 (* 64BIT: REAL32: FIXME -- this code assumes reals are two words!!! *)
-	    | Real => let val len = InlineT.Int31.rshift(InlineT.objlength obj, 1)
+	    | Real => let val len = InlineT.Int.rshift(InlineT.objlength obj, 0w1)
 		in
 		  if ((n < 0) orelse (len <= n))
 		    then raise Representation
@@ -124,7 +125,7 @@ structure Object :> UNSAFE_OBJECT =
 		  List.tabulate (InlineT.objlength obj, f)
 		end
 	    | Real => let
-		val len = InlineT.Int31.rshift(InlineT.objlength obj, 1)
+		val len = InlineT.Int.rshift(InlineT.objlength obj, 0w1)
 		fun f i = (InlineT.cast(InlineT.raw64Sub(obj, i)) : object)
 		in
 		  if (len = 1)

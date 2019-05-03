@@ -16,9 +16,7 @@ structure PackReal64Swap : PACK_REAL =
 
     (* fast add avoiding the overflow test *)
     infix ++
-(* 64BIT: FIXME *)
-    fun x ++ y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x +
-					     InlineT.Word31.copyf_int31 y)
+    fun x ++ y = InlineT.Int.fast_add(x, y)
 
     type real = Real64Imp.real
 

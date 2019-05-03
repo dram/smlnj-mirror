@@ -1,7 +1,7 @@
 (* word32.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure Word32Imp : WORD =
@@ -12,9 +12,9 @@ structure Word32Imp : WORD =
 
     val wordSize = 32
 
-    val toLarge   : word -> LargeWord.word = W32.toLargeWord
-    val toLargeX  : word -> LargeWord.word = W32.toLargeWordX
-    val fromLarge : LargeWord.word -> word = W32.fromLargeWord
+    val toLarge   : word -> LargeWord.word = W32.toLarge
+    val toLargeX  : word -> LargeWord.word = W32.toLargeX
+    val fromLarge : LargeWord.word -> word = W32.fromLarge
 
   (* same as above, but deprecated *)
     val toLargeWord = toLarge

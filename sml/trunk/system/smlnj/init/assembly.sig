@@ -20,7 +20,7 @@ signature ASSEMBLY =
     structure A :
       sig
         type c_function
-        eqtype word8array
+        type word8array = PrimTypes.word8array
         eqtype real64array
         type spin_lock
 
@@ -60,7 +60,7 @@ signature ASSEMBLYBOXED =
     structure A :
       sig
         type c_function
-        eqtype word8array
+        type word8array = PrimTypes.word8array
         eqtype real64array
         type spin_lock
 

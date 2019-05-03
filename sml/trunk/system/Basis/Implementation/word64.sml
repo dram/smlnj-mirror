@@ -168,7 +168,7 @@ structure Word64 : WORD = struct
     fun popCount w = let
 	  val (hi, lo) = extern w
 	  in
-	    InlineT.Int31.+(W32PopCount.popCount hi, W32PopCount.popCount lo)
+	    InlineT.Int.+(W32PopCount.popCount hi, W32PopCount.popCount lo)
 	  end
 
 end

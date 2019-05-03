@@ -9,16 +9,13 @@ structure StringImp : STRING =
 
   (* fast add/subtract avoiding the overflow test *)
     infix -- ++
-(* 64BIT: FIXME *)
-    fun x -- y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x -
-					     InlineT.Word31.copyf_int31 y)
-    fun x ++ y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x +
-					     InlineT.Word31.copyf_int31 y)
+    fun x -- y = InlineT.Int.fast_sub(x, y)
+    fun x ++ y = InlineT.Int.fast_add(x, y)
 
-    val op < = InlineT.DfltInt.<
-    val op <= = InlineT.DfltInt.<=
-    val op > = InlineT.DfltInt.>
-    val op >= = InlineT.DfltInt.>=
+    val op < = InlineT.Int.<
+    val op <= = InlineT.Int.<=
+    val op > = InlineT.Int.>
+    val op >= = InlineT.Int.>=
 (*    val op = = InlineT.= *)
     val unsafeSub = InlineT.CharVector.sub
     val unsafeUpdate = InlineT.CharVector.update
@@ -42,7 +39,7 @@ structure StringImp : STRING =
     val unsafeCreate = Assembly.A.create_s
 
   (* allocate an uninitialized string of given length *)
-    fun create n = if (InlineT.DfltInt.ltu(maxSize, n))
+    fun create n = if (InlineT.Int.ltu(maxSize, n))
 	  then raise General.Size
 	  else Assembly.A.create_s n
 
@@ -242,12 +239,12 @@ structure StringImp : STRING =
 
     fun fromCString s = let
 	  val len = size s
-	  fun getc i = if InlineT.DfltInt.<(i, len)
+	  fun getc i = if InlineT.Int.<(i, len)
 		then SOME(unsafeSub(s, i), i+1)
 		else NONE
 	  val scanChar = Char.scanC getc
 	  fun accum (i, chars) = (case (scanChar i)
-		 of NONE => if InlineT.DfltInt.<(i, len)
+		 of NONE => if InlineT.Int.<(i, len)
 		      then NONE (* bad format *)
 		      else SOME(implodeRev chars)
 		  | (SOME(c, i')) => accum(i', c::chars)

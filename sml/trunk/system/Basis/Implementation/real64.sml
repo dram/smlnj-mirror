@@ -6,7 +6,7 @@
 
 structure Real64Imp : REAL =
   struct
-    structure I = InlineT.DfltInt
+    structure I = InlineT.Int
 
     structure Math = Math64
 
@@ -23,10 +23,10 @@ structure Real64Imp : REAL =
     fun ?= (x, y) = (x == y) orelse unordered(x, y)
 
 (* 64BIT: FIXME *)
-    val w31_r = InlineT.Real64.from_int32 o InlineT.Int32.copy_word31
+    val w31_r = InlineT.Real64.from_int32 o InlineT.Word.toInt32
 
     val rbase = w31_r CoreIntInf.base
-    val baseBits = InlineT.Word31.copyt_int31 CoreIntInf.baseBits
+    val baseBits = InlineT.Word.toIntX CoreIntInf.baseBits
 
   (* maximum finite 64-bit real value *)
     val maxFinite = Real64Values.maxFinite
@@ -171,7 +171,7 @@ structure Real64Imp : REAL =
 
     fun fromLargeInt(x : IntInf.int) = let
 	val CoreIntInf.BI { negative, digits } = CoreIntInf.concrete x
-	val w2r = fromInt o InlineT.Word31.copyt_int31
+	val w2r = fromInt o InlineT.Word.toIntX
 	(* Looking at at most 3 "big digits" is always enough to
 	 * get 53 bits of precision...
 	 * (See insanity insurance above.)
@@ -292,7 +292,7 @@ structure Real64Imp : REAL =
 			     if x == 0.0 then []
 			     else
 				 let val { whole, frac } = split (x / rbase)
-				     val dig = InlineT.Word31.copyf_int31
+				     val dig = InlineT.Word.fromInt
 						   (Assembly.A.floor
 							(frac * rbase))
 				 in
@@ -306,7 +306,7 @@ structure Real64Imp : REAL =
 		     in
 			 (* Finally, we have to put the exponent back
 			  * into the picture: *)
-			 IntInfImp.<< (iman, InlineT.Word31.copyf_int31 exp)
+			 IntInfImp.<< (iman, InlineT.Word.fromInt exp)
 		     end
 	     end
 

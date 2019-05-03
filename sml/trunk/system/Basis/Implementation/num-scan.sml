@@ -38,14 +38,14 @@ structure NumScan : sig
     (* val z = InlineT.Word32.toLargeIntX *)
 
 (* 64BIT: FIXME *)
-    structure W = InlineT.Word31
-    structure W32 = InlineT.Word32
-    structure I = InlineT.Int31
-    structure I32 = InlineT.Int32
+    structure W = InlineT.Word
+    structure W32 = InlineT.Word32	(* 64BIT: FIXME *)
+    structure I = InlineT.Int
+    structure I32 = InlineT.Int32	(* 64BIT: FIXME *)
     structure R = InlineT.Real64
     type word32 = Word32.word
 
-    val toWord32 = W.toLargeWord
+    val toWord32 = W.toLarge		(* 64BIT: FIXME *)
 
     val op <  = W.<
     val op >= = W.>=
@@ -492,4 +492,4 @@ structure NumScan : sig
 	    (* end case *)
 	  end
 
-  end;
+  end

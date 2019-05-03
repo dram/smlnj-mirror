@@ -6,7 +6,7 @@
 structure Array2 :> ARRAY2 =
   struct
 
-    val ltu = InlineT.DfltInt.ltu
+    val ltu = InlineT.Int.ltu
     val unsafeUpdate = InlineT.PolyArray.update
     val unsafeSub = InlineT.PolyArray.sub
 

@@ -27,7 +27,7 @@ structure PackWord16Big : PACK_WORD =
     fun chkIndex (len, i) = let
 	  val len = Word.toIntX(Word.>>(Word.fromInt len, 0w1))
 	  in
-	    if (InlineT.DfltInt.ltu(i, len)) then () else raise Subscript
+	    if (InlineT.Int.ltu(i, len)) then () else raise Subscript
 	  end
 
     fun mkWord (b1, b2) =

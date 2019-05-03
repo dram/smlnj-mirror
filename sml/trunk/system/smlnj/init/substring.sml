@@ -21,14 +21,14 @@ structure Substring :> SUBSTRING
 
     open PrePervasive
 
-    structure W = InlineT.DfltWord
+    structure W = InlineT.Word
 
-    val op + = InlineT.DfltInt.+
-    val op - = InlineT.DfltInt.-
-    val op < = InlineT.DfltInt.<
-    val op <= = InlineT.DfltInt.<=
-    val op > = InlineT.DfltInt.>
-    val op >= = InlineT.DfltInt.>=
+    val op + = InlineT.Int.+
+    val op - = InlineT.Int.-
+    val op < = InlineT.Int.<
+    val op <= = InlineT.Int.<=
+    val op > = InlineT.Int.>
+    val op >= = InlineT.Int.>=
 (*    val op = = InlineT.= *)
     val unsafeSub = InlineT.CharVector.sub
     val stringSize = InlineT.CharVector.length
@@ -80,7 +80,7 @@ structure Substring :> SUBSTRING
 	  else SS(s, i, n-k)
 
     fun sub (SS(s, i, n), j) =
-	  if (InlineT.DfltInt.geu(j, n))
+	  if (InlineT.Int.geu(j, n))
 	    then raise Core.Subscript
 	    else unsafeSub(s, i+j)
     fun size (SS(_, _, n)) = n
@@ -146,7 +146,7 @@ structure Substring :> SUBSTRING
 	  PreString.collate cmpFn (s1, i1, n1, s2, i2, n2)
 
     fun splitAt (SS(s, i, n), k) =
-	  if (InlineT.DfltInt.ltu(n, k))
+	  if (InlineT.Int.ltu(n, k))
 	    then raise Core.Subscript
 	    else (SS(s, i, k), SS(s, i+k, n-k))
 

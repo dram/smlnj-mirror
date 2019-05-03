@@ -1,7 +1,7 @@
 (* string-cvt.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure StringCvt : STRING_CVT =
@@ -15,10 +15,10 @@ structure StringCvt : STRING_CVT =
       | GEN of int option
     type ('a, 'b) reader = 'b -> ('a * 'b) option
 
-    val op + = InlineT.DfltInt.+
-    val op - = InlineT.DfltInt.-
-    val op < = InlineT.DfltInt.<
-    val op > = InlineT.DfltInt.>
+    val op + = InlineT.Int.+
+    val op - = InlineT.Int.-
+    val op < = InlineT.Int.<
+    val op > = InlineT.Int.>
 
     local
       fun fillStr (c, s, i, n) = let

@@ -38,11 +38,13 @@ structure Int64 : INTEGER = struct
 	  | _ => raise Assembly.Overflow
 	end
 
-    fun fromInt i31 =
-	let val i32 = Int32Imp.fromInt i31
-	    val hi = if i32 < 0 then 0wxffffffff else 0w0
-	in intern (hi, InlineT.Word32.copyf_int32 i32)
-	end
+(* 64BITS: assumes size of tagged int *)
+    fun fromInt i31 = let
+	  val i32 = InlineT.Int32.fromInt i31
+	  val hi = if i32 < 0 then 0wxffffffff else 0w0
+	  in
+	    intern (hi, InlineT.Word32.fromInt32 i32)
+	  end
 
     fun quot (x, y) = fromLarge (IntInfImp.quot (toLarge x, toLarge y))
     fun rem (x, y) = x - quot (x, y) * y

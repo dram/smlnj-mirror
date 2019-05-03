@@ -7,9 +7,9 @@
  * functor with more efficient versions of these functions.
  *
  ***************************************************************************
- *                                                                         * 
+ *                                                                         *
  * Copyright (c) 1985 Regents of the University of California.             *
- *                                                                         * 
+ *                                                                         *
  * Use and reproduction of this software are granted  in  accordance  with *
  * the terms and conditions specified in  the  Berkeley  Software  License *
  * Agreement (in particular, this entails acknowledgement of the programs' *
@@ -31,7 +31,7 @@ structure Math64 : MATH =
 
     type real = real
 
-    infix 4 == 
+    infix 4 ==
     val op +  = InlineT.Real64.+
     val op -  = InlineT.Real64.-
     val op *  = InlineT.Real64.*
@@ -44,7 +44,7 @@ structure Math64 : MATH =
     val op == = InlineT.Real64.==
 
 
-    structure I = InlineT.DfltInt
+    structure I = InlineT.Int
     val lessu : int * int -> bool = I.ltu
 
     val pi = 3.14159265358979323846
@@ -61,22 +61,22 @@ structure Math64 : MATH =
   (* This function is IEEE double-precision specific;
      it works correctly on subnormal inputs and outputs;
      we do not apply it to inf's and nan's *)
-    fun scalb (x, k) = 
-	let val j = Assembly.A.logb x 
+    fun scalb (x, k) =
+	let val j = Assembly.A.logb x
             val k' = I.+(k,j)
          in if j = ~1023
             then scalb(x*two_to_the_54, I.-(k,54))        (*2*)
-            else if lessu(I.+(k',1022),2046)              
+            else if lessu(I.+(k',1022),2046)
 	         then Assembly.A.scalb(x,k)		  (*1*)
             else if I.<(k',0)
                  then if I.<(k',I.-(~1022,54))
 		      then 0.0                            (*3*)
-                      else scalb(x,I.+(k,54)) * 
+                      else scalb(x,I.+(k,54)) *
                                      two_to_the_minus_54  (*4*)
                  else x * plusInfinity                    (*5*)
         end
  (* Proof of correctness of scalb:      (Appel)
-     1. if x is normal and x*2^k is normal 
+     1. if x is normal and x*2^k is normal
            then case (*1*) applies, computes right answer
      2. if x is subnormal and x*2^k is normal
            then case (*2*) reduces problem to case 1.
@@ -88,8 +88,8 @@ structure Math64 : MATH =
      5. if x*2^k is supernormal (i.e. infinity)
            then case (*5*) computes right answer
 *)
-              
-          
+
+
 
 
 
@@ -111,7 +111,7 @@ structure Math64 : MATH =
 
 (** SHOULD BE INLINE OP **)
    (* may be applied to inf's and nan's
-      GETS MINUS-ZERO WRONG! 
+      GETS MINUS-ZERO WRONG!
     *)
     fun copysign(a,b) = (case (a<zero, b<zero)
 	   of (true,true) => a
@@ -191,7 +191,7 @@ end
 	    fun lessPI x = if x>PIo2 then lessPIo2(PI-x) else lessPIo2 x
 	    fun positive x = if x>PI then sin(x-PI2) (* exceedingly rare *)
 			             else lessPI x
-	 in if x>=0.0 
+	 in if x>=0.0
 		then positive x
 	        else ~(positive(~x))
 	end
@@ -209,7 +209,7 @@ in  fun exp__E(x:real,c:real) =
 	let val z = x*x
 	    val p = z*(p1+z*p2)
 	    val q = z*(q1+z*q2)
-	    val xp= x*p 
+	    val xp= x*p
 	    val xh= x*half
 	    val w = xh-(q-xp)
 	    val c = c+x*((xh*w-(q-(p+p+xp)))/(one-w)+c)
@@ -239,7 +239,7 @@ fun exp(x:real) =  (* propagates and generates inf's and nan's correctly *)
 		val z = z + exp__E(z,c)
 	    in  scalb(z+one,k)
 	    end
-    in	if x <= lnhuge 
+    in	if x <= lnhuge
 	     then if x >= lntiny
 		    then exp_norm x
 		    else zero
@@ -272,7 +272,7 @@ fun ln(x:real) =  (* handles inf's and nan's correctly *)
 	    val z = K*ln2lo+s*(t+log__L(s*s))
 	    val x = x + (z - t)
 	    in
-	      K*ln2hi+x 
+	      K*ln2hi+x
 	    end
 	  else x
 	else if (x == 0.0)
@@ -295,10 +295,10 @@ fun intpow(x,0) = 1.0
 
 (* SML/NJ doesn't properly handle negative zeros.
   Also, the copysign function works incorrectly on negative zero.
-  The code for "pow" below should work correctly when these other 
+  The code for "pow" below should work correctly when these other
   bugs are fixed.  A. Appel, 5/8/97 *)
 fun pow(x,y) = if y>0.0
-		 then if y<plusInfinity 
+		 then if y<plusInfinity
 		   then if x > minusInfinity
 			 then if x > 0.0
 				then exp(y*ln(x))
@@ -324,7 +324,7 @@ fun pow(x,y) = if y>0.0
 		   then if x > minusInfinity
 			then if x > 0.0
 		             then exp(y*ln(x))
-			     else if x==0.0 
+			     else if x==0.0
 			          then if isOddInt(y)
 		  		     then copysign(plusInfinity,x)
 			             else plusInfinity
@@ -375,11 +375,11 @@ local
     fun atanpy y = (* y>=0 *)
 	if y>one then PIo2 - atan(one/y) else atan(y)
 
-    fun atan2pypx(x,y) = 
+    fun atan2pypx(x,y) =
 	     if y>x then PIo2 - atan(x/y) else atan(y/x)
 
-    fun atan2py(x,y) = 
-           if x > 0.0 then atan2pypx(x,y) 
+    fun atan2py(x,y) =
+           if x > 0.0 then atan2pypx(x,y)
            else if x == 0.0 andalso y == 0.0 then 0.0
 	   else PI - atan2pypx(~x,y)
 
@@ -395,19 +395,19 @@ end
  fun asin x = atan2(x, sqrt(1.0-x*x))
  fun acos x = 2.0 * atan2(sqrt((1.0-x)/(1.0+x)),1.0)
 
- fun cosh u = let val a = exp u in if a==0.0 
+ fun cosh u = let val a = exp u in if a==0.0
                     then plusInfinity
-		    else 0.5 * (a + 1.0 / a) 
+		    else 0.5 * (a + 1.0 / a)
 	      end
- fun sinh u = let val a = exp u 
-	       in if a==0.0 
+ fun sinh u = let val a = exp u
+	       in if a==0.0
                     then copysign(plusInfinity,u)
-		    else 0.5 * (a - 1.0 / a) 
+		    else 0.5 * (a - 1.0 / a)
 	      end
- fun tanh u = let val a = exp u 
+ fun tanh u = let val a = exp u
 		  val b = 1.0 / a
                in if a==0.0 then copysign(1.0,u)
-			    else (a-b) / (a+b) 
+			    else (a-b) / (a+b)
               end
   end
 

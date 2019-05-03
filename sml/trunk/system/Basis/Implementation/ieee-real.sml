@@ -6,9 +6,6 @@
 structure IEEEReal : IEEE_REAL =
   struct
 
-  (* this may cause portability problems to 64-bit systems *)
-    structure Int = Int31
-
     exception Unordered
 
     datatype real_order = LESS | EQUAL | GREATER | UNORDERED

@@ -18,11 +18,8 @@ structure CharVectorSlice :> MONO_VECTOR_SLICE
 
   (* fast add/subtract avoiding the overflow test *)
     infix 6 -- ++
-(* 64BIT: FIXME *)
-    fun x -- y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x -
-					     InlineT.Word31.copyf_int31 y)
-    fun x ++ y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x +
-					     InlineT.Word31.copyf_int31 y)
+    fun x -- y = InlineT.Int.fast_sub(x, y)
+    fun x ++ y = InlineT.Int.fast_add(x, y)
 
   (* unchecked vector access functions *)
     val usub = InlineT.CharVector.sub

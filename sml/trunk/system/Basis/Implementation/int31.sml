@@ -9,7 +9,7 @@
 
 structure Int31Imp : INTEGER =
   struct
-    structure I31 = InlineT.Int31
+    structure I31 = InlineT.Int		(* 64BIT: FIXME *)
     structure I32 = InlineT.Int32
 
     exception Div = Assembly.Div
@@ -76,7 +76,7 @@ structure Int31Imp : INTEGER =
     val fromString = PreBasis.scanString (scan StringCvt.DEC)
 *)
     local
-	structure W31 = InlineT.Word31
+	structure W31 = InlineT.Word
 	structure CV = InlineT.CharVector
     in
     (* optimized version of fromString; it is about 2x as fast as

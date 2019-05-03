@@ -6,4 +6,5 @@
  * Built-in math functions where there is no hardware support.
  *)
 
+(* REAL32: FIXME *)
 structure MathInlineT = struct end

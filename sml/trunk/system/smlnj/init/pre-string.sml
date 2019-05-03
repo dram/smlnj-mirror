@@ -5,7 +5,6 @@
  *
  * Some common operations that are used by both the String and
  * Substring structures, as well as by the pervasive environment.
- *
  *)
 
 local
@@ -27,14 +26,14 @@ structure PreString =
 
       structure C = InlineT.Char
 
-      val op + = InlineT.DfltInt.+
-      val op - = InlineT.DfltInt.-
-      val op * = InlineT.DfltInt.*
-      val op quot = InlineT.DfltInt.quot
-      val op < = InlineT.DfltInt.<
-      val op <= = InlineT.DfltInt.<=
-      val op > = InlineT.DfltInt.>
-      val op >= = InlineT.DfltInt.>=
+      val op + = InlineT.Int.+
+      val op - = InlineT.Int.-
+      val op * = InlineT.Int.*
+      val op quot = InlineT.Int.quot
+      val op < = InlineT.Int.<
+      val op <= = InlineT.Int.<=
+      val op > = InlineT.Int.>
+      val op >= = InlineT.Int.>=
 (*      val op = = InlineT.= *)
       val unsafeSub = InlineT.CharVector.sub
       val unsafeUpdate = InlineT.CharVector.update
@@ -44,7 +43,7 @@ structure PreString =
     in
 
   (* allocate an uninitialized string of given length (with a size check) *)
-    fun create n = if (InlineT.DfltInt.ltu(maxSize, n))
+    fun create n = if (InlineT.Int.ltu(maxSize, n))
 	  then raise Core.Size
 	  else unsafeCreate n
 

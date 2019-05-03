@@ -8,25 +8,22 @@ structure Vector : VECTOR =
   struct
 
 (*
-    val (op +)  = InlineT.DfltInt.+
-    val (op <)  = InlineT.DfltInt.<
-    val (op >=) = InlineT.DfltInt.>=
+    val (op +)  = InlineT.Int.+
+    val (op <)  = InlineT.Int.<
+    val (op >=) = InlineT.Int.>=
 *)
 
     (* fast add/subtract avoiding the overflow test *)
     infix -- ++
-(* 64BIT: FIXME *)
-    fun x -- y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x -
-					     InlineT.Word31.copyf_int31 y)
-    fun x ++ y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x +
-					     InlineT.Word31.copyf_int31 y)
+    fun x -- y = InlineT.Int.fast_sub(x, y)
+    fun x ++ y = InlineT.Int.fast_add(x, y)
 
     type 'a vector = 'a vector
 
     val maxLen = Core.max_length
 
     fun checkLen n =
-	if InlineT.DfltInt.ltu(maxLen, n) then raise General.Size else ()
+	if InlineT.Int.ltu(maxLen, n) then raise General.Size else ()
 
   (* this function is implemented in base/system/smlnj/init/pervasive.sml *)
     val fromList = vector
@@ -201,7 +198,7 @@ structure Vector : VECTOR =
     fun collate c (v1, v2) = let
 	val l1 = length v1
 	val l2 = length v2
-	val l12 = InlineT.Int31.min (l1, l2)
+	val l12 = InlineT.Int.min (l1, l2)
 	fun col i =
 	    if i >= l12 then IntImp.compare (l1, l2)
 	    else case c (usub (v1, i), usub (v2, i)) of

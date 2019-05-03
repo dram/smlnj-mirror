@@ -37,7 +37,7 @@ structure Core =
    * a primitive operator hardwired inside the compiler. In the future, the
    * linkage should be done safely without using cast (ZHONG).
    *
-   * Note: in the future, the Assembly.A substructure will be replaced by
+   * Note: in the future, the Assembly.A substructure may be replaced by
    * a dynamic run vector (JHR).
    *)
     structure Assembly : ASSEMBLY =
@@ -101,35 +101,38 @@ structure Core =
     exception Range      	(* for word8array update *)
     exception Subscript  	(* for all bounds checking *)
     exception Size
+    exception Chr
 
     local exception NoProfiler
     in val profile_register =
       ref(fn s:string => (raise NoProfiler):int*int array*int ref)
     end
 
-    local val ieql : int * int -> bool = InLine.i31eq
-          val peql : 'a * 'a -> bool = InLine.ptreql
-          val ineq : int * int -> bool = InLine.i31ne
-	  val i32eq : int32 * int32 -> bool = InLine.i32eq
+    local val ieql : int * int -> bool = InLine.int_eql
+          val peql : 'a * 'a -> bool = InLine.ptr_eql
+          val ineq : int * int -> bool = InLine.int_neq
+	  val i32eq : int32 * int32 -> bool = InLine.int32_eql
           val boxed : 'a -> bool = InLine.boxed
-          val op + : int * int -> int = InLine.i31add
-          val op - : int * int -> int = InLine.i31sub
-          val op * : int * int -> int = InLine.i31mul
+          val op + : int * int -> int = InLine.int_add
+          val op - : int * int -> int = InLine.int_sub
+          val op * : int * int -> int = InLine.int_mul
 	  val op := : 'a ref * 'a -> unit = InLine.:=
-          val ordof : string * int -> int = InLine.ordof
+          val ordof : string * int -> char = InLine.char_vec_unsafe_sub
           val cast : 'a -> 'b = InLine.cast
           val getObjTag : 'a -> int = InLine.gettag
           val getObjLen : 'a -> int = InLine.objlength
-	  val getData : 'a -> 'b = InLine.getSeqData
+	  val getData : 'a -> 'b = InLine.seq_data
 	  val recSub : ('a * int) -> 'b = InLine.recordSub
-          val vecLen : 'a -> int = InLine.length
-          val vecSub : 'a vector * int -> 'a = InLine.vecSub
-          val andb : int * int -> int = InLine.i31andb
+          val vecLen : 'a -> int = InLine.seq_length
+          val vecSub : 'a vector * int -> 'a = InLine.vec_unsafe_sub
+          val andb : int * int -> int = InLine.int_andb
+	  val fast_add : int * int -> int = InLine.int_unsafe_add
+	  val fast_sub : int * int -> int = InLine.int_unsafe_sub
 
 	  val width_tags = 0w7  (* 5 tag bits plus "10" *)
 
         (* the type annotation is just to work around an bug - sm *)
-          val ltu : int * int -> bool = InLine.i31ltu
+          val ltu : int * int -> bool = InLine.int_ltu
 
     in
 
@@ -137,9 +140,9 @@ structure Core =
       * the maximum length field value (sign should be 0).
       *)
        val max_length =
-	   let val op - = InLine.w31sub
-	       infix << val op << = InLine.w31lshift
-	       val int = InLine.copy_31_31_wi
+	   let val op - = InLine.word_sub
+	       infix << val op << = InLine.word_lshift
+	       val int = InLine.signed_word_to_int
 	   in
 	       int ((0w1 << (0w31 - width_tags)) - 0w1)
 	   end
@@ -156,8 +159,8 @@ structure Core =
                   else let val x = mkrarray n
                            fun init i =
                              if ieql(i,n) then x
-    			     else (InLine.f64Update(x,i,v);
-                                   init ((op +) (i, 1)))
+    			     else (InLine.real64_arr_unsafe_update(x,i,v);
+                                   init (fast_add (i, 1)))
                         in init 0
                        end
 
@@ -186,7 +189,7 @@ structure Core =
 
 	   fun delay (f : unit -> 'a) = InLine.mkspecial(TSUS,f): 'a susp
 	   fun force (x : 'a susp) =
-	       if InLine.i31eq((InLine.getspecial x),TSUS)
+	       if InLine.int_eql((InLine.getspecial x),TSUS)
 	       then let val y : 'a = recSub (InLine.cast x, 0) ()
 		    in InLine.cast x := y;
 		       InLine.setspecial(InLine.cast x, TSES);
@@ -210,9 +213,9 @@ structure Core =
                   then let
 		    fun f 0 = true
 		      | f i = let
-			  val j = i-1
+			  val j = fast_sub(i, 1)
 			  in
-			    ieql(ordof(a,j),ordof(b,j)) andalso f j
+			    InLine.char_eql(ordof(a,j),ordof(b,j)) andalso f j
 			  end
 	            in
 		      f len
@@ -346,12 +349,7 @@ structure Core =
 	    val tdp_active_plugins = hook
 	end
 
-	val assign = ( InLine.:= )
-        val deref = ( InLine.! )
-	val unboxedupdate = InLine.unboxedupdate
-	val subscript = InLine.arrSub
-	val iadd = InLine.i31add
-
+      (* these functions are used in FLINT/trans/transprim.sml *)
 	val testInf = CoreIntInf.testInf
 	val truncInf = CoreIntInf.truncInf
 	val finToInf = CoreIntInf.finToInf
