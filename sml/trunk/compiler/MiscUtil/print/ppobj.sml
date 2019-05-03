@@ -220,14 +220,16 @@ local
 	  (BT.word64Tycon,	wordPrefx o Word64.toString o Obj.toWord64),
 *)
 	  (BT.charTycon,	char2str),
+	  (BT.realTycon,	Real.toString o Obj.toReal),
 	  (BT.exnTycon,		exn2str),
+	  (BT.stringTycon,	PrintUtil.pr_mlstr o Obj.toString),
 (* FIXME: actually print the values *)
 	  (BT.chararrayTycon,	fn _ => "-"),
 	  (BT.word8vectorTycon,	fn _ => "-"),
 	  (BT.word8arrayTycon,	fn _ => "-"),
 	  (BT.real64arrayTycon,	fn _ => "-"),
-	  (BT.arrowTycon,	fn _ => "<fn>"),
-	  (BT.contTycon,	fn _ => "<cont>")
+	  (BT.arrowTycon,	fn _ => "fn"),	(* perhaps "<fn>" or "-fn-" instead? *)
+	  (BT.contTycon,	fn _ => "cont") (* perhaps "<cont>" or "-cont-" instead? *)
 	]
 in
   fun primToString tyc = List.find (fn (tyc', _) => TU.eqTycon(tyc, tyc')) toStringTbl
