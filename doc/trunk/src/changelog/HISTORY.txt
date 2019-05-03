@@ -94,6 +94,37 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //====================================================================
+== Version 110.87; 2019/05/03
+
+//--------------------------------------------------------------------
+[2019/05/03]::
++
+Made the `Char.chr` operator inline (a primop was added to support
+this change in 110.86).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/03]::
++
+Major renaming of the primitive operators in the `Inline` structure
+(as described in `dev-notes/primop-list.md`).  Also cleaned up the
+**Basis Library** implementation to remove most (but not all)
+32-bit dependencies.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/03]::
++
+Added cases to the top-level pretty printer to handle the new basic
+types that were added in 110.86 (*e.g.*, `word8vector` and `chararray`).
+Also changed the way that primitive types are handled to use a
+table keyed by tycons, instead of a sequence of nested conditionals.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//====================================================================
 == Version 110.86; 2019/05/02
 
 //--------------------------------------------------------------------

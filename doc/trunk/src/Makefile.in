@@ -1,6 +1,6 @@
 # Makefile for SML/NJ documentation
 #
-# COPYRIGHT (c) 2014 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # @configure_input@
@@ -29,7 +29,7 @@ WEB_IMAGES_DST =	$(WEB_HTML_DST_ROOT)/images
 
 include @MK_DIR@/doc-rules.gmk
 
-DOC_SUBDIRS =		changelog extensions man manuals
+DOC_SUBDIRS =		changelog release-notes extensions man manuals
 
 STYLE_IN_FILES =	$(notdir $(wildcard styles/*.in))
 STYLE_DST_FILES =	$(addprefix $(STYLES_DST)/,$(STYLE_IN_FILES:_css.in=.css)))
@@ -37,7 +37,10 @@ IMAGE_FILES =		$(notdir $(wildcard images/*.png images/*jpg))
 IMAGE_DST_FILES =	$(addprefix $(IMAGES_DST)/,$(IMAGE_FILES))
 
 .PHONY:		doc
-doc:		$(DOC_DIR) readmes
+doc:		html $(DOC_DIR) readmes
+
+.PHONY:		html
+html:
 		(cd man; $(MAKE) man)
 		for dir in $(DOC_SUBDIRS) ; do \
 		  (cd $$dir; $(MAKE) doc); \
