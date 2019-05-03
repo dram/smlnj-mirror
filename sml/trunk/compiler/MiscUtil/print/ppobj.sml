@@ -201,6 +201,37 @@ fun transMembers(stamps: Stamps.stamp vector,
          freetycs)
     end
 
+(* printing for monomorphic primitive types (i.e., the types in BasicTypes) *)
+local
+  fun wordPrefx s = "0wx" ^ s
+  fun char2str obj = "#" ^ String.str(Char.chr(Obj.toInt obj))
+  fun exn2str obj = General.exnName(Obj.toExn obj) ^ "(-)"
+  val toStringTbl = [
+	  (BT.intTycon,		Int.toString o Obj.toInt),
+	  (BT.int32Tycon,	Int32.toString o Obj.toInt32),
+(* 64BIT: TODO
+	  (BT.int64Tycon,	Int64.toString o Obj.toInt64),
+*)
+	  (BT.intinfTycon,	PrintUtil.pr_intinf o Unsafe.cast),
+	  (BT.wordTycon,	wordPrefx o Word.toString o Obj.toWord),
+	  (BT.word8Tycon,	wordPrefx o Word8.toString o Obj.toWord8),
+	  (BT.word32Tycon,	wordPrefx o Word32.toString o Obj.toWord32),
+(* 64BIT: TODO
+	  (BT.word64Tycon,	wordPrefx o Word64.toString o Obj.toWord64),
+*)
+	  (BT.charTycon,	char2str),
+	  (BT.exnTycon,		exn2str),
+(* FIXME: actually print the values *)
+	  (BT.chararrayTycon,	fn _ => "-"),
+	  (BT.word8vectorTycon,	fn _ => "-"),
+	  (BT.word8arrayTycon,	fn _ => "-"),
+	  (BT.real64arrayTycon,	fn _ => "-"),
+	  (BT.arrowTycon,	fn _ => "<fn>"),
+	  (BT.contTycon,	fn _ => "<cont>")
+	]
+in
+  fun primToString tyc = List.find (fn (tyc', _) => TU.eqTycon(tyc, tyc')) toStringTbl
+end (* local *)
 
 (* main function: ppObj: staticEnv -> ppstream -> (object * ty * int) -> unit *)
 
@@ -230,66 +261,35 @@ let fun ppValue (obj: object, ty: T.ty, depth: int) : unit =
                 end)
 
 
-	   | T.CONty(tyc as T.GENtyc { kind, stamp, eq, ... }, argtys) =>
-	     (case (kind, !eq)
-	       of (T.PRIMITIVE, _) =>
-		  let fun ppWord s = PP.string ppstrm ("0wx"^s)
-		  in
-	              if TU.eqTycon(tyc,BT.intTycon) then
-			  PP.string ppstrm (Int.toString(Obj.toInt obj))
-		      else if TU.eqTycon(tyc,BT.int32Tycon) then
-			  PP.string ppstrm (Int32.toString(Obj.toInt32 obj))
-		      else if TU.eqTycon(tyc,BT.intinfTycon) then
-			  PU.pp_intinf ppstrm (Unsafe.cast obj)
-	              else if TU.eqTycon(tyc,BT.wordTycon) then
-			  ppWord (Word.toString(Obj.toWord obj))
-	              else if TU.eqTycon(tyc,BT.word8Tycon) then
-			  ppWord (Word8.toString(Obj.toWord8 obj))
-	              else if TU.eqTycon(tyc,BT.word32Tycon) then
-			  ppWord (Word32.toString(Obj.toWord32 obj))
-	              else if TU.eqTycon(tyc,BT.realTycon) then
-			  PP.string ppstrm (Real.toString(Obj.toReal obj))
-	              else if TU.eqTycon(tyc,BT.stringTycon) then
-			  PU.pp_mlstr ppstrm (Obj.toString obj)
-	              else if TU.eqTycon(tyc,BT.charTycon) then
-			  (PP.string ppstrm "#";
-			   PU.pp_mlstr ppstrm
-					(String.str(Char.chr(Obj.toInt obj))))
-	              else if TU.eqTycon(tyc,BT.arrowTycon) then
-			  PP.string ppstrm  "fn"
-	              else if TU.eqTycon(tyc,BT.exnTycon) then
-			  let val name = General.exnName(Obj.toExn obj)
-			  in
-			      PP.string ppstrm name;
-			      PP.string ppstrm "(-)"
-			  end
-	              else if TU.eqTycon(tyc,BT.contTycon) then
-			  PP.string ppstrm  "cont"
-	              else if TU.eqTycon(tyc,BT.vectorTycon) then
-			  ppVector(Obj.toVector obj, hd argtys,
-				   membersOp, depth,
-				   !Control.Print.printLength, accu)
-			  handle Obj.Representation =>
-				 PP.string ppstrm  "prim?"
-	              else if TU.eqTycon(tyc,BT.arrayTycon) then
-			  (printWithSharing ppstrm
-			    (obj,accu,
-			     fn (obj,accu) =>
-			        (case Obj.rep obj
-				  of Obj.PolyArray =>
-				     ppArray(Obj.toArray obj, hd argtys,
-					     membersOp, depth,
-					     !Control.Print.printLength, accu)
-				   | Obj.RealArray =>
-				     ppRealArray(Obj.toRealArray obj,
-					         !Control.Print.printLength)
-				   | _ => bug "array (neither Real nor Poly)"
-				     ))
-			    handle Obj.Representation =>
-				   PP.string ppstrm  "prim?")
-	              else PP.string ppstrm  "prim?"
-		  end
-		| (T.DATATYPE _,T.ABS) =>
+	   | T.CONty(tyc as T.GENtyc { kind, stamp, eq, ... }, argtys) => (
+	      case (kind, !eq)
+	       of (T.PRIMITIVE, _) => (case primToString tyc
+		     of SOME(_, fmt) => PP.string ppstrm (fmt obj)
+		      | NONE => (* check for vector/array type constructors *)
+			  if TU.eqTycon(tyc,BT.vectorTycon)
+			    then ppVector (
+			      Obj.toVector obj, hd argtys,
+			      membersOp, depth,
+			      !Control.Print.printLength, accu)
+			      handle Obj.Representation => PP.string ppstrm  "<primvec?>"
+			  else if TU.eqTycon(tyc,BT.arrayTycon)
+			    then (printWithSharing ppstrm
+			      (obj,accu,
+			       fn (obj,accu) =>
+				  (case Obj.rep obj
+				    of Obj.PolyArray =>
+				       ppArray(Obj.toArray obj, hd argtys,
+					       membersOp, depth,
+					       !Control.Print.printLength, accu)
+				     | Obj.RealArray =>
+				       ppRealArray(Obj.toRealArray obj,
+						   !Control.Print.printLength)
+				     | _ => bug "array (neither Real nor Poly)"
+				       ))
+			      handle Obj.Representation => PP.string ppstrm  "<primarray?>")
+	                  else PP.string ppstrm  "<prim?>"
+		    (* end case *))
+		| (T.DATATYPE _, T.ABS) =>
 		  (PPTable.pp_object ppstrm stamp obj
 		   handle PP_NOT_INSTALLED => PP.string ppstrm  "-" )
 		| (T.DATATYPE{index,stamps,
@@ -341,7 +341,8 @@ let fun ppValue (obj: object, ty: T.ty, depth: int) : unit =
 			     end
 			   | _ => PP.string ppstrm "<word64?>"
 		     else PP.string ppstrm "-")
-		| _ => PP.string ppstrm "-")
+		| _ => PP.string ppstrm "-"
+	      (* end case *))
 	   | T.CONty(tyc as T.RECORDtyc [], _) => PP.string ppstrm  "()"
 	   | T.CONty(tyc as T.RECORDtyc labels, argtys) =>
 	       if Tuples.isTUPLEtyc tyc
