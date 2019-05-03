@@ -172,6 +172,9 @@ Semant/pickle/unpickle-sym-pid.sml
 Semant/pickle/unpickmod.sml
 Semant/pickle/rehash.sml
 
+(* for now, we support both sets of names *)
+Semant/prim/old-primop-bindings.sml
+Semant/prim/new-primop-bindings.sml
 Semant/prim/primop-bindings.sml
 Semant/prim/prim-env.sml
 
