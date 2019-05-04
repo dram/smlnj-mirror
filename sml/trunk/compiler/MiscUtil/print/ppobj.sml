@@ -204,7 +204,7 @@ fun transMembers(stamps: Stamps.stamp vector,
 (* printing for monomorphic primitive types (i.e., the types in BasicTypes) *)
 local
   fun wordPrefx s = "0wx" ^ s
-  fun char2str obj = "#" ^ String.str(Char.chr(Obj.toInt obj))
+  fun char2str obj = concat["#\"", String.str(Char.chr(Obj.toInt obj)), "\""]
   fun exn2str obj = General.exnName(Obj.toExn obj) ^ "(-)"
   val toStringTbl = [
 	  (BT.intTycon,		Int.toString o Obj.toInt),
