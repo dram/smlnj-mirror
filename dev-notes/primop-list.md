@@ -209,7 +209,8 @@ which operations do bounds checking and which do not.
 
 #### Polymorphic array and vector
   * `mkarray : int * 'a -> 'a array`<br/>
-    create a polymorphic array
+    create a polymorphic array; this primop is required to support the
+    dictionary-passing representation of polymorphic arrays.
     (`P.INLMKARRAY`)
 
   * `arr_unsafe_sub : 'a array * int -> 'a`<br/>
@@ -752,18 +753,18 @@ on 64-bit machines.
 We use the following operation-prefixes for conversions between integer and
 word types:
 
-  * `cvt_unsigned` -- for word to integer conversions where the resulting
+  * `unsigned_` -- for word to integer conversions where the resulting
     integer will be non-negative (*i.e.*, represent the same number as the
     argument).  These operations raise `Overflow` if the argument it not
     representable as an integer of the specified size.
 
-  * `cvt_signed` -- for word to integer conversions where the resulting
+  * `signed_` -- for word to integer conversions where the resulting
     integer will have the same bit representation as the argument.  These
     operations raise `Overflow` if the argument (interpreted as a signed
     2's complement number) is not representable as an integer of the specified
     size.
 
-  * `cvt` -- for integer-to-integer, integer-to-word, and word-to-word,
+  * no prefix for integer-to-integer, integer-to-word, and word-to-word,
     conversions.  In the case of integer-to-integer conversions, the
     operation will raise `Overflow` if the argument is too large to
     represent in the result type.
@@ -772,136 +773,143 @@ For conversions between integer and word types, there are five basic
 primitive operations (**TEST**, **TESTU**, **EXTEND**, **TRUNC**, and **COPY**),
 which are described in the `conversions.md` file.
 
-  * `cvt_int_to_word : int -> word`<br />
+  * `int_to_word : int -> word`<br />
     `P.COPY(<int-size>, <int-size>)`
 
-  * `cvt_signed_word_to_int : word -> int`<br />
+  * `signed_word_to_int : word -> int`<br />
     `P.COPY(<int-size>, <int-size>)`
 
-  * `cvt_unsigned_word_to_int : word -> int`<br />
+  * `unsigned_word_to_int : word -> int`<br />
     `P.TESTU(<int-size>, <int-size>)`
 
-  * `cvt_int_to_int8 : int -> int8`<br />
+  * `int_to_int8 : int -> int8`<br />
     `P.TEST(<int-size>, 8)`
 
-  * `cvt_int_to_word8 : int -> word8`<br />
+  * `int_to_word8 : int -> word8`<br />
     `P.TRUNC(<int-size>, 8)`
 
-  * `cvt_signed_word_to_int8 : word -> int8`<br />
+  * `signed_word_to_int8 : word -> int8`<br />
     `P.TEST(<int-size>, 8)`
 
-  * `cvt_unsigned_word_to_int8 : word -> int8`<br />
+  * `unsigned_word_to_int8 : word -> int8`<br />
     `P.TESTU(<int-size>, 8)`
 
-  * `cvt_word_to_word8 : word -> word8`<br />
+  * `word_to_word8 : word -> word8`<br />
     `P.TRUNC(<int-size>, 8)`
 
-  * `cvt_int_to_int32 : int -> int32`<br />
+  * `int_to_int32 : int -> int32`<br />
     `P.EXTEND(31, 32)` on 32-bit targets or `P.TEST(63, 32)` on 64-bit targets.
 
-  * `cvt_int_to_word32 : int -> word32`<br />
+  * `int_to_word32 : int -> word32`<br />
     `P.COPY(31, 32)` on 32-bit targets or `P.TRUNC(63, 32)` on 64-bit targets.
 
-  * `cvt_signed_word_to_int32 : word -> int32`<br />
+  * `signed_word_to_int32 : word -> int32`<br />
     `P.EXTEND(31, 32)` on 32-bit targets or `P.TEST(63, 32)` on 64-bit targets.
 
-  * `cvt_unsigned_word_to_int32 : word -> int32`<br />
+  * `unsigned_word_to_int32 : word -> int32`<br />
     `P.COPY(31, 32)` on 32-bit targets or `P.TESTU(63, 32)` on 64-bit targets.
 
-  * `cvt_word_to_word32 : word -> word32`<br />
+  * `word_to_word32 : word -> word32`<br />
     `P.COPY(31, 32)` on 32-bit targets or `P.TRUNC(63, 32)` on 64-bit targets.
 
-  * `cvt_int_to_int64 : int -> int64`<br />
+  * `int_to_int64 : int -> int64`<br />
     `P.EXTEND(<int-size>, 64)`
 
-  * `cvt_int_to_word64 : int -> word64`<br />
+  * `int_to_word64 : int -> word64`<br />
 
-  * `cvt_signed_word_to_int64 : word -> int64`<br />
+  * `signed_word_to_int64 : word -> int64`<br />
 
-  * `cvt_unsigned_word_to_int64 : word -> int64`<br />
+  * `unsigned_word_to_int64 : word -> int64`<br />
 
-  * `cvt_word_to_word64 : word -> word64`<br />
+  * `word_to_word64 : word -> word64`<br />
 
-  * `cvt_int8_to_int : int8 -> int`<br />
+  * `int8_to_int : int8 -> int`<br />
 
-  * `cvt_int8_to_word : int8 -> word`<br />
+  * `int8_to_word : int8 -> word`<br />
 
-  * `cvt_signed_word8_to_int : word8 -> int`<br />
+  * `signed_word8_to_int : word8 -> int`<br />
 
-  * `cvt_unsigned_word8_to_int : word8 -> int`<br />
+  * `unsigned_word8_to_int : word8 -> int`<br />
 
-  * `cvt_word8_to_word : word8 -> word`<br />
+  * `word8_to_word : word8 -> word`<br />
 
-  * `cvt_int32_to_int : int32 -> int`<br />
+  * `int32_to_int : int32 -> int`<br />
 
-  * `cvt_int32_to_word : int32 -> word`<br />
+  * `int32_to_word : int32 -> word`<br />
 
-  * `cvt_signed_word32_to_int : word32 -> int`<br />
+  * `signed_word32_to_int : word32 -> int`<br />
 
-  * `cvt_unsigned_word32_to_int : word32 -> int`<br />
+  * `unsigned_word32_to_int : word32 -> int`<br />
 
-  * `cvt_word32_to_word : word32 -> word`<br />
+  * `word32_to_word : word32 -> word`<br />
 
-  * `cvt_int64_to_int : int64 -> int`<br />
+  * `int64_to_int : int64 -> int`<br />
 
-  * `cvt_int64_to_word : int64 -> word`<br />
+  * `int64_to_word : int64 -> word`<br />
 
-  * `cvt_signed_word64_to_int : word64 -> int`<br />
+  * `signed_word64_to_int : word64 -> int`<br />
 
-  * `cvt_unsigned_word64_to_int : word64 -> int`<br />
+  * `unsigned_word64_to_int : word64 -> int`<br />
 
-  * `cvt_word64_to_word : word64 -> word`<br />
+  * `word64_to_word : word64 -> word`<br />
 
 #### Conversions that are specific to 32-bit targets
 
 These conversions assume that the `LargeWord` structure is
 bound to `Word32` (even though there is a `Word64` structure).
 
-  * `cvt_int8_to_word32 : int8 -> word32`<br />
+  * `int8_to_word32 : int8 -> word32`<br />
     `P.EXTEND(8, 32)`
 
-  * `cvt_word8_to_word32 : word8 -> word32`<br />
+  * `word8_to_word32 : word8 -> word32`<br />
     `P.COPY(8, 32)`
 
-  * `cvt_int32_to_word32 : int32 -> word32`<br />
+  * `int32_to_word32 : int32 -> word32`<br />
     `P.COPY(32, 32)`
 
-  * `cvt_int64_to_word32 : int64 -> word32`<br />
+  * `int64_to_word32 : int64 -> word32`<br />
     `P.TRUNC(64, 32)`
 
-  * `cvt_word64_to_word32 : word64 -> word32`<br />
+  * `word64_to_word32 : word64 -> word32`<br />
     `P.TRUNC(64, 32)`
 
 #### Conversions that are specific to 64-bit targets
 
-  * `cvt_int8_to_word64 : int8 -> word64`<br />
+  * `int8_to_word64 : int8 -> word64`<br />
     `P.EXTEND(8, 64)`
 
-  * `cvt_word8_to_word64 : word8 -> word64`<br />
+  * `word8_to_word64 : word8 -> word64`<br />
     `P.COPY(8, 64)`
 
-  * `cvt_int32_to_word64 : int32 -> word64`<br />
+  * `int32_to_word64 : int32 -> word64`<br />
     `P.EXTEND(32, 64)`
 
-  * `cvt_word32_to_word64 : word32 -> word64`<br />
+  * `word32_to_word64 : word32 -> word64`<br />
     `P.COPY(32, 64)`
 
-  * `cvt_int64_to_word64 : int64 -> word64`<br />
+  * `int64_to_word64 : int64 -> word64`<br />
     `P.COPY(64, 64)`
 
 #### Conversions between integers and reals
 
-  * `cvt_int_to_real64 : int -> real64`<br />
+  * `int_to_real64 : int -> real64`<br />
     `P.INT_TO_REAL{from=<int-size>, to=64}`
 
-  * `cvt_int32_to_real64 : int32 -> real64`<br />
-    `P.INT_TO_REAL{from=32, to=64}`
+  * `int32_to_real64 : int32 -> real64`<br />
+    `P.INT_TO_REAL{from=32, to=64}` (32-bit targets only)
+
+  * `int64_to_real64 : int64 -> real64`<br />
+    `P.INT_TO_REAL{from=64, to=64}` (64-bit targets only)
 
   * `floor_real64_to_int : real64 -> int`<br />
-    `P.ROUND{floor=true, from=64, to=<int-size>}`
+    `P.REAL_TO_INT{floor=true, from=64, to=<int-size>}`
 
   * `round_real64_to_int : real64 -> int`<br />
-    `P.ROUND{floor=false, from=64, to=<int-size>}`
+    `P.REAL_TO_INT{floor=false, from=64, to=<int-size>}`
+
+Note: the real to integer conversions should be revised
+to directly support the various rounding modes (floor,
+ceiling, truncation, and round).
 
 ### Character comparisons
 
@@ -916,3 +924,105 @@ bound to `Word32` (even though there is a `Word64` structure).
 
   * `char_gte : char * char -> bool`<br />
     `P.CMP{oper=P.GTE, kind=P.UINT <int-size>}`
+
+### FFI support
+
+The following primops work on raw memory addresses and are included to support
+interaction with **C** code using the **NLFFI** infrastructure.
+
+The type `raw_ptr` is a word type that is the same size as a machine address
+(*i.e.*, `Word32.word32` or `Word64.word`).  Eventually, it should be made
+abstract.
+
+  * `raw_ccall : raw+ptr * 'a * 'b -> 'c`<br />
+	(* The type of the RAW_CCALL primop (as far as the type checker is concerned)
+	 * is:
+	 *    adr * 'a * 'b -> 'd
+	 * where adr is a word type that is the same size as the machine's pointer
+	 * type.  The primop cannot be used without having 'a, 'b, and 'c
+	 * monomorphically instantiated.  In particular, 'a will be the type of the
+	 * ML argument list, 'c will be the type of the result, and 'b
+	 * will be a type of a fake arguments.  The idea is that 'b will be
+	 * instantiated with some ML type that encodes the type of the actual
+	 * C function in order to be able to generate code according to the C
+	 * calling convention.
+	 * (In other words, 'b will be a completely ad-hoc encoding of a CTypes.c_proto
+	 * value in ML types.  The encoding also contains information about
+	 * calling conventions and reentrancy.)
+	 *)
+
+  * `raw_record : `<br />
+	  (* Support for direct construction of C objects on ML heap.
+	   * rawrecord builds a record holding C objects on the heap.
+	   * rawselectxxx index on this record.  They are of type:
+	   *    'a * Word32.word -> Word32.word
+	   * The 'a is to guarantee that the compiler will treat
+	   * the record as a ML object, in case it passes thru a gc boundary.
+	   * rawupdatexxx writes to the record.
+	   *)
+
+  * `raw_record64 : `<br />
+
+  * `raw_load_int8 : raw_ptr -> int32`<br />
+
+  * `raw_load_word8 : raw_ptr -> word32`<br />
+
+  * `raw_load_int16 : raw_ptr -> int32`<br />
+
+  * `raw_load_word16 : raw_ptr -> word32`<br />
+
+  * `raw_load_int32 : raw_ptr -> int32`<br />
+
+  * `raw_load_word32 : raw_ptr -> word32`<br />
+
+  * `raw_load_float64 : raw_ptr -> real`<br />
+
+  * `raw_load_float32 : raw_ptr -> real`<br />
+
+  * `raw_store_int8 : raw_ptr * int32 -> unit`<br />
+
+  * `raw_store_word8 : raw_ptr * word32 -> unit`<br />
+
+  * `raw_store_int16 : raw_ptr * int32 -> unit`<br />
+
+  * `raw_store_word16 : raw_ptr * word32 -> unit`<br />
+
+  * `raw_store_int32 : raw_ptr * int32 -> unit`<br />
+
+  * `raw_store_word32 : raw_ptr * word32 -> unit`<br />
+
+  * `raw_store_float64 : raw_ptr * real -> unit`<br />
+
+  * `raw_store_float32 : raw_ptr * real -> unit`<br />
+
+  * `raw_sub_int8 : 'a * raw_ptr -> int32`<br />
+
+  * `raw_sub_word8 : 'a * raw_ptr -> word32`<br />
+
+  * `raw_sub_int16 : 'a * raw_ptr -> int32`<br />
+
+  * `raw_sub_word16 : 'a * raw_ptr -> word32`<br />
+
+  * `raw_sub_int32 : 'a * raw_ptr -> int32`<br />
+
+  * `raw_sub_word32 : 'a * raw_ptr -> word32`<br />
+
+  * `raw_sub_float64 : 'a * raw_ptr -> real`<br />
+
+  * `raw_sub_float32 : 'a * raw_ptr -> real`<br />
+
+  * `raw_update_int8 : 'a * raw_ptr * int32 -> unit`<br />
+
+  * `raw_update_word8 : 'a * raw_ptr * word32 -> unit`<br />
+
+  * `raw_update_int16 : 'a * raw_ptr * int32 -> unit`<br />
+
+  * `raw_update_word16 : 'a * raw_ptr * word32 -> unit`<br />
+
+  * `raw_update_int32 : 'a * raw_ptr * int32 -> unit`<br />
+
+  * `raw_update_word32 : 'a * raw_ptr * word32 -> unit`<br />
+
+  * `raw_update_float64 : 'a * raw_ptr * real -> unit`<br />
+
+  * `raw_update_float32 : 'a * raw_ptr * real -> unit`<br />
