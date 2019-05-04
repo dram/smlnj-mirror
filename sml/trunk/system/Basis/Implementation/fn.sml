@@ -35,7 +35,7 @@
 structure Fn : FN =
   struct
 
-    fun id x = x
+    val id = InlineT.identity
 
     fun const x y = x
 
