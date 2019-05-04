@@ -2,10 +2,13 @@
  *
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Representation of primitive operations in the front-end.  These are
+ * bound to visible identifiers in Semant/prim/primop-bindings.sml.
  *)
 
 structure Primop : PRIMOP =
-struct
+  struct
 
   (* numkind includes kind and number of bits *)
     datatype numkind
@@ -33,6 +36,8 @@ struct
    * as are the "checked=true" versions of NUMSUBSCRIPT and NUMUPDATE (L?:).
    * "Environmental" primops (occurring in the InLine structure) are indicated
    * by "E:" in the comment.
+   *
+   * See dev-notes/conversions.md for an explanation of the conversion operators.
    *)
     datatype primop
       = ARITH of {				(* E: arithmetic ops *)
@@ -76,8 +81,6 @@ struct
       | CAST					(* E: cast *)
       | GETHDLR | SETHDLR			(* E: get/set exn handler pointer *)
       | GETVAR | SETVAR				(* E: get/set var register *)
-      | GETPSEUDO | SETPSEUDO			(* E: get/set pseudo registers *)
-      | SETMARK | DISPOSE			(* E: capture/dispose frames *)
       | MAKEREF					(* E: allocate a ref cell *)
       | CALLCC | CAPTURE | THROW		(* E: continuation operations *)
       | ISOLATE					(* E: isolating a function *)
@@ -266,10 +269,6 @@ struct
       | prPrimop SUBSCRIPTV = "subscriptv"
       | prPrimop GETVAR = "getvar"
       | prPrimop SETVAR = "setvar"
-      | prPrimop GETPSEUDO = "getpseudo"
-      | prPrimop SETPSEUDO = "setpseudo"
-      | prPrimop SETMARK = "setmark"
-      | prPrimop DISPOSE = "dispose"
       | prPrimop GETTAG = "gettag"
       | prPrimop MKSPECIAL = "mkspecial"
       | prPrimop SETSPECIAL = "setspecial"

@@ -281,16 +281,12 @@ structure PrimopBindings : sig
           (* runtime hooks *)
 	    ("getvar", p1(ar(u,v1)), P.GETVAR) :-:
 	    ("setvar", p1(ar(v1,u)), P.SETVAR) :-:
-	    ("setpseudo", p1(ar(tu[v1,i],u)), P.SETPSEUDO) :-:
-	    ("getpseudo", p1(ar(i,v1)), P.GETPSEUDO) :-:
 	    ("mkspecial", p2(ar(tu[i,v1],v2)), P.MKSPECIAL) :-:
 	    ("getspecial", p1(ar(v1,i)), P.GETSPECIAL) :-:
 	    ("setspecial", p1(ar(tu[v1,i],u)), P.SETSPECIAL) :-:
 	    ("gethdlr", p1(ar(u,cnt(v1))), P.GETHDLR) :-:
 	    ("sethdlr", p1(ar(cnt(v1),u)), P.SETHDLR) :-:
 	    ("gettag", p1(ar(v1,i)), P.GETTAG) :-:
-	    ("setmark", p1(ar(v1,u)), P.SETMARK) :-:
-	    ("dispose", p1(ar(v1,u)), P.DISPOSE) :-:
 	  (* *)
 	    ("compose", p3(ar(tu[ar(v2,v3),ar(v1,v2)],ar(v1,v3))), P.INLCOMPOSE) :-:
 	    ("before", p2(ar(tu[v1,v2],v1)), P.INLBEFORE) :-:
@@ -382,12 +378,12 @@ structure PrimopBindings : sig
 	  ("w8eq", w8w8_b, word8cmp P.EQL) :-:
 	  ("w8ne", w8w8_b, word8cmp P.NEQ) :-:
 	(* word8 array and vector *)
-	  ("w8Sub", numSubTy, sub (P.UINT 8)) :-:
-	  ("w8chkSub", numSubTy, chkSub (P.UINT 8)) :-:
-	  ("w8subv", numSubTy, subv (P.UINT 8)) :-:
-	  ("w8chkSubv", numSubTy, chkSubv (P.UINT 8)) :-:
-	  ("w8update", numUpdTy, update (P.UINT 8)) :-:
-	  ("w8chkUpdate", numUpdTy, chkUpdate (P.UINT 8)) :-:
+	  ("w8Sub", numSubTy, sub (P.UINT 8)) :-:		(* unused *)
+	  ("w8chkSub", numSubTy, chkSub (P.UINT 8)) :-:		(* unused *)
+	  ("w8subv", numSubTy, subv (P.UINT 8)) :-:		(* unused *)
+	  ("w8chkSubv", numSubTy, chkSubv (P.UINT 8)) :-:	(* unused *)
+	  ("w8update", numUpdTy, update (P.UINT 8)) :-:		(* unused *)
+	  ("w8chkUpdate", numUpdTy, chkUpdate (P.UINT 8)) :-:	(* unused *)
 	(* word32 primops *)
 	  ("w32mul", w32w32_w32, word32 P.MUL) :-:
 	  ("w32div", w32w32_w32, word32 P.QUOT) :-:
