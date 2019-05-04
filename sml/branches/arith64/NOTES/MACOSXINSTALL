@@ -32,8 +32,8 @@ site or modify the Makefile.
 
 ----
 
-Xcode 10.1, which is Apple's development environment for
-macOS 10.14 Mojave, does not include the libraries needed
+Xcode 10.1 and 10.2, which are Apple's development environments
+for macOS 10.14 Mojave, do not include the libraries needed
 to build 32-bit executables, such as the SML/NJ runtime,
 although 32-bit programs will still run.
 
