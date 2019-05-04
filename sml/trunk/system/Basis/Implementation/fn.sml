@@ -41,7 +41,7 @@ structure Fn : FN =
 
     fun apply (f, x) = f x
 
-    val op o = op o
+    val op o = InlineT.compose
 
     fun curry f x y = f(x, y)
 
