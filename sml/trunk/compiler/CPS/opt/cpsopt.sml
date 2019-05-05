@@ -15,9 +15,6 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
   struct
 
     structure CG = Control.CG
-    structure Eta = Eta
-    structure Expand = Expand(MachSpec)
-    structure EtaSplit = EtaSplit(MachSpec)
     structure Flatten = Flatten(MachSpec)
     structure Uncurry = Uncurry(MachSpec)
 
