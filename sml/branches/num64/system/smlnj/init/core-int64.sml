@@ -105,8 +105,9 @@ structure CoreInt64 =
       (* I am definitely too lazy to do this the pedestrian way, so
        * here we go... *)
       fun mul64 (x, y) =
-	  CII.testInf64 (CII.* (CII.extendInf64 x, CII.extendInf64 y))
+	    CII.testInf64 (CII.* (CII.extendInf64 x, CII.extendInf64 y))
 
+(* NOTE: once we have compiler support, we don't need the test for the 0 divisor *)
       fun div64 (_, (0w0, 0w0)) = raise Assembly.Div
 	| div64 (x, (0w0, 0w1)) = x
 	| div64 (x, (0wxffffffff, 0wxffffffff)) = neg64 x
@@ -115,6 +116,11 @@ structure CoreInt64 =
 	    CII.truncInf64 (CII.div (CII.extendInf64 x, CII.extendInf64 y))
 
       fun mod64 (x, y) = sub64 (x, mul64 (div64 (x, y), y))
+
+      fun quot64 (x, y) =
+	    CII.truncInf64 (CII.quot (CII.extendInf64 x, CII.extendInf64 y))
+
+      fun rem64 (x, y) = sub64 (x, mul64 (quot64 (x, y), y))
 
 (*
   (* NOTE: a more efficient implementation is to compare the high 32 bits using
@@ -157,6 +163,8 @@ structure CoreInt64 =
       val op * = lift2 mul64
       val div = lift2 div64
       val mod = lift2 mod64
+      val quot = lift2 quot64
+      val rem = lift2 rem64
       val op < = lift2' lt64
       val op <= = lift2' le64
       val op > = lift2' gt64

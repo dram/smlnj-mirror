@@ -160,6 +160,42 @@ structure InlineT =
 
     structure Int64 =
       struct
+
+	val op + = Core.i64Add
+	val op - = Core.i64Sub
+	val op * = Core.i64Mul
+	val div = Core.i64Div
+	val mod = Core.i64Mod
+	val quot = Core.i64Quot
+	val rem = Core.i64Rem
+	val ~ = Core.i64Neg
+	val op < = Core.i64LT
+	val op <= = Core.i64LTE
+	val op > = Core.i64GT
+	val op >= = Core.i64GTE
+	val abs = Core.i64Abs
+
+(* coming soon!
+        val op *    : int64 * int64 -> int64  = InLine.int64_mul
+        val op quot : int64 * int64 -> int64  = InLine.int64_quot
+        val op rem  : int64 * int64 -> int64  = InLine.int64_rem
+        val op div  : int64 * int64 -> int64  = InLine.int64_div
+        val op mod  : int64 * int64 -> int64  = InLine.int64_mod
+        val op +    : int64 * int64 -> int64  = InLine.int64_add
+        val op -    : int64 * int64 -> int64  = InLine.int64_sub
+        val ~       : int64 -> int64          = InLine.int64_neg
+        val op <    : int64 * int64 -> bool   = InLine.int64_lt
+        val op <=   : int64 * int64 -> bool   = InLine.int64_le
+        val op >    : int64 * int64 -> bool   = InLine.int64_gt
+        val op >=   : int64 * int64 -> bool   = InLine.int64_ge
+        val op =    : int64 * int64 -> bool   = InLine.int64_eql
+        val op <>   : int64 * int64 -> bool   = InLine.int64_neq
+
+        val min     : int64 * int64 -> int64  = InLine.int64_min
+        val max     : int64 * int64 -> int64  = InLine.int64_max
+        val abs     : int64 -> int64          = InLine.int64_abs
+*)
+
         val extern : int64 -> word32 * word32 = InLine.int64_to_pair
 	val intern : word32 * word32 -> int64 = InLine.int64_from_pair
       end
@@ -324,6 +360,43 @@ structure InlineT =
       struct
         val extern : word64 -> word32 * word32 = InLine.word64_to_pair
 	val intern : word32 * word32 -> word64 = InLine.word64_from_pair
+
+	val op + = Core.w64Add
+	val op - = Core.w64Sub
+	val op * = Core.w64Mul
+	val div = Core.w64Div
+	val mod = Core.w64Mod
+	val ~ = Core.w64Neg
+	val op < = Core.w64LT
+	val op <= = Core.w64LTE
+	val op > = Core.w64GT
+	val op >= = Core.w64GTE
+
+(* coming soon!
+        val orb : word64 * word64 -> word64	 = InLine.word64_orb
+        val xorb : word64 * word64 -> word64	 = InLine.word64_xorb
+        val andb : word64 * word64 -> word64	 = InLine.word64_andb
+        val op * : word64 * word64 -> word64	 = InLine.word64_mul
+        val op + : word64 * word64 -> word64	 = InLine.word64_add
+        val op - : word64 * word64 -> word64	 = InLine.word64_sub
+	val ~ : word64 -> word64		 = InLine.word64_neg
+        val op div : word64 * word64 -> word64	 = InLine.word64_div
+        val op mod : word64 * word64 -> word64	 = InLine.word64_mod
+        val op > : word64 * word64 -> bool	 = InLine.word64_gt
+        val op >= : word64 * word64 -> bool	 = InLine.word64_ge
+        val op < : word64 * word64 -> bool	 = InLine.word64_lt
+        val op <= : word64 * word64 -> bool	 = InLine.word64_le
+        val rshift : word64 * word -> word64     = InLine.word64_raw_rshift
+        val rshiftl : word64 * word -> word64    = InLine.word64_raw_rshiftl
+        val lshift : word64 * word -> word64     = InLine.word64_raw_lshift
+        val notb : word64 -> word64              = InLine.word64_notb
+	val chkLshift  : word64 * word -> word64 = InLine.word64_lshift
+	val chkRshift  : word64 * word -> word64 = InLine.word64_rshift
+	val chkRshiftl : word64 * word -> word64 = InLine.word64_rshiftl
+
+        val min     : word64 * word64 -> word64  = InLine.word64_min
+        val max     : word64 * word64 -> word64  = InLine.word64_max
+*)
       end
 
     structure Char =
@@ -333,17 +406,8 @@ structure InlineT =
 
         exception Chr = Core.Chr
 
-(*
 	val chr : int -> char = InLine.inl_chr
         val ord : char -> int = InLine.inl_ord
-*)
-      (* the following should be an inline operator *)
-        fun chr i = if (Int.geu(i, Int.+(maxOrd,1)))
-	    then raise Chr
-	    else ((InLine.cast i) : char)
-
-        val ord : char -> int = InLine.cast
-
 
         val (op <)  : (char * char) -> bool = InLine.char_lt
         val (op <=) : (char * char) -> bool = InLine.char_le

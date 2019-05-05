@@ -7,7 +7,8 @@
  * Author: Matthias Blume (blume@tti-c.org)
  *)
 
-structure Int64 : INTEGER = struct
+structure Int64 : INTEGER =
+  struct
 
     type int = Int64.int
 
@@ -46,8 +47,8 @@ structure Int64 : INTEGER = struct
 	    intern (hi, InlineT.Word32.fromInt32 i32)
 	  end
 
-    fun quot (x, y) = fromLarge (IntInfImp.quot (toLarge x, toLarge y))
-    fun rem (x, y) = x - quot (x, y) * y
+    val quot = InlineT.Int64.quot
+    val rem = InlineT.Int64.rem
 
     fun sign 0 = 0
       | sign i = if isneg (#1 (extern i)) then ~1 else 1

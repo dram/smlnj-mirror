@@ -37,7 +37,6 @@ structure TransPrim : sig
     val lt_unit = LT.ltc_unit
 
     val lt_ipair = lt_tup [lt_int, lt_int]
-    val lt_fixed_pair = lt_tup [lt_fixed_int, lt_fixed_int]
     val lt_icmp = lt_arw (lt_ipair, lt_bool)
     val lt_intop1 = lt_arw (lt_int, lt_int)
 
@@ -147,6 +146,45 @@ structure TransPrim : sig
 		  (L.DATAcon(falseDcon', [], mkv()), c)
 		],
 		NONE)
+	(* for some 64-bit arithmetic operations on 32-bit machines, we need to add
+	 * an extra argument that is the actual operation (defined in the _Core
+	 * module).
+	 *)
+	  val mkPrim = if Target.is64
+		then L.PRIM
+		else let
+		(* returns a lambda abstraction that wraps the primop with its
+		 * extra argument.
+		 *)
+		  fun cvt (poName, po, lt, ts) = let
+			val int64Ty = LT.ltc_num 64
+			val argTy = lt_tup [int64Ty, int64Ty]
+			in
+			  mkFn argTy (fn p =>
+			    mkLet (L.SELECT(0, p)) (fn arg1 =>
+			      mkLet (L.SELECT(1, p)) (fn arg2 =>
+				L.APP(L.PRIM(po, lt, ts),
+				  L.RECORD[arg1, arg2, coreAcc poName]))))
+			end
+		  fun chkPrim (po as PO.IARITH{oper, sz=64}, lt, ts) = (case oper
+			 of PO.IMUL => cvt("i64Mul", po, lt, ts)
+			  | PO.IDIV => cvt("i64Div", po, lt, ts)
+			  | PO.IMOD => cvt("i64Mod", po, lt, ts)
+			  | PO.IQUOT => cvt("i64Quot", po, lt, ts)
+			  | PO.IREM => cvt("i64Rem", po, lt, ts)
+			  | _ => L.PRIM(po, lt, ts)
+			(* end *))
+		    | chkPrim (po as PO.PURE_ARITH{oper, kind=PO.UINT 64}, lt, ts) = (
+			case oper
+			 of PO.MUL => cvt("w64Mul", po, lt, ts)
+			  | PO.QUOT => cvt("w64Div", po, lt, ts)
+			  | PO.REM => cvt("w64Mod", po, lt, ts)
+			  | _ => L.PRIM(po, lt, ts)
+			(* end *))
+		    | chkPrim arg = L.PRIM arg
+		  in
+		    chkPrim
+		  end
 	(* expand an inline shift operation.*)
 	  fun inlineShift (shiftOp, kind, clear) = let
 		val shiftLimit = (case kind
@@ -194,7 +232,7 @@ structure TransPrim : sig
 		end
 	(* division operators with an explicit test for a zero divisor *)
 	  fun inldiv (nk, po, lt, ts) = let
-		val oper = L.PRIM (po, lt, ts)
+		val oper = mkPrim (po, lt, ts)
 		in
 		  case coreExn ["Assembly", "Div"]
 		   of SOME divexn => let
@@ -441,7 +479,7 @@ structure TransPrim : sig
 	      | PO.EXTEND_INF prec => inlToInfPrec ("EXTEND_INF", "finToInf", prim, lt)
 	      | PO.COPY_INF prec => inlToInfPrec ("COPY", "finToInf", prim, lt)
 	    (* default handling for all other primops *)
-	      | p => L.PRIM(p, lt, ts)
+	      | p => mkPrim(p, lt, ts)
 	    (* end case *)
 	  end (* trans *)
 

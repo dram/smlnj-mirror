@@ -358,6 +358,33 @@ structure Core =
 	val makeSmallNegInf = CoreIntInf.makeSmallNegInf
 	val makeSmallPosInf = CoreIntInf.makeSmallPosInf
 	val infLowValue = CoreIntInf.lowValue
+
+	val i64Mul = CoreInt64.*
+	val i64Div = CoreInt64.div
+	val i64Mod = CoreInt64.mod
+	val i64Quot = CoreInt64.quot
+	val i64Rem = CoreInt64.rem
+	val w64Mul = CoreWord64.*
+	val w64Div = CoreWord64.div
+	val w64Mod = CoreWord64.mod
+
+    (* the following bindings are until we have 64-bit primops enabled *)
+	val i64Add = CoreInt64.+
+	val i64Sub = CoreInt64.-
+	val i64Neg = CoreInt64.~
+	val i64LT = CoreInt64.<
+	val i64LTE = CoreInt64.<=
+	val i64GT = CoreInt64.>
+	val i64GTE = CoreInt64.>=
+	val i64Abs = CoreInt64.abs
+	val w64Add = CoreWord64.+
+	val w64Sub = CoreWord64.-
+	val w64Neg = CoreWord64.~
+	val w64LT = CoreWord64.<
+	val w64LTE = CoreWord64.<=
+	val w64GT = CoreWord64.>
+	val w64GTE = CoreWord64.>=
+
     end (* local *)
 
     val profile_sregister = ref(fn (x:Assembly.object,s:string)=>x)
