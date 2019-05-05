@@ -287,7 +287,7 @@ fun isInt y = realround(y)-y == 0.0
 fun isOddInt(y) = isInt((y-1.0)*0.5)
 
 fun intpow(x,0) = 1.0
-  | intpow(x,y) = let val h = I.rshift(y,1)
+  | intpow(x,y) = let val h = I.rshift(y, 0w1)
 		      val z = intpow(x,h)
 		      val zz = z*z
                    in if y=I.+(h,h) then zz else x*zz
@@ -394,7 +394,7 @@ end
 	    then if x < plusInfinity
              then let
 	      val k = 6 (* log base 2 of the precision *)
-	      val n = I.rshift(logb x, 1)
+	      val n = I.rshift(logb x, 0w1)
 	      val x = scalb(x, I.~(I.+(n, n)))
 	      fun iter(0, g) = g
 		| iter(i, g) = iter(I.-(i, 1), half * (g + x/g))

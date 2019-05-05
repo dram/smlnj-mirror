@@ -287,7 +287,7 @@ fun isInt y = realround(y)-y == 0.0
 fun isOddInt(y) = isInt((y-1.0)*0.5)
 
 fun intpow(x,0) = 1.0
-  | intpow(x,y) = let val h = I.rshift(y,1)
+  | intpow(x,y) = let val h = I.rshift(y, 0w1)
 		      val z = intpow(x,h)
 		      val zz = z*z
                    in if y=I.+(h,h) then zz else x*zz
