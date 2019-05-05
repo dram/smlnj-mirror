@@ -273,8 +273,6 @@ structure PrimopBindings : sig
 	  ("sethdlr", p1(ar(contTy tv1,BT.unitTy)), P.SETHDLR) :-:
 	  ("gettag", p1(ar(tv1,BT.intTy)), P.GETTAG) :-:
 	  ("objlength", p1(ar(tv1, BT.intTy)), P.OBJLENGTH) :-:
-	  ("recordSub", p2(ar(tup[tv1,BT.intTy], tv2)), P.SUBSCRIPT_REC) :-:
-	  ("raw64Sub", p1(ar(tup[tv1, BT.intTy], BT.realTy)), P.SUBSCRIPT_RAW64) :-:
 	(* inline basis operations *)
 	  ("inl_compose", p3(ar(tup[ar(tv2,tv3),ar(tv1,tv2)],ar(tv1,tv3))), P.INLCOMPOSE) :-:
 	  ("inl_before", p2(ar(tup[tv1,tv2],tv1)), P.INLBEFORE) :-:
@@ -296,7 +294,9 @@ structure PrimopBindings : sig
 	(* generic sequence operations*)
 	  ("newArray0", p1(ar(BT.unitTy, tv1)), P.NEW_ARRAY0) :-:
 	  ("seq_length", p1(ar(tv1, BT.intTy)), P.LENGTH) :-:
-	  ("seq_data", p2(ar(tv1, tv2)), P.GET_SEQ_DATA)
+	  ("seq_data", p2(ar(tv1, tv2)), P.GET_SEQ_DATA) :-:
+	  ("raw64Sub", p1(ar(tup[tv1, BT.intTy], BT.realTy)), P.SUBSCRIPT_RAW64) :-:
+	  ("recordSub", p2(ar(tup[tv1,BT.intTy], tv2)), P.SUBSCRIPT_REC)
 
   (* operations on word8 arrays/vectors *)
     val prims = defineMonoSeqOps (
@@ -369,6 +369,9 @@ structure PrimopBindings : sig
   (* Word64 operations *)
     val prims = defineWordOps ("word64_", BT.word64Ty, 64, prims)
 
+  (* Real64 operations *)
+    val prims = defineRealOps ("real64_", BT.realTy, 64, prims)
+
   (* conversions integers and words *)
     val prims = defineCvtOps (BT.intTy, BT.wordTy, intSz, prims)
     val prims = defineCvtOps (BT.int32Ty, BT.word32Ty, 32, prims)
@@ -424,9 +427,6 @@ structure PrimopBindings : sig
 	      ("word64_to_pair", ar(BT.word64Ty, pw32), P.CVT64) :-:
 	      ("word64_from_pair", ar(pw32, BT.word64Ty), P.CVT64)
 	    end
-
-  (* Real64 operations *)
-    val prims = defineRealOps ("real64_", BT.realTy, 64, prims)
 
 (* REAL32: FIXME *)
   (* real/int conversions *)

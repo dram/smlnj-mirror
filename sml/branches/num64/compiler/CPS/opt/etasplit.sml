@@ -158,5 +158,3 @@ structure EtaSplit : ETASPLIT =
 	  end (* fun etasplit *)
 
   end (* functor EtaSplit *)
-
-
