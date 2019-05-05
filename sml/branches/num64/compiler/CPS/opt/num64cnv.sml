@@ -496,16 +496,29 @@ structure Num64Cnv : sig
     val i64GreaterEq = i64Cmp P.GTE
     end (* local *)
 
-  (***** conversions *****)
+  (***** pure conversions *****)
 
-(*
-P.TRUNC(64, 31)
-P.EXTEND(31, 64)
-P.COPY(31, 64)
-P.TRUNC(64, 32)
-P.COPY(32, 64)
-P.EXTEND(32, 64)
-*)
+    fun trunc64to31 (n, res, cexp) = join (res, cexp, fn k =>
+	  getLo32 (n, fn lo =>
+	    pure(P.TRUNC{from=32, to=31}, [lo], tagNumTy, k)))
+
+    fun copy31to64 (n, res, cexp) = join (res, cexp, fn k =>
+	  pure(P.COPY{from=31, to=32}, [n], raw32Ty, fn lo =>
+	    to64 (zero, lo, k)))
+
+    fun extend31to64 (n, res, cexp) = join (res, cexp, fn k =>
+	  pure(P.EXTEND{from=31, to=32}, [n], raw32Ty, fn lo =>
+	  pure_arith32(P.RSHIFT, [lo, tagNum 31], fn hi =>
+	    to64 (hi, lo, k))))
+
+    fun trunc64to32 (n, res, cexp) = join (res, cexp, fn k => getLo32 (n, k))
+
+    fun copy32to64 (n, res, cexp) = join (res, cexp, fn k => to64 (zero, n, k))
+
+    fun extend32to64 (n, res, cexp) = join (res, cexp, fn k =>
+	  pure_arith32(P.RSHIFT, [n, tagNum 31], fn hi =>
+	    to64 (hi, n, k)))
+
   (***** main function *****)
 
   (* check if an expression needs rewriting *)
@@ -527,6 +540,12 @@ P.EXTEND(32, 64)
 	    | chkExp (C.ARITH(P.IARITH{sz=64, ...}, _, _, _, _)) = true
 	    | chkExp (C.ARITH(_, _, _, _, e)) = chkExp e
 	    | chkExp (C.PURE(P.PURE_ARITH{kind=P.UINT 64, ...}, _, _, _, _)) = true
+	    | chkExp (C.PURE(P.TRUNC{from=64, to=31}, _, _, _, _)) = true
+	    | chkExp (C.PURE(P.EXTEND{from=31, to=64},  _, _, _, _)) = true
+	    | chkExp (C.PURE(P.COPY{from=31, to=64},  _, _, _, _)) = true
+	    | chkExp (C.PURE(P.TRUNC{from=64, to=32},  _, _, _, _)) = true
+	    | chkExp (C.PURE(P.COPY{from=32, to=64},  _, _, _, _)) = true
+	    | chkExp (C.PURE(P.EXTEND{from=32, to=64},  _, _, _, _)) = true
 	    | chkExp (C.PURE(_, _, _, _, e)) = chkExp e
 	    | chkExp (C.RCC(_, _, _, vs, _, e)) = List.exists chkValue vs orelse chkExp e
 (* QUESTION: do we need to check the tys?
@@ -630,6 +649,18 @@ P.EXTEND(32, 64)
 		    | (P.LSHIFT, [a, b]) => w64LShift(a, b, res, cexp e)
 		    | _ => bug "impossible PURE_ARITH; UINT 64"
 		  (* end case *)))
+	    | cexp (C.PURE(P.TRUNC{from=64, to=31}, [a], res, _, e)) =
+		trunc64to31(a, res, cexp e)
+	    | cexp (C.PURE(P.COPY{from=31, to=64}, [a], res, _, e)) =
+		copy31to64(a, res, cexp e)
+	    | cexp (C.PURE(P.EXTEND{from=31, to=64}, [a], res, _, e)) =
+		extend31to64(a, res, cexp e)
+	    | cexp (C.PURE(P.TRUNC{from=64, to=32}, [a], res, _, e)) =
+		trunc64to32(a, res, cexp e)
+	    | cexp (C.PURE(P.COPY{from=32, to=64}, [a], res, _, e)) =
+		copy32to64(a, res, cexp e)
+	    | cexp (C.PURE(P.EXTEND{from=32, to=64}, [a], res, _, e)) =
+		extend32to64(a, res, cexp e)
 	    | cexp (C.PURE(rator, args, res, ty, e)) =
 		C.PURE(rator, args, res, ty, cexp e)
 	    | cexp (C.RCC(rk, cf, proto, args, res, e)) =
