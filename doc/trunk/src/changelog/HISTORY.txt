@@ -93,6 +93,32 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/05/05]::
++
+Some of the CPS optimization modules (`Expand` and `EtaSplit` were
+written as functors over the machine spec, when, in fact, they never
+reference their functor argument.  Therefore, they have been converted
+to structures.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/04]::
++
+We now use the `InlineT.identity` primop for `Fn.id`, so the compiler
+can optimize it.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/03]::
++
+Fixed pretty-printing regression in 110.87; value of `char` type
+were missing their enclosing quotes.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.87; 2019/05/03
 
