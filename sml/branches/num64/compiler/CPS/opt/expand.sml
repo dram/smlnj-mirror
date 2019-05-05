@@ -17,7 +17,7 @@ signature EXPAND =
 
   end (* signature EXPAND *)
 
-functor Expand (MachSpec : MACH_SPEC) : EXPAND =
+structure Expand : EXPAND =
 struct
 
 local open CPS
