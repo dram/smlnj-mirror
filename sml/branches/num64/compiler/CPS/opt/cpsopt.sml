@@ -232,7 +232,7 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 (*              val function7 = last_contract function6 *)
 (*              val optimized function7 *)
 		in
-		  IntInfCnv.elim optimized
+		  IntInfCnv.elim (Num64Cnv.elim optimized)
 		end)
 	    before (debugprint["\n"]; debugflush())
 	  end (* fun reduce *)
