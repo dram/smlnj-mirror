@@ -333,17 +333,8 @@ structure InlineT =
 
         exception Chr = Core.Chr
 
-(*
 	val chr : int -> char = InLine.inl_chr
         val ord : char -> int = InLine.inl_ord
-*)
-      (* the following should be an inline operator *)
-        fun chr i = if (Int.geu(i, Int.+(maxOrd,1)))
-	    then raise Chr
-	    else ((InLine.cast i) : char)
-
-        val ord : char -> int = InLine.cast
-
 
         val (op <)  : (char * char) -> bool = InLine.char_lt
         val (op <=) : (char * char) -> bool = InLine.char_le
