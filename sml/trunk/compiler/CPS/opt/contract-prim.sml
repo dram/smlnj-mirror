@@ -177,10 +177,14 @@ structure ContractPrim : sig
 	    | cond (P.CMP{oper=P.LT, kind=P.INT _}, [NUM i, NUM j]) = SOME(#ival i < #ival j)
 	    | cond (P.CMP{oper=P.LT, kind=P.UINT sz}, [NUM i, NUM j]) =
 		SOME(CA.uLess(sz, #ival i, #ival j))
+	    | cond (P.CMP{oper=P.LT, kind=P.UINT sz}, [_, NUM{ival=0, ...}]) =
+		SOME false (* no unsigned value is < 0 *)
 	    | cond (P.CMP{oper=P.LTE, kind=P.INT _}, [NUM i, NUM j]) =
 		SOME(#ival i <= #ival j)
 	    | cond (P.CMP{oper=P.LTE, kind=P.UINT sz}, [NUM i, NUM j]) =
 		SOME(CA.uLessEq(sz, #ival i, #ival j))
+	    | cond (P.CMP{oper=P.LTE, kind=P.UINT sz}, [NUM{ival=0, ...}, _]) =
+		SOME true (* 0 is <= all unsigned values *)
 	    | cond (P.CMP{oper=P.GT, kind}, [w,v]) = cond (P.CMP{oper=P.LT, kind=kind}, [v,w])
 	    | cond (P.CMP{oper=P.GTE, kind}, vl) = notCond (P.CMP{oper=P.LT, kind=kind}, vl)
 (* TODO: if both arguments are literals, we can optimize this, but we need to be careful
