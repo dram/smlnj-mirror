@@ -10,10 +10,11 @@
 
 structure Num64Cnv : sig
 
-  (* eliminate 64-bit literals and operations on a 32-bit machine; this function is
-   * the identity on 64-bit machines.
+  (* eliminate 64-bit literals and operations on a 32-bit machine.  This function
+   * returns NONE if no 64-bit operations were eliminated and it is the constant
+   * on 64-bit machines.
    *)
-    val elim : CPS.function -> CPS.function
+    val elim : CPS.function -> CPS.function option
 
   end = struct
 
@@ -89,8 +90,8 @@ structure Num64Cnv : sig
     fun to64 (hi, lo, k) = let
 	  val pair = LV.mkLvar()
 	  in
-	    pure(P.WRAP(P.UINT 32), [lo], box32Ty, fn lo' =>
-	    pure(P.WRAP(P.UINT 32), [hi], box32Ty, fn hi' =>
+	    pure(P.WRAP(P.INT 32), [lo], box32Ty, fn lo' =>
+	    pure(P.WRAP(P.INT 32), [hi], box32Ty, fn hi' =>
 	      C.RECORD(C.RK_RECORD, [(hi', C.OFFp 0), (lo', C.OFFp 0)],
 		pair, k(C.VAR pair))))
 	  end
@@ -103,9 +104,9 @@ structure Num64Cnv : sig
 	  val lo = LV.mkLvar()
 	  in
 	    C.SELECT(0, n, hi, box32Ty,
-	    pure(P.UNWRAP(P.UINT 32), [C.VAR hi], raw32Ty, fn hi' =>
+	    pure(P.UNWRAP(P.INT 32), [C.VAR hi], raw32Ty, fn hi' =>
 	    C.SELECT(1, n, lo, box32Ty,
-	    pure(P.UNWRAP(P.UINT 32), [C.VAR lo], raw32Ty, fn lo' =>
+	    pure(P.UNWRAP(P.INT 32), [C.VAR lo], raw32Ty, fn lo' =>
 	      k (hi', lo')))))
 	  end
 
@@ -116,7 +117,7 @@ structure Num64Cnv : sig
 	  val lo = LV.mkLvar()
 	  in
 	    C.SELECT(1, n, lo, box32Ty,
-	    pure(P.UNWRAP(P.UINT 32), [C.VAR lo], raw32Ty, fn lo' =>
+	    pure(P.UNWRAP(P.INT 32), [C.VAR lo], raw32Ty, fn lo' =>
 	      k lo'))
 	  end
 
@@ -127,7 +128,7 @@ structure Num64Cnv : sig
 	  val hi = LV.mkLvar()
 	  in
 	    C.SELECT(0, n, hi, box32Ty,
-	    pure(P.UNWRAP(P.UINT 32), [C.VAR hi], raw32Ty, fn hi' =>
+	    pure(P.UNWRAP(P.INT 32), [C.VAR hi], raw32Ty, fn hi' =>
 	      k hi'))
 	  end
 
@@ -519,6 +520,11 @@ structure Num64Cnv : sig
 	  pure_arith32(P.RSHIFT, [n, tagNum 31], fn hi =>
 	    to64 (hi, n, k)))
 
+  (***** other functions *****)
+
+    fun wrap64 (v, res, cexp) = join (res, cexp, fn k => k v)
+
+
   (***** main function *****)
 
   (* check if an expression needs rewriting *)
@@ -546,6 +552,8 @@ structure Num64Cnv : sig
 	    | chkExp (C.PURE(P.TRUNC{from=64, to=32},  _, _, _, _)) = true
 	    | chkExp (C.PURE(P.COPY{from=32, to=64},  _, _, _, _)) = true
 	    | chkExp (C.PURE(P.EXTEND{from=32, to=64},  _, _, _, _)) = true
+	    | chkExp (C.PURE(P.WRAP(P.INT 64), _, _, _, _)) = true
+	    | chkExp (C.PURE(P.UNWRAP(P.INT 64), _, _, _, _)) = true
 	    | chkExp (C.PURE(_, _, _, _, e)) = chkExp e
 	    | chkExp (C.RCC(_, _, _, vs, _, e)) = List.exists chkValue vs orelse chkExp e
 (* QUESTION: do we need to check the tys?
@@ -568,6 +576,13 @@ structure Num64Cnv : sig
 		  | f (C.NUM{ival, ty={sz=64, ...}}::vs, vl') = let
 		      val (hi, lo) = split ival
 		      in
+(*
+		      (* we assume flattening into a pair of 32-bit values; unflattened
+		       * constants would have a WRAP around them.  Argument order is
+		       * big-endian, but we are building the argument list in reverse.
+		       *)
+			f (vs, lo::hi::vl')
+*)
 			to64 (hi, lo, fn v => f (vs, v::vl'))
 		      end
 		  | f (v::vs, vl') = f (vs, v::vl')
@@ -650,17 +665,20 @@ structure Num64Cnv : sig
 		    | _ => bug "impossible PURE_ARITH; UINT 64"
 		  (* end case *)))
 	    | cexp (C.PURE(P.TRUNC{from=64, to=31}, [a], res, _, e)) =
-		trunc64to31(a, res, cexp e)
+		value (a, fn x => trunc64to31(x, res, cexp e))
 	    | cexp (C.PURE(P.COPY{from=31, to=64}, [a], res, _, e)) =
-		copy31to64(a, res, cexp e)
+		value (a, fn x => copy31to64(x, res, cexp e))
 	    | cexp (C.PURE(P.EXTEND{from=31, to=64}, [a], res, _, e)) =
-		extend31to64(a, res, cexp e)
+		value (a, fn x => extend31to64(x, res, cexp e))
 	    | cexp (C.PURE(P.TRUNC{from=64, to=32}, [a], res, _, e)) =
-		trunc64to32(a, res, cexp e)
+		value (a, fn x => trunc64to32(x, res, cexp e))
 	    | cexp (C.PURE(P.COPY{from=32, to=64}, [a], res, _, e)) =
-		copy32to64(a, res, cexp e)
+		value (a, fn x => copy32to64(x, res, cexp e))
 	    | cexp (C.PURE(P.EXTEND{from=32, to=64}, [a], res, _, e)) =
-		extend32to64(a, res, cexp e)
+		value (a, fn x => extend32to64(x, res, cexp e))
+	    | cexp (C.PURE(P.WRAP(P.INT 64), [a], res, _, e)) =
+		value (a, fn x => wrap64 (x, res, cexp e))
+	    | cexp (C.PURE(P.UNWRAP(P.INT 64), [a], res, _, e)) = bug "UNWRAP"
 	    | cexp (C.PURE(rator, args, res, ty, e)) =
 		C.PURE(rator, args, res, ty, cexp e)
 	    | cexp (C.RCC(rk, cf, proto, args, res, e)) =
@@ -680,8 +698,8 @@ structure Num64Cnv : sig
 		(fk, f, params, tys, cexp body)
 	  in
 	    if needsRewrite cfun
-	      then function cfun
-	      else cfun
+	      then SOME(function cfun)
+	      else NONE
 	  end (* elim *)
 
   end
