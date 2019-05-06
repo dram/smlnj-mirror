@@ -1,14 +1,12 @@
 (* bind-largest32.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * Bindings of Int, LargeInt, Word, LargeWord and SysWord
+ * Bindings of LargeInt, LargeWord and SysWord
  * structures for 32-bit implementations.
- *
  *)
 
-structure Int = Int31
-structure Word = Word31
 structure LargeInt = IntInf
 structure FixedInt = Int32
 structure LargeWord = Word32
