@@ -398,8 +398,10 @@ structure TransPrim : sig
 		  in
 		    mkFn argt (fn v => v)
 		  end
-(* 64BIT: FIXME *)
+(* TO DELETE *)
 	      | PO.CVT64 => mkFn (lt_tup[LT.ltc_num 32, LT.ltc_num 32]) (fn v => v) (* int64 in 32BIT *)
+	      | PO.INTERN64 => mkFn (lt_tup[LT.ltc_num 32, LT.ltc_num 32]) (fn v => v)
+	      | PO.EXTERN64 => mkFn (LT.ltc_num 64) (fn v => v)
 	      | PO.INLSUBSCRIPTV => let
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)

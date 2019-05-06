@@ -426,6 +426,12 @@ structure PrimopBindings : sig
 	      ("int64_from_pair", ar(pw32, BT.int64Ty), P.CVT64) :-:
 	      ("word64_to_pair", ar(BT.word64Ty, pw32), P.CVT64) :-:
 	      ("word64_from_pair", ar(pw32, BT.word64Ty), P.CVT64)
+(*
+	      ("int64_to_pair", ar(BT.int64Ty, pw32), P.EXTERN64) :-:
+	      ("int64_from_pair", ar(pw32, BT.int64Ty), P.INTERN64) :-:
+	      ("word64_to_pair", ar(BT.word64Ty, pw32), P.EXTERN64) :-:
+	      ("word64_from_pair", ar(pw32, BT.word64Ty), P.INTERN64)
+*)
 	    end
 
 (* REAL32: FIXME *)

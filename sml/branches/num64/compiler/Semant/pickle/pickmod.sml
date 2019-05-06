@@ -479,6 +479,8 @@ in
 
 	      | P.CVT64 => %?50
 	      | P.INLCHR => %?51
+	      | P.INTERN64 => %?52
+	      | P.EXTERN64 => %?53
 	      (** WARNING: last value must be < 80!! **)
     end
 

@@ -115,9 +115,16 @@ structure Primop : PRIMOP =
       | GET_SEQ_DATA				(* E: get data pointer from arr/vec header *)
       | SUBSCRIPT_REC				(* E: record subscript operation *)
       | SUBSCRIPT_RAW64				(* E: raw64 subscript operation *)
+(* TO DELETE *)
       | CVT64					(* E: convert between external and
 						 * internal representation of compiler
 						 * simulated 64-bit scalars, e.g. w64p *)
+      | INTERN64				(* E: convert a pair of word32 values to
+						 * a 64-bit number.
+						 *)
+      | EXTERN64				(* E: convert a 64-bit number to a pair
+						 * of word32 values.
+						 *)
     (* Primops to support C FFI. *)
       | RAW_LOAD of numkind			(* E: load from arbitrary memory location *)
       | RAW_STORE of numkind			(* E: store to arbitrary memory location *)
