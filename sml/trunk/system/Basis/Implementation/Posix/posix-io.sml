@@ -16,8 +16,8 @@ structure POSIX_IO =
 
     structure FS = POSIX_FileSys
 
-    structure OM : sig 
-                      datatype open_mode = O_RDONLY | O_WRONLY | O_RDWR 
+    structure OM : sig
+                      datatype open_mode = O_RDONLY | O_WRONLY | O_RDWR
                     end = FS
     open OM
 
@@ -35,7 +35,7 @@ structure POSIX_IO =
 
     type file_desc = FS.file_desc
     type pid = POSIX_Process.pid
-    
+
     val pipe' : unit -> s_int * s_int = cfun "pipe"
     fun pipe () = let
           val (ifd, ofd) = pipe' ()
@@ -58,7 +58,7 @@ structure POSIX_IO =
     in
 	readbuf' (FS.intOf fd, buf, len, i)
     end
-    fun readVec (fd,cnt) = 
+    fun readVec (fd,cnt) =
           if cnt < 0 then raise Size else read'(FS.intOf fd, cnt)
 
     val writevec' : (int * Word8Vector.vector * int * int) -> int = cfun "writebuf"
@@ -87,7 +87,7 @@ structure POSIX_IO =
           else if wh = seek_cur then SEEK_CUR
           else if wh = seek_end then SEEK_END
           else fail ("whFromWord","unknown whence "^(Int.toString wh))
-    
+
     structure FD =
       struct
         local structure BF = BitFlagsFn ()
@@ -147,7 +147,8 @@ structure POSIX_IO =
         fun pid (FLOCK fv) = #pid fv
       end
 
-    type flock_rep = s_int * s_int * Int31.int * Int31.int * s_int
+(* 64BIT: FIXME is Int.int correct for this type? *)
+    type flock_rep = s_int * s_int * Int.int * Int.int * s_int
 
     val fcntl_l : s_int * s_int * flock_rep -> flock_rep = cfun "fcntl_l"
     val f_getlk = osval "F_GETLK"
@@ -165,13 +166,13 @@ structure POSIX_IO =
             (ltypeOf ltype,whToWord whence, start, len, 0)
           end
     fun flockFromRep (usepid,(ltype,whence,start,len,pid)) = let
-          fun ltypeOf ltype = 
+          fun ltypeOf ltype =
                 if ltype = f_rdlck then F_RDLCK
                 else if ltype = f_wrlck then F_WRLCK
                 else if ltype = f_unlck then F_UNLCK
                 else fail ("flockFromRep","unknown lock type "^(Int.toString ltype))
           in
-            FLock.FLOCK { 
+            FLock.FLOCK {
               ltype = ltypeOf ltype,
               whence = whFromWord whence,
               start = start,
@@ -187,8 +188,9 @@ structure POSIX_IO =
     fun setlkw (fd, flock) =
           flockFromRep(false,fcntl_l(FS.intOf fd,f_setlkw,flockToRep flock))
 
-    val lseek' : s_int * Int31.int * s_int -> Int31.int = cfun "lseek"
-    fun lseek (fd,offset,whence) = lseek'(FS.intOf fd,offset, whToWord whence)
+(* 64BIT: FIXME is Int.int correct for this type? *)
+    val lseek' : s_int * Int.int * s_int -> Int.int = cfun "lseek"
+    fun lseek (fd, offset, whence) = lseek'(FS.intOf fd,offset, whToWord whence)
 
     val fsync' : s_int -> unit = cfun "fsync"
     fun fsync fd = fsync' (FS.intOf fd)
@@ -311,11 +313,11 @@ structure POSIX_IO =
 	  fun putA x = incPos (announce "writeArr" writeArr' x)
 	  fun write (put, block) arg =
 	      (ensureOpen();
-	       ensureBlock block; 
+	       ensureBlock block;
 	       put(fd, arg))
 	  fun handleBlock writer arg =
 	      SOME (writer arg)
-	      handle (e as Assembly.SysErr(_, SOME cause)) => 
+	      handle (e as Assembly.SysErr(_, SOME cause)) =>
  		     if cause = POSIX_Error.again then NONE else raise e
 	  fun w_close () =
 	      if !closed then ()

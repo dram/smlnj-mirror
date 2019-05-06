@@ -4,4 +4,4 @@
  *
  * Copyright (c) 2004 by The Fellowship of SML/NJ
  *)
-structure Position = Int31
+structure Position = Int (* FIXME: we should switch to Int32 or Int64 *)
