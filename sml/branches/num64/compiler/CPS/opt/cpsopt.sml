@@ -231,8 +231,10 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 (*              val function6 = eta function5 (* ZSH added this new phase *) *)
 (*              val function7 = last_contract function6 *)
 (*              val optimized function7 *)
+		val optimized = Num64Cnv.elim optimized
+		val optimized = last_contract optimized
 		in
-		  IntInfCnv.elim (Num64Cnv.elim optimized)
+		  IntInfCnv.elim optimized
 		end)
 	    before (debugprint["\n"]; debugflush())
 	  end (* fun reduce *)
