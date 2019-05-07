@@ -161,6 +161,7 @@ structure InlineT =
     structure Int64 =
       struct
 
+(*
 	val op + = Core.i64Add
 	val op - = Core.i64Sub
 	val op * = Core.i64Mul
@@ -174,6 +175,7 @@ structure InlineT =
 	val op > = Core.i64GT
 	val op >= = Core.i64GTE
 	val abs = Core.i64Abs
+*)
 
 (* coming soon!
         val op *    : int64 * int64 -> int64  = InLine.int64_mul
@@ -361,6 +363,7 @@ structure InlineT =
         val extern : word64 -> word32 * word32 = InLine.word64_to_pair
 	val intern : word32 * word32 -> word64 = InLine.word64_from_pair
 
+(*
 	val op + = Core.w64Add
 	val op - = Core.w64Sub
 	val op * = Core.w64Mul
@@ -371,6 +374,7 @@ structure InlineT =
 	val op <= = Core.w64LTE
 	val op > = Core.w64GT
 	val op >= = Core.w64GTE
+*)
 
 (* coming soon!
         val orb : word64 * word64 -> word64	 = InLine.word64_orb

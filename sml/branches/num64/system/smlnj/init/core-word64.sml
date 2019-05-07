@@ -11,6 +11,7 @@
 structure CoreWord64 =
   struct
 
+(*
     local
       infix o val op o : ('b -> 'c) * ('a -> 'b) -> 'a -> 'c = InLine.inl_compose
       val not : bool -> bool = InLine.inl_not
@@ -28,13 +29,13 @@ structure CoreWord64 =
       infix 4 >     val op > = InLine.word32_gt
       infix 4 >=    val op >= = InLine.word32_ge
 
-      val w64p : word64 -> word32 * word32 = InLine.word64_to_pair
-      val p64w : word32 * word32 -> word64 = InLine.word64_from_pair
+      val extern : word64 -> word32 * word32 = InLine.word64_to_pair
+      val intern : word32 * word32 -> word64 = InLine.word64_from_pair
 
-      fun lift1' f = f o w64p
-      fun lift1 f = p64w o lift1' f
-      fun lift2' f (x, y) = f (w64p x, w64p y)
-      fun lift2 f = p64w o lift2' f
+      fun lift1' f = f o extern
+      fun lift1 f = intern o lift1' f
+      fun lift2' f (x, y) = f (extern x, extern y)
+      fun lift2 f = intern o lift2' f
 
       fun split16 w32 = (w32 >> 0w16, w32 & 0wxffff)
 
@@ -161,9 +162,6 @@ structure CoreWord64 =
             (hi1 > hi2) orelse (InLine.word32_eql (hi1, hi2) andalso (lo1 >= lo2))
 
     in
-    val extern = w64p
-    val intern = p64w
-
     val ~ = lift1 neg64
     val op + = lift2 add64
     val op - = lift2 sub64
@@ -175,5 +173,6 @@ structure CoreWord64 =
     val op > = lift2' gt64
     val op >= = lift2' ge64
     end (* local *)
+*)
 
   end (* structure CoreWord64 *)

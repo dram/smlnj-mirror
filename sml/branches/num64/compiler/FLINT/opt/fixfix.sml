@@ -132,7 +132,7 @@ fun fexp mf depth lexp = let
 	    (* find the rtys of the uncurried function *)
 	    fun getrtypes (({isrec=SOME(rtys,_),...}:F.fkind,_,_),_) = SOME rtys
 	      | getrtypes ((_,_,_),rtys) =
-		Option.map (fn [lty] => #2(LT.ltd_fkfun lty) 
+		Option.map (fn [lty] => #2(LT.ltd_fkfun lty)
 					handle LT.DeconExn => bug "uncurry"
 			     | _ => bug "strange isrec") rtys
 
@@ -272,7 +272,7 @@ in case lexp
 	   val (s,fv,funs,m) = foldl ffun (s, fv, funs, m) fs
 
 	   (* find strongly connected components *)
-	   val top = 
+	   val top =
 	     SCC.topOrder{root=lename,
 			  follow=(fn n => #1(Option.valOf(M.find(m,n))))}
 	       handle x => (bug "top:follow"; raise x)

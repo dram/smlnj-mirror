@@ -106,8 +106,10 @@ fun toDconLty toLty ty =
             else toLty (BT.-->(BT.unitTy, ty)))
 
 (* test for 64-bit int/word types, which are represented as pairs of 32-bit words *)
+(* 64BIT:
 fun isInt64 ty = TU.equalType(ty, BT.int64Ty)
 fun isWord64 ty = TU.equalType(ty, BT.word64Ty)
+*)
 
 fun numCon (v, ty, msg) = let
       fun mkWORD sz = WORDpcon{ival = v, ty = sz}
@@ -295,9 +297,12 @@ fun makeAndor (matchRep,err) = let
       | genAndor (LAYEREDpat(APPpat(k,t,lpat), bpat), rule) =
 	  addConstraint ((k,t), SOME lpat, rule, genAndor(bpat, rule))
       | genAndor (NUMpat(_, {ival, ty}), rule) =
+(* 64BIT:
           if isInt64 ty then genAndor64 (LN.int64 ival, rule)
 	  else if isWord64 ty then genAndor64 (LN.word64 ival, rule)
 	  else let
+*)
+	  let
 	    val con = numCon(ival, ty, "genAndor NUMpat")
 	    in
 	      CASE{
@@ -334,12 +339,14 @@ fun makeAndor (matchRep,err) = let
       | genAndor _ =
 	  bug "genandor - unexpected pat arg"
 
+(* 64BIT:
     (* simulate 64-bit words and ints as pairs of 32-bit words *)
     and genAndor64 ((hi, lo), rule) = let
 	  fun p32 w = NUMpat("<lit>", {ival = w, ty = BT.word32Ty})
 	  in
 	    genAndor (AbsynUtil.TUPLEpat [p32 hi, p32 lo], rule)
 	  end
+*)
 
     and multiGen (nil, rule) = nil
       | multiGen(pat::rest, rule) = (genAndor(pat,rule))::multiGen((rest,rule))
@@ -373,9 +380,12 @@ fun makeAndor (matchRep,err) = let
 		      subtrees=subtrees}
 	      | _ => bug "mergeAndor - genAndor returned bogusly")
       | mergeAndor (NUMpat(_, {ival, ty}), c as CASE{bindings, cases, constraints, sign}, rule) =
+(* 64BIT:
 	  if isInt64 ty then mergeAndor64 (LN.int64 ival, c, rule)
 	  else if isWord64 ty then mergeAndor64 (LN.word64 ival, c, rule)
 	  else let
+*)
+	  let
 	    val pcon = numCon(ival, ty, "mergeAndor NUMpat")
 	    in
 	      CASE{
@@ -384,9 +394,12 @@ fun makeAndor (matchRep,err) = let
 		}
 	    end
       | mergeAndor (NUMpat(_, {ival, ty}), c as AND _, rule) =
+(* 64BIT:
 	  if isInt64 ty then mergeAndor64 (LN.int64 ival, c, rule)
 	  else if isWord64 ty then mergeAndor64 (LN.word64 ival, c, rule)
 	  else bug "mergeAndor - bad pattern merge: NUMpat AND (not 64)"
+*)
+	  bug "mergeAndor - bad pattern merge: NUMpat AND (not 64)"
       | mergeAndor (STRINGpat s, CASE{bindings, cases, constraints,sign}, rule) =
 	  CASE {bindings = bindings, constraints = constraints, sign=sign,
 		cases = addACase(STRINGpcon s, nil, rule, cases)}

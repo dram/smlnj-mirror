@@ -354,7 +354,11 @@ structure Num64Cnv : sig
 	    val flFnId = LV.mkLvar()
 	    val fl' = C.APP(C.VAR flFnId, [])
 	    in
-	      C.FIX([(C.CONT, trFnId, [], [], tr), (C.CONT, flFnId, [], [], fl)],
+	    (* NOTE: closure conversion requires that there only be one continuation
+	     * function per FIX!
+	     *)
+	      C.FIX([(C.CONT, trFnId, [], [], tr)],
+	      C.FIX([(C.CONT, flFnId, [], [], fl)],
 	      (* (hi1 < hi2) orelse ((hi1 = hi2) andalso (lo1 < lo2)) *)
 		getHi32(n1, fn hi1 =>
 		getHi32(n2, fn hi2 =>
@@ -364,7 +368,7 @@ structure Num64Cnv : sig
 		      getLo32(n1, fn lo1 =>
 		      getLo32(n2, fn lo2 =>
 			uIf(oper, lo1, lo2, tr', fl'))),
-		      fl')))))
+		      fl'))))))
 	    end
     in
     val w64Less = w64Cmp P.LT
@@ -523,6 +527,7 @@ structure Num64Cnv : sig
   (***** other functions *****)
 
     fun wrap64 (v, res, cexp) = join (res, cexp, fn k => k v)
+    fun unwrap64 (v, res, cexp) = join (res, cexp, fn k => k v)
 
 
   (***** main function *****)
@@ -628,7 +633,7 @@ structure Num64Cnv : sig
 		    | _ => bug "impossible BRANCH; UINT 64"
 		  (* end case *)))
 	    | cexp (C.BRANCH(rator, args, v, e1, e2)) =
-		cexp (C.BRANCH(rator, args, v, cexp e1, cexp e2))
+		values (args, fn args' => C.BRANCH(rator, args', v, cexp e1, cexp e2))
 	    | cexp (C.SETTER(rator, xl, e)) =
 		values (xl, fn xl' => C.SETTER (rator, xl', cexp e))
 	    | cexp (C.LOOKER (rator, xl, v, ty, e)) =
@@ -642,7 +647,7 @@ structure Num64Cnv : sig
 		    | (P.IMOD, [a, b, f]) => mkApply(f, [a, b], res, e)
 		    | (P.IQUOT, [a, b, f]) => mkApply(f, [a, b], res, e)
 		    | (P.IREM , [a, b, f]) => mkApply(f, [a, b], res, e)
-		    | (P.INEG, [a]) => i64Neg(a, res, e)
+		    | (P.INEG, [a]) => i64Neg(a, res, cexp e)
 		    | _ => bug "impossible IARITH; sz=64"
 		  (* end case *)))
 	    | cexp (C.ARITH(rator, args, res, ty, e)) =
@@ -654,11 +659,11 @@ structure Num64Cnv : sig
 		    | (P.MUL, [a, b, f]) => mkApply(f, [a, b], res, e)
 		    | (P.QUOT, [a, b, f]) => mkApply(f, [a, b], res, e)
 		    | (P.REM , [a, b, f]) => mkApply(f, [a, b], res, e)
-		    | (P.NEG, [a]) => i64Neg(a, res, e)
+		    | (P.NEG, [a]) => i64Neg(a, res, cexp e)
 		    | (P.ORB, [a, b]) => w64Orb(a, b, res, cexp e)
 		    | (P.XORB, [a, b]) => w64Xorb(a, b, res, cexp e)
 		    | (P.ANDB, [a, b]) => w64Andb(a, b, res, cexp e)
-		    | (P.NOTB, [a, b]) => w64Notb(a, res, e)
+		    | (P.NOTB, [a]) => w64Notb(a, res, cexp e)
 		    | (P.RSHIFT, [a, b]) => w64RShift(a, b, res, cexp e)
 		    | (P.RSHIFTL, [a, b]) => w64RShiftL(a, b, res, cexp e)
 		    | (P.LSHIFT, [a, b]) => w64LShift(a, b, res, cexp e)
@@ -678,7 +683,8 @@ structure Num64Cnv : sig
 		value (a, fn x => extend32to64(x, res, cexp e))
 	    | cexp (C.PURE(P.WRAP(P.INT 64), [a], res, _, e)) =
 		value (a, fn x => wrap64 (x, res, cexp e))
-	    | cexp (C.PURE(P.UNWRAP(P.INT 64), [a], res, _, e)) = bug "UNWRAP"
+	    | cexp (C.PURE(P.UNWRAP(P.INT 64), [a], res, _, e)) =
+		value (a, fn x => unwrap64 (x, res, cexp e))
 	    | cexp (C.PURE(rator, args, res, ty, e)) =
 		C.PURE(rator, args, res, ty, cexp e)
 	    | cexp (C.RCC(rk, cf, proto, args, res, e)) =

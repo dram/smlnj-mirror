@@ -359,6 +359,7 @@ structure Core =
 	val makeSmallPosInf = CoreIntInf.makeSmallPosInf
 	val infLowValue = CoreIntInf.lowValue
 
+(*
 	val i64Mul = CoreInt64.*
 	val i64Div = CoreInt64.div
 	val i64Mod = CoreInt64.mod
@@ -384,6 +385,7 @@ structure Core =
 	val w64LTE = CoreWord64.<=
 	val w64GT = CoreWord64.>
 	val w64GTE = CoreWord64.>=
+*)
 
     end (* local *)
 

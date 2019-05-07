@@ -323,6 +323,7 @@ let fun ppValue (obj: object, ty: T.ty, depth: int) : unit =
                                                      root, family)),
 				  argtys',depth,l,r,accu)
 		       end
+(* 64BIT:
 		| (T.ABSTRACT _, _) =>
 		    (if TU.eqTycon (tyc, BT.int64Tycon) then
 			 case Obj.toTuple obj of
@@ -343,6 +344,7 @@ let fun ppValue (obj: object, ty: T.ty, depth: int) : unit =
 			     end
 			   | _ => PP.string ppstrm "<word64?>"
 		     else PP.string ppstrm "-")
+*)
 		| _ => PP.string ppstrm "-"
 	      (* end case *))
 	   | T.CONty(tyc as T.RECORDtyc [], _) => PP.string ppstrm  "()"

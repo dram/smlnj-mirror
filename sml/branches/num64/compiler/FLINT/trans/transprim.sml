@@ -287,6 +287,24 @@ structure TransPrim : sig
 		      warn "no access to Chr exception";
 		      L.PRIM(PO.CAST, lt_intop1, []))
 		(* end case *))
+	(* expand INTERN64 primop (type: word32 * word32 -> word64 *)
+	  fun intern64 () = let
+		val lt_arg = lt_tup[LT.ltc_num 32, LT.ltc_num 32]
+		in
+		  mkFn lt_arg (fn p =>
+		    L.APP(
+		      L.PRIM(PO.CAST, lt_arw(lt_arg, LT.ltc_num 64), []),
+		      L.RECORD[L.SELECT(0, p), L.SELECT(1, p)]))
+		end
+	(* expand EXTERN64 primop *)
+	  fun extern64 () = let
+		val lt_res = lt_tup[LT.ltc_num 32, LT.ltc_num 32]
+		in
+		  mkFn (LT.ltc_num 64) (fn n =>
+		    mkLet
+		      (L.APP(L.PRIM(PO.CAST, lt_arw(LT.ltc_num 64, lt_res), []), n))
+		      (fn p => L.RECORD[L.SELECT(0, p), L.SELECT(1, p)]))
+		end
 	(** Precision converting translation using a conversion
 	 *  primitive named in the second argument.
 	 *

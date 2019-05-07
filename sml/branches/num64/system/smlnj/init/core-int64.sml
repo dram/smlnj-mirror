@@ -11,6 +11,7 @@
 structure CoreInt64 =
   struct
 
+(*
     local
       structure CII = CoreIntInf
 
@@ -28,10 +29,13 @@ structure CoreInt64 =
       infix 4 ==    val op == = InLine.word32_eql
       val not = InLine.inl_not
 
-      fun lift1' f = f o InLine.int64_to_pair
-      fun lift1 f = InLine.int64_from_pair o lift1' f
-      fun lift2' f (x, y) = f (InLine.int64_to_pair x, InLine.int64_to_pair y)
-      fun lift2 f = InLine.int64_from_pair o lift2' f
+      val extern : int64 -> word32 * word32 = InLine.int64_to_pair
+      val intern : word32 * word32 -> int64 = InLine.int64_from_pair
+
+      fun lift1' f = f o extern
+      fun lift1 f = intern o lift1' f
+      fun lift2' f (x, y) = f (extern x, extern y)
+      fun lift2 f = intern o lift2' f
 
       fun neg64 (0wx80000000, 0w0) = raise Assembly.Overflow
 	| neg64 (hi, 0w0) = (InLine.word32_neg hi, 0w0)
@@ -153,10 +157,6 @@ structure CoreInt64 =
 
       fun abs64 (hi, lo) = if isneg hi then neg64 (hi, lo) else (hi, lo)
     in
-(* NOTE: these are also defined in InLineT.Int64; do we need both definitions? *)
-      val extern = InLine.int64_to_pair
-      val intern = InLine.int64_from_pair
-
       val ~ = lift1 neg64
       val op + = lift2 add64
       val op - = lift2 sub64
@@ -171,5 +171,6 @@ structure CoreInt64 =
       val op >= = lift2' ge64
       val abs = lift1 abs64
     end (* local *)
+*)
 
   end
