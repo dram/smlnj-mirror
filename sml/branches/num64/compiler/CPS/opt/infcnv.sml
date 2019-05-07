@@ -39,7 +39,7 @@ end = struct
    *)
     fun toInf (prim, sz, extend, [x, f], v, t, e) = let
 	  val k = LV.mkLvar ()
-	  val body = if (sz = Target.defaultIntSz)
+	  val body = if (sz <= Target.defaultIntSz)
 		  then let
 		  (* for tagged values, we promote to the boxed type before calling
 		   * the conversion function.
@@ -84,7 +84,7 @@ end = struct
     fun fromInf (mkExp, prim, sz, [x, f], v, t, e) = let
 	  val k = LV.mkLvar ()
 	  in
-	    if (sz = Target.defaultIntSz)
+	    if (sz <= Target.defaultIntSz)
 	      then let
 		val v' = LV.mkLvar ()
 		val retContBody =
@@ -135,70 +135,14 @@ end = struct
 		C.SETTER (s, xl, cexp e)
 	    | cexp (C.LOOKER (l, xl, v, t, e)) =
 		C.LOOKER (l, xl, v, t, cexp e)
-	    | cexp (C.PURE (C.P.COPY_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
-		then let
-		  val k = LV.mkLvar ()
-		  val e' = cexp e
-		  in
-		    C.FIX ([(C.CONT, k, [v], [t], e')], C.APP (f, [C.VAR k, x, kFalse]))
-		  end
-		else let
-		  val k = LV.mkLvar ()
-		  val v' = LV.mkLvar ()
-		  val e' = cexp e
-		  in
-		    C.FIX ([(C.CONT, k, [v], [t], e')],
-		      C.PURE (C.P.COPY{from=sz, to=boxNumSz}, [x], v', boxNumTy,
-			C.APP (f, [C.VAR k, C.VAR v', kFalse])))
-		  end
-	    | cexp (C.PURE (C.P.EXTEND_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
-		then let
-		  val k = LV.mkLvar ()
-		  val e' = cexp e
-		  in
-		    C.FIX ([(C.CONT, k, [v], [t], e')], C.APP (f, [C.VAR k, x, kTrue]))
-		  end
-		else let
-		  val k = LV.mkLvar ()
-		  val v' = LV.mkLvar ()
-		  val e' = cexp e
-		  in
-		    C.FIX ([(C.CONT, k, [v], [t], e')],
-		      C.PURE (C.P.EXTEND{from=sz, to=boxNumSz}, [x], v', boxNumTy,
-			C.APP (f, [C.VAR k, C.VAR v', kTrue])))
-		  end
-	    | cexp (C.ARITH (C.P.TEST_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
-		then let
-		  val k = LV.mkLvar ()
-		  val e' = cexp e
-		  in
-		    C.FIX ([(C.CONT, k, [v], [t], e')], C.APP (f, [C.VAR k, x]))
-		  end
-		else let
-		  val k = LV.mkLvar ()
-		  val v' = LV.mkLvar ()
-		  val e' = cexp e
-		  in
-		    C.FIX ([(C.CONT, k, [v'], [boxNumTy],
-			     C.ARITH (C.P.TEST{from=boxNumSz, to=sz}, [C.VAR v'], v, t, e'))],
-			   C.APP (f, [C.VAR k, x]))
-		  end
-	    | cexp (C.PURE (C.P.TRUNC_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
-		then let
-		  val k = LV.mkLvar ()
-		  val e' = cexp e
-		  in
-		    C.FIX ([(C.CONT, k, [v], [t], e')], C.APP (f, [C.VAR k, x]))
-		  end
-		else let
-		  val k = LV.mkLvar ()
-		  val v' = LV.mkLvar ()
-		  val e' = cexp e
-		  in
-		    C.FIX ([(C.CONT, k, [v'], [boxNumTy],
-			     C.PURE (C.P.TRUNC{from=boxNumSz, to=sz}, [C.VAR v'], v, t, e'))],
-			   C.APP (f, [C.VAR k, x]))
-		  end
+	    | cexp (C.PURE (C.P.COPY_INF sz, args, v, t, e)) =
+		toInf (C.P.COPY, sz, kFalse, args, v, t, cexp e)
+	    | cexp (C.PURE (C.P.EXTEND_INF sz, args, v, t, e)) =
+		toInf (C.P.EXTEND, sz, kTrue, args, v, t, cexp e)
+	    | cexp (C.PURE (C.P.TRUNC_INF sz, args, v, t, e)) =
+		fromInf (C.PURE, C.P.TRUNC, sz, args, v, t, cexp e)
+	    | cexp (C.ARITH (C.P.TEST_INF sz, args, v, t, e)) =
+		fromInf (C.ARITH, C.P.TEST, sz, args, v, t, cexp e)
 	    | cexp (C.ARITH (a, xl, v, t, e)) = C.ARITH (a, xl, v, t, cexp e)
 	    | cexp (C.PURE (p, xl, v, t, e)) = C.PURE (p, xl, v, t, cexp e)
 	    | cexp (C.RCC (k, s, p, xl, vtl, e)) = C.RCC (k, s, p, xl, vtl, cexp e)
