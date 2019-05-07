@@ -112,6 +112,7 @@ structure BasicTypes : BASICTYPES =
 
     val (word32Tycon, word32Ty) = mkPrimTycTy("word32", 0, T.YES)
 
+(* 64BIT:
   (* used to represent Int64.int on 32-bit machines *)
     val w32pairTycon = T.DEFtyc {
 	    stamp = Stamps.special "w32pair",
@@ -120,21 +121,23 @@ structure BasicTypes : BASICTYPES =
 	    strict = []
 	  }
 
-    fun mkAbstract64 name = T.GENtyc {
-	    stamp = Stamps.special name, arity = 0, eq = ref T.YES,
-	    path = IP.IPATH [Symbol.tycSymbol name], stub = NONE,
-	    kind = T.ABSTRACT w32pairTycon
-	  }
+    fun mkNum64Tyc name = if Target.is64
+	  then mkPrimTyc (name, 0, T.YES)
+          (* we use pairs of word32 to represent 64-bit ints on 32-bit machines *)
+	  else T.GENtyc {
+	      stamp = Stamps.special name, arity = 0, eq = ref T.YES,
+	      path = IP.IPATH [Symbol.tycSymbol name], stub = NONE,
+	      kind = T.ABSTRACT w32pairTycon
+	    }
+*)
+    fun mkNum64Tyc name = mkPrimTyc (name, 0, T.YES)
 
   (* intTycon will be either int31 or int63 (tagged) depending on Target.is64 *)
     val (intTycon, intTy) = mkPrimTycTy ("int", 0, T.YES)
 
     val (int32Tycon, int32Ty) = mkPrimTycTy ("int32", 0, T.YES)
-    val int64Tycon = if Target.is64
-	  then mkPrimTyc ("int64", 0, T.YES) (* int64Tycon is primitive *)
-	  else mkAbstract64 "int64"  (* int64Tycon is abstract *)
-          (* we use pairs of word32 to represent 64-bit ints on 32-bit machines *)
 
+    val int64Tycon = mkNum64Tyc "int64"
     val int64Ty = T.CONty(int64Tycon, [])
 
     val (intinfTycon, intinfTy) = mkPrimTycTy ("intinf", 0, T.YES)
@@ -142,11 +145,7 @@ structure BasicTypes : BASICTYPES =
     val (wordTycon, wordTy) = mkPrimTycTy("word", 0, T.YES)
     val (word8Tycon, word8Ty) = mkPrimTycTy("word8", 0, T.YES)
 
-    val word64Tycon = if Target.is64
-	  then mkPrimTyc ("word64", 0, T.YES) (* word64Tycon is primitive *)
-	  else mkAbstract64 "word64"  (* word64Tycon is abstract *)
-          (* we use pairs of word32 to represent 64-bit words on 32-bit machines *)
-
+    val word64Tycon = mkNum64Tyc "word64"
     val word64Ty = T.CONty (word64Tycon, [])
 
     val (realTycon, realTy) = mkPrimTycTy ("real", 0, T.NO)

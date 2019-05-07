@@ -644,6 +644,16 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		(print "*** pro-forma raw-record\n";
 		 newname (v, lpvar x); loop(e,c))
 
+	      | F.PRIMOP((_, AP.INTERN64, _, _), args, res, e) => let
+		  val [hi, lo] = lpvars args
+		  in
+		    RECORD(RK_RECORD, [(hi, OFFp0), (lo, OFFp0)], res, loop(e,c))
+		  end
+	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) => let
+		  in
+		    PURE(P.CAST, lpvars args, res, PTRt(RPT 2), loop(e,c))
+		  end
+
 	      | F.PRIMOP(po as (_,p,lt,ts), ul, v, e) =>
 		  let val ct =
 			case (#3(LT.ltd_arrow(LT.lt_pinst (lt, ts))))
