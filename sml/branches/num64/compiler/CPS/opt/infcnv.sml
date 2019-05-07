@@ -1,14 +1,11 @@
 (* infcnv.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Expand out any remaining occurences of test_inf, trunc_inf, extend_inf,
- * and copy_inf.  These primops carry a second argument which is a
- * function that performs the operation for the target-machine's precision
- * (i.e., 32 or 64 bits).
- *
- * Author: Matthias Blume (blume@tti-c.org)
+ * and copy_inf.  These primops carry a second argument, which is the
+ * function that performs the operation.
  *)
 
 structure IntInfCnv : sig
@@ -20,12 +17,104 @@ end = struct
     structure C = CPS
     structure LV = LambdaVar
 
+    fun bug msg = ErrorMsg.impossible ("IntInfCnv: " ^ msg)
+
     val boxNumSz = Target.mlValueSz	(* 32 or 64 *)
 
+    val tagNumTy = C.NUMt{tag = true, sz = Target.defaultIntSz}
     val boxNumTy = C.NUMt{tag = false, sz = boxNumSz}
 
-    val zero = C.NUM{ival = 0, ty={tag = true, sz = Target.defaultIntSz}}
-    val one  = C.NUM{ival = 1, ty={tag = true, sz = Target.defaultIntSz}}
+    val kFalse = C.NUM{ival = 0, ty={tag = true, sz = Target.defaultIntSz}}
+    val kTrue  = C.NUM{ival = 1, ty={tag = true, sz = Target.defaultIntSz}}
+
+  (* generate code to convert a fixed-size number to an intinf.  The arguments
+   * are:
+   *	prim		-- the primop (COPY or EXTEND) for converting a tagged
+   *			   value to the boxed number type
+   *	sz		-- the size of the source value
+   *	extend		-- kFalse or kTrue; specifies sign extension
+   *	x		-- the value being converted
+   *	f		-- the conversion function from the "_Core" structure.
+   *	v, t, e		-- \v:t.e is the continuation of the conversion.
+   *)
+    fun toInf (prim, sz, extend, [x, f], v, t, e) = let
+	  val k = LV.mkLvar ()
+	  val body = if (sz = Target.defaultIntSz)
+		  then let
+		  (* for tagged values, we promote to the boxed type before calling
+		   * the conversion function.
+		   *)
+		    val v' = LV.mkLvar ()
+		    in
+		      C.PURE (prim{from=sz, to=boxNumSz}, [x], v', boxNumTy,
+			C.APP (f, [C.VAR k, C.VAR v', extend]))
+		    end
+		else if (sz = boxNumSz)
+		  then C.APP (f, [C.VAR k, x, extend])
+		  else let
+		  (* for a 64-bit argument on 32-bit target, we need to extern the
+		   * argument to a pair of 32-bit words.
+		   *)
+		    val pair = LV.mkLvar ()
+		    val boxHi = LV.mkLvar () and hi = LV.mkLvar ()
+		    val boxLo = LV.mkLvar () and lo = LV.mkLvar ()
+		    in
+		      C.PURE(C.P.CAST, [x], pair, C.PTRt(C.RPT 2),
+		      C.SELECT(0, C.VAR pair, boxHi, C.PTRt C.VPT,
+		      C.PURE(C.P.UNWRAP(C.P.INT 32), [C.VAR boxHi], hi, boxNumTy,
+		      C.SELECT(1, C.VAR pair, boxLo, C.PTRt C.VPT,
+		      C.PURE(C.P.UNWRAP(C.P.INT 32), [C.VAR boxLo], lo, boxNumTy,
+			C.APP (f, [C.VAR k, C.VAR hi, C.VAR lo]))))))
+		    end
+	  in
+	    C.FIX ([(C.CONT, k, [v], [t], e)], body)
+	  end
+      | toInf _ = bug "toInf: incorrect number of arguments"
+
+  (* generate code to convert an intinf to a fixed-size number.  The arguments
+   * are:
+   *	prim		-- the primop (TRUNC or TEST) for converting a boxed
+   *			   value to the tagged type
+   *	sz		-- the size of the source value
+   *	x		-- the value being converted
+   *	f		-- the conversion function from the "_Core" structure.
+   *	v, t, e		-- \v:t.e is the continuation of the conversion, where
+   *			   the expression e should have already been converted.
+   *)
+    fun fromInf (mkExp, prim, sz, [x, f], v, t, e) = let
+	  val k = LV.mkLvar ()
+	  in
+	    if (sz = Target.defaultIntSz)
+	      then let
+		val v' = LV.mkLvar ()
+		val retContBody =
+		      mkExp (prim{from=boxNumSz, to=sz}, [C.VAR v'], v, t, e)
+		in
+		  C.FIX (
+		    [(C.CONT, k, [v'], [boxNumTy], retContBody)],
+		    C.APP (f, [C.VAR k, x]))
+		end
+	    else if (sz = boxNumSz)
+	      then C.FIX ([(C.CONT, k, [v], [t], e)], C.APP (f, [C.VAR k, x]))
+	      else let
+	      (* for a 64-bit result on 32-bit target, we need to intern the
+	       * result, which will be a pair of 32-bit words.
+	       *)
+		val boxHi = LV.mkLvar () and hi = LV.mkLvar ()
+		val boxLo = LV.mkLvar () and lo = LV.mkLvar ()
+		val retContBody =
+		      C.PURE(C.P.WRAP(C.P.INT 32), [C.VAR hi], boxHi, boxNumTy,
+		      C.PURE(C.P.WRAP(C.P.INT 32), [C.VAR lo], boxLo, boxNumTy,
+		      C.RECORD(C.RK_RECORD, [
+			    (C.VAR boxHi, C.OFFp 0), (C.VAR boxHi, C.OFFp 0)
+			  ], v, e)))
+		in
+		  C.FIX (
+		    [(C.CONT, k, [hi, lo], [boxNumTy, boxNumTy], retContBody)],
+		    C.APP (f, [C.VAR k, x]))
+		end
+	  end
+      | fromInf _ = bug "toInf: incorrect number of arguments"
 
     fun elim cfun = let
 	  fun cexp (C.RECORD (rk, xl, v, e)) =
@@ -51,7 +140,7 @@ end = struct
 		  val k = LV.mkLvar ()
 		  val e' = cexp e
 		  in
-		    C.FIX ([(C.CONT, k, [v], [t], e')], C.APP (f, [C.VAR k, x, zero]))
+		    C.FIX ([(C.CONT, k, [v], [t], e')], C.APP (f, [C.VAR k, x, kFalse]))
 		  end
 		else let
 		  val k = LV.mkLvar ()
@@ -60,14 +149,14 @@ end = struct
 		  in
 		    C.FIX ([(C.CONT, k, [v], [t], e')],
 		      C.PURE (C.P.COPY{from=sz, to=boxNumSz}, [x], v', boxNumTy,
-			C.APP (f, [C.VAR k, C.VAR v', zero])))
+			C.APP (f, [C.VAR k, C.VAR v', kFalse])))
 		  end
 	    | cexp (C.PURE (C.P.EXTEND_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
 		then let
 		  val k = LV.mkLvar ()
 		  val e' = cexp e
 		  in
-		    C.FIX ([(C.CONT, k, [v], [t], e')], C.APP (f, [C.VAR k, x, one]))
+		    C.FIX ([(C.CONT, k, [v], [t], e')], C.APP (f, [C.VAR k, x, kTrue]))
 		  end
 		else let
 		  val k = LV.mkLvar ()
@@ -76,7 +165,7 @@ end = struct
 		  in
 		    C.FIX ([(C.CONT, k, [v], [t], e')],
 		      C.PURE (C.P.EXTEND{from=sz, to=boxNumSz}, [x], v', boxNumTy,
-			C.APP (f, [C.VAR k, C.VAR v', one])))
+			C.APP (f, [C.VAR k, C.VAR v', kTrue])))
 		  end
 	    | cexp (C.ARITH (C.P.TEST_INF sz, [x, f], v, t, e)) = if (sz = boxNumSz)
 		then let

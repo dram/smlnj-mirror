@@ -360,21 +360,9 @@ structure InlineT =
 
     structure Word64 =
       struct
-        val extern : word64 -> word32 * word32 = InLine.word64_to_pair
-	val intern : word32 * word32 -> word64 = InLine.word64_from_pair
 
-(*
-	val op + = Core.w64Add
-	val op - = Core.w64Sub
-	val op * = Core.w64Mul
-	val div = Core.w64Div
-	val mod = Core.w64Mod
-	val ~ = Core.w64Neg
-	val op < = Core.w64LT
-	val op <= = Core.w64LTE
-	val op > = Core.w64GT
-	val op >= = Core.w64GTE
-*)
+        val extern : word64 -> word32 * word32   = InLine.word64_to_pair
+	val intern : word32 * word32 -> word64   = InLine.word64_from_pair
 
         val op + : word64 * word64 -> word64	 = InLine.word64_add
         val op - : word64 * word64 -> word64	 = InLine.word64_sub
