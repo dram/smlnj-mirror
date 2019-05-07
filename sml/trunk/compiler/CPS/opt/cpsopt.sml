@@ -101,11 +101,17 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 		      f'
 		    end)
 
-	  fun zeroexpand f = Expand.expand{
-		  function=f, click=click, bodysize=0,
-		  afterClosure=afterClosure,
-		  unroll=false, do_headers=false
-		}
+	  fun zeroexpand f = let
+		val _ = clicked := 0;
+		val f' = Expand.expand{
+			function=f, click=click, bodysize=0,
+			afterClosure=afterClosure,
+			unroll=false, do_headers=false
+		      }
+		in
+		  debugprint["ZeroExpand stats: clicks = ", Int.toString (!clicked), "\n"];
+		  f'
+		end
 
 	  fun flatten f = (
 		clicked := 0;
