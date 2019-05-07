@@ -204,26 +204,10 @@ structure InlineT =
 
     structure IntInf =
       struct
-	val test_int31    : intinf -> int    = InLine.intinf_to_int
-        val test_int32    : intinf -> int32  = InLine.intinf_to_int32
-	val trunc_word8   : intinf -> word8  = InLine.intinf_to_word8
-	val trunc_word31  : intinf -> word   = InLine.intinf_to_word
-	val trunc_word32  : intinf -> word32 = InLine.intinf_to_word32
-	val copy_word8    : word8 -> intinf  = InLine.unsigned_word8_to_intinf
-	val copy_int31    : int -> intinf    = InLine.int_to_intinf
-	val copy_word31   : word -> intinf   = InLine.unsigned_word_to_intinf
-	val copy_int32    : int32 -> intinf  = InLine.int32_to_intinf
-	val copy_word32   : word32 -> intinf = InLine.unsigned_word32_to_intinf
-	val extend_word8  : word8 -> intinf  = InLine.signed_word8_to_intinf
-	val extend_int31  : int -> intinf    = InLine.int_to_intinf
-	val extend_word31 : word -> intinf   = InLine.signed_word_to_intinf
-	val extend_int32  : int32 -> intinf  = InLine.int32_to_intinf
-	val extend_word32 : word32 -> intinf = InLine.signed_word32_to_intinf
-
-	val toInt			     = InLine.intinf_to_int
-	val fromInt			     = InLine.int_to_intinf
-	val toLarge       : intinf -> intinf = InLine.inl_identity
-	val fromLarge     : intinf -> intinf = InLine.inl_identity
+	val toInt     : intinf -> int    = InLine.intinf_to_int
+	val fromInt   : int -> intinf    = InLine.int_to_intinf
+	val toLarge   : intinf -> intinf = InLine.inl_identity
+	val fromLarge : intinf -> intinf = InLine.inl_identity
       end
 
     structure Word =
@@ -231,9 +215,6 @@ structure InlineT =
 	val toLarge : word -> word32	  = InLine.unsigned_word_to_word32
 	val toLargeX : word -> word32	  = InLine.signed_word_to_word32
 	val fromLarge : word32 -> word	  = InLine.word32_to_word
-	val toLargeWord   = toLarge			(* deprecated *)
-	val toLargeWordX  = toLargeX			(* deprecated *)
-	val fromLargeWord = fromLarge			(* deprecated *)
 	val toInt : word -> int		  = InLine.unsigned_word_to_int
 	val toIntX : word -> int          = InLine.signed_word_to_int
 	val fromInt : int -> word         = InLine.int_to_word
@@ -276,9 +257,6 @@ structure InlineT =
 	val toLarge	  = InLine.unsigned_word8_to_word32
 	val toLargeX	  = InLine.signed_word8_to_word32
 	val fromLarge	  = InLine.word32_to_word8
-	val toLargeWord   = toLarge			(* deprecated *)
-	val toLargeWordX  = toLargeX			(* deprecated *)
-	val fromLargeWord = fromLarge			(* deprecated *)
 	val toInt         = InLine.unsigned_word8_to_int
 	val toIntX        = InLine.signed_word8_to_int
 	val fromInt       = InLine.int_to_word8

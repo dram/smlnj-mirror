@@ -349,43 +349,48 @@ structure Core =
 	    val tdp_active_plugins = hook
 	end
 
-      (* these functions are used in FLINT/trans/transprim.sml *)
-	val testInf = CoreIntInf.testInf
-	val truncInf = CoreIntInf.truncInf
-	val finToInf = CoreIntInf.finToInf
+      (* functions for making intinf literals *)
 	val makeNegInf = CoreIntInf.makeNegInf
 	val makePosInf = CoreIntInf.makePosInf
 	val makeSmallNegInf = CoreIntInf.makeSmallNegInf
 	val makeSmallPosInf = CoreIntInf.makeSmallPosInf
 	val infLowValue = CoreIntInf.lowValue
 
+      (* these functions below are used in FLINT/trans/transprim.sml as extra
+       * arguments to primops.  The primops eventually get replaced with calls
+       * to the functions after CPS optimization.
+       *)
+
+      (* int32 <-> intinf conversions (old names) *)
+	val truncInf = CoreIntInf.truncInf
+	val testInf = CoreIntInf.testInf
+	val finToInf = CoreIntInf.finToInf
+
+      (* "large" (boxed) numbers <-> intinf *)
+	val truncInfLarge = CoreIntInf.truncInfLarge	(* for `P.TRUNC_INF 32` *)
+	val testInfLarge = CoreIntInf.testInfLarge	(* for `P.TEST_INF 32` *)
+	val copyLargeInf = CoreIntInf.copyLargeInf	(* for `P.COPY_INF 32` *)
+	val extendLargeInf = CoreIntInf.extendLargeInf	(* for `P.EXTEND_INF 32` *)
+
+      (* pairs of 32-bit words <-> intinf *)
+	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)
+	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
+	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)
+	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
+
+      (* 64-bit arithmetic operations that do not have direct implementations
+       * on 32-bit targets.
+       *)
 (*
 	val i64Mul = CoreInt64.*
 	val i64Div = CoreInt64.div
 	val i64Mod = CoreInt64.mod
 	val i64Quot = CoreInt64.quot
 	val i64Rem = CoreInt64.rem
+*)
 	val w64Mul = CoreWord64.*
 	val w64Div = CoreWord64.div
 	val w64Mod = CoreWord64.mod
-
-    (* the following bindings are until we have 64-bit primops enabled *)
-	val i64Add = CoreInt64.+
-	val i64Sub = CoreInt64.-
-	val i64Neg = CoreInt64.~
-	val i64LT = CoreInt64.<
-	val i64LTE = CoreInt64.<=
-	val i64GT = CoreInt64.>
-	val i64GTE = CoreInt64.>=
-	val i64Abs = CoreInt64.abs
-	val w64Add = CoreWord64.+
-	val w64Sub = CoreWord64.-
-	val w64Neg = CoreWord64.~
-	val w64LT = CoreWord64.<
-	val w64LTE = CoreWord64.<=
-	val w64GT = CoreWord64.>
-	val w64GTE = CoreWord64.>=
-*)
 
     end (* local *)
 
