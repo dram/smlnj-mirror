@@ -477,7 +477,7 @@ in
 	      | P.INLIGNORE => %?48
 	      | P.INLIDENTITY => %?49
 
-	      | P.CVT64 => %?50
+	      (* 50 -- unused; was CVT64 *)
 	      | P.INLCHR => %?51
 	      | P.INTERN64 => %?52
 	      | P.EXTERN64 => %?53

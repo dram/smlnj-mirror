@@ -133,7 +133,7 @@ structure UnpickMod : UNPICKMOD = struct
 	  P.INLIGNORE,
 	  P.INLIDENTITY,
 
-	  P.CVT64, (* 50 *)
+	  P.CAST, (* 50 *)	(* placeholder for P.CVT64 *)
 	  P.INLCHR,
 	  P.INTERN64,
 	  P.EXTERN64 (* 53 *)

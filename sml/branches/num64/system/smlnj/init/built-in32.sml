@@ -376,31 +376,33 @@ structure InlineT =
 	val op >= = Core.w64GTE
 *)
 
-(* coming soon!
+        val op + : word64 * word64 -> word64	 = InLine.word64_add
+        val op - : word64 * word64 -> word64	 = InLine.word64_sub
+(*
+        val op * : word64 * word64 -> word64	 = InLine.word64_mul
+        val op div : word64 * word64 -> word64	 = InLine.word64_div
+        val op mod : word64 * word64 -> word64	 = InLine.word64_mod
+*)
+	val ~ : word64 -> word64		 = InLine.word64_neg
         val orb : word64 * word64 -> word64	 = InLine.word64_orb
         val xorb : word64 * word64 -> word64	 = InLine.word64_xorb
         val andb : word64 * word64 -> word64	 = InLine.word64_andb
-        val op * : word64 * word64 -> word64	 = InLine.word64_mul
-        val op + : word64 * word64 -> word64	 = InLine.word64_add
-        val op - : word64 * word64 -> word64	 = InLine.word64_sub
-	val ~ : word64 -> word64		 = InLine.word64_neg
-        val op div : word64 * word64 -> word64	 = InLine.word64_div
-        val op mod : word64 * word64 -> word64	 = InLine.word64_mod
-        val op > : word64 * word64 -> bool	 = InLine.word64_gt
-        val op >= : word64 * word64 -> bool	 = InLine.word64_ge
-        val op < : word64 * word64 -> bool	 = InLine.word64_lt
-        val op <= : word64 * word64 -> bool	 = InLine.word64_le
+	val chkLshift  : word64 * word -> word64 = InLine.word64_lshift
+	val chkRshift  : word64 * word -> word64 = InLine.word64_rshift
+	val chkRshiftl : word64 * word -> word64 = InLine.word64_rshiftl
         val rshift : word64 * word -> word64     = InLine.word64_raw_rshift
         val rshiftl : word64 * word -> word64    = InLine.word64_raw_rshiftl
         val lshift : word64 * word -> word64     = InLine.word64_raw_lshift
         val notb : word64 -> word64              = InLine.word64_notb
-	val chkLshift  : word64 * word -> word64 = InLine.word64_lshift
-	val chkRshift  : word64 * word -> word64 = InLine.word64_rshift
-	val chkRshiftl : word64 * word -> word64 = InLine.word64_rshiftl
+
+        val op > : word64 * word64 -> bool	 = InLine.word64_gt
+        val op >= : word64 * word64 -> bool	 = InLine.word64_ge
+        val op < : word64 * word64 -> bool	 = InLine.word64_lt
+        val op <= : word64 * word64 -> bool	 = InLine.word64_le
 
         val min     : word64 * word64 -> word64  = InLine.word64_min
         val max     : word64 * word64 -> word64  = InLine.word64_max
-*)
+
       end
 
     structure Char =

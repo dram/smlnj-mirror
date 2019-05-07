@@ -69,15 +69,15 @@ local
 in
 overload ~ :   ('a -> 'a)
    as  Int.~ and I32.~ (* and I64.~ *) and CII.~
-   and Word.~ and w8neg and W32.~ (* and W64.~ *)
+   and Word.~ and w8neg and W32.~ and W64.~
    and R64.~
 overload + :   ('a * 'a -> 'a)
   as  Int.+ and I32.+ (* and I64.+ *) and CII.+
-  and Word.+ and w8plus and W32.+ (* and W64.+ *)
+  and Word.+ and w8plus and W32.+ and W64.+
   and R64.+
 overload - :   ('a * 'a -> 'a)
   as  Int.- and I32.- (* and I64.- *) and CII.-
-  and Word.- and w8minus and W32.- (* and W64.- *)
+  and Word.- and w8minus and W32.- and W64.-
   and R64.-
 overload * :   ('a * 'a -> 'a)
   as  Int.* and I32.* (* and I64.* *) and CII.*
@@ -96,25 +96,25 @@ overload mod : ('a * 'a -> 'a)
   and Word.mod and W8.mod and W32.mod (* and W64.mod *)
 overload < :   ('a * 'a -> bool)
   as  Int.< and I32.< (* and I64.< *) and CII.<
-  and Word.< and W8.< and W32.< (* and W64.< *)
+  and Word.< and W8.< and W32.< and W64.<
   and R64.<
   and InlineT.Char.<
   and stringlt
 overload <= :   ('a * 'a -> bool)
   as  Int.<= and I32.<= (* and I64.<= *) and CII.<=
-  and Word.<= and W8.<= and W32.<= (* and W64.<= *)
+  and Word.<= and W8.<= and W32.<= and W64.<=
   and R64.<=
   and InlineT.Char.<=
   and stringle
 overload > :   ('a * 'a -> bool)
   as  Int.> and I32.> (* and I64.> *) and CII.>
-  and Word.> and W8.> and W32.> (* and W64.> *)
+  and Word.> and W8.> and W32.> and W64.>
   and R64.>
   and InlineT.Char.>
   and stringgt
 overload >= :   ('a * 'a -> bool)
   as  Int.>= and I32.>= (* and I64.>= *) and CII.>=
-  and Word.>= and W8.>= and W32.>= (* and W64.>= *)
+  and Word.>= and W8.>= and W32.>= and W64.>=
   and R64.>=
   and InlineT.Char.>=
   and stringge

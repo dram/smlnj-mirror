@@ -122,10 +122,6 @@ signature PRIMOP =
       | SUBSCRIPT_REC				(* E: record subscript operation *)
       | SUBSCRIPT_RAW64				(* E: raw64 subscript operation *)
       | INLIDENTITY				(* E: polymorphic identity *)
-(* TO DELETE *)
-      | CVT64					(* E: convert between external and
-						 * internal representation of compiler
-						 * simulated 64-bit scalars, e.g. w64p *)
       | INTERN64				(* E: convert a pair of word32 values to
 						 * a 64-bit number.
 						 *)
