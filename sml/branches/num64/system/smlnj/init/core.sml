@@ -361,11 +361,6 @@ structure Core =
        * to the functions after CPS optimization.
        *)
 
-      (* int32 <-> intinf conversions (old names) *)
-	val truncInf = CoreIntInf.truncInf
-	val testInf = CoreIntInf.testInf
-	val finToInf = CoreIntInf.finToInf
-
       (* "large" (boxed) numbers <-> intinf *)
 	val truncInfLarge = CoreIntInf.truncInfLarge	(* for `P.TRUNC_INF 32` *)
 	val testInfLarge = CoreIntInf.testInfLarge	(* for `P.TEST_INF 32` *)
@@ -379,11 +374,12 @@ structure Core =
 	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
 
       (* word64-rep (pairs of 32-bit words) -> int *)
+(* do we need these two functions? *)
 	val w64ToInt = CoreWord64.toInt
 	val w64ToIntX = CoreWord64.toIntX
       (* word64-rep (pairs of 32-bit words) -> large boxed int  *)
-	val w64ToInt = CoreWord64.toInt32
-	val w64ToIntX = CoreWord64.toInt32X
+	val w64ToInt32 = CoreWord64.toInt32
+	val w64ToInt32X = CoreWord64.toInt32X
 
       (* 64-bit arithmetic operations that do not have direct implementations
        * on 32-bit targets.

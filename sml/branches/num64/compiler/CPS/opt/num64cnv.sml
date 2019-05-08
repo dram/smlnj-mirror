@@ -501,28 +501,57 @@ structure Num64Cnv : sig
     val i64GreaterEq = i64Cmp P.GTE
     end (* local *)
 
-  (***** pure conversions *****)
+  (***** conversions *****)
 
-    fun trunc64to31 (n, res, cexp) = join (res, cexp, fn k =>
-	  getLo32 (n, fn lo =>
-	    pure(P.TRUNC{from=32, to=31}, [lo], tagNumTy, k)))
+  (* signed conversion from 64-bit word with test for overflow *)
+    fun test64To (toSz, [x, f], res, resTy, ce) = let
+	  val rk = LV.mkLvar()
+	  val retCont = if (toSz <= Target.defaultIntSz)
+		then let (* need extra conversion from 32-bits to fromSz *)
+		  val v = LV.mkLvar()
+		  in
+		    (C.CONT, rk, [v], [raw32Ty],
+		      C.ARITH(P.TEST{from=32, to=toSz}, [C.VAR v], res, resTy, ce))
+		  end
+		else (C.CONT, rk, [res], [resTy], ce)
+	  in
+	    C.FIX([retCont], C.APP (f, [C.VAR rk, x]))
+	  end
 
-    fun copy31to64 (n, res, cexp) = join (res, cexp, fn k =>
-	  pure(P.COPY{from=31, to=32}, [n], raw32Ty, fn lo =>
+  (* unsigned conversion from 64-bit word with test for overflow *)
+    fun testu64To (toSz, [x, f], res, resTy, ce) = let
+	  val rk = LV.mkLvar()
+	  val retCont = if (toSz <= Target.defaultIntSz)
+		then let (* need extra conversion from 32-bits to fromSz *)
+		  val v = LV.mkLvar()
+		  in
+		    (C.CONT, rk, [v], [raw32Ty],
+		      C.ARITH(P.TESTU{from=32, to=toSz}, [C.VAR v], res, resTy, ce))
+		  end
+		else (C.CONT, rk, [res], [resTy], ce)
+	  in
+	    C.FIX([retCont], C.APP (f, [C.VAR rk, x]))
+	  end
+
+  (* truncate a 64-bit number to a size <= 32 bit number *)
+    fun trunc64To (toSz, n, res, ce) = join (res, ce, fn k =>
+	  getLo32 (n, if (toSz = 32)
+	    then k
+	    else (fn lo => pure(P.TRUNC{from=32, to=toSz}, [lo], tagNumTy, k))))
+
+  (* copy (zero-extend) a number to a 64-bit representation, where fromSz <= 32 *)
+    fun copy64From (fromSz, n, res, ce) = join (res, ce, fn k => if (fromSz = 32)
+	  then to64 (zero, n, k)
+	  else pure(P.COPY{from=fromSz, to=32}, [n], raw32Ty, fn lo =>
 	    to64 (zero, lo, k)))
 
-    fun extend31to64 (n, res, cexp) = join (res, cexp, fn k =>
-	  pure(P.EXTEND{from=31, to=32}, [n], raw32Ty, fn lo =>
-	  pure_arith32(P.RSHIFT, [lo, tagNum 31], fn hi =>
-	    to64 (hi, lo, k))))
-
-    fun trunc64to32 (n, res, cexp) = join (res, cexp, fn k => getLo32 (n, k))
-
-    fun copy32to64 (n, res, cexp) = join (res, cexp, fn k => to64 (zero, n, k))
-
-    fun extend32to64 (n, res, cexp) = join (res, cexp, fn k =>
-	  pure_arith32(P.RSHIFT, [n, tagNum 31], fn hi =>
-	    to64 (hi, n, k)))
+  (* sign-extend a number to a 64-bit representation, where fromSz <= 32 *)
+    fun extend64From (fromSz, n, res, ce) = join (res, ce, fn k => if (fromSz = 32)
+	  then pure_arith32(P.RSHIFT, [n, tagNum 31], fn hi =>
+	    to64 (hi, n, k))
+	  else pure(P.EXTEND{from=fromSz, to=32}, [n], raw32Ty, fn lo =>
+	    pure_arith32(P.RSHIFT, [lo, tagNum 31], fn hi =>
+	      to64 (hi, lo, k))))
 
   (***** other functions *****)
 
@@ -552,14 +581,13 @@ structure Num64Cnv : sig
 	    | chkExp (C.SETTER(_, vs, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.LOOKER(_, vs, _, _, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.ARITH(P.IARITH{sz=64, ...}, _, _, _, _)) = true
+	    | chkExp (C.ARITH(P.TEST{from=64, ...}, _, _, _, _)) = true
+	    | chkExp (C.ARITH(P.TESTU{from=64, ...}, _, _, _, _)) = true
 	    | chkExp (C.ARITH(_, vs, _, _, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.PURE(P.PURE_ARITH{kind=P.UINT 64, ...}, _, _, _, _)) = true
-	    | chkExp (C.PURE(P.TRUNC{from=64, to=31}, _, _, _, _)) = true
-	    | chkExp (C.PURE(P.EXTEND{from=31, to=64},  _, _, _, _)) = true
-	    | chkExp (C.PURE(P.COPY{from=31, to=64},  _, _, _, _)) = true
-	    | chkExp (C.PURE(P.TRUNC{from=64, to=32},  _, _, _, _)) = true
-	    | chkExp (C.PURE(P.COPY{from=32, to=64},  _, _, _, _)) = true
-	    | chkExp (C.PURE(P.EXTEND{from=32, to=64},  _, _, _, _)) = true
+	    | chkExp (C.PURE(P.COPY{to=64, ...},  _, _, _, _)) = true
+	    | chkExp (C.PURE(P.EXTEND{to=64, ...},  _, _, _, _)) = true
+	    | chkExp (C.PURE(P.TRUNC{from=64, ...}, _, _, _, _)) = true
 	    | chkExp (C.PURE(P.WRAP(P.INT 64), _, _, _, _)) = true
 	    | chkExp (C.PURE(P.UNWRAP(P.INT 64), _, _, _, _)) = true
 	    | chkExp (C.PURE(_, vs, _, _, e)) = chkValues vs orelse chkExp e
@@ -653,8 +681,12 @@ structure Num64Cnv : sig
 		    | (P.INEG, [a]) => i64Neg(a, res, cexp e)
 		    | _ => bug "impossible IARITH; sz=64"
 		  (* end case *)))
+	    | cexp (C.ARITH(P.TEST{from=64, to}, args, res, cty, e)) =
+		values (args, fn args' => test64To(to, args', res, cty, cexp e))
+	    | cexp (C.ARITH(P.TESTU{from=64, to}, args, res, cty, e)) =
+		values (args, fn args' => testu64To(to, args', res, cty, cexp e))
 	    | cexp (C.ARITH(rator, args, res, ty, e)) =
-		C.ARITH(rator, args, res, ty, cexp e)
+		values (args, fn args' => C.ARITH(rator, args', res, ty, cexp e))
 	    | cexp (C.PURE(P.PURE_ARITH{oper, kind=P.UINT 64}, args, res, _, e)) =
 		values (args, fn args' => (case (oper, args')
 		   of (P.ADD, [a, b]) => w64Add(a, b, res, cexp e)
@@ -672,18 +704,12 @@ structure Num64Cnv : sig
 		    | (P.LSHIFT, [a, b]) => w64LShift(a, b, res, cexp e)
 		    | _ => bug "impossible PURE_ARITH; UINT 64"
 		  (* end case *)))
-	    | cexp (C.PURE(P.TRUNC{from=64, to=31}, [a], res, _, e)) =
-		value (a, fn x => trunc64to31(x, res, cexp e))
-	    | cexp (C.PURE(P.COPY{from=31, to=64}, [a], res, _, e)) =
-		value (a, fn x => copy31to64(x, res, cexp e))
-	    | cexp (C.PURE(P.EXTEND{from=31, to=64}, [a], res, _, e)) =
-		value (a, fn x => extend31to64(x, res, cexp e))
-	    | cexp (C.PURE(P.TRUNC{from=64, to=32}, [a], res, _, e)) =
-		value (a, fn x => trunc64to32(x, res, cexp e))
-	    | cexp (C.PURE(P.COPY{from=32, to=64}, [a], res, _, e)) =
-		value (a, fn x => copy32to64(x, res, cexp e))
-	    | cexp (C.PURE(P.EXTEND{from=32, to=64}, [a], res, _, e)) =
-		value (a, fn x => extend32to64(x, res, cexp e))
+	    | cexp (C.PURE(P.TRUNC{from=64, to}, [a], res, _, e)) =
+		value (a, fn x => trunc64To(to, x, res, cexp e))
+	    | cexp (C.PURE(P.COPY{from, to=64}, [a], res, _, e)) =
+		value (a, fn x => copy64From(from, x, res, cexp e))
+	    | cexp (C.PURE(P.EXTEND{from, to=64}, [a], res, _, e)) =
+		value (a, fn x => extend64From(from, x, res, cexp e))
 	    | cexp (C.PURE(P.WRAP(P.INT 64), [a], res, _, e)) =
 		value (a, fn x => wrap64 (x, res, cexp e))
 	    | cexp (C.PURE(P.UNWRAP(P.INT 64), [a], res, _, e)) =

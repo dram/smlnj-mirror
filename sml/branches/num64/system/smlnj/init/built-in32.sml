@@ -343,10 +343,10 @@ structure InlineT =
 	val toLarge : word64 -> ??		 = ??
 	val toLargeX : word64 -> ??		 = ??
 	val fromLarge : ?? -> word64		 = ??
+*)
 	val toInt : word64 -> int		 = InLine.unsigned_word64_to_int
 	val toIntX : word64 -> int		 = InLine.signed_word64_to_int
 	val fromInt : int -> word64		 = InLine.int_to_word64
-*)
 	val toLargeInt : word64 -> intinf	 = InLine.unsigned_word64_to_intinf
 	val toLargeIntX : word64 -> intinf	 = InLine.signed_word64_to_intinf
 	val fromLargeInt : intinf -> word64	 = InLine.intinf_to_word64

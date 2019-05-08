@@ -177,6 +177,10 @@ structure Object :> UNSAFE_OBJECT =
 	  if (rep obj = Word32)
 	    then ((InlineT.cast obj) : Int32.int)
 	    else raise Representation
+    fun toInt64 obj =
+	  if (rep obj = Pair)
+	    then ((InlineT.cast obj) : Int64.int)
+	    else raise Representation
     fun toWord  obj = if (unboxed obj)
 	  then ((InlineT.cast obj) : word)
 	  else raise Representation
@@ -187,7 +191,9 @@ structure Object :> UNSAFE_OBJECT =
 	  if (rep obj = Word32)
 	    then ((InlineT.cast obj) : Word32.word)
 	    else raise Representation
+    fun toWord64 obj =
+	  if (rep obj = Pair)
+	    then ((InlineT.cast obj) : Word64.word)
+	    else raise Representation
 
   end;
-
-

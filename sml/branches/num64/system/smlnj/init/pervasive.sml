@@ -81,7 +81,7 @@ overload - :   ('a * 'a -> 'a)
   and R64.-
 overload * :   ('a * 'a -> 'a)
   as  Int.* and I32.* (* and I64.* *) and CII.*
-  and Word.* and w8times and W32.* (* and W64.* *)
+  and Word.* and w8times and W32.* and W64.*
   and R64.*
 (*
 overload / : ('a * 'a -> 'a)
@@ -90,10 +90,10 @@ overload / : ('a * 'a -> 'a)
 val op / = R64./		(* temporary hack around overloading bug *)
 overload div : ('a * 'a -> 'a)
   as  Int.div and I32.div (* and I64.div *) and CII.div
-  and Word.div and W8.div and W32.div (* and W64.div *)
+  and Word.div and W8.div and W32.div and W64.div
 overload mod : ('a * 'a -> 'a)
   as  Int.mod and I32.mod (* and I64.mod *) and CII.mod
-  and Word.mod and W8.mod and W32.mod (* and W64.mod *)
+  and Word.mod and W8.mod and W32.mod and W64.mod
 overload < :   ('a * 'a -> bool)
   as  Int.< and I32.< (* and I64.< *) and CII.<
   and Word.< and W8.< and W32.< and W64.<

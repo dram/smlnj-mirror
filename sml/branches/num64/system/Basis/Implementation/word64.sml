@@ -14,6 +14,7 @@ structure Word64 : sig
   end = struct
 
     structure W64 = InlineT.Word64
+    structure W32 = Word32Imp		(* 64BIT: FIXME *)
 
     type word = Word64.word
 
@@ -23,6 +24,7 @@ structure Word64 : sig
     val intern = InlineT.Word64.intern
 
     val wordSize = 64
+
     val toLarge  = unimplemented	(* W64.toLarge *)
     val toLargeX = unimplemented	(* W64.fromLargeX *)
     val fromLarge = unimplemented	(* W64.fromLarge *)
@@ -32,14 +34,9 @@ structure Word64 : sig
     val toLargeWordX = toLargeX
     val fromLargeWord = fromLarge
 
-(*
     val toInt = W64.toInt
     val toIntX = W64.toIntX
     val fromInt = W64.fromInt
-*)
-    val toInt = unimplemented
-    val toIntX = unimplemented
-    val fromInt = unimplemented
 
     val toLargeInt = W64.toLargeInt
     val toLargeIntX = W64.toLargeIntX
@@ -74,21 +71,35 @@ structure Word64 : sig
     val min : word * word -> word = W64.min
     val max : word * word -> word = W64.max
 
-(*
+    fun toString w = (case extern w
+	   of (0w0, lo) => W32.toString lo
+	    | (hi, lo) => W32.toString hi ^ (StringCvt.padLeft #"0" 8 (W32.toString lo))
+	  (* end case *))
+
+    fun fmt StringCvt.BIN w = let
+	  val fmt32Bin = W32.fmt StringCvt.BIN
+	  in
+	    case extern w
+	     of (0w0, lo) => fmt32Bin lo
+	      | (hi, lo) => fmt32Bin hi ^ (StringCvt.padLeft #"0" 32 (fmt32Bin lo))
+	    (* end case *)
+	  end
+      | fmt StringCvt.HEX w = toString w
+      | fmt radix w = IntInfImp.fmt radix (toLargeInt w)
+
+(* 64BIT: we should add Word64 support to NumFormat and NumScan
     val fmt = NumFormat.fmtWord
     val toString = fmt StringCvt.HEX
 
     val scan = NumScan.scanWord
     val fromString = PreBasis.scanString (scan StringCvt.HEX)
 *)
-    val fmt = unimplemented
-    val toString = unimplemented
     val scan = unimplemented
     val fromString = unimplemented
 
   (* added for Basis Library proposal 2016-001 *)
 
-    fun popCount w = let
+    fun popCount w = let (* 64BIT: FIXME *)
 	  val (hi, lo) = extern w
 	  in
 	    InlineT.Int.fast_add(W32PopCount.popCount hi, W32PopCount.popCount lo)

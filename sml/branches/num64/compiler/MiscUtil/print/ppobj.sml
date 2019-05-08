@@ -71,6 +71,7 @@ fun isRecTy (T.VARty(ref (T.INSTANTIATED t))) = isRecTy t
   | isRecTy (T.CONty(T.RECORDtyc _, _::_)) = true
   | isRecTy _ = false
 
+(* 64BIT: what is this function testing? *)
 fun isUbxTy (T.VARty(ref (T.INSTANTIATED t))) = isUbxTy t
   | isUbxTy (T.CONty(tc as T.GENtyc _, [])) =
       (TU.eqTycon(tc, BT.int32Tycon)) orelse
@@ -216,9 +217,7 @@ local
 	  (BT.wordTycon,	wordPrefx o Word.toString o Obj.toWord),
 	  (BT.word8Tycon,	wordPrefx o Word8.toString o Obj.toWord8),
 	  (BT.word32Tycon,	wordPrefx o Word32.toString o Obj.toWord32),
-(* 64BIT: TODO
 	  (BT.word64Tycon,	wordPrefx o Word64.toString o Obj.toWord64),
-*)
 	  (BT.charTycon,	char2str),
 	  (BT.realTycon,	Real.toString o Obj.toReal),
 	  (BT.exnTycon,		exn2str),

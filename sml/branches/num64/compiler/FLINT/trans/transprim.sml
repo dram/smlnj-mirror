@@ -197,6 +197,34 @@ structure TransPrim : sig
 			  | PO.REM => cvt("w64Mod", po, lt)
 			  | _ => L.PRIM(po, lt, ts)
 			(* end *))
+		    | chkPrim (po as PO.TESTU(64, to), lt, ts) = let
+			val (argTy, resTy) = (case LT.ltd_arrow lt
+			       of (_, [a], [r]) => (a, r)
+				| _ => bug (concat[
+				      "unexpected type ", LT.lt_print lt, " of TEST"
+				    ])
+			      (* end case *))
+			val extraTy = lt_arw (argTy, resTy)
+			val primTy = lt_arw (lt_tup [argTy, extraTy], resTy)
+			in
+			  mkFn argTy (fn arg =>
+			    L.APP(L.PRIM(po, primTy, []),
+			      L.RECORD[arg, coreAcc "w64ToInt32"]))
+			end
+		    | chkPrim (po as PO.TEST(64, to), lt, ts) = let
+			val (argTy, resTy) = (case LT.ltd_arrow lt
+			       of (_, [a], [r]) => (a, r)
+				| _ => bug (concat[
+				      "unexpected type ", LT.lt_print lt, " of TEST"
+				    ])
+			      (* end case *))
+			val extraTy = lt_arw (argTy, resTy)
+			val primTy = lt_arw (lt_tup [argTy, extraTy], resTy)
+			in
+			  mkFn argTy (fn arg =>
+			    L.APP(L.PRIM(po, primTy, []),
+			      L.RECORD[arg, coreAcc "w64ToInt32X"]))
+			end
 		    | chkPrim arg = L.PRIM arg
 		  in
 		    chkPrim

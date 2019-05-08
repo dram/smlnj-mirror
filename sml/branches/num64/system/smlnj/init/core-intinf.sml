@@ -52,13 +52,6 @@ structure CoreIntInf :> sig
   (* sign-extend int32 into intinf: *)
     val extendLargeInf : int32 -> intinf
 
-  (* old names for above; these will go away once we have bootstrapped the new
-   * names.
-   *)
-    val testInf   : intinf -> int32
-    val truncInf  : intinf -> int32
-    val finToInf  : int32 * bool -> intinf
-
     (* fit value (2's complement) in "int64", raise Overflow if too large *)
     val testInf64   : intinf -> word32 * word32
     (* truncate value (2's complement repr) to fit in "int64": *)
@@ -214,14 +207,6 @@ end = struct
 	  in
 	    abstract (BI { negative = false, digits = digits })
 	  end
-
-  (* old names for above; these will go away once we have bootstrapped the new
-   * names.
-   *)
-    val testInf = testInfLarge
-    val truncInf = truncInfLarge
-    fun finToInf (i32, extend) =
-	  if extend then extendLargeInf i32 else copyLargeInf i32
 
     fun neg64 (hi, 0w0) : word32 * word32 = (InLine.word32_neg hi, 0w0)
       | neg64 (hi, lo) = (InLine.word32_notb hi, InLine.word32_neg lo)
