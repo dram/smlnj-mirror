@@ -646,8 +646,12 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 
 	      | F.PRIMOP((_, AP.INTERN64, _, _), args, res, e) => let
 		  val [hi, lo] = lpvars args
+		  val hiBox = LV.mkLvar() and loBox = LV.mkLvar()
 		  in
-		    RECORD(RK_RECORD, [(hi, OFFp0), (lo, OFFp0)], res, loop(e,c))
+		    PURE(P.WRAP(P.INT 32), [hi], hiBox, PTRt VPT,
+		    PURE(P.WRAP(P.INT 32), [lo], loBox, PTRt VPT,
+		      RECORD(RK_RECORD, [(VAR hiBox, OFFp0), (VAR loBox, OFFp0)], res,
+			loop(e,c))))
 		  end
 	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) => let
 		  in
