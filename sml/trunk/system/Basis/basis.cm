@@ -102,7 +102,6 @@ Library
 	structure General
 	structure IEEEReal
 	structure Int
-	structure Int31
 	structure Int32
 	structure Int64
 	structure IntInf
@@ -144,7 +143,6 @@ Library
 	structure Vector
 	structure VectorSlice
 	structure Word
-	structure Word31
 	structure Word32
 	structure Word64
 	structure Word8
@@ -152,6 +150,14 @@ Library
 	structure Word8ArraySlice
 	structure Word8Vector
 	structure Word8VectorSlice
+
+#if defined(SIZE_32)
+	structure Int31
+	structure Word31
+#else (* 64-bits *)
+	structure Int63
+	structure Word63
+#endif
 
 	structure Either	(* proposal 2015-002 *)
 	structure Fn		(* proposal 2015-005 *)

@@ -4,4 +4,4 @@
  *
  * Copyright (c) 2004 by The Fellowship of SML/NJ
  *)
-structure PositionImp = Int31Imp
+structure PositionImp = IntImp

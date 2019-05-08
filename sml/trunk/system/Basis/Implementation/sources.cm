@@ -139,10 +139,9 @@ Group
 	structure FixedIntImp
 	structure General
 	structure IEEEReal
-	structure Int31Imp
+	structure IntImp
 	structure Int32Imp
 	structure Int64
-	structure IntImp
 	structure IntInfImp
 	structure IO
 	structure LargeIntImp
@@ -175,7 +174,7 @@ Group
 	structure Timer
 	structure Vector
 	structure VectorSlice
-	structure Word31Imp
+	structure WordImp
 	structure Word32Imp
 	structure Word64
 	structure Word8Array
@@ -183,7 +182,6 @@ Group
 	structure Word8Imp
 	structure Word8Vector
 	structure Word8VectorSlice
-	structure WordImp
 
 	structure Either	(* proposal 2015-002 *)
 	structure Fn		(* proposal 2015-005 *)
@@ -444,6 +442,22 @@ is
 	pack-word-b32.sml
 	pack-word-l32.sml
 
+#if defined(SIZE_32)
+	Target32Bit/int.sml
+	Target32Bit/word.sml
+	Target32Bit/bind-structs.sml
+#else
+	Target64Bit/int.sml
+	Target64Bit/word.sml
+	Target64Bit/bind-structs.sml
+#endif
+(* TODO: switch to 64-bit positions for all systems *)
+#if defined(USE_64_BIT_POSITIONS)
+	bind-position-64.sml
+#else
+	bind-position-31.sml
+#endif
+
 #if defined(BIG_ENDIAN)
 	bind-pack-big.sml
 #else
@@ -459,34 +473,6 @@ is
       (* basis proposal 2015-007 *)
 	ref.sig
 	ref.sml
-
-#if defined(SIZE_32)
-	bind-int-32.sml
-	bind-word-32.sml
-	bind-largeint-32.sml
-	bind-fixedint-32.sml
-	bind-largeword-32.sml
-	bind-sysword-32.sml
-	bind-real-32.sml
-	bind-math-32.sml
-	bind-largereal-32.sml
-#else (* 64-bits *)
-	bind-int-64.sml
-	bind-word-64.sml
-	bind-largeint-64.sml
-	bind-fixedint-64.sml
-	bind-largeword-64.sml
-	bind-sysword-64.sml
-	bind-real-64.sml
-	bind-math-64.sml
-	bind-largereal-64.sml
-#endif
-
-#if defined(USE_64_BIT_POSITIONS)
-	bind-position-64.sml
-#else
-	bind-position-31.sml
-#endif
 
 	bit-flags.sig
 	bit-flags-fn.sml

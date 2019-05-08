@@ -171,7 +171,7 @@ structure POSIX_FileSys =
     val rmdir : string -> unit = cfun "rmdir"
     val readlink : string -> string = cfun "readlink"
 
-    val ftruncate' : s_int * Int31Imp.int -> unit = cfun "ftruncate"
+    val ftruncate' : s_int * IntImp.int -> unit = cfun "ftruncate"
     fun ftruncate (FD{fd,...}, len) = ftruncate' (fd, len);
 
     datatype dev = DEV of word

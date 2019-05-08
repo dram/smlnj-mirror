@@ -95,7 +95,7 @@ functor PrimIO (
 		in
 		  case readaNB (AS.full a)
 		   of SOME n' => SOME(AS.vector (AS.slice(a, 0, SOME n')))
-		    | NONE => NONE  
+		    | NONE => NONE
 		  (* end case *)
 		end
 	  fun readvToReada readv asl = let
@@ -160,7 +160,7 @@ functor PrimIO (
 	      readVec=readVec', readArr=readArr',
 	      readVecNB=readVecNB', readArrNB=readArrNB',
 	      block= #block rd, canInput = #canInput rd, avail = #avail rd,
-	      getPos = #getPos rd, setPos = #setPos rd, endPos = #endPos rd, 
+	      getPos = #getPos rd, setPos = #setPos rd, endPos = #endPos rd,
 	      verifyPos = #verifyPos rd,
 	      close= #close rd,
 	      ioDesc= #ioDesc rd
@@ -190,7 +190,7 @@ functor PrimIO (
 	  val writeVec' = (case wr
 		 of {writeVec=SOME f, ...} => SOME f
 		  | {writeArr=SOME f, ...} => SOME(writeaToWritev f)
-		  | {writeVecNB=SOME f, block=SOME b, ...} => 
+		  | {writeVecNB=SOME f, block=SOME b, ...} =>
 		      SOME(fn i => (b(); Option.valOf(f i)))
 		  | {writeArrNB=SOME f, block=SOME b, ...} =>
 		      SOME(fn x => (b(); writeaToWritev (Option.valOf o f) x))
@@ -242,7 +242,7 @@ functor PrimIO (
 	fun avail () = len - !pos
 	fun readV n = let
 	    val p = !pos
-	    val m = Int31Imp.min (n, len - p)
+	    val m = IntImp.min (n, len - p)
 	in
 	    checkClosed ();
 	    pos := p + m;
@@ -251,7 +251,7 @@ functor PrimIO (
 	fun readA asl = let
 	    val p = !pos
 	    val (buf, i, n) = AS.base asl
-	    val m = Int31Imp.min (n, len - p)
+	    val m = IntImp.min (n, len - p)
 	in
 	    checkClosed ();
 	    pos := p + m;
@@ -299,7 +299,7 @@ functor PrimIO (
 	     close = fn () => closed := true,
 	     ioDesc = NONE }
     end
-	
+
     fun nullWr () = let
 	val closed = ref false
 	fun checkClosed () = if !closed then raise IO.ClosedStream else ()
