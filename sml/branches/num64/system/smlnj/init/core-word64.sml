@@ -39,7 +39,9 @@ structure CoreWord64 =
   (* from Hacker's Delight (Figure 8.1); this version does not use conditionals
    * and is about 7% faster.
    *)
-      fun mul64 ((hi1, lo1), (hi2, lo2)) = let
+      fun mul64 (a, b) = let
+	    val (hi1, lo1) = extern a
+	    val (hi2, lo2) = extern b
 	    val a1 = (lo1 >> 0w16) val a0 = (lo1 & 0wxffff)
 	    val a3 = (hi1 >> 0w16) val a2 = (hi1 & 0wxffff)
 	    val b1 = (lo2 >> 0w16) val b0 = (lo2 & 0wxffff)
@@ -65,7 +67,7 @@ structure CoreWord64 =
 	    val t = a0 * b3 + acc3
 	    val acc3 = (t & 0wxffff)
 	    in
-	      ((acc3 << 0w16) ++ acc2, (acc1 << 0w16) ++ acc0)
+	      intern((acc3 << 0w16) ++ acc2, (acc1 << 0w16) ++ acc0)
 	    end
 
       local
@@ -82,12 +84,12 @@ structure CoreWord64 =
       fun lift2 f (x, y) = intern (f (extern x, extern y))
 
     in
+(* QUESTION: should these functions take pairs of words as arguments? *)
 
-    val op * = lift2 mul64
+    val op * = mul64
     val div = lift2 div64
     val mod = lift2 mod64
 
-(* QUESTION: should these take pairs of words as arguments? *)
     fun toInt w = (case extern w
 	   of (0w0, lo) => unsigned_word32_to_int lo
 	    | _ => raise Assembly.Overflow

@@ -24,6 +24,8 @@ structure Num64Cnv : sig
 
     fun bug s = ErrorMsg.impossible ("Num64Cnv: " ^ s)
 
+    fun isNum64Ty (C.NUMt{sz = 64, ...}) = true
+      | isNum64Ty _ = false
     val pairTy = C.PTRt(C.RPT 2)
     val box32Ty = C.PTRt C.VPT
     val raw32Ty = C.NUMt{sz = 32, tag = false}	(* assuming a 32-bit machine *)
@@ -72,6 +74,27 @@ structure Num64Cnv : sig
     fun bitEquiv (a, b, k) =
 	  pure_arith32 (P.XORB, [a, b], fn a_xor_b =>
 	  pure_arith32 (P.NOTB, [a_xor_b], k))
+
+  (* make an application that will be substituted for a primop; we examine
+   * the structure of the continuation expression to avoid creating an
+   * eta-redex.
+   *)
+    fun mkApplyWithReturn (f, args, res, resTy, ce) = let
+	  fun mkReturn () = let
+		val rk = LV.mkLvar()
+		in
+		  C.FIX(
+		    [(C.CONT, rk, [res], [resTy], ce)],
+		    C.APP(f, C.VAR rk :: args))
+		end
+	  in
+	    case ce
+	     of C.APP(C.VAR g, [C.VAR arg]) => if (arg = res)
+		  then C.APP(f, C.VAR g :: args)
+		  else mkReturn ()
+	      | _ => mkReturn ()
+	    (* end case *)
+	  end
 
   (* bind a continuation around a cexp to avoid code duplication; `res` is the variable
    * to use as a parameter for the code `cexp` (we assume that it is a wrapped 64-bit
@@ -482,17 +505,21 @@ structure Num64Cnv : sig
 	    val flFnId = LV.mkLvar()
 	    val fl' = C.APP(C.VAR flFnId, [])
 	    in
-	      C.FIX([(C.CONT, trFnId, [], [], tr), (C.CONT, flFnId, [], [], fl)],
+	    (* NOTE: closure conversion requires that there only be one continuation
+	     * function per FIX!
+	     *)
+	      C.FIX([(C.CONT, trFnId, [], [], tr)],
+	      C.FIX([(C.CONT, flFnId, [], [], fl)],
 	      (* (hi1 < hi2) orelse ((hi1 = hi2) andalso (lo1 < lo2)) *)
 		getHi32(n1, fn hi1 =>
 		getHi32(n2, fn hi2 =>
-		  sIf(oper, hi1, hi2,
+		  uIf(oper, hi1, hi2,
 		    tr',
-		    sIf(P.EQL, hi1, hi2,
+		    uIf(P.EQL, hi1, hi2,
 		      getLo32(n1, fn lo1 =>
 		      getLo32(n2, fn lo2 =>
-			sIf(oper, lo1, lo2, tr', fl'))),
-		      fl')))))
+			uIf(oper, lo1, lo2, tr', fl'))),
+		      fl'))))))
 	    end
     in
     val i64Less = i64Cmp P.LT
@@ -504,34 +531,28 @@ structure Num64Cnv : sig
   (***** conversions *****)
 
   (* signed conversion from 64-bit word with test for overflow *)
-    fun test64To (toSz, [x, f], res, resTy, ce) = let
-	  val rk = LV.mkLvar()
-	  val retCont = if (toSz <= Target.defaultIntSz)
-		then let (* need extra conversion from 32-bits to fromSz *)
-		  val v = LV.mkLvar()
-		  in
-		    (C.CONT, rk, [v], [raw32Ty],
-		      C.ARITH(P.TEST{from=32, to=toSz}, [C.VAR v], res, resTy, ce))
-		  end
-		else (C.CONT, rk, [res], [resTy], ce)
-	  in
-	    C.FIX([retCont], C.APP (f, [C.VAR rk, x]))
-	  end
+    fun test64To (toSz, [x, f], res, resTy, ce) =
+	  if (toSz <= Target.defaultIntSz)
+	    then let (* need extra conversion from 32-bits to fromSz *)
+	      val rk = LV.mkLvar()
+	      val v = LV.mkLvar()
+	      val ce' = C.ARITH(P.TEST{from=32, to=toSz}, [C.VAR v], res, resTy, ce)
+	      in
+		C.FIX([(C.CONT, rk, [v], [raw32Ty], ce')], C.APP (f, [C.VAR rk, x]))
+	      end
+	    else mkApplyWithReturn (f, [x], res, resTy, ce)
 
   (* unsigned conversion from 64-bit word with test for overflow *)
-    fun testu64To (toSz, [x, f], res, resTy, ce) = let
-	  val rk = LV.mkLvar()
-	  val retCont = if (toSz <= Target.defaultIntSz)
-		then let (* need extra conversion from 32-bits to fromSz *)
-		  val v = LV.mkLvar()
-		  in
-		    (C.CONT, rk, [v], [raw32Ty],
-		      C.ARITH(P.TESTU{from=32, to=toSz}, [C.VAR v], res, resTy, ce))
-		  end
-		else (C.CONT, rk, [res], [resTy], ce)
-	  in
-	    C.FIX([retCont], C.APP (f, [C.VAR rk, x]))
-	  end
+    fun testu64To (toSz, [x, f], res, resTy, ce) =
+	  if (toSz <= Target.defaultIntSz)
+	    then let (* need extra conversion from 32-bits to fromSz *)
+	      val rk = LV.mkLvar()
+	      val v = LV.mkLvar()
+	      val ce' = C.ARITH(P.TESTU{from=32, to=toSz}, [C.VAR v], res, resTy, ce)
+	      in
+		C.FIX([(C.CONT, rk, [v], [raw32Ty], ce')], C.APP (f, [C.VAR rk, x]))
+	      end
+	    else mkApplyWithReturn (f, [x], res, resTy, ce)
 
   (* truncate a 64-bit number to a size <= 32 bit number *)
     fun trunc64To (toSz, n, res, ce) = join (res, ce, fn k =>
@@ -578,6 +599,7 @@ structure Num64Cnv : sig
 	    | chkExp (C.BRANCH(P.CMP{kind=P.UINT 64, ...}, _, _, _, _)) = true
 	    | chkExp (C.BRANCH(_, vs, _, e1, e2)) =
 		chkValues vs orelse chkExp e1 orelse chkExp e2
+(* QUESTION: what about RAWUPDATE and RAWSTORE? *)
 	    | chkExp (C.SETTER(_, vs, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.LOOKER(_, vs, _, _, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.ARITH(P.IARITH{sz=64, ...}, _, _, _, _)) = true
@@ -599,6 +621,10 @@ structure Num64Cnv : sig
 	  in
 	    (not Target.is64) andalso (chkFun func)
 	  end
+
+  (* we replace occurrences of the 64-bit number type with "pointer to pair" *)
+    fun cvtTy (C.NUMt{sz=64, ...}) = pairTy
+      | cvtTy ty = ty
 
     fun elim cfun = let
 	  fun value (C.NUM{ival, ty={sz=64, ...}}, k) = let
@@ -637,7 +663,7 @@ structure Num64Cnv : sig
 		in
 		  f (xl, [])
 		end
-	    | cexp (C.SELECT(i, x, v, t, e)) = C.SELECT(i, x, v, t, cexp e)
+	    | cexp (C.SELECT(i, x, v, t, e)) = C.SELECT(i, x, v, cvtTy t, cexp e)
 	    | cexp (C.OFFSET(i, v, x, e)) = C.OFFSET(i, v, x, cexp e)
 	    | cexp (C.APP(f, xl)) = values (xl, fn xl' => C.APP (f, xl'))
 	    | cexp (C.FIX(fl, e)) = C.FIX(List.map function fl, cexp e)
@@ -668,7 +694,7 @@ structure Num64Cnv : sig
 	    | cexp (C.SETTER(rator, xl, e)) =
 		values (xl, fn xl' => C.SETTER (rator, xl', cexp e))
 	    | cexp (C.LOOKER (rator, xl, v, ty, e)) =
-		values (xl, fn xl' => C.LOOKER (rator, xl', v, ty, cexp e))
+		values (xl, fn xl' => C.LOOKER (rator, xl', v, cvtTy ty, cexp e))
 	    | cexp (C.ARITH(P.IARITH{oper, sz=64}, args, res, _, e)) =
 		values (args, fn args' => (case (oper, args')
 		   of (P.IADD, [a, b]) => i64Add(a, b, res, cexp e)
@@ -715,22 +741,18 @@ structure Num64Cnv : sig
 	    | cexp (C.PURE(P.UNWRAP(P.INT 64), [a], res, _, e)) =
 		value (a, fn x => unwrap64 (x, res, cexp e))
 	    | cexp (C.PURE(rator, args, res, ty, e)) =
-		values (args, fn args => C.PURE(rator, args, res, ty, cexp e))
+		values (args, fn args => C.PURE(rator, args, res, cvtTy ty, cexp e))
 	    | cexp (C.RCC(rk, cf, proto, args, res, e)) =
 		values (args, fn args => C.RCC(rk, cf, proto, args, res, cexp e))
 	(* make an application of the function `f`, where `exp` is the continuation
 	 * of the original primop and we assume the result type is a pair of
 	 * 32-bit integers.
 	 *)
-	  and mkApply (f, args, res, exp) = let
-		val k = LV.mkLvar()
-		in
-		  C.FIX([(C.CONT, k, [res], [pairTy], cexp exp)],
-		    values (args, fn args' => C.APP(f, C.VAR k :: args')))
-		end
+	  and mkApply (f, args, res, exp) =
+		values (args, fn args' =>
+		  mkApplyWithReturn (f, args', res, pairTy, cexp exp))
 	  and function (fk, f, params, tys, body) =
-(* QUESTION: do we need to convert the tys? *)
-		(fk, f, params, tys, cexp body)
+		(fk, f, params, List.map cvtTy tys, cexp body)
 	  in
 	    if needsRewrite cfun
 	      then function cfun
