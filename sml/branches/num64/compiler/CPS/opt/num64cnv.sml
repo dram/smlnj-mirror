@@ -11,10 +11,10 @@
 structure Num64Cnv : sig
 
   (* eliminate 64-bit literals and operations on a 32-bit machine.  This function
-   * returns NONE if no 64-bit operations were eliminated and it is the constant
-   * on 64-bit machines.
+   * does not rewrite its argument if either the target is a 64-bit machine or
+   * the  no 64-bit operations were detected.
    *)
-    val elim : CPS.function -> CPS.function option
+    val elim : CPS.function -> CPS.function
 
   end = struct
 
@@ -536,20 +536,23 @@ structure Num64Cnv : sig
     fun needsRewrite func = let
 	  fun chkValue (C.NUM{ival, ty={sz=64, ...}}) = true
 	    | chkValue _ = false
+	  fun chkValues [] = false
+	    | chkValues (v::vs) = chkValue v orelse chkValues vs
 	  fun chkExp (C.RECORD(_, vs, _, e)) =
 		List.exists (chkValue o #1) vs orelse chkExp e
 	    | chkExp (C.SELECT(_, v, _, _, e)) = chkValue v orelse chkExp e
 	    | chkExp (C.OFFSET(_, v, _, e)) = chkValue v orelse chkExp e
-	    | chkExp (C.APP(_, vs)) = List.exists chkValue vs
+	    | chkExp (C.APP(_, vs)) = chkValues vs
 	    | chkExp (C.FIX(fns, e)) = List.exists chkFun fns orelse chkExp e
 	    | chkExp (C.SWITCH(v, _, es)) = chkValue v orelse List.exists chkExp es
 	    | chkExp (C.BRANCH(P.CMP{kind=P.INT 64, ...}, _, _, _, _)) = true
 	    | chkExp (C.BRANCH(P.CMP{kind=P.UINT 64, ...}, _, _, _, _)) = true
-	    | chkExp (C.BRANCH(_, _, _, e1, e2)) = chkExp e1 orelse chkExp e2
-	    | chkExp (C.SETTER(_, vs, e)) = List.exists chkValue vs orelse chkExp e
-	    | chkExp (C.LOOKER(_, _, _, _, e)) = chkExp e
+	    | chkExp (C.BRANCH(_, vs, _, e1, e2)) =
+		chkValues vs orelse chkExp e1 orelse chkExp e2
+	    | chkExp (C.SETTER(_, vs, e)) = chkValues vs orelse chkExp e
+	    | chkExp (C.LOOKER(_, vs, _, _, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.ARITH(P.IARITH{sz=64, ...}, _, _, _, _)) = true
-	    | chkExp (C.ARITH(_, _, _, _, e)) = chkExp e
+	    | chkExp (C.ARITH(_, vs, _, _, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.PURE(P.PURE_ARITH{kind=P.UINT 64, ...}, _, _, _, _)) = true
 	    | chkExp (C.PURE(P.TRUNC{from=64, to=31}, _, _, _, _)) = true
 	    | chkExp (C.PURE(P.EXTEND{from=31, to=64},  _, _, _, _)) = true
@@ -559,8 +562,8 @@ structure Num64Cnv : sig
 	    | chkExp (C.PURE(P.EXTEND{from=32, to=64},  _, _, _, _)) = true
 	    | chkExp (C.PURE(P.WRAP(P.INT 64), _, _, _, _)) = true
 	    | chkExp (C.PURE(P.UNWRAP(P.INT 64), _, _, _, _)) = true
-	    | chkExp (C.PURE(_, _, _, _, e)) = chkExp e
-	    | chkExp (C.RCC(_, _, _, vs, _, e)) = List.exists chkValue vs orelse chkExp e
+	    | chkExp (C.PURE(_, vs, _, _, e)) = chkValues vs orelse chkExp e
+	    | chkExp (C.RCC(_, _, _, vs, _, e)) = chkValues vs orelse chkExp e
 (* QUESTION: do we need to check the tys?
  * For example `(fn (x : Int64.int) => x)` might take two arguments for `x`!
  *)
@@ -686,9 +689,9 @@ structure Num64Cnv : sig
 	    | cexp (C.PURE(P.UNWRAP(P.INT 64), [a], res, _, e)) =
 		value (a, fn x => unwrap64 (x, res, cexp e))
 	    | cexp (C.PURE(rator, args, res, ty, e)) =
-		C.PURE(rator, args, res, ty, cexp e)
+		values (args, fn args => C.PURE(rator, args, res, ty, cexp e))
 	    | cexp (C.RCC(rk, cf, proto, args, res, e)) =
-		C.RCC(rk, cf, proto, args, res, cexp e)
+		values (args, fn args => C.RCC(rk, cf, proto, args, res, cexp e))
 	(* make an application of the function `f`, where `exp` is the continuation
 	 * of the original primop and we assume the result type is a pair of
 	 * 32-bit integers.
@@ -704,8 +707,8 @@ structure Num64Cnv : sig
 		(fk, f, params, tys, cexp body)
 	  in
 	    if needsRewrite cfun
-	      then SOME(function cfun)
-	      else NONE
+	      then function cfun
+	      else cfun
 	  end (* elim *)
 
   end

@@ -64,7 +64,7 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 			})
 		in
 		  debugprint [
-		      "Contract stats: CPS Size = ", Int.toString (!cpssize),
+		      "First contract stats: CPS Size = ", Int.toString (!cpssize),
 		      " , clicks = ", Int.toString (!clicked), "\n"
 		    ];
 		  CG.dropargs := dpargs;
@@ -80,7 +80,7 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 			})
 		in
 		  debugprint [
-		      "Contract stats: CPS Size = ", Int.toString (!cpssize),
+		      "Last contract stats: CPS Size = ", Int.toString (!cpssize),
 		      " , clicks = ", Int.toString (!clicked), "\n"
 		    ];
 		  f'
@@ -237,12 +237,11 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 (*              val function6 = eta function5 (* ZSH added this new phase *) *)
 (*              val function7 = last_contract function6 *)
 (*              val optimized function7 *)
-		val optimized = (case Num64Cnv.elim optimized
-		       of SOME function => last_contract function
-			| NONE => optimized
-		      (* end case *))
 		in
-		  IntInfCnv.elim optimized
+		(* expand out the 64-bit and IntInf operations and then do one last
+		 * contraction pass.
+		 *)
+		  last_contract (IntInfCnv.elim (Num64Cnv.elim optimized))
 		end)
 	    before (debugprint["\n"]; debugflush())
 	  end (* fun reduce *)

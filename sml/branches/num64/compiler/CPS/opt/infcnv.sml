@@ -24,20 +24,16 @@ end = struct
     val tagNumTy = C.NUMt{tag = true, sz = Target.defaultIntSz}
     val boxNumTy = C.NUMt{tag = false, sz = boxNumSz}
 
-    val kFalse = C.NUM{ival = 0, ty={tag = true, sz = Target.defaultIntSz}}
-    val kTrue  = C.NUM{ival = 1, ty={tag = true, sz = Target.defaultIntSz}}
-
   (* generate code to convert a fixed-size number to an intinf.  The arguments
    * are:
    *	prim		-- the primop (COPY or EXTEND) for converting a tagged
    *			   value to the boxed number type
    *	sz		-- the size of the source value
-   *	extend		-- kFalse or kTrue; specifies sign extension
    *	x		-- the value being converted
    *	f		-- the conversion function from the "_Core" structure.
    *	v, t, e		-- \v:t.e is the continuation of the conversion.
    *)
-    fun toInf (prim, sz, extend, [x, f], v, t, e) = let
+    fun toInf (prim, sz, [x, f], v, t, e) = let
 	  val k = LV.mkLvar ()
 	  val body = if (sz <= Target.defaultIntSz)
 		  then let
@@ -47,10 +43,10 @@ end = struct
 		    val v' = LV.mkLvar ()
 		    in
 		      C.PURE (prim{from=sz, to=boxNumSz}, [x], v', boxNumTy,
-			C.APP (f, [C.VAR k, C.VAR v', extend]))
+			C.APP (f, [C.VAR k, C.VAR v']))
 		    end
 		else if (sz = boxNumSz)
-		  then C.APP (f, [C.VAR k, x, extend])
+		  then C.APP (f, [C.VAR k, x])
 		  else let
 		  (* for a 64-bit argument on 32-bit target, we need to extern the
 		   * argument to a pair of 32-bit words.
@@ -136,9 +132,9 @@ end = struct
 	    | cexp (C.LOOKER (l, xl, v, t, e)) =
 		C.LOOKER (l, xl, v, t, cexp e)
 	    | cexp (C.PURE (C.P.COPY_INF sz, args, v, t, e)) =
-		toInf (C.P.COPY, sz, kFalse, args, v, t, cexp e)
+		toInf (C.P.COPY, sz, args, v, t, cexp e)
 	    | cexp (C.PURE (C.P.EXTEND_INF sz, args, v, t, e)) =
-		toInf (C.P.EXTEND, sz, kTrue, args, v, t, cexp e)
+		toInf (C.P.EXTEND, sz, args, v, t, cexp e)
 	    | cexp (C.PURE (C.P.TRUNC_INF sz, args, v, t, e)) =
 		fromInf (C.PURE, C.P.TRUNC, sz, args, v, t, cexp e)
 	    | cexp (C.ARITH (C.P.TEST_INF sz, args, v, t, e)) =
