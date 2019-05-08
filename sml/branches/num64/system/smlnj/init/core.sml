@@ -372,11 +372,18 @@ structure Core =
 	val copyLargeInf = CoreIntInf.copyLargeInf	(* for `P.COPY_INF 32` *)
 	val extendLargeInf = CoreIntInf.extendLargeInf	(* for `P.EXTEND_INF 32` *)
 
-      (* pairs of 32-bit words <-> intinf *)
+      (* word64-rep (pairs of 32-bit words) <-> intinf *)
 	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)
 	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
 	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)
 	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
+
+      (* word64-rep (pairs of 32-bit words) -> int *)
+	val w64ToInt = CoreWord64.toInt
+	val w64ToIntX = CoreWord64.toIntX
+      (* word64-rep (pairs of 32-bit words) -> large boxed int  *)
+	val w64ToInt = CoreWord64.toInt32
+	val w64ToIntX = CoreWord64.toInt32X
 
       (* 64-bit arithmetic operations that do not have direct implementations
        * on 32-bit targets.

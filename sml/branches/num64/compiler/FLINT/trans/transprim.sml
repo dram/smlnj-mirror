@@ -120,6 +120,20 @@ structure TransPrim : sig
 	    lt_arw(lt_tup [elem, lt_int], elem)
           end
 
+  (* pick the name of an infinf conversion from "_Core" based on the size *)
+    local
+      fun pickName (tagCvt, boxCvt, num64Cvt) sz =
+	    if (sz <= Target.defaultIntSz) then tagCvt
+	    else if (sz = Target.mlValueSz) then boxCvt
+	    else if (sz = 64) andalso not Target.is64 then num64Cvt
+	    else bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
+    in
+    val truncInf = pickName ("truncInfLarge", "truncInfLarge", "truncInf64")
+    val testInf = pickName ("testInfLarge", "testInfLarge", "testInf64")
+    val copyInf = pickName ("copyLargeInf", "copyLargeInf", "copy64Inf")
+    val extendInf = pickName ("extendLargeInf", "extendLargeInf", "extend64Inf")
+    end (* local *)
+
   (* trans : Primop.primop * Lty.lty * Lty.tyc list
    *
    * Translate Absyn primop to PLambda form using given
@@ -309,24 +323,16 @@ structure TransPrim : sig
 		      (fn p => L.RECORD[L.SELECT(0, p), L.SELECT(1, p)]))
 		end
 *)
-	(* pick the name of an infinf conversion from "_Core" based on the size *)
-	  fun pickName (sz, tagCvt, boxCvt, num64Cvt) =
-		if (sz = Target.defaultIntSz) then tagCvt
-		else if (sz = Target.mlValueSz) then boxCvt
-		else if (sz = 64) andalso not Target.is64 then num64Cvt
-		else bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
 	(* conversion from fixed int to intinf *)
 	  fun inlToInf (opname: string, cvtName: string, primop, primoplt) = let
 		val (orig_arg_lt, res_lt) = (
 		      case LT.ltd_arrow primoplt handle LT.DeconExn => bug "inlToInfPrec"
 		       of (_, [a], [r]) => (a, r)
-			| _ => bug ("unexpected type of " ^ opname)
+			| _ => bug (concat[
+			      "unexpected type ", LT.lt_print primoplt, " of ", opname
+			    ])
 		      (* end case *))
-(* FIXME: replace with separate copy/extend functions *)
-		val extra_arg_lt = if cvtName = "finToInf"
-		      then LT.ltc_arrow(LT.ffc_var(true, false),
-				 [lt_fixed_int ,LT.ltc_bool], [res_lt])
-		      else LT.ltc_parrow(lt_fixed_int, res_lt)
+		val extra_arg_lt = LT.ltc_parrow(lt_fixed_int, res_lt)
 		val new_arg_lt = LT.ltc_tuple [orig_arg_lt, extra_arg_lt]
 		val new_lt = LT.ltc_parrow (new_arg_lt, res_lt)
 		in
@@ -338,7 +344,9 @@ structure TransPrim : sig
 		val (orig_arg_lt, res_lt) = (
 		      case LT.ltd_arrow primoplt handle LT.DeconExn => bug "inlFromInfPrec"
 		       of (_, [a], [r]) => (a, r)
-			| _ => bug ("unexpected type of " ^ opname)
+			| _ => bug (concat[
+			      "unexpected type ", LT.lt_print primoplt, " of ", opname
+			    ])
 		      (* end case *))
 		val extra_arg_lt = LT.ltc_parrow (orig_arg_lt, lt_fixed_int)
 		val new_arg_lt = LT.ltc_tuple [orig_arg_lt, extra_arg_lt]
@@ -496,10 +504,10 @@ structure TransPrim : sig
 	     * a second argument -- the routine from _Core that
 	     * does the actual conversion to or from IntInf.
 	     *)
-	      | PO.TEST_INF prec => inlFromInf ("TEST_INF", "testInf", prim, lt)
-	      | PO.TRUNC_INF prec => inlFromInf ("TRUNC_INF", "truncInf", prim, lt)
-	      | PO.EXTEND_INF prec => inlToInf ("EXTEND_INF", "finToInf", prim, lt)
-	      | PO.COPY_INF prec => inlToInf ("COPY", "finToInf", prim, lt)
+	      | PO.TRUNC_INF sz => inlFromInf ("TRUNC_INF", truncInf sz, prim, lt)
+	      | PO.TEST_INF sz => inlFromInf ("TEST_INF", testInf sz, prim, lt)
+	      | PO.COPY_INF sz => inlToInf ("COPY", copyInf sz, prim, lt)
+	      | PO.EXTEND_INF sz => inlToInf ("EXTEND_INF", extendInf sz, prim, lt)
 	    (* default handling for all other primops *)
 	      | p => mkPrim(p, lt, ts)
 	    (* end case *)

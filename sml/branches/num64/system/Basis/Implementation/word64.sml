@@ -6,16 +6,92 @@
 
 structure Word64 : sig
 
-    type word
+    include WORD
 
     val extern : word -> Word32.word * Word32.word
     val intern : Word32.word * Word32.word -> word
 
   end = struct
 
+    structure W64 = InlineT.Word64
+
     type word = Word64.word
+
+    fun unimplemented _ = raise Fail "unimplemented"
 
     val extern = InlineT.Word64.extern
     val intern = InlineT.Word64.intern
+
+    val wordSize = 64
+    val toLarge  = unimplemented	(* W64.toLarge *)
+    val toLargeX = unimplemented	(* W64.fromLargeX *)
+    val fromLarge = unimplemented	(* W64.fromLarge *)
+
+  (* same as above, but deprecated *)
+    val toLargeWord = toLarge
+    val toLargeWordX = toLargeX
+    val fromLargeWord = fromLarge
+
+(*
+    val toInt = W64.toInt
+    val toIntX = W64.toIntX
+    val fromInt = W64.fromInt
+*)
+    val toInt = unimplemented
+    val toIntX = unimplemented
+    val fromInt = unimplemented
+
+    val toLargeInt = W64.toLargeInt
+    val toLargeIntX = W64.toLargeIntX
+    val fromLargeInt = W64.fromLargeInt
+
+    val op * : word * word -> word = W64.*
+    val op + : word * word -> word = W64.+
+    val op - : word * word -> word = W64.-
+    val op div : word * word -> word = W64.div
+    val op mod : word * word -> word = W64.mod
+
+    val orb  : word * word -> word = W64.orb
+    val xorb : word * word -> word = W64.xorb
+    val andb : word * word -> word = W64.andb
+    val notb : word -> word = W64.notb
+
+    val <<   = W64.chkLshift
+    val >>   = W64.chkRshiftl
+    val ~>>  = W64.chkRshift
+
+    fun compare (w1, w2) =
+	  if (W64.<(w1, w2)) then LESS
+	  else if (W64.>(w1, w2)) then GREATER
+	  else EQUAL
+
+    val op > : word * word -> bool = W64.>
+    val op >= : word * word -> bool = W64.>=
+    val op < : word * word -> bool = W64.<
+    val op <= : word * word -> bool = W64.<=
+
+    val ~   : word -> word = ~
+    val min : word * word -> word = W64.min
+    val max : word * word -> word = W64.max
+
+(*
+    val fmt = NumFormat.fmtWord
+    val toString = fmt StringCvt.HEX
+
+    val scan = NumScan.scanWord
+    val fromString = PreBasis.scanString (scan StringCvt.HEX)
+*)
+    val fmt = unimplemented
+    val toString = unimplemented
+    val scan = unimplemented
+    val fromString = unimplemented
+
+  (* added for Basis Library proposal 2016-001 *)
+
+    fun popCount w = let
+	  val (hi, lo) = extern w
+	  in
+	    InlineT.Int.fast_add(W32PopCount.popCount hi, W32PopCount.popCount lo)
+	  end
 
   end

@@ -25,9 +25,16 @@ structure CoreWord64 =
       val op ++ : word32 * word32 -> word32 = InLine.word32_orb
       infix 5 &
       val op & : word32 * word32 -> word32 = InLine.word32_andb
+      infix 4 > <>
+      val op > = InLine.word32_gt
+      val op <> = InLine.word32_neq
 
       val extern : word64 -> word32 * word32 = InLine.word64_to_pair
       val intern : word32 * word32 -> word64 = InLine.word64_from_pair
+
+      val unsigned_word32_to_int : word32 -> int = InLine.unsigned_word32_to_int
+      val signed_word32_to_int : word32 -> int = InLine.signed_word32_to_int
+      val copy_word32_to_int32 : word32 -> int32 = InLine.copy_word32_to_int32
 
   (* from Hacker's Delight (Figure 8.1); this version does not use conditionals
    * and is about 7% faster.
@@ -75,9 +82,28 @@ structure CoreWord64 =
       fun lift2 f (x, y) = intern (f (extern x, extern y))
 
     in
+
     val op * = lift2 mul64
     val div = lift2 div64
     val mod = lift2 mod64
+
+(* QUESTION: should these take pairs of words as arguments? *)
+    fun toInt w = (case extern w
+	   of (0w0, lo) => unsigned_word32_to_int lo
+	    | _ => raise Assembly.Overflow
+	  (* end case *))
+    fun toIntX w = signed_word32_to_int (#2 (extern w))
+
+  (* hook needed to support fused conversions to int32 *)
+    fun toInt32 w = let
+	  val (hi, lo) = extern w
+	  in
+	    if (hi <> 0w0) orelse (lo > 0wx7fffffff)
+	      then raise Assembly.Overflow
+	      else copy_word32_to_int32 lo
+	  end
+    fun toInt32X w = copy_word32_to_int32 (#2 (extern w))
+
     end (* local *)
 
   end (* structure CoreWord64 *)

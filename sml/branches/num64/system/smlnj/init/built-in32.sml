@@ -298,9 +298,6 @@ structure InlineT =
 	val toLarge : word32 -> word32	 = InLine.inl_identity
 	val toLargeX : word32 -> word32	 = InLine.inl_identity
 	val fromLarge : word32 -> word32 = InLine.inl_identity
-	val toLargeWord			 = toLarge	(* deprecated *)
-	val toLargeWordX		 = toLargeX	(* deprecated *)
-	val fromLargeWord		 = fromLarge	(* deprecated *)
 	val toInt			 = InLine.unsigned_word32_to_int
 	val toIntX			 = InLine.signed_word32_to_int
 	val fromInt			 = InLine.int_to_word32
@@ -342,13 +339,23 @@ structure InlineT =
         val extern : word64 -> word32 * word32   = InLine.word64_to_pair
 	val intern : word32 * word32 -> word64   = InLine.word64_from_pair
 
+(*
+	val toLarge : word64 -> ??		 = ??
+	val toLargeX : word64 -> ??		 = ??
+	val fromLarge : ?? -> word64		 = ??
+	val toInt : word64 -> int		 = InLine.unsigned_word64_to_int
+	val toIntX : word64 -> int		 = InLine.signed_word64_to_int
+	val fromInt : int -> word64		 = InLine.int_to_word64
+*)
+	val toLargeInt : word64 -> intinf	 = InLine.unsigned_word64_to_intinf
+	val toLargeIntX : word64 -> intinf	 = InLine.signed_word64_to_intinf
+	val fromLargeInt : intinf -> word64	 = InLine.intinf_to_word64
+
         val op + : word64 * word64 -> word64	 = InLine.word64_add
         val op - : word64 * word64 -> word64	 = InLine.word64_sub
-(*
         val op * : word64 * word64 -> word64	 = InLine.word64_mul
         val op div : word64 * word64 -> word64	 = InLine.word64_div
         val op mod : word64 * word64 -> word64	 = InLine.word64_mod
-*)
 	val ~ : word64 -> word64		 = InLine.word64_neg
         val orb : word64 * word64 -> word64	 = InLine.word64_orb
         val xorb : word64 * word64 -> word64	 = InLine.word64_xorb
