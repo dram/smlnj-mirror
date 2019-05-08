@@ -25,6 +25,8 @@ structure ContractPrim : sig
 
     type get_info = CPS.lvar -> {info: info, used : int ref, called : int ref}
 
+    val infoToString : info -> string
+
     val arith : CPS.P.arith * CPS.value list -> CPS.value option
 
     val pure : get_info -> CPS.P.pure * CPS.value list -> CPS.value option
@@ -35,6 +37,8 @@ structure ContractPrim : sig
 
     structure P = CPS.P
     structure CA = ConstArith
+
+    fun bug s = ErrorMsg.impossible ("ContractPrim: " ^ s)
 
     datatype value = datatype CPS.value
 
@@ -55,7 +59,26 @@ structure ContractPrim : sig
 
     type get_info = CPS.lvar -> {info: info, used : int ref, called : int ref}
 
-    fun bug s = ErrorMsg.impossible ("ContractPrim: " ^ s)
+    fun infoToString info = (case info
+	   of FNinfo _ => "FNinfo{...}"
+	    | RECinfo(_, args) => concat[
+		  "RECinfo(_, [", String.concatWithMap "," PPCps.vpathToString args, "])"
+		]
+	    | SELinfo(i, v, cty) => concat[
+		  "SELinfo(", Int.toString i, ", ", PPCps.value2str v, ", ",
+		  CPSUtil.ctyToString cty, ")"
+		]
+	    | OFFinfo(i, v) => concat[
+		  "OFFinfo(", Int.toString i, ", ", PPCps.value2str v, ")"
+		]
+	    | WRPinfo(nk, v) => concat[
+		  "WRPinfo(", PPCps.numkindToString nk, ", ", PPCps.value2str v, ")"
+		]
+	    | IFIDIOMinfo _ => "IFIDIOMinfo{...}"
+	    | MISCinfo cty => concat[
+		  "MISCinfo(", CPSUtil.ctyToString cty, ")"
+		]
+	  (* end case *))
 
     (* integer types/values *)
     local
