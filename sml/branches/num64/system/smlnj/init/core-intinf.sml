@@ -52,6 +52,7 @@ structure CoreIntInf :> sig
   (* sign-extend int32 into intinf: *)
     val extendLargeInf : int32 -> intinf
 
+(* 64BIT: these functions are only needed for 32-bit targets! *)
     (* fit value (2's complement) in "int64", raise Overflow if too large *)
     val testInf64   : intinf -> word32 * word32
     (* truncate value (2's complement repr) to fit in "int64": *)

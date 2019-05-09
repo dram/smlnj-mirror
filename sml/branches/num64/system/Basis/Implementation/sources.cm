@@ -141,7 +141,7 @@ Group
 	structure IEEEReal
 	structure IntImp
 	structure Int32Imp
-	structure Int64
+	structure Int64Imp
 	structure IntInfImp
 	structure IO
 	structure LargeIntImp
@@ -175,11 +175,11 @@ Group
 	structure Vector
 	structure VectorSlice
 	structure WordImp
+	structure Word8Imp
 	structure Word32Imp
-	structure Word64
+	structure Word64Imp
 	structure Word8Array
 	structure Word8ArraySlice
-	structure Word8Imp
 	structure Word8Vector
 	structure Word8VectorSlice
 
@@ -397,12 +397,10 @@ is
 	array2.sml
 	ieee-real.sml
 	int32.sml
-	int64.sml
 	int-inf-sig.sml
 	int-inf.sml
 	w32-popcount.sml
 	word32.sml
-	word64.sml
 	real64.sml
 #if defined(ARCH_X86)
 	math64-x86.sml
@@ -442,11 +440,15 @@ is
 
 #if defined(SIZE_32)
 	Target32Bit/int.sml
+	Target32Bit/int64.sml
 	Target32Bit/word.sml
+	Target32Bit/word64.sml
 	Target32Bit/bind-structs.sml
 #else
 	Target64Bit/int.sml
+	Target32Bit/int64.sml
 	Target64Bit/word.sml
+	Target32Bit/word64.sml
 	Target64Bit/bind-structs.sml
 #endif
 (* TODO: switch to 64-bit positions for all systems *)

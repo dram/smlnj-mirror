@@ -2,9 +2,11 @@
  *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Implementation of Word64 for 32-bit targets.
  *)
 
-structure Word64 : sig
+structure Word64Imp : sig
 
     include WORD
 
@@ -16,12 +18,12 @@ structure Word64 : sig
     structure W64 = InlineT.Word64
     structure W32 = Word32Imp		(* 64BIT: FIXME *)
 
-    type word = Word64.word
+    type word = Word64.word	(* from Basis/TypesOnly *)
 
     fun unimplemented _ = raise Fail "unimplemented"
 
-    val extern = InlineT.Word64.extern
-    val intern = InlineT.Word64.intern
+    val extern = W64.extern
+    val intern = W64.intern
 
     val wordSize = 64
 

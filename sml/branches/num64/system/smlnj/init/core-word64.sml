@@ -3,10 +3,10 @@
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * This module defines multiplication, division, and modulo for 64-bit
- * words on 32-bit targets.  The other Word64 operations are directly
- * supported by the compiler or are implemented in the Basis/Implementation
- * directory.
+ * This module defines multiplication, division, and modulo operations,
+ * as well as impure conversions for 64-bit words on 32-bit targets.
+ * The other Word64 operations are either directly supported by the
+ * compiler or are implemented in the Target32Bit/int64.sml file.
  *)
 
 structure CoreWord64 =

@@ -161,30 +161,15 @@ structure InlineT =
     structure Int64 =
       struct
 
-(*
-	val op + = Core.i64Add
-	val op - = Core.i64Sub
-	val op * = Core.i64Mul
-	val div = Core.i64Div
-	val mod = Core.i64Mod
-	val quot = Core.i64Quot
-	val rem = Core.i64Rem
-	val ~ = Core.i64Neg
-	val op < = Core.i64LT
-	val op <= = Core.i64LTE
-	val op > = Core.i64GT
-	val op >= = Core.i64GTE
-	val abs = Core.i64Abs
-*)
-
+        val op +    : int64 * int64 -> int64  = InLine.int64_add
+        val op -    : int64 * int64 -> int64  = InLine.int64_sub
 (* coming soon!
         val op *    : int64 * int64 -> int64  = InLine.int64_mul
         val op quot : int64 * int64 -> int64  = InLine.int64_quot
         val op rem  : int64 * int64 -> int64  = InLine.int64_rem
         val op div  : int64 * int64 -> int64  = InLine.int64_div
         val op mod  : int64 * int64 -> int64  = InLine.int64_mod
-        val op +    : int64 * int64 -> int64  = InLine.int64_add
-        val op -    : int64 * int64 -> int64  = InLine.int64_sub
+*)
         val ~       : int64 -> int64          = InLine.int64_neg
         val op <    : int64 * int64 -> bool   = InLine.int64_lt
         val op <=   : int64 * int64 -> bool   = InLine.int64_le
@@ -196,7 +181,6 @@ structure InlineT =
         val min     : int64 * int64 -> int64  = InLine.int64_min
         val max     : int64 * int64 -> int64  = InLine.int64_max
         val abs     : int64 -> int64          = InLine.int64_abs
-*)
 
         val extern : int64 -> word32 * word32 = InLine.int64_to_pair
 	val intern : word32 * word32 -> int64 = InLine.int64_from_pair
