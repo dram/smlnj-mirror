@@ -93,6 +93,25 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+
+//--------------------------------------------------------------------
+[2019/05/09]::
++
+Reorganized the Basis Library source files (`system/Basis`) to isolate
+dependences on target word size.
++
+In the `Basis/Implementation` directory, I created subdirectories
+(__e.g.__, `Target32Bit`) to hold implementations that are specific
+to the target.  These directories include a `bind-structs.sml` file
+that replaces the many `bind-*.sml` files in `Basis/Implementation`.
++
+In the `Basis/Exports` directory, I replaced the many individual
+files (each with a single module renaming) with `bind-common.sml`
+(for target-independent bindings) and a target-specific file
+(either `bind-target-32-bit.sml` or `bind-target-64-bit.sml`).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/05/05]::
 +
