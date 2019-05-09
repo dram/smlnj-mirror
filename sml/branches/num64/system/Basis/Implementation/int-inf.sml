@@ -56,7 +56,7 @@ structure IntInfImp :> INT_INF = struct
     datatype rep = datatype CoreIntInf.rep
     val concrete = CoreIntInf.concrete
     val abstract = CoreIntInf.abstract
-    val baseBits = Word31Imp.toIntX CoreIntInf.baseBits
+    val baseBits = WordImp.toIntX CoreIntInf.baseBits
 
     fun binary (f, genSign) (x, y) = let
 	val BI{negative=sx,digits=xs} = concrete x
@@ -103,19 +103,19 @@ structure IntInfImp :> INT_INF = struct
     end
 
     fun shiftAmount w =
-	{ bytes = Word31Imp.div (w, CoreIntInf.baseBits),
-	  bits = Word31Imp.mod (w, CoreIntInf.baseBits) }
+	{ bytes = WordImp.div (w, CoreIntInf.baseBits),
+	  bits = WordImp.mod (w, CoreIntInf.baseBits) }
 
     infix || && << >>
-    val op << = Word31Imp.<<
-    val op >> = Word31Imp.>>
-    val op && = Word31Imp.andb
-    val op || = Word31Imp.orb
+    val op << = WordImp.<<
+    val op >> = WordImp.>>
+    val op && = WordImp.andb
+    val op || = WordImp.orb
 
     (* formatting for bases 2, 8, 16 by slicing off the right number of
      * bits... *)
     fun bitfmt (bits, maxdig, digvec) i = let
-	fun dig d = StringImp.sub (digvec, Word31Imp.toIntX d)
+	fun dig d = StringImp.sub (digvec, WordImp.toIntX d)
 
 	val BI { digits, negative } = concrete i
 	fun addsign l = if negative then #"~" :: l else l
@@ -143,7 +143,7 @@ structure IntInfImp :> INT_INF = struct
     val (decBase, decDigs) = let
 	fun try (b, d) =
 	    if b <= CoreIntInf.base then (b, d)
-	    else try (Word31Imp.div (b, 0w10), d - 1)
+	    else try (WordImp.div (b, 0w10), d - 1)
     in
 	try (0w1000000000, 9)
     end
@@ -151,7 +151,7 @@ structure IntInfImp :> INT_INF = struct
     (* decimal formatting by repeatedly dividing by the largest
      * possible power of 10: *)
     fun decfmt i = let
-	val toString = Word31Imp.fmt StringCvt.DEC
+	val toString = WordImp.fmt StringCvt.DEC
 	fun decDig d = StringCvt.padLeft #"0" decDigs (toString d)
 
 	fun loop (l, []) = l
@@ -189,7 +189,7 @@ structure IntInfImp :> INT_INF = struct
 	  | BI { digits, ... } => let
 		fun wloop (0w0, _) = raise Domain (* should never happen *)
 	          | wloop (0w1, lg) = lg
-		  | wloop (w, lg) = wloop (Word31Imp.>> (w, 0w1), lg + 1)
+		  | wloop (w, lg) = wloop (WordImp.>> (w, 0w1), lg + 1)
 		fun loop ([], lg) = raise Domain
 		  | loop ([x], lg) = wloop (x, lg)
 		  | loop (x :: xs, lg) = loop (xs, lg + baseBits)
@@ -197,9 +197,9 @@ structure IntInfImp :> INT_INF = struct
 		loop (digits, 0)
 	    end
 
-    val orb = binary (Word31Imp.orb, fn (x, y) => x orelse y)
-    val andb = binary (Word31Imp.andb, fn (x, y) => x andalso y)
-    val xorb = binary (Word31Imp.xorb, fn (x, y) => x <> y)
+    val orb = binary (WordImp.orb, fn (x, y) => x orelse y)
+    val andb = binary (WordImp.andb, fn (x, y) => x andalso y)
+    val xorb = binary (WordImp.xorb, fn (x, y) => x <> y)
 
     (* left shift; just shift the digits, no special treatment for
      * signed versus unsigned. *)

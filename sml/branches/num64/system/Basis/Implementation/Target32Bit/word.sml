@@ -1,11 +1,12 @@
-(* word31.sml
+(* word.sml
  *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Default word structure for 32-bit targets.
  *)
 
-(* 64BITS: should this be WordImp? *)
-structure Word31Imp : WORD =
+structure WordImp : WORD =
   struct
     structure Word = InlineT.Word
 
@@ -79,4 +80,4 @@ structure Word31Imp : WORD =
   (* NOTE: LargeWord is Word32 even though we also have a Word64 implementation! *)
     fun popCount w = W32PopCount.popCount (Word.toLarge w)
 
-  end  (* structure Word31 *)
+  end  (* structure WordImp *)
