@@ -261,40 +261,11 @@ Library
 is
 	Implementation/sources.cm
 
-	Exports/string.sml
-	Exports/char.sml
-	Exports/substring.sml
-	Exports/char-array.sml
-	Exports/char-vector.sml
+	Exports/bind-common.sml
+#if defined (SIZE_32)
 
-	Exports/int.sml
-	Exports/int31.sml
-	Exports/int32.sml
-	Exports/int-inf.sml
-	Exports/largeint.sml
-	Exports/fixedint.sml
-	Exports/largereal.sml
-	Exports/largeword.sml
-	Exports/position.sml
-	Exports/real.sml
-	Exports/real64.sml
-	Exports/sysword.sml
-	Exports/word.sml
-	Exports/word8.sml
-	Exports/word31.sml
-	Exports/word32.sml
-	Exports/time.sml
-	Exports/general.sml
+	Exports/bind-target-32-bits.sml
 
-	Exports/os.sml
+#else (* 64-bits *)
 
-	Exports/real-array.sml
-	Exports/real-array-slice.sml
-	Exports/real-vector.sml
-	Exports/real-vector-slice.sml
-
-	Exports/smlnj.sml
-
-#if defined(OPSYS_UNIX) orelse defined(OPSYS_WIN32)
-	Exports/socket.sml
 #endif
