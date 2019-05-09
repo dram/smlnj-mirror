@@ -26,10 +26,7 @@ structure Num64Cnv : sig
 
     fun isNum64Ty (C.NUMt{sz = 64, ...}) = true
       | isNum64Ty _ = false
-    val pairTy = C.PTRt(C.RPT 2)
-(* for packed representation
     val pairTy = C.PTRt C.VPT
-*)
     val box32Ty = C.PTRt C.VPT
     val raw32Ty = C.NUMt{sz = 32, tag = false}	(* assuming a 32-bit machine *)
     val tagNumTy = C.NUMt{sz = 31, tag = true}
@@ -116,14 +113,14 @@ structure Num64Cnv : sig
     fun to64 (hi, lo, k) = let
 	  val pair = LV.mkLvar()
 	  in
+(* code for packed representation
 	    pure(P.WRAP(P.INT 32), [lo], box32Ty, fn lo' =>
 	    pure(P.WRAP(P.INT 32), [hi], box32Ty, fn hi' =>
 	      C.RECORD(C.RK_RECORD, [(hi', C.OFFp 0), (lo', C.OFFp 0)],
 		pair, k(C.VAR pair))))
-(* code for packed representation
-	    C.RECORD(C.RK_RAWBLOCK, [(hi, C.OFFp 0), (lo, C.OFFp 0)],
-		pair, k(C.VAR pair))))
 *)
+	    C.RECORD(C.RK_RAWBLOCK, [(hi, C.OFFp 0), (lo, C.OFFp 0)],
+		pair, k(C.VAR pair))
 	  end
 
   (* given a 64-bit object and a continuation `k`, make code to unpackage the value into
@@ -133,16 +130,9 @@ structure Num64Cnv : sig
 	  val hi = LV.mkLvar()
 	  val lo = LV.mkLvar()
 	  in
-	    C.SELECT(0, n, hi, box32Ty,
-	    pure(P.UNWRAP(P.INT 32), [C.VAR hi], raw32Ty, fn hi' =>
-	    C.SELECT(1, n, lo, box32Ty,
-	    pure(P.UNWRAP(P.INT 32), [C.VAR lo], raw32Ty, fn lo' =>
-	      k (hi', lo')))))
-(* code for packed representation
 	    C.SELECT(0, n, hi, raw32Ty,
 	    C.SELECT(1, n, lo, raw32Ty,
-	      k (hi, lo)))
-*)
+	      k (C.VAR hi, C.VAR lo)))
 	  end
 
   (* given a 64-bit object and a continuation `k`, make code to unpackage the low 32 word,
@@ -151,12 +141,7 @@ structure Num64Cnv : sig
     fun getLo32 (n, k) = let
 	  val lo = LV.mkLvar()
 	  in
-	    C.SELECT(1, n, lo, box32Ty,
-	    pure(P.UNWRAP(P.INT 32), [C.VAR lo], raw32Ty, fn lo' =>
-	      k lo'))
-(* code for packed representation
-	    C.SELECT(1, n, lo, raw32Ty, k lo)
-*)
+	    C.SELECT(1, n, lo, raw32Ty, k(C.VAR lo))
 	  end
 
   (* given a 64-bit object and a continuation `k`, make code to unpackage the high 32 word,
@@ -165,12 +150,7 @@ structure Num64Cnv : sig
     fun getHi32 (n, k) = let
 	  val hi = LV.mkLvar()
 	  in
-	    C.SELECT(0, n, hi, box32Ty,
-	    pure(P.UNWRAP(P.INT 32), [C.VAR hi], raw32Ty, fn hi' =>
-	      k hi'))
-(* code for packed representation
-	    C.SELECT(0, n, lo, raw32Ty, k hi)
-*)
+	    C.SELECT(0, n, hi, raw32Ty, k(C.VAR hi))
 	  end
 
   (* split a 32-bit value into two 16-bit values *)

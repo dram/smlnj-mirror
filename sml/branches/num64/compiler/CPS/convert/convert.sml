@@ -646,36 +646,23 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 
 	      | F.PRIMOP((_, AP.INTERN64, _, _), args, res, e) => let
 		  val [hi, lo] = lpvars args
-		  val hiBox = LV.mkLvar() and loBox = LV.mkLvar()
 		  in
-		    PURE(P.WRAP(P.INT 32), [hi], hiBox, PTRt VPT,
-		    PURE(P.WRAP(P.INT 32), [lo], loBox, PTRt VPT,
-		      RECORD(RK_RECORD, [(VAR hiBox, OFFp0), (VAR loBox, OFFp0)], res,
-			loop(e,c))))
-		  end
-	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) =>
-		  PURE(P.CAST, lpvars args, res, PTRt(RPT 2), loop(e,c))
-(* code for a packed representation of 64-bit numbers
-	      | F.PRIMOP((_, AP.INTERN64, _, _), args, res, e) => let
-		  val [hi, lo] = lpvars args
-		  in
-		    RECORD(RK_RAWBLOCK, [(VAR hi, OFFp0), (VAR lo, OFFp0)], res,
+		    RECORD(RK_RAWBLOCK, [(hi, OFFp0), (lo, OFFp0)], res,
 		      loop(e,c))
 		  end
 	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) => let
-		  val [arg] = lpvars arg
+		  val [arg] = lpvars args
 		  val num32Ty = boxIntTy 32
 		  val hi = LV.mkLvar() and lo = LV.mkLvar()
 		  val hiBox = LV.mkLvar() and loBox = LV.mkLvar()
 		  in
-		    SELECT(0, VAR arg, hi, num32Ty,
-		    SELECT(1, VAR arg, lo, num32Ty,
-		    PURE(P.WRAP(P.INT 32), [hi], hiBox, PTRt VPT,
-		    PURE(P.WRAP(P.INT 32), [lo], loBox, PTRt VPT,
+		    SELECT(0, arg, hi, num32Ty,
+		    SELECT(1, arg, lo, num32Ty,
+		    PURE(P.WRAP(P.INT 32), [VAR hi], hiBox, PTRt VPT,
+		    PURE(P.WRAP(P.INT 32), [VAR lo], loBox, PTRt VPT,
 		      RECORD(RK_RECORD, [(VAR hiBox, OFFp0), (VAR loBox, OFFp0)], res,
-			loop(e,c))))
+			loop(e,c))))))
 		  end
-*)
 
 	      | F.PRIMOP(po as (_,p,lt,ts), ul, v, e) =>
 		  let val ct =

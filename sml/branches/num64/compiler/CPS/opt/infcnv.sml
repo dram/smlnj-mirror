@@ -49,18 +49,15 @@ end = struct
 		  then C.APP (f, [C.VAR k, x])
 		  else let
 		  (* for a 64-bit argument on 32-bit target, we need to extern the
-		   * argument to a pair of 32-bit words.
+		   * argument to a pair of 32-bit words, before calling the
+		   * conversion function.
 		   *)
-		    val pair = LV.mkLvar ()
-		    val boxHi = LV.mkLvar () and hi = LV.mkLvar ()
-		    val boxLo = LV.mkLvar () and lo = LV.mkLvar ()
+		    val hi = LV.mkLvar ()
+		    val lo = LV.mkLvar ()
 		    in
-		      C.PURE(C.P.CAST, [x], pair, C.PTRt(C.RPT 2),
-		      C.SELECT(0, C.VAR pair, boxHi, C.PTRt C.VPT,
-		      C.PURE(C.P.UNWRAP(C.P.INT 32), [C.VAR boxHi], hi, boxNumTy,
-		      C.SELECT(1, C.VAR pair, boxLo, C.PTRt C.VPT,
-		      C.PURE(C.P.UNWRAP(C.P.INT 32), [C.VAR boxLo], lo, boxNumTy,
-			C.APP (f, [C.VAR k, C.VAR hi, C.VAR lo]))))))
+		      C.SELECT(0, x, hi, boxNumTy,
+		      C.SELECT(1, x, lo, boxNumTy,
+			C.APP (f, [C.VAR k, C.VAR hi, C.VAR lo])))
 		    end
 	  in
 	    C.FIX ([(C.CONT, k, [v], [t], e)], body)
@@ -94,16 +91,13 @@ end = struct
 	      then C.FIX ([(C.CONT, k, [v], [t], e)], C.APP (f, [C.VAR k, x]))
 	      else let
 	      (* for a 64-bit result on 32-bit target, we need to intern the
-	       * result, which will be a pair of 32-bit words.
+	       * result, which will be a packed pair of 32-bit words.
 	       *)
-		val boxHi = LV.mkLvar () and hi = LV.mkLvar ()
-		val boxLo = LV.mkLvar () and lo = LV.mkLvar ()
-		val retContBody =
-		      C.PURE(C.P.WRAP(C.P.INT 32), [C.VAR hi], boxHi, boxNumTy,
-		      C.PURE(C.P.WRAP(C.P.INT 32), [C.VAR lo], boxLo, boxNumTy,
-		      C.RECORD(C.RK_RECORD, [
-			    (C.VAR boxHi, C.OFFp 0), (C.VAR boxHi, C.OFFp 0)
-			  ], v, e)))
+		val hi = LV.mkLvar ()
+		val lo = LV.mkLvar ()
+		val retContBody = C.RECORD(C.RK_RECORD, [
+			(C.VAR hi, C.OFFp 0), (C.VAR lo, C.OFFp 0)
+		      ], v, e)
 		in
 		  C.FIX (
 		    [(C.CONT, k, [hi, lo], [boxNumTy, boxNumTy], retContBody)],

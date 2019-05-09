@@ -88,3 +88,27 @@ in the `Num64Cnv` structure (`compiler/CPS/cpsopt/num64cnv.sml`):
   * `P.TEST_INF 64`
   * `P.COPY_INF 64`
   * `P.TRUNC_INF 64`
+
+## Implementation details
+
+We use a packed record of two 32-bit words to represent a 64-bit number
+on 32-bit machines.  Note that this representation is different from
+Versions before 110.88; these earlier versions use a pair of boxed
+32-bit integers as the representation.
+
+There are three compiler source files that know about the representation
+of 64-bit numbers:
+
+  * `CPS/convert/convert.sml` -- this file contains code that expands the
+    `INTERN64` and `EXTERN64` primops.
+
+  * `CPS/opt/num64cnv.sml` -- this file is responsible for converting the
+    64-bit arithmetic operations to 32-bit arithmetic.
+
+  * `CPS/opt/infcnv.sml` -- this file is responsible for converting the
+    IntInf conversion operators, which includes special code for
+    64-bit numbers on 32-bit machines.
+
+In addition, the file `system/Basis/Implementation/object.sml` needs to
+agree with the representation chosen by the compiler.
+
