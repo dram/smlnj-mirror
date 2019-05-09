@@ -8,11 +8,7 @@
 
 structure Int64Imp : sig
 
-(*
     include INTEGER
-*)
-
-    type int
 
     val extern : int -> Word32.word * Word32.word
     val intern : Word32.word * Word32.word -> int
@@ -23,11 +19,52 @@ structure Int64Imp : sig
 
     type int = Int64.int	(* from Basis/TypesOnly *)
 
+    fun unimplemented _ = raise Fail "unimplemented"
+
     val extern = I64.extern
     val intern = I64.intern
 
     val precision = SOME 64
     val minInt = SOME(~0x4000000000000000 : int)
     val maxInt = SOME(0x7fffffffffffffff : int)
+
+    val toInt : int -> Int.int = unimplemented
+    val fromInt : Int.int -> int = unimplemented
+
+    val toLarge = I64.toLarge
+    val fromLarge = I64.fromLarge
+
+    val op * : int * int -> int = I64.*
+    val op + : int * int -> int = I64.+
+    val op - : int * int -> int = I64.-
+    val op div : int * int -> int = I64.div
+    val op mod : int * int -> int = I64.mod
+    val quot : int * int -> int = I64.quot
+    val rem : int * int -> int = I64.rem
+
+    val op > : int * int -> bool = I64.>
+    val op >= : int * int -> bool = I64.>=
+    val op < : int * int -> bool = I64.<
+    val op <= : int * int -> bool = I64.<=
+
+    val ~   : int -> int = ~
+    val min : int * int -> int = I64.min
+    val max : int * int -> int = I64.max
+    val abs : int -> int = I64.abs
+
+    fun sign 0 = 0
+      | sign i = if I64.<(i, 0) then ~1 else 1
+
+    fun sameSign (i, j) = (sign i = sign j)
+
+    fun compare (i, j) =
+	  if (I64.<(i, j)) then LESS
+	  else if (I64.>(i, j)) then GREATER
+	  else EQUAL
+
+    val scan = unimplemented
+    val fmt = unimplemented
+    val toString = unimplemented
+    val fromString = unimplemented
 
   end

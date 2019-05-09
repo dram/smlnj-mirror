@@ -32,15 +32,15 @@ structure Int32Imp : INTEGER =
     val max     : int * int -> int = I32.max
     val abs     : int -> int = I32.abs
 
-    fun sign(0) = 0
+    fun sign 0 = 0
       | sign i = if I32.<(i, 0) then ~1 else 1
 
     fun sameSign (i,j) = (sign i = sign j)
 
-    fun compare (i:int, j:int) =
-	  if (I32.<(i, j)) then General.LESS
-	  else if (I32.>(i, j)) then General.GREATER
-	  else General.EQUAL
+    fun compare (i, j) =
+	  if (I32.<(i, j)) then LESS
+	  else if (I32.>(i, j)) then GREATER
+	  else EQUAL
 
     val scan = NumScan.scanInt
     val fmt = NumFormat.fmtInt

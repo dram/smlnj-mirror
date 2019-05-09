@@ -174,7 +174,7 @@ structure ContractPrim : sig
 	    | (P.PURE_ARITH{oper=P.XORB, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.XORB, kind}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.bXor(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.NOTB,kind}, [NUM i]) =>
+	    | (P.PURE_ARITH{oper=P.NOTB, kind}, [NUM i]) =>
 		SOME(NUM{ival = CA.bNot(sizeOfKind kind, #ival i), ty = #ty i})
 	    | (P.LENGTH, [STRING s]) => SOME(tagInt(size s))
 	    | (P.INT_TO_REAL{to, ...}, [NUM{ival, ...}]) =>

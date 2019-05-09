@@ -160,16 +160,20 @@ structure InlineT =
 
     structure Int64 =
       struct
+(*
+	val toInt = InLine.int64_to_int
+	val fromInt = InLine.int_to_int64
+*)
+	val toLarge = InLine.int64_to_intinf
+	val fromLarge = InLine.intinf_to_int64
 
         val op +    : int64 * int64 -> int64  = InLine.int64_add
         val op -    : int64 * int64 -> int64  = InLine.int64_sub
-(* coming soon!
         val op *    : int64 * int64 -> int64  = InLine.int64_mul
         val op quot : int64 * int64 -> int64  = InLine.int64_quot
         val op rem  : int64 * int64 -> int64  = InLine.int64_rem
         val op div  : int64 * int64 -> int64  = InLine.int64_div
         val op mod  : int64 * int64 -> int64  = InLine.int64_mod
-*)
         val ~       : int64 -> int64          = InLine.int64_neg
         val op <    : int64 * int64 -> bool   = InLine.int64_lt
         val op <=   : int64 * int64 -> bool   = InLine.int64_le
