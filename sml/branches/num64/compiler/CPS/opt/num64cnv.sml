@@ -27,6 +27,9 @@ structure Num64Cnv : sig
     fun isNum64Ty (C.NUMt{sz = 64, ...}) = true
       | isNum64Ty _ = false
     val pairTy = C.PTRt(C.RPT 2)
+(* for packed representation
+    val pairTy = C.PTRt C.VPT
+*)
     val box32Ty = C.PTRt C.VPT
     val raw32Ty = C.NUMt{sz = 32, tag = false}	(* assuming a 32-bit machine *)
     val tagNumTy = C.NUMt{sz = 31, tag = true}
@@ -117,6 +120,10 @@ structure Num64Cnv : sig
 	    pure(P.WRAP(P.INT 32), [hi], box32Ty, fn hi' =>
 	      C.RECORD(C.RK_RECORD, [(hi', C.OFFp 0), (lo', C.OFFp 0)],
 		pair, k(C.VAR pair))))
+(* code for packed representation
+	    C.RECORD(C.RK_RAWBLOCK, [(hi, C.OFFp 0), (lo, C.OFFp 0)],
+		pair, k(C.VAR pair))))
+*)
 	  end
 
   (* given a 64-bit object and a continuation `k`, make code to unpackage the value into
@@ -131,6 +138,11 @@ structure Num64Cnv : sig
 	    C.SELECT(1, n, lo, box32Ty,
 	    pure(P.UNWRAP(P.INT 32), [C.VAR lo], raw32Ty, fn lo' =>
 	      k (hi', lo')))))
+(* code for packed representation
+	    C.SELECT(0, n, hi, raw32Ty,
+	    C.SELECT(1, n, lo, raw32Ty,
+	      k (hi, lo)))
+*)
 	  end
 
   (* given a 64-bit object and a continuation `k`, make code to unpackage the low 32 word,
@@ -142,6 +154,9 @@ structure Num64Cnv : sig
 	    C.SELECT(1, n, lo, box32Ty,
 	    pure(P.UNWRAP(P.INT 32), [C.VAR lo], raw32Ty, fn lo' =>
 	      k lo'))
+(* code for packed representation
+	    C.SELECT(1, n, lo, raw32Ty, k lo)
+*)
 	  end
 
   (* given a 64-bit object and a continuation `k`, make code to unpackage the high 32 word,
@@ -153,6 +168,9 @@ structure Num64Cnv : sig
 	    C.SELECT(0, n, hi, box32Ty,
 	    pure(P.UNWRAP(P.INT 32), [C.VAR hi], raw32Ty, fn hi' =>
 	      k hi'))
+(* code for packed representation
+	    C.SELECT(0, n, lo, raw32Ty, k hi)
+*)
 	  end
 
   (* split a 32-bit value into two 16-bit values *)
@@ -584,6 +602,8 @@ structure Num64Cnv : sig
 
   (* check if an expression needs rewriting *)
     fun needsRewrite func = let
+	  fun chkTy (C.NUMt{sz=64, ...}) = true
+	    | chkTy _ = false
 	  fun chkValue (C.NUM{ival, ty={sz=64, ...}}) = true
 	    | chkValue _ = false
 	  fun chkValues [] = false
@@ -614,10 +634,7 @@ structure Num64Cnv : sig
 	    | chkExp (C.PURE(P.UNWRAP(P.INT 64), _, _, _, _)) = true
 	    | chkExp (C.PURE(_, vs, _, _, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.RCC(_, _, _, vs, _, e)) = chkValues vs orelse chkExp e
-(* QUESTION: do we need to check the tys?
- * For example `(fn (x : Int64.int) => x)` might take two arguments for `x`!
- *)
-	  and chkFun (_, _, _, _, e) = chkExp e
+	  and chkFun (_, _, _, tys, e) = List.exists chkTy tys orelse chkExp e
 	  in
 	    (not Target.is64) andalso (chkFun func)
 	  end
@@ -638,13 +655,6 @@ structure Num64Cnv : sig
 		  | f (C.NUM{ival, ty={sz=64, ...}}::vs, vl') = let
 		      val (hi, lo) = split ival
 		      in
-(*
-		      (* we assume flattening into a pair of 32-bit values; unflattened
-		       * constants would have a WRAP around them.  Argument order is
-		       * big-endian, but we are building the argument list in reverse.
-		       *)
-			f (vs, lo::hi::vl')
-*)
 			to64 (hi, lo, fn v => f (vs, v::vl'))
 		      end
 		  | f (v::vs, vl') = f (vs, v::vl')
@@ -652,7 +662,6 @@ structure Num64Cnv : sig
 		  f (vl, [])
 		end
 	  fun cexp (C.RECORD (rk, xl, v, e)) = let
-(* QUESTION: can we use the values function here? *)
 		fun f ([], args') = C.RECORD (rk, List.rev args', v, cexp e)
 		  | f ((C.NUM{ival, ty={sz=64, ...}}, offp)::args, args') = let
 		      val (hi, lo) = split ival

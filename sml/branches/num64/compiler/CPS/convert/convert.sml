@@ -653,10 +653,29 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		      RECORD(RK_RECORD, [(VAR hiBox, OFFp0), (VAR loBox, OFFp0)], res,
 			loop(e,c))))
 		  end
-	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) => let
+	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) =>
+		  PURE(P.CAST, lpvars args, res, PTRt(RPT 2), loop(e,c))
+(* code for a packed representation of 64-bit numbers
+	      | F.PRIMOP((_, AP.INTERN64, _, _), args, res, e) => let
+		  val [hi, lo] = lpvars args
 		  in
-		    PURE(P.CAST, lpvars args, res, PTRt(RPT 2), loop(e,c))
+		    RECORD(RK_RAWBLOCK, [(VAR hi, OFFp0), (VAR lo, OFFp0)], res,
+		      loop(e,c))
 		  end
+	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) => let
+		  val [arg] = lpvars arg
+		  val num32Ty = boxIntTy 32
+		  val hi = LV.mkLvar() and lo = LV.mkLvar()
+		  val hiBox = LV.mkLvar() and loBox = LV.mkLvar()
+		  in
+		    SELECT(0, VAR arg, hi, num32Ty,
+		    SELECT(1, VAR arg, lo, num32Ty,
+		    PURE(P.WRAP(P.INT 32), [hi], hiBox, PTRt VPT,
+		    PURE(P.WRAP(P.INT 32), [lo], loBox, PTRt VPT,
+		      RECORD(RK_RECORD, [(VAR hiBox, OFFp0), (VAR loBox, OFFp0)], res,
+			loop(e,c))))
+		  end
+*)
 
 	      | F.PRIMOP(po as (_,p,lt,ts), ul, v, e) =>
 		  let val ct =

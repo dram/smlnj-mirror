@@ -331,26 +331,6 @@ structure TransPrim : sig
 		      warn "no access to Chr exception";
 		      L.PRIM(PO.CAST, lt_intop1, []))
 		(* end case *))
-(* not sure if we need these here
-	(* expand INTERN64 primop (type: word32 * word32 -> word64 *)
-	  fun intern64 () = let
-		val lt_arg = lt_tup[LT.ltc_num 32, LT.ltc_num 32]
-		in
-		  mkFn lt_arg (fn p =>
-		    L.APP(
-		      L.PRIM(PO.CAST, lt_arw(lt_arg, LT.ltc_num 64), []),
-		      L.RECORD[L.SELECT(0, p), L.SELECT(1, p)]))
-		end
-	(* expand EXTERN64 primop *)
-	  fun extern64 () = let
-		val lt_res = lt_tup[LT.ltc_num 32, LT.ltc_num 32]
-		in
-		  mkFn (LT.ltc_num 64) (fn n =>
-		    mkLet
-		      (L.APP(L.PRIM(PO.CAST, lt_arw(LT.ltc_num 64, lt_res), []), n))
-		      (fn p => L.RECORD[L.SELECT(0, p), L.SELECT(1, p)]))
-		end
-*)
 	(* conversion from fixed int to intinf *)
 	  fun inlToInf (opname: string, cvtName: string, primop, primoplt) = let
 		val (orig_arg_lt, res_lt) = (
@@ -454,10 +434,6 @@ structure TransPrim : sig
 		  in
 		    mkFn argt (fn v => v)
 		  end
-(* preserve these until CPS conversion
-	      | PO.INTERN64 => intern64()
-	      | PO.EXTERN64 => extern64()
-*)
 	      | PO.INLSUBSCRIPTV => let
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)
