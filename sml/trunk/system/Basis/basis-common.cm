@@ -264,7 +264,7 @@ is
 	Exports/bind-common.sml
 #if defined (SIZE_32)
 
-	Exports/bind-target-32-bits.sml
+	Exports/bind-target-32-bit.sml
 
 #else (* 64-bits *)
 
