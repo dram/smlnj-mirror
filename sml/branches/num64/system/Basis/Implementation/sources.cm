@@ -396,13 +396,11 @@ is
 	array-slice.sml
 	array2.sml
 	ieee-real.sml
-	int31.sml
 	int32.sml
 	int64.sml
 	int-inf-sig.sml
 	int-inf.sml
 	w32-popcount.sml
-	word31.sml
 	word32.sml
 	word64.sml
 	real64.sml
