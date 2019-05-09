@@ -151,6 +151,7 @@ Library
 	structure Word8Vector
 	structure Word8VectorSlice
 
+(* target-size dependent modules *)
 #if defined(SIZE_32)
 	structure Int31
 	structure Word31
