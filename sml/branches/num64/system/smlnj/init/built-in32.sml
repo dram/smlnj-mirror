@@ -160,10 +160,8 @@ structure InlineT =
 
     structure Int64 =
       struct
-(*
 	val toInt = InLine.int64_to_int
 	val fromInt = InLine.int_to_int64
-*)
 	val toLarge = InLine.int64_to_intinf
 	val fromLarge = InLine.intinf_to_int64
 

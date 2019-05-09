@@ -408,6 +408,7 @@ structure PrimopBindings : sig
 	    in
 	      prims :-:
 	      ("trunc_int32_to_word", ar(BT.int32Ty, BT.wordTy), P.TRUNC(32, intSz)) :-:
+	      ("trunc_word32_to_int", ar(BT.word32Ty, BT.intTy), P.TRUNC(32, intSz)) :-:
 	      ("copy_int32_to_word32", ar(BT.int32Ty, BT.word32Ty), P.COPY(32, 32)) :-:
 	      ("copy_word_to_int32", ar(BT.wordTy, BT.int32Ty), P.COPY(intSz, 32)) :-:
 	      ("copy_word32_to_int32", ar(BT.word32Ty, BT.int32Ty), P.COPY(32, 32))

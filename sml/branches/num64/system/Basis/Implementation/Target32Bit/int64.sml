@@ -16,10 +16,9 @@ structure Int64Imp : sig
   end = struct
 
     structure I64 = InlineT.Int64
+    structure II = IntInfImp
 
     type int = Int64.int	(* from Basis/TypesOnly *)
-
-    fun unimplemented _ = raise Fail "unimplemented"
 
     val extern = I64.extern
     val intern = I64.intern
@@ -28,8 +27,8 @@ structure Int64Imp : sig
     val minInt = SOME(~0x4000000000000000 : int)
     val maxInt = SOME(0x7fffffffffffffff : int)
 
-    val toInt : int -> Int.int = unimplemented
-    val fromInt : Int.int -> int = unimplemented
+    val toInt = I64.toInt
+    val fromInt = I64.fromInt
 
     val toLarge = I64.toLarge
     val fromLarge = I64.fromLarge
@@ -62,9 +61,14 @@ structure Int64Imp : sig
 	  else if (I64.>(i, j)) then GREATER
 	  else EQUAL
 
-    val scan = unimplemented
-    val fmt = unimplemented
-    val toString = unimplemented
-    val fromString = unimplemented
+    fun fmt radix i = II.fmt radix (toLarge i)
+
+    fun scan radix rdr s = (case II.scan radix rdr s
+	   of SOME(i, s') => SOME (fromLarge i, s')
+	    | NONE => NONE
+	  (* end case *))
+
+    val toString = fmt StringCvt.DEC
+    val fromString = PreBasis.scanString (scan StringCvt.DEC)
 
   end

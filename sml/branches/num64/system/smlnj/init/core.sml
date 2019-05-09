@@ -374,23 +374,24 @@ structure Core =
 	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
 
       (* word64-rep (pairs of 32-bit words) -> int *)
-(* do we need these two functions? *)
+(* do we need these functions? *)
 	val w64ToInt = CoreWord64.toInt
 	val w64ToIntX = CoreWord64.toIntX
+	val i64ToInt = CoreInt64.toInt
+
       (* word64-rep (pairs of 32-bit words) -> large boxed int  *)
 	val w64ToInt32 = CoreWord64.toInt32
 	val w64ToInt32X = CoreWord64.toInt32X
+	val i64ToInt32 = CoreInt64.toInt32
 
       (* 64-bit arithmetic operations that do not have direct implementations
        * on 32-bit targets.
        *)
-(*
 	val i64Mul = CoreInt64.*
 	val i64Div = CoreInt64.div
 	val i64Mod = CoreInt64.mod
 	val i64Quot = CoreInt64.quot
 	val i64Rem = CoreInt64.rem
-*)
 	val w64Mul = CoreWord64.*
 	val w64Div = CoreWord64.div
 	val w64Mod = CoreWord64.mod

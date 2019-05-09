@@ -34,13 +34,42 @@ structure CoreInt64 =
 
       fun lift2 f (x, y) = intern (f (extern x, extern y))
 
+      infix 5 &
+      val op & : word32 * word32 -> word32 = InLine.word32_andb
+      infix 4 > <>
+      val op > = InLine.word32_gt
+      val op <> = InLine.word32_neq
+
+      val signed_word32_to_int : word32 -> int = InLine.signed_word32_to_int
+      val trunc_word32_to_int : word32-> int = InLine.trunc_word32_to_int
+      val copy_word32_to_int32 : word32 -> int32 = InLine.copy_word32_to_int32
+
     in
 
-    val i64Mul = lift2 mul64
-    val i64Div = lift2 div64
-    val i64Mod = lift2 mod64
-    val i64Quot = lift2 quot64
-    val i64Rem = lift2 rem64
+    val op * = lift2 mul64
+    val op div = lift2 div64
+    val op mod = lift2 mod64
+    val quot = lift2 quot64
+    val rem = lift2 rem64
+
+    fun toInt n = (case extern n
+	   of (0w0, lo) => signed_word32_to_int lo
+	    | (0wxffffffff, lo) => if (lo > 0wx7fffffff)
+		then raise Assembly.Overflow
+		else trunc_word32_to_int lo
+	    | _ => raise Assembly.Overflow
+	  (* end case *))
+
+  (* hook needed to support fused conversions to int32 *)
+    fun toInt32 n = (case extern n
+	   of (0w0, lo) => if (lo > 0wx7fffffff)
+		then raise Assembly.Overflow
+		else copy_word32_to_int32 lo
+	    | (0wxffffffff, lo) => if (lo > 0wx7fffffff)
+		then copy_word32_to_int32 lo
+		else raise Assembly.Overflow
+	    | _ => raise Assembly.Overflow
+	  (* end case *))
 
     end (* local *)
 
