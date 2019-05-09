@@ -9,18 +9,6 @@
  * Basis/Implementation/Target32Bit/int64.sml file.
  *)
 
-
-
-(* core-int64.sml
- *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
- * All rights reserved.
- *
- * Basic (simulated) 64-bit integer support.
- *
- * Author: Matthias Blume (blume@tti-c.org)
- *)
-
 structure CoreInt64 =
   struct
 
@@ -48,11 +36,11 @@ structure CoreInt64 =
 
     in
 
-    val op * = lift2 mul64
-    val div = lift2 div64
-    val mod = lift2 mod64
-    val quot = lift2 quot64
-    val rem = lift2 rem64
+    val i64Mul = lift2 mul64
+    val i64Div = lift2 div64
+    val i64Mod = lift2 mod64
+    val i64Quot = lift2 quot64
+    val i64Rem = lift2 rem64
 
     end (* local *)
 
