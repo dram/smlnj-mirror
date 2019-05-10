@@ -27,7 +27,8 @@ The last of these properties is ignored until CPS and code generation.
 
 All paths are relative the the `base` module.
 
-* The `RK_I32BLOCK` constructor in the `CPS.record_kind` datatype should be generalized
+* **[DONE]**
+  The `RK_I32BLOCK` constructor in the `CPS.record_kind` datatype should be generalized
   to allow for 64-bits.  It is used for literals, boxed 32-bit values, and for 32-bit
   values in closures.  The best idea might be to merge it with the `RK_FBLOCK`
   constructor to define a `RK_RAW` record kind that can hold floats (both 32 and 64-bit)
@@ -43,7 +44,8 @@ All paths are relative the the `base` module.
     - `compiler/FLINT/clos/closure.sml`
     - `compiler/CodeGen/main/mlriscGen.sml`
 
-* The `ObjectDesc.tag_raw32` value is used to tag `RK_I32BLOCK` records.  The runtime
+* **[DONE]**
+  The `ObjectDesc.tag_raw32` value is used to tag `RK_I32BLOCK` records.  The runtime
   currently has both raw 32-bit and raw 64-bit header tags, but their meaning would be
   somewhat dependent on the word size (it is not clear that we even need `tag_raw32`
   on a 64-bit machine).  While the `tag_raw32` value is only used in a couple of places,
@@ -58,7 +60,8 @@ All paths are relative the the `base` module.
     - `system/Basis/Implementation/Unsafe/object.sml` (numeric value used in `rep`)
     - `system/smlnj/init/core.sml` (numeric value used in `polyequal`)
 
-* The `Word64.word` and `Int64.int` types are currently implemented by conversion
+* **[DONE]**
+  The `Word64.word` and `Int64.int` types are currently implemented by conversion
   to pairs of `Word32.word` values in the translation from Absyn to PLambda.  The
   actual implementation of 64-bit arithmetic is in SML and uses the `CVT64` primop
   to support the conversion.<br>
@@ -80,7 +83,7 @@ All paths are relative the the `base` module.
   Files:
     - `cm/main/specific-symval-fn.sml`
 
-* **[dbm]**
+* **[DONE]**
   The assumption that 31-bit integers are the default `int` type is
   pervasive in the primitive operations.  A major example of this
   assumption are the primitive operations for converting between integer
@@ -238,7 +241,7 @@ There are some issues with the current MLRISC support for AMD64.
 * The `system/smlnj/init/built-in.sml` file needs to have two different versions
   for 32 and 64-bits.  The 32-bit version is missing native 64-bit types.<br/>
   Files:
-    - `system/smlnj/init/built-in32.sml` (renamed file)
+    - `system/smlnj/init/built-in32.sml` (renamed file) **[DONE]**
     - `system/smlnj/init/built-in64.sml` (new file)
     - `system/smlnj/init/init.cmi`
 
