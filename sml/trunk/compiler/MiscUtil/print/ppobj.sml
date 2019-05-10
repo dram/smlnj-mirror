@@ -71,6 +71,7 @@ fun isRecTy (T.VARty(ref (T.INSTANTIATED t))) = isRecTy t
   | isRecTy (T.CONty(T.RECORDtyc _, _::_)) = true
   | isRecTy _ = false
 
+(* 64BIT: what is this function testing? *)
 fun isUbxTy (T.VARty(ref (T.INSTANTIATED t))) = isUbxTy t
   | isUbxTy (T.CONty(tc as T.GENtyc _, [])) =
       (TU.eqTycon(tc, BT.int32Tycon)) orelse

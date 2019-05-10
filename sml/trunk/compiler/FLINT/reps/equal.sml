@@ -54,8 +54,7 @@ exception Poly
 fun eqLty lt  = LT.ltc_arrow(LT.ffc_rrflint, [lt, lt], [LT.ltc_bool])
 fun eqTy tc   = eqLty(LT.ltc_tyc tc)
 val booleqty  = eqLty (LT.ltc_bool)
-fun numeqty sz = eqLty (LT.ltc_num sz)	(* 64BIT: FIXME *)
-   (* do we need special case for sz = defaultIntSz to return ltc_int? *)
+fun numeqty sz = eqLty (LT.ltc_num sz)
 
 (****************************************************************************
  *              equal --- the equality function generator                   *

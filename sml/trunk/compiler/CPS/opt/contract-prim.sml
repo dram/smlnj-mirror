@@ -25,6 +25,8 @@ structure ContractPrim : sig
 
     type get_info = CPS.lvar -> {info: info, used : int ref, called : int ref}
 
+    val infoToString : info -> string
+
     val arith : CPS.P.arith * CPS.value list -> CPS.value option
 
     val pure : get_info -> CPS.P.pure * CPS.value list -> CPS.value option
@@ -35,6 +37,8 @@ structure ContractPrim : sig
 
     structure P = CPS.P
     structure CA = ConstArith
+
+    fun bug s = ErrorMsg.impossible ("ContractPrim: " ^ s)
 
     datatype value = datatype CPS.value
 
@@ -55,7 +59,26 @@ structure ContractPrim : sig
 
     type get_info = CPS.lvar -> {info: info, used : int ref, called : int ref}
 
-    fun bug s = ErrorMsg.impossible ("ContractPrim: " ^ s)
+    fun infoToString info = (case info
+	   of FNinfo _ => "FNinfo{...}"
+	    | RECinfo(_, args) => concat[
+		  "RECinfo(_, [", String.concatWithMap "," PPCps.vpathToString args, "])"
+		]
+	    | SELinfo(i, v, cty) => concat[
+		  "SELinfo(", Int.toString i, ", ", PPCps.value2str v, ", ",
+		  CPSUtil.ctyToString cty, ")"
+		]
+	    | OFFinfo(i, v) => concat[
+		  "OFFinfo(", Int.toString i, ", ", PPCps.value2str v, ")"
+		]
+	    | WRPinfo(nk, v) => concat[
+		  "WRPinfo(", PPCps.numkindToString nk, ", ", PPCps.value2str v, ")"
+		]
+	    | IFIDIOMinfo _ => "IFIDIOMinfo{...}"
+	    | MISCinfo cty => concat[
+		  "MISCinfo(", CPSUtil.ctyToString cty, ")"
+		]
+	  (* end case *))
 
     (* integer types/values *)
     local
@@ -69,21 +92,24 @@ structure ContractPrim : sig
       | sizeOfKind (P.UINT sz) = sz
       | sizeOfKind (P.FLOAT _) = bug "sizeOfKind(FLOAT _)"
 
-  (* contraction for impure arithmetic operations *)
+  (* contraction for impure arithmetic operations; note that 64-bit IMUL, IDIV,
+   * IMOD, IQUOT, and IREM have three arguments on 32-bit targets, so we need
+   * to allow for the extra argument in the patterns.
+   *)
     fun arith (rator, args) = ((case (rator, args)
-	   of (P.IARITH{oper=P.IMUL, ...}, [NUM{ival=1, ...}, v]) => SOME v
-	    | (P.IARITH{oper=P.IMUL, ...}, [v, NUM{ival=1, ...}]) => SOME v
-	    | (P.IARITH{oper=P.IMUL, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
-	    | (P.IARITH{oper=P.IMUL, ...}, [_, v as NUM{ival=0, ...}]) => SOME v
-	    | (P.IARITH{oper=P.IMUL, sz=sz}, [NUM i, NUM j]) =>
+	   of (P.IARITH{oper=P.IMUL, ...}, NUM{ival=1, ...} :: v :: _) => SOME v
+	    | (P.IARITH{oper=P.IMUL, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
+	    | (P.IARITH{oper=P.IMUL, ...}, (v as NUM{ival=0, ...}) :: _) => SOME v
+	    | (P.IARITH{oper=P.IMUL, ...}, _ :: (v as NUM{ival=0, ...}) :: _) => SOME v
+	    | (P.IARITH{oper=P.IMUL, sz=sz}, NUM i :: NUM j :: _) =>
 		SOME(NUM{ival = CA.sMul(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.IARITH{oper=P.IQUOT, ...}, [v, NUM{ival=1, ...}]) => SOME v
-	    | (P.IARITH{oper=P.IQUOT, ...}, [_, NUM{ival=0, ...}]) => NONE
-	    | (P.IARITH{oper=P.IQUOT, sz=sz}, [NUM i, NUM j]) =>
+	    | (P.IARITH{oper=P.IQUOT, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
+	    | (P.IARITH{oper=P.IQUOT, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
+	    | (P.IARITH{oper=P.IQUOT, sz=sz}, NUM i :: NUM j :: _) =>
 		SOME(NUM{ival = CA.sQuot(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.IARITH{oper=P.IDIV, ...}, [v, NUM{ival=1, ...}]) => SOME v
-	    | (P.IARITH{oper=P.IDIV, ...}, [_, NUM{ival=0, ...}]) => NONE
-	    | (P.IARITH{oper=P.IDIV, sz=sz}, [NUM i, NUM j]) =>
+	    | (P.IARITH{oper=P.IDIV, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
+	    | (P.IARITH{oper=P.IDIV, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
+	    | (P.IARITH{oper=P.IDIV, sz=sz}, NUM i :: NUM j :: _) =>
 		SOME(NUM{ival = CA.sDiv(sz, #ival i, #ival j), ty = #ty i})
 	    (* FIXME: should we do anything for mod or rem here? *)
 	    | (P.IARITH{oper=P.IADD, ...}, [NUM{ival=0, ...}, v]) => SOME v
@@ -99,14 +125,21 @@ structure ContractPrim : sig
 	  (* end case *))
 	    handle _ => NONE)
 
-  (* contraction for pure operations *)
+  (* contraction for pure operations; note that 64-bit MUL, QUOT, and REM
+   * have three arguments on 32-bit targets, so we need to allow for the
+   * extra argument in the patterns.
+   *)
     fun pure (get : get_info) arg = (case arg
-	   of (P.PURE_ARITH{oper=P.MUL, ...}, [NUM{ival=1, ...}, v]) => SOME v
-	    | (P.PURE_ARITH{oper=P.MUL, ...}, [v, NUM{ival=1, ...}]) => SOME v
-	    | (P.PURE_ARITH{oper=P.MUL, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
-	    | (P.PURE_ARITH{oper=P.MUL, ...}, [_, v as NUM{ival=0, ...}]) => SOME v
-	    | (P.PURE_ARITH{oper=P.MUL, kind=P.UINT sz}, [NUM i, NUM j]) =>
+	   of (P.PURE_ARITH{oper=P.MUL, ...}, NUM{ival=1, ...} :: v :: _) => SOME v
+	    | (P.PURE_ARITH{oper=P.MUL, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
+	    | (P.PURE_ARITH{oper=P.MUL, ...}, (v as NUM{ival=0, ...}) :: _) => SOME v
+	    | (P.PURE_ARITH{oper=P.MUL, ...}, _ :: (v as NUM{ival=0, ...}) :: _) => SOME v
+	    | (P.PURE_ARITH{oper=P.MUL, kind=P.UINT sz}, NUM i :: NUM j :: _) =>
 		SOME(NUM{ival = CA.uMul(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.QUOT, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
+	    | (P.PURE_ARITH{oper=P.QUOT, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
+	    | (P.PURE_ARITH{oper=P.QUOT, kind=P.UINT sz}, NUM i :: NUM j :: _) =>
+		SOME(NUM{ival = CA.uDiv(sz, #ival i, #ival j), ty = #ty i})
 	    | (P.PURE_ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => SOME v
 	    | (P.PURE_ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.ADD, kind=P.UINT sz}, [NUM i, NUM j]) =>
@@ -141,7 +174,7 @@ structure ContractPrim : sig
 	    | (P.PURE_ARITH{oper=P.XORB, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.XORB, kind}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.bXor(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.NOTB,kind}, [NUM i]) =>
+	    | (P.PURE_ARITH{oper=P.NOTB, kind}, [NUM i]) =>
 		SOME(NUM{ival = CA.bNot(sizeOfKind kind, #ival i), ty = #ty i})
 	    | (P.LENGTH, [STRING s]) => SOME(tagInt(size s))
 	    | (P.INT_TO_REAL{to, ...}, [NUM{ival, ...}]) =>

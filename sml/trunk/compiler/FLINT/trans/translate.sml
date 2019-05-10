@@ -400,43 +400,35 @@ fun mkAcc (p, nameOp) =
  * would never be used when compiling these three files. A good way to
  * clean up this is to put all the core constructors and primitives into
  * the primitive environment. (ZHONG)
+ *
+ * NOTE: the CoreAccess structure (ElabData/stateenv/coreacc.sml) also
+ * defines a NoCore exception, but does not export it.  Does it make
+ * sense to combine these things?
  *)
 exception NoCore
 
-(*
-fun coreExn ids =
-    (case CoreAccess.getCon' (fn () => raise NoCore) oldenv ids of
-	 TP.DATACON { name, rep as DA.EXN _, typ, ... } =>
-         let val nt = toDconLty DI.top typ
-             val nrep = mkRep(rep, nt, name)
-	     val _ = debugmsg ">>coreExn in translate.sml: "
-	     (* val _ = PPLexp.printLexp (CON'((name, nrep, nt), [], unitLexp))
-	     val _ = print "\n" *)
-         in CON'((name, nrep, nt), [], unitLexp)
-         end
-       | _ => bug "coreExn in translate")
-    handle NoCore => (say "WARNING: no Core access\n"; INT 0)
-*)
-
-fun coreExn ids =
-    (case CoreAccess.getCon' (fn () => raise NoCore) oldenv ids of
-	 TP.DATACON { name, rep as DA.EXN _, typ, ... } =>
-         let val nt = toDconLty DI.top typ
-             val nrep = mkRep(rep, nt, name)
-	     val _ = debugmsg ">>coreExn in translate.sml: "
+fun coreExn ids = (case CoreAccess.getCon' (fn () => raise NoCore) oldenv ids
+       of TP.DATACON { name, rep as DA.EXN _, typ, ... } => let
+            val nt = toDconLty DI.top typ
+	    val nrep = mkRep(rep, nt, name)
+	    val _ = debugmsg ">>coreExn in translate.sml: "
 	 (* val _ = PPLexp.printLexp (CON'((name, nrep, nt), [], unitLexp))
-	  val _ = print "\n" *)
-         in SOME (CON'((name, nrep, nt), [], unitLexp))
-         end
-       | _ => bug "coreExn in translate")
-    handle NoCore => NONE
+	   val _ = print "\n" *)
+            in
+	      SOME (CON'((name, nrep, nt), [], unitLexp))
+            end
+        | _ => bug "coreExn in translate"
+      (* end case *))
+        handle NoCore => NONE
 
-and coreAcc id =
-    (case CoreAccess.getVar' (fn () => raise NoCore) oldenv [id] of
-	 V.VALvar { access, typ, path, ... } =>
-	 mkAccT(access, toLty DI.top (!typ), getNameOp path)
-       | _ => bug "coreAcc in translate")
-    handle NoCore => (warn "no Core access\n"; INT{ival = 0, ty = Tgt.defaultIntSz})
+and coreAcc id = (case CoreAccess.getVar' (fn () => raise NoCore) oldenv [id]
+       of V.VALvar { access, typ, path, ... } =>
+	    mkAccT(access, toLty DI.top (!typ), getNameOp path)
+        | _ => bug "coreAcc in translate"
+      (* end case *))
+	handle NoCore => (
+	  warn(concat["no Core access for '", id, "'\n"]);
+	  INT{ival = 0, ty = Tgt.defaultIntSz})
 
 (** expands the flex record pattern and convert the EXN access pat *)
 (** internalize the conrep's access, always exceptions *)

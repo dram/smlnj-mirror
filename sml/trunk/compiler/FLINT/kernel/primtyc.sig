@@ -10,8 +10,8 @@ signature PRIM_TYC =
     eqtype primtyc
 
   (** the primitive type constructors *)
-    val ptc_int    : primtyc	(* default tagged integer type *)
     val ptc_num    : int -> primtyc
+    val ptc_int    : primtyc	(* = ptc_num Target.defaultIntSz *)
     val ptc_real   : primtyc
 (* REAL32:
     val ptc_real32 : primtyc

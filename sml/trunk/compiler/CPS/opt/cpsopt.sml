@@ -64,7 +64,7 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 			})
 		in
 		  debugprint [
-		      "Contract stats: CPS Size = ", Int.toString (!cpssize),
+		      "First contract stats: CPS Size = ", Int.toString (!cpssize),
 		      " , clicks = ", Int.toString (!clicked), "\n"
 		    ];
 		  CG.dropargs := dpargs;
@@ -80,7 +80,7 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 			})
 		in
 		  debugprint [
-		      "Contract stats: CPS Size = ", Int.toString (!cpssize),
+		      "Last contract stats: CPS Size = ", Int.toString (!cpssize),
 		      " , clicks = ", Int.toString (!clicked), "\n"
 		    ];
 		  f'

@@ -9,6 +9,8 @@ signature PPCPS =
 
     val value2str : CPS.value -> string
 
+    val vpathToString : CPS.value * CPS.accesspath -> string
+
     val printcps : (CPS.function * LtyDef.lty IntHashTable.hash_table) -> unit
     val printcps0: CPS.function -> unit
     val prcps : CPS.cexp -> unit
@@ -156,6 +158,14 @@ structure PPCps : PPCPS =
 	    | RK_RAWBLOCK => "RK_RAWBLOCK"
 	  (* end case *))
 
+    fun vpathToString (v, p) = let
+	  fun toList (OFFp 0) = []
+	    | toList (OFFp n) = ["+", Int.toString n] (* assumes n > 0 *)
+	    | toList (SELp(i, p)) = "." :: toList p
+	  in
+	    String.concat(value2str v :: toList p)
+	  end
+
     fun show0 say = let
 	  fun sayc (#"\n") = say "\\n"
 	    | sayc c = say(String.str c)
@@ -175,10 +185,7 @@ structure PPCps : PPCPS =
 	    | sayparam (v::vl,ct::cl) = (sayv v; sayt ct; say ","; sayparam(vl,cl))
 	    | sayparam _ = ErrorMsg.impossible "sayparam in ppcps.sml"
 
-	  fun saypath(OFFp 0) = ()
-	    | saypath(OFFp i) = (say "+"; say(Int.toString i))
-	    | saypath(SELp(j,p)) = (say "."; say(Int.toString j); saypath p)
-	  fun sayvp (v,path) = (sayv v; saypath path)
+	  fun sayvp (v,path) = say(vpathToString(v, path))
 	  fun saylist f [x] = f x | saylist f nil = ()
 	    | saylist f (x::r) = (f x; say ","; saylist f r)
 	  fun indent n = let

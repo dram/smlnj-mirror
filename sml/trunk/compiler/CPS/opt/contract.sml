@@ -191,7 +191,6 @@ datatype info = datatype ContractPrim.info
 *)
 
 fun contract {function=(fkind,fvar,fargs,ctyl,cexp), click, last, size=cpssize} =
-(* NOTE: the "last" argument is currently ignored. *)
 let
 
 val deadup = !Control.CG.deadup
@@ -242,6 +241,7 @@ fun call_and_clobber(VAR v) =
   | call_and_clobber(LABEL v) = call(VAR v)
   | call_and_clobber _ = ()
 
+(* functions to add information about variables to the map *)
 fun enterREC(w,kind,vl) = enter(w,{info=RECinfo(kind,vl), called=ref 0,used=ref 0})
 fun enterMISC (w,ct) = enter(w,{info=MISCinfo ct, called=ref 0, used=ref 0})
 val miscBOG = MISCinfo CPSUtil.BOGt
@@ -256,6 +256,12 @@ fun enterFN (_,f,vl,cl,cexp) =
 			    specialuse=ref NONE,
 			    liveargs=ref NONE}});
        ListPair.appEq enterMISC (vl, cl))
+
+(* for `w = CAST arg`, we treat it as identity if arg is interesting *)
+fun enterCAST (w, arg) = (case get arg
+       of {info=MISCinfo _, ...} => enterMISC0 w
+	| {info, ...} => enter(w, {info=info, called=ref 0, used=ref 0})
+      (* end case *))
 
 (*********************************************************************
    checkFunction: used by pass1(FIX ...) to decide
@@ -284,49 +290,73 @@ fun checkFunction(_,f,vl,_,_) =
 (*        (1) If Idiom                                                    *)
 (*        (2) NO_INLINE_INTO                                              *)
 (**************************************************************************)
-val rec pass1 = fn cexp => p1 false cexp
-and p1 = fn no_inline =>
-let val rec g1 =
- fn RECORD(kind,vl,w,e) => (enterREC(w,kind,vl); app (use o #1) vl; g1 e)
-  | SELECT (i,v,w,ct,e) =>
-      (enter(w,{info=SELinfo(i,v,ct), called=ref 0, used=ref 0});
-       use v; g1 e)
-  | OFFSET (i,v,w,e) =>
-      (enter(w,{info=OFFinfo(i,v), called=ref 0, used=ref 0});
-       use v; g1 e)
-  | APP(f, vl) => (if no_inline
-		       then call_and_clobber f
-		   else call f;
-		   app use vl)
-  | FIX(l, e) => (app enterFN l;
+fun pass1 cexp = let
+      fun p1 noInline cexp = (case cexp
+	     of RECORD(kind,vl,w,e) => (
+		  enterREC(w,kind,vl); app (use o #1) vl; p1 noInline e)
+	      | SELECT (i,v,w,ct,e) => (
+		  enter(w,{info=SELinfo(i,v,ct), called=ref 0, used=ref 0});
+		  use v; p1 noInline e)
+	      | OFFSET (i,v,w,e) => (
+		  enter(w,{info=OFFinfo(i,v), called=ref 0, used=ref 0});
+		  use v; p1 noInline e)
+	      | APP(f, vl) => (
+		  if noInline
+		    then call_and_clobber f
+		    else call f;
+		  app use vl)
+	      | FIX(l, e) => (
+		  app enterFN l;
 		  app (fn (NO_INLINE_INTO,_,_,_,body) => p1 (not last) body
-		        | (_,_,_,_,body) => g1 body) l;
-		  g1 e;
+			| (_,_,_,_,body) => p1 noInline body) l;
+		  p1 noInline e;
 		  app checkFunction l)
-  | SWITCH(v,c,el) => (use v; enterMISC0 c; app g1 el)
-  | BRANCH(i,vl,c,e1 as APP(VAR f1, [NUM{ival = 1, ...}]),
-		  e2 as APP(VAR f2, [NUM{ival = 0, ...}])) =>
-       (case get f1
-	 of {info=FNinfo{body=ref(SOME(BRANCH(P.CMP{oper=P.NEQ,...},[NUM{ival = 0, ...}, VAR w2],_,_,_))),
-			 args=[w1],specialuse,...},...} =>
-              (* Handle IF IDIOM *)
-    	      if f1=f2 andalso w1=w2
-	      then let val {used,...}=get w1
-		   in  specialuse := SOME used
-		   end
-	      else ()
-	  | _ => ();
-	app use vl; enterMISC(c,CPSUtil.BOGt); g1 e1; g1 e2)
-  | BRANCH(i,vl,c,e1,e2) => (app use vl; enterMISC0 c; g1 e1; g1 e2)
-  | SETTER(i,vl,e) => (app use vl; g1 e)
-  | LOOKER(i,vl,w,_,e) => (app use vl; enterMISC0 w; g1 e)
-  | ARITH(i,vl,w,_,e) => (app use vl; enterMISC0 w; g1 e)
-  | PURE(P.WRAP kind, [u], w, _, e) => (use u; enterWRP(w, kind, u); g1 e)
-  | PURE(i,vl,w,_,e) => (app use vl; enterMISC0 w; g1 e)
-  | RCC(k,l,p,vl,wtl,e) => (app use vl; app (enterMISC0 o #1) wtl; g1 e)
-in  g1
-end
-
+	      | SWITCH(v,c,el) => (
+		  use v; enterMISC0 c; app (p1 noInline) el)
+	      | BRANCH(i, vl, c, e1, e2) => (
+		(* check for "if idiom" *)
+		  case (e1, e2)
+		   of (APP(VAR f1, [NUM{ival = 1, ...}]), APP(VAR f2, [NUM{ival = 0, ...}])) => (
+			case get f1
+			 of { info=FNinfo{
+				  body=ref(SOME(BRANCH(
+				      P.CMP{oper=P.NEQ,...},
+				      [NUM{ival = 0, ...}, VAR w2],
+				      _,_,_))),
+			          args=[w1], specialuse, ...
+				},
+			      ...
+			    } => (* Handle IF IDIOM *)
+			      if f1=f2 andalso w1=w2
+				then let
+				  val {used,...} = get w1
+				  in
+				    specialuse := SOME used
+				  end
+				else ()
+			  | _ => ()
+			(* end case *))
+		    |_ => ()
+		  (* end case *);
+		  app use vl; enterMISC0 c; p1 noInline e1; p1 noInline e2)
+	      | SETTER(i,vl,e) => (
+		  app use vl; p1 noInline e)
+	      | LOOKER(i,vl,w,_,e) => (
+		  app use vl; enterMISC0 w; p1 noInline e)
+	      | ARITH(i,vl,w,_,e) => (
+		  app use vl; enterMISC0 w; p1 noInline e)
+	      | PURE(P.CAST, [VAR x], w, _, e) => (
+		  inc(#used(get x)); enterCAST(w, x); p1 noInline e)
+	      | PURE(P.WRAP kind, [u], w, _, e) => (
+		  use u; enterWRP(w, kind, u); p1 noInline e)
+	      | PURE(i,vl,w,_,e) => (
+		  app use vl; enterMISC0 w; p1 noInline e)
+	      | RCC(k,l,p,vl,wtl,e) => (
+		  app use vl; app (enterMISC0 o #1) wtl; p1 noInline e)
+	    (* end case *))
+      in
+	p1 false cexp
+      end
 
 local
    exception Beta
@@ -392,7 +422,12 @@ fun cvtPreCondition(n:int, n2, x, v2) =
 fun cvtPreCondition_inf(x, v2) =
   usedOnce(x) andalso sameLvar(x, ren v2)
 
-(* contration for primops *)
+(* smart constructors for conversions *)
+fun mkEXTEND(from, to) = if (from = to)
+      then P.COPY{from=from, to=to}
+      else P.EXTEND{from=from, to=to}
+
+(* contraction for primops *)
 val arith = ContractPrim.arith
 val pure = ContractPrim.pure get
 val branch = ContractPrim.branch get
@@ -752,17 +787,18 @@ let val rec g' =
 	 | _ => skip()
      end
    | PURE(P.EXTEND_INF p, [v,f], x, t,
-	  e as PURE(P.TRUNC_INF m, [v2, f2], x2, t2, e2)) =>
-     let fun checkClicked(tok, pureOp) =
-	     if cvtPreCondition_inf(x, v2) then
-		 (click tok;
-		  use_less f; use_less f2;
-		  PURE(pureOp, [ren v], x2, t2, g' e2))
-	     else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)
-     in
-	 if m >= p then checkClicked("X(3')", P.EXTEND{from=p, to=m})
-	 else checkClicked("X(4')", P.TRUNC{from=p, to=m})
-     end
+	  e as PURE(P.TRUNC_INF m, [v2, f2], x2, t2, e2)) => let
+	fun checkClicked (tok, pureOp) = if cvtPreCondition_inf(x, v2)
+	      then (
+		click tok;
+		use_less f; use_less f2;
+		PURE(pureOp, [ren v], x2, t2, g' e2))
+	      else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)
+        in
+	  if m = p then checkClicked("X(2')", P.COPY{from=p, to=m})
+	  else if m > p then checkClicked("X(3')", P.EXTEND{from=p, to=m})
+	  else checkClicked("X(4')", P.TRUNC{from=p, to=m})
+        end
    | PURE(P.EXTEND{from=p, to=n}, [v], x, t, e as ARITH(a, [v2], x2, t2, e2)) => let
        val v' = [ren v]
        fun skip() = PURE(P.EXTEND{from=p, to=n}, v', x, t, g' e)
