@@ -527,16 +527,16 @@ type (`Word.word`).
     `P.IARITH{oper=P.IMUL, sz=32}`
 
   * `int32_div : int32 * int32 -> int32`<br/>
-    `P.IARITH{oper=P.IQUOT, sz=32}`
+    `P.INLDIV(P.INT 32)`
 
   * `int32_mod : int32 * int32 -> int32`<br/>
-    `P.IARITH{oper=P.IREM, sz=32}`
+    `P.INLMOD(P.INT 32)`
 
   * `int32_quot : int32 * int32 -> int32`<br/>
-    `P.IARITH{oper=P.IQUOT, sz=32}`
+    `P.INLQUOT(P.INT 32)`
 
   * `int32_rem : int32 * int32 -> int32`<br/>
-    `P.IARITH{oper=P.IREM, sz=32}`
+    `P.INLREM(P.INT 32)`
 
   * `int32_neg : word32 -> word32`<br/>
     `P.IARITH{oper=P.INEG, sz=32}`
@@ -570,20 +570,20 @@ type (`Word.word`).
 
 #### 8-bit word operations
 
-  * `word8_mul : word8 * word8 -> word8`<br/>
-    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT 8}`
-
-  * `word8_div : word8 * word8 -> word8`<br/>
-    `P.PURE_ARITH{oper=P.QUOT, kind=P.UINT 8}`
-
-  * `word8_mod : word8 * word8 -> word8`<br/>
-    `P.PURE_ARITH{oper=P.REM, kind=P.UINT 8}`
-
   * `word8_add : word8 * word8 -> word8`<br/>
     `P.PURE_ARITH{oper=P.ADD, kind=P.UINT 8}`
 
   * `word8_sub : word8 * word8 -> word8`<br/>
     `P.PURE_ARITH{oper=P.SUB, kind=P.UINT 8}`
+
+  * `word8_mul : word8 * word8 -> word8`<br/>
+    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT 8}`
+
+  * `word8_div : word8 * word8 -> word8`<br/>
+    `P.INLQUOT(P.UINT 8)`
+
+  * `word8_mod : word8 * word8 -> word8`<br/>
+    `P.INLREM(P.UINT 8)`
 
   * `word8_orb : word8 * word8 -> word8`<br/>
     `P.PURE_ARITH{oper=P.ORB, kind=P.UINT 8}`
@@ -647,20 +647,20 @@ These operations work on the boxed 32-bit word type on 32-bit
 machines and are just wrappers for 63-bit tagged word operations
 on 64-bit machines.
 
-  * `word32_mul : word32 * word32 -> word32`<br/>
-    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT 32}`
-
-  * `word32_div : word32 * word32 -> word32`<br/>
-    `P.PURE_ARITH{oper=P.QUOT, kind=P.UINT 32}`
-
-  * `word32_mod : word32 * word32 -> word32`<br/>
-    `P.PURE_ARITH{oper=P.REM, kind=P.UINT 32}`
-
   * `word32_add : word32 * word32 -> word32`<br/>
     `P.PURE_ARITH{oper=P.ADD, kind=P.UINT 32}`
 
   * `word32_sub : word32 * word32 -> word32`<br/>
     `P.PURE_ARITH{oper=P.SUB, kind=P.UINT 32}`
+
+  * `word32_mul : word32 * word32 -> word32`<br/>
+    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT 32}`
+
+  * `word32_div : word32 * word32 -> word32`<br/>
+    `P.INLQUOT(P.UINT 32)`
+
+  * `word32_mod : word32 * word32 -> word32`<br/>
+    `P.INLREM(P.UINT 32)`
 
   * `word32_orb : word32 * word32 -> word32`<br/>
     `P.PURE_ARITH{oper=P.ORB, kind=P.UINT 32}`
@@ -733,16 +733,16 @@ but we expect to add them in 110.88.
     `P.IARITH{oper=P.IMUL, sz=64}`
 
   * `int64_div : int64 * int64 -> int64`<br/>
-    `P.IARITH{oper=P.IQUOT, sz=64}`
+    `P.INLDIV(P.INT 64)`
 
   * `int64_mod : int64 * int64 -> int64`<br/>
-    `P.IARITH{oper=P.IREM, sz=64}`
+    `P.INLMOD(P.INT 64)`
 
   * `int64_quot : int64 * int64 -> int64`<br/>
-    `P.IARITH{oper=P.IQUOT, sz=64}`
+    `P.INLQUOT(P.INT 64)`
 
   * `int64_rem : int64 * int64 -> int64`<br/>
-    `P.IARITH{oper=P.IREM, sz=64}`
+    `P.INLREM(P.INT 64)`
 
   * `int64_neg : word32 -> word32`<br/>
     `P.IARITH{oper=P.INEG, sz=64}`
@@ -778,20 +778,20 @@ but we expect to add them in 110.88.
 **Note:** 64-bit word operations are currently not supported in the compiler,
 but we expect to add them in 110.88.
 
-  * `word64_mul : word64 * word64 -> word64`<br/>
-    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT 64}`
-
-  * `word64_div : word64 * word64 -> word64`<br/>
-    `P.PURE_ARITH{oper=P.QUOT, kind=P.UINT 64}`
-
-  * `word64_mod : word64 * word64 -> word64`<br/>
-    `P.PURE_ARITH{oper=P.REM, kind=P.UINT 64}`
-
   * `word64_add : word64 * word64 -> word64`<br/>
     `P.PURE_ARITH{oper=P.ADD, kind=P.UINT 64}`
 
   * `word64_sub : word64 * word64 -> word64`<br/>
     `P.PURE_ARITH{oper=P.SUB, kind=P.UINT 64}`
+
+  * `word64_mul : word64 * word64 -> word64`<br/>
+    `P.PURE_ARITH{oper=P.MUL, kind=P.UINT 64}`
+
+  * `word64_div : word64 * word64 -> word64`<br/>
+    `P.INLQUOT(P.UINT 32)`
+
+  * `word64_mod : word64 * word64 -> word64`<br/>
+    `P.INLREM(P.UINT 32)`
 
   * `word64_orb : word64 * word64 -> word64`<br/>
     `P.PURE_ARITH{oper=P.ORB, kind=P.UINT 64}`
@@ -1066,15 +1066,15 @@ we have the following additional operations:
     `P.TEST_INF 64`
 
   * `int_to_word64 : int -> word64`<br/>
-    `P.EXTEND(31, 64)` (64-bit target) or
+    `P.EXTEND(31, 64)` (32-bit target) or
     `P.TRUNC(63, 64)` (64-bit target).
 
   * `unsigned_word64_to_int : word64 -> int`<br/>
-    `P.TESTU(64, 31)` (64-bit target) or
+    `P.TESTU(64, 31)` (32-bit target) or
     `P.COPY(64, 63)` (64-bit target).
 
   * `signed_word64_to_int : word64 -> int`<br/>
-    `P.TEST(64, 31)` (64-bit target) or
+    `P.TEST(64, 31)` (32-bit target) or
     `P.EXTEND(64, 63)` (64-bit target).
 
   * `unsigned_word64_to_intinf : word64 -> intinf`<br/>
@@ -1124,7 +1124,10 @@ Additional conversions that are used in `system/smlnj/init/core-intinf.sml`
 `system/smlnj/init/core-int64.sml`, and `system/smlnj/init/core-word64.sml`.
 
   * `trunc_int32_to_word : int32 -> word`<br/>
-    `P.TRUNC(32, intSz)`
+    `P.TRUNC(32, 31)`
+
+  * `trunc_word32_to_int : word32 -> int`<br/>
+    `P.TRUNC(32, 31)`
 
   * `copy_int32_to_word32 : int32 -> word32`<br/>
     `P.COPY(32, 32)`
@@ -1334,3 +1337,17 @@ but two arguments for `raw_sub_int16`, where the extra argument is the offset).
 
   * `raw_update_float64 : 'a * raw_ptr * real -> unit`<br />
     `P.RAW_STORE(P.FLOAT 64)`
+
+
+## Changes to support 64-bit targets
+
+While most of the 32-bit dependencies have been eliminated in Version 110.87,
+there are still a few cases where the primop names for 32-bit and 64-bit
+targets will be different.  To address this issue, we should introduce two
+type aliases:
+
+  * `type lint` -- this should be the `FixedInt.int` type.
+
+  * `type lword` -- this should be the `LargeWord.word` type.
+
+Then we can replace uses of `int32` and `word32` with these where it makes sense.

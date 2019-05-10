@@ -25,12 +25,12 @@ of conversion operations.
 The five basic conversion operators are as follows (in all cases,
 we assume that (n >= m):
 
-  TEST(n,m)	-- map an n-bit, 2's complement signed value to an 
-		   m-bit, 2's complement signed value; 
+  TEST(n,m)	-- map an n-bit, 2's complement signed value to an
+		   m-bit, 2's complement signed value;
 		   raise Overflow if the value is too large.
 
-  TESTU(n,m)    -- map an unsigned n-bit value to an m-bit 2's 
-	 	   complement value; raise Overflow if the value 
+  TESTU(n,m)    -- map an unsigned n-bit value to an m-bit 2's
+	 	   complement value; raise Overflow if the value
 		   is too large.
 
   EXTEND(m,n)	-- sign extend an m-bit value to a n-bit value
@@ -47,6 +47,9 @@ large. The operators EXTEND, TRUNC, and COPY are "pure," while TEST
 and TESTU may raise Overflow.  We use `*` for m or n to denote
 arbitrary precision integers (IntInf.int).
 
+(Note: the implementation has a second set of primops -- `TEST_INF`,
+etc. -- for conversions involving `IntInf.int`)
+
 Conversions where the sizes are the same can be simplified to copies:
 
   TEST(n,n)     == COPY(n,n)
@@ -59,27 +62,27 @@ Assuming that LargeInt is aribitrary precision and the default Int
 and Word types are 31-bits, then the translation of conversion operations
 in the Word32 structure is given by:
 
-  		toLargeInt    => TESTU(32,*)		
+  		toLargeInt    => TESTU(32,*)
 		toLargeIntX   => EXTEND(32,*)		= COPY(32,32)
-		fromLargeInt  => TESTU(*,32)		
-		toInt	      => TESTU(32,31)		
-		toIntX	      => TEST(32,31)		
-		fromInt       => EXTEND(31,32)		
-		toLargeWord   => COPY(32,32)		
+		fromLargeInt  => TESTU(*,32)
+		toInt	      => TESTU(32,31)
+		toIntX	      => TEST(32,31)
+		fromInt       => EXTEND(31,32)
+		toLargeWord   => COPY(32,32)
 		toLargeWordX  => EXTEND(32,32)		= COPY(32,32)
 		fromLargeWord => TRUNC(32,32)		= COPY(32,32)
 
 And if LargeInt was Int32, then the operations in Word8 would be
 
-  	 	toLargeInt    => COPY(8,32)		
-		toLargeIntX   => EXTEND(8,32)		
-		fromLargeInt  => TRUNC(32,8)		
-		toInt	      => COPY(8,31)		
-		toIntX	      => EXTEND(8,31)		
-		fromInt       => TRUNC(31,8)		
-		toLargeWord   => COPY(8,32)		
-		toLargeWordX  => EXTEND(8,32)		
-		fromLargeWord => TRUNC(32,8)		
+  	 	toLargeInt    => COPY(8,32)
+		toLargeIntX   => EXTEND(8,32)
+		fromLargeInt  => TRUNC(32,8)
+		toInt	      => COPY(8,31)
+		toIntX	      => EXTEND(8,31)
+		fromInt       => TRUNC(31,8)
+		toLargeWord   => COPY(8,32)
+		toLargeWordX  => EXTEND(8,32)
+		fromLargeWord => TRUNC(32,8)
 
 ### Rewrites
 
@@ -87,11 +90,11 @@ These operations allow for simplification via algebraic rewrites.
 
 Each operator composed with itself is itself, but with different parameters:
 
-  TEST(n,m) o TEST(p,n)		== TEST(p,m)			
-  TESTU(n,m) o TESTU(p,n)	== TESTU(p,m)			
-  EXTEND(n,m) o EXTEND(p,n)	== EXTEND(p,m)			
-  TRUNC(n,m) o TRUNC(p,n)	== TRUNC(p,m)			
-  COPY(n,m) o COPY(p,n)		== COPY(p,m)			
+  TEST(n,m) o TEST(p,n)		== TEST(p,m)
+  TESTU(n,m) o TESTU(p,n)	== TESTU(p,m)
+  EXTEND(n,m) o EXTEND(p,n)	== EXTEND(p,m)
+  TRUNC(n,m) o TRUNC(p,n)	== TRUNC(p,m)
+  COPY(n,m) o COPY(p,n)		== COPY(p,m)
 
 The composition of different operators can be described by a simple algebra.
 
@@ -109,7 +112,7 @@ The composition of different operators can be described by a simple algebra.
 
   TEST(n,m) o COPY(p,n)		== COPY(p,m)   if (m >= p)
 				== TEST(p,m)   if (m < p)
-	 
+
   TESTU(n,m) o COPY(p,n)	== COPY(p,m)   if (m >= p)
 				== TESTU(p,m)  if (m < p)
 

@@ -1,6 +1,14 @@
 ## TODO list for 64-bit migration
 
-### Design questions
+NOTE: this is a revised design document that represents the state
+of play as of May 2019; see `OLD-TODO-64bit.md` for the original
+notes.
+
+### Design
+
+The approach that we are taking is that wherever possible, we use
+generic names (*e.g.*, `int` or `word`) for the default tagged
+integer type.
 
 On 32-bit machines, we currently have `Int31.int` as the default integer type, `Int32.int`
 as a boxed integer type, and `Int64.int` represented as a pair of integers.
@@ -9,324 +17,113 @@ as an *unboxed* type and `Int64.int` as a regular boxed type without the special
 Currently we use the default tagged integer type for all smaller integer types
 (*e.g.*, `Int8.int` is represented as `Int31.int` at runtime).
 
-From the point of view of the compiler, there are three properties of integer types
-that we might want to track:
+### Outstanding 64-bit issues
 
-1. the number of bits of precision (we have been using `0` for arbitrary precision)
+The following is a list of the known places in the implementation where
+some change will be required to support 64-bit targets.  These have
+been marked in the source code with the comment tag "`64BIT:`."
 
-2. the number of bits in the representation (currently types smaller than the default
-   tagged type are represented using the default tagged type)
+  * `compiler/CodeGen/cpscompile/memAliasing.sml` <br/>
+    assumption that `RK_RAW64BLOCK` records take twice as much memory
 
-3. is the type signed (with overflow checking) or unsigned?
+  * `compiler/CodeGen/cpscompile/memDisambig.sml` <br/>
+    this file is no longer used, but has 64-bit dependences
 
-4. is the type boxed or unboxed?
+  * `compiler/CodeGen/cpscompile/spill-new.sml` <br/>
+    the `rkToCty` function may need to be changed
 
-The last of these properties is ignored until CPS and code generation.
+  * `compiler/CodeGen/main/mlriscGen.sml` <br/>
+    various code-generation patterns that match fixed sizes (*e.g.*, `31` or `32`).
 
-### Compiler issues
+  * `compiler/CodeGen/main/object-desc.sml` <br/>
+    codes for the various array/vector headers need to be reworked (also in the
+    runtime system)
 
-All paths are relative the the `base` module.
+  * `compiler/CodeGen/x86/x86CG.sml` <br/>
+    may not be an issue, since the **x86** is a 32-bit target.
 
-* The `RK_I32BLOCK` constructor in the `CPS.record_kind` datatype should be generalized
-  to allow for 64-bits.  It is used for literals, boxed 32-bit values, and for 32-bit
-  values in closures.  The best idea might be to merge it with the `RK_FBLOCK`
-  constructor to define a `RK_RAW` record kind that can hold floats (both 32 and 64-bit)
-  and 32 or 64-bit integers.</br>
-  **Note:** that the `RAW_RECORD` primop, which is used for C interface support (nlffi)
-  is translated to `RK_I32BLOCK`.<br>
-  Files:
-    - `compiler/FLINT/cps/cps.sig`
-    - `compiler/FLINT/cps/cps.sml`
-    - `compiler/FLINT/cps/ppcps.sml`
-    - `compiler/FLINT/cps/convert.sml`
-    - `compiler/FLINT/main/literals.sml`
-    - `compiler/FLINT/clos/closure.sml`
-    - `compiler/CodeGen/main/mlriscGen.sml`
+  * `compiler/CPS/clos/closure.sml` <br/>
+    raw untagged data is split into 32-bit and 64-bit records on 32-bit machines.
 
-* The `ObjectDesc.tag_raw32` value is used to tag `RK_I32BLOCK` records.  The runtime
-  currently has both raw 32-bit and raw 64-bit header tags, but their meaning would be
-  somewhat dependent on the word size (it is not clear that we even need `tag_raw32`
-  on a 64-bit machine).  While the `tag_raw32` value is only used in a couple of places,
-  it is mentioned in comments in several files.<br>
-  Files:
-    - `compiler/CodeGen/cpscompile/cps-c-calls.sml` (comment)
-    - `compiler/CodeGen/main/mlriscGen.sml`
-    - `compiler/CodeGen/main/object-desc.sig`
-    - `compiler/CodeGen/main/object-desc.sml`
-    - `compiler/ElabData/prim/primop.sig` (comment)
-    - `compiler/ElabData/prim/primop.sml` (comment)
-    - `system/Basis/Implementation/Unsafe/object.sml` (numeric value used in `rep`)
-    - `system/smlnj/init/core.sml` (numeric value used in `polyequal`)
+  * `compiler/CPS/convert/convert.sml` <br/>
+    various assumptions about the size of boxed ints
 
-* The `Word64.word` and `Int64.int` types are currently implemented by conversion
-  to pairs of `Word32.word` values in the translation from Absyn to PLambda.  The
-  actual implementation of 64-bit arithmetic is in SML and uses the `CVT64` primop
-  to support the conversion.<br>
-  Files:
-    - `compiler/FLINT/trans/literal-to-num.sml`
-    - `compiler/FLINT/trans/translate.sml`
-    - `system/smlnj/init/core-int64.sml`
-    - `system/smlnj/init/core-word64.sml`
+  * `compiler/CPS/main/literals.sml` <br/>
+    this file should be replaced with an implementation of the new literal
+    encoding, which supports 64-bit integer data
 
-* **[DONE]**
-  Change `SMLGCType` to have tagged and native integer types, instead of `I31` and `I32`.<br/>
-  Files:
-    - `compiler/CodeGen/cpscompile/smlnj-gctype.sig`
-    - `compiler/CodeGen/cpscompile/smlnj-gctype.sml`
-    - `compiler/CodeGen/main/mlriscGen.sml`
+  * `compiler/FLINT/opt/abcopt.sml` <br/>
+    this file is no longer used, but has 64-bit dependences
 
-* **[DONE]**
-  Add `amd64` as an architecture that CM knows about<br/>
-  Files:
-    - `cm/main/specific-symval-fn.sml`
+  * `compiler/MiscUtil/print/ppobj.sml` <br/>
+    there is a mysterious test for `int32Tyc`/`word32Tyc` in the function
+    `isUbxTy`.
 
-* **[dbm]**
-  The assumption that 31-bit integers are the default `int` type is
-  pervasive in the primitive operations.  A major example of this
-  assumption are the primitive operations for converting between integer
-  representations.  We should change the names of these operations to
-  use `word`/`int` instead of `w31`/`i31`, etc.<br/>
-  Files:
-    - `compiler/Semant/prim/primop-bindings.sml`
+  * `compiler/Semant/prim/primop-bindings.sml` <br/>
+    Will need to add target-specific conversions once we understand what is required.
 
-* The `Word8` operations are currently being implemented using special
-  renamed versions of the `Int31` primitive operations (*e.g.*, `i31add_8`).
-  This implementation is consistent with the current strategy of implementing
-  smaller integer sizes (*e.g.*, bytes) as the default tagged integer type,
-  but we might want to push the actual size info through the compiler to
-  enable range-based optimizations.<br/>
-  Files:
-    - `compiler/DEVNOTES/Primops/primop-list`
-    - `compiler/FLINT/trans/primopmap.sml`
-    - `compiler/Semant/prim/primop-bindings.sml`
+  * `system/Basis/Implementation/num-format.sml` <br/>
+    should support formatting of 64-bit words and integers on all platforms
 
-* **[DONE**
-  For the 64-bit target, the `Int32.int` type can be represented as an unboxed
-  tagged integer.  This means that the CPS `i32wrap` and `i32unwrap` operations
-  should be generalized in some way.<br/>
-  **Note:** there are existing CPS operations `iwrap` and `iunwrap` defined, but
-  they are not implemented in the code generator and it is unclear what purpose
-  they serve.  Perhaps they should be the generic boxing operations?</br>
-  Files:
-    - `compiler/FLINT/cps/cps.sig`
-    - `compiler/FLINT/cps/cps.sml`
-    - `compiler/FLINT/cps/convert.sml`
-    - `compiler/FLINT/cps/cpstrans.sml`
-    - `compiler/FLINT/cps/ppcps.sml`
-    - `compiler/FLINT/cpsopt/contract.sml`
-    - `compiler/FLINT/clos/cps-split.sml`
-    - `compiler/CodeGen/cpscompile/limit.sml`
-    - `compiler/CodeGen/cpscompile/memAliasing.sml`
-    - `compiler/CodeGen/cpscompile/memDisambig.sml`
-    - `compiler/CodeGen/cpscompile/spill-new.sml`
-    - `compiler/CodeGen/cpscompile/mlriscGen.sml`
+  * `system/Basis/Implementation/num-scan.sml` <br/>
+    should support scanning of 64-bit words and integers on all platforms
 
-* **[DONE]**
-  The FLINT primitive types have 31 and 32-bit integer types (`PT_INT31` and `PT_INT32`)
-  as well as a mapping from `Types.tycon` to FLINT `primtyc`.</br>
-  Files:
-    - `compiler/FLINT/kernel/primtyc.sig`
-    - `compiler/FLINT/kernel/primtyc.sml`
+  * `system/Basis/Implementation/Posix/posix-filesys.sml` <br/>
+    the `statrep` type has both `Int32.int` and `int` fields
 
-* **[DONE]**
-  The conversion from PLambda to FLINT has a 31-bit assumption
-  Files:
-    - `compiler/FLINT/plambda/flintnm.sml`
+  * `system/Basis/Implementation/Posix/posix-io.sml` <br/>
+    the `flock_rep` type has `Int.int` fields; also `lseek` probably should use the
+    `Position.int` type for file offsets.
 
-* **[DONE]**
-  The representation of FLINT assumes four kinds of integer literals: `INT`, `INT32`,
-  `WORD`, and `WORD32`.  These are reduced to two kinds when converting to CPS (`INT`
-  and `INT32`).  The FLINT representation of constructors in switch statements has
-  a similar breakdown.  It is not clear if the word vs. int distinction is important
-  for FLINT, but we should generalize the names to represent tagged vs. untagged integers
-  and use `IntInf.int` to represent the actual values.  We may also want to add a
-  size attribute, so that we can support heap-allocated literals (e.g., `Int64.int` on
-  32-bit machines or `IntInf.int`) in the future.</br>
-  Files:
-    - `compiler/FLINT/cps/convert.sml`
-    - `compiler/FLINT/flint/chkflint.sml`
-    - `compiler/FLINT/flint/flint.sig`
-    - `compiler/FLINT/flint/flint.sml`
-    - `compiler/FLINT/flint/ppflint.sml`
-    - `compiler/FLINT/opt/fcontract.sml`
-    - `compiler/FLINT/opt/lift.sml`
-    - `compiler/FLINT/opt/recover.sml`
-    - `compiler/FLINT/plambda/chkplexp.sml`
-    - `compiler/FLINT/plambda/flintnm.sml`
-    - `compiler/FLINT/plambda/plambda.sig`
-    - `compiler/FLINT/plambda/plambda.sml`
-    - `compiler/FLINT/plambda/pplexp.sml`
-    - `compiler/FLINT/plambda/reorder.sml`
-    - `compiler/FLINT/plambda/rpplexp.sml`
-    - `compiler/FLINT/trans/translate.sml`
+  * `system/Basis/Implementation/real64.sml` <br/>
+    explicit `Word31.word` to `real` conversion
 
-* **[DONE]**
-  The `CPS.cty` datatype needs to be extended to include an `INT64t` constant
-  (or perhaps an `INTt of int` constructor).<br/>
-  **Note:** there is an interaction between this issue and the wrapping/unwrapping
-  of 32-bit integers discussed above.<br/>
-  Files:
-    - `compiler/FLINT/cps/cps.sig`
-    - `compiler/FLINT/cps/cps.sml`
-    - `compiler/FLINT/cps/convert.sml`
-    - `compiler/FLINT/cps/cpstrans.sml`
-    - `compiler/FLINT/cpsopt/contract.sml`
-    - `compiler/FLINT/cpsopt/contract.sml`
-    - `compiler/FLINT/clos/infcnv.sml`
-    - `compiler/FLINT/clos/cps-split.sml`
-    - `compiler/CodeGen/cpscompile/cps-c-calls.sml`
-    - `compiler/CodeGen/cpscompile/invokegc.sml`
-    - `compiler/CodeGen/main/mlriscGen.sml`
-    - `compiler/CodeGen/cpscompile/smlnj-gctype.sml`
+  * `system/Basis/Implementation/Target32Bit/word64.sml` <br/>
+    should use 64-bit functions from `NumFormat` and `NumScan` (see above)
 
-* **[DONE]** Support for generating switch code (`do_switch_gen`) assume 32-bit words.<br/>
-  Files:
-    - `base/compiler/FLINT/cps/convert.sml`
-    - `base/compiler/FLINT/cps/switch.sml`
+  * `system/Basis/Implementation/Unsafe/object.sml` <br/>
+    lots of assumptions about the sizes and runtime representations of values.
+    This file is a candidate for being moved to the target-specific
+    directories.
 
-* Code generation from CPS assumes 32-bit words in a number of places.<br/>
-  Files:
-    - `compiler/CodeGen/cpscompile/cps-c-calls.sml`
-    - `compiler/CodeGen/cpscompile/invokegc.sml`
-    - `compiler/CodeGen/cpscompile/limit.sml`
-    - `compiler/CodeGen/cpscompile/spill-new.sml`
+  * `system/smlnj/init/built-in32.sml` <br/>
+    Need to switch `LargeWord` from `Word32` to `Word64` on all platforms.
 
-* Should the default machine-spec word size be changed to 64?  Also, what (if any)
-  relation is there between the `Target` module and the machine specification?<br/>
-  Files:
-    - `base/compiler/CodeGen/main/machspec.sml`
+  * `system/smlnj/init/core-intinf.sml` <br/>
+    Assumes 32-bit target.
 
-* The `base/compiler/CodeGen/amd64` code generator will probably need some cleanup,
-  since it was written for a pseudo-64-bit implementation.
+  * `system/smlnj/init/core.sml` <br/>
+    uses 32-bit integer equality to compare raw data pointers.
 
-* **[DONE]**
-  To support cross compiling from 32-bit hosts to 64-bit targets, we will need to
-  replace fixed-precision representations of literals with IntInf.int.  This change
-  has already been made for the CPS representation, but it will also need to be
-  done for the FLINT representation, and for some of the CPS-related passes.</br>
-  Files:
-    - `base/compiler/FLINT/cps/switch.sml`
-    - `base/compiler/FLINT/main/literals.sml`
-    - `base/compiler/CodeGen/main/mlriscGen.sml`
+  * `system/smlnj/init/pervasive.sml` <br/>
+    explicit `Word31.word` and `Int32.int` to `real` conversions
 
-* **[DONE]** various 32-bit dependencies in FLINT<br/>
-  Files:
-    - `compiler/FLINT/trans/pequal.sml`
-    - `compiler/FLINT/trans/matchcomp.sml`
-    - `compiler/FLINT/trans/translate.sml`
-    - `compiler/FLINT/reps/equal.sml`
+  * `runtime/gc/blast-gc.c` <br/>
+    `DTAG_raw` and `DTAG_raw64` can be handled the same way on 64-bit targets.
 
-### MLRISC issues
+  * `runtime/gc/build-literals.c` <br/>
+    sequence headers
 
-There are some issues with the current MLRISC support for AMD64.
+  * `runtime/gc/minor-gc.c` <br/>
+    `DTAG_raw` and `DTAG_raw64` can be handled the same way on 64-bit targets.
 
-* The binary instruction encoding in `amd64.mdl` was never completed
+  * `runtime/include/cntr.h` <br/>
+    can use 64-bit integers for counters (might be able to do so on 32-bit machines
+    too, when int64_t is available)
 
-* The instruction selection mechanism in `amd64/mltree/amd64.sml` is based on
-  the register-poor `x86`, instead of a RISC-type architecture.  This choice
-  may explain the poor floating-point performance for this architecture in
-  the Manticore compiler.
+In addition to the above issues, there are a few more changes that we can make
+to smooth the differences between the 32-bit and 64-bit targets.
 
-### Basis Library issues
+  * bind `Position` to `Int64`.  While this will cost some performance, it
+    addresses several outstanding open bugs.  This change will require an
+    overhaul of the C-library interface.
 
-* The `CoreIntInf` assumes 32-bit integers and uses many 31-bit-specific primops.
-  It also implements functions for converting to/from `Int64.int` (which is represented
-  as two 32-bit integers).<br/>
-  Files:
-    - `system/smlnj/init/core-intinf.sml`
+  * bind `FixedInt` to `Int64` on all targets.
 
-* The `system/smlnj/init/built-in.sml` file needs to have two different versions
-  for 32 and 64-bits.  The 32-bit version is missing native 64-bit types.<br/>
-  Files:
-    - `system/smlnj/init/built-in32.sml` (renamed file)
-    - `system/smlnj/init/built-in64.sml` (new file)
-    - `system/smlnj/init/init.cmi`
+  * bind `LargeWord` to `Word64` on all targets.
 
-* The `CoreInt64` and `CoreWord64` modules are not needed on 64-bit machines, since
-  the native code generator can support the operations.<br/>
-    - `system/smlnj/init/core-int64.sml`
-    - `system/smlnj/init/core-word64.sml`
-    - `system/smlnj/init/pervasive.sml`
+### Code Generation
 
-* The `polyequal` function in the `Core` structure handles boxed 32-bit values, but not
-  boxed 64-bit values.<br/>
-    - `system/smlnj/init/core.sml`
+Once the above issues have been addressed, we should be ready to work on
+code generation for the AMD64 target.
 
-* The `system/smlnj/init/pervasive.sml` file assumes 32-bits; it may need two versions
-  (like the `built-in.sml` file).
-
-* Default integer types: `Int31.int` for 32-bit machines and `Int63.int` for 64-bit
-  machines.
-
-* The implementation of `IntInf` assumes 32-bit integers.<br/>
-  Files:
-    - `compiler/FLINT/cpsopt/infcnv.sml`
-    - `system/smlnj/init/core-intinf.sml`
-
-* **[dbm]**
-  The `InlineT` module may need to be conditionally compiled based on word size,
-  since it has `Int31` and `Word31` submodules.  Furthermore, there are many
-  Basis Library modules that use `InlineT.Int31` and `InlineT.Word31` for
-  index arithmetic, etc.  We might change these to `Int` and `Word`
-  modules that are resolved to 31-bit integers on 32-bit targets and 63-bit
-  integers on 64-bit targets (i.e., based on the default integer size).<br/>
-  Files:
-    - `system/Basis/Implementation/array.sml`
-    - `system/Basis/Implementation/array-slice.sml`
-    - `system/Basis/Implementation/char-array.sml`
-    - `system/Basis/Implementation/char-array-slice.sml`
-    - `system/Basis/Implementation/char-buffer.sml`
-    - `system/Basis/Implementation/char-vector.sml`
-    - `system/Basis/Implementation/char-vector-slice.sml`
-    - `system/Basis/Implementation/num-scan.sml`
-    - `system/Basis/Implementation/pack-real64-native.sml`
-    - `system/Basis/Implementation/pack-real64-swap.sml`
-    - `system/Basis/Implementation/real64-array.sml`
-    - `system/Basis/Implementation/real64-array-slice.sml`
-    - `system/Basis/Implementation/real64.sml`
-    - `system/Basis/Implementation/string.sml`
-    - `system/Basis/Implementation/vector.sml`
-    - `system/Basis/Implementation/vector-slice.sml`
-    - `system/Basis/Implementation/word8-array.sml`
-    - `system/Basis/Implementation/word8-array-slice.sml`
-    - `system/Basis/Implementation/word8-buffer.sml`
-    - `system/Basis/Implementation/word8-vector.sml`
-    - `system/Basis/Implementation/word8-vector-slice.sml`
-    - `system/Basis/Implementation/word8.sml`
-    - `system/smlnj/init/built-in.sml`
-
-### Runtime system issues
-
-The runtime system has been 64-bit clean for many years, but it has never been
-used for targets where the ML word size is 64-bits, so there could be some
-problems.
-
-**[DONE]** To support a 64-bit address space, we will need to implement the multi-level
-BIBOP support.  We should probably increase the size of the `BIBOP_PAGE_SZB`
-to 256K (18 bits), but we will still need a 2-level table to cover a 48-bit
-virtual address space.  An alternative might be some form of hashing. <br/>
-*UPDATE* experiments show that the two-level table works best, but we
-replace bibop tests in the minor-gc with address-range tests.
-
-Object descriptors can be left as is for now (low 7 bits), which will allow
-the length field to support much bigger objects.  We will want to add a
-`SEQ_word64` kind tag for vectors/arrays, which will require a change in
-runtime representations.
-
-### SML/NJ Library issues
-
-There are a couple of library modules that assume 32-bit integers.
-
-  * The `Rand` and `Random` modules are 32-bit specific and make specific reference
-    to the `Word31` and `Int32` structures.<br/>
-    Files:
-      - `Util/rand.sml`
-      - `Util/random.sml`
-
-### General discussion
-
-**[DONE]** Ideally, we can devise a single way to parameterize the compiler on target sizes
-from front to back.
-
-It would also be nice to address support for 32-bit floats at the same time, since
-many of the same parts of the compiler will need to be touched.
