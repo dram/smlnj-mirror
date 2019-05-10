@@ -1,7 +1,7 @@
 (* amd64Props.sml
  *
  * This functor encodes semantic information of instructions.
- *  
+ *
  *)
 
 signature AMD64INSN_PROPERTIES =
@@ -11,27 +11,27 @@ signature AMD64INSN_PROPERTIES =
     val szOfInstr : I.instr -> int
     (* returns the bit width of an floating-point instruction's source operand *)
     val szOfFinstr : I.instr -> int
-  end 
+  end
 
 functor AMD64Props (
     structure Instr : AMD64INSTR
-    structure MLTreeHash : MLTREE_HASH 
+    structure MLTreeHash : MLTREE_HASH
         where T = Instr.T
-    structure MLTreeEval : MLTREE_EVAL 
+    structure MLTreeEval : MLTREE_EVAL
         where T = Instr.T
   ) : AMD64INSN_PROPERTIES =
   struct
 
     structure I = Instr
     structure C = I.C
-    structure T = I.T 
+    structure T = I.T
     structure CB = CellsBasis
 
     exception NegateConditional
 
     fun error msg = MLRiscErrorMsg.error("AMD64Props",msg)
 
-    datatype kind = IK_JUMP | IK_NOP | IK_INSTR | IK_COPY | IK_CALL 
+    datatype kind = IK_JUMP | IK_NOP | IK_INSTR | IK_COPY | IK_CALL
                   | IK_CALL_WITH_CUTS | IK_PHI | IK_SOURCE | IK_SINK
     datatype target = LABELLED of Label.label | FALLTHROUGH | ESCAPES
 
@@ -56,7 +56,7 @@ functor AMD64Props (
 
     fun moveTmpR (I.ANNOTATION {i, ...}) = moveTmpR i
       | moveTmpR ( I.COPY {k=CB.GP, tmp=SOME (I.Direct (_, r)), ...}
-                 | I.COPY {k=CB.FP, tmp=SOME (I.FDirect r), ...} ) = 
+                 | I.COPY {k=CB.FP, tmp=SOME (I.FDirect r), ...} ) =
 	SOME r
       | moveTmpR _ = NONE
 
@@ -73,7 +73,7 @@ functor AMD64Props (
         of I.JMP(_, []) => [ESCAPES]
 	 | I.JMP(_, labs) => List.map LABELLED labs
 	 | I.RET _ => [ESCAPES]
-	 | I.JCC{opnd=I.ImmedLabel(T.LABEL(lab)), ...} => 
+	 | I.JCC{opnd=I.ImmedLabel(T.LABEL(lab)), ...} =>
 	     [FALLTHROUGH, LABELLED lab]
 	 | I.CALL{cutsTo, ...} => FALLTHROUGH :: List.map LABELLED cutsTo
 	 | I.CALLQ{cutsTo, ...} => FALLTHROUGH :: List.map LABELLED cutsTo
@@ -83,14 +83,14 @@ functor AMD64Props (
 
     fun jump label = I.jmp (I.ImmedLabel(T.LABEL label), [label])
 
-    fun setJumpTarget(I.ANNOTATION {a,i}, l) = 
+    fun setJumpTarget(I.ANNOTATION {a,i}, l) =
 	I.ANNOTATION {a=a, i=setJumpTarget (i, l)}
       | setJumpTarget(I.INSTR (I.JMP (I.ImmedLabel _, _)), lab) = jump lab
       | setJumpTarget _ = error "setJumpTarget"
 
-    fun setBranchTargets{i=I.ANNOTATION{a,i}, t, f} = 
+    fun setBranchTargets{i=I.ANNOTATION{a,i}, t, f} =
         I.ANNOTATION{a=a, i=setBranchTargets{i=i, t=t, f=f}}
-      | setBranchTargets{i=I.INSTR(I.JCC{cond,opnd=I.ImmedLabel _}), t, ...} = 
+      | setBranchTargets{i=I.INSTR(I.JCC{cond,opnd=I.ImmedLabel _}), t, ...} =
         I.jcc{cond=cond,opnd=I.ImmedLabel(T.LABEL t)}
       | setBranchTargets _ = error "setBranchTargets"
 
@@ -108,7 +108,7 @@ functor AMD64Props (
       | hashOpn(I.LabelEA le) = MLTreeHash.hash le + 0w44444
       | hashOpn(I.Direct (_, r))  = CB.hashCell r
       | hashOpn(I.FDirect f) = CB.hashCell f + 0w31245
-      | hashOpn(I.Displace {base, disp, ...}) = 
+      | hashOpn(I.Displace {base, disp, ...}) =
         hashOpn disp + CB.hashCell base
       | hashOpn(I.Indexed {base, index, scale, disp, ...}) =
         CB.hashCell index + Word.fromInt scale + hashOpn disp
@@ -176,9 +176,9 @@ functor AMD64Props (
 	    val uses = operandUse src
 	    in
 	      case multDivOp
-	       of (I.IDIVL1 | I.DIVL1 | I.IDIVQ1 | I.DIVQ1) => 
+	       of (I.IDIVL1 | I.DIVL1 | I.IDIVQ1 | I.DIVQ1) =>
 	           (raxPair, C.rdx::C.rax::uses)
-	        | (I.IMULL1 | I.MULL1 | I.IMULQ1 | I.MULQ1) => 
+	        | (I.IMULL1 | I.MULL1 | I.IMULQ1 | I.MULQ1) =>
 	          (raxPair, C.rax::uses)
 	      (* end case *)
 	    end
@@ -189,7 +189,7 @@ functor AMD64Props (
 	     | ( I.CALL {opnd, defs, uses, ...} |
 	         I.CALLQ {opnd, defs, uses, ...} )=>
  	       (C.getReg defs, operandAcc (opnd, C.getReg uses))
-	     | I.MOVE {src, dst=I.Direct (_, r), ...} => ([r], operandUse src) 
+	     | I.MOVE {src, dst=I.Direct (_, r), ...} => ([r], operandUse src)
 	     | I.MOVE {src, dst, ...} => ([], operandAcc (dst, operandUse src))
 	     | ( I.LEAL {r32=r, addr} | I.LEAQ {r64=r, addr} ) =>
 	       ([r], operandUse addr)
@@ -198,25 +198,25 @@ functor AMD64Props (
 	       cmpTest arg
 	     | I.BITOP{lsrc, rsrc, ...} => cmpTest {lsrc=lsrc,rsrc=rsrc}
 	     | I.BINARY{binOp=I.XORL, src=I.Direct (_,rs),
-	                dst=I.Direct (_,rd),...} =>   
+	                dst=I.Direct (_,rd),...} =>
 	       if CB.sameColor(rs,rd) then ([rd],[]) else ([rd],[rs,rd])
 	     | I.BINARY{binOp=I.XORQ, src=I.Direct (_,rs),
-	                dst=I.Direct (_,rd),...} =>   
+	                dst=I.Direct (_,rd),...} =>
 	       if CB.sameColor(rs,rd) then ([rd],[]) else ([rd],[rs,rd])
-	     | I.BINARY {src, dst,...} =>   
+	     | I.BINARY {src, dst,...} =>
 	       (operandDef dst, operandAcc (src, operandUse dst))
-	     | I.SHIFT {src,dst,count,...} =>   
-	       (operandDef dst, 
+	     | I.SHIFT {src,dst,count,...} =>
+	       (operandDef dst,
                 operandAcc(count, operandAcc (src, operandUse dst)))
 	     | I.XADD {src, dst, ...} =>
 	       (operandAcc (src, operandDef dst), operandAcc (src, operandUse dst))
 	     | I.CMPXCHG {src, dst, ...} =>
 	       (C.rax::operandDef dst, C.rax::operandAcc (src, operandUse dst))
 	     | I.XCHG {src, dst, ...} =>
-	       (operandDef dst, operandAcc (src, operandUse dst)) 
+	       (operandDef dst, operandAcc (src, operandUse dst))
 	     | ( I.ENTER _ | I.LEAVE ) => ([C.rsp, C.rbp], [C.rsp, C.rbp])
 	     | I.MULTDIV arg => multDiv arg
-	     | ( I.MUL3  {src1, dst, ...} | I.MULQ3 {src1, dst, ...} ) => 
+	     | ( I.MUL3  {src1, dst, ...} | I.MULQ3 {src1, dst, ...} ) =>
 	       ([dst], operandUse src1)
 	     | ( I.UNARY{opnd, ...} | I.SET {opnd, ...} ) => unary opnd
 	     | (I.PUSHQ arg | I.PUSHL arg | I.PUSHW arg | I.PUSHB arg ) => push arg
@@ -228,8 +228,8 @@ functor AMD64Props (
 	     | I.FBINOP {src, ...} => ([], operandUse src)
 	     | I.SAHF		      => ([], [C.rax])
 	     | I.LAHF		      => ([C.rax], [])
-	     (* This sets the low order byte, 
-	      * do potentially it may define *and* use 
+	     (* This sets the low order byte,
+	      * do potentially it may define *and* use
 	      *)
 	     | I.CMOV {src, dst,...} => ([dst], operandAcc(src, [dst]))
 	     | I.RDTSC => ([C.rax,C.rdx], [])
@@ -259,7 +259,7 @@ functor AMD64Props (
             of I.FMOVE {dst, src, ...} => (operand dst, operand src)
              | I.FBINOP {dst, src, ...} => ([dst], dst :: operand src)
              | I.FCOM {dst, src, ...} => ([], operandAcc (src, [dst]))
-             | ( I.FSQRTS {dst, src} | I.FSQRTD {dst, src} )=> 
+             | ( I.FSQRTS {dst, src} | I.FSQRTD {dst, src} )=>
                (operand dst, operand src)
              | ( I.CALL {defs, uses, ...} | I.CALLQ {defs, uses, ...} ) =>
                (C.getFreg defs, C.getFreg uses)
@@ -283,10 +283,10 @@ functor AMD64Props (
       | defUse CB.FP = defUseF
       | defUse _ = error "defUse"
 
-    fun getAnnotations (I.ANNOTATION {i, a}) = let 
-	val (i, an) = getAnnotations i 
-	in 
-	  (i, a::an) 
+    fun getAnnotations (I.ANNOTATION {i, a}) = let
+	val (i, an) = getAnnotations i
+	in
+	  (i, a::an)
 	end
       | getAnnotations i = (i,[])
 
@@ -298,9 +298,9 @@ functor AMD64Props (
       | szToInt I.I64 = 64
 
     fun replicate(I.ANNOTATION{i,a}) = I.ANNOTATION{i=replicate i,a=a}
-(*    | replicate(I.COPY{tmp=SOME _, dst, src}) =  
+(*    | replicate(I.COPY{tmp=SOME _, dst, src}) =
         I.COPY{tmp=SOME(I.Direct(C.newReg())), dst=dst, src=src}
-      | replicate(I.FCOPY{tmp=SOME _, dst, src}) = 
+      | replicate(I.FCOPY{tmp=SOME _, dst, src}) =
         I.FCOPY{tmp=SOME(I.FDirect(C.newFreg())), dst=dst, src=src}  *)
       | replicate i = i
 
@@ -309,13 +309,13 @@ functor AMD64Props (
 	of I.JCC _ => 32
 	 (* NOTE: CMOV encodes operand length in its operands! *)
 	 | I.CMOV {src=I.Direct (sz, _), ...} => sz
-	 | I.MOVE {mvOp, ...} => 
+	 | I.MOVE {mvOp, ...} =>
 	   (case mvOp
-	     of ( I.MOVQ | I.MOVSWQ | I.MOVZWQ | I.MOVSBQ | 
+	     of ( I.MOVQ | I.MOVSWQ | I.MOVZWQ | I.MOVSBQ |
 		  I.MOVZBQ | I.MOVSLQ |
 		  I.CVTSD2SIQ | I.CVTSS2SIQ
 		) => 64
-	      | ( I.MOVL | I.MOVSWL | I.MOVZWL | I.MOVSBL | 
+	      | ( I.MOVL | I.MOVSWL | I.MOVZWL | I.MOVSBL |
 		  I.CVTSD2SI | I.CVTSS2SI |
 		  I.MOVZBL ) => 32
 	      | I.MOVW => 16
@@ -324,36 +324,36 @@ functor AMD64Props (
 	 | ( I.CALL _ | I.LEAL _ | I.CMPL _ | I.TESTL _ | I.MUL3 _ )
 	     => 32
 	 | ( I.CALLQ _ | I.LEAQ _ | I.CMPQ _ | I.TESTQ _ | I.MULQ3 _ | I.CMOV _)
-	     => 64 
+	     => 64
 	 | ( I.CMPW _ | I.TESTW _ ) => 16
-	 | ( I.CMPB _ | I.TESTB _ ) => 8 
+	 | ( I.CMPB _ | I.TESTB _ ) => 8
 	 | I.SHIFT {shiftOp, ...} => (case shiftOp
 	   of ( I.SHLDL | I.SHRDL ) => 32
 	   (* esac *))
 	 | I.UNARY {unOp, ...} =>
 	   (case unOp
-	     of ( I.DECQ | I.INCQ | I.NEGQ | I.NOTQ | 
+	     of ( I.DECQ | I.INCQ | I.NEGQ | I.NOTQ |
 		  I.LOCK_DECQ | I.LOCK_INCQ | I.LOCK_NEGQ | I.LOCK_NOTQ ) => 64
 	      | ( I.DECL | I.INCL | I.NEGL | I.NOTL ) => 32
 	      | ( I.DECW | I.INCW | I.NEGW | I.NOTW ) => 16
 	      | ( I.DECB | I.INCB | I.NEGB | I.NOTB ) => 8
 	   (* esac *))
-	 | I.MULTDIV {multDivOp, ...} => 
+	 | I.MULTDIV {multDivOp, ...} =>
 	   (case multDivOp
 	     of ( I.IMULL1 | I.MULL1 | I.IDIVL1 | I.DIVL1 ) => 32
 	      | ( I.IMULQ1 | I.MULQ1 | I.IDIVQ1 | I.DIVQ1 ) => 64
 	   (* esac *))
-	 | I.BINARY {binOp, ...} => 
+	 | I.BINARY {binOp, ...} =>
 	   (case binOp
-	     of ( I.ADDQ | I.SUBQ | I.ANDQ | I.ORQ | I.XORQ | I.SHLQ | I.SARQ 
+	     of ( I.ADDQ | I.SUBQ | I.ANDQ | I.ORQ | I.XORQ | I.SHLQ | I.SARQ
 	        | I.SHRQ | I.MULQ | I.IMULQ | I.ADCQ | I.SBBQ ) => 64
 	      | ( I.ADDL | I.SUBL | I.ANDL | I.ORL | I.XORL | I.SHLL | I.SARL
                 | I.SHRL | I.MULL | I.IMULL | I.ADCL | I.SBBL | I.BTSL | I.BTCL
                 | I.BTRL | I.ROLL | I.RORL | I.XCHGL ) => 32
-	      | ( I.ADDW | I.SUBW | I.ANDW | I.ORW | I.XORW | I.SHLW | I.SARW 
-                | I.SHRW | I.MULW | I.IMULW | I.BTSW | I.BTCW | I.BTRW | I.ROLW 
+	      | ( I.ADDW | I.SUBW | I.ANDW | I.ORW | I.XORW | I.SHLW | I.SARW
+                | I.SHRW | I.MULW | I.IMULW | I.BTSW | I.BTCW | I.BTRW | I.ROLW
                 | I.RORW | I.XCHGW ) => 16
-	      | ( I.ADDB | I.SUBB | I.ANDB | I.ORB | I.XORB | I.SHLB | I.SARB 
+	      | ( I.ADDB | I.SUBB | I.ANDB | I.ORB | I.XORB | I.SHLB | I.SARB
                 | I.SHRB | I.MULB | I.IMULB | I.XCHGB ) => 8
 	      | _ => raise Fail "" (* 64*)
 	   (* esac *))

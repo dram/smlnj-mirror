@@ -1,6 +1,6 @@
 (*
  * How to evaluate constants for various widths.
- * 
+ *
  * Internally, we represent machine_int as a signed integer.
  * So when we do bit or unsigned operations we have to convert to
  * the unsigned representation first.
@@ -36,19 +36,19 @@ struct
    val pow2table = Array.tabulate(maxSz,fn n => I.<<(1,itow n))  (* 2^n *)
    val masktable = Array.tabulate(maxSz,
                        fn n => I.-(I.<<(1,itow n),1))      (* 2^n-1 *)
-   val maxtable  = Array.tabulate(maxSz+1, 
+   val maxtable  = Array.tabulate(maxSz+1,
                     fn 0 => 0
                      | n => I.-(I.<<(1,itow(n-1)),1))  (* 2^{n-1}-1 *)
-   val mintable  = Array.tabulate(maxSz+1, 
+   val mintable  = Array.tabulate(maxSz+1,
                     fn 0 => 0
                      | n => I.~(I.<<(1,itow(n-1))))   (* -2^{n-1} *)
    in
 
-   fun pow2 i       = if i < maxSz then Array.sub(pow2table, i) 
+   fun pow2 i       = if i < maxSz then Array.sub(pow2table, i)
                       else I.<<(1,itow i)
    fun maskOf sz    = if sz < maxSz then Array.sub(masktable, sz)
                       else I.-(I.<<(1,itow sz),1)
-   fun maxOfSize sz = if sz < maxSz then Array.sub(maxtable, sz) 
+   fun maxOfSize sz = if sz < maxSz then Array.sub(maxtable, sz)
                       else I.-(I.<<(1,itow(sz-1)),1)
    fun minOfSize sz = if sz < maxSz then Array.sub(mintable, sz)
                       else I.~(I.<<(1,itow(sz-1)))
@@ -57,7 +57,7 @@ struct
    (* queries *)
    fun isNeg(i)    = I.sign i < 0
    fun isPos(i)    = I.sign i > 0
-   fun isZero(i)   = I.sign i = 0 
+   fun isZero(i)   = I.sign i = 0
    fun isNonNeg(i) = I.sign i >= 0
    fun isNonPos(i) = I.sign i <= 0
    fun isEven(i)   = isZero(I.rem(i,2))
@@ -73,14 +73,14 @@ struct
    fun narrow(sz, i) = signed(sz, I.andb(i, maskOf sz))
 
    (* Recognize 0x and 0b prefix and do the right thing *)
-   fun fromString(sz, s) = 
-   let val n = S.size s 
-       fun conv(i,negate) = 
-       if n >= 2+i andalso S.sub(s, i) = #"0" then 
+   fun fromString(sz, s) =
+   let val n = S.size s
+       fun conv(i,negate) =
+       if n >= 2+i andalso S.sub(s, i) = #"0" then
          (case S.sub(s, i+1) of
            #"x" => (hexToInt (S.substring(s,2+i,n-2-i)), negate)
          | #"b" => (binToInt (S.substring(s,2+i,n-2-i)), negate)
-         | _    => (I.fromString s, false) 
+         | _    => (I.fromString s, false)
          )
        else (I.fromString s, false)
        val (result, negate) =
@@ -100,10 +100,10 @@ struct
       structure W32 = Word32
       val wtoi   = W.toIntX
       val w32toi = W32.toIntX
-      val fromInt    = I.fromInt 
+      val fromInt    = I.fromInt
       val fromInt32  = Int32.toLarge
       fun fromWord w = I.fromLarge(Word.toLargeInt w)
-      fun fromWord32 w = I.+(I.<<(I.fromInt(w32toi(W32.>>(w,0w16))),0w16), 
+      fun fromWord32 w = I.+(I.<<(I.fromInt(w32toi(W32.>>(w,0w16))),0w16),
                                   I.fromInt(w32toi(W32.andb(w,0wxffff))))
    end
    (* machine_int <-> other types *)
@@ -118,7 +118,7 @@ struct
    fun toBinString(sz, i) = "0b"^toBin(unsigned(sz, i))
    fun toInt(sz, i)       = I.toInt(narrow(sz, i))
    fun toWord(sz, i)      = Word.fromLargeInt(I.toLarge(unsigned(sz, i)))
-   fun toWord32(sz, i)    = 
+   fun toWord32(sz, i)    =
        let val i  = unsigned(sz, i)
            val lo = I.andb(i,0xffff)
            val hi = I.~>>(i,0w16)
@@ -130,20 +130,20 @@ struct
 
    fun hash i = Word.fromInt(I.toInt(I.andb(i,0x1fffffff)))
 
-   fun isInRange(sz, i) = I.<=(minOfSize sz,i) andalso I.<=(i,maxOfSize sz) 
- 
+   fun isInRange(sz, i) = I.<=(minOfSize sz,i) andalso I.<=(i,maxOfSize sz)
+
    fun signedBinOp f (sz,i,j) = narrow(sz, f(i, j))
 
    fun signedUnaryOp f (sz,i) = narrow(sz, f i)
 
    fun unsignedBinOp f (sz,i,j) = narrow(sz, f(unsigned(sz,i), unsigned(sz,j)))
- 
+
    fun trappingUnaryOp f (sz,i) =
        let val x = f i
-       in  if isInRange(sz, x) then x else raise Overflow 
+       in  if isInRange(sz, x) then x else raise Overflow
        end
 
-   fun trappingBinOp f (sz,i,j) = 
+   fun trappingBinOp f (sz,i,j) =
        let val x = f(i,j)
        in  if isInRange(sz, x) then x else raise Overflow
        end
@@ -188,9 +188,9 @@ struct
    fun BITSLICE(sz,sl,x) =
    let fun slice([],n) = n
          | slice((from,to)::sl,n) =
-            slice(sl, ORB(sz, narrow(to-from+1, 
+            slice(sl, ORB(sz, narrow(to-from+1,
                                 Srl(sz, x, Word.fromInt from)), n))
-   in  slice(sl, 0) 
+   in  slice(sl, 0)
    end
 
    fun bitOf(sz, i, b) =
