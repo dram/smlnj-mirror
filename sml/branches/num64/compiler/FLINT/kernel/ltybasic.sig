@@ -53,8 +53,8 @@ val tcc_vector : tyc -> tyc
 val tcc_etag   : tyc -> tyc
 
 (** primitive lambda ltys *)
-val ltc_int    : lty
 val ltc_num    : int -> lty
+val ltc_int    : lty	(* = ltc_num Target.defaultIntSz *)
 val ltc_real   : lty	(* REAL32: need ltc_real32/ltc_real64 *)
 val ltc_string : lty
 val ltc_exn    : lty

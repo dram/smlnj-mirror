@@ -305,9 +305,7 @@ structure IntInfImp :> INT_INF = struct
           val pos0 = CoreIntInf.baseBits - bits
           val maxVal = CoreIntInf.maxDigit
           val maxDigit = (0w1 << bits) - 0w1
-          val scanPrefix = NumScan.scanPrefix
-                {wOkay=false, xOkay=xOkay, ptOkay=false, maxDigit=maxDigit}
-                  getchar
+          val scanPrefix = ScanUtil.scanPrefix (ScanUtil.hexPat false) getchar
           fun scan s = (case scanPrefix s
                  of SOME{neg, next, rest} => let
                       fun digloop (d, pos, nat, s) = let
@@ -324,7 +322,7 @@ structure IntInfImp :> INT_INF = struct
                               case getchar s
                                of NONE => done ()
                                 | SOME (c, s') => let
-                                    val v = NumScan.code c
+                                    val v = ScanUtil.code c
                                     in
                                       if (maxDigit < v)
                                         then done()
@@ -350,7 +348,7 @@ structure IntInfImp :> INT_INF = struct
           end
 
     fun decscan getchar s = let
-          fun digVal c = let val d = NumScan.code c
+          fun digVal c = let val d = ScanUtil.code c
                 in
                   if (d <= 0w9) then SOME d else NONE
                 end
@@ -366,7 +364,7 @@ structure IntInfImp :> INT_INF = struct
                 in
                   case getchar s
                    of SOME(c, s') => let
-                        val v' = NumScan.code c
+                        val v' = ScanUtil.code c
                         in
                           if (v' > 0w9)
                             then done()

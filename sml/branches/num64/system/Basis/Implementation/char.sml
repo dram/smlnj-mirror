@@ -159,7 +159,7 @@ structure Char : sig
 	  fun next (x::r) = SOME(x, r)
 	    | next [] = NONE
 	  in
-	    case (NumScan.scanInt radix next l)
+	    case (NumScan32.scanInt radix next l)
 	     of NONE => NONE
 	      | SOME(i, _) => if InlineT.Int32.<(i, 256)
 		  then SOME(chr(InlineT.Int32.toInt i), strm)
@@ -245,7 +245,7 @@ structure Char : sig
 
     val fromString = StringCvt.scanString scan
 
-    val itoa = (NumFormat.fmtInt StringCvt.DEC) o InlineT.Int32.fromInt
+    val itoa = (NumFormat32.fmtInt StringCvt.DEC) o InlineT.Int32.fromInt
 
     fun toString #"\a" = "\\a"
       | toString #"\b" = "\\b"
@@ -328,7 +328,7 @@ structure Char : sig
 		    then "\\0"
 		    else "\\"
 	    in
-	      PreString.concat2(prefix, NumFormat.fmtInt StringCvt.OCT i)
+	      PreString.concat2(prefix, NumFormat32.fmtInt StringCvt.OCT i)
 	    end
 
   end (* Char *)

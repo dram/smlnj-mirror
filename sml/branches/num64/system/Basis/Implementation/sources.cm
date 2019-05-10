@@ -370,8 +370,13 @@ is
 	char.sml
 	list.sml
 	real64-values.sml
-	num-scan.sml
-	num-format.sml
+	scan-util.sml
+	num-scan32.sml
+	num-format32.sml
+	num-scan64.sml
+	num-format64.sml
+	real-format.sml
+	real-scan.sml
 	bool.sml
 	date.sml
 
@@ -411,7 +416,6 @@ is
 #else
 	math64-sqrt.sml
 #endif
-	real-format.sml
 	word8.sml
 	word8-vector.sml
 	word8-vector-slice.sml

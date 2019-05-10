@@ -111,7 +111,7 @@ structure Core =
     local val ieql : int * int -> bool = InLine.int_eql
           val peql : 'a * 'a -> bool = InLine.ptr_eql
           val ineq : int * int -> bool = InLine.int_neq
-	  val i32eq : int32 * int32 -> bool = InLine.int32_eql
+	  val i32eq : int32 * int32 -> bool = InLine.int32_eql (* 64BIT: FIXME *)
           val boxed : 'a -> bool = InLine.boxed
           val op + : int * int -> int = InLine.int_add
           val op - : int * int -> int = InLine.int_sub
@@ -270,7 +270,7 @@ structure Core =
 		      (* end case *))
 		  | 0x0a (* tag_arr_hdr *) => peql(getData a, getData b)
 		  | 0x0e (* tag_arr_data and tag_ref *) => false
-(* 64BIT: FIXME *)
+(* 64BIT: need to use i64eq on 64-bit machines; perhaps we should use peql? *)
 		  | 0x12 (* tag_raw *) => i32eq(cast a, cast b)
 		  | _ (* tagless pair *) => pairEq()
 		(* end case *)

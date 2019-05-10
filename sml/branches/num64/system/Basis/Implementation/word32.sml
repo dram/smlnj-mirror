@@ -57,10 +57,10 @@ structure Word32Imp : WORD =
     val min : word * word -> word = W32.min
     val max : word * word -> word = W32.max
 
-    val fmt = NumFormat.fmtWord
+    val fmt = NumFormat32.fmtWord
     val toString = fmt StringCvt.HEX
 
-    val scan = NumScan.scanWord
+    val scan = NumScan32.scanWord
     val fromString = PreBasis.scanString (scan StringCvt.HEX)
 
   (* added for Basis Library proposal 2016-001 *)

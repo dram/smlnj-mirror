@@ -16,7 +16,7 @@ structure Word64Imp : sig
   end = struct
 
     structure W64 = InlineT.Word64
-    structure W32 = Word32Imp		(* 64BIT: FIXME *)
+    structure W32 = Word32Imp
 
     type word = Word64.word	(* from Basis/TypesOnly *)
 
@@ -73,35 +73,15 @@ structure Word64Imp : sig
     val min : word * word -> word = W64.min
     val max : word * word -> word = W64.max
 
-    fun toString w = (case extern w
-	   of (0w0, lo) => W32.toString lo
-	    | (hi, lo) => W32.toString hi ^ (StringCvt.padLeft #"0" 8 (W32.toString lo))
-	  (* end case *))
-
-    fun fmt StringCvt.BIN w = let
-	  val fmt32Bin = W32.fmt StringCvt.BIN
-	  in
-	    case extern w
-	     of (0w0, lo) => fmt32Bin lo
-	      | (hi, lo) => fmt32Bin hi ^ (StringCvt.padLeft #"0" 32 (fmt32Bin lo))
-	    (* end case *)
-	  end
-      | fmt StringCvt.HEX w = toString w
-      | fmt radix w = IntInfImp.fmt radix (toLargeInt w)
-
-(* 64BIT: we should add Word64 support to NumFormat and NumScan
-    val fmt = NumFormat.fmtWord
+    val fmt = NumFormat64.fmtWord
     val toString = fmt StringCvt.HEX
 
-    val scan = NumScan.scanWord
+    val scan = NumScan64.scanWord
     val fromString = PreBasis.scanString (scan StringCvt.HEX)
-*)
-    val scan = unimplemented
-    val fromString = unimplemented
 
   (* added for Basis Library proposal 2016-001 *)
 
-    fun popCount w = let (* 64BIT: FIXME *)
+    fun popCount w = let
 	  val (hi, lo) = extern w
 	  in
 	    InlineT.Int.fast_add(W32PopCount.popCount hi, W32PopCount.popCount lo)

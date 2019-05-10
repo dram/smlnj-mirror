@@ -61,13 +61,8 @@ structure Int64Imp : sig
 	  else if (I64.>(i, j)) then GREATER
 	  else EQUAL
 
-    fun fmt radix i = II.fmt radix (toLarge i)
-
-    fun scan radix rdr s = (case II.scan radix rdr s
-	   of SOME(i, s') => SOME (fromLarge i, s')
-	    | NONE => NONE
-	  (* end case *))
-
+    val scan = NumScan64.scanInt
+    val fmt = NumFormat64.fmtInt
     val toString = fmt StringCvt.DEC
     val fromString = PreBasis.scanString (scan StringCvt.DEC)
 

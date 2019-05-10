@@ -42,8 +42,8 @@ structure Int32Imp : INTEGER =
 	  else if (I32.>(i, j)) then GREATER
 	  else EQUAL
 
-    val scan = NumScan.scanInt
-    val fmt = NumFormat.fmtInt
+    val scan = NumScan32.scanInt
+    val fmt = NumFormat32.fmtInt
     val toString = fmt StringCvt.DEC
     val fromString = PreBasis.scanString (scan StringCvt.DEC)
 

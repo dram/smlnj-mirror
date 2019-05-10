@@ -210,6 +210,8 @@ structure InlineT =
 
       (* extra conversions *)
 	val toInt32 : word -> int32 = InLine.copy_word_to_int32
+	val toWord32 : word -> word32 = InLine.word_to_word32
+	val toWord64 : word -> word64 = InLine.word_to_word64
 
         val orb     : word * word -> word = InLine.word_orb
         val xorb    : word * word -> word = InLine.word_xorb
