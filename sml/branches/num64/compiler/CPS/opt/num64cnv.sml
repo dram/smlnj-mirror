@@ -113,12 +113,6 @@ structure Num64Cnv : sig
     fun to64 (hi, lo, k) = let
 	  val pair = LV.mkLvar()
 	  in
-(* code for packed representation
-	    pure(P.WRAP(P.INT 32), [lo], box32Ty, fn lo' =>
-	    pure(P.WRAP(P.INT 32), [hi], box32Ty, fn hi' =>
-	      C.RECORD(C.RK_RECORD, [(hi', C.OFFp 0), (lo', C.OFFp 0)],
-		pair, k(C.VAR pair))))
-*)
 	    C.RECORD(C.RK_RAWBLOCK, [(hi, C.OFFp 0), (lo, C.OFFp 0)],
 		pair, k(C.VAR pair))
 	  end
@@ -558,8 +552,9 @@ structure Num64Cnv : sig
 	    then k
 	    else (fn lo => pure(P.TRUNC{from=32, to=toSz}, [lo], tagNumTy, k))))
 
-  (* copy (zero-extend) a number to a 64-bit representation, where fromSz <= 32 *)
-    fun copy64From (fromSz, n, res, ce) = join (res, ce, fn k => if (fromSz = 32)
+  (* copy (zero-extend) a number to a 64-bit representation *)
+    fun copy64From (64, n, res, ce) = join (res, ce, fn k => k n)
+      | copy64From (fromSz, n, res, ce) = join (res, ce, fn k => if (fromSz = 32)
 	  then to64 (zero, n, k)
 	  else pure(P.COPY{from=fromSz, to=32}, [n], raw32Ty, fn lo =>
 	    to64 (zero, lo, k)))

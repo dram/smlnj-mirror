@@ -443,7 +443,12 @@ fun cvtPreCondition(n:int, n2, x, v2) =
 fun cvtPreCondition_inf(x, v2) =
   usedOnce(x) andalso sameLvar(x, ren v2)
 
-(* contration for primops *)
+(* smart constructors for conversions *)
+fun mkEXTEND(from, to) = if (from = to)
+      then P.COPY{from=from, to=to}
+      else P.EXTEND{from=from, to=to}
+
+(* contraction for primops *)
 val arith = ContractPrim.arith
 val pure = ContractPrim.pure get
 val branch = ContractPrim.branch get
@@ -803,17 +808,18 @@ let val rec g' =
 	 | _ => skip()
      end
    | PURE(P.EXTEND_INF p, [v,f], x, t,
-	  e as PURE(P.TRUNC_INF m, [v2, f2], x2, t2, e2)) =>
-     let fun checkClicked(tok, pureOp) =
-	     if cvtPreCondition_inf(x, v2) then
-		 (click tok;
-		  use_less f; use_less f2;
-		  PURE(pureOp, [ren v], x2, t2, g' e2))
-	     else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)
-     in
-	 if m >= p then checkClicked("X(3')", P.EXTEND{from=p, to=m})
-	 else checkClicked("X(4')", P.TRUNC{from=p, to=m})
-     end
+	  e as PURE(P.TRUNC_INF m, [v2, f2], x2, t2, e2)) => let
+	fun checkClicked (tok, pureOp) = if cvtPreCondition_inf(x, v2)
+	      then (
+		click tok;
+		use_less f; use_less f2;
+		PURE(pureOp, [ren v], x2, t2, g' e2))
+	      else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)
+        in
+	  if m = p then checkClicked("X(2')", P.COPY{from=p, to=m})
+	  else if m > p then checkClicked("X(3')", P.EXTEND{from=p, to=m})
+	  else checkClicked("X(4')", P.TRUNC{from=p, to=m})
+        end
    | PURE(P.EXTEND{from=p, to=n}, [v], x, t, e as ARITH(a, [v2], x2, t2, e2)) => let
        val v' = [ren v]
        fun skip() = PURE(P.EXTEND{from=p, to=n}, v', x, t, g' e)
