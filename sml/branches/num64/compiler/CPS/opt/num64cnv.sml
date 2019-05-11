@@ -359,10 +359,10 @@ structure Num64Cnv : sig
 
   (* the basic pattern for comparisons is
    *   fun cmp ((hi1, lo1), (hi2, lo2)) =
-   *         OP(hi1, hi2) orelse ((hi1 = hi2) andalso OP(lo1, lo2))
+   *         cmpHi(hi1, hi2) orelse ((hi1 = hi2) andalso cmpLo(lo1, lo2))
    *)
     local
-      fun w64Cmp oper (n1, n2, tr, fl) = let
+      fun w64Cmp (cmpHi, cmpLo) (n1, n2, tr, fl) = let
 	  (* continuations for the branches so that we can avoid code duplication *)
 	    val trFnId = LV.mkLvar()
 	    val tr' = C.APP(C.VAR trFnId, [])
@@ -377,19 +377,19 @@ structure Num64Cnv : sig
 	      (* (hi1 < hi2) orelse ((hi1 = hi2) andalso (lo1 < lo2)) *)
 		getHi32(n1, fn hi1 =>
 		getHi32(n2, fn hi2 =>
-		  uIf(oper, hi1, hi2,
+		  uIf(cmpHi, hi1, hi2,
 		    tr',
 		    uIf(P.EQL, hi1, hi2,
 		      getLo32(n1, fn lo1 =>
 		      getLo32(n2, fn lo2 =>
-			uIf(oper, lo1, lo2, tr', fl'))),
+			uIf(cmpLo, lo1, lo2, tr', fl'))),
 		      fl'))))))
 	    end
     in
-    val w64Less = w64Cmp P.LT
-    val w64LessEq = w64Cmp P.LTE
-    val w64Greater = w64Cmp P.GT
-    val w64GreaterEq = w64Cmp P.GTE
+    val w64Less = w64Cmp (P.LT, P.LT)
+    val w64LessEq = w64Cmp (P.LT, P.LTE)
+    val w64Greater = w64Cmp (P.GT, P.GT)
+    val w64GreaterEq = w64Cmp (P.GT, P.GTE)
     end (* local *)
 
   (***** Int64 primitive operations *****)
@@ -487,10 +487,10 @@ structure Num64Cnv : sig
 
   (* the basic pattern for comparisons is
    *   fun cmp ((hi1, lo1), (hi2, lo2)) =
-   *         OP(hi1, hi2) orelse ((hi1 = hi2) andalso OP(lo1, lo2))
+   *         cmpHi(hi1, hi2) orelse ((hi1 = hi2) andalso cmpLo(lo1, lo2))
    *)
     local
-      fun i64Cmp oper (n1, n2, tr, fl) = let
+      fun i64Cmp (cmpHi, cmpLo) (n1, n2, tr, fl) = let
 	  (* continuations for the branches so that we can avoid code duplication *)
 	    val trFnId = LV.mkLvar()
 	    val tr' = C.APP(C.VAR trFnId, [])
@@ -505,19 +505,19 @@ structure Num64Cnv : sig
 	      (* (hi1 < hi2) orelse ((hi1 = hi2) andalso (lo1 < lo2)) *)
 		getHi32(n1, fn hi1 =>
 		getHi32(n2, fn hi2 =>
-		  uIf(oper, hi1, hi2,
+		  sIf(cmpHi, hi1, hi2,
 		    tr',
-		    uIf(P.EQL, hi1, hi2,
+		    sIf(P.EQL, hi1, hi2,
 		      getLo32(n1, fn lo1 =>
 		      getLo32(n2, fn lo2 =>
-			uIf(oper, lo1, lo2, tr', fl'))),
+			sIf(cmpLo, lo1, lo2, tr', fl'))),
 		      fl'))))))
 	    end
     in
-    val i64Less = i64Cmp P.LT
-    val i64LessEq = i64Cmp P.LTE
-    val i64Greater = i64Cmp P.GT
-    val i64GreaterEq = i64Cmp P.GTE
+    val i64Less = i64Cmp (P.LT, P.LT)
+    val i64LessEq = i64Cmp (P.LT, P.LTE)
+    val i64Greater = i64Cmp (P.GT, P.GT)
+    val i64GreaterEq = i64Cmp (P.GT, P.GTE)
     end (* local *)
 
   (***** conversions *****)
