@@ -64,9 +64,11 @@ been marked in the source code with the comment tag "`64BIT:`."
 
   * `system/Basis/Implementation/num-format.sml` <br/>
     should support formatting of 64-bit words and integers on all platforms
+    **[DONE; 110.88]**
 
   * `system/Basis/Implementation/num-scan.sml` <br/>
     should support scanning of 64-bit words and integers on all platforms
+    **[DONE; 110.88]**
 
   * `system/Basis/Implementation/Posix/posix-filesys.sml` <br/>
     the `statrep` type has both `Int32.int` and `int` fields
