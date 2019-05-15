@@ -93,6 +93,47 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.88; 2019/05/15
+
+//--------------------------------------------------------------------
+[2019/05/15]::
++
+Added 64-bit versions of `NumFormat` and `NumScan`.  We use the 32-bit
+version for numbers of 32-bits or less and the 64-bit versions for
+numbers with up to 64 bits.  Thus, on 32-bit machines, the default
+`int` and `word` types use `NumFormat32` and `NumScan32`, while on
+64-bit machines they use `NumFormat64` and `NumScan64`.  This change
+also required splitting out some common code into a `ScanUtil`
+structure and also splitting out the scanning of real numbers into
+the `ScanReal` structure (formatting of reals was already in its own
+structure).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/15]::
++
+Reimplemented the 64-bit `int` and `word` types to put them on a
+(mostly) equal footing with the other precisions.  In this new implementation,
+the basic types `int64` and `word64` are now `PRIMITIVE` (instead
+of being `ABSTRACT` type represented by pairs of boxed 32-bit words).
+Arithmetic and comparison operations on these types are represented as
+primops and are preserved as such up to just before closure conversion.
+At that point, the new `Num64Cnv` structure (`compiler/CPS/opt/numcnv.sml`)
+is used to expand 64-bit operations and constants into 32-bit operations.
+Most of the 64-bit primops are inline expanded, but multiplication and
+division operations are converted to calls to library code from the
+`CoreInt64` and `CoreWord64` modules (`system/smlnj/init`).
++
+Because the type are primitive, we were able to change the runtime
+representation to use packed records (`RK_RAWBLOCK`) to represent
+them, which saves space and should also help with performance.
++
+See the `dev-notes/num64.md` file for more details about the
+implementation.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2019/05/09]::
