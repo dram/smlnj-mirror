@@ -1,8 +1,13 @@
-/* tags.h
- *
- * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
+/*! \file tags.h
  *
  * These are the macros for object tags and descriptors.
+ *
+ * \author John Reppy
+ */
+
+/*
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #ifndef _TAGS_
@@ -65,13 +70,13 @@
  * in the length field of the descriptor.  We need these codes for polymorphic
  * equality and pretty-printing.
  */
-#define SEQ_poly	HEXLIT(0)
-#define SEQ_word8	HEXLIT(1)
-#define SEQ_word16	HEXLIT(2)
-#define SEQ_word31	HEXLIT(3)
-#define SEQ_word32	HEXLIT(4)
-#define SEQ_real32	HEXLIT(5)
-#define SEQ_real64	HEXLIT(6)
+#define SEQ_poly	HEXLIT(0)	/* one word per element; type unkonwn */
+#define SEQ_word8	HEXLIT(1)	/* 8-bits per element */
+#define SEQ_word16	HEXLIT(2)	/* 16-bits per element */
+#define SEQ_word32	HEXLIT(3)	/* 32-bits per element */
+#define SEQ_word64	HEXLIT(4)	/* 64-bits per element */
+#define SEQ_real32	HEXLIT(5)	/* 32-bit floating-point values */
+#define SEQ_real64	HEXLIT(6)	/* 64-bit floating-point values */
 
 /* Build a descriptor from a descriptor tag and a length */
 #ifndef _ASM_

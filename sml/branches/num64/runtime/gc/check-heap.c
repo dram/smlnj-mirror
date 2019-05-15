@@ -1,6 +1,13 @@
-/* check-heap.c
+/*! \file check-heap.c
  *
- * COPYRIGHT (c) 1994 by AT&T Bell Laboratories.
+ * Debugging code to check heap invariants.
+ *
+ * \author John Reppy
+ */
+
+/*
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-base.h"
@@ -118,8 +125,8 @@ PVT void CheckRecordArena (arena_t *ap)
 		break;
 	      case SEQ_word8:
 	      case SEQ_word16:
-	      case SEQ_word31:
 	      case SEQ_word32:
+	      case SEQ_word64:
 	      case SEQ_real32:
 	      case SEQ_real64:
 		CheckPtr (p, *p, gen, OBJC_record, OBJC_STRFLG);
