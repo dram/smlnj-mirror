@@ -35,6 +35,7 @@ structure Substring : SUBSTRING = Text.Substring
 
 structure Int = IntImp
 structure Int32 = Int32Imp
+structure Int64 = Int64Imp
 structure IntInf = IntInfImp
 structure FixedInt = FixedIntImp
 structure LargeInt = LargeIntImp
@@ -50,6 +51,7 @@ structure RealVectorSlice = Real64VectorSlice
 structure Word = WordImp
 structure Word8 = Word8Imp
 structure Word32 = Word32Imp
+structure Word64 = Word64Imp
 structure LargeWord = LargeWordImp
 
 structure OS = OSImp

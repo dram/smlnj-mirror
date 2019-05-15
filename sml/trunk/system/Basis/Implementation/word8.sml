@@ -72,11 +72,11 @@ structure Word8Imp : WORD =
     val min : word * word -> word = W8.min
     val max : word * word -> word = W8.max
 
-    fun fmt radix = (NumFormat.fmtWord radix) o toLargeWord
+    fun fmt radix = (NumFormat32.fmtWord radix) o toLargeWord
     val toString = fmt StringCvt.HEX
 
     fun scan radix = let
-	  val scanLarge = NumScan.scanWord radix
+	  val scanLarge = NumScan32.scanWord radix
 	  fun scan getc cs = (case (scanLarge getc cs)
 		 of NONE => NONE
 		  | (SOME(w, cs')) => if InlineT.Word32.>(w, 0w255)

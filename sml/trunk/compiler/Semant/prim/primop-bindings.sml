@@ -423,10 +423,11 @@ structure PrimopBindings : sig
 	    val pw32 = tup[BT.word32Ty, BT.word32Ty]
 	    in
 	      prims :-:
-	      ("int64_to_pair", ar(BT.int64Ty, pw32), P.CVT64) :-:
-	      ("int64_from_pair", ar(pw32, BT.int64Ty), P.CVT64) :-:
-	      ("word64_to_pair", ar(BT.word64Ty, pw32), P.CVT64) :-:
-	      ("word64_from_pair", ar(pw32, BT.word64Ty), P.CVT64)
+	    (* use type variable for 64-bit type to force boxed representation *)
+	      ("int64_to_pair", p1(ar(tv1, pw32)), P.EXTERN64) :-:
+	      ("int64_from_pair", p1(ar(pw32, tv1)), P.INTERN64) :-:
+	      ("word64_to_pair", p1(ar(tv1, pw32)), P.EXTERN64) :-:
+	      ("word64_from_pair", p1(ar(pw32, tv1)), P.INTERN64)
 	    end
 
 (* REAL32: FIXME *)

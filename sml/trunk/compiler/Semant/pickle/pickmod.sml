@@ -477,8 +477,9 @@ in
 	      | P.INLIGNORE => %?48
 	      | P.INLIDENTITY => %?49
 
-	      | P.CVT64 => %?50
-	      | P.INLCHR => %?51
+	      | P.INLCHR => %?50
+	      | P.INTERN64 => %?51
+	      | P.EXTERN64 => %?52
 	      (** WARNING: last value must be < 80!! **)
     end
 

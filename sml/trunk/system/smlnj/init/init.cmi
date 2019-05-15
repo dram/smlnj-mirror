@@ -1,7 +1,8 @@
 #
 # init.cmi
 #
-#  (C) 2000 Lucent Technologies, Bell Laboratories
+# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
 #
 # Author: Matthias Blume (blume@kurims.kyoto-u.ac.jp)
 #
@@ -132,7 +133,7 @@ bind coreint64 = core-int64.sml (rts, primitive, coreintinf)
 # (This binds the structure symbol "Core", which is not yet the one that
 # is used implicitly by the compiler.  Of course, "core.sml" itself cannot
 # yet have access to _Core.)
-bind core = core.sml (rts, asig, coreintinf, primitive)
+bind core = core.sml (rts, asig, coreintinf, coreword64, coreint64, primitive)
 
 # Now we make the binding for structure _Core for use by the remaining
 # members of the init library. (Everybody else in the world gets access to

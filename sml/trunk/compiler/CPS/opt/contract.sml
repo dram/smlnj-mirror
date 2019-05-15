@@ -336,7 +336,7 @@ fun pass1 cexp = let
 				else ()
 			  | _ => ()
 			(* end case *))
-		    |_ => ()
+		    | _ => ()
 		  (* end case *);
 		  app use vl; enterMISC0 c; p1 noInline e1; p1 noInline e2)
 	      | SETTER(i,vl,e) => (
@@ -817,8 +817,11 @@ let val rec g' =
    | PURE(P.EXTEND_INF p, [v, f], x, t,
 	  e as ARITH (P.TEST_INF m, [v2, f2], x2, t2, e2)) =>
        if cvtPreCondition_inf (x, v2) then
-	   if m >= p then
-	       (click "X9"; use_less f; use_less f2;
+	   if m = p then (
+		click "X9'"; use_less f; use_less f2;
+		PURE (P.COPY{from=p, to=m}, [ren v], x2, t2, g' e2))
+	   else if m > p then (
+	        click "X9"; use_less f; use_less f2;
 		PURE (P.EXTEND{from=p, to=m}, [ren v], x2, t2, g' e2))
 	   else ARITH (P.TEST{from=p, to=m}, [ren v], x2, t2, g' e2)
        else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)

@@ -3,8 +3,8 @@
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Basic IntInf functionality for translating certain primops and
- * IntInf.int literals within the compiler.
+ * Basic IntInf operations for 32-bit targets.  These are required
+ * for translating certain primops and IntInf.int literals within the compiler.
  *
  * Author: Matthias Blume (blume@tti-c.org)
  *)
@@ -35,34 +35,32 @@ structure CoreIntInf :> sig
     (* maximum value of a "big digit": *)
     val maxDigit : word
 
-    (* The following three functions are copied into structure _Core
-     * from where the compiler's "translate" phase will pick them to
-     * implement precision-extending and precision-shrinking conversions
-     * that involve intinf.  We only provide operations between
-     * int32 and intinf.  For precisions less than 32 bits the compiler
-     * must insert an additional conversion: *)
+  (* The following conversion functions are copied into structure _Core
+   * from where the compiler's "translate" phase will pick them to
+   * implement precision-extending and precision-shrinking conversions
+   * that involve intinf.  We only provide operations between
+   * int32 and intinf.  For precisions less than 32 bits the compiler
+   * must insert an additional conversion:
+   *)
 
-    (* fit value (2's complement) in int32, raise Overflow if too large *)
-    val testInf   : intinf -> int32
-    (* truncate value (2's complement repr) to fit in int32: *)
-    val truncInf  : intinf -> int32
-    (* copy bits from int32 into (non-negative) intinf: *)
-    val copyInf   : int32 -> intinf
-    (* sign-extend int32: *)
-    val extendInf : int32 -> intinf
-    (* combined (sign-extension takes place when second argument is true): *)
-    val finToInf  : int32 * bool -> intinf
+  (* fit value (2's complement) in int32, raise Overflow if too large *)
+    val testInfLarge   : intinf -> int32
+  (* truncate value (2's complement repr) to fit in int32: *)
+    val truncInfLarge  : intinf -> int32
+  (* copy bits from int32 into (non-negative) intinf: *)
+    val copyLargeInf   : int32 -> intinf
+  (* sign-extend int32 into intinf: *)
+    val extendLargeInf : int32 -> intinf
 
+(* 64BIT: these functions are only needed for 32-bit targets! *)
     (* fit value (2's complement) in "int64", raise Overflow if too large *)
     val testInf64   : intinf -> word32 * word32
     (* truncate value (2's complement repr) to fit in "int64": *)
     val truncInf64  : intinf -> word32 * word32
     (* copy bits from "int64" into (non-negative) intinf: *)
-    val copyInf64   : word32 * word32 -> intinf
+    val copy64Inf   : word32 * word32 -> intinf
     (* sign-extend "int64": *)
-    val extendInf64 : word32 * word32 -> intinf
-    (* combined (sign-extension takes place when second argument is true): *)
-    val finToInf64  : word32 * word32 * bool -> intinf
+    val extend64Inf : word32 * word32 -> intinf
 
     (* These two directly take the list of digits
      * to be used by the internal representation: *)
@@ -155,126 +153,140 @@ end = struct
     val gap : word = InLine.word_sub (0w32, baseBits) (* 32 - baseBits *)
     val slc : word = InLine.word_sub (baseBits, gap)  (* baseBits - gap *)
 
-    fun neg64 (hi, 0w0) : word32 * word32 = (InLine.word32_neg hi, 0w0)
-      | neg64 (hi, lo) = (InLine.word32_notb hi, InLine.word32_neg lo)
-
-    fun testInf i =
-	let val BI { negative, digits } = concrete i
-	    fun negif i32 = if negative then ~i32 else i32
-	in case digits
-	    of [] => 0
-	     | [d] => negif (wToI32 d)
-	     | [d0, 0w1] => negif (w32ToI32 (wToW32 d0 || base32))
-	     | [0w0, 0w2] => if negative then ~0x80000000
-			     else raise Assembly.Overflow
-	     | _ => raise Assembly.Overflow
-	end
-
-    fun testInf64 i =
-	let val BI { negative, digits } = concrete i
-	    fun negif hilo = if negative then neg64 hilo else hilo
-	in case digits
-	    of [] => (0w0, 0w0)
-	     | [d] => negif (0w0, wToW32 d)
-	     | [d0, d1] =>
-	       let val (w0, w1) = (wToW32 d0, wToW32 d1)
-	       in negif (w1 >> gap, w0 || (w1 << baseBits))
-	       end
-	     | [0w0, 0w0, 0w8] =>
-	         if negative then (0wx80000000, 0w0)
-		 else raise Assembly.Overflow
-	     | [d0, d1, d2] =>
-	         if InLine.word_ge (d2, 0w8) then raise Assembly.Overflow
-		 else let val (w0, w1, w2) =
-			      (wToW32 d0, wToW32 d1, wToW32 d2)
-		      in negif ((w1 >> gap) || (w2 << slc),
-				w0 || (w1 << baseBits))
-		      end
-	     | _ => raise Assembly.Overflow
-	end
-
-    fun truncInf i =
-	let val BI { negative, digits } = concrete i
-	    val b =
-		case digits
+  (* truncate intinf to word32 (the large fixed size) *)
+    fun truncInfLarge i = let
+	  val BI { negative, digits } = concrete i
+	  val b = (case digits
 		 of [] => 0w0
 		  | [d] => wToW32 d
 		  | d0 :: d1 :: _ => wToW32 d0 || (wToW32 d1 << baseBits)
-	in w32ToI32 (if negative then InLine.word32_neg b else b)
-	end
+		(* end case *))
+	  in
+	    w32ToI32 (if negative then InLine.word32_neg b else b)
+	  end
 
-    fun truncInf64 i =
-	let val BI { negative, digits } = concrete i
-	    val hilo =
-		case digits
+  (* convert intinf to int32; raise Overflow it result is too large *)
+    fun testInfLarge i = let
+	  val BI { negative, digits } = concrete i
+	  fun negif i32 = if negative then ~i32 else i32
+	  in
+	    case digits
+	     of [] => 0
+	      | [d] => negif (wToI32 d)
+	      | [d0, 0w1] => negif (w32ToI32 (wToW32 d0 || base32))
+	      | [0w0, 0w2] => if negative then ~0x80000000
+			      else raise Assembly.Overflow
+	      | _ => raise Assembly.Overflow
+	  end
+
+  (* sign-extend an int32 to an intinf *)
+    fun extendLargeInf i32 = let
+	  fun e (_, 0w0) = BI { negative = false, digits = [] }
+	    | e (negative, w31) = BI {
+		    negative = negative,
+		    digits = if InLine.word_ge (w31, base)
+			then [InLine.word_sub (w31, base), 0w1]
+			else [w31]
+		  }
+	  val i = if InLine.int32_eql (i32, ~0x80000000)
+		  then BI { negative = true, digits = [0w0, 0w2 ] }
+		else if InLine.int32_lt (i32, 0)
+		  then e (true, i32ToW (~i32))
+		  else e (false, i32ToW i32)
+	  in
+	    abstract i
+	  end
+
+  (* zero-extend an word32 to an intinf *)
+    fun copyLargeInf i32 = let
+	  val w32 = i32ToW32 i32
+	  val digits = if InLine.word32_eql (w32, 0w0)
+		  then []
+		else if InLine.word32_ge (w32, base32)
+		  then [w32ToW (w32 && maxDigit32), w32ToW (w32 >> baseBits)]
+		  else [w32ToW w32]
+	  in
+	    abstract (BI { negative = false, digits = digits })
+	  end
+
+    fun neg64 (hi, 0w0) : word32 * word32 = (InLine.word32_neg hi, 0w0)
+      | neg64 (hi, lo) = (InLine.word32_notb hi, InLine.word32_neg lo)
+
+  (* convert an intinf to a int64 represented as a pair of word32s; raise
+   * Overflow if the result is nor representable as an int64.
+   *)
+    fun testInf64 i = let
+	  val BI { negative, digits } = concrete i
+	  fun negif hilo = if negative then neg64 hilo else hilo
+	  in
+	    case digits
+	     of [] => (0w0, 0w0)
+	      | [d] => negif (0w0, wToW32 d)
+	      | [d0, d1] => let
+		  val (w0, w1) = (wToW32 d0, wToW32 d1)
+		  in
+		    negif (w1 >> gap, w0 || (w1 << baseBits))
+		  end
+	      | [0w0, 0w0, 0w8] => if negative
+		  then (0wx80000000, 0w0)
+		  else raise Assembly.Overflow
+	      | [d0, d1, d2] => if InLine.word_ge (d2, 0w8)
+		  then raise Assembly.Overflow
+		  else let
+		    val (w0, w1, w2) = (wToW32 d0, wToW32 d1, wToW32 d2)
+		    in
+		      negif ((w1 >> gap) || (w2 << slc), w0 || (w1 << baseBits))
+		    end
+	      | _ => raise Assembly.Overflow
+	  end
+
+    fun truncInf64 i = let
+	  val BI { negative, digits } = concrete i
+	  val hilo = (case digits
 		 of [] => (0w0, 0w0)
 		  | [d0] => (0w0, wToW32 d0)
-		  | [d0, d1] =>
-		    let val (w0, w1) = (wToW32 d0, wToW32 d1)
-		    in (w1 >> gap, w0 || (w1 << baseBits))
-		    end
-		  | d0 :: d1 :: d2 :: _ =>
-		    let val (w0, w1, w2) =
-			    (wToW32 d0, wToW32 d1, wToW32 d2)
-		    in ((w1 >> gap) || (w2 << slc), w0 || (w1 << baseBits))
-		    end
-	in if negative then neg64 hilo else hilo
-	end
+		  | [d0, d1] => let
+		      val (w0, w1) = (wToW32 d0, wToW32 d1)
+		      in
+			(w1 >> gap, w0 || (w1 << baseBits))
+		      end
+		  | d0 :: d1 :: d2 :: _ => let
+		      val (w0, w1, w2) = (wToW32 d0, wToW32 d1, wToW32 d2)
+		      in
+			((w1 >> gap) || (w2 << slc), w0 || (w1 << baseBits))
+		      end
+		(* end case *))
+	  in
+	    if negative then neg64 hilo else hilo
+	  end
 
-    fun extendInf i32 = let
-	fun e (_, 0w0) = BI { negative = false, digits = [] }
-	  | e (negative, w31) =
-	      BI { negative = negative,
-		   digits = if InLine.word_ge (w31, base) then
-				[InLine.word_sub (w31, base), 0w1]
-			    else [w31] }
-    in
-	abstract (if InLine.int32_eql (i32, ~0x80000000) then
-		      BI { negative = true, digits = [0w0, 0w2 ] }
-		  else if InLine.int32_lt (i32, 0) then e (true, i32ToW (~i32))
-		  else e (false, i32ToW i32))
-    end
+    fun copyInf64' (_, (0w0, 0w0)) = abstract (BI { negative = false, digits = [] })
+      | copyInf64' (negative, (hi, lo)) = let
+	  infix <>
+	  val op <> : word * word -> bool = InLine.word_neq
+	  val d0 = w32ToW (lo && 0wx3fffffff)
+	  val d1 = w32ToW (((hi && 0wxfffffff) << 0w2) || (lo >> 0w30))
+	  val d2 = w32ToW (hi >> 0w28)
+	  val i = BI {
+		  negative = negative,
+		  digits = if d2 <> 0w0 then [d0, d1, d2]
+			   else if d1 <> 0w0 then [d0, d1]
+			   else if d0 <> 0w0 then [d0]
+			   else []
+		}
+	  in
+	    abstract i
+	  end
 
-    fun copyInf64' (_, (0w0, 0w0)) = abstract (BI { negative = false,
-						 digits = [] })
-      | copyInf64' (negative, (hi, lo)) =
-	let infix <>
-            val op <> : word * word -> bool = InLine.word_neq
-	    val d0 = w32ToW (lo && 0wx3fffffff)
-	    val d1 = w32ToW (((hi && 0wxfffffff) << 0w2) || (lo >> 0w30))
-	    val d2 = w32ToW (hi >> 0w28)
-	in abstract (BI { negative = negative,
-			  digits = if d2 <> 0w0 then [d0, d1, d2]
-				   else if d1 <> 0w0 then [d0, d1]
-				   else if d0 <> 0w0 then [d0]
-				   else [] })
-	end
+    fun copy64Inf hilo = copyInf64' (false, hilo)
 
-    fun copyInf64 hilo = copyInf64' (false, hilo)
-
-    fun extendInf64 (hi, lo) =
-	if InLine.word32_neq (hi && 0wx80000000, 0w0) then
-	    copyInf64' (true, neg64 (hi, lo))
-	else copyInf64' (false, (hi, lo))
-
-    fun copyInf i32 =
-	let val w32 = i32ToW32 i32
-	    val digits =
-		if InLine.word32_eql (w32, 0w0) then []
-		else if InLine.word32_ge (w32, base32) then
-		    [w32ToW (w32 && maxDigit32), w32ToW (w32 >> baseBits)]
-		else [w32ToW w32]
-	in abstract (BI { negative = false, digits = digits })
-	end
-
-    fun finToInf (i32, extend) =
-	if extend then extendInf i32 else copyInf i32
-
-    fun finToInf64 (hi, lo, extend) =
-	if extend then extendInf64 (hi, lo) else copyInf64 (hi, lo)
+(* FIXME: better to check if (signed)hi < 0 *)
+    fun extend64Inf (hi, lo) = if InLine.word32_neq (hi && 0wx80000000, 0w0)
+	  then copyInf64' (true, neg64 (hi, lo))
+	  else copyInf64' (false, (hi, lo))
 
     fun makeInf negative digits =
-	abstract (BI { negative = negative, digits = digits })
+	  abstract (BI { negative = negative, digits = digits })
     val makeNegInf = makeInf true
     val makePosInf = makeInf false
 
@@ -299,10 +311,10 @@ end = struct
     fun fabs2 f (x, y) = abstract (f (concrete x, concrete y))
     fun fabs2c f (x, y) = f (concrete x, concrete y)
     fun fabs22 f (x, y) = let
-	val (a, b) = f (concrete x, concrete y)
-    in
-	(abstract a, abstract b)
-    end
+	  val (a, b) = f (concrete x, concrete y)
+	  in
+	    (abstract a, abstract b)
+	  end
 
     (* like BI, but make sure that digits = [] implies not negative *)
     fun bi { digits = [], ... } = BI { digits = [], negative = false }

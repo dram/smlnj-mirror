@@ -159,7 +159,8 @@ structure PrimopUtil : sig
       | toString P.GET_SEQ_DATA = "getseqdata"
       | toString P.SUBSCRIPT_REC = "subscriptrec"
       | toString P.SUBSCRIPT_RAW64 = "subscriptraw64"
-      | toString P.CVT64 = "cvt64"
+      | toString P.INTERN64 = "intern64"
+      | toString P.EXTERN64 = "extern64"
     (* Primops to support new experimental C FFI. *)
       | toString (P.RAW_LOAD nk) = concat ["raw_load(", prNumkind nk, ")"]
       | toString (P.RAW_STORE nk) = concat ["raw_store(", prNumkind nk, ")"]
@@ -193,7 +194,7 @@ structure PrimopUtil : sig
 	    | (P.INLMIN _ | P.INLMAX _ | P.INLNOT | P.INLCOMPOSE | P.INLIGNORE) => false
 	    | (P.WRAP | P.UNWRAP) => false
 	    | P.INLIDENTITY => false
-	    | P.CVT64 => false
+	    | (P.INTERN64 | P.EXTERN64) => false
 	    | _ => true
 	  (* end case *))
 

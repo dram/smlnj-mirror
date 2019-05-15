@@ -45,7 +45,7 @@ structure RealFormat : sig
     fun min (i, j) = if I.<(i, j) then i else j
     fun max (i, j) = if I.>(i, j) then i else j
 
-    val atoi = (NumFormat.fmtInt StringCvt.DEC) o InlineT.Int32.fromInt
+    val atoi = (NumFormat32.fmtInt StringCvt.DEC) o InlineT.Int32.fromInt
 
     fun zeroLPad (s, wid) = StringCvt.padLeft #"0" wid s
     fun zeroRPad (s, wid) = StringCvt.padRight #"0" wid s

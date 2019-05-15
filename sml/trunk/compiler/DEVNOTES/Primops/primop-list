@@ -1,6 +1,9 @@
 Catalog of "Environmental" Primops
 (from Semant/statenv/prim.sml)
 
+** NOTE **
+This list has been superseded by dev-notes/primop-list.md.
+
 This table lists the primops that are named in the pervasive environment
 (or at least in the Inline structure, from which bindings in Basis structures
 are derived). Hence they are called "environmental" primops. Additional primops

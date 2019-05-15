@@ -320,7 +320,7 @@ structure Real64Imp : REAL =
 
     val fmt = RealFormat.fmtReal
     val toString = fmt (StringCvt.GEN NONE)
-    val scan = NumScan.scanReal
+    val scan = RealScan.scanReal
     val fromString = StringCvt.scanString scan
 
     val ~ = InlineT.Real64.~

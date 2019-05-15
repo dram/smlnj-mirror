@@ -1037,26 +1037,15 @@ and mkExp (exp, d) =
 	   in c end)
         | mkExp0 (NUMexp(src, {ival, ty})) = (
 	    debugmsg ">>mkExp NUMexp";
-(* 64BIT: need extra cases etc. *)
 	    if TU.equalType (ty, BT.intTy) then INT{ival = ival, ty = Tgt.defaultIntSz}
 	    else if TU.equalType (ty, BT.int32Ty) then INT{ival = ival, ty = 32}
+	    else if TU.equalType (ty, BT.int64Ty) then INT{ival = ival, ty = 64}
 	    else if TU.equalType (ty, BT.intinfTy) then VAR (getII ival)
-	    else if TU.equalType (ty, BT.int64Ty) then let  (* JHR makes this go away *)
-		val (hi, lo) = LN.int64 ival
-		fun mkHalf n = WORD{ival = n, ty = 32}
-		in
-		  RECORD [mkHalf hi, mkHalf lo]
-		end
 	    else if TU.equalType (ty, BT.wordTy) then WORD{ival = ival, ty = Tgt.defaultIntSz}
 	  (* NOTE: 8-bit word is promoted to default tagged word representation *)
 	    else if TU.equalType (ty, BT.word8Ty) then WORD{ival = ival, ty = Tgt.defaultIntSz}
 	    else if TU.equalType (ty, BT.word32Ty) then WORD{ival = ival, ty = 32}
-	    else if TU.equalType (ty, BT.word64Ty) then let (* 64BIT: JHR makes this go away *)
-		val (hi, lo) = LN.word64 ival
-		fun mkHalf n = WORD{ival = n, ty = 32}
-		in
-		  RECORD [mkHalf hi, mkHalf lo]
-		end
+	    else if TU.equalType (ty, BT.word64Ty) then WORD{ival = ival, ty = 64}
 	      else (ppType ty; bug "translate NUMexp"))
 (* REAL32: handle 32-bit reals *)
         | mkExp0 (REALexp(_, {rval, ty})) = REAL{rval = rval, ty = Tgt.defaultRealSz}

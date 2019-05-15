@@ -37,7 +37,6 @@ structure TransPrim : sig
     val lt_unit = LT.ltc_unit
 
     val lt_ipair = lt_tup [lt_int, lt_int]
-    val lt_fixed_pair = lt_tup [lt_fixed_int, lt_fixed_int]
     val lt_icmp = lt_arw (lt_ipair, lt_bool)
     val lt_intop1 = lt_arw (lt_int, lt_int)
 
@@ -121,6 +120,21 @@ structure TransPrim : sig
 	    lt_arw(lt_tup [elem, lt_int], elem)
           end
 
+  (* pick the name of an infinf conversion from "_Core" based on the size *)
+    local
+      fun pickName (tagCvt, boxCvt, num64Cvt) sz =
+	    if (sz <= Target.defaultIntSz) then tagCvt
+	    else if (sz = Target.mlValueSz) then boxCvt
+	    else if (sz = 64) andalso not Target.is64 then num64Cvt
+	    else bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
+    in
+(* TODO: add specialized conversion for default int size *)
+    val truncInf = pickName ("truncInfLarge", "truncInfLarge", "truncInf64")
+    val testInf = pickName ("testInfLarge", "testInfLarge", "testInf64")
+    val copyInf = pickName ("copyLargeInf", "copyLargeInf", "copy64Inf")
+    val extendInf = pickName ("extendLargeInf", "extendLargeInf", "extend64Inf")
+    end (* local *)
+
   (* trans : Primop.primop * Lty.lty * Lty.tyc list
    *
    * Translate Absyn primop to PLambda form using given
@@ -147,6 +161,75 @@ structure TransPrim : sig
 		  (L.DATAcon(falseDcon', [], mkv()), c)
 		],
 		NONE)
+	(* for some 64-bit arithmetic operations on 32-bit machines, we need to add
+	 * an extra argument that is the actual operation (defined in the _Core
+	 * module).
+	 *)
+	  val mkPrim = if Target.is64
+		then L.PRIM
+		else let
+		(* returns a lambda abstraction that wraps the primop with its
+		 * extra argument.
+		 *)
+		  fun cvt (poName, po, lt) = let
+			val int64Ty = LT.ltc_num 64
+			val argTy = lt_tup [int64Ty, int64Ty]
+			val extraTy = lt_arw (argTy, int64Ty)
+			val primTy = lt_arw (lt_tup [int64Ty, int64Ty, extraTy], int64Ty)
+			in
+			  mkFn argTy (fn p =>
+			    mkLet (L.SELECT(0, p)) (fn arg1 =>
+			      mkLet (L.SELECT(1, p)) (fn arg2 =>
+				L.APP(L.PRIM(po, primTy, []),
+				  L.RECORD[arg1, arg2, coreAcc poName]))))
+			end
+		  fun chkPrim (po as PO.IARITH{oper, sz=64}, lt, ts) = (case oper
+			 of PO.IMUL => cvt("i64Mul", po, lt)
+			  | PO.IDIV => cvt("i64Div", po, lt)
+			  | PO.IMOD => cvt("i64Mod", po, lt)
+			  | PO.IQUOT => cvt("i64Quot", po, lt)
+			  | PO.IREM => cvt("i64Rem", po, lt)
+			  | _ => L.PRIM(po, lt, ts)
+			(* end *))
+		    | chkPrim (po as PO.PURE_ARITH{oper, kind=PO.UINT 64}, lt, ts) = (
+			case oper
+			 of PO.MUL => cvt("w64Mul", po, lt)
+			  | PO.QUOT => cvt("w64Div", po, lt)
+			  | PO.REM => cvt("w64Mod", po, lt)
+			  | _ => L.PRIM(po, lt, ts)
+			(* end *))
+		    | chkPrim (po as PO.TESTU(64, to), lt, ts) = let
+			val (argTy, resTy) = (case LT.ltd_arrow lt
+			       of (_, [a], [r]) => (a, r)
+				| _ => bug (concat[
+				      "unexpected type ", LT.lt_print lt, " of TEST"
+				    ])
+			      (* end case *))
+			val extraTy = lt_arw (argTy, resTy)
+			val primTy = lt_arw (lt_tup [argTy, extraTy], resTy)
+			in
+			  mkFn argTy (fn arg =>
+			    L.APP(L.PRIM(po, primTy, []),
+			      L.RECORD[arg, coreAcc "w64ToInt32"]))
+			end
+		    | chkPrim (po as PO.TEST(64, to), lt, ts) = let
+			val (argTy, resTy) = (case LT.ltd_arrow lt
+			       of (_, [a], [r]) => (a, r)
+				| _ => bug (concat[
+				      "unexpected type ", LT.lt_print lt, " of TEST"
+				    ])
+			      (* end case *))
+			val extraTy = lt_arw (argTy, resTy)
+			val primTy = lt_arw (lt_tup [argTy, extraTy], resTy)
+			in
+			  mkFn argTy (fn arg =>
+			    L.APP(L.PRIM(po, primTy, []),
+			      L.RECORD[arg, coreAcc "w64ToInt32X"]))
+			end
+		    | chkPrim arg = L.PRIM arg
+		  in
+		    chkPrim
+		  end
 	(* expand an inline shift operation.*)
 	  fun inlineShift (shiftOp, kind, clear) = let
 		val shiftLimit = (case kind
@@ -194,7 +277,7 @@ structure TransPrim : sig
 		end
 	(* division operators with an explicit test for a zero divisor *)
 	  fun inldiv (nk, po, lt, ts) = let
-		val oper = L.PRIM (po, lt, ts)
+		val oper = mkPrim (po, lt, ts)
 		in
 		  case coreExn ["Assembly", "Div"]
 		   of SOME divexn => let
@@ -249,45 +332,37 @@ structure TransPrim : sig
 		      warn "no access to Chr exception";
 		      L.PRIM(PO.CAST, lt_intop1, []))
 		(* end case *))
-	(** Precision converting translation using a conversion
-	 *  primitive named in the second argument.
-	 *
-	 *  Examples:
-	 *	inlToInfPrec ("EXTEND_INF", "finToInf", p, lt)
-	 *	inlToInfPrec ("COPY", "finToInf", p, lt)
-	 *
-	 *  where "finToInf" is defined at
-	 *
-	 *	system/smlnj/init/core-intinf.sml:51:    val finToInf  : int32 * bool -> intinf
-	 *)
-	  fun inlToInfPrec (opname: string, coerceFnName: string, primop, primoplt) = let
+	(* conversion from fixed int to intinf *)
+	  fun inlToInf (opname: string, cvtName: string, primop, primoplt) = let
 		val (orig_arg_lt, res_lt) = (
 		      case LT.ltd_arrow primoplt handle LT.DeconExn => bug "inlToInfPrec"
 		       of (_, [a], [r]) => (a, r)
-			| _ => bug ("unexpected type of " ^ opname)
+			| _ => bug (concat[
+			      "unexpected type ", LT.lt_print primoplt, " of ", opname
+			    ])
 		      (* end case *))
-		val extra_arg_lt = if coerceFnName = "finToInf"
-		      then LT.ltc_arrow(LT.ffc_var(true, false),
-				 [lt_fixed_int ,LT.ltc_bool], [res_lt])
-		      else LT.ltc_parrow(lt_fixed_int, res_lt)
+		val extra_arg_lt = LT.ltc_parrow(lt_fixed_int, res_lt)
 		val new_arg_lt = LT.ltc_tuple [orig_arg_lt, extra_arg_lt]
 		val new_lt = LT.ltc_parrow (new_arg_lt, res_lt)
 		in
 		  mkFn orig_arg_lt (fn x =>
-		    mkApp2 (L.PRIM (primop, new_lt, []), x, coreAcc coerceFnName))
+		    mkApp2 (L.PRIM (primop, new_lt, []), x, coreAcc cvtName))
 		end
-	  fun inlFromInfPrec (opname, coerceFnName, primop, primoplt) = let
+	(* conversion from intinf to fixed int *)
+	  fun inlFromInf (opname, cvtName, primop, primoplt) = let
 		val (orig_arg_lt, res_lt) = (
 		      case LT.ltd_arrow primoplt handle LT.DeconExn => bug "inlFromInfPrec"
 		       of (_, [a], [r]) => (a, r)
-			| _ => bug ("unexpected type of " ^ opname)
+			| _ => bug (concat[
+			      "unexpected type ", LT.lt_print primoplt, " of ", opname
+			    ])
 		      (* end case *))
 		val extra_arg_lt = LT.ltc_parrow (orig_arg_lt, lt_fixed_int)
 		val new_arg_lt = LT.ltc_tuple [orig_arg_lt, extra_arg_lt]
 		val new_lt = LT.ltc_parrow (new_arg_lt, res_lt)
 		in
 		  mkFn orig_arg_lt (fn x =>
-		    mkApp2 (L.PRIM (primop, new_lt, []), x, coreAcc coerceFnName))
+		    mkApp2 (L.PRIM (primop, new_lt, []), x, coreAcc cvtName))
 		end
 	(* useful error message *)
 	  fun unexpectedTy () = bug(concat[
@@ -360,8 +435,6 @@ structure TransPrim : sig
 		  in
 		    mkFn argt (fn v => v)
 		  end
-(* 64BIT: FIXME *)
-	      | PO.CVT64 => mkFn (lt_tup[LT.ltc_num 32, LT.ltc_num 32]) (fn v => v) (* int64 in 32BIT *)
 	      | PO.INLSUBSCRIPTV => let
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)
@@ -436,12 +509,12 @@ structure TransPrim : sig
 	     * a second argument -- the routine from _Core that
 	     * does the actual conversion to or from IntInf.
 	     *)
-	      | PO.TEST_INF prec => inlFromInfPrec ("TEST_INF", "testInf", prim, lt)
-	      | PO.TRUNC_INF prec => inlFromInfPrec ("TRUNC_INF", "truncInf", prim, lt)
-	      | PO.EXTEND_INF prec => inlToInfPrec ("EXTEND_INF", "finToInf", prim, lt)
-	      | PO.COPY_INF prec => inlToInfPrec ("COPY", "finToInf", prim, lt)
+	      | PO.TRUNC_INF sz => inlFromInf ("TRUNC_INF", truncInf sz, prim, lt)
+	      | PO.TEST_INF sz => inlFromInf ("TEST_INF", testInf sz, prim, lt)
+	      | PO.COPY_INF sz => inlToInf ("COPY", copyInf sz, prim, lt)
+	      | PO.EXTEND_INF sz => inlToInf ("EXTEND_INF", extendInf sz, prim, lt)
 	    (* default handling for all other primops *)
-	      | p => L.PRIM(p, lt, ts)
+	      | p => mkPrim(p, lt, ts)
 	    (* end case *)
 	  end (* trans *)
 

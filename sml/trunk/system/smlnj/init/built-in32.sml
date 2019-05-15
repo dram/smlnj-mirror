@@ -160,32 +160,40 @@ structure InlineT =
 
     structure Int64 =
       struct
+	val toInt = InLine.int64_to_int
+	val fromInt = InLine.int_to_int64
+	val toLarge = InLine.int64_to_intinf
+	val fromLarge = InLine.intinf_to_int64
+
+        val op +    : int64 * int64 -> int64  = InLine.int64_add
+        val op -    : int64 * int64 -> int64  = InLine.int64_sub
+        val op *    : int64 * int64 -> int64  = InLine.int64_mul
+        val op quot : int64 * int64 -> int64  = InLine.int64_quot
+        val op rem  : int64 * int64 -> int64  = InLine.int64_rem
+        val op div  : int64 * int64 -> int64  = InLine.int64_div
+        val op mod  : int64 * int64 -> int64  = InLine.int64_mod
+        val ~       : int64 -> int64          = InLine.int64_neg
+        val op <    : int64 * int64 -> bool   = InLine.int64_lt
+        val op <=   : int64 * int64 -> bool   = InLine.int64_le
+        val op >    : int64 * int64 -> bool   = InLine.int64_gt
+        val op >=   : int64 * int64 -> bool   = InLine.int64_ge
+        val op =    : int64 * int64 -> bool   = InLine.int64_eql
+        val op <>   : int64 * int64 -> bool   = InLine.int64_neq
+
+        val min     : int64 * int64 -> int64  = InLine.int64_min
+        val max     : int64 * int64 -> int64  = InLine.int64_max
+        val abs     : int64 -> int64          = InLine.int64_abs
+
         val extern : int64 -> word32 * word32 = InLine.int64_to_pair
 	val intern : word32 * word32 -> int64 = InLine.int64_from_pair
       end
 
     structure IntInf =
       struct
-	val test_int31    : intinf -> int    = InLine.intinf_to_int
-        val test_int32    : intinf -> int32  = InLine.intinf_to_int32
-	val trunc_word8   : intinf -> word8  = InLine.intinf_to_word8
-	val trunc_word31  : intinf -> word   = InLine.intinf_to_word
-	val trunc_word32  : intinf -> word32 = InLine.intinf_to_word32
-	val copy_word8    : word8 -> intinf  = InLine.unsigned_word8_to_intinf
-	val copy_int31    : int -> intinf    = InLine.int_to_intinf
-	val copy_word31   : word -> intinf   = InLine.unsigned_word_to_intinf
-	val copy_int32    : int32 -> intinf  = InLine.int32_to_intinf
-	val copy_word32   : word32 -> intinf = InLine.unsigned_word32_to_intinf
-	val extend_word8  : word8 -> intinf  = InLine.signed_word8_to_intinf
-	val extend_int31  : int -> intinf    = InLine.int_to_intinf
-	val extend_word31 : word -> intinf   = InLine.signed_word_to_intinf
-	val extend_int32  : int32 -> intinf  = InLine.int32_to_intinf
-	val extend_word32 : word32 -> intinf = InLine.signed_word32_to_intinf
-
-	val toInt			     = InLine.intinf_to_int
-	val fromInt			     = InLine.int_to_intinf
-	val toLarge       : intinf -> intinf = InLine.inl_identity
-	val fromLarge     : intinf -> intinf = InLine.inl_identity
+	val toInt     : intinf -> int    = InLine.intinf_to_int
+	val fromInt   : int -> intinf    = InLine.int_to_intinf
+	val toLarge   : intinf -> intinf = InLine.inl_identity
+	val fromLarge : intinf -> intinf = InLine.inl_identity
       end
 
     structure Word =
@@ -193,9 +201,6 @@ structure InlineT =
 	val toLarge : word -> word32	  = InLine.unsigned_word_to_word32
 	val toLargeX : word -> word32	  = InLine.signed_word_to_word32
 	val fromLarge : word32 -> word	  = InLine.word32_to_word
-	val toLargeWord   = toLarge			(* deprecated *)
-	val toLargeWordX  = toLargeX			(* deprecated *)
-	val fromLargeWord = fromLarge			(* deprecated *)
 	val toInt : word -> int		  = InLine.unsigned_word_to_int
 	val toIntX : word -> int          = InLine.signed_word_to_int
 	val fromInt : int -> word         = InLine.int_to_word
@@ -205,6 +210,8 @@ structure InlineT =
 
       (* extra conversions *)
 	val toInt32 : word -> int32 = InLine.copy_word_to_int32
+	val toWord32 : word -> word32 = InLine.word_to_word32
+	val toWord64 : word -> word64 = InLine.word_to_word64
 
         val orb     : word * word -> word = InLine.word_orb
         val xorb    : word * word -> word = InLine.word_xorb
@@ -238,9 +245,6 @@ structure InlineT =
 	val toLarge	  = InLine.unsigned_word8_to_word32
 	val toLargeX	  = InLine.signed_word8_to_word32
 	val fromLarge	  = InLine.word32_to_word8
-	val toLargeWord   = toLarge			(* deprecated *)
-	val toLargeWordX  = toLargeX			(* deprecated *)
-	val fromLargeWord = fromLarge			(* deprecated *)
 	val toInt         = InLine.unsigned_word8_to_int
 	val toIntX        = InLine.signed_word8_to_int
 	val fromInt       = InLine.int_to_word8
@@ -282,9 +286,6 @@ structure InlineT =
 	val toLarge : word32 -> word32	 = InLine.inl_identity
 	val toLargeX : word32 -> word32	 = InLine.inl_identity
 	val fromLarge : word32 -> word32 = InLine.inl_identity
-	val toLargeWord			 = toLarge	(* deprecated *)
-	val toLargeWordX		 = toLargeX	(* deprecated *)
-	val fromLargeWord		 = fromLarge	(* deprecated *)
 	val toInt			 = InLine.unsigned_word32_to_int
 	val toIntX			 = InLine.signed_word32_to_int
 	val fromInt			 = InLine.int_to_word32
@@ -322,8 +323,47 @@ structure InlineT =
 
     structure Word64 =
       struct
-        val extern : word64 -> word32 * word32 = InLine.word64_to_pair
-	val intern : word32 * word32 -> word64 = InLine.word64_from_pair
+
+        val extern : word64 -> word32 * word32   = InLine.word64_to_pair
+	val intern : word32 * word32 -> word64   = InLine.word64_from_pair
+
+(* 64BIT: add these once LargeWord = Word64
+	val toLarge : word64 -> ??		 = ??
+	val toLargeX : word64 -> ??		 = ??
+	val fromLarge : ?? -> word64		 = ??
+*)
+	val toInt : word64 -> int		 = InLine.unsigned_word64_to_int
+	val toIntX : word64 -> int		 = InLine.signed_word64_to_int
+	val fromInt : int -> word64		 = InLine.int_to_word64
+	val toLargeInt : word64 -> intinf	 = InLine.unsigned_word64_to_intinf
+	val toLargeIntX : word64 -> intinf	 = InLine.signed_word64_to_intinf
+	val fromLargeInt : intinf -> word64	 = InLine.intinf_to_word64
+
+        val op + : word64 * word64 -> word64	 = InLine.word64_add
+        val op - : word64 * word64 -> word64	 = InLine.word64_sub
+        val op * : word64 * word64 -> word64	 = InLine.word64_mul
+        val op div : word64 * word64 -> word64	 = InLine.word64_div
+        val op mod : word64 * word64 -> word64	 = InLine.word64_mod
+	val ~ : word64 -> word64		 = InLine.word64_neg
+        val orb : word64 * word64 -> word64	 = InLine.word64_orb
+        val xorb : word64 * word64 -> word64	 = InLine.word64_xorb
+        val andb : word64 * word64 -> word64	 = InLine.word64_andb
+	val chkLshift  : word64 * word -> word64 = InLine.word64_lshift
+	val chkRshift  : word64 * word -> word64 = InLine.word64_rshift
+	val chkRshiftl : word64 * word -> word64 = InLine.word64_rshiftl
+        val rshift : word64 * word -> word64     = InLine.word64_raw_rshift
+        val rshiftl : word64 * word -> word64    = InLine.word64_raw_rshiftl
+        val lshift : word64 * word -> word64     = InLine.word64_raw_lshift
+        val notb : word64 -> word64              = InLine.word64_notb
+
+        val op > : word64 * word64 -> bool	 = InLine.word64_gt
+        val op >= : word64 * word64 -> bool	 = InLine.word64_ge
+        val op < : word64 * word64 -> bool	 = InLine.word64_lt
+        val op <= : word64 * word64 -> bool	 = InLine.word64_le
+
+        val min     : word64 * word64 -> word64  = InLine.word64_min
+        val max     : word64 * word64 -> word64  = InLine.word64_max
+
       end
 
     structure Char =

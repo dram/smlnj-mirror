@@ -188,7 +188,7 @@ structure POSIX_IO =
     fun setlkw (fd, flock) =
           flockFromRep(false,fcntl_l(FS.intOf fd,f_setlkw,flockToRep flock))
 
-(* 64BIT: FIXME is Int.int correct for this type? *)
+(* 64BIT: FIXME is Int.int correct for this type? Should it be Position.int? *)
     val lseek' : s_int * Int.int * s_int -> Int.int = cfun "lseek"
     fun lseek (fd, offset, whence) = lseek'(FS.intOf fd,offset, whToWord whence)
 

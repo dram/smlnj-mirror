@@ -1,6 +1,6 @@
-/* ml-values.h
+/*! \file ml-values.h
  *
- * COPYRIGHT (c) 1992 AT&T Bell Laboratories
+ * \author John Reppy
  *
  * Basic definitions for representing ML values in C.
  *
@@ -8,6 +8,11 @@
  *   INT_CtoML(i)	-- convert a Word_t to an unboxed ML value.
  *   PTR_MLtoC(ty, v)	-- convert a boxed ML value to a (ty *).
  *   PTR_CtoML(p)	-- convert (Word_t *p) to an boxed ML value.
+ */
+
+/*
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #ifndef _ML_VALUES_

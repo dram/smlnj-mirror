@@ -644,6 +644,27 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		(print "*** pro-forma raw-record\n";
 		 newname (v, lpvar x); loop(e,c))
 
+	    (* conversions to/from 64-bits and pairs of 32-bit words on 32-bit targets *)
+	      | F.PRIMOP((_, AP.INTERN64, _, _), args, res, e) => let
+		  val [hi, lo] = lpvars args
+		  in
+		    RECORD(RK_RAWBLOCK, [(hi, OFFp0), (lo, OFFp0)], res,
+		      loop(e,c))
+		  end
+	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) => let
+		  val [arg] = lpvars args
+		  val num32Ty = boxIntTy 32
+		  val hi = LV.mkLvar() and lo = LV.mkLvar()
+		  val hiBox = LV.mkLvar() and loBox = LV.mkLvar()
+		  in
+		    SELECT(0, arg, hi, num32Ty,
+		    SELECT(1, arg, lo, num32Ty,
+		    PURE(P.WRAP(P.INT 32), [VAR hi], hiBox, PTRt VPT,
+		    PURE(P.WRAP(P.INT 32), [VAR lo], loBox, PTRt VPT,
+		      RECORD(RK_RECORD, [(VAR hiBox, OFFp0), (VAR loBox, OFFp0)], res,
+			loop(e,c))))))
+		  end
+
 	      | F.PRIMOP(po as (_,p,lt,ts), ul, v, e) =>
 		  let val ct =
 			case (#3(LT.ltd_arrow(LT.lt_pinst (lt, ts))))

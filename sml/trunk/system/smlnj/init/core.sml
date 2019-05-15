@@ -111,7 +111,7 @@ structure Core =
     local val ieql : int * int -> bool = InLine.int_eql
           val peql : 'a * 'a -> bool = InLine.ptr_eql
           val ineq : int * int -> bool = InLine.int_neq
-	  val i32eq : int32 * int32 -> bool = InLine.int32_eql
+	  val i32eq : int32 * int32 -> bool = InLine.int32_eql (* 64BIT: FIXME *)
           val boxed : 'a -> bool = InLine.boxed
           val op + : int * int -> int = InLine.int_add
           val op - : int * int -> int = InLine.int_sub
@@ -270,7 +270,9 @@ structure Core =
 		      (* end case *))
 		  | 0x0a (* tag_arr_hdr *) => peql(getData a, getData b)
 		  | 0x0e (* tag_arr_data and tag_ref *) => false
-(* 64BIT: FIXME *)
+(* 64BIT: I think that this is relying on the cast to int32 to force the
+ * loading of the boxed values, which are then compared by i32eq.
+ *)
 		  | 0x12 (* tag_raw *) => i32eq(cast a, cast b)
 		  | _ (* tagless pair *) => pairEq()
 		(* end case *)
@@ -349,15 +351,53 @@ structure Core =
 	    val tdp_active_plugins = hook
 	end
 
-      (* these functions are used in FLINT/trans/transprim.sml *)
-	val testInf = CoreIntInf.testInf
-	val truncInf = CoreIntInf.truncInf
-	val finToInf = CoreIntInf.finToInf
+      (* functions for making intinf literals *)
 	val makeNegInf = CoreIntInf.makeNegInf
 	val makePosInf = CoreIntInf.makePosInf
 	val makeSmallNegInf = CoreIntInf.makeSmallNegInf
 	val makeSmallPosInf = CoreIntInf.makeSmallPosInf
 	val infLowValue = CoreIntInf.lowValue
+
+      (* these functions below are used in FLINT/trans/transprim.sml as extra
+       * arguments to primops.  The primops eventually get replaced with calls
+       * to the functions after CPS optimization.
+       *)
+
+      (* "large" (boxed) numbers <-> intinf *)
+	val truncInfLarge = CoreIntInf.truncInfLarge	(* for `P.TRUNC_INF 32` *)
+	val testInfLarge = CoreIntInf.testInfLarge	(* for `P.TEST_INF 32` *)
+	val copyLargeInf = CoreIntInf.copyLargeInf	(* for `P.COPY_INF 32` *)
+	val extendLargeInf = CoreIntInf.extendLargeInf	(* for `P.EXTEND_INF 32` *)
+
+      (* word64-rep (pairs of 32-bit words) <-> intinf *)
+	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)
+	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
+	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)
+	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
+
+      (* word64-rep (pairs of 32-bit words) -> int *)
+(* do we need these functions? *)
+	val w64ToInt = CoreWord64.toInt
+	val w64ToIntX = CoreWord64.toIntX
+	val i64ToInt = CoreInt64.toInt
+
+      (* word64-rep (pairs of 32-bit words) -> large boxed int  *)
+	val w64ToInt32 = CoreWord64.toInt32
+	val w64ToInt32X = CoreWord64.toInt32X
+	val i64ToInt32 = CoreInt64.toInt32
+
+      (* 64-bit arithmetic operations that do not have direct implementations
+       * on 32-bit targets.
+       *)
+	val i64Mul = CoreInt64.*
+	val i64Div = CoreInt64.div
+	val i64Mod = CoreInt64.mod
+	val i64Quot = CoreInt64.quot
+	val i64Rem = CoreInt64.rem
+	val w64Mul = CoreWord64.*
+	val w64Div = CoreWord64.div
+	val w64Mod = CoreWord64.mod
+
     end (* local *)
 
     val profile_sregister = ref(fn (x:Assembly.object,s:string)=>x)

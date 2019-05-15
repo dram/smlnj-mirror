@@ -55,10 +55,10 @@ structure IntImp : INTEGER =
     val op < 	: int * int -> bool = Int.<
     val op <= 	: int * int -> bool = Int.<=
 
-    fun fmt radix = (NumFormat.fmtInt radix) o Int32Imp.fromInt
+    fun fmt radix = (NumFormat32.fmtInt radix) o Int32Imp.fromInt
 
     fun scan radix = let
-      val scanLarge = NumScan.scanInt radix
+      val scanLarge = NumScan32.scanInt radix
       fun f getc cs =
 	(case scanLarge getc cs
 	  of NONE => NONE

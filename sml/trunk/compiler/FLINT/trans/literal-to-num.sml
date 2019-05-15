@@ -1,21 +1,13 @@
 (* literal-to-num.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Conversions from integer/word literals (which are represented as
- * arbitrary precision ints) to fixed size.
- *
- * This structure is a hack, which should be replaced by a parameterized
- * numeric types.
+ * Support for intinf literals.
  *)
 
 signature LITERAL_TO_NUM =
   sig
-
-    val int64  : IntInf.int -> IntInf.int * IntInf.int
-
-    val word64 : IntInf.int -> IntInf.int * IntInf.int
 
     val isNegative : IntInf.int -> bool
 
@@ -26,13 +18,6 @@ signature LITERAL_TO_NUM =
 
 structure LiteralToNum : LITERAL_TO_NUM =
   struct
-
-(* 64BIT: will go away once FLINT knows about 64-bit ints *)
-    fun int64 i =
-	  (IntInf.andb(IntInf.~>>(i, 0w32), 0xffffffff), IntInf.andb(i, 0xffffffff))
-
-(* 64BIT: will go away once FLINT knows about 64-bit words *)
-    fun word64 i = (IntInf.~>>(i, 0w32), IntInf.andb(i, 0xffffffff))
 
     fun isNegative (i : IntInf.int) = (i < 0)
 

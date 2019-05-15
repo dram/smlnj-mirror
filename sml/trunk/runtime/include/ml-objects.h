@@ -1,8 +1,13 @@
-/* ml-objects.h
- *
- * COPYRIGHT (c) 1992 AT&T Bell Laboratories
+/*! \file ml-objects.h
  *
  * Macros and routines for allocating heap objects.
+ *
+ * \author John Reppy
+ */
+
+/*
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #ifndef _ML_OBJECTS_
@@ -167,9 +172,29 @@
 	__msp->ml_allocPtr = __p;				\
     }
 #define REC_SELWORD(p, i)	(*REC_SELPTR(Word_t, p, i))
+
+#ifdef SIZES_C64_ML64
+/* 64BIT: Int32_t is tagged on 64-bit targets */
+#define INT64_ALLOC(msp, p, i)	WORD_ALLOC(msp, p, i)
+
+#else /* !SIZES_C64_ML64 */
+
 #define INT32_MLtoC(i)		(*PTR_MLtoC(Int32_t, i))
 #define INT32_ALLOC(msp, p, i)	WORD_ALLOC(msp, p, i)
 #define REC_SELINT32(p, i)	(*REC_SELPTR(Int32_t, p, i))
+
+#define INT64_ALLOC(map, p, w) {				\
+	ml_state_t	*__msp = (msp);				\
+	ml_val_t	*__p = __msp->ml_allocPtr;		\
+	Unsigned64_t	__w = (Unsigned64_t)(w)			\
+	*__p++ = MAKE_DESC(2, DTAG_raw);			\
+	*__p++ = (ml_val_t)((Unsigned32_t)(__w >> 32));		\
+	*__p++ = (ml_val_t)((Unsigned32_t)(__w & 0xffffffff));	\
+	(p) = PTR_CtoML(__msp->ml_allocPtr + 2);		\
+	__msp->ml_allocPtr = __p;				\
+    }
+
+#endif /* SIZES_C64_ML64 */
 
 /** ML lists **/
 #define LIST_hd(p)		REC_SEL(p, 0)

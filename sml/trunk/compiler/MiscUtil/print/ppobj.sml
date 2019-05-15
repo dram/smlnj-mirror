@@ -67,9 +67,9 @@ fun switch(obj, dcons) = let
       end
 
 (** a temporary hack for printing UNTAGGEDREC objects *)
-fun isRecTy (T.VARty(ref (T.INSTANTIATED t))) = isRecTy t
-  | isRecTy (T.CONty(T.RECORDtyc _, _::_)) = true
-  | isRecTy _ = false
+fun isRecordTy (T.VARty(ref (T.INSTANTIATED t))) = isRecordTy t
+  | isRecordTy (T.CONty(T.RECORDtyc _, _::_)) = true
+  | isRecordTy _ = false
 
 (* 64BIT: what is this function testing? *)
 fun isUbxTy (T.VARty(ref (T.INSTANTIATED t))) = isUbxTy t
@@ -78,16 +78,15 @@ fun isUbxTy (T.VARty(ref (T.INSTANTIATED t))) = isUbxTy t
       (TU.eqTycon(tc, BT.word32Tycon))
   | isUbxTy _ = false
 
-fun decon(obj, {rep,name,domain}) = (case rep
-      of A.UNTAGGED =>
-           (case domain
-             of SOME t =>
-                 if (isRecTy t) orelse (isUbxTy t)
-                 then obj else (Obj.nth(obj, 0) handle e => raise e)
-              | _ => bug "decon -- unexpected conrep-domain")
-
-       | A.TAGGED _ => (Obj.nth(obj,1) handle e => raise e)
-(*     | A.TAGGEDREC _ =>
+fun decon (obj, {rep, name, domain}) = (case rep
+       of A.UNTAGGED => (case domain
+             of SOME t => if (isRecordTy t) orelse (isUbxTy t)
+                  then obj
+		  else (Obj.nth(obj, 0) handle e => raise e)
+              | _ => bug "decon -- unexpected conrep-domain"
+	    (* end case *))
+	| A.TAGGED _ => (Obj.nth(obj,1) handle e => raise e)
+(*	| A.TAGGEDREC _ =>
 	   let (* skip first element, i.e. discard tag *)
 	       val a = tuple obj
 	       fun f i =
@@ -97,14 +96,14 @@ fun decon(obj, {rep,name,domain}) = (case rep
 	    in U.cast (V.fromList (f(1)))
 	   end
 *)
-       | A.CONSTANT _ => Obj.toObject ()
-       | A.TRANSPARENT => obj
-       | A.REF => !(Obj.toRef obj)
-       | A.EXN _ => (Obj.nth(obj,0) handle e => raise e)
-       | A.LISTCONS => obj
-       | A.LISTNIL => bug "decon - constant datacon in decon"
-       | A.SUSP _ => obj
-  (* end case *))
+	| A.CONSTANT _ => Obj.toObject ()
+	| A.TRANSPARENT => obj
+	| A.REF => !(Obj.toRef obj)
+	| A.EXN _ => (Obj.nth(obj,0) handle e => raise e)
+	| A.LISTCONS => obj
+	| A.LISTNIL => bug "decon - constant datacon in decon"
+	| A.SUSP _ => obj
+      (* end case *))
 
 val noparen = F.INfix(0,0)
 
@@ -210,16 +209,12 @@ local
   val toStringTbl = [
 	  (BT.intTycon,		Int.toString o Obj.toInt),
 	  (BT.int32Tycon,	Int32.toString o Obj.toInt32),
-(* 64BIT: TODO
 	  (BT.int64Tycon,	Int64.toString o Obj.toInt64),
-*)
 	  (BT.intinfTycon,	PrintUtil.pr_intinf o Unsafe.cast),
 	  (BT.wordTycon,	wordPrefx o Word.toString o Obj.toWord),
 	  (BT.word8Tycon,	wordPrefx o Word8.toString o Obj.toWord8),
 	  (BT.word32Tycon,	wordPrefx o Word32.toString o Obj.toWord32),
-(* 64BIT: TODO
 	  (BT.word64Tycon,	wordPrefx o Word64.toString o Obj.toWord64),
-*)
 	  (BT.charTycon,	char2str),
 	  (BT.realTycon,	Real.toString o Obj.toReal),
 	  (BT.exnTycon,		exn2str),
@@ -248,156 +243,133 @@ let fun ppValue (obj: object, ty: T.ty, depth: int) : unit =
 
     and ppVal' (_,_,_,0,_,_,_) = PP.string ppstrm  "#"
       | ppVal' (obj: object, ty: T.ty, membersOp: (T.tycon list * T.tycon list) option,
-                depth: int, l: F.fixity, r: F.fixity, accu) : unit =
-       ((case ty
-	  of T.VARty(ref(T.INSTANTIATED t)) =>
-	       ppVal'(obj,t,membersOp,depth,r,l,accu)
-	   | T.POLYty{tyfun=T.TYFUN{body,arity},...} =>
-              if arity=0
-              then  ppVal'(obj, body,membersOp,depth,l,r,accu)
-              else (let
-                val args = Obj.mkTuple (List.tabulate(arity, fn i => Obj.toObject 0))
-		val tobj : object -> object = Unsafe.cast obj
-		val res = tobj args
-                in
-		  ppVal'(res, body, membersOp, depth, l, r, accu)
-                end)
-
-
-	   | T.CONty(tyc as T.GENtyc { kind, stamp, eq, ... }, argtys) => (
-	      case (kind, !eq)
-	       of (T.PRIMITIVE, _) => (case primToString tyc
-		     of SOME(_, fmt) => PP.string ppstrm (fmt obj)
-		      | NONE => (* check for vector/array type constructors *)
-			  if TU.eqTycon(tyc,BT.vectorTycon)
-			    then ppVector (
-			      Obj.toVector obj, hd argtys,
-			      membersOp, depth,
-			      !Control.Print.printLength, accu)
-			      handle Obj.Representation => PP.string ppstrm  "<primvec?>"
-			  else if TU.eqTycon(tyc,BT.arrayTycon)
-			    then (printWithSharing ppstrm
-			      (obj,accu,
-			       fn (obj,accu) =>
-				  (case Obj.rep obj
-				    of Obj.PolyArray =>
-				       ppArray(Obj.toArray obj, hd argtys,
-					       membersOp, depth,
-					       !Control.Print.printLength, accu)
-				     | Obj.RealArray =>
-				       ppRealArray(Obj.toRealArray obj,
-						   !Control.Print.printLength)
-				     | _ => bug "array (neither Real nor Poly)"
-				       ))
-			      handle Obj.Representation => PP.string ppstrm  "<primarray?>")
-	                  else PP.string ppstrm  "<prim?>"
-		    (* end case *))
-		| (T.DATATYPE _, T.ABS) =>
-		  (PPTable.pp_object ppstrm stamp obj
-		   handle PP_NOT_INSTALLED => PP.string ppstrm  "-" )
-		| (T.DATATYPE{index,stamps,
-			      family as {members,...}, freetycs, root, stripped}, _) =>
-		  if TU.eqTycon(tyc,BT.ulistTycon) then
-	              ppUrList(obj,hd argtys,membersOp,depth,
+                depth: int, l: F.fixity, r: F.fixity, accu) : unit = ((
+	  case ty
+	   of T.VARty(ref(T.INSTANTIATED t)) =>
+		ppVal'(obj,t,membersOp,depth,r,l,accu)
+	    | T.POLYty{tyfun=T.TYFUN{body,arity},...} =>
+		if arity=0
+	          then  ppVal'(obj, body,membersOp,depth,l,r,accu)
+	          else let
+		    val args = Obj.mkTuple (List.tabulate(arity, fn i => Obj.toObject 0))
+		    val tobj : object -> object = Unsafe.cast obj
+		    val res = tobj args
+		    in
+		      ppVal'(res, body, membersOp, depth, l, r, accu)
+		    end
+	    | T.CONty(tyc as T.GENtyc { kind, stamp, eq, ... }, argtys) => (
+		case (kind, !eq)
+		 of (T.PRIMITIVE, _) => (case primToString tyc
+		       of SOME(_, fmt) => PP.string ppstrm (fmt obj)
+			| NONE => (* check for vector/array type constructors *)
+			    if TU.eqTycon(tyc,BT.vectorTycon)
+			      then ppVector (
+				Obj.toVector obj, hd argtys,
+				membersOp, depth,
+				!Control.Print.printLength, accu)
+				handle Obj.Representation => PP.string ppstrm  "<primvec?>"
+			    else if TU.eqTycon(tyc,BT.arrayTycon)
+			      then (printWithSharing ppstrm
+				(obj,accu,
+				 fn (obj,accu) =>
+				    (case Obj.rep obj
+				      of Obj.PolyArray =>
+					 ppArray(Obj.toArray obj, hd argtys,
+						 membersOp, depth,
+						 !Control.Print.printLength, accu)
+				       | Obj.RealArray =>
+					 ppRealArray(Obj.toRealArray obj,
+						     !Control.Print.printLength)
+				       | _ => bug "array (neither Real nor Poly)"
+					 ))
+				handle Obj.Representation => PP.string ppstrm  "<primarray?>")
+			    else PP.string ppstrm  "<prim?>"
+		      (* end case *))
+		  | (T.DATATYPE _, T.ABS) =>
+		    (PPTable.pp_object ppstrm stamp obj
+		     handle PP_NOT_INSTALLED => PP.string ppstrm  "-" )
+		  | (T.DATATYPE{index,stamps,
+				family as {members,...}, freetycs, root, stripped}, _) =>
+		    if TU.eqTycon(tyc,BT.ulistTycon) then
+			ppUrList(obj,hd argtys,membersOp,depth,
+				 !Control.Print.printLength,accu)
+		    else if TU.eqTycon(tyc,BT.suspTycon) then
+			PP.string ppstrm  "$$"  (* LAZY *)
+		    else if TU.eqTycon(tyc,BT.listTycon) then
+			ppList(obj,hd argtys,membersOp,depth,
 			       !Control.Print.printLength,accu)
-		  else if TU.eqTycon(tyc,BT.suspTycon) then
-                      PP.string ppstrm  "$$"  (* LAZY *)
-		  else if TU.eqTycon(tyc,BT.listTycon) then
-		      ppList(obj,hd argtys,membersOp,depth,
-			     !Control.Print.printLength,accu)
-		  else if TU.eqTycon(tyc,BT.refTycon) then
-		      (printWithSharing ppstrm
-		       (obj,accu,
-			let val argtys' = interpArgs(argtys,membersOp)
-			in fn (obj,accu) =>
-			      ppDcon(obj,
-				     (Vector.sub(stamps,index),
-				      Vector.sub(members,index)),
-  				     SOME([BT.refTycon],[]),argtys',
-				     depth,l,r,accu)
-			end))
-		  else let val argtys' = interpArgs(argtys,membersOp)
-		       in
-			   ppDcon(obj,(Vector.sub(stamps,index),
-                                       Vector.sub(members,index)),
-				  SOME(transMembers (stamps, freetycs,
-                                                     root, family)),
-				  argtys',depth,l,r,accu)
-		       end
-		| (T.ABSTRACT _, _) =>
-		    (if TU.eqTycon (tyc, BT.int64Tycon) then
-			 case Obj.toTuple obj of
-			     [hi, lo] =>
-			     let val i =
-				     InlineT.Int64.intern (Obj.toWord32 hi,
-							   Obj.toWord32 lo)
-			     in PP.string ppstrm (Int64.toString i)
-			     end
-			   | _ => PP.string ppstrm "<int64?>"
-		     else  if TU.eqTycon (tyc, BT.word64Tycon) then
-			 case Obj.toTuple obj of
-			     [hi, lo] =>
-			     let val w =
-				     InlineT.Word64.intern (Obj.toWord32 hi,
-							    Obj.toWord32 lo)
-			     in PP.string ppstrm ("0wx" ^ Word64.toString w)
-			     end
-			   | _ => PP.string ppstrm "<word64?>"
-		     else PP.string ppstrm "-")
-		| _ => PP.string ppstrm "-"
-	      (* end case *))
-	   | T.CONty(tyc as T.RECORDtyc [], _) => PP.string ppstrm  "()"
-	   | T.CONty(tyc as T.RECORDtyc labels, argtys) =>
-	       if Tuples.isTUPLEtyc tyc
-	       then ppTuple(Obj.toTuple obj, argtys, membersOp, depth, accu)
-	       else ppRecord(Obj.toTuple obj, labels, argtys, membersOp, depth, accu)
-	   | T.CONty(tyc as T.DEFtyc _, _) =>
-	       ppVal'(obj, TU.reduceType ty, membersOp, depth, l, r,accu)
-	   | T.CONty(tyc as T.RECtyc i,argtys) =>
-	       (case membersOp
+		    else if TU.eqTycon(tyc,BT.refTycon) then
+			(printWithSharing ppstrm
+			 (obj,accu,
+			  let val argtys' = interpArgs(argtys,membersOp)
+			  in fn (obj,accu) =>
+				ppDcon(obj,
+				       (Vector.sub(stamps,index),
+					Vector.sub(members,index)),
+				       SOME([BT.refTycon],[]),argtys',
+				       depth,l,r,accu)
+			  end))
+		    else let val argtys' = interpArgs(argtys,membersOp)
+			 in
+			     ppDcon(obj,(Vector.sub(stamps,index),
+					 Vector.sub(members,index)),
+				    SOME(transMembers (stamps, freetycs,
+						       root, family)),
+				    argtys',depth,l,r,accu)
+			 end
+		  | _ => PP.string ppstrm "-"
+		(* end case *))
+	    | T.CONty(tyc as T.RECORDtyc [], _) => PP.string ppstrm  "()"
+	    | T.CONty(tyc as T.RECORDtyc labels, argtys) => if Tuples.isTUPLEtyc tyc
+		then ppTuple(Obj.toTuple obj, argtys, membersOp, depth, accu)
+		else ppRecord(Obj.toTuple obj, labels, argtys, membersOp, depth, accu)
+	    | T.CONty(tyc as T.DEFtyc _, _) =>
+		ppVal'(obj, TU.reduceType ty, membersOp, depth, l, r,accu)
+	    | T.CONty(tyc as T.RECtyc i,argtys) => (case membersOp
 		  of SOME (memberTycs,_) =>
-		      let val tyc' =
-			      List.nth(memberTycs,i)
-			      handle Subscript =>
-			       (flushStream ppstrm;
-				print "#ppVal':  ";
-				print (Int.toString i);
-				print " "; print(Int.toString(length memberTycs));
-				print "\n";
-				bug "ppVal': bad index for RECtyc")
-		       in case tyc'
-			    of T.GENtyc { kind =
-					  T.DATATYPE{index,stamps,
-						     family={members,...},...},
-					  ... } =>
-			       ppDcon(obj,(Vector.sub(stamps,index),
-					   Vector.sub(members,index)),
-                                      membersOp, argtys,
-				      depth,l,r,accu)
-			     | _ => bug "ppVal': bad tycon in members"
-		      end
-		   | NONE => bug "ppVal': RECtyc with no members")
-
-	   | T.CONty(tyc as T.FREEtyc i,argtys) =>
-	       (case membersOp
+		       let val tyc' =
+			       List.nth(memberTycs,i)
+			       handle Subscript =>
+				(flushStream ppstrm;
+				 print "#ppVal':  ";
+				 print (Int.toString i);
+				 print " "; print(Int.toString(length memberTycs));
+				 print "\n";
+				 bug "ppVal': bad index for RECtyc")
+			in case tyc'
+			     of T.GENtyc { kind =
+					   T.DATATYPE{index,stamps,
+						      family={members,...},...},
+					   ... } =>
+				ppDcon(obj,(Vector.sub(stamps,index),
+					    Vector.sub(members,index)),
+				       membersOp, argtys,
+				       depth,l,r,accu)
+			      | _ => bug "ppVal': bad tycon in members"
+		       end
+		   | NONE => bug "ppVal': RECtyc with no members"
+		 (* end case *))
+	    | T.CONty(tyc as T.FREEtyc i,argtys) => (case membersOp
 		  of SOME (_, freeTycs) =>
-		      let val tyc' =
-			      List.nth(freeTycs,i)
-			      handle Subscript =>
-			       (flushStream ppstrm;
-				print "#ppVal':  ";
-				print (Int.toString i);
-				print " ";
-                                print(Int.toString(length freeTycs));
-				print "\n";
-				bug "ppVal': bad index for FREEtyc")
-		       in ppVal'(obj, T.CONty(tyc', argtys), membersOp,
-                                 depth, l, r, accu)
-		      end
-		   | NONE => bug "ppVal': RECtyc with no members")
+		       let val tyc' =
+			       List.nth(freeTycs,i)
+			       handle Subscript =>
+				(flushStream ppstrm;
+				 print "#ppVal':  ";
+				 print (Int.toString i);
+				 print " ";
+				 print(Int.toString(length freeTycs));
+				 print "\n";
+				 bug "ppVal': bad index for FREEtyc")
+			in ppVal'(obj, T.CONty(tyc', argtys), membersOp,
+				  depth, l, r, accu)
+		       end
+		   | NONE => bug "ppVal': RECtyc with no members"
+		 (* end case *))
 
-	   | _ => PP.string ppstrm  "-")
-	handle e => raise e)
+	    | _ => PP.string ppstrm  "-"
+	  (* end case *))
+	    handle e => raise e)
 
 and ppDcon(_,_,_,_,0,_,_,_) = PP.string ppstrm  "#"
   | ppDcon(obj:object, (stamp, {tycname,dcons,...}), membersOp : (T.tycon list * T.tycon list) option,
