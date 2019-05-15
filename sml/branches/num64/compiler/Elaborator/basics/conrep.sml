@@ -28,22 +28,21 @@ structure ConRep : CONREP =
 	  (* The TRANSPARENT conrep is temporarily turned off;
 	     it should be working very soon. Ask zsh. *)
 
-      | infer _ cons =
-	  let val multiple = (count cons) > 1
-
-	      fun decide (ctag,vtag, (_,true,_)::rest, reps) =
-		    if multiple andalso !ElabControl.boxedconstconreps
-		    then decide(ctag, vtag+1, rest, (TAGGED vtag) :: reps)
-		    else decide(ctag+1, vtag, rest, (CONSTANT ctag) :: reps)
-		| decide (ctag,vtag, (_,false,CONty(_,[_,_]))::rest, reps) =
-		    if multiple
-		    then decide(ctag, vtag+1, rest, (TAGGED vtag) :: reps)
-		    else decide(ctag, vtag+1, rest, (UNTAGGED :: reps))
-		| decide (_, _, _::_, _) =
-		    ErrorMsg.impossible "Conrep: unexpected conrep-decide"
-		| decide (ctag, vtag, [], reps) = (rev reps, CSIG(vtag,ctag))
-
-	   in decide(0, 0, cons, [])
+      | infer _ cons = let
+	  val multiple = (count cons) > 1
+	  fun decide (ctag,vtag, (_,true,_)::rest, reps) =
+		if multiple andalso !ElabControl.boxedconstconreps
+		  then decide(ctag, vtag+1, rest, (TAGGED vtag) :: reps)
+		  else decide(ctag+1, vtag, rest, (CONSTANT ctag) :: reps)
+	    | decide (ctag,vtag, (_,false,CONty(_,[_,_]))::rest, reps) =
+		if multiple
+		  then decide(ctag, vtag+1, rest, (TAGGED vtag) :: reps)
+		  else decide(ctag, vtag+1, rest, (UNTAGGED :: reps))
+	    | decide (_, _, _::_, _) =
+		ErrorMsg.impossible "Conrep: unexpected conrep-decide"
+	    | decide (ctag, vtag, [], reps) = (rev reps, CSIG(vtag,ctag))
+	  in
+	    decide(0, 0, cons, [])
 	  end
 
-end (* structure ConRep *)
+  end (* structure ConRep *)

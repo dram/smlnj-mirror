@@ -67,9 +67,9 @@ fun switch(obj, dcons) = let
       end
 
 (** a temporary hack for printing UNTAGGEDREC objects *)
-fun isRecTy (T.VARty(ref (T.INSTANTIATED t))) = isRecTy t
-  | isRecTy (T.CONty(T.RECORDtyc _, _::_)) = true
-  | isRecTy _ = false
+fun isRecordTy (T.VARty(ref (T.INSTANTIATED t))) = isRecordTy t
+  | isRecordTy (T.CONty(T.RECORDtyc _, _::_)) = true
+  | isRecordTy _ = false
 
 (* 64BIT: what is this function testing? *)
 fun isUbxTy (T.VARty(ref (T.INSTANTIATED t))) = isUbxTy t
@@ -78,16 +78,15 @@ fun isUbxTy (T.VARty(ref (T.INSTANTIATED t))) = isUbxTy t
       (TU.eqTycon(tc, BT.word32Tycon))
   | isUbxTy _ = false
 
-fun decon(obj, {rep,name,domain}) = (case rep
-      of A.UNTAGGED =>
-           (case domain
-             of SOME t =>
-                 if (isRecTy t) orelse (isUbxTy t)
-                 then obj else (Obj.nth(obj, 0) handle e => raise e)
-              | _ => bug "decon -- unexpected conrep-domain")
-
-       | A.TAGGED _ => (Obj.nth(obj,1) handle e => raise e)
-(*     | A.TAGGEDREC _ =>
+fun decon (obj, {rep, name, domain}) = (case rep
+       of A.UNTAGGED => (case domain
+             of SOME t => if (isRecordTy t) orelse (isUbxTy t)
+                  then obj
+		  else (Obj.nth(obj, 0) handle e => raise e)
+              | _ => bug "decon -- unexpected conrep-domain"
+	    (* end case *))
+	| A.TAGGED _ => (Obj.nth(obj,1) handle e => raise e)
+(*	| A.TAGGEDREC _ =>
 	   let (* skip first element, i.e. discard tag *)
 	       val a = tuple obj
 	       fun f i =
@@ -97,14 +96,14 @@ fun decon(obj, {rep,name,domain}) = (case rep
 	    in U.cast (V.fromList (f(1)))
 	   end
 *)
-       | A.CONSTANT _ => Obj.toObject ()
-       | A.TRANSPARENT => obj
-       | A.REF => !(Obj.toRef obj)
-       | A.EXN _ => (Obj.nth(obj,0) handle e => raise e)
-       | A.LISTCONS => obj
-       | A.LISTNIL => bug "decon - constant datacon in decon"
-       | A.SUSP _ => obj
-  (* end case *))
+	| A.CONSTANT _ => Obj.toObject ()
+	| A.TRANSPARENT => obj
+	| A.REF => !(Obj.toRef obj)
+	| A.EXN _ => (Obj.nth(obj,0) handle e => raise e)
+	| A.LISTCONS => obj
+	| A.LISTNIL => bug "decon - constant datacon in decon"
+	| A.SUSP _ => obj
+      (* end case *))
 
 val noparen = F.INfix(0,0)
 
