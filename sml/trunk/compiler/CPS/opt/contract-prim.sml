@@ -130,7 +130,14 @@ structure ContractPrim : sig
    * extra argument in the patterns.
    *)
     fun pure (get : get_info) arg = (case arg
-	   of (P.PURE_ARITH{oper=P.MUL, ...}, NUM{ival=1, ...} :: v :: _) => SOME v
+	   of (P.PURE_ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => SOME v
+	    | (P.PURE_ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => SOME v
+	    | (P.PURE_ARITH{oper=P.ADD, kind=P.UINT sz}, [NUM i, NUM j]) =>
+		SOME(NUM{ival = CA.uAdd(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => SOME v
+	    | (P.PURE_ARITH{oper=P.SUB, kind=P.UINT sz}, [NUM i, NUM j]) =>
+		SOME(NUM{ival = CA.uSub(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.MUL, ...}, NUM{ival=1, ...} :: v :: _) => SOME v
 	    | (P.PURE_ARITH{oper=P.MUL, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
 	    | (P.PURE_ARITH{oper=P.MUL, ...}, (v as NUM{ival=0, ...}) :: _) => SOME v
 	    | (P.PURE_ARITH{oper=P.MUL, ...}, _ :: (v as NUM{ival=0, ...}) :: _) => SOME v
@@ -140,13 +147,20 @@ structure ContractPrim : sig
 	    | (P.PURE_ARITH{oper=P.QUOT, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
 	    | (P.PURE_ARITH{oper=P.QUOT, kind=P.UINT sz}, NUM i :: NUM j :: _) =>
 		SOME(NUM{ival = CA.uDiv(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => SOME v
-	    | (P.PURE_ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => SOME v
-	    | (P.PURE_ARITH{oper=P.ADD, kind=P.UINT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.uAdd(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => SOME v
-	    | (P.PURE_ARITH{oper=P.SUB, kind=P.UINT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.uSub(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.REM, ...}, v :: NUM{ival=1, ty} :: _) =>
+		SOME(NUM{ival=0, ty=ty})
+	    | (P.PURE_ARITH{oper=P.REM, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
+	    | (P.PURE_ARITH{oper=P.REM, kind=P.UINT sz}, NUM i :: NUM j :: _) =>
+		SOME(NUM{ival = CA.uMod(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.NEG, kind=P.UINT sz}, [NUM i]) =>
+		SOME(NUM{ival = CA.uNeg(sz, #ival i), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
+	    | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v, NUM{ival=0, ...}]) => SOME v
+	    | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.INT sz}, [NUM i, NUM j]) => (
+		SOME(NUM{ival = CA.sShL(sz, #ival i, #ival j), ty = #ty i})
+		  handle Overflow => NONE)
+	    | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) =>
+		SOME(NUM{ival = CA.uShL(sz, #ival i, #ival j), ty = #ty i})
 	    | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [i as NUM{ival=0, ...}, _]) => SOME i
 	    | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.RSHIFT, kind}, [NUM i, NUM j]) =>
@@ -155,17 +169,6 @@ structure ContractPrim : sig
 	    | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT sz}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.uShR(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
-	    | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v, NUM{ival=0, ...}]) => SOME v
-	    | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.INT sz}, [NUM i, NUM j]) => (
-		SOME(NUM{ival = CA.sShL(sz, #ival i, #ival j), ty = #ty i})
-		  handle Overflow => NONE)
-	    | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.uShL(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.ANDB, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
-	    | (P.PURE_ARITH{oper=P.ANDB, ...}, [_, v as NUM{ival=0, ...}]) => SOME v
-	    | (P.PURE_ARITH{oper=P.ANDB, kind}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.bAnd(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
 	    | (P.PURE_ARITH{oper=P.ORB, ...}, [NUM{ival=0, ...}, v]) => SOME v
 	    | (P.PURE_ARITH{oper=P.ORB, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.ORB, kind}, [NUM i, NUM j]) =>
@@ -174,6 +177,10 @@ structure ContractPrim : sig
 	    | (P.PURE_ARITH{oper=P.XORB, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.XORB, kind}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.bXor(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.ANDB, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
+	    | (P.PURE_ARITH{oper=P.ANDB, ...}, [_, v as NUM{ival=0, ...}]) => SOME v
+	    | (P.PURE_ARITH{oper=P.ANDB, kind}, [NUM i, NUM j]) =>
+		SOME(NUM{ival = CA.bAnd(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
 	    | (P.PURE_ARITH{oper=P.NOTB, kind}, [NUM i]) =>
 		SOME(NUM{ival = CA.bNot(sizeOfKind kind, #ival i), ty = #ty i})
 	    | (P.LENGTH, [STRING s]) => SOME(tagInt(size s))
