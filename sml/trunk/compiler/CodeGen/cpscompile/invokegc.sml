@@ -28,7 +28,6 @@ struct
    structure D  = MS.ObjDesc
    structure R  = CPSRegions
    structure SL = SortedList
-   structure GC = SMLGCType
    structure Cells = C.C
    structure CFG = CFG
    structure TS = TS
