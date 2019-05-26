@@ -1,15 +1,23 @@
-(* uses a union-find data structure to compute clusters *)
-(* First function in the function list must be the first function
+(* cluster.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * uses a union-find data structure to compute clusters
+ *
+ * First function in the function list must be the first function
  * in the first cluster. This is achieved by ensuring that the first
  * function is mapped to the smallest id in a dense enumeration.
  * This function id will map to the smallest cluster id.
  * The function ids are then iterated in descending order.
  *)
-structure Cluster :
-  sig
-     val cluster : CPS.function list -> CPS.function list list
-  end =
-struct
+
+structure Cluster : sig
+
+    val cluster : CPS.function list -> CPS.function list list
+
+  end = struct
+
   fun error msg = ErrorMsg.impossible ("Cluster." ^ msg)
 
   fun cluster funcs = let

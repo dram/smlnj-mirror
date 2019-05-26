@@ -1,10 +1,12 @@
-(* memDisambig.sml --- generate a table of regions *)
+(* memDisambig.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 signature MEM_DISAMBIGUATION = sig
   val build : CPS.function list -> (int -> CPSRegions.region)
 end
-
-
 
 functor MemDisambiguate(structure Cells: CELLS) : MEM_DISAMBIGUATION = struct
   structure C = CPS

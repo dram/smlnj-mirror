@@ -1,8 +1,11 @@
-(* frag.sml --- code and data fragments that need to be compiled.
+(* frag.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
+ * code and data fragments that need to be compiled.
  *)
+
 functor Frag(MLTree:MLTREE) : FRAG = struct
   structure T = MLTree
   datatype generated =
@@ -10,16 +13,16 @@ functor Frag(MLTree:MLTREE) : FRAG = struct
     | GEN of T.mlrisc list
 
   datatype frag =
-      STANDARD of {func: CPS.function option ref, 
+      STANDARD of {func: CPS.function option ref,
 		   fmlTyps: CPS.cty list}
-    | KNOWNFUN of generated ref 
+    | KNOWNFUN of generated ref
     | KNOWNCHK of generated ref
 
   fun error msg = ErrorMsg.impossible ("Frag." ^ msg)
 
   val frags = ref ([]: (Label.label * frag) list)
 
-  fun next () = 
+  fun next () =
     case !frags
      of frag::rest => SOME frag before (frags := rest)
       | [] => NONE
