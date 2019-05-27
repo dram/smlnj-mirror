@@ -119,23 +119,7 @@ functor MLRiscGen (
     val PTR    = SMLGCType.PTR     (* boxed objects *)
     val NO_OPT = [#create An.NO_OPTIMIZATION ()]
 
-    val enterGC = GCCells.setGCType
-
     fun sameRegAs x y = CB.sameCell (x, y)
-
-    val annPTR = #create An.MARK_REG(fn r => enterGC(r,PTR))
-    val annINT = #create An.MARK_REG(fn r => enterGC(r,INT))
-    val annTAGINT = #create An.MARK_REG(fn r => enterGC(r,TAGINT))
-    val annREAL64 = #create An.MARK_REG(fn r => enterGC(r,REAL64))
-
-    fun ctyToAnn (C.NUMt{tag=true, ...}) = annTAGINT
-      | ctyToAnn (C.NUMt{tag=false, ...}) = annINT
-      | ctyToAnn (C.FLTt 64) = annREAL64
-(* REAL32: FIXME *)
-      | ctyToAnn (C.FLTt n) = raise Fail(concat[
-	    "ctyToAnn: FLTt ", Int.toString n, " is unsupported"
-	  ])
-      | ctyToAnn _ = annPTR
 
   (* Convert kind to gc type *)
     fun kindToGCty (C.P.INT sz) = if (sz = Target.defaultIntSz) then TAGINT else INT
@@ -314,12 +298,6 @@ functor MLRiscGen (
 		  end
 	       else (Cells.newReg, Cells.newReg, Cells.newReg, Cells.newFreg)
 
-	  fun markPTR e = if gctypes then M.MARK(e, annPTR) else e
-	  fun markINT e = if gctypes then M.MARK(e, annINT) else e
-	  fun markREAL64 e = if gctypes then M.FMARK(e, annREAL64) else e
-	  fun markGC (e, cty) = if gctypes then M.MARK(e, ctyToAnn cty) else e
-	  fun markNothing e = e
-
 	(*
 	 * Known functions have parameters passed in fresh temporaries.
 	 * We also annotate the gc types of these temporaries.
@@ -401,11 +379,11 @@ functor MLRiscGen (
 	    * use the virtual frame pointer
 	    *)
 	      local
-		fun hasRCC([]) = false
-		  | hasRCC((_,_,_,_,cexp)::rest) =
-		      CPSUtil.hasRCC(cexp) orelse hasRCC(rest)
+		fun hasRCC [] = false
+		  | hasRCC ((_,_,_,_,cexp)::rest) =
+		      CPSUtil.hasRCC cexp orelse hasRCC rest
 	      in
-	      val vfp = not MS.framePtrNeverVirtual andalso hasRCC(cluster)
+	      val vfp = not MS.framePtrNeverVirtual andalso hasRCC cluster
 	      val _ = ClusterAnnotation.useVfp := vfp
 	      end
 
@@ -495,13 +473,10 @@ functor MLRiscGen (
 	     *
 	     * Note: For GC safety, we considered this to be an object reference
 	     *)
-	      fun laddr (lab, k) = let
-		    val e = M.ADD(addrTy, Regs.baseptr vfp,
-			      M.LABEXP(M.ADD(addrTy, M.LABEL lab,
-				LI'(k - MachineSpec.constBaseRegOffset))))
-		    in
-		      markPTR e
-		    end
+	      fun laddr (lab, k) =
+		    M.ADD(addrTy, Regs.baseptr vfp,
+		      M.LABEXP(M.ADD(addrTy, M.LABEL lab,
+			LI'(k - MachineSpec.constBaseRegOffset))))
 
 	    (*
 	     * The following function looks up the MLTREE expression associated
@@ -536,7 +511,7 @@ functor MLRiscGen (
 	      fun resolveHpOffset' (M.CONST(absoluteHpOffset)) = let
 		    val offset = absoluteHpOffset - !advancedHP
 		    in
-		      markPTR(M.ADD(addrTy, Regs.allocptr, LI' offset))
+		      M.ADD(addrTy, Regs.allocptr, LI' offset)
 		    end
 		| resolveHpOffset' e = e
 
@@ -645,14 +620,13 @@ functor MLRiscGen (
 	     * Function to allocate an integer record
 	     *   x <- [descriptor ... fields]
 	     *)
-	      fun allocRecord (markComp, mem, desc, fields, hp) = let
+	      fun allocRecord (desc, fields, hp) = let
 		    fun getField (v, e, C.OFFp n) = indexEA(e, n)
 		      | getField (v, e, p) = getPath(e, p)
 		    and getPath (e, C.OFFp n) = indexEA(e, n)
-		      | getPath (e, C.SELp(n, C.OFFp 0)) =
-			  markComp(M.LOAD(ity, indexEA(e, n), R.memory))
+		      | getPath (e, C.SELp(n, C.OFFp 0)) = M.LOAD(ity, indexEA(e, n), R.memory)
 		      | getPath (e, C.SELp(n, p)) =
-			  getPath (markPTR(M.LOAD(ity, indexEA(e, n), R.memory)), p)
+			  getPath (M.LOAD(ity, indexEA(e, n), R.memory), p)
 		    fun storeFields([], hp, elem) = hp
 		      | storeFields((v, p)::fields, hp, elem) = (
 			  emit (M.STORE(ity,
@@ -670,17 +644,16 @@ functor MLRiscGen (
 	     *   x <- [descriptor ... fields]
 	     *)
 (* REAL32: FIXME *)
-	      fun allocFrecord (mem, desc, fields, hp) = let
+	      fun allocFrecord (desc, fields, hp) = let
 		    fun fea (r, 0) = r
 		      | fea (r, n) = M.ADD(addrTy, r, LI'(n*8))
 		    fun fgetField (v, C.OFFp 0) = fregbind v
 		      | fgetField (v, C.OFFp _) = error "allocFrecord.fgetField"
 		      | fgetField (v, p) = fgetPath(regbind' v, p)
 		    and fgetPath (e, C.OFFp _) = error "allocFrecord.fgetPath"
-		      | fgetPath (e, C.SELp(n, C.OFFp 0)) =
-			   markREAL64(M.FLOAD(fty, fea(e, n), R.memory))
+		      | fgetPath (e, C.SELp(n, C.OFFp 0)) = M.FLOAD(fty, fea(e, n), R.memory)
 		      | fgetPath (e, C.SELp(n, p)) =
-			  fgetPath (markPTR(M.LOAD(ity, indexEA(e, n), R.memory)), p)
+			  fgetPath (M.LOAD(ity, indexEA(e, n), R.memory), p)
 		    fun fstoreFields([], hp, elem) = hp
 		      | fstoreFields((v, p)::fields, hp, elem) = (
 			  emit (M.FSTORE(fty, M.ADD(addrTy, Regs.allocptr, LI' hp),
@@ -1060,7 +1033,7 @@ functor MLRiscGen (
 		     of COMPUTE => define(newRegWithCty cty, x, e, k, hp)
 		      | TREEIFY => (
 			  markAsTreeified x;
-			  addExpBinding(x, markGC(e, cty));
+			  addExpBinding(x, e);
 			  gen(k, hp))
 		      | DEAD => gen(k, hp)
 		      | _ => error "treeifyDef"
@@ -1197,7 +1170,7 @@ functor MLRiscGen (
 		    val desc = D.makeDesc' (len, D.tag_record)
 		    in
 		      treeifyAlloc(w,
-			allocRecord(markPTR, R.memory, LI desc, vl, hp),
+			allocRecord(LI desc, vl, hp),
 			  e, hp+ws+len*ws)
 		    end
 
@@ -1207,7 +1180,7 @@ functor MLRiscGen (
 		    val desc = D.makeDesc' (len, D.tag_raw)
 		    in
 		      treeifyAlloc(w,
-			allocRecord(markINT, R.memory, LI desc, vl, hp),
+			allocRecord(LI desc, vl, hp),
 			  e, hp+ws+len*ws)
 		    end
 
@@ -1226,7 +1199,7 @@ functor MLRiscGen (
 			    else hp
 		    in  (* The components are floating point *)
 		      treeifyAlloc(w,
-			allocFrecord(R.memory, LI desc, vl, hp),
+			allocFrecord(LI desc, vl, hp),
 			  e, hp+ws+len*8)
 		    end
 
@@ -1239,7 +1212,7 @@ functor MLRiscGen (
 		    val hp' = hp + ws + len*ws
 		    in  (* The components are boxed *)
 		      (* Allocate the data *)
-		      allocRecord(markPTR, R.memory, LI dataDesc, vl, hp);
+		      allocRecord(LI dataDesc, vl, hp);
 		      emit(M.MV(pty, dataPtr, ea(Regs.allocptr, hp+ws)));
 		      (* Now allocate the header pair *)
 		      treeifyAlloc(w,
@@ -1295,9 +1268,6 @@ functor MLRiscGen (
 			  (* end case *))
 		    in
 		      callSetup (formals, args);
-		      if gctypes
-			then annotation(gcAnnotation(#create GCCells.GCLIVEOUT, formals, ctys))
-			else ();
 		      testLimit hp;
 		      emit (M.JMP(dest, []));
 		      exitBlock (formals @ dedicated)
@@ -1406,7 +1376,8 @@ functor MLRiscGen (
 		| gen (C.SWITCH(v, _, l), hp) = let
 		    val lab = newLabel ()
 		    val labs = map (fn _ => newLabel()) l
-		    val tmpR = newReg INT val tmp = M.REG(ity,tmpR)
+		    val tmpR = newReg INT
+		    val tmp = M.REG(ity,tmpR)
 		    in
 		      emit (M.MV(ity, tmpR, laddr(lab, 0)));
 		      emit (M.JMP(M.ADD(addrTy, tmp, M.LOAD(pty, scaleWord(tmp, v), R.readonly)), labs));
@@ -1564,13 +1535,13 @@ functor MLRiscGen (
 		| gen (C.PURE(P.LENGTH, [v], x, t, e), hp) = select(1, v, x, t, e, hp)
 		| gen (C.PURE(P.SUBSCRIPTV, [v, ix as NUM{ty={tag=true, ...}, ...}], x, t, e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a = M.LOAD(ity, regbind v, R.memory)
 		    in
 		      defBoxed(x, M.LOAD(ity, scaleWord(a, ix), R.memory), e, hp)
 		    end
 		| gen (C.PURE(P.SUBSCRIPTV, [v, w], x, _, e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a = M.LOAD(ity, regbind v, R.memory)
 		    in
 		      defBoxed(x, M.LOAD(ity, scaleWord(a, w), R.memory), e, hp)
 		    end
@@ -1580,7 +1551,7 @@ functor MLRiscGen (
  *)
 		| gen (C.PURE(P.PURE_NUMSUBSCRIPT{kind=(P.UINT 8|P.INT 8)}, [v,i], x, _, e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a = M.LOAD(ity, regbind v, R.memory)
 		    in
 		      defTAGINT(x,tagUnsigned(M.LOAD(8,scale1(a, i), R.memory)), e, hp)
 		    end
@@ -1593,9 +1564,9 @@ functor MLRiscGen (
 			   of NUM{ty={tag=true, ...}, ival} => LI(D.makeDesc(ival, D.tag_special))
 			    | _ => M.ORB(ity, M.SLL(ity, untagSigned i, LW' D.tagWidth), LI D.desc_special)
 			  (* end case *))
-		    in  (* What gc types are the components? *)
+		    in
 		      treeifyAlloc(x,
-			allocRecord(markNothing, R.memory, desc, [(v, offp0)], hp),
+			allocRecord(desc, [(v, offp0)], hp),
 			e, hp+8)
 		    end
 		| gen (C.PURE(P.MAKEREF, [v], x, _, e), hp) = let
@@ -1767,7 +1738,7 @@ functor MLRiscGen (
 		    defBoxed (x, M.LOAD(ity, regbind v, R.memory), e, hp)
 		| gen (C.LOOKER(P.SUBSCRIPT, [v,w], x, _, e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a = M.LOAD(ity, regbind v, R.memory)
 		    in
 		      defBoxed (x, M.LOAD(ity, scaleWord(a, w), R.memory), e, hp)
 		    end
@@ -1777,14 +1748,14 @@ functor MLRiscGen (
  *)
 		| gen (C.LOOKER(P.NUMSUBSCRIPT{kind=(P.UINT 8|P.INT 8)}, [v, i], x, _, e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a = M.LOAD(ity, regbind v, R.memory)
 		    in
 		      defTAGINT(x, tagUnsigned(M.LOAD(8,scale1(a, i), R.memory)), e, hp)
 		    end
 (* REAL32: FIXME *)
 		| gen (C.LOOKER(P.NUMSUBSCRIPT{kind=P.FLOAT 64}, [v,i], x, _, e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a = M.LOAD(ity, regbind v, R.memory)
 		    in
 		      treeifyDefF64(x, M.FLOAD(fty,scale8(a, i), R.memory), e, hp)
 		    end
@@ -1818,7 +1789,7 @@ functor MLRiscGen (
 		    gen(e, hp))
 		| gen (C.SETTER(P.UPDATE, [v,i,w], e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a    = M.LOAD(ity, regbind v, R.memory)
 		    val tmpR = Cells.newReg() (* derived pointer! *)
 		    val tmp  = M.REG(ity, tmpR)
 		    val ea   = scaleWord(a, i)  (* address of updated cell *)
@@ -1830,7 +1801,7 @@ functor MLRiscGen (
 		    end
 		| gen (C.SETTER(P.UNBOXEDUPDATE, [v, i, w], e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a = M.LOAD(ity, regbind v, R.memory)
 		    in
 		      emit(M.STORE(ity, scaleWord(a, i), regbind w, R.memory));
 		      gen(e, hp)
@@ -1841,15 +1812,15 @@ functor MLRiscGen (
  *)
 		| gen (C.SETTER(P.NUMUPDATE{kind=(P.UINT 8|P.INT 8)}, [s,i,v], e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind s, R.memory))
-		    val ea   = scale1(a, i)
+		    val a  = M.LOAD(ity, regbind s, R.memory)
+		    val ea = scale1(a, i)
 		    in
 		      emit(M.STORE(8, ea, untagUnsigned(v), R.memory));
 		      gen(e, hp)
 		    end
 		| gen (C.SETTER(P.NUMUPDATE{kind=P.FLOAT 64},[v,i,w],e), hp) = let
 		  (* get data pointer *)
-		    val a    = markPTR(M.LOAD(ity, regbind v, R.memory))
+		    val a = M.LOAD(ity, regbind v, R.memory)
 		    in
 		      emit(M.FSTORE(fty,scale8(a, i), fregbind w, R.memory));
 		      gen(e, hp)
@@ -1984,23 +1955,9 @@ raise Fail "unexpected constant branch"
 	     * Currently, we only need to enter the appropriate
 	     * gc map information.
 	     *)
-	      fun clusterAnnotations() = let
-		    val cellinfo = if gctypes
-			  then let
-			    fun enter(M.REG(_,r),ty) = enterGC(r, ty)
-			      | enter _ = ()
-			    in
-			      enterGC(allocptrR, SMLGCType.ALLOCPTR);
-			      enter(Regs.limitptr vfp, SMLGCType.LIMITPTR);
-			      enter(Regs.baseptr vfp, PTR);
-			      enter(Regs.stdlink vfp, PTR);
-			      [#create An.PRINT_CELLINFO(GCCells.printType)]
-			    end
-			  else []
-		    in
-		      if vfp then #set An.USES_VIRTUAL_FRAME_POINTER ((), cellinfo)
-		      else cellinfo
-		    end
+	      fun clusterAnnotations() = if vfp
+		    then #set An.USES_VIRTUAL_FRAME_POINTER ((), [])
+		    else []
 	      in
 		initFrags cluster;
 		beginCluster 0;
