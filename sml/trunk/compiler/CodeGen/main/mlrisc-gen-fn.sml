@@ -5,6 +5,10 @@
  *
  * Translate CPS to MLRISC.  This version removes various optimizations
  * that were not enabled.
+ *
+ * NOTE: once we switch to this version of MLRiscGen, then we can remove the
+ * support for optimized code in invokegc.sml (i.e., the optimizedKnwCheckLimit
+ * function is no longer used).
  *)
 
 signature MLRISCGEN =
@@ -209,24 +213,10 @@ functor MLRiscGen (
 	  (* end case *))
 
   (*
-   * This flag controls whether extra MLRISC optimizations should be
-   * performed.  By default, this is off.
-   *)
-    val mlrisc   = Control.MLRISC.mkFlag ("mlrisc", "whether to do MLRISC optimizations")
-
-  (*
    * If this flag is on then annotate the registers with GC type info.
    * Otherwise use the default behavior.
    *)
     val gctypes  = Control.MLRISC.mkFlag ("mlrisc-gc-types", "whether to use GC type info")
-
-  (*
-   * If this flag is on then perform optimizations before generating gc code.
-   * If this flag is on then gctypes must also be turned on!
-   * Otherwise use the default behavior.
-   *)
-    val gcsafety = Control.MLRISC.mkFlag ("mlrisc-gcsafety",
-					  "whether to optimize before generating GC code")
 
   (*
    * If this flag is on then split the entry block.
@@ -995,15 +985,10 @@ functor MLRiscGen (
 			| C.KNOWN_CHECK => (
 			    defineLabel lab;
 			    (* gc test *)
-			    if !mlrisc andalso !gcsafety
-			      then InvokeGC.optimizedKnwCheckLimit stream {
-				  maxAlloc = ws*maxAlloc f, regfmls = formals, regtys = tys,
-				  return = branchToLabel lab
-				}
-			      else InvokeGC.knwCheckLimit stream {
-				  maxAlloc = ws*maxAlloc f, regfmls=formals, regtys = tys,
-				  return = branchToLabel lab
-				};
+			    InvokeGC.knwCheckLimit stream {
+				maxAlloc = ws*maxAlloc f, regfmls=formals, regtys = tys,
+				return = branchToLabel lab
+			      };
 			    init e;
 			    initialRegBindingsEscaping(params, formals, tys))
 			| _ => let (* Standard function *)
