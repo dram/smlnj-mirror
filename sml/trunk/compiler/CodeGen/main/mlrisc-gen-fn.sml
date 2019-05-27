@@ -103,50 +103,9 @@ functor MLRiscGen (
 	  Control.Print.flush())
     val print = Control.Print.say
 
-  (*
-   * GC Safety
-   *)
-
-  (* How to annotate GC information *)
-    structure GCCells = GCCells(
-	structure C = Cells
-	structure GC = SMLGCType)
-
-    val TAGINT = SMLGCType.TAGGED_INT
-    val INT    = SMLGCType.INT
-(* REAL32: *)
-    val REAL64 = SMLGCType.REAL64  (* untagged floats *)
-    val PTR    = SMLGCType.PTR     (* boxed objects *)
     val NO_OPT = [#create An.NO_OPTIMIZATION ()]
 
     fun sameRegAs x y = CB.sameCell (x, y)
-
-  (* Convert kind to gc type *)
-    fun kindToGCty (C.P.INT sz) = if (sz = Target.defaultIntSz) then TAGINT else INT
-      | kindToGCty (C.P.UINT sz) = if (sz = Target.defaultIntSz) then TAGINT else INT
-      | kindToGCty _ = error "kindToGCty: bogus kind"
-
-  (* convert CPS type to gc type *)
-    fun ctyToGCty (C.FLTt 64) = REAL64
-      | ctyToGCty (C.FLTt n) = raise Fail(concat[
-	    "ctyToGCty: FLTt ", Int.toString n, " is unsupported"
-	  ])
-      | ctyToGCty (C.NUMt{tag=true, ...}) = TAGINT
-      | ctyToGCty (C.NUMt{tag=false, ...}) = INT
-      | ctyToGCty _ = PTR
-
-  (* Make a GC livein/liveout annotation *)
-    fun gcAnnotation (an, args, ctys) = let
-	  fun collect (M.GPR(M.REG(_,r))::args,cty::ctys,gctys) =
-		collect(args,ctys,(r,ctyToGCty cty)::gctys)
-	    | collect (M.FPR(M.FREG(_,r))::args,cty::ctys,gctys) =
-		collect(args,ctys,(r,ctyToGCty cty)::gctys)
-	    | collect (_::args,_::ctys,gctys) = collect(args,ctys,gctys)
-	    | collect ([], [], gctys) = gctys
-	    | collect _ = error "gcAnnotation"
-	  in
-	    an (collect (args, ctys, []))
-	  end
 
   (*
    * These are the type widths of ML.  They are hardwired for now.
@@ -195,12 +154,6 @@ functor MLRiscGen (
 	   of NONE => dedicated'
 	    | SOME cc => M.CCR cc :: dedicated'
 	  (* end case *))
-
-  (*
-   * If this flag is on then annotate the registers with GC type info.
-   * Otherwise use the default behavior.
-   *)
-    val gctypes  = Control.MLRISC.mkFlag ("mlrisc-gc-types", "whether to use GC type info")
 
   (*
    * If this flag is on then split the entry block.
@@ -278,25 +231,6 @@ functor MLRiscGen (
 	  val { funcs : C.function list, limits:C.lvar -> (int*int), source } = args
 	  val maxAlloc = #1 o limits
 	  val splitEntry = !splitEntry
-	(*
-	 * These functions generate new virtual register names and
-	 * mark expressions with their gc types.
-	 * When the gc-safety feature is turned on, we'll use the
-	 * versions of newReg that automatically update the GCMap.
-	 * Otherwise, we'll just use the normal version.
-	 *)
-	  val gctypes = !gctypes
-
-	  val (newReg, newRegWithCty, newRegWithKind, newFreg) = if gctypes
-		then let
-		  val newReg  = GCCells.newCell CB.GP
-		  val newFreg = GCCells.newCell CB.FP
-		  fun newRegWithCty cty = newReg(ctyToGCty cty)
-		  fun newRegWithKind kind = newReg(kindToGCty kind)
-		  in
-		    (newReg, newRegWithCty, newRegWithKind, newFreg)
-		  end
-	       else (Cells.newReg, Cells.newReg, Cells.newReg, Cells.newFreg)
 
 	(*
 	 * Known functions have parameters passed in fresh temporaries.
@@ -304,12 +238,11 @@ functor MLRiscGen (
 	 *)
 	  fun known [] = []
 	    | known (cty::rest) = (case cty
-		 of C.FLTt 64 => M.FPR(M.FREG(fty, newFreg REAL64))
+		 of C.FLTt 64 => M.FPR(M.FREG(fty, Cells.newFreg()))
 (* REAL32: FIXME *)
 		  | C.FLTt n => raise Fail(concat["known: FLTt ", Int.toString n, " is unsupported"])  (* REAL32: FIXME *)
-		  | C.NUMt{tag=true, ...} => M.GPR(M.REG(ity, newReg TAGINT))
-		  | C.NUMt{tag=false, ...} => M.GPR(M.REG(ity, newReg INT))
-		  | _ => M.GPR(M.REG(pty,newReg PTR))
+		  | C.NUMt _ => M.GPR(M.REG(ity, Cells.newReg()))
+		  | _ => M.GPR(M.REG(pty, Cells.newReg()))
 		(* end case *)) :: known rest
 
 	(*
@@ -490,7 +423,7 @@ functor MLRiscGen (
 	     * kth byte allocated since the beginning of the CPS function.
 	     *)
 	      fun resolveHpOffset (M.CONST(absoluteHpOffset)) = let
-		    val tmpR = newReg PTR
+		    val tmpR = Cells.newReg()
 		    val offset = absoluteHpOffset - !advancedHP
 		    in
 		      emit(M.MV(pty, tmpR, M.ADD(addrTy, Regs.allocptr, LI' offset)));
@@ -539,7 +472,7 @@ functor MLRiscGen (
 	     *)
 	    fun initialRegBindingsEscaping (vl, rl, tl) = let
 		  fun eCopy(x::xs, M.GPR(M.REG(_,r))::rl, rds, rss, xs', rl') = let
-			val t = newReg PTR
+			val t = Cells.newReg()
 			in
 			  addRegBinding(x, t);
 			  eCopy(xs, rl, t::rds, r::rss, xs', rl')
@@ -553,7 +486,7 @@ functor MLRiscGen (
 			error "eCopy"
 
 		  fun eOther(x::xs, M.GPR(r)::rl, xs', rl') = let
-			val t = newReg PTR
+			val t = Cells.newReg()
 			in
 			  addRegBinding(x, t); emit(M.MV(ity, t, r));
 			  eOther(xs, rl, xs', rl')
@@ -570,7 +503,7 @@ functor MLRiscGen (
 
 		  fun eFcopy([], []) = ()
 		    | eFcopy(xs, rl) = let
-		        val fs = map (fn _ => newFreg REAL64) xs
+		        val fs = map (fn _ => Cells.newFreg()) xs
 		        in
 			  ListPair.app (fn (x,f) => addFregBinding(x,M.FREG(fty,f))) (xs,fs);
 			  emit(M.FCOPY(fty, fs, rl))
@@ -679,7 +612,7 @@ functor MLRiscGen (
 		      case e
 		       of M.REG _ => addTag(double e)
 			| _ => let
-			    val tmp = newReg PTR (* XXX ??? *)
+			    val tmp = Cells.newReg()
 			    in
 			      M.LET(M.MV(ity, tmp, e), addTag(double(M.REG(ity,tmp))))
 			    end
@@ -691,7 +624,7 @@ functor MLRiscGen (
 		      case e
 		       of M.REG _ => addTag(double e)
 			| _ => let
-			    val tmp = newReg PTR (* XXX ??? *)
+			    val tmp = Cells.newReg()
 			    in
 			      M.LET(M.MV(ity, tmp, e), addTag(double(M.REG(ity,tmp))))
 			    end
@@ -1018,19 +951,20 @@ functor MLRiscGen (
 		    emit(M.MV(ity, r, e));
 		    gen(k, hp))
 
-	      and def (gc, x, e, k, hp) = define(newReg gc, x, e, k, hp)
+	      and def (x, e, k, hp) = define(Cells.newReg(), x, e, k, hp)
 
-	      and defWithKind (kind, x, e, k, hp) = define(newRegWithKind kind, x, e, k, hp)
+	    (* we ignore the kind, but keep this function around for now *)
+	      and defWithKind (kind, x, e, k, hp) = define(Cells.newReg(), x, e, k, hp)
 
-	      and defTAGINT (x, e, k, hp) = def(TAGINT, x, e, k, hp)
-	      and defINT (x, e, k, hp) = def(INT, x, e, k, hp)
-	      and defBoxed (x, e, k, hp) = def(PTR, x, e, k, hp)
+	      and defTAGINT (x, e, k, hp) = def(x, e, k, hp)
+	      and defINT (x, e, k, hp) = def(x, e, k, hp)
+	      and defBoxed (x, e, k, hp) = def(x, e, k, hp)
 
 	    (*
 	     * Generate code for x : cty := e; k
 	     *)
 	      and treeifyDef(x, e, cty, k, hp) = (case treeify x
-		     of COMPUTE => define(newRegWithCty cty, x, e, k, hp)
+		     of COMPUTE => define(Cells.newReg(), x, e, k, hp)
 		      | TREEIFY => (
 			  markAsTreeified x;
 			  addExpBinding(x, e);
@@ -1068,7 +1002,7 @@ functor MLRiscGen (
 		    (* end case *))
 
 	      and computef64 (x, e, k, hp : int) = let
-		    val f = newFreg REAL64
+		    val f = Cells.newFreg()
 		    in
 		      addFregBinding (x, M.FREG(fty, f));
 		      emit (M.FMV(fty, f, e));
@@ -1087,8 +1021,8 @@ functor MLRiscGen (
 
 	      and nop (x, v, e, hp) = defTAGINT(x, regbind v, e, hp)
 
-	      and copy (gc, x, v, k, hp) = let
-		    val dst = newReg gc
+	      and copy (x, v, k, hp) = let
+		    val dst = Cells.newReg()
 		    in
 		      addRegBinding(x, dst);
 		      case regbind v
@@ -1097,10 +1031,6 @@ functor MLRiscGen (
 		      (* end case *);
 		      gen(k, hp)
 		    end
-
-	      and copyM (sz, x, v, k, hp) = if (sz <= Target.defaultIntSz)
-		    then copy(TAGINT, x, v, k, hp)
-		    else copy(INT, x, v, k, hp)
 
 	    (* normal branches *)
 	      and branch (cv, cmp, [v, w], yes, no, hp) = let
@@ -1129,8 +1059,8 @@ functor MLRiscGen (
 		  (* round number of bytes up to ws bytes *)
 		    val n = ((IntInf.toInt n + ws - 1) div ws) * ws
 		    val false_lab = newLabel ()
-		    val r1 = newReg INT
-		    val r2 = newReg INT
+		    val r1 = Cells.newReg()
+		    val r2 = Cells.newReg()
 		    fun cmpWord i = M.CMP(ity, M.NE,
 			  M.LOAD(ity, M.ADD(ity,M.REG(ity, r1), i), R.readonly),
 			  M.LOAD(ity, M.ADD(ity,M.REG(ity, r2), i), R.readonly))
@@ -1208,7 +1138,7 @@ functor MLRiscGen (
 		    val len = length vl
 		    val hdrDesc = D.desc_polyvec
 		    val dataDesc = D.makeDesc'(len, D.tag_vec_data)
-		    val dataPtr = newReg PTR
+		    val dataPtr = Cells.newReg()
 		    val hp' = hp + ws + len*ws
 		    in  (* The components are boxed *)
 		      (* Allocate the data *)
@@ -1240,13 +1170,15 @@ functor MLRiscGen (
 	    (*
 	     * Funny select; I don't know that this does
 	     *)
+	      and funnySelect _ = raise Fail "funnySelect"
+(*
 	      and funnySelect (i, k, x, t, e, hp) = let
 		    val unboxedfloat = MS.unboxedFloats
 		    fun isFlt t = if unboxedfloat
 			  then (case t of FLTt _ => true | _ => false)
 			  else false
 		    fun fallocSp(x,e,hp) = (
-			  addFregBinding(x, M.FREG(fty, newFreg REAL64)); gen(e, hp))
+			  addFregBinding(x, M.FREG(fty, Cells.newFreg())); gen(e, hp))
 		  (* warning: the following generated code should never be
 		     executed; its semantics is completely screwed up !
 		   *)
@@ -1255,6 +1187,7 @@ functor MLRiscGen (
 			then fallocSp(x, e, hp)
 			else defINT(x, LI k, e, hp)(* BOGUS *)
 		    end
+*)
 
 	    (*
 	     * Call an external function
@@ -1376,7 +1309,7 @@ functor MLRiscGen (
 		| gen (C.SWITCH(v, _, l), hp) = let
 		    val lab = newLabel ()
 		    val labs = map (fn _ => newLabel()) l
-		    val tmpR = newReg INT
+		    val tmpR = Cells.newReg()
 		    val tmp = M.REG(ity,tmpR)
 		    in
 		      emit (M.MV(ity, tmpR, laddr(lab, 0)));
@@ -1469,7 +1402,7 @@ functor MLRiscGen (
 			      | P.LSHIFT => shiftINT(M.SLL, v, w, x, e, hp)
 			      | P.RSHIFT => shiftINT(M.SRA, v, w, x, e, hp)
 			      | P.RSHIFTL => shiftINT(M.SRL, v, w, x, e, hp)
-			      | _ => error "gen:PURE UINT 32"
+			      | _ => error "gen:PURE UINT BOXED"
 			    (* end case *))
 		      | _ => error "unexpected numkind in pure binary arithop"
 		    (* end case *))
@@ -1493,11 +1426,11 @@ functor MLRiscGen (
 		    end
 		| gen (C.PURE(P.COPY{from=8, to}, [v], x, _, e), hp) =
 		    if (to <= Target.defaultIntSz)
-		      then copy (TAGINT, x, v, e, hp)
+		      then copy (x, v, e, hp)
 		      else defINT (x, M.SRL(ity, regbind v, one), e, hp)
 		| gen (C.PURE(P.COPY{from, to}, [v], x, _, e), hp) =
 		    if (from = to)
-		      then copyM(from, x, v, e, hp)
+		      then copy(x, v, e, hp)
 		    else if (from = Target.defaultIntSz) andalso (to = ity)
 		      then defINT (x, M.SRL(ity, regbind v, one), e, hp)
 		      else error "gen:PURE:COPY"
@@ -1512,7 +1445,7 @@ functor MLRiscGen (
 		    end
 		| gen (C.PURE(P.EXTEND{from, to}, [v], x, _ ,e), hp) =
 		    if (from = to)
-		      then copyM(from, x, v, e, hp)
+		      then copy(x, v, e, hp)
 		    else if (from = Target.defaultIntSz) andalso (to = ity)
 		      then defINT (x, M.SRA(ity, regbind v, one), e, hp)
 		      else error "gen:PURE:EXTEND"
@@ -1520,7 +1453,7 @@ functor MLRiscGen (
 		    error "gen:PURE:EXTEND_INF"
 		| gen (C.PURE(P.TRUNC{from, to}, [v], x, _, e), hp) =
 		    if (from = to)
-		      then copyM(from, x, v, e, hp)
+		      then copy(x, v, e, hp)
 		    else if (to = 8)
 		      then if (from <= Target.defaultIntSz)
 			then defTAGINT (x, M.ANDB(ity, regbind v, LI 0x1ff), e, hp) (* mask includes tag bit *)
@@ -1576,8 +1509,8 @@ functor MLRiscGen (
 		      emit(M.STORE(ity, M.ADD(addrTy, Regs.allocptr, LI'(hp+ws)), regbind' v, R.memory));
 		      treeifyAlloc(x, hp+ws, e, hp+2*ws)
 		    end
-		| gen (C.PURE(P.BOX, [u], w, _, e), hp) = copy(PTR, w, u, e, hp)
-		| gen (C.PURE(P.UNBOX, [u], w, _, e), hp) = copy(INT, w, u, e, hp)
+		| gen (C.PURE(P.BOX, [u], w, _, e), hp) = copy(w, u, e, hp)
+		| gen (C.PURE(P.UNBOX, [u], w, _, e), hp) = copy(w, u, e, hp)
 		| gen (C.PURE(P.WRAP kind, [u], w, _, e), hp) = (case kind
 		     of P.FLOAT 64 => mkFblock([(u, offp0)],w,e,hp)
 (* REAL32: FIXME *)
@@ -1600,7 +1533,7 @@ functor MLRiscGen (
 		    (* end case *))
 
 		    (* Note: the gc type is unsafe! XXX *)
-		| gen (C.PURE(P.CAST,[u],w,_,e), hp) = copy(PTR, w, u, e, hp)
+		| gen (C.PURE(P.CAST,[u],w,_,e), hp) = copy(w, u, e, hp)
 		| gen (C.PURE(P.GETCON,[u],w,t,e), hp) = select(0,u,w,t,e,hp)
 		| gen (C.PURE(P.GETEXN,[u],w,t,e), hp) = select(0,u,w,t,e,hp)
 		| gen (C.PURE(P.GETSEQDATA, [u], x, t, e), hp) = select(0,u,x,t,e,hp)
@@ -1614,7 +1547,7 @@ functor MLRiscGen (
 		| gen (C.PURE(P.NEWARRAY0, [_], x, t, e), hp) = let
 		    val hdrDesc = D.desc_polyarr
 		    val dataDesc = D.desc_ref
-		    val dataPtr = newReg PTR
+		    val dataPtr = Cells.newReg()
 		    in  (* gen code to allocate "ref()" for array data *)
 		      emit(M.STORE(ity, M.ADD(addrTy, Regs.allocptr, LI' hp),
 				   LI dataDesc, R.memory));
@@ -1696,18 +1629,19 @@ functor MLRiscGen (
 		   *)
 		    if (from = to)
 		      then let
-			val gc = if (from < ity) then TAGINT else INT
-			val xreg = newReg gc
+			val xreg = Cells.newReg ()
 			val vreg = regbind v
 			in
 			  updtHeapPtr hp;
 			  emit(M.MV(ity, xreg, M.ADDT(ity, vreg, signBit)));
-			  def(gc, x, vreg, e, 0)
+			  if (from < ity)
+			    then defTAGINT(x, vreg, e, 0)
+			    else defINT(x, vreg, e, 0)
 			end
 		    else if (from = ity) andalso (to = Target.defaultIntSz)
 		      then let (* native word to tagged int conversion *)
 			val vreg = regbind v
-			val tmp = newReg INT
+			val tmp = Cells.newReg()
 			val tmpR = M.REG(ity, tmp)
 			val lab = newLabel ()
 			in
@@ -1726,7 +1660,7 @@ functor MLRiscGen (
 		      else error "gen:ARITH:TESTU with unexpected precisions (not implemented)"
 		| gen (C.ARITH(P.TEST{from, to}, [v], x, _, e), hp) =
 		    if (from = to)
-		      then copyM(from, x, v, e, hp)
+		      then copy(x, v, e, hp)
 		    else if (from = ity) andalso (to = Target.defaultIntSz)
 		      then (updtHeapPtr hp; defTAGINT(x, tagSigned(regbind v), e, 0))
 		      else error "gen:ARITH:TEST with unexpected precisions (not implemented)"
@@ -1826,7 +1760,7 @@ functor MLRiscGen (
 		      gen(e, hp)
 		    end
 		| gen (C.SETTER(P.SETSPECIAL, [v, i], e), hp) = let
-		    val ea = M.SUB(ity, regbind v, LI 4)
+		    val ea = M.SUB(ity, regbind v, LI' ws)
 		    val i' = (case i
 			   of NUM{ty={tag=true, ...}, ival} => LI(D.makeDesc(ival, D.tag_special))
 			    | _ => M.ORB(ity, M.SLL(ity, untagSigned i, LW' D.tagWidth),
@@ -1862,7 +1796,7 @@ functor MLRiscGen (
 			| ([M.GPR x1, M.GPR x2],
 			   [(w1, C.NUMt{tag=false, ...}), (w2, C.NUMt{tag=false, ...})]
 			  ) => let
-			    val (r1, r2) = (newReg INT, newReg INT)
+			    val (r1, r2) = (Cells.newReg(), Cells.newReg())
 			    in
 			      addRegBinding(w1, r1);
 			      addRegBinding(w2, r2);
@@ -1894,7 +1828,7 @@ raise Fail "unexpected constant branch"
 		| gen (C.BRANCH(P.FSGN 64, [v], p, d, e), hp) = let
 		    val trueLab = newLabel ()
 		    val r = fregbind v
-		    val r' = newReg INT
+		    val r' = Cells.newReg()
 		    val rReg = M.REG(ity, r')
 		  (* address of the word that contains the sign bit *)
 		    val addr = if MachineSpec.bigEndian
@@ -1942,7 +1876,7 @@ raise Fail "unexpected constant branch"
 	     * is maintained as a queue.
 	     *)
 	      fun initFrags (start::rest : C.function list) = let
-		    fun init(func as (fk, f, _, _, _)) =
+		    fun init (func as (fk, f, _, _, _)) =
 			  addGenTbl (f, Frag.makeFrag(func, functionLabel f))
 		    in
 		      app init rest;
@@ -1976,7 +1910,7 @@ raise Fail "unexpected constant branch"
 		beginCluster 0;
 		pseudoOp PB.TEXT;
 		InvokeGC.emitModuleGC stream;
-		pseudoOp (PB.DATA_READ_ONLY);
+		pseudoOp PB.DATA_READ_ONLY;
 		pseudoOp (PB.EXT(CPs.FILENAME file));
 		compile (endCluster NO_OPT)
 	      end
