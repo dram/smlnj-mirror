@@ -1818,7 +1818,7 @@ functor MLRiscGen (
 (* REAL32: FIXME *)
 		    emit(M.FSTORE(fty, scale8(regbind' v, i), fregbind w,R.memory));
 		    gen(e, hp))
-		| gen (C.åSETTER(P.RAWUPDATE _, [v,i,w], e), hp) = (
+		| gen (C.SETTER(P.RAWUPDATE _, [v,i,w], e), hp) = (
 		    emit(M.STORE(ity, scaleWord(regbind' v, i), regbind' w, R.memory));
 		    gen(e, hp))
 		| gen (C.SETTER(P.ASSIGN, [a as VAR arr, v], e), hp) = let
