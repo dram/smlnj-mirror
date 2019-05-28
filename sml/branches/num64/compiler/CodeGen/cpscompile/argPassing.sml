@@ -1,9 +1,11 @@
-(* argPassing.sml --- parameter passing convention for standard
- *		and known functions.
+(* argPassing.sml
  *
- * COPYRIGHT (c) 1996 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
+ * parameter passing convention for standard and known functions.
  *)
+
 functor ArgPassing (structure C : CPSREGS
 		    structure MS : MACH_SPEC) : ARG_PASSING =
 struct

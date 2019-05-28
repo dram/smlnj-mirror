@@ -1,4 +1,10 @@
-signature CPS_REGION = 
+(* cpsRegions.sig
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
+signature CPS_REGION =
 sig
   structure PT : POINTS_TO = PointsTo
 

@@ -1,20 +1,22 @@
-(* smlnj-pseudoOps.sml -- pseudo ops for the sml/nj
- * 
- * COPYRIGHT (c) 2001 AT&T Bell Laboratories.
+(* smlnj-pseudoOps.sml
  *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * pseudo ops for the sml/nj compiler
  *)
 
-functor SMLNJPseudoOps ( structure Asm : PSEUDO_OPS_BASIS ) : SMLNJ_PSEUDO_OPS = 
+functor SMLNJPseudoOps ( structure Asm : PSEUDO_OPS_BASIS ) : SMLNJ_PSEUDO_OPS =
 struct
   structure AsmPseudoOps = Asm
   structure W = Word
   structure PB = PseudoOpsBasisTyp
   structure T = Asm.T
 
-  datatype smlnj_pseudo_op = 
+  datatype smlnj_pseudo_op =
       JUMPTABLE of {base:Label.label,targets:Label.label list}
     | FILENAME of string
-  
+
   type pseudo_op = smlnj_pseudo_op
 
   val wordBitSz = Asm.wordSize
@@ -35,28 +37,28 @@ struct
 	val K4 = Word.andb(len + 0w3, Word.notb 0w3)
 	fun pad 0w0 = [INT8(Word.toInt(Word.>>(K4,0w2)))]
 	  | pad n = INT8 (0)::pad(n - 0w1)
-      in 
-         PB.ALIGN_SZ 2 :: PB.ASCIIZ(file) :: pad (K4-len) 
+      in
+         PB.ALIGN_SZ 2 :: PB.ASCIIZ(file) :: pad (K4-len)
       end
 
-  fun toString pOp = 
+  fun toString pOp =
     String.concat(
-      List.foldr 
-	(fn (p, acc) => AsmPseudoOps.toString p ^ "\n" :: acc) 
+      List.foldr
+	(fn (p, acc) => AsmPseudoOps.toString p ^ "\n" :: acc)
 	[] (toBasis pOp))
 
   fun emitValue {pOp, loc, emit} = let
     val pb = toBasis pOp
-    fun output(p, loc) = 
-	(AsmPseudoOps.emitValue{pOp=p, loc=loc, emit=emit}; 
+    fun output(p, loc) =
+	(AsmPseudoOps.emitValue{pOp=p, loc=loc, emit=emit};
 	 loc + AsmPseudoOps.sizeOf(p, loc))
-  in 
+  in
      List.foldl output loc (toBasis pOp); ()
   end
 
-  fun sizeOf(pOp,loc) = 
-    List.foldl 
-	(fn (p, a) => a + AsmPseudoOps.sizeOf(p, loc)) 
+  fun sizeOf(pOp,loc) =
+    List.foldl
+	(fn (p, a) => a + AsmPseudoOps.sizeOf(p, loc))
 	0
 	(toBasis pOp)
 

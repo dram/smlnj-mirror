@@ -28,7 +28,9 @@ Group
         signature SMLNJ_PSEUDO_OPS
 
         structure CPSRegions
+(* deprecated
         structure SMLGCType
+*)
 
 	(* To be able to separate machine-dependent parts of viscomp-lib.cm
 	 * from machine-independent parts, we must also export the
@@ -288,12 +290,16 @@ CodeGen/cpscompile/frag.sml
 CodeGen/cpscompile/invokegc.sig
 CodeGen/cpscompile/invokegc.sml
 CodeGen/cpscompile/limit.sml
+(* deprecated
 CodeGen/cpscompile/memAliasing.sml
 CodeGen/cpscompile/memDisambig.sml
+*)
 CodeGen/cpscompile/smlnj-pseudoOps.sig
 CodeGen/cpscompile/smlnj-const.sml
+(* deprecated
 CodeGen/cpscompile/smlnj-gctype.sig
 CodeGen/cpscompile/smlnj-gctype.sml
+*)
 CodeGen/cpscompile/smlnj-mltreeext.sig
 CodeGen/cpscompile/smlnj-mltreeext.sml
 CodeGen/cpscompile/smlnj-pseudoOps.sml
@@ -305,7 +311,11 @@ CodeGen/main/machine-gen.sig
 CodeGen/main/machine-gen.sml
 CodeGen/main/machspec.sig
 CodeGen/main/default-machspec-fn.sml
+(*
 CodeGen/main/mlriscGen.sml
+*)
+(* new simplified code generator *)
+CodeGen/main/mlrisc-gen-fn.sml
 CodeGen/main/object-desc.sig
 CodeGen/main/object-desc.sml
 CodeGen/main/spill-table.sml

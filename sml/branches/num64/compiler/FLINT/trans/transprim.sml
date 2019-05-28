@@ -128,6 +128,7 @@ structure TransPrim : sig
 	    else if (sz = 64) andalso not Target.is64 then num64Cvt
 	    else bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
     in
+(* TODO: add specialized conversion for default int size *)
     val truncInf = pickName ("truncInfLarge", "truncInfLarge", "truncInf64")
     val testInf = pickName ("testInfLarge", "testInfLarge", "testInf64")
     val copyInf = pickName ("copyLargeInf", "copyLargeInf", "copy64Inf")

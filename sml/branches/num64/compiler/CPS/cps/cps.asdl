@@ -186,7 +186,7 @@ module CPS_Rep (
     value
       = VAR (LambdaVar.lvar)
       | LABEL (LambdaVar.lvar)
-      | NUM (integer)
+      | NUM (CPS_IntConst.t)
       | REAL (CPS_RealConst.t)
       | STRING (string)
       | VOID

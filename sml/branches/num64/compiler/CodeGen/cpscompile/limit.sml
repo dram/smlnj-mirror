@@ -1,5 +1,8 @@
-(* Copyright 1996 by Bell Laboratories *)
-(* limit.sml *)
+(* limit.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 signature LIMIT = sig
   val nolimit : CPS.function list ->

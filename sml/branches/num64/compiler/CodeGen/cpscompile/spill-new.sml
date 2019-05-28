@@ -193,7 +193,7 @@ struct
      fun rmv(S, x) = Set.delete(S, x) handle _ => S
   end
 
-(* 64BIT: check this *)
+(* map record kind to CPS type that serves as the argument to the RAWUPDATE primopm *)
   fun rkToCty (CPS.RK_FCONT | CPS.RK_RAW64BLOCK) = CPS.FLTt 64  (* REAL32: FIXME *)
     | rkToCty _ = U.BOGt
 
@@ -818,8 +818,8 @@ struct
        * generate
        *    record.offset <- v.path ; e
        *)
-      fun initRecordItem(record, rk, offset, v, path, e) =
-          proj(v, path,
+      fun initRecordItem (record, rk, offset, v, path, e) =
+            proj(v, path,
                fn x => CPS.SETTER(P.RAWUPDATE(rkToCty rk),
                          [CPS.VAR record, tagInt offset, CPS.VAR x], e))
 

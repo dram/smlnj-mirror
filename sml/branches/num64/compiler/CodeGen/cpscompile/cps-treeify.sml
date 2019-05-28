@@ -1,3 +1,9 @@
+(* cps-treeify.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
 signature CPS_TREEIFY = sig
   datatype treeify = TREEIFY | COMPUTE | DEAD
 

@@ -368,7 +368,7 @@ fun makeAndor (matchRep,err) = let
 	      }
 	  end
       | mergeAndor (NUMpat(_, {ival, ty}), c as AND _, rule) =
-	  bug "mergeAndor - bad pattern merge: NUMpat AND (not 64)"
+	  bug "mergeAndor - bad pattern merge: NUMpat AND"
       | mergeAndor (STRINGpat s, CASE{bindings, cases, constraints,sign}, rule) =
 	  CASE {bindings = bindings, constraints = constraints, sign=sign,
 		cases = addACase(STRINGpcon s, nil, rule, cases)}

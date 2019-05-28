@@ -192,7 +192,7 @@ struct
 	  (structure MachineSpec=MachSpec
            structure MLTreeComp=MLTreeComp
 	   structure Ext = Ext
-           structure C=CpsRegs
+           structure Regs=CpsRegs
 	   structure ClientPseudoOps =ClientPseudoOps
            structure PseudoOp=PseudoOps
            structure InvokeGC=InvokeGC

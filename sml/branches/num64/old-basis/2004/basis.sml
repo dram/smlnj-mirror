@@ -39,9 +39,7 @@ structure Word : WORD = Word
 structure Word8 : WORD = Word8
 structure Word31 : WORD = Word31
 structure Word32 : WORD = Word32
-(*
 structure Word64 : WORD = Word64
-*)
 structure Word8Array : MONO_ARRAY = Word8Array
 structure Word8ArraySlice : MONO_ARRAY_SLICE = Word8ArraySlice
 structure Word8Vector : MONO_VECTOR = Word8Vector

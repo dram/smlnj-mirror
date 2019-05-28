@@ -327,7 +327,7 @@ structure InlineT =
         val extern : word64 -> word32 * word32   = InLine.word64_to_pair
 	val intern : word32 * word32 -> word64   = InLine.word64_from_pair
 
-(*
+(* 64BIT: add these once LargeWord = Word64
 	val toLarge : word64 -> ??		 = ??
 	val toLargeX : word64 -> ??		 = ??
 	val fromLarge : ?? -> word64		 = ??

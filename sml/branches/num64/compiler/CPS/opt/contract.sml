@@ -313,27 +313,6 @@ fun pass1 cexp = let
 		  app checkFunction l)
 	      | SWITCH(v,c,el) => (
 		  use v; enterMISC0 c; app (p1 noInline) el)
-(*
-	      | BRANCH(i,vl,c,e1 as APP(VAR f1, [NUM{ival = 1, ...}]),
-			      e2 as APP(VAR f2, [NUM{ival = 0, ...}])
-		) => (
-		  case get f1
-		   of { info=FNinfo{body=ref(SOME(BRANCH(P.CMP{oper=P.NEQ,...},[NUM{ival = 0, ...}, VAR w2],_,_,_))),
-		        args=[w1],specialuse,...},
-		        ...
-		      } => (* Handle IF IDIOM *)
-			if f1=f2 andalso w1=w2
-			  then let
-			    val {used,...} = get w1
-			    in
-			      specialuse := SOME used
-			    end
-			  else ()
-		   | _ => ()
-		  (* end case *);
-		  app use vl; enterMISC(c,CPSUtil.BOGt);
-		  p1 noInline e1; p1 noInline e2)
-*)
 	      | BRANCH(i, vl, c, e1, e2) => (
 		(* check for "if idiom" *)
 		  case (e1, e2)
@@ -357,7 +336,7 @@ fun pass1 cexp = let
 				else ()
 			  | _ => ()
 			(* end case *))
-		    |_ => ()
+		    | _ => ()
 		  (* end case *);
 		  app use vl; enterMISC0 c; p1 noInline e1; p1 noInline e2)
 	      | SETTER(i,vl,e) => (

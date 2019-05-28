@@ -108,13 +108,13 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
     fun recordFL(ul,_,w,ce) =
 	  RECORD(RK_RAW64BLOCK, map (fn u => (u,OFFp 0)) ul, w, ce)
 
-    fun recordNM(ul,ts,w,ce) =
+    fun recordNM (ul, ts, w, ce) =
       let fun g (FLTt sz::r,u::z,l,h) =
 		mkfn(fn v => g(r, z, (VAR v,OFFp 0)::l, fn ce => h(wrapFlt(sz, u, v, ce))))
 	    | g (NUMt{sz, tag=false}::r,u::z,l,h) =
 		mkfn(fn v => g(r, z, (VAR v,OFFp 0)::l, fn ce => h(wrapInt(sz, u, v, ce))))
 	    | g (NUMt{tag=false, sz} ::_, _, _, _) =
-		  raise Fail("unsupported NUMt size = " ^ Int.toString sz) (* 64BIT: FIXME *)
+		raise Fail "boxed NUMt with unsupported access"
 	    | g (_::r,u::z,l,h) = g(r, z, (u,OFFp0)::l, h)
 	    | g ([],[],l,h) = (rev l, h)
 	    | g _ = bug "unexpected in recordNM in convert"
@@ -644,6 +644,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		(print "*** pro-forma raw-record\n";
 		 newname (v, lpvar x); loop(e,c))
 
+	    (* conversions to/from 64-bits and pairs of 32-bit words on 32-bit targets *)
 	      | F.PRIMOP((_, AP.INTERN64, _, _), args, res, e) => let
 		  val [hi, lo] = lpvars args
 		  in
