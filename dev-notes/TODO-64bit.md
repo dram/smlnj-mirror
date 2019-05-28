@@ -10,30 +10,38 @@ The approach that we are taking is that wherever possible, we use
 generic names (*e.g.*, `int` or `word`) for the default tagged
 integer type.
 
-On 32-bit machines, we currently have `Int31.int` as the default integer type, `Int32.int`
-as a boxed integer type, and `Int64.int` represented as a pair of integers.
-The plan is to make `Int63.int` the default integer type on 64-bit machines, with `Int32.int`
-as an *unboxed* type and `Int64.int` as a regular boxed type without the special representation.
-Currently we use the default tagged integer type for all smaller integer types
+On 32-bit machines, we currently have `Int31.int` as the default integer
+type, `Int32.int` as a boxed integer type, and `Int64.int` represented as
+a pair of integers.  The plan is to make `Int63.int` the default integer
+type on 64-bit machines, with `Int32.int` as an *unboxed* type and `Int64.int`
+as a regular boxed type without the special representation.  Currently
+we use the default tagged integer type for all smaller integer types
 (*e.g.*, `Int8.int` is represented as `Int31.int` at runtime).
 
 ### Outstanding 64-bit issues
 
 The following is a list of the known places in the implementation where
-some change will be required to support 64-bit targets.  These have
-been marked in the source code with the comment tag "`64BIT:`."
+there are assumptions about the target word size (these have
+been marked in the source code with the comment tag "`64BIT:`").
+Some of these files are not actually used, so we have marked them
+as **DONE**, even though they are not changed.
 
   * `compiler/CodeGen/cpscompile/memAliasing.sml` <br/>
-    assumption that `RK_RAW64BLOCK` records take twice as much memory
+    assumption that `RK_RAW64BLOCK` records take twice as much memory. <br/>
+    This file is no longer used in the simplified code generator.
+    **[DONE; 110.89]**
 
   * `compiler/CodeGen/cpscompile/memDisambig.sml` <br/>
-    this file is no longer used, but has 64-bit dependences
+    this file is no longer used, but has 64-bit dependences. <br/>
+    This file is no longer used in the simplified code generator.
+    **[DONE; 110.89]**
 
   * `compiler/CodeGen/cpscompile/spill-new.sml` <br/>
-    the `rkToCty` function may need to be changed
+    the `rkToCty` function may need to be changed.
+    **[DONE; 110.89]**
 
   * `compiler/CodeGen/main/mlriscGen.sml` <br/>
-    various code-generation patterns that match fixed sizes (*e.g.*, `31` or `32`).
+    there may be issues with `RAWRECORD`.
 
   * `compiler/CodeGen/main/object-desc.sml` <br/>
     codes for the various array/vector headers need to be reworked (also in the
@@ -46,14 +54,16 @@ been marked in the source code with the comment tag "`64BIT:`."
     raw untagged data is split into 32-bit and 64-bit records on 32-bit machines.
 
   * `compiler/CPS/convert/convert.sml` <br/>
-    various assumptions about the size of boxed ints
+    various assumptions about the size of boxed ints when converting
+    raw C calls.
 
   * `compiler/CPS/main/literals.sml` <br/>
     this file should be replaced with an implementation of the new literal
     encoding, which supports 64-bit integer data
 
   * `compiler/FLINT/opt/abcopt.sml` <br/>
-    this file is no longer used, but has 64-bit dependences
+    this file is no longer used, but has 64-bit dependences.
+    **[DONE]**
 
   * `compiler/MiscUtil/print/ppobj.sml` <br/>
     there is a mysterious test for `int32Tyc`/`word32Tyc` in the function
@@ -82,6 +92,7 @@ been marked in the source code with the comment tag "`64BIT:`."
 
   * `system/Basis/Implementation/Target32Bit/word64.sml` <br/>
     should use 64-bit functions from `NumFormat` and `NumScan` (see above)
+    **[DONE; 110.88]**
 
   * `system/Basis/Implementation/Unsafe/object.sml` <br/>
     lots of assumptions about the sizes and runtime representations of values.
