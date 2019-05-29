@@ -1,7 +1,7 @@
 (* bin-prim-io.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure BinPrimIO = PrimIO (
@@ -12,5 +12,3 @@ structure BinPrimIO = PrimIO (
     val someElem = (0w0 : Word8.word)
     type pos = Position.int
     val compare = PositionImp.compare);
-
-

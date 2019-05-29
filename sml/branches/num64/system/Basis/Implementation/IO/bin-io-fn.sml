@@ -1,15 +1,15 @@
 (* bin-io-fn.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * QUESTION: what operations should raise exceptions when the stream is
  * closed?
- *
  *)
 
 local
-    structure Int = IntImp
-    structure Position = PositionImp
+  structure Int = IntImp
+  structure Position = PositionImp
 in
 functor BinIOFn (
 
@@ -329,7 +329,7 @@ functor BinIOFn (
 (** Suggestion: When building a stream with supplied initial data,
  ** nothing can be said about the positions inside that initial
  ** data (who knows where that data even came from!).
- **) 
+ **)
 	      val basePos = if (V.length data = 0)
 		    then getPos()
 		    else NONE
@@ -363,8 +363,8 @@ functor BinIOFn (
 
       (*** Output streams ***)
 	datatype outstream = OSTRM of {
-	    buf : A.array,
-	    pos : int ref,
+	    buf : A.array,			(* output buffer *)
+	    pos : int ref,			(* position of next free byte in `buf` *)
 	    closed : bool ref,
 	    bufferMode : IO.buffer_mode ref,
 	    writer : writer,
@@ -444,9 +444,12 @@ functor BinIOFn (
 		    arrUpdate (buf, 0, elem);
 		    writeArr (AS.slice (buf, 0, SOME 1))
 		      handle ex => outputExn (strm, "output1", ex))
-		| _ => let val i = !pos val i' = i+1
+		| _ => let
+		    val i = !pos
+		    val i' = i+1
 		    in
-		      arrUpdate (buf, i, elem); pos := i';
+		      arrUpdate (buf, i, elem);
+		      pos := i';
 		      if (i' = A.length buf)
 			then flushBuffer (strm, "output1")
 			else ()
@@ -465,18 +468,18 @@ functor BinIOFn (
 		  CleanIO.removeCleaner cleanTag;
 		  close())
 
-	fun mkOutstream (wr as PIO.WR{chunkSize, writeArr, writeVec, ...}, mode) =
-	      let
-		  fun iterate (f, size, subslice) = let
-		      fun lp sl =
-			  if size sl = 0 then ()
-			  else let val n = f sl
-			       in
-				   lp (subslice (sl, n, NONE))
-			       end
-		  in
+	fun mkOutstream (wr as PIO.WR{chunkSize, writeArr, writeVec, ...}, mode) = let
+	      fun iterate (f, size, subslice) = let
+		    fun lp sl = if size sl = 0
+			  then ()
+			  else let
+			    val n = f sl
+			    in
+			      lp (subslice (sl, n, NONE))
+			    end
+		    in
 		      lp
-		  end
+		    end
 	      val writeArr' = (case writeArr
 		     of NONE => (fn _ => raise IO.BlockingNotSupported)
 		      | (SOME f) => iterate (f, AS.length, AS.subslice)

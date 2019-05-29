@@ -1,8 +1,9 @@
 (* prim-io-fn.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
+
 functor PrimIO (
 
     structure Vector : MONO_VECTOR
@@ -26,7 +27,7 @@ functor PrimIO (
 	where type array_slice = ArraySlice.slice
 	where type pos = pos
 
-= struct
+  = struct
 
     structure A = Array
     structure AS = ArraySlice
@@ -235,92 +236,98 @@ functor PrimIO (
 	  end
 
     fun openVector v = let
-	val pos = ref 0
-	val closed = ref false
-	fun checkClosed () = if !closed then raise IO.ClosedStream else ()
-	val len = V.length v
-	fun avail () = len - !pos
-	fun readV n = let
-	    val p = !pos
-	    val m = IntImp.min (n, len - p)
-	in
-	    checkClosed ();
-	    pos := p + m;
-	    VS.vector (VS.slice (v, p, SOME m))
-	end
-	fun readA asl = let
-	    val p = !pos
-	    val (buf, i, n) = AS.base asl
-	    val m = IntImp.min (n, len - p)
-	in
-	    checkClosed ();
-	    pos := p + m;
-	    AS.copyVec { src = VS.slice (v, p, SOME m), dst = buf, di = i };
-	    m
-	end
-	fun checked k () = (checkClosed (); k)
-    in
-	(* random access not supported because pos type is abstract *)
-	RD { name = "<vector>",
-	     chunkSize = len,
-	     readVec = SOME readV,
-	     readArr = SOME readA,
-	     readVecNB = SOME (SOME o readV),
-	     readArrNB = SOME (SOME o readA),
-	     block = SOME checkClosed,
-	     canInput = SOME (checked true),
-	     avail = SOME o avail,
-	     getPos = NONE,
-	     setPos = NONE,
-	     endPos = NONE,
-	     verifyPos = NONE,
-	     close = fn () => closed := true,
-	     ioDesc = NONE }
-    end
+	  val pos = ref 0
+	  val closed = ref false
+	  fun checkClosed () = if !closed then raise IO.ClosedStream else ()
+	  val len = V.length v
+	  fun avail () = len - !pos
+	  fun readV n = let
+		val p = !pos
+		val m = IntImp.min (n, len - p)
+		in
+		  checkClosed ();
+		  pos := p + m;
+		  VS.vector (VS.slice (v, p, SOME m))
+		end
+	  fun readA asl = let
+		val p = !pos
+		val (buf, i, n) = AS.base asl
+		val m = IntImp.min (n, len - p)
+		in
+		  checkClosed ();
+		  pos := p + m;
+		  AS.copyVec { src = VS.slice (v, p, SOME m), dst = buf, di = i };
+		  m
+		end
+	  fun checked k () = (checkClosed (); k)
+	  in
+	    (* random access not supported because pos type is abstract *)
+	    RD{
+		name = "<vector>",
+		chunkSize = len,
+		readVec = SOME readV,
+		readArr = SOME readA,
+		readVecNB = SOME (SOME o readV),
+		readArrNB = SOME (SOME o readA),
+		block = SOME checkClosed,
+		canInput = SOME (checked true),
+		avail = SOME o avail,
+		getPos = NONE,
+		setPos = NONE,
+		endPos = NONE,
+		verifyPos = NONE,
+		close = fn () => closed := true,
+		ioDesc = NONE
+	      }
+	  end
 
     fun nullRd () = let
-	val closed = ref false
-	fun checkClosed () = if !closed then raise IO.ClosedStream else ()
-	fun checked k _ = (checkClosed (); k)
-    in
-	RD { name = "<null>",
-	     chunkSize = 1,
-	     readVec = SOME (checked (V.fromList [])),
-	     readArr = SOME (checked 0),
-	     readVecNB = SOME (checked (SOME (V.fromList []))),
-	     readArrNB = SOME (checked (SOME 0)),
-	     block = SOME checkClosed,
-	     canInput = SOME (checked true),
-	     avail = fn () => SOME 0,
-	     getPos = NONE,
-	     setPos = NONE,
-	     endPos = NONE,
-	     verifyPos = NONE,
-	     close = fn () => closed := true,
-	     ioDesc = NONE }
-    end
+	  val closed = ref false
+	  fun checkClosed () = if !closed then raise IO.ClosedStream else ()
+	  fun checked k _ = (checkClosed (); k)
+	  in
+	    RD{
+		name = "<null>",
+		chunkSize = 1,
+		readVec = SOME (checked (V.fromList [])),
+		readArr = SOME (checked 0),
+		readVecNB = SOME (checked (SOME (V.fromList []))),
+		readArrNB = SOME (checked (SOME 0)),
+		block = SOME checkClosed,
+		canInput = SOME (checked true),
+		avail = fn () => SOME 0,
+		getPos = NONE,
+		setPos = NONE,
+		endPos = NONE,
+		verifyPos = NONE,
+		close = fn () => closed := true,
+		ioDesc = NONE
+	      }
+	  end
 
     fun nullWr () = let
-	val closed = ref false
-	fun checkClosed () = if !closed then raise IO.ClosedStream else ()
-	fun checked k () = k
-	fun writeVec vsl = (checkClosed (); VS.length vsl)
-	fun writeArr asl = (checkClosed (); AS.length asl)
-    in
-	WR { name = "<null>",
-	     chunkSize = 1,
-	     writeVec = SOME writeVec,
-	     writeArr = SOME writeArr,
-	     writeVecNB = SOME (SOME o writeVec),
-	     writeArrNB = SOME (SOME o writeArr),
-	     block = SOME checkClosed,
-	     canOutput = SOME (checked true),
-	     getPos = NONE,
-	     setPos = NONE,
-	     endPos = NONE,
-	     verifyPos = NONE,
-	     close = fn () => closed := true,
-	     ioDesc = NONE }
-    end
+	  val closed = ref false
+	  fun checkClosed () = if !closed then raise IO.ClosedStream else ()
+	  fun checked k () = k
+	  fun writeVec vsl = (checkClosed (); VS.length vsl)
+	  fun writeArr asl = (checkClosed (); AS.length asl)
+	  in
+	    WR{
+		name = "<null>",
+		chunkSize = 1,
+		writeVec = SOME writeVec,
+		writeArr = SOME writeArr,
+		writeVecNB = SOME (SOME o writeVec),
+		writeArrNB = SOME (SOME o writeArr),
+		block = SOME checkClosed,
+		canOutput = SOME (checked true),
+		getPos = NONE,
+		setPos = NONE,
+		endPos = NONE,
+		verifyPos = NONE,
+		close = fn () => closed := true,
+		ioDesc = NONE
+	      }
+	  end
 
   end (* PrimIO *)
