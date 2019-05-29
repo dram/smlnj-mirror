@@ -50,7 +50,7 @@ structure NumFormat64 : sig
     fun wordToHex w = let
 	  fun f (w, n, l) = if (w < 0w16)
 		then (iadd(n, 1), (mkDigit w) :: l)
-		else f(W.rshiftl(w, 0w4), iadd(n, 1), mkDigit(W.andb(w, 0wxf)) :: l)
+		else f (W.rshiftl(w, 0w4), iadd(n, 1), mkDigit(W.andb(w, 0wxf)) :: l)
 	  in
 	    f (w, 0, [])
 	  end
@@ -85,8 +85,8 @@ structure NumFormat64 : sig
 	  fun fmt (fmtW, minIntStr) i = if i2w i = minInt
 		then minIntStr
 		else let
-		    val w32 = i2w (if (i < 0) then ~i else i)
-		    val (n, digits) = fmtW w32
+		    val w64 = i2w (if (i < 0) then ~i else i)
+		    val (n, digits) = fmtW w64
 		  in
 		    if (i < 0) then PreString.implode(iadd(n,1), #"~"::digits)
 		    else PreString.implode(n, digits)
