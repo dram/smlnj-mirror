@@ -176,13 +176,13 @@ structure Num64Cnv : sig
 	  pure_arith32(P.ANDB, [lo1_or_lo2, not_lo], fn tmp1 =>
 	  pure_arith32(P.ANDB, [lo1, lo2], fn lo1_and_lo2 =>
 	  pure_arith32(P.ORB, [lo1_and_lo2, tmp1], fn tmp2 =>
-	  pure_arith32(P.RSHIFT, [tmp2, tagNum 31], fn carry =>
+	  pure_arith32(P.RSHIFTL, [tmp2, tagNum 31], fn carry =>
 	  pure_arith32(P.ADD, [hi, carry], fn hi =>
 	    to64(hi, lo, k)))))))))))))
 
   (*
    * fun sub ((hi1, lo1), (hi2, lo2)) = let
-   *       val hi = hi1 - hi2 - b
+   *       val hi = hi1 - hi2
    *       val lo = lo1 - lo2
    *     (* from "Hacker's Delight": b = ((¬lo1 & lo2) | ((lo1 ≡ lo2) & lo)) >> 31 *)
    *       val b = (((lo1 ^= lo2) & lo) ++ (~~lo1 & lo2)) >> 0w31
@@ -201,7 +201,7 @@ structure Num64Cnv : sig
 	  pure_arith32(P.NOTB, [lo1], fn not_lo1 =>
 	  pure_arith32(P.ANDB, [not_lo1, lo2], fn tmp2 =>
 	  pure_arith32(P.ORB, [tmp1, tmp2], fn tmp3 =>
-	  pure_arith32(P.RSHIFT, [tmp3, tagNum 31], fn borrow =>
+	  pure_arith32(P.RSHIFTL, [tmp3, tagNum 31], fn borrow =>
 	  pure_arith32(P.SUB, [hi, borrow], fn hi =>
 	    to64(hi, lo, k)))))))))))))
 
@@ -279,7 +279,7 @@ structure Num64Cnv : sig
 	      pure_arith32(P.RSHIFTL, [lo, amt], fn tmp1 =>
 	      taggedArith(P.SUB, [tagNum 32, amt], fn tmp2 =>
 	      pure_arith32(P.LSHIFT, [hi, tmp2], fn tmp3 =>
-	      pure_arith32(P.ORB, [tmp1, tmp2], fn lo' =>
+	      pure_arith32(P.ORB, [tmp1, tmp3], fn lo' =>
 		to64(hi', lo', k)))))),
 	      (* else *)
 	      taggedArith(P.SUB, [amt, tagNum 32], fn tmp4 =>
@@ -308,7 +308,7 @@ structure Num64Cnv : sig
 	      pure_arith32(P.RSHIFT, [lo, amt], fn tmp1 =>
 	      taggedArith(P.SUB, [tagNum 32, amt], fn tmp2 =>
 	      pure_arith32(P.LSHIFT, [hi, tmp2], fn tmp3 =>
-	      pure_arith32(P.ORB, [tmp1, tmp2], fn lo' =>
+	      pure_arith32(P.ORB, [tmp1, tmp3], fn lo' =>
 		to64(hi', lo', k)))))),
 	      (* else *)
 	      pure_arith32(P.RSHIFT, [hi, tagNum 31], fn hi' =>
@@ -337,7 +337,7 @@ structure Num64Cnv : sig
 	      pure_arith32(P.LSHIFT, [hi, amt], fn tmp1 =>
 	      taggedArith(P.SUB, [tagNum 32, amt], fn tmp2 =>
 	      pure_arith32(P.RSHIFTL, [lo, tmp2], fn tmp3 =>
-	      pure_arith32(P.ORB, [tmp1, tmp2], fn hi' =>
+	      pure_arith32(P.ORB, [tmp1, tmp3], fn hi' =>
 	      pure_arith32(P.LSHIFT, [lo, amt], fn lo' =>
 		to64(hi', lo', k)))))),
 	      (* else *)
