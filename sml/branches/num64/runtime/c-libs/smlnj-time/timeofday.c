@@ -13,7 +13,7 @@
 #  endif
 #else
 #  error no timeofday mechanism
-#endif   
+#endif
 #include "ml-base.h"
 #include "ml-values.h"
 #include "ml-objects.h"
@@ -60,6 +60,7 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 #error no timeofday mechanism
 #endif
 
+/* 64BIT: 32-bit integers are not heap allocated on 64-bit targets, but we should use 64-bits here */
     INT32_ALLOC(msp, ml_sec, c_sec);
     REC_ALLOC2 (msp, res, ml_sec, INT_CtoML(c_usec));
 

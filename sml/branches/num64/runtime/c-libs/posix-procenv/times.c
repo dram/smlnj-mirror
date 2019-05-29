@@ -26,6 +26,7 @@ ml_val_t _ml_P_ProcEnv_times (ml_state_t *msp, ml_val_t arg)
     if (t == -1)
 	return RAISE_SYSERR(msp, -1);
 
+/* 64BIT: 32-bit integers are not heap allocated on 64-bit targets, but we should use 64-bits here */
     INT32_ALLOC(msp, e, t);
     INT32_ALLOC(msp, u, ts.tms_utime);
     INT32_ALLOC(msp, s, ts.tms_stime);

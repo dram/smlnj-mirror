@@ -24,6 +24,7 @@ ml_val_t _ml_Time_gettime (ml_state_t *msp, ml_val_t arg)
 
     GetCPUTime (&t, &s);
 
+/* 64BIT: 32-bit integers are not heap allocated on 64-bit targets, but we should use 64-bits here */
     INT32_ALLOC (msp, tSec, t.seconds);
     INT32_ALLOC (msp, sSec, s.seconds);
     INT32_ALLOC (msp, gcSec, vsp->vp_gcTime->seconds);
