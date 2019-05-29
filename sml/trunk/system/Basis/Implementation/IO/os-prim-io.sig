@@ -1,6 +1,7 @@
 (* os-prim-io.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is an interface to a PrimIO structure augmented with OS specific
  * functions to create readers and writers.
@@ -26,10 +27,8 @@ signature OS_PRIM_IO =
 	    fd : file_desc,
 	    name : string,
 	    appendMode : bool,
-	    initBlkMode : bool, 
+	    initBlkMode : bool,
 	    chunkSize : int
 	  } -> PrimIO.writer
 
   end
-
-

@@ -1,7 +1,7 @@
 (* text-prim-io.sml
  *
- * COPYRIGHT (c) 2007 Fellowship of SML/NJ
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure TextPrimIO = PrimIO (
@@ -12,5 +12,3 @@ structure TextPrimIO = PrimIO (
     val someElem = #"\000"
     type pos = Position.int
     val compare = PositionImp.compare);
-
-

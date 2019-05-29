@@ -1,7 +1,7 @@
 (* io.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure IO : IO =
@@ -22,5 +22,3 @@ structure IO : IO =
     datatype buffer_mode = NO_BUF | LINE_BUF | BLOCK_BUF
 
   end
-
-

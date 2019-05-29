@@ -9,6 +9,8 @@
 local
     structure SysWord = SysWordImp
     structure Word32 = Word32Imp
+    structure Int32 = Int32Imp
+    structure Position = PositionImp
     structure Time = TimeImp
 in
 structure POSIX_FileSys =
@@ -246,9 +248,9 @@ structure POSIX_FileSys =
             uid = UID(#6 sr),
             gid = GID(#7 sr),
             size = #8 sr,
-            atime = Time.fromSeconds (Int32Imp.toLarge (#9 sr)),
-            mtime = Time.fromSeconds (Int32Imp.toLarge (#10 sr)),
-            ctime = Time.fromSeconds (Int32Imp.toLarge (#11 sr))
+            atime = Time.fromSeconds (Int32.toLarge (#9 sr)),
+            mtime = Time.fromSeconds (Int32.toLarge (#10 sr)),
+            ctime = Time.fromSeconds (Int32.toLarge (#11 sr))
           }
 
     val stat' : string -> statrep = cfun "stat"
@@ -289,8 +291,8 @@ structure POSIX_FileSys =
     val utime' : string * Int32.int * Int32.int -> unit = cfun "utime"
     fun utime (file, NONE) = utime' (file, ~1, 0)
       | utime (file, SOME{actime, modtime}) = let
-          val atime = Int32Imp.fromLarge (Time.toSeconds actime)
-          val mtime = Int32Imp.fromLarge (Time.toSeconds modtime)
+          val atime = Int32.fromLarge (Time.toSeconds actime)
+          val mtime = Int32.fromLarge (Time.toSeconds modtime)
           in
             utime'(file,atime,mtime)
           end

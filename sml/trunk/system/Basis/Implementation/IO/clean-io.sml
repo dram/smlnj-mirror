@@ -1,6 +1,7 @@
 (* clean-io.sml
  *
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This module keeps track of open I/O streams, and handles the proper
  * cleaning of them.
@@ -8,7 +9,6 @@
  * NOTE: there is currently a problem with removing the cleaners for streams
  * that get dropped by the application, but the system limit on open files
  * will limit this.
- *
  *)
 
 structure CleanIO :> sig
@@ -106,5 +106,3 @@ structure CleanIO :> sig
     val _ = C.addCleaner ("IO", C.atAll, cleanUp)
 
   end (* CleanIO *)
-
-

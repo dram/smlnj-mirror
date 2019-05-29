@@ -1,7 +1,7 @@
 (* bin-io.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 signature BIN_IO =
@@ -16,4 +16,3 @@ signature BIN_IO =
   and type StreamIO.vector = Word8Vector.vector
   and type StreamIO.elem = Word8.word
   and type StreamIO.pos = Position.int;
-

@@ -207,7 +207,7 @@ structure POSIX_FileSys =
       (* The following assumes the C stat functions pull the
        * file type from the mode field and return the
        * integer below corresponding to the file type.
-       *) 
+       *)
 	fun isDir  (ST{ftype, ...}) = (ftype = 0x4000)
 	fun isChr  (ST{ftype, ...}) = (ftype = 0x2000)
 	fun isBlk  (ST{ftype, ...}) = (ftype = 0x6000)
@@ -226,7 +226,7 @@ structure POSIX_FileSys =
         fun atime (ST{atime,...}) = atime
         fun mtime (ST{mtime,...}) = mtime
         fun ctime (ST{ctime,...}) = ctime
-      end (* structure ST *) 
+      end (* structure ST *)
 
   (* this layout needs to track c-libs/posix-filesys/stat.c *)
     type statrep =
@@ -302,7 +302,7 @@ structure POSIX_FileSys =
           in
             utime'(file,atime,mtime)
           end
-    
+
     val pathconf  : (string * string) -> word option = cfun "pathconf"
     val fpathconf'  : (s_int * string) -> word option = cfun "fpathconf"
     fun fpathconf (FD{fd}, s) = fpathconf'(fd, s)
