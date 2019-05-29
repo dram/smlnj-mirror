@@ -25,11 +25,11 @@
  *
  * Int16_t	-- 16-bit signed integer
  * Int32_t	-- 32-bit signed integer
- * Int64_t	-- 64-bit signed integer (64-bit machines only)
+ * Int64_t	-- 64-bit signed integer
  * Unsigned16_t	-- 16-bit unsigned integer
  * Unsigned32_t	-- 32-bit unsigned integer
- * Unsigned64_t	-- 64-bit unsigned integer (64-bit machines only)
- * Byte_t	-- unsigned 8-bit integer.
+ * Unsigned64_t	-- 64-bit unsigned integer
+ * Byte_t	-- unsigned 8-bit integer
  * Word_t	-- unsigned integer that is large enough to hold an ML value.
  * Int_t	-- signed integer that is large enough to hold an ML value.
  * Addr_t	-- an unsigned integer that is large enough to hold an address.
