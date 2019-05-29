@@ -314,9 +314,8 @@ CodeGen/main/default-machspec-fn.sml
 (*
 CodeGen/main/mlriscGen.sml
 *)
-(* *)
+(* new simplified code generator *)
 CodeGen/main/mlrisc-gen-fn.sml
-(* *)
 CodeGen/main/object-desc.sig
 CodeGen/main/object-desc.sml
 CodeGen/main/spill-table.sml
