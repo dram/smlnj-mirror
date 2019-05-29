@@ -93,9 +93,42 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/05/29]::
++
+Fixed various bugs in the implementation of the `Word64` operations.
+The addition and subtraction operators were using arithmetic right
+shifts, instead of logical right shifts.  Also, the translation
+of 64-bit shift operations was incorrect because of a typo in
+the variable names.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/27]::
++
+Created a simplified version of the `MLRiscGen` functor.  This version
+of the functor, which is in the file `CodeGen/main/mlrisc-gen-fn.sml`
+does not include the memory disambiguation and GC types code.  Since
+the old version (`CodeGen/main/mlriscGen.sml`) did not use these
+features by default, there should be no difference in the quality of
+the generated code.
++
+The purpose of this change is to remove unused code that has 32-bit
+dependencies.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/27]::
++
+Added contraction for unsigned `REM` and `NEG` operations in
+`CPS/opt/contract-prim.sml`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.88; 2019/05/15
-
 
 //--------------------------------------------------------------------
 [2019/05/15]::
