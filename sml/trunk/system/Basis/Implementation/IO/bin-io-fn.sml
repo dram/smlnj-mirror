@@ -363,8 +363,8 @@ functor BinIOFn (
 
       (*** Output streams ***)
 	datatype outstream = OSTRM of {
-	    buf : A.array,
-	    pos : Position.int ref,
+	    buf : A.array,			(* output buffer *)
+	    pos : int ref,			(* position of next free byte in `buf` *)
 	    closed : bool ref,
 	    bufferMode : IO.buffer_mode ref,
 	    writer : writer,

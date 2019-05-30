@@ -41,6 +41,7 @@ ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
     else {
 	ml_val_t	res;
 
+/* 64BIT: 32-bit integers are not heap allocated on 64-bit */
 	INT32_ALLOC(msp, res, t);
 	return res;
     }

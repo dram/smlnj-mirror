@@ -33,6 +33,8 @@
  *   HAS_UCONTEXT		if signal handlers have a ucontext_t argument.
  *   HAS_STRERROR		if the system provides the ISO C strerror function.
  *   INT_GIDLIST		if the second argument to getgroups is int[].
+ *   STAT_HAS_TIMESPEC		if the time fields in the "struct stat" type have
+ *				type "struct timespec".
  *
  * Note that only one of the following sets of symbols should be defined:
  *   { HAS_MMAP, HAS_ANON_MMAP, HAS_VM_ALLOCATE }
@@ -210,6 +212,7 @@ extern char	*sys_errlist[];
 #  define HAS_SELECT
 #  define MAP_ANONYMOUS MAP_ANON
 #  define HAS_MKSTEMP
+#  define STAT_HAS_TIMESPEC
 
 #elif defined(OPSYS_HPUX9)  /** HPUX 9.0 **/
 #  define OS_NAME       "HPUX"
@@ -264,6 +267,7 @@ extern char     *sys_errlist[];
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
 #  define __USE_GNU
+#  define STAT_HAS_TIMESPEC
 
 #include <features.h>
 
@@ -280,6 +284,7 @@ extern char     *sys_errlist[];
 #  define HAS_UCONTEXT
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
+#  define STAT_HAS_TIMESPEC
 
 #include <features.h>
 
@@ -296,6 +301,7 @@ extern char     *sys_errlist[];
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
 #  define __USE_GNU
+#  define STAT_HAS_TIMESPEC
 
 #include <features.h>
 
@@ -312,6 +318,7 @@ extern char     *sys_errlist[];
 #  define HAS_ILOGB
 #  define HAS_SIGCONTEXT
 #  define HAS_STRERROR
+#  define STAT_HAS_TIMESPEC
 
 /* FreeBSD uses MAP_ANON for MAP_ANONYMOUS */
 #  define MAP_ANONYMOUS MAP_ANON
@@ -342,6 +349,7 @@ extern char     *sys_errlist[];
 #  define HAS_UCONTEXT
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
+#  define STAT_HAS_TIMESPEC
 
 #elif defined(OPSYS_OPENBSD)
 #  define OS_NAME	"BSD"
@@ -356,6 +364,7 @@ extern char     *sys_errlist[];
 #  define HAS_SIGCONTEXT
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
+#  define STAT_HAS_TIMESPEC
 
 #elif (defined(TARGET_X86) && defined(OPSYS_CYGWIN))
 #  define OS_NAME	"Cygwin"
@@ -368,6 +377,7 @@ extern char     *sys_errlist[];
 #  define HAS_SELECT
 #  define HAS_SIGCONTEXT
 #  define HAS_STRERROR
+#  define STAT_HAS_TIMESPEC
 
 #include <features.h>
 

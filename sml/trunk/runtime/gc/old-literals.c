@@ -135,6 +135,7 @@ SayDebug("[%2d]: INT(%d)\n", pc-5, i);
 #ifdef DEBUG_LITERALS
 SayDebug("[%2d]: RAW32[%d]\n", pc-5, i);
 #endif
+/* 64BIT: 32-bit integers are not heap allocated on 64-bit targets */
 	    INT32_ALLOC(msp, res, i);
 	    LIST_cons(msp, stk, res, stk);
 	    break;

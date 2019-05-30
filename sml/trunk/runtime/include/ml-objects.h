@@ -183,14 +183,19 @@
 #define INT32_ALLOC(msp, p, i)	WORD_ALLOC(msp, p, i)
 #define REC_SELINT32(p, i)	(*REC_SELPTR(Int32_t, p, i))
 
-#define INT64_ALLOC(map, p, w) {				\
+/* WARNING: the macro argument `i` appears twice in its expansion! */
+#define INT64_MLtoC(i)							\
+	(((Unsigned64_t)(PTR_MLtoC(Unsigned32_t, i)[0]) << 32) |	\
+	((Unsigned64_t)(PTR_MLtoC(Unsigned32_t, i)[1])))
+
+#define INT64_ALLOC(msp, p, w) {				\
 	ml_state_t	*__msp = (msp);				\
 	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	Unsigned64_t	__w = (Unsigned64_t)(w)			\
+	Unsigned64_t	__w = (Unsigned64_t)(w);		\
 	*__p++ = MAKE_DESC(2, DTAG_raw);			\
 	*__p++ = (ml_val_t)((Unsigned32_t)(__w >> 32));		\
 	*__p++ = (ml_val_t)((Unsigned32_t)(__w & 0xffffffff));	\
-	(p) = PTR_CtoML(__msp->ml_allocPtr + 2);		\
+	(p) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
 	__msp->ml_allocPtr = __p;				\
     }
 
