@@ -21,7 +21,7 @@ ml_val_t _ml_P_ProcEnv_time (ml_state_t *msp, ml_val_t arg)
 
     t = time (NIL(time_t*));
 
-/* 64BIT: 32-bit integers are not heap allocated, but we should use 64-bits here */
+/* 64BIT: 32-bit integers are not heap allocated */
     INT32_ALLOC(msp, res, t);
     return res;
 

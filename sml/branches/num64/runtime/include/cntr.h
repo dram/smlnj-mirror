@@ -1,7 +1,5 @@
 /*! \file cntr.h
  *
- * \author John Reppy
- *
  * Large counters for large (> 2^31) values.
  */
 

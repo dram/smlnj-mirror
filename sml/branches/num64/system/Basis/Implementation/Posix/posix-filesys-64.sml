@@ -311,4 +311,3 @@ structure POSIX_FileSys =
 
   end (* structure POSIX_FileSys *)
 end
-
