@@ -59,10 +59,9 @@ PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
     WORD_ALLOC (msp, nlink, (Word_t)(buf->st_nlink));
     WORD_ALLOC (msp, uid, (Word_t)(buf->st_uid));
     WORD_ALLOC (msp, gid, (Word_t)(buf->st_gid));
-/* 64BIT: 32-bit integers are not heap allocated, but we should use 64-bits here */
-    INT32_ALLOC (msp, atime, buf->st_atime);
-    INT32_ALLOC (msp, mtime, buf->st_mtime);
-    INT32_ALLOC (msp, ctime, buf->st_ctime);
+    atime = INT32_CtoML (msp, buf->st_atime);
+    mtime = INT32_CtoML (msp, buf->st_mtime);
+    ctime = INT32_CtoML (msp, buf->st_ctime);
 
   /* allocate the stat record */
     ML_AllocWrite(msp,  0, MAKE_DESC(11, DTAG_record));

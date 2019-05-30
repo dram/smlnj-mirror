@@ -4,9 +4,9 @@
 SHELL =		/bin/sh
 
 MAKE =		make
-CC =		gcc 
+CC =		gcc -std=gnu99
 CFLAGS =	-O2
-CPP =		gcc -x assembler-with-cpp -E -P 
+CPP =		gcc -x assembler-with-cpp -E -P
 XOBJS =
 XLIBS =		../c-libs/dl/libunix-dynload.a
 #LD_LIBS =	-lws2_32 -Wl,--export-all -output-def=smlnj.def

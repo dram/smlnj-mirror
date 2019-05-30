@@ -20,7 +20,7 @@
 ml_val_t _ml_P_FileSys_ftruncate_64 (ml_state_t *msp, ml_val_t arg)
 {
     int		fd = REC_SELINT(arg, 0);
-    ml_val_t	boxed_len = REC_SELINT(arg, 1);
+    ml_val_t	boxed_len = REC_SEL(arg, 1);
     off_t	len = (off_t)INT64_MLtoC(boxed_len);
     int		sts;
 

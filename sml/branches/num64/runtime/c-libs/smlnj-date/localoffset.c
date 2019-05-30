@@ -38,7 +38,6 @@ static ml_val_t LocalOffset (ml_state_t *msp, time_t t)
     struct tm	*tm;
     int		isDST;
     time_t	t2;
-    ml_val_t	res;
 
   /* get the local timezone's daylight saving's time info */
     tm = localtime (&t);
@@ -54,9 +53,7 @@ static ml_val_t LocalOffset (ml_state_t *msp, time_t t)
     tm->tm_isdst = isDST;
     t2 = mktime (tm);
 
-/* 64BIT: 32-bit integers are not heap allocated on 64-bit targets */
-    INT32_ALLOC(msp, res, t2 - t);
-    return res;
+    return INT32_CtoML(msp, t2 - t);
 
 }
 

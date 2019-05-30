@@ -4,7 +4,7 @@
 SHELL =		/bin/sh
 
 MAKE =		make
-CC =		gcc -ansi
+CC =		gcc -std=c99
 CFLAGS =	-O2 -D_REENTRANT
 CPP =		gcc -x assembler-with-cpp -E -P
 #XOBJS =	xmonitor.o

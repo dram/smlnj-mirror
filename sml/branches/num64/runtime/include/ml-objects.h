@@ -43,163 +43,196 @@
 
 #define ML_AllocWrite(msp, i, x)	((((msp)->ml_allocPtr))[(i)] = (x))
 
-#define ML_Alloc(msp, n)	(			\
-    ((msp)->ml_allocPtr += ((n)+1)),			\
-    PTR_CtoML((msp)->ml_allocPtr - (n)))
+STATIC_INLINE ml_val_t ML_Alloc (ml_state_t *msp, int n)
+{
+    ml_val_t obj = PTR_CtoML(msp->ml_allocPtr + 1);
+    msp->ml_allocPtr += (n + 1);
+    return obj;
+}
 
-#define REF_ALLOC(msp, r, a)	{			\
-	ml_state_t	*__msp = (msp);			\
-	ml_val_t	*__p = __msp->ml_allocPtr;	\
-	*__p++ = DESC_ref;				\
-	*__p++ = (a);					\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);	\
-	__msp->ml_allocPtr = __p;			\
-    }
-
-#define REC_ALLOC1(msp, r, a)	{				\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = MAKE_DESC(1, DTAG_record);			\
-	*__p++ = (a);						\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
-#define REC_ALLOC2(msp, r, a, b)	{			\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = DESC_pair;					\
-	*__p++ = (a);						\
-	*__p++ = (b);						\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
-#define REC_ALLOC3(msp, r, a, b, c)	{			\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = MAKE_DESC(3, DTAG_record);			\
-	*__p++ = (a);						\
-	*__p++ = (b);						\
-	*__p++ = (c);						\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
-#define REC_ALLOC4(msp, r, a, b, c, d)	{			\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = MAKE_DESC(4, DTAG_record);			\
-	*__p++ = (a);						\
-	*__p++ = (b);						\
-	*__p++ = (c);						\
-	*__p++ = (d);						\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
-#define REC_ALLOC5(msp, r, a, b, c, d, e)	{		\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = MAKE_DESC(5, DTAG_record);			\
-	*__p++ = (a);						\
-	*__p++ = (b);						\
-	*__p++ = (c);						\
-	*__p++ = (d);						\
-	*__p++ = (e);						\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
-#define REC_ALLOC6(msp, r, a, b, c, d, e, f)	{		\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = MAKE_DESC(6, DTAG_record);			\
-	*__p++ = (a);						\
-	*__p++ = (b);						\
-	*__p++ = (c);						\
-	*__p++ = (d);						\
-	*__p++ = (e);						\
-	*__p++ = (f);						\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
-#define SEQHDR_ALLOC(msp, r, desc, data, len)	{		\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = (desc);					\
-	*__p++ = (data);					\
-	*__p++ = INT_CtoML(len);				\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
+/* inline allocation functions */
+STATIC_INLINE ml_val_t ML_RefAlloc (ml_state_t *msp, ml_val_t a)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = DESC_ref;
+    p[1] = a;
+    return ML_Alloc(msp, 1);
+}
+STATIC_INLINE ml_val_t ML_Alloc1 (ml_state_t *msp, ml_val_t a)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(1, DTAG_record);
+    p[1] = a;
+    return ML_Alloc(msp, 1);
+}
+STATIC_INLINE ml_val_t ML_Alloc2 (ml_state_t *msp, ml_val_t a, ml_val_t b)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(2, DTAG_record);
+    p[1] = a;
+    p[2] = b;
+    return ML_Alloc(msp, 2);
+}
+STATIC_INLINE ml_val_t ML_Alloc3 (ml_state_t *msp, ml_val_t a, ml_val_t b, ml_val_t c)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(3, DTAG_record);
+    p[1] = a;
+    p[2] = b;
+    p[3] = c;
+    return ML_Alloc(msp, 3);
+}
+STATIC_INLINE ml_val_t ML_Alloc4 (ml_state_t *msp, ml_val_t a, ml_val_t b, ml_val_t c, ml_val_t d)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(4, DTAG_record);
+    p[1] = a;
+    p[2] = b;
+    p[3] = c;
+    p[4] = d;
+    return ML_Alloc(msp, 4);
+}
+STATIC_INLINE ml_val_t ML_Alloc5 (ml_state_t *msp, ml_val_t a, ml_val_t b, ml_val_t c, ml_val_t d, ml_val_t e)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(5, DTAG_record);
+    p[1] = a;
+    p[2] = b;
+    p[3] = c;
+    p[4] = d;
+    p[5] = e;
+    return ML_Alloc(msp, 5);
+}
+STATIC_INLINE ml_val_t ML_Alloc6 (ml_state_t *msp, ml_val_t a, ml_val_t b, ml_val_t c, ml_val_t d, ml_val_t e, ml_val_t f)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(6, DTAG_record);
+    p[1] = a;
+    p[2] = b;
+    p[3] = c;
+    p[4] = d;
+    p[5] = e;
+    p[6] = f;
+    return ML_Alloc(msp, 6);
+}
+STATIC_INLINE ml_val_t ML_AllocSeqHdr (ml_state_t *msp, ml_val_t desc, ml_val_t data, Int_t len)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = desc;
+    p[1] = data;
+    p[2] = INT_CtoML(len);
+    return ML_Alloc(msp, 2);
+}
+STATIC_INLINE ml_val_t ML_AllocReal64 (ml_state_t *msp, double d)
+{
+    ml_val_t *p = msp->ml_allocPtr;
 #ifdef ALIGN_REALDS
-#define REAL64_ALLOC(msp, r, d) {				\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	__p = (ml_val_t *)((Addr_t)__p | WORD_SZB);		\
-	*__p++ = DESC_reald;					\
-	(r) = PTR_CtoML(__p);					\
-	*(double *)__p = (d);					\
-	__p += REALD_SZW;					\
-	__msp->ml_allocPtr = __p;				\
-    }
-#else
-#define REAL64_ALLOC(msp, r, d) {				\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = DESC_reald;					\
-	(r) = PTR_CtoML(__p);					\
-	*(double *)__p = (d);					\
-	__p += REALD_SZW;					\
-	__msp->ml_allocPtr = __p;				\
-    }
+    p = (ml_val_t *)((Addr_t)p | WORD_SZB);
 #endif
+    *p++ = DESC_reald;
+    *(double *)p = d;
+    msp->ml_allocPtr = p + REALD_SZW;
+    return PTR_CtoML(p);
+}
+STATIC_INLINE ml_val_t ML_AllocWord (ml_state_t *msp, Word_t w)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(1, DTAG_raw);
+    p[1] = (ml_val_t)w;
+    return ML_Alloc(msp, 1);
+}
 
-#define EXN_ALLOC(msp, ex, id, val, where) \
-	REC_ALLOC3(msp, ex, id, val, where)
+/* support for 32-bit integers, which are boxed on 32-bit systems and
+ * tagged on 64-bit systems.
+ */
+STATIC_INLINE ml_val_t INT32_CtoML (ml_state_t *msp, Int32_t n)
+{
+#ifdef SIZES_C64_ML64
+    return INT_CtoML(n); /* tagged representation on 64-bit systems */
+#else /* 32-bit ML values */
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(1, DTAG_raw);
+    p[1] = (ml_val_t)n;
+    return ML_Alloc(msp, 1);
+#endif
+}
+STATIC_INLINE Int32_t INT32_MLtoC (ml_val_t n)
+{
+#ifdef SIZES_C64_ML64
+    return INT_MLtoC(n); /* tagged representation on 64-bit systems */
+#else /* 32-bit ML values */
+    return *PTR_MLtoC(Int32_t, n);
+#endif
+}
+STATIC_INLINE Int32_t REC_SELINT32 (ml_val_t p, int i)
+{
+#ifdef SIZES_C64_ML64
+    return REC_SELINT(p, i);
+#else /* 32-bit ML values */
+    return *REC_SELPTR(Int32_t, p, i);
+#endif
+}
+
+/* support for 64-bit integers and words */
+STATIC_INLINE ml_val_t ML_AllocInt64 (ml_state_t *msp, Int64_t n)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = DESC_word64;
+#ifdef SIZES_C64_ML64
+    p[1] = (ml_val_t)n;
+#else /* 32-bit ML values */
+    p[1] = (ml_val_t)(Unsigned32_t)((Unsigned64_t)n >> 32);
+    p[2] = (ml_val_t)(Unsigned32_t)n;
+#endif
+    return ML_Alloc(msp, WORD64_SZW);
+}
+STATIC_INLINE ml_val_t ML_AllocWord64 (ml_state_t *msp, Unsigned64_t w)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = DESC_word64;
+#ifdef SIZES_C64_ML64
+    p[1] = (ml_val_t)w;
+#else /* 32-bit ML values */
+    p[1] = (ml_val_t)(Unsigned32_t)(w >> 32);
+    p[2] = (ml_val_t)(Unsigned32_t)w;
+#endif
+    return ML_Alloc(msp, WORD64_SZW);
+}
+STATIC_INLINE Int64_t INT64_MLtoC (ml_val_t n)
+{
+#ifdef SIZES_C64_ML64
+    return *PTR_MLtoC(Unsigned64_t, n);
+#else /* 32-bit ML values */
+    Unsigned64_t hi = PTR_MLtoC(Unsigned32_t, n)[0];
+    Unsigned64_t lo = PTR_MLtoC(Unsigned32_t, n)[1];
+    return ((hi << 32) | lo);
+#endif
+}
+
+/* macros that wrap the inline allocation functions; these are for backward
+ * compatibility to the old macro-based allocation code.
+ */
+#define REF_ALLOC(msp, r, a)			{ (r) = ML_RefAlloc((msp), (a)); }
+#define REC_ALLOC1(msp, r, a)			{ (r) = ML_Alloc1((msp), (a)); }
+#define REC_ALLOC2(msp, r, a, b)		{ (r) = ML_Alloc2((msp), (a), (b)); }
+#define REC_ALLOC3(msp, r, a, b, c)		{ (r) = ML_Alloc3((msp), (a), (b), (c)); }
+#define REC_ALLOC4(msp, r, a, b, c, d)		{ (r) = ML_Alloc4((msp), (a), (b), (c), (d)); }
+#define REC_ALLOC5(msp, r, a, b, c, d, e)	{ (r) = ML_Alloc5((msp), (a), (b), (c), (d), (e)); }
+#define REC_ALLOC6(msp, r, a, b, c, d, e, f)	{ (r) = ML_Alloc6((msp), (a), (b), (c), (d), (e), (f)); }
+#define SEQHDR_ALLOC(msp, r, desc, data, len)	{ (r) = ML_AllocSeqHdr((msp), (desc), (data), (len)); }
+#define REAL64_ALLOC(msp, r, d)			{ (r) = ML_AllocReal64((msp), (d)); }
+#define EXN_ALLOC(msp, ex, id, val, where)	REC_ALLOC3(msp, ex, id, val, where)
 
 /** Boxed word values **/
+#define WORD_ALLOC(msp, r, w)	{ (r) = ML_AllocWord((msp), (w)); }
 #define WORD_MLtoC(w)		(*PTR_MLtoC(Word_t, w))
-#define WORD_ALLOC(msp, p, w)	{				\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = MAKE_DESC(1, DTAG_raw);			\
-	*__p++ = (ml_val_t)(w);					\
-	(p) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
 #define REC_SELWORD(p, i)	(*REC_SELPTR(Word_t, p, i))
 
-#ifdef SIZES_C64_ML64
-/* 64BIT: Int32_t is tagged on 64-bit targets */
-#define INT64_ALLOC(msp, p, i)	WORD_ALLOC(msp, p, i)
-
-#else /* !SIZES_C64_ML64 */
-
-#define INT32_MLtoC(i)		(*PTR_MLtoC(Int32_t, i))
+/* temporary */
 #define INT32_ALLOC(msp, p, i)	WORD_ALLOC(msp, p, i)
-#define REC_SELINT32(p, i)	(*REC_SELPTR(Int32_t, p, i))
 
-/* WARNING: the macro argument `i` appears twice in its expansion! */
-#define INT64_MLtoC(i)							\
-	(((Unsigned64_t)(PTR_MLtoC(Unsigned32_t, i)[0]) << 32) |	\
-	((Unsigned64_t)(PTR_MLtoC(Unsigned32_t, i)[1])))
-
-#define INT64_ALLOC(msp, p, w) {				\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	Unsigned64_t	__w = (Unsigned64_t)(w);		\
-	*__p++ = MAKE_DESC(2, DTAG_raw);			\
-	*__p++ = (ml_val_t)((Unsigned32_t)(__w >> 32));		\
-	*__p++ = (ml_val_t)((Unsigned32_t)(__w & 0xffffffff));	\
-	(p) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
-#endif /* SIZES_C64_ML64 */
+#define INT64_ALLOC(msp, r, i)	{ (r) = ML_AllocInt64((msp), (i)); }
+#define WORD64_ALLOC(msp, r, w)	{ (r) = ML_AllocWord64((msp), (w)); }
 
 /** ML lists **/
 #define LIST_hd(p)		REC_SEL(p, 0)

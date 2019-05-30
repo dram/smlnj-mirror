@@ -583,15 +583,9 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #ifdef DEBUG_LITERALS
 	    SayDebug("[%2d]: INT32(%d)\n", startPC, arg32.iArg);
 #endif
-#ifdef SIZES_C64_ML64
-	  /* on 64-bit systems 32-bit integers are unboxed (i.e., tagged) */
-	    LIST_cons(msp, stk, INT_CtoML(arg32.iArg), stk);
-#else
-	  /* on 32-bit systems, 32-bit ints are boxed */
-	    INT32_ALLOC(msp, res, arg32.iArg);
+	    res = INT32_CtoML(msp, arg32.iArg);
 	    LIST_cons(msp, stk, res, stk);
 	    availSpace -= 2*WORD_SZB;
-#endif
 	    break;
 
 	  case INT64:

@@ -46,6 +46,8 @@
 #define PAIR_SZW	2
 /* the number of Word_t's per special object */
 #define SPECIAL_SZW	2
+/* the number of Word_t's per 64-bit word */
+#define WORD64_SZW	(8 / WORD_SZB)
 
 /* convert a number of bytes to an even number of words */
 #define BYTES_TO_WORDS(N)	(((N)+(WORD_SZB-1)) >> LOG_BYTES_PER_WORD)
@@ -64,6 +66,8 @@
 #include <stdlib.h>
 
 #define PVT	static
+
+#define STATIC_INLINE	static inline
 
 typedef Int32_t bool_t;
 #ifndef TRUE		/* Some systems already define TRUE and FALSE */

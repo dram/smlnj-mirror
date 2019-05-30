@@ -7,6 +7,7 @@
 
 #include "ml-unixdep.h"
 #include "ml-osdep.h"
+#include INCLUDE_TYPES_H
 #include <sys/mman.h>
 #include INCLUDE_FCNTL_H
 #include "ml-base.h"
