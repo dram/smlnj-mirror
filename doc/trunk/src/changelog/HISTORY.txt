@@ -94,6 +94,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/05/30]::
++
+We are now assuming that we have at least **C99** support (for
+practical purposes, this assumption is even true on Windows).
+With this assumption, the allocation of small objects in the
+runtime has been switched from macros to inline functions
+(see `runtime/include/ml-objects.h`).  This change allows a
+graceful handling of 32-bit integers, which are heap allocated
+on 32-bit machines, but tagged on 64-bit machines.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/05/29]::
 +
 Fixed various bugs in the implementation of the `Word64` operations.
