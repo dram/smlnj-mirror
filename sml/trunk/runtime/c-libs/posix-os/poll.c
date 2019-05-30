@@ -15,7 +15,7 @@
 #include "ml-unixdep.h"
 #if defined(HAS_SELECT)
 #  include INCLUDE_TYPES_H
-#  include <sys/time.h>
+#  include INCLUDE_TIME_H
 #elif defined(HAS_POLL)
 #  include <stropts.h>
 #  include <poll.h>
