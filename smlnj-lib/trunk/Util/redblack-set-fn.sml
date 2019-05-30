@@ -112,7 +112,7 @@ functor RedBlackSetFn (K : ORD_KEY) :> ORD_SET where Key = K =
 	| RIGHT of (color * tree * item * zipper)
     in
     fun delete (SET(nItems, t), k) = let
-	(* zip the zipper *) 
+	(* zip the zipper *)
 	  fun zip (TOP, t) = t
 	    | zip (LEFT(color, x, b, p), a) = zip(p, T(color, a, x, b))
 	    | zip (RIGHT(color, a, x, p), b) = zip(p, T(color, a, x, b))
@@ -199,7 +199,7 @@ functor RedBlackSetFn (K : ORD_KEY) :> ORD_SET where Key = K =
 			   * left child recolored to black.
 			   *)
 			    zip(p, T(B, a', y', b'))
-			| (_, E, T(_, a', y', b')) => 
+			| (_, E, T(_, a', y', b')) =>
 			  (* node is black and right child is red; we replace the node with its
 			   * right child recolored to black.
 			   *)
