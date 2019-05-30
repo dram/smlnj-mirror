@@ -261,9 +261,9 @@ structure POSIX_FileSys =
             ctime = Time.fromNanoseconds (Int64.toLarge (#11 sr))
           }
 
-    val stat' : string -> statrep = cfun "stat"
-    val lstat' : string -> statrep = cfun "lstat"
-    val fstat' : s_int -> statrep = cfun "fstat"
+    val stat' : string -> statrep = cfun "stat_64"
+    val lstat' : string -> statrep = cfun "lstat_64"
+    val fstat' : s_int -> statrep = cfun "fstat_64"
     fun stat fname = mkStat (stat' fname)
     fun lstat fname = mkStat (lstat' fname) (* POSIX 1003.1a *)
     fun fstat (FD{fd}) = mkStat (fstat' fd)
