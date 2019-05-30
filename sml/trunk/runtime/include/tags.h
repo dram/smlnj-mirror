@@ -90,7 +90,8 @@
 #define DESC_pair	MAKE_DESC(2, DTAG_record)
 #define DESC_exn	MAKE_DESC(3, DTAG_record)
 #define DESC_ref	MAKE_DESC(1, DTAG_ref)
-#define DESC_reald	MAKE_DESC(2, DTAG_raw64)
+#define DESC_reald	MAKE_DESC(REALD_SZW, DTAG_raw64)
+#define DESC_word64	MAKE_DESC(WORD64_SZW, DTAG_raw)
 #define DESC_polyvec	MAKE_DESC(SEQ_poly, DTAG_vec_hdr)
 #define DESC_polyarr	MAKE_DESC(SEQ_poly, DTAG_arr_hdr)
 #define DESC_word8arr	MAKE_DESC(SEQ_word8, DTAG_arr_hdr)
@@ -108,7 +109,7 @@
 #define SPCL_weak		2	/* weak pointer */
 #define SPCL_null_weak		3	/* nulled weak pointer */
 
-#define DESC_evaled_susp	MAKE_DESC(SPECIAL_evaled_susp, DTAG_special)
+#define DESC_evaled_susp	MAKE_DESC(SPCL_evaled_susp, DTAG_special)
 #define DESC_unevaled_susp	MAKE_DESC(SPCL_unevaled_susp, DTAG_special)
 #define DESC_weak		MAKE_DESC(SPCL_weak, DTAG_special)
 #define DESC_null_weak		MAKE_DESC(SPCL_null_weak, DTAG_special)

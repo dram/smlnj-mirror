@@ -39,11 +39,7 @@ ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 	return RAISE_ERROR(msp, "Invalid date");
     }
     else {
-	ml_val_t	res;
-
-/* 64BIT: 32-bit integers are not heap allocated on 64-bit */
-	INT32_ALLOC(msp, res, t);
-	return res;
+	return INT32_CtoML(msp, t);
     }
 
 } /* end of _ml_Date_mktime */

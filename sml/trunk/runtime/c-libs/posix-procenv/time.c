@@ -17,13 +17,10 @@
 ml_val_t _ml_P_ProcEnv_time (ml_state_t *msp, ml_val_t arg)
 {
     time_t      t;
-    ml_val_t	res;
 
     t = time (NIL(time_t*));
 
-/* 64BIT: 32-bit integers are not heap allocated */
-    INT32_ALLOC(msp, res, t);
-    return res;
+    return INT32_CtoML(msp, t);
 
 } /* end of _ml_P_ProcEnv_time */
 

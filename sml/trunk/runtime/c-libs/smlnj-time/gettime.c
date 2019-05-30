@@ -24,9 +24,9 @@ ml_val_t _ml_Time_gettime (ml_state_t *msp, ml_val_t arg)
 
     GetCPUTime (&t, &s);
 
-    INT32_ALLOC (msp, tSec, t.seconds);
-    INT32_ALLOC (msp, sSec, s.seconds);
-    INT32_ALLOC (msp, gcSec, vsp->vp_gcTime->seconds);
+    tSec = INT32_CtoML (msp, t.seconds);
+    sSec = INT32_CtoML (msp, s.seconds);
+    gcSec = INT32_CtoML (msp, vsp->vp_gcTime->seconds);
     REC_ALLOC6 (msp, res,
 	tSec, INT_CtoML(t.uSeconds),
 	sSec, INT_CtoML(s.uSeconds),

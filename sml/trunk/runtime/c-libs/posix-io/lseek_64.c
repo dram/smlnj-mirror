@@ -21,7 +21,7 @@
 ml_val_t _ml_P_IO_lseek_64 (ml_state_t *msp, ml_val_t arg)
 {
     Int_t       fd = REC_SELINT(arg, 0);
-    ml_val_t	box_offset = REC_SELINT(arg, 1);
+    ml_val_t	box_offset = REC_SEL(arg, 1);
     off_t	offset = (off_t)INT64_MLtoC(box_offset);
     off_t       pos;
     Int_t       whence = REC_SELINT(arg, 2);

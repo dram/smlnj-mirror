@@ -13,7 +13,7 @@
 #  endif
 #else
 #  error no timeofday mechanism
-#endif   
+#endif
 #include "ml-base.h"
 #include "ml-values.h"
 #include "ml-objects.h"
@@ -60,7 +60,7 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 #error no timeofday mechanism
 #endif
 
-    INT32_ALLOC(msp, ml_sec, c_sec);
+    ml_sec = INT32_CtoML(msp, c_sec);
     REC_ALLOC2 (msp, res, ml_sec, INT_CtoML(c_usec));
 
     return res;
