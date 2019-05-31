@@ -277,25 +277,9 @@ installdriver _ml-makedepend ml-makedepend
 installdriver _heap2exec heap2exec
 
 #
-# set some architecture dependent run-time system flags
+# set allocation size; for the x86, this gets reset in .run-sml
 #
-case $ARCH in
-    mips*)
-	ALLOC=1M
-	;;
-    x86)
-	# The following is the _wrong_ value for some x86 chips
-	# (i.e., Celerons).  We use 512k here and re-set it to the proper
-	# value in .run-sml.
-	ALLOC=512k
-	;;
-    alpha32)
-	ALLOC=512k
-	;;
-    *)
-	ALLOC=512k
-	;;
-esac
+ALLOC=512k
 
 # OS-specific things for building the runtime system
 #

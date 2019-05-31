@@ -68,10 +68,8 @@ case `uname -s` in
     case `uname -m` in
       *86)
 	ARCH=x86
-      # we no longer support Linux before the 2.2 kernel.
+      # we no longer support Linux before the 2.4 kernel.
 	case `uname -r` in
-	  2.2.*) ;;
-	  2.3.*) ;;
 	  2.4.*) ;;
 	  2.5.*) ;;
 	  2.6.*) ;;
@@ -105,7 +103,7 @@ case `uname -s` in
   NetBSD)
     case `uname -r` in
       1.*) exit 1;;
-      2.*) OPSYS=netbsd2;;
+      2.*) exit 1;;
       *) OPSYS=netbsd;;
     esac
     HEAP_OPSYS=bsd
