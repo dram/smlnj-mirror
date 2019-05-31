@@ -1,9 +1,15 @@
 #!@SHELL@
+#
+# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
+# usage: heap2exec [--linkwith-<format>] heapfile execfile
+#
 
 CMD=`basename "$0"`
 
 usage() {
-	echo "usage: $CMD [--linkwith-<format>] heapfile execfile"
+	echo "usage: $CMD [--linkwith-<format>] <heapfile> <execfile>"
 	echo "       <format> = exec | so | a"
 	exit 1
 }
