@@ -7,11 +7,12 @@
  * are the same on 64-bit targets.
  *)
 
-structure LargeIntImp : INTEGER = IntInfImp
-structure LargeRealImp = Real64Imp
 structure FixedIntImp = Int32Imp
-structure LargeRealImp = Real64Imp
+structure LargeIntImp : INTEGER = IntInfImp
+
 structure LargeWordImp = Word32Imp
-structure Math = Math64
-structure RealImp = Real64Imp
 structure SysWordImp = Word32Imp
+
+structure RealImp = Real64Imp
+structure LargeRealImp = Real64Imp
+structure Math = Math64

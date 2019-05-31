@@ -20,3 +20,8 @@ structure Word64 = struct type word = PrimTypes.word64 end
 structure Real64 = struct type real = PrimTypes.real end
 
 structure String = struct type string = PrimTypes.string end
+
+(* structure aliases *)
+structure LargeInt = IntInf
+structure Real = Real64
+structure LargeReal = Real64

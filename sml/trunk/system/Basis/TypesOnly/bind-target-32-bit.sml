@@ -6,9 +6,6 @@
  * Bindings of LargeInt, LargeWord and SysWord structures for 32-bit targets.
  *)
 
-structure LargeInt = IntInf
 structure FixedInt = Int32
 structure LargeWord = Word32
-structure Real = Real64
-structure LargeReal = Real64
 structure SysWord = Word32
