@@ -1,9 +1,9 @@
 (* posix-io.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Structure for POSIX 1003.1 primitive I/O operations
- *
  *)
 
 local
@@ -16,10 +16,7 @@ structure POSIX_IO =
 
     structure FS = POSIX_FileSys
 
-    structure OM : sig
-                      datatype open_mode = O_RDONLY | O_WRONLY | O_RDWR
-                    end = FS
-    open OM
+    datatype open_mode = datatype FS.open_mode (* O_RDONLY | O_WRONLY | O_RDWR  *)
 
     type word = SysWord.word
     type s_int = SysInt.int
@@ -147,8 +144,7 @@ structure POSIX_IO =
         fun pid (FLOCK fv) = #pid fv
       end
 
-(* 64BIT: FIXME is Int.int correct for this type? *)
-    type flock_rep = s_int * s_int * Int.int * Int.int * s_int
+    type flock_rep = s_int * s_int * Position.int * Position.int * s_int
 
     val fcntl_l : s_int * s_int * flock_rep -> flock_rep = cfun "fcntl_l"
     val f_getlk = osval "F_GETLK"
@@ -158,7 +154,7 @@ structure POSIX_IO =
     val f_wrlck = osval "F_WRLCK"
     val f_unlck = osval "F_UNLCK"
 
-    fun flockToRep (FLock.FLOCK{ltype,whence,start,len,...}) = let
+    fun flockToRep (FLock.FLOCK{ltype, whence, start, len,...}) = let
           fun ltypeOf F_RDLCK = f_rdlck
             | ltypeOf F_WRLCK = f_wrlck
             | ltypeOf F_UNLCK = f_unlck
@@ -188,9 +184,8 @@ structure POSIX_IO =
     fun setlkw (fd, flock) =
           flockFromRep(false,fcntl_l(FS.intOf fd,f_setlkw,flockToRep flock))
 
-(* 64BIT: FIXME is Int.int correct for this type? Should it be Position.int? *)
-    val lseek' : s_int * Int.int * s_int -> Int.int = cfun "lseek"
-    fun lseek (fd, offset, whence) = lseek'(FS.intOf fd,offset, whToWord whence)
+    val lseek' : s_int * Position.int * s_int -> Position.int = cfun "lseek"
+    fun lseek (fd, offset, whence) = lseek'(FS.intOf fd, offset, whToWord whence)
 
     val fsync' : s_int -> unit = cfun "fsync"
     fun fsync fd = fsync' (FS.intOf fd)
