@@ -1,5 +1,5 @@
-(* 
- * This module generates the machine code emitter of an architecture 
+(*
+ * This module generates the machine code emitter of an architecture
  * given a machine description.
  *
  *)
@@ -13,7 +13,7 @@ struct
 
    open Ast Comp.Util Comp.Error
 
-   infix << || && 
+   infix << || &&
 
    val op << = W.<<
    val op || = W.orb
@@ -28,7 +28,7 @@ struct
        val strName = Comp.strname md "MCEmitter"
        val sigName = "INSTRUCTION_EMITTER"
 
-       (* Is debugging turned on? *) 
+       (* Is debugging turned on? *)
        val debugOn = Comp.debugging md "MC"
 
        (* Arguments for the functor *)
@@ -47,7 +47,7 @@ struct
        val formats = Comp.formats md
 
        (* Instruction widths that are defined in this architecture *)
-       val widths = ListMergeSort.uniqueSort Int.compare 
+       val widths = ListMergeSort.uniqueSort Int.compare
                       (foldr (fn ((SOME w,_),l) => w::l | (_,l) => l) []
                              formats)
 
@@ -55,7 +55,7 @@ struct
        val env = Env.lookupStr (Comp.env md) (IDENT([],"Instruction"))
 
        (* Make sure that all widths are either 8, 16, 24, or 32 bits *)
-       val _ = app 
+       val _ = app
           (fn w =>
               if w < 8 orelse w > 32 orelse w mod 8 <> 0 then
                  error("instruction format must be 8, 16, 24, or 32 bits; found"^itos w)
@@ -67,11 +67,11 @@ struct
        (* Name of an emit function *)
        fun emit id = "emit_"^id
 
-       (* 
+       (*
         * For each width N, generate a function eWordN for emitting a word
-        * of that width. 
+        * of that width.
         *)
-       val emitFuns = 
+       val emitFuns =
            let val DUMMYbind = FUNbind("dummy",[])
                fun mkEmitWord width =
                let fun f 0 = []
@@ -80,100 +80,100 @@ struct
                                 VAL("w",SLR(ID "w",WORD32exp 0w8))::f(b - 8)
                    fun g 0 = []
                      | g b = APP("eByteW",ID("b"^itos b))::g(b - 8)
-                   val debug = 
-                      if debugOn then 
+                   val debug =
+                      if debugOn then
                       [VAL("_", ID "print(\"0x\"^Word32.toString w^\"\\t\")")]
                       else []
                    val body = case endianess of
                                 BIG    => g width
                               | LITTLE => rev(g width)
                in  FUNbind("eWord"^itos width,
-                       [CLAUSE([IDpat "w"], 
+                       [CLAUSE([IDpat "w"],
                                NONE,
                                LET(debug@rev(f width),SEQexp body))])
                end
            in  FUNdecl(map mkEmitWord widths) end
- 
+
        (* Functions for emitting the encoding for a cell *)
-       val cellFuns = 
+       val cellFuns =
            let fun mkEmitCell(CELLdecl{id, from, ...}) =
-                   FUN'(emit id, IDpat "r", 
+                   FUN'(emit id, IDpat "r",
                       APP("itow", APP("CellsBasis.physicalRegisterNum", ID "r")))
            in  FUNdecl(map mkEmitCell (Comp.cells md)) end
 
-       (* 
+       (*
         * For each datatype T defined in the structure Instruction that
         * has code generation annotations defined, generate a function emit_T.
-        *) 
-       val datatypeFuns =   
+        *)
+       val datatypeFuns =
            let fun WORD w = TYPEDexp(WORD32exp w,WORD32ty)
                fun mkEmitDatatypes([], fbs) = rev fbs
-                 | mkEmitDatatypes(DATATYPEbind{id,mc,cbs,...}::dbs, fbs) = 
+                 | mkEmitDatatypes(DATATYPEbind{id,mc,cbs,...}::dbs, fbs) =
                let fun missing() =
                       error("machine encoding is missing for constructor "^id)
                    fun loop(w, [], cs, found) = (w, rev cs, found)
-                     | loop(w, (cb as CONSbind{id, ty, mc, ...})::cbs, 
-                            cs, found) = 
+                     | loop(w, (cb as CONSbind{id, ty, mc, ...})::cbs,
+                            cs, found) =
                        let val (e, found) =
                             case (mc, w) of
                               (NONE, SOME(x::_)) => (WORD(itow x), true)
                             | (NONE, SOME []) => (missing(); (WORD 0w0, true))
                             | (NONE, NONE) => (APP("error",STRINGexp id), found)
-                            | (SOME(WORDmc w'), SOME(w::l')) => 
-                               (if itow w <> w' then 
+                            | (SOME(WORDmc w'), SOME(w::l')) =>
+                               (if itow w <> w' then
                                   error ("constructor "^id^" encoding is 0x"^
                                          W.toString w'^" but is expecting 0x"^
                                          W.toString(itow w)) else ();
-                                (WORD w', true))   
+                                (WORD w', true))
                             | (SOME(WORDmc w'), SOME []) => (WORD w', true)
                             | (SOME(WORDmc w'), NONE) => (WORD w', true)
                             | (SOME(EXPmc e), _) => (e, true)
                            val w = case w of NONE => NONE
                                            | SOME(_::w) => SOME w
                                            | SOME [] => (missing(); NONE)
-                       in loop(w, cbs, 
-                               T.mapConsToClause 
+                       in loop(w, cbs,
+                               T.mapConsToClause
                                  {prefix=["I"], pat=fn p=>p, exp=e} cb::cs,
                                found)
                        end
                    val (w, cs, found) = loop(mc, cbs, [], false)
                    val _ = case w of
-                             SOME(_::_) => 
+                             SOME(_::_) =>
                               error("Extra machine encodings in datatype "^id)
-                           | _ => () 
-               in  mkEmitDatatypes(dbs, 
+                           | _ => ()
+               in  mkEmitDatatypes(dbs,
                         if found then FUNbind(emit id, cs)::fbs else fbs)
                end
                val dbs = Env.datatypeDefinitions env
            in  FUNdecl(mkEmitDatatypes(dbs,[]))
            end
- 
-       (* 
-        * Generate a formatting function for each machine instruction format 
-        * defined in the machine description. 
+
+       (*
+        * Generate a formatting function for each machine instruction format
+        * defined in the machine description.
         *)
-       val formatFuns = 
+       val formatFuns =
            let fun mkFormat(SOME width, FORMATbind(formatName, fields, NONE)) =
                      mkDefinedFormat(width, formatName, fields)
                  | mkFormat(NONE, FORMATbind(formatName, fields, NONE)) =
-                     (error("missing width in format "^formatName); 
+                     (error("missing width in format "^formatName);
                       FUNbind(formatName, []))
                  | mkFormat(_, FORMATbind(formatName, fields, SOME e)) =
-                     mkFormatFun(formatName, fields, e) 
+                     mkFormatFun(formatName, fields, e)
 
-                 (* 
-                  * Generate an expression that builds up the format 
+                 (*
+                  * Generate an expression that builds up the format
                   *)
                and mkDefinedFormat(totalWidth, formatName, fields) =
                let (* factor out the constant and the variable part *)
                    fun loop([], bit, constant, exps) = (bit, constant, exps)
                      | loop(FIELD{id, width, value, sign, ...}::fs,
                             bit, constant, exps) =
-                       let val width = 
+                       let val width =
                                case width of
                                  WIDTH w => w
                                | RANGE(from, to) =>
-                                 (if bit <> from then 
+                                 (if bit <> from then
                                     error("field "^id^
                                           " in format "^formatName^
                                           " starts from bit "^itos from^
@@ -191,21 +191,21 @@ struct
                                     else ();
                                     (constant || (v << Word.fromInt bit),
                                      exps))
-                               | NONE => 
+                               | NONE =>
                                  let val e = ID id
                                      val e = if sign = UNSIGNED then e else
                                                ANDB(e,WORD32exp mask)
                                      val e = SLL(e,WORD32exp(itow bit))
                                  in  (constant, e::exps) end
-                       in  loop(fs, bit+width, constant, exps) end 
-                   val (realWidth, constant, exps) = 
+                       in  loop(fs, bit+width, constant, exps) end
+                   val (realWidth, constant, exps) =
                            loop(rev fields, 0, 0w0, [])
                in  if realWidth <> totalWidth then
                       error("format "^formatName^" is declared to have "^
                             itos totalWidth^" bits but I counted "^
                             itos realWidth)
                    else ();
-                   mkFormatFun(formatName, fields,   
+                   mkFormatFun(formatName, fields,
                                APP("eWord"^itos totalWidth,
                                    foldr PLUS (WORD32exp constant) exps))
                end
@@ -213,24 +213,24 @@ struct
                  (* Generate a format function that includes implicit
                   * argument conversions.
                   *)
-               and mkFormatFun(id, fields, exp) = 
+               and mkFormatFun(id, fields, exp) =
                    FUNbind(id, [CLAUSE(
                      [RECORDpat(foldr (fn (FIELD{id="",...}, fs) => fs
                                        | (FIELD{value=SOME _,...}, fs) => fs
                                        | (FIELD{id,...},fs) => (id,IDpat id)::fs                                     ) [] fields, false)],
                      NONE,
                      LET(foldr (fn (FIELD{id,cnv=NOcnv, ...},ds) => ds
-                                 | (FIELD{id,cnv=CELLcnv k, ...},ds) => 
+                                 | (FIELD{id,cnv=CELLcnv k, ...},ds) =>
                                      VAL(id, APP(emit k,ID id))::ds
-                                 | (FIELD{id,cnv=FUNcnv f, ...},ds) => 
+                                 | (FIELD{id,cnv=FUNcnv f, ...},ds) =>
                                      VAL(id, APP(emit f,ID id))::ds
                                ) [] fields, exp))])
            in FUNdecl(map mkFormat (Comp.formats md)) end
 
        (* The main emitter function *)
-       val emitInstrFun = 
-           let fun mkEmitInstr(cb as CONSbind{id, mc, ...}) = 
-                   T.mapConsToClause 
+       val emitInstrFun =
+           let fun mkEmitInstr(cb as CONSbind{id, mc, ...}) =
+                   T.mapConsToClause
                       {prefix=["I"],pat=fn p=>p,
                        exp=case mc of
                              SOME(EXPmc e) => e
@@ -241,7 +241,7 @@ struct
            end
 
 
-       (* Body of the module *) 
+       (* Body of the module *)
        val strBody =
        [$["structure I = Instr",
           "structure C = I.C",
@@ -272,17 +272,18 @@ struct
           "    fun emit_label l = itow(Label.addrOf l)",
           "    fun emit_labexp le = itow(MLTreeEval.valueOf le)",
           "    fun emit_const c = itow(Constant.valueOf c)",
+          "    val w32ToByte = Word8.fromLarge o Word32.toLarge",
           "    val loc = ref 0",
           "",
           "    (* emit a byte *)",
           "    fun eByte b =",
-          "    let val i = !loc in loc := i + 1; CodeString.update(i,b) end",
+          "      let val i = !loc in loc := i + 1; CodeString.update(i,b) end",
           "",
           "    (* emit the low order byte of a word *)",
           "    (* note: fromLargeWord strips the high order bits! *)",
           "    fun eByteW w =",
-          "    let val i = !loc",
-          "    in loc := i + 1; CodeString.update(i,Word8.fromLargeWord w) end",
+          "      let val i = !loc",
+          "      in loc := i + 1; CodeString.update(i, w32ToByte w) end",
           "",
           "    fun doNothing _ = ()",
 	  "    fun fail _ = raise Fail \"MCEmitter\"",
@@ -338,4 +339,4 @@ struct
    in  Comp.codegen md "emit/MC"
          [Comp.mkFct md "MCEmitter" args sigName strBody]
    end
-end 
+end
