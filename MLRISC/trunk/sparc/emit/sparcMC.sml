@@ -7,7 +7,7 @@
 
 functor SparcMCEmitter(structure Instr : SPARCINSTR
                        structure MLTreeEval : MLTREE_EVAL where T = Instr.T
-                       structure Stream : INSTRUCTION_STREAM 
+                       structure Stream : INSTRUCTION_STREAM
                        structure CodeString : CODE_STRING
                       ) : INSTRUCTION_EMITTER =
 struct
@@ -18,9 +18,9 @@ struct
    structure S = Stream
    structure P = S.P
    structure W = Word32
-   
+
    (* Sparc is big endian *)
-   
+
    fun error msg = MLRiscErrorMsg.error("SparcMC",msg)
    fun makeStream _ =
    let infix && || << >> ~>>
@@ -37,28 +37,29 @@ struct
        fun emit_label l = itow(Label.addrOf l)
        fun emit_labexp le = itow(MLTreeEval.valueOf le)
        fun emit_const c = itow(Constant.valueOf c)
+       val w32ToByte = Word8.fromLarge o Word32.toLarge
        val loc = ref 0
-   
+
        (* emit a byte *)
        fun eByte b =
        let val i = !loc in loc := i + 1; CodeString.update(i,b) end
-   
+
        (* emit the low order byte of a word *)
        (* note: fromLargeWord strips the high order bits! *)
        fun eByteW w =
        let val i = !loc
-       in loc := i + 1; CodeString.update(i,Word8.fromLargeWord w) end
-   
+       in loc := i + 1; CodeString.update(i, w32ToByte w) end
+
        fun doNothing _ = ()
        fun fail _ = raise Fail "MCEmitter"
        fun getAnnotations () = error "getAnnotations"
-   
+
        fun pseudoOp pOp = P.emitValue{pOp=pOp, loc= !loc,emit=eByte}
-   
+
        fun init n = (CodeString.init n; loc := 0)
-   
-   
-   fun eWord32 w = 
+
+
+   fun eWord32 w =
        let val b8 = w
            val w = w >> 0wx8
            val b16 = w
@@ -66,10 +67,10 @@ struct
            val b24 = w
            val w = w >> 0wx8
            val b32 = w
-       in 
-          ( eByteW b32; 
-            eByteW b24; 
-            eByteW b16; 
+       in
+          ( eByteW b32;
+            eByteW b24;
+            eByteW b16;
             eByteW b8 )
        end
    fun emit_GP r = itow (CellsBasis.physicalRegisterNum r)
@@ -229,14 +230,14 @@ struct
    and emit_fsize (I.S) = (0wx4 : Word32.word)
      | emit_fsize (I.D) = (0wx6 : Word32.word)
      | emit_fsize (I.Q) = (0wx7 : Word32.word)
-   fun opn {i} = 
-       let 
+   fun opn {i} =
+       let
 (*#line 478.11 "sparc/sparc.mdl"*)
            fun hi22 w = (itow w) ~>> 0wxA
 
 (*#line 479.11 "sparc/sparc.mdl"*)
            fun lo10 w = ((itow w) && 0wx3FF)
-       in 
+       in
           (case i of
             I.REG rs2 => error "opn"
           | I.IMMED i => itow i
@@ -245,75 +246,75 @@ struct
           | I.HI l => hi22 (MLTreeEval.valueOf l)
           )
        end
-   and rr {op1, rd, op3, rs1, rs2} = 
+   and rr {op1, rd, op3, rs1, rs2} =
        let val rs1 = emit_GP rs1
            val rs2 = emit_GP rs2
        in eWord32 ((op1 << 0wx1E) + ((rd << 0wx19) + ((op3 << 0wx13) + ((rs1 << 0wxE) + rs2))))
        end
-   and ri {op1, rd, op3, rs1, simm13} = 
+   and ri {op1, rd, op3, rs1, simm13} =
        let val rs1 = emit_GP rs1
        in eWord32 ((op1 << 0wx1E) + ((rd << 0wx19) + ((op3 << 0wx13) + ((rs1 << 0wxE) + ((simm13 && 0wx1FFF) + 0wx2000)))))
        end
-   and rix {op1, op3, r, i, d} = 
+   and rix {op1, op3, r, i, d} =
        (case i of
          I.REG rs2 => rr {op1=op1, op3=op3, rs1=r, rs2=rs2, rd=d}
        | _ => ri {op1=op1, op3=op3, rs1=r, rd=d, simm13=opn {i=i}}
        )
-   and rir {op1, op3, r, i, d} = 
+   and rir {op1, op3, r, i, d} =
        let val d = emit_GP d
        in rix {op1=op1, op3=op3, r=r, i=i, d=d}
        end
-   and rif {op1, op3, r, i, d} = 
+   and rif {op1, op3, r, i, d} =
        let val d = emit_FP d
        in rix {op1=op1, op3=op3, r=r, i=i, d=d}
        end
-   and load {l, r, i, d} = 
+   and load {l, r, i, d} =
        let val l = emit_load l
        in rir {op1=0wx3, op3=l, r=r, i=i, d=d}
        end
-   and store {s, r, i, d} = 
+   and store {s, r, i, d} =
        let val s = emit_store s
        in rir {op1=0wx3, op3=s, r=r, i=i, d=d}
        end
-   and fload {l, r, i, d} = 
+   and fload {l, r, i, d} =
        let val l = emit_fload l
        in rif {op1=0wx3, op3=l, r=r, i=i, d=d}
        end
-   and fstore {s, r, i, d} = 
+   and fstore {s, r, i, d} =
        let val s = emit_fstore s
        in rif {op1=0wx3, op3=s, r=r, i=i, d=d}
        end
-   and sethi {rd, imm22} = 
+   and sethi {rd, imm22} =
        let val rd = emit_GP rd
            val imm22 = emit_int imm22
        in eWord32 ((rd << 0wx19) + ((imm22 && 0wx3FFFFF) + 0wx1000000))
        end
    and NOP {} = eWord32 0wx1000000
-   and unimp {const22} = 
+   and unimp {const22} =
        let val const22 = emit_int const22
        in eWord32 const22
        end
    and delay {nop} = (if nop
           then (NOP {})
           else ())
-   and arith {a, r, i, d} = 
+   and arith {a, r, i, d} =
        let val a = emit_arith a
        in rir {op1=0wx2, op3=a, r=r, i=i, d=d}
        end
-   and shiftr {rd, op3, rs1, x, rs2} = 
+   and shiftr {rd, op3, rs1, x, rs2} =
        let val rs2 = emit_GP rs2
        in eWord32 ((rd << 0wx19) + ((op3 << 0wx13) + ((rs1 << 0wxE) + ((x << 0wxC) + (rs2 + 0wx80000000)))))
        end
    and shifti {rd, op3, rs1, x, cnt} = eWord32 ((rd << 0wx19) + ((op3 << 0wx13) + ((rs1 << 0wxE) + ((x << 0wxC) + ((cnt && 0wx3F) + 0wx80002000)))))
-   and shift {s, r, i, d} = 
+   and shift {s, r, i, d} =
        let val s = emit_shift s
            val r = emit_GP r
            val d = emit_GP d
-       in 
-          let 
+       in
+          let
 (*#line 517.13 "sparc/sparc.mdl"*)
               val (op3, x) = s
-          in 
+          in
              (case i of
                I.REG rs2 => shiftr {op3=op3, rs1=r, rs2=rs2, rd=d, x=x}
              | _ => shifti {op3=op3, rs1=r, cnt=opn {i=i}, rd=d, x=x}
@@ -322,12 +323,12 @@ struct
        end
    and save {r, i, d} = rir {op1=0wx2, op3=0wx3C, r=r, i=i, d=d}
    and restore {r, i, d} = rir {op1=0wx2, op3=0wx3D, r=r, i=i, d=d}
-   and bicc {a, b, disp22} = 
+   and bicc {a, b, disp22} =
        let val a = emit_bool a
            val b = emit_branch b
        in eWord32 ((a << 0wx1D) + ((b << 0wx19) + ((disp22 && 0wx3FFFFF) + 0wx800000)))
        end
-   and fbfcc {a, b, disp22} = 
+   and fbfcc {a, b, disp22} =
        let val a = emit_bool a
            val b = emit_fbranch b
        in eWord32 ((a << 0wx1D) + ((b << 0wx19) + ((disp22 && 0wx3FFFFF) + 0wx1800000)))
@@ -335,64 +336,64 @@ struct
    and call {disp30} = eWord32 ((disp30 && 0wx3FFFFFFF) + 0wx40000000)
    and jmpl {r, i, d} = rir {op1=0wx2, op3=0wx38, r=r, i=i, d=d}
    and jmp {r, i} = rix {op1=0wx2, op3=0wx38, r=r, i=i, d=0wx0}
-   and ticcr {op1, rd, op3, rs1, cc, rs2} = 
+   and ticcr {op1, rd, op3, rs1, cc, rs2} =
        let val rs1 = emit_GP rs1
            val cc = emit_cc cc
            val rs2 = emit_GP rs2
        in eWord32 ((op1 << 0wx1E) + ((rd << 0wx19) + ((op3 << 0wx13) + ((rs1 << 0wxE) + ((cc << 0wxB) + rs2)))))
        end
-   and ticci {op1, rd, op3, rs1, cc, sw_trap} = 
+   and ticci {op1, rd, op3, rs1, cc, sw_trap} =
        let val rs1 = emit_GP rs1
            val cc = emit_cc cc
        in eWord32 ((op1 << 0wx1E) + ((rd << 0wx19) + ((op3 << 0wx13) + ((rs1 << 0wxE) + ((cc << 0wxB) + ((sw_trap && 0wx7F) + 0wx2000))))))
        end
-   and ticcx {op1, op3, cc, r, i, d} = 
+   and ticcx {op1, op3, cc, r, i, d} =
        (case i of
          I.REG rs2 => ticcr {op1=op1, op3=op3, cc=cc, rs1=r, rs2=rs2, rd=d}
        | _ => ticci {op1=op1, op3=op3, cc=cc, rs1=r, rd=d, sw_trap=opn {i=i}}
        )
-   and ticc {t, cc, r, i} = 
+   and ticc {t, cc, r, i} =
        let val t = emit_branch t
        in ticcx {op1=0wx2, d=t, op3=0wx3A, cc=cc, r=r, i=i}
        end
-   and rdy {d} = 
+   and rdy {d} =
        let val d = emit_GP d
        in eWord32 ((d << 0wx19) + 0wx81400000)
        end
    and wdy {r, i} = rix {op1=0wx2, op3=0wx30, r=r, i=i, d=0wx0}
    and fop_1 {d, a, r} = eWord32 ((d << 0wx19) + ((a << 0wx5) + (r + 0wx81A00000)))
-   and fop1 {a, r, d} = 
+   and fop1 {a, r, d} =
        let val a = emit_farith1 a
            val r = emit_FP r
            val d = emit_FP d
        in fop_1 {a=a, r=r, d=d}
        end
-   and fdouble {a, r, d} = 
+   and fdouble {a, r, d} =
        let val a = emit_farith1 a
            val r = emit_FP r
            val d = emit_FP d
-       in 
-          ( fop_1 {a=a, r=r, d=d}; 
+       in
+          ( fop_1 {a=a, r=r, d=d};
             fop_1 {a=0wx1, r=r + 0wx1, d=d + 0wx1})
        end
-   and fquad {a, r, d} = 
+   and fquad {a, r, d} =
        let val a = emit_farith1 a
            val r = emit_FP r
            val d = emit_FP d
-       in 
-          ( fop_1 {a=a, r=r, d=d}; 
-            fop_1 {a=0wx1, r=r + 0wx1, d=d + 0wx1}; 
-            fop_1 {a=0wx1, r=r + 0wx2, d=d + 0wx2}; 
+       in
+          ( fop_1 {a=a, r=r, d=d};
+            fop_1 {a=0wx1, r=r + 0wx1, d=d + 0wx1};
+            fop_1 {a=0wx1, r=r + 0wx2, d=d + 0wx2};
             fop_1 {a=0wx1, r=r + 0wx3, d=d + 0wx3})
        end
-   and fop2 {d, r1, a, r2} = 
+   and fop2 {d, r1, a, r2} =
        let val d = emit_FP d
            val r1 = emit_FP r1
            val a = emit_farith2 a
            val r2 = emit_FP r2
        in eWord32 ((d << 0wx19) + ((r1 << 0wxE) + ((a << 0wx5) + (r2 + 0wx81A00000))))
        end
-   and fcmp {rs1, opf, rs2} = 
+   and fcmp {rs1, opf, rs2} =
        let val rs1 = emit_FP rs1
            val opf = emit_fcmp opf
            val rs2 = emit_FP rs2
@@ -400,51 +401,51 @@ struct
        end
    and cmovr {op3, rd, cc2, cond, cc1, cc0, rs2} = eWord32 ((op3 << 0wx18) + ((rd << 0wx13) + ((cc2 << 0wx12) + ((cond << 0wxE) + ((cc1 << 0wxC) + ((cc0 << 0wxB) + (rs2 + 0wx80000000)))))))
    and cmovi {op3, rd, cc2, cond, cc1, cc0, simm11} = eWord32 ((op3 << 0wx18) + ((rd << 0wx13) + ((cc2 << 0wx12) + ((cond << 0wxE) + ((cc1 << 0wxC) + ((cc0 << 0wxB) + ((simm11 && 0wx7FF) + 0wx80002000)))))))
-   and cmov {op3, cond, cc2, cc1, cc0, i, rd} = 
+   and cmov {op3, cond, cc2, cc1, cc0, i, rd} =
        (case i of
-         I.REG rs2 => cmovr {op3=op3, cond=cond, rs2=emit_GP rs2, rd=rd, cc0=cc0, 
+         I.REG rs2 => cmovr {op3=op3, cond=cond, rs2=emit_GP rs2, rd=rd, cc0=cc0,
             cc1=cc1, cc2=cc2}
-       | _ => cmovi {op3=op3, cond=cond, rd=rd, cc0=cc0, cc1=cc1, cc2=cc2, 
+       | _ => cmovi {op3=op3, cond=cond, rd=rd, cc0=cc0, cc1=cc1, cc2=cc2,
             simm11=opn {i=i}}
        )
-   and movicc {b, i, d} = 
+   and movicc {b, i, d} =
        let val b = emit_branch b
            val d = emit_GP d
        in cmov {op3=0wx2C, cond=b, i=i, rd=d, cc2=0wx1, cc1=0wx0, cc0=0wx0}
        end
-   and movfcc {b, i, d} = 
+   and movfcc {b, i, d} =
        let val b = emit_fbranch b
            val d = emit_GP d
        in cmov {op3=0wx2C, cond=b, i=i, rd=d, cc2=0wx0, cc1=0wx0, cc0=0wx0}
        end
-   and fmovicc {sz, b, r, d} = 
+   and fmovicc {sz, b, r, d} =
        let val sz = emit_fsize sz
            val b = emit_branch b
            val r = emit_FP r
            val d = emit_FP d
        in cmovr {op3=0wx2C, cond=b, rs2=r, rd=d, cc2=0wx1, cc1=0wx0, cc0=0wx0}
        end
-   and fmovfcc {sz, b, r, d} = 
+   and fmovfcc {sz, b, r, d} =
        let val sz = emit_fsize sz
            val b = emit_fbranch b
            val r = emit_FP r
            val d = emit_FP d
        in cmovr {op3=0wx2C, cond=b, rs2=r, rd=d, cc2=0wx0, cc1=0wx0, cc0=0wx0}
        end
-   and movrr {rd, rs1, rcond, rs2} = 
+   and movrr {rd, rs1, rcond, rs2} =
        let val rd = emit_GP rd
            val rs1 = emit_GP rs1
            val rs2 = emit_GP rs2
        in eWord32 ((rd << 0wx19) + ((rs1 << 0wxE) + ((rcond << 0wxA) + (rs2 + 0wx81780000))))
        end
-   and movri {rd, rs1, rcond, simm10} = 
+   and movri {rd, rs1, rcond, simm10} =
        let val rd = emit_GP rd
            val rs1 = emit_GP rs1
        in eWord32 ((rd << 0wx19) + ((rs1 << 0wxE) + ((rcond << 0wxA) + ((simm10 && 0wx3FF) + 0wx81782000))))
        end
-   and movr {rcond, r, i, d} = 
+   and movr {rcond, r, i, d} =
        let val rcond = emit_rcond rcond
-       in 
+       in
           (case i of
             I.REG rs2 => movrr {rcond=rcond, rs1=r, rs2=rs2, rd=d}
           | _ => movri {rcond=rcond, rs1=r, rd=d, simm10=opn {i=i}}
@@ -472,25 +473,25 @@ struct
      | emitInstr (I.MOVR{rcond, r, i, d}) = movr {rcond=rcond, r=r, i=i, d=d}
      | emitInstr (I.FMOVicc{sz, b, r, d}) = fmovicc {sz=sz, b=b, r=r, d=d}
      | emitInstr (I.FMOVfcc{sz, b, r, d}) = fmovfcc {sz=sz, b=b, r=r, d=d}
-     | emitInstr (I.Bicc{b, a, label, nop}) = 
-       ( bicc {b=b, a=a, disp22=disp label}; 
+     | emitInstr (I.Bicc{b, a, label, nop}) =
+       ( bicc {b=b, a=a, disp22=disp label};
          delay {nop=nop})
-     | emitInstr (I.FBfcc{b, a, label, nop}) = 
-       ( fbfcc {b=b, a=a, disp22=disp label}; 
+     | emitInstr (I.FBfcc{b, a, label, nop}) =
+       ( fbfcc {b=b, a=a, disp22=disp label};
          delay {nop=nop})
      | emitInstr (I.BR{rcond, p, r, a, label, nop}) = error "BR"
      | emitInstr (I.BP{b, p, cc, a, label, nop}) = error "BP"
-     | emitInstr (I.JMP{r, i, labs, nop}) = 
-       ( jmp {r=r, i=i}; 
+     | emitInstr (I.JMP{r, i, labs, nop}) =
+       ( jmp {r=r, i=i};
          delay {nop=nop})
-     | emitInstr (I.JMPL{r, i, d, defs, uses, cutsTo, nop, mem}) = 
-       ( jmpl {r=r, i=i, d=d}; 
+     | emitInstr (I.JMPL{r, i, d, defs, uses, cutsTo, nop, mem}) =
+       ( jmpl {r=r, i=i, d=d};
          delay {nop=nop})
-     | emitInstr (I.CALL{defs, uses, label, cutsTo, nop, mem}) = 
-       ( call {disp30=disp label}; 
+     | emitInstr (I.CALL{defs, uses, label, cutsTo, nop, mem}) =
+       ( call {disp30=disp label};
          delay {nop=nop})
      | emitInstr (I.Ticc{t, cc, r, i}) = ticc {t=t, r=r, cc=cc, i=i}
-     | emitInstr (I.FPop1{a, r, d}) = 
+     | emitInstr (I.FPop1{a, r, d}) =
        (case a of
          I.FMOVd => fdouble {a=I.FMOVs, r=r, d=d}
        | I.FNEGd => fdouble {a=I.FNEGs, r=r, d=d}
@@ -501,17 +502,17 @@ struct
        | _ => fop1 {a=a, r=r, d=d}
        )
      | emitInstr (I.FPop2{a, r1, r2, d}) = fop2 {a=a, r1=r1, r2=r2, d=d}
-     | emitInstr (I.FCMP{cmp, r1, r2, nop}) = 
-       ( fcmp {opf=cmp, rs1=r1, rs2=r2}; 
+     | emitInstr (I.FCMP{cmp, r1, r2, nop}) =
+       ( fcmp {opf=cmp, rs1=r1, rs2=r2};
          delay {nop=nop})
      | emitInstr (I.SAVE{r, i, d}) = save {r=r, i=i, d=d}
      | emitInstr (I.RESTORE{r, i, d}) = restore {r=r, i=i, d=d}
      | emitInstr (I.RDY{d}) = rdy {d=d}
      | emitInstr (I.WRY{r, i}) = wdy {r=r, i=i}
-     | emitInstr (I.RET{leaf, nop}) = 
+     | emitInstr (I.RET{leaf, nop}) =
        ( jmp {r=(if leaf
             then r31
-            else r15), i=I.IMMED 8}; 
+            else r15), i=I.IMMED 8};
          delay {nop=nop})
      | emitInstr (I.SOURCE{}) = ()
      | emitInstr (I.SINK{}) = ()
@@ -519,13 +520,13 @@ struct
        in
            emitInstr instr
        end
-   
+
    fun emitInstruction(I.ANNOTATION{i, ...}) = emitInstruction(i)
      | emitInstruction(I.INSTR(i)) = emitter(i)
      | emitInstruction(I.LIVE _)  = ()
      | emitInstruction(I.KILL _)  = ()
    | emitInstruction _ = error "emitInstruction"
-   
+
    in  S.STREAM{beginCluster=init,
                 pseudoOp=pseudoOp,
                 emit=emitInstruction,

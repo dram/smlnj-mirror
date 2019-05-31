@@ -7,7 +7,7 @@
 
 functor PPCMCEmitter(structure Instr : PPCINSTR
                      structure MLTreeEval : MLTREE_EVAL where T = Instr.T
-                     structure Stream : INSTRUCTION_STREAM 
+                     structure Stream : INSTRUCTION_STREAM
                      structure CodeString : CODE_STRING
                     ) : INSTRUCTION_EMITTER =
 struct
@@ -18,9 +18,9 @@ struct
    structure S = Stream
    structure P = S.P
    structure W = Word32
-   
+
    (* PPC is big endian *)
-   
+
    fun error msg = MLRiscErrorMsg.error("PPCMC",msg)
    fun makeStream _ =
    let infix && || << >> ~>>
@@ -37,28 +37,29 @@ struct
        fun emit_label l = itow(Label.addrOf l)
        fun emit_labexp le = itow(MLTreeEval.valueOf le)
        fun emit_const c = itow(Constant.valueOf c)
+       val w32ToByte = Word8.fromLarge o Word32.toLarge
        val loc = ref 0
-   
+
        (* emit a byte *)
        fun eByte b =
        let val i = !loc in loc := i + 1; CodeString.update(i,b) end
-   
+
        (* emit the low order byte of a word *)
        (* note: fromLargeWord strips the high order bits! *)
        fun eByteW w =
        let val i = !loc
-       in loc := i + 1; CodeString.update(i,Word8.fromLargeWord w) end
-   
+       in loc := i + 1; CodeString.update(i, w32ToByte w) end
+
        fun doNothing _ = ()
        fun fail _ = raise Fail "MCEmitter"
        fun getAnnotations () = error "getAnnotations"
-   
+
        fun pseudoOp pOp = P.emitValue{pOp=pOp, loc= !loc,emit=eByte}
-   
+
        fun init n = (CodeString.init n; loc := 0)
-   
-   
-   fun eWord32 w = 
+
+
+   fun eWord32 w =
        let val b8 = w
            val w = w >> 0wx8
            val b16 = w
@@ -66,10 +67,10 @@ struct
            val b24 = w
            val w = w >> 0wx8
            val b32 = w
-       in 
-          ( eByteW b32; 
-            eByteW b24; 
-            eByteW b16; 
+       in
+          ( eByteW b32;
+            eByteW b24;
+            eByteW b16;
             eByteW b8 )
        end
    fun emit_GP r = itow (CellsBasis.physicalRegisterNum r)
@@ -122,12 +123,12 @@ struct
    and emit_bo (I.TRUE) = (0wxC : Word32.word)
      | emit_bo (I.FALSE) = (0wx4 : Word32.word)
      | emit_bo (I.ALWAYS) = (0wx14 : Word32.word)
-     | emit_bo (I.COUNTER{eqZero, cond}) = 
+     | emit_bo (I.COUNTER{eqZero, cond}) =
        (case cond of
          NONE => (if eqZero
             then 0wx12
             else 0wx10)
-       | SOME cc => 
+       | SOME cc =>
          (case (eqZero, cc) of
            (false, false) => 0wx0
          | (false, true) => 0wx8
@@ -179,41 +180,41 @@ struct
      | emit_ccarith (I.CREQV) = (0wx121 : Word32.word)
      | emit_ccarith (I.CRANDC) = (0wx81 : Word32.word)
      | emit_ccarith (I.CRORC) = (0wx1A1 : Word32.word)
-   fun x_form {opcd, rt, ra, rb, xo, rc} = 
+   fun x_form {opcd, rt, ra, rb, xo, rc} =
        let val rc = emit_bool rc
        in eWord32 ((opcd << 0wx1A) + ((rt << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + ((xo << 0wx1) + rc)))))
        end
-   and xl_form {opcd, bt, ba, bb, xo, lk} = 
+   and xl_form {opcd, bt, ba, bb, xo, lk} =
        let val lk = emit_bool lk
        in eWord32 ((opcd << 0wx1A) + ((bt << 0wx15) + ((ba << 0wx10) + ((bb << 0wxB) + ((xo << 0wx1) + lk)))))
        end
-   and m_form {opcd, rs, ra, rb, mb, me, rc} = 
+   and m_form {opcd, rs, ra, rb, mb, me, rc} =
        let val rc = emit_bool rc
        in eWord32 ((opcd << 0wx1A) + ((rs << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + ((mb << 0wx6) + ((me << 0wx1) + rc))))))
        end
-   and a_form {opcd, frt, fra, frb, frc, xo, rc} = 
+   and a_form {opcd, frt, fra, frb, frc, xo, rc} =
        let val rc = emit_bool rc
        in eWord32 ((opcd << 0wx1A) + ((frt << 0wx15) + ((fra << 0wx10) + ((frb << 0wxB) + ((frc << 0wx6) + ((xo << 0wx1) + rc))))))
        end
-   and loadx {rt, ra, rb, xop} = 
+   and loadx {rt, ra, rb, xop} =
        let val rt = emit_GP rt
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((rt << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + ((xop << 0wx1) + 0wx7C000000))))
        end
-   and loadd {opcd, rt, ra, d} = 
+   and loadd {opcd, rt, ra, d} =
        let val rt = emit_GP rt
            val ra = emit_GP ra
            val d = emit_operand d
        in eWord32 ((opcd << 0wx1A) + ((rt << 0wx15) + ((ra << 0wx10) + (d && 0wxFFFF))))
        end
-   and loadde {opcd, rt, ra, de, xop} = 
+   and loadde {opcd, rt, ra, de, xop} =
        let val rt = emit_GP rt
            val ra = emit_GP ra
            val de = emit_operand de
        in eWord32 ((opcd << 0wx1A) + ((rt << 0wx15) + ((ra << 0wx10) + (((de && 0wxFFF) << 0wx4) + xop))))
        end
-   and load {ld, rt, ra, d} = 
+   and load {ld, rt, ra, d} =
        (case (d, ld) of
          (I.RegOp rb, I.LBZ) => loadx {rt=rt, ra=ra, rb=rb, xop=0wx57}
        | (I.RegOp rb, I.LBZE) => loadx {rt=rt, ra=ra, rb=rb, xop=0wx5F}
@@ -239,25 +240,25 @@ struct
        | (d, I.LHZU) => loadd {opcd=0wx29, rt=rt, ra=ra, d=d}
        | (d, I.LWZU) => loadd {opcd=0wx21, rt=rt, ra=ra, d=d}
        )
-   and floadx {ft, ra, rb, xop} = 
+   and floadx {ft, ra, rb, xop} =
        let val ft = emit_FP ft
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((ft << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + ((xop << 0wx1) + 0wx7C000000))))
        end
-   and floadd {opcd, ft, ra, d} = 
+   and floadd {opcd, ft, ra, d} =
        let val ft = emit_FP ft
            val ra = emit_GP ra
            val d = emit_operand d
        in eWord32 ((opcd << 0wx1A) + ((ft << 0wx15) + ((ra << 0wx10) + (d && 0wxFFFF))))
        end
-   and floadde {opcd, ft, ra, de, xop} = 
+   and floadde {opcd, ft, ra, de, xop} =
        let val ft = emit_FP ft
            val ra = emit_GP ra
            val de = emit_operand de
        in eWord32 ((opcd << 0wx1A) + ((ft << 0wx15) + ((ra << 0wx10) + (((de && 0wxFFF) << 0wx4) + xop))))
        end
-   and fload {ld, ft, ra, d} = 
+   and fload {ld, ft, ra, d} =
        (case (d, ld) of
          (I.RegOp rb, I.LFS) => floadx {ft=ft, ra=ra, rb=rb, xop=0wx217}
        | (I.RegOp rb, I.LFSE) => floadx {ft=ft, ra=ra, rb=rb, xop=0wx21F}
@@ -270,25 +271,25 @@ struct
        | (de, I.LFDE) => floadde {ft=ft, ra=ra, de=de, opcd=0wx3E, xop=0wx6}
        | (d, I.LFDU) => floadd {ft=ft, ra=ra, d=d, opcd=0wx33}
        )
-   and storex {rs, ra, rb, xop} = 
+   and storex {rs, ra, rb, xop} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + ((xop << 0wx1) + 0wx7C000000))))
        end
-   and stored {opcd, rs, ra, d} = 
+   and stored {opcd, rs, ra, d} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val d = emit_operand d
        in eWord32 ((opcd << 0wx1A) + ((rs << 0wx15) + ((ra << 0wx10) + (d && 0wxFFFF))))
        end
-   and storede {opcd, rs, ra, de, xop} = 
+   and storede {opcd, rs, ra, de, xop} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val de = emit_operand de
        in eWord32 ((opcd << 0wx1A) + ((rs << 0wx15) + ((ra << 0wx10) + (((de && 0wxFFF) << 0wx4) + xop))))
        end
-   and store {st, rs, ra, d} = 
+   and store {st, rs, ra, d} =
        (case (d, st) of
          (I.RegOp rb, I.STB) => storex {rs=rs, ra=ra, rb=rb, xop=0wxD7}
        | (I.RegOp rb, I.STBE) => storex {rs=rs, ra=ra, rb=rb, xop=0wxDF}
@@ -305,25 +306,25 @@ struct
        | (de, I.STWE) => storede {rs=rs, ra=ra, de=de, opcd=0wx3A, xop=0wxE}
        | (de, I.STDE) => storede {rs=rs, ra=ra, de=de, opcd=0wx3E, xop=0wx8}
        )
-   and fstorex {fs, ra, rb, xop} = 
+   and fstorex {fs, ra, rb, xop} =
        let val fs = emit_FP fs
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((fs << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + ((xop << 0wx1) + 0wx7C000000))))
        end
-   and fstored {opcd, fs, ra, d} = 
+   and fstored {opcd, fs, ra, d} =
        let val fs = emit_FP fs
            val ra = emit_GP ra
            val d = emit_operand d
        in eWord32 ((opcd << 0wx1A) + ((fs << 0wx15) + ((ra << 0wx10) + (d && 0wxFFFF))))
        end
-   and fstorede {opcd, fs, ra, de, xop} = 
+   and fstorede {opcd, fs, ra, de, xop} =
        let val fs = emit_FP fs
            val ra = emit_GP ra
            val de = emit_operand de
        in eWord32 ((opcd << 0wx1A) + ((fs << 0wx15) + ((ra << 0wx10) + (((de && 0wxFFF) << 0wx4) + xop))))
        end
-   and fstore {st, fs, ra, d} = 
+   and fstore {st, fs, ra, d} =
        (case (d, st) of
          (I.RegOp rb, I.STFS) => fstorex {fs=fs, ra=ra, rb=rb, xop=0wx297}
        | (I.RegOp rb, I.STFSE) => fstorex {fs=fs, ra=ra, rb=rb, xop=0wx29F}
@@ -334,7 +335,7 @@ struct
        | (d, I.STFD) => fstored {fs=fs, ra=ra, d=d, opcd=0wx36}
        | (de, I.STFDE) => fstorede {fs=fs, ra=ra, de=de, opcd=0wx3E, xop=0wxE}
        )
-   and unary' {ra, rt, OE, oper, Rc} = 
+   and unary' {ra, rt, OE, oper, Rc} =
        let val ra = emit_GP ra
            val rt = emit_GP rt
            val OE = emit_bool OE
@@ -342,12 +343,12 @@ struct
            val Rc = emit_bool Rc
        in eWord32 ((ra << 0wx15) + ((rt << 0wx10) + ((OE << 0wxA) + ((oper << 0wx1) + (Rc + 0wx7C000000)))))
        end
-   and unary {ra, rt, oper, OE, Rc} = 
+   and unary {ra, rt, oper, OE, Rc} =
        (case oper of
          I.NEG => unary' {ra=rt, rt=ra, oper=oper, OE=OE, Rc=Rc}
        | _ => unary' {ra=ra, rt=rt, oper=oper, OE=OE, Rc=Rc}
        )
-   and arith' {rt, ra, rb, OE, oper, Rc} = 
+   and arith' {rt, ra, rb, OE, oper, Rc} =
        let val rt = emit_GP rt
            val ra = emit_GP ra
            val rb = emit_GP rb
@@ -356,137 +357,137 @@ struct
            val Rc = emit_bool Rc
        in eWord32 ((rt << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + ((OE << 0wxA) + ((oper << 0wx1) + (Rc + 0wx7C000000))))))
        end
-   and arithi' {oper, rt, ra, im} = 
+   and arithi' {oper, rt, ra, im} =
        let val oper = emit_arithi oper
            val rt = emit_GP rt
            val ra = emit_GP ra
            val im = emit_operand im
        in eWord32 ((oper << 0wx1A) + ((rt << 0wx15) + ((ra << 0wx10) + (im && 0wxFFFF))))
        end
-   and srawi {rs, ra, sh} = 
+   and srawi {rs, ra, sh} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val sh = emit_operand sh
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + (((sh && 0wx1F) << 0wxB) + 0wx7C000670)))
        end
-   and sradi' {rs, ra, sh, sh2} = 
+   and sradi' {rs, ra, sh, sh2} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((sh2 << 0wx1) + 0wx7C000674))))
        end
-   and sradi {rs, ra, sh} = 
+   and sradi {rs, ra, sh} =
        let val sh = emit_operand sh
        in sradi' {rs=rs, ra=ra, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1)}
        end
-   and arith {oper, rt, ra, rb, OE, Rc} = 
+   and arith {oper, rt, ra, rb, OE, Rc} =
        (case oper of
-         (I.ADD | I.SUBF | I.MULLW | I.MULLD | I.MULHW | I.MULHWU | I.DIVW | I.DIVD | I.DIVWU | I.DIVDU) => 
+         (I.ADD | I.SUBF | I.MULLW | I.MULLD | I.MULHW | I.MULHWU | I.DIVW | I.DIVD | I.DIVWU | I.DIVDU) =>
             arith' {oper=oper, rt=rt, ra=ra, rb=rb, OE=OE, Rc=Rc}
        | _ => arith' {oper=oper, rt=ra, ra=rt, rb=rb, OE=OE, Rc=Rc}
        )
-   and arithi {oper, rt, ra, im} = 
+   and arithi {oper, rt, ra, im} =
        (case oper of
-         (I.ADDI | I.ADDIS | I.SUBFIC | I.MULLI) => arithi' {oper=oper, rt=rt, 
+         (I.ADDI | I.ADDIS | I.SUBFIC | I.MULLI) => arithi' {oper=oper, rt=rt,
             ra=ra, im=im}
        | I.SRAWI => srawi {rs=ra, ra=rt, sh=im}
        | I.SRADI => sradi {rs=ra, ra=rt, sh=im}
        | _ => arithi' {oper=oper, rt=ra, ra=rt, im=im}
        )
-   and Cmpl {bf, l, ra, rb} = 
+   and Cmpl {bf, l, ra, rb} =
        let val bf = emit_CC bf
            val l = emit_bool l
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((bf << 0wx17) + ((l << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + 0wx7C000040))))
        end
-   and Cmpli {bf, l, ra, ui} = 
+   and Cmpli {bf, l, ra, ui} =
        let val bf = emit_CC bf
            val l = emit_bool l
            val ra = emit_GP ra
            val ui = emit_operand ui
        in eWord32 ((bf << 0wx17) + ((l << 0wx15) + ((ra << 0wx10) + ((ui && 0wxFFFF) + 0wx28000000))))
        end
-   and Cmp {bf, l, ra, rb} = 
+   and Cmp {bf, l, ra, rb} =
        let val bf = emit_CC bf
            val l = emit_bool l
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((bf << 0wx17) + ((l << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + 0wx7C000000))))
        end
-   and Cmpi {bf, l, ra, si} = 
+   and Cmpi {bf, l, ra, si} =
        let val bf = emit_CC bf
            val l = emit_bool l
            val ra = emit_GP ra
            val si = emit_operand si
        in eWord32 ((bf << 0wx17) + ((l << 0wx15) + ((ra << 0wx10) + ((si && 0wxFFFF) + 0wx2C000000))))
        end
-   and compare {cmp, bf, l, ra, rb} = 
+   and compare {cmp, bf, l, ra, rb} =
        (case (cmp, rb) of
          (I.CMP, I.RegOp rb) => Cmp {bf=bf, l=l, ra=ra, rb=rb}
        | (I.CMPL, I.RegOp rb) => Cmpl {bf=bf, l=l, ra=ra, rb=rb}
        | (I.CMP, si) => Cmpi {bf=bf, l=l, ra=ra, si=si}
        | (I.CMPL, ui) => Cmpli {bf=bf, l=l, ra=ra, ui=ui}
        )
-   and fcmp {bf, fa, fb, cmp} = 
+   and fcmp {bf, fa, fb, cmp} =
        let val bf = emit_CC bf
            val fa = emit_FP fa
            val fb = emit_FP fb
            val cmp = emit_fcmp cmp
        in eWord32 ((bf << 0wx17) + ((fa << 0wx10) + ((fb << 0wxB) + ((cmp << 0wx1) + 0wxFC000000))))
        end
-   and funary {oper, ft, fb, Rc} = 
+   and funary {oper, ft, fb, Rc} =
        let val oper = emit_funary oper
            val ft = emit_FP ft
            val fb = emit_FP fb
-       in 
-          let 
+       in
+          let
 (*#line 455.12 "ppc/ppc.mdl"*)
               val (opcd, xo) = oper
-          in 
+          in
              (case oper of
-               (0wx3F, 0wx16) => a_form {opcd=opcd, frt=ft, fra=0wx0, frb=fb, 
+               (0wx3F, 0wx16) => a_form {opcd=opcd, frt=ft, fra=0wx0, frb=fb,
                   frc=0wx0, xo=xo, rc=Rc}
-             | (0wx3B, 0wx16) => a_form {opcd=opcd, frt=ft, fra=0wx0, frb=fb, 
+             | (0wx3B, 0wx16) => a_form {opcd=opcd, frt=ft, fra=0wx0, frb=fb,
                   frc=0wx0, xo=xo, rc=Rc}
              | _ => x_form {opcd=opcd, rt=ft, ra=0wx0, rb=fb, xo=xo, rc=Rc}
              )
           end
        end
-   and farith {oper, ft, fa, fb, Rc} = 
+   and farith {oper, ft, fa, fb, Rc} =
        let val ft = emit_FP ft
            val fa = emit_FP fa
            val fb = emit_FP fb
-       in 
-          let 
+       in
+          let
 (*#line 468.12 "ppc/ppc.mdl"*)
               val (opcd, xo) = emit_farith oper
-          in 
+          in
              (case oper of
-               (I.FMUL | I.FMULS) => a_form {opcd=opcd, frt=ft, fra=fa, frb=0wx0, 
+               (I.FMUL | I.FMULS) => a_form {opcd=opcd, frt=ft, fra=fa, frb=0wx0,
                   frc=fb, xo=xo, rc=Rc}
-             | _ => a_form {opcd=opcd, frt=ft, fra=fa, frb=fb, frc=0wx0, xo=xo, 
+             | _ => a_form {opcd=opcd, frt=ft, fra=fa, frb=fb, frc=0wx0, xo=xo,
                   rc=Rc}
              )
           end
        end
-   and farith3 {oper, ft, fa, fc, fb, Rc} = 
+   and farith3 {oper, ft, fa, fc, fb, Rc} =
        let val oper = emit_farith3 oper
            val ft = emit_FP ft
            val fa = emit_FP fa
            val fc = emit_FP fc
            val fb = emit_FP fb
-       in 
-          let 
+       in
+          let
 (*#line 477.12 "ppc/ppc.mdl"*)
               val (opcd, xo) = oper
           in a_form {opcd=opcd, frt=ft, fra=fa, frb=fb, frc=fc, xo=xo, rc=Rc}
           end
        end
-   and cr_bit {cc} = 
-       let 
+   and cr_bit {cc} =
+       let
 (*#line 482.12 "ppc/ppc.mdl"*)
            val (cr, bit) = cc
-       in ((emit_CC cr) << 0wx2) + (itow 
+       in ((emit_CC cr) << 0wx2) + (itow
           (case bit of
             I.LT => 0
           | I.GT => 1
@@ -502,109 +503,109 @@ struct
           | I.OX => 3
           ))
        end
-   and ccarith {oper, bt, ba, bb} = 
+   and ccarith {oper, bt, ba, bb} =
        let val oper = emit_ccarith oper
-       in xl_form {opcd=0wx13, bt=cr_bit {cc=bt}, ba=cr_bit {cc=ba}, bb=cr_bit {cc=bb}, 
+       in xl_form {opcd=0wx13, bt=cr_bit {cc=bt}, ba=cr_bit {cc=ba}, bb=cr_bit {cc=bb},
              xo=oper, lk=false}
        end
-   and twr {to, ra, rb} = 
+   and twr {to, ra, rb} =
        let val to = emit_int to
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((to << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + 0wx7C000008)))
        end
-   and twi {to, ra, si} = 
+   and twi {to, ra, si} =
        let val to = emit_int to
            val ra = emit_GP ra
            val si = emit_operand si
        in eWord32 ((to << 0wx15) + ((ra << 0wx10) + ((si && 0wxFFFF) + 0wxC000000)))
        end
-   and tw {to, ra, si} = 
+   and tw {to, ra, si} =
        (case si of
          I.RegOp rb => twr {to=to, ra=ra, rb=rb}
        | _ => twi {to=to, ra=ra, si=si}
        )
-   and tdr {to, ra, rb} = 
+   and tdr {to, ra, rb} =
        let val to = emit_int to
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((to << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + 0wx7C000088)))
        end
-   and tdi {to, ra, si} = 
+   and tdi {to, ra, si} =
        let val to = emit_int to
            val ra = emit_GP ra
            val si = emit_operand si
        in eWord32 ((to << 0wx15) + ((ra << 0wx10) + ((si && 0wxFFFF) + 0wx8000000)))
        end
-   and td {to, ra, si} = 
+   and td {to, ra, si} =
        (case si of
          I.RegOp rb => tdr {to=to, ra=ra, rb=rb}
        | _ => tdi {to=to, ra=ra, si=si}
        )
-   and mcrf {bf, bfa} = 
+   and mcrf {bf, bfa} =
        let val bf = emit_CC bf
            val bfa = emit_CC bfa
        in eWord32 ((bf << 0wx17) + ((bfa << 0wx12) + 0wx4C000000))
        end
-   and mtspr' {rs, spr} = 
+   and mtspr' {rs, spr} =
        let val rs = emit_GP rs
        in eWord32 ((rs << 0wx15) + ((spr << 0wxB) + 0wx7C0003A6))
        end
-   and mtspr {rs, spr} = 
+   and mtspr {rs, spr} =
        let val spr = emit_SPR spr
        in mtspr' {rs=rs, spr=((spr && 0wx1F) << 0wx5) + ((spr << 0wx5) && 0wx1F)}
        end
-   and mfspr' {rt, spr} = 
+   and mfspr' {rt, spr} =
        let val rt = emit_GP rt
        in eWord32 ((rt << 0wx15) + ((spr << 0wxB) + 0wx7C0002A6))
        end
-   and mfspr {rt, spr} = 
+   and mfspr {rt, spr} =
        let val spr = emit_SPR spr
        in mfspr' {rt=rt, spr=((spr && 0wx1F) << 0wx5) + ((spr << 0wx5) && 0wx1F)}
        end
-   and b {li, aa, lk} = 
+   and b {li, aa, lk} =
        let val aa = emit_bool aa
            val lk = emit_bool lk
        in eWord32 (((li && 0wxFFFFFF) << 0wx2) + ((aa << 0wx1) + (lk + 0wx48000000)))
        end
-   and be {li, aa, lk} = 
+   and be {li, aa, lk} =
        let val aa = emit_bool aa
            val lk = emit_bool lk
        in eWord32 (((li && 0wxFFFFFF) << 0wx2) + ((aa << 0wx1) + (lk + 0wx58000000)))
        end
-   and bc {bo, bi, bd, aa, lk} = 
+   and bc {bo, bi, bd, aa, lk} =
        let val bo = emit_bo bo
            val aa = emit_bool aa
            val lk = emit_bool lk
        in eWord32 ((bo << 0wx15) + ((bi << 0wx10) + (((bd && 0wx3FFF) << 0wx2) + ((aa << 0wx1) + (lk + 0wx40000000)))))
        end
-   and bce {bo, bi, bd, aa, lk} = 
+   and bce {bo, bi, bd, aa, lk} =
        let val bo = emit_bo bo
            val aa = emit_bool aa
            val lk = emit_bool lk
        in eWord32 ((bo << 0wx15) + ((bi << 0wx10) + (((bd && 0wx3FFF) << 0wx2) + ((aa << 0wx1) + (lk + 0wx40000000)))))
        end
-   and bclr {bo, bi, lk} = 
+   and bclr {bo, bi, lk} =
        let val bo = emit_bo bo
            val lk = emit_bool lk
        in eWord32 ((bo << 0wx15) + ((bi << 0wx10) + (lk + 0wx4C000020)))
        end
-   and bclre {bo, bi, lk} = 
+   and bclre {bo, bi, lk} =
        let val bo = emit_bo bo
            val lk = emit_bool lk
        in eWord32 ((bo << 0wx15) + ((bi << 0wx10) + (lk + 0wx4C000022)))
        end
-   and bcctr {bo, bi, lk} = 
+   and bcctr {bo, bi, lk} =
        let val bo = emit_bo bo
            val lk = emit_bool lk
        in eWord32 ((bo << 0wx15) + ((bi << 0wx10) + (lk + 0wx4C000420)))
        end
-   and bcctre {bo, bi, lk} = 
+   and bcctre {bo, bi, lk} =
        let val bo = emit_bo bo
            val lk = emit_bool lk
        in eWord32 ((bo << 0wx15) + ((bi << 0wx10) + (lk + 0wx4C000422)))
        end
-   and rlwnm {rs, ra, sh, mb, me} = 
+   and rlwnm {rs, ra, sh, mb, me} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val sh = emit_GP sh
@@ -612,89 +613,89 @@ struct
            val me = emit_int me
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + ((me << 0wx1) + 0wx5C000000)))))
        end
-   and rlwinm {rs, ra, sh, mb, me} = 
+   and rlwinm {rs, ra, sh, mb, me} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val mb = emit_int mb
            val me = emit_int me
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + ((me << 0wx1) + 0wx54000000)))))
        end
-   and rldcl {rs, ra, sh, mb} = 
+   and rldcl {rs, ra, sh, mb} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val sh = emit_GP sh
            val mb = emit_int mb
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + 0wx78000010))))
        end
-   and rldicl {rs, ra, sh, mb, sh2} = 
+   and rldicl {rs, ra, sh, mb, sh2} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val mb = emit_int mb
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + ((sh2 << 0wx1) + 0wx78000000)))))
        end
-   and rldcr {rs, ra, sh, mb} = 
+   and rldcr {rs, ra, sh, mb} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val sh = emit_GP sh
            val mb = emit_int mb
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + 0wx78000012))))
        end
-   and rldicr {rs, ra, sh, mb, sh2} = 
+   and rldicr {rs, ra, sh, mb, sh2} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val mb = emit_int mb
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + ((sh2 << 0wx1) + 0wx78000004)))))
        end
-   and rldic {rs, ra, sh, mb, sh2} = 
+   and rldic {rs, ra, sh, mb, sh2} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val mb = emit_int mb
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + ((sh2 << 0wx1) + 0wx78000008)))))
        end
-   and rlwimi {rs, ra, sh, mb, me} = 
+   and rlwimi {rs, ra, sh, mb, me} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val mb = emit_int mb
            val me = emit_int me
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + ((me << 0wx1) + 0wx50000000)))))
        end
-   and rldimi {rs, ra, sh, mb, sh2} = 
+   and rldimi {rs, ra, sh, mb, sh2} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val mb = emit_int mb
        in eWord32 ((rs << 0wx15) + ((ra << 0wx10) + ((sh << 0wxB) + ((mb << 0wx6) + ((sh2 << 0wx1) + 0wx7800000C)))))
        end
-   and rotate {oper, ra, rs, sh, mb, me} = 
+   and rotate {oper, ra, rs, sh, mb, me} =
        (case (oper, me) of
          (I.RLWNM, SOME me) => rlwnm {ra=ra, rs=rs, sh=sh, mb=mb, me=me}
        | (I.RLDCL, _) => rldcl {ra=ra, rs=rs, sh=sh, mb=mb}
        | (I.RLDCR, _) => rldcr {ra=ra, rs=rs, sh=sh, mb=mb}
        | _ => error "rotate"
        )
-   and rotatei {oper, ra, rs, sh, mb, me} = 
+   and rotatei {oper, ra, rs, sh, mb, me} =
        let val sh = emit_operand sh
-       in 
+       in
           (case (oper, me) of
             (I.RLWINM, SOME me) => rlwinm {ra=ra, rs=rs, sh=sh, mb=mb, me=me}
           | (I.RLWIMI, SOME me) => rlwimi {ra=ra, rs=rs, sh=sh, mb=mb, me=me}
-          | (I.RLDICL, _) => rldicl {ra=ra, rs=rs, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1), 
+          | (I.RLDICL, _) => rldicl {ra=ra, rs=rs, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1),
                mb=mb}
-          | (I.RLDICR, _) => rldicr {ra=ra, rs=rs, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1), 
+          | (I.RLDICR, _) => rldicr {ra=ra, rs=rs, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1),
                mb=mb}
-          | (I.RLDIC, _) => rldic {ra=ra, rs=rs, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1), 
+          | (I.RLDIC, _) => rldic {ra=ra, rs=rs, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1),
                mb=mb}
-          | (I.RLDIMI, _) => rldimi {ra=ra, rs=rs, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1), 
+          | (I.RLDIMI, _) => rldimi {ra=ra, rs=rs, sh=(sh && 0wx1F), sh2=((sh << 0wx5) && 0wx1),
                mb=mb}
           | _ => error "rotatei"
           )
        end
-   and lwarx {rt, ra, rb} = 
+   and lwarx {rt, ra, rb} =
        let val rt = emit_GP rt
            val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((rt << 0wx15) + ((ra << 0wx10) + ((rb << 0wxB) + 0wx7C000028)))
        end
-   and stwcx {rs, ra, rb} = 
+   and stwcx {rs, ra, rb} =
        let val rs = emit_GP rs
            val ra = emit_GP ra
            val rb = emit_GP rb
@@ -709,29 +710,29 @@ struct
    fun emitInstr (I.L{ld, rt, ra, d, mem}) = load {ld=ld, rt=rt, ra=ra, d=d}
      | emitInstr (I.LF{ld, ft, ra, d, mem}) = fload {ld=ld, ft=ft, ra=ra, d=d}
      | emitInstr (I.ST{st, rs, ra, d, mem}) = store {st=st, rs=rs, ra=ra, d=d}
-     | emitInstr (I.STF{st, fs, ra, d, mem}) = fstore {st=st, fs=fs, ra=ra, 
+     | emitInstr (I.STF{st, fs, ra, d, mem}) = fstore {st=st, fs=fs, ra=ra,
           d=d}
-     | emitInstr (I.UNARY{oper, rt, ra, Rc, OE}) = unary {oper=oper, rt=rt, 
+     | emitInstr (I.UNARY{oper, rt, ra, Rc, OE}) = unary {oper=oper, rt=rt,
           ra=ra, OE=OE, Rc=Rc}
-     | emitInstr (I.ARITH{oper, rt, ra, rb, Rc, OE}) = arith {oper=oper, rt=rt, 
+     | emitInstr (I.ARITH{oper, rt, ra, rb, Rc, OE}) = arith {oper=oper, rt=rt,
           ra=ra, rb=rb, OE=OE, Rc=Rc}
-     | emitInstr (I.ARITHI{oper, rt, ra, im}) = arithi {oper=oper, rt=rt, ra=ra, 
+     | emitInstr (I.ARITHI{oper, rt, ra, im}) = arithi {oper=oper, rt=rt, ra=ra,
           im=im}
-     | emitInstr (I.ROTATE{oper, ra, rs, sh, mb, me}) = rotate {oper=oper, 
+     | emitInstr (I.ROTATE{oper, ra, rs, sh, mb, me}) = rotate {oper=oper,
           ra=ra, rs=rs, sh=sh, mb=mb, me=me}
-     | emitInstr (I.ROTATEI{oper, ra, rs, sh, mb, me}) = rotatei {oper=oper, 
+     | emitInstr (I.ROTATEI{oper, ra, rs, sh, mb, me}) = rotatei {oper=oper,
           ra=ra, rs=rs, sh=sh, mb=mb, me=me}
-     | emitInstr (I.COMPARE{cmp, l, bf, ra, rb}) = compare {cmp=cmp, bf=bf, 
+     | emitInstr (I.COMPARE{cmp, l, bf, ra, rb}) = compare {cmp=cmp, bf=bf,
           l=l, ra=ra, rb=rb}
-     | emitInstr (I.FCOMPARE{cmp, bf, fa, fb}) = fcmp {cmp=cmp, bf=bf, fa=fa, 
+     | emitInstr (I.FCOMPARE{cmp, bf, fa, fb}) = fcmp {cmp=cmp, bf=bf, fa=fa,
           fb=fb}
-     | emitInstr (I.FUNARY{oper, ft, fb, Rc}) = funary {oper=oper, ft=ft, fb=fb, 
+     | emitInstr (I.FUNARY{oper, ft, fb, Rc}) = funary {oper=oper, ft=ft, fb=fb,
           Rc=Rc}
-     | emitInstr (I.FARITH{oper, ft, fa, fb, Rc}) = farith {oper=oper, ft=ft, 
+     | emitInstr (I.FARITH{oper, ft, fa, fb, Rc}) = farith {oper=oper, ft=ft,
           fa=fa, fb=fb, Rc=Rc}
-     | emitInstr (I.FARITH3{oper, ft, fa, fb, fc, Rc}) = farith3 {oper=oper, 
+     | emitInstr (I.FARITH3{oper, ft, fa, fb, fc, Rc}) = farith3 {oper=oper,
           ft=ft, fa=fa, fb=fb, fc=fc, Rc=Rc}
-     | emitInstr (I.CCARITH{oper, bt, ba, bb}) = ccarith {oper=oper, bt=bt, 
+     | emitInstr (I.CCARITH{oper, bt, ba, bb}) = ccarith {oper=oper, bt=bt,
           ba=ba, bb=bb}
      | emitInstr (I.MCRF{bf, bfa}) = mcrf {bf=bf, bfa=bfa}
      | emitInstr (I.MTSPR{rs, spr}) = mtspr {rs=rs, spr=spr}
@@ -740,12 +741,12 @@ struct
      | emitInstr (I.STWCX{rs, ra, rb}) = stwcx {rs=rs, ra=ra, rb=rb}
      | emitInstr (I.TW{to, ra, si}) = tw {to=to, ra=ra, si=si}
      | emitInstr (I.TD{to, ra, si}) = td {to=to, ra=ra, si=si}
-     | emitInstr (I.BC{bo, bf, bit, addr, LK, fall}) = bc {bo=bo, bi=cr_bit {cc=(bf, 
+     | emitInstr (I.BC{bo, bf, bit, addr, LK, fall}) = bc {bo=bo, bi=cr_bit {cc=(bf,
           bit)}, bd=relative addr, aa=false, lk=LK}
-     | emitInstr (I.BCLR{bo, bf, bit, LK, labels}) = bclr {bo=bo, bi=cr_bit {cc=(bf, 
+     | emitInstr (I.BCLR{bo, bf, bit, LK, labels}) = bclr {bo=bo, bi=cr_bit {cc=(bf,
           bit)}, lk=LK}
      | emitInstr (I.B{addr, LK}) = b {li=relative addr, aa=false, lk=LK}
-     | emitInstr (I.CALL{def, use, cutsTo, mem}) = bclr {bo=I.ALWAYS, bi=0wx0, 
+     | emitInstr (I.CALL{def, use, cutsTo, mem}) = bclr {bo=I.ALWAYS, bi=0wx0,
           lk=true}
      | emitInstr (I.SOURCE{}) = ()
      | emitInstr (I.SINK{}) = ()
@@ -753,13 +754,13 @@ struct
        in
            emitInstr instr
        end
-   
+
    fun emitInstruction(I.ANNOTATION{i, ...}) = emitInstruction(i)
      | emitInstruction(I.INSTR(i)) = emitter(i)
      | emitInstruction(I.LIVE _)  = ()
      | emitInstruction(I.KILL _)  = ()
    | emitInstruction _ = error "emitInstruction"
-   
+
    in  S.STREAM{beginCluster=init,
                 pseudoOp=pseudoOp,
                 emit=emitInstruction,

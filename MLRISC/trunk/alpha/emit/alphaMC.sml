@@ -7,7 +7,7 @@
 
 functor AlphaMCEmitter(structure Instr : ALPHAINSTR
                        structure MLTreeEval : MLTREE_EVAL where T = Instr.T
-                       structure Stream : INSTRUCTION_STREAM 
+                       structure Stream : INSTRUCTION_STREAM
                        structure CodeString : CODE_STRING
                       ) : INSTRUCTION_EMITTER =
 struct
@@ -18,9 +18,9 @@ struct
    structure S = Stream
    structure P = S.P
    structure W = Word32
-   
+
    (* Alpha is little endian *)
-   
+
    fun error msg = MLRiscErrorMsg.error("AlphaMC",msg)
    fun makeStream _ =
    let infix && || << >> ~>>
@@ -37,28 +37,29 @@ struct
        fun emit_label l = itow(Label.addrOf l)
        fun emit_labexp le = itow(MLTreeEval.valueOf le)
        fun emit_const c = itow(Constant.valueOf c)
+       val w32ToByte = Word8.fromLarge o Word32.toLarge
        val loc = ref 0
-   
+
        (* emit a byte *)
        fun eByte b =
        let val i = !loc in loc := i + 1; CodeString.update(i,b) end
-   
+
        (* emit the low order byte of a word *)
        (* note: fromLargeWord strips the high order bits! *)
        fun eByteW w =
        let val i = !loc
-       in loc := i + 1; CodeString.update(i,Word8.fromLargeWord w) end
-   
+       in loc := i + 1; CodeString.update(i, w32ToByte w) end
+
        fun doNothing _ = ()
        fun fail _ = raise Fail "MCEmitter"
        fun getAnnotations () = error "getAnnotations"
-   
+
        fun pseudoOp pOp = P.emitValue{pOp=pOp, loc= !loc,emit=eByte}
-   
+
        fun init n = (CodeString.init n; loc := 0)
-   
-   
-   fun eWord32 w = 
+
+
+   fun eWord32 w =
        let val b8 = w
            val w = w >> 0wx8
            val b16 = w
@@ -66,10 +67,10 @@ struct
            val b24 = w
            val w = w >> 0wx8
            val b32 = w
-       in 
-          ( eByteW b8; 
-            eByteW b16; 
-            eByteW b24; 
+       in
+          ( eByteW b8;
+            eByteW b16;
+            eByteW b24;
             eByteW b32 )
        end
    fun emit_GP r = itow (CellsBasis.physicalRegisterNum r)
@@ -246,12 +247,12 @@ struct
      | emit_osf_user_palcode (I.IMB) = (0wx86 : Word32.word)
      | emit_osf_user_palcode (I.RDUNIQUE) = (0wx9E : Word32.word)
      | emit_osf_user_palcode (I.WRUNIQUE) = (0wx9F : Word32.word)
-   fun Memory {opc, ra, rb, disp} = 
+   fun Memory {opc, ra, rb, disp} =
        let val rb = emit_GP rb
        in eWord32 ((opc << 0wx1A) + ((ra << 0wx15) + ((rb << 0wx10) + (disp && 0wxFFFF))))
        end
-   and Split {le} = 
-       let 
+   and Split {le} =
+       let
 (*#line 428.22 "alpha/alpha.mdl"*)
            val i = MLTreeEval.valueOf le
 
@@ -267,22 +268,22 @@ struct
              then (hi, lo)
              else (hi + 0wx1, lo - 0wx10000))
        end
-   and High {le} = 
-       let 
+   and High {le} =
+       let
 (*#line 434.21 "alpha/alpha.mdl"*)
            val (hi, _) = Split {le=le}
        in hi
        end
-   and Low {le} = 
-       let 
+   and Low {le} =
+       let
 (*#line 435.21 "alpha/alpha.mdl"*)
            val (_, lo) = Split {le=le}
        in lo
        end
-   and LoadStore {opc, ra, rb, disp} = 
-       let 
+   and LoadStore {opc, ra, rb, disp} =
+       let
 (*#line 437.12 "alpha/alpha.mdl"*)
-           val disp = 
+           val disp =
                (case disp of
                  I.REGop rb => emit_GP rb
                | I.IMMop i => itow i
@@ -292,68 +293,68 @@ struct
                )
        in Memory {opc=opc, ra=ra, rb=rb, disp=disp}
        end
-   and ILoadStore {opc, r, b, d} = 
+   and ILoadStore {opc, r, b, d} =
        let val r = emit_GP r
        in LoadStore {opc=opc, ra=r, rb=b, disp=d}
        end
-   and FLoadStore {opc, r, b, d} = 
+   and FLoadStore {opc, r, b, d} =
        let val r = emit_FP r
        in LoadStore {opc=opc, ra=r, rb=b, disp=d}
        end
-   and Jump {ra, rb, h, disp} = 
+   and Jump {ra, rb, h, disp} =
        let val ra = emit_GP ra
            val rb = emit_GP rb
            val disp = emit_int disp
        in eWord32 ((ra << 0wx15) + ((rb << 0wx10) + ((h << 0wxE) + ((disp && 0wx3FFF) + 0wx68000000))))
        end
-   and Memory_fun {opc, ra, rb, func} = 
+   and Memory_fun {opc, ra, rb, func} =
        let val ra = emit_GP ra
            val rb = emit_GP rb
        in eWord32 ((opc << 0wx1A) + ((ra << 0wx15) + ((rb << 0wx10) + func)))
        end
-   and Branch {opc, ra, disp} = 
+   and Branch {opc, ra, disp} =
        let val opc = emit_branch opc
            val ra = emit_GP ra
        in eWord32 ((opc << 0wx1A) + ((ra << 0wx15) + (disp && 0wx1FFFFF)))
        end
-   and Bsr {ra, disp} = 
+   and Bsr {ra, disp} =
        let val ra = emit_GP ra
        in eWord32 ((ra << 0wx15) + ((disp && 0wx1FFFFF) + 0wxD0000000))
        end
-   and Fbranch {opc, ra, disp} = 
+   and Fbranch {opc, ra, disp} =
        let val opc = emit_fbranch opc
            val ra = emit_FP ra
        in eWord32 ((opc << 0wx1A) + ((ra << 0wx15) + (disp && 0wx1FFFFF)))
        end
-   and Operate0 {opc, ra, rb, func, rc} = 
+   and Operate0 {opc, ra, rb, func, rc} =
        let val ra = emit_GP ra
            val rb = emit_GP rb
            val rc = emit_GP rc
        in eWord32 ((opc << 0wx1A) + ((ra << 0wx15) + ((rb << 0wx10) + ((func << 0wx5) + rc))))
        end
-   and Operate1 {opc, ra, lit, func, rc} = 
+   and Operate1 {opc, ra, lit, func, rc} =
        let val ra = emit_GP ra
            val rc = emit_GP rc
        in eWord32 ((opc << 0wx1A) + ((ra << 0wx15) + (((lit && 0wxFF) << 0wxD) + ((func << 0wx5) + (rc + 0wx1000)))))
        end
-   and Operate {opc, ra, rb, func, rc} = 
+   and Operate {opc, ra, rb, func, rc} =
        (case rb of
          I.REGop rb => Operate0 {opc=opc, ra=ra, rb=rb, func=func, rc=rc}
        | I.IMMop i => Operate1 {opc=opc, ra=ra, lit=itow i, func=func, rc=rc}
-       | I.HILABop le => Operate1 {opc=opc, ra=ra, lit=High {le=le}, func=func, 
+       | I.HILABop le => Operate1 {opc=opc, ra=ra, lit=High {le=le}, func=func,
             rc=rc}
-       | I.LOLABop le => Operate1 {opc=opc, ra=ra, lit=Low {le=le}, func=func, 
+       | I.LOLABop le => Operate1 {opc=opc, ra=ra, lit=Low {le=le}, func=func,
             rc=rc}
-       | I.LABop le => Operate1 {opc=opc, ra=ra, lit=itow (MLTreeEval.valueOf le), 
+       | I.LABop le => Operate1 {opc=opc, ra=ra, lit=itow (MLTreeEval.valueOf le),
             func=func, rc=rc}
        )
-   and Foperate {opc, fa, fb, func, fc} = 
+   and Foperate {opc, fa, fb, func, fc} =
        let val fa = emit_FP fa
            val fb = emit_FP fb
            val fc = emit_FP fc
        in eWord32 ((opc << 0wx1A) + ((fa << 0wx15) + ((fb << 0wx10) + ((func << 0wx5) + fc))))
        end
-   and Funary {opc, fb, func, fc} = 
+   and Funary {opc, fb, func, fc} =
        let val fb = emit_FP fb
            val fc = emit_FP fc
        in eWord32 ((opc << 0wx1A) + ((fb << 0wx10) + ((func << 0wx5) + (fc + 0wx3E00000))))
@@ -369,51 +370,51 @@ struct
        let
    fun emitInstr (I.LDA{r, b, d}) = ILoadStore {opc=0wx8, r=r, b=b, d=d}
      | emitInstr (I.LDAH{r, b, d}) = ILoadStore {opc=0wx9, r=r, b=b, d=d}
-     | emitInstr (I.LOAD{ldOp, r, b, d, mem}) = ILoadStore {opc=emit_load ldOp, 
+     | emitInstr (I.LOAD{ldOp, r, b, d, mem}) = ILoadStore {opc=emit_load ldOp,
           r=r, b=b, d=d}
-     | emitInstr (I.STORE{stOp, r, b, d, mem}) = ILoadStore {opc=emit_store stOp, 
+     | emitInstr (I.STORE{stOp, r, b, d, mem}) = ILoadStore {opc=emit_store stOp,
           r=r, b=b, d=d}
-     | emitInstr (I.FLOAD{ldOp, r, b, d, mem}) = FLoadStore {opc=emit_fload ldOp, 
+     | emitInstr (I.FLOAD{ldOp, r, b, d, mem}) = FLoadStore {opc=emit_fload ldOp,
           r=r, b=b, d=d}
-     | emitInstr (I.FSTORE{stOp, r, b, d, mem}) = FLoadStore {opc=emit_fstore stOp, 
+     | emitInstr (I.FSTORE{stOp, r, b, d, mem}) = FLoadStore {opc=emit_fstore stOp,
           r=r, b=b, d=d}
      | emitInstr (I.JMPL({r, b, d}, list)) = Jump {h=0wx0, ra=r, rb=b, disp=d}
-     | emitInstr (I.JSR{r, b, d, defs, uses, cutsTo, mem}) = Jump {h=0wx1, 
+     | emitInstr (I.JSR{r, b, d, defs, uses, cutsTo, mem}) = Jump {h=0wx1,
           ra=r, rb=b, disp=d}
      | emitInstr (I.BSR{r, lab, defs, uses, cutsTo, mem}) = Bsr {ra=r, disp=disp lab}
      | emitInstr (I.RET{r, b, d}) = Jump {h=0wx2, ra=r, rb=b, disp=d}
      | emitInstr (I.BRANCH{b, r, lab}) = Branch {opc=b, ra=r, disp=disp lab}
      | emitInstr (I.FBRANCH{b, f, lab}) = Fbranch {opc=b, ra=f, disp=disp lab}
-     | emitInstr (I.OPERATE{oper, ra, rb, rc}) = 
-       let 
+     | emitInstr (I.OPERATE{oper, ra, rb, rc}) =
+       let
 (*#line 578.15 "alpha/alpha.mdl"*)
            val (opc, func) = emit_operate oper
        in Operate {opc=opc, func=func, ra=ra, rb=rb, rc=rc}
        end
-     | emitInstr (I.OPERATEV{oper, ra, rb, rc}) = 
-       let 
+     | emitInstr (I.OPERATEV{oper, ra, rb, rc}) =
+       let
 (*#line 585.15 "alpha/alpha.mdl"*)
            val (opc, func) = emit_operateV oper
        in Operate {opc=opc, func=func, ra=ra, rb=rb, rc=rc}
        end
-     | emitInstr (I.CMOVE{oper, ra, rb, rc}) = Operate {opc=0wx11, func=emit_cmove oper, 
+     | emitInstr (I.CMOVE{oper, ra, rb, rc}) = Operate {opc=0wx11, func=emit_cmove oper,
           ra=ra, rb=rb, rc=rc}
      | emitInstr (I.PSEUDOARITH{oper, ra, rb, rc, tmps}) = error "PSEUDOARITH"
-     | emitInstr (I.FUNARY{oper, fb, fc}) = 
-       let 
+     | emitInstr (I.FUNARY{oper, fb, fc}) =
+       let
 (*#line 603.15 "alpha/alpha.mdl"*)
            val (opc, func) = emit_funary oper
        in Funary {opc=opc, func=func, fb=fb, fc=fc}
        end
-     | emitInstr (I.FOPERATE{oper, fa, fb, fc}) = 
-       let 
+     | emitInstr (I.FOPERATE{oper, fa, fb, fc}) =
+       let
 (*#line 611.15 "alpha/alpha.mdl"*)
            val (opc, func) = emit_foperate oper
        in Foperate {opc=opc, func=func, fa=fa, fb=fb, fc=fc}
        end
-     | emitInstr (I.FOPERATEV{oper, fa, fb, fc}) = Foperate {opc=0wx16, func=emit_foperateV oper, 
+     | emitInstr (I.FOPERATEV{oper, fa, fb, fc}) = Foperate {opc=0wx16, func=emit_foperateV oper,
           fa=fa, fb=fb, fc=fc}
-     | emitInstr (I.FCMOVE{oper, fa, fb, fc}) = Foperate {opc=0wx17, func=emit_fcmove oper, 
+     | emitInstr (I.FCMOVE{oper, fa, fb, fc}) = Foperate {opc=0wx17, func=emit_fcmove oper,
           fa=fa, fb=fb, fc=fc}
      | emitInstr (I.TRAPB) = Memory_fun {opc=0wx18, ra=zeroR, rb=zeroR, func=0wx0}
      | emitInstr (I.CALL_PAL{code, def, use}) = Pal {func=emit_osf_user_palcode code}
@@ -423,13 +424,13 @@ struct
        in
            emitInstr instr
        end
-   
+
    fun emitInstruction(I.ANNOTATION{i, ...}) = emitInstruction(i)
      | emitInstruction(I.INSTR(i)) = emitter(i)
      | emitInstruction(I.LIVE _)  = ()
      | emitInstruction(I.KILL _)  = ()
    | emitInstruction _ = error "emitInstruction"
-   
+
    in  S.STREAM{beginCluster=init,
                 pseudoOp=pseudoOp,
                 emit=emitInstruction,
