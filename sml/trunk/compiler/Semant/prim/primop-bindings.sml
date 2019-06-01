@@ -462,7 +462,6 @@ structure PrimopBindings : sig
 	    cmp("neq", P.NEQ)
 	  end
 
-
   (* primops for C FFI *)
     val prims = let
 	(* representation of pointers to raw values *)
@@ -552,7 +551,7 @@ fun prBind bind = let
       val p = PrimopBind.defnOf bind
       in
 	Control_Print.say(concat[
-	    StringCvt.padLeft #" " 24 n, " = ",
+	    StringCvt.padLeft #" " 30 n, " = ",
 	    PrimopUtil.toString p, "\n"
 	  ])
       end
