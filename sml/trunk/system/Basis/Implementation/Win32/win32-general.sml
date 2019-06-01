@@ -11,7 +11,7 @@ structure Win32_General : WIN32_GENERAL =
 	structure Word = Word32Imp
 	type word = Word.word
 
-	type hndl = word
+	type hndl = word	(* 64BITS: HANDLES are 64-bits on 64-bit targets *)
 	type system_time = {year: int,
 			    month: int,
 			    dayOfWeek: int,
