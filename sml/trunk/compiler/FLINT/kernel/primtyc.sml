@@ -1,6 +1,6 @@
 (* primtyc.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -36,7 +36,7 @@ structure PrimTyc :> PRIM_TYC =
       | PT_CCONT                        (* the control-continuation tyc *)
       | PT_ARROW                        (* the function tyc *)
       | PT_OBJ
-      | PT_CFUN
+      | PT_POINTER			(* raw runtime-system pointer *)
       | PT_BARRAY
       | PT_RARRAY
       | PT_SLOCK
@@ -58,7 +58,7 @@ structure PrimTyc :> PRIM_TYC =
 	    | PT_CCONT  => "CCONT"
 	    | PT_ARROW  => "FUN"
 	    | PT_OBJ    => "OBJ"
-	    | PT_CFUN   => "CFN"
+	    | PT_POINTER   => "CFN"
 	    | PT_BARRAY => "BARR"
 	    | PT_RARRAY => "RARR"
 	    | PT_SLOCK  => "SLCK"
@@ -81,7 +81,7 @@ structure PrimTyc :> PRIM_TYC =
     val ptc_arrow  = PT_ARROW
 
     val ptc_obj    = PT_OBJ
-    val ptc_cfun   = PT_CFUN
+    val ptc_pointer = PT_POINTER
     val ptc_barray = PT_BARRAY
     val ptc_rarray = PT_RARRAY
     val ptc_slock  = PT_SLOCK
@@ -102,7 +102,7 @@ structure PrimTyc :> PRIM_TYC =
 	    | PT_CCONT =>  1
 	    | PT_ARROW =>  2
 	    | PT_OBJ =>    0
-	    | PT_CFUN =>   0
+	    | PT_POINTER => 0
 	    | PT_BARRAY => 0
 	    | PT_RARRAY => 0
 	    | PT_SLOCK =>  0
@@ -126,7 +126,7 @@ structure PrimTyc :> PRIM_TYC =
 	    | PT_CCONT =>  8
 	    | PT_ARROW =>  9
 	    | PT_OBJ =>    10
-	    | PT_CFUN =>   11
+	    | PT_POINTER =>   11
 	    | PT_BARRAY => 12
 	    | PT_RARRAY => 13
 	    | PT_SLOCK =>  14
@@ -139,7 +139,7 @@ structure PrimTyc :> PRIM_TYC =
     (* must have numBaseCode elements *)
       val ptycvec = #[
 	      PT_REAL 32, PT_REAL 64, PT_STRING, PT_EXN, PT_ARRAY, PT_VECTOR, PT_REF,
-	      PT_CONT, PT_CCONT, PT_ARROW, PT_OBJ, PT_CFUN, PT_BARRAY, PT_RARRAY,
+	      PT_CONT, PT_CCONT, PT_ARROW, PT_OBJ, PT_POINTER, PT_BARRAY, PT_RARRAY,
 	      PT_SLOCK, PT_ETAG, PT_VOID
 	    ]
     in
@@ -194,7 +194,7 @@ structure PrimTyc :> PRIM_TYC =
 	    (BT.ccontTycon, PT_CCONT),
 	    (BT.arrowTycon, PT_ARROW),
 	    (BT.objectTycon, PT_OBJ),
-	    (BT.c_functionTycon, PT_CFUN),
+	    (BT.c_functionTycon, PT_POINTER),
 	    (BT.spin_lockTycon, PT_SLOCK),
 	    (BT.intinfTycon, PT_NUM 0)
 	  ]
@@ -215,13 +215,9 @@ structure PrimTyc :> PRIM_TYC =
       | unboxed (PT_REAL _) = true
       | unboxed _ = false
 
-(* appears to be unused
-    fun bxupd (PT_INT31 | PT_INT32 | PT_REAL | PT_VOID) = false
-      | bxupd PT_LIST = false
-      | bxupd _ = true
-*)
-
-    fun ubxupd (PT_NUM n) = (n = Target.defaultIntSz)
+    fun ubxupd (PT_NUM 0) = false	(* IntInf.int *)
+      | ubxupd (PT_NUM n) = (n <= Target.defaultIntSz)
+      | ubxupd PT_POINTER = true	(* okay since pointer is outside heap *)
       | ubxupd _ = false
 
     fun isvoid (PT_NUM 0) = true

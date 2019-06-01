@@ -1,6 +1,6 @@
 (* primtyc.sig
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -29,7 +29,7 @@ signature PRIM_TYC =
     val ptc_arrow  : primtyc
 
     val ptc_obj    : primtyc
-    val ptc_cfun   : primtyc
+    val ptc_pointer : primtyc	(* raw runtime-system pointer *)
     val ptc_barray : primtyc
     val ptc_rarray : primtyc
     val ptc_slock  : primtyc
@@ -68,7 +68,9 @@ signature PRIM_TYC =
   (** check the boxity of values of each prim tyc *)
     val unboxed : primtyc -> bool
 
-    (* val bxupd : primtyc -> bool   -- not used? *)
+  (** return true if an update to a ref/array of this type can be safely
+   ** treated as an unboxed update (i.e., no store list record).
+   **)
     val ubxupd : primtyc -> bool
 
     val isvoid : primtyc -> bool
