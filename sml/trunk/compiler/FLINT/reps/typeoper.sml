@@ -241,7 +241,7 @@ fun tagInt i = INT{ival = IntInf.fromInt i, ty = Target.defaultIntSz}
  *                      TYPED INTERPRETATION OF UNTAGGED                    *
  ****************************************************************************)
 
-(** tc is of kind Omega; this function tests whether tc can be int31 ? *)
+(** tc is of kind Omega; this function tests whether tc can be a tagged int ? *)
 fun tcTag (kenv, tc) =
   let fun loop x =     (* a lot of approximations in this function *)
 	(case (tc_out x)
