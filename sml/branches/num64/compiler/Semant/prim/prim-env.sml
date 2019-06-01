@@ -1,6 +1,6 @@
 (* prim-env.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -68,6 +68,7 @@ structure PrimEnv : PRIM_ENV =
 	    ("vector", BT.vectorTycon),
 	    ("object", BT.objectTycon),
 	    ("c_function", BT.c_functionTycon),
+	    ("c_pointer", BT.pointerTycon),	(* abstraction of machine address *)
 	    ("word8vector", BT.word8vectorTycon),
 	    ("word8array", BT.word8arrayTycon),
 (* REAL32: real32array *)

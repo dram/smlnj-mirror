@@ -1,8 +1,9 @@
-(* binfile-new.sml
+(* binfile.sml
  *
- * (C) 2001 Lucent Technologies, Bell Labs
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * author: Matthias Blume (blume@research.bell-labs.com
+ * author: Matthias Blume
  *)
 
 (*
@@ -11,7 +12,7 @@
  * create new binfile contents (aka "compile") or how to interpret the
  * pickles.  As a result, it does not statically depend on the compiler.
  * (Eventually we might want to support a light-weight binfile loader.)
- * 
+ *
  * ----------------------------------------------------------------------------
  * BINFILE FORMAT description:
  *
@@ -235,17 +236,17 @@ structure Binfile :> BINFILE = struct
     fun writeInt32 s i = BinIO.output (s, pickleInt32 i)
 
     fun picklePackedInt32 i = let
-	val n = fromInt i
-	val // = LargeWord.div
-	val %% = LargeWord.mod
-	val !! = LargeWord.orb
-	infix // %% !!
-	val toW8 = Word8.fromLargeWord
-	fun r (0w0, l) = Word8Vector.fromList l
-	  | r (n, l) = r (n // 0w128, toW8 ((n %% 0w128) !! 0w128) :: l)
-    in
-	r (n // 0w128, [toW8 (n %% 0w128)])
-    end
+	  val n = LargeWord.fromInt i
+	  val // = LargeWord.div
+	  val %% = LargeWord.mod
+	  val !! = LargeWord.orb
+	  infix // %% !!
+	  val toW8 = Word8.fromLargeWord
+	  fun r (0w0, l) = Word8Vector.fromList l
+	    | r (n, l) = r (n // 0w128, toW8 ((n %% 0w128) !! 0w128) :: l)
+	  in
+	    r (n // 0w128, [toW8 (n %% 0w128)])
+	  end
 
     fun writePid (s, pid) = BinIO.output (s, Pid.toBytes pid)
     fun writePidList (s, l) = app (fn p => writePid (s, p)) l
