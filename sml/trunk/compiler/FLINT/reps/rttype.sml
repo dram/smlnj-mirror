@@ -11,7 +11,7 @@ sig
   type rtype
   val tcode_void   : tcode
   val tcode_record : tcode
-  val tcode_int32  : tcode
+  val tcode_int32  : tcode	(* 64BIT: FIXME *)
   val tcode_pair   : tcode
   val tcode_fpair  : tcode
   val tcode_real   : tcode
@@ -307,7 +307,7 @@ fun rtLexp (kenv : kenv) (tc : tyc) =
 				  before debugmsg "<<rtLexp TC_PROJ")
 	   | (TC_PRIM pt) =>
 		if (pt = PT.ptc_real) then tcode_real
-		else if (pt = PT.ptc_num 32) then tcode_int32
+		else if (pt = PT.ptc_num 32) then tcode_int32 (* 64BIT: FIXME *)
 		     else tcode_void
 	   | (TC_VAR(i, j)) => RET[(VAR(vlookKE(kenv, i, j)))]
 	   | (TC_TUPLE (_, [t1,t2])) =>
