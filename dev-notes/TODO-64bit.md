@@ -99,6 +99,9 @@ as **DONE**, even though they are not changed.
     This file is a candidate for being moved to the target-specific
     directories.
 
+  * `system/Basis/Implementation/Win32/win32-general.sml` <br/>
+    the `HANDLE` type is 64-bits on 64-bit machines.
+
   * `system/smlnj/init/built-in32.sml` <br/>
     Need to switch `LargeWord` from `Word32` to `Word64` on all platforms.
 
@@ -123,6 +126,15 @@ as **DONE**, even though they are not changed.
   * `runtime/include/cntr.h` <br/>
     can use 64-bit integers for counters (might be able to do so on 32-bit machines
     too, when int64_t is available)
+
+  * `runtime/win32-filesys.c` <br/>
+    The `HANDLE` type will be 64-bits on 64-bit targets
+
+  * `runtime/win32-io.c` <br/>
+    The `HANDLE` type will be 64-bits on 64-bit targets
+
+  * `runtime/win32-process.c` <br/>
+    The `HANDLE` type will be 64-bits on 64-bit targets
 
 In addition to the above issues, there are a few more changes that we can make
 to smooth the differences between the 32-bit and 64-bit targets.
