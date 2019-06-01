@@ -1,6 +1,6 @@
 (* transtypes.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -18,83 +18,82 @@ sig
 end (* signature TRANSTYPES *)
 
 structure TransTypes : TRANSTYPES =
-struct
-local structure BT = BasicTypes
-      structure DA = Access
-      structure DI = DebIndex
-      structure EE = EntityEnv
-      structure EM = ErrorMsg
-      structure EPC = EntPathContext
-      structure EV = EvalEntity
-      structure INS = Instantiate
-      structure IP = InvPath
-      structure LT = PLambdaType
-      structure PT = PrimTyc
-      structure MU = ModuleUtil
-      structure SE = StaticEnv
-      structure TU = TypesUtil
-      structure PP = PrettyPrintNew
-      open Types Modules ElabDebug
-in
+  struct
 
-fun bug msg = ErrorMsg.impossible ("TransTypes: " ^ msg)
-val say = Control.Print.say
-val debugging = FLINT_Control.tmdebugging
-fun debugmsg (msg: string) =
-  if !debugging then (say msg; say "\n") else ()
-val debugPrint = (fn x => debugPrint debugging x)
-val defaultError =
-  EM.errorNoFile(EM.defaultConsumer(),ref false) SourceMap.nullRegion
+    structure BT = BasicTypes
+    structure DA = Access
+    structure DI = DebIndex
+    structure EE = EntityEnv
+    structure EM = ErrorMsg
+    structure EPC = EntPathContext
+    structure EV = EvalEntity
+    structure INS = Instantiate
+    structure IP = InvPath
+    structure LT = PLambdaType
+    structure PT = PrimTyc
+    structure MU = ModuleUtil
+    structure SE = StaticEnv
+    structure TU = TypesUtil
+    structure PP = PrettyPrintNew
+    open Types Modules ElabDebug
 
-val env = StaticEnv.empty
+    fun bug msg = ErrorMsg.impossible ("TransTypes: " ^ msg)
+    val say = Control.Print.say
+    val debugging = FLINT_Control.tmdebugging
+    fun debugmsg (msg: string) =
+	  if !debugging then (say msg; say "\n") else ()
+    val debugPrint = (fn x => debugPrint debugging x)
+    val defaultError =
+	  EM.errorNoFile(EM.defaultConsumer(),ref false) SourceMap.nullRegion
 
-fun ppType x =
- ((PP.with_pp (EM.defaultConsumer())
-           (fn ppstrm => (PP.string ppstrm "find: ";
-                          PPType.resetPPType();
-                          PPType.ppType env ppstrm x)))
-  handle _ => say "fail to print anything")
+    val env = StaticEnv.empty
 
-fun ppTycon x =
-    ((PP.with_pp (EM.defaultConsumer())
-        (fn ppstrm => (PP.string ppstrm "find: ";
-                       PPType.resetPPType();
-                       PPType.ppTycon env ppstrm x)))
-    handle _ => say "fail to print anything")
+    fun ppType x =
+     ((PP.with_pp (EM.defaultConsumer())
+	       (fn ppstrm => (PP.string ppstrm "find: ";
+			      PPType.resetPPType();
+			      PPType.ppType env ppstrm x)))
+      handle _ => say "fail to print anything")
 
-
-fun ppLtyc ltyc =
-    PP.with_default_pp (fn ppstrm => PPLty.ppTyc 20 ppstrm ltyc)
+    fun ppTycon x =
+	((PP.with_pp (EM.defaultConsumer())
+	    (fn ppstrm => (PP.string ppstrm "find: ";
+			   PPType.resetPPType();
+			   PPType.ppTycon env ppstrm x)))
+	handle _ => say "fail to print anything")
 
 
-(****************************************************************************
- *               TRANSLATING ML TYPES INTO FLINT TYPES                      *
- ****************************************************************************)
-local val recTyContext = ref [~1]
-in
-fun enterRecTy (a) = (recTyContext := (a::(!recTyContext)))
-fun exitRecTy () = (recTyContext := tl (!recTyContext))
-fun recTyc (i) =
-      let val x = hd(!recTyContext)
-          val base = DI.innermost
-       in if x = 0 then LT.tcc_var(base, i)
-          else if x > 0 then LT.tcc_var(DI.di_inner base, i)
-               else bug "unexpected RECtyc"
-      end
-fun freeTyc (i) =
-      let val x = hd(!recTyContext)
-          val base = DI.di_inner (DI.innermost)
-       in if x = 0 then LT.tcc_var(base, i)
-          else if x > 0 then LT.tcc_var(DI.di_inner base, i)
-               else bug "unexpected RECtyc"
-      end
-end (* end of recTyc and freeTyc hack *)
+    fun ppLtyc ltyc =
+	PP.with_default_pp (fn ppstrm => PPLty.ppTyc 20 ppstrm ltyc)
 
-fun tpsKnd (TP_VAR x) = TransTKind.trans(#kind x)
-  | tpsKnd _ = bug "unexpected tycpath parameters in tpsKnd"
 
-fun genTT() =
-  let
+  (****************************************************************************
+   *               TRANSLATING ML TYPES INTO FLINT TYPES                      *
+   ****************************************************************************)
+    local val recTyContext = ref [~1]
+    in
+    fun enterRecTy (a) = (recTyContext := (a::(!recTyContext)))
+    fun exitRecTy () = (recTyContext := tl (!recTyContext))
+    fun recTyc (i) =
+	  let val x = hd(!recTyContext)
+	      val base = DI.innermost
+	   in if x = 0 then LT.tcc_var(base, i)
+	      else if x > 0 then LT.tcc_var(DI.di_inner base, i)
+		   else bug "unexpected RECtyc"
+	  end
+    fun freeTyc (i) =
+	  let val x = hd(!recTyContext)
+	      val base = DI.di_inner (DI.innermost)
+	   in if x = 0 then LT.tcc_var(base, i)
+	      else if x > 0 then LT.tcc_var(DI.di_inner base, i)
+		   else bug "unexpected RECtyc"
+	  end
+    end (* end of recTyc and freeTyc hack *)
+
+    fun tpsKnd (TP_VAR x) = TransTKind.trans(#kind x)
+      | tpsKnd _ = bug "unexpected tycpath parameters in tpsKnd"
+
+fun genTT () = let
 
 fun tpsTyc d tp =
   let fun h (TP_VAR x, cur) =
@@ -114,14 +113,14 @@ fun tpsTyc d tp =
               end
 
    in h(tp, d)
-  end
+  end (* tpsTyc *)
 
 (*
 and tycTyc x =
   Stats.doPhase(Stats.makePhase "Compiler 043 1-tycTyc") tycTyc0 x
 *)
 
-and tycTyc(tc, d) =
+and tycTyc (tc, d) =
   let fun dtsTyc nd ({dcons: dconDesc list, arity=i, ...} : dtmember) =
             let val nnd = if i=0 then nd else DI.next nd
                 fun f ({domain=NONE, rep, name}, r) = (LT.tcc_unit)::r
@@ -163,7 +162,8 @@ and tycTyc(tc, d) =
 
       and g (tycon as GENtyc { arity, kind, ... }) =
 	  (case kind
-	     of PRIMITIVE => LT.tcc_prim(PrimTyc.pt_fromtyc tycon)
+	     of PRIMITIVE => (* translation defined in FLINT/kernel/primtyc.sml *)
+		  LT.tcc_prim(PrimTyc.pt_fromtyc tycon)
               | DATATYPE {index, family, freetycs, stamps, ...} =>
 		if TU.eqTycon(tycon, BT.refTycon) then LT.tcc_prim (PT.ptc_ref)
 		else let val tc = dtsFam (freetycs, family)
@@ -193,7 +193,7 @@ and tycTyc(tc, d) =
         | g (ERRORtyc) = bug "unexpected tycon in tycTyc-g"
 
    in (g tc)
-  end
+  end (* tycTyc *)
 
 and tfTyc (TYFUN{arity=0, body}, d) = toTyc d body
   | tfTyc (TYFUN{arity, body}, d) =
@@ -484,5 +484,4 @@ structure MIDict = RedBlackMapFn(struct type ord_key = ModuleId.modId
        toTyc=toTyc, toLty=toLty, strLty=strLty, fctLty=fctLty}
   end (* function genTT *)
 
-end (* toplevel local *)
 end (* structure TransTypes *)

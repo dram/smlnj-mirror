@@ -1,6 +1,6 @@
 (* basictypes.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Note: the types that are defined here should also be added to the
@@ -126,6 +126,11 @@ structure BasicTypes : BASICTYPES =
 
     val (exnTycon, exnTy) = mkPrimTycTy ("exn", 0, T.NO)
 
+  (* abstract eqtype that represents a runtime-system pointer *)
+    val pointerTycon = mkPrimTyc("c_pointer", 0, T.YES)
+  (* abstract type that represents a runtime-system function *)
+    val c_functionTycon = mkPrimTyc("c_function", 0, T.NO)
+
     val contTycon = mkPrimTyc("cont", 1, T.NO)
     val ccontTycon = mkPrimTyc("control_cont", 1, T.NO)
 
@@ -142,8 +147,6 @@ structure BasicTypes : BASICTYPES =
 (* TODO: real64vectorTycon *)
 
     val objectTycon = mkPrimTyc("object", 0, T.NO)
-
-    val c_functionTycon = mkPrimTyc("c_function", 0, T.NO)
 
     val spin_lockTycon = mkPrimTyc("spin_lock", 0, T.NO)
 

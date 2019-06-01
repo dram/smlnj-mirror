@@ -1,6 +1,6 @@
 (* basictypes.sig
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -50,6 +50,12 @@ signature BASICTYPES =
     val exnTycon : Types.tycon
     val exnTy : Types.ty
 
+  (* abstract eqtype that represents a runtime-system pointer *)
+    val pointerTycon : Types.tycon
+
+  (* abstract type that represents a runtime-system function *)
+    val c_functionTycon : Types.tycon
+
     val vectorTycon : Types.tycon
 
     val arrayTycon : Types.tycon
@@ -74,7 +80,6 @@ signature BASICTYPES =
     val ccontTycon : Types.tycon
 
     val objectTycon : Types.tycon
-    val c_functionTycon : Types.tycon
     val spin_lockTycon : Types.tycon
 
     val recordTy : (Types.label * Types.ty) list -> Types.ty

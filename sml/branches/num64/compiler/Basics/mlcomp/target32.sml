@@ -9,6 +9,7 @@
 structure Target : TARGET =
   struct
 
+    val pointerSz = 32
     val mlValueSz = 32
     val defaultIntSz = 31
     val fixedIntSz = 32
