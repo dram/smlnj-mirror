@@ -29,7 +29,7 @@ signature PRIM_TYC =
     val ptc_arrow  : primtyc
 
     val ptc_obj    : primtyc
-    val ptc_pointer : primtyc	(* raw runtime-system pointer *)
+    val ptc_pointer : primtyc	(* raw runtime-system pointer; include C functions *)
     val ptc_barray : primtyc
     val ptc_rarray : primtyc
     val ptc_slock  : primtyc

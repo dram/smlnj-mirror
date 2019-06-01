@@ -58,7 +58,7 @@ structure PrimTyc :> PRIM_TYC =
 	    | PT_CCONT  => "CCONT"
 	    | PT_ARROW  => "FUN"
 	    | PT_OBJ    => "OBJ"
-	    | PT_POINTER   => "CFN"
+	    | PT_POINTER   => "C_PTR"
 	    | PT_BARRAY => "BARR"
 	    | PT_RARRAY => "RARR"
 	    | PT_SLOCK  => "SLCK"
@@ -194,6 +194,7 @@ structure PrimTyc :> PRIM_TYC =
 	    (BT.ccontTycon, PT_CCONT),
 	    (BT.arrowTycon, PT_ARROW),
 	    (BT.objectTycon, PT_OBJ),
+	    (BT.pointerTycon, PT_POINTER),
 	    (BT.c_functionTycon, PT_POINTER),
 	    (BT.spin_lockTycon, PT_SLOCK),
 	    (BT.intinfTycon, PT_NUM 0)
