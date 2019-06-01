@@ -46,9 +46,8 @@ structure PrimopBindings : sig
     val numUpdTy = p2(ar(tup[tv1, BT.intTy, tv2], BT.unitTy))
 
   (* size and type of LargeWord.word *)
-    val (largeWSz, largeWTy) = if (Target.fixedIntSz = 64)
-	  then (64, BT.word64Ty)
-	  else (32, BT.word32Ty)
+    val largeWSz = 64
+    val largeWTy = BT.word64Ty
 
   (* default sizes *)
     val intSz = Target.defaultIntSz
@@ -424,10 +423,10 @@ structure PrimopBindings : sig
 	    in
 	      prims :-:
 	    (* use type variable for 64-bit type to force boxed representation *)
-	      ("int64_to_pair", p1(ar(tv1, pw32)), P.EXTERN64) :-:
-	      ("int64_from_pair", p1(ar(pw32, tv1)), P.INTERN64) :-:
-	      ("word64_to_pair", p1(ar(tv1, pw32)), P.EXTERN64) :-:
-	      ("word64_from_pair", p1(ar(pw32, tv1)), P.INTERN64)
+	      ("int64_to_pair", ar(BT.int64Ty, pw32), P.EXTERN64) :-:
+	      ("int64_from_pair", ar(pw32, BT.int64Ty), P.INTERN64) :-:
+	      ("word64_to_pair", ar(BT.word64Ty, pw32), P.EXTERN64) :-:
+	      ("word64_from_pair", ar(pw32, BT.word64Ty), P.INTERN64)
 	    end
 
 (* REAL32: FIXME *)
@@ -461,7 +460,6 @@ structure PrimopBindings : sig
 	    cmp("eql", P.EQL) :-:
 	    cmp("neq", P.NEQ)
 	  end
-
 
   (* primops for C FFI *)
     val prims = let
@@ -552,7 +550,7 @@ fun prBind bind = let
       val p = PrimopBind.defnOf bind
       in
 	Control_Print.say(concat[
-	    StringCvt.padLeft #" " 24 n, " = ",
+	    StringCvt.padLeft #" " 30 n, " = ",
 	    PrimopUtil.toString p, "\n"
 	  ])
       end

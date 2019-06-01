@@ -1,6 +1,7 @@
 /* getpwuid.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -24,7 +25,7 @@ ml_val_t _ml_P_SysDB_getpwuid (ml_state_t *msp, ml_val_t arg)
     info = getpwuid(WORD_MLtoC(arg));
     if (info == NIL(struct passwd *))
         return RAISE_SYSERR(msp, -1);
-  
+
     pw_name = ML_CString (msp, info->pw_name);
     WORD_ALLOC (msp, pw_uid, (Word_t)(info->pw_uid));
     WORD_ALLOC (msp, pw_gid, (Word_t)(info->pw_gid));

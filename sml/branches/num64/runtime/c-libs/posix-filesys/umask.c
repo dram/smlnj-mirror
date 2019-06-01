@@ -1,6 +1,7 @@
 /* umask.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -10,7 +11,7 @@
 #include "ml-c.h"
 #include "cfun-proto-list.h"
 
-/* _ml_P_FileSys_umask : word -> word
+/* _ml_P_FileSys_umask : SysWord.word -> SysWord.word
  *
  * Set and get file creation mask
  * Assumes umask never fails.

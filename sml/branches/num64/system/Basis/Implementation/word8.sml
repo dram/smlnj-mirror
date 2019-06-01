@@ -9,7 +9,7 @@ structure Word8Imp : WORD =
 
     structure W8 = InlineT.Word8
     structure Word = InlineT.Word
-    structure LW = Word32Imp
+    structure LW = LargeWordImp
 
     type word = Word8.word		(* tagged word *)
 
@@ -72,7 +72,7 @@ structure Word8Imp : WORD =
     val min : word * word -> word = W8.min
     val max : word * word -> word = W8.max
 
-    fun fmt radix = (NumFormat32.fmtWord radix) o toLargeWord
+    fun fmt radix = (NumFormat32.fmtWord radix) o InlineT.Word32.fromLarge o toLargeWord
     val toString = fmt StringCvt.HEX
 
     fun scan radix = let
@@ -81,7 +81,7 @@ structure Word8Imp : WORD =
 		 of NONE => NONE
 		  | (SOME(w, cs')) => if InlineT.Word32.>(w, 0w255)
 		      then raise Overflow
-		      else SOME(fromLargeWord w, cs')
+		      else SOME(fromLargeWord(InlineT.Word32.toLarge w), cs')
 		(* end case *))
 	  in
 	    scan

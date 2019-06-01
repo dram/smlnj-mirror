@@ -1,8 +1,9 @@
-/* win32-filesys.c
+/*! \file win32-filesys.c
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * Interface to win32 filesys functions
  *
- * interface to win32 filesys functions
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include <windows.h>
@@ -17,159 +18,167 @@
 
 static WIN32_FIND_DATA wfd;
 
-static ml_val_t find_next_file(ml_state_t *msp,HANDLE h)
+static ml_val_t find_next_file (ml_state_t *msp,HANDLE h)
 {
-  ml_val_t fname_opt,fname;
+    ml_val_t fname_opt,fname;
 
-loop:
-  if (FindNextFile(h,&wfd)) {
-    if (IS_DOTDIR(wfd.cFileName))
-      goto loop;
-    fname = ML_CString(msp,wfd.cFileName);
-    OPTION_SOME(msp,fname_opt,fname);
-  } else
-    fname_opt = OPTION_NONE;
-  return fname_opt;
+  loop:
+    if (FindNextFile(h,&wfd)) {
+	if (IS_DOTDIR(wfd.cFileName))
+	  /* skip "." and ".." */
+	    goto loop;
+	fname = ML_CString(msp,wfd.cFileName);
+	OPTION_SOME(msp,fname_opt,fname);
+    }
+    else {
+        fname_opt = OPTION_NONE;
+    }
+    return fname_opt;
 }
-    
+
 /* _ml_win32_FS_find_next_file: word32 -> (string option)
  */
-ml_val_t _ml_win32_FS_find_next_file(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_find_next_file (ml_state_t *msp, ml_val_t arg)
 {
-  HANDLE h = (HANDLE) WORD_MLtoC(arg);
+    HANDLE h = (HANDLE) INT32_MLtoC(arg);
 
-  return find_next_file(msp,h);
+    return find_next_file(msp,h);
 }
 
 /* _ml_win32_FS_find_first_file: string -> (word32 * string option)
  */
-ml_val_t _ml_win32_FS_find_first_file(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
 {
-  HANDLE h = FindFirstFile(STR_MLtoC(arg),&wfd);
-  ml_val_t fname_opt, fname, w, res;
+    HANDLE h = FindFirstFile(STR_MLtoC(arg),&wfd);
+    ml_val_t fname_opt, fname, w, res;
 
-  if (h != INVALID_HANDLE_VALUE) {
-    if (IS_DOTDIR(wfd.cFileName))
-      fname_opt = find_next_file(msp,h);
-    else {
-      fname = ML_CString(msp,wfd.cFileName);
-      OPTION_SOME(msp,fname_opt,fname);
+    if (h != INVALID_HANDLE_VALUE) {
+	if (IS_DOTDIR(wfd.cFileName))
+	    fname_opt = find_next_file(msp,h);
+	else {
+	    fname = ML_CString(msp,wfd.cFileName);
+	    OPTION_SOME(msp,fname_opt,fname);
+	}
     }
-  } else
-    fname_opt = OPTION_NONE;
-  WORD_ALLOC(msp, w, (Word_t)h);
-  REC_ALLOC2(msp,res,w,fname_opt);
-  return res;
+    else {
+	fname_opt = OPTION_NONE;
+    }
+    INT32_ALLOC(msp, w, (Word_t)h);
+    REC_ALLOC2(msp,res,w,fname_opt);
+    return res;
 }
 
 /* _ml_win32_FS_find_close: word32 -> bool
  */
-ml_val_t _ml_win32_FS_find_close(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_find_close (ml_state_t *msp, ml_val_t arg)
 {
-  return FindClose((HANDLE)WORD_MLtoC(arg)) ? ML_true : ML_false;
+    return FindClose((HANDLE)INT32_MLtoC(arg)) ? ML_true : ML_false;
 }
 
 /* _ml_win32_FS_set_current_directory: string -> bool
  */
-ml_val_t _ml_win32_FS_set_current_directory(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_set_current_directory (ml_state_t *msp, ml_val_t arg)
 {
-  return SetCurrentDirectory(STR_MLtoC(arg)) ? ML_true : ML_false;
+    return SetCurrentDirectory(STR_MLtoC(arg)) ? ML_true : ML_false;
 }
 
 /* _ml_win32_FS_get_current_directory: unit -> string
  */
-ml_val_t _ml_win32_FS_get_current_directory(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_get_current_directory (ml_state_t *msp, ml_val_t arg)
 {
-  char buf[MAX_PATH];
-  DWORD r = GetCurrentDirectory(MAX_PATH,buf);
+    char buf[MAX_PATH];
+    DWORD r = GetCurrentDirectory(MAX_PATH, buf);
 
-  if (r == 0 || r > MAX_PATH) {
-    return RAISE_SYSERR(msp,-1);
-  }
-  return ML_CString(msp,buf);
+    if (r == 0 || r > MAX_PATH) {
+        return RAISE_SYSERR(msp, -1);
+    }
+    else {
+        return ML_CString(msp,buf);
+    }
 }
 
 
 /* _ml_win32_FS_create_directory: string -> bool
  */
-ml_val_t _ml_win32_FS_create_directory(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_create_directory (ml_state_t *msp, ml_val_t arg)
 {
-  return CreateDirectory(STR_MLtoC(arg),NULL) ? ML_true : ML_false;
+    return CreateDirectory(STR_MLtoC(arg),NULL) ? ML_true : ML_false;
 }
 
 /* _ml_win32_FS_remove_directory: string -> bool
  */
-ml_val_t _ml_win32_FS_remove_directory(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_remove_directory (ml_state_t *msp, ml_val_t arg)
 {
-  return RemoveDirectory(STR_MLtoC(arg)) ? ML_true : ML_false;
+    return RemoveDirectory(STR_MLtoC(arg)) ? ML_true : ML_false;
 }
 
 /* _ml_win32_FS_get_file_attributes: string -> (word32 option)
  */
-ml_val_t _ml_win32_FS_get_file_attributes(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_get_file_attributes (ml_state_t *msp, ml_val_t arg)
 {
-  DWORD w = GetFileAttributes(STR_MLtoC(arg));
-  ml_val_t res, ml_w;
+    DWORD w = GetFileAttributes(STR_MLtoC(arg));
+    ml_val_t res, ml_w;
 
-  if (w != 0xffffffff) {
+    if (w != 0xffffffff) {
 #ifdef DEBUG_WIN32
-    printf("_ml_win32_FS_get_file_attributes: returning file attrs for <%s> as SOME %x\n",STR_MLtoC(arg),w);
+        printf("_ml_win32_FS_get_file_attributes: returning file attrs for <%s> as SOME %x\n",
+	  STR_MLtoC(arg), w);
 #endif
-    WORD_ALLOC(msp,ml_w,w);
-    OPTION_SOME(msp,res,ml_w);
-  } else {
+      INT32_ALLOC(msp,ml_w,w);
+      OPTION_SOME(msp,res,ml_w);
+    } else {
 #ifdef DEBUG_WIN32
-    printf("returning NONE as attrs for <%s>\n",STR_MLtoC(arg));
+        printf("returning NONE as attrs for <%s>\n",STR_MLtoC(arg));
 #endif
-    res = OPTION_NONE;
-  }
-  return res;
+        res = OPTION_NONE;
+    }
+    return res;
 }
 
 /* _ml_win32_FS_get_file_attributes_by_handle: word32 -> (word32 option)
  */
-ml_val_t _ml_win32_FS_get_file_attributes_by_handle(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_get_file_attributes_by_handle (ml_state_t *msp, ml_val_t arg)
 {
-  BY_HANDLE_FILE_INFORMATION bhfi;
-  ml_val_t ml_w, res;
+    BY_HANDLE_FILE_INFORMATION bhfi;
+    ml_val_t ml_w, res;
 
-  if (GetFileInformationByHandle((HANDLE)WORD_MLtoC(arg),&bhfi)) {
-    WORD_ALLOC(msp,ml_w,bhfi.dwFileAttributes);
-    OPTION_SOME(msp,res,ml_w);
-  } else {
-    res = OPTION_NONE;
-  }
-  return res;
+    if (GetFileInformationByHandle((HANDLE)INT32_MLtoC(arg), &bhfi)) {
+	INT32_ALLOC(msp,ml_w,bhfi.dwFileAttributes);
+	OPTION_SOME(msp,res,ml_w);
+    } else {
+	res = OPTION_NONE;
+    }
+    return res;
 }
 
 /* _ml_win32_FS_get_full_path_name: string -> string
  */
-ml_val_t _ml_win32_FS_get_full_path_name(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_get_full_path_name (ml_state_t *msp, ml_val_t arg)
 {
-  char buf[MAX_PATH], *dummy;
-  DWORD r;
-  ml_val_t res;
+    char buf[MAX_PATH], *dummy;
+    DWORD r;
+    ml_val_t res;
 
-  r = GetFullPathName(STR_MLtoC(arg),MAX_PATH,buf,&dummy);
-  if (r == 0 | r > MAX_PATH) {
-    return  RAISE_SYSERR(msp,-1);
-  }
-  res = ML_CString(msp,buf);
-  return res;
+    r = GetFullPathName(STR_MLtoC(arg),MAX_PATH,buf,&dummy);
+    if (r == 0 | r > MAX_PATH) {
+	return RAISE_SYSERR(msp,-1);
+    }
+    res = ML_CString(msp,buf);
+    return res;
 }
 
-/* _ml_win32_FS_get_file_size: word32 -> (word32 * word32)
+/* _ml_win32_FS_get_file_size: word32 -> word64
  */
-ml_val_t _ml_win32_FS_get_file_size(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_get_file_size (ml_state_t *msp, ml_val_t arg)
 {
-  DWORD lo,hi;
-  ml_val_t ml_lo, ml_hi, res;
+    LARGE_INTEGER sz;
 
-  lo = GetFileSize((HANDLE)WORD_MLtoC(arg),&hi);
-  WORD_ALLOC(msp,ml_lo,lo);
-  WORD_ALLOC(msp,ml_hi,hi);
-  REC_ALLOC2(msp,res,ml_hi,ml_lo);
-  return res;
+    if (GetFileSizeEx((HANDLE)INT32_MLtoC(arg), &sz)) {
+	return ML_AllocInt64(msp, sz.QuadPart);
+    }
+    else {
+	return RAISE_SYSERR(msp,-1);
+    }
 }
 
 /* _ml_win32_FS_get_low_file_size: word32 -> (word32 option)
@@ -179,9 +188,9 @@ ml_val_t _ml_win32_FS_get_low_file_size(ml_state_t *msp, ml_val_t arg)
   DWORD lo;
   ml_val_t ml_lo, res;
 
-  lo = GetFileSize((HANDLE)WORD_MLtoC(arg),NULL);
+  lo = GetFileSize((HANDLE)INT32_MLtoC(arg),NULL);
   if (lo != 0xffffffff) {
-    WORD_ALLOC(msp,ml_lo,lo);
+    INT32_ALLOC(msp,ml_lo,lo);
     OPTION_SOME(msp,res,ml_lo);
   } else {
     res = OPTION_NONE;
@@ -205,7 +214,7 @@ ml_val_t _ml_win32_FS_get_low_file_size_by_name(ml_state_t *msp, ml_val_t arg)
     lo = GetFileSize(h,NULL);
     CloseHandle(h);
     if (lo != 0xffffffff) {
-      WORD_ALLOC(msp,ml_lo,lo);
+      INT32_ALLOC(msp,ml_lo,lo);
       OPTION_SOME(msp,res,ml_lo);
     }
   }
@@ -228,7 +237,7 @@ ml_val_t _ml_win32_FS_get_low_file_size_by_name(ml_state_t *msp, ml_val_t arg)
 	__msp->ml_allocPtr = __p;				\
     }
 
-/* _ml_win32_FS_get_file_time: 
+/* _ml_win32_FS_get_file_time:
  *   string -> (int * int * int * int * int * int * int * int) option
  *              year  month wday  day   hour  min   sec   ms
  */
@@ -244,7 +253,7 @@ ml_val_t _ml_win32_FS_get_file_time(ml_state_t *msp, ml_val_t arg)
 
     if (GetFileTime(h,NULL,NULL,&ft)) {  /* request time of "last write" */
       SYSTEMTIME st;
-    
+
       CloseHandle(h);
       if (FileTimeToSystemTime(&ft,&st)) {
 	ml_val_t rec;
@@ -265,7 +274,7 @@ ml_val_t _ml_win32_FS_get_file_time(ml_state_t *msp, ml_val_t arg)
   return res;
 }
 
-/* _ml_win32_FS_set_file_time: 
+/* _ml_win32_FS_set_file_time:
  *   (string * (int * int * int * int * int * int * int * int) option) -> bool
  *              year  month wday  day   hour  min   sec   ms
  */
@@ -292,11 +301,11 @@ ml_val_t _ml_win32_FS_set_file_time(ml_state_t *msp, ml_val_t arg)
     st.wMinute = REC_SELINT(time_rec,5);
     st.wSecond = REC_SELINT(time_rec,6);
     st.wMilliseconds = REC_SELINT(time_rec,7);
-    
+
     if (SystemTimeToFileTime(&st,&ft) && SetFileTime(h,NULL,NULL,&ft)) {
       res = ML_true;
     }
-    
+
     CloseHandle(h);
   }
   return res;
@@ -332,10 +341,10 @@ ml_val_t _ml_win32_FS_get_temp_file_name(ml_state_t *msp, ml_val_t arg)
   DWORD pblen;
 
   pblen = GetTempPath(MAX_PATH,path_buf);
-  if ((pblen <= MAX_PATH) && 
+  if ((pblen <= MAX_PATH) &&
       (GetTempFileName(path_buf,TMP_PREFIX,0,name_buf) != 0)) {
     ml_val_t tfn = ML_CString(msp,name_buf);
-    
+
     OPTION_SOME(msp,res,tfn);
   }
   return res;

@@ -1,6 +1,7 @@
 /* getgrgid.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -25,7 +26,7 @@ ml_val_t _ml_P_SysDB_getgrgid (ml_state_t *msp, ml_val_t arg)
     info = getgrgid(WORD_MLtoC(arg));
     if (info == NIL(struct group *))
         return RAISE_SYSERR(msp, -1);
-  
+
     gr_name = ML_CString (msp, info->gr_name);
     WORD_ALLOC (msp, gr_gid, (Word_t)(info->gr_gid));
     gr_mem = ML_CStringList(msp, info->gr_mem);

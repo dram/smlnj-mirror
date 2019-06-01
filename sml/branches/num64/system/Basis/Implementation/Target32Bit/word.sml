@@ -59,7 +59,7 @@ structure WordImp : WORD =
     val min : word * word -> word = Word.min
     val max : word * word -> word = Word.max
 
-    fun fmt radix = (NumFormat32.fmtWord radix) o  Word.toLarge
+    fun fmt radix = (NumFormat32.fmtWord radix) o Word.toWord32
     val toString = fmt StringCvt.HEX
 
     fun scan radix = let
@@ -68,7 +68,7 @@ structure WordImp : WORD =
 		 of NONE => NONE
 		  | (SOME(w, cs')) => if InlineT.Word32.>(w, 0wx7FFFFFFF)
 		      then raise Overflow
-		      else SOME(Word.fromLarge w, cs')
+		      else SOME(Word.fromWord32 w, cs')
 		(* end case *))
 	  in
 	    scan
@@ -78,6 +78,6 @@ structure WordImp : WORD =
   (* added for Basis Library proposal 2016-001 *)
 
   (* NOTE: LargeWord is Word32 even though we also have a Word64 implementation! *)
-    fun popCount w = W32PopCount.popCount (Word.toLarge w)
+    fun popCount w = W32PopCount.popCount (Word.toWord32 w)
 
   end  (* structure WordImp *)
