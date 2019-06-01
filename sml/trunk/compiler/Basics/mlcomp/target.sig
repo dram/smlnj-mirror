@@ -7,6 +7,9 @@
 signature TARGET =
   sig
 
+  (* the size of a machine address in bits *)
+    val pointerSz : int
+
   (* the size of an ML value (aka "word") on the target; usually this is the
    * natural pointer size, but some 64-bit targets (e.g., the Alpha) have
    * used 32-bits for ML words.
