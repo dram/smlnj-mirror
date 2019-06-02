@@ -24,6 +24,7 @@ structure String = struct type string = PrimTypes.string end
 (* structure aliases *)
 structure FixedInt = Int64
 structure LargeInt = IntInf
+structure Position = Int64
 structure LargeWord = Word64
 structure Real = Real64
 structure LargeReal = Real64

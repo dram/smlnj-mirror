@@ -146,7 +146,7 @@ structure POSIX_IO =
 
     type flock_rep = s_int * s_int * Position.int * Position.int * s_int
 
-    val fcntl_l : s_int * s_int * flock_rep -> flock_rep = cfun "fcntl_l"
+    val fcntl_l : s_int * s_int * flock_rep -> flock_rep = cfun "fcntl_l_64"
     val f_getlk = osval "F_GETLK"
     val f_setlk = osval "F_SETLK"
     val f_setlkw = osval "F_SETLKW"
@@ -184,7 +184,7 @@ structure POSIX_IO =
     fun setlkw (fd, flock) =
           flockFromRep(false,fcntl_l(FS.intOf fd,f_setlkw,flockToRep flock))
 
-    val lseek' : s_int * Position.int * s_int -> Position.int = cfun "lseek"
+    val lseek' : s_int * Position.int * s_int -> Position.int = cfun "lseek_64"
     fun lseek (fd, offset, whence) = lseek'(FS.intOf fd, offset, whToWord whence)
 
     val fsync' : s_int -> unit = cfun "fsync"
