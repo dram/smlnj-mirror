@@ -2,6 +2,8 @@ structure SExpLexer  = struct
 
     datatype yystart_state = 
 S | INITIAL
+    local
+
     structure UserDeclarations = 
       struct
 
@@ -23,10 +25,8 @@ S | INITIAL
 	end
   fun finishString () = (T.STRING(String.concat(List.rev(!sbuf))) before sbuf := [])
 
-
       end
 
-    local
     datatype yymatch 
       = yyNO_MATCH
       | yyMATCH of ULexBuffer.stream * action * yymatch
@@ -104,7 +104,7 @@ Vector.fromList []
 		(fn (~1, _, oldMatches) => yystuck oldMatches
 		  | (curState, strm, oldMatches) => let
 		      val (transitions, finals') = Vector.sub (yytable, curState)
-		      val finals = map (fn i => Vector.sub (actTable, i)) finals'
+		      val finals = List.map (fn i => Vector.sub (actTable, i)) finals'
 		      fun tryfinal() = 
 		            yystuck (yyactsToMatches (strm, finals, oldMatches))
 		      fun find (c, []) = NONE
