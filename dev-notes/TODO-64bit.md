@@ -136,6 +136,9 @@ as **DONE**, even though they are not changed.
   * `runtime/win32-process.c` <br/>
     The `HANDLE` type will be 64-bits on 64-bit targets
 
+  * `smlnj-lib/Util/random.sml` <br/>
+    Uses the `Word31` structure.
+
 In addition to the above issues, there are a few more changes that we can make
 to smooth the differences between the 32-bit and 64-bit targets.
 
