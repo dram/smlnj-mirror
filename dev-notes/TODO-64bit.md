@@ -61,6 +61,8 @@ as **DONE**, even though they are not changed.
     this file should be replaced with an implementation of the new literal
     encoding, which supports 64-bit integer data
 
+  * `compiler/FLINT/reps/rttype.sml` <br/>
+
   * `compiler/FLINT/opt/abcopt.sml` <br/>
     this file is no longer used, but has 64-bit dependences.
     **[DONE]**
