@@ -37,12 +37,12 @@ ml_val_t _ml_Time_gettime (ml_state_t *msp, ml_val_t arg)
 
 } /* end of _ml_Time_gettime */
 
-/* _ml_Time_gettime_64 : unit -> Int64.int * Int64.int * Int64.int
+/* _ml_Time_gettime : unit -> Int64.int * Int64.int * Int64.int
  *
  * Return the total CPU time, system time and garbage collection time used by this
  * process so far.
  */
-ml_val_t _ml_Time_gettime_64 (ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_Time_gettime (ml_state_t *msp, ml_val_t arg)
 {
     Time_t		t, s;
     ml_val_t		cpuT, sysT, gcT, res;
