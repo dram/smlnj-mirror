@@ -1,6 +1,7 @@
 /* lseek.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -11,18 +12,27 @@
 #include "ml-c.h"
 #include "cfun-proto-list.h"
 
-/* _ml_P_IO_lseek : int * int * int -> int
+/* _ml_P_IO_lseek : int * Position.int * int -> Position.int
  *
  * Move read/write file pointer.
  */
 ml_val_t _ml_P_IO_lseek (ml_state_t *msp, ml_val_t arg)
 {
-    int         fd = REC_SELINT(arg, 0);
-    off_t       offset = REC_SELINT(arg, 1), pos;
-    int         whence = REC_SELINT(arg, 2);
+    Int_t       fd = REC_SELINT(arg, 0);
+    ml_val_t	box_offset = REC_SEL(arg, 1);
+    off_t	offset = (off_t)INT64_MLtoC(box_offset);
+    off_t       pos;
+    Int_t       whence = REC_SELINT(arg, 2);
+    ml_val_t    box_pos;
 
     pos = lseek(fd, offset, whence);
 
-    CHK_RETURN(msp, pos)
+    if (pos < 0) {
+	RAISE_SYSERR (msp, (int)pos);
+    }
+
+    INT64_ALLOC(msp, box_pos, pos);
+
+    return box_pos;
 
 } /* end of _ml_P_IO_lseek */

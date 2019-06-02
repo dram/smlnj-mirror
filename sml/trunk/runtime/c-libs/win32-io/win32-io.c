@@ -1,6 +1,7 @@
 /* win32-io.c
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * interface to win32 io functions
  */
@@ -42,7 +43,7 @@ ml_val_t _ml_win32_IO_get_std_handle(ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_IO_close(ml_state_t *msp, ml_val_t arg)
 {
-  HANDLE h = (HANDLE) WORD_MLtoC(arg);
+  HANDLE h = (HANDLE) INT32_MLtoC(arg);
 
   if (CloseHandle(h)) {
     return ML_unit;
@@ -54,20 +55,23 @@ ml_val_t _ml_win32_IO_close(ml_state_t *msp, ml_val_t arg)
 }
 
 
-/* _ml_win32_IO_set_file_pointer: (word32 * word32 * word32) -> word32
- *                                 handle   dist     how
+/* _ml_win32_IO_set_file_pointer: (word32 * Position.int * word32) -> word64
+ *                                 handle   dist           how
  */
 ml_val_t _ml_win32_IO_set_file_pointer(ml_state_t *msp, ml_val_t arg)
 {
-  HANDLE h = (HANDLE) WORD_MLtoC(REC_SEL(arg,0));
-  LONG dist = (LONG) WORD_MLtoC(REC_SEL(arg,1));
-  DWORD how = (DWORD) WORD_MLtoC(REC_SEL(arg,2));
-  Word_t w;
-  ml_val_t res;
+    HANDLE h = (HANDLE) INT32_MLtoC(REC_SEL(arg,0));
+    DWORD how = (DWORD) WORD_MLtoC(REC_SEL(arg,2));
+    LARGE_INTEGER dist, pos;
 
-  w = SetFilePointer(h,dist,NULL,how);
-  WORD_ALLOC(msp, res, w);
-  return res;
+    dist.QuadPart = INT64_MLtoC(REC_SEL(arg,1));
+
+    if (SetFilePointerEx(h, dist, &pos, how)) {
+	return INT64_CtoML(msp, pos.QuadPart);
+    }
+    else {
+	return RAISE_SYSERR(msp,-1);
+    }
 }
 
 /* remove CRs ('\r') from buf of size *np; sets *np to be the new buf size

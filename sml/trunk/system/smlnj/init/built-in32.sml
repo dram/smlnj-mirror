@@ -198,9 +198,9 @@ structure InlineT =
 
     structure Word =
       struct
-	val toLarge : word -> word32	  = InLine.unsigned_word_to_word32
-	val toLargeX : word -> word32	  = InLine.signed_word_to_word32
-	val fromLarge : word32 -> word	  = InLine.word32_to_word
+	val toLarge : word -> word64	  = InLine.unsigned_word_to_word64
+	val toLargeX : word -> word64	  = InLine.signed_word_to_word64
+	val fromLarge : word64 -> word	  = InLine.word64_to_word
 	val toInt : word -> int		  = InLine.unsigned_word_to_int
 	val toIntX : word -> int          = InLine.signed_word_to_int
 	val fromInt : int -> word         = InLine.int_to_word
@@ -241,10 +241,9 @@ structure InlineT =
 
     structure Word8 =
       struct
-      (* 64BIT: LargeWord is still 32 bit: *)
-	val toLarge	  = InLine.unsigned_word8_to_word32
-	val toLargeX	  = InLine.signed_word8_to_word32
-	val fromLarge	  = InLine.word32_to_word8
+	val toLarge	  = InLine.unsigned_word8_to_word64
+	val toLargeX	  = InLine.signed_word8_to_word64
+	val fromLarge	  = InLine.word64_to_word8
 	val toInt         = InLine.unsigned_word8_to_int
 	val toIntX        = InLine.signed_word8_to_int
 	val fromInt       = InLine.int_to_word8
@@ -283,9 +282,9 @@ structure InlineT =
 
     structure Word32 =
       struct
-	val toLarge : word32 -> word32	 = InLine.inl_identity
-	val toLargeX : word32 -> word32	 = InLine.inl_identity
-	val fromLarge : word32 -> word32 = InLine.inl_identity
+	val toLarge : word32 -> word64	 = InLine.unsigned_word32_to_word64
+	val toLargeX : word32 -> word64	 = InLine.signed_word32_to_word64
+	val fromLarge : word64 -> word32 = InLine.word64_to_word32
 	val toInt			 = InLine.unsigned_word32_to_int
 	val toIntX			 = InLine.signed_word32_to_int
 	val fromInt			 = InLine.int_to_word32
@@ -326,11 +325,9 @@ structure InlineT =
         val extern : word64 -> word32 * word32   = InLine.word64_to_pair
 	val intern : word32 * word32 -> word64   = InLine.word64_from_pair
 
-(* 64BIT: add these once LargeWord = Word64
 	val toLarge : word64 -> word64		 = InLine.inl_identity
 	val toLargeX : word64 -> word64		 = InLine.inl_identity
 	val fromLarge : word64 -> word64	 = InLine.inl_identity
-*)
 	val toInt : word64 -> int		 = InLine.unsigned_word64_to_int
 	val toIntX : word64 -> int		 = InLine.signed_word64_to_int
 	val fromInt : int -> word64		 = InLine.int_to_word64

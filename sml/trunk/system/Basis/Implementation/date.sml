@@ -75,9 +75,8 @@ structure Date : DATE =
 
   (* TODO: switch to runtime system functions (added in 110.79) *)
     local
-      val gettimeofday : unit -> (Int32.int * int) =
-	    CInterface.c_function "SMLNJ-Time" "timeofday"
-      fun currentTimeInSeconds () = #1 (gettimeofday ())
+      val currentTimeInSeconds : unit -> Int32.int =
+	    CInterface.c_function "SMLNJ-Time" "time_in_seconds"
     in
   (* a function to return the offset from UTC of the time t in the local timezone.
    * This value reflects not only the geographical location of the host system, but

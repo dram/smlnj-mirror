@@ -1,6 +1,7 @@
-/* cfun-list.h
+/*! \file cfun-list.h
  *
- * COPYRIGHT (c) 1994 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This file lists the directory library of C functions that are callable by ML.
  */
@@ -13,4 +14,5 @@
 
 CFUNC("gettime",	_ml_Time_gettime,		"")
 CFUNC("timeofday",	_ml_Time_timeofday,		"")
+CFUNC("time_in_seconds", _ml_Time_time_in_seconds,	"")
 

@@ -4,13 +4,14 @@
  * All rights reserved.
  *
  * Structure for POSIX 1003.1 file system operations
- *
  *)
 
 local
     structure SysWord = SysWordImp
     structure Word32 = Word32Imp
     structure Int32 = Int32Imp
+    structure Word64 = Word64Imp
+    structure Int64 = Int64Imp
     structure Position = PositionImp
     structure Time = TimeImp
 in
@@ -49,7 +50,7 @@ structure POSIX_FileSys =
           if omode = o_rdonly then O_RDONLY
           else if omode = o_wronly then O_WRONLY
           else if omode = o_rdwr then O_RDWR
-          else raise Fail ("POSIX_FileSys.omodeFromWord: unknown mode "^
+          else raise Fail ("POSIX_FileSys.omodeFromWord: unknown mode 0x"^
                                   (Word32.toString omode))
 
     fun omodeToWord O_RDONLY = o_rdonly
@@ -174,13 +175,19 @@ structure POSIX_FileSys =
     val rmdir : string -> unit = cfun "rmdir"
     val readlink : string -> string = cfun "readlink"
 
-    val ftruncate' : s_int * IntImp.int -> unit = cfun "ftruncate"
+    val ftruncate' : s_int * Position.int -> unit = cfun "ftruncate"
     fun ftruncate (FD{fd,...}, len) = ftruncate' (fd, len);
 
     datatype dev = DEV of word
     fun devToWord (DEV i) = i
     fun wordToDev i = DEV i
 
+(* FIXME: should support 64-bit i-nodes; this will require changing SysWord to be Word64
+ * (or the Basis Library API should change).
+    datatype ino = INO of Word64.word
+    fun inoToWord (INO i) = SysWord.fromLarge(Word64.toLarge i)
+    fun wordToIno i = INO(Word64.fromLarge(SysWord.toLarge i))
+*)
     datatype ino = INO of word
     fun inoToWord (INO i) = i
     fun wordToIno i = INO i
@@ -226,17 +233,17 @@ structure POSIX_FileSys =
 
   (* this layout needs to track c-libs/posix-filesys/stat.c *)
     type statrep =
-      ( s_int			(* file type *)
-      * word			(* mode *)
-      * word			(* ino *)
-      * word			(* devno *)
-      * word			(* nlink *)
-      * word			(* uid *)
-      * word			(* gid *)
-      * Int.int			(* size *)	(* 64BIT: FIXME is Int.int correct for this type? *)
-      * Int32.int		(* atime *)
-      * Int32.int		(* mtime *)
-      * Int32.int		(* ctime *)
+      ( s_int			(* 1: file type *)
+      * word			(* 2: mode *)
+      * word			(* 3: ino *)	(* FIXME: should be Word64.word *)
+      * word			(* 4: devno *)
+      * word			(* 5: nlink *)
+      * word			(* 6: uid *)
+      * word			(* 7: gid *)
+      * Position.int		(* 8: size *)
+      * Int64.int		(* 9: atim (nanoseconds) *)
+      * Int64.int		(* 10: mtim (nanoseconds) *)
+      * Int64.int		(* 11: ctim (nanoseconds) *)
       )
     fun mkStat (sr : statrep) = ST.ST{
 	    ftype = #1 sr,
@@ -249,9 +256,9 @@ structure POSIX_FileSys =
             uid = UID(#6 sr),
             gid = GID(#7 sr),
             size = #8 sr,
-            atime = Time.fromSeconds (Int32.toLarge (#9 sr)),
-            mtime = Time.fromSeconds (Int32.toLarge (#10 sr)),
-            ctime = Time.fromSeconds (Int32.toLarge (#11 sr))
+            atime = Time.fromNanoseconds (Int64.toLarge (#9 sr)),
+            mtime = Time.fromNanoseconds (Int64.toLarge (#10 sr)),
+            ctime = Time.fromNanoseconds (Int64.toLarge (#11 sr))
           }
 
     val stat' : string -> statrep = cfun "stat"
@@ -299,7 +306,7 @@ structure POSIX_FileSys =
           end
 
     val pathconf  : (string * string) -> word option = cfun "pathconf"
-    val fpathconf'  : (s_int * string) -> word option = cfun "fpathconf"
+    val fpathconf' : (s_int * string) -> word option = cfun "fpathconf"
     fun fpathconf (FD{fd}, s) = fpathconf'(fd, s)
 
   end (* structure POSIX_FileSys *)

@@ -1,6 +1,7 @@
 /* timeofday.c
  *
- * COPYRIGHT (c) 1994 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #  include "ml-osdep.h"
@@ -19,7 +20,7 @@
 #include "ml-objects.h"
 #include "cfun-proto-list.h"
 
-/* _ml_Time_timeofday : unit -> (Int32.int * int)
+/* _ml_Time_timeofday : unit -> Int64.int
  *
  * Return the time of day.
  * NOTE: gettimeofday() is not POSIX (time() returns seconds, and is POSIX
@@ -28,7 +29,6 @@
 ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 {
     int			c_sec, c_usec;
-    ml_val_t		ml_sec, res;
 
 #ifdef HAS_GETTIMEOFDAY
 #if defined(OPSYS_UNIX)
@@ -60,10 +60,6 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 #error no timeofday mechanism
 #endif
 
-    ml_sec = INT32_CtoML(msp, c_sec);
-    REC_ALLOC2 (msp, res, ml_sec, INT_CtoML(c_usec));
-
-    return res;
+    return ML_AllocNanoseconds(msp, c_sec, c_usec);
 
 } /* end of _ml_Time_timeofday */
-

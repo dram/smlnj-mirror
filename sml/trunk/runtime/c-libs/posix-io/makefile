@@ -34,9 +34,7 @@ OBJS =	posix-io-lib.o \
         fcntl_gfl.o \
         fcntl_sfl.o \
         fcntl_l.o \
-        fcntl_l_64.o \
         lseek.o \
-        lseek_64.o \
         fsync.o
 
 $(LIBRARY)	: $(VERSION) $(OBJS)

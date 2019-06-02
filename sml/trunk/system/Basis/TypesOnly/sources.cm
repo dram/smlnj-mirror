@@ -17,15 +17,8 @@ Group is
 
 	bind-target-32-bit.sml
 
-#if defined(USE_64_BIT_POSITIONS)
-	bind-position-64.sml
-#else
-	bind-position-31.sml
-#endif
-
 #else (* 64-bits *)
 
 	bind-target-64-bit.sml
-	bind-position-64.sml
 
 #endif

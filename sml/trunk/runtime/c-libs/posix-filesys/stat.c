@@ -1,6 +1,7 @@
 /* stat.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -21,20 +22,20 @@
  *
  *    file_type : int
  *    mode      : word
- *    ino       : word
+ *    ino       : word		-- should be Word64.word
  *    dev       : word
  *    nlink     : word
  *    uid       : word
  *    gid       : word
- *    size      : int
- *    atime     : Int32.int
- *    mtime     : Int32.int
- *    ctime     : Int32.int
+ *    size      : Position.int (aka Int64.int)
+ *    atime     : Int64.int
+ *    mtime     : Int64.int
+ *    ctime     : Int64.int
  */
 PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
 {
     int		    ftype;
-    ml_val_t        mode, ino, dev, uid, gid, nlink, sr, atime, mtime, ctime;
+    ml_val_t        mode, ino, dev, uid, gid, nlink, sr, atime, mtime, ctime, size;
 
 #if ((S_IFDIR != 0x4000) || (S_IFCHR != 0x2000) || (S_IFBLK != 0x6000) || (S_IFREG != 0x8000) || (S_IFIFO != 0x1000) || (S_IFLNK != 0xA000) || (S_IFSOCK != 0xC000))
     if (S_ISDIR(buf->st_mode)) ftype = 0x4000;
@@ -54,14 +55,30 @@ PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
 #endif
 
     WORD_ALLOC (msp, mode, (Word_t)((buf->st_mode) & MODE_BITS));
+/*
+    INT64_ALLOC (msp, ino, buf->st_ino);
+*/
     WORD_ALLOC (msp, ino, (Word_t)(buf->st_ino));
     WORD_ALLOC (msp, dev, (Word_t)(buf->st_dev));
     WORD_ALLOC (msp, nlink, (Word_t)(buf->st_nlink));
     WORD_ALLOC (msp, uid, (Word_t)(buf->st_uid));
     WORD_ALLOC (msp, gid, (Word_t)(buf->st_gid));
-    atime = INT32_CtoML (msp, buf->st_atime);
-    mtime = INT32_CtoML (msp, buf->st_mtime);
-    ctime = INT32_CtoML (msp, buf->st_ctime);
+    INT64_ALLOC (msp, size, buf->st_size);
+#if !defined(STAT_HAS_TIMESPEC)
+  /* the old API with second-level granularity */
+    INT64_ALLOC (msp, atime, buf->st_atime * 1000000000);
+    INT64_ALLOC (msp, mtime, buf->st_mtime * 1000000000);
+    INT64_ALLOC (msp, ctime, buf->st_ctime * 1000000000);
+#elif defined(OPSYS_DARWIN)
+  /* macOS uses non-standard names for the fields */
+    INT64_ALLOC (msp, atime, buf->st_atimespec.tv_sec * 1000000000 + buf->st_atimespec.tv_nsec);
+    INT64_ALLOC (msp, mtime, buf->st_mtimespec.tv_sec * 1000000000 + buf->st_mtimespec.tv_nsec);
+    INT64_ALLOC (msp, ctime, buf->st_ctimespec.tv_sec * 1000000000 + buf->st_ctimespec.tv_nsec);
+#else
+    INT64_ALLOC (msp, atime, buf->st_atim.tv_sec * 1000000000 + buf->st_atim.tv_nsec);
+    INT64_ALLOC (msp, mtime, buf->st_mtim.tv_sec * 1000000000 + buf->st_mtim.tv_nsec);
+    INT64_ALLOC (msp, ctime, buf->st_ctim.tv_sec * 1000000000 + buf->st_ctim.tv_nsec);
+#endif
 
   /* allocate the stat record */
     ML_AllocWrite(msp,  0, MAKE_DESC(11, DTAG_record));
@@ -72,7 +89,7 @@ PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
     ML_AllocWrite(msp,  5, nlink);
     ML_AllocWrite(msp,  6, uid);
     ML_AllocWrite(msp,  7, gid);
-    ML_AllocWrite(msp,  8, INT_CtoML((int)(buf->st_size)));
+    ML_AllocWrite(msp,  8, size);
     ML_AllocWrite(msp,  9, atime);
     ML_AllocWrite(msp, 10, mtime);
     ML_AllocWrite(msp, 11, ctime);
@@ -113,10 +130,12 @@ ml_val_t _ml_P_FileSys_fstat (ml_state_t *msp, ml_val_t arg)
 
     sts = fstat(fd, &buf);
 
-    if (sts < 0)
+    if (sts < 0) {
 	return RAISE_SYSERR(msp, sts);
-
-    return (mkStatRep(msp, &buf));
+    }
+    else {
+	return mkStatRep(msp, &buf);
+    }
 
 } /* end of _ml_P_FileSys_fstat */
 
@@ -133,10 +152,12 @@ ml_val_t _ml_P_FileSys_lstat (ml_state_t *msp, ml_val_t arg)
 
     sts = lstat(path, &buf);
 
-    if (sts < 0)
+    if (sts < 0) {
 	return RAISE_SYSERR(msp, sts);
-
-    return (mkStatRep(msp, &buf));
+    }
+    else {
+	return mkStatRep(msp, &buf);
+    }
 
 } /* end of _ml_P_FileSys_lstat */
 

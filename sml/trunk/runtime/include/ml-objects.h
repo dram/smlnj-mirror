@@ -209,6 +209,15 @@ STATIC_INLINE Int64_t INT64_MLtoC (ml_val_t n)
 #endif
 }
 
+/* allocate a 64-bit integer number of nanoseconds, given seconds and
+ * microseconds.
+ */
+STATIC_INLINE ml_val_t ML_AllocNanoseconds (ml_state_t *msp, int sec, int usec)
+{
+    Int64_t t = (1000000000 * (Int64_t)sec) + (1000 * (Int64_t)usec);
+    return ML_AllocInt64(msp, t);
+}
+
 /* macros that wrap the inline allocation functions; these are for backward
  * compatibility to the old macro-based allocation code.
  */
