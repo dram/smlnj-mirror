@@ -11,6 +11,7 @@
 #include "ml-timer.h"
 #include "cfun-proto-list.h"
 
+/* 64BIT: change this interface to unit -> Int64.int * Int64.int * Int64.int */
 /* _ml_Time_gettime : unit -> (Int32.int * int * Int32.int * int * Int32.int * int)
  *
  * Return the total CPU time, system time and garbage collection time used by this

@@ -22,6 +22,7 @@ end = struct
     datatype real_timer = RealT of PB.time
 
     local
+(* 64BIT: change interface to `unit -> Int64.int * Int64.int * Int64.int` *)
       val gettime' :
 	  unit -> (Int32.int * int * Int32.int * int * Int32.int * int) =
 	  CInterface.c_function "SMLNJ-Time" "gettime"
