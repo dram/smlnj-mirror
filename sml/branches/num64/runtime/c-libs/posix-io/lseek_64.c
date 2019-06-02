@@ -1,7 +1,5 @@
 /* lseek_64.c
  *
- *   Like lseek.c, but with 64-bit position values.
- *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  */

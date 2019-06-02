@@ -1,7 +1,5 @@
 /* ftruncate_64.c
  *
- *   Version of ftruncate with 64-positions passed as pair of 32-bit values.
- *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  */

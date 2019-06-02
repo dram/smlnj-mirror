@@ -1,7 +1,5 @@
 /* fcntl_l_64.c
  *
- *   Using 64-bit position values represented as 32-bit pairs.
- *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  */

@@ -175,7 +175,7 @@ structure POSIX_FileSys =
     val rmdir : string -> unit = cfun "rmdir"
     val readlink : string -> string = cfun "readlink"
 
-    val ftruncate' : s_int * Position.int -> unit = cfun "ftruncate_64"
+    val ftruncate' : s_int * Position.int -> unit = cfun "ftruncate"
     fun ftruncate (FD{fd,...}, len) = ftruncate' (fd, len);
 
     datatype dev = DEV of word
@@ -261,9 +261,9 @@ structure POSIX_FileSys =
             ctime = Time.fromNanoseconds (Int64.toLarge (#11 sr))
           }
 
-    val stat' : string -> statrep = cfun "stat_64"
-    val lstat' : string -> statrep = cfun "lstat_64"
-    val fstat' : s_int -> statrep = cfun "fstat_64"
+    val stat' : string -> statrep = cfun "stat"
+    val lstat' : string -> statrep = cfun "lstat"
+    val fstat' : s_int -> statrep = cfun "fstat"
     fun stat fname = mkStat (stat' fname)
     fun lstat fname = mkStat (lstat' fname) (* POSIX 1003.1a *)
     fun fstat (FD{fd}) = mkStat (fstat' fd)

@@ -2,7 +2,7 @@
 # the makefile for the Time library
 # win32 specific
 
-SHELL =		
+SHELL =
 
 INC_DIR =	..\..\include
 CLIB_DIR =	..\
@@ -12,7 +12,7 @@ INCLUDES =	/I$(INC_DIR) /I$(CLIB_DIR) /I..\..\objs
 MAKEFILE = 	makefile.win32
 MAKE =		nmake /F$(MAKEFILE)
 AR =		lib
-ARFLAGS =	
+ARFLAGS =
 RANLIB =	lib
 
 LIBRARY =	libsmlnj-time.lib
@@ -21,6 +21,7 @@ VERSION =	v-dummy
 
 OBJS =		smlnj-time-lib.obj \
 		gettime.obj \
+		time-in-seconds.o \
 		timeofday.obj
 
 $(LIBRARY)	: $(VERSION) $(OBJS)

@@ -1,7 +1,5 @@
 /* stat_64.c
  *
- *   Version of stat.c with 64-bit positions passed as pairs of 32-bit values.
- *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  */
