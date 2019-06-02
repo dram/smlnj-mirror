@@ -84,10 +84,12 @@ as **DONE**, even though they are not changed.
 
   * `system/Basis/Implementation/Posix/posix-filesys.sml` <br/>
     the `statrep` type has both `Int32.int` and `int` fields
+    **[DONE; 110.89]**
 
   * `system/Basis/Implementation/Posix/posix-io.sml` <br/>
     the `flock_rep` type has `Int.int` fields; also `lseek` probably should use the
     `Position.int` type for file offsets.
+    **[DONE; 110.89]**
 
   * `system/Basis/Implementation/real64.sml` <br/>
     explicit `Word31.word` to `real` conversion
@@ -128,6 +130,7 @@ as **DONE**, even though they are not changed.
   * `runtime/include/cntr.h` <br/>
     can use 64-bit integers for counters (might be able to do so on 32-bit machines
     too, when int64_t is available)
+    **[DONE; 110.89]**
 
   * `runtime/win32-filesys.c` <br/>
     The `HANDLE` type will be 64-bits on 64-bit targets
@@ -147,10 +150,13 @@ to smooth the differences between the 32-bit and 64-bit targets.
   * bind `Position` to `Int64`.  While this will cost some performance, it
     addresses several outstanding open bugs.  This change will require an
     overhaul of the C-library interface.
+    **[DONE; 110.89]**
 
   * bind `FixedInt` to `Int64` on all targets.
+    **[DONE; 110.89]**
 
   * bind `LargeWord` to `Word64` on all targets.
+    **[DONE; 110.89]**
 
 ### Code Generation
 
