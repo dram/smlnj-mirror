@@ -93,6 +93,47 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.89; 2019/06/01
+
+//--------------------------------------------------------------------
+[2019/06/01]::
++
+Switched the `Position` structure to be bound to `Int64` and updated
+the runtime system to use 64-bit integers for file offsets and
+time values (in nanoseconds).  This change fixes bugs bugref:33[]
+(Overflow exception with inputLine function) and bugref:36[] (Can't
+open very large file).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/06/01]::
++
+Added abstract `c_pointer` type to the primitive types.  This type
+will be used to represent runtime-system pointers (__e.g.__, the
+`HANDLE` values in the Windows implementation).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/31]::
++
+Removed makefiles and code for architectures and operating systems
+that are no longer supported (__e.g.__, the DEC Alpha and HPPA
+architectures).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/05/31]::
++
+Switched the `FixedInt` and `LargeWord` structure aliases to be 64-bits
+(__i.e.__, `FixedInt` is now bound to `Int64` and `LargeWord` is bound
+to `Word64`).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/05/30]::
 +
@@ -432,7 +473,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2019/04/21]::
 +
-Fix for bugref:213[] (`Int32.div` raises `Div` instead of `Overflow`
+Fix for bug bugref:213[] (`Int32.div` raises `Div` instead of `Overflow`
 when dividing `minInt` by `~1`).  Since the compiler generates an
 explicit test for division by zero, we know that the only arithmetic
 traps must be caused by other operations.  Therefore, we can just
