@@ -64,7 +64,7 @@ requires some extra steps.
  * The `FixedInt`, `LargeWord`, and `Position` structures are now all
    64-bit.  Thus the `Int64` and `Word64` structures properly conform
    to the Basis Specification. +
-   Another effect of this change is that files that are over latexmath:[2^{30} - 1]
+   Another effect of this change is that files that are over 2^30^-1
    bytes in size are now supported (bugs *33* and *36*).
 
 === MLRISC and NLFFI
