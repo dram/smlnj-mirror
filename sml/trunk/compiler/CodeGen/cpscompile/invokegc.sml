@@ -99,8 +99,7 @@ functor InvokeGC (
      val unit = T.LI 1		      (* representation of ML's unit;
                                        * this is used to initialize registers.
                                        *)
-(* 64BIT: FIXME *)
-     fun LI i = T.LI (T.I.fromInt(32, i))
+     fun LI i = T.LI (T.I.fromInt(pty, i))
 
    (*
     * Callee-save registers
@@ -121,7 +120,7 @@ functor InvokeGC (
 	   val use = map T.GPR gcParamRegs
 	   val def = case C.exhausted of NONE => use | SOME cc => T.CCR cc::use
 	   val call = T.CALL{
-		   funct=T.LOAD(32,
+		   funct=T.LOAD(pty,
 			    T.ADD(addrTy,C.frameptr vfp, LI MS.startgcOffset),
 			    R.stack),
 		   targets=[], defs=def, uses=use, region=R.stack,
@@ -191,7 +190,7 @@ functor InvokeGC (
 		  then live(es, regs, 0::mem)
 	          else error "set:LOAD"
 	    | live (T.LOAD(_, T.ADD(_, T.REG(_, fp), T.LI i), _)::es, regs, mem) = if isFramePtr fp
-	          then live(es, regs, T.I.toInt(32,i)::mem)
+	          then live(es, regs, T.I.toInt(pty,i)::mem)
 	          else error "set:LOAD"
 	    | live ([], regs, mem) = (regs, mem)
 	    | live _ = error "live"
@@ -213,7 +212,7 @@ functor InvokeGC (
    *)
     val gcrootSet = set gcParamRegs
     val aRoot     = hd(#regs gcrootSet)
-    val aRootReg  = T.REG(32,aRoot)
+    val aRootReg  = T.REG(pty,aRoot)
 
   (*
    * This function generates a gc limit check.
@@ -352,6 +351,7 @@ functor InvokeGC (
 	 *)
 	  fun bind (T.REG(32, r)) = Reg r
 	    | bind (T.REG(64, r)) = Reg r
+(* 64BIT: FIXME *)
 	    | bind (T.LOAD(32, ea, mem)) = Mem(ea, mem)  (* XXX *)
 	    | bind _ = error "bind"
 (* REAL32: FIXME *)
@@ -702,9 +702,8 @@ functor InvokeGC (
 	  GCINFO{boxed=b2, int=i2, float=f2, ret=T.JMP(ret2, _),...}
 	) = let
 	  fun eqEA (T.REG(_, r1), T.REG(_, r2)) = CB.sameColor(r1,r2)
-	    | eqEA (T.ADD(_,T.REG(_,r1),T.LI i), T.ADD(_,T.REG(_,r2),T.LI j)) =
-(* 64BIT: FIXME *)
-	        CB.sameColor(r1,r2) andalso T.I.EQ(32,i,j)
+	    | eqEA (T.ADD(sz1,T.REG(_,r1),T.LI i), T.ADD(sz2,T.REG(_,r2),T.LI j)) =
+		(sz1 = sz2) andalso T.I.EQ(sz1,i,j) andalso CB.sameColor(r1,r2)
 	    | eqEA _ = false
 	  fun eqR (T.REG(_,r1), T.REG(_,r2)) = CB.sameColor(r1,r2)
 	    | eqR (T.LOAD(_,ea1,_), T.LOAD(_,ea2,_)) = eqEA(ea1, ea2)
