@@ -1,6 +1,7 @@
 /*! \file tags.h
  *
- * These are the macros for object tags and descriptors.
+ * These are the macros for object tags and descriptors.  These definitions
+ * must be consistent with compiler/CodeGen/main/object-desc.sml
  *
  * \author John Reppy
  */
@@ -69,6 +70,8 @@
 /* Vector and array headers come in different kinds; the kind tag is stored
  * in the length field of the descriptor.  We need these codes for polymorphic
  * equality and pretty-printing.
+ * Note that sequences of tagged integers use the next largest size
+ * (e.g., 31 ==> 32).
  */
 #define SEQ_poly	HEXLIT(0)	/* one word per element; type unkonwn */
 #define SEQ_word8	HEXLIT(1)	/* 8-bits per element */
