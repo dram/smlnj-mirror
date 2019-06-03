@@ -10,5 +10,3 @@ signature UNSAFE_VECTOR =
     val create : (int * 'a list) -> 'a vector
 
   end;
-
-

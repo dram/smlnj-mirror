@@ -1,6 +1,7 @@
 (* unsafe.sml
  *
- * Copyright (c) 1997 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Unsafe operations on ML values.
  *)
@@ -9,7 +10,10 @@ structure Unsafe :> UNSAFE =
   struct
 
     structure CInterface = CInterface
-    structure Object = Object
+    structure Object = UnsafeObject
+(*
+    structure Pointer = UnsafePointer
+*)
     structure Poll = Poll
 
     structure Vector =

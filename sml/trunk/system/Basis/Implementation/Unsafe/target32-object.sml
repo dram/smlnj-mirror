@@ -1,10 +1,12 @@
-(* object.sml
+(* target32-object.sml
  *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Implementation of the UNSAFE_OBJECT signature for 32-bit targets.
  *)
 
-structure Object :> UNSAFE_OBJECT =
+structure UnsafeObject :> UNSAFE_OBJECT =
   struct
     type object = Core.Assembly.object
 
