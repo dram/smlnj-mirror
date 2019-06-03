@@ -6,6 +6,9 @@
 
 functor DefaultMachSpecFn (Sizes : sig
 
+(* 64BIT: since we no longer support the DEC Alpha, which was the only 32/64-bit
+ * target, we can assume that wordByteWidth == addressByteWidth for all targets.
+ *)
     val wordByteWidth : int		(* size of ML value (aka word) in bytes *)
     val addressByteWidth : int		(* native size of an address/pointer *)
 
@@ -50,16 +53,7 @@ functor DefaultMachSpecFn (Sizes : sig
     val realSize  = 8
     val realAlign = true
 
-    val quasiStack = false
-    val quasiFree  = false
-    val quasiFrameSz = 7
-
-    val newListRep = false
-    val listCellSz = 2
-
     val floatRegParams = true
-
-    val writeAllocateHack = false
 
     val fixedArgPassing = false
 

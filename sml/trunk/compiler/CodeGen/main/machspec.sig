@@ -59,16 +59,7 @@ signature MACH_SPEC =
     val startgcOffset 	: int
     val constBaseRegOffset : int
 
-    val quasiStack : bool	(* default false *)
-    val quasiFree  : bool	(* default false *)
-    val quasiFrameSz : int	(* default 7 *)
-
-    val newListRep : bool	(* default false *)
-    val listCellSz : int    	(* default 2 *)
-
     val floatRegParams : bool	(* for old-style codegen; default true *)
-
-    val writeAllocateHack : bool     (* default false *)
 
    (* get "conreps" into here eventually.
 	Didn't want to do it now, because it would require

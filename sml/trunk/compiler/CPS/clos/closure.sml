@@ -258,8 +258,11 @@ fun smallObj (FLTt _) = true
   | smallObj _ = false
 
 (* check if a record_kind is sharable by a function of fun_kind *)
+(* removed quasiStack from MACH_SPEC -- jhr; 2019-06-03
 fun sharable((RK_CONT|RK_FCONT),(ESCAPE|KNOWN)) = not (MachSpec.quasiStack)
   | sharable _ = true
+*)
+fun sharable _ = true
 
 (* given a fun_kind return the appropriate unboxed closure kind *)
 (* need runtime support for RK_FCONT (new tags etc.) CURRENTLY NOT SUPPORTED *)
@@ -939,6 +942,7 @@ fun closureUnboxed(cn,int32free,otherfree,fk,env) =
  *)
 
 (* partition a set of free variables into small frames *)
+(* removed quasiStack from MACH_SPEC -- jhr; 2019-06-03
 fun partFrame(free) =
   if not (MachSpec.quasiStack) then (free,[])
   else
@@ -954,6 +958,8 @@ fun partFrame(free) =
               else h(r,n-1,v::t)
       in h(free,sz,[])
      end)
+*)
+fun partFrame free = (free, [])
 
 (* partition the free variables into closures and non-closures *)
 fun partKind(cfree,env) =
