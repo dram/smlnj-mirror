@@ -26,6 +26,9 @@ been marked in the source code with the comment tag "`64BIT:`").
 Some of these files are not actually used, so we have marked them
 as **DONE**, even though they are not changed.
 
+  * `compiler/CodeGen/cpscompile/invokegc.sml` <br/>
+    check semantics to make sure the code makes sense for 64-bits.
+
   * `compiler/CodeGen/cpscompile/memAliasing.sml` <br/>
     assumption that `RK_RAW64BLOCK` records take twice as much memory. <br/>
     This file is no longer used in the simplified code generator.
@@ -40,12 +43,13 @@ as **DONE**, even though they are not changed.
     the `rkToCty` function may need to be changed.
     **[DONE; 110.89]**
 
-  * `compiler/CodeGen/main/mlriscGen.sml` <br/>
+  * `compiler/CodeGen/main/mlrisc-gen-fn.sml` (also see `mlriscGen.sml`)<br/>
     there may be issues with `RAWRECORD`.
 
   * `compiler/CodeGen/main/object-desc.sml` <br/>
     codes for the various array/vector headers need to be reworked (also in the
     runtime system)
+    **[DONE; 110.90]**
 
   * `compiler/CodeGen/x86/x86CG.sml` <br/>
     may not be an issue, since the **x86** is a 32-bit target.
@@ -62,6 +66,8 @@ as **DONE**, even though they are not changed.
     encoding, which supports 64-bit integer data
 
   * `compiler/FLINT/reps/rttype.sml` <br/>
+    there is a type code for 32-bit numbers (`tcode_int32`); it can probably
+    be replaced by `tcode_void`.
 
   * `compiler/FLINT/opt/abcopt.sml` <br/>
     this file is no longer used, but has 64-bit dependences.
@@ -72,7 +78,9 @@ as **DONE**, even though they are not changed.
     `isUbxTy`.
 
   * `compiler/Semant/prim/primop-bindings.sml` <br/>
-    Will need to add target-specific conversions once we understand what is required.
+    Will need to add target-specific conversions once we understand what is
+    required.  Note that these will have to be added to the compiler **before**
+    we can attempt to cross compile.
 
   * `system/Basis/Implementation/num-format.sml` <br/>
     should support formatting of 64-bit words and integers on all platforms
@@ -104,10 +112,12 @@ as **DONE**, even though they are not changed.
     directories.
 
   * `system/Basis/Implementation/Win32/win32-general.sml` <br/>
-    the `HANDLE` type is 64-bits on 64-bit machines.
+    the `HANDLE` type is 64-bits on 64-bit machines; use the abstract
+    `c_pointer` type.
 
   * `system/smlnj/init/built-in32.sml` <br/>
     Need to switch `LargeWord` from `Word32` to `Word64` on all platforms.
+    **[DONE; 110.89]**
 
   * `system/smlnj/init/core-intinf.sml` <br/>
     Assumes 32-bit target.
@@ -117,6 +127,24 @@ as **DONE**, even though they are not changed.
 
   * `system/smlnj/init/pervasive.sml` <br/>
     explicit `Word31.word` and `Int32.int` to `real` conversions
+
+  * `runtime/c-libs/dl/dlclose.c` <br/>
+    Use the abstract `c_pointer` type to represent runtime-system pointers.
+
+  * `runtime/c-libs/dl/dlsym.c` <br/>
+    Use the abstract `c_pointer` type to represent runtime-system pointers.
+
+  * `runtime/c-libs/win32-filesys/win32-filesys.c` <br/>
+    The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
+    `c_pointer` type.
+
+  * `runtime/c-libs/win32-io/win32-io.c` <br/>
+    The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
+    `c_pointer` type.
+
+  * `runtime/c-libs/win32-process/win32-process.c` <br/>
+    The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
+    `c_pointer` type.
 
   * `runtime/gc/blast-gc.c` <br/>
     `DTAG_raw` and `DTAG_raw64` can be handled the same way on 64-bit targets.
@@ -131,15 +159,6 @@ as **DONE**, even though they are not changed.
     can use 64-bit integers for counters (might be able to do so on 32-bit machines
     too, when int64_t is available)
     **[DONE; 110.89]**
-
-  * `runtime/win32-filesys.c` <br/>
-    The `HANDLE` type will be 64-bits on 64-bit targets
-
-  * `runtime/win32-io.c` <br/>
-    The `HANDLE` type will be 64-bits on 64-bit targets
-
-  * `runtime/win32-process.c` <br/>
-    The `HANDLE` type will be 64-bits on 64-bit targets
 
   * `smlnj-lib/Util/random.sml` <br/>
     Uses the `Word31` structure.

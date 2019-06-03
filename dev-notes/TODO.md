@@ -4,35 +4,22 @@ This is a list of things (both major and minor) that should be fixed/improved/ch
 in the SML/NJ compiler.  It is organized into short-term goals by proposed release
 target plus an additional "wish-list" of long-term goals.
 
-## For Version 110.85 (late 2018)
+## For Version 110.90 (Summer 2019)
 
-  * Rationalization and cleanup of primops that are exported by the compiler
-    (see `dev-notes/primop-list.md`).
-
-  * There are many Basis Library modules that include definitions of the form
-    ````sml
-      fun x ++ y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x +
-					       InlineT.Word31.copyf_int31 y)
-      fun x -- y = InlineT.Word31.copyt_int31 (InlineT.Word31.copyf_int31 x -
-					       InlineT.Word31.copyf_int31 y)
-    ````
-    Perhaps we should add unchecked add and subtract operations to InlineT.Int31?
-
-  * CPS support for `Word64.word` and `Int64.int` operations.
-
-  * Switch `Position` structure to be `Int64.int`.
+  * 64-bit clean up for Windows
 
   * Switch to new encoding of literals (see new-literals.md)
 
-## For Version 110.86 (Spring 2019)
-
-  * Switch environment pickling to use ASDL
-
-## For Version 110.87 (Summer 2019)
+## For Version 110.91 (Summer 2019)
 
   * Must have 64-bit port done by June 2019 (but earlier would be better).
 
 ## Future work
+
+  * Cleanup `compiler/CPS/clos/closure.sml`; there is a lot of code that was
+    written to support quasi-stacks, which is no longer needed.
+
+  * Switch environment pickling to use ASDL
 
   * The `CPS.SWITCH` construct only supports tagged integer arguments (this limitation
     is because of the way that jump-table indices is handled in `CodeGen/mlriscGen.sml`).
@@ -61,3 +48,9 @@ target plus an additional "wish-list" of long-term goals.
     ML views.
 
   * Add support for `Real32.real`, including arrays and vectors.
+
+  * Remove runtime-typing from FLINT; the files involved include:
+    - compiler/FLINT/reps/reify.sml
+    - compiler/FLINT/reps/rttype.sml
+    - compiler/FLINT/reps/typeoper.sml
+
