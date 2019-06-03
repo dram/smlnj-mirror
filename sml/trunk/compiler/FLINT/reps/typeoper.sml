@@ -216,7 +216,6 @@ val iaddLexp = RT.iaddLexp
 val tovalue = RT.tovalue
 val tcode_void = RT.tcode_void
 val tcode_record = RT.tcode_record
-val tcode_int32 = RT.tcode_int32
 val tcode_pair = RT.tcode_pair
 val tcode_fpair = RT.tcode_fpair
 val tcode_real = RT.tcode_real
