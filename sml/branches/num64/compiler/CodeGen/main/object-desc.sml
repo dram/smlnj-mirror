@@ -45,15 +45,16 @@ structure ObjectDesc :> OBJECT_DESC =
     fun makeDesc (len, t) = II.orb(II.<<(len, tagWidth), t)
     fun makeDesc' (len, t) = II.orb(II.<<(II.fromInt len, tagWidth), t)
 
-  (* array/vector header codes *)
-    val seq_poly : IntInf.int	= 0
-    val seq_word8 : IntInf.int	= 1
-    val seq_word16 : IntInf.int	= 2
-    val seq_word31 : IntInf.int	= 3
-    val seq_word32 : IntInf.int	= 4
-(* 64BIT: do we need seq_word64? *)
-    val seq_real32 : IntInf.int	= 5
-    val seq_real64 : IntInf.int	= 6
+  (* array/vector header codes; note that sequences of tagged integers use
+   * the next largest size (e.g., 31 ==> 32).
+   *)
+    val seq_poly : IntInf.int	= 0	(* elements have uniform representation *)
+    val seq_word8 : IntInf.int	= 1	(* elements are 8-bit raw integers *)
+    val seq_word16 : IntInf.int	= 2	(* elements are 16-bit raw integers *)
+    val seq_word32 : IntInf.int	= 3	(* elements are 32-bit raw integers *)
+    val seq_word64 : IntInf.int	= 4	(* elements are 64-bit raw integers *)
+    val seq_real32 : IntInf.int	= 5	(* elements are 32-bit raw floats *)
+    val seq_real64 : IntInf.int	= 6	(* elements are 64-bit raw floats *)
 
   (* fixed descriptors *)
     val desc_pair = makeDesc(2, tag_record)

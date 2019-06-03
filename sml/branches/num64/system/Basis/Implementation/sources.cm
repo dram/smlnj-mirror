@@ -310,7 +310,6 @@ is
 	Unsafe/poll.sig
 	Unsafe/poll.sml
 	Unsafe/object.sig
-	Unsafe/object.sml
 	Unsafe/unsafe-array.sig
 	Unsafe/unsafe-vector.sig
 	Unsafe/unsafe-mono-array.sig
@@ -319,9 +318,17 @@ is
 	Unsafe/unsafe-pack-word-b32.sml
 	Unsafe/unsafe-pack-word-l16.sml
 	Unsafe/unsafe-pack-word-l32.sml
+	Unsafe/pointer.sig
 	Unsafe/unsafe.sig
 	Unsafe/unsafe.sml
-
+#if defined(SIZE_32)
+	Unsafe/target32-object.sml
+(*
+	Unsafe/target32-pointer.sml
+*)
+#else
+	Unsafe/target64-object.sml
+#endif
 	OS/os.sig
 	OS/os-filesys.sig
 	OS/os-path.sig

@@ -1,6 +1,7 @@
 (* unsafe-mono-array.sig
  *
- * COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 signature UNSAFE_MONO_ARRAY =
@@ -14,5 +15,3 @@ signature UNSAFE_MONO_ARRAY =
     val create : int -> array
 
   end;
-
-

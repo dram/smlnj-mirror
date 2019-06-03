@@ -51,6 +51,8 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
     fun tagInt' n = tagInt(IntInf.fromInt n)
     fun boxIntTy sz = NUMt(bt sz)
     fun boxInt (sz, i) = NUM{ival = i, ty = bt sz}
+  (* address-sized words *)
+    val addrTy = boxIntTy Target.pointerSz
     end
 
     (* testing if two values are equivalent lvar values *)
@@ -649,7 +651,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		  val [hi, lo] = lpvars args
 		  in
 		    RECORD(RK_RAWBLOCK, [(hi, OFFp0), (lo, OFFp0)], res,
-		      loop(e,c))
+		      loop(e, c))
 		  end
 	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) => let
 		  val [arg] = lpvars args
@@ -662,8 +664,16 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		    PURE(P.WRAP(P.INT 32), [VAR hi], hiBox, PTRt VPT,
 		    PURE(P.WRAP(P.INT 32), [VAR lo], loBox, PTRt VPT,
 		      RECORD(RK_RECORD, [(VAR hiBox, OFFp0), (VAR loBox, OFFp0)], res,
-			loop(e,c))))))
+			loop(e, c))))))
 		  end
+
+	    (* conversions between runtime-system pointers and words *)
+	      | F.PRIMOP((_, AP.PTR_TO_WORD, _, _), [arg], res, e) =>
+		  PURE(P.CAST, [lpvar arg], res, addrTy,
+		    loop(e, c))
+	      | F.PRIMOP((_, AP.WORD_TO_PTR, _, _), [arg], res, e) =>
+		  PURE(P.CAST, [lpvar arg], res, PTRt VPT,
+		    loop(e, c))
 
 	      | F.PRIMOP(po as (_,p,lt,ts), ul, v, e) =>
 		  let val ct =

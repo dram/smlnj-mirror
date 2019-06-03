@@ -1,6 +1,7 @@
 (* pre-os.sml
  *
- * COPYRIGHT (c) 1996 Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the OS structure(s) with only types, for compiling signatures.
  *
@@ -11,7 +12,7 @@ structure OS =
 	structure W32G = Win32_General
 
 	type syserror = W32G.word
-	    
+
 	structure Process =
 	    struct
 		type status = W32G.word

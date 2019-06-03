@@ -1,6 +1,7 @@
 (* unsafe.sig
  *
- * Copyright (c) 1997 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Unsafe operations on ML values.
  *)
@@ -10,6 +11,9 @@ signature UNSAFE =
 
     structure CInterface : CINTERFACE
     structure Object : UNSAFE_OBJECT
+(*
+    structure Pointer : UNSAFE_POINTER
+*)
     structure Poll : POLL
 
     structure Vector : UNSAFE_VECTOR
@@ -68,5 +72,3 @@ signature UNSAFE =
     val sigHandler : ((int * int * unit Cont.cont) -> unit Cont.cont) ref
 
   end;
-
-

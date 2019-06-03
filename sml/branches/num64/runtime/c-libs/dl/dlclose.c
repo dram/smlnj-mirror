@@ -16,7 +16,7 @@
 #include "ml-c.h"
 #include "cfun-proto-list.h"
 
-/* 64BIT: Need SML type that represents machine address */
+/* 64BIT: use c_pointer type for handles */
 /* _ml_P_Dynload_dlclose : Word32.word -> unit
  *
  * Close dynamically loaded library.

@@ -1,15 +1,16 @@
 (* internal-timer.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure InternalTimer : sig
 
     include TIMER
+
     val resetTimers : unit -> unit
 
-end = struct
+  end = struct
 
     structure PB = PreBasis
     structure Int = IntImp
@@ -22,19 +23,16 @@ end = struct
     datatype real_timer = RealT of PB.time
 
     local
-(* 64BIT: change interface to `unit -> Int64.int * Int64.int * Int64.int` *)
-      val gettime' :
-	  unit -> (Int32.int * int * Int32.int * int * Int32.int * int) =
-	  CInterface.c_function "SMLNJ-Time" "gettime"
-
-      fun mkTime (s, us) = Time.fromMicroseconds (1000000 * Int32.toLarge s + Int.toLarge us)
+      val gettime' : unit -> Int64.int * Int64.int * Int64.int =
+	    CInterface.c_function "SMLNJ-Time" "gettime"
+      fun mkTime ns = Time.fromNanoseconds (Int64Imp.toLarge ns)
     in
     fun getTime () = let
-	val (ts, tu, ss, su, gs, gu) = gettime' ()
-	in {
-	  nongc = { usr = mkTime (ts, tu), sys = mkTime (ss, su) },
-	  gc    = { usr = mkTime (gs, gu), sys = Time.zeroTime }
-	} end
+	  val (usr, sys, gc) = gettime' ()
+	  in {
+	    nongc = { usr = mkTime usr, sys = mkTime sys },
+	    gc    = { usr = mkTime gc, sys = Time.zeroTime }
+	  } end
     end (* local *)
 
     fun startCPUTimer () = CPUT (getTime())

@@ -17,7 +17,7 @@ extern void dlerror_set (const char *fmt, const char *s);
 #include "ml-c.h"
 #include "cfun-proto-list.h"
 
-/* 64BIT: Need SML type that represents machine address */
+/* 64BIT: use c_pointer type for handles */
 /* _ml_P_Dynload_dlsym : Word32.word * string -> Word32.word
  *
  * Extract symbol from dynamically loaded library.

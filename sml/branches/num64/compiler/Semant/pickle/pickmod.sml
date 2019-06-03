@@ -480,6 +480,8 @@ in
 	      | P.INLCHR => %?50
 	      | P.INTERN64 => %?51
 	      | P.EXTERN64 => %?52
+	      | P.PTR_TO_WORD => %?53
+	      | P.WORD_TO_PTR => %?54
 	      (** WARNING: last value must be < 80!! **)
     end
 

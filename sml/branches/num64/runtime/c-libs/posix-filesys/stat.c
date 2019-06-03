@@ -34,8 +34,9 @@
  */
 PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
 {
-    int		    ftype;
-    ml_val_t        mode, ino, dev, uid, gid, nlink, sr, atime, mtime, ctime, size;
+    int		ftype;
+    Int64_t	aTim, mTim, cTim;
+    ml_val_t	mode, ino, dev, uid, gid, nlink, sr, atime, mtime, ctime, size;
 
 #if ((S_IFDIR != 0x4000) || (S_IFCHR != 0x2000) || (S_IFBLK != 0x6000) || (S_IFREG != 0x8000) || (S_IFIFO != 0x1000) || (S_IFLNK != 0xA000) || (S_IFSOCK != 0xC000))
     if (S_ISDIR(buf->st_mode)) ftype = 0x4000;
@@ -64,21 +65,25 @@ PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
     WORD_ALLOC (msp, uid, (Word_t)(buf->st_uid));
     WORD_ALLOC (msp, gid, (Word_t)(buf->st_gid));
     INT64_ALLOC (msp, size, buf->st_size);
+
 #if !defined(STAT_HAS_TIMESPEC)
   /* the old API with second-level granularity */
-    INT64_ALLOC (msp, atime, buf->st_atime * 1000000000);
-    INT64_ALLOC (msp, mtime, buf->st_mtime * 1000000000);
-    INT64_ALLOC (msp, ctime, buf->st_ctime * 1000000000);
+    aTim = 1000000000 * (Int64_t)buf->st_atime;
+    mTim = 1000000000 * (Int64_t)buf->st_mtime;
+    cTim = 1000000000 * (Int64_t)buf->st_ctime;
 #elif defined(OPSYS_DARWIN)
   /* macOS uses non-standard names for the fields */
-    INT64_ALLOC (msp, atime, buf->st_atimespec.tv_sec * 1000000000 + buf->st_atimespec.tv_nsec);
-    INT64_ALLOC (msp, mtime, buf->st_mtimespec.tv_sec * 1000000000 + buf->st_mtimespec.tv_nsec);
-    INT64_ALLOC (msp, ctime, buf->st_ctimespec.tv_sec * 1000000000 + buf->st_ctimespec.tv_nsec);
+    aTim = 1000000000 * (Int64_t)buf->st_atimespec.tv_sec + (Int64_t)buf->st_atimespec.tv_nsec;
+    mTim = 1000000000 * (Int64_t)buf->st_mtimespec.tv_sec + (Int64_t)buf->st_mtimespec.tv_nsec;
+    cTim = 1000000000 * (Int64_t)buf->st_ctimespec.tv_sec + (Int64_t)buf->st_ctimespec.tv_nsec;
 #else
-    INT64_ALLOC (msp, atime, buf->st_atim.tv_sec * 1000000000 + buf->st_atim.tv_nsec);
-    INT64_ALLOC (msp, mtime, buf->st_mtim.tv_sec * 1000000000 + buf->st_mtim.tv_nsec);
-    INT64_ALLOC (msp, ctime, buf->st_ctim.tv_sec * 1000000000 + buf->st_ctim.tv_nsec);
+    aTim = 1000000000 * (Int64_t)buf->st_atim.tv_sec + (Int64_t)buf->st_atim.tv_nsec;
+    mTim = 1000000000 * (Int64_t)buf->st_mtim.tv_sec + (Int64_t)buf->st_mtim.tv_nsec;
+    cTim = 1000000000 * (Int64_t)buf->st_ctim.tv_sec + (Int64_t)buf->st_ctim.tv_nsec;
 #endif
+    INT64_ALLOC (msp, atime, aTim);
+    INT64_ALLOC (msp, mtime, mTim);
+    INT64_ALLOC (msp, ctime, cTim);
 
   /* allocate the stat record */
     ML_AllocWrite(msp,  0, MAKE_DESC(11, DTAG_record));

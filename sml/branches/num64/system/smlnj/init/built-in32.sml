@@ -479,10 +479,13 @@ structure InlineT =
       end
 
 (*
-    structure DfltInt  = Int
-    structure DfltWord  = Word
+    structure CPtr =
+      struct
+	type t = c_pointer
+	fun hash cp = Word.fromWord32(Word32.rshiftl(InLine.cptr_to_word32 cp, 0w2))
+	fun toWord cp = Word32.toLarge(InLine.cptr_to_word32 cp)
+      end
 *)
-    structure DfltReal = Real64
 
    end  (* structure InlineT *)
 

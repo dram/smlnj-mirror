@@ -177,6 +177,8 @@ structure PrimopUtil : sig
       | toString P.MKETAG = "mketag"
       | toString P.WRAP = "wrap"
       | toString P.UNWRAP = "unwrap"
+      | toString P.PTR_TO_WORD = "cptr_to_word"
+      | toString P.WORD_TO_PTR = "word_to_cptr"
 
   (* should return more than just a boolean:
    * {Store,Continuation}-{read,write}

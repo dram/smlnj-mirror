@@ -1,6 +1,7 @@
 (* unsafe-mono-vector.sig
  *
- * COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 signature UNSAFE_MONO_VECTOR =
@@ -14,5 +15,3 @@ signature UNSAFE_MONO_VECTOR =
     val create : int -> vector
 
   end;
-
-

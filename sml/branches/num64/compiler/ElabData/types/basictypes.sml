@@ -127,7 +127,7 @@ structure BasicTypes : BASICTYPES =
     val (exnTycon, exnTy) = mkPrimTycTy ("exn", 0, T.NO)
 
   (* abstract eqtype that represents a runtime-system pointer *)
-    val pointerTycon = mkPrimTyc("c_pointer", 0, T.YES)
+    val (pointerTycon, pointerTy) = mkPrimTycTy ("c_pointer", 0, T.YES)
   (* abstract type that represents a runtime-system function *)
     val c_functionTycon = mkPrimTyc("c_function", 0, T.NO)
 

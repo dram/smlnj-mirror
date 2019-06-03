@@ -16,6 +16,7 @@ extern void dlerror_set (const char *fmt, const char *s);
 #include "ml-c.h"
 #include "cfun-proto-list.h"
 
+/* 64BIT: use c_pointer type for handles */
 /* _ml_P_Dynload_dlopen : string * bool * bool -> Word32.word
  *
  * Open a dynamically loaded library.
@@ -41,13 +42,13 @@ ml_val_t _ml_U_Dynload_dlopen (ml_state_t *msp, ml_val_t arg)
 #else
   {
     int flag = (lazy ? RTLD_LAZY : RTLD_NOW);
-    
+
     if (global) flag |= RTLD_GLOBAL;
 
     handle = dlopen (libname, flag);
   }
 #endif
-  
+
   WORD_ALLOC (msp, res, (Word_t) handle);
   return res;
 }

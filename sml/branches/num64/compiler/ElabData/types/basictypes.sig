@@ -52,6 +52,7 @@ signature BASICTYPES =
 
   (* abstract eqtype that represents a runtime-system pointer *)
     val pointerTycon : Types.tycon
+    val pointerTy : Types.ty
 
   (* abstract type that represents a runtime-system function *)
     val c_functionTycon : Types.tycon
