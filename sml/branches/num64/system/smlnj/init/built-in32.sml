@@ -478,14 +478,12 @@ structure InlineT =
 	val getData   : string -> 'a = InLine.seq_data
       end
 
-(*
-    structure CPtr =
+    structure Pointer =
       struct
 	type t = c_pointer
-	fun hash cp = Word.fromWord32(Word32.rshiftl(InLine.cptr_to_word32 cp, 0w2))
-	fun toWord cp = Word32.toLarge(InLine.cptr_to_word32 cp)
+	val toWord32 = InLine.cptr_to_word32
+	val fromWord32 = InLine.word32_to_cptr
       end
-*)
 
    end  (* structure InlineT *)
 
