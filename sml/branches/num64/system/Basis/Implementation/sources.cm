@@ -1,12 +1,13 @@
 (* sources.cm
  *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  * The implementation of the Basis.  Also see the file
  *
  *	base/system/Basis/basis.cm
  *
  * which controls the external visibility of the basis library.
- *
- * Copyright (c) 2018 by The Fellowship of SML/NJ
  *)
 
 Group
@@ -319,13 +320,11 @@ is
 	Unsafe/unsafe-pack-word-l16.sml
 	Unsafe/unsafe-pack-word-l32.sml
 	Unsafe/pointer.sig
+	Unsafe/pointer.sml
 	Unsafe/unsafe.sig
 	Unsafe/unsafe.sml
 #if defined(SIZE_32)
 	Unsafe/target32-object.sml
-(*
-	Unsafe/target32-pointer.sml
-*)
 #else
 	Unsafe/target64-object.sml
 #endif
@@ -455,6 +454,7 @@ is
 	Target32Bit/word.sml
 	Target32Bit/word64.sml
 	Target32Bit/bind-structs.sml
+	Target32Bit/pointer.sml
 #else
 	Target64Bit/int.sml
 	Target32Bit/int64.sml
@@ -494,13 +494,8 @@ is
 	Posix/posix-process.sml
 	Posix/posix-filesys.sig
 	Posix/posix-io.sig
-#if defined(USE_64_BIT_POSITIONS)
-	Posix/posix-filesys-64.sml
-	Posix/posix-io-64.sml
-#else
 	Posix/posix-filesys.sml
 	Posix/posix-io.sml
-#endif
 	Posix/posix-procenv.sig
 	Posix/posix-procenv.sml
 	Posix/posix-sysdb.sig
