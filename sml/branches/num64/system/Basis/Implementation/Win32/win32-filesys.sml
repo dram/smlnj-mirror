@@ -56,9 +56,8 @@ structure Win32_FileSys : WIN32_FILESYS =
 
     val getFullPathName' : string -> string = cf "get_full_path_name"
 
-    val getFileSize : hndl -> (word * word) = cf "get_file_size"
-    val getLowFileSize : hndl -> word option = cf "get_low_file_size"
-    val getLowFileSizeByName : string -> word option = cf "get_low_file_size_by_name"
+    val getFileSize : hndl -> Position.int = cf "get_file_size"
+    val getFileSizeByName : string -> Position.int option = cf "get_file_size_by_name"
 
     (* year, month, day-o-week, day, hour, minute, second, millisecs *)
     type time_rec = (int * int * int * int * int * int * int * int)

@@ -11,7 +11,7 @@ signature WIN32_GENERAL =
     structure Word : WORD
     type word
 
-    type hndl	(* = c_pointer *)
+    eqtype hndl	(* = c_pointer *)
 
     type system_time = {
 	year: int,
@@ -36,7 +36,7 @@ signature WIN32_GENERAL =
 
     val getLastError : unit -> word
 
-    val INVALID_HANDLE_VALUE : word
+    val INVALID_HANDLE_VALUE : hndl
     val isValidHandle : hndl -> bool
 
   end

@@ -1,6 +1,7 @@
-/* win32-process.c
+/*! \file win32-process.c
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * interface to win32 process functions
  */
@@ -15,8 +16,13 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
+/* the HANDLE type is an alias for `void *`; it is represented
+ * by the abstract c_pointer type in SML.
+ */
+#define HANDLE_MLtoC(h)		PTR_MLtoC(void,h)
+#define HANDLE_CtoML(h)		PTR_CtoML(h)
 
-/* _ml_win32_PS_create_process : string -> word32
+/* _ml_win32_PS_create_process : string -> c_pointer
  *
  * Note: This function returns the handle to the created process
  *       This handle will need to be freed before the system releases
@@ -25,42 +31,42 @@
  *       call. This is for the time being only used by CML.
  *       It could also cause problems later on.
  */
-ml_val_t _ml_win32_PS_create_process_internal(ml_state_t *msp, ml_val_t arg, STARTUPINFO *pStartup)
+ml_val_t _ml_win32_PS_create_process_internal (ml_state_t *msp, ml_val_t arg, STARTUPINFO *pStartup)
 {
-  char *str = STR_MLtoC(arg);
-  PROCESS_INFORMATION pi;
-  STARTUPINFO si;
-  ml_val_t res;
-  BOOL fSuccess;
-  ZeroMemory (&si,sizeof(si));
-  si.cb = sizeof(si);
+    char *str = STR_MLtoC(arg);
+    PROCESS_INFORMATION pi;
+    STARTUPINFO si;
+    ml_val_t res;
+    BOOL fSuccess;
+    ZeroMemory (&si,sizeof(si));
+    si.cb = sizeof(si);
 
-  if (pStartup == NULL) {
-    pStartup = &si;
-  }
-  fSuccess = CreateProcess (NULL,str,NULL,NULL,TRUE,CREATE_NEW_CONSOLE,NULL,NULL,pStartup,&pi);
-  if (fSuccess) {
-    HANDLE hProcess = pi.hProcess;
-    CloseHandle (pi.hThread);
-    WORD_ALLOC (msp,res,(Word_t)hProcess);
-    return res;
-  }
-  WORD_ALLOC (msp,res,(Word_t)0);
-  return res;
+    if (pStartup == NULL) {
+        pStartup = &si;
+    }
+    fSuccess = CreateProcess (NULL,str,NULL,NULL,TRUE,CREATE_NEW_CONSOLE,NULL,NULL,pStartup,&pi);
+    if (fSuccess) {
+	HANDLE hProcess = pi.hProcess;
+	CloseHandle (pi.hThread);
+	return HANDLE_CtoML(hProcess);
+    }
+    return HANDLE_CtoML(0);
 }
 
-ml_val_t _ml_win32_PS_create_process(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_PS_create_process (ml_state_t *msp, ml_val_t arg)
 {
     return _ml_win32_PS_create_process_internal(msp, arg, NULL);
 }
 
-ml_val_t _ml_win32_PS_create_process_redirect_handles(ml_state_t *msp, ml_val_t arg)
+/* _ml_win32_PS_create_process_redirect_handles : string -> c_pointer * c_pointer * c_pointer
+ */
+ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t arg)
 {
     SECURITY_ATTRIBUTES sa;
     SECURITY_DESCRIPTOR sd;               //security information for pipes
     STARTUPINFO si;
     HANDLE hStdoutRd, hStdoutWr, hStdinRd, hStdinWr = NULL;
-    ml_val_t res,procHandle,in,out;
+    ml_val_t res, procHandle;
 
     InitializeSecurityDescriptor(&sd,SECURITY_DESCRIPTOR_REVISION);
     SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
@@ -85,32 +91,32 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles(ml_state_t *msp, ml_val_t 
     si.hStdOutput = si.hStdError = hStdoutWr; // And it WRITES to this one
 
     procHandle = _ml_win32_PS_create_process_internal(msp, arg, &si);
-    WORD_ALLOC(msp, in, (Word_t)hStdoutRd);
-    WORD_ALLOC(msp, out, (Word_t)hStdinWr);
-    REC_ALLOC3(msp, res, procHandle, in, out);
+    REC_ALLOC3(msp, res, procHandle, HANDLE_CtoML(hStdoutRd), HANDLE_CtoML(hStdinWr));
     return res;
 }
 
-ml_val_t _ml_win32_PS_wait_for_single_object(ml_state_t *msp, ml_val_t arg)
+/* _ml_win32_PS_wait_for_single_object : c_pointer -> word option
+ */
+ml_val_t _ml_win32_PS_wait_for_single_object (ml_state_t *msp, ml_val_t arg)
 {
-  HANDLE hProcess = (HANDLE) WORD_MLtoC (arg);
-  DWORD exit_code;
-  int res;
-  ml_val_t p,obj;
-  res = WaitForSingleObject (hProcess,0);
-  if (res==WAIT_TIMEOUT || res==WAIT_FAILED) {
-    /* information is not ready, or error */
-    obj = OPTION_NONE;
-  }
-  else {
-    /* WAIT_OBJECT_0 ... done, finished */
-    /* get info and return SOME(exit_status) */
-    GetExitCodeProcess (hProcess,&exit_code);
-    CloseHandle (hProcess);   /* decrease ref count */
-    WORD_ALLOC (msp,p,(Word_t)exit_code);
-    OPTION_SOME(msp,obj,p);
-  }
-  return obj;
+    HANDLE hProcess = HANDLE_MLtoC(arg);
+    DWORD exit_code;
+    int res;
+    ml_val_t p,obj;
+    res = WaitForSingleObject (hProcess,0);
+    if ((res == WAIT_TIMEOUT) || (res == WAIT_FAILED)) {
+      /* information is not ready, or error */
+	obj = OPTION_NONE;
+    }
+    else {
+      /* WAIT_OBJECT_0 ... done, finished */
+      /* get info and return SOME(exit_status) */
+	GetExitCodeProcess (hProcess,&exit_code);
+	CloseHandle (hProcess);   /* decrease ref count */
+	WORD_ALLOC (msp,p,(Word_t)exit_code);
+	OPTION_SOME(msp,obj,p);
+    }
+    return obj;
 }
 
 
@@ -118,7 +124,7 @@ ml_val_t _ml_win32_PS_wait_for_single_object(ml_state_t *msp, ml_val_t arg)
  *                       command
  *
  */
-ml_val_t _ml_win32_PS_system(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
 {
     const char *unquoted = STR_MLtoC(arg);
     int unquotedlen = strnlen (unquoted, GET_SEQ_LEN(arg));
@@ -144,7 +150,7 @@ ml_val_t _ml_win32_PS_system(ml_state_t *msp, ml_val_t arg)
  *                             exit code
  *
  */
-void _ml_win32_PS_exit_process(ml_state_t *msp, ml_val_t arg)
+void _ml_win32_PS_exit_process (ml_state_t *msp, ml_val_t arg)
 {
     ExitProcess ((UINT)WORD_MLtoC(arg));
 }
@@ -153,7 +159,7 @@ void _ml_win32_PS_exit_process(ml_state_t *msp, ml_val_t arg)
  *                                         var
  *
  */
-ml_val_t _ml_win32_PS_get_environment_variable(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_PS_get_environment_variable (ml_state_t *msp, ml_val_t arg)
 {
 #define GEV_BUF_SZ 4096
   char buf[GEV_BUF_SZ];
@@ -182,7 +188,7 @@ ml_val_t _ml_win32_PS_sleep (ml_state_t *msp, ml_val_t arg)
 }
 
 
-ml_val_t _ml_win32_PS_find_executable(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_PS_find_executable (ml_state_t *msp, ml_val_t arg)
 {
   Byte_t *fileName = STR_MLtoC(arg);
   TCHAR szResultPath[MAX_PATH];

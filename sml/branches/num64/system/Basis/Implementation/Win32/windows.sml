@@ -1,47 +1,48 @@
 (* windows.sml
  *
- * COPYRIGHT (c) 2008 Fellowship of SML/NJ
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Structure for the interface to Windows.
- *
  *)
 
-structure Windows : WINDOWS = 
+structure Windows : WINDOWS =
   struct
     structure Key = Windows_KEY
     structure Reg = Windows_REG
     structure Config = Windows_CONFIG
     structure DDE = Windows_DDE
     structure Status = Windows_STATUS
+    structure W32G = Win32.General
 
     fun cfun x = CInterface.c_function "WIN32" x
     fun cfunProc x = CInterface.c_function "WIN32-PROCESS" x
 
-    fun getVolumeInformation(driveWithTrailingSlash) =
-	let
-	    val getVolumeInformation : string -> string*string*SysWord.word*int = cfun "config_get_volume_information"
-	    val (vol,sys,serial,cl) = getVolumeInformation driveWithTrailingSlash
-	in
+    fun getVolumeInformation driveWithTrailingSlash = let
+	  val getVolumeInformation : string -> string*string*SysWord.word*int = cfun "config_get_volume_information"
+	  val (vol,sys,serial,cl) = getVolumeInformation driveWithTrailingSlash
+	  in
 	    {volumeName=vol, systemName=sys, serialNumber=serial, maximumComponentLength=cl}
-	    
-	end
+
+	  end
     val findExecutable : string -> string option = cfunProc "find_executable"
     val launchApplication : string * string -> unit = cfunProc "launch_application"
     val openDocument : string -> unit = cfunProc "open_document"
 
-    val waitForSingleObject : SysWord.word->SysWord.word option = cfunProc "wait_for_single_object"
-    fun loopingSleepingWait (procHandle) =
-	case waitForSingleObject procHandle of
-	    NONE => (OS_Process.sleep (TimeImp.fromMilliseconds 100) ; loopingSleepingWait(procHandle))
-	  | SOME(x) => x
+    val waitForSingleObject : W32G.hndl -> SysWord.word option = cfunProc "wait_for_single_object"
+    fun loopingSleepingWait procHandle = (case waitForSingleObject procHandle
+	   of NONE => (
+		OS_Process.sleep (TimeImp.fromMilliseconds 100);
+		loopingSleepingWait procHandle)
+	    | SOME x => x
+	  (* end case *))
 
-    fun simpleExecute (cmd, arg) =
-	let
-	    val createProcess = cfunProc "create_process"
-	    val procHandle = createProcess (StringImp.concat[cmd, " ", arg])
-	in
+    fun simpleExecute (cmd, arg) = let
+	  val createProcess = cfunProc "create_process"
+	  val procHandle = createProcess (StringImp.concat[cmd, " ", arg])
+	  in
 	    loopingSleepingWait(procHandle)
-	end
+	  end
 
     (*val fromStatus : OS.Process.status -> Status.status *)
     fun fromStatus(status) = if (OS_Process.failure = status) then Status.timeout else status
@@ -51,38 +52,44 @@ structure Windows : WINDOWS =
 
 
     (* Redirected I/O process support *)
-    datatype proc_status =
-	DEAD of OS.Process.status
-      | ALIVE of SysWord.word
+    datatype proc_status
+      = DEAD of OS.Process.status
+      | ALIVE of W32G.hndl
 
-    datatype 'stream stream =
-	UNOPENED of SysWord.word
+    datatype 'stream stream
+      = UNOPENED of W32G.hndl
       | OPENED of { stream: 'stream, close: unit -> unit }
 
-    datatype ('a, 'b) proc =
-	PROC of { instream: 'a stream ref,
-		  outstream: 'b stream ref,
-		  status: proc_status ref }
+    datatype ('a, 'b) proc = PROC of {
+	instream: 'a stream ref,
+	outstream: 'b stream ref,
+	status: proc_status ref
+      }
 
     (* val execute : string * string -> ('a, 'b) proc *)
-    fun execute(cmd, arg) =
-	let
-	    val cpRedirect = cfunProc "create_process_redirect_handles"
-	    val (hProcess, hIn, hOut) = cpRedirect (StringImp.concat[cmd, " ", arg])
-	in
-	    PROC { instream = ref (UNOPENED(hIn)),
-		   outstream = ref (UNOPENED(hOut)),
-		   status = ref (ALIVE hProcess) }
-	end
+    local
+      val cpRedirect : string -> W32G.hndl * W32G.hndl * W32G.hndl =
+	    cfunProc "create_process_redirect_handles"
+    in
+    fun execute (cmd, arg) = let
+	  val (hProcess, hIn, hOut) = cpRedirect (StringImp.concat[cmd, " ", arg])
+	  in
+	    PROC{
+		instream = ref (UNOPENED(hIn)),
+		outstream = ref (UNOPENED(hOut)),
+		status = ref (ALIVE hProcess)
+	      }
+	  end
+    end (* local *)
 
-    fun hndlTextReader (name : string, hndl : SysWord.word) =
+    fun hndlTextReader (name : string, hndl : W32G.hndl) =
 	  Win32TextPrimIO.mkReader {
               initBlkMode = true,
               name = name,
               fd = hndl
             }
 
-    fun hndlBinReader (name : string, hndl : SysWord.word) =
+    fun hndlBinReader (name : string, hndl : W32G.hndl) =
 	  Win32BinPrimIO.mkReader {
               initBlkMode = true,
               name = name,
@@ -127,38 +134,36 @@ structure Windows : WINDOWS =
 	    BinIO.StreamIO.mkInstream (
 	      hndlBinReader (name, hndl), Byte.stringToBytes ""))
 
-    fun streamOf (sel, sfx, opener, closer) (PROC p) =
-	case sel p of
-	    ref (OPENED s) => #stream s
-	  | r as ref (UNOPENED hndl) =>
-	      let val s = opener (sfx, hndl)
-	      in
+    fun streamOf (sel, sfx, opener, closer) (PROC p) = (case sel p
+	   of ref(OPENED s) => #stream s
+	    | r as ref (UNOPENED hndl) => let
+		val s = opener (sfx, hndl)
+		in
 		  r := OPENED { stream = s, close = fn () => closer s };
 		  s
-	      end
+		end
+	  (* end case *))
 
     fun textInstreamOf p =
-	streamOf (#instream, "txt_in", openTextInHNDL, TextIO.closeIn) p
+	  streamOf (#instream, "txt_in", openTextInHNDL, TextIO.closeIn) p
     fun binInstreamOf p =
-	streamOf (#instream, "bin_in", openBinInHNDL, BinIO.closeIn) p
+	  streamOf (#instream, "bin_in", openBinInHNDL, BinIO.closeIn) p
     fun textOutstreamOf p =
-	streamOf (#outstream, "txt_out", openTextOutHNDL, TextIO.closeOut) p
+	  streamOf (#outstream, "txt_out", openTextOutHNDL, TextIO.closeOut) p
     fun binOutstreamOf p =
-	streamOf (#outstream, "bin_out", openBinOutHNDL, BinIO.closeOut) p
+	  streamOf (#outstream, "bin_out", openBinOutHNDL, BinIO.closeOut) p
 
     (* val reap : ('a, 'b) proc -> OS.Process.status  *)
     fun reap (PROC { status = ref (DEAD s), ... }) = s
-      | reap (PROC { status = status as ref (ALIVE hProcess), instream, outstream, ... }) =
-	let
-	    fun close (UNOPENED hndl) = Win32_IO.close hndl
-	      | close (OPENED s) = #close s ()
-	    val _ = close (!instream)
-	    val _ = close (!outstream) handle _ => ()
-	    val s = loopingSleepingWait hProcess
-        in
+      | reap (PROC { status = status as ref (ALIVE hProcess), instream, outstream, ... }) = let
+	  fun close (UNOPENED hndl) = Win32_IO.close hndl
+	    | close (OPENED s) = #close s ()
+	  val _ = close (!instream)
+	  val _ = close (!outstream) handle _ => ()
+	  val s = loopingSleepingWait hProcess
+	  in
 	    status := DEAD s;
 	    s
-        end
-  end 
+	  end
 
-
+  end
