@@ -67,6 +67,9 @@ functor BinIOFn (
 	type writer = PIO.writer
 	type pos = PIO.pos
 
+      (* maximum size of an input request *)
+	val maxInputSz = Position.fromInt V.maxLen
+
       (*** Functional input streams ***
        ** We represent an instream by a pointer to a buffer and an offset
        ** into the buffer.  The buffers are chained by the "more" field from
@@ -146,6 +149,7 @@ functor BinIOFn (
 	      in
 		case (chunkSize - 1)
 		 of 0 => (fn n => readVec n)
+(* FIXME: what if the rounded size is > maxInputSz? *)
 		  | k => (* round up to next multiple of chunkSize *)
 		      (fn n => readVec(Int.quot((n+k), chunkSize) * chunkSize))
 		(* end case *)
@@ -227,7 +231,9 @@ functor BinIOFn (
 	      fun bigChunk _ = let
 		    val delta = (case avail()
 			   of NONE => chunkSzOfIBuf buf
-			    | (SOME n) => n
+			    | (SOME n) => if (n > maxInputSz)
+				then raise Size
+				else Position.toInt n
 			  (* end case *))
 		    in
 		      readChunk buf delta
