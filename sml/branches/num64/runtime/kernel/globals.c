@@ -246,6 +246,7 @@ void AllocGlobals (ml_state_t *msp)
 void RecordGlobals ()
 {
   /* Misc. */
+    RecordCSymbol ("nullptr",		PTR_CtoML(0));
     RecordCSymbol ("handle",		PTR_CtoML(handle_v+1));
     RecordCSymbol ("return",		PTR_CtoML(return_c));
 #if (CALLEESAVE == 0)
