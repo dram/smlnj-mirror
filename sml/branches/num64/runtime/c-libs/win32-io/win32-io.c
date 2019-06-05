@@ -73,7 +73,7 @@ ml_val_t _ml_win32_IO_set_file_pointer (ml_state_t *msp, ml_val_t arg)
     dist.QuadPart = INT64_MLtoC(REC_SEL(arg,1));
 
     if (SetFilePointerEx(h, dist, &pos, how)) {
-	return INT64_CtoML(msp, pos.QuadPart);
+	return ML_AllocInt64(msp, pos.QuadPart);
     }
     else {
 	return RAISE_SYSERR(msp, -1);

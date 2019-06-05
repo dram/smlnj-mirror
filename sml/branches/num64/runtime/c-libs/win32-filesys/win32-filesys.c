@@ -241,13 +241,13 @@ ml_val_t _ml_win32_FS_get_file_time (ml_state_t *msp, ml_val_t arg)
 	    if (FileTimeToSystemTime(&ft,&st)) {
 		ml_val_t rec;
 		ML_AllocWrite(msp, 0, MAKE_DESC(8, DTAG_record));
-		ML_AllocWrite(msp, 1, INT_CtoML((int)st.wYear);
-		ML_AllocWrite(msp, 2, NT_CtoML((int)st.wMonth);
-		ML_AllocWrite(msp, 3, INT_CtoML((int)st.wDayOfWeek);
-		ML_AllocWrite(msp, 4, INT_CtoML((int)st.wDay);
-		ML_AllocWrite(msp, 5, INT_CtoML((int)st.wHour);
-		ML_AllocWrite(msp, 6, INT_CtoML((int)st.wMinute);
-		ML_AllocWrite(msp, 7, INT_CtoML((int)st.wSecond);
+		ML_AllocWrite(msp, 1, INT_CtoML((int)st.wYear));
+		ML_AllocWrite(msp, 2, INT_CtoML((int)st.wMonth));
+		ML_AllocWrite(msp, 3, INT_CtoML((int)st.wDayOfWeek));
+		ML_AllocWrite(msp, 4, INT_CtoML((int)st.wDay));
+		ML_AllocWrite(msp, 5, INT_CtoML((int)st.wHour));
+		ML_AllocWrite(msp, 6, INT_CtoML((int)st.wMinute));
+		ML_AllocWrite(msp, 7, INT_CtoML((int)st.wSecond));
 		ML_AllocWrite(msp, 8, INT_CtoML((int)st.wMilliseconds));
 		rec = ML_Alloc(msp, 8);
 
