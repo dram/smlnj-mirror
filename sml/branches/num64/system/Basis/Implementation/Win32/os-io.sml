@@ -23,14 +23,14 @@ structure OS_IO : OS_IO =
 
     exception SysErr = Assembly.SysErr
 
-  (* = IODesc of W32G.hndl ref | SockDesc of int *)
+  (* = IODesc of Handle.t ref | SockDesc of int *)
     datatype iodesc = datatype OS.IO.iodesc
 
     (* hash: can't assume 32 bits *)
-    fun hash (IODesc(ref h)) = Pointer.hash h
+    fun hash (IODesc(ref h)) = Handle.hash h
       | hash (SockDesc s) = Word.fromInt s
 
-    fun compare (IODesc(ref ha), IODesc(ref hb)) = Pointer.compare(ha, hb)
+    fun compare (IODesc(ref ha), IODesc(ref hb)) = Handle.compare(ha, hb)
       | compare (SockDesc s1, SockDesc s2) = Int.compare(s1, s2)
       | compare (IODesc _, SockDesc _) = LESS
       | compare (SockDesc _, IODesc _) = GREATER

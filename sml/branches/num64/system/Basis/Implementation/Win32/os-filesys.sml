@@ -45,7 +45,7 @@ structure OS_FileSys : OS_FILE_SYS =
 	  val p = (mkValidDir s)^"*"
 	  val (h,firstName) = W32FS.findFirstFile p
 	  in
-	    if not (W32G.isValidHandle h)
+	    if not (Handle.isValidHandle h)
 	      then rse' "cannot find first file"
 	      else DS{
 		  hndlptr=ref h,query=p,
@@ -77,7 +77,7 @@ structure OS_FileSys : OS_FILE_SYS =
 	  val _ = closeDir d
 	  val (h, firstName) = W32FS.findFirstFile query
 	  in
-	    if not (W32G.isValidHandle h)
+	    if not (Handle.isValidHandle h)
 	      then rse "rewindDir" "cannot rewind to first file"
 	      else (
 		hndlptr := h;

@@ -259,6 +259,19 @@ STATIC_INLINE ml_val_t ML_AllocNanoseconds (ml_state_t *msp, int sec, int usec)
 #define OPTION_SOME(msp, r, a)  REC_ALLOC1(msp, r, a)
 #define OPTION_get(r)		REC_SEL(r, 0)
 
+/* the HANDLE type is an alias for `void *`, but HANDLE values are
+ * actually indices into internal tables in the OS.  We could probably
+ * get away with representing them as tagged integers or words, but
+ * for now we use a pointer-sized boxed word.
+ */
+#if defined(_WIN32)
+#define HANDLE_MLtoC(h)		((HANDLE)INT32_MLtoC(h))
+#define HANDLE_CtoML(msp, h)	ML_AllocWord32(msp, (Addr_t)h)
+#elif defined(_WIN64)
+#define HANDLE_MLtoC(h)		((HANDLE)INT64_MLtoC(h))
+#define HANDLE_CtoML(msp, h)	ML_AllocWord64(msp, (Addr_t)h)
+#endif
+
 /** external routines **/
 extern ml_val_t ML_CString (ml_state_t *msp, const char *v);
 extern ml_val_t ML_CStringList (ml_state_t *msp, char **strs);

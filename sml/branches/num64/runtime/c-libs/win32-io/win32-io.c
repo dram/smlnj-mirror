@@ -15,12 +15,6 @@
 
 #include "win32-fault.h"
 
-/* the HANDLE type is an alias for `void *`; it is represented
- * by the abstract c_pointer type in SML.
- */
-#define HANDLE_MLtoC(h)		PTR_MLtoC(void,h)
-#define HANDLE_CtoML(h)		PTR_CtoML(h)
-
 #define EOF_char           '\x01a'           /* ^Z is win32 eof */
 #define CTRL_C_char        '\x003'
 
@@ -41,7 +35,7 @@ ml_val_t _ml_win32_IO_get_std_handle (ml_state_t *msp, ml_val_t arg)
     SayDebug("getting std handle for %x as %p\n", w, h);
 #endif
 
-    return HANDLE_CtoML(h);
+    return HANDLE_CtoML(msp, h);
 }
 
 /* _ml_win32_IO_close : c_pointer -> unit
@@ -380,7 +374,7 @@ ml_val_t _ml_win32_IO_create_file (ml_state_t *msp, ml_val_t arg)
         SayDebug("_ml_win32_IO_create_file: failing\n");
     }
 #endif
-    return HANDLE_CtoML(h);
+    return HANDLE_CtoML(msp, h);
 }
 
 /* _ml_win32_IO_write_buf : (c_pointer * word8vector.vector * int * int) -> int

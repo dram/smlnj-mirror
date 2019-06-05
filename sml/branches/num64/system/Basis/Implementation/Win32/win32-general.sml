@@ -12,7 +12,7 @@ structure Win32_General : WIN32_GENERAL =
     structure Word = Word32Imp
     type word = Word.word
 
-    type hndl = PointerImp.c_pointer
+    type hndl = Handle.t
 
     type system_time = {
 	year: int,
@@ -45,13 +45,5 @@ structure Win32_General : WIN32_GENERAL =
     fun getConst kind name = getConst'(kind,name)
 
     val getLastError : unit -> word = cfun "WIN32" "get_last_error"
-
-    local
-      val getConst' : (string * string) -> hndl = cfun "WIN32" "get_const"
-    in
-    val INVALID_HANDLE_VALUE : hndl = getConst'("GENERAL", "INVALID_HANDLE_VALUE")
-    end (* local *)
-
-    fun isValidHandle (h : hndl) = h <> INVALID_HANDLE_VALUE
 
   end

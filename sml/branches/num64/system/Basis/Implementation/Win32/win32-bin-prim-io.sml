@@ -115,13 +115,11 @@ structure Win32BinPrimIO : OS_PRIM_IO =
     val shareAll = W32G.Word.orb(W32IO.FILE_SHARE_READ,
 				 W32IO.FILE_SHARE_WRITE)
 
-    fun checkHndl name h =
-	if W32G.isValidHandle h then h
-	else
-	    raise OS.SysErr ("win32-bin-prim-io:checkHndl: "^name^": failed",NONE)
+    fun checkHndl name h = if Handle.isValidHandle h
+	  then h
+	  else raise OS.SysErr(concat["win32-bin-prim-io.", name, ": failed"], NONE)
 
-    fun openRd name =
-	mkReader{
+    fun openRd name = mkReader{
 	    fd = checkHndl "openRd"
 			   (announce ("openRd:createFile:"^name)
 				     W32IO.createFile{
@@ -133,51 +131,50 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 				     }),
 	    name = name,
 	    initBlkMode = true
-	}
-
-    fun mkWriter {initBlkMode=false,...} =
-	raise IO.NonblockingNotSupported
-      | mkWriter {fd,name,initBlkMode,appendMode,chunkSize} =
-	let val closed = ref false
-	    val blocking = ref initBlkMode
-	    fun ensureOpen f x =
-		if !closed then raise IO.ClosedStream else f x
-	    val iod = W32FS.hndlToIOD fd
-	    val {pos,getPos,setPos,endPos,verifyPos} = posFns iod
-	    fun incPos k = pos := Position.+(!pos,pfi k)
-	    fun writeVec v =
-		let val k = announce "writeVec"
-			      W32IO.writeVec (W32FS.IODToHndl iod,v)
-		in  incPos k; k
-		end
-	    fun writeArr v =
-		let val k = announce "writeArr"
-			      W32IO.writeArr (W32FS.IODToHndl iod,v)
-		in  incPos k; k
-		end
-	    fun close () =
-		if !closed then ()
-		else (closed:=true;
-		      announce "close"
-			W32IO.close (W32FS.IODToHndl iod))
-      in
-	PrimIO.WR{
-	    name = name,
-	    chunkSize = chunkSize,
-	    writeVec = SOME(ensureOpen writeVec),
-	    writeArr = SOME(ensureOpen writeArr),
-	    writeVecNB = NONE,
-	    writeArrNB = NONE,
-	    block = NONE,
-	    canOutput = NONE,
-	    getPos = getPos,
-	    setPos = addCheck ensureOpen setPos,
-	    endPos = addCheck ensureOpen endPos,
-	    verifyPos = addCheck ensureOpen verifyPos,
-	    close = close,
-	    ioDesc = SOME iod
 	  }
-      end
+
+    fun mkWriter {initBlkMode=false, ...} =
+	  raise IO.NonblockingNotSupported
+      | mkWriter {fd, name, initBlkMode, appendMode, chunkSize} = let
+	  val closed = ref false
+	  val blocking = ref initBlkMode
+	  fun ensureOpen f x = if !closed then raise IO.ClosedStream else f x
+	  val iod = W32FS.hndlToIOD fd
+	  val {pos,getPos,setPos,endPos,verifyPos} = posFns iod
+	  fun incPos k = pos := Position.+(!pos,pfi k)
+	  fun writeVec v = let
+		val k = announce "writeVec" W32IO.writeVec (W32FS.IODToHndl iod,v)
+		in
+		  incPos k; k
+		end
+	  fun writeArr v = let
+		val k = announce "writeArr" W32IO.writeArr (W32FS.IODToHndl iod,v)
+		in
+		  incPos k; k
+		end
+	  fun close () = if !closed
+		then ()
+		else (
+		  closed:=true;
+		  announce "close" W32IO.close (W32FS.IODToHndl iod))
+	  in
+	    PrimIO.WR{
+		name = name,
+		chunkSize = chunkSize,
+		writeVec = SOME(ensureOpen writeVec),
+		writeArr = SOME(ensureOpen writeArr),
+		writeVecNB = NONE,
+		writeArrNB = NONE,
+		block = NONE,
+		canOutput = NONE,
+		getPos = getPos,
+		setPos = addCheck ensureOpen setPos,
+		endPos = addCheck ensureOpen endPos,
+		verifyPos = addCheck ensureOpen verifyPos,
+		close = close,
+		ioDesc = SOME iod
+	      }
+	  end
 
     fun openWr name = mkWriter{
 	    fd = checkHndl "openWr"

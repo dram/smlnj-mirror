@@ -16,12 +16,6 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-/* the HANDLE type is an alias for `void *`; it is represented
- * by the abstract c_pointer type in SML.
- */
-#define HANDLE_MLtoC(h)		PTR_MLtoC(void,h)
-#define HANDLE_CtoML(h)		PTR_CtoML(h)
-
 /* _ml_win32_PS_create_process : string -> c_pointer
  *
  * Note: This function returns the handle to the created process
@@ -48,7 +42,7 @@ ml_val_t _ml_win32_PS_create_process_internal (ml_state_t *msp, ml_val_t arg, ST
     if (fSuccess) {
 	HANDLE hProcess = pi.hProcess;
 	CloseHandle (pi.hThread);
-	return HANDLE_CtoML(hProcess);
+	return HANDLE_CtoML(msp, hProcess);
     }
     return HANDLE_CtoML(0);
 }

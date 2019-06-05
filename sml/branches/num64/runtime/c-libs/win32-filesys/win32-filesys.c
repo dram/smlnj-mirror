@@ -12,12 +12,6 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-/* the HANDLE type is an alias for `void *`; it is represented
- * by the abstract c_pointer type in SML.
- */
-#define HANDLE_MLtoC(h)		PTR_MLtoC(void,h)
-#define HANDLE_CtoML(h)		PTR_CtoML(h)
-
 #define TMP_PREFIX "TMP-SMLNJ"
 
 #define IS_DOTDIR(c) ((c)[0] == '.' && (!(c)[1] || ((c)[1] == '.' && !(c)[2])))
@@ -54,7 +48,7 @@ ml_val_t _ml_win32_FS_find_next_file (ml_state_t *msp, ml_val_t arg)
 ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
 {
     HANDLE h = FindFirstFile(STR_MLtoC(arg), &wfd);
-    ml_val_t fname_opt, fname, w, res;
+    ml_val_t fname_opt, fname, ml_h, res;
 
     if (h != INVALID_HANDLE_VALUE) {
 	if (IS_DOTDIR(wfd.cFileName)) {
@@ -69,7 +63,8 @@ ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
 	fname_opt = OPTION_NONE;
     }
 
-    REC_ALLOC2(msp, res, HANDLE_CtoML(h), fname_opt);
+    ml_h = HANDLE_CtoML(msp,h);
+    REC_ALLOC2(msp, res, ml_h, fname_opt);
 
     return res;
 }

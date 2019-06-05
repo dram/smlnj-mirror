@@ -77,12 +77,11 @@ structure Win32TextPrimIO : sig
     val shareAll = Word32.orb(W32IO.FILE_SHARE_READ,
 			      W32IO.FILE_SHARE_WRITE)
 
-    fun checkHndl name h =
-	if W32G.isValidHandle h then h
-	else raise OS.SysErr ("Win32TextPrimIO:"^name^": failed",NONE)
+    fun checkHndl name h = if Handle.isValidHandle h
+	  then h
+	  else raise OS.SysErr(concat["Win32TextPrimIO.", name, ": failed"], NONE)
 
-    fun openRd name =
-	mkReader{
+    fun openRd name = mkReader{
 	    fd = checkHndl "openRd"
 			   (announce "createFile"
 				     W32IO.createFile{
@@ -94,7 +93,7 @@ structure Win32TextPrimIO : sig
 				     }),
 	    name = name,
 	    initBlkMode = true
-	}
+	  }
 
     fun mkWriter {initBlkMode=false,...} =
 	  raise IO.NonblockingNotSupported
@@ -169,44 +168,41 @@ structure Win32TextPrimIO : sig
 	      }
 	  end
 
-    fun stdIn () =
-	let val h = W32IO.getStdHandle(W32IO.STD_INPUT_HANDLE)
-	in
-	    if W32G.isValidHandle h then
-		mkReader{fd = h,
-			 name = "<stdIn>",
-			 initBlkMode = true}
+    fun stdIn () = let
+	  val h = W32IO.getStdHandle W32IO.STD_INPUT_HANDLE
+	  in
+	    if Handle.isValidHandle h
+	      then mkReader{fd = h, name = "<stdIn>", initBlkMode = true}
+	      else raise OS.SysErr("Win32TextPrimIO: cannot get stdin", NONE)
+	  end
 
-	    else
-		raise OS.SysErr("Win32TextPrimIO: can't get stdin",NONE)
+    fun stdOut () = let
+	  let val h = W32IO.getStdHandle W32IO.STD_OUTPUT_HANDLE
+	  in
+	    if Handle.isValidHandle h
+	      then mkWriter{
+		  fd = h,
+		  name = "<stdOut>",
+		  initBlkMode = true,
+		  appendMode = true,
+		  chunkSize = bufferSzB
+	      }
+	      else raise OS.SysErr("Win32TextPrimIO: cannot get stdout", NONE)
 	end
 
-    fun stdOut () =
-	let val h = W32IO.getStdHandle(W32IO.STD_OUTPUT_HANDLE)
-	in
-	    if W32G.isValidHandle h then
-		mkWriter{fd = h,
-			 name = "<stdOut>",
-			 initBlkMode = true,
-			 appendMode = true,
-			 chunkSize = bufferSzB}
-	    else
-		raise OS.SysErr("Win32TextPrimIO: can't get stdout",NONE)
-	end
-
-    fun stdErr () =
-	let val h = W32IO.getStdHandle(W32IO.STD_ERROR_HANDLE)
-	in
-	    if W32G.isValidHandle h then
-		mkWriter{fd = h,
-			 name = "<stdErr>",
-			 initBlkMode = true,
-			 appendMode = true,
-			 chunkSize = bufferSzB}
-	    else
-		raise OS.SysErr("Win32TextPrimIO: can't get stderr",NONE)
-	end
-
+    fun stdErr () = let
+	  val h = W32IO.getStdHandle W32IO.STD_ERROR_HANDLE
+	  in
+	    if Handle.isValidHandle h
+	      then mkWriter{
+		  fd = h,
+		  name = "<stdErr>",
+		  initBlkMode = true,
+		  appendMode = true,
+		  chunkSize = bufferSzB
+		}
+	      else raise OS.SysErr("Win32TextPrimIO: cannot get stderr", NONE)
+	  end
 
     fun strReader src = let (* stolen wholesale from posix-text-prim-io.sml *)
 	  val pos = ref 0

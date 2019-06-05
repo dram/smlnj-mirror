@@ -520,6 +520,13 @@ is
 	Unix/unix.sig
 	Unix/unix.sml
 #elif defined(OPSYS_WIN32)
+
+#if defined(SIZE_32)
+	Win32/win32-handle.sml
+#else (* 64-bits *)
+	Win32/win64-handle.sml
+#endif
+
 	Win32/pre-os.sml
 	Win32/win32-general.sig
 	Win32/win32-general.sml

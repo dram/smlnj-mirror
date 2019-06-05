@@ -15,12 +15,6 @@
 
 #include "win32-fault.h"
 
-/* the HANDLE type is an alias for `void *`; it is represented
- * by the abstract c_pointer type in SML.
- */
-#define HANDLE_MLtoC(h)		PTR_MLtoC(void,h)
-#define HANDLE_CtoML(h)		PTR_CtoML(h)
-
 /* bit masks for polling descriptors (see src/sml-nj/boot/Unix/os-io.sml) */
 #define RD_BIT		0x1
 #define WR_BIT		0x2
