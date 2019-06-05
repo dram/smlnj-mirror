@@ -27,7 +27,7 @@
  */
 ml_val_t _ml_win32_IO_get_std_handle (ml_state_t *msp, ml_val_t arg)
 {
-    Word_t w = WORD_MLtoC(arg);
+    DWORD w = WORD32_MLtoC(arg);
     HANDLE h = GetStdHandle(w);
     ml_val_t res;
 
@@ -61,7 +61,7 @@ ml_val_t _ml_win32_IO_close (ml_state_t *msp, ml_val_t arg)
 ml_val_t _ml_win32_IO_set_file_pointer (ml_state_t *msp, ml_val_t arg)
 {
     HANDLE h = HANDLE_MLtoC(REC_SEL(arg,0));
-    DWORD how = (DWORD) WORD_MLtoC(REC_SEL(arg,2));
+    DWORD how = WORD32_MLtoC(REC_SEL(arg,2));
     LARGE_INTEGER dist, pos;
 
     dist.QuadPart = INT64_MLtoC(REC_SEL(arg,1));

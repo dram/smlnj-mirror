@@ -20,8 +20,8 @@
 #define WR_BIT		0x2
 #define ERR_BIT		0x4
 
-/* _ml_win32_OS_poll : (c_pointer * word) list * (int * word) list * Word32.int option
- *   -> (c_pointer * word) list * (int * word) list
+/* _ml_win32_OS_poll : (handle * word) list * (int * word) list * Word32.int option
+ *                     -> (handle * word) list * (int * word) list
  */
 ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
 {
