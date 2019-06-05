@@ -89,8 +89,8 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t
     si.hStdOutput = si.hStdError = hStdoutWr; // And it WRITES to this one
 
     procHandle = _ml_win32_PS_create_process_internal(msp, arg, &si);
-    ml_rd = HANDLE_CtoML(hStdoutRd);
-    ml_wr = HANDLE_CtoML(hStdinWr);
+    ml_rd = HANDLE_CtoML(msp, hStdoutRd);
+    ml_wr = HANDLE_CtoML(msp, hStdinWr);
     REC_ALLOC3(msp, res, procHandle, ml_rd, ml_wr);
     return res;
 }
