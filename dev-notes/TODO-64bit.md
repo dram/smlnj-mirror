@@ -114,6 +114,7 @@ as **DONE**, even though they are not changed.
   * `system/Basis/Implementation/Win32/win32-general.sml` <br/>
     the `HANDLE` type is 64-bits on 64-bit machines; use the abstract
     `c_pointer` type.
+    **[DONE; 110.89.1]**
 
   * `system/smlnj/init/built-in32.sml` <br/>
     Need to switch `LargeWord` from `Word32` to `Word64` on all platforms.
@@ -137,14 +138,17 @@ as **DONE**, even though they are not changed.
   * `runtime/c-libs/win32-filesys/win32-filesys.c` <br/>
     The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
     `c_pointer` type.
+    **[DONE; 110.89.1]**
 
   * `runtime/c-libs/win32-io/win32-io.c` <br/>
     The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
     `c_pointer` type.
+    **[DONE; 110.89.1]**
 
   * `runtime/c-libs/win32-process/win32-process.c` <br/>
     The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
     `c_pointer` type.
+    **[DONE; 110.89.1]**
 
   * `runtime/gc/blast-gc.c` <br/>
     `DTAG_raw` and `DTAG_raw64` can be handled the same way on 64-bit targets.
