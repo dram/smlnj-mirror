@@ -22,7 +22,7 @@
 #define IS_CONIN(h) (((h) == win32_stdin_handle) && \
 		     (GetFileType(h) == FILE_TYPE_CHAR))
 
-/* _ml_win32_IO_get_std_handle : word32 -> c_pointer
+/* _ml_win32_IO_get_std_handle : word32 -> handle
  * interface to win32 GetStdHandle
  */
 ml_val_t _ml_win32_IO_get_std_handle (ml_state_t *msp, ml_val_t arg)
@@ -38,7 +38,7 @@ ml_val_t _ml_win32_IO_get_std_handle (ml_state_t *msp, ml_val_t arg)
     return HANDLE_CtoML(msp, h);
 }
 
-/* _ml_win32_IO_close : c_pointer -> unit
+/* _ml_win32_IO_close : handle -> unit
  * close a handle
  */
 ml_val_t _ml_win32_IO_close (ml_state_t *msp, ml_val_t arg)
@@ -55,8 +55,8 @@ ml_val_t _ml_win32_IO_close (ml_state_t *msp, ml_val_t arg)
 }
 
 
-/* _ml_win32_IO_set_file_pointer : (c_pointer * Position.int * word32) -> Position.int
- *                                 handle      dist           how
+/* _ml_win32_IO_set_file_pointer : (handle * Position.int * word32) -> Position.int
+ *                                  handle   dist           how
  */
 ml_val_t _ml_win32_IO_set_file_pointer (ml_state_t *msp, ml_val_t arg)
 {
@@ -117,8 +117,8 @@ PVT bool_t CRLF_EOFscan (char *buf, int *np)
     return sawEOF;
 }
 
-/* _ml_win32_IO_read_vec : (c_pointer * int) -> word8vector.vector
- *                          handle      nbytes
+/* _ml_win32_IO_read_vec : (handle * int) -> word8vector.vector
+ *                          handle   nbytes
  *
  * Read the specified number of bytes from the specified handle,
  * returning them in a vector.
@@ -198,8 +198,8 @@ PVT void append_cntrl_c (char *buf, int *np, int max)
     buf[(*np)++] = ' ';
 }
 
-/* _ml_win32_IO_read_vec_txt : (c_pointer * int) -> char8vector
- *                              handle      nbytes
+/* _ml_win32_IO_read_vec_txt : (handle * int) -> char8vector
+ *                              handle   nbytes
  *
  * Read the specified number of bytes from the specified handle,
  * returning them in a vector.
@@ -267,8 +267,8 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
     }
 }
 
-/* _ml_win32_IO_read_arr : (c_pointer * word8array * int * int) -> int
- *                          handle      buffer       n     start
+/* _ml_win32_IO_read_arr : (handle * word8array * int * int) -> int
+ *                          handle   buffer       n     start
  *
  * Read n bytes of data from the specified handle into the given array,
  * starting at start. Return the number of bytes read. Assume bounds
@@ -297,8 +297,8 @@ ml_val_t _ml_win32_IO_read_arr (ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
 }
 
-/* _ml_win32_IO_read_arr_txt : (c_pointer * char8array * int * int) -> int
- *                              handle      buffer       n     start
+/* _ml_win32_IO_read_arr_txt : (handle * char8array * int * int) -> int
+ *                              handle   buffer       n     start
  *
  * Read n bytes of data from the specified handle into the given array,
  * starting at start. Return the number of bytes read. Assume bounds
@@ -353,8 +353,8 @@ ml_val_t _ml_win32_IO_read_arr_txt (ml_state_t *msp, ml_val_t arg)
 }
 
 
-/* _ml_win32_IO_create_file : (string*word32*word32*word32*word32) -> c_pointer
- *                             name   access share  create attr       handle
+/* _ml_win32_IO_create_file : (string * word32 * word32 * word32 * word32) -> handle
+ *                             name     access   share    create   attr       handle
  *
  * create file "name" with access, share, create, and attr flags
  */
@@ -377,8 +377,8 @@ ml_val_t _ml_win32_IO_create_file (ml_state_t *msp, ml_val_t arg)
     return HANDLE_CtoML(msp, h);
 }
 
-/* _ml_win32_IO_write_buf : (c_pointer * word8vector.vector * int * int) -> int
- *                           handle      buf                  n     offset
+/* _ml_win32_IO_write_buf : (handle * word8vector.vector * int * int) -> int
+ *                           handle   buf                  n     offset
  *
  * generic routine for writing n byes from buf to handle starting at offset
  *

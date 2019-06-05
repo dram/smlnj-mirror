@@ -31,14 +31,13 @@ structure Win32_IO : WIN32_IO =
     val readVecTxt' : hndl * int -> CharVector.vector = cf "read_vec_txt"
     val readArrTxt' : (hndl * CharArray.array * int * int) -> int = cf "read_arr_txt"
 
-    fun vecF f (h,i) =
-	if i < 0 then raise Subscript else f(h,i)
+    fun vecF f (h, i) = if i < 0 then raise Subscript else f(h, i)
 
     fun bufF (f, baseF) (h, sl) = let
-	val (buf, i, sz) = baseF sl
-    in
-	f (h, buf, sz, i)
-    end
+	  val (buf, i, sz) = baseF sl
+          in
+	    f (h, buf, sz, i)
+          end
 
     val readVec = vecF readVec'
     val readArr = bufF (readArr', Word8ArraySlice.base)
@@ -84,10 +83,10 @@ structure Win32_IO : WIN32_IO =
     val writeVecTxt' : (hndl * CharVector.vector * int * int) -> int = cf "write_vec_txt"
     val writeArrTxt' : (hndl * CharArray.array * int * int) -> int = cf "write_arr_txt"
 
-    val writeVec = bufF (writeVec',Word8VectorSlice.base)
-    val writeArr = bufF (writeArr',Word8ArraySlice.base)
-    val writeVecTxt = bufF (writeVecTxt',CharVectorSlice.base)
-    val writeArrTxt = bufF (writeArrTxt',CharArraySlice.base)
+    val writeVec = bufF (writeVec', Word8VectorSlice.base)
+    val writeArr = bufF (writeArr', Word8ArraySlice.base)
+    val writeVecTxt = bufF (writeVecTxt', CharVectorSlice.base)
+    val writeArrTxt = bufF (writeArrTxt', CharArraySlice.base)
 
     val cc = W32G.getConst "STD_HANDLE"
     val STD_INPUT_HANDLE : word = cc "INPUT"

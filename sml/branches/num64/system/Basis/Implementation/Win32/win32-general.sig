@@ -13,17 +13,6 @@ signature WIN32_GENERAL =
 
     type hndl = Handle.t
 
-    type system_time = {
-	year: int,
-	month: int,
-	dayOfWeek: int,
-	day: int,
-	hour: int,
-	minute: int,
-	second: int,
-	milliSeconds: int
-      }
-
     val arcSepChar : char
 
     val cfun : string -> string -> 'a -> 'b

@@ -19,29 +19,11 @@
 /* _ml_Time_time_in_seconds : unit -> Int32.int
  *
  * Return the time of day in seconds.
- * NOTE: gettimeofday() is not POSIX (time() returns seconds, and is POSIX
- * and ISO C).
+ * NOTE: time() returns seconds, and is POSIX and also ISO C).
  */
 ml_val_t _ml_Time_time_in_seconds (ml_state_t *msp, ml_val_t arg)
 {
-    int			c_sec;
-
-#if defined(OPSYS_WIN32)
-  /* we could use Win32 GetSystemTime/SystemTimetoFileTime here,
-   * but the conversion routines for 64-bit 100-ns values
-   * (in the mapi dll) are non-Win32s
-   *
-   * we'll use time routines from the C runtime for now.
-   */
-    {
-	struct _timeb t;
-
-	_ftime(&t);
-	c_sec = t.time;
-    }
-#else
-    c_sec = time (0);
-#endif
+    int c_sec = time (0);
 
     return INT32_CtoML(msp, c_sec);
 

@@ -16,7 +16,7 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-/* _ml_win32_PS_create_process : string -> c_pointer
+/* _ml_win32_PS_create_process : string -> handle
  *
  * Note: This function returns the handle to the created process
  *       This handle will need to be freed before the system releases
@@ -52,7 +52,7 @@ ml_val_t _ml_win32_PS_create_process (ml_state_t *msp, ml_val_t arg)
     return _ml_win32_PS_create_process_internal(msp, arg, NULL);
 }
 
-/* _ml_win32_PS_create_process_redirect_handles : string -> c_pointer * c_pointer * c_pointer
+/* _ml_win32_PS_create_process_redirect_handles : string -> handle * handle * handle
  */
 ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t arg)
 {
@@ -89,7 +89,7 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t
     return res;
 }
 
-/* _ml_win32_PS_wait_for_single_object : c_pointer -> word option
+/* _ml_win32_PS_wait_for_single_object : handle -> word option
  */
 ml_val_t _ml_win32_PS_wait_for_single_object (ml_state_t *msp, ml_val_t arg)
 {
@@ -156,18 +156,18 @@ void _ml_win32_PS_exit_process (ml_state_t *msp, ml_val_t arg)
 ml_val_t _ml_win32_PS_get_environment_variable (ml_state_t *msp, ml_val_t arg)
 {
 #define GEV_BUF_SZ 4096
-  char buf[GEV_BUF_SZ];
-  int ret = GetEnvironmentVariable(STR_MLtoC(arg),buf,GEV_BUF_SZ);
-  ml_val_t ml_s,res = OPTION_NONE;
+    char buf[GEV_BUF_SZ];
+    int ret = GetEnvironmentVariable(STR_MLtoC(arg), buf, GEV_BUF_SZ);
+    ml_val_t ml_s,res = OPTION_NONE;
 
-  if (ret > GEV_BUF_SZ) {
-    return RAISE_SYSERR(msp,-1);
-  }
-  if (ret > 0) {
-    ml_s = ML_CString(msp,buf);
-    OPTION_SOME(msp,res,ml_s);
-  }
-  return res;
+    if (ret > GEV_BUF_SZ) {
+	return RAISE_SYSERR(msp, -1);
+    }
+    if (ret > 0) {
+	ml_s = ML_CString(msp, buf);
+	OPTION_SOME(msp, res, ml_s);
+    }
+    return res;
 #undef GEV_BUF_SZ
 }
 
@@ -177,32 +177,33 @@ ml_val_t _ml_win32_PS_get_environment_variable (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_PS_sleep (ml_state_t *msp, ml_val_t arg)
 {
-  Sleep ((DWORD) WORD_MLtoC(arg));
-  return ML_unit;
+    Sleep (WORD32_MLtoC(arg));
+    return ML_unit;
 }
 
-
+/* _ml_win32_PS_find_executable : string -> string option
+ */
 ml_val_t _ml_win32_PS_find_executable (ml_state_t *msp, ml_val_t arg)
 {
-  Byte_t *fileName = STR_MLtoC(arg);
-  TCHAR szResultPath[MAX_PATH];
-  int length;
-  ml_val_t res, vec, obj;
-  BOOL found = FALSE;
+   Byte_t *fileName = STR_MLtoC(arg);
+   TCHAR szResultPath[MAX_PATH];
+   int length;
+   ml_val_t res, vec, obj;
+   BOOL found = FALSE;
 
-  strcpy_s(szResultPath, max(strlen(fileName), MAX_PATH-1), fileName);
-  found = PathFindOnPath(szResultPath, NULL);
+   strcpy_s(szResultPath, max(strlen(fileName), MAX_PATH-1), fileName);
+   found = PathFindOnPath(szResultPath, NULL);
 
-  if (!found) {
-    return OPTION_NONE;
-  }
+   if (!found) {
+       return OPTION_NONE;
+   }
 
-  length = strlen(szResultPath);
-  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
-  strcpy_s(PTR_MLtoC(void, vec), length+1, szResultPath);
-  SEQHDR_ALLOC (msp, obj, DESC_string, vec, length);
-  OPTION_SOME(msp, res, obj);
-  return res;
+   length = strlen(szResultPath);
+   vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
+   strcpy_s(PTR_MLtoC(void, vec), length+1, szResultPath);
+   SEQHDR_ALLOC (msp, obj, DESC_string, vec, length);
+   OPTION_SOME(msp, res, obj);
+   return res;
 }
 
 ml_val_t _ml_win32_PS_launch_application(ml_state_t *msp, ml_val_t arg)

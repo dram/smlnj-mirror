@@ -6,6 +6,10 @@
  * Hooks to Win32 file system.
  *)
 
+local
+  structure Time = TimeImp
+  structure Int64 = Int64Imp
+in
 structure Win32_FileSys : WIN32_FILESYS =
   struct
 
@@ -59,22 +63,18 @@ structure Win32_FileSys : WIN32_FILESYS =
     val getFileSize : hndl -> Position.int = cf "get_file_size"
     val getFileSizeByName : string -> Position.int option = cf "get_file_size_by_name"
 
-    (* year, month, day-o-week, day, hour, minute, second, millisecs *)
-    type time_rec = (int * int * int * int * int * int * int * int)
-
-    fun trToSt (y,mon,dow,d,h,min,s,ms) : W32G.system_time = {
-	    year=y, month=mon, dayOfWeek=dow, day=d, hour=h,
-	    minute=min, second=s, milliSeconds=ms
-	  }
-
-    fun stToTr {year, month, dayOfWeek, day, hour, minute, second, milliSeconds} : time_rec =
-	  (year, month, dayOfWeek, day, hour, minute, second, milliSeconds)
-
-    val getFileTime : string -> time_rec option = cf "get_file_time"
-    val getFileTime' = Option.map trToSt o getFileTime
-
-    val setFileTime : (string * time_rec) -> bool =  cf "set_file_time"
-    fun setFileTime' (name,sysTime) = setFileTime(name,stToTr sysTime)
+    local
+    (* returns time in nanoseconds *)
+      val getFileTime' : string -> Int64.int option = cf "get_file_time"
+    (* set file time in nanoseconds *)
+      val setFileTime' : (string * Int64.int) -> bool =  cf "set_file_time"
+    in
+    fun getFileTime f = (case getFileTime' f
+	   of SOME ns => SOME(Time.fromNanoseconds(Int64.toLarge ns))
+	    | NONE => NONE
+	  (* end case *))
+    fun setFileTime (f, t) = setFileTime'(f, Int64.fromLarge(Time.toNanoseconds t))
+    end (* local *)
 
     val deleteFile : string -> bool = cf "delete_file"
     val moveFile : (string * string) -> bool = cf "move_file"
@@ -82,3 +82,4 @@ structure Win32_FileSys : WIN32_FILESYS =
     val getTempFileName' : unit -> string option = cf "get_temp_file_name"
 
   end
+end (* local *)

@@ -77,7 +77,7 @@ structure Win32TextPrimIO : sig
     val shareAll = Word32.orb(W32IO.FILE_SHARE_READ,
 			      W32IO.FILE_SHARE_WRITE)
 
-    fun checkHndl name h = if Handle.isValidHandle h
+    fun checkHndl name h = if Handle.isValid h
 	  then h
 	  else raise OS.SysErr(concat["Win32TextPrimIO.", name, ": failed"], NONE)
 
@@ -171,15 +171,15 @@ structure Win32TextPrimIO : sig
     fun stdIn () = let
 	  val h = W32IO.getStdHandle W32IO.STD_INPUT_HANDLE
 	  in
-	    if Handle.isValidHandle h
+	    if Handle.isValid h
 	      then mkReader{fd = h, name = "<stdIn>", initBlkMode = true}
 	      else raise OS.SysErr("Win32TextPrimIO: cannot get stdin", NONE)
 	  end
 
     fun stdOut () = let
-	  let val h = W32IO.getStdHandle W32IO.STD_OUTPUT_HANDLE
+	  val h = W32IO.getStdHandle W32IO.STD_OUTPUT_HANDLE
 	  in
-	    if Handle.isValidHandle h
+	    if Handle.isValid h
 	      then mkWriter{
 		  fd = h,
 		  name = "<stdOut>",
@@ -193,7 +193,7 @@ structure Win32TextPrimIO : sig
     fun stdErr () = let
 	  val h = W32IO.getStdHandle W32IO.STD_ERROR_HANDLE
 	  in
-	    if Handle.isValidHandle h
+	    if Handle.isValid h
 	      then mkWriter{
 		  fd = h,
 		  name = "<stdErr>",

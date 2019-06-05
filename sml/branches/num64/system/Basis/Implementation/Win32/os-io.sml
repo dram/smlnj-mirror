@@ -11,7 +11,7 @@
 local
   structure Word = WordImp
   structure Int = IntImp
-  structure Int64 = Int64Imp
+  structure Int32 = Int32Imp
   structure Time = TimeImp
   structure Pointer = PointerImp
 in
@@ -71,7 +71,7 @@ structure OS_IO : OS_IO =
     fun pollPri (PollDesc (iod,{rd,wr,pri})) = PollDesc (iod,{rd=rd,wr=wr,pri=true})
 
     local
-      val poll' : ((W32G.hndl * word) list * (int * word) list * Int64.int option
+      val poll' : ((W32G.hndl * word) list * (int * word) list * Int32.int option
 	    -> ((W32G.hndl * word) list * (int * word) list)) =
 	  CInterface.c_function "WIN32-IO" "poll"
 
@@ -108,7 +108,7 @@ structure OS_IO : OS_IO =
     in
     fun poll (pdl, timeOut) = let
 	  val timeOut = (case timeOut
-		 of SOME t => SOME(Int64.fromLarge(TimeImp.toMicroseconds t))
+		 of SOME t => SOME(Int32.fromLarge(Time.toMilliseconds t))
 		  | NONE => NONE
 		(* end case *))
 	  fun partDesc (PollDesc(IODesc _, _)) = true

@@ -45,8 +45,8 @@ signature WIN32_FILESYS =
     val getFileSize : hndl -> Position.int
     val getFileSizeByName : string -> Position.int option
 
-    val getFileTime' : string -> Win32_General.system_time option
-    val setFileTime' : (string * Win32_General.system_time) -> bool
+    val getFileTime : string -> Time.time option
+    val setFileTime : (string * Time.time) -> bool
 
     val deleteFile : string -> bool
     val moveFile : (string * string) -> bool

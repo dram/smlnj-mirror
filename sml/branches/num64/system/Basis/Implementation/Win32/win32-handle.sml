@@ -24,9 +24,9 @@ structure Handle : sig
 
     val compare = Word32Imp.compare
 
-    fun hash h = Word.fromLarge h
+    fun hash h = InlineT.Word.fromWord32 h
 
-    fun isValid 0wxFFFFFFFF = false	(* INVALID_HANDLE_VALUE *)
+    fun isValid (0wxFFFFFFFF : t) = false	(* INVALID_HANDLE_VALUE *)
       | isValid _ = true
 
     fun toString h = "0x" ^ Word32Imp.toString h

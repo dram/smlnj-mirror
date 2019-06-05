@@ -20,7 +20,7 @@
 #define WR_BIT		0x2
 #define ERR_BIT		0x4
 
-/* _ml_win32_OS_poll : (c_pointer * word) list * (int * word) list * Int64.int option
+/* _ml_win32_OS_poll : (c_pointer * word) list * (int * word) list * Word32.int option
  *   -> (c_pointer * word) list * (int * word) list
  */
 ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
@@ -28,7 +28,7 @@ ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
     DWORD dwMilliseconds;
     ml_val_t pollList = REC_SEL(arg,0);
     ml_val_t pollSockList = REC_SEL(arg,1);
-    ml_val_t timeout = REC_SEL (arg,2);
+    ml_val_t timeout = REC_SEL(arg,2);
     int sec,usec;
     ml_val_t l,item;
     ml_val_t hList, sList, resTuple;
@@ -46,9 +46,7 @@ ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
     }
     else {
 	timeout = OPTION_get(timeout);
-	sec = REC_SELINT32(timeout,0);
-	usec = REC_SELINT(timeout,1);
-	dwMilliseconds = (sec*1000)+(usec/1000);
+	dwMilliseconds = WORD32_MLtoC(timeout);
     }
 
   /* count number of handles */
@@ -106,8 +104,8 @@ ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
     if (timeout == OPTION_NONE) {
 	tvp = NIL(struct timeval *);
     } else {
-	tv.tv_sec	= REC_SELINT32(timeout, 0);
-	tv.tv_usec	= REC_SELINT(timeout, 1);
+	tv.tv_sec	= dwMilliseconds / 1000;
+	tv.tv_usec	= (dwMilliseconds % 1000) * 1000;
 	tvp = &tv;
     }
 

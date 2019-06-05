@@ -28,38 +28,25 @@
  */
 ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 {
-    int			c_sec, c_usec;
-
-#ifdef HAS_GETTIMEOFDAY
 #if defined(OPSYS_UNIX)
-    {
-	struct timeval	t;
+    struct timeval	t;
 
-	gettimeofday (&t, NIL(struct timezone *));
-	c_sec = t.tv_sec;
-	c_usec = t.tv_usec;
-    }
-#elif defined(OPSYS_WIN32)
-  /* we could use Win32 GetSystemTime/SystemTimetoFileTime here,
-   * but the conversion routines for 64-bit 100-ns values
-   * (in the mapi dll) are non-Win32s
-   *
-   * we'll use time routines from the C runtime for now.
-   */
-    {
-	struct _timeb t;
-
-	_ftime(&t);
-	c_sec = t.time;
-	c_usec = t.millitm*1000;
-    }
-#else
-#error timeofday not defined for OS
-#endif
-#else
-#error no timeofday mechanism
-#endif
+    gettimeofday (&t, NIL(struct timezone *));
+    c_sec = t.tv_sec;
+    c_usec = t.tv_usec;
 
     return ML_AllocNanoseconds(msp, c_sec, c_usec);
+#elif defined(OPSYS_WIN32)
+    FILETIME t;
+    Int64_t ns;
+
+    GetSystemTime (&t);
+  /* convert to nanoseconds; FILETIME is in units of 100ns */
+    ns = 100 * (((Int64_t)t.dwHighDateTime << 32) + (Int64_t)t.dwLowDateTime);
+
+    return ML_AllocInt64(msp, ns);
+#else
+#  error no timeofday mechanism
+#endif
 
 } /* end of _ml_Time_timeofday */

@@ -45,7 +45,7 @@ structure OS_FileSys : OS_FILE_SYS =
 	  val p = (mkValidDir s)^"*"
 	  val (h,firstName) = W32FS.findFirstFile p
 	  in
-	    if not (Handle.isValidHandle h)
+	    if not (Handle.isValid h)
 	      then rse' "cannot find first file"
 	      else DS{
 		  hndlptr=ref h,query=p,
@@ -77,7 +77,7 @@ structure OS_FileSys : OS_FILE_SYS =
 	  val _ = closeDir d
 	  val (h, firstName) = W32FS.findFirstFile query
 	  in
-	    if not (Handle.isValidHandle h)
+	    if not (Handle.isValid h)
 	      then rse "rewindDir" "cannot rewind to first file"
 	      else (
 		hndlptr := h;
@@ -163,34 +163,15 @@ structure OS_FileSys : OS_FILE_SYS =
       | weekDayToInt Date.Fri = 5
       | weekDayToInt Date.Sat = 6
 
-    fun modTime s = (case W32FS.getFileTime' s
-	   of (SOME info) =>
-		Date.toTime(Date.date{
-		    year = #year info,
-		    month = intToMonth(#month info),
-		    day = #day info,
-		    hour = #hour info,
-		    minute = #minute info,
-		    second = #second info,
-		    offset = NONE
-		  })
+    fun modTime s = (case W32FS.getFileTime s
+	   of (SOME t) => t
 	    | NONE => rse "modTime" "cannot get file time"
 	  (* end case *))
 
-    fun setTime (s,t) = let
-	  val date = Date.fromTimeLocal(case t of NONE => Time.now() | SOME t' => t')
-	  val date' = {
-		  year = Date.year date,
-		  month = monthToInt(Date.month date),
-		  dayOfWeek = weekDayToInt(Date.weekDay date),
-		  day = Date.day date,
-		  hour = Date.hour date,
-		  minute = Date.minute date,
-		  second = Date.second date,
-		  milliSeconds = 0
-		}
+    fun setTime (s, t) = let
+	  val t = (case t of NONE => Time.now() | SOME t' => t')
 	  in
-	    if W32FS.setFileTime' (s, date')
+	    if W32FS.setFileTime (s, t)
 	      then ()
 	      else rse "setTime" "cannot set time"
 	  end

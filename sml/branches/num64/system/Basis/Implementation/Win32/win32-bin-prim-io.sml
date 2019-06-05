@@ -115,7 +115,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
     val shareAll = W32G.Word.orb(W32IO.FILE_SHARE_READ,
 				 W32IO.FILE_SHARE_WRITE)
 
-    fun checkHndl name h = if Handle.isValidHandle h
+    fun checkHndl name h = if Handle.isValid h
 	  then h
 	  else raise OS.SysErr(concat["win32-bin-prim-io.", name, ": failed"], NONE)
 
