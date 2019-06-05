@@ -13,7 +13,6 @@
 
 CFUNC("get_const",	   _ml_win32_get_const,	"string -> word32")
 CFUNC("get_last_error",    _ml_win32_get_last_error, "unit -> word32")
-CFUNC("debug",             _ml_win32_debug, "string -> unit")
 CFUNC("reg_open_key", _ml_win32_REG_open_key_ex, "word32 * string * word32 -> word32")
 CFUNC("reg_create_key", _ml_win32_REG_create_key_ex, "word32 * string * word32 -> word32")
 CFUNC("reg_close_key", _ml_win32_REG_close_key_ex, "word32 -> unit")
