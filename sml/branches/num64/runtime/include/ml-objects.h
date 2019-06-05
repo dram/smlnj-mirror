@@ -142,8 +142,8 @@ STATIC_INLINE ml_val_t ML_AllocWord (ml_state_t *msp, Word_t w)
     return ML_Alloc(msp, 1);
 }
 
-/* support for 32-bit integers, which are boxed on 32-bit systems and
- * tagged on 64-bit systems.
+/* support for 32-bit integers and words, which are boxed on 32-bit systems
+ * and tagged on 64-bit systems.
  */
 STATIC_INLINE ml_val_t INT32_CtoML (ml_state_t *msp, Int32_t n)
 {
@@ -167,9 +167,36 @@ STATIC_INLINE Int32_t INT32_MLtoC (ml_val_t n)
 STATIC_INLINE Int32_t REC_SELINT32 (ml_val_t p, int i)
 {
 #ifdef SIZES_C64_ML64
-    return REC_SELINT(p, i);
+    return REC_SELINT(p, i); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
-    return *REC_SELPTR(Int32_t, p, i);
+    return *REC_SELPTR(Unsigned32_t, p, i);
+#endif
+}
+STATIC_INLINE ml_val_t WORD32_CtoML (ml_state_t *msp, Unsigned32_t n)
+{
+#ifdef SIZES_C64_ML64
+    return INT_CtoML(n); /* tagged representation on 64-bit systems */
+#else /* 32-bit ML values */
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(1, DTAG_raw);
+    p[1] = (ml_val_t)n;
+    return ML_Alloc(msp, 1);
+#endif
+}
+STATIC_INLINE Unsigned32_t WORD32_MLtoC (ml_val_t n)
+{
+#ifdef SIZES_C64_ML64
+    return (Unsigned32_t)INT_MLtoC(n); /* tagged representation on 64-bit systems */
+#else /* 32-bit ML values */
+    return *PTR_MLtoC(Unsigned32_t, n);
+#endif
+}
+STATIC_INLINE Unsigned32_t REC_SELWORD32 (ml_val_t p, int i)
+{
+#ifdef SIZES_C64_ML64
+    return (Unsigned32_t)REC_SELINT(p, i); /* tagged representation on 64-bit systems */
+#else /* 32-bit ML values */
+    return *REC_SELPTR(Unsigned32_t, p, i);
 #endif
 }
 
