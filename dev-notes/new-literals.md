@@ -24,9 +24,9 @@ struct literal_header {
 };
 ````
 
-where the fields are in big-endian form and have the following meaning:
+where
 
-* `magic` contains the version ID (which should be `0x20180508`)
+* `magic` contains the version ID (which should be `0x20171031`)
 
 * `maxstk` is the maximum stack depth required, and
 
@@ -40,17 +40,17 @@ the first two header fields, but not the `wordsz` or `numsaved` fields.
 ## Opcodes
 
 The following is a list of the symbolic opcodes used in the interpreter.
-The instruction encoding is described below.
+We describe the instruction encoding below.
 
 * **INT**(*n*) literal value in the default (tagged) integer or
     word type (`Int.int` or `Word.word`).  The value `n` should be
-    in the range -2^w-1^ to 2^w-1^-1 when encoded as a w-bit 2's complement
+    in the range -2^*w*-1^ to 2^*w*^-1 when encoded as a w-bit 2's complement
     integer.  The width *w* will be 31 or 63 depending on the host
     architecture.
 
 * **INT32**(*n*) 32-bit literal value for either the type `Int32.int` or `Word32.int`.
 
-* **INT64**(*n*) 64-bit literal value for either the type `Int64.int` or `Word64.int`.
+* **INT64**(*n*) 64-bit literal value for either the type `Int32.int` or `Word32.int`.
 
 * **BIGINT**(*n*) arbitrary precision integer literal (currently not used).
 
@@ -83,6 +83,14 @@ The instruction encoding is described below.
 
 * **VECTOR**(n) construct a vector from the topmost n literal values
 
+* **RAW8**(n) raw sequence of bytes.  This literal does not have an **SML** type.
+
+* **RAW16**(n) raw sequence of 16-bit values.  This literal does not have an **SML** type.
+
+* **RAW32**(n) raw sequence of 32-bit values.  This literal does not have an **SML** type.
+
+* **RAW64**(n) raw sequence of 64-bit values.  This literal does not have an **SML** type.
+
 * **CONCAT**(n) pop *n* records/vectors from the stack and concatenate them
     into a single record/vector.  This operation allows the implementation
     to avoid excessively large stacks when building very large record/vector
@@ -95,7 +103,7 @@ The instruction encoding is described below.
 
 * **RETURN**
     signals the end of the program; the stack depth should be one and that value
-    is popped and returned as the result.
+    is popped and returns as the result.
 
 ### Future extensions
 
@@ -104,7 +112,7 @@ list here.
 
 * support for 32-bit string literals for the type `WideString.string`
 
-* support for packed records (once the compiler generates such objects)
+* support for array literals (like vectors, but mutable)
 
 
 ## Instruction encoding
@@ -132,10 +140,8 @@ In the encoding below, we use the following conventions:
 
 * *F* represents a 64-bit floating-point literal.
 
-* *i* represents a tagged default int or word literal (*i.e.*, `Int.int` or
+* *i* represents a tagged default int or word literal (*e.g.*, `Int.int` or
     `Word.word`).
-
-* *I* represents an arbitrary-precision integer literal (*i.e.*, `IntInf.int`).
 
 ### Encoding
 
@@ -236,132 +242,148 @@ In the encoding below, we use the following conventions:
 * `00011010` (`0x1A` *lw*) <br />
     **INT64**(*lw*) --- for all other 64-bit integer literals.
 
-* `00011011` (`0x1B` *n*) <br />
-    **BIGINT**(*b*) --- for bigint literals in the range -128..127.
+* `00011011` (`0x1B` *n* *d~1~* ... d~|n|~) <br />
+    **BIGINT**(*i*) --- where *i* = **sign**(*n*) *b*^|n|-1^ d~|n|~ ... d~1~.
+    *I.e.*, the absolute value of *n* is the number of digits, where is *n* is
+    negative, then *i* is negative.  The digits follow *n* in least-significant
+    to most-significant order.  If *n* is zero, the *i* is zero.  The base *b* and
+    size of the digits will depend on the target word size.
 
-* `00011100` (`0x1C` *h*) <br />
-    **BIGINT**(*h*) --- for bigint literals in the range -32768..32767.
-
-* `00011101` (`0x1D` *w*) <br />
-    **BIGINT**(*w*) --- for bigint literals in the range -2147483648..2147483647.
-
-* `00011110` (`0x1E` *n* *d~1~* ... d~|n|~) <br />
-    **BIGINT**(*I*) --- where the absolute value of *n* is the number of digits
-    (*i.e.*, if *n* is negative, then *I* is negative).  The digits follow *n* in
-    least-significant to most-significant order.  If *n* is zero, the *I* is zero.
-    The base *b* and size of the digits will depend on the target word size.
-
-* `00011111` (`0x1F` *ub* *i~1~* ... *i~ub~*) <br />
+* `00011100` (`0x1C` *ub* *i~1~* ... *i~ub~*) <br />
     **IVEC**(*ub*, *i~1~*, ..., *i~ub~*) --- short int vector (up to 255 elements).
 
-* `00100000` (`0x20` *n* *i~1~* ... *i~n~*) <br />
+* `00011101` (`0x1D` *n* *i~1~* ... *i~n~*) <br />
     **IVEC**(*ub*, *i~1~*, ..., *i~n~*)
 
-* `00100001` (`0x21` *ub* *b~1~* ... *b~ub~*) <br />
+* `00011110` (`0x1E` *ub* *b~1~* ... *b~ub~*) <br />
     **IVEC8**(*ub*, *b~1~*, ..., *b~ub~*) --- short bytevectors (up to 255 elements).
 
-* `00100010` (`0x22` *n* *b~1~* ... *b~n~*) <br />
+* `00011111` (`0x1F` *n* *b~1~* ... *b~n~*) <br />
     **IVEC8**(*n*, *b~1~*, ..., *b~n~*)
 
-* `00100011` (`0x23` *ub* *h~1~* ... *h~ub~*) <br />
+* `00100000` (`0x20` *ub* *h~1~* ... *h~ub~*) <br />
     **IVEC16**(*ub*, *h~1~*, ..., *h~ub~*) --- short 16-bit integer vectors (up to 255 elements).
 
-* `00100100` (`0x24` *n* *h~1~* ... *h~n~*) <br />
+* `00100001` (`0x21` *n* *h~1~* ... *h~n~*) <br />
     **IVEC16**(*n*, *h~1~*, ..., *h~n~*)
 
-* `00100101` (`0x25` *ub* *w~1~* ... *w~ub~*) <br />
+* `00100010` (`0x22` *ub* *w~1~* ... *w~ub~*) <br />
     **IVEC32**(*ub*, *w~1~*, ..., *w~ub~*) --- short 32-bit integer vectors (up to 255 elements).
 
-* `00100110` (`0x26` *n* *w~1~* ... *w~n~*) <br />
+* `00100011` (`0x23` *n* *w~1~* ... *w~n~*) <br />
     **IVEC32**(*n*, *w~1~*, ..., *w~n~*)
 
-* `00100111` (`0x27` *ub* *lw~1~* ... *lw~ub~*) <br />
+* `00100100` (`0x24` *ub* *lw~1~* ... *lw~ub~*) <br />
     **IVEC64**(*ub*, *lw~1~*, ..., *lw~ub~*) --- short 64-bit integer vectors (up to 255 elements).
 
-* `00101000` (`0x28` *n* *lw~1~* ... *lw~n~*) <br />
+* `00100101` (`0x25` *n* *lw~1~* ... *lw~n~*) <br />
     **IVEC64**(*n*, *lw~1~*, ..., *lw~n~*)
 
-* `00101001` (`0x29` *f*) <br />
+* `00100110` (`0x26` *f*) <br />
     **REAL32**(*f*)
 
-* `00101010` (`0x2A` *F*) <br />
+* `00100111` (`0x27` *F*) <br />
     **REAL64**(*F*)
 
-* `00101011` (`0x2B` *ub* *f~1~* ... *f~ub~*) <br />
+* `00101000` (`0x28` *ub* *f~1~* ... *f~ub~*) <br />
     **RVEC32**(*ub*, *f~1~*, ..., *f~ub~*) --- short 32-bit real vectors (up to 255 elements).
 
-* `00101100` (`0x2C` *n* *f~1~* ... *f~n~*) <br />
+* `00101001` (`0x29` *n* *f~1~* ... *f~n~*) <br />
     **RVEC32**(*n*, *f~1~*, ..., *f~n~*)
 
-* `00101101` (`0x2D` *ub* *F~1~* ... *F~ub~*) <br />
+* `00101010` (`0x2A` *ub* *F~1~* ... *F~ub~*) <br />
     **RVEC64**(*ub*, *F~1~*, ..., *F~ub~*) --- short 64-bit real vectors (up to 255 elements).
 
-* `00101110` (`0x2E` *n* *F~1~* ... *F~n~*) <br />
+* `00101011` (`0x2B` *n* *F~1~* ... *F~n~*) <br />
     **RVEC64**(*n*, *F~1~*, ..., *F~n~*)
 
-* `00101111` (`0x2F` *ub* *c~1~* ... *c~ub~*) <br />
+* `00101100` (`0x2C` *ub* *c~1~* ... *c~ub~*) <br />
     **STR8**(*s*) --- where **size**(*s*) = *ub* and *c~1~*, ..., *c~ub~* are the
     characters of *s*.
 
-* `00110000` (`0x30` *n* *c~1~* ... *c~n~*) <br />
+* `00101101` (`0x2D` *n* *c~1~* ... *c~n~*) <br />
     **STR8**(*s*) --- where **size**(*s*) = *n* and *c~1~*, ..., *c~n~* are the
     characters of *s*.
 
-* `00110001` (`0x31`) <br />
+* `00101110` (`0x2E`) <br />
     *reserved for STR32*
 
-* `00110010` (`0x32`) <br />
+* `00101111` (`0x2F`) <br />
     *reserved for STR32*
 
-* `00110011` (`0x33`) <br />
+* `00110000` (`0x30`) <br />
     **RECORD**(1)
 
-* `00110100` (`0x34`) <br />
+* `00110001` (`0x31`) <br />
     **RECORD**(2)
 
-* `00110101` (`0x35`) <br />
+* `00110010` (`0x32`) <br />
     **RECORD**(3)
 
-* `00110101` (`0x36`) <br />
+* `00110011` (`0x33`) <br />
     **RECORD**(4)
 
-* `00110101` (`0x37`) <br />
+* `00110100` (`0x34`) <br />
     **RECORD**(5)
 
-* `00110101` (`0x38`) <br />
+* `00110101` (`0x35`) <br />
     **RECORD**(6)
 
-* `00110101` (`0x39`) <br />
+* `00110101` (`0x36`) <br />
     **RECORD**(7)
 
-* `00110101` (`0x3A` *ub*) <br />
+* `00110101` (`0x37` *ub*) <br />
     **RECORD**(*ub*)
 
-* `00110101` (`0x3B` *h*) <br />
+* `00110101` (`0x38` *h*) <br />
     **RECORD**(*h*)
 
-* `00110101` (`0x3C` *ub*) <br />
+* `00110101` (`0x39` *ub*) <br />
     **VECTOR**(*ub*)
 
-* `00110101` (`0x3D` *h*) <br />
+* `00110101` (`0x3A` *h*) <br />
     **VECTOR**(*h*)
 
+* `00110101` (`0x3B` *ub*) <br />
+    **RAW8**(*ub*)
+
+* `00110101` (`0x3C` *h*) <br />
+    **RAW8**(*h*)
+
+* `00110101` (`0x3D` *ub*) <br />
+    **RAW16**(*ub*)
+
 * `00110101` (`0x3E` *h*) <br />
-    **CONCAT**(*h*)
+    **RAW16**(*h*)
 
 * `00111111` (`0x3F` *ub*) <br />
-    **SAVE**(*ub*)
+    **RAW32**(*ub*)
 
-* `01000000` (`0x40` *h*) <br />
-    **SAVE**(*h*)
+* `01000000` (`0x49` *h*) <br />
+    **RAW32**(*h*)
 
 * `01000001` (`0x41` *ub*) <br />
-    **LOAD**(*ub*)
+    **RAW64**(*ub*)
 
 * `01000010` (`0x42` *h*) <br />
+    **RAW64**(*h*)
+
+* `01000011` (`0x43` *h*) <br />
+    **CONCAT**(*h*)
+
+* `01000100` (`0x44` *ub*) <br />
+    **SAVE**(*ub*)
+
+* `01000101` (`0x45` *h*) <br />
+    **SAVE**(*h*)
+
+* `01000110` (`0x46` *ub*) <br />
+    **LOAD**(*ub*)
+
+* `01000111` (`0x47` *h*) <br />
     **LOAD**(*h*)
 
-* `01000011` -- `11111110` (`0x43` -- `0xFE`) <br />
+* `01001000` -- `11111110` (`0x48` -- `0xFE`) <br />
     *unused*
 
 * `11111111` (`0xFF`) <br />
