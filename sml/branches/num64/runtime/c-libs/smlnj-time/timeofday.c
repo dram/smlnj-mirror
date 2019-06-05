@@ -5,13 +5,10 @@
  */
 
 #  include "ml-osdep.h"
-#if defined(HAS_GETTIMEOFDAY)
-#  if defined(OPSYS_WIN32)
-#    include <sys/types.h>
-#    include <sys/timeb.h>
-#  else
-#    include <sys/time.h>
-#  endif
+#if defined(OPSYS_WIN32)
+#  include <windows.h>
+#elif defined(HAS_GETTIMEOFDAY)
+#  include <sys/time.h>
 #else
 #  error no timeofday mechanism
 #endif

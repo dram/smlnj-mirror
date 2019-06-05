@@ -122,7 +122,7 @@ ml_val_t _ml_win32_FS_get_file_attributes (ml_state_t *msp, ml_val_t arg)
 
     if (w != 0xffffffff) {
 #ifdef DEBUG_WIN32
-        printf("_ml_win32_FS_get_file_attributes: returning file attrs for <%s> as SOME %x\n",
+        SayDebug("_ml_win32_FS_get_file_attributes: returning file attrs for <%s> as SOME %x\n",
 	    STR_MLtoC(arg), w);
 #endif
 	ml_w = INT32_CtoML(msp, w);
@@ -130,7 +130,7 @@ ml_val_t _ml_win32_FS_get_file_attributes (ml_state_t *msp, ml_val_t arg)
     }
     else {
 #ifdef DEBUG_WIN32
-        printf("returning NONE as attrs for <%s>\n", STR_MLtoC(arg));
+        SayDebug("returning NONE as attrs for <%s>\n", STR_MLtoC(arg));
 #endif
         res = OPTION_NONE;
     }
