@@ -13,20 +13,21 @@ local
 in
 structure Windows_DDE : WINDOWS_DDE =
   struct
-    type info = SysWord.word
+    type info = Win32_General.word
 
     fun cfun x = CInterface.c_function "WIN32" x
 
     val startDialog : string * string -> info = cfun "dde_start_dialog"
-    fun executeString (conversation, command, retry, delay) =
-	let
-	    val realDelay = IntInf.toInt(Time.toMilliseconds delay)
-	    val executeStringInternal : info * string * int * int
-				-> unit = cfun "dde_execute_string"
-	in
+
+    fun executeString (conversation, command, retry, delay) = let
+	  val realDelay = IntInf.toInt(Time.toMilliseconds delay)
+	  val executeStringInternal : info * string * int * int -> unit = cfun "dde_execute_string"
+	  in
 	    executeStringInternal (conversation, command, retry, realDelay)
-	    
-	end
+
+	  end
+
     val stopDialog : info -> unit = cfun "dde_stop_dialog"
-  end 
-end
+
+  end
+end (* local *)

@@ -37,12 +37,16 @@ structure Windows : WINDOWS =
 	    | SOME x => x
 	  (* end case *))
 
+    local
+      val createProcess : string -> Handle.t = cfunProc "create_process"
+    in
     fun simpleExecute (cmd, arg) = let
 	  val createProcess = cfunProc "create_process"
 	  val procHandle = createProcess (StringImp.concat[cmd, " ", arg])
 	  in
-	    loopingSleepingWait(procHandle)
+	    loopingSleepingWait procHandle
 	  end
+    end (* local *)
 
     (*val fromStatus : OS.Process.status -> Status.status *)
     fun fromStatus(status) = if (OS_Process.failure = status) then Status.timeout else status

@@ -44,9 +44,13 @@ ml_val_t _ml_win32_PS_create_process_internal (ml_state_t *msp, ml_val_t arg, ST
 	CloseHandle (pi.hThread);
 	return HANDLE_CtoML(msp, hProcess);
     }
-    return HANDLE_CtoML(0);
+    else {
+	return RAISE_SYSERR(msp,-1);
+    }
 }
 
+/* _ml_win32_PS_create_process : string -> handle
+ */
 ml_val_t _ml_win32_PS_create_process (ml_state_t *msp, ml_val_t arg)
 {
     return _ml_win32_PS_create_process_internal(msp, arg, NULL);
@@ -60,7 +64,7 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t
     SECURITY_DESCRIPTOR sd;               //security information for pipes
     STARTUPINFO si;
     HANDLE hStdoutRd, hStdoutWr, hStdinRd, hStdinWr = NULL;
-    ml_val_t res, procHandle;
+    ml_val_t res, procHandle, ml_rd, ml_wr;
 
     InitializeSecurityDescriptor(&sd,SECURITY_DESCRIPTOR_REVISION);
     SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
@@ -85,7 +89,9 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t
     si.hStdOutput = si.hStdError = hStdoutWr; // And it WRITES to this one
 
     procHandle = _ml_win32_PS_create_process_internal(msp, arg, &si);
-    REC_ALLOC3(msp, res, procHandle, HANDLE_CtoML(hStdoutRd), HANDLE_CtoML(hStdinWr));
+    ml_rd = HANDLE_CtoML(hStdoutRd);
+    ml_wr = HANDLE_CtoML(hStdinWr);
+    REC_ALLOC3(msp, res, procHandle, ml_rd, ml_wr);
     return res;
 }
 

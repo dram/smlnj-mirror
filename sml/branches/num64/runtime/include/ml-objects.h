@@ -292,8 +292,8 @@ STATIC_INLINE ml_val_t ML_AllocNanoseconds (ml_state_t *msp, int sec, int usec)
  * for now we use a pointer-sized boxed word.
  */
 #if defined(_WIN32)
-#define HANDLE_MLtoC(h)		((HANDLE)INT32_MLtoC(h))
-#define HANDLE_CtoML(msp, h)	ML_AllocWord32(msp, (Addr_t)h)
+#define HANDLE_MLtoC(h)		((HANDLE)WORD32_MLtoC(h))
+#define HANDLE_CtoML(msp, h)	WORD32_CtoML(msp, (Addr_t)h)
 #elif defined(_WIN64)
 #define HANDLE_MLtoC(h)		((HANDLE)INT64_MLtoC(h))
 #define HANDLE_CtoML(msp, h)	ML_AllocWord64(msp, (Addr_t)h)

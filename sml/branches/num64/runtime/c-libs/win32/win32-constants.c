@@ -1,6 +1,7 @@
-/* win32-constants.c
+/*! \file win32-constants.c
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * interface to win32 constants
  */
