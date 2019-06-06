@@ -1,14 +1,14 @@
 /*! \file tags.h
  *
- * These are the macros for object tags and descriptors.  These definitions
- * must be consistent with compiler/CodeGen/main/object-desc.sml
- *
- * \author John Reppy
- */
-
-/*
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * These are the macros for object tags and descriptors.  They should agree
+ * with the values in the following compiler source files:
+ *
+ *	compiler/CodeGen/main/object-desc.sml
+ *	system/init/core.sml
+ *	system/Basis/Implementation/Unsafe/object.sml
  */
 
 #ifndef _TAGS_
@@ -70,7 +70,12 @@
 /* Vector and array headers come in different kinds; the kind tag is stored
  * in the length field of the descriptor.  We need these codes for polymorphic
  * equality and pretty-printing.
- * Note that sequences of tagged integers use the next largest size
+ *
+ * NOTE: We need the SEQ_real64 tag for pretty printing because of the way that
+ * the type `real array`is currently handled (i.e., it is mapped to
+ * `Real64Array.array`).  If we get rid of runtime type passing, then these
+ * tags can just be based on size.
+ * Also note that sequences of tagged integers use the next largest size
  * (e.g., 31 ==> 32).
  */
 #define SEQ_poly	HEXLIT(0)	/* one word per element; type unkonwn */
