@@ -54,14 +54,14 @@ ml_val_t _ml_win32_REG_create_key_ex(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_close_key_ex(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)WORD_MLtoC(arg);
-  long result = RegCloseKey(key);
+    HKEY key = (HKEY)WORD32_MLtoC(arg);
+    long result = RegCloseKey(key);
 
-  if (result == ERROR_SUCCESS) {
-    return ML_unit;
-  }
+    if (result == ERROR_SUCCESS) {
+        return ML_unit;
+    }
 
-  return RAISE_SYSERR(msp,-1);
+    return RAISE_SYSERR(msp,-1);
 }
 
 ml_val_t _ml_win32_REG_delete_key(ml_state_t *msp, ml_val_t arg)
