@@ -33,7 +33,7 @@ ml_val_t _ml_win32_IO_get_std_handle (ml_state_t *msp, ml_val_t arg)
     HANDLE h = GetStdHandle(w);
     ml_val_t res;
 
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
     SayDebug("getting std handle for %x as %p\n", w, h);
 #endif
 
@@ -50,7 +50,7 @@ ml_val_t _ml_win32_IO_close (ml_state_t *msp, ml_val_t arg)
     if (CloseHandle(h)) {
         return ML_unit;
     } else {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
         SayDebug("_ml_win32_IO_close(%p): failing: error = %d\n", h, GetLastError());
 #endif
         return RAISE_SYSERR(msp,-1);
@@ -73,7 +73,7 @@ ml_val_t _ml_win32_IO_set_file_pointer (ml_state_t *msp, ml_val_t arg)
 	return ML_AllocInt64(msp, pos.QuadPart);
     }
     else {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
         SayDebug("_ml_win32_IO_set_file_pointer(%p, %lld, %d): failing: error = %d\n",
 	    h, dist.QuadPart, how, GetLastError());
 #endif
@@ -144,7 +144,7 @@ ml_val_t _ml_win32_IO_read_vec (ml_state_t *msp, ml_val_t arg)
     vec = ML_AllocRaw (msp, BYTES_TO_WORDS(nbytes));
     if (ReadFile(h, PTR_MLtoC(void, vec), nbytes, &n, NULL)) {
         if (n == 0) {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
 	    SayDebug("_ml_win32_IO_read_vec: eof on device\n");
 #endif
 	    return ML_string0;
@@ -158,7 +158,7 @@ ml_val_t _ml_win32_IO_read_vec (ml_state_t *msp, ml_val_t arg)
 	return res;
     }
     else {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
         SayDebug("_ml_win32_IO_read_vec(%p, %d) failed; n = %d, error = %d\n",
 	    h, nbytes, n, GetLastError());
 #endif
@@ -244,7 +244,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
 	}
 
 	if (n == 0) {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
 	    SayDebug("_ml_win32_IO_read_vec_txt: eof on device\n");
 #endif
 	    return ML_string0;
@@ -255,7 +255,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
         }
       /* allocate header */
         SEQHDR_ALLOC (msp, res, DESC_string, vec, n);
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
         SayDebug("_ml_win32_IO_read_vec_txt: read %d\n",n);
 #endif
         return res;
@@ -268,7 +268,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
         return ML_string0;
     }
     else {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
         SayDebug("_ml_win32_IO_read_vec_txt: failing on handle %p\n", h);
 #endif
         return RAISE_SYSERR(msp,-1);
@@ -294,12 +294,12 @@ ml_val_t _ml_win32_IO_read_arr (ml_state_t *msp, ml_val_t arg)
     DWORD n;
 
     if (ReadFile(h, PTR_MLtoC(void,start), nbytes, &n, NULL)) {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
         if (n == 0) SayDebug("_ml_win32_IO_read_arr: eof on device\n");
 #endif
         return INT_CtoML(n);
     }
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
     SayDebug("_ml_win32_IO_read_arr: failing\n");
 #endif
     return RAISE_SYSERR(msp,-1);
@@ -340,7 +340,7 @@ ml_val_t _ml_win32_IO_read_arr_txt (ml_state_t *msp, ml_val_t arg)
 	else {
 	    rm_CRs((char *)buf,&n);
 	}
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
         SayDebug("_ml_win32_IO_read_arr_txt: eof on device\n");
 #endif
         return INT_CtoML(n);
@@ -354,7 +354,7 @@ ml_val_t _ml_win32_IO_read_arr_txt (ml_state_t *msp, ml_val_t arg)
 	}
     }
 
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
     SayDebug("_ml_win32_IO_read_arr_txt: failing\n");
 #endif
     return RAISE_SYSERR(msp, -1);
@@ -377,7 +377,7 @@ ml_val_t _ml_win32_IO_create_file (ml_state_t *msp, ml_val_t arg)
     HANDLE h =  CreateFile(name,access,share,NULL,create,attr,INVALID_HANDLE_VALUE);
     ml_val_t res;
 
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
     if (h == INVALID_HANDLE_VALUE) {
         SayDebug("create_file(\"%s\", %x, %x, %x, %x) failed; error = %d\n",
 	    name, access, share, create, attr, GetLastError());
@@ -409,7 +409,7 @@ ml_val_t _ml_win32_IO_write_buf (ml_state_t *msp, ml_val_t arg)
     char *buffer = PTR_MLtoC(void,start);
     int err;
 
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
     SayDebug("_ml_win32_IO_write_buf: handle is %x\n", (unsigned int) h);
 #endif
 
@@ -419,14 +419,14 @@ ml_val_t _ml_win32_IO_write_buf (ml_state_t *msp, ml_val_t arg)
     while (remaining > 0) {
 	nbytes = min (MAX_PRINT_SIZE, remaining);
 	    if (WriteFile(h, buffer, nbytes, &n, NULL)) {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
 		if (n == 0) SayDebug("_ml_win32_IO_write_buf: eof on device\n");
 #endif
 		total += n;
 		remaining -= n;
 		buffer += n;
 	    } else {
-#ifdef WIN32_DEBUG
+#ifdef DEBUG_WIN32
 		SayDebug("_ml_win32_IO_write_buf: failing\n");
 #endif
 		return RAISE_SYSERR(msp,-1);
