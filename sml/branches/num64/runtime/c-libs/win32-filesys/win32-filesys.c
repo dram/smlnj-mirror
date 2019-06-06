@@ -36,14 +36,14 @@ static ml_val_t find_next_file (ml_state_t *msp, HANDLE h)
     return fname_opt;
 }
 
-/* _ml_win32_FS_find_next_file : c_pointer -> (string option)
+/* _ml_win32_FS_find_next_file : handle -> (string option)
  */
 ml_val_t _ml_win32_FS_find_next_file (ml_state_t *msp, ml_val_t arg)
 {
     return find_next_file(msp, HANDLE_MLtoC(arg));
 }
 
-/* _ml_win32_FS_find_first_file : string -> (c_pointer * string option)
+/* _ml_win32_FS_find_first_file : string -> (handle * string option)
  */
 ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
 {
@@ -69,7 +69,7 @@ ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
     return res;
 }
 
-/* _ml_win32_FS_find_close : c_pointer -> bool
+/* _ml_win32_FS_find_close : handle -> bool
  */
 ml_val_t _ml_win32_FS_find_close (ml_state_t *msp, ml_val_t arg)
 {
@@ -138,7 +138,7 @@ ml_val_t _ml_win32_FS_get_file_attributes (ml_state_t *msp, ml_val_t arg)
     return res;
 }
 
-/* _ml_win32_FS_get_file_attributes_by_handle : c_pointer -> (word32 option)
+/* _ml_win32_FS_get_file_attributes_by_handle : handle -> (word32 option)
  */
 ml_val_t _ml_win32_FS_get_file_attributes_by_handle (ml_state_t *msp, ml_val_t arg)
 {
@@ -171,7 +171,7 @@ ml_val_t _ml_win32_FS_get_full_path_name (ml_state_t *msp, ml_val_t arg)
     return res;
 }
 
-/* _ml_win32_FS_get_file_size : c_pointer -> word64
+/* _ml_win32_FS_get_file_size : handle -> Position.int
  */
 ml_val_t _ml_win32_FS_get_file_size (ml_state_t *msp, ml_val_t arg)
 {
@@ -185,7 +185,7 @@ ml_val_t _ml_win32_FS_get_file_size (ml_state_t *msp, ml_val_t arg)
     }
 }
 
-/* _ml_win32_FS_get_file_size_by_name : string -> (word64 option)
+/* _ml_win32_FS_get_file_size_by_name : string -> (Position.int option)
  */
 ml_val_t _ml_win32_FS_get_file_size_by_name (ml_state_t *msp, ml_val_t arg)
 {
@@ -230,6 +230,8 @@ ml_val_t _ml_win32_FS_get_file_time (ml_state_t *msp, ml_val_t arg)
 	if (GetFileTime(h, NULL, NULL, &ft)) {  /* request time of "last write" */
 	  /* convert to nanoseconds; FILETIME is in units of 100ns */
 	    Int64_t ns = 100 * (((Int64_t)ft.dwHighDateTime << 32) + (Int64_t)ft.dwLowDateTime);
+SayDebug("get_file_time(\"%s\") = [%#010x:%08x] (%lld)\n",
+STR_MLtoC(arg), ft.dwHighDateTime,ft.dwLowDateTime,ns);
 	    ml_ns = ML_AllocInt64(msp, ns);
 	    OPTION_SOME(msp, res, ml_ns);
 	}
@@ -258,6 +260,8 @@ ml_val_t _ml_win32_FS_set_file_time (ml_state_t *msp, ml_val_t arg)
 	ns /= 100;  /* FILETIME is in units of 100ns */
 	ft.dwHighDateTime = (DWORD)(ns >> 32);
 	ft.dwLowDateTime = (DWORD)ns;
+SayDebug("set_file_time(\"%s\", [%#010x:%08x] (%lld))\n",
+STR_MLtoC(arg), ft.dwHighDateTime,ft.dwLowDateTime,ns);
 
 	if (SetFileTime(h, NULL, NULL, &ft)) {
 	    res = ML_true;
@@ -269,14 +273,14 @@ ml_val_t _ml_win32_FS_set_file_time (ml_state_t *msp, ml_val_t arg)
     return res;
 }
 
-/* _ml_win32_FS_delete_file : string->bool
+/* _ml_win32_FS_delete_file : string -> bool
  */
 ml_val_t _ml_win32_FS_delete_file (ml_state_t *msp, ml_val_t arg)
 {
     return DeleteFile (STR_MLtoC(arg)) ? ML_true : ML_false;
 }
 
-/* _ml_win32_FS_move_file : (string * string)->bool
+/* _ml_win32_FS_move_file : (string * string) -> bool
  */
 ml_val_t _ml_win32_FS_move_file (ml_state_t *msp, ml_val_t arg)
 {
