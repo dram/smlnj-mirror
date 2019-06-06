@@ -65,7 +65,7 @@ ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
 	fname_opt = OPTION_NONE;
     }
 
-    ml_h = HANDLE_CtoML(msp,h);
+    ml_h = HANDLE_CtoML(msp, h);
     REC_ALLOC2(msp, res, ml_h, fname_opt);
 
     return res;
@@ -134,7 +134,7 @@ ml_val_t _ml_win32_FS_get_file_attributes (ml_state_t *msp, ml_val_t arg)
 
     if (w != INVALID_FILE_ATTRIBUTES) {
 	ml_w = INT32_CtoML(msp, w);
-	OPTION_SOME(msp,res,ml_w);
+	OPTION_SOME(msp, res, ml_w);
     }
     else {
 #ifdef DEBUG_WIN32

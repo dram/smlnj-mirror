@@ -116,7 +116,7 @@ PVT name_val_t class[] = {
 #define N_CLASSES TAB_SZ(class)
 
 
-/* _ml_win32_get_const: (string * string) -> word
+/* _ml_win32_get_const: (string * string) -> word32
  * lookup (class,constant) pair
  */
 ml_val_t _ml_win32_get_const(ml_state_t *msp, ml_val_t arg)

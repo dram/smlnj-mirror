@@ -4,7 +4,7 @@
  *
  * Basic definitions for representing ML values in C.
  *
- *   INT_MLtoC(v)	-- convert an unboxed ML value to sn Int_t.
+ *   INT_MLtoC(v)	-- convert an unboxed ML value to an Int_t.
  *   INT_CtoML(i)	-- convert a Word_t to an unboxed ML value.
  *   PTR_MLtoC(ty, v)	-- convert a boxed ML value to a (ty *).
  *   PTR_CtoML(p)	-- convert (Word_t *p) to an boxed ML value.

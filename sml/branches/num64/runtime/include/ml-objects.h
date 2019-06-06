@@ -169,7 +169,7 @@ STATIC_INLINE Int32_t REC_SELINT32 (ml_val_t p, int i)
 #ifdef SIZES_C64_ML64
     return REC_SELINT(p, i); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
-    return *REC_SELPTR(Unsigned32_t, p, i);
+    return *REC_SELPTR(Int32_t, p, i);
 #endif
 }
 STATIC_INLINE ml_val_t WORD32_CtoML (ml_state_t *msp, Unsigned32_t n)
@@ -305,7 +305,7 @@ STATIC_INLINE ml_val_t ML_AllocNanoseconds (ml_state_t *msp, int sec, int usec)
 #define HANDLE_MLtoC(h)		((HANDLE)WORD32_MLtoC(h))
 #define HANDLE_CtoML(msp, h)	WORD32_CtoML(msp, (Addr_t)h)
 #elif defined(_WIN64)
-#define HANDLE_MLtoC(h)		((HANDLE)INT64_MLtoC(h))
+#define HANDLE_MLtoC(h)		((HANDLE)WORD64_MLtoC(h))
 #define HANDLE_CtoML(msp, h)	ML_AllocWord64(msp, (Addr_t)h)
 #endif
 

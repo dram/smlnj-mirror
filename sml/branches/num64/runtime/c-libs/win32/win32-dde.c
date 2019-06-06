@@ -12,9 +12,9 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-HDDEDATA CALLBACK DdeCallback(UINT uType, UINT uFmt, HCONV hconv, HSZ hsz1,
-                              HSZ hsz2, HDDEDATA hdata, ULONG_PTR dwData1,
-                              ULONG_PTR dwData2)
+HDDEDATA CALLBACK DdeCallback (UINT uType, UINT uFmt, HCONV hconv, HSZ hsz1,
+                               HSZ hsz2, HDDEDATA hdata, ULONG_PTR dwData1,
+                               ULONG_PTR dwData2)
 {
   /* As a DDE client, we will only get notification messages that
      ignore the return value anyway */
@@ -23,7 +23,7 @@ HDDEDATA CALLBACK DdeCallback(UINT uType, UINT uFmt, HCONV hconv, HSZ hsz1,
 
 static DWORD InstanceId = 0;
 
-void InitializeIfNeeded()
+void InitializeIfNeeded ()
 {
     if (InstanceId == 0) {
         DdeInitialize(&InstanceId, DdeCallback, APPCMD_CLIENTONLY, 0);
