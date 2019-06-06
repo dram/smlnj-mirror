@@ -16,19 +16,9 @@ structure Win32_General : WIN32_GENERAL =
 
     val arcSepChar = #"\\"
 
-    local
-      fun cfun' lib name = CInterface.c_function lib name
-      val sayDebug' : string -> unit = cfun' "WIN32" "debug"
-    in
-    val sayDebug = (* sayDebug' *) fn _ => ()
-    val log : string list ref = ref []
-    fun logMsg s = (log := s :: (!log);
-		    sayDebug s)
-    fun cfun lib name = (
-	   logMsg ("binding C function <"^lib^":"^name^">...");
-	   cfun' lib name
-	     before logMsg "bound\n")
-    end (* local *)
+    val cfun = CInterface.c_function
+
+    val sayDebug : string -> unit = cfun "SMLNJ-RunT" "debug"
 
     val getConst' : (string * string) -> word = cfun "WIN32" "get_const"
     fun getConst kind name = getConst'(kind,name)

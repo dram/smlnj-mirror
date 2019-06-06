@@ -18,9 +18,6 @@ signature WIN32_GENERAL =
     val cfun : string -> string -> 'a -> 'b
     val getConst : string -> string -> word
 
-    val log : string list ref
-    val logMsg : string -> unit
-
     val sayDebug : string -> unit
 
     val getLastError : unit -> word

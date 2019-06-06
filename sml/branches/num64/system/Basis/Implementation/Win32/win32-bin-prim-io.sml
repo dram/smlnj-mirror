@@ -24,7 +24,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 
     val pfi = Position.fromInt
 
-    val say = W32G.logMsg
+    val say = W32G.sayDebug
 
     fun announce s x y = (
 (**	  say "Win32BinPrimIO: "; say (s:string); say "\n";  **)
