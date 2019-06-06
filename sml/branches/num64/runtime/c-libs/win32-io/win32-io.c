@@ -379,9 +379,11 @@ ml_val_t _ml_win32_IO_create_file (ml_state_t *msp, ml_val_t arg)
 
 #ifdef WIN32_DEBUG
     if (h == INVALID_HANDLE_VALUE) {
-        SayDebug("_ml_win32_IO_create_file: failing\n");
+        SayDebug("create_file(\"%s\", %x, %x, %x, %x) failed; error = %d\n",
+	    name, access, share, create, attr, GetLastError());
     }
 #endif
+
     return HANDLE_CtoML(msp, h);
 }
 
