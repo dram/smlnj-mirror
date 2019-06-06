@@ -18,7 +18,7 @@ ml_val_t _ml_win32_get_last_error(ml_state_t *msp, ml_val_t arg)
     Word_t	err = (Word_t)GetLastError();
     ml_val_t	res;
 
-    return WORD32_MLtoC(msp, err);
+    return WORD32_CtoML(msp, err);
 }
 
 /* end of win32-errors.c */

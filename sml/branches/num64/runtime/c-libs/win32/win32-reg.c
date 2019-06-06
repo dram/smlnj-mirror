@@ -24,7 +24,7 @@ ml_val_t _ml_win32_REG_open_key_ex(ml_state_t *msp, ml_val_t arg)
 
   if (result == ERROR_SUCCESS) {
     ml_val_t res;
-    return WORD32_MLtoC(msp, target);
+    return WORD32_CtoML(msp, target);
   }
 
   return RAISE_SYSERR(msp,-1);
@@ -46,7 +46,7 @@ ml_val_t _ml_win32_REG_create_key_ex(ml_state_t *msp, ml_val_t arg)
     target = NULL;
 
     /* Safe, as can only ever be 1 or 2 */
-    return WORD32_MLtoC(msp, dwDisposition);
+    return WORD32_CtoML(msp, dwDisposition);
   }
 
   return RAISE_SYSERR(msp,-1);
@@ -178,7 +178,7 @@ ml_val_t _ml_win32_REG_query_value_type(ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  return WORD32_MLtoC(msp, dwType);
+  return WORD32_CtoML(msp, dwType);
 }
 
 ml_val_t _ml_win32_REG_QueryString(ml_state_t *msp, ml_val_t arg)
@@ -271,7 +271,7 @@ ml_val_t _ml_win32_REG_query_value_dword(ml_state_t *msp, ml_val_t arg)
 	return RAISE_SYSERR(msp,-1);
     }
 
-    return WORD32_MLtoC(msp, dwValue);
+    return WORD32_CtoML(msp, dwValue);
 }
 
 ml_val_t _ml_win32_REG_query_value_binary(ml_state_t *msp, ml_val_t arg)

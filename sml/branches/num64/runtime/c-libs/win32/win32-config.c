@@ -27,10 +27,10 @@ ml_val_t _ml_win32_CONFIG_get_version_ex (ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  major = WORD32_MLtoC(msp, versionInfo.dwMajorVersion);
-  minor = WORD32_MLtoC(msp, versionInfo.dwMinorVersion);
-  build = WORD32_MLtoC(msp, versionInfo.dwBuildNumber);
-  platform = WORD32_MLtoC(msp, versionInfo.dwPlatformId);
+  major = WORD32_CtoML(msp, versionInfo.dwMajorVersion);
+  minor = WORD32_CtoML(msp, versionInfo.dwMinorVersion);
+  build = WORD32_CtoML(msp, versionInfo.dwBuildNumber);
+  platform = WORD32_CtoML(msp, versionInfo.dwPlatformId);
 
   length = strlen(versionInfo.szCSDVersion);
   vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
@@ -66,7 +66,7 @@ ml_val_t _ml_win32_CONFIG_get_volume_information(ml_state_t *msp, ml_val_t arg)
           return RAISE_SYSERR(msp,-1);
   }
 
-  serial = WORD32_MLtoC(msp, serialNumber);
+  serial = WORD32_CtoML(msp, serialNumber);
   maxcomponent = INT_CtoML(maxComponentLength);
 
   length = strlen(szVolumeName);
