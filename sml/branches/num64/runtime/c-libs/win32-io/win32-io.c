@@ -370,11 +370,11 @@ ml_val_t _ml_win32_IO_create_file (ml_state_t *msp, ml_val_t arg)
 {
     ml_val_t fname = REC_SEL(arg,0);
     char *name = STR_MLtoC(fname);
-    DWORD access = WORD_MLtoC(REC_SEL(arg,1));
-    DWORD share = WORD_MLtoC(REC_SEL(arg,2));
-    DWORD create = WORD_MLtoC(REC_SEL(arg,3));
-    DWORD attr = WORD_MLtoC(REC_SEL(arg,4));
-    HANDLE h =  CreateFile(name,access,share,NULL,create,attr,INVALID_HANDLE_VALUE);
+    DWORD access = WORD32_MLtoC(REC_SEL(arg,1));
+    DWORD share = WORD32_MLtoC(REC_SEL(arg,2));
+    DWORD create = WORD32_MLtoC(REC_SEL(arg,3));
+    DWORD attr = WORD32_MLtoC(REC_SEL(arg,4));
+    HANDLE h =  CreateFile(name, access, share, NULL, create, attr, INVALID_HANDLE_VALUE);
     ml_val_t res;
 
 #ifdef DEBUG_WIN32
@@ -410,7 +410,7 @@ ml_val_t _ml_win32_IO_write_buf (ml_state_t *msp, ml_val_t arg)
     int err;
 
 #ifdef DEBUG_WIN32
-    SayDebug("_ml_win32_IO_write_buf: handle is %x\n", (unsigned int) h);
+    SayDebug("_ml_win32_IO_write_buf(%p, -, %d, %d\n", h, nbytes, REC_SELINT(arg, 3));
 #endif
 
     remaining = nbytes;

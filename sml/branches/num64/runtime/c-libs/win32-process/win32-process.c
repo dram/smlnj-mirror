@@ -113,7 +113,7 @@ ml_val_t _ml_win32_PS_wait_for_single_object (ml_state_t *msp, ml_val_t arg)
       /* get info and return SOME(exit_status) */
 	GetExitCodeProcess (hProcess,&exit_code);
 	CloseHandle (hProcess);   /* decrease ref count */
-	WORD_ALLOC (msp,p,(Word_t)exit_code);
+	p = WORD32_CtoML (msp, exit_code);
 	OPTION_SOME(msp,obj,p);
     }
     return obj;
@@ -130,7 +130,6 @@ ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
     int unquotedlen = strnlen (unquoted, GET_SEQ_LEN(arg));
     char *quoted = (char*)malloc((unquotedlen+3)*sizeof(char));
     int ret;
-    ml_val_t res;
 
     if (quoted == (char *)0) {
 	Die ("_ml_win32_PS_system: unable to allocate memory\n");
@@ -142,8 +141,7 @@ ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
     ret = system(quoted);
     free(quoted);
 
-    WORD_ALLOC(msp, res, (Word_t)ret);
-    return res;
+    return WORD32_CtoML(msp, ret);
 }
 
 /* _ml_win32_PS_exit_process : word32 -> 'a
@@ -152,7 +150,7 @@ ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
  */
 void _ml_win32_PS_exit_process (ml_state_t *msp, ml_val_t arg)
 {
-    ExitProcess ((UINT)WORD_MLtoC(arg));
+    ExitProcess ((UINT)WORD32_MLtoC(arg));
 }
 
 /* _ml_win32_PS_get_environment_variable : string -> string option
