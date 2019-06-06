@@ -114,7 +114,7 @@ ml_val_t _ml_win32_FS_create_directory (ml_state_t *msp, ml_val_t arg)
 	return ML_false;
     }
 #else
-    return CreateDirectory(STR_MLtoC(arg),NULL) ? ML_true : ML_false;
+    return CreateDirectory(STR_MLtoC(arg), NULL) ? ML_true : ML_false;
 #endif
 }
 

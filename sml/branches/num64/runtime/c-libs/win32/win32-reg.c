@@ -24,8 +24,7 @@ ml_val_t _ml_win32_REG_open_key_ex(ml_state_t *msp, ml_val_t arg)
 
   if (result == ERROR_SUCCESS) {
     ml_val_t res;
-    WORD_ALLOC(msp, res, (Word_t)target);
-    return res;
+    return ML_AllocWord32(msp, target);
   }
 
   return RAISE_SYSERR(msp,-1);
@@ -47,8 +46,7 @@ ml_val_t _ml_win32_REG_create_key_ex(ml_state_t *msp, ml_val_t arg)
     target = NULL;
 
     /* Safe, as can only ever be 1 or 2 */
-    WORD_ALLOC(msp, res, dwDisposition);
-    return res;
+    return ML_AllocWord32(msp, dwDisposition);
   }
 
   return RAISE_SYSERR(msp,-1);
@@ -180,8 +178,7 @@ ml_val_t _ml_win32_REG_query_value_type(ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  WORD_ALLOC(msp, res, dwType);
-  return res;
+  return ML_AllocWord32(msp, dwType);
 }
 
 ml_val_t _ml_win32_REG_QueryString(ml_state_t *msp, ml_val_t arg)
@@ -262,20 +259,19 @@ ml_val_t _ml_win32_REG_query_value_expand_string(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_query_value_dword(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
-  Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
-  long result = 0;
-  DWORD dwValue = 0;
-  DWORD dwSize = sizeof(DWORD);
-  ml_val_t res, vec;
+    HKEY key = (HKEY)REC_SELWORD(arg,0);
+    Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
+    long result = 0;
+    DWORD dwValue = 0;
+    DWORD dwSize = sizeof(DWORD);
+    ml_val_t res, vec;
 
-  result = RegQueryValueEx(key, valueName, 0, NULL, (LPBYTE)&dwValue, &dwSize);
-  if (result != ERROR_SUCCESS) {
-    return RAISE_SYSERR(msp,-1);
-  }
+    result = RegQueryValueEx(key, valueName, 0, NULL, (LPBYTE)&dwValue, &dwSize);
+    if (result != ERROR_SUCCESS) {
+	return RAISE_SYSERR(msp,-1);
+    }
 
-  WORD_ALLOC(msp, res, dwValue);
-  return res;
+    return ML_AllocWord32(msp, dwValue);
 }
 
 ml_val_t _ml_win32_REG_query_value_binary(ml_state_t *msp, ml_val_t arg)

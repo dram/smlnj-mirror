@@ -48,8 +48,7 @@ ml_val_t _ml_win32_DDE_start_dialog (ml_state_t *msp, ml_val_t arg)
     DdeFreeStringHandle(InstanceId, hszService);
     DdeFreeStringHandle(InstanceId, hszTopic);
 
-    WORD_ALLOC(msp, res, (Word_t)conversation);
-    return res;
+    return ML_AllocWord32(msp, conversation);
 }
 
 ml_val_t _ml_win32_DDE_execute_string (ml_state_t *msp, ml_val_t arg)

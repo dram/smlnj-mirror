@@ -12,7 +12,7 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-ml_val_t _ml_win32_CONFIG_get_version_ex(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_CONFIG_get_version_ex (ml_state_t *msp, ml_val_t arg)
 {
   OSVERSIONINFOEX versionInfo;
   long result = 0;
@@ -27,10 +27,10 @@ ml_val_t _ml_win32_CONFIG_get_version_ex(ml_state_t *msp, ml_val_t arg)
     return RAISE_SYSERR(msp,-1);
   }
 
-  WORD_ALLOC(msp, major, (Word_t)versionInfo.dwMajorVersion);
-  WORD_ALLOC(msp, minor, (Word_t)versionInfo.dwMinorVersion);
-  WORD_ALLOC(msp, build, (Word_t)versionInfo.dwBuildNumber);
-  WORD_ALLOC(msp, platform, (Word_t)versionInfo.dwPlatformId);
+  major = ML_AllocWord32(msp, versionInfo.dwMajorVersion);
+  minor = ML_AllocWord32(msp, versionInfo.dwMinorVersion);
+  build = ML_AllocWord32(msp, versionInfo.dwBuildNumber);
+  platform = ML_AllocWord32(msp, versionInfo.dwPlatformId);
 
   length = strlen(versionInfo.szCSDVersion);
   vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
@@ -66,7 +66,7 @@ ml_val_t _ml_win32_CONFIG_get_volume_information(ml_state_t *msp, ml_val_t arg)
           return RAISE_SYSERR(msp,-1);
   }
 
-  WORD_ALLOC(msp, serial, (Word_t)serialNumber);
+  serial = ML_AllocWord32(msp, serialNumber);
   maxcomponent = INT_CtoML(maxComponentLength);
 
   length = strlen(szVolumeName);

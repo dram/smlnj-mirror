@@ -18,9 +18,7 @@ ml_val_t _ml_win32_get_last_error(ml_state_t *msp, ml_val_t arg)
     Word_t	err = (Word_t)GetLastError();
     ml_val_t	res;
 
-    WORD_ALLOC(msp, res, err);
-
-    return res;
+    return ML_AllocWord32(msp, err);
 }
 
 /* end of win32-errors.c */
