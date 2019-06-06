@@ -49,6 +49,13 @@ target plus an additional "wish-list" of long-term goals.
 
   * Add support for `Real32.real`, including arrays and vectors.
 
+  * Many (most?) of the runtime system functions in the Windows port return `true` or
+    `NONE` to signal an error, instead of raising the `SysErr` exception.  Furthermore,
+    when a `SysErr` is raised, it does not contain the error information from the OS.
+    We should use the `GetLastError` and `FormatMessage` functions to generate better
+    information (see [Retrieving the Last Error
+    Code](https://docs.microsoft.com/en-us/windows/desktop/Debug/retrieving-the-last-error-code)).
+
   * Remove runtime-typing from FLINT; the files involved include:
     - compiler/FLINT/reps/reify.sml
     - compiler/FLINT/reps/rttype.sml
