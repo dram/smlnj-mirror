@@ -12,6 +12,8 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
+/* #define DEBUG_WIN32 */
+
 #define TMP_PREFIX "TMP-SMLNJ"
 
 #define IS_DOTDIR(c) ((c)[0] == '.' && (!(c)[1] || ((c)[1] == '.' && !(c)[2])))
@@ -103,7 +105,17 @@ ml_val_t _ml_win32_FS_get_current_directory (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_FS_create_directory (ml_state_t *msp, ml_val_t arg)
 {
+#ifdef DEBUG_WIN32
+    BOOL sts = CreateDirectory(STR_MLtoC(arg), NULL);
+    if (sts) {
+	return ML_true;
+    } else {
+	SayDebug("create_directory(%s) failed; error = %d\n", STR_MLtoC(arg), GetLastError());
+	return ML_false;
+    }
+#else
     return CreateDirectory(STR_MLtoC(arg),NULL) ? ML_true : ML_false;
+#endif
 }
 
 /* _ml_win32_FS_remove_directory : string -> bool
@@ -121,10 +133,6 @@ ml_val_t _ml_win32_FS_get_file_attributes (ml_state_t *msp, ml_val_t arg)
     ml_val_t res, ml_w;
 
     if (w != INVALID_FILE_ATTRIBUTES) {
-#ifdef DEBUG_WIN32
-        SayDebug("get_file_attributes: returning SOME %#x as attrs for <%s>\n",
-	    w, STR_MLtoC(arg));
-#endif
 	ml_w = INT32_CtoML(msp, w);
 	OPTION_SOME(msp,res,ml_w);
     }
@@ -150,6 +158,9 @@ ml_val_t _ml_win32_FS_get_file_attributes_by_handle (ml_state_t *msp, ml_val_t a
 	OPTION_SOME(msp,res,ml_w);
     }
     else {
+#ifdef DEBUG_WIN32
+	SayDebug("get_file_attributes_by_handle(%#x): error = %d\n", HANDLE_MLtoC(arg), GetLastError());
+#endif
 	res = OPTION_NONE;
     }
     return res;
@@ -165,6 +176,9 @@ ml_val_t _ml_win32_FS_get_full_path_name (ml_state_t *msp, ml_val_t arg)
 
     r = GetFullPathName(STR_MLtoC(arg), MAX_PATH, buf, &dummy);
     if ((r == 0) || (r > MAX_PATH)) {
+#ifdef DEBUG_WIN32
+	SayDebug("get_full_path(%s): error = %d\n", STR_MLtoC(arg), GetLastError());
+#endif
 	return RAISE_SYSERR(msp, -1);
     }
     res = ML_CString(msp, buf);
@@ -181,6 +195,9 @@ ml_val_t _ml_win32_FS_get_file_size (ml_state_t *msp, ml_val_t arg)
 	return ML_AllocInt64(msp, sz.QuadPart);
     }
     else {
+#ifdef DEBUG_WIN32
+	SayDebug("get_file_size(%#x): error = %d\n", HANDLE_MLtoC(arg), GetLastError());
+#endif
 	return RAISE_SYSERR(msp, -1);
     }
 }
@@ -209,12 +226,15 @@ ml_val_t _ml_win32_FS_get_file_size_by_name (ml_state_t *msp, ml_val_t arg)
 	return res;
     }
     else {
+#ifdef DEBUG_WIN32
+	SayDebug("get_file_size_by_name(%s): error = %d\n", STR_MLtoC(arg), GetLastError());
+#endif
 	return OPTION_NONE;
     }
 
 }
 
-/* _ml_win32_FS_get_file_time : string -> Int64.int option
+/* _ml_win32_FS_get_file_time : string -> Word64.word option
  */
 ml_val_t _ml_win32_FS_get_file_time (ml_state_t *msp, ml_val_t arg)
 {
@@ -228,14 +248,16 @@ ml_val_t _ml_win32_FS_get_file_time (ml_state_t *msp, ml_val_t arg)
     if (h != INVALID_HANDLE_VALUE) {
 	FILETIME ft;
 	if (GetFileTime(h, NULL, NULL, &ft)) {  /* request time of "last write" */
-	  /* convert to nanoseconds; FILETIME is in units of 100ns */
-	    Int64_t ns = 100 * (((Int64_t)ft.dwHighDateTime << 32) + (Int64_t)ft.dwLowDateTime);
-SayDebug("get_file_time(\"%s\") = [%#010x:%08x] (%lld)\n",
-STR_MLtoC(arg), ft.dwHighDateTime,ft.dwLowDateTime,ns);
-	    ml_ns = ML_AllocInt64(msp, ns);
+	  /* convert to 100-nanosecond units (FILETIME units) */
+	    Unsigned64_t ns = ((Unsigned64_t)ft.dwHighDateTime << 32) + (Unsigned64_t)ft.dwLowDateTime;
+	  /* return nanoseconds */
+	    ml_ns = ML_AllocWord64(msp, 100 * ns);
 	    OPTION_SOME(msp, res, ml_ns);
 	}
     } else {
+#ifdef DEBUG_WIN32
+	SayDebug("get_file_time(%s) failed; error = %d\n", STR_MLtoC(arg), GetLastError());
+#endif
 	res = OPTION_NONE;
     }
     return res;
@@ -260,8 +282,6 @@ ml_val_t _ml_win32_FS_set_file_time (ml_state_t *msp, ml_val_t arg)
 	ns /= 100;  /* FILETIME is in units of 100ns */
 	ft.dwHighDateTime = (DWORD)(ns >> 32);
 	ft.dwLowDateTime = (DWORD)ns;
-SayDebug("set_file_time(\"%s\", [%#010x:%08x] (%lld))\n",
-STR_MLtoC(arg), ft.dwHighDateTime,ft.dwLowDateTime,ns);
 
 	if (SetFileTime(h, NULL, NULL, &ft)) {
 	    res = ML_true;
@@ -277,7 +297,17 @@ STR_MLtoC(arg), ft.dwHighDateTime,ft.dwLowDateTime,ns);
  */
 ml_val_t _ml_win32_FS_delete_file (ml_state_t *msp, ml_val_t arg)
 {
+#ifdef DEBUG_WIN32
+    BOOL sts = DeleteFile(STR_MLtoC(arg));
+    if (sts) {
+	return ML_true;
+    } else {
+	SayDebug("DeleteFile(%s); error = %d\n", STR_MLtoC(arg), GetLastError());
+	return ML_false;
+    }
+#else
     return DeleteFile (STR_MLtoC(arg)) ? ML_true : ML_false;
+#endif
 }
 
 /* _ml_win32_FS_move_file : (string * string) -> bool
