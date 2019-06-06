@@ -13,6 +13,8 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
+/* #define DEBUG_WIN32 */
+
 #include "win32-fault.h"
 
 #define EOF_char           '\x01a'           /* ^Z is win32 eof */
@@ -43,15 +45,16 @@ ml_val_t _ml_win32_IO_get_std_handle (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_IO_close (ml_state_t *msp, ml_val_t arg)
 {
-  HANDLE h = HANDLE_MLtoC(arg);
+    HANDLE h = HANDLE_MLtoC(arg);
 
     if (CloseHandle(h)) {
         return ML_unit;
-    }
+    } else {
 #ifdef WIN32_DEBUG
-    SayDebug("_ml_win32_IO_close: failing\n");
+        SayDebug("_ml_win32_IO_close(%p): failing: error = %d\n", h, GetLastError());
 #endif
-    return RAISE_SYSERR(msp,-1);
+        return RAISE_SYSERR(msp,-1);
+    }
 }
 
 
@@ -70,6 +73,10 @@ ml_val_t _ml_win32_IO_set_file_pointer (ml_state_t *msp, ml_val_t arg)
 	return ML_AllocInt64(msp, pos.QuadPart);
     }
     else {
+#ifdef WIN32_DEBUG
+        SayDebug("_ml_win32_IO_set_file_pointer(%p, %lld, %d): failing: error = %d\n",
+	    h, dist.QuadPart, how, GetLastError());
+#endif
 	return RAISE_SYSERR(msp, -1);
     }
 }
@@ -134,8 +141,8 @@ ml_val_t _ml_win32_IO_read_vec (ml_state_t *msp, ml_val_t arg)
     DWORD n;
 
   /* allocate the vector; note that this might cause a GC */
-    vec = ML_AllocRaw (msp, BYTES_TO_WORDS (nbytes));
-    if (ReadFile(h,PTR_MLtoC(void, vec),nbytes,&n,NULL)) {
+    vec = ML_AllocRaw (msp, BYTES_TO_WORDS(nbytes));
+    if (ReadFile(h, PTR_MLtoC(void, vec), nbytes, &n, NULL)) {
         if (n == 0) {
 #ifdef WIN32_DEBUG
 	    SayDebug("_ml_win32_IO_read_vec: eof on device\n");
@@ -152,7 +159,8 @@ ml_val_t _ml_win32_IO_read_vec (ml_state_t *msp, ml_val_t arg)
     }
     else {
 #ifdef WIN32_DEBUG
-        SayDebug("_ml_win32_IO_read_vec: failing %d %d\n",n,nbytes);
+        SayDebug("_ml_win32_IO_read_vec(%p, %d) failed; n = %d, error = %d\n",
+	    h, nbytes, n, GetLastError());
 #endif
         return RAISE_SYSERR(msp,-1);
     }
@@ -261,7 +269,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
     }
     else {
 #ifdef WIN32_DEBUG
-        SayDebug("_ml_win32_IO_read_vec_txt: failing on handle %x\n",h);
+        SayDebug("_ml_win32_IO_read_vec_txt: failing on handle %p\n", h);
 #endif
         return RAISE_SYSERR(msp,-1);
     }
@@ -428,22 +436,22 @@ ml_val_t _ml_win32_IO_write_buf (ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_IO_write_vec (ml_state_t *msp, ml_val_t arg)
 {
-    return _ml_win32_IO_write_buf(msp,arg);
+    return _ml_win32_IO_write_buf(msp, arg);
 }
 
 ml_val_t _ml_win32_IO_write_arr (ml_state_t *msp, ml_val_t arg)
 {
-    return _ml_win32_IO_write_buf(msp,arg);
+    return _ml_win32_IO_write_buf(msp, arg);
 }
 
 ml_val_t _ml_win32_IO_write_vec_txt (ml_state_t *msp, ml_val_t arg)
 {
-    return _ml_win32_IO_write_buf(msp,arg);
+    return _ml_win32_IO_write_buf(msp, arg);
 }
 
 ml_val_t _ml_win32_IO_write_arr_txt (ml_state_t *msp, ml_val_t arg)
 {
-    return _ml_win32_IO_write_buf(msp,arg);
+    return _ml_win32_IO_write_buf(msp, arg);
 }
 
 /* end of win32-io.c */
