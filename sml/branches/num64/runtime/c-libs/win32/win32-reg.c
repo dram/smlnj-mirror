@@ -3,7 +3,8 @@
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * interface to win32 registry functions
+ * interface to win32 registry functions; note that HKEY is just an alias
+ * for HANDLE
  */
 
 #include <windows.h>
@@ -15,24 +16,24 @@
 
 ml_val_t _ml_win32_REG_open_key_ex(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
-  Byte_t *subKey = STR_MLtoC(REC_SEL(arg,1));
-  Word_t flags = REC_SELWORD(arg,2);
-  HKEY target = NULL;
+    HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
+    Byte_t *subKey = STR_MLtoC(REC_SEL(arg,1));
+    Word_t flags = REC_SELWORD(arg,2);
+    HKEY target = NULL;
 
-  long result = RegOpenKeyEx(key, subKey, 0, flags, &target);
+    long result = RegOpenKeyEx(key, subKey, 0, flags, &target);
 
-  if (result == ERROR_SUCCESS) {
-    ml_val_t res;
-    return WORD32_CtoML(msp, target);
-  }
+    if (result == ERROR_SUCCESS) {
+	ml_val_t res;
+	return HANDLE_CtoML(msp, target);
+    }
 
-  return RAISE_SYSERR(msp,-1);
+    return RAISE_SYSERR(msp,-1);
 }
 
 ml_val_t _ml_win32_REG_create_key_ex(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *subKey = STR_MLtoC(REC_SEL(arg,1));
   Word_t flags = REC_SELWORD(arg,2);
   HKEY target = NULL;
@@ -54,7 +55,7 @@ ml_val_t _ml_win32_REG_create_key_ex(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_close_key_ex(ml_state_t *msp, ml_val_t arg)
 {
-    HKEY key = (HKEY)WORD32_MLtoC(arg);
+    HKEY key = (HKEY)HANDLE_MLtoC(arg);
     long result = RegCloseKey(key);
 
     if (result == ERROR_SUCCESS) {
@@ -66,20 +67,20 @@ ml_val_t _ml_win32_REG_close_key_ex(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_delete_key(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
-  Byte_t *subKey = STR_MLtoC(REC_SEL(arg,1));
-  long result = RegDeleteKey(key, subKey);
+    HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
+    Byte_t *subKey = STR_MLtoC(REC_SEL(arg,1));
+    long result = RegDeleteKey(key, subKey);
 
-  if (result == ERROR_SUCCESS) {
-    return ML_unit;
-  }
+    if (result == ERROR_SUCCESS) {
+	return ML_unit;
+    }
 
-  return RAISE_SYSERR(msp,-1);
+    return RAISE_SYSERR(msp,-1);
 }
 
 ml_val_t _ml_win32_REG_delete_value(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *subKey = STR_MLtoC(REC_SEL(arg,1));
   long result = RegDeleteValue(key, subKey);
 
@@ -92,7 +93,7 @@ ml_val_t _ml_win32_REG_delete_value(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_enum_key_ex(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Word_t index = INT_MLtoC(REC_SEL(arg,1));
   ml_val_t vec;
   HKEY target = NULL;
@@ -123,7 +124,7 @@ ml_val_t _ml_win32_REG_enum_key_ex(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_enum_value_ex(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Word_t index = INT_MLtoC(REC_SEL(arg,1));
   ml_val_t vec;
   HKEY target = NULL;
@@ -167,23 +168,23 @@ ml_val_t _ml_win32_REG_enum_value_ex(ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_REG_query_value_type(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
-  Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
-  long result = 0;
-  DWORD dwType = 0;
-  ml_val_t res;
+    HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
+    Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
+    long result = 0;
+    DWORD dwType = 0;
+    ml_val_t res;
 
-  result = RegQueryValueEx(key, valueName, 0, &dwType, NULL, NULL);
-  if (result != ERROR_SUCCESS) {
-    return RAISE_SYSERR(msp,-1);
-  }
+    result = RegQueryValueEx(key, valueName, 0, &dwType, NULL, NULL);
+    if (result != ERROR_SUCCESS) {
+	return RAISE_SYSERR(msp,-1);
+    }
 
-  return WORD32_CtoML(msp, dwType);
+    return WORD32_CtoML(msp, dwType);
 }
 
 ml_val_t _ml_win32_REG_QueryString(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
   long result = 0;
   DWORD dwSize = 0;
@@ -208,12 +209,12 @@ ml_val_t _ml_win32_REG_QueryString(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_query_value_string(ml_state_t *msp, ml_val_t arg)
 {
-  return _ml_win32_REG_QueryString(msp, arg);
+    return _ml_win32_REG_QueryString(msp, arg);
 }
 
 ml_val_t _ml_win32_REG_query_value_multi_string(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
   long result = 0;
   DWORD dwSize = 0;
@@ -259,7 +260,7 @@ ml_val_t _ml_win32_REG_query_value_expand_string(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_query_value_dword(ml_state_t *msp, ml_val_t arg)
 {
-    HKEY key = (HKEY)REC_SELWORD(arg,0);
+    HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
     Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
     long result = 0;
     DWORD dwValue = 0;
@@ -276,7 +277,7 @@ ml_val_t _ml_win32_REG_query_value_dword(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_query_value_binary(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
   void *pData = NULL;
   long result = 0;
@@ -300,7 +301,7 @@ ml_val_t _ml_win32_REG_query_value_binary(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_set_value_dword(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
   DWORD dwValue = REC_SELWORD(arg,2);
   long result = 0;
@@ -316,7 +317,7 @@ ml_val_t _ml_win32_REG_set_value_dword(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_SetStringValue(ml_state_t *msp, ml_val_t arg, DWORD dwStringType)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
   Byte_t *value = STR_MLtoC(REC_SEL(arg,2));
   long result = 0;
@@ -342,7 +343,7 @@ ml_val_t _ml_win32_REG_set_value_expand_string(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_set_value_multi_string(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
   ml_val_t stringList = REC_SEL(arg,2);
   long result = 0;
@@ -379,7 +380,7 @@ ml_val_t _ml_win32_REG_set_value_multi_string(ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_REG_set_value_binary(ml_state_t *msp, ml_val_t arg)
 {
-  HKEY key = (HKEY)REC_SELWORD(arg,0);
+  HKEY key = (HKEY)HANDLE_MLtoC(REC_SEL(arg,0));
   Byte_t *valueName = STR_MLtoC(REC_SEL(arg,1));
   Byte_t *dwValue = GET_SEQ_DATAPTR(Byte_t, REC_SEL(arg,2));
   DWORD dwSize = GET_SEQ_LEN(REC_SEL(arg,2));

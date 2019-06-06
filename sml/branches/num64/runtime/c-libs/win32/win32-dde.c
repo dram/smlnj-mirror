@@ -1,8 +1,12 @@
-/* win32-dde.c
+/*! \file win32-dde.c
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * COPYRIGHT (c) 2008, the Fellowship of SML/NJ
  *
- * interface to win32 dynamic data exchange
+ * interface to win32 dynamic data exchange.  Note that HCONV is just an alias
+ * for HANDLE.
  */
 
 #include <windows.h>
@@ -48,12 +52,12 @@ ml_val_t _ml_win32_DDE_start_dialog (ml_state_t *msp, ml_val_t arg)
     DdeFreeStringHandle(InstanceId, hszService);
     DdeFreeStringHandle(InstanceId, hszTopic);
 
-    return WORD32_CtoML(msp, conversation);
+    return HANDLE_CtoML(msp, conversation);
 }
 
 ml_val_t _ml_win32_DDE_execute_string (ml_state_t *msp, ml_val_t arg)
 {
-    HCONV conversation = (HCONV)REC_SELWORD(arg, 0);
+    HCONV conversation = (HCONV)HANDLE_MLtoC(REC_SEL(arg, 0));
     Byte_t* command = STR_MLtoC(REC_SEL(arg,1));
     Word_t retry = INT_MLtoC(REC_SEL(arg,2));
     Word_t delay = INT_MLtoC(REC_SEL(arg,3));
@@ -74,7 +78,7 @@ ml_val_t _ml_win32_DDE_execute_string (ml_state_t *msp, ml_val_t arg)
 
 ml_val_t _ml_win32_DDE_stop_dialog (ml_state_t *msp, ml_val_t arg)
 {
-    HCONV conversation = (HCONV)REC_SELWORD(arg, 0);
+    HCONV conversation = (HCONV)HANDLE_MLtoC(REC_SEL(arg, 0));
 
     DdeDisconnect(conversation);
 
