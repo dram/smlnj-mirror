@@ -35,13 +35,13 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
     return ML_AllocNanoseconds(msp, c_sec, c_usec);
 #elif defined(OPSYS_WIN32)
     FILETIME t;
-    Int64_t ns;
+    Unsigned_t ns;
 
     GetSystemTime (&t);
   /* convert to nanoseconds; FILETIME is in units of 100ns */
-    ns = 100 * (((Int64_t)t.dwHighDateTime << 32) + (Int64_t)t.dwLowDateTime);
+    ns = 100 * (((Unsigned_t)t.dwHighDateTime << 32) + (Unsigned_t)t.dwLowDateTime);
 
-    return ML_AllocInt64(msp, ns);
+    return ML_AllocWord64(msp, ns);
 #else
 #  error no timeofday mechanism
 #endif
