@@ -235,6 +235,16 @@ STATIC_INLINE Int64_t INT64_MLtoC (ml_val_t n)
     return ((hi << 32) | lo);
 #endif
 }
+STATIC_INLINE Unsigned64_t WORD64_MLtoC (ml_val_t n)
+{
+#ifdef SIZES_C64_ML64
+    return *PTR_MLtoC(Unsigned64_t, n);
+#else /* 32-bit ML values */
+    Unsigned64_t hi = PTR_MLtoC(Unsigned32_t, n)[0];
+    Unsigned64_t lo = PTR_MLtoC(Unsigned32_t, n)[1];
+    return ((hi << 32) | lo);
+#endif
+}
 
 /* allocate a 64-bit integer number of nanoseconds, given seconds and
  * microseconds.
