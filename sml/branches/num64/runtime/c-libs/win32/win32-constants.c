@@ -132,7 +132,7 @@ ml_val_t _ml_win32_get_const(ml_state_t *msp, ml_val_t arg)
 	index = ptab->data;
 	ASSERT(index < TAB_SZ(table));
 	if (res = nv_lookup(s2, table[index].ptab, table[index].sz)) {
-	    return ML_AllocWord32(msp, res->data);
+	    return WORD32_MLtoC(msp, res->data);
 	}
 	return RAISE_ERROR(msp,"win32_cconst: unknown constant");
     }
