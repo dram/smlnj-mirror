@@ -58,7 +58,7 @@ ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
     hArray = NEW_VEC (HANDLE,count);
 
   /* initialize the array */
-    for (l = pollList,index = 0; l != LIST_nil; l = LIST_tl(l)) {
+    for (l = pollList, index = 0; l != LIST_nil; l = LIST_tl(l)) {
 	item = LIST_hd (l);
 	handle = HANDLE_MLtoC(REC_SEL(item, 0));
 	hArray[index++] = handle;

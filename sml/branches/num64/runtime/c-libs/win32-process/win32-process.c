@@ -36,7 +36,7 @@ ml_val_t _ml_win32_PS_create_process_internal (ml_state_t *msp, ml_val_t arg, ST
     si.cb = sizeof(si);
 
     if (pStartup == NULL) {
-        pStartup = &si;
+	pStartup = &si;
     }
     fSuccess = CreateProcess (NULL,str,NULL,NULL,TRUE,CREATE_NEW_CONSOLE,NULL,NULL,pStartup,&pi);
     if (fSuccess) {
@@ -64,7 +64,7 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t
     SECURITY_DESCRIPTOR sd;               //security information for pipes
     STARTUPINFO si;
     HANDLE hStdoutRd, hStdoutWr, hStdinRd, hStdinWr = NULL;
-    ml_val_t res, procHandle, ml_rd, ml_wr;
+    ml_val_t res, procHandle, in, out;
 
     InitializeSecurityDescriptor(&sd,SECURITY_DESCRIPTOR_REVISION);
     SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
@@ -89,9 +89,9 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t
     si.hStdOutput = si.hStdError = hStdoutWr; // And it WRITES to this one
 
     procHandle = _ml_win32_PS_create_process_internal(msp, arg, &si);
-    ml_rd = HANDLE_CtoML(msp, hStdoutRd);
-    ml_wr = HANDLE_CtoML(msp, hStdinWr);
-    REC_ALLOC3(msp, res, procHandle, ml_rd, ml_wr);
+    in = HANDLE_CtoML(msp, hStdoutRd);
+    out = HANDLE_CtoML(msp, hStdinWr);
+    REC_ALLOC3(msp, res, procHandle, in, out);
     return res;
 }
 
@@ -189,53 +189,52 @@ ml_val_t _ml_win32_PS_sleep (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_PS_find_executable (ml_state_t *msp, ml_val_t arg)
 {
-   Byte_t *fileName = STR_MLtoC(arg);
-   TCHAR szResultPath[MAX_PATH];
-   int length;
-   ml_val_t res, vec, obj;
-   BOOL found = FALSE;
+    Byte_t *fileName = STR_MLtoC(arg);
+    TCHAR szResultPath[MAX_PATH];
+    int length;
+    ml_val_t res, vec, obj;
+    BOOL found = FALSE;
 
-   strcpy_s(szResultPath, max(strlen(fileName), MAX_PATH-1), fileName);
-   found = PathFindOnPath(szResultPath, NULL);
+    strcpy_s(szResultPath, max(strlen(fileName), MAX_PATH-1), fileName);
+    found = PathFindOnPath(szResultPath, NULL);
 
-   if (!found) {
-       return OPTION_NONE;
-   }
+    if (!found) {
+	return OPTION_NONE;
+    }
 
-   length = strlen(szResultPath);
-   vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
-   strcpy_s(PTR_MLtoC(void, vec), length+1, szResultPath);
-   SEQHDR_ALLOC (msp, obj, DESC_string, vec, length);
-   OPTION_SOME(msp, res, obj);
-   return res;
+    length = strlen(szResultPath);
+    vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
+    strcpy_s(PTR_MLtoC(void, vec), length+1, szResultPath);
+    SEQHDR_ALLOC (msp, obj, DESC_string, vec, length);
+    OPTION_SOME(msp, res, obj);
+    return res;
 }
 
 ml_val_t _ml_win32_PS_launch_application(ml_state_t *msp, ml_val_t arg)
 {
-  Byte_t *fileName = STR_MLtoC(REC_SEL(arg,0));
-  Byte_t *argument = STR_MLtoC(REC_SEL(arg,1));
+    Byte_t *fileName = STR_MLtoC(REC_SEL(arg,0));
+    Byte_t *argument = STR_MLtoC(REC_SEL(arg,1));
 
-  int result = (int)ShellExecute(NULL, NULL, fileName, argument, NULL, SW_SHOWNORMAL);
+    int result = (int)ShellExecute(NULL, NULL, fileName, argument, NULL, SW_SHOWNORMAL);
 
-  if (result < 32) {
-    return RAISE_SYSERR(msp,-1);
-  }
+    if (result < 32) {
+	return RAISE_SYSERR(msp,-1);
+    }
 
-  return ML_unit;
+    return ML_unit;
 }
 
 ml_val_t _ml_win32_PS_open_document(ml_state_t *msp, ml_val_t arg)
 {
-  Byte_t *document = STR_MLtoC(arg);
+    Byte_t *document = STR_MLtoC(arg);
 
-  int result = (int)ShellExecute(NULL, NULL, document, NULL, NULL, SW_SHOWNORMAL);
+    int result = (int)ShellExecute(NULL, NULL, document, NULL, NULL, SW_SHOWNORMAL);
 
-  if (result < 32) {
-    return RAISE_SYSERR(msp,-1);
-  }
+    if (result < 32) {
+	return RAISE_SYSERR(msp,-1);
+    }
 
-  return ML_unit;
+    return ML_unit;
 }
-
 
 /* end of win32-process.c */

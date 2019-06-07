@@ -19,12 +19,11 @@
 /* _ml_Time_time_in_seconds : unit -> Int32.int
  *
  * Return the time of day in seconds.
- * NOTE: time() returns seconds, and is POSIX and also ISO C).
+ * NOTE: time() is POSIX and also ISO C, so it should be supported on all
+ * target platforms.
  */
 ml_val_t _ml_Time_time_in_seconds (ml_state_t *msp, ml_val_t arg)
 {
-    int c_sec = time (0);
-
-    return INT32_CtoML(msp, c_sec);
+    return INT32_CtoML(msp, time (0));
 
 } /* end of _ml_Time_timeofday */

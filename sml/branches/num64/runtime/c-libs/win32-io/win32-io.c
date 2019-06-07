@@ -48,10 +48,10 @@ ml_val_t _ml_win32_IO_close (ml_state_t *msp, ml_val_t arg)
     HANDLE h = HANDLE_MLtoC(arg);
 
     if (CloseHandle(h)) {
-        return ML_unit;
+	return ML_unit;
     } else {
 #ifdef DEBUG_WIN32
-        SayDebug("_ml_win32_IO_close(%p): failing: error = %d\n", h, GetLastError());
+	SayDebug("_ml_win32_IO_close(%p): failing: error = %d\n", h, GetLastError());
 #endif
         return RAISE_SYSERR(msp,-1);
     }
@@ -148,7 +148,7 @@ ml_val_t _ml_win32_IO_read_vec (ml_state_t *msp, ml_val_t arg)
 	    SayDebug("_ml_win32_IO_read_vec: eof on device\n");
 #endif
 	    return ML_string0;
-        }
+	}
 	if (n < nbytes) {
 	  /* we need to shrink the vector */
 	    ML_ShrinkRaw (msp, vec, BYTES_TO_WORDS(n));
@@ -248,24 +248,24 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
 	    SayDebug("_ml_win32_IO_read_vec_txt: eof on device\n");
 #endif
 	    return ML_string0;
-        }
+	}
 	if (n < nbytes) {
 	  /* shrink buffer */
 	    ML_ShrinkRaw (msp, vec, BYTES_TO_WORDS(n));
-        }
+	}
       /* allocate header */
-        SEQHDR_ALLOC (msp, res, DESC_string, vec, n);
+	SEQHDR_ALLOC (msp, res, DESC_string, vec, n);
 #ifdef DEBUG_WIN32
-        SayDebug("_ml_win32_IO_read_vec_txt: read %d\n",n);
+	SayDebug("_ml_win32_IO_read_vec_txt: read %d\n",n);
 #endif
-        return res;
+	return res;
     }
     else if ((h == win32_stdin_handle)		/* input from stdin */
     && (GetFileType(h) == FILE_TYPE_PIPE)	/* but not console */
     && (GetLastError() == ERROR_BROKEN_PIPE))	/* and pipe broken */
     {
       /* this is an EOF on redirected stdin (ReadFile failed) */
-        return ML_string0;
+	return ML_string0;
     }
     else {
 #ifdef DEBUG_WIN32
@@ -410,7 +410,7 @@ ml_val_t _ml_win32_IO_write_buf (ml_state_t *msp, ml_val_t arg)
     int err;
 
 #ifdef DEBUG_WIN32
-    SayDebug("_ml_win32_IO_write_buf(%p, -, %d, %d\n", h, nbytes, REC_SELINT(arg, 3));
+    SayDebug("_ml_win32_IO_write_buf(%p, -, %d, %d)\n", h, nbytes, REC_SELINT(arg, 3));
 #endif
 
     remaining = nbytes;

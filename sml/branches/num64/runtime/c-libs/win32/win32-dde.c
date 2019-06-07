@@ -3,8 +3,6 @@
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * COPYRIGHT (c) 2008, the Fellowship of SML/NJ
- *
  * interface to win32 dynamic data exchange.  Note that HCONV is just an alias
  * for HANDLE.
  */
@@ -65,7 +63,9 @@ ml_val_t _ml_win32_DDE_execute_string (ml_state_t *msp, ml_val_t arg)
     HDDEDATA retval = 0;
 
     do {
-	retval = DdeClientTransaction(command, strlen(command)+1, conversation, 0, 0, XTYP_EXECUTE, delay, &dwResult);
+	retval = DdeClientTransaction(
+		command, strlen(command)+1, conversation, 0, 0,
+		XTYP_EXECUTE, delay, &dwResult);
 	retry--;
     } while (retval == 0 && DdeGetLastError(InstanceId) == DMLERR_BUSY && retry >= 0);
 
