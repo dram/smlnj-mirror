@@ -132,6 +132,9 @@ as **DONE**, even though they are not changed.
   * `runtime/c-libs/dl/dlclose.c` <br/>
     Use the abstract `c_pointer` type to represent runtime-system pointers.
 
+  * `runtime/c-libs/dl/dlopen.c` <br/>
+    Use the abstract `c_pointer` type to represent runtime-system pointers.
+
   * `runtime/c-libs/dl/dlsym.c` <br/>
     Use the abstract `c_pointer` type to represent runtime-system pointers.
 
@@ -166,6 +169,12 @@ as **DONE**, even though they are not changed.
 
   * `smlnj-lib/Util/random.sml` <br/>
     Uses the `Word31` structure.
+
+  * `nlffi/lib/linkage-dlopen.sml` <br/>
+    switch to using abstract `c_pointer` type for handles.
+
+  * `nlffi/lib/linkage.sig` <br/>
+    switch to using abstract `c_pointer` type for handles.
 
 In addition to the above issues, there are a few more changes that we can make
 to smooth the differences between the 32-bit and 64-bit targets.
