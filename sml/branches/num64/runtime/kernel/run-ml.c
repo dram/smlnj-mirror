@@ -94,8 +94,9 @@ void RunML (ml_state_t *msp)
 	if (request == REQ_GC) {
 	    if (vsp->vp_handlerPending) { /* this is really a signal */
 	      /* check for GC */
-		if (NeedGC (msp, 4*ONE_K))
+		if (NeedGC (msp, ONE_K*WORD_SZB)) {
 		    InvokeGC (msp, 0);
+		}
 	      /* invoke the ML signal handler */
 		ChooseSignal (vsp);
 		msp->ml_arg		= MakeHandlerArg (msp, sigh_resume);
