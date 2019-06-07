@@ -5,13 +5,10 @@
  */
 
 #  include "ml-osdep.h"
-#if defined(HAS_GETTIMEOFDAY)
-#  if defined(OPSYS_WIN32)
-#    include <sys/types.h>
-#    include <sys/timeb.h>
-#  else
-#    include <sys/time.h>
-#  endif
+#if defined(OPSYS_WIN32)
+#  include <windows.h>
+#elif defined(HAS_GETTIMEOFDAY)
+#  include <sys/time.h>
 #else
 #  error no timeofday mechanism
 #endif
@@ -28,17 +25,12 @@
  */
 ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 {
-    int			c_sec, c_usec;
-
-#ifdef HAS_GETTIMEOFDAY
 #if defined(OPSYS_UNIX)
-    {
-	struct timeval	t;
+    struct timeval	t;
 
-	gettimeofday (&t, NIL(struct timezone *));
-	c_sec = t.tv_sec;
-	c_usec = t.tv_usec;
-    }
+    gettimeofday (&t, NIL(struct timezone *));
+
+    return ML_AllocNanoseconds(msp, t.tv_sec, t.tv_usec);
 #elif defined(OPSYS_WIN32)
   /* we could use Win32 GetSystemTime/SystemTimetoFileTime here,
    * but the conversion routines for 64-bit 100-ns values
@@ -54,12 +46,7 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 	c_usec = t.millitm*1000;
     }
 #else
-#error timeofday not defined for OS
+#  error no timeofday mechanism
 #endif
-#else
-#error no timeofday mechanism
-#endif
-
-    return ML_AllocNanoseconds(msp, c_sec, c_usec);
 
 } /* end of _ml_Time_timeofday */

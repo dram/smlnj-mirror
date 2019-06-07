@@ -1,6 +1,7 @@
-/* win32-process.c
+/*! \file win32-process.c
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * interface to win32 process functions
  */
@@ -15,8 +16,7 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-
-/* _ml_win32_PS_create_process : string -> word32
+/* _ml_win32_PS_create_process : string -> handle
  *
  * Note: This function returns the handle to the created process
  *       This handle will need to be freed before the system releases
@@ -25,42 +25,47 @@
  *       call. This is for the time being only used by CML.
  *       It could also cause problems later on.
  */
-ml_val_t _ml_win32_PS_create_process_internal(ml_state_t *msp, ml_val_t arg, STARTUPINFO *pStartup)
+ml_val_t _ml_win32_PS_create_process_internal (ml_state_t *msp, ml_val_t arg, STARTUPINFO *pStartup)
 {
-  char *str = STR_MLtoC(arg);
-  PROCESS_INFORMATION pi;
-  STARTUPINFO si;
-  ml_val_t res;
-  BOOL fSuccess;
-  ZeroMemory (&si,sizeof(si));
-  si.cb = sizeof(si);
+    char *str = STR_MLtoC(arg);
+    PROCESS_INFORMATION pi;
+    STARTUPINFO si;
+    ml_val_t res;
+    BOOL fSuccess;
+    ZeroMemory (&si,sizeof(si));
+    si.cb = sizeof(si);
 
-  if (pStartup == NULL) {
-    pStartup = &si;
-  }
-  fSuccess = CreateProcess (NULL,str,NULL,NULL,TRUE,CREATE_NEW_CONSOLE,NULL,NULL,pStartup,&pi);
-  if (fSuccess) {
-    HANDLE hProcess = pi.hProcess;
-    CloseHandle (pi.hThread);
-    WORD_ALLOC (msp,res,(Word_t)hProcess);
-    return res;
-  }
-  WORD_ALLOC (msp,res,(Word_t)0);
-  return res;
+    if (pStartup == NULL) {
+	pStartup = &si;
+    }
+    fSuccess = CreateProcess (NULL,str,NULL,NULL,TRUE,CREATE_NEW_CONSOLE,NULL,NULL,pStartup,&pi);
+    if (fSuccess) {
+	HANDLE hProcess = pi.hProcess;
+	CloseHandle (pi.hThread);
+	WORD_ALLOC (msp,res,(Word_t)hProcess);
+	return res;
+    }
+    else {
+	return RAISE_SYSERR(msp,-1);
+    }
 }
 
-ml_val_t _ml_win32_PS_create_process(ml_state_t *msp, ml_val_t arg)
+/* _ml_win32_PS_create_process : string -> handle
+ */
+ml_val_t _ml_win32_PS_create_process (ml_state_t *msp, ml_val_t arg)
 {
     return _ml_win32_PS_create_process_internal(msp, arg, NULL);
 }
 
-ml_val_t _ml_win32_PS_create_process_redirect_handles(ml_state_t *msp, ml_val_t arg)
+/* _ml_win32_PS_create_process_redirect_handles : string -> handle * handle * handle
+ */
+ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t arg)
 {
     SECURITY_ATTRIBUTES sa;
     SECURITY_DESCRIPTOR sd;               //security information for pipes
     STARTUPINFO si;
     HANDLE hStdoutRd, hStdoutWr, hStdinRd, hStdinWr = NULL;
-    ml_val_t res,procHandle,in,out;
+    ml_val_t res, procHandle, in, out;
 
     InitializeSecurityDescriptor(&sd,SECURITY_DESCRIPTOR_REVISION);
     SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
@@ -91,26 +96,28 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles(ml_state_t *msp, ml_val_t 
     return res;
 }
 
-ml_val_t _ml_win32_PS_wait_for_single_object(ml_state_t *msp, ml_val_t arg)
+/* _ml_win32_PS_wait_for_single_object : handle -> word option
+ */
+ml_val_t _ml_win32_PS_wait_for_single_object (ml_state_t *msp, ml_val_t arg)
 {
-  HANDLE hProcess = (HANDLE) WORD_MLtoC (arg);
-  DWORD exit_code;
-  int res;
-  ml_val_t p,obj;
-  res = WaitForSingleObject (hProcess,0);
-  if (res==WAIT_TIMEOUT || res==WAIT_FAILED) {
-    /* information is not ready, or error */
-    obj = OPTION_NONE;
-  }
-  else {
-    /* WAIT_OBJECT_0 ... done, finished */
-    /* get info and return SOME(exit_status) */
-    GetExitCodeProcess (hProcess,&exit_code);
-    CloseHandle (hProcess);   /* decrease ref count */
-    WORD_ALLOC (msp,p,(Word_t)exit_code);
-    OPTION_SOME(msp,obj,p);
-  }
-  return obj;
+    HANDLE hProcess = (HANDLE) WORD_MLtoC (arg);
+    DWORD exit_code;
+    int res;
+    ml_val_t p,obj;
+    res = WaitForSingleObject (hProcess,0);
+    if ((res == WAIT_TIMEOUT) || (res == WAIT_FAILED)) {
+      /* information is not ready, or error */
+	obj = OPTION_NONE;
+    }
+    else {
+      /* WAIT_OBJECT_0 ... done, finished */
+      /* get info and return SOME(exit_status) */
+	GetExitCodeProcess (hProcess,&exit_code);
+	CloseHandle (hProcess);   /* decrease ref count */
+	WORD_ALLOC (msp,p,(Word_t)exit_code);
+	OPTION_SOME(msp,obj,p);
+    }
+    return obj;
 }
 
 
@@ -118,7 +125,7 @@ ml_val_t _ml_win32_PS_wait_for_single_object(ml_state_t *msp, ml_val_t arg)
  *                       command
  *
  */
-ml_val_t _ml_win32_PS_system(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
 {
     const char *unquoted = STR_MLtoC(arg);
     int unquotedlen = strnlen (unquoted, GET_SEQ_LEN(arg));
@@ -144,30 +151,30 @@ ml_val_t _ml_win32_PS_system(ml_state_t *msp, ml_val_t arg)
  *                             exit code
  *
  */
-void _ml_win32_PS_exit_process(ml_state_t *msp, ml_val_t arg)
+void _ml_win32_PS_exit_process (ml_state_t *msp, ml_val_t arg)
 {
-    ExitProcess ((UINT)WORD_MLtoC(arg));
+    ExitProcess ((UINT)WORD32_MLtoC(arg));
 }
 
 /* _ml_win32_PS_get_environment_variable : string -> string option
  *                                         var
  *
  */
-ml_val_t _ml_win32_PS_get_environment_variable(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_PS_get_environment_variable (ml_state_t *msp, ml_val_t arg)
 {
 #define GEV_BUF_SZ 4096
-  char buf[GEV_BUF_SZ];
-  int ret = GetEnvironmentVariable(STR_MLtoC(arg),buf,GEV_BUF_SZ);
-  ml_val_t ml_s,res = OPTION_NONE;
+    char buf[GEV_BUF_SZ];
+    int ret = GetEnvironmentVariable(STR_MLtoC(arg), buf, GEV_BUF_SZ);
+    ml_val_t ml_s,res = OPTION_NONE;
 
-  if (ret > GEV_BUF_SZ) {
-    return RAISE_SYSERR(msp,-1);
-  }
-  if (ret > 0) {
-    ml_s = ML_CString(msp,buf);
-    OPTION_SOME(msp,res,ml_s);
-  }
-  return res;
+    if (ret > GEV_BUF_SZ) {
+	return RAISE_SYSERR(msp, -1);
+    }
+    if (ret > 0) {
+	ml_s = ML_CString(msp, buf);
+	OPTION_SOME(msp, res, ml_s);
+    }
+    return res;
 #undef GEV_BUF_SZ
 }
 
@@ -177,60 +184,60 @@ ml_val_t _ml_win32_PS_get_environment_variable(ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_PS_sleep (ml_state_t *msp, ml_val_t arg)
 {
-  Sleep ((DWORD) WORD_MLtoC(arg));
-  return ML_unit;
+    Sleep (WORD32_MLtoC(arg));
+    return ML_unit;
 }
 
-
-ml_val_t _ml_win32_PS_find_executable(ml_state_t *msp, ml_val_t arg)
+/* _ml_win32_PS_find_executable : string -> string option
+ */
+ml_val_t _ml_win32_PS_find_executable (ml_state_t *msp, ml_val_t arg)
 {
-  Byte_t *fileName = STR_MLtoC(arg);
-  TCHAR szResultPath[MAX_PATH];
-  int length;
-  ml_val_t res, vec, obj;
-  BOOL found = FALSE;
+    Byte_t *fileName = STR_MLtoC(arg);
+    TCHAR szResultPath[MAX_PATH];
+    int length;
+    ml_val_t res, vec, obj;
+    BOOL found = FALSE;
 
-  strcpy_s(szResultPath, max(strlen(fileName), MAX_PATH-1), fileName);
-  found = PathFindOnPath(szResultPath, NULL);
+    strcpy_s(szResultPath, max(strlen(fileName), MAX_PATH-1), fileName);
+    found = PathFindOnPath(szResultPath, NULL);
 
-  if (!found) {
-    return OPTION_NONE;
-  }
+    if (!found) {
+	return OPTION_NONE;
+    }
 
-  length = strlen(szResultPath);
-  vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
-  strcpy_s(PTR_MLtoC(void, vec), length+1, szResultPath);
-  SEQHDR_ALLOC (msp, obj, DESC_string, vec, length);
-  OPTION_SOME(msp, res, obj);
-  return res;
+    length = strlen(szResultPath);
+    vec = ML_AllocRaw (msp, BYTES_TO_WORDS (length + 1));
+    strcpy_s(PTR_MLtoC(void, vec), length+1, szResultPath);
+    SEQHDR_ALLOC (msp, obj, DESC_string, vec, length);
+    OPTION_SOME(msp, res, obj);
+    return res;
 }
 
 ml_val_t _ml_win32_PS_launch_application(ml_state_t *msp, ml_val_t arg)
 {
-  Byte_t *fileName = STR_MLtoC(REC_SEL(arg,0));
-  Byte_t *argument = STR_MLtoC(REC_SEL(arg,1));
+    Byte_t *fileName = STR_MLtoC(REC_SEL(arg,0));
+    Byte_t *argument = STR_MLtoC(REC_SEL(arg,1));
 
-  int result = (int)ShellExecute(NULL, NULL, fileName, argument, NULL, SW_SHOWNORMAL);
+    int result = (int)ShellExecute(NULL, NULL, fileName, argument, NULL, SW_SHOWNORMAL);
 
-  if (result < 32) {
-    return RAISE_SYSERR(msp,-1);
-  }
+    if (result < 32) {
+	return RAISE_SYSERR(msp,-1);
+    }
 
-  return ML_unit;
+    return ML_unit;
 }
 
 ml_val_t _ml_win32_PS_open_document(ml_state_t *msp, ml_val_t arg)
 {
-  Byte_t *document = STR_MLtoC(arg);
+    Byte_t *document = STR_MLtoC(arg);
 
-  int result = (int)ShellExecute(NULL, NULL, document, NULL, NULL, SW_SHOWNORMAL);
+    int result = (int)ShellExecute(NULL, NULL, document, NULL, NULL, SW_SHOWNORMAL);
 
-  if (result < 32) {
-    return RAISE_SYSERR(msp,-1);
-  }
+    if (result < 32) {
+	return RAISE_SYSERR(msp,-1);
+    }
 
-  return ML_unit;
+    return ML_unit;
 }
-
 
 /* end of win32-process.c */

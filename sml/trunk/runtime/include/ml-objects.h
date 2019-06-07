@@ -142,8 +142,8 @@ STATIC_INLINE ml_val_t ML_AllocWord (ml_state_t *msp, Word_t w)
     return ML_Alloc(msp, 1);
 }
 
-/* support for 32-bit integers, which are boxed on 32-bit systems and
- * tagged on 64-bit systems.
+/* support for 32-bit integers and words, which are boxed on 32-bit systems
+ * and tagged on 64-bit systems.
  */
 STATIC_INLINE ml_val_t INT32_CtoML (ml_state_t *msp, Int32_t n)
 {
@@ -167,9 +167,36 @@ STATIC_INLINE Int32_t INT32_MLtoC (ml_val_t n)
 STATIC_INLINE Int32_t REC_SELINT32 (ml_val_t p, int i)
 {
 #ifdef SIZES_C64_ML64
-    return REC_SELINT(p, i);
+    return REC_SELINT(p, i); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
     return *REC_SELPTR(Int32_t, p, i);
+#endif
+}
+STATIC_INLINE ml_val_t WORD32_CtoML (ml_state_t *msp, Unsigned32_t n)
+{
+#ifdef SIZES_C64_ML64
+    return INT_CtoML(n); /* tagged representation on 64-bit systems */
+#else /* 32-bit ML values */
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = MAKE_DESC(1, DTAG_raw);
+    p[1] = (ml_val_t)n;
+    return ML_Alloc(msp, 1);
+#endif
+}
+STATIC_INLINE Unsigned32_t WORD32_MLtoC (ml_val_t n)
+{
+#ifdef SIZES_C64_ML64
+    return (Unsigned32_t)INT_MLtoC(n); /* tagged representation on 64-bit systems */
+#else /* 32-bit ML values */
+    return *PTR_MLtoC(Unsigned32_t, n);
+#endif
+}
+STATIC_INLINE Unsigned32_t REC_SELWORD32 (ml_val_t p, int i)
+{
+#ifdef SIZES_C64_ML64
+    return (Unsigned32_t)REC_SELINT(p, i); /* tagged representation on 64-bit systems */
+#else /* 32-bit ML values */
+    return *REC_SELPTR(Unsigned32_t, p, i);
 #endif
 }
 
@@ -199,6 +226,16 @@ STATIC_INLINE ml_val_t ML_AllocWord64 (ml_state_t *msp, Unsigned64_t w)
     return ML_Alloc(msp, WORD64_SZW);
 }
 STATIC_INLINE Int64_t INT64_MLtoC (ml_val_t n)
+{
+#ifdef SIZES_C64_ML64
+    return *PTR_MLtoC(Unsigned64_t, n);
+#else /* 32-bit ML values */
+    Unsigned64_t hi = PTR_MLtoC(Unsigned32_t, n)[0];
+    Unsigned64_t lo = PTR_MLtoC(Unsigned32_t, n)[1];
+    return ((hi << 32) | lo);
+#endif
+}
+STATIC_INLINE Unsigned64_t WORD64_MLtoC (ml_val_t n)
 {
 #ifdef SIZES_C64_ML64
     return *PTR_MLtoC(Unsigned64_t, n);
@@ -258,6 +295,19 @@ STATIC_INLINE ml_val_t ML_AllocNanoseconds (ml_state_t *msp, int sec, int usec)
 #define OPTION_NONE             INT_CtoML(0)
 #define OPTION_SOME(msp, r, a)  REC_ALLOC1(msp, r, a)
 #define OPTION_get(r)		REC_SEL(r, 0)
+
+/* the HANDLE type is an alias for `void *`, but HANDLE values are
+ * actually indices into internal tables in the OS.  We could probably
+ * get away with representing them as tagged integers or words, but
+ * for now we use a pointer-sized boxed word.
+ */
+#if defined(_WIN32)
+#define HANDLE_MLtoC(h)		((HANDLE)WORD32_MLtoC(h))
+#define HANDLE_CtoML(msp, h)	WORD32_CtoML(msp, (Addr_t)h)
+#elif defined(_WIN64)
+#define HANDLE_MLtoC(h)		((HANDLE)WORD64_MLtoC(h))
+#define HANDLE_CtoML(msp, h)	ML_AllocWord64(msp, (Addr_t)h)
+#endif
 
 /** external routines **/
 extern ml_val_t ML_CString (ml_state_t *msp, const char *v);

@@ -15,4 +15,3 @@
 CFUNC("gettime",	_ml_Time_gettime,		"")
 CFUNC("timeofday",	_ml_Time_timeofday,		"")
 CFUNC("time_in_seconds", _ml_Time_time_in_seconds,	"")
-

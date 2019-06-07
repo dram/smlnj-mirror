@@ -1,9 +1,9 @@
-/* win32-timers.c
+/*! \file win32-timers.c
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * win32 specific interface to times and 
- * an interface to interval timers.
+ * win32 specific interface to times and interval timers.
  */
 
 #include <windows.h>
@@ -35,82 +35,75 @@ PVT struct _timeb start_timeb;
 #define WIN32_TIMER_HALTED 2
 
 typedef struct {
-  HANDLE handle;
-  DWORD id;
-  int milli_secs;
-  void (*action)();
+    HANDLE handle;
+    DWORD id;
+    int milli_secs;
+    void (*action)();
 } win32_timer_t;
 
 
-PVT
-void timer(win32_timer_t *ct)
+PVT void timer (win32_timer_t *ct)
 {
-  while (1) {
-    (*ct->action)();
-    Sleep(ct->milli_secs);
-  }
+    while (1) {
+	(*ct->action)();
+	Sleep(ct->milli_secs);
+    }
 }
 
-PVT
-BOOL create_win32_timer(win32_timer_t *ct,
-			void (*f)(),int milli_secs,BOOL suspend)
+PVT BOOL create_win32_timer (win32_timer_t *ct, void (*f)(), int mSec, BOOL suspend)
 {
   /* create a thread */
-  ct->milli_secs = milli_secs;
-  ct->action = f;
-  return ((ct->handle = CreateThread(NULL,
-				     0,     /* default stack size */
-				     (LPTHREAD_START_ROUTINE) timer,
-				     ct,
-				     suspend ? CREATE_SUSPENDED : 0,
-				     &ct->id)) != NULL);
+    ct->milli_secs = mSec;
+    ct->action = f;
+    return ((ct->handle = CreateThread(NULL,
+				       0,     /* default stack size */
+				       (LPTHREAD_START_ROUTINE) timer,
+				       ct,
+				       suspend ? CREATE_SUSPENDED : 0,
+				       &ct->id)) != NULL);
 }
 
-PVT
-BOOL destroy_win32_timer(win32_timer_t *ct)
+PVT BOOL destroy_win32_timer(win32_timer_t *ct)
 {
-  return TerminateThread(ct->handle,1);
-}  
-  
-PVT
-BOOL halt_win32_timer(win32_timer_t *ct)
-{
-  return SuspendThread(ct->handle) != 0xffffffff;
+    return TerminateThread(ct->handle,1);
 }
 
-PVT
-BOOL resume_win32_timer(win32_timer_t *ct)
+PVT BOOL halt_win32_timer(win32_timer_t *ct)
 {
-  return ResumeThread(ct->handle) != 0xffffffff;
+    return SuspendThread(ct->handle) != 0xffffffff;
+}
+
+PVT BOOL resume_win32_timer(win32_timer_t *ct)
+{
+    return ResumeThread(ct->handle) != 0xffffffff;
 }
 
 PVT win32_timer_t wt;
 
 bool_t win32StopTimer()
 {
-  return halt_win32_timer(&wt);
+    return halt_win32_timer(&wt);
 }
 
-bool_t win32StartTimer(int milli_secs)
+bool_t win32StartTimer (int mSec)
 {
-  wt.milli_secs = milli_secs;
-  return resume_win32_timer(&wt);
+    wt.milli_secs = mSec;
+    return resume_win32_timer(&wt);
 }
 
-PVT
-void win32_fake_sigalrm()
+PVT void win32_fake_sigalrm()
 {
-  vproc_state_t   *vsp = SELF_VPROC;
+    vproc_state_t   *vsp = SELF_VPROC;
 
-  if (SuspendThread(win32_ML_thread_handle) == 0xffffffff) {
-    Die ("win32_fake_sigalrm: unable to suspend ML thread");
-  }
+    if (SuspendThread(win32_ML_thread_handle) == 0xffffffff) {
+	Die ("win32_fake_sigalrm: unable to suspend ML thread");
+    }
 
-  win32_generic_handler(SIGALRM);
+    win32_generic_handler(SIGALRM);
 
-  if (ResumeThread(win32_ML_thread_handle) == 0xffffffff) {
-    Die ("win32_fake_sigalrm: unable to resume ML thread");
-  }
+    if (ResumeThread(win32_ML_thread_handle) == 0xffffffff) {
+	Die ("win32_fake_sigalrm: unable to resume ML thread");
+    }
 }
 
 
@@ -120,10 +113,10 @@ void win32_fake_sigalrm()
  */
 void InitTimers ()
 {
-  if (!create_win32_timer(&wt,win32_fake_sigalrm,0,TRUE)) {
-    Die("InitTimers: unable to create_win32_timer");
-  }
-  _ftime(&start_timeb);
+    if (!create_win32_timer(&wt,win32_fake_sigalrm,0,TRUE)) {
+	Die("InitTimers: unable to create_win32_timer");
+    }
+    _ftime(&start_timeb);
 } /* end of InitTimers */
 
 
@@ -133,24 +126,24 @@ void InitTimers ()
  */
 void GetCPUTime (Time_t *usrT, Time_t *sysT)
 {
-  struct _timeb now_timeb, elapsed_timeb;
+    struct _timeb now_timeb, elapsed_timeb;
 
-  _ftime(&now_timeb);
-  if (now_timeb.millitm < start_timeb.millitm) {
-    now_timeb.time--;
-    ASSERT(now_timeb.time >= start_timeb.time);
-    now_timeb.millitm += 1000;
-    ASSERT(now_timeb.millitm > start_timeb.millitm);
-  }
-  elapsed_timeb.time = now_timeb.time - start_timeb.time;
-  elapsed_timeb.millitm = now_timeb.millitm - start_timeb.millitm;
-  if (usrT != NIL(Time_t *)) {
-    usrT->seconds = (Int32_t) elapsed_timeb.time;
-    usrT->uSeconds = ((Int32_t) elapsed_timeb.millitm) * 1000;
-  }
-  if (sysT != NIL(Time_t *)) {
-    sysT->seconds = sysT->uSeconds = 0;
-  }
+    _ftime(&now_timeb);
+    if (now_timeb.millitm < start_timeb.millitm) {
+	now_timeb.time--;
+	ASSERT(now_timeb.time >= start_timeb.time);
+	now_timeb.millitm += 1000;
+	ASSERT(now_timeb.millitm > start_timeb.millitm);
+    }
+    elapsed_timeb.time = now_timeb.time - start_timeb.time;
+    elapsed_timeb.millitm = now_timeb.millitm - start_timeb.millitm;
+    if (usrT != NIL(Time_t *)) {
+	usrT->seconds = (Int32_t) elapsed_timeb.time;
+	usrT->uSeconds = ((Int32_t) elapsed_timeb.millitm) * 1000;
+    }
+    if (sysT != NIL(Time_t *)) {
+	sysT->seconds = sysT->uSeconds = 0;
+    }
 }
 
 /* end of win32-timers.c */

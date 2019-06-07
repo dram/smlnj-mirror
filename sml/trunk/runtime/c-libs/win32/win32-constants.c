@@ -1,6 +1,7 @@
-/* win32-constants.c
+/*! \file win32-constants.c
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * interface to win32 constants
  */
@@ -115,28 +116,28 @@ PVT name_val_t class[] = {
 #define N_CLASSES TAB_SZ(class)
 
 
-/* _ml_win32_get_const: (string * string) -> word
+/* _ml_win32_get_const: (string * string) -> word32
  * lookup (class,constant) pair
  */
 ml_val_t _ml_win32_get_const(ml_state_t *msp, ml_val_t arg)
 {
-  char *s1 = STR_MLtoC(REC_SEL(arg,0));
-  char *s2 = STR_MLtoC(REC_SEL(arg,1));
-  name_val_t *ptab, *res;
-  int index;
-  ml_val_t v;
+    char *s1 = STR_MLtoC(REC_SEL(arg,0));
+    char *s2 = STR_MLtoC(REC_SEL(arg,1));
+    name_val_t *ptab, *res;
+    int index;
+    ml_val_t v;
 
-  ptab = nv_lookup(s1, class, N_CLASSES);
-  if (ptab) {
-    index = ptab->data;
-    ASSERT(index < TAB_SZ(table));
-    if (res = nv_lookup(s2, table[index].ptab, table[index].sz)) {
-      WORD_ALLOC(msp,v,res->data);
-      return v;
+    ptab = nv_lookup(s1, class, N_CLASSES);
+    if (ptab) {
+	index = ptab->data;
+	ASSERT(index < TAB_SZ(table));
+	if (res = nv_lookup(s2, table[index].ptab, table[index].sz)) {
+	    WORD_ALLOC(msp,v,res->data);
+	    return v;
+	}
+	return RAISE_ERROR(msp,"win32_cconst: unknown constant");
     }
-    return RAISE_ERROR(msp,"win32_cconst: unknown constant");
-  }
-  return RAISE_ERROR(msp,"win32_cconst: unknown constant class");
+    return RAISE_ERROR(msp,"win32_cconst: unknown constant class");
 }
 
 /* end of win32-constants.c */
