@@ -29,10 +29,8 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
     struct timeval	t;
 
     gettimeofday (&t, NIL(struct timezone *));
-    c_sec = t.tv_sec;
-    c_usec = t.tv_usec;
 
-    return ML_AllocNanoseconds(msp, c_sec, c_usec);
+    return ML_AllocNanoseconds(msp, t.tv_sec, t.tv_usec);
 #elif defined(OPSYS_WIN32)
     FILETIME ft;
     Unsigned64_t ns;

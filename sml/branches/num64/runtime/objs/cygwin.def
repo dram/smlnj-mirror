@@ -200,13 +200,10 @@ EXPORTS
     _ml_P_FileSys_fchown @199
     _ml_P_FileSys_fpathconf @200
     _ml_P_FileSys_fstat @201
-    _ml_P_FileSys_fstat_64 @202
     _ml_P_FileSys_ftruncate @203
-    _ml_P_FileSys_ftruncate_64 @204
     _ml_P_FileSys_getcwd @205
     _ml_P_FileSys_link @206
     _ml_P_FileSys_lstat @207
-    _ml_P_FileSys_lstat_64 @208
     _ml_P_FileSys_mkdir @209
     _ml_P_FileSys_mkfifo @210
     _ml_P_FileSys_opendir @211
@@ -219,7 +216,6 @@ EXPORTS
     _ml_P_FileSys_rewinddir @218
     _ml_P_FileSys_rmdir @219
     _ml_P_FileSys_stat @220
-    _ml_P_FileSys_stat_64 @221
     _ml_P_FileSys_symlink @222
     _ml_P_FileSys_umask @223
     _ml_P_FileSys_unlink @224
@@ -231,12 +227,10 @@ EXPORTS
     _ml_P_IO_fcntl_gfd @230
     _ml_P_IO_fcntl_gfl @231
     _ml_P_IO_fcntl_l @232
-    _ml_P_IO_fcntl_l_64 @233
     _ml_P_IO_fcntl_sfd @234
     _ml_P_IO_fcntl_sfl @235
     _ml_P_IO_fsync @236
     _ml_P_IO_lseek @237
-    _ml_P_IO_lseek_64 @238
     _ml_P_IO_osval @239
     _ml_P_IO_pipe @240
     _ml_P_IO_read @241
