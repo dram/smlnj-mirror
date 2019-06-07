@@ -8,7 +8,7 @@
 
 local
   structure Time = TimeImp
-  structure Int64 = Int64Imp
+  structure Word64 = Word64Imp
 in
 structure Win32_FileSys : WIN32_FILESYS =
   struct
@@ -65,15 +65,15 @@ structure Win32_FileSys : WIN32_FILESYS =
 
     local
     (* returns time in nanoseconds *)
-      val getFileTime' : string -> Int64.int option = cf "get_file_time"
+      val getFileTime' : string -> Word64.word option = cf "get_file_time"
     (* set file time in nanoseconds *)
-      val setFileTime' : (string * Int64.int) -> bool =  cf "set_file_time"
+      val setFileTime' : (string * Word64.word) -> bool =  cf "set_file_time"
     in
     fun getFileTime f = (case getFileTime' f
-	   of SOME ns => SOME(Time.fromNanoseconds(Int64.toLarge ns))
+	   of SOME ns => SOME(Time.fromNanoseconds(Word64.toLargeInt ns))
 	    | NONE => NONE
 	  (* end case *))
-    fun setFileTime (f, t) = setFileTime'(f, Int64.fromLarge(Time.toNanoseconds t))
+    fun setFileTime (f, t) = setFileTime'(f, Word64.fromLargeInt(Time.toNanoseconds t))
     end (* local *)
 
     val deleteFile : string -> bool = cf "delete_file"

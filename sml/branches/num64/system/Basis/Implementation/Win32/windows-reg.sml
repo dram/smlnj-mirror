@@ -11,8 +11,9 @@ local
     structure Key = Windows_KEY			
     structure String = StringImp
 in
-structure Windows_REG : WINDOWS_REG = struct
-  type hkey = SysWord.word
+structure Windows_REG : WINDOWS_REG =
+  struct
+    type hkey = Handle.t  (* HKEY is an alias for HANDLE *)
 
     val classesRoot     = 0wx80000000 : Word32.word
     val currentUser     = 0wx80000001 : Word32.word

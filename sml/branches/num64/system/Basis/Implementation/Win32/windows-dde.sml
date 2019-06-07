@@ -12,7 +12,7 @@ local
 in
 structure Windows_DDE : WINDOWS_DDE =
   struct
-    type info = Win32_General.word
+    type info = Handle.t	(* HCONV, which is an alias for HANDLE *)
 
     fun cfun x = CInterface.c_function "WIN32" x
 

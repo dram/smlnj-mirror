@@ -75,7 +75,11 @@ structure Win32_IO : WIN32_IO =
     val createFile' : (string * word * word * word * word) -> hndl = cf "create_file"
 
     fun createFile {name:string, access:word,share:word,mode:word,attrs:word} =
-	  createFile'(name,access,share,mode,attrs)
+(W32G.sayDebug(concat["** createFile{name=\"", name, "\", access=0x", W32G.Word.toString access,
+", share=0x", W32G.Word.toString share, ", mode=0x", W32G.Word.toString mode,
+", attrs=0x", W32G.Word.toString attrs, "}\n"]);
+	  createFile'(name, access, share, mode, attrs)
+)
 
     val writeVec' : (hndl * Word8Vector.vector * int * int) -> int = cf "write_vec"
     val writeArr' : (hndl * Word8Array.array * int * int) -> int = cf "write_arr"

@@ -112,8 +112,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 	      }
 	  end
 
-    val shareAll = W32G.Word.orb(W32IO.FILE_SHARE_READ,
-				 W32IO.FILE_SHARE_WRITE)
+    val shareAll = W32G.Word.orb(W32IO.FILE_SHARE_READ, W32IO.FILE_SHARE_WRITE)
 
     fun checkHndl name h = if Handle.isValid h
 	  then h

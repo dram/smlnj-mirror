@@ -9,6 +9,7 @@
 signature WIN32_IO =
   sig
     type hndl = Win32_General.hndl
+
     val setFilePointer' : (hndl * Position.int * Win32_General.word) -> Position.int
 
     val FILE_BEGIN : Win32_General.word

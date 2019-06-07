@@ -106,9 +106,8 @@ structure OS_FileSys : OS_FILE_SYS =
 
     fun fullPath "" = getDir ()
       | fullPath s = if exists s
-	  then W32FS.getFullPathName' s
-	  else raise SysErr("fullPath: cannot generate full path",NONE)
-    val fullPath = OSPath.mkCanonical o fullPath
+	  then OSPath.mkCanonical(W32FS.getFullPathName' s)
+	  else rse "fullPath" "file does not exist"
 
     fun realPath p = if OSPath.isAbsolute p
 	  then fullPath p
@@ -118,50 +117,6 @@ structure OS_FileSys : OS_FILE_SYS =
 	   of SOME w => w
 	    | NONE => rse "fileSize" "cannot get size"
 	  (* end case *))
-
-    fun intToMonth 1 = Date.Jan
-      | intToMonth 2 = Date.Feb
-      | intToMonth 3 = Date.Mar
-      | intToMonth 4 = Date.Apr
-      | intToMonth 5 = Date.May
-      | intToMonth 6 = Date.Jun
-      | intToMonth 7 = Date.Jul
-      | intToMonth 8 = Date.Aug
-      | intToMonth 9 = Date.Sep
-      | intToMonth 10 = Date.Oct
-      | intToMonth 11 = Date.Nov
-      | intToMonth 12 = Date.Dec
-      | intToMonth _ = rse "intToMonth" "not in 1-12"
-
-    fun monthToInt Date.Jan = 1
-      | monthToInt Date.Feb = 2
-      | monthToInt Date.Mar = 3
-      | monthToInt Date.Apr = 4
-      | monthToInt Date.May = 5
-      | monthToInt Date.Jun = 6
-      | monthToInt Date.Jul = 7
-      | monthToInt Date.Aug = 8
-      | monthToInt Date.Sep = 9
-      | monthToInt  Date.Oct = 10
-      | monthToInt  Date.Nov = 11
-      | monthToInt  Date.Dec = 12
-
-    fun intToWeekDay 0 = Date.Sun
-      | intToWeekDay 1 = Date.Mon
-      | intToWeekDay 2 = Date.Tue
-      | intToWeekDay 3 = Date.Wed
-      | intToWeekDay 4 = Date.Thu
-      | intToWeekDay 5 = Date.Fri
-      | intToWeekDay 6 = Date.Sat
-      | intToWeekDay _ = rse "intToWeekDay" "not in 0-6"
-
-    fun weekDayToInt Date.Sun = 0
-      | weekDayToInt Date.Mon = 1
-      | weekDayToInt Date.Tue = 2
-      | weekDayToInt Date.Wed = 3
-      | weekDayToInt Date.Thu = 4
-      | weekDayToInt Date.Fri = 5
-      | weekDayToInt Date.Sat = 6
 
     fun modTime s = (case W32FS.getFileTime s
 	   of (SOME t) => t
@@ -226,10 +181,14 @@ structure OS_FileSys : OS_FILE_SYS =
 	    | SOME s => s
 	  (* end case *))
 
+  (* Windows does not have an equivalent to inode-numbers, so we use the canonical
+   * full path for the file as its unique ID.
+   *)
     type file_id = string
 
-    fun fileId s = fullPath s
-	  handle (SysErr _) => rse "fileId" "cannot create file id"
+    fun fileId s = if exists s
+	  then OSPath.mkCanonical(W32FS.getFullPathName' s)
+	  else rse "fileId" "No such file or directory"
 
     fun hash (fid : file_id) = Word.fromInt (
 	  CharVector.foldl (fn (a, b) => (Char.ord a + b) handle _ => 0) 0 fid)
