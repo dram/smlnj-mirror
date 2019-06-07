@@ -13,7 +13,6 @@ local
   structure Int = IntImp
   structure Int32 = Int32Imp
   structure Time = TimeImp
-  structure Pointer = PointerImp
 in
 structure OS_IO : OS_IO =
   struct
@@ -26,7 +25,6 @@ structure OS_IO : OS_IO =
   (* = IODesc of Handle.t ref | SockDesc of int *)
     datatype iodesc = datatype OS.IO.iodesc
 
-    (* hash: can't assume 32 bits *)
     fun hash (IODesc(ref h)) = Handle.hash h
       | hash (SockDesc s) = Word.fromInt s
 

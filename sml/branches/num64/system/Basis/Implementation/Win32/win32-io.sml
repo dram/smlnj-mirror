@@ -12,7 +12,7 @@ in
 structure Win32_IO : WIN32_IO =
   struct
     structure W32G = Win32_General
-    type hndl = W32G.hndl
+    type hndl = Handle.t
 
     type word = W32G.word
 

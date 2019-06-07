@@ -7,7 +7,6 @@
  *)
 
 local
-    structure SysWord = SysWordImp
     structure Time = TimeImp
     structure IntInf = IntInfImp
 in
@@ -24,7 +23,6 @@ structure Windows_DDE : WINDOWS_DDE =
 	  val executeStringInternal : info * string * int * int -> unit = cfun "dde_execute_string"
 	  in
 	    executeStringInternal (conversation, command, retry, realDelay)
-
 	  end
 
     val stopDialog : info -> unit = cfun "dde_stop_dialog"

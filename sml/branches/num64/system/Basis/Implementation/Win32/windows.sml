@@ -29,7 +29,7 @@ structure Windows : WINDOWS =
     val launchApplication : string * string -> unit = cfunProc "launch_application"
     val openDocument : string -> unit = cfunProc "open_document"
 
-    val waitForSingleObject : W32G.hndl -> SysWord.word option = cfunProc "wait_for_single_object"
+    val waitForSingleObject : Handle.t -> W32G.word option = cfunProc "wait_for_single_object"
     fun loopingSleepingWait procHandle = (case waitForSingleObject procHandle
 	   of NONE => (
 		OS_Process.sleep (TimeImp.fromMilliseconds 100);
@@ -58,10 +58,10 @@ structure Windows : WINDOWS =
     (* Redirected I/O process support *)
     datatype proc_status
       = DEAD of OS.Process.status
-      | ALIVE of W32G.hndl
+      | ALIVE of Handle.t
 
     datatype 'stream stream
-      = UNOPENED of W32G.hndl
+      = UNOPENED of Handle.t
       | OPENED of { stream: 'stream, close: unit -> unit }
 
     datatype ('a, 'b) proc = PROC of {
@@ -72,7 +72,7 @@ structure Windows : WINDOWS =
 
     (* val execute : string * string -> ('a, 'b) proc *)
     local
-      val cpRedirect : string -> W32G.hndl * W32G.hndl * W32G.hndl =
+      val cpRedirect : string -> Handle.t * Handle.t * Handle.t =
 	    cfunProc "create_process_redirect_handles"
     in
     fun execute (cmd, arg) = let
@@ -157,9 +157,9 @@ structure Windows : WINDOWS =
     fun binOutstreamOf p =
 	  streamOf (#outstream, "bin_out", openBinOutHNDL, BinIO.closeOut) p
 
-    (* val reap : ('a, 'b) proc -> OS.Process.status  *)
-    fun reap (PROC { status = ref (DEAD s), ... }) = s
-      | reap (PROC { status = status as ref (ALIVE hProcess), instream, outstream, ... }) = let
+  (* val reap : ('a, 'b) proc -> OS.Process.status  *)
+    fun reap (PROC{ status = ref (DEAD s), ... }) = s
+      | reap (PROC{ status = status as ref (ALIVE hProcess), instream, outstream, ... }) = let
 	  fun close (UNOPENED hndl) = Win32_IO.close hndl
 	    | close (OPENED s) = #close s ()
 	  val _ = close (!instream)

@@ -10,7 +10,7 @@ structure Win32_General : WIN32_GENERAL =
   struct
 
     structure Word = Word32Imp
-    type word = Word.word
+    type word = Word.word	(* DWORD *)
 
     type hndl = Handle.t
 
