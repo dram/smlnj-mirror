@@ -19,9 +19,7 @@
 
 /* _ml_Time_timeofday : unit -> Int64.int
  *
- * Return the time of day.
- * NOTE: gettimeofday() is not POSIX (time() returns seconds, and is POSIX
- * and ISO C).
+ * Return the UTC time of day in nanoseconds.
  */
 ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 {
@@ -42,7 +40,7 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
     uli.HighPart = ft.dwHighDateTime;
     uli.LowPart = ft.dwLowDateTime;
     ns = 100 * uli.QuadPart;
-SayDebug("timeofday: ft = %#x:%08x; ns = %lld\n", ft.dwHighDateTime, ft.dwLowDateTime, ns);
+SayDebug("** timeofday: ft = %#x:%08x; ns = %lld\n", ft.dwHighDateTime, ft.dwLowDateTime, ns);
 
     return ML_AllocWord64(msp, ns);
 #else

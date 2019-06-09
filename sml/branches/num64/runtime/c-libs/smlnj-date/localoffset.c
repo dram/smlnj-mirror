@@ -135,13 +135,19 @@ ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
 
     Unsigned32_t localSec = WORD32_MLtoC(arg);
     secs_to_filetime (localSec, &localFT);
+SayDebug("** localOffsetForTime: localSec = %u; localFT = %#x:%08x\n",
+localSec, localFT.dwHighDateTime, localFT.dwLowDateTime);
     if (LocalFileTimeToFileTime (&localFT, &utcFT)) {
 	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
+SayDebug("                       utcSec = %u; utcFT = %#x:%08x\n",
+utcSec, utcFT.dwHighDateTime, utcFT.dwLowDateTime);
       /* compute offset (UTC - local) in seconds. */
 	if (localSec <= utcSec) {
+SayDebug("                       offset = %d\n", (Int32_t)(utcSec - localSec));
 	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
 	}
 	else {
+SayDebug("                       offset = %d\n", -(Int32_t)(localSec - utcSec));
 	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
 	}
     }

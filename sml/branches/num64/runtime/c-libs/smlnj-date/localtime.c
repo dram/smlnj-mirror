@@ -15,9 +15,9 @@
 
 /* _ml_Date_localtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
  *
- * Takes a local time value (in seconds), and converts it to a 9-tuple with
- * the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year, tm_wday,
- * tm_yday, and tm_isdst.
+ * Takes a UTC time value (in seconds), and converts it to local time represented
+ * as a 9-tuple with the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year,
+ * tm_wday, tm_yday, and tm_isdst.
  */
 ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 {
@@ -49,34 +49,34 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 
 /* _ml_Date_localtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
  *
- * Takes a local time value (in seconds), and converts it to a 9-tuple with
- * the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year, tm_wday,
- * tm_yday, and tm_isdst.
+ * Takes a UTC time value (in seconds), and converts it to local time represented
+ * as a 9-tuple with the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year,
+ * tm_wday, tm_yday, and tm_isdst.
  */
 ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 {
-    Unsigned32_t localSec = WORD32_MLtoC(arg);
-    FILETIME localFT, utcFT;
+    FILETIME utcFT;
     SYSTEMTIME localST, utcST;
     TIME_ZONE_INFORMATION tzInfo;
     BOOL isDST;
 
-  /* convert the local time to UTC */
-    if (! LocalFileTimeToFileTime(&localFT, &utcFT)) {
-    }
+    secs_to_filetime (WORD32_MLtoC(arg), &utcFT);
 
   /* convert to system time */
     if (! FileTimeToSystemTime(&utcFT, &utcST)) {
+	return RAISE_SYSERR(msp, 0);
     }
 
   /* adjust back to local time using the local time zone */
     if (! SystemTimeToTzSpecificLocalTime(NULL, &utcST, &localST)) {
+	return RAISE_SYSERR(msp, 0);
     }
 
   /* need to figure out if localST is in DST; we do this by getting the local
    * timezone info for the given year and then check the range of dates
    */
     if (! GetTimeZoneInformationForYear(localST.wYear, NULL, &tzInfo)) {
+	return RAISE_SYSERR(msp, 0);
     }
     if (tzInfo.StandardDate.wMonth == 0) {
       /* timezone does not support DST */
