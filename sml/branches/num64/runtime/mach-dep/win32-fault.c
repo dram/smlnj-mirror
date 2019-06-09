@@ -149,7 +149,7 @@ void InitFaultHandlers (ml_state_t *msp)
  * explicitly test for division by zero, and arithmetic trap should be
  * mapped to Overflow.
  */
-PVT bool_t fault_handler (int code, Word_t pc)
+PVT bool_t fault_handler (int code, Addr_t pc)
 {
     ml_state_t *msp = SELF_VPROC->vp_state;
     extern Word_t request_fault[];
@@ -179,7 +179,7 @@ int restoreregs (ml_state_t *msp)
     request = asm_restoreregs(msp);
     return request;
 
-  } __except(fault_handler(GetExceptionCode(), (Word_t *)(GetExceptionInformation())->ContextRecord->Eip) ?
+  } __except(fault_handler(GetExceptionCode(), (Addr_t)(GetExceptionInformation())->ContextRecord->Eip) ?
 #ifdef HOST_X86
 	     ((Word_t *)(GetExceptionInformation())->ContextRecord->Eip = request_fault,
               EXCEPTION_CONTINUE_EXECUTION) :
