@@ -33,10 +33,10 @@ ml_val_t _ml_P_FileSys_utime (ml_state_t *msp, ml_val_t arg)
     }
     else {
         struct timeval	times[2];
-	Unsigne64_t us = acctime / 1000;	/* convert to microseconds */
+	Unsigned64_t us = actime / 1000;	/* convert to microseconds */
 	times[0].tv_sec = us / 1000000;
 	times[0].tv_usec = us % 1000000;
-	Unsigne64_t us = modtime / 1000;	/* convert to microseconds */
+	us = modtime / 1000;			/* convert to microseconds */
 	times[1].tv_usec = us % 1000000;
 	times[1].tv_sec = us / 1000000;
 	sts = utimes (STR_MLtoC(path), times);
