@@ -212,7 +212,7 @@ end = struct
     fun neg64 (hi, 0w0) : word32 * word32 = (InLine.word32_neg hi, 0w0)
       | neg64 (hi, lo) = (InLine.word32_notb hi, InLine.word32_neg lo)
 
-  (* convert an intinf to a int64 represented as a pair of word32s; raise
+  (* convert an intinf to an int64 represented as a pair of word32s; raise
    * Overflow if the result is nor representable as an int64.
    *)
     fun testInf64 i = let
