@@ -191,12 +191,14 @@ bind init-utils = init-utils.sml (ps ss-sig ss, xcore)
 # kept as small as possible and only bind non-modular things
 # (i.e., top-level types and values).
 # Make sure everybody else in the world gets access to structure _Core...
-bind-core (xCore) pervasive = pervasive.sml (core, ps, ss, pp, print-hook, \
-					     use-hook, exn-info-hook, \
-					     coreintinf, \
-					     coreword64, coreint64, \
-					     math-inlT, inline, xcore)
+ifdef SIZE_32 \
+	bind-core (xCore) pervasive = pervasive.sml (core, ps, ss, pp, print-hook, \
+						     use-hook, exn-info-hook, \
+						     coreintinf, \
+						     coreword64, coreint64, \
+						     math-inlT, inline, xcore)
 
 # Report the results to the world...
-return (pervasive) inline math-inlT print-hook use-hook exn-info-hook core \
-		   init-utils rawmem coreintinf coreword64 coreint64
+ifdef SIZE_32 \
+	return (pervasive) inline math-inlT print-hook use-hook exn-info-hook core \
+			   init-utils rawmem coreintinf coreword64 coreint64
