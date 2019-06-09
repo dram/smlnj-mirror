@@ -1,10 +1,13 @@
-(*
- * Build the dependency graph for one group/library.
+(* build.sml
  *
- * (C) 1999 Lucent Technologies, Bell Laboratories
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Build the dependency graph for one group/library.
  *
  * Author: Matthias Blume (blume@kurims.kyoto-u.ac.jp)
  *)
+
 signature BUILDDEPEND = sig
     type impexp = DependencyGraph.impexp
 
@@ -287,13 +290,20 @@ structure BuildDepend :> BUILDDEPEND = struct
 	val localmap = SM.map addDummyFilt localdefs
 
 	val exports = let
-	    val ss = filter
+            (* Strengthening a local export is directly described
+             * by filter. *)
+	    val local_filter = filter
+            (* In contrast, strengthening a re-export must take into
+             * account local definitions: anything defined locally
+             * must be removed from re-exports. *)
+            val reexport_filter =
+		SymbolSet.subtractList (filter, SymbolMap.listKeys localdefs)
 	    (* We now always have a filter.
 	     * We export only the things in the filter.
 	     * They can be taken from either localmap or else from
 	     * imports.  In either case, it is necessary to strengthen
 	     * the filter attached to each node. *)
-	    fun strengthen (nth, e, allsyms) = let
+	    fun strengthen ss (nth, e, allsyms) = let
 		val (fopt', sbn) = nth ()
 		val new_fopt =
 		    case fopt' of
@@ -304,19 +314,21 @@ structure BuildDepend :> BUILDDEPEND = struct
 		(nth', DE.FILTER (ss, e), SS.intersection (allsyms,ss))
 	    end
 	    fun addNodeFor (s, m) =
-		case SM.find (localmap, s) of
-		    SOME n => SM.insert (m, s, strengthen n)
-		  | NONE =>
-		    (case SM.find (imports, s) of
-			 SOME n => (add_gi_sym s;
-				    SM.insert (m, s, strengthen n))
-		       | NONE => 
+		case SM.find (localmap, s)
+		 of SOME n => SM.insert (m, s, strengthen local_filter n)
+		  | NONE => (case SM.find (imports, s)
+		       of SOME n => (
+			    add_gi_sym s;
+			    SM.insert (m, s, strengthen reexport_filter n))
+			| NONE =>
 			 (* This should never happen since we
 			  * checked beforehand during
 			  * parsing/semantic analysis *)
-			 EM.impossible "build: undefined export")
+			    EM.impossible "build: undefined export"
+		      (* end case *))
+		(* end case *))
 	in
-	    SS.foldl addNodeFor SM.empty ss
+	    SS.foldl addNodeFor SM.empty filter
 	end
     in
 	CheckSharing.check (exports, gp);
