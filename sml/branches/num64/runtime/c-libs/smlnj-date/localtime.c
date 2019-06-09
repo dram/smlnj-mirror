@@ -1,15 +1,19 @@
-/* localtime.c
+/*! \file localtime.c
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
-#include <time.h>
 #include "ml-base.h"
 #include "ml-objects.h"
 #include "cfun-proto-list.h"
 #include "ml-c.h"
 
-/* _ml_Date_localtime : Int32.int -> (int * int * int * int * int * int * int * int * int)
+#if !defined(OPSYS_WIN32)
+
+#include <time.h>
+
+/* _ml_Date_localtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
  *
  * Takes a local time value (in seconds), and converts it to a 9-tuple with
  * the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year, tm_wday,
@@ -17,7 +21,7 @@
  */
 ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 {
-    time_t	t = (time_t)INT32_MLtoC(arg);
+    time_t	t = (time_t)WORD32_MLtoC(arg);
     struct tm	*tm;
 
     tm = localtime (&t);
@@ -38,3 +42,52 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
     return ML_Alloc(msp, 9);
 
 } /* end of _ml_Date_localtime */
+
+#else /* OPSYS_WIN32 */
+
+#include "win32-date.h"
+
+/* _ml_Date_localtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
+ *
+ * Takes a local time value (in seconds), and converts it to a 9-tuple with
+ * the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year, tm_wday,
+ * tm_yday, and tm_isdst.
+ */
+ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
+{
+    Unsigned32_t localSec = WORD32_MLtoC(arg);
+    FILETIME localFT, utcFT;
+    SYSTEMTIME localST, utcST;
+    TIME_ZONE_INFORMATION tzInfo;
+    BOOL isDST;
+
+  /* convert the local time to UTC */
+    if (! LocalFileTimeToFileTime(&localFT, &utcFT)) {
+    }
+
+  /* convert to system time */
+    if (! FileTimeToSystemTime(&utcFT, &utcST)) {
+    }
+
+  /* adjust back to local time using the local time zone */
+    if (! SystemTimeToTzSpecificLocalTime(NULL, &utcST, &localST)) {
+    }
+
+  /* need to figure out if localST is in DST; we do this by getting the local
+   * timezone info for the given year and then check the range of dates
+   */
+    if (! GetTimeZoneInformationForYear(localST.wYear, NULL, &tzInfo)) {
+    }
+    if (tzInfo.StandardDate.wMonth == 0) {
+      /* timezone does not support DST */
+	isDST = false;
+    }
+    else {
+	/* TODO: test localST against tzInfo.StandardState and tzInfo.DaylightDate */
+    }
+
+    return _ml_alloc_tm (msp, &localST, isDST);
+
+} /* end of _ml_Date_localtime */
+
+#endif

@@ -24,19 +24,6 @@
 
 /* typedef void *ml_val_t; */	/* defined in ml-base.h */
 
-#ifdef BOXED1
-
-#ifndef _ASM_
-#define INT_MLtoC(n)		(((Int_t)(n)) >> 1)
-#define INT_CtoML(n)		((ml_val_t)((n) << 1))
-#define PTR_MLtoC(ty,p)		((ty *)(((Addr_t)(p))-1))
-#define PTR_CtoML(p)		((ml_val_t)(((Addr_t)(p))+1))
-#else
-#define INT_CtoML(n)		((n)*2)
-#endif /* !_ASM_ */
-
-#else
-
 #ifndef _ASM_
 
 /* When the size of a C pointer differs from the size of an ML value, the
@@ -51,14 +38,12 @@
 #endif
 
 #define INT_MLtoC(n)		(((Int_t)(n)) >> 1)
-#define INT_CtoML(n)		((ml_val_t)(Int_t)(((n) << 1) + 1))
+#define INT_CtoML(n)		((ml_val_t)(Int_t)(2*(n) + 1))
 #define PTR_MLtoC(ty,p)		PTR_CAST(ty *, p)
 #define PTR_CtoML(p)		PTR_CAST(ml_val_t, p)
 #else
 #define INT_CtoML(n)		(((n)*2)+1)
 #endif /* !_ASM_ */
-
-#endif /* BOXED1 */
 
 #ifndef _ASM_
 

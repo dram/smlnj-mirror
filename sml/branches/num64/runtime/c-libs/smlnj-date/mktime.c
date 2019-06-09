@@ -1,17 +1,20 @@
-/* mktime.c
+/*! \file mktime.c
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
-#include <time.h>
 #include "ml-base.h"
 #include "ml-c.h"
 #include "ml-objects.h"
 #include "cfun-proto-list.h"
-#include <string.h>
 
-/* _ml_Date_mktime : (int * int * int * int * int * int * int * int * int)
- *	-> Int32.int
+#if !defined(OPSYS_WIN32)
+
+#include <string.h>
+#include <time.h>
+
+/* _ml_Date_mktime : (int * int * int * int * int * int * int * int * int) -> Word32.word
  *
  * This takes a 9-tuple with the fields: tm_sec, tm_min, tm_hour, tm_mday,
  * tm_mon, tm_year, tm_wday, tm_yday, tm_isdst, and returns the corresponding
@@ -39,7 +42,47 @@ ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 	return RAISE_ERROR(msp, "Invalid date");
     }
     else {
-	return INT32_CtoML(msp, t);
+	return WORD32_CtoML(msp, t);
     }
 
 } /* end of _ml_Date_mktime */
+
+#else /* OPSYS_WIN32 */
+
+#include "win32-date.h"
+
+/* _ml_Date_mktime : (int * int * int * int * int * int * int * int * int) -> Word32.word
+ *
+ * This takes a 9-tuple with the fields: tm_sec, tm_min, tm_hour, tm_mday,
+ * tm_mon, tm_year, tm_wday, tm_yday, tm_isdst, and returns the corresponding
+ * localtime value (in seconds).
+ */
+ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
+{
+    SYSTEMTIME localST;
+    FILETIME localFT, utcST;
+
+    localST.wSecond		= REC_SELINT(arg, 0);
+    localST.wMinute		= REC_SELINT(arg, 1);
+    localST.wHour		= REC_SELINT(arg, 2);
+    localST.wDay		= REC_SELINT(arg, 3);
+    localST.wMonth		= REC_SELINT(arg, 4);
+    localST.wYear		= REC_SELINT(arg, 5);
+    localST.wDayOfWeek		= REC_SELINT(arg, 6);
+    localST.wMilliseconds	= 0;
+
+  /* convert to UTC FILETIME */
+    if (! TzSpecificLocalTimeToSystemTime(NULL, &localST, &utcFT)) {
+	return RAISE_ERROR(msp, "Invalid date");
+    }
+
+  /* convert UTC FILETIME to local FILETIME */
+    if (! FileTimeToLocalFileTime(&utcFT, &localFT)) {
+	return RAISE_ERROR(msp, "Invalid date");
+    }
+
+    return WORD32_CtoML(msp, filetime_to_secs(&localFT));
+
+} /* end of _ml_Date_mktime */
+
+#endif
