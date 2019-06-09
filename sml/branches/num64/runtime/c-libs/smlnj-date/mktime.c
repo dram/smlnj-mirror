@@ -60,7 +60,7 @@ ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 {
     SYSTEMTIME localST;
-    FILETIME localFT, utcST;
+    FILETIME localFT, utcFT;
 
     localST.wSecond		= REC_SELINT(arg, 0);
     localST.wMinute		= REC_SELINT(arg, 1);

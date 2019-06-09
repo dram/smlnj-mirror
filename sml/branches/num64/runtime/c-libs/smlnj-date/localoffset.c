@@ -87,6 +87,8 @@ ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
 
 #else /* OPSYS_WIN32 */
 
+#include "win32-date.h"
+
 /* _ml_Date_localOffset : unit -> Int32.int
  *
  * Returns the offset from UTC of the current time in the local timezone.
@@ -96,7 +98,7 @@ ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
 ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
 {
     SYSTEMTIME localST;
-    FILETIME localFT;
+    FILETIME localFT, utcFT;
     Unsigned32_t localSec;
 
     GetLocalTime (&localST);
@@ -109,10 +111,10 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
 	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
       /* compute offset (UTC - local) in seconds. */
 	if (localSec <= utcSec) {
-	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec);
+	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
 	}
 	else {
-	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec);
+	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
 	}
     }
     else {
@@ -132,15 +134,15 @@ ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
     FILETIME localFT, utcFT;
 
     Unsigned32_t localSec = WORD32_MLtoC(arg);
-    SecondsToFiletime (localSec, &localFT);
+    secs_to_filetime (localSec, &localFT);
     if (LocalFileTimeToFileTime (&localFT, &utcFT)) {
 	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
       /* compute offset (UTC - local) in seconds. */
 	if (localSec <= utcSec) {
-	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec);
+	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
 	}
 	else {
-	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec);
+	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
 	}
     }
     else {

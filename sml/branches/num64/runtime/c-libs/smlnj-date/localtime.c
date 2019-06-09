@@ -80,7 +80,7 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
     }
     if (tzInfo.StandardDate.wMonth == 0) {
       /* timezone does not support DST */
-	isDST = false;
+	isDST = FALSE;
     }
     else {
 	/* TODO: test localST against tzInfo.StandardState and tzInfo.DaylightDate */

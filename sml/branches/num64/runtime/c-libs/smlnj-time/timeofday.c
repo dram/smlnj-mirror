@@ -33,12 +33,16 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
     return ML_AllocNanoseconds(msp, t.tv_sec, t.tv_usec);
 #elif defined(OPSYS_WIN32)
     FILETIME ft;
+    ULARGE_INTEGER uli;
     Unsigned64_t ns;
 
     GetSystemTimeAsFileTime (&ft);
 
   /* convert to nanoseconds; FILETIME is in units of 100ns */
-    ns = 100 * (((Unsigned64_t)ft.dwHighDateTime << 32) + (Unsigned64_t)ft.dwLowDateTime);
+    uli.HighPart = ft.dwHighDateTime;
+    uli.LowPart = ft.dwLowDateTime;
+    ns = 100 * uli.QuadPart;
+SayDebug("timeofday: ft = %#x:%08x; ns = %lld\n", ft.dwHighDateTime, ft.dwLowDateTime, ns);
 
     return ML_AllocWord64(msp, ns);
 #else

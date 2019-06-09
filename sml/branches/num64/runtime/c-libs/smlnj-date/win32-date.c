@@ -19,53 +19,53 @@ STATIC_INLINE BOOL divisable (WORD a, WORD b) { return (a % b) == 0; }
 
 STATIC_INLINE BOOL isLeapYear (WORD y)
 {
-    retrurn ((divisable(y, 4) && (! divisable(y, 100))) || divisable(y, 400);
+    return ((divisable(y, 4) && (! divisable(y, 100))) || divisable(y, 400));
 }
 
 /* compute the day of the year for a given SYSTEMTIME struct */
-int _ml_year_day (SYSTEMTIME &st)
+int _ml_year_day (const SYSTEMTIME *st)
 {
-    int yday = st.wDay;
+    int yday = st->wDay;
 
   /* January */
-    if (st.wMonth == 1) return yday;
+    if (st->wMonth == 1) return yday;
     yday += 31;
   /* February */
-    if (st.wMonth == 2) return yday;
-    yday += (isLeapYear(st.wYear) ? 29 : 28);
+    if (st->wMonth == 2) return yday;
+    yday += (isLeapYear(st->wYear) ? 29 : 28);
   /* March */
-    if (st.wMonth == 3) return yday;
+    if (st->wMonth == 3) return yday;
     yday += 31;
   /* April */
-    if (st.wMonth == 4) return yday;
+    if (st->wMonth == 4) return yday;
     yday += 30;
   /* May */
-    if (st.wMonth == 5) return yday;
+    if (st->wMonth == 5) return yday;
     yday += 31;
   /* June */
-    if (st.wMonth == 6) return yday;
+    if (st->wMonth == 6) return yday;
     yday += 30;
   /* July */
-    if (st.wMonth == 7) return yday;
+    if (st->wMonth == 7) return yday;
     yday += 31;
   /* August */
-    if (st.wMonth == 8) return yday;
+    if (st->wMonth == 8) return yday;
     yday += 31;
   /* September */
-    if (st.wMonth == 9) return yday;
+    if (st->wMonth == 9) return yday;
     yday += 30;
   /* October */
-    if (st.wMonth == 10) return yday;
+    if (st->wMonth == 10) return yday;
     yday += 31;
   /* November */
-    if (st.wMonth == 11) return yday;
+    if (st->wMonth == 11) return yday;
     yday += 30;
 
     return yday;
 
 }
 
-ml_val_t _ml_alloc_tm (ml_state_t *msp, SYSTEMTIME &st, BOOL isDST)
+ml_val_t _ml_alloc_tm (ml_state_t *msp, const SYSTEMTIME *st, BOOL isDST)
 {
   /* The SYSTEMTIME struct has everything that we need except the day of the year */
     ML_AllocWrite(msp, 0, MAKE_DESC(DTAG_record, 9));
