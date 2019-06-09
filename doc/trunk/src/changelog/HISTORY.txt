@@ -93,6 +93,28 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/06/07]::
++
+Fixed a problem with CM's symbol filtering (see bug 222).
++
+The problem could manifest itself when a library `l2.cm` imported
+two symbols `A` and `B` from `l1.cm` and then exported the same `A`
+but a different `B` (which could have been defined in terms of the imported
+`B`).  Moreover, for the problem to occur both `A` and `B` within
+`l1.cm` must have come from the same SML source file.
++
+With the above setup, when running
+[source,sml]
+------------
+CM.make "l2.cm";
+------------
+it was possible that instead of seeing the new `A` defined
+within `l2.cm` one would still see the original version that came from
+`l1.cm`.
++
+owner:people.cs.uchicago.edu/~blume[Matthias Blume]
+
 //====================================================================
 == Version 110.89; 2019/06/01
 
