@@ -313,7 +313,7 @@ structure BuildDepend :> BUILDDEPEND = struct
 	    in
 		(nth', DE.FILTER (ss, e), SS.intersection (allsyms,ss))
 	    end
-	    fun addNodeFor (s, m) =
+	    fun addNodeFor (s, m) = (
 		case SM.find (localmap, s)
 		 of SOME n => SM.insert (m, s, strengthen local_filter n)
 		  | NONE => (case SM.find (imports, s)
