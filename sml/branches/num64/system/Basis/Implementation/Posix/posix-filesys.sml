@@ -241,9 +241,9 @@ structure POSIX_FileSys =
       * word			(* 6: uid *)
       * word			(* 7: gid *)
       * Position.int		(* 8: size *)
-      * Word64.int		(* 9: atim (nanoseconds) *)
-      * Word64.int		(* 10: mtim (nanoseconds) *)
-      * Word64.int		(* 11: ctim (nanoseconds) *)
+      * Word64.word		(* 9: atim (nanoseconds) *)
+      * Word64.word		(* 10: mtim (nanoseconds) *)
+      * Word64.word		(* 11: ctim (nanoseconds) *)
       )
     fun mkStat (sr : statrep) = ST.ST{
 	    ftype = #1 sr,
@@ -296,8 +296,8 @@ structure POSIX_FileSys =
     val fchown' : s_int * word * word -> unit = cfun "fchown"
     fun fchown (fd, UID uid, GID gid) = fchown'(intOf fd, uid, gid)
 
-    val utime' : string * Int32.int * Int32.int -> unit = cfun "utime"
-    fun utime (file, NONE) = utime' (file, ~1, 0)
+    val utime' : string * Word64.word * Word64.word -> unit = cfun "utime"
+    fun utime (file, NONE) = utime' (file, Word64Imp.~ 0w1, 0w0)
       | utime (file, SOME{actime, modtime}) = let
           val atime = Word64.fromLargeInt(Time.toNanoseconds actime)
           val mtime = Word64.fromLargeInt(Time.toNanoseconds modtime)
