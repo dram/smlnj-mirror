@@ -1,6 +1,6 @@
-(* built-in32.sml
+(* target64-inline.sml
  *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Interfaces to the compiler built-ins, infixes, etc. for 32-bit targets.
@@ -322,9 +322,6 @@ structure InlineT =
 
     structure Word64 =
       struct
-        val extern : word64 -> word32 * word32   = InLine.word64_to_pair
-	val intern : word32 * word32 -> word64   = InLine.word64_from_pair
-
 	val toLarge : word64 -> word64		 = InLine.inl_identity
 	val toLargeX : word64 -> word64		 = InLine.inl_identity
 	val fromLarge : word64 -> word64	 = InLine.inl_identity
@@ -478,11 +475,11 @@ structure InlineT =
 	val getData   : string -> 'a = InLine.seq_data
       end
 
-    structure Pointer =
+    structure CPtr =
       struct
 	type t = c_pointer
-	val toWord32 = InLine.cptr_to_word32
-	val fromWord32 = InLine.word32_to_cptr
+	fun hash cp = Word.fromWord64(Word64.rshiftl(InLine.cptr_to_word64 cp, 0w2))
+	fun toWord cp = Word64.toLarge(InLine.cptr_to_word64 cp)
       end
 
    end  (* structure InlineT *)

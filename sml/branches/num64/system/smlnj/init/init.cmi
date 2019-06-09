@@ -101,6 +101,8 @@
 #   ifndef ARCH_ALPHA ifndef ARCH_X86  bind foo = foo-default.sml (bar, baz)
 #   ...
 #
+# See base/cm/bootstrap/build-initdg.sml for the code that processes this file.
+#
 
 #### END OF EXPLANATION, SPEC STARTS HERE...
 
@@ -121,19 +123,27 @@ split
 bind order = order.sml (primitive)
 
 # Minimal support for arbitrary-precision integers.
-bind coreintinf = core-intinf.sml (rts, order, primitive)
+ifdef SIZE_32 \
+	bind coreintinf = target32-core-intinf.sml (rts, order, primitive)
+ifndef SIZE_32 \
+	bind coreintinf = target64-core-intinf.sml (rts, order, primitive)
 
-# Minimal support for (simulated) 64-bit words.
-bind coreword64 = core-word64.sml (rts, primitive, coreintinf)
+# Minimal support for (simulated) 64-bit words on 32-bit target
+ifdef SIZE_32 \
+	bind coreword64 = core-word64.sml (rts, primitive, coreintinf)
 
-# Minimal support for (simulated) 64-bit ints.
-bind coreint64 = core-int64.sml (rts, primitive, coreintinf)
+# Minimal support for (simulated) 64-bit ints on 32-bit target
+ifdef SIZE_32 \
+	bind coreint64 = core-int64.sml (rts, primitive, coreintinf)
 
 # This defines the core environment to be used everywhere else...
 # (This binds the structure symbol "Core", which is not yet the one that
 # is used implicitly by the compiler.  Of course, "core.sml" itself cannot
 # yet have access to _Core.)
-bind core = core.sml (rts, asig, coreintinf, coreword64, coreint64, primitive)
+ifdef SIZE_32 \
+	bind core = target32-core.sml (rts, asig, coreintinf, coreword64, coreint64, primitive)
+ifndef SIZE_32 \
+	bind core = target64-core.sml (rts, asig, coreintinf, primitive)
 
 # Now we make the binding for structure _Core for use by the remaining
 # members of the init library. (Everybody else in the world gets access to
@@ -147,9 +157,9 @@ bind-core (xCore) xcore = xcore.sml (core)
 # The rest of the DAG...
 # (Everybody implicitly depends on xcore to have access to _Core.)
 ifdef SIZE_32 \
-	bind built-in = built-in32.sml (core, primitive, xcore)
+	bind inline = target32-inline.sml (core, primitive, xcore)
 ifndef SIZE_32 \
-	bind built-in = built-in64.sml (core, primitive, xcore)
+	bind inline = target64-inline.sml (core, primitive, xcore)
 ifdef ARCH_ALPHA \
 	bind math-inlT = math-built-in-none.sml (core, primitive, xcore)
 ifdef ARCH_PPC \
@@ -168,13 +178,13 @@ ifdef ARCH_PPC \
 ifndef ARCH_X86 ifndef ARCH_SPARC ifndef ARCH_PPC \
 	bind rawmem = rawmem-dummy.sml (core, primitive, xcore)
 
-bind pp = pre-perv.sml (built-in, order, xcore)
-bind ps = pre-string.sml (core, built-in, pp, xcore)
-bind ss-sig = substring.sig (pp, built-in, xcore)
-bind ss = substring.sml (ss-sig, pp, ps, core, built-in, xcore)
-bind print-hook = print-hook.sml (built-in, xcore)
-bind use-hook = use-hook.sml (built-in, xcore)
-bind exn-info-hook = exn-info-hook.sml (built-in, xcore, ps)
+bind pp = pre-perv.sml (inline, order, xcore)
+bind ps = pre-string.sml (core, inline, pp, xcore)
+bind ss-sig = substring.sig (pp, inline, xcore)
+bind ss = substring.sml (ss-sig, pp, ps, core, inline, xcore)
+bind print-hook = print-hook.sml (inline, xcore)
+bind use-hook = use-hook.sml (inline, xcore)
+bind exn-info-hook = exn-info-hook.sml (inline, xcore, ps)
 bind init-utils = init-utils.sml (ps ss-sig ss, xcore)
 
 # Building the "pervasive" environment.  This file should be
@@ -185,8 +195,8 @@ bind-core (xCore) pervasive = pervasive.sml (core, ps, ss, pp, print-hook, \
 					     use-hook, exn-info-hook, \
 					     coreintinf, \
 					     coreword64, coreint64, \
-					     math-inlT, built-in, xcore)
+					     math-inlT, inline, xcore)
 
 # Report the results to the world...
-return (pervasive) built-in math-inlT print-hook use-hook exn-info-hook core \
+return (pervasive) inline math-inlT print-hook use-hook exn-info-hook core \
 		   init-utils rawmem coreintinf coreword64 coreint64
