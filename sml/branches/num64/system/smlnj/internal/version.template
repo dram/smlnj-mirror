@@ -1,10 +1,11 @@
-(* -*- sml -*-
- * %F version.template
+(* %F version.template
  *
- * Copyright (c) 2004 by The Fellowship of SML/NJ
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Author: Matthias Blume (blume@tti-c.org)
  *)
+
 structure SMLNJVersion : sig
 
     val version : {
@@ -15,7 +16,7 @@ structure SMLNJVersion : sig
 
     val banner : string
 
-end = struct
+  end = struct
 
     (* generate date string at boot time *)
     val version = {
@@ -26,6 +27,7 @@ end = struct
 
     val banner = concat
 	  (#system version :: " v" ::
-	   String.concatWith "." (map Int.toString (#version_id version)) ::
+	   String.concatWithMap "." Int.toString (#version_id version) ::
 	   [" [built: ", #date version, "]"])
-end
+
+  end
