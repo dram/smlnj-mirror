@@ -96,7 +96,7 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2019/06/07]::
 +
-Fixed a problem with CM's symbol filtering (see bug 222).
+Fixed a problem with CM's symbol filtering (see bug bugref:222[]).
 +
 The problem could manifest itself when a library `l2.cm` imported
 two symbols `A` and `B` from `l1.cm` and then exported the same `A`

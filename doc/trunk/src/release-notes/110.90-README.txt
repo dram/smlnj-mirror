@@ -29,6 +29,11 @@ FILES::
 
 == Summary
 
+The primary purpose of this release is to bring the Windows port of
+SML/NJ upto parity with the Unix versions w.r.t. the 64-bit cleanup.
+It also provides a fix for a long dormant bug in CM that was exposed
+by the Basis reorganization in 110.88.
+
 == Details
 
 === Installation
