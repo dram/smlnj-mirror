@@ -27,9 +27,9 @@ structure Word64Imp : sig
 
     val wordSize = 64
 
-    val toLarge  = unimplemented	(* W64.toLarge *)
-    val toLargeX = unimplemented	(* W64.fromLargeX *)
-    val fromLarge = unimplemented	(* W64.fromLarge *)
+    val toLarge  = W64.toLarge
+    val toLargeX = W64.toLargeX
+    val fromLarge = W64.fromLarge
 
   (* same as above, but deprecated *)
     val toLargeWord = toLarge

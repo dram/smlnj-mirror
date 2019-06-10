@@ -21,7 +21,6 @@ VERSION =	v-dummy
 
 OBJS =		smlnj-time-lib.obj \
 		gettime.obj \
-		time-in-seconds.obj \
 		timeofday.obj
 
 $(LIBRARY)	: $(VERSION) $(OBJS)
@@ -42,9 +41,6 @@ smlnj-time-lib.obj: smlnj-time-lib.c $(DEPENDENTS)
 
 gettime.obj: gettime.c $(DEPENDENTS)
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDES) /c gettime.c
-
-time-in-seconds.obj: time-in-seconds.c $(DEPENDENTS)
-	$(CC) $(CFLAGS) $(DEFS) $(INCLUDES) /c time-in-seconds.c
 
 timeofday.obj: timeofday.c $(DEPENDENTS)
 	$(CC) $(CFLAGS) $(DEFS) $(INCLUDES) /c timeofday.c

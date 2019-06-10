@@ -94,8 +94,9 @@ void RunML (ml_state_t *msp)
 	if (request == REQ_GC) {
 	    if (vsp->vp_handlerPending) { /* this is really a signal */
 	      /* check for GC */
-		if (NeedGC (msp, 4*ONE_K))
+		if (NeedGC (msp, ONE_K*WORD_SZB)) {
 		    InvokeGC (msp, 0);
+		}
 	      /* invoke the ML signal handler */
 		ChooseSignal (vsp);
 		msp->ml_arg		= MakeHandlerArg (msp, sigh_resume);
@@ -108,7 +109,7 @@ void RunML (ml_state_t *msp)
 		vsp->vp_handlerPending	= FALSE;
 	    }
 #ifdef SOFT_POLL
-	    else if (msp->ml_pollPending && !msp->ml_inPollHandler) { 
+	    else if (msp->ml_pollPending && !msp->ml_inPollHandler) {
 	      /* this is a poll event */
 #if defined(MP_SUPPORT) && defined(MP_GCPOLL)
 	      /* Note: under MP, polling is used for GC only */
@@ -130,7 +131,7 @@ SayDebug ("run-ml: poll event\n");
 		msp->ml_inPollHandler	= TRUE;
 		msp->ml_pollPending	= FALSE;
 #endif /* MP_SUPPORT */
-	    } 
+	    }
 #endif /* SOFT_POLL */
 	    else
 	        InvokeGC (msp, 0);

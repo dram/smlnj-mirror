@@ -1,4 +1,4 @@
-(* target32-pointer.sml
+(* pointer.sml
  *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
@@ -14,15 +14,18 @@ structure UnsafePointer :> UNSAFE_POINTER =
     type t = PointerImp.c_pointer
 
   (* null pointer *)
-    val null = InlineT.Pointer.fromWord 0w0
+    val null = PointerImp.fromWord 0w0
 
   (* size of pointer in bytes *)
     val sizeofPointer = PointerImp.sizeofPointer
 
   (* convert a pointer to its bit representation *)
-    val toWord = InlineT.Pointer.toWord
+    val toWord = PointerImp.toWord
 
   (* compare two pointers *)
     val compare = PointerImp.compare
+
+  (* return a hash key for an address *)
+    val hash = PointerImp.hash
 
   end

@@ -229,62 +229,64 @@ structure POSIX_IO =
 	else { pos = ref (Position.fromInt 0),
 	       getPos = NONE, setPos = NONE, endPos = NONE, verifyPos = NONE }
 
-    fun mkReader { mkRD, cvtVec, cvtArrSlice } { fd, name, initBlkMode } =
-	let val closed = ref false
-            val {pos, getPos, setPos, endPos, verifyPos} = posFns (closed, fd)
-            val blocking = ref initBlkMode
-            fun blockingOn () = (setfl(fd, O.flags[]); blocking := true)
-	    fun blockingOff () = (setfl(fd, O.nonblock); blocking := false)
-	    fun incPos k = pos := Position.+(!pos, Position.fromInt k)
-	    fun r_readVec n =
-		let val v = announce "read" readVec(fd, n)
+    fun mkReader { mkRD, cvtVec, cvtArrSlice } { fd, name, initBlkMode } = let
+	  val closed = ref false
+	  val {pos, getPos, setPos, endPos, verifyPos} = posFns (closed, fd)
+	  val blocking = ref initBlkMode
+	  fun blockingOn () = (setfl(fd, O.flags[]); blocking := true)
+	  fun blockingOff () = (setfl(fd, O.nonblock); blocking := false)
+	  fun incPos k = pos := Position.+(!pos, Position.fromInt k)
+	  fun r_readVec n = let
+		val v = announce "read" readVec(fd, n)
 		in
-		    incPos (Word8Vector.length v);
-		    cvtVec v
+		  incPos (Word8Vector.length v);
+		  cvtVec v
 		end
-	    fun r_readArr arg =
-		let val k = announce "readBuf" readArr(fd, cvtArrSlice arg)
+	  fun r_readArr arg = let
+		val k = announce "readBuf" readArr(fd, cvtArrSlice arg)
 		in
-		    incPos k; k
+		  incPos k; k
 		end
-	    fun blockWrap f x =
-		(if !closed then raise IO.ClosedStream else ();
-		 if !blocking then () else blockingOn();
-		 f x)
-	    fun noBlockWrap f x =
-		(if !closed then raise IO.ClosedStream else ();
-		 if !blocking then blockingOff() else ();
-		 ((* try *) SOME (f x)
-			    handle (e as Assembly.SysErr(_, SOME cause)) =>
-				   if cause = POSIX_Error.again then NONE
-				   else raise e
-		  (* end try *)))
-	    fun r_close () =
-		if !closed then ()
+	  fun blockWrap f x = (
+		if !closed then raise IO.ClosedStream else ();
+		if !blocking then () else blockingOn();
+		f x)
+	  fun noBlockWrap f x = (
+		if !closed then raise IO.ClosedStream else ();
+		if !blocking then blockingOff() else ();
+		((* try *) SOME (f x)
+			   handle (e as Assembly.SysErr(_, SOME cause)) =>
+				  if cause = POSIX_Error.again then NONE
+				  else raise e
+		 (* end try *)))
+	  fun r_close () = if !closed
+		then ()
 		else (closed:=true; announce "close" close fd)
-	    val isReg = isRegFile fd
-	    fun avail () =
-		if !closed then SOME 0
-		else if isReg then
-		    SOME(Position.toInt (FS.ST.size(FS.fstat fd) - !pos))
-		else NONE
-	in
-	    mkRD { name = name,
-		   chunkSize = bufferSzB,
-		   readVec = SOME (blockWrap r_readVec),
-		   readArr = SOME (blockWrap r_readArr),
-		   readVecNB = SOME (noBlockWrap r_readVec),
-		   readArrNB = SOME (noBlockWrap r_readArr),
-		   block = NONE,
-		   canInput = NONE,
-		   avail = avail,
-		   getPos = getPos,
-		   setPos = setPos,
-		   endPos = endPos,
-		   verifyPos = verifyPos,
-		   close = r_close,
-		   ioDesc = SOME (FS.fdToIOD fd) }
-	end
+	  val isReg = isRegFile fd
+	  fun avail () = if !closed
+		  then SOME 0
+		else if isReg
+		  then SOME(FS.ST.size(FS.fstat fd) - !pos)
+		  else NONE
+	  in
+	    mkRD {
+		name = name,
+		chunkSize = bufferSzB,
+		readVec = SOME (blockWrap r_readVec),
+		readArr = SOME (blockWrap r_readArr),
+		readVecNB = SOME (noBlockWrap r_readVec),
+		readArrNB = SOME (noBlockWrap r_readArr),
+		block = NONE,
+		canInput = NONE,
+		avail = avail,
+		getPos = getPos,
+		setPos = setPos,
+		endPos = endPos,
+		verifyPos = verifyPos,
+		close = r_close,
+		ioDesc = SOME (FS.fdToIOD fd)
+	      }
+	  end
 
     fun mkWriter { mkWR, cvtVecSlice, cvtArrSlice }
 		 { fd, name, initBlkMode, appendMode, chunkSize } =
@@ -335,23 +337,23 @@ structure POSIX_IO =
 	end
 
     local
-	fun c2w_vs cvs = let
+      fun c2w_vs cvs = let
 	    val (cv, s, l) = CharVectorSlice.base cvs
 	    val wv = Byte.stringToBytes cv
-	in
-	    Word8VectorSlice.slice (wv, s, SOME l)
-	end
+	    in
+	      Word8VectorSlice.slice (wv, s, SOME l)
+	    end
 
-	(* hack!!!  This only works because CharArray.array and
-	 *          Word8Array.array are really the same internally. *)
-	val c2w_a : CharArray.array -> Word8Array.array = InlineT.cast
+      (* hack!!!  This only works because CharArray.array and
+       *          Word8Array.array are really the same internally. *)
+      val c2w_a : CharArray.array -> Word8Array.array = InlineT.cast
 
-	fun c2w_as cas = let
+      fun c2w_as cas = let
 	    val (ca, s, l) = CharArraySlice.base cas
 	    val wa = c2w_a ca
-	in
-	    Word8ArraySlice.slice (wa, s, SOME l)
-	end
+	    in
+	      Word8ArraySlice.slice (wa, s, SOME l)
+	    end
     in
 
     val mkBinReader = mkReader { mkRD = BinPrimIO.RD,

@@ -44,10 +44,6 @@ structure IntInfImp :> INT_INF = struct
     val minInt = NONE
     val maxInt = NONE
 
-    (* The following assumes LargeInt = Int32.
-     * If IntInf is provided, it will be LargeInt and toLarge and fromLarge
-     * will be the identity function.
-     *)
     val toInt = InlineT.IntInf.toInt
     val fromInt = InlineT.IntInf.fromInt
     val toLarge = InlineT.IntInf.toLarge

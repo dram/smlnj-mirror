@@ -11,9 +11,7 @@ signature UNSAFE =
 
     structure CInterface : CINTERFACE
     structure Object : UNSAFE_OBJECT
-(*
     structure Pointer : UNSAFE_POINTER
-*)
     structure Poll : POLL
 
     structure Vector : UNSAFE_VECTOR
@@ -72,5 +70,3 @@ signature UNSAFE =
     val sigHandler : ((int * int * unit Cont.cont) -> unit Cont.cont) ref
 
   end;
-
-

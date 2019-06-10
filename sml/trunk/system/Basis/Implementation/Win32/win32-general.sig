@@ -1,39 +1,42 @@
 (* win32-general.sig
  *
- * COPYRIGHT (c) 1996 Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for general Win32 stuff.
- *
  *)
 
-signature WIN32_GENERAL = 
-    sig
-	structure Word : WORD
-	type word
+signature WIN32_GENERAL =
+  sig
+    structure Word : WORD
+    type word
 
-	type hndl
-	type system_time = {year: int,
-			    month: int,
-			    dayOfWeek: int,
-			    day: int,
-			    hour: int,
-			    minute: int,
-			    second: int,
-			    milliSeconds: int}
+    type hndl	(* = c_pointer *)
 
-	val arcSepChar : char
+    type system_time = {
+	year: int,
+	month: int,
+	dayOfWeek: int,
+	day: int,
+	hour: int,
+	minute: int,
+	second: int,
+	milliSeconds: int
+      }
 
-	val cfun : string -> string -> 'a -> 'b
-	val getConst : string -> string -> word
+    val arcSepChar : char
 
-	val log : string list ref
-	val logMsg : string -> unit
+    val cfun : string -> string -> 'a -> 'b
+    val getConst : string -> string -> word
 
-	val sayDebug : string -> unit
+    val log : string list ref
+    val logMsg : string -> unit
 
-	val getLastError : unit -> word
+    val sayDebug : string -> unit
 
-	val INVALID_HANDLE_VALUE : word
-	val isValidHandle : hndl -> bool
-    end
+    val getLastError : unit -> word
 
+    val INVALID_HANDLE_VALUE : word
+    val isValidHandle : hndl -> bool
+
+  end

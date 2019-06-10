@@ -15,6 +15,14 @@
 
 #define MODE_BITS (S_IRWXU | S_IRWXG | S_IRWXO | S_ISUID | S_ISGID)
 
+#if defined(STAT_HAS_TIMESPEC)
+/* convert struct timespec to nanoseconds */
+STATIC_INLINE Unsigned64_t timespec_to_ns (struct timespec *ts)
+{
+    return 1000000000 * (Unsigned64_t)ts->tv_sec + (Unsigned64_t)ts->tv_nsec;
+}
+#endif
+
 /* mkStatRep:
  *
  * This makes a representation of the struct stat to be returned
@@ -28,15 +36,15 @@
  *    uid       : word
  *    gid       : word
  *    size      : Position.int (aka Int64.int)
- *    atime     : Int64.int
- *    mtime     : Int64.int
- *    ctime     : Int64.int
+ *    atime     : Word64.int
+ *    mtime     : Word64.int
+ *    ctime     : Word64.int
  */
 PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
 {
-    int		ftype;
-    Int64_t	aTim, mTim, cTim;
-    ml_val_t	mode, ino, dev, uid, gid, nlink, sr, atime, mtime, ctime, size;
+    int			ftype;
+    Unsigned64_t	aTim, mTim, cTim;
+    ml_val_t		mode, ino, dev, uid, gid, nlink, sr, atime, mtime, ctime, size;
 
 #if ((S_IFDIR != 0x4000) || (S_IFCHR != 0x2000) || (S_IFBLK != 0x6000) || (S_IFREG != 0x8000) || (S_IFIFO != 0x1000) || (S_IFLNK != 0xA000) || (S_IFSOCK != 0xC000))
     if (S_ISDIR(buf->st_mode)) ftype = 0x4000;
@@ -68,22 +76,22 @@ PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
 
 #if !defined(STAT_HAS_TIMESPEC)
   /* the old API with second-level granularity */
-    aTim = 1000000000 * (Int64_t)buf->st_atime;
-    mTim = 1000000000 * (Int64_t)buf->st_mtime;
-    cTim = 1000000000 * (Int64_t)buf->st_ctime;
+    aTim = 1000000000 * (Unsigned64_t)buf->st_atime;
+    mTim = 1000000000 * (Unsigned64_t)buf->st_mtime;
+    cTim = 1000000000 * (Unsigned64_t)buf->st_ctime;
 #elif defined(OPSYS_DARWIN)
   /* macOS uses non-standard names for the fields */
-    aTim = 1000000000 * (Int64_t)buf->st_atimespec.tv_sec + (Int64_t)buf->st_atimespec.tv_nsec;
-    mTim = 1000000000 * (Int64_t)buf->st_mtimespec.tv_sec + (Int64_t)buf->st_mtimespec.tv_nsec;
-    cTim = 1000000000 * (Int64_t)buf->st_ctimespec.tv_sec + (Int64_t)buf->st_ctimespec.tv_nsec;
+    aTim = timespec_to_ns (&buf->st_atimespec);
+    mTim = timespec_to_ns (&buf->st_mtimespec);
+    cTim = timespec_to_ns (&buf->st_ctimespec);
 #else
-    aTim = 1000000000 * (Int64_t)buf->st_atim.tv_sec + (Int64_t)buf->st_atim.tv_nsec;
-    mTim = 1000000000 * (Int64_t)buf->st_mtim.tv_sec + (Int64_t)buf->st_mtim.tv_nsec;
-    cTim = 1000000000 * (Int64_t)buf->st_ctim.tv_sec + (Int64_t)buf->st_ctim.tv_nsec;
+    aTim = timespec_to_ns (&buf->st_atim);
+    mTim = timespec_to_ns (&buf->st_mtim);
+    cTim = timespec_to_ns (&buf->st_ctim);
 #endif
-    INT64_ALLOC (msp, atime, aTim);
-    INT64_ALLOC (msp, mtime, mTim);
-    INT64_ALLOC (msp, ctime, cTim);
+    WORD64_ALLOC (msp, atime, aTim);
+    WORD64_ALLOC (msp, mtime, mTim);
+    WORD64_ALLOC (msp, ctime, cTim);
 
   /* allocate the stat record */
     ML_AllocWrite(msp,  0, MAKE_DESC(11, DTAG_record));

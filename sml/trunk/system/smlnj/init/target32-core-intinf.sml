@@ -44,13 +44,13 @@ structure CoreIntInf :> sig
    *)
 
   (* fit value (2's complement) in int32, raise Overflow if too large *)
-    val testInfLarge   : intinf -> int32
+    val testInf32   : intinf -> int32
   (* truncate value (2's complement repr) to fit in int32: *)
-    val truncInfLarge  : intinf -> int32
+    val truncInf32  : intinf -> int32
   (* copy bits from int32 into (non-negative) intinf: *)
-    val copyLargeInf   : int32 -> intinf
+    val copy32Inf   : int32 -> intinf
   (* sign-extend int32 into intinf: *)
-    val extendLargeInf : int32 -> intinf
+    val extend32Inf : int32 -> intinf
 
 (* 64BIT: these functions are only needed for 32-bit targets! *)
     (* fit value (2's complement) in "int64", raise Overflow if too large *)
@@ -153,8 +153,8 @@ end = struct
     val gap : word = InLine.word_sub (0w32, baseBits) (* 32 - baseBits *)
     val slc : word = InLine.word_sub (baseBits, gap)  (* baseBits - gap *)
 
-  (* truncate intinf to word32 (the large fixed size) *)
-    fun truncInfLarge i = let
+  (* truncate intinf to word32 *)
+    fun truncInf32 i = let
 	  val BI { negative, digits } = concrete i
 	  val b = (case digits
 		 of [] => 0w0
@@ -166,7 +166,7 @@ end = struct
 	  end
 
   (* convert intinf to int32; raise Overflow it result is too large *)
-    fun testInfLarge i = let
+    fun testInf32 i = let
 	  val BI { negative, digits } = concrete i
 	  fun negif i32 = if negative then ~i32 else i32
 	  in
@@ -180,7 +180,7 @@ end = struct
 	  end
 
   (* sign-extend an int32 to an intinf *)
-    fun extendLargeInf i32 = let
+    fun extend32Inf i32 = let
 	  fun e (_, 0w0) = BI { negative = false, digits = [] }
 	    | e (negative, w31) = BI {
 		    negative = negative,
@@ -198,7 +198,7 @@ end = struct
 	  end
 
   (* zero-extend an word32 to an intinf *)
-    fun copyLargeInf i32 = let
+    fun copy32Inf i32 = let
 	  val w32 = i32ToW32 i32
 	  val digits = if InLine.word32_eql (w32, 0w0)
 		  then []
@@ -212,7 +212,7 @@ end = struct
     fun neg64 (hi, 0w0) : word32 * word32 = (InLine.word32_neg hi, 0w0)
       | neg64 (hi, lo) = (InLine.word32_notb hi, InLine.word32_neg lo)
 
-  (* convert an intinf to a int64 represented as a pair of word32s; raise
+  (* convert an intinf to an int64 represented as a pair of word32s; raise
    * Overflow if the result is nor representable as an int64.
    *)
     fun testInf64 i = let

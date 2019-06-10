@@ -14,6 +14,10 @@
  * C++, Lisp, and EmacsLisp code from that paper can be found at
  *
  *	http://emr.cs.iit.edu/~reingold/calendars.shtml
+ *
+ * Also note that on Windows, system time is measured in units of 100ns starting
+ * from January 1, 1601 (UTC).  This means that we need to use Word32.word to
+ * represent the words since the start of the Epoch.
  *)
 
 structure Date : DATE =
@@ -21,6 +25,7 @@ structure Date : DATE =
 
     structure Int = IntImp
     structure Int32 = Int32Imp
+    structure Word32 = Word32Imp
     structure IntInf = IntInfImp
     structure String = StringImp
     structure Time = TimeImp
@@ -56,42 +61,39 @@ structure Date : DATE =
   (* note: mkTime assumes the tm structure passed to it reflects
    * the local time zone
    *)
-    val localTime' : Int32.int -> tm
+    val localTime' : Word32.word -> tm
 	  = wrap (CInterface.c_function "SMLNJ-Date" "localTime")
-    val gmTime' : Int32.int -> tm
+    val gmTime' : Word32.word -> tm
 	  = wrap (CInterface.c_function "SMLNJ-Date" "gmTime")
-    val mkTime' : tm -> Int32.int
+    val mkTime' : tm -> Word32.word
 	  = wrap (CInterface.c_function "SMLNJ-Date" "mkTime")
     val strfTime : (string * tm) -> string
 	  = wrap (CInterface.c_function "SMLNJ-Date" "strfTime")
 
   (* conversions between integer numbers of seconds (used by runtime) and Time.time values *)
-    fun secsToTime s = Time.fromSeconds (Int32.toLarge s)
-    fun timeToSecs t = Int32.fromLarge (Time.toSeconds t)
+    fun secsToTime s = Time.fromSeconds (Word32.toLargeInt s)
+    fun timeToSecs t = Word32.fromLargeInt (Time.toSeconds t)
 
     val localTime = localTime' o timeToSecs
     val gmTime = gmTime' o timeToSecs
 
-
-  (* TODO: switch to runtime system functions (added in 110.79) *)
-    local
-      val currentTimeInSeconds : unit -> Int32.int =
-	    CInterface.c_function "SMLNJ-Time" "time_in_seconds"
-    in
   (* a function to return the offset from UTC of the time t in the local timezone.
    * This value reflects not only the geographical location of the host system, but
    * also daylight savings time (if it is in effect).  Note that this value is
    * positive to the east of UTC and negative to the west.  Add it to UTC to get
    * the local time.
+   * Note that the offset is signed!!!
    *)
-    fun localOffsetForTime t = let
-	  val utcTM = gmTime' t
-	  val localTM = localTime' t
-	  val dt = t - mkTime' (set_tm_isdst(utcTM, tm_isdst localTM));
-	  in
-	    dt
-	  end
-    fun localOffset () = secsToTime (localOffsetForTime (currentTimeInSeconds ()))
+    local
+      val toTime = Time.fromSeconds o Int32.toLarge
+      val localOffsetForTime' : Word32.word -> Int32.int =
+	    wrap (CInterface.c_function "SMLNJ-Date" "localOffsetForTime")
+      val localOffset' : unit -> Int32.int =
+	    wrap (CInterface.c_function "SMLNJ-Date" "localOffset")
+    in
+    val localOffsetForTime = toTime o localOffsetForTime'
+  (* localOffset for the current time *)
+    val localOffset = toTime o localOffset'
     end (* local *)
 
   (* the run-time system indexes the year off this *)
@@ -351,7 +353,7 @@ structure Date : DATE =
 	  end
 
     fun fromTimeLocal t = let
-	  val offset = secsToTime (localOffsetForTime (timeToSecs t))
+	  val offset = localOffsetForTime (timeToSecs t)
 	  in
 	    tm2date (localTime t, SOME offset)
 	  end
@@ -364,16 +366,13 @@ structure Date : DATE =
 	  in
 	    case offset
 	     of NONE => secsToTime t
-	      | SOME offset => let
+	      | SOME offset =>
 		(* note that representation of a date is canonical, which means that the
 		 * offset has already been applied, so we do not need to adjust by the
 		 * date's offset.  On the other hand, mkTime' returns the _local_ time,
 		 * so we do need to adjust for the local offset.
 		 *)
-		  val t = t + localOffsetForTime t  (* converts local time to UTC *)
-		  in
-		    secsToTime t
-		  end
+		  Time.+(secsToTime t, localOffsetForTime t)  (* converts local time to UTC *)
 	    (* end case *)
 	  end
 
@@ -475,11 +474,6 @@ structure Date : DATE =
 	    fn d => let val tm = date2tm d in String.concat(List.map (fn f => f tm) fmtFns) end
 	  end
 
-(* This version doesn't print the leading "0" on days of the month < 10
-    val ascTime : tm -> string
-	  = wrap (CInterface.c_function "SMLNJ-Date" "ascTime")
-    fun toString d = ascTime (date2tm d)
-*)
     val toString = fmt "%a %b %d %H:%M:%S %Y"
 
   (* Date scanner *)

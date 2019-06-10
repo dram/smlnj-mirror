@@ -12,5 +12,3 @@ signature UNSAFE_ARRAY =
     val create : (int * 'a) -> 'a array
 
   end;
-
-

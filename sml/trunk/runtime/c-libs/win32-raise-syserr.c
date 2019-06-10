@@ -20,7 +20,7 @@
  * will be represented by an (int * string) pair.  If alt_msg is non-zero,
  * then use it as the error string and use NONE for the syserror.
  */
-ml_val_t RaiseSysError (ml_state_t *msp, const char *altMsg, char *at)
+ml_val_t RaiseSysError (ml_state_t *msp, const char *altMsg, const char *at)
 {
     ml_val_t	    s, syserror, arg, exn, atStk;
     const char	    *msg;

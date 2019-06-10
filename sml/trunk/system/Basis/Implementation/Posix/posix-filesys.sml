@@ -241,9 +241,9 @@ structure POSIX_FileSys =
       * word			(* 6: uid *)
       * word			(* 7: gid *)
       * Position.int		(* 8: size *)
-      * Int64.int		(* 9: atim (nanoseconds) *)
-      * Int64.int		(* 10: mtim (nanoseconds) *)
-      * Int64.int		(* 11: ctim (nanoseconds) *)
+      * Word64.word		(* 9: atim (nanoseconds) *)
+      * Word64.word		(* 10: mtim (nanoseconds) *)
+      * Word64.word		(* 11: ctim (nanoseconds) *)
       )
     fun mkStat (sr : statrep) = ST.ST{
 	    ftype = #1 sr,
@@ -256,9 +256,9 @@ structure POSIX_FileSys =
             uid = UID(#6 sr),
             gid = GID(#7 sr),
             size = #8 sr,
-            atime = Time.fromNanoseconds (Int64.toLarge (#9 sr)),
-            mtime = Time.fromNanoseconds (Int64.toLarge (#10 sr)),
-            ctime = Time.fromNanoseconds (Int64.toLarge (#11 sr))
+            atime = Time.fromNanoseconds (Word64.toLargeInt (#9 sr)),
+            mtime = Time.fromNanoseconds (Word64.toLargeInt (#10 sr)),
+            ctime = Time.fromNanoseconds (Word64.toLargeInt (#11 sr))
           }
 
     val stat' : string -> statrep = cfun "stat"
@@ -296,13 +296,13 @@ structure POSIX_FileSys =
     val fchown' : s_int * word * word -> unit = cfun "fchown"
     fun fchown (fd, UID uid, GID gid) = fchown'(intOf fd, uid, gid)
 
-    val utime' : string * Int32.int * Int32.int -> unit = cfun "utime"
-    fun utime (file, NONE) = utime' (file, ~1, 0)
+    val utime' : string * Word64.word * Word64.word -> unit = cfun "utime"
+    fun utime (file, NONE) = utime' (file, Word64Imp.~ 0w1, 0w0)
       | utime (file, SOME{actime, modtime}) = let
-          val atime = Int32.fromLarge (Time.toSeconds actime)
-          val mtime = Int32.fromLarge (Time.toSeconds modtime)
+          val atime = Word64.fromLargeInt(Time.toNanoseconds actime)
+          val mtime = Word64.fromLargeInt(Time.toNanoseconds modtime)
           in
-            utime'(file,atime,mtime)
+            utime'(file, atime, mtime)
           end
 
     val pathconf  : (string * string) -> word option = cfun "pathconf"

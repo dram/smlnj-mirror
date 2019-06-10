@@ -19,9 +19,7 @@
 
 /* _ml_Time_timeofday : unit -> Int64.int
  *
- * Return the time of day.
- * NOTE: gettimeofday() is not POSIX (time() returns seconds, and is POSIX
- * and ISO C).
+ * Return the UTC time of day in nanoseconds.
  */
 ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 {
@@ -32,19 +30,18 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
 
     return ML_AllocNanoseconds(msp, t.tv_sec, t.tv_usec);
 #elif defined(OPSYS_WIN32)
-  /* we could use Win32 GetSystemTime/SystemTimetoFileTime here,
-   * but the conversion routines for 64-bit 100-ns values
-   * (in the mapi dll) are non-Win32s
-   *
-   * we'll use time routines from the C runtime for now.
-   */
-    {
-	struct _timeb t;
+    FILETIME ft;
+    ULARGE_INTEGER uli;
+    Unsigned64_t ns;
 
-	_ftime(&t);
-	c_sec = t.time;
-	c_usec = t.millitm*1000;
-    }
+    GetSystemTimeAsFileTime (&ft);
+
+  /* convert to nanoseconds; FILETIME is in units of 100ns */
+    uli.HighPart = ft.dwHighDateTime;
+    uli.LowPart = ft.dwLowDateTime;
+    ns = 100 * uli.QuadPart;
+
+    return ML_AllocWord64(msp, ns);
 #else
 #  error no timeofday mechanism
 #endif

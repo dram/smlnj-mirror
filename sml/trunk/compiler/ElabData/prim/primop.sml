@@ -156,6 +156,8 @@ structure Primop : PRIMOP =
       | MKETAG				(* make a new exception tag *)
       | WRAP				(* box a value by wrapping it *)
       | UNWRAP				(* unbox a value by unwrapping it *)
+      | PTR_TO_WORD			(* cast c_pointer to address-sized word type *)
+      | WORD_TO_PTR			(* case address-sized word type to c_pointer *)
 
     and ccall_type =
 	CCI32 |				(* passed as int32 *)

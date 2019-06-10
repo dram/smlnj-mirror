@@ -1,17 +1,17 @@
 (* posix-text-prim-io.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This implements the UNIX version of the OS specific text primitive
  * IO structure.  It is implemented by a trivial translation of the
  * binary operations (see posix-bin-prim-io.sml).
- *
  *)
 
 local
-    structure String = StringImp
-    structure Int = IntImp
-    structure Position = PositionImp
+  structure String = StringImp
+  structure Int = IntImp
+  structure Position = PositionImp
 in
 structure PosixTextPrimIO : sig
 
@@ -98,7 +98,7 @@ structure PosixTextPrimIO : sig
 	  fun checkClosed () = if !closed then raise IO.ClosedStream else ()
 	  val len = String.size src
 	  val plen = Position.fromInt len
-	  fun avail () = len - !pos
+	  fun avail () = Position.fromInt(len - !pos)
 	  fun readV n = let
 		val p = !pos
 		val m = Int.min(n, len-p)
@@ -112,22 +112,24 @@ structure PosixTextPrimIO : sig
 		val p = !pos
 		val (buf, i, n) = CharArraySlice.base asl
 		val m = Int.min(n, len-p)
-	  in
-	      checkClosed ();
-	      pos := p+m;
-	      CharArraySlice.copyVec
-		  { src = CharVectorSlice.slice (src, p, SOME m),
-		    dst = buf, di = i };
-	      m
-	  end
+		in
+		  checkClosed ();
+		  pos := p+m;
+		  CharArraySlice.copyVec {
+		      src = CharVectorSlice.slice (src, p, SOME m),
+		      dst = buf, di = i
+		    };
+		  m
+		end
 	  fun getPos () = (checkClosed(); Position.fromInt (!pos))
-	  fun setPos p =
-	      (checkClosed ();
-	       if p < 0 orelse p > plen then raise Subscript
-	       else pos := Position.toInt p)
+	  fun setPos p = (
+		checkClosed ();
+	        if p < 0 orelse p > plen
+		  then raise Subscript
+	          else pos := Position.toInt p)
 	  in
 	    PrimIO.RD{
-		name      = "<string>", 
+		name      = "<string>",
 		chunkSize = len,
 		readVec   = SOME(readV),
         	readArr   = SOME(readA),
@@ -146,5 +148,4 @@ structure PosixTextPrimIO : sig
 	  end
 
   end (* PosixTextPrimIO *)
-end
-
+end (* local *)

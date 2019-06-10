@@ -53,7 +53,7 @@ functor PrimIO (
 	readArrNB : (array_slice -> int option) option,
 	block     : (unit -> unit) option,
 	canInput  : (unit -> bool) option,
-	avail     : unit -> int option,
+	avail     : unit -> Position.int option,
 	getPos    : (unit -> pos) option,
 	setPos    : (pos -> unit) option,
         endPos    : (unit -> pos) option,
@@ -108,18 +108,18 @@ functor PrimIO (
 		  len
 		end
 	  fun readvToReadaNB readvNB asl = let
-	      val (a, start, nelems) = AS.base asl
-	  in
-	      case readvNB nelems
-	       of SOME v => let
-		      val len = V.length v
-		  in
-		      A.copyVec {dst=a, di=start, src=v};
-		      SOME len
-		  end
-		| NONE => NONE
-	  (* end case *)
-	  end
+		val (a, start, nelems) = AS.base asl
+		in
+		  case readvNB nelems
+		   of SOME v => let
+			val len = V.length v
+		        in
+			  A.copyVec {dst=a, di=start, src=v};
+			  SOME len
+		        end
+		    | NONE => NONE
+		  (* end case *)
+		end
 	  val readVec' = (case rd
 		 of {readVec=SOME f, ...} => SOME f
 		  | {readArr=SOME f, ...} => SOME(readaToReadv f)
@@ -240,7 +240,7 @@ functor PrimIO (
 	  val closed = ref false
 	  fun checkClosed () = if !closed then raise IO.ClosedStream else ()
 	  val len = V.length v
-	  fun avail () = len - !pos
+	  fun avail () = SOME(PositionImp.fromInt(len - !pos))
 	  fun readV n = let
 		val p = !pos
 		val m = IntImp.min (n, len - p)
@@ -271,7 +271,7 @@ functor PrimIO (
 		readArrNB = SOME (SOME o readA),
 		block = SOME checkClosed,
 		canInput = SOME (checked true),
-		avail = SOME o avail,
+		avail = avail,
 		getPos = NONE,
 		setPos = NONE,
 		endPos = NONE,

@@ -15,5 +15,3 @@ signature UNSAFE_MONO_ARRAY =
     val create : int -> array
 
   end;
-
-

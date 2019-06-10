@@ -50,10 +50,10 @@ structure TimeImp : sig
     fun toReal (PB.TIME{usec}) = Real.fromLargeInt usec * 1.0e~6
 
     local
-      val gettimeofday : unit -> Int64.int =
+      val gettimeofday : unit -> Word64.word =
 	    CInterface.c_function "SMLNJ-Time" "timeofday"
     in
-    fun now () = fromNanoseconds (Int64Imp.toLarge (gettimeofday ()))
+    fun now () = fromNanoseconds (Word64Imp.toLargeInt (gettimeofday ()))
     end (* local *)
 
     val rndv : LInt.int vector =  #[50000, 5000, 500, 50, 5]

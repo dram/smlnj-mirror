@@ -11,9 +11,7 @@ structure Unsafe :> UNSAFE =
 
     structure CInterface = CInterface
     structure Object = UnsafeObject
-(*
     structure Pointer = UnsafePointer
-*)
     structure Poll = Poll
 
     structure Vector =
@@ -114,5 +112,3 @@ structure Unsafe :> UNSAFE =
     val sigHandler = Assembly.sighandler
 
   end;
-
-

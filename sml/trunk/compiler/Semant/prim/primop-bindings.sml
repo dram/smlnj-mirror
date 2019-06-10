@@ -45,6 +45,9 @@ structure PrimopBindings : sig
     val numSubTy = p2(ar(tup[tv1, BT.intTy], tv2))
     val numUpdTy = p2(ar(tup[tv1, BT.intTy, tv2], BT.unitTy))
 
+  (* address-sized word type *)
+    val addrTy = if Target.is64 then BT.word64Ty else BT.word32Ty
+
   (* size and type of LargeWord.word *)
     val largeWSz = 64
     val largeWTy = BT.word64Ty
@@ -458,6 +461,15 @@ structure PrimopBindings : sig
 	    cmp("ge", P.GTE) :-:
 	    cmp("eql", P.EQL) :-:
 	    cmp("neq", P.NEQ)
+	  end
+
+  (* primops for the c_pointer type *)
+    val prims = let
+	  val wName = "word" ^ Int.toString Target.pointerSz
+	  in
+	    prims :-:
+	    ("cptr_to_" ^ wName, ar(BT.pointerTy, addrTy), P.PTR_TO_WORD) :-:
+	    (wName ^ "_to_cptr", ar(addrTy, BT.pointerTy), P.WORD_TO_PTR)
 	  end
 
   (* primops for C FFI *)

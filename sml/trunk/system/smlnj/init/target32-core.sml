@@ -374,10 +374,11 @@ structure Core =
        *)
 
       (* "large" (boxed) numbers <-> intinf *)
-	val truncInfLarge = CoreIntInf.truncInfLarge	(* for `P.TRUNC_INF 32` *)
-	val testInfLarge = CoreIntInf.testInfLarge	(* for `P.TEST_INF 32` *)
-	val copyLargeInf = CoreIntInf.copyLargeInf	(* for `P.COPY_INF 32` *)
-	val extendLargeInf = CoreIntInf.extendLargeInf	(* for `P.EXTEND_INF 32` *)
+(* FIXME: the lhs names are not accurate now that Word64/Int64 are fully supported *)
+	val truncInfLarge = CoreIntInf.truncInf32	(* for `P.TRUNC_INF 32` *)
+	val testInfLarge = CoreIntInf.testInf32		(* for `P.TEST_INF 32` *)
+	val copyLargeInf = CoreIntInf.copy32Inf		(* for `P.COPY_INF 32` *)
+	val extendLargeInf = CoreIntInf.extend32Inf	(* for `P.EXTEND_INF 32` *)
 
       (* word64-rep (pairs of 32-bit words) <-> intinf *)
 	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)

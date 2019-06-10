@@ -10,21 +10,21 @@
  * All rights reserved.
  */
 
-#  include "ml-osdep.h"
-#if defined(HAS_GETTIMEOFDAY)
-#  if defined(OPSYS_WIN32)
-#    include <sys/types.h>
-#    include <sys/timeb.h>
-#  else
-#    include <sys/time.h>
-#  endif
-#else
-#  error no timeofday mechanism
-#endif
-#include <time.h>
+#include "ml-base.h"
+#include "ml-osdep.h"
 #include "ml-base.h"
 #include "ml-objects.h"
 #include "cfun-proto-list.h"
+#include "ml-c.h"
+
+#if !defined(OPSYS_WIN32)
+
+#if defined(HAS_GETTIMEOFDAY)
+#  include <sys/time.h>
+#  include <time.h>
+#else
+#  error no timeofday mechanism
+#endif
 
 /* LocalOffset:
  *
@@ -33,25 +33,29 @@
  * not only the geographical location of the host system, but
  * also daylight savings time (if it is in effect at time t).
  */
-static ml_val_t LocalOffset (ml_state_t *msp, time_t t)
+PVT ml_val_t LocalOffset (ml_state_t *msp, time_t t)
 {
-    struct tm	*tm;
+    struct tm	tmbuf;
     int		isDST;
     time_t	t2;
 
   /* get the local timezone's daylight saving's time info */
-    tm = localtime (&t);
-    isDST = tm->tm_isdst;
+    if (localtime_r (&t, &tmbuf) == NULL) {
+	return RAISE_SYSERR(msp, 0);
+    }
+    isDST = tmbuf.tm_isdst;
 
   /* convert to UTC and local tm structs */
-    tm = gmtime (&t);
+    if (gmtime_r (&t, &tmbuf) == NULL) {
+	return RAISE_SYSERR(msp, 0);
+    }
 
   /* convert the UTC tm struct back into seconds using the local timezone info (including
    * the daylight savings time field from localTM).  The local offset will be the difference
    * between this value and now.
    */
-    tm->tm_isdst = isDST;
-    t2 = mktime (tm);
+    tmbuf.tm_isdst = isDST;
+    t2 = mktime (&tmbuf);
 
     return INT32_CtoML(msp, t2 - t);
 
@@ -69,7 +73,7 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
 
 } /* end of _ml_Date_localoffset */
 
-/* _ml_Date_localOffsetForTime : Int32.int -> Int32.int
+/* _ml_Date_localOffsetForTime : Word32.word -> Int32.int
  *
  * Returns the offset from UTC of the given time in the local timezone.
  * This value reflects not only the geographical location of the host system, but
@@ -77,6 +81,80 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
 {
-    return LocalOffset (msp, INT32_MLtoC(arg));
+    return LocalOffset (msp, (time_t)WORD32_MLtoC(arg));
 
 } /* end of _ml_Date_localoffset */
+
+#else /* OPSYS_WIN32 */
+
+#include "win32-date.h"
+
+/* _ml_Date_localOffset : unit -> Int32.int
+ *
+ * Returns the offset from UTC of the current time in the local timezone.
+ * This value reflects not only the geographical location of the host system, but
+ * also daylight savings time (if it is in effect).
+ */
+ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
+{
+    SYSTEMTIME localST;
+    FILETIME localFT, utcFT;
+    Unsigned32_t localSec;
+
+    GetLocalTime (&localST);
+    if (! SystemTimeToFileTime (&localST, &localFT)) {
+	return RAISE_SYSERR(msp, 0);
+    }
+
+    if (LocalFileTimeToFileTime (&localFT, &utcFT)) {
+	Unsigned32_t localSec = filetime_to_secs (&localFT);
+	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
+      /* compute offset (UTC - local) in seconds. */
+	if (localSec <= utcSec) {
+	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
+	}
+	else {
+	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
+	}
+    }
+    else {
+	return RAISE_SYSERR(msp, 0);
+    }
+
+} /* end of _ml_Date_localoffset */
+
+/* _ml_Date_localOffsetForTime : Word32.word -> Int32.int
+ *
+ * Returns the offset from UTC of the given time in the local timezone.
+ * This value reflects not only the geographical location of the host system, but
+ * also daylight savings time (if it is in effect).
+ */
+ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
+{
+    FILETIME localFT, utcFT;
+
+    Unsigned32_t localSec = WORD32_MLtoC(arg);
+    secs_to_filetime (localSec, &localFT);
+SayDebug("** localOffsetForTime: localSec = %u; localFT = %#x:%08x\n",
+localSec, localFT.dwHighDateTime, localFT.dwLowDateTime);
+    if (LocalFileTimeToFileTime (&localFT, &utcFT)) {
+	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
+SayDebug("                       utcSec = %u; utcFT = %#x:%08x\n",
+utcSec, utcFT.dwHighDateTime, utcFT.dwLowDateTime);
+      /* compute offset (UTC - local) in seconds. */
+	if (localSec <= utcSec) {
+SayDebug("                       offset = %d\n", (Int32_t)(utcSec - localSec));
+	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
+	}
+	else {
+SayDebug("                       offset = %d\n", -(Int32_t)(localSec - utcSec));
+	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
+	}
+    }
+    else {
+	return RAISE_SYSERR(msp, 0);
+    }
+
+} /* end of _ml_Date_localoffset */
+
+#endif

@@ -19,7 +19,6 @@ LIBRARY =	libsmlnj-date.a
 VERSION =	v-dummy
 
 OBJS =		smlnj-date-lib.o \
-		asctime.o \
 		gmtime.o \
 		localoffset.o \
 		localtime.o \

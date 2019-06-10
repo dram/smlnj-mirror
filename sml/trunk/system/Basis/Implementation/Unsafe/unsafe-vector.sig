@@ -1,6 +1,7 @@
 (* unsafe-vector.sig
  *
- * COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 signature UNSAFE_VECTOR =

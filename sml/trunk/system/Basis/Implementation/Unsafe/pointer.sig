@@ -14,7 +14,7 @@ signature UNSAFE_POINTER =
 
     structure AddrWord : WORD	(* address-sized word type *)
 
-    eqtype t (* = PrimTypes.c_pointer *)
+    type t = PointerImp.c_pointer (* = PrimTypes.c_pointer *)
 
   (* null pointer *)
     val null : t
@@ -27,5 +27,8 @@ signature UNSAFE_POINTER =
 
   (* compare two pointers *)
     val compare : t * t -> order
+
+  (* return a hash key for an address *)
+    val hash : t -> word
 
   end

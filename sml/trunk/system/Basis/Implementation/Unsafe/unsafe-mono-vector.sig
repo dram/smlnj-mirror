@@ -15,5 +15,3 @@ signature UNSAFE_MONO_VECTOR =
     val create : int -> vector
 
   end;
-
-

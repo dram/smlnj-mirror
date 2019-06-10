@@ -218,6 +218,7 @@ local
 	  (BT.charTycon,	char2str),
 	  (BT.realTycon,	Real.toString o Obj.toReal),
 	  (BT.exnTycon,		exn2str),
+	  (BT.pointerTycon,	fn _ => "cptr"),
 	  (BT.stringTycon,	PrintUtil.pr_mlstr o Obj.toString),
 (* FIXME: actually print the values *)
 	  (BT.chararrayTycon,	fn _ => "-"),

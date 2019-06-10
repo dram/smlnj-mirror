@@ -1,10 +1,13 @@
-(*
- * Build the dependency graph for one group/library.
+(* build.sml
  *
- * (C) 1999 Lucent Technologies, Bell Laboratories
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Build the dependency graph for one group/library.
  *
  * Author: Matthias Blume (blume@kurims.kyoto-u.ac.jp)
  *)
+
 signature BUILDDEPEND = sig
     type impexp = DependencyGraph.impexp
 
@@ -310,19 +313,20 @@ structure BuildDepend :> BUILDDEPEND = struct
 	    in
 		(nth', DE.FILTER (ss, e), SS.intersection (allsyms,ss))
 	    end
-	    fun addNodeFor (s, m) =
-		case SM.find (localmap, s) of
-		    SOME n => SM.insert (m, s, strengthen local_filter n)
-		  | NONE =>
-		    (case SM.find (imports, s) of
-			 SOME n =>
-			     (add_gi_sym s;
-			      SM.insert (m, s, strengthen reexport_filter n))
-		       | NONE => 
+	    fun addNodeFor (s, m) = (
+		case SM.find (localmap, s)
+		 of SOME n => SM.insert (m, s, strengthen local_filter n)
+		  | NONE => (case SM.find (imports, s)
+		       of SOME n => (
+			    add_gi_sym s;
+			    SM.insert (m, s, strengthen reexport_filter n))
+			| NONE =>
 			 (* This should never happen since we
 			  * checked beforehand during
 			  * parsing/semantic analysis *)
-			 EM.impossible "build: undefined export")
+			    EM.impossible "build: undefined export"
+		      (* end case *))
+		(* end case *))
 	in
 	    SS.foldl addNodeFor SM.empty filter
 	end

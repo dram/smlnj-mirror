@@ -20,7 +20,6 @@ VERSION =	v-dummy
 
 OBJS =		smlnj-time-lib.o \
 		gettime.o \
-		time-in-seconds.o \
 		timeofday.o
 
 $(LIBRARY)	: $(VERSION) $(OBJS)
