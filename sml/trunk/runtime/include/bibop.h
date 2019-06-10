@@ -65,9 +65,9 @@ typedef l2_bibop_t **bibop_t;
 extern bibop_t        BIBOP;
 
 #define ADDR_TO_PAGEID(bibop,a)		\
-	((bibop)[BIBOP_ADDR_TO_L1_INDEX(a)].tbl[BIBOP_ADDR_TO_L2_INDEX(a))
+	((*bibop)[BIBOP_ADDR_TO_L1_INDEX(a)].tbl[BIBOP_ADDR_TO_L2_INDEX(a)])
 #define INDEX_TO_PAGEID(bibop,ix)	\
-	((bibop)[BIBOP_INDEX_TO_L1_INDEX(ix)][BIBOP_INDEX_TO_L2_INDEX(ix)])
+	((*bibop)[BIBOP_INDEX_TO_L1_INDEX(ix)][BIBOP_INDEX_TO_L2_INDEX(ix)])
 
 #else
 

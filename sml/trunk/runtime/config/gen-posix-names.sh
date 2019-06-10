@@ -1,14 +1,15 @@
 #!/bin/sh
 #
-# gen-posix-names.sh
-#
-# COPYRIGHT (c) 1996 AT&T Research.
+# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
 #
 # Generate string-to-int tables for run-time POSIX values
 # queried using sysconf and (f)pathconf.
 #
 # Usage: gen-posix-names.sh <prefix> <outfile>
 #
+
+set -x
 
 # redefine PATH so that we get the right versions of the various tools
 #
@@ -72,6 +73,16 @@ case "$VERSION" in
 	  exit 1
 	fi
       fi
+    fi
+    ;;
+  *v-amd64-darwin)
+    SDK_PATH=`xcrun --show-sdk-path`
+    INCLFILE=$SDK_PATH/usr/include/unistd.h
+    # verify that unistd.h exists at the expected place
+    #
+    if test ! -r $INCLFILE ; then
+      echo "gen-posix-names.sh: unable to find <unistd.h>"
+      exit 1
     fi
     ;;
   *) ;;

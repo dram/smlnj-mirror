@@ -164,7 +164,7 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
     for (i = 0;  i < BIBOP_L2_SZ;  i++) {
 	UnmappedL2.tbl[i] = AID_UNMAPPED;
     }
-    UnmapedL2.numMapped = 0;
+    UnmappedL2.numMapped = 0;
 #else
     for (i = 0;  i < BIBOP_SZ;  i++) {
 	BIBOP[i] = AID_UNMAPPED;

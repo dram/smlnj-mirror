@@ -396,23 +396,23 @@ ML_CODE_HDR(array_a)
 	MOV_Q(temp, temp1)
 	salq	CONST(TAG_SHIFTW),temp1      /* build descriptor in temp1 */
 	orq	CONST(MAKE_TAG(DTAG_arr_data)),temp1
-	MOV_Q(temp1,REGIND(allocptr)	     /* store descriptor */
+	MOV_Q(temp1,REGIND(allocptr))	     /* store descriptor */
 	addq	CONST(8),allocptr	     /* allocptr++ */
-	MOV_Q(allocptr, temp1		     /* temp1 := array data ptr */
-	MOV_Q(REGOFF(8,stdarg), temp2	     /* temp2 := initial value */
+	MOV_Q(allocptr, temp1)		     /* temp1 := array data ptr */
+	MOV_Q(REGOFF(8,stdarg), temp2)	     /* temp2 := initial value */
 2:
-	MOV_Q(temp2, REGIND(allocptr)     /* initialize array */
+	MOV_Q(temp2, REGIND(allocptr))     /* initialize array */
 	addq	CONST(8), allocptr
 	subq	CONST(1), temp
 	JNE(2b)
 
 	/* Allocate array header */
-	MOV_Q(CONST(DESC_polyarr),REGIND(allocptr) /* descriptor in temp */
+	MOV_Q(CONST(DESC_polyarr),REGIND(allocptr)) /* descriptor in temp */
 	addq	CONST(8), allocptr	     /* allocptr++ */
-	MOV_Q(REGIND(stdarg), temp	     /* temp := length */
-	MOV_Q(allocptr, stdarg   	     /* result = header addr */
-	MOV_Q(temp1, REGIND(allocptr)	     /* store pointer to data */
-	MOV_Q(temp, REGOFF(8,allocptr)	     /* store length */
+	MOV_Q(REGIND(stdarg), temp)	     /* temp := length */
+	MOV_Q(allocptr, stdarg)   	     /* result = header addr */
+	MOV_Q(temp1, REGIND(allocptr))	     /* store pointer to data */
+	MOV_Q(temp, REGOFF(8,allocptr))	     /* store length */
 	addq	CONST(16), allocptr
 
 	POP_Q(misc1)
@@ -431,7 +431,7 @@ ML_CODE_HDR(create_r_a)
 	CHECKLIMIT
 #define temp1 misc0
         pushq	misc0			/* free temp1 */
-	MOV_Q(stdarg,temp		/* temp := length */
+	MOV_Q(stdarg,temp)		/* temp := length */
 	sarq	CONST(1),temp		/* temp := untagged length */
 	cmpq	CONST(SMALL_OBJ_SZW),temp
 	JGE(2f)
@@ -440,18 +440,18 @@ ML_CODE_HDR(create_r_a)
 	MOV_Q(temp, temp1)
 	shlq	CONST(TAG_SHIFTW),temp1  /* temp1 := descriptor */
 	orq	CONST(MAKE_TAG(DTAG_raw64)),temp1
-	MOV_Q(temp1,REGIND(allocptr)	/* store descriptor */
+	MOV_Q(temp1,REGIND(allocptr))	/* store descriptor */
 	addq	CONST(8), allocptr	/* allocptr++ */
-	MOV_Q(allocptr, temp1		/* temp1 := data object */
+	MOV_Q(allocptr, temp1)		/* temp1 := data object */
 	shlq	CONST(3),temp		/* temp := length in bytes */
 	addq	temp, allocptr		/* allocptr += length */
 
 	/* allocate the header object */
-	MOV_Q(CONST(DESC_real64arr),REGIND(allocptr)/* header descriptor */
+	MOV_Q(CONST(DESC_real64arr),REGIND(allocptr))/* header descriptor */
 	addq	CONST(8), allocptr	/* allocptr++ */
-	MOV_Q(temp1, REGIND(allocptr)	/* header data field */
-	MOV_Q(stdarg, REGOFF(8,allocptr)	/* header length field */
-	MOV_Q(allocptr, stdarg		/* stdarg := header object */
+	MOV_Q(temp1, REGIND(allocptr))	/* header data field */
+	MOV_Q(stdarg, REGOFF(8,allocptr))	/* header length field */
+	MOV_Q(allocptr, stdarg)		/* stdarg := header object */
 	addq	CONST(16), allocptr	/* allocptr += 2 */
 
 	popq	misc0			/* restore temp1 */
@@ -467,7 +467,7 @@ ML_CODE_HDR(create_r_a)
 /* create_b : int -> bytearray */
 ML_CODE_HDR(create_b_a)
 	CHECKLIMIT
-	MOV_Q(stdarg,temp		/* temp := length(tagged int) */
+	MOV_Q(stdarg,temp)		/* temp := length(tagged int) */
 	sarq	CONST(1),temp		/* temp := length(untagged) */
 	addq	CONST(3),temp
 	sarq	CONST(2),temp		/* temp := length(words) */
@@ -478,12 +478,12 @@ ML_CODE_HDR(create_b_a)
 #define	temp1	misc0
 	PUSH_Q(misc0)
 	/* allocate teh data object */
-	MOV_Q(temp, temp1		/* temp1 :=  descriptor */
+	MOV_Q(temp, temp1)		/* temp1 :=  descriptor */
 	shlq	CONST(TAG_SHIFTW),temp1
 	orq	CONST(MAKE_TAG(DTAG_raw)),temp1
-	MOV_Q(temp1, REGIND(allocptr)	/* store descriptor */
+	MOV_Q(temp1, REGIND(allocptr))	/* store descriptor */
 	addq	CONST(4), allocptr	/* allocptr++ */
-	MOV_Q(allocptr, temp1		/* temp1 := data object */
+	MOV_Q(allocptr, temp1)		/* temp1 := data object */
 	shlq	CONST(2), temp		/* temp := length in bytes */
 	addq	temp, allocptr		/* allocptr += length */
 
@@ -519,21 +519,21 @@ ML_CODE_HDR(create_s_a)
 	MOV_Q(temp, temp1)
 	shlq	CONST(TAG_SHIFTW),temp1	/* build descriptor in temp1 */
 	orq	CONST(MAKE_TAG(DTAG_raw)), temp1
-	MOV_Q(temp1, REGIND(allocptr)/* store the data pointer */
+	MOV_Q(temp1, REGIND(allocptr))/* store the data pointer */
 	addq	CONST(8),allocptr	/* allocptr++ */
 
-	MOV_Q(allocptr, temp1		/* temp1 := data object */
+	MOV_Q(allocptr, temp1)		/* temp1 := data object */
 	shlq	CONST(3),temp		/* temp := length in bytes */
 	addq	temp, allocptr		/* allocptr += length */
-	MOV_Q(CONST(0),REGOFF(-8,allocptr)	/* zero out the last word */
+	MOV_Q(CONST(0),REGOFF(-8,allocptr))	/* zero out the last word */
 
 	/* allocate the header object */
-	MOV_Q(CONST(DESC_string), temp	/* header descriptor */
+	MOV_Q(CONST(DESC_string), temp)	/* header descriptor */
 	MOV_Q(temp, REGIND(allocptr))
 	addq	CONST(8), allocptr	/* allocptr++ */
-	MOV_Q(temp1, REGIND(allocptr)/* header data field */
-	MOV_Q(stdarg, REGOFF(8,allocptr)	/* header length field */
-	MOV_Q(allocptr, stdarg		/* stdarg := header object */
+	MOV_Q(temp1, REGIND(allocptr))/* header data field */
+	MOV_Q(stdarg, REGOFF(8,allocptr))	/* header length field */
+	MOV_Q(allocptr, stdarg)		/* stdarg := header object */
 	addq	CONST(16), allocptr
 
 	popq	misc0			/* restore misc0 */
@@ -554,7 +554,7 @@ ML_CODE_HDR(create_v_a)
 	PUSH_Q(misc1)
 #define	temp1	misc0
 #define temp2   misc1
-	MOV_Q(REGIND(stdarg),temp		/* temp := length(tagged) */
+	MOV_Q(REGIND(stdarg),temp)		/* temp := length(tagged) */
 	MOV_Q(temp, temp1)
 	sarq	CONST(1),temp1		/* temp1 := length(untagged) */
 	cmpq	CONST(SMALL_OBJ_SZW),temp1
@@ -563,26 +563,26 @@ ML_CODE_HDR(create_v_a)
 
 	shlq	CONST(TAG_SHIFTW),temp1	/* build descriptor in temp1 */
 	orq	CONST(MAKE_TAG(DTAG_vec_data)),temp1
-	MOV_Q(temp1,REGIND(allocptr)	/* store descriptor */
+	MOV_Q(temp1,REGIND(allocptr))	/* store descriptor */
 	addq	CONST(8),allocptr	/* allocptr++ */
-	MOV_Q(REGOFF(8,stdarg),temp1		/* temp1 := list */
-	MOV_Q(allocptr,stdarg		/* stdarg := vector */
+	MOV_Q(REGOFF(8,stdarg),temp1)		/* temp1 := list */
+	MOV_Q(allocptr,stdarg)		/* stdarg := vector */
 
 2:
-	MOV_Q(REGIND(temp1),temp2		/* temp2 := hd(temp1) */
-	MOV_Q(temp2, REGIND(allocptr)	/* store word in vector */
+	MOV_Q(REGIND(temp1),temp2)		/* temp2 := hd(temp1) */
+	MOV_Q(temp2, REGIND(allocptr))	/* store word in vector */
 	addq	CONST(8), allocptr	/* allocptr++ */
-	MOV_Q(REGOFF(8,temp1),temp1		/* temp1 := tl(temp1) */
+	MOV_Q(REGOFF(8,temp1),temp1)		/* temp1 := tl(temp1) */
 	cmpq	CONST(ML_nil),temp1	/* temp1 = nil? */
 	JNE(2b)
 
 	/* allocate header object */
-	MOV_Q(CONST(DESC_polyvec),temp1/* descriptor in temp1 */
-	MOV_Q(temp1, REGIND(allocptr)	/* store descriptor */
+	MOV_Q(CONST(DESC_polyvec),temp1)/* descriptor in temp1 */
+	MOV_Q(temp1, REGIND(allocptr))	/* store descriptor */
 	addq	CONST(8),allocptr	/* allocptr++ */
-	MOV_Q(stdarg, REGIND(allocptr)	/* header data field */
-	MOV_Q(temp, REGOFF(8,allocptr)	/* header length */
-	MOV_Q(allocptr, stdarg		/* result = header object */
+	MOV_Q(stdarg, REGIND(allocptr))	/* header data field */
+	MOV_Q(temp, REGOFF(8,allocptr))	/* header length */
+	MOV_Q(allocptr, stdarg)		/* result = header object */
 	addq	CONST(16),allocptr	/* allocptr += 2 */
 
 	POP_Q(misc1)
@@ -605,9 +605,9 @@ ML_CODE_HDR(try_lock_a)
 #if (MAX_PROCS > 1)
 #  error multiple processors not supported
 #else /* (MAX_PROCS == 1) */
-	MOV_Q(REGIND(stdarg), temp	/* Get old value of lock. */
+	MOV_Q(REGIND(stdarg), temp)	/* Get old value of lock. */
 	MOV_L(CONST(1), REGIND(stdarg))	/* Set the lock to ML_false. */
-	MOV_Q(temp, stdarg		/* Return old value of lock. */
+	MOV_Q(temp, stdarg)		/* Return old value of lock. */
 	CONTINUE
 #endif
 
@@ -618,7 +618,7 @@ ML_CODE_HDR(unlock_a)
 #  error multiple processors not supported
 #else /* (MAX_PROCS == 1) */
 	MOV_L(CONST(3), REGIND(stdarg))		/* Store ML_true into lock. */
-	MOV_Q(CONST(1), stdarg		/* Return unit. */
+	MOV_Q(CONST(1), stdarg)		/* Return unit. */
 	CONTINUE
 #endif
 
@@ -714,13 +714,13 @@ ML_CODE_HDR(floor_a)
  * Note: Using fxtract, and fistl does not work for inf's and nan's.
  */
 ML_CODE_HDR(logb_a)
-	MOV_Q(REGOFF(0,stdarg),temp		/* msb for little endian arch */
+	MOV_Q(REGOFF(0,stdarg),temp)		/* msb for little endian arch */
 	sarq	CONST(52), temp		/* throw out 20 bits */
 	andq	CONST(0x7ff),temp	/* clear all but 11 low bits */
 	subq	CONST(1023), temp	/* unbias */
 	salq	CONST(1), temp		/* room for tag bit */
 	addq	CONST(1), temp		/* tag bit */
-	MOV_Q(temp, stdarg
+	MOV_Q(temp, stdarg)
 	CONTINUE
 
 
@@ -739,20 +739,20 @@ ML_CODE_HDR(scalb_a)
 
 	sarq	$1,REGOFF(8,stdarg)			 /* untag */
 	salq	$52,REGOFF(8,stdarg) /* XXX not tested */ /* should put scalar in exponent */
-	MOV_Q($0x3ff0000000000000,temp
+	MOV_Q($0x3ff0000000000000,temp)
 	addq	REGOFF(8,stdarg),temp
 	PUSH_Q(temp
 )
 	movsd	REGIND(RSP),%xmm1			/* Load it ... */
 /*	fstp	%st(1) */		/* ... into 1st FP reg. */
-	MOV_Q(REGIND(stdarg), temp		/* Get pointer to real. */
+	MOV_Q(REGIND(stdarg), temp)		/* Get pointer to real. */
 	movsd	/* was FLD_D */ REGIND(temp),%xmm0			/* Load it into temp. */
 
 	mulsd	%xmm0,%xmm1				/* Multiply exponent by scalar. */
-	MOV_Q(CONST(DESC_reald), REGIND(allocptr)
+	MOV_Q(CONST(DESC_reald), REGIND(allocptr))
 	movsd /* FSTP_D */ %xmm0,REGOFF(8,allocptr)		/* Store resulting float. */
 	addq	CONST(8), allocptr	/* Allocate word for tag. */
-	MOV_Q(allocptr, stdarg		/* Return a pointer to the float. */
+	MOV_Q(allocptr, stdarg)		/* Return a pointer to the float. */
 	addq	CONST(8), allocptr	/* Allocate room for float. */
 	addq	CONST(8),RSP		/* discard copy of scalar */
 	movsd	(RSP),%xmm1 /* do these need save */
