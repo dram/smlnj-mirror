@@ -13,7 +13,7 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-#define DEBUG_WIN32
+/* #define DEBUG_WIN32 */
 
 #include "win32-fault.h"
 

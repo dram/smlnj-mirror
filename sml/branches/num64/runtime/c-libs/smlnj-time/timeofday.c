@@ -17,7 +17,7 @@
 #include "ml-objects.h"
 #include "cfun-proto-list.h"
 
-/* _ml_Time_timeofday : unit -> Int64.int
+/* _ml_Time_timeofday : unit -> Word64.word
  *
  * Return the UTC time of day in nanoseconds.
  */
@@ -40,7 +40,6 @@ ml_val_t _ml_Time_timeofday (ml_state_t *msp, ml_val_t arg)
     uli.HighPart = ft.dwHighDateTime;
     uli.LowPart = ft.dwLowDateTime;
     ns = 100 * uli.QuadPart;
-SayDebug("** timeofday: ft = %#x:%08x; ns = %lld\n", ft.dwHighDateTime, ft.dwLowDateTime, ns);
 
     return ML_AllocWord64(msp, ns);
 #else
