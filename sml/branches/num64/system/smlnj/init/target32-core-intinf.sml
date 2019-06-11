@@ -45,12 +45,12 @@ structure CoreIntInf :> sig
 
   (* fit value (2's complement) in int32, raise Overflow if too large *)
     val testInf32   : intinf -> int32
-  (* truncate value (2's complement repr) to fit in int32: *)
-    val truncInf32  : intinf -> int32
-  (* copy bits from int32 into (non-negative) intinf: *)
-    val copy32Inf   : int32 -> intinf
+  (* truncate value (2's complement repr) to fit in word32: *)
+    val truncInf32  : intinf -> word32
   (* sign-extend int32 into intinf: *)
     val extend32Inf : int32 -> intinf
+  (* copy bits from word32 into (non-negative) intinf: *)
+    val copy32Inf   : word32 -> intinf
 
 (* 64BIT: these functions are only needed for 32-bit targets! *)
     (* fit value (2's complement) in "int64", raise Overflow if too large *)
@@ -142,28 +142,16 @@ end = struct
 
     val hBaseBits : word = 0w15
     val baseBits : word = InLine.word_lshift (hBaseBits, 0w1)
-    val maxDigit : word = 0wx3fffffff
+    val base : word = InLine.word_lshift (0w1, baseBits)
+    val base32 = wToW32 base
+    val maxDigit : word = InLine.word_sub(base, 0w1)
     val maxDigit32 = wToW32 maxDigit
     val maxDigitL : word = 0wx7fff	(* lower half of maxDigit *)
     val maxDigitL32 = wToW32 maxDigitL
-    val base : word = 0wx40000000
-    val base32 = wToW32 base
     val neg_base_as_int : int = ~0x40000000
 
     val gap : word = InLine.word_sub (0w32, baseBits) (* 32 - baseBits *)
     val slc : word = InLine.word_sub (baseBits, gap)  (* baseBits - gap *)
-
-  (* truncate intinf to word32 *)
-    fun truncInf32 i = let
-	  val BI { negative, digits } = concrete i
-	  val b = (case digits
-		 of [] => 0w0
-		  | [d] => wToW32 d
-		  | d0 :: d1 :: _ => wToW32 d0 || (wToW32 d1 << baseBits)
-		(* end case *))
-	  in
-	    w32ToI32 (if negative then InLine.word32_neg b else b)
-	  end
 
   (* convert intinf to int32; raise Overflow it result is too large *)
     fun testInf32 i = let
@@ -177,6 +165,18 @@ end = struct
 	      | [0w0, 0w2] => if negative then ~0x80000000
 			      else raise Assembly.Overflow
 	      | _ => raise Assembly.Overflow
+	  end
+
+  (* truncate intinf to word32 *)
+    fun truncInf32 i = let
+	  val BI { negative, digits } = concrete i
+	  val b = (case digits
+		 of [] => 0w0
+		  | [d] => wToW32 d
+		  | d0 :: d1 :: _ => wToW32 d0 || (wToW32 d1 << baseBits)
+		(* end case *))
+	  in
+	    if negative then InLine.word32_neg b else b
 	  end
 
   (* sign-extend an int32 to an intinf *)
@@ -198,8 +198,7 @@ end = struct
 	  end
 
   (* zero-extend an word32 to an intinf *)
-    fun copy32Inf i32 = let
-	  val w32 = i32ToW32 i32
+    fun copy32Inf w32 = let
 	  val digits = if InLine.word32_eql (w32, 0w0)
 		  then []
 		else if InLine.word32_ge (w32, base32)
