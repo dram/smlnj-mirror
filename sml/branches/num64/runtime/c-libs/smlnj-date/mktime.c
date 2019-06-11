@@ -31,7 +31,7 @@ ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
     tm.tm_hour	= REC_SELINT(arg, 2);
     tm.tm_mday	= REC_SELINT(arg, 3);
     tm.tm_mon	= REC_SELINT(arg, 4);
-    tm.tm_year	= REC_SELINT(arg, 5);
+    tm.tm_year	= REC_SELINT(arg, 5) - 1900;
     /* tm.tm_wday = REC_SELINT(arg, 6); */  /* ignored by mktime */
     /* tm.tm_yday = REC_SELINT(arg, 7); */  /* ignored by mktime */
     tm.tm_isdst	= REC_SELINT(arg, 8);

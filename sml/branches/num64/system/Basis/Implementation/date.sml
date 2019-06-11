@@ -96,9 +96,6 @@ structure Date : DATE =
     val localOffset = toTime o localOffset'
     end (* local *)
 
-  (* the run-time system indexes the year off this *)
-    val baseYear = 1900
-
     datatype weekday = Mon | Tue | Wed | Thu | Fri | Sat | Sun
 
     datatype month
@@ -158,7 +155,7 @@ structure Date : DATE =
 
   (* convert runtime tm tuple to date type *)
     fun tm2date (tm : tm, offset) = DATE{
-	    year = tm_year tm + baseYear,
+	    year = tm_year tm,
 	    month = Vector.sub(monthTbl, tm_mon tm),
 	    day = tm_mday tm,
 	    hour = tm_hour tm,
@@ -177,7 +174,7 @@ structure Date : DATE =
 	    #hour d,			(* tm_hour *)
 	    #day d,			(* tm_mday *)
 	    monthToInt(#month d),	(* tm_mon *)
-	    #year d - baseYear,		(* tm_year *)
+	    #year d,			(* tm_year *)
 	    dayToInt(#wday d),		(* tm_wday *)
 	    #yday d,			(* tm_yday *)
 	    case (#isDst d)		(* tm_isdst *)

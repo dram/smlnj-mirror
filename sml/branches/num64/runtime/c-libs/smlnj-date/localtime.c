@@ -34,7 +34,7 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
     ML_AllocWrite(msp, 3, INT_CtoML(tm->tm_hour));
     ML_AllocWrite(msp, 4, INT_CtoML(tm->tm_mday));
     ML_AllocWrite(msp, 5, INT_CtoML(tm->tm_mon));
-    ML_AllocWrite(msp, 6, INT_CtoML(tm->tm_year));
+    ML_AllocWrite(msp, 6, INT_CtoML(tm->tm_year + 1900));
     ML_AllocWrite(msp, 7, INT_CtoML(tm->tm_wday));
     ML_AllocWrite(msp, 8, INT_CtoML(tm->tm_yday));
     ML_AllocWrite(msp, 9, INT_CtoML(tm->tm_isdst));
