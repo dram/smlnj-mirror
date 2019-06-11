@@ -11,9 +11,9 @@
 
 #if !defined(OPSYS_WIN32)
 
-#include <time.h>
+#include "unix-date.h"
 
-/* _ml_Date_gmtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
+/* _ml_Date_gmtime : Word64.word -> (int * int * int * int * int * int * int * int * int)
  *
  * Takes a UTC time value (in seconds), and converts it to a 9-tuple with
  * the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year, tm_wday,
@@ -21,7 +21,7 @@
  */
 ml_val_t _ml_Date_gmtime (ml_state_t *msp, ml_val_t arg)
 {
-    time_t	t = (time_t)WORD32_MLtoC(arg);
+    time_t	t = ns_to_time(WORD64_MLtoC(arg));
     struct tm	tmbuf;
 
     if (gmtime_r (&t, &tmbuf) == NULL) {
@@ -47,9 +47,9 @@ ml_val_t _ml_Date_gmtime (ml_state_t *msp, ml_val_t arg)
 
 #include "win32-date.h"
 
-/* _ml_Date_gmtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
+/* _ml_Date_gmtime : Word64.word -> (int * int * int * int * int * int * int * int * int)
  *
- * Takes a UTC time value (in seconds), and converts it to a 9-tuple with
+ * Takes a UTC time value (in nanoseconds), and converts it to a 9-tuple with
  * the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year, tm_wday,
  * tm_yday, and tm_isdst.
  */
@@ -58,7 +58,7 @@ ml_val_t _ml_Date_gmtime (ml_state_t *msp, ml_val_t arg)
     FILETIME	utcFT;
     SYSTEMTIME	utcST;
 
-    secs_to_filetime (WORD32_MLtoC(arg), &utcFT);
+    ns_to_filetime (WORD64_MLtoC(arg), &utcFT);
 
     if (! FileTimeToSystemTime (&utcFT, &utcST)) {
 	return RAISE_SYSERR(msp, 0);

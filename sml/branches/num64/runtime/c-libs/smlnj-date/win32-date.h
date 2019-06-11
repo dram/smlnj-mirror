@@ -1,9 +1,5 @@
 /*! \file win32-date.h
  *
- * \author John Reppy
- */
-
-/*
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
@@ -16,31 +12,34 @@
 #include "ml-base.h"
 #include <windows.h>
 
-/* convert an unsigned 32-bit seconds value to a FILETIME value. */
-STATIC_INLINE void secs_to_filetime (Unsigned32_t sec, FILETIME *ft)
-{
-    ULARGE_INTEGER uli;
-
-    uli.u.LowPart = sec;
-    uli.u.HighPart = 0;
-    uli.QuadPart = 10000000 * uli.QuadPart;	/* convert to 100ns units */
-
-    ft->dwLowDateTime = uli.u.LowPart;
-    ft->dwHighDateTime = uli.u.HighPart;
-}
-
-/* convert a FILETIME in 100ns units to unsigned seconds */
-STATIC_INLINE Unsigned32_t filetime_to_secs (const FILETIME *ft)
+/* convert a FILETIME to a 64-bit unsigned integer */
+STATIC_INLINE Unsigned64_t filetime_to_100ns (FILETIME *ft)
 {
     ULARGE_INTEGER uli;
 
     uli.u.LowPart = ft->dwLowDateTime;
     uli.u.HighPart = ft->dwHighDateTime;
 
-    uli.QuadPart = uli.QuadPart / 10000000;	/* convert to seconds */
+    return uli.QuadPart;
+}
 
-    return uli.u.LowPart;
+/* convert an unsigned 64-bit nanoseconds value to a FILETIME value. */
+STATIC_INLINE void ns_to_filetime (Unsigned64_t ns, FILETIME *ft)
+{
+    ULARGE_INTEGER uli;
 
+    uli.u.LowPart = (DWORD)ns;
+    uli.u.HighPart = (DWORD)(ns >> 32);
+    uli.QuadPart = uli.QuadPart / 100;	/* convert to 100ns units */
+
+    ft->dwLowDateTime = uli.u.LowPart;
+    ft->dwHighDateTime = uli.u.HighPart;
+}
+
+/* convert a FILETIME in 100ns units to unsigned nanoseconds */
+STATIC_INLINE Unsigned64_t filetime_to_ns (const FILETIME *ft)
+{
+    return 100 * filetime_to_100ns(ft);	/* convert to nanoseconds */
 }
 
 /* compute the day of the year from a SYSTEMTIME struct */

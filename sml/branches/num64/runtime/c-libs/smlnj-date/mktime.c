@@ -12,13 +12,13 @@
 #if !defined(OPSYS_WIN32)
 
 #include <string.h>
-#include <time.h>
+#include "unix-date.h"
 
-/* _ml_Date_mktime : (int * int * int * int * int * int * int * int * int) -> Word32.word
+/* _ml_Date_mktime : (int * int * int * int * int * int * int * int * int) -> Word64.word
  *
  * This takes a 9-tuple with the fields: tm_sec, tm_min, tm_hour, tm_mday,
  * tm_mon, tm_year, tm_wday, tm_yday, tm_isdst, and returns the corresponding
- * localtime value (in seconds).
+ * localtime value (in nanoseconds).
  */
 ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 {
@@ -42,7 +42,7 @@ ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 	return RAISE_ERROR(msp, "Invalid date");
     }
     else {
-	return WORD32_CtoML(msp, t);
+	return ML_AllocWord64(msp, time_to_ns(t));
     }
 
 } /* end of _ml_Date_mktime */
@@ -51,11 +51,11 @@ ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 
 #include "win32-date.h"
 
-/* _ml_Date_mktime : (int * int * int * int * int * int * int * int * int) -> Word32.word
+/* _ml_Date_mktime : (int * int * int * int * int * int * int * int * int) -> Word64.word
  *
  * This takes a 9-tuple with the fields: tm_sec, tm_min, tm_hour, tm_mday,
  * tm_mon, tm_year, tm_wday, tm_yday, tm_isdst, and returns the corresponding
- * localtime value (in seconds).
+ * localtime value (in nanoseconds).
  */
 ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 {
@@ -81,7 +81,7 @@ ml_val_t _ml_Date_mktime (ml_state_t *msp, ml_val_t arg)
 	return RAISE_ERROR(msp, "Invalid date");
     }
 
-    return WORD32_CtoML(msp, filetime_to_secs(&localFT));
+    return ML_AllocWord64(msp, filetime_to_ns(&localFT));
 
 } /* end of _ml_Date_mktime */
 

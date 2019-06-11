@@ -11,9 +11,9 @@
 
 #if !defined(OPSYS_WIN32)
 
-#include <time.h>
+#include "unix-date.h"
 
-/* _ml_Date_localtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
+/* _ml_Date_localtime : Word64.word -> (int * int * int * int * int * int * int * int * int)
  *
  * Takes a UTC time value (in seconds), and converts it to local time represented
  * as a 9-tuple with the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year,
@@ -21,7 +21,7 @@
  */
 ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 {
-    time_t	t = (time_t)WORD32_MLtoC(arg);
+    time_t	t = ns_to_time(WORD64_MLtoC(arg));
     struct tm	*tm;
 
     tm = localtime (&t);
@@ -47,7 +47,7 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 
 #include "win32-date.h"
 
-/* _ml_Date_localtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
+/* _ml_Date_localtime : Word64.word -> (int * int * int * int * int * int * int * int * int)
  *
  * Takes a UTC time value (in seconds), and converts it to local time represented
  * as a 9-tuple with the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year,
@@ -60,7 +60,7 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
     TIME_ZONE_INFORMATION tzInfo;
     BOOL isDST;
 
-    secs_to_filetime (WORD32_MLtoC(arg), &utcFT);
+    ns_to_filetime (WORD64_MLtoC(arg), &utcFT);
 
   /* convert to local system time */
     if (! FileTimeToLocalFileTime(&utcFT, &localFT)) {

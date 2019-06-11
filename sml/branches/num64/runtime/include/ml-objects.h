@@ -220,8 +220,8 @@ STATIC_INLINE ml_val_t ML_AllocWord64 (ml_state_t *msp, Unsigned64_t w)
 #ifdef SIZES_C64_ML64
     p[1] = (ml_val_t)w;
 #else /* 32-bit ML values */
-    p[0] = (ml_val_t)(Unsigned32_t)(w >> 32);
-    p[1] = (ml_val_t)(Unsigned32_t)w;
+    p[1] = (ml_val_t)(Unsigned32_t)(w >> 32);
+    p[2] = (ml_val_t)(Unsigned32_t)w;
 #endif
     return ML_Alloc(msp, WORD64_SZW);
 }
