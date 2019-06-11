@@ -2,7 +2,7 @@
 # the makefile for the Date library
 # win32 specific
 
-SHELL =		
+SHELL =
 
 INC_DIR =	..\..\include
 CLIB_DIR =	..\
@@ -12,7 +12,7 @@ INCLUDES =	/I$(INC_DIR) /I$(CLIB_DIR) /I..\..\objs
 MAKEFILE = 	makefile.win32
 MAKE =		nmake /F$(MAKEFILE)
 AR =		lib
-ARFLAGS =	
+ARFLAGS =
 RANLIB =	lib
 
 LIBRARY =	libsmlnj-date.lib

@@ -52,7 +52,7 @@ PVT ml_val_t LocalOffset (ml_state_t *msp, time_t t)
 
   /* convert the UTC tm struct back into seconds using the local timezone info (including
    * the daylight savings time field from localTM).  The local offset will be the difference
-   * between this value and now.
+   * between this value and the original time.
    */
     tmbuf.tm_isdst = isDST;
     t2 = mktime (&tmbuf);
@@ -99,7 +99,6 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
 {
     SYSTEMTIME localST;
     FILETIME localFT, utcFT;
-    Unsigned32_t localSec;
 
     GetLocalTime (&localST);
     if (! SystemTimeToFileTime (&localST, &localFT)) {
@@ -109,12 +108,18 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
     if (LocalFileTimeToFileTime (&localFT, &utcFT)) {
 	Unsigned32_t localSec = filetime_to_secs (&localFT);
 	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
-      /* compute offset (UTC - local) in seconds. */
-	if (localSec <= utcSec) {
-	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
+SayDebug("** localOffset: utcSec = %u; utcFT = %#x:%08x\n",
+utcSec, utcFT.dwHighDateTime, utcFT.dwLowDateTime);
+SayDebug("                localSec = %u; localFT = %#x:%08x\n",
+localSec, localFT.dwHighDateTime, localFT.dwLowDateTime);
+      /* compute offset (local - UTC) in seconds. */
+	if (localSec < utcSec) {
+SayDebug("                offset = %d\n", -(Int32_t)(utcSec - localSec));
+	    return INT32_CtoML(msp, -(Int32_t)(utcSec - localSec));
 	}
 	else {
-	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
+SayDebug("                offset = %d\n", (Int32_t)(localSec - utcSec));
+	    return INT32_CtoML(msp, (Int32_t)(localSec - utcSec));
 	}
     }
     else {
@@ -133,22 +138,24 @@ ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
 {
     FILETIME localFT, utcFT;
 
-    Unsigned32_t localSec = WORD32_MLtoC(arg);
-    secs_to_filetime (localSec, &localFT);
-SayDebug("** localOffsetForTime: localSec = %u; localFT = %#x:%08x\n",
-localSec, localFT.dwHighDateTime, localFT.dwLowDateTime);
-    if (LocalFileTimeToFileTime (&localFT, &utcFT)) {
-	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
-SayDebug("                       utcSec = %u; utcFT = %#x:%08x\n",
+    Unsigned32_t utcSec = WORD32_MLtoC(arg);
+    secs_to_filetime (utcSec, &utcFT);
+
+SayDebug("** localOffsetForTime: utcSec = %u; utcFT = %#x:%08x\n",
 utcSec, utcFT.dwHighDateTime, utcFT.dwLowDateTime);
-      /* compute offset (UTC - local) in seconds. */
-	if (localSec <= utcSec) {
-SayDebug("                       offset = %d\n", (Int32_t)(utcSec - localSec));
-	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
+
+    if (FileTimeToLocalFileTime (&utcFT, &localFT)) {
+	Unsigned32_t localSec = filetime_to_secs (&localFT);
+SayDebug("                       localSec = %u; localFT = %#x:%08x\n",
+localSec, localFT.dwHighDateTime, localFT.dwLowDateTime);
+      /* compute offset (local - UTC) in seconds. */
+	if (localSec < utcSec) {
+SayDebug("                       offset = %d\n", -(Int32_t)(utcSec - localSec));
+	    return INT32_CtoML(msp, -(Int32_t)(utcSec - localSec));
 	}
 	else {
-SayDebug("                       offset = %d\n", -(Int32_t)(localSec - utcSec));
-	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
+SayDebug("                       offset = %d\n", (Int32_t)(localSec - utcSec));
+	    return INT32_CtoML(msp, (Int32_t)(localSec - utcSec));
 	}
     }
     else {

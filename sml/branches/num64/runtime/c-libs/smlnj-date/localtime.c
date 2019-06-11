@@ -55,20 +55,20 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 {
-    FILETIME utcFT;
+    FILETIME utcFT, localFT;
     SYSTEMTIME localST, utcST;
     TIME_ZONE_INFORMATION tzInfo;
     BOOL isDST;
 
     secs_to_filetime (WORD32_MLtoC(arg), &utcFT);
 
-  /* convert to system time */
-    if (! FileTimeToSystemTime(&utcFT, &utcST)) {
+  /* convert to local system time */
+    if (! FileTimeToLocalFileTime(&utcFT, &localFT)) {
 	return RAISE_SYSERR(msp, 0);
     }
 
-  /* adjust back to local time using the local time zone */
-    if (! SystemTimeToTzSpecificLocalTime(NULL, &utcST, &localST)) {
+  /* convert to system time */
+    if (! FileTimeToSystemTime(&localFT, &localST)) {
 	return RAISE_SYSERR(msp, 0);
     }
 
