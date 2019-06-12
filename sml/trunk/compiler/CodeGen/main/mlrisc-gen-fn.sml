@@ -1323,9 +1323,12 @@ functor MLRiscGen (
 		(*** PURE ***)
 (* REAL32: FIXME *)
 		| gen (C.PURE(P.INT_TO_REAL{from, to=64}, [v], x, _, e), hp) =
+(* 64BIT: on 32-bit platforms, we are using 32 -> double; on 64-bit, we have
+ * both 32->64 and 64->64 conversions available.
+ *)
 		    if (from <= Target.defaultIntSz)
-		      then treeifyDefF64 (x, M.CVTI2F(fty,ity,untagSigned(v)), e, hp)
-		      else treeifyDefF64 (x, M.CVTI2F(fty,ity,regbind v), e, hp)
+		      then treeifyDefF64 (x, M.CVTI2F(fty, ity, untagSigned v), e, hp)
+		      else treeifyDefF64 (x, M.CVTI2F(fty, ity, regbind v), e, hp)
 (* REAL32: FIXME *)
 		| gen (C.PURE(P.PURE_ARITH{oper, kind=P.FLOAT 64}, [v], x, _, e), hp) = let
 		    val r = fregbind v
