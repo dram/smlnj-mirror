@@ -91,7 +91,8 @@ structure Win32TextPrimIO : sig
 	  val closed = ref false
 	  fun checkClosed () = if !closed then raise IO.ClosedStream else ()
 	  val len = String.size src
-	  fun avail () = (len - !pos)
+	  val plen = Position.fromInt len
+	  fun avail () = SOME(Position.fromInt (len - !pos))
 	  fun readV n = let
 		val p = !pos
 		val m = Int.min(n, len-p)
@@ -113,7 +114,7 @@ structure Win32TextPrimIO : sig
 					   dst = buf, di = i };
 		  m
 		end
-	  fun getPos () = (checkClosed(); !pos)
+	  fun getPos () = (checkClosed(); Position.fromInt (!pos))
 	  in
 	      PrimIO.RD{
 		name        = "<string>",
@@ -122,14 +123,14 @@ structure Win32TextPrimIO : sig
         	readArr     = withLock readA,
 		readVecEvt  = withLock(CML.alwaysEvt o readV),
 		readArrEvt  = withLock(CML.alwaysEvt o readA),
-		avail       = SOME o avail,
+		avail       = avail,
 		getPos      = SOME(withLock getPos),
-		setPos	    = SOME(withLock(fn i => (
+		setPos	    = SOME(withLock(fn p => (
 				checkClosed();
-				if (i < 0) orelse (len < i)
+				if (p < 0) orelse (plen < p)
 				  then raise Subscript
 				  else ();
-				pos := i))),
+				pos := Position.toInt p))),
         	endPos      = SOME(withLock(fn () => (checkClosed(); len))),
 		verifyPos   = SOME(withLock getPos),
 		close       = withLock(fn () => closed := true),
