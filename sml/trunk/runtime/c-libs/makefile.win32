@@ -5,12 +5,12 @@
 #
 # win32 specific
 
-CC =		cl
-CFLAGS =	
+CC =		cl /nologo
+CFLAGS =
 MAKEFILE = 	makefile.win32
-MAKE =		nmake /F$(MAKEFILE)
+MAKE =		nmake /nologo /F$(MAKEFILE)
 AR =		lib
-ARFLAGS =	
+ARFLAGS =
 RANLIB =	lib
 
 VERSION =	v-dummy
@@ -36,7 +36,7 @@ LIB_DIRS =	smlnj-runtime \
 #	rm -f v-* *.o
 
 # ugh!
-clean :			
+clean :
 	del /F /Q v-* *.obj *.pdb
 
 	cd smlnj-runtime
