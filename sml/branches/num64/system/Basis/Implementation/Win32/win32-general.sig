@@ -13,6 +13,8 @@ signature WIN32_GENERAL =
 
     type hndl = Handle.t
 
+    val isValidHandle : hndl -> bool
+
     val arcSepChar : char
 
     val cfun : string -> string -> 'a -> 'b

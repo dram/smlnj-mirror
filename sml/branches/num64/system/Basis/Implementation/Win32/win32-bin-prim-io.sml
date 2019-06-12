@@ -27,7 +27,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
     val say = W32G.sayDebug
 
     fun announce s x y = (
-(**	  say "Win32BinPrimIO: "; say (s:string); say "\n";  **)
+(**	  W32G.sayDebug(concat["Win32BinPrimIO: ", s, "\n"]); **)
 	  x y)
 
     val bufferSzB = 4096

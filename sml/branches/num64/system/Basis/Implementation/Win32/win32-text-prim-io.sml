@@ -32,10 +32,8 @@ structure Win32TextPrimIO : sig
 
     type file_desc = W32G.hndl
 
-    val say = W32G.sayDebug
-
     fun announce s x y = (
-(**	  say "announce Win32TextPrimIO: "; say (s:string); say "\n"; **)
+(**	  W32G.sayDebug(concat["Win32TextPrimIO: ", s, "\n"]); **)
 	  x y)
 
     val bufferSzB = 4096

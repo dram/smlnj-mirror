@@ -14,6 +14,8 @@ structure Win32_General : WIN32_GENERAL =
 
     type hndl = Handle.t
 
+    val isValidHandle = Handle.isValid
+
     val arcSepChar = #"\\"
 
     val cfun = CInterface.c_function
