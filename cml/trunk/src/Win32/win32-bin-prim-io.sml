@@ -34,13 +34,9 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 	      fun getPos () : Position.int = !pos
 	      fun setPos p =
 		    pos := seek (W32FS.IODToHndl iod, p, W32IO.FILE_BEGIN)
-	      fun endPos () : Position.int = (
-		    case W32FS.getFileSize (W32FS.IODToHndl iod)
-		     of SOME w => w
-		      | _ => raise OS.SysErr("endPos: no file size", NONE)
-		    (* end case *))
+	      fun endPos () : Position.int = W32FS.getFileSize (W32FS.IODToHndl iod)
 	      fun verifyPos () = (
-		    pos := seek (W32FS.IODToHndl iod, 0wx0, W32IO.FILE_CURRENT);
+		    pos := seek (W32FS.IODToHndl iod, 0, W32IO.FILE_CURRENT);
 		    !pos)
 	      in
 		ignore (verifyPos());
@@ -51,10 +47,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 		  verifyPos=SOME verifyPos
 		}
 	      end
-	    else {
-		pos=ref(pfi 0),
-		getPos=NONE,setPos=NONE,endPos=NONE,verifyPos=NONE
-	      }
+	    else { pos=ref 0, getPos=NONE, setPos=NONE, endPos=NONE, verifyPos=NONE }
 
     fun addCheck f (SOME g) = SOME (f g)
       | addCheck _ NONE = NONE
@@ -70,7 +63,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 	    | withLock' (SOME f) = SOME(withLock f)
 	  val closed = ref false
           val {pos, getPos, setPos, endPos, verifyPos} = posFns iod
-	  fun incPos k = pos := Position.+(!pos, pfi k)
+	  fun incPos k = pos := Position.+(!pos, Position.fromInt k)
 	  fun blockWrap f x = (
 		if !closed then raise IO.ClosedStream else ();
 		f x)
@@ -159,7 +152,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 	    | withLock' (SOME f) = SOME(withLock f)
 	  val closed = ref false
           val {pos, getPos, setPos, endPos, verifyPos} = posFns iod
-	  fun incPos k = pos := Position.+(!pos, pfi k)
+	  fun incPos k = pos := Position.+(!pos, Position.fromInt k)
 	  fun ensureOpen () = if !closed then raise IO.ClosedStream else ()
 	  fun putV x = W32IO.writeVec x
 	  fun putA x = W32IO.writeArr x
