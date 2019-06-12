@@ -37,6 +37,6 @@ structure CMemAlloc : CMEMALLOC = struct
 	    in p_u (DL.addr free_h, a, [])
 	    end
 
-        fun alloc bytes = sys_malloc (Word.toLargeWord bytes)
+        fun alloc bytes = sys_malloc (Word32.fromLargeWord(Word.toLargeWord bytes))
 	fun free a = sys_free a
 end
