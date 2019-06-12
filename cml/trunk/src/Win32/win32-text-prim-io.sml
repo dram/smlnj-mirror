@@ -131,7 +131,7 @@ structure Win32TextPrimIO : sig
 				  then raise Subscript
 				  else ();
 				pos := Position.toInt p))),
-        	endPos      = SOME(withLock(fn () => (checkClosed(); len))),
+        	endPos      = SOME(withLock(fn () => (checkClosed(); plen))),
 		verifyPos   = SOME(withLock getPos),
 		close       = withLock(fn () => closed := true),
 		ioDesc      = NONE
@@ -139,4 +139,3 @@ structure Win32TextPrimIO : sig
 	  end
 
   end; (* Win32TextPrimIO *)
-
