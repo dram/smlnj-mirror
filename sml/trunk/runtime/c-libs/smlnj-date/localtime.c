@@ -11,9 +11,9 @@
 
 #if !defined(OPSYS_WIN32)
 
-#include <time.h>
+#include "unix-date.h"
 
-/* _ml_Date_localtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
+/* _ml_Date_localtime : Word64.word -> (int * int * int * int * int * int * int * int * int)
  *
  * Takes a UTC time value (in seconds), and converts it to local time represented
  * as a 9-tuple with the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year,
@@ -21,25 +21,15 @@
  */
 ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 {
-    time_t	t = (time_t)WORD32_MLtoC(arg);
-    struct tm	*tm;
+    time_t	t = ns_to_time(WORD64_MLtoC(arg));
+    struct tm	tmbuf;
 
-    tm = localtime (&t);
-
-    if (tm == NULL) RAISE_SYSERR(msp,0);
-
-    ML_AllocWrite(msp, 0, MAKE_DESC(DTAG_record, 9));
-    ML_AllocWrite(msp, 1, INT_CtoML(tm->tm_sec));
-    ML_AllocWrite(msp, 2, INT_CtoML(tm->tm_min));
-    ML_AllocWrite(msp, 3, INT_CtoML(tm->tm_hour));
-    ML_AllocWrite(msp, 4, INT_CtoML(tm->tm_mday));
-    ML_AllocWrite(msp, 5, INT_CtoML(tm->tm_mon));
-    ML_AllocWrite(msp, 6, INT_CtoML(tm->tm_year));
-    ML_AllocWrite(msp, 7, INT_CtoML(tm->tm_wday));
-    ML_AllocWrite(msp, 8, INT_CtoML(tm->tm_yday));
-    ML_AllocWrite(msp, 9, INT_CtoML(tm->tm_isdst));
-
-    return ML_Alloc(msp, 9);
+    if (localtime_r (&tmbuf, &t) == NULL) {
+	RAISE_SYSERR(msp,0);
+    }
+    else {
+	return _ml_alloc_tm (msp, tm);
+    }
 
 } /* end of _ml_Date_localtime */
 
@@ -47,7 +37,7 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 
 #include "win32-date.h"
 
-/* _ml_Date_localtime : Word32.word -> (int * int * int * int * int * int * int * int * int)
+/* _ml_Date_localtime : Word64.word -> (int * int * int * int * int * int * int * int * int)
  *
  * Takes a UTC time value (in seconds), and converts it to local time represented
  * as a 9-tuple with the fields:  tm_sec, tm_min, tm_hour, tm_mday, tm_mon, tm_year,
@@ -55,20 +45,20 @@ ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 {
-    FILETIME utcFT;
+    FILETIME utcFT, localFT;
     SYSTEMTIME localST, utcST;
     TIME_ZONE_INFORMATION tzInfo;
     BOOL isDST;
 
-    secs_to_filetime (WORD32_MLtoC(arg), &utcFT);
+    ns_to_filetime (WORD64_MLtoC(arg), &utcFT);
 
-  /* convert to system time */
-    if (! FileTimeToSystemTime(&utcFT, &utcST)) {
+  /* convert to local system time */
+    if (! FileTimeToLocalFileTime(&utcFT, &localFT)) {
 	return RAISE_SYSERR(msp, 0);
     }
 
-  /* adjust back to local time using the local time zone */
-    if (! SystemTimeToTzSpecificLocalTime(NULL, &utcST, &localST)) {
+  /* convert to system time */
+    if (! FileTimeToSystemTime(&localFT, &localST)) {
 	return RAISE_SYSERR(msp, 0);
     }
 

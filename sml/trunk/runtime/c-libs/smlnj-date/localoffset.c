@@ -19,9 +19,10 @@
 
 #if !defined(OPSYS_WIN32)
 
+#include "unix-date.h"
+
 #if defined(HAS_GETTIMEOFDAY)
 #  include <sys/time.h>
-#  include <time.h>
 #else
 #  error no timeofday mechanism
 #endif
@@ -52,7 +53,7 @@ PVT ml_val_t LocalOffset (ml_state_t *msp, time_t t)
 
   /* convert the UTC tm struct back into seconds using the local timezone info (including
    * the daylight savings time field from localTM).  The local offset will be the difference
-   * between this value and now.
+   * between this value and the original time.
    */
     tmbuf.tm_isdst = isDST;
     t2 = mktime (&tmbuf);
@@ -73,7 +74,7 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
 
 } /* end of _ml_Date_localoffset */
 
-/* _ml_Date_localOffsetForTime : Word32.word -> Int32.int
+/* _ml_Date_localOffsetForTime : Word64.word -> Int32.int
  *
  * Returns the offset from UTC of the given time in the local timezone.
  * This value reflects not only the geographical location of the host system, but
@@ -81,7 +82,7 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
 {
-    return LocalOffset (msp, (time_t)WORD32_MLtoC(arg));
+    return LocalOffset (msp, ns_to_time(WORD64_MLtoC(arg)));
 
 } /* end of _ml_Date_localoffset */
 
@@ -99,7 +100,6 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
 {
     SYSTEMTIME localST;
     FILETIME localFT, utcFT;
-    Unsigned32_t localSec;
 
     GetLocalTime (&localST);
     if (! SystemTimeToFileTime (&localST, &localFT)) {
@@ -107,15 +107,10 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
     }
 
     if (LocalFileTimeToFileTime (&localFT, &utcFT)) {
-	Unsigned32_t localSec = filetime_to_secs (&localFT);
-	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
-      /* compute offset (UTC - local) in seconds. */
-	if (localSec <= utcSec) {
-	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
-	}
-	else {
-	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
-	}
+      /* compute offset (local - UTC) in seconds. */
+	Int64_t localSec = (Int64_t)(filetime_to_100ns (&localFT) / 10000000);
+	Int64_t utcSec = (Int64_t)(filetime_to_100ns (&utcFT) / 10000000);
+	return INT32_CtoML(msp, (Int32_t)(localSec - utcSec));
     }
     else {
 	return RAISE_SYSERR(msp, 0);
@@ -123,7 +118,7 @@ ml_val_t _ml_Date_localOffset (ml_state_t *msp, ml_val_t arg)
 
 } /* end of _ml_Date_localoffset */
 
-/* _ml_Date_localOffsetForTime : Word32.word -> Int32.int
+/* _ml_Date_localOffsetForTime : Word64.word -> Int32.int
  *
  * Returns the offset from UTC of the given time in the local timezone.
  * This value reflects not only the geographical location of the host system, but
@@ -133,23 +128,14 @@ ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
 {
     FILETIME localFT, utcFT;
 
-    Unsigned32_t localSec = WORD32_MLtoC(arg);
-    secs_to_filetime (localSec, &localFT);
-SayDebug("** localOffsetForTime: localSec = %u; localFT = %#x:%08x\n",
-localSec, localFT.dwHighDateTime, localFT.dwLowDateTime);
-    if (LocalFileTimeToFileTime (&localFT, &utcFT)) {
-	Unsigned32_t utcSec = filetime_to_secs (&utcFT);
-SayDebug("                       utcSec = %u; utcFT = %#x:%08x\n",
-utcSec, utcFT.dwHighDateTime, utcFT.dwLowDateTime);
-      /* compute offset (UTC - local) in seconds. */
-	if (localSec <= utcSec) {
-SayDebug("                       offset = %d\n", (Int32_t)(utcSec - localSec));
-	    return INT32_CtoML(msp, (Int32_t)(utcSec - localSec));
-	}
-	else {
-SayDebug("                       offset = %d\n", -(Int32_t)(localSec - utcSec));
-	    return INT32_CtoML(msp, -(Int32_t)(localSec - utcSec));
-	}
+    Unsigned64_t utcNsec = WORD64_MLtoC(arg);
+    ns_to_filetime (utcNsec, &utcFT);
+
+    if (FileTimeToLocalFileTime (&utcFT, &localFT)) {
+      /* compute offset (local - UTC) in seconds. */
+	Int64_t localSec = (Int64_t)(filetime_to_100ns (&localFT));
+	Int64_t utcSec = (Int64_t)(utcNsec / 1000000000);
+	return INT32_CtoML(msp, (Int32_t)(localSec - utcSec));
     }
     else {
 	return RAISE_SYSERR(msp, 0);

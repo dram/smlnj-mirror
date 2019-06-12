@@ -41,14 +41,13 @@ ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
     int count, index;
 
   /* first, convert timeout to milliseconds */
-  if (timeout == OPTION_NONE)
-    dwMilliseconds = INFINITE;
-  else {
-    timeout = OPTION_get(timeout);
-    sec = REC_SELINT32(timeout,0);
-    usec = REC_SELINT(timeout,1);
-    dwMilliseconds = (sec*1000)+(usec/1000);
-  }
+    if (timeout == OPTION_NONE) {
+	dwMilliseconds = INFINITE;
+    }
+    else {
+	timeout = OPTION_get(timeout);
+	dwMilliseconds = WORD32_MLtoC(timeout);
+    }
 
   /* count number of handles */
     for (l = pollList, count = 0; l != LIST_nil; l = LIST_tl(l)) {
@@ -61,7 +60,7 @@ ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
   /* initialize the array */
     for (l = pollList, index = 0; l != LIST_nil; l = LIST_tl(l)) {
 	item = LIST_hd (l);
-	handle = (HANDLE) REC_SELWORD(item, 0);
+	handle = HANDLE_MLtoC(REC_SEL(item, 0));
 	hArray[index++] = handle;
     }
 
@@ -72,7 +71,7 @@ ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
       /* at least one handle was ready. Find all that are */
 	for (l=pollList; l!=LIST_nil; l=LIST_tl(l)) {
 	    item = LIST_hd (l);
-	    handle = (HANDLE) REC_SELWORD(item, 0);
+	    handle = HANDLE_MLtoC(REC_SEL(item, 0));
 	    result = WaitForSingleObject (handle, 0);
 	    if ((result == WAIT_FAILED) || (result == WAIT_TIMEOUT)) continue;
 	    LIST_cons (msp, hList, item, hList);
@@ -105,8 +104,8 @@ ml_val_t _ml_win32_OS_poll (ml_state_t *msp, ml_val_t arg)
     if (timeout == OPTION_NONE) {
 	tvp = NIL(struct timeval *);
     } else {
-	tv.tv_sec	= REC_SELINT32(timeout, 0);
-	tv.tv_usec	= REC_SELINT(timeout, 1);
+	tv.tv_sec	= dwMilliseconds / 1000;
+	tv.tv_usec	= (dwMilliseconds % 1000) * 1000;
 	tvp = &tv;
     }
 

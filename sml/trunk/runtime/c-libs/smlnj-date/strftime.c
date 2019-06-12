@@ -1,6 +1,7 @@
-/* strftime.c
+/*! \file strftime.c
  *
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include <time.h>
@@ -10,6 +11,8 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 #include "cfun-proto-list.h"
+
+/* FIXME: for Windows, we should use GetTimeFormatEx */
 
 /* _ml_Date_strftime :
  *    (string * (int * int * int * int * int * int * int * int * int)) -> string
@@ -33,7 +36,7 @@ ml_val_t _ml_Date_strftime (ml_state_t *msp, ml_val_t arg)
     tm.tm_hour	= REC_SELINT(date, 2);
     tm.tm_mday	= REC_SELINT(date, 3);
     tm.tm_mon	= REC_SELINT(date, 4);
-    tm.tm_year	= REC_SELINT(date, 5);
+    tm.tm_year	= REC_SELINT(date, 5) - 1900;
     tm.tm_wday	= REC_SELINT(date, 6);
     tm.tm_yday	= REC_SELINT(date, 7);
     tm.tm_isdst	= REC_SELINT(date, 8);
@@ -44,8 +47,8 @@ ml_val_t _ml_Date_strftime (ml_state_t *msp, ml_val_t arg)
 	strncpy (STR_MLtoC(res), buf, sz);
 	return res;
     }
-    else
+    else {
 	return RAISE_ERROR(msp, "strftime failed");
+    }
 
 } /* end of _ml_Date_strftime */
-

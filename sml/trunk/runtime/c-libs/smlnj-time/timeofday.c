@@ -17,7 +17,7 @@
 #include "ml-objects.h"
 #include "cfun-proto-list.h"
 
-/* _ml_Time_timeofday : unit -> Int64.int
+/* _ml_Time_timeofday : unit -> Word64.word
  *
  * Return the UTC time of day in nanoseconds.
  */

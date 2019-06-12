@@ -34,8 +34,8 @@ ml_val_t _ml_win32_IO_get_std_handle (ml_state_t *msp, ml_val_t arg)
 #ifdef DEBUG_WIN32
     SayDebug("getting std handle for %x as %p\n", w, h);
 #endif
-    WORD_ALLOC(msp, res, (Word_t)h);
-    return res;
+
+    return HANDLE_CtoML(msp, h);
 }
 
 /* _ml_win32_IO_close : handle -> unit
@@ -43,7 +43,7 @@ ml_val_t _ml_win32_IO_get_std_handle (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_IO_close (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = (HANDLE) INT32_MLtoC(arg);
+    HANDLE h = HANDLE_MLtoC(arg);
 
     if (CloseHandle(h)) {
 	return ML_unit;
@@ -61,7 +61,7 @@ ml_val_t _ml_win32_IO_close (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_IO_set_file_pointer (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = (HANDLE) INT32_MLtoC(REC_SEL(arg,0));
+    HANDLE h = HANDLE_MLtoC(REC_SEL(arg,0));
     DWORD how = WORD32_MLtoC(REC_SEL(arg,2));
     LARGE_INTEGER dist, pos;
 
@@ -133,7 +133,7 @@ PVT bool_t CRLF_EOFscan (char *buf, int *np)
  */
 ml_val_t _ml_win32_IO_read_vec (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = (HANDLE) WORD_MLtoC(REC_SEL(arg, 0));
+    HANDLE h = HANDLE_MLtoC(REC_SEL(arg, 0));
     DWORD nbytes = (DWORD) REC_SELINT(arg, 1);
     ml_val_t vec, res;
     DWORD n;
@@ -157,7 +157,8 @@ ml_val_t _ml_win32_IO_read_vec (ml_state_t *msp, ml_val_t arg)
     }
     else {
 #ifdef DEBUG_WIN32
-	SayDebug("_ml_win32_IO_read_vec: failing %d %d\n",n,nbytes);
+        SayDebug("_ml_win32_IO_read_vec(%p, %d) failed; n = %d, error = %d\n",
+	    h, nbytes, n, GetLastError());
 #endif
         return RAISE_SYSERR(msp,-1);
     }
@@ -213,7 +214,7 @@ PVT void append_cntrl_c (char *buf, int *np, int max)
  */
 ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = (HANDLE) WORD_MLtoC(REC_SEL(arg, 0));
+    HANDLE h = HANDLE_MLtoC(REC_SEL(arg, 0));
     DWORD nbytes = (DWORD) REC_SELINT(arg, 1);
     ml_val_t vec, res;
     DWORD	n;
@@ -284,7 +285,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_IO_read_arr (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = (HANDLE) WORD_MLtoC(REC_SEL(arg, 0));
+    HANDLE h = HANDLE_MLtoC(REC_SEL(arg, 0));
     ml_val_t buf = REC_SEL(arg,1);
     DWORD nbytes = (DWORD) REC_SELINT(arg, 2);
     Byte_t *start = STR_MLtoC(buf) + REC_SELINT(arg,3);
@@ -313,7 +314,7 @@ ml_val_t _ml_win32_IO_read_arr (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_IO_read_arr_txt (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = (HANDLE) WORD_MLtoC(REC_SEL(arg, 0));
+    HANDLE h = HANDLE_MLtoC(REC_SEL(arg, 0));
     ml_val_t buf = REC_SEL(arg,1);
     DWORD nbytes = (DWORD) REC_SELINT(arg, 2);
     Byte_t *start = STR_MLtoC(buf) + REC_SELINT(arg,3);
@@ -376,11 +377,12 @@ ml_val_t _ml_win32_IO_create_file (ml_state_t *msp, ml_val_t arg)
 
 #ifdef DEBUG_WIN32
     if (h == INVALID_HANDLE_VALUE) {
-        SayDebug("_ml_win32_IO_create_file: failing\n");
+        SayDebug("create_file(\"%s\", %x, %x, %x, %x) failed; error = %d\n",
+	    name, access, share, create, attr, GetLastError());
     }
 #endif
-    WORD_ALLOC(msp, res, (Word_t)h);
-    return res;
+
+    return HANDLE_CtoML(msp, h);
 }
 
 /* _ml_win32_IO_write_buf : (handle * word8vector.vector * int * int) -> int
@@ -397,7 +399,7 @@ ml_val_t _ml_win32_IO_create_file (ml_state_t *msp, ml_val_t arg)
 #define MAX_PRINT_SIZE 30000
 ml_val_t _ml_win32_IO_write_buf (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = (HANDLE) WORD_MLtoC(REC_SEL(arg,0));
+    HANDLE h = HANDLE_MLtoC(REC_SEL(arg,0));
     ml_val_t buf = REC_SEL(arg,1);
     size_t nbytes = REC_SELINT(arg,2);
     Byte_t *start = (Byte_t *) (STR_MLtoC(buf) + REC_SELINT(arg, 3));
@@ -406,7 +408,7 @@ ml_val_t _ml_win32_IO_write_buf (ml_state_t *msp, ml_val_t arg)
     int err;
 
 #ifdef DEBUG_WIN32
-    SayDebug("_ml_win32_IO_write_buf: handle is %x\n", (unsigned int) h);
+    SayDebug("_ml_win32_IO_write_buf(%p, -, %d, %d)\n", h, nbytes, REC_SELINT(arg, 3));
 #endif
 
     remaining = nbytes;

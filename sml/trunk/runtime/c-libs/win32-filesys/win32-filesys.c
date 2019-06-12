@@ -40,17 +40,15 @@ static ml_val_t find_next_file (ml_state_t *msp, HANDLE h)
  */
 ml_val_t _ml_win32_FS_find_next_file (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = (HANDLE) INT32_MLtoC(arg);
-
-    return find_next_file(msp,h);
+    return find_next_file(msp, HANDLE_MLtoC(arg));
 }
 
 /* _ml_win32_FS_find_first_file : string -> (handle * string option)
  */
 ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE h = FindFirstFile(STR_MLtoC(arg),&wfd);
-    ml_val_t fname_opt, fname, w, res;
+    HANDLE h = FindFirstFile(STR_MLtoC(arg), &wfd);
+    ml_val_t fname_opt, fname, ml_h, res;
 
     if (h != INVALID_HANDLE_VALUE) {
 	if (IS_DOTDIR(wfd.cFileName)) {
@@ -64,8 +62,10 @@ ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
     else {
 	fname_opt = OPTION_NONE;
     }
-    INT32_ALLOC(msp, w, (Word_t)h);
-    REC_ALLOC2(msp, res, w, fname_opt);
+
+    ml_h = HANDLE_CtoML(msp, h);
+    REC_ALLOC2(msp, res, ml_h, fname_opt);
+
     return res;
 }
 
@@ -73,7 +73,7 @@ ml_val_t _ml_win32_FS_find_first_file (ml_state_t *msp, ml_val_t arg)
  */
 ml_val_t _ml_win32_FS_find_close (ml_state_t *msp, ml_val_t arg)
 {
-    return FindClose((HANDLE)INT32_MLtoC(arg)) ? ML_true : ML_false;
+    return FindClose(HANDLE_MLtoC(arg)) ? ML_true : ML_false;
 }
 
 /* _ml_win32_FS_set_current_directory : string -> bool
@@ -130,16 +130,14 @@ ml_val_t _ml_win32_FS_get_file_attributes (ml_state_t *msp, ml_val_t arg)
     DWORD w = GetFileAttributes(STR_MLtoC(arg));
     ml_val_t res, ml_w;
 
-    if (w != 0xffffffff) {
+    if (w != INVALID_FILE_ATTRIBUTES) {
+	ml_w = INT32_CtoML(msp, w);
+	OPTION_SOME(msp, res, ml_w);
+    }
+    else {
 #ifdef DEBUG_WIN32
-        printf("_ml_win32_FS_get_file_attributes: returning file attrs for <%s> as SOME %x\n",
-	  STR_MLtoC(arg), w);
-#endif
-      INT32_ALLOC(msp,ml_w,w);
-      OPTION_SOME(msp,res,ml_w);
-    } else {
-#ifdef DEBUG_WIN32
-        SayDebug("returning NONE as attrs for <%s>\n",STR_MLtoC(arg));
+        SayDebug("get_file_attributes: returning NONE as attrs for <%s>; error = %d\n",
+	    STR_MLtoC(arg), GetLastError());
 #endif
         res = OPTION_NONE;
     }
@@ -153,10 +151,14 @@ ml_val_t _ml_win32_FS_get_file_attributes_by_handle (ml_state_t *msp, ml_val_t a
     BY_HANDLE_FILE_INFORMATION bhfi;
     ml_val_t ml_w, res;
 
-    if (GetFileInformationByHandle((HANDLE)INT32_MLtoC(arg), &bhfi)) {
-	INT32_ALLOC(msp,ml_w,bhfi.dwFileAttributes);
+    if (GetFileInformationByHandle(HANDLE_MLtoC(arg), &bhfi)) {
+	ml_w = INT32_CtoML(msp, bhfi.dwFileAttributes);
 	OPTION_SOME(msp,res,ml_w);
-    } else {
+    }
+    else {
+#ifdef DEBUG_WIN32
+	SayDebug("get_file_attributes_by_handle(%#x): error = %d\n", HANDLE_MLtoC(arg), GetLastError());
+#endif
 	res = OPTION_NONE;
     }
     return res;
@@ -170,9 +172,12 @@ ml_val_t _ml_win32_FS_get_full_path_name (ml_state_t *msp, ml_val_t arg)
     DWORD r;
     ml_val_t res;
 
-    r = GetFullPathName(STR_MLtoC(arg),MAX_PATH,buf,&dummy);
+    r = GetFullPathName(STR_MLtoC(arg), MAX_PATH, buf, &dummy);
     if ((r == 0) || (r > MAX_PATH)) {
-	return RAISE_SYSERR(msp,-1);
+#ifdef DEBUG_WIN32
+	SayDebug("get_full_path(%s): error = %d\n", STR_MLtoC(arg), GetLastError());
+#endif
+	return RAISE_SYSERR(msp, -1);
     }
     res = ML_CString(msp, buf);
     return res;
@@ -184,7 +189,7 @@ ml_val_t _ml_win32_FS_get_file_size (ml_state_t *msp, ml_val_t arg)
 {
     LARGE_INTEGER sz;
 
-    if (GetFileSizeEx((HANDLE)INT32_MLtoC(arg), &sz)) {
+    if (GetFileSizeEx(HANDLE_MLtoC(arg), &sz)) {
 	return ML_AllocInt64(msp, sz.QuadPart);
     }
     else {
@@ -227,109 +232,43 @@ ml_val_t _ml_win32_FS_get_file_size_by_name (ml_state_t *msp, ml_val_t arg)
 
 }
 
-/* _ml_win32_FS_get_low_file_size: word32 -> (word32 option)
+/* _ml_win32_FS_get_file_time : string -> Word64.word option
  */
-ml_val_t _ml_win32_FS_get_low_file_size(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_get_file_time (ml_state_t *msp, ml_val_t arg)
 {
-  DWORD lo;
-  ml_val_t ml_lo, res;
+    HANDLE h;
+    ml_val_t ml_ns, res;
 
-  lo = GetFileSize((HANDLE)INT32_MLtoC(arg),NULL);
-  if (lo != 0xffffffff) {
-    INT32_ALLOC(msp,ml_lo,lo);
-    OPTION_SOME(msp,res,ml_lo);
-  } else {
-    res = OPTION_NONE;
-  }
-  return res;
+    h = CreateFile(
+	    STR_MLtoC(arg), 0, 0, NULL,
+	    OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, INVALID_HANDLE_VALUE);
+
+    if (h != INVALID_HANDLE_VALUE) {
+	FILETIME ft;
+	if (GetFileTime(h, NULL, NULL, &ft)) {  /* request time of "last write" */
+	  /* convert to 100-nanosecond units (FILETIME units) */
+	    Unsigned64_t ns = ((Unsigned64_t)ft.dwHighDateTime << 32) + (Unsigned64_t)ft.dwLowDateTime;
+	  /* return nanoseconds */
+	    ml_ns = ML_AllocWord64(msp, 100 * ns);
+	    OPTION_SOME(msp, res, ml_ns);
+	}
+    } else {
+#ifdef DEBUG_WIN32
+	SayDebug("get_file_time(%s) failed; error = %d\n", STR_MLtoC(arg), GetLastError());
+#endif
+	res = OPTION_NONE;
+    }
+    return res;
 }
 
-/* _ml_win32_FS_get_low_file_size_by_name: string -> (word32 option)
+/* _ml_win32_FS_set_file_time : (string * Word64.int option) -> bool
  */
-ml_val_t _ml_win32_FS_get_low_file_size_by_name(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_FS_set_file_time (ml_state_t *msp, ml_val_t arg)
 {
-  HANDLE h;
-  ml_val_t res = OPTION_NONE;
-
-  h = CreateFile(STR_MLtoC(arg),0,0,NULL,
-		 OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,INVALID_HANDLE_VALUE);
-  if (h != INVALID_HANDLE_VALUE) {
-    DWORD lo;
-    ml_val_t ml_lo;
-
-    lo = GetFileSize(h,NULL);
-    CloseHandle(h);
-    if (lo != 0xffffffff) {
-      INT32_ALLOC(msp,ml_lo,lo);
-      OPTION_SOME(msp,res,ml_lo);
-    }
-  }
-  return res;
-}
-
-#define REC_ALLOC8(msp, r, a, b, c, d, e, f, g, h)	{	\
-	ml_state_t	*__msp = (msp);				\
-	ml_val_t	*__p = __msp->ml_allocPtr;		\
-	*__p++ = MAKE_DESC(8, DTAG_record);			\
-	*__p++ = (a);						\
-	*__p++ = (b);						\
-	*__p++ = (c);						\
-	*__p++ = (d);						\
-	*__p++ = (e);						\
-	*__p++ = (f);						\
-	*__p++ = (g);						\
-	*__p++ = (h);						\
-	(r) = PTR_CtoML(__msp->ml_allocPtr + 1);		\
-	__msp->ml_allocPtr = __p;				\
-    }
-
-/* _ml_win32_FS_get_file_time:
- *   string -> (int * int * int * int * int * int * int * int) option
- *              year  month wday  day   hour  min   sec   ms
- */
-ml_val_t _ml_win32_FS_get_file_time(ml_state_t *msp, ml_val_t arg)
-{
-  HANDLE h;
-  ml_val_t res = OPTION_NONE;
-
-  h = CreateFile(STR_MLtoC(arg),0,0,NULL,
-		 OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,INVALID_HANDLE_VALUE);
-  if (h != INVALID_HANDLE_VALUE) {
-    FILETIME ft;
-
-    if (GetFileTime(h,NULL,NULL,&ft)) {  /* request time of "last write" */
-      SYSTEMTIME st;
-
-      CloseHandle(h);
-      if (FileTimeToSystemTime(&ft,&st)) {
-	ml_val_t rec;
-
-	REC_ALLOC8(msp,rec,
-		   INT_CtoML((int)st.wYear),
-		   INT_CtoML((int)st.wMonth),
-		   INT_CtoML((int)st.wDayOfWeek),
-		   INT_CtoML((int)st.wDay),
-		   INT_CtoML((int)st.wHour),
-		   INT_CtoML((int)st.wMinute),
-		   INT_CtoML((int)st.wSecond),
-		   INT_CtoML((int)st.wMilliseconds));
-	OPTION_SOME(msp,res,rec);
-      }
-    }
-  }
-  return res;
-}
-
-/* _ml_win32_FS_set_file_time:
- *   (string * (int * int * int * int * int * int * int * int) option) -> bool
- *              year  month wday  day   hour  min   sec   ms
- */
-ml_val_t _ml_win32_FS_set_file_time(ml_state_t *msp, ml_val_t arg)
-{
-    HANDLE	h;
-    ml_val_t	res = ML_false;
-    ml_val_t	fname = REC_SEL(arg,0);
-    ml_val_t	time_rec = REC_SEL(arg,1);
+    HANDLE		h;
+    ml_val_t		res = ML_false;
+    ml_val_t		fname = REC_SEL(arg,0);
+    Unsigned64_t	ns = WORD64_MLtoC(REC_SEL(arg,1));
 
     h = CreateFile (
 	    STR_MLtoC(fname), GENERIC_WRITE, 0 ,NULL,
@@ -337,18 +276,12 @@ ml_val_t _ml_win32_FS_set_file_time(ml_state_t *msp, ml_val_t arg)
 
     if (h != INVALID_HANDLE_VALUE) {
 	FILETIME ft;
-	SYSTEMTIME st;
 
-	st.wYear = REC_SELINT(time_rec,0);
-	st.wMonth = REC_SELINT(time_rec,1);
-	st.wDayOfWeek = REC_SELINT(time_rec,2);
-	st.wDay = REC_SELINT(time_rec,3);
-	st.wHour = REC_SELINT(time_rec,4);
-	st.wMinute = REC_SELINT(time_rec,5);
-	st.wSecond = REC_SELINT(time_rec,6);
-	st.wMilliseconds = REC_SELINT(time_rec,7);
+	ns /= 100;  /* FILETIME is in units of 100ns */
+	ft.dwHighDateTime = (DWORD)(ns >> 32);
+	ft.dwLowDateTime = (DWORD)ns;
 
-	if (SystemTimeToFileTime(&st,&ft) && SetFileTime(h,NULL,NULL,&ft)) {
+	if (SetFileTime(h, NULL, NULL, &ft)) {
 	    res = ML_true;
 	}
 

@@ -42,8 +42,7 @@ ml_val_t _ml_win32_PS_create_process_internal (ml_state_t *msp, ml_val_t arg, ST
     if (fSuccess) {
 	HANDLE hProcess = pi.hProcess;
 	CloseHandle (pi.hThread);
-	WORD_ALLOC (msp,res,(Word_t)hProcess);
-	return res;
+	return HANDLE_CtoML(msp, hProcess);
     }
     else {
 	return RAISE_SYSERR(msp,-1);
@@ -90,8 +89,8 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t
     si.hStdOutput = si.hStdError = hStdoutWr; // And it WRITES to this one
 
     procHandle = _ml_win32_PS_create_process_internal(msp, arg, &si);
-    WORD_ALLOC(msp, in, (Word_t)hStdoutRd);
-    WORD_ALLOC(msp, out, (Word_t)hStdinWr);
+    in = HANDLE_CtoML(msp, hStdoutRd);
+    out = HANDLE_CtoML(msp, hStdinWr);
     REC_ALLOC3(msp, res, procHandle, in, out);
     return res;
 }
@@ -100,7 +99,7 @@ ml_val_t _ml_win32_PS_create_process_redirect_handles (ml_state_t *msp, ml_val_t
  */
 ml_val_t _ml_win32_PS_wait_for_single_object (ml_state_t *msp, ml_val_t arg)
 {
-    HANDLE hProcess = (HANDLE) WORD_MLtoC (arg);
+    HANDLE hProcess = HANDLE_MLtoC(arg);
     DWORD exit_code;
     int res;
     ml_val_t p,obj;
@@ -114,7 +113,7 @@ ml_val_t _ml_win32_PS_wait_for_single_object (ml_state_t *msp, ml_val_t arg)
       /* get info and return SOME(exit_status) */
 	GetExitCodeProcess (hProcess,&exit_code);
 	CloseHandle (hProcess);   /* decrease ref count */
-	WORD_ALLOC (msp,p,(Word_t)exit_code);
+	p = WORD32_CtoML (msp, exit_code);
 	OPTION_SOME(msp,obj,p);
     }
     return obj;
@@ -131,7 +130,6 @@ ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
     int unquotedlen = strnlen (unquoted, GET_SEQ_LEN(arg));
     char *quoted = (char*)malloc((unquotedlen+3)*sizeof(char));
     int ret;
-    ml_val_t res;
 
     if (quoted == (char *)0) {
 	Die ("_ml_win32_PS_system: unable to allocate memory\n");
@@ -143,8 +141,7 @@ ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
     ret = system(quoted);
     free(quoted);
 
-    WORD_ALLOC(msp, res, (Word_t)ret);
-    return res;
+    return WORD32_CtoML(msp, ret);
 }
 
 /* _ml_win32_PS_exit_process : word32 -> 'a

@@ -1,6 +1,6 @@
-(* built-in32.sml
+(* target32-inline.sml
  *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Interfaces to the compiler built-ins, infixes, etc. for 32-bit targets.
@@ -476,6 +476,13 @@ structure InlineT =
 	val sub       : (string * int) -> char		= InLine.char_vec_unsafe_sub
 	val update    : (string * int * char) -> unit	= InLine.char_vec_unsafe_update
 	val getData   : string -> 'a = InLine.seq_data
+      end
+
+    structure Pointer =
+      struct
+	type t = c_pointer
+	val toWord32 = InLine.cptr_to_word32
+	val fromWord32 = InLine.word32_to_cptr
       end
 
    end  (* structure InlineT *)
