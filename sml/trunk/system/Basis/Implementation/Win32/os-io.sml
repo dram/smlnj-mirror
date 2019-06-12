@@ -19,21 +19,19 @@ structure OS_IO : OS_IO =
 
     structure W32G = Win32_General
     structure W32FS = Win32_FileSys
-    type word32 = Word32.word
 
     exception SysErr = Assembly.SysErr
 
-  (* = IODesc of W32G.hndl ref | SockDesc of int *)
+  (* = IODesc of Handle.t ref | SockDesc of int *)
     datatype iodesc = datatype OS.IO.iodesc
 
-    (* hash: can't assume 32 bits *)
-    fun hash (IODesc(ref h)) = raise Fail "64BIT: need c_pointer -> word conversion"
+    fun hash (IODesc(ref h)) = Handle.hash h
       | hash (SockDesc s) = Word.fromInt s
 
-    fun compare (IODesc(ref wa), IODesc(ref wb)) = raise Fail "64BIT: need c_pointer -> word conversion"
+    fun compare (IODesc(ref ha), IODesc(ref hb)) = Handle.compare(ha, hb)
       | compare (SockDesc s1, SockDesc s2) = Int.compare(s1, s2)
       | compare (IODesc _, SockDesc _) = LESS
-      | compare (SockDesc _, IODesc) = GREATER
+      | compare (SockDesc _, IODesc _) = GREATER
 
     datatype iodesc_kind = K of string
 
@@ -71,8 +69,8 @@ structure OS_IO : OS_IO =
     fun pollPri (PollDesc (iod,{rd,wr,pri})) = PollDesc (iod,{rd=rd,wr=wr,pri=true})
 
     local
-(* 64BIT: use Int64.int for timeOut value *)
-      val poll' : ((word32 * word) list * (int * word) list * (Int32.int * int) option -> ((word32 * word) list * (int * word) list)) =
+      val poll' : ((W32G.hndl * word) list * (int * word) list * Int32.int option
+	    -> ((W32G.hndl * word) list * (int * word) list)) =
 	  CInterface.c_function "WIN32-IO" "poll"
 
       fun join (false, _, w) = w
@@ -108,30 +106,26 @@ structure OS_IO : OS_IO =
     in
     fun poll (pdl, timeOut) = let
 	  val timeOut = (case timeOut
-		 of SOME t =>
-		    let val usec = TimeImp.toMicroseconds t
-			val (sec, usec) = IntInfImp.divMod (usec, 1000000)
-		    in
-			SOME (Int32.fromLarge sec, Int.fromLarge usec)
-		    end
+		 of SOME t => SOME(Int32.fromLarge(Time.toMilliseconds t))
 		  | NONE => NONE
 		(* end case *))
 	  fun partDesc (PollDesc(IODesc _, _)) = true
 	    | partDesc (PollDesc(SockDesc _, _)) = false
 	  val (pollIOs, pollSocks) = List.partition partDesc pdl
-	  val (infoIO, infoSock) =
-		poll' (List.map fromPollDescIO pollIOs,
-		       List.map fromPollDescSock pollSocks,
-		       timeOut)
+	  val (infoIO, infoSock) = poll' (
+		List.map fromPollDescIO pollIOs,
+		List.map fromPollDescSock pollSocks,
+		timeOut)
 	  in
 	    List.@ (List.mapPartial (fn (p) => findPollDescFromIO(pollIOs,p)) infoIO,
 		    List.map toPollInfoSock infoSock)
 	  end
-    end
+    end (* local *)
 
     fun isIn (PollInfo(PollDesc(_, flgs))) = #rd flgs
     fun isOut (PollInfo(PollDesc(_, flgs))) = #wr flgs
     fun isPri (PollInfo(PollDesc(_, flgs))) = #pri flgs
     fun infoToPollDesc (PollInfo pd) = pd
+
   end
 end (* local *)

@@ -36,163 +36,100 @@ structure OS_FileSys : OS_FILE_SYS =
 	    | SOME a => W32G.Word.andb(W32FS.FILE_ATTRIBUTE_DIRECTORY,a) <> 0wx0
 	  (* end case *))
 
-	fun openDir s =
-	    let fun rse' s = rse "openDir" s
-		val _ = not (isDir s) andalso rse' "invalid directory"
-		fun mkValidDir s =
-		    if (S.sub(s,S.size s - 1) <> W32G.arcSepChar) then
-			s^(S.str W32G.arcSepChar)
-		    else s
-		val p = (mkValidDir s)^"*"
-		val (h,firstName) = W32FS.findFirstFile p
-	    in
-		if not (W32G.isValidHandle h) then
-		    rse' "cannot find first file"
-		else
-		    DS{hndlptr=ref h,query=p,
-		       isOpen=ref true,nextFile=ref firstName}
-	    end
+    fun openDir s = let
+	  fun rse' s = rse "openDir" s
+	  val _ = not (isDir s) andalso rse' "invalid directory"
+	  fun mkValidDir s = if (S.sub(s,S.size s - 1) <> W32G.arcSepChar)
+		then s^(S.str W32G.arcSepChar)
+		else s
+	  val p = (mkValidDir s)^"*"
+	  val (h,firstName) = W32FS.findFirstFile p
+	  in
+	    if not (Handle.isValid h)
+	      then rse' "cannot find first file"
+	      else DS{
+		  hndlptr=ref h,query=p,
+		  isOpen=ref true,nextFile=ref firstName
+		}
+	  end
 
-	fun readDir (DS{isOpen=ref false,...}) =
-	    rse "readDir" "stream not open"
-	  | readDir (DS{nextFile=ref NONE,...}) = NONE
-	  | readDir (DS{hndlptr,nextFile=nF as ref (SOME name),...}) =
-	    (nF := W32FS.findNextFile (!hndlptr);
-	     case name of
-		 "" => NONE
-	       | _ => SOME name)
-	val readDir = (* OSPath.mkCanonical o *) readDir
+    fun readDir (DS{isOpen=ref false,...}) =
+	  rse "readDir" "stream not open"
+      | readDir (DS{nextFile=ref NONE,...}) = NONE
+      | readDir (DS{hndlptr,nextFile=nF as ref (SOME name),...}) = (
+	  nF := W32FS.findNextFile (!hndlptr);
+	  case name
+	   of "" => NONE
+	    | _ => SOME name
+	  (* end case *))
+    val readDir = (* OSPath.mkCanonical o *) readDir
 
-	fun closeDir (DS{isOpen=ref false,...}) = ()
-	  | closeDir (DS{hndlptr,isOpen,...}) =
-	      (isOpen := false;
-	       if W32FS.findClose (!hndlptr) then ()
-	       else
-		   rse "closeDir" "win32: unexpected closeDir failure")
+    fun closeDir (DS{isOpen=ref false,...}) = ()
+      | closeDir (DS{hndlptr,isOpen,...}) = (
+	  isOpen := false;
+	  if W32FS.findClose (!hndlptr)
+	    then ()
+	    else rse "closeDir" "win32: unexpected closeDir failure")
 
-	fun rewindDir (DS{isOpen=ref false,...}) =
-	    rse "rewindDir" "rewinddir on closed directory stream"
-	  | rewindDir (d as DS{hndlptr,query,isOpen,nextFile}) =
-	    let val _ = closeDir d
-		val (h,firstName) = W32FS.findFirstFile query
-	    in
-		if not (W32G.isValidHandle h) then
-		    rse "rewindDir" "cannot rewind to first file"
-		else
-		    (hndlptr := h;
-		     nextFile := firstName;
-		     isOpen := true)
-	    end
+    fun rewindDir (DS{isOpen=ref false,...}) =
+	  rse "rewindDir" "rewinddir on closed directory stream"
+      | rewindDir (d as DS{hndlptr,query,isOpen,nextFile}) = let
+	  val _ = closeDir d
+	  val (h, firstName) = W32FS.findFirstFile query
+	  in
+	    if not (Handle.isValid h)
+	      then rse "rewindDir" "cannot rewind to first file"
+	      else (
+		hndlptr := h;
+		nextFile := firstName;
+		isOpen := true)
+	  end
 
-	fun chDir s =
-	    if W32FS.setCurrentDirectory s then ()
-	    else rse "chDir" "cannot change directory"
+    fun chDir s = if W32FS.setCurrentDirectory s
+	  then ()
+	  else rse "chDir" "cannot change directory"
 
-	val getDir = OSPath.mkCanonical o W32FS.getCurrentDirectory'
+    val getDir = OSPath.mkCanonical o W32FS.getCurrentDirectory'
 
-	fun mkDir s =
-	    if W32FS.createDirectory' s then ()
-	    else rse "mkDir" "cannot create directory"
+    fun mkDir s = if W32FS.createDirectory' s
+	  then ()
+	  else rse "mkDir" "cannot create directory"
 
-	fun rmDir s =
-	    if W32FS.removeDirectory s then ()
-	    else rse "rmDir" "cannot remove directory"
+    fun rmDir s = if W32FS.removeDirectory s
+	  then ()
+	  else rse "rmDir" "cannot remove directory"
 
-	fun isLink _ = false
-	fun readLink _ = rse "readLink" "OS does not have links"
+    fun isLink _ = false
+    fun readLink _ = rse "readLink" "OS does not have links"
 
-	fun exists s = W32FS.getFileAttributes s <> NONE
+    fun exists s = W32FS.getFileAttributes s <> NONE
 
-	fun fullPath "" = getDir ()
-	  | fullPath s =
-	    if exists s then W32FS.getFullPathName' s
-	    else raise SysErr("fullPath: cannot generate full path",NONE)
-	val fullPath = OSPath.mkCanonical o fullPath
+    fun fullPath "" = getDir ()
+      | fullPath s = if exists s
+	  then OSPath.mkCanonical(W32FS.getFullPathName' s)
+	  else rse "fullPath" "file does not exist"
 
-	fun realPath p =
-	    if OSPath.isAbsolute p then fullPath p
-	    else OSPath.mkRelative {path=fullPath p, relativeTo=fullPath (getDir())}
+    fun realPath p = if OSPath.isAbsolute p
+	  then fullPath p
+	  else OSPath.mkRelative {path=fullPath p, relativeTo=fullPath (getDir())}
 
-	fun fileSize s =
-	    case W32FS.getLowFileSizeByName s of
-		SOME w => W32G.Word.toInt w
-	      | NONE => rse "fileSize" "cannot get size"
+    fun fileSize s = (case W32FS.getFileSizeByName s
+	   of SOME w => w
+	    | NONE => rse "fileSize" "cannot get size"
+	  (* end case *))
 
-	fun intToMonth 1 = Date.Jan
-	  | intToMonth 2 = Date.Feb
-	  | intToMonth 3 = Date.Mar
-	  | intToMonth 4 = Date.Apr
-	  | intToMonth 5 = Date.May
-	  | intToMonth 6 = Date.Jun
-	  | intToMonth 7 = Date.Jul
-	  | intToMonth 8 = Date.Aug
-	  | intToMonth 9 = Date.Sep
-	  | intToMonth 10 = Date.Oct
-	  | intToMonth 11 = Date.Nov
-	  | intToMonth 12 = Date.Dec
-	  | intToMonth _ = rse "intToMonth" "not in 1-12"
+    fun modTime s = (case W32FS.getFileTime s
+	   of (SOME t) => t
+	    | NONE => rse "modTime" "cannot get file time"
+	  (* end case *))
 
-	fun monthToInt Date.Jan = 1
-	  | monthToInt Date.Feb = 2
-	  | monthToInt Date.Mar = 3
-	  | monthToInt Date.Apr = 4
-	  | monthToInt Date.May = 5
-	  | monthToInt Date.Jun = 6
-	  | monthToInt Date.Jul = 7
-	  | monthToInt Date.Aug = 8
-	  | monthToInt Date.Sep = 9
-	  | monthToInt  Date.Oct = 10
-	  | monthToInt  Date.Nov = 11
-	  | monthToInt  Date.Dec = 12
-
-	fun intToWeekDay 0 = Date.Sun
-	  | intToWeekDay 1 = Date.Mon
-	  | intToWeekDay 2 = Date.Tue
-	  | intToWeekDay 3 = Date.Wed
-	  | intToWeekDay 4 = Date.Thu
-	  | intToWeekDay 5 = Date.Fri
-	  | intToWeekDay 6 = Date.Sat
-	  | intToWeekDay _ = rse "intToWeekDay" "not in 0-6"
-
-	fun weekDayToInt Date.Sun = 0
-	  | weekDayToInt Date.Mon = 1
-	  | weekDayToInt Date.Tue = 2
-	  | weekDayToInt Date.Wed = 3
-	  | weekDayToInt Date.Thu = 4
-	  | weekDayToInt Date.Fri = 5
-	  | weekDayToInt Date.Sat = 6
-
-	fun modTime s = (case W32FS.getFileTime' s
-	       of (SOME info) =>
-		    Date.toTime(Date.date{
-			year = #year info,
-			month = intToMonth(#month info),
-			day = #day info,
-			hour = #hour info,
-			minute = #minute info,
-			second = #second info,
-			offset = NONE
-		      })
-		| NONE => rse "modTime" "cannot get file time"
-	      (* end case *))
-
-	fun setTime (s,t) = let
-	      val date = Date.fromTimeLocal(case t of NONE => Time.now() | SOME t' => t')
-	      val date' = {
-		      year = Date.year date,
-		      month = monthToInt(Date.month date),
-		      dayOfWeek = weekDayToInt(Date.weekDay date),
-		      day = Date.day date,
-		      hour = Date.hour date,
-		      minute = Date.minute date,
-		      second = Date.second date,
-		      milliSeconds = 0
-		    }
-	      in
-		if W32FS.setFileTime' (s, date')
-		  then ()
-		  else rse "setTime" "cannot set time"
-	      end
+    fun setTime (s, t) = let
+	  val t = (case t of NONE => Time.now() | SOME t' => t')
+	  in
+	    if W32FS.setFileTime (s, t)
+	      then ()
+	      else rse "setTime" "cannot set time"
+	  end
 
     fun remove s = if W32FS.deleteFile s
 	  then ()
@@ -244,10 +181,14 @@ structure OS_FileSys : OS_FILE_SYS =
 	    | SOME s => s
 	  (* end case *))
 
+  (* Windows does not have an equivalent to inode-numbers, so we use the canonical
+   * full path for the file as its unique ID.
+   *)
     type file_id = string
 
-    fun fileId s = fullPath s
-	  handle (SysErr _) => rse "fileId" "cannot create file id"
+    fun fileId s = if exists s
+	  then OSPath.mkCanonical(W32FS.getFullPathName' s)
+	  else rse "fileId" "No such file or directory"
 
     fun hash (fid : file_id) = Word.fromInt (
 	  CharVector.foldl (fn (a, b) => (Char.ord a + b) handle _ => 0) 0 fid)

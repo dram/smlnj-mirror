@@ -15,9 +15,8 @@
  *
  *	http://emr.cs.iit.edu/~reingold/calendars.shtml
  *
- * Also note that on Windows, system time is measured in units of 100ns starting
- * from January 1, 1601 (UTC).  This means that we need to use Word32.word to
- * represent the words since the start of the Epoch.
+ * The SML/NJ runtime system interface uses unsigned 64-bit values (in nanoseconds
+ * since the Epoch) to represent time values.
  *)
 
 structure Date : DATE =
@@ -25,7 +24,7 @@ structure Date : DATE =
 
     structure Int = IntImp
     structure Int32 = Int32Imp
-    structure Word32 = Word32Imp
+    structure Word64 = Word64Imp
     structure IntInf = IntInfImp
     structure String = StringImp
     structure Time = TimeImp
@@ -61,21 +60,21 @@ structure Date : DATE =
   (* note: mkTime assumes the tm structure passed to it reflects
    * the local time zone
    *)
-    val localTime' : Word32.word -> tm
+    val localTime' : Word64.word -> tm
 	  = wrap (CInterface.c_function "SMLNJ-Date" "localTime")
-    val gmTime' : Word32.word -> tm
+    val gmTime' : Word64.word -> tm
 	  = wrap (CInterface.c_function "SMLNJ-Date" "gmTime")
-    val mkTime' : tm -> Word32.word
+    val mkTime' : tm -> Word64.word
 	  = wrap (CInterface.c_function "SMLNJ-Date" "mkTime")
     val strfTime : (string * tm) -> string
 	  = wrap (CInterface.c_function "SMLNJ-Date" "strfTime")
 
   (* conversions between integer numbers of seconds (used by runtime) and Time.time values *)
-    fun secsToTime s = Time.fromSeconds (Word32.toLargeInt s)
-    fun timeToSecs t = Word32.fromLargeInt (Time.toSeconds t)
+    fun nsToTime s = Time.fromSeconds (Word64.toLargeInt s)
+    fun timeToNs t = Word64.fromLargeInt (Time.toNanoseconds t)
 
-    val localTime = localTime' o timeToSecs
-    val gmTime = gmTime' o timeToSecs
+    val localTime = localTime' o timeToNs
+    val gmTime = gmTime' o timeToNs
 
   (* a function to return the offset from UTC of the time t in the local timezone.
    * This value reflects not only the geographical location of the host system, but
@@ -86,7 +85,7 @@ structure Date : DATE =
    *)
     local
       val toTime = Time.fromSeconds o Int32.toLarge
-      val localOffsetForTime' : Word32.word -> Int32.int =
+      val localOffsetForTime' : Word64.word -> Int32.int =
 	    wrap (CInterface.c_function "SMLNJ-Date" "localOffsetForTime")
       val localOffset' : unit -> Int32.int =
 	    wrap (CInterface.c_function "SMLNJ-Date" "localOffset")
@@ -95,9 +94,6 @@ structure Date : DATE =
   (* localOffset for the current time *)
     val localOffset = toTime o localOffset'
     end (* local *)
-
-  (* the run-time system indexes the year off this *)
-    val baseYear = 1900
 
     datatype weekday = Mon | Tue | Wed | Thu | Fri | Sat | Sun
 
@@ -158,7 +154,7 @@ structure Date : DATE =
 
   (* convert runtime tm tuple to date type *)
     fun tm2date (tm : tm, offset) = DATE{
-	    year = tm_year tm + baseYear,
+	    year = tm_year tm,
 	    month = Vector.sub(monthTbl, tm_mon tm),
 	    day = tm_mday tm,
 	    hour = tm_hour tm,
@@ -177,7 +173,7 @@ structure Date : DATE =
 	    #hour d,			(* tm_hour *)
 	    #day d,			(* tm_mday *)
 	    monthToInt(#month d),	(* tm_mon *)
-	    #year d - baseYear,		(* tm_year *)
+	    #year d,			(* tm_year *)
 	    dayToInt(#wday d),		(* tm_wday *)
 	    #yday d,			(* tm_yday *)
 	    case (#isDst d)		(* tm_isdst *)
@@ -353,7 +349,7 @@ structure Date : DATE =
 	  end
 
     fun fromTimeLocal t = let
-	  val offset = localOffsetForTime (timeToSecs t)
+	  val offset = localOffsetForTime (timeToNs t)
 	  in
 	    tm2date (localTime t, SOME offset)
 	  end
@@ -365,14 +361,14 @@ structure Date : DATE =
 	  val t = mkTime' (date2tm date)
 	  in
 	    case offset
-	     of NONE => secsToTime t
+	     of NONE => nsToTime t
 	      | SOME offset =>
 		(* note that representation of a date is canonical, which means that the
 		 * offset has already been applied, so we do not need to adjust by the
 		 * date's offset.  On the other hand, mkTime' returns the _local_ time,
 		 * so we do need to adjust for the local offset.
 		 *)
-		  Time.+(secsToTime t, localOffsetForTime t)  (* converts local time to UTC *)
+		  Time.+(nsToTime t, localOffsetForTime t)  (* converts local time to UTC *)
 	    (* end case *)
 	  end
 

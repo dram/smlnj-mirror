@@ -13,9 +13,9 @@
 
 SHELL =
 MAKEFILE = 	makefile.win32
-MAKE =		nmake /F$(MAKEFILE)
-CC =		cl
-CPP =		cl /E /EP
+MAKE =		nmake /nologo /F$(MAKEFILE)
+CC =		cl /nologo
+CPP =		cl /nologo /E /EP
 LD_LIBS =
 AS =		ml /Cx /Zd /Zi /Fr
 AR =		lib

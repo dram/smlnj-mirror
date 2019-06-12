@@ -9,8 +9,7 @@
 signature WINDOWS_DDE = sig
     type info
     val startDialog : string * string -> info
-    val executeString : info * string * int * Time.time
-                          -> unit
+    val executeString : info * string * int * Time.time -> unit
     val stopDialog : info -> unit
   end
 

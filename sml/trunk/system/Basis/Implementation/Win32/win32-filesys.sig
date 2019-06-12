@@ -42,9 +42,8 @@ signature WIN32_FILESYS =
 
     val getFullPathName' : string -> string
 
-    val getFileSize : hndl -> (Win32_General.word * Win32_General.word)
-    val getLowFileSize : hndl -> Win32_General.word option
-    val getLowFileSizeByName : string -> Win32_General.word option
+    val getFileSize : hndl -> Position.int
+    val getFileSizeByName : string -> Position.int option
 
     val getFileTime : string -> Time.time option
     val setFileTime : (string * Time.time) -> bool

@@ -6,7 +6,7 @@
  * Implementation of the UNSAFE_POINTER signature for 32-bit targets.
  *)
 
-structure UnsafePointer :> UNSAFE_POINTER =
+structure UnsafePointer : UNSAFE_POINTER =
   struct
 
     structure AddrWord = PointerImp.AddrWord

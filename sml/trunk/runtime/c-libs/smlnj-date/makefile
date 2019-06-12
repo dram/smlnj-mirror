@@ -23,7 +23,8 @@ OBJS =		smlnj-date-lib.o \
 		localoffset.o \
 		localtime.o \
 		mktime.o \
-		strftime.o
+		strftime.o \
+		unix-date.o
 
 $(LIBRARY)	: $(VERSION) $(OBJS)
 	rm -rf $(LIBRARY)

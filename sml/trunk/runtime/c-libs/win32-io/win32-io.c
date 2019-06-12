@@ -143,7 +143,7 @@ ml_val_t _ml_win32_IO_read_vec (ml_state_t *msp, ml_val_t arg)
     if (ReadFile(h, PTR_MLtoC(void, vec), nbytes, &n, NULL)) {
         if (n == 0) {
 #ifdef DEBUG_WIN32
-	    SayDebug("_ml_win32_IO_read_vec: eof on device\n");
+	    SayDebug("_ml_win32_IO_read_vec(%p, %d): eof\n", h, nbytes);
 #endif
 	    return ML_string0;
 	}
@@ -243,7 +243,7 @@ ml_val_t _ml_win32_IO_read_vec_txt(ml_state_t *msp, ml_val_t arg)
 
 	if (n == 0) {
 #ifdef DEBUG_WIN32
-	    SayDebug("_ml_win32_IO_read_vec_txt: eof on device\n");
+	    SayDebug("_ml_win32_IO_read_vec_txt(%p, %d): eof\n", h, nbytes);
 #endif
 	    return ML_string0;
 	}
@@ -293,7 +293,7 @@ ml_val_t _ml_win32_IO_read_arr (ml_state_t *msp, ml_val_t arg)
 
     if (ReadFile(h, PTR_MLtoC(void,start), nbytes, &n, NULL)) {
 #ifdef DEBUG_WIN32
-        if (n == 0) SayDebug("_ml_win32_IO_read_arr: eof on device\n");
+        if (n == 0) SayDebug("_ml_win32_IO_read_arr(%p, %d): eof\n", h, nbytes);
 #endif
         return INT_CtoML(n);
     }
@@ -339,7 +339,7 @@ ml_val_t _ml_win32_IO_read_arr_txt (ml_state_t *msp, ml_val_t arg)
 	    rm_CRs((char *)buf,&n);
 	}
 #ifdef DEBUG_WIN32
-        SayDebug("_ml_win32_IO_read_arr_txt: eof on device\n");
+        SayDebug("_ml_win32_IO_read_arr_txt(%p, %d): eof\n", h, nbytes);
 #endif
         return INT_CtoML(n);
     } else {
@@ -380,6 +380,10 @@ ml_val_t _ml_win32_IO_create_file (ml_state_t *msp, ml_val_t arg)
         SayDebug("create_file(\"%s\", %x, %x, %x, %x) failed; error = %d\n",
 	    name, access, share, create, attr, GetLastError());
     }
+    else {
+        SayDebug("create_file(\"%s\", %x, %x, %x, %x) = %p\n",
+	    name, access, share, create, attr, h);
+    }
 #endif
 
     return HANDLE_CtoML(msp, h);
@@ -418,7 +422,7 @@ ml_val_t _ml_win32_IO_write_buf (ml_state_t *msp, ml_val_t arg)
 	nbytes = min (MAX_PRINT_SIZE, remaining);
 	    if (WriteFile(h, buffer, nbytes, &n, NULL)) {
 #ifdef DEBUG_WIN32
-		if (n == 0) SayDebug("_ml_win32_IO_write_buf: eof on device\n");
+		if (n == 0) SayDebug("_ml_win32_IO_write_buf(%h, %d): eof\n", h, nbytes);
 #endif
 		total += n;
 		remaining -= n;

@@ -7,8 +7,8 @@
 SHELL =
 
 MAKEFILE = 	makefile.win32
-MAKE =		nmake /F$(MAKEFILE)
-CC =		cl
+MAKE =		nmake /nologo /F$(MAKEFILE)
+CC =		cl /nologo
 CFLAGS =	/Zi
 CPP =		cl /E /EP
 XOBJS =
