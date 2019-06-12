@@ -12,7 +12,7 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-/* #define DEBUG_WIN32 */
+#define DEBUG_WIN32
 
 #define TMP_PREFIX "TMP-SMLNJ"
 
@@ -286,9 +286,21 @@ ml_val_t _ml_win32_FS_set_file_time (ml_state_t *msp, ml_val_t arg)
 	if (SetFileTime(h, NULL, NULL, &ft)) {
 	    res = ML_true;
 	}
+#ifdef DEBUG_WIN32
+	else {
+	    SayDebug("set_file_time(%s, %llu) failed; error = %d\n",
+		STR_MLtoC(fname), 100*ns, GetLastError());
+	}
+#endif
 
 	CloseHandle (h);
     }
+#ifdef DEBUG_WIN32
+    else {
+	SayDebug("set_file_time(%s, %llu) failed to get handle; error = %d\n",
+	    STR_MLtoC(fname), ns, GetLastError());
+    }
+#endif
 
     return res;
 }
@@ -317,10 +329,16 @@ ml_val_t _ml_win32_FS_move_file (ml_state_t *msp, ml_val_t arg)
     ml_val_t	f1 = REC_SEL(arg, 0);
     ml_val_t	f2 = REC_SEL(arg, 1);
 
-    if (MoveFile (STR_MLtoC(f1), STR_MLtoC(f2)))
+    if (MoveFile (STR_MLtoC(f1), STR_MLtoC(f2))) {
 	return ML_true;
-    else
+    }
+    else {
+#ifdef DEBUG_WIN32
+	SayDebug ("move_file (%s, %s) failed; error = %d\n",
+	    STR_MLtoC(f1), STR_MLtoC(f2), GetLastError());
+#endif
 	return ML_false;
+    }
 }
 
 /* _ml_win32_FS_get_temp_file_name : unit -> string option
@@ -338,6 +356,12 @@ ml_val_t _ml_win32_FS_get_temp_file_name (ml_state_t *msp, ml_val_t arg)
 
 	OPTION_SOME(msp, res, tfn);
     }
+#ifdef DEBUG_WIN32
+    else {
+	SayDebug ("get_temp_file_name () failed; error = %d\n", GetLastError());
+    }
+#endif
+
     return res;
 }
 
