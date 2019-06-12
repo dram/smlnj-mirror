@@ -415,9 +415,13 @@ structure GenericInstall : sig
 	in
 	  ( command_pathconfig "bindir";	(* dummy -- for CM make tool *)
 	    app one modules;
-	    if dostabs () andalso domoves () andalso dolatesas ()
-	      then uniqconfig ()
-	      else fail ["stabilization failed\n"]
+	    if not (dostabs ())
+	      then fail ["stabilization of libraries failed\n"]
+	    else if not (domoves ())
+	      then fail ["post stabilization moves failed\n"]
+	    else if not (dolatesas ())
+	      then fail ["late compiles failed\n"]
+	      else uniqconfig ()
 	  ) handle e => fail ["unexpected exception: ", General.exnMessage e, "\n"];
 	  OS.Process.exit OS.Process.success
 	end (* proc *)
