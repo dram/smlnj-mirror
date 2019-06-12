@@ -90,7 +90,7 @@ return `Position.int option`, instead of `int option` type.
 
 * The runtime and Basis representation of the Microsoft `HANDLE` type has been abstracted
   over the target-machine word size.  While this type is an alias for `void *`, the
-  values are not actually pointers.  We represent them as boxed words of the native
+  values are not actually pointers; therefore we represent them as boxed words of the native
   machine size.
 --
 
