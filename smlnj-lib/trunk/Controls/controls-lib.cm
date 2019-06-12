@@ -1,6 +1,7 @@
 (* controls-lib.cm
  *
- * COPYRIGHT (c) 2002 Lucent Technologies, Bell Laboratories
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * An implementation of "controls" -- representing environment-configurable
  * global state (flags, options, ...) of a program.

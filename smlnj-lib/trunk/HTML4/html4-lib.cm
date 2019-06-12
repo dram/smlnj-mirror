@@ -23,11 +23,17 @@ is
   $/smlnj-lib.cm
   $/ml-lpt-lib.cm
 
+#if defined(NO_PLUGINS)
+  html4.g.sml
+  html4.l.sml
+  html4-attr.g.sml
+  html4-attr.l.sml
+#else
   html4.g : ml-antlr
   html4.l : ml-ulex
-
   html4-attr.g : ml-antlr
   html4-attr.l : ml-ulex
+#endif
 
   html4.sig
   html4.sml
