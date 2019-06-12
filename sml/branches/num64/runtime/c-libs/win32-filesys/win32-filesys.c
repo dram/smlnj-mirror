@@ -12,7 +12,7 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-#define DEBUG_WIN32
+/* #define DEBUG_WIN32 */
 
 #define TMP_PREFIX "TMP-SMLNJ"
 
@@ -138,8 +138,7 @@ ml_val_t _ml_win32_FS_get_file_attributes (ml_state_t *msp, ml_val_t arg)
     }
     else {
 #ifdef DEBUG_WIN32
-        SayDebug("get_file_attributes: returning NONE as attrs for <%s>; error = %d\n",
-	    STR_MLtoC(arg), GetLastError());
+        SayDebug("get_file_attributes(%s): error = %d\n", STR_MLtoC(arg), GetLastError());
 #endif
         res = OPTION_NONE;
     }
