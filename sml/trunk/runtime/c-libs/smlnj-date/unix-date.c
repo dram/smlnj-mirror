@@ -5,6 +5,7 @@
  */
 
 #include "ml-base.h"
+#include "ml-objects.h"
 #include "unix-date.h"
 
 /* allocate a 9-tuple for a `struct tm` value */
