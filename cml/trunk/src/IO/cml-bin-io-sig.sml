@@ -1,7 +1,7 @@
 (* cml-bin-io-sig.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- * COPYRIGHT (c) 1991 John H. Reppy.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This extends the SMLBL BIN_IO interface with event-valued operations.
  *)

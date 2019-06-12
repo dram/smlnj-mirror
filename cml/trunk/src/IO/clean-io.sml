@@ -1,7 +1,7 @@
 (* clean-io.sml
  *
- * COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies.
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This module keeps track of open I/O streams, and handles the proper
  * cleaning of them.  It is a modified version of the SML/NJ module

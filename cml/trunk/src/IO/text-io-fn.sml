@@ -1,6 +1,7 @@
 (* text-io-fn.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the CML version of the TextIO functor.
  *)
@@ -356,7 +357,7 @@ functor TextIOFn (
 (** Suggestion: When building a stream with supplied initial data,
  ** nothing can be said about the positions inside that initial
  ** data (who knows where that data even came from!).
- **) 
+ **)
 		      | (SOME v) => IBUF{
 			    basePos = NONE, data=v,
 			    info=info, more=more}
@@ -893,7 +894,7 @@ functor TextIOFn (
     fun mkOutstream (strm : StreamIO.outstream) = SV.mVarInit strm
     fun getOutstream (strm : outstream) = SV.mGet strm
     fun setOutstream (strm : outstream, strm') = mUpdate(strm, strm')
- 
+
   (* figure out the proper buffering mode for a given writer *)
     fun bufferMode (PIO.WR{ioDesc=NONE, ...}) = IO.BLOCK_BUF
       | bufferMode (PIO.WR{ioDesc=SOME iod, ...}) =

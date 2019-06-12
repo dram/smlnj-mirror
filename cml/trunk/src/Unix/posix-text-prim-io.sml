@@ -1,6 +1,7 @@
 (* posix-text-prim-io.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This implements the UNIX version of the OS specific text primitive
  * IO structure.  It is implemented by a trivial translation of the
@@ -71,7 +72,7 @@ structure PosixTextPrimIO : sig
 	  fun checkClosed () = if !closed then raise IO.ClosedStream else ()
 	  val len = String.size src
 	  val plen = Position.fromInt len
-	  fun avail () = len - !pos
+	  fun avail () = Position.fromInt(len - !pos)
 	  fun readV n = let
 		val p = !pos
 		val m = Int.min(n, len-p)
@@ -100,7 +101,7 @@ structure PosixTextPrimIO : sig
 	       else pos := Position.toInt p)
 	  in
 	    PrimIO.RD{
-		name        = "<string>", 
+		name        = "<string>",
 		chunkSize   = len,
 		readVec     = withLock readV,
         	readArr     = withLock readA,

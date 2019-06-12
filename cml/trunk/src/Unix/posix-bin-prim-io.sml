@@ -1,13 +1,14 @@
 (* posix-bin-prim-io.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This implements the UNIX version of the OS specific binary primitive
  * IO structure.  The Text IO version is implemented by a trivial translation
  * of these operations (see posix-text-prim-io.sml).
  *)
 
-structure PosixBinPrimIO : OS_PRIM_IO = 
+structure PosixBinPrimIO : OS_PRIM_IO =
   struct
 
     structure SV = SyncVar
@@ -19,8 +20,6 @@ structure PosixBinPrimIO : OS_PRIM_IO =
     structure PIO = Posix.IO
 
     type file_desc = PF.file_desc
-
-    val toFPI = Position.fromInt
 
     val bufferSzB = 4096
 
@@ -66,7 +65,7 @@ structure PosixBinPrimIO : OS_PRIM_IO =
 	    | withLock' (SOME f) = SOME(withLock f)
 	  val closed = ref false
           val {pos, getPos, setPos, endPos, verifyPos} = posFns (closed, fd)
-	  fun incPos k = pos := Position.+(!pos, toFPI k)
+	  fun incPos k = pos := Position.+(!pos, Position.fromInt k)
 	  fun blockWrap f x = (
 		if !closed then raise IO.ClosedStream else ();
 		f x)
@@ -106,7 +105,7 @@ structure PosixBinPrimIO : OS_PRIM_IO =
 	  fun avail () = if !closed
 		  then SOME 0
 		else if isReg
-		  then SOME(Position.toInt (PF.ST.size(PF.fstat fd) - !pos))
+		  then SOME(PF.ST.size(PF.fstat fd) - !pos)
 		  else NONE
 	  in
 	    BinPrimIO.RD{
@@ -126,7 +125,7 @@ structure PosixBinPrimIO : OS_PRIM_IO =
 	      }
 	  end
 
-	     
+
     fun openRd name = mkReader{
 	    fd = PF.openf(name, PIO.O_RDONLY, PF.O.flags[]),
 	    name = name

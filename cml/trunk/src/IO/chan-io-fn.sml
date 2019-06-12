@@ -1,6 +1,7 @@
 (* chan-io-fn.sml
  *
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 functor ChanIOFn (
@@ -89,7 +90,7 @@ functor ChanIOFn (
 	  in
 	    ignore(CML.spawnc server NONE);
 	    PrimIO.RD{
-		name       = "<channel>", 
+		name       = "<channel>",
 		chunkSize  = 1024,			(* ?? *)
 		readVec    = CML.sync o readVecEvt,
         	readArr    = CML.sync o readArrEvt,

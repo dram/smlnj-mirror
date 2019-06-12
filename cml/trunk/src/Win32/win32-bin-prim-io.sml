@@ -103,7 +103,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 		then SOME 0
 		else SOME(Position.-(W32FS.getFileSize (W32FS.IODToHndl iod), !pos))
 	  in
-	    BinPrimIO.RD{
+	    PrimIO.RD{
 		name		= name,
 		chunkSize	= bufferSzB,
 		readVec		= withLock (blockWrap readVec),
@@ -180,7 +180,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 		then ()
 		else (closed:=true; W32IO.close (W32FS.IODToHndl iod))
 	  in
-	    BinPrimIO.WR{
+	    PrimIO.WR{
 		name		= name,
 		chunkSize	= chunkSize,
 		writeVec	= withLock (write putV),

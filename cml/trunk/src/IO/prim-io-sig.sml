@@ -1,7 +1,7 @@
 (* prim-io-sig.sml
  *
- * COPYRIGHT (c) 1996 AT&T Research.
- * COPYRIGHT (c) 1991 John H. Reppy.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the CML equivalent of the SMLBL's PRIM_IO signature.  The
  * differences are that we use event-valued interfaces instead of
@@ -23,13 +23,13 @@ signature PRIM_IO =
     val compare : (pos * pos) -> order
 
     datatype reader = RD of {
-	name       : string, 
+	name       : string,
 	chunkSize  : int,
 	readVec    : int -> vector,
         readArr    : array_slice -> int,
 	readVecEvt : int -> vector event,
 	readArrEvt : array_slice -> int event,
-	avail      : unit -> int option,
+	avail      : unit -> Position.int option,
 	getPos     : (unit -> pos) option,
 	setPos     : (pos -> unit) option,
         endPos     : (unit -> pos) option,

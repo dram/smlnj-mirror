@@ -1,7 +1,7 @@
 (* cml-imperative-io-sig.sml
  *
- * COPYRIGHT (c) 1996 AT&T Research.
- * COPYRIGHT (c) 1991 John H. Reppy.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This extends the SMLBL IMPERATIVE_IO interface with event-valued operations.
  *)

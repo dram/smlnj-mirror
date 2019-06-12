@@ -1,6 +1,7 @@
 (* bin-io-fn.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the CML version of the BinIO functor.
  *)
@@ -348,7 +349,7 @@ functor BinIOFn (
 (** Suggestion: When building a stream with supplied initial data,
  ** nothing can be said about the positions inside that initial
  ** data (who knows where that data even came from!).
- **) 
+ **)
 		      | (SOME v) => IBUF{
 			    basePos = NONE, data=v,
 			    info=info, more=more}

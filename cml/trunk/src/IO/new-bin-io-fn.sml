@@ -1,6 +1,7 @@
-(* bin-io-fn.sml
+(* new-bin-io-fn.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the CML version of the BinIO functor.
  *)
@@ -48,6 +49,9 @@ functor BinIOFn (
 	type reader = PIO.reader
 	type writer = PIO.writer
 	type pos = PIO.pos
+
+      (* maximum size of an input request *)
+        val maxInputSz = Position.fromInt V.maxLen
 
       (*** Functional input streams ***)
 	datatype instream = ISTRM of (in_buffer * int)
@@ -243,7 +247,9 @@ functor BinIOFn (
 	      fun bigChunk _ = let
 		    val delta = (case avail()
 			   of NONE => chunkSzOfIBuf buf
-			    | (SOME n) => n
+                            | (SOME n) => if (n > maxInputSz)
+                                then raise Size
+                                else Position.toInt n
 			  (* end case *))
 		    in
 		      readChunk buf delta
@@ -347,7 +353,7 @@ functor BinIOFn (
 (** Suggestion: When building a stream with supplied initial data,
  ** nothing can be said about the positions inside that initial
  ** data (who knows where that data even came from!).
- **) 
+ **)
 	      val basePos = if (V.length data = 0) then getPos() else NONE
 	      val buf = IBUF{
 		      basePos = basePos, data = data,
