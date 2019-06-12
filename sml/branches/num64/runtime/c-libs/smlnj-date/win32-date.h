@@ -15,25 +15,16 @@
 /* convert a FILETIME to a 64-bit unsigned integer */
 STATIC_INLINE Unsigned64_t filetime_to_100ns (FILETIME *ft)
 {
-    ULARGE_INTEGER uli;
-
-    uli.u.LowPart = ft->dwLowDateTime;
-    uli.u.HighPart = ft->dwHighDateTime;
-
-    return uli.QuadPart;
+    return ((Unsigned64_t)ft->dwHighDateTime << 32) | (Unsigned64_t)ft->dwLowDateTime;
 }
 
 /* convert an unsigned 64-bit nanoseconds value to a FILETIME value. */
 STATIC_INLINE void ns_to_filetime (Unsigned64_t ns, FILETIME *ft)
 {
-    ULARGE_INTEGER uli;
+    ns /= 100;	/* convert to 100ns units */
 
-    uli.u.LowPart = (DWORD)ns;
-    uli.u.HighPart = (DWORD)(ns >> 32);
-    uli.QuadPart = uli.QuadPart / 100;	/* convert to 100ns units */
-
-    ft->dwLowDateTime = uli.u.LowPart;
-    ft->dwHighDateTime = uli.u.HighPart;
+    ft->dwLowDateTime = (DWORD)ns;
+    ft->dwHighDateTime = (DWORD)(ns >> 32);
 }
 
 /* convert a FILETIME in 100ns units to unsigned nanoseconds */

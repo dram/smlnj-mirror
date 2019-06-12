@@ -23,4 +23,7 @@ STATIC_INLINE time_t ns_to_time (Unsigned64_t ns)
     return (time_t)(ns / 1000000000);
 }
 
+/* allocate a 9-tuple for a `struct tm` value */
+ml_val_t _ml_alloc_tm (ml_state_t *msp, const struct tm *tm);
+
 #endif /* _UNIX_DATE_H_ */

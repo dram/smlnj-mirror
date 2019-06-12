@@ -22,24 +22,14 @@
 ml_val_t _ml_Date_localtime (ml_state_t *msp, ml_val_t arg)
 {
     time_t	t = ns_to_time(WORD64_MLtoC(arg));
-    struct tm	*tm;
+    struct tm	tmbuf;
 
-    tm = localtime (&t);
-
-    if (tm == NULL) RAISE_SYSERR(msp,0);
-
-    ML_AllocWrite(msp, 0, MAKE_DESC(DTAG_record, 9));
-    ML_AllocWrite(msp, 1, INT_CtoML(tm->tm_sec));
-    ML_AllocWrite(msp, 2, INT_CtoML(tm->tm_min));
-    ML_AllocWrite(msp, 3, INT_CtoML(tm->tm_hour));
-    ML_AllocWrite(msp, 4, INT_CtoML(tm->tm_mday));
-    ML_AllocWrite(msp, 5, INT_CtoML(tm->tm_mon));
-    ML_AllocWrite(msp, 6, INT_CtoML(tm->tm_year + 1900));
-    ML_AllocWrite(msp, 7, INT_CtoML(tm->tm_wday));
-    ML_AllocWrite(msp, 8, INT_CtoML(tm->tm_yday));
-    ML_AllocWrite(msp, 9, INT_CtoML(tm->tm_isdst));
-
-    return ML_Alloc(msp, 9);
+    if (localtime_r (&tmbuf, &t) == NULL) {
+	RAISE_SYSERR(msp,0);
+    }
+    else {
+	return _ml_alloc_tm (msp, tm);
+    }
 
 } /* end of _ml_Date_localtime */
 

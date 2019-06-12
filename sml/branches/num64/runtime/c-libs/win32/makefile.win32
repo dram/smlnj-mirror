@@ -12,7 +12,7 @@ INCLUDES =	/I$(INC_DIR) /I$(CLIB_DIR) /I..\..\objs
 MAKEFILE = 	makefile.win32
 MAKE =		nmake /F$(MAKEFILE)
 AR =		lib
-ARFLAGS =	
+ARFLAGS =
 RANLIB =	lib
 
 LIBRARY =	libwin32.lib
@@ -25,7 +25,7 @@ OBJS =		win32-lib.obj \
 		win32-dde.obj \
 		win32-reg.obj \
 		win32-config.obj \
-		name-val.obj 
+		name-val.obj
 
 $(LIBRARY)	: $(VERSION) $(OBJS)
 	del /F /Q $(LIBRARY)
