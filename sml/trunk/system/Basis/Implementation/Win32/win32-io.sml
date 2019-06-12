@@ -1,12 +1,13 @@
 (* win32-io.sml
  *
- * COPYRIGHT (c) 1996 Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Hooks to Win32 IO system.
  *
  *)
 
-structure Win32_IO : WIN32_IO = 
+structure Win32_IO : WIN32_IO =
     struct
 	structure W32G = Win32_General
 	type hndl = W32G.hndl
@@ -33,7 +34,7 @@ structure Win32_IO : WIN32_IO =
 	val readArrTxt' : (hndl * CharArray.array * int * int)
 	    -> int = cf "read_arr_txt"
 
-	fun vecF f (h,i) = 
+	fun vecF f (h,i) =
 	    if i < 0 then raise Subscript else f(h,i)
 
 	fun bufF (f, baseF) (h, sl) = let
@@ -79,17 +80,17 @@ structure Win32_IO : WIN32_IO =
 	    cf "create_file"
 
 	fun createFile {name:string,
-		        access:word,share:word,mode:word,attrs:word} = 
+		        access:word,share:word,mode:word,attrs:word} =
 	    createFile'(name,access,share,mode,attrs)
 
-	val writeVec' : (hndl * Word8Vector.vector * int * int) -> int = 
+	val writeVec' : (hndl * Word8Vector.vector * int * int) -> int =
 	    cf "write_vec"
 	val writeArr' : (hndl * Word8Array.array * int * int) -> int =
 	    cf "write_arr"
 
 	val writeVecTxt' : (hndl * CharVector.vector * int * int) -> int =
 	    cf "write_vec_txt"
-	val writeArrTxt' : (hndl * CharArray.array * int * int) -> int = 
+	val writeArrTxt' : (hndl * CharArray.array * int * int) -> int =
 	    cf "write_arr_txt"
 
 	val writeVec = bufF (writeVec',Word8VectorSlice.base)

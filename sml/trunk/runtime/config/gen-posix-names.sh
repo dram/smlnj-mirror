@@ -9,8 +9,6 @@
 # Usage: gen-posix-names.sh <prefix> <outfile>
 #
 
-set -x
-
 # redefine PATH so that we get the right versions of the various tools
 #
 PATH=/bin:/usr/bin
@@ -75,7 +73,7 @@ case "$VERSION" in
       fi
     fi
     ;;
-  *v-amd64-darwin)
+  *amd64-darwin)
     SDK_PATH=`xcrun --show-sdk-path`
     INCLFILE=$SDK_PATH/usr/include/unistd.h
     # verify that unistd.h exists at the expected place

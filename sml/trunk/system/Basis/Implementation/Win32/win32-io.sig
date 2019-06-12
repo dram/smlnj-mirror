@@ -1,12 +1,12 @@
 (* win32-io.sig
  *
- * COPYRIGHT (c) 1996 Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for hooks to Win32 IO system.
- *
  *)
 
-signature WIN32_IO = 
+signature WIN32_IO =
     sig
 	type hndl = Win32_General.hndl
 	val setFilePointer' : (hndl * Win32_General.word * Win32_General.word)

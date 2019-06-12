@@ -1,12 +1,12 @@
 (* windows.sml
  *
- * COPYRIGHT (c) 2008 Fellowship of SML/NJ
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Structure for the interface to Windows.
- *
  *)
 
-structure Windows : WINDOWS = 
+structure Windows : WINDOWS =
   struct
     structure Key = Windows_KEY
     structure Reg = Windows_REG
@@ -23,7 +23,7 @@ structure Windows : WINDOWS =
 	    val (vol,sys,serial,cl) = getVolumeInformation driveWithTrailingSlash
 	in
 	    {volumeName=vol, systemName=sys, serialNumber=serial, maximumComponentLength=cl}
-	    
+
 	end
     val findExecutable : string -> string option = cfunProc "find_executable"
     val launchApplication : string * string -> unit = cfunProc "launch_application"
@@ -159,6 +159,4 @@ structure Windows : WINDOWS =
 	    status := DEAD s;
 	    s
         end
-  end 
-
-
+  end
