@@ -101,10 +101,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 		else (closed:=true; W32IO.close (W32FS.IODToHndl iod))
 	  fun avail () = if !closed
 		then SOME 0
-		else (case W32FS.getFileSize (W32FS.IODToHndl iod)
-		   of SOME w => SOME (Position.-(w, !pos))
-		    | NONE => NONE
-		  (* end case *))
+		else SOME(Position.-(W32FS.getFileSize (W32FS.IODToHndl iod), !pos))
 	  in
 	    BinPrimIO.RD{
 		name		= name,
@@ -220,7 +217,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 		  mode=W32IO.OPEN_ALWAYS,
 		  attrs=W32FS.FILE_ATTRIBUTE_NORMAL
 		})
-	  val _ = W32IO.setFilePointer' (h,0wx0,W32IO.FILE_END)
+	  val _ = seek (h, 0, W32IO.FILE_END)
 	  in
 	    mkWriter{fd = h, name = name, appendMode = true, chunkSize = bufferSzB}
 	  end
