@@ -1,6 +1,6 @@
 # mk.amd64-darwin
 #
-# COPYRIGHT (c) 2017 The SML/NJ Fellowship
+# COPYRIGHT (c) 2019 The SML/NJ Fellowship
 #
 # Makefile for macOS 10.10+ (Yosimite or later) on 64-bit Intel processors
 #

@@ -218,6 +218,7 @@ PVT void MinorGC_ScanStoreList (heap_t *heap, ml_val_t stl)
 		    bigobj_desc_t   *dp;
 		    if (dstGen >= srcGen)
 			continue;
+/* 64BIT: FIXME */
 		    for (i = BIBOP_ADDR_TO_INDEX(w);  !BO_IS_HDR(dstId);  dstId = BIBOP[--i])
 			continue;
 		    region = (bigobj_region_t *)BIBOP_INDEX_TO_ADDR(i);

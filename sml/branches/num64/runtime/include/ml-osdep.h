@@ -51,8 +51,8 @@ extern int GetPageSize (void);
 #endif
 
 /* support for ANSI C Floating-point extensions */
-#if defined(OPSYS_DARWIN) && defined(TARGET_X86)
-#define HAS_ANSI_C_FP_EXT
+#if defined(OPSYS_DARWIN)
+#  define HAS_ANSI_C_FP_EXT
 #endif
 
 #endif /* !_ML_OSDEP_ */

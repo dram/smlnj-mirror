@@ -3,7 +3,6 @@
  * COPYRIGHT (c) 2008 Fellowship of SML/NJ
  *
  * Structure with the windows DDE APIs
- *
  *)
 
 local

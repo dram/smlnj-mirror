@@ -4,7 +4,6 @@
  * All rights reserved.
  *
  * This is the OS structure(s) with only types, for compiling signatures.
- *
  *)
 
 structure OS =
@@ -20,9 +19,11 @@ structure OS =
 
     structure IO =
       struct
-	datatype iodesc = IODesc of Handle.t ref
-			| SockDesc of int
+	datatype iodesc
+	  = IODesc of Win32_General.hndl ref
+	  | SockDesc of int
       end
+
   end;
 
 structure PreOS = OS;
