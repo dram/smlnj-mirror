@@ -1,5 +1,5 @@
 :version: 110.90
-:date: ??
+:date: June 12, 2019
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -30,7 +30,7 @@ FILES::
 == Summary
 
 The primary purpose of this release is to bring the Windows port of
-SML/NJ upto parity with the Unix versions w.r.t. the 64-bit cleanup.
+SML/NJ up to parity with the Unix versions w.r.t. the 64-bit cleanup.
 It also provides a fix for a long dormant bug in CM that was exposed
 by the Basis reorganization in 110.88.
 
@@ -40,9 +40,59 @@ by the Basis reorganization in 110.88.
 
 While the {dist-dir}smlnj-x86-{version}.pkg[installer]
 for {version} works on macOS 10.14 Mojave, building from source
-requires some extra steps.
+requires some extra steps.  Another issue that you may encounter
+when building on macOS 10.14 Mojave is an error message for a shell
+script of the form
+
+.....
+  /bin/sh: bad interpreter: Operation not permitted
+.....
+
+This error arises because the `com.apple.quarantine` attribute is set on the
+shell script.  To fix the problem, remove the attribute using the command
+
+[source,shell]
+-----
+  xattr -d com.apple.quarantine shell-script
+-----
+and resume the build.
+
 
 === Compiler
+
+This compiler now supports a primitive type to represent pointers to runtime-system
+data structures.  User-level access to this type is available via the `Unsafe.Pointer`
+structure.  Note that these values (other than the null pointer) cannot persist
+across heap exports.  In fact, exporting a heap that contains a pointer will
+result in an error message.
+
+=== Basis Library
+
+This version implements the following Basis Library proposal:
+--
+**[2019-001]**::
+https://github.com/SMLFamily/BasisLibrary/wiki/2019-001-Correction-to-PRIM_IO[__Correction to the PRIM_IO signature__] --
+This proposal changes the return type of the `avail` function for readers to
+return `Position.int option`, instead of `int option` type.
+--
+
+=== Runtime System
+
+--
+* The interface between the SML/NJ Basis code and the runtime system now uses unsigned 64-bit
+  values to communicate time information (__e.g.__, for the current time or file-modification
+  timestamps).  The Windows code that works with time and date values now uses the native
+  Windows API, instead of the C-Library API.
+
+* The handling of 32-bit values in the runtime system has been modified to allow for
+  both boxed representations (on 32-bit machines) and tagged representations (in 64-bit
+  machines.
+
+* The runtime and Basis representation of the Microsoft `HANDLE` type has been abstracted
+  over the target-machine word size.  While this type is an alias for `void *`, the
+  values are not actually pointers.  We represent them as boxed words of the native
+  machine size.
+--
 
 
 == Bugs

@@ -93,6 +93,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.90; 2019/06/12
+
+//--------------------------------------------------------------------
+[2019/06/12]::
++
+Fixed the Concurrent ML library to use 64-bit positions (both Unix
+and Windows) versions.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/06/11]::
 +
@@ -147,6 +158,8 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 +
 Implemented https://github.com/SMLFamily/BasisLibrary/wiki/2019-001-Correction-to-PRIM_IO[
 Basis Library proposal 2019-001 (Correction to the PRIM_IO signature)].
+This proposal changes the return type of the `avail` function in a reader to
+be `Position.int option`, which is necessary to support large files.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
