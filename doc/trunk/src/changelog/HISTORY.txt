@@ -94,13 +94,25 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/06/11]::
++
+Moved the year offset from SML to the runtime system.  This change is
+necessary because Windows uses 1601 as year 0, whereas UNIX uses 1900.
+We have also switched to using unsigned 64-bit times in nanoseconds as
+the interface between the Basis code and runtime system.  This change
+is consistent with the other places where time values are communicated
+between the runtime and SML code.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/06/07]::
 +
 Fixed a problem with CM's symbol filtering (see bug bugref:222[]).
 +
-The problem could manifest itself when a library `l2.cm` imported
-two symbols `A` and `B` from `l1.cm` and then exported the same `A`
-but a different `B` (which could have been defined in terms of the imported
+The problem could manifest itself when a library `l2.cm` imported two
+symbols `A` and `B` from `l1.cm` and then exported the same `A` but a
+different `B` (which could have been defined in terms of the imported
 `B`).  Moreover, for the problem to occur both `A` and `B` within
 `l1.cm` must have come from the same SML source file.
 +
@@ -109,11 +121,45 @@ With the above setup, when running
 ------------
 CM.make "l2.cm";
 ------------
-it was possible that instead of seeing the new `A` defined
-within `l2.cm` one would still see the original version that came from
+it was possible that instead of seeing the new `A` defined within
+`l2.cm` one would still see the original version that came from
 `l1.cm`.
 +
 owner:people.cs.uchicago.edu/~blume[Matthias Blume]
+
+//--------------------------------------------------------------------
+[2019/06/04]::
++
+Various 64-bit porting changes to the **Windows** implementation of
+the **Basis Library** and runtime system:
+--
+* Add a target-specific `Handle` structure to support the `HANDLE` type,
+  which is a pointer-sized word value.
+* Changes to support the use of 64-bit file positions.
+* Replaced pairs of argumnents representing time values (seconds and
+  microseconds) with a single 64-bit count of microseconds.
+--
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/06/04]::
++
+Implemented https://github.com/SMLFamily/BasisLibrary/wiki/2019-001-Correction-to-PRIM_IO[
+Basis Library proposal 2019-001 (Correction to the PRIM_IO signature)].
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/06/03]::
++
+Added primop support (`PTR_TO_WORD` and `WORD_TO_PTR`) for the
+`c_pointer` type that was added in 110.89.  These primops are
+exposed in the new `InlineT.Pointer` structure.  We define a
+`PointerImp` structure that is used inside the Basis implementation
+and a `Unsafe.Pointer` structure that is visible to users.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //====================================================================
 == Version 110.89; 2019/06/01
