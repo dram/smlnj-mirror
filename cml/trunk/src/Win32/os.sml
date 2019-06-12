@@ -1,12 +1,12 @@
 (* os.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure OS : OS =
   struct
-    structure IO = OS_IO 
+    structure IO = OS_IO
     structure Path = OS.Path
     structure Process = OS_Process
     structure FileSys = OS.FileSys	(** may need to protect system calls *)

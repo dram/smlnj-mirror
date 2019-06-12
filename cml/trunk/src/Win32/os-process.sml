@@ -1,7 +1,7 @@
 (* os-process.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * The generic process control interface.
  * Modified to work for Win32 (no reliance on Posix.Process)
@@ -28,10 +28,10 @@ structure OS_Process : OS_PROCESS =
 	  val _ = S.stopTimer ()
 	  val pid = WP.createProcess (cmd)
 	  val _ = S.restartTimer ()
-	  in 
+	  in
 	    pid
 	  end
-	    
+
     fun systemEvt cmd = let
 	  val pid = system' cmd
 	  val evt = (S.atomicBegin(); PM.addPid pid before S.atomicEnd())

@@ -1,8 +1,7 @@
 (* win32-glue.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- * COPYRIGHT (c) 1989-1991 John H. Reppy * 
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * The glue for the Win32 version of CML.
  *)
@@ -15,7 +14,7 @@ structure Win32Glue : OS_GLUE =
     fun pollOS () = (
 	  TimeOut.pollTime();
 	  IOManager.pollIO();
-	  ProcManager.pollProcs()) 
+	  ProcManager.pollProcs())
 
     fun pause () = (case TimeOut.anyWaiting()
 	   of NONE => if (IOManager.anyWaiting() orelse ProcManager.anyWaiting())

@@ -1,7 +1,7 @@
 (* syscall.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Some system calls may take a long time to complete and may
  * be interrupted by timer signals before they complete.  This

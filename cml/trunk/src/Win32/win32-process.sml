@@ -1,11 +1,12 @@
 (* win32-process.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Simulate some of the Posix.Process structure on Win32 machines
  *)
 
-structure Win32Process : 
+structure Win32Process :
   sig
 
     type pid
@@ -17,7 +18,7 @@ structure Win32Process :
 
     type pid = Word32.word  (* actually, a handle *)
     datatype exit_status = SUCCESS | FAIL
-	
+
     fun cfun x = Unsafe.CInterface.c_function "WIN32-PROCESS" x
 
     val createProcess : string -> pid = cfun "create_process"
@@ -28,4 +29,4 @@ structure Win32Process :
 	    | SOME (v) => if v=0w0 then SOME FAIL else SOME SUCCESS
 	  (* end of case *))
 
-  end 
+  end

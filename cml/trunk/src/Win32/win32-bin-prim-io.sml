@@ -1,49 +1,42 @@
 (* win32-bin-prim-io.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This implements the Win32 version of the OS specific binary primitive
  * IO structure.  The Text IO version is implemented by a trivial translation
  * of these operations (see nt-text-prim-io.sml).
  *)
 
-structure Win32BinPrimIO : OS_PRIM_IO = 
+structure Win32BinPrimIO : OS_PRIM_IO =
   struct
 
     structure SV = SyncVar
 
     structure PrimIO = BinPrimIO
-	
+
     structure W32FS = Win32.FileSys
     structure W32IO = Win32.IO
     structure W32G = Win32.General
 
     structure V = Word8Vector
-	
+
     type file_desc = W32G.hndl
-	
-    val pfi = Position.fromInt
-    val pti = Position.toInt
-    val pfw = Position.fromInt o W32G.Word.toInt
-    val ptw = W32G.Word.fromInt o Position.toInt
-	    
-    val say = W32G.logMsg
 
     val bufferSzB = 4096
 
-    val seek = pfw o W32IO.setFilePointer'
+    val seek = W32IO.setFilePointer'
 
-    fun posFns iod = 
+    fun posFns iod =
 	  if (OS.IO.kind iod = OS.IO.Kind.file)
 	    then let
-	      val pos : Position.int ref = ref(pfi 0)
+	      val pos : Position.int ref = ref 0
 	      fun getPos () : Position.int = !pos
-	      fun setPos p = 
-		    pos := seek (W32FS.IODToHndl iod, ptw p, W32IO.FILE_BEGIN)
+	      fun setPos p =
+		    pos := seek (W32FS.IODToHndl iod, p, W32IO.FILE_BEGIN)
 	      fun endPos () : Position.int = (
-		    case W32FS.getLowFileSize (W32FS.IODToHndl iod)
-		     of SOME w => pfw w
+		    case W32FS.getFileSize (W32FS.IODToHndl iod)
+		     of SOME w => w
 		      | _ => raise OS.SysErr("endPos: no file size", NONE)
 		    (* end case *))
 	      fun verifyPos () = (
@@ -62,7 +55,7 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 		pos=ref(pfi 0),
 		getPos=NONE,setPos=NONE,endPos=NONE,verifyPos=NONE
 	      }
-		
+
     fun addCheck f (SOME g) = SOME (f g)
       | addCheck _ NONE = NONE
 
@@ -115,8 +108,8 @@ structure Win32BinPrimIO : OS_PRIM_IO =
 		else (closed:=true; W32IO.close (W32FS.IODToHndl iod))
 	  fun avail () = if !closed
 		then SOME 0
-		else (case W32FS.getLowFileSize (W32FS.IODToHndl iod)
-		   of SOME w => SOME (Position.-(pfw w,!pos))
+		else (case W32FS.getFileSize (W32FS.IODToHndl iod)
+		   of SOME w => SOME (Position.-(w, !pos))
 		    | NONE => NONE
 		  (* end case *))
 	  in

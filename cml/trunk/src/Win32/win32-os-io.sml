@@ -1,7 +1,7 @@
 (* win32-os-io.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
- * COPYRIGHT (c) 1996 Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Replacement of OS.IO structure for Win32.
  * It implements a simple type of polling for file objects.
@@ -15,13 +15,12 @@ structure Win32OSIO =
 
     exception SysErr = OS.SysErr
 
+(* should this be = IODesc of Handle.t ref | SockDesc of int *)
     datatype iodesc = IODesc of W32G.hndl ref  (* OS.IO.iodesc *)
 
-  (* hash: can't assume 32 bits *)
-    fun hash (IODesc (ref (0wxffffffff : W32G.hndl))) = 0wx7fffffff : word 
-      | hash (IODesc (ref h)) = (Word.fromInt o W32G.Word.toInt) h
+    fun hash (IODesc(ref h)) = Handle.hash h
 
-    fun compare (IODesc (ref wa),IODesc (ref wb)) = W32G.Word.compare(wa,wb)
+    fun compare (IODesc(ref ha), IODesc(ref hb)) = Handle.compare(ha, hb)
 
     datatype iodesc_kind = K of string
 
@@ -48,7 +47,7 @@ structure Win32OSIO =
 
     datatype poll_desc = PollDesc of iodesc
     datatype poll_info = PollInfo of poll_desc
-	
+
     fun pollDesc id = SOME (PollDesc id) (* NONE *)
     fun pollToIODesc (PollDesc pd) = pd (* raise Fail("pollToIODesc: "^noPolling) *)
     exception Poll
@@ -57,8 +56,8 @@ structure Win32OSIO =
     fun pollOut pd = pd (* raise Fail("pollOut: "^noPolling) *)
     fun pollPri pd = pd (* raise Fail("pollPri: "^noPolling) *)
 
-    local 
-      val poll' : (word32 list * (Int32.int * int) option -> word32 list) = 
+    local
+      val poll' : (word32 list * (Int32.int * int) option -> word32 list) =
 	    Unsafe.CInterface.c_function "WIN32-IO" "poll"
       fun toPollInfo (w) = PollInfo (PollDesc (IODesc (ref w)))
       fun fromPollDesc (PollDesc (IODesc (ref w))) = w
@@ -73,7 +72,7 @@ structure Win32OSIO =
 	    List.map toPollInfo info
 	  end
     end (* end local *)
-		    
+
     fun isIn pd = raise Fail("isIn: "^noPolling)
     fun isOut pd = raise Fail("isOut: "^noPolling)
     fun isPri pd = raise Fail("isPri: "^noPolling)

@@ -1,7 +1,7 @@
 (* win32-text-prim-io.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories. 
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This implements the Win32 version of the OS specific text primitive
  * IO structure.  It is implemented by a trivial translation of the
@@ -29,7 +29,7 @@ structure Win32TextPrimIO : sig
     structure W32G = Win32.General
 
     structure V = Word8Vector
-	
+
     type file_desc = W32G.hndl
 
     val bufferSzB = 4096
@@ -54,7 +54,7 @@ structure Win32TextPrimIO : sig
 	      then mkReader{fd = h, name = "<stdIn>"}
 	      else raise OS.SysErr("Win32TextPrimIO: can't get stdin",NONE)
 	  end
-    
+
     fun stdOut () = let
 	  val h = W32IO.getStdHandle(W32IO.STD_OUTPUT_HANDLE)
 	  in
@@ -67,7 +67,7 @@ structure Win32TextPrimIO : sig
 		}
 	      else raise OS.SysErr("Win32TextPrimIO: can't get stdout",NONE)
 	  end
-    
+
     fun stdErr () = let
 	  val h = W32IO.getStdHandle(W32IO.STD_ERROR_HANDLE)
 	  in
@@ -80,7 +80,7 @@ structure Win32TextPrimIO : sig
 		}
 	      else raise OS.SysErr("Win32TextPrimIO: can't get stderr",NONE)
 	  end
-    
+
     fun strReader src = let
 	  val lockMV = SV.mVarInit()
 	  fun withLock f x = (
@@ -108,7 +108,7 @@ structure Win32TextPrimIO : sig
 		in
 		  checkClosed ();
 		  pos := p+m;
-		  CharArraySlice.copyVec { src = CharVectorSlice.slice 
+		  CharArraySlice.copyVec { src = CharVectorSlice.slice
 						     (src,p,SOME len),
 					   dst = buf, di = i };
 		  m
@@ -116,7 +116,7 @@ structure Win32TextPrimIO : sig
 	  fun getPos () = (checkClosed(); !pos)
 	  in
 	      PrimIO.RD{
-		name        = "<string>", 
+		name        = "<string>",
 		chunkSize   = len,
 		readVec     = withLock readV,
         	readArr     = withLock readA,

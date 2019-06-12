@@ -1,7 +1,7 @@
 (* os-io.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure OS_IO : OS_IO =
