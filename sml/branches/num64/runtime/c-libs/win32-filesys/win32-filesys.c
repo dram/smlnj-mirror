@@ -262,7 +262,7 @@ ml_val_t _ml_win32_FS_get_file_time (ml_state_t *msp, ml_val_t arg)
     return res;
 }
 
-/* _ml_win32_FS_set_file_time : (string * Word64.int option) -> bool
+/* _ml_win32_FS_set_file_time : (string * Word64.word option) -> bool
  */
 ml_val_t _ml_win32_FS_set_file_time (ml_state_t *msp, ml_val_t arg)
 {
