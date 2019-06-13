@@ -85,8 +85,8 @@ return `Position.int option`, instead of `int option` type.
   Windows API, instead of the C-Library API.
 
 * The handling of 32-bit values in the runtime system has been modified to allow for
-  both boxed representations (on 32-bit machines) and tagged representations (in 64-bit
-  machines.
+  both boxed representations (on 32-bit machines) and tagged representations (on 64-bit
+  machines).
 
 * The runtime and Basis representation of the Microsoft `HANDLE` type has been abstracted
   over the target-machine word size.  While this type is an alias for `void *`, the
