@@ -4,15 +4,16 @@ This is a list of things (both major and minor) that should be fixed/improved/ch
 in the SML/NJ compiler.  It is organized into short-term goals by proposed release
 target plus an additional "wish-list" of long-term goals.
 
-## For Version 110.90 (Summer 2019)
+## For Version 110.91
 
-  * 64-bit clean up for Windows
+  * Switch over to the C99 standard `<fenv.h>` API, instead of the home-grown
+    code in `smlnj-math/fp-dep.h` etc.
 
   * Switch to new encoding of literals (see new-literals.md)
 
-## For Version 110.91 (Summer 2019)
+## For Verion 110.92+
 
-  * Must have 64-bit port done by June 2019 (but earlier would be better).
+  * Must have 64-bit port done by Fall 2019 (but earlier would be better).
 
 ## Future work
 
