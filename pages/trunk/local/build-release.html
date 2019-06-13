@@ -274,14 +274,12 @@ divided by operating system (Linux, OS X, Windows).
   </li>
   <li>
     <p>
-    Copy source tarballs and documentation into the release directory.
-    (Remember that the README may have to be generated using
-     <a href="https://asciidoctor.org"><b>asciidoctor</b></a>.
+    Copy documentation and source tarballs into the release directory.
     </p>
     <ul>
-      <li> <tt>$ scp *.tgz $release_dir</tt>
       <li> <tt>$ scp doc/doc/html/HISTORY.html $release_dir</tt>
       <li> <tt>$ scp doc/doc/html/readme/<i>$VERSION</i>-README.html $release_dir</tt>
+      <li> <tt>$ scp *.tgz $release_dir</tt>
     </ul>
     <p>
     Once the files have been copied, you should <b>ssh</b> into <tt>linux.cs.uchicago.edu</tt>
@@ -347,49 +345,6 @@ Once the installer is built, it needs to be copied to the release directory
 <ul>
   <li> <tt>$ scp smlnj-x86-<i>$VERSION</i>.pkg $release_dir</tt>
 </ul>
-
-<!--
-<ul><li> Example: <tt>admin/checkout-all.sh --export</tt> from some directory named after the new version.
-</li></ul>
-</li><li> Enable building all targets.
-<ol><li> <tt>$ cp config/targets config/targets.customized</tt>
-</li><li> <tt> $ vi config/targets.customized</tt>
-</li></ol>
-</li>
-<li> Note that if you are building on Snow Leopard, then you have to modify the makefile
-to guarantee that the runtime will work on Leopard.
-The following linker flags are needed when linking the various static libraries that make up
-the runtime system:
-<blockquote><tt>
--isysroot /Developer/SDKs/MacOSX10.5.sdk -mmacosx-version-min=10.5
-</tt></blockquote>
-</li>
-
-<li> Build the exported copy and remove the boot file.
-<ol><li> Plain-old "<tt>$ config/install.sh</tt>"
-</li><li> <tt>$ rm boot.x86-unix.tgz</tt>
-</li></ol>
-</li><li> Create or modify a PackageMaker package.
-<ul><li> Example: <tt>smlnj-110.68.pmdoc</tt>
-
-<ul><li> I'm currently keeping this in <tt>~/ML</tt> on the iMac.
-</li></ul>
-</li><li> The background image can be found inside earlier distributions.
-</li></ul>
-</li><li> Build and test the <tt>.mpkg</tt> file.
-</li><li> Create the DMG file using Disk Utility application.
-<ul><li> Specifically, use the "File &gt; New &gt; Disk Image from Folder" command.
-
-</li></ul>
-</li><li> Test the DMG file.
-</li><li> Post online.
-</li><li> Redo it all again, but remotely on a PPC system (currently advised to use <tt>g5.cs.uchicago.edu</tt>. -<em>Note: As of 6/29/2010, I (jriehl) am unable to access g5.  I advise checking with <a href="mailto:techstaff@cs.uchicago.edu">techstaff</a>.</em>)
-<ul><li> Somewhere in there, there is a "move the built source tree to your desktop" step.
-</li></ul>
-</li></ol>
-<p>References: Apple's "Software Delivery Guide" (should be available from ADC, or inside of Xcode).
-</p>
--->
 
 <a name="msi-files"><h2>Building a Windows installer (MSI)</h2></a>
 
@@ -483,13 +438,14 @@ prompt.
 </li>
 
 <li>[cygwin] <tt>$ scp smlnj.msi $release_dir/smlnj-<i>$VERSION</i>.msi</tt><br>
-    Copy the MSI file to the distribution directory; we add a <tt><i>$VERSION</i></tt> tag so that folks can
-    keep multiple downloads distinct.
+    Copy the MSI file to the distribution directory; we add a <tt><i>$VERSION</i></tt>
+    tag so that folks can keep multiple downloads distinct. <br/>
+    Remember to check the file permissions on the server after you copy the file.
 </li>
 </ol>
 
     <hr>
 <!-- Created: Mon May  7 13:30:08 CDT 2007 -->
-<!-- hhmts start -->Last modified: May 31, 2018 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: June 13, 2019 <!-- hhmts end -->
   </body>
 </html>
