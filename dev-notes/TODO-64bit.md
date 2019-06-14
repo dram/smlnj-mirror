@@ -131,6 +131,34 @@ as **DONE**, even though they are not changed.
   * `system/smlnj/init/pervasive.sml` <br/>
     explicit `Word31.word` and `Int32.int` to `real` conversions
 
+  * `smlnj-lib/Util/random.sml` <br/>
+    Uses the `Word31` structure.
+
+  * `nlffi/lib/linkage-dlopen.sml` <br/>
+    switch to using abstract `c_pointer` type for handles.
+
+  * `nlffi/lib/linkage.sig` <br/>
+    switch to using abstract `c_pointer` type for handles.
+
+In addition to the above issues, there are a few more changes that we can make
+to smooth the differences between the 32-bit and 64-bit targets.
+
+  * bind `Position` to `Int64`.  While this will cost some performance, it
+    addresses several outstanding open bugs.  This change will require an
+    overhaul of the C-library interface.
+    **[DONE; 110.89]**
+
+  * bind `FixedInt` to `Int64` on all targets.
+    **[DONE; 110.89]**
+
+  * bind `LargeWord` to `Word64` on all targets.
+    **[DONE; 110.89]**
+
+### Runtime System
+
+The runtime system is largely 64-bit clean, since it has been used on the
+Alpha, but there are a few places where additional work is required.
+
   * `runtime/c-libs/dl/dlclose.c` <br/>
     Use the abstract `c_pointer` type to represent runtime-system pointers.
 
@@ -176,28 +204,6 @@ as **DONE**, even though they are not changed.
   * `runtime/mach-spec/AMD64-prim.asm` <br/>
     problems with the `assyntax64.h` macros
 
-  * `smlnj-lib/Util/random.sml` <br/>
-    Uses the `Word31` structure.
-
-  * `nlffi/lib/linkage-dlopen.sml` <br/>
-    switch to using abstract `c_pointer` type for handles.
-
-  * `nlffi/lib/linkage.sig` <br/>
-    switch to using abstract `c_pointer` type for handles.
-
-In addition to the above issues, there are a few more changes that we can make
-to smooth the differences between the 32-bit and 64-bit targets.
-
-  * bind `Position` to `Int64`.  While this will cost some performance, it
-    addresses several outstanding open bugs.  This change will require an
-    overhaul of the C-library interface.
-    **[DONE; 110.89]**
-
-  * bind `FixedInt` to `Int64` on all targets.
-    **[DONE; 110.89]**
-
-  * bind `LargeWord` to `Word64` on all targets.
-    **[DONE; 110.89]**
 
 ### Code Generation
 
