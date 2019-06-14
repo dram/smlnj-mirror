@@ -625,88 +625,22 @@ ML_CODE_HDR(unlock_a)
 
 /********************* Floating point functions. *********************/
 
-#define FPOP	fstp %st	/* Pop the floating point register stack. */
+/* rounding modes (see Table 4-14 in the Instruction Set Reference) */
+#define	RND_TO_NEGINF	CONST(9)
+#define RND_TO_POSINF	CONST(10)
+#define RND_TO_ZERO	CONST(11)
 
-
-/* Temporary storage for the old and new floating point control
-   word.  We don't use the stack to for this, since doing so would
-   change the offsets of the pseudo-registers. */
-	DATA
-	.align 8
-old_controlwd:
-	.word	0
-new_controlwd:
-	.word	0
 	TEXT
 	.align 8
-
-/* FIXME: replace the following with <fenv.h> function calls! */
-/*
- * Initialize the 80387 floating point coprocessor.  First, the floating
- * point control word is initialized (undefined fields are left
- * unchanged).	Rounding control is set to "nearest" (although floor_a
- * needs "toward negative infinity").  Precision control is set to
- * "double".  The precision, underflow, denormal
- * overflow, zero divide, and invalid operation exceptions
- * are masked.  Next, seven of the eight available entries on the
- * floating point register stack are claimed (see x86/x86.sml).
- *
- * NB: this cannot trash any registers because it's called from request_fault.
- */
-ENTRY(FPEEnable)
-	FINIT
-	subq	CONST(8), RSP	/* Temp space.	Keep stack aligned. */
-	FSTCW(REGIND(RSP))	/* Store FP control word. */
-				/* Keep undefined fields, clear others. */
-	AND_W(CONST(0xf0c0), REGIND(RSP))
-	OR_W(CONST(0x023f), REGIND(RSP)) /* Set fields (see above). */
-	FLDCW(REGIND(RSP))	/* Install new control word. */
-	addq	CONST(8), RSP
-	RET
-
-#if (defined(OPSYS_LINUX) || defined(OPSYS_CYGWIN) || defined(OPSYS_SOLARIS))
-ENTRY(fegetround)
-	SUB_L(CONST(4), ESP)	/* allocate temporary space */
-	FSTCW(REGIND(ESP))	/* store fp control word */
-	SAR_L(CONST(10),REGIND(ESP))/* rounding mode is at bit 10 and 11 */
-	AND_L(CONST(3), REGIND(ESP))/* mask two bits */
-	MOV_L(REGIND(ESP),EAX)	/* return rounding mode */
-	ADD_L(CONST(4), ESP)	/* deallocate space */
-	RET
-
-ENTRY(fesetround)
-	SUB_L(CONST(4), ESP)	/* allocate temporary space */
-	FSTCW(REGIND(ESP))	/* store fp control word */
-	AND_W(CONST(0xf3ff), REGIND(ESP))	/* Clear rounding field. */
-	MOV_L(REGOFF(8,ESP), EAX)	/* new rounding mode */
-	SAL_L(CONST(10), EAX)	/* move to right place */
-	OR_L(EAX,REGIND(ESP))	/* new control word */
-	FLDCW(REGIND(ESP))	/* load new control word */
-	ADD_L(CONST(4), ESP)	/* deallocate space */
-	RET
-#endif
-
 
 /* floor : real -> int
    Return the nearest integer that is less or equal to the argument.
 	 Caller's responsibility to make sure arg is in range. */
 
 ML_CODE_HDR(floor_a)
-	FSTCW(old_controlwd)		/* Get FP control word. */
-	MOV_W(old_controlwd, AX)
-	AND_W(CONST(0xf3ff), AX)	/* Clear rounding field. */
-	OR_W(CONST(0x0400), AX)	/* Round towards neg. infinity. */
-	MOV_W(AX, new_controlwd)
-	FLDCW(new_controlwd)		/* Install new control word. */
-
-	FLD_D(REGIND(stdarg))
-	sub	$8,RSP
-	fistpq	REGIND(RSP)			/* Round, store, and pop. */
-	POP_Q(stdarg)
-	salq	CONST(1), stdarg		/* Tag the resulting integer. */
-	incq	stdarg
-
-	FLDCW(old_controlwd)		/* Restore old FP control word. */
+	movsd		(stdarg), %xmm0
+	roundsd		RND_TO_NEGINF, %xmm0, %xmm0
+	cvttsd2si	%xmm0, stdarg
 	CONTINUE
 
 /* logb : real -> int
