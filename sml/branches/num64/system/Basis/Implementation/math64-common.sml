@@ -60,8 +60,6 @@ structure Math64Common : sig
 
     type real = real
 
-val debug : string -> unit = CInterface.c_function "SMLNJ-RunT" "debug"
-
     infix 4 ==
     val op +  = Real64.+
     val op -  = Real64.-
