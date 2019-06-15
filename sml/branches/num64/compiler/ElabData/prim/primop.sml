@@ -158,6 +158,9 @@ structure Primop : PRIMOP =
       | UNWRAP				(* unbox a value by unwrapping it *)
       | PTR_TO_WORD			(* cast c_pointer to address-sized word type *)
       | WORD_TO_PTR			(* case address-sized word type to c_pointer *)
+      | REAL_TO_BITS of int		(* cast real of the given size to a word of
+					 * the same size
+					 *)
 
     and ccall_type =
 	CCI32 |				(* passed as int32 *)

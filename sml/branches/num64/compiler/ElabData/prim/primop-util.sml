@@ -179,6 +179,7 @@ structure PrimopUtil : sig
       | toString P.UNWRAP = "unwrap"
       | toString P.PTR_TO_WORD = "cptr_to_word"
       | toString P.WORD_TO_PTR = "word_to_cptr"
+      | toString (P.REAL_TO_BITS sz) = "real_to_bits_" ^ cvtParam sz
 
   (* should return more than just a boolean:
    * {Store,Continuation}-{read,write}
@@ -197,6 +198,7 @@ structure PrimopUtil : sig
 	    | (P.WRAP | P.UNWRAP) => false
 	    | P.INLIDENTITY => false
 	    | (P.INTERN64 | P.EXTERN64) => false
+	    | (P.PTR_TO_WORD | P.WORD_TO_PTR | P.REAL_TO_BITS _) => false
 	    | _ => true
 	  (* end case *))
 
