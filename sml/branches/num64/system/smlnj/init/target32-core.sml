@@ -75,7 +75,7 @@ structure Core =
                      fn x => create_vP(PAIR x)
 
 	    val floor : real -> int = cast AA.floor
-	    val logb : real -> int = cast AA.logb
+	    val logb : real -> int = cast AA.logb			(* DEPRECATED *)
             val scalbP : (real, int) pair -> real = cast AA.scalb
 	    val scalb : real * int -> real = fn x => scalbP(PAIR x)
 

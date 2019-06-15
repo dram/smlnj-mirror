@@ -85,6 +85,9 @@ structure Unsafe :> UNSAFE =
     structure PackWord32Big = UnsafePackWord32Big
     structure PackWord32Little = UnsafePackWord32Little
 
+  (* convert real to bits (experimental) *)
+    val realToBits = InlineT.Real64.toBits
+
     val getVar = InlineT.getvar
     val setVar = InlineT.setvar
 

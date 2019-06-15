@@ -28,4 +28,7 @@ signature TARGET =
   (* true for 64-bit targets *)
     val is64 : bool
 
+  (* true for big-endian targets (SPARC, PPC) *)
+    val bigEndian : bool
+
   end

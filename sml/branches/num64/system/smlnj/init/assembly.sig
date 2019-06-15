@@ -32,7 +32,7 @@ signature ASSEMBLY =
         val create_s : int -> string
         val create_v : int * 'a list -> 'a vector
         val floor : real -> int
-        val logb : real -> int
+        val logb : real -> int			(* DEPRECATED *)
         val scalb : real * int -> real
         val try_lock : spin_lock -> bool
         val unlock : spin_lock -> unit
@@ -72,7 +72,7 @@ signature ASSEMBLYBOXED =
         val create_s : object -> string
         val create_v : object -> object
         val floor : object -> object
-        val logb : object -> object
+        val logb : object -> object			(* DEPRECATED *)
         val scalb : object -> object
         val try_lock : spin_lock -> object
         val unlock : spin_lock -> object

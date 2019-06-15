@@ -96,9 +96,9 @@
 #
 #  Example:
 #   ...
-#   ifdef  ARCH_ALPHA                  bind foo = foo-alpha32.sml (bar, baz)
+#   ifdef  ARCH_SPARC                  bind foo = foo-sparc.sml (bar, baz)
 #   ifdef  ARCH_X86                    bind foo = foo-x86.sml (bar, baz)
-#   ifndef ARCH_ALPHA ifndef ARCH_X86  bind foo = foo-default.sml (bar, baz)
+#   ifndef ARCH_SPARC ifndef ARCH_X86  bind foo = foo-default.sml (bar, baz)
 #   ...
 #
 # See base/cm/bootstrap/build-initdg.sml for the code that processes this file.
@@ -160,13 +160,11 @@ ifdef SIZE_32 \
 	bind inline = target32-inline.sml (core, primitive, xcore)
 ifndef SIZE_32 \
 	bind inline = target64-inline.sml (core, primitive, xcore)
-ifdef ARCH_ALPHA \
-	bind math-inlT = math-built-in-none.sml (core, primitive, xcore)
 ifdef ARCH_PPC \
 	bind math-inlT = math-built-in-none.sml (core, primitive, xcore)
 ifdef ARCH_X86 \
 	bind math-inlT = math-built-in-x86.sml (core, primitive, xcore)
-ifndef ARCH_ALPHA ifndef ARCH_X86 ifndef ARCH_PPC\
+ifndef ARCH_X86 ifndef ARCH_PPC \
 	bind math-inlT = math-built-in.sml (core, primitive, xcore)
 
 ifdef ARCH_X86 \

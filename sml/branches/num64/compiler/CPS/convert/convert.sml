@@ -683,11 +683,17 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 			val asWord = LV.mkLvar()
 			val num32Ty = boxIntTy 32
 			val hi = LV.mkLvar() and lo = LV.mkLvar()
+		      (* word32 values are [hi, lo], so we need to swap order
+		       * on little-endian targets
+		       *)
+			val rawPair = if Target.bigEndian
+			      then [(VAR hi, OFFp0), (VAR lo, OFFp0)]
+			      else [(VAR lo, OFFp0), (VAR hi, OFFp0)]
 			in
 			  PURE(P.CAST, [arg], asWord, boxIntTy sz,
 			  SELECT(0, VAR asWord, hi, num32Ty,
 			  SELECT(1, VAR asWord, lo, num32Ty,
-			  RECORD(RK_RAWBLOCK, [(VAR hi, OFFp0), (VAR lo, OFFp0)], res,
+			  RECORD(RK_RAWBLOCK, rawPair, res,
 			    loop(e, c)))))
 			end
 		    | (true, 64) => let

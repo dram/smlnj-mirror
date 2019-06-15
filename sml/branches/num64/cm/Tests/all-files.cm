@@ -23,23 +23,7 @@ is
 
 	(* based on current architecture, select Compiler, CM, and CMB *)
 
-# if defined(ARCH_ALPHA)
-#   if defined(ARCH_ALPHA_OLD)
-	TopLevel/bootstrap/alpha32x-select.sml
-#   else
-	TopLevel/bootstrap/alpha32-select.sml
-#   endif
-# elif defined(ARCH_MIPS)
-#   if defined(BIG_ENDIAN)
-	TopLevel/bootstrap/mipseb-select.sml
-#   else
-	TopLevel/bootstrap/mipsel-select.sml
-#   endif
-# elif defined(ARCH_HPPA)
-	TopLevel/bootstrap/hppa-select.sml
-# elif defined(ARCH_RS6000)
-	TopLevel/bootstrap/rs6000-select.sml
-# elif defined(ARCH_SPARC)
+# if defined(ARCH_SPARC)
 	TopLevel/bootstrap/sparc-select.sml
 # elif defined(ARCH_X86)
 	TopLevel/bootstrap/x86-select.sml

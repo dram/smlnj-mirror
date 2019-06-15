@@ -46,6 +46,9 @@ signature UNSAFE =
     structure PackWord32Big : PACK_WORD
     structure PackWord32Little : PACK_WORD
 
+  (* convert real to bits (experimental) *)
+    val realToBits : real -> Word64.word
+
     val getHdlr : unit -> 'a Cont.cont
     val setHdlr : 'a Cont.cont -> unit
 
