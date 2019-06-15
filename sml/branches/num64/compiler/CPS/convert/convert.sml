@@ -683,7 +683,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 			val asWord = LV.mkLvar()
 			val num32Ty = boxIntTy 32
 			val hi = LV.mkLvar() and lo = LV.mkLvar()
-		      (* word32 values are [hi, lo], so we need to swap order
+		      (* word64 values are [hi, lo], so we need to swap order
 		       * on little-endian targets
 		       *)
 			val rawPair = if Target.bigEndian

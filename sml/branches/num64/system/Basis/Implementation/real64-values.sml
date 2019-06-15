@@ -22,6 +22,9 @@ structure Real64Values : sig
 
   end = struct
 
+    structure Word = InlineT.Word
+    structure Word64 = InlineT.Word64
+
   (* The next three values are computed laboriously, partly to
    * avoid problems with inaccurate string->float conversions
    * in the compiler itself.
@@ -36,12 +39,14 @@ structure Real64Values : sig
 	  end
 
     val minNormalPos = let
-	  fun isNormal x = (case Assembly.A.logb x
-		 of ~1023 => false	(* 0.0 or subnormal *)
-		  | 1024 => false	(* inf or nan *)
-		  | _ => true
-		(* end case *))
-	  fun f(x) = let
+	  fun isNormal x = let
+		val biasExp = Word.andb(
+		      Word.fromLarge(Word64.rshiftl(InlineT.Real64.toBits x, 0w52)),
+		      0wx7ff)
+		in
+		  (0w0 < biasExp) andalso (biasExp < 0w2047)
+		end
+	  fun f x = let
 		val y = x * 0.5
 		in
 		  if isNormal y then f y else x

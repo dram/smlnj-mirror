@@ -60,6 +60,8 @@ structure Math64Common : sig
 
     type real = real
 
+val debug : string -> unit = CInterface.c_function "SMLNJ-RunT" "debug"
+
     infix 4 ==
     val op +  = Real64.+
     val op -  = Real64.-
@@ -92,23 +94,23 @@ structure Math64Common : sig
 
   (* This function is IEEE double-precision specific;
      it works correctly on subnormal inputs and outputs;
-     we do not apply it to inf's and nan's *)
+     we do not apply it to 0.0, inf's, or nan's *)
     fun scalb (x, k) = let
 	  val biasedExp = getBiasedExp x
 	  in
 	    if (biasedExp = 0)
 	      then scalb(x * two_to_the_54, I.-(k, 54))			(*2*)
+	    else if I.<(biasedExp, 2047)
+	      then Assembly.A.scalb(x,k)				(*1*)
 	      else let
 	      (* unbias exponent and add to k *)
 		val k' = I.+(k, I.-(biasedExp, 1023))
 		in
-		  if lessu(I.+(k', 1022), 2046)
-		    then Assembly.A.scalb(x,k)				(*1*)
-		  else if I.<(k',0)
-		    then if I.<(k',I.-(~1022,54))
+		  if I.<(k',0)
+		    then if I.<(k', I.-(~1022,54))
 		      then 0.0						(*3*)
 		      else scalb(x,I.+(k,54)) * two_to_the_minus_54	(*4*)
-			else x * plusInfinity				(*5*)
+		    else x * plusInfinity				(*5*)
 		end
 	  end
  (* Proof of correctness of scalb:      (Appel)
@@ -159,9 +161,9 @@ structure Math64Common : sig
 	           then Assembly.A.floor x
 		  else if isNan x then raise General.Domain
 		  else raise General.Overflow
-    val real = InlineT.Real64.from_int31
+    val real = InlineT.Real64.from_int31	(* 64BIT: FIXME *)
 
-  (* This is the IEEE double-precision maxint; won't work accurately on VAX *)
+  (* This is the IEEE double-precision maxint *)
     val maxint = 4503599627370496.0
 
   (* realround(x) returns x rounded to some nearby integer, almost always
