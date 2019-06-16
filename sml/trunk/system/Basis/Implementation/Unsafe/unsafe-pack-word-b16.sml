@@ -49,5 +49,4 @@ structure UnsafePackWord16Big : PACK_WORD =
 	  end
 
   end
-end
-
+end (* local *)
