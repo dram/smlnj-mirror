@@ -93,6 +93,28 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/06/16]::
++
+Added implementations of the target-specific **Basis Library** modules
+in directory `Basis/Implementation/Target64Bit`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/06/16]::
++
+Added `PackWord64Big` and `PackWord64Little` structures to Basis Library.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/06/16]::
++
+Added `bigEndian` flag to the `TARGET` signature.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.90; 2019/06/12
 
