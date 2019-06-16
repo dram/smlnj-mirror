@@ -3,7 +3,7 @@
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Default word structure for 32-bit targets.
+ * Default word structure (31 bits) for 32-bit targets.
  *)
 
 structure WordImp : WORD =
@@ -77,7 +77,6 @@ structure WordImp : WORD =
 
   (* added for Basis Library proposal 2016-001 *)
 
-  (* NOTE: LargeWord is Word32 even though we also have a Word64 implementation! *)
     fun popCount w = W32PopCount.popCount (Word.toWord32 w)
 
   end  (* structure WordImp *)

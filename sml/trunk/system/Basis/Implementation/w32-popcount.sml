@@ -4,7 +4,8 @@
  * All rights reserved.
  *
  * This structure implements population count (Basis Proposal 2016-001) for 32-bit
- * words and is used in the Word, Word32, and Word64 implementations.
+ * words and is used in the Word32 implementation, and in the Word and Word64
+ * implementations on 32-bit targets.
  *)
 
 structure W32PopCount =
@@ -13,7 +14,7 @@ structure W32PopCount =
     local
 
     structure W32 = InlineT.Word32
-    val >>   = W32.rshiftl
+    val >> = W32.rshiftl
 
     in
 

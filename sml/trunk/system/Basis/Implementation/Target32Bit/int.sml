@@ -1,18 +1,14 @@
-(* int31.sml
+(* int.sml
  *
  * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Default int structure for 32-bit targets.
- *
- * The following structures must be without signatures so that inlining
- * can take place: Bits, Vector, Array, RealArray, Int, Real
+ * Default int structure (31 bits) for 32-bit targets.
  *)
 
 structure IntImp : INTEGER =
   struct
     structure Int = InlineT.Int
-    structure I32 = InlineT.Int32
 
     exception Div = Assembly.Div
     exception Overflow = Assembly.Overflow
@@ -55,25 +51,20 @@ structure IntImp : INTEGER =
     val op < 	: int * int -> bool = Int.<
     val op <= 	: int * int -> bool = Int.<=
 
-    fun fmt radix = (NumFormat32.fmtInt radix) o Int32Imp.fromInt
+    fun fmt radix = (NumFormat32.fmtInt radix) o InlineT.Int32.fromInt
 
     fun scan radix = let
-      val scanLarge = NumScan32.scanInt radix
-      fun f getc cs =
-	(case scanLarge getc cs
-	  of NONE => NONE
-	   | SOME(i, cs') =>
-(* this is redundant because Int32.toInt does the check already:
-	     if I32.>(i, 0x3fffffff) orelse I32.<(i, ~0x40000000) then
-	       raise Overflow
-	     else
-*)
-	       SOME(Int32Imp.toInt i, cs')
-	(*esac*))
-    in f
-    end
+	  val scanInt32 = NumScan32.scanInt radix
+	  fun f getc cs = (case scanInt32 getc cs
+		   of NONE => NONE
+		    | SOME(i, cs') => SOME(Int32Imp.toInt i, cs')
+		  (* end case *))
+	  in
+	    f
+	  end
 
     val toString = fmt StringCvt.DEC
+
 (*
     val fromString = PreBasis.scanString (scan StringCvt.DEC)
 *)
@@ -84,42 +75,49 @@ structure IntImp : INTEGER =
   (* optimized version of fromString; it is about 2x as fast as
    * using scanString:
    *)
-    fun fromString s =
-	let val n = size s
-	    val z = ord #"0"
-	    val sub = CV.sub
-	    infix ++
-	    fun x ++ y = Word.toIntX (Word.+ (Word.fromInt x, Word.fromInt y))
-	    fun num (i, a) =
-		if i >= n then a
-		else let val c = ord (sub (s, i)) - z
-		     in
-			 if c < 0 orelse c > 9 then a
-			 else num (i ++ 1, 10 * a - c)
-		     end
-	    (* Do the arithmetic using the negated absolute to avoid
-	     * premature overflow on minInt. *)
-	    fun negabs i =
-		if i >= n then NONE
-		else let val c = z - ord (sub (s, i))
-		     in
-			 if c > 0 orelse c < ~9 then NONE
-			 else SOME (num (i ++ 1, c))
-		     end
-	    fun skipwhite i =
-		if i >= n then NONE
-		else let val c = sub (s, i)
-		     in
-			 if Char.isSpace c then skipwhite (i ++ 1)
-			 else if c = #"-" orelse c = #"~" then
-			     negabs (i ++ 1)
-                         else if c = #"+" then
-                             Option.map ~ (negabs (i ++ 1))
-			 else Option.map ~ (negabs i)
-		     end
-	in
+    fun fromString s = let
+	  val n = size s
+	  val z = ord #"0"
+	  val sub = CV.sub
+	  infix ++
+	  fun x ++ y = InlineT.Int.fast_add(x, y)
+	  fun num (i, a) = if i >= n
+		then a
+		else let
+		  val c = ord (sub (s, i)) - z
+		  in
+		    if c < 0 orelse c > 9
+		      then a
+		      else num (i ++ 1, 10 * a - c)
+		  end
+	(* Do the arithmetic using the negated absolute to avoid
+	 * premature overflow on minInt.
+	 *)
+	  fun negabs i = if i >= n
+		then NONE
+		else let
+		  val c = z - ord (sub (s, i))
+		  in
+		    if c > 0 orelse c < ~9
+		      then NONE
+		      else SOME (num (i ++ 1, c))
+		  end
+	  fun skipwhite i = if i >= n
+		then NONE
+	        else let
+		  val c = sub (s, i)
+		  in
+		    if Char.isSpace c
+		      then skipwhite (i ++ 1)
+		    else if c = #"-" orelse c = #"~"
+		      then negabs (i ++ 1)
+		    else if c = #"+"
+		      then Option.map ~ (negabs (i ++ 1))
+		      else Option.map ~ (negabs i)
+		  end
+	  in
 	    skipwhite 0
-	end
+	  end
     end (* local *)
 
   end  (* structure IntImp *)

@@ -16,7 +16,6 @@ structure Int64Imp : sig
   end = struct
 
     structure I64 = InlineT.Int64
-    structure II = IntInfImp
 
     type int = Int64.int	(* from Basis/TypesOnly *)
 
