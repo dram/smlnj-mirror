@@ -15,5 +15,6 @@ structure Target : TARGET =
     val fixedIntSz = 64
     val defaultRealSz = 64
     val is64 = true
+    val bigEndian = Endianess.bigEndian
 
   end

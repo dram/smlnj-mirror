@@ -98,6 +98,11 @@ is
 	reals/real64-to-bits.sml
 
 	mlcomp/target.sig
+#if defined(BIG_ENDIAN)
+	mlcomp/endianess-big.sml
+#else
+	mlcomp/endianess-little.sml
+#endif
 #if defined(SIZE_32)
 	mlcomp/target32.sml
 #else
