@@ -98,7 +98,7 @@
 #define _X86_SYNTAX_H_
 
 #if !defined(GNU_ASSEMBLER) && !defined(MASM_ASSEMBLER)
-#  error must specify either GNU_ASSEMBLER or GNU_ASSEMBLER
+#  error must specify either GNU_ASSEMBLER or MASM_ASSEMBLER
 #endif
 
 #if defined(__STDC__)
@@ -140,7 +140,7 @@
 #endf
 #define CODEPTR(r)	via r
 
-#endif
+#endif /* GNU_ASSEMBLER */
 
 #define CALL(lab)		call lab
 #define JB(lab)			jb lab
@@ -192,6 +192,7 @@
 #define LEA(src,dst)		CHOICE(leaq ARGS2(src,dst), lea ARGS2(src,dst))
 #define MOV(src,dst)		CHOICE(movq ARGS2(src,dst), mov ARGS2(src,dst))
 #define MOVS_D(src,dst)		CHOICE(movsd ARGS2(src,dst), movs ARGS2(src,dst))
+#define MULS_D(src,dst)		CHOICE(mulsd ARGS2(src,dst), mulsd ARGS2(src,dst))
 #define OR(src,dst)		CHOICE(orq ARGS2(src,dst), or ARGS2(src,dst))
 #define POP(dst)		CHOICE(popq dst, pop dst)
 #define PUSH(src)		CHOICE(pushq src, push src)
@@ -233,5 +234,18 @@
 #define XMM14		REG(xmm14)
 #define XMM15		REG(xmm15)
 #endif /* ARCH_AMD64 */
+
+/* MOVE(src,tmp,dst) copies one memory location `src` to `dst``, using register `tmp`. */
+#ifdef GNU_ASSEMBLER
+#define MOVE(src,tmp,dst)	\
+	MOV(src, tmp);	\
+	MOV(tmp, dst)
+#else /* MASM_ASSEMBLER */
+MOVE_M MACRO src,tmp,dst
+	MOV	(src, tmp)
+	MOV	(tmp, dst)
+ENDM
+#define MOVE(a,b,c) MOVE_M a, b, c
+#endif
 
 #endif /* _X86_SYNTAX_H_ */
