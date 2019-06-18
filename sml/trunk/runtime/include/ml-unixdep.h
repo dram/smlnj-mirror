@@ -14,6 +14,7 @@
  *   HAS_POSIX_LIBRARIES	if the ML Posix binding is supported.
  *   HAS_GETRUSAGE		if OS provides getrusage(2) call
  *   HAS_SETITIMER		if OS provides setitimer(2) call
+ *   HAS_CLOCK_GETRES		if OS provides clock_getres(3) call
  *   HAS_MMAP			if OS provides both mmap(2) and /dev/zero.
  *   HAS_ANON_MMAP		if OS provides anonymous mmap(2) (OSF/1)
  *   HAS_PARTIAL_MUNMAP		if OS allows unmapping of subranges of a mapped
@@ -110,6 +111,9 @@ extern char	*sys_errlist[];
 #  define MAP_ANONYMOUS MAP_ANON
 #  define HAS_MKSTEMP
 #  define STAT_HAS_TIMESPEC
+/* NOTE: macOS added clock_getres in 10.12 (Sierra).  For now, we do not
+ * enable it, since we are supporting backward compatability to 10.6 (Snow Leopard).
+ */
 
 #elif defined(OPSYS_SOLARIS) /** SunOS 5.x **/
 #  define OS_NAME	"Solaris"
@@ -136,6 +140,7 @@ extern char	*sys_errlist[];
 #  define HAS_POSIX_SIGS
 #  define HAS_GETRUSAGE
 #  define HAS_SETITIMER
+#  define HAS_CLOCK_GETRES
 #  define HAS_MMAP
 #  define HAS_PARTIAL_MUNMAP
 #  define HAS_SELECT
@@ -153,6 +158,7 @@ extern char	*sys_errlist[];
 #  define HAS_POSIX_SIGS
 #  define HAS_GETRUSAGE
 #  define HAS_SETITIMER
+#  define HAS_CLOCK_GETRES
 #  define HAS_MMAP
 #  define HAS_ANON_MMAP
 #  define HAS_PARTIAL_MUNMAP
@@ -187,6 +193,7 @@ extern char	*sys_errlist[];
 #  define HAS_BSD_SIGS
 #  define HAS_GETRUSAGE
 #  define HAS_SETITIMER
+#  define HAS_CLOCK_GETRES
 #  define HAS_ANON_MMAP
 #  define HAS_PARTIAL_MUNMAP
 #  define HAS_SELECT
@@ -235,6 +242,7 @@ extern char	*sys_errlist[];
 #  define HAS_POSIX_SIGS
 #  define HAS_GETRUSAGE
 #  define HAS_SETITIMER
+#  define HAS_CLOCK_GETRES
 #  define HAS_MMAP
 #  define HAS_PARTIAL_MUNMAP
 #  define HAS_SELECT

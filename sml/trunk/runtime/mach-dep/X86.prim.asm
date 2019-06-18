@@ -355,7 +355,7 @@ pending:
 	CMP_L(CONST(0), REGOFF(InSigHandlerOffVSP,vsp))
 	JNE(restore_and_jmp_ml)
 					/* handler trap is now pending */
-	movl	IMMED(1),HandlerPendingOffVSP(vsp)
+	MOV_L(IMMED(1),HandlerPendingOffVSP(vsp))
 
 	/* must restore here because limitptr is on stack */ /* XXX */
 	POP_L(temp)			/* restore temp to msp */
@@ -421,7 +421,7 @@ ML_CODE_HDR(create_r_a)
         PUSH_L(misc0)			/* free temp1 */
 	MOV_L(stdarg,temp)		/* temp := length */
 	SAR_L(CONST(1),temp)		/* temp := untagged length */
-	SHL_L(CONST(1),temp)		/* temp := length in words */
+	SAL_L(CONST(1),temp)		/* temp := length in words */
 	CMP_L(CONST(SMALL_OBJ_SZW),temp)
 	JGE(2f)
 
@@ -429,12 +429,12 @@ ML_CODE_HDR(create_r_a)
 
 	/* allocate the data object */
 	MOV_L(temp, temp1)
-	SHL_L(CONST(TAG_SHIFTW),temp1)  /* temp1 := descriptor */
+	SAL_L(CONST(TAG_SHIFTW),temp1)  /* temp1 := descriptor */
 	OR_L(CONST(MAKE_TAG(DTAG_raw64)),temp1)
 	MOV_L(temp1,REGIND(allocptr))	/* store descriptor */
 	ADD_L(CONST(4), allocptr)	/* allocptr++ */
 	MOV_L(allocptr, temp1)		/* temp1 := data object */
-	SHL_L(CONST(2),temp)		/* temp := length in bytes */
+	SAL_L(CONST(2),temp)		/* temp := length in bytes */
 	ADD_L(temp, allocptr)		/* allocptr += length */
 
 	/* allocate the header object */
@@ -471,12 +471,12 @@ ML_CODE_HDR(create_b_a)
 
 	/* allocate teh data object */
 	MOV_L(temp, temp1)		/* temp1 :=  descriptor */
-	SHL_L(CONST(TAG_SHIFTW),temp1)
+	SAL_L(CONST(TAG_SHIFTW),temp1)
 	OR_L(CONST(MAKE_TAG(DTAG_raw)),temp1)
 	MOV_L(temp1, REGIND(allocptr))	/* store descriptor */
 	ADD_L(CONST(4), allocptr)	/* allocptr++ */
 	MOV_L(allocptr, temp1)		/* temp1 := data object */
-	SHL_L(CONST(2), temp)		/* temp := length in bytes */
+	SAL_L(CONST(2), temp)		/* temp := length in bytes */
 	ADD_L(temp, allocptr)		/* allocptr += length */
 
 	/* allocate the header object */
@@ -509,13 +509,13 @@ ML_CODE_HDR(create_s_a)
 #define	temp1	misc0
 
 	MOV_L(temp, temp1)
-	SHL_L(CONST(TAG_SHIFTW),temp1)	/* build descriptor in temp1 */
+	SAL_L(CONST(TAG_SHIFTW),temp1)	/* build descriptor in temp1 */
 	OR_L(CONST(MAKE_TAG(DTAG_raw)), temp1)
 	MOV_L(temp1, REGIND(allocptr))/* store the data pointer */
 	ADD_L(CONST(4),allocptr)	/* allocptr++ */
 
 	MOV_L(allocptr, temp1)		/* temp1 := data object */
-	SHL_L(CONST(2),temp)		/* temp := length in bytes */
+	SAL_L(CONST(2),temp)		/* temp := length in bytes */
 	ADD_L(temp, allocptr)		/* allocptr += length */
 	MOV_L(CONST(0),REGOFF(-4,allocptr))	/* zero out the last word */
 
@@ -553,7 +553,7 @@ ML_CODE_HDR(create_v_a)
 	JGE(3f)
 
 
-	SHL_L(CONST(TAG_SHIFTW),temp1)	/* build descriptor in temp1 */
+	SAL_L(CONST(TAG_SHIFTW),temp1)	/* build descriptor in temp1 */
 	OR_L(CONST(MAKE_TAG(DTAG_vec_data)),temp1)
 	MOV_L(temp1,REGIND(allocptr))	/* store descriptor */
 	ADD_L(CONST(4),allocptr)	/* allocptr++ */
@@ -655,6 +655,8 @@ ENTRY(FPEEnable)
 	ADD_L(CONST(4), ESP)
 	RET
 
+/* NOTE: the following code is no longer required, since we are assuming C99 support */
+#ifdef XXXX
 #if (defined(OPSYS_LINUX) || defined(OPSYS_CYGWIN) || defined(OPSYS_SOLARIS))
 ENTRY(fegetround)
 	SUB_L(CONST(4), ESP)	/* allocate temporary space */
@@ -676,6 +678,8 @@ ENTRY(fesetround)
 	ADD_L(CONST(4), ESP)	/* deallocate space */
 	RET
 #endif
+#endif /* XXXX */
+
 
 
 /* floor : real -> int

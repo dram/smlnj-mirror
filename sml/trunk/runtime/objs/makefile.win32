@@ -205,14 +205,6 @@ timers.obj:	$(KERN_DIR)\timers.c \
 		$(INC_DIR)\ml-timer.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(KERN_DIR)\timers.c
 
-win32-timers.obj:	$(KERN_DIR)\win32-timers.c \
-		ml-sizes.h \
-		$(MACH_DIR)\win32-timers.h \
-		$(INC_DIR)\ml-base.h \
-		$(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h \
-		$(INC_DIR)\ml-timer.h
-	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(KERN_DIR)\win32-timers.c
-
 qualify-name.obj:	$(KERN_DIR)\qualify-name.c \
 		ml-sizes.h $(INC_DIR)\ml-base.h $(INC_DIR)\machine-id.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(KERN_DIR)\qualify-name.c
@@ -270,6 +262,14 @@ win32-signal.obj:	$(MACH_DIR)\win32-signal.c win32-sigtbl.c \
 		$(INC_DIR)\ml-globals.h \
 		$(MACH_DIR)\signal-sysdep.h
 	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(MACH_DIR)\win32-signal.c
+
+win32-timers.obj:	$(MACH_DIR)\win32-timers.c \
+		ml-sizes.h \
+		$(INC_DIR)\win32-timers.h \
+		$(INC_DIR)\ml-base.h \
+		$(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h \
+		$(INC_DIR)\ml-timer.h
+	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(MACH_DIR)\win32-timers.c
 
 system-signals.h:	gen-win32-signals.exe
 	.\gen-win32-signals.exe
