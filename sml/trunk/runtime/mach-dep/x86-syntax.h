@@ -101,12 +101,6 @@
 #  error must specify either GNU_ASSEMBLER or MASM_ASSEMBLER
 #endif
 
-#if defined(__STDC__)
-#define CONCAT(x, y)	x ## y
-#else
-#define CONCAT(x, y)	x/**/y
-#endif
-
 #ifdef GNU_ASSEMBLER
 
 /* arguments are in src,dst order for the GNU assembler */
@@ -131,13 +125,13 @@
 /* operands */
 #define IM(x)		x
 #define REG(r)		r
-#ifdef ARCH_X86
+#ifdef TARGET_X86
 #define REGIND(r)	dword ptr [r]
 #define REGOFF(d,r)	dword ptr [r + d]
-#else /* ARCH_AMD64 */
+#else /* TARGET_AMD64 */
 #define REGIND(r)	qword ptr [r]
 #define REGOFF(d,r)	qword ptr [r + d]
-#endf
+#endif
 #define CODEPTR(r)	via r
 
 #endif /* GNU_ASSEMBLER */
@@ -149,8 +143,12 @@
 #define JNE(lab)		jne lab
 #define RET			ret
 
-#ifdef ARCH_X86
-/* 32-bit sized operations */
+#ifdef TARGET_X86
+/* 16-bit operations */
+#define ANDW(src,dst)		CHOICE(andw ARGS2(src,dst), and ARGS2(src,dst))
+#define MOVW(src,dst)		CHOICE(movw ARGS2(src,dst), mov ARGS2(src,dst))
+#define ORW(src,dst)		CHOICE(orw ARGS2(src,dst), or ARGS2(src,dst))
+/* 32-bit operations */
 #define ADD(src,dst)		CHOICE(addl ARGS2(src,dst), add ARGS2(src,dst))
 #define AND(src,dst)		CHOICE(andl ARGS2(src,dst), and ARGS2(src,dst))
 #define CMP(src,dst)		CHOICE(cmpl ARGS2(src,dst), cmp ARGS2(src,dst))
@@ -166,12 +164,12 @@
 /* x87 floating-point instructions */
 #define FILD_L(src)		CHOICE(fildl src, fild src)
 #define FINIT			finit
-#define FISTP_L			CHOICE(fistpl, fistp)
-#define FLD_D(dst)		CHOICE(fldd dst, fld dst)
-#define FLDCW			fldcw
+#define FISTP(dst)		CHOICE(fistpl dst, fistp dst)
+#define FLD(dst)		CHOICE(fldl dst, fld dst)
+#define FLDCW(src)		CHOICE(fldcw src, fldcw src)
 #define FSCALE			fscale
-#define FSTCW			fstcw
-#define FSTP_D(dst)		CHOICE(fstpd dst, fstp dst)
+#define FSTCW(dst)		CHOICE(fstcw dst, fstcw dst)
+#define FSTPL(dst)		CHOICE(fstpl dst, fstp dst)
 /* 32-bit registers */
 #define EAX		REG(eax)
 #define EBX		REG(ebx)
@@ -181,9 +179,19 @@
 #define ESI		REG(esi)
 #define EDI		REG(edi)
 #define ESP		REG(esp)
-#endif /* ARCH_X86 */
+/* extra operand macros for word and double addressing using the MASM assembler */
+#ifdef GNU_ASSEMBLER
+#  define REGIND_DBL(r)		(r)
+#  define REGOFF_W(d,r)		d(r)
+#  define REGOFF_DBL(d,r)	d(r)
+#else /* MASM_ASSEMBLER */
+#  define REGIND_DBL(r)		real8 ptr [r]
+#  define REGOFF_W(d,r)		word ptr [r + d]
+#  define REGOFF_DBL(d,r)	real8 ptr [r + d]
+#endif /* GNU_ASSEMBLER */
+#endif /* TARGET_X86 */
 
-#ifdef ARCH_AMD64
+#ifdef TARGET_AMD64
 /* 64-bit sized operations */
 #define ADD(src,dst)		CHOICE(addq ARGS2(src,dst), add ARGS2(src,dst))
 #define AND(src,dst)		CHOICE(andq ARGS2(src,dst), and ARGS2(src,dst))
@@ -233,7 +241,7 @@
 #define XMM13		REG(xmm13)
 #define XMM14		REG(xmm14)
 #define XMM15		REG(xmm15)
-#endif /* ARCH_AMD64 */
+#endif /* TARGET_AMD64 */
 
 /* MOVE(src,tmp,dst) copies one memory location `src` to `dst``, using register `tmp`. */
 #ifdef GNU_ASSEMBLER
@@ -246,6 +254,10 @@ MOVE_M MACRO src,tmp,dst
 	MOV	(tmp, dst)
 ENDM
 #define MOVE(a,b,c) MOVE_M a, b, c
+#endif
+
+#ifdef GNU_ASSEMBLER
+#  define END
 #endif
 
 #endif /* _X86_SYNTAX_H_ */
