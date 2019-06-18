@@ -1,6 +1,7 @@
-/* sysinfo.c
+/*! \file sysinfo.c
  *
- * COPYRIGHT (c) 1994 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * General interface to query system properties.
  */
@@ -47,20 +48,10 @@ ml_val_t _ml_RunT_sysinfo (ml_state_t *msp, ml_val_t arg)
     else if (STREQ("HEAP_SUFFIX", name))
         res = ML_CString(msp, MACHINE_ID "-" OPSYS_ID);
     else if (STREQ("HOST_ARCH", name))
-#if   defined(HOST_ALPHA32)
-	res = ML_CString(msp, "ALPHA32");
-#elif defined(HOST_AMD64)
+#if   defined(HOST_AMD64)
 	res = ML_CString(msp, "AMD64");
-#elif defined(HOST_HPPA)
-	res = ML_CString(msp, "HPPA");
-#elif defined(HOST_MIPS)
-	res = ML_CString(msp, "MIPS");
-#elif defined(HOST_M68)
-	res = ML_CString(msp, "M68");
 #elif defined(HOST_PPC)
 	res = ML_CString(msp, "PPC");
-#elif defined(HOST_RS6000)
-	res = ML_CString(msp, "RS6000");
 #elif defined(HOST_SPARC)
 	res = ML_CString(msp, "SPARC");
 #elif defined(HOST_X86)
@@ -69,20 +60,10 @@ ml_val_t _ml_RunT_sysinfo (ml_state_t *msp, ml_val_t arg)
 	res = ML_CString(msp, "<unknown>");
 #endif
     else if (STREQ("TARGET_ARCH", name))
-#if   defined(TARGET_ALPHA32)
-	res = ML_CString(msp, "ALPHA32");
-#elif defined(TARGET_AMD64)
+#if   defined(TARGET_AMD64)
 	res = ML_CString(msp, "AMD64");
-#elif defined(TARGET_HPPA)
-	res = ML_CString(msp, "HPPA");
-#elif defined(TARGET_MIPS)
-	res = ML_CString(msp, "MIPS");
-#elif defined(TARGET_M68)
-	res = ML_CString(msp, "M68");
 #elif defined(TARGET_PPC)
 	res = ML_CString(msp, "PPC");
-#elif defined(TARGET_RS6000)
-	res = ML_CString(msp, "RS6000");
 #elif defined(TARGET_SPARC)
 	res = ML_CString(msp, "SPARC");
 #elif defined(TARGET_X86)
