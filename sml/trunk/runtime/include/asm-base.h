@@ -16,7 +16,7 @@
 #define FALSE	0
 #define TRUE	1
 
-#if (!defined(GLOBALS_HAVE_UNDERSCORE)) && (defined(OPSYS_SUNOS) || ((defined(OPSYS_FREEBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD)) && !defined(__ELF__)) || defined(OPSYS_NEXTSTEP) || defined(OPSYS_WIN32) || defined(OPSYS_DARWIN) || defined(OPSYS_CYGWIN))
+#if (!defined(GLOBALS_HAVE_UNDERSCORE)) && (((defined(OPSYS_FREEBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD)) && !defined(__ELF__)) || defined(OPSYS_WIN32) || defined(OPSYS_DARWIN) || defined(OPSYS_CYGWIN))
 #  define GLOBALS_HAVE_UNDERSCORE
 #endif
 
@@ -28,11 +28,7 @@
 #endif
 
 #if defined(HOST_SPARC)
-#  if defined(OPSYS_SUNOS)
-#    include <machine/asm_linkage.h>
-#    include <machine/trap.h>
-#    undef ENTRY
-#  elif defined(OPSYS_SOLARIS)
+#  if defined(OPSYS_SOLARIS)
 #    define _ASM
 #    include <sys/stack.h>
 #    include <sys/trap.h>

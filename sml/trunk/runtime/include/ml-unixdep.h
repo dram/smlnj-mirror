@@ -1,6 +1,7 @@
-/* ml-unixdep.h
+/*! \file ml-unixdep.h
  *
- * COPYRIGHT (c) 1992 AT&T Bell Laboratories
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This file contains O.S. dependent paths, definitions and feature flags for
  * various UNIX systems.  It should not be included in files that are OS
@@ -259,4 +260,3 @@ extern char	*sys_errlist[];
 #include <errno.h>
 
 #endif /* !_ML_UNIXDEP_ */
-

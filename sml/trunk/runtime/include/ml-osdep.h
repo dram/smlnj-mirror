@@ -1,6 +1,7 @@
-/* ml-osdep.h
+/*! \file ml-osdep.h
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This file contains definitions to hide a few OS dependencies.  It
  * should be portable across both UNIX and non-UNIX systems (unlike the
@@ -18,7 +19,7 @@
 
 #if defined(OPSYS_UNIX)
 #  include "ml-unixdep.h"
-#  if (defined(OPSYS_SUNOS) || defined(OPSYS_IRIX4) || defined(OPSYS_LINUX) || defined(OPSYS_AIX) || defined(OPSYS_FREEBSD) || defined(OPSYS_NETBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD) || defined(OPSYS_DARWIN) || defined(OPSYS_CYGWIN))
+#  if (defined(OPSYS_LINUX) || defined(OPSYS_AIX) || defined(OPSYS_FREEBSD) || defined(OPSYS_NETBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD) || defined(OPSYS_DARWIN) || defined(OPSYS_CYGWIN))
 #     define GETPAGESIZE()	(getpagesize())
 #  else
    /* POSIX 1003.1b interface */

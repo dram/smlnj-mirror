@@ -1,11 +1,7 @@
-/* SPARC.prim.asm
+/*! \file SPARC.prim.asm
  *
- * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
- *
- * AUTHOR:  John Reppy
- *	    Cornell University
- *	    Ithaca, NY 14853
- *	    jhr@cs.cornell.edu
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "asm-base.h"
@@ -294,28 +290,6 @@ pending_sigs:	/* there are pending signals */
 	st	TMPREG2,[VProcPtr+HandlerPendingOffVSP]
 	ba	ml_go
 	mov	ALLOCPTR,LIMITPTR	    /* (delay slot) */
-
-
-#if defined(OPSYS_SUNOS) || defined(OPSYS_NEXTSTEP)
-/* ZeroLimitPtr:
- *
- * Zero the heap limit pointer so that a trap will be generated on the next limit
- * check and then continue executing ML code.
- * NOTE: this code cannot trash any registers (other than limitptr) or the condition
- * code. To achieve this we work inside a new register window.
- * Also note that this code is not needed under SOLARIS 2.x, since we can
- * directly change the register from C.
- */
-	TEXT
-ENTRY(ZeroLimitPtr)
-	save	%sp,-SA(WINDOWSIZE),%sp
-	sethi	%hi(CSYM(SavedPC)),%l1
-	ld	[%l1+%lo(CSYM(SavedPC))],%o0
-	set	0,LIMITPTR
-	jmp	%o0
-	restore				/* (delay slot) */
-#endif /* OPSYS_SUNOS */
-
 
 /* array : (int * 'a) -> 'a array
  * Allocate and initialize a new array.	 This can cause GC.
