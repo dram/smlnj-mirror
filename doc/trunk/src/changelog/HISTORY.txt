@@ -94,6 +94,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/06/18]::
++
+Some cleanup in the interval-timer code.  In keeping with the other
+time-specific functions, I have switched the runtime-system API to
+use unsigned 64-bit nanoseconds to specify time values.  I have also
+added an implementation for `c-libs/smlnj-runtime/itick.c`, which
+was missing.   Lastly, moved the Windows-specific file `win32-timers.c`
+from `runtime/kernel` to `runtime/mach-dep`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/06/16]::
 +
 Added implementations of the target-specific **Basis Library** modules
