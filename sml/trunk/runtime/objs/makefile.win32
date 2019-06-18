@@ -280,12 +280,12 @@ win32-sigtbl.c:	gen-win32-sigtbl.exe
 reg-mask.h:	gen-regmask.exe
 	.\gen-regmask.exe
 
-prim.obj:	$(MACH_DIR)\$(TARGET).prim.masm \
-		$(MACH_DIR)\x86-masm.h \
+prim.obj:	$(MACH_DIR)\$(TARGET).prim.asm \
+		$(MACH_DIR)\x86-syntax.h \
 		ml-sizes.h reg-mask.h $(INC_DIR)\ml-base.h $(INC_DIR)\tags.h \
 		$(INC_DIR)\asm-base.h \
 		mlstate-offsets.h
-	$(CPP) /D_ASM_ $(DEFS) /I$(BC_DIR) /I$(MACH_DIR) $(INCLUDES) /Tc$(MACH_DIR)\$(TARGET).prim.masm > prim.s
+	$(CPP) /D_ASM_ $(DEFS) /I$(MACH_DIR) $(INCLUDES) /Tc$(MACH_DIR)\$(TARGET).prim.asm > prim.s
 	$(AS) /c prim.s
 
 

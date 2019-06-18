@@ -273,8 +273,9 @@ unix-sigtbl.c:	gen-unix-sigtbl
 prim.o:		$(MACH_DIR)/$(TARGET).prim.asm \
 		ml-sizes.h $(INC_DIR)/ml-base.h $(INC_DIR)/tags.h \
 		$(INC_DIR)/asm-base.h \
+		$(MACH_DIR)/x86-syntax.h \
 		mlstate-offsets.h
-	$(CPP) -D_ASM_ $(DEFS) -I$(BC_DIR) $(INCLUDES) $(MACH_DIR)/$(TARGET).prim.asm > prim.s
+	$(CPP) -D_ASM_ $(DEFS) $(INCLUDES) $(MACH_DIR)/$(TARGET).prim.asm > prim.s
 	$(AS) -o prim.o prim.s
 
 $(MACH_DIR)/BYTECODE.prim.asm: bc-instr-def.h $(BC_DIR)/bc-instrs.h $(BC_DIR)/bc.h
