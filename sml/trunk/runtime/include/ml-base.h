@@ -13,9 +13,14 @@
 
 /* macro concatenation (ANSI CPP) */
 #ifndef CONCAT /* assyntax.h also defines CONCAT */
-#  define CONCAT(a,b)	a ## b
+#  if defined(__STDC__)
+#    define CONCAT(x, y)	x ## y
+#    define CONCAT3(a,b,c)	a ## b ## c
+#  else
+#    define CONCAT(x, y)	x/**/y
+#    define CONCAT3(a,b,c)	a/**/b/**/c
+#  endif
 #endif
-#define CONCAT3(a,b,c)	a ## b ## c
 
 #define ONE_K		1024
 #define ONE_MEG 	(ONE_K*ONE_K)
