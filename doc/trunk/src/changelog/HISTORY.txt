@@ -94,6 +94,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/06/19]::
++
+Rewrote the assembly code for the x86 and AMD64 targets.  Previously, there
+were separate source files for Unix and Windows; these have been replaced
+by a single common file (one for each architecture).  The `assyntax.h` file
+has also been replaced by `x86-syntax.h`, which covers both the x86
+and AMD64 on both UNIX and Windows. +
++
+The `AMD64.prim.asm` file now compiles, although there are a few minor
+issues that will have to be fixed once we have a working code generator.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/06/18]::
 +
 Some cleanup in the interval-timer code.  In keeping with the other
