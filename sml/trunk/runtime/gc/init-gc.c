@@ -32,11 +32,9 @@ PVT int		DfltRatios[MAX_NUM_GENS] = {
 	DFLT_RATIO,	DFLT_RATIO,	DFLT_RATIO
     };
 
+bibop_t		BIBOP;
 #ifdef SIZES_C64_ML64
-bibop_t		BIBOP;
 l2_bibop_t	UnmappedL2;
-#else
-bibop_t		BIBOP;
 #endif
 
 #ifdef COLLECT_STATS /** should this go into gc-stats.c ??? **/
