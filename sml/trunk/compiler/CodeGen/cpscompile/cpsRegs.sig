@@ -24,16 +24,16 @@ signature CPSREGS =
    * so we will limit this to the set that it needs.
    *)
     val frameptr	: bool -> T.rexp	(* frame pointer *)
-    val limitptr	: bool -> T.rexp
+    val limitptr	: bool -> T.rexp	(* heap-limit pointer *)
     val stdlink		: bool -> T.rexp
     val stdclos		: bool -> T.rexp
     val stdarg 		: bool -> T.rexp
     val stdcont 	: bool -> T.rexp	(* holds return continuation *)
     val exnptr 		: bool -> T.rexp	(* holds exception-handler continuation *)
     val varptr  	: bool -> T.rexp
-    val baseptr		: bool -> T.rexp
-    val storeptr 	: bool -> T.rexp
-    val gcLink		: bool -> T.rexp
+    val baseptr		: bool -> T.rexp	(* holds base address of current code object *)
+    val storeptr 	: bool -> T.rexp	(* store-list pointer *)
+    val gcLink		: bool -> T.rexp	(* return address for GC calls *)
 
     val calleesave	: T.rexp Array.array
     val exhausted 	: T.ccexp option
