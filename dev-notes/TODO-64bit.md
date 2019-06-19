@@ -189,12 +189,20 @@ Alpha, but there are a few places where additional work is required.
   * `runtime/gc/build-literals.c` <br/>
     RAW32 padding on 64-bit targets
 
+  * `runtime/gc/export-heap.c`
+    need a BIBOP for mapping between memory and file addresses
+
+  * `runtime/gc/import-heap.c`
+    need a BIBOP for mapping between memory and file addresses
+
   * `runtime/gc/major-gc.c` <br/>
     Need modifications for the two-level BIBOP.
+    **[DONE; 110.91]**
 
   * `runtime/gc/minor-gc.c` <br/>
     `DTAG_raw` and `DTAG_raw64` can be handled the same way on 64-bit targets.
     Also, need modifications for the two-level BIBOP.
+    **[DONE; 110.91]**
 
   * `runtime/include/cntr.h` <br/>
     can use 64-bit integers for counters (might be able to do so on 32-bit machines
@@ -203,6 +211,7 @@ Alpha, but there are a few places where additional work is required.
 
   * `runtime/mach-spec/AMD64-prim.asm` <br/>
     problems with the `assyntax64.h` macros
+    **[DONE; 110.91]**
 
 
 ### Code Generation
