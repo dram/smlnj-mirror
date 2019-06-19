@@ -70,7 +70,7 @@
 #define signBit		REGOFF(208,RSP) /* ?? */
 #define negateSignBit	REGOFF(216,RSP) /* ?? */
 
-#define rsp_save	REGOFF(500,ESP)	/* FIXME */
+#define rsp_save	REGOFF(500,RSP)	/* FIXME */
 
 /* we put the request code in tempmem before jumping to set_request */
 #define request_w	tempmem0
@@ -87,10 +87,10 @@
 /* sigh_return:
  */
 ML_CODE_HDR(sigh_return_a)
-	MOV	(CONST(ML_unit),stdlink)
-	MOV	(CONST(ML_unit),stdclos)
-	MOV	(CONST(ML_unit),pc)
-	MOV	(CONST(REQ_SIG_RETURN), request_w)
+	MOV	(IM(ML_unit),stdlink)
+	MOV	(IM(ML_unit),stdclos)
+	MOV	(IM(ML_unit),pc)
+	MOV	(IM(REQ_SIG_RETURN), request_w)
 	JMP	(CSYM(set_request))
 
 /* sigh_resume:
@@ -98,40 +98,40 @@ ML_CODE_HDR(sigh_return_a)
  * standard two-argument function, thus the closure is in ml_cont.
  */
 ENTRY(sigh_resume)
-	MOV	(CONST(REQ_SIG_RESUME), request_w)
+	MOV	(IM(REQ_SIG_RESUME), request_w)
 	JMP	(CSYM(set_request))
 
 /* pollh_return_a:
  * The return continuation for the ML poll handler.
  */
 ML_CODE_HDR(pollh_return_a)
-	MOV	(CONST(REQ_POLL_RETURN), request_w)
-	MOV	(CONST(ML_unit),stdlink)
-	MOV	(CONST(ML_unit),stdclos)
-	MOV	(CONST(ML_unit),pc)
+	MOV	(IM(REQ_POLL_RETURN), request_w)
+	MOV	(IM(ML_unit),stdlink)
+	MOV	(IM(ML_unit),stdclos)
+	MOV	(IM(ML_unit),pc)
 	JMP	(CSYM(set_request))
 
 /* pollh_resume:
  * Resume execution at the point at which a poll event occurred.
  */
 ENTRY(pollh_resume)
-	MOV	(CONST(REQ_POLL_RESUME), request_w)
+	MOV	(IM(REQ_POLL_RESUME), request_w)
 	JMP	(CSYM(set_request))
 
 /* handle:
  */
 ML_CODE_HDR(handle_a)
-	MOV	(CONST(REQ_EXN), request_w)
+	MOV	(IM(REQ_EXN), request_w)
 	MOVE	(stdlink,temp,pc)
 	JMP	(CSYM(set_request))
 
 /* return:
  */
 ML_CODE_HDR(return_a)
-	MOV	(CONST(REQ_RETURN), request_w)
-	MOV	(CONST(ML_unit),stdlink)
-	MOV	(CONST(ML_unit),stdclos)
-	MOV	(CONST(ML_unit),pc)
+	MOV	(IM(REQ_RETURN), request_w)
+	MOV	(IM(ML_unit),stdlink)
+	MOV	(IM(ML_unit),stdclos)
+	MOV	(IM(ML_unit),pc)
 	JMP	(CSYM(set_request))
 
 /* Request a fault.  The floating point coprocessor must be reset
@@ -142,7 +142,7 @@ ML_CODE_HDR(return_a)
  */
 ENTRY(request_fault)
 	CALL	(CSYM(FPEEnable))          /* Does not trash any general regs. */
-	MOV	(CONST(REQ_FAULT), request_w)
+	MOV	(IM(REQ_FAULT), request_w)
 	MOVE	(stdlink,temp,pc)
 	JMP	(CSYM(set_request))
 
@@ -150,21 +150,21 @@ ENTRY(request_fault)
  */
 ML_CODE_HDR(bind_cfun_a)
 	CHECKLIMIT
-	MOV	(CONST(REQ_BIND_CFUN), request_w)
+	MOV	(IM(REQ_BIND_CFUN), request_w)
 	JMP	(CSYM(set_request))
 
 /* build_literals:
  */
 ML_CODE_HDR(build_literals_a)
 	CHECKLIMIT
-	MOV	(CONST(REQ_BUILD_LITERALS), request_w)
+	MOV	(IM(REQ_BUILD_LITERALS), request_w)
 	JMP	(CSYM(set_request))
 
 /* callc:
  */
 ML_CODE_HDR(callc_a)
 	CHECKLIMIT
-	MOV	(CONST(REQ_CALLC), request_w)
+	MOV	(IM(REQ_CALLC), request_w)
 	JMP	(CSYM(set_request))
 
 /* saveregs:
@@ -173,7 +173,7 @@ ML_CODE_HDR(callc_a)
  */
 ENTRY(saveregs)
 	POP	(pc)
-	MOV	(CONST(REQ_GC), request_w)
+	MOV	(IM(REQ_GC), request_w)
 	/* fall into set_request */
 
 /* set_request:
@@ -191,13 +191,13 @@ ENTRY(set_request)
 #define	temp2 allocptr
 	/* note that we have left ML code */
 	MOV	(REGOFF(VProcOffMSP,temp), temp2)
-	MOV	(CONST(0), REGOFF(InMLOffVSP, temp2))
-#undef	temp2
+	MOV	(IM(0), REGOFF(InMLOffVSP, temp2))
 
 	/* Save stack-allocated CPS registers before the stack frame is popped. */
 	MOVE	(exncont, temp2, REGOFF(ExnPtrOffMSP, temp))
 	MOVE	(varptr,  temp2, REGOFF(VarPtrOffMSP, temp))
 	MOVE	(pc,      temp2, REGOFF(PCOffMSP, temp))
+#undef	temp2
 
 	/* Save remaining registers */
 	MOV	(limitptr, REGOFF(LimitPtrOffMSP, temp))
@@ -207,20 +207,13 @@ ENTRY(set_request)
 	MOV	(misc0,    REGOFF(Misc0OffMSP, temp))
 	MOV	(misc1,    REGOFF(Misc1OffMSP, temp))
 	MOV	(misc2,    REGOFF(Misc2OffMSP, temp))
-	MOV	(misc3,    REGOFF(Misc3OffMSP, temp))
-	MOV	(misc4,    REGOFF(Misc4OffMSP, temp))
-	MOV	(misc5,    REGOFF(Misc5OffMSP, temp))
-	MOV	(misc6,    REGOFF(Misc6OffMSP, temp))
 
 	/* return val of function is request code */
 	MOV(request_w,creturn)
 
 	/* Pop the stack frame and return to run_ml(). */
-#if defined(OPSYS_DARWIN)
-	LEA	(REGOFF(ML_FRAME_SIZE+12,ESP),ESP)
-#else
 	MOV	(rsp_save, RSP)
-#endif
+
 	/* restore C callee-save registers */
 	POP	(R15)
 	POP	(R14)
@@ -254,14 +247,14 @@ ENTRY(restoreregs)
 	/* move the argument (MLState ptr) to the temp register */
 	MOV	(RDI, temp)
 	/* allocate the stack frame */
-	SUB	(CONST(ML_FRAME_SIZE+12), ESP)
+	SUB	(IM(ML_FRAME_SIZE+12), RSP)
 
 #define temp2	RBX
       /* Initialize the ML stack frame. */
 	MOVE	(REGOFF(ExnPtrOffMSP, temp), temp2, exncont)
 	MOVE	(REGOFF(VarPtrOffMSP, temp), temp2, varptr)
 	MOVE    (REGOFF(PCOffMSP, temp),     temp2, pc)
-	LEA	(CSYM(saveregs), temp2)
+	LEA	(CODEADDR(CSYM(saveregs)), temp2)
 	MOV	(temp2, start_gc)
 	MOV	(temp, mlstate_ptr)
 
@@ -271,7 +264,6 @@ ENTRY(restoreregs)
 	MOV	($0x7fffffffffffffff, temp2)
 	MOV	(temp2, negateSignBit)
 #undef	temp2
-
 
 	/* Load ML registers. */
 	MOV	(REGOFF(AllocPtrOffMSP, temp), allocptr)
@@ -284,10 +276,6 @@ ENTRY(restoreregs)
 	MOV	(REGOFF(Misc0OffMSP, temp),    misc0)
 	MOV	(REGOFF(Misc1OffMSP, temp),    misc1)
 	MOV	(REGOFF(Misc2OffMSP, temp),    misc2)
-	MOV	(REGOFF(Misc3OffMSP, temp),    misc3)
-	MOV	(REGOFF(Misc4OffMSP, temp),    misc4)
-	MOV	(REGOFF(Misc5OffMSP, temp),    misc5)
-	MOV	(REGOFF(Misc6OffMSP, temp),    misc6)
 
 	PUSH	(misc2)			/* free up a register   */
 	PUSH	(temp)			/* save msp temporarily */
@@ -297,11 +285,11 @@ ENTRY(restoreregs)
 	/* note that we are entering ML */
 	MOV	(REGOFF(VProcOffMSP,temp), temp)  /* temp is now vsp */
 #define vsp	temp
-	MOV	(CONST(1),REGOFF(InMLOffVSP,vsp))
+	MOV	(IM(1),REGOFF(InMLOffVSP,vsp))
 
 	/* handle signals */
-	MOV	(REGOFF(SigsRecvOffVSP,vsp),EDX)
-	CMP	(REGOFF(SigsHandledOffVSP,vsp),EDX)
+	MOV	(REGOFF(SigsRecvOffVSP,vsp),RDX)
+	CMP	(REGOFF(SigsHandledOffVSP,vsp),RDX)
 
 #undef  tmpreg
 	JNE	(pending)
@@ -318,10 +306,10 @@ jmp_ml:
 /* QUESTION: are these fields 32-bits? */
 pending:
 					/* Currently handling signal? */
-	CMP	(CONST(0), REGOFF(InSigHandlerOffVSP,vsp))
+	CMP	(IM(0), REGOFF(InSigHandlerOffVSP,vsp))
 	JNE	(restore_and_jmp_ml)
 					/* handler trap is now pending */
-	MOV	(IMMED(1),HandlerPendingOffVSP(vsp))
+	MOV	(IM(1),HandlerPendingOffVSP(vsp))
 
 	/* must restore here because limitptr is on stack */ /* XXX */
 	POP	(temp)			/* restore temp to msp */
@@ -510,16 +498,15 @@ LABEL(L_create_s_large)
  */
 ML_CODE_HDR(create_v_a)
 	CHECKLIMIT
-	MOV	(REGIND(stdarg),temp)		/* len tagged */
-	MOV	(temp,temp1)
-	SAR	(IM(1),temp1)			/* untag */
-	CMP	(IM(SMALL_OBJ_SZW),temp1)
-	JGE	(L_create_v_large)
-
+	MOV	(REGIND(stdarg),temp)		/* temp = len tagged */
 	PUSH	(misc0)
 	PUSH	(misc1)
 #define temp1 misc0
 #define temp2 misc1
+	MOV	(temp,temp1)
+	SAR	(IM(1),temp1)			/* temp1 = untagged len */
+	CMP	(IM(SMALL_OBJ_SZW),temp1)
+	JGE	(L_create_v_large)
 
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_vec_data)),temp1)
@@ -565,7 +552,7 @@ ML_CODE_HDR(try_lock_a)
 #  error multiple processors not supported
 #else /* (MAX_PROCS == 1) */
 	MOV	(REGIND(stdarg), temp)		/* Get old value of lock. */
-	MOV	(CONST(1), REGIND(stdarg))	/* Set the lock to ML_false. */
+	MOV	(IM(1), REGIND(stdarg))	/* Set the lock to ML_false. */
 	MOV	(temp, stdarg)			/* Return old value of lock. */
 	CONTINUE
 #endif
@@ -576,8 +563,8 @@ ML_CODE_HDR(unlock_a)
 #if (MAX_PROCS > 1)
 #  error multiple processors not supported
 #else /* (MAX_PROCS == 1) */
-	MOV	(CONST(3), REGIND(stdarg))	/* Store ML_true into lock. */
-	MOV	(CONST(1), stdarg)		/* Return unit. */
+	MOV	(IM(3), REGIND(stdarg))	/* Store ML_true into lock. */
+	MOV	(IM(1), stdarg)		/* Return unit. */
 	CONTINUE
 #endif
 
@@ -585,9 +572,9 @@ ML_CODE_HDR(unlock_a)
 /********************* Floating point functions. *********************/
 
 /* rounding modes (see Table 4-14 in the Instruction Set Reference) */
-#define	RND_TO_NEGINF	CONST(9)
-#define RND_TO_POSINF	CONST(10)
-#define RND_TO_ZERO	CONST(11)
+#define	RND_TO_NEGINF	IM(9)
+#define RND_TO_POSINF	IM(10)
+#define RND_TO_ZERO	IM(11)
 
 	TEXT
 	.align 8

@@ -130,6 +130,9 @@
 #define REGIND(r)	(r)
 #define REGOFF(d,r)	d(r)
 #define CODEPTR(r)	*r
+#if defined(HOST_AMD64)
+#  define CODEADDR(lab)	lab(REG(rip))
+#endif
 
 #else /* MASM_ASSEMBLER */
 
@@ -157,11 +160,11 @@
 #define IM(x)		x
 #define REG(r)		r
 #ifdef TARGET_X86
-#define REGIND(r)	dword ptr [r]
-#define REGOFF(d,r)	dword ptr [r + d]
+#  define REGIND(r)	dword ptr [r]
+#  define REGOFF(d,r)	dword ptr [r + d]
 #else /* TARGET_AMD64 */
-#define REGIND(r)	qword ptr [r]
-#define REGOFF(d,r)	qword ptr [r + d]
+#  define REGIND(r)	qword ptr [r]
+#  define REGOFF(d,r)	qword ptr [r + d]
 #endif
 #define CODEPTR(r)	via r
 
@@ -226,7 +229,7 @@
 /* 64-bit sized operations */
 #define ADD(src,dst)		CHOICE(addq ARGS2(src,dst), add ARGS2(src,dst))
 #define AND(src,dst)		CHOICE(andq ARGS2(src,dst), and ARGS2(src,dst))
-#define CMP(src,dst)		CHOICE(cmpl ARGS2(src,dst), cmp ARGS2(src,dst))
+#define CMP(src,dst)		CHOICE(cmpq ARGS2(src,dst), cmp ARGS2(src,dst))
 #define INC(dst)		CHOICE(incq dst, inc dst)
 #define LEA(src,dst)		CHOICE(leaq ARGS2(src,dst), lea ARGS2(src,dst))
 #define MOV(src,dst)		CHOICE(movq ARGS2(src,dst), mov ARGS2(src,dst))
@@ -239,7 +242,7 @@
 #define SAR(src,dst)		CHOICE(sarq ARGS2(src,dst), sar ARGS2(src,dst))
 #define SUB(src,dst)		CHOICE(subq ARGS2(src,dst), sub ARGS2(src,dst))
 /* Scalar SSE operations */
-#define CVTTSD2SI(srs,dst)	CHOICE(cvttsd2si ARGS2(src,dst), cvttsd2si ARGS2(src,dst))
+#define CVTTSD2SI(src,dst)	CHOICE(cvttsd2si ARGS2(src,dst), cvttsd2si ARGS2(src,dst))
 #define MOVSD(src,dst)		CHOICE(movsd ARGS2(src,dst), movs ARGS2(src,dst))
 #define ROUNDSD(dir,src,dst)	CHOICE(roundsd ARGS3(dir,src,dst), rounds ARGS3(dir,src,dst))
 /* 64-bit registers */
@@ -259,6 +262,8 @@
 #define R13		REG(r13)
 #define R14		REG(r14)
 #define R15		REG(r15)
+/* instruction pointer */
+#define RIP		REG(rip)
 /* 128-bit SSE Registers */
 #define XMM0		REG(xmm0)
 #define XMM1		REG(xmm1)
@@ -352,7 +357,7 @@ ENDM
 
 #define ML_CODE_HDR(name)			\
 	    CGLOBAL(name);			\
-	    ALIGN4;				\
+	    ALIGN_CODE;				\
     LABEL(CSYM(name))
 
 #endif /* MASM_ASSEMBLER */
