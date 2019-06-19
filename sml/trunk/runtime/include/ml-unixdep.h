@@ -168,6 +168,7 @@ extern char	*sys_errlist[];
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
 #  define STAT_HAS_TIMESPEC
+#  define _FILE_OFFSET_BITS 64
 
 #include <features.h>
 
