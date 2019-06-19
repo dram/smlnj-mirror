@@ -17,14 +17,6 @@
 .section .note.GNU-stack,"",%progbits
 #endif
 
-#if defined(OPSYS_DARWIN)
-/* Note: although the MacOS assembler claims to be the GNU assembler, it appears to be
- * an old version (1.38), which uses different alignment directives.
- */
-#undef ALIGN4
-#define ALIGN4	.align 2
-#endif
-
 /*
  * 386 C function call conventions:
  *  [true for gcc and dynix3 cc; untested for others]
@@ -70,11 +62,11 @@
 #define baseptr		REGOFF(4,ESP)
 #define exncont		REGOFF(8,ESP)
 #define limitptr	REGOFF(12,ESP)
-#define pc		REGOFF(16,ESP)
+#define pc		REGOFF(16,ESP)	/* gcLink */
 #define unused_1	REGOFF(20,ESP)
 #define storeptr	REGOFF(24,ESP)
 #define varptr		REGOFF(28,ESP)
-#define start_gc	REGOFF(32,ESP)
+#define start_gc	REGOFF(32,ESP)	/* holds address of saveregs */
 #define unused_2	REGOFF(36,ESP)
 #define eaxSpill	REGOFF(40,ESP) /* eax=0 */
 #define	ecxSpill	REGOFF(44,ESP) /* ecx=1 */
@@ -91,64 +83,8 @@
 
 #define ML_STATE_OFFSET 176
 #define mlstate_ptr	REGOFF(ML_STATE_OFFSET,ESP)
-#define freg8           184	     /* double word aligned */
-#define	freg9           192
-#define freg31          368          /* 152 + (31-8)*8 */
-#define	fpTempMem	376	     /* freg31 + 8 */
 #define SpillAreaStart	512	     /* starting offset */
 #define ML_FRAME_SIZE	(8192)
-
-#define CONTINUE	JMP (CODEPTR(stdcont))
-
-/* CHECKLIMIT, ENTRY, and ML_CODE_HDR macros */
-#ifdef MASM_ASSEMBLER
-
-CHECKLIMIT_M MACRO
- @@:
-	MOVE	(stdlink, temp, pc)
-	CMP	(limitptr, allocptr)
-	jb	@f
-	CALL	(CSYM(saveregs))
-	JMP	@b
- @@:
-ENDM
-
-ENTRY_M MACRO id
-	GLOBAL	(CSYM(&id))
-	LABEL	(CSYM(&id))
-ENDM
-
-ML_CODE_HDR_M MACRO name
-	GLOBAL	(CSYM(&name))
-	ALIGN_CODE
-	LABEL	(CSYM(&name))
-ENDM
-
-#define CHECKLIMIT CHECKLIMIT_M
-#define ENTRY(id) ENTRY_M id
-#define ML_CODE_HDR(name) ML_CODE_HDR_M name
-
-#else /* !MASM_ASSEMBLER */
-
-#define CHECKLIMIT				\
- 1:;						\
-	MOVE	(stdlink, temp, pc);		\
-	CMP	(limitptr, allocptr);		\
-	JB	(9f);				\
-	CALL	(CSYM(saveregs));		\
-	JMP	(1b);				\
- 9:
-
-#define ENTRY(ID)				\
-    CGLOBAL(ID);				\
-    LABEL(CSYM(ID))
-
-#define ML_CODE_HDR(name)			\
-	    CGLOBAL(name);			\
-	    ALIGN4;				\
-    LABEL(CSYM(name))
-
-#endif /* MASM_ASSEMBLER */
 
 /**********************************************************************/
 	DATA
@@ -160,7 +96,6 @@ LABEL(CSYM(ML_X86Frame)) /* ptr to the ml frame (gives C access to limitptr) */
 
 /**********************************************************************/
 	TEXT
-	ALIGN4
 
 /* use tempmem to hold the request word */
 #define request_w	tempmem
@@ -178,7 +113,6 @@ ML_CODE_HDR(sigh_return_a)
  * Resume execution at the point at which a handler trap occurred.  This is a
  * standard two-argument function, thus the closure is in ml_cont.
  */
-
 ENTRY(sigh_resume)
 	MOV(IM(REQ_SIG_RESUME),request_w)
 	JMP(set_request)
@@ -504,12 +438,12 @@ ML_CODE_HDR(create_r_a)
 
 	POP	(misc0)
 	CONTINUE
+#undef temp1
 
 LABEL(L_create_r_large)
 	MOVE	(stdlink,temp,pc)
 	MOV	(IM(REQ_ALLOC_REALDARRAY),request_w)
 	JMP	(set_request)
-#undef temp1
 
 
 /* create_b : int -> bytearray
@@ -519,9 +453,9 @@ LABEL(L_create_r_large)
 ML_CODE_HDR(create_b_a)
 	CHECKLIMIT
 	MOV	(stdarg,temp)		/* temp is tagged length */
-	SAR	(IM(1),temp)		/* temp is untagged length */
-	ADD	(IM(3),temp)
-	SAR	(IM(2),temp)		/* temp is length in words */
+	SAR	(IM(1),temp)		/* temp >>= 1; (untag length) */
+	ADD	(IM(3),temp)		/* temp += 3; */
+	SAR	(IM(2),temp)		/* temp >>= 2; (length in 4-byte words) */
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_b_large)
 
@@ -607,15 +541,16 @@ LABEL(L_create_s_large)
  */
 ML_CODE_HDR(create_v_a)
 	CHECKLIMIT
+	MOV	(REGIND(stdarg),temp)		/* temp = len tagged */
 	PUSH	(misc0)
 	PUSH	(misc1)
 #define temp1 misc0
 #define temp2 misc1
-	MOV	(REGIND(stdarg),temp)		/* len tagged */
 	MOV	(temp,temp1)
-	SAR	(IM(1),temp1)		/* untag */
+	SAR	(IM(1),temp1)			/* temp1 = untagged len */
 	CMP	(IM(SMALL_OBJ_SZW),temp1)
 	JGE	(L_create_v_large)
+
 
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_vec_data)),temp1)
@@ -735,6 +670,7 @@ ML_CODE_HDR(floor_a)
 	CONTINUE
 
 
+	/* DEPRECATED */
 /* logb : real -> int
  * Extract the unbiased exponent pointed to by stdarg.
  * Note: Using fxtract, and fistl does not work for inf's and nan's.

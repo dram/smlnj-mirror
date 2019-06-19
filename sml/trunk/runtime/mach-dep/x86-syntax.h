@@ -105,6 +105,7 @@
 
 /* arguments are in src,dst order for the GNU assembler */
 #define ARGS2(src,dst)		src,dst
+#define ARGS3(im,src,dst)	im,src,dst
 
 #define CHOICE(gnu, masm)	gnu
 
@@ -134,6 +135,7 @@
 
 /* arguments are in dst,src order for the MASM assembler */
 #define ARGS2(src,dst)		dst,src
+#define ARGS3(im,src,dst)	dst,src,im
 
 #define CHOICE(gnu, masm)	masm
 
@@ -236,6 +238,10 @@
 #define SAL(src,dst)		CHOICE(salq ARGS2(src,dst), sal ARGS2(src,dst))
 #define SAR(src,dst)		CHOICE(sarq ARGS2(src,dst), sar ARGS2(src,dst))
 #define SUB(src,dst)		CHOICE(subq ARGS2(src,dst), sub ARGS2(src,dst))
+/* Scalar SSE operations */
+#define CVTTSD2SI(srs,dst)	CHOICE(cvttsd2si ARGS2(src,dst), cvttsd2si ARGS2(src,dst))
+#define MOVSD(src,dst)		CHOICE(movsd ARGS2(src,dst), movs ARGS2(src,dst))
+#define ROUNDSD(dir,src,dst)	CHOICE(roundsd ARGS3(dir,src,dst), rounds ARGS3(dir,src,dst))
 /* 64-bit registers */
 #define RDI		REG(rdi)
 #define RSI		REG(rsi)
@@ -297,5 +303,58 @@ ENDM
 #endif
 
 #define CGLOBAL(ID)	GLOBAL(CSYM(ID))
+
+/* jump to the address held in the standard continuation register */
+#define CONTINUE	JMP (CODEPTR(stdcont))
+
+/* CHECKLIMIT, ENTRY, and ML_CODE_HDR macros */
+#ifdef MASM_ASSEMBLER
+
+CHECKLIMIT_M MACRO
+ @@:
+	MOVE	(stdlink, temp, pc)
+	CMP	(limitptr, allocptr)
+	jb	@f
+	CALL	(CSYM(saveregs))
+	JMP	@b
+ @@:
+ENDM
+
+ENTRY_M MACRO id
+	GLOBAL	(CSYM(&id))
+	LABEL	(CSYM(&id))
+ENDM
+
+ML_CODE_HDR_M MACRO name
+	GLOBAL	(CSYM(&name))
+	ALIGN_CODE
+	LABEL	(CSYM(&name))
+ENDM
+
+#define CHECKLIMIT CHECKLIMIT_M
+#define ENTRY(id) ENTRY_M id
+#define ML_CODE_HDR(name) ML_CODE_HDR_M name
+
+#else /* !MASM_ASSEMBLER */
+
+#define CHECKLIMIT				\
+ 1:;						\
+	MOVE	(stdlink, temp, pc);		\
+	CMP	(limitptr, allocptr);		\
+	JB	(9f);				\
+	CALL	(CSYM(saveregs));		\
+	JMP	(1b);				\
+ 9:
+
+#define ENTRY(ID)				\
+    CGLOBAL(ID);				\
+    LABEL(CSYM(ID))
+
+#define ML_CODE_HDR(name)			\
+	    CGLOBAL(name);			\
+	    ALIGN4;				\
+    LABEL(CSYM(name))
+
+#endif /* MASM_ASSEMBLER */
 
 #endif /* _X86_SYNTAX_H_ */
