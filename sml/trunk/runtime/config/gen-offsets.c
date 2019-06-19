@@ -1,9 +1,15 @@
-/* gen-offsets.c
+/*! \file gen-offsets.c
  *
- * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This C program generates a header file for the *.prim.asm files,
  * which gives the offset values in the VProc and ML state vectors.
+ *
+ * Note that we only generate offsets for three miscregs; this is because
+ * only the first three miscregs are marked as callee-save by the compiler
+ * and are thus live when saveregs is called.  See compiler/CodeGen/main/machspec.sig
+ * and compiler/CodeGen/cpscompile/invokegc.sml.
  */
 
 #include "ml-base.h"
