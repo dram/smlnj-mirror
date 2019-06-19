@@ -1,6 +1,7 @@
-/* big-objects.c
+/*! \file big-objects.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Code for managing big-object regions.
  */

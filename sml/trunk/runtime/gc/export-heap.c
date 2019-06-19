@@ -1,6 +1,7 @@
-/* export-heap.c
+/*! \file export-heap.c
  *
- * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Routines to export an ML heap image.  The basic layout of the heap image is:
  *

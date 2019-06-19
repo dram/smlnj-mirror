@@ -1,6 +1,7 @@
-/* import-heap.c
+/*! \file import-heap.c
  *
- * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Routines to import an ML heap image.
  */
@@ -221,6 +222,9 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
   /* Allocate a BIBOP for the imported heap image's address space. */
 #ifdef SIZES_C64_ML64
 #  error two level map not supported
+/* 64BIT: we can probably use a flat mapping for the heap image that we are importing,
+ * since it is compact.
+ */
 #else
     oldBIBOP = NEW_VEC (aid_t, BIBOP_SZ);
 #endif

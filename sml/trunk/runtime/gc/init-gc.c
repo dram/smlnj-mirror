@@ -1,9 +1,9 @@
-/* init-gc.c
+/*! \file init-gc.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * The GC initialization code.
- *
  */
 
 #ifdef PAUSE_STATS		/* GC pause statistics are UNIX dependent */
