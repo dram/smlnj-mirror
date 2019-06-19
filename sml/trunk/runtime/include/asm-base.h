@@ -4,6 +4,8 @@
  * All rights reserved.
  *
  * Common definitions for assembly files in the SML/NJ system.
+ * Note that we do not include this file in either X86.prim.asm
+ * or AMD64.prim.asm; instead we use x86-syntax.h for those files.
  */
 
 #ifndef _ASM_BASE_
@@ -95,56 +97,11 @@
     .globl CFUNSYM(ID) __SC__	\
     LABEL(CFUNSYM(ID))
 
-#elif defined(HOST_X86)
-#  if defined(OPSYS_WIN32)
-#    define GLOBAL(ID)		PUBLIC ID
-#    define LABEL(ID)		CONCAT(ID,:)
-#    define ALIGN4        	EVEN
-#    define WORD16(n,w)   	n WORD w
-#    define WORD32(n,w)   	n DWORD w
-#    define TEXT          	.CODE
-#    define DATA          	.DATA
-#    define BEGIN_PROC(P)	.ent P
-#    define END_PROC(P)		.end P
-#    define WORD(W)		WORD32(W)
-#  else
-#    define GLOBAL(ID)		.global ID
-#    define LABEL(ID)		CONCAT(ID,:)
-#    define ALIGN4		.align 2
-#    define WORD(W)		.word W
-#    define TEXT		.text
-#    define DATA		.data
-#    define BEGIN_PROC(P)	.ent P
-#    define END_PROC(P)		.end P
-
-#  endif
-
-#elif defined(HOST_AMD64)
-#  if defined(OPSYS_WIN32)
-#    define GLOBAL(ID)		PUBLIC ID
-#    define LABEL(ID)		CONCAT(ID,:)
-#    define ALIGN4        	EVEN
-#    define WORD16(n,w)   	n WORD w
-#    define WORD32(n,w)   	n DWORD w
-#    define TEXT          	.CODE
-#    define DATA          	.DATA
-#    define BEGIN_PROC(P)	.ent P
-#    define END_PROC(P)		.end P
-#    define WORD(W)		WORD32(W)
-#  else
-#    define GLOBAL(ID)		.global ID
-#    define LABEL(ID)		CONCAT(ID,:)
-#    define ALIGN4		.align 2
-#    define WORD(W)		.word W
-#    define TEXT		.text
-#    define DATA		.data
-#    define BEGIN_PROC(P)	.ent P
-#    define END_PROC(P)		.end P
-
-#  endif
+/* FIXME: move these definitions to the x86-prim.h file */
+#elif defined(HOST_X86) || defined(HOST_AMD64)
+#  error use x86-syntax.h instead if ml-base.h
 
 #else
-
 #  error missing asm definitions
 
 #endif
@@ -155,7 +112,7 @@
 
 #  define CGLOBAL(ID)	GLOBAL(CSYM(ID))
 
-#if !(defined(TARGET_X86) || defined(TARGET_AMD64))
+/* #if !(defined(TARGET_X86) || defined(TARGET_AMD64)) */
 #define ENTRY(ID)				\
     CGLOBAL(ID) __SC__				\
     LABEL(CSYM(ID))
@@ -164,7 +121,8 @@
 	    CGLOBAL(name) __SC__		\
 	    ALIGN4 __SC__			\
     LABEL(CSYM(name))
-#endif /* not x86 or amd64 */
+#define IMMED(x) CONST(x)
+/* #endif */ /* not x86 or amd64 */
 
 #endif /* !_ASM_BASE_ */
 

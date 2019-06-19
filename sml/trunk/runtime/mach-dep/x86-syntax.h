@@ -4,7 +4,7 @@
  * All rights reserved.
  *
  * This file abstracts over the syntax of x86 (and x86-64) assembly
- * instructions.  It supports two syntactic conventions:
+ * directives and instructions.  It supports two syntactic conventions:
  *
  *    1. "GNU Assember syntax", where arguments are `src,dst`.  This
  *      syntax is used by BSD, Linux, macOS, etc.
@@ -108,8 +108,23 @@
 
 #define CHOICE(gnu, masm)	gnu
 
+/* directives */
+#define GLOBAL(ID)	.globl ID
+#define LABEL(ID)	CONCAT(ID,:)
+#define TEXT		.text
+#define DATA		.data
+#define ALIGN_CODE	.p2align 4
+
+#if defined(HOST_X86)
+#define ALIGN4		.p2align 2
+#define WORD		.long 0
+#else /* HOST_AMD_64 */
+#define ALIGN8		.p2align 3
+#define WORD		.long 0, 0
+#endif /* HOST_X86 */
+
 /* operands */
-#define IM(x)		CONCAT($,a)
+#define IM(x)		CONCAT($,x)
 #define REG(r)		CONCAT(%,r)
 #define REGIND(r)	(r)
 #define REGOFF(d,r)	d(r)
@@ -121,6 +136,20 @@
 #define ARGS2(src,dst)		dst,src
 
 #define CHOICE(gnu, masm)	masm
+
+/* directives */
+#define GLOBAL(ID)	PUBLIC ID
+#define LABEL(ID)	CONCAT(ID,:)
+#define TEXT		.CODE
+#define DATA		.DATA
+
+#if defined(HOST_X86)
+#  define ALIGN4	ALIGN 4
+#  define WORD		DWORD 0
+#else /* HOST_AMD_64 */
+#  define ALIGN8	ALIGN 8
+#  define WORD		QWORD 0
+#endif /* HOST_X86 */
 
 /* operands */
 #define IM(x)		x
@@ -162,7 +191,7 @@
 #define SAR(src,dst)		CHOICE(sarl ARGS2(src,dst), sar ARGS2(src,dst))
 #define SUB(src,dst)		CHOICE(subl ARGS2(src,dst), sub ARGS2(src,dst))
 /* x87 floating-point instructions */
-#define FILD_L(src)		CHOICE(fildl src, fild src)
+#define FILDL(src)		CHOICE(fildl src, fild src)
 #define FINIT			finit
 #define FISTP(dst)		CHOICE(fistpl dst, fistp dst)
 #define FLD(dst)		CHOICE(fldl dst, fld dst)
@@ -259,5 +288,14 @@ ENDM
 #ifdef GNU_ASSEMBLER
 #  define END
 #endif
+
+/* TODO: make this property a dynamic test */
+#if ((defined(OPSYS_FREEBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD)) && !defined(__ELF__)) || defined(OPSYS_WIN32) || defined(OPSYS_DARWIN) || defined(OPSYS_CYGWIN)
+#  define CSYM(ID)	CONCAT(_,ID)
+#else
+#  define CSYM(ID)	ID
+#endif
+
+#define CGLOBAL(ID)	GLOBAL(CSYM(ID))
 
 #endif /* _X86_SYNTAX_H_ */

@@ -5,16 +5,24 @@
  */
 
 #include "ml-base.h"
-#include "asm-base.h"
 #include "x86-syntax.h"
 #include "ml-values.h"
 #include "tags.h"
 #include "ml-request.h"
 #include "mlstate-offsets.h"	/** this file is generated **/
+#include "ml-limits.h"
 
 #if defined(OPSYS_LINUX) && defined(__ELF__)
 /* needed to disable the execution bit on the stack pages */
 .section .note.GNU-stack,"",%progbits
+#endif
+
+#if defined(OPSYS_DARWIN)
+/* Note: although the MacOS assembler claims to be the GNU assembler, it appears to be
+ * an old version (1.38), which uses different alignment directives.
+ */
+#undef ALIGN4
+#define ALIGN4	.align 2
 #endif
 
 /*
@@ -56,39 +64,39 @@
 #define creturn 	EAX
 
 /* SML Stack frame layout: */
-#define tempword1	REGOFF_W(0,REG(esp))
-#define tempword2	REGOFF_W(2,REG(esp))
-#define tempmem		REGOFF(0,REG(esp))
-#define baseptr		REGOFF(4,REG(esp))
-#define exncont		REGOFF(8,REG(esp))
-#define limitptr	REGOFF(12,REG(esp))
-#define pc		REGOFF(16,REG(esp))
-#define unused_1	REGOFF(20,REG(esp))
-#define storeptr	REGOFF(24,REG(esp))
-#define varptr		REGOFF(28,REG(esp))
-#define start_gc	REGOFF(32,REG(esp))
-#define unused_2	REGOFF(36,REG(esp))
-#define eaxSpill	REGOFF(40,REG(esp)) /* eax=0 */
-#define	ecxSpill	REGOFF(44,REG(esp)) /* ecx=1 */
-#define	edxSpill	REGOFF(48,REG(esp)) /* edx=2 */
-#define	ebxSpill	REGOFF(52,REG(esp)) /* ebx=3 */
-#define	espSpill	REGOFF(56,REG(esp)) /* esp=4 */
-#define	ebpSpill	REGOFF(60,REG(esp)) /* ebp=5 */
-#define	esiSpill	REGOFF(64,REG(esp)) /* esi=6 */
-#define	ediSpill	REGOFF(68,REG(esp)) /* edi=7 */
-#define stdlink		REGOFF(72,REG(esp))
-#define	stdclos		REGOFF(76,REG(esp))
+#define tempword1	REGOFF_W(0,ESP)
+#define tempword2	REGOFF_W(2,ESP)
+#define tempmem		REGIND(ESP)
+#define baseptr		REGOFF(4,ESP)
+#define exncont		REGOFF(8,ESP)
+#define limitptr	REGOFF(12,ESP)
+#define pc		REGOFF(16,ESP)
+#define unused_1	REGOFF(20,ESP)
+#define storeptr	REGOFF(24,ESP)
+#define varptr		REGOFF(28,ESP)
+#define start_gc	REGOFF(32,ESP)
+#define unused_2	REGOFF(36,ESP)
+#define eaxSpill	REGOFF(40,ESP) /* eax=0 */
+#define	ecxSpill	REGOFF(44,ESP) /* ecx=1 */
+#define	edxSpill	REGOFF(48,ESP) /* edx=2 */
+#define	ebxSpill	REGOFF(52,ESP) /* ebx=3 */
+#define	espSpill	REGOFF(56,ESP) /* esp=4 */
+#define	ebpSpill	REGOFF(60,ESP) /* ebp=5 */
+#define	esiSpill	REGOFF(64,ESP) /* esi=6 */
+#define	ediSpill	REGOFF(68,ESP) /* edi=7 */
+#define stdlink		REGOFF(72,ESP)
+#define	stdclos		REGOFF(76,ESP)
 
 #define esp_save	REGOFF(500,ESP)
 
 #define ML_STATE_OFFSET 176
-#define mlstate_ptr	REGOFF(ML_STATE_OFFSET,REG(esp))
+#define mlstate_ptr	REGOFF(ML_STATE_OFFSET,ESP)
 #define freg8           184	     /* double word aligned */
 #define	freg9           192
 #define freg31          368          /* 152 + (31-8)*8 */
 #define	fpTempMem	376	     /* freg31 + 8 */
 #define SpillAreaStart	512	     /* starting offset */
-#define ML_FRAME_SIZE	8192
+#define ML_FRAME_SIZE	(8192)
 
 #define CONTINUE	JMP (CODEPTR(stdcont))
 
@@ -112,7 +120,7 @@ ENDM
 
 ML_CODE_HDR_M MACRO name
 	GLOBAL	(CSYM(&name))
-	ALIGN4
+	ALIGN_CODE
 	LABEL	(CSYM(&name))
 ENDM
 
@@ -132,25 +140,30 @@ ENDM
  9:
 
 #define ENTRY(ID)				\
-    CGLOBAL(ID) __SC__				\
+    CGLOBAL(ID);				\
     LABEL(CSYM(ID))
 
 #define ML_CODE_HDR(name)			\
-	    CGLOBAL(name) __SC__		\
-	    ALIGN4 __SC__			\
+	    CGLOBAL(name);			\
+	    ALIGN4;				\
     LABEL(CSYM(name))
 
 #endif /* MASM_ASSEMBLER */
 
 /**********************************************************************/
 	DATA
+	ALIGN4
+
 	GLOBAL(CSYM(ML_X86Frame))
 LABEL(CSYM(ML_X86Frame)) /* ptr to the ml frame (gives C access to limitptr) */
-	WORD(0)
+	WORD
 
 /**********************************************************************/
 	TEXT
 	ALIGN4
+
+/* use tempmem to hold the request word */
+#define request_w	tempmem
 
 /* sigh_return:
  */
@@ -158,7 +171,7 @@ ML_CODE_HDR(sigh_return_a)
 	MOV(IM(ML_unit),stdlink)
 	MOV(IM(ML_unit),stdclos)
 	MOV(IM(ML_unit),pc)
-	MOV(IM(REQ_SIG_RETURN), tempmem)
+	MOV(IM(REQ_SIG_RETURN),request_w)
 	JMP(set_request)
 
 /* sigh_resume:
@@ -167,40 +180,40 @@ ML_CODE_HDR(sigh_return_a)
  */
 
 ENTRY(sigh_resume)
-	MOV(IM(REQ_SIG_RESUME), tempmem)
+	MOV(IM(REQ_SIG_RESUME),request_w)
 	JMP(set_request)
 
 /* pollh_return_a:
  * The return continuation for the ML poll handler.
  */
 ML_CODE_HDR(pollh_return_a)
-	MOV	(IM(REQ_POLL_RETURN),tempmem)
 	MOV	(IM(ML_unit),stdlink)
 	MOV	(IM(ML_unit),stdclos)
 	MOV	(IM(ML_unit),pc)
+	MOV	(IM(REQ_POLL_RETURN),request_w)
 	JMP	(set_request)
 
 /* pollh_resume:
  * Resume execution at the point at which a poll event occurred.
  */
 ENTRY(pollh_resume)
-	MOV	(IM(REQ_POLL_RESUME),tempmem)
+	MOV	(IM(REQ_POLL_RESUME),request_w)
 	JMP	(set_request)
 
 /* handle:
  */
 ML_CODE_HDR(handle_a)
-	MOV	(IM(REQ_EXN),tempmem)
 	MOVE	(stdlink,temp,pc)
+	MOV	(IM(REQ_EXN),request_w)
 	JMP	(set_request)
 
 /* return:
  */
 ML_CODE_HDR(return_a)
-	MOV	(IM(REQ_RETURN),tempmem)
 	MOV	(IM(ML_unit),stdlink)
 	MOV	(IM(ML_unit),stdclos)
 	MOV	(IM(ML_unit),pc)
+	MOV	(IM(REQ_RETURN),request_w)
 	JMP	(set_request)
 
 /* Request a fault.  The floating point coprocessor must be reset
@@ -211,36 +224,38 @@ ML_CODE_HDR(return_a)
  */
 ENTRY(request_fault)
 	CALL	(CSYM(FPEEnable))
-	MOV	(IM(REQ_FAULT),tempmem)
 	MOVE	(stdlink,temp,pc)
+	MOV	(IM(REQ_FAULT),request_w)
 	JMP	(set_request)
 
 /* bind_cfun : (string * string) -> c_function
  */
 ML_CODE_HDR(bind_cfun_a)
 	CHECKLIMIT
-	MOV	(IM(REQ_BIND_CFUN),tempmem)
+	MOV	(IM(REQ_BIND_CFUN),request_w)
 	JMP	(set_request)
 
 /* build_literals:
  */
 ML_CODE_HDR(build_literals_a)
 	CHECKLIMIT
-	MOV	(IM(REQ_BUILD_LITERALS),tempmem)
+	MOV	(IM(REQ_BUILD_LITERALS),request_w)
 	JMP	(set_request)
 
 /* callc:
  */
 ML_CODE_HDR(callc_a)
 	CHECKLIMIT
-	MOV	(IM(REQ_CALLC),tempmem)
+	MOV	(IM(REQ_CALLC),request_w)
 	JMP	(set_request)
 
 /* saveregs:
+ * Entry point for GC.  Control is transfered using a `call` instruction,
+ * so the return address is on the top of the stack.
  */
 ENTRY(saveregs)
-	POP	pc
-	MOV	(IM(REQ_GC),tempmem)
+	POP	(pc)
+	MOV	(IM(REQ_GC),request_w)
 	/* fall into set_request */
 
 /* set_request:
@@ -248,7 +263,7 @@ ENTRY(saveregs)
  * code will be in `tempmem` (on the stack).
  */
 LABEL(set_request)
-	/* temp holds mlstate_ptr, valid request in request_w  */
+	/* temp holds mlstate_ptr, valid request in tempmem  */
 	/* Save registers */
 	MOV	(mlstate_ptr, temp)
 	MOV	(allocptr, REGOFF(AllocPtrOffMSP,temp))
@@ -275,7 +290,7 @@ LABEL(set_request)
 #undef	temp2
 
 	/* return val of function is request code */
-	MOV	(tempmem,creturn)
+	MOV	(request_w,creturn)
 
 	/* Pop the stack frame */
 #if defined(OPSYS_DARWIN)
@@ -308,10 +323,10 @@ ENTRY(restoreregs)
 	/* put ML state pointer in temp */
 	MOV	(REGOFF(4,ESP), temp)
 	/* save C callee-save registers */
+	PUSH	(EBP)
 	PUSH	(EBX)
 	PUSH	(ESI)
 	PUSH	(EDI)
-	PUSH	(EBP)
 	/* save stack pointer */
 #if defined(OPSYS_DARWIN)
       /* MacOS X frames must be 16-byte aligned.  We have 20 bytes on
@@ -386,7 +401,7 @@ LABEL(jmp_ml)
 	/* handle pending signals */
 LABEL(pending)
 	CMP	(IM(0),REGOFF(InSigHandlerOffVSP,vsp))
-	JNE	restore_and_jmp_ml
+	JNE	(restore_and_jmp_ml)
 
 	MOV	(IM(1),REGOFF(HandlerPendingOffVSP,vsp))
 
@@ -406,7 +421,7 @@ LABEL(pending)
  */
 ML_CODE_HDR(array_a)
 	CHECKLIMIT
-	MOV	(REGOFF(0,stdarg),temp)		/* temp := length in words */
+	MOV	(REGIND(stdarg),temp)		/* temp := length in words */
 	SAR	(IM(1),temp)			/* temp := length untagged */
 	CMP	(IM(SMALL_OBJ_SZW),temp)	/* small object? */
 	JGE	(L_array_large)
@@ -420,22 +435,22 @@ ML_CODE_HDR(array_a)
 	SAL	(IM(TAG_SHIFTW),temp1)	/* build descriptor */
 	OR	(IM(MAKE_TAG(DTAG_arr_data)),temp1)
 	/* store descriptor and bump allocation pointer */
-	MOV	(temp1,REGOFF(0,allocptr))
+	MOV	(temp1,REGIND(allocptr))
 	ADD	(IM(4),allocptr)
 	/* allocate and initialize data object */
 	MOV	(allocptr,temp1)		/* temp1 := array data ptr */
 	MOV	(REGOFF(4,stdarg),temp2)	/* temp2 := initial value */
 LABEL(L_array_lp)
-	MOV	(temp2,REGOFF(0,allocptr))	/* init array */
+	MOV	(temp2,REGIND(allocptr))	/* init array */
 	ADD	(IM(4),allocptr)
 	SUB	(IM(1),temp)
 	JNE	(L_array_lp)
 	/* Allocate array header */
-	MOV	(IM(DESC_polyarr),REGOFF(0,allocptr)) /* descriptor */
+	MOV	(IM(DESC_polyarr),REGIND(allocptr)) /* descriptor */
 	ADD	(IM(4),allocptr)
-	MOV	(REGOFF(0,stdarg),temp)		/* temp := length */
+	MOV	(REGIND(stdarg),temp)		/* temp := length */
 	MOV	(allocptr, stdarg)		/* result := header addr */
-	MOV	(temp1, REGOFF(0,allocptr))	/* store pointer to data */
+	MOV	(temp1, REGIND(allocptr))	/* store pointer to data */
 	MOV	(temp, REGOFF(4,allocptr))	/* store length */
 	ADD	(IM(8),allocptr)
 	/* restore misc0 and misc1 */
@@ -447,9 +462,9 @@ LABEL(L_array_lp)
 
 	/* large arrays are allocated in the runtime system */
 LABEL(L_array_large)
-	MOV	(IM(REQ_ALLOC_ARRAY),request_w)
 	MOVE	(stdlink,temp,pc)
-	JMP	CSYM(set_request)
+	MOV	(IM(REQ_ALLOC_ARRAY),request_w)
+	JMP	(set_request)
 
 
 /* create_r : int -> realarray
@@ -465,7 +480,7 @@ ML_CODE_HDR(create_r_a)
 	JGE	(L_create_r_large)
 
 #define temp1 misc0
-	PUSH	(misc0)			/* free temp1 */
+	PUSH	(misc0)			/* use misc0 as temp1 */
 
 	OR	(IM(4),allocptr)	/* align allocptr on 32-bit x86 */
 
@@ -473,16 +488,16 @@ ML_CODE_HDR(create_r_a)
 	MOV	(temp,temp1)
 	SAL	(IM(TAG_SHIFTW),temp1)	/* temp1 := descriptor */
 	OR	(IM(MAKE_TAG(DTAG_raw64)),temp1)
-	MOV	(temp1,REGOFF(0,allocptr))	/* store descriptor */
+	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
 	ADD	(IM(4),allocptr)		/* allocptr++ */
 	MOV	(allocptr,temp1)		/* temp1 := data object */
 	SAL	(IM(2),temp)			/* temp := length in bytes */
 	ADD	(temp,allocptr)			/* allocptr += length */
 
 	/* allocate the header object */
-	MOV	(IM(DESC_real64arr),REGOFF(0,allocptr))
+	MOV	(IM(DESC_real64arr),REGIND(allocptr))
 	ADD	(IM(4),allocptr)		/* allocptr++ */
-	MOV	(temp1,REGOFF(0,allocptr))	/* header data */
+	MOV	(temp1,REGIND(allocptr))	/* header data */
 	MOV	(stdarg,REGOFF(4,allocptr))	/* header length */
 	MOV	(allocptr,stdarg)		/* stdarg := header obj */
 	ADD	(IM(8),allocptr)		/* allocptr += 2 */
@@ -491,9 +506,9 @@ ML_CODE_HDR(create_r_a)
 	CONTINUE
 
 LABEL(L_create_r_large)
-	MOV	(IM(REQ_ALLOC_REALDARRAY),request_w)
 	MOVE	(stdlink,temp,pc)
-	JMP	CSYM(set_request)
+	MOV	(IM(REQ_ALLOC_REALDARRAY),request_w)
+	JMP	(set_request)
 #undef temp1
 
 
@@ -517,16 +532,16 @@ ML_CODE_HDR(create_b_a)
 	MOV	(temp,temp1)
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_raw)),temp1)
-	MOV	(temp1,REGOFF(0,allocptr))	/* store descriptor */
+	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
 	ADD	(IM(4),allocptr)
 	MOV	(allocptr,temp1)		/* temp1 is data object */
 	SAL	(IM(2),temp)			/* temp is size in bytes */
 	ADD	(temp,allocptr)			/* allocptr += length */
 
 	/* allocate the header object */
-	MOV	(IM(DESC_word8arr),REGOFF(0,allocptr))
+	MOV	(IM(DESC_word8arr),REGIND(allocptr))
 	ADD	(IM(4),allocptr)
-	MOV	(temp1,REGOFF(0,allocptr))
+	MOV	(temp1,REGIND(allocptr))
 	MOV	(stdarg,REGOFF(4,allocptr))
 	MOV	(allocptr,stdarg)		/* stdarg := header */
 	ADD	(IM(8),allocptr)		/* allocptr += 2 */
@@ -535,9 +550,9 @@ ML_CODE_HDR(create_b_a)
 #undef temp1
 
 LABEL(L_create_b_large)
-	MOV	(IM(REQ_ALLOC_BYTEARRAY),request_w)
 	MOVE	(stdlink,temp,pc)
-	JMP	CSYM(set_request)
+	MOV	(IM(REQ_ALLOC_BYTEARRAY),request_w)
+	JMP	(set_request)
 
 
 /* create_s : int -> string
@@ -559,7 +574,7 @@ ML_CODE_HDR(create_s_a)
 	MOV	(temp,temp1)
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_raw)),temp1)
-	MOV	(temp1,REGOFF(0,allocptr))	/* store descriptor */
+	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
 	ADD	(IM(4),allocptr)
 
 	MOV	(allocptr,temp1)		/* temp1 is data obj */
@@ -569,9 +584,9 @@ ML_CODE_HDR(create_s_a)
 
 	/* allocate header obj */
 	MOV	(IM(DESC_string),temp)	/* hdr descr */
-	MOV	(temp,REGOFF(0,allocptr))
+	MOV	(temp,REGIND(allocptr))
 	ADD	(IM(4),allocptr)
-	MOV	(temp1,REGOFF(0,allocptr))	/* hdr data */
+	MOV	(temp1,REGIND(allocptr))	/* hdr data */
 	MOV	(stdarg,REGOFF(4,allocptr))	/* hdr length */
 	MOV	(allocptr, stdarg)		/* stdarg is hdr obj */
 	ADD	(IM(8),allocptr)		/* allocptr += 2 */
@@ -581,9 +596,9 @@ ML_CODE_HDR(create_s_a)
 	CONTINUE
 
 LABEL(L_create_s_large)
-	MOV	(IM(REQ_ALLOC_STRING),request_w)
 	MOVE	(stdlink, temp, pc)
-	JMP	CSYM(set_request)
+	MOV	(IM(REQ_ALLOC_STRING),request_w)
+	JMP	(set_request)
 
 
 /* create_v_a : int * 'a list -> 'a vector
@@ -592,11 +607,11 @@ LABEL(L_create_s_large)
  */
 ML_CODE_HDR(create_v_a)
 	CHECKLIMIT
-	PUSH	misc0
-	PUSH	misc1
+	PUSH	(misc0)
+	PUSH	(misc1)
 #define temp1 misc0
 #define temp2 misc1
-	MOV	(REGOFF(0,stdarg),temp)		/* len tagged */
+	MOV	(REGIND(stdarg),temp)		/* len tagged */
 	MOV	(temp,temp1)
 	SAR	(IM(1),temp1)		/* untag */
 	CMP	(IM(SMALL_OBJ_SZW),temp1)
@@ -604,14 +619,14 @@ ML_CODE_HDR(create_v_a)
 
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_vec_data)),temp1)
-	MOV	(temp1,REGOFF(0,allocptr))
+	MOV	(temp1,REGIND(allocptr))
 	ADD	(IM(4),allocptr)
 	MOV	(REGOFF(4,stdarg),temp1)	/* temp1 is list */
 	MOV	(allocptr,stdarg)		/* stdarg is vector */
 
 LABEL(L_create_v_lp)
-	MOV	(REGOFF(0,temp1),temp2)		/* hd */
-	MOV	(temp2,REGOFF(0,allocptr))	/* store into vector */
+	MOV	(REGIND(temp1),temp2)		/* hd */
+	MOV	(temp2,REGIND(allocptr))	/* store into vector */
 	ADD	(IM(4),allocptr)
 	MOV	(REGOFF(4,temp1),temp1)		/* tl */
 	CMP	(IM(ML_nil),temp1)		/* isNull */
@@ -619,23 +634,23 @@ LABEL(L_create_v_lp)
 
 	/* allocate header object */
 	MOV	(IM(DESC_polyvec),temp1)
-	MOV	(temp1,REGOFF(0,allocptr))
+	MOV	(temp1,REGIND(allocptr))
 	ADD	(IM(4),allocptr)
-	MOV	(stdarg,REGOFF(0,allocptr))	/* data */
+	MOV	(stdarg,REGIND(allocptr))	/* data */
 	MOV	(temp,REGOFF(4,allocptr))	/* len */
 	MOV	(allocptr,stdarg)		/* result */
 	ADD	(IM(8),allocptr)		/* allocptr += 2 */
 
-	POP	misc1
-	POP	misc0
+	POP	(misc1)
+	POP	(misc0)
 	CONTINUE
 
 LABEL(L_create_v_large)
-	POP	misc1
-	POP	misc0
-	MOV	(IM(REQ_ALLOC_VECTOR),request_w)
+	POP	(misc1)
+	POP	(misc0)
 	MOVE	(stdlink, temp, pc)
-	JMP	CSYM(set_request)
+	MOV	(IM(REQ_ALLOC_VECTOR),request_w)
+	JMP	(set_request)
 #undef temp1
 #undef temp2
 
@@ -683,15 +698,15 @@ ML_CODE_HDR(unlock_a)
 ENTRY(FPEEnable)
 	FINIT
 	/* Temp space.Keep stack aligned. */
-	SUB	(IM(4), REG(esp))
+	SUB	(IM(4), ESP)
 	/* Store FP control word. */
-	FSTCW	(REGOFF(0,REG(esp)))
+	FSTCW	(REGIND( ESP))
 	/* Keep undefined fields, clear others. */
-	ANDW	(IM(HEXLIT(f0c0)), REGOFF(0,REG(esp)))
+	ANDW	(IM(HEXLIT(f0c0)), REGIND(ESP))
 	/* Set fields (see above). */
-	ORW	(IM(HEXLIT(023f)), REGOFF(0,REG(esp)))
-	FLDCW	(REGOFF(0,REG(esp))) /* Install new control word. */
-	ADD	(IM(4), REG(esp))
+	ORW	(IM(HEXLIT(023f)), REGIND(ESP))
+	FLDCW	(REGIND(ESP)) /* Install new control word. */
+	ADD	(IM(4), ESP)
 	RET
 
 /* floor : real -> int
@@ -710,8 +725,8 @@ ML_CODE_HDR(floor_a)
 	MOVW	(REG(ax), tempword2)
 	FLDCW	(tempword2)		/* Install new control word. */
 	FLD	(REGIND_DBL(stdarg))
-	SUB	(IM(4),REG(esp))
-	FISTP	(REGOFF(0,REG(esp)))
+	SUB	(IM(4),ESP)
+	FISTP	(REGIND(ESP))
 	POP	(stdarg)
 	SAL	(IM(1),stdarg)
 	INC	(stdarg)
@@ -743,19 +758,19 @@ ML_CODE_HDR(logb_a)
 
 ML_CODE_HDR(scalb_a)
 	CHECKLIMIT
-	PUSH	REGOFF(4,stdarg)		/* Get copy of scalar. */
-	SAR	(IM(1),REGOFF(0,REG(esp)))	/* Untag it. */
-	FILDL	REGOFF(0,REG(esp))		/* Load it ... */
-	MOV	(REGOFF(0,stdarg), temp)	/* Get pointer to real. */
+	PUSH	(REGOFF(4,stdarg))		/* Get copy of scalar. */
+	SAR	(IM(1),REGIND(ESP))		/* Untag it. */
+	FILDL	(REGIND(ESP))			/* Load it ... */
+	MOV	(REGIND(stdarg), temp)	/* Get pointer to real. */
 	FLD	(REGIND(temp))			/* Load it into temp. */
 	FSCALE					/* Multiply exponent by scalar. */
-	MOV	(IM(DESC_reald), REGOFF(0,allocptr))
+	MOV	(IM(DESC_reald), REGIND(allocptr))
 	FSTPL	(REGOFF_DBL(4,allocptr))	/* Store resulting float. */
 	ADD	(IM(4),allocptr)		/* Allocate word for tag. */
 	MOV	(allocptr, stdarg)		/* Return a pointer to the float. */
 	ADD	(IM(8), allocptr)		/* Allocate room for float. */
-	FSTPL	(REGIND_DBL(esp))
-	ADD	(IM(4),REG(esp))		/* discard copy of scalar */
+	FSTPL	(REGIND_DBL(ESP))
+	ADD	(IM(4),ESP)			/* discard copy of scalar */
 	CONTINUE
 
 END
