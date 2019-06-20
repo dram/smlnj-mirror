@@ -66,13 +66,12 @@ ml_val_t _ml_RunT_setitimer (ml_state_t *msp, ml_val_t arg)
 	Unsigned64_t t = WORD64_MLtoC(OPTION_get(arg));
       /* convert to milliseconds */
 	t /= 1000000;
-	int mSecs = REC_SELINT32(tmp,0) * 1000 + REC_SELINT(tmp,1) / 1000;
 
 	if (t <= 0) {
 	    return RAISE_ERROR(msp, "win32 setitimer: invalid resolution");
 	}
 	else {
-	    if (win32StartTimer(mSecs)) {
+	    if (win32StartTimer(t)) {
 		return ML_unit;
 	    } else {
 		return RAISE_ERROR(msp,"win32 setitimer: couldn't start timer");
