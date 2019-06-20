@@ -13,7 +13,7 @@
 
 /* macro concatenation (ANSI CPP) */
 #ifndef CONCAT /* assyntax.h also defines CONCAT */
-#  if defined(__STDC__)
+#  if defined(__STDC__) || defined(OPSYS_WIN32)
 #    define CONCAT(x, y)	x ## y
 #    define CONCAT3(a,b,c)	a ## b ## c
 #  else

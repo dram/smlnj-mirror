@@ -147,6 +147,7 @@
 #define LABEL(ID)	CONCAT(ID,:)
 #define TEXT		.CODE
 #define DATA		.DATA
+#define ALIGN_CODE	ALIGN 4
 
 #if defined(HOST_X86)
 #  define ALIGN4	ALIGN 4

@@ -90,6 +90,11 @@
 #include "x86-macros.h"
 
 /**********************************************************************/
+#ifdef MASM_ASSEMBLER
+	.386
+	.MODEL FLAT
+#endif
+
 	DATA
 	ALIGN4
 

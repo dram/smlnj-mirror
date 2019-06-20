@@ -285,7 +285,7 @@ prim.obj:	$(MACH_DIR)\$(TARGET).prim.asm \
 		ml-sizes.h reg-mask.h $(INC_DIR)\ml-base.h $(INC_DIR)\tags.h \
 		$(INC_DIR)\asm-base.h \
 		mlstate-offsets.h
-	$(CPP) /D_ASM_ $(DEFS) /I$(MACH_DIR) $(INCLUDES) /Tc$(MACH_DIR)\$(TARGET).prim.asm > prim.s
+	$(CPP) /D_ASM_  /DMASM_ASSEMBLER $(DEFS) /I$(MACH_DIR) $(INCLUDES) /Tc$(MACH_DIR)\$(TARGET).prim.asm > prim.s
 	$(AS) /c prim.s
 
 
