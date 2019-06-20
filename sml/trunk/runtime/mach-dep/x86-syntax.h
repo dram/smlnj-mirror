@@ -128,6 +128,7 @@
 #define IM(x)		CONCAT($,x)
 #define REG(r)		CONCAT(%,r)
 #define REGIND(r)	(r)
+#define REGIND_16(r)	(r)
 #define REGOFF(d,r)	d(r)
 #define CODEPTR(r)	*r
 #if defined(HOST_AMD64)
@@ -162,12 +163,13 @@
 #define REG(r)		r
 #ifdef TARGET_X86
 #  define REGIND(r)	dword ptr [r]
+#  define REGIND_16(r)	word ptr [r]
 #  define REGOFF(d,r)	dword ptr [r + d]
 #else /* TARGET_AMD64 */
 #  define REGIND(r)	qword ptr [r]
 #  define REGOFF(d,r)	qword ptr [r + d]
 #endif
-#define CODEPTR(r)	via r
+#define CODEPTR(r)	r
 
 #endif /* GNU_ASSEMBLER */
 

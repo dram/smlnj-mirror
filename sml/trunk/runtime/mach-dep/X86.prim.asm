@@ -643,12 +643,12 @@ ENTRY(FPEEnable)
 	/* Temp space.Keep stack aligned. */
 	SUB	(IM(4), ESP)
 	/* Store FP control word. */
-	FSTCW	(REGIND( ESP))
+	FSTCW	(REGIND_16(ESP))
 	/* Keep undefined fields, clear others. */
 	ANDW	(IM(HEXLIT(f0c0)), REGIND(ESP))
 	/* Set fields (see above). */
 	ORW	(IM(HEXLIT(023f)), REGIND(ESP))
-	FLDCW	(REGIND(ESP)) /* Install new control word. */
+	FLDCW	(REGIND_16(ESP)) /* Install new control word. */
 	ADD	(IM(4), ESP)
 	RET
 
