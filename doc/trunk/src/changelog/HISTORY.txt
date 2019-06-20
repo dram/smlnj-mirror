@@ -93,6 +93,9 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.91; 2019/06/20
+
 //--------------------------------------------------------------------
 [2019/06/20]::
 +
@@ -137,8 +140,8 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2019/06/16]::
 +
-Added implementations of the target-specific **Basis Library** modules
-in directory `Basis/Implementation/Target64Bit`.
+Added 64-bit implementations of the target-specific **Basis Library**
+modules in directory `Basis/Implementation/Target64Bit`.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
@@ -146,6 +149,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 [2019/06/16]::
 +
 Added `PackWord64Big` and `PackWord64Little` structures to Basis Library.
+Note that the implementation of these is target-specific.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
