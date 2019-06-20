@@ -60,5 +60,4 @@ structure PackWord16Little : PACK_WORD =
 	  end
 
   end
-end
-
+end (* local *)

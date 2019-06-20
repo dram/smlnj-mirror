@@ -25,5 +25,3 @@ signature CINTERFACE =
     val bindSysConst : (string * system_const list) -> system_const
 
   end
-
-

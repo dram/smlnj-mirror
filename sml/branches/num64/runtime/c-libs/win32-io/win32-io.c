@@ -13,8 +13,6 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-/* #define DEBUG_WIN32 */
-
 #include "win32-fault.h"
 
 #define EOF_char           '\x01a'           /* ^Z is win32 eof */

@@ -1,6 +1,7 @@
-/* major-gc.c
+/*! \file major-gc.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the regular garbage collector (for collecting the
  * generations).
@@ -326,7 +327,7 @@ ScanMem((Word_t *)(gen->arena[ARRAY_INDX]->tospBase), (Word_t *)(gen->arena[ARRA
 		    rp->minGen = min;
 		    MarkRegion (bibop, (ml_val_t *)rp, MEMOBJ_SZB(rp->memObj),
 			AID_BIGOBJ(min));
-		    bibop[BIBOP_ADDR_TO_INDEX(rp)] = AID_BIGOBJ_HDR(min);
+		    BIBOP_UPDATE(bibop, BIBOP_ADDR_TO_INDEX(rp), AID_BIGOBJ_HDR(min));
 		}
 	    }
 	} /* end for */

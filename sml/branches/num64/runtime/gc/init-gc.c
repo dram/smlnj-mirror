@@ -1,9 +1,9 @@
-/* init-gc.c
+/*! \file init-gc.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * The GC initialization code.
- *
  */
 
 #ifdef PAUSE_STATS		/* GC pause statistics are UNIX dependent */
@@ -32,11 +32,9 @@ PVT int		DfltRatios[MAX_NUM_GENS] = {
 	DFLT_RATIO,	DFLT_RATIO,	DFLT_RATIO
     };
 
+bibop_t		BIBOP;
 #ifdef SIZES_C64_ML64
-bibop_t		BIBOP;
 l2_bibop_t	UnmappedL2;
-#else
-bibop_t		BIBOP;
 #endif
 
 #ifdef COLLECT_STATS /** should this go into gc-stats.c ??? **/

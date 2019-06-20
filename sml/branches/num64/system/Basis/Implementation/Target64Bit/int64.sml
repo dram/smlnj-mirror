@@ -10,17 +10,11 @@ structure Int64Imp : sig
 
     include INTEGER
 
-    val extern : int -> Word32.word * Word32.word
-    val intern : Word32.word * Word32.word -> int
-
   end = struct
 
     structure I64 = InlineT.Int64
 
     type int = Int64.int	(* from Basis/TypesOnly *)
-
-    val extern = I64.extern
-    val intern = I64.intern
 
     val precision = SOME 64
     val minInt = SOME(~0x4000000000000000 : int)

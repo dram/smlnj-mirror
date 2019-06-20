@@ -99,7 +99,7 @@ Library
 	structure Backend
 
 is
-# if defined (ARCH_AMD64)
+# if defined(ARCH_AMD64)
        $smlnj/compiler/amd64.cm
        amd64.sml
 # elif defined(ARCH_PPC)

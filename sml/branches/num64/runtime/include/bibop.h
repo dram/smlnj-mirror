@@ -1,11 +1,11 @@
-/* bibop.h
+/*! \file bibop.h
  *
- * COPYRIGHT (c) 1994 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * The BIBOP maps memory pages to page IDs.  The interpretation of most
  * of these IDs is defined by the GC (see ../gc/arena-id.h), but the
  * IDs for unmapped memory are defined here.
- *
  */
 
 #ifndef _BIBOP_
@@ -49,25 +49,38 @@ typedef Unsigned16_t page_id_t;
 /* mask for L2 index */
 #define BIBOP_L2_MASK		(BIBOP_L2_SZ - 1)
 
+/* convert an address to a flat BIBOP index */
 #define BIBOP_ADDR_TO_INDEX(a)		((Addr_t)(a) >> BIBOP_L2_SHIFT)
 #define BIBOP_ADDR_TO_L1_INDEX(a)	((Addr_t)(a) >> BIBOP_L1_SHIFT)
 #define BIBOP_ADDR_TO_L2_INDEX(a)	(BIBOP_ADDR_TO_INDEX(a) & BIBOP_L2_MASK)
+/* convert a flat BIBOP index to a L1 table index */
 #define BIBOP_INDEX_TO_L1_INDEX(ix)	((ix) >> BIBOP_L2_BITS)
+/* convert a flat BIBOP index to a L2 table index */
 #define BIBOP_INDEX_TO_L2_INDEX(ix)	((ix) & BIBOP_L2_MASK)
+/* convert a flat BIBOP index to a memory address */
+#define BIBOP_INDEX_TO_ADDR(i)		((Addr_t)((i) << BIBOP_L2_SHIFT))
 
 typedef struct {
     page_id_t		tbl[BIBOP_L2_SZ];
     Unsigned32_t	numMapped;
 } l2_bibop_t;
 
+/* The BIBOP is a L1 table of pointers to L2 tables */
 typedef l2_bibop_t **bibop_t;
 
-extern bibop_t        BIBOP;
+extern bibop_t		BIBOP;
+extern l2_bibop_t	UnmappedL2;
+
+#define UNMAPPED_L2_TBL	&UnmappedL2
 
 #define ADDR_TO_PAGEID(bibop,a)		\
-	((*bibop)[BIBOP_ADDR_TO_L1_INDEX(a)].tbl[BIBOP_ADDR_TO_L2_INDEX(a)])
+	(bibop[BIBOP_ADDR_TO_L1_INDEX(a)]->tbl[BIBOP_ADDR_TO_L2_INDEX(a)])
 #define INDEX_TO_PAGEID(bibop,ix)	\
-	((*bibop)[BIBOP_INDEX_TO_L1_INDEX(ix)][BIBOP_INDEX_TO_L2_INDEX(ix)])
+	(bibop[BIBOP_INDEX_TO_L1_INDEX(ix)]->tbl[BIBOP_INDEX_TO_L2_INDEX(ix)])
+
+/* update a BIBOP entry at the given index */
+#define BIBOP_UPDATE(bibop, ix, aid)	\
+	do { (*bibop)[BIBOP_INDEX_TO_L1_INDEX(ix)].tbl[BIBOP_INDEX_TO_L2_INDEX(ix)] = (aid); } while (0)
 
 #else
 
@@ -81,10 +94,13 @@ extern bibop_t        BIBOP;
 
 typedef page_id_t *bibop_t;
 
-extern bibop_t        BIBOP;
+extern bibop_t		BIBOP;
 
 #define ADDR_TO_PAGEID(bibop,a)		((bibop)[BIBOP_ADDR_TO_INDEX(a)])
 #define INDEX_TO_PAGEID(bibop,a)	((bibop)[a])
+
+/* update a BIBOP entry at the given index */
+#define BIBOP_UPDATE(bibop, ix, aid)	do { (bibop)[ix] = (aid); } while (0)
 
 #endif /* !SIZES_C64_ML64 */
 

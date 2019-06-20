@@ -3,7 +3,7 @@
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Default word structure (31 bits) for 32-bit targets.
+ * Default word structure (63 bits) for 64-bit targets.
  *)
 
 structure WordImp : WORD =
@@ -12,7 +12,7 @@ structure WordImp : WORD =
 
     type word = word
 
-    val wordSize = 31
+    val wordSize = 63
 
     val toLarge   : word -> LargeWord.word = Word.toLarge
     val toLargeX  : word -> LargeWord.word = Word.toLargeX
@@ -59,16 +59,16 @@ structure WordImp : WORD =
     val min : word * word -> word = Word.min
     val max : word * word -> word = Word.max
 
-    fun fmt radix = (NumFormat32.fmtWord radix) o Word.toWord32
+    fun fmt radix = (NumFormat64.fmtWord radix) o Word.toLarge
     val toString = fmt StringCvt.HEX
 
     fun scan radix = let
-	  val scanLarge = NumScan32.scanWord radix
+	  val scanLarge = NumScan64.scanWord radix
 	  fun scan getc cs = (case (scanLarge getc cs)
 		 of NONE => NONE
 		  | (SOME(w, cs')) => if InlineT.Word32.>(w, 0wx7FFFFFFF)
 		      then raise Overflow
-		      else SOME(Word.fromWord32 w, cs')
+		      else SOME(Word.fromLarge w, cs')
 		(* end case *))
 	  in
 	    scan
@@ -77,6 +77,6 @@ structure WordImp : WORD =
 
   (* added for Basis Library proposal 2016-001 *)
 
-    fun popCount w = W32PopCount.popCount (Word.toWord32 w)
+    fun popCount w = W64PopCount.popCount (Word.toLarge w)
 
   end  (* structure WordImp *)

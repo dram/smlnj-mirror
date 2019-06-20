@@ -8,9 +8,9 @@
  *)
 
 local
-    structure Word = WordImp
-    structure LargeWord = LargeWordImp
-    structure Word8 = Word8Imp
+  structure Word = WordImp
+  structure LargeWord = LargeWordImp
+  structure Word8 = Word8Imp
 in
 structure UnsafePackWord16Big : PACK_WORD =
   struct
@@ -49,5 +49,4 @@ structure UnsafePackWord16Big : PACK_WORD =
 	  end
 
   end
-end
-
+end (* local *)

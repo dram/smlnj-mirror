@@ -28,14 +28,15 @@ structure UnsafePackWord32Little : PACK_WORD =
 	  W.orb (W.<<(Word8.toLargeWord b2,  0w8),
 		      Word8.toLargeWord b1)))
 
+    fun signExt w = W.-(W.xorb(0wx80000000, w), 0wx80000000)
+
     fun subVec (vec, i) = let
 	  val k = Word.toIntX(Word.<<(Word.fromInt i, 0w2))
 	  in
 	    mkWord (W8V.sub(vec, k), W8V.sub(vec, k+1),
 	      W8V.sub(vec, k+2), W8V.sub(vec, k+3))
 	  end
-  (* since LargeWord is 32-bits, no sign extension is required *)
-    fun subVecX(vec, i) = subVec (vec, i)
+    fun subVecX (vec, i) = signExt (subVec (vec, i))
 
     fun subArr (arr, i) = let
 	  val k = Word.toIntX(Word.<<(Word.fromInt i, 0w2))
@@ -43,8 +44,7 @@ structure UnsafePackWord32Little : PACK_WORD =
 	    mkWord (W8A.sub(arr, k), W8A.sub(arr, k+1),
 	      W8A.sub(arr, k+2), W8A.sub(arr, k+3))
 	  end
-  (* since LargeWord is 32-bits, no sign extension is required *)
-    fun subArrX(arr, i) = subArr (arr, i)
+    fun subArrX (arr, i) = signExt (subArr (arr, i))
 
     fun update (arr, i, w) = let
 	  val k = Word.toIntX(Word.<<(Word.fromInt i, 0w2))
@@ -56,5 +56,4 @@ structure UnsafePackWord32Little : PACK_WORD =
 	  end
 
   end
-end
-
+end (* local *)

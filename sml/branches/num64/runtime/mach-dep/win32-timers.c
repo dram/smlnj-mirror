@@ -63,45 +63,45 @@ PVT BOOL create_win32_timer (win32_timer_t *ct, void (*f)(), int mSec, BOOL susp
 				       &ct->id)) != NULL);
 }
 
-PVT BOOL destroy_win32_timer(win32_timer_t *ct)
+PVT BOOL destroy_win32_timer (win32_timer_t *ct)
 {
     return TerminateThread(ct->handle,1);
 }
 
-PVT BOOL halt_win32_timer(win32_timer_t *ct)
+PVT BOOL halt_win32_timer (win32_timer_t *ct)
 {
-    return SuspendThread(ct->handle) != 0xffffffff;
+    return SuspendThread(ct->handle) != INVALID_HANDLE_VALUE;
 }
 
-PVT BOOL resume_win32_timer(win32_timer_t *ct)
+PVT BOOL resume_win32_timer (win32_timer_t *ct)
 {
-    return ResumeThread(ct->handle) != 0xffffffff;
+    return ResumeThread(ct->handle) != INVALID_HANDLE_VALUE;
 }
 
 PVT win32_timer_t wt;
 
-bool_t win32StopTimer()
+bool_t win32StopTimer ()
 {
-    return halt_win32_timer(&wt);
+    return halt_win32_timer (&wt);
 }
 
 bool_t win32StartTimer (int mSec)
 {
     wt.milli_secs = mSec;
-    return resume_win32_timer(&wt);
+    return resume_win32_timer (&wt);
 }
 
 PVT void win32_fake_sigalrm()
 {
     vproc_state_t   *vsp = SELF_VPROC;
 
-    if (SuspendThread(win32_ML_thread_handle) == 0xffffffff) {
+    if (SuspendThread (win32_ML_thread_handle) == INVALID_HANDLE_VALUE) {
 	Die ("win32_fake_sigalrm: unable to suspend ML thread");
     }
 
     win32_generic_handler(SIGALRM);
 
-    if (ResumeThread(win32_ML_thread_handle) == 0xffffffff) {
+    if (ResumeThread (win32_ML_thread_handle) == INVALID_HANDLE_VALUE) {
 	Die ("win32_fake_sigalrm: unable to resume ML thread");
     }
 }
@@ -113,10 +113,11 @@ PVT void win32_fake_sigalrm()
  */
 void InitTimers ()
 {
-    if (!create_win32_timer(&wt,win32_fake_sigalrm,0,TRUE)) {
+    if (!create_win32_timer (&wt,win32_fake_sigalrm, 0, TRUE)) {
 	Die("InitTimers: unable to create_win32_timer");
     }
     _ftime(&start_timeb);
+
 } /* end of InitTimers */
 
 

@@ -120,6 +120,8 @@ Library
 	structure PackWord16Little
 	structure PackWord32Big
 	structure PackWord32Little
+	structure PackWord64Big
+	structure PackWord64Little
 	structure Position
 	structure Real
 	structure Real64

@@ -84,6 +84,7 @@ structure Unsafe :> UNSAFE =
     structure PackWord16Little = UnsafePackWord16Little
     structure PackWord32Big = UnsafePackWord32Big
     structure PackWord32Little = UnsafePackWord32Little
+(* TODO: add 64-bit structures *)
 
   (* convert real to bits (experimental) *)
     val realToBits = InlineT.Real64.toBits

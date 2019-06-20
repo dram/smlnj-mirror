@@ -1,6 +1,7 @@
-/* fp-dep.h
+/*! \file fp-dep.h
  *
- * COPYRIGHT(c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * System dependencies for floating-point interface.  This header file defines
  * a subset of the X3J11 specification for Floating-point C extensions (March
@@ -54,16 +55,6 @@ typedef int fe_rnd_mode_t;
 #  define fegetround()		fp_read_rnd()
 #  define fesetround(RM)	fp_swap_rnd(RM)
 
-#elif defined(OPSYS_DUNIX)
-#  include <float.h>
-#  define FE_TONEAREST		FP_RND_RN
-#  define FE_TOWARDZERO		FP_RND_RZ
-#  define FE_UPWARD		FP_RND_RP
-#  define FE_DOWNWARD		FP_RND_RM
-typedef int fe_rnd_mode_t;
-#  define fegetround()		read_rnd()
-#  define fesetround(RM)	write_rnd(RM)
-
 #elif defined(OPSYS_FREEBSD)
 #  include <floatingpoint.h>
 #  define FE_TONEAREST		FP_RN
@@ -74,23 +65,7 @@ typedef int fe_rnd_mode_t;
 #  define fegetround()		fpgetround()
 #  define fesetround(RM)	fpsetround(RM)
 
-#elif (defined(OPSYS_HPUX) || defined (OPSYS_HPUX9))
-#  define _INCLUDE_HPUX_SOURCE
-#  include <math.h>
-#  define FE_TONEAREST		FP_RN
-#  define FE_TOWARDZERO		FP_RZ
-#  define FE_UPWARD		FP_RP
-#  define FE_DOWNWARD		FP_RM
-typedef int fe_rnd_mode_t;
-#  define fegetround()		fpgetround()
-#  define fesetround(RM)	fpsetround(RM)
-
-#elif defined(OPSYS_HPUX11)
-#  define _INCLUDE_HPUX_SOURCE
-#  include <fenv.h>
-typedef int fe_rnd_mode_t;
-
-#elif (defined(OPSYS_IRIX) || defined(OPSYS_IRIX5) || defined(OPSYS_NETBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD))
+#elif (defined(OPSYS_NETBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD))
 #  include <ieeefp.h>
 #  define FE_TONEAREST		FP_RN
 #  define FE_TOWARDZERO		FP_RZ
@@ -132,7 +107,7 @@ extern int fesetround (int);
 #  define FE_UPWARD		FP_RP
 #  define FE_DOWNWARD		FP_RM
 typedef int fe_rnd_mode_t;
-#  if defined(TARGET_X86)   
+#  if defined(TARGET_X86)
   /* There is a bug in the Solaris X86 implementation of
    * fpgetround() and fpsetround(); we use the assembler code instead.
    */
@@ -143,31 +118,6 @@ extern int fesetround (int);
 #    define fegetround()          fpgetround()
 #    define fesetround(RM)        fpsetround(RM)
 #  endif
-
-#elif defined(OPSYS_SUNOS)
-#  include <sys/ieeefp.h>
-#  include <string.h>
-#  define FE_TONEAREST		"nearest"
-#  define FE_TOWARDZERO		"tozero"
-#  define FE_UPWARD		"positive"
-#  define FE_DOWNWARD		"negative"
-typedef char *fe_rnd_mode_t;
-#  define RMODE_C_NEQ_ML
-
-PVT char *fegetround ()
-{
-    char	*result;
-    ieee_flags("get", "direction", NIL(char *), &result);
-    return result;
-}
-
-PVT char *fesetround (char *rm)
-{
-    char	*result;
-    ieee_flags("set", "direction", rm, &result);
-    return result;
-}
-#define RMODE_EQ(RM1, RM2)	(strcmp((RM1), (RM2)) == 0)
 
 #elif defined(OPSYS_DARWIN) && defined(TARGET_PPC)
 #   include <architecture/ppc/fp_regs.h>

@@ -1,6 +1,7 @@
-/* minor-gc.c
+/*! \file minor-gc.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the code for doing minor collections (i.e., collecting the
  * allocation arena).
@@ -218,9 +219,12 @@ PVT void MinorGC_ScanStoreList (heap_t *heap, ml_val_t stl)
 		    bigobj_desc_t   *dp;
 		    if (dstGen >= srcGen)
 			continue;
-/* 64BIT: FIXME */
-		    for (i = BIBOP_ADDR_TO_INDEX(w);  !BO_IS_HDR(dstId);  dstId = BIBOP[--i])
-			continue;
+		  /* find the beginning of the region containing the code object */
+		    i = BIBOP_ADDR_TO_INDEX(w);
+		    while (! BO_IS_HDR(dstId)) {
+			--i;
+			dstId = INDEX_TO_PAGEID(bibop, i);
+		    }
 		    region = (bigobj_region_t *)BIBOP_INDEX_TO_ADDR(i);
 		    dp = ADDR_TO_BODESC(region, w);
 		    dstGen = dp->gen;

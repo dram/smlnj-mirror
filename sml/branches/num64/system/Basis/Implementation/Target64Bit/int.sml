@@ -3,7 +3,7 @@
  * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Default int structure (31 bits) for 32-bit targets.
+ * Default int structure (63 bits) for 64-bit targets.
  *)
 
 structure IntImp : INTEGER =
@@ -15,10 +15,10 @@ structure IntImp : INTEGER =
 
     type int = int
 
-    val precision = SOME 31
-    val minIntVal = ~1073741824
+    val precision = SOME 63
+    val minIntVal = ~4611686018427387904
     val minInt = SOME minIntVal
-    val maxInt = SOME 1073741823
+    val maxInt = SOME 4611686018427387903
 
     val toLarge : int -> LargeInt.int = Int.toLarge
     val fromLarge : LargeInt.int -> int = Int.fromLarge
@@ -51,13 +51,13 @@ structure IntImp : INTEGER =
     val op < 	: int * int -> bool = Int.<
     val op <= 	: int * int -> bool = Int.<=
 
-    fun fmt radix = (NumFormat32.fmtInt radix) o InlineT.Int32.fromInt
+    fun fmt radix = (NumFormat64.fmtInt radix) o InlineT.Int64.fromInt
 
     fun scan radix = let
-	  val scanInt32 = NumScan32.scanInt radix
-	  fun f getc cs = (case scanInt32 getc cs
+	  val scanInt64 = NumScan64.scanInt radix
+	  fun f getc cs = (case scanInt64 getc cs
 		   of NONE => NONE
-		    | SOME(i, cs') => SOME(Int32Imp.toInt i, cs')
+		    | SOME(i, cs') => SOME(Int64Imp.toInt i, cs')
 		  (* end case *))
 	  in
 	    f

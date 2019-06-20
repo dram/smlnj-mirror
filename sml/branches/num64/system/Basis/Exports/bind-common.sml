@@ -33,12 +33,12 @@ structure Char : CHAR = Text.Char
 structure String : STRING_2015 = Text.String
 structure Substring : SUBSTRING = Text.Substring
 
-structure Int = IntImp
-structure Int32 = Int32Imp
-structure Int64 = Int64Imp
-structure IntInf = IntInfImp
-structure FixedInt = FixedIntImp
-structure LargeInt = LargeIntImp
+structure Int : INTEGER = IntImp
+structure Int32 : INTEGER = Int32Imp
+structure Int64 : INTEGER = Int64Imp
+structure IntInf : INT_INF = IntInfImp
+structure FixedInt : INTEGER = FixedIntImp
+structure LargeInt : INTEGER = LargeIntImp
 
 structure Real = RealImp
 structure Real64 = Real64Imp
@@ -48,11 +48,11 @@ structure RealVector = Real64Vector
 structure RealArraySlice = Real64ArraySlice
 structure RealVectorSlice = Real64VectorSlice
 
-structure Word = WordImp
-structure Word8 = Word8Imp
-structure Word32 = Word32Imp
-structure Word64 = Word64Imp
-structure LargeWord = LargeWordImp
+structure Word : WORD = WordImp
+structure Word8 : WORD = Word8Imp
+structure Word32 : WORD = Word32Imp
+structure Word64 : WORD = Word64Imp
+structure LargeWord : WORD = LargeWordImp
 
 structure OS = OSImp
 structure Position = PositionImp

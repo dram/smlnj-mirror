@@ -1,6 +1,7 @@
-/* ml-limits.h
+/*! \file ml-limits.h
  *
- * COPYRIGHT (c) 1992 AT&T Bell Laboratories
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Various limits and default settings for the SML/NJ run-time system.
  */
@@ -88,7 +89,7 @@
 #define N_PSEUDO_ROOTS	0
 #endif
 #ifdef MP_SUPPORT
-/* 
+/*
  * must assume that all other procs are supplying NUM_EXTRA_ROOTS
  * in addition to the standard roots
  */
@@ -100,7 +101,7 @@
 	ROUNDUP(MAX_NUM_PROCS*(MAX_C_ROOTS+NROOTS+N_PSEUDO_ROOTS)+1, 8)
 #endif
 
-#ifdef SOFT_POLL  
+#ifdef SOFT_POLL
 /* limits for polling */
 #define POLL_GRAIN_CPSI 1024     /* power of 2, in cps instructions */
 #define POLL_GRAIN_BITS 10       /* log_2 POLL_GRAIN_CPSI */

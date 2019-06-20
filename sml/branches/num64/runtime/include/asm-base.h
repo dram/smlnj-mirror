@@ -1,8 +1,11 @@
-/* asm-base.h
+/*! \file asm-base.h
  *
- * COPYRIGHT (c) 1992 AT&T Bell Laboratories
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Common definitions for assembly files in the SML/NJ system.
+ * Note that we do not include this file in either X86.prim.asm
+ * or AMD64.prim.asm; instead we use x86-syntax.h for those files.
  */
 
 #ifndef _ASM_BASE_
@@ -16,7 +19,7 @@
 #define FALSE	0
 #define TRUE	1
 
-#if (!defined(GLOBALS_HAVE_UNDERSCORE)) && (defined(OPSYS_SUNOS) || ((defined(OPSYS_FREEBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD)) && !defined(__ELF__)) || defined(OPSYS_NEXTSTEP) || defined(OPSYS_WIN32) || defined(OPSYS_DARWIN) || defined(OPSYS_CYGWIN))
+#if (!defined(GLOBALS_HAVE_UNDERSCORE)) && (((defined(OPSYS_FREEBSD) || defined(OPSYS_NETBSD2) || defined(OPSYS_OPENBSD)) && !defined(__ELF__)) || defined(OPSYS_WIN32) || defined(OPSYS_DARWIN) || defined(OPSYS_CYGWIN))
 #  define GLOBALS_HAVE_UNDERSCORE
 #endif
 
@@ -28,74 +31,25 @@
 #endif
 
 #if defined(HOST_SPARC)
-#  if defined(OPSYS_SUNOS)
-#    include <machine/asm_linkage.h>
-#    include <machine/trap.h>
-#    undef ENTRY
-#  elif defined(OPSYS_SOLARIS)
+#  if defined(OPSYS_SOLARIS)
 #    define _ASM
 #    include <sys/stack.h>
 #    include <sys/trap.h>
 #  endif
-#  define CGLOBAL(ID)	.global	CSYM(ID)
+#  define GLOBAL(ID)	.global	ID
 #  define LABEL(ID)	ID:
 #  define ALIGN4        .align 4
 #  define WORD(W)       .word W
-#  if defined(OPSYS_NEXTSTEP)
-#    define TEXT          .text
-#    define DATA          .data
-#  else
-#    define TEXT          .seg "text"
-#    define DATA          .seg "data"
-#  endif
+#  define TEXT		.seg "text"
+#  define DATA		.seg "data"
 #  define BEGIN_PROC(P)
 #  define END_PROC(P)
 
-#elif defined(HOST_MIPS)
-#  if defined(OPSYS_MACH)
-#    include <mips/regdef.h>
-#  elif defined(OPSYS_IRIX5)
-#    define _MIPS_SIM	1	/* IRIX 5.x needs this in <regdef.h> */
-#    include <regdef.h>
-#  else
-#    include <regdef.h>
-#  endif
-#  define CGLOBAL(ID)	.globl	CSYM(ID)
-#  define LABEL(ID)	ID:
-#  define ALIGN4        .align 2
-#  define WORD(W)       .word W
-#  define TEXT          .text
-#  define DATA          .data
-#  define BEGIN_PROC(P)	.ent CSYM(P)
-#  define END_PROC(P)	.end CSYM(P)
-
-#elif defined(HOST_ALPHA32)
-#  include <regdef.h>
-#  define CGLOBAL(ID)	.globl  CSYM(ID)
-#  define LABEL(ID)	ID:
-#  define ALIGN4	.align 2
-#  define WORD(W)	.word W
-#  define TEXT		.text
-#  define DATA		.data
-#  define BEGIN_PROC(P)	.align 3; .ent CSYM(P)
-#  define END_PROC(P)	.end CSYM(P)
-
-#elif defined(HOST_HPPA)
-#  define CGLOBAL(ID)    .export ID,DATA
-#  define LABEL(ID)     .label ID
-#  define ALIGN4        .align 8
-#  define BEGIN_PROC(P)
-#  define END_PROC(P)
-#  define __SC__	!
-
-#elif (defined(HOST_RS6000) || defined(HOST_PPC))
+#elif defined(HOST_PPC)
 #  if defined(OPSYS_AIX)
 #    define CFUNSYM(ID)	CONCAT(.,ID)
 #    define USE_TOC
-#   if defined(HOST_RS6000)
-#    define GLOBAL(ID)	.globl CSYM(ID)
-#   endif
-#    define CGLOBAL(ID)	.globl CSYM(ID)
+#    define GLOBAL(ID)	.globl ID
 #    define TEXT	.csect [PR]
 #    define DATA	.csect [RW]
 #    define RO_DATA	.csect [RO]
@@ -106,7 +60,7 @@
 
 #  elif (defined(OPSYS_LINUX) && defined(TARGET_PPC))
 #    define CFUNSYM(ID)	ID
-#    define CGLOBAL(ID)	.globl CSYM(ID)
+#    define GLOBAL(ID)	.globl ID
 #    define TEXT	.section ".text"
 #    define DATA	.section ".data"
 #    define RO_DATA	.section ".rodata"
@@ -117,7 +71,7 @@
 
 #  elif (defined(OPSYS_DARWIN) && defined(TARGET_PPC))
 #    define CFUNSYM(ID) CSYM(ID)
-#    define CGLOBAL(ID)  .globl  CSYM(ID)
+#    define GLOBAL(ID)  .globl  ID
 #    define TEXT        .text
 #    define DATA        .data
 #    define RO_DATA     .data
@@ -129,7 +83,7 @@
 
 #  elif (defined(OPSYS_OPENBSD) && defined(TARGET_PPC))
 #    define CFUNSYM(ID) CSYM(ID)
-#    define CGLOBAL(ID)  .globl  CSYM(ID)
+#    define GLOBAL(ID)  .globl  ID
 #    define TEXT        .text
 #    define DATA        .data
 #    define RO_DATA     .data
@@ -143,42 +97,11 @@
     .globl CFUNSYM(ID) __SC__	\
     LABEL(CFUNSYM(ID))
 
-#elif defined(HOST_X86)
-#  if defined(OPSYS_WIN32)
-#    include "x86-masm.h"
-#    define WORD(W)     WORD32(W)
-#  else
-#    define CGLOBAL(ID)	  GLOBAL CSYM(ID)
-#    define LABEL(ID)	  CONCAT(ID,:)
-#    define IMMED(ID)	  CONCAT($,ID)
-#    define ALIGN4        .align 2
-#    define WORD(W)       .word W
-#    define TEXT          .text
-#    define DATA          .data
-#    define BEGIN_PROC(P) .ent P
-#    define END_PROC(P)	  .end P
-
-#  endif
-
-#elif defined(HOST_AMD64)
-#  if defined(OPSYS_WIN32)
-#    include "x86-masm.h"
-#    define WORD(W)	  WORD32(W)
-#  else
-#    define CGLOBAL(ID)	  GLOBAL CSYM(ID)
-#    define LABEL(ID)	  CONCAT(ID,:)
-#    define IMMED(ID)	  CONCAT($,ID)
-#    define ALIGN4        .align 2
-#    define WORD(W)       .word W
-#    define TEXT          .text
-#    define DATA          .data
-#    define BEGIN_PROC(P) .ent P
-#    define END_PROC(P)	  .end P
-
-#  endif
+/* FIXME: move these definitions to the x86-prim.h file */
+#elif defined(HOST_X86) || defined(HOST_AMD64)
+#  error use x86-syntax.h instead if ml-base.h
 
 #else
-
 #  error missing asm definitions
 
 #endif
@@ -187,6 +110,9 @@
 #  define __SC__ 	;
 #endif
 
+#  define CGLOBAL(ID)	GLOBAL(CSYM(ID))
+
+/* #if !(defined(TARGET_X86) || defined(TARGET_AMD64)) */
 #define ENTRY(ID)				\
     CGLOBAL(ID) __SC__				\
     LABEL(CSYM(ID))
@@ -195,6 +121,8 @@
 	    CGLOBAL(name) __SC__		\
 	    ALIGN4 __SC__			\
     LABEL(CSYM(name))
+#define IMMED(x) CONST(x)
+/* #endif */ /* not x86 or amd64 */
 
 #endif /* !_ASM_BASE_ */
 

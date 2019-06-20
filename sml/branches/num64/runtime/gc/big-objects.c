@@ -1,6 +1,7 @@
-/* big-objects.c
+/*! \file big-objects.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Code for managing big-object regions.
  */
@@ -243,8 +244,13 @@ bigobj_desc_t *BO_GetDesc (ml_val_t addr)
     aid_t	    aid;
     bigobj_region_t *rp;
 
-    for (i = BIBOP_ADDR_TO_INDEX(addr);  !BO_IS_HDR(aid = bibop[i]);  i--)
-	continue;
+  /* find the beginning of the region containing the code object */
+    i = BIBOP_ADDR_TO_INDEX(addr);
+    aid = INDEX_TO_PAGEID(bibop, i);
+    while (! BO_IS_HDR(aid)) {
+	--i;
+	aid = INDEX_TO_PAGEID(bibop, i);
+    }
 
     rp = (bigobj_region_t *)BIBOP_INDEX_TO_ADDR(i);
 

@@ -159,6 +159,8 @@ Group
 	structure PackWord16Little
 	structure PackWord32Big
 	structure PackWord32Little
+	structure PackWord64Big
+	structure PackWord64Little
 	structure PositionImp
 	structure Real64Array
 	structure Real64ArraySlice
@@ -448,18 +450,24 @@ is
 	pack-word-l32.sml
 
 #if defined(SIZE_32)
+	Target32Bit/bind-structs.sml
 	Target32Bit/int.sml
 	Target32Bit/int64.sml
+	Target32Bit/pack-word-b64.sml
+	Target32Bit/pack-word-l64.sml
+	Target32Bit/pointer.sml
 	Target32Bit/word.sml
 	Target32Bit/word64.sml
-	Target32Bit/bind-structs.sml
-	Target32Bit/pointer.sml
 #else
+	Target64Bit/bind-structs.sml
 	Target64Bit/int.sml
 	Target32Bit/int64.sml
+	Target64Bit/pack-word-b64.sml
+	Target64Bit/pack-word-l64.sml
+	Target64Bit/pointer.sml
 	Target64Bit/word.sml
-	Target32Bit/word64.sml
-	Target64Bit/bind-structs.sml
+	Target64Bit/word64.sml
+	Target64Bit/w64-popcount.sml
 #endif
 
 	bind-structs.sml

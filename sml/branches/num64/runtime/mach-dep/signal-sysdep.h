@@ -1,6 +1,7 @@
 /* signal-sysdep.h
  *
- * COPYRIGHT (c) 2006 The SML/NJ Fellowship.
+ * COPYRIGHT (c) 2019 The SML/NJ Fellowship.
+ * All rights reserved.
  *
  * O.S. and machine dependent signal definitions for UNIX systems:
  *
@@ -171,28 +172,7 @@ extern void SetFSR(int);
   /* disable all FP exceptions */
 #  define SIG_InitFPE()    SetFSR(0)
 
-#  if defined(OPSYS_SUNOS)
-    /** SPARC, SUNOS **/
-#    define USE_ZERO_LIMIT_PTR_FN
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_GetCode(info, scp)	(info)
-#    define SIG_GetPC(scp)	((scp)->sc_pc)
-#    define SIG_SetPC(scp, addr)	{			\
-	(scp)->sc_pc = (long)(addr);				\
-	(scp)->sc_npc = (scp)->sc_pc + 4;			\
-    }
-#    define SIG_SavePC(msp, scp)	{			\
-	SigContext_t	*__scp = (scp);				\
-	long		__pc = __scp->sc_pc;			\
-	if (__pc+4 != __scp->sc_npc)				\
-	  /* the pc is pointing to a delay slot, so back-up	\
-	   * to the branch. */					\
-	    __pc -= 4;						\
-	SavedPC = __pc;						\
-    }
-     typedef void SigReturn_t;
-
-#  elif defined(OPSYS_SOLARIS)
+#  if defined(OPSYS_SOLARIS)
     /** SPARC, SOLARIS **/
 #    define SIG_FAULT1	SIGFPE
 
@@ -208,43 +188,7 @@ extern void SetFSR(int);
 
 #  endif
 
-#elif defined(HOST_MIPS)
-
-extern void SetFSR();
-#  define SIG_InitFPE()    SetFSR()
-
-#  if defined(OPSYS_IRIX4)
-    /** MIPS, IRIX 4.0.x **/
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGTRAP
-#    include <sys/sbd.h>  /* for EXC_OV */
-#    define SIG_GetCode(info, scp)	((info) ? (info) : (scp)->sc_fpc_csr)
-#    define SIG_GetPC(scp)		((scp)->sc_pc)
-#    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ (scp)->sc_regs[19] = 0; }
-     typedef void SigReturn_t;
-
-#  elif defined(OPSYS_IRIX5)
-    /** MIPS, IRIX 5.x **/
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGTRAP
-
-#    define SIG_GetCode(info,scp)	((info)->si_code)
-   /* We use a TRAP to signal zero divide on the mips, but IRIX 5.3 maps
-    * this back to SIGFPE.
-    */
-#    undef INT_DIVZERO		/* SIGTRAP used for this on MIPS */
-#    define INT_DIVZERO(s, c)	\
-	(((s) == SIGTRAP) || (((s) == SIGFPE) && ((c) == FPE_INTDIV)))
-
-#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[CTX_EPC])
-#    define SIG_SetPC(scp, addr)	\
-	{ (scp)->uc_mcontext.gregs[CTX_EPC] = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	\
-	{ (scp)->uc_mcontext.gregs[CTX_S3] = 0; }
-#  endif /* ARCH_MIPS */
-
-#elif (defined(HOST_RS6000) || defined(HOST_PPC))
+#elif defined(HOST_PPC)
 #  if defined (OPSYS_AIX)
     /** RS6000 or PPC, AIX **/
 #    include <fpxcp.h>
@@ -280,20 +224,6 @@ extern void SetFSR();
    * sc_regs. 17 is the offset for register 15.
    */
 #    define SIG_ZeroLimitPtr(scp)	{  (scp)->uc_mcontext->ss.r15 = 0; }
-#  elif defined(OPSYS_MKLINUX)
-    /* RS6000, MkLinux */
-
-#    include "mklinux-regs.h"
-     typedef struct mklinux_ppc_regs SigContext_t;
-
-#    define SIG_FAULT1		SIGILL
-
-#    define SIG_GetPC(scp)		((scp)->nip)
-#    define SIG_SetPC(scp, addr)	{ (scp)->nip = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ ((scp)->gpr[15] = 0); }
-#    define SIG_GetCode(info,scp)	((scp)->fpscr)
-#    define SIG_ResetFPE(scp)		{ (scp)->fpscr = 0x0; }
-     typedef void SigReturn_t;
 
 #  elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
     /* PPC, Linux */
@@ -321,72 +251,7 @@ extern void SetFSR();
 
     typedef void SigReturn_t;
 
-#  endif /* HOST_RS6000/HOST_PPC */
-
-#elif defined(HOST_HPPA)
-
-#  if defined(OPSYS_HPUX9)
-    /** HPPA, HPUX 9.x **/
-     typedef void SigReturn_t;
-#    define SIG_FAULT1 SIGFPE
-    /* Since exceptions can be raised both in data space and code space,
-     * implementing this on HPPA/HPUX is going to be complicated.
-     */
-#    define SIG_GetPC(scp)	0
-    /* pcoq and pcsq are equivalent to the instruction address
-     * offset queue (iaoq) and the IA space queue (iasq)
-     */
-#    define SIG_SetPC(scp, addr) {					\
-	SigContext_t *_scp = (scp);					\
-	_scp->sc_pcoq_head = addr;					\
-	_scp->sc_pcoq_tail = _scp->sc_pcoq_head + 4;			\
-	_scp->sc_pcsq_tail = _scp->sc_pcsq_head = pointer2space(addr);	\
-    }
-#    define SIG_ZeroLimitPtr(scp)	{ (scp)->sc_gr4 = 0; }
-
-#    define SIG_GetCode(info, scp)	info
-
-#    define SIG_InitFPE()      set_fsr()
-
-#  endif
-
-#  if defined(OPSYS_HPUX)
-    /** HPPA, HPUX 10.x **/
-
-#    define SIG_FAULT1 SIGFPE
-
-    /* There are bugs in the HPUX *.10.* machine/save_state.h
-     * header file macros!!
-     */
-#    define sc_pcoq_head sc_sl.sl_ss.ss_narrow.ss_pcoq_head
-#    define sc_pcoq_tail sc_sl.sl_ss.ss_narrow.ss_pcoq_tail
-#    define sc_pcsq_head sc_sl.sl_ss.ss_narrow.ss_pcsq_head
-#    define sc_pcsq_tail sc_sl.sl_ss.ss_narrow.ss_pcsq_tail
-#    define sc_gr3 sc_sl.sl_ss.ss_narrow.ss_gr3
-#    define sc_gr4 sc_sl.sl_ss.ss_narrow.ss_gr4
-
-    /* Since exceptions can be raised both in data space and code space,
-     * implementing this on HPPA/HPUX is going to be complicated.
-     */
-#    define SIG_GetPC(scp)	0
-    /*	pcoq and pcsq are equivalent to the instruction address
-     * offset queue (iaoq) and the IA space queue (iasq)
-     */
-#    define SIG_SetPC(scp, addr) {					\
-	SigContext_t *_scp = (scp);					\
-	_scp->sc_pcoq_head = addr;					\
-	_scp->sc_pcoq_tail = _scp->sc_pcoq_head + 4;			\
-	_scp->sc_pcsq_tail = _scp->sc_pcsq_head = pointer2space(addr);	\
-    }
-
-#    define SIG_ZeroLimitPtr(scp)	{ (scp)->sc_gr4 = 0; }
-#    define SIG_GetCode(info, scp)	(info)
-
-#    define SIG_InitFPE()      set_fsr()
-
-     typedef void SigReturn_t;
-
-#  endif
+#  endif /* HOST_PPC */
 
 #elif defined(HOST_X86)
 
@@ -579,20 +444,6 @@ extern void SetFSR();
 #    error "unknown OPSYS for amd64"
 #  endif
 
-#elif defined(HOST_ALPHA32)
-
-#  if (defined(OPSYS_OSF1) || defined(OPSYS_DUNIX))
-    /** Alpha AXP, OSF1 **/
-#    include <machine/fpu.h>
-#    define SIG_FAULT1		SIGFPE
-
-#    define SIG_GetPC(scp)		((scp)->sc_pc)
-#    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (long)(addr); }
-#    define SIG_GetCode(info, scp)	info
-#    define SIG_ZeroLimitPtr(scp)	{ (scp)->sc_regs[9] = 0; }
-     typedef void SigReturn_t;
-#    define SIG_InitFPE()	SetFSR()
-#  endif
 #endif
 
 #ifndef SIG_InitFPE

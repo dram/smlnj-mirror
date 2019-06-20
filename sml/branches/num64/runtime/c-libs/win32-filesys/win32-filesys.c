@@ -12,8 +12,6 @@
 #include "ml-objects.h"
 #include "ml-c.h"
 
-/* #define DEBUG_WIN32 */
-
 #define TMP_PREFIX "TMP-SMLNJ"
 
 #define IS_DOTDIR(c) ((c)[0] == '.' && (!(c)[1] || ((c)[1] == '.' && !(c)[2])))

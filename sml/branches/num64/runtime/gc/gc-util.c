@@ -1,9 +1,9 @@
-/* gc-util.c
+/*! \file gc-util.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Garbage collection utility routines.
- *
  */
 
 #include <stdarg.h>
@@ -175,30 +175,31 @@ void NewDirtyVector (gen_t *gen)
 void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Word_t szB, aid_t aid)
 {
 #ifdef SIZES_C64_ML64
-    Unsigned32_t start = BIBOP_ADDR_TO_INDEX(baseAddr);
-    Unsigned32_t np = BIBOP_ADDR_TO_INDEX(szB);
-    Unsigned32_t last = start + np
+    Addr_t base = (Addr_t)baseAddr;
+    Addr_t start = BIBOP_ADDR_TO_INDEX(baseAddr);
+    Addr_t np = BIBOP_ADDR_TO_INDEX(szB);
+    Addr_t last = start + np;
   /* index range in top-level table */
-    Unsigned32_t topStart = start >> BIBOP_L1_SHIFT;
-    Unsigned32_t topLast = last >> BIBOP_L1_SHIFT;
+    Unsigned32_t topStart = (Unsigned32_t)(start >> BIBOP_L1_SHIFT);
+    Unsigned32_t topLast = (Unsigned32_t)(last >> BIBOP_L1_SHIFT);
 
-    if (id == AID_UNMAPPED) {
+    if (aid == AID_UNMAPPED) {
 	Unsigned32_t ix, jx, l2Start, l2End;
 	for (ix = topStart;  ix <= topLast;  ix++) {
-	    l2_bibop_t *l2Tbl = BIBOP[ix];
-	    assert (l2Tbl != 0);
-	    l2Start = (ix == topStart) ? base & BIBOP_L2_MASK : 0;
+	    l2_bibop_t *l2Tbl = bibop[ix];
+	    ASSERT (l2Tbl != 0);
+	    l2Start = (ix == topStart) ? (Unsigned32_t)(base & BIBOP_L2_MASK) : 0;
 	    l2End = (ix < topLast) ? BIBOP_L2_SZ : (last & BIBOP_L2_MASK)+1;
 	    for (jx = l2Start;  jx < l2End;  jx++) {
-		l2Tbl->tbl[jx] = id;
+		l2Tbl->tbl[jx] = aid;
 	    }
 	}
     }
     else {
 	Unsigned32_t ix, jx, l2Start, l2End;
 	for (ix = topStart;  ix <= topLast;  ix++) {
-	    l2_bibop_t *l2Tbl = BIBOP[ix];
-	    l2Start = (ix == topStart) ? base & BIBOP_L2_MASK : 0;
+	    l2_bibop_t *l2Tbl = bibop[ix];
+	    l2Start = (ix == topStart) ? (Unsigned32_t)(base & BIBOP_L2_MASK) : 0;
 	    l2End = (ix < topLast) ? BIBOP_L2_SZ : (last & BIBOP_L2_MASK)+1;
 	    if (l2Tbl == UNMAPPED_L2_TBL) {
 		BIBOP[ix] =
@@ -212,7 +213,7 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Word_t szB, aid_t aid)
 		}
 	    }
 	    for (jx = l2Start;  jx < l2End;  jx++) {
-		l2Tbl->tbl[jx] = id;
+		l2Tbl->tbl[jx] = aid;
 	    }
 	}
     }
@@ -224,7 +225,8 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Word_t szB, aid_t aid)
 #endif
 
     while (start < end) {
-	bibop[start++] = aid;
+	BIBOP_UPDATE(bibop, start, aid);
+	start++;
     }
 #endif
 
