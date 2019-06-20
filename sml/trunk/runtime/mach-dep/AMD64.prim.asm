@@ -81,6 +81,9 @@
 #define CALLEE_SAVE_SZB 48	/* rbx, rbp, r12-15 */
 #define ML_FRAME_SIZE	(8192)	/* FIXME */
 
+/* NOTE: this include must come after the definition of stdlink, etc. */
+#include "x86-macros.h"
+
 /**********************************************************************/
 	TEXT
 

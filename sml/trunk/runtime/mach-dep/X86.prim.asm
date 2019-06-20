@@ -86,6 +86,9 @@
 #define SpillAreaStart	512	     /* starting offset */
 #define ML_FRAME_SIZE	(8192)
 
+/* NOTE: this include must come after the definition of stdlink, etc. */
+#include "x86-macros.h"
+
 /**********************************************************************/
 	DATA
 	ALIGN4
