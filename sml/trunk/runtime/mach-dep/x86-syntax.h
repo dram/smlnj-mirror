@@ -118,10 +118,10 @@
 
 #if defined(HOST_X86)
 #define ALIGN4		.p2align 2
-#define WORD		.long 0
+#define WORD(lab)	LABEL(lab) .long 0
 #else /* HOST_AMD_64 */
 #define ALIGN8		.p2align 3
-#define WORD		.long 0, 0
+#define WORD(lab)	LABEL(lab) .long 0, 0
 #endif /* HOST_X86 */
 
 /* operands */
@@ -151,10 +151,10 @@
 
 #if defined(HOST_X86)
 #  define ALIGN4	ALIGN 4
-#  define WORD		DWORD 0
+#  define WORD(lab)	lab DWORD 0
 #else /* HOST_AMD_64 */
 #  define ALIGN8	ALIGN 8
-#  define WORD		QWORD 0
+#  define WORD(lab)	lab QWORD 0
 #endif /* HOST_X86 */
 
 /* operands */

@@ -99,8 +99,8 @@
 	ALIGN4
 
 	GLOBAL(CSYM(ML_X86Frame))
-LABEL(CSYM(ML_X86Frame)) /* ptr to the ml frame (gives C access to limitptr) */
-	WORD
+	/* global to hold ptr to the ml frame (gives C access to limitptr) */
+	WORD(CSYM(ML_X86Frame))
 
 /**********************************************************************/
 	TEXT
