@@ -1,11 +1,11 @@
 (* cinterface.sml
  *
- * COPYRIGHT (c) 1994 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 local
-    structure String = StringImp
+  structure String = StringImp
 in
 structure CInterface :> CINTERFACE =
   struct
@@ -43,5 +43,4 @@ structure CInterface :> CINTERFACE =
 	  (* end case *))
 
   end (* structure CInterface *)
-end
-
+end (* local *)

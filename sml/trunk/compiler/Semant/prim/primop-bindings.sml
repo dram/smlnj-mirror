@@ -52,6 +52,11 @@ structure PrimopBindings : sig
     val largeWSz = 64
     val largeWTy = BT.word64Ty
 
+  (* word type of the specified size *)
+    fun wTy 32 = BT.word32Ty
+      | wTy 64 = BT.word64Ty
+      | wTy _ = raise Fail "expected 32 or 64"
+
   (* default sizes *)
     val intSz = Target.defaultIntSz
     val realSz = Target.defaultRealSz
@@ -179,7 +184,9 @@ structure PrimopBindings : sig
 	    arith_r_r("sin", P.FSIN) :-:
 	    arith_r_r("cos", P.FCOS) :-:
 	    arith_r_r("tan", P.FTAN) :-:
-	    arith_r_r("sqrt", P.FSQRT)
+	    arith_r_r("sqrt", P.FSQRT) :-:
+	  (* note that the argument type is 'a to force boxing of the real *)
+	    mk("to_bits", p1(ar(tv1, wTy sz)), P.REAL_TO_BITS sz)
 	  end
 
   (* utility functions for conversions *)

@@ -675,6 +675,38 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		  PURE(P.CAST, [lpvar arg], res, PTRt VPT,
 		    loop(e, c))
 
+	    (* bitcast from real to word *)
+	      | F.PRIMOP((_, AP.REAL_TO_BITS sz, _, _), args, res, e) => (
+		  case (Target.is64, sz)
+		   of (false, 64) => let
+			val [arg] = lpvars args
+			val asWord = LV.mkLvar()
+			val num32Ty = boxIntTy 32
+			val hi = LV.mkLvar() and lo = LV.mkLvar()
+		      (* word64 values are [hi, lo], so we need to swap order
+		       * on little-endian targets
+		       *)
+			val rawPair = if Target.bigEndian
+			      then [(VAR hi, OFFp0), (VAR lo, OFFp0)]
+			      else [(VAR lo, OFFp0), (VAR hi, OFFp0)]
+			in
+			  PURE(P.CAST, [arg], asWord, boxIntTy sz,
+			  SELECT(0, VAR asWord, hi, num32Ty,
+			  SELECT(1, VAR asWord, lo, num32Ty,
+			  RECORD(RK_RAWBLOCK, rawPair, res,
+			    loop(e, c)))))
+			end
+		    | (true, 64) => let
+			val [arg] = lpvars args
+			val asWord = LV.mkLvar()
+			in
+			  PURE(P.CAST, [arg], asWord, PTRt VPT,
+			  unwrapInt (sz, VAR asWord, res,
+			    loop(e, c)))
+			end
+		    | _ => raise Fail "invalid size for REAL_TO_BITS" (* REAL32: FIXME *)
+		  (* end case *))
+
 	      | F.PRIMOP(po as (_,p,lt,ts), ul, v, e) =>
 		  let val ct =
 			case (#3(LT.ltd_arrow(LT.lt_pinst (lt, ts))))

@@ -90,6 +90,8 @@ structure InlineT =
 	val from_int32 : int32 -> real    = InLine.int32_to_real64
 
 	val signBit : real -> bool = InLine.real64_sgn
+
+	val toBits : real -> word64 = InLine.real64_to_bits
       end
 
     structure Int =

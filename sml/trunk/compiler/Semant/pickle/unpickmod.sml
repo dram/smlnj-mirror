@@ -384,6 +384,7 @@ structure UnpickMod : UNPICKMOD = struct
 	      | po #"\114" = P.TRUNC_INF (int ())
 	      | po #"\115" = P.EXTEND_INF (int ())
 	      | po #"\116" = P.COPY_INF (int ())
+	      | po #"\117" = P.REAL_TO_BITS (int ())
 	      | po c =
 		Vector.sub (primop_table, Char.ord c)
 		handle General.Subscript => raise Format

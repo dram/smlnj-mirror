@@ -99,23 +99,9 @@ Library
 	structure Backend
 
 is
-# if defined(ARCH_ALPHA)
-	$smlnj/compiler/alpha32.cm
-	alpha32.sml
-# elif defined(ARCH_MIPS)
-#   if defined(BIG_ENDIAN)
-	$smlnj/compiler/mipseb.cm
-	mipseb.sml
-#   else
-	$smlnj/compiler/mipsel.cm
-	mipsel.sml
-#   endif
-# elif defined(ARCH_HPPA)
-	$smlnj/compiler/hppa.cm
-	hppa.sml
-# elif defined(ARCH_RS6000)
-	$smlnj/compiler/rs6000.cm
-	rs6000.sml
+# if defined(ARCH_AMD64)
+       $smlnj/compiler/amd64.cm
+       amd64.sml
 # elif defined(ARCH_PPC)
 	$smlnj/compiler/ppc.cm
 	ppc.sml
@@ -125,23 +111,12 @@ is
 # elif defined(ARCH_X86)
 	$smlnj/compiler/x86.cm
 #   if defined(OPSYS_UNIX)
-(*
-#     if defined(ABI_Darwin)
-        x86-intelmac.sml
-#     else
-*)
 	x86-ccall.sml
-(*
-#     endif
-*)
 #   elif defined(OPSYS_WIN32)
 	x86-stdcall.sml
 #   else
 #	error Strange OS (for x86)!
 #   endif
-# elif defined (ARCH_AMD64)
-       $smlnj/compiler/amd64.cm
-       amd64.sml
 # else
 #   error Strange architecture!
 # endif

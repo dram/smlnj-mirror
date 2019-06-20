@@ -415,6 +415,7 @@ is
 	w32-popcount.sml
 	word32.sml
 	real64.sml
+	math64-common.sml
 #if defined(ARCH_X86)
 	math64-x86.sml
 #elif defined(ARCH_PPC)
