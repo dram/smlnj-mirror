@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# cross compile to specified target
+#
+
+function usage {
+  echo "usage: cmb-cross <target>"
+  echo "where <target> is one of amd64-unix, ppc-unix, sparc-unix, x86-unix, or x86-win32"
+  exit 1
+}
+
+if [ $# -ne 1 ] ; then
+  usage
+fi
+
+target=$1
+case $target in
+  amd64-unix) CMB=AMD64UnixCMB ;;
+  ppc-unix) CMB=PPCUnixCMB ;;
+  sparc-unix) CMB=SparcUnixCMB ;;
+  x86-unix) CMB=X86UnixCMB ;;
+  x86-win32) CMB=X86Win32CMB ;;
+  *) echo "cmb-cross: unrecognized target '$target'"
+     exit 1
+  ;;
+esac
+
+unset VERSIONTOOL_BUMP_RELEASE
+
+echo "$CMB.make();" | ../../bin/sml \$smlnj/compiler/all.cm
