@@ -94,6 +94,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/06/20]::
++
+We added a new primop, `REAL_TO_BITS` that casts a floating-point value to the
+same-size word value.  This primop allows the Assembly.logb function to be
+implemented in *SML*. +
++
+We have also refactored the implementation of the `Math` structure to share
+common code across the versions that are specialized for different levels of
+hardware support.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/06/19]::
 +
 Rewrote the assembly code for the x86 and AMD64 targets.  Previously, there
@@ -104,6 +117,8 @@ and AMD64 on both UNIX and Windows. +
 +
 The `AMD64.prim.asm` file now compiles, although there are a few minor
 issues that will have to be fixed once we have a working code generator.
+We have also fixed a number of issues in the garbage collector related
+to the use of the 2-level BIBOP on 64-bit targets.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 

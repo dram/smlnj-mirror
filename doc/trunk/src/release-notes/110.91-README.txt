@@ -60,7 +60,8 @@ and resume the build.
 === Compiler
 
 We added a new primop, `REAL_TO_BITS` that casts a floating-point value to the
-same-size word value.
+same-size word value.  This primop allows the Assembly.logb function to be
+implemented in *SML*.
 
 The `Target` structure defined in `Basis/mlcomp` now includes endianess information.
 This information was neede to implement the `REAL_TO_BITS` primop on 32-bit
@@ -78,9 +79,6 @@ hardware support.
 === Runtime System
 
 --
-* The runtime system now compiles as a 64-bit executable.  Note that this is a necessary,
-  but *not* sufficient step in the 64-bit porting process.
-
 * The `mach-dep/assyntax.h` file, which provides a set of macros to allow the assembly
   code to work with both AT&T and GNU assembler syntax, has been replaced by
   `mach-dep/x86-syntax.h`.  This new file has been stripped down to only cover the
