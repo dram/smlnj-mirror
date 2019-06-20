@@ -114,7 +114,7 @@ record-concat.obj: record-concat.c $(DEPENDENTS)
 sysinfo.obj: sysinfo.c $(DEPENDENTS)
 	$(CC) $(CFLAGS) $(DEFS) $(GC_INCLUDES) /c sysinfo.c
 
-setitimer.obj: setitimer.c $(MACH_DIR)\win32-timers.h $(DEPENDENTS)
+setitimer.obj: setitimer.c $(INC_DIR)\win32-timers.h $(DEPENDENTS)
 	$(CC) $(CFLAGS) $(DEFS) $(GC_INCLUDES) /c setitimer.c
 
 clean :
