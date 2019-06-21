@@ -42,12 +42,12 @@ struct
          | rexp reduce (T.DIVU(_,x,T.LI 1)) = x
          | rexp reduce (T.DIVT(_,x,T.LI 1)) = x
          | rexp reduce (T.ANDB(_,_,zero as T.LI 0)) = zero
-         | rexp reduce (T.ANDB(_,zero as T.LI 0,_)) = zero 
-         | *) rexp reduce (e as T.ANDB(_,x,y)) = 
+         | rexp reduce (T.ANDB(_,zero as T.LI 0,_)) = zero
+         | *) rexp reduce (e as T.ANDB(_,x,y)) =
              if RTL.Util.eqRexp(x,y) then x else e
          (* | rexp reduce (T.ORB(_,x,T.LI 0)) = x
          | rexp reduce (T.ORB(_,T.LI 0,x)) = x *)
-         | rexp reduce (e as T.ORB(_,x,y)) = 
+         | rexp reduce (e as T.ORB(_,x,y)) =
              if RTL.Util.eqRexp(x,y) then x else e
          | rexp reduce (T.NOTB(_,T.NOTB(_,x))) = x
          | rexp reduce (e as T.SX(t1,t2,x)) = if t1 = t2 then x else e
@@ -65,27 +65,27 @@ struct
          | ccexp reduce (T.OR(x,T.FALSE)) = x
          | ccexp reduce (T.OR(T.TRUE, _)) = T.TRUE
          | ccexp reduce (T.OR(_,T.TRUE)) = T.TRUE
-         | ccexp reduce (e as T.CMP(_,T.EQ,x,y)) = 
+         | ccexp reduce (e as T.CMP(_,T.EQ,x,y)) =
             if RTL.Util.eqRexp(x,y) then T.TRUE else e
-         | ccexp reduce (e as T.CMP(_,T.NE,x,y)) = 
+         | ccexp reduce (e as T.CMP(_,T.NE,x,y)) =
             if RTL.Util.eqRexp(x,y) then T.FALSE else e
          | ccexp reduce e = e
 
-       val rewriter = 
+       val rewriter =
              RTL.Rewrite.rewrite{rexp=rexp, fexp=fexp, ccexp=ccexp, stm=stm}
    in  #stm rewriter rtl
    end
- 
+
    (*========================================================================
     *
     * Translate an RTL into something else
     *
     *========================================================================*)
-   fun transRTL 
+   fun transRTL
         {app,id,int,intinf,word32,string,list,Nil,tuple,record,arg,
-         cellkind,oper,region} 
-                rtl = 
-   let fun word w = word32(Word.toLargeWord w)
+         cellkind,oper,region}
+                rtl =
+   let fun word w = word32(Word32.fromLargeWord(Word.toLargeWord w))
        fun ternOp n (x,ty,y,z) = app(n,[x, int ty, rexp y, rexp z])
        and binOp n (ty,x,y) = app(n,[int ty,rexp x,rexp y])
        and unaryOp n (ty,x) = app(n,[int ty,rexp x])
@@ -96,7 +96,7 @@ struct
          | rexp(T.MULS x) = binOp "MULS" x
 (* FIXME
          | rexp(T.DIVS x) = ternOp "DIVS" x
-         | rexp(T.REMS x) = ternOp "REMS" x	
+         | rexp(T.REMS x) = ternOp "REMS" x
  *)
          | rexp(T.MULU x) = binOp "MULU" x
          | rexp(T.DIVU x) = binOp "DIVU" x
@@ -108,7 +108,7 @@ struct
 (* FIXME
          | rexp(T.DIVT x) = ternOp "DIVT" x
  *)
-         | rexp(T.NOTB x) = unaryOp "NOTB" x 
+         | rexp(T.NOTB x) = unaryOp "NOTB" x
          | rexp(T.ANDB x) = binOp "ANDB" x
          | rexp(T.ORB x) = binOp "ORB" x
          | rexp(T.XORB x) = binOp "XORB" x
@@ -118,16 +118,16 @@ struct
          | rexp(T.SRA x) = binOp "SRA" x
          | rexp(T.SX(t1,t2,x)) = app("SX",[int t1,int t2,rexp x])
          | rexp(T.ZX(t1,t2,x)) = app("ZX",[int t1,int t2,rexp x])
-         | rexp(T.CVTF2I(t1,r,t2,x)) = 
+         | rexp(T.CVTF2I(t1,r,t2,x)) =
                app("CVTF2I",[int t1,id(T.Basis.roundingModeToString r),
                              int t2,fexp x])
-         | rexp(T.COND(ty,cc,a,b)) = 
+         | rexp(T.COND(ty,cc,a,b)) =
               app("COND",[int ty,ccexp cc,rexp a,rexp b])
          | rexp(T.$(ty,k,e)) = app("$",[int ty,cellkind k,rexp e])
          | rexp(T.ARG(ty,a,b)) = arg(ty,a,b)
          | rexp(T.PARAM(i)) = app("PARAM",[int i])
          | rexp(T.???) = id "???"
-         | rexp(T.OP(ty,opc,es)) = 
+         | rexp(T.OP(ty,opc,es)) =
               app("OP",[int ty,oper opc,list(map rexp es, NONE)])
          | rexp(T.BITSLICE(ty,sl,e)) =
               app("BITSLICE",[int ty,slice sl,rexp e])
@@ -143,12 +143,12 @@ struct
          | fexp(T.FNEG x) = funaryOp "FNEG" x
          | fexp(T.FABS x) = funaryOp "FABS" x
          | fexp(T.FSQRT x) = funaryOp "FSQRT" x
-         | fexp(T.FCOND(ty,cc,x,y)) = 
+         | fexp(T.FCOND(ty,cc,x,y)) =
               app("FCOND",[int ty,ccexp cc,fexp x,fexp y])
          | fexp(T.CVTI2F(t1,t2,x)) = app("CVTI2F",[int t1,int t2,rexp x])
          | fexp(T.CVTF2F(t1,t2,x)) = app("CVTF2F",[int t1,int t2,fexp x])
          | fexp e = error("transRTL: "^RTL.Util.fexpToString e)
-      
+
        and stm(T.ASSIGN(ty,x,y)) = app("ASSIGN",[int ty,rexp x,rexp y])
          | stm(T.JMP(e,_)) = app("JMP",[rexp e,Nil])
          | stm(T.RET _) = app("RET",[Nil])
@@ -156,7 +156,7 @@ struct
          | stm(T.SEQ ss) = app("SEQ",[list(map stm ss,NONE)])
          | stm(T.RTL{e, ...}) = stm e
          | stm(T.CALL{funct,...}) = app("CALL",
-                [record[("defs",Nil),     
+                [record[("defs",Nil),
                         ("uses",Nil),
                         ("funct",rexp funct),
                         ("targets",Nil),
@@ -165,9 +165,9 @@ struct
             )
          | stm s = error("transRTL: "^RTL.Util.stmToString s)
 
-       and ccexp(T.CMP(ty,cc,x,y)) = 
+       and ccexp(T.CMP(ty,cc,x,y)) =
              app("CMP",[int ty,id(T.Basis.condToString cc),rexp x,rexp y])
-         | ccexp(T.FCMP(ty,cc,x,y)) = 
+         | ccexp(T.FCMP(ty,cc,x,y)) =
              app("FCMP",[int ty,id(T.Basis.fcondToString cc),fexp x,fexp y])
          | ccexp(T.TRUE)     = id "TRUE"
          | ccexp(T.FALSE)    = id "FALSE"
@@ -183,7 +183,7 @@ struct
    (*========================================================================
     * Translate an RTL to an expression
     *========================================================================*)
-   fun rtlToExp rtl = 
+   fun rtlToExp rtl =
    let fun id name = A.IDexp(A.IDENT(["T"],name))
        fun app(n, es) = A.APPexp(id n, A.TUPLEexp es)
        val int = U.INTexp
@@ -203,7 +203,7 @@ struct
    (*========================================================================
     * Translate an RTL to a pattern
     *========================================================================*)
-   fun rtlToPat rtl = 
+   fun rtlToPat rtl =
    let fun mkId name = A.IDENT(["T"],name)
        fun id name = A.CONSpat(mkId name,NONE)
        fun app(n, [x]) = A.CONSpat(mkId n, SOME x)
@@ -214,7 +214,7 @@ struct
        val string= U.STRINGpat
        fun arg(ty,a,name) = A.IDpat name
        fun cellkind k = A.IDpat(CellsBasis.cellkindToString k)
-       fun oper(T.OPER{name,...}) = 
+       fun oper(T.OPER{name,...}) =
           A.CONSpat(A.IDENT(["T"],"OPER"),
             SOME(A.RECORDpat([("name",U.STRINGpat name)],true)))
        val region=A.WILDpat
@@ -229,15 +229,15 @@ struct
    (*========================================================================
     * Translate an RTL to a function with arguments
     *========================================================================*)
-   fun rtlToFun(rtlName, rtlArgs, rtl) = 
-   let val body = rtlToExp rtl 
+   fun rtlToFun(rtlName, rtlArgs, rtl) =
+   let val body = rtlToExp rtl
        val args = A.RECORDpat(map (fn id => (id,A.IDpat id)) rtlArgs,false)
    in  A.FUNdecl
           [A.FUNbind(rtlName, [A.CLAUSE([args], NONE, body)])]
    end
 
    (*========================================================================
-    * Create a new_op 
+    * Create a new_op
     *========================================================================*)
    fun createNewOp{name, hash, attribs} =
        A.VALdecl[

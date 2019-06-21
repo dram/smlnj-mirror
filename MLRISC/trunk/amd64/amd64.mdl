@@ -450,7 +450,7 @@ architecture AMD64 =
   end (* RTL *)
 
   (*------------------------------------------------------------------------
-   * Machine Instruction encoding on the x86
+   * Machine Instruction encoding on the x86-64
    * Because of variable width instructions.
    * We decompose each byte field into a seperate format first, then combine
    * then to form the real instructions
