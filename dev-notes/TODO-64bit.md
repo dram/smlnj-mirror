@@ -29,6 +29,10 @@ as **DONE**, even though they are not changed.
   * `compiler/CodeGen/cpscompile/invokegc.sml` <br/>
     check semantics to make sure the code makes sense for 64-bits.
 
+  * `compiler/CodeGen/cpscompile/limit.sml` <br/>
+    various assumptions about the size of 64-bit floats and heap alignment. <br/>
+    **[DONE; 110.92]**
+
   * `compiler/CodeGen/cpscompile/memAliasing.sml` <br/>
     assumption that `RK_RAW64BLOCK` records take twice as much memory. <br/>
     This file is no longer used in the simplified code generator.
@@ -101,6 +105,7 @@ as **DONE**, even though they are not changed.
 
   * `system/Basis/Implementation/real64.sml` <br/>
     explicit `Word31.word` to `real` conversion
+    **[DONE; 110.92]**
 
   * `system/Basis/Implementation/Target32Bit/word64.sml` <br/>
     should use 64-bit functions from `NumFormat` and `NumScan` (see above)
@@ -120,16 +125,15 @@ as **DONE**, even though they are not changed.
     Need to switch `LargeWord` from `Word32` to `Word64` on all platforms.
     **[DONE; 110.89]**
 
-  * `system/smlnj/init/core-intinf.sml` <br/>
-    Assumes 32-bit target.  We have renamed this structure `target32-core-intinf.sml`; we
-    will need a 64-bit version.
+  * `system/smlnj/init/target64-core-intinf.sml` <br/>
+    **[DONE; 110.91]**
 
-  * `system/smlnj/init/core.sml` <br/>
-    uses 32-bit integer equality to compare raw data pointers.  We have renamed this
-    structure `target32-core.sml`; we will need a 64-bit version.
+  * `system/smlnj/init/target64-core.sml` <br/>
+    Needs some work.
 
   * `system/smlnj/init/pervasive.sml` <br/>
     explicit `Word31.word` and `Int32.int` to `real` conversions
+    **[DONE; 110.92]**
 
   * `smlnj-lib/Util/random.sml` <br/>
     Uses the `Word31` structure.
