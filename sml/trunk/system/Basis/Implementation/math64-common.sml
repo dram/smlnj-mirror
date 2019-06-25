@@ -159,7 +159,7 @@ structure Math64Common : sig
 	           then Assembly.A.floor x
 		  else if isNan x then raise General.Domain
 		  else raise General.Overflow
-    val real = InlineT.Real64.from_int31	(* 64BIT: FIXME *)
+    val real = InlineT.Real64.from_int
 
   (* This is the IEEE double-precision maxint *)
     val maxint = 4503599627370496.0

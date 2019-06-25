@@ -174,13 +174,13 @@ type word = PrimTypes.word
 (* Real *)
 local
 (* 64BIT: FIXME *)
-  val w31_r = R64.from_int32 o Word.toInt32
-  val intbound = w31_r 0wx40000000	(* not necessarily the same as rbase *)
+  val wordToReal = R64.from_word
+  val intbound = wordToReal 0wx40000000	(* not necessarily the same as rbase *)
   val negintbound = R64.~ intbound
 in
 type real = PrimTypes.real
 
-val real = R64.from_int31
+val real = R64.from_int
 
 fun floor x =
       if x < intbound andalso x >= negintbound then Assembly.A.floor x

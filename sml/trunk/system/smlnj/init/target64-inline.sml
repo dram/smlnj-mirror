@@ -86,8 +86,9 @@ structure InlineT =
         val min    : real * real -> real  = InLine.real64_min
         val max    : real * real -> real  = InLine.real64_max
 
-	val from_int31 : int -> real      = InLine.int_to_real64
-	val from_int32 : int32 -> real    = InLine.int32_to_real64
+	val from_int : int -> real        = InLine.int_to_real64
+(* FIXME: add word_to_real primop *)
+	val from_word : word -> real	  = compose(InLine.int64_to_real64, InLine.copy_word_to_int64)
 
 	val signBit : real -> bool = InLine.real64_sgn
       end

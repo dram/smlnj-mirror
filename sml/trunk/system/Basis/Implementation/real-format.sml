@@ -32,7 +32,7 @@ structure RealFormat : sig
     fun floor x = if x < 1073741824.0 andalso x >= ~1073741824.0
 	           then Assembly.A.floor x
 		  else raise General.Overflow
-    val real  = InlineT.Real64.from_int31
+    val real  = InlineT.Real64.from_int
 
     val op ^  = String.^
     val implode = String.implode

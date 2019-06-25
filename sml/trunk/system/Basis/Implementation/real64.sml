@@ -22,10 +22,9 @@ structure Real64Imp : REAL =
     fun unordered(x:real,y) = Bool.not(x>y orelse x <= y)
     fun ?= (x, y) = (x == y) orelse unordered(x, y)
 
-(* 64BIT: FIXME *)
-    val w31_r = InlineT.Real64.from_int32 o InlineT.Word.toInt32
+    val wordToReal = InlineT.Real64.from_word
 
-    val rbase = w31_r CoreIntInf.base
+    val rbase = wordToReal CoreIntInf.base
     val baseBits = InlineT.Word.toIntX CoreIntInf.baseBits
 
   (* maximum finite 64-bit real value *)
@@ -68,7 +67,7 @@ structure Real64Imp : REAL =
     end
 
     val abs : real -> real = InlineT.Real64.abs
-    val fromInt : int -> real = InlineT.Real64.from_int31
+    val fromInt : int -> real = InlineT.Real64.from_int
 
     fun toInt IEEEReal.TO_NEGINF = floor
       | toInt IEEEReal.TO_POSINF = ceil
