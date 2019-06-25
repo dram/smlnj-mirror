@@ -112,7 +112,6 @@ end = struct
     infixr 5 ::
     val not : bool -> bool = InLine.inl_not
 
-(* 64BIT: this code assumes that the default integer size is 31-bits *)
     val wToI32 : word -> int32  = InLine.copy_word_to_int32
     val w32ToI32 : word32 -> int32 = InLine.copy_word32_to_int32
     val wToW32 : word -> word32 = InLine.word_to_word32
