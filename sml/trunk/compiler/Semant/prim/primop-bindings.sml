@@ -455,6 +455,7 @@ structure PrimopBindings : sig
 	    r2i("floor_real64_to_int", true) :-:
 	    r2i("round_real64_to_int", false) :-:
 	    i2r("int_to_real64", BT.intTy, intSz) :-:
+(* FIXME: add "word_to_real64" *)
 	    (if Target.is64
 	      then i2r("int64_to_real64", BT.int64Ty, 64)
 	      else i2r("int32_to_real64", BT.int32Ty, 32))
