@@ -1,0 +1,30 @@
+Building the Windows installer (msi) under Windows 10
+
+This is an elaboration of the instructions in build-install.html
+
+1. Install latest 32-bit Cygwin  (www.cygwin.org?)
+
+2. Install Visual Studio Community 2017
+  a. Individual components
+    Compilers, build tools, and runtimes
+      C++/CLI support
+         requires: .NET Framework 4.6.1 SDK, .NET Framework 4.6.1 targeting pack
+      Visual C++ 2017 v141 (x86,x64)
+         requires: Static analysis tools
+
+    Development activities
+      Visual C++ tools for CMake and Linux
+      Visual C++ core features
+
+[Alternatively Workload "Desktop development with C++"?]
+
+3. Edit base/runtime/c-lib/win32/win32-debug.c
+   insert "#include <stdio.h>" before other includes
+
+4. [VS dev prompt]: config\install.bat
+
+5. [VS dev prompt]: config\WinSetup\buildSetup.bat
+
+
+
+
