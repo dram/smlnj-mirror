@@ -498,7 +498,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		   in LOOKER(P.GETHDLR, [], h, FUNt, hdr(body))
 		  end
 
-	      | F.PRIMOP((_,p as (AP.CALLCC | AP.CAPTURE),_,_), [f], v, e) =>
+	      | F.PRIMOP((p as (AP.CALLCC | AP.CAPTURE),_,_), [f], v, e) =>
 		  let val (kont_decs, F) =
 			let val k = mkv()
 			    val ct = get_cty f
@@ -524,7 +524,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 				 APP(lpvar f, [F, VAR ccont_var]))))
 		  end
 
-	      | F.PRIMOP((_,AP.ISOLATE,lt,ts), [f], v, e) =>
+	      | F.PRIMOP((AP.ISOLATE,lt,ts), [f], v, e) =>
 		  let val (exndecs, exnvar) =
 			let val h = mkv() and z = mkv() and x = mkv()
 			 in ([(ESCAPE, h, [z, x], [CNTt, CU.BOGt],
@@ -539,23 +539,23 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		   in FIX(exndecs, FIX(newfdecs, loop(e, c)))
 		  end
 
-	      | F.PRIMOP(po as (_,AP.THROW,_,_), [u], v, e) =>
+	      | F.PRIMOP(po as (AP.THROW,_,_), [u], v, e) =>
 		  (newname(v, lpvar u); loop(e, c))
     (*            PURE(P.WRAP, [lpvar u], v, FUNt, c(VAR v))          *)
 
-	      | F.PRIMOP(po as (_,AP.WCAST,_,_), [u], v, e) =>
+	      | F.PRIMOP(po as (AP.WCAST,_,_), [u], v, e) =>
 		  (newname(v, lpvar u); loop(e, c))
 
-	      | F.PRIMOP(po as (_,AP.WRAP,_,_), [u], v, e) =>
+	      | F.PRIMOP(po as (AP.WRAP,_,_), [u], v, e) =>
 		  let val ct = CU.ctyc(FU.getWrapTyc po)
 		   in PURE(primwrap ct, [lpvar u], v, CU.BOGt, loop(e, c))
 		  end
-	      | F.PRIMOP(po as (_,AP.UNWRAP,_,_), [u], v, e) =>
+	      | F.PRIMOP(po as (AP.UNWRAP,_,_), [u], v, e) =>
 		  let val ct = CU.ctyc(FU.getUnWrapTyc po)
 		   in PURE(primunwrap ct, [lpvar u], v, ct, loop(e, c))
 		  end
 
-	      | F.PRIMOP(po as (_,AP.MARKEXN,_,_), [x,m], v, e) =>
+	      | F.PRIMOP(po as (AP.MARKEXN,_,_), [x,m], v, e) =>
 		  let val bty = LT.ltc_void
 		      val ety = LT.ltc_tuple[bty,bty,bty]
 		      val (xx,x0,x1,x2) = (mkv(),mkv(),mkv(),mkv())
@@ -575,13 +575,13 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 					       loop(e,c)))))))))
 		  end
 
-	      | F.PRIMOP ((_,AP.RAW_CCALL NONE,_,_), _::_::a::_,v,e) => (
+	      | F.PRIMOP ((AP.RAW_CCALL NONE,_,_), _::_::a::_,v,e) => (
 		(* code generated here should never be executed anyway,
 		 * so we just fake it... *)
 		  print "*** pro-forma raw-ccall\n";
 		  newname (v, lpvar a); loop(e,c))
 
-	      | F.PRIMOP ((_,AP.RAW_CCALL (SOME i),lt,ts),f::a::_::_,v,e) => let
+	      | F.PRIMOP ((AP.RAW_CCALL (SOME i),lt,ts),f::a::_::_,v,e) => let
 		    val { c_proto, ml_args, ml_res_opt, reentrant } = i
 		    val c_proto = cvtCProto c_proto
 		    fun cty AP.CCR64 = FLTt 64		(* REAL32: FIXME *)
@@ -638,22 +638,22 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		      | _ => build (ml_args, [], 0)
 		end
 
-	      | F.PRIMOP ((_,AP.RAW_CCALL _,_,_),_,_,_) => bug "bad raw_ccall"
+	      | F.PRIMOP ((AP.RAW_CCALL _,_,_),_,_,_) => bug "bad raw_ccall"
 
-	      | F.PRIMOP ((_,AP.RAW_RECORD _,_,_),[x as F.VAR _],v,e) =>
+	      | F.PRIMOP ((AP.RAW_RECORD _,_,_),[x as F.VAR _],v,e) =>
 		(* code generated here should never be executed anyway,
 		 * so we just fake it... *)
 		(print "*** pro-forma raw-record\n";
 		 newname (v, lpvar x); loop(e,c))
 
 	    (* conversions to/from 64-bits and pairs of 32-bit words on 32-bit targets *)
-	      | F.PRIMOP((_, AP.INTERN64, _, _), args, res, e) => let
+	      | F.PRIMOP((AP.INTERN64, _, _), args, res, e) => let
 		  val [hi, lo] = lpvars args
 		  in
 		    RECORD(RK_RAWBLOCK, [(hi, OFFp0), (lo, OFFp0)], res,
 		      loop(e, c))
 		  end
-	      | F.PRIMOP((_, AP.EXTERN64, _, _), args, res, e) => let
+	      | F.PRIMOP((AP.EXTERN64, _, _), args, res, e) => let
 		  val [arg] = lpvars args
 		  val num32Ty = boxIntTy 32
 		  val hi = LV.mkLvar() and lo = LV.mkLvar()
@@ -668,15 +668,15 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		  end
 
 	    (* conversions between runtime-system pointers and words *)
-	      | F.PRIMOP((_, AP.PTR_TO_WORD, _, _), [arg], res, e) =>
+	      | F.PRIMOP((AP.PTR_TO_WORD, _, _), [arg], res, e) =>
 		  PURE(P.CAST, [lpvar arg], res, addrTy,
 		    loop(e, c))
-	      | F.PRIMOP((_, AP.WORD_TO_PTR, _, _), [arg], res, e) =>
+	      | F.PRIMOP((AP.WORD_TO_PTR, _, _), [arg], res, e) =>
 		  PURE(P.CAST, [lpvar arg], res, PTRt VPT,
 		    loop(e, c))
 
 	    (* bitcast from real to word *)
-	      | F.PRIMOP((_, AP.REAL_TO_BITS sz, _, _), args, res, e) => (
+	      | F.PRIMOP((AP.REAL_TO_BITS sz, _, _), args, res, e) => (
 		  case (Target.is64, sz)
 		   of (false, 64) => let
 			val [arg] = lpvars args
@@ -707,7 +707,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		    | _ => raise Fail "invalid size for REAL_TO_BITS" (* REAL32: FIXME *)
 		  (* end case *))
 
-	      | F.PRIMOP(po as (_,p,lt,ts), ul, v, e) =>
+	      | F.PRIMOP(po as (p,lt,ts), ul, v, e) =>
 		  let val ct =
 			case (#3(LT.ltd_arrow(LT.lt_pinst (lt, ts))))
 			 of [x] => CU.ctype x
@@ -722,7 +722,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 			| PKP i => PURE(i, vl, v, ct, loop(e,c))
 		  end
 
-	      | F.BRANCH(po as (_,p,_,_), ul, e1, e2) =>
+	      | F.BRANCH(po as (p,_,_), ul, e1, e2) =>
 		  let val (hdr, F) = preventEta c
 		      val kont = makmc(fn vl => APP(F, vl), rttys c)
 		   in hdr(BRANCH(map_branch p, lpvars ul, mkv(),

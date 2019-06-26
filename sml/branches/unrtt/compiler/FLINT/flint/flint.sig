@@ -111,8 +111,8 @@ signature FLINT =
 
     withtype fundec = fkind * lvar * (lvar * lty) list * lexp
     and tfundec = tfkind * lvar * (tvar * tkind) list * lexp
-    and dict = {default: lvar, table: (tyc list * lvar) list}
-    and primop = dict option * Primop.primop * lty * tyc list
+(*    and dict = {default: lvar, table: (tyc list * lvar) list} *)
+    and primop = (* dict option  * *) Primop.primop * lty * tyc list
 	(* Invariant: primop's lty is always fully closed *)
 
     type prog = fundec  (* was "lvar * lty * lexp" *)

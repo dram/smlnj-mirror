@@ -354,11 +354,11 @@ fun check (kenv, venv, d) =
 		   in  ltTyApp le "TAPP" (lt, ts, kenv)
 		   end
 
-		 | GENOP(dict, p, t, ts) =>
+(*		 | GENOP(dict, p, t, ts) =>
 		   ((* should type check dict also *)
 			(map ((ltyChkenv "GENOP args ") o LT.ltc_tyc) ts;
 			 ltTyApp le "GENOP" (t, ts, kenv)))
-
+*)
 		 | PACK(lt, ts, nts, e) =>
 		   let val argTy = ltTyApp le "PACK-A" (lt, ts, kenv)
 		       val _ = ltyChkenv " PACK-A " argTy

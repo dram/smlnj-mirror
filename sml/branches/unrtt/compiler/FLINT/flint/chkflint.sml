@@ -395,7 +395,7 @@ fun check phase envs lexp = let
 	| HANDLE (e,v) => let val lts = typeof e
 	    in ltFnAppR (le,"HANDLE") (typeofVal v, lts); lts
 	    end
-	| BRANCH ((_,_,lt,ts), vs, e1, e2) =>
+	| BRANCH ((_,lt,ts), vs, e1, e2) =>
             let val fp = (le, "BRANCH")
                 val lt =
 	          case ltFnApp fp (chkSnglInst fp (lt,ts), map typeofVal vs)
@@ -410,7 +410,7 @@ fun check phase envs lexp = let
              in ltsMatch fp (lts1, lts2);
                 lts1
             end
-        | PRIMOP ((_,PO.WCAST,lt,[]), [u], lv, e) =>
+        | PRIMOP ((PO.WCAST,lt,[]), [u], lv, e) =>
             (*** a hack: checked only after reifY is done ***)
             if laterPhase phase then
               (lvarDef le lv;
@@ -420,19 +420,21 @@ fun check phase envs lexp = let
                        typeWith (lv, rt) e)
                  | _ => bug "unexpected WCAST in typecheck")
             else bug "unexpected WCAST in typecheck"
-	| PRIMOP ((dc,_,lt,ts), vs, lv, e) => let
+	| PRIMOP ((_,lt,ts), vs, lv, e) => let
               (* There are lvars hidden inside dicts, which we didn't check
                * before.  This is a first-order check that they at least
                * are bound to something; for now we don't care about their
                * types.  (I'm not sure what the rules should look like)
                *   --league, 10 april 1998.
                *)
+(*
               fun checkDict (SOME {default, table}) =
                     (typeofVar default;
                      app (ignore o typeofVar o #2) table)
                 | checkDict (NONE : dict option) = ()
+*)
           in
-              checkDict dc;
+             (* checkDict dc; *)
               lvarDef le lv;
               typeWithBindingToSingleRsltOfInstAndApp ("PRIMOP",lt,ts,vs,lv) e
           end

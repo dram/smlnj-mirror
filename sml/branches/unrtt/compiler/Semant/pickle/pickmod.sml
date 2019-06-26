@@ -621,16 +621,16 @@ in
 	      "x" $ [symbol s, conrep cr, lty t, list tyc ts]
 	    end
 
-	and dict { default = v, table = tbls } = let
+(*	and dict { default = v, table = tbls } = let
 	    val op $ = PU.$ DICT
 	    in
 	      "y" $ [lvar v, list (pair (list tyc, lvar)) tbls]
 	    end
-
-	and fprim (dtopt, p, t, ts) = let
+*)
+	and fprim (p, t, ts) = let
 	    val op $ = PU.$ FPRIM
 	    in
-	      "z" $ [option dict dtopt, primop p, lty t, list tyc ts]
+	      "z" $ [primop p, lty t, list tyc ts]
 	    end
 
 	and lexp arg = let

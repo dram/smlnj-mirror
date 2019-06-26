@@ -50,7 +50,7 @@ signature PLAMBDA =
       | REAL of int RealConst.t
       | STRING of string
       | PRIM of Primop.primop * lty * tyc list
-      | GENOP of dict * Primop.primop * lty * tyc list
+(*      | GENOP of (* dict * *) Primop.primop * lty * tyc list *)
 
       | FN of lvar * lty * lexp
       | FIX of lvar list * lty list * lexp list * lexp
@@ -76,6 +76,6 @@ signature PLAMBDA =
       | WRAP of tyc * bool * lexp
       | UNWRAP of tyc * bool * lexp
 
-    withtype dict = {default: lexp, table: (tyc list * lexp) list}
+(*    withtype dict = {default: lexp, table: (tyc list * lexp) list} *)
 
   end (* signature PLAMBDA *)

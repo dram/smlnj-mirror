@@ -204,7 +204,7 @@ fun usage bs =
 	 | [] => None
     end
 
-fun impurePO (po:F.primop) = PrimopUtil.effect (#2 po)
+fun impurePO (po:F.primop) = PrimopUtil.effect (#1 po)
 
 val census = let
     (* val use = if inc then use else unuse *)
@@ -214,10 +214,12 @@ val census = let
     fun newf args lv = new args lv
     fun id x = x
 
+(*
     (* here, the use resembles a call, but it's safer to consider it as a use *)
     fun cpo (NONE:F.dict option,po,lty,tycs) = ()
       | cpo (SOME{default,table},po,lty,tycs) =
 	(use (F.VAR default); app (use o F.VAR o #2) table)
+*)
     fun cdcon (s,Access.EXN(Access.LVAR lv),lty) = use (F.VAR lv)
       | cdcon _ = ()
 
@@ -290,12 +292,12 @@ val census = let
 	  | F.HANDLE (le,v) => (use v; cexp le)
 
 	  | F.BRANCH (po,vs,le1,le2) =>
-	    (app use vs; cpo po; cexp le1; cexp le2)
+	    (app use vs; cexp le1; cexp le2)
 
 	  | F.PRIMOP (po,vs,lv,le) =>
 	    let val lvi = newv lv
 	    in  cexp le;
-		if used lvi orelse impurePO po then (cpo po; app use vs) else ()
+		if used lvi orelse impurePO po then (app use vs) else ()
 	    end
 
 	  | le => buglexp("unexpected lexp", le)
@@ -319,9 +321,11 @@ fun unuselexp undertaker = let
     fun def i = (use false i)
     fun id x = x
 
+(*
     fun cpo (NONE:F.dict option,po,lty,tycs) = ()
       | cpo (SOME{default,table},po,lty,tycs) =
 	(unuse(F.VAR default); app (unuse o F.VAR o #2) table)
+*)
     fun cdcon (s,Access.EXN(Access.LVAR lv),lty) = unuse(F.VAR lv)
       | cdcon _ = ()
 
@@ -386,12 +390,12 @@ fun unuselexp undertaker = let
 	  | F.HANDLE (le,v) => (unuse v; cexp le)
 
 	  | F.BRANCH (po,vs,le1,le2) =>
-	    (app unuse vs; cpo po; cexp le1; cexp le2)
+	    (app unuse vs; cexp le1; cexp le2)
 
 	  | F.PRIMOP (po,vs,lv,le) =>
 	    let val lvi = get lv
 	    in if used lvi orelse impurePO po
-	       then (cpo po; app unuse vs)
+	       then app unuse vs
 	       else ();
 	       def lvi; cexp le; kill lv
 	    end

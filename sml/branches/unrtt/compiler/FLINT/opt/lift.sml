@@ -498,7 +498,7 @@ fun lift (e, env, td, d, ad, rename) =
 	     let
 		 val ls = map (loopc env) vl
 		 val (vls', nt', fvs', hd') = foldr comb (nil,nil,nil,nil) ls
-		 val (_, _, lt, ts) = pr
+		 val (_, lt, ts) = pr
 		 val nt = reslty(lt, ts)
 
 		 val _ = addEnv(env, [l], [nt], fvs', td, d, ABS)

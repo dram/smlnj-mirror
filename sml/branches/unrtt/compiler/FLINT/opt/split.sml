@@ -105,7 +105,7 @@ fun sexp env lexp =			(* fixindent *)
 	 | F.SELECT (v,i,lv,le) =>
 	   let1(le, fn e => F.SELECT(v, i, lv, e), lv, [v], false)
 	 | F.PRIMOP (po,vs,lv,le) =>
-	   let1(le, fn e => F.PRIMOP(po, vs, lv, e), lv, vs, PrimopUtil.effect(#2 po))
+	   let1(le, fn e => F.PRIMOP(po, vs, lv, e), lv, vs, PrimopUtil.effect(#1 po))
 
 	 (* IMPROVEME: lvs should not be restricted to [lv] *)
 	 | F.LET(lvs as [lv],body as F.TAPP (v,tycs),le) =>

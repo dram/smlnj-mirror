@@ -435,6 +435,7 @@ structure TransPrim : sig
 		  in
 		    mkFn argt (fn v => v)
 		  end
+              | PO.INLMKARRAY => coreAcc "mkNormArray"
 	      | PO.INLSUBSCRIPTV => let
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)

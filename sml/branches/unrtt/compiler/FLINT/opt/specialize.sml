@@ -429,7 +429,7 @@ fun transform (ienv, d, nmap, smap, did_flat) =
       fun lpvars vs = map lpvar vs
 
       (* lpprim : primop -> primop *)
-      fun lpprim (d, po, lt, ts) = (d, po, ltf lt, map tcf ts)
+      fun lpprim (po, lt, ts) = (po, ltf lt, map tcf ts)
 
       (* lpdc : dcon -> dcon *)
       fun lpdc (s, rep, lt) = (s, rep, ltf lt)

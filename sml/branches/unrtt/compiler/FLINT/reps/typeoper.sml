@@ -30,9 +30,11 @@ sig
   val mkwrp  : tyc * kenv * bool * tyc -> lexp -> lexp
   val mkuwp  : tyc * kenv * bool * tyc -> lexp -> lexp
 
+(*
   val arrSub : tyc * kenv * lty * lty -> value list -> lexp
   val arrUpd : tyc * kenv * Primop.primop * lty * lty -> value list -> lexp
   val arrNew : tyc * lvar * lvar * kenv -> value list -> lexp
+*)
 
 end (* signature TYPEOPER *)
 
@@ -78,10 +80,8 @@ fun mkarw(ts1, ts2) = LT.tcc_arrow(LT.ffc_fixed, ts1, ts2)
 
 val lt_arw = LT.ltc_tyc o LT.tcc_arrow
 
-fun wty tc =
-  (NONE, PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
-fun uwty tc =
-  (NONE, PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
+fun wty tc = (PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
+fun uwty tc = (PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
 
 fun FU_WRAP(tc, vs, v, e) = PRIMOP(wty tc, vs, v, e)
 fun FU_UNWRAP(tc, vs, v, e) = PRIMOP(uwty tc, vs, v, e)
@@ -165,7 +165,7 @@ fun UNWRAPg (z, b, e) =
 fun WRAPcast (z, b, e) =
   let val (v, h) = split e
       val pt = LT.ltc_arrow(LT.ffc_fixed, [LT.ltc_tyc z], [LT.ltc_void])
-      val pv = (NONE,PO.CAST,pt,[])
+      val pv = (PO.CAST,pt,[])
       val x = mkv()
    in h(PRIMOP(pv, [v], x, RET[VAR x]))
   end
@@ -173,7 +173,7 @@ fun WRAPcast (z, b, e) =
 fun UNWRAPcast (z, b, e) =
   let val (v, h) = split e
       val pt = LT.ltc_arrow(LT.ffc_fixed, [LT.ltc_void], [LT.ltc_tyc z])
-      val pv = (NONE,PO.CAST,pt,[])
+      val pv = (PO.CAST,pt,[])
       val x = mkv()
    in h(PRIMOP(pv, [v], x, RET[VAR x]))
   end
@@ -476,6 +476,7 @@ fun mkuwp (tc, kenv, b, nt) =
     of NONE => (fn le => UNWRAPg(nt, b, le))
      | SOME hdr => hdr)
 
+(*
 val realSub = PO.NUMSUBSCRIPT(PO.FLOAT 64)
 val realUpd = PO.NUMUPDATE(PO.FLOAT 64)
 
@@ -574,7 +575,8 @@ fun arrNew(tc, pv, rv, kenv) =
 	  in
 	      f
           end))
-
+*)
+      
 end (* toplevel local *)
 end (* structure TypeOper *)
 

@@ -390,12 +390,22 @@ structure PEqual : PEQUAL =
 		      in FIX(vs, ts, es, body)
 		     end
 	    (* end case *)
-	  end handle Poly =>
+(*	  end handle Poly =>
 	    (GENOP({default=getPolyEq(),
 		    (* might want to include intinf into this table (but we
 		     * need a tcc_intinf for that)... *)
 		    table=[([LT.tcc_string], getStrEq())]},
 		   PO.POLYEQL, toLty polyEqTy,
 		   [toTyc concreteType]))
+ *)
+          end handle Poly => let
+              val x = mkv()
+              val lt = toLty concreteType
+              val xTy = LT.ltc_tuple [lt, lt]
+              in
+                  FN(x, xTy,
+		     APP(PRIM(PO.POLYEQL, toLty polyEqTy, [toTyc concreteType]),
+                         RECORD[SELECT(1, VAR x), SELECT(2, VAR x), getPolyEq(), getStrEq()]))
+              end
 
   end (* structure PEqual *)

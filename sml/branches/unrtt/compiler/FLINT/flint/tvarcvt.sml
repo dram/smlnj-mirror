@@ -41,17 +41,16 @@ struct
                            map tcSubst ts, lv)
               | cvtCon c = c
 
-            fun cvtDict {default, table} = let
+(*            fun cvtDict {default, table} = let
                 fun f (ts,lv) = ((map tcSubst ts), lv)
             in
                 {default = default,
                  table = map f table
                  } : F.dict
             end (* cvtDict *)
-
-            fun cvtPrimop (dictOpt, po, lty, tycs) =
-                (Option.map cvtDict dictOpt,
-                 po,
+*)
+            fun cvtPrimop (po, lty, tycs) =
+                (po,
                  ltSubst lty,
                  map tcSubst tycs
                  ) : F.primop
@@ -174,17 +173,16 @@ struct
                            map tcSubst ts, lv)
               | cvtCon c = c
 
-            fun cvtDict {default, table} = let
+(*            fun cvtDict {default, table} = let
                 fun f (ts,lv) = ((map tcSubst ts), lv)
             in
                 {default = default,
                  table = map f table
                  } : F.dict
             end (* cvtDict *)
-
-            fun cvtPrimop (dictOpt, po, lty, tycs) =
-                (Option.map cvtDict dictOpt,
-                 po,
+*)
+            fun cvtPrimop (po, lty, tycs) =
+                (po,
                  ltSubst lty,
                  map tcSubst tycs
                  ) : F.primop

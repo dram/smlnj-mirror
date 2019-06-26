@@ -104,20 +104,20 @@ fun equal (peqv, seqv) =
 		    let val prim = LT.tcd_prim tc
 		    in case PT.numSize prim  (* is it a PT_NUM? *)
 			of SOME sz =>
-			   BRANCH((NONE, PrimopUtil.mkIEQL sz, numeqty sz, []), [x,y], te, fe)
+			   BRANCH((PrimopUtil.mkIEQL sz, numeqty sz, []), [x,y], te, fe)
 			 | NONE =>
 			   if PT.pt_eq(prim, PT.ptc_string) then
 			       branch(APP(VAR seqv, [x,y]), te, fe)
 			   else raise Poly
 		    end
 		else if LT.tc_eqv(tc,LT.tcc_bool) then
-		    BRANCH((NONE, PrimopUtil.IEQL, booleqty, []), [x,y], te, fe)
+		    BRANCH((PrimopUtil.IEQL, booleqty, []), [x,y], te, fe)
 	        else if (LT.tcp_app tc) then
 	            let val (t, _) = LT.tcd_app tc
 		     in if LT.tcp_prim t then
 			    let val prim = LT.tcd_prim t
 			    in if PT.pt_eq(prim, PT.ptc_ref) then
-				   BRANCH((NONE, PO.PTREQL, eqTy tc, []), [x,y], te, fe)
+				   BRANCH((PO.PTREQL, eqTy tc, []), [x,y], te, fe)
 			       else raise Poly
 			    end
 			else raise Poly
@@ -134,13 +134,11 @@ fun equal (peqv, seqv) =
 		      end)
     end (* equal *)
 
-fun equal_branch ((d, p, lt, ts): FLINT.primop,
-		  vs: FLINT.value list,
-		  e1: FLINT.lexp, e2: FLINT.lexp) : FLINT.lexp =
-  (case (d, p, ts, vs)
-    of (SOME{default=pv, table=[(_,sv)]}, PO.POLYEQL, [tc], [x, y]) =>
-          equal (pv, sv) (tc, x, y, e1, e2)
-     | _ => bug "unexpected case in equal_branch")
+fun equal_branch ((p, lt, ts): FLINT.primop, vs, e1, e2) : FLINT.lexp = (
+      case (p, ts, vs)
+       of (PO.POLYEQL, [tc], [x, y, VAR pv, VAR sv]) => equal (pv, sv) (tc, x, y, e1, e2)
+        | _ => bug "unexpected case in equal_branch"
+      (* end case *))
 
 end (* toplevel local *)
 end (* structure Equal *)
