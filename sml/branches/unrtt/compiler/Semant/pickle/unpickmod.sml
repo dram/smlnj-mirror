@@ -1317,7 +1317,7 @@ structure UnpickMod : UNPICKMOD = struct
 	val valueM = UU.mkMap ()
 	val conM = UU.mkMap ()
 	val dconM = UU.mkMap ()
-(*	val dictM = UU.mkMap () *)
+	val dictM = UU.mkMap ()
 	val fprimM = UU.mkMap ()
 	val lexpM = UU.mkMap ()
 	val fkindM = UU.mkMap ()
@@ -1421,7 +1421,7 @@ structure UnpickMod : UNPICKMOD = struct
 	    share dconM d
 	end
 
-(*	and dict () = let
+	and dict () = let
 	    fun d #"y" =
 		{ default = lvar (),
 		  table = list dictTableM (pair tycLvPM (tyclist, lvar)) () }
@@ -1429,9 +1429,10 @@ structure UnpickMod : UNPICKMOD = struct
 	in
 	    share dictM d
 	end
-*)
+
 	and fprim () = let
-	    fun f #"z" = (primop (), lty (), tyclist ())
+	    fun f #"z" = (option dictOptionM dict (),
+			  primop (), lty (), tyclist ())
 	      | f _ = raise Format
 	in
 	    share fprimM f

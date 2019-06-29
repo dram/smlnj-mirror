@@ -86,13 +86,11 @@ fun fexp mf depth lexp = let
     fun addvs (s,vs) = foldl (fn (v,s) => addv(s, v)) s vs
     fun rmvs (s,lvs) = foldl (fn (l,s) => S_rmv(l, s)) s lvs
 
-(*
     (* Looks for free vars in the primop descriptor.
      * This is normally unnecessary since these are special vars anyway *)
     fun fpo (fv,(NONE:F.dict option,po,lty,tycs)) = fv
       | fpo (fv,(SOME{default,table},po,lty,tycs)) =
 	addvs(addv(fv, F.VAR default), map (F.VAR o #2) table)
-*)
 
     (* Looks for free vars in the primop descriptor.
      * This is normally unnecessary since these are exception vars anyway *)
@@ -402,12 +400,12 @@ in case lexp
      | F.BRANCH (po,vs,le1,le2) =>
        let val (s1,fv1,le1) = loop le1
 	   val (s2,fv2,le2) = loop le2
-       in (1+s1+s2, addvs(S.union(fv1, fv2), vs),
+       in (1+s1+s2, fpo(addvs(S.union(fv1, fv2), vs), po),
 	   F.BRANCH(po, vs, le1, le2))
        end
      | F.PRIMOP (po,vs,lv,le) =>
        let val (s,fv,le) = loop le
-       in (1+s, addvs(S_rmv(lv, fv), vs), F.PRIMOP(po,vs,lv,le))
+       in (1+s, fpo(addvs(S_rmv(lv, fv), vs),po), F.PRIMOP(po,vs,lv,le))
        end
 
      | F.APP _ => bug "bogus F.APP"

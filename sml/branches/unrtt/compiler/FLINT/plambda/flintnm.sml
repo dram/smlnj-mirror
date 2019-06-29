@@ -81,7 +81,7 @@ local val (trueDcon', falseDcon') =
         end
 in
 
-fun flint_prim (po as (p, lt, ts), vs, v, e) =
+fun flint_prim (po as (d, p, lt, ts), vs, v, e) =
   (case p
     of (PO.BOXED  | PO.UNBOXED | PO.CMP _ | PO.FSGN _ | PO.PTREQL |
         PO.PTRNEQ | PO.POLYEQL | PO.POLYNEQ) =>
@@ -102,7 +102,7 @@ fun flint_prim (po as (p, lt, ts), vs, v, e) =
                 LT.ltw_ppoly(lt,
                    fn (ks, t) => LT.ltc_ppoly(ks, fix t),
                    fn _ => fix lt)
-           in F.PRIMOP((p,nlt,ts), [], v, e)
+           in F.PRIMOP((d,p,nlt,ts), [], v, e)
           end
      | _ =>
           F.PRIMOP(po, vs, v, e))
@@ -182,7 +182,7 @@ and tolexp (venv,d) lexp =
 		(F.RET vals, lty))
     val v = case lexp of
         L.APP (L.PRIM _, arg) => default_tovalues()
-(*      | L.APP (L.GENOP _,arg) => default_tovalues() *)
+      | L.APP (L.GENOP _,arg) => default_tovalues()
       | L.APP (L.FN (arg_lv,arg_lty,body), arg_le) =>
 	    tolexp (venv,d) (L.LET(arg_lv, arg_le, body))
       | L.APP (f,arg) =>
@@ -542,7 +542,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
       (* primops have to be eta-expanded since they're not valid
        * function values anymore in Flint *)
         L.PRIM (po,lty,tycs) => eta_expand(lexp, LT.lt_pinst(lty, tycs))
-(*      | L.GENOP (dict,po,lty,tycs) => eta_expand(lexp, LT.lt_pinst(lty, tycs)) *)
+      | L.GENOP (dict,po,lty,tycs) => eta_expand(lexp, LT.lt_pinst(lty, tycs))
 
       | L.FN (arg_lv,arg_lty,body) =>
             (* translate the body with the extended env into a fundec *)
@@ -558,14 +558,14 @@ and tolvar (venv,d,lvar,lexp,cont) =
 	    val (lexp', lty') =
             PO_helper(arg, f_lty, tycs,
                        fn (arg_vals,pty, c_lexp) =>
-                       flint_prim((po, pty, map FL.tcc_raw tycs),
+                       flint_prim((NONE, po, pty, map FL.tcc_raw tycs),
 				  arg_vals, lvar, c_lexp))
 	    val _ = debugmsg "<<tolvar L.APP"
 	    val _ = debugLty lty'
 	in (lexp', lty')
 	end
 
-(*      | L.APP (L.GENOP({default,table},po,f_lty,tycs),arg) =>
+      | L.APP (L.GENOP({default,table},po,f_lty,tycs),arg) =>
             let fun f ([],table,cont) = cont (table)
                   | f ((tycs,le)::t1,t2,cont) =
                 tolvarvalue(venv,d,le,
@@ -585,7 +585,7 @@ and tolvar (venv,d,lvar,lexp,cont) =
                                                     map FL.tcc_raw tycs),
 						   arg_vals, lvar, c_lexp))))
             end
-*)
+
 
       (*  | L.TFN ([], body) => bug "TFN[]" *)
       | L.TFN (tks, body) =>

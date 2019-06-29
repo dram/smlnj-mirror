@@ -366,13 +366,17 @@ end (* branchopt local *)
                   else (HANDLE(ne, lpsv v), false)
               end
 
-          | BRANCH(px as (p, lt, ts), vs, e1, e2) =>
+          | BRANCH(px as (d, p, lt, ts), vs, e1, e2) =>
               let val (ne1, b1) = loop e1
                   val (ne2, b2) = loop e2
-               in (BRANCH(px, map lpsv vs, ne1, ne2), false)
+               in (BRANCH(case d of NONE => px
+				  | SOME d => (lpdt d, p, lt, ts),
+                          map lpsv vs, ne1, ne2), false)
               end
-          | PRIMOP(px as (p, lt, ts), vs, v, e) =>
-              lplet ((fn z => PRIMOP(px,
+          | PRIMOP(px as (dt, p, lt, ts), vs, v, e) =>
+              lplet ((fn z => PRIMOP((case dt
+                                       of NONE => px
+                                        | SOME d => (lpdt d, p, lt, ts)),
                                      map lpsv vs, v, z)),
                      false (* PO.purePrimop p *), v, StdExp, e))
 

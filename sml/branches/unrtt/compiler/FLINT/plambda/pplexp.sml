@@ -61,7 +61,7 @@ fun complex (le: lexp) : bool =
       | TFN(_, b) => complex b
       | TAPP(l, []) => complex l
       | TAPP(l, _) => true
-(*      | GENOP(_,_,_) => true *)
+      | GENOP(_,_,_,_) => true
       | PACK(_, _, _, l) => complex l
 
       | (RECORD l | SRECORD l | VECTOR(l, _)) => List.exists complex l
@@ -228,7 +228,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
               pps ")";
              closeBox())
 
-(*          | ppl pd (GENOP(p, t, ts)) =
+          | ppl pd (GENOP(dict, p, t, ts)) =
             if pd < 1 then pps "<GEN>" else
             (openHOVBox 4;
               pps "GEN(";
@@ -239,7 +239,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
               closeBox();
               pps ")";
              closeBox ())
-*)
+
           | ppl pd (PACK(lt, ts, nts, l)) =
             if pd < 1 then pps "<PACK>" else
             (openHOVBox 0;
@@ -409,8 +409,8 @@ fun ppFun ppstrm l v =
            | STRING _ => ()
            | ETAG (e,_) => find e
            | PRIM _ => ()
-(*           | GENOP (_, _, _) => ()
-             (find e1; app (fn (_, x) => find x) es) *)
+           | GENOP ({default=e1,table=es}, _, _, _) =>
+             (find e1; app (fn (_, x) => find x) es)
            | WRAP(_, _, e) => find e
            | UNWRAP(_, _, e) => find e
 
@@ -423,7 +423,7 @@ fun stringTag (VAR _) = "VAR"
   | stringTag (REAL _) = "REAL"
   | stringTag (STRING _) = "STRING"
   | stringTag (PRIM _) = "PRIM"
-(*  | stringTag (GENOP _) = "GENOP" *)
+  | stringTag (GENOP _) = "GENOP"
   | stringTag (FN _) = "FN"
   | stringTag (FIX _) = "FIX"
   | stringTag (APP _) = "APP"

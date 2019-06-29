@@ -53,8 +53,8 @@ val fkfct = {isrec=NONE, known=false, inline=IH_SAFE, cconv=CC_FCT}
 fun mkarw(ts1, ts2) = LT.tcc_arrow(LT.ffc_fixed, ts1, ts2)
 
 val lt_arw = LT.ltc_tyc o LT.tcc_arrow
-fun wty tc = (PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
-fun uwty tc = (PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
+fun wty tc = (NONE, PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
+fun uwty tc = (NONE, PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
 
 fun FU_WRAP(tc, vs, v, e) = PRIMOP(wty tc, vs, v, e)
 fun FU_UNWRAP(tc, vs, v, e) = PRIMOP(uwty tc, vs, v, e)
@@ -146,7 +146,7 @@ fun UNWRAPg (z, b, e) =
 fun WRAPcast (z, b, e) =
   let val (v, h) = split e
       val pt = LT.ltc_arrow(LT.ffc_fixed, [LT.ltc_tyc z], [LT.ltc_void])
-      val pv = (PO.CAST,pt,[])
+      val pv = (NONE,PO.CAST,pt,[])
       val x = mkv()
    in h(PRIMOP(pv, [v], x, RET[VAR x]))
   end
@@ -154,7 +154,7 @@ fun WRAPcast (z, b, e) =
 fun UNWRAPcast (z, b, e) =
   let val (v, h) = split e
       val pt = LT.ltc_arrow(LT.ffc_fixed, [LT.ltc_void], [LT.ltc_tyc z])
-      val pv = (PO.CAST,pt,[])
+      val pv = (NONE,PO.CAST,pt,[])
       val x = mkv()
    in h(PRIMOP(pv, [v], x, RET[VAR x]))
   end
@@ -181,8 +181,8 @@ fun UNWRAP(t, u) =
   val boolty = (* LT.ltc_bool *) LT.ltc_void
   val inteqty = LT.ltc_arrow(LT.ffc_fixed, [intty, intty], [boolty])
   val intopty = LT.ltc_arrow(LT.ffc_fixed, [intty, intty], [intty])
-  val ieqprim = (PrimopUtil.IEQL, inteqty, [])
-  val iaddprim = (PrimopUtil.IADD, intopty, [])
+  val ieqprim = (NONE, PrimopUtil.IEQL, inteqty, [])
+  val iaddprim = (NONE, PrimopUtil.IADD, intopty, [])
   fun ieqLexp (e1, e2) =
       let val (v1, h1) = split e1
 	  val (v2, h2) = split e2

@@ -55,16 +55,15 @@ val f64upd = PO.NUMUPDATE(PO.FLOAT 64)
  * if this primop has been specialized.
  * [2019-06-25] removed run-time type specialization
  *)
-fun classPrim (px as (p, lt, ts)) =
+fun classPrim (px as (d, p, lt, ts)) =
   (case (p, ts)
     of ((PO.NUMSUBSCRIPT _ | PO.NUMUPDATE _), _) =>   (* overloaded primops *)
-         ((p, LT.lt_pinst(lt, ts), []), true)
-     | (PO.SUBSCRIPT, [tc]) => (px, false)
+         ((d, p, LT.lt_pinst(lt, ts), []), true)
      | (PO.ASSIGN, [tc]) =>			      (* special *)
 	if (LT.tc_upd_prim tc = PO.UNBOXEDUPDATE)
-	  then ((PO.UNBOXEDASSIGN, lt, ts), false) (* avoid store-list allocation *)
-	  else ((p, lt, ts), false)
-     | (PO.UPDATE, [tc]) => ((LT.tc_upd_prim tc, lt, ts), false)
+	  then ((d, PO.UNBOXEDASSIGN, lt, ts), false) (* avoid store-list allocation *)
+	  else ((d, p, lt, ts), false)
+     | (PO.UPDATE, [tc]) => ((d, LT.tc_upd_prim tc, lt, ts), false)
      | _ => (px, false))
 
 val argbase = fn vs => (vs, ident)
@@ -160,13 +159,14 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
            *                    (value list -> value list * (lexp -> lexp))
            *                    (lvar -> lvar * (lexp -> lexp)))
            *)
-          and lprim (p, lt, []) = ((p, ltf lt, []), argbase, resbase)
+          and lprim (dict, p, lt, []) =
+                ((dict, p, ltf lt, []), argbase, resbase)
             | lprim px =
-                let val ((np, lt, ts), issp) = classPrim px
+                let val ((dict, np, lt, ts), issp) = classPrim px
                     val nlt = ltf lt
                     val wts = map tcWrap ts
                  in if issp (* primop has been specialized *)
-                      then ((np, nlt, wts), argbase, resbase)
+                    then ((dict, np, nlt, wts), argbase, resbase)
                     else (* still a polymorphic primop *)
                      (let val nt = LT.lt_pinst(nlt, wts)
                           val (_, nta, ntr) = LT.ltd_arrow nt
@@ -190,7 +190,7 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
                                       in (nv,
                                           fn le => LET([v], hhh([VAR nv]), le))
                                      end))
-                          val npx' = (np, nt, [])
+                          val npx' = (dict, np, nt, [])
                        in (npx', arghdr, reshdr)
                       end)
                 end (* function lprim *)
@@ -256,10 +256,12 @@ let (* In pass1, we calculate the old type of each variables in the FLINT
                | HANDLE (e, v) => HANDLE (loop e, v)
 
                (* resolving the polymorphic equality in a special way *)
-               | BRANCH (p as (PO.POLYEQL, _, _), vs, e1, e2) =>
+               | BRANCH (p as (_, PO.POLYEQL, _, _), vs, e1, e2) =>
                    loop(Equal.equal_branch (p, vs, e1, e2))
-               | PRIMOP (p as (PO.POLYEQL, _, _), vs, v, e) =>
-                   bug "unexpected case in wrapping"
+               | PRIMOP (p as (_, PO.POLYEQL, _, _), vs, v, e) =>
+                   bug "unexpected POLYEQL in wrapping"
+               | PRIMOP ((_, PO.INLMKARRAY, _, _), vs, v, e) =>
+                   bug "unexpected INLMKARRAY in wrapping"
 (*
                (* resolving the polymorphic mkarray *)
                | PRIMOP ((dict, po as PO.INLMKARRAY, lt, ts), vs, v, e) =>

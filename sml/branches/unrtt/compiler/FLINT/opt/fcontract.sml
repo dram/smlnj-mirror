@@ -408,13 +408,11 @@ structure FContract :> FCONTRACT =
 		    raise x) *)
 
 	  (* common code for primops *)
-(*
 	  fun cpo m (SOME{default,table},po,lty,tycs) =
 	      (SOME{default=substvar m default,
 		    table=map (fn (tycs,lv) => (tycs, substvar m lv)) table},
 	       po,lty,tycs)
 	    | cpo _ po = po
-*)
 
 	  fun cdcon m (s,Access.EXN(Access.LVAR lv),lty) =
 	      (s, Access.EXN(Access.LVAR(substvar m lv)), lty)
@@ -436,6 +434,7 @@ structure FContract :> FCONTRACT =
 		val loop = fcexp ifs
 		val substval = substval m
 		val cdcon = cdcon m
+		val cpo = cpo m
 
 		fun fcLet (lvs, le, body) = let
 		      fun fcbody (nm,nle) = let
@@ -1049,21 +1048,23 @@ structure FContract :> FCONTRACT =
 
 		fun fcBranch (po,vs,le1,le2) = let
 		      val nvs = map substval vs
+		      val npo = cpo po
 		      val nle1 = loop m le1 #2
 		      val nle2 = loop m le2 #2
-		      in cont(m, F.BRANCH(po, nvs, nle1, nle2))
+		      in cont(m, F.BRANCH(npo, nvs, nle1, nle2))
 		      end (* fcBranch *)
 
 		fun fcPrimop (po,vs,lv,le) = let
 		      val lvi = C.get lv
-		      val pure = not(PrimopUtil.effect(#1 po))
+		      val pure = not(PrimopUtil.effect(#2 po))
 		      in if pure andalso C.dead lvi then (click_deadval();loop m le cont) else
 			  let val nvs = map substval vs
+			      val npo = cpo po
 			      val nm = addbind(m, lv, Var(lv,NONE))
 			      val nle = loop nm le cont
 			  in
 			      if pure andalso C.dead lvi then nle
-			      else F.PRIMOP(po, nvs, lv, nle)
+			      else F.PRIMOP(npo, nvs, lv, nle)
 			  end
 		      end (* fcPrimop *)
 

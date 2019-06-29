@@ -39,7 +39,6 @@ local structure B  = Bindings
       structure VC = VarCon
       structure LN = LiteralToNum
       structure TT = TransTypes
-      structure TPrim = TransPrim
       structure TP = Types
       structure TU = TypesUtil
       structure V  = VarCon
@@ -665,15 +664,16 @@ fun mkVE (e as V.VALvar { typ, prim = PrimopId.Prim p, ... }, ts, d) =
             of (PO.POLYEQL, [t]) => eqGen(intrinsicType, t, toTcLt d)
              | (PO.POLYNEQ, [t]) =>
                composeNOT(eqGen(intrinsicType, t, toTcLt d), toLty d t)
-(*             | (PO.INLMKARRAY, [t]) =>
+(*
+             | (PO.INLMKARRAY, [t]) =>
                let val dict =
                        {default = coreAcc "mkNormArray",
                         table = [([LT.tcc_real], coreAcc "mkRealArray")]}
-                in PRIMOP (primop, toLty d intrinsicType,
+                in GENOP (dict, primop, toLty d intrinsicType,
                          map (toTyc d) intrinsicParams)
                end
 *)
-           | (PO.RAW_CCALL NONE, [a, b, c]) =>
+             | (PO.RAW_CCALL NONE, [a, b, c]) =>
                let val i = SOME (CProto.decode cproto_conv
                                    { fun_ty = a, encoding = b })
                            handle CProto.BadEncoding => NONE

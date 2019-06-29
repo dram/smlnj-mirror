@@ -57,7 +57,7 @@ structure PLambda : PLAMBDA =
       | REAL of int RealConst.t
       | STRING of string
       | PRIM of PO.primop * lty * tyc list
- (*     | GENOP of (*  dict * *) PO.primop * lty * tyc list *)
+      | GENOP of dict * PO.primop * lty * tyc list
 
       | FN of lvar * lty * lexp
       | FIX of lvar list * lty list * lexp list * lexp
@@ -83,6 +83,6 @@ structure PLambda : PLAMBDA =
       | WRAP of tyc * bool * lexp
       | UNWRAP of tyc * bool * lexp
 
-(*    withtype dict = {default: lexp, table: (tyc list * lexp) list} *)
+    withtype dict = {default: lexp, table: (tyc list * lexp) list}
 
   end (* structure PLambda *)

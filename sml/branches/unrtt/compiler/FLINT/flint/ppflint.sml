@@ -268,14 +268,15 @@ struct
 	  newline();  dent();
 	  say "HANDLE(";  printSval value;  say ")")
 
-      | pLexp (F.BRANCH ((primop, lty, tycs), values, body1, body2)) =
+      | pLexp (F.BRANCH ((d, primop, lty, tycs), values, body1, body2)) =
 	 (* IF PRIM(<primop>, <lty>, [<tycs>]) [<values>]
           * THEN
 	  *   <body1>
           * ELSE
 	  *   <body2>
 	  *)
-	 (say "IF PRIMOP(";
+	 ((case d of NONE => say "IF PRIMOP("
+                   | _ => say "IF GENOP(");
 	  say (PrimopUtil.toString primop);  say ", ";
 	  printLty lty;  say ", ";
 	  printTycList tycs;  say ") ";
@@ -284,7 +285,7 @@ struct
           appPrint printBranch (newline & dent)
               [("THEN", body1), ("ELSE", body2)])
 
-      | pLexp (F.PRIMOP (p as (PO.MKETAG, _, _), [value], lvar, body)) =
+      | pLexp (F.PRIMOP (p as (_, PO.MKETAG, _, _), [value], lvar, body)) =
 	 (* <lvar> = ETAG(<value>[<tyc>])
 	  * <body>
 	  *)
@@ -293,7 +294,7 @@ struct
 	  printTyc (FU.getEtagTyc p);  say "])";
 	  newline();  dent();  pLexp body)
 
-      | pLexp (F.PRIMOP (p as (PO.WRAP, _, _), [value], lvar, body)) =
+      | pLexp (F.PRIMOP (p as (_, PO.WRAP, _, _), [value], lvar, body)) =
 	 (* <lvar> = WRAP(<tyc>, <value>)
 	  * <body>
 	  *)
@@ -302,7 +303,7 @@ struct
 	  printSval value;  say ")";
 	  newline();  dent();  pLexp body)
 
-      | pLexp (F.PRIMOP (p as (PO.UNWRAP, _, []), [value], lvar, body)) =
+      | pLexp (F.PRIMOP (p as (_, PO.UNWRAP, _, []), [value], lvar, body)) =
 	 (* <lvar> = UNWRAP(<tyc>, <value>)
 	  * <body>
 	  *)
@@ -311,12 +312,13 @@ struct
 	  printSval value;  say ")";
 	  newline();  dent();  pLexp body)
 
-      | pLexp (F.PRIMOP ((primop, lty, tycs), values, lvar, body)) =
+      | pLexp (F.PRIMOP ((d, primop, lty, tycs), values, lvar, body)) =
 	 (* <lvar> = PRIM(<primop>, <lty>, [<tycs>]) [<values>]
 	  * <body>
 	  *)
 	 (printVar lvar;
-          say " = PRIMOP(";
+          (case d of NONE => say " = PRIMOP("
+                   | _ => say " = GENOP(");
 	  say (PrimopUtil.toString primop);  say ", ";
 	  printLty lty;  say ", ";
 	  printTycList tycs;  say ") ";

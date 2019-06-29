@@ -75,16 +75,16 @@ fun wrap_lty tc =
 fun unwrap_lty tc =
   LT.ltc_tyc(LT.tcc_arrow(LT.ffc_fixed, [LT.tcc_wrap tc], [tc]))
 
-fun mketag tc = (PO.MKETAG, etag_lty, [tc])
-fun wrap tc = (PO.WRAP, wrap_lty tc, [])
-fun unwrap tc = (PO.UNWRAP, unwrap_lty tc, [])
+fun mketag tc = (NONE, PO.MKETAG, etag_lty, [tc])
+fun wrap tc = (NONE, PO.WRAP, wrap_lty tc, [])
+fun unwrap tc = (NONE, PO.UNWRAP, unwrap_lty tc, [])
 
 fun WRAP(tc, vs, v, e) = PRIMOP(wrap tc, vs, v, e)
 fun UNWRAP(tc, vs, v, e) = PRIMOP(unwrap tc, vs, v, e)
 
 (* the corresponding utility functions to recover the tyc *)
-fun getEtagTyc (_, lt, [tc]) = tc
-  | getEtagTyc (_, lt, []) =
+fun getEtagTyc (_, _, lt, [tc]) = tc
+  | getEtagTyc (_, _, lt, []) =
       let val nt = LT.ltd_tyc (#2(LT.ltd_parrow lt))
 		   handle LT.DeconExn => bug "getEtagTyc"
        in if LT.tcp_app nt then
@@ -95,11 +95,11 @@ fun getEtagTyc (_, lt, [tc]) = tc
       end
   | getEtagTyc _ = bug "unexpected case 2 in getEtagTyc"
 
-fun getWrapTyc (_, lt, []) = (LT.ltd_tyc(#1(LT.ltd_parrow lt))
+fun getWrapTyc (_, _, lt, []) = (LT.ltd_tyc(#1(LT.ltd_parrow lt))
 				handle LT.DeconExn => bug "getWrapTyc")
   | getWrapTyc _ = bug "unexpected case in getWrapTyc"
 
-fun getUnWrapTyc (_, lt, []) = (LT.ltd_tyc(#2(LT.ltd_parrow lt))
+fun getUnWrapTyc (_, _, lt, []) = (LT.ltd_tyc(#2(LT.ltd_parrow lt))
 				  handle LT.DeconExn => bug "getUnWrapTyc")
   | getUnWrapTyc _ = bug "unexpected case in getUnWrapTyc"
 
@@ -134,8 +134,13 @@ fun copy ta alpha le = let
 	  of A.EXN(A.LVAR lv) => A.EXN(A.LVAR(substvar alpha lv))
 	   | _ => ac,
 	 lt_subst ta lty)
-    fun cpo ta alpha (po,lty,tycs) =
-	(po, lt_subst ta lty, map (tc_subst ta) tycs)
+    fun cpo ta alpha (dict,po,lty,tycs) =
+	(O.map (fn {default,table} =>
+		{default=substvar alpha default,
+		 table=map (fn (tycs,lv) =>
+			    (map (tc_subst ta) tycs, substvar alpha lv))
+			   table}) dict,
+	 po, lt_subst ta lty, map (tc_subst ta) tycs)
     fun cfk ta {isrec=SOME(ltys,lk),known,inline,cconv} =
 	{isrec=SOME(map (lt_subst ta) ltys,lk),
 	 known=known, inline=inline, cconv=cconv}
@@ -232,6 +237,10 @@ fun freevars lexp = let
     fun singleton (F.VAR v) = S.singleton v
       | singleton _ = S.empty
 
+    fun fpo (fv,(NONE:F.dict option,po,lty,tycs)) = fv
+      | fpo (fv,(SOME{default,table},po,lty,tycs)) =
+	addvs(addv(fv, F.VAR default), map (F.VAR o #2) table)
+
     fun fdcon (fv,(s,Access.EXN(Access.LVAR lv),lty)) = addv(fv, F.VAR lv)
       | fdcon (fv,_) = fv
 
@@ -263,8 +272,8 @@ in case lexp
      | F.SELECT (v,i,lv,le) => addv(S_rmv(lv, loop le), v)
      | F.RAISE (v,ltys) => singleton v
      | F.HANDLE (le,v) => addv(loop le, v)
-     | F.BRANCH (po,vs,le1,le2) => addvs(S.union(loop le1, loop le2), vs)
-     | F.PRIMOP (po,vs,lv,le) => addvs(S_rmv(lv, loop le), vs)
+     | F.BRANCH (po,vs,le1,le2) => fpo(addvs(S.union(loop le1, loop le2), vs), po)
+     | F.PRIMOP (po,vs,lv,le) => fpo(addvs(S_rmv(lv, loop le), vs),po)
 end
 
 (* are two FLINT values equal? *)

@@ -38,8 +38,8 @@ fun tagInt i = INT{ival = IntInf.fromInt i, ty = Target.defaultIntSz}
 val lt_arw = LT.ltc_tyc o LT.tcc_arrow
 val lt_vfn = lt_arw(LT.ffc_fixed, [LT.tcc_void], [LT.tcc_void])
 
-fun wty tc = (PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
-fun uwty tc = (PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
+fun wty tc = (NONE, PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
+fun uwty tc = (NONE, PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
 
 fun WRAP(tc, vs, v, e) = PRIMOP(wty tc, vs, v, e)
 fun UNWRAP(tc, vs, v, e) = PRIMOP(uwty tc, vs, v, e)
@@ -47,7 +47,7 @@ fun UNWRAP(tc, vs, v, e) = PRIMOP(uwty tc, vs, v, e)
 (** a major gross hack: use of fct_lty in WCAST primops **)
 fun mkWCAST (u, oldt, newt) =
   let val v = mkv()
-   in (fn e => PRIMOP((PO.WCAST, LT.ltc_fct([oldt],[newt]), []),
+   in (fn e => PRIMOP((NONE, PO.WCAST, LT.ltc_fct([oldt],[newt]), []),
                       [u], v, e), v)
   end
 
@@ -237,29 +237,32 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
               | RAISE (u, ts) => RAISE(u, map ltf ts)
               | HANDLE(e, v) => HANDLE(loop e, v)
 
-              | BRANCH((po, lt, []), vs, e1, e2) =>
-                  BRANCH((po, ltf lt, []), vs, loop e1, loop e2)
+              | BRANCH(xp as (NONE, po, lt, []), vs, e1, e2) =>
+                  BRANCH((NONE, po, ltf lt, []), vs, loop e1, loop e2)
+              | BRANCH(_, vs, e1, e2) =>
+                  bug "type-directed branch primops are not supported"
 
-              | PRIMOP(xp as (PO.WRAP, _, _), u, v, e) =>
+              | PRIMOP(xp as (_, PO.WRAP, _, _), u, v, e) =>
                   let val tc = FU.getWrapTyc xp
                       val hdr = LP.mkwrp(tc, kenv, true, tcf tc)
                    in LET([v], hdr(RET u), loop e)
                   end
-              | PRIMOP(xp as (PO.UNWRAP, _, _), u, v, e) =>
+              | PRIMOP(xp as (_, PO.UNWRAP, _, _), u, v, e) =>
                   let val tc = FU.getUnWrapTyc xp
                       val hdr = LP.mkuwp(tc, kenv, true, tcf tc)
                    in LET([v], hdr(RET u), loop e)
                   end
-              | PRIMOP((po, lt, ts), vs, v, e) =>
-                  PRIMOP((po, ltf lt, ts), vs, v, loop e)
+	      | PRIMOP((_, PO.INLMKARRAY, _, _), _, _, _) => bug "unexpected INLMKARRAY"
+              | PRIMOP(xp as (NONE, po, lt, ts), vs, v, e) =>
+                  PRIMOP((NONE, po, ltf lt, ts), vs, v, loop e)
 (*
-              | PRIMOP((PO.SUBSCRIPT, lt, [tc]), u, v, e) =>
+              | PRIMOP((d, PO.SUBSCRIPT, lt, [tc]), u, v, e) =>
                   let val blt = ltf(LT.lt_pinst(lt, [tc]))
                       val rlt = ltf(LT.lt_pinst(lt, [LT.tcc_real]))
                       val hdr = LP.arrSub(tc, kenv, blt, rlt)
                    in LET([v], hdr(u), loop e)
                   end
-              | PRIMOP((po as (PO.UPDATE | PO.UNBOXEDUPDATE), lt, [tc]), u, v, e) =>
+              | PRIMOP((d, po as (PO.UPDATE | PO.UNBOXEDUPDATE), lt, [tc]), u, v, e) =>
                   let val blt = ltf(LT.lt_pinst(lt, [tc]))
                       val rlt = ltf(LT.lt_pinst(lt, [LT.tcc_real]))
                       val hdr = LP.arrUpd(tc, kenv, po, blt, rlt)
@@ -270,10 +273,10 @@ let val {getLty=getlty, cleanUp, ...} =  Recover.recover (fdec, false)
                   let val hdr = LP.arrNew(tc, pv, rv, kenv)
                    in LET([v], hdr(u), loop e)
                   end
-              | PRIMOP((po,_,_), vs, v, e) =>
-                  (say(concat["\n####", PrimopUtil.toString po, "####\n"]);
-                   bug "unexpected PRIMOP in loop"))
 *)
+              | PRIMOP((_,po,_,_), vs, v, e) =>
+                  (say(concat["\n####", PrimopUtil.toString po, "####\n"]);
+                   bug "unexpected PRIMOP in loop")
              (* end case *))
       in loop
      end (* function transform *)

@@ -113,13 +113,13 @@ fun recover (fdec, postRep) =
                   let val _ = lpe e1
                    in lpe e2
                   end
-              | lpe (PRIMOP((Primop.WCAST, lt, []), _, v, e)) =
+              | lpe (PRIMOP((_,Primop.WCAST, lt, []), _, v, e)) =
                   if postRep then
                      (case LT.ltd_fct lt
                        of ([_],[r]) => (addv(v, r); lpe e)
                         | _ => bug "unexpected case for WCAST")
                   else bug "unexpected primop WCAST in recover"
-              | lpe (PRIMOP((_,lt,ts), _, v, e)) =
+              | lpe (PRIMOP((_,_,lt,ts), _, v, e)) =
                   (addv (v, reslty (lt, ts)); lpe e)
 
          in lpe e handle LT.DeconExn => (print "\nWhole Expr:\n";
