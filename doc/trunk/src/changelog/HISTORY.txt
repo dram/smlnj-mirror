@@ -103,7 +103,8 @@ sorting an `Int32.int array` was 1.2 times faster), but
 slower when the type is `real`.  Use the monomorphic type
 `RealArray.array` for best performance on arrays of reals.
 +
-owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+owner:cs.uchicago.edu/~dbm[Dave MacQueen] and
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //====================================================================
 == Version 110.91; 2019/06/20
