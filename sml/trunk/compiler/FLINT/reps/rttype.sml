@@ -53,10 +53,8 @@ val fkfct = {isrec=NONE, known=false, inline=IH_SAFE, cconv=CC_FCT}
 fun mkarw(ts1, ts2) = LT.tcc_arrow(LT.ffc_fixed, ts1, ts2)
 
 val lt_arw = LT.ltc_tyc o LT.tcc_arrow
-fun wty tc =
-  (NONE, PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
-fun uwty tc =
-  (NONE, PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
+fun wty tc = (NONE, PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
+fun uwty tc = (NONE, PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
 
 fun FU_WRAP(tc, vs, v, e) = PRIMOP(wty tc, vs, v, e)
 fun FU_UNWRAP(tc, vs, v, e) = PRIMOP(uwty tc, vs, v, e)

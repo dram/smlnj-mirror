@@ -435,6 +435,11 @@ structure TransPrim : sig
 		  in
 		    mkFn argt (fn v => v)
 		  end
+	    (* NOTE: not sure if we need the INLMKARRAY primop anymore, since we have
+	     * eliminated the runtime-type specialization of arrays.  It might be useful
+	     * for exposing information about array lengths.
+	     *)
+              | PO.INLMKARRAY => L.TAPP(coreAcc "mkNormArray", ts)
 	      | PO.INLSUBSCRIPTV => let
 		  val (tc1, t1) = (case ts
 			 of [z] => (z, lt_tyc z)

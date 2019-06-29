@@ -30,10 +30,6 @@ sig
   val mkwrp  : tyc * kenv * bool * tyc -> lexp -> lexp
   val mkuwp  : tyc * kenv * bool * tyc -> lexp -> lexp
 
-  val arrSub : tyc * kenv * lty * lty -> value list -> lexp
-  val arrUpd : tyc * kenv * Primop.primop * lty * lty -> value list -> lexp
-  val arrNew : tyc * lvar * lvar * kenv -> value list -> lexp
-
 end (* signature TYPEOPER *)
 
 signature Outcome =
@@ -78,10 +74,8 @@ fun mkarw(ts1, ts2) = LT.tcc_arrow(LT.ffc_fixed, ts1, ts2)
 
 val lt_arw = LT.ltc_tyc o LT.tcc_arrow
 
-fun wty tc =
-  (NONE, PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
-fun uwty tc =
-  (NONE, PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
+fun wty tc = (NONE, PO.WRAP, lt_arw(LT.ffc_fixed, [tc], [LT.tcc_void]), [])
+fun uwty tc = (NONE, PO.UNWRAP, lt_arw(LT.ffc_fixed, [LT.tcc_void], [tc]), [])
 
 fun FU_WRAP(tc, vs, v, e) = PRIMOP(wty tc, vs, v, e)
 fun FU_UNWRAP(tc, vs, v, e) = PRIMOP(uwty tc, vs, v, e)
@@ -475,105 +469,6 @@ fun mkuwp (tc, kenv, b, nt) =
   (case tcCoerce(kenv, tc, nt, false, b)
     of NONE => (fn le => UNWRAPg(nt, b, le))
      | SOME hdr => hdr)
-
-val realSub = PO.NUMSUBSCRIPT(PO.FLOAT 64)
-val realUpd = PO.NUMUPDATE(PO.FLOAT 64)
-
-fun rsubLexp (vs, t) =
-  let val x = mkv()
-   in PRIMOP((NONE, realSub, t, []), vs, x, RET[VAR x])
-  end
-
-fun rupdLexp (vs, t) =
-  let val x = mkv()
-   in PRIMOP((NONE, realUpd, t, []), vs, x, RET[VAR x])
-  end
-
-fun subLexp (vs, t) =
-  let val x = mkv()
-   in PRIMOP((NONE, PO.SUBSCRIPT, t, []), vs, x, RET[VAR x])
-  end
-
-fun updLexp (po, vs, t) =
-  let val x = mkv()
-   in PRIMOP((NONE, po, t, []), vs, x, RET[VAR x])
-  end
-
-
-fun arrSub (tc, kenv, blt, rlt) =
-  let val nt = blt
-      val rnt = rlt
-   in (case isFloat(kenv, tc)
-        of NO => (fn vs => subLexp(vs, nt))
-         | YES => (fn vs => WRAPg(LT.tcc_real, true, rsubLexp(vs, rnt)))
-         | MAYBE z =>
-             (let val test = ieqLexp(z, tcode_real)
-               in (fn vs =>
-                     COND(test, WRAPg(LT.tcc_real, true, rsubLexp(vs, rnt)),
-                          subLexp(vs, nt)))
-              end))
-  end
-
-fun arrUpd(tc, kenv, po, blt, rlt) =
-  let val nt = blt
-      val rnt = rlt
-   in (case isFloat(kenv,tc)
-        of NO => (fn vs => updLexp(po, vs, nt))
-         | YES => let fun f [x,y,z] =
-			  let val nz = mkv()
-			  in LET([nz], UNWRAPg(LT.tcc_real, true, RET[z]),
-				 rupdLexp([x,y,VAR nz], rnt))
-			  end
-			| f _ = bug "arrUpd:YES"
-		  in f
-		  end
-         | MAYBE z =>
-             (let val test = ieqLexp(z, tcode_real)
-                  fun f (vs as [x,y,z]) =
-                      COND(test,
-                           let val nz = mkv()
-                           in LET([nz], UNWRAPg(LT.tcc_real, true, RET[z]),
-                                  rupdLexp([x,y,VAR nz], rnt))
-                           end,
-                           updLexp(po, vs, nt))
-		    | f _ = bug "arrUpd:MAYBE"
-	      in f
-              end))
-  end
-
-fun arrNew(tc, pv, rv, kenv) =
-  (case isFloat(kenv,tc)
-    of NO => (fn vs =>
-                let val x= mkv()
-                 in LET([x], APPg(RET[VAR pv], tsLexp(kenv, [tc])),
-                        APP(VAR x, vs))
-                end)
-     | YES => let
-	   fun f (vs as [x,y]) =
-               let val z = mkv()
-               in LET([z], UNWRAPg(LT.tcc_real, true, RET[y]),
-                      APP(VAR rv, [x, VAR z]))
-               end
-	     | f _ = bug "arrNew:YES"
-       in
-	   f
-       end
-     | MAYBE z =>
-         (let val test = ieqLexp(z, tcode_real)
-              fun f (vs as [x,y]) =
-                  COND(test,
-                       let val z = mkv()
-                       in LET([z], UNWRAPg(LT.tcc_real, true, RET[y]),
-                              APP(VAR rv, [x, VAR z]))
-                       end,
-                       let val z= mkv()
-                       in LET([z], APPg(RET[VAR pv], tsLexp(kenv, [tc])),
-                              APP(VAR z, vs))
-                       end)
-		| f _ = bug "arrNew:MAYBE"
-	  in
-	      f
-          end))
 
 end (* toplevel local *)
 end (* structure TypeOper *)

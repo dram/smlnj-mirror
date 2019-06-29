@@ -1,17 +1,20 @@
-(* tvarcvt.sml -- 
- * converting between different representations of 
+(* tvarcvt.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * converting between different representations of
  * type variables in a FLINT program.
  *)
 
 signature TVARCVT =
-sig
+  sig
     val debIndex2names : FLINT.prog -> FLINT.prog
     val names2debIndex : FLINT.prog -> FLINT.prog
-end (* TVARCVT *)
-
+  end (* TVARCVT *)
 
 structure TvarCvt :> TVARCVT =
-struct
+  struct
     (* local abbreviations *)
     structure F = FLINT
     structure DI = DebIndex
@@ -56,64 +59,64 @@ struct
                  map tcSubst tycs
                  ) : F.primop
 
-            fun r exp = 
+            fun r exp =
                 case exp of
                     F.RET _ => exp              (* no processing required *)
-                                        
+
                   | F.LET (lvs, e1, e2) =>      (* recursion only *)
                     F.LET (lvs, r e1, r e2)
-                          
+
                   | F.FIX (fundecs, e) =>       (* recursion only *)
                     F.FIX (map (cvtFundec env d) fundecs,
                            r e)
-                          
+
                   | F.APP _ => exp              (* no processing required *)
-                                                
-                  | F.TFN ((tfk,v,tvtks,e1),e2) => 
-                    F.TFN ((tfk, v, tvtks, 
+
+                  | F.TFN ((tfk,v,tvtks,e1),e2) =>
+                    F.TFN ((tfk, v, tvtks,
                             cvtExp (extendEnv env d 0 tvtks) (DI.next d) e1),
                            r e2)
-                          
+
                   | F.TAPP (v, ts) =>           (* subst ts *)
                     F.TAPP (v, map tcSubst ts)
-                           
-                  | F.SWITCH (v, cs, conlexps, lexpO) => 
+
+                  | F.SWITCH (v, cs, conlexps, lexpO) =>
                     F.SWITCH (v, cs,
-                              (map (fn (con,lexp) => (cvtCon con, r lexp)) 
+                              (map (fn (con,lexp) => (cvtCon con, r lexp))
                                    conlexps),
                               Option.map r lexpO)
-                             
-                  | F.CON ((sym,cr,lty), ts, v, lv, e) => 
+
+                  | F.CON ((sym,cr,lty), ts, v, lv, e) =>
                     F.CON ((sym, cr, ltSubst lty),
                            map tcSubst ts,
                            v, lv, r e)
-                          
-                  | F.RECORD (rk, vs, lv, e) => 
-                    F.RECORD ((case rk of 
-                                   F.RK_VECTOR t => 
+
+                  | F.RECORD (rk, vs, lv, e) =>
+                    F.RECORD ((case rk of
+                                   F.RK_VECTOR t =>
                                    F.RK_VECTOR (tcSubst t)
                                  | _ => rk),
                               vs, lv, r e)
-                     
+
                   | F.SELECT (v, i, lv, e) =>
                     F.SELECT (v, i, lv, r e)
-                     
-                  | F.RAISE (v, ltys) => 
+
+                  | F.RAISE (v, ltys) =>
                     F.RAISE (v, map ltSubst ltys)
-                    
-                  | F.HANDLE (e, v) => 
+
+                  | F.HANDLE (e, v) =>
                     F.HANDLE (r e, v)
-                     
+
                   | F.BRANCH (po, vs, e1, e2) =>
-                    F.BRANCH (cvtPrimop po, 
+                    F.BRANCH (cvtPrimop po,
                               vs, r e1, r e2)
-                     
-                  | F.PRIMOP (po, vs, lv, e) => 
+
+                  | F.PRIMOP (po, vs, lv, e) =>
                     F.PRIMOP (cvtPrimop po,
                               vs, lv, r e)
         in
             r
-        end (* cvtExp *)            
+        end (* cvtExp *)
 
         and cvtFundec env d (fkind, lvar, lvlts, e) =
             let fun ltSubst lty = LK.ltc_env (lty, d, d, env)
@@ -127,7 +130,7 @@ struct
                   | cvtFkind fk = fk
 
                 fun cvtLvLt (lvar, lty) = (lvar, ltSubst lty)
-            in (cvtFkind fkind, 
+            in (cvtFkind fkind,
                 lvar,
                 map cvtLvLt lvlts,
                 cvtExp env d e
@@ -141,7 +144,7 @@ struct
      * from a FLINT program, replacing them with deBruijn-indexed
      * variables.  It expects, of course, that named variables are
      * only bound by the term-language TFN (capital lambda), and not
-     * by the LT_POLY (forall) or TC_FN (lowercase lambda) in the 
+     * by the LT_POLY (forall) or TC_FN (lowercase lambda) in the
      * type language.
      *)
     fun names2debIndex_gen() = let
@@ -151,7 +154,7 @@ struct
             extendEnv (IntRedBlackMap.insert (env, tv, (d,i)))
                       d (i+1) tvtks
 
-        fun queryEnv env (tvar, currDepth) = 
+        fun queryEnv env (tvar, currDepth) =
 	  (case IntRedBlackMap.find(env, tvar)
 	    of NONE => NONE
 	     | SOME(defnDepth, i) =>
@@ -192,56 +195,56 @@ struct
             fun r exp =                 (* default recursive invocation *)
                 case exp of
                     F.RET _ => exp              (* no processing required *)
-                                        
+
                   | F.LET (lvs, e1, e2) =>      (* recursion only *)
                     F.LET (lvs, r e1, r e2)
-                          
+
                   | F.FIX (fundecs, e) =>       (* recursion only *)
                     F.FIX (map (cvtFundec env d) fundecs,
                            r e)
-                          
+
                   | F.APP _ => exp              (* no processing required *)
-                                                
-                  | F.TFN ((tfk,v,tvtks,e1),e2) => 
-                    F.TFN ((tfk, v, tvtks, 
+
+                  | F.TFN ((tfk,v,tvtks,e1),e2) =>
+                    F.TFN ((tfk, v, tvtks,
                             cvtExp (extendEnv env d 0 tvtks) (DI.next d) e1),
                            r e2)
-                          
+
                   | F.TAPP (v, ts) =>           (* subst ts *)
                     F.TAPP (v, map tcSubst ts)
-                           
-                  | F.SWITCH (v, cs, conlexps, lexpO) => 
+
+                  | F.SWITCH (v, cs, conlexps, lexpO) =>
                     F.SWITCH (v, cs,
-                              (map (fn (con,lexp) => (cvtCon con, r lexp)) 
+                              (map (fn (con,lexp) => (cvtCon con, r lexp))
                                    conlexps),
                               Option.map r lexpO)
-                             
-                  | F.CON ((sym,cr,lty), ts, v, lv, e) => 
+
+                  | F.CON ((sym,cr,lty), ts, v, lv, e) =>
                     F.CON ((sym, cr, ltSubst lty),
                            map tcSubst ts,
                            v, lv, r e)
-                          
-                  | F.RECORD (rk, vs, lv, e) => 
-                    F.RECORD ((case rk of 
-                                   F.RK_VECTOR t => 
+
+                  | F.RECORD (rk, vs, lv, e) =>
+                    F.RECORD ((case rk of
+                                   F.RK_VECTOR t =>
                                    F.RK_VECTOR (tcSubst t)
                                  | _ => rk),
                               vs, lv, r e)
-                     
+
                   | F.SELECT (v, i, lv, e) =>
                     F.SELECT (v, i, lv, r e)
-                     
-                  | F.RAISE (v, ltys) => 
+
+                  | F.RAISE (v, ltys) =>
                     F.RAISE (v, map ltSubst ltys)
-                    
-                  | F.HANDLE (e, v) => 
+
+                  | F.HANDLE (e, v) =>
                     F.HANDLE (r e, v)
-                     
+
                   | F.BRANCH (po, vs, e1, e2) =>
-                    F.BRANCH (cvtPrimop po, 
+                    F.BRANCH (cvtPrimop po,
                               vs, r e1, r e2)
-                     
-                  | F.PRIMOP (po, vs, lv, e) => 
+
+                  | F.PRIMOP (po, vs, lv, e) =>
                     F.PRIMOP (cvtPrimop po,
                               vs, lv, r e)
         in
@@ -266,7 +269,7 @@ struct
 
             fun cvtLvLt (lvar, lty) = (lvar, ltSubst lty)
         in
-            (cvtFkind fkind, 
+            (cvtFkind fkind,
              lvar,
              map cvtLvLt lvlts,
              cvtExp env d e
@@ -276,11 +279,9 @@ struct
         cvtFundec IntRedBlackMap.empty DI.top
     end (* names2debIndex_gen *)
 
-    (* generate tables once per invocation 
+    (* generate tables once per invocation
      * ie, once per compilation unit.
      *)
     fun names2debIndex prog = names2debIndex_gen() prog
 
-end (* TvarCvt *)
-
-
+  end (* TvarCvt *)
