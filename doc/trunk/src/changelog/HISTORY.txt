@@ -93,6 +93,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/06/28]::
++
+Removed the use of runtime-type passing for polymorphic arrays.
+The effect of this change is that code that uses the `Array.array`
+type will be faster when the element type is **not** `real` (__e.g.__,
+sorting an `Int32.int array` was 1.2 times faster), but
+slower when the type is `real`.  Use the monomorphic type
+`RealArray.array` for best performance on arrays of reals.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
 //====================================================================
 == Version 110.91; 2019/06/20
 
