@@ -7,11 +7,11 @@ target plus an additional "wish-list" of long-term goals.
 ## For Version 110.91
 
   * Switch over to the C99 standard `<fenv.h>` API, instead of the home-grown
-    code in `smlnj-math/fp-dep.h` etc.
+    code in `smlnj-math/fp-dep.h` etc. **[DONE]**
+
+## For Version 110.92+
 
   * Switch to new encoding of literals (see new-literals.md)
-
-## For Verion 110.92+
 
   * Must have 64-bit port done by Fall 2019 (but earlier would be better).
 
@@ -44,6 +44,9 @@ target plus an additional "wish-list" of long-term goals.
   * The `unboxedFloats` flag in the `MACH_SPEC` signature is true for all targets; can
     we get rid of it?
 
+  * New post-typechecking Absyn representation that makes the polymorphic type machinery
+    explicit (*i.e.*, type abstraction and applications explicit).
+
   * Rewrite of pattern-match compilation to be an source to source translation of the
     `Absyn` IR.  Include direct translation of "or" patterns and support for Successor
     ML views.
@@ -62,3 +65,17 @@ target plus an additional "wish-list" of long-term goals.
     - compiler/FLINT/reps/rttype.sml
     - compiler/FLINT/reps/typeoper.sml
 
+    This is partially done for 110.92.  We have removed runtime types for arrays, but the
+    mechanisms are still being used for polymorphic equality and datatype constructor
+    representations (when they are functor arguments).
+
+  * Expose the two-level representation of arrays and vectors and add compiler support
+    for slices.
+
+  * LLVM code generator: use ASDL to export CPS representation to runtime-system code
+    generator.  This probably requires a specialized calling convention.  We can then
+    use this code generator to add ARM support.
+
+  * New-new-runtime: new GC and core services with old version of C functions.
+
+  * FLINT replacement
