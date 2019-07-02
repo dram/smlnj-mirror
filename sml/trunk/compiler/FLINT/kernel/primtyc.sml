@@ -211,7 +211,9 @@ structure PrimTyc :> PRIM_TYC =
 	    find primTycons
 	  end
 
-  (** check the boxity of values of each prim tyc *)
+  (** check the boxity of values of each prim tyc; returns true if the primitive
+   ** type has a non-uniform unboxed representation (e.g., reals)
+   *)
     fun unboxed (PT_NUM n) = (n > Target.defaultIntSz)
       | unboxed (PT_REAL _) = true
       | unboxed _ = false

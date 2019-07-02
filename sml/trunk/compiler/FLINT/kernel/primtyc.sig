@@ -65,7 +65,9 @@ signature PRIM_TYC =
     val numSize : primtyc -> int option
     val realSize : primtyc -> int option
 
-  (** check the boxity of values of each prim tyc *)
+  (** check the boxity of values of each prim tyc; returns true if the primitive
+   ** type has a non-uniform unboxed representation (e.g., reals)
+   *)
     val unboxed : primtyc -> bool
 
   (** return true if an update to a ref/array of this type can be safely
