@@ -65,13 +65,14 @@ signature PRIM_TYC =
     val numSize : primtyc -> int option
     val realSize : primtyc -> int option
 
-  (** check the boxity of values of each prim tyc *)
-    val unboxed : primtyc -> bool
+    (** true for boxed "numeric" prim tycs, except for (PT_NUM 0)
+     ** Name change: "unboxed" ==> "boxedNumeric *)
+    val boxedNumeric : primtyc -> bool
 
   (** return true if an update to a ref/array of this type can be safely
    ** treated as an unboxed update (i.e., no store list record).
    **)
-    val ubxupd : primtyc -> bool
+    val unboxedUpdatePrimtyc : primtyc -> bool
 
     val isvoid : primtyc -> bool
 

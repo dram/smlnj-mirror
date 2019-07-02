@@ -615,7 +615,7 @@ local val name = "TC_WRAP"
         (case tc_outX tc
           of (TC_ARROW(FF_FIXED, [t], _)) => (unknown t)
            | (TC_TUPLE(rf, ts)) => flex_tuple ts
-           | (TC_PRIM pt) => PT.unboxed pt
+           | (TC_PRIM pt) => PT.boxedNumeric pt
            | _ => false)
 
       (* invariants: tc itself is in whnm but is_whnm tc = false *)
@@ -649,7 +649,7 @@ local val name = "TC_WRAP"
                      let val nz = tc_whnm z
                       in (case tc_outX nz
                            of TC_PRIM pt =>
-                                if PT.unboxed pt then tcc_token(k, nz)
+                                if PT.boxedNumeric pt then tcc_token(k, nz)
                                 else nz
                             | _ => nz)
                      end
@@ -672,7 +672,7 @@ local val name = "TC_WRAP"
            | TC_ARROW (FF_VAR(b1,b2), ts1, ts2) =>
                bug "calling reduce_one on FF_VAR arrow types"
            | TC_PRIM pt =>
-               if PT.unboxed pt then
+               if PT.boxedNumeric pt then
                  bug "calling reduce_one on an already-reduced whnm"
                else tc
            | TC_TOKEN(k', t) =>

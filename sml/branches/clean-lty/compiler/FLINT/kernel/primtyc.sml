@@ -200,26 +200,47 @@ structure PrimTyc :> PRIM_TYC =
 	    (BT.intinfTycon, PT_NUM 0)
 	  ]
 
-    fun pt_fromtyc tyc = let
-	  fun find [] = bug(concat[
-		  "pt_fromstamp: primitive tycon ", Symbol.name(TypesUtil.tycName tyc), " not found"
-		])
-	    | find ((tyc', ptyc)::r) = if TypesUtil.eqTycon(tyc, tyc')
-		then ptyc
-		else find r
-	  in
+    (* pt_fromTyc: Types.tycon -> primtyc
+     *  Lookup tycon in primTycon association list and return associated primtyc *)
+    fun pt_fromtyc tyc =
+	let fun find [] =
+	        bug(concat["pt_fromstamp: primitive tycon ",
+			   Symbol.name(TypesUtil.tycName tyc),
+			   " not found"])
+	      | find ((tyc', ptyc)::r) =
+	        if TypesUtil.eqTycon(tyc, tyc') then ptyc else find r
+	in
 	    find primTycons
-	  end
+	end
 
-  (** check the boxity of values of each prim tyc *)
-    fun unboxed (PT_NUM n) = (n > Target.defaultIntSz)
-      | unboxed (PT_REAL _) = true
-      | unboxed _ = false
+    (* boxedNumeric : primtyc -> bool
+     * boxedNumeric(pt) returns true if pt is a boxed (pointer) numeric primtyc.
+     * E.g. int32 (PT_NUM 32) when defaultIntSz = 31.
+     * Returns false for unboxed numeric types (size < defaultIntSz) and all
+     * non-numeric primtycs like PT_STRING, etc.
+     * Exception: Also returns false for (PT_NUM 0), i.e. IntInf.int, which is
+     * a boxed numeric primtyc. *)
+    (* name change: unboxed ==> boxedNumeric *)
+    fun boxedNumeric (PT_NUM size) = (size > Target.defaultIntSz)
+      | boxedNumeric (PT_REAL _) = true  (* 64 bit reals are boxed *)
+      | boxedNumeric _ = false  (* covers unboxed numeric and all other primtycs *)
 
-    fun ubxupd (PT_NUM 0) = false	(* IntInf.int *)
-      | ubxupd (PT_NUM n) = (n <= Target.defaultIntSz)
-      | ubxupd PT_POINTER = true	(* okay since pointer is outside heap *)
-      | ubxupd _ = false
+    (* unboxedUpdatePrimtyc : primtyc -> bool
+     * true if update with this type can use UNBOXEDUPDATE primop (no store list)
+     * used only once in function tc_upd_prim in LtyExtern. Perhaps belongs here
+     * to isolate dependence on Target structure? *)
+    (* name change: ubxupd ==> unboxedUpdatePrimtyc *)			      
+    fun unboxedUpdatePrimtyc (PT_NUM 0) = false	(* IntInf.int *)
+      | unboxedUpdatePrimtyc (PT_NUM size) = (size <= Target.defaultIntSz)
+      | unboxedUpdatePrimtyc PT_POINTER = true	(* okay since pointer is outside heap *)
+      | unboxedUpdatePrimtyc _ = false
+
+  (* DBM: note that boxedNumeric and unboxedUpdatePrimtyc are not negations of
+   * one another, e.g. boxedNumeric(PT_STRING) = unboxedUpdatePrimtyc(PT_STRING) = false.
+   * Assume these functions are relevant only to "numeric" primitive types.
+   * But note that unboxedUpdatePrimtyc(PT_POINTER) is true, while 
+   * boxedNumeric(PT_POINTER) is false.
+   *)
 
     fun isvoid (PT_NUM 0) = true
       | isvoid (PT_NUM _ | PT_REAL _ | PT_STRING) = false

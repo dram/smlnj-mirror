@@ -277,22 +277,24 @@ fun ltd_rkind (lt, i) = lt_select (lt, i)
 (****************************************************************************
  *             UTILITY FUNCTIONS USED BY POST-REPRESENTATION ANALYSIS       *
  ****************************************************************************)
-(** find out what is the appropriate primop given a tyc *)
+
+(** tc_upd_prim: LT.tyc -> PO.primop
+ ** determince the appropriate update primop given a LT.tyc *)
 fun tc_upd_prim tc =
-  let fun h(LT.TC_PRIM pt) = if PT.ubxupd pt then PO.UNBOXEDUPDATE else PO.UPDATE
-        | h(LT.TC_TUPLE _ | LT.TC_ARROW _) = PO.UPDATE
-        | h(LT.TC_FIX{family={size=1,gen=tc,params=ts,...},index=0}) =
-            let val ntc = case ts of [] => tc
-                                   | _ => tcc_app(tc, ts)
+    let fun h(LT.TC_PRIM pt) =
+	    if PT.unboxedUpdatePrimtyc pt then PO.UNBOXEDUPDATE else PO.UPDATE
+          | h(LT.TC_TUPLE _ | LT.TC_ARROW _) = PO.UPDATE
+          | h(LT.TC_FIX{family={size=1,gen=tc,params=ts,...},index=0}) =
+            let val ntc = case ts
+			   of [] => tc
+                            | _ => tcc_app(tc, ts)
              in (case (tc_out ntc)
                   of LT.TC_FN([k],b) => h (tc_out b)
                    | _ => PO.UPDATE)
             end
         | h(LT.TC_SUM tcs) =
-            let fun g (a::r) = if tc_eqv(a, tcc_unit) then g r else false
-                  | g [] = true
-             in if (g tcs) then PO.UNBOXEDUPDATE else PO.UPDATE
-            end
+             if List.all (fn x => tc_eqv(x, tcc_unit)) tcs (* sum of all "unit" tycs *)
+             then PO.UNBOXEDUPDATE else PO.UPDATE
         | h _ = PO.UPDATE
    in h(tc_out tc)
   end
@@ -340,7 +342,7 @@ fun twrap_gen bbb =
   let fun tc_wmap (w, u) t =
         (case (tc_out t)
           of (LT.TC_VAR _ | LT.TC_NVAR _) => t
-           | LT.TC_PRIM pt => if PT.unboxed pt then tcc_wrap t else t
+           | LT.TC_PRIM pt => if PT.boxedNumeric pt then tcc_wrap t else t
            | LT.TC_FN (ks, tc) => tcc_fn(ks, w tc) (* impossible case *)
            | LT.TC_APP (tc, tcs) => tcc_app(w tc, map w tcs)
            | LT.TC_SEQ tcs => tcc_seq(map w tcs)
