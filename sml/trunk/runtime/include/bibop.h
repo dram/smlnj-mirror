@@ -41,7 +41,7 @@ typedef Unsigned16_t page_id_t;
 /* L1 table size */
 #define BIBOP_L1_SZ		(1 << BIBOP_L1_BITS)
 /* L2 table size */
-#define BIBOP_L2_SZ		(1 << BIBOP_L1_BITS)
+#define BIBOP_L2_SZ		(1 << BIBOP_L2_BITS)
 /* shift amount to convert address to L1 index */
 #define BIBOP_L1_SHIFT		(BIBOP_L2_BITS + BIBOP_PAGE_BITS)
 /* shift amount to convert address to L2 index */
