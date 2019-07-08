@@ -14,7 +14,7 @@ signature UNSAFE_OBJECT =
    *)
     datatype representation
       = Unboxed
-      | Word32
+      | Raw		(* packed raw data *)
       | Real
       | Pair
       | Record
