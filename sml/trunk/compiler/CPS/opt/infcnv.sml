@@ -95,7 +95,7 @@ end = struct
 	       *)
 		val hi = LV.mkLvar ()
 		val lo = LV.mkLvar ()
-		val retContBody = C.RECORD(C.RK_RECORD, [
+		val retContBody = C.RECORD(C.RK_RAWBLOCK, [
 			(C.VAR hi, C.OFFp 0), (C.VAR lo, C.OFFp 0)
 		      ], v, e)
 		in
