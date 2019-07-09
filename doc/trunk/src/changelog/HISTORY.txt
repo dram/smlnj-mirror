@@ -94,6 +94,25 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/07/09]::
++
+Fix bug bugref:224[] (`Word64.fromLargeInt` fails).  The problem was
+an incorrect record kind in `CPS/opt/infcnv.sml` (it was `RK_RECORD`
+instead of `RK_RAWBLOCK`).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/07/08]::
++
+Changed the `rep` datatype constructor `Word32` to `Raw`  (which
+covers both 32 and 64-bit numbers on 32-bit platforms).  We now
+check the length of the raw object when converting to an
+concrete numeric type.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/06/28]::
 +
 Removed the use of runtime-type passing for polymorphic arrays.
