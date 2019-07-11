@@ -119,6 +119,58 @@ heap_params_t *ParseHeapParams (char **argv)
 
 } /* end of ParseHeapParams */
 
+/* InitBibop:
+ *
+ * Initialize the big-bag-of-pages map.
+ */
+bibop_t InitBibop ()
+{
+    bibop_t bibop;
+    size_t bibopSz;
+    int i;
+
+#ifdef SIZES_C64_ML64
+    bibopSz = BIBOP_L1_SZ * sizeof(l2_bibop_t *);
+#else
+    bibopSz = BIBOP_SZ * sizeof(aid_t);
+#endif
+
+    if ((bibop = MALLOC(bibopSz)) == NIL(bibop_t)) {
+	Die("InitBibop: unable to allocate Bibop");
+    }
+
+#ifdef SIZES_C64_ML64
+    for (i = 0;  i < BIBOP_L1_SZ;  i++) {
+	bibop[i] = &UnmappedL2;
+    }
+#else
+    for (i = 0;  i < BIBOP_SZ;  i++) {
+	bibop[i] = AID_UNMAPPED;
+    }
+#endif
+
+    return bibop;
+}
+
+/* FreeBibop:
+ *
+ * deallocate memory for a Bibop.
+ */
+void FreeBibop (bibop_t bibop)
+{
+#ifdef SIZES_C64_ML64
+    int i;
+    for (i = 0;  i < BIBOP_L1_SZ;  i++) {
+	if (bibop[i] != &UnmappedL2) {
+	    FREE(bibop[i]);
+	}
+    }
+#endif
+
+    FREE(bibop);
+
+}
+
 /* InitHeap:
  *
  * Create and initialize the heap.
