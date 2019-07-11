@@ -1,6 +1,7 @@
-/* blast-gc.c
+/*! \file blast-gc.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the garbage collector for compacting a blasted object.
  *

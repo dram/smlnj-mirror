@@ -1,6 +1,7 @@
-/* heap-in-util.c
+/*! \file heap-in-util.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Utility routines to import an ML heap image.
  */

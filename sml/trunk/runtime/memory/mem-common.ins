@@ -1,6 +1,6 @@
 /* mem-common.ins
  *
- * This is code that is common to all three implementations of the 
+ * This is code that is common to all three implementations of the
  * memory management library.
  */
 
@@ -54,7 +54,7 @@ mem_obj_t *MEM_AllocMemObj (Word_t szb)
     mem_obj_t	*obj;
 
     if ((obj = ALLOC_MEMOBJ()) == NIL(mem_obj_t *)) {
-	Error ("unable to malloc chunk descriptor\n");
+	Error ("unable to allocate chunk descriptor\n");
 	return NIL(mem_obj_t *);
     }
 

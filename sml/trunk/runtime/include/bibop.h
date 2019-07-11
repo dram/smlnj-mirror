@@ -104,4 +104,10 @@ extern bibop_t		BIBOP;
 
 #endif /* !SIZES_C64_ML64 */
 
+/* allocate and initialize a Bibop */
+extern bibop_t InitBibop ();
+
+/* free a Bibop */
+extern void FreeBibop (bibop_t bibop);
+
 #endif /* !_BIBOP_ */

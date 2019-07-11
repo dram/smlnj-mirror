@@ -62,7 +62,7 @@ typedef struct {	    /* The header for a heap image */
     int		numBOKinds;	/* The number of big-object kinds */
     int		numBORegions;	/* The number of big-object regions in the */
 				/* exporting address space. */
-    int		cacheGen;	/* The oldest cached generation */    
+    int		cacheGen;	/* The oldest cached generation */
     Addr_t	allocSzB;	/* The size of the allocation arena */
 			    /* heap objects that are referred to by the runtime */
     ml_val_t	pervStruct;	/* the contents of PervStruct */
