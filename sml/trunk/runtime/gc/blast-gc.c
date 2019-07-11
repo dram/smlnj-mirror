@@ -827,6 +827,8 @@ PVT void BlastGC_AssignLits (Addr_t addr, void *_closure, void *_info)
 	closure->offset |= WORD_SZB;
 #endif
 	break;
+      default:
+	Die("BlastGC_AssignLits: unexpected kind %d\n", info->kind);
     }
 
     if (info->codeObj->kind == USED_CODE) {
@@ -886,6 +888,8 @@ PVT void BlastGC_ExtractLits (Addr_t addr, void *_closure, void *_info)
 	}
 #endif
 	break;
+      default:
+	Die("BlastGC_ExtractLits: unexpected kind %d\n", info->kind);
     }
 
     if (objSzB != 0) {

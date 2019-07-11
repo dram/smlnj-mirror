@@ -71,11 +71,13 @@ status_t HeapIO_Seek (inbuf_t *bp, long offset)
 	    return SUCCESS;
 	}
     }
-    else {
-      if (fseek (bp->file, offset, SEEK_SET) != 0)
+    else if (fseek (bp->file, offset, SEEK_SET) != 0) {
 	Die ("unable to seek on heap image\n");
-      bp->nbytes = 0;		/* just in case? */
     }
+
+    bp->nbytes = 0;		/* just in case? */
+
+    return SUCCESS;
 
 } /* end of HeapIO_Seek */
 
