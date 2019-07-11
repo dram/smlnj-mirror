@@ -190,36 +190,23 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
   /* First we initialize the underlying memory system */
     MEM_InitMemory ();
 
-  /* allocate the base memory object (holds the BIBOP and allocation space) */
+  /* allocate the base memory object that holds the allocation space */
     {
-	size_t	bibopSz;
-
-#ifdef SIZES_C64_ML64
-	bibopSz = BIBOP_L1_SZ * sizeof(l2_bibop_t *);
-#else
-	bibopSz = BIBOP_SZ * sizeof(aid_t);
-#endif
-	baseObj = MEM_AllocMemObj (MAX_NUM_PROCS*params->allocSz + bibopSz);
-	if (baseObj == NIL(mem_obj_t *))
-	    Die ("unable to allocate memory object for BIBOP");
-	BIBOP = (bibop_t)MEMOBJ_BASE(baseObj);
-	allocBase = (ml_val_t *)(((Addr_t)BIBOP) + bibopSz);
+	baseObj = MEM_AllocMemObj (MAX_NUM_PROCS*params->allocSz);
+	if (baseObj == NIL(mem_obj_t *)) {
+	    Die ("unable to allocate memory object for allocation spaces");
+	}
+	allocBase = (ml_val_t *)MEMOBJ_BASE(baseObj);
     }
 
   /* initialize the BIBOP */
 #ifdef SIZES_C64_ML64
-    for (i = 0;  i < BIBOP_L1_SZ;  i++) {
-	BIBOP[i] = &UnmappedL2;
-    }
     for (i = 0;  i < BIBOP_L2_SZ;  i++) {
 	UnmappedL2.tbl[i] = AID_UNMAPPED;
     }
     UnmappedL2.numMapped = 0;
-#else
-    for (i = 0;  i < BIBOP_SZ;  i++) {
-	BIBOP[i] = AID_UNMAPPED;
-    }
 #endif
+    BIBOP = InitBibop();
 
   /* initialize heap descriptor */
     heap = NEW_OBJ(heap_t);
@@ -275,7 +262,7 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
     heap->baseObj = baseObj;
     heap->allocBase = allocBase;
     heap->allocSzB = MAX_NUM_PROCS*params->allocSz;
-    MarkRegion (BIBOP, (ml_val_t *)BIBOP, MEMOBJ_SZB(heap->baseObj), AID_NEW);
+    MarkRegion (BIBOP, (ml_val_t *)MEMOBJ_BASE(baseObj), MEMOBJ_SZB(heap->baseObj), AID_NEW);
 #ifdef VERBOSE
     SayDebug ("NewSpace = [%#x, %#x:%#x), %d bytes\n",
 	heap->allocBase, HEAP_LIMIT(heap),

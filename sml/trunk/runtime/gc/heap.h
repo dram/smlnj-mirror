@@ -57,7 +57,7 @@ struct heap {
     ml_val_t	    *allocBase;		/* The base address of the allocation arena */
     Addr_t	    allocSzB;		/* The size in bytes of the allocation arena */
     mem_obj_t	    *baseObj;		/* The OS memory object that contains the */
-		    			/* BIBOP and allocation arena. */
+		    			/* allocation arena. */
     int		    numGens;		/* The number of active generations. */
     int		    cacheGen;		/* Cache the from-space for gens 1..cacheGen. */
     int		    numMinorGCs;	/* The number of times the allocation space */
