@@ -272,7 +272,7 @@ extern int Flip (heap_t *heap, int min_gc_level);
 extern status_t NewGeneration (gen_t *gen);
 extern void FreeGeneration (heap_t *heap, int g);
 extern void NewDirtyVector (gen_t *gen);
-extern void MarkRegion (bibop_t bibop, ml_val_t *base, Word_t sizeB, aid_t id);
+extern void MarkRegion (bibop_t bibop, ml_val_t *base, Addr_t sizeB, aid_t id);
 extern void ScanWeakPtrs (heap_t *heap);
 
 extern bigobj_desc_t *BO_AllocRegion (heap_t *heap, Addr_t szB);
