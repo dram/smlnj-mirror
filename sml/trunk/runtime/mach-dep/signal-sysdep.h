@@ -361,8 +361,7 @@ extern void SetFSR(int);
 
 #elif defined(TARGET_AMD64)
 
-   extern void FPEEnable ();		/* defined in AMD64.prim.asm */
-#  define SIG_InitFPE()    FPEEnable()
+#  define SIG_InitFPE()
 
 #  if defined(OPSYS_LINUX)
     /** AMD64, LINUX **/
