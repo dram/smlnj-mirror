@@ -94,6 +94,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/07/11]::
++
+The runtime system now builds for the amd64 architecture.  Most of
+the changes relate to the difference between the flat BIBOP on 32-bit
+platforms and the two-level BIBOP on 64-bit platforms.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/07/09]::
 +
 Fix bug bugref:224[] (`Word64.fromLargeInt` fails).  The problem was
