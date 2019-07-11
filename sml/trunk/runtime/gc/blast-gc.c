@@ -761,8 +761,13 @@ PVT bigobj_desc_t *BlastGC_ForwardBigObj (
     bigobj_desc_t   *dp;
     embobj_info_t   *codeInfo;
 
-    for (i = BIBOP_ADDR_TO_INDEX(obj);  !BO_IS_HDR(aid);  aid = BIBOP[--i])
-	continue;
+  /* find the beginning of the region containing the code object */
+    i = BIBOP_ADDR_TO_INDEX(obj);
+    while (! BO_IS_HDR(aid)) {
+	--i;
+	aid = INDEX_TO_PAGEID(BIBOP, i);
+    }
+
     region = (bigobj_region_t *)BIBOP_INDEX_TO_ADDR(i);
     dp = ADDR_TO_BODESC(region, obj);
 

@@ -109,7 +109,7 @@ typedef struct {	    /* An arena header.  This is used for both the regular */
 			    /* arenas and the big-object arena of a generation. */
     int		gen;		/* the generation of this arena */
     int		objKind;	/* the kind of objects in this arena */
-    Unsigned32_t offset;	/* the file position at which this arena starts. */
+    Addr_t	offset;		/* the file position at which this arena starts. */
     union {			/* additional info */
 	struct {		    /* info for regular arenas */
 	    Addr_t	baseAddr;	/* the base address of this arena in the */
