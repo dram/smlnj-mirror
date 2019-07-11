@@ -1,6 +1,7 @@
-/* dlerror.c
+/*! \file dlerror.c
  *
- * COPYRIGHT (c) 2000 by Lucent Technologies, Bell Laboratories
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #ifndef OPSYS_WIN32
@@ -25,23 +26,27 @@ static char *dl_error = NULL;
 
 void dlerror_set (const char *fmt, const char *s)
 {
-  if (dl_error != NULL)
-    free (dl_error);
-  dl_error = malloc (strlen (fmt) + strlen (s) + 1);
-  sprintf (dl_error, fmt, s);
-  dl_error_read = 0;
+    if (dl_error != NIL(const char *)) {
+       FREE (dl_error);
+    }
+    dl_error = MALLOC (strlen (fmt) + strlen (s) + 1);
+    sprintf (dl_error, fmt, s);
+    dl_error_read = 0;
 }
 
 char *dlerror (void)
 {
-  if (dl_error)
-    if (dl_error_read) {
-      free (dl_error);
-      dl_error = NULL;
-    } else
-      dl_error_read = 1;
+    if (dl_error) {
+	if (dl_error_read) {
+	    FREE (dl_error);
+	    dl_error = NIL(char *);
+	}
+	else {
+	    dl_error_read = 1;
+        }
+    }
 
-  return dl_error;
+    return dl_error;
 }
 #endif
 
@@ -51,14 +56,15 @@ char *dlerror (void)
  */
 ml_val_t _ml_U_Dynload_dlerror (ml_state_t *msp, ml_val_t ml_handle)
 {
-  const char *e = dlerror ();
-  ml_val_t r, s;
+    const char *e = dlerror ();
+    ml_val_t r, s;
 
-  if (e == NULL)
-    r = OPTION_NONE;
-  else {
-    s = ML_CString (msp, e);
-    OPTION_SOME (msp, r, s);
-  }
-  return r;
+    if (e == NULL) {
+	r = OPTION_NONE;
+    }
+    else {
+	s = ML_CString (msp, e);
+	OPTION_SOME (msp, r, s);
+    }
+    return r;
 }
