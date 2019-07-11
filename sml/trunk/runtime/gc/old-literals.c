@@ -145,12 +145,13 @@ SayDebug("[%2d]: RAW32L(%d) [...]\n", pc-5, n);
 #endif
 	    ASSERT(n > 0);
 	    spaceReq = CONS_SZB + WORD_SZB + 4 * n;
+	    ASSERT((spaceReq & (WORD_SZB-1)) == 0);
 /* FIXME: for large objects, we should be allocating them in the 1st generation */
 	    GC_CHECK;
 	    ML_AllocWrite (msp, 0, MAKE_DESC(n, DTAG_raw));
-	    for (j = 1;  j <= n;  j++) {
+	    for (j = WORD_SZB/4;  j <= n;  j++) {
 		i = GET32(lits); pc += 4;
-		ML_AllocWrite (msp, j, (ml_val_t)i);
+		ML_AllocWrite32 (msp, j, i);
 	    }
 	    res = ML_Alloc (msp, n);
 	    LIST_cons(msp, stk, res, stk);

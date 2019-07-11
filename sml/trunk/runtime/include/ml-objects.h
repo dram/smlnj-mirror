@@ -41,7 +41,14 @@
 
 /** heap allocation macros **/
 
+/* write an ml_val_t value `x` into the allocation space at offset `i`. */
 #define ML_AllocWrite(msp, i, x)	((((msp)->ml_allocPtr))[(i)] = (x))
+
+/* write a 32-bit value `x` into the allocation space at offset `i`.  Note that
+ * on 64-bit targets, the index is being scaled by 4 bytes (not 8)!
+ */
+#define ML_AllocWrite32(msp, i, x)	\
+	(((Unsigned32_t *)((msp)->ml_allocPtr))[(i)] = (Unsigned32_t)(x))
 
 STATIC_INLINE ml_val_t ML_Alloc (ml_state_t *msp, int n)
 {

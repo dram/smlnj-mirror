@@ -743,13 +743,13 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    SayDebug("[%2d]: RAW32(%d) [...]\n", startPC, arg32.uArg);
 #endif
 	    ASSERT(arg32.uArg > 0);
-/* 64BIT: FIXME: on 64-bit targets, we need to account for alignment padding */
 	    spaceReq = 4*arg32.uArg + WORD_SZB;
+	    ASSERT((spaceReq & (WORD_SZB-1)) == 0);
 /* FIXME: for large objects, we should be allocating them in the 1st generation */
 	    GC_CHECK;
 	    ML_AllocWrite (msp, 0, MAKE_DESC(arg32.uArg, DTAG_raw));
-	    for (ui = 1;  ui <= arg32.uArg;  ui++) {
-		ML_AllocWrite (msp, ui, (ml_val_t)GetI32Arg(&(code[pc])));  pc += 4;
+	    for (ui = WORD_SZB/4;  ui <= arg32.uArg;  ui++) {
+		ML_AllocWrite32 (msp, ui, GetI32Arg(&(code[pc])));  pc += 4;
 	    }
 	    res = ML_Alloc (msp, arg32.uArg);
 	    LIST_cons(msp, stk, res, stk);
