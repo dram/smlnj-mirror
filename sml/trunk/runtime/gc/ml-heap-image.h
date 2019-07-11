@@ -154,9 +154,9 @@ typedef struct {	    /* a header for a big-object */
 /** Pointer tagging operations **/
 #define HIO_ID_BITS		8
 #define HIO_ADDR_BITS		(BITS_PER_WORD-HIO_ID_BITS)
-#define HIO_ADDR_MASK		((1 << HIO_ADDR_BITS) - 1)
+#define HIO_ADDR_MASK		(((Addr_t)1 << HIO_ADDR_BITS) - 1)
 
-#define HIO_TAG_PTR(id,offset)	PTR_CtoML(((id)<<HIO_ADDR_BITS)|(Addr_t)(offset))
+#define HIO_TAG_PTR(id,offset)	PTR_CtoML(((Addr_t)(id) << HIO_ADDR_BITS)|(Addr_t)(offset))
 #define HIO_GET_ID(p)		(PTR_MLtoADDR(p)>>HIO_ADDR_BITS)
 #define HIO_GET_OFFSET(p)	(PTR_MLtoADDR(p) & HIO_ADDR_MASK)
 
