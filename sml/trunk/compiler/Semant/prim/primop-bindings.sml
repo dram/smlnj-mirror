@@ -416,6 +416,7 @@ structure PrimopBindings : sig
 	      ("trunc_int64_to_word", ar(BT.int64Ty, BT.wordTy), P.TRUNC(64, intSz)) :-:
 	      ("trunc_word64_to_int", ar(BT.word64Ty, BT.intTy), P.TRUNC(64, intSz)) :-:
 	      ("copy_int64_to_word64", ar(BT.int64Ty, BT.word64Ty), P.COPY(64, 64)) :-:
+	      ("copy_word_to_int64", ar(BT.wordTy, BT.int64Ty), P.COPY(intSz, 64)) :-:
 	      ("copy_word64_to_int64", ar(BT.word64Ty, BT.int64Ty), P.COPY(64, 64))
 	  else let
 	    in
