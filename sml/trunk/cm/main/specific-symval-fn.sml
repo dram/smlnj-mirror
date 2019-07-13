@@ -14,15 +14,10 @@ functor SpecificSymValFn (val arch: string
     struct
 	local
 	    val (arch, big, size) = (case arch
-		   of "sparc" => ("SPARC", true, 32)
-		    | "alpha32" => ("ALPHA", false, 32)
-		    | "mipsel" => ("MIPS", false, 32)
-		    | "mipseb" => ("MIPS", true, 32)
-		    | "x86" => ("X86", false, 32)
-		    | "hppa" => ("HPPA", false, 32)
-		    | "rs6000" => ("RS6000", false, 32)
+		   of "amd64" => ("AMD64", false, 64)
 		    | "ppc" => ("PPC", true, 32)
-		    | "amd64" => ("AMD64", false, 64)
+		    | "sparc" => ("SPARC", true, 32)
+		    | "x86" => ("X86", false, 32)
 		    | arch => ErrorMsg.impossible ("unknown architecture: " ^ arch)
 		  (* end case *))
 	    val extra_syms = (case abi_variant
