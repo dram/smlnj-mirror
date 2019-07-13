@@ -372,18 +372,23 @@ structure Core =
        * to the functions after CPS optimization.
        *)
 
-      (* "large" (boxed) numbers <-> intinf *)
-(* FIXME: the lhs names are not accurate now that Word64/Int64 are fully supported *)
-	val truncInfLarge = CoreIntInf.truncInf32	(* for `P.TRUNC_INF 32` *)
-	val testInfLarge = CoreIntInf.testInf32		(* for `P.TEST_INF 32` *)
-	val copyLargeInf = CoreIntInf.copy32Inf		(* for `P.COPY_INF 32` *)
-	val extendLargeInf = CoreIntInf.extend32Inf	(* for `P.EXTEND_INF 32` *)
+      (* boxed 32-bit numbers <-> intinf *)
+	val truncInf32 = CoreIntInf.truncInf32		(* for `P.TRUNC_INF 32` *)
+	val testInf32 = CoreIntInf.testInf32		(* for `P.TEST_INF 32` *)
+	val copy32Inf = CoreIntInf.copy32Inf		(* for `P.COPY_INF 32` *)
+	val extend32Inf = CoreIntInf.extend32Inf	(* for `P.EXTEND_INF 32` *)
 
       (* word64-rep (pairs of 32-bit words) <-> intinf *)
 	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)
 	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
 	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)
 	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
+
+(* DEPRECATED -- for backward compatibility with 110.91 *)
+	val truncInfLarge = CoreIntInf.truncInf32	(* for `P.TRUNC_INF 32` *)
+	val testInfLarge = CoreIntInf.testInf32		(* for `P.TEST_INF 32` *)
+	val copyLargeInf = CoreIntInf.copy32Inf		(* for `P.COPY_INF 32` *)
+	val extendLargeInf = CoreIntInf.extend32Inf	(* for `P.EXTEND_INF 32` *)
 
       (* word64-rep (pairs of 32-bit words) -> int *)
 (* do we need these functions? *)
