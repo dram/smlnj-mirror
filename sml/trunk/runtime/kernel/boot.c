@@ -1,6 +1,7 @@
-/* boot.c
+/*! \file boot.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the bootstrap loader for booting from .bin files.
  */
@@ -54,8 +55,8 @@ static int HEX(int c)
 
 /* BootML:
  *
-* Boot the system using the items read from the "bootlist" file.
-*/
+ * Boot the system using the items read from the "bootlist" file.
+ */
 void BootML (const char *bootlist, heap_params_t *heapParams)
 {
     ml_state_t	*msp;
