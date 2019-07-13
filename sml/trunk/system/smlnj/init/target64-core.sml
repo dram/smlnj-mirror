@@ -375,41 +375,11 @@ structure Core =
        * to the functions after CPS optimization.
        *)
 
-      (* "large" (boxed) numbers <-> intinf *)
-(* FIXME: the lhs names are not accurate now that Word64/Int64 are fully supported *)
-	val truncInf32 = CoreIntInf.truncInf32	(* for `P.TRUNC_INF 32` *)
-	val testInf32 = CoreIntInf.testInf32		(* for `P.TEST_INF 32` *)
-	val copy32Inf = CoreIntInf.copy32Inf		(* for `P.COPY_INF 32` *)
-	val extend32Inf = CoreIntInf.extend32Inf	(* for `P.EXTEND_INF 32` *)
-
       (* word64-rep (pairs of 32-bit words) <-> intinf *)
 	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)
 	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
 	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)
 	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
-
-      (* word64-rep (pairs of 32-bit words) -> int *)
-(* do we need these functions? *)
-	val w64ToInt = CoreWord64.toInt
-	val w64ToIntX = CoreWord64.toIntX
-	val i64ToInt = CoreInt64.toInt
-
-      (* word64-rep (pairs of 32-bit words) -> large boxed int  *)
-	val w64ToInt32 = CoreWord64.toInt32
-	val w64ToInt32X = CoreWord64.toInt32X
-	val i64ToInt32 = CoreInt64.toInt32
-
-      (* 64-bit arithmetic operations that do not have direct implementations
-       * on 32-bit targets.
-       *)
-	val i64Mul = CoreInt64.*
-	val i64Div = CoreInt64.div
-	val i64Mod = CoreInt64.mod
-	val i64Quot = CoreInt64.quot
-	val i64Rem = CoreInt64.rem
-	val w64Mul = CoreWord64.*
-	val w64Div = CoreWord64.div
-	val w64Mod = CoreWord64.mod
 
     end (* local *)
 

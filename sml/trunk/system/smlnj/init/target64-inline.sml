@@ -184,9 +184,6 @@ structure InlineT =
         val min     : int64 * int64 -> int64  = InLine.int64_min
         val max     : int64 * int64 -> int64  = InLine.int64_max
         val abs     : int64 -> int64          = InLine.int64_abs
-
-        val extern : int64 -> word32 * word32 = InLine.int64_to_pair
-	val intern : word32 * word32 -> int64 = InLine.int64_from_pair
       end
 
     structure IntInf =
@@ -211,9 +208,11 @@ structure InlineT =
 
       (* extra conversions to 32-bits *)
 (* 64BIT: not sure if we need these? *)
+(*
 	val toInt32 : word -> int32 = InLine.copy_word_to_int32
 	val toWord32 : word -> word32 = InLine.word_to_word32
 	val fromWord32 : word32 -> word = InLine.word32_to_word
+*)
 
         val orb     : word * word -> word = InLine.word_orb
         val xorb    : word * word -> word = InLine.word_xorb
@@ -292,9 +291,6 @@ structure InlineT =
 	val toLargeInt			 = InLine.unsigned_word32_to_intinf
 	val toLargeIntX			 = InLine.signed_word32_to_intinf
 	val fromLargeInt		 = InLine.intinf_to_word32
-
-      (* extra function to support the Int64/Word64 types *)
-	val fromInt32 : int32 -> word32 = InLine.copy_int32_to_word32
 
         val orb : word32 * word32 -> word32	 = InLine.word32_orb
         val xorb : word32 * word32 -> word32	 = InLine.word32_xorb
@@ -479,7 +475,7 @@ structure InlineT =
     structure CPtr =
       struct
 	type t = c_pointer
-	fun hash cp = Word.fromWord64(Word64.rshiftl(InLine.cptr_to_word64 cp, 0w2))
+	fun hash cp = Word.fromLarge(Word64.rshiftl(InLine.cptr_to_word64 cp, 0w2))
 	fun toWord cp = Word64.toLarge(InLine.cptr_to_word64 cp)
       end
 

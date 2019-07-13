@@ -120,19 +120,25 @@ structure TransPrim : sig
 	    lt_arw(lt_tup [elem, lt_int], elem)
           end
 
-  (* pick the name of an infinf conversion from "_Core" based on the size *)
+  (* pick the name of an infinf conversion from "_Core" based on the size; for tagged
+   * numbers, we return the boxed conversion for the ML Value-sized numbers; a second
+   * conversion to/from the tagged representation will be applied to the result/argument.
+   *)
     local
-      fun pickName (tagCvt, boxCvt, num64Cvt) sz =
-	    if (sz <= Target.defaultIntSz) then tagCvt
-	    else if (sz = Target.mlValueSz) then boxCvt
-	    else if (sz = 64) andalso not Target.is64 then num64Cvt
-	    else bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
+      fun pickName (cvt32, cvt64) sz =
+	    if (sz = 64) then cvt64
+	    else if (sz = Target.mlValueSz) then cvt32
+	    else if (sz > Target.defaultIntSz)
+	      then bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
+	    else if Target.is64
+	      then cvt64
+	      else cvt32
     in
 (* TODO: add specialized conversion for default int size *)
-    val truncInf = pickName ("truncInfLarge", "truncInfLarge", "truncInf64")
-    val testInf = pickName ("testInfLarge", "testInfLarge", "testInf64")
-    val copyInf = pickName ("copyLargeInf", "copyLargeInf", "copy64Inf")
-    val extendInf = pickName ("extendLargeInf", "extendLargeInf", "extend64Inf")
+    val truncInf = pickName ("truncInf32", "truncInf64")
+    val testInf = pickName ("testInf32", "testInf64")
+    val copyInf = pickName ("copy32Inf", "copy64Inf")
+    val extendInf = pickName ("extend32Inf", "extend64Inf")
     end (* local *)
 
   (* trans : Primop.primop * Lty.lty * Lty.tyc list
