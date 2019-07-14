@@ -1,13 +1,13 @@
-(*
+(* cells-basis.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  * Description of cell and other updatable cells.
- * 
+ *
  * -- Allen.
- *) 
-
-
-(*
- * Basic utilities on cells
  *)
+
 structure CellsBasis : CELLS_BASIS =
 struct
 
@@ -40,11 +40,11 @@ struct
         {kind             : cellkind,
          counter          : int ref,
 	 dedicated	  : int ref,
-	    (* It is sometimes desirable to allocate dedicated 
+	    (* It is sometimes desirable to allocate dedicated
 	     * pseudo registers that will get rewritten to something else,
-	     * e.g., the virtual frame pointer. 
-	     * Since these registers are never assigned a register  by 
-	     * the register allocator, a limited number of these kinds 
+	     * e.g., the virtual frame pointer.
+	     * Since these registers are never assigned a register  by
+	     * the register allocator, a limited number of these kinds
 	     * of registers may be generated.
 	     *)
          low              : int,
@@ -73,7 +73,7 @@ struct
 
    fun error msg = MLRiscErrorMsg.error ("CellBasis", msg)
 
-   val i2s = Int.toString 
+   val i2s = Int.toString
 
    fun cellkindToString GP = "GP"
      | cellkindToString FP = "FP"
@@ -94,7 +94,7 @@ struct
      | newCellKind{name="CC", ...} = CC
      | newCellKind{name="MEM", ...} = MEM
      | newCellKind{name="CTRL", ...} = CTRL
-     | newCellKind{name, nickname} = 
+     | newCellKind{name, nickname} =
          MISC_KIND(ref(INFO{name=name, nickname=nickname}))
 
    fun chase(CELL{col=ref(ALIASED c), ...}) = chase(c)
@@ -103,20 +103,20 @@ struct
    fun registerId(CELL{col=ref(ALIASED c), ...}) = registerId(c)
      | registerId(CELL{col=ref(MACHINE r), ...}) = r
      | registerId(CELL{col=ref(SPILLED), ...}) = ~1
-     | registerId(CELL{col=ref(PSEUDO), id, ...}) = id  
+     | registerId(CELL{col=ref(PSEUDO), id, ...}) = id
 
    fun registerNum(CELL{col=ref(ALIASED c), ...}) = registerNum(c)
      | registerNum(CELL{col=ref(MACHINE r), desc=DESC{low,...}, ...}) = r-low
      | registerNum(CELL{col=ref SPILLED, id, ...}) = ~1
      | registerNum(CELL{col=ref PSEUDO, id, ...}) = id
 
-   fun physicalRegisterNum(CELL{col=ref(ALIASED c), ...}) = 
+   fun physicalRegisterNum(CELL{col=ref(ALIASED c), ...}) =
           physicalRegisterNum(c)
-     | physicalRegisterNum(CELL{col=ref(MACHINE r), 
+     | physicalRegisterNum(CELL{col=ref(MACHINE r),
                            desc=DESC{low,...}, ...}) = r-low
-     | physicalRegisterNum(CELL{col=ref SPILLED, id, ...}) = 
+     | physicalRegisterNum(CELL{col=ref SPILLED, id, ...}) =
            error("physicalRegisterNum: SPILLED: "^i2s id)
-     | physicalRegisterNum(CELL{col=ref PSEUDO, id, ...}) = 
+     | physicalRegisterNum(CELL{col=ref PSEUDO, id, ...}) =
            error("physicalRegisterNum: PSEUDO: "^i2s id)
 
 
@@ -124,7 +124,7 @@ struct
 
    fun hashCell(CELL{id, ...}) = Word.fromInt id
    fun hashColor c = Word.fromInt(registerId c)
-   fun desc(CELL{desc, ...}) = desc 
+   fun desc(CELL{desc, ...}) = desc
    fun sameCell(c1, c2) = cellId(c1) = cellId(c2)
    fun sameDesc(DESC{counter=x, ...}, DESC{counter=y, ...}) = x=y
    fun sameKind(c1, c2) = sameDesc(desc c1,desc c2)
@@ -134,29 +134,29 @@ struct
    fun cellkind(CELL{desc=DESC{kind, ...}, ...}) = kind
    fun annotations(CELL{an, ...}) = an
 
-   fun setAlias{from, to} = 
+   fun setAlias{from, to} =
    let val CELL{id, col, desc=DESC{kind, ...}, ...} = chase from
        val to as CELL{col=colTo, ...} = chase to
    in  if col = colTo then ()  (* prevent self-loops *)
        else if id < 0 then error "setAlias: constant"
-       else case (!col, kind) 
+       else case (!col, kind)
             of (PSEUDO, _) => col := ALIASED to
              | _           => error "setAlias: non-pseudo"
    end
 
-   fun isConst(CELL{id, ...}) = id < 0 
+   fun isConst(CELL{id, ...}) = id < 0
 
    (* Pretty printing of cells *)
    fun toString(CELL{col=ref(ALIASED c), ...}) = toString(c)
      | toString(c as CELL{desc=DESC{toString, ...}, ...}) =
         toString(registerNum c)
 
-   fun toStringWithSize(c as CELL{desc=DESC{toStringWithSize,...},...},sz) = 
-        toStringWithSize(registerNum c,sz) 
+   fun toStringWithSize(c as CELL{desc=DESC{toStringWithSize,...},...},sz) =
+        toStringWithSize(registerNum c,sz)
 
    fun cnv(r, low, high) = if low <= r andalso r <= high then r - low else r
    fun show(DESC{toString, low, high, ...}) r = toString(cnv(r,low,high))
-   fun showWithSize(DESC{toStringWithSize, low, high, ...}) (r, sz) = 
+   fun showWithSize(DESC{toStringWithSize, low, high, ...}) (r, sz) =
         toStringWithSize(cnv(r,low,high),sz)
 
    structure SortedCells =  struct
@@ -164,40 +164,40 @@ struct
 
       val empty = []
 
-      val size = List.length 
+      val size = List.length
 
       fun enter(cell, l) = let
         val c = registerId cell
         fun f [] = [cell]
-           | f (l as (h::t)) = 
+           | f (l as (h::t)) =
             let val ch = registerId h
-             in  if c < ch then cell::l else if c > ch then h::f t else l 
+             in  if c < ch then cell::l else if c > ch then h::f t else l
             end
       in f l
-      end         
+      end
 
-      fun member(x, l) = 
+      fun member(x, l) =
           let val x = registerId x
-          in  List.exists (fn y => registerId y = x) l 
+          in  List.exists (fn y => registerId y = x) l
           end
 
       fun rmv(cell, l) = let
         val c = registerId cell
         fun f [] = []
-           | f (l as (h::t)) = 
+           | f (l as (h::t)) =
             let val ch = registerId h
-             in  if c = ch then t 
+             in  if c = ch then t
                 else if c < ch then l
                 else h::f l
             end
       in f l
-      end         
- 
+      end
+
       fun uniq (cells) =  List.foldl enter [] (map chase cells)
 
       fun difference([], _) = []
         | difference(l, []) = l
-        | difference(l1 as x::xs, l2 as y::ys) = 
+        | difference(l1 as x::xs, l2 as y::ys) =
           let val cx = registerId x and cy = registerId y
           in  if cx = cy then difference(xs,ys)
               else if cx < cy then x::difference(xs,l2)
@@ -206,7 +206,7 @@ struct
 
       fun union(a, []) = a
         | union([], a) = a
-        | union(l1 as x::xs, l2 as y::ys) = 
+        | union(l1 as x::xs, l2 as y::ys) =
           let val cx = registerId x and cy = registerId y
           in  if cx = cy then x::union(xs,ys)
               else if cx < cy then x::union(xs,l2)
@@ -215,7 +215,7 @@ struct
 
       fun intersect(a, []) = []
         | intersect([], a) = []
-        | intersect(l1 as x::xs, l2 as y::ys) = 
+        | intersect(l1 as x::xs, l2 as y::ys) =
           let val cx = registerId x and cy = registerId y
           in  if cx = cy then x::intersect(xs,ys)
               else if cx < cy then intersect(xs,l2)
@@ -238,7 +238,7 @@ struct
 
       fun emptyIntersection(_, []) = true
         | emptyIntersection([], _) = true
-        | emptyIntersection(l1 as x::xs, l2 as y::ys) = 
+        | emptyIntersection(l1 as x::xs, l2 as y::ys) =
           let val cx = registerId x and cy = registerId y
           in  if cx = cy then false
               else if cx < cy then emptyIntersection(xs,l2)
@@ -247,22 +247,22 @@ struct
 
       fun nonEmptyIntersection(_, []) = false
         | nonEmptyIntersection([], _) = false
-        | nonEmptyIntersection(l1 as x::xs, l2 as y::ys) = 
+        | nonEmptyIntersection(l1 as x::xs, l2 as y::ys) =
           let val cx = registerId x and cy = registerId y
           in  if cx = cy then true
               else if cx < cy then nonEmptyIntersection(xs,l2)
               else nonEmptyIntersection(l1,ys)
           end
     end
- 
-    structure HashTable = 
+
+    structure HashTable =
       HashTableFn(type hash_key = cell
-                  val hashVal = hashCell 
+                  val hashVal = hashCell
                   val sameKey = sameCell)
 
-    structure ColorTable = 
+    structure ColorTable =
       HashTableFn(type hash_key = cell
-                  val hashVal = hashColor 
+                  val hashVal = hashColor
                   val sameKey = sameColor)
 
     structure CellSet =
@@ -272,13 +272,13 @@ struct
 
        fun same(DESC{counter=c1,...}, DESC{counter=c2,...}) = c1=c2
 
-       fun descOf (CELL{desc, ...}) = desc 
+       fun descOf (CELL{desc, ...}) = desc
 
        fun add (r, cellset:cellset) =
        let val k = descOf r
            fun loop [] = [(k,[r])]
-             | loop((x as (k',s))::cellset) = 
-        	if same(k,k') then (k',r::s)::cellset 
+             | loop((x as (k',s))::cellset) =
+        	if same(k,k') then (k',r::s)::cellset
         	else x::loop cellset
        in  loop cellset end
 
@@ -286,10 +286,10 @@ struct
        let val k = descOf r
            val c = registerId r
            fun filter [] = []
-             | filter(r::rs) = if registerId r = c then filter rs 
+             | filter(r::rs) = if registerId r = c then filter rs
                                else r::filter rs
            fun loop [] = []
-             | loop((x as (k',s))::cellset) = 
+             | loop((x as (k',s))::cellset) =
         	if same(k,k') then (k',filter s)::cellset else x::loop cellset
        in  loop cellset end
 
@@ -311,16 +311,16 @@ struct
 
        fun map {from,to} (cellset:cellset) =
        let val CELL{desc=k,...} = from
-           val cf = registerId from 
+           val cf = registerId from
            fun trans r = if registerId r = cf then to else r
            fun loop [] = []
-             | loop((x as (k',s))::cellset) = 
-        	if same(k, k') then (k',List.map trans s)::cellset 
+             | loop((x as (k',s))::cellset) =
+        	if same(k, k') then (k',List.map trans s)::cellset
         	else x::loop cellset
        in  loop cellset end
 
-       val toCellList : cellset -> cell list = 
-           List.foldr (fn ((_,S),S') => S @ S') [] 
+       val toCellList : cellset -> cell list =
+           List.foldr (fn ((_,S),S') => S @ S') []
 
        (* Pretty print cellset *)
        fun printSet(f,set,S) =
@@ -330,7 +330,7 @@ struct
        in  "{"::loop(set, S) end
 
        fun toString' cellset =
-       let fun pr cellset = 
+       let fun pr cellset =
            let fun loop((DESC{kind, ...},s)::rest, S)=
                    (case s of
                       [] => loop(rest, S)
@@ -338,7 +338,7 @@ struct
                             printSet(toString,s," "::loop(rest,S))
                    )
                  | loop([],S) = S
-           in  String.concat(loop(cellset, [])) 
+           in  String.concat(loop(cellset, []))
            end
        in  pr cellset end
 
@@ -346,7 +346,7 @@ struct
      end (* CellSet *)
 
     (*
-     * These annotations specifies definitions and uses 
+     * These annotations specifies definitions and uses
      * for a pseudo instruction.
      *)
    exception DEF_USE of {cellkind:cellkind, defs:cell list, uses:cell list}
@@ -357,9 +357,9 @@ struct
                           "DEFUSE"^cellkindToString cellkind
                       }
     (*
-     * Hack for generating memory aliasing cells 
+     * Hack for generating memory aliasing cells
      *)
-   val memDesc =  
+   val memDesc =
         DESC
         {kind             = MEM,
          counter          = ref 0,
