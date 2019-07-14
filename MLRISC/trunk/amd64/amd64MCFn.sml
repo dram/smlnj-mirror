@@ -1,4 +1,7 @@
-(* amd64MCFn.sml 
+(* amd64MCFn.sml
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Byte encoding for AMD64 instructions.
  *)
@@ -8,7 +11,7 @@ functor AMD64MCFn(
     structure Shuffle : AMD64SHUFFLE where I = Instr
     structure MLTreeEval : MLTREE_EVAL where T = Instr.T
 (*    structure AsmEmitter : INSTRUCTION_EMITTER where I = Instr*)
-  ) : MC_EMIT = 
+  ) : MC_EMIT =
   struct
 
     structure I = Instr
@@ -26,17 +29,17 @@ functor AMD64MCFn(
     fun lexp le = Int32.fromInt (MLTreeEval.valueOf le : int)
 
     val toWord8 = Word8.fromLargeWord o LargeWord.fromLargeInt o Int32.toLarge
-    val eBytes = Word8Vector.fromList 
+    val eBytes = Word8Vector.fromList
     fun eByte i = eBytes [W8.fromInt i]
-    local 
-	val toLWord = (W.fromLargeInt o Int32.toLarge) 
+    local
+	val toLWord = (W.fromLargeInt o Int32.toLarge)
 	fun shift (w,cnt) = W8.fromLargeWord(W.>>(w, cnt))
     in
-    fun eShort i16 = 
+    fun eShort i16 =
 	let val w = toLWord i16
 	in [shift(w, 0w0), shift(w,0w8)]
 	end
-    fun eLong i32 = 
+    fun eLong i32 =
 	let val w = toLWord i32
 	in [shift(w, 0w0), shift(w,0w8), shift(w,0w16), shift(w,0w24)] end
     end
@@ -48,7 +51,7 @@ functor AMD64MCFn(
 
     fun regNumBot8 r = r mod 8
 
-    nonfix mod    
+    nonfix mod
 
     fun scale (n, m) = Word.toIntX(Word.<<(Word.fromInt n, Word.fromInt m))
     fun modrm {mod, reg, rm} = W8.fromInt(scale(mod,6) + scale(reg,3) + rm)
@@ -56,9 +59,9 @@ functor AMD64MCFn(
 
     type reg = int
 
-  (* destination operands *)	
+  (* destination operands *)
     datatype dst_opnd
-      = REG_OPND of reg 
+      = REG_OPND of reg
       | OPCODE_OPND of int
 
     fun immedOpnd (I.Immed i32) = i32
@@ -68,9 +71,9 @@ functor AMD64MCFn(
     local
 
 	datatype size = Zero | Bits8 | Bits32
-	fun size i = 
+	fun size i =
 	    if i = 0 then Zero
-	    else if Int32.<(i, 128) andalso Int32.<=(~128, i) then Bits8 
+	    else if Int32.<(i, 128) andalso Int32.<=(~128, i) then Bits8
 	    else Bits32
 
       (* register usage of an instruction *)
@@ -81,7 +84,7 @@ functor AMD64MCFn(
 	  | regsOfInstr (I.Indexed {base=SOME b, index, ...}) = {indexReg=SOME (regNum b), baseReg=SOME (regNum index)}
 	  | regsOfInstr _ = {indexReg=NONE, baseReg=NONE}
 
-      (* to keep the destination operand at 3 bits, we truncate register operands; the upper bit goes in 
+      (* to keep the destination operand at 3 bits, we truncate register operands; the upper bit goes in
        * the rex byte.
        *)
 	fun eDstOpnd (REG_OPND r) = regNumBot8 r
@@ -92,20 +95,20 @@ functor AMD64MCFn(
 	  | eImmedExt (dst, I.Displace{base, disp, ...}) = let
 	      val dst = eDstOpnd dst
 	      val immed = immedOpnd disp
-	      fun displace (mod, eDisp) = 
-		  if regNum base = rsp then 
+	      fun displace (mod, eDisp) =
+		  if regNum base = rsp then
 		      modrm{mod=mod, reg=dst, rm=4}::
 		      sib{ss=0, index=4, base=rsp} :: eDisp immed
 		  else
 		      modrm{mod=mod, reg=dst, rm=regNum base} :: eDisp immed
 	      in
 		case size immed
-		 of Zero => 
-		    if regNum base = rsp then 
+		 of Zero =>
+		    if regNum base = rsp then
 			[modrm{mod=0, reg=dst, rm=4}, sib{ss=0,index=4,base=rsp}]
 		    else if regNum base = rbp then
 			[modrm{mod=1, reg=dst, rm=rbp}, 0w0]
-		    else 
+		    else
 			[modrm{mod=0, reg=dst, rm=regNum base}]
 		  | Bits8 => displace (1, fn i => [toWord8 i])
 		  | Bits32 => displace (2, eLong)
