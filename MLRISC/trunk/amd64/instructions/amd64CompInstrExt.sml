@@ -65,7 +65,7 @@ struct
       (*esac*))
   in
     case stm
-     of X.PUSHQ(rexp) => emit(I.pushq(operand rexp), an)
+     of X.PUSHQ(rexp) => emit(I.push(operand rexp), an)
       | X.POP(rexp)   => emit(I.pop(operand rexp), an)
       | X.LEAVE	     => emit(I.leave, an)
       | X.RET(rexp)   => emit(I.ret(SOME(operand rexp)), an)

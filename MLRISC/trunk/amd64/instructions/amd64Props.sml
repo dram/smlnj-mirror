@@ -39,10 +39,9 @@ functor AMD64Props (
       | instrKind (I.COPY _) = IK_COPY
       | instrKind (I.INSTR instr) = (case instr
 	of I.NOP => IK_NOP
-	 | ( I.CALL {cutsTo=_::_, ...} | I.CALLQ {cutsTo=_::_, ...} ) =>
-	   IK_CALL_WITH_CUTS
+	 | I.CALL {cutsTo=_::_, ...} => IK_CALL_WITH_CUTS
 	 | ( I.JMP _ | I.JCC _ | I.RET _ | I.INT _ ) => IK_JUMP
-	 | ( I.CALL _ | I. CALLQ _ ) => IK_CALL
+	 | I.CALL _ => IK_CALL
 	 | I.PHI {} => IK_PHI
 	 | I.SOURCE {} => IK_SOURCE
 	 | I.SINK {} => IK_SINK
@@ -76,7 +75,6 @@ functor AMD64Props (
 	 | I.JCC{opnd=I.ImmedLabel(T.LABEL(lab)), ...} =>
 	     [FALLTHROUGH, LABELLED lab]
 	 | I.CALL{cutsTo, ...} => FALLTHROUGH :: List.map LABELLED cutsTo
-	 | I.CALLQ{cutsTo, ...} => FALLTHROUGH :: List.map LABELLED cutsTo
 	 | I.INT _ => [ESCAPES]
 	 |  _ => error "branchTargets")
       | branchTargets _ = error "branchTargets"
@@ -186,8 +184,7 @@ functor AMD64Props (
 	fun push opnd = ([C.stackptrR], operandAcc (opnd, [C.stackptrR]))
 	fun f i = (case i
 	    of ( I.JMP (opnd, _) | I.JCC {opnd, ...} ) => ([], 	operandUse opnd)
-	     | ( I.CALL {opnd, defs, uses, ...} |
-	         I.CALLQ {opnd, defs, uses, ...} )=>
+	     | I.CALL {opnd, defs, uses, ...} =>
  	       (C.getReg defs, operandAcc (opnd, C.getReg uses))
 	     | I.MOVE {src, dst=I.Direct (_, r), ...} => ([r], operandUse src)
 	     | I.MOVE {src, dst, ...} => ([], operandAcc (dst, operandUse src))
@@ -219,9 +216,9 @@ functor AMD64Props (
 	     | ( I.MUL3  {src1, dst, ...} | I.MULQ3 {src1, dst, ...} ) =>
 	       ([dst], operandUse src1)
 	     | ( I.UNARY{opnd, ...} | I.SET {opnd, ...} ) => unary opnd
-	     | (I.PUSHQ arg | I.PUSHL arg | I.PUSHW arg | I.PUSHB arg ) => push arg
+	     | I.PUSH arg => push arg
 	     | I.POP arg => (C.stackptrR::operandDef arg, [C.stackptrR])
-	     | ( I.PUSHFD | I.POPFD )=> rspOnly ()
+	     | ( I.PUSHFQ | I.POPFQ )=> rspOnly ()
 	     | I.CDQ => ([C.rdx], [C.rax]) (* really %edx and %eax *)
 	     | I.CDO => ([C.rdx], [C.rax])
 	     | I.FMOVE {dst, src, ...} => ([], operandAcc (dst, operandUse src))
@@ -262,7 +259,7 @@ functor AMD64Props (
              | I.FCOM {dst, src, ...} => ([], operandAcc (src, [dst]))
              | ( I.FSQRTS {dst, src} | I.FSQRTD {dst, src} )=>
                (operand dst, operand src)
-             | ( I.CALL {defs, uses, ...} | I.CALLQ {defs, uses, ...} ) =>
+             | I.CALL {defs, uses, ...} =>
                (C.getFreg defs, C.getFreg uses)
              | _ => ([], [])
             (* end case *))
@@ -322,9 +319,9 @@ functor AMD64Props (
 	      | I.MOVW => 16
 	      | I.MOVB => 8
 	   (* esac *))
-	 | ( I.CALL _ | I.LEAL _ | I.CMPL _ | I.TESTL _ | I.MUL3 _ )
+	 | ( I.LEAL _ | I.CMPL _ | I.TESTL _ | I.MUL3 _ )
 	     => 32
-	 | ( I.CALLQ _ | I.LEAQ _ | I.CMPQ _ | I.TESTQ _ | I.MULQ3 _ | I.CMOV _)
+	 | ( I.CALL _ | I.LEAQ _ | I.CMPQ _ | I.TESTQ _ | I.MULQ3 _ | I.CMOV _)
 	     => 64
 	 | ( I.CMPW _ | I.TESTW _ ) => 16
 	 | ( I.CMPB _ | I.TESTB _ ) => 8

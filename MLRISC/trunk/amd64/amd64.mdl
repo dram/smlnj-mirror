@@ -443,10 +443,6 @@ architecture AMD64 =
          Call(long opnd) ||
          Kill $cellset[defs] ||
          Use $cellset[uses]
-     rtl CALLQ{opnd,defs,uses} =
-         Call(qword opnd) ||
-         Kill $cellset[defs] ||
-         Use $cellset[uses]
 
 
   end (* RTL *)
@@ -652,16 +648,6 @@ architecture AMD64 =
                 emit_cutsTo cutsTo>''
 	rtl: ``CALL''
 
-    | CALLQ of {opnd: operand, defs: $cellset, uses: $cellset,
-                return: $cellset, cutsTo: Label.label list, mem: Region.region,
- 	        pops:Int32.int}
-	asm: ``call\t<stupidGas opnd><mem><
-          	emit_defs(defs)><
-          	emit_uses(uses)><
-          	emit_cellset("return",return)><
-                emit_cutsTo cutsTo>''
-	rtl: ``CALLQ''
-
     | ENTER of {src1:operand, src2:operand}
 	asm: ``enter\t<emit_operand src1>, <emit_operand src2>''
 
@@ -758,27 +744,15 @@ architecture AMD64 =
 	asm: ``cmov<cond>\t<src>, <dst>''
 	rtl: ``CMOV<cond>''
 
-    | PUSHQ of operand
+    | PUSH of operand
 	asm: ``pushq\t<operand>''
 	rtl: ``PUSHQ''
 
-    | PUSHL of operand
-	asm: ``pushl\t<operand>''
-	rtl: ``PUSHL''
+    | PUSHFQ    (* push $rflags onto stack *)
+	``pushfq''
 
-    | PUSHW of operand
-	asm: ``pushw\t<operand>''
-	rtl: ``PUSHW''
-
-    | PUSHB of operand
-	asm: ``pushb\t<operand>''
-	rtl: ``PUSHB''
-
-    | PUSHFD     (* push $eflags onto stack *)
-	``pushfd''
-
-    | POPFD	(* pop $eflags onto stack *)
-	``popfd''
+    | POPFQ	(* pop $rflags onto stack *)
+	``popfq''
 
     | POP of operand
 	asm: ``popq\t<operand>''

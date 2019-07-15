@@ -265,9 +265,7 @@ struct
 	       if eitherSize(s) orelse either(dst) then 
 		 error "CMOV: FP/SP in conditional move"
 	       else unchanged(I.CMOV{cond=cond, src=operand(src), dst=dst})
-	   | I.PUSHL opnd => changedto(I.PUSHL(operand(opnd)), addToDelta(4))
-	   | I.PUSHW opnd => changedto(I.PUSHW(operand(opnd)), addToDelta(2))
-	   | I.PUSHB opnd => changedto(I.PUSHB(operand(opnd)), addToDelta(1))
+	   | I.PUSH opnd => changedto(I.PUSH(operand(opnd)), addToDelta(4))
 	   | I.POP opnd => changedto(I.POP(operand(opnd)), addToDelta(~4))
 (*
 	   | I.FBINARY{binOp:I.fbinOp, src:I.operand, dst:I.operand} =>

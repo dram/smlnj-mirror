@@ -416,106 +416,103 @@ functor AMD64MCEmitter (
 	      | I.CALL{opnd=I.Relative i,...} =>
 	          eBytes (0wxe8 :: eLong (Int32.fromInt (i-5)))
 	      | I.CALL{opnd, ...} => encode32 (0wxff, OPCODE 2, opnd)
-	      | I.CALLQ _ => unimplemented "CALLQ"
 	      | I.ENTER{src1, src2} => unimplemented "ENTER"
-	      | I.LEAVE => unimplemented "LEAVE"
+	      | I.LEAVE => eByte 0xc9
 	      | I.RET NONE => eByte 0xc3
-(* FIXME: refactor *)
-	      | I.MOVE{mvOp=mvOp as (I.MOVL | I.MOVQ), src, dst} => let
-		  val sz = case mvOp of I.MOVL => 32 | I.MOVQ => 64
-		  fun mv (I.Immed i, I.Direct (_, r)) = (case sz
-			 of 32 => eBytes (Word8.+(0wxb8, Word8.fromInt(rNum r))::eLong(i))
-			  | 64 => let
-			    val (start, reg) = if rNum r < 8
-				  then (0wx48, rNum r)
-				  else (0wx49, rNum r - 8)
-				in
-				  eBytes(start::0wxc7::Word8.+(0wxc0, Word8.fromInt reg)::eLong(i))
-				end
-			  | _ => raise Fail "impossible"
-			(* end case *))
-		    | mv(I.Immed i, _) = encodeLongImm sz (0wxc7, OPCODE 0, dst, i)
-		    | mv(I.Immed64 i, I.Direct (_, r)) = if sz = 32
-			then let
-			  val (start, reg) = if rNum r < 8
-				then ([], rNum r)
-				else ([0wx41], rNum r - 8)
-			  in
-			    eBytes(start@Word8.+(0wxb8, Word8.fromInt reg)::eLongLongCut(i))
-			  end
-			else let
-			  val (start, reg) = if rNum r < 8
-				then (0wx48, rNum r)
-				else (0wx49, rNum r - 8)
-			  in
-			    eBytes(start::Word8.+(0wxb8, Word8.fromInt reg)::eLongLong(i))
-			  end
-		    | mv(I.Immed64 i, _) = error "mv Immed64 _"
-		    | mv(I.ImmedLabel le, dst) = mv(I.Immed(lexp le),dst)
-		    | mv(I.LabelEA le, dst) = error "MOVL: LabelEA"
-		    | mv(src,dst) = arith(sz, 0wx88, OPCODE 0) (src, dst)
-		  in
-		    mv(src,dst)
-		  end
-	      | I.MOVE{mvOp=I.MOVB, dst, src=I.Immed(i)} => (case size i
-		   of Bits32 => error "MOVE: MOVB: imm8"
-		    | _ => encodeByteImm32 (0wxc6, OPCODE 0, dst, i)
-		  (*esac*))
-	      | I.MOVE{mvOp=I.MOVB, dst, src=I.Direct (_, r)} =>
-		  encodeReg32 (0wx88, r, dst)
-	      | I.MOVE{mvOp=I.MOVB, dst=I.Direct (_, r), src} =>
-		  encodeReg32 (0wx8a, r, src)
-	      | I.MOVE{mvOp=I.MOVABSQ, dst, src=I.Immed64 i} => let
-		  val I.Direct (_, r) = dst
-		  val (start, reg) = if rNum r < 8
-			then (0wx48, rNum r)
-			else (0wx49, rNum r - 8)
-		  in
-		    eBytes(start::(0wxb8+Word8.fromInt reg)::eLongLong(i))
-		  end
-	      | I.MOVE{mvOp=I.MOVABSQ, dst, src} => (case dst
-		   of I.Direct (_ ,r) => let
-			val p = rNum r
-			val byte1 = if p < 8 then 0wx48 else 0wx49
-			val byte2 = 0wxb8 + Word8.fromInt (if p < 8 then p else p - 8)
-			val labexp = (case src
-			       of I.ImmedLabel x => x
-				| I.LabelEA _ => (error "MOVABSQc"; Instr.T.???)
-				| I.Immed _ => (error "MOVABSQd"; Instr.T.???)
-				| I.Immed64 _ => (error "MOVABSQe"; Instr.T.???)
-				| _ => (error "MOVABSQa"; Instr.T.???)
+	      | I.MOVE{mvOp, src, dst} => let
+		(* emit basic MOV operation *)
+		  fun mov sz = (case (src, dst)
+		         of (I.Immed i, I.Direct (_, r)) => (case sz
+			       of 32 => eBytes (Word8.+(0wxb8, Word8.fromInt(rNum r))::eLong(i))
+				| 64 => let
+				  val (start, reg) = if rNum r < 8
+					then (0wx48, rNum r)
+					else (0wx49, rNum r - 8)
+				      in
+					eBytes(start::0wxc7::Word8.+(0wxc0, Word8.fromInt reg)::eLong(i))
+				      end
+				| _ => raise Fail "impossible"
 			      (* end case *))
-			val byten = eLong (lexp labexp) (* XXX should be 64 bits *)
-			val hilong = if (lexp labexp) < 0
-			      then [0wxff, 0wxff, 0wxff, 0wxff]
-			      else eLong 0
-			in
-			  Word8Vector.fromList ([byte1, byte2] @ byten @ hilong)
-			end
-		    | _ => (error "MOVABSQb"; Word8Vector.fromList [])
-                  (* end case *))
-	      | I.MOVE{mvOp, src=I.Immed _, ...} => error "MOVE: Immed"
-	      | I.MOVE{mvOp=I.MOVZBQ, src, dst=I.Direct (ty, r)} => let
-                  val (start, re) = if rNum r < 8
-			then (0wx48, rNum r)
-			else (0wx49, rNum r - 8)
-                  in
-                    eBytes(encode64' ([0wxf, 0wxb6], REG (rNum r), src))
-                  end
-	      | I.MOVE{mvOp, src, dst=I.Direct (_, r)} => let
-	          val byte2 = (case mvOp
-			 of I.MOVZBL => 0wxb6
-			  | I.MOVZWL => 0wxb7
-			  | I.MOVSBL => 0wxbe
-			  | I.MOVSWL => 0wxbf
-			  | _ => error "MOV[SZ]X"
+			  | (I.Immed i, _) => encodeLongImm sz (0wxc7, OPCODE 0, dst, i)
+			  | (I.Immed64 i, I.Direct (_, r)) => if sz = 32
+			      then let
+				val (start, reg) = if rNum r < 8
+				      then ([], rNum r)
+				      else ([0wx41], rNum r - 8)
+				in
+				  eBytes(start@Word8.+(0wxb8, Word8.fromInt reg)::eLongLongCut(i))
+				end
+			      else let
+				val (start, reg) = if rNum r < 8
+				      then (0wx48, rNum r)
+				      else (0wx49, rNum r - 8)
+				in
+				  eBytes(start::Word8.+(0wxb8, Word8.fromInt reg)::eLongLong(i))
+				end
+			  | (I.Immed64 i, _) => error " Immed64 _"
+			  | (I.ImmedLabel le, dst) =>
+			      encodeLongImm sz (0wxc7, OPCODE 0, dst, lexp le)
+			  | (I.LabelEA le, dst) => error "MOVL: LabelEA"
+			  | (src, dst) => arith(sz, 0wx88, OPCODE 0) (src, dst)
 			(* end case *))
-	          in
-		    eBytes (encode32' ([0wx0f, byte2], REG (rNum r), src))
+		(* zero and sign-extension moves for 16/32-bit results *)
+		  fun extend (opc, r) = eBytes (encode32' ([0wx0f, opc], REG(rNum r), src))
+		(* utility to compute rex and adjusted register *)
+		  fun rexReg r = if r >= 8
+			then (0wx48, r)
+			else (0wx49, r - 8)
+		(* zero and sign-extension moves for 64-bit results *)
+		  fun extend64 (opc, r) = let
+			val (rex, r) = rexReg(rNum r)
+			in
+			  eBytes (rex :: encode32' ([0wx0f, opc], REG r, src))
+			end
+		  in
+		    case (mvOp, src, dst)
+		     of (I.MOVQ, _, _) => mov 64
+		      | (I.MOVL, _, _) => mov 32
+		      | (I.MOVB, I.Immed i, _) => (case size i
+			   of Bits32 => error "MOVE: MOVB: imm8"
+			    | _ => encodeByteImm32 (0wxc6, OPCODE 0, dst, i)
+			  (* end case *))
+		      | (I.MOVB, I.Direct(_, r), _) => encodeReg32 (0wx88, r, dst)
+		      | (I.MOVB, _, I.Direct(_, r)) => encodeReg32 (0wx8a, r, src)
+		      | (I.MOVW, _, I.Direct(_, r)) =>
+			  eBytes (0wx66 :: encode32' ([0wx89], REG (rNum r), dst))
+		      | (I.MOVW, _, _) => unimplemented "MOVW"
+		      | (I.MOVABSQ, I.Immed64 i, I.Direct(_, r)) => let
+			  val (rex, reg) = rexReg (rNum r)
+			  in
+			    eBytes(rex :: (0wxb8+Word8.fromInt reg) :: eLongLong i)
+			  end
+		      | (I.MOVABSQ, I.ImmedLabel labexp, I.Direct(_ ,r)) => let
+			  val p = rNum r
+			  val byte1 = if p < 8 then 0wx48 else 0wx49
+			  val byte2 = 0wxb8 + Word8.fromInt (if p < 8 then p else p - 8)
+			  val byten = eLong (lexp labexp) (* FIXME: should be 64 bits *)
+			  val hilong = if (lexp labexp) < 0
+				then [0wxff, 0wxff, 0wxff, 0wxff]
+				else eLong 0
+			  in
+			    eBytes ([byte1, byte2] @ byten @ hilong)
+			  end
+		      | (I.MOVABSQ, _, _) => unimplemented "MOVABSQ"
+		      | (I.MOVSWQ, _, I.Direct(_, r)) => extend64 (0wxbf, r)
+		      | (I.MOVZWQ, _, I.Direct(_, r)) => extend64 (0wxb7, r)
+		      | (I.MOVSWL, _, I.Direct(_, r)) => extend (0wxbf, r)
+		      | (I.MOVZWL, _, I.Direct(_, r)) => extend (0wxb7, r)
+		      | (I.MOVSBQ, _, I.Direct(_, r)) => extend64 (0wxbe, r)
+		      | (I.MOVZBQ, _, I.Direct(_, r)) => extend64 (0wxb6, r)
+		      | (I.MOVSBL, _, I.Direct(_, r)) => extend (0wxbe, r)
+		      | (I.MOVZBL, _, I.Direct(_, r)) => extend (0wxb6, r)
+		      | (I.MOVSLQ, _, I.Direct(_, r)) => extend64 (0wx63, r)
+		      | (I.CVTSD2SI, _, I.Direct(_, r)) => unimplemented "CVTSD2SI"
+		      | (I.CVTSS2SI, _, I.Direct(_, r)) => unimplemented "CVTSS2SI"
+		      | (I.CVTSD2SIQ, _, I.Direct(_, r)) => unimplemented "CVTSD2SIQ"
+		      | (I.CVTSS2SIQ, _, I.Direct(_, r)) => unimplemented "CVTSS2SIQ"
+		      | _ => error "MOVE"
+		    (* end case *)
 		  end
-	      | I.MOVE{mvOp=I.MOVW, dst, src=I.Direct (_, r)} =>
-		  eBytes (0wx66 :: encode32' ([0wx89], REG (rNum r), dst))
-	      | I.MOVE _ => error "MOVE"
 	      | I.LEAL{r32, addr} => encodeReg32(0wx8d, r32, addr)
 	      | I.LEAQ{r64, addr} => encodeReg64(0wx8d, r64, addr)
 	      | I.CMPQ{lsrc, rsrc} => arith(64, 0wx38, OPCODE 7) (rsrc, lsrc)
@@ -558,9 +555,9 @@ functor AMD64MCEmitter (
 		  end
 	      | I.BINARY{binOp, src, dst} => let
 		  fun shift (sz, code) = (case src
-			 of I.Immed (1) => encode sz (0wxd1, OPCODE code, dst)
-			  | I.Immed (n) => encodeByteImm sz (0wxc1, OPCODE code, dst, n)
-			  | I.Direct (_, r) => if rNum r <> ecx
+			 of I.Immed 1 => encode sz (0wxd1, OPCODE code, dst)
+			  | I.Immed n => encodeByteImm sz (0wxc1, OPCODE code, dst, n)
+			  | I.Direct(_, r) => if rNum r <> ecx
 			      then error "shift: Direct"
 			      else encode sz (0wxd3, OPCODE code, dst)
 (*			  | I.MemReg _ => shift(code, memReg src) *)
@@ -581,11 +578,11 @@ functor AMD64MCEmitter (
 			(* end case *))
 *)
 		  fun mul sz = (case (src, dst)
-			 of (I.Immed(i), I.Direct (_, dstR)) => (case size i
+			 of (I.Immed i, I.Direct(_, dstR)) => (case size i
 			       of Bits32 => encodeLongImm sz (0wx69, REG (rNum dstR), dst, i)
 				| _ => encodeByteImm sz (0wx6b, REG (rNum dstR), dst, i)
 			      (* esac *))
-			  | (_, I.Direct (_, dstR)) =>
+			  | (_, I.Direct(_, dstR)) =>
 			      eBytes (encode32' ([0wx0f, 0wxaf], REG (rNum dstR), src))
 			  | _ => error "imul"
 			(* esac *))
@@ -733,15 +730,27 @@ functor AMD64MCEmitter (
 	          eBytes (encode32' ([0wx0f, Word8.+(0wx90,condCode cond)], REG 0, opnd))
 	      | I.CMOV{cond,src,dst} =>
 		  eBytes (encode32' ([0wx0f, Word8.+(condCode cond,0wx40)], REG (rNum dst), src))
-	      | ( I.PUSHL (I.Immed i) | I.PUSHQ (I.Immed i) ) => (case size i
-		   of Bits32 => eBytes(0wx68 :: eLong(i))
+	      | I.PUSH(I.Immed i) => (case size i
+		   of Bits32 => eBytes(0wx68 :: eLong i)
 		    | _ => eBytes [0wx6a, toWord8 i]
 		  (* esac *))
-	      | ( I.PUSHL (I.Direct (_, r)) | I.PUSHQ (I.Direct (_, r)) ) => eByte (0x50+rNum r)
-	      | ( I.PUSHL opnd | I.PUSHQ opnd ) => encode32 (0wxff, OPCODE 6, opnd)
-	      | I.PUSHFD => unimplemented "PUSHFD"
-	      | I.POPFD => unimplemented "POPFD"
-	      | I.POP (I.Direct (_, r)) => eByte (0x58+rNum r)
+	      | I.PUSH(I.Direct(_, r)) => let
+		  val r = rNum r
+		  in
+		    if (r < 8)
+		      then eByte (0x50 + r)
+		      else eBytes [0wx41, 0wx50 + Word8.fromInt(r - 8)]
+		  end
+	      | I.PUSH opnd => encode32 (0wxff, OPCODE 6, opnd)
+	      | I.PUSHFQ => eByte 0x9c
+	      | I.POPFQ => eByte 0x9d
+	      | I.POP(I.Direct(_, r)) => let
+		  val r = rNum r
+		  in
+		    if (r < 8)
+		      then eByte (0x58 + r)
+		      else eBytes [0wx41, 0wx58 + Word8.fromInt(r - 8)]
+		  end
 	      | I.POP opnd => encode32 (0wx8f, OPCODE 0, opnd)
 	      | I.CDQ => eByte 0x99
 	      | I.CDO => eBytes [0wx48, 0wx99]

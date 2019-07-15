@@ -368,11 +368,6 @@ functor AMD64SpillInstr (
 			    return=return, uses=uses, 
 			    cutsTo=cutsTo, mem=mem, pops=pops}, an)],
 	            proh=[], newReg=NONE}
-	         | I.CALLQ {opnd, defs, uses, return, cutsTo, mem, pops} =>
-		   {code=[mark (I.CALLQ {opnd=opnd, defs=C.rmvFreg (r, defs), 
-			    return=return, uses=uses, 
-			    cutsTo=cutsTo, mem=mem, pops=pops}, an)],
-	            proh=[], newReg=NONE}
      	         | _ => error "spillF"
     	      (* end case *))
     	    end (* spill *)
@@ -565,10 +560,7 @@ functor AMD64SpillInstr (
 		   I.UNARY{unOp=unOp, opnd=operand(opnd, tmpR)})
 		 | I.SET{cond, opnd} => withTmpAvail (fn tmpR => 
 		   I.SET{cond=cond, opnd=operand(opnd, tmpR)})
-		 | I.PUSHQ arg => reloadPush (I.PUSHQ, arg, an)
-		 | I.PUSHL arg => reloadPush (I.PUSHL, arg, an)
-		 | I.PUSHW arg => reloadPush (I.PUSHW, arg, an)
-		 | I.PUSHB arg => reloadPush (I.PUSHB, arg, an)
+		 | I.PUSH arg => reloadPush (I.PUSH, arg, an)
 		 | I.FMOVE {fmvOp, src, dst} => withTmpAvail (fn tmp =>
 		   I.FMOVE {fmvOp=fmvOp, src=operand (src, tmp), 
 		            dst=operand (dst, tmp)})
@@ -665,11 +657,6 @@ functor AMD64SpillInstr (
                    else {code=[mark (I.FSQRTD {src=spillLoc, dst=dst}, an)], proh=[], newReg=NONE}
                  | I.CALL {opnd, defs, uses, return, cutsTo, mem, pops} =>
                    {code=[mark (I.CALL {opnd=opnd, defs=C.rmvReg (r, defs), 
-                                        uses=uses, return=return, cutsTo=cutsTo,
-                                        mem=mem, pops=pops}, an)],
-                    proh=[], newReg=NONE}
-                 | I.CALLQ {opnd, defs, uses, return, cutsTo, mem, pops} =>
-                   {code=[mark (I.CALLQ {opnd=opnd, defs=C.rmvReg (r, defs), 
                                         uses=uses, return=return, cutsTo=cutsTo,
                                         mem=mem, pops=pops}, an)],
                     proh=[], newReg=NONE}

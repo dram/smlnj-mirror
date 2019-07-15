@@ -23,7 +23,7 @@ sig
    | Direct of int * (CellsBasis.cell)
    | FDirect of CellsBasis.cell
    | Displace of {base:CellsBasis.cell, disp:operand, mem:Region.region}
-   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int, 
+   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int,
         disp:operand, mem:Region.region}
    type addressing_mode = operand
    type ea = operand
@@ -225,9 +225,7 @@ sig
      NOP
    | JMP of operand * Label.label list
    | JCC of {cond:cond, opnd:operand}
-   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
-        cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
-   | CALLQ of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
         cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
    | ENTER of {src1:operand, src2:operand}
    | LEAVE
@@ -252,12 +250,9 @@ sig
    | UNARY of {unOp:unaryOp, opnd:operand}
    | SET of {cond:cond, opnd:operand}
    | CMOV of {cond:cond, src:operand, dst:CellsBasis.cell}
-   | PUSHQ of operand
-   | PUSHL of operand
-   | PUSHW of operand
-   | PUSHB of operand
-   | PUSHFD
-   | POPFD
+   | PUSH of operand
+   | PUSHFQ
+   | POPFQ
    | POP of operand
    | CDQ
    | CDO
@@ -284,7 +279,7 @@ sig
    and instruction =
      LIVE of {regs: C.cellset, spilled: C.cellset}
    | KILL of {regs: C.cellset, spilled: C.cellset}
-   | COPY of {k: CellsBasis.cellkind, 
+   | COPY of {k: CellsBasis.cellkind,
               sz: int,          (* in bits *)
               dst: CellsBasis.cell list,
               src: CellsBasis.cell list,
@@ -294,9 +289,7 @@ sig
    val nop : instruction
    val jmp : operand * Label.label list -> instruction
    val jcc : {cond:cond, opnd:operand} -> instruction
-   val call : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
-      cutsTo:Label.label list, mem:Region.region, pops:Int32.int} -> instruction
-   val callq : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   val call : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
       cutsTo:Label.label list, mem:Region.region, pops:Int32.int} -> instruction
    val enter : {src1:operand, src2:operand} -> instruction
    val leave : instruction
@@ -321,12 +314,9 @@ sig
    val unary : {unOp:unaryOp, opnd:operand} -> instruction
    val set : {cond:cond, opnd:operand} -> instruction
    val cmov : {cond:cond, src:operand, dst:CellsBasis.cell} -> instruction
-   val pushq : operand -> instruction
-   val pushl : operand -> instruction
-   val pushw : operand -> instruction
-   val pushb : operand -> instruction
-   val pushfd : instruction
-   val popfd : instruction
+   val push : operand -> instruction
+   val pushfq : instruction
+   val popfq : instruction
    val pop : operand -> instruction
    val cdq : instruction
    val cdo : instruction
@@ -369,7 +359,7 @@ struct
    | Direct of int * (CellsBasis.cell)
    | FDirect of CellsBasis.cell
    | Displace of {base:CellsBasis.cell, disp:operand, mem:Region.region}
-   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int, 
+   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int,
         disp:operand, mem:Region.region}
    type addressing_mode = operand
    type ea = operand
@@ -571,9 +561,7 @@ struct
      NOP
    | JMP of operand * Label.label list
    | JCC of {cond:cond, opnd:operand}
-   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
-        cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
-   | CALLQ of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
         cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
    | ENTER of {src1:operand, src2:operand}
    | LEAVE
@@ -598,12 +586,9 @@ struct
    | UNARY of {unOp:unaryOp, opnd:operand}
    | SET of {cond:cond, opnd:operand}
    | CMOV of {cond:cond, src:operand, dst:CellsBasis.cell}
-   | PUSHQ of operand
-   | PUSHL of operand
-   | PUSHW of operand
-   | PUSHB of operand
-   | PUSHFD
-   | POPFD
+   | PUSH of operand
+   | PUSHFQ
+   | POPFQ
    | POP of operand
    | CDQ
    | CDO
@@ -630,7 +615,7 @@ struct
    and instruction =
      LIVE of {regs: C.cellset, spilled: C.cellset}
    | KILL of {regs: C.cellset, spilled: C.cellset}
-   | COPY of {k: CellsBasis.cellkind, 
+   | COPY of {k: CellsBasis.cellkind,
               sz: int,          (* in bits *)
               dst: CellsBasis.cell list,
               src: CellsBasis.cell list,
@@ -641,7 +626,6 @@ struct
    and jmp = INSTR o JMP
    and jcc = INSTR o JCC
    and call = INSTR o CALL
-   and callq = INSTR o CALLQ
    and enter = INSTR o ENTER
    and leave = INSTR LEAVE
    and ret = INSTR o RET
@@ -665,12 +649,9 @@ struct
    and unary = INSTR o UNARY
    and set = INSTR o SET
    and cmov = INSTR o CMOV
-   and pushq = INSTR o PUSHQ
-   and pushl = INSTR o PUSHL
-   and pushw = INSTR o PUSHW
-   and pushb = INSTR o PUSHB
-   and pushfd = INSTR PUSHFD
-   and popfd = INSTR POPFD
+   and push = INSTR o PUSH
+   and pushfq = INSTR PUSHFQ
+   and popfq = INSTR POPFQ
    and pop = INSTR o POP
    and cdq = INSTR CDQ
    and cdo = INSTR CDO

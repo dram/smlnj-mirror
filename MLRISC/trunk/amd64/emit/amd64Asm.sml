@@ -266,36 +266,36 @@ struct
      | asm_isize (I.I64) = "64"
    and emit_isize x = emit (asm_isize x)
 
-(*#line 513.7 "amd64/amd64.mdl"*)
+(*#line 509.7 "amd64/amd64.mdl"*)
    fun emitInt32 i = 
        let 
-(*#line 514.11 "amd64/amd64.mdl"*)
+(*#line 510.11 "amd64/amd64.mdl"*)
            val s = Int32.toString i
 
-(*#line 515.11 "amd64/amd64.mdl"*)
+(*#line 511.11 "amd64/amd64.mdl"*)
            val s = (if (i >= 0)
                   then s
                   else ("-" ^ (String.substring (s, 1, (size s) - 1))))
        in emit s
        end
 
-(*#line 519.7 "amd64/amd64.mdl"*)
+(*#line 515.7 "amd64/amd64.mdl"*)
    fun emitInt64 i = 
        let 
-(*#line 520.11 "amd64/amd64.mdl"*)
+(*#line 516.11 "amd64/amd64.mdl"*)
            val s = Int64.toString i
 
-(*#line 521.11 "amd64/amd64.mdl"*)
+(*#line 517.11 "amd64/amd64.mdl"*)
            val s = (if (i >= 0)
                   then s
                   else ("-" ^ (String.substring (s, 1, (size s) - 1))))
        in emit s
        end
 
-(*#line 526.7 "amd64/amd64.mdl"*)
+(*#line 522.7 "amd64/amd64.mdl"*)
    val {low=SToffset, ...} = C.cellRange CellsBasis.FP
 
-(*#line 528.7 "amd64/amd64.mdl"*)
+(*#line 524.7 "amd64/amd64.mdl"*)
    fun emitScale 0 = emit "1"
      | emitScale 1 = emit "2"
      | emitScale 2 = emit "4"
@@ -352,23 +352,23 @@ struct
      | emit_disp (I.ImmedLabel lexp) = emit_labexp lexp
      | emit_disp _ = error "emit_disp"
 
-(*#line 576.7 "amd64/amd64.mdl"*)
+(*#line 572.7 "amd64/amd64.mdl"*)
    fun stupidGas (I.ImmedLabel lexp) = emit_labexp lexp
      | stupidGas opnd = 
        ( emit "*"; 
          emit_operand opnd )
 
-(*#line 580.7 "amd64/amd64.mdl"*)
+(*#line 576.7 "amd64/amd64.mdl"*)
    fun isMemOpnd (I.FDirect f) = true
      | isMemOpnd (I.LabelEA _) = true
      | isMemOpnd (I.Displace _) = true
      | isMemOpnd (I.Indexed _) = true
      | isMemOpnd _ = false
 
-(*#line 585.7 "amd64/amd64.mdl"*)
+(*#line 581.7 "amd64/amd64.mdl"*)
    fun chop fbinOp = 
        let 
-(*#line 586.15 "amd64/amd64.mdl"*)
+(*#line 582.15 "amd64/amd64.mdl"*)
            val n = size fbinOp
        in 
           (case Char.toLower (String.sub (fbinOp, n - 1)) of
@@ -377,37 +377,37 @@ struct
           )
        end
 
-(*#line 592.7 "amd64/amd64.mdl"*)
+(*#line 588.7 "amd64/amd64.mdl"*)
    val emit_dst = emit_operand
 
-(*#line 593.7 "amd64/amd64.mdl"*)
+(*#line 589.7 "amd64/amd64.mdl"*)
    val emit_src = emit_operand
 
-(*#line 594.7 "amd64/amd64.mdl"*)
+(*#line 590.7 "amd64/amd64.mdl"*)
    val emit_opnd = emit_operand
 
-(*#line 595.7 "amd64/amd64.mdl"*)
+(*#line 591.7 "amd64/amd64.mdl"*)
    val emit_opnd8 = emit_operand8
 
-(*#line 596.7 "amd64/amd64.mdl"*)
+(*#line 592.7 "amd64/amd64.mdl"*)
    val emit_rsrc = emit_operand
 
-(*#line 597.7 "amd64/amd64.mdl"*)
+(*#line 593.7 "amd64/amd64.mdl"*)
    val emit_lsrc = emit_operand
 
-(*#line 598.7 "amd64/amd64.mdl"*)
+(*#line 594.7 "amd64/amd64.mdl"*)
    val emit_addr = emit_operand
 
-(*#line 599.7 "amd64/amd64.mdl"*)
+(*#line 595.7 "amd64/amd64.mdl"*)
    val emit_src1 = emit_operand
 
-(*#line 600.7 "amd64/amd64.mdl"*)
+(*#line 596.7 "amd64/amd64.mdl"*)
    val emit_ea = emit_operand
 
-(*#line 601.7 "amd64/amd64.mdl"*)
+(*#line 597.7 "amd64/amd64.mdl"*)
    val emit_count = emit_operand
 
-(*#line 602.7 "amd64/amd64.mdl"*)
+(*#line 598.7 "amd64/amd64.mdl"*)
    fun emit_byte b = 
        ( emit "$0x"; 
          emit (Word8.toString b))
@@ -423,14 +423,6 @@ struct
            emit "\t"; 
            stupidGas opnd )
        | I.CALL{opnd, defs, uses, return, cutsTo, mem, pops} => 
-         ( emit "call\t"; 
-           stupidGas opnd; 
-           emit_region mem; 
-           emit_defs defs; 
-           emit_uses uses; 
-           emit_cellset ("return", return); 
-           emit_cutsTo cutsTo )
-       | I.CALLQ{opnd, defs, uses, return, cutsTo, mem, pops} => 
          ( emit "call\t"; 
            stupidGas opnd; 
            emit_region mem; 
@@ -591,20 +583,11 @@ struct
            emit_src src; 
            emit ", "; 
            emitCell dst )
-       | I.PUSHQ operand => 
+       | I.PUSH operand => 
          ( emit "pushq\t"; 
            emit_operand operand )
-       | I.PUSHL operand => 
-         ( emit "pushl\t"; 
-           emit_operand operand )
-       | I.PUSHW operand => 
-         ( emit "pushw\t"; 
-           emit_operand operand )
-       | I.PUSHB operand => 
-         ( emit "pushb\t"; 
-           emit_operand operand )
-       | I.PUSHFD => emit "pushfd"
-       | I.POPFD => emit "popfd"
+       | I.PUSHFQ => emit "pushfq"
+       | I.POPFQ => emit "popfq"
        | I.POP operand => 
          ( emit "popq\t"; 
            emit_operand operand )

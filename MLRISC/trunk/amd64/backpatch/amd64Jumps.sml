@@ -48,7 +48,7 @@ struct
 	   | I.UNARY{opnd, ...} => operand opnd
 	   | I.SET{opnd, ...} => operand opnd
 	   | I.CMOV{src, dst, ...} => operand src 
-	   | (I.PUSHQ opnd | I.PUSHL opnd | I.PUSHW opnd | I.PUSHB opnd) => operand opnd
+	   | I.PUSH opnd => operand opnd
 	   | I.POP opnd =>  operand opnd
 	   | _ => false
       end

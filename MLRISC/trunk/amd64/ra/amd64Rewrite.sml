@@ -53,11 +53,6 @@ functor AMD64Rewrite (Instr : AMD64INSTR) : sig
 		    uses=CB.CellSet.map {from=rs,to=rd} uses, cutsTo=cutsTo,
 		    mem=mem, pops=pops
 		  }
-	      | I.CALLQ{opnd, defs, uses, return, cutsTo, mem, pops} => I.CALLQ{
-		    opnd=operand opnd, defs=defs, return=return,
-		    uses=CB.CellSet.map {from=rs,to=rd} uses, cutsTo=cutsTo,
-		    mem=mem, pops=pops
-		  }
 	      | I.MOVE{mvOp, src, dst as I.Direct _} => I.MOVE{mvOp=mvOp, src=operand src, dst=dst}
 	      | I.MOVE{mvOp, src, dst} => I.MOVE{mvOp=mvOp, src=operand src, dst=operand dst}
 	      | I.LEAL{r32, addr} => I.LEAL{r32=r32, addr=operand addr}
@@ -84,10 +79,7 @@ functor AMD64Rewrite (Instr : AMD64INSTR) : sig
 	      | I.SET{cond, opnd} => I.SET{cond=cond, opnd=operand opnd}
 (* Q: what if dst is not I.Direct? *)
 	      | I.CMOV{cond, src, dst} => I.CMOV{cond=cond, src=operand src, dst=dst}
-	      | I.PUSHQ opnd => I.PUSHQ(operand opnd)
-	      | I.PUSHL opnd => I.PUSHL(operand opnd)
-	      | I.PUSHW opnd => I.PUSHW(operand opnd)
-	      | I.PUSHB opnd => I.PUSHB(operand opnd)
+	      | I.PUSH opnd => I.PUSH(operand opnd)
 	      | I.POP opnd => I.POP(operand opnd)
 	      | I.FMOVE{fmvOp, src, dst} => I.FMOVE{fmvOp=fmvOp, src=operand src, dst=operand dst}
 	      | I.FBINOP{binOp, dst, src} => I.FBINOP{binOp=binOp, src=operand src, dst=dst}
@@ -109,12 +101,6 @@ functor AMD64Rewrite (Instr : AMD64INSTR) : sig
 	  in
 	    case instr
 	     of I.CALL{opnd, defs, uses, return, cutsTo, mem, pops} => I.CALL{
-		    opnd=opnd, cutsTo=cutsTo, pops=pops,
-		    return=CB.CellSet.map {from=rs,to=rd} return,
-		    defs=CB.CellSet.map {from=rs,to=rd} defs,
-		    uses=uses, mem=mem
-		  }
-	      | I.CALLQ{opnd, defs, uses, return, cutsTo, mem, pops} => I.CALLQ{
 		    opnd=opnd, cutsTo=cutsTo, pops=pops,
 		    return=CB.CellSet.map {from=rs,to=rd} return,
 		    defs=CB.CellSet.map {from=rs,to=rd} defs,
@@ -162,12 +148,6 @@ functor AMD64Rewrite (Instr : AMD64INSTR) : sig
 	  in
 	    case instr
 	     of I.CALL{opnd, defs, uses, return, cutsTo, mem, pops} => I.CALL{
-		    opnd=opnd, cutsTo=cutsTo, pops=pops,
-		    return=CB.CellSet.map {from=rs,to=rd} return,
-		    defs=CB.CellSet.map {from=rs,to=rd} defs,
-		    uses=uses, mem=mem
-		  }
-	      | I.CALLQ{opnd, defs, uses, return, cutsTo, mem, pops} => I.CALLQ{
 		    opnd=opnd, cutsTo=cutsTo, pops=pops,
 		    return=CB.CellSet.map {from=rs,to=rd} return,
 		    defs=CB.CellSet.map {from=rs,to=rd} defs,
