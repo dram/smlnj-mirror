@@ -137,6 +137,8 @@ architecture AMD64 =
 
       type ea = operand
 
+      type byte = Word8.word
+
       datatype cond! =
           EQ "e" 0w4 | NE 0w5 | LT "l" 0w12 | LE 0w14 | GT "g" 0w15 | GE 0w13
         | B  0w2 | BE (* below *) 0w6 | A 0w7 | AE (* above *) 0w3
@@ -597,6 +599,7 @@ architecture AMD64 =
       val emit_src1 = emit_operand
       val emit_ea = emit_operand
       val emit_count = emit_operand
+      fun emit_byte b = (emit "$0x"; emit(Word8.toString b))
   end (* Assembly *)
 
 
@@ -784,15 +787,18 @@ architecture AMD64 =
     | CDQ
 	``cdq''
 
+    | CDO
+	``cdo''
+
     | CLTD
         ``cltd''
 
     | CQTO
          ``cqto''
 
-    (* the INTO instruction is deprecated in 64-bit mode. *)
-    | INTO
-	``int $4''
+    (* interrupt; use 0w4 to signal overflow *)
+    | INT of byte
+	``int\t<byte>''
 
     (* floating-point operations (SSE scalar instructions) *)
     | FMOVE of {fmvOp : fmove_op, dst : operand, src : operand}

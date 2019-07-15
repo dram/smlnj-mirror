@@ -23,10 +23,11 @@ sig
    | Direct of int * (CellsBasis.cell)
    | FDirect of CellsBasis.cell
    | Displace of {base:CellsBasis.cell, disp:operand, mem:Region.region}
-   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int, 
+   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int,
         disp:operand, mem:Region.region}
    type addressing_mode = operand
    type ea = operand
+   type byte = Word8.word
    datatype cond =
      EQ
    | NE
@@ -224,9 +225,9 @@ sig
      NOP
    | JMP of operand * Label.label list
    | JCC of {cond:cond, opnd:operand}
-   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
         cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
-   | CALLQ of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   | CALLQ of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
         cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
    | ENTER of {src1:operand, src2:operand}
    | LEAVE
@@ -259,9 +260,10 @@ sig
    | POPFD
    | POP of operand
    | CDQ
+   | CDO
    | CLTD
    | CQTO
-   | INTO
+   | INT of byte
    | FMOVE of {fmvOp:fmove_op, dst:operand, src:operand}
    | FBINOP of {binOp:fbin_op, dst:CellsBasis.cell, src:operand}
    | FCOM of {comOp:fcom_op, dst:CellsBasis.cell, src:operand}
@@ -284,7 +286,7 @@ sig
    and instruction =
      LIVE of {regs: C.cellset, spilled: C.cellset}
    | KILL of {regs: C.cellset, spilled: C.cellset}
-   | COPY of {k: CellsBasis.cellkind, 
+   | COPY of {k: CellsBasis.cellkind,
               sz: int,          (* in bits *)
               dst: CellsBasis.cell list,
               src: CellsBasis.cell list,
@@ -294,9 +296,9 @@ sig
    val nop : instruction
    val jmp : operand * Label.label list -> instruction
    val jcc : {cond:cond, opnd:operand} -> instruction
-   val call : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   val call : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
       cutsTo:Label.label list, mem:Region.region, pops:Int32.int} -> instruction
-   val callq : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   val callq : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
       cutsTo:Label.label list, mem:Region.region, pops:Int32.int} -> instruction
    val enter : {src1:operand, src2:operand} -> instruction
    val leave : instruction
@@ -329,9 +331,10 @@ sig
    val popfd : instruction
    val pop : operand -> instruction
    val cdq : instruction
+   val cdo : instruction
    val cltd : instruction
    val cqto : instruction
-   val into : instruction
+   val int : byte -> instruction
    val fmove : {fmvOp:fmove_op, dst:operand, src:operand} -> instruction
    val fbinop : {binOp:fbin_op, dst:CellsBasis.cell, src:operand} -> instruction
    val fcom : {comOp:fcom_op, dst:CellsBasis.cell, src:operand} -> instruction
@@ -370,10 +373,11 @@ struct
    | Direct of int * (CellsBasis.cell)
    | FDirect of CellsBasis.cell
    | Displace of {base:CellsBasis.cell, disp:operand, mem:Region.region}
-   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int, 
+   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int,
         disp:operand, mem:Region.region}
    type addressing_mode = operand
    type ea = operand
+   type byte = Word8.word
    datatype cond =
      EQ
    | NE
@@ -571,9 +575,9 @@ struct
      NOP
    | JMP of operand * Label.label list
    | JCC of {cond:cond, opnd:operand}
-   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
         cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
-   | CALLQ of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
+   | CALLQ of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
         cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
    | ENTER of {src1:operand, src2:operand}
    | LEAVE
@@ -606,9 +610,10 @@ struct
    | POPFD
    | POP of operand
    | CDQ
+   | CDO
    | CLTD
    | CQTO
-   | INTO
+   | INT of byte
    | FMOVE of {fmvOp:fmove_op, dst:operand, src:operand}
    | FBINOP of {binOp:fbin_op, dst:CellsBasis.cell, src:operand}
    | FCOM of {comOp:fcom_op, dst:CellsBasis.cell, src:operand}
@@ -631,7 +636,7 @@ struct
    and instruction =
      LIVE of {regs: C.cellset, spilled: C.cellset}
    | KILL of {regs: C.cellset, spilled: C.cellset}
-   | COPY of {k: CellsBasis.cellkind, 
+   | COPY of {k: CellsBasis.cellkind,
               sz: int,          (* in bits *)
               dst: CellsBasis.cell list,
               src: CellsBasis.cell list,
@@ -674,9 +679,10 @@ struct
    and popfd = INSTR POPFD
    and pop = INSTR o POP
    and cdq = INSTR CDQ
+   and cdo = INSTR CDO
    and cltd = INSTR CLTD
    and cqto = INSTR CQTO
-   and into = INSTR INTO
+   and int = INSTR o INT
    and fmove = INSTR o FMOVE
    and fbinop = INSTR o FBINOP
    and fcom = INSTR o FCOM

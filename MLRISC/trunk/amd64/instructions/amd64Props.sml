@@ -41,7 +41,7 @@ functor AMD64Props (
 	of I.NOP => IK_NOP
 	 | ( I.CALL {cutsTo=_::_, ...} | I.CALLQ {cutsTo=_::_, ...} ) =>
 	   IK_CALL_WITH_CUTS
-	 | ( I.JMP _ | I.JCC _ | I.RET _ | I.INTO ) => IK_JUMP
+	 | ( I.JMP _ | I.JCC _ | I.RET _ | I.INT _ ) => IK_JUMP
 	 | ( I.CALL _ | I. CALLQ _ ) => IK_CALL
 	 | I.PHI {} => IK_PHI
 	 | I.SOURCE {} => IK_SOURCE
@@ -77,7 +77,7 @@ functor AMD64Props (
 	     [FALLTHROUGH, LABELLED lab]
 	 | I.CALL{cutsTo, ...} => FALLTHROUGH :: List.map LABELLED cutsTo
 	 | I.CALLQ{cutsTo, ...} => FALLTHROUGH :: List.map LABELLED cutsTo
-	 | I.INTO => [ESCAPES]
+	 | I.INT _ => [ESCAPES]
 	 |  _ => error "branchTargets")
       | branchTargets _ = error "branchTargets"
 
@@ -222,7 +222,8 @@ functor AMD64Props (
 	     | (I.PUSHQ arg | I.PUSHL arg | I.PUSHW arg | I.PUSHB arg ) => push arg
 	     | I.POP arg => (C.stackptrR::operandDef arg, [C.stackptrR])
 	     | ( I.PUSHFD | I.POPFD )=> rspOnly ()
-	     | I.CDQ => ([C.rdx], [C.rax])
+	     | I.CDQ => ([C.rdx], [C.rax]) (* really %edx and %eax *)
+	     | I.CDO => ([C.rdx], [C.rax])
 	     | I.FMOVE {dst, src, ...} => ([], operandAcc (dst, operandUse src))
 	     | I.FCOM {src, ...} => ([], operandUse src)
 	     | I.FBINOP {src, ...} => ([], operandUse src)

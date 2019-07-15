@@ -1391,14 +1391,17 @@ functor AMD64Gen (
 	    beginCluster 0)
 
 	and endCluster' a = (
-	    (case !trapLabel
-              of NONE => ()
-               | SOME(_, lab) => (defineLabel lab; emit I.INTO)
-            (* end case *));
+	      case !trapLabel
+	       of NONE => ()
+		| SOME(_, lab) => (
+		    defineLabel lab;
+		  (* signal an overflow exception (code 4) *)
+		    emit(I.INT 0w4))
+              (* end case *);
             (* If floating point has been used allocate an extra
              * register just in case we didn't use any explicit register *)
-            ignore (newFreg ());
-            endCluster a)
+	      ignore (newFreg ());
+	      endCluster a)
 
 	and ccExpr e = error "ccExpr"
 
