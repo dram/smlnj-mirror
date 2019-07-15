@@ -784,17 +784,13 @@ architecture AMD64 =
 	asm: ``popq\t<operand>''
 	rtl: ``POP''
 
+    (* also known as CLTD *)
     | CDQ
 	``cdq''
 
+    (* also known as CQTO *)
     | CDO
 	``cdo''
-
-    | CLTD
-        ``cltd''
-
-    | CQTO
-         ``cqto''
 
     (* interrupt; use 0w4 to signal overflow *)
     | INT of byte

@@ -62,7 +62,7 @@ functor AMD64Gen (
     fun rcx ty = I.Direct(ty,C.rcx)
     fun rdx ty = I.Direct(ty,C.rdx)
 
-    fun signExtend ty = if ty = 64 then I.CQTO else I.CLTD
+    fun signExtend ty = if ty = 64 then I.CDO else I.CDQ
 
     val readonly = I.Region.readonly
 

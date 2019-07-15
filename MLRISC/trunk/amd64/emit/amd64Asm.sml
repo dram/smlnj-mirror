@@ -610,8 +610,6 @@ struct
            emit_operand operand )
        | I.CDQ => emit "cdq"
        | I.CDO => emit "cdo"
-       | I.CLTD => emit "cltd"
-       | I.CQTO => emit "cqto"
        | I.INT byte => 
          ( emit "int\t"; 
            emit_byte byte )

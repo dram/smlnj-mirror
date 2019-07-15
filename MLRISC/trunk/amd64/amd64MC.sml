@@ -127,15 +127,15 @@ functor AMD64MCEmitter (
 
 	  nonfix mod
 
-	  fun scale(n, m) = Word.toIntX(Word.<<(Word.fromInt n, Word.fromInt m))
-	  fun modrm{mod, reg, rm} = W8.fromInt(scale(mod,6) + scale(reg,3) + rm)
-	  fun sib{ss, index, base} = W8.fromInt(scale(ss,6) + scale(index,3) + base)
+	  fun scale (n, m) = Word.toIntX(Word.<<(Word.fromInt n, Word.fromInt m))
+	  fun modrm {mod, reg, rm} = W8.fromInt(scale(mod,6) + scale(reg,3) + rm)
+	  fun sib {ss, index, base} = W8.fromInt(scale(ss,6) + scale(index,3) + base)
 	  fun eREXRegs (r, x, b) = let
 	        val rb1 = if r then 0wx4 else 0wx0
 		val rb2 = if x then rb1 + 0wx2 else rb1
 		val rb3 = if b then rb2 + 0wx1 else rb2
 		in
-		  if r orelse x orelse b then SOME rb3 else NONE
+		  rb3
 		end (* rex *)
 	  fun eREX rb = 0wx40 + rb
 	  fun eREX64 rb = eREX rb + 0wx8	(* sets REX.W *)
@@ -209,17 +209,14 @@ functor AMD64MCEmitter (
 	        val (rex, e) = eImmedExt (r', opnd)
 	        in
 		  case eREXRegs rex
-		   of SOME rexByte => (eREX rexByte) :: bytes @ e
-		    | NONE => bytes @ e
+		   of 0w0 => bytes @ e
+		    | rexByte => (eREX rexByte) :: bytes @ e
 		  (* esac *)
 	        end (* encode32' *)
 	  fun encode64' (bytes, r', opnd) = let
 	        val (rex, e) = eImmedExt (r', opnd)
 	        in
-		  case eREXRegs rex
-		   of SOME rexByte => (eREX64 rexByte) :: bytes @ e
-		    | NONE => (eREX64 0wx0) :: bytes @ e
-		  (* esac *)
+		  (eREX64 (eREXRegs rex)) :: bytes @ e
 	        end (* encode64' *)
 	  fun encode32 (byte1, r', opnd) = eBytes (encode32' ([byte1], r', opnd))
 	  fun encode64 (byte1, r', opnd) = eBytes (encode64' ([byte1], r', opnd))
@@ -259,7 +256,7 @@ functor AMD64MCEmitter (
 	   *  r/m32, r32	MR
 	   *  r32,   r/m32	RM
 	   *)
-	  fun arith (sz, opc1, opc2) = let
+	  fun arith (sz : int, opc1 : Word8.word, opc2 : reg_or_opc) = let
 		fun f (I.ImmedLabel le, dst) = f(I.Immed(lexp le), dst)
 		  | f (I.LabelEA le, dst) = f(I.Immed(lexp le), dst)
 		  | f (I.Immed i, dst) = (case size i
@@ -304,7 +301,7 @@ functor AMD64MCEmitter (
 	   *)
 	  fun test (sz, I.ImmedLabel le, lsrc) = test(sz, I.Immed(lexp le), lsrc)
 	    | test (sz, I.LabelEA le, lsrc) = test(sz, I.Immed(lexp le), lsrc)
-	    | test (sz, I.Immed(i), lsrc) = (case (lsrc, i >= 0 andalso i < 255)
+	    | test (sz, I.Immed i, lsrc) = (case (lsrc, i >= 0 andalso i < 255)
 		 of (I.Direct (_, r), false) => if CB.physicalRegisterNum r = eax
 		      then eBytes(0wxA9 :: eLong i)
 		      else encodeLongImm sz (0wxF7, OPCODE 0, lsrc, i)
@@ -398,8 +395,8 @@ functor AMD64MCEmitter (
 			      val (rex, e) = eImmedExt (r', opnd)
 			      in
 				case eREXRegs rex
-				 of SOME rexByte => (eREX rexByte) :: bytes @ e
-				  | NONE => bytes @ e
+				 of 0w0 => bytes @ e
+				  | rexByte => (eREX rexByte) :: bytes @ e
 				(* end case *)
 			      end
                         in
@@ -529,21 +526,44 @@ functor AMD64MCEmitter (
 	      | I.TESTL{lsrc, rsrc} => test(32, rsrc, lsrc)
 	      | I.TESTW _ => unimplemented "TESTW"
 	      | I.TESTB{lsrc, rsrc} => test(8, rsrc, lsrc)
-	      | I.BITOP{bitOp, lsrc, rsrc} => (case bitOp
-		   of I.BTW => unimplemented "BTW"
-		    | I.BTL => unimplemented "BTL"
-		    | I.BTQ => unimplemented "BTQ"
-		    | I.LOCK_BTW => unimplemented "LOCK_BTW"
-		    | I.LOCK_BTL => unimplemented "LOCK_BTL"
-		  (* end case *))
+	      | I.BITOP{bitOp, lsrc, rsrc} => let
+		  fun encode sz = (case lsrc
+			 of I.Immed n =>
+			      if ((0 <= n) andalso (n < sz))
+				then let
+				  val (rex, [modRM]) = eImmedExt (OPCODE 4, rsrc)
+				  val ib = Word8.fromLargeInt(Int32.toLarge n)
+				  in
+				    if (sz = 64)
+				      then [eREX64 (eREXRegs rex), 0wx0f, 0wxba, modRM, ib]
+				      else [0wx0f, 0wxba, modRM, ib]
+				  end
+				else error "BITOP: invalid bit position"
+			  | I.Direct(_, r) => let
+			      val (rex, suffix) = eImmedExt (REG(rNum r), rsrc)
+			      in
+				if (sz = 64)
+				  then eREX64 (eREXRegs rex) :: 0wx0f :: 0wxba :: suffix
+				  else 0wx0f :: 0wxba :: suffix
+			      end
+			(* end case *))
+		  in
+		    case bitOp
+		     of I.BTW => unimplemented "BTW"
+		      | I.BTL => eBytes (encode 32)
+		      | I.BTQ => eBytes (encode 64)
+		      | I.LOCK_BTW => eBytes (lockPrefix :: encode 32)
+		      | I.LOCK_BTL => eBytes (lockPrefix :: encode 64)
+		    (* end case *)
+		  end
 	      | I.BINARY{binOp, src, dst} => let
 		  fun shift (sz, code) = (case src
 			 of I.Immed (1) => encode sz (0wxd1, OPCODE code, dst)
 			  | I.Immed (n) => encodeByteImm sz (0wxc1, OPCODE code, dst, n)
-			  | I.Direct (_, r) =>
-			    if rNum r <> ecx then  error "shift: Direct"
-			    else encode sz (0wxd3, OPCODE code, dst)
-			  (*              | I.MemReg _ => shift(code, memReg src)*)
+			  | I.Direct (_, r) => if rNum r <> ecx
+			      then error "shift: Direct"
+			      else encode sz (0wxd3, OPCODE code, dst)
+(*			  | I.MemReg _ => shift(code, memReg src) *)
 			  | _  => error "shift"
 		       (*esac*))
 (* FIXME: should have `imul sz` and `mul sz` *)
@@ -683,28 +703,32 @@ functor AMD64MCEmitter (
 			  | _ => encodeByteImm64(0wx6b, REG (rNum dst), src1, i)
 			(*esac*))
 		  (*esac*))
-	      | I.UNARY{unOp, opnd} => (case unOp
-		   of I.DECQ => encode64 (0wxff, OPCODE 1, opnd)
-		    | I.INCQ => encode64 (0wxff, OPCODE 0, opnd)
-		    | I.NEGQ => encode64 (0wxf7, OPCODE 3, opnd)
-		    | I.NOTQ => encode64 (0wxff, OPCODE 2, opnd)
-		    | I.DECL => encode32 (0wxff, OPCODE 1, opnd)
-		    | I.NEGL => encode32 (0wxff, OPCODE 3, opnd)
-		    | I.INCL => encode32 (0wxff, OPCODE 0, opnd)
-		    | I.NOTL => encode32 (0wxff, OPCODE 2, opnd)
-		    | I.DECW => unimplemented "DECW"
-		    | I.NEGW => unimplemented "NEGW"
-		    | I.INCW => unimplemented "INCW"
-		    | I.NOTW => unimplemented "NOTW"
-		    | I.DECB => unimplemented "DECB"
-		    | I.NEGB => unimplemented "NEGB"
-		    | I.INCB => unimplemented "INCB"
-		    | I.NOTB => unimplemented "NOTB"
-		    | I.LOCK_DECQ => unimplemented "LOCK_DECQ"
-		    | I.LOCK_INCQ => unimplemented "LOCK_INCQ"
-		    | I.LOCK_NEGQ => unimplemented "LOCK_NEGQ"
-		    | I.LOCK_NOTQ => unimplemented "LOCK_NOTQ"
-		  (* esac *))
+	      | I.UNARY{unOp, opnd} => let
+		  fun lock code = eBytes(lockPrefix :: code)
+		  in
+		    case unOp
+		     of I.DECQ => encode64 (0wxff, OPCODE 1, opnd)
+		      | I.INCQ => encode64 (0wxff, OPCODE 0, opnd)
+		      | I.NEGQ => encode64 (0wxf7, OPCODE 3, opnd)
+		      | I.NOTQ => encode64 (0wxff, OPCODE 2, opnd)
+		      | I.DECL => encode32 (0wxff, OPCODE 1, opnd)
+		      | I.NEGL => encode32 (0wxff, OPCODE 3, opnd)
+		      | I.INCL => encode32 (0wxff, OPCODE 0, opnd)
+		      | I.NOTL => encode32 (0wxff, OPCODE 2, opnd)
+		      | I.DECW => unimplemented "DECW"
+		      | I.NEGW => unimplemented "NEGW"
+		      | I.INCW => unimplemented "INCW"
+		      | I.NOTW => unimplemented "NOTW"
+		      | I.DECB => unimplemented "DECB"
+		      | I.NEGB => unimplemented "NEGB"
+		      | I.INCB => unimplemented "INCB"
+		      | I.NOTB => unimplemented "NOTB"
+		      | I.LOCK_DECQ => lock (encode64' ([0wxff], OPCODE 1, opnd))
+		      | I.LOCK_INCQ => lock (encode64' ([0wxff], OPCODE 0, opnd))
+		      | I.LOCK_NEGQ => lock (encode64' ([0wxf7], OPCODE 3, opnd))
+		      | I.LOCK_NOTQ => lock (encode64' ([0wxff], OPCODE 2, opnd))
+		    (* esac *)
+		  end
 	      | I.SET{cond,opnd} =>
 	          eBytes (encode32' ([0wx0f, Word8.+(0wx90,condCode cond)], REG 0, opnd))
 	      | I.CMOV{cond,src,dst} =>
@@ -721,8 +745,6 @@ functor AMD64MCEmitter (
 	      | I.POP opnd => encode32 (0wx8f, OPCODE 0, opnd)
 	      | I.CDQ => eByte 0x99
 	      | I.CDO => eBytes [0wx48, 0wx99]
-	      | I.CLTD => unimplemented "CLTD"
-	      | I.CQTO => unimplemented "CQTO"
 	      | I.INT b => eBytes [0wxcd, b]
 	      | I.FMOVE {fmvOp=I.MOVSD, dst=I.FDirect r, src=src} => movsd(0wx10, r, src)
 	      | I.FMOVE {fmvOp=I.MOVSD, dst=dst, src=I.FDirect r} => movsd(0wx11, r, dst)
@@ -750,24 +772,33 @@ functor AMD64MCEmitter (
 			(* end case *))
 		    | _ => error "FMOVE"
 		  (* end case *))
-              | I.FBINOP {binOp, src, dst} => (case binOp
-		   of I.ADDSS => eBytes([0wxf3] @ encode32'([0wxf, 0wx58], REG(fNum dst), src))
-		    | I.ADDSD => eBytes([0wxf2] @ encode32'([0wxf, 0wx58], REG(fNum dst), src))
-		    | I.SUBSS => unimplemented "SUBSS"
-		    | I.SUBSD => eBytes([0wxf2] @ encode32'([0wxf, 0wx5c], REG(fNum dst), src))
-		    | I.MULSS => unimplemented "MULSS"
-		    | I.MULSD => eBytes([0wxf2] @ encode32'([0wxf, 0wx59], REG(fNum dst), src))
-		    | I.DIVSS => unimplemented "DIVSS"
-		    | I.DIVSD => eBytes([0wxf2] @ encode32'([0wxf, 0wx5e], REG(fNum dst), src))
-		    | I.XORPS => unimplemented "XORPS"
-		    | I.XORPD => eBytes([0wx66] @ encode32'([0wxf, 0wx57], REG(fNum dst), src))
-		    | I.ANDPD => eBytes([0wx66] @ encode32'([0wxf, 0wx54], REG(fNum dst), src))
-		    | I.ORPS => unimplemented "ORPS"
-		    | I.ORPD => unimplemented "ORPD"
-		  (* end case *))
+              | I.FBINOP {binOp, src, dst} => let
+		  fun encode2 (op1, op2) = eBytes(encode32'([op1, op2], REG(fNum dst), src))
+		  fun encode (op1, op2, op3) =
+			eBytes(op1 :: encode32'([op2, op3], REG(fNum dst), src))
+		  in
+		    case binOp
+		     of I.ADDSS => encode (0wxf3, 0wx0f, 0wx58)
+		      | I.ADDSD => encode (0wxf2, 0wx0f, 0wx58)
+		      | I.SUBSS => encode (0wxf3, 0wx0f, 0wx5c)
+		      | I.SUBSD => encode (0wxf2, 0wx0f, 0wx5c)
+		      | I.MULSS => encode (0wxf3, 0wx0f, 0wx59)
+		      | I.MULSD => encode (0wxf2, 0wx0f, 0wx59)
+		      | I.DIVSS => encode (0wxf3, 0wx0f, 0wx5e)
+		      | I.DIVSD => encode (0wxf2, 0wx0f, 0wx5e)
+		      | I.XORPS => encode2 (0wx0f, 0wx57)
+		      | I.XORPD => encode (0wx66, 0wx0f, 0wx57)
+		      | I.ANDPS => encode2 (0wx0f, 0wx54)
+		      | I.ANDPD => encode (0wx66, 0wx0f, 0wx54)
+		      | I.ORPS => encode2 (0wx0f, 0wx56)
+		      | I.ORPD => encode (0wx66, 0wx0f, 0wx56)
+		    (* end case *)
+		  end
 	      | I.FCOM {comOp, src, dst} => (case comOp
-		   of I.UCOMISD => eBytes([0wx66] @ encode32'([0wxf,0wx2e],REG (fNum dst),src))
-                    | _ => error "FCOMOP"
+		   of I.COMISS => unimplemented "COMISS"
+		    | I.COMISD => unimplemented "COMISD"
+		    | I.UCOMISS => unimplemented "UCOMISS"
+		    | I.UCOMISD => eBytes([0wx66] @ encode32'([0wxf,0wx2e],REG (fNum dst),src))
 		  (* end case *))
 	      | I.FSQRTS {dst, src} => let
 		  val I.FDirect r = dst
