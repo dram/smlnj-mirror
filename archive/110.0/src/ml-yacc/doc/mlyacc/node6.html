@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Precedence</TITLE>
+<META NAME="description" CONTENT="Precedence">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node7.html">
+<LINK REL="previous" HREF="node5.html">
+<LINK REL="up" HREF="node2.html">
+<LINK REL="next" HREF="node7.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html150"
+ HREF="node7.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html147"
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html141"
+ HREF="node5.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html149"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html151"
+ HREF="node7.html">Notation</A>
+<B> Up:</B> <A NAME="tex2html148"
+ HREF="node2.html">Introduction</A>
+<B> Previous:</B> <A NAME="tex2html142"
+ HREF="node5.html">Error Recovery</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00024000000000000000">
+Precedence</A>
+</H2>
+ML-Yacc uses the same precedence scheme as Yacc for resolving
+shift/reduce conflicts.  Each terminal may be assigned a precedence and
+associativity.  Each rule is then assigned the precedence of its rightmost
+terminal.  If a shift/reduce conflict occurs, the conflict is resolved
+silently if the terminal and the rule in the conflict have
+precedences.
+If the terminal has the higher precedence, the shift is chosen.  If
+the rule has the higher precedence, the reduction is chosen.  If both
+the terminal and the rule have the same precedence, then the associativity
+of the terminal is used to resolve the conflict.  If the terminal is
+left associative, the reduction is chosen.  If the terminal is 
+right associative, the shift is chosen.   Terminals may be declared to 
+be nonassociative, also, in which case an error message is produced
+if the associativity is need to resolve the parsing conflict.
+<P>
+If a terminal or a rule in a shift/reduce conflict does not have
+a precedence, then an error message is produced and the shift
+is chosen.
+<P>
+In reduce/reduce conflicts, an error message is always produced and
+the first rule listed in the specification is chosen for reduction.
+<BR><HR>
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

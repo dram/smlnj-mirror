@@ -1,0 +1,2 @@
+Decl 8
+f%FolLrValsFun.f-sqsToken.v$TOKEN.;-;sAbsyn.v$ABSYN.;-;;;sqsParserData.sqsHeader.sr;-;sLrTable.vToken.LrTable.;-;sToken.vToken.;-;lqovLrTable.;;;qrString.Array.Char.LrTable.;;lqovHeader.;;;qsMlyValue.srAbsyn.;-;rMlyValue.Absyn.;;sEC.sqovLrTable.;;lqovHeader.;;;qrMlyValue.;;;-;sActions.sqlqovHeader.;;;qrMlyValue.Absyn.LrTable.;;rMlyValue.;;-;;-;sTokens.srToken.ParserData.;+v$Fol_TOKENS.;;;+v$Fol_LRVALS.;;

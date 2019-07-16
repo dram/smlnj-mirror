@@ -1,0 +1,19 @@
+Repeated entry---line 61 of file ml.bib
+ : @article{appel94:bootstrap
+ :                           ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 92 of file ml.bib
+ : @inproceedings{appel94:sepcomp
+ :                               ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 125 of file ml.bib
+ : @inproceedings{reppy91:cml
+ :                           ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 134 of file ml.bib
+ : @inproceedings{appel91:sml
+ :                           ,
+I'm skipping whatever remains of this entry
+Warning--can't use both volume and number fields in appel94:sepcomp
+Warning--can't use both volume and number fields in reppy91:cml
+(There were 4 error messages)

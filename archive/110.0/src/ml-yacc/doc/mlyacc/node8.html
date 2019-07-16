@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>ML-Yacc specifications</TITLE>
+<META NAME="description" CONTENT="ML-Yacc specifications">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node15.html">
+<LINK REL="previous" HREF="node2.html">
+<LINK REL="up" HREF="mlyacc.html">
+<LINK REL="next" HREF="node9.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html170"
+ HREF="node9.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html167"
+ HREF="mlyacc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html161"
+ HREF="node7.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html169"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html171"
+ HREF="node9.html">Lexical Definitions</A>
+<B> Up:</B> <A NAME="tex2html168"
+ HREF="mlyacc.html">ML-Yacc User's Manual Version</A>
+<B> Previous:</B> <A NAME="tex2html162"
+ HREF="node7.html">Notation</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H1><A NAME="SECTION00030000000000000000">
+ML-Yacc specifications</A>
+</H1>
+<P>
+An ML-Yacc specification consists of three parts, each of which is
+separated from the others by a <TT>%%</TT> delimiter.  The general format is:
+<BLOCKQUOTE>
+<TT>
+        {user declarations} <BR>
+        %% <BR>
+        {ML-Yacc declarations} <BR>
+        %% <BR>
+        {rules}
+</TT></BLOCKQUOTE>
+<P>
+You can define values available in the semantic
+actions of the rules in the user declarations section.
+It is recommended that you keep the size of this
+section as small as possible and place large
+blocks of code in other modules.
+<P>
+The ML-Yacc declarations section is used to make a set
+of required declarations and a set of optional declarations.
+You must declare the nonterminals and terminals and the
+types of the values associated with them there.  You must
+also name the parser and declare the type of position values.
+You should specify the set of terminals which can follow
+the start symbol and the set of non-shiftable terminals.
+You may optionally declare precedences for terminals,
+make declarations that will
+improve error-recovery, and suppress the generation of
+default reductions in the parser.  You may 
+declare whether the parser generator should create
+a verbose description of the parser in a ``.desc'' file.  This is useful
+for finding the causes of shift/reduce errors and other parsing conflicts.
+<P>
+You may also declare whether the semantic actions are
+free of significant side-effects and always terminate.  Normally, ML-Yacc
+delays the evaluation of semantic actions until the completion of a
+successful parse.  This ensures that there will be no semantic actions
+to ``undo'' if a syntactic error-correction invalidates some semantic
+actions.  If, however, the semantic actions are free of significant
+side-effects and always terminate, the results of semantic actions that
+are invalidated by a syntactic error-correction can always be safely
+ignored.
+<P>
+Parsers run faster and need less memory when it is not
+necessary to delay the evaluation of semantic actions.  You are
+encouraged to write semantic actions that are free of side-effects and
+always terminate and to declare this information to ML-Yacc.
+<P>
+A semantic action is free of significant side-effects if it can be reexecuted
+a reasonably small number of times without affecting the result of a
+parse.  (The reexecution occurs when the error-correcting parser is testing
+possible corrections to fix a syntax error, and the number of times
+reexecution occurs is roughly bounded, for each syntax error, by the number of
+terminals times the amount of lookahead permitted for the error-correcting
+parser).
+<P>
+The rules section contains the context-free grammar productions and their
+associated semantic actions.
+<P>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS">&#160;</A>
+<UL>
+<LI><A NAME="tex2html172"
+ HREF="node9.html#SECTION00031000000000000000">
+Lexical Definitions</A>
+<LI><A NAME="tex2html173"
+ HREF="node10.html#SECTION00032000000000000000">
+Grammar</A>
+<LI><A NAME="tex2html174"
+ HREF="node11.html#SECTION00033000000000000000">
+Required ML-Yacc Declarations</A>
+<LI><A NAME="tex2html175"
+ HREF="node12.html#SECTION00034000000000000000">
+Optional ML-Yacc Declarations</A>
+<LI><A NAME="tex2html176"
+ HREF="node13.html#SECTION00035000000000000000">
+Declarations for improving error-recovery</A>
+<LI><A NAME="tex2html177"
+ HREF="node14.html#SECTION00036000000000000000">
+Rules</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html170"
+ HREF="node9.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html167"
+ HREF="mlyacc.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html161"
+ HREF="node7.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html169"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html171"
+ HREF="node9.html">Lexical Definitions</A>
+<B> Up:</B> <A NAME="tex2html168"
+ HREF="mlyacc.html">ML-Yacc User's Manual Version</A>
+<B> Previous:</B> <A NAME="tex2html162"
+ HREF="node7.html">Notation</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

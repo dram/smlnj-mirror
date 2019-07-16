@@ -1,0 +1,2 @@
+Decl 8
+f%FolLexFun.f-sqsTokens.v$Fol_TOKENS.;-;sInterface.v$INTERFACE.;-;;;sqsUserDeclarations.sqsTokens.vTokens.;-;sInterface.vInterface.;-;ovInterface.;;rTokens.Interface.;;-;sInternal.sqrVector.;sStartStates.sr;-;rUserDeclarations.;;-;lqrInternal.;lq;qlqrInternal.;lqrInternal.;lqovUserDeclarations.;vInternal.StartStates.;;;qrInternal.Tokens.;;rVector.Internal.;;qrVector.String.Internal.Char.UserDeclarations.;;;q;;;q;;+v$LEXER.;;

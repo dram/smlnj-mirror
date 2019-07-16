@@ -1,0 +1,2 @@
+Decl 8
+qsFolLrVals.a%FolLrValsFun.;sqsToken.vLrParser.Token.;-;sAbsyn.vAbsyn.;-;;;+v$Fol_LRVALS.;;sInterface.a%Interface.;sr;;+v$INTERFACE.;;sFolLex.a%FolLexFun.;sqsTokens.vFolLrVals.Tokens.;-;sInterface.vInterface.;-;;;+v$LEXER.;;sFolParser.a%Join.;sqsParserData.vFolLrVals.ParserData.;-;sLex.vFolLex.;-;sLrParser.vLrParser.;-;;;+v$PARSER.;;sParse.a%Parse.;sqsAbsyn.vAbsyn.;-;sInterface.vInterface.;-;sParser.vFolParser.;-;sTokens.vFolLrVals.Tokens.;-;;;+v$PARSE.;;;

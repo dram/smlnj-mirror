@@ -1,0 +1,2 @@
+Decl 8
+f%PascalLexFun.f-sqsTokens.v$Pascal_TOKENS.;-;;;sqsUserDeclarations.sqsTokens.vTokens.;-;rTokens.;ovTokens.;;sKeyWord.srList.Array.;+sq;;ovKeyWord.;;;-;sInternal.sqrVector.;sStartStates.sr;-;rUserDeclarations.;;-;lqrInternal.;lq;qlqrInternal.;lqrInternal.;lqovUserDeclarations.;vInternal.StartStates.;;;qrString.Internal.;;rVector.Internal.;;qrVector.String.Internal.Char.UserDeclarations.;;;q;;;q;;-;

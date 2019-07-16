@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Error Recovery</TITLE>
+<META NAME="description" CONTENT="Error Recovery">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node6.html">
+<LINK REL="previous" HREF="node4.html">
+<LINK REL="up" HREF="node2.html">
+<LINK REL="next" HREF="node6.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html139"
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html136"
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html130"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html138"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html140"
+ HREF="node6.html">Precedence</A>
+<B> Up:</B> <A NAME="tex2html137"
+ HREF="node2.html">Introduction</A>
+<B> Previous:</B> <A NAME="tex2html131"
+ HREF="node4.html">Modules</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00023000000000000000">
+Error Recovery</A>
+</H2>
+<P>
+The error recovery algorithm is able to accurately recover
+from many single token syntax errors.
+It tries to make a single token correction at the token in the
+input stream at which the syntax error was detected and any of
+the 15 tokens<A NAME="tex2html4"
+ HREF="footnode.html#24"><SUP><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]"
+ SRC="/opt/latex2html-97.1/icons.gif/foot_motif.gif"></SUP></A> before that token.  The algorithm
+checks corrections before the point of error detection because
+a syntax error is often not detected until several tokens beyond
+the token which caused the error.<A NAME="tex2html5"
+ HREF="footnode.html#25"><SUP><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]"
+ SRC="/opt/latex2html-97.1/icons.gif/foot_motif.gif"></SUP></A>
+<P>
+The algorithm works by trying corrections at each
+of the 16 tokens up to and including the token at which the
+error was detected.  At each token in the input stream, it
+will try deleting the token, substituting other tokens for the
+token, or inserting some other token before the token.
+<P>
+The algorithm uses a parse check to evaluate corrections.  A parse
+check is a check of how far a correction allows a parser to
+parse without encountering a syntax error.
+You pass an upper bound on how many tokens beyond the error
+point a parser may read while doing a parse check as an argument to the
+parser.  This allows
+you to control the amount of lookahead that a parser reads
+for different kinds of systems.  For an interactive system, you
+should set the lookahead to zero.  Otherwise, a parser may hang
+waiting for input in the case of a syntax error.  If the lookahead
+is zero, no syntax errors will be corrected.  For a batch system,
+you should set the lookahead to 15.
+<P>
+The algorithm selects the set of corrections which allows the parse
+to proceed the farthest
+and parse through at least the error token.  It then removes those
+corrections involving keywords which do not meet a longer minimum
+parse check.  If there is more than one correction possible after this,
+it uses a simple heuristic priority scheme to order the corrections,
+and then arbitrarily chooses one of the corrections with the highest priority.
+You have some control over the priority scheme by being able to
+name a set of preferred insertions and a set of preferred substitutions.
+The priorities for corrections, ordered from highest to lowest
+priority, are
+preferred insertions, preferred substitutions, insertions, deletions,
+and substitutions.
+<P>
+The error recovery algorithm is guaranteed to terminate since it always
+selects fixes which parse through the
+error token.
+<P>
+The error-correcting LR parser implements the algorithm by keeping
+a queue of its state stacks before shifting tokens and using
+a lazy stream for the lexer.
+This makes it possible to restart the
+parse from before an error point and try various corrections.  The
+error-correcting LR parser does not defer semantic actions.  Instead,
+ML-Yacc creates semantic actions which are free of side-effects
+and always terminate.
+ML-Yacc uses higher-order functions to defer the
+evaluation of all user semantic actions until the parse is successfully
+completed without constructing an explicit parse tree.
+You may declare whether your semantic actions are free of side-effects
+and always terminate, in which case ML-Yacc does not need to defer
+the evaluation of your semantic actions.
+<P><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html139"
+ HREF="node6.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html136"
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html130"
+ HREF="node4.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html138"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html140"
+ HREF="node6.html">Precedence</A>
+<B> Up:</B> <A NAME="tex2html137"
+ HREF="node2.html">Introduction</A>
+<B> Previous:</B> <A NAME="tex2html131"
+ HREF="node4.html">Modules</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

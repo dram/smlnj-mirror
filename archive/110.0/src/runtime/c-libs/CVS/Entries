@@ -1,0 +1,32 @@
+/README/1.1.1.1/Fri Dec  3 19:59:22 1999//
+/c-libraries.c/1.1.1.1/Fri Dec  3 19:59:22 1999//
+/clib-list.h/1.1.1.1/Fri Dec  3 19:59:22 1999//
+/makefile/1.1.1.1/Fri Dec  3 19:59:22 1999//
+/makefile.win32/1.1.1.1/Fri Dec  3 19:59:22 1999//
+/ml-c.h/1.1.1.1/Fri Dec  3 19:59:22 1999//
+/unix-raise-syserr.c/1.1.1.1/Fri Dec  3 19:59:22 1999//
+/win32-raise-syserr.c/1.1.1.1/Fri Dec  3 19:59:23 1999//
+D/posix-error////
+D/posix-filesys////
+D/posix-io////
+D/posix-os////
+D/posix-procenv////
+D/posix-process////
+D/posix-signal////
+D/posix-sysdb////
+D/posix-tty////
+D/smlnj-bytecode////
+D/smlnj-ccalls////
+D/smlnj-date////
+D/smlnj-math////
+D/smlnj-mp////
+D/smlnj-prof////
+D/smlnj-runtime////
+D/smlnj-signals////
+D/smlnj-sockets////
+D/smlnj-time////
+D/templates////
+D/win32////
+D/win32-filesys////
+D/win32-io////
+D/win32-process////

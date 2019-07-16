@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Parser Structure Signatures</TITLE>
+<META NAME="description" CONTENT="Parser Structure Signatures">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node20.html">
+<LINK REL="previous" HREF="node18.html">
+<LINK REL="up" HREF="node18.html">
+<LINK REL="next" HREF="node20.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html297"
+ HREF="node20.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html294"
+ HREF="node18.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html288"
+ HREF="node18.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html296"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html298"
+ HREF="node20.html">Using the parser structure</A>
+<B> Up:</B> <A NAME="tex2html295"
+ HREF="node18.html">Using the parser</A>
+<B> Previous:</B> <A NAME="tex2html289"
+ HREF="node18.html">Using the parser</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00071000000000000000">
+Parser Structure Signatures</A>
+</H2>
+The final structure created will have the signature PARSER:
+<BLOCKQUOTE>
+<PRE>
+signature PARSER =
+sig
+  structure Token : TOKEN
+  structure Stream : STREAM
+  exception ParseError
+
+  type pos    (* pos is the type of line numbers *)
+  type result (* value returned by the parser *)
+  type arg    (* type of the user-supplied argument  *)
+  type svalue (* the types of semantic values *)
+
+  val makeLexer : (int -&gt; string) -&gt;
+		    (svalue,pos) Token.token Stream.stream
+  val parse :
+      int * ((svalue,pos) Token.token Stream.stream) *
+      (string * pos * pos -&gt; unit) * arg -&gt;
+	result * (svalue,pos) Token.token Stream.stream
+  val sameToken :
+      (svalue,pos) Token.token * (svalue,pos) Token.token -&gt;
+	bool
+end
+</PRE>
+</BLOCKQUOTE>
+or the signature ARG_PARSER if you used <TT>%arg</TT> to create the lexer.
+This signature differs from ARG_PARSER in that it
+which has an additional type <TT>lexarg</TT> and a different type
+for <TT>makeLexer</TT>:
+<BLOCKQUOTE>
+<PRE>
+type lexarg
+val makeLexer : (int -&gt; string)  -&gt; lexarg -&gt;
+                  (svalue,pos) token stream
+</PRE>
+</BLOCKQUOTE>
+<P>
+The signature STREAM (providing lazy streams) is:
+<BLOCKQUOTE>
+<PRE>
+signature STREAM =
+sig
+  type 'a stream
+  val streamify : (unit -&gt; 'a) -&gt; 'a stream
+  val cons : 'a * 'a stream -&gt; 'a stream
+  val get : 'a stream -&gt; 'a * 'a stream
+end
+</PRE>
+</BLOCKQUOTE>
+<BR><HR>
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

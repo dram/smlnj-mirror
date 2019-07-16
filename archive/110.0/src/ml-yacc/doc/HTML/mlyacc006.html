@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset= ISO-8859-1">
+<TITLE>
+ Using the parser
+</TITLE>
+</HEAD>
+<BODY BGCOLOR=silver TEXT=black>
+<A HREF="mlyacc005.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc007.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+<HR>
+
+<H2>6&nbsp;&nbsp; Using the parser</H2>
+<A NAME="toc12"></A>
+<H3>6.1&nbsp;&nbsp; Parser Structure Signatures</H3>
+The final structure created will have the signature PARSER:
+<BLOCKQUOTE>
+<PRE>
+signature PARSER =
+sig
+  structure Token : TOKEN
+  structure Stream : STREAM
+  exception ParseError
+
+  type pos    (* pos is the type of line numbers *)
+  type result (* value returned by the parser *)
+  type arg    (* type of the user-supplied argument  *)
+  type svalue (* the types of semantic values *)
+
+  val makeLexer : (int -&gt; string) -&gt;
+                    (svalue,pos) Token.token Stream.stream
+  val parse :
+      int * ((svalue,pos) Token.token Stream.stream) *
+      (string * pos * pos -&gt; unit) * arg -&gt;
+        result * (svalue,pos) Token.token Stream.stream
+  val sameToken :
+      (svalue,pos) Token.token * (svalue,pos) Token.token -&gt;
+        bool
+end
+</PRE>
+</BLOCKQUOTE>
+or the signature ARG_PARSER if you used <TT>%arg</TT> to create the lexer.
+This signature differs from ARG_PARSER in that it
+which has an additional type <TT>lexarg</TT> and a different type
+for <TT>makeLexer</TT>:
+<BLOCKQUOTE>
+<PRE>
+type lexarg
+val makeLexer : (int -&gt; string)  -&gt; lexarg -&gt;
+                  (svalue,pos) token stream
+</PRE>
+</BLOCKQUOTE>The signature STREAM (providing lazy streams) is:
+<BLOCKQUOTE>
+<PRE>
+signature STREAM =
+sig
+  type 'a stream
+  val streamify : (unit -&gt; 'a) -&gt; 'a stream
+  val cons : 'a * 'a stream -&gt; 'a stream
+  val get : 'a stream -&gt; 'a * 'a stream
+end
+</PRE>
+</BLOCKQUOTE><A NAME="toc13"></A>
+<H3>6.2&nbsp;&nbsp; Using the parser structure</H3>The parser structure converts the lexing function produced by
+ML-Lex into a function which creates a lazy stream of tokens. The
+function <TT>makeLexer</TT> takes the same values as the corresponding
+<TT>makeLexer</TT> created by ML-Lex, but returns a stream of tokens
+instead of a function which yields tokens.<BR>
+<BR>
+The function parse takes the token stream and some other arguments that
+are described below and parses the token stream. It returns a pair composed
+of the value associated with the start symbol and the rest of
+the token stream. The rest of the token stream includes the
+end-of-parse symbol which caused the reduction of some rule
+to the start symbol. The function parse raises the
+exception ParseError if a syntax error occurs which it cannot fix.<BR>
+<BR>
+The lazy stream is implemented by the <TT>Stream</TT> structure.
+The function <TT>streamify</TT> converts a conventional implementation
+of a stream into a lazy stream. In a conventional implementation
+of a stream, a stream consists of a position in a list of
+values. Fetching a value from a stream returns the
+value associated with the position and updates the position to
+the next element in the list of values. The fetch is a side-effecting
+operation. In a lazy stream, a fetch returns a value and a new
+stream, without a side-effect which updates the position value.
+This means that a stream can be repeatedly re-evaluated without
+affecting the values that it returns. If <I>f</I> is the function
+that is passed to <TT>streamify</TT>, <I>f</I> is called only as many
+times as necessary to construct the portion of the list of values
+that is actually used.<BR>
+<BR>
+Parse also takes an integer giving the maximum amount of lookahead permitted
+for the error-correcting parse, a function to print error messages,
+and a value of type arg. The maximum amount of lookahead for interactive
+systems should be zero. In this case, no attempt is made to correct any
+syntax errors. For non-interactive systems, try 15. The
+function to print error messages takes a tuple of values consisting
+of the left and right positions of the terminal which caused the error
+and an error message. If the <TT>%arg</TT> declaration is not used, the
+value of type arg should be a value of type unit.<BR>
+<BR>
+The function sameToken can be used to see if two tokens
+denote the same terminal, irregardless of any values that the
+tokens carry. It is useful if you have multiple end-of-parse
+symbols and must check which end-of-parse symbol has been left on the
+front of the token stream.<BR>
+<BR>
+The types have the following meanings. The type <TT>arg</TT> is the type
+of the additional argument to the parser, which is specified by the
+<TT>%arg</TT> declaration in the ML-Yacc specification. The type
+<TT>lexarg</TT> is the optional argument to lexers, and is specified by
+the <TT>%arg</TT> declaration in an ML-Lex specifcation. The type <TT>pos</TT>
+is the type of line numbers, and is specified by the <TT>%pos</TT> declaration
+in an ML-Yacc specification and defined in the user declarations
+section of the ML-Lex specification. The type <TT>result</TT> is
+the type associated with the start symbol in the ML-Yacc specification.<BR>
+<BR>
+<HR>
+<A HREF="mlyacc005.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc007.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+</BODY>
+</HTML>

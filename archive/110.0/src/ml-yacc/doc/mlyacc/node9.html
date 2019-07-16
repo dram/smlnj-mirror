@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Lexical Definitions</TITLE>
+<META NAME="description" CONTENT="Lexical Definitions">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node10.html">
+<LINK REL="previous" HREF="node8.html">
+<LINK REL="up" HREF="node8.html">
+<LINK REL="next" HREF="node10.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html187"
+ HREF="node10.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html184"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html178"
+ HREF="node8.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html186"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html188"
+ HREF="node10.html">Grammar</A>
+<B> Up:</B> <A NAME="tex2html185"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html179"
+ HREF="node8.html">ML-Yacc specifications</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00031000000000000000">
+Lexical Definitions</A>
+</H2>
+<P>
+Comments have the same lexical definition as they do in Standard
+ML and can be placed anywhere in a specification.
+<P>
+All characters up to the first occurrence of a delimiting
+<TT>%%</TT> outside of
+a comment are placed in the user declarations section.  After that, the
+following words and symbols are reserved:
+<BLOCKQUOTE>
+<code>of for = { } , * -&gt; : | ( )</code>
+<P></BLOCKQUOTE>
+<P>
+The following classes of ML symbols are used:
+<BLOCKQUOTE>
+<DL>
+<DT><STRONG>identifiers:</STRONG>
+<DD>nonsymbolic ML identifiers, which consist
+of an alphabetic character followed by one or
+                more alphabetic characters, numeric characters,
+                primes ``<TT>'</TT>'', or underscores ``<TT>_</TT>''.
+<DT><STRONG>type variables:</STRONG>
+<DD>nonsymbolic ML identifier starting with a prime ``<TT>'</TT>''
+<DT><STRONG>integers:</STRONG>
+<DD>one or more decimal digits.
+<DT><STRONG>qualified identifiers:</STRONG>
+<DD>an identifer followed by a period.
+<P></DL></BLOCKQUOTE>
+The following classes of non-ML symbols are used:
+<BLOCKQUOTE>
+<DL>
+<DT><STRONG>% identifiers:</STRONG>
+<DD>a percent sign followed by one or more lowercase
+alphabet letters.  The valid % identifiers
+                are:
+<BLOCKQUOTE>
+<P><TT>
+                %arg %eop %header %keyword %left %name %nodefault
+                %nonassoc %nonterm %noshift %pos %prec %prefer
+                %pure %right %start %subst %term %value %verbose
+</TT></BLOCKQUOTE>
+<DT><STRONG>code:</STRONG>
+<DD>This class is meant to hold ML code.  The ML code is not
+                parsed for syntax errors.  It consists of a left parenthesis
+                followed by all characters up to a balancing right
+                parenthesis.  Parentheses in ML comments and ML strings
+                are excluded from the count of balancing parentheses.
+<P></DL></BLOCKQUOTE><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html187"
+ HREF="node10.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html184"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html178"
+ HREF="node8.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html186"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html188"
+ HREF="node10.html">Grammar</A>
+<B> Up:</B> <A NAME="tex2html185"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html179"
+ HREF="node8.html">ML-Yacc specifications</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

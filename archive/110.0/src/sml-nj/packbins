@@ -1,0 +1,10 @@
+#!/bin/ksh
+
+# pack bin directories
+
+for f in alpha32 hppa mipseb rs6000 sparc x86
+do
+  pack bin.$f-unix
+done
+
+pack bin.x86-win32

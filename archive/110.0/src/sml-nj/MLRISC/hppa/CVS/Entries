@@ -1,0 +1,13 @@
+/hppa.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaAsm.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaCells.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaInstr.sig/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaInstr.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaJumps.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaLabelComp.sig/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaMC.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaMillicode.sig/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaProps.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaRegAlloc.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/hppaRewrite.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+D

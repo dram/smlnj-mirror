@@ -1,0 +1,182 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Optional ML-Yacc Declarations</TITLE>
+<META NAME="description" CONTENT="Optional ML-Yacc Declarations">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node13.html">
+<LINK REL="previous" HREF="node11.html">
+<LINK REL="up" HREF="node8.html">
+<LINK REL="next" HREF="node13.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html220"
+ HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html217"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html211"
+ HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html219"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html221"
+ HREF="node13.html">Declarations for improving error-recovery</A>
+<B> Up:</B> <A NAME="tex2html218"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html212"
+ HREF="node11.html">Required ML-Yacc Declarations</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00034000000000000000">
+Optional ML-Yacc Declarations</A>
+</H2>
+<A NAME="optional-def">&#160;</A><DL>
+<DT><STRONG><TT>%arg</TT></STRONG>
+<DD>You may want each invocation of the entire parser to be parameterized
+by a particular argument, such as the file-name of the input
+being parsed in an invocation of the parser.  The <TT>%arg</TT> declaration
+allows you to specify such an argument.
+(This is often cleaner than using ``global'' reference variables.)
+The declaration
+<BLOCKQUOTE>
+<TT>%arg</TT> (Any-ML-pattern) <TT>:</TT> &lt;ML-type&gt;</BLOCKQUOTE>
+specifies the argument to the parser, as well as its type.  For example:
+<BLOCKQUOTE>
+<TT>%arg (filename) : string</TT>
+</BLOCKQUOTE>
+<P>
+If <TT>%arg</TT> is not specified, it defaults to <TT>() : unit</TT>.
+<DT><STRONG><TT>%eop</TT> and <TT>%noshift</TT></STRONG>
+<DD>You should specify the set of
+terminals that may follow the start
+symbol, also called end-of-parse symbols, using the <TT>%eop</TT>
+declaration.  The <TT>%eop</TT> keyword should be followed by the list of
+terminals.  This is useful, for example, in an interactive system
+where you want to force the evaluation of a statement before an
+end-of-file (remember, a parser delays the execution of semantic
+actions until a parse is successful).
+<P>
+ML-Yacc has no concept of an end-of-file.  You must
+define an end-of-file terminal (EOF, perhaps) in the 
+<TT>%term</TT> declaration.
+You must declare terminals which cannot be shifted, such as 
+end-of-file, in the <TT>%noshift</TT> declaration.  The
+<TT>%noshift</TT> keyword should be followed by the list of non-shiftable
+terminals. An error message will be printed if a non-shiftable terminal
+is found on the right hand side of any rule, but ML-Yacc will not prevent
+you from using such grammars.
+<P>
+It is important to emphasize that
+<EM>
+non-shiftable terminals must be declared.
+</EM>
+The error-correcting parser may attempt to read past such terminals
+while evaluating a correction to a syntax error otherwise.  This may
+confuse the lexer.
+<DT><STRONG><TT>%header</TT></STRONG>
+<DD>You may define code to head the functor {parser name}LrValsFun here.  This
+may be useful for adding additonal parameter structures to the functor.
+The functor must be parameterized by the Token structure, so
+the declaration should always have the form:
+<TT>
+<PRE>
+%header (functor {parser name}LrValsFun(
+                                structure Token : TOKEN
+                                       ...) 
+        )
+</PRE>
+</TT>
+
+<DT><STRONG><TT>%left</TT>,<TT>%right</TT>,<TT>%nonassoc</TT></STRONG>
+<DD>You should list the precedence declarations in order of increasing (tighter-binding)
+ precedence.  Each precedence declaration consists
+of % keyword specifying associativity followed by a list of terminals.
+The keywords are <TT>%left</TT>, <TT>%right</TT>, and <TT>%nonassoc</TT>,
+standing for their respective associativities.
+<DT><STRONG><TT>%nodefault</TT></STRONG>
+<DD>The <TT>%nodefault</TT> declaration suppresses the generation of default
+reductions.  If only one production can be reduced in a given state in
+an LR table, it may be made the default action for the state.  An incorrect
+reduction will be caught later when the parser attempts to shift the lookahead
+terminal which caused the reduction. ML-Yacc usually produces programs and
+verbose files with default reductions.  This saves a great deal of
+space in representing the LR tables,but
+sometimes it is useful for debugging and advanced
+uses of the parser to suppress the generation of default reductions.
+<DT><STRONG><TT>%pure</TT></STRONG>
+<DD>Include the <TT>%pure</TT> declaration if the semantic actions
+are free of significant side-effects and always terminate.
+<DT><STRONG><TT>%start</TT></STRONG>
+<DD>You may define the start symbol using
+the <TT>%start</TT> declaration.  Otherwise the nonterminal for the
+first rule will be used as the start nonterminal.
+The keyword <TT>%start</TT> should be followed by the name of the starting
+nonterminal.  This nonterminal should not be used on the right hand
+side of any rules, to avoid conflicts between reducing to the start
+symbol and shifting a terminal.  ML-Yacc will not prevent you
+from using such grammars, but it will print a warning message.
+<DT><STRONG><TT>%verbose</TT></STRONG>
+<DD>Include the <TT>%verbose</TT> declaration to produce a verbose
+description of the LALR parser.   The name of this file is
+the name of the specification file with a ``.desc'' appended to it.
+<P>
+This file has the following format:
+<DL COMPACT>
+<DT>1.
+<DD>A summary of errors found while generating the LALR tables.
+<DT>2.
+<DD>A detailed description of all errors.
+<DT>3.
+<DD>A description of the states of the parser.  Each state
+is preceded by a list of conflicts in the state.
+<P></DL></DL><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html220"
+ HREF="node13.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html217"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html211"
+ HREF="node11.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html219"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html221"
+ HREF="node13.html">Declarations for improving error-recovery</A>
+<B> Up:</B> <A NAME="tex2html218"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html212"
+ HREF="node11.html">Required ML-Yacc Declarations</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

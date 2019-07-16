@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Modules</TITLE>
+<META NAME="description" CONTENT="Modules">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node5.html">
+<LINK REL="previous" HREF="node3.html">
+<LINK REL="up" HREF="node2.html">
+<LINK REL="next" HREF="node5.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html128"
+ HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html125"
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html119"
+ HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html127"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html129"
+ HREF="node5.html">Error Recovery</A>
+<B> Up:</B> <A NAME="tex2html126"
+ HREF="node2.html">Introduction</A>
+<B> Previous:</B> <A NAME="tex2html120"
+ HREF="node3.html">General</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00022000000000000000">
+Modules</A>
+</H2>
+ML-Yacc uses the ML modules facility to specify the interface between
+a parser that it generates and a lexical analyzer that must be supplied
+by you.  It also uses the ML modules facility to factor out
+a set of modules that are common to every generated parser.
+These common modules include a parsing structure, which contains
+an error-correcting LR parser<A NAME="tex2html2"
+ HREF="footnode.html#15"><SUP><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]"
+ SRC="/opt/latex2html-97.1/icons.gif/foot_motif.gif"></SUP></A>, an LR table structure, and a structure
+which defines the representation of terminals.  ML-Yacc produces
+a functor for a particular parser parameterized by the LR table
+structure and the representation of terminals.  This functor
+contains values specific to the parser, such as the
+LR table for the parser<A NAME="tex2html3"
+ HREF="footnode.html#16"><SUP><IMG  ALIGN="BOTTOM" BORDER="1" ALT="[*]"
+ SRC="/opt/latex2html-97.1/icons.gif/foot_motif.gif"></SUP></A>, the
+semantic actions for the parser, and a structure containing
+the terminals for the parser.   ML-Yacc produces a signature
+for the structure produced by applying this functor
+and another signature for the structure containing the terminals for
+the parser.  You must
+supply a functor for the lexing module parameterized this
+structure.
+<P>
+Figure 1 is a dependency diagram of the modules that summarizes this
+information.  A module at the head of an arrow is dependent
+on the module at the tail.
+<P>
+<BR>
+<DIV ALIGN="CENTER"><A NAME="21">&#160;</A>
+<TABLE>
+<CAPTION><STRONG>Figure 1:</STRONG>
+Module Dependencies</CAPTION>
+<TR><TD><IMG WIDTH="490" HEIGHT="97"
+ SRC="img11.gif"
+ ALT="\begin{figure}
+\begin{tabular}
+{\vert rcl\vert}
+\hline
+parsing structure & $\lon...
+ ...articular parser, & & \\ lexical analyzer & & \\ \hline\end{tabular}\end{figure}"></TD></TR>
+</TABLE>
+</DIV>
+<BR><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html128"
+ HREF="node5.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html125"
+ HREF="node2.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html119"
+ HREF="node3.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html127"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html129"
+ HREF="node5.html">Error Recovery</A>
+<B> Up:</B> <A NAME="tex2html126"
+ HREF="node2.html">Introduction</A>
+<B> Previous:</B> <A NAME="tex2html120"
+ HREF="node3.html">General</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,0 +1,2 @@
+Decl 8
+qs$REGSPEC.sqrCPS.;;-;s$ETA.sqrCPS.;;-;s$CPSOPT.sqrCPS.Unsafe.Intmap.LtyKernel.;;-;s$CPSTRANS.sqrCPS.;;-;s$CONVERT.sqrCPS.Intmap.Lambda.LtyKernel.;;-;s$CONTRACT.sqrCPS.Intmap.LtyKernel.;;-;s$EXPAND.sqrCPS.Intmap.LtyKernel.;;-;s$ETASPLIT.sqrCPS.Intmap.LtyKernel.;;-;s$FLATTEN.sqrCPS.Intmap.LtyKernel.;;-;s$CLOSURE.sqrCPS.;;-;s$SPILL.sqrCPS.;;-;s$LIMIT.sqrCPS.;;-;s$CPSGEN.sqsMachSpec.v$MACH_SPEC.;-;rCPS.ErrorMsg.;;-;;

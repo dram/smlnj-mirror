@@ -1,0 +1,27 @@
+/cfun-list.h/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/cfun-proto-list.h/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/ctermid.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/environ.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getegid.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getenv.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/geteuid.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getgid.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getgroups.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getlogin.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getpgrp.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getpid.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getppid.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/getuid.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/isatty.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/makefile/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/posix-procenv-lib.c/1.1.1.1/Fri Dec  3 19:59:24 1999//
+/setgid.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/setpgid.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/setsid.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/setuid.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/sysconf.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/time.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/times.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/ttyname.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/uname.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+D

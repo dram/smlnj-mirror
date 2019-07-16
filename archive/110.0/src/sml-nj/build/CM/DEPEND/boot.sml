@@ -1,0 +1,2 @@
+Decl 8
+qs$BOOTENV.sqrEnvironment.;;-;f%BootEnvF.f+VC.v$VISCOMP.;;slqsSS.vSubstring.;-;sCompile.vVC.Compile.;-;sSE.vStaticEnv.;-;sSC.vSCStaticEnv.;-;ovErrorMsg.;vModules.;vModuleUtil.;;;qrSC.VC.SE.OS.SS.Word8Vector.PersStamps.SCStaticEnv.Unsafe.List.String.Control.ErrorMsg.PPDec.General.BinIO.Source.Absyn.EnvRef.Symbol.Bindings.SymbolicEnv.Compile.PrettyPrint.TextIO.SMLofNJ.StaticEnv.PrimEnv.DynamicEnv.;;+v$BOOTENV.;;;

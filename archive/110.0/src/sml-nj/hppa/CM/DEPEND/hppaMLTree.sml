@@ -1,0 +1,2 @@
+Decl 8
+qsHppaConst.a%RegMaskConst.;ssRegMask.vHppaMask.;-;;-;sHppaInstr.a%HppaInstr.;sqsConst.vHppaConst.;-;sRegion.vCPSRegions.;-;;;-;sHppaFlowGraph.a%FlowGraph.;sqsI.vHppaInstr.;-;sP.vPseudoOpsBig.;-;;;-;sHppaAsmEmitter.a%HppaAsmEmitter.;sqsInstr.vHppaInstr.;-;sFlowGraph.vHppaFlowGraph.;-;;;-;sHppaMCEmitter.a%HppaMCEmitter.;sqsInstr.vHppaInstr.;-;sAssembler.vHppaAsmEmitter.;-;sFlowGraph.vHppaFlowGraph.;-;;;-;sHppaMLTree.a%MLTreeF.;sqsConst.vHppaConst.;-;sR.vCPSRegions.;-;sP.vPseudoOpsBig.;-;;;-;;

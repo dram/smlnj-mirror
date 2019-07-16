@@ -1,0 +1,23 @@
+(* pervasives.cm
+ *
+ * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ *)
+
+Group is
+
+  bind-basis.sml
+  bind-old.sml
+  bind-smlnj.sml
+  bind-toplevel.sml
+  bind-overloads.sml
+
+#if defined(OPSYS_UNIX)
+  bind-posix.sml
+  bind-unix.sml
+  bind-sockets.sml
+#elif defined(OPSYS_OS2)
+  OS2/bind-os2.sml
+#elif defined(OPSYS_WIN32)
+  Win32/bind-win32.sml
+  Win32/bind-sockets.sml
+#endif

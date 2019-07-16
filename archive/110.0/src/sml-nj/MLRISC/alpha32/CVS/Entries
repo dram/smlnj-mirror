@@ -1,0 +1,12 @@
+/alpha32.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32Asm.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32Cells.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32Instr.sig/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32Instr.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32Jumps.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32MC.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32Props.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32PseudoInstr.sig/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32RegAlloc.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+/alpha32Rewrite.sml/1.1.1.1/Fri Dec  3 19:59:34 1999//
+D

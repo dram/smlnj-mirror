@@ -1,0 +1,2 @@
+Decl 8
+qs$PPOBJ.sqrTypes.PrettyPrint.StaticEnv.;;-;sPPObj.sqsPP.vPrettyPrint.;-;sV.vVector.;-;sA.vAccess.;-;sT.vTypes.;-;sTU.vTypesUtil.;-;sBT.vBasicTypes.;-;sF.vFixity.;-;sObj.vUnsafe.Object.;-;ovPrettyPrint.;vPPUtil.;;rA.F.T.V.PP.BT.TU.Vector.Tuples.PrimTyc.Real.Obj.Unsafe.Word.List.Word8.Int.String.Control.ErrorMsg.General.Array.Symbol.InvPath.Word32.Char.Real64Array.Lookup.PPTable.PPUtil.Int32.;;+v$PPOBJ.;;;

@@ -1,0 +1,22 @@
+/generic-sock-sig.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/generic-sock.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/host-db-sig.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/host-db.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/inet-sock-sig.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/inet-sock.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/net-db-sig.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/net-db.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/pre-sock.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/prot-db-sig.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/prot-db.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/serv-db-sig.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/serv-db.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/socket-sig.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/socket.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/unix-generic-sock.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/unix-sock-sig.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/unix-sock.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/unix-socket.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/win32-generic-sock.sml/1.1.1.1/Fri Dec  3 19:59:41 1999//
+/win32-socket.sml/1.1.1.1/Fri Dec  3 19:59:42 1999//
+D

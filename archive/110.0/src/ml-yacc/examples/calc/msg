@@ -1,0 +1,154 @@
+To: Nicky Oliver Bodentien <oliver@cs.auc.dk>
+Cc: dbm@research.bell-labs.com
+Subject: Re: ML-yacc calculator
+From: Dave MacQueen <dbm@research.bell-labs.com>
+Date: 27 Mar 2000 15:54:37 -0500
+
+Nicky Oliver Bodentien <oliver@cs.auc.dk> writes:
+
+> I am having problems with the example "calc" in ML-yacc -
+> the manual dictates that I load the file "base.sml", but I
+> *cannot find it* anywhere within the sml-package. Instead I
+> use "base.sig".
+> 
+> If I do need "base.sml", where can I find it?
+> 
+> Details follow.
+> 
+> I do the following without problems:
+> 
+>   - from Unix command prompt:
+>         ml-lex calc.lex
+>         ml-yacc calc.grm
+>   - from SML prompt:
+>         use "/pack/sml/src/ml-yacc/lib/base.sig"
+>         use "calc.grm.sig"
+> =09use "calc.lex.sml"
+>         use "calc.grm.sml"
+> 
+> But when I try to create the CalcLrVals structure...
+> 
+>   structure CalcLrVals
+>     =3D CalcLrValsFun(structure Token =3D LrParser.Token)
+> 
+> I get the following error:
+>  Error: unbound structure: LrParser in path LrParser.Token
+>  Error: unmatched structure specification: Token
+>        =20
+> Can anybody help?
+> 
+> --=20
+> =09Lykken er ikke en endestation - det er en m=E5de at rejse p=E5.
+> =09Happiness isn't a destination - it is a way of travelling.
+
+Sorry about this -- the documentation and the calc example are a
+bit out of date.  We'll fix this shortly in a patch release of
+the compiler, but in the meantime, here is what you need to do
+(I am assuming that you have the 110.0.6 or 110.0.3 version of
+SML/NJ):
+
+1. in the src/ml-yacc/examples/calc/sources.cm file add the line
+
+  calc.sml 
+
+at the end.  The contents of the file should now be
+
+Group is
+
+  ml-yacc-lib.cm
+  calc.grm
+  calc.lex
+  calc.sml
+
+2. Put the following file calc.sml (everything between the double
+lines) in the calc directory:
+
+======================================================================
+(* calc.sml *)
+
+(* This file provides glue code for building the calculator using the
+ * parser and lexer specified in calc.lex and calc.grm.
+*)
+
+structure Calc : sig
+	           val parse : unit -> unit
+                 end = 
+struct
+
+(* 
+ * We apply the functors generated from calc.lex and calc.grm to produce
+ * the CalcParser structure.
+ *)
+
+  structure CalcLrVals =
+    CalcLrValsFun(structure Token = LrParser.Token)
+
+  structure CalcLex =
+    CalcLexFun(structure Tokens = CalcLrVals.Tokens)
+
+  structure CalcParser =
+    Join(structure LrParser = LrParser
+	 structure ParserData = CalcLrVals.ParserData
+	 structure Lex = CalcLex)
+
+(* 
+ * We need a function which given a lexer invokes the parser. The
+ * function invoke does this.
+ *)
+
+  fun invoke lexstream =
+      let fun print_error (s,i:int,_) =
+	      TextIO.output(TextIO.stdOut,
+			    "Error, line " ^ (Int.toString i) ^ ", " ^ s ^ "\n")
+       in CalcParser.parse(0,lexstream,print_error,())
+      end
+
+(* 
+ * Finally, we need a driver function that reads one or more expressions
+ * from the standard input. The function parse, shown below, does
+ * this. It runs the calculator on the standard input and terminates when
+ * an end-of-file is encountered.
+ *)
+
+  fun parse () = 
+      let val lexer = CalcParser.makeLexer (fn _ => TextIO.inputLine TextIO.stdIn)
+	  val dummyEOF = CalcLrVals.Tokens.EOF(0,0)
+	  val dummySEMI = CalcLrVals.Tokens.SEMI(0,0)
+	  fun loop lexer =
+	      let val (result,lexer) = invoke lexer
+		  val (nextToken,lexer) = CalcParser.Stream.get lexer
+		  val _ = case result
+			    of SOME r =>
+				TextIO.output(TextIO.stdOut,
+				       "result = " ^ (Int.toString r) ^ "\n")
+			     | NONE => ()
+	       in if CalcParser.sameToken(nextToken,dummyEOF) then ()
+		  else loop lexer
+	      end
+       in loop lexer
+      end
+
+end (* structure Calc *)
+======================================================================
+
+3. run sml and type:
+
+  CM.make();
+
+This will run ml-lex and ml-yacc on the lex and yacc specifications,
+load the ml-yacc libraries, load the generated source files for the
+lexer and parser, and finally load the calc.sml file that defines the
+Calc strucure.
+
+4. run the calculartor:
+
+  Calc.parse();
+
+Now you can type in simple arithmetic expressions terminated with
+semicolons and the calculator will respond with the result.
+
+Let me know if this works for you.
+
+Dave MacQueen
+macqueen@research.bell-labs.com
+Room 2C-480, Bell Labs, 600 Mountain Ave, Murray Hill, NJ 07974

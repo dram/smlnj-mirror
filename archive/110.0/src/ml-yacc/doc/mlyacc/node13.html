@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Declarations for improving error-recovery</TITLE>
+<META NAME="description" CONTENT="Declarations for improving error-recovery">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node14.html">
+<LINK REL="previous" HREF="node12.html">
+<LINK REL="up" HREF="node8.html">
+<LINK REL="next" HREF="node14.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html231"
+ HREF="node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html228"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html222"
+ HREF="node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html230"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html232"
+ HREF="node14.html">Rules</A>
+<B> Up:</B> <A NAME="tex2html229"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html223"
+ HREF="node12.html">Optional ML-Yacc Declarations</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00035000000000000000">
+Declarations for improving error-recovery</A>
+</H2>
+<P>
+These optional declarations improve error-recovery:
+<P><DL>
+<DT><STRONG><TT>%keyword</TT></STRONG>
+<DD>Specify all keywords in a grammar here.  The <TT>%keyword</TT>
+should be followed by a list
+    of terminal names.   Fixes involving keywords are generally dangerous;
+    they are prone to substantially altering the syntactic meaning
+    of the program.  They are subject to a more rigorous parse check than
+    other fixes.
+<P><DT><STRONG><TT>%prefer</TT></STRONG>
+<DD>List terminals to prefer for insertion after the <TT>%prefer</TT>.
+Corrections which insert a terminal on this list will be chosen over
+other corrections, all other things being equal.
+<DT><STRONG><TT>%subst</TT></STRONG>
+<DD>This declaration should be followed by a list of clauses of the
+     form {terminal} <TT>for</TT> {terminal}, where items on the list are
+     separated using a <TT>|</TT>.  Substitution corrections on this list
+will be chosen over all other corrections except preferred insertion
+corrections (listed above), all other things being equal.
+<DT><STRONG><TT>%change</TT></STRONG>
+<DD>This is a generalization of <TT>%prefer</TT>  and <TT>%subst</TT>.
+It takes a the following syntax:
+<BLOCKQUOTE>
+<IMG WIDTH="61" HEIGHT="26" ALIGN="MIDDLE" BORDER="0"
+ SRC="img12.gif"
+ ALT="${\it tokens}_{1a}$"> <code>-&gt;</code> <IMG WIDTH="60" HEIGHT="26" ALIGN="MIDDLE" BORDER="0"
+ SRC="img13.gif"
+ ALT="${\it tokens}_{1b}$"> <code>|</code> <IMG WIDTH="61" HEIGHT="26" ALIGN="MIDDLE" BORDER="0"
+ SRC="img14.gif"
+ ALT="${\it tokens}_{2a}$"> <code>-&gt;</code> <IMG WIDTH="60" HEIGHT="26" ALIGN="MIDDLE" BORDER="0"
+ SRC="img15.gif"
+ ALT="${\it tokens}_{2b}$"> <I>etc.</I>
+</BLOCKQUOTE>
+where each <I>tokens</I> is a (possibly empty) seqence of tokens.  The
+idea is that any instance of <IMG WIDTH="61" HEIGHT="26" ALIGN="MIDDLE" BORDER="0"
+ SRC="img12.gif"
+ ALT="${\it tokens}_{1a}$"> can be ``corrected'' to
+<IMG WIDTH="60" HEIGHT="26" ALIGN="MIDDLE" BORDER="0"
+ SRC="img13.gif"
+ ALT="${\it tokens}_{1b}$">, and so on.  For example, to suggest that a good
+error correction to try is <code>IN ID END</code> (which is useful for the
+ML parser), write,
+<PRE>
+       %change   -&gt;  IN ID END
+</PRE>
+<DT><STRONG><TT>%value</TT></STRONG>
+<DD>The error-correction algorithm may also insert terminals with values.
+     You must supply a value for such a terminal. The keyword
+     should be followed by a terminal and a piece of
+     code (enclosed in parentheses) that when evaluated supplies the value. 
+     There must be a separate <TT>%value</TT> declaration for each terminal with
+     a value that you wish may be inserted or substituted in an error correction.
+     The code for the value is not evaluated until the parse is
+     successful.
+<P>
+Do not specify a <TT>%value</TT> for terminals without
+     values. This will result in a type error in the program produced by
+     ML-Yacc.
+</DL><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html231"
+ HREF="node14.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html228"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html222"
+ HREF="node12.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html230"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html232"
+ HREF="node14.html">Rules</A>
+<B> Up:</B> <A NAME="tex2html229"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html223"
+ HREF="node12.html">Optional ML-Yacc Declarations</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

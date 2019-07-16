@@ -1,0 +1,114 @@
+/all-files.cm/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/array-sig.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/array.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/array2-sig.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/array2.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/assembly.sig/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-basis.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-largest32.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-old.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-overloads.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-posix.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-smlnj.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-sockets.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-toplevel.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bind-unix.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bool-sig.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/bool.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/built-in.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/byte-sig.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/byte.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/c-math64.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/char-array.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/char-sig.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/char-vector.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/char.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/clean-timer.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/code-obj.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/command-line-sig.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/command-line.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/core.sml/1.1.1.1/Fri Dec  3 19:59:37 1999//
+/date-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/date.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/debug.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/dummy.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/exn-name.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/general-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/general.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/ieee-real-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/ieee-real.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/infixes.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/int-inf-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/int-inf.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/int31.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/int32.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/integer-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/internal-timer.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/list-pair-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/list-pair.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/list-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/list.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/math-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/math64.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/mono-array-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/mono-array2-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/mono-vector-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/num-format.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/num-scan.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/open-general.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/openlist.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/option-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/option.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/overloads.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pack-word-b16.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pack-word-b32.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pack-word-l16.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pack-word-l32.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pack-word-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pervasives.cm/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pre-basis-structs.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pre-basis-time.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pre-basis.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pre-bind-largest32.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/pre-string.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/real-format.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/real-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/real64-array.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/real64-vector.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/real64.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/sml90-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/sml90.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/string-cvt-sig.sml/1.1.1.1/Fri Dec  3 19:59:38 1999//
+/string-cvt.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/string-sig.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/string.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/substring-sig.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/substring.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/system.sig/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/system.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/tags-sig.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/tags.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/time-sig.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/time.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/timer-sig.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/timer.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/ulist.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/vector-sig.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/vector.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/word-sig.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/word31.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/word32.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/word8-array.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/word8-vector.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+/word8.sml/1.1.1.1/Fri Dec  3 19:59:39 1999//
+D/IO////
+D/MacOS////
+D/NJ////
+D/OS////
+D/OS2////
+D/Posix////
+D/Sockets////
+D/Unix////
+D/UnixNoPosix////
+D/Unsafe////
+D/Win32////

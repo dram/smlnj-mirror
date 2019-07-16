@@ -1,0 +1,77 @@
+This is the HISTORY file for the SML/NJ Version 110.0 CVS repository.
+
+An entry should be made for _every_ commit to the repository.
+The entries in this file will be used when creating the README
+for new versions, so keep that in mind when writing the
+description.
+
+The form of an entry should be:
+
+Name: 
+Date:
+Tag: <post-commit CVS tag>
+Description:
+
+----------------------------------------------------------------------
+Name: Dave MacQueen
+Date: 10/20/2000
+Tag: dbm-20001020-install-fix
+Description:
+  Eliminated substitution of current shell value in .run-sml and
+  .arch-n-opsys.  Changed files:
+    config/install.sh
+    config/_run-sml
+    config/_arch-n-opsys
+    src/config/install.sh
+    src/config/_run-sml
+    src/config/_arch-n-opsys
+  NOTE: config and src/config are duplicates.  We should eliminate
+  one of these.
+
+----------------------------------------------------------------------
+Name: Dave MacQueen
+Date: 10/10/2000
+Tag: dbm-20001010-RH7-fix
+Description:
+  Set locale variables (LC_CTYPE and LC_COLLATE) in
+runtime/config/gen-posix-names.sh to fix problem in RH 7.0 caused
+by more thorough internationalization.
+
+----------------------------------------------------------------------
+Name: Dave MacQueen
+Date: 10/2/2000
+Tag: dbm-20001002-windows-fix
+Description:
+  Updated src/runtime/objs/mk.x86-win32 to add /I option for nmake
+  to fix problem compiling runtime on Win2000
+
+----------------------------------------------------------------------
+Name: Dave MacQueen
+Date: 10/2/2000
+Tag: Release_110_0_7
+Description:
+  Updated Version 110.0.7 date and src/HISTORY file.
+
+----------------------------------------------------------------------
+Name: Dave MacQueen
+Date: 25/4/2000
+Tag: dbm-20000425c-mlyacc_example_update
+Description:
+  Updated ml-yacc/examples/fol/README
+
+----------------------------------------------------------------------
+Name: Dave MacQueen
+Date: 25/4/2000
+Tag: dbm-20000425b-mlyacc_tex_update
+Description:
+  Updated author and date info in mlyacc.tex.
+
+----------------------------------------------------------------------
+Name: Dave MacQueen
+Date: 25/4/2000
+Tag: dbm-20000425-examples_update (src/ml-yacc only)
+Description:
+  Updated mlyacc.tex (sections 5 and 7) for SML/NJ 110 (SML '97) and
+the use of CM.  Fixed the three examples (calc, fol, pascal) in 
+src/ml-yacc/examples so that they work under 110.0.x.
+

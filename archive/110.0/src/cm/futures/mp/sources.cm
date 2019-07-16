@@ -1,0 +1,15 @@
+Library
+
+	signature MP
+	functor MP
+
+	signature SAFETHREADS
+	functor SafePreCo
+
+is
+
+	mp.sig.sml
+	mp.sml
+
+	safethreads.sig.sml
+	safethreads.sml

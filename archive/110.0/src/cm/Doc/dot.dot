@@ -1,0 +1,60 @@
+digraph G {
+page = "8.5,11";
+size = "5,6.5";
+ratio = fill;
+concentrate = true;
+node [shape = plaintext, fontsize = 34];
+n91 [shape = box, label = "multicast.sml"]
+n88 [shape = box, label = "../src/cml.sml"]
+n78 [shape = box, label = "../src/cml-sig.sml"]
+n77 [shape = box, label = "../src/cml-base-sig.sml"]
+n77 -> { "structure System" } [ style = dotted ]
+n78 -> { n77 }
+n78 -> { "structure System" } [ style = dotted ]
+n87 [shape = box, label = "../src/cml-base.sml"]
+n84 [shape = box, label = "../src/cml-compat.sml"]
+n84 -> { "structure System"; "structure Export" } [ style = dotted ]
+n86 [shape = box, label = "../src/cml-version.sml"]
+n87 -> { n77; n84; n86 }
+n87 -> { "structure IO"; "structure System"; "structure List"; "structure String"; "structure SMLofNJ" } [ style = dotted ]
+n88 -> { n78; n87 }
+n88 -> { "structure System"; "structure Bits" } [ style = dotted ]
+n90 [shape = box, label = "multicast-sig.sml"]
+n90 -> { n78 } [ style = dashed ]
+n91 -> { n90 }
+n91 -> { n88 } [ style = dashed ]
+n92 [shape = box, label = "cml-name.sml"]
+n1 [shape = box, label = "../../smlnj-lib/106-lib-base.sml"]
+n0 [shape = box, label = "../../smlnj-lib/lib-base-sig.sml"]
+n1 -> { n0 }
+n39 [shape = box, label = "../../smlnj-lib/106-hash-string.sml"]
+n39 -> { "structure String"; "structure Char"; "structure Bits" } [ style = dotted ]
+n42 [shape = box, label = "../../smlnj-lib/hash-table.sml"]
+n40 [shape = box, label = "../../smlnj-lib/hash-key-sig.sml"]
+n41 [shape = box, label = "../../smlnj-lib/hash-table-sig.sml"]
+n41 -> { n40 }
+n42 -> { n40; n41 }
+n42 -> { "structure Array"; "structure Bits" } [ style = dotted ]
+n43 [shape = box, label = "../../smlnj-lib/name-sig.sml"]
+n43 -> { n1 }
+n89 [shape = box, label = "../src/build.sml"]
+n82 [shape = box, label = "../src/trace-cml.sml"]
+n79 [shape = box, label = "../src/run-cml-sig.sml"]
+n79 -> { n78 }
+n80 [shape = box, label = "../src/cio-sig.sml"]
+n80 -> { n78 }
+n80 -> { "signature IO" } [ style = dotted ]
+n81 [shape = box, label = "../src/trace-cml-sig.sml"]
+n81 -> { n78; n80 }
+n82 -> { n78; n79; n80; n81 }
+n82 -> { "structure System"; "structure String" } [ style = dotted ]
+n83 [shape = box, label = "../src/cio.sml"]
+n83 -> { n79; n80 }
+n83 -> { "structure IO"; "structure System"; "structure String"; "structure ByteArray" } [ style = dotted ]
+n85 [shape = box, label = "../src/run-cml.sml"]
+n85 -> { n78; n79; n84 }
+n85 -> { "structure System"; "structure List"; "structure SMLofNJ" } [ style = dotted ]
+n89 -> { n82; n83; n85; n88 }
+n92 -> { n1; n39; n42; n43; n88; n89 } [ style = dashed ]
+n92 -> { "structure Array"; "structure Bits" } [ style = dotted ]
+}

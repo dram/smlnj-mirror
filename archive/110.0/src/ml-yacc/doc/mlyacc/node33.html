@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Functorizing things further</TITLE>
+<META NAME="description" CONTENT="Functorizing things further">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="previous" HREF="node32.html">
+<LINK REL="up" HREF="node31.html">
+<LINK REL="next" HREF="node34.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html452"
+ HREF="node34.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html449"
+ HREF="node31.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html445"
+ HREF="node32.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html451"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html453"
+ HREF="node34.html">Acknowledgements</A>
+<B> Up:</B> <A NAME="tex2html450"
+ HREF="node31.html">Hints</A>
+<B> Previous:</B> <A NAME="tex2html446"
+ HREF="node32.html">Multiple start symbols</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION000112000000000000000">
+Functorizing things further</A>
+</H2>
+<P>
+You may wish to functorize things even further.  Two possibilities
+are turning the lexer and parser structures into closed functors,
+that is, functors which do not refer to types or values defined
+outside their body or outside their parameter structures (except
+for pervasive types and values), and creating a functor which
+encapsulates the code necessary to invoke the parser.
+<P>
+Use the <TT>%header</TT> declarations in ML-Lex and ML-Yacc to create
+closed functors.  See section&nbsp;<A HREF="node12.html#optional-def">2.4</A> of this manual
+and section 4 of the manual for ML-Lex for complete descriptions of these
+declarations.  If you do this, you should also parameterize these
+structures by the types of line numbers.  The type will be an
+abstract type, so you will also need to define all the valid
+operations on the type.  The signature INTERFACE, defined below,
+shows one possible signature for a structure defining the line
+number type and associated operations.
+<P>
+If you wish to encapsulate the code necessary to invoke the
+parser, your functor generally will have form:
+<BLOCKQUOTE>
+<PRE>
+functor Encapsulate(
+     structure Parser : PARSER
+     structure Interface : INTERFACE
+         sharing type Parser.arg = Interface.arg
+         sharing type Parser.pos = Interface.pos
+         sharing type Parser.result = ...
+     structure Tokens : {parser name}_TOKENS
+         sharing type Tokens.token = Parser.Token.token
+         sharing type Tokens.svalue = Parser.svalue) =
+  struct
+        ...
+  end
+</PRE>
+</BLOCKQUOTE>
+<P>
+The signature INTERFACE, defined below, is a possible signature for
+a structure
+defining the types
+of line numbers and arguments (types pos and arg, respectively)
+along with operations for them.  You need this structure
+because
+these types will be abstract types inside the body of your
+functor.
+<BLOCKQUOTE>
+<PRE>
+signature INTERFACE = 
+sig
+   type pos
+   val line : pos ref
+   val reset : unit -&gt; unit
+   val next : unit -&gt; unit
+   val error : string * pos * pos -&gt; unit
+
+   type arg
+   val nothing : arg
+end
+</PRE>
+</BLOCKQUOTE>
+<P>
+The directory example/fol contains a sample parser in which
+the code for tying together the lexer and parser has been
+encapsulated in a functor.
+<P><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html452"
+ HREF="node34.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html449"
+ HREF="node31.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html445"
+ HREF="node32.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html451"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html453"
+ HREF="node34.html">Acknowledgements</A>
+<B> Up:</B> <A NAME="tex2html450"
+ HREF="node31.html">Hints</A>
+<B> Previous:</B> <A NAME="tex2html446"
+ HREF="node32.html">Multiple start symbols</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

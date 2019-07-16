@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Required ML-Yacc Declarations</TITLE>
+<META NAME="description" CONTENT="Required ML-Yacc Declarations">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node12.html">
+<LINK REL="previous" HREF="node10.html">
+<LINK REL="up" HREF="node8.html">
+<LINK REL="next" HREF="node12.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html209"
+ HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html206"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html200"
+ HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html208"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html210"
+ HREF="node12.html">Optional ML-Yacc Declarations</A>
+<B> Up:</B> <A NAME="tex2html207"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html201"
+ HREF="node10.html">Grammar</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00033000000000000000">
+Required ML-Yacc Declarations</A>
+</H2>
+<DL>
+<DT><STRONG><TT>%name</TT></STRONG>
+<DD>You must specify the name of the parser with <TT>%name</TT> {name}.
+<DT><STRONG><TT>%nonterm</TT> and <TT>%term</TT></STRONG>
+<DD>You must define the terminal and nonterminal sets using the 
+<TT>%term</TT> and <TT>%nonterm</TT>
+declarations, respectively.  These declarations are like an ML datatype
+definition.
+The type of the value that a symbol may carry is defined at the same time
+that the symbol is defined.  Each declarations consists of the keyword
+(<TT>%term</TT> or <TT>%nonterm</TT>)
+followed by a list of symbol entries separated by a bar (``<TT>|</TT>'').
+Each symbol entry is a symbol name followed by an optional 
+``of  &lt;ML-type&gt;''. The types cannot be polymorphic.
+Those symbol entries without a type carry no value.
+Nonterminal and terminal names must be disjoint and no name may be declared
+more than once in either declaration.
+The symbol names and types are used to construct a datatype union for the
+values on the semantic stack in the LR parser and to name the values
+associated with subcomponents of a rule.  The names and types of 
+terminals are also used to construct a signature for a structure that
+may be passed to the lexer functor.
+<P>
+Because the types and names are used in these manners, do
+not use ML keywords as symbol names.   The programs produced by ML-Yacc
+will not compile if ML keywords are used as symbol names.  
+Make sure that the types specified in the <TT>%term</TT> declaration are
+fully qualified types or are available in the background
+environment when the signatures produced by ML-Yacc are loaded.  Do
+not use any locally defined types from the user declarations section of
+the specification.
+<P>
+These requirements on the types in the <TT>%term</TT> declaration are not
+a burden.
+They force the types to be defined in another module,
+which is a good idea since these types will
+be used in the lexer module.
+<DT><STRONG><TT>%pos</TT></STRONG>
+<DD>You must declare the type of position values using the <TT>%pos</TT> declaration.
+The syntax is <TT>%pos</TT> &lt;ML-type&gt;.
+This type MUST be the same type as that which is actually found in the lexer.
+It cannot be polymorphic.
+<P></DL><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html209"
+ HREF="node12.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html206"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html200"
+ HREF="node10.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html208"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html210"
+ HREF="node12.html">Optional ML-Yacc Declarations</A>
+<B> Up:</B> <A NAME="tex2html207"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html201"
+ HREF="node10.html">Grammar</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

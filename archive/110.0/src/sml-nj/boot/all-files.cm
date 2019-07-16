@@ -1,0 +1,310 @@
+(* all-files.cm
+ *
+ * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ *)
+
+Group is
+
+general-sig.sml
+built-in.sml
+NJ/isolate.sml		(* this needs to be as early as possible *)
+general.sml
+open-general.sml
+
+pre-basis-structs.sml
+pre-bind-largest32.sml	(* LargeInt = 31 bits, LargeWord = 32 bits *)
+pre-basis-time.sml
+
+bool-sig.sml
+option-sig.sml
+char-sig.sml
+string-sig.sml
+substring-sig.sml
+string-cvt-sig.sml
+vector-sig.sml
+array-sig.sml
+mono-vector-sig.sml
+mono-array-sig.sml
+list-sig.sml
+list-pair-sig.sml
+
+pre-basis.sml
+
+word-sig.sml
+integer-sig.sml
+
+list.sml
+list-pair.sml
+pre-string.sml
+string-cvt.sml
+bool.sml
+option.sml
+num-format.sml
+num-scan.sml
+char.sml
+string.sml
+substring.sml
+real-format.sml
+
+#if defined(LARGE)
+  int-inf-sig.sml
+  int-inf.sml
+#endif
+
+int32.sml
+word32.sml
+int31.sml
+word8.sml
+word31.sml
+
+Unsafe/cinterface-sig.sml
+Unsafe/cinterface.sml
+debug.sml
+
+ieee-real-sig.sml
+ieee-real.sml
+math-sig.sml
+real-sig.sml
+#if defined(ARCH_M68)
+  c-math64.sml
+#else
+  math64.sml
+#endif
+real64.sml
+
+bind-largest32.sml	(* LargestInt = 31 bits, LargestWord = 32 bits *)
+
+overloads.sml	(* overloading of arithmetic operators *)
+
+NJ/cleanup-sig.sml
+NJ/cleanup.sml
+
+NJ/smlnj.sml
+
+vector.sml
+array.sml
+array2-sig.sml
+array2.sml
+mono-array2-sig.sml
+char-vector.sml
+char-array.sml
+word8-vector.sml
+word8-array.sml
+real64-vector.sml
+real64-array.sml
+byte-sig.sml
+byte.sml
+(*** SOME DAY WE NEED AN ENDIANESS #if HERE!!! ***)
+pack-word-sig.sml
+pack-word-b16.sml
+pack-word-l16.sml
+pack-word-b32.sml
+pack-word-l32.sml
+
+time-sig.sml
+time.sml
+timer-sig.sml
+internal-timer.sml
+clean-timer.sml
+timer.sml
+date-sig.sml
+date.sml
+
+NJ/signals-sig.sml
+NJ/internal-signals.sml
+NJ/signals.sml
+
+#if defined(OPSYS_UNIX)
+  Unix/pre-os.sml
+  Posix/posix-prelude.sml
+  Posix/posix-flags-sig.sml
+  Posix/posix-error-sig.sml
+  Posix/posix-error.sml
+  Posix/posix-signal-sig.sml
+  Posix/posix-signal.sml
+  Posix/posix-process-sig.sml
+  Posix/posix-process.sml
+  Posix/posix-filesys-sig.sml
+  Posix/posix-filesys.sml
+  Posix/posix-io-sig.sml
+  Posix/posix-io.sml
+  Posix/posix-procenv-sig.sml
+  Posix/posix-procenv.sml
+  Posix/posix-sysdb-sig.sml
+  Posix/posix-sysdb.sml
+  Posix/posix-tty-sig.sml
+  Posix/posix-tty.sml
+  Posix/posix-sig.sml
+  Posix/posix.sml
+  Unix/unix-signals-sig.sml
+  Unix/unix-signals.sml
+#elif defined(OPSYS_OS2)
+  OS2/os2-prelude.sml
+  OS2/os2-filesys-sig.sml
+  OS2/os2-filesys.sml
+  OS2/os2-io-sig.sml
+  OS2/os2-io.sml
+  OS2/os2-process-sig.sml
+  OS2/os2-process.sml
+  OS2/os2-sig.sml
+  OS2/os2.sml
+#elif defined(OPSYS_WIN32)
+  Win32/win32-general-sig.sml
+  Win32/win32-general.sml
+  Win32/pre-os.sml
+  Win32/win32-filesys-sig.sml
+  Win32/win32-filesys.sml
+  Win32/win32-io-sig.sml
+  Win32/win32-io.sml
+  Win32/win32-process-sig.sml
+  Win32/win32-process.sml
+  Win32/win32-sig.sml
+  Win32/win32.sml
+#endif
+
+
+
+OS/os-path-sig.sml
+OS/os-filesys-sig.sml
+OS/os-process-sig.sml
+OS/os-io-sig.sml
+OS/os-sig.sml
+OS/os-path-fn.sml
+OS/at-exit.sml
+#if defined(OPSYS_UNIX)
+  Unix/os-path.sml
+  Unix/os-filesys.sml
+  Unix/os-process.sml
+  Unix/os-io.sml
+  Unix/os.sml
+#elif defined(OPSYS_OS2)
+  OS2/os-path.sml
+  OS2/os-filesys.sml
+  OS2/os-process.sml
+  OS2/os-io.sml
+  OS2/os.sml
+#elif defined(OPSYS_WIN32)
+  Win32/os-path.sml
+  Win32/os-filesys.sml
+  Win32/os-process.sml
+  Win32/os-io.sml
+  Win32/os.sml
+#else
+(* #error OS not supported for this system *)
+#endif
+
+IO/prim-io-sig.sml
+IO/prim-io-fn.sml
+IO/bin-prim-io.sml
+IO/text-prim-io.sml
+IO/io-sig.sml
+IO/io.sml
+IO/clean-io.sml
+IO/stream-io-sig.sml
+IO/text-stream-io-sig.sml
+IO/imperative-io-sig.sml
+IO/bin-io-sig.sml
+IO/text-io-sig.sml
+IO/os-prim-io-sig.sml
+IO/bin-io-fn.sml
+IO/text-io-fn.sml
+
+#if defined(OPSYS_UNIX)
+  Unix/posix-bin-prim-io.sml
+  Unix/posix-text-prim-io.sml
+  Unix/posix-bin-io.sml
+  Unix/posix-text-io.sml
+  Unix/unix-sig.sml
+  Unix/unix.sml
+#elif defined(OPSYS_OS2)
+  OS2/os2-bin-prim-io.sml
+  OS2/os2-text-prim-io.sml
+  OS2/os2-bin-io.sml
+  OS2/os2-text-io.sml
+#elif defined(OPSYS_WIN32)
+  Win32/win32-bin-prim-io.sml
+  Win32/win32-text-prim-io.sml
+  Win32/win32-bin-io.sml
+  Win32/win32-text-io.sml
+#else
+(* #error OS not supported for this system *)
+#endif
+
+
+#if defined(OPSYS_UNIX)
+  Sockets/pre-sock.sml
+  Sockets/net-db-sig.sml
+  Sockets/net-db.sml
+  Sockets/host-db-sig.sml
+  Sockets/host-db.sml
+  Sockets/prot-db-sig.sml
+  Sockets/prot-db.sml
+  Sockets/serv-db-sig.sml
+  Sockets/serv-db.sml
+  Sockets/socket-sig.sml
+  Sockets/unix-socket.sml
+  Sockets/generic-sock-sig.sml
+  Sockets/inet-sock-sig.sml
+  Sockets/unix-sock-sig.sml
+  Sockets/unix-generic-sock.sml
+  Sockets/unix-sock.sml
+  Sockets/inet-sock.sml
+#elif defined(OPSYS_WIN32)
+  Sockets/pre-sock.sml
+  Sockets/host-db-sig.sml
+  Sockets/host-db.sml
+  Sockets/prot-db-sig.sml
+  Sockets/prot-db.sml
+  Sockets/serv-db-sig.sml
+  Sockets/serv-db.sml
+  Sockets/socket-sig.sml
+  Sockets/win32-socket.sml
+  Sockets/generic-sock-sig.sml
+  Sockets/inet-sock-sig.sml
+  Sockets/win32-generic-sock.sml
+  Sockets/inet-sock.sml
+#endif
+
+
+tags-sig.sml	(* soon to go away *)
+tags.sml	(* soon to go away *)
+exn-name.sml
+NJ/weak-sig.sml
+NJ/weak.sml
+
+Unsafe/poll-sig.sml
+Unsafe/poll.sml
+Unsafe/object-sig.sml
+Unsafe/object.sml
+Unsafe/unsafe-array-sig.sml
+Unsafe/unsafe-vector-sig.sml
+Unsafe/unsafe-mono-array-sig.sml
+Unsafe/unsafe-mono-vector-sig.sml
+Unsafe/unsafe-sig.sml
+Unsafe/unsafe.sml
+system.sig	(* soon to go away *)
+system.sml	(* soon to go away *)
+
+NJ/export-sig.sml
+NJ/wrap-export.sml
+NJ/export.sml
+NJ/interval-timer-sig.sml
+NJ/interval-timer.sml
+NJ/sysinfo-sig.sml
+NJ/sysinfo.sml
+NJ/prof-control-sig.sml
+NJ/prof-control.sml
+NJ/gc-sig.sml
+NJ/gc.sml
+NJ/print-hook.sml
+NJ/internals-sig.sml
+NJ/internals.sml
+NJ/cont-sig.sml
+NJ/cont.sml
+NJ/smlnj-sig.sml
+
+command-line-sig.sml
+command-line.sml
+sml90-sig.sml
+sml90.sml
+

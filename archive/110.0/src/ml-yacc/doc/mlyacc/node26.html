@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Parsing structure signatures</TITLE>
+<META NAME="description" CONTENT="Parsing structure signatures">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node27.html">
+<LINK REL="previous" HREF="node25.html">
+<LINK REL="up" HREF="node25.html">
+<LINK REL="next" HREF="node27.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html377"
+ HREF="node27.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html374"
+ HREF="node25.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html368"
+ HREF="node25.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html376"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html378"
+ HREF="node27.html">Lexers</A>
+<B> Up:</B> <A NAME="tex2html375"
+ HREF="node25.html">Signatures</A>
+<B> Previous:</B> <A NAME="tex2html369"
+ HREF="node25.html">Signatures</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00091000000000000000">
+Parsing structure signatures</A>
+</H2>
+<P><BLOCKQUOTE>
+<PRE>
+(* STREAM: signature for a lazy stream.*)
+
+signature STREAM =
+sig
+  type 'a stream
+  val streamify : (unit -&gt; 'a) -&gt; 'a stream
+  val cons : 'a * 'a stream -&gt; 'a stream
+  val get : 'a stream -&gt; 'a * 'a stream
+end
+
+(* LR_TABLE: signature for an LR Table.*)
+
+signature LR_TABLE =
+sig
+  datatype ('a,'b) pairlist
+    = EMPTY
+    | PAIR of 'a * 'b * ('a,'b) pairlist
+  datatype state = STATE of int
+  datatype term = T of int
+  datatype nonterm = NT of int
+  datatype action = SHIFT of state
+                  | REDUCE of int
+                  | ACCEPT
+                  | ERROR
+  type table
+	
+  val numStates : table -&gt; int
+  val numRules : table -&gt; int
+  val describeActions : table -&gt; state -&gt;
+                          (term,action) pairlist * action
+  val describeGoto : table -&gt; state -&gt;
+                       (nonterm,state) pairlist
+  val action : table -&gt; state * term -&gt; action
+  val goto : table -&gt; state * nonterm -&gt; state
+  val initialState : table -&gt; state
+  exception Goto of state * nonterm
+
+  val mkLrTable :
+      {actions : ((term,action) pairlist * action) array,
+       gotos : (nonterm,state) pairlist array,
+       numStates : int, numRules : int,
+       initialState : state} -&gt; table
+end
+
+(* TOKEN: signature for the internal structure of a token.*)
+
+signature TOKEN =
+sig
+  structure LrTable : LR_TABLE
+  datatype ('a,'b) token = TOKEN of LrTable.term *
+                                    ('a * 'b * 'b)
+  val sameToken : ('a,'b) token * ('a,'b) token -&gt; bool
+end
+
+(* LR_PARSER: signature for a polymorphic LR parser *)
+
+signature LR_PARSER =
+sig
+  structure Stream: STREAM
+  structure LrTable : LR_TABLE
+  structure Token : TOKEN
+
+  sharing LrTable = Token.LrTable
+
+  exception ParseError
+
+  val parse:
+       {table : LrTable.table,
+        lexer : ('b,'c) Token.token Stream.stream,
+        arg: 'arg,
+        saction : int *
+                 'c *
+                 (LrTable.state * ('b * 'c * 'c)) list * 
+                 'arg -&gt;
+                  LrTable.nonterm *
+                  ('b * 'c * 'c) *
+                  ((LrTable.state *('b * 'c * 'c)) list),
+        void : 'b,
+        ec: {is_keyword : LrTable.term -&gt; bool,
+             noShift : LrTable.term -&gt; bool,
+             preferred_subst:LrTable.term -&gt; LrTable.term list,
+             preferred_insert : LrTable.term -&gt; bool,
+             errtermvalue : LrTable.term -&gt; 'b,
+             showTerminal : LrTable.term -&gt; string,
+             terms: LrTable.term list,
+             error : string * 'c * 'c -&gt; unit
+            },
+        lookahead : int (* max amount of lookahead used in
+                         * error correction *)
+       } -&gt; 'b * (('b,'c) Token.token Stream.stream)
+end
+</PRE>
+</BLOCKQUOTE>
+<BR><HR>
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

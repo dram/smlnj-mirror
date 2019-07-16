@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Using the parser structure</TITLE>
+<META NAME="description" CONTENT="Using the parser structure">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="previous" HREF="node19.html">
+<LINK REL="up" HREF="node18.html">
+<LINK REL="next" HREF="node21.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html306"
+ HREF="node21.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html303"
+ HREF="node18.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html299"
+ HREF="node19.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html305"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html307"
+ HREF="node21.html">Examples</A>
+<B> Up:</B> <A NAME="tex2html304"
+ HREF="node18.html">Using the parser</A>
+<B> Previous:</B> <A NAME="tex2html300"
+ HREF="node19.html">Parser Structure Signatures</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00072000000000000000">
+Using the parser structure</A>
+</H2>
+<P>
+The parser structure converts the lexing function produced by
+ML-Lex into a function which creates a lazy stream of tokens.  The
+function <TT>makeLexer</TT> takes the same values as the corresponding
+<TT>makeLexer</TT> created by ML-Lex, but returns a stream of tokens
+instead of a function which yields tokens.
+<P>
+The function parse takes the token stream and some other arguments that
+are described below and parses the token stream.  It returns a pair composed
+of the value associated with the start symbol and the rest of
+the token stream.  The rest of the token stream includes the
+end-of-parse symbol which caused the reduction of some rule
+to the start symbol.  The function parse raises the
+exception ParseError if a syntax error occurs which it cannot fix.
+<P>
+The lazy stream is implemented by the <TT>Stream</TT> structure.
+The function <TT>streamify</TT> converts a conventional implementation
+of a stream into a lazy stream.  In a conventional implementation
+of a stream, a stream consists of a position in a list of
+values.  Fetching a value from a stream returns the
+value associated with the position and updates the position to
+the next element in the list of values.  The fetch is a side-effecting
+operation.  In a lazy stream, a fetch returns a value and a new
+stream, without a side-effect which updates the position value.
+This means that a stream can be repeatedly re-evaluated without
+affecting the values that it returns.  If <I>f</I> is the function
+that is passed to <TT>streamify</TT>, <I>f</I> is called only as many
+times as necessary to construct the portion of the list of values
+that is actually used.
+<P>
+Parse also takes an integer giving the maximum amount of lookahead permitted
+for the error-correcting parse, a function to print error messages,
+and a value of type arg.  The maximum amount of lookahead for interactive
+systems should be zero.  In this case, no attempt is made to correct any
+syntax errors.  For non-interactive systems, try 15.  The
+function to print error messages takes a tuple of values consisting
+of the left and right positions of the terminal which caused the error
+and an error message.   If the <TT>%arg</TT> declaration is not used, the
+value of type arg should be a value of type unit.
+<P>
+The function sameToken can be used to see if two tokens
+denote the same terminal, irregardless of any values that the
+tokens carry.  It is useful if you have multiple end-of-parse
+symbols and must check which end-of-parse symbol has been left on the
+front of the token stream.
+<P>
+The types have the following meanings.  The type <TT>arg</TT> is the type
+of the additional argument to the parser, which is specified by the
+<TT>%arg</TT> declaration in the ML-Yacc specification.  The type
+<TT>lexarg</TT> is the optional argument to lexers, and is specified by
+the <TT>%arg</TT> declaration in an ML-Lex specifcation.  The type <TT>pos</TT>
+is the type of line numbers, and is specified by the <TT>%pos</TT> declaration
+in an ML-Yacc specification and defined in the user declarations
+section of the ML-Lex specification.  The type <TT>result</TT> is
+the type associated with the start symbol in the ML-Yacc specification.
+<P><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html306"
+ HREF="node21.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html303"
+ HREF="node18.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html299"
+ HREF="node19.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html305"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html307"
+ HREF="node21.html">Examples</A>
+<B> Up:</B> <A NAME="tex2html304"
+ HREF="node18.html">Using the parser</A>
+<B> Previous:</B> <A NAME="tex2html300"
+ HREF="node19.html">Parser Structure Signatures</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

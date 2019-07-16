@@ -1,0 +1,2 @@
+Decl 8
+sModuleUtil.slqsS.vSymbol.;-;sSP.vSymPath.;-;sIP.vInvPath.;-;sCVP.vConvertPaths.;-;sEP.vEntPath.;-;sEPC.vEntPathContext.;-;sA.vAccess.;-;sII.vInlInfo.;-;sT.vTypes.;-;sTU.vTypesUtil.;-;sV.vVarCon.;-;sB.vBindings.;-;sEE.vEntityEnv.;-;sST.vStamps.;-;sM.vModules.;-;sMI.vModuleId.;-;sSE.vStaticEnv.;-;ovModules.;;;qrA.B.M.S.T.V.EE.SE.II.MI.EP.IP.SP.ST.TU.Vector.EPC.CVP.Stats.Sort.List.String.Control.ErrorMsg.Symbol.InvPath.ModuleId.TypesUtil.;;+v$MODULEUTIL.;;

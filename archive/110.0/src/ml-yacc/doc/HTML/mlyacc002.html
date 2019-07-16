@@ -1,0 +1,527 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+            "http://www.w3.org/TR/REC-html40/loose.dtd">
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset= ISO-8859-1">
+<TITLE>
+ ML-Yacc specifications
+</TITLE>
+</HEAD>
+<BODY BGCOLOR=silver TEXT=black>
+<A HREF="mlyacc001.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc003.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+<HR>
+
+<H2>2&nbsp;&nbsp; ML-Yacc specifications</H2>An ML-Yacc specification consists of three parts, each of which is
+separated from the others by a <TT>%%</TT> delimiter. The general format is:
+<BLOCKQUOTE>
+<TT>{user declarations}<BR>%%<BR>{ML-Yacc declarations}<BR>%%<BR>{rules}
+</TT></BLOCKQUOTE>You can define values available in the semantic
+actions of the rules in the user declarations section.
+It is recommended that you keep the size of this
+section as small as possible and place large
+blocks of code in other modules.<BR>
+<BR>
+The ML-Yacc declarations section is used to make a set
+of required declarations and a set of optional declarations.
+You must declare the nonterminals and terminals and the
+types of the values associated with them there. You must
+also name the parser and declare the type of position values.
+You should specify the set of terminals which can follow
+the start symbol and the set of non-shiftable terminals.
+You may optionally declare precedences for terminals,
+make declarations that will
+improve error-recovery, and suppress the generation of
+default reductions in the parser. You may 
+declare whether the parser generator should create
+a verbose description of the parser in a ``.desc'' file. This is useful
+for finding the causes of shift/reduce errors and other parsing conflicts.<BR>
+<BR>
+You may also declare whether the semantic actions are
+free of significant side-effects and always terminate. Normally, ML-Yacc
+delays the evaluation of semantic actions until the completion of a
+successful parse. This ensures that there will be no semantic actions
+to ``undo'' if a syntactic error-correction invalidates some semantic
+actions. If, however, the semantic actions are free of significant
+side-effects and always terminate, the results of semantic actions that
+are invalidated by a syntactic error-correction can always be safely
+ignored.<BR>
+<BR>
+Parsers run faster and need less memory when it is not
+necessary to delay the evaluation of semantic actions. You are
+encouraged to write semantic actions that are free of side-effects and
+always terminate and to declare this information to ML-Yacc.<BR>
+<BR>
+A semantic action is free of significant side-effects if it can be reexecuted
+a reasonably small number of times without affecting the result of a
+parse. (The reexecution occurs when the error-correcting parser is testing
+possible corrections to fix a syntax error, and the number of times
+reexecution occurs is roughly bounded, for each syntax error, by the number of
+terminals times the amount of lookahead permitted for the error-correcting
+parser).<BR>
+<BR>
+The rules section contains the context-free grammar productions and their
+associated semantic actions.<BR>
+<BR>
+<A NAME="toc6"></A>
+<H3>2.1&nbsp;&nbsp; Lexical Definitions</H3>Comments have the same lexical definition as they do in Standard
+ML and can be placed anywhere in a specification.<BR>
+<BR>
+All characters up to the first occurrence of a delimiting
+<TT>%%</TT> outside of
+a comment are placed in the user declarations section. After that, the
+following words and symbols are reserved:
+<BLOCKQUOTE><BR>
+<BR>
+<CODE>of for = { } , * -&gt; : | ( )</CODE></BLOCKQUOTE>
+ 
+The following classes of ML symbols are used:
+<BLOCKQUOTE>
+<DL COMPACT=compact>
+<DT>
+identifiers:<DD>
+ nonsymbolic ML identifiers, which consist
+ of an alphabetic character followed by one or
+ more alphabetic characters, numeric characters,
+ primes ``<TT>'</TT>'', or underscores ``<TT>_</TT>''.
+
+<DT>type variables:<DD>
+ nonsymbolic ML identifier starting with a prime ``<TT>'</TT>''
+
+<DT>integers:<DD> one or more decimal digits.
+
+<DT>qualified identifiers:<DD> an identifer followed by a period.</DL>
+</BLOCKQUOTE>
+The following classes of non-ML symbols are used:
+<BLOCKQUOTE>
+<DL COMPACT=compact>
+<DT>
+% identifiers:<DD>
+ a percent sign followed by one or more lowercase
+ alphabet letters. The valid % identifiers
+ are:
+<BLOCKQUOTE><DIV ALIGN=left>
+<TT>%arg %eop %header %keyword %left %name %nodefault
+ %nonassoc %nonterm %noshift %pos %prec %prefer
+ %pure %right %start %subst %term %value %verbose
+</TT></DIV></BLOCKQUOTE>
+
+<DT>code:<DD>
+ This class is meant to hold ML code. The ML code is not
+ parsed for syntax errors. It consists of a left parenthesis
+ followed by all characters up to a balancing right
+ parenthesis. Parentheses in ML comments and ML strings
+ are excluded from the count of balancing parentheses.</DL>
+</BLOCKQUOTE><A NAME="toc7"></A>
+<H3>2.2&nbsp;&nbsp; Grammar</H3>This is the grammar for specifications:
+<DIV ALIGN=center>
+<TABLE CELLSPACING=2 CELLPADDING=0>
+<TR><TD  ALIGN=right NOWRAP>spec</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>user-declarations <TT>%%</TT> cmd-list <TT>%%</TT> rule-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>ML-type</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>nonpolymorphic ML types (see the Standard ML manual)</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>symbol</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>identifier</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>symbol-list</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>symbol-list symbol</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><FONT FACE=symbol>e</FONT></TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>symbol-type-list</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>symbol-type-list <TT>|</TT> symbol <TT>of</TT> ML-type</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP>symbol-type list <TT>|</TT> symbol</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP>symbol <TT>of</TT> ML-type</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP>symbol</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>subst-list</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>subst-list <TT>|</TT> symbol <TT>for</TT> symbol</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><FONT FACE=symbol>e</FONT></TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>cmd</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP><TT>%arg</TT> (Any-ML-pattern) <TT>:</TT> ML-type</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%eop</TT> symbol-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%header</TT> code</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%keyword</TT> symbol-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%left</TT> symbol-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%name</TT> identifier</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%nodefault</TT></TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%nonassoc</TT> symbol-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%nonterm</TT> symbol-type list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%noshift</TT> symbol-list </TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%pos</TT> ML-type</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%prefer</TT> symbol-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%pure</TT></TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%right</TT> symbol-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%start</TT> symbol</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%subst</TT> subst-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%term</TT> symbol-type-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%value</TT> symbol code</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><TT>%verbose</TT></TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>cmd-list</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP> cmd-list cmd</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP>cmd</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>rule-prec</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP><TT>%prec</TT> symbol</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP><FONT FACE=symbol>e</FONT></TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>clause-list</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>symbol-list rule-prec code</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP>clause-list <TT>|</TT> symbol-list rule-prec code</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>rule</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>symbol <TT>:</TT> clause-list</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>rule-list</TD>
+<TD  ALIGN=center NOWRAP>::=</TD>
+<TD  ALIGN=left NOWRAP>rule-list rule</TD>
+</TR>
+<TR><TD  ALIGN=right NOWRAP>&nbsp;</TD>
+<TD  ALIGN=center NOWRAP>|</TD>
+<TD  ALIGN=left NOWRAP>rule</TD>
+</TR></TABLE></DIV>
+<A NAME="toc8"></A>
+<H3>2.3&nbsp;&nbsp; Required ML-Yacc Declarations</H3>
+<DL COMPACT=compact>
+<DT>
+<TT>%name</TT><DD>
+You must specify the name of the parser with <TT>%name</TT> {name}.
+
+<DT><TT>%nonterm</TT> and <TT>%term</TT><DD>
+You must define the terminal and nonterminal sets using the 
+<TT>%term</TT> and <TT>%nonterm</TT>
+declarations, respectively. These declarations are like an ML datatype
+definition.
+The type of the value that a symbol may carry is defined at the same time
+that the symbol is defined. Each declarations consists of the keyword
+(<TT>%term</TT> or <TT>%nonterm</TT>)
+followed by a list of symbol entries separated by a bar (``<TT>|</TT>'').
+Each symbol entry is a symbol name followed by an optional 
+``of  &lt;ML-type&gt;''. The types cannot be polymorphic.
+Those symbol entries without a type carry no value.
+Nonterminal and terminal names must be disjoint and no name may be declared
+more than once in either declaration.<BR>
+<BR>
+The symbol names and types are used to construct a datatype union for the
+values on the semantic stack in the LR parser and to name the values
+associated with subcomponents of a rule. The names and types of 
+terminals are also used to construct a signature for a structure that
+may be passed to the lexer functor.<BR>
+<BR>
+Because the types and names are used in these manners, do
+not use ML keywords as symbol names. The programs produced by ML-Yacc
+will not compile if ML keywords are used as symbol names. 
+Make sure that the types specified in the <TT>%term</TT> declaration are
+fully qualified types or are available in the background
+environment when the signatures produced by ML-Yacc are loaded. Do
+not use any locally defined types from the user declarations section of
+the specification.<BR>
+<BR>
+These requirements on the types in the <TT>%term</TT> declaration are not
+a burden.
+They force the types to be defined in another module,
+which is a good idea since these types will
+be used in the lexer module.
+
+<DT><TT>%pos</TT><DD>
+You must declare the type of position values using the <TT>%pos</TT> declaration.
+The syntax is <TT>%pos</TT> &lt;ML-type&gt;.
+This type MUST be the same type as that which is actually found in the lexer.
+It cannot be polymorphic.</DL>
+<A NAME="toc9"></A>
+<H3>2.4&nbsp;&nbsp; Optional ML-Yacc Declarations</H3>
+<A NAME="optional-def"></A>
+<DL COMPACT=compact>
+<DT>
+<TT>%arg</TT><DD>
+You may want each invocation of the entire parser to be parameterized
+by a particular argument, such as the file-name of the input
+being parsed in an invocation of the parser. The <TT>%arg</TT> declaration
+allows you to specify such an argument.
+(This is often cleaner than using ``global'' reference variables.)
+The declaration
+<BLOCKQUOTE><BR>
+<BR>
+ <TT>%arg</TT> (Any-ML-pattern) <TT>:</TT> &lt;ML-type&gt;</BLOCKQUOTE>
+specifies the argument to the parser, as well as its type. For example:
+<BLOCKQUOTE><BR>
+<BR>
+ <TT>%arg (filename) : string</TT></BLOCKQUOTE><BR>
+<BR>
+If <TT>%arg</TT> is not specified, it defaults to <TT>() : unit</TT>.
+
+<DT><TT>%eop</TT> and <TT>%noshift</TT><DD>
+You should specify the set of
+terminals that may follow the start
+symbol, also called end-of-parse symbols, using the <TT>%eop</TT>
+declaration. The <TT>%eop</TT> keyword should be followed by the list of
+terminals. This is useful, for example, in an interactive system
+where you want to force the evaluation of a statement before an
+end-of-file (remember, a parser delays the execution of semantic
+actions until a parse is successful).<BR>
+<BR>
+ML-Yacc has no concept of an end-of-file. You must
+define an end-of-file terminal (EOF, perhaps) in the 
+<TT>%term</TT> declaration.
+You must declare terminals which cannot be shifted, such as 
+end-of-file, in the <TT>%noshift</TT> declaration. The
+<TT>%noshift</TT> keyword should be followed by the list of non-shiftable
+terminals. An error message will be printed if a non-shiftable terminal
+is found on the right hand side of any rule, but ML-Yacc will not prevent
+you from using such grammars.<BR>
+<BR>
+It is important to emphasize that
+<EM>
+non-shiftable terminals must be declared.
+</EM>
+The error-correcting parser may attempt to read past such terminals
+while evaluating a correction to a syntax error otherwise. This may
+confuse the lexer.
+
+<DT><TT>%header</TT><DD>
+You may define code to head the functor {parser name}LrValsFun here. This
+may be useful for adding additonal parameter structures to the functor.
+The functor must be parameterized by the Token structure, so
+the declaration should always have the form:
+<BLOCKQUOTE>
+<PRE>
+%header (functor {parser name}LrValsFun(
+                                structure Token : TOKEN
+                                       ...) 
+        )
+</PRE>
+</BLOCKQUOTE>
+<DT><TT>%left</TT>,<TT>%right</TT>,<TT>%nonassoc</TT><DD>
+You should list the precedence declarations in order of increasing (tighter-binding)
+precedence. Each precedence declaration consists
+of % keyword specifying associativity followed by a list of terminals.
+The keywords are <TT>%left</TT>, <TT>%right</TT>, and <TT>%nonassoc</TT>,
+standing for their respective associativities.
+
+<DT><TT>%nodefault</TT><DD>
+The <TT>%nodefault</TT> declaration suppresses the generation of default
+reductions. If only one production can be reduced in a given state in
+an LR table, it may be made the default action for the state. An incorrect
+reduction will be caught later when the parser attempts to shift the lookahead
+terminal which caused the reduction. ML-Yacc usually produces programs and
+verbose files with default reductions. This saves a great deal of
+space in representing the LR tables,but
+sometimes it is useful for debugging and advanced
+uses of the parser to suppress the generation of default reductions.
+
+<DT><TT>%pure</TT><DD>
+Include the <TT>%pure</TT> declaration if the semantic actions
+are free of significant side-effects and always terminate.
+
+<DT><TT>%start</TT><DD>
+You may define the start symbol using
+the <TT>%start</TT> declaration. Otherwise the nonterminal for the
+first rule will be used as the start nonterminal.
+The keyword <TT>%start</TT> should be followed by the name of the starting
+nonterminal. This nonterminal should not be used on the right hand
+side of any rules, to avoid conflicts between reducing to the start
+symbol and shifting a terminal. ML-Yacc will not prevent you
+from using such grammars, but it will print a warning message.
+
+<DT><TT>%verbose</TT><DD><BR>
+<BR>
+Include the <TT>%verbose</TT> declaration to produce a verbose
+description of the LALR parser. The name of this file is
+the name of the specification file with a ``.desc'' appended to it.<BR>
+<BR>
+ This file has the following format:
+<OL>
+<LI>
+ A summary of errors found while generating the LALR tables.
+
+<LI>A detailed description of all errors.
+
+<LI>A description of the states of the parser. Each state
+ is preceded by a list of conflicts in the state.</OL><BR>
+
+</DL><A NAME="toc10"></A>
+<H3>2.5&nbsp;&nbsp; Declarations for improving error-recovery</H3>These optional declarations improve error-recovery:<BR>
+<BR>
+<DL COMPACT=compact>
+<DT>
+<TT>%keyword</TT><DD>
+ Specify all keywords in a grammar here. The <TT>%keyword</TT>
+ should be followed by a list
+ of terminal names. Fixes involving keywords are generally dangerous;
+ they are prone to substantially altering the syntactic meaning
+ of the program. They are subject to a more rigorous parse check than
+ other fixes.<BR>
+<BR>
+
+<DT><TT>%prefer</TT><DD>
+ List terminals to prefer for insertion after the <TT>%prefer</TT>.
+Corrections which insert a terminal on this list will be chosen over
+other corrections, all other things being equal.
+
+<DT><TT>%subst</TT><DD>
+ This declaration should be followed by a list of clauses of the
+ form {terminal} <TT>for</TT> {terminal}, where items on the list are
+ separated using a <TT>|</TT>. Substitution corrections on this list
+will be chosen over all other corrections except preferred insertion
+corrections (listed above), all other things being equal.
+
+<DT><TT>%change</TT><DD>
+ This is a generalization of <TT>%prefer</TT> and <TT>%subst</TT>.
+It takes a the following syntax:
+<BLOCKQUOTE>
+<I><I>tokens</I></I><SUB><FONT SIZE=2>1<I>a</I></FONT></SUB> <CODE>-&gt;</CODE> <I><I>tokens</I></I><SUB><FONT SIZE=2>1<I>b</I></FONT></SUB> <CODE>|</CODE> <I><I>tokens</I></I><SUB><FONT SIZE=2>2<I>a</I></FONT></SUB> <CODE>-&gt;</CODE> <I><I>tokens</I></I><SUB><FONT SIZE=2>2<I>b</I></FONT></SUB> <I>etc.</I>
+</BLOCKQUOTE>
+where each <I>tokens</I> is a (possibly empty) seqence of tokens. The
+idea is that any instance of <I><I>tokens</I></I><SUB><FONT SIZE=2>1<I>a</I></FONT></SUB> can be ``corrected'' to
+<I><I>tokens</I></I><SUB><FONT SIZE=2>1<I>b</I></FONT></SUB>, and so on. For example, to suggest that a good
+error correction to try is <CODE>IN ID END</CODE> (which is useful for the
+ML parser), write,
+<PRE>
+       %change   -&gt;  IN ID END
+</PRE>
+
+<DT><TT>%value</TT><DD>
+ The error-correction algorithm may also insert terminals with values.
+ You must supply a value for such a terminal. The keyword
+ should be followed by a terminal and a piece of
+ code (enclosed in parentheses) that when evaluated supplies the value. 
+ There must be a separate <TT>%value</TT> declaration for each terminal with
+ a value that you wish may be inserted or substituted in an error correction.
+ The code for the value is not evaluated until the parse is
+ successful.<BR>
+<BR>
+ Do not specify a <TT>%value</TT> for terminals without
+ values. This will result in a type error in the program produced by
+ ML-Yacc.
+</DL><A NAME="toc11"></A>
+<H3>2.6&nbsp;&nbsp; Rules</H3>All rules are declared in the final section, after the last <TT>%%</TT>
+delimiter. A rule consists of a left hand side nonterminal, followed by
+a colon, followed by a list of right hand side clauses. <BR>
+<BR>
+The right hand side clauses should be separated by bars (``<TT>|</TT>''). Each
+clause consists of a list of nonterminal and terminal symbols, followed
+by an optional <TT>%prec</TT> declaration, and then followed by the code to be
+evaluated when the rule is reduced.<BR>
+<BR>
+The optional <TT>%prec</TT> consists of the keyword <TT>%prec</TT> followed by a 
+terminal whose precedence should be used as the precedence of the
+rule.<BR>
+<BR>
+The values of those symbols on the right hand side which have values are 
+available inside the code. Positions for all the symbols are also
+available.
+Each value has the general form {symbol name}{n+1}, where {n} is the 
+number of occurrences of the symbol to the left of the symbol. If
+the symbol occurs only once in the rule, {symbol name} may also 
+be used.
+The positions are given by {symbol&nbsp;name}{n+1}left and
+{symbol&nbsp;name}{n+1}right. where {n} is defined as before.
+The position for a null rhs of
+a production is assumed to be the leftmost position of the lookahead
+terminal which is causing the reduction. This position value is
+available in <TT>defaultPos</TT>.<BR>
+<BR>
+The value to which the code evaluates is used as the value of the
+nonterminal. The type of the value and the nonterminal must match.
+The value is ignored if the nonterminal has no value, but is still
+evaluated for side-effects.<BR>
+<BR>
+<HR>
+<A HREF="mlyacc001.html"><IMG SRC ="previous_motif.gif" ALT="Previous"></A>
+<A HREF="mlyacc003.html"><IMG SRC ="next_motif.gif" ALT="Next"></A>
+<A HREF="index.html"><IMG SRC ="contents_motif.gif" ALT="Contents"></A>
+</BODY>
+</HTML>

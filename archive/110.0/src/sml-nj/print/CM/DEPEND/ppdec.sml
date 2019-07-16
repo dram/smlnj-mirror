@@ -1,0 +1,2 @@
+Decl 8
+qs$PPDEC.sqrEnvironment.Lambda.Absyn.PrettyPrint.;;-;sPPDec.slqsS.vSymbol.;-;sIP.vInvPath.;-;sM.vModules.;-;sV.vVarCon.;-;ovTypes.;vVarCon.;vModules.;vBindings.;vFixity.;vAbsyn.;vPrettyPrint.;vPPUtil.;vPPType.;vPPObj.;vAccess.;;;qrM.S.V.IP.Vector.Environment.PPModules.Unsafe.Control.Fixity.ErrorMsg.Lambda.Absyn.Symbol.SymPath.InvPath.ConvertPaths.Lookup.PrettyPrint.StaticEnv.DynamicEnv.PPUtil.;;+v$PPDEC.;;;

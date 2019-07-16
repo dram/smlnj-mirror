@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Rules</TITLE>
+<META NAME="description" CONTENT="Rules">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="previous" HREF="node13.html">
+<LINK REL="up" HREF="node8.html">
+<LINK REL="next" HREF="node15.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html240"
+ HREF="node15.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html237"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html233"
+ HREF="node13.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html239"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html241"
+ HREF="node15.html">Producing files with ML-Yacc</A>
+<B> Up:</B> <A NAME="tex2html238"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html234"
+ HREF="node13.html">Declarations for improving error-recovery</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00036000000000000000">
+Rules</A>
+</H2>
+<P>
+All rules are declared in the final section, after the last <TT>%%</TT>
+delimiter.  A rule consists of a left hand side nonterminal, followed by
+a colon, followed by a list of right hand side clauses.
+<P>
+The right hand side clauses should be separated by bars (``<TT>|</TT>'').  Each
+clause consists of a list of nonterminal and terminal symbols, followed
+by an optional <TT>%prec</TT> declaration, and then followed by the code to be
+evaluated when the rule is reduced.
+<P>
+The optional <TT>%prec</TT> consists of the keyword <TT>%prec</TT> followed by a 
+terminal whose precedence should be used as the precedence of the
+rule.
+<P>
+The values of those symbols on the right hand side which have values are 
+available inside the code.  Positions for all the symbols are also
+available.
+Each value has the general form {symbol name}{n+1}, where {n} is the 
+number of occurrences of the symbol to the left of the symbol.  If
+the symbol occurs only once in the rule, {symbol name} may also 
+be used.
+The positions are given by {symbol&nbsp;name}{n+1}left and
+{symbol&nbsp;name}{n+1}right.  where {n} is defined as before.
+The position for a null rhs of
+a production is assumed to be the leftmost position of the lookahead
+terminal which is causing the reduction. This position value is
+available in <TT>defaultPos</TT>.
+<P>
+The value to which the code evaluates is used as the value of the
+nonterminal.  The type of the value and the nonterminal must match.
+The value is ignored if the nonterminal has no value, but is still
+evaluated for side-effects.
+<P><HR>
+<!--Navigation Panel-->
+<A NAME="tex2html240"
+ HREF="node15.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html237"
+ HREF="node8.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html233"
+ HREF="node13.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html239"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html241"
+ HREF="node15.html">Producing files with ML-Yacc</A>
+<B> Up:</B> <A NAME="tex2html238"
+ HREF="node8.html">ML-Yacc specifications</A>
+<B> Previous:</B> <A NAME="tex2html234"
+ HREF="node13.html">Declarations for improving error-recovery</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

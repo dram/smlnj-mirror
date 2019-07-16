@@ -1,0 +1,14 @@
+/cfun-list.h/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/cfun-proto-list.h/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/makefile/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/osval.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/posix-tty-lib.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/tcdrain.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/tcflow.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/tcflush.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/tcgetattr.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/tcgetpgrp.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/tcsendbreak.c/1.1.1.1/Fri Dec  3 19:59:25 1999//
+/tcsetattr.c/1.1.1.1/Fri Dec  3 19:59:26 1999//
+/tcsetpgrp.c/1.1.1.1/Fri Dec  3 19:59:26 1999//
+D

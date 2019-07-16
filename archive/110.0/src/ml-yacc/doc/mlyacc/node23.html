@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Sample Lexer</TITLE>
+<META NAME="description" CONTENT="Sample Lexer">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node24.html">
+<LINK REL="previous" HREF="node22.html">
+<LINK REL="up" HREF="node21.html">
+<LINK REL="next" HREF="node24.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html342"
+ HREF="node24.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html339"
+ HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html333"
+ HREF="node22.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html341"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html343"
+ HREF="node24.html">Top-level code</A>
+<B> Up:</B> <A NAME="tex2html340"
+ HREF="node21.html">Examples</A>
+<B> Previous:</B> <A NAME="tex2html334"
+ HREF="node22.html">Sample Grammar</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00082000000000000000">
+Sample Lexer</A>
+</H2>
+<TT>
+<PRE>
+structure Tokens = Tokens
+
+type pos = int
+type svalue = Tokens.svalue
+type ('a,'b) token = ('a,'b) Tokens.token
+type lexresult= (svalue,pos) token
+
+val pos = ref 0
+val eof = fn () =&gt; Tokens.EOF(!pos,!pos)
+val error = fn (e,l : int,_) =&gt;
+              output(std_out,&quot;line &quot; ^ (makestring l) ^
+                               &quot;: &quot; ^ e ^ &quot;\n&quot;)
+%%
+%header (functor CalcLexFun(structure Tokens: Calc_TOKENS));
+alpha=[A-Za-z];
+digit=[0-9];
+ws = [\ \t];
+%%
+\n       =&gt; (pos := (!pos) + 1; lex());
+{ws}+    =&gt; (lex());
+{digit}+ =&gt; (Tokens.NUM
+                (revfold (fn (a,r) =&gt; ord(a)-ord(&quot;0&quot;)+10*r)
+                         (explode yytext) 0,
+                  !pos,!pos));
+&quot;+&quot;      =&gt; (Tokens.PLUS(!pos,!pos));
+&quot;*&quot;      =&gt; (Tokens.TIMES(!pos,!pos));
+&quot;;&quot;      =&gt; (Tokens.SEMI(!pos,!pos));
+{alpha}+ =&gt; (if yytext=&quot;print&quot;
+                 then Tokens.PRINT(!pos,!pos)
+                 else Tokens.ID(yytext,!pos,!pos)
+            );
+&quot;-&quot;      =&gt; (Tokens.SUB(!pos,!pos));
+&quot;^&quot;      =&gt; (Tokens.CARAT(!pos,!pos));
+&quot;/&quot;      =&gt; (Tokens.DIV(!pos,!pos));
+&quot;.&quot;      =&gt; (error (&quot;ignoring bad character &quot;^yytext,!pos,!pos);
+             lex());
+</PRE>
+</TT>
+<BR><HR>
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

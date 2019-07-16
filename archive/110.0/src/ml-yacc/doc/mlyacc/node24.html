@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Top-level code</TITLE>
+<META NAME="description" CONTENT="Top-level code">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="previous" HREF="node23.html">
+<LINK REL="up" HREF="node21.html">
+<LINK REL="next" HREF="node25.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html351"
+ HREF="node25.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html348"
+ HREF="node21.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html344"
+ HREF="node23.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html350"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html352"
+ HREF="node25.html">Signatures</A>
+<B> Up:</B> <A NAME="tex2html349"
+ HREF="node21.html">Examples</A>
+<B> Previous:</B> <A NAME="tex2html345"
+ HREF="node23.html">Sample Lexer</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION00083000000000000000">
+Top-level code</A>
+</H2>
+<P>
+You must follow the instructions in Section&nbsp;<A HREF="node17.html#create-parser">5</A>
+to create the parser and lexer functors and load them.  After you have
+done this, you must then apply the functors to produce the <TT>CalcParser</TT>
+structure.  The code for doing this is shown below.
+<BLOCKQUOTE>
+<PRE>
+structure CalcLrVals =
+  CalcLrValsFun(structure Token = LrParser.Token)
+
+structure CalcLex =
+  CalcLexFun(structure Tokens = CalcLrVals.Tokens);
+
+structure CalcParser =
+  Join(structure LrParser = LrParser
+       structure ParserData = CalcLrVals.ParserData
+       structure Lex = CalcLex)
+</PRE>
+</BLOCKQUOTE>
+<P>
+Now we need a function which given a lexer invokes the parser.  The
+function <TT>invoke</TT> does this.
+<P><BLOCKQUOTE>
+<PRE>
+fun invoke lexstream =
+    let fun print_error (s,i:int,_) =
+	    TextIO.output(TextIO.stdOut,
+			  &quot;Error, line &quot; ^ (Int.toString i) ^ &quot;, &quot; ^ s ^ &quot;\n&quot;)
+     in CalcParser.parse(0,lexstream,print_error,())
+    end
+</PRE>
+</BLOCKQUOTE>
+<P>
+Finally, we need a function which can read one or more expressions from
+the standard input.  The function <TT>parse</TT>, shown below, does this.
+It runs the calculator on the standard input and terminates 
+when an end-of-file is encountered.
+<P><BLOCKQUOTE>
+<PRE>
+fun parse () = 
+    let val lexer = CalcParser.makeLexer
+                      (fn _ =&gt; TextIO.inputLine TextIO.stdIn)
+	val dummyEOF = CalcLrVals.Tokens.EOF(0,0)
+	val dummySEMI = CalcLrVals.Tokens.SEMI(0,0)
+	fun loop lexer =
+	    let val (result,lexer) = invoke lexer
+		val (nextToken,lexer) = CalcParser.Stream.get lexer
+	     in case result
+		  of SOME r =&gt;
+		      TextIO.output(TextIO.stdOut,
+			     &quot;result = &quot; ^ (Int.toString r) ^ &quot;\n&quot;)
+		   | NONE =&gt; ();
+	        if CalcParser.sameToken(nextToken,dummyEOF) then ()
+		else loop lexer
+	    end
+     in loop lexer
+    end
+</PRE>
+</BLOCKQUOTE>
+<BR><HR>
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

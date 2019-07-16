@@ -1,0 +1,191 @@
+This is TeX, Version 3.14159 (C version 6.1) (format=latex 98.12.5)  24 APR 2000 14:34
+**./images.tex
+(images.tex
+LaTeX2e <1996/12/01> patch level 1
+Babel <v3.6h> and hyphenation patterns for american, german, loaded.
+
+(/opt/teTeX-0.4/texmf/tex/latex/base/latex209.def
+File: latex209.def 1996/05/21 v0.51 Standard LaTeX file
+Entering LaTeX 2.09 compatibility mode.
+\footheight=\dimen102
+\@maxsep=\dimen103
+\@dblmaxsep=\dimen104
+\@cla=\count79
+\@clb=\count80
+\mscount=\count81
+(/opt/teTeX-0.4/texmf/tex/latex/base/tracefnt.sty
+Package: tracefnt 1996/07/26 v3.0i Standard LaTeX package (font tracing)
+\tracingfonts=\count82
+LaTeX Info: Redefining \selectfont on input line 139.
+)
+\symbold=\mathgroup4
+\symsans=\mathgroup5
+\symtypewriter=\mathgroup6
+\symitalic=\mathgroup7
+\symsmallcaps=\mathgroup8
+\symslanted=\mathgroup9
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 306.
+LaTeX Font Info:    Redeclaring math alphabet \mathsf on input line 307.
+LaTeX Font Info:    Redeclaring math alphabet \mathtt on input line 308.
+LaTeX Font Info:    Redeclaring math alphabet \mathit on input line 314.
+LaTeX Info: Redefining \em on input line 324.
+(/opt/teTeX-0.4/texmf/tex/latex/base/latexsym.sty
+Package: latexsym 1996/11/20 v2.2d Standard LaTeX package (lasy symbols)
+\symlasy=\mathgroup10
+LaTeX Font Info:    Overwriting symbol font `lasy' in version `bold'
+(Font)                  U/lasy/m/n --> U/lasy/b/n on input line 85.
+)
+LaTeX Font Info:    Redeclaring math delimiter \lgroup on input line 388.
+LaTeX Font Info:    Redeclaring math delimiter \rgroup on input line 390.
+LaTeX Font Info:    Redeclaring math delimiter \bracevert on input line 392.
+(/opt/teTeX-0.4/texmf/tex/latex/config/latex209.cfg (/opt/teTeX-0.4/texmf/tex/l
+atex/tools/rawfonts.sty
+Compatibility mode: package `' requested, but `rawfonts' provided.
+Package: rawfonts 1994/05/08 Low-level LaTeX 2.09 font compatibility
+(/opt/teTeX-0.4/texmf/tex/latex/tools/somedefs.sty
+Package: somedefs 1994/06/01 Toolkit for optional definitions
+)
+LaTeX Font Info:    Try loading font information for U+lasy on input line 36.
+(/opt/teTeX-0.4/texmf/tex/latex/base/ulasy.fd
+File: ulasy.fd 1996/11/20 v2.2dLaTeX symbol font definitions
+)))) (/opt/teTeX-0.4/texmf/tex/latex/base/article.cls
+Document Class: article 1996/10/31 v1.3u Standard LaTeX document class
+(/opt/teTeX-0.4/texmf/tex/latex/base/size10.clo
+File: size10.clo 1996/10/31 v1.3u Standard LaTeX file (size option)
+)
+\c@part=\count83
+\c@section=\count84
+\c@subsection=\count85
+\c@subsubsection=\count86
+\c@paragraph=\count87
+\c@subparagraph=\count88
+\c@figure=\count89
+\c@table=\count90
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+Compatibility mode: definition of \rm ignored.
+Compatibility mode: definition of \sf ignored.
+Compatibility mode: definition of \tt ignored.
+Compatibility mode: definition of \bf ignored.
+Compatibility mode: definition of \it ignored.
+Compatibility mode: definition of \sl ignored.
+Compatibility mode: definition of \sc ignored.
+LaTeX Info: Redefining \cal on input line 542.
+LaTeX Info: Redefining \mit on input line 543.
+\bibindent=\dimen105
+)
+\sizebox=\box26
+\lthtmlwrite=\write3
+(images.aux)
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 65.
+LaTeX Font Info:    ... okay on input line 65.
+latex2htmlLength hsize=349.0pt
+latex2htmlLength vsize=620.0pt
+latex2htmlLength hoffset=0.0pt
+latex2htmlLength voffset=0.0pt
+latex2htmlLength topmargin=0.0pt
+latex2htmlLength topskip=0.00002pt
+latex2htmlLength headheight=0.0pt
+latex2htmlLength headsep=0.0pt
+latex2htmlLength parskip=0.0pt plus 1.0pt
+latex2htmlLength oddsidemargin=63.0pt
+latex2htmlLength evensidemargin=63.0pt
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 85.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 85.
+l2hSize :tex2html_wrap_inline364:6.83331pt::0.0pt::29.48949pt.
+[1
+
+
+]
+l2hSize :tex2html_wrap_inline366:6.45831pt::0.0pt::6.43404pt.
+[2
+
+
+]
+l2hSize :tex2html_wrap_inline368:6.94444pt::6.94444pt::6.18402pt.
+[3
+
+
+]
+l2hSize :tex2html_wrap_inline370:6.94444pt::6.94444pt::24.28459pt.
+[4
+
+
+]
+l2hSize :tex2html_wrap_inline376:6.94444pt::6.94444pt::37.82303pt.
+[5
+
+
+]
+l2hSize :tex2html_wrap_inline378:6.94444pt::6.94444pt::36.03134pt.
+[6
+
+
+]
+l2hSize :tex2html_wrap_inline380:6.94444pt::6.94444pt::29.0138pt.
+[7
+
+
+]
+l2hSize :tex2html_wrap_inline382:6.94444pt::6.94444pt::10.70834pt.
+[8
+
+
+]
+l2hSize :tex2html_wrap_inline386:6.94444pt::6.94444pt::29.40611pt.
+[9
+
+
+]
+l2hSize :tex2html_wrap_inline388:6.83331pt::0.0pt::50.63174pt.
+[10
+
+
+]
+l2hSize :figure17:60.79999pt::0.0pt::349.0pt.
+[11
+
+
+]
+l2hSize :tex2html_wrap_inline416:6.94444pt::6.94444pt::36.98885pt.
+[12
+
+
+]
+l2hSize :tex2html_wrap_inline418:6.94444pt::6.94444pt::36.16786pt.
+[13
+
+
+]
+l2hSize :tex2html_wrap_inline420:6.94444pt::6.94444pt::36.98885pt.
+[14
+
+
+]
+l2hSize :tex2html_wrap_inline422:6.94444pt::6.94444pt::36.16786pt.
+[15
+
+
+] (images.aux) ) 
+Here is how much of TeX's memory you used:
+ 552 strings out of 10906
+ 5575 string characters out of 72187
+ 47201 words of memory out of 262141
+ 3433 multiletter control sequences out of 9500
+ 22498 words of font info for 84 fonts, out of 150000 for 255
+ 14 hyphenation exceptions out of 607
+ 21i,14n,20p,303b,258s stack positions out of 300i,40n,60p,3000b,4000s
+
+Output written on images.dvi (15 pages, 2924 bytes).

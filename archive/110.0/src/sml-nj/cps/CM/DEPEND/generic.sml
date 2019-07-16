@@ -1,0 +1,2 @@
+Decl 8
+f%CPSgen.f-sqsM.v$CMACHINE.;-;sMachSpec.v$MACH_SPEC.;-;;;slqsLV.vLambdaVar.;-;ovArray.;vList.;vM.;vSystem.Tags.;vAccess.;vCPS.;;;qsMachSpec.vMachSpec.;-;rM.ErrorMsg.Array.MachSpec.;sCG.vControl.CG.;-;rM.Int.Control.Array.;sGetScratch.srArray.;+sq;;ovGetScratch.;;rCG.PPCps.;lqrFreeMap.Intmap.MachSpec.;lqovIntStrMap.;;;qrStrgHash.;;rP.CG.CPS.Word.Sort.Int.ListPair.;lqlqovSortedList.;;rListPair.;;q;;q;lqovSortedList.;;;qrListPair.;;rM.P.CG.LV.PPCps.FreeMap.SortedList.Word.Sort.Int.Intmap.ErrorMsg.ListPair.MachSpec.;;q;;+v$CPSGEN.;;

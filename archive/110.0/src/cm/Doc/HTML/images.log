@@ -1,0 +1,99 @@
+This is TeX, Version 3.14159 (C version 6.1) (format=latex 96.10.23)  5 NOV 1997 13:55
+**./images.tex
+(images.tex
+LaTeX2e <1996/06/01>
+Hyphenation patterns for english, german, loaded.
+
+(/usr/local/teTeX/texmf/tex/latex/base/article.cls
+Document Class: article 1996/05/26 v1.3r Standard LaTeX document class
+(/usr/local/teTeX/texmf/tex/latex/base/size10.clo
+File: size10.clo 1996/05/26 v1.3r Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+) (/usr/local/teTeX/texmf/tex/latex/psnfss/times.sty
+Package: times 1995/08/16 5.2 Times PSNFSS2e package
+) (/usr/local/teTeX/texmf/tex/latex/graphics/epsfig.sty
+Package: epsfig 1996/04/11 v1.6 (e)psfig emulation (SPQR)
+(/usr/local/teTeX/texmf/tex/latex/graphics/graphicx.sty
+Package: graphicx 1996/05/29 v1.0 Enhanced LaTeX Graphics (DPC,SPQR)
+(/usr/local/teTeX/texmf/tex/latex/graphics/keyval.sty
+Package: keyval 1995/09/21 v1.09 key=value parser (DPC)
+) (/usr/local/teTeX/texmf/tex/latex/graphics/graphics.sty
+Package: graphics 1996/05/29 v1.0 Standard LaTeX Graphics (DPC,SPQR)
+(/usr/local/teTeX/texmf/tex/latex/graphics/trig.sty
+Package: trig 1994/10/16 v1.08 sin cos tan (DPC)
+) (/usr/local/teTeX/texmf/tex/latex/config/graphics.cfg)
+Package graphics Info: Driver file: dvips.def on input line 82.
+(/usr/local/teTeX/texmf/tex/latex/graphics/dvips.def
+File: dvips.def 1996/05/29 v3.00 Driver-dependant file (DPC,SPQR)
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+\epsfxsize=\dimen105
+\epsfysize=\dimen106
+)
+\sizebox=\box26
+\lthtmlwrite=\write3
+(images.aux)
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 87.
+LaTeX Font Info:    ... okay on input line 87.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 87.
+LaTeX Font Info:    ... okay on input line 87.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 87.
+LaTeX Font Info:    ... okay on input line 87.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 87.
+LaTeX Font Info:    ... okay on input line 87.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 87.
+LaTeX Font Info:    ... okay on input line 87.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 87.
+LaTeX Font Info:    ... okay on input line 87.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 87.
+(/usr/local/teTeX/texmf/tex/latex/psnfss/OT1ptm.fd
+File: OT1ptm.fd 1996/01/28 Fontinst v1.504 font definitions for OT1/ptm.
+)
+latex2htmlLength hsize=349.0pt
+latex2htmlLength vsize=687.65744pt
+latex2htmlLength hoffset=0.0pt
+latex2htmlLength voffset=0.0pt
+latex2htmlLength topmargin=0.0pt
+latex2htmlLength topskip=0.00002pt
+latex2htmlLength headheight=0.0pt
+latex2htmlLength headsep=0.0pt
+latex2htmlLength parskip=6.0pt plus 3.0pt minus 2.0pt
+latex2htmlLength oddsidemargin=0.0pt
+latex2htmlLength evensidemargin=0.0pt
+File: example.ps Graphic file (type eps)
+<example.ps>
+l2hSize :figure38:339.2675pt::0.0pt::349.0pt.
+[1
+
+
+]
+File: dot.ps Graphic file (type eps)
+<dot.ps>
+l2hSize :figure459:436.63124pt::0.0pt::349.0pt.
+[2
+
+
+] (images.aux) ) 
+Here is how much of TeX's memory you used:
+ 654 strings out of 10910
+ 7008 string characters out of 72284
+ 50288 words of memory out of 262141
+ 3549 multiletter control sequences out of 9500
+ 4147 words of font info for 15 fonts, out of 150000 for 255
+ 14 hyphenation exceptions out of 607
+ 32i,4n,21p,1201b,321s stack positions out of 300i,40n,60p,3000b,4000s
+
+Output written on images.dvi (2 pages, 364 bytes).

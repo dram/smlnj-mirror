@@ -1,0 +1,2 @@
+Decl 8
+f%PascalLrValsFun.f-sqsToken.v$TOKEN.;-;;;sqsParserData.sqsHeader.sr;-;sLrTable.vToken.LrTable.;-;sToken.vToken.;-;lqovLrTable.;;;qrString.Array.Char.LrTable.;;lqovHeader.;;;qsMlyValue.sr;-;rMlyValue.;;sEC.sqovLrTable.;;lqovHeader.;;;qrMlyValue.;;;-;sActions.sqlqovHeader.;;;qrMlyValue.LrTable.;;rMlyValue.;;-;;-;sTokens.srToken.ParserData.;+v$Pascal_TOKENS.;;;+sqsParserData.v$PARSER_DATA.;-;sTokens.v$Pascal_TOKENS.;-;;;

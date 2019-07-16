@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!--Converted with LaTeX2HTML 97.1 (release) (July 13th, 1997)
+ by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippman, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Multiple start symbols</TITLE>
+<META NAME="description" CONTENT="Multiple start symbols">
+<META NAME="keywords" CONTENT="mlyacc">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso_8859_1">
+<LINK REL="STYLESHEET" HREF="mlyacc.css">
+<LINK REL="next" HREF="node33.html">
+<LINK REL="previous" HREF="node31.html">
+<LINK REL="up" HREF="node31.html">
+<LINK REL="next" HREF="node33.html">
+</HEAD>
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html443"
+ HREF="node33.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html440"
+ HREF="node31.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html434"
+ HREF="node31.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html442"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html444"
+ HREF="node33.html">Functorizing things further</A>
+<B> Up:</B> <A NAME="tex2html441"
+ HREF="node31.html">Hints</A>
+<B> Previous:</B> <A NAME="tex2html435"
+ HREF="node31.html">Hints</A>
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+<H2><A NAME="SECTION000111000000000000000">
+Multiple start symbols</A>
+</H2>
+To have multiple start symbols, define a dummy token for each
+start symbol.  Then define a start symbol which derives the
+multiple start symbols with dummy tokens placed in front of
+them.  When you start the parser you must place a dummy token
+on the front of the lexer stream to select a start symbol
+from which to begin parsing.
+<P>
+Assuming that you have followed the naming conventions used before,
+create the lexer using the makeLexer function in the {n}Parser structure.
+Then, place the dummy token on the front of the lexer:
+<BLOCKQUOTE>
+<PRE>
+val dummyLexer =
+    {n}Parser.Stream.cons
+        ({n}LrVals.Tokens.{dummy token name}
+                 ({dummy lineno},{dummy lineno}),
+        lexer)
+</PRE>
+</BLOCKQUOTE>
+You have to pass a Tokens structure to the lexer.  This Tokens structure
+contains functions which construct tokens from values and line numbers.
+So to create your dummy token just apply the appropriate token constructor
+function from this Tokens structure to a value (if there is one) and the
+line numbers.   This is exactly what you do in the lexer to construct tokens.
+<P>
+Then you must place the dummy token on the front of your lex stream.
+The structure {n}Parser contains a structure Stream which implements
+lazy streams.  So you just cons the dummy token on to stream returned
+by makeLexer.
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html443"
+ HREF="node33.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next"
+ SRC="/opt/latex2html-97.1/icons.gif/next_motif.gif"></A> 
+<A NAME="tex2html440"
+ HREF="node31.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up"
+ SRC="/opt/latex2html-97.1/icons.gif/up_motif.gif"></A> 
+<A NAME="tex2html434"
+ HREF="node31.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous"
+ SRC="/opt/latex2html-97.1/icons.gif/previous_motif.gif"></A> 
+<A NAME="tex2html442"
+ HREF="node1.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents"
+ SRC="/opt/latex2html-97.1/icons.gif/contents_motif.gif"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html444"
+ HREF="node33.html">Functorizing things further</A>
+<B> Up:</B> <A NAME="tex2html441"
+ HREF="node31.html">Hints</A>
+<B> Previous:</B> <A NAME="tex2html435"
+ HREF="node31.html">Hints</A>
+<!--End of Navigation Panel-->
+<ADDRESS>
+<I>Dave MacQueen</I>
+<BR><I>4/24/2000</I>
+</ADDRESS>
+</BODY>
+</HTML>

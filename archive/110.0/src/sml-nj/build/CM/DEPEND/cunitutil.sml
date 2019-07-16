@@ -1,0 +1,2 @@
+Decl 8
+qs$CUNITUTIL.sqrWord8Vector.PersStamps.Unsafe.Lambda.BinIO.SCEnv.;;-;f%CUnitUtilFun.f-sqsCompile.v$COMPILE.;-;sMachm.v$CODEGENERATOR.;-;;;sqsPid.vPersStamps.;-;sEnv.vSCEnv.Env.;-;sComp.vCompile.;-;sErr.vErrorMsg.;-;rVector.Pack32Big.Word8Vector.SCStaticEnv.Pid.Machm.Comp.UnpickMod.Unsafe.List.Word8.Int.Env.String.StringCvt.Control.Lambda.LargeWord.BinIO.Byte.PickMod.Word32.Version.;;+v$CUNITUTIL.;;;
