@@ -218,6 +218,8 @@ functor AMD64MCEmitter (
 	        in
 		  (eREX64 (eREXRegs rex)) :: bytes @ e
 	        end (* encode64' *)
+	  fun encode' 32 = encode32'
+	    | encode' _ = encode64'
 	  fun encode32 (byte1, r', opnd) = eBytes (encode32' ([byte1], r', opnd))
 	  fun encode64 (byte1, r', opnd) = eBytes (encode64' ([byte1], r', opnd))
 	  fun encode sz = if sz = 64 then encode64 else encode32
@@ -563,29 +565,20 @@ functor AMD64MCEmitter (
 (*			  | I.MemReg _ => shift(code, memReg src) *)
 			  | _  => error "shift"
 		       (*esac*))
-(* FIXME: should have `imul sz` and `mul sz` *)
-		  fun imul sz = unimplemented "imul"
-(*
-		  fun imulq (src, dst) = (case (src, dst)
-			 of (I.Immed(i), I.Direct (_, dstR)) => (case size i
-			       of Bits32 =>
-				    encodeLongImm 64 (0wx69, REG (rNum dstR), dst, i)
-			        | _ => encodeByteImm 64 (0wx6b, REG (rNum dstR), dst, i)
-			      (* end case *))
-			  | (_, I.Direct (_, dstR)) =>
-			      eBytes (encode64' ([0wx0f, 0wxaf], REG (rNum dstR), src))
-			  | _ => error "imul"
-			(* end case *))
-*)
-		  fun mul sz = (case (src, dst)
+		(* signed integer multiplication
+		 *   dst <- src * dst		[REX.W] 0F AF /r
+		 *   dst <- src * immed8	[REX.W] 6B /r ib
+		 *   dst <- src * immed32	[REX.W] 69 /r id
+		 *)
+		  fun imul sz = (case (src, dst)
 			 of (I.Immed i, I.Direct(_, dstR)) => (case size i
 			       of Bits32 => encodeLongImm sz (0wx69, REG (rNum dstR), dst, i)
-				| _ => encodeByteImm sz (0wx6b, REG (rNum dstR), dst, i)
-			      (* esac *))
+			        | _ => encodeByteImm sz (0wx6b, REG (rNum dstR), dst, i)
+			      (* end case *))
 			  | (_, I.Direct(_, dstR)) =>
-			      eBytes (encode32' ([0wx0f, 0wxaf], REG (rNum dstR), src))
+			      eBytes (encode' sz ([0wx0f, 0wxaf], REG (rNum dstR), src))
 			  | _ => error "imul"
-			(* esac *))
+			(* end case *))
 		  in
 		    case binOp
 		     of I.ADDQ => arith(64, 0w0, OPCODE 0) (src, dst)
@@ -596,7 +589,6 @@ functor AMD64MCEmitter (
 		      | I.SHLQ => shift(64, 4)
 		      | I.SARQ => shift(64, 7)
 		      | I.SHRQ => shift(64, 5)
-		      | I.MULQ => mul 64
 		      | I.IMULQ => imul 64
 		      | I.ADCQ => unimplemented "ADCQ"
 		      | I.SBBQ => unimplemented "SBBQ"
@@ -608,8 +600,7 @@ functor AMD64MCEmitter (
 		      | I.SHLL => shift(32, 4)
 		      | I.SARL => shift(32, 7)
 		      | I.SHRL => shift(32, 5)
-		      | I.MULL => mul 32
-		      | I.IMULL => imul 64
+		      | I.IMULL => imul 32
 		      | I.ADCL => unimplemented "ADCL"
 		      | I.SBBL => unimplemented "SBBL"
 		      | I.ADDW => unimplemented "ADDW"
@@ -620,7 +611,6 @@ functor AMD64MCEmitter (
 		      | I.SHLW => unimplemented "SHLW"
 		      | I.SARW => unimplemented "SARW"
 		      | I.SHRW => unimplemented "SHRW"
-		      | I.MULW => unimplemented "MULW"
 		      | I.IMULW => unimplemented "IMULW"
 		      | I.ADDB => unimplemented "ADDB"
 		      | I.SUBB => unimplemented "SUBB"
@@ -630,7 +620,6 @@ functor AMD64MCEmitter (
 		      | I.SHLB => unimplemented "SHLB"
 		      | I.SARB => unimplemented "SARB"
 		      | I.SHRB => unimplemented "SHRB"
-		      | I.MULB => unimplemented "MULB"
 		      | I.IMULB => unimplemented "IMULB"
 		      | I.BTSW => unimplemented "BTSW"
 		      | I.BTCW => unimplemented "BTCW"
@@ -741,6 +730,7 @@ functor AMD64MCEmitter (
 		      then eByte (0x50 + r)
 		      else eBytes [0wx41, 0wx50 + Word8.fromInt(r - 8)]
 		  end
+(* TODO: check that PUSH is correct for other operands *)
 	      | I.PUSH opnd => encode32 (0wxff, OPCODE 6, opnd)
 	      | I.PUSHFQ => eByte 0x9c
 	      | I.POPFQ => eByte 0x9d
@@ -751,6 +741,7 @@ functor AMD64MCEmitter (
 		      then eByte (0x58 + r)
 		      else eBytes [0wx41, 0wx58 + Word8.fromInt(r - 8)]
 		  end
+(* TODO: check that POP is correct for other operands *)
 	      | I.POP opnd => encode32 (0wx8f, OPCODE 0, opnd)
 	      | I.CDQ => eByte 0x99
 	      | I.CDO => eBytes [0wx48, 0wx99]

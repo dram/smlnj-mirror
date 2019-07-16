@@ -185,7 +185,7 @@ struct
                                                                     and rest = v_4
                                                                     and src = v_8
                                                                 in (if (((CBase.sameColor (base, C.rsp)) andalso (CBase.sameColor (dst_i, C.rsp))) andalso (not (isStackPtr src)))
-                                                                      then (loop (rest, (I.pushq src) :: instrs))
+                                                                      then (loop (rest, (I.push src) :: instrs))
                                                                       else (state_10 (v_0, v_3)))
                                                                 end
                                                               | _ => state_10 (v_0, v_3)

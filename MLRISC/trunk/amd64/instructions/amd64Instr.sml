@@ -23,7 +23,7 @@ sig
    | Direct of int * (CellsBasis.cell)
    | FDirect of CellsBasis.cell
    | Displace of {base:CellsBasis.cell, disp:operand, mem:Region.region}
-   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int,
+   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int, 
         disp:operand, mem:Region.region}
    type addressing_mode = operand
    type ea = operand
@@ -54,7 +54,6 @@ sig
    | SHLQ
    | SARQ
    | SHRQ
-   | MULQ
    | IMULQ
    | ADCQ
    | SBBQ
@@ -66,7 +65,6 @@ sig
    | SHLL
    | SARL
    | SHRL
-   | MULL
    | IMULL
    | ADCL
    | SBBL
@@ -78,7 +76,6 @@ sig
    | SHLW
    | SARW
    | SHRW
-   | MULW
    | IMULW
    | ADDB
    | SUBB
@@ -88,7 +85,6 @@ sig
    | SHLB
    | SARB
    | SHRB
-   | MULB
    | IMULB
    | BTSW
    | BTCW
@@ -225,7 +221,7 @@ sig
      NOP
    | JMP of operand * Label.label list
    | JCC of {cond:cond, opnd:operand}
-   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
+   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
         cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
    | ENTER of {src1:operand, src2:operand}
    | LEAVE
@@ -279,7 +275,7 @@ sig
    and instruction =
      LIVE of {regs: C.cellset, spilled: C.cellset}
    | KILL of {regs: C.cellset, spilled: C.cellset}
-   | COPY of {k: CellsBasis.cellkind,
+   | COPY of {k: CellsBasis.cellkind, 
               sz: int,          (* in bits *)
               dst: CellsBasis.cell list,
               src: CellsBasis.cell list,
@@ -289,7 +285,7 @@ sig
    val nop : instruction
    val jmp : operand * Label.label list -> instruction
    val jcc : {cond:cond, opnd:operand} -> instruction
-   val call : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
+   val call : {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
       cutsTo:Label.label list, mem:Region.region, pops:Int32.int} -> instruction
    val enter : {src1:operand, src2:operand} -> instruction
    val leave : instruction
@@ -359,7 +355,7 @@ struct
    | Direct of int * (CellsBasis.cell)
    | FDirect of CellsBasis.cell
    | Displace of {base:CellsBasis.cell, disp:operand, mem:Region.region}
-   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int,
+   | Indexed of {base:(CellsBasis.cell) option, index:CellsBasis.cell, scale:int, 
         disp:operand, mem:Region.region}
    type addressing_mode = operand
    type ea = operand
@@ -390,7 +386,6 @@ struct
    | SHLQ
    | SARQ
    | SHRQ
-   | MULQ
    | IMULQ
    | ADCQ
    | SBBQ
@@ -402,7 +397,6 @@ struct
    | SHLL
    | SARL
    | SHRL
-   | MULL
    | IMULL
    | ADCL
    | SBBL
@@ -414,7 +408,6 @@ struct
    | SHLW
    | SARW
    | SHRW
-   | MULW
    | IMULW
    | ADDB
    | SUBB
@@ -424,7 +417,6 @@ struct
    | SHLB
    | SARB
    | SHRB
-   | MULB
    | IMULB
    | BTSW
    | BTCW
@@ -561,7 +553,7 @@ struct
      NOP
    | JMP of operand * Label.label list
    | JCC of {cond:cond, opnd:operand}
-   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset,
+   | CALL of {opnd:operand, defs:C.cellset, uses:C.cellset, return:C.cellset, 
         cutsTo:Label.label list, mem:Region.region, pops:Int32.int}
    | ENTER of {src1:operand, src2:operand}
    | LEAVE
@@ -615,7 +607,7 @@ struct
    and instruction =
      LIVE of {regs: C.cellset, spilled: C.cellset}
    | KILL of {regs: C.cellset, spilled: C.cellset}
-   | COPY of {k: CellsBasis.cellkind,
+   | COPY of {k: CellsBasis.cellkind, 
               sz: int,          (* in bits *)
               dst: CellsBasis.cell list,
               src: CellsBasis.cell list,

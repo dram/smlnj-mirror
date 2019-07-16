@@ -344,15 +344,15 @@ functor AMD64Props (
 	 | I.BINARY {binOp, ...} =>
 	   (case binOp
 	     of ( I.ADDQ | I.SUBQ | I.ANDQ | I.ORQ | I.XORQ | I.SHLQ | I.SARQ
-	        | I.SHRQ | I.MULQ | I.IMULQ | I.ADCQ | I.SBBQ ) => 64
+	        | I.SHRQ | I.IMULQ | I.ADCQ | I.SBBQ ) => 64
 	      | ( I.ADDL | I.SUBL | I.ANDL | I.ORL | I.XORL | I.SHLL | I.SARL
-                | I.SHRL | I.MULL | I.IMULL | I.ADCL | I.SBBL | I.BTSL | I.BTCL
+                | I.SHRL | I.IMULL | I.ADCL | I.SBBL | I.BTSL | I.BTCL
                 | I.BTRL | I.ROLL | I.RORL | I.XCHGL ) => 32
 	      | ( I.ADDW | I.SUBW | I.ANDW | I.ORW | I.XORW | I.SHLW | I.SARW
-                | I.SHRW | I.MULW | I.IMULW | I.BTSW | I.BTCW | I.BTRW | I.ROLW
+                | I.SHRW | I.IMULW | I.BTSW | I.BTCW | I.BTRW | I.ROLW
                 | I.RORW | I.XCHGW ) => 16
 	      | ( I.ADDB | I.SUBB | I.ANDB | I.ORB | I.XORB | I.SHLB | I.SARB
-                | I.SHRB | I.MULB | I.IMULB | I.XCHGB ) => 8
+                | I.SHRB | I.IMULB | I.XCHGB ) => 8
 	      | _ => raise Fail "" (* 64*)
 	   (* esac *))
 	 | I.XADD {sz, ...} => szToInt sz
