@@ -37,17 +37,18 @@ struct
        fun emit_label l = itow(Label.addrOf l)
        fun emit_labexp le = itow(MLTreeEval.valueOf le)
        fun emit_const c = itow(Constant.valueOf c)
+       val w32ToByte = Word8.fromLarge o Word32.toLarge
        val loc = ref 0
    
        (* emit a byte *)
        fun eByte b =
-       let val i = !loc in loc := i + 1; CodeString.update(i,b) end
+         let val i = !loc in loc := i + 1; CodeString.update(i,b) end
    
        (* emit the low order byte of a word *)
        (* note: fromLargeWord strips the high order bits! *)
        fun eByteW w =
-       let val i = !loc
-       in loc := i + 1; CodeString.update(i,Word8.fromLargeWord w) end
+         let val i = !loc
+         in loc := i + 1; CodeString.update(i, w32ToByte w) end
    
        fun doNothing _ = ()
        fun fail _ = raise Fail "MCEmitter"

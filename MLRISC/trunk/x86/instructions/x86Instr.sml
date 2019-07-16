@@ -55,7 +55,6 @@ sig
    | SHLL
    | SARL
    | SHRL
-   | MULL
    | IMULL
    | ADCL
    | SBBL
@@ -67,7 +66,6 @@ sig
    | SHLW
    | SARW
    | SHRW
-   | MULW
    | IMULW
    | ADDB
    | SUBB
@@ -77,7 +75,6 @@ sig
    | SHLB
    | SARB
    | SHRB
-   | MULB
    | IMULB
    | BTSW
    | BTCW
@@ -448,7 +445,6 @@ struct
    | SHLL
    | SARL
    | SHRL
-   | MULL
    | IMULL
    | ADCL
    | SBBL
@@ -460,7 +456,6 @@ struct
    | SHLW
    | SARW
    | SHRW
-   | MULW
    | IMULW
    | ADDB
    | SUBB
@@ -470,7 +465,6 @@ struct
    | SHLB
    | SARB
    | SHRB
-   | MULB
    | IMULB
    | BTSW
    | BTCW
