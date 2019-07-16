@@ -65,6 +65,29 @@ of polymorphic arrays.  The downside is that code that uses the `real array`
 type heavily will be somewhat slower; in that case, we recommend switching
 to the monomorphic `RealArray.array` type.
 
+=== MLRISC
+
+--
+* Some cleanup in the **x86** backend.  Removed the `MULB`, `MULW`, and `MULL`
+  unsigned-multiplication instructions, since they are not binary operations.
+  The `MULL` instruction is covered by the `MULL1` constructor in the `multDivOp`
+  datatype.  The same change was applied to the **amd64** backend.
+
+* Many changes to the **amd64** machine description:
+** Removed the `PUSHB`, `PUSHW`, and `PUSHL` instructions, since the matching
+   `POP` operations are not supported.
+** Removed the `CALLQ` operation, since it is the same as `CALL`.
+** Removed the `CLTD` and `CQTO` operations, since those names are just
+   synonyms for `CDQ` and `CDO`.
+** Replaced the `INTO` operation (which is not valid in 64-bit mode) with
+   `INT of byte`.
+
+* Restructured the **amd64** machine-code generation implementation and
+  filled in many of the missing encodings.  It should be complete for
+  **SML/NJ** code generation, but needs more work to support the full set
+  of operations described in the `amd64.mdl` file.
+--
+
 === Basis Library
 
 
