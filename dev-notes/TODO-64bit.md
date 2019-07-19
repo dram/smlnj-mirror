@@ -18,6 +18,28 @@ as a regular boxed type without the special representation.  Currently
 we use the default tagged integer type for all smaller integer types
 (*e.g.*, `Int8.int` is represented as `Int31.int` at runtime).
 
+The tricky part of smaller types is dealing with overflow detection.
+For now, we are going to use a somewhat inefficient implementation
+that wraps the underlying tagged-integer arithmetic with bounds checks
+or masking.  For example, Word32 arithmetic on 64-bit targets will be
+composed with a function
+
+	fun mask32 w = Word63.andb(w, 0wxffffffff)
+
+and Int32 operations will be wrapped with
+
+	fun check32 n = if (n < ~0x80000000) orelse (0x7fffffff < n)
+	      then raise Overflow
+	      else n
+
+We will also need to use check32 on the TEST conversions, and mask32 on
+TRUNC conversions.
+
+Eventually, we should support untagged numbers in the compiler (similar
+to the way that unboxed 32-bit integers are supported) and rely on the
+machine-code generator (MLRISC or LLVM) to introduce the masking/overflow
+checking.
+
 ### Outstanding 64-bit issues
 
 The following is a list of the known places in the implementation where
