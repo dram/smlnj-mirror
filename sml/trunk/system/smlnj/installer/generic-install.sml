@@ -237,17 +237,19 @@ structure GenericInstall : sig
 		]
 	  val s = (case List.find U.fexists targetsfiles
 		 of SOME f => TextIO.openIn f
-		  | NONE => fail ["no targetsfiles\n"]
+		  | NONE => fail ["cannot find targets file in '", configdir, "'\n"]
 		(* end case *))
 	(* get the actions from the actionfile *)
 	  val (actions, allmoduleset) = parseActions actionfile
 	(* parse the targets file *)
 	  fun loop (ml, srcReqs, allsrc) = (case getInputTokens s
 		 of NONE => (TextIO.closeIn s; (ml, srcReqs, allsrc))
-		  | SOME [x as ("dont_move_libraries" | "move_libraries")] =>
-		      (warn ["\"", x, "\" no longer supported",
-			     " (installer always moves libraries)\n"];
-		       loop (ml, srcReqs, allsrc))
+		  | SOME [x as ("dont_move_libraries" | "move_libraries")] => (
+		      warn [
+			  "\"", x, "\" no longer supported",
+			  " (installer always moves libraries)\n"
+			];
+		      loop (ml, srcReqs, allsrc))
 		  | SOME ["request", "src-smlnj"] => loop (ml, srcReqs, true)
 		  | SOME ["request", module] => if SM.inDomain(actions, module)
 		      then loop (module :: ml, srcReqs, allsrc)
