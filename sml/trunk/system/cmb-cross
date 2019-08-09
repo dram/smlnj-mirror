@@ -3,7 +3,7 @@
 # COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
-# usage: cmb-cross <target>
+# usage: cmb-cross [ -z ] <target>
 #	<target>	-- one of amd64-unix, ppc-unix, sparc-unix, x86-unix, or x86-win32
 #
 # cross compile to the specified target
@@ -16,10 +16,18 @@ twoup=`pwd`
 cd $here
 
 function usage {
-  echo "usage: cmb-cross <target>"
+  echo "usage: cmb-cross [ -z ] <target>"
   echo "where <target> is one of amd64-unix, ppc-unix, sparc-unix, x86-unix, or x86-win32"
   exit 1
 }
+
+# check for "-z" flag
+if [ x"$1" = "x-z" ] ; then
+  shift
+  build_tarball=yes
+else
+  build_tarball=no
+fi
 
 if [ $# -ne 1 ] ; then
   usage
@@ -111,24 +119,48 @@ XXXX
 #
 echo "$this: cross compile to $target"
 
-if [ $OPSYS = win32 ] ; then
-    BOOT_DIR="${target}-cross.boot.${ARCH}-win32"
+if [ $HOST_OPSYS = win32 ] ; then
+    SUFFIX="${HOST_ARCH}-win32"
 else
-    BOOT_DIR="${target}-cross.boot.${ARCH}-unix"
+    SUFFIX="${HOST_ARCH}-unix"
 fi
+CROSS_BIN_DIR="${target}-cross.bin.${SUFFIX}"
+CROSS_BOOT_DIR="${target}-cross.boot.${SUFFIX}"
 
 MODE="@SMLrebuild=${architecture}"
 
 CM_PATHCONFIG=${CM_PATHCONFIG:-$twoup/lib/pathconfig}
 export CM_PATHCONFIG
 
-cd $BOOT_DIR
+cd $CROSS_BOOT_DIR
 
 echo $this: $LINK $RUN @SMLboot=BOOTLIST @SMLheap=sml $MODE
 if $LINK $RUN @SMLboot=BOOTLIST @SMLheap=sml $MODE ; then
+    # back to the system directory
+    #
+    cd $here
+    # the new boot/bin files will be in "${architecture}.boot.${target}"
+    # and "${architecture}.bin.${target}"; we rename them with the
+    # standard naming convention by replacing "${architecture}" with "sml"
+    #
+    for xxx in bin boot ; do
+	if [ -d "${architecture}.${xxx}.${target}" ] ; then
+            rm -rf "sml.${xxx}.${target}"
+	    mv "${architecture}.${xxx}.${target}" "sml.${xxx}.${target}"
+	else
+	    echo "$this: ${architecture}.${xxx}.${target} is missing!"
+	    exit 1
+	fi
+    done
     echo $this: New binfiles are ready.
-    exit 0
+    # cleanup
+    #
+    rm -rf ${CROSS_BIN_DIR} ${CROSS_BOOT_DIR}
 else
     echo $this: Something broke.
     exit 1
+fi
+
+if [ $build_tarball = "yes" ] ; then
+  tar -cf - sml.boot.${target} | gzip > boot.$target.tgz
 fi
