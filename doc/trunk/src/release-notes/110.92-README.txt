@@ -1,5 +1,5 @@
 :version: 110.92
-:date: July ??, 2019
+:date: August 10, 2019
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -28,6 +28,13 @@ FILES::
 ''''''''
 
 == Summary
+
+This release has a major improvement in the compiler that makes the
+use of polymorphic arrays more efficient; namely, we have removed
+the dictionary passing for polymorphic array operations from FLINT.
+Besides that change, this release is primarily a checkpoint of work
+being done to support 64-bit targets, including new infrastructure
+for cross compilation.
 
 
 == Details
@@ -65,6 +72,12 @@ of polymorphic arrays.  The downside is that code that uses the `real array`
 type heavily will be somewhat slower; in that case, we recommend switching
 to the monomorphic `RealArray.array` type.
 
+We have a new version of the cross-compilation script (`system/cmb-cross`)
+thatsupports target-specific dependencies in the front-end (i.e.,
+representation of numeric types and endianess).  We use this new script
+in the `allcross` script too.
+
+
 === MLRISC
 
 --
@@ -88,11 +101,9 @@ to the monomorphic `RealArray.array` type.
   of operations described in the `amd64.mdl` file.
 --
 
-=== Basis Library
-
-
 === Runtime System
 
+Made a bunch of changes to fix compilation issues on 64-bit targets.
 
 == Bugs
 

@@ -93,6 +93,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.91; 2019/08/10
+
+//--------------------------------------------------------------------
+[2019/08/08]::
++
+Changed `base/system/allcross` script to use `cmb-cross` script.
+Also modified the `cmb-cross` script to build compressed tar
+files, when given the `-z` option, and to clean up intermediate
+files.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/07/16]::
 +
@@ -128,6 +141,17 @@ Many changes to the **amd64** machine description:
 * Replaced the `INTO` operation (which is not valid in 64-bit mode) with
    `INT of byte`.
 --
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/07/13]::
++
+New script for cross compiling to other architectures; the script
+is still called `cmb-make`, but now supports target-specific
+dependencies in the front-end (i.e., representation of numeric
+types and endianess).  The cross compilation scheme was developed
+by Matthias Blume and then encoded in a script.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
