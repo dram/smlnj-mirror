@@ -36,6 +36,11 @@ Besides that change, this release is primarily a checkpoint of work
 being done to support 64-bit targets, including new infrastructure
 for cross compilation.
 
+We have had reports of a problem with using **CM** on **Windows**
+(bug #223).  We have not been able to reproduce this problem, but
+we are leaving the bug open for now.  If you encounter problems
+with this release on Windows, please submit a bug report using
+the https://smlnj-gforge.cs.uchicago.edu/bugform.php[bug form].
 
 == Details
 
