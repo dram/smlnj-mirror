@@ -251,7 +251,10 @@ ml_val_t _ml_win32_FS_get_file_time (ml_state_t *msp, ml_val_t arg)
 	    ml_ns = ML_AllocWord64(msp, 100 * ns);
 	    OPTION_SOME(msp, res, ml_ns);
 	}
-    } else {
+
+	CloseHandle(h);
+    }
+    else {
 #ifdef DEBUG_WIN32
 	SayDebug("get_file_time(%s) failed; error = %d\n", STR_MLtoC(arg), GetLastError());
 #endif
