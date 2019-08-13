@@ -86,6 +86,15 @@ structure Unsafe :> UNSAFE =
     structure PackWord32Little = UnsafePackWord32Little
 (* TODO: add 64-bit structures *)
 
+  (* access to internal representation of the IntInf.int type *)
+    structure IntInf =
+      struct
+	datatype rep = datatype CoreIntInf.rep
+	val concrete = CoreIntInf.concrete
+	val abstract = CoreIntInf.abstract
+	val baseBits = WordImp.toIntX CoreIntInf.baseBits
+      end
+
   (* convert real to bits (experimental) *)
     val realToBits = InlineT.Real64.toBits
 
