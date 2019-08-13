@@ -262,8 +262,8 @@ end = struct
 	  infix <>
 	  val op <> : word * word -> bool = InLine.word_neq
 	  val d0 = w32ToW (lo && 0wx3fffffff)
-	  val d1 = w32ToW (((hi && 0wxfffffff) << 0w2) || (lo >> 0w30))
-	  val d2 = w32ToW (hi >> 0w28)
+	  val d1 = w32ToW (((hi && 0wxfffffff) << gap) || (lo >> baseBits))
+	  val d2 = w32ToW (hi >> slc)
 	  val i = BI {
 		  negative = negative,
 		  digits = if d2 <> 0w0 then [d0, d1, d2]
