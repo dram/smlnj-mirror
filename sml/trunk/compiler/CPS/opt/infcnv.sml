@@ -66,6 +66,7 @@ end = struct
 
   (* generate code to convert an intinf to a fixed-size number.  The arguments
    * are:
+   *    mkExp           -- constructor to make CPS expression (ARITH or PURE)
    *	prim		-- the primop (TRUNC or TEST) for converting a boxed
    *			   value to the tagged type
    *	sz		-- the size of the source value
