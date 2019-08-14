@@ -94,11 +94,28 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/08/14]::
++
+Int64 comparisons were not always correct, which lead to some positive
+values being printed as negative numbers (basically when the sign
+bit of the lower word was set).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/08/13]::
 +
 Added `Unsafe.IntInf` structure, which provides access to the
 internal representation of the `IntInf.int` type.  Note that
 this representation may change in the future.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/08/12]::
++
+Fixed bugref:[223] (Incremental Build fails on Windows).  There was
+a missing `CloseHandle()` when getting a file's timestamp.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
