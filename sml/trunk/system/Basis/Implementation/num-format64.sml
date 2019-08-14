@@ -82,15 +82,15 @@ structure NumFormat64 : sig
     in
     fun fmtInt radix = let
 	(* format using the appropriate word formatter *)
-	  fun fmt (fmtW, minIntStr) i = if i2w i = minInt
-		then minIntStr
-		else let
-		    val w64 = i2w (if (i < 0) then ~i else i)
-		    val (n, digits) = fmtW w64
-		  in
-		    if (i < 0) then PreString.implode(iadd(n,1), #"~"::digits)
-		    else PreString.implode(n, digits)
-		  end
+	  fun fmt (fmtW, minIntStr) i = if (i >= 0)
+		  then PreString.implode (fmtW (i2w i))
+		else if (i2w i = minInt)
+		  then minIntStr
+		  else let
+		    val (n, digits) = fmtW (i2w (~i))
+		    in
+		      PreString.implode(iadd(n,1), #"~"::digits)
+		    end
 	  in
 	    case radix
 	     of StringCvt.BIN => fmt (wordToBin, minIntBin)
