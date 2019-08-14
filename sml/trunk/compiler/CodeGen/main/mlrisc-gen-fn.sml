@@ -107,6 +107,8 @@ functor MLRiscGen (
 
     fun sameRegAs x y = CB.sameCell (x, y)
 
+    fun isTaggedInt sz = (sz <= Target.defaultIntSz)
+
   (*
    * These are the type widths of ML.  They are hardwired for now.
    *)
@@ -351,7 +353,7 @@ functor MLRiscGen (
 	      val fpRegTbl : M.fexp Tbl.hash_table = Tbl.mkTable(2, RegMap)
 	      val gpRegTbl : M.rexp Tbl.hash_table = Tbl.mkTable(32, RegMap)
 	      val addExpBinding = Tbl.insert gpRegTbl
-	      fun addRegBinding(x,r) = addExpBinding(x,M.REG(ity,r))
+	      fun addRegBinding(x,r) = addExpBinding(x, M.REG(ity,r))
 	      val addFregBinding = Tbl.insert fpRegTbl
 
 	    (*
@@ -605,7 +607,7 @@ functor MLRiscGen (
 		    emit(M.STORE(ity, ea(Regs.allocptr, hp+2*ws), LI'(len+len+1), R.memory));
 		    hp+ws)
 
-	    (* tagging operations for words and integers *)
+	    (* generate code to tag an unsigned value; the resulting code is pure *)
 	      fun tagUnsigned e = let
 		    fun double r = M.ADD(ity, r, r)
 		    in
@@ -618,6 +620,7 @@ functor MLRiscGen (
 			    end
 		      (* end case *)
 		    end
+	    (* generate code to tag a signed value; the generated code can signal Overflow *)
 	      fun tagSigned e = let
 		    fun double r = M.ADDT(ity, r, r)	(* trapping add for Overflow *)
 		    in
@@ -1062,8 +1065,8 @@ functor MLRiscGen (
 		    val r1 = Cells.newReg()
 		    val r2 = Cells.newReg()
 		    fun cmpWord i = M.CMP(ity, M.NE,
-			  M.LOAD(ity, M.ADD(ity,M.REG(ity, r1), i), R.readonly),
-			  M.LOAD(ity, M.ADD(ity,M.REG(ity, r2), i), R.readonly))
+			  M.LOAD(ity, M.ADD(ity, M.REG(ity, r1), i), R.readonly),
+			  M.LOAD(ity, M.ADD(ity, M.REG(ity, r2), i), R.readonly))
 		    fun unroll i = if (i = n)
 			  then ()
 			  else (
@@ -1310,7 +1313,7 @@ functor MLRiscGen (
 		    val lab = newLabel ()
 		    val labs = map (fn _ => newLabel()) l
 		    val tmpR = Cells.newReg()
-		    val tmp = M.REG(ity,tmpR)
+		    val tmp = M.REG(ity, tmpR)
 		    in
 		      emit (M.MV(ity, tmpR, laddr(lab, 0)));
 		      emit (M.JMP(M.ADD(addrTy, tmp, M.LOAD(pty, scaleWord(tmp, v), R.readonly)), labs));
@@ -1326,7 +1329,7 @@ functor MLRiscGen (
 (* 64BIT: on 32-bit platforms, we are using 32 -> double; on 64-bit, we have
  * both 32->64 and 64->64 conversions available.
  *)
-		    if (from <= Target.defaultIntSz)
+		    if isTaggedInt from
 		      then treeifyDefF64 (x, M.CVTI2F(fty, ity, untagSigned v), e, hp)
 		      else treeifyDefF64 (x, M.CVTI2F(fty, ity, regbind v), e, hp)
 (* REAL32: FIXME *)
@@ -1360,7 +1363,7 @@ functor MLRiscGen (
 		| gen (C.PURE(P.PURE_ARITH{oper=P.ANDB, kind}, [v,w], x, _, e), hp) =
 		    defWithKind(kind, x, M.ANDB(ity, regbind v, regbind w), e, hp)
 		| gen (C.PURE(P.PURE_ARITH{oper, kind}, [v,w], x, ty, e), hp) = (case kind
-		     of P.INT sz => if (sz <= Target.defaultIntSz)
+		     of P.INT sz => if isTaggedInt sz
 			  then (case oper
 			     of P.XORB => defTAGINT(x, tagIntXor(v,w), e, hp)
 			      | P.LSHIFT => defTAGINT(x, tagIntLShift(v,w), e, hp)
@@ -1376,7 +1379,7 @@ functor MLRiscGen (
 			      | P.RSHIFT => shiftINT(M.SRA, v, w, x, e, hp)
 			      | _ => error "gen: PURE INT"
 			    (* end case *))
-		      | P.UINT sz => if (sz <= Target.defaultIntSz)
+		      | P.UINT sz => if isTaggedInt sz
 			  then (case oper
 			     of P.ADD => defTAGINT(x, tagIntAdd(M.ADD, v, w), e, hp)
 			      | P.SUB => defTAGINT(x, tagIntSub(M.SUB, v, w), e, hp)
@@ -1414,7 +1417,7 @@ functor MLRiscGen (
 			   of P.UINT sz => sz
 			    | _ => error "unexpected numkind in pure notb arithop")
 		    in
-		      if (sz <= Target.defaultIntSz)
+		      if isTaggedInt sz
 			then defTAGINT(x, M.SUB(ity, zero, regbind v), e, hp)
 			else defINT(x, M.XORB(ity, regbind v, allOnes), e, hp)
 		    end
@@ -1423,7 +1426,7 @@ functor MLRiscGen (
 			   of P.UINT sz => sz
 			    | _ => error "unexpected numkind in pure ~ arithop")
 		    in
-		      if (sz <= Target.defaultIntSz)
+		      if isTaggedInt sz
 			then defTAGINT (x, M.SUB (ity, two, regbind v), e, hp)
 			else defINT (x, M.SUB(ity, zero, regbind v), e, hp)
 		    end
@@ -1664,7 +1667,8 @@ functor MLRiscGen (
 		| gen (C.ARITH(P.TEST{from, to}, [v], x, _, e), hp) =
 		    if (from = to)
 		      then copy(x, v, e, hp)
-		    else if (from = ity) andalso (to = Target.defaultIntSz)
+		    else if (from = ity)
+(* QUESTION: why is there a call to updtHeapPtr here? *)
 		      then (updtHeapPtr hp; defTAGINT(x, tagSigned(regbind v), e, 0))
 		      else error "gen:ARITH:TEST with unexpected precisions (not implemented)"
 		| gen (C.ARITH(P.TEST_INF _, _, _, _, _), hp) =
