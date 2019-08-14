@@ -510,7 +510,7 @@ structure Num64Cnv : sig
 		    sIf(P.EQL, hi1, hi2,
 		      getLo32(n1, fn lo1 =>
 		      getLo32(n2, fn lo2 =>
-			sIf(cmpLo, lo1, lo2, tr', fl'))),
+			uIf(cmpLo, lo1, lo2, tr', fl'))),
 		      fl'))))))
 	    end
     in
@@ -533,6 +533,7 @@ structure Num64Cnv : sig
 		C.FIX([(C.CONT, rk, [v], [raw32Ty], ce')], C.APP (f, [C.VAR rk, x]))
 	      end
 	    else mkApplyWithReturn (f, [x], res, resTy, ce)
+      | test64To _ = bug "test64To"
 
   (* unsigned conversion from 64-bit word with test for overflow *)
     fun testu64To (toSz, [x, f], res, resTy, ce) =
@@ -545,6 +546,7 @@ structure Num64Cnv : sig
 		C.FIX([(C.CONT, rk, [v], [raw32Ty], ce')], C.APP (f, [C.VAR rk, x]))
 	      end
 	    else mkApplyWithReturn (f, [x], res, resTy, ce)
+      | testu64To _ = bug "testu64To"
 
   (* truncate a 64-bit number to a size <= 32 bit number *)
     fun trunc64To (toSz, n, res, ce) = join (res, ce, fn k =>

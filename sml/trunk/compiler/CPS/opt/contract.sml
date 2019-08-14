@@ -359,26 +359,28 @@ fun pass1 cexp = let
       end
 
 local
-   exception Beta
-   val m2 : value IntHashTable.hash_table = IntHashTable.mkTable(32, Beta)
-   val mapm2 = IntHashTable.lookup m2
+  exception Beta
+  val m2 : value IntHashTable.hash_table = IntHashTable.mkTable(32, Beta)
+  val mapm2 = IntHashTable.lookup m2
 in
 
 fun ren(v0 as VAR v) = (ren(mapm2 v) handle Beta => v0)
   | ren(v0 as LABEL v) = (ren(mapm2 v) handle Beta => v0)
   | ren x = x
 
-fun newname (vw as (v,w)) =
- let val {used=ref u,called=ref c,...} = get v
-     fun f(VAR w') = let val {used,called,...} = get w'
-	             in  used := !used + u; called := !called + c
-		     end
-       | f(LABEL w') = f(VAR w')
-       | f _ = ()
- in  if deadup then f (ren w) else ();
-     rmv v;
-     sameName vw; IntHashTable.insert m2 vw
- end
+fun newname (vw as (v,w)) = let
+      val {used=ref u,called=ref c,...} = get v
+      fun f (VAR w') = let
+	    val {used,called,...} = get w'
+	    in
+	      used := !used + u; called := !called + c
+	    end
+	| f (LABEL w') = f(VAR w')
+	| f _ = ()
+      in
+	if deadup then f (ren w) else ();
+	rmv v; sameName vw; IntHashTable.insert m2 vw
+      end
 
 end (* local *)
 
@@ -417,13 +419,13 @@ fun setter (P.UPDATE, [_, _, NUM{ty={tag=true, ...}, ...}]) = P.UNBOXEDUPDATE
 fun sameLvar(lvar, VAR lv) = lv = lvar
   | sameLvar _ = false
 
-fun cvtPreCondition(n:int, n2, x, v2) =
-  n = n2 andalso usedOnce(x) andalso sameLvar(x, ren v2)
-fun cvtPreCondition_inf(x, v2) =
-  usedOnce(x) andalso sameLvar(x, ren v2)
+fun cvtPreCondition (n:int, n2, x, v2) =
+      n = n2 andalso usedOnce x andalso sameLvar(x, ren v2)
+fun cvtPreCondition_inf (x, v2) =
+      usedOnce x andalso sameLvar(x, ren v2)
 
 (* smart constructors for conversions *)
-fun mkEXTEND(from, to) = if (from = to)
+fun mkEXTEND (from, to) = if (from = to)
       then P.COPY{from=from, to=to}
       else P.EXTEND{from=from, to=to}
 
@@ -732,6 +734,7 @@ let val rec g' =
 	   else ARITH(rator, vl', w, t, g' e)
        end
 
+
    | PURE(P.TRUNC{from=p, to=n}, [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
       fun skip() = PURE(P.TRUNC{from=p, to=n}, [ren v], x, t, g' e)
       fun checkClicked(tok, n2, m, pureOp) =
@@ -903,7 +906,7 @@ let val rec g' =
 		  class (oper, [ren v], x2, t2, g' e2))
 	     else PURE (P.COPY_INF p, [ren v, ren f], x, t, g' e)
      in
-	 if m >= p then checkClicked ("C5", PURE, P.COPY{from=p, to=m})
+	 if m > p then checkClicked ("C5", PURE, P.COPY{from=p, to=m})
 	 else checkClicked ("C6", ARITH, P.TEST{from=p, to=m})
      end
    | PURE(rator, vl, w, t, e) => let
