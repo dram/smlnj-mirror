@@ -33,7 +33,7 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 	  val cpssize = ref 0
 
 	  val prC = let
-		fun prGen (flag,printE) s e = if !flag
+		fun prGen (flag, printE) s e = if !flag
 		      then (say["\n\n[After ", s, " ...]\n\n"]; printE e; e)
 		      else e
 		in
