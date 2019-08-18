@@ -94,6 +94,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/08/18]::
++
+Restructured the CPS contraction phase to make the fusion of
+integer/word conversions more uniform.  Also fixed a bug
+where `Int32.fromLarge(Word32.toLargeInt 0wxffffffff)` would
+return `~1` instead of raising `Overflow`.  The problem was
+that `TEST(m,n) o COPY(n,p)` was getting fused to `COPY(m,p)`
+when `m = p`, instead of `TRUNC(m,p)`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/08/14]::
 +
 Int64 comparisons were not always correct, which lead to some positive
