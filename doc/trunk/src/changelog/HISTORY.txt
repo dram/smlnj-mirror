@@ -94,6 +94,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/08/24]::
++
+Fixed bugref:[173] (`OS.Process.sleep` only works with whole numbers).
+For systems that have finer-grain sleep function, such as the
+`nanosleep`(2) system call, the `OS.Process.sleep` and `Posix.Process.sleep`
+functions now support sub-second granularity.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/08/18]::
 +
 Restructured the CPS contraction phase to make the fusion of

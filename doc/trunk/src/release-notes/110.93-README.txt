@@ -73,6 +73,8 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
+| [.bugid]#173#
+| `OS.Process.sleep` only works with whole numbers
 | [.bugid]#223#
 | Incremental Build fails on Windows
 |=======
