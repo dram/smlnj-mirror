@@ -251,7 +251,7 @@ structure Real64Imp : REAL =
 		     if x < 0.0 then (true, ~x) else (false, x)
 		 fun feven x = #frac (split (x / 2.0)) == 0.0
 	     in
-		 (* if the magnitute is less than 1.0, then
+		 (* if the magnitude is less than 1.0, then
 		  * we just have to figure out whether to return ~1, 0, or 1
 		  *)
 		 if x < 1.0 then
