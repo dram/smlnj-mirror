@@ -258,7 +258,7 @@ STATIC_INLINE Unsigned64_t WORD64_MLtoC (ml_val_t n)
  */
 STATIC_INLINE ml_val_t ML_AllocNanoseconds (ml_state_t *msp, int sec, int usec)
 {
-    Unsigned64_t t = (1000000000 * (Unsigned64_t)sec) + (1000 * (Unsigned64_t)usec);
+    Unsigned64_t t = (NS_PER_SEC * (Unsigned64_t)sec) + (1000 * (Unsigned64_t)usec);
     return ML_AllocWord64(msp, t);
 }
 

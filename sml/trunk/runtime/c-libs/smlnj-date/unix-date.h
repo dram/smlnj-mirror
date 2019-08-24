@@ -14,13 +14,13 @@
 /* convert time_t value (in seconds) to 64-bit unsigned nanoseconds */
 STATIC_INLINE Unsigned64_t time_to_ns (time_t t)
 {
-    return 1000000000 * (Unsigned64_t)t;
+    return NS_PER_SEC * (Unsigned64_t)t;
 }
 
 /* convert 64-bit unsigned nanoseconds  to a time_t value (in seconds) */
 STATIC_INLINE time_t ns_to_time (Unsigned64_t ns)
 {
-    return (time_t)(ns / 1000000000);
+    return (time_t)(ns / NS_PER_SEC);
 }
 
 /* allocate a 9-tuple for a `struct tm` value */
