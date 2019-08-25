@@ -30,7 +30,7 @@ FILES::
 == Summary
 
 This release fixes a critical bug in the Windows implementation,
-as well as a couple of other serious bugs.
+as well as several other serious bugs.
 
 == Details
 
@@ -86,6 +86,9 @@ The following unnumbered bugs were also fixed:
 
   * `Int64` comparisons were incorrect for the case where bit 31 of the low
     word was set.
+
+  * `Real.toManExp` computed an exponent that was off by one.  This bug also
+    broke the `Real.toLargeInt` function.
 --
 
 

@@ -94,6 +94,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/08/25]::
++
+Fixed a bug in the `Real.toManExp` function (the exponent was off
+by one, which meant that the mantissa was two times its expected
+value).  This fix also fixes a problem in `Real.toLargeInt`, where
+the function would go into an infinite loop in some cases.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/08/24]::
 +
 Fixed bugref:[173] (`OS.Process.sleep` only works with whole numbers).
