@@ -148,7 +148,7 @@ structure Real64Imp : REAL =
 		      end
 		  | 0w2047 => {man = x, exp = 0}	(* both NaNs and infinities *)
 		  | biasExp => let
-		      val exp = W.toIntX biasExp - 1023
+		      val exp = W.toIntX biasExp - 1022
 		      in
 			{man = Assembly.A.scalb(x, ~exp), exp=exp}
 		      end
