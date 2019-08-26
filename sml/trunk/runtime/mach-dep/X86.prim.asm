@@ -705,7 +705,7 @@ ML_CODE_HDR(scalb_a)
 	PUSH	(REGOFF(4,stdarg))		/* Get copy of scalar. */
 	SAR	(IM(1),REGIND(ESP))		/* Untag it. */
 	FILDL	(REGIND(ESP))			/* Load it ... */
-	MOV	(REGIND(stdarg), temp)	/* Get pointer to real. */
+	MOV	(REGIND(stdarg), temp)		/* Get pointer to real. */
 	FLD	(REGIND(temp))			/* Load it into temp. */
 	FSCALE					/* Multiply exponent by scalar. */
 	MOV	(IM(DESC_reald), REGIND(allocptr))
