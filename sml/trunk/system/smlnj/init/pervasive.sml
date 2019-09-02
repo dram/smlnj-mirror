@@ -39,13 +39,6 @@ local
 
     structure CII = CoreIntInf
 
-(* FIXME: this wrapper breaks inlining of Word8 arithmetic!!!! *)
-    fun w8adapt oper args = W8.andb (oper args, 0wxFF)
-    val w8plus = w8adapt W8.+
-    val w8minus = w8adapt W8.-
-    val w8times = w8adapt W8.*
-    val w8neg = w8adapt W8.~
-
     fun stringlt (a, b) = let
 	val al = CV.length a
 	val bl = CV.length b
@@ -69,19 +62,19 @@ local
 in
 overload ~ :   ('a -> 'a)
    as  Int.~ and I32.~ and I64.~ and CII.~
-   and Word.~ and w8neg and W32.~ and W64.~
+   and Word.~ and W8.~ and W32.~ and W64.~
    and R64.~
 overload + :   ('a * 'a -> 'a)
   as  Int.+ and I32.+ and I64.+ and CII.+
-  and Word.+ and w8plus and W32.+ and W64.+
+  and Word.+ and W8.+ and W32.+ and W64.+
   and R64.+
 overload - :   ('a * 'a -> 'a)
   as  Int.- and I32.- and I64.- and CII.-
-  and Word.- and w8minus and W32.- and W64.-
+  and Word.- and W8.- and W32.- and W64.-
   and R64.-
 overload * :   ('a * 'a -> 'a)
   as  Int.* and I32.* and I64.* and CII.*
-  and Word.* and w8times and W32.* and W64.*
+  and Word.* and W8.* and W32.* and W64.*
   and R64.*
 (*
 overload / : ('a * 'a -> 'a)

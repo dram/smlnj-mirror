@@ -91,6 +91,8 @@ structure InlineT =
 	val from_word : word -> real	  = compose(InLine.int64_to_real64, InLine.copy_word_to_int64)
 
 	val signBit : real -> bool = InLine.real64_sgn
+
+	val toBits : real -> word64 = InLine.real64_to_bits
       end
 
     structure Int =
@@ -243,16 +245,19 @@ structure InlineT =
 	val toLargeIntX   = InLine.signed_word8_to_intinf
 	val fromLargeInt  = InLine.intinf_to_word8
 
-      (* Note that the word8 arithmetic operations are clamped to 8-bits
-       * in pervasive.sml.
-       *)
+	local
+	(* wrapper that clamps the result of an operation to 0..255.  Note that
+         * this wrapper breaks the inlining of Word8 arithmetic!
+	 *)
+	  fun w8adapt oper args = InLine.word8_andb(oper args, 0wxFF)
+	in
         val orb : word8 * word8 -> word8	= InLine.word8_orb
         val xorb : word8 * word8 -> word8	= InLine.word8_xorb
         val andb : word8 * word8 -> word8	= InLine.word8_andb
-        val op * : word8 * word8 -> word8	= InLine.word8_mul
-        val op + : word8 * word8 -> word8	= InLine.word8_add
-        val op - : word8 * word8 -> word8	= InLine.word8_sub
-	val ~ : word8 -> word8			= InLine.word8_neg
+        val op * : word8 * word8 -> word8	= w8adapt InLine.word8_mul
+        val op + : word8 * word8 -> word8	= w8adapt InLine.word8_add
+        val op - : word8 * word8 -> word8	= w8adapt InLine.word8_sub
+	val ~ : word8 -> word8			= w8adapt InLine.word8_neg
         val op div : word8 * word8 -> word8	= InLine.word8_div
         val op mod : word8 * word8 -> word8	= InLine.word8_mod
         val op > : word8 * word8 -> bool	= InLine.word8_gt
@@ -260,12 +265,13 @@ structure InlineT =
         val op < : word8 * word8 -> bool	= InLine.word8_lt
         val op <= : word8 * word8 -> bool	= InLine.word8_le
         val rshift : word8 * word -> word8	= InLine.word8_raw_rshift
-        val rshiftl : word8 * word -> word8	= InLine.word8_raw_rshift
-        val lshift : word8 * word -> word8	= InLine.word8_raw_lshift
+        val rshiftl : word8 * word -> word8	= InLine.word8_raw_rshiftl
+        val lshift : word8 * word -> word8	= w8adapt InLine.word8_raw_lshift
         val notb : word8 -> word8		= InLine.word8_notb
-	val chkLshift : word8 * word -> word8	= InLine.word8_lshift
 	val chkRshift : word8 * word -> word8	= InLine.word8_rshift
 	val chkRshiftl : word8 * word -> word8	= InLine.word8_rshiftl
+	val chkLshift : word8 * word -> word8	= w8adapt InLine.word8_lshift
+	end (* local *)
 
 	val min     : word8 * word8 -> word8 = InLine.word8_min
 	val max     : word8 * word8 -> word8 = InLine.word8_max
@@ -463,7 +469,7 @@ structure InlineT =
 	val getData   : string -> 'a = InLine.seq_data
       end
 
-    structure CPtr =
+    structure Pointer =
       struct
 	type t = c_pointer
 	fun hash cp = Word.fromLarge(Word64.rshiftl(InLine.cptr_to_word64 cp, 0w2))
