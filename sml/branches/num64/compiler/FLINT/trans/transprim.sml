@@ -39,6 +39,7 @@ structure TransPrim : sig
     val lt_ipair = lt_tup [lt_int, lt_int]
     val lt_icmp = lt_arw (lt_ipair, lt_bool)
     val lt_intop1 = lt_arw (lt_int, lt_int)
+    val lt_intop2 = lt_arw (lt_ipair, lt_int)
 
     val unitLexp = L.RECORD[]
 
@@ -55,6 +56,9 @@ structure TransPrim : sig
 
   (* unsigned comparison on tagged integers used for bounds checking *)
     val LESSU = L.PRIM(PO.CMP{oper=PO.LT, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
+
+  (* unsigned addition on default words *)
+    val ADD = L.PRIM(PO.PURE_ARITH{oper=PO.ADD, kind=PO.UINT Tgt.defaultIntSz}, lt_intop2, [])
 
     val lt_len = LT.ltc_poly([LT.tkc_mono], [lt_arw(LT.ltc_tv 0, lt_int)])
     val lt_upd = let
@@ -103,14 +107,6 @@ structure TransPrim : sig
 	    zero = zero, negate = negate
 	  } end
 
-  (* shift primops *)
-    fun rshiftOp k = PO.PURE_ARITH{oper=PO.RSHIFT, kind=k}
-    fun rshiftlOp k = PO.PURE_ARITH{oper=PO.RSHIFTL, kind=k}
-    fun lshiftOp k = PO.PURE_ARITH{oper=PO.LSHIFT, kind=k}
-
-  (* zero literal for fiven word type*)
-    fun lword0 (PO.UINT sz) = L.WORD{ival = 0, ty = sz}
-
     fun baselt (PO.UINT sz) = LT.ltc_num sz
 
   (* type of a shift operation where `k` is the kind of value being shifted *)
@@ -119,6 +115,14 @@ structure TransPrim : sig
           in
 	    lt_arw(lt_tup [elem, lt_int], elem)
           end
+
+  (* shift primops *)
+    fun rshiftOp k = L.PRIM(PO.PURE_ARITH{oper=PO.RSHIFT, kind=k}, shiftTy k, [])
+    fun rshiftlOp k = L.PRIM(PO.PURE_ARITH{oper=PO.RSHIFTL, kind=k}, shiftTy k, [])
+    fun lshiftOp k = L.PRIM(PO.PURE_ARITH{oper=PO.LSHIFT, kind=k}, shiftTy k, [])
+
+  (* zero literal for given word type *)
+    fun lword0 (PO.UINT sz) = L.WORD{ival = 0, ty = sz}
 
   (* pick the name of an infinf conversion from "_Core" based on the size; for tagged
    * numbers, we return the boxed conversion for the ML Value-sized numbers; a second
@@ -236,11 +240,10 @@ structure TransPrim : sig
 		  in
 		    chkPrim
 		  end
-	(* expand an inline shift operation.*)
-	  fun inlineShift (shiftOp, kind, clear) = let
+	(* inline expand a checked logical shift operation (right or left) *)
+	  fun inlineLogicalShift (shiftOp, kind) = let
 		val shiftLimit = (case kind
-		       of (PO.UINT lim | PO.INT lim) =>
-			    L.WORD{ival = IntInf.fromInt lim, ty = Tgt.defaultIntSz}
+		       of PO.UINT lim => L.WORD{ival = IntInf.fromInt lim, ty = Tgt.defaultIntSz}
 			| _ => bug "unexpected kind in inlineShift"
 		      (* end case *))
 		val argt = lt_tup [baselt kind, lt_int]
@@ -251,9 +254,49 @@ structure TransPrim : sig
 		    mkLet (L.SELECT(0, p)) (fn w =>
 		      mkLet (L.SELECT(1, p)) (fn cnt =>
 			mkCOND(
-			  L.APP(cmpShiftAmt, L.RECORD[shiftLimit, cnt]),
-			  clear w,
-			  L.APP(L.PRIM(shiftOp kind, shiftTy kind, []), L.RECORD[w, cnt])))))
+			  mkApp2(cmpShiftAmt, shiftLimit, cnt),
+			  lword0 kind,
+			  mkApp2(shiftOp kind, w, cnt)))))
+		end
+	(* inline expand an arithmetic-shift-right operation; for this operation, we need
+	 * some care to get the sign bit extension correct.  If the size of the value
+	 * being shifted is less than the default integer size, then we shift it left first
+	 * and then do an arithmetic right shift followed by a logical right shift to
+	 * produce the final result.  We use two shifts so that the resulting high bits will
+	 * be zeros.
+	 *)
+	  fun inlineArithmeticShiftRight (kind as PO.UINT sz) = let
+		fun lword n = L.WORD{ival = Int.toLarge n, ty = Tgt.defaultIntSz}
+		val shiftLimit = lword sz
+		val shiftWidth = lword Tgt.defaultIntSz
+		val argt = lt_tup [baselt kind, lt_int]
+		val cmpShiftAmt =
+		      L.PRIM(PO.CMP{oper=PO.LTE, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
+		in
+		  if (sz < Tgt.defaultIntSz)
+		    then let
+		      val delta = Tgt.defaultIntSz - sz
+		      val delta' = lword delta
+		      val wordKind = PO.UINT Tgt.defaultIntSz
+		      in
+			mkFn (argt) (fn p =>
+			  mkLet (L.SELECT(0, p)) (fn w =>
+			  mkLet (L.SELECT(1, p)) (fn cnt =>
+			  mkLet (mkApp2(lshiftOp wordKind, w, lword delta)) (fn w' =>
+			    mkCOND(
+			      mkApp2(cmpShiftAmt, shiftLimit, cnt),
+			      mkApp2(rshiftOp wordKind, w', shiftWidth),
+			      mkApp2(rshiftlOp wordKind,
+				mkApp2(rshiftOp wordKind, w', cnt),
+				delta'))))))
+		      end
+		    else mkFn argt (fn p =>
+		      mkLet (L.SELECT(0, p)) (fn w =>
+		      mkLet (L.SELECT(1, p)) (fn cnt =>
+			mkCOND(
+			  mkApp2(cmpShiftAmt, shiftLimit, cnt),
+			  mkApp2(rshiftOp kind, w, shiftWidth),
+			  mkApp2(rshiftOp kind, w, cnt)))))
 		end
 	(* bounds check for vector/array access *)
 	  fun boundsChk (ix, seq, seqtc, t) body = (
@@ -390,15 +433,9 @@ structure TransPrim : sig
 		  inldiv (k, PO.IARITH{oper=PO.IREM, sz=sz}, lt, ts)
 	      | PO.INLREM k =>
 		  inldiv (k, PO.PURE_ARITH{oper=PO.REM, kind=k}, lt, ts)
-	      | PO.INLLSHIFT k => inlineShift(lshiftOp, k, fn _ => lword0 k)
-	      | PO.INLRSHIFTL k => inlineShift(rshiftlOp, k, fn _ => lword0 k)
-	      | PO.INLRSHIFT k => let
-		(* preserve sign bit with arithmetic rshift *)
-		  val shiftWidth = L.WORD{ival = Int.toLarge Tgt.defaultIntSz, ty = Tgt.defaultIntSz}
-		  fun clear w = mkApp2(L.PRIM(rshiftOp k, shiftTy k, []), w, shiftWidth)
-		  in
-		    inlineShift(rshiftOp, k, clear)
-		  end
+	      | PO.INLLSHIFT k => inlineLogicalShift (lshiftOp, k)
+	      | PO.INLRSHIFTL k => inlineLogicalShift (rshiftlOp, k)
+	      | PO.INLRSHIFT k => inlineArithmeticShiftRight k
 	      | PO.INLMIN nk => inlminmax (nk, false)
 	      | PO.INLMAX nk => inlminmax (nk, true)
 	      | PO.INLABS nk => inlabs nk

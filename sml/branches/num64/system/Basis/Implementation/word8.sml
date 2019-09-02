@@ -8,15 +8,12 @@ structure Word8Imp : WORD =
   struct
 
     structure W8 = InlineT.Word8
-    structure Word = InlineT.Word
     structure LW = LargeWordImp
 
     type word = Word8.word		(* tagged word *)
 
     val wordSize = 8
     val wordSizeW = 0w8
-    val wordShift = InlineT.Word.-(0w31, wordSizeW)
-    fun adapt oper args = W8.andb(oper args, 0wxFF)
 
     val toInt   : word -> int = W8.toInt
     val toIntX  : word -> int = W8.toIntX
@@ -35,8 +32,8 @@ structure Word8Imp : WORD =
     val toLargeIntX : word -> LargeInt.int = W8.toLargeIntX
     val fromLargeInt: LargeInt.int -> word = W8.fromLargeInt
 
-
   (** These should be inline functions **)
+(*
     fun << (w : word, k) = if (Word.<=(wordSizeW, k))
 	  then 0w0
 	  else adapt W8.lshift (w, k)
@@ -44,14 +41,18 @@ structure Word8Imp : WORD =
 	  then 0w0
 	  else W8.rshiftl(w, k)
     fun ~>> (w : word, k) = if (Word.<=(wordSizeW, k))
-	  then adapt W8.rshift (W8.lshift(w, wordShift), 0w31)
+	  then adapt W8.rshift (W8.lshift(w, wordShift), 0w31)	(* 64BIT: FIXME *)
 	  else adapt W8.rshift
 	    (W8.lshift(w, wordShift), Word.+(wordShift, k))
+*)
+    val << : word * Word.word -> word = W8.chkLshift
+    val >> : word * Word.word -> word = W8.chkRshiftl
+    val ~>> : word * Word.word -> word = W8.chkRshift
 
     val orb  : word * word -> word = W8.orb
     val xorb : word * word -> word = W8.xorb
     val andb : word * word -> word = W8.andb
-    val notb : word -> word = adapt W8.notb
+    val notb : word -> word = W8.notb
 
     val op * : word * word -> word = op *
     val op + : word * word -> word = op +
