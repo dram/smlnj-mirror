@@ -32,19 +32,6 @@ structure Word8Imp : WORD =
     val toLargeIntX : word -> LargeInt.int = W8.toLargeIntX
     val fromLargeInt: LargeInt.int -> word = W8.fromLargeInt
 
-  (** These should be inline functions **)
-(*
-    fun << (w : word, k) = if (Word.<=(wordSizeW, k))
-	  then 0w0
-	  else adapt W8.lshift (w, k)
-    fun >> (w : word, k) = if (Word.<=(wordSizeW, k))
-	  then 0w0
-	  else W8.rshiftl(w, k)
-    fun ~>> (w : word, k) = if (Word.<=(wordSizeW, k))
-	  then adapt W8.rshift (W8.lshift(w, wordShift), 0w31)	(* 64BIT: FIXME *)
-	  else adapt W8.rshift
-	    (W8.lshift(w, wordShift), Word.+(wordShift, k))
-*)
     val << : word * Word.word -> word = W8.chkLshift
     val >> : word * Word.word -> word = W8.chkRshiftl
     val ~>> : word * Word.word -> word = W8.chkRshift
