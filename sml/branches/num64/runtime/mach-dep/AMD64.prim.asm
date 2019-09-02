@@ -81,6 +81,9 @@
 #define CALLEE_SAVE_SZB 48	/* rbx, rbp, r12-15 */
 #define ML_FRAME_SIZE	(8192)	/* FIXME */
 
+/* NOTE: this include must come after the definition of stdlink, etc. */
+#include "x86-macros.h"
+
 /**********************************************************************/
 	TEXT
 
@@ -134,14 +137,8 @@ ML_CODE_HDR(return_a)
 	MOV	(IM(ML_unit),pc)
 	JMP	(CSYM(set_request))
 
-/* Request a fault.  The floating point coprocessor must be reset
- * (thus trashing the FP registers) since we do not know whether a
- * value has been pushed into the temporary "register".	 This is OK
- * because no floating point registers will be live at the start of
- * the exception handler.
- */
+/* Request a fault. */
 ENTRY(request_fault)
-	CALL	(CSYM(FPEEnable))          /* Does not trash any general regs. */
 	MOV	(IM(REQ_FAULT), request_w)
 	MOVE	(stdlink,temp,pc)
 	JMP	(CSYM(set_request))
@@ -368,7 +365,7 @@ LABEL(L_array_lp)
 LABEL(L_array_large)
 	MOV	(stdlink,pc)
 	MOV	(IM(REQ_ALLOC_ARRAY),request_w)
-	JMP	(set_request)
+	JMP	(CSYM(set_request))
 
 
 /* create_r : int -> realarray */
@@ -407,7 +404,7 @@ ML_CODE_HDR(create_r_a)
 LABEL(L_create_r_large)
 	MOV	(stdlink,pc)
 	MOV	(IM(REQ_ALLOC_REALDARRAY),request_w)
-	JMP	(set_request)
+	JMP	(CSYM(set_request))
 
 
 /* create_b : int -> bytearray */
@@ -447,7 +444,7 @@ ML_CODE_HDR(create_b_a)
 LABEL(L_create_b_large)
 	MOV	(stdlink,pc)
 	MOV	(IM(REQ_ALLOC_BYTEARRAY),request_w)
-	JMP	(set_request)
+	JMP	(CSYM(set_request))
 
 
 /* create_s : int -> string */
@@ -490,7 +487,7 @@ ML_CODE_HDR(create_s_a)
 LABEL(L_create_s_large)
 	MOVE	(stdlink, temp, pc)
 	MOV	(IM(REQ_ALLOC_STRING),request_w)
-	JMP	(set_request)
+	JMP	(CSYM(set_request))
 
 /* create_v_a : int * 'a list -> 'a vector
  *	creates a vector with elements taken from a list.
@@ -541,7 +538,7 @@ LABEL(L_create_v_lp)
 LABEL(L_create_v_large)
 	MOVE	(stdlink, temp, pc)
 	MOV	(IM(REQ_ALLOC_VECTOR),request_w)
-	JMP	(set_request)
+	JMP	(CSYM(set_request))
 
 /* try_lock: spin_lock -> bool.
  * low-level test-and-set style primitive for mutual-exclusion among

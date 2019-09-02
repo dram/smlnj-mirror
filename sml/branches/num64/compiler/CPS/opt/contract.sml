@@ -209,11 +209,11 @@ in  val m : {info: info, used : int ref, called : int ref}
     fun rmv i = ignore (IntHashTable.remove m i) handle _ => ()
 end
 
-fun use(VAR v) = inc(#used(get v))
-  | use(LABEL v) = inc(#used(get v))
+fun use (VAR v) = inc(#used(get v))
+  | use (LABEL v) = inc(#used(get v))
   | use _ = ()
-fun use_less(VAR v) = if deadup then dec(#used(get v)) else ()
-  | use_less(LABEL v) = if deadup then dec(#used(get v)) else ()
+fun use_less (VAR v) = if deadup then dec(#used(get v)) else ()
+  | use_less (LABEL v) = if deadup then dec(#used(get v)) else ()
   | use_less _ = ()
 fun usedOnce v = !(#used(get v)) = 1
 fun used v = !(#used(get v)) > 0
@@ -357,28 +357,31 @@ fun pass1 cexp = let
       in
 	p1 false cexp
       end
+(*DEBUG*)handle ex => (say "****** pass1 ******\n"; PPCps.prcps cexp; raise ex)
 
 local
-   exception Beta
-   val m2 : value IntHashTable.hash_table = IntHashTable.mkTable(32, Beta)
-   val mapm2 = IntHashTable.lookup m2
+  exception Beta
+  val m2 : value IntHashTable.hash_table = IntHashTable.mkTable(32, Beta)
+  val mapm2 = IntHashTable.lookup m2
 in
 
 fun ren(v0 as VAR v) = (ren(mapm2 v) handle Beta => v0)
   | ren(v0 as LABEL v) = (ren(mapm2 v) handle Beta => v0)
   | ren x = x
 
-fun newname (vw as (v,w)) =
- let val {used=ref u,called=ref c,...} = get v
-     fun f(VAR w') = let val {used,called,...} = get w'
-	             in  used := !used + u; called := !called + c
-		     end
-       | f(LABEL w') = f(VAR w')
-       | f _ = ()
- in  if deadup then f (ren w) else ();
-     rmv v;
-     sameName vw; IntHashTable.insert m2 vw
- end
+fun newname (vw as (v,w)) = let
+      val {used=ref u, called=ref c, ...} = get v
+      fun f (VAR w') = let
+	    val {used, called, ...} = get w'
+	    in
+	      used := !used + u; called := !called + c
+	    end
+	| f (LABEL w') = f (VAR w')
+	| f _ = ()
+      in
+	if deadup then f (ren w) else ();
+	rmv v; sameName vw; IntHashTable.insert m2 vw
+      end
 
 end (* local *)
 
@@ -417,564 +420,637 @@ fun setter (P.UPDATE, [_, _, NUM{ty={tag=true, ...}, ...}]) = P.UNBOXEDUPDATE
 fun sameLvar(lvar, VAR lv) = lv = lvar
   | sameLvar _ = false
 
-fun cvtPreCondition(n:int, n2, x, v2) =
-  n = n2 andalso usedOnce(x) andalso sameLvar(x, ren v2)
-fun cvtPreCondition_inf(x, v2) =
-  usedOnce(x) andalso sameLvar(x, ren v2)
-
-(* smart constructors for conversions *)
-fun mkEXTEND(from, to) = if (from = to)
-      then P.COPY{from=from, to=to}
-      else P.EXTEND{from=from, to=to}
+(* precondition for fusing fixed-size conversions *)
+fun cvtPreCondition (n:int, n2, x, v2) =
+      n = n2 andalso usedOnce x andalso sameLvar(x, ren v2)
+(* precondition for fusing IntInf conversions *)
+fun cvtInfPrecondition (x, v2) =
+      usedOnce x andalso sameLvar(x, ren v2)
+(* precondition for fusing a TEST_INF conversion to produce a TEST.  If the source is
+ * 64-bits and we are on a 32-bit target, then we cannot do the fusion, since we
+ * do not have a handle on the Core function that actually does the 64-bit
+ * test.
+ *)
+fun testFusePrecondition 64 = Target.is64
+  | testFusePrecondition _ = true
 
 (* contraction for primops *)
 val arith = ContractPrim.arith
 val pure = ContractPrim.pure get
 val branch = ContractPrim.branch get
 
-val rec reduce = fn cexp => g NONE cexp
-and g = fn hdlr =>
-let val rec g' =
-  fn RECORD (kind,vl,w,e) =>
-      let val {used,...} = get w
-	  val vl' = map (map1 ren) vl
-       in if !used=0 andalso !CG.deadvars
-	  then (click "b"; app (use_less o #1) vl'; g' e)
-          else let
-	  (* Check to see if this record is recreating an existing record.
-	   * We need to be careful that the existing record has the same
-	   * kind as this record (as well as the same size and content).
-	   *)
-	    fun objInfo (VAR z) =(case (#info (get z))
-		   of SELinfo(_,_,PTRt(RPT k)) => (SOME RK_RECORD, k)
-		    | SELinfo(_,_,PTRt(FPT k)) => (NONE, k)
-		    | MISCinfo(PTRt(RPT k)) => (SOME RK_RECORD, k)
-		    | MISCinfo(PTRt(FPT k)) => (NONE, k)
-		    | RECinfo(kind, l) => (SOME kind, length l)
-		    | _ => (NONE, ~1))
-	      | objInfo _ = (NONE, ~1)
+fun reduce cexp = (g NONE cexp)
 
-	    fun samevar(VAR x,VAR y) = (x=y)
-	      | samevar _ = false
-
-	    fun check1((VAR z)::r,j,a) =
-		  (case (get z)
-		    of {info=SELinfo(i,b,_),...} =>
-			   (if ((i=j) andalso (samevar(ren b,a)))
-			    then check1(r,j+1,a) else NONE)
-		     | _ => NONE)
-	      | check1(_::r,j,_) = NONE
-	      | check1([],j,a) = (case objInfo a
-		   of (SOME kind', n) => if (kind = kind') andalso (n = j)
-			then SOME a
-			else NONE
-		    | (NONE, _) => NONE
-		  (* end case *))
-
-	    fun check((VAR z)::r) =
-		  (case (get z)
-		    of {info=SELinfo(0,a,_),...} =>
-			  check1(r,1,ren a)
-		     | _ => NONE)
-	      | check _ = NONE
-
-	    val vl'' = map #1 vl'
-
-	     in case (check(vl''))
-		 of NONE =>
-		     (let val e' = g' e
-		       in if !used=0 andalso deadup
-			  then (click "B1"; app use_less vl''; e')
-			  else RECORD(kind, vl', w, e')
-		      end)
-		  | SOME z =>
-		     (newname(w,z); click "B2"; (*** ? ***)
-		      app use_less vl''; g' e)
-	    end
-      end
-   | SELECT(i,v,w,t,e) =>
-      let val {used,...} = get w
-          val v' = ren v
-      in  if !used=0 andalso !CG.deadvars
-	      then (click "c"; (* could rmv w here *)
-		    use_less v';
-		    g' e)
-	  else let val z = (case v'
-			      of VAR v'' =>
-				  (case get v''
-				     of {info=RECinfo(_, vl),...} =>
-					 (let val z = #1(List.nth(vl,i))
-					      val z' = ren z
-					  in
-                                             case z'
-                                               of REAL _ => NONE
-                                                | _  => SOME z'
-					  end handle Subscript => NONE)
-				      | _ => NONE)
-			       | _ => NONE)
-		   val z = if !CG.selectopt then z else NONE
-	       in  case z
-		     of NONE => let val e' = g' e
-				in  if !used=0 andalso deadup
-					then (click "s";
-					      use_less v';
-					      e')
+and g hdlr = let
+      fun g' cexp = (case cexp
+	     of RECORD (kind,vl,w,e) => let
+		  val {used,...} = get w
+		  val vl' = map (map1 ren) vl
+		  in
+		    if !used=0 andalso !CG.deadvars
+		      then (click "b"; app (use_less o #1) vl'; g' e)
+		      else let
+		      (* Check to see if this record is recreating an existing record.
+		       * We need to be careful that the existing record has the same
+		       * kind as this record (as well as the same size and content).
+		       *)
+			fun objInfo (VAR z) = (case (#info (get z))
+			       of SELinfo(_,_,PTRt(RPT k)) => (SOME RK_RECORD, k)
+				| SELinfo(_,_,PTRt(FPT k)) => (NONE, k)
+				| MISCinfo(PTRt(RPT k)) => (SOME RK_RECORD, k)
+				| MISCinfo(PTRt(FPT k)) => (NONE, k)
+				| RECinfo(kind, l) => (SOME kind, length l)
+				| _ => (NONE, ~1)
+			      (* end case *))
+			  | objInfo _ = (NONE, ~1)
+			fun samevar (VAR x, VAR y) = (x=y)
+			  | samevar _ = false
+			fun check1 ((VAR z)::r, j, a) = (case (get z)
+			       of {info=SELinfo(i,b,_),...} =>
+				    if ((i=j) andalso (samevar(ren b,a)))
+				      then check1(r,j+1,a)
+				      else NONE
+				| _ => NONE
+			      (* end case *))
+			  | check1 (_::r, j, _) = NONE
+			  | check1 ([], j, a) = (case objInfo a
+			       of (SOME kind', n) => if (kind = kind') andalso (n = j)
+				    then SOME a
+				    else NONE
+				| (NONE, _) => NONE
+			      (* end case *))
+			fun check ((VAR z)::r) = (case (get z)
+			       of {info=SELinfo(0, a, _),...} => check1(r, 1, ren a)
+				| _ => NONE)
+			  | check _ = NONE
+			val vl'' = map #1 vl'
+			in
+			  case check vl''
+			   of NONE => let
+			        val e' = g' e
+				in
+				  if !used=0 andalso deadup
+				    then (click "B1"; app use_less vl''; e')
+				    else RECORD(kind, vl', w, e')
+				end
+			     | SOME z => (
+				newname(w,z); click "B2"; (*** ? ***)
+				app use_less vl''; g' e)
+		       end
+		  end
+	      | SELECT(i,v,w,t,e) => let
+		  val {used,...} = get w
+		  val v' = ren v
+		  in
+		    if !used=0 andalso !CG.deadvars
+		      then (
+			click "c"; (* could rmv w here *)
+			use_less v';
+			g' e)
+		      else let
+			val z = if !CG.selectopt
+			      then (case v'
+				 of VAR v'' => (case get v''
+				       of {info=RECinfo(_, vl),...} => (let
+					    val z = #1(List.nth(vl,i))
+					    val z' = ren z
+					    in
+					      case z'
+					       of REAL _ => NONE
+						| _  => SOME z'
+					    end handle Subscript => NONE)
+					| _ => NONE
+				      (* end case *))
+				  | _ => NONE
+				(* end case *))
+			      else NONE
+			in
+			  case z
+			   of NONE => let
+				val e' = g' e
+				in
+				  if !used=0 andalso deadup
+				    then (click "s"; use_less v'; e')
 				    else SELECT(i,v',w,t,e')
 				end
-		      | SOME z' => (newname(w,z');
-				    click "d"; (* could rmv w here *)
-				    use_less v';
-				    g' e)
-	       end
-      end
-   | OFFSET(i,v,w,e) => OFFSET(i,ren v,w,g' e)
-   | APP(f, vl) =>
-      let val vl' = map ren vl
-	  val f' = ren f
-	  fun newvl NONE = vl'
-	    | newvl (SOME live) =
-	      let fun z(a::al,false::bl) = z(al,bl)
-		    | z(a::al,true::bl) = a::z(al,bl)
-		    | z _ = nil
-	      in  (* This code may be obsolete.  See the comment
-		     in the FIX case below. *)
-		  case z(vl',live)
-		    of nil => [tagInt 0]
-		     | vl'' => vl''
-	      end
-	  fun trybeta fv =
-	    let val {used=ref u,called=ref c,info} = get fv
-	    in  case info
-		  of FNinfo{args,body,liveargs,...} =>
-		      if c<>1 orelse u<>1 then APP(f',newvl(!liveargs))
-		      else (case body
-			      of ref(SOME b) =>
-				  (newnames(args, vl');
-				   call_less f';
-				   app use_less vl';
-				   body:=NONE;
-				   g' b)
-			       | _ => APP(f',newvl(!liveargs)))
-		   | _ => APP(f',vl')
-	    end
-      in  case f'
-	    of VAR fv => trybeta fv
-	     | LABEL fv => trybeta fv
-	     | _ => APP(f',vl')
-      end
-   | FIX(l,e) =>
-      let fun getinfo (x as (fk,f,vl,cl,b)) =
-	    let val {used,called,info,...} = get f
-	    in  case info
-		  of FNinfo{liveargs=ref(SOME live),...} =>
-		      let fun z(a::al,false::bl) = z(al,bl)
-			    | z(a::al,true::bl) = a::z(al,bl)
-			    | z _ = nil
-			  val vl' = z(vl,live)
-			  val cl' = z(cl,live)
-			  val drop =
-			      foldr (fn (a,b) => if a then b else b+1) 0 live
-			  fun dropclicks(n) =
-			      if n > 0 then (click "D"; dropclicks(n-1))
-			      else ()
-			  val (vl'', cl'') =
-			      case vl'
-			       of nil => let val x = LV.mkLvar()
-				   in  dropclicks(drop - 1);
-				       enterMISC0 x;
-				       ([x], [tagIntTy])
-				   end
- 			        | _ => (dropclicks(drop); (vl',cl'))
-
-		      in
-			  ((fk,f,vl'',cl'',b),used,called,info)
-		      end
-		   | _ => (x,used,called,info)
-	    end
-	  fun keep (_,used,called,info) =
-               (case (!called,!used,info)
-		  of (_,0,FNinfo{body as ref(SOME b),...}) =>
-			 (click "g";
-			  body:=NONE;
-			  drop_body b;
-			  false)
-		   | (_,0,FNinfo{body=ref NONE,...}) =>
-			 (click "g"; false)
-		   | (1,1,FNinfo{body=ref(SOME _),...}) =>
-			 (* NOTE: this is an optimistic click.
-                            The call could disappear before we
-			    get there; then the body would
-			    not be cleared out, dangerous. *)
-			 (click "e"; false)
-		   | (_,_,IFIDIOMinfo{body=ref b,...}) =>
-			 (click "E"; false)
-		   | _ => true)
-	  fun keep2 (_,used,_,info) =
-               (case (!used,info)
-		  of (0,FNinfo{body as ref(SOME b),...}) =>
-		         (* All occurrences were lost *)
-			 (click "f";
-			  body:=NONE;
-			  drop_body b;
-			  false)
-		   | (0,FNinfo{body=ref NONE,...}) =>
-			 (* We performed a cascaded inlining *)
-			 (click "q"; false)
-		   | (_,FNinfo{body,...}) => (body:=NONE; true)
-		   | _ => true)
-	  fun keep3 ((_,_,_,_,b),used,_,info) =
-               (case (!used,info)
-		  of (0,FNinfo _) =>
-		         (* All occurrences were lost *)
-			 (click "f";
-			  drop_body b;
-			  false)
-		   | _ => true)
-	  fun reduce_body ((fk,f,vl,cl,body),used,called,info) =
-	         ((fk,f,vl,cl,reduce body),used,called,info)
-	  val l1 = map getinfo l
-	  val l2 = List.filter keep l1
-	  val e' = g' e
-	  val l3 = List.filter keep2 l2
-	  val l4 = map reduce_body l3
-      in  case (List.filter keep3 l4)
-	    of nil => e'
-	     | l5 => FIX(map #1 l5, e')
-      end
-   | SWITCH(v,c,el) => (case ren v
-	 of v' as NUM{ival, ty={tag=true, ...}} => if !CG.switchopt
-	     then let
-	       val i = IntInf.toInt ival
-	       fun f (e::el, j) = (if i=j then () else drop_body e; f(el, j+1))
-		 | f ([], _) = ()
-	       in
-		 click "h";
-		 f(el, 0);
-		 newname(c, tagInt 0);
-		 g' (List.nth(el,i))
-	       end
-	     else SWITCH(v', c, map g' el)
-	  | v' => SWITCH(v',c, map g' el)
-	(* end case *))
-   | LOOKER(P.GETHDLR,_,w,t,e) =>
-      (if !CG.handlerfold
-       then case hdlr
-             of NONE => if used w
-                        then LOOKER(P.GETHDLR,[],w,t,g (SOME(VAR w)) e)
-		        else (click "i"; g' e)
-              | SOME w' => (click "j"; newname(w,w'); g' e)
-       else LOOKER(P.GETHDLR,[],w,t,g (SOME(VAR w)) e))
-   | SETTER(P.SETHDLR,[v],e) =>
-      let val v' = ren v
-	  val e' = g (SOME v') e
-	  fun sameVar (VAR x, VAR y) = x = y
-	    | sameVar _ = false
-      in  if !CG.handlerfold
-	  then case hdlr
-		 of SOME v'' =>
-		     if sameVar (v', v'') then (click "k"; use_less v''; e')
-		     else SETTER(P.SETHDLR,[v'],e')
-		  | _ => SETTER(P.SETHDLR,[v'],e')
-	  else SETTER(P.SETHDLR,[v'],e')
-      end
-(* | SETTER(i,vl,e) => SETTER(i, map ren vl, g' e) *)
-   | SETTER(i,vl,e) =>
-      let val vl' = map ren vl
-      in  SETTER(setter (i, vl'), vl', g' e)
-      end
-   | LOOKER(i,vl,w,t,e) =>
-      let val vl' = map ren vl
-	  val {used,...} = get w
-      in  if !used=0 andalso !CG.deadvars
-	      then (click "m"; app use_less vl'; g' e)
-	  else let val e' = g' e
-	       in  if !used=0 andalso deadup
-		   then (click "*"; app use_less vl'; e')
-		   else LOOKER(i, vl', w, t, e')
-	       end
-      end
-   | ARITH(P.TEST{from=p, to=n},[v],x,t,e as PURE(P.COPY{from=n2, to=m},[v2],x2,t2,e2)) =>
-      if cvtPreCondition(n, n2, x, v2) andalso n = m then
-	(click "T(1)"; ARITH(P.TEST{from=p, to=m}, [ren v], x2, t2, g' e2))
-      else ARITH(P.TEST{from=p, to=n}, [ren v], x, t, g' e)
-   | ARITH(P.TEST_INF n,[v,f],x,t,e as PURE(P.COPY{from=n2, to=m},[v2],x2,t2,e2)) =>
-      if cvtPreCondition(n, n2, x, v2) andalso n = m then
-	(click "T(1)"; ARITH(P.TEST_INF m, [ren v, ren f], x2, t2, g' e2))
-      else ARITH(P.TEST_INF n, [ren v, ren f], x, t, g' e)
-   | ARITH(P.TEST{from=p, to=n},[v],x,t,e as ARITH(P.TEST{from=n2, to=m},[v2],x2,t2,e2)) =>
-      if cvtPreCondition(n, n2, x, v2) then
-	(click "T(2)"; ARITH(P.TEST{from=p, to=m}, [ren v], x2, t2, g' e2))
-      else ARITH(P.TEST{from=p, to=n}, [ren v], x, t, g' e)
-   | ARITH(P.TEST_INF n,[v, f],x,t,e as ARITH(P.TEST{from=n2, to=m},[v2],x2,t2,e2)) =>
-      if cvtPreCondition(n, n2, x, v2) then
-	(click "T(2)"; ARITH(P.TEST_INF m, [ren v, ren f], x2, t2, g' e2))
-      else ARITH(P.TEST_INF n, [ren v, ren f], x, t, g' e)
-   | ARITH(P.TESTU{from=p, to=n},[v],x,t,e as PURE(P.COPY{from=n2, to=m},[v2],x2,t2,e2)) =>
-      if cvtPreCondition(n, n2, x, v2) andalso n = m then
-	(click "U(1)"; ARITH(P.TESTU{from=p, to=m}, [ren v], x2, t2, g' e2))
-      else ARITH(P.TESTU{from=p, to=n}, [ren v], x, t, g' e)
-   | ARITH(P.TESTU{from=p, to=n},[v],x,t,e as ARITH(P.TESTU{from=n2, to=m},[v2],x2,t2,e2)) =>
-      if cvtPreCondition(n, n2, x, v2) then
-	(click "U(2)"; ARITH(P.TESTU{from=p, to=m}, [ren v], x2, t2, g' e2))
-      else ARITH(P.TESTU{from=p, to=n}, [ren v], x, t, g' e)
-
-   | ARITH(rator, vl, w, t, e) => let
-       val vl' = List.map ren vl
-       in
-	 if !CG.arithopt
-	   then (case arith(rator, vl')
-	      of SOME v => (
-		   List.app use_less vl';
-		   newname (w, v);
-		   g' e)
-	       | NONE => ARITH(rator, vl', w, t, g' e)
-	     (* end case *))
-	   else ARITH(rator, vl', w, t, g' e)
-       end
-
-   | PURE(P.TRUNC{from=p, to=n}, [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
-      fun skip() = PURE(P.TRUNC{from=p, to=n}, [ren v], x, t, g' e)
-      fun checkClicked(tok, n2, m, pureOp) =
-	if cvtPreCondition(n, n2, x, v2) then
-	  (click tok;
-	   PURE(pureOp{from=p, to=m}, [ren v], x2, t2, g' e2))
-	else skip()
-     in
-       case pure
-	of P.TRUNC{from=n2, to=m} => checkClicked("R(1)", n2, m, P.TRUNC)
-         | P.COPY{from=n2, to=m} =>
-	    if n2=m then checkClicked("R(2)", n2, m, P.TRUNC) else skip()
-	 | _  => skip()
-     end
-   | PURE(P.TRUNC_INF n, [v, f], x, t,
-	  e as PURE(pure, [v2], x2, t2, e2)) => let
-      fun skip() = PURE(P.TRUNC_INF n, [ren v, ren f], x, t, g' e)
-      fun checkClicked(tok, n2, m) =
-	if cvtPreCondition(n, n2, x, v2) then
-	  (click tok;
-	   PURE(P.TRUNC_INF m, [ren v, ren f], x2, t2, g' e2))
-	else skip()
-     in
-       case pure
-	of P.TRUNC{from=n2, to=m} => checkClicked("R(1)", n2, m)
-         | P.COPY{from=n2, to=m} =>
-	    if n2=m then checkClicked("R(2)", n2, m) else skip()
-	 | _  => skip()
-     end
-   | PURE(P.EXTEND{from=p, to=n}, [v], x, t,
-	  e as PURE(P.EXTEND_INF n2, [v2,f], x2, t2, e2)) =>
-	 if cvtPreCondition(n,n2,x,v2) then
-	     (click "X(1')";
-	      PURE(P.EXTEND_INF p, [ren v, ren f], x2, t2, g' e2))
-	 else
-	     PURE(P.EXTEND{from=p, to=n}, [ren v], x, t, g' e)
-   | PURE(P.EXTEND{from=p, to=n}, [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
-       fun skip() = PURE(P.EXTEND{from=p, to=n}, [ren v], x, t, g' e)
-       fun checkClicked(tok, n2, pureOp) =
-	 if cvtPreCondition(n, n2, x, v2) then
-	   (click tok;
-	    PURE(pureOp, [ren v], x2, t2, g' e2))
-	 else skip()
-     in
-       case pure
-	of P.EXTEND{from=n2, to=m} => checkClicked("X(1)", n2, P.EXTEND{from=p, to=m})
-         | P.COPY{from=n2, to=m} =>
-	    if n2 = m then checkClicked("X(2)", n2, P.EXTEND{from=p, to=m})
-	    else skip()
-	 | P.TRUNC{from=n2, to=m} =>
-	    if m >= p then checkClicked("X(3)", n2, P.EXTEND{from=p, to=m})
-	    else checkClicked("X(4)", n2, P.TRUNC{from=p, to=m})
-	 | _ => skip()
-     end
-   | PURE(P.EXTEND_INF p, [v,f], x, t,
-	  e as PURE(P.TRUNC_INF m, [v2, f2], x2, t2, e2)) => let
-	fun checkClicked (tok, pureOp) = if cvtPreCondition_inf(x, v2)
-	      then (
-		click tok;
-		use_less f; use_less f2;
-		PURE(pureOp, [ren v], x2, t2, g' e2))
-	      else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)
-        in
-	  if m = p then checkClicked("X(2')", P.COPY{from=p, to=m})
-	  else if m > p then checkClicked("X(3')", P.EXTEND{from=p, to=m})
-	  else checkClicked("X(4')", P.TRUNC{from=p, to=m})
-        end
-   | PURE(P.EXTEND{from=p, to=n}, [v], x, t, e as ARITH(a, [v2], x2, t2, e2)) => let
-       val v' = [ren v]
-       fun skip() = PURE(P.EXTEND{from=p, to=n}, v', x, t, g' e)
-       fun checkClicked(tok, n2, m, arithOp) =
-	 if cvtPreCondition(n, n2, x, v2) then
-	   if m >= p then
-	     (click tok; PURE(P.EXTEND{from=p, to=m}, v', x2, t2, g' e2))
-	   else ARITH(arithOp{from=p, to=m}, v', x2, t2, g' e2)
-	 else skip()
-     in
-       case a
-	of P.TEST{from=n2, to=m} => checkClicked("X(5)", n2, m, P.TEST)
-         | P.TESTU{from=n2, to=m} => checkClicked("X(6)", n2, m, P.TESTU)
-	 | _ => skip()
-     end
-   | PURE(P.EXTEND_INF p, [v, f], x, t,
-	  e as ARITH (P.TEST_INF m, [v2, f2], x2, t2, e2)) =>
-       if cvtPreCondition_inf (x, v2) then
-	   if m = p then (
-		click "X9'"; use_less f; use_less f2;
-		PURE (P.COPY{from=p, to=m}, [ren v], x2, t2, g' e2))
-	   else if m > p then (
-	        click "X9"; use_less f; use_less f2;
-		PURE (P.EXTEND{from=p, to=m}, [ren v], x2, t2, g' e2))
-	   else ARITH (P.TEST{from=p, to=m}, [ren v], x2, t2, g' e2)
-       else PURE (P.EXTEND_INF p, [ren v, ren f], x, t, g' e)
-   | PURE (P.COPY{from=p, to=n}, [v], x, t,
-	   e as PURE (P.COPY_INF n2, [v2, f2], x2, t2, e2)) =>
-       if cvtPreCondition (n, n2, x, v2) then
-	   (click "C(2)";
-	    PURE (P.COPY_INF p, [ren v, ren f2], x2, t2, g' e2))
-       else
-	   PURE (P.COPY{from=p, to=n}, [ren v], x, t, g' e)
-   | PURE (P.COPY{from=p, to=n}, [v], x, t,
-	   e as PURE (P.EXTEND_INF n2, [v2, f2], x2, t2, e2)) => let
-	 fun skip () = PURE (P.COPY{from=p, to=n}, [ren v], x, t, g' e)
-	 fun checkClicked(tok, pureOp) =
-	     if cvtPreCondition (n, n2, x, v2) then
-		 (click tok; PURE (pureOp, [ren v, ren f2], x2, t2, g' e2))
-	     else skip ()
-     in
-	 if n > p then checkClicked("C(2')", P.COPY_INF p)
-	 else if n = p then checkClicked("C(2')", P.EXTEND_INF p)
-	 else skip ()
-     end
-   | PURE(P.COPY{from=p, to=n}, [v], x, t, e as PURE(pure, [v2], x2, t2, e2)) => let
-       val v' = [ren v]
-       fun skip () = PURE(P.COPY{from=p, to=n}, v', x, t, g' e)
-       fun checkClicked(tok, n2, pureOp) =
-	 if cvtPreCondition(n, n2, x, v2) then
-	   (click tok; PURE(pureOp, v', x2, t2, g' e2))
-	 else skip()
-     in
-       case pure
-	of P.COPY{from=n2, to=m} => checkClicked("C(1)", n2, P.COPY{from=p, to=m})
-         | P.EXTEND{from=n2, to=m} =>
-	    if n > p then checkClicked("C(2)", n2, P.COPY{from=p, to=m})
-	    else if n = p then checkClicked("C(2)", n2, P.EXTEND{from=p, to=m})
-	    else skip()
-   	 | P.TRUNC{from=n2, to=m} =>
-            if m >= p then checkClicked("C(3)", n2, P.COPY{from=p, to=m})
-	    else if m < p then checkClicked("C(4)", n2, P.TRUNC{from=p, to=m})
-	    else skip()
-	 | _ => skip()
-     end
-   | PURE (P.COPY_INF p, [v, f], x, t,
-	   e as PURE (P.TRUNC_INF m, [v2, f2], x2, t2, e2)) => let
-	 fun skip () = PURE (P.COPY_INF p, [ren v, ren f], x, t, g' e)
-	 fun checkClicked (tok, pureOp) =
-	     if cvtPreCondition_inf (x, v2) then
-		(click tok;
-		 use_less f; use_less f2;
-		 PURE (pureOp, [ren v], x2, t2, g' e2))
-	     else skip ()
-     in
-	 if m >= p then checkClicked ("C(3)", P.COPY{from=p, to=m})
-	 else if m < p then checkClicked ("C(4)", P.TRUNC{from=p, to=m})
-	 else skip ()
-     end
-   | PURE(P.COPY{from=p, to=n}, [v], x, t, e as ARITH(a, [v2], x2, t2, e2)) => let
-       val v' = [ren v]
-       fun skip () = PURE(P.COPY{from=p, to=n}, v', x, t, g' e)
-       fun checkClicked(tok, n2, class, arithOp) =
-	 if cvtPreCondition(n, n2, x, v2) then
-	   (click tok; class(arithOp, v', x2, t2, g' e2))
-	 else skip()
-     in
-       case a
-	of P.TEST{from=n2, to=m} =>
-	   if m >= p then checkClicked("C5", n2, PURE, P.COPY{from=p, to=m})
-	   else checkClicked("C6", n2, ARITH, P.TEST{from=p, to=m})
-	 | P.TESTU{from=n2, to=m} =>
-	   if m > p then checkClicked("C7", n2, PURE, P.COPY{from=p, to=m})
-	   else checkClicked("C8", n2, ARITH, P.TESTU{from=p, to=m})
-	 | _ => skip()
-     end
-   | PURE (P.COPY_INF p, [v, f], x, t,
-	   e as ARITH (P.TEST_INF m, [v2, f2], x2, t2, e2)) => let
-	 fun checkClicked (tok, class, oper) =
-	     if cvtPreCondition_inf (x, v2) then
-		 (click tok; use_less f; use_less f2;
-		  class (oper, [ren v], x2, t2, g' e2))
-	     else PURE (P.COPY_INF p, [ren v, ren f], x, t, g' e)
-     in
-	 if m >= p then checkClicked ("C5", PURE, P.COPY{from=p, to=m})
-	 else checkClicked ("C6", ARITH, P.TEST{from=p, to=m})
-     end
-   | PURE(rator, vl, w, t, e) => let
-       val vl' = List.map ren vl
-       val {used, ...} = get w
-       fun rest () = let
-	     val e' = g' e
-	     in
-	       if !used=0 andalso deadup
-		 then (List.app use_less vl'; click "*"; e')
-		 else PURE(rator, vl', w, t, e')
-	     end
-       in
-	 if !used=0 andalso !CG.deadvars
-	   then (click "m"; List.app use_less vl'; g' e)
-         else if !CG.arithopt
-	   then (case pure(rator, vl')
-	      of SOME v => (
-		   List.app use_less vl';
-		   newname(w, v);
-		   g' e)
-	       | NONE => rest()
+			    | SOME z' => (
+				newname(w, z');
+				click "d"; (* could rmv w here *)
+				use_less v';
+				g' e)
+			  (* end case *)
+			end
+		  end
+	      | OFFSET(i,v,w,e) => OFFSET(i,ren v,w,g' e)
+	      | APP(f, vl) => let
+		  val vl' = map ren vl
+		  val f' = ren f
+		  fun newvl NONE = vl'
+		    | newvl (SOME live) = let
+		        fun z(a::al,false::bl) = z(al,bl)
+			  | z(a::al,true::bl) = a::z(al,bl)
+			  | z _ = nil
+			in
+			(* This code may be obsolete.  See the comment in the FIX case below. *)
+			  case z(vl',live)
+			    of nil => [tagInt 0]
+			     | vl'' => vl''
+			end
+		  fun trybeta fv = let
+		        val {used=ref u,called=ref c,info} = get fv
+		        in
+			  case info
+			   of FNinfo{args,body,liveargs,...} => if c<>1 orelse u<>1
+				  then APP(f',newvl(!liveargs))
+				  else (
+				    case body
+				     of ref(SOME b) => (
+					  newnames(args, vl');
+					  call_less f';
+					  app use_less vl';
+					  body := NONE;
+					  g' b)
+				      | _ => APP(f',newvl(!liveargs))
+				    (* end case *))
+			    | _ => APP(f',vl')
+		        end
+		  in
+		    case f'
+		     of VAR fv => trybeta fv
+		      | LABEL fv => trybeta fv
+		      | _ => APP(f',vl')
+		    (* end case *)
+		  end
+	      | FIX(l,e) => let
+		  fun getinfo (x as (fk,f,vl,cl,b)) = let
+			val {used,called,info,...} = get f
+			in
+			  case info
+			   of FNinfo{liveargs=ref(SOME live),...} => let
+				fun z (a::al, false::bl) = z(al, bl)
+				  | z (a::al, true::bl) = a::z(al, bl)
+				  | z _ = nil
+				val vl' = z(vl, live)
+				val cl' = z(cl, live)
+				val drop = foldr (fn (a,b) => if a then b else b+1) 0 live
+				fun dropclicks(n) =
+				      if n > 0 then (click "D"; dropclicks(n-1)) else ()
+				val (vl'', cl'') = (case vl'
+				       of nil => let val x = LV.mkLvar()
+					   in  dropclicks(drop - 1);
+					       enterMISC0 x;
+					       ([x], [tagIntTy])
+					   end
+					| _ => (dropclicks(drop); (vl',cl'))
+				      (* end case *))
+				in
+				  ((fk,f,vl'',cl'',b),used,called,info)
+				end
+			     | _ => (x,used,called,info)
+			end
+		  fun keep (_, used, called, info) = (case (!called, !used, info)
+			 of (_, 0, FNinfo{body as ref(SOME b), ...}) => (
+			      click "g";
+			      body:=NONE;
+			      drop_body b;
+			      false)
+			  | (_, 0, FNinfo{body=ref NONE,...}) => (click "g"; false)
+			  | (1, 1, FNinfo{body=ref(SOME _),...}) =>
+				 (* NOTE: this is an optimistic click.
+				    The call could disappear before we
+				    get there; then the body would
+				    not be cleared out, dangerous. *)
+			      (click "e"; false)
+			  | (_, _, IFIDIOMinfo{body=ref b,...}) => (click "E"; false)
+			  | _ => true
+			(* end case *))
+		  fun keep2 (_, used, _, info) = (case (!used, info)
+			 of (0, FNinfo{body as ref(SOME b),...}) =>
+				(* All occurrences were lost *)
+				(click "f";
+				 body:=NONE;
+				 drop_body b;
+				 false)
+			  | (0, FNinfo{body=ref NONE,...}) =>
+				(* We performed a cascaded inlining *)
+				(click "q"; false)
+			  | (_, FNinfo{body,...}) => (body:=NONE; true)
+			  | _ => true
+			(* end case *))
+		  fun keep3 ((_,_,_,_,b), used, _, info) = (case (!used, info)
+			 of (0,FNinfo _) =>
+				(* All occurrences were lost *)
+				(click "f";
+				 drop_body b;
+				 false)
+			  | _ => true
+			(* end case *))
+		  fun reduce_body ((fk, f, vl, cl, body), used, called, info) =
+			((fk, f, vl, cl, reduce body), used, called, info)
+		  val l1 = map getinfo l
+		  val l2 = List.filter keep l1
+		  val e' = g' e
+		  val l3 = List.filter keep2 l2
+		  val l4 = map reduce_body l3
+		  in
+		    case (List.filter keep3 l4)
+		     of nil => e'
+		      | l5 => FIX(map #1 l5, e')
+		  end
+	      | SWITCH(v, c, el) => (case ren v
+		   of v' as NUM{ival, ty={tag=true, ...}} => if !CG.switchopt
+		       then let
+			 val i = IntInf.toInt ival
+			 fun f (e::el, j) = (if i=j then () else drop_body e; f(el, j+1))
+			   | f ([], _) = ()
+			 in
+			   click "h";
+			   f(el, 0);
+			   newname(c, tagInt 0);
+			   g' (List.nth(el,i))
+			 end
+		       else SWITCH(v', c, map g' el)
+		    | v' => SWITCH(v',c, map g' el)
+		  (* end case *))
+	      | LOOKER(P.GETHDLR, _, w, t, e) => if !CG.handlerfold
+		  then (case hdlr
+		     of NONE => if used w
+			  then LOOKER(P.GETHDLR,[],w,t,g (SOME(VAR w)) e)
+			  else (click "i"; g' e)
+		      | SOME w' => (click "j"; newname(w,w'); g' e)
+		    (* end case *))
+		  else LOOKER(P.GETHDLR,[],w,t,g (SOME(VAR w)) e)
+	      | SETTER(P.SETHDLR,[v],e) => let
+		  val v' = ren v
+		  val e' = g (SOME v') e
+		  fun sameVar (VAR x, VAR y) = x = y
+		    | sameVar _ = false
+		  in
+		    if !CG.handlerfold
+		      then (case hdlr
+			 of SOME v'' => if sameVar (v', v'')
+			      then (click "k"; use_less v''; e')
+			      else SETTER(P.SETHDLR,[v'],e')
+			  | _ => SETTER(P.SETHDLR,[v'],e')
+			(* end case *))
+		      else SETTER(P.SETHDLR,[v'],e')
+		  end
+              | SETTER(i,vl,e) => let
+      		  val vl' = map ren vl
+		  in
+		    SETTER(setter (i, vl'), vl', g' e)
+		  end
+	      | LOOKER(i,vl,w,t,e) => let
+		  val vl' = map ren vl
+		  val {used,...} = get w
+		  in
+		    if !used=0 andalso !CG.deadvars
+		      then (click "m"; app use_less vl'; g' e)
+		      else let
+			val e' = g' e
+			in
+			  if !used=0 andalso deadup
+			    then (click "*"; app use_less vl'; e')
+			    else LOOKER(i, vl', w, t, e')
+			end
+		  end
+	    (***** TEST *****)
+	      | ARITH(P.TEST{from=m, to=n}, [v], x, t, e) => let
+		  fun skip () = ARITH(P.TEST{from=m, to=n}, [ren v], x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then ARITH(P.TEST{from=m, to=p}, [ren v], x2, t2, g' e2)
+			    else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	      | ARITH(P.TEST{from=m, to=n}, [v, f], x, t, e) => let
+		(* this case is for m=64 on 32-bit systems *)
+		  fun skip () = ARITH(P.TEST{from=m, to=n}, [ren v, ren f], x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then ARITH(P.TEST{from=m, to=p}, [ren v, ren f], x2, t2, g' e2)
+			    else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** TESTU : word -> int *****)
+	      | ARITH(P.TESTU{from=m, to=n}, [v], x, t, e) => let
+		  fun skip () = ARITH(P.TESTU{from=m, to=n}, [ren v], x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then ARITH(P.TESTU{from=m, to=p}, [ren v], x2, t2, g' e2)
+			    else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	      | ARITH(P.TESTU{from=m, to=n}, [v, f], x, t, e) => let
+		(* this case is for m=64 on 32-bit systems *)
+		  fun skip () = ARITH(P.TESTU{from=m, to=n}, [ren v, ren f], x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then ARITH(P.TESTU{from=m, to=p}, [ren v, ren f], x2, t2, g' e2)
+			    else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** TEST_INF : intinf -> int *****)
+	      | ARITH(P.TEST_INF n, [v, f], x, t, e) => let
+		  fun skip () = ARITH(P.TEST_INF n, [ren v, ren f], x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then ARITH(P.TEST_INF p, [ren v, ren f], x2, t2, g' e2)
+			    else skip ()
+		      | ARITH(P.TEST{from=n2, to=p}, [v2, f2], x2, t2, e2) => (* 64 on 32 bit *)
+			  if cvtPreCondition (n, n2, x, v2)
+			    then (
+			      use_less f2;
+			      ARITH(P.TEST_INF p, [ren v, ren f], x2, t2, g' e2))
+			    else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** other ARITH cases *****)
+	      | ARITH(rator, vl, w, t, e) => let
+		  val vl' = List.map ren vl
+		  in
+		    if !CG.arithopt
+		      then (case arith(rator, vl')
+			 of SOME v => (
+			      List.app use_less vl';
+			      newname (w, v);
+			      g' e)
+			  | NONE => ARITH(rator, vl', w, t, g' e)
+			(* end case *))
+		      else ARITH(rator, vl', w, t, g' e)
+		  end
+	    (***** COPY : word -> int *****)
+	      | PURE(P.COPY{from=m, to=n}, [v], x, t, e) => let
+		  fun mkCOPY (from, to, v, x, t, e) =
+			if (from = to)
+			  then (newname(x, v); g' e)
+			  else PURE(P.COPY{from=from, to=to}, [v], x, t, g' e)
+		  fun mkEXTEND (from, to, v, x, t, e) = if (from = to)
+			then (newname(x, v); g' e)
+			else PURE(P.EXTEND{from=from, to=to}, [v], x, t, g' e)
+		  fun skip () = mkCOPY(m, n, ren v, x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			  else if (m < p)
+			    then mkCOPY(m, p, ren v, x2, t2, e2)
+			    else ARITH(P.TESTU{from=m, to=p}, [ren v], x2, t2, g' e2)
+		      | ARITH(P.TESTU{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			  else if (m < p)
+			    then mkCOPY(m, p, ren v, x2, t2, e2)
+			    else ARITH(P.TESTU{from=m, to=p}, [ren v], x2, t2, g' e2)
+		      | PURE(P.COPY{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then mkCOPY(m, p, ren v, x2, t2, e2)
+			    else skip ()
+		      | PURE(P.EXTEND{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			    else mkEXTEND(m, p, ren v, x2, t2, e2)
+		      | PURE(P.TRUNC{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			  else if (m <= p)
+			    then mkCOPY(m, p, ren v, x2, t2, e2)
+			    else PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2)
+		      | PURE(P.COPY_INF n2, [v2, f], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then PURE(P.COPY_INF m, [ren v, ren f], x2, t2, g' e2)
+			    else skip ()
+		      | PURE(P.EXTEND_INF n2, [v2, f], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			  else if (m = n)
+			    then PURE(P.EXTEND_INF m, [ren v, ren f], x2, t2, g' e2)
+			    else PURE(P.COPY_INF m, [ren v, ren f], x2, t2, g' e2)
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** EXTEND *****)
+	      | PURE(P.EXTEND{from=m, to=n}, [v], x, t, e) => let
+		  fun mkEXTEND (from, to, v, x, t, e) = if (from = to)
+			then (newname(x, v); g' e)
+			else PURE(P.EXTEND{from=from, to=to}, [v], x, t, g' e)
+		  fun skip () = PURE(P.EXTEND{from=m, to=n}, [ren v], x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			  else if (p >= n)
+			    then mkEXTEND(m, p, ren v, x2, t2, e2)
+			    else ARITH(P.TEST{from=m, to=p}, [v2], x2, t2, g' e2)
+		      | ARITH(P.TESTU{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			  else if (p > n)
+			    then PURE(P.EXTEND{from=m, to=n}, [ren v], x2, t2, g' e2)
+			    else ARITH(P.TEST{from=m, to=p}, [v2], x2, t2, g' e2)
+		      | PURE(P.COPY{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			  else if (n2 = p)
+			    then mkEXTEND(m, p, ren v, x2, t2, e2)
+			    else skip ()
+		      | PURE(P.EXTEND{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then mkEXTEND(m, p, ren v, x2, t2, e2)
+			    else skip ()
+		      | PURE(P.TRUNC{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if not (cvtPreCondition (n, n2, x, v2))
+			    then skip ()
+			  else if (p >= m)
+			    then mkEXTEND(m, p, ren v, x2, t2, e2)
+			    else PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2)
+		      | PURE(P.EXTEND_INF n2, [v2, f], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then PURE(P.EXTEND_INF m, [ren v], x2, t2, g' e2)
+			    else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** TRUNC : int -> word *****)
+	      | PURE(P.TRUNC{from=m, to=n}, [v], x, t, e) => let
+		  fun skip () = PURE(P.TRUNC{from=m, to=n}, [ren v], x, t, g' e)
+		  in
+		    case e
+		     of PURE(P.TRUNC{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2)
+			    else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** COPY_INF : word -> intinf *****)
+	      | PURE(P.COPY_INF m, [v, f], x, t, e) => let
+		  fun skip () = PURE(P.COPY_INF m, [ren v, ren f], x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST_INF p, [v2, f2], x2, t2, e2) =>
+			  if not (cvtInfPrecondition (x, v2))
+			    then skip ()
+			  else if (p > m)
+			    then (
+			      use_less f; use_less f2;
+			      PURE(P.COPY{from=m, to=p}, [ren v], x2, t2, g' e2))
+			  else if testFusePrecondition m
+			    then (
+			      use_less f; use_less f2;
+			      ARITH(P.TESTU{from=m, to=p}, [ren v], x2, t2, g' e2))
+			    else skip ()
+		      | PURE(P.TRUNC_INF p, [v2, f2], x2, t2, e2) =>
+			  if not (cvtInfPrecondition (x, v2))
+			    then skip ()
+			    else if (p >= m)
+			      then (
+				use_less f; use_less f2;
+				PURE(P.COPY{from=m, to=p}, [ren v], x2, t2, g' e2))
+			    else if testFusePrecondition m
+			      then (
+				use_less f; use_less f2;
+				PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2))
+			      else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** EXTEND_INF *****)
+	      | PURE(P.EXTEND_INF m, [v, f], x, t, e) => let
+		  fun mkEXTEND (from, to, v, x, t, e) = if (from = to)
+			then (newname(x, v); g' e)
+			else PURE(P.EXTEND{from=from, to=to}, [v], x, t, g' e)
+		  fun skip () = PURE(P.EXTEND_INF m, [ren v, ren f], x, t, g' e)
+		  in
+		    case e
+		     of ARITH(P.TEST_INF p, [v2, f2], x2, t2, e2) =>
+			  if not (cvtInfPrecondition (x, v2))
+			    then skip ()
+			    else if (p >= m)
+			      then (
+				use_less f; use_less f2;
+				mkEXTEND(m, p, ren v, x2, t2, e2))
+			    else if testFusePrecondition m
+			      then (
+				use_less f; use_less f2;
+				ARITH(P.TEST{from=m, to=p}, [ren v], x2, t2, g' e2))
+			      else skip ()
+		      | PURE(P.TRUNC_INF p, [v2, f2], x2, t2, e2) =>
+			  if not (cvtInfPrecondition (x, v2))
+			    then skip ()
+			    else (
+			      use_less f; use_less f2;
+			      if (p < m)
+				then PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2)
+				else mkEXTEND(m, p, ren v, x2, t2, e2))
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** TRUNC_INF *****)
+	      | PURE(P.TRUNC_INF n, [v, f], x, t, e) => let
+		  fun skip () = PURE(P.TRUNC_INF n, [ren v, ren f], x, t, g' e)
+		  in
+		    case e
+		     of PURE(P.TRUNC{from=n2, to=p}, [v2], x2, t2, e2) =>
+			  if cvtPreCondition (n, n2, x, v2)
+			    then PURE(P.TRUNC_INF p, [ren v, ren f], x, t, g' e)
+			    else skip ()
+		      | _ => skip ()
+		    (* end case *)
+		  end
+	    (***** other PURE cases *****)
+	      | PURE(rator, vl, w, t, e) => let
+		  val vl' = List.map ren vl
+		  val {used, ...} = get w
+		  fun rest () = let
+			val e' = g' e
+			in
+			  if !used=0 andalso deadup
+			    then (List.app use_less vl'; click "*"; e')
+			    else PURE(rator, vl', w, t, e')
+			end
+		  in
+		    if !used=0 andalso !CG.deadvars
+		      then (click "m"; List.app use_less vl'; g' e)
+		    else if !CG.arithopt
+		      then (case pure(rator, vl')
+			 of SOME v => (
+			      List.app use_less vl';
+			      newname(w, v);
+			      g' e)
+			  | NONE => rest()
+		       (* end case *))
+		      else rest()
+		  end
+	    (***** RCC *****)
+	      | RCC(k,l,p,vl,wtl,e) =>
+		(* leave raw C calls alone *)
+		  RCC (k, l, p, map ren vl, wtl, g' e)
+	    (***** BRANCH *****)
+	      | BRANCH(rator, vl, c, e1, e2) => let
+		  val vl' = List.map ren vl
+		  fun skip () = if !CG.branchfold andalso equalUptoAlpha(e1, e2)
+			  then (
+			    click "z";
+			    app use_less vl';
+			    newname(c,tagInt 0);
+			    drop_body e2;
+			    g' e1)
+			  else BRANCH(rator, vl', c, g' e1, g' e2)
+		  fun getifidiom f = (case ren f
+			 of VAR v => (case get v
+			       of {info=IFIDIOMinfo{body},...} => SOME body
+				| _ => NONE
+			      (* end case *))
+			  | _ => NONE
+			(* end case *))
+		(* first we try to contract the condition *)
+		  val cond = if !CG.comparefold then branch (rator, vl') else NONE
+		  in
+		    case cond
+		     of NONE => (case (e1, e2)
+			   of (APP(VAR f, [NUM{ival=1, ...}]), APP(VAR f', [NUM{ival=0, ...}])) =>
+				if f=f'
+				  then (case getifidiom(VAR f)
+				     of SOME(body as ref(SOME(c', a, b))) => (
+					(* handle "if idiom" *)
+					  newname(c', VAR c);
+					  body := NONE;
+					  g' (BRANCH(rator, vl, c, a, b))) (* NOTE: could use vl' here instead of vl. *)
+				      | _ => skip()
+				    (* end case *))
+				  else skip()
+			    | _ => skip()
+			  (* end case *))
+		      | SOME b => (
+			   List.app use_less vl';
+			   newname(c, tagInt 0);
+			   if b then (drop_body e2; g' e1) else (drop_body e1; g' e2))
+		    (* end case *)
+		  end
 	    (* end case *))
-	   else rest()
-       end
-   | RCC(k,l,p,vl,wtl,e) =>
-     (* leave raw C calls alone *)
-       RCC (k, l, p, map ren vl, wtl, g' e)
-   | BRANCH(rator, vl, c, e1, e2) => let
-       val vl' = List.map ren vl
-       fun skip () = if !CG.branchfold andalso equalUptoAlpha(e1, e2)
-	       then (
-		 click "z";
-		 app use_less vl';
-		 newname(c,tagInt 0);
-		 drop_body e2;
-		 g' e1)
-	       else BRANCH(rator, vl', c, g' e1, g' e2)
-       fun getifidiom f = (case ren f
-	      of VAR v => (case get v
-		    of {info=IFIDIOMinfo{body},...} => SOME body
-		     | _ => NONE
-		   (* end case *))
-	       | _ => NONE
-	     (* end case *))
-     (* first we try to contract the condition *)
-       val cond = if !CG.comparefold then branch (rator, vl') else NONE
-       in
-	 case cond
-	  of NONE => (case (e1, e2)
-	        of (APP(VAR f, [NUM{ival=1, ...}]), APP(VAR f', [NUM{ival=0, ...}])) =>
-		     if f=f'
-		       then (case getifidiom(VAR f)
-			  of SOME(body as ref(SOME(c', a, b))) => (
-			     (* handle "if idiom" *)
-			       newname(c', VAR c);
-			       body := NONE;
-			       g' (BRANCH(rator, vl, c, a, b))) (* NOTE: could use vl' here instead of vl. *)
-			   | _ => skip()
-			 (* end case *))
-		       else skip()
-		 | _ => skip()
-	       (* end case *))
-	   | SOME b => (
-	        List.app use_less vl';
-	        newname(c, tagInt 0);
-		if b then (drop_body e2; g' e1) else (drop_body e1; g' e2))
-	 (* end case *)
-       end
-in  g'
-end
+      in
+(*DEBUG*)
+        fn cexp => ((g' cexp)
+	     handle ex => (say "****** g' ******\n"; PPCps.prcps cexp; raise ex))
+      end (* g *)
 
 in  debugprint "Contract: "; debugflush();
     enterMISC0 fvar; app enterMISC0 fargs;

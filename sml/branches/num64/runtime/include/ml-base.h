@@ -13,7 +13,7 @@
 
 /* macro concatenation (ANSI CPP) */
 #ifndef CONCAT /* assyntax.h also defines CONCAT */
-#  if defined(__STDC__)
+#  if defined(__STDC__) || defined(OPSYS_WIN32)
 #    define CONCAT(x, y)	x ## y
 #    define CONCAT3(a,b,c)	a ## b ## c
 #  else
@@ -24,6 +24,11 @@
 
 #define ONE_K		1024
 #define ONE_MEG 	(ONE_K*ONE_K)
+
+/* constants for converting between different amounts of seconds */
+#define MS_PER_SEC	1000
+#define US_PER_SEC	1000000
+#define NS_PER_SEC	1000000000
 
 /* The generated file ml-sizes.h defines various size macros, and
  * the following types:

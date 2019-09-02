@@ -62,7 +62,7 @@ typedef struct {	    /* The header for a heap image */
     int		numBOKinds;	/* The number of big-object kinds */
     int		numBORegions;	/* The number of big-object regions in the */
 				/* exporting address space. */
-    int		cacheGen;	/* The oldest cached generation */    
+    int		cacheGen;	/* The oldest cached generation */
     Addr_t	allocSzB;	/* The size of the allocation arena */
 			    /* heap objects that are referred to by the runtime */
     ml_val_t	pervStruct;	/* the contents of PervStruct */
@@ -109,7 +109,7 @@ typedef struct {	    /* An arena header.  This is used for both the regular */
 			    /* arenas and the big-object arena of a generation. */
     int		gen;		/* the generation of this arena */
     int		objKind;	/* the kind of objects in this arena */
-    Unsigned32_t offset;	/* the file position at which this arena starts. */
+    Addr_t	offset;		/* the file position at which this arena starts. */
     union {			/* additional info */
 	struct {		    /* info for regular arenas */
 	    Addr_t	baseAddr;	/* the base address of this arena in the */
@@ -154,9 +154,9 @@ typedef struct {	    /* a header for a big-object */
 /** Pointer tagging operations **/
 #define HIO_ID_BITS		8
 #define HIO_ADDR_BITS		(BITS_PER_WORD-HIO_ID_BITS)
-#define HIO_ADDR_MASK		((1 << HIO_ADDR_BITS) - 1)
+#define HIO_ADDR_MASK		(((Addr_t)1 << HIO_ADDR_BITS) - 1)
 
-#define HIO_TAG_PTR(id,offset)	PTR_CtoML(((id)<<HIO_ADDR_BITS)|(Addr_t)(offset))
+#define HIO_TAG_PTR(id,offset)	PTR_CtoML(((Addr_t)(id) << HIO_ADDR_BITS)|(Addr_t)(offset))
 #define HIO_GET_ID(p)		(PTR_MLtoADDR(p)>>HIO_ADDR_BITS)
 #define HIO_GET_OFFSET(p)	(PTR_MLtoADDR(p) & HIO_ADDR_MASK)
 

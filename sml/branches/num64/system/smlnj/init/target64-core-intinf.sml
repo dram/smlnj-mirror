@@ -1,89 +1,84 @@
-(* target32-core-intinf.sml
+(* target64-core-intinf.sml
  *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Basic IntInf operations for 32-bit targets.  These are required
+ * Basic IntInf operations for 64-bit targets.  These are required
  * for translating certain primops and IntInf.int literals within the compiler.
- *
- * Author: Matthias Blume (blume@tti-c.org)
  *)
 
 structure CoreIntInf :> sig
 
-    (* We use a 30-bit representation, stored in 31-bit words for digits.
-     * This way we avoid the extra boxing that would come with 32-bit values
-     * and also have the benefit of an extra bit that can be used to store
-     * carries. *)
+  (* We use a 62-bit representation, stored in 33-bit words for digits.
+   * This way we avoid the extra boxing that would come with 64-bit values
+   * and also have the benefit of an extra bit that can be used to store
+   * carries.
+   *)
     datatype rep = BI of { negative : bool, digits : word list }
 
-    (* This is the abstract built-in type "intinf".  It comes with no
-     * operations of its own.  We use casts to go back and forth between
-     * the representation type "rep" and the abstract type "intinf". *)
+  (* This is the abstract built-in type "intinf".  It comes with no
+   * operations of its own.  We use casts to go back and forth between
+   * the representation type "rep" and the abstract type "intinf".
+   *)
     type intinf = PrimTypes.intinf
 
-    (* Here are the "cast" operations: *)
+  (* Here are the "cast" operations: *)
     val abstract : rep    -> intinf
     val concrete : intinf -> rep
 
-    (* the number of bits in one "big digit" *)
+  (* the number of bits in one "big digit" *)
     val baseBits : word
 
-    (* the actual base: *)
+  (* the actual base: *)
     val base : word
 
-    (* maximum value of a "big digit": *)
+  (* maximum value of a "big digit": *)
     val maxDigit : word
 
   (* The following conversion functions are copied into structure _Core
    * from where the compiler's "translate" phase will pick them to
    * implement precision-extending and precision-shrinking conversions
    * that involve intinf.  We only provide operations between
-   * int32 and intinf.  For precisions less than 32 bits the compiler
+   * int64 and intinf.  For precisions less than 64 bits the compiler
    * must insert an additional conversion:
    *)
 
-  (* fit value (2's complement) in int32, raise Overflow if too large *)
-    val testInf32   : intinf -> int32
-  (* truncate value (2's complement repr) to fit in word32: *)
-    val truncInf32  : intinf -> word32
-  (* sign-extend int32 into intinf: *)
-    val extend32Inf : int32 -> intinf
-  (* copy bits from word32 into (non-negative) intinf: *)
-    val copy32Inf   : word32 -> intinf
+  (* fit value (2's complement) in int64, raise Overflow if too large *)
+    val testInf64   : intinf -> int64
+  (* truncate value (2's complement repr) to fit in word64: *)
+    val truncInf64  : intinf -> word64
+  (* sign-extend int64 into intinf: *)
+    val extend64Inf : int64 -> intinf
+  (* copy bits from word64 into (non-negative) intinf: *)
+    val copy64Inf   : word64 -> intinf
 
-  (* fit value (2's complement) in "int64", raise Overflow if too large *)
-    val testInf64   : intinf -> word32 * word32
-    (* truncate value (2's complement repr) to fit in "int64": *)
-    val truncInf64  : intinf -> word32 * word32
-    (* copy bits from "int64" into (non-negative) intinf: *)
-    val copy64Inf   : word32 * word32 -> intinf
-    (* sign-extend "int64": *)
-    val extend64Inf : word32 * word32 -> intinf
-
-    (* These two directly take the list of digits
-     * to be used by the internal representation: *)
+  (* These two directly take the list of digits
+   * to be used by the internal representation:
+   *)
     val makeNegInf : word list -> intinf
     val makePosInf : word list -> intinf
 
-    (* In the common case where only one big digit is involved, use
-     * a shortcut without list allocation: *)
+  (* In the common case where only one big digit is involved, use
+   * a shortcut without list allocation:
+   *)
     val makeSmallNegInf : word -> intinf
     val makeSmallPosInf : word -> intinf
 
-    (* For ~base < i < base we have lowValue i = i.
-     * For other i we have lowValue i = ~base (= neg_base_as_int).
-     * This can be used to implement faster pattern-match code for
-     * the common case that the pattern consists of small values. *)
+  (* For ~base < i < base we have lowValue i = i.
+   * For other i we have lowValue i = ~base (= neg_base_as_int).
+   * This can be used to implement faster pattern-match code for
+   * the common case that the pattern consists of small values.
+   *)
     val lowValue : intinf -> int
     val neg_base_as_int : int
 
   (* add one to a list of digits *)
     val natinc : word list -> word list
 
-    (* Various primitive operations for use by the pervasive environment,
-     * plus stuff that we have to implement here anyway, so the
-     * real structure IntInf can pick them up: *)
+  (* Various primitive operations for use by the pervasive environment,
+   * plus stuff that we have to implement here anyway, so the
+   * real structure IntInf can pick them up:
+   *)
     val ~ : intinf -> intinf
     val + : intinf * intinf -> intinf
     val - : intinf * intinf -> intinf
@@ -103,28 +98,28 @@ structure CoreIntInf :> sig
     val divMod : intinf * intinf -> intinf * intinf
     val quotRem : intinf * intinf -> intinf * intinf
 
-    (* support for scanning and formatting: *)
+  (* support for scanning and formatting: *)
     val natdivmodd : word list * word -> word list * word
     val natmadd : word * word list * word -> word list
 
-end = struct
+  end = struct
 
     infixr 5 ::
     val not : bool -> bool = InLine.inl_not
 
-    val wToI32 : word -> int32  = InLine.copy_word_to_int32
-    val w32ToI32 : word32 -> int32 = InLine.copy_word32_to_int32
-    val wToW32 : word -> word32 = InLine.word_to_word32
-    val i32ToW : int32 -> word = InLine.trunc_int32_to_word
-    val i32ToW32 : int32 -> word32 = InLine.copy_int32_to_word32
-    val w32ToW : word32 -> word = InLine.word32_to_word
-    val ~ : int32 -> int32 = InLine.int32_neg
+    val wToI64 : word -> int64  = InLine.copy_word_to_int64
+    val w64ToI64 : word64 -> int64 = InLine.copy_word64_to_int64
+    val wToW64 : word -> word64 = InLine.word_to_word64
+    val i64ToW : int64 -> word = InLine.trunc_int64_to_word
+    val i64ToW64 : int64 -> word64 = InLine.copy_int64_to_word64
+    val w64ToW : word64 -> word = InLine.word64_to_word
+    val ~ : int64 -> int64 = InLine.int64_neg
     infix || && >> ^ <<
-    val op || : word32 * word32 -> word32 = InLine.word32_orb
-    val op ^ : word32 * word32 -> word32 = InLine.word32_xorb
-    val op && : word32 * word32 -> word32 = InLine.word32_andb
-    val op >> : word32 * word -> word32 = InLine.word32_rshiftl
-    val op << : word32 * word -> word32 = InLine.word32_lshift
+    val op || : word64 * word64 -> word64 = InLine.word64_orb
+    val op ^ : word64 * word64 -> word64 = InLine.word64_xorb
+    val op && : word64 * word64 -> word64 = InLine.word64_andb
+    val op >> : word64 * word -> word64 = InLine.word64_rshiftl
+    val op << : word64 * word -> word64 = InLine.word64_lshift
 
     (* ******************* *)
     type intinf = PrimTypes.intinf
@@ -138,47 +133,47 @@ end = struct
     fun abstract (r : rep) : intinf = InLine.cast r
     fun concrete (i : intinf) : rep = InLine.cast i
 
-    val hBaseBits : word = 0w15
+    val hBaseBits : word = 0w31
     val baseBits : word = InLine.word_lshift (hBaseBits, 0w1)
     val base : word = InLine.word_lshift (0w1, baseBits)
-    val base32 = wToW32 base
+    val base64 = wToW64 base
     val maxDigit : word = InLine.word_sub(base, 0w1)
-    val maxDigit32 = wToW32 maxDigit
+    val maxDigit64 = wToW64 maxDigit
     val maxDigitL : word = 0wx7fff	(* lower half of maxDigit *)
-    val maxDigitL32 = wToW32 maxDigitL
+    val maxDigitL64 = wToW64 maxDigitL
     val neg_base_as_int : int = ~0x40000000
 
-    val gap : word = InLine.word_sub (0w32, baseBits) (* 32 - baseBits *)
+    val gap : word = InLine.word_sub (0w64, baseBits) (* 64 - baseBits *)
     val slc : word = InLine.word_sub (baseBits, gap)  (* baseBits - gap *)
 
-  (* convert intinf to int32; raise Overflow it result is too large *)
-    fun testInf32 i = let
+  (* convert intinf to int64; raise Overflow it result is too large *)
+    fun testInf64 i = let
 	  val BI { negative, digits } = concrete i
-	  fun negif i32 = if negative then ~i32 else i32
+	  fun negif i64 = if negative then ~i64 else i64
 	  in
 	    case digits
 	     of [] => 0
-	      | [d] => negif (wToI32 d)
-	      | [d0, 0w1] => negif (w32ToI32 (wToW32 d0 || base32))
-	      | [0w0, 0w2] => if negative then ~0x80000000
+	      | [d] => negif (wToI64 d)
+	      | [d0, 0w1] => negif (w64ToI64 (wToW64 d0 || base64))
+	      | [0w0, 0w2] => if negative then ~0x8000000000000000
 			      else raise Assembly.Overflow
 	      | _ => raise Assembly.Overflow
 	  end
 
-  (* truncate intinf to word32 *)
-    fun truncInf32 i = let
+  (* truncate intinf to word64 *)
+    fun truncInf64 i = let
 	  val BI { negative, digits } = concrete i
 	  val b = (case digits
 		 of [] => 0w0
-		  | [d] => wToW32 d
-		  | d0 :: d1 :: _ => wToW32 d0 || (wToW32 d1 << baseBits)
+		  | [d] => wToW64 d
+		  | d0 :: d1 :: _ => wToW64 d0 || (wToW64 d1 << baseBits)
 		(* end case *))
 	  in
-	    if negative then InLine.word32_neg b else b
+	    if negative then InLine.word64_neg b else b
 	  end
 
-  (* sign-extend an int32 to an intinf *)
-    fun extend32Inf i32 = let
+  (* sign-extend an int64 to an intinf *)
+    fun extend64Inf i64 = let
 	  fun e (_, 0w0) = BI { negative = false, digits = [] }
 	    | e (negative, w31) = BI {
 		    negative = negative,
@@ -186,101 +181,25 @@ end = struct
 			then [InLine.word_sub (w31, base), 0w1]
 			else [w31]
 		  }
-	  val i = if InLine.int32_eql (i32, ~0x80000000)
+	  val i = if InLine.int64_eql (i64, ~0x8000000000000000)
 		  then BI { negative = true, digits = [0w0, 0w2 ] }
-		else if InLine.int32_lt (i32, 0)
-		  then e (true, i32ToW (~i32))
-		  else e (false, i32ToW i32)
+		else if InLine.int64_lt (i64, 0)
+		  then e (true, i64ToW (~i64))
+		  else e (false, i64ToW i64)
 	  in
 	    abstract i
 	  end
 
-  (* zero-extend an word32 to an intinf *)
-    fun copy32Inf w32 = let
-	  val digits = if InLine.word32_eql (w32, 0w0)
+  (* zero-extend an word64 to an intinf *)
+    fun copy64Inf w64 = let
+	  val digits = if InLine.word64_eql (w64, 0w0)
 		  then []
-		else if InLine.word32_ge (w32, base32)
-		  then [w32ToW (w32 && maxDigit32), w32ToW (w32 >> baseBits)]
-		  else [w32ToW w32]
+		else if InLine.word64_ge (w64, base64)
+		  then [w64ToW (w64 && maxDigit64), w64ToW (w64 >> baseBits)]
+		  else [w64ToW w64]
 	  in
 	    abstract (BI { negative = false, digits = digits })
 	  end
-
-    fun neg64 (hi, 0w0) : word32 * word32 = (InLine.word32_neg hi, 0w0)
-      | neg64 (hi, lo) = (InLine.word32_notb hi, InLine.word32_neg lo)
-
-  (* convert an intinf to an int64 represented as a pair of word32s; raise
-   * Overflow if the result is nor representable as an int64.
-   *)
-    fun testInf64 i = let
-	  val BI { negative, digits } = concrete i
-	  fun negif hilo = if negative then neg64 hilo else hilo
-	  in
-	    case digits
-	     of [] => (0w0, 0w0)
-	      | [d] => negif (0w0, wToW32 d)
-	      | [d0, d1] => let
-		  val (w0, w1) = (wToW32 d0, wToW32 d1)
-		  in
-		    negif (w1 >> gap, w0 || (w1 << baseBits))
-		  end
-	      | [0w0, 0w0, 0w8] => if negative
-		  then (0wx80000000, 0w0)
-		  else raise Assembly.Overflow
-	      | [d0, d1, d2] => if InLine.word_ge (d2, 0w8)
-		  then raise Assembly.Overflow
-		  else let
-		    val (w0, w1, w2) = (wToW32 d0, wToW32 d1, wToW32 d2)
-		    in
-		      negif ((w1 >> gap) || (w2 << slc), w0 || (w1 << baseBits))
-		    end
-	      | _ => raise Assembly.Overflow
-	  end
-
-    fun truncInf64 i = let
-	  val BI { negative, digits } = concrete i
-	  val hilo = (case digits
-		 of [] => (0w0, 0w0)
-		  | [d0] => (0w0, wToW32 d0)
-		  | [d0, d1] => let
-		      val (w0, w1) = (wToW32 d0, wToW32 d1)
-		      in
-			(w1 >> gap, w0 || (w1 << baseBits))
-		      end
-		  | d0 :: d1 :: d2 :: _ => let
-		      val (w0, w1, w2) = (wToW32 d0, wToW32 d1, wToW32 d2)
-		      in
-			((w1 >> gap) || (w2 << slc), w0 || (w1 << baseBits))
-		      end
-		(* end case *))
-	  in
-	    if negative then neg64 hilo else hilo
-	  end
-
-    fun copyInf64' (_, (0w0, 0w0)) = abstract (BI { negative = false, digits = [] })
-      | copyInf64' (negative, (hi, lo)) = let
-	  infix <>
-	  val op <> : word * word -> bool = InLine.word_neq
-	  val d0 = w32ToW (lo && 0wx3fffffff)
-	  val d1 = w32ToW (((hi && 0wxfffffff) << gap) || (lo >> baseBits))
-	  val d2 = w32ToW (hi >> slc)
-	  val i = BI {
-		  negative = negative,
-		  digits = if d2 <> 0w0 then [d0, d1, d2]
-			   else if d1 <> 0w0 then [d0, d1]
-			   else if d0 <> 0w0 then [d0]
-			   else []
-		}
-	  in
-	    abstract i
-	  end
-
-    fun copy64Inf hilo = copyInf64' (false, hilo)
-
-(* FIXME: better to check if (signed)hi < 0 *)
-    fun extend64Inf (hi, lo) = if InLine.word32_neq (hi && 0wx80000000, 0w0)
-	  then copyInf64' (true, neg64 (hi, lo))
-	  else copyInf64' (false, (hi, lo))
 
     fun makeInf negative digits =
 	  abstract (BI { negative = negative, digits = digits })
@@ -437,23 +356,23 @@ end = struct
 	  if negative then natcmp (d2, d1) else natcmp (d1, d2)
 
     fun ddmul (x, y) = let
-	  fun high w32 = w32 >> hBaseBits
-	  fun low w32 = w32 && maxDigitL32
-	  fun hl w32 = (high w32, low w32)
-	  val (xh, xl) = hl (wToW32 x)
-	  val (yh, yl) = hl (wToW32 y)
-	  val a = InLine.word32_mul (xh, yh)
-	  val c = InLine.word32_mul (xl, yl)
+	  fun high w64 = w64 >> hBaseBits
+	  fun low w64 = w64 && maxDigitL64
+	  fun hl w64 = (high w64, low w64)
+	  val (xh, xl) = hl (wToW64 x)
+	  val (yh, yl) = hl (wToW64 y)
+	  val a = InLine.word64_mul (xh, yh)
+	  val c = InLine.word64_mul (xl, yl)
 	  (* b = b' - a - c = xh * yl + xl * yh *)
-	  val b' = InLine.word32_mul (InLine.word32_add (xh, xl), InLine.word32_add (yh, yl))
-	  val b = InLine.word32_sub (b', InLine.word32_add (a, c))
+	  val b' = InLine.word64_mul (InLine.word64_add (xh, xl), InLine.word64_add (yh, yl))
+	  val b = InLine.word64_sub (b', InLine.word64_add (a, c))
 	  val (bh, bl) = hl b
-	  val l0 = InLine.word32_add (c, InLine.word32_lshift (bl, hBaseBits))
-	  val l32 = l0 && maxDigit32
+	  val l0 = InLine.word64_add (c, InLine.word64_lshift (bl, hBaseBits))
+	  val l64 = l0 && maxDigit64
 	  val lc = l0 >> baseBits
-	  val h32 = InLine.word32_add (InLine.word32_add (a, bh), lc)
+	  val h64 = InLine.word64_add (InLine.word64_add (a, bh), lc)
 	  in
-	    (w32ToW h32, w32ToW l32)
+	    (w64ToW h64, w64ToW l64)
 	  end
 
     fun natmadd (0w0, _, 0w0) = []
@@ -680,4 +599,4 @@ end = struct
     val abs = fabs1 abs'
     val compare = fabs2c compare'
 
-end
+  end

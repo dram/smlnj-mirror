@@ -98,12 +98,24 @@ is
 	reals/real64-to-bits.sml
 
 	mlcomp/target.sig
-#if defined(BIG_ENDIAN)
+
+#if defined(TARGET_BIG_ENDIAN)
+        mlcomp/endianess-big.sml
+#elif defined(TARGET_LITTLE_ENDIAN)
+        mlcomp/endianess-little.sml
+        (* falling back on host-specific endianness spec *)
+#elif defined(BIG_ENDIAN)
 	mlcomp/endianess-big.sml
 #else
 	mlcomp/endianess-little.sml
 #endif
-#if defined(SIZE_32)
+
+#if defined(TARGET_SIZE_32)
+        mlcomp/target32.sml
+#elif defined(TARGET_SIZE_64)
+        mlcomp/target64.sml
+        (* falling back on host-specific size spec *)
+#elif defined(SIZE_32)
 	mlcomp/target32.sml
 #else
 	mlcomp/target64.sml

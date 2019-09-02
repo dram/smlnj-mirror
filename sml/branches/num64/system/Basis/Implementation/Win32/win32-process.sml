@@ -9,6 +9,7 @@
 structure Win32_Process : WIN32_PROCESS =
   struct
     structure W32G = Win32_General
+    structure Word64 = Word64Imp
 
     fun cf name = W32G.cfun "WIN32-PROCESS" name
 
@@ -19,8 +20,8 @@ structure Win32_Process : WIN32_PROCESS =
     val getEnvironmentVariable' : string -> string option =
 	  cf "get_environment_variable"
 
-    val sleep' : W32G.word -> unit = cf "sleep"
+    val sleep' : Word64.word -> unit = cf "sleep"
 
-    val sleep = sleep' o W32G.Word.fromLargeInt o TimeImp.toMilliseconds
+    val sleep = sleep' o Word64.fromLargeInt o TimeImp.toMilliseconds
 
   end

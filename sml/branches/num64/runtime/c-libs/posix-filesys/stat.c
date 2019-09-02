@@ -19,7 +19,7 @@
 /* convert struct timespec to nanoseconds */
 STATIC_INLINE Unsigned64_t timespec_to_ns (struct timespec *ts)
 {
-    return 1000000000 * (Unsigned64_t)ts->tv_sec + (Unsigned64_t)ts->tv_nsec;
+    return NS_PER_SEC * (Unsigned64_t)ts->tv_sec + (Unsigned64_t)ts->tv_nsec;
 }
 #endif
 
@@ -76,9 +76,9 @@ PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
 
 #if !defined(STAT_HAS_TIMESPEC)
   /* the old API with second-level granularity */
-    aTim = 1000000000 * (Unsigned64_t)buf->st_atime;
-    mTim = 1000000000 * (Unsigned64_t)buf->st_mtime;
-    cTim = 1000000000 * (Unsigned64_t)buf->st_ctime;
+    aTim = NS_PER_SEC * (Unsigned64_t)buf->st_atime;
+    mTim = NS_PER_SEC * (Unsigned64_t)buf->st_mtime;
+    cTim = NS_PER_SEC * (Unsigned64_t)buf->st_ctime;
 #elif defined(OPSYS_DARWIN)
   /* macOS uses non-standard names for the fields */
     aTim = timespec_to_ns (&buf->st_atimespec);

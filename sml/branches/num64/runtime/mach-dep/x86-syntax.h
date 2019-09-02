@@ -118,16 +118,17 @@
 
 #if defined(HOST_X86)
 #define ALIGN4		.p2align 2
-#define WORD		.long 0
+#define WORD(lab)	LABEL(lab) .long 0
 #else /* HOST_AMD_64 */
 #define ALIGN8		.p2align 3
-#define WORD		.long 0, 0
+#define WORD(lab)	LABEL(lab) .long 0, 0
 #endif /* HOST_X86 */
 
 /* operands */
 #define IM(x)		CONCAT($,x)
 #define REG(r)		CONCAT(%,r)
 #define REGIND(r)	(r)
+#define REGIND_16(r)	(r)
 #define REGOFF(d,r)	d(r)
 #define CODEPTR(r)	*r
 #if defined(HOST_AMD64)
@@ -147,13 +148,14 @@
 #define LABEL(ID)	CONCAT(ID,:)
 #define TEXT		.CODE
 #define DATA		.DATA
+#define ALIGN_CODE	ALIGN 4
 
 #if defined(HOST_X86)
 #  define ALIGN4	ALIGN 4
-#  define WORD		DWORD 0
+#  define WORD(lab)	lab DWORD 0
 #else /* HOST_AMD_64 */
 #  define ALIGN8	ALIGN 8
-#  define WORD		QWORD 0
+#  define WORD(lab)	lab QWORD 0
 #endif /* HOST_X86 */
 
 /* operands */
@@ -161,12 +163,13 @@
 #define REG(r)		r
 #ifdef TARGET_X86
 #  define REGIND(r)	dword ptr [r]
+#  define REGIND_16(r)	word ptr [r]
 #  define REGOFF(d,r)	dword ptr [r + d]
 #else /* TARGET_AMD64 */
 #  define REGIND(r)	qword ptr [r]
 #  define REGOFF(d,r)	qword ptr [r + d]
 #endif
-#define CODEPTR(r)	via r
+#define CODEPTR(r)	r
 
 #endif /* GNU_ASSEMBLER */
 
@@ -308,58 +311,5 @@ ENDM
 #endif
 
 #define CGLOBAL(ID)	GLOBAL(CSYM(ID))
-
-/* jump to the address held in the standard continuation register */
-#define CONTINUE	JMP (CODEPTR(stdcont))
-
-/* CHECKLIMIT, ENTRY, and ML_CODE_HDR macros */
-#ifdef MASM_ASSEMBLER
-
-CHECKLIMIT_M MACRO
- @@:
-	MOVE	(stdlink, temp, pc)
-	CMP	(limitptr, allocptr)
-	jb	@f
-	CALL	(CSYM(saveregs))
-	JMP	@b
- @@:
-ENDM
-
-ENTRY_M MACRO id
-	GLOBAL	(CSYM(&id))
-	LABEL	(CSYM(&id))
-ENDM
-
-ML_CODE_HDR_M MACRO name
-	GLOBAL	(CSYM(&name))
-	ALIGN_CODE
-	LABEL	(CSYM(&name))
-ENDM
-
-#define CHECKLIMIT CHECKLIMIT_M
-#define ENTRY(id) ENTRY_M id
-#define ML_CODE_HDR(name) ML_CODE_HDR_M name
-
-#else /* !MASM_ASSEMBLER */
-
-#define CHECKLIMIT				\
- 1:;						\
-	MOVE	(stdlink, temp, pc);		\
-	CMP	(limitptr, allocptr);		\
-	JB	(9f);				\
-	CALL	(CSYM(saveregs));		\
-	JMP	(1b);				\
- 9:
-
-#define ENTRY(ID)				\
-    CGLOBAL(ID);				\
-    LABEL(CSYM(ID))
-
-#define ML_CODE_HDR(name)			\
-	    CGLOBAL(name);			\
-	    ALIGN_CODE;				\
-    LABEL(CSYM(name))
-
-#endif /* MASM_ASSEMBLER */
 
 #endif /* _X86_SYNTAX_H_ */

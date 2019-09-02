@@ -10,6 +10,8 @@
 #include "ml-base.h"
 #endif
 
+/* TODO: switch to Unsigned64_t count of nanoseconds */
+
 /* we define our own type to represent time values, since some systems have
  * struct timeval, but others do not.
  */

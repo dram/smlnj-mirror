@@ -47,6 +47,15 @@ signature UNSAFE =
     structure PackWord32Little : PACK_WORD
 (* TODO: add 64-bit structures *)
 
+  (* access to internal representation of the IntInf.int type *)
+    structure IntInf : sig
+        datatype rep = BI of { negative : bool, digits : word list }
+	val concrete : IntInf.int -> rep
+	val abstract : rep -> IntInf.int
+      (* number of bits per digit *)
+	val baseBits : int
+      end
+
   (* convert real to bits (experimental) *)
     val realToBits : real -> Word64.word
 

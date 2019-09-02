@@ -134,7 +134,7 @@ ml_val_t _ml_Date_localOffsetForTime (ml_state_t *msp, ml_val_t arg)
     if (FileTimeToLocalFileTime (&utcFT, &localFT)) {
       /* compute offset (local - UTC) in seconds. */
 	Int64_t localSec = (Int64_t)(filetime_to_100ns (&localFT));
-	Int64_t utcSec = (Int64_t)(utcNsec / 1000000000);
+	Int64_t utcSec = (Int64_t)(utcNsec / NS_PER_SEC);
 	return INT32_CtoML(msp, (Int32_t)(localSec - utcSec));
     }
     else {

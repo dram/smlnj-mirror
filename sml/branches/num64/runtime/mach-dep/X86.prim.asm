@@ -86,13 +86,21 @@
 #define SpillAreaStart	512	     /* starting offset */
 #define ML_FRAME_SIZE	(8192)
 
+/* NOTE: this include must come after the definition of stdlink, etc. */
+#include "x86-macros.h"
+
 /**********************************************************************/
+#ifdef MASM_ASSEMBLER
+	.386
+	.MODEL FLAT
+#endif
+
 	DATA
 	ALIGN4
 
 	GLOBAL(CSYM(ML_X86Frame))
-LABEL(CSYM(ML_X86Frame)) /* ptr to the ml frame (gives C access to limitptr) */
-	WORD
+	/* global to hold ptr to the ml frame (gives C access to limitptr) */
+	WORD(CSYM(ML_X86Frame))
 
 /**********************************************************************/
 	TEXT
@@ -635,12 +643,12 @@ ENTRY(FPEEnable)
 	/* Temp space.Keep stack aligned. */
 	SUB	(IM(4), ESP)
 	/* Store FP control word. */
-	FSTCW	(REGIND( ESP))
+	FSTCW	(REGIND_16(ESP))
 	/* Keep undefined fields, clear others. */
 	ANDW	(IM(HEXLIT(f0c0)), REGIND(ESP))
 	/* Set fields (see above). */
 	ORW	(IM(HEXLIT(023f)), REGIND(ESP))
-	FLDCW	(REGIND(ESP)) /* Install new control word. */
+	FLDCW	(REGIND_16(ESP)) /* Install new control word. */
 	ADD	(IM(4), ESP)
 	RET
 
@@ -697,7 +705,7 @@ ML_CODE_HDR(scalb_a)
 	PUSH	(REGOFF(4,stdarg))		/* Get copy of scalar. */
 	SAR	(IM(1),REGIND(ESP))		/* Untag it. */
 	FILDL	(REGIND(ESP))			/* Load it ... */
-	MOV	(REGIND(stdarg), temp)	/* Get pointer to real. */
+	MOV	(REGIND(stdarg), temp)		/* Get pointer to real. */
 	FLD	(REGIND(temp))			/* Load it into temp. */
 	FSCALE					/* Multiply exponent by scalar. */
 	MOV	(IM(DESC_reald), REGIND(allocptr))

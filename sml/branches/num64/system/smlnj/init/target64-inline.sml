@@ -86,8 +86,9 @@ structure InlineT =
         val min    : real * real -> real  = InLine.real64_min
         val max    : real * real -> real  = InLine.real64_max
 
-	val from_int31 : int -> real      = InLine.int_to_real64
-	val from_int32 : int32 -> real    = InLine.int32_to_real64
+	val from_int : int -> real        = InLine.int_to_real64
+(* FIXME: add word_to_real primop *)
+	val from_word : word -> real	  = compose(InLine.int64_to_real64, InLine.copy_word_to_int64)
 
 	val signBit : real -> bool = InLine.real64_sgn
       end
@@ -183,9 +184,6 @@ structure InlineT =
         val min     : int64 * int64 -> int64  = InLine.int64_min
         val max     : int64 * int64 -> int64  = InLine.int64_max
         val abs     : int64 -> int64          = InLine.int64_abs
-
-        val extern : int64 -> word32 * word32 = InLine.int64_to_pair
-	val intern : word32 * word32 -> int64 = InLine.int64_from_pair
       end
 
     structure IntInf =
@@ -207,12 +205,6 @@ structure InlineT =
 	val toLargeInt : word -> intinf	  = InLine.unsigned_word_to_intinf
 	val toLargeIntX : word -> intinf  = InLine.signed_word_to_intinf
 	val fromLargeInt : intinf -> word = InLine.intinf_to_word
-
-      (* extra conversions *)
-	val toInt32 : word -> int32 = InLine.copy_word_to_int32
-	val toWord32 : word -> word32 = InLine.word_to_word32
-	val toWord64 : word -> word64 = InLine.word_to_word64
-	val fromWord32 : word32 -> word = InLine.word32_to_word
 
         val orb     : word * word -> word = InLine.word_orb
         val xorb    : word * word -> word = InLine.word_xorb
@@ -251,10 +243,9 @@ structure InlineT =
 	val toLargeIntX   = InLine.signed_word8_to_intinf
 	val fromLargeInt  = InLine.intinf_to_word8
 
-      (* temporary framework, because the actual word8 operators
-       * are not implemented*)
-	(* WARNING! some of the following operators
-	 *          don't get the high-order bits right *)
+      (* Note that the word8 arithmetic operations are clamped to 8-bits
+       * in pervasive.sml.
+       *)
         val orb : word8 * word8 -> word8	= InLine.word8_orb
         val xorb : word8 * word8 -> word8	= InLine.word8_xorb
         val andb : word8 * word8 -> word8	= InLine.word8_andb
@@ -291,9 +282,6 @@ structure InlineT =
 	val toLargeInt			 = InLine.unsigned_word32_to_intinf
 	val toLargeIntX			 = InLine.signed_word32_to_intinf
 	val fromLargeInt		 = InLine.intinf_to_word32
-
-      (* extra function to support the Int64/Word64 types *)
-	val fromInt32 : int32 -> word32 = InLine.copy_int32_to_word32
 
         val orb : word32 * word32 -> word32	 = InLine.word32_orb
         val xorb : word32 * word32 -> word32	 = InLine.word32_xorb
@@ -478,7 +466,7 @@ structure InlineT =
     structure CPtr =
       struct
 	type t = c_pointer
-	fun hash cp = Word.fromWord64(Word64.rshiftl(InLine.cptr_to_word64 cp, 0w2))
+	fun hash cp = Word.fromLarge(Word64.rshiftl(InLine.cptr_to_word64 cp, 0w2))
 	fun toWord cp = Word64.toLarge(InLine.cptr_to_word64 cp)
       end
 

@@ -1,9 +1,9 @@
-(* target32-core.sml
+(* target64-core.sml
  *
  * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * This is the implementation of the Core structure for 32-bit targets.
+ * This is the implementation of the Core structure for 64-bit targets.
  *
  * Core assumes that the following bindings are already in the static
  * environment:
@@ -113,8 +113,8 @@ structure Core =
     local val ieql : int * int -> bool = InLine.int_eql
           val peql : 'a * 'a -> bool = InLine.ptr_eql
           val ineq : int * int -> bool = InLine.int_neq
-	  val i32eq : int32 * int32 -> bool = InLine.int32_eql
-	  val i64eq : int64 * int64 -> bool = InLine.int64_eql
+	  val i32eq : int32 * int32 -> bool = InLine.int32_eql (* 64BIT: FIXME *)
+	  val i64eq : int64 * int64 -> bool = InLine.int64_eql (* 64BIT: FIXME *)
           val boxed : 'a -> bool = InLine.boxed
           val op + : int * int -> int = InLine.int_add
           val op - : int * int -> int = InLine.int_sub
@@ -274,6 +274,9 @@ structure Core =
 		  | 0x0a (* tag_arr_hdr *) => peql(getData a, getData b)
 		  | 0x0e (* tag_arr_data and tag_ref *) => false
 		  | 0x12 (* tag_raw *) => (
+(* 64BIT: FIXME: this test is 32-bit specific; should just add a primop for
+ * loading raw words from from RAW records and comparing them.
+ *)
 		    (* should either be a boxed 32-bit or boxed 64-bit number. We use
 		     * the cast to int32 or int64 to force the loading of the value
 		     * to compare from memory.
@@ -372,46 +375,11 @@ structure Core =
        * to the functions after CPS optimization.
        *)
 
-      (* boxed 32-bit numbers <-> intinf *)
-	val truncInf32 = CoreIntInf.truncInf32		(* for `P.TRUNC_INF 32` *)
-	val testInf32 = CoreIntInf.testInf32		(* for `P.TEST_INF 32` *)
-	val copy32Inf = CoreIntInf.copy32Inf		(* for `P.COPY_INF 32` *)
-	val extend32Inf = CoreIntInf.extend32Inf	(* for `P.EXTEND_INF 32` *)
-
       (* word64-rep (pairs of 32-bit words) <-> intinf *)
 	val truncInf64 = CoreIntInf.truncInf64		(* for `P.TRUNC_INF 64` *)
 	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
 	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)
 	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
-
-(* DEPRECATED -- for backward compatibility with 110.91 *)
-	val truncInfLarge = CoreIntInf.truncInf32	(* for `P.TRUNC_INF 32` *)
-	val testInfLarge = CoreIntInf.testInf32		(* for `P.TEST_INF 32` *)
-	val copyLargeInf = CoreIntInf.copy32Inf		(* for `P.COPY_INF 32` *)
-	val extendLargeInf = CoreIntInf.extend32Inf	(* for `P.EXTEND_INF 32` *)
-
-      (* word64-rep (pairs of 32-bit words) -> int *)
-(* do we need these functions? *)
-	val w64ToInt = CoreWord64.toInt
-	val w64ToIntX = CoreWord64.toIntX
-	val i64ToInt = CoreInt64.toInt
-
-      (* word64-rep (pairs of 32-bit words) -> large boxed int  *)
-	val w64ToInt32 = CoreWord64.toInt32
-	val w64ToInt32X = CoreWord64.toInt32X
-	val i64ToInt32 = CoreInt64.toInt32
-
-      (* 64-bit arithmetic operations that do not have direct implementations
-       * on 32-bit targets.
-       *)
-	val i64Mul = CoreInt64.*
-	val i64Div = CoreInt64.div
-	val i64Mod = CoreInt64.mod
-	val i64Quot = CoreInt64.quot
-	val i64Rem = CoreInt64.rem
-	val w64Mul = CoreWord64.*
-	val w64Div = CoreWord64.div
-	val w64Mod = CoreWord64.mod
 
     end (* local *)
 

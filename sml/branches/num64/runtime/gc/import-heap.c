@@ -220,14 +220,7 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
     addr_tbl_t		*boRegionTbl;
 
   /* Allocate a BIBOP for the imported heap image's address space. */
-#ifdef SIZES_C64_ML64
-#  error two level map not supported
-/* 64BIT: we can probably use a flat mapping for the heap image that we are importing,
- * since it is compact.
- */
-#else
-    oldBIBOP = NEW_VEC (aid_t, BIBOP_SZ);
-#endif
+    oldBIBOP = InitBibop();
 
   /* read in the big-object region descriptors for the old address space */
     {
@@ -438,7 +431,7 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
     FreeAddrTbl (boRegionTbl, FALSE);
     FREE (boRelocInfo);
     FREE (arenaHdrs);
-    FREE (oldBIBOP);
+    FreeBibop (oldBIBOP);
 
   /* reset the sweep_nextw pointers */
     for (i = 0;  i < heap->numGens;  i++) {

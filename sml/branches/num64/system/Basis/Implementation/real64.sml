@@ -22,10 +22,9 @@ structure Real64Imp : REAL =
     fun unordered(x:real,y) = Bool.not(x>y orelse x <= y)
     fun ?= (x, y) = (x == y) orelse unordered(x, y)
 
-(* 64BIT: FIXME *)
-    val w31_r = InlineT.Real64.from_int32 o InlineT.Word.toInt32
+    val wordToReal = InlineT.Real64.from_word
 
-    val rbase = w31_r CoreIntInf.base
+    val rbase = wordToReal CoreIntInf.base
     val baseBits = InlineT.Word.toIntX CoreIntInf.baseBits
 
   (* maximum finite 64-bit real value *)
@@ -68,7 +67,7 @@ structure Real64Imp : REAL =
     end
 
     val abs : real -> real = InlineT.Real64.abs
-    val fromInt : int -> real = InlineT.Real64.from_int31
+    val fromInt : int -> real = InlineT.Real64.from_int
 
     fun toInt IEEEReal.TO_NEGINF = floor
       | toInt IEEEReal.TO_POSINF = ceil
@@ -149,7 +148,7 @@ structure Real64Imp : REAL =
 		      end
 		  | 0w2047 => {man = x, exp = 0}	(* both NaNs and infinities *)
 		  | biasExp => let
-		      val exp = W.toIntX biasExp - 1023
+		      val exp = W.toIntX biasExp - 1022
 		      in
 			{man = Assembly.A.scalb(x, ~exp), exp=exp}
 		      end
@@ -252,7 +251,7 @@ structure Real64Imp : REAL =
 		     if x < 0.0 then (true, ~x) else (false, x)
 		 fun feven x = #frac (split (x / 2.0)) == 0.0
 	     in
-		 (* if the magnitute is less than 1.0, then
+		 (* if the magnitude is less than 1.0, then
 		  * we just have to figure out whether to return ~1, 0, or 1
 		  *)
 		 if x < 1.0 then

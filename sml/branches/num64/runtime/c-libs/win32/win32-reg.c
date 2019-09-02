@@ -228,7 +228,7 @@ ml_val_t _ml_win32_REG_query_value_multi_string(ml_state_t *msp, ml_val_t arg)
 	return RAISE_SYSERR(msp,-1);
     }
 
-    concatenated = (char *)malloc(dwSize);
+    concatenated = (char *)MALLOC(dwSize);
     result = RegQueryValueEx(key, valueName, 0, NULL, concatenated , &dwSize);
     if (result != ERROR_SUCCESS) {
 	return RAISE_SYSERR(msp,-1);
@@ -249,7 +249,7 @@ ml_val_t _ml_win32_REG_query_value_multi_string(ml_state_t *msp, ml_val_t arg)
 	dwSize -= (nextToCopy + 1);
     }
 
-    free(concatenated);
+    FREE(concatenated);
     return res;
 }
 
@@ -359,7 +359,7 @@ ml_val_t _ml_win32_REG_set_value_multi_string(ml_state_t *msp, ml_val_t arg)
     }
 
     /* extra second NULL terimator at end */
-    concatenated = (char *)malloc((dwSize+1) * sizeof(char));
+    concatenated = (char *)MALLOC((dwSize+1) * sizeof(char));
     ptr = concatenated;
     iter = stringList;
     while (iter != LIST_nil) {
@@ -370,7 +370,7 @@ ml_val_t _ml_win32_REG_set_value_multi_string(ml_state_t *msp, ml_val_t arg)
     (*ptr) = '\0';
 
     result = RegSetValueEx(key, valueName, 0, REG_MULTI_SZ, (const BYTE *)concatenated, dwSize);
-    free(concatenated);
+    FREE(concatenated);
     if (result != ERROR_SUCCESS) {
 	return RAISE_SYSERR(msp,-1);
     }

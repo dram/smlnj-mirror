@@ -18,7 +18,7 @@ ml_val_t _ml_Sock_getNREAD (ml_state_t *msp, ml_val_t arg)
 {
     int		n, sts;
 
-    sts = ioctl (INT_MLtoC(arg), FIONREAD, (char *)&n);
+    sts = ioctl (INT_MLtoC(arg), FIONREAD, (unsigned long *)&n);
 
     if (sts < 0)
 	return RAISE_SYSERR(msp, sts);

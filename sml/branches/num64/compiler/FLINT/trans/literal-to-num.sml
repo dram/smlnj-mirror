@@ -14,6 +14,7 @@ signature LITERAL_TO_NUM =
     val repDigits : IntInf.int -> word list  (* expose representation *)
 
     val lowVal : IntInf.int -> int option
+
   end
 
 structure LiteralToNum : LITERAL_TO_NUM =
@@ -22,7 +23,7 @@ structure LiteralToNum : LITERAL_TO_NUM =
     fun isNegative (i : IntInf.int) = (i < 0)
 
     local
-	fun unBI (CoreIntInf.BI x) = x
+      fun unBI (CoreIntInf.BI x) = x
     in
     val repDigits = #digits o unBI o CoreIntInf.concrete
     fun lowVal i = let

@@ -57,7 +57,7 @@ struct heap {
     ml_val_t	    *allocBase;		/* The base address of the allocation arena */
     Addr_t	    allocSzB;		/* The size in bytes of the allocation arena */
     mem_obj_t	    *baseObj;		/* The OS memory object that contains the */
-		    			/* BIBOP and allocation arena. */
+		    			/* allocation arena. */
     int		    numGens;		/* The number of active generations. */
     int		    cacheGen;		/* Cache the from-space for gens 1..cacheGen. */
     int		    numMinorGCs;	/* The number of times the allocation space */
@@ -272,7 +272,7 @@ extern int Flip (heap_t *heap, int min_gc_level);
 extern status_t NewGeneration (gen_t *gen);
 extern void FreeGeneration (heap_t *heap, int g);
 extern void NewDirtyVector (gen_t *gen);
-extern void MarkRegion (bibop_t bibop, ml_val_t *base, Word_t sizeB, aid_t id);
+extern void MarkRegion (bibop_t bibop, ml_val_t *base, Addr_t sizeB, aid_t id);
 extern void ScanWeakPtrs (heap_t *heap);
 
 extern bigobj_desc_t *BO_AllocRegion (heap_t *heap, Addr_t szB);

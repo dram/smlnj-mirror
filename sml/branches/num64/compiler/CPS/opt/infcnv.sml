@@ -66,6 +66,7 @@ end = struct
 
   (* generate code to convert an intinf to a fixed-size number.  The arguments
    * are:
+   *    mkExp           -- constructor to make CPS expression (ARITH or PURE)
    *	prim		-- the primop (TRUNC or TEST) for converting a boxed
    *			   value to the tagged type
    *	sz		-- the size of the source value
@@ -95,7 +96,7 @@ end = struct
 	       *)
 		val hi = LV.mkLvar ()
 		val lo = LV.mkLvar ()
-		val retContBody = C.RECORD(C.RK_RECORD, [
+		val retContBody = C.RECORD(C.RK_RAWBLOCK, [
 			(C.VAR hi, C.OFFp 0), (C.VAR lo, C.OFFp 0)
 		      ], v, e)
 		in

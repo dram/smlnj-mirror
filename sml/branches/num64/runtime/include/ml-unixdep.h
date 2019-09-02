@@ -37,6 +37,7 @@
  *   INT_GIDLIST		if the second argument to getgroups is int[].
  *   STAT_HAS_TIMESPEC		if the time fields in the "struct stat" type have
  *				type "struct timespec".
+ *   HAS_NANOSLEEP              if the system provides the nanosleep(2) function.
  *
  * Note that only one of the following sets of symbols should be defined:
  *   { HAS_MMAP, HAS_ANON_MMAP, HAS_VM_ALLOCATE }
@@ -115,6 +116,7 @@ extern char	*sys_errlist[];
 /* NOTE: macOS added clock_getres in 10.12 (Sierra).  For now, we do not
  * enable it, since we are supporting backward compatability to 10.6 (Snow Leopard).
  */
+#  define HAS_NANOSLEEP
 
 #elif defined(OPSYS_SOLARIS) /** SunOS 5.x **/
 #  define OS_NAME	"Solaris"
@@ -150,6 +152,7 @@ extern char	*sys_errlist[];
 #  define HAS_MKSTEMP
 #  define __USE_GNU
 #  define STAT_HAS_TIMESPEC
+#  define HAS_NANOSLEEP
 
 #include <features.h>
 
@@ -169,6 +172,9 @@ extern char	*sys_errlist[];
 #  define HAS_MKSTEMP
 #  define STAT_HAS_TIMESPEC
 #  define _FILE_OFFSET_BITS 64
+#  if _POSIX_C_SOURCE >= 199309L
+#    define HAS_NANOSLEEP
+#  endif
 
 #include <features.h>
 
@@ -186,6 +192,9 @@ extern char	*sys_errlist[];
 #  define HAS_MKSTEMP
 #  define __USE_GNU
 #  define STAT_HAS_TIMESPEC
+#  if _POSIX_C_SOURCE >= 199309L
+#    define HAS_NANOSLEEP
+#  endif
 
 #include <features.h>
 
@@ -204,9 +213,7 @@ extern char	*sys_errlist[];
 #  define HAS_SIGCONTEXT
 #  define HAS_STRERROR
 #  define STAT_HAS_TIMESPEC
-
-/* FreeBSD uses MAP_ANON for MAP_ANONYMOUS */
-#  define MAP_ANONYMOUS MAP_ANON
+#  define HAS_NANOSLEEP
 
 #elif defined(OPSYS_NETBSD) /* version 3.x */
 #  define OS_NAME	"BSD"
@@ -222,6 +229,7 @@ extern char	*sys_errlist[];
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
 #  define STAT_HAS_TIMESPEC
+#  define HAS_NANOSLEEP
 
 #elif defined(OPSYS_OPENBSD)
 #  define OS_NAME	"BSD"
@@ -237,6 +245,7 @@ extern char	*sys_errlist[];
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
 #  define STAT_HAS_TIMESPEC
+#  define HAS_NANOSLEEP
 
 #elif (defined(TARGET_X86) && defined(OPSYS_CYGWIN))
 #  define OS_NAME	"Cygwin"
@@ -251,6 +260,7 @@ extern char	*sys_errlist[];
 #  define HAS_SIGCONTEXT
 #  define HAS_STRERROR
 #  define STAT_HAS_TIMESPEC
+#  define HAS_NANOSLEEP
 
 #include <features.h>
 

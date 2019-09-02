@@ -16,7 +16,7 @@ structure UnsafeObject :> UNSAFE_OBJECT =
    *)
     datatype representation
       = Unboxed
-      | Word32
+      | Raw
       | Real
       | Pair
       | Record
@@ -71,8 +71,7 @@ structure UnsafeObject :> UNSAFE_OBJECT =
 		  if (InlineT.objlength obj = 1)
 		    then Ref
 		    else raise Fail "Unknown arr_data"
-(* 64BIT: FIXME *)
-	      | 0x12 (* tag_raw *) => Word32
+	      | 0x12 (* tag_raw *) => Raw
 	      | 0x16 (* tag_raw64 *) => Real
 	      | 0x1a (* tag_special *) => (case (InlineT.getspecial obj)
 		 of (0 | 1) => Susp
@@ -176,12 +175,11 @@ structure UnsafeObject :> UNSAFE_OBJECT =
 	  then ((InlineT.cast obj) : int)
 	  else raise Representation
     fun toInt32 obj =
-	  if (rep obj = Word32)
+	  if (rep obj = Raw) andalso (InlineT.objlength obj = 1)
 	    then ((InlineT.cast obj) : Int32.int)
 	    else raise Representation
-(* 64BIT: FIXME *)
     fun toInt64 obj =
-	  if (rep obj = Word32) (* packed pair of 32-bit words *)
+	  if (rep obj = Raw) andalso (InlineT.objlength obj = 2)
 	    then ((InlineT.cast obj) : Int64.int)
 	    else raise Representation
     fun toWord  obj = if (unboxed obj)
@@ -191,12 +189,11 @@ structure UnsafeObject :> UNSAFE_OBJECT =
 	  then ((InlineT.cast obj) : Word8.word)
 	  else raise Representation
     fun toWord32 obj =
-	  if (rep obj = Word32)
+	  if (rep obj = Raw) andalso (InlineT.objlength obj = 1)
 	    then ((InlineT.cast obj) : Word32.word)
 	    else raise Representation
-(* 64BIT: FIXME *)
     fun toWord64 obj =
-	  if (rep obj = Word32) (* packed pair of 32-bit words *)
+	  if (rep obj = Raw) andalso (InlineT.objlength obj = 2)
 	    then ((InlineT.cast obj) : Word64.word)
 	    else raise Representation
 

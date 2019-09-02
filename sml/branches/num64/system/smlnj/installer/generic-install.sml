@@ -59,7 +59,7 @@ structure GenericInstall : sig
 	  U.mkdir (P.dir dst);
 	  U.rename { old = src, new = dst })
 
-    (* register a temporary anchor-value binding *)
+  (* register a temporary anchor-value binding *)
     fun localanchor { anchor, path } =
 	  #set (CM.Anchor.anchor anchor) (SOME (native path))
 
@@ -221,7 +221,7 @@ structure GenericInstall : sig
 		  TextIO.output (s, concat [a, " ", p, "\n"])
 		  before TextIO.closeOut s
 		end
-	fun augment_anchor_mapping pcfile =
+	  fun augment_anchor_mapping pcfile =
 		pc_fold (fn ((), k, v) =>
 			    (#set (CM.Anchor.anchor k)
 				  (SOME (P.concat (libdir, native v)));
@@ -235,195 +235,196 @@ structure GenericInstall : sig
 	          P.concat (configdir, "targets.customized"),
 	          P.concat (configdir, "targets")
 		]
-	val s = (case List.find U.fexists targetsfiles
-	       of SOME f => TextIO.openIn f
-	        | NONE => fail ["no targetsfiles\n"]
-	      (* end case *))
-      (* get the actions from the actionfile *)
-	val (actions, allmoduleset) = parseActions actionfile
-      (* parse the targets file *)
-	fun loop (ml, srcReqs, allsrc) = (case getInputTokens s
-	       of NONE => (TextIO.closeIn s; (ml, srcReqs, allsrc))
-		| SOME [x as ("dont_move_libraries" | "move_libraries")] =>
-		    (warn ["\"", x, "\" no longer supported",
-			   " (installer always moves libraries)\n"];
-		     loop (ml, srcReqs, allsrc))
-		| SOME ["request", "src-smlnj"] => loop (ml, srcReqs, true)
-		| SOME ["request", module] => if SM.inDomain(actions, module)
-		    then loop (module :: ml, srcReqs, allsrc)
-		    else loop (ml, module :: srcReqs, allsrc) (* assume a src module *)
-		| SOME [] => loop (ml, srcReqs, allsrc)
-		| SOME l => fail ["ill-formed targets line: ", tokenLine l, "\n"]
-	      (* end case *))
-	val (modules, srcReqs, allsrc) = loop ([], [], false)
-      (* now resolve dependencies; get full list of modules in correct build order: *)
-	val modules = resolve (modules, depfile)
-	val moduleset = SS.fromList modules
-      (* add requested source modules *)
-	val moduleset = if allsrc
-	      then SS.union (moduleset, allmoduleset)
-	      else SS.addList (moduleset, srcReqs)
-      (* fetch and unpack source trees, using auxiliary helper command
-       * which takes the root directory as its first and the module
-       * names to be fetched as subsequent arguments.
-       *)
-	val _ = (case unpack
-	       of NONE => ()		(* archives must exist *)
-		| SOME upck =>
-		    if upck (SS.listItems moduleset) then ()
-		    else fail ["unpacking failed\n"]
-	      (* end case *))
-      (* at the end, read lib/pathconfig and eliminate duplicate entries *)
-	fun uniqconfig () = let
-	      fun swallow (f, m) = pc_fold SM.insert m f
-	      fun finish m =
-		  let val s = TextIO.openOut cm_pathconfig
-		      fun one (k, v) = TextIO.output (s, concat [k, " ", v, "\n"])
-		  in SM.appi one m; TextIO.closeOut s
-		  end
-	      in
-		finish (pc_fold SM.insert SM.empty cm_pathconfig)
-	      end
-      (* register library to be built *)
-	fun reglib { anchor, altanchor, relname, dir } = let
-	    (* anchor: the anchor name currently used by the library
-	     *   to be registered for compilation
-	     * altanchor: optional alternative anchor name which is
-	     *   to be used once the library is in its final location
-	     *   (this must be used if "anchor" is already bound
-	     *   and used for other libraries which come from the
-	     *   bootfile bundle),
-	     * relname: path to library's .cm file relative to anchor
-	     *   (standard syntax)
-	     * dir: directory name that anchor should be bound to,
-	     *   name is relative to smlnjroot and in standard syntax *)
-	      val nrelname = native relname
-	      val ndir = native dir
-	      val libname = concat ["$", anchor, "/", relname]
-	      val adir = P.concat (smlnjroot, ndir)
-	      val finalanchor = getOpt (altanchor, anchor)
-	      val { dir = nreldir, file = relbase } = P.splitDirFile nrelname
-	      val relloc =
-		  U.pconcat [nreldir, CM.cm_dir_arc, arch_oskind, relbase]
-	      val srcfinalloc = P.concat (adir, relloc)
-	      val (finalloc, finalconfigpath) =
-		  (U.pconcat [libdir, finalanchor, relloc], finalanchor)
-	      in
-		if U.fexists finalloc
-		  then (
-		    say ["Library ", libname, " already existed in ",
-		    finalloc, ".  Will rebuild.\n"];
-		    U.rmfile finalloc)
-		  else ();
-		if U.fexists srcfinalloc then U.rmfile srcfinalloc else ();
-		if not (U.fexists (P.concat (adir, nrelname)))
-		  then fail [
-		      "Source tree for ", libname, " at ",
-		      P.concat (adir, nreldir), "(", relbase,
-		      ") does not exist.\n"
-		    ]
-		  else (
-		    say [
-			"Scheduling library ", libname, " to be built as ",
-			finalloc, "\n"
-		      ];
-		    stablist := (fn () => CM.stabilize false libname) :: !stablist;
-		    #set (CM.Anchor.anchor anchor) (SOME adir);
-		    movlist := movelib srcfinalloc finalloc :: !movlist;
-		    write_cm_pathconfig (finalanchor, finalconfigpath))
-	      end (* reglib *)
-	fun command_pathconfig target =
-	      write_cm_pathconfig (target, P.concat (P.parentArc, "bin"))
-      (* build a standalone program, using an auxiliary build script *)
-	fun standalone { target, optheapdir, dir } = let
-	    (* target: name of program; this is the same as the basename
-	     *   of the heap image to be generated as well as the
-	     *   final arc of the source tree's directory name
-	     * optheapdir: optional subdirectory where the build command
-	     *   drops the heap image
-	     * dir:
-	     *   The source tree for the target, relative to smlnjroot.
-	     *)
-	      val heapname = concat [target, ".", heap_suffix]
-	      val targetheaploc = (case optheapdir
-		     of NONE => heapname
-		      | SOME hd => P.concat (native hd, heapname)
-		    (* end case *))
-	      val treedir = P.concat (smlnjroot, native dir)
-	      val finalheaploc = P.concat (heapdir, heapname)
-	      val alreadyExists = U.fexists finalheaploc
-	      in
-		if alreadyExists
-		  then say ["Target ", target, " already exists; will rebuild.\n"]
-		  else ();
-		if not (U.fexists treedir)
-		  then fail [
-		      "Source tree for ", target, " at ", treedir, " does not exist.\n"
-		    ]
-		  else (
-		    say ["Building ", target, ".\n"];
-		    F.chDir treedir;
-		    if OS.Process.system buildcmd = OS.Process.success
-		      then if U.fexists targetheaploc
-			then (
-			  if alreadyExists
-			    then U.rmfile finalheaploc
-			    else ();
-			  U.rename { old = targetheaploc, new = finalheaploc };
-			  instcmd target;
-			  #set (CM.Anchor.anchor target) (SOME bindir))
-			else fail ["Built ", target, "; ", heapname, " still missing.\n"]
-		      else fail ["Building ", target, " failed.\n"];
-		    command_pathconfig target;
-		    F.chDir smlnjroot)
-	      end (* standalone *)
-      (* configure a module *)
-	fun configure {target, dir} = let
-	      val treedir = P.concat (smlnjroot, native dir)
-	      in
-		if not (U.fexists treedir)
-		  then fail [
-		      "Source tree for ", target, " at ", treedir, " does not exist.\n"
-		    ]
-		  else (
-		    say ["Configuring ", target, ".\n"];
-		    F.chDir treedir;
-		    if OS.Process.system configcmd = OS.Process.success
-		      then ()
-		      else fail ["Configuration of ", target, " failed.\n"];
-		    F.chDir smlnjroot)
-	      end
-      (* perform the actions for the given module in order of specification *)
-	fun one module = let
-	      fun perform (RegLib (args, justunix)) =
-		    if not justunix orelse isUnix then reglib args else ()
-		| perform (Anchor ({ anchor, path }, false)) =
-		    #set (CM.Anchor.anchor anchor) (SOME (native path))
-		| perform (Anchor ({ anchor, path }, true)) =
-		    #set (CM.Anchor.anchor anchor)
-			 (SOME (P.concat (libdir, native path)))
-		| perform (Program (args, false)) =
-		    standalone args
-		| perform (Program (args, true)) =
-		    salist := (fn () => standalone args) :: (!salist)
-		| perform (Config args) = configure args
-	      in
-		case SM.find (actions, module)
-		 of SOME al => app perform (rev al)
-		  | NONE => fail ["unknown module: ", module, "\n"]
-	      end
-	in
-	  ( command_pathconfig "bindir";	(* dummy -- for CM make tool *)
-	    app one modules;
-	    if not (dostabs ())
-	      then fail ["stabilization of libraries failed\n"]
-	    else if not (domoves ())
-	      then fail ["post stabilization moves failed\n"]
-	    else if not (dolatesas ())
-	      then fail ["late compiles failed\n"]
-	      else uniqconfig ()
-	  ) handle e => fail ["unexpected exception: ", General.exnMessage e, "\n"];
-	  OS.Process.exit OS.Process.success
-	end (* proc *)
+	  val s = (case List.find U.fexists targetsfiles
+		 of SOME f => TextIO.openIn f
+		  | NONE => fail ["cannot find targets file in '", configdir, "'\n"]
+		(* end case *))
+	(* get the actions from the actionfile *)
+	  val (actions, allmoduleset) = parseActions actionfile
+	(* parse the targets file *)
+	  fun loop (ml, srcReqs, allsrc) = (case getInputTokens s
+		 of NONE => (TextIO.closeIn s; (ml, srcReqs, allsrc))
+		  | SOME [x as ("dont_move_libraries" | "move_libraries")] => (
+		      warn [
+			  "\"", x, "\" no longer supported",
+			  " (installer always moves libraries)\n"
+			];
+		      loop (ml, srcReqs, allsrc))
+		  | SOME ["request", "src-smlnj"] => loop (ml, srcReqs, true)
+		  | SOME ["request", module] => if SM.inDomain(actions, module)
+		      then loop (module :: ml, srcReqs, allsrc)
+		      else loop (ml, module :: srcReqs, allsrc) (* assume a src module *)
+		  | SOME [] => loop (ml, srcReqs, allsrc)
+		  | SOME l => fail ["ill-formed targets line: ", tokenLine l, "\n"]
+		(* end case *))
+	  val (modules, srcReqs, allsrc) = loop ([], [], false)
+	(* now resolve dependencies; get full list of modules in correct build order: *)
+	  val modules = resolve (modules, depfile)
+	  val moduleset = SS.fromList modules
+	(* add requested source modules *)
+	  val moduleset = if allsrc
+		then SS.union (moduleset, allmoduleset)
+		else SS.addList (moduleset, srcReqs)
+	(* fetch and unpack source trees, using auxiliary helper command
+	 * which takes the root directory as its first and the module
+	 * names to be fetched as subsequent arguments.
+	 *)
+	  val _ = (case unpack
+		 of NONE => ()		(* archives must exist *)
+		  | SOME upck =>
+		      if upck (SS.listItems moduleset) then ()
+		      else fail ["unpacking failed\n"]
+		(* end case *))
+	(* at the end, read lib/pathconfig and eliminate duplicate entries *)
+	  fun uniqconfig () = let
+		fun swallow (f, m) = pc_fold SM.insert m f
+		fun finish m =
+		    let val s = TextIO.openOut cm_pathconfig
+			fun one (k, v) = TextIO.output (s, concat [k, " ", v, "\n"])
+		    in SM.appi one m; TextIO.closeOut s
+		    end
+		in
+		  finish (pc_fold SM.insert SM.empty cm_pathconfig)
+		end
+	(* register library to be built *)
+	  fun reglib { anchor, altanchor, relname, dir } = let
+	      (* anchor: the anchor name currently used by the library
+	       *   to be registered for compilation
+	       * altanchor: optional alternative anchor name which is
+	       *   to be used once the library is in its final location
+	       *   (this must be used if "anchor" is already bound
+	       *   and used for other libraries which come from the
+	       *   bootfile bundle),
+	       * relname: path to library's .cm file relative to anchor
+	       *   (standard syntax)
+	       * dir: directory name that anchor should be bound to,
+	       *   name is relative to smlnjroot and in standard syntax *)
+		val nrelname = native relname
+		val ndir = native dir
+		val libname = concat ["$", anchor, "/", relname]
+		val adir = P.concat (smlnjroot, ndir)
+		val finalanchor = getOpt (altanchor, anchor)
+		val { dir = nreldir, file = relbase } = P.splitDirFile nrelname
+		val relloc = U.pconcat [nreldir, CM.cm_dir_arc, arch_oskind, relbase]
+		val srcfinalloc = P.concat (adir, relloc)
+		val (finalloc, finalconfigpath) =
+		      (U.pconcat [libdir, finalanchor, relloc], finalanchor)
+		in
+		  if U.fexists finalloc
+		    then (
+		      say ["Library ", libname, " already existed in ",
+		      finalloc, ".  Will rebuild.\n"];
+		      U.rmfile finalloc)
+		    else ();
+		  if U.fexists srcfinalloc then U.rmfile srcfinalloc else ();
+		  if not (U.fexists (P.concat (adir, nrelname)))
+		    then fail [
+			"Source tree for ", libname, " at ",
+			P.concat (adir, nreldir), "(", relbase,
+			") does not exist.\n"
+		      ]
+		    else (
+		      say [
+			  "Scheduling library ", libname, " to be built as ",
+			  finalloc, "\n"
+			];
+		      stablist := (fn () => CM.stabilize false libname) :: !stablist;
+		      #set (CM.Anchor.anchor anchor) (SOME adir);
+		      movlist := movelib srcfinalloc finalloc :: !movlist;
+		      write_cm_pathconfig (finalanchor, finalconfigpath))
+		end (* reglib *)
+	  fun command_pathconfig target =
+		write_cm_pathconfig (target, P.concat (P.parentArc, "bin"))
+	(* build a standalone program, using an auxiliary build script *)
+	  fun standalone { target, optheapdir, dir } = let
+	      (* target: name of program; this is the same as the basename
+	       *   of the heap image to be generated as well as the
+	       *   final arc of the source tree's directory name
+	       * optheapdir: optional subdirectory where the build command
+	       *   drops the heap image
+	       * dir:
+	       *   The source tree for the target, relative to smlnjroot.
+	       *)
+		val heapname = concat [target, ".", heap_suffix]
+		val targetheaploc = (case optheapdir
+		       of NONE => heapname
+			| SOME hd => P.concat (native hd, heapname)
+		      (* end case *))
+		val treedir = P.concat (smlnjroot, native dir)
+		val finalheaploc = P.concat (heapdir, heapname)
+		val alreadyExists = U.fexists finalheaploc
+		in
+		  if alreadyExists
+		    then say ["Target ", target, " already exists; will rebuild.\n"]
+		    else ();
+		  if not (U.fexists treedir)
+		    then fail [
+			"Source tree for ", target, " at ", treedir, " does not exist.\n"
+		      ]
+		    else (
+		      say ["Building ", target, ".\n"];
+		      F.chDir treedir;
+		      if OS.Process.system buildcmd = OS.Process.success
+			then if U.fexists targetheaploc
+			  then (
+			    if alreadyExists
+			      then U.rmfile finalheaploc
+			      else ();
+			    U.rename { old = targetheaploc, new = finalheaploc };
+			    instcmd target;
+			    #set (CM.Anchor.anchor target) (SOME bindir))
+			  else fail ["Built ", target, "; ", heapname, " still missing.\n"]
+			else fail ["Building ", target, " failed.\n"];
+		      command_pathconfig target;
+		      F.chDir smlnjroot)
+		end (* standalone *)
+	(* configure a module *)
+	  fun configure {target, dir} = let
+		val treedir = P.concat (smlnjroot, native dir)
+		in
+		  if not (U.fexists treedir)
+		    then fail [
+			"Source tree for ", target, " at ", treedir, " does not exist.\n"
+		      ]
+		    else (
+		      say ["Configuring ", target, ".\n"];
+		      F.chDir treedir;
+		      if OS.Process.system configcmd = OS.Process.success
+			then ()
+			else fail ["Configuration of ", target, " failed.\n"];
+		      F.chDir smlnjroot)
+		end
+	(* perform the actions for the given module in order of specification *)
+	  fun one module = let
+		fun perform (RegLib (args, justunix)) =
+		      if not justunix orelse isUnix then reglib args else ()
+		  | perform (Anchor ({ anchor, path }, false)) =
+		      #set (CM.Anchor.anchor anchor) (SOME (native path))
+		  | perform (Anchor ({ anchor, path }, true)) =
+		      #set (CM.Anchor.anchor anchor)
+			   (SOME (P.concat (libdir, native path)))
+		  | perform (Program (args, false)) =
+		      standalone args
+		  | perform (Program (args, true)) =
+		      salist := (fn () => standalone args) :: (!salist)
+		  | perform (Config args) = configure args
+		in
+		  case SM.find (actions, module)
+		   of SOME al => app perform (rev al)
+		    | NONE => fail ["unknown module: ", module, "\n"]
+		end
+	  in
+	    ( command_pathconfig "bindir";	(* dummy -- for CM make tool *)
+	      app one modules;
+	      if not (dostabs ())
+		then fail ["stabilization of libraries failed\n"]
+	      else if not (domoves ())
+		then fail ["post stabilization moves failed\n"]
+	      else if not (dolatesas ())
+		then fail ["late compiles failed\n"]
+		else uniqconfig ()
+	    ) handle e => fail ["unexpected exception: ", General.exnMessage e, "\n"];
+	    OS.Process.exit OS.Process.success
+	  end (* proc *)
 
   end

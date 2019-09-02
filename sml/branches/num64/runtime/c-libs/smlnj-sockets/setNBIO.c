@@ -30,7 +30,7 @@ ml_val_t _ml_Sock_setNBIO (ml_state_t *msp, ml_val_t arg)
     sts = fcntl(F_SETFL, sock, n);
 #else
     n = (REC_SEL(arg, 1) == ML_true);
-    sts = ioctl (sock, FIONBIO, (char *)&n);
+    sts = ioctl (sock, FIONBIO, (unsigned long *)&n);
 #endif
 
     CHK_RETURN_UNIT(msp, sts);

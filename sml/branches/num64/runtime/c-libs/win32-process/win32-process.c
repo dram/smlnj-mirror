@@ -128,7 +128,7 @@ ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
 {
     const char *unquoted = STR_MLtoC(arg);
     int unquotedlen = strnlen (unquoted, GET_SEQ_LEN(arg));
-    char *quoted = (char*)malloc((unquotedlen+3)*sizeof(char));
+    char *quoted = (char*)MALLOC((unquotedlen+3)*sizeof(char));
     int ret;
 
     if (quoted == (char *)0) {
@@ -139,7 +139,7 @@ ml_val_t _ml_win32_PS_system (ml_state_t *msp, ml_val_t arg)
     quoted[unquotedlen+1] = '\"';
     quoted[unquotedlen+2] = (char)0;
     ret = system(quoted);
-    free(quoted);
+    FREE(quoted);
 
     return WORD32_CtoML(msp, ret);
 }
@@ -175,13 +175,16 @@ ml_val_t _ml_win32_PS_get_environment_variable (ml_state_t *msp, ml_val_t arg)
 #undef GEV_BUF_SZ
 }
 
-/* _ml_win32_PS_sleep : word32 -> unit
+/* _ml_win32_PS_sleep : word64 -> unit
  *
- * Suspend execution for interval in MILLIseconds.
+ * Suspend execution for interval in nanoseconds.
  */
 ml_val_t _ml_win32_PS_sleep (ml_state_t *msp, ml_val_t arg)
 {
-    Sleep (WORD32_MLtoC(arg));
+    DWORD t = WORD64_MLtoC(arg);
+  /* convert to milliseconds */
+    t = t / 1000;
+    Sleep (t);
     return ML_unit;
 }
 

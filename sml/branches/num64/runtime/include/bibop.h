@@ -41,7 +41,7 @@ typedef Unsigned16_t page_id_t;
 /* L1 table size */
 #define BIBOP_L1_SZ		(1 << BIBOP_L1_BITS)
 /* L2 table size */
-#define BIBOP_L2_SZ		(1 << BIBOP_L1_BITS)
+#define BIBOP_L2_SZ		(1 << BIBOP_L2_BITS)
 /* shift amount to convert address to L1 index */
 #define BIBOP_L1_SHIFT		(BIBOP_L2_BITS + BIBOP_PAGE_BITS)
 /* shift amount to convert address to L2 index */
@@ -103,5 +103,11 @@ extern bibop_t		BIBOP;
 #define BIBOP_UPDATE(bibop, ix, aid)	do { (bibop)[ix] = (aid); } while (0)
 
 #endif /* !SIZES_C64_ML64 */
+
+/* allocate and initialize a Bibop */
+extern bibop_t InitBibop ();
+
+/* free a Bibop */
+extern void FreeBibop (bibop_t bibop);
 
 #endif /* !_BIBOP_ */

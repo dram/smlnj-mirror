@@ -154,7 +154,7 @@ void NewDirtyVector (gen_t *gen)
 	gen->dirty->mapSzB = allocSzB;
     }
     if (gen->dirty == NIL(card_map_t *)) {
-	Die ("unable to malloc dirty vector");
+	Die ("unable to allocate dirty vector");
     }
     gen->dirty->baseAddr = ap->tospBase;
     gen->dirty->numCards = vecSz;
@@ -172,7 +172,7 @@ void NewDirtyVector (gen_t *gen)
  * Mark the BIBOP entries corresponding to the range [baseAddr, baseAddr+szB)
  * with aid.
  */
-void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Word_t szB, aid_t aid)
+void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
 {
 #ifdef SIZES_C64_ML64
     Addr_t base = (Addr_t)baseAddr;
@@ -180,8 +180,8 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Word_t szB, aid_t aid)
     Addr_t np = BIBOP_ADDR_TO_INDEX(szB);
     Addr_t last = start + np;
   /* index range in top-level table */
-    Unsigned32_t topStart = (Unsigned32_t)(start >> BIBOP_L1_SHIFT);
-    Unsigned32_t topLast = (Unsigned32_t)(last >> BIBOP_L1_SHIFT);
+    Unsigned32_t topStart = BIBOP_ADDR_TO_L1_INDEX(start);
+    Unsigned32_t topLast = BIBOP_ADDR_TO_L1_INDEX(last);
 
     if (aid == AID_UNMAPPED) {
 	Unsigned32_t ix, jx, l2Start, l2End;
@@ -203,7 +203,7 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Word_t szB, aid_t aid)
 	    l2End = (ix < topLast) ? BIBOP_L2_SZ : (last & BIBOP_L2_MASK)+1;
 	    if (l2Tbl == UNMAPPED_L2_TBL) {
 		BIBOP[ix] =
-		l2Tbl = (l2_bibop_t *) malloc (sizeof(l2_bibop_t));
+		l2Tbl = NEW_OBJ(l2_bibop_t);
 	      // initialize the part of the new block that is not being assigned
 		for (jx = 0;  jx < l2Start;  jx++) {
 		    l2Tbl->tbl[jx] = AID_UNMAPPED;

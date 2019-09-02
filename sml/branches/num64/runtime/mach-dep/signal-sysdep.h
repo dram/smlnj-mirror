@@ -322,7 +322,9 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_SOLARIS)
      /** x86, Solaris */
+#    define SIG_FAULT1		SIGFPE
 
+#    define SIG_GetCode(info, scp)	((info)->si_code)
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[EIP])
 #    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (int)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
@@ -361,8 +363,7 @@ extern void SetFSR(int);
 
 #elif defined(TARGET_AMD64)
 
-   extern void FPEEnable ();		/* defined in AMD64.prim.asm */
-#  define SIG_InitFPE()    FPEEnable()
+#  define SIG_InitFPE()
 
 #  if defined(OPSYS_LINUX)
     /** AMD64, LINUX **/

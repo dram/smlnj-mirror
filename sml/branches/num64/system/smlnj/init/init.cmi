@@ -125,7 +125,7 @@ bind order = order.sml (primitive)
 # Minimal support for arbitrary-precision integers.
 ifdef SIZE_32 \
 	bind coreintinf = target32-core-intinf.sml (rts, order, primitive)
-ifndef SIZE_32 \
+ifdef SIZE_64 \
 	bind coreintinf = target64-core-intinf.sml (rts, order, primitive)
 
 # Minimal support for (simulated) 64-bit words on 32-bit target
@@ -142,7 +142,7 @@ ifdef SIZE_32 \
 # yet have access to _Core.)
 ifdef SIZE_32 \
 	bind core = target32-core.sml (rts, asig, coreintinf, coreword64, coreint64, primitive)
-ifndef SIZE_32 \
+ifdef SIZE_64 \
 	bind core = target64-core.sml (rts, asig, coreintinf, primitive)
 
 # Now we make the binding for structure _Core for use by the remaining
@@ -158,7 +158,7 @@ bind-core (xCore) xcore = xcore.sml (core)
 # (Everybody implicitly depends on xcore to have access to _Core.)
 ifdef SIZE_32 \
 	bind inline = target32-inline.sml (core, primitive, xcore)
-ifndef SIZE_32 \
+ifdef SIZE_64 \
 	bind inline = target64-inline.sml (core, primitive, xcore)
 ifdef ARCH_PPC \
 	bind math-inlT = math-built-in-none.sml (core, primitive, xcore)
@@ -195,8 +195,16 @@ ifdef SIZE_32 \
 						     coreintinf, \
 						     coreword64, coreint64, \
 						     math-inlT, inline, xcore)
+ifdef SIZE_64 \
+	bind-core (xCore) pervasive = pervasive.sml (core, ps, ss, pp, print-hook, \
+						     use-hook, exn-info-hook, \
+						     coreintinf, \
+						     math-inlT, inline, xcore)
 
 # Report the results to the world...
 ifdef SIZE_32 \
 	return (pervasive) inline math-inlT print-hook use-hook exn-info-hook core \
 			   init-utils rawmem coreintinf coreword64 coreint64
+ifdef SIZE_64 \
+	return (pervasive) inline math-inlT print-hook use-hook exn-info-hook core \
+			   init-utils rawmem coreintinf

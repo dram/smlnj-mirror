@@ -1,6 +1,6 @@
 -- cps.asdl
 --
--- COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+-- COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
 -- All rights reserved.
 --
 -- ASDL description of the CPS IR.
@@ -93,16 +93,28 @@ module CPS_Prim (import CPS_Type) {
 
     numkind = INT | UINT | FLT attributes (int)
 
-  -- FIXME: this type is not identical to Primop.arithop that is defined in
-  -- ElabData/prim/primop.sml, so we should really just use it!
+  -- arithmetic operations that may overflow; for the division operators,
+  -- we assume that the second argument is never zero (i.e., an explicit
+  -- test for zero is done before the operation).
+  -- NOTE: this type is defined in the ArithOps structure (ElabData/prim/arithops.sml)
     arithop
-      = ADD | SUB | MUL | DIV | MOD | QUOT | REM | FDIV
-      | LSHIFT | RSHIFT | RSHIFTL | ANDB | ORB | XORB
-      | NEG | FABS | NOTB
-      | FSQRT | FSIN | FCOS | FTAN
+      = IADD | ISUB | IMUL | IDIV | IMOD | IQUOT | IREM | INEG
 
+  -- arithmetic operations that do not overflow; for the division operators,
+  -- we assume that the second argument is never zero (i.e., an explicit
+  -- test for zero is done before the operation).
+  -- NOTE: this type is defined in the ArithOps structure (ElabData/prim/arithops.sml)
+    pureop
+      = ADD | SUB | MUL | QUOT | REM | NEG
+      | LSHIFT | RSHIFT | RSHIFTL
+      | ORB | XORB | ANDB | NOTB
+      | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN
+
+  -- comparison operators
+  -- NOTE: this type is defined in the ArithOps structure (ElabData/prim/arithops.sml)
     cmpop = GT | GTE | LT | LTE | EQL | NEQ
 
+  -- fcmpop conforms to the IEEE std 754 predicates.
     fcmpop
       = F_EQ	-- =
       | F_ULG	-- ?<>
@@ -119,6 +131,7 @@ module CPS_Prim (import CPS_Type) {
       | F_LG	-- <>
       | F_UE	-- ?=
 
+  -- These are two-way branches dependent on pure inputs
     branch
       = CMP (cmpop oper, bool signed)
       | FCMP (fcmpop oper, int size)
@@ -164,8 +177,9 @@ module CPS_Prim (import CPS_Type) {
       | TRUNC_INF (int)
       | INT_TO_REAL (int from, int to)
       | SUBSCRIPTV
-      | GETTAG | MKSPECIAL | WRAP | UNWRAP | CAST | GETCON | GETEXN
+      | GETTAG | MKSPECIAL | CAST | GETCON | GETEXN
       | BOX | UNBOX
+  -- tagging/boxing of numbers; numkind should be either `INT` or `FLOAT`
       | WRAP (numkind) | UNWRAP (numkind)
       | FWRAP | FUNWRAP | IWRAP | IUNWRAP | I32WRAP | I32UNWRAP
       | GETSEQDATA | RECSUBSCRIPT | RAW64SUBSCRIPT | NEWARRAY0

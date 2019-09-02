@@ -412,7 +412,12 @@ structure PrimopBindings : sig
    * system/smlnj/init/core-int64.sml, and system/smlnj/init/core-word64.sml
    *)
     val prims = if Target.is64
-	  then prims (* 64BIT: FIXME *)
+	  then prims :-:
+	      ("trunc_int64_to_word", ar(BT.int64Ty, BT.wordTy), P.TRUNC(64, intSz)) :-:
+	      ("trunc_word64_to_int", ar(BT.word64Ty, BT.intTy), P.TRUNC(64, intSz)) :-:
+	      ("copy_int64_to_word64", ar(BT.int64Ty, BT.word64Ty), P.COPY(64, 64)) :-:
+	      ("copy_word_to_int64", ar(BT.wordTy, BT.int64Ty), P.COPY(intSz, 64)) :-:
+	      ("copy_word64_to_int64", ar(BT.word64Ty, BT.int64Ty), P.COPY(64, 64))
 	  else let
 	    in
 	      prims :-:
@@ -451,6 +456,7 @@ structure PrimopBindings : sig
 	    r2i("floor_real64_to_int", true) :-:
 	    r2i("round_real64_to_int", false) :-:
 	    i2r("int_to_real64", BT.intTy, intSz) :-:
+(* FIXME: add "word_to_real64" *)
 	    (if Target.is64
 	      then i2r("int64_to_real64", BT.int64Ty, 64)
 	      else i2r("int32_to_real64", BT.int32Ty, 32))
