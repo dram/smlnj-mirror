@@ -113,7 +113,7 @@ is
 #if defined(TARGET_SIZE_32)
         mlcomp/target32.sml
 #elif defined(TARGET_SIZE_64)
-        mlcomp/target64.sml 
+        mlcomp/target64.sml
         (* falling back on host-specific size spec *)
 #elif defined(SIZE_32)
 	mlcomp/target32.sml
