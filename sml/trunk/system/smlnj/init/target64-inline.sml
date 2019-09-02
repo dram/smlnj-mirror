@@ -206,14 +206,6 @@ structure InlineT =
 	val toLargeIntX : word -> intinf  = InLine.signed_word_to_intinf
 	val fromLargeInt : intinf -> word = InLine.intinf_to_word
 
-      (* extra conversions to 32-bits *)
-(* 64BIT: not sure if we need these? *)
-(*
-	val toInt32 : word -> int32 = InLine.copy_word_to_int32
-	val toWord32 : word -> word32 = InLine.word_to_word32
-	val fromWord32 : word32 -> word = InLine.word32_to_word
-*)
-
         val orb     : word * word -> word = InLine.word_orb
         val xorb    : word * word -> word = InLine.word_xorb
         val andb    : word * word -> word = InLine.word_andb
@@ -251,10 +243,9 @@ structure InlineT =
 	val toLargeIntX   = InLine.signed_word8_to_intinf
 	val fromLargeInt  = InLine.intinf_to_word8
 
-      (* temporary framework, because the actual word8 operators
-       * are not implemented*)
-	(* WARNING! some of the following operators
-	 *          don't get the high-order bits right *)
+      (* Note that the word8 arithmetic operations are clamped to 8-bits
+       * in pervasive.sml.
+       *)
         val orb : word8 * word8 -> word8	= InLine.word8_orb
         val xorb : word8 * word8 -> word8	= InLine.word8_xorb
         val andb : word8 * word8 -> word8	= InLine.word8_andb
