@@ -165,8 +165,14 @@ structure ContractPrim : sig
 	    | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.RSHIFT, kind=P.INT sz}, [NUM i, NUM j]) =>
 		SOME(NUM{ival = CA.sShR(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.RSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.sShR(sz, CA.toSigned(sz, #ival i), #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.RSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) => let
+	      (* to get the sign-extension right, we need to convert to a signed literal
+	       * and then back to unsigned.
+	       *)
+		val res = CA.toUnsigned(sz, CA.sShR(sz, CA.toSigned(sz, #ival i), #ival j))
+		in
+		  SOME(NUM{ival = res, ty = #ty i})
+		end
 	    | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [i as NUM{ival=0, ...}, _]) => SOME i
 	    | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [v, NUM{ival=0, ...}]) => SOME v
 	    | (P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT sz}, [NUM i, NUM j]) =>
