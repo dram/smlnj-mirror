@@ -93,6 +93,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/09/02]::
++
+Rewrote the expansion of the `INLLSHIFT`, `INLRSHIFTL`, and `INLRSHIFT`
+primops (`compiler/FLINT/trans/transprim.sml`).  The expansion process
+now correctly handles shift operations on types that are smaller than
+the default tagged-integer size.  This change allows the `Word8` shift
+operations to be inlined.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2019/09/02]::
