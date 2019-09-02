@@ -93,6 +93,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+
+//--------------------------------------------------------------------
+[2019/09/02]::
++
+Fixed a bug in the constant folding of arithmetic-right-shift operations.
+The sign was not getting extended for words when the most-significant-bit
+was set.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/08/25]::
 +
