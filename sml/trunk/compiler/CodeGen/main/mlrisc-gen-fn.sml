@@ -1432,6 +1432,17 @@ functor MLRiscGen (
 			then defTAGINT (x, M.SUB (ity, two, regbind v), e, hp)
 			else defINT (x, M.SUB(ity, zero, regbind v), e, hp)
 		    end
+		| gen (C.PURE(P.COPY{from, to}, [v], x, _, e), hp) =
+		    if (from = to)
+		      then copy(x, v, e, hp)
+		    else if (from = Target.defaultIntSz) andalso (to = ity)
+		      then defINT (x, M.SRL(ity, regbind v, one), e, hp)
+		    else if (from < Target.defaultIntSz)
+		      then if (to <= Target.defaultIntSz)
+			then copy (x, v, e, hp)
+			else defINT (x, M.SRL(ity, regbind v, one), e, hp)
+		      else error "gen:PURE:COPY"
+(*
 		| gen (C.PURE(P.COPY{from=8, to}, [v], x, _, e), hp) =
 		    if (to <= Target.defaultIntSz)
 		      then copy (x, v, e, hp)
@@ -1442,8 +1453,24 @@ functor MLRiscGen (
 		    else if (from = Target.defaultIntSz) andalso (to = ity)
 		      then defINT (x, M.SRL(ity, regbind v, one), e, hp)
 		      else error "gen:PURE:COPY"
+*)
 		| gen (C.PURE(P.COPY_INF _, _, _, _, _), hp) =
 		    error "gen:PURE:COPY_INF"
+		| gen (C.PURE(P.EXTEND{from, to}, [v], x, _ ,e), hp) =
+		    if (from = to)
+		      then copy(x, v, e, hp)
+		    else if (from = Target.defaultIntSz) andalso (to = ity)
+		      then defINT (x, M.SRA(ity, regbind v, one), e, hp)
+		    else if (from < Target.defaultIntSz)
+		      then let
+			val sa = IntInf.fromInt(Target.defaultIntSz - from)
+			in
+			  if (to <= Target.defaultIntSz)
+			    then defTAGINT (x, M.SRA(ity, M.SLL(ity, regbind v, LI sa), LI sa), e, hp)
+			    else defINT (x, M.SRA(ity, M.SLL(ity, regbind v, LI sa), LI(sa+1)), e, hp)
+			end
+		      else error "gen:PURE:EXTEND"
+(*
 		| gen (C.PURE(P.EXTEND{from=8, to}, [v], x, _ ,e), hp) = let
 		    val sa = IntInf.fromInt(Target.defaultIntSz - 8)
 		    in
@@ -1457,17 +1484,24 @@ functor MLRiscGen (
 		    else if (from = Target.defaultIntSz) andalso (to = ity)
 		      then defINT (x, M.SRA(ity, regbind v, one), e, hp)
 		      else error "gen:PURE:EXTEND"
+*)
 		| gen (C.PURE(P.EXTEND_INF _, _, _, _, _), hp) =
 		    error "gen:PURE:EXTEND_INF"
 		| gen (C.PURE(P.TRUNC{from, to}, [v], x, _, e), hp) =
 		    if (from = to)
 		      then copy(x, v, e, hp)
-		    else if (to = 8)
-		      then if (from <= Target.defaultIntSz)
-			then defTAGINT (x, M.ANDB(ity, regbind v, LI 0x1ff), e, hp) (* mask includes tag bit *)
-			else defTAGINT (x, tagUnsigned(M.ANDB(ity, regbind v, LI 0xff)), e, hp)
 		    else if (from = ity) andalso (to = Target.defaultIntSz)
 		      then defTAGINT (x, M.ORB(ity, M.SLL(ity, regbind v, one), one), e, hp)
+		    else if (to < Target.defaultIntSz)
+		      then let
+			val mask = if (from <= Target.defaultIntSz)
+			      then LI(IntInf.<<(1, Word.fromInt(from+1)) - 1) (* mask includes tag bit *)
+			      else LI(IntInf.<<(1, Word.fromInt from) - 1)
+			in
+			  if (from <= Target.defaultIntSz)
+			    then defTAGINT (x, M.ANDB(ity, regbind v, mask), e, hp)
+			    else defTAGINT (x, tagUnsigned(M.ANDB(ity, regbind v, mask)), e, hp)
+			end
 		      else error "gen:PURE:trunc"
 		| gen (C.PURE(P.TRUNC_INF _, _, _, _, _), hp) =
 		    error "gen:PURE:TRUNC_INF"
@@ -1671,6 +1705,30 @@ functor MLRiscGen (
 		      then copy(x, v, e, hp)
 		    else if (from = ity)
 		      then (updtHeapPtr hp; defTAGINT(x, tagSigned(regbind v), e, 0))
+		    else if (from <= Target.defaultIntSz)
+		      then let
+		      (* conversion between tagged integers of different sizes *)
+			val maxToInt = IntInf.<<(1, Word.fromInt(to - 1)) - 1
+			val minToInt = ~(maxToInt + 1)
+			val lab = newLabel ()
+			val vreg = regbind v
+			val tmp = Cells.newReg()
+			val tmpR = M.REG(ity, tmp)
+			in
+			  updtHeapPtr hp;
+			  emit(branchWithProb(
+			    M.BCC(M.CMP(ity, M.LEU, vreg, LI maxToInt), lab),
+			    SOME Probability.likely));
+			  emit(branchWithProb(
+			    M.BCC(M.CMP(ity, M.LEU, LI minToInt, vreg), lab),
+			    SOME Probability.likely));
+			(* generate a trap by adding allOnes' to itself.  This code assumes that
+			 * ity = Target.defaultIntSz+1.
+			 *)
+			  emit(M.MV(ity, tmp, M.ADDT(ity, tmpR, tmpR)));
+			  defineLabel lab;
+			  defTAGINT(x, vreg, e, 0)
+			end
 		      else error "gen:ARITH:TEST with unexpected precisions (not implemented)"
 		| gen (C.ARITH(P.TEST_INF _, _, _, _, _), hp) =
 		    error "gen:ARITH:TEST_INF"
