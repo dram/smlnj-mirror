@@ -141,20 +141,34 @@ structure InlineT =
 	val toLarge = InLine.int32_to_intinf
 	val fromLarge = InLine.intinf_to_int32
 
-        val op *    : int32 * int32 -> int32  = InLine.int32_mul
-        val op quot : int32 * int32 -> int32  = InLine.int32_quot
+	local
+	(* wrapper that checks the result for Overflow.  Note that
+         * this wrapper breaks the inlining of Word32 arithmetic!
+	 *)
+	  fun i32chk oper args = let
+		val res = oper args
+		in
+		  if InLine.int_lt(toInt res, ~2147483648)
+		  orelse InLine.int_lt(2147483647, toInt res)
+		    then raise Assembly.Overflow
+		    else res
+		end
+	in
+        val op +    : int32 * int32 -> int32  = i32chk InLine.int32_add
+        val op -    : int32 * int32 -> int32  = i32chk InLine.int32_sub
+        val op *    : int32 * int32 -> int32  = i32chk InLine.int32_mul
+        val op quot : int32 * int32 -> int32  = i32chk InLine.int32_quot
         val op rem  : int32 * int32 -> int32  = InLine.int32_rem
-        val op div  : int32 * int32 -> int32  = InLine.int32_div
+        val op div  : int32 * int32 -> int32  = i32chk InLine.int32_div
         val op mod  : int32 * int32 -> int32  = InLine.int32_mod
-        val op +    : int32 * int32 -> int32  = InLine.int32_add
-        val op -    : int32 * int32 -> int32  = InLine.int32_sub
-        val ~       : int32 -> int32          = InLine.int32_neg
+        val ~       : int32 -> int32          = i32chk InLine.int32_neg
         val op <    : int32 * int32 -> bool   = InLine.int32_lt
         val op <=   : int32 * int32 -> bool   = InLine.int32_le
         val op >    : int32 * int32 -> bool   = InLine.int32_gt
         val op >=   : int32 * int32 -> bool   = InLine.int32_ge
         val op =    : int32 * int32 -> bool   = InLine.int32_eql
         val op <>   : int32 * int32 -> bool   = InLine.int32_neq
+	end (* local *)
 
         val min     : int32 * int32 -> int32  = InLine.int32_min
         val max     : int32 * int32 -> int32  = InLine.int32_max
@@ -207,6 +221,11 @@ structure InlineT =
 	val toLargeInt : word -> intinf	  = InLine.unsigned_word_to_intinf
 	val toLargeIntX : word -> intinf  = InLine.signed_word_to_intinf
 	val fromLargeInt : intinf -> word = InLine.intinf_to_word
+
+      (* extra conversions *)
+	val toInt64 : word -> int64 = InLine.copy_word_to_int64
+	val toWord64 : word -> word64 = InLine.word_to_word64
+	val fromWord64 : word64 -> word = InLine.word64_to_word
 
         val orb     : word * word -> word = InLine.word_orb
         val xorb    : word * word -> word = InLine.word_xorb
@@ -289,13 +308,19 @@ structure InlineT =
 	val toLargeIntX			 = InLine.signed_word32_to_intinf
 	val fromLargeInt		 = InLine.intinf_to_word32
 
+	local
+	(* wrapper that clamps the result of an operation to 32 bits.  Note
+         * that this wrapper breaks the inlining of Word32 arithmetic!
+	 *)
+	  fun w32adapt oper args = InLine.word32_andb(oper args, 0wxFFFFFFFF)
+	in
         val orb : word32 * word32 -> word32	 = InLine.word32_orb
         val xorb : word32 * word32 -> word32	 = InLine.word32_xorb
         val andb : word32 * word32 -> word32	 = InLine.word32_andb
-        val op * : word32 * word32 -> word32	 = InLine.word32_mul
-        val op + : word32 * word32 -> word32	 = InLine.word32_add
-        val op - : word32 * word32 -> word32	 = InLine.word32_sub
-	val ~ : word32 -> word32		 = InLine.word32_neg
+        val op * : word32 * word32 -> word32	 = w32adapt InLine.word32_mul
+        val op + : word32 * word32 -> word32	 = w32adapt InLine.word32_add
+        val op - : word32 * word32 -> word32	 = w32adapt InLine.word32_sub
+	val ~ : word32 -> word32		 = w32adapt InLine.word32_neg
         val op div : word32 * word32 -> word32	 = InLine.word32_div
         val op mod : word32 * word32 -> word32	 = InLine.word32_mod
         val op > : word32 * word32 -> bool	 = InLine.word32_gt
@@ -304,11 +329,12 @@ structure InlineT =
         val op <= : word32 * word32 -> bool	 = InLine.word32_le
         val rshift : word32 * word -> word32     = InLine.word32_raw_rshift
         val rshiftl : word32 * word -> word32    = InLine.word32_raw_rshiftl
-        val lshift : word32 * word -> word32     = InLine.word32_raw_lshift
+        val lshift : word32 * word -> word32     = w32adapt InLine.word32_raw_lshift
         val notb : word32 -> word32              = InLine.word32_notb
-	val chkLshift  : word32 * word -> word32 = InLine.word32_lshift
 	val chkRshift  : word32 * word -> word32 = InLine.word32_rshift
 	val chkRshiftl : word32 * word -> word32 = InLine.word32_rshiftl
+	val chkLshift  : word32 * word -> word32 = w32adapt InLine.word32_lshift
+	end (* local *)
 
         val min     : word32 * word32 -> word32  = InLine.word32_min
         val max     : word32 * word32 -> word32  = InLine.word32_max
@@ -472,8 +498,8 @@ structure InlineT =
     structure Pointer =
       struct
 	type t = c_pointer
-	fun hash cp = Word.fromLarge(Word64.rshiftl(InLine.cptr_to_word64 cp, 0w2))
-	fun toWord cp = Word64.toLarge(InLine.cptr_to_word64 cp)
+	val toWord64 = InLine.cptr_to_word64
+	val fromWord64 = InLine.word64_to_cptr
       end
 
    end  (* structure InlineT *)

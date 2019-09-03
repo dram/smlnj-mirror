@@ -318,9 +318,9 @@ structure InlineT =
         val rshiftl : word32 * word -> word32    = InLine.word32_raw_rshiftl
         val lshift : word32 * word -> word32     = InLine.word32_raw_lshift
         val notb : word32 -> word32              = InLine.word32_notb
-	val chkLshift  : word32 * word -> word32 = InLine.word32_lshift
 	val chkRshift  : word32 * word -> word32 = InLine.word32_rshift
 	val chkRshiftl : word32 * word -> word32 = InLine.word32_rshiftl
+	val chkLshift  : word32 * word -> word32 = InLine.word32_lshift
 
         val min     : word32 * word32 -> word32  = InLine.word32_min
         val max     : word32 * word32 -> word32  = InLine.word32_max
