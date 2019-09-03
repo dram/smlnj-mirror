@@ -50,8 +50,7 @@ structure POSIX_FileSys =
           if omode = o_rdonly then O_RDONLY
           else if omode = o_wronly then O_WRONLY
           else if omode = o_rdwr then O_RDWR
-          else raise Fail ("POSIX_FileSys.omodeFromWord: unknown mode 0x"^
-                                  (Word32.toString omode))
+          else raise Fail("POSIX_FileSys.omodeFromWord: unknown mode 0x"^SysWord.toString omode)
 
     fun omodeToWord O_RDONLY = o_rdonly
       | omodeToWord O_WRONLY = o_wronly

@@ -23,7 +23,7 @@ structure PackWord64Little : PACK_WORD =
     fun x ++ y = InlineT.Int.fast_add(x, y)
 
     val bytesPerElem = 8
-    val isBigEndian = true
+    val isBigEndian = false
 
   (* convert the byte length into word64 length (n div 8), and check the index *)
     fun chkIndex (len, i) = let
@@ -35,19 +35,19 @@ structure PackWord64Little : PACK_WORD =
   (* scale word64 index to byte index *)
     fun scale i = Word.toIntX(Word.lshift(Word.fromInt i, 0w3))
 
-    val w8ToW64 = W32.fromLarge o W8.toLarge
-    val w64ToW8 = W8.fromLarge o W32.toLarge
+    val w8ToW64 = W64.fromLarge o W8.toLarge
+    val w64ToW8 = W8.fromLarge o W64.toLarge
 
   (* make a word64 from little-endian-order bytes [b1, ..., b8] *)
-    fun mkWord32 (b1, b2, b3, b4, b5, b6, b7, b8) = let
+    fun mkWord (b1, b2, b3, b4, b5, b6, b7, b8) = let
 	  val w = w8ToW64 b8
-	  val w = W64.orb(W64.<<(w, 0w8), w8ToW64 b7)
-	  val w = W64.orb(W64.<<(w, 0w8), w8ToW64 b6)
-	  val w = W64.orb(W64.<<(w, 0w8), w8ToW64 b5)
-	  val w = W64.orb(W64.<<(w, 0w8), w8ToW64 b4)
-	  val w = W64.orb(W64.<<(w, 0w8), w8ToW64 b3)
-	  val w = W64.orb(W64.<<(w, 0w8), w8ToW64 b2)
-	  val w = W64.orb(W64.<<(w, 0w8), w8ToW64 b1)
+	  val w = W64.orb(W64.lshift(w, 0w8), w8ToW64 b7)
+	  val w = W64.orb(W64.lshift(w, 0w8), w8ToW64 b6)
+	  val w = W64.orb(W64.lshift(w, 0w8), w8ToW64 b5)
+	  val w = W64.orb(W64.lshift(w, 0w8), w8ToW64 b4)
+	  val w = W64.orb(W64.lshift(w, 0w8), w8ToW64 b3)
+	  val w = W64.orb(W64.lshift(w, 0w8), w8ToW64 b2)
+	  val w = W64.orb(W64.lshift(w, 0w8), w8ToW64 b1)
 	  in
 	    w
 	  end
@@ -82,13 +82,13 @@ structure PackWord64Little : PACK_WORD =
 	  val _ = chkIndex (W8A.length arr, i)
 	  val k = scale i
 	  in
-	    W8A.update (arr, k,   w64ToW8(W.>>(w, 0w56)));
-	    W8A.update (arr, k+1, w64ToW8(W.>>(w, 0w48)));
-	    W8A.update (arr, k+2, w64ToW8(W.>>(w, 0w40)));
-	    W8A.update (arr, k+3, w64ToW8(W.>>(w, 0w32)));
-	    W8A.update (arr, k+4, w64ToW8(W.>>(w, 0w24)));
-	    W8A.update (arr, k+5, w64ToW8(W.>>(w, 0w16)));
-	    W8A.update (arr, k+6, w64ToW8(W.>>(w,  0w8)));
+	    W8A.update (arr, k,   w64ToW8(W64.rshiftl(w, 0w56)));
+	    W8A.update (arr, k+1, w64ToW8(W64.rshiftl(w, 0w48)));
+	    W8A.update (arr, k+2, w64ToW8(W64.rshiftl(w, 0w40)));
+	    W8A.update (arr, k+3, w64ToW8(W64.rshiftl(w, 0w32)));
+	    W8A.update (arr, k+4, w64ToW8(W64.rshiftl(w, 0w24)));
+	    W8A.update (arr, k+5, w64ToW8(W64.rshiftl(w, 0w16)));
+	    W8A.update (arr, k+6, w64ToW8(W64.rshiftl(w,  0w8)));
 	    W8A.update (arr, k+7, w64ToW8      w)
 	  end
 

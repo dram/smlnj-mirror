@@ -22,7 +22,7 @@ structure NumScan32 : sig
 
     type word32 = Word32.word
 
-    val toWord32 = InlineT.Word.toWord32
+    fun toWord32 w = InlineT.Word32.fromLarge(InlineT.Word.toLarge w)
 
     val largestWordDiv10 : word32 = 0w429496729	(* 2^32-1 divided by 10 *)
     val largestWordMod10 : word32 = 0w5		(* remainder *)

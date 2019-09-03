@@ -10,9 +10,6 @@ structure Word64Imp : sig
 
     include WORD
 
-    val extern : word -> Word32.word * Word32.word
-    val intern : Word32.word * Word32.word -> word
-
   end = struct
 
     structure W64 = InlineT.Word64
@@ -21,9 +18,6 @@ structure Word64Imp : sig
     type word = Word64.word	(* from Basis/TypesOnly *)
 
     fun unimplemented _ = raise Fail "unimplemented"
-
-    val extern = W64.extern
-    val intern = W64.intern
 
     val wordSize = 64
 

@@ -142,5 +142,11 @@ end = struct
 	  in
 	    function cfun
 	  end
+(* DEBUG *)handle ex => (
+Control.Print.say(concat["***** exception (", General.exnName ex, ")\n"]);
+Control.Print.say "***********************************************\n";
+PPCps.printcps0 cfun;
+Control.Print.say "***********************************************\n";
+raise ex)
 
   end
