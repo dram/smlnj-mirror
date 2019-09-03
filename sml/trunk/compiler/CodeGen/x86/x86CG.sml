@@ -83,7 +83,7 @@ functor X86CG (structure CCallParams: sig val frameAlign : int
 	   structure MLTreeStream = X86MLTreeStream
            datatype arch = Pentium | PentiumPro | PentiumII | PentiumIII
            val arch = ref Pentium (* Lowest common denominator *)
-           fun cvti2f{src,ty,an} = let (* ty is always 32 for SML/NJ *)  (* 64BIT: FIXME *)
+           fun cvti2f {src, ty, an} = let (* ty is always 32 for SML/NJ *)
 (* QUESTION: should "304" be X86Runtime.fpTempMemOff, which is 376? *)
 	       val tempMem = I.Displace{base=base(), disp=I.Immed 304, mem=stack}
 	       in {
