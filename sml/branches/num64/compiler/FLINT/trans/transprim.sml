@@ -39,7 +39,6 @@ structure TransPrim : sig
     val lt_ipair = lt_tup [lt_int, lt_int]
     val lt_icmp = lt_arw (lt_ipair, lt_bool)
     val lt_intop1 = lt_arw (lt_int, lt_int)
-    val lt_intop2 = lt_arw (lt_ipair, lt_int)
 
     val unitLexp = L.RECORD[]
 
@@ -56,9 +55,6 @@ structure TransPrim : sig
 
   (* unsigned comparison on tagged integers used for bounds checking *)
     val LESSU = L.PRIM(PO.CMP{oper=PO.LT, kind=PO.UINT Tgt.defaultIntSz}, lt_icmp, [])
-
-  (* unsigned addition on default words *)
-    val ADD = L.PRIM(PO.PURE_ARITH{oper=PO.ADD, kind=PO.UINT Tgt.defaultIntSz}, lt_intop2, [])
 
     val lt_len = LT.ltc_poly([LT.tkc_mono], [lt_arw(LT.ltc_tv 0, lt_int)])
     val lt_upd = let
