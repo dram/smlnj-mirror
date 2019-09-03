@@ -883,7 +883,7 @@ and g hdlr = let
 			    else PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2)
 		      | PURE(P.EXTEND_INF n2, [v2, f], x2, t2, e2) =>
 			  if cvtPreCondition (n, n2, x, v2)
-			    then PURE(P.EXTEND_INF m, [ren v], x2, t2, g' e2)
+			    then PURE(P.EXTEND_INF m, [ren v, ren f], x2, t2, g' e2)
 			    else skip ()
 		      | _ => skip ()
 		    (* end case *)
