@@ -461,7 +461,7 @@ is
 #else
 	Target64Bit/bind-structs.sml
 	Target64Bit/int.sml
-	Target32Bit/int64.sml
+	Target64Bit/int64.sml
 	Target64Bit/pack-word-b64.sml
 	Target64Bit/pack-word-l64.sml
 	Target64Bit/pointer.sml

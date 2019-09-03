@@ -21,7 +21,7 @@ structure PointerImp =
     val toWord = InlineT.Pointer.toWord64
 
   (* convert a pointer to its bit representation in the LargeWord type *)
-    val toLargeWord = AddrWord.toLarge o InlineT.Pointer.AddrWord
+    val toLargeWord = AddrWord.toLarge o InlineT.Pointer.toWord64
 
   (* compare two pointers *)
     fun compare (p, q) = if (p = q) then EQUAL

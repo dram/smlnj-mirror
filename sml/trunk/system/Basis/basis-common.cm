@@ -271,4 +271,6 @@ is
 
 #else (* 64-bits *)
 
+	Exports/bind-target-64-bit.sml
+
 #endif

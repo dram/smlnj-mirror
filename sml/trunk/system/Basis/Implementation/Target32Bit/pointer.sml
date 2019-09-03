@@ -6,9 +6,6 @@
  * Implementation of raw runtime-system pointers for 32-bit targets.
  *)
 
-local
-  structure AddrWord = Word32Imp
-in
 structure PointerImp =
   struct
 
@@ -35,4 +32,3 @@ structure PointerImp =
     fun hash cp = InlineT.Word.fromWord32(AddrWord.>>(InlineT.Pointer.toWord32 cp, 0w2))
 
   end
-end (* local *)

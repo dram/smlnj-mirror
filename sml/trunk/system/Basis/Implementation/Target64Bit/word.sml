@@ -66,7 +66,7 @@ structure WordImp : WORD =
 	  val scanLarge = NumScan64.scanWord radix
 	  fun scan getc cs = (case (scanLarge getc cs)
 		 of NONE => NONE
-		  | (SOME(w, cs')) => if InlineT.Word32.>(w, 0wx7FFFFFFF)
+		  | (SOME(w, cs')) => if InlineT.Word64.>(w, 0wx7FFFFFFFFFFFFFFF)
 		      then raise Overflow
 		      else SOME(Word.fromLarge w, cs')
 		(* end case *))
