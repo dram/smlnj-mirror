@@ -93,14 +93,27 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.93; 2019/09/05
+
+//--------------------------------------------------------------------
+[2019/09/03]::
++
+Generalize code generation for conversions involving tagged integers/words,
+where the size is _not_ the default integer size.  This situation only
+occurred for `Word8.word` values on 32-bit targets, but also occurs for
+32-bit values on 64-bit targets.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/09/02]::
 +
 Rewrote the expansion of the `INLLSHIFT`, `INLRSHIFTL`, and `INLRSHIFT`
 primops (`compiler/FLINT/trans/transprim.sml`).  The expansion process
 now correctly handles shift operations on types that are smaller than
-the default tagged-integer size.  This change allows the `Word8` shift
-operations to be inlined.
+the default tagged-integer size.  This change also allows the `Word8`
+shift operations to be inlined.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
@@ -172,7 +185,7 @@ a missing `CloseHandle()` when getting a file's timestamp.
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //====================================================================
-== Version 110.91; 2019/08/10
+== Version 110.92; 2019/08/10
 
 //--------------------------------------------------------------------
 [2019/08/08]::

@@ -1,5 +1,5 @@
 :version: 110.93
-:date: September ??, 2019
+:date: September 5, 2019
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -58,8 +58,18 @@ and resume the build.
 
 === Compiler
 
-Restructured the CPS contraction phase to make the fusion of
-integer/word conversions more uniform.
+--
+  * Restructured the CPS contraction phase to make the fusion of
+    integer/word conversions more uniform.
+
+  * Rewrote the expansion of the `INLLSHIFT`, `INLRSHIFTL`, and `INLRSHIFT`
+    primops to correcly handle shift operations on types that are smaller
+    than the default integer size.  This change also allows the `Word8`
+    shift operations to be inlined.
+
+  * Generalize code generation for conversions involving tagged integers/words,
+    where the size is _not_ the default integer size.
+--
 
 === Runtime System
 
@@ -89,6 +99,8 @@ The following unnumbered bugs were also fixed:
 
   * `Real.toManExp` computed an exponent that was off by one.  This bug also
     broke the `Real.toLargeInt` function.
+
+  * Fixed a bug in the constant folding of arithmetic-right-shift operations.
 --
 
 
