@@ -525,7 +525,9 @@ functor MLRiscGen (
 		      ListPair.app addTypBinding (vl, tl)
 		    end (* initialRegBindingsKnown *)
 
-	    (* Keep allocation pointer aligned on odd boundary
+	    (* Keep allocation pointer aligned on odd boundary.  This function must be
+	     * called before any instruction that might raise an exception, since we want
+	     * the allocation pointer to be correct.
 	     * Note: We have accounted for the extra space this eats up in
 	     *    limit.sml
 	     *)
@@ -1654,7 +1656,7 @@ functor MLRiscGen (
 			  emit(M.MV(ity, tmp, allOnes'));
 			  updtHeapPtr hp;
 			  emit(branchWithProb(
-			    M.BCC(M.CMP(ity, M.LEU, vreg, tmpR),lab),
+			    M.BCC(M.CMP(ity, M.LEU, vreg, tmpR), lab),
 			    SOME Probability.likely));
 			(* generate a trap by adding allOnes' to itself.  This code assumes that
 			 * ity = Target.defaultIntSz+1.
@@ -1668,7 +1670,6 @@ functor MLRiscGen (
 		    if (from = to)
 		      then copy(x, v, e, hp)
 		    else if (from = ity)
-(* QUESTION: why is there a call to updtHeapPtr here? *)
 		      then (updtHeapPtr hp; defTAGINT(x, tagSigned(regbind v), e, 0))
 		      else error "gen:ARITH:TEST with unexpected precisions (not implemented)"
 		| gen (C.ARITH(P.TEST_INF _, _, _, _, _), hp) =
