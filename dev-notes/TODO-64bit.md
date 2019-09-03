@@ -70,15 +70,12 @@ as **DONE**, even though they are not changed.
     **[DONE; 110.89]**
 
   * `compiler/CodeGen/main/mlrisc-gen-fn.sml` (also see `mlriscGen.sml`)<br/>
-    there may be issues with `RAWRECORD`.
+    Issues with `INT_TO_REAL` (allocation pointer alignment) and `RAWRECORD`.
 
   * `compiler/CodeGen/main/object-desc.sml` <br/>
     codes for the various array/vector headers need to be reworked (also in the
     runtime system)
     **[DONE; 110.90]**
-
-  * `compiler/CodeGen/x86/x86CG.sml` <br/>
-    may not be an issue, since the **x86** is a 32-bit target.
 
   * `compiler/CPS/clos/closure.sml` <br/>
     raw untagged data is split into 32-bit and 64-bit records on 32-bit machines.
@@ -107,6 +104,7 @@ as **DONE**, even though they are not changed.
     Will need to add target-specific conversions once we understand what is
     required.  Note that these will have to be added to the compiler **before**
     we can attempt to cross compile.
+    **[DONE; 110.93]**
 
   * `system/Basis/Implementation/num-format.sml` <br/>
     should support formatting of 64-bit words and integers on all platforms
@@ -137,6 +135,7 @@ as **DONE**, even though they are not changed.
     lots of assumptions about the sizes and runtime representations of values.
     This file is a candidate for being moved to the target-specific
     directories.
+    **[DONE; 110.93]**
 
   * `system/Basis/Implementation/Win32/win32-general.sml` <br/>
     the `HANDLE` type is 64-bits on 64-bit machines; use the abstract
@@ -152,6 +151,7 @@ as **DONE**, even though they are not changed.
 
   * `system/smlnj/init/target64-core.sml` <br/>
     Needs some work.
+    **[DONE; 110.93]**
 
   * `system/smlnj/init/pervasive.sml` <br/>
     explicit `Word31.word` and `Int32.int` to `real` conversions
@@ -159,6 +159,7 @@ as **DONE**, even though they are not changed.
 
   * `smlnj-lib/Util/random.sml` <br/>
     Uses the `Word31` structure.
+    **[DONE; 110.93]**
 
   * `nlffi/lib/linkage-dlopen.sml` <br/>
     switch to using abstract `c_pointer` type for handles.
@@ -240,8 +241,9 @@ Alpha, but there are a few places where additional work is required.
     **[DONE; 110.91]**
 
 
-### Code Generation
+### Other issues
 
-Once the above issues have been addressed, we should be ready to work on
-code generation for the AMD64 target.
-
+There needs to be a review of the types of C functions that are called from SML code.
+In particular, the `SysWord.word` type is `Word32.word` on 32-bit machines, but it
+is `Word64.word` on 64-bit machines.  This difference needs to be reflected in the
+runtime code.
