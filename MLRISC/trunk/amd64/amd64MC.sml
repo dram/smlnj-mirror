@@ -473,10 +473,17 @@ functor AMD64MCEmitter (
 		    case (mvOp, src, dst)
 		     of (I.MOVQ, _, _) => mov 64
 		      | (I.MOVL, _, _) => mov 32
+(* NOTE: there is a comment by Allen in the x86 code generator stating that there is a
+ * bug in the ML code generator related to sign extension, thus we ignore the range
+ * check and just store the low 8 bits.
+ *)
+		      | (I.MOVB, I.Immed i, _) => encodeByteImm32 (0wxc6, OPCODE 0, dst, i)
+(*
 		      | (I.MOVB, I.Immed i, _) => (case size i
 			   of Bits32 => error "MOVE: MOVB: imm8"
 			    | _ => encodeByteImm32 (0wxc6, OPCODE 0, dst, i)
 			  (* end case *))
+*)
 		      | (I.MOVB, I.Direct(_, r), _) => encodeReg32 (0wx88, r, dst)
 		      | (I.MOVB, _, I.Direct(_, r)) => encodeReg32 (0wx8a, r, src)
 		      | (I.MOVW, _, I.Direct(_, r)) =>
