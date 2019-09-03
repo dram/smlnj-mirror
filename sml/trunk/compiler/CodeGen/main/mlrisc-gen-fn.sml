@@ -1670,7 +1670,7 @@ functor MLRiscGen (
 		   * on a variety of machines, e.g. mips and sparc (maybe others).
 		   *)
 		    if (from = to)
-		      then let
+		      then let (* copy with overflow test *)
 			val xreg = Cells.newReg ()
 			val vreg = regbind v
 			in
@@ -1697,15 +1697,36 @@ functor MLRiscGen (
 			 *)
 			  emit(M.MV(ity, tmp, M.ADDT(ity, tmpR, tmpR)));
 			  defineLabel lab;
-			  defTAGINT(x, tagUnsigned(vreg), e, 0)
+			  defTAGINT(x, tagUnsigned vreg, e, 0)
+			end
+		    else if (from <= ity) andalso (to < Target.defaultIntSz)
+		      then let (* conversion between tagged numbers of different sizes *)
+			val maxToWord = IntInf.<<(1, Word.fromInt to) - 1
+			val lab = newLabel ()
+			val vreg = regbind v
+			val tmp = Cells.newReg()
+			val tmpR = M.REG(ity, tmp)
+			in
+			  updtHeapPtr hp;
+			  emit(branchWithProb(
+			    M.BCC(M.CMP(ity, M.LEU, vreg, LI maxToWord), lab),
+			    SOME Probability.likely));
+			(* generate a trap by adding allOnes' to itself.  This code assumes
+			 * that ity = Target.defaultIntSz+1.
+			 *)
+			  emit(M.MV(ity, tmp, M.ADDT(ity, tmpR, tmpR)));
+			  defineLabel lab;
+			  if (from = ity)
+			    then defTAGINT(x, tagUnsigned vreg, e, 0)
+			    else defTAGINT(x, vreg, e, 0)
 			end
 		      else error "gen:ARITH:TESTU with unexpected precisions (not implemented)"
 		| gen (C.ARITH(P.TEST{from, to}, [v], x, _, e), hp) =
 		    if (from = to)
 		      then copy(x, v, e, hp)
-		    else if (from = ity)
+		    else if (from = ity) andalso (to = Target.defaultIntSz)
 		      then (updtHeapPtr hp; defTAGINT(x, tagSigned(regbind v), e, 0))
-		    else if (from <= Target.defaultIntSz)
+		    else if (from <= ity) andalso (to < Target.defaultIntSz)
 		      then let
 		      (* conversion between tagged integers of different sizes *)
 			val maxToInt = IntInf.<<(1, Word.fromInt(to - 1)) - 1
@@ -1722,12 +1743,14 @@ functor MLRiscGen (
 			  emit(branchWithProb(
 			    M.BCC(M.CMP(ity, M.LEU, LI minToInt, vreg), lab),
 			    SOME Probability.likely));
-			(* generate a trap by adding allOnes' to itself.  This code assumes that
-			 * ity = Target.defaultIntSz+1.
+			(* generate a trap by adding allOnes' to itself.  This code assumes
+			 * that ity = Target.defaultIntSz+1.
 			 *)
 			  emit(M.MV(ity, tmp, M.ADDT(ity, tmpR, tmpR)));
 			  defineLabel lab;
-			  defTAGINT(x, vreg, e, 0)
+			  if (from = ity)
+			    then defTAGINT(x, tagSigned vreg, e, 0)
+			    else defTAGINT(x, vreg, e, 0)
 			end
 		      else error "gen:ARITH:TEST with unexpected precisions (not implemented)"
 		| gen (C.ARITH(P.TEST_INF _, _, _, _, _), hp) =
