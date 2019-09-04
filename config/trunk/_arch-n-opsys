@@ -1,6 +1,6 @@
 #!@SHELL@
 #
-# .arch-n-opsys  -- get architecture and system info
+# .arch-n-opsys [-32 | -64] -- get architecture and system info
 #
 # Running `eval .arch-n-opsys` will define the following shell variables:
 #
@@ -13,6 +13,28 @@
 
 export PATH
 PATH="/bin:/usr/bin"
+
+# for now, the default size is 32 bits, but this will change in the future
+#
+SIZE=32
+
+# check for word-size override
+#
+case x"$1" in
+  x-32) SIZE=32 ;;
+  x-64) SIZE=64 ;;
+  *) ;;
+esac
+
+# pick_arch arch32 arch64
+#
+function pick_arch {
+  if [ $SIZE = 32 ] ; then
+      echo $1
+  else
+      echo $2
+  fi
+}
 
 case `uname -s` in
   SunOS)
@@ -37,19 +59,20 @@ case `uname -s` in
     ;;
   AIX)
     OPSYS=aix
-    ARCH=ppc
+    ARCH=$(pick_arch ppc ppc64)
     ;;
   Darwin)
     case `uname -p` in
       powerpc)
-	ARCH=ppc
+	ARCH=$(pick_arch ppc ppc64)
 	case `uname -r` in
 	  9*) OPSYS=darwin;  HEAP_OPSYS=darwin ;; # MacOS X 10.5 Leopard
 	  *) exit 1;;
 	esac;;
-      i386) ARCH=x86;
+      i386)
+	ARCH=$(pick_arch x86 amd64)
 	case `uname -r` in
-	  9*) OPSYS=darwin;  HEAP_OPSYS=darwin ;; # MacOS X 10.5 Leopard
+	  9*) OPSYS=darwin;  HEAP_OPSYS=darwinz ;; # MacOS X 10.5 Leopard
 	  10*) OPSYS=darwin;  HEAP_OPSYS=darwin ;; # MacOS X 10.6 Snow Leopard
 	  11*) OPSYS=darwin;  HEAP_OPSYS=darwin ;; # MacOS X 10.7 Lion
 	  12*) OPSYS=darwin;  HEAP_OPSYS=darwin ;; # MacOS X 10.8 Mountain Lion
@@ -59,6 +82,11 @@ case `uname -s` in
 	  16*) OPSYS=darwin;  HEAP_OPSYS=darwin ;; # macOS 10.12 Sierra
 	  17*) OPSYS=darwin;  HEAP_OPSYS=darwin ;; # macOS 10.13 High Sierra
 	  18*) OPSYS=darwin;  HEAP_OPSYS=darwin ;; # macOS 10.14 Mojave
+	  19*)
+	    if [ $SIZE = 32 ] ; then # Catalina only supports 64-bit executables
+	      exit 1;
+	    fi
+	    OPSYS=darwin;  HEAP_OPSYS=darwin ;; # macOS 10.15 Catalina
 	  *) exit 1;;
 	esac;;
     esac
@@ -81,9 +109,11 @@ case `uname -s` in
 	;;
     # As long as we do not natively support the amd64 architecture,
     # we should fallback to the x86 compatibility mode.  --Stef
-      x86_64) ARCH=x86;;
+      x86_64)
+	ARCH=$(pick_arch x86 amd64)
+	;;
       ppc)
-	ARCH=ppc
+	ARCH=$(pick_arch ppc ppc64)
 	case `uname -r` in
 	  *osfmach*) OPSYS=mklinux ;;
 	  *) ;;
@@ -96,19 +126,21 @@ case `uname -s` in
     OPSYS=freebsd
     HEAP_OPSYS=bsd
     case `uname -m` in
-      *86) ARCH=x86;;
-      *) exit 1;;
+      *86) ARCH=x86 ;;
+      x86_64) ARCH=$(pick_arch x86 amd64) ;;
+      *) exit 1 ;;
     esac
     ;;
   NetBSD)
     case `uname -r` in
-      1.*) exit 1;;
-      2.*) exit 1;;
-      *) OPSYS=netbsd;;
+      1.*) exit 1 ;;
+      2.*) exit 1 ;;
+      *) OPSYS=netbsd ;;
     esac
     HEAP_OPSYS=bsd
     case `uname -p` in
       *86) ARCH=x86;;
+      x86_64) ARCH=$(pick_arch x86 amd64) ;;
       powerpc) ARCH=ppc;;
       sparc) ARCH=sparc;;
       *) exit 1;;
@@ -119,6 +151,7 @@ case `uname -s` in
     HEAP_OPSYS=bsd
     case `uname -p` in
       *86) ARCH=x86;;
+      x86_64) ARCH=$(pick_arch x86 amd64) ;;
       powerpc) ARCH=ppc;;
       *) exit 1;;
     esac
@@ -140,7 +173,7 @@ case `uname -s` in
     fi
     case `uname -m` in
        *86) ARCH=x86;;
-       x86_64) exit 1;;
+       x86_64) ARCH=$(pick_arch x86 amd64) ;;
        *) exit 1;;
     esac
     ;;
