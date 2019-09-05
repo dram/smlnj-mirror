@@ -2,6 +2,18 @@ This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
 --------------------------------------------------------------------------------
+SML/NJ 110.93
+-------------------
+
+[2019-09-04]
+	Modified the `Rand` and `Random` structures to use the default `Word`
+	structure, instead of `Word31`.  This change should make no difference
+	on 32-bit targets, but we hopefully allow these modules to continue
+	working on 64-bit targets (once we have 64-bit support working).  In
+	the long run, we will want 64-bit specific implementations of these
+	modules.
+
+--------------------------------------------------------------------------------
 SML/NJ 110.86
 -------------------
 
