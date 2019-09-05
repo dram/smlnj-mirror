@@ -84,13 +84,13 @@ extern l2_bibop_t	UnmappedL2;
 
 #else
 
-#define BIBOP_SHIFT		16		/* log2(BIBOP_PAGE_SZB) */
-#define BIBOP_BITS		(BITS_PER_WORD-BIBOP_SHIFT)
-#define BIBOP_SZ		(1<<BIBOP_BITS)
-#define BIBOP_ADDR_TO_INDEX(a)	(((Addr_t)(a))>>BIBOP_SHIFT)
+#define BIBOP_PAGE_BITS		16		/* log2(BIBOP_PAGE_SZB) */
+#define BIBOP_BITS		(BITS_PER_WORD-BIBOP_PAGE_BITS)
+#define BIBOP_SZ		(1 << BIBOP_BITS)
+#define BIBOP_ADDR_TO_INDEX(a)	(((Addr_t)(a)) >> BIBOP_PAGE_BITS)
 
-#define BIBOP_INDEX_TO_ADDR(i)	((Addr_t)((i) << BIBOP_SHIFT))
-#define BIBOP_NBLKS_TO_SZB(i)	((Addr_t)((i) << BIBOP_SHIFT))
+#define BIBOP_INDEX_TO_ADDR(i)	((Addr_t)((i) << BIBOP_PAGE_BITS))
+#define BIBOP_NBLKS_TO_SZB(i)	((Addr_t)((i) << BIBOP_PAGE_BITS))
 
 typedef page_id_t *bibop_t;
 

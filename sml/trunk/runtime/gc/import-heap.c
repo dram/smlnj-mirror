@@ -227,7 +227,7 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
 	int			sz;
 	bo_region_info_t	*boRgnHdr;
 
-	boRegionTbl = MakeAddrTbl(BIBOP_SHIFT+1, hdr->numBORegions);
+	boRegionTbl = MakeAddrTbl(BIBOP_PAGE_BITS+1, hdr->numBORegions);
 	sz = hdr->numBORegions * sizeof(bo_region_info_t);
 	boRgnHdr = (bo_region_info_t *) MALLOC (sz);
 	HeapIO_ReadBlock (bp, boRgnHdr, sz);
