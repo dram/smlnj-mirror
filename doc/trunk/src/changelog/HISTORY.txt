@@ -97,6 +97,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Version 110.93; 2019/09/05
 
 //--------------------------------------------------------------------
+[2019/09/04]::
++
+Add support for specifying a 32 or 64-bit target as command-line option
+to the `.arch-n-opsys` and `.link-sml` scripts.  The default size is
+currently 32-bits, but that will change once 64-bit support is solid.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/09/03]::
 +
 Generalize code generation for conversions involving tagged integers/words,
