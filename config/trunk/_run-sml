@@ -1,5 +1,8 @@
 #!@SHELL@
 #
+# Copyright 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
 # The standard driver for SML/NJ under the new runtime system
 #
 
@@ -22,7 +25,7 @@ unset ENV
 
 # On cygwin, make sure SMLNJ_HOME is given a POSIX-style pathname.
 if [ x"$SMLNJ_HOME" != x ] ; then
-   if [ x"$SMLNJ_CYGWIN_RUNTIME" != x ] ; then 
+   if [ x"$SMLNJ_CYGWIN_RUNTIME" != x ] ; then
       if [ "`uname -o`" = "Cygwin" ] ; then
          # Convert to Unix style, absolute pathname.
          SMLNJ_HOME=`cygpath -u -a "$SMLNJ_HOME"`
@@ -156,7 +159,7 @@ if [ "$ALLOC" = "" ] ; then
 	    esac
 	else
 	    kb=`echo $cache | sed -e 's/^[^0-9]*\([0-9]*\).*$/\1/'`
-	    case $kb in 
+	    case $kb in
 		128)
 		    # This is the Celeron case.
 		    # ALLOC="@SMLalloc=32k"

@@ -1,5 +1,8 @@
 #!@SHELL@
 #
+# Copyright 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
 # The standard "link" script for SML/NJ
 #
 
@@ -7,6 +10,44 @@
 # for /bin/ksh, disable reading user's environment file
 #
 unset ENV
+
+# for now, we use 32-bits as the default size, but this will change
+#
+SIZE_OPT="-32"
+
+RUN=""
+BOOT=""
+HEAP="sml"
+
+#
+# Process command line arguments
+#
+while [ "$#" != "0" ]; do
+  arg=$1
+  case "$arg" in
+    -32) SIZE_OPT=$arg ; shift ;;
+    -64) SIZE_OPT=$arg ; shift ;;
+    @SMLrun=*)
+      RUN=`echo "$arg" | sed 's/@SMLrun=//'`
+      shift
+      ;;
+    @SMLboot=*)
+      BOOT=`echo "$arg" | sed 's/@SMLboot=//'`
+      shift
+      ;;
+    @SMLheap=*)
+      HEAP=`echo "$arg" | sed 's/@SMLheap=//'`
+      shift
+      ;;
+    @SMLversion)
+      echo "$CMD @VERSION@"
+      exit 0
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 
 #############################################################################
 #
@@ -42,7 +83,7 @@ RUN_DIR=$BIN_DIR/.run
 #
 # the following could be replaced with some site specific code
 #
-ARCH_N_OPSYS=`"$BIN_DIR/.arch-n-opsys"`
+ARCH_N_OPSYS=`"$BIN_DIR/.arch-n-opsys" $SIZE_OPT`
 if [ "$?" != "0" ]; then
   echo "$CMD: unable to determine architecture/operating system"
   exit 1
@@ -55,36 +96,10 @@ eval $ARCH_N_OPSYS
 #
 #############################################################################
 
-#
-# Process command line arguments
-#
-RUN="$RUN_DIR/run.$ARCH-$OPSYS"
-BOOT=""
-HEAP="sml"
-while [ "$#" != "0" ]; do
-  arg=$1
-  case "$arg" in
-    @SMLrun=*)
-      RUN=`echo "$arg" | sed 's/@SMLrun=//'`
-      shift
-      ;;
-    @SMLboot=*)
-      BOOT=`echo "$arg" | sed 's/@SMLboot=//'`
-      shift
-      ;;
-    @SMLheap=*)
-      HEAP=`echo "$arg" | sed 's/@SMLheap=//'`
-      shift
-      ;;
-    @SMLversion)
-      echo "$CMD @VERSION@"
-      exit 0
-      ;;
-    *)
-      break
-      ;;
-  esac
-done
+# if the runtime was not specified, use the default
+if [ x"$RUN" = x ]; then
+    RUN="$RUN_DIR/run.$ARCH-$OPSYS"
+fi
 
 if [ ! -x "$RUN" ]; then
     echo "$CMD: cannot find runtime system $RUN"
