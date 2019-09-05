@@ -30,7 +30,9 @@ FILES::
 == Summary
 
 This release fixes a critical bug in the Windows implementation,
-as well as several other serious bugs.
+as well as several other serious bugs.  In addition, it contains
+a number of changes that are part of the 64-bit porting effort,
+but these should not affect 32-bit behavior.
 
 == Details
 
@@ -67,13 +69,13 @@ and resume the build.
     than the default integer size.  This change also allows the `Word8`
     shift operations to be inlined.
 
-  * Generalize code generation for conversions involving tagged integers/words,
+  * Generalized code generation for conversions involving tagged integers/words,
     where the size is _not_ the default integer size.
 --
 
 === Runtime System
 
-Made a bunch of changes to fix compilation issues on 64-bit targets.
+Made a bunch of changes to fix issues on 64-bit targets.
 
 == Bugs
 
