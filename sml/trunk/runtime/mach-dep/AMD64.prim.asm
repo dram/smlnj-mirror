@@ -70,8 +70,6 @@
 #define signBit		REGOFF(208,RSP) /* ?? */
 #define negateSignBit	REGOFF(216,RSP) /* ?? */
 
-#define rsp_save	REGOFF(500,RSP)	/* FIXME */
-
 /* we put the request code in tempmem before jumping to set_request */
 #define request_w	tempmem0
 
@@ -209,7 +207,7 @@ ENTRY(set_request)
 	MOV(request_w,creturn)
 
 	/* Pop the stack frame and return to run_ml(). */
-	MOV	(rsp_save, RSP)
+	ADD	(IM(ML_FRAME_SIZE+8), RSP)
 
 	/* restore C callee-save registers */
 	POP	(R15)
@@ -241,10 +239,13 @@ ENTRY(restoreregs)
 	PUSH	(R13)
 	PUSH	(R14)
 	PUSH	(R15)
+	/* allocate the stack frame; at this point we have 7*8 bytes allocated,
+	 * so we need an addition 8 bytes to get 16-byte alignment.
+	 */
+	SUB	(IM(ML_FRAME_SIZE+8), RSP)
+
 	/* move the argument (MLState ptr) to the temp register */
 	MOV	(RDI, temp)
-	/* allocate the stack frame */
-	SUB	(IM(ML_FRAME_SIZE+12), RSP)
 
 #define temp2	RBX
       /* Initialize the ML stack frame. */
