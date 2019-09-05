@@ -16,11 +16,11 @@ typedef struct item {	    /* items in the hash table */
 } item_t;
 
 struct addr_tbl {
-    int		    ignoreBits;
-    int		    size;
-    int		    numItems;
-    Addr_t	    mask;
-    item_t	    **buckets;
+    int		    ignoreBits;	/* how many low bits of a hashed address are ignored */
+    int		    size;	/* number of buckets in the table; will be a power of 2 */
+    int		    numItems;	/* the number of items in the table */
+    Addr_t	    mask;	/* mask to form table index (== size-1) */
+    item_t	    **buckets;	/* array of buckets */
 };
 
 #define HASH(tbl,addr)	(((addr) >> (tbl)->ignoreBits) & (tbl)->mask)
@@ -71,8 +71,9 @@ void AddrTblInsert (addr_tbl_t *tbl, Addr_t addr, void *obj)
 	tbl->buckets[h]	= p;
 	tbl->numItems++;
     }
-    else if (p->obj != obj)
+    else if (p->obj != obj) {
 	Die ("AddrTblInsert: %#x mapped to multiple objects", addr);
+    }
 
 } /* end of AddrTblInsert */
 
