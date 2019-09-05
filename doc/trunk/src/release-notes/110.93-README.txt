@@ -145,5 +145,5 @@ runtime system, requires using an older SDK.
 The SML/NJ {dist-dir}smlnj-x86-{version}.pkg[installer],
 however, works without issue on macOS 10.14 Mojave.
 
-We have been working on 64-bit support since 110.82 we expect to have it in place
+We have been working on 64-bit support since 110.81 we expect to have it in place
 before the release of macOS 10.15.
