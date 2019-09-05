@@ -201,8 +201,9 @@ PVT FILE *OpenBinFile (const char *fname, bool_t isBinary)
 {
     FILE	*file;
 
-    if ((file = fopen (fname, isBinary ? "rb" : "r")) == NULL)
+    if ((file = fopen (fname, isBinary ? "rb" : "r")) == NULL) {
 	Error ("unable to open \"%s\"\n", fname);
+    }
 
     return file;
 
