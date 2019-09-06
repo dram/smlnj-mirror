@@ -1,7 +1,7 @@
 (* rand-sig.sml
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories. See COPYRIGHT file for details.
- * COPYRIGHT (c) 1998 by AT&T Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for a simple random number generator.
  *
@@ -10,7 +10,7 @@
 signature RAND =
   sig
 
-    type rand = Word31.word
+    type rand = Word.word
 
     val randMin : rand
     val randMax : rand
@@ -30,7 +30,7 @@ signature RAND =
     val norm : rand -> real
       (* Map values in the range [randMin,randMax] to (0.0,1.0) *)
 
-    val range : (int * int) -> rand -> int 
+    val range : (int * int) -> rand -> int
       (* Map v, randMin <= v <= randMax, to integer range [i,j]
        * Exception -
        *   Fail if j < i

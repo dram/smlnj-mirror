@@ -1,7 +1,7 @@
 (* rand.sml
  *
- * COPYRIGHT (c) 1991 by AT&T Bell Laboratories.  See COPYRIGHT file for details
- * COPYRIGHT (c) 1998 by AT&T Laboratories.  See COPYRIGHT file for details
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Random number generator taken from Paulson, pp. 170-171.
  * Recommended by Stephen K. Park and Keith W. Miller,
@@ -12,12 +12,14 @@
  * Updated to use on Word31.
  *
  * Note: The Random structure provides a better generator.
+ *
+ * TODO: provide a proper 64-bit implementation.
  *)
 
 structure Rand : RAND =
   struct
 
-    type rand = Word31.word
+    type rand = Word.word
     type rand' = Int32.int  (* internal representation *)
 
     val a : rand' = 48271
@@ -26,8 +28,8 @@ structure Rand : RAND =
     val q = m div a
     val r = m mod a
 
-    val extToInt = Int32.fromLarge o Word31.toLargeInt
-    val intToExt = Word31.fromLargeInt o Int32.toLarge
+    val extToInt = Int32.fromLarge o Word.toLargeInt
+    val intToExt = Word.fromLargeInt o Int32.toLarge
 
     val randMin : rand = 0w1
     val randMax : rand = intToExt m_1
@@ -53,7 +55,7 @@ structure Rand : RAND =
           end
 
     val real_m = Real.fromLargeInt (Int32.toLarge m)
-    fun norm s = (Real.fromLargeInt (Word31.toLargeInt s)) / real_m
+    fun norm s = (Real.fromLargeInt (Word.toLargeInt s)) / real_m
 
     fun range (i,j) =
           if j < i
@@ -61,11 +63,10 @@ structure Rand : RAND =
           else if j = i then fn _ => i
           else let
             val R = Int32.fromInt j - Int32.fromInt i
-            val cvt = Word31.toIntX o Word31.fromLargeInt o Int32.toLarge
+            val cvt = Word.toIntX o Word.fromLargeInt o Int32.toLarge
             in
-              if R = m then Word31.toIntX
+              if R = m then Word.toIntX
               else fn s => i + cvt ((extToInt s) mod (R+1))
             end
 
   end (* Rand *)
-
