@@ -60,10 +60,22 @@ tools, and documentation.
 SML/NJ is <a href="license.html">free, open source</a> software.
 </p>
 
+<h3>Support for 64-bit architectures</h3>
+<p>
+We have been working on porting SML/NJ to run on 64-bit architectures (specifically
+the amd64 or x86-64) since version 110.81.
+This project was a major undertaking because of significant technical debt in
+the compiler.
+As of September 2019, we can generate 64-bit machine code for the system and
+we are in the process of debugging the generated code.
+We hope to have a version suitable for beta testing later this month or, at the
+latest, in early October.
+</p>
+
 <a href="dist/working/index.html">
 <h3>Downloads</h3>
 </a>
-The latest release is  <a href="dist/working/110.92/index.html">110.92</a>;
+The latest release is  <a href="dist/working/110.93/index.html">110.93</a>;
 we believe that this version is stable, but there have been a lot of low-level
 changes that might have introduced bugs, so if you have any problems with the
 system you should report them and then revert to
@@ -71,7 +83,7 @@ system you should report them and then revert to
 Previous versions are also available through our
 <a href="dist/working/index.html">release history</a> page.
 A history of the changes to the system is also
-<a href="dist/working/110.92/HISTORY.html">available</a>.
+<a href="dist/working/110.93/HISTORY.html">available</a>.
 
 <a href="svn.html">
 <h3>Subversion access</h3>
@@ -89,6 +101,11 @@ download a snapshot of the most recent sources at any time.
 </a>
 
 <ul>
+  <li>[09/05/19] Version <a href="dist/working/110.93/index.html">110.93</a> is
+    released.
+    See the <a href="dist/working/110.93/110.93-README.html">README</a>
+    for details. <br/>
+  </li>
   <li>[08/10/19] Version <a href="dist/working/110.92/index.html">110.92</a> is
     released.
     See the <a href="dist/working/110.92/110.92-README.html">README</a>
@@ -157,11 +174,11 @@ download a snapshot of the most recent sources at any time.
   </li>
   <li>
     A signed installer for macOS is available
-    (<a href="dist/working/110.92/smlnj-x86-110.92.pkg">smlnj-x86-110.92.pkg</a>).
+    (<a href="dist/working/110.93/smlnj-x86-110.93.pkg">smlnj-x86-110.93.pkg</a>).
   </li>
   <li>
     A Windows <strong>msi installer</strong> for Windows 7+
-    is available (<a href="dist/working/110.92/smlnj-110.92.msi">smlnj-110.92.msi</a>).
+    is available (<a href="dist/working/110.93/smlnj-110.93.msi">smlnj-110.93.msi</a>).
   </li>
 </ul>
 
