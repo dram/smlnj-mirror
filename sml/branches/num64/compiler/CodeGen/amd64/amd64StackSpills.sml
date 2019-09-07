@@ -21,9 +21,9 @@ struct
 
   fun error msg = ErrorMsg.impossible ("AMD64StackSpills." ^ msg)
 
-  val initialSpillOffset = AMD64Runtime.spillStart
+  val initialSpillOffset = AMD64Spec.initialSpillOffset
   val spillOffset = ref initialSpillOffset
-  val spillAreaSz = AMD64Runtime.spillAreaSz
+  val spillAreaSz = AMD64Spec.spillAreaSz
   val availableOffsets = ref [] : I.operand list ref
   val availableFPOffsets = ref [] : I.operand list ref
 

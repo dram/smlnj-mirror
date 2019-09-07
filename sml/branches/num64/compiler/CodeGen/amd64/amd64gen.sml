@@ -14,7 +14,7 @@ functor AMD64MC (
     val abi_variant: string option
 
   ) = CPSCompFn(
-    structure Gen=AMD64CG (
+    structure Gen = AMD64CG (
 	structure CCallParams = CCallParams
 	val abi_variant = abi_variant)
     fun collect epthunk = (Gen.finish (); CodeString.getCodeString (epthunk ())))
