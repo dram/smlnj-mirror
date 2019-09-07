@@ -76,7 +76,7 @@
 /* the amount to bump up the frame after the callee save registers have been
  * pushed onto the stack.
  */
-#define ML_FRAME_SIZE	(ML_SPILL_SIZE+72)
+#define ML_FRAME_SIZE	(ML_SPILL_SIZE+88)
 
 /* NOTE: this include must come after the definition of stdlink, etc. */
 #include "x86-macros.h"
