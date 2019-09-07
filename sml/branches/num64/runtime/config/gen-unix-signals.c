@@ -1,6 +1,7 @@
 /* gen-unix-signals.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Generate the "system-signals.h" file for UNIX systems.
  */

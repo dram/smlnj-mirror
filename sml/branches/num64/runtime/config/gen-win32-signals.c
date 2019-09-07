@@ -1,6 +1,7 @@
 /* gen-win32-signals.c
  *
- * COPYRIGHT (c) 1996 by Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Generate the "system-signals.h" file for Win32 systems.
  * signals aren't currently implemented (since Win32 doesn't have signals)
