@@ -143,7 +143,7 @@ end = struct
 	    function cfun
 	  end
 (* DEBUG *)handle ex => (
-Control.Print.say(concat["***** exception (", General.exnName ex, ")\n"]);
+Control.Print.say(concat["***** IntInfCnv.elim: exception (", General.exnName ex, ")\n"]);
 Control.Print.say "***********************************************\n";
 PPCps.printcps0 cfun;
 Control.Print.say "***********************************************\n";

@@ -942,7 +942,7 @@ functor MLRiscGen (
 		      gen (e, 0)
 (*+DEBUG*)
 			handle ex => (
-			  print(concat["***** exception (", exnMessage ex, ")\n"]);
+			  print(concat["***** MLRiscGen.genCPSFunction: exception (", exnMessage ex, ")\n"]);
 			  printCPSFun(kind, f, params, tys, e);
 			  raise ex)
 (*-DEBUG*)
