@@ -1,6 +1,7 @@
 /* gen-win32-sigtbl.c
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * generate the "win32-sigtbl.c" file.
  */

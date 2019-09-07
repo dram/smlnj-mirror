@@ -1,6 +1,7 @@
 /* win32-sigtab.h
  *
- * COPYRIGHT (c) 1996 Bell Laboratories, Lucent Technologies
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * fake "signals" to make win32 go through.
  * unlike the unix counterpart, this file is not generated -- do not delete!

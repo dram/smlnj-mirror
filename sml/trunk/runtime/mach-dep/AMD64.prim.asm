@@ -22,7 +22,7 @@
  *
  * 	Caller save registers: rax, rcx, rdx, rsi, rdi, r8-r11
  * 	Callee save registers: rbx, rbp, r12-15.
- *	Save frame pointer (ebx) first to match standard function prelude
+ *	Save frame pointer (rbp) first to match standard function prelude
  * 	Floating point state is caller-save.
  * 	The first six integer arguments are passed in registers: rdi, rsi,
  *	    rdx, rcx, r8, and r9.  Additional arguments are passed on the
@@ -59,25 +59,24 @@
  * for details.
  */
 #define tempmem0	REGOFF(0,RSP)
-#define tempmem1	REGOFF(8,RSP)
-#define tempmem2	REGOFF(16,RSP)
-#define tempmem3	REGOFF(24,RSP)
+#define mlStatePtr	REGOFF(8, RSP)
+#define signBit		REGOFF(16,RSP)
+#define negateSignBit	REGOFF(24,RSP)
 #define baseptr		REGOFF(32,RSP)	/* start address of module */
 #define exncont		REGOFF(40,RSP)
 #define pc		REGOFF(48,RSP)	/* gcLink */
 #define varptr		REGOFF(56,RSP)
 #define start_gc	REGOFF(64,RSP)	/* holds address of saveregs */
-#define signBit		REGOFF(208,RSP) /* ?? */
-#define negateSignBit	REGOFF(216,RSP) /* ?? */
 
 /* we put the request code in tempmem before jumping to set_request */
 #define request_w	tempmem0
 
-#define ML_STATE_OFFSET 176
-#define mlstate_ptr	REGOFF(ML_STATE_OFFSET, RSP)
 #define ML_SPILL_SIZE	8192
-#define CALLEE_SAVE_SZB 48	/* rbx, rbp, r12-15 */
-#define ML_FRAME_SIZE	(8192)	/* FIXME */
+
+/* the amount to bump up the frame after the callee save registers have been
+ * pushed onto the stack.
+ */
+#define ML_FRAME_SIZE	(ML_SPILL_SIZE+88)
 
 /* NOTE: this include must come after the definition of stdlink, etc. */
 #include "x86-macros.h"
@@ -176,9 +175,9 @@ ENTRY(saveregs)
  * code will be in `tempmem` (on the stack).
  */
 ENTRY(set_request)
-	/* temp holds mlstate_ptr, valid request in request_w  */
+	/* temp holds mlStatePtr, valid request in request_w  */
 	/* Save registers */
-	MOV	(mlstate_ptr, temp)
+	MOV	(mlStatePtr, temp)
 	MOV	(allocptr, REGOFF(AllocPtrOffMSP,temp))
 	MOV	(stdarg, REGOFF(StdArgOffMSP,temp))
 	MOV	(stdcont, REGOFF(StdContOffMSP,temp))
@@ -207,7 +206,7 @@ ENTRY(set_request)
 	MOV(request_w,creturn)
 
 	/* Pop the stack frame and return to run_ml(). */
-	ADD	(IM(ML_FRAME_SIZE+8), RSP)
+	ADD	(IM(ML_FRAME_SIZE), RSP)
 
 	/* restore C callee-save registers */
 	POP	(R15)
@@ -239,10 +238,8 @@ ENTRY(restoreregs)
 	PUSH	(R13)
 	PUSH	(R14)
 	PUSH	(R15)
-	/* allocate the stack frame; at this point we have 7*8 bytes allocated,
-	 * so we need an addition 8 bytes to get 16-byte alignment.
-	 */
-	SUB	(IM(ML_FRAME_SIZE+8), RSP)
+	/* allocate the rest of the stack frame */
+	SUB	(IM(ML_FRAME_SIZE), RSP)
 
 	/* move the argument (MLState ptr) to the temp register */
 	MOV	(RDI, temp)
@@ -254,7 +251,7 @@ ENTRY(restoreregs)
 	MOVE    (REGOFF(PCOffMSP, temp),     temp2, pc)
 	LEA	(CODEADDR(CSYM(saveregs)), temp2)
 	MOV	(temp2, start_gc)
-	MOV	(temp, mlstate_ptr)
+	MOV	(temp, mlStatePtr)
 
 /* unclear what the following are being used for */
 	MOV	($0x8000000000000000, temp2)

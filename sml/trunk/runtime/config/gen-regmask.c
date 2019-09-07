@@ -65,13 +65,13 @@ main ()
     fprintf (f, "#define FLOAT_CALLEESAVE %d\n", FLOAT_CALLEESAVE);
 #endif
     fprintf (f, "\n");
-    fprintf (f, "#define FUN_MASK\t\t%d\t/*\t%#010x\t*/\n", 
+    fprintf (f, "#define FUN_MASK\t\t%d\t/*\t%#010x\t*/\n",
 	     FUN_MASK, FUN_MASK);
-    fprintf (f, "#define RET_MASK\t\t%d\t/*\t%#010x\t*/\n", 
+    fprintf (f, "#define RET_MASK\t\t%d\t/*\t%#010x\t*/\n",
 	     RET_MASK, RET_MASK);
     fprintf (f, "#define CONT_MASK\t\t%d\t/*\t%#010x\t*/\n",
 	     CONT_MASK, CONT_MASK);
-    fprintf (f, "#define EXN_MASK\t\t%d\t/*\t%#010x\t*/\n", 
+    fprintf (f, "#define EXN_MASK\t\t%d\t/*\t%#010x\t*/\n",
 	     EXN_MASK, EXN_MASK);
     fprintf (f, "\n");
     CloseFile (f, "_REG_MASK_");
