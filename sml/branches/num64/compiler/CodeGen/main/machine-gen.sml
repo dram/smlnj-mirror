@@ -128,15 +128,15 @@ struct
          ("cfg-graphical-view-size",
 	  "minimium threshold for size of graphical view")
 
-   fun omitFramePointer(cfg as G.GRAPH graph) = let
-     val CFG.INFO{annotations, ...} = #graph_info graph
-   in
-     if #contains MLRiscAnnotations.USES_VIRTUAL_FRAME_POINTER (!annotations) then
-     	(OmitFramePtr.omitframeptr
-	     {vfp=CpsRegs.vfp, cfg=cfg, idelta=SOME 0:Int32.int option};
-	 cfg)
-     else cfg
-   end
+   fun omitFramePointer (cfg as G.GRAPH graph) = let
+         val CFG.INFO{annotations, ...} = #graph_info graph
+	 in
+	   if #contains MLRiscAnnotations.USES_VIRTUAL_FRAME_POINTER (!annotations)
+	     then (
+	       OmitFramePtr.omitframeptr {vfp = CpsRegs.vfp, cfg = cfg, idelta = SOME 0};
+	       cfg)
+	     else cfg
+	 end
 
    fun computeFreqs cfg =
      (LoopProbs.estimate cfg;   ComputeFreqs.compute cfg;   cfg)
