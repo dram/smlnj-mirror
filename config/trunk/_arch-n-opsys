@@ -28,7 +28,7 @@ esac
 
 # pick_arch arch32 arch64
 #
-function pick_arch {
+pick_arch() {
   if [ $SIZE = 32 ] ; then
       echo $1
   else
