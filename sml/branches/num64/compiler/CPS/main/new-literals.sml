@@ -356,70 +356,75 @@ structure Literals : LITERALS =
 		  | _ => NONE
 		(* end case *))
 	  fun doValues vs = let
-		fun addVal (u, (xs, hh)) = (case doValue u
-		       of NONE => (u::xs, hh)
-			| SOME(nu, nh) => (nu::xs, nh o hh)
-		      (* end case *))
+		fun chkVal (REAL _, _) = true
+		  | chkVal (STRING _, _) = true
+		  | chkVal (VAR x, flg) = (used v; flg)
+		  | chkVal (_, flg) = flg
+		fun addVal (u, (xs, hh)) = let
+		      fun add (nu, nh) = (nu::xs, nh o hh)
+		      in
+			case u
+			 of REAL{rval, ...} => add(entReal rval)  (* REAL32: FIXME *)
+			  | STRING s => add(entStr s)
+			  | _ => (u::xs, hh)
+			(* end case *))
+		      end
 	        in
-		  foldr addVal ([], Fn.id) vs
+		  if (List.foldl chkVal false vs)
+		    then NONE
+		    else SOME(foldr addVal ([], Fn.id) vs)
 	        end
 	(* process a CPS function *)
 	  fun doFun (fk, f, vl, cl, e) = (fk, f, vl, cl, doExp e)
 	(* process a CPS expression *)
 	  and doExp ce = (case ce
 		 of RECORD (rk, ul, v, e) => record (rk, ul, v) (doExp e)
-		  | SELECT (i, u, v, t, e) => let
-		      val (nu, hh) = doValue u
-		      in
-			hh (SELECT(i, nu, v, t, doExp e))
-		      end
+		  | SELECT (i, u, v, t, e) => (case doValue u
+		       of SOME (nu, hh) => hh (SELECT(i, nu, v, t, doExp e))
+			| NONE => SELECT(i, u, v, t, doExp e)
+		      (* end case *))
 		  | OFFSET _ => bug "unexpected OFFSET in doExp"
-		  | APP (u, ul) => let
-		      val (nu, h1) = doValue u
-		      val (nl, h2) = doValues ul
-		      in
-			h1 (h2 (APP(nu, nl)))
-		      end
+		  | APP (u, ul) => (case doValues(u::ul)
+		       of SOME(nu::nl, h) => h (APP(nu, nl))
+			| _ => APP (u, ul)
+		      (* end case *))
 		  | FIX (fns, e) => FIX(map doFun fns, doExp e)
 		  | SWITCH (u, v, es) => let
-		      val (nu, hh) = doValue u
+		      val es' = map doExp es
 		      in
-			hh(SWITCH(nu, v, map doExp es))
+			case doValue u
+			 of SOME(nu, hh) => hh(SWITCH(nu, v, es'))
+			  | NONE => SWITCH(u, v, es')
+			(* end case *)
 		      end
-		  | BRANCH (p, ul, v, e1, e2) => let
-		      val (nl, hh) = doValues ul
-		      in
-			hh(BRANCH(p, nl, v, doExp e1, doExp e2))
-		      end
-		  | SETTER (p, ul, e) => let
-		      val (nl, hh) = doValues ul
-		      in
-			hh(SETTER(p, nl, doExp e))
-		      end
-		  | LOOKER (p, ul, v, t, e) => let
-		      val (nl, hh) = doValues ul
-		      in
-			hh(LOOKER(p, nl, v, t, doExp e))
-		      end
-		  | ARITH (p, ul, v, t, e) => let
-		      val (nl, hh) = doValues ul
-		      in
-			hh(ARITH(p, nl, v, t, doExp e))
-		      end
+		  | BRANCH (p, ul, v, e1, e2) => (case doValues
+		       of SOME(nl, hh) => hh(BRANCH(p, nl, v, doExp e1, doExp e2))
+			| NONE => BRANCH(p, ul, v, doExp e1, doExp e2)
+		      (* end case *))
+		  | SETTER (p, ul, e) => (case doValues
+		       of SOME(nl, hh) => hh(SETTER(p, nl, doExp e))
+			| NONE => SETTER(p, ul, doExp e)
+		      (* end case *))
+		  | LOOKER (p, ul, v, t, e) => (case doValues
+		       of SOME(nl, hh) => hh(LOOKER(p, nl, v, t, doExp e))
+			| NONE => LOOKER(p, ul, v, t, doExp e)
+		      (* end case *))
+		  | ARITH (p, ul, v, t, e) => (case doValues
+		       of SOME(nl, hh) => hh(ARITH(p, nl, v, t, doExp e))
+			| NONE => ARITH(p, ul, v, t, doExp e)
+		      (* end case *))
 		  | PURE (P.WRAP(P.INT sz), [u], v, t, e) =>
 		      ??
 		  | PURE (P.WRAP(P.FLOAT sz), [u], v, t, e) =>
 		      wrapfloat (sz, u, v, t) (doExp e)
-		  | PURE (p, ul, v, t, e) => let
-		      val (nl, hh) = doValues ul
-		      in
-			hh(PURE(p, nl, v, t, doExp e))
-		      end
-		  | RCC (k, l, p, ul, vtl, e) => let
-		      val (nl, hh) = doValues ul
-		      in
-			hh(RCC(k, l, p, nl, vtl, doExp e))
-		      end
+		  | PURE (p, ul, v, t, e) => (case doValues
+		       of SOME(nl, hh) => hh(PURE(p, nl, v, t, doExp e))
+			| NONE => PURE(p, ul, v, t, doExp e)
+		      (* end case *))
+		  | RCC (k, l, p, ul, vtl, e) => (case doValues
+		       of SOME(nl, hh) => hh(RCC(k, l, p, nl, vtl, doExp e))
+			| NONE => RCC(k, l, p, ul, vtl, doExp e)
+		      (* end case *))
 		(* end case *))
 	(* process the module *)
 	  val body' = doExp body
