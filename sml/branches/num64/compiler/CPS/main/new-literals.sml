@@ -31,13 +31,7 @@ structure Literals : LITERALS =
 
     structure W8V = Word8Vector
     structure LV = LambdaVar
-    structure Intset = struct
-	type intset = IntRedBlackSet.set ref
-	fun new() = ref IntRedBlackSet.empty
-	fun add set i = set := IntRedBlackSet.add(!set, i)
-	fun mem set i =  IntRedBlackSet.member(!set, i)
-	fun rmv set i = set := IntRedBlackSet.delete(!set, i)
-      end
+    structure IntSet = IntRedBlackSet
 
     open CPS
 
@@ -305,7 +299,7 @@ structure Literals : LITERALS =
     datatype env = LE of {
 	strs : StrLitTbl.t,		(* string literals *)
 	r64s : RealLitTbl.t,		(* Real64.real literals *)
-	usedVars : IntSet.set,
+	usedVars : IntSet.set ref,
 	freeVars : lvar list ref,	(* free lvars of module *)
       }
 
@@ -336,7 +330,12 @@ structure Literals : LITERALS =
 	      end
 	  end
 
+(* this function should be merged with `enter` once we have defined that *)
     fun addVar (LE{freeVars, ...}) x = freeVars := x :: !freeVars
+
+    fun useVar (LE{usedVars, ...}) x = usedVars := IntSet.add(!usedVars, x)
+
+    fun isUsed (LE{usedVars, ...}) x = IntSet.member(!usedVars, x)
 
   (* fetch out the literal information from the environment *)
     fun getLiterals (LE{r64s, ...}) = ??
@@ -347,7 +346,7 @@ structure Literals : LITERALS =
 	  val env = newEnv()
 	  val entReal = addReal env
 	  val entStr = addString env
-	  val addv = addVar env
+	  val used = useVar env
 	(* translation on the CPS values *)
 	  fun doValue u = (case u
 		 of REAL{rval, ...} => SOME(entReal rval)	(* REAL32: FIXME *)
@@ -356,6 +355,7 @@ structure Literals : LITERALS =
 		  | _ => NONE
 		(* end case *))
 	  fun doValues vs = let
+	      (* check for real and string literals; we also mark variables as used *)
 		fun chkVal (REAL _, _) = true
 		  | chkVal (STRING _, _) = true
 		  | chkVal (VAR x, flg) = (used v; flg)
