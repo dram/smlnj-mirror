@@ -42,7 +42,6 @@ structure Literals : LITERALS =
     open CPS
 
     fun bug msg = ErrorMsg.impossible ("Literals: "^msg)
-    fun mkv _ = LV.mkLvar()
 
   (****************************************************************************
    *                         A MINI-LITERAL LANGUAGE                          *
@@ -251,17 +250,96 @@ structure Literals : LITERALS =
    *                    LIFTING LITERALS ON CPS                               *
    ****************************************************************************)
 
+  (* table that tracks unique literal values *)
+    functor LitTbl (K : HASH_KEY) : sig
+	type t
+	val new : unit -> t
+	val add : t -> K.hash_key -> int
+	val allLits : t -> K.hash_key list
+      end = struct
+	structure Tbl = HashTableFn(K)
+	datatype t = T of {
+	    vecVar : LV.var,		(* variable bound to literal vector *)
+	    tbl : int Tbl.hash_table,
+	    lits : K.hash_key list ref
+	  }
+	fun new () = T{
+		vecVar = LV.mkLvar(),
+		tbl = Tbl.mkTable(16, Fail "LitTbl"),
+		lits = ref[]
+	      }
+	fun var (T{vecVar, ...}) = vecVar
+	fun add (T{tbl, lits, ...}) = let
+	      val find = Tbl.find tbl
+	      val insert = Tbl.insert tbl
+	      in
+		fn lit => (case find lit
+		   of SOME id => id
+		    | NONE => let
+			val id = Tbl.numItems tbl
+			in
+			  insert (lit, id);
+			  lits := lit :: !lits;
+			  id
+			end
+		  (* end case *))
+	      end
+	fun allLits (T{lits, ...}) = !lits
+      end
+
+  (* string literals *)
+    structure StrLitTbl = LitTbl(struct
+	type hash_key = string
+	val hashVal = HashString.hashString
+	val sameKey : string * string -> bool = (op =)
+      end)
+
+  (* real literals *)
+    structure RealLitTbl = LitTbl(struct
+	type hash_key = string
+	val hashVal = RealLit.hash
+	val sameKey = RealLit.same
+      end)
+
   (* an environment for tracking literals *)
     datatype env = LE of {
+	strs : StrLitTbl.t,		(* string literals *)
+	r64s : RealLitTbl.t,		(* Real64.real literals *)
 	usedVars : IntSet.set,
 	freeVars : lvar list ref,	(* free lvars of module *)
       }
 
-    fun newEnv () = ??
+    fun newEnv () = LE{
+	    strs = StrLitTbl.new(),
+	    r64s = RealLitTbl.new(),
+	    usedVars = ??,
+	    freeVars = ref[]
+	  }
 
-    fun addReal (LE{...}) r = ??
-    fun addString (LE{...}) s = ??
+    fun addString (LE{strs, ...}) = let
+	  val add = StrLitTbl.add strs
+	  in
+	    fn s => let
+	      val v = LV.mkLvar()
+	      in
+		(VAR v, fn ce => SELECT(add s, StrLitTbl.var strs, v, FLTt 64, ce))
+	      end
+	  end
+
+    fun addReal64 (LE{r64s, ...}) = let
+	  val add = RealLitTbl.add r64s
+	  in
+	    fn r => let
+	      val v = LV.mkLvar()
+	      in
+		(VAR v, fn ce => SELECT(add r, RealLitTbl.var r64s, v, CPSUtil.BOGt, ce))
+	      end
+	  end
+
     fun addVar (LE{freeVars, ...}) x = freeVars := x :: !freeVars
+
+  (* fetch out the literal information from the environment *)
+    fun getLiterals (LE{r64s, ...}) = ??
 
   (* lifting all literals from a CPS program *)
     fun liftlits (body, root, offset) = let

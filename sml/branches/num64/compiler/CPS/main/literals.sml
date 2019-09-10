@@ -277,7 +277,6 @@ structure Literals : LITERALS =
 	  fun appStr () = let
 		fun g (a::r, z) = g(r, (STRING a)::z)
 		  | g ([], z) = z (* reverse to reflecting the correct order *)
-		val allStrs = !strs
 	        in
 		  case !strs
 		   of [] => ()
@@ -312,7 +311,6 @@ structure Literals : LITERALS =
 	  fun appReal () = let
 	        fun g (a::r, z) = g(r, REAL{rval=a, ty=64} :: z)	(* REAL32: FIXME *)
 		  | g ([], z) = z (* reverse to reflecting the correct order *)
-		val allReals = !reals
 	        in
 		  case !reals
 		   of [] => ()
