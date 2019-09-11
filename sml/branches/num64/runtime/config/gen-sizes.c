@@ -17,7 +17,7 @@
 
 #define NIL(ty)	((ty)0)
 
-#if defined(SIZES_C64_ML64)
+#if SIZE_64
 #  define WORD_SZB	8
 #else
 #  define WORD_SZB	4
@@ -110,15 +110,11 @@ int main (void)
     fprintf (f, "typedef unsigned %s Unsigned64_t;\n", i64);
     fprintf (f, "\n");
     fprintf (f, "typedef unsigned char Byte_t;\n");
-#if defined(SIZES_C64_ML32)
-    fprintf (f, "typedef Unsigned32_t Word_t;\n");
-    fprintf (f, "typedef Int32_t      Int_t;\n");
-    fprintf (f, "typedef Unsigned64_t Addr_t;\n");
-#elif defined(SIZES_C64_ML64)
+#if SIZE_64
     fprintf (f, "typedef Unsigned64_t Word_t;\n");
     fprintf (f, "typedef Int64_t      Int_t;\n");
     fprintf (f, "typedef Unsigned64_t Addr_t;\n");
-#else
+#else /* SIZE_32 */
     fprintf (f, "typedef Unsigned32_t Word_t;\n");
     fprintf (f, "typedef Int32_t      Int_t;\n");
     fprintf (f, "typedef Unsigned32_t Addr_t;\n");

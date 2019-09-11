@@ -174,7 +174,7 @@ void NewDirtyVector (gen_t *gen)
  */
 void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     Addr_t base = (Addr_t)baseAddr;
     Addr_t start = BIBOP_ADDR_TO_INDEX(baseAddr);
     Addr_t np = BIBOP_ADDR_TO_INDEX(szB);

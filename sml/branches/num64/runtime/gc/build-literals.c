@@ -70,7 +70,7 @@ enum {
 };
 
 /* define argument tags for the default integer size */
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
 #  define I8_ARG	I8_ARG64
 #  define U8_ARG	U8_ARG64
 #  define I16_ARG	I16_ARG64

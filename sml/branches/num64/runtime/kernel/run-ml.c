@@ -87,7 +87,9 @@ void RunML (ml_state_t *msp)
     for (;;) {
 
 	ASSIGN(ProfCurrent, prevProfIndex);
+SayDebug("** run ML: pc = %p\n", (void*)msp->ml_pc);
 	request = restoreregs(msp);
+SayDebug("** request = %d\n", request);
 	prevProfIndex = DEREF(ProfCurrent);
 	ASSIGN(ProfCurrent, PROF_RUNTIME);
 

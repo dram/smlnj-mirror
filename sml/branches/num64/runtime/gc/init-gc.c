@@ -33,7 +33,7 @@ PVT int		DfltRatios[MAX_NUM_GENS] = {
     };
 
 bibop_t		BIBOP;
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
 l2_bibop_t	UnmappedL2;
 #endif
 
@@ -129,7 +129,7 @@ bibop_t InitBibop ()
     size_t bibopSz;
     int i;
 
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     bibopSz = BIBOP_L1_SZ * sizeof(l2_bibop_t *);
 #else
     bibopSz = BIBOP_SZ * sizeof(aid_t);
@@ -139,7 +139,7 @@ bibop_t InitBibop ()
 	Die("InitBibop: unable to allocate Bibop");
     }
 
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     for (i = 0;  i < BIBOP_L1_SZ;  i++) {
 	bibop[i] = &UnmappedL2;
     }
@@ -158,7 +158,7 @@ bibop_t InitBibop ()
  */
 void FreeBibop (bibop_t bibop)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     int i;
     for (i = 0;  i < BIBOP_L1_SZ;  i++) {
 	if (bibop[i] != &UnmappedL2) {
@@ -200,7 +200,7 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
     }
 
   /* initialize the BIBOP */
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     for (i = 0;  i < BIBOP_L2_SZ;  i++) {
 	UnmappedL2.tbl[i] = AID_UNMAPPED;
     }
