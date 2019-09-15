@@ -26,14 +26,13 @@ signature LITERALS =
 
   end;
 
-structure Literals : LITERALS =
+structure NewLiterals : LITERALS =
   struct
 
     structure W8V = Word8Vector
     structure LV = LambdaVar
-    structure IntSet = IntRedBlackSet
-
-    open CPS
+    structure IntTbl = IntHashTable
+    structure C = CPS
 
     fun bug msg = ErrorMsg.impossible ("Literals: "^msg)
 
@@ -244,194 +243,348 @@ structure Literals : LITERALS =
    *                    LIFTING LITERALS ON CPS                               *
    ****************************************************************************)
 
-  (* table that tracks unique literal values *)
-    functor LitTbl (K : HASH_KEY) : sig
-	type t
-	val new : unit -> t
-	val add : t -> K.hash_key -> int
-	val allLits : t -> K.hash_key list
-      end = struct
-	structure Tbl = HashTableFn(K)
-	datatype t = T of {
-	    vecVar : LV.var,		(* variable bound to literal vector *)
-	    tbl : int Tbl.hash_table,
-	    lits : K.hash_key list ref
+    datatype literal_value
+      = LV_NUM of int IntConst.t		(* boxed number of given size *)
+      | LV_REAL of int RealConst.t		(* real number of given size *)
+      | LV_STR of string			(* string *)
+      | LV_RECORD of record_kind * literal list	(* record/vector/raw record *)
+
+    and literal
+      = LIT of {			(* heap-allocated literal value *)
+	    refCnt : int ref,		(* count of uses of this literal value from other
+					 * literals; when > 1, then we have shared structure. *)
+	    useCnt : int ref,		(* count of uses of this literal.  When this count
+					 * is > refCnt, then the literal will need to be bound
+					 * to a variable in the residual program.
+					 *)
+	    id : word,			(* unique ID *)
+	    value : literal_value	(* value *)
 	  }
-	fun new () = T{
-		vecVar = LV.mkLvar(),
-		tbl = Tbl.mkTable(16, Fail "LitTbl"),
-		lits = ref[]
-	      }
-	fun var (T{vecVar, ...}) = vecVar
-	fun add (T{tbl, lits, ...}) = let
-	      val find = Tbl.find tbl
-	      val insert = Tbl.insert tbl
-	      in
-		fn lit => (case find lit
-		   of SOME id => id
-		    | NONE => let
-			val id = Tbl.numItems tbl
-			in
-			  insert (lit, id);
-			  lits := lit :: !lits;
-			  id
-			end
-		  (* end case *))
-	      end
-	fun allLits (T{lits, ...}) = !lits
-      end
+      | IMMED of IntInt.int		(* immediate tagged number *)
 
-  (* string literals *)
-    structure StrLitTbl = LitTbl(struct
-	type hash_key = string
-	val hashVal = HashString.hashString
-	val sameKey : string * string -> bool = (op =)
-      end)
+    fun useLit (LIT{useCnt, ...}) = useCnt := !useCnt + 1
+      | useLit (IMMED _) = ()
+    fun refLit (LIT{refCnt, ...}) = refCnt := !refCnt + 1
+      | refLit (IMMED _) = ()
 
-  (* real literals *)
-    structure RealLitTbl = LitTbl(struct
-	type hash_key = string
-	val hashVal = RealLit.hash
-	val sameKey = RealLit.same
-      end)
+  (* is a literal used as value outside of being part of another literal? *)
+    fun litIsUsed (LIT{refCnt, useCnt, ...}) = (!refCnt < !useCnt)
 
   (* an environment for tracking literals *)
-    datatype env = LE of {
-	strs : StrLitTbl.t,		(* string literals *)
-	r64s : RealLitTbl.t,		(* Real64.real literals *)
-	usedVars : IntSet.set ref,
-	freeVars : lvar list ref,	(* free lvars of module *)
-      }
+    structure LitEnv : sig
 
-    fun newEnv () = LE{
-	    strs = StrLitTbl.new(),
-	    r64s = RealLitTbl.new(),
-	    usedVars = ??,
-	    freeVars = ref[]
+	type t
+
+      (* create a new environment *)
+	val new : unit -> t
+      (* add a literal_value to the environment *)
+	val add : t -> literal_value -> literal
+      (* return the literal that a variable is bound to *)
+	val findVar : t -> C.lvar -> literal option
+      (* is a value representable as a literal? *)
+	val isConst : t -> value -> bool
+      (* record the use of a value in a non-literal context *)
+	val useValue : t -> value -> unit
+      (* like useValue, but for values embedded in literal records.  This function
+       * returns the literal that the value maps to.
+       *)
+	val useValue' : t -> value -> literal option
+      (* add a literal record value to the environment *)
+	val addRecord : t -> C.record_kind * literal list * C.lvar -> unit
+      (* return true if there are no literals defined in the environment *)
+	val isEmpty : t -> bool
+      (* return a list of all of the literals defined in the environment *)
+	val allLits : t -> literal list
+
+      end = struct
+
+	fun hashLV (LV_NUM{ty, ival}) = Word.fromLargeInt ival + ??
+	  | hashLV (LV_REAL{ty, rval}) = RealLit.hash rval + ??
+	  | hashLV (LV_STR s) = HashString.hashString s + ??
+	  | hashLV (LV_RECORD(rk, lits)) = let
+	      fun f (LIT{id, ...}, h) = 0w3 * id + ??
+		| f (IMMED n, h) = Word.fromLargeInt n + ??
+	      val h0 = (case rk
+		     of RK_VECTOR =>
+		      | RK_RECORD =>
+		      | RK_RAWBLOCK =>
+		      | _ => bug("unexpected record kind " ^ PPCps.rkstring rk)
+		    (* end case *))
+	      in
+		List.foldl f h0 lits
+	      end
+
+	fun sameLV (LV_NUM{ty=ty1, ival=iv1}, LV_NUM{ty=ty2, ival=iv2}) =
+	      (ty1 = ty2) andalso (iv1 = iv2)
+	  | sameLV (LV_REAL{ty=ty1, rval=rv1}, LV_REAL{ty=ty2, rval=rv2}) =
+	      (ty1 = ty2) andalso RealLit.same(rv1, rv2)
+	  | sameLV (LV_STR s1, LV_STR s2) = (s1 = s2)
+	  | sameLV (LV_RECORD(rk1, lits1), LV_RECORD(rk2, lvs2)) =
+	      (rk1 = rk2) andalso ListPair.allEq sameLit (lvs1, lvs2)
+	  | sameLV _ = false
+
+	and sameLit (LIT{useCnt=u1, ...}, LIT{useCnt=u2, ...}) = (u1 = u2)
+	  | sameLit (IMMED n1, IMMED n2) = (n1 = n2)
+	  | sameLit _ = false
+
+	structure LTbl = HashTableFn(
+	  struct
+	    type hash_key = literal_value
+	    val hashVal = hashLV
+	    val sameKey = sameLV
+	  end)
+
+      (* a variable that is bound to a literal is either used to build a literal
+       * record, in which case the bool is false, or is used as an argument to
+       * some other operation (including non-literal records).
+       *)
+	type var_info = bool * literal
+
+	datatype t = LE of {
+	    lits : literal LTbl.hash_table,	(* table of unique literals in the module *)
+	    vMap : var_info IntTbl.hash_table	(* map from variables to the literals that they *)
+						(* are bound to *)
 	  }
 
-    fun addString (LE{strs, ...}) = let
-	  val add = StrLitTbl.add strs
-	  in
-	    fn s => let
-	      val v = LV.mkLvar()
+	fun new () = LE{
+		lits = LTbl.mkTable(32, Fail "LitTbl"),
+		vMap = IntTbl.mkTable(32, Faile "VarTbl")
+	      }
+
+	fun add lits = let
+	      val find = LTbl.find lits
+	      val insert = LTbl.insert lits
 	      in
-		(VAR v, fn ce => SELECT(add s, StrLitTbl.var strs, v, FLTt 64, ce))
+		fn lv => (case find lv
+		     of SOME lit => lit
+		      | NONE => let
+			  val lit = Lit{
+				  useCnt = ref 0,
+				  refCnt = ref 0,
+				  id = Word.fromInt(LTbl.numItems tbl),
+				  value = lv
+				}
+			  in
+			    LTbl.insert lits (lv, lit);
+			    lit
+			  end
+		    (* end case *)
 	      end
-	  end
 
-    fun addReal64 (LE{r64s, ...}) = let
-	  val add = RealLitTbl.add r64s
-	  in
-	    fn r => let
-	      val v = LV.mkLvar()
+	local
+	  fun addLiteral wrap (LE{lits, ...}) = let
+		val addL = add lits
+		in
+		  fn v => addL (wrap v)
+		end
+	in
+	val addNum = let
+	      val addNum' = addLiteral LV_NUM
 	      in
-		(VAR v, fn ce => SELECT(add r, RealLitTbl.var r64s, v, CPSUtil.BOGt, ce))
+		fn {ty={tag=true, ...}, ival} => IMMED ival
+		 | {ty={sz, ...}, ival} => addNum' {ty=sz, ival=ival}
 	      end
-	  end
+	val addString = addLiteral LV_STR
+	val addReal = addLiteral LV_REAL
+	end (* local *)
 
-(* this function should be merged with `enter` once we have defined that *)
-    fun addVar (LE{freeVars, ...}) x = freeVars := x :: !freeVars
+	fun findVar (LE{vMap, ...}) = IntTbl.find vMap
 
-    fun useVar (LE{usedVars, ...}) x = usedVars := IntSet.add(!usedVars, x)
+	fun insertVar (LE{vMap, ...}) = IntTbl.insert vMap
 
-    fun isUsed (LE{usedVars, ...}) x = IntSet.member(!usedVars, x)
+	fun isConst (LE{vMap, ...}) = let
+	      val inDomain = inDomain tbl
+	      in
+		fn (C.VAR x) => inDomain x
+		 | (C.LABEL _) => bug "unexpected LABEL"
+		 | C.VOID => false
+		 | _ => false
+	      end
 
-  (* fetch out the literal information from the environment *)
-    fun getLiterals (LE{r64s, ...}) = ??
+	fun useValue tbl = let
+	      val findVar = findVar tbl
+	      val addNum = addNum tbl
+	      val addReal = addReal tbl
+	      val addString = addString tbl
+	      val insert = insertVar vMap
+	      in
+		fn (C.VAR x) => (case findVar x
+		       of SOME(flg, lit) => (
+			    useLit lit;
+			    if flg then () else insert (x, (true, lit))
+			| NONE => ()
+		      (* end case *))
+		 | (C.LABEL _) => bug "unexpected LABEL"
+		 | (C.NUM n) => useLit(addNum n)
+		 | (C.REAL r) => useLit(addReal r)
+		 | (C.STRING s) => useLit(addString s)
+		 | C.VOID => ()
+	      end
 
-  (* lifting all literals from a CPS program *)
-    fun liftlits (body, root, offset) = let
-	(* create the literal environment *)
-	  val env = newEnv()
-	  val entReal = addReal env
-	  val entStr = addString env
-	  val used = useVar env
-	(* translation on the CPS values *)
-	  fun doValue u = (case u
-		 of REAL{rval, ...} => SOME(entReal rval)	(* REAL32: FIXME *)
-		  | STRING s => SOME(entStr s)
-		  | VAR v => (used v; NONE)
-		  | _ => NONE
-		(* end case *))
-	  fun doValues vs = let
-	      (* check for real and string literals; we also mark variables as used *)
-		fun chkVal (REAL _, _) = true
-		  | chkVal (STRING _, _) = true
-		  | chkVal (VAR x, flg) = (used v; flg)
-		  | chkVal (_, flg) = flg
-		fun addVal (u, (xs, hh)) = let
-		      fun add (nu, nh) = (nu::xs, nh o hh)
+	fun useValue' tbl = let
+	      val findVar = findVar tbl
+	      val addNum = addNum tbl
+	      val addReal = addReal tbl
+	      val addString = addString tbl
+	      fun use lit = (useLit lit; lit)
+	      in
+		fn (C.VAR x) => (case findVar x
+		      of SOME lit => use lit
+		       | NONE => bug "expected literal"
+		     (* end case *))
+		 | (C.LABEL _) => bug "unexpected LABEL"
+		 | (C.NUM n) => use(addNum ln)
+		 | (C.REAL r) => use(addReal lr)
+		 | (C.STRING s) => use(addString s)
+		 | C.VOID => bug "unexpected VOID"
+	      end
+
+	fun addRecord (tbl as LE{lits, vMap}) = let
+	      val add = add lits
+	      val insert = IntTbl.insert vMap
+	      in
+		fn (rk, flds, v) => insert (v, (false, add (LV_RECORD(rk, flds))))
+	      end
+
+	fun isEmpty (LE{lits, ...}) = (LTbl.numItems lits = 0)
+
+	fun allLits (LE{lits, ...}) = LTbl.listItems lits
+
+      end (* LitEnv *)
+
+  (* The first pass initializes the literal table by walking the CPS module.  After
+   * this pass, we have identified any literal value that needs to be included in the
+   * literal section.  Furthermore, we have identified which literal values are used
+   * in non-literal contexts.
+   *)
+    fun identifyLiterals body = let
+	  val tbl = LitEnv.new()
+	  val isConst = LitEnv.isConst tbl
+	  val useValue = LitEnv.useValue tbl
+	  val useValues = List.app useValue
+	  val useValue' = LitEnv.useValue' tbl
+	  val addRecord = LitEnv.addRecord tbl
+	(* process a CPS function *)
+	  fun doFun (fk, f, vl, cl, e) = doExp e
+	(* process a CPS expression *)
+	  and doExp ce = (case ce
+		 of C.RECORD(rk, fields, v, e) => let
+		      fun fieldToValue (u, C,OFFp 0) = u
+			| fieldToValue _ = bug "unexpected access in field"
+		      val ul = List.map fieldToValue ul
 		      in
-			case u
-			 of REAL{rval, ...} => add(entReal rval)  (* REAL32: FIXME *)
-			  | STRING s => add(entStr s)
-			  | _ => (u::xs, hh)
-			(* end case *))
+			if List.all isConst ul
+			  then addRecord (rk, List.map addValue' ul, v)
+			  else useValues ul;
+			doExp e
 		      end
-	        in
-		  if (List.foldl chkVal false vs)
-		    then NONE
-		    else SOME(foldr addVal ([], Fn.id) vs)
-	        end
+		  | C.SELECT(i, u, v, t, e) => (useValue u; doExp e)
+		  | C.OFFSET _ => bug "unexpected OFFSET in doExp"
+		  | C.APP(u, ul) => useValues ul
+		  | C.FIX(fns, e) => (List.app doFun fns; doExp e)
+		  | C.SWITCH(u, v, es) => (useValue u; List.app doExp es)
+		  | C.BRANCH(p, ul, v, e1, e2) => (useValues ul; doExp e1; doExp e2)
+		  | C.SETTER(p, ul, e) => (useValues ul; doExp e)
+		  | C.LOOKER(p, ul, v, t, e) => (useValues ul; doExp e)
+		  | C.ARITH(p, ul, v, t, e) => (useValues ul; doExp e)
+		  | C.PURE(C.P.WRAP(P.INT sz), [u], v, t, e) => (case useValue' u
+		       of SOME lit => (
+			    addRecord (C.RK_RAWBLOCK, [LV_NUM{ty=sz, ival=lit}], v);
+			    doExp e)
+			| NONE => doExp e
+		      (* end case *))
+(* REAL32: FIXME *)
+		  | C.PURE(C.P.WRAP(P.FLOAT 64), [u], v, t, e) => (case useValue' u
+		       of SOME lit => (
+			    addRecord (C.RK_RAW64BLOCK, [LV_REAL{ty=64, rval=lit}], v);
+			    doExp e)
+			| NONE => doExp e
+		      (* end case *))
+		  | C.PURE (p, ul, v, t, e) => (useValues ul; doExp e)
+		  | C.RCC (k, l, p, ul, vtl, e) => (useValues ul; doExp e)
+		(* end case *))
+	  in
+	    doExp body;
+	    tbl
+	  end
+
+  (* build the representation of the literals; return the literal vector and a list of
+   * variables that are
+   *)
+    fun buildLits ltbl = let
+	(* get a list of the literals that are bound to variables in order of their
+	 * definition.
+	 *)
+	  val lits = let
+		fun gt (LIT{id=a, ...}, LIT{id=b, ...}) = (a > b)
+		  | gt _ = bug "unexpected IMMED literal"
+		in
+		  ListMergeSort.sort gt
+		    (List.filter litIsUsed (LTbl.listItems lits))
+		end
+	  in
+???
+	  end
+
+  (* rewrite the program, removing unused variables *)
+    fun liftLits (tbl, body) = let
 	(* process a CPS function *)
 	  fun doFun (fk, f, vl, cl, e) = (fk, f, vl, cl, doExp e)
 	(* process a CPS expression *)
 	  and doExp ce = (case ce
-		 of RECORD (rk, ul, v, e) => record (rk, ul, v) (doExp e)
-		  | SELECT (i, u, v, t, e) => (case doValue u
-		       of SOME (nu, hh) => hh (SELECT(i, nu, v, t, doExp e))
-			| NONE => SELECT(i, u, v, t, doExp e)
+		 of C.RECORD(rk, ul, v, e) => (case findVar v
+		       of NONE => let
+			    fun rewriteField (u, acc) = (rewriteValue u, acc)
+			    in
+			      C.RECORD(rk, List.map rewriteField ul, v, doExp e)
+			    end
+			| SOME _ => doExp e
 		      (* end case *))
-		  | OFFSET _ => bug "unexpected OFFSET in doExp"
-		  | APP (u, ul) => (case doValues(u::ul)
-		       of SOME(nu::nl, h) => h (APP(nu, nl))
-			| _ => APP (u, ul)
-		      (* end case *))
-		  | FIX (fns, e) => FIX(map doFun fns, doExp e)
-		  | SWITCH (u, v, es) => let
-		      val es' = map doExp es
-		      in
-			case doValue u
-			 of SOME(nu, hh) => hh(SWITCH(nu, v, es'))
-			  | NONE => SWITCH(u, v, es')
-			(* end case *)
-		      end
-		  | BRANCH (p, ul, v, e1, e2) => (case doValues
-		       of SOME(nl, hh) => hh(BRANCH(p, nl, v, doExp e1, doExp e2))
-			| NONE => BRANCH(p, ul, v, doExp e1, doExp e2)
-		      (* end case *))
-		  | SETTER (p, ul, e) => (case doValues
-		       of SOME(nl, hh) => hh(SETTER(p, nl, doExp e))
-			| NONE => SETTER(p, ul, doExp e)
-		      (* end case *))
-		  | LOOKER (p, ul, v, t, e) => (case doValues
-		       of SOME(nl, hh) => hh(LOOKER(p, nl, v, t, doExp e))
-			| NONE => LOOKER(p, ul, v, t, doExp e)
-		      (* end case *))
-		  | ARITH (p, ul, v, t, e) => (case doValues
-		       of SOME(nl, hh) => hh(ARITH(p, nl, v, t, doExp e))
-			| NONE => ARITH(p, ul, v, t, doExp e)
-		      (* end case *))
-		  | PURE (P.WRAP(P.INT sz), [u], v, t, e) =>
-		      ??
-		  | PURE (P.WRAP(P.FLOAT sz), [u], v, t, e) =>
-		      wrapfloat (sz, u, v, t) (doExp e)
-		  | PURE (p, ul, v, t, e) => (case doValues
-		       of SOME(nl, hh) => hh(PURE(p, nl, v, t, doExp e))
-			| NONE => PURE(p, ul, v, t, doExp e)
-		      (* end case *))
-		  | RCC (k, l, p, ul, vtl, e) => (case doValues
-		       of SOME(nl, hh) => hh(RCC(k, l, p, nl, vtl, doExp e))
-			| NONE => RCC(k, l, p, ul, vtl, doExp e)
-		      (* end case *))
+		  | C.SELECT(i, u, v, t, e) => C.SELECT(i, rewriteValue u, v, t, doExp e)
+		  | C.OFFSET _ => bug "unexpected OFFSET in doExp"
+		  | C.APP(u, ul) => C.APP(u, rewriteValues ul)
+		  | C.FIX(fns, e) => C.FIX(map doFun fns, doExp e)
+		  | C.SWITCH(u, v, es) => C.SWITCH(rewriteValue u, v, List.map doExp es)
+		  | C.BRANCH(p, ul, v, e1, e2) =>
+		      C.BRANCH(p, rewriteValues ul, v, doExp e1, doExp e2)
+		  | C.SETTER(p, ul, e) => C.SETTER(p, rewriteValues ul, doExp e)
+		  | C.LOOKER(p, ul, v, t, e) => C.LOOKER(p, rewriteValues ul, v, t, doExp e)
+		  | C.ARITH(p, ul, v, t, e) => C.ARITH(p, rewriteValues ul, v, t, doExp e)
+		  | C.PURE(P.WRAP(P.INT sz), [u], v, t, e) => doExp e
+		  | C.PURE(P.WRAP(P.FLOAT sz), [u], v, t, e) => doExp e
+		  | C.PURE(p, ul, v, t, e) => C.PURE(p, rewriteValues ul, v, t, doExp e)
+		  | C.RCC(k, l, p, ul, vtl, e) => C.RCC(k, l, p, rewriteValues ul, vtl, doExp e)
 		(* end case *))
-	(* process the module *)
-	  val body' = doExp body
-	(* get the literals and the prelude code *)
-	  val (addPrelude) = getLiterals ()
 	  in
-	    (addPrelude body', lits)
-	  end (* liftlits *)
+	  (* process the module *)
+	    doExp body
+	  end
+
+ (* the main function *)
+    fun split (func as (fk, f, vl as [_,x], [CNTt, t as PTRt(RPT n)], body)) = let
+	(* new argument type has an additional argument for the literals *)
+	  val nt = PTRt(RPT(n+1))
+	  val ltbl = identifyLiterals body
+	  val nbody = if if LTbl.isEmpty ltbl
+		then body
+		else let
+		  val (litVec, litVars) = buildLiterals ltbl
+		  val nbody = liftLiterals (ltbl, body)
+(* wrap the body with bindings for the literals *)
+		  in
+		    nbody
+		  end
+	  in
+	    if !debugFlg
+	      then (
+		say (concat["\n[After Literals.split ...]\n"]);
+		PPCps.printcps0 nfn;
+		say "==========\n";
+		printLits lit;
+		say "\n")
+	      else ();
+	    (nfunc, litVec)
+	  end
+      | split _ = bug "unexpected CPS header in split"
 
   end (* Literals *)
