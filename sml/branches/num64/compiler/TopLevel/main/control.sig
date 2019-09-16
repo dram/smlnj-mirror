@@ -59,6 +59,7 @@ signature CGCONTROL =
     val ifidiom : bool ref
     val comparefold : bool ref
     val debugLits : bool ref
+    val newLiterals : bool ref
     val debugRep : bool ref
     val deadup : bool ref
     val memDisambiguate : bool ref	(* used by MLRISC *)
