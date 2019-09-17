@@ -25,7 +25,7 @@ functor CPSCompFn (
     val abi_variant = Gen.abi_variant
 
     fun bug s = ErrorMsg.impossible ("CPSComp:" ^ s)
-    val say = Control_Print.say
+    val say = Control.Print.say
 
     fun phase x = Stats.doPhase (Stats.makePhase x)
 
@@ -33,6 +33,7 @@ functor CPSCompFn (
     val cpstrans  = phase "CPS 065 cpstrans" CPStrans.cpstrans
     val cpsopt    = phase "CPS 070 cpsopt" CPSopt.reduce
     val litsplit  = phase "CPS 075 litsplit" Literals.split
+    val newlitsplit = phase "CPS 075 litsplit" NewLiterals.split
     val closure   = phase "CPS 080 closure"  Closure.closeCPS
     val globalfix = phase "CPS 090 globalfix" GlobalFix.globalfix
     val spill     = phase "CPS 100 spill" Spill.spill
@@ -56,6 +57,7 @@ functor CPSCompFn (
 		val function = cpsopt (function, NONE, false)
 		val _ = prC "cpsopt" function
 	      (* split out heap-allocated literals; litProg is the bytecode *)
+val _ = if !Control.CG.newLiterals then ignore(newlitsplit function) else ()
 		val (function, litProg) = litsplit function
 		val _ = prC "cpsopt-code" function
 		fun gen fx = let
