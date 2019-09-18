@@ -266,6 +266,14 @@ structure NewLiterals : LITERALS =
     fun refLit (LIT{refCnt, ...}) = refCnt := !refCnt + 1
       | refLit (IMMED _) = ()
 
+  (* return the CPS type for a literal value *)
+    fun cpsTypeOf (LV_REAL{ty, ...}) = C.FLTt ty
+      | cpsTypeOf (LV_STR _) = CPSUtil.BOGt
+      | cpsTypeOf (LV_RECORD(C.RK_RECORD, lits)) = C.PTRt(C.RPT(List.length lits))
+      | cpsTypeOf (LV_RECORD _) = CPSUtil.BOGt
+      | cpsTypeOf (LV_RAW _) = CPSUtil.BOGt
+      | cpsTypeOf (LV_RAW64 bv) = C.PTRt(C.FPT(W8V.length bv div 8))
+
   (* is a literal used as value outside of being part of another literal? *)
     fun litIsUsed (LIT{refCnt, useCnt, ...}) = (!refCnt < !useCnt)
 
@@ -560,25 +568,29 @@ structure NewLiterals : LITERALS =
 		    (List.filter litIsUsed (LitEnv.allLits env))
 		end
 	  val numNamedLits = List.length lits
-	(* a table to map literal IDs to their location in the literal vector *)
+	(* tracking the location of literals in the literal/real vector *)
+	  val nLits = ref 0
+	  val nReal64Lits = ref 0
+	  val real64Lits = ref []
 	  val litIdTbl = WordTbl.mkTable(numNamedLits, Fail "litIdTbl")
 	  val insertLit = let
 		val insert = WordTbl.insert litIdTbl
 		in
-		  fn id => let val slot = WordTbl.numItems litIdTbl
+		  fn id => let val slot = !nLits
 		      in
-			insert (id, slot); slot
+			nLits := slot + 1;
+			insert (id, LitSlot slot)
 		      end
 		end
-	(* a table to map unwrapped real-literal IDs to their location in the real vector *)
-	  val realIdTbl = WordTbl.mkTable(numNamedLits, Fail "realIdTbl")
-	  val real64Vals = ref []
 	  val insertReal64 = let
-		val insert = WordTbl.insert realIdTbl
+		val insert = WordTbl.insert litIdTbl
 		in
-		  fn (id, rval) => (
-		      insert (id, WordTbl.numItems realIdTbl);
-		      real64Vals := real64ToBytes rval :: !real64Vals)
+		  fn (id, rval) => let val slot = !nReal64Lits
+		      in
+			nReal64Lits := slot + 1;
+			insert (id, Real64Slot slot);
+			real64Lits := real64ToBytes rval :: !real64Lits
+		      end
 		end
 	(* table to track shared literals (indexed by literal ID) *)
 	  val sharedLitTbl = WordTbl.mkTable(numNamedLits, Fail "sharedLitTbl")
@@ -610,11 +622,11 @@ structure NewLiterals : LITERALS =
 		      else genLV (d, value)
 		  | genLit (d, IMMED{ty={tag=true, ...}, ival}) = (depth(d+1); encINT (buf, ival))
 		  | genLit (d, IMMED{ty={sz=32, ...}, ival}) = (depth(d+1); encINT32 (buf, ival))
-		  | genLit (d, IMMED{ty={sz=32, ...}, ival}) = (depth(d+1); encINT64 (buf, ival))
+		  | genLit (d, IMMED{ty={sz=64, ...}, ival}) = (depth(d+1); encINT64 (buf, ival))
 		in
 		  case value
 		   of LV_REAL{ty=64, rval} => insertReal64(id, rval)
-		    | _ => genLit (d, lit)
+		    | _ => (insertLit id; genLit (d, lit))
 		  (* end case *)
 		end
 	    | genLiteral _ = bug "unexpected top-level IMMED literal"
@@ -629,13 +641,14 @@ structure NewLiterals : LITERALS =
 		  W8V.fromList[opRETURN]
 		]
 	  in
-???
+	    (litIdTbl, code)
 	  end
 
   (* rewrite the program, removing unused variables *)
     fun liftLiterals (env, idTbl, litVec, fltVec, body) = let
 	  val findValue = LitEnv.findValue env
 	  val findVar = LitEnv.findVar env
+	  val getSlot = WordTbl.lookup idTbl
 	(* rewrite a value *)
 	  fun rewriteValue (u, k : C.value -> C.cexp) = (case findValue u
 		 of SOME(LIT{id, value, ...}) => let
@@ -715,16 +728,16 @@ structure NewLiterals : LITERALS =
 	(* new argument type has an additional argument for the literals *)
 	  val nt = C.PTRt(C.RPT(n+1))
 	  val env = identifyLiterals body
-	  val nbody = if LitEnv.isEmpty env
-		then body
+	  val (nbody, code) = if LitEnv.isEmpty env
+		then (body, W8V.fromList[opRETURN])
 		else let
-		  val (litVec, litVars, idTbl) = buildLiterals env
+		  val (idTbl, code) = buildLiterals env
 		  val lvv = LambdaVar.mkLvar()
 		  val rvv = LambdaVar.mkLvar()
 		  val nbody = liftLiterals (env, idTbl, C.VAR lvv, C.VAR rvv, body)
 (* wrap the body with bindings for the literals *)
 		  in
-		    nbody
+		    (nbody, code)
 		  end
 	  val nfunc = (fk, f, vl, [C.CNTt, nt], nbody)
 	  in
@@ -738,7 +751,7 @@ structure NewLiterals : LITERALS =
 		say "\n")
 	      else ();
 *)
-	    (nfunc, litVec)
+	    (nfunc, code)
 	  end
       | split _ = bug "unexpected CPS header in split"
 
