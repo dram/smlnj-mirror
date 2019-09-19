@@ -67,6 +67,9 @@ structure NewLiterals : LITERALS =
     val opINT64h : Word8.word = 0wx18
     val opINT64w : Word8.word = 0wx19
     val opINT64lw : Word8.word = 0wx1A
+  (* `STR` opcodes *)
+    val opSTRb : Word8.word = 0wx2C
+    val opSTRn : Word8.word = 0wx2D
   (* record opcodes *)
     fun opRECORD_1_7 len = Word8.fromInt(0x2F + len)
     val opRECORDb: Word8.word = 0wx37
@@ -120,8 +123,6 @@ structure NewLiterals : LITERALS =
 	  addLargeInt32 (buf, n))
     fun addLargeInt64' (buf, n) = addLargeInt64 (buf, IntInf.fromInt n)
 
-    fun addString (buf, s) = CharVector.app (fn c => W8B.add1(buf, Byte.charToByte c)) s
-
     fun intToBytes32 n = W8V.fromList[
 	    Word8.fromInt(~>>(n, 0w24)),
 	    Word8.fromInt(~>>(n, 0w16)),
@@ -146,6 +147,10 @@ structure NewLiterals : LITERALS =
 	    Word8.fromLargeInt(IntInf.~>>(n, 0w8)),
 	    Word8.fromLargeInt n
 	  ]
+
+    val intToBytes = if Target.is64
+	  then largeIntToBytes64 o Int.toLarge
+	  else intToBytes32
 
     fun largeIntToBytes (32, n) = largeIntToBytes32 n
       | largeIntToBytes (64, n) = largeIntToBytes64 n
@@ -188,6 +193,11 @@ structure NewLiterals : LITERALS =
 	  else if (~2147483648 <= n) andalso (n <= 2147483647)
 	    then (W8B.add1(buf, opINT64w); addLargeInt32(buf, n))
 	    else (W8B.add1(buf, opINT64lw); addLargeInt64(buf, n))
+
+  (* encode a STR opcode and length *)
+    fun encSTR (buf, len) = if (len <= 255)
+	    then (W8B.add1(buf, opSTRb); addInt8(buf, len))
+	    else (W8B.add1(buf, opSTRn); W8B.addVec(buf, intToBytes len))
 
   (* encode a RECORD opcode and length *)
     fun encRECORD (buf, len) = if (len <= 7)
@@ -276,6 +286,38 @@ structure NewLiterals : LITERALS =
 
   (* is a literal used as value outside of being part of another literal? *)
     fun litIsUsed (LIT{refCnt, useCnt, ...}) = (!refCnt < !useCnt)
+      | litIsUsed _ = bug "impossible"
+
+  (* print the list of "top-level" literals (for debugging purposes) *)
+    fun printLits lits = let
+	  fun prIndent 0 = ()
+	    | prIndent n = (say "  "; prIndent(n-1))
+	  fun prLiteral indent lit = (
+		prIndent indent;
+		case lit
+		 of (LIT{id, value, ...}) => prValue indent value
+		  | (IMMED{ty={sz, tag}, ival}) => say(concat[
+			IntInf.toString ival, ":i", Int.toString sz, "\n"
+		      ])
+		(* end case *))
+	  and prValue indent lv = (case lv
+		 of (LV_REAL{rval, ...}) => say(RealLit.toString rval ^ "\n")
+		  | (LV_STR s) => say (concat["\"", String.toString s, "\"\n"])
+		  | (LV_RECORD(rk, lits)) => (
+		      case rk
+		       of C.RK_VECTOR => say "VECTOR\n"
+			| C.RK_RECORD => say "RECORD\n"
+		      (* end case *);
+		      List.app (prLiteral (indent+1)) lits)
+		  | (LV_RAW v) => say "RAW\n"
+		  | (LV_RAW64 v) => say "RAW64\n"
+		(* end case *))
+	  fun prSlot (i, lit) = (
+		say (StringCvt.padLeft #" " 3 (Int.toString i) ^ ": ");
+		prLiteral 0 lit)
+	  in
+	    List.appi prSlot lits
+	  end (* printLits *)
 
   (* an environment for tracking literals *)
     structure LitEnv : sig
@@ -405,7 +447,6 @@ structure NewLiterals : LITERALS =
 	      val add = add lits
 	      val insert = IntTbl.insert vMap
 	      in
-(* FIXME: flds need to be processed *)
 		fn (rk, flds, v) => insert (v, (false, add (LV_RECORD(rk, flds))))
 	      end
 
@@ -606,6 +647,8 @@ structure NewLiterals : LITERALS =
 	(* generate code for a literal *)
 	  fun genLiteral (d, lit as LIT{id, value, ...}) = let
 		fun genLV (d, LV_REAL _) = bug "unexpected embedded LV_REAL"
+		  | genLV (d, LV_STR s) = (
+		      encSTR(buf, size s); W8B.addVec(buf, Byte.stringToBytes s))
 		  | genLV (d, LV_RECORD(rk, lits)) = let
 		      fun genFld (lit, d) = (genLit (d, lit); d+1)
 		      in
@@ -623,6 +666,7 @@ structure NewLiterals : LITERALS =
 		  | genLit (d, IMMED{ty={tag=true, ...}, ival}) = (depth(d+1); encINT (buf, ival))
 		  | genLit (d, IMMED{ty={sz=32, ...}, ival}) = (depth(d+1); encINT32 (buf, ival))
 		  | genLit (d, IMMED{ty={sz=64, ...}, ival}) = (depth(d+1); encINT64 (buf, ival))
+		  | genLit _ = bug "unsupported IMMED type"
 		in
 		  case value
 		   of LV_REAL{ty=64, rval} => insertReal64(id, rval)
@@ -641,6 +685,12 @@ structure NewLiterals : LITERALS =
 		  W8V.fromList[opRETURN]
 		]
 	  in
+	    if !debugFlg
+	      then (
+		say "==========\n";
+		printLits lits;
+		say "\n")
+	      else ();
 	    (litIdTbl, code)
 	  end
 
@@ -660,7 +710,7 @@ structure NewLiterals : LITERALS =
 			  | Real64Slot n => C.SELECT(n, fltVec, v, ty, k(C.VAR v))
 			(* end case *)
 		      end
-		  | NONE => k u
+		  | _ => k u
 		(* end case *))
 	(* rewrite a list of values *)
 	  fun rewriteValues (ul, k : C.value list -> C.cexp) = let
@@ -683,7 +733,7 @@ structure NewLiterals : LITERALS =
 		       of LitSlot n => C.SELECT(n, litVec, x, ty, k())
 			| Real64Slot _ => bug "unexpected Real literal"
 		      (* end case *))
-		  | NONE => mkOrig()
+		  | _ => mkOrig()
 		(* end case *))
 	(* process a CPS function *)
 	  fun doFun (fk, f, vl, cl, e) = (fk, f, vl, cl, doExp e)
