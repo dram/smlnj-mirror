@@ -57,8 +57,9 @@ functor CPSCompFn (
 		val function = cpsopt (function, NONE, false)
 		val _ = prC "cpsopt" function
 	      (* split out heap-allocated literals; litProg is the bytecode *)
-val _ = if !Control.CG.newLiterals then ignore(newlitsplit function) else ()
-		val (function, litProg) = litsplit function
+		val (function, litProg) = if !Control.CG.newLiterals
+		      then newlitsplit function
+		      else litsplit function
 		val _ = prC "cpsopt-code" function
 		fun gen fx = let
 		      val fx = (prC "closure" o closure) fx

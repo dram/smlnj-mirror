@@ -51,6 +51,11 @@ structure NewLiterals : LITERALS =
    * description of these instructions is given in dev-notes/new-literals.md
    *)
 
+  (* magic number for V2 literal bytecodes.  This needs to agree with the runtime
+   * constant `V2_MAGIC` in `runtime/gc/build-literals.c`
+   *)
+    val magicV2 : int = 0x20190921
+
   (* `INT` opcodes *)
     fun opINT_0_10 n = Word8.fromLargeInt n
     fun opINT_m5_m1 n = Word8.fromLargeInt(0x0A - n)
@@ -163,7 +168,7 @@ structure NewLiterals : LITERALS =
 
   (* encode the literal header block *)
     fun headerToBytes {maxstk, maxsaved} = W8V.concat[
-	  intToBytes32 0x20171031,
+	  intToBytes32 magicV2,
 	  intToBytes32 maxstk,
 	  intToBytes32 Target.mlValueSz,
 	  intToBytes32 maxsaved]
@@ -294,6 +299,13 @@ structure NewLiterals : LITERALS =
   (* is a literal used as value outside of being part of another literal? *)
     fun litIsUsed (LIT{refCnt, useCnt, ...}) = (!refCnt < !useCnt)
       | litIsUsed _ = bug "impossible"
+
+  (* is a literal shared?  This happens when its refCnt is > 1 or when its refCnt = 1 and
+   * its useCnt > 1.
+   *)
+    fun litIsShared (LIT{refCnt=ref rc, useCnt, ...}) =
+	  (rc > 1) orelse ((rc = 1) andalso (!useCnt > 1))
+      | litIsShared _ = bug "impossible"
 
   (* print the list of "top-level" literals (for debugging purposes) *)
     fun printLits lits = let
@@ -677,11 +689,12 @@ say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 		  | genLV (d, LV_RECORD(rk, lits)) = let
 		      fun genFld (lit, d) = (genLit (d, lit); d+1)
 		      in
-			depth (Int.max(d+1, foldl genFld d lits))
+			depth (Int.max(d+1, foldl genFld d lits));
+			encRECORD (buf, List.length lits)
 		      end
 		  | genLV (d, LV_RAW v) = (depth(d+1); encRAW(buf, v))
 		  | genLV (d, LV_RAW64 v) = (depth(d+1); encRAW64(buf, v))
-		and genLit (d, lit as LIT{id, value, ...}) = if litIsUsed lit
+		and genLit (d, lit as LIT{id, value, ...}) = if litIsShared lit
 		      then ( (* shared literal, so either load or save it *)
 			case findSharedLit id
 			 of SOME slot => (depth(d+1); encLOAD(buf, slot))
@@ -713,7 +726,7 @@ say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 		      end
 		(* end case *))
 	(* add the instruction to build the literal vector and to return the result *)
-	  val _ = (encVECTOR(buf, litVecSz); W8B.add1(buf, opRETURN))
+	  val _ = (encRECORD(buf, litVecSz); W8B.add1(buf, opRETURN))
 	(* create literal program *)
 	  val code = W8V.concat[
 		  headerToBytes {maxstk = !stkDepth, maxsaved = WordTbl.numItems sharedLitTbl},
@@ -730,12 +743,20 @@ say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 			| SOME(LitSlot n) => say(concat["literal-", Int.toString n, "\n"])
 			| SOME(Real64Slot n) => say(concat["real64-", Int.toString n, "\n"])
 		      (* end case *))
+		fun prByte (i, w) = (
+		      say(StringCvt.padLeft #"0" 2 (Word8.toString w));
+		      if (i mod 16 = 15)
+			then say "\n"
+			else say " ")
 		in
 		  say "==========\n";
 		  say(concat["== bytecode size: ", Int.toString(W8V.length code), "\n"]);
 		  printLits lits;
 		  say "==========\n";
 		  List.app prBV (LitEnv.boundVars env);
+		  say "==========\n";
+		  W8V.appi prByte code;
+		  if (W8V.length code mod 16 <> 15) then say "\n" else ();
 		  say "==========\n"
 		end
 	      else ();

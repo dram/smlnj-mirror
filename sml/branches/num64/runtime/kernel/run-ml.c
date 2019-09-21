@@ -87,9 +87,13 @@ void RunML (ml_state_t *msp)
     for (;;) {
 
 	ASSIGN(ProfCurrent, prevProfIndex);
+#ifdef SIZE_64
 SayDebug("** run ML: pc = %p\n", (void*)msp->ml_pc);
+#endif
 	request = restoreregs(msp);
+#ifdef SIZE_64
 SayDebug("** request = %d\n", request);
+#endif
 	prevProfIndex = DEREF(ProfCurrent);
 	ASSIGN(ProfCurrent, PROF_RUNTIME);
 
