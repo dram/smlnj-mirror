@@ -370,6 +370,10 @@ structure NewLiterals : LITERALS =
        * the IMMED literals, which are not recorded in the environment)
        *)
 	val allLits : t -> literal list
+      (* return a list of the variables that are bound to top-level literalsn paired
+       * with their binding.
+       *)
+	val boundVars : t -> (C.lvar * literal) list
 
       end = struct
 
@@ -509,9 +513,10 @@ structure NewLiterals : LITERALS =
 	      in
 		fn (C.VAR x) => (case findVar x
 		       of SOME(flg, lit) => (
+say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 			    useLit lit;
 			    if flg then () else insert (x, (true, lit)))
-			| NONE => ()
+			| NONE => say(concat["** useValue ", LV.lvarName x, "\n"])
 		      (* end case *))
 		 | (C.LABEL _) => bug "unexpected LABEL"
 		 | (C.NUM n) => ()
@@ -542,6 +547,11 @@ structure NewLiterals : LITERALS =
 	fun isEmpty (LE{lits, ...}) = (LTbl.numItems lits = 0)
 
 	fun allLits (LE{lits, ...}) = LTbl.listItems lits
+
+	fun boundVars (LE{vMap, ...}) =
+	      IntTbl.foldi
+		(fn (x, (true, lit), acc) => (x, lit)::acc | (_, _, acc) => acc)
+		  [] vMap
 
       end (* LitEnv *)
 
@@ -712,14 +722,27 @@ structure NewLiterals : LITERALS =
 		]
 	  in
 	    if !debugFlg
-	      then (
-		say "==========\n";
-		printLits lits;
-		say(concat["bytecode size: ", Int.toString(W8V.length code), "\n"]))
+	      then let
+		fun prBV (x, LIT{id, ...}) = (
+		      say(concat["LET ", LV.lvarName x, " = "]);
+		      case WordTbl.find litIdTbl id
+		       of NONE => say "<no slot>\n"
+			| SOME(LitSlot n) => say(concat["literal-", Int.toString n, "\n"])
+			| SOME(Real64Slot n) => say(concat["real64-", Int.toString n, "\n"])
+		      (* end case *))
+		in
+		  say "==========\n";
+		  say(concat["== bytecode size: ", Int.toString(W8V.length code), "\n"]);
+		  printLits lits;
+		  say "==========\n";
+		  List.app prBV (LitEnv.boundVars env);
+		  say "==========\n"
+		end
 	      else ();
 	    (litIdTbl, code, litVecSz, !nReal64Lits)
 	  end
 
+(* TODO: keep an environment of available literal bindings to avoid redundant SELECTs *)
   (* rewrite the program, removing unused variables *)
     fun liftLiterals (env, idTbl, litVec, fltVec, body) = let
 	  val findValue = LitEnv.findValue env
@@ -757,14 +780,10 @@ handle ex => (say(concat["rewriteValue (", PPCps.value2str u, ", -): error\n"]);
 		in
 		  rewrite (ul, [])
 		end
+handle ex => (say "rewriteFields\n"; raise ex)
 	(* rewrite a variable that might be bound to a record literal *)
 	  fun rewriteVar (x, ty, mkOrig, k) = (case findVar x
-		 of SOME(_, lit as LIT{id, ...}) => if litIsUsed lit
-		      then (case getSlot id
-			 of LitSlot n => C.SELECT(n, litVec, x, ty, k())
-			  | Real64Slot _ => bug "unexpected Real literal"
-			(* end case *))
-		      else k()
+		 of SOME _ => k()
 		  | _ => mkOrig()
 		(* end case *))
 handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -, -): error\n"]); raise ex)
@@ -792,9 +811,9 @@ handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -, -): error\n"]);
 		      rewriteValues (ul, fn ul' => C.LOOKER(p, ul', v, t, doExp e))
 		  | C.ARITH(p, ul, v, t, e) =>
 		      rewriteValues (ul, fn ul' => C.ARITH(p, ul', v, t, doExp e))
-		  | C.PURE(C.P.WRAP _, _, v, t, e) =>
+		  | C.PURE(C.P.WRAP nk, [u], v, t, e) =>
 		      rewriteVar (v, t,
-			fn () => bug "expected literal binding",
+			fn () => rewriteValue (u, fn u' => C.PURE(C.P.WRAP nk, [u'], v, t, doExp e)),
 			fn () => doExp e)
 		  | C.PURE(p, ul, v, t, e) =>
 		      rewriteValues (ul, fn ul' => C.PURE(p, ul', v, t, doExp e))
@@ -829,7 +848,7 @@ handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -, -): error\n"]);
 			then C.SELECT(0, C.VAR lvv, rvv, C.PTRt(C.FPT nReal64Lits), nbody)
 			else nbody
 		(* add code to bind the literal vector *)
-		  val nbody = C.SELECT(n+1, C.VAR x, lvv, C.PTRt(C.RPT nLits), nbody)
+		  val nbody = C.SELECT(n, C.VAR x, lvv, C.PTRt(C.RPT nLits), nbody)
 		  in
 		    (nbody, code)
 		  end
@@ -837,7 +856,7 @@ handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -, -): error\n"]);
 	  in
 	    if !debugFlg
 	      then (
-		say (concat["\n==== After Literals.liftLiterals\n"]);
+		say (concat["==== After Literals.liftLiterals\n"]);
 		PPCps.printcps0 nfunc)
 	      else ();
 	    (nfunc, code)
