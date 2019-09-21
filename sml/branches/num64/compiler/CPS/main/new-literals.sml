@@ -40,7 +40,7 @@ structure NewLiterals : LITERALS =
 
     fun bug msg = ErrorMsg.impossible ("Literals: "^msg)
 
-    val debugFlg = Control.CG.debugLits
+    val debugFlg = (* Control.CG.debugLits *) Control.CG.newLiterals;
     val say = Control.Print.say
 
   (****************************************************************************
@@ -67,6 +67,9 @@ structure NewLiterals : LITERALS =
     val opINT64h : Word8.word = 0wx18
     val opINT64w : Word8.word = 0wx19
     val opINT64lw : Word8.word = 0wx1A
+  (* real literal opcode *)
+    val opREAL32 : Word8.word = 0wx26
+    val opREAL64 : Word8.word = 0wx27
   (* `STR` opcodes *)
     val opSTRb : Word8.word = 0wx2C
     val opSTRn : Word8.word = 0wx2D
@@ -194,6 +197,10 @@ structure NewLiterals : LITERALS =
 	    then (W8B.add1(buf, opINT64w); addLargeInt32(buf, n))
 	    else (W8B.add1(buf, opINT64lw); addLargeInt64(buf, n))
 
+(* REAL32: FIXME *)
+  (* endcode a 64-bit real literal *)
+    fun encREAL64 (buf, bits) = (W8B.add1(buf, opREAL64); W8B.addVec(buf, bits))
+
   (* encode a STR opcode and length *)
     fun encSTR (buf, len) = if (len <= 255)
 	    then (W8B.add1(buf, opSTRb); addInt8(buf, len))
@@ -217,7 +224,7 @@ structure NewLiterals : LITERALS =
 
   (* encode RAW data *)
     fun encRAW (buf, data) = let
-	  val len = W8V.length data div 8
+	  val len = W8V.length data div Target.mlValueSz
 	  in
 	    if (len <= 2)
 	      then W8B.add1(buf, opRAW_1_2 len)
@@ -262,7 +269,7 @@ structure NewLiterals : LITERALS =
       = LIT of {			(* heap-allocated literal value *)
 	    refCnt : int ref,		(* count of uses of this literal value from other
 					 * literals; when > 1, then we have shared structure. *)
-	    useCnt : int ref,		(* count of uses of this literal.  When this count
+	    useCnt : int ref,		(* count of all uses of this literal.  When this count
 					 * is > refCnt, then the literal will need to be bound
 					 * to a variable in the residual program.
 					 *)
@@ -290,31 +297,36 @@ structure NewLiterals : LITERALS =
 
   (* print the list of "top-level" literals (for debugging purposes) *)
     fun printLits lits = let
+	  val id2s = Word.fmt StringCvt.DEC
 	  fun prIndent 0 = ()
 	    | prIndent n = (say "  "; prIndent(n-1))
-	  fun prLiteral indent lit = (
+	  fun prLIT indent {refCnt, useCnt, id, value} = prValue indent (value, concat[
+		  "#", id2s id, " ", Int.toString(!refCnt), "/", Int.toString(!useCnt)
+		])
+	  and prLiteral indent lit = (
 		prIndent indent;
 		case lit
-		 of (LIT{id, value, ...}) => prValue indent value
+		 of LIT arg => prLIT indent arg
 		  | (IMMED{ty={sz, tag}, ival}) => say(concat[
 			IntInf.toString ival, ":i", Int.toString sz, "\n"
 		      ])
 		(* end case *))
-	  and prValue indent lv = (case lv
-		 of (LV_REAL{rval, ...}) => say(RealLit.toString rval ^ "\n")
-		  | (LV_STR s) => say (concat["\"", String.toString s, "\"\n"])
+	  and prValue indent (lv, suffix) = (case lv
+		 of (LV_REAL{rval, ...}) => say(concat[RealLit.toString rval, " ", suffix, "\n"])
+		  | (LV_STR s) => say (concat["\"", String.toString s, "\" ", suffix, "\n"])
 		  | (LV_RECORD(rk, lits)) => (
 		      case rk
-		       of C.RK_VECTOR => say "VECTOR\n"
-			| C.RK_RECORD => say "RECORD\n"
+		       of C.RK_VECTOR => say(concat["VECTOR ", suffix, "\n"])
+			| C.RK_RECORD => say(concat["RECORD ", suffix, "\n"])
 		      (* end case *);
 		      List.app (prLiteral (indent+1)) lits)
-		  | (LV_RAW v) => say "RAW\n"
-		  | (LV_RAW64 v) => say "RAW64\n"
+		  | (LV_RAW v) => say(concat["RAW ", suffix, "\n"])
+		  | (LV_RAW64 v) => say(concat["RAW64 ", suffix, "\n"])
 		(* end case *))
-	  fun prSlot (i, lit) = (
-		say (StringCvt.padLeft #" " 3 (Int.toString i) ^ ": ");
-		prLiteral 0 lit)
+	  fun prSlot (i, LIT arg) = (
+		say (StringCvt.padLeft #" " 4 (Int.toString i) ^ ": ");
+		prLIT 3 arg)
+	    | prSlot (i, IMMED _) = bug "unexpected top-level IMMED"
 	  in
 	    List.appi prSlot lits
 	  end (* printLits *)
@@ -471,8 +483,10 @@ structure NewLiterals : LITERALS =
 	      in
 		fn (C.VAR x) => inDomain x
 		 | (C.LABEL _) => bug "unexpected LABEL"
+		 | (C.NUM n) => true
+		 | (C.REAL r) => true
+		 | (C.STRING s) => true
 		 | C.VOID => false
-		 | _ => false
 	      end
 
 	fun findValue (LE{lits, vMap}) = let
@@ -510,7 +524,7 @@ structure NewLiterals : LITERALS =
 	      val findVar = findVar env
 	      val addReal = addReal env
 	      val addString = addString env
-	      fun use lit = (useLit lit; lit)
+	      fun use lit = (useLit lit; refLit lit; lit)
 	      in
 		fn (C.VAR x) => (case findVar x
 		      of SOME(_, lit) => use lit
@@ -589,8 +603,9 @@ structure NewLiterals : LITERALS =
    *)
     datatype lit_loc = LitSlot of int | Real64Slot of int
 
-  (* build the representation of the literals; return the literal vector and a list of
-   * variables that are
+  (* build the representation of the literals; return a table mapping literal IDs
+   * to their locations, the bytecode for building the literal vector, and a boolean
+   * that is true if there is a real-literal vector.
    *)
     fun buildLiterals env = let
 	(* generate bytecode for the literals *)
@@ -676,29 +691,43 @@ structure NewLiterals : LITERALS =
 	    | genLiteral _ = bug "unexpected top-level IMMED literal"
 	(* add literals to buffer *)
 	  val _ = List.appi genLiteral lits
+	(* generate the code to create the real-literal vector (if necessary) *)
+	  val (rcode, litVecSz) = (case List.rev (!real64Lits)
+		 of [] => (W8V.fromList[], numNamedLits)
+		  | rlits => let
+		      val rbuf = W8B.new(8 * !nReal64Lits + 5)
+		      in
+			depth (1);
+			encRAW64 (rbuf, W8V.concat rlits);
+			(W8B.contents rbuf, numNamedLits+1)
+		      end
+		(* end case *))
+	(* add the instruction to build the literal vector and to return the result *)
+	  val _ = (encVECTOR(buf, litVecSz); W8B.add1(buf, opRETURN))
 	(* create literal program *)
 	  val code = W8V.concat[
 		  headerToBytes {maxstk = !stkDepth, maxsaved = WordTbl.numItems sharedLitTbl},
-		  W8B.contents buf,
-(* unwrapped real literals *)
-(* create the literal vector *)
-		  W8V.fromList[opRETURN]
+		  rcode,
+		  W8B.contents buf
 		]
 	  in
 	    if !debugFlg
 	      then (
 		say "==========\n";
 		printLits lits;
-		say "\n")
+		say(concat["bytecode size: ", Int.toString(W8V.length code), "\n"]))
 	      else ();
-	    (litIdTbl, code)
+	    (litIdTbl, code, litVecSz, !nReal64Lits)
 	  end
 
   (* rewrite the program, removing unused variables *)
     fun liftLiterals (env, idTbl, litVec, fltVec, body) = let
 	  val findValue = LitEnv.findValue env
 	  val findVar = LitEnv.findVar env
-	  val getSlot = WordTbl.lookup idTbl
+	  fun getSlot id = (case WordTbl.find idTbl id
+		 of SOME slot => slot
+		  | NONE => bug("no slot for literal " ^ Word.fmt StringCvt.DEC id)
+		(* end case *))
 	(* rewrite a value *)
 	  fun rewriteValue (u, k : C.value -> C.cexp) = (case findValue u
 		 of SOME(LIT{id, value, ...}) => let
@@ -712,6 +741,7 @@ structure NewLiterals : LITERALS =
 		      end
 		  | _ => k u
 		(* end case *))
+handle ex => (say(concat["rewriteValue (", PPCps.value2str u, ", -): error\n"]); raise ex)
 	(* rewrite a list of values *)
 	  fun rewriteValues (ul, k : C.value list -> C.cexp) = let
 		fun rewrite ([], ul') = k(List.rev ul')
@@ -727,14 +757,17 @@ structure NewLiterals : LITERALS =
 		in
 		  rewrite (ul, [])
 		end
-	(* rewrite avariable that might be bound to a record literal *)
+	(* rewrite a variable that might be bound to a record literal *)
 	  fun rewriteVar (x, ty, mkOrig, k) = (case findVar x
-		 of SOME(_, LIT{id, ...}) => (case getSlot id
-		       of LitSlot n => C.SELECT(n, litVec, x, ty, k())
-			| Real64Slot _ => bug "unexpected Real literal"
-		      (* end case *))
+		 of SOME(_, lit as LIT{id, ...}) => if litIsUsed lit
+		      then (case getSlot id
+			 of LitSlot n => C.SELECT(n, litVec, x, ty, k())
+			  | Real64Slot _ => bug "unexpected Real literal"
+			(* end case *))
+		      else k()
 		  | _ => mkOrig()
 		(* end case *))
+handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -, -): error\n"]); raise ex)
 	(* process a CPS function *)
 	  fun doFun (fk, f, vl, cl, e) = (fk, f, vl, cl, doExp e)
 	(* process a CPS expression *)
@@ -778,29 +811,35 @@ structure NewLiterals : LITERALS =
 	(* new argument type has an additional argument for the literals *)
 	  val nt = C.PTRt(C.RPT(n+1))
 	  val env = identifyLiterals body
+	  val _ = if !debugFlg
+		then (
+		  say (concat["\n==== Before Literals.liftLiterals\n"]);
+		  PPCps.printcps0 func)
+		else ()
 	  val (nbody, code) = if LitEnv.isEmpty env
 		then (body, W8V.fromList[opRETURN])
 		else let
-		  val (idTbl, code) = buildLiterals env
+(* REAL32: FIXME *)
+		  val (idTbl, code, nLits, nReal64Lits) = buildLiterals env
 		  val lvv = LambdaVar.mkLvar()
 		  val rvv = LambdaVar.mkLvar()
 		  val nbody = liftLiterals (env, idTbl, C.VAR lvv, C.VAR rvv, body)
-(* wrap the body with bindings for the literals *)
+		(* add code to bind the real-literal vector (if necessary) *)
+		  val nbody = if nReal64Lits > 0
+			then C.SELECT(0, C.VAR lvv, rvv, C.PTRt(C.FPT nReal64Lits), nbody)
+			else nbody
+		(* add code to bind the literal vector *)
+		  val nbody = C.SELECT(n+1, C.VAR x, lvv, C.PTRt(C.RPT nLits), nbody)
 		  in
 		    (nbody, code)
 		  end
 	  val nfunc = (fk, f, vl, [C.CNTt, nt], nbody)
 	  in
-(*
 	    if !debugFlg
 	      then (
-		say (concat["\n[After Literals.split ...]\n"]);
-		PPCps.printcps0 nfunc;
-		say "==========\n";
-		printLits lit;
-		say "\n")
+		say (concat["\n==== After Literals.liftLiterals\n"]);
+		PPCps.printcps0 nfunc)
 	      else ();
-*)
 	    (nfunc, code)
 	  end
       | split _ = bug "unexpected CPS header in split"
