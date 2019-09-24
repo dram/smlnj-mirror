@@ -40,8 +40,11 @@ structure NewLiterals : LITERALS =
 
     fun bug msg = ErrorMsg.impossible ("Literals: "^msg)
 
-    val debugFlg = (* Control.CG.debugLits *) Control.CG.newLiterals;
+    val debugFlg = Control.CG.debugLits
     val say = Control.Print.say
+
+  (* number of bytes per ML value *)
+    val valueSzb = Target.mlValueSz div 8
 
   (****************************************************************************
    *                 TRANSLATING THE LITERAL EXP TO BYTES                     *
@@ -229,7 +232,7 @@ structure NewLiterals : LITERALS =
 
   (* encode RAW data *)
     fun encRAW (buf, data) = let
-	  val len = W8V.length data div Target.mlValueSz
+	  val len = W8V.length data div valueSzb
 	  in
 	    if (len <= 2)
 	      then W8B.add1(buf, opRAW_1_2 len)
@@ -332,8 +335,12 @@ structure NewLiterals : LITERALS =
 			| C.RK_RECORD => say(concat["RECORD ", suffix, "\n"])
 		      (* end case *);
 		      List.app (prLiteral (indent+1)) lits)
-		  | (LV_RAW v) => say(concat["RAW ", suffix, "\n"])
-		  | (LV_RAW64 v) => say(concat["RAW64 ", suffix, "\n"])
+		  | (LV_RAW v) => say(concat[
+			"RAW(", Int.toString(W8V.length v), " bytes) ", suffix, "\n"
+		      ])
+		  | (LV_RAW64 v) => say(concat[
+			"RAW64(", Int.toString(W8V.length v), " bytes) ", suffix, "\n"
+		      ])
 		(* end case *))
 	  fun prSlot (i, LIT arg) = (
 		say (StringCvt.padLeft #" " 4 (Int.toString i) ^ ": ");
@@ -378,6 +385,10 @@ structure NewLiterals : LITERALS =
 	val numLits : t -> int
       (* return true if there are no literals defined in the environment *)
 	val isEmpty : t -> bool
+      (* return true if the environment has unbound 64-bit real literals (e.g.,
+       * the arguments to arithmetic operations).
+       *)
+	val hasReal64 : t -> bool
       (* return a list of all of the literals defined in the environment (not counting
        * the IMMED literals, which are not recorded in the environment)
        *)
@@ -430,15 +441,20 @@ structure NewLiterals : LITERALS =
 	type var_info = bool * literal
 
 	datatype t = LE of {
+	    hasReal64Lits : bool ref,		(* true if there are unbound real64 literals *)
 	    lits : literal LTbl.hash_table,	(* table of unique literals in the module *)
 	    vMap : var_info IntTbl.hash_table	(* map from variables to the literals that they *)
 						(* are bound to *)
 	  }
 
 	fun new () = LE{
+		hasReal64Lits = ref false,
 		lits = LTbl.mkTable(32, Fail "LitTbl"),
 		vMap = IntTbl.mkTable(32, Fail "VarTbl")
 	      }
+
+	fun setHasReal64 (LE{hasReal64Lits, ...}) = (hasReal64Lits := true)
+	fun hasReal64 (LE{hasReal64Lits, ...}) = !hasReal64Lits
 
 	fun add lits = let
 	      val find = LTbl.find lits
@@ -471,7 +487,7 @@ structure NewLiterals : LITERALS =
 	val addReal = addLiteral LV_REAL
 	end (* local *)
 
-	fun addRecord (tbl as LE{lits, vMap}) = let
+	fun addRecord (tbl as LE{lits, vMap, ...}) = let
 	      val add = add lits
 	      val insert = IntTbl.insert vMap
 	      in
@@ -479,7 +495,7 @@ structure NewLiterals : LITERALS =
 	      end
 
 	local
-	  fun addRawLit wrap (tbl as LE{lits, vMap}) = let
+	  fun addRawLit wrap (tbl as LE{lits, vMap, ...}) = let
 		val add = add lits
 		val insert = IntTbl.insert vMap
 		in
@@ -505,7 +521,7 @@ structure NewLiterals : LITERALS =
 		 | C.VOID => false
 	      end
 
-	fun findValue (LE{lits, vMap}) = let
+	fun findValue (LE{lits, vMap, ...}) = let
 	      val findLit = LTbl.find lits
 	      val findVar = IntTbl.find vMap
 	      in
@@ -525,14 +541,13 @@ structure NewLiterals : LITERALS =
 	      in
 		fn (C.VAR x) => (case findVar x
 		       of SOME(flg, lit) => (
-say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 			    useLit lit;
 			    if flg then () else insert (x, (true, lit)))
-			| NONE => say(concat["** useValue ", LV.lvarName x, "\n"])
+			| NONE => ()
 		      (* end case *))
 		 | (C.LABEL _) => bug "unexpected LABEL"
 		 | (C.NUM n) => ()
-		 | (C.REAL r) => useLit(addReal r)
+		 | (C.REAL r) => (setHasReal64 env; useLit(addReal r))
 		 | (C.STRING s) => useLit(addString s)
 		 | C.VOID => ()
 	      end
@@ -549,7 +564,7 @@ say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 		     (* end case *))
 		 | (C.LABEL _) => bug "unexpected LABEL"
 		 | (C.NUM n) => IMMED n
-		 | (C.REAL r) => use(addReal r)
+		 | (C.REAL r) => bug "unexpected REAL"
 		 | (C.STRING s) => use(addString s)
 		 | C.VOID => bug "unexpected VOID"
 	      end
@@ -582,13 +597,25 @@ say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 	  val addRecord = LitEnv.addRecord env
 	  val addRaw = LitEnv.addRaw env
 	  val addRaw64 = LitEnv.addRaw64 env
+	  fun fieldToValue (u, C.OFFp 0) = u
+	    | fieldToValue _ = bug "unexpected access in field"
 	(* process a CPS function *)
 	  fun doFun (fk, f, vl, cl, e) = doExp e
 	(* process a CPS expression *)
 	  and doExp ce = (case ce
-		 of C.RECORD(rk, fields, v, e) => let
-		      fun fieldToValue (u, C.OFFp 0) = u
-			| fieldToValue _ = bug "unexpected access in field"
+		 of C.RECORD(C.RK_RAWBLOCK, fields, v, e) => let
+		      val ul = List.map fieldToValue fields
+		      fun isImmed (C.NUM _) = true
+			| isImmed _ = false
+		      fun encode (C.NUM{ty={sz, ...}, ival}) = largeIntToBytes(sz, ival)
+			| encode _ = bug "RAWBLOCK: impossible"
+		      in
+			if List.all isImmed ul
+			  then addRaw (W8V.concat(List.map encode ul), v)
+			  else useValues ul;
+			doExp e
+		      end
+		  | C.RECORD(rk, fields, v, e) => let
 		      val ul = List.map fieldToValue fields
 		      in
 			if List.all isConst ul
@@ -631,7 +658,7 @@ say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
    *)
     fun buildLiterals env = let
 	(* generate bytecode for the literals *)
-	  val buf = W8B.new (2 * LitEnv.numLits env * Target.mlValueSz)
+	  val buf = W8B.new (2 * LitEnv.numLits env * valueSzb)
 	(* track the maximum stack depth required *)
 	  val stkDepth = ref 0
 	  fun depth d = if d > !stkDepth then stkDepth := d else ()
@@ -647,7 +674,7 @@ say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 		end
 	  val numNamedLits = List.length lits
 	(* tracking the location of literals in the literal/real vector *)
-	  val nLits = ref 0
+	  val nLits = ref(if LitEnv.hasReal64 env then 1 else 0)
 	  val nReal64Lits = ref 0
 	  val real64Lits = ref []
 	  val litIdTbl = WordTbl.mkTable(numNamedLits, Fail "litIdTbl")
@@ -722,7 +749,7 @@ say(concat["** useValue ", LV.lvarName x, " -> literal\n"]);
 		      in
 			depth (1);
 			encRAW64 (rbuf, W8V.concat rlits);
-			(W8B.contents rbuf, numNamedLits+1)
+			(W8B.contents rbuf, numNamedLits + 1 - !nReal64Lits)
 		      end
 		(* end case *))
 	(* add the instruction to build the literal vector and to return the result *)
@@ -803,17 +830,17 @@ handle ex => (say(concat["rewriteValue (", PPCps.value2str u, ", -): error\n"]);
 		end
 handle ex => (say "rewriteFields\n"; raise ex)
 	(* rewrite a variable that might be bound to a record literal *)
-	  fun rewriteVar (x, ty, mkOrig, k) = (case findVar x
+	  fun rewriteVar (x, mkOrig, k) = (case findVar x
 		 of SOME _ => k()
 		  | _ => mkOrig()
 		(* end case *))
-handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -, -): error\n"]); raise ex)
+handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -): error\n"]); raise ex)
 	(* process a CPS function *)
 	  fun doFun (fk, f, vl, cl, e) = (fk, f, vl, cl, doExp e)
 	(* process a CPS expression *)
 	  and doExp ce = (case ce
 		 of C.RECORD(rk, ul, v, e) =>
-		      rewriteVar (v, C.PTRt(C.RPT(length ul)),
+		      rewriteVar (v,
 			fn () => rewriteFields (ul, fn ul' => C.RECORD(rk, ul', v, doExp e)),
 			fn () => doExp e)
 		  | C.SELECT(i, u, v, t, e) =>
@@ -833,7 +860,7 @@ handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -, -): error\n"]);
 		  | C.ARITH(p, ul, v, t, e) =>
 		      rewriteValues (ul, fn ul' => C.ARITH(p, ul', v, t, doExp e))
 		  | C.PURE(C.P.WRAP nk, [u], v, t, e) =>
-		      rewriteVar (v, t,
+		      rewriteVar (v,
 			fn () => rewriteValue (u, fn u' => C.PURE(C.P.WRAP nk, [u'], v, t, doExp e)),
 			fn () => doExp e)
 		  | C.PURE(p, ul, v, t, e) =>
@@ -850,12 +877,12 @@ handle ex => (say(concat["rewriteVar (", LV.lvarName x, ", -, -, -): error\n"]);
     fun split (func as (fk, f, vl as [_,x], [C.CNTt, t as C.PTRt(C.RPT n)], body)) = let
 	(* new argument type has an additional argument for the literals *)
 	  val nt = C.PTRt(C.RPT(n+1))
-	  val env = identifyLiterals body
 	  val _ = if !debugFlg
 		then (
 		  say (concat["\n==== Before Literals.liftLiterals\n"]);
 		  PPCps.printcps0 func)
 		else ()
+	  val env = identifyLiterals body
 	  val (nbody, code) = if LitEnv.isEmpty env
 		then (body, W8V.fromList[opRETURN])
 		else let
