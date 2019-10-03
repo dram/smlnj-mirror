@@ -1,6 +1,7 @@
 /* osval.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -70,7 +71,7 @@ PVT name_val_t values [] = {
 ml_val_t _ml_P_FileSys_osval (ml_state_t *msp, ml_val_t arg)
 {
     name_val_t      *res;
-    
+
     res = _ml_posix_nv_lookup (STR_MLtoC(arg), values, NUMELMS);
     if (res)
 	return INT_CtoML(res->val);

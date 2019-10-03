@@ -29,12 +29,12 @@ STATIC_INLINE Unsigned64_t timespec_to_ns (struct timespec *ts)
  * to the SML side. It is a tuple with the following fields:
  *
  *    file_type : int
- *    mode      : word
- *    ino       : word		-- should be Word64.word
- *    dev       : word
- *    nlink     : word
- *    uid       : word
- *    gid       : word
+ *    mode      : SysWord.word
+ *    ino       : SysWord.word		-- should be Word64.word
+ *    dev       : SysWord.word
+ *    nlink     : SysWord.word
+ *    uid       : SysWord.word
+ *    gid       : SysWord.word
  *    size      : Position.int (aka Int64.int)
  *    atime     : Word64.int
  *    mtime     : Word64.int
@@ -63,15 +63,15 @@ PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
     ftype = buf->st_mode & 0xF000;
 #endif
 
-    WORD_ALLOC (msp, mode, (Word_t)((buf->st_mode) & MODE_BITS));
+    SYSWORD_ALLOC (msp, mode, (Word_t)((buf->st_mode) & MODE_BITS));
 /*
-    INT64_ALLOC (msp, ino, buf->st_ino);
+    WORD64_ALLOC (msp, ino, buf->st_ino);
 */
-    WORD_ALLOC (msp, ino, (Word_t)(buf->st_ino));
-    WORD_ALLOC (msp, dev, (Word_t)(buf->st_dev));
-    WORD_ALLOC (msp, nlink, (Word_t)(buf->st_nlink));
-    WORD_ALLOC (msp, uid, (Word_t)(buf->st_uid));
-    WORD_ALLOC (msp, gid, (Word_t)(buf->st_gid));
+    SYSWORD_ALLOC (msp, ino, (Word_t)(buf->st_ino));
+    SYSWORD_ALLOC (msp, dev, (Word_t)(buf->st_dev));
+    SYSWORD_ALLOC (msp, nlink, (Word_t)(buf->st_nlink));
+    SYSWORD_ALLOC (msp, uid, (Word_t)(buf->st_uid));
+    SYSWORD_ALLOC (msp, gid, (Word_t)(buf->st_gid));
     INT64_ALLOC (msp, size, buf->st_size);
 
 #if !defined(STAT_HAS_TIMESPEC)
@@ -124,14 +124,15 @@ ml_val_t _ml_P_FileSys_stat (ml_state_t *msp, ml_val_t arg)
 
     sts = stat(path, &buf);
 
-    if (sts < 0)
+    if (sts < 0) {
 	return RAISE_SYSERR(msp, sts);
+    }
 
     return (mkStatRep(msp, &buf));
 
 } /* end of _ml_P_FileSys_stat */
 
-/* _ml_P_FileSys_fstat : word -> statrep
+/* _ml_P_FileSys_fstat : int -> statrep
  *
  * Query file status given file descriptor.
  */
@@ -173,4 +174,3 @@ ml_val_t _ml_P_FileSys_lstat (ml_state_t *msp, ml_val_t arg)
     }
 
 } /* end of _ml_P_FileSys_lstat */
-

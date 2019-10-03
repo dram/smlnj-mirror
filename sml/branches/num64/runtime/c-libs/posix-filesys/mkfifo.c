@@ -1,6 +1,7 @@
 /* mkfifo.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -20,9 +21,10 @@
  */
 ml_val_t _ml_P_FileSys_mkfifo (ml_state_t *msp, ml_val_t arg)
 {
-    ml_val_t	    path = REC_SEL(arg, 0);
-    mode_t	    mode = REC_SELWORD(arg, 1);
-    int		    sts;
+    ml_val_t	path = REC_SEL(arg, 0);
+    ml_val_t	ml_mode = REC_SEL(arg, 1);
+    mode_t	mode = SYSWORD_MLtoC(ml_mode);
+    int		sts;
 
     sts = mkfifo (STR_MLtoC(path), mode);
 

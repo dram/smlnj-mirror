@@ -1,6 +1,7 @@
 /* tcgetattr.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -12,7 +13,8 @@
 #include "ml-c.h"
 #include "cfun-proto-list.h"
 
-/* _ml_P_TTY_tcgetattr : int -> (word * word * word * word * string * word * word)
+/* _ml_P_TTY_tcgetattr : int -> termio_rep
+ *    termio_rep = (SysWord.word * SysWord.word * SysWord.word * SysWord.word * string * SysWord.word * SysWord.word)
  *
  * Get parameters associated with tty.
  *
@@ -21,26 +23,27 @@
  */
 ml_val_t _ml_P_TTY_tcgetattr (ml_state_t *msp, ml_val_t arg)
 {
-    int             sts, fd = INT_MLtoC(arg);
-    ml_val_t        iflag, oflag, cflag, lflag;
-    ml_val_t        cc, ispeed, ospeed, obj;
-    struct termios  data;
+    int			sts, fd = INT_MLtoC(arg);
+    ml_val_t		iflag, oflag, cflag, lflag;
+    ml_val_t		cc, ispeed, ospeed, obj;
+    struct termios	data;
 
     sts = tcgetattr(fd, &data);
 
-    if (sts < 0)
+    if (sts < 0) {
 	return RAISE_SYSERR(msp, sts);
-    
+    }
+
   /* allocate the vector; note that this might cause a GC */
     cc = ML_AllocString (msp, NCCS);
     memcpy (GET_SEQ_DATAPTR(void, cc), data.c_cc, NCCS);
 
-    WORD_ALLOC (msp, iflag, data.c_iflag);
-    WORD_ALLOC (msp, oflag, data.c_oflag);
-    WORD_ALLOC (msp, cflag, data.c_cflag);
-    WORD_ALLOC (msp, lflag, data.c_lflag);
-    WORD_ALLOC (msp, ispeed, cfgetispeed (&data));
-    WORD_ALLOC (msp, ospeed, cfgetospeed (&data));
+    SYSWORD_ALLOC (msp, iflag, data.c_iflag);
+    SYSWORD_ALLOC (msp, oflag, data.c_oflag);
+    SYSWORD_ALLOC (msp, cflag, data.c_cflag);
+    SYSWORD_ALLOC (msp, lflag, data.c_lflag);
+    SYSWORD_ALLOC (msp, ispeed, cfgetispeed (&data));
+    SYSWORD_ALLOC (msp, ospeed, cfgetospeed (&data));
 
     ML_AllocWrite (msp, 0, MAKE_DESC(DTAG_record, 7));
     ML_AllocWrite (msp, 1, iflag);

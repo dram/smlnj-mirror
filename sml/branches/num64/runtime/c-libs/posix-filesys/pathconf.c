@@ -1,6 +1,7 @@
 /* pathconf.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -37,28 +38,30 @@ static name_val_t values[] = {
 
 #define NUMELMS ((sizeof values)/(sizeof (name_val_t)))
 
-/* mkValue
+/* mkValue : int -> SysWord.word option
  *
  * Convert return value from (f)pathconf to ML value.
  */
-static ml_val_t mkValue (ml_state_t *msp, int val)
+STATIC_INLINE ml_val_t mkValue (ml_state_t *msp, int val)
 {
     ml_val_t    p, obj;
 
     if (val >= 0) {
-	WORD_ALLOC (msp, p, val);
+	SYSWORD_ALLOC (msp, p, val);
 	OPTION_SOME(msp, obj, p);
     }
-    else if (errno == 0)
+    else if (errno == 0) {
 	obj = OPTION_NONE;
-    else
+    }
+    else {
 	obj = RAISE_SYSERR(msp, val);
+    }
 
     return obj;
 
 }  /* end of mkValue */
 
-/* _ml_P_FileSys_pathconf : string * string -> word option
+/* _ml_P_FileSys_pathconf : string * string -> SysWord.word option
  *                          filename attribute
  *
  * Get configurable pathname attribute given pathname
@@ -76,7 +79,7 @@ ml_val_t _ml_P_FileSys_pathconf (ml_state_t *msp, ml_val_t arg)
 	errno = EINVAL;
 	return RAISE_SYSERR(msp, -1);
     }
- 
+
     errno = 0;
     while (((val = pathconf (pathname, attr->val)) == -1) && (errno == EINTR)) {
         errno = 0;
@@ -87,7 +90,7 @@ ml_val_t _ml_P_FileSys_pathconf (ml_state_t *msp, ml_val_t arg)
 
 } /* end of _ml_P_FileSys_pathconf */
 
-/* _ml_P_FileSys_fpathconf : int * string -> word option
+/* _ml_P_FileSys_fpathconf : int * string -> SysWord.word option
  *                           fd     attribute
  *
  * Get configurable pathname attribute given pathname
@@ -104,7 +107,7 @@ ml_val_t _ml_P_FileSys_fpathconf (ml_state_t *msp, ml_val_t arg)
 	errno = EINVAL;
 	return RAISE_SYSERR(msp, -1);
     }
- 
+
     errno = 0;
     while (((val = fpathconf (fd, attr->val)) == -1) && (errno == EINTR)) {
         errno = 0;

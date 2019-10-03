@@ -43,15 +43,14 @@ ml_val_t _ml_win32_CONFIG_get_version_ex (ml_state_t *msp, ml_val_t arg)
     return res;
 }
 /*
-val getVolumeInformation : string
-                             -> {
+val getVolumeInformation : string -> {
                                volumeName : string,
                                systemName : string,
                                serialNumber : SysWord.word,
                                maximumComponentLength : int
                              }
 */
-ml_val_t _ml_win32_CONFIG_get_volume_information(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_CONFIG_get_volume_information (ml_state_t *msp, ml_val_t arg)
 {
     TCHAR szVolumeName[MAX_PATH+1];
     DWORD serialNumber;
@@ -69,7 +68,7 @@ ml_val_t _ml_win32_CONFIG_get_volume_information(ml_state_t *msp, ml_val_t arg)
 	return RAISE_SYSERR(msp, -1);
     }
 
-    serial = WORD32_CtoML(msp, serialNumber);
+    SYSWORD_ALLOC(msp, serial, serialNumber);
     maxcomponent = INT_CtoML(maxComponentLength);
 
     length = strlen(szVolumeName);
@@ -87,7 +86,7 @@ ml_val_t _ml_win32_CONFIG_get_volume_information(ml_state_t *msp, ml_val_t arg)
 }
 
 
-ml_val_t _ml_win32_CONFIG_get_windows_directory(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_CONFIG_get_windows_directory (ml_state_t *msp, ml_val_t arg)
 {
     TCHAR directory[MAX_PATH+1];
     DWORD dwSize = MAX_PATH+1;
@@ -104,7 +103,7 @@ ml_val_t _ml_win32_CONFIG_get_windows_directory(ml_state_t *msp, ml_val_t arg)
     return res;
 }
 
-ml_val_t _ml_win32_CONFIG_get_system_directory(ml_state_t *msp, ml_val_t arg)
+ml_val_t _ml_win32_CONFIG_get_system_directory (ml_state_t *msp, ml_val_t arg)
 {
     TCHAR directory[MAX_PATH+1];
     DWORD dwSize = MAX_PATH+1;

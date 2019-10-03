@@ -21,8 +21,8 @@ ml_val_t _ml_P_FileSys_umask (ml_state_t *msp, ml_val_t arg)
     mode_t		omask;
     ml_val_t            p;
 
-    omask = umask(WORD_MLtoC(arg));
-    WORD_ALLOC (msp, p, (Word_t)omask);
+    omask = umask(SYSWORD_MLtoC(arg));
+    SYSWORD_ALLOC (msp, p, (SysWord_t)omask);
 
     return p;
 
