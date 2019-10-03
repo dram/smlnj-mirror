@@ -108,7 +108,7 @@ static struct instr_info {
 	/* 0x11 */ { INT, I16_ARG, 0, 0 },
 	/* 0x12 */ { INT, I32_ARG, 0, 0 },
 #ifdef SIZE_64
-	/* 0x13 */ { INT, I64_ARG64, 0, 0 },
+	/* 0x13 */ { INT, I64_ARG, 0, 0 },
 #else /* SIZE_32 */
 	/* 0x13 */ { INVALID, NO_ARG, 0, 0 },
 #endif
@@ -116,10 +116,10 @@ static struct instr_info {
 	/* 0x14 */ { INVALID, NO_ARG, 0, 0 },
 	/* 0x15 */ { INVALID, NO_ARG, 0, 0 },
 	/* 0x16 */ { INVALID, NO_ARG, 0, 0 },
-	/* 0x17 */ { INT64, I8_ARG64, 0, 0 },
-	/* 0x18 */ { INT64, I16_ARG64, 0, 0 },
-	/* 0x19 */ { INT64, I32_ARG64, 0, 0 },
-	/* 0x1A */ { INT64, I64_ARG64, 0, 0 },
+	/* 0x17 */ { INT64, I8_ARG, 0, 0 },
+	/* 0x18 */ { INT64, I16_ARG, 0, 0 },
+	/* 0x19 */ { INT64, I32_ARG, 0, 0 },
+	/* 0x1A */ { INT64, I64_ARG, 0, 0 },
 #else /* SIZE_32 */
 	/* 0x14 */ { INT32, I8_ARG, 0, 0 },
 	/* 0x15 */ { INT32, I16_ARG, 0, 0 },
@@ -383,7 +383,7 @@ STATIC_INLINE signed char GetI8Arg (Byte_t *code)
 }
 STATIC_INLINE unsigned char GetU8Arg (Byte_t *code)
 {
-    signed char i = code[0];
+    unsigned char i = code[0];
     return i;
 }
 STATIC_INLINE Int16_t GetI16Arg (Byte_t *code)
@@ -428,6 +428,11 @@ STATIC_INLINE double GetR64Arg (Byte_t *code)
     GetBytes(arg.b, code, sizeof(double));
     return arg.r;
 }
+#ifndef SIZE_64
+#define GetRawArg(pc)	GetI64Arg
+#else /* SIZE_32 */
+#define GetRawArg(pc)	GetI32Arg
+#endif
 
 
 /* the size of a list cons cell in bytes */
@@ -455,20 +460,25 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
     double	d;
     Int32_t	availSpace, spaceReq;
     Unsigned32_t ui;
-    ml_val_t	*saved;
+  /* we represent the saved array using a mutable data array that is allocated in
+   * the heap.  This means that we need to create store-list entries when we update
+   * it.
+   */
+    ml_val_t	saved;
 
 /* A check that the available space is sufficient for the literal object that
  * we are about to allocate.  Note that the cons cell has already been accounted
  * for in availSpace (but not in spaceReq).
  */
-#define GC_CHECK									\
-    do {										\
-	if (spaceReq > availSpace) {							\
-	    InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, NIL(ml_val_t *));	\
-	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr) - CONS_SZB; \
-	}										\
-	else										\
-	    availSpace -= spaceReq;							\
+#define GC_CHECK										\
+    do {											\
+	if (spaceReq > availSpace) {								\
+	    SayDebug("BuildLiterals: invoke GC\n");						\
+	    InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, &saved, NIL(ml_val_t *));	\
+	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr) - CONS_SZB;	\
+	}											\
+	else											\
+	    availSpace -= spaceReq;								\
     } while (0)
 
 #ifdef DEBUG_LITERALS
@@ -507,10 +517,10 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #endif
 
     if (maxSaved > 0) {
-	Die("FIXME");
+	saved = ML_AllocArrayData (msp, maxSaved, ML_nil);
     }
     else {
-	saved = NIL(ml_val_t *);
+	saved = ML_nil;
     }
 
     stk = ML_nil;
@@ -518,9 +528,13 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
     while (TRUE) {
 	ASSERT(pc < len);
 	ASSERT(availSpace <= (Int32_t)((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr));
-	if (availSpace < ONE_K) {
-	    if (NeedGC(msp, FREE_REQ_SZB))
-		InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, NIL(ml_val_t *));
+	if (availSpace < 512 * WORD_SZB) {
+	    if (NeedGC(msp, FREE_REQ_SZB)) {
+#ifdef DEBUG_LITERALS
+	        SayDebug("BuildLiterals: invoke GC\n");
+#endif
+		InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, &saved, NIL(ml_val_t *));
+	    }
 	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr);
 	}
 	availSpace -= CONS_SZB;	/* space for stack cons cell */
@@ -566,6 +580,12 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    arg.iArg = (Int_t)GetI64Arg(&(code[pc]));  pc += 8;
 	    break;
 #endif
+	  case INT_ARG:
+#ifdef SIZE_64
+	    arg.iArg = (Int_t)GetI64Arg(&(code[pc]));  pc += 4;
+#else /* SIZE_32 */
+	    arg.iArg = (Int_t)GetI32Arg(&(code[pc]));  pc += 4;
+#endif
 	}
 
     /* handle the operation */
@@ -596,7 +616,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #ifdef DEBUG_LITERALS
 	    SayDebug("[%04d]: INT64(" PRINT ")\n", startPC, arg.iArg);
 #endif
-	    res = INT64_CtoML(msp, arg.iArg);
+	    res = ML_AllocWord64(msp, arg.iArg);
 	    LIST_cons(msp, stk, res, stk);
 	    availSpace -= 2*WORD_SZB;
 	    break;
@@ -635,6 +655,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    SayDebug("[%04d]: REAL64(%f)\n", startPC, GetR64Arg(&(code[pc])));
 #endif
 	    REAL64_ALLOC(msp, res, GetR64Arg(&(code[pc])));  pc += 8;
+	    availSpace -= 2*REALD_SZW;
 	    break;
 
 	  case RVEC32:
@@ -746,13 +767,12 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    SayDebug("[%04d]: RAW(%" PRWORD ") [...]\n", startPC, arg.uArg);
 #endif
 	    ASSERT(arg.uArg > 0);
-	    spaceReq = 4*arg.uArg + WORD_SZB;
-	    ASSERT((spaceReq & (WORD_SZB-1)) == 0);
+	    spaceReq = WORD_SZB*arg.uArg + WORD_SZB;
 /* FIXME: for large objects, we should be allocating them in the 1st generation */
 	    GC_CHECK;
 	    ML_AllocWrite (msp, 0, MAKE_DESC(arg.uArg, DTAG_raw));
-	    for (ui = WORD_SZB/4;  ui <= arg.uArg;  ui++) {
-		ML_AllocWrite32 (msp, ui, GetI32Arg(&(code[pc])));  pc += 4;
+	    for (ui = 1;  ui <= arg.uArg;  ui++) {
+		ML_AllocWrite (msp, ui, (ml_val_t)GetRawArg(&(code[pc])));  pc += WORD_SZB;
 	    }
 	    res = ML_Alloc (msp, arg.uArg);
 	    LIST_cons(msp, stk, res, stk);
@@ -775,11 +795,13 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	  /* Force REALD_SZB alignment (descriptor is off by one word) */
 	    msp->ml_allocPtr = (ml_val_t *)((Addr_t)(msp->ml_allocPtr) | WORD_SZB);
 #endif
-	    ui = 2*arg.uArg; /* number of words */
+	  /* ui is the number of words */
+	    ui = WORD64_SZW * arg.uArg;
 	    ML_AllocWrite (msp, 0, MAKE_DESC(ui, DTAG_raw64));
 	    res = ML_Alloc (msp, ui);
 	    for (ui = 0;  ui < arg.uArg;  ui++) {
-		PTR_MLtoC(Int64_t, res)[ui] = GetI64Arg(&(code[pc]));  pc += 8;
+		PTR_MLtoC(Int64_t, res)[ui] = GetI64Arg(&(code[pc]));
+		pc += 8;
 	    }
 	    LIST_cons(msp, stk, res, stk);
 	    availSpace -= spaceReq;
@@ -788,21 +810,25 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	  case CONCAT:
 	    break;
 
-	  case SAVE:
+	  case SAVE: {
+		ml_val_t *loc;
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: SAVE(%" PRWORD ")\n", startPC, arg.uArg);
+		SayDebug("[%04d]: SAVE(%" PRWORD ") %p\n", startPC, arg.uArg, (void*)LIST_hd(stk));
 #endif
-	    ASSERT(saved != NIL(ml_val_t));
-	    ASSERT(stk != ML_nil);
-	    saved[arg.uArg] = LIST_hd(stk);
-	    break;
+		ASSERT(saved != ML_nil);
+		ASSERT(stk != ML_nil);
+		loc = PTR_MLtoC(ml_val_t, saved) + arg.uArg;
+		*loc = LIST_hd(stk);
+		ML_RecordUpdate (msp, loc);
+	    } break;
 
 	  case LOAD:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: LOAD(%" PRWORD ")\n", startPC, arg.uArg);
+	    SayDebug("[%04d]: LOAD(%" PRWORD ") %p\n",
+		startPC, arg.uArg, PTR_MLtoC(ml_val_t *, saved)[arg.uArg]);
 #endif
-	    ASSERT(saved != NIL(ml_val_t));
-	    LIST_cons(msp, stk, saved[arg.uArg], stk);
+	    ASSERT(saved != ML_nil);
+	    LIST_cons(msp, stk, PTR_MLtoC(ml_val_t, saved)[arg.uArg], stk);
 	    break;
 
 	  case RETURN:
@@ -810,6 +836,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    SayDebug("[%04d]: RETURN(%p)\n", startPC, (void *)LIST_hd(stk));
 #endif
 	    ASSERT(pc == len);
+	    ASSERT((stk != ML_nil) && (LIST_tl(stk) == ML_nil));
 	    return (LIST_hd(stk));
 
 	  default:
