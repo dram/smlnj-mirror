@@ -253,6 +253,16 @@ STATIC_INLINE Unsigned64_t WORD64_MLtoC (ml_val_t n)
 #endif
 }
 
+/* add a store-list entry */
+STATIC_INLINE void ML_RecordUpdate (ml_state_t *msp, ml_val_t *addr)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = PTR_CtoML(addr);
+    p[1] = msp->ml_storePtr;
+    msp->ml_storePtr = PTR_CtoML(p);
+    msp->ml_allocPtr += 2;
+}
+
 /* allocate a 64-bit integer number of nanoseconds, given seconds and
  * microseconds.
  */
@@ -282,10 +292,23 @@ STATIC_INLINE ml_val_t ML_AllocNanoseconds (ml_state_t *msp, int sec, int usec)
 #define REC_SELWORD(p, i)	(*REC_SELPTR(Word_t, p, i))
 
 /* temporary */
+#ifdef SIZE_32
 #define INT32_ALLOC(msp, p, i)	WORD_ALLOC(msp, p, i)
+#endif
 
 #define INT64_ALLOC(msp, r, i)	{ (r) = ML_AllocInt64((msp), (i)); }
 #define WORD64_ALLOC(msp, r, w)	{ (r) = ML_AllocWord64((msp), (w)); }
+
+/** SysWord.word conversions */
+#ifdef SIZE_64
+typedef Unsigned64_t SysWord_t;
+#define SYSWORD_ALLOC(msp, r, w)	WORD64_ALLOC(msp, r, w)
+#define SYSWORD_MLtoC(w)		WORD64_MLtoC(w)
+#else /* SIZE_32 */
+typedef Unsigned64_t SysWord_t;
+#define SYSWORD_ALLOC(msp, r, w)	WORD_ALLOC(msp, r, w)
+#define SYSWORD_MLtoC(w)		WORD32_MLtoC(w)
+#endif
 
 /** ML lists **/
 #define LIST_hd(p)		REC_SEL(p, 0)
@@ -323,6 +346,7 @@ extern ml_val_t ML_AllocString (ml_state_t *msp, int len);
 extern ml_val_t ML_AllocCode (ml_state_t *msp, int len);
 extern ml_val_t ML_AllocBytearray (ml_state_t *msp, int len);
 extern ml_val_t ML_AllocRealdarray (ml_state_t *msp, int len);
+extern ml_val_t ML_AllocArrayData (ml_state_t *msp, int len, ml_val_t initVal);
 extern ml_val_t ML_AllocArray (ml_state_t *msp, int len, ml_val_t initVal);
 extern ml_val_t ML_AllocVector (ml_state_t *msp, int len, ml_val_t initVal);
 extern ml_val_t ML_AllocRaw (ml_state_t *msp, int len);
