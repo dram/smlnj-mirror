@@ -1,6 +1,7 @@
 /* access.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -12,22 +13,20 @@
 #include "cfun-proto-list.h"
 
 
-/* _ml_P_FileSys_access : (string * word) -> bool
+/* _ml_P_FileSys_access : (string * SysWord.word) -> bool
  *                         name     access_mode
  *
  * Determine accessibility of a file.
  */
 ml_val_t _ml_P_FileSys_access (ml_state_t *msp, ml_val_t arg)
 {
-    ml_val_t	    path = REC_SEL(arg, 0);
-    mode_t	    mode = REC_SELWORD(arg, 1);
-    int		    sts;
+    ml_val_t	path = REC_SEL(arg, 0);
+    ml_val_t	ml_mode = REC_SEL(arg, 1);
+    mode_t	mode = SYSWORD_MLtoC(ml_mode);
+    int		sts;
 
     sts = access (STR_MLtoC(path), mode);
 
-    if (sts == 0)
-        return ML_true;
-    else
-        return ML_false;
+    return (sts == 0) ? ML_true : ML_false;
 
 } /* end of _ml_P_FileSys_access */

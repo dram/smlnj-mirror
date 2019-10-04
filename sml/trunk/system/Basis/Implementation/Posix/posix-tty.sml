@@ -1,13 +1,13 @@
 (* posix-tty.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Structure for POSIX 1003.1 operations on terminal devices
- *
  *)
 
 local
-    structure SysWord = SysWordImp
+  structure SysWord = SysWordImp
 in
 structure POSIX_TTY =
   struct
@@ -17,8 +17,8 @@ structure POSIX_TTY =
 
     type pid = POSIX_Process.pid
     type file_desc = POSIX_FileSys.file_desc
-    
-    type word = SysWord.word
+
+    type s_word = SysWord.word
     type s_int = SysInt.int
 
     val ++ = SysWord.orb
@@ -132,7 +132,7 @@ structure POSIX_TTY =
         val tostop = fromWord (w_osval "TOSTOP")
       end
 
-    datatype speed = B of word
+    datatype speed = B of s_word
     fun compareSpeed (B w, B w') =
           if SysWord.<(w, w') then LESS
           else if w = w' then EQUAL
@@ -155,7 +155,7 @@ structure POSIX_TTY =
     val b9600 = B (w_osval "B9600")
     val b19200 = B (w_osval "B19200")
     val b38400 = B (w_osval "B38400")
-    
+
     datatype termios = TIOS of {
         iflag : I.flags,
         oflag : O.flags,
@@ -178,7 +178,7 @@ structure POSIX_TTY =
       struct
 	fun getospeed (TIOS{ospeed,...}) = ospeed
 	fun getispeed (TIOS{ispeed,...}) = ispeed
-    
+
 	fun setospeed (TIOS r, ospeed) = TIOS {
 		iflag = #iflag r,
 		oflag = #oflag r,
@@ -198,7 +198,7 @@ structure POSIX_TTY =
 		ospeed = #ospeed r
 	      }
       end
-    
+
     structure TC =
       struct
         datatype set_action = SA of s_int
@@ -221,15 +221,15 @@ structure POSIX_TTY =
         val ioflush = QS (osval "TCIOFLUSH")
 
 	type termio_rep = (
-	       word *       	(* iflags *)
-	       word *       	(* oflags *)
-	       word *       	(* cflags *)
-	       word *       	(* lflags *)
+	       s_word *       	(* iflags *)
+	       s_word *       	(* oflags *)
+	       s_word *       	(* cflags *)
+	       s_word *       	(* lflags *)
 	       V.WV.vector *	(* cc *)
-	       word *		(* inspeed *)
-	       word		(* outspeed *)
+	       s_word *		(* inspeed *)
+	       s_word		(* outspeed *)
 	     )
-    
+
 	val tcgetattr : int -> termio_rep = cfun "tcgetattr"
 	fun getattr fd = let
 	      val (ifs,ofs,cfs,lfs,cc,isp,osp) = tcgetattr (FS.intOf fd)
@@ -244,7 +244,7 @@ structure POSIX_TTY =
 		  ospeed = B osp
 		}
 	      end
-    
+
 	val tcsetattr : int * s_int * termio_rep -> unit = cfun "tcsetattr"
 	fun setattr (fd, SA sa, TIOS tios) = let
 	      val iflag = I.toWord (#iflag tios)
@@ -258,26 +258,26 @@ structure POSIX_TTY =
 	      in
 		tcsetattr (FS.intOf fd, sa, trep)
 	      end
-    
+
 	val tcsendbreak : int * int -> unit = cfun "tcsendbreak"
 	fun sendbreak (fd, duration) = tcsendbreak (FS.intOf fd, duration)
-    
+
 	val tcdrain : int -> unit = cfun "tcdrain"
 	fun drain fd = tcdrain (FS.intOf fd)
-    
+
 	val tcflush : int * s_int -> unit = cfun "tcflush"
 	fun flush (fd, QS qs) = tcflush (FS.intOf fd, qs)
-    
+
 	val tcflow : int * s_int -> unit = cfun "tcflow"
 	fun flow (fd, FA action) = tcflow (FS.intOf fd, action)
-    
+
 	val tcgetpgrp : int -> s_int = cfun "tcgetpgrp"
 	fun getpgrp fd = P.PID(tcgetpgrp(FS.intOf fd))
-    
+
 	val tcsetpgrp : int * s_int -> unit = cfun "tcsetpgrp"
 	fun setpgrp (fd, P.PID pid) = tcsetpgrp(FS.intOf fd, pid)
       end (* structure TC *)
 
   end (* structure POSIX_TTY *)
-end
 
+end (* local *)

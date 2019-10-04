@@ -1,6 +1,7 @@
 /* waitpid.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -11,19 +12,22 @@
 #include "ml-c.h"
 #include "cfun-proto-list.h"
 
-/* _ml_P_Process_waitpid : int * word -> int * int * int
+/* _ml_P_Process_waitpid : int * SysWord.word -> int * int * int
  *
  * Wait for child processes to stop or terminate
  */
 ml_val_t _ml_P_Process_waitpid (ml_state_t *msp, ml_val_t arg)
 {
-    int       pid;
-    int       status, how, val;
-    ml_val_t  r;
+    ml_val_t	ml_options = REC_SEL(arg, 1);
+    int		options = SYSWORD_MLtoC(ml_options);
+    int		pid;
+    int		status, how, val;
+    ml_val_t	r;
 
-    pid = waitpid(REC_SELINT(arg, 0), &status, REC_SELWORD(arg, 1));
-    if (pid < 0)
+    pid = waitpid(REC_SELINT(arg, 0), &status, options);
+    if (pid < 0) {
 	return RAISE_SYSERR(msp, pid);
+    }
 
     if (WIFEXITED(status)) {
 	how = 0;

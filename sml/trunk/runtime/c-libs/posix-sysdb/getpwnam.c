@@ -1,6 +1,7 @@
 /* getpwnam.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -12,7 +13,7 @@
 #include "cfun-proto-list.h"
 #include <pwd.h>
 
-/* _ml_P_SysDB_getpwnam : string -> string * word * word * string * string
+/* _ml_P_SysDB_getpwnam : string -> string * SysWord.word * SysWord.word * string * string
  *
  * Get password file entry by name.
  */
@@ -24,10 +25,10 @@ ml_val_t _ml_P_SysDB_getpwnam (ml_state_t *msp, ml_val_t arg)
     info = getpwnam(STR_MLtoC(arg));
     if (info == NIL(struct passwd *))
         return RAISE_SYSERR(msp, -1);
-  
+
     pw_name = ML_CString (msp, info->pw_name);
-    WORD_ALLOC (msp, pw_uid, (Word_t)(info->pw_uid));
-    WORD_ALLOC (msp, pw_gid, (Word_t)(info->pw_gid));
+    SYSWORD_ALLOC (msp, pw_uid, (Word_t)(info->pw_uid));
+    SYSWORD_ALLOC (msp, pw_gid, (Word_t)(info->pw_gid));
     pw_dir = ML_CString (msp, info->pw_dir);
     pw_shell = ML_CString (msp, info->pw_shell);
 

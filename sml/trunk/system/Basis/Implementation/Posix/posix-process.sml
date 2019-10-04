@@ -1,24 +1,24 @@
 (* posix-process.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Structure for POSIX 1003.1 process submodule
  *)
 
 local
-    structure SysWord = SysWordImp
-    structure Word8 = Word8Imp
-    structure Word64 = Word64Imp
-    structure Time = TimeImp
-    structure Int = IntImp
+  structure SysWord = SysWordImp
+  structure Word8 = Word8Imp
+  structure Word64 = Word64Imp
+  structure Time = TimeImp
+  structure Int = IntImp
 in
 structure POSIX_Process =
   struct
 
     structure Sig = POSIX_Signal
 
-    type word = SysWord.word
+    type s_word = SysWord.word
     type s_int = SysInt.int
 
     type signal = Sig.signal
@@ -30,7 +30,7 @@ structure POSIX_Process =
     val osval : string -> s_int = cfun "osval"
     val w_osval = SysWord.fromInt o osval
 
-    val sysconf : string -> SysWord.word =
+    val sysconf : string -> s_word =
           CInterface.c_function "POSIX-ProcEnv" "sysconf"
 
     val fork' : unit -> s_int = cfun "fork"
@@ -61,7 +61,7 @@ structure POSIX_Process =
       | W_STOPPED of signal
 
       (* (pid',status,status_val) = waitpid' (pid,options)  *)
-    val waitpid' : s_int * word -> s_int * s_int * s_int = cfun "waitpid"
+    val waitpid' : s_int * s_word -> s_int * s_int * s_int = cfun "waitpid"
 
     fun argToInt W_ANY_CHILD = ~1
       | argToInt (W_CHILD (PID pid)) = pid
@@ -132,4 +132,5 @@ structure POSIX_Process =
     val pause : unit -> unit = cfun "pause"
 
   end (* structure POSIX_Process *)
+
 end (* local *)

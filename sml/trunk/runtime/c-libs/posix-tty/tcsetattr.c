@@ -1,6 +1,7 @@
 /* tcsetattr.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -12,7 +13,7 @@
 #include "cfun-proto-list.h"
 
 /* _ml_P_TTY_tcsetattr : int * int * termio_rep -> unit
- *    termio_rep = (word * word * word * word * string * word * word)
+ *    termio_rep = (SysWord.word * SysWord.word * SysWord.word * SysWord.word * string * SysWord.word * SysWord.word)
  *
  * Set parameters associated with tty.
  *
@@ -21,23 +22,34 @@
  */
 ml_val_t _ml_P_TTY_tcsetattr (ml_state_t *msp, ml_val_t arg)
 {
-    int              sts, fd = REC_SELINT(arg, 0);
-    int              action = REC_SELINT(arg, 1);
-    ml_val_t         termio_rep = REC_SEL(arg, 2);
-    struct termios   data;
+    int			sts, fd = REC_SELINT(arg, 0);
+    int			action = REC_SELINT(arg, 1);
+    ml_val_t		termio_rep = REC_SEL(arg, 2);
+    struct termios	data;
+    ml_val_t		tmp;
 
-    data.c_iflag = REC_SELWORD(termio_rep, 0);
-    data.c_oflag = REC_SELWORD(termio_rep, 1);
-    data.c_cflag = REC_SELWORD(termio_rep, 2);
-    data.c_lflag = REC_SELWORD(termio_rep, 3);
-    
+    tmp = REC_SEL(termio_rep, 0);
+    data.c_iflag = SYSWORD_MLtoC(tmp);
+    tmp = REC_SEL(termio_rep, 1);
+    data.c_oflag = SYSWORD_MLtoC(tmp);
+    tmp = REC_SEL(termio_rep, 2);
+    data.c_cflag = SYSWORD_MLtoC(tmp);
+    tmp = REC_SEL(termio_rep, 3);
+    data.c_lflag = SYSWORD_MLtoC(tmp);
+
     memcpy (data.c_cc, GET_SEQ_DATAPTR(void, REC_SEL(termio_rep, 4)), NCCS);
-    sts = cfsetispeed (&data, REC_SELWORD(termio_rep, 5));
-    if (sts < 0)
+
+    tmp = REC_SEL(termio_rep, 5);
+    sts = cfsetispeed (&data, SYSWORD_MLtoC(tmp));
+    if (sts < 0) {
 	return RAISE_SYSERR(msp, sts);
-    sts = cfsetospeed (&data, REC_SELWORD(termio_rep, 6));
-    if (sts < 0)
+    }
+
+    tmp = REC_SEL(termio_rep, 6);
+    sts = cfsetospeed (&data, SYSWORD_MLtoC(tmp));
+    if (sts < 0) {
 	return RAISE_SYSERR(msp, sts);
+    }
 
     sts = tcsetattr(fd, action, &data);
 

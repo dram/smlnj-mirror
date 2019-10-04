@@ -1,9 +1,9 @@
-(* posix.sigsig.sml
+(* posix-signal.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for POSIX 1003.1 signals.
- *
  *)
 
 signature POSIX_SIGNAL =
@@ -35,4 +35,3 @@ signature POSIX_SIGNAL =
     val bus  : signal
 
   end (* signature POSIX_SIGNAL *)
-

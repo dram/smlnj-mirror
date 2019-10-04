@@ -9,7 +9,7 @@
 #include "cfun-proto-list.h"
 #include <unistd.h>
 
-/* _ml_P_ProcEnv_setuid: word -> unit
+/* _ml_P_ProcEnv_setuid: SysWord.word -> unit
  *
  * Set user id
  */
@@ -17,7 +17,7 @@ ml_val_t _ml_P_ProcEnv_setuid (ml_state_t *msp, ml_val_t arg)
 {
     int         sts;
 
-    sts = setuid(WORD_MLtoC(arg));
+    sts = setuid(SYSWORD_MLtoC(arg));
 
     CHK_RETURN_UNIT(msp, sts)
 

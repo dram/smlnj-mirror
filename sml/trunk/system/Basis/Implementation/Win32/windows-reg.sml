@@ -29,15 +29,14 @@ structure Windows_REG : WINDOWS_REG =
       = CREATED_NEW_KEY of hkey
       | OPENED_EXISTING_KEY of hkey
     val openKeyEx : hkey * string * Key.flags -> hkey = cfun "reg_open_key"
-    fun createKeyEx (key, name, flags) =
-	let
-	    val createKey : (hkey * string * Key.flags) -> Word32.word = Unsafe.CInterface.c_function "WIN32" "reg_create_key"
-	in
-	    case createKey(key, name, flags) of
-		0w1 => CREATED_NEW_KEY(openKeyEx(key, name, flags))
+    fun createKeyEx (key, name, flags) = let
+	  val createKey : (hkey * string * Key.flags) -> Word32.word = Unsafe.CInterface.c_function "WIN32" "reg_create_key"
+	  in
+	    case createKey(key, name, flags)
+	     of 0w1 => CREATED_NEW_KEY(openKeyEx(key, name, flags))
 	      | 0w2 => OPENED_EXISTING_KEY(openKeyEx(key, name, flags))
 	      | x => raise Fail ("Key creation failed in an unknown way.")
-	end
+	  end
     val closeKey : hkey -> unit = cfun "reg_close_key"
     val deleteKey : hkey * string -> unit = cfun "reg_delete_key"
     val deleteValue : hkey * string -> unit = cfun "reg_delete_value"
@@ -65,8 +64,8 @@ structure Windows_REG : WINDOWS_REG =
 
     (* val queryValueEx : hkey * string -> value option *)
     fun queryValueEx (key, name) =
-	case queryValueType (key, name) of
-	    0w1 => SOME (SZ (queryValueString(key, name)))
+	case queryValueType (key, name)
+	 of 0w1 => SOME (SZ (queryValueString(key, name)))
 	  | 0w2 => SOME (EXPAND_SZ (queryValueExpandString(key, name)))
 	  | 0w3 => SOME (BINARY (queryValueBinary(key, name)))
 	  | 0w4 => SOME (DWORD (queryValueDword(key, name)))
@@ -75,15 +74,16 @@ structure Windows_REG : WINDOWS_REG =
 
     (* val setValueEx : hkey * string * value -> unit *)
     fun setValueEx (key, name, SZ(string)) =
-	setValueString(key, name, string)
+	  setValueString(key, name, string)
       | setValueEx (key, name, DWORD(dw)) =
-	setValueDword(key, name, dw)
+	  setValueDword(key, name, dw)
       | setValueEx (key, name, BINARY(bin)) =
-	setValueBinary(key, name, bin)
+	  setValueBinary(key, name, bin)
       | setValueEx (key, name, MULTI_SZ(multi)) =
-	setValueMultiString(key, name, multi)
+	  setValueMultiString(key, name, multi)
       | setValueEx (key, name, EXPAND_SZ(expand)) =
-	setValueExpandString(key, name, expand)
+	  setValueExpandString(key, name, expand)
 
   end
-end
+
+end (* local *)

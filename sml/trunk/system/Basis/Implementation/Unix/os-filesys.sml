@@ -1,9 +1,9 @@
 (* os-filesys.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * The Posix implementation of the generic file system interface.
- *
  *)
 
 local
@@ -143,5 +143,5 @@ structure OS_FileSys : OS_FILE_SYS =
 	    else General.EQUAL
 
   end
-end
 
+end

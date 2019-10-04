@@ -1,9 +1,9 @@
 (* posix-filesys.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for POSIX 1003.1 file system operations
- *
  *)
 
 signature POSIX_FILE_SYS =
@@ -130,9 +130,8 @@ signature POSIX_FILE_SYS =
     val fchown   : (file_desc * uid * gid) -> unit
 
     val utime : string * {actime : Time.time, modtime : Time.time} option -> unit
-    
+
     val pathconf  : (string * string) -> SysWord.word option
     val fpathconf : (file_desc * string) -> SysWord.word option
 
   end (* signature POSIX_FILE_SYS *)
-

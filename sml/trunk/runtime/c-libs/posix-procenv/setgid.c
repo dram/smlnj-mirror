@@ -17,7 +17,7 @@ ml_val_t _ml_P_ProcEnv_setgid (ml_state_t *msp, ml_val_t arg)
 {
     int         sts;
 
-    sts = setgid(WORD_MLtoC(arg));
+    sts = setgid(SYSWORD_MLtoC(arg));
 
     CHK_RETURN_UNIT(msp, sts)
 

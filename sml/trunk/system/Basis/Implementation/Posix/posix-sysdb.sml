@@ -1,9 +1,9 @@
 (* posix-sysdb.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Structure for POSIX 1003.1 system data-base operations
- *
  *)
 
 structure POSIX_Sys_DB =
@@ -13,10 +13,10 @@ structure POSIX_Sys_DB =
 
     fun cfun x = CInterface.c_function "POSIX-SysDB" x
 
-    type word = SysWord.word
+    type s_word = SysWord.word
     type uid = FS.uid
     type gid = FS.gid
-    
+
     structure Passwd =
       struct
         datatype passwd = PWD of {             (* extensible *)
@@ -46,11 +46,11 @@ structure POSIX_Sys_DB =
         fun name (GROUP{name,...}) = name
         fun gid (GROUP{gid,...}) = gid
         fun members (GROUP{members,...}) = members
-    
+
       end
-    
-    val getgrgid' : word -> string * word * string list = cfun "getgrgid"
-    val getgrnam' : string -> string * word * string list = cfun "getgrnam"
+
+    val getgrgid' : s_word -> string * s_word * string list = cfun "getgrgid"
+    val getgrnam' : string -> string * s_word * string list = cfun "getgrnam"
     fun getgrgid (FS.GID gid) = let
           val (name,gid,members) = getgrgid' gid
           in
@@ -67,8 +67,8 @@ structure POSIX_Sys_DB =
               members = members
             }
           end
-    val getpwuid' : word -> string * word * word * string * string = cfun "getpwuid"
-    val getpwnam' : string -> string * word * word * string * string = cfun "getpwnam"
+    val getpwuid' : s_word -> string * s_word * s_word * string * string = cfun "getpwuid"
+    val getpwnam' : string -> string * s_word * s_word * string * string = cfun "getpwnam"
     fun getpwuid (FS.UID uid) = let
           val (name,uid,gid,dir,shell) = getpwuid' uid
           in
@@ -91,4 +91,3 @@ structure POSIX_Sys_DB =
           end
 
   end (* structure POSIX_Sys_DB *)
-

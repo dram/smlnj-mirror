@@ -1,9 +1,9 @@
 (* posix-io.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for POSIX 1003.1 primitive I/O operations
- *
  *)
 
 signature POSIX_IO =
@@ -11,7 +11,7 @@ signature POSIX_IO =
 
     eqtype file_desc
     eqtype pid
-    
+
     val pipe : unit -> {infd : file_desc, outfd : file_desc}
     val dup : file_desc -> file_desc
     val dup2 : {old : file_desc, new : file_desc} -> unit
@@ -21,9 +21,9 @@ signature POSIX_IO =
     val readArr : file_desc * Word8ArraySlice.slice -> int
     val writeVec : file_desc * Word8VectorSlice.slice -> int
     val writeArr : file_desc * Word8ArraySlice.slice -> int
-    
+
     datatype whence = SEEK_SET | SEEK_CUR | SEEK_END
-    
+
     structure FD :
       sig
         include BIT_FLAGS
@@ -44,13 +44,13 @@ signature POSIX_IO =
       end
 
     datatype open_mode = O_RDONLY | O_WRONLY | O_RDWR
-    
+
     val dupfd : {old : file_desc, base : file_desc} -> file_desc
     val getfd : file_desc -> FD.flags
     val setfd : file_desc * FD.flags -> unit
     val getfl : file_desc -> O.flags * open_mode
     val setfl : file_desc * O.flags -> unit
-    
+
     val lseek : (file_desc * Position.int * whence) -> Position.int
 
     val fsync : file_desc -> unit
@@ -77,7 +77,7 @@ signature POSIX_IO =
     val getlk  : file_desc * FLock.flock -> FLock.flock
     val setlk  : file_desc * FLock.flock -> FLock.flock
     val setlkw : file_desc * FLock.flock -> FLock.flock
-    
+
 
     val mkBinReader : { fd : file_desc,
 			name : string,

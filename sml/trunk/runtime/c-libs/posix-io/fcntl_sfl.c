@@ -1,6 +1,7 @@
 /* fcntl_sfl.c
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-unixdep.h"
@@ -17,9 +18,10 @@
  */
 ml_val_t _ml_P_IO_fcntl_sfl (ml_state_t *msp, ml_val_t arg)
 {
-    int             sts;
-    int             fd0 = REC_SELINT(arg, 0);
-    Word_t          flag = REC_SELWORD(arg, 1);
+    int		sts;
+    int		fd0 = REC_SELINT(arg, 0);
+    ml_val_t	ml_flag = REC_SEL(arg, 1);
+    SysWord_t	flag = SYSWORD_MLtoC(ml_flag);
 
     sts = fcntl(fd0, F_SETFL, flag);
 

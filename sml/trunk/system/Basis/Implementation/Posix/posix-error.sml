@@ -1,13 +1,13 @@
 (* posix-error.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Structure for POSIX error codes.
- *
  *)
 
 local
-    structure SysWord = SysWordImp
+  structure SysWord = SysWordImp
 in
 structure POSIX_Error =
   struct
@@ -78,5 +78,6 @@ structure POSIX_Error =
     val xdev        = osVal "xdev"
 
   end (* structure POSIX_Error *)
-end
+
+end (* local *)
 

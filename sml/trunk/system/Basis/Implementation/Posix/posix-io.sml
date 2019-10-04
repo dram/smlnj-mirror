@@ -7,9 +7,9 @@
  *)
 
 local
-    structure SysWord = SysWordImp
-    structure Int = IntImp
-    structure Position = PositionImp
+  structure SysWord = SysWordImp
+  structure Int = IntImp
+  structure Position = PositionImp
 in
 structure POSIX_IO =
   struct
@@ -18,8 +18,8 @@ structure POSIX_IO =
 
     datatype open_mode = datatype FS.open_mode (* O_RDONLY | O_WRONLY | O_RDWR  *)
 
-    type word = SysWord.word
-    type s_int = SysInt.int
+    type s_word = SysWord.word
+    type s_int = SysInt.int	(* == Int.int *)
 
     val ++ = SysWord.orb
     val & = SysWord.andb
@@ -28,7 +28,7 @@ structure POSIX_IO =
     fun cfun x = CInterface.c_function "POSIX-IO" x
     val osval : string -> s_int = cfun "osval"
     val w_osval = SysWord.fromInt o osval
-    fun fail (fct,msg) = raise Fail ("POSIX_IO."^fct^": "^msg)
+    fun fail (fct, msg) = raise Fail(concat["POSIX_IO.", fct, ": ", msg])
 
     type file_desc = FS.file_desc
     type pid = POSIX_Process.pid
@@ -110,10 +110,10 @@ structure POSIX_IO =
       end
 
     val fcntl_d   : s_int * s_int -> s_int = cfun "fcntl_d"
-    val fcntl_gfd : s_int -> word = cfun "fcntl_gfd"
-    val fcntl_sfd : (s_int * word) -> unit = cfun "fcntl_sfd"
-    val fcntl_gfl : s_int -> (word * word) = cfun "fcntl_gfl"
-    val fcntl_sfl : (s_int * word) -> unit = cfun "fcntl_sfl"
+    val fcntl_gfd : s_int -> s_word = cfun "fcntl_gfd"
+    val fcntl_sfd : (s_int * s_word) -> unit = cfun "fcntl_sfd"
+    val fcntl_gfl : s_int -> (s_word * s_word) = cfun "fcntl_gfl"
+    val fcntl_sfl : (s_int * s_word) -> unit = cfun "fcntl_sfl"
     fun dupfd {old, base} = FS.fd (fcntl_d (FS.intOf old, FS.intOf base))
     fun getfd fd = FD.fromWord (fcntl_gfd (FS.intOf fd))
     fun setfd (fd, fl) = fcntl_sfd(FS.intOf fd, FD.toWord fl)
@@ -375,4 +375,5 @@ structure POSIX_IO =
     end (* local *)
 
   end (* structure POSIX_IO *)
-end
+
+end (* local *)

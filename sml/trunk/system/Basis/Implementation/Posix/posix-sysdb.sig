@@ -1,16 +1,16 @@
 (* posix-sysdb.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for POSIX 1003.1 system data-base operations
- *
  *)
 
 signature POSIX_SYS_DB =
   sig
     eqtype uid
     eqtype gid
-    
+
     structure Passwd :
       sig
         type passwd
@@ -30,9 +30,9 @@ signature POSIX_SYS_DB =
         val name    : group -> string
         val gid     : group -> gid
         val members : group -> string list
-    
+
       end
-    
+
     val getgrgid : gid -> Group.group
     val getgrnam : string -> Group.group
     val getpwuid : uid -> Passwd.passwd
