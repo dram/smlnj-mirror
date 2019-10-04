@@ -1,11 +1,12 @@
-(* pre-soc.ksml
+(* pre-sock.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * These are some common type definitions used in the sockets library.  This
  * structure is called Sock, so that the signatures will compile.
- *
  *)
+
 local
     structure SysWord = SysWordImp
     structure Word8 = Word8Imp
@@ -40,12 +41,12 @@ structure Socket = struct
 
     structure AF = struct
         datatype addr_family = AF of af
-    end
+      end
 
     structure SOCK = struct
         (* socket types *)
         datatype sock_type = SOCKTY of CInterface.system_const
-    end
+      end
 
     datatype shutdown_mode = NO_RECVS | NO_SENDS | NO_RECVS_OR_SENDS
     type sock_desc = OS.IO.iodesc
@@ -95,7 +96,7 @@ structure Socket = struct
 	  (* end case *))
     in
     fun toWords getc strm = (case (scan getc strm)
-	   of SOME([a, b, c, d], strm) => 
+	   of SOME([a, b, c, d], strm) =>
 		SOME([chk(a, 0w8), chk(b, 0w8), chk(c, 0w8), chk(d, 0w8)], strm)
 	    | SOME([a, b, c], strm) =>
 		SOME([chk(a, 0w8), chk(b, 0w8), chk(c, 0w16)], strm)

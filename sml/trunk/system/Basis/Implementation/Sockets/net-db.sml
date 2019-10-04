@@ -1,12 +1,12 @@
 (* net-db.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
- *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 local
-    structure SysWord = SysWordImp
-    structure Word8 = Word8Imp
+  structure SysWord = SysWordImp
+  structure Word8 = Word8Imp
 in
 structure NetDB : NET_DB =
   struct
@@ -37,8 +37,8 @@ structure NetDB : NET_DB =
 
   (* Network DB query functions *)
     local
-      type netent
-	= (string * string list * Socket.af * SysWord.word)
+      type netent = (string * string list * Socket.af * SysWord.word)
+
       fun getNetEnt NONE = NONE
 	| getNetEnt (SOME(name, aliases, addrType, addr)) = SOME(NETENT{
 	      name = name, aliases = aliases,
@@ -80,5 +80,5 @@ structure NetDB : NET_DB =
 	  end
 
   end
-end
 
+end (* local *)
