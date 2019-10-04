@@ -48,6 +48,9 @@ structure Literals : LITERALS =
     fun bug msg = ErrorMsg.impossible ("Literals: "^msg)
     fun mkv _ = LV.mkLvar()
 
+    val debugFlg = Control.CG.debugLits
+    val say = Control.Print.say
+
   (****************************************************************************
    *                         A MINI-LITERAL LANGUAGE                          *
    ****************************************************************************)
@@ -74,6 +77,45 @@ structure Literals : LITERALS =
       | val2lit (CPS.NUM{ival, ty={tag=true, ...}}) = LI_INT ival
       | val2lit (CPS.STRING s) = LI_STRING s
       | val2lit _ = bug "unexpected case in val2lit"
+
+  (* printing a literal expression *)
+    fun printLits lexp = let
+	  fun prIndent 0 = ()
+	    | prIndent n = (say "  "; prIndent(n-1))
+	  fun valToStr (LI_INT n) = IntInf.toString n
+	    | valToStr (LI_STRING s) = concat["\"", String.toString s, "\""]
+	    | valToStr (LI_VAR x) = LV.lvarName x
+	  fun pr indent (le : lit_exp) = (
+		prIndent indent;
+		case le
+		 of LI_TOP lits => (
+		      say "TOP\n";
+		      List.app (fn lit => (prIndent(indent+1); say(valToStr lit); say "\n")) lits;
+		      prIndent (indent+1);
+		      say "RETURN")
+		  | LI_BLOCK(rk, lits, x, k) => (
+		      say "LET "; say(LV.lvarName x); say " = ";
+		      case rk
+		       of LI_VECTOR => say "VECTOR("
+			| LI_RECORD => say "RECORD("
+		      (* end case *);
+		      say (String.concatWithMap "," valToStr lits);
+		      say ")\n";
+		      pr indent k)
+		  | LI_F64BLOCK(lits, x, k) => (
+		      say "LET "; say(LV.lvarName x); say " = RAW64(";
+		      say (String.concatWithMap "," RealLit.toString lits);
+		      say ")\n";
+		      pr indent k)
+		  | LI_RAWBLOCK(lits, x, k) => (
+		      say "LET "; say(LV.lvarName x); say " = RAW(";
+		      say (String.concatWithMap "," IntInf.toString lits);
+		      say ")\n";
+		      pr indent k)
+		(* end case *))
+	  in
+	    pr 0 lexp
+	  end
 
   (****************************************************************************
    *                 TRANSLATING THE LITERAL EXP TO BYTES                     *
@@ -277,7 +319,6 @@ structure Literals : LITERALS =
 	  fun appStr () = let
 		fun g (a::r, z) = g(r, (STRING a)::z)
 		  | g ([], z) = z (* reverse to reflecting the correct order *)
-		val allStrs = !strs
 	        in
 		  case !strs
 		   of [] => ()
@@ -312,7 +353,6 @@ structure Literals : LITERALS =
 	  fun appReal () = let
 	        fun g (a::r, z) = g(r, REAL{rval=a, ty=64} :: z)	(* REAL32: FIXME *)
 		  | g ([], z) = z (* reverse to reflecting the correct order *)
-		val allReals = !reals
 	        in
 		  case !reals
 		   of [] => ()
@@ -337,13 +377,13 @@ structure Literals : LITERALS =
 	        end
 	(* if all fields of a record are "constant", then we lift it *)
 	  fun field ul = let
-	       fun h ((x, OFFp 0)::r, z, rsflag) = if const x
-			then h(r, x::z, rsflag orelse (cstlit x))
+	       fun h ((x, OFFp 0)::r, z) = if const x
+			then h(r, x::z)
 			else NONE
-		  | h ([], z, rsflag) = if rsflag then SOME(rev z) else NONE
+		  | h ([], z) = SOME(rev z)
 		  | h _ = bug "unexpected case in field"
 	        in
-		  h (ul, [], false)
+		  h (ul, [])
 	        end
 	(* register a constant record *)
 	  fun record (rk, ul, v) = (case field ul
@@ -494,8 +534,17 @@ structure Literals : LITERALS =
     fun split (fk, f, vl as [_,x], [CNTt, t as PTRt(RPT n)], body) = let
 	  val nt = PTRt(RPT (n+1))
 	  val (nbody, lit) = liftlits(body, VAR x, n)
+	  val nfn = (fk, f, vl, [CNTt, nt], nbody)
 	  in
-	    ((fk, f, vl, [CNTt, nt], nbody), litToBytes lit)
+	    if !debugFlg
+	      then (
+		say (concat["\n[After Literals.split ...]\n"]);
+		PPCps.printcps0 nfn;
+	        say "==========\n";
+		printLits lit;
+		say "\n")
+	      else ();
+	    (nfn, litToBytes lit)
 	  end
       | split _ = bug "unexpected CPS header in split"
 
