@@ -1950,7 +1950,7 @@ functor MLRiscGen (
 		      gen(e, hp)
 		    end
 		| gen (C.SETTER(P.SETSPECIAL, [v, i], e), hp) = let
-		    val ea = M.SUB(ity, regbind v, LI 4)
+		    val ea = M.SUB(ity, regbind v, LI ws)
 		    val i' = (case i
 			   of NUM{ty={tag=true, ...}, ival} => LI(D.makeDesc(ival, D.tag_special))
 			    | _ => M.ORB(ity, M.SLL(ity, untagSigned i, LW' D.tagWidth),

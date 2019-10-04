@@ -942,7 +942,7 @@ functor MLRiscGen (
 		      gen (e, 0)
 (*+DEBUG*)
 			handle ex => (
-			  print(concat["***** exception (", exnMessage ex, ")\n"]);
+			  print(concat["***** MLRiscGen.genCPSFunction: exception (", exnMessage ex, ")\n"]);
 			  printCPSFun(kind, f, params, tys, e);
 			  raise ex)
 (*-DEBUG*)
@@ -1442,18 +1442,6 @@ functor MLRiscGen (
 			then copy (x, v, e, hp)
 			else defINT (x, M.SRL(ity, regbind v, one), e, hp)
 		      else error "gen:PURE:COPY"
-(*
-		| gen (C.PURE(P.COPY{from=8, to}, [v], x, _, e), hp) =
-		    if (to <= Target.defaultIntSz)
-		      then copy (x, v, e, hp)
-		      else defINT (x, M.SRL(ity, regbind v, one), e, hp)
-		| gen (C.PURE(P.COPY{from, to}, [v], x, _, e), hp) =
-		    if (from = to)
-		      then copy(x, v, e, hp)
-		    else if (from = Target.defaultIntSz) andalso (to = ity)
-		      then defINT (x, M.SRL(ity, regbind v, one), e, hp)
-		      else error "gen:PURE:COPY"
-*)
 		| gen (C.PURE(P.COPY_INF _, _, _, _, _), hp) =
 		    error "gen:PURE:COPY_INF"
 		| gen (C.PURE(P.EXTEND{from, to}, [v], x, _ ,e), hp) =
@@ -1470,21 +1458,6 @@ functor MLRiscGen (
 			    else defINT (x, M.SRA(ity, M.SLL(ity, regbind v, LI sa), LI(sa+1)), e, hp)
 			end
 		      else error "gen:PURE:EXTEND"
-(*
-		| gen (C.PURE(P.EXTEND{from=8, to}, [v], x, _ ,e), hp) = let
-		    val sa = IntInf.fromInt(Target.defaultIntSz - 8)
-		    in
-		      if (to <= Target.defaultIntSz)
-			then defTAGINT (x, M.SRA(ity, M.SLL(ity, regbind v, LI sa), LI sa), e, hp)
-			else defINT (x, M.SRA(ity, M.SLL(ity, regbind v, LI sa), LI(sa+1)), e, hp)
-		    end
-		| gen (C.PURE(P.EXTEND{from, to}, [v], x, _ ,e), hp) =
-		    if (from = to)
-		      then copy(x, v, e, hp)
-		    else if (from = Target.defaultIntSz) andalso (to = ity)
-		      then defINT (x, M.SRA(ity, regbind v, one), e, hp)
-		      else error "gen:PURE:EXTEND"
-*)
 		| gen (C.PURE(P.EXTEND_INF _, _, _, _, _), hp) =
 		    error "gen:PURE:EXTEND_INF"
 		| gen (C.PURE(P.TRUNC{from, to}, [v], x, _, e), hp) =

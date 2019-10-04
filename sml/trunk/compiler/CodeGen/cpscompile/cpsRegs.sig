@@ -20,8 +20,8 @@ signature CPSREGS =
    * frame pointer. Use virtual fp if true and physical fp if false.
    *
    * In principle a lot more of these should be functions over the boolean,
-   * however, the x86 is the only one that implements registers in memory,
-   * so we will limit this to the set that it needs.
+   * however, the x86 and amd64 are the only targets that implement CPS
+   * registers in memory, so we will limit this to the set that it needs.
    *)
     val frameptr	: bool -> T.rexp	(* frame pointer *)
     val limitptr	: bool -> T.rexp	(* heap-limit pointer *)

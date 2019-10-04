@@ -1,6 +1,6 @@
 (* amd64spec.sml
  *
- * COPYRIGHT (c) 2016 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -16,13 +16,19 @@ structure AMD64Spec : MACH_SPEC =
 
     val architecture = "amd64"
     val bigEndian = false
+
+  (* spill-area info; this should match the layout in runtime/mach-dep/AMD.prim.asm,
+   * which is also documented in dev-info/amd64-stack-frame.numbers.
+   *)
     val spillAreaSz = 8192
-    val initialSpillOffset = 512
-    val numRegs = length AMD64CpsRegs.availR (* can be |AMD64CpsRegs.availR|= + |vregs|=0 *)
+    val initialSpillOffset = 80	(* offset from %rsp (or vfp) *)
+    val startgcOffset = 64
+
+    val numRegs = 10	(* length AMD64CpsRegs.miscregs + 3 *)
+    val numArgRegs = 4 (* non-callee-save misc regs *)
     val numFloatRegs = 16
     val numFloatCalleeSaves = 0
-    val startgcOffset = 64
-    val pseudoRegOffset = 136
+
     val constBaseRegOffset = 0
   (* probably should be true *)
     val fixedArgPassing = false

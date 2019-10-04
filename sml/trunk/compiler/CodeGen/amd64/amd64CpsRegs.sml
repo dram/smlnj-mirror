@@ -1,14 +1,11 @@
 (* amd64CpsRegs.sml
  *
- * COPYRIGHT (c) 2016 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * CPS registers used on the AMD64
+ * CPS registers used on the AMD64.  See dev-notes/register-assignments.numbers
+ * and dev-notes/amd64-stack-frame.numbers for more information.
  *)
-
-signature AMD64CPSREGS = sig
-    include CPSREGS
-  end
 
 structure AMD64CpsRegs : CPSREGS =
   struct
@@ -27,6 +24,10 @@ structure AMD64CpsRegs : CPSREGS =
     val r12 = T.REG(64, C.r12)  val r13 = T.REG(64, C.r13)
     val r14 = T.REG(64, C.r14)  val r15 = T.REG(64, C.r15)
 
+  (* the virtual frame pointer; note that this will be equal to the top of the
+   * stack (not %rbp), so the offsets are computed w.r.t. to %rsp!!
+   * Also see amd64-omit-frameptr.sml
+   *)
     val vfp = C.newDedicatedCell CellsBasis.GP ()
     val vfptr = T.REG(64, vfp)
 
@@ -38,23 +39,23 @@ structure AMD64CpsRegs : CPSREGS =
 	    T.LOAD(64, T.ADD(64, fp, T.LI(T.I.fromInt(32, i))), CPSRegions.memory)
           end
 
-    val allocptr	= rdi
     val stackptr	= rsp
+    val allocptr	= rdi
+    fun limitptr _ 	= r14
+    fun storeptr _ 	= r15
+    fun exnptr useVFP	= regInMem(useVFP, 40)
     fun stdarg _	= rbp
     fun stdcont _	= rsi
     fun stdlink  _	= r08
     fun stdclos  _	= r09
-    fun limitptr _ 	= r10
-    fun storeptr vfp 	= r11
-    fun baseptr  vfp	= regInMem(vfp, 8)
-    fun exnptr   vfp	= regInMem(vfp, 16)
-    fun gcLink   vfp	= regInMem(vfp, 32)
-    fun varptr   vfp 	= regInMem(vfp, 56)
+    fun baseptr useVFP	= regInMem(useVFP, 32)
+    fun gcLink useVFP	= regInMem(useVFP, 48)
+    fun varptr useVFP 	= regInMem(useVFP, 56)
 
     fun mkRegList (base, cnt) = List.tabulate(cnt, fn i => T.REG(64, GP(base+i)))
 
-  (* miscregs = {rbx,rcx,rdx,r10,r11,...r15} *)
-    val miscregs = rbx::rcx::rdx::mkRegList(10, 6)
+  (* miscregs = {rbx,rcx,rdx,r10,r11,r12,r13} *)
+    val miscregs = [rbx, rcx, rdx, r10, r11, r12, r13]
 
     val calleesave  = Array.fromList miscregs
     val exhausted   = NONE
@@ -67,14 +68,19 @@ structure AMD64CpsRegs : CPSREGS =
 	| unREG _ = raise Fail "amd64CpsRegs:unREG"
     in
 
-    val availR = List.tabulate(6, fn i => GP(10+i)) @ (map unREG [rbp, rsi, rbx, rcx, rdx, rax])
-    val dedicatedR = GP 8 :: GP 9 :: (map unREG [rdi, rsp, vfptr])
+    val availR = map unREG ([
+	    rax, stdlink false, stdclos false, stdarg false, stdcont false
+	  ] @ miscregs)
+
+    val dedicatedR = map unREG [stackptr, allocptr, limitptr false, storeptr false, vfptr]
+
     val availF = List.tabulate(16, FP)
     val dedicatedF = []
     val signedGCTest = false
 
     val ccallCallerSaveR = [C.rax, C.rdi]
     val ccallCallerSaveF = []
-    end (*local*)
+
+    end (* local *)
 
   end

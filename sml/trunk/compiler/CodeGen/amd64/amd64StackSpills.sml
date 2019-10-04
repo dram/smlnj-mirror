@@ -14,16 +14,16 @@ signature AMD64STACKSPILLS = sig
   val getFregLoc : int -> I.operand
 end
 
-structure AMD64StackSpills : AMD64STACKSPILLS = 
+structure AMD64StackSpills : AMD64STACKSPILLS =
 struct
-  exception RegSpills 
+  exception RegSpills
   structure I = AMD64Instr
 
   fun error msg = ErrorMsg.impossible ("AMD64StackSpills." ^ msg)
 
-  val initialSpillOffset = AMD64Runtime.spillStart
+  val initialSpillOffset = AMD64Spec.initialSpillOffset
   val spillOffset = ref initialSpillOffset
-  val spillAreaSz = AMD64Runtime.spillAreaSz
+  val spillAreaSz = AMD64Spec.spillAreaSz
   val availableOffsets = ref [] : I.operand list ref
   val availableFPOffsets = ref [] : I.operand list ref
 
@@ -36,14 +36,14 @@ struct
   fun newOffset n =
     if (n > spillAreaSz) then error "newOffset - spill area is too small"
     else spillOffset := n
-  
+
   val spillTbl : I.operand IntHashTable.hash_table =
       IntHashTable.mkTable(0, RegSpills)
   val lookupTbl = IntHashTable.lookup spillTbl
   val addTbl    = IntHashTable.insert spillTbl
 
-  fun init () = 
-    (spillOffset:=initialSpillOffset; 
+  fun init () =
+    (spillOffset:=initialSpillOffset;
      availableOffsets := [];
      availableFPOffsets := [];
      IntHashTable.clear spillTbl
@@ -51,23 +51,23 @@ struct
 
   val toInt32 = Int32.fromInt
 
-  fun getRegLoc reg = 
+  fun getRegLoc reg =
       lookupTbl reg
-        handle _ => 
-        let val operand = 
+        handle _ =>
+        let val operand =
              case !availableOffsets of
                [] => let val offset = !spillOffset
                          val i32 = toInt32 offset
                      in  newOffset(offset+AMD64Spec.wordByteWidth); I.Immed i32 end
-             | off::offs => (availableOffsets := offs; off) 
+             | off::offs => (availableOffsets := offs; off)
         in addTbl (reg,operand);
            operand
         end
 
-  fun getFregLoc freg = 
+  fun getFregLoc freg =
       lookupTbl freg
-        handle _ => 
-        let val operand = 
+        handle _ =>
+        let val operand =
              case !availableFPOffsets of
                [] =>
                let val offset = !spillOffset

@@ -27,7 +27,6 @@ signature MACH_SPEC =
     val numRegs : int		(* the number of registers used by ML *)
     val numFloatRegs : int	(* the number of registers used by ML *)
     val numArgRegs : int	(* the number of registers used to pass args. *)
-    val maxRepRegs : int	(* rename or eliminate this *)
     val numFloatArgRegs : int	(* the number of FP registers used for args. *)
     val numCalleeSaves : int
     val numFloatCalleeSaves : int
@@ -87,12 +86,14 @@ signature MACH_SPEC =
     val LimitPtrMaskOffVSP : int	(* within VProc struct *)
 
     (* On machines with a real frame pointer, there is no point in
-     * attempting to omit a (virtual) frame pointer.  Example: Sparc *)
+     * attempting to omit a (virtual) frame pointer.  Example: Sparc
+     *)
     val framePtrNeverVirtual : bool	(* suppress omit-frame-ptr phase *)
 
     (* On machines where C arguments are allocated in the caller's frame
      * we pre-allocate a large chunk of stack space for this purpose.
-     * Example: PPC *)
+     * Example: PPC
+     *)
     val ccall_prealloc_argspace : int option
 
   (* number of bits and bytes per ML word *)

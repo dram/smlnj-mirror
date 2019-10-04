@@ -31,9 +31,8 @@ functor DefaultMachSpecFn (Sizes : sig
     val unboxedFloats = true
     val newClosure = true
     val numArgRegs = 10
-    val maxRepRegs = 10
     val numFloatArgRegs = 0
-    val numCalleeSaves = 3
+    val numCalleeSaves = 3	(* miscreg0, miscreg1, miscreg2 *)
     val numFloatCalleeSaves = 0
 
     type value_tag = {

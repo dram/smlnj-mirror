@@ -224,14 +224,17 @@ functor CPSCCalls (
        val sortBySize = ListMergeSort.sort(fn ((_,_,x),(_,_,y)) => x>y)
 
        (* Determine offset *)
-       fun assignOffset([], ls, hp) = (rev ls, hp)
-         | assignOffset((v as  (_,_,sz))::vl, ls, hp) =
-           case sz of
-             32 => assignOffset(vl, (v,hp)::ls, hp+4)
-           | 64 => let val hp = if hp mod 8 = 4 then hp+4 else hp
-                   in  assignOffset(vl, (v,hp)::ls, hp+8)
-                   end
-           | _  => error "assignOffset"
+       fun assignOffset ([], ls, hp) = (rev ls, hp)
+         | assignOffset ((v as (_,_,sz))::vl, ls, hp) = (case sz
+	     of 32 => assignOffset(vl, (v,hp)::ls, hp+4)
+	      | 64 => let
+(* 64BIT: alignment adjustment is only required on 32-bit targets *)
+		  val hp = if hp mod 8 = 4 then hp+4 else hp
+		  in
+		    assignOffset(vl, (v,hp)::ls, hp+8)
+		  end
+              | _  => error "assignOffset"
+	    (* end case *))
 
        val tagged   = sortBySize tagged
        val untagged = sortBySize untagged

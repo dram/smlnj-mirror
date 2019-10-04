@@ -1,17 +1,22 @@
 (* amd64CG.sml
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * AMD64 specific backend.
  *)
 
-functor AMD64CG (structure CCallParams: sig val frameAlign : int
-					    val returnSmallStructsInRegs : bool
-					end
-               val abi_variant: string option) =
-  MachineGen
-  ( structure I          = AMD64Instr
+functor AMD64CG (
+
+    structure CCallParams : sig
+	val frameAlign : int
+	val returnSmallStructsInRegs : bool
+      end
+
+    val abi_variant: string option
+
+  ) = MachineGen (
+    structure I          = AMD64Instr
     structure C          = I.C
     structure F          = AMD64CFG
     structure R          = AMD64CpsRegs
@@ -29,10 +34,9 @@ functor AMD64CG (structure CCallParams: sig val frameAlign : int
 
     structure CCalls     = AMD64SVID_CCalls (structure T = AMD64MLTree)
 
-    structure OmitFramePtr =
-      AMD64OmitFramePointer(
-	structure I=AMD64Instr
-	structure CFG=AMD64CFG)
+    structure OmitFramePtr = AMD64OmitFramePointer(
+	structure I = AMD64Instr
+	structure CFG = AMD64CFG)
 
     val spill = CPSRegions.spill
     val stack = CPSRegions.stack
