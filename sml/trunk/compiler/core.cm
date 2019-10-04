@@ -273,6 +273,7 @@ CPS/opt/infcnv.sml
 CPS/opt/num64cnv.sml
 CPS/main/cps-comp.sml
 CPS/main/literals.sml
+CPS/main/new-literals.sml
 
 (* The code generator (MLRISC specialized for SML/NJ). *)
 CodeGen/cpscompile/argPassing.sig
