@@ -18,7 +18,7 @@ structure RealConst : sig
 
     val fmt : ('ty -> string) -> 'ty t -> string
 
-  (* do two constants have equal values? *)
+  (* do two constants have equal values? Note that this test ignores the types! *)
     val same : 'ty t * 'ty t -> bool
 
   end = struct
