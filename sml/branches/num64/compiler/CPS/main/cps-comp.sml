@@ -57,7 +57,7 @@ functor CPSCompFn (
 		val function = cpsopt (function, NONE, false)
 		val _ = prC "cpsopt" function
 	      (* split out heap-allocated literals; litProg is the bytecode *)
-		val (function, litProg) = if !Control.CG.newLiterals
+		val (function, litProg) = if !Control.CG.newLiterals orelse Target.is64
 		      then newlitsplit function
 		      else litsplit function
 		val _ = prC "cpsopt-code" function
