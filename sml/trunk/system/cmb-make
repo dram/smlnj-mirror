@@ -5,7 +5,7 @@
 #
 # script to compile using the batch compiler
 # usage:
-#	cmb-make [ <sml-cmd> ]
+#	cmb-make [ <sml-cmd> ] <flags> ...
 #
 # Do a batch compiler of the compiler; the optional <sml-cmd> argument specifes
 # the path to the SML compiler to use for the build.
@@ -15,10 +15,15 @@ set -x
 
 SML=sml
 
-if test $# -eq 1 ; then
-  SML=$1
+if test $# -ge 1 ; then
+  case $1 in
+    -C*) ;; # ignore compiler flags
+    *) SML=$1
+       shift
+    ;;
+  esac
 fi
 
-exec $SML -DNO_PLUGINS '$smlnj/cmb.cm' <<XXXX
+exec $SML $@ -DNO_PLUGINS '$smlnj/cmb.cm' <<XXXX
 CMB.make();
 XXXX
