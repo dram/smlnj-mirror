@@ -1,9 +1,9 @@
 (* posix-tty.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for POSIX 1003.1 operations on terminal devices
- *
  *)
 
 signature POSIX_TTY =
@@ -37,7 +37,7 @@ signature POSIX_TTY =
     structure I :
       sig
         include BIT_FLAGS
-        
+
         val brkint : flags
         val icrnl  : flags
         val ignbrk : flags
@@ -54,14 +54,14 @@ signature POSIX_TTY =
     structure O :
       sig
         include BIT_FLAGS
-        
+
         val opost : flags
       end
 
     structure C :
       sig
         include BIT_FLAGS
-        
+
         val clocal : flags
         val cread  : flags
         val csize  : flags
@@ -78,7 +78,7 @@ signature POSIX_TTY =
     structure L :
       sig
         include BIT_FLAGS
-        
+
         val echo   : flags
         val echoe  : flags
         val echok  : flags
@@ -112,9 +112,9 @@ signature POSIX_TTY =
     val b9600  : speed
     val b19200 : speed
     val b38400 : speed
-    
+
     type termios
-    
+
     val termios : { iflag : I.flags,
                     oflag : O.flags,
                     cflag : C.flags,
@@ -143,7 +143,7 @@ signature POSIX_TTY =
 	val getispeed : termios -> speed
 	val setispeed : (termios * speed) -> termios
       end
-    
+
     structure TC : sig
         eqtype set_action
 

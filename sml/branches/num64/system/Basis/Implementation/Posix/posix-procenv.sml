@@ -1,15 +1,15 @@
 (* posix-procenv.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for POSIX 1003.1 process environment submodule
- *
  *)
 
 local
-    structure Time = TimeImp
-    structure Real = RealImp
-    structure SysWord = SysWordImp
+  structure Time = TimeImp
+  structure Real = RealImp
+  structure SysWord = SysWordImp
 in
 structure POSIX_ProcEnv =
   struct
@@ -97,9 +97,9 @@ structure POSIX_ProcEnv =
         val (e,u,s,cu,cs) = times' ()
     in
         { elapsed = ticksToTime e,
-          utime = ticksToTime u, 
-          stime = ticksToTime s, 
-          cutime = ticksToTime cu, 
+          utime = ticksToTime u,
+          stime = ticksToTime s,
+          cutime = ticksToTime cu,
           cstime = ticksToTime cs }
     end
 
@@ -115,5 +115,5 @@ structure POSIX_ProcEnv =
     fun isatty fd = isatty' (FS.intOf fd)
 
   end (* structure POSIX_Proc_Env *)
-end
 
+end (* local *)

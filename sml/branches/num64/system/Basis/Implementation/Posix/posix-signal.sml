@@ -1,13 +1,13 @@
 (* posix-signal.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Structure for POSIX 1003.1 signals.
- *
  *)
 
 local
-    structure SysWord = SysWordImp
+  structure SysWord = SysWordImp
 in
 structure POSIX_Signal =
   struct
@@ -17,7 +17,7 @@ structure POSIX_Signal =
     fun toWord (SIG i) = SysWord.fromInt i
     fun fromWord w = SIG (SysWord.toInt w)
 
-    val osval : string -> SysInt.int = 
+    val osval : string -> SysInt.int =
           CInterface.c_function "POSIX-Signal" "osval"
 
     val abrt = SIG(osval "abrt")
@@ -42,5 +42,5 @@ structure POSIX_Signal =
     val bus  = SIG(osval "bus")
 
   end (* structure POSIX_Signal *)
-end
 
+end (* local *)

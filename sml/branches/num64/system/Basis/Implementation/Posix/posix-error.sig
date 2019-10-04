@@ -1,9 +1,9 @@
 (* posix-error.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Signature for POSIX error codes.
- *
  *)
 
 signature POSIX_ERROR =
@@ -62,4 +62,3 @@ signature POSIX_ERROR =
     val xdev        : syserror
 
   end (* signature POSIX_ERROR *)
-
