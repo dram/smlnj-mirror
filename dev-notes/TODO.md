@@ -4,18 +4,23 @@ This is a list of things (both major and minor) that should be fixed/improved/ch
 in the SML/NJ compiler.  It is organized into short-term goals by proposed release
 target plus an additional "wish-list" of long-term goals.
 
-## For Version 110.91
-
-  * Switch over to the C99 standard `<fenv.h>` API, instead of the home-grown
-    code in `smlnj-math/fp-dep.h` etc. **[DONE]**
-
-## For Version 110.92+
+## For Version 110.94
 
   * Switch to new encoding of literals (see new-literals.md)
+
+## For Version 110.95+
 
   * Must have 64-bit port done by Fall 2019 (but earlier would be better).
 
 ## Future work
+
+  * Better type error messages:
+    - Do not use the **same** name to refer to types that are **different**
+    - Do not use **different** names to refer to types that are the **same**
+    - Highlight points of difference when comparing types
+    - For record types, distinguish between field name mismatches, missing/extra
+      fields, and field type mismatches.
+    - Sort error messages by file position.
 
   * Cleanup `compiler/CPS/clos/closure.sml`; there is a lot of code that was
     written to support quasi-stacks, which is no longer needed.
@@ -41,7 +46,7 @@ target plus an additional "wish-list" of long-term goals.
     it. FLINT primative types for numbers do not distinguish between
     signed and unsigned numbers (i.e. ints and words). Should they?
 
-  * The `unboxedFloats` flag in the `MACH_SPEC` signature is true for all targets; can
+  * The `unboxedFloats` flag in the `MACH_SPEC` signature is `true` for all targets; can
     we get rid of it?
 
   * New post-typechecking Absyn representation that makes the polymorphic type machinery
@@ -50,6 +55,11 @@ target plus an additional "wish-list" of long-term goals.
   * Rewrite of pattern-match compilation to be an source to source translation of the
     `Absyn` IR.  Include direct translation of "or" patterns and support for Successor
     ML views.
+
+  * Functor specialization in the compiler.  This feature would allow more code
+    sharing in the libraries (since functors could be used to generate multiple
+    implementations).  It will require both the new Absyn representation and ASDL
+    pickling.
 
   * Add support for `Real32.real`, including arrays and vectors.
 
@@ -78,4 +88,4 @@ target plus an additional "wish-list" of long-term goals.
 
   * New-new-runtime: new GC and core services with old version of C functions.
 
-  * FLINT replacement
+  * FLINT replacement (switch to 3CPS?)
