@@ -93,6 +93,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/10/04]::
++
+Fix for bugref:[225] (`Math.ln` giving erroneous answers on Windows).
+The problem was an inconsistency in the way the Unix and Microsoft
+assemblers interpreted the addressing mode for the `FLD` instruction.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.93; 2019/09/05
 
