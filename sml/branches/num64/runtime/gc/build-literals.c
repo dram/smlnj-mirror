@@ -410,12 +410,20 @@ STATIC_INLINE Unsigned32_t GetU32Arg (Byte_t *code)
     GetBytes(arg.b, code, sizeof(Unsigned32_t));
     return arg.u;
 }
+#ifdef SIZE_64
 STATIC_INLINE Int64_t GetI64Arg (Byte_t *code)
 {
     union { Byte_t b[sizeof(Int64_t)]; Int64_t i; } arg;
     GetBytes(arg.b, code, sizeof(Int64_t));
     return arg.i;
 }
+STATIC_INLINE Unsigned64_t GetU64Arg (Byte_t *code)
+{
+    union { Byte_t b[sizeof(Unsigned64_t)]; Unsigned64_t u; } arg;
+    GetBytes(arg.b, code, sizeof(Unsigned64_t));
+    return arg.u;
+}
+#endif /* SIZE_64 */
 STATIC_INLINE double GetR32Arg (Byte_t *code)
 {
     union { Byte_t b[sizeof(float)]; float r; } arg;
@@ -428,10 +436,10 @@ STATIC_INLINE double GetR64Arg (Byte_t *code)
     GetBytes(arg.b, code, sizeof(double));
     return arg.r;
 }
-#ifndef SIZE_64
-#define GetRawArg(pc)	GetI64Arg
+#ifdef SIZE_64
+#define GetRawArg	GetU64Arg
 #else /* SIZE_32 */
-#define GetRawArg(pc)	GetI32Arg
+#define GetRawArg	GetU32Arg
 #endif
 
 
@@ -764,7 +772,19 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case RAW: /* Word_t sized raw values */
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: RAW(%" PRWORD ") [...]\n", startPC, arg.uArg);
+	    {
+		int i, n;
+	        SayDebug("[%04d]: RAW(%" PRWORD ") [%02x", startPC, arg.uArg, code[pc]);
+	        n = (WORD_SZB*arg.uArg > 8) ? 8 : WORD_SZB*arg.uArg;
+		for (i = 1;  i < n;  i++) {
+		    SayDebug(" %02x", code[pc+i]);
+		}
+		if (n < WORD_SZB*arg.uArg) {
+		    SayDebug(" ...]\n");
+		} else {
+		    SayDebug("]\n");
+		}
+	    }
 #endif
 	    ASSERT(arg.uArg > 0);
 	    spaceReq = WORD_SZB*arg.uArg + WORD_SZB;
@@ -800,7 +820,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    ML_AllocWrite (msp, 0, MAKE_DESC(ui, DTAG_raw64));
 	    res = ML_Alloc (msp, ui);
 	    for (ui = 0;  ui < arg.uArg;  ui++) {
-		PTR_MLtoC(Int64_t, res)[ui] = GetI64Arg(&(code[pc]));
+		PTR_MLtoC(double, res)[ui] = GetR64Arg(&(code[pc]));
 		pc += 8;
 	    }
 	    LIST_cons(msp, stk, res, stk);
