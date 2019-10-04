@@ -11,6 +11,8 @@ signature PPCPS =
 
     val vpathToString : CPS.value * CPS.accesspath -> string
 
+    val rkToString : CPS.record_kind -> string
+
     val printcps : (CPS.function * LtyDef.lty IntHashTable.hash_table) -> unit
     val printcps0: CPS.function -> unit
     val prcps : CPS.cexp -> unit
@@ -145,9 +147,9 @@ structure PPCps : PPCPS =
       | pureToString P.RECSUBSCRIPT = "recsubscript"
       | pureToString P.RAW64SUBSCRIPT = "raw64subscript"
       | pureToString P.NEWARRAY0 = "newarray0"
-      | pureToString (P.RAWRECORD rk) = "rawrecord_"^getOpt(Option.map rkstring rk, "notag")
+      | pureToString (P.RAWRECORD rk) = "rawrecord_"^getOpt(Option.map rkToString rk, "notag")
 
-    and rkstring rk = (case rk
+    and rkToString rk = (case rk
 	   of RK_VECTOR => "RK_VECTOR"
 	    | RK_RECORD => "RK_RECORD"
 	    | RK_ESCAPE => "RK_ESCAPE"
@@ -178,7 +180,7 @@ structure PPCps : PPCPS =
 
 	  fun sayrk (RK_RECORD, n) = ()
 	    | sayrk (RK_VECTOR, n) = ()
-	    | sayrk (k, n) = (say (rkstring k); say " "; say (Int.toString n); say ",")
+	    | sayrk (k, n) = (say (rkToString k); say " "; say (Int.toString n); say ",")
 
 	  fun sayparam ([v],[ct]) = (sayv v; sayt ct)
 	    | sayparam (nil,nil) = ()
