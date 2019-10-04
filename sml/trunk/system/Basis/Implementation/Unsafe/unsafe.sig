@@ -58,6 +58,8 @@ signature UNSAFE =
 
   (* convert real to bits (experimental) *)
     val realToBits : real -> Word64.word
+  (* assembly-code function for scaling reals *)
+    val scalb : real * int -> real
 
     val getHdlr : unit -> 'a Cont.cont
     val setHdlr : 'a Cont.cont -> unit

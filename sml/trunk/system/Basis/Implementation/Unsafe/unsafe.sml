@@ -97,6 +97,8 @@ structure Unsafe :> UNSAFE =
 
   (* convert real to bits (experimental) *)
     val realToBits = InlineT.Real64.toBits
+  (* assembly-code function for scaling reals *)
+    val scalb = Core.Assembly.A.scalb
 
     val getVar = InlineT.getvar
     val setVar = InlineT.setvar
