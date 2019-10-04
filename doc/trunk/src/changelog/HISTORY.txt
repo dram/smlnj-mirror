@@ -96,9 +96,36 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2019/10/04]::
 +
+Modified the **cmb-make** script to support passing compiler control
+flags to the build command.  The flags should be specified after the
+path to **sml** command (if it is given).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/04]::
++
+Finished the implementation of the new literal bytecode engine.
+There is a control flag (`Control.CG.newLiterals` that allows
+switching between the old and new bytecodes).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/04]::
++
 Fix for bugref:[225] (`Math.ln` giving erroneous answers on Windows).
 The problem was an inconsistency in the way the Unix and Microsoft
 assemblers interpreted the addressing mode for the `FLD` instruction.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/03]::
++
+Clean up in the Basis Posix library code (both SML and runtime) to
+be consistent about when the `SysWord.word` type is being used to
+communicate information between SML code and the runtime system.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
