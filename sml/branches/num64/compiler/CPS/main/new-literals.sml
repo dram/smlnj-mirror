@@ -717,7 +717,11 @@ structure NewLiterals : LITERALS =
 		      fun genFld (lit, d) = (genLit (d, lit); d+1)
 		      in
 			depth (Int.max(d+1, foldl genFld d lits));
-			encRECORD (buf, List.length lits)
+			case rk
+			 of C.RK_VECTOR => encVECTOR (buf, List.length lits)
+			  | C.RK_RECORD => encRECORD (buf, List.length lits)
+			  | _ => bug "unexpected record kind"
+			(* end case *)
 		      end
 		  | genLV (d, LV_RAW v) = (depth(d+1); encRAW(buf, v))
 		  | genLV (d, LV_RAW64 v) = (depth(d+1); encRAW64(buf, v))
