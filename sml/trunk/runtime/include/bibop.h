@@ -20,7 +20,7 @@ typedef Unsigned16_t page_id_t;
 
 /** The BIBOP **/
 
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
 
 /* for 64-bit ML values, we use a two-level BIBOP to resolve heap pointers to
  * BIBOP pages.  We assume that virtual addresses are < 2^48 (true for current
@@ -102,7 +102,7 @@ extern bibop_t		BIBOP;
 /* update a BIBOP entry at the given index */
 #define BIBOP_UPDATE(bibop, ix, aid)	do { (bibop)[ix] = (aid); } while (0)
 
-#endif /* !SIZES_C64_ML64 */
+#endif /* !SIZE_64 */
 
 /* allocate and initialize a Bibop */
 extern bibop_t InitBibop ();

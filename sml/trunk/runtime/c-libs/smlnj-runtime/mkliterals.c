@@ -1,6 +1,7 @@
-/* mkliterals.c
+/*! \file mkliterals.c
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-base.h"

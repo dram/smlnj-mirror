@@ -11,7 +11,7 @@
  */
 
 /*
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  */
 
@@ -19,9 +19,19 @@
 #include "ml-objects.h"
 #include "heap.h"
 #include <string.h>
+#include <inttypes.h>
+
+/* printf formats for Int_t/Word_t types */
+#ifdef SIZE_64
+#  define PRINT		PRId64
+#  define PRWORD	PRIu64
+#else
+#  define PRINT		PRId32
+#  define PRWORD	PRIu32
+#endif
 
 #define V1_MAGIC	0x19981022
-#define V2_MAGIC	0x20171031
+#define V2_MAGIC	0x20190921
 
 /* Codes for literal machine instructions (version 2) */
 enum {
@@ -42,14 +52,14 @@ enum {
     STR8,
     RECORD,
     VECTOR,
-    RAW8,
-    RAW16,
-    RAW32,
-    RAW64,
+    RAW,	/* word-sized raw data */
+    RAW32,	/* 32-bit aligned raw data; will be padded to 64-bits on 64-bit targets */
+    RAW64,	/* 64-bit aligned raw data */
     CONCAT,
     SAVE,
     LOAD,
-    RETURN
+    RETURN,
+    INVALID	/* invalid opcode */
 };
 
 /* argument types; if present, the argument may either be a literal value or
@@ -58,33 +68,17 @@ enum {
  * and the size of that the instruction requires.
  */
 enum {
-    NO_ARG,			/* no argument */
-    IMMED_ARG,			/* get argument from immedArg field (32 bits) */
-    I8_ARG32, I8_ARG64,		/* one-byte signed argument */
-    U8_ARG32, U8_ARG64,		/* one-byte unsigned argument */
-    I16_ARG32, I16_ARG64,	/* two-byte signed argument */
-    U16_ARG32, U16_ARG64,	/* two-byte unsigned argument */
-    I32_ARG32, I32_ARG64,	/* four-byte signed argument */
-    U32_ARG32, U32_ARG64,	/* four-byte unsigned argument */
-    I64_ARG64,			/* eight-byte signed argument (64 bits) */
+    NO_ARG,		/* no argument */
+    IMMED_ARG,		/* get argument from immedArg field (32 bits) */
+    I8_ARG,		/* one-byte signed argument */
+    U8_ARG,		/* one-byte unsigned argument */
+    I16_ARG,		/* two-byte signed argument */
+    U16_ARG,		/* two-byte unsigned argument */
+    I32_ARG,		/* four-byte signed argument */
+    U32_ARG,		/* four-byte unsigned argument */
+    I64_ARG,		/* eight-byte signed argument (64 bits) */
+    INT_ARG		/* target-sized integer argument */
 };
-
-/* define argument tags for the default integer size */
-#ifdef SIZES_C64_ML64
-#  define I8_ARG	I8_ARG64
-#  define U8_ARG	U8_ARG64
-#  define I16_ARG	I16_ARG64
-#  define U16_ARG	U16_ARG64
-#  define I32_ARG	I32_ARG64
-#  define U32_ARG	U32_ARG64
-#else
-#  define I8_ARG	I8_ARG32
-#  define U8_ARG	U8_ARG32
-#  define I16_ARG	I16_ARG32
-#  define U16_ARG	U16_ARG32
-#  define I32_ARG	I32_ARG32
-#  define U32_ARG	U32_ARG32
-#endif
 
 static struct instr_info {
 	unsigned char oper;		/* the type of operation */
@@ -111,33 +105,47 @@ static struct instr_info {
 	/* 0x10 */ { INT, I8_ARG, 0, 0 },
 	/* 0x11 */ { INT, I16_ARG, 0, 0 },
 	/* 0x12 */ { INT, I32_ARG, 0, 0 },
-	/* 0x13 */ { INT, I64_ARG64, 0, 0 },
-	/* 0x14 */ { INT32, I8_ARG32, 0, 0 },
-	/* 0x15 */ { INT32, I16_ARG32, 0, 0 },
-	/* 0x16 */ { INT32, I32_ARG32, 0, 0 },
-	/* 0x17 */ { INT64, I8_ARG64, 0, 0 },
-	/* 0x18 */ { INT64, I16_ARG64, 0, 0 },
-	/* 0x19 */ { INT64, I32_ARG64, 0, 0 },
-	/* 0x1A */ { INT64, I64_ARG64, 0, 0 },
-	/* 0x1B */ { BIGINT, U32_ARG32, 0, 0 },
-	/* 0x1C */ { IVEC, U8_ARG32, 0, 0 },
-	/* 0x1D */ { IVEC, U32_ARG32, 0, 0 },
-	/* 0x1E */ { IVEC8, U8_ARG32, 0, 0 },
-	/* 0x1F */ { IVEC8, U32_ARG32, 0, 0 },
-	/* 0x20 */ { IVEC16, U8_ARG32, 0, 0 },
-	/* 0x21 */ { IVEC16, U32_ARG32, 0, 0 },
-	/* 0x22 */ { IVEC32, U8_ARG32, 0, 0 },
-	/* 0x23 */ { IVEC32, U32_ARG32, 0, 0 },
-	/* 0x24 */ { IVEC64, U8_ARG32, 0, 0 },
-	/* 0x25 */ { IVEC64, U32_ARG32, 0, 0 },
+#ifdef SIZE_64
+	/* 0x13 */ { INT, I64_ARG, 0, 0 },
+#else /* SIZE_32 */
+	/* 0x13 */ { INVALID, NO_ARG, 0, 0 },
+#endif
+#ifdef SIZE_64
+	/* 0x14 */ { INVALID, NO_ARG, 0, 0 },
+	/* 0x15 */ { INVALID, NO_ARG, 0, 0 },
+	/* 0x16 */ { INVALID, NO_ARG, 0, 0 },
+	/* 0x17 */ { INT64, I8_ARG, 0, 0 },
+	/* 0x18 */ { INT64, I16_ARG, 0, 0 },
+	/* 0x19 */ { INT64, I32_ARG, 0, 0 },
+	/* 0x1A */ { INT64, I64_ARG, 0, 0 },
+#else /* SIZE_32 */
+	/* 0x14 */ { INT32, I8_ARG, 0, 0 },
+	/* 0x15 */ { INT32, I16_ARG, 0, 0 },
+	/* 0x16 */ { INT32, I32_ARG, 0, 0 },
+	/* 0x17 */ { INVALID, NO_ARG, 0, 0 },
+	/* 0x18 */ { INVALID, NO_ARG, 0, 0 },
+	/* 0x19 */ { INVALID, NO_ARG, 0, 0 },
+	/* 0x1A */ { INVALID, NO_ARG, 0, 0 },
+#endif
+	/* 0x1B */ { BIGINT, U32_ARG, 0, 0 },
+	/* 0x1C */ { IVEC, U8_ARG, 0, 0 },
+	/* 0x1D */ { IVEC, U32_ARG, 0, 0 },
+	/* 0x1E */ { IVEC8, U8_ARG, 0, 0 },
+	/* 0x1F */ { IVEC8, U32_ARG, 0, 0 },
+	/* 0x20 */ { IVEC16, U8_ARG, 0, 0 },
+	/* 0x21 */ { IVEC16, U32_ARG, 0, 0 },
+	/* 0x22 */ { IVEC32, U8_ARG, 0, 0 },
+	/* 0x23 */ { IVEC32, U32_ARG, 0, 0 },
+	/* 0x24 */ { IVEC64, U8_ARG, 0, 0 },
+	/* 0x25 */ { IVEC64, U32_ARG, 0, 0 },
 	/* 0x26 */ { REAL32, NO_ARG, 0, 0 },
 	/* 0x27 */ { REAL64, NO_ARG, 0, 0 },
-	/* 0x28 */ { RVEC32, U8_ARG32, 0, 0 },
-	/* 0x29 */ { RVEC32, U32_ARG32, 0, 0 },
-	/* 0x2A */ { RVEC64, U8_ARG32, 0, 0 },
-	/* 0x2B */ { RVEC64, U32_ARG32, 0, 0 },
-	/* 0x2C */ { STR8, U8_ARG32, 0, 0 },
-	/* 0x2D */ { STR8, U32_ARG32, 0, 0 },
+	/* 0x28 */ { RVEC32, U8_ARG, 0, 0 },
+	/* 0x29 */ { RVEC32, U32_ARG, 0, 0 },
+	/* 0x2A */ { RVEC64, U8_ARG, 0, 0 },
+	/* 0x2B */ { RVEC64, U32_ARG, 0, 0 },
+	/* 0x2C */ { STR8, U8_ARG, 0, 0 },
+	/* 0x2D */ { STR8, INT_ARG, 0, 0 },
 	/* 0x2E */ { UNUSED, 0, 0, 0 },
 	/* 0x2F */ { UNUSED, 0, 0, 0 },
 	/* 0x30 */ { RECORD, IMMED_ARG, 1, 0 },
@@ -147,23 +155,23 @@ static struct instr_info {
 	/* 0x34 */ { RECORD, IMMED_ARG, 5, 0 },
 	/* 0x35 */ { RECORD, IMMED_ARG, 6, 0 },
 	/* 0x36 */ { RECORD, IMMED_ARG, 7, 0 },
-	/* 0x37 */ { RECORD, U8_ARG32, 0, 0 },
-	/* 0x38 */ { RECORD, U16_ARG32, 0, 0 },
-	/* 0x39 */ { VECTOR, U8_ARG32, 0, 0 },
-	/* 0x3A */ { VECTOR, U16_ARG32, 0, 0 },
-	/* 0x3B */ { RAW8, U8_ARG32, 0, 0 },
-	/* 0x3C */ { RAW8, U32_ARG32, 0, 0 },
-	/* 0x3D */ { RAW16, U8_ARG32, 0, 0 },
-	/* 0x3E */ { RAW16, U32_ARG32, 0, 0 },
-	/* 0x3F */ { RAW32, U8_ARG32, 0, 0 },
-	/* 0x40 */ { RAW32, U32_ARG32, 0, 0 },
-	/* 0x41 */ { RAW64, U8_ARG32, 0, 0 },
-	/* 0x42 */ { RAW64, U32_ARG32, 0, 0 },
-	/* 0x43 */ { CONCAT, U16_ARG32, 0, 0 },
-	/* 0x44 */ { SAVE, U8_ARG32, 0, 0 },
-	/* 0x45 */ { SAVE, U16_ARG32, 0, 0 },
-	/* 0x46 */ { LOAD, U8_ARG32, 0, 0 },
-	/* 0x47 */ { LOAD, U16_ARG32, 0, 0 },
+	/* 0x37 */ { RECORD, U8_ARG, 0, 0 },
+	/* 0x38 */ { RECORD, U32_ARG, 0, 0 },
+	/* 0x39 */ { VECTOR, U8_ARG, 0, 0 },
+	/* 0x3A */ { VECTOR, U32_ARG, 0, 0 },
+	/* 0x3B */ { RAW, IMMED_ARG, 1, 0 },
+	/* 0x3C */ { RAW, IMMED_ARG, 2, 0 },
+	/* 0x3D */ { RAW, U8_ARG, 0, 0 },
+	/* 0x3E */ { RAW, U32_ARG, 0, 0 },
+	/* 0x3F */ { RAW32, U8_ARG, 0, 0 },
+	/* 0x40 */ { RAW32, U32_ARG, 0, 0 },
+	/* 0x41 */ { RAW64, U8_ARG, 0, 0 },
+	/* 0x42 */ { RAW64, U32_ARG, 0, 0 },
+	/* 0x43 */ { CONCAT, U16_ARG, 0, 0 },
+	/* 0x44 */ { SAVE, U8_ARG, 0, 0 },
+	/* 0x45 */ { SAVE, U16_ARG, 0, 0 },
+	/* 0x46 */ { LOAD, U8_ARG, 0, 0 },
+	/* 0x47 */ { LOAD, U16_ARG, 0, 0 },
 	/* 0x48 */ { UNUSED, 0, 0, 0 },
 	/* 0x49 */ { UNUSED, 0, 0, 0 },
 	/* 0x4A */ { UNUSED, 0, 0, 0 },
@@ -373,7 +381,7 @@ STATIC_INLINE signed char GetI8Arg (Byte_t *code)
 }
 STATIC_INLINE unsigned char GetU8Arg (Byte_t *code)
 {
-    signed char i = code[0];
+    unsigned char i = code[0];
     return i;
 }
 STATIC_INLINE Int16_t GetI16Arg (Byte_t *code)
@@ -400,12 +408,20 @@ STATIC_INLINE Unsigned32_t GetU32Arg (Byte_t *code)
     GetBytes(arg.b, code, sizeof(Unsigned32_t));
     return arg.u;
 }
+#ifdef SIZE_64
 STATIC_INLINE Int64_t GetI64Arg (Byte_t *code)
 {
     union { Byte_t b[sizeof(Int64_t)]; Int64_t i; } arg;
     GetBytes(arg.b, code, sizeof(Int64_t));
     return arg.i;
 }
+STATIC_INLINE Unsigned64_t GetU64Arg (Byte_t *code)
+{
+    union { Byte_t b[sizeof(Unsigned64_t)]; Unsigned64_t u; } arg;
+    GetBytes(arg.b, code, sizeof(Unsigned64_t));
+    return arg.u;
+}
+#endif /* SIZE_64 */
 STATIC_INLINE double GetR32Arg (Byte_t *code)
 {
     union { Byte_t b[sizeof(float)]; float r; } arg;
@@ -418,6 +434,11 @@ STATIC_INLINE double GetR64Arg (Byte_t *code)
     GetBytes(arg.b, code, sizeof(double));
     return arg.r;
 }
+#ifdef SIZE_64
+#define GetRawArg	GetU64Arg
+#else /* SIZE_32 */
+#define GetRawArg	GetU32Arg
+#endif
 
 
 /* the size of a list cons cell in bytes */
@@ -445,20 +466,25 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
     double	d;
     Int32_t	availSpace, spaceReq;
     Unsigned32_t ui;
-    ml_val_t	*saved;
+  /* we represent the saved array using a mutable data array that is allocated in
+   * the heap.  This means that we need to create store-list entries when we update
+   * it.
+   */
+    ml_val_t	saved;
 
 /* A check that the available space is sufficient for the literal object that
  * we are about to allocate.  Note that the cons cell has already been accounted
  * for in availSpace (but not in spaceReq).
  */
-#define GC_CHECK									\
-    do {										\
-	if (spaceReq > availSpace) {							\
-	    InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, NIL(ml_val_t *));	\
-	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr) - CONS_SZB; \
-	}										\
-	else										\
-	    availSpace -= spaceReq;							\
+#define GC_CHECK										\
+    do {											\
+	if (spaceReq > availSpace) {								\
+	    SayDebug("BuildLiterals: invoke GC\n");						\
+	    InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, &saved, NIL(ml_val_t *));	\
+	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr) - CONS_SZB;	\
+	}											\
+	else											\
+	    availSpace -= spaceReq;								\
     } while (0)
 
 #ifdef DEBUG_LITERALS
@@ -466,12 +492,12 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #endif
     if (len <= 8) return ML_nil;
 
-    magic = GetU32Arg(code); pc += 4;
-    maxDepth = GetU32Arg(code); pc += 4;
+    magic = GetU32Arg(code+pc); pc += 4;
+    maxDepth = GetU32Arg(code+pc); pc += 4;
 
     if (magic == V1_MAGIC) {
 #ifdef DEBUG_LITERALS
-        SayDebug("BuildLiterals: VERSION 1\n", (void *)code, len);
+        SayDebug("BuildLiterals: VERSION 1\n");
 #endif
 	return BuildLiteralsV1 (msp, code, pc, len);
     }
@@ -479,18 +505,28 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	Die("bogus literal magic number %#x", magic);
     }
 #ifdef DEBUG_LITERALS
-        SayDebug("BuildLiterals: VERSION 1\n", (void *)code, len);
+        SayDebug("BuildLiterals: VERSION 2\n");
 #endif
 
   /* get the rest of the V2 header */
-    wordSz = GetU32Arg(code); pc += 4;
-    maxSaved = GetU32Arg(code); pc += 4;
+    wordSz = GetU32Arg(code+pc); pc += 4;
+    maxSaved = GetU32Arg(code+pc); pc += 4;
+
+#ifdef SIZE_64
+    if (wordSz != 64) {
+	Die("expected word size = 64, but found %d\n", wordSz);
+    }
+#else /* SIZE_32 */
+    if (wordSz != 32) {
+	Die("expected word size = 32, but found %d\n", wordSz);
+    }
+#endif
 
     if (maxSaved > 0) {
-	Die("FIXME");
+	saved = ML_AllocArrayData (msp, maxSaved, ML_nil);
     }
     else {
-	saved = NIL(ml_val_t *);
+	saved = ML_nil;
     }
 
     stk = ML_nil;
@@ -498,9 +534,13 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
     while (TRUE) {
 	ASSERT(pc < len);
 	ASSERT(availSpace <= (Int32_t)((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr));
-	if (availSpace < ONE_K) {
-	    if (NeedGC(msp, FREE_REQ_SZB))
-		InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, NIL(ml_val_t *));
+	if (availSpace < 512 * WORD_SZB) {
+	    if (NeedGC(msp, FREE_REQ_SZB)) {
+#ifdef DEBUG_LITERALS
+	        SayDebug("BuildLiterals: invoke GC\n");
+#endif
+		InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, &saved, NIL(ml_val_t *));
+	    }
 	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr);
 	}
 	availSpace -= CONS_SZB;	/* space for stack cons cell */
@@ -514,58 +554,44 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
     /* get the argument (if any) */
 	union {
-	    Unsigned32_t uArg;
-	    Int32_t iArg;
-	} arg32;
-	union {
-	    Unsigned64_t uArg;
-	    Int64_t iArg;
-	} arg64;
+	    Word_t uArg;
+	    Int_t iArg;
+	} arg;
         switch (InstrInfo[opcode].argKind) {
 	  case NO_ARG:
 	    break;
 	  case IMMED_ARG:
-	    arg32.iArg = (Int32_t)InstrInfo[opcode].immedArg;
+	    arg.iArg = (Int_t)InstrInfo[opcode].immedArg;
 	    break;
-	  case I8_ARG32:
-	    arg32.iArg = (Int32_t)GetI8Arg(&(code[pc]));  pc += 1;
+	  case I8_ARG:
+	    arg.iArg = (Int_t)GetI8Arg(&(code[pc]));  pc += 1;
 	    break;
-	  case I8_ARG64:
-	    arg64.iArg = (Int64_t)GetI8Arg(&(code[pc]));  pc += 1;
+	  case U8_ARG:
+	    arg.uArg = (Word_t)GetU8Arg(&(code[pc]));  pc += 1;
 	    break;
-	  case U8_ARG32:
-	    arg32.uArg = (Unsigned32_t)GetU8Arg(&(code[pc]));  pc += 1;
+	  case I16_ARG:
+	    arg.iArg = (Int_t)GetI16Arg(&(code[pc]));  pc += 2;
 	    break;
-	  case U8_ARG64:
-	    arg64.uArg = (Unsigned64_t)GetU8Arg(&(code[pc]));  pc += 1;
+	  case U16_ARG:
+	    arg.uArg = (Word_t)GetU16Arg(&(code[pc]));  pc += 2;
 	    break;
-	  case I16_ARG32:
-	    arg32.iArg = (Int32_t)GetI16Arg(&(code[pc]));  pc += 2;
+	  case I32_ARG:
+	    arg.iArg = (Int_t)GetI32Arg(&(code[pc]));  pc += 4;
 	    break;
-	  case I16_ARG64:
-	    arg64.iArg = (Int64_t)GetI16Arg(&(code[pc]));  pc += 2;
+	  case U32_ARG:
+	    arg.uArg = (Word_t)GetU32Arg(&(code[pc]));  pc += 4;
 	    break;
-	  case U16_ARG32:
-	    arg32.uArg = (Unsigned32_t)GetU16Arg(&(code[pc]));  pc += 2;
+#ifdef SIZE_64
+	  case I64_ARG:
+	    arg.iArg = (Int_t)GetI64Arg(&(code[pc]));  pc += 8;
 	    break;
-	  case U16_ARG64:
-	    arg64.uArg = (Unsigned64_t)GetU16Arg(&(code[pc]));  pc += 2;
-	    break;
-	  case I32_ARG32:
-	    arg32.iArg = (Int32_t)GetI32Arg(&(code[pc]));  pc += 4;
-	    break;
-	  case I32_ARG64:
-	    arg64.iArg = (Int64_t)GetI32Arg(&(code[pc]));  pc += 4;
-	    break;
-	  case U32_ARG32:
-	    arg32.uArg = (Unsigned32_t)GetU32Arg(&(code[pc]));  pc += 4;
-	    break;
-	  case U32_ARG64:
-	    arg64.uArg = (Unsigned64_t)GetU32Arg(&(code[pc]));  pc += 4;
-	    break;
-	  case I64_ARG64:
-	    arg64.iArg = (Int64_t)GetI64Arg(&(code[pc]));  pc += 8;
-	    break;
+#endif
+	  case INT_ARG:
+#ifdef SIZE_64
+	    arg.iArg = (Int_t)GetI64Arg(&(code[pc]));  pc += 4;
+#else /* SIZE_32 */
+	    arg.iArg = (Int_t)GetI32Arg(&(code[pc]));  pc += 4;
+#endif
 	}
 
     /* handle the operation */
@@ -575,21 +601,32 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case INT:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: INT(%d)\n", startPC, arg32.iArg);
+	    SayDebug("[%04d]: INT(%" PRINT ")\n", startPC, arg.iArg);
 #endif
-	    LIST_cons(msp, stk, INT_CtoML(arg32.iArg), stk);
+	    LIST_cons(msp, stk, INT_CtoML(arg.iArg), stk);
 	    break;
+
+#ifdef SIZE_32
 	  case INT32:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: INT32(%d)\n", startPC, arg32.iArg);
+	    SayDebug("[%04d]: INT32(%" PRINT ")\n", startPC, arg.iArg);
 #endif
-	    res = INT32_CtoML(msp, arg32.iArg);
+	    res = INT32_CtoML(msp, arg.iArg);
 	    LIST_cons(msp, stk, res, stk);
 	    availSpace -= 2*WORD_SZB;
 	    break;
+#endif
 
+#ifdef SIZE_64
 	  case INT64:
+#ifdef DEBUG_LITERALS
+	    SayDebug("[%04d]: INT64(" PRINT ")\n", startPC, arg.iArg);
+#endif
+	    res = ML_AllocWord64(msp, arg.iArg);
+	    LIST_cons(msp, stk, res, stk);
+	    availSpace -= 2*WORD_SZB;
 	    break;
+#endif
 
 	  case BIGINT:
 	    Die("BIGINT -- not supported yet");
@@ -621,9 +658,10 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case REAL64:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: REAL64(%f)\n", startPC, GetR64Arg(&(code[pc])));
+	    SayDebug("[%04d]: REAL64(%f)\n", startPC, GetR64Arg(&(code[pc])));
 #endif
 	    REAL64_ALLOC(msp, res, GetR64Arg(&(code[pc])));  pc += 8;
+	    availSpace -= 2*REALD_SZW;
 	    break;
 
 	  case RVEC32:
@@ -636,16 +674,16 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case STR8:
 #ifdef DEBUG_LITERALS
-	SayDebug("[%2d]: STR8(%d) [...]", startPC, arg32.uArg);
+	SayDebug("[%04d]: STR8(%" PRWORD ") [...]", startPC, arg.uArg);
 #endif
-	    if (arg32.uArg == 0) {
+	    if (arg.uArg == 0) {
 #ifdef DEBUG_LITERALS
 	SayDebug("\n");
 #endif
 		LIST_cons(msp, stk, ML_string0, stk);
 		break;
 	    }
-	    ui = BYTES_TO_WORDS(arg32.uArg+1);  /* include space for '\0' */
+	    ui = BYTES_TO_WORDS(arg.uArg+1);  /* include space for '\0' */
 	  /* the space request includes space for the data-object header word and
 	   * the sequence header object.
 	   */
@@ -659,9 +697,9 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #ifdef DEBUG_LITERALS
 	SayDebug(" @ %p (%d words)\n", (void *)res, ui);
 #endif
-	    memcpy (PTR_MLtoC(void, res), &(code[pc]), arg32.uArg); pc += arg32.uArg;
+	    memcpy (PTR_MLtoC(void, res), &(code[pc]), arg.uArg); pc += arg.uArg;
 	  /* allocate the header object */
-	    SEQHDR_ALLOC(msp, res, DESC_string, res, arg32.uArg);
+	    SEQHDR_ALLOC(msp, res, DESC_string, res, arg.uArg);
 	  /* push on stack */
 	    LIST_cons(msp, stk, res, stk);
 	    availSpace -= spaceReq;
@@ -669,9 +707,9 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case RECORD:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: RECORD(%d) [", startPC, arg32.uArg);
+	    SayDebug("[%04d]: RECORD(%" PRWORD ") [", startPC, arg.uArg);
 #endif
-	    if (arg32.uArg == 0) {
+	    if (arg.uArg == 0) {
 #ifdef DEBUG_LITERALS
 	    SayDebug("]\n");
 #endif
@@ -679,16 +717,16 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 		break;
 	    }
 	    else {
-		spaceReq = WORD_SZB*(arg32.uArg+1);
+		spaceReq = WORD_SZB*(arg.uArg+1);
 		GC_CHECK;
-		ML_AllocWrite(msp, 0, MAKE_DESC(arg32.uArg, DTAG_record));
+		ML_AllocWrite(msp, 0, MAKE_DESC(arg.uArg, DTAG_record));
 	    }
 	  /* top of stack is last element in record */
-	    for (ui = arg32.uArg;  ui > 0;  ui--) {
+	    for (ui = arg.uArg;  ui > 0;  ui--) {
 		ML_AllocWrite(msp, ui, LIST_hd(stk));
 		stk = LIST_tl(stk);
 	    }
-	    res = ML_Alloc(msp, arg32.uArg);
+	    res = ML_Alloc(msp, arg.uArg);
 #ifdef DEBUG_LITERALS
 	    SayDebug("...] @ %p\n", (void *)res);
 #endif
@@ -698,9 +736,9 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case VECTOR:
 #ifdef DEBUG_LITERALS
-	SayDebug("[%2d]: VECTOR(%d) [", startPC, arg32.uArg);
+	SayDebug("[%04d]: VECTOR(%" PRWORD ") [", startPC, arg.uArg);
 #endif
-	    if (arg32.uArg == 0) {
+	    if (arg.uArg == 0) {
 #ifdef DEBUG_LITERALS
 	SayDebug("]\n");
 #endif
@@ -710,19 +748,19 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	  /* the space request includes space for the data-object header word and
 	   * the sequence header object.
 	   */
-	    spaceReq = WORD_SZB*(arg32.uArg + (1 + 3));
+	    spaceReq = WORD_SZB*(arg.uArg + (1 + 3));
 /* FIXME: for large vectors, we should be allocating them in the 1st generation */
 	    GC_CHECK;
 	  /* allocate the data object */
-	    ML_AllocWrite(msp, 0, MAKE_DESC(arg32.uArg, DTAG_vec_data));
+	    ML_AllocWrite(msp, 0, MAKE_DESC(arg.uArg, DTAG_vec_data));
 	  /* top of stack is last element in vector */
-	    for (ui = arg32.uArg;  ui > 0;  ui--) {
+	    for (ui = arg.uArg;  ui > 0;  ui--) {
 		ML_AllocWrite(msp, ui, LIST_hd(stk));
 		stk = LIST_tl(stk);
 	    }
-	    res = ML_Alloc(msp, arg32.uArg);
+	    res = ML_Alloc(msp, arg.uArg);
 	  /* allocate the header object */
-	    SEQHDR_ALLOC(msp, res, DESC_polyvec, res, arg32.uArg);
+	    SEQHDR_ALLOC(msp, res, DESC_polyvec, res, arg.uArg);
 #ifdef DEBUG_LITERALS
 	SayDebug("...] @ %p\n", (void *)res);
 #endif
@@ -730,49 +768,58 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    availSpace -= spaceReq;
 	    break;
 
-	  case RAW8:
-	    Die("RAW8 -- not supported yet");
-	    break;
-
-	  case RAW16:
-	    Die("RAW16 -- not supported yet");
-	    break;
-
-	  case RAW32:
+	  case RAW: /* Word_t sized raw values */
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: RAW32(%d) [...]\n", startPC, arg32.uArg);
+	    {
+		int i, n;
+	        SayDebug("[%04d]: RAW(%" PRWORD ") [%02x", startPC, arg.uArg, code[pc]);
+	        n = (WORD_SZB*arg.uArg > 8) ? 8 : WORD_SZB*arg.uArg;
+		for (i = 1;  i < n;  i++) {
+		    SayDebug(" %02x", code[pc+i]);
+		}
+		if (n < WORD_SZB*arg.uArg) {
+		    SayDebug(" ...]\n");
+		} else {
+		    SayDebug("]\n");
+		}
+	    }
 #endif
-	    ASSERT(arg32.uArg > 0);
-	    spaceReq = 4*arg32.uArg + WORD_SZB;
-	    ASSERT((spaceReq & (WORD_SZB-1)) == 0);
+	    ASSERT(arg.uArg > 0);
+	    spaceReq = WORD_SZB*arg.uArg + WORD_SZB;
 /* FIXME: for large objects, we should be allocating them in the 1st generation */
 	    GC_CHECK;
-	    ML_AllocWrite (msp, 0, MAKE_DESC(arg32.uArg, DTAG_raw));
-	    for (ui = WORD_SZB/4;  ui <= arg32.uArg;  ui++) {
-		ML_AllocWrite32 (msp, ui, GetI32Arg(&(code[pc])));  pc += 4;
+	    ML_AllocWrite (msp, 0, MAKE_DESC(arg.uArg, DTAG_raw));
+	    for (ui = 1;  ui <= arg.uArg;  ui++) {
+		ML_AllocWrite (msp, ui, (ml_val_t)GetRawArg(&(code[pc])));  pc += WORD_SZB;
 	    }
-	    res = ML_Alloc (msp, arg32.uArg);
+	    res = ML_Alloc (msp, arg.uArg);
 	    LIST_cons(msp, stk, res, stk);
 	    availSpace -= spaceReq;
 	    break;
 
+	  case RAW32:
+	    Die("RAW32 -- not supported yet");
+	    break;
+
 	  case RAW64:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: RAW64(%d) [...]\n", startPC, arg32.uArg);
+	    SayDebug("[%04d]: RAW64(%" PRWORD ") [...]\n", startPC, arg.uArg);
 #endif
-	    ASSERT(arg32.uArg > 0);
-	    spaceReq = 8*(arg32.uArg+1);
+	    ASSERT(arg.uArg > 0);
+	    spaceReq = 8*(arg.uArg+1);
 /* FIXME: for large objects, we should be allocating them in the 1st generation */
 	    GC_CHECK;
 #ifdef ALIGN_REALDS
 	  /* Force REALD_SZB alignment (descriptor is off by one word) */
 	    msp->ml_allocPtr = (ml_val_t *)((Addr_t)(msp->ml_allocPtr) | WORD_SZB);
 #endif
-	    ui = 2*arg32.uArg; /* number of words */
+	  /* ui is the number of words */
+	    ui = WORD64_SZW * arg.uArg;
 	    ML_AllocWrite (msp, 0, MAKE_DESC(ui, DTAG_raw64));
 	    res = ML_Alloc (msp, ui);
-	    for (ui = 0;  ui < arg32.uArg;  ui++) {
-		PTR_MLtoC(Int64_t, res)[ui] = GetI64Arg(&(code[pc]));  pc += 8;
+	    for (ui = 0;  ui < arg.uArg;  ui++) {
+		PTR_MLtoC(double, res)[ui] = GetR64Arg(&(code[pc]));
+		pc += 8;
 	    }
 	    LIST_cons(msp, stk, res, stk);
 	    availSpace -= spaceReq;
@@ -781,28 +828,33 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	  case CONCAT:
 	    break;
 
-	  case SAVE:
+	  case SAVE: {
+		ml_val_t *loc;
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: SAVE(%d)\n", startPC, arg32.uArg);
+		SayDebug("[%04d]: SAVE(%" PRWORD ") %p\n", startPC, arg.uArg, (void*)LIST_hd(stk));
 #endif
-	    ASSERT(saved != NIL(ml_val_t));
-	    ASSERT(stk != ML_nil);
-	    saved[arg32.uArg] = LIST_hd(stk);
-	    break;
+		ASSERT(saved != ML_nil);
+		ASSERT(stk != ML_nil);
+		loc = PTR_MLtoC(ml_val_t, saved) + arg.uArg;
+		*loc = LIST_hd(stk);
+		ML_RecordUpdate (msp, loc);
+	    } break;
 
 	  case LOAD:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: LOAD(%d)\n", startPC, arg32.uArg);
+	    SayDebug("[%04d]: LOAD(%" PRWORD ") %p\n",
+		startPC, arg.uArg, PTR_MLtoC(ml_val_t *, saved)[arg.uArg]);
 #endif
-	    ASSERT(saved != NIL(ml_val_t));
-	    LIST_cons(msp, stk, saved[arg32.uArg], stk);
+	    ASSERT(saved != ML_nil);
+	    LIST_cons(msp, stk, PTR_MLtoC(ml_val_t, saved)[arg.uArg], stk);
 	    break;
 
 	  case RETURN:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%2d]: RETURN(%p)\n", startPC, (void *)LIST_hd(stk));
+	    SayDebug("[%04d]: RETURN(%p)\n", startPC, (void *)LIST_hd(stk));
 #endif
 	    ASSERT(pc == len);
+	    ASSERT((stk != ML_nil) && (LIST_tl(stk) == ML_nil));
 	    return (LIST_hd(stk));
 
 	  default:

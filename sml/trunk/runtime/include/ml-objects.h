@@ -154,7 +154,7 @@ STATIC_INLINE ml_val_t ML_AllocWord (ml_state_t *msp, Word_t w)
  */
 STATIC_INLINE ml_val_t INT32_CtoML (ml_state_t *msp, Int32_t n)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     return INT_CtoML(n); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
     ml_val_t *p = msp->ml_allocPtr;
@@ -165,7 +165,7 @@ STATIC_INLINE ml_val_t INT32_CtoML (ml_state_t *msp, Int32_t n)
 }
 STATIC_INLINE Int32_t INT32_MLtoC (ml_val_t n)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     return INT_MLtoC(n); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
     return *PTR_MLtoC(Int32_t, n);
@@ -173,7 +173,7 @@ STATIC_INLINE Int32_t INT32_MLtoC (ml_val_t n)
 }
 STATIC_INLINE Int32_t REC_SELINT32 (ml_val_t p, int i)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     return REC_SELINT(p, i); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
     return *REC_SELPTR(Int32_t, p, i);
@@ -181,7 +181,7 @@ STATIC_INLINE Int32_t REC_SELINT32 (ml_val_t p, int i)
 }
 STATIC_INLINE ml_val_t WORD32_CtoML (ml_state_t *msp, Unsigned32_t n)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     return INT_CtoML(n); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
     ml_val_t *p = msp->ml_allocPtr;
@@ -192,7 +192,7 @@ STATIC_INLINE ml_val_t WORD32_CtoML (ml_state_t *msp, Unsigned32_t n)
 }
 STATIC_INLINE Unsigned32_t WORD32_MLtoC (ml_val_t n)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     return (Unsigned32_t)INT_MLtoC(n); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
     return *PTR_MLtoC(Unsigned32_t, n);
@@ -200,7 +200,7 @@ STATIC_INLINE Unsigned32_t WORD32_MLtoC (ml_val_t n)
 }
 STATIC_INLINE Unsigned32_t REC_SELWORD32 (ml_val_t p, int i)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     return (Unsigned32_t)REC_SELINT(p, i); /* tagged representation on 64-bit systems */
 #else /* 32-bit ML values */
     return *REC_SELPTR(Unsigned32_t, p, i);
@@ -212,7 +212,7 @@ STATIC_INLINE ml_val_t ML_AllocInt64 (ml_state_t *msp, Int64_t n)
 {
     ml_val_t *p = msp->ml_allocPtr;
     p[0] = DESC_word64;
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     p[1] = (ml_val_t)n;
 #else /* 32-bit ML values */
     p[1] = (ml_val_t)(Unsigned32_t)((Unsigned64_t)n >> 32);
@@ -224,7 +224,7 @@ STATIC_INLINE ml_val_t ML_AllocWord64 (ml_state_t *msp, Unsigned64_t w)
 {
     ml_val_t *p = msp->ml_allocPtr;
     p[0] = DESC_word64;
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     p[1] = (ml_val_t)w;
 #else /* 32-bit ML values */
     p[1] = (ml_val_t)(Unsigned32_t)(w >> 32);
@@ -234,7 +234,7 @@ STATIC_INLINE ml_val_t ML_AllocWord64 (ml_state_t *msp, Unsigned64_t w)
 }
 STATIC_INLINE Int64_t INT64_MLtoC (ml_val_t n)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     return *PTR_MLtoC(Unsigned64_t, n);
 #else /* 32-bit ML values */
     Unsigned64_t hi = PTR_MLtoC(Unsigned32_t, n)[0];
@@ -244,13 +244,23 @@ STATIC_INLINE Int64_t INT64_MLtoC (ml_val_t n)
 }
 STATIC_INLINE Unsigned64_t WORD64_MLtoC (ml_val_t n)
 {
-#ifdef SIZES_C64_ML64
+#ifdef SIZE_64
     return *PTR_MLtoC(Unsigned64_t, n);
 #else /* 32-bit ML values */
     Unsigned64_t hi = PTR_MLtoC(Unsigned32_t, n)[0];
     Unsigned64_t lo = PTR_MLtoC(Unsigned32_t, n)[1];
     return ((hi << 32) | lo);
 #endif
+}
+
+/* add a store-list entry */
+STATIC_INLINE void ML_RecordUpdate (ml_state_t *msp, ml_val_t *addr)
+{
+    ml_val_t *p = msp->ml_allocPtr;
+    p[0] = PTR_CtoML(addr);
+    p[1] = msp->ml_storePtr;
+    msp->ml_storePtr = PTR_CtoML(p);
+    msp->ml_allocPtr += 2;
 }
 
 /* allocate a 64-bit integer number of nanoseconds, given seconds and
@@ -282,10 +292,23 @@ STATIC_INLINE ml_val_t ML_AllocNanoseconds (ml_state_t *msp, int sec, int usec)
 #define REC_SELWORD(p, i)	(*REC_SELPTR(Word_t, p, i))
 
 /* temporary */
+#ifdef SIZE_32
 #define INT32_ALLOC(msp, p, i)	WORD_ALLOC(msp, p, i)
+#endif
 
 #define INT64_ALLOC(msp, r, i)	{ (r) = ML_AllocInt64((msp), (i)); }
 #define WORD64_ALLOC(msp, r, w)	{ (r) = ML_AllocWord64((msp), (w)); }
+
+/** SysWord.word conversions */
+#ifdef SIZE_64
+typedef Unsigned64_t SysWord_t;
+#define SYSWORD_ALLOC(msp, r, w)	WORD64_ALLOC(msp, r, w)
+#define SYSWORD_MLtoC(w)		WORD64_MLtoC(w)
+#else /* SIZE_32 */
+typedef Unsigned64_t SysWord_t;
+#define SYSWORD_ALLOC(msp, r, w)	WORD_ALLOC(msp, r, w)
+#define SYSWORD_MLtoC(w)		WORD32_MLtoC(w)
+#endif
 
 /** ML lists **/
 #define LIST_hd(p)		REC_SEL(p, 0)
@@ -323,6 +346,7 @@ extern ml_val_t ML_AllocString (ml_state_t *msp, int len);
 extern ml_val_t ML_AllocCode (ml_state_t *msp, int len);
 extern ml_val_t ML_AllocBytearray (ml_state_t *msp, int len);
 extern ml_val_t ML_AllocRealdarray (ml_state_t *msp, int len);
+extern ml_val_t ML_AllocArrayData (ml_state_t *msp, int len, ml_val_t initVal);
 extern ml_val_t ML_AllocArray (ml_state_t *msp, int len, ml_val_t initVal);
 extern ml_val_t ML_AllocVector (ml_state_t *msp, int len, ml_val_t initVal);
 extern ml_val_t ML_AllocRaw (ml_state_t *msp, int len);

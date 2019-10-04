@@ -301,12 +301,12 @@ ml_val_t ML_AllocRealdarray (ml_state_t *msp, int len)
 
 } /* end of ML_AllocRealdarray. */
 
-/* ML_AllocArray:
+/* ML_AllocArrayData:
  *
- * Allocate an ML array using initVal as an initial value.  Assume
+ * Allocate a mutable data array using initVal as an initial value.  Assume
  * that len > 0.
  */
-ml_val_t ML_AllocArray (ml_state_t *msp, int len, ml_val_t initVal)
+ml_val_t ML_AllocArrayData (ml_state_t *msp, int len, ml_val_t initVal)
 {
     ml_val_t	res, *p;
     ml_val_t	desc = MAKE_DESC(len, DTAG_arr_data);
@@ -353,8 +353,24 @@ ml_val_t ML_AllocArray (ml_state_t *msp, int len, ml_val_t initVal)
 	res = ML_Alloc (msp, len);
     }
 
-    for (p = PTR_MLtoC(ml_val_t, res), i = 0;  i < len; i++)
+    for (p = PTR_MLtoC(ml_val_t, res), i = 0;  i < len; i++) {
 	*p++ = initVal;
+    }
+
+    return res;
+
+} /* end of ML_AllocArrayData. */
+
+/* ML_AllocArray:
+ *
+ * Allocate an ML array using initVal as an initial value.  Assume
+ * that len > 0.
+ */
+ml_val_t ML_AllocArray (ml_state_t *msp, int len, ml_val_t initVal)
+{
+    ml_val_t	res;
+
+    res = ML_AllocArrayData (msp, len, initVal);
 
     SEQHDR_ALLOC (msp, res, DESC_polyarr, res, len);
 

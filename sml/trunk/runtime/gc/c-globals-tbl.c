@@ -71,7 +71,7 @@ void RecordCSymbol (const char *name, ml_val_t addr)
     int			n, i, hash;
     item_t		*item, *p;
 
-    ASSERT ((((Word_t)addr & ~TAG_boxed) & TAG_desc) == 0);
+    ASSERT (((Word_t)addr & MAJOR_MASK) == 0);
 
     if (TableSize == NumSymbols) {
       /* double the table size */
