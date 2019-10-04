@@ -239,7 +239,6 @@ structure Literals : LITERALS =
    ****************************************************************************)
     datatype info
       = ZZ_STR of string
-      | ZZ_FLT of string
       | ZZ_RCD of record_kind * value list
 
     exception LitInfo
@@ -428,10 +427,7 @@ structure Literals : LITERALS =
 		      | unINT32 _ = bug "unINT32"
 		    in
 		      case IntHashTable.lookup m v
-		       of (ZZ_FLT _) => (* float is wrapped *)
-			    bug "currently we don't expect ZZ_FLT in mklit"
-			(* LI_F64BLOCK([s], v, lit) *)
-			| (ZZ_STR s) =>
+		       of (ZZ_STR s) =>
 			    bug "currently we don't expect ZZ_STR in mklit"
 			(* lit   --- or we could inline string *)
 			| (ZZ_RCD(CPS.RK_RAW64BLOCK, vs)) =>
@@ -456,11 +452,7 @@ structure Literals : LITERALS =
 			   fun mkhdr (v, (i, hh)) =
 			     let val nh =
 				   (case IntHashTable.lookup m v
-				     of (ZZ_FLT _) => bug "ZZ_FLT in mkhdr"
-					  (* (fn ce =>
-					       (SELECT(i, rval, w, PTRt(FPT 1),
-						SELECT(0, VAR w, v, FLTt, ce)))) *)
-				      | (ZZ_STR s) => bug "ZZ_STR in mkhdr"
+				     of (ZZ_STR s) => bug "ZZ_STR in mkhdr"
 					  (* (fn ce =>
 						SELECT(i, rval, v, CPSUtil.BOGt, ce)) *)
 				      | (ZZ_RCD (rk, vs)) =>
