@@ -706,9 +706,8 @@ ML_CODE_HDR(scalb_a)
 	SAR	(IM(1),REGIND(ESP))		/* Untag it. */
 	FILDL	(REGIND(ESP))			/* Load it ... */
 	MOV	(REGIND(stdarg), temp)		/* Get pointer to real. */
-	FLD	(REGOFF_DBL(0,temp))		/* Push real onto stack. */
+	FLD	(REGIND(temp))			/* Load it into temp. */
 	FSCALE					/* Multiply exponent by scalar. */
-	OR	(IM(4),allocptr)		/* align allocptr on 32-bit x86 */
 	MOV	(IM(DESC_reald), REGIND(allocptr))
 	FSTPL	(REGOFF_DBL(4,allocptr))	/* Store resulting float. */
 	ADD	(IM(4),allocptr)		/* Allocate word for tag. */
