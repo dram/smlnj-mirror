@@ -284,7 +284,7 @@ extern Byte_t *BO_GetCodeObjTag (bigobj_desc_t *bdp);
 #ifdef BO_DEBUG
 extern void PrintRegionMap (bigobj_region_t *r);
 #endif
-#ifdef CHECK_GC
+#ifdef CHECK_HEAP
 extern void CheckHeap (heap_t *heap, int maxSweptGen);
 #endif
 
