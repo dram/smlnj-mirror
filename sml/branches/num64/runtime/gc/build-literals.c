@@ -11,7 +11,7 @@
  */
 
 /*
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  */
 
@@ -20,8 +20,6 @@
 #include "heap.h"
 #include <string.h>
 #include <inttypes.h>
-
-#define DEBUG_LITERALS
 
 /* printf formats for Int_t/Word_t types */
 #ifdef SIZE_64
@@ -590,7 +588,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #endif
 	  case INT_ARG:
 #ifdef SIZE_64
-	    arg.iArg = (Int_t)GetI64Arg(&(code[pc]));  pc += 4;
+	    arg.iArg = (Int_t)GetI64Arg(&(code[pc]));  pc += 8;
 #else /* SIZE_32 */
 	    arg.iArg = (Int_t)GetI32Arg(&(code[pc]));  pc += 4;
 #endif
@@ -854,6 +852,18 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	  case RETURN:
 #ifdef DEBUG_LITERALS
 	    SayDebug("[%04d]: RETURN(%p)\n", startPC, (void *)LIST_hd(stk));
+	    if (pc != len) {
+		Byte_t *p = code;
+		int i, j;
+		SayDebug("********** Bytecode **********\n");
+		for (i = 0;  i < len;  i += 16) {
+		    for (j = 0;  (j < 16) && (i+j < len);  j++) {
+			SayDebug ("%02x ", code[i+j]);
+		    }
+		    SayDebug("\n");
+		}
+		SayDebug("********** End Bytecode **********\n");
+	    }
 #endif
 	    ASSERT(pc == len);
 	    ASSERT((stk != ML_nil) && (LIST_tl(stk) == ML_nil));
