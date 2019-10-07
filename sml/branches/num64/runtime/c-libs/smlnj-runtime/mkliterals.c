@@ -16,7 +16,7 @@
  */
 ml_val_t _ml_RunT_mkliterals (ml_state_t *msp, ml_val_t arg)
 {
-SayDebug("mkLiterals(%p, %d)\n", GET_SEQ_DATAPTR(void, arg), GET_SEQ_LEN(arg));
+
     return BuildLiterals (msp, GET_SEQ_DATAPTR(Byte_t, arg), GET_SEQ_LEN(arg));
 
 } /* end of _ml_RunT_mkcode */
