@@ -36,9 +36,9 @@ STATIC_INLINE Unsigned64_t timespec_to_ns (struct timespec *ts)
  *    uid       : SysWord.word
  *    gid       : SysWord.word
  *    size      : Position.int (aka Int64.int)
- *    atime     : Word64.int
- *    mtime     : Word64.int
- *    ctime     : Word64.int
+ *    atime     : Word64.word
+ *    mtime     : Word64.word
+ *    ctime     : Word64.word
  */
 PVT ml_val_t mkStatRep (ml_state_t *msp, struct stat *buf)
 {
