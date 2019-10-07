@@ -28,6 +28,8 @@ PVT int CheckPtr (ml_val_t *p, ml_val_t w, int srcGen, int srcKind, int dstKind)
 
 PVT int		ErrCount = 0;
 
+extern char	*ArenaName[];
+
 /* CheckPtr dstKind values */
 #define OBJC_NEWFLG	(1 << OBJC_new)
 #define OBJC_RECFLG	(1 << OBJC_record)
@@ -38,11 +40,61 @@ PVT int		ErrCount = 0;
 	(OBJC_NEWFLG|OBJC_RECFLG|OBJC_PAIRFLG|OBJC_STRFLG|OBJC_ARRFLG)
 
 #define ERROR	{					\
-	if (++ErrCount > 100) {				\
+	if (++ErrCount > 20) {				\
 	    Die("CheckHeap: too many errors\n");	\
 	}						\
     }
 
+/* CheckBIBOP:
+ *
+ * Check that the heap and BIBOP agree.
+ */
+void CheckBIBOP (heap_t *heap)
+{
+    int i, j;
+
+    ErrCount = 0;
+
+    SayDebug ("Checking arena address ranges in BIBOP\n");
+    for (i = 0;  i < heap->numGens; i++) {
+	gen_t *g = heap->gen[i];
+      /* check the small-object arenas */
+	for (int j = 0;  j < NUM_ARENAS;  j++) {
+	    arena_t *ap = g->arena[j];
+	    Addr_t p = (Addr_t)ap->tospBase;
+	    Addr_t top = (Addr_t)ap->tospTop;
+	    bool_t firstError = TRUE;
+	    while (p < top) {
+		Addr_t aid = ADDR_TO_PAGEID(BIBOP, p);
+		if (aid != ap->id) {
+		    ERROR;
+		    if (firstError) {
+			SayDebug("** Generation %d, %s arena: inconsistent bibop\n",
+			    i+1, ArenaName[j+1]);
+			firstError = FALSE;
+		    }
+		    SayDebug("** %p: BIBOP[%d] = %p[%d] = %x:%x:%02x, but expected %x:%x:%02x\n",
+			p, BIBOP_ADDR_TO_L1_INDEX(p),
+			BIBOP[BIBOP_ADDR_TO_L1_INDEX(p)],
+			BIBOP_ADDR_TO_L2_INDEX(p),
+			EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
+			EXTRACT_GEN(ap->id), EXTRACT_OBJC(ap->id), EXTRACT_HBLK(ap->id));
+		}
+		p += BIBOP_PAGE_SZB;
+	    }
+	}
+      /* check the big-objects */
+	for (j = 0;  j < NUM_BIGOBJ_KINDS;  j++) {
+	    bigobj_desc_t *bo = g->bigObjs[j];
+
+	}
+    }
+
+    if (ErrCount > 0) {
+	Die ("CheckBIBOP --- inconsistent heap\n");
+    }
+
+} /* CheckBIBOP */
 
 /* CheckHeap:
  *
@@ -53,6 +105,8 @@ void CheckHeap (heap_t *heap, int maxSweptGen)
     int		i, j;
 
     ErrCount = 0;
+
+    CheckBIBOP (heap);
 
     SayDebug ("Checking heap (%d generations) ...\n", maxSweptGen);
     for (i = 0;  i < maxSweptGen; i++) {
@@ -65,8 +119,9 @@ void CheckHeap (heap_t *heap, int maxSweptGen)
     }
     SayDebug ("... done\n");
 
-    if (ErrCount > 0)
+    if (ErrCount > 0) {
 	Die ("CheckHeap --- inconsistent heap\n");
+    }
 
 } /* end of CheckHeap */
 
@@ -83,7 +138,7 @@ PVT void CheckRecordArena (arena_t *ap)
     if (! isACTIVE(ap))
 	return;
 
-    SayDebug ("  records [%d]: [%#x..%#x:%#x)\n",
+    SayDebug ("  records [%d]: [%p..%p:%p)\n",
 	gen, ap->tospBase, ap->nextw, ap->tospTop);
 
     p = ap->tospBase;
@@ -93,7 +148,7 @@ PVT void CheckRecordArena (arena_t *ap)
 	if (! isDESC(desc)) {
 	    ERROR;
 	    SayDebug (
-		"** @%#x: expected descriptor, but found %#x in record arena\n",
+		"** @%p: expected descriptor, but found %p in record arena\n",
 		p-1, desc);
 	    return;
 	}
@@ -105,7 +160,7 @@ PVT void CheckRecordArena (arena_t *ap)
 		if (isDESC(w)) {
 		    ERROR;
 		    SayDebug (
-			"** @%#x: unexpected descriptor %#x in slot %d of %d\n",
+			"** @%p: unexpected descriptor %p in slot %d of %d\n",
 			p, w, i, GET_LEN(desc));
 		    return;
 		}
@@ -133,20 +188,20 @@ PVT void CheckRecordArena (arena_t *ap)
 		break;
 	      default:
 		ERROR;
-		SayDebug ("** @%#x: strange sequence kind %d in record arena\n",
+		SayDebug ("** @%p: strange sequence kind %d in record arena\n",
 		    p-1, GET_LEN(desc));
 		return;
 	    }
 	    if (! isUNBOXED(p[1])) {
 		ERROR;
-		SayDebug ("** @%#x: sequence header length field not an in (%#x)\n",
+		SayDebug ("** @%p: sequence header length field not an int (%p)\n",
 		    p+1, p[1]);
 	    }
 	    p += 2;
 	    break;
 	  default:
 	    ERROR;
-	    SayDebug ("** @%#x: strange tag (%#x) in record arena\n",
+	    SayDebug ("** @%p: strange tag (%#x) in record arena\n",
 		p-1, GET_TAG(desc));
 	    return;
 	} /* end of switch */
@@ -164,7 +219,7 @@ PVT void CheckPairArena (arena_t *ap)
     if (! isACTIVE(ap))
 	return;
 
-    SayDebug ("  pairs [%d]: [%#x..%#x:%#x)\n",
+    SayDebug ("  pairs [%d]: [%p..%p:%p)\n",
 	gen, ap->tospBase, ap->nextw, ap->tospTop);
 
     p = ap->tospBase + 2;
@@ -174,7 +229,7 @@ PVT void CheckPairArena (arena_t *ap)
 	if (isDESC(w)) {
 	    ERROR;
 	    SayDebug (
-		"** @%#x: unexpected descriptor %#x in pair arena\n",
+		"** @%p: unexpected descriptor %p in pair arena\n",
 		p-1, w);
 	    return;
 	}
@@ -198,7 +253,7 @@ PVT void CheckStringArena (arena_t *ap)
     if (! isACTIVE(ap))
 	return;
 
-    SayDebug ("  strings [%d]: [%#x..%#x:%#x)\n",
+    SayDebug ("  strings [%d]: [%p..%p:%p)\n",
 	gen, ap->tospBase, ap->nextw, ap->tospTop);
 
     p = ap->tospBase;
@@ -214,10 +269,10 @@ PVT void CheckStringArena (arena_t *ap)
 		break;
 	      default:
 		ERROR;
-		SayDebug ("** @%#x: strange tag (%#x) in string arena\n",
+		SayDebug ("** @%p: strange tag (%#x) in string arena\n",
 		    p-1, GET_TAG(desc));
 		if (prevDesc != NIL(ml_val_t *))
-		    SayDebug ("   previous string started @ %#x\n", prevDesc);
+		    SayDebug ("   previous string started @ %p\n", prevDesc);
 		return;
 	    }
 	    prevDesc = p-1;
@@ -231,10 +286,10 @@ PVT void CheckStringArena (arena_t *ap)
 	else {
 	    ERROR;
 	    SayDebug (
-		"** @%#x: expected descriptor, but found %#x in string arena\n",
+		"** @%p: expected descriptor, but found %p in string arena\n",
 		p-1, desc);
 	    if (prevDesc != NIL(ml_val_t *))
-	        SayDebug ("   previous string started @ %#x\n", prevDesc);
+	        SayDebug ("   previous string started @ %p\n", prevDesc);
 	    return;
 	}
     }
@@ -252,7 +307,7 @@ PVT void CheckArrayArena (arena_t *ap, card_map_t *cm)
     if (! isACTIVE(ap))
 	return;
 
-    SayDebug ("  arrays [%d]: [%#x..%#x:%#x)\n",
+    SayDebug ("  arrays [%d]: [%p..%p:%p)\n",
 	gen, ap->tospBase, ap->nextw, ap->tospTop);
 
     p = ap->tospBase;
@@ -262,7 +317,7 @@ PVT void CheckArrayArena (arena_t *ap, card_map_t *cm)
 	if (! isDESC(desc)) {
 	    ERROR;
 	    SayDebug (
-		"** @%#x: expected descriptor, but found %#x in array arena\n",
+		"** @%p: expected descriptor, but found %p in array arena\n",
 		p-1, desc);
 	    return;
 	}
@@ -275,7 +330,7 @@ PVT void CheckArrayArena (arena_t *ap, card_map_t *cm)
 	    break;
 	  default:
 	    ERROR;
-	    SayDebug ("** @%#x: strange tag (%#x) in array arena\n",
+	    SayDebug ("** @%p: strange tag (%#x) in array arena\n",
 		p-1, GET_TAG(desc));
 	    return;
 	} /* end of switch */
@@ -284,10 +339,10 @@ PVT void CheckArrayArena (arena_t *ap, card_map_t *cm)
 	    if (isDESC(w)) {
 		ERROR;
 		SayDebug (
-		    "** @%#x: unexpected descriptor %#x in array slot %d of %d\n",
+		    "** @%p: unexpected descriptor %p in array slot %d of %d\n",
 		    p, w, i, GET_LEN(desc));
 		for (p -= (i+1), j = 0;  j <= len;  j++, p++) {
-		    SayDebug ("  %#x: %#10x\n", p, *p);
+		    SayDebug ("  %p: %10p\n", p, *p);
 		}
 		return;
 	    }
@@ -315,27 +370,27 @@ PVT int CheckPtr (ml_val_t *p, ml_val_t w, int srcGen, int srcKind, int dstKind)
 	if (!(dstKind & (1 << objc))) {
 	    ERROR;
 	    SayDebug (
-		"** @%#x: sequence data kind mismatch (expected %d, found %d)\n",
+		"** @%p: sequence data kind mismatch (expected %d, found %d)\n",
 		p, dstKind, objc);
 	}
 	if (dstGen < srcGen) {
 	    if (srcKind != OBJC_array) {
 		ERROR;
 	        SayDebug (
-		    "** @%#x: reference to younger object @%#x (gen = %d)\n",
-		    p, w, dstGen);
+		    "** @%p: reference to younger object @%p (gen = %d)\n",
+		    p, (void *)w, dstGen);
 	    }
 	}
 	if ((objc != OBJC_pair) && (! isDESC(((ml_val_t *)w)[-1]))) {
 	    ERROR;
-	    SayDebug ("** @%#x: reference into object middle @#x\n", p, w);
+	    SayDebug ("** @%p: reference into object middle @%p\n", p, (void *)w);
 	}
 	break;
       case OBJC_bigobj:
 	break;
       case OBJC_new:
 	ERROR;
-	SayDebug ("** @%#x: unexpected new-space reference\n", p);
+	SayDebug ("** @%p: unexpected new-space reference\n", p);
 	dstGen = MAX_NUM_GENS;
 	break;
       default:
@@ -343,8 +398,10 @@ PVT int CheckPtr (ml_val_t *p, ml_val_t w, int srcGen, int srcKind, int dstKind)
 	    if (AddrToCSymbol(w) == NIL(const char *)) {
 		ERROR;
 		SayDebug (
-		    "** @%#x: reference to unregistered external address %#x\n",
-		    p, w);
+		    "** @%p: reference to unregistered external address %p\n",
+		    p, (void *)w);
+SayDebug("BIBOP[%d] = %p[%d] = %d:%d\n",
+BIBOP_ADDR_TO_L1_INDEX(w), BIBOP[BIBOP_ADDR_TO_L1_INDEX(w)], BIBOP_ADDR_TO_L2_INDEX(w), dstGen, objc);
 	    }
 	    dstGen = MAX_NUM_GENS;
 	}
@@ -355,4 +412,3 @@ PVT int CheckPtr (ml_val_t *p, ml_val_t w, int srcGen, int srcKind, int dstKind)
     return dstGen;
 
 } /* end of CheckPtr */
-

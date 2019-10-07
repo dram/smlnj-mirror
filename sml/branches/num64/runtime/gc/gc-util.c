@@ -49,7 +49,7 @@ status_t NewGeneration (gen_t *gen)
   /* Initialize the chunks */
     gen->toObj = memobj;
 #ifdef VERBOSE
-SayDebug ("NewGeneration[%d]: tot_sz = %d, [%#x, %#x)\n",
+SayDebug ("NewGeneration[%d]: tot_sz = %d, [%p, %p)\n",
 gen->genNum, tot_sz, MEMOBJ_BASE(memobj), MEMOBJ_BASE(memobj) + MEMOBJ_SZB(memobj));
 #endif
     for (p = (ml_val_t *)MEMOBJ_BASE(memobj), i = 0;  i < NUM_ARENAS;  i++) {
@@ -63,7 +63,7 @@ gen->genNum, tot_sz, MEMOBJ_BASE(memobj), MEMOBJ_BASE(memobj) + MEMOBJ_SZB(memob
 	    MarkRegion (BIBOP, ap->tospBase, ap->tospSizeB, ap->id);
 	    HeapMon_MarkRegion (gen->heap, ap->tospBase, ap->tospSizeB, ap->id);
 #ifdef VERBOSE
-SayDebug ("  %#x:  [%#x, %#x)\n", ap->id, ap->nextw, p);
+SayDebug ("  %#x:  [%p, %p)\n", ap->id, ap->nextw, p);
 #endif
 	}
 	else {
@@ -100,7 +100,7 @@ void FreeGeneration (heap_t *heap, int g)
 	return;
 
 #ifdef VERBOSE
-SayDebug ("FreeGeneration [%d]: [%#x, %#x)\n", g+1, MEMOBJ_BASE(gen->fromObj),
+SayDebug ("FreeGeneration [%d]: [%p, %p)\n", g+1, MEMOBJ_BASE(gen->fromObj),
 MEMOBJ_BASE(gen->fromObj) + MEMOBJ_SZB(gen->fromObj));
 #endif
     if (g < heap->cacheGen) {
@@ -175,34 +175,42 @@ void NewDirtyVector (gen_t *gen)
 void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
 {
 #ifdef SIZE_64
-    Addr_t base = (Addr_t)baseAddr;
     Addr_t start = BIBOP_ADDR_TO_INDEX(baseAddr);
-    Addr_t np = BIBOP_ADDR_TO_INDEX(szB);
-    Addr_t last = start + np;
+    Addr_t end = BIBOP_ADDR_TO_INDEX(((Addr_t)baseAddr)+szB-1);
+    Addr_t np = end - start + 1;
   /* index range in top-level table */
-    Unsigned32_t topStart = BIBOP_ADDR_TO_L1_INDEX(start);
-    Unsigned32_t topLast = BIBOP_ADDR_TO_L1_INDEX(last);
+    Unsigned32_t topStart = BIBOP_INDEX_TO_L1_INDEX(start);
+    Unsigned32_t topEnd = BIBOP_INDEX_TO_L1_INDEX(end);
+
+SayDebug("MarkRegion(-, %p, %p, %x:%x:%02x); start = %d(top:%d), np = %d, end = %d(top:%d)\n",
+baseAddr, szB, EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
+start, topStart, np, end, topEnd);
+    ASSERT(BIBOP_ADDR_TO_L1_INDEX(baseAddr) == topStart);
 
     if (aid == AID_UNMAPPED) {
 	Unsigned32_t ix, jx, l2Start, l2End;
-	for (ix = topStart;  ix <= topLast;  ix++) {
+	for (ix = topStart;  ix <= topEnd;  ix++) {
 	    l2_bibop_t *l2Tbl = bibop[ix];
 	    ASSERT (l2Tbl != 0);
-	    l2Start = (ix == topStart) ? (Unsigned32_t)(base & BIBOP_L2_MASK) : 0;
-	    l2End = (ix < topLast) ? BIBOP_L2_SZ : (last & BIBOP_L2_MASK)+1;
+	    l2Start = (topStart < ix) ? 0 : (Unsigned32_t)BIBOP_INDEX_TO_L2_INDEX(start);
+	    l2End = (ix < topEnd) ? BIBOP_L2_SZ : (Unsigned32_t)(BIBOP_INDEX_TO_L2_INDEX(end)+1);
+/* FIXME: if l2Start == 0 and l2End == BIBOP_L2_SZ, then we can replace the table with
+ * L2_Unmapped.
+ */
 	    for (jx = l2Start;  jx < l2End;  jx++) {
 		l2Tbl->tbl[jx] = aid;
 	    }
+	    l2Tbl->numMapped -= (l2End - l2Start);
 	}
     }
     else {
 	Unsigned32_t ix, jx, l2Start, l2End;
-	for (ix = topStart;  ix <= topLast;  ix++) {
+	for (ix = topStart;  ix <= topEnd;  ix++) {
 	    l2_bibop_t *l2Tbl = bibop[ix];
-	    l2Start = (ix == topStart) ? (Unsigned32_t)(base & BIBOP_L2_MASK) : 0;
-	    l2End = (ix < topLast) ? BIBOP_L2_SZ : (last & BIBOP_L2_MASK)+1;
+	    l2Start = (topStart < ix) ? 0 : (Unsigned32_t)BIBOP_INDEX_TO_L2_INDEX(start);
+	    l2End = (ix < topEnd) ? BIBOP_L2_SZ : (Unsigned32_t)(BIBOP_INDEX_TO_L2_INDEX(end)+1);
 	    if (l2Tbl == UNMAPPED_L2_TBL) {
-		BIBOP[ix] =
+		bibop[ix] =
 		l2Tbl = NEW_OBJ(l2_bibop_t);
 	      // initialize the part of the new block that is not being assigned
 		for (jx = 0;  jx < l2Start;  jx++) {
@@ -211,7 +219,14 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
 		for (jx = l2End;  jx < BIBOP_L2_SZ;  jx++) {
 		    l2Tbl->tbl[jx] = AID_UNMAPPED;
 		}
+		l2Tbl->numMapped = (l2End - l2Start);
 	    }
+	    else {
+		l2Tbl->numMapped += (l2End - l2Start);
+	    }
+SayDebug("== bibop[%d] = %p; numMapped = %d; [%d..%d] = %x\n",
+ix, l2Tbl, l2Tbl->numMapped, l2Start, l2End-1, aid);
+	    ASSERT((0 <= l2Start) && (l2End <= BIBOP_L2_SZ));
 	    for (jx = l2Start;  jx < l2End;  jx++) {
 		l2Tbl->tbl[jx] = aid;
 	    }
@@ -219,12 +234,12 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
     }
 #else /* 32-bit ML values */
     int		start = BIBOP_ADDR_TO_INDEX(baseAddr);
-    int		end = BIBOP_ADDR_TO_INDEX(((Addr_t)baseAddr)+szB);
+    int		end = BIBOP_ADDR_TO_INDEX(((Addr_t)baseAddr)+szB-1);
 #ifdef VERBOSE
-/*SayDebug("MarkRegion [%#x..%#x) as %#x\n", baseAddr, ((Addr_t)baseAddr)+szB, aid); */
+/*SayDebug("MarkRegion [%p..%p) as %#x\n", baseAddr, ((Addr_t)baseAddr)+szB, aid); */
 #endif
 
-    while (start < end) {
+    while (start <= end) {
 	BIBOP_UPDATE(bibop, start, aid);
 	start++;
     }
@@ -246,7 +261,7 @@ void ScanWeakPtrs (heap_t *heap)
     for (p = heap->weakList;  p != NIL(ml_val_t *);  p = q) {
 	q = PTR_MLtoC(ml_val_t, UNMARK_PTR(p[0]));
 	obj = (ml_val_t *)(Addr_t)UNMARK_PTR(p[1]);
-/* SayDebug ("  %#x --> %#x ", p+1, obj); */
+/* SayDebug ("  %p --> %p ", p+1, obj); */
 
 	switch (EXTRACT_OBJC(ADDR_TO_PAGEID(BIBOP, obj))) {
 	  case OBJC_new:
@@ -257,7 +272,7 @@ void ScanWeakPtrs (heap_t *heap)
 	    if (desc == DESC_forwarded) {
 		p[0] = DESC_weak;
 		p[1] = PTR_CtoML(FOLLOW_FWDOBJ(obj));
-/* SayDebug ("forwarded to %#x\n", FOLLOW_FWDOBJ(obj)); */
+/* SayDebug ("forwarded to %p\n", FOLLOW_FWDOBJ(obj)); */
 	    }
 	    else {
 		p[0] = DESC_null_weak;
@@ -269,7 +284,7 @@ void ScanWeakPtrs (heap_t *heap)
 	    if (isDESC(desc = obj[0])) {
 		p[0] = DESC_weak;
 		p[1] = PTR_CtoML(FOLLOW_FWDPAIR(desc, obj));
-/* SayDebug ("(pair) forwarded to %#x\n", FOLLOW_FWDPAIR(desc, obj)); */
+/* SayDebug ("(pair) forwarded to %p\n", FOLLOW_FWDPAIR(desc, obj)); */
 	    }
 	    else {
 		p[0] = DESC_null_weak;

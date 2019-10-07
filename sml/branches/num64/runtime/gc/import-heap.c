@@ -364,7 +364,7 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
 
 		if (freeObj != bdp) {
 		  /* there was some extra space left in the region */
-		    ADD_BODESC(heap->freeBigObjs, freeObj);
+		    AddBODesc (heap->freeBigObjs, freeObj);
 		}
 
 		FREE (boHdrs);

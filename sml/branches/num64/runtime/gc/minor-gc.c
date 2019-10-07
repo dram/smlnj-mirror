@@ -92,11 +92,15 @@ void MinorGC (ml_state_t *msp, ml_val_t **roots)
   int i;
   SayDebug ("Generation 1 before MinorGC:\n");
   for (i = 0;  i < NUM_ARENAS;  i++) {
-    SayDebug ("  %s: base = %#x, oldTop = %#x, nextw = %#x\n",
+    SayDebug ("  %s: base = %p, oldTop = %p, nextw = %p\n",
       ArenaName[i+1], gen1->arena[i]->tospBase,
       gen1->arena[i]->oldTop, gen1->arena[i]->nextw);
   }
 }
+#endif
+
+#ifdef CHECK_HEAP
+    CheckBIBOP (heap);
 #endif
 
   /* scan the standard roots */
@@ -151,7 +155,7 @@ void MinorGC (ml_state_t *msp, ml_val_t **roots)
   int i;
   SayDebug ("Generation 1 after MinorGC:\n");
   for (i = 0;  i < NUM_ARENAS;  i++) {
-    SayDebug ("  %s: base = %#x, oldTop = %#x, nextw = %#x\n",
+    SayDebug ("  %s: base = %p, oldTop = %p, nextw = %p\n",
       ArenaName[i+1], gen1->arena[i]->tospBase,
       gen1->arena[i]->oldTop, gen1->arena[i]->nextw);
   }
@@ -362,7 +366,7 @@ PVT ml_val_t MinorGC_ForwardObj (gen_t *gen1, ml_val_t v)
       case DTAG_forward:
 	return PTR_CtoML(FOLLOW_FWDOBJ(obj));
       default:
-	Die ("bad object tag %d, obj = %#x, desc = %#x", GET_TAG(desc), obj, desc);
+	Die ("bad object tag %d, obj = %p, desc = %p", GET_TAG(desc), obj, desc);
     } /* end of switch */
 
   /* Allocate and initialize a to-space copy of the object */
@@ -402,7 +406,7 @@ PVT ml_val_t MinorGC_FwdSpecial (gen_t *gen1, ml_val_t *obj, ml_val_t desc)
       case SPCL_weak: {
 	    ml_val_t	v = *obj;
 #ifdef DEBUG_WEAK_PTRS
-SayDebug ("MinorGC: weak [%#x ==> %#x] --> %#x", obj, new_obj+1, v);
+SayDebug ("MinorGC: weak [%p ==> %p] --> %p", obj, new_obj+1, v);
 #endif
 	    if (! isBOXED(v)) {
 #ifdef DEBUG_WEAK_PTRS
@@ -425,7 +429,7 @@ SayDebug (" unboxed\n");
 		       * it never sees to-space pointers during sweeping.
 		       */
 #ifdef DEBUG_WEAK_PTRS
-SayDebug (" already forwarded to %#x\n", PTR_CtoML(FOLLOW_FWDOBJ(vp)));
+SayDebug (" already forwarded to %p\n", PTR_CtoML(FOLLOW_FWDOBJ(vp)));
 #endif
 			*new_obj++ = DESC_weak;
 			*new_obj = v;
@@ -457,7 +461,7 @@ SayDebug (" old object\n");
 	} break;
       case SPCL_null_weak: /* shouldn't happen in the allocation arena */
       default:
-	Die ("strange/unexpected special object @ %#x; desc = %#x\n", obj, desc);
+	Die ("strange/unexpected special object @ %p; desc = %p\n", obj, desc);
     } /* end of switch */
 
     obj[-1] = DESC_forwarded;

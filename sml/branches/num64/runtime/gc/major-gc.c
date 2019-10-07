@@ -73,16 +73,17 @@ PVT void ScanMem (Word_t *start, Word_t *stop, int gen, int objKind)
 	w = *start;
 	if (isBOXED(w)) {
 	    Addr_t	indx = BIBOP_ADDR_TO_INDEX(w);
-	    aid_t	INDEX_TO_PAGEID(BIBOP,indx);
+	    aid_t	id = INDEX_TO_PAGEID(bibop,indx);
 	    switch (EXTRACT_OBJC(id)) {
 	      case OBJC_bigobj:
 		while (!BO_IS_HDR(id)) {
-		    id = bibop[--indx];
+		    indx--;
+		    id = INDEX_TO_PAGEID(bibop,indx);
 		}
 		region = (bigobj_region_t *)BIBOP_INDEX_TO_ADDR(indx);
 		dp = ADDR_TO_BODESC(region, w);
 		if (dp->state == BO_FREE) {
-		    SayDebug ("** [%d/%d]: %#x --> %#x; unexpected free big-object\n",
+		    SayDebug ("** [%d/%d]: %p --> %p; unexpected free big-object\n",
 			gen, objKind, start, w);
 		}
 		break;
@@ -93,7 +94,7 @@ PVT void ScanMem (Word_t *start, Word_t *stop, int gen, int objKind)
 		break;
 	      default:
 		if (id != AID_UNMAPPED)
-		    SayDebug ("** [%d/%d]: %#x --> %#x; strange object class %d\n",
+		    SayDebug ("** [%d/%d]: %p --> %p; strange object class %d\n",
 			gen, objKind, start, w, EXTRACT_OBJC(id));
 		break;
 	    }
@@ -150,7 +151,7 @@ IFBO_COUNT1(arena_id);							\
 	}
 #ifdef TOSPACE_ID
 	else if (IS_TOSPACE_AID(arena_id)) {
-	    Die ("CheckWord: TOSPACE reference: %#x (%#x) --> %#x\n",
+	    Die ("CheckWord: TOSPACE reference: %p (%p) --> %p\n",
 		p, ADDR_TO_PAGEID(bibop, p), w);
 	}
 #endif
@@ -284,7 +285,7 @@ numBO1 = numBO2 = numBO3 = 0;
 		    promote = dp;
 		    break;
 		  default:
-		    Die ("strange bigobject state %d @ %#x in generation %d\n",
+		    Die ("strange bigobject state %d @ %p in generation %d\n",
 			dp->state, dp, i);
 		} /* end switch */
 		dp = dq;
@@ -685,7 +686,7 @@ IFBO_COUNT1(arena_id);
 		}
 #ifdef TOSPACE_ID
 		else if (IS_TOSPACE_AID(arena_id)) {
-		    Die ("Sweep Arrays: TOSPACE reference: %#x (%#x) --> %#x\n",
+		    Die ("Sweep Arrays: TOSPACE reference: %p (%p) --> %p\n",
 			p, ADDR_TO_PAGEID(bibop, p), w);
 		}
 #endif
@@ -731,7 +732,7 @@ PVT ml_val_t MajorGC_ForwardObj (heap_t *heap, aid_t maxAid, ml_val_t v, aid_t i
 	    len = GET_LEN(desc);
 	    break;
 	  default:
-	    Die ("bad record tag %d, obj = %#x, desc = %#x",
+	    Die ("bad record tag %d, obj = %p, desc = %p",
 		GET_TAG(desc), obj, desc);
 	} /* end of switch */
 	arena = heap->gen[EXTRACT_GEN(id)-1]->arena[RECORD_INDX];
@@ -785,7 +786,7 @@ PVT ml_val_t MajorGC_ForwardObj (heap_t *heap, aid_t maxAid, ml_val_t v, aid_t i
 #endif
 	    break;
 	  default:
-	    Die ("bad string tag %d, obj = %#x, desc = %#x",
+	    Die ("bad string tag %d, obj = %p, desc = %p",
 		GET_TAG(desc), obj, desc);
 	} /* end of switch */
       } break;
@@ -802,7 +803,7 @@ PVT ml_val_t MajorGC_ForwardObj (heap_t *heap, aid_t maxAid, ml_val_t v, aid_t i
 	  case DTAG_special:
 	    return MajorGC_FwdSpecial (heap, maxAid, obj, id, desc);
 	  default:
-	    Die ("bad array tag %d, obj = %#x, desc = %#x",
+	    Die ("bad array tag %d, obj = %p, desc = %p",
 		GET_TAG(desc), obj, desc);
 	} /* end of switch */
 	arena = heap->gen[EXTRACT_GEN(id)-1]->arena[ARRAY_INDX];
@@ -815,7 +816,7 @@ PVT ml_val_t MajorGC_ForwardObj (heap_t *heap, aid_t maxAid, ml_val_t v, aid_t i
 	return v;
 
       default:
-	Die("unknown object class %d @ %#x", EXTRACT_OBJC(id), obj);
+	Die("unknown object class %d @ %p", EXTRACT_OBJC(id), obj);
     } /* end of switch */
 
   /* Allocate and initialize a to-space copy of the object */
@@ -903,7 +904,7 @@ PVT ml_val_t MajorGC_FwdSpecial (
       case SPCL_weak: {
 	    ml_val_t	v = *obj;
 #ifdef DEBUG_WEAK_PTRS
-SayDebug ("MajorGC: weak [%#x ==> %#x] --> %#x", obj, new_obj+1, v);
+SayDebug ("MajorGC: weak [%p ==> %p] --> %p", obj, new_obj+1, v);
 #endif
 	    if (! isBOXED(v)) {
 #ifdef DEBUG_WEAK_PTRS
@@ -932,7 +933,7 @@ SayDebug (" unboxed\n");
 			   * it never sees to-space pointers during sweeping.
 			   */
 #ifdef DEBUG_WEAK_PTRS
-SayDebug (" already forwarded to %#x\n", FOLLOW_FWDOBJ(vp));
+SayDebug (" already forwarded to %p\n", FOLLOW_FWDOBJ(vp));
 #endif
 			    *new_obj++ = DESC_weak;
 			    *new_obj = v;
@@ -945,7 +946,7 @@ SayDebug (" already forwarded to %#x\n", FOLLOW_FWDOBJ(vp));
 			   * reference.
 			   */
 #ifdef DEBUG_WEAK_PTRS
-SayDebug (" forward (start = %#x)\n", vp);
+SayDebug (" forward (start = %p)\n", vp);
 #endif
 			    *new_obj = MARK_PTR(PTR_CtoML(gen->heap->weakList));
 			    gen->heap->weakList = new_obj++;
@@ -961,7 +962,7 @@ SayDebug (" forward (start = %#x)\n", vp);
 			   * it never sees to-space pointers during sweeping.
 			   */
 #ifdef DEBUG_WEAK_PTRS
-SayDebug (" (pair) already forwarded to %#x\n", FOLLOW_FWDPAIR(desc, vp));
+SayDebug (" (pair) already forwarded to %p\n", FOLLOW_FWDPAIR(desc, vp));
 #endif
 			    *new_obj++ = DESC_weak;
 			    *new_obj = v;
@@ -988,7 +989,7 @@ SayDebug (" old object\n");
 	    }
 	} break;
       default:
-	Die ("strange/unexpected special object @ %#x; desc = %#x\n", obj, desc);
+	Die ("strange/unexpected special object @ %p; desc = %p\n", obj, desc);
     } /* end of switch */
 
     obj[-1] = DESC_forwarded;
