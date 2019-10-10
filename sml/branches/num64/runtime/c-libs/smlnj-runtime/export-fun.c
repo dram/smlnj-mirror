@@ -1,6 +1,7 @@
-/* export-fun.c
+/*! \file export-fun.c
  *
- * COPYRIGHT (c) 1994 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "ml-osdep.h"
@@ -34,10 +35,12 @@ ml_val_t _ml_RunT_export_fun (ml_state_t *msp, ml_val_t arg)
     sts = ExportFnImage (msp, funct, file);
     fclose (file);
 
-    if (sts == SUCCESS)
+    if (sts == SUCCESS) {
 	Exit (0);
-    else
+    }
+    else {
 	Die ("export failed");
+    }
 /* NOTE: while it would be nice to raise a SysErr exception here, the ML state
  * has been trashed as a side-effect of the export operation.
 	return RAISE_ERROR(msp, "export failed");

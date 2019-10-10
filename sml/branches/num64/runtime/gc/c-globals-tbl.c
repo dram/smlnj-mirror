@@ -1,8 +1,9 @@
-/* c-globals-tbl.c
+/*! \file c-globals-tbl.c
  *
- * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * This implements a registry of global C symbols that may be referenced
+ * This file implements a registry of global C symbols that may be referenced
  * in the ML heap (e.g., references to C functions).
  */
 
@@ -265,10 +266,11 @@ ml_val_t AddrOfCSymbol (export_table_t *tbl, ml_val_t xref)
     index = GET_LEN(xref);
 
 /*SayDebug("AddrOfCSymbol: %#x: %d --> %#x\n", xref, index, tbl->itemMap[index]->addr);*/
-    if (index >= tbl->numItems)
+    if (index >= tbl->numItems) {
 	Die ("bad external object index %d", index);
-    else
-	return tbl->itemMap[index]->addr;
+    }
+
+    return tbl->itemMap[index]->addr;
 
 } /* end of AddrOfCSymbol */
 

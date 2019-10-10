@@ -1,6 +1,7 @@
-/* unix-signal.c
+/*! \file unix-signal.c
  *
- * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Unix specific code to support ML signals.
  */
@@ -35,7 +36,13 @@ extern		ZeroLimitPtr[];
 #endif
 
 /* local routines */
-PVT SigReturn_t CSigHandler (/* int sig, SigInfo_t info, SigContext_t *scp */);
+#if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
+PVT SigReturn_t CSigHandler (int sig, SigInfo_t info, void *scp);
+#elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+PVT SigReturn_t CSigHandler (int sig, SigContext_t *scp);
+#else
+PVT SigReturn_t CSigHandler (int sig, SigInfo_t info, SigContext_t *scp);
+#endif
 
 
 /* ListSignals:

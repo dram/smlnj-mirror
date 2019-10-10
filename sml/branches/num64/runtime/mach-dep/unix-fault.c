@@ -26,7 +26,13 @@
 
 
 /* local routines */
-PVT SigReturn_t FaultHandler (/* int sig, SigInfo_t code, SigContext_t *scp */);
+#if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
+PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, void *scp);
+#elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+PVT SigReturn_t FaultHandler (int sig, SigContext_t *scp);
+#else
+PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, SigContext_t *scp);
+#endif
 
 
 /* InitFaultHandlers:

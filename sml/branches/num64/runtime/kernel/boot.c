@@ -580,11 +580,14 @@ PVT ml_val_t LookupPerID (pers_id_t *perID)
 	if (memcmp((char *)perID, STR_MLtoC(id), PERID_LEN) == 0)
 	    return (REC_SEL(p, 1));
     }
+
+  /* here we were unable to find the PerID */
     {
 	char	buf[64];
 	ShowPerID (buf, perID);
 	Die ("unable to find PerID %s", buf);
     }
+
 } /* end of LookupPerID */
 
 
