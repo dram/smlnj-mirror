@@ -1,6 +1,9 @@
-/* ml-objects.c
+/*! \file ml-objects.c
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * \author John Reppy
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Code to allocate and manipulate ML objects.
  *
@@ -477,12 +480,22 @@ ml_val_t ML_SysConstList (ml_state_t *msp, sysconst_tbl_t *tbl)
 {
     int		i;
     ml_val_t	name, sysConst, list;
+    Addr_t	availSpace, reqSpace;
 
-/** should check for available heap space !!! **/
+    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr);
     for (list = LIST_nil, i = tbl->numConsts;  --i >= 0;  ) {
+      /* required space for string header+data (4 words + string bytes), pair (3 words),
+       * cons (3 words).
+       */
+	reqSpace = (4 + 3 + 3) * WORD_SZB + BYTES_TO_WORDS(strlen(tbl->consts[i].name) + 1);
+	if (reqSpace >= availSpace) {
+	    InvokeGCWithRoots (msp, 0, (ml_val_t *)&list, NIL(ml_val_t *));
+	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr);
+	}
 	name = ML_CString (msp, tbl->consts[i].name);
 	REC_ALLOC2 (msp, sysConst, INT_CtoML(tbl->consts[i].id), name);
 	LIST_cons(msp, list, sysConst, list);
+	availSpace -= reqSpace;
     }
 
     return list;

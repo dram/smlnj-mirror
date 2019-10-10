@@ -367,11 +367,7 @@ extern void SetFSR(int);
 
 #  if defined(OPSYS_LINUX)
     /** AMD64, LINUX **/
-#    define INTO_OPCODE		0xce	/* the 'into' instruction is a single */
-					/* instruction that signals Overflow */
-
 #    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGSEGV
 
 #    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_RIP])
 /* for linux, SIG_GetCode simply returns the address of the fault */
@@ -393,7 +389,6 @@ extern void SetFSR(int);
 #  elif defined(OPSYS_NETBSD)
     /** amd64, NetBSD (version 3.x) **/
 #    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGBUS
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((uc)->uc_mcontext.__gregs[_REG_RIP])
@@ -403,7 +398,6 @@ extern void SetFSR(int);
 #  elif defined(OPSYS_OPENBSD)
     /** amd64, OpenBSD **/
 #    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGBUS
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_rip)
@@ -425,7 +419,6 @@ extern void SetFSR(int);
 
      typedef void SigReturn_t;
 #    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGSEGV
 #    define INT_DIVZERO(s, c)	((s) == SIGFPE)
 /*#    define SIG_ZeroLimitPtr(scp)  { ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }*/
 

@@ -110,7 +110,7 @@
 
 /* sigh_return:
  */
-ML_CODE_HDR(sigh_return_a)
+ALIGNED_ENTRY(sigh_return_a)
 	MOV(IM(ML_unit),stdlink)
 	MOV(IM(ML_unit),stdclos)
 	MOV(IM(ML_unit),pc)
@@ -121,14 +121,14 @@ ML_CODE_HDR(sigh_return_a)
  * Resume execution at the point at which a handler trap occurred.  This is a
  * standard two-argument function, thus the closure is in ml_cont.
  */
-ENTRY(sigh_resume)
+ALIGNED_ENTRY(sigh_resume)
 	MOV(IM(REQ_SIG_RESUME),request_w)
 	JMP(set_request)
 
 /* pollh_return_a:
  * The return continuation for the ML poll handler.
  */
-ML_CODE_HDR(pollh_return_a)
+ALIGNED_ENTRY(pollh_return_a)
 	MOV	(IM(ML_unit),stdlink)
 	MOV	(IM(ML_unit),stdclos)
 	MOV	(IM(ML_unit),pc)
@@ -138,20 +138,20 @@ ML_CODE_HDR(pollh_return_a)
 /* pollh_resume:
  * Resume execution at the point at which a poll event occurred.
  */
-ENTRY(pollh_resume)
+ALIGNED_ENTRY(pollh_resume)
 	MOV	(IM(REQ_POLL_RESUME),request_w)
 	JMP	(set_request)
 
 /* handle:
  */
-ML_CODE_HDR(handle_a)
+ALIGNED_ENTRY(handle_a)
 	MOVE	(stdlink,temp,pc)
 	MOV	(IM(REQ_EXN),request_w)
 	JMP	(set_request)
 
 /* return:
  */
-ML_CODE_HDR(return_a)
+ALIGNED_ENTRY(return_a)
 	MOV	(IM(ML_unit),stdlink)
 	MOV	(IM(ML_unit),stdclos)
 	MOV	(IM(ML_unit),pc)
@@ -164,7 +164,7 @@ ML_CODE_HDR(return_a)
  * because no floating point registers will be live at the start of
  * the exception handler.
  */
-ENTRY(request_fault)
+ALIGNED_ENTRY(request_fault)
 	CALL	(CSYM(FPEEnable))
 	MOVE	(stdlink,temp,pc)
 	MOV	(IM(REQ_FAULT),request_w)
@@ -172,21 +172,21 @@ ENTRY(request_fault)
 
 /* bind_cfun : (string * string) -> c_function
  */
-ML_CODE_HDR(bind_cfun_a)
+ALIGNED_ENTRY(bind_cfun_a)
 	CHECKLIMIT
 	MOV	(IM(REQ_BIND_CFUN),request_w)
 	JMP	(set_request)
 
 /* build_literals:
  */
-ML_CODE_HDR(build_literals_a)
+ALIGNED_ENTRY(build_literals_a)
 	CHECKLIMIT
 	MOV	(IM(REQ_BUILD_LITERALS),request_w)
 	JMP	(set_request)
 
 /* callc:
  */
-ML_CODE_HDR(callc_a)
+ALIGNED_ENTRY(callc_a)
 	CHECKLIMIT
 	MOV	(IM(REQ_CALLC),request_w)
 	JMP	(set_request)
@@ -195,7 +195,7 @@ ML_CODE_HDR(callc_a)
  * Entry point for GC.  Control is transfered using a `call` instruction,
  * so the return address is on the top of the stack.
  */
-ENTRY(saveregs)
+ALIGNED_ENTRY(saveregs)
 	POP	(pc)
 	MOV	(IM(REQ_GC),request_w)
 	/* fall into set_request */
@@ -258,9 +258,9 @@ LABEL(set_request)
 /* on Windows, `restoreregs` is a C wrapper around `asm_restoreregs` that
  * handles traps (see `runtime/mach-dep/win32-fault.c`)
  */
-ENTRY(asm_restoreregs)
+ALIGNED_ENTRY(asm_restoreregs)
 #else
-ENTRY(restoreregs)
+ALIGNED_ENTRY(restoreregs)
 #endif
 	/* put ML state pointer in temp */
 	MOV	(REGOFF(4,ESP), temp)
@@ -361,7 +361,7 @@ LABEL(pending)
  *
  * Allocate and initialize a new array.	 This function can cause GC.
  */
-ML_CODE_HDR(array_a)
+ALIGNED_ENTRY(array_a)
 	CHECKLIMIT
 	MOV	(REGIND(stdarg),temp)		/* temp := length in words */
 	SAR	(IM(1),temp)			/* temp := length untagged */
@@ -413,7 +413,7 @@ LABEL(L_array_large)
  *
  * Alocate an uninitialized packed array of 64-bit reals.
  */
-ML_CODE_HDR(create_r_a)
+ALIGNED_ENTRY(create_r_a)
 	CHECKLIMIT
 	MOV	(stdarg,temp)		/* temp := length */
 	SAR	(IM(1),temp)		/* temp := untagged length */
@@ -458,7 +458,7 @@ LABEL(L_create_r_large)
  *
  * Allocate an uninitialized packed array of bytes.
  */
-ML_CODE_HDR(create_b_a)
+ALIGNED_ENTRY(create_b_a)
 	CHECKLIMIT
 	MOV	(stdarg,temp)		/* temp is tagged length */
 	SAR	(IM(1),temp)		/* temp >>= 1; (untag length) */
@@ -501,7 +501,7 @@ LABEL(L_create_b_large)
  *
  * Allocate an uninitialized packed vector of bytes.
  */
-ML_CODE_HDR(create_s_a)
+ALIGNED_ENTRY(create_s_a)
 	CHECKLIMIT
 	MOV	(stdarg,temp)
 	SAR	(IM(1),temp)		/* untag */
@@ -547,7 +547,7 @@ LABEL(L_create_s_large)
  *	creates a vector with elements taken from a list.
  *	n.b. The frontend ensures that list cannot be nil.
  */
-ML_CODE_HDR(create_v_a)
+ALIGNED_ENTRY(create_v_a)
 	CHECKLIMIT
 	MOV	(REGIND(stdarg),temp)		/* temp = len tagged */
 	PUSH	(misc0)
@@ -602,7 +602,7 @@ LABEL(L_create_v_large)
  * low-level test-and-set style primitive for mutual-exclusion among
  * processors.	For now, we only provide a uni-processor trivial version.
  */
-ML_CODE_HDR(try_lock_a)
+ALIGNED_ENTRY(try_lock_a)
 #if (MAX_PROCS > 1)
 #  error multiple processors not supported
 #else /* (MAX_PROCS == 1) */
@@ -614,7 +614,7 @@ ML_CODE_HDR(try_lock_a)
 
 /* unlock : releases a spin lock
  */
-ML_CODE_HDR(unlock_a)
+ALIGNED_ENTRY(unlock_a)
 #if (MAX_PROCS > 1)
 #  error multiple processors not supported
 #else /* (MAX_PROCS == 1) */
@@ -638,7 +638,7 @@ ML_CODE_HDR(unlock_a)
  *
  * NB: this cannot trash any registers because it's called from request_fault.
  */
-ENTRY(FPEEnable)
+ALIGNED_ENTRY(FPEEnable)
 	FINIT
 	/* Temp space.Keep stack aligned. */
 	SUB	(IM(4), ESP)
@@ -656,7 +656,7 @@ ENTRY(FPEEnable)
    Return the nearest integer that is less or equal to the argument.
    Caller's responsibility to make argument in range. */
 
-ML_CODE_HDR(floor_a)
+ALIGNED_ENTRY(floor_a)
 	/* Get FP control word. */
 /* FIXME: use the stack !!! */
 	FSTCW	(tempword1)
@@ -683,7 +683,7 @@ ML_CODE_HDR(floor_a)
  * Extract the unbiased exponent pointed to by stdarg.
  * Note: Using fxtract, and fistl does not work for inf's and nan's.
  */
-ML_CODE_HDR(logb_a)
+ALIGNED_ENTRY(logb_a)
 	MOV	(REGOFF(4,stdarg),temp)	/* msb for little endian arch */
 	SAR	(IM(20),temp)		/* throw out 20 bits */
 	AND	(IM(HEXLIT(7ff)),temp)	/* clear all but 11 low bits */
@@ -700,7 +700,7 @@ ML_CODE_HDR(logb_a)
  * NB: We assume the first floating point "register" is
  * caller-save, so we can use it here (see x86/x86.sml). */
 
-ML_CODE_HDR(scalb_a)
+ALIGNED_ENTRY(scalb_a)
 	CHECKLIMIT
 	PUSH	(REGOFF(4,stdarg))		/* Get copy of scalar. */
 	SAR	(IM(1),REGIND(ESP))		/* Untag it. */

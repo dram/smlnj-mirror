@@ -32,7 +32,7 @@ CPP =           cc -x assembler-with-cpp -E -P -std=c99
 XOBJS =
 XLIBS =         ../c-libs/dl/libunix-dynload.a
 LD_LIBS =       -ldl
-XDEFS =
+XDEFS =		-DASSERT_ON
 BASE_DEFS =
 DEFS		= $(XDEFS) $(BASE_DEFS) -DHOST_X86 -DTARGET_X86 -DOPSYS_UNIX -DOPSYS_DARWIN -DGNU_ASSEMBLER -DDLOPEN -DINDIRECT_CFUNC
 TARGET =	X86

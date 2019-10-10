@@ -1,19 +1,9 @@
 /*! \file unix-fault.c
  *
- * \author John Reppy
- *
  * Common code for handling arithmetic traps and signals.
- */
-
-/*
+ *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
- */
-
-
-/* unix-fault.c
- *
- * COPYRIGHT (c) 1992 by AT&T Bell Laboratories.
  *
  * Common code for handling arithmetic traps.
  */
@@ -79,9 +69,10 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *c)
 	signal, code, SELF_VPROC->vp_inMLFlag);
 #endif
 
-    if (! SELF_VPROC->vp_inMLFlag)
+    if (! SELF_VPROC->vp_inMLFlag) {
 	Die ("bogus fault not in ML: sig = %d, code = %#x, pc = %#x)\n",
 	    signal, SIG_GetCode(si, scp), SIG_GetPC(scp));
+    }
 
    /* Map the signal to Overflow */
     msp->ml_faultExn = OverflowId;
@@ -89,7 +80,10 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *c)
 
     SIG_SetPC (scp, request_fault);
 
+  /* I don't think that this call is still necessary, since we are only
+   * dealing with integer overflow here! -- JHR (2019-10-10)
     SIG_ResetFPE (scp);
+   */
 
 } /* end of FaultHandler */
 
