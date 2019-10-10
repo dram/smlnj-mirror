@@ -109,11 +109,11 @@ architecture AMD64 =
        * where any component is optional. The operand datatype captures
        * all these combinations.
        *
-       *  DISP 	         == Immed | ImmedLabel | Const
-       *  B		 == Displace{base=B, disp=0}
-       *  B+DISP	 == Displace{base=B, disp=DISP}
-       *  I*SCALE+DISP   == Indexed{base=NONE,index=I,scale=SCALE,disp=D}
-       *  B+I*SCALE+DISP == Indexed{base=SOME B,index=I,scale=SCALE,disp=DISP}
+       *  DISP 	           == Immed | ImmedLabel | Const
+       *  B		   == Displace{base=B, disp=0}
+       *  B+DISP	   == Displace{base=B, disp=DISP}
+       *  I*2^SCALE+DISP   == Indexed{base=NONE,index=I,scale=SCALE,disp=D}
+       *  B+I*2^SCALE+DISP == Indexed{base=SOME B,index=I,scale=SCALE,disp=DISP}
        * Note1: The index register cannot be rbp.
        *        The disp field must be one of Immed, ImmedLabel,  or Const.
        *)
