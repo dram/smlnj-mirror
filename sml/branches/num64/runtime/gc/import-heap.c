@@ -29,7 +29,7 @@
 #endif
 
 #ifdef DEBUG
-PVT void PrintRegionMap (bo_region_reloc_t *r)
+PVT void PrintRelocMap (bo_region_reloc_t *r)
 {
     bo_reloc_t		*dp, *dq;
     int			i;
@@ -48,7 +48,7 @@ PVT void PrintRegionMap (bo_region_reloc_t *r)
     }
     SayDebug ("|\n");
 
-} /* end of PrintRegionMap */
+} /* end of PrintRelocMap */
 #endif
 
 
@@ -61,9 +61,6 @@ PVT void RepairHeap (
 PVT ml_val_t RepairWord (
 	ml_val_t w, bibop_t oldBIBOP, Addr_t addrOffset[MAX_NUM_GENS][NUM_ARENAS],
 	addr_tbl_t *boRegionTbl, ml_val_t *externs);
-/*
-PVT int RepairBORef (aid_t *bibop, aid_t id, ml_val_t *ref, ml_val_t oldObj);
-*/
 PVT bo_reloc_t *AddrToRelocInfo (bibop_t, addr_tbl_t *, aid_t, Addr_t);
 
 #define READ(bp,obj)	HeapIO_ReadBlock(bp, &(obj), sizeof(obj))
@@ -343,8 +340,10 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
 		   */
 		    for (indx = BIBOP_ADDR_TO_INDEX(boHdrs[k].baseAddr);
 			!BO_IS_HDR(INDEX_TO_PAGEID(oldBIBOP,indx));
-			indx--)
+			--indx)
+		    {
 			continue;
+		    }
 		    region = LookupBORegion (boRegionTbl, indx);
 		  /* allocate the big-object descriptor for the object, and
 		   * link it into the list of big-objects for its generation.

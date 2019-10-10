@@ -130,7 +130,7 @@ struct arena {
 				/* blasting out objects).  The repair list grows */
 				/* down in to-space. */
     ml_val_t	*frspBase;	/* the base address and size of from-space. */
-    Word_t	frspSizeB;
+    Addr_t	frspSizeB;
     ml_val_t	*frspTop;	/* The top of the used portion of from-space. */
     ml_val_t	*oldTop;	/* The top of the "older" from-space region. Objects */
 				/* below oldTop get promoted, those above don't. */
@@ -138,9 +138,9 @@ struct arena {
     bool_t	needsRepair;	/* Set to TRUE when exporting, if the arena had */
 				/* external references that require repair */
 				/* Heap sizing parameters: */
-    Word_t	reqSizeB;	/*   requested minimum size for this arena (this is */
+    Addr_t	reqSizeB;	/*   requested minimum size for this arena (this is */
 				/*   in addition to the required min. size). */
-    Word_t	maxSizeB;	/*   a soft maximum size for this arena. */
+    Addr_t	maxSizeB;	/*   a soft maximum size for this arena. */
 };
 
 /* Make to-space into from-space */

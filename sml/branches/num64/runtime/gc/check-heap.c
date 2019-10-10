@@ -400,8 +400,6 @@ PVT int CheckPtr (ml_val_t *p, ml_val_t w, int srcGen, int srcKind, int dstKind)
 		SayDebug (
 		    "** @%p: reference to unregistered external address %p\n",
 		    p, (void *)w);
-SayDebug("BIBOP[%d] = %p[%d] = %d:%d\n",
-BIBOP_ADDR_TO_L1_INDEX(w), BIBOP[BIBOP_ADDR_TO_L1_INDEX(w)], BIBOP_ADDR_TO_L2_INDEX(w), dstGen, objc);
 	    }
 	    dstGen = MAX_NUM_GENS;
 	}

@@ -41,7 +41,7 @@ void PrintRegionMap (bigobj_region_t *r)
 /* BO_AllocRegion:
  *
  * Allocate a big object region that is large enough to hold an object of at
- * least szB bytes.  It returns the descriptor for the free big-object that
+ * least reqSzB bytes.  It returns the descriptor for the free big-object that
  * is the region.
  * NOTE: it does not mark the BIBOP entries for the region; this should be
  * done by the caller.

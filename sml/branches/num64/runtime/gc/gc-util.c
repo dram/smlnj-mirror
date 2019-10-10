@@ -80,7 +80,6 @@ SayDebug ("  %#x:  [%p, %p)\n", ap->id, ap->nextw, p);
 	*(ap->nextw++) = ML_unit;
 	*(ap->nextw++) = ML_unit;
 	ap->tospBase = ap->nextw;
-	ap->tospSizeB -= (2*WORD_SZB);
 	ap->sweep_nextw = ap->nextw;
     }
 
@@ -174,17 +173,21 @@ void NewDirtyVector (gen_t *gen)
  */
 void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
 {
-#ifdef SIZE_64
     Addr_t start = BIBOP_ADDR_TO_INDEX(baseAddr);
-    Addr_t end = BIBOP_ADDR_TO_INDEX(((Addr_t)baseAddr)+szB-1);
-    Addr_t np = end - start + 1;
+    Addr_t npages = BIBOP_ADDR_TO_INDEX(szB);
+    Addr_t end = start + npages;
+#ifdef SIZE_64
   /* index range in top-level table */
     Unsigned32_t topStart = BIBOP_INDEX_TO_L1_INDEX(start);
     Unsigned32_t topEnd = BIBOP_INDEX_TO_L1_INDEX(end);
+#endif /* SIZE_64 */
 
-SayDebug("MarkRegion(-, %p, %p, %x:%x:%02x); start = %d(top:%d), np = %d, end = %d(top:%d)\n",
+    ASSERT(npages * BIBOP_PAGE_SZB == szB);
+
+#ifdef SIZE_64
+SayDebug("MarkRegion(-, %p, %p, %x:%x:%02x); start = %d(top:%d), npages = %d, end = %d(top:%d)\n",
 baseAddr, szB, EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
-start, topStart, np, end, topEnd);
+start, topStart, npages, end, topEnd);
     ASSERT(BIBOP_ADDR_TO_L1_INDEX(baseAddr) == topStart);
 
     if (aid == AID_UNMAPPED) {
@@ -233,13 +236,12 @@ ix, l2Tbl, l2Tbl->numMapped, l2Start, l2End-1, aid);
 	}
     }
 #else /* 32-bit ML values */
-    int		start = BIBOP_ADDR_TO_INDEX(baseAddr);
-    int		end = BIBOP_ADDR_TO_INDEX(((Addr_t)baseAddr)+szB-1);
 #ifdef VERBOSE
-/*SayDebug("MarkRegion [%p..%p) as %#x\n", baseAddr, ((Addr_t)baseAddr)+szB, aid); */
+SayDebug("MarkRegion [%p..%p) (%d pages) as %#x\n",
+baseAddr, ((Addr_t)baseAddr)+szB, npages, aid);
 #endif
 
-    while (start <= end) {
+    while (start < end) {
 	BIBOP_UPDATE(bibop, start, aid);
 	start++;
     }

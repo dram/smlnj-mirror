@@ -135,9 +135,7 @@ bibop_t InitBibop ()
 	UnmappedL2.tbl[i] = AID_UNMAPPED;
     }
     UnmappedL2.numMapped = 0;
-#endif
 
-#ifdef SIZE_64
     bibopSz = BIBOP_L1_SZ * sizeof(l2_bibop_t *);
 #else
     bibopSz = BIBOP_SZ * sizeof(aid_t);
@@ -264,7 +262,9 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
     heap->freeBigObjs->prev	= heap->freeBigObjs;
     heap->freeBigObjs->next	= heap->freeBigObjs;
     heap->weakList		= NIL(ml_val_t *);
-SayDebug("Free Big Objects list header = %p\n", heap->freeBigObjs);
+#ifdef VERBOSE
+    SayDebug("Free Big Objects list header = %p\n", heap->freeBigObjs);
+#endif
 
   /* initialize new space */
     heap->baseObj = baseObj;
