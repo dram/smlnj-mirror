@@ -93,9 +93,7 @@ functor AMD64MCEmitter (
 	    shift64(w, 0w0), shift64(w, 0w8), shift64(w, 0w16), shift64(w, 0w24)
 	  ] end
 
-    fun emitInstrs instrs = Word8Vector.concat(map emitInstr instrs)
-
-    and emitAMD64Instr instr = let
+    fun emitAMD64Instr instr = let
 	  val error = fn msg => let
 		val AsmEmitter.S.STREAM{emit,...} = AsmEmitter.makeStream []
 		in
@@ -422,17 +420,19 @@ functor AMD64MCEmitter (
 	      | I.LEAVE => eByte 0xc9
 	      | I.RET NONE => eByte 0xc3
 	      | I.MOVE{mvOp, src, dst} => let
+		(* utility to compute rex and adjusted register *)
+		  fun rexReg r = if r < 8
+			then (0wx48, r)
+			else (0wx49, r - 8)
 		(* emit basic MOV operation *)
 		  fun mov sz = (case (src, dst)
 		         of (I.Immed i, I.Direct (_, r)) => (case sz
-			       of 32 => eBytes (Word8.+(0wxb8, Word8.fromInt(rNum r))::eLong(i))
+			       of 32 => eBytes (Word8.+(0wxb8, Word8.fromInt(rNum r))::eLong i)
 				| 64 => let
-				  val (start, reg) = if rNum r < 8
-					then (0wx48, rNum r)
-					else (0wx49, rNum r - 8)
-				      in
-					eBytes(start::0wxc7::Word8.+(0wxc0, Word8.fromInt reg)::eLong(i))
-				      end
+				    val (rex, reg) = rexReg(rNum r)
+				    in
+				      eBytes(rex::0wxc7::Word8.+(0wxc0, Word8.fromInt reg)::eLong i)
+				    end
 				| _ => raise Fail "impossible"
 			      (* end case *))
 			  | (I.Immed i, _) => encodeLongImm sz (0wxc7, OPCODE 0, dst, i)
@@ -442,14 +442,12 @@ functor AMD64MCEmitter (
 				      then ([], rNum r)
 				      else ([0wx41], rNum r - 8)
 				in
-				  eBytes(start@Word8.+(0wxb8, Word8.fromInt reg)::eLongLongCut(i))
+				  eBytes(start@Word8.+(0wxb8, Word8.fromInt reg)::eLongLongCut i)
 				end
 			      else let
-				val (start, reg) = if rNum r < 8
-				      then (0wx48, rNum r)
-				      else (0wx49, rNum r - 8)
+				val (rex, reg) = rexReg(rNum r)
 				in
-				  eBytes(start::Word8.+(0wxb8, Word8.fromInt reg)::eLongLong(i))
+				  eBytes(rex::Word8.+(0wxb8, Word8.fromInt reg)::eLongLong i)
 				end
 			  | (I.Immed64 i, _) => error " Immed64 _"
 			  | (I.ImmedLabel le, dst) =>
@@ -459,16 +457,8 @@ functor AMD64MCEmitter (
 			(* end case *))
 		(* zero and sign-extension moves for 16/32-bit results *)
 		  fun extend (opc, r) = eBytes (encode32' ([0wx0f, opc], REG(rNum r), src))
-		(* utility to compute rex and adjusted register *)
-		  fun rexReg r = if r >= 8
-			then (0wx48, r)
-			else (0wx49, r - 8)
 		(* zero and sign-extension moves for 64-bit results *)
-		  fun extend64 (opc, r) = let
-			val (rex, r) = rexReg(rNum r)
-			in
-			  eBytes (rex :: encode32' ([0wx0f, opc], REG r, src))
-			end
+		  fun extend64 (opc, r) = eBytes (encode64' ([0wx0f, opc], REG(rNum r), src))
 		  in
 		    case (mvOp, src, dst)
 		     of (I.MOVQ, _, _) => mov 64
@@ -495,9 +485,8 @@ functor AMD64MCEmitter (
 			    eBytes(rex :: (0wxb8+Word8.fromInt reg) :: eLongLong i)
 			  end
 		      | (I.MOVABSQ, I.ImmedLabel labexp, I.Direct(_ ,r)) => let
-			  val p = rNum r
-			  val byte1 = if p < 8 then 0wx48 else 0wx49
-			  val byte2 = 0wxb8 + Word8.fromInt (if p < 8 then p else p - 8)
+			  val (byte1, p) = rexReg(rNum r)
+			  val byte2 = 0wxb8 + Word8.fromInt p
 			  val byten = eLong (lexp labexp) (* FIXME: should be 64 bits *)
 			  val hilong = if (lexp labexp) < 0
 				then [0wxff, 0wxff, 0wxff, 0wxff]
@@ -832,7 +821,7 @@ functor AMD64MCEmitter (
 	    (* esac *)
 	  end (* emitAMD64Instr *)
 
-    and emitInstr (I.LIVE _) = Word8Vector.fromList []
+    fun emitInstr (I.LIVE _) = Word8Vector.fromList []
       | emitInstr (I.KILL _) = Word8Vector.fromList []
       | emitInstr(I.COPY{k, dst, src, tmp, ...}) = (case k
 	   of CB.GP => emitInstrs (Shuffle.shuffle {tmp=tmp, dst=dst, src=src})
@@ -864,5 +853,7 @@ functor AMD64MCEmitter (
 	  (* end case *))
  *)
       | emitInstr (I.ANNOTATION{i, a}) = emitInstr i
+
+    and emitInstrs instrs = Word8Vector.concat(map emitInstr instrs)
 
   end (* AMD64MCEmitter *)
