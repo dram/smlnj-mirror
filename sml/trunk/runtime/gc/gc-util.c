@@ -49,7 +49,7 @@ status_t NewGeneration (gen_t *gen)
   /* Initialize the chunks */
     gen->toObj = memobj;
 #ifdef VERBOSE
-SayDebug ("NewGeneration[%d]: tot_sz = %d, [%#x, %#x)\n",
+SayDebug ("NewGeneration[%d]: tot_sz = %d, [%p, %p)\n",
 gen->genNum, tot_sz, MEMOBJ_BASE(memobj), MEMOBJ_BASE(memobj) + MEMOBJ_SZB(memobj));
 #endif
     for (p = (ml_val_t *)MEMOBJ_BASE(memobj), i = 0;  i < NUM_ARENAS;  i++) {
@@ -63,7 +63,7 @@ gen->genNum, tot_sz, MEMOBJ_BASE(memobj), MEMOBJ_BASE(memobj) + MEMOBJ_SZB(memob
 	    MarkRegion (BIBOP, ap->tospBase, ap->tospSizeB, ap->id);
 	    HeapMon_MarkRegion (gen->heap, ap->tospBase, ap->tospSizeB, ap->id);
 #ifdef VERBOSE
-SayDebug ("  %#x:  [%#x, %#x)\n", ap->id, ap->nextw, p);
+SayDebug ("  %#x:  [%p, %p)\n", ap->id, ap->nextw, p);
 #endif
 	}
 	else {
@@ -100,7 +100,7 @@ void FreeGeneration (heap_t *heap, int g)
 	return;
 
 #ifdef VERBOSE
-SayDebug ("FreeGeneration [%d]: [%#x, %#x)\n", g+1, MEMOBJ_BASE(gen->fromObj),
+SayDebug ("FreeGeneration [%d]: [%p, %p)\n", g+1, MEMOBJ_BASE(gen->fromObj),
 MEMOBJ_BASE(gen->fromObj) + MEMOBJ_SZB(gen->fromObj));
 #endif
     if (g < heap->cacheGen) {
@@ -221,7 +221,8 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
     int		start = BIBOP_ADDR_TO_INDEX(baseAddr);
     int		end = BIBOP_ADDR_TO_INDEX(((Addr_t)baseAddr)+szB);
 #ifdef VERBOSE
-/*SayDebug("MarkRegion [%#x..%#x) as %#x\n", baseAddr, ((Addr_t)baseAddr)+szB, aid); */
+SayDebug("MarkRegion [%p..%p) (%d pages) as %#x\n",
+baseAddr, ((Addr_t)baseAddr)+szB, end - start, aid);
 #endif
 
     while (start < end) {
@@ -246,7 +247,7 @@ void ScanWeakPtrs (heap_t *heap)
     for (p = heap->weakList;  p != NIL(ml_val_t *);  p = q) {
 	q = PTR_MLtoC(ml_val_t, UNMARK_PTR(p[0]));
 	obj = (ml_val_t *)(Addr_t)UNMARK_PTR(p[1]);
-/* SayDebug ("  %#x --> %#x ", p+1, obj); */
+/* SayDebug ("  %p --> %p ", p+1, obj); */
 
 	switch (EXTRACT_OBJC(ADDR_TO_PAGEID(BIBOP, obj))) {
 	  case OBJC_new:
@@ -257,7 +258,7 @@ void ScanWeakPtrs (heap_t *heap)
 	    if (desc == DESC_forwarded) {
 		p[0] = DESC_weak;
 		p[1] = PTR_CtoML(FOLLOW_FWDOBJ(obj));
-/* SayDebug ("forwarded to %#x\n", FOLLOW_FWDOBJ(obj)); */
+/* SayDebug ("forwarded to %p\n", FOLLOW_FWDOBJ(obj)); */
 	    }
 	    else {
 		p[0] = DESC_null_weak;
@@ -269,7 +270,7 @@ void ScanWeakPtrs (heap_t *heap)
 	    if (isDESC(desc = obj[0])) {
 		p[0] = DESC_weak;
 		p[1] = PTR_CtoML(FOLLOW_FWDPAIR(desc, obj));
-/* SayDebug ("(pair) forwarded to %#x\n", FOLLOW_FWDPAIR(desc, obj)); */
+/* SayDebug ("(pair) forwarded to %p\n", FOLLOW_FWDPAIR(desc, obj)); */
 	    }
 	    else {
 		p[0] = DESC_null_weak;

@@ -130,6 +130,12 @@ bibop_t InitBibop ()
     int i;
 
 #ifdef SIZE_64
+  /* initialize the level-2 table for unmapped regions */
+    for (i = 0;  i < BIBOP_L2_SZ;  i++) {
+	UnmappedL2.tbl[i] = AID_UNMAPPED;
+    }
+    UnmappedL2.numMapped = 0;
+
     bibopSz = BIBOP_L1_SZ * sizeof(l2_bibop_t *);
 #else
     bibopSz = BIBOP_SZ * sizeof(aid_t);
@@ -140,6 +146,9 @@ bibop_t InitBibop ()
     }
 
 #ifdef SIZE_64
+#ifdef VERBOSE
+    SayDebug("InitBibop: UnmappedL2 = %p\n", &UnmappedL2);
+#endif
     for (i = 0;  i < BIBOP_L1_SZ;  i++) {
 	bibop[i] = &UnmappedL2;
     }
@@ -200,12 +209,6 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
     }
 
   /* initialize the BIBOP */
-#ifdef SIZE_64
-    for (i = 0;  i < BIBOP_L2_SZ;  i++) {
-	UnmappedL2.tbl[i] = AID_UNMAPPED;
-    }
-    UnmappedL2.numMapped = 0;
-#endif
     BIBOP = InitBibop();
 
   /* initialize heap descriptor */
@@ -237,13 +240,15 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
 	    gen->arena[j]->maxSizeB = max_sz;
 	    gen->arena[j]->id = MAKE_AID(i+1, j+1, 0);
 	}
-	for (j = 0;  j < NUM_BIGOBJ_KINDS;  j++)
+	for (j = 0;  j < NUM_BIGOBJ_KINDS;  j++) {
 	    gen->bigObjs[j] = NIL(bigobj_desc_t *);
+	}
     }
     for (i = 0;  i < params->numGens;  i++) {
 	int	k = (i == params->numGens-1) ? i : i+1;
-	for (j = 0;  j < NUM_ARENAS;  j++)
+	for (j = 0;  j < NUM_ARENAS;  j++) {
 	    heap->gen[i]->arena[j]->nextGen = heap->gen[k]->arena[j];
+	}
     }
     heap->numGens		= params->numGens;
     heap->cacheGen		= params->cacheGen;
@@ -264,9 +269,9 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
     heap->allocSzB = MAX_NUM_PROCS*params->allocSz;
     MarkRegion (BIBOP, (ml_val_t *)MEMOBJ_BASE(baseObj), MEMOBJ_SZB(heap->baseObj), AID_NEW);
 #ifdef VERBOSE
-    SayDebug ("NewSpace = [%#x, %#x:%#x), %d bytes\n",
+    SayDebug ("NewSpace = [%p, %p:%p), %d bytes\n",
 	heap->allocBase, HEAP_LIMIT(heap),
-	(Word_t)(heap->allocBase)+params->allocSz, params->allocSz);
+	(void *)((Addr_t)heap->allocBase+params->allocSz), params->allocSz);
 #endif
 
 #ifdef GC_STATS
@@ -287,12 +292,15 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
 
     if (isBoot) {
       /* Create the first generation's to-space. */
-	for (i = 0;  i < NUM_ARENAS;  i++)
+	for (i = 0;  i < NUM_ARENAS;  i++) {
 	    heap->gen[0]->arena[i]->tospSizeB = RND_MEMOBJ_SZB(2 * heap->allocSzB);
-	if (NewGeneration(heap->gen[0]) == FAILURE)
+	}
+	if (NewGeneration(heap->gen[0]) == FAILURE) {
 	    Die ("unable to allocate initial first generation space\n");
-	for (i = 0;  i < NUM_ARENAS;  i++)
+	}
+	for (i = 0;  i < NUM_ARENAS;  i++) {
 	    heap->gen[0]->arena[i]->oldTop = heap->gen[0]->arena[i]->tospBase;
+	}
     }
 
   /* initialize the GC related parts of the ML state */
@@ -323,4 +331,3 @@ void ClearGCStats (heap_t *heap)
 
 } /* end of ClearStats */
 #endif
-

@@ -588,7 +588,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #endif
 	  case INT_ARG:
 #ifdef SIZE_64
-	    arg.iArg = (Int_t)GetI64Arg(&(code[pc]));  pc += 4;
+	    arg.iArg = (Int_t)GetI64Arg(&(code[pc]));  pc += 8;
 #else /* SIZE_32 */
 	    arg.iArg = (Int_t)GetI32Arg(&(code[pc]));  pc += 4;
 #endif

@@ -1,6 +1,7 @@
-/* heap.h
+/*! \file heap.h
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * These are the definitions for the heap structure.
  */
@@ -232,22 +233,24 @@ struct bigobj_desc {	    /* A big-object descriptor. */
 #define BO_IS_FREE(dp)		((dp)->state == BO_FREE)
 
 /* remove a descriptor from a doubly linked list */
-#define REMOVE_BODESC(dp)		{			\
-	bigobj_desc_t	*__dp = (dp), *__p, *__n;		\
-	__p = __dp->prev;					\
-	__n = __dp->next;					\
-	__p->next = __n;					\
-	__n->prev = __p;					\
-    }
+STATIC_INLINE void RemoveBODesc (bigobj_desc_t *dp)
+{
+    ASSERT((dp->prev != dp) && (dp->next != dp));
+    bigobj_desc_t *p = dp->prev;
+    bigobj_desc_t *n = dp->next;
+    p->next = n;
+    n->prev = p;
+}
 
 /* add a descriptor to a doubly linked list */
-#define ADD_BODESC(hdr, desc)	{				\
-	bigobj_desc_t	*__hdr = (hdr), *__dp = (desc);		\
-	__dp->next = __hdr->next;				\
-	__dp->prev = __hdr;					\
-	__hdr->next->prev = __dp;				\
-	__hdr->next = __dp;					\
-    }
+STATIC_INLINE void AddBODesc (bigobj_desc_t *hdr, bigobj_desc_t *dp)
+{
+    bigobj_desc_t *n = hdr->next;
+    dp->next = n;
+    dp->prev = hdr;
+    n->prev = dp;
+    hdr->next = dp;
+}
 
 
 /** operations on forward pointers **/
@@ -284,7 +287,7 @@ extern Byte_t *BO_GetCodeObjTag (bigobj_desc_t *bdp);
 #ifdef BO_DEBUG
 extern void PrintRegionMap (bigobj_region_t *r);
 #endif
-#ifdef CHECK_GC
+#ifdef CHECK_HEAP
 extern void CheckHeap (heap_t *heap, int maxSweptGen);
 #endif
 
