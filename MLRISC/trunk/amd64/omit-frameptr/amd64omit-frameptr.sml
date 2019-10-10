@@ -85,12 +85,11 @@ struct
 	      error "operand: frame pointer used in index"
 	    else (case base
 	      of NONE => opnd
-	       | SOME b =>
-		 if isVfp b then
-		    (changedFlag := true;
-		     I.Indexed{base=SOME(sp), index=index, scale=scale, mem=mem,
-			       disp=incDisp(disp)})
-		 else opnd
+	       | SOME b => if isVfp b
+		  then (
+		    changedFlag := true;
+		    I.Indexed{base=SOME sp, index=index, scale=scale, mem=mem, disp=incDisp disp})
+		  else opnd
 	     (*esac*))
 (*
 	  | operand(opnd as I.MemReg _) =
