@@ -366,10 +366,10 @@ struct
                  doEA(trees, b, i, s, I.ImmedLabel(T.ADD(32,le,le')))
             | doEALabel(trees, le, b, i, s, _) = error "doEALabel"
 
-          and makeAddressingMode(NONE, NONE, _, disp) = disp
-            | makeAddressingMode(SOME base, NONE, _, disp) =
+          and makeAddressingMode (NONE, NONE, _, disp) = disp
+            | makeAddressingMode (SOME base, NONE, _, disp) =
                 I.Displace{base=base, disp=disp, mem=mem}
-            | makeAddressingMode(base, SOME index, scale, disp) =
+            | makeAddressingMode (base, SOME index, scale, disp) =
                 I.Indexed{base=base, index=index, scale=scale,
                           disp=disp, mem=mem}
 

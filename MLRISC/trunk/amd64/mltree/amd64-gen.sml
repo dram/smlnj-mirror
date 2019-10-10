@@ -223,11 +223,10 @@ functor AMD64Gen (
 
         fun address' ty (ea, mem) = let
             fun makeAddressingMode (NONE, NONE, _, disp) = disp
-	      | makeAddressingMode(SOME base, NONE, _, disp) =
-                I.Displace{base=base, disp=disp, mem=mem}
-              | makeAddressingMode(base, SOME index, scale, disp) =
-                I.Indexed{base=base, index=index, scale=scale,
-		          disp=disp, mem=mem}
+	      | makeAddressingMode (SOME base, NONE, _, disp) =
+                  I.Displace{base=base, disp=disp, mem=mem}
+              | makeAddressingMode (base, SOME index, scale, disp) =
+                  I.Indexed{base=base, index=index, scale=scale, disp=disp, mem=mem}
 
   	    (* Keep building a bigger and bigger effective address expressions
 	     * The input is a list of trees
