@@ -71,7 +71,7 @@ typedef Unsigned16_t page_id_t;
 /* convert a flat BIBOP index to a L2 table index */
 #define BIBOP_INDEX_TO_L2_INDEX(ix)	((ix) & BIBOP_L2_MASK)
 /* convert a flat BIBOP index to a memory address */
-#define BIBOP_INDEX_TO_ADDR(i)		((Addr_t)((i) << BIBOP_L2_SHIFT))
+#define BIBOP_INDEX_TO_ADDR(i)		((Addr_t)(i) << BIBOP_L2_SHIFT)
 
 typedef struct {
     page_id_t		tbl[BIBOP_L2_SZ];
@@ -95,7 +95,7 @@ extern l2_bibop_t	UnmappedL2;
 #define BIBOP_UPDATE(bibop, ix, aid)	\
 	do { bibop[BIBOP_INDEX_TO_L1_INDEX(ix)]->tbl[BIBOP_INDEX_TO_L2_INDEX(ix)] = (aid); } while (0)
 
-#else
+#else /* SIZE_32 */
 
 #define BIBOP_PAGE_BITS		16		/* log2(BIBOP_PAGE_SZB) */
 #define BIBOP_BITS		(BITS_PER_WORD-BIBOP_PAGE_BITS)
