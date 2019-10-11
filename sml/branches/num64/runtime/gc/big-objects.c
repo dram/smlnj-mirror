@@ -306,7 +306,7 @@ Byte_t *BO_AddrToCodeObjTag (Word_t pc)
     aid = ADDR_TO_PAGEID(BIBOP, pc);
 
     if (IS_BIGOBJ_AID(aid)) {
-	int		indx = BIBOP_ADDR_TO_INDEX(pc);
+	int indx = BIBOP_ADDR_TO_INDEX(pc);
 	while (!BO_IS_HDR(aid)) {
 	    --indx;
 	    aid = INDEX_TO_PAGEID(BIBOP,indx);
@@ -322,7 +322,11 @@ Byte_t *BO_AddrToCodeObjTag (Word_t pc)
 
 /* BO_GetCodeObjTag:
  *
- * Return the tag of the given code object.
+ * Return the tag of the given code object.  See
+ *
+ *	compiler/CodeGen/cpscompile/smlnj-pseudoOps.sml
+ *
+ * for details on the tag layout.
  */
 Byte_t *BO_GetCodeObjTag (bigobj_desc_t *bdp)
 {
