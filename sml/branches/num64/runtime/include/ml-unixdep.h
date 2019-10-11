@@ -150,7 +150,9 @@ extern char	*sys_errlist[];
 #  define HAS_UCONTEXT
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
-#  define __USE_GNU
+#  ifndef __USE_GNU
+#    define __USE_GNU
+#  endif
 #  define STAT_HAS_TIMESPEC
 #  define HAS_NANOSLEEP
 
@@ -190,7 +192,9 @@ extern char	*sys_errlist[];
 #  define HAS_SELECT
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
-#  define __USE_GNU
+#  ifndef __USE_GNU
+#    define __USE_GNU
+#  endif
 #  define STAT_HAS_TIMESPEC
 #  if _POSIX_C_SOURCE >= 199309L
 #    define HAS_NANOSLEEP
