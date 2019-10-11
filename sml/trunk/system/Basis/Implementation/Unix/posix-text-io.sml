@@ -1,9 +1,9 @@
-(* text-io.sml
+(* posix-text-io.sml
  *
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * The implementation of the TextIO stack on Posix systems.
- *
  *)
 
 structure TextIO :> TEXT_IO
@@ -11,4 +11,3 @@ structure TextIO :> TEXT_IO
     where type StreamIO.writer = TextPrimIO.writer
     where type StreamIO.pos = TextPrimIO.pos
   = TextIOFn (structure OSPrimIO = PosixTextPrimIO);
-

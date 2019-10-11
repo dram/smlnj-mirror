@@ -17,8 +17,8 @@ structure Int64Imp : sig
     type int = Int64.int	(* from Basis/TypesOnly *)
 
     val precision = SOME 64
-    val minInt = SOME(~0x4000000000000000 : int)
-    val maxInt = SOME(0x7fffffffffffffff : int)
+    val minInt = SOME(~0x8000000000000000 : int)
+    val maxInt = SOME( 0x7fffffffffffffff : int)
 
     val toInt = I64.toInt
     val fromInt = I64.fromInt

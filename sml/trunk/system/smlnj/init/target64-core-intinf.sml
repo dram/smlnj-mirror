@@ -124,7 +124,7 @@ structure CoreIntInf :> sig
     (* ******************* *)
     type intinf = PrimTypes.intinf
 
-    (* assuming 30-bit digits (must match actual implementation),
+    (* assuming 62-bit digits (must match actual implementation),
      * least significant digit first,
      * normalized (last digit <> 0) *)
 
@@ -133,15 +133,15 @@ structure CoreIntInf :> sig
     fun abstract (r : rep) : intinf = InLine.cast r
     fun concrete (i : intinf) : rep = InLine.cast i
 
-    val hBaseBits : word = 0w31
+    val hBaseBits : word = 0w31 (* half number of bits per digit *)
     val baseBits : word = InLine.word_lshift (hBaseBits, 0w1)
     val base : word = InLine.word_lshift (0w1, baseBits)
     val base64 = wToW64 base
     val maxDigit : word = InLine.word_sub(base, 0w1)
     val maxDigit64 = wToW64 maxDigit
-    val maxDigitL : word = 0wx7fff	(* lower half of maxDigit *)
+    val maxDigitL : word = 0wx7fffffff	(* lower half of maxDigit *)
     val maxDigitL64 = wToW64 maxDigitL
-    val neg_base_as_int : int = ~0x40000000
+    val neg_base_as_int : int = ~0x4000000000000000
 
     val gap : word = InLine.word_sub (0w64, baseBits) (* 64 - baseBits *)
     val slc : word = InLine.word_sub (baseBits, gap)  (* baseBits - gap *)
