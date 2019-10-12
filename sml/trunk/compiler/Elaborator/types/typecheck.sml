@@ -780,7 +780,9 @@ and decType0(decl,occ,tdepth,region) : dec =
 	   let fun vbType(vb as VB{pat, exp, tyvars=(tv as (ref tyvars)), boundtvs}) =
 	        let val (pat',pty) = patType(pat,infinity,region)
 		    val (exp',ety) = expType(exp,occ,DI.next tdepth,region)
-                    val generalize = TypesUtil.isValue exp (* orelse isVarTy ety *)
+                    val generalize = TypesUtil.isValue exp
+				     andalso not(TypesUtil.refutable pat)
+		                     (* orelse isVarTy ety *)
 		    val _ = unifyErr{ty1=pty,ty2=ety, name1="pattern", name2="expression",
 			     message="pattern and expression in val dec do not agree",
 			     region=region,kind=ppVB,kindname="declaration",
