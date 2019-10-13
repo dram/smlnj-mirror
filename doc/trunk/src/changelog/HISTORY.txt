@@ -94,6 +94,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/10/12]::
++
+Fixed bug 130 (at last). Added function refutable to
+ElabData/types/typesutil.{sig,sml} and used it to limit type
+generalization of val bindings in Elaborator/types/typecheck.sml.
+Fix does not deal properly with refutability of OR patterns, but
+OR patterns in val bindings is a dubious feature.
++
+owner:cs.uchicago.edu/~dbm[David MacQueen]
+
+//--------------------------------------------------------------------
 [2019/10/04]::
 +
 Modified the **cmb-make** script to support passing compiler control
