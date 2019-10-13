@@ -1037,6 +1037,7 @@ struct
 	     | T.REMS(T.DIV_TO_NEGINF, 32, x, y) => reminf (x, y)
 
              | T.ADDT(32, x, y) => (binaryComm(I.ADDL, x, y); trap())
+             | T.SUBT(32, T.LI 0, y) => (unary(I.NEGL, y); trap())
              | T.SUBT(32, x, y) => (binary(I.SUBL, x, y); trap())
              | T.MULT(32, x, y) => (multiply (x, y); trap ())
              | T.DIVT(T.DIV_TO_ZERO, 32, x, y) => divide(true, true, x, y)
