@@ -42,10 +42,7 @@ functor FilenamePolicyFn (val cmdir : string
 
     type policyMaker = { arch: string, os: SMLofNJ.SysInfo.os_kind } -> policy
 
-    fun kind2name SMLofNJ.SysInfo.BEOS = "beos"
-      | kind2name SMLofNJ.SysInfo.MACOS = "macos"
-      | kind2name SMLofNJ.SysInfo.OS2 = "os2"
-      | kind2name SMLofNJ.SysInfo.UNIX = "unix"
+    fun kind2name SMLofNJ.SysInfo.UNIX = "unix"
       | kind2name SMLofNJ.SysInfo.WIN32 = "win32"
 
     fun mkPolicy (shiftbin, shiftstable, ignoreversion) { arch, os } = let

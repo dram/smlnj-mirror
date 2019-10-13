@@ -1,9 +1,9 @@
 (* sysinfo.sig
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Get information about the underlying hardware and OS.
- *
  *)
 
 signature SYS_INFO =
@@ -15,15 +15,15 @@ signature SYS_INFO =
 	 *)
 
     datatype os_kind
-      = UNIX	(* one of the many flavours of UNIX (incl Mach and NeXTStep) *)
-      | WIN32	(* Wind32 API (incl. Windows95 and WindowsNT) *)
-      | MACOS	(* Macintosh OS (> 7.5) *)
-      | OS2	(* IBM's OS/2 *)
-      | BEOS	(* BeOS from Be *)
+      = UNIX	(* one of the many flavours of UNIX (incl macOS and Linux) *)
+      | WIN32	(* Win32 API *)
 
     val getOSKind    : unit -> os_kind
     val getOSName    : unit -> string
     val getOSVersion : unit -> string
+
+    val getHostSize : unit -> int
+	(* returns word size of the host architecture (either 32 or 64) *)
 
     val getHostArch   : unit -> string
 	(* returns the HOST_ARCH value from the run-time build *)

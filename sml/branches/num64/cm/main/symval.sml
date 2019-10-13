@@ -39,12 +39,10 @@ structure SymVal :> SYMVAL = struct
 	val arch_sym = "ARCH_" ^ arch
 	val endian_sym = if big then "BIG_ENDIAN" else "LITTLE_ENDIAN"
 	val size_sym = "SIZE_" ^ Int.toString size
-	val os_sym = case os of
-	    SMLofNJ.SysInfo.UNIX => "OPSYS_UNIX"
-	  | SMLofNJ.SysInfo.WIN32 => "OPSYS_WIN32"
-	  | SMLofNJ.SysInfo.MACOS => "OPSYS_MACOS"
-	  | SMLofNJ.SysInfo.OS2 => "OPSYS_OS2"
-	  | SMLofNJ.SysInfo.BEOS => "OPSYS_BEOS"
+	val os_sym = (case os
+	       of SMLofNJ.SysInfo.UNIX => "OPSYS_UNIX"
+		| SMLofNJ.SysInfo.WIN32 => "OPSYS_WIN32"
+	      (* end case *))
 	val (major, minor) =
 	    case version of
 		[] => (0, 0)

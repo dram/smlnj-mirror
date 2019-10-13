@@ -77,7 +77,6 @@ Library
 
 	(* bootstrap (cross-)compilers *)
 	structure AMD64UnixCMB
-	structure PPCMacOSCMB
 	structure PPCUnixCMB
 	structure SparcUnixCMB
 	structure X86UnixCMB
@@ -88,7 +87,6 @@ is
 	$smlnj/compiler/x86.cm
 	$smlnj/compiler/amd64.cm
 
-	$smlnj/cmb/ppc-macos.cm
 	$smlnj/cmb/ppc-unix.cm
 	$smlnj/cmb/sparc-unix.cm
 	$smlnj/cmb/x86-unix.cm

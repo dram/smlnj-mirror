@@ -1,9 +1,9 @@
 (* sysinfo.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Get information about the underlying hardware and OS.
- *
  *)
 
 structure SysInfo : SYS_INFO =
@@ -15,11 +15,8 @@ structure SysInfo : SYS_INFO =
       | getInfoStr (SOME s) = s
 
     datatype os_kind
-      = UNIX	(* one of the many flavours of UNIX (incl Mach and NeXTStep) *)
-      | WIN32	(* Wind32 API (incl. Windows95 and WindowsNT) *)
-      | MACOS	(* Macintosh OS *)
-      | OS2	(* IBM's OS/2 *)
-      | BEOS	(* BeOS from Be *)
+      = UNIX	(* one of the many flavours of UNIX (incl macOS and Linux) *)
+      | WIN32	(* Win32 API *)
 
     fun sysInfo (s: string): string option =
 	  CInterface.c_function "SMLNJ-RunT" "sysInfo" s
@@ -30,14 +27,16 @@ structure SysInfo : SYS_INFO =
 
     fun getOSName () = getInfoStr(sysInfo "OS_NAME")
     fun getOSKind () = (case (getOSName())
-	   of ("SunOS"|"Solaris"|"Irix"|"OSF/1"|"AIX"|"SVR4"|"NeXTStep"|
-	       "Ultrix"|"HPUX"|"Linux"|"BSD"|"PLAN9"|"MACH" |"Darwin" |"Cygwin"
-	      ) => UNIX
-	    | "OS/2" => OS2
+	   of ("Solaris"|"AIX"|"Linux"|"BSD"|"Darwin"|"Cygwin") => UNIX
 	    | "Win32" => WIN32
 	    | _ => raise Fail "unknown OS"
 	  (* end case *))
     fun getOSVersion () = getInfoStr(sysInfo "OS_VERSION")
+
+    fun getHostSize () = (case getInfoStr(sysInfo "HOST_ARCH")
+	   of "AMD64" => 64
+	    | _ => 32
+	  (* end case *))
 
     fun getHostArch () = getInfoStr(sysInfo "HOST_ARCH")
     fun getTargetArch () = getInfoStr(sysInfo "TARGET_ARCH")
