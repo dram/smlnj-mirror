@@ -310,6 +310,7 @@ Byte_t *BO_AddrToCodeObjTag (Word_t pc)
 	while (!BO_IS_HDR(aid)) {
 	    --indx;
 	    aid = INDEX_TO_PAGEID(BIBOP,indx);
+	    ASSERT(IS_BIGOBJ_AID(aid));
 	}
 	region = (bigobj_region_t *)BIBOP_INDEX_TO_ADDR(indx);
 	return BO_GetCodeObjTag (ADDR_TO_BODESC(region, pc));
