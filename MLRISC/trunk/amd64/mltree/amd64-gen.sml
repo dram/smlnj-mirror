@@ -52,8 +52,11 @@ functor AMD64Gen (
     type instrStream = (I.instruction,C.cellset,CFG.cfg) TS.stream
     type mltreeStream = (T.stm,T.mlrisc list,CFG.cfg) TS.stream
 
-    (* label where a trap is generated -- one per cluster *)
+  (* label where the shared trap is generated -- one per cluster *)
     val trapLabel = ref (NONE: (I.instruction * Label.label) option)
+
+  (* flag to control merging of overflow traps *)
+    val mergeTraps = ref true
 
     fun gpr (ty, r) = I.Direct (ty, r)
     val fpr = I.FDirect
@@ -86,8 +89,8 @@ functor AMD64Gen (
     fun toInt32 i = T.I.toInt32(32, i)
     fun toInt64 i = T.I.toInt64(64, i)
 
-(* QUESTION: what about negative numbers? *)
-    fun fitsIn32Bits (z : IntInf.int) = (z < 0x80000000)
+  (* is an immediate operand representable as a signed 32-bit 2's complement value? *)
+    fun fitsIn32Bits (z : IntInf.int) = (~0x80000000 <= z) andalso (z < 0x80000000)
 
     fun move64 (src, dst) = I.move {mvOp=I.MOVABSQ, src=src, dst=dst}
 
@@ -120,6 +123,7 @@ functor AMD64Gen (
     fun isZero(T.LI z) = z = 0
       | isZero(T.MARK(e,a)) = isZero e
       | isZero _ = false
+
     fun setZeroBit(T.ANDB _)     = true
       | setZeroBit(T.ORB _)      = true
       | setZeroBit(T.XORB _)     = true
@@ -183,7 +187,7 @@ functor AMD64Gen (
 	    end
 	  | move' (ty, src, dst, an) =
 	    mark' (I.move {mvOp=O.movOp ty, src=src, dst=dst}, an)
-	(* move with annotation *)
+	(* move without annotation *)
 	fun move (ty, src, dst) = move' (ty, src, dst, [])
 
         fun zero (ty, dst) = emit (I.BINARY{binOp=O.xorOp ty, src=dst, dst=dst})
@@ -202,22 +206,36 @@ functor AMD64Gen (
 	    end (* copy *)
 
         (* Add an overflow trap *)
-	fun trap() = let
-	    val jmp = (case !trapLabel
-	        of NONE => let
-	           val label = Label.label "trap" ()
-		   val jmp = I.ANNOTATION{i=I.jcc{cond=I.O,
-		         opnd=I.ImmedLabel(T.LABEL label)},
-		         a=MLRiscAnnotations.BRANCHPROB (Probability.unlikely)}
-	           in
-	             trapLabel := SOME(jmp, label);
-	             jmp
-	           end
-		 | SOME(jmp, _) => jmp
-		(* end case *))
-	    in
-	      emitInstr jmp
-	    end (* trap *)
+	fun trap () = if !mergeTraps
+	      then let
+		val jmp = (case !trapLabel
+		       of NONE => let
+			    val label = Label.label "trap" ()
+			    val jmp = I.ANNOTATION{
+				    i = I.jcc{cond=I.O, opnd=I.ImmedLabel(T.LABEL label)},
+				    a = MLRiscAnnotations.BRANCHPROB Probability.unlikely
+				  }
+			    in
+			      trapLabel := SOME(jmp, label);
+			      jmp
+			    end
+			| SOME(jmp, _) => jmp
+		      (* end case *))
+		in
+		  emitInstr jmp
+		end (* trap *)
+	      else let
+		val label = Label.anon()
+		val jmp = I.ANNOTATION{
+			i = I.jcc{cond=I.NO, opnd = I.ImmedLabel(T.LABEL label)},
+			a = MLRiscAnnotations.BRANCHPROB Probability.likely
+		      }
+		in
+		  emitInstr jmp;
+		(* signal an overflow exception (code 4) *)
+		  emit(I.INT 0w4);
+		  defineLabel label
+		end
 
 	exception EA
 
@@ -854,6 +872,7 @@ functor AMD64Gen (
 		 | T.REMS(T.DIV_TO_NEGINF, ty, x, y) => reminf (ty, x, y)
 		 (* trapping *)
 		 | T.ADDT(ty, x, y) => (binaryComm(ty, O.addOp, x, y); trap())
+		 | T.SUBT(ty, T.LI 0, y) => (unary(ty, O.negOp, y); trap())
 		 | T.SUBT(ty, x, y) => (binary(ty, O.subOp, x, y); trap())
 		 | T.MULT(ty, x, y) => (multiply (ty, x, y); trap ())
 		 | T.DIVT(T.DIV_TO_ZERO, ty, x, y) =>
@@ -1260,41 +1279,41 @@ functor AMD64Gen (
             end
 
         (* generate a real comparison; return the real cc used *)
-        and genCmp(ty, swapable, cc, a, b, an) =
-            let val (cc, opnd1, opnd2) = commuteComparison(ty, cc, swapable, a, b)
-            in
-	        (case ty
-		  of 8 => mark(I.CMPB{lsrc=opnd1, rsrc=opnd2}, an)
-		   | 16 => mark(I.CMPW{lsrc=opnd1, rsrc=opnd2}, an)
-		   | 32 => mark(I.CMPL{lsrc=opnd1, rsrc=opnd2}, an)
-		   | 64 => mark(I.CMPQ{lsrc=opnd1, rsrc=opnd2}, an)
-	        (* esac *));
-	        cc
-            end
+        and genCmp (ty, swapable, cc, a, b, an) = let
+	      val (cc, opnd1, opnd2) = commuteComparison(ty, cc, swapable, a, b)
+	      in
+		  (case ty
+		    of 8 => mark(I.CMPB{lsrc=opnd1, rsrc=opnd2}, an)
+		     | 16 => mark(I.CMPW{lsrc=opnd1, rsrc=opnd2}, an)
+		     | 32 => mark(I.CMPL{lsrc=opnd1, rsrc=opnd2}, an)
+		     | 64 => mark(I.CMPQ{lsrc=opnd1, rsrc=opnd2}, an)
+		  (* esac *));
+		  cc
+	      end
 
-	(* Give a and b which are the operands to a comparison (or test)
-		* Return the appropriate condition code and operands.
+       (* Give a and b which are the operands to a comparison (or test)
+	* Return the appropriate condition code and operands.
 	*   The available modes are:
 	*        r/m, imm
 	*        r/m, r
 	*        r,   r/m
 	*)
-	and commuteComparison(ty, cc, swapable, a, b) = let
-	    val (opnd1, opnd2) = (operand ty a, operand ty b)
-	    in  (* Try to fold in the operands whenever possible *)
-	      (case (isImmediate opnd1, isImmediate opnd2)
-	        of (true, true) => (cc, moveToReg (ty, opnd1), opnd2)
-	         | (true, false) =>
-		   if swapable then (T.Basis.swapCond cc, opnd2, opnd1)
-		   else (cc, moveToReg (ty, opnd1), opnd2)
-		 | (false, true) => (cc, opnd1, opnd2)
-		 | (false, false) => (case (opnd1, opnd2)
-		   of (_, I.Direct _) => (cc, opnd1, opnd2)
-		    | (I.Direct _, _) => (cc, opnd1, opnd2)
-		    | (_, _)          => (cc, moveToReg (ty, opnd1), opnd2)
-		   (* end case *))
-	      (* end case *))
-	    end  (* commuteComparison *)
+	and commuteComparison (ty, cc, swapable, a, b) = let
+	      val (opnd1, opnd2) = (operand ty a, operand ty b)
+	      in  (* Try to fold in the operands whenever possible *)
+	        case (isImmediate opnd1, isImmediate opnd2)
+		 of (true, true) => (cc, moveToReg (ty, opnd1), opnd2)
+		  | (true, false) => if swapable
+		      then (T.Basis.swapCond cc, opnd2, opnd1)
+		      else (cc, moveToReg (ty, opnd1), opnd2)
+		  | (false, true) => (cc, opnd1, opnd2)
+		  | (false, false) => (case (opnd1, opnd2)
+		       of (_, I.Direct _) => (cc, opnd1, opnd2)
+			| (I.Direct _, _) => (cc, opnd1, opnd2)
+			| (_, _)          => (cc, moveToReg (ty, opnd1), opnd2)
+		      (* end case *))
+		(* end case *)
+	      end  (* commuteComparison *)
 
 	(* generate a condition code expression
 	 * The zero is for setting the condition code!
@@ -1331,9 +1350,9 @@ functor AMD64Gen (
          * return the actual cc used.  If the flag swapable is true,
          * we can also reorder the operands.
          *)
-        and cmp (swapable, ty, cc, t1, t2, an) =
+        and cmp (swapable, ty, cc, t1, t2, an) = let
             (* == and <> can be always be reordered *)
-            let val swapable = swapable orelse cc = T.EQ orelse cc = T.NE
+            val swapable = swapable orelse cc = T.EQ orelse cc = T.NE
             in (* Sometimes the comparison is not necessary because
                 * the bits are already set!
                 *)
@@ -1342,9 +1361,9 @@ functor AMD64Gen (
                     cmpWithZero(T.Basis.swapCond cc, t2, an)
                  else (* can't reorder the comparison! *)
                     genCmp(ty, false, cc, t1, t2, an)
-             else if isZero t2 andalso setZeroBit2 t1 then
-                cmpWithZero(cc, t1, an)
-             else genCmp(ty, swapable, cc, t1, t2, an)
+	      else if isZero t2 andalso setZeroBit2 t1 then
+		 cmpWithZero(cc, t1, an)
+	      else genCmp(ty, swapable, cc, t1, t2, an)
             end
 
 	and branch (T.CMP(ty, cc, t1, t2), lab, an) = let
