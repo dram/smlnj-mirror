@@ -1,4 +1,4 @@
-(* pre-soc.ksml
+(* pre-sock.sml
  *
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
