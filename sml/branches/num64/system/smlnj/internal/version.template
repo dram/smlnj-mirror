@@ -18,6 +18,8 @@ structure SMLNJVersion : sig
 
   end = struct
 
+    val size = Int.toString(SMLofNJ.SysInfo.getHostSize())
+
     (* generate date string at boot time *)
     val version = {
 	    system = "Standard ML of New Jersey",
@@ -25,9 +27,10 @@ structure SMLNJVersion : sig
 	    date = Date.toString (Date.fromTimeLocal (Time.now ()))
         }
 
-    val banner = concat
-	  (#system version :: " v" ::
-	   String.concatWithMap "." Int.toString (#version_id version) ::
-	   [" [built: ", #date version, "]"])
+    val banner = concat [
+	    #system version, " (", size, "-bit)",
+	    " v", String.concatWithMap "." Int.toString (#version_id version),
+	    " [built: ", #date version, "]"
+	  ]
 
   end
