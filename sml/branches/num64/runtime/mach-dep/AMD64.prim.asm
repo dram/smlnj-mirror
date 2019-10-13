@@ -81,6 +81,10 @@
 /* NOTE: this include must come after the definition of stdlink, etc. */
 #include "x86-macros.h"
 
+/* word-size related immediate operands */
+#define WORD_SZB_IM	IM(8)
+#define WORD_SHFT_IM	IM(3)
+
 /**********************************************************************/
 	TEXT
 
@@ -335,18 +339,18 @@ ALIGNED_ENTRY(array_a)
 	OR	(IM(MAKE_TAG(DTAG_arr_data)),temp1)
 	/* store descriptor and bump allocation pointer */
 	MOV	(temp1,REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	/* allocate and initialize data object */
 	MOV	(allocptr,temp1)		/* temp1 := array data ptr */
 	MOV	(REGOFF(8,stdarg),temp2)	/* temp2 := initial value */
 LABEL(L_array_lp)
 	MOV	(temp2,REGIND(allocptr))	/* init array */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	SUB	(IM(1),temp)
 	JNE	(L_array_lp)
 	/* Allocate array header */
 	MOV	(IM(DESC_polyarr),REGIND(allocptr)) /* descriptor */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(REGIND(stdarg),temp)		/* temp := length */
 	MOV	(allocptr, stdarg)		/* result := header addr */
 	MOV	(temp1, REGIND(allocptr))	/* store pointer to data */
@@ -379,17 +383,17 @@ ALIGNED_ENTRY(create_r_a)
 
 	/* allocate the data object */
 	MOV	(temp,temp1)
-	SAL	(IM(TAG_SHIFTW),temp1)	/* temp1 := descriptor */
+	SAL	(IM(TAG_SHIFTW),temp1)		/* temp1 := descriptor */
 	OR	(IM(MAKE_TAG(DTAG_raw64)),temp1)
 	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
-	ADD	(IM(8),allocptr)		/* allocptr++ */
+	ADD	(WORD_SZB_IM,allocptr)		/* allocptr++ */
 	MOV	(allocptr,temp1)		/* temp1 := data object */
-	SAL	(IM(3),temp)			/* temp := length in bytes */
+	SAL	(WORD_SHFT_IM,temp)		/* temp := length in bytes */
 	ADD	(temp,allocptr)			/* allocptr += length */
 
 	/* allocate the header object */
 	MOV	(IM(DESC_real64arr),REGIND(allocptr))
-	ADD	(IM(8),allocptr)		/* allocptr++ */
+	ADD	(WORD_SZB_IM,allocptr)		/* allocptr++ */
 	MOV	(temp1,REGIND(allocptr))	/* header data */
 	MOV	(stdarg,REGOFF(8,allocptr))	/* header length */
 	MOV	(allocptr,stdarg)		/* stdarg := header obj */
@@ -408,10 +412,10 @@ LABEL(L_create_r_large)
 /* create_b : int -> bytearray */
 ALIGNED_ENTRY(create_b_a)
 	CHECKLIMIT
-	MOV	(stdarg,temp)		/* temp is tagged length */
-	SAR	(IM(1),temp)		/* temp >>= 1; (untag length) */
-	ADD	(IM(3),temp)		/* temp += 7; */
-	SAR	(IM(3),temp)		/* temp >>= 3; (length in 8-byte words) */
+	MOV	(stdarg,temp)			/* temp is tagged length */
+	SAR	(IM(1),temp)			/* temp >>= 1; (untag length) */
+	ADD	(IM(7),temp)			/* temp += 7; */
+	SAR	(WORD_SHFT_IM,temp)		/* temp >>= 3; (length in 8-byte words) */
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_b_large)
 
@@ -423,14 +427,14 @@ ALIGNED_ENTRY(create_b_a)
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_raw)),temp1)
 	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(allocptr,temp1)		/* temp1 is data object */
-	SAL	(IM(3),temp)			/* temp is size in bytes */
+	SAL	(WORD_SHFT_IM,temp)		/* temp is size in bytes */
 	ADD	(temp,allocptr)			/* allocptr += length */
 
 	/* allocate the header object */
 	MOV	(IM(DESC_word8arr),REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(temp1,REGIND(allocptr))
 	MOV	(stdarg,REGOFF(8,allocptr))
 	MOV	(allocptr,stdarg)		/* stdarg := header */
@@ -449,9 +453,9 @@ LABEL(L_create_b_large)
 ALIGNED_ENTRY(create_s_a)
 	CHECKLIMIT
 	MOV	(stdarg,temp)
-	SAR	(IM(1),temp)		/* untag */
+	SAR	(IM(1),temp)		/* untag length */
 	ADD	(IM(8),temp)		/* 7 + extra byte */
-	SAR	(IM(2),temp)		/* length in words */
+	SAR	(WORD_SHFT_IM,temp)		/* length in words */
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_s_large)
 
@@ -462,17 +466,17 @@ ALIGNED_ENTRY(create_s_a)
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_raw)),temp1)
 	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 
 	MOV	(allocptr,temp1)		/* temp1 is data obj */
-	SAL	(IM(3),temp)			/* bytes len */
+	SAL	(WORD_SHFT_IM,temp)		/* length in bytes */
 	ADD	(temp,allocptr)			/* allocptr += length */
 	MOV	(IM(0),REGOFF((-8),allocptr))	/* zero out last word */
 
 	/* allocate header obj */
 	MOV	(IM(DESC_string),temp)	/* hdr descr */
 	MOV	(temp,REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(temp1,REGIND(allocptr))	/* hdr data */
 	MOV	(stdarg,REGOFF(8,allocptr))	/* hdr length */
 	MOV	(allocptr, stdarg)		/* stdarg is hdr obj */
@@ -506,14 +510,14 @@ ALIGNED_ENTRY(create_v_a)
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_vec_data)),temp1)
 	MOV	(temp1,REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(REGOFF(8,stdarg),temp1)	/* temp1 is list */
 	MOV	(allocptr,stdarg)		/* stdarg is vector */
 
 LABEL(L_create_v_lp)
 	MOV	(REGIND(temp1),temp2)		/* hd */
 	MOV	(temp2,REGIND(allocptr))	/* store into vector */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(REGOFF(8,temp1),temp1)		/* tl */
 	CMP	(IM(ML_nil),temp1)		/* isNull? */
 	JNE	L_create_v_lp
@@ -521,7 +525,7 @@ LABEL(L_create_v_lp)
 	/* allocate header object */
 	MOV	(IM(DESC_polyvec),temp1)
 	MOV	(temp1,REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(stdarg,REGIND(allocptr))	/* data */
 	MOV	(temp,REGOFF(8,allocptr))	/* len */
 	MOV	(allocptr,stdarg)		/* result */
