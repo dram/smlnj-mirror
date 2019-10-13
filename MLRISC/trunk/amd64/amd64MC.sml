@@ -823,7 +823,7 @@ functor AMD64MCEmitter (
 
     fun emitInstr (I.LIVE _) = Word8Vector.fromList []
       | emitInstr (I.KILL _) = Word8Vector.fromList []
-      | emitInstr(I.COPY{k, dst, src, tmp, ...}) = (case k
+      | emitInstr (I.COPY{k, dst, src, tmp, ...}) = (case k
 	   of CB.GP => emitInstrs (Shuffle.shuffle {tmp=tmp, dst=dst, src=src})
 	    | CB.FP => emitInstrs (Shuffle.shufflefp {tmp=tmp, dst=dst, src=src})
 	    | _ => error "COPY"
