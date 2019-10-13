@@ -185,9 +185,12 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
     ASSERT(npages * BIBOP_PAGE_SZB == szB);
 
 #ifdef SIZE_64
-SayDebug("MarkRegion(-, %p, %p, %x:%x:%02x); start = %d(top:%d), npages = %d, end = %d(top:%d)\n",
-baseAddr, szB, EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
-start, topStart, npages, end, topEnd);
+#ifdef VERBOSE
+    SayDebug(
+	"MarkRegion(-, %p, %p, %x:%x:%02x); start = %d(top:%d), npages = %d, end = %d(top:%d)\n",
+	baseAddr, szB, EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
+	start, topStart, npages, end, topEnd);
+#endif
     ASSERT(BIBOP_ADDR_TO_L1_INDEX(baseAddr) == topStart);
 
     if (aid == AID_UNMAPPED) {
@@ -227,8 +230,6 @@ start, topStart, npages, end, topEnd);
 	    else {
 		l2Tbl->numMapped += (l2End - l2Start);
 	    }
-SayDebug("== bibop[%d] = %p; numMapped = %d; [%d..%d] = %x\n",
-ix, l2Tbl, l2Tbl->numMapped, l2Start, l2End-1, aid);
 	    ASSERT((0 <= l2Start) && (l2End <= BIBOP_L2_SZ));
 	    for (jx = l2Start;  jx < l2End;  jx++) {
 		l2Tbl->tbl[jx] = aid;
