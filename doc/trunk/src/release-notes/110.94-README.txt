@@ -57,6 +57,12 @@ and resume the build.
 
 === Compiler
 
+=== MLRISC
+
+Fixed a number of bugs in the instruction selection and encoding for the
+**AMD64** architecture.  Also made a slight improvement to the **X86**
+instruction selector.
+
 === Runtime System
 
 == Bugs
@@ -67,6 +73,8 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
+| [.bugid]#130#
+| failure to raise `Bind` exception
 | [.bugid]#225#
 | `Math.ln` giving erroneous answers on Windows
 |=======

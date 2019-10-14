@@ -94,12 +94,36 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/10/13]::
++
+Added the **-64** flag to the `testml` script in `base\system` and
+to the `.run-sml` script.  Thus, one will be able to specify the
+32-bit version of SML/NJ using the command **sml -32** and the
+64-bit version using the command **sml -64**.  Currently, 32-bits
+is the default, since the 64-bit system is unstable.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/13]::
++
+Removed obsolete operating systems from the `SMLofNJ.SysInfo.os_kind`
+datatype.  This change reduces the type to two constructors: `UNIX`
+and `WIN32`.  Also added a function `getHostSize` to the `SysInfo`
+structure, which returns the host word size in bits (*i.e.*, either
+`32` or `64`).  The word size is now reported in the compiler's
+banner message at startup.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/10/12]::
 +
-Fixed bug 130 (at last). Added function refutable to
-ElabData/types/typesutil.{sig,sml} and used it to limit type
-generalization of val bindings in Elaborator/types/typecheck.sml.
-Fix does not deal properly with refutability of OR patterns, but
+Fixed bugref:[130] (failure to raise `Bind` exception). Added
+a function `refutable` to `ElabData/types/typesutil.{sig,sml}` and
+used it to limit type generalization of val bindings in
+`Elaborator/types/typecheck.sml`.
+The fix does not deal properly with refutability of OR patterns, but
 OR patterns in val bindings is a dubious feature.
 +
 owner:cs.uchicago.edu/~dbm[David MacQueen]
