@@ -86,8 +86,9 @@ sig
   val getRecTyvarMap : int * Types.ty -> (int -> bool)
   val gtLabel : Symbol.symbol * Symbol.symbol -> bool
 
+  (* return true if there exists a value that the pattern does *not* match *)
   val refutable: Absyn.pat -> bool
-			     
+
   val isValue : Absyn.exp -> bool
   (* checks whether an expression is nonexpansive; used to determine
    * when type generalization is permitted under the value rule *)

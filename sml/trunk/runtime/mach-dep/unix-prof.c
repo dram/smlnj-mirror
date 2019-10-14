@@ -1,9 +1,11 @@
-/* unix-prof.c
+/*! \file unix-prof.c
  *
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * SML Profiling support for Unix.
  */
+
 #include "ml-unixdep.h"
 #include "signal-sysdep.h"
 #include "ml-base.h"
@@ -19,7 +21,13 @@
 ml_val_t	ProfCntArray = ML_unit;
 
 /* local routines */
-PVT SigReturn_t ProfSigHandler ();
+#if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
+PVT SigReturn_t ProfSigHandler (int sig, SigInfo_t info, void *scp);
+#elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+PVT SigReturn_t ProfSigHandler (int sig, SigContext_t *scp);
+#else
+PVT SigReturn_t ProfSigHandler (int sig, SigInfo_t info, SigContext_t *scp);
+#endif
 
 
 /* EnableProfSignals:
@@ -42,7 +50,13 @@ void DisableProfSignals ()
  *
  * The handler for SIGVTALRM signals.
  */
-PVT SigReturn_t ProfSigHandler ()
+#if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
+PVT SigReturn_t ProfSigHandler (int sig, SigInfo_t info, void *scp)
+#elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+PVT SigReturn_t ProfSigHandler (int sig, SigContext_t *scp)
+#else
+PVT SigReturn_t ProfSigHandler (int sig, SigInfo_t info, SigContext_t *scp)
+#endif
 {
     Word_t	*arr = GET_SEQ_DATAPTR(Word_t, ProfCntArray);
     int		indx = INT_MLtoC(DEREF(ProfCurrent));
@@ -50,4 +64,3 @@ PVT SigReturn_t ProfSigHandler ()
     arr[indx]++;
 
 } /* end of ProfSigHandler */
-

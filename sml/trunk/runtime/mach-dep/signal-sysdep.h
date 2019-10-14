@@ -174,7 +174,7 @@ extern void SetFSR(int);
 
 #  if defined(OPSYS_SOLARIS)
     /** SPARC, SOLARIS **/
-#    define SIG_FAULT1	SIGFPE
+#    define SIG_OVERFLOW	SIGFPE
 
 #    define SIG_GetCode(info,scp)	((info)->si_code)
 
@@ -192,7 +192,7 @@ extern void SetFSR(int);
 #  if defined (OPSYS_AIX)
     /** RS6000 or PPC, AIX **/
 #    include <fpxcp.h>
-#    define SIG_FAULT1		SIGTRAP
+#    define SIG_OVERFLOW		SIGTRAP
 
      PVT int SIG_GetCode (SigInfo_t info, SigContext_t *scp);
 #    define SIG_GetPC(scp)	((scp)->sc_jmpbuf.jmp_context.iar)
@@ -214,7 +214,7 @@ extern void SetFSR(int);
     /* PPC, Darwin */
 #    define SIG_InitFPE()        set_fsr()
 #    define SIG_ResetFPE(scp)
-#    define SIG_FAULT1           SIGTRAP
+#    define SIG_OVERFLOW           SIGTRAP
    /* info about siginfo_t is missing in the include files 4/17/2001 */
 #    define SIG_GetCode(info,scp) 0
   /* see /usr/include/mach/ppc/thread_status.h */
@@ -231,7 +231,7 @@ extern void SetFSR(int);
 #    include <signal.h>
      typedef struct sigcontext_struct SigContext_t;
 
-#    define SIG_FAULT1          	SIGTRAP
+#    define SIG_OVERFLOW          	SIGTRAP
 
 #    define SIG_GetPC(scp)              ((scp)->regs->nip)
 #    define SIG_SetPC(scp, addr)        { (scp)->regs->nip = (long)(addr); }
@@ -243,7 +243,7 @@ extern void SetFSR(int);
 #  elif defined(OPSYS_OPENBSD)
    /** PPC, OpenBSD **/
 
-#    define SIG_FAULT1			SIGTRAP
+#    define SIG_OVERFLOW			SIGTRAP
 #    define SIG_GetPC(scp)              ((scp)->sc_frame.srr0)
 #    define SIG_SetPC(scp, addr)        { (scp)->sc_frame.srr0 = (long)(addr); }
 #    define SIG_ZeroLimitPtr(scp)       { ((scp)->sc_frame.fixreg[15] = 0); } /* limitptr = 15 (see src/runtime/mach-dep/PPC.prim.asm) */
@@ -266,8 +266,7 @@ extern void SetFSR(int);
 #    define INTO_OPCODE		0xce	/* the 'into' instruction is a single */
 					/* instruction that signals Overflow */
 
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGSEGV
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_EIP])
 /* for linux, SIG_GetCode simply returns the address of the fault */
@@ -277,7 +276,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_FREEBSD)
     /** x86, FreeBSD **/
-#    define SIG_FAULT1		SIGFPE
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -288,8 +287,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_NETBSD2)
     /** x86, NetBSD (version 2.x) **/
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGBUS
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -300,8 +298,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_NETBSD)
     /** x86, NetBSD (version 3.x) **/
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGBUS
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		(_UC_MACHINE_PC(scp))
@@ -310,8 +307,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_OPENBSD)
     /** x86, OpenBSD **/
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGBUS
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -322,7 +318,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_SOLARIS)
      /** x86, Solaris */
-#    define SIG_FAULT1		SIGFPE
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info, scp)	((info)->si_code)
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[EIP])
@@ -335,14 +331,13 @@ extern void SetFSR(int);
 #  elif defined(OPSYS_CYGWIN)
 
      typedef void SigReturn_t;
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGSEGV
+#    define SIG_OVERFLOW		SIGFPE
 #    define INT_DIVZERO(s, c)	((s) == SIGFPE)
 #    define SIG_ZeroLimitPtr(scp)  { ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
 #  elif defined(OPSYS_DARWIN)
     /** x86, Darwin **/
-#    define SIG_FAULT1		SIGFPE
+#    define SIG_OVERFLOW		SIGFPE
 
     /* see /usr/include/mach/i386/thread_status.h */
 #    define SIG_GetCode(info,scp)	((info)->si_code)
@@ -367,11 +362,9 @@ extern void SetFSR(int);
 
 #  if defined(OPSYS_LINUX)
     /** AMD64, LINUX **/
-#    define INTO_OPCODE		0xce	/* the 'into' instruction is a single */
-					/* instruction that signals Overflow */
+/* on linux, the "int 4" instruction causes a SIGSEGV */
 
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGSEGV
+#    define SIG_OVERFLOW		SIGSEGV
 
 #    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_RIP])
 /* for linux, SIG_GetCode simply returns the address of the fault */
@@ -379,9 +372,12 @@ extern void SetFSR(int);
 #    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_RIP] = (long)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.gregs[REG_R14] = 0; }
 
+#    define SIG_IsINT4(pc)	\
+	((((Byte_t*)pc)[-2] == 0xcd) && (((Byte_t*)pc)[-1] == 0x04))
+
 #  elif defined(OPSYS_FREEBSD)
     /** amd64, FreeBSD **/
-#    define SIG_FAULT1		SIGFPE
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -392,8 +388,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_NETBSD)
     /** amd64, NetBSD (version 3.x) **/
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGBUS
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((uc)->uc_mcontext.__gregs[_REG_RIP])
@@ -402,8 +397,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_OPENBSD)
     /** amd64, OpenBSD **/
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGBUS
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_rip)
@@ -424,8 +418,7 @@ extern void SetFSR(int);
 #  elif defined(OPSYS_CYGWIN)
 
      typedef void SigReturn_t;
-#    define SIG_FAULT1		SIGFPE
-#    define SIG_FAULT2		SIGSEGV
+#    define SIG_OVERFLOW		SIGFPE
 #    define INT_DIVZERO(s, c)	((s) == SIGFPE)
 /*#    define SIG_ZeroLimitPtr(scp)  { ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }*/
 
@@ -433,7 +426,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_DARWIN)
     /** amd64, Darwin **/
-#    define SIG_FAULT1		SIGFPE
+#    define SIG_OVERFLOW		SIGFPE
 
     /* see /usr/include/mach/i386/thread_status.h */
 #    define SIG_GetCode(info,scp)	((info)->si_code)

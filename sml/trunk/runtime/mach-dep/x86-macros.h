@@ -32,7 +32,7 @@ ENTRY_M MACRO id
 	LABEL	(CSYM(&id))
 ENDM
 
-ML_CODE_HDR_M MACRO name
+ALIGNED_ENTRY_M MACRO name
 	GLOBAL	(CSYM(&name))
 	ALIGN_CODE
 	LABEL	(CSYM(&name))
@@ -40,7 +40,7 @@ ENDM
 
 #define CHECKLIMIT CHECKLIMIT_M
 #define ENTRY(id) ENTRY_M id
-#define ML_CODE_HDR(name) ML_CODE_HDR_M name
+#define ALIGNED_ENTRY(name) ALIGNED_ENTRY_M name
 
 #elif defined(GNU_ASSEMBLER)
 
@@ -57,7 +57,7 @@ ENDM
     CGLOBAL(ID);				\
     LABEL(CSYM(ID))
 
-#define ML_CODE_HDR(name)			\
+#define ALIGNED_ENTRY(name)			\
 	    CGLOBAL(name);			\
 	    ALIGN_CODE;				\
     LABEL(CSYM(name))

@@ -130,7 +130,7 @@ struct arena {
 				/* blasting out objects).  The repair list grows */
 				/* down in to-space. */
     ml_val_t	*frspBase;	/* the base address and size of from-space. */
-    Word_t	frspSizeB;
+    Addr_t	frspSizeB;
     ml_val_t	*frspTop;	/* The top of the used portion of from-space. */
     ml_val_t	*oldTop;	/* The top of the "older" from-space region. Objects */
 				/* below oldTop get promoted, those above don't. */
@@ -138,9 +138,9 @@ struct arena {
     bool_t	needsRepair;	/* Set to TRUE when exporting, if the arena had */
 				/* external references that require repair */
 				/* Heap sizing parameters: */
-    Word_t	reqSizeB;	/*   requested minimum size for this arena (this is */
+    Addr_t	reqSizeB;	/*   requested minimum size for this arena (this is */
 				/*   in addition to the required min. size). */
-    Word_t	maxSizeB;	/*   a soft maximum size for this arena. */
+    Addr_t	maxSizeB;	/*   a soft maximum size for this arena. */
 };
 
 /* Make to-space into from-space */
@@ -175,7 +175,15 @@ struct arena {
 /*#define BIGOBJ_PAGE_SHIFT	12*/ /* 4Kb */
 #define BIGOBJ_PAGE_SHIFT	10  /* 1Kb */
 #define BIGOBJ_PAGE_SZB		(1 << BIGOBJ_PAGE_SHIFT)
+
+/* the minimum size of a big-object region should be at least 128K and be a multiple of
+ * the BIBOP page size.
+ */
+#if (BIBOP_PAGE_SZB <= 128*ONE_K)
 #define MIN_BOREGION_SZB	(128*ONE_K)
+#else
+#define MIN_BOREGION_SZB	BIBOP_PAGE_SZB
+#endif
 
 struct bigobj_region {	    /* A big-object region header */
     Addr_t	    firstPage;	/* the address of the first page of the region */
@@ -187,19 +195,6 @@ struct bigobj_region {	    /* A big-object region header */
     bigobj_region_t *next;	/* the next region in the list of regions */
     bigobj_desc_t   *objMap[1]; /* the map from pages to big-object descriptors */
 };
-
-/* the size of a big-object region header */
-#define BOREGION_HDR_SZB(NPAGES)	\
-    (sizeof(bigobj_region_t) + ((NPAGES-1)*sizeof(bigobj_desc_t *)))
-
-/* map an address to a big-object page index */
-#define ADDR_TO_BOPAGE(R, ADDR)	\
-    (((Addr_t)(ADDR) - (R)->firstPage) >> BIGOBJ_PAGE_SHIFT)
-
-/* map an address to a big-object descriptor */
-#define ADDR_TO_BODESC(R, ADDR)	\
-    ((R)->objMap[ADDR_TO_BOPAGE(R, ADDR)])
-
 
 struct bigobj_desc {	    /* A big-object descriptor. */
     Addr_t	    obj;	/* the actual object */
@@ -214,6 +209,18 @@ struct bigobj_desc {	    /* A big-object descriptor. */
     bigobj_desc_t   *next;	/* list is a doubly linked list; the other lists */
 				/* are singly linked lists */
 };
+
+/* the size of a big-object region header */
+#define BOREGION_HDR_SZB(NPAGES)	\
+    (sizeof(bigobj_region_t) + ((NPAGES-1)*sizeof(bigobj_desc_t *)))
+
+/* map an address to a big-object page index */
+#define ADDR_TO_BOPAGE(R, ADDR)	\
+    (((Addr_t)(ADDR) - (R)->firstPage) >> BIGOBJ_PAGE_SHIFT)
+
+/* map an address to a big-object descriptor */
+#define ADDR_TO_BODESC(R, ADDR)	\
+    ((R)->objMap[ADDR_TO_BOPAGE(R, ADDR)])
 
 /* the rounded size of a big-object */
 #define BO_ROUNDED_SZB(BDP)	ROUNDUP((BDP)->sizeB, BIGOBJ_PAGE_SZB)
@@ -288,6 +295,7 @@ extern Byte_t *BO_GetCodeObjTag (bigobj_desc_t *bdp);
 extern void PrintRegionMap (bigobj_region_t *r);
 #endif
 #ifdef CHECK_HEAP
+extern void CheckBIBOP (heap_t *heap);
 extern void CheckHeap (heap_t *heap, int maxSweptGen);
 #endif
 

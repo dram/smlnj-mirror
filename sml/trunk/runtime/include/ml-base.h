@@ -130,8 +130,14 @@ extern void AssertFail (const char *a, const char *file, int line);
 /* clear memory */
 #define CLEAR_MEM(m, sz)	(memset((m), 0, (sz)))
 
-/* The size of a page in the BIBOP memory map (in bytes) */
-#define BIBOP_PAGE_SZB		((Addr_t)(64*ONE_K))
+/* The size of a page in the BIBOP memory map (in bytes).  Note that this
+ * must agree with the size defined in `runtime/gc/bibop.h`.
+ */
+#ifdef SIZE_64
+#define BIBOP_PAGE_SZB		(256*ONE_K)
+#else /* SIZE_32 */
+#define BIBOP_PAGE_SZB		(64*ONE_K)
+#endif
 #define RND_MEMOBJ_SZB(SZ)	ROUNDUP(SZ,BIBOP_PAGE_SZB)
 
 /** C types used in the run-time system **/

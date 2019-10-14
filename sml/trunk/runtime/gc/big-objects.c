@@ -48,25 +48,51 @@ void PrintRegionMap (bigobj_region_t *r)
  */
 bigobj_desc_t *BO_AllocRegion (heap_t *heap, Addr_t reqSzB)
 {
-    int		    npages, oldNpages, i;
+    int		    npages, i;
     Addr_t	    hdrSzB, memObjSzB;
     bigobj_region_t *region;
     mem_obj_t	    *memObj;
     bigobj_desc_t   *desc;
 
-  /* compute the memory object size.
-   * NOTE: there probably is a closed form for this, but I'm too lazy
-   * to try to figure it out.
+  /* Compute the memory-object size for the region.  A region consists of
+   * a header followed by big-object pages.  The size of the header depends
+   * on the number of pages and the number of pages should be rounded up
+   * to fill the memory object, which will be a multiple of BIBOP_PAGE_SZB
+   * bytes.  We use an iterative algorithm to determine the number of pages
+   * and the size of the memory object.
    */
-    npages = ROUNDUP(reqSzB, BIGOBJ_PAGE_SZB) >> BIGOBJ_PAGE_SHIFT;
-    do {
-	oldNpages = npages;
+    {
+	Addr_t szb;
+	int hdrSlop, slop;
+      /* minimum number of pages to hold requested size */
+	npages = ROUNDUP(reqSzB, BIGOBJ_PAGE_SZB) >> BIGOBJ_PAGE_SHIFT;
+      /* size of header for npages */
+	szb = BOREGION_HDR_SZB(npages);
+      /* round up to bigobject page size */
+	hdrSzB = ROUNDUP(szb, BIGOBJ_PAGE_SZB);
+      /* amount of slop in header (measured in per-page space cost) */
+	hdrSlop = (hdrSzB - szb) / sizeof(bigobj_desc_t *);
+      /* amount of memory needed to hold the header and pages */
+	szb = hdrSzB + npages*BIGOBJ_PAGE_SZB;
+      /* round up to BIBOP page size */
+	memObjSzB = ROUNDUP(szb, BIBOP_PAGE_SZB);
+      /* amount of slop in memory object (measured in per-page space cost) */
+	slop = (memObjSzB - szb) / BIGOBJ_PAGE_SZB;
+      /* while the page slop is bigger than the header slop, reallocate a page to the header */
+	while (hdrSlop < slop) {
+	    slop -= 1;
+	    hdrSlop += BIGOBJ_PAGE_SZB / sizeof(bigobj_desc_t *);
+	}
+      /* we can increase the number of pages without increasing the rounded
+       * size of the header.
+       */
+	npages += slop;
+      /* recompute the header and request sizes based on the actual number of
+       * big-object pages being allocated.
+       */
 	hdrSzB = ROUNDUP(BOREGION_HDR_SZB(npages), BIGOBJ_PAGE_SZB);
-	reqSzB = (npages << BIGOBJ_PAGE_SHIFT);
-	memObjSzB = RND_MEMOBJ_SZB(hdrSzB+reqSzB);
-	memObjSzB = (memObjSzB < MIN_BOREGION_SZB) ? MIN_BOREGION_SZB : memObjSzB;
-	npages = (memObjSzB - hdrSzB) >> BIGOBJ_PAGE_SHIFT;
-    } while (npages != oldNpages);
+	reqSzB = npages * BIGOBJ_PAGE_SZB;
+    }
 
     if ((memObj = MEM_AllocMemObj (memObjSzB)) == NIL(mem_obj_t *)) {
 	Die ("unable to allocate memory object for bigobject region");
@@ -280,10 +306,11 @@ Byte_t *BO_AddrToCodeObjTag (Word_t pc)
     aid = ADDR_TO_PAGEID(BIBOP, pc);
 
     if (IS_BIGOBJ_AID(aid)) {
-	int		indx = BIBOP_ADDR_TO_INDEX(pc);
+	int indx = BIBOP_ADDR_TO_INDEX(pc);
 	while (!BO_IS_HDR(aid)) {
 	    --indx;
 	    aid = INDEX_TO_PAGEID(BIBOP,indx);
+	    ASSERT(IS_BIGOBJ_AID(aid));
 	}
 	region = (bigobj_region_t *)BIBOP_INDEX_TO_ADDR(indx);
 	return BO_GetCodeObjTag (ADDR_TO_BODESC(region, pc));
@@ -296,7 +323,11 @@ Byte_t *BO_AddrToCodeObjTag (Word_t pc)
 
 /* BO_GetCodeObjTag:
  *
- * Return the tag of the given code object.
+ * Return the tag of the given code object.  See
+ *
+ *	compiler/CodeGen/cpscompile/smlnj-pseudoOps.sml
+ *
+ * for details on the tag layout.
  */
 Byte_t *BO_GetCodeObjTag (bigobj_desc_t *bdp)
 {

@@ -15,10 +15,22 @@ cd ../..
 twoup=`pwd`
 cd $here
 
-function usage {
+# compilation flags for final pass
+#
+CTL_FLAGS=
+
+usage() {
   echo "usage: cmb-cross [ -z ] <target>"
   echo "where <target> is one of amd64-unix, ppc-unix, sparc-unix, x86-unix, or x86-win32"
   exit 1
+}
+
+to_lower() {
+  echo $@ | tr "[:upper:]" "[:lower:]"
+}
+
+to_upper() {
+  echo $@ | tr "[:lower:]" "[:upper:]"
 }
 
 # check for "-z" flag
@@ -51,8 +63,8 @@ else
     exit 1
 fi
 
-HOST_ARCH=$(echo $ARCH | tr "[:lower:]" "[:upper:]")
-HOST_OPSYS=$(echo $OPSYS | tr "[:lower:]" "[:upper:]")
+HOST_ARCH=$(to_upper $ARCH)
+HOST_OPSYS=$(to_upper $OPSYS)
 
 # determine the target ARCH, OPSYS, SIZE, and ENDIANESS variables
 target=$1
@@ -98,7 +110,7 @@ case $target in
 esac
 
 # lower-case architecture name
-architecture=$(echo $TARGET_ARCH | tr "[:upper:]" "[:lower:]")
+architecture=$(to_lower $TARGET_ARCH)
 
 unset VERSIONTOOL_BUMP_RELEASE
 
@@ -120,9 +132,9 @@ XXXX
 echo "$this: cross compile to $target"
 
 if [ $HOST_OPSYS = win32 ] ; then
-    SUFFIX="${HOST_ARCH}-win32"
+    SUFFIX=$(to_lower "${HOST_ARCH}-win32")
 else
-    SUFFIX="${HOST_ARCH}-unix"
+    SUFFIX=$(to_lower "${HOST_ARCH}-unix")
 fi
 CROSS_BIN_DIR="${target}-cross.bin.${SUFFIX}"
 CROSS_BOOT_DIR="${target}-cross.boot.${SUFFIX}"
@@ -134,8 +146,8 @@ export CM_PATHCONFIG
 
 cd $CROSS_BOOT_DIR
 
-echo $this: $LINK $RUN @SMLboot=BOOTLIST @SMLheap=sml $MODE
-if $LINK $RUN @SMLboot=BOOTLIST @SMLheap=sml $MODE ; then
+echo $this: $LINK $RUN @SMLboot=BOOTLIST @SMLheap=sml $MODE $CTL_FLAGS
+if $LINK $RUN @SMLboot=BOOTLIST @SMLheap=sml $MODE $CTL_FLAGS ; then
     # back to the system directory
     #
     cd $here

@@ -274,16 +274,11 @@ structure Core =
 		  | 0x0a (* tag_arr_hdr *) => peql(getData a, getData b)
 		  | 0x0e (* tag_arr_data and tag_ref *) => false
 		  | 0x12 (* tag_raw *) => (
-(* 64BIT: FIXME: this test is 32-bit specific; should just add a primop for
- * loading raw words from from RAW records and comparing them.
- *)
-		    (* should either be a boxed 32-bit or boxed 64-bit number. We use
-		     * the cast to int32 or int64 to force the loading of the value
-		     * to compare from memory.
+		    (* should be a boxed 64-bit number. We use the cast to int64 to
+		     * force the loading of the value to compare from memory.
 		     *)
 		      case getObjLen a
-		       of 1 => i32eq(cast a, cast b)
-			| 2 => i64eq(cast a, cast b)
+		       of 1 => i64eq(cast a, cast b)
 			| _ => raise Match
 		      (* end case *))
 		  | _ (* tagless pair *) => pairEq()

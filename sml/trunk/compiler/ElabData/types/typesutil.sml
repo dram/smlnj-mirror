@@ -741,7 +741,7 @@ structure TypesUtil : TYPESUTIL =
      * test whether a list of alternative pats is refutable as a whole for their
      * common type, i.e. are there values that don't match any of the pats? *)
     and refutablePats pats = true  (* punting! -- assume all OR patterns refutable *)
-    
+
     fun isValue (VARexp _) = true
       | isValue (CONexp _) = true
       | isValue (NUMexp _) = true

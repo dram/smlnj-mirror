@@ -262,6 +262,9 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
     heap->freeBigObjs->prev	= heap->freeBigObjs;
     heap->freeBigObjs->next	= heap->freeBigObjs;
     heap->weakList		= NIL(ml_val_t *);
+#ifdef VERBOSE
+    SayDebug("Free Big Objects list header = %p\n", heap->freeBigObjs);
+#endif
 
   /* initialize new space */
     heap->baseObj = baseObj;
@@ -311,6 +314,11 @@ void InitHeap (ml_state_t *msp, bool_t isBoot, heap_params_t *params)
 #else
     msp->ml_limitPtr	= HEAP_LIMIT(heap);
 #endif
+
+#ifdef CHECK_HEAP
+    CheckBIBOP (heap);
+    SayDebug("****** GC initialization done ******\n");
+#endif /* CHECK_HEAP */
 
 } /* end of InitHeap */
 

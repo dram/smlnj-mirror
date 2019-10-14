@@ -77,7 +77,8 @@ PVT void ScanMem (Word_t *start, Word_t *stop, int gen, int objKind)
 	    switch (EXTRACT_OBJC(id)) {
 	      case OBJC_bigobj:
 		while (!BO_IS_HDR(id)) {
-		    id = bibop[--indx];
+		    indx--;
+		    id = INDEX_TO_PAGEID(bibop,indx);
 		}
 		region = (bigobj_region_t *)BIBOP_INDEX_TO_ADDR(indx);
 		dp = ADDR_TO_BODESC(region, w);

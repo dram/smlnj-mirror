@@ -26,6 +26,17 @@ typedef Unsigned16_t page_id_t;
  * BIBOP pages.  We assume that virtual addresses are < 2^48 (true for current
  * 64-bit hardware).  The top-level (L1) table consists of pointers to L2 tables.
  * We preallocate a special L2 table for unmapped regions.
+ *
+ * A 64-bit address is logic ally partitioned into four parts:
+ *
+ *	|00000000|00000000|aaaaaaaa|aaaaaaaa|bbbbbbbb|bbbbbbcc|cccccccc|cccccccc|
+ *
+ *	[63..48]	-- assumed to be zero and ignored
+ *	[47..32] (a)	-- L1 index
+ *	[31..18] (b)	-- L2 index
+ *	[17..00] (c)	-- page bits
+ *
+ * The concatenation of the L1 and L2 indices define the flat BIBOP index.
  */
 
 /* we assume that the virtual address space is limited to 48 bits */
@@ -51,14 +62,16 @@ typedef Unsigned16_t page_id_t;
 
 /* convert an address to a flat BIBOP index */
 #define BIBOP_ADDR_TO_INDEX(a)		((Addr_t)(a) >> BIBOP_L2_SHIFT)
+/* convert an address to its level-1 table index */
 #define BIBOP_ADDR_TO_L1_INDEX(a)	((Addr_t)(a) >> BIBOP_L1_SHIFT)
+/* convert an address to its level-2 table index */
 #define BIBOP_ADDR_TO_L2_INDEX(a)	(BIBOP_ADDR_TO_INDEX(a) & BIBOP_L2_MASK)
 /* convert a flat BIBOP index to a L1 table index */
 #define BIBOP_INDEX_TO_L1_INDEX(ix)	((ix) >> BIBOP_L2_BITS)
 /* convert a flat BIBOP index to a L2 table index */
 #define BIBOP_INDEX_TO_L2_INDEX(ix)	((ix) & BIBOP_L2_MASK)
 /* convert a flat BIBOP index to a memory address */
-#define BIBOP_INDEX_TO_ADDR(i)		((Addr_t)((i) << BIBOP_L2_SHIFT))
+#define BIBOP_INDEX_TO_ADDR(i)		((Addr_t)(i) << BIBOP_L2_SHIFT)
 
 typedef struct {
     page_id_t		tbl[BIBOP_L2_SZ];
@@ -80,17 +93,17 @@ extern l2_bibop_t	UnmappedL2;
 
 /* update a BIBOP entry at the given index */
 #define BIBOP_UPDATE(bibop, ix, aid)	\
-	do { (*bibop)[BIBOP_INDEX_TO_L1_INDEX(ix)].tbl[BIBOP_INDEX_TO_L2_INDEX(ix)] = (aid); } while (0)
+	do { bibop[BIBOP_INDEX_TO_L1_INDEX(ix)]->tbl[BIBOP_INDEX_TO_L2_INDEX(ix)] = (aid); } while (0)
 
-#else
+#else /* SIZE_32 */
 
 #define BIBOP_PAGE_BITS		16		/* log2(BIBOP_PAGE_SZB) */
 #define BIBOP_BITS		(BITS_PER_WORD-BIBOP_PAGE_BITS)
 #define BIBOP_SZ		(1 << BIBOP_BITS)
-#define BIBOP_ADDR_TO_INDEX(a)	(((Addr_t)(a)) >> BIBOP_PAGE_BITS)
+#define BIBOP_ADDR_TO_INDEX(a)	((Addr_t)(a) >> BIBOP_PAGE_BITS)
 
-#define BIBOP_INDEX_TO_ADDR(i)	((Addr_t)((i) << BIBOP_PAGE_BITS))
-#define BIBOP_NBLKS_TO_SZB(i)	((Addr_t)((i) << BIBOP_PAGE_BITS))
+#define BIBOP_INDEX_TO_ADDR(i)	((Addr_t)(i) << BIBOP_PAGE_BITS)
+#define BIBOP_NBLKS_TO_SZB(i)	((Addr_t)(i) << BIBOP_PAGE_BITS)
 
 typedef page_id_t *bibop_t;
 
@@ -103,6 +116,11 @@ extern bibop_t		BIBOP;
 #define BIBOP_UPDATE(bibop, ix, aid)	do { (bibop)[ix] = (aid); } while (0)
 
 #endif /* !SIZE_64 */
+
+/* validate the BIBOP page size */
+#if (BIBOP_PAGE_SZB != (1 << BIBOP_PAGE_BITS))
+#  error BIBOP_PAGE_SZB in ml-base.h does not equal (1 << BIBOP_PAGE_BITS)
+#endif
 
 /* allocate and initialize a Bibop */
 extern bibop_t InitBibop ();

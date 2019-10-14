@@ -81,12 +81,16 @@
 /* NOTE: this include must come after the definition of stdlink, etc. */
 #include "x86-macros.h"
 
+/* word-size related immediate operands */
+#define WORD_SZB_IM	IM(8)
+#define WORD_SHFT_IM	IM(3)
+
 /**********************************************************************/
 	TEXT
 
 /* sigh_return:
  */
-ML_CODE_HDR(sigh_return_a)
+ALIGNED_ENTRY(sigh_return_a)
 	MOV	(IM(ML_unit),stdlink)
 	MOV	(IM(ML_unit),stdclos)
 	MOV	(IM(ML_unit),pc)
@@ -97,14 +101,14 @@ ML_CODE_HDR(sigh_return_a)
  * Resume execution at the point at which a handler trap occurred.  This is a
  * standard two-argument function, thus the closure is in ml_cont.
  */
-ENTRY(sigh_resume)
+ALIGNED_ENTRY(sigh_resume)
 	MOV	(IM(REQ_SIG_RESUME), request_w)
 	JMP	(CSYM(set_request))
 
 /* pollh_return_a:
  * The return continuation for the ML poll handler.
  */
-ML_CODE_HDR(pollh_return_a)
+ALIGNED_ENTRY(pollh_return_a)
 	MOV	(IM(REQ_POLL_RETURN), request_w)
 	MOV	(IM(ML_unit),stdlink)
 	MOV	(IM(ML_unit),stdclos)
@@ -114,20 +118,20 @@ ML_CODE_HDR(pollh_return_a)
 /* pollh_resume:
  * Resume execution at the point at which a poll event occurred.
  */
-ENTRY(pollh_resume)
+ALIGNED_ENTRY(pollh_resume)
 	MOV	(IM(REQ_POLL_RESUME), request_w)
 	JMP	(CSYM(set_request))
 
 /* handle:
  */
-ML_CODE_HDR(handle_a)
+ALIGNED_ENTRY(handle_a)
 	MOV	(IM(REQ_EXN), request_w)
 	MOVE	(stdlink,temp,pc)
 	JMP	(CSYM(set_request))
 
 /* return:
  */
-ML_CODE_HDR(return_a)
+ALIGNED_ENTRY(return_a)
 	MOV	(IM(REQ_RETURN), request_w)
 	MOV	(IM(ML_unit),stdlink)
 	MOV	(IM(ML_unit),stdclos)
@@ -135,28 +139,28 @@ ML_CODE_HDR(return_a)
 	JMP	(CSYM(set_request))
 
 /* Request a fault. */
-ENTRY(request_fault)
+ALIGNED_ENTRY(request_fault)
 	MOV	(IM(REQ_FAULT), request_w)
 	MOVE	(stdlink,temp,pc)
 	JMP	(CSYM(set_request))
 
 /* bind_cfun : (string * string) -> c_function
  */
-ML_CODE_HDR(bind_cfun_a)
+ALIGNED_ENTRY(bind_cfun_a)
 	CHECKLIMIT
 	MOV	(IM(REQ_BIND_CFUN), request_w)
 	JMP	(CSYM(set_request))
 
 /* build_literals:
  */
-ML_CODE_HDR(build_literals_a)
+ALIGNED_ENTRY(build_literals_a)
 	CHECKLIMIT
 	MOV	(IM(REQ_BUILD_LITERALS), request_w)
 	JMP	(CSYM(set_request))
 
 /* callc:
  */
-ML_CODE_HDR(callc_a)
+ALIGNED_ENTRY(callc_a)
 	CHECKLIMIT
 	MOV	(IM(REQ_CALLC), request_w)
 	JMP	(CSYM(set_request))
@@ -165,7 +169,7 @@ ML_CODE_HDR(callc_a)
  * Entry point for GC.  Control is transfered using a `call` instruction,
  * so the return address is on the top of the stack.
  */
-ENTRY(saveregs)
+ALIGNED_ENTRY(saveregs)
 	POP	(pc)
 	MOV	(IM(REQ_GC), request_w)
 	/* fall into set_request */
@@ -227,9 +231,9 @@ ENTRY(set_request)
 /* on Windows, `restoreregs` is a C wrapper around `asm_restoreregs` that
  * handles traps (see `runtime/mach-dep/win32-fault.c`)
  */
-ENTRY(asm_restoreregs)
+ALIGNED_ENTRY(asm_restoreregs)
 #else
-ENTRY(restoreregs)
+ALIGNED_ENTRY(restoreregs)
 #endif
 	/* save C callee-save registers */
 	PUSH	(RBP)
@@ -318,7 +322,7 @@ pending:
  * array : (int * 'a) -> 'a array
  * Allocate and initialize a new array.	 This can cause GC.
  */
-ML_CODE_HDR(array_a)
+ALIGNED_ENTRY(array_a)
 	CHECKLIMIT
 	MOV	(REGIND(stdarg),temp)		/* temp := length in words */
 	SAR	(IM(1),temp)			/* temp := length untagged */
@@ -335,18 +339,18 @@ ML_CODE_HDR(array_a)
 	OR	(IM(MAKE_TAG(DTAG_arr_data)),temp1)
 	/* store descriptor and bump allocation pointer */
 	MOV	(temp1,REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	/* allocate and initialize data object */
 	MOV	(allocptr,temp1)		/* temp1 := array data ptr */
 	MOV	(REGOFF(8,stdarg),temp2)	/* temp2 := initial value */
 LABEL(L_array_lp)
 	MOV	(temp2,REGIND(allocptr))	/* init array */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	SUB	(IM(1),temp)
 	JNE	(L_array_lp)
 	/* Allocate array header */
 	MOV	(IM(DESC_polyarr),REGIND(allocptr)) /* descriptor */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(REGIND(stdarg),temp)		/* temp := length */
 	MOV	(allocptr, stdarg)		/* result := header addr */
 	MOV	(temp1, REGIND(allocptr))	/* store pointer to data */
@@ -367,7 +371,7 @@ LABEL(L_array_large)
 
 
 /* create_r : int -> realarray */
-ML_CODE_HDR(create_r_a)
+ALIGNED_ENTRY(create_r_a)
 	CHECKLIMIT
 	MOV	(stdarg,temp)		/* temp := length */
 	SAR	(IM(1),temp)		/* temp := untagged length in words */
@@ -379,17 +383,17 @@ ML_CODE_HDR(create_r_a)
 
 	/* allocate the data object */
 	MOV	(temp,temp1)
-	SAL	(IM(TAG_SHIFTW),temp1)	/* temp1 := descriptor */
+	SAL	(IM(TAG_SHIFTW),temp1)		/* temp1 := descriptor */
 	OR	(IM(MAKE_TAG(DTAG_raw64)),temp1)
 	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
-	ADD	(IM(8),allocptr)		/* allocptr++ */
+	ADD	(WORD_SZB_IM,allocptr)		/* allocptr++ */
 	MOV	(allocptr,temp1)		/* temp1 := data object */
-	SAL	(IM(3),temp)			/* temp := length in bytes */
+	SAL	(WORD_SHFT_IM,temp)		/* temp := length in bytes */
 	ADD	(temp,allocptr)			/* allocptr += length */
 
 	/* allocate the header object */
 	MOV	(IM(DESC_real64arr),REGIND(allocptr))
-	ADD	(IM(8),allocptr)		/* allocptr++ */
+	ADD	(WORD_SZB_IM,allocptr)		/* allocptr++ */
 	MOV	(temp1,REGIND(allocptr))	/* header data */
 	MOV	(stdarg,REGOFF(8,allocptr))	/* header length */
 	MOV	(allocptr,stdarg)		/* stdarg := header obj */
@@ -406,12 +410,12 @@ LABEL(L_create_r_large)
 
 
 /* create_b : int -> bytearray */
-ML_CODE_HDR(create_b_a)
+ALIGNED_ENTRY(create_b_a)
 	CHECKLIMIT
-	MOV	(stdarg,temp)		/* temp is tagged length */
-	SAR	(IM(1),temp)		/* temp >>= 1; (untag length) */
-	ADD	(IM(3),temp)		/* temp += 7; */
-	SAR	(IM(3),temp)		/* temp >>= 3; (length in 8-byte words) */
+	MOV	(stdarg,temp)			/* temp is tagged length */
+	SAR	(IM(1),temp)			/* temp >>= 1; (untag length) */
+	ADD	(IM(7),temp)			/* temp += 7; */
+	SAR	(WORD_SHFT_IM,temp)		/* temp >>= 3; (length in 8-byte words) */
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_b_large)
 
@@ -423,14 +427,14 @@ ML_CODE_HDR(create_b_a)
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_raw)),temp1)
 	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(allocptr,temp1)		/* temp1 is data object */
-	SAL	(IM(3),temp)			/* temp is size in bytes */
+	SAL	(WORD_SHFT_IM,temp)		/* temp is size in bytes */
 	ADD	(temp,allocptr)			/* allocptr += length */
 
 	/* allocate the header object */
 	MOV	(IM(DESC_word8arr),REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(temp1,REGIND(allocptr))
 	MOV	(stdarg,REGOFF(8,allocptr))
 	MOV	(allocptr,stdarg)		/* stdarg := header */
@@ -446,12 +450,12 @@ LABEL(L_create_b_large)
 
 
 /* create_s : int -> string */
-ML_CODE_HDR(create_s_a)
+ALIGNED_ENTRY(create_s_a)
 	CHECKLIMIT
 	MOV	(stdarg,temp)
-	SAR	(IM(1),temp)		/* untag */
-	ADD	(IM(8),temp)		/* 7 + extra byte */
-	SAR	(IM(2),temp)		/* length in words */
+	SAR	(IM(1),temp)			/* untag length */
+	ADD	(IM(8),temp)			/* 7 + extra byte */
+	SAR	(WORD_SHFT_IM,temp)		/* length in words */
 	CMP	(IM(SMALL_OBJ_SZW),temp)
 	JGE	(L_create_s_large)
 
@@ -462,17 +466,17 @@ ML_CODE_HDR(create_s_a)
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_raw)),temp1)
 	MOV	(temp1,REGIND(allocptr))	/* store descriptor */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 
 	MOV	(allocptr,temp1)		/* temp1 is data obj */
-	SAL	(IM(3),temp)			/* bytes len */
+	SAL	(WORD_SHFT_IM,temp)		/* length in bytes */
 	ADD	(temp,allocptr)			/* allocptr += length */
 	MOV	(IM(0),REGOFF((-8),allocptr))	/* zero out last word */
 
 	/* allocate header obj */
 	MOV	(IM(DESC_string),temp)	/* hdr descr */
 	MOV	(temp,REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(temp1,REGIND(allocptr))	/* hdr data */
 	MOV	(stdarg,REGOFF(8,allocptr))	/* hdr length */
 	MOV	(allocptr, stdarg)		/* stdarg is hdr obj */
@@ -491,7 +495,7 @@ LABEL(L_create_s_large)
  *	creates a vector with elements taken from a list.
  *	n.b. The frontend ensures that list cannot be nil.
  */
-ML_CODE_HDR(create_v_a)
+ALIGNED_ENTRY(create_v_a)
 	CHECKLIMIT
 	MOV	(REGIND(stdarg),temp)		/* temp = len tagged */
 	PUSH	(misc0)
@@ -506,14 +510,14 @@ ML_CODE_HDR(create_v_a)
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_vec_data)),temp1)
 	MOV	(temp1,REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(REGOFF(8,stdarg),temp1)	/* temp1 is list */
 	MOV	(allocptr,stdarg)		/* stdarg is vector */
 
 LABEL(L_create_v_lp)
 	MOV	(REGIND(temp1),temp2)		/* hd */
 	MOV	(temp2,REGIND(allocptr))	/* store into vector */
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(REGOFF(8,temp1),temp1)		/* tl */
 	CMP	(IM(ML_nil),temp1)		/* isNull? */
 	JNE	L_create_v_lp
@@ -521,7 +525,7 @@ LABEL(L_create_v_lp)
 	/* allocate header object */
 	MOV	(IM(DESC_polyvec),temp1)
 	MOV	(temp1,REGIND(allocptr))
-	ADD	(IM(8),allocptr)
+	ADD	(WORD_SZB_IM,allocptr)
 	MOV	(stdarg,REGIND(allocptr))	/* data */
 	MOV	(temp,REGOFF(8,allocptr))	/* len */
 	MOV	(allocptr,stdarg)		/* result */
@@ -542,7 +546,7 @@ LABEL(L_create_v_large)
  * low-level test-and-set style primitive for mutual-exclusion among
  * processors.	For now, we only provide a uni-processor trivial version.
  */
-ML_CODE_HDR(try_lock_a)
+ALIGNED_ENTRY(try_lock_a)
 #if (MAX_PROCS > 1)
 #  error multiple processors not supported
 #else /* (MAX_PROCS == 1) */
@@ -554,7 +558,7 @@ ML_CODE_HDR(try_lock_a)
 
 /* unlock : releases a spin lock
  */
-ML_CODE_HDR(unlock_a)
+ALIGNED_ENTRY(unlock_a)
 #if (MAX_PROCS > 1)
 #  error multiple processors not supported
 #else /* (MAX_PROCS == 1) */
@@ -578,7 +582,7 @@ ML_CODE_HDR(unlock_a)
    Return the nearest integer that is less or equal to the argument.
 	 Caller's responsibility to make sure arg is in range. */
 
-ML_CODE_HDR(floor_a)
+ALIGNED_ENTRY(floor_a)
 	MOVSD		(REGIND(stdarg), XMM0)
 	ROUNDSD		(RND_TO_NEGINF, XMM0, XMM0)
 	CVTTSD2SI	(XMM0, stdarg)
@@ -588,7 +592,7 @@ ML_CODE_HDR(floor_a)
  * Extract the unbiased exponent pointed to by stdarg.
  * Note: Using fxtract, and fistl does not work for inf's and nan's.
  */
-ML_CODE_HDR(logb_a)
+ALIGNED_ENTRY(logb_a)
 	/* DEPRECATED */
 	CONTINUE
 
@@ -599,7 +603,7 @@ ML_CODE_HDR(logb_a)
  * NB: We assume the first floating point "register" is
  * caller-save, so we can use it here (see x86/x86.sml). */
 
-ML_CODE_HDR(scalb_a)
+ALIGNED_ENTRY(scalb_a)
 	CHECKLIMIT
 	/* FIXME: need implementation */
 	CONTINUE

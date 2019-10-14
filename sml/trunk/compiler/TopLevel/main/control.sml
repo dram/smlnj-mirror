@@ -229,7 +229,7 @@ structure Control : CONTROL =
     val printAbsyn = register ("printAbsyn", "whether to print Absyn representation", ElabControl.printAbsyn)
     val interp = new ("interp", "?", false)
 
-    val progressMsgs = new ("progressMsgs", "?", false)
+    val progressMsgs = new ("progressMsgs", "whether to print a message after each phase is completed", false)
     val trackExn =
 	new ("track-exn",
 	     "whether to generate code that tracks exceptions", true)

@@ -99,6 +99,10 @@ void MinorGC (ml_state_t *msp, ml_val_t **roots)
 }
 #endif
 
+#ifdef CHECK_HEAP
+    CheckBIBOP (heap);
+#endif
+
   /* scan the standard roots */
     {
 	ml_val_t	*rp;

@@ -64,17 +64,23 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 		if CompInfo.anyErrors cinfo
 		  then (
 		    if !Control.progressMsgs
-		      then say ("<<< Error stop after "^s^"\n")
+		      then say (concat["<<< Error stop after ", s, "\n"])
 		      else ();
 		    raise EM.Error)
 		else if !Control.progressMsgs
-		  then say ("<<< "^s^" successful\n")
+		  then say (concat["<<< ", s, " successful\n"])
 		  else ()
 
 	  fun oneUnit () = ((* perform one transaction  *)
+		if !Control.progressMsgs
+		  then say (concat["<<< begin compile \"", #fileOpened source, "\"\n"])
+		  else ();
 		case parser ()
 		 of NONE => raise EndOfFile
 		  | SOME ast => let
+		      val _ = if !Control.progressMsgs
+			    then say ("<<< parsing successful\n")
+			    else ()
 		    (* diagnostic printing of Ast and Absyn *)
 		      val printDepth = Control_Print.printDepth
 

@@ -106,32 +106,32 @@ structure PrimEnv : PRIM_ENV =
 		foldr f EE.empty tycElements
 	      end
 	  val entities = EntityEnv.mark(fn _ => ST.special"primEntEnv", entities)
-      val sigrec = {
-	      stamp=ST.special "PrimTypesSig",
-	      name=SOME(S.sigSymbol "PRIMTYPES"), closed=true,
-	      fctflag=false,
-	      elements=allElements,
-	      typsharing=nil,strsharing=nil,
-	      properties = PropList.newHolder (),
-	      (* boundeps=ref (SOME []), *)
-	      (* lambdaty=ref(NONE), *)
-	      stub = NONE
-	    }
-      val strrec = {
-	      sign=M.SIG sigrec,
-	      rlzn={
-		   stamp=ST.special "PrimTypesStr",
-		   stub=NONE,
-		   entities=entities,
-		   properties = PropList.newHolder (),
-		   (* lambdaty=ref NONE,  *)
-		   rpath=IP.IPATH[S.strSymbol "primTypes"]
-		 },
-	      access=A.nullAcc, prim= []
-	    }
-      in
-	M.STR strrec
-      end (* primTypes *)
+	  val sigrec = {
+		  stamp=ST.special "PrimTypesSig",
+		  name=SOME(S.sigSymbol "PRIMTYPES"), closed=true,
+		  fctflag=false,
+		  elements=allElements,
+		  typsharing=nil,strsharing=nil,
+		  properties = PropList.newHolder (),
+		  (* boundeps=ref (SOME []), *)
+		  (* lambdaty=ref(NONE), *)
+		  stub = NONE
+		}
+	  val strrec = {
+		  sign=M.SIG sigrec,
+		  rlzn={
+		       stamp=ST.special "PrimTypesStr",
+		       stub=NONE,
+		       entities=entities,
+		       properties = PropList.newHolder (),
+		       (* lambdaty=ref NONE,  *)
+		       rpath=IP.IPATH[S.strSymbol "primTypes"]
+		     },
+		  access=A.nullAcc, prim= []
+		}
+	  in
+	    M.STR strrec
+	  end (* primTypes *)
 
 
   (**************************************************************************

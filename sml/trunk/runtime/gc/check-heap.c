@@ -45,6 +45,63 @@ extern char	*ArenaName[];
 	}						\
     }
 
+/* CheckBIBOP:
+ *
+ * Check that the heap and BIBOP agree.
+ */
+void CheckBIBOP (heap_t *heap)
+{
+    int i, j;
+
+    ErrCount = 0;
+
+    SayDebug ("Checking arena address ranges in BIBOP\n");
+    for (i = 0;  i < heap->numGens; i++) {
+	gen_t *g = heap->gen[i];
+      /* check the small-object arenas */
+	for (int j = 0;  j < NUM_ARENAS;  j++) {
+	    arena_t *ap = g->arena[j];
+	    Addr_t p = (Addr_t)ap->tospBase;
+	    Addr_t top = (Addr_t)ap->tospTop;
+	    bool_t firstError = TRUE;
+	    while (p < top) {
+		Addr_t aid = ADDR_TO_PAGEID(BIBOP, p);
+		if (aid != ap->id) {
+		    ERROR;
+		    if (firstError) {
+			SayDebug("** Generation %d, %s arena: inconsistent bibop\n",
+			    i+1, ArenaName[j+1]);
+			firstError = FALSE;
+		    }
+#ifdef SIZE_64
+		    SayDebug("** %p: BIBOP[%d] = %p[%d] = %x:%x:%02x, but expected %x:%x:%02x\n",
+			p, BIBOP_ADDR_TO_L1_INDEX(p),
+			BIBOP[BIBOP_ADDR_TO_L1_INDEX(p)],
+			BIBOP_ADDR_TO_L2_INDEX(p),
+			EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
+			EXTRACT_GEN(ap->id), EXTRACT_OBJC(ap->id), EXTRACT_HBLK(ap->id));
+#else /* SIZE_32 */
+		    SayDebug("** %p: BIBOP[%d] = %x:%x:%02x, but expected %x:%x:%02x\n",
+			p, BIBOP_ADDR_TO_INDEX(p),
+			EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
+			EXTRACT_GEN(ap->id), EXTRACT_OBJC(ap->id), EXTRACT_HBLK(ap->id));
+#endif
+		}
+		p += BIBOP_PAGE_SZB;
+	    }
+	}
+      /* check the big-objects */
+	for (j = 0;  j < NUM_BIGOBJ_KINDS;  j++) {
+	    bigobj_desc_t *bo = g->bigObjs[j];
+
+	}
+    }
+
+    if (ErrCount > 0) {
+	Die ("CheckBIBOP --- inconsistent heap\n");
+    }
+
+} /* CheckBIBOP */
 
 /* CheckHeap:
  *
@@ -55,6 +112,8 @@ void CheckHeap (heap_t *heap, int maxSweptGen)
     int		i, j;
 
     ErrCount = 0;
+
+    CheckBIBOP (heap);
 
     SayDebug ("Checking heap (%d generations) ...\n", maxSweptGen);
     for (i = 0;  i < maxSweptGen; i++) {

@@ -1,6 +1,9 @@
-/* c-libraries.c
+/*! \file c-libraries.c
  *
- * COPYRIGHT (c) 1994 AT&T Bell Laboratories.
+ * \author John Reppy
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is the home of the CLibrary table, C library initialization code,
  * and C function lookup code.  It is part of the run-time proper (not part
@@ -69,7 +72,9 @@ ml_val_t BindCFun (char *moduleName, char *funName)
 {
     int		i, j;
 
-/* SayDebug("BIND: %s.%s\n", moduleName, funName); */
+#ifdef DEBUG_TRACE_CCALL
+    SayDebug("BindCFun: %s.%s\n", moduleName, funName);
+#endif
     for (i = 0;  CLibs[i] != NIL(c_library_t *);  i++) {
 	if (strcmp(CLibs[i]->libName, moduleName) == 0) {
 	    cfunc_binding_t	*cfuns = CLibs[i]->cfuns;
