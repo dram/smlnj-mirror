@@ -698,6 +698,50 @@ structure TypesUtil : TYPESUTIL =
 
     local open Absyn in
 
+    (* dconRefutable : dcon -> bool
+     * a dcon is irrefutable if its datatype has only one data constructor *)
+    fun dconRefutable(DATACON{sign,...}) =
+	case sign
+	 of A.CSIG(n,m) => (n+m) > 1 (* ref, etc. dcons considered irrefutable *)
+	  | A.CNIL => false (* exn constructor *)
+
+    (* orAlternatives : A.pat -> A.pat list *)
+    (* DBM: assumes "|" operator in patterns is right associative
+     * this function should only be applied to  *)
+    fun orAlternatives (ORpat(p1,p2)) =
+	p1 :: orAlternatives p2
+      | orAlternatives p = [p]
+
+    (* refutable: A.pat -> bool
+     * a pattern is refutable if there exists a value of its type that does
+     * not match it, i.e. the "coverage" of the pattern is incomplete *)
+    fun refutable pat =
+	case pat
+	 of VARpat _ => false
+	  | WILDpat => false
+	  | CONpat (dcon, tyvars) => dconRefutable dcon
+	  | RECORDpat {fields, ...} =>
+	    List.exists (fn (_,p) => refutable p) fields
+	  | APPpat (dcon, _, arg) =>
+	    dconRefutable dcon orelse refutable arg
+	  | VECTORpat (pats, _) =>
+	    List.exists refutable pats
+	  | LAYEREDpat (p1, p2) => refutable p1 orelse refutable p2
+	  | CONSTRAINTpat (p, _ ) => refutable p
+	  | MARKpat (p, _) => refutable p
+	  | ORpat (p1, p2) => refutablePats (orAlternatives pat)
+	  | _ => true  (* NOPAT, numbers, strings, characters are refutable *)
+
+    (* We don't (yet?) cope with OR patterns. One expects that
+     * p1 at least is refutable, else the ORpat is degenerate.
+     * together, p1 and/or p2 may be refutable, but ORpat(p1,p2) may
+     * not be; e.g. ORpat(true,false). This test is not straitforward! *)
+
+    (* refutablePats : A.pat list -> bool
+     * test whether a list of alternative pats is refutable as a whole for their
+     * common type, i.e. are there values that don't match any of the pats? *)
+    and refutablePats pats = true  (* punting! -- assume all OR patterns refutable *)
+
     fun isValue (VARexp _) = true
       | isValue (CONexp _) = true
       | isValue (NUMexp _) = true
@@ -736,36 +780,21 @@ structure TypesUtil : TYPESUTIL =
 	   else false
 	end
       | isValue (CONSTRAINTexp(e,_)) = isValue e
-      | isValue (CASEexp(e, (RULE(p,_))::_, false)) =
-	(isValue e) andalso (irref p) (* special bind CASEexps *)
+      | isValue (CASEexp(e, (RULE(p,e'))::_, false)) =
+	isValue e andalso not(refutable p) andalso isValue e'
+        (* DBM: at the point where isValue is used in typecheck.sml,
+         * have "val pat = e" declarations been rewritten as
+	 * "val bvars = case e of pat => bvars | _ => raise Bind"?
+	 * I don't think so. This happens in FLINT/trans/translate
+	 * (and/or the match compiler?). In the general case, this is wrong, because
+	 * the rhs rule expression e' associated with p may not be a value.
+	 * a more general treatment of case expressions would allow the case
+         * where the set of all rule patterns is irrefutable and all the rhs
+         * expressions are values *)
       | isValue (LETexp(VALRECdec _, e)) = (isValue e) (* special RVB hacks *)
       | isValue (MARKexp(e,_)) = isValue e
       | isValue _ = false
 
-  (* testing if a binding pattern is irrefutable --- complete *)
-    and irref pp  =
-      let fun udcon(DATACON{sign=A.CSIG(x,y),...}) = ((x+y) = 1)
-	    | udcon _ = false
-
-	  fun g (CONpat(dc,_)) = udcon dc
-	    | g (APPpat(dc,_,p)) = (udcon dc) andalso (g p)
-	    | g (RECORDpat{fields=ps,...}) =
-		  let fun h((_, p)::r) = if g p then h r else false
-			| h _ = true
-		   in h ps
-		  end
-	    | g (CONSTRAINTpat(p, _)) = g p
-	    | g (LAYEREDpat(p1,p2)) = (g p1) andalso (g p2)
-	    | g (ORpat(p1,p2)) = (g p1) andalso (g p2)
-	    | g (VECTORpat(ps,_)) =
-		  let fun h (p::r) = if g p then h r else false
-			| h _ = true
-		   in h ps
-		  end
-	    | g (MARKpat(p,_)) = g p
-	    | g _ = true
-       in g pp
-      end
     end (* local *)
 
 
