@@ -20,13 +20,8 @@ is
 	$smlnj/cmb/amd64-unix.cm
 	select-amd64-unix.sml
 # elif defined(ARCH_PPC)
-#   if defined(OS_MACOS)
-	$smlnj/cmb/ppc-macos.cm
-	select-ppc-macos.sml
-#   else
 	$smlnj/cmb/ppc-unix.cm
 	select-ppc-unix.sml
-#   endif
 # elif defined(ARCH_SPARC)
 	$smlnj/cmb/sparc-unix.cm
 	select-sparc-unix.sml

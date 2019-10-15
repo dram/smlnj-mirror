@@ -7,6 +7,7 @@
  *
  * Author: Matthias Blume (blume@tti-c.org)
  *)
+
 structure UnixInstall : sig end =
   struct
 
@@ -29,19 +30,26 @@ structure UnixInstall : sig end =
 			       OS.Path.concat (installdir, "bin"))
 	  fun bincmd cmd = OS.Path.concat (bindir, cmd)
 	  val runsml = ".run-sml"		(* don't prepend bindir! *)
+	(* the build command is a standard script that takes a size argument *)
+	  val buildcmd = let
+		val sz = Int.toString(SMLofNJ.SysInfo.getHostSize())
+		in
+		  "CM_LOCAL_PATHCONFIG=/dev/null ./build.sh -" ^ sz
+		end
 	  in
 	    I.proc {
 		smlnjroot = home,
 		installdir = installdir,
 	 	configcmd = "./config.sh",
-		buildcmd = "CM_LOCAL_PATHCONFIG=/dev/null ./build.sh",
+		buildcmd = buildcmd,
 		unpack = SOME unpack,
 		instcmd = fn target => let
-			     val new = bincmd target
-			     in if OS.FileSys.access (new, []) then ()
-				else Posix.FileSys.symlink
-					 { old = runsml, new = new }
-			     end
+		  val new = bincmd target
+		  in
+		    if OS.FileSys.access (new, [])
+		      then ()
+		      else Posix.FileSys.symlink { old = runsml, new = new }
+		  end
 	      }
 	  end
 

@@ -278,11 +278,12 @@ structure GenericInstall : sig
 	(* at the end, read lib/pathconfig and eliminate duplicate entries *)
 	  fun uniqconfig () = let
 		fun swallow (f, m) = pc_fold SM.insert m f
-		fun finish m =
-		    let val s = TextIO.openOut cm_pathconfig
-			fun one (k, v) = TextIO.output (s, concat [k, " ", v, "\n"])
-		    in SM.appi one m; TextIO.closeOut s
-		    end
+		fun finish m = let
+		      val s = TextIO.openOut cm_pathconfig
+		      fun one (k, v) = TextIO.output (s, concat [k, " ", v, "\n"])
+		      in
+			SM.appi one m; TextIO.closeOut s
+		      end
 		in
 		  finish (pc_fold SM.insert SM.empty cm_pathconfig)
 		end
