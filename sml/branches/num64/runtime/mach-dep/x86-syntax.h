@@ -92,6 +92,7 @@
  *	SAL(src,dst)		`dst := dst << src`
  *	SAR(src,dst)		`dst := dst ~>> src`
  *	SUB(src,dst)		`dst := dst - src`
+ *	XOR(src,dst)		`dst := dst XOR src` (used for setting registers to 0)
  */
 
 #ifndef _X86_SYNTAX_H_
@@ -175,7 +176,9 @@
 
 #define CALL(lab)		call lab
 #define JB(lab)			jb lab
+#define JE(lab)			je lab
 #define JGE(lab)		jge lab
+#define JLE(lab)		jle lab
 #define JMP(lab)		jmp lab
 #define JNE(lab)		jne lab
 #define RET			ret
@@ -234,6 +237,7 @@
 #define AND(src,dst)		CHOICE(andq ARGS2(src,dst), and ARGS2(src,dst))
 #define CMP(src,dst)		CHOICE(cmpq ARGS2(src,dst), cmp ARGS2(src,dst))
 #define INC(dst)		CHOICE(incq dst, inc dst)
+#define INT4			CHOICE(int $4, int $4)
 #define LEA(src,dst)		CHOICE(leaq ARGS2(src,dst), lea ARGS2(src,dst))
 #define MOV(src,dst)		CHOICE(movq ARGS2(src,dst), mov ARGS2(src,dst))
 #define MOVS_D(src,dst)		CHOICE(movsd ARGS2(src,dst), movs ARGS2(src,dst))
@@ -244,10 +248,15 @@
 #define SAL(src,dst)		CHOICE(salq ARGS2(src,dst), sal ARGS2(src,dst))
 #define SAR(src,dst)		CHOICE(sarq ARGS2(src,dst), sar ARGS2(src,dst))
 #define SUB(src,dst)		CHOICE(subq ARGS2(src,dst), sub ARGS2(src,dst))
+#define TEST(src,dst)		CHOICE(testq ARGS2(src,dst), test ARGS2(src,dst))
+#define XOR(src,dst)		CHOICE(xorq ARGS2(src,dst), xor ARGS2(src,dst))
 /* Scalar SSE operations */
 #define CVTTSD2SI(src,dst)	CHOICE(cvttsd2si ARGS2(src,dst), cvttsd2si ARGS2(src,dst))
+#define CVTSI2SDQ(src,dst)	CHOICE(cvtsi2sdq ARGS2(src,dst), cvtsd2si ARGS2(src,dst))
 #define MOVSD(src,dst)		CHOICE(movsd ARGS2(src,dst), movs ARGS2(src,dst))
 #define ROUNDSD(dir,src,dst)	CHOICE(roundsd ARGS3(dir,src,dst), rounds ARGS3(dir,src,dst))
+/* Vector SSE operations */
+#define c(src1,src2,dst)
 /* 64-bit registers */
 #define RDI		REG(rdi)
 #define RSI		REG(rsi)

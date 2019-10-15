@@ -695,11 +695,10 @@ ALIGNED_ENTRY(logb_a)
 
 
 /* scalb : (real * int) -> real
- * Scale the first argument by 2 raised to the second argument.	 Raise
- * Float("underflow") or Float("overflow") as appropriate.
+ * Scale the first argument by 2 raised to the second argument.
  * NB: We assume the first floating point "register" is
- * caller-save, so we can use it here (see x86/x86.sml). */
-
+ * caller-save, so we can use it here (see x86/x86.sml).
+ */
 ALIGNED_ENTRY(scalb_a)
 	CHECKLIMIT
 	PUSH	(REGOFF(4,stdarg))		/* Get copy of scalar. */
