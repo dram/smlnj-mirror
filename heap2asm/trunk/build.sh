@@ -5,6 +5,7 @@
 # build script for heap2asm.
 #
 # options:
+#   -32 | -64		-- specify target word size (default 32)
 #   -o image		-- specify the name of the heap image, "ml-lex"
 #			   is the default.
 
@@ -15,6 +16,7 @@ HEAP_IMAGE=""
 ONEUP=`pwd`/..
 BIN=${INSTALLDIR:-$ONEUP}/bin
 BUILD=$BIN/ml-build
+SIZE_OPT="-32"
 
 #
 # process command-line options
@@ -23,6 +25,8 @@ while [ "$#" != "0" ] ; do
     arg=$1
     shift
     case $arg in
+	-32) SIZE_OPT=$arg ;;
+	-64) SIZE_OPT=$arg ;;
 	-o)
 	    if [ "$#" = "0" ]; then
 		echo "$CMD: must supply image name for -o option"
@@ -41,4 +45,4 @@ if [ "$HEAP_IMAGE" = "" ]; then
     HEAP_IMAGE="$ROOT"
 fi
 
-"$BUILD" heap2asm.cm Main.main $HEAP_IMAGE
+"$BUILD" $SIZE_OPT heap2asm.cm Main.main $HEAP_IMAGE
