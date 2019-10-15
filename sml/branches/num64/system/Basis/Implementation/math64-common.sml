@@ -90,6 +90,43 @@ structure Math64Common : sig
 	  Word.fromLarge(Word64.rshiftl(InlineT.Real64.toBits x, 0w52)),
 	  0wx7ff))
 
+(* version of scalb that is completely in SML; we need to add a primop for bits->real
+ * for this to work.
+    fun scalb (x, k) = let
+	  val bits = InlineT.Real64.toBits x
+	  val biasedExp = Word.toIntX(Word.andb(
+		Word.fromLarge(Word64.rshiftl(bits, 0w52)),
+		0wx7ff))
+	  in
+	    if (biasedExp = 0)
+	      then scalb(x * two_to_the_54, I.-(k, 54))			(*2*)
+	    else if I.<(biasedExp, 2047)
+	      then let							(*1*)
+		val exp = biasedExp + k
+		in
+		  if I.<(exp, 0) then 0.0
+		  else if I.>=(exp, 2047) then x * plusInfinity
+		  else let
+		    val bits' = Word64.orb(
+			  Word64.andb(0wx800FFFFFFFFFFFFF, bits),
+			  Word64.lshift(Word64.fromInt exp, 0w52))
+		    in
+		      InlineT.Real64.fromBits bits'
+		    end
+		end
+	      else let
+	      (* unbias exponent and add to k *)
+		val k' = I.+(k, I.-(biasedExp, 1023))
+		in
+		  if I.<(k',0)
+		    then if I.<(k', I.-(~1022,54))
+		      then 0.0						(*3*)
+		      else scalb(x,I.+(k,54)) * two_to_the_minus_54	(*4*)
+		    else x * plusInfinity				(*5*)
+		end
+	  end
+*)
+
   (* This function is IEEE double-precision specific;
      it works correctly on subnormal inputs and outputs;
      we do not apply it to 0.0, inf's, or nan's *)
