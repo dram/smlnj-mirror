@@ -21,6 +21,10 @@
 #include "ml-state.h"
 #include "ml-globals.h"
 
+#ifdef SIGNAL_DEBUG
+#include "gc.h"		/* for BO_AddrToCodeObjTag */
+#endif
+
 /* this is temporary */
 #define SELF_VPROC	(VProc[0])
 
@@ -41,11 +45,10 @@ void InitFaultHandlers (ml_state_t *msp)
 {
 
   /** Set up the Div and Overflow faults **/
-#ifdef SIG_FAULT1
-    SIG_SetHandler (SIG_FAULT1, FaultHandler);
-#endif
-#ifdef SIG_FAULT2
-    SIG_SetHandler (SIG_FAULT2, FaultHandler);
+#ifdef SIG_OVERFLOW
+    SIG_SetHandler (SIG_OVERFLOW, FaultHandler);
+#else
+# error now signal for Overflow specified
 #endif
 
   /** Initialize the floating-point unit **/
@@ -66,23 +69,32 @@ void InitFaultHandlers (ml_state_t *msp)
 PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *c)
 {
     ucontext_t	    *scp = (ucontext_t *)c;
+    Addr_t	    pc = (Addr_t)SIG_GetPC(scp);
     ml_state_t	    *msp = SELF_VPROC->vp_state;
     extern Word_t   request_fault[];
-    int		    code = SIG_GetCode(si, scp);
 
 #ifdef SIGNAL_DEBUG
-    SayDebug ("Fault handler: sig = %d, code = %d, inML = %d\n",
-	signal, code, SELF_VPROC->vp_inMLFlag);
+    SayDebug ("Fault handler: pc = %p, sig = %d, inML = %d\n",
+	(void*)pc, signal, SELF_VPROC->vp_inMLFlag);
+    if (SELF_VPROC->vp_inMLFlag) {
+	SayDebug ("  source file: %s\n", (char *)BO_AddrToCodeObjTag(pc));
+    }
 #endif
 
     if (! SELF_VPROC->vp_inMLFlag) {
-	Die ("bogus fault not in ML: sig = %d, code = %#x, pc = %#x)\n",
-	    signal, SIG_GetCode(si, scp), SIG_GetPC(scp));
+	Die ("bogus fault not in ML: pc = %p, sig = %d\n", (void*)pc, signal);
     }
+
+#ifdef SIG_IsINT4
+  /* verify that the signal actually comes from an overflow */
+    if (! SIG_IsINT4(pc)) {
+	Die ("bogus overflow fault: pc = %p, sig = %d\n", (void*)pc, signal);
+    }
+#endif
 
    /* Map the signal to Overflow */
     msp->ml_faultExn = OverflowId;
-    msp->ml_faultPC = (Word_t)SIG_GetPC(scp);
+    msp->ml_faultPC = pc;
 
     SIG_SetPC (scp, request_fault);
 

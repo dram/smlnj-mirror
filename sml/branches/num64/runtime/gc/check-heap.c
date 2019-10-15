@@ -73,12 +73,19 @@ void CheckBIBOP (heap_t *heap)
 			    i+1, ArenaName[j+1]);
 			firstError = FALSE;
 		    }
+#ifdef SIZE_64
 		    SayDebug("** %p: BIBOP[%d] = %p[%d] = %x:%x:%02x, but expected %x:%x:%02x\n",
 			p, BIBOP_ADDR_TO_L1_INDEX(p),
 			BIBOP[BIBOP_ADDR_TO_L1_INDEX(p)],
 			BIBOP_ADDR_TO_L2_INDEX(p),
 			EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
 			EXTRACT_GEN(ap->id), EXTRACT_OBJC(ap->id), EXTRACT_HBLK(ap->id));
+#else /* SIZE_32 */
+		    SayDebug("** %p: BIBOP[%d] = %x:%x:%02x, but expected %x:%x:%02x\n",
+			p, BIBOP_ADDR_TO_INDEX(p),
+			EXTRACT_GEN(aid), EXTRACT_OBJC(aid), EXTRACT_HBLK(aid),
+			EXTRACT_GEN(ap->id), EXTRACT_OBJC(ap->id), EXTRACT_HBLK(ap->id));
+#endif
 		}
 		p += BIBOP_PAGE_SZB;
 	    }

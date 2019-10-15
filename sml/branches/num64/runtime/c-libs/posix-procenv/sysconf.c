@@ -55,7 +55,7 @@ ml_val_t _ml_P_ProcEnv_sysconf (ml_state_t *msp, ml_val_t arg)
         errno = EINVAL;
         return RAISE_SYSERR(msp, -1);
     }
- 
+
     errno = 0;
     while (((val = sysconf(attr->val)) == -1) && (errno == EINTR)) {
         errno = 0;
