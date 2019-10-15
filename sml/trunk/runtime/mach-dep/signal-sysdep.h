@@ -219,7 +219,7 @@ extern void SetFSR(int);
 #    define SIG_GetCode(info,scp) 0
   /* see /usr/include/mach/ppc/thread_status.h */
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext->ss.srr0)
-#    define SIG_SetPC(scp, addr)	{(scp)->uc_mcontext->ss.srr0 = (int) addr;}
+#    define SIG_SetPC(scp, addr)	{(scp)->uc_mcontext->ss.srr0 = (Addr_t) addr;}
   /* The offset of 17 is hardwired from reverse engineering the contents of
    * sc_regs. 17 is the offset for register 15.
    */
@@ -322,7 +322,7 @@ extern void SetFSR(int);
 
 #    define SIG_GetCode(info, scp)	((info)->si_code)
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[EIP])
-#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (int)(addr); }
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (Addr_t)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
 #  elif defined(OPSYS_WIN32)
@@ -344,11 +344,11 @@ extern void SetFSR(int);
 #    if ((__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ - 1040) <= 0)
       /* Tiger */
 #      define SIG_GetPC(scp)		((scp)->uc_mcontext->ss.eip)
-#      define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->ss.eip = (int) addr; }
+#      define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->ss.eip = (Addr_t) addr; }
 #    else
      /* Leopard or later */
 #      define SIG_GetPC(scp)		((scp)->uc_mcontext->__ss.__eip)
-#      define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->__ss.__eip = (int) addr; }
+#      define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->__ss.__eip = (Addr_t) addr; }
 #    endif
 #    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
@@ -410,7 +410,7 @@ extern void SetFSR(int);
      /** amd64, Solaris */
 
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[EIP])
-#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (int)(addr); }
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (Addr_t)(addr); }
 /*#    define SIG_ZeroLimitPtr(scp)  { ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }*/
 
 #    error Solaris/AMD64 not supported yet
@@ -431,7 +431,7 @@ extern void SetFSR(int);
     /* see /usr/include/mach/i386/thread_status.h */
 #    define SIG_GetCode(info,scp)	((info)->si_code)
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext->__ss.__rip)
-#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->__ss.__rip = (int) addr; }
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->__ss.__rip = (Addr_t) addr; }
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext->__ss.__r14 = 0; }
 
 #  else
