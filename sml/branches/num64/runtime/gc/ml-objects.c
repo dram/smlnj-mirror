@@ -86,7 +86,6 @@ ml_val_t ML_CStringList (ml_state_t *msp, char **strs)
     p = LIST_nil;
     while (i-- > 0) {
 	s = ML_CString(msp, strs[i]);
-SayDebug("ML_CStringList: [%d] = %s\n", i, STR_MLtoC(s));
 	LIST_cons(msp, p, s, p);
     }
 
