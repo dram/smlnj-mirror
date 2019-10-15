@@ -1811,7 +1811,7 @@ functor MLRiscGen (
 		    val a  = M.LOAD(ity, regbind s, R.memory)
 		    val ea = scale1(a, i)
 		    in
-		      emit(M.STORE(8, ea, untagUnsigned(v), R.memory));
+		      emit(M.STORE(8, ea, untagUnsigned v, R.memory));
 		      gen(e, hp)
 		    end
 		| gen (C.SETTER(P.NUMUPDATE{kind=P.FLOAT 64},[v,i,w],e), hp) = let

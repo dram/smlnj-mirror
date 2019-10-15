@@ -596,17 +596,60 @@ ALIGNED_ENTRY(logb_a)
 	/* DEPRECATED */
 	CONTINUE
 
+#define EXP_MASK	IM(0x7ff0000000000000)
+#define NOT_EXP_MASK	IM(0x800fffffffffffff)
 
 /* scalb : (real * int) -> real
- * Scale the first argument by 2 raised to the second argument.	 Raise
- * Float("underflow") or Float("overflow") as appropriate.
- * NB: We assume the first floating point "register" is
- * caller-save, so we can use it here (see x86/x86.sml). */
-
+ * Scale the first argument by 2 raised to the second argument.
+ * Note that if we were guaranteed AVX512 support, then we could use
+ * the VSCALEFSD instruction, but since we are not, we implement this
+ * using integer operations.
+ */
 ALIGNED_ENTRY(scalb_a)
 	CHECKLIMIT
-	/* FIXME: need implementation */
+	MOV	(REGOFF(8,stdarg), temp)	/* get second arg */
+	SAR	(IM(1), temp)			/* untag second arg */
+	MOV	(REGIND(stdarg), stdarg)	/* put pointer to real in stdarg */
+	PUSH	(misc0)
+	PUSH	(misc1)
+#define temp1 misc0
+#define temp2 misc1
+	MOV	(REGIND(stdarg), temp1)		/* put bits in temp1 */
+	MOV	(EXP_MASK, temp2)
+	AND	(temp1, temp2)			/* temp2 has shifted exponent */
+	TEST	(temp2, temp2)
+	JE	(L_scalb_return)		/* if temp2 == 0 then return first arg */
+	SAR	(IM(52), temp2)
+	ADD	(temp, temp2)			/* temp2 = exponent + scale */
+	JLE	(L_scalb_under)
+	CMP	(IM(2047), temp2)
+	JGE	(L_scalb_over)
+	MOV	(NOT_EXP_MASK, temp)		/* clear exponent field in original number */
+	AND	(temp, temp1)
+	SAL	(IM(52), temp2)			/* shift exponent into position */
+	OR	(temp2, temp1)			/* temp1 := temp1 | temp2 */
+
+L_scalb_alloc:
+	MOV	(IM(DESC_reald),temp)		/* hdr descr */
+	MOV	(temp,REGIND(allocptr))
+	ADD	(WORD_SZB_IM,allocptr)
+	MOV	(temp1,REGIND(allocptr))	/* data = temp1 */
+	MOV	(allocptr, stdarg)		/* stdarg is result */
+	ADD	(WORD_SZB_IM,allocptr)		/* allocptr += 1 */
+
+L_scalb_return:
+	POP	(misc1)
+	POP	(misc0)
 	CONTINUE
+
+L_scalb_under:
+	XOR	(temp1,temp1)			/* temp1 = 0 */
+	JMP	(L_scalb_alloc)
+
+L_scalb_over:
+	INT4					/* signal Overflow */
+#undef temp1
+#undef temp2
 
 END
 

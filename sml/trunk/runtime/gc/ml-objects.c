@@ -188,7 +188,7 @@ void ML_ShrinkRaw (ml_state_t *msp, ml_val_t v, int nWords)
 
 /* ML_AllocRaw64:
  *
- * Allocate an uninitialized chunk of raw64 data.
+ * Allocate an uninitialized chunk of 64-bit aligned raw data.
  */
 ml_val_t ML_AllocRaw64 (ml_state_t *msp, int nelems)
 {
@@ -199,9 +199,11 @@ ml_val_t ML_AllocRaw64 (ml_state_t *msp, int nelems)
 
     if (nwords > SMALL_OBJ_SZW) {
 	arena_t	*ap = msp->ml_heap->gen[0]->arena[STRING_INDX];
-	szb = WORD_SZB*(nwords + 2);
+	szb = WORD_SZB*(nwords + 1);
+#ifdef ALIGN_REALDS
+	szb += WORD_SZB;  /* alignment padding */
+#endif
 	BEGIN_CRITICAL_SECT(MP_GCGenLock)
-	  /* NOTE: we use nwords+2 to allow for the alignment padding */
 	    IFGC (ap, szb+msp->ml_heap->allocSzB) {
 	      /* we need to do a GC */
 		ap->reqSizeB += szb;
@@ -225,7 +227,7 @@ ml_val_t ML_AllocRaw64 (ml_state_t *msp, int nelems)
 	    res = PTR_CtoML(ap->nextw);
 	    ap->nextw += nwords;
 	END_CRITICAL_SECT(MP_GCGenLock)
-	COUNT_ALLOC(msp, szb-WORD_SZB);
+	COUNT_ALLOC(msp, szb);
     }
     else {
 #ifdef ALIGN_REALDS
@@ -503,7 +505,7 @@ ml_val_t ML_SysConstList (ml_state_t *msp, sysconst_tbl_t *tbl)
 } /* end of ML_SysConstList */
 
 
-/* ML_CData:
+/* ML_AllocCData:
  *
  * Allocate a 64-bit aligned raw data object (to store abstract C data).
  */
@@ -511,7 +513,7 @@ ml_val_t ML_AllocCData (ml_state_t *msp, int nbytes)
 {
     ml_val_t	obj;
 
-    obj = ML_AllocRaw64 (msp, (nbytes+7)>>2);
+    obj = ML_AllocRaw64 (msp, (nbytes+7) >> 3);
 
     return obj;
 
@@ -529,7 +531,7 @@ ml_val_t ML_CData (ml_state_t *msp, void *data, int nbytes)
     if (nbytes == 0)
 	return ML_unit;
     else {
-	obj = ML_AllocRaw64 (msp, (nbytes+7)>>2);
+	obj = ML_AllocRaw64 (msp, (nbytes+7) >> 3);
 	memcpy (PTR_MLtoC(void, obj), data, nbytes);
 
 	return obj;
