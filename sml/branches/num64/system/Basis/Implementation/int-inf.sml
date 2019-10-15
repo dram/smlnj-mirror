@@ -1,9 +1,7 @@
 (* int-inf.sml
  *
- * COPYRIGHT (c) 2012 by The SML/NJ Fellowship.
- *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
- *     See COPYRIGHT file for details.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Author of the current code: Matthias Blume (blume@tti-c.org)
  *
@@ -36,6 +34,7 @@
  * The current implementation is not as efficient as it could and should
  * be.
  *)
+
 structure IntInfImp :> INT_INF = struct
 
     type int = IntInf.int
@@ -417,4 +416,4 @@ structure IntInfImp :> INT_INF = struct
 
     val op << = lshift
     val ~>> = rshift
-end (* structure IntInf *)
+end (* structure IntInfImp *)
