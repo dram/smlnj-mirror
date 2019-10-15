@@ -1,4 +1,10 @@
 #!@SHELL@
+#
+# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
+# usage: ml-build [-S setup] root-group [main-function [heapfile]]
+#
 
 if [ x${SMLNJ_HOME} = x ] ; then
     BIN_DIR="@BINDIR@"
@@ -30,14 +36,17 @@ trap 'rm -rf $smlfile $cmfile $listfile $linkargsfile @CMDIRARC@/*/$smlfile' 0 1
 
 usage() {
     echo ${thisscript}: $*
-    echo Usage: $thisscript '[-S setup] root-group [main-function [heapfile]]'
+    echo Usage: $thisscript '[-32 | -64] [-S setup] root-group [main-function [heapfile]]'
     exit 1
 }
 
+SIZE_OPT="-32"
 setup=
 
 while [ $# != 0 ] ; do
     case $1 in
+    -32) SIZE_OPT="-32"; shift ;;
+    -64) SIZE_OPT="-64"; shift ;;
     -D*|-U*|-C*)
 	dulist="$dulist $1"
 	shift
@@ -92,10 +101,10 @@ EOF
 # Unless the heap image exists and is up-to-date CM will write the arguments
 # for the link script into $linkargsfile.
 # (See src/cm/main/cm-boot.sml [function "mlbuild"] for details.)
-if "$SML" $dulist @CMbuild $setup "$root" "$cmfile" "$heap" "$listfile" "$linkargsfile"
+if "$SML" $SIZE_OPT $dulist @CMbuild $setup "$root" "$cmfile" "$heap" "$listfile" "$linkargsfile"
 then
     if [ -r "$linkargsfile" ]; then
-	"$LINK" `cat "$linkargsfile"`
+	"$LINK" $SIZE_OPT `cat "$linkargsfile"`
     fi
 else
     exit $?
