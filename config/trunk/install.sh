@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Copyright (c) 1994 AT&T Bell Laboratories.
-# Copyright (c) 2014-2018 The Fellowship of SML/NJ
+# Copyright (c) 2014-2019 The Fellowship of SML/NJ
 #
 # Installation script for SML/NJ and related tools.
 #
@@ -11,11 +11,26 @@
 # Author: Matthias Blume (blume@tti-c.org)
 #
 
-if [ x$1 = xnolib ] ; then
-    nolib=true
-else
-    nolib=false
-fi
+complain() {
+    echo "$@"
+    exit 1
+}
+
+this=$0
+
+# process options
+SIZE_OPT="-32"
+nolib=false
+while [ "$#" != "0" ] ; do
+    arg=$1; shift
+    case $arg in
+      -32) SIZE_OPT=$arg ;;
+      -64) SIZE_OPT=$arg ;;
+      nolib) nolib=true ;;
+      *) complain "usage: $this [-32 | -64] [nolib]"
+      ;;
+    esac
+done
 
 if [ x${INSTALL_QUIETLY} = xtrue ] ; then
     export CM_VERBOSE
@@ -31,13 +46,6 @@ vsay() {
 	echo "$@"
     fi
 }
-
-complain() {
-    echo "$@"
-    exit 1
-}
-
-this=$0
 
 
 #
@@ -248,18 +256,10 @@ installdriver _arch-n-opsys .arch-n-opsys
 # run it to figure out what architecture and os we are using, define
 # corresponding variables...
 #
-ARCH_N_OPSYS=`"$BINDIR"/.arch-n-opsys`
+ARCH_N_OPSYS=`"$BINDIR"/.arch-n-opsys $SIZE_OPT`
 if [ "$?" != "0" ]; then
-    case `uname -s` in
-      CYGWIN*)
-        echo "$this: !!! SML/NJ does not support 64-bit cygwin"
-        echo "$this: !!! Please use the 32-bit version"
-        ;;
-      *)
-        echo "$this: !!! Script $BINDIR/.arch-n-opsys fails on this machine."
-        echo "$this: !!! You must patch this by hand and repeat the installation."
-        ;;
-    esac
+    echo "$this: !!! Script $BINDIR/.arch-n-opsys fails on this machine."
+    echo "$this: !!! You must patch $BINDIR/.arch-n-opsys by hand and repeat the installation."
     exit 2
 else
     vsay $this: Script $BINDIR/.arch-n-opsys reports $ARCH_N_OPSYS.
@@ -331,6 +331,8 @@ case $OPSYS in
       else
 	EXTRA_DEFS="AS_ACCEPTS_SDK=$AS_ACCEPTS_SDK SDK=$SDK"
       fi
+    elif [ "$ARCH" = AMD64 ] ; then
+      EXTRA_DEFS="AS_ACCEPTS_SDK=yes"
     fi
     ;;
   linux)
@@ -412,7 +414,7 @@ if [ -r "$HEAPDIR"/sml.$HEAP_SUFFIX ]; then
     CM_DIR_ARC=$ORIG_CM_DIR_ARC
     # now re-dump the heap image:
     vsay "$this: Re-creating a (customized) heap image..."
-    "$BINDIR"/sml @CMredump "$ROOT"/sml
+    "$BINDIR"/sml $SIZE_OPT @CMredump "$ROOT"/sml
     cd "$ROOT"
     if [ -r sml.$HEAP_SUFFIX ]; then
 	mv sml.$HEAP_SUFFIX "$HEAPDIR"
@@ -487,7 +489,7 @@ if [ $nolib = false ] ; then
     export ROOT INSTALLDIR CONFIGDIR BINDIR
     CM_TOLERATE_TOOL_FAILURES=true
     export CM_TOLERATE_TOOL_FAILURES
-    if "$BINDIR"/sml -m \$smlnj/installer.cm
+    if "$BINDIR"/sml $SIZE_OPT -m \$smlnj/installer.cm
     then
 	vsay $this: Installation complete.
     else
