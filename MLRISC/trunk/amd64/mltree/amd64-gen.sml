@@ -428,15 +428,14 @@ functor AMD64Gen (
 (*	  | isImmediate(I.ImmedLabel _) = true *)
 	  | isImmediate _ = false
 
-        and genExpr' e = let
-            val r = newReg ()
-            in
-              expr (e, r, []);
-              r
-            end
         (* generate an expression, and return its result in a register *)
         and genExpr (T.REG (_, r)) = r
-          | genExpr e = genExpr' e
+          | genExpr e = let
+	      val r = newReg ()
+	      in
+		expr (e, r, []);
+		r
+	      end
 
 	and expr' (ty, e, dst, an) = let
 	    val dstOpnd = gpr (ty, dst)
@@ -1000,14 +999,14 @@ functor AMD64Gen (
 	      mark (I.FMOVE {fmvOp=fmvOp, dst=I.FDirect d, src=foperand (fromTy, e)}, an)
 	    end (* convertf2f *)
 
-	and converti2f (fty, ty, e, d, an) = let
-	    val fmvOp = (case (ty, fty)
+	and converti2f (fty, ity, e, d, an) = let
+	    val fmvOp = (case (ity, fty)
 	                  of (32, 32) => I.CVTSI2SS
 	                   | (32, 64) => I.CVTSI2SD
 	                   | (64, 32) => I.CVTSI2SSQ
 	                   | (64, 64) => I.CVTSI2SDQ
 	                 (* end case *))
-	    val src = regOrMem (ty, operand ty e)
+	    val src = regOrMem (ity, operand ity e)
 	    in
 	      mark (I.FMOVE {fmvOp=fmvOp, dst=I.FDirect d, src=src}, an)
 	    end (* converti2f *)
@@ -1099,8 +1098,21 @@ functor AMD64Gen (
 	  | jmp (T.LABEXP le, labs, an) = mark (I.JMP (I.ImmedLabel le, labs), an)
           | jmp (ea, labs, an) = mark (I.JMP (operand 64 ea, labs), an)
 
-	and doStore ty (ea, d, mem, an) =
-	    move' (ty, immedOrReg (ty, operand ty d), address (ea, mem), an)
+      (* 8-bit store operations must use one of %al, %bl, %cl, or %dl as the source;
+       * we chose %al (aka %rax).
+       *)
+	and doStore 8 (ea, d, mem, an) = let
+	      val src = (case immedOrReg (8, operand 8 d)
+		     of src as I.Direct(_, r) => if CB.sameColor(r, C.rax)
+			  then src
+			  else (move(64, src, rax 64); rax 8)
+		      | src => src
+		    (* end case *))
+	      in
+		move' (8, src, address (ea, mem), an)
+	      end
+	  | doStore ty (ea, d, mem, an) =
+	      move' (ty, immedOrReg (ty, operand ty d), address (ea, mem), an)
 
 	and binaryMem(ty, binOp, src, dst, mem, an) =
 	    mark(I.BINARY{binOp=binOp, src=immedOrReg(ty, operand ty src),
@@ -1110,17 +1122,16 @@ functor AMD64Gen (
         and isOne(T.LI n) = n = 1
           | isOne _ = false
 
-	and store (ty, ea, d, mem,
-	      {INC,DEC,ADD,SUB,NOT,NEG,SHL,SHR,SAR,OR,AND,XOR, ...} : O.opcodes,
-	      doStore, an) = let
-	    fun default () = doStore (ea, d, mem, an)
-	    fun binary1 (t, t', unary, binary, ea', x) =
-                if t = ty andalso t' = ty then
-                   if MLTreeUtils.eqRexp(ea, ea') then
-                      if isOne x then unaryMem(ty, unary, ea, mem, an)
-                      else binaryMem(ty, binary, x, ea, mem, an)
-                    else default()
-                else default()
+	and store (ty, ea, d, mem, opcodes : O.opcodes, doStore, an) = let
+	      val {INC,DEC,ADD,SUB,NOT,NEG,SHL,SHR,SAR,OR,AND,XOR, ...} = opcodes
+	      fun default () = doStore (ea, d, mem, an)
+	      fun binary1 (t, t', unary, binary, ea', x) =
+		  if t = ty andalso t' = ty then
+		     if MLTreeUtils.eqRexp(ea, ea') then
+			if isOne x then unaryMem(ty, unary, ea, mem, an)
+			else binaryMem(ty, binary, x, ea, mem, an)
+		      else default()
+		  else default()
               fun unary(t,unOp, ea') =
                   if t = ty andalso MLTreeUtils.eqRexp(ea, ea') then
                      unaryMem(ty, unOp, ea, mem, an)
@@ -1169,21 +1180,21 @@ functor AMD64Gen (
                     (* end case *))
                   end
                   else default()
-	    in
-	      (case d
-	        of T.ADD(t,x,y) => binaryCom1(t,INC,ADD,x,y)
-		 | T.SUB(t,T.LOAD(t',ea',_),x) => binary1(t,t',DEC,SUB,ea',x)
-		 | T.ORB(t,x,y) => binaryCom(t,OR,x,y)
-		 | T.ANDB(t,x,y) => binaryCom(t,AND,x,y)
-		 | T.XORB(t,x,y) => binaryCom(t,XOR,x,y)
-		 | T.SLL(t,T.LOAD(t',ea',_),x) => binary(t,t',SHL,ea',x)
-		 | T.SRL(t,T.LOAD(t',ea',_),x) => binary(t,t',SHR,ea',x)
-		 | T.SRA(t,T.LOAD(t',ea',_),x) => binary(t,t',SAR,ea',x)
-		 | T.NEG(t,T.LOAD(t',ea',_)) => unary(t,NEG,ea')
-		 | T.NOTB (t, T.LOAD(t',ea',_)) => unary(t,NOT,ea')
-		 | _ => default ()
-	      (* end case *))
-	    end (* store *)
+	      in
+		case d
+		 of T.ADD(t,x,y) => binaryCom1(t,INC,ADD,x,y)
+		  | T.SUB(t,T.LOAD(t',ea',_),x) => binary1(t,t',DEC,SUB,ea',x)
+		  | T.ORB(t,x,y) => binaryCom(t,OR,x,y)
+		  | T.ANDB(t,x,y) => binaryCom(t,AND,x,y)
+		  | T.XORB(t,x,y) => binaryCom(t,XOR,x,y)
+		  | T.SLL(t,T.LOAD(t',ea',_),x) => binary(t,t',SHL,ea',x)
+		  | T.SRL(t,T.LOAD(t',ea',_),x) => binary(t,t',SHR,ea',x)
+		  | T.SRA(t,T.LOAD(t',ea',_),x) => binary(t,t',SAR,ea',x)
+		  | T.NEG(t,T.LOAD(t',ea',_)) => unary(t,NEG,ea')
+		  | T.NOTB (t, T.LOAD(t',ea',_)) => unary(t,NOT,ea')
+		  | _ => default ()
+		(* end case *)
+	      end (* store *)
 
 	(* floating-point branch for
 	 *   if (t1 fcc t2)
