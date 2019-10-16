@@ -23,7 +23,8 @@ functor SMLNJPseudoOps ( structure Asm : PSEUDO_OPS_BASIS ) : SMLNJ_PSEUDO_OPS =
     val alignSz = (case wordBitSz of 32 => 2 | 64 => 3)
     val wordShift = Word.fromInt alignSz
 
-    fun toBasis(JUMPTABLE{base, targets}) = let
+(* 64BIT: even on 64-bit targets, we should use 32-bit entries in the jump table *)
+    fun toBasis (JUMPTABLE{base, targets}) = let
 	  fun targetOffset t = T.SUB(wordBitSz, T.LABEL t, T.LABEL base)
 	  fun pseudoOpOff lab = PB.INT{sz=wordBitSz, i=[T.LABEXP(targetOffset lab)]}
 	  in
@@ -31,7 +32,7 @@ functor SMLNJPseudoOps ( structure Asm : PSEUDO_OPS_BASIS ) : SMLNJ_PSEUDO_OPS =
 	      PB.DATA_LABEL base ::
 		List.foldr (fn (target, acc) => pseudoOpOff target :: acc) [] targets
 	  end
-      | toBasis(FILENAME file) = let
+      | toBasis (FILENAME file) = let
 	(* the source file name, which is attached to the end of the generated code, is
 	 * followed by a length byte.  The length is specified in words (4 or 8 bytes)
 	 * and includes the nul terminator and length byte.  This code should be
@@ -65,15 +66,15 @@ functor SMLNJPseudoOps ( structure Asm : PSEUDO_OPS_BASIS ) : SMLNJ_PSEUDO_OPS =
 	    List.foldl output loc (toBasis pOp); ()
 	  end
 
-    fun sizeOf(pOp,loc) = List.foldl (fn (p, a) => a + AsmPseudoOps.sizeOf(p, loc)) 0 (toBasis pOp)
+    fun sizeOf (pOp,loc) = List.foldl (fn (p, a) => a + AsmPseudoOps.sizeOf(p, loc)) 0 (toBasis pOp)
 
-    fun adjustLabels(JUMPTABLE{base, ...}, loc) = let
+    fun adjustLabels (JUMPTABLE{base, ...}, loc) = let
 	  val baseAddr = loc + AsmPseudoOps.sizeOf(PB.ALIGN_SZ alignSz, loc)
 	  in
 	    if Label.addrOf(base) = baseAddr
 	     then false
 	     else (Label.setAddr(base, baseAddr); true)
 	  end
-      | adjustLabels(FILENAME _, _) = false
+      | adjustLabels (FILENAME _, _) = false
 
   end (* SMLNJPseudoOps *)
