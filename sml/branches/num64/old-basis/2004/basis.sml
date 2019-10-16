@@ -1,6 +1,6 @@
 (* basis-2004.sml
  *
- * COPYRIGHT (c) 2015 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * This file rebinds various basis module names to their 2004 versions.
@@ -37,7 +37,6 @@ structure Vector : VECTOR = Vector
 structure VectorSlice : VECTOR_SLICE = VectorSlice
 structure Word : WORD = Word
 structure Word8 : WORD = Word8
-structure Word31 : WORD = Word31
 structure Word32 : WORD = Word32
 structure Word64 : WORD = Word64
 structure Word8Array : MONO_ARRAY = Word8Array
