@@ -192,6 +192,7 @@ structure Math64Common : sig
     fun op mod (a, b) = I.-(a, I.*(I.div(a, b), b))
 
    (* we will never call floor with an inf or nan *)
+(* 64BIT: FIXME the constant 1073741824 is 2^30, which does not make sense for 64-bit targets *)
     fun floor x = if x < 1073741824.0 andalso x >= ~1073741824.0
 	           then Assembly.A.floor x
 		  else if isNan x then raise General.Domain
