@@ -45,6 +45,7 @@ functor AMD64Gen (
             val naturalWidths = [32, 64]
             datatype rep = SE | ZE | NEITHER
             val rep = NEITHER)
+
     structure W32 = Word32
 
     fun error msg = MLRiscErrorMsg.error ("AMD64Gen", msg)
@@ -94,22 +95,41 @@ functor AMD64Gen (
 
     fun move64 (src, dst) = I.move {mvOp=I.MOVABSQ, src=src, dst=dst}
 
-    (* analyze for power-of-two-ness *)
+    (* analyze for power-of-two-ness; this does not handle values that do not fit
+     * in 32 bits.
+     *)
+    fun analyze i' = if fitsIn32Bits i'
+	  then let
+	    val i = toInt32 i'
+	    in
+	      let
+	      val (isneg, a, w) = if i >= 0
+		    then (false, i, T.I.toWord32 (32, i'))
+		    else (true, ~i, T.I.toWord32 (32, T.I.NEG (32,  i')))
+	      fun log2 (0w1, p) = p
+		| log2 (w, p) = log2 (W32.>> (w, 0w1), p + 1)
+	      in
+		if w > 0w1 andalso W32.andb (w - 0w1, w) = 0w0
+		  then SOME(i, isneg, a, T.LI (T.I.fromInt32 (32, log2 (w, 0))))
+		  else NONE
+	       end handle _ => NONE
+	    end
+	  else NONE
+(* a 64-bit version that we might want to use in the future
     fun analyze i' = let
-	val i = toInt32 i'
-	in
-	   let val (isneg, a, w) =
-		   if i >= 0 then (false, i, T.I.toWord32 (32, i'))
-		   else (true, ~i, T.I.toWord32 (32, T.I.NEG (32,  i')))
+	  val i = toInt64 i'
+	  val (isneg, a, w) = if i >= 0
+		then (false, i, T.I.toWord64 (64, i'))
+		else (true, ~i, T.I.toWord64 (64, T.I.NEG (64,  i')))
 	       fun log2 (0w1, p) = p
-		 | log2 (w, p) = log2 (W32.>> (w, 0w1), p + 1)
-	   in
-	       if w > 0w1 andalso W32.andb (w - 0w1, w) = 0w0 then
-		   (i, SOME (isneg, a,
-			     T.LI (T.I.fromInt32 (32, log2 (w, 0)))))
-	       else (i, NONE)
-	   end handle _ => (i, NONE)
-        end
+		 | log2 (w, p) = log2 (W64.>> (w, 0w1), p + 1)
+	  in
+	    if w > 0w1 andalso W64.andb (w - 0w1, w) = 0w0
+	      then (i, SOME (isneg, a, T.LI (T.I.fromInt64 (64, log2 (w, 0)))))
+	      else (i, NONE)
+	  end
+	    handle _ => (toInt64 i', NONE)
+*)
 
     (* translate MLTREE condition codes to amd64 condition codes *)
     fun cond T.LT = I.LT | cond T.LTU = I.B
@@ -239,7 +259,7 @@ functor AMD64Gen (
 
 	exception EA
 
-        fun address' ty (ea, mem) = let
+        fun address' ty (ea : T.rexp, mem) = let
             fun makeAddressingMode (NONE, NONE, _, disp) = disp
 	      | makeAddressingMode (SOME base, NONE, _, disp) =
                   I.Displace{base=base, disp=disp, mem=mem}
@@ -253,9 +273,11 @@ functor AMD64Gen (
 	     * s -- scale
 	     * d -- immed displacement
 	     *)
-	    fun doEA([], b, i, s, d) = makeAddressingMode(b, i, s, d)
-  	      | doEA(t::trees, b, i, s, d) = (case t
-	        of T.LI n   => doEAImmed(trees, toInt32 n, b, i, s, d)
+	    fun doEA ([], b, i, s, d) = makeAddressingMode(b, i, s, d)
+  	      | doEA (t::trees, b, i, s, d) = (case t
+	        of T.LI n => if fitsIn32Bits n
+		    then doEAImmed (trees, toInt32 n, b, i, s, d)
+		    else error "doEA: immediate too large"
 		 | T.CONST _ => doEALabel(trees, t, b, i, s, d)
 		 | T.LABEL _ => doEALabel(trees, t, b, i, s, d)
 		 | T.LABEXP le => doEALabel(trees, le, b, i, s, d)
@@ -277,14 +299,14 @@ functor AMD64Gen (
 	         | t => displace(trees, t, b, i, s, d)
 		(* esac *))
 
-            (* Add an immed constant *)
-            and doEAImmed(trees, 0, b, i, s, d) = doEA(trees, b, i, s, d)
- 	      | doEAImmed(trees, n, b, i, s, I.Immed m) =
-                doEA(trees, b, i, s, I.Immed(n+m))
-              | doEAImmed(trees, n, b, i, s, I.ImmedLabel le) =
-                doEA(trees, b, i, s,
-                     I.ImmedLabel(T.ADD(ty,le,T.LI(T.I.fromInt32(ty, n)))))
-              | doEAImmed(trees, n, b, i, s, _) = error "doEAImmed"
+	  (* Add a 32-bit immed constant *)
+            and doEAImmed (trees, 0, b, i, s, d) = doEA(trees, b, i, s, d)
+ 	      | doEAImmed (trees, n, b, i, s, I.Immed m) =
+                  doEA(trees, b, i, s, I.Immed(n+m))
+              | doEAImmed (trees, n, b, i, s, I.ImmedLabel le) =
+                  doEA(trees, b, i, s,
+                       I.ImmedLabel(T.ADD(ty,le,T.LI(T.I.fromInt32(ty, n)))))
+              | doEAImmed (trees, n, b, i, s, _) = error "doEAImmed"
 
             (* Add a label expression.
 	     * NOTE: Labels in the AMD64 can be 64 bits, but operands can only handle 32-bit constants.
@@ -298,7 +320,7 @@ functor AMD64Gen (
                 val _ = expr (le, r, [])
                 val _ = mark (I.BINARY{binOp=(O.addOp ty), src=operand ty (T.REG(ty,base)), dst=operand ty (T.REG(ty,r))}, [])
                 in
-                doEA(trees, SOME r, i, s, I.Immed 0)
+                  doEA(trees, SOME r, i, s, I.Immed 0)
                 end
 	      | doEALabel (trees, le, b, i, s, d) = let
 		val le = (case b
@@ -376,27 +398,28 @@ functor AMD64Gen (
         and address (ea, mem) = address' 64 (ea, mem)
 
       (* load the label into a temp register. this operation is necessary, since most instructions
-       * can only handle 32-bit immediates *)
+       * can only handle 32-bit immediates
+       *)
 	and loadLabel src = let
-            val tmp = newReg ()
-	    val tmpR = I.Direct (64, tmp)
-	    in
+	      val tmp = newReg ()
+	      val tmpR = I.Direct (64, tmp)
+	      in
 		emitInstr (move64 (src, tmpR));
 		tmpR
-	    end
+	      end
 
         (* reduce an expression into an operand *)
         and operand ty (T.LI i) = if (fitsIn32Bits i)
-            then I.Immed (toInt32 i)
-            else let
-              (* i is a 64-bit operand *)
-               val dstR = newReg ()
-	       val dst = I.Direct (ty, dstR)
-	       val i' = T.I.signed (64, i)
-               in
+	      then I.Immed (toInt32 i)
+	      else let
+		(* i is a 64-bit operand *)
+		 val dstR = newReg ()
+		 val dst = I.Direct (ty, dstR)
+		 val i' = T.I.signed (64, i)
+		 in
 		   move (ty, I.Immed64 (Int64.fromLarge i'), dst);
 		   dst
-               end
+		 end
           | operand _ (x as (T.CONST _ | T.LABEL _)) = loadLabel (I.ImmedLabel x)
           | operand _ (T.LABEXP le) = loadLabel (I.ImmedLabel le)
           | operand _ (T.REG(ty,r)) = gpr (ty, r)
@@ -493,7 +516,7 @@ functor AMD64Gen (
                   mark (I.BINARY{binOp=addOp, src=n, dst=dstOpnd}, an)
                 end
             (* Generate addition *)
-            fun addition(ty, e1, e2) = (case e1
+            fun addition (ty, e1, e2) = (case e1
                 of T.REG(_,rs) =>
                    if CB.sameColor(rs,dst)
                       then addN (O.addOp ty, e2)
@@ -507,14 +530,21 @@ functor AMD64Gen (
                       else addition2(ty, e1,e2)
                  | _ => addition2 (ty, e1,e2)
                 (* end case *))
-            and addition2 (ty, e1, e2) =
-		(dstMustBeReg(fn (dstR, _) => (case ty
-		  of 32 => mark(I.LEAL{r32=dstR,
-		        addr=address' 32 (e, readonly)}, an)
-		   | 64 => mark(I.LEAQ{r64=dstR,
-			addr=address' 64 (e, readonly)}, an)
-	          (* end case*)))
-                handle EA => binaryComm(ty, O.addOp, e1, e2))
+            and addition2 (32, e1, e2) = (
+		  (* try *)
+		  dstMustBeReg(fn (dstR, _) =>
+		    mark(I.LEAL{r32=dstR, addr=address' 32 (e, readonly)}, an))
+		  (* catch *)
+		    handle EA => binaryComm(ty, O.addOp, e1, e2))
+	      | addition2 (64, e1, e2) = let
+		  fun isBigImmed (T.LI n) = not(fitsIn32Bits n)
+		    | isBigImmed _ = false
+		  fun lea (dstR, _) = mark(I.LEAQ{r64=dstR, addr=address' 64 (e, readonly)}, an)
+		  in
+		    if isBigImmed e1 orelse isBigImmed e2
+		      then binaryComm(ty, O.addOp, e1, e2)
+		      else (dstMustBeReg lea) handle EA => binaryComm(ty, O.addOp, e1, e2)
+		  end
 
               (* the shift amount must be a constant or in %rcx *)
               fun shift(ty, opcode, e1, e2) = let
@@ -566,18 +596,17 @@ functor AMD64Gen (
 
 	      (* Division by a power of two when rounding to neginf is the
 	       * same as an arithmetic right shift. *)
-	      fun divinf (ty, overflow, e1, e2 as T.LI n') =
-		  (case analyze n' of
-		       (_, NONE) => divinf0 (ty, overflow, e1, e2)
-		     | (_, SOME (false, _, p)) =>
-		       shift (ty, O.sarOp, T.REG (ty, getExpr e1), p)
-		     | (_, SOME (true, _, p)) => let
-			   val reg = getExpr e1
-		       in
-			  emit(I.UNARY { unOp = O.negOp ty,
-			            opnd = I.Direct (ty,reg) });
-			  shift (ty, O.sarOp, T.REG (ty, reg), p)
-		       end)
+	      fun divinf (ty, overflow, e1, e2 as T.LI n') = (case analyze n'
+		     of NONE => divinf0 (ty, overflow, e1, e2)
+		      | SOME(_, false, _, p) =>
+		          shift (ty, O.sarOp, T.REG (ty, getExpr e1), p)
+		      | SOME(_, true, _, p) => let
+			  val reg = getExpr e1
+			  in
+			    emit(I.UNARY { unOp = O.negOp ty, opnd = I.Direct (ty,reg) });
+			    shift (ty, O.sarOp, T.REG (ty, reg), p)
+			  end
+		    (* eed case *))
 		| divinf (ty, overflow, e1, e2) = divinf0 (ty, overflow, e1, e2)
 
 	      fun reminf0 (ty, e1, e2) = let
@@ -605,22 +634,21 @@ functor AMD64Gen (
 	      (* n mod (power-of-2) corrrsponds to a bitmask (AND).
 	       * If the power is negative, then we must first negate
 	       * the argument and then again negate the result. *)
-	      fun reminf (ty, e1, e2 as T.LI n') =
-		  (case analyze n' of
-		       (_, NONE) => reminf0 (ty, e1, e2)
-		     | (_, SOME (false, a, _)) =>
-		       binaryComm (ty, O.andOp, e1,
-				           T.LI (T.I.fromInt32 (ty, a - 1)))
-		     | (_, SOME (true, a, _)) => let
-			   val r1 = getExpr e1
-			   val o1 = I.Direct (ty,r1)
-		       in
-			   emit (I.UNARY { unOp = O.negOp ty, opnd = o1 });
-			   emit (I.BINARY { binOp = O.andOp ty,
-					    src = I.Immed (a - 1),
-					    dst = o1 });
-			   unary (ty, O.negOp, T.REG (ty, r1))
-		       end)
+	      fun reminf (ty, e1, e2 as T.LI n') = (case analyze n'
+		     of NONE => reminf0 (ty, e1, e2)
+		      | SOME(_, false, a, _) =>
+		          binaryComm (ty, O.andOp, e1, T.LI (T.I.fromInt32 (ty, a - 1)))
+		      | SOME(_, true, a, _) => let
+			  val r1 = getExpr e1
+			  val o1 = I.Direct (ty,r1)
+			  in
+			    emit (I.UNARY { unOp = O.negOp ty, opnd = o1 });
+			    emit (I.BINARY { binOp = O.andOp ty,
+					     src = I.Immed (a - 1),
+					     dst = o1 });
+			    unary (ty, O.negOp, T.REG (ty, r1))
+			  end
+		    (* end case *))
 		| reminf (ty, e1, e2) = reminf0 (ty, e1, e2)
 
               (* Division or remainder: divisor must be in %rdx:%rax pair *)
@@ -635,9 +663,8 @@ functor AMD64Gen (
 		  end
 
               (* Optimize the special case for division *)
-              fun divide (ty, signed, overflow, e1, e2 as T.LI n') =
-		  (case analyze n' of
-		       (n, SOME (isneg, a, p)) =>
+              fun divide (ty, signed, overflow, e1, e2 as T.LI n') = (case analyze n'
+		     of SOME(n, isneg, a, p) =>
 		       if signed then
 			   let val label = Label.anon ()
 			       val reg1 = getExpr e1
@@ -662,16 +689,15 @@ functor AMD64Gen (
 			       shift (ty, O.sarOp, T.REG (ty, reg1), p)
 			   end
 		       else shift (ty, O.shrOp, e1, p)
-		     | (n, NONE) =>
-		       divrem(ty, signed, overflow andalso (n = ~1 orelse n = 0),
+		     | NONE =>
+		       divrem(ty, signed, overflow andalso (n' = ~1 orelse n' = 0),
 			      e1, e2, rax ty))
 		| divide (ty, signed, overflow, e1, e2) =
 		  divrem (ty, signed, overflow, e1, e2, rax ty)
 
 	      (* rem never causes overflow *)
-              fun rem (ty, signed, e1, e2 as T.LI n') =
-		  (case analyze n' of
-		       (n, SOME (isneg, a, _)) =>
+              fun rem (ty, signed, e1, e2 as T.LI n') = (case analyze n'
+		     of SOME(n, isneg, a, _) =>
 		       if signed then
 			   (* The following logic should work uniformely
 			    * for both isneg and not isneg.  It only uses
@@ -709,9 +735,10 @@ functor AMD64Gen (
 			       (* this is really strange... *)
 			       divrem (ty, false, false, e1, e2, rdx ty)
 			   else
+(* 64BIT: FIXME what if n-1 does not fit in 32 bits? *)
 			       binaryComm (ty, O.andOp, e1,
 					   T.LI (T.I.fromInt32 (ty, n - 1)))
-		     | (_, NONE) => divrem (ty, signed, false, e1, e2, rdx ty))
+		     | NONE => divrem (ty, signed, false, e1, e2, rdx ty))
 		| rem(ty, signed, e1, e2) =
                   divrem(ty, signed, false, e1, e2, rdx ty)
 
@@ -725,10 +752,9 @@ functor AMD64Gen (
                    move(ty, rax ty, dstOpnd)
                   )
 
-	      fun uMultiply (ty, e1, e2 as T.LI n') =
-		  (case analyze n' of
-		       (_, SOME (false, _, p)) => shift (ty, O.shlOp, e1, p)
-		     | _ => uMultiply0 (ty, e1, e2))
+	      fun uMultiply (ty, e1, e2 as T.LI n') = (case analyze n'
+		     of SOME(_, false, _, p) => shift (ty, O.shlOp, e1, p)
+		      | NONE => uMultiply0 (ty, e1, e2))
 		| uMultiply (ty, e1 as T.LI _, e2) = uMultiply (ty, e2, e1)
 		| uMultiply (ty, e1, e2) = uMultiply0 (ty, e1, e2)
 
@@ -750,7 +776,7 @@ functor AMD64Gen (
                       (move(ty, i1, dstOpnd);
                        mark(I.BINARY{binOp=O.imulOp ty, dst=dstOpnd, src=i2},an))
                     | doit(rm, i2 as I.Immed _) = doit(i2, rm)
-                    | doit(imm as I.Immed(i), rm) =
+                    | doit(imm as I.Immed i, rm) =
                       (case ty
 			of 32 => mark(I.MUL3{dst=dst, src1=rm, src2=i},an)
 			 | 64 => mark(I.MULQ3{dst=dst, src1=rm, src2=i},an)
@@ -779,18 +805,17 @@ functor AMD64Gen (
               end
               )
 
-	      fun multiply_notrap (ty, e1, e2 as T.LI n') =
-		  (case analyze n' of
-		       (_, SOME (isneg, _, p)) => let
-			   val r1 = getExpr e1
-			   val o1 = I.Direct (ty,r1)
-		       in
-			   if isneg then
-			       emit (I.UNARY { unOp = O.negOp ty, opnd = o1 })
-			   else ();
-			   shift (ty, O.shlOp, T.REG (ty, r1), p)
-		       end
-		     | _ => multiply (ty, e1, e2))
+	      fun multiply_notrap (ty, e1, e2 as T.LI n') = (case analyze n'
+		     of SOME(_, isneg, _, p) => let
+			  val r1 = getExpr e1
+			  val o1 = I.Direct (ty,r1)
+			  in
+			    if isneg
+			      then emit (I.UNARY { unOp = O.negOp ty, opnd = o1 })
+			      else ();
+			    shift (ty, O.shlOp, T.REG (ty, r1), p)
+			  end
+		      | NONE => multiply (ty, e1, e2))
 		| multiply_notrap (ty, e1 as T.LI _, e2) = multiply_notrap (ty, e2, e1)
 		| multiply_notrap (ty, e1, e2) = multiply (ty, e1, e2)
 
@@ -822,7 +847,7 @@ functor AMD64Gen (
 	      (case e
 		of T.REG (ty, r) => move' (ty, gpr (ty, r), dstOpnd, an)
 		 | T.LI z => if (fitsIn32Bits z)
-                   then move' (ty, I.Immed (toInt32 z), dstOpnd, an)
+                   then move' (ty, I.Immed(toInt32 z), dstOpnd, an)
                    else mark' (move64 (I.Immed64(toInt64 z), dstOpnd), an)
 		 | (T.CONST _ | T.LABEL _) =>
                    move' (ty, I.ImmedLabel e, dstOpnd, an)
@@ -841,22 +866,19 @@ functor AMD64Gen (
 		   in
 		     case n
 		      of  1 => unary(ty, O.incOp, e2)
-			| ~1 => unary(ty, O.decOp, e2)
-			| _ => addition (ty, e1, e2)
+		       | ~1 => unary(ty, O.decOp, e2)
+		       | _ => addition (ty, e1, e2)
 		   end
 		 | T.ADD(ty, e1, e2) => addition (ty, e1, e2)
-		 | T.SUB(ty, e1, e2 as T.LI n) => let
-		   val n = toInt32 n
-		   in
-		     case n
+		 | T.SUB(ty, e1, e2 as T.LI n) => (case n
 		      of 0 => expr' (ty, e1, dst, an)
 		       | 1 => unary(ty, O.decOp, e1)
 		       | ~1 => unary(ty, O.incOp, e1)
 		       | _ => binary(ty, O.subOp, e1, e2)
-		   end
-		 | T.SUB(ty, e1 as T.LI n, e2) =>
-	           if n = 0 then unary(ty, O.negOp, e2)
-		   else binary(ty, O.subOp, e1, e2)
+		     (* end case *))
+		 | T.SUB(ty, e1 as T.LI n, e2) => if n = 0
+		      then unary(ty, O.negOp, e2)
+		      else binary(ty, O.subOp, e1, e2)
 		 | T.SUB(ty, e1, e2) => binary(ty, O.subOp, e1, e2)
 		 (* unsigned *)
 		 | T.MULU(ty, x, y) => uMultiply(ty, x, y)
@@ -1119,7 +1141,7 @@ functor AMD64Gen (
 				dst=address (dst,mem)}, an)
 	and unaryMem(ty, unOp, opnd, mem, an) =
 	    mark(I.UNARY{unOp=unOp, opnd=address (opnd,mem)}, an)
-        and isOne(T.LI n) = n = 1
+        and isOne (T.LI 1) = true
           | isOne _ = false
 
 	and store (ty, ea, d, mem, opcodes : O.opcodes, doStore, an) = let
@@ -1222,8 +1244,7 @@ functor AMD64Gen (
                  | T.?>   => (j I.P; j I.A)
                  | T.<>   => j I.NE
                  | T.?=   => j I.EQ
-                 | _      => error(concat[
-				"fbranch(", T.Basis.fcondToString fcc, ")"])
+                 | _      => error(concat["fbranch(", T.Basis.fcondToString fcc, ")"])
                (* end case *))
 	    (* compare for condition  (x op y)
 	     *
