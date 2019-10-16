@@ -14,14 +14,17 @@ sig
    (* machine_int <-> other types *)
    val fromInt     : sz * int -> machine_int
    val fromInt32   : sz * Int32.int -> machine_int
+   val fromInt64   : sz * Int64.int -> machine_int
    val fromWord    : sz * word -> machine_int
    val fromWord32  : sz * Word32.word -> machine_int
+   val fromWord64  : sz * Word64.word -> machine_int
 
    val toInt       : sz * machine_int -> int
-   val toWord      : sz * machine_int -> word
-   val toWord32    : sz * machine_int -> Word32.word
    val toInt32     : sz * machine_int -> Int32.int
    val toInt64     : sz * machine_int -> Int64.int
+   val toWord      : sz * machine_int -> word
+   val toWord32    : sz * machine_int -> Word32.word
+   val toWord64    : sz * machine_int -> Word64.word
 
    val fromString  : sz * string -> machine_int option
    val toString    : sz * machine_int -> string

@@ -102,31 +102,40 @@ struct
       val w32toi = W32.toIntX
       val fromInt    = I.fromInt
       val fromInt32  = Int32.toLarge
+      val fromInt64  = Int64.toLarge
       fun fromWord w = I.fromLarge(Word.toLargeInt w)
+(*
       fun fromWord32 w = I.+(I.<<(I.fromInt(w32toi(W32.>>(w,0w16))),0w16),
                                   I.fromInt(w32toi(W32.andb(w,0wxffff))))
+*)
+      fun fromWord32 w = I.fromLarge(Word32.toLargeInt w)
+      fun fromWord64 w = I.fromLarge(Word64.toLargeInt w)
    end
    (* machine_int <-> other types *)
    fun fromInt(sz,i)      = narrow(sz,Cvt.fromInt i)
    fun fromInt32(sz,i)    = narrow(sz,Cvt.fromInt32 i)
+   fun fromInt64(sz,i)    = narrow(sz,Cvt.fromInt64 i)
    fun fromWord(sz,w)     = narrow(sz,Cvt.fromWord w)
    fun fromWord32(sz,w)   = narrow(sz,Cvt.fromWord32 w)
+   fun fromWord64(sz,w)   = narrow(sz,Cvt.fromWord64 w)
    fun toString(sz,i)     = I.toString i
    val toHex = I.fmt StringCvt.HEX
    val toBin = I.fmt StringCvt.BIN
    fun toHexString(sz, i) = "0x"^toHex(unsigned(sz, i))
    fun toBinString(sz, i) = "0b"^toBin(unsigned(sz, i))
    fun toInt(sz, i)       = I.toInt(narrow(sz, i))
+   fun toInt32(sz, i)     = Int32.fromLarge(narrow(sz, i))
+   fun toInt64(sz, i)     = Int64.fromLarge(narrow(sz, i))
    fun toWord(sz, i)      = Word.fromLargeInt(I.toLarge(unsigned(sz, i)))
-   fun toWord32(sz, i)    =
+   fun toWord32(sz, i)    = Word32.fromLargeInt(I.toLarge(unsigned(sz, i)))
+(*
        let val i  = unsigned(sz, i)
            val lo = I.andb(i,0xffff)
            val hi = I.~>>(i,0w16)
            fun tow32 i = Word32.fromLargeInt(I.toLarge i)
        in  tow32 lo + Word32.<<(tow32 hi, 0w16) end
-   fun toInt32(sz, i) = Int32.fromLarge(narrow(sz, i))
-
-   fun toInt64(sz, i) = Int64.fromLarge(narrow(sz, i))
+*)
+   fun toWord64(sz, i)    = Word64.fromLargeInt(I.toLarge(unsigned(sz, i)))
 
    fun hash i = Word.fromInt(I.toInt(I.andb(i,0x1fffffff)))
 
