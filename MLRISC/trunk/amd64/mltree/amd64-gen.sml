@@ -90,8 +90,17 @@ functor AMD64Gen (
     fun toInt32 i = T.I.toInt32(32, i)
     fun toInt64 i = T.I.toInt64(64, i)
 
-  (* is an immediate operand representable as a signed 32-bit 2's complement value? *)
-    fun fitsIn32Bits (z : IntInf.int) = (~0x80000000 <= z) andalso (z < 0x80000000)
+(* working around a bug *)
+    val minInt32 = Word64.toLargeIntX 0wxFFFFFFFFC0000000;
+    val maxInt32 = Word64.toLargeInt 0wx40000000
+
+  (* is an immediate operand representable as a signed 32-bit 2's complement value?
+   * Note that values get sign extended when loaded into a 64-bit register.
+   *)
+    fun fitsIn32Bits (z : IntInf.int) = (minInt32 <= z) andalso (z < maxInt32)
+(*
+    fun fitsIn32Bits (z : IntInf.int) = (~0x40000000 <= z) andalso (z < 0x40000000)
+*)
 
     fun move64 (src, dst) = I.move {mvOp=I.MOVABSQ, src=src, dst=dst}
 
@@ -189,24 +198,26 @@ functor AMD64Gen (
   	  | mark' (i, a::an) = mark'(I.ANNOTATION{i=i,a=a},an)
 	(* annotate an expression and emit it *)
 	fun mark (i, an) = mark' (I.INSTR i, an)
-
+	(* annotated 64-bit move *)
+	fun move64' (src, dst, an) = mark' (move64(src, dst), an)
 	(* move with annotation *)
 	fun move' (ty, dst as I.Direct (_, s), src as I.Direct (_, d), an) =
-	    if CB.sameColor (s, d)
-	       then ()
-	       else mark' (I.COPY {k=CB.GP, sz=ty, src=[s], dst=[d], tmp=NONE}, an)
+	      if CB.sameColor (s, d)
+		then ()
+		else mark' (I.COPY {k=CB.GP, sz=ty, src=[s], dst=[d], tmp=NONE}, an)
 	  | move' (ty, I.Immed 0, dst as I.Direct _, an) =
-	    mark' (I.binary {binOp=O.xorOp ty, src=dst, dst=dst}, an)
-	  | move' (ty, src as I.ImmedLabel _ , dst as I.Direct _, an) = emitInstr (move64 (src, dst))
+	      mark' (I.binary {binOp=O.xorOp ty, src=dst, dst=dst}, an)
+	  | move' (ty, src as I.Immed64 n, dst, an) = move64' (src, dst, an)
+	  | move' (ty, src as I.ImmedLabel _ , dst as I.Direct _, an) = move64' (src, dst, an)
 	  | move' (ty, src as I.ImmedLabel _ , dst, an) = let
-            val tmp = newReg ()
-	    val tmpR = I.Direct (64, tmp)
-	    in
-		emitInstr (move64 (src, tmpR));
-		mark' (I.move {mvOp=I.MOVQ, src=tmpR, dst=dst}, an)
-	    end
+	      val tmp = newReg ()
+	      val tmpR = I.Direct (64, tmp)
+	      in
+		move64' (src, tmpR, an);
+		emitInstr (I.move {mvOp=I.MOVQ, src=tmpR, dst=dst})
+	      end
 	  | move' (ty, src, dst, an) =
-	    mark' (I.move {mvOp=O.movOp ty, src=src, dst=dst}, an)
+	      mark' (I.move {mvOp=O.movOp ty, src=src, dst=dst}, an)
 	(* move without annotation *)
 	fun move (ty, src, dst) = move' (ty, src, dst, [])
 
@@ -461,91 +472,90 @@ functor AMD64Gen (
 	      end
 
 	and expr' (ty, e, dst, an) = let
-	    val dstOpnd = gpr (ty, dst)
-	    fun equalDst (I.Direct (_,r)) = CB.sameColor(r, dst)
-              | equalDst _ = false
-	    fun dstMustBeReg f = f (dst, dstOpnd)
-	    fun genLoad (mvOp, ea, mem) = dstMustBeReg (fn (_, dst) =>
-   	        mark (I.MOVE {mvOp=mvOp, src=address (ea, mem), dst=dst},an))
-   	    fun unknownExp exp = expr (Gen.compileRexp exp, dst, an)
+              val dstOpnd = gpr (ty, dst)
+	      fun equalDst (I.Direct (_,r)) = CB.sameColor(r, dst)
+		| equalDst _ = false
+	      fun dstMustBeReg f = f (dst, dstOpnd)
+	      fun genLoad (mvOp, ea, mem) = dstMustBeReg (fn (_, dst) =>
+		  mark (I.MOVE {mvOp=mvOp, src=address (ea, mem), dst=dst},an))
+	      fun unknownExp exp = expr (Gen.compileRexp exp, dst, an)
 
-   	    (* Generate a unary operator *)
-            fun unary(ty, unOp, e) = let
-                val opnd = operand ty e
-		in
-		  if isMemOpnd opnd then let
-		     val tmp = I.Direct(ty, newReg())
-		     in
-		       move(ty, opnd, tmp);
-		       move(ty, tmp, dstOpnd)
-		     end
-                  else move(ty, opnd, dstOpnd);
-                       mark(I.UNARY{unOp=unOp ty, opnd=dstOpnd}, an)
-		end
-
-	    fun genBinary (ty, binOp, opnd1, opnd2) =
-                  if (isMemOpnd opnd1 orelse isMemOpnd opnd2) orelse
-                     equalDst(opnd2) then let
-                     val tmpR = newReg()
-	             val tmp  = I.Direct (ty,tmpR)
-                     in
-                       move (ty, opnd1, tmp);
-		       mark (I.BINARY{binOp=binOp ty, src=opnd2, dst=tmp}, an);
-	               move (ty, tmp, dstOpnd)
-                     end
-                  else (move (ty, opnd1, dstOpnd);
-                       mark(I.BINARY{binOp=binOp ty, src=opnd2, dst=dstOpnd}, an))
-	    (* generate a binary operator that may commute *)
-            fun binaryComm (ty, binOp, e1, e2) = let
-                val (opnd1, opnd2) = (case (operand ty e1, operand ty e2)
-                    of (x as I.Immed _, y)      => (y, x)
-	             | (x as I.ImmedLabel _, y) => (y, x)
-		     | (x, y as I.Direct _)     => (y, x)
-	   	     | (x, y)                   => (x, y)
-	   	    (* end case *))
-		in
-		  genBinary(ty, binOp, opnd1, opnd2)
-	        end
-            (* Generate a binary operator; non-commutative *)
-            fun binary(ty, binOp, e1, e2) =
-		genBinary(ty, binOp, operand ty e1, operand ty e2)
-	    (* Add n to dst *)
-            fun addN (addOp, n) = let
-                val n = operand ty n
-                in
-                  mark (I.BINARY{binOp=addOp, src=n, dst=dstOpnd}, an)
-                end
-            (* Generate addition *)
-            fun addition (ty, e1, e2) = (case e1
-                of T.REG(_,rs) =>
-                   if CB.sameColor(rs,dst)
-                      then addN (O.addOp ty, e2)
-                      else addition1 (ty, e1,e2)
-                 | _ => addition1(ty, e1,e2)
-                (* end case *))
-            and addition1 (ty, e1, e2) = (case e2
-                of T.REG(_,rs) =>
-                   if CB.sameColor(rs,dst)
-                      then addN (O.addOp ty, e1)
-                      else addition2(ty, e1,e2)
-                 | _ => addition2 (ty, e1,e2)
-                (* end case *))
-            and addition2 (32, e1, e2) = (
-		  (* try *)
-		  dstMustBeReg(fn (dstR, _) =>
-		    mark(I.LEAL{r32=dstR, addr=address' 32 (e, readonly)}, an))
-		  (* catch *)
-		    handle EA => binaryComm(ty, O.addOp, e1, e2))
-	      | addition2 (64, e1, e2) = let
-		  fun isBigImmed (T.LI n) = not(fitsIn32Bits n)
-		    | isBigImmed _ = false
-		  fun lea (dstR, _) = mark(I.LEAQ{r64=dstR, addr=address' 64 (e, readonly)}, an)
+	      (* Generate a unary operator *)
+	      fun unary(ty, unOp, e) = let
+		  val opnd = operand ty e
 		  in
-		    if isBigImmed e1 orelse isBigImmed e2
-		      then binaryComm(ty, O.addOp, e1, e2)
-		      else (dstMustBeReg lea) handle EA => binaryComm(ty, O.addOp, e1, e2)
+		    if isMemOpnd opnd then let
+		       val tmp = I.Direct(ty, newReg())
+		       in
+			 move(ty, opnd, tmp);
+			 move(ty, tmp, dstOpnd)
+		       end
+		    else move(ty, opnd, dstOpnd);
+			 mark(I.UNARY{unOp=unOp ty, opnd=dstOpnd}, an)
 		  end
 
+	      fun genBinary (ty, binOp, opnd1, opnd2) =
+		    if (isMemOpnd opnd1 orelse isMemOpnd opnd2) orelse
+		       equalDst(opnd2) then let
+		       val tmpR = newReg()
+		       val tmp  = I.Direct (ty,tmpR)
+		       in
+			 move (ty, opnd1, tmp);
+			 mark (I.BINARY{binOp=binOp ty, src=opnd2, dst=tmp}, an);
+			 move (ty, tmp, dstOpnd)
+		       end
+		    else (move (ty, opnd1, dstOpnd);
+			 mark(I.BINARY{binOp=binOp ty, src=opnd2, dst=dstOpnd}, an))
+	      (* generate a binary operator that may commute *)
+	      fun binaryComm (ty, binOp, e1, e2) = let
+		  val (opnd1, opnd2) = (case (operand ty e1, operand ty e2)
+		      of (x as I.Immed _, y)      => (y, x)
+		       | (x as I.ImmedLabel _, y) => (y, x)
+		       | (x, y as I.Direct _)     => (y, x)
+		       | (x, y)                   => (x, y)
+		      (* end case *))
+		  in
+		    genBinary(ty, binOp, opnd1, opnd2)
+		  end
+	      (* Generate a binary operator; non-commutative *)
+	      fun binary(ty, binOp, e1, e2) =
+		  genBinary(ty, binOp, operand ty e1, operand ty e2)
+	      (* Add n to dst *)
+	      fun addN (addOp, n) = let
+		  val n = operand ty n
+		  in
+		    mark (I.BINARY{binOp=addOp, src=n, dst=dstOpnd}, an)
+		  end
+	      (* Generate addition *)
+	      fun addition (ty, e1, e2) = (case e1
+		  of T.REG(_,rs) =>
+		     if CB.sameColor(rs,dst)
+			then addN (O.addOp ty, e2)
+			else addition1 (ty, e1,e2)
+		   | _ => addition1(ty, e1,e2)
+		  (* end case *))
+	      and addition1 (ty, e1, e2) = (case e2
+		  of T.REG(_,rs) =>
+		     if CB.sameColor(rs,dst)
+			then addN (O.addOp ty, e1)
+			else addition2(ty, e1,e2)
+		   | _ => addition2 (ty, e1,e2)
+		  (* end case *))
+	      and addition2 (32, e1, e2) = (
+		    (* try *)
+		    dstMustBeReg(fn (dstR, _) =>
+		      mark(I.LEAL{r32=dstR, addr=address' 32 (e, readonly)}, an))
+		    (* catch *)
+		      handle EA => binaryComm(ty, O.addOp, e1, e2))
+		| addition2 (64, e1, e2) = let
+		    fun isBigImmed (T.LI n) = not(fitsIn32Bits n)
+		      | isBigImmed _ = false
+		    fun lea (dstR, _) = mark(I.LEAQ{r64=dstR, addr=address' 64 (e, readonly)}, an)
+		    in
+		      if isBigImmed e1 orelse isBigImmed e2
+			then binaryComm(ty, O.addOp, e1, e2)
+			else (dstMustBeReg lea) handle EA => binaryComm(ty, O.addOp, e1, e2)
+		    end
               (* the shift amount must be a constant or in %rcx *)
               fun shift(ty, opcode, e1, e2) = let
                   val (opnd1, opnd2) = (operand ty e1, operand ty e2)
@@ -847,28 +857,22 @@ functor AMD64Gen (
 	      (case e
 		of T.REG (ty, r) => move' (ty, gpr (ty, r), dstOpnd, an)
 		 | T.LI z => if (fitsIn32Bits z)
-                   then move' (ty, I.Immed(toInt32 z), dstOpnd, an)
-                   else mark' (move64 (I.Immed64(toInt64 z), dstOpnd), an)
+		     then move' (ty, I.Immed(toInt32 z), dstOpnd, an)
+		     else move64' (I.Immed64(toInt64 z), dstOpnd, an)
 		 | (T.CONST _ | T.LABEL _) =>
                    move' (ty, I.ImmedLabel e, dstOpnd, an)
 		 | T.LABEXP le => move' (ty, I.ImmedLabel le, dstOpnd, an)
 		 (* arithmetic operations *)
-		 | T.ADD(ty, e1, e2 as T.LI n) => let
-		   val n = toInt32 n
-		   in
-		     case n
+		 | T.ADD(ty, e1, e2 as T.LI n) => (case n
 		      of 1  => unary(ty, O.incOp, e1)
 		       | ~1 => unary(ty, O.decOp, e1)
 		       | _ => addition (ty, e1, e2)
-		   end
-		 | T.ADD(ty, e1 as T.LI n, e2) => let
-		   val n = toInt32 n
-		   in
-		     case n
+		     (* end case *))
+		 | T.ADD(ty, e1 as T.LI n, e2) => (case n
 		      of  1 => unary(ty, O.incOp, e2)
 		       | ~1 => unary(ty, O.decOp, e2)
 		       | _ => addition (ty, e1, e2)
-		   end
+		     (* end case *))
 		 | T.ADD(ty, e1, e2) => addition (ty, e1, e2)
 		 | T.SUB(ty, e1, e2 as T.LI n) => (case n
 		      of 0 => expr' (ty, e1, dst, an)
