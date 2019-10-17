@@ -107,7 +107,7 @@ Library
 	structure Int
 #if defined(SIZE_64)
 	structure Int63
-#else /* SIZE_32 */
+#else (* SIZE_32 *)
 	structure Int31
 #endif
 	structure Int32
@@ -152,7 +152,7 @@ Library
 	structure Word
 #if defined(SIZE_64)
 	structure Int63
-#else /* SIZE_32 */
+#else (* SIZE_32 *)
 	structure Word31
 #endif
 	structure Word32
