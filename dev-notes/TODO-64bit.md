@@ -102,12 +102,6 @@ as **DONE**, even though they are not changed.
     as the size of a native pointer.  This property holds now, since we no longer
     support the DEC Alpha.
 
-  * `compiler/CodeGen/main/mlrisc-gen-fn.sml` (also see `mlriscGen.sml`)<br/>
-    Issues with `INT_TO_REAL` (allocation pointer alignment) and `RAWRECORD`.
-
-  * `compiler/CodeGen/main/mlrisc-gen-fn.sml` (also see `mlriscGen.sml`)<br/>
-    Handling of `RAWRECORD`
-
   * `compiler/CPS/clos/closure.sml` <br/>
     raw untagged data is split into 32-bit and 64-bit records on 32-bit machines.
 
@@ -142,3 +136,31 @@ as **DONE**, even though they are not changed.
 
   * the `Rand` and `Random` structures in the **SML/NJ Library** could be
     reimplemented to take advantage of 64-bit arithmetic.
+
+### Known bugs
+
+
+1. the scalb function in `AMD64.prim.asm` is untested
+
+2. Printing reals causes a memory fault (e.g., `Real.toString 1.0`); this bug
+   might be related to the `scalb` implementation.
+
+3. The **SML/NJ Library** module `RealFormat` is raising a `Subscript` error (might be
+   related to one of the above problems)
+
+4. `Int32` arithmetic is not catching `Overflow` in some cases
+
+5. There are issues with `IntInf` literals.  For example:
+
+	- 0x40000000:IntInf.int;
+	val it = 9223372035781033984 : IntInf.int
+	- Unsafe.IntInf.concrete it;
+	val it = BI {digits=[0wx7FFFFFFFC0000000],negative=false} : Unsafe.IntInf.rep
+	- Unsafe.IntInf.concrete(IntInf.<<(1, 0w30));
+	val it = BI {digits=[0wx40000000],negative=false} : Unsafe.IntInf.rep
+	- 0x3fffffff:IntInf.int;
+	val it = 1073741823 : IntInf.int
+
+    I've currently added workarounds to `MLRISC/amd64/mltree/amd64-gen.sml` and
+    `base/compiler/CPS/main/new-literals.sml`.  The hack is to define the lower
+    and upper-bounds for 32-bit values by converting from Word64.
