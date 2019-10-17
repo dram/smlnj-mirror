@@ -191,7 +191,7 @@ structure CoreIntInf :> sig
 	    abstract i
 	  end
 
-  (* zero-extend an word64 to an intinf *)
+  (* zero-extend a word64 to an intinf *)
     fun copy64Inf w64 = let
 	  val digits = if InLine.word64_eql (w64, 0w0)
 		  then []
