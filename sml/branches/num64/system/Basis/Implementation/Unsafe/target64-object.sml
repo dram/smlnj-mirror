@@ -17,7 +17,7 @@ structure UnsafeObject :> UNSAFE_OBJECT =
     datatype representation
       = Unboxed
       | Raw
-      | Real
+      | Raw64
       | Pair
       | Record
       | Ref
@@ -72,7 +72,7 @@ structure UnsafeObject :> UNSAFE_OBJECT =
 		    then Ref
 		    else raise Fail "Unknown arr_data"
 	      | 0x12 (* tag_raw *) => Raw
-	      | 0x16 (* tag_raw64 *) => Real
+	      | 0x16 (* tag_raw64 *) => Raw64
 	      | 0x1a (* tag_special *) => (case (InlineT.getspecial obj)
 		 of (0 | 1) => Susp
 		  | (2 | 3) => WeakPtr
@@ -100,8 +100,7 @@ structure UnsafeObject :> UNSAFE_OBJECT =
 		    then InlineT.recordSub(obj, n)
 		    else raise Representation
 		end
-(* 64BIT: REAL32: FIXME -- this code assumes reals are two words!!! *)
-	    | Real => let val len = InlineT.Int.rshift(InlineT.objlength obj, 0w1)
+	    | Raw64 => let val len = InlineT.objlength obj
 		in
 		  if ((n < 0) orelse (len <= n))
 		    then raise Representation
@@ -125,8 +124,8 @@ structure UnsafeObject :> UNSAFE_OBJECT =
 		in
 		  List.tabulate (InlineT.objlength obj, f)
 		end
-	    | Real => let
-		val len = InlineT.Int.rshift(InlineT.objlength obj, 0w1)
+	    | Raw64 => let
+		val len = InlineT.objlength obj
 		fun f i = (InlineT.cast(InlineT.raw64Sub(obj, i)) : object)
 		in
 		  if (len = 1)
@@ -167,8 +166,8 @@ structure UnsafeObject :> UNSAFE_OBJECT =
 	  if ((rep obj = Record) andalso (InlineT.objlength obj = 3))
 	    then ((InlineT.cast obj) : exn)
 	    else raise Representation
-    fun toReal obj = (case (rep obj)
-	   of Real => ((InlineT.cast obj) : real)
+    fun toReal64 obj = (case (rep obj)
+	   of Raw64 => ((InlineT.cast obj) : Real64.real)
 	    | _ => raise Representation
 	  (* end case *))
     fun toInt obj = if (unboxed obj)

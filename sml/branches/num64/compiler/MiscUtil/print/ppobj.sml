@@ -216,7 +216,7 @@ local
 	  (BT.word32Tycon,	wordPrefx o Word32.toString o Obj.toWord32),
 	  (BT.word64Tycon,	wordPrefx o Word64.toString o Obj.toWord64),
 	  (BT.charTycon,	char2str),
-	  (BT.realTycon,	Real.toString o Obj.toReal),
+	  (BT.realTycon,	Real64.toString o Obj.toReal64),
 	  (BT.exnTycon,		exn2str),
 	  (BT.pointerTycon,	fn _ => "cptr"),
 	  (BT.stringTycon,	PrintUtil.pr_mlstr o Obj.toString),
