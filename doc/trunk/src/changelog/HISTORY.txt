@@ -93,6 +93,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+
+//--------------------------------------------------------------------
+[2019/10/17]::
++
+Renamed the `REAL` representation constructor to `Raw64`, which matches
+what is going on in the runtime system.  Also renamed the `toReal` function
+to `toReal64`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/10/13]::
 +
