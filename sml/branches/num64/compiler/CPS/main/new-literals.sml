@@ -176,6 +176,10 @@ structure NewLiterals : LITERALS =
 	  intToBytes32 Target.mlValueSz,
 	  intToBytes32 maxsaved]
 
+(* 64BIT: workaround for compiler bug *)
+    val minInt32 = Word64.toLargeIntX 0wxFFFFFFFF80000000
+    val maxInt32 = Word64.toLargeInt 0wx80000000
+
   (* encode tagged integers *)
     fun encINT (buf, n) = if (0 <= n) andalso (n <= 10)
 	    then W8B.add1(buf, opINT_0_10 n)
@@ -185,7 +189,7 @@ structure NewLiterals : LITERALS =
 	    then (W8B.add1(buf, opINTb); addLargeInt8(buf, n))
 	  else if (~32768 <= n) andalso (n <= 32767)
 	    then (W8B.add1(buf, opINTh); addLargeInt16(buf, n))
-	  else if (~2147483648 <= n) andalso (n <= 2147483647)
+	  else if (minInt32 <= n) andalso (n <= maxInt32)
 	    then (W8B.add1(buf, opINTw); addLargeInt32(buf, n))
 	    else (W8B.add1(buf, opINTlw); addLargeInt64(buf, n))
 
@@ -201,7 +205,7 @@ structure NewLiterals : LITERALS =
 	    then (W8B.add1(buf, opINT64b); addLargeInt8(buf, n))
 	  else if (~32768 <= n) andalso (n <= 32767)
 	    then (W8B.add1(buf, opINT64h); addLargeInt16(buf, n))
-	  else if (~2147483648 <= n) andalso (n <= 2147483647)
+	  else if (minInt32 <= n) andalso (n <= maxInt32)
 	    then (W8B.add1(buf, opINT64w); addLargeInt32(buf, n))
 	    else (W8B.add1(buf, opINT64lw); addLargeInt64(buf, n))
 
