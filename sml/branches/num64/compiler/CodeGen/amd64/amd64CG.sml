@@ -45,27 +45,26 @@ functor AMD64CG (
 
     val floats16ByteAligned = false
 
+    structure MLTreeUtils = MLTreeUtils (
+	structure T = AMD64MLTree
+	fun hashSext  _ _ = 0w0
+	fun hashRext  _ _ = 0w0
+	fun hashFext  _ _ = 0w0
+	fun hashCCext _ _ = 0w0
+	(* Equality extensions *)
+	fun eqSext  _ _ = false
+	fun eqRext  _ _ = false
+	fun eqFext  _ _ = false
+	fun eqCCext _ _ = false
+	(* Pretty printing extensions *)
+	fun showSext  _ _ = ""
+	fun showRext  _ _ = ""
+	fun showFext  _ _ = ""
+	fun showCCext _ _ = "")
+
     structure MLTreeComp = AMD64Gen(
 	structure I=AMD64Instr
-	structure MLTreeUtils = MLTreeUtils (
-	    structure T = AMD64MLTree
-	    fun hashSext  _ _ = 0w0
-	    fun hashRext  _ _ = 0w0
-	    fun hashFext  _ _ = 0w0
-	    fun hashCCext _ _ = 0w0
-
-	    (* Equality extensions *)
-	    fun eqSext  _ _ = false
-	    fun eqRext  _ _ = false
-	    fun eqFext  _ _ = false
-	    fun eqCCext _ _ = false
-
-	    (* Pretty printing extensions *)
-	    fun showSext  _ _ = ""
-	    fun showRext  _ _ = ""
-	    fun showFext  _ _ = ""
-	    fun showCCext _ _ = ""
-	  )
+	structure MLTreeUtils = MLTreeUtils
 	structure ExtensionComp = AMD64MLTreeExtComp (
 	    structure I = AMD64Instr
 	    structure T = AMD64MLTree

@@ -343,6 +343,7 @@ $smlnj/MLRISC/Control.cm
 $smlnj/MLRISC/Graphs.cm
 $smlnj/MLRISC/MLRISC.cm
 $smlnj/MLRISC/Visual.cm
+$smlnj/MLRISC/MLTREE.cm
 
 (* Other libaries. *)
 $smlnj/basis/basis.cm

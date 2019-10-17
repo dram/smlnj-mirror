@@ -23,6 +23,8 @@ functor MachineGen
 		      where I = InsnProps.I
 			and TS.T = CpsRegs.T
 		        and TS.S.P = PseudoOps
+   structure MLTreeUtils : MLTREE_UTILS
+		      where T = CpsRegs.T
    structure Asm        : INSTRUCTION_EMITTER  (* assembly *)
 		      where S.P = PseudoOps
 			and I = MLTreeComp.I
@@ -53,7 +55,6 @@ struct
    structure MachSpec   = MachSpec
    val abi_variant      = abi_variant
    structure MLTreeComp = MLTreeComp
-
 
    structure CFGViewer =
      CFGViewer
@@ -191,6 +192,7 @@ struct
       MLRiscGen
 	  (structure MachineSpec=MachSpec
            structure MLTreeComp=MLTreeComp
+           structure MLTreeUtils = MLTreeUtils 
 	   structure Ext = Ext
            structure Regs=CpsRegs
 	   structure ClientPseudoOps =ClientPseudoOps

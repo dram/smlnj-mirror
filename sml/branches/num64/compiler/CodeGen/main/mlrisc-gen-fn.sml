@@ -27,31 +27,36 @@ signature MLRISCGEN =
   end
 
 functor MLRiscGen (
+
     structure MachineSpec: MACH_SPEC
-    structure Ext        : SMLNJ_MLTREE_EXT
-    structure Regs       : CPSREGS
-		 	   where T.Region = CPSRegions
-	                     and T.Constant = SMLNJConstant
-		  	     and T.Extension = Ext
+    structure Ext : SMLNJ_MLTREE_EXT
+    structure Regs : CPSREGS
+	where T.Region = CPSRegions
+	  and T.Constant = SMLNJConstant
+	  and T.Extension = Ext
     structure ClientPseudoOps : SMLNJ_PSEUDO_OPS
     structure PseudoOp   : PSEUDO_OPS
-			    where T = Regs.T
-			      and Client = ClientPseudoOps
+	where T = Regs.T
+	  and Client = ClientPseudoOps
     structure MLTreeComp : MLTREECOMP
-			   where TS.T = Regs.T
-                             and TS.S.P = PseudoOp
-    structure Flowgen    : CONTROL_FLOWGRAPH_GEN
-			   where S = MLTreeComp.TS.S
-			     and I = MLTreeComp.I
-			     and CFG = MLTreeComp.CFG
-    structure InvokeGC   : INVOKE_GC
-			   where TS = MLTreeComp.TS
-			     and CFG = Flowgen.CFG
+	where TS.T = Regs.T
+	  and TS.S.P = PseudoOp
+    structure MLTreeUtils : MLTREE_UTILS
+	where T = Regs.T
+    structure Flowgen : CONTROL_FLOWGRAPH_GEN
+	where S = MLTreeComp.TS.S
+	  and I = MLTreeComp.I
+	  and CFG = MLTreeComp.CFG
+    structure InvokeGC : INVOKE_GC
+	where TS = MLTreeComp.TS
+	  and CFG = Flowgen.CFG
 
-    structure Cells      : CELLS
-    structure CCalls     : C_CALLS
-			   where T = Regs.T
+    structure Cells : CELLS
+    structure CCalls : C_CALLS
+	where T = Regs.T
+
     val compile : Flowgen.CFG.cfg -> unit
+
  ) : MLRISCGEN = struct
 
     structure M  = Regs.T		(* MLTree *)
@@ -162,6 +167,9 @@ functor MLRiscGen (
    * This should be on for SSA optimizations.
    *)
     val splitEntry = Control.MLRISC.mkFlag ("split-entry-block", "whether to split entry block")
+
+  (* if this flag is on, then annotate instructions with their source MLTree *)
+    val annoteFlg = Control.MLRISC.mkFlag ("annotate-instrs", "whether to annotate instructions")
 
   (*
    * This dummy annotation is used to get an empty block
@@ -308,6 +316,15 @@ functor MLRiscGen (
 		      annotation,    (* add an annotation *)
 		      ...
 		    } = MLTreeComp.selectInstructions (Flowgen.build ())
+
+	   (* if the annotation flag is enabled, then wrap statements with their
+	    * string representation.
+	    *)
+	      val emit = if !annoteFlg
+		    then fn stm => emit (M.ANNOTATION(
+		      stm,
+		      #create MLRiscAnnotations.COMMENT (MLTreeUtils.stmToString stm)))
+		    else emit
 
 	   (*
 	    * If there are raw C Calls (i.e., RCC is present), then we need to
