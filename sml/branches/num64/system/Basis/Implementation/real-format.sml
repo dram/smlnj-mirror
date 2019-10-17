@@ -31,7 +31,7 @@ structure RealFormat : sig
     val op == = InlineT.Real64.==
 
     val real  = InlineT.Real64.from_int
-    val floor = Math64Common.floor
+    val floor = InlineT.Real64.floor
 
     val op ^  = String.^
     val implode = String.implode

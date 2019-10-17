@@ -124,7 +124,7 @@ exception Size = Core.Size
 exception Overflow = Assembly.Overflow
 exception Chr = InlineT.Char.Chr
 exception Div = Assembly.Div
-exception Domain
+exception Domain = Core.Domain
 
 type string = PrimTypes.string
 
@@ -165,20 +165,11 @@ type int = PrimTypes.int
 type word = PrimTypes.word
 
 (* Real *)
-local
-(* 64BIT: FIXME *)
-  val wordToReal = R64.from_word
-  val intbound = wordToReal 0wx40000000	(* not necessarily the same as rbase *)
-  val negintbound = R64.~ intbound
-in
 type real = PrimTypes.real
 
 val real = R64.from_int
 
-fun floor x =
-      if x < intbound andalso x >= negintbound then Assembly.A.floor x
-      else if R64.==(x, x) then raise Overflow (* not a NaN *)
-      else raise Domain
+val floor = R64.floor
 
 fun ceil x = Int.- (~1, floor (R64.~ (x + 1.0)))
 
@@ -190,11 +181,9 @@ fun round x = let
       val cl = ceil(x-0.5)
       in
 	if fl=cl then fl
-	else if Word.andb(Word.fromInt fl,0w1) = 0w1 then cl
+	else if Word.andb(Word.fromInt fl, 0w1) = 0w1 then cl
 	else fl
       end
-
-end (* local *)
 
 (* List *)
 exception Empty
