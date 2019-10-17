@@ -50,6 +50,7 @@ structure Math64Common : sig
     val scalb : real * int -> real
     val logb : real -> int
     val realround : real -> real
+    val floor : real -> int
 
   end = struct
 
