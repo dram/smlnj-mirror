@@ -77,9 +77,11 @@ as **DONE**, even though they are not changed.
 
   * `system/smlnj/init/pervasive.sml` <br/>
     The conversions from word to real and `intbound` are incorrect for 64-bit targets
+    **[DONE; 110.89]**
 
   * `system/Basis/Implementation/math-common.sml` <br/>
     The `floor` function is 32-bit specific.
+    **[DONE; 110.89]**
 
 #### Compiler
 
@@ -148,7 +150,8 @@ as **DONE**, even though they are not changed.
 3. The **SML/NJ Library** module `RealFormat` is raising a `Subscript` error (might be
    related to one of the above problems)
 
-4. `Int32` arithmetic is not catching `Overflow` in some cases
+4. `Int32` arithmetic is not catching `Overflow` in some cases (not sure if this
+   is really a bug)
 
 5. There are issues with `IntInf` literals.  For example:
 
@@ -164,3 +167,10 @@ as **DONE**, even though they are not changed.
     I've currently added workarounds to `MLRISC/amd64/mltree/amd64-gen.sml` and
     `base/compiler/CPS/main/new-literals.sml`.  The hack is to define the lower
     and upper-bounds for 32-bit values by converting from Word64.
+
+6. The `floor` function does not work.  For example,
+
+	- floor 123.456;
+	val it = 61 : int
+
+    The bug is probably in `runtime/mach-dep/AMD64.prim.asm`
