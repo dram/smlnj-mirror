@@ -192,7 +192,7 @@ struct
       MLRiscGen
 	  (structure MachineSpec=MachSpec
            structure MLTreeComp=MLTreeComp
-           structure MLTreeUtils = MLTreeUtils 
+           structure MLTreeUtils = MLTreeUtils
 	   structure Ext = Ext
            structure Regs=CpsRegs
 	   structure ClientPseudoOps =ClientPseudoOps
