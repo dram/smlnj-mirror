@@ -22,10 +22,10 @@ struct
     structure S = Asm.S
     structure A = Array
     structure H = IntHashTable
- 
+
     type weight = real
 
-    datatype block_kind = 
+    datatype block_kind =
         START          (* entry node *)
       | STOP           (* exit node *)
       | NORMAL         (* normal node *)
@@ -34,22 +34,22 @@ struct
        BLOCK of
        {  id          : int,                        (* block id *)
           kind        : block_kind,                 (* block kind *)
-          freq        : weight ref,                 (* execution frequency *) 
-          labels      : Label.label list ref,       (* labels on blocks *) 
+          freq        : weight ref,                 (* execution frequency *)
+          labels      : Label.label list ref,       (* labels on blocks *)
           insns       : I.instruction list ref,     (* in rev order *)
 	  align	      : P.pseudo_op option ref,	    (* alignment only *)
           annotations : Annotations.annotations ref (* annotations *)
        }
 
     and edge_kind	    (* edge kinds (see cfg.sig for more info) *)
-      = ENTRY			(* entry edge *) 
+      = ENTRY			(* entry edge *)
       | EXIT            	(* exit edge *)
       | JUMP			(* unconditional jump *)
-      | FALLSTHRU		(* falls through to next block *)  
-      | BRANCH of bool		(* branch *) 
+      | FALLSTHRU		(* falls through to next block *)
+      | BRANCH of bool		(* branch *)
       | SWITCH of int		(* computed goto *)
       | FLOWSTO			(* FLOW_TO edge *)
-   
+
     and edge_info = EDGE of {
 	k : edge_kind,                  (* edge kind *)
 	w : weight ref,                 (* edge freq *)
@@ -59,7 +59,7 @@ struct
     type edge = edge_info Graph.edge
     type node = block Graph.node
 
-    datatype info = 
+    datatype info =
         INFO of { annotations : Annotations.annotations ref,
                   firstBlock  : int ref,
                   reorder     : bool ref,
@@ -73,15 +73,15 @@ struct
 
    (*========================================================================
     *
-    *  Various kinds of annotations 
+    *  Various kinds of annotations
     *
     *========================================================================*)
               (* escaping live out information *)
-    val LIVEOUT = Annotations.new 
+    val LIVEOUT = Annotations.new
           (SOME(fn c => "Liveout: "^
-                        (LineBreak.lineBreak 75 
+                        (LineBreak.lineBreak 75
                             (CellsBasis.CellSet.toString c))))
-    exception Changed of string * (unit -> unit) 
+    exception Changed of string * (unit -> unit)
     val CHANGED = Annotations.new'
           {create=Changed,
            get=fn Changed x => x | e => raise e,
@@ -122,7 +122,7 @@ struct
                labels      = ref [],
 	       align	   = ref (!align),
                insns       = ref (!insns),
-               annotations = ref (!annotations) 
+               annotations = ref (!annotations)
              }
 
     fun newBlock(id,freq) = newBlock'(id,NORMAL,[],freq)
@@ -152,17 +152,17 @@ struct
 
     fun nl() = TextIO.output(!AsmStream.asmOutStream,"\n")
 
-    fun emitHeader (S.STREAM{comment,annotation,...}) 
-                   (BLOCK{id,kind,freq,annotations,...}) = 
+    fun emitHeader (S.STREAM{comment,annotation,...})
+                   (BLOCK{id,kind,freq,annotations,...}) =
        (comment(kindName kind ^"["^Int.toString id^
                     "] ("^Real.toString (!freq)^")");
         nl();
         app annotation (!annotations)
-       ) 
+       )
 
-    fun emitFooter (S.STREAM{comment,...}) (BLOCK{annotations,...}) = 
+    fun emitFooter (S.STREAM{comment,...}) (BLOCK{annotations,...}) =
         (case #get LIVEOUT (!annotations) of
-            SOME s => 
+            SOME s =>
             let val regs = String.tokens Char.isSpace(CellsBasis.CellSet.toString s)
                 val K = 7
                 fun f(_,[],s,l)    = s::l
@@ -175,19 +175,19 @@ struct
          |  NONE => ()
         ) handle Overflow => print("Bad footer\n")
 
-    fun emitStuff outline annotations 
+    fun emitStuff outline annotations
            (block as BLOCK{insns,labels,...}) =
-       let val S as S.STREAM{pseudoOp,defineLabel,emit,...} = 
+       let val S as S.STREAM{pseudoOp,defineLabel,emit,...} =
                Asm.makeStream annotations
        in  emitHeader S block;
-           app defineLabel (!labels); 
+           app defineLabel (!labels);
            if outline then () else app emit (rev (!insns));
            emitFooter S block
        end
 
-    val emit = emitStuff false 
+    val emit = emitStuff false
     val emitOutline = emitStuff true []
- 
+
    (*========================================================================
     *
     *  Methods for manipulating CFG
@@ -220,25 +220,25 @@ struct
                val _     = #add_node cfg (i,start)
                val j     = #new_id cfg ()
                val stop  = newStop(j,ref 0.0)
-               val _     = #add_node cfg (j,stop) 
+               val _     = #add_node cfg (j,stop)
            in (*  #add_edge cfg (i,j,EDGE{k=ENTRY,w=ref 0,a=ref []}); *)
                #set_entries cfg [i];
                #set_exits cfg [j]
            end
-        |  _ => () 
+        |  _ => ()
         )
 
-    fun changed(G.GRAPH{graph_info=INFO{reorder,annotations,...},...}) = 
+    fun changed(G.GRAPH{graph_info=INFO{reorder,annotations,...},...}) =
         let fun signal [] = ()
               | signal(Changed(_,f)::an) = (f (); signal an)
               | signal(_::an) = signal an
         in  signal(!annotations);
             reorder := true
-        end 
+        end
 
     fun annotations(G.GRAPH{graph_info=INFO{annotations=a,...},...}) = a
 
-    fun liveOut (BLOCK{annotations, ...}) = 
+    fun liveOut (BLOCK{annotations, ...}) =
          case #get LIVEOUT (!annotations) of
             SOME s => s
          |  NONE => C.empty
@@ -261,7 +261,7 @@ struct
 
     fun setBranch (CFG as G.GRAPH cfg,b,cond) =
     let fun loop((i,j,EDGE{k=BRANCH cond',w,a})::es,es',x,y) =
-            if cond' = cond then 
+            if cond' = cond then
                loop(es, (i,j,EDGE{k=JUMP,w=w,a=a})::es',j,y)
             else
                loop(es, es', x, j)
@@ -270,13 +270,13 @@ struct
         val outEdges = #out_edges cfg b
         val (outEdges',target,elim) = loop(outEdges,[],~1,~1)
         val _ = if elim < 0 then error "setBranch: bad edges" else ();
-        val lab = defineLabel(#node_info cfg target) 
+        val lab = defineLabel(#node_info cfg target)
         val jmp = InsnProps.jump lab
-        val insns = insns(#node_info cfg b) 
+        val insns = insns(#node_info cfg b)
     in  #set_out_edges cfg (b,outEdges');
         case !insns of
           []      => error "setBranch: missing branch"
-        | branch::rest => 
+        | branch::rest =>
            case InsnProps.instrKind branch of
              InsnProps.IK_JUMP => insns := jmp::rest
            | _ => error "setBranch: bad branch instruction";
@@ -329,8 +329,8 @@ struct
    fun isMerge (G.GRAPH cfg) node = length(#in_edges cfg node) > 1
    fun isSplit (G.GRAPH cfg) node = length(#out_edges cfg node) > 1
 (*
-   fun hasSideExits (G.GRAPH cfg) node = 
-         List.exists (fn (_,_,EDGE{k=SIDEEXIT _,...}) => true 
+   fun hasSideExits (G.GRAPH cfg) node =
+         List.exists (fn (_,_,EDGE{k=SIDEEXIT _,...}) => true
                        | _ => false) (#out_edges cfg node)
 *)
    fun hasSideExits _ _ = false
@@ -352,7 +352,7 @@ struct
           BLOCK{insns=ref [],...} => ()
        |  BLOCK{kind=START,...} => ()
        |  BLOCK{kind=STOP,...} => ()
-       |  BLOCK{insns=insns as ref(jmp::rest),...} => 
+       |  BLOCK{insns=insns as ref(jmp::rest),...} =>
              (case #out_edges cfg node of
                 [] => ()
              |  [(_,_,EDGE{k=(ENTRY | EXIT),...})] => ()
@@ -363,7 +363,7 @@ struct
              |  [(_,i,EDGE{k=BRANCH x,...}),
                  (_,j,EDGE{k=BRANCH y,...})] =>
                   let val (no,yes) = if x then (j,i) else (i,j)
-                  in  insns := 
+                  in  insns :=
                         InsnProps.setBranchTargets{i=jmp,
                                 f=labelOf no,t=labelOf yes}::rest
                   end
@@ -386,15 +386,15 @@ struct
     *  After merging blocks i and j will become block i.
     *
     *=====================================================================*)
-   fun mergeEdge (CFG as G.GRAPH cfg) (i,j,e as EDGE{w,k,...}) = 
+   fun mergeEdge (CFG as G.GRAPH cfg) (i,j,e as EDGE{w,k,...}) =
    let val _ = case k of
                   (ENTRY | EXIT) => raise Can'tMerge
-               |  _ => () 
+               |  _ => ()
        val _ = case (#out_edges cfg i,#in_edges cfg j) of
-                  ([(_,j',_)],[(i',_,_)]) => 
+                  ([(_,j',_)],[(i',_,_)]) =>
                      if j' <> j orelse i' <> i then raise Can'tMerge
                      else ()
-               |  _ => raise Can'tMerge  
+               |  _ => raise Can'tMerge
        val _ = if mustPreceed CFG (i,j) then raise Can'tMerge else ()
        val BLOCK{align=d2,insns=i2,annotations=a2,...} = #node_info cfg j
        val _  = case !d2 of SOME _ => () | _ => raise Can'tMerge
@@ -407,21 +407,21 @@ struct
                | _ => true
        val insns1 = case !i1 of
                       [] => []
-                    | insns as jmp::rest => 
-                        if InsnProps.instrKind jmp = InsnProps.IK_JUMP 
+                    | insns as jmp::rest =>
+                        if InsnProps.instrKind jmp = InsnProps.IK_JUMP
                         then rest else insns
    in  if canMerge then
         (i1 := !i2 @ insns1;
          a1 := !a1 @ !a2;
-         #set_out_edges cfg 
+         #set_out_edges cfg
            (i,map (fn (_,j',e) => (i,j',e)) (#out_edges cfg j));
          #remove_node cfg j;
          updateJumpLabel CFG i
         )
        else (* Just eliminate the jump instruction at the end *)
          (i1 := insns1;
-          #set_out_edges cfg 
-            (i,map (fn (i,j,EDGE{w,a,...}) => 
+          #set_out_edges cfg
+            (i,map (fn (i,j,EDGE{w,a,...}) =>
                   (i,j,EDGE{k=FALLSTHRU,w=w,a=a}))
                      (#out_edges cfg i))
          );
@@ -433,17 +433,17 @@ struct
     *  Eliminate the jump at the end of a basic block if feasible
     *
     *=====================================================================*)
-   fun eliminateJump (CFG as G.GRAPH cfg) i = 
+   fun eliminateJump (CFG as G.GRAPH cfg) i =
        (case #out_edges cfg i of
           [e as (i,j,EDGE{k,w,a})] =>
             (case fallsThruFrom(CFG,j) of
                 SOME _ => false
-             |  NONE => 
+             |  NONE =>
                 if mustPreceed CFG (j,i) then false
-                else 
+                else
                 let val BLOCK{insns,...} = #node_info cfg i
                     val BLOCK{align,...}  = #node_info cfg j
-                in  case (!align,!insns) of 
+                in  case (!align,!insns) of
                       (NONE,jmp::rest) =>
                        if InsnProps.instrKind jmp = InsnProps.IK_JUMP then
                         (insns := rest;
@@ -457,13 +457,13 @@ struct
             )
        |  _ => false
        )
-    
+
    (*=====================================================================
     *
     *  Insert a jump at the end of a basic block if feasible
     *
     *=====================================================================*)
-   fun insertJump (CFG as G.GRAPH cfg) i =   
+   fun insertJump (CFG as G.GRAPH cfg) i =
        (case #out_edges cfg i of
            [e as (i,j,EDGE{k=FALLSTHRU,w,a,...})] =>
               let val BLOCK{insns,...} = #node_info cfg i
@@ -486,10 +486,10 @@ struct
     *     i_21 -> j,  i_22 -> j, ...         group 2
     *             ....
     *     i_n1 -> j,  i_n2 -> j, ...         group n
-    *  
-    *  into 
     *
-    *     i_11 -> k_1 
+    *  into
+    *
+    *     i_11 -> k_1
     *     i_12 -> k_1
     *        ...
     *     i_21 -> k_2
@@ -498,26 +498,26 @@ struct
     *     i_n1 -> k_n
     *     i_n2 -> k_n
     *        ...
-    * 
+    *
     *  and k_1 -> k_2
     *      k_2 -> k_3
     *        ...
     *      k_n -> j
-    * 
-    *  Return the new edges 
-    *       k_1->j,...,k_n -> j 
     *
-    *  and the new blocks 
+    *  Return the new edges
+    *       k_1->j,...,k_n -> j
+    *
+    *  and the new blocks
     *       k_1, ..., k_n.
     *
     *  Each block k_1, ..., k_n can have instructions placed in them.
     *
-    *  If the jump flag is true, then a jump is always placed in the 
+    *  If the jump flag is true, then a jump is always placed in the
     *  new block k_n; otherwise, we try to eliminate the jump when feasible.
     *
     *=====================================================================*)
    fun splitEdges (CFG as G.GRAPH cfg) {groups=[], jump} = []
-     | splitEdges (CFG as G.GRAPH cfg) {groups as ((first,_)::_), jump} = 
+     | splitEdges (CFG as G.GRAPH cfg) {groups as ((first,_)::_), jump} =
    let (* target of all the edges *)
        val j = let val (_,j,_) = hd first in j end
 
@@ -525,9 +525,9 @@ struct
         * It is a jump edge iff jump flag is true or
         * some other block is already falling into j
         *)
-       fun insertEdge(i,j,node_i,freq,jump) = 
-       let val kind = 
-               if jump orelse isSome(fallsThruFrom(CFG,j)) then 
+       fun insertEdge(i,j,node_i,freq,jump) =
+       let val kind =
+               if jump orelse isSome(fallsThruFrom(CFG,j)) then
                   let val insns_i = insns node_i
                   in  insns_i := InsnProps.jump(labelOf CFG j) :: !insns_i;
                       JUMP
@@ -539,33 +539,33 @@ struct
        in  #add_edge cfg edge;
            edge
        end
- 
+
        (* Redirect all edges *)
        fun redirect([], freq, new) = new
-         | redirect((edges, insns)::groups, freq, new) = 
+         | redirect((edges, insns)::groups, freq, new) =
        let
            val freq = sumEdgeFreqs edges + freq (* freq of new block *)
 
            (*  Sanity check
             *)
            fun check [] = ()
-             | check((u,v,_)::es) = 
+             | check((u,v,_)::es) =
                (if v <> j then error "splitEdge: bad edge" else ();
                 check es
                )
 
-           val () = check edges 
-         
+           val () = check edges
+
            val k = #new_id cfg () (* new block id *)
-           val node_k = 
-               BLOCK{id=k, kind=NORMAL, 
+           val node_k =
+               BLOCK{id=k, kind=NORMAL,
                      freq= ref freq, align=ref NONE, labels = ref [],
                      insns=ref insns, annotations=ref []}
 
        in  app (removeEdge CFG) edges;
            app (fn (i,_,e) => #add_edge cfg (i,k,e)) edges;
            #add_node cfg (k,node_k);
-           redirect(groups, freq, (k, node_k, edges, freq)::new) 
+           redirect(groups, freq, (k, node_k, edges, freq)::new)
        end
 
        val new = redirect(groups, 0.0, [])
@@ -573,7 +573,7 @@ struct
        (* Add the edges on the chain *)
        fun postprocess([], next, new) = new
          | postprocess((k, node_k, edges, freq)::rest, next, new) =
-           let val jump = next = j andalso jump 
+           let val jump = next = j andalso jump
                val edge = insertEdge(k, next, node_k, freq, jump)
            in  postprocess(rest, k, ((k,node_k),edge)::new)
            end
@@ -583,7 +583,7 @@ struct
    in  (* Update the labels on the groups *)
        app (fn (es, _) => app (fn (i,_,_) => updateJumpLabel CFG i) es) groups;
        new
-   end 
+   end
 
    (*=====================================================================
     *
@@ -592,13 +592,13 @@ struct
     *=====================================================================*)
    fun splitAllCriticalEdges (CFG as G.GRAPH cfg) =
    let val hasChanged = ref false
-   in  #forall_edges cfg 
+   in  #forall_edges cfg
          (fn e => if isCriticalEdge CFG e then
-           (splitEdges CFG {groups=[([e],[])],jump=false}; 
+           (splitEdges CFG {groups=[([e],[])],jump=false};
             hasChanged := true)
             else ());
        if !hasChanged then changed CFG else ()
-   end 
+   end
 
    (*=====================================================================
     *
@@ -606,9 +606,9 @@ struct
     *  entering into the region.  Return the set of new edges and nodes
     *
     *=====================================================================*)
-   fun tailDuplicate (CFG as G.GRAPH cfg : cfg) 
+   fun tailDuplicate (CFG as G.GRAPH cfg : cfg)
                      {subgraph=G.GRAPH subgraph : cfg,root} =
-   let 
+   let
        val blockMap = H.mkTable(10,NotFound)
        val _ = print("[root "^Int.toString root^"]\n")
 
@@ -633,15 +633,15 @@ struct
 
        and dupl([],Ns,Es,changed) = (Ns,Es,changed)
          | dupl(n::ns,Ns,Es,changed) =
-              redirect(#out_edges cfg n,ns,Ns,Es,changed)   
+              redirect(#out_edges cfg n,ns,Ns,Es,changed)
 
        and redirect([],ns,Ns,Es,changed) = dupl(ns,Ns,Es,changed)
          | redirect((u,v,e)::es,ns,Ns,Es,changed) =
             if v <> root andalso
                #has_edge cfg (u,v) andalso
-               #has_node subgraph v andalso 
+               #has_node subgraph v andalso
                not(#has_edge subgraph (u,v)) then
-               (* 
+               (*
                 * u -> v is a side entry edge, duplicate v
                 *)
             let val _ = print("[tail duplicating "^Int.toString u^" -> "^
@@ -654,13 +654,13 @@ struct
             end
             else redirect(es,ns,Ns,Es,changed)
 
-       fun iter(Ns,Es) = 
+       fun iter(Ns,Es) =
            let val (Ns,Es,hasChanged) = process(#nodes subgraph (),[],Ns,Es)
            in  if hasChanged then (changed CFG; iter(Ns,Es))
                else {nodes=Ns,edges=Es}
            end
 
-   in  iter([],[]) 
+   in  iter([],[])
    end
 
 
@@ -699,8 +699,8 @@ struct
    let val mergeEdge = mergeEdge CFG
        fun higherFreq((_,_,EDGE{w=x,...}),(_,_,EDGE{w=y,...}))= !x < !y
        fun mergeAll([],changed) = changed
-         | mergeAll(e::es,changed) = mergeAll(es,mergeEdge e orelse changed) 
-       (* note: sort expects the gt operator and sorts in ascending order *) 
+         | mergeAll(e::es,changed) = mergeAll(es,mergeEdge e orelse changed)
+       (* note: sort expects the gt operator and sorts in ascending order *)
        val hasChanged = mergeAll(ListMergeSort.sort higherFreq (#edges cfg ()),
                                  false)
    in  if hasChanged then changed CFG else ()
@@ -708,17 +708,17 @@ struct
 
    (*========================================================================
     *
-    *  Miscellaneous 
+    *  Miscellaneous
     *
     *========================================================================*)
-   fun cdgEdge(EDGE{k, ...}) = 
+   fun cdgEdge(EDGE{k, ...}) =
         case k of
            (JUMP | FALLSTHRU) => false
         |  _ => true
 
    (*========================================================================
     *
-    *  Pretty Printing and Viewing 
+    *  Pretty Printing and Viewing
     *
     *========================================================================*)
 
@@ -741,7 +741,7 @@ struct
     fun getString f x = let
 	  val buffer = StringOutStream.mkStreamBuf()
 	  val S      = StringOutStream.openStringOut buffer
-	  val _      = AsmStream.withStream S f x 
+	  val _      = AsmStream.withStream S f x
 	  in
 	    StringOutStream.getString buffer
 	  end
@@ -758,20 +758,20 @@ struct
 	  fun prList [] = ()
 	    | prList [i] = pr i
 	    | prList (h::t) = (pr (h ^ ", "); prList t)
-	  val Asm.S.STREAM{emit,defineLabel,annotation,...} = 
+	  val Asm.S.STREAM{emit,defineLabel,annotation,...} =
         	AsmStream.withStream outS Asm.makeStream []
 	  fun showFreq (ref w) = F.format "[%f]" [F.REAL w]
-	  fun showEdge (blknum,e) = 
+	  fun showEdge (blknum,e) =
 		F.format "%d:%s" [F.INT blknum, F.STR(show_edge e)]
 	  fun showSucc (_, x, e) = showEdge(x,e)
-	  fun showPred (x, _, e) = showEdge(x,e) 
+	  fun showPred (x, _, e) = showEdge(x,e)
 	  fun showSuccs b = (
-		pr "\tsucc:     "; 
-        	prList (map showSucc (#out_edges g b)); 
+		pr "\tsucc:     ";
+        	prList (map showSucc (#out_edges g b));
         	pr "\n")
 	  fun showPreds b = (
-        	pr "\tpred:     "; 
-        	prList (map showPred (#in_edges g b)); 
+        	pr "\tpred:     ";
+        	prList (map showPred (#in_edges g b));
         	pr "\n")
 	  fun printBlock (_, BLOCK{kind=START, id, freq, ...}) = (
         	pr (F.format "ENTRY %d %s\n" [F.INT id, F.STR(showFreq freq)]);
@@ -796,7 +796,7 @@ struct
     fun dump (outS, title, cfg as G.GRAPH g) = let
 	  fun pr str = TextIO.output(outS, str)
 	  val annotations = !(annotations cfg)
-	  val Asm.S.STREAM{annotation, ...} = 
+	  val Asm.S.STREAM{annotation, ...} =
         	AsmStream.withStream outS Asm.makeStream annotations
 	  fun printData () = let
         	val INFO{data, ...} = #graph_info g
