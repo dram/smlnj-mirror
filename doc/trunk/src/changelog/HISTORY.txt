@@ -97,6 +97,13 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2019/10/17]::
 +
+Added support for the **-64** flag to the `cmb-make` script in `base/system`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/17]::
++
 Renamed the `REAL` representation constructor to `Raw64`, which matches
 what is going on in the runtime system.  Also renamed the `toReal` function
 to `toReal64`.
@@ -104,9 +111,19 @@ to `toReal64`.
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
+[2019/10/15]::
++
+Updated the `SMLofNJ.SysInfo` structure by removing constructors from the
+`oskind` datatype that correspond to obsolete systems.  Also added a
+`getHostSize` function that returns the host architecture's native word
+size in bits (__e.g.__, 32 or 64).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/10/13]::
 +
-Added the **-64** flag to the `testml` script in `base\system` and
+Added the **-64** flag to the `testml` script in `base/system` and
 to the `.run-sml` script.  Thus, one will be able to specify the
 32-bit version of SML/NJ using the command **sml -32** and the
 64-bit version using the command **sml -64**.  Currently, 32-bits
@@ -129,7 +146,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2019/10/12]::
 +
-Fixed bugref:[130] (failure to raise `Bind` exception). Added
+Fixed bug bugref:130[] (failure to raise `Bind` exception). Added
 a function `refutable` to `ElabData/types/typesutil.{sig,sml}` and
 used it to limit type generalization of val bindings in
 `Elaborator/types/typecheck.sml`.
@@ -159,7 +176,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2019/10/04]::
 +
-Fix for bugref:[225] (`Math.ln` giving erroneous answers on Windows).
+Fix for bug bugref:225[] (`Math.ln` giving erroneous answers on Windows).
 The problem was an inconsistency in the way the Unix and Microsoft
 assemblers interpreted the addressing mode for the `FLD` instruction.
 +
@@ -229,7 +246,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2019/08/24]::
 +
-Fixed bugref:[173] (`OS.Process.sleep` only works with whole numbers).
+Fixed bug bugref:173[] (`OS.Process.sleep` only works with whole numbers).
 For systems that have finer-grain sleep function, such as the
 `nanosleep`(2) system call, the `OS.Process.sleep` and `Posix.Process.sleep`
 functions now support sub-second granularity.
@@ -269,7 +286,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 //--------------------------------------------------------------------
 [2019/08/12]::
 +
-Fixed bugref:[223] (Incremental Build fails on Windows).  There was
+Fixed bug bugref:223[] (Incremental Build fails on Windows).  There was
 a missing `CloseHandle()` when getting a file's timestamp.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
