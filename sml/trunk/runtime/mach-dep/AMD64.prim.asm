@@ -579,13 +579,15 @@ ALIGNED_ENTRY(unlock_a)
 	.align 8
 
 /* floor : real -> int
-   Return the nearest integer that is less or equal to the argument.
-	 Caller's responsibility to make sure arg is in range. */
-
+ * Return the nearest integer that is less or equal to the argument.
+ * Caller's responsibility to make sure arg is in range.
+ */
 ALIGNED_ENTRY(floor_a)
 	MOVSD		(REGIND(stdarg), XMM0)
 	ROUNDSD		(RND_TO_NEGINF, XMM0, XMM0)
 	CVTTSD2SI	(XMM0, stdarg)
+	SAL		(IM(1),stdarg)	/* convert result to tagged representation */
+	INC		(stdarg)
 	CONTINUE
 
 /* logb : real -> int
