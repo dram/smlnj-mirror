@@ -51,28 +51,27 @@ functor X86CG (structure CCallParams: sig val frameAlign : int
     fun base() = (* XXXX *)
       if !ClusterAnnotation.useVfp then X86CpsRegs.vfp else I.C.esp
 
+    structure MLTreeUtils =
+      MLTreeUtils(
+	structure T = X86MLTree
+	fun hashSext  _ _ = 0w0
+	fun hashRext  _ _ = 0w0
+	fun hashFext  _ _ = 0w0
+	fun hashCCext _ _ = 0w0
+	(* Equality extensions *)
+	fun eqSext  _ _ = false
+	fun eqRext  _ _ = false
+	fun eqFext  _ _ = false
+	fun eqCCext _ _ = false
+	(* Pretty printing extensions *)
+	fun showSext  _ _ = ""
+	fun showRext  _ _ = ""
+	fun showFext  _ _ = ""
+	fun showCCext _ _ = "")
 
     structure MLTreeComp=
        X86(structure X86Instr=X86Instr
 	   structure MLTreeUtils = MLTreeUtils
-               (structure T = X86MLTree
-                fun hashSext  _ _ = 0w0
-                fun hashRext  _ _ = 0w0
-                fun hashFext  _ _ = 0w0
-                fun hashCCext _ _ = 0w0
-
-                (* Equality extensions *)
-                fun eqSext  _ _ = false
-                fun eqRext  _ _ = false
-                fun eqFext  _ _ = false
-                fun eqCCext _ _ = false
-
-                (* Pretty printing extensions *)
-                fun showSext  _ _ = ""
-                fun showRext  _ _ = ""
-                fun showFext  _ _ = ""
-                fun showCCext _ _ = ""
-               )
            structure ExtensionComp = X86MLTreeExtComp
                (structure I = X86Instr
                 structure T = X86MLTree

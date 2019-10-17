@@ -198,10 +198,9 @@ structure IntInfImp :> INT_INF = struct
 
     (* left shift; just shift the digits, no special treatment for
      * signed versus unsigned. *)
-    fun lshift (i, w) =
-	case concrete i of
-	    BI { digits = [], negative } => i (* i = 0 *)
-	  | BI { digits, negative } =>  let
+    fun lshift (i, w) = (case concrete i
+	   of BI { digits = [], negative } => i (* i = 0 *)
+	    | BI { digits, negative } =>  let
 		val { bytes, bits } = shiftAmount w
 		val bits' = CoreIntInf.baseBits - bits
 		fun pad (0w0, xs) = xs
@@ -209,21 +208,21 @@ structure IntInfImp :> INT_INF = struct
 		fun shift ([], 0w0) = []
 		  | shift ([], carry) = [carry]
 		  | shift (x :: xs, carry) = let
-			val maxVal = CoreIntInf.maxDigit
-			val digit = ((x << bits) || carry) && maxVal
-			val carry' = x >> bits'
-		    in
+		      val maxVal = CoreIntInf.maxDigit
+		      val digit = ((x << bits) || carry) && maxVal
+		      val carry' = x >> bits'
+		      in
 			digit :: shift (xs, carry')
-		    end
-	    in
-		abstract
-		    (BI { negative = negative,
-			  digits =
-			  if bits = 0w0 then
-			      pad (bytes, digits)
-			  else
-			      pad (bytes, shift (digits, 0w0)) })
-	    end
+		      end
+		in
+		  abstract (BI{
+		      negative = negative,
+		      digits = if bits = 0w0
+			then pad (bytes, digits)
+			else pad (bytes, shift (digits, 0w0))
+		    })
+		end
+	  (* end case *))
 
     (* Right shift. *)
     fun rshift (i, 0w0) = i

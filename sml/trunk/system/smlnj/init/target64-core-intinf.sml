@@ -174,18 +174,19 @@ structure CoreIntInf :> sig
 
   (* sign-extend an int64 to an intinf *)
     fun extend64Inf i64 = let
-	  fun e (_, 0w0) = BI { negative = false, digits = [] }
-	    | e (negative, w31) = BI {
+	  fun e (negative, w63) = BI{
 		    negative = negative,
-		    digits = if InLine.word_ge (w31, base)
-			then [InLine.word_sub (w31, base), 0w1]
-			else [w31]
+		    digits = if InLine.word_ge (w63, base)
+			then [InLine.word_sub (w63, base), 0w1]
+			else [w63]
 		  }
-	  val i = if InLine.int64_eql (i64, ~0x8000000000000000)
-		  then BI { negative = true, digits = [0w0, 0w2 ] }
-		else if InLine.int64_lt (i64, 0)
-		  then e (true, i64ToW (~i64))
-		  else e (false, i64ToW i64)
+	  val i = if InLine.int64_eql(i64, 0)
+		  then BI { negative = false, digits = [] }
+		else if InLine.int64_gt (i64, 0)
+		  then e (false, i64ToW i64)
+		else if InLine.int64_eql (i64, ~0x8000000000000000)
+		  then BI { negative = true, digits = [0w0, 0w2] }
+		  else e (true, i64ToW (~i64))
 	  in
 	    abstract i
 	  end
