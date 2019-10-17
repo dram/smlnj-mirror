@@ -1,15 +1,20 @@
 (* basis.cm
  *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  * This is the CML-enhanced version of the Standard ML Basis Library.
  * It consists of a "view" of cml-internal.cm and many definitions
  * reexported from the original $/basis.cm without change.
  *)
+
 Library
 
 (* The "old" CM did not have $/basis.cm but used a very large pervasive
  * environment in its place.  The pervasive environment is implicit and
  * one cannot re-export from it.  Therefore, re-exports from $/basis.cm
- * are conditional on NEW_CM. *)
+ * are conditional on NEW_CM.
+ *)
 	(* Basis *)
 	signature ARRAY
 	signature ARRAY_SLICE
@@ -100,7 +105,11 @@ Library
 	structure General
 	structure IEEEReal
 	structure Int
+#if defined(SIZE_64)
+	structure Int63
+#else /* SIZE_32 */
 	structure Int31
+#endif
 	structure Int32
 	structure Int64
 	structure IntInf
@@ -118,6 +127,8 @@ Library
 	structure PackWord16Little
 	structure PackWord32Big
 	structure PackWord32Little
+	structure PackWord64Big
+	structure PackWord64Little
 	structure Position
 	structure Real
 	structure Real64
@@ -139,7 +150,11 @@ Library
 	structure Vector
 	structure VectorSlice
 	structure Word
+#if defined(SIZE_64)
+	structure Int63
+#else /* SIZE_32 */
 	structure Word31
+#endif
 	structure Word32
 	structure Word64
 	structure Word8
