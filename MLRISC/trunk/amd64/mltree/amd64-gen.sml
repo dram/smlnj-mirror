@@ -90,16 +90,16 @@ functor AMD64Gen (
     fun toInt32 i = T.I.toInt32(32, i)
     fun toInt64 i = T.I.toInt64(64, i)
 
-(* working around a bug *)
-    val minInt32 = Word64.toLargeIntX 0wxFFFFFFFFC0000000;
-    val maxInt32 = Word64.toLargeInt 0wx40000000
+(* 64BIT: workaround for compiler bug *)
+    val minInt32 = Word64.toLargeIntX 0wxFFFFFFFF80000000
+    val maxInt32 = Word64.toLargeInt 0wx80000000
 
   (* is an immediate operand representable as a signed 32-bit 2's complement value?
    * Note that values get sign extended when loaded into a 64-bit register.
    *)
     fun fitsIn32Bits (z : IntInf.int) = (minInt32 <= z) andalso (z < maxInt32)
 (*
-    fun fitsIn32Bits (z : IntInf.int) = (~0x40000000 <= z) andalso (z < 0x40000000)
+    fun fitsIn32Bits (z : IntInf.int) = (~0x80000000 <= z) andalso (z < 0x80000000)
 *)
 
     fun move64 (src, dst) = I.move {mvOp=I.MOVABSQ, src=src, dst=dst}
@@ -149,8 +149,8 @@ functor AMD64Gen (
       | cond cc = error(concat["cond(", T.Basis.condToString cc, ")"])
 
       (* Is the expression zero? *)
-    fun isZero(T.LI z) = z = 0
-      | isZero(T.MARK(e,a)) = isZero e
+    fun isZero (T.LI 0) = true
+      | isZero (T.MARK(e, _)) = isZero e
       | isZero _ = false
 
     fun setZeroBit(T.ANDB _)     = true
@@ -293,10 +293,10 @@ functor AMD64Gen (
 		 | T.LABEL _ => doEALabel(trees, t, b, i, s, d)
 		 | T.LABEXP le => doEALabel(trees, le, b, i, s, d)
 		 | T.ADD(ty, t1, t2 as T.REG(_,r)) =>
-		   doEA(t1::t2::trees, b, i, s, d)
+		     doEA(t1::t2::trees, b, i, s, d)
 		 | T.ADD(ty, t1, t2) => doEA(t1::t2::trees, b, i, s, d)
 		 | T.SUB(ty, t1, T.LI n) =>
-		   doEA(t1::T.LI(T.I.NEG(ty,n))::trees, b, i, s, d)
+		     doEA(t1::T.LI(T.I.NEG(ty,n))::trees, b, i, s, d)
 		 | T.SLL(ty, t1, T.LI n) => let
 		   val n = T.I.toInt(ty, n)
                    in
