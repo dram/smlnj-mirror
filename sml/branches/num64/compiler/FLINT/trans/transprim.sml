@@ -127,10 +127,10 @@ structure TransPrim : sig
     local
       fun pickName (cvt32, cvt64) sz =
 	    if (sz = 64) then cvt64
-	    else if (sz = Target.mlValueSz) then cvt32
-	    else if (sz > Target.defaultIntSz)
+	    else if (sz = Tgt.mlValueSz) then cvt32
+	    else if (sz > Tgt.defaultIntSz)
 	      then bug(concat["bogus size ", Int.toString sz, " for intinf conversion"])
-	    else if Target.is64
+	    else if Tgt.is64
 	      then cvt64
 	      else cvt32
     in
@@ -171,7 +171,7 @@ structure TransPrim : sig
 	 * an extra argument that is the actual operation (defined in the _Core
 	 * module).
 	 *)
-	  val mkPrim = if Target.is64
+	  val mkPrim = if Tgt.is64
 		then L.PRIM
 		else let
 		(* returns a lambda abstraction that wraps the primop with its
