@@ -1,7 +1,7 @@
 ## TODO list for 64-bit migration
 
 NOTE: this is a revised design document that represents the state
-of play as of May 2019; see `OLD-TODO-64bit.md` for the original
+of play as of October 2019; see `OLD-TODO-64bit.md` for the original
 notes.
 
 ### Design
@@ -12,33 +12,41 @@ integer type.
 
 On 32-bit machines, we currently have `Int31.int` as the default integer
 type, `Int32.int` as a boxed integer type, and `Int64.int` represented as
-a pair of integers.  The plan is to make `Int63.int` the default integer
-type on 64-bit machines, with `Int32.int` as an *unboxed* type and `Int64.int`
+a pair of integers.  On 64-bit machines, the default integer type is
+`Int63.int`, with `Int32.int` as an *unboxed* type and `Int64.int`
 as a regular boxed type without the special representation.  Currently
 we use the default tagged integer type for all smaller integer types
-(*e.g.*, `Int8.int` is represented as `Int31.int` at runtime).
+(*e.g.*, `Word8.word` is represented as `Word63.word.int` at runtime).
+
+For the trapping `Int32.int` operations, we currently wrap them in
+code that tests for overflow (see `base/system/smlnj/init/target64-inline.sml`).
+Since the AMD64 does support native 32-bit arithmetic, we should
+eventually take advantage of that, but to do it right requires tracking
+tagged vs. untagged values in a way that is similar to how boxed
+numbers are currently handled by FLINT.
 
 The tricky part of smaller types is dealing with overflow detection.
-For now, we are going to use a somewhat inefficient implementation
-that wraps the underlying tagged-integer arithmetic with bounds checks
-or masking.  For example, Word32 arithmetic on 64-bit targets will be
-composed with a function
+For now, we use a somewhat inefficient implementation that wraps the
+underlying tagged-integer arithmetic with bounds checks or masking
+(see `base/system/smlnj/init/target64-inline.sml`).  For example,
+`Word32` arithmetic on 64-bit targets is composed with a function
 
 	fun mask32 w = Word63.andb(w, 0wxffffffff)
 
-and Int32 operations will be wrapped with
+and `Int32` operations are wrapped with
 
 	fun check32 n = if (n < ~0x80000000) orelse (0x7fffffff < n)
 	      then raise Overflow
 	      else n
 
-We will also need to use check32 on the TEST conversions, and mask32 on
-TRUNC conversions.
+We also need to use `check32` on the `TEST` conversions, and `mask32` on
+`TRUNC` conversions.
 
 Eventually, we should support untagged numbers in the compiler (similar
 to the way that unboxed 32-bit integers are supported) and rely on the
 machine-code generator (MLRISC or LLVM) to introduce the masking/overflow
-checking.
+checking.  This optimization requires tracking tagged vs. untagged values
+in a way that is similar to how boxed numbers are currently handled by FLINT.
 
 ### Outstanding 64-bit issues
 
@@ -48,143 +56,13 @@ been marked in the source code with the comment tag "`64BIT:`").
 Some of these files are not actually used, so we have marked them
 as **DONE**, even though they are not changed.
 
-  * `compiler/CodeGen/cpscompile/invokegc.sml` <br/>
-    check semantics to make sure the code makes sense for 64-bits.
+#### Runtime system
 
-  * `compiler/CodeGen/cpscompile/limit.sml` <br/>
-    various assumptions about the size of 64-bit floats and heap alignment. <br/>
-    **[DONE; 110.92]**
+  * `runtime/gc/blast-gc.c` <br/>
+    Merge the handling of `DTAG_raw` and `DTAG_raw64` on 64-bit machines.
 
-  * `compiler/CodeGen/cpscompile/memAliasing.sml` <br/>
-    assumption that `RK_RAW64BLOCK` records take twice as much memory. <br/>
-    This file is no longer used in the simplified code generator.
-    **[DONE; 110.89]**
-
-  * `compiler/CodeGen/cpscompile/memDisambig.sml` <br/>
-    this file is no longer used, but has 64-bit dependences. <br/>
-    This file is no longer used in the simplified code generator.
-    **[DONE; 110.89]**
-
-  * `compiler/CodeGen/cpscompile/spill-new.sml` <br/>
-    the `rkToCty` function may need to be changed.
-    **[DONE; 110.89]**
-
-  * `compiler/CodeGen/main/mlrisc-gen-fn.sml` (also see `mlriscGen.sml`)<br/>
-    Issues with `INT_TO_REAL` (allocation pointer alignment) and `RAWRECORD`.
-
-  * `compiler/CodeGen/main/object-desc.sml` <br/>
-    codes for the various array/vector headers need to be reworked (also in the
-    runtime system)
-    **[DONE; 110.90]**
-
-  * `compiler/CPS/clos/closure.sml` <br/>
-    raw untagged data is split into 32-bit and 64-bit records on 32-bit machines.
-
-  * `compiler/CPS/convert/convert.sml` <br/>
-    various assumptions about the size of boxed ints when converting
-    raw C calls.
-
-  * `compiler/CPS/main/literals.sml` <br/>
-    this file should be replaced with an implementation of the new literal
-    encoding, which supports 64-bit integer data
-
-  * `compiler/FLINT/reps/rttype.sml` <br/>
-    there is a type code for 32-bit numbers (`tcode_int32`); it can probably
-    be replaced by `tcode_void`.
-
-  * `compiler/FLINT/opt/abcopt.sml` <br/>
-    this file is no longer used, but has 64-bit dependences.
-    **[DONE]**
-
-  * `compiler/MiscUtil/print/ppobj.sml` <br/>
-    there is a mysterious test for `int32Tyc`/`word32Tyc` in the function
-    `isUbxTy`.
-
-  * `compiler/Semant/prim/primop-bindings.sml` <br/>
-    Will need to add target-specific conversions once we understand what is
-    required.  Note that these will have to be added to the compiler **before**
-    we can attempt to cross compile.
-    **[DONE; 110.93]**
-
-  * `system/Basis/Implementation/num-format.sml` <br/>
-    should support formatting of 64-bit words and integers on all platforms
-    **[DONE; 110.88]**
-
-  * `system/Basis/Implementation/num-scan.sml` <br/>
-    should support scanning of 64-bit words and integers on all platforms
-    **[DONE; 110.88]**
-
-  * `system/Basis/Implementation/Posix/posix-filesys.sml` <br/>
-    the `statrep` type has both `Int32.int` and `int` fields
-    **[DONE; 110.89]**
-
-  * `system/Basis/Implementation/Posix/posix-io.sml` <br/>
-    the `flock_rep` type has `Int.int` fields; also `lseek` probably should use the
-    `Position.int` type for file offsets.
-    **[DONE; 110.89]**
-
-  * `system/Basis/Implementation/real64.sml` <br/>
-    explicit `Word31.word` to `real` conversion
-    **[DONE; 110.92]**
-
-  * `system/Basis/Implementation/Target32Bit/word64.sml` <br/>
-    should use 64-bit functions from `NumFormat` and `NumScan` (see above)
-    **[DONE; 110.88]**
-
-  * `system/Basis/Implementation/Unsafe/object.sml` <br/>
-    lots of assumptions about the sizes and runtime representations of values.
-    This file is a candidate for being moved to the target-specific
-    directories.
-    **[DONE; 110.93]**
-
-  * `system/Basis/Implementation/Win32/win32-general.sml` <br/>
-    the `HANDLE` type is 64-bits on 64-bit machines; use the abstract
-    `c_pointer` type.
-    **[DONE; 110.90]**
-
-  * `system/smlnj/init/built-in32.sml` <br/>
-    Need to switch `LargeWord` from `Word32` to `Word64` on all platforms.
-    **[DONE; 110.89]**
-
-  * `system/smlnj/init/target64-core-intinf.sml` <br/>
-    **[DONE; 110.91]**
-
-  * `system/smlnj/init/target64-core.sml` <br/>
-    Needs some work.
-    **[DONE; 110.93]**
-
-  * `system/smlnj/init/pervasive.sml` <br/>
-    explicit `Word31.word` and `Int32.int` to `real` conversions
-    **[DONE; 110.92]**
-
-  * `smlnj-lib/Util/random.sml` <br/>
-    Uses the `Word31` structure.
-    **[DONE; 110.93]**
-
-  * `nlffi/lib/linkage-dlopen.sml` <br/>
-    switch to using abstract `c_pointer` type for handles.
-
-  * `nlffi/lib/linkage.sig` <br/>
-    switch to using abstract `c_pointer` type for handles.
-
-In addition to the above issues, there are a few more changes that we can make
-to smooth the differences between the 32-bit and 64-bit targets.
-
-  * bind `Position` to `Int64`.  While this will cost some performance, it
-    addresses several outstanding open bugs.  This change will require an
-    overhaul of the C-library interface.
-    **[DONE; 110.89]**
-
-  * bind `FixedInt` to `Int64` on all targets.
-    **[DONE; 110.89]**
-
-  * bind `LargeWord` to `Word64` on all targets.
-    **[DONE; 110.89]**
-
-### Runtime System
-
-The runtime system is largely 64-bit clean, since it has been used on the
-Alpha, but there are a few places where additional work is required.
+  * `runtime/gc/minor-gc.c` <br/>
+    Merge the handling of `DTAG_raw` and `DTAG_raw64` on 64-bit machines.
 
   * `runtime/c-libs/dl/dlclose.c` <br/>
     Use the abstract `c_pointer` type to represent runtime-system pointers.
@@ -195,55 +73,72 @@ Alpha, but there are a few places where additional work is required.
   * `runtime/c-libs/dl/dlsym.c` <br/>
     Use the abstract `c_pointer` type to represent runtime-system pointers.
 
-  * `runtime/c-libs/win32-filesys/win32-filesys.c` <br/>
-    The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
-    `c_pointer` type.
-    **[DONE; 110.90]**
+#### Basis
 
-  * `runtime/c-libs/win32-io/win32-io.c` <br/>
-    The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
-    `c_pointer` type.
-    **[DONE; 110.90]**
+  * `system/smlnj/init/pervasive.sml` <br/>
+    The conversions from word to real and `intbound` are incorrect for 64-bit targets
 
-  * `runtime/c-libs/win32-process/win32-process.c` <br/>
-    The `HANDLE` type will be 64-bits on 64-bit targets; use the abstract
-    `c_pointer` type.
-    **[DONE; 110.90]**
+  * `system/Basis/Implementation/math-common.sml` <br/>
+    The `floor` function is 32-bit specific.
 
-  * `runtime/gc/blast-gc.c` <br/>
-    `DTAG_raw` and `DTAG_raw64` can be handled the same way on 64-bit targets.
+#### Compiler
 
-  * `runtime/gc/build-literals.c` <br/>
-    RAW32 padding on 64-bit targets
+  * `compiler/CodeGen/cpscompile/cps-c-calls.sml` <br/>
+    Alignment adjustment for 64-bit values is only required on 32-bit targets.
 
-  * `runtime/gc/export-heap.c`
-    need a BIBOP for mapping between memory and file addresses
+  * `compiler/CodeGen/cpscompile/invokegc.sml` <br/>
+    Check semantics to make sure the code makes sense for 64-bits.
 
-  * `runtime/gc/import-heap.c`
-    need a BIBOP for mapping between memory and file addresses
-
-  * `runtime/gc/major-gc.c` <br/>
-    Need modifications for the two-level BIBOP.
-    **[DONE; 110.91]**
-
-  * `runtime/gc/minor-gc.c` <br/>
-    `DTAG_raw` and `DTAG_raw64` can be handled the same way on 64-bit targets.
-    Also, need modifications for the two-level BIBOP.
-    **[DONE; 110.91]**
-
-  * `runtime/include/cntr.h` <br/>
-    can use 64-bit integers for counters (might be able to do so on 32-bit machines
-    too, when int64_t is available)
+  * `compiler/CodeGen/cpscompile/memDisambig.sml` <br/>
+    this file is no longer used, but has 64-bit dependences. <br/>
+    This file is no longer used in the simplified code generator.
     **[DONE; 110.89]**
 
-  * `runtime/mach-spec/AMD64-prim.asm` <br/>
-    problems with the `assyntax64.h` macros
-    **[DONE; 110.91]**
+  * `compiler/CodeGen/cpscompile/smlnj-pseudoOps.sml` <br/>
+    Use 32-bit entries for jump tables on 64-bit targets.
+
+  * `compiler/CodeGen/main/default-machinespec-fn.sml` <br/>
+    Can simplify by assuming that the size of ML values will always be the same
+    as the size of a native pointer.  This property holds now, since we no longer
+    support the DEC Alpha.
+
+  * `compiler/CodeGen/main/mlrisc-gen-fn.sml` (also see `mlriscGen.sml`)<br/>
+    Issues with `INT_TO_REAL` (allocation pointer alignment) and `RAWRECORD`.
+
+  * `compiler/CodeGen/main/mlrisc-gen-fn.sml` (also see `mlriscGen.sml`)<br/>
+    Handling of `RAWRECORD`
+
+  * `compiler/CPS/clos/closure.sml` <br/>
+    raw untagged data is split into 32-bit and 64-bit records on 32-bit machines.
+
+  * `compiler/CPS/convert/convert.sml` <br/>
+    various assumptions about the size of boxed ints when converting
+    raw C calls.
+
+  * `compiler/CPS/main/new-literals.sml` </br>
+    Remove compiler-bug workaround (once the compiler bug has been fixed).
+
+  * `compiler/FLINT/opt/abcopt.sml` <br/>
+    this file is no longer used, but has 64-bit dependences.
+    **[DONE]**
+
+  * `compiler/FLINT/reps/rttype.sml` <br/>
+    there is a type code for 32-bit numbers (`tcode_int32`); it can probably
+    be replaced by `tcode_void`.
+
+  * `compiler/MiscUtil/print/ppobj.sml` <br/>
+    there is a mysterious test for `int32Tyc`/`word32Tyc` in the function
+    `isUbxTy`.  What should this function do on 64-bit targets?
 
 
-### Other issues
+#### MLRISC
 
-There needs to be a review of the types of C functions that are called from SML code.
-In particular, the `SysWord.word` type is `Word32.word` on 32-bit machines, but it
-is `Word64.word` on 64-bit machines.  This difference needs to be reflected in the
-runtime code.
+  * `amd64/mltree/amd64-gen.sml` <br/>
+    Remove compiler-bug workaround (once the compiler bug has been fixed).
+
+#### Other SML code
+
+  * `nlffi` needs to be ported to 64-bit
+
+  * the `Rand` and `Random` structures in the **SML/NJ Library** could be
+    reimplemented to take advantage of 64-bit arithmetic.
