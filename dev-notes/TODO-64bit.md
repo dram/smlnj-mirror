@@ -144,16 +144,10 @@ as **DONE**, even though they are not changed.
 
 1. the scalb function in `AMD64.prim.asm` is untested
 
-2. Printing reals causes a memory fault (e.g., `Real.toString 1.0`); this bug
-   might be related to the `scalb` implementation.
-
-3. The **SML/NJ Library** module `RealFormat` is raising a `Subscript` error (might be
-   related to one of the above problems)
-
-4. `Int32` arithmetic is not catching `Overflow` in some cases (not sure if this
+2. `Int32` arithmetic is not catching `Overflow` in some cases (not sure if this
    is really a bug)
 
-5. There are issues with `IntInf` literals.  For example:
+3. There are issues with `IntInf` literals.  For example:
 
 	- 0x40000000:IntInf.int;
 	val it = 9223372035781033984 : IntInf.int
@@ -167,10 +161,3 @@ as **DONE**, even though they are not changed.
     I've currently added workarounds to `MLRISC/amd64/mltree/amd64-gen.sml` and
     `base/compiler/CPS/main/new-literals.sml`.  The hack is to define the lower
     and upper-bounds for 32-bit values by converting from Word64.
-
-6. The `floor` function does not work.  For example,
-
-	- floor 123.456;
-	val it = 61 : int
-
-    The bug is probably in `runtime/mach-dep/AMD64.prim.asm`
