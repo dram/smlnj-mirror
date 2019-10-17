@@ -120,9 +120,9 @@ functor MLRiscGen (
 (* QUESTION: do we care about the redundancy between Target.mlValueSz and MS.wordBitWidth? *)
     val pty = MS.wordBitWidth (* size of ML's pointer *)
     val ity = MS.wordBitWidth (* size of ML's integer *)
-    val fty = 64 (* size of ML's real number *)
+    val fty = 64 (* size in bits of ML's real number *)			(* REAL32: FIXME *)
     val ws = MS.wordByteWidth
-    val addrTy = MachineSpec.addressBitWidth	(* naturalsize of address arithmetic *)
+    val addrTy = MS.addressBitWidth	(* naturalsize of address arithmetic *)
 
     val zero = M.LI 0
     val one  = M.LI 1
@@ -1345,9 +1345,6 @@ functor MLRiscGen (
 		(*** PURE ***)
 (* REAL32: FIXME *)
 		| gen (C.PURE(P.INT_TO_REAL{from, to=64}, [v], x, _, e), hp) =
-(* 64BIT: on 32-bit platforms, we are using 32 -> double; on 64-bit, we have
- * both 32->64 and 64->64 conversions available.
- *)
 		    if isTaggedInt from
 		      then treeifyDefF64 (x, M.CVTI2F(fty, ity, untagSigned v), e, hp)
 		      else treeifyDefF64 (x, M.CVTI2F(fty, ity, regbind v), e, hp)
@@ -1596,21 +1593,18 @@ functor MLRiscGen (
 		    treeifyAlloc(x, hp, e, hp + IntInf.toInt ival * ws) (* no tag! *)
 		| gen (C.PURE(P.RAWRECORD(SOME rk), [NUM{ty={tag=true, ...}, ival}], x, _, e), hp) = let
 		  (* allocate an uninitialized record with a tag *)
-		    val (tag, fp) = (case rk (* tagged version *)
-			   of (C.RK_FCONT | C.RK_RAW64BLOCK) => (D.tag_raw64, true)
+		    val (tag, dblWord) = (case rk (* tagged version *)
+			   of (C.RK_FCONT | C.RK_RAW64BLOCK) => (D.tag_raw64, ws = 4)
 			    | C.RK_RAWBLOCK => (D.tag_raw, false)
 			    | C.RK_VECTOR => error "rawrecord VECTOR unsupported"
 			    | _ => (D.tag_record, false)
 			  (* end case *))
-		  (* len of record in 32-bit words *)
-(* 64BIT: FIXME *)
-		    val len = if ws = 4 andalso fp then ival+ival else ival
+		  (* len of record in machine words *)
+		    val len = if dblWord then ival + ival else ival
 		  (* record descriptor *)
 		    val desc = D.makeDesc(len, tag)
-		  (* Align floating point *)
-(* 64BIT: REAL32: FIXME *)
-		    val hp = if ws = 4 andalso fp
-			     andalso Word.andb(Word.fromInt hp, 0w4) <> 0w0
+		  (* Align floating point on 32-bit targets *)
+		    val hp = if dblWord andalso Word.andb(Word.fromInt hp, 0w4) <> 0w0
 			  then hp+4
 			  else hp
 		    in
