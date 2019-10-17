@@ -1,17 +1,19 @@
 (* literals.sml
  *
+ * NOTE: this file implements the "old" bytecode instruction set, which is
+ * only valid on 32-bit targets.  See new-literals.sml for the new encoding.
+ *
  * This file implements support for heap-allocated literals.  Our approach
  * is to split out the literals from the CPS representation and create a
  * bytecode program that for allocating the literals.
  *
  * The implementation of the bytecode interpreter for the literal language
- * is in base/runtime/gc/build-literals.c.
+ * is in base/runtime/gc/old-literals.c.
  *
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * TODO:
- *   64BIT: need support for 64-bit integers
  *   REAL32: need support for 32-bit floats
  *   add support for IntInf.int as type
  *)
@@ -159,7 +161,6 @@ structure Literals : LITERALS =
 	  Word8.fromLargeInt(IntInf.~>>(n, 0w8)) ::
 	  Word8.fromLargeInt n :: l
     fun toBytes32' (n, l) = toBytes32 (IntInf.fromInt n, l)
-(* 64BIT: assumption about default int size here *)
     fun intToBytes n = toBytes32' (n, [])
     fun strToBytes s = map Byte.charToByte (explode s)
 
@@ -423,7 +424,7 @@ structure Literals : LITERALS =
 		fun mklit (v, lit) = let
 		    fun unREAL (CPS.REAL{rval, ...}) = rval	(* REAL32: FIXME *)
 		      | unREAL _ = bug "unREAL"
-		    fun unINT32 (CPS.NUM{ival, ...}) = ival	(* 64BIT: FIXME *)
+		    fun unINT32 (CPS.NUM{ival, ...}) = ival
 		      | unINT32 _ = bug "unINT32"
 		    in
 		      case IntHashTable.lookup m v

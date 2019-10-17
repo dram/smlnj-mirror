@@ -87,8 +87,14 @@ structure InlineT =
         val max    : real * real -> real  = InLine.real64_max
 
 	val from_int : int -> real        = InLine.int_to_real64
-(* FIXME: add word_to_real primop *)
-	val from_word : word -> real	  = compose(InLine.int64_to_real64, InLine.copy_word_to_int64)
+
+	fun floor (x : real) =
+	      if InLine.real64_le(~2305843009213693952.0, x)
+	      andalso InLine.real64_lt(x, 2305843009213693952.0)
+		then Assembly.A.floor x
+	      else if InLine.real64_eql(x, x)
+		then raise Assembly.Overflow
+		else raise Core.Domain (* nan *)
 
 	val signBit : real -> bool = InLine.real64_sgn
 

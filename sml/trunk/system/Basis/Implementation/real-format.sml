@@ -29,11 +29,9 @@ structure RealFormat : sig
     val op >  = InlineT.Real64.>
     val op >= = InlineT.Real64.>=
     val op == = InlineT.Real64.==
-(* 64BIT: FIXME the constant 1073741824 is 2^30, which does not make sense for 64-bit targets *)
-    fun floor x = if x < 1073741824.0 andalso x >= ~1073741824.0
-	           then Assembly.A.floor x
-		  else raise General.Overflow
+
     val real  = InlineT.Real64.from_int
+    val floor = InlineT.Real64.floor
 
     val op ^  = String.^
     val implode = String.implode

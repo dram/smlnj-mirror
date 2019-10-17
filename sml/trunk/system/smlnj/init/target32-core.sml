@@ -100,6 +100,7 @@ structure Core =
     exception Bind
     exception Match
 
+    exception Domain
     exception Range      	(* for word8array update *)
     exception Subscript  	(* for all bounds checking *)
     exception Size

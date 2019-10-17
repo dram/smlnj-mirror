@@ -28,7 +28,7 @@ structure RealScan : sig
    * rest of the stream.
    *)
     fun fscan10 getc (d, cs) = let
-	  val wordToReal = InlineT.Real64.from_word
+	  fun wordToReal d = R.from_int(W.toIntX d)
 	  fun scan (accum, n, cs) = (case (getc cs)
 		 of (SOME(c, cs')) => let val d = U.code c
 		      in

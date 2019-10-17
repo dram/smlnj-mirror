@@ -100,6 +100,7 @@ structure Core =
     exception Bind
     exception Match
 
+    exception Domain
     exception Range      	(* for word8array update *)
     exception Subscript  	(* for all bounds checking *)
     exception Size
@@ -113,8 +114,7 @@ structure Core =
     local val ieql : int * int -> bool = InLine.int_eql
           val peql : 'a * 'a -> bool = InLine.ptr_eql
           val ineq : int * int -> bool = InLine.int_neq
-	  val i32eq : int32 * int32 -> bool = InLine.int32_eql (* 64BIT: FIXME *)
-	  val i64eq : int64 * int64 -> bool = InLine.int64_eql (* 64BIT: FIXME *)
+	  val i64eq : int64 * int64 -> bool = InLine.int64_eql
           val boxed : 'a -> bool = InLine.boxed
           val op + : int * int -> int = InLine.int_add
           val op - : int * int -> int = InLine.int_sub

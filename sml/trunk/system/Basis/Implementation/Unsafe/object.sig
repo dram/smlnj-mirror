@@ -15,7 +15,7 @@ signature UNSAFE_OBJECT =
     datatype representation
       = Unboxed
       | Raw		(* packed raw data *)
-      | Real
+      | Raw64		(* 64-byte aligned raw data (used for Real64.real) *)
       | Pair
       | Record
       | Ref
@@ -51,7 +51,7 @@ signature UNSAFE_OBJECT =
     val toVector : object -> object vector
     val toByteVector : object -> Word8Vector.vector
     val toExn    : object -> exn
-    val toReal   : object -> real
+    val toReal64 : object -> Real64.real
     val toInt    : object -> int
     val toInt32  : object -> Int32.int
     val toInt64  : object -> Int64.int

@@ -3,8 +3,10 @@
  * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Dummy implementation of the Assembly structure.  The actual implementation
- * of Assembly.A is in assembly code.
+ * Dummy implementation of the Assembly structure.  The actual
+ * implementation of Assembly.A is in assembly code.  The records
+ * that represent the Assembly and Assembly.A structures are allocated
+ * in the runtime system (runtime/kernel/globals.c).
  *)
 
 structure Assembly :> ASSEMBLYBOXED =
