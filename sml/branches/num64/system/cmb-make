@@ -26,6 +26,7 @@ while [ "$#" != "0" ] ; do
     -32) SIZE_OPT=$arg ;;
     -64) SIZE_OPT=$arg ;;
     -C*) ARGS="$ARGS $arg" ;;
+    -D*) ARGS="$ARGS $arg" ;;
     *)  SML=$arg
 	break
 	;;
