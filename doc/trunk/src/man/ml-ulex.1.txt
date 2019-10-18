@@ -21,6 +21,13 @@ an extended form of regular expressions.
 OPTIONS
 -------
 
+*-32*::
+  run the 32-bit version of the program (currently the default).
+
+*-64*::
+  run the 64-bit version of the program.  This option only applies to
+  the **x86-64** (aka **amd64**) architecture.
+
 *--dot*::
   generate DOT output (http://www.graphviz.org[]).  The generated file will be named +file.dot+,
   where +file+ is the input file.

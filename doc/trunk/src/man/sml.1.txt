@@ -20,6 +20,13 @@ to be evaluated from standard input.
 OPTIONS
 -------
 
+*-32*::
+  run the 32-bit version of the SML/NJ system (currently the default).
+
+*-64*::
+  run the 64-bit version of the SML/NJ system.  This option only applies to
+  the **x86-64** (aka **amd64**) architecture.
+
 *@SMLversion*::
   echo the version of SML/NJ to standard output and then exit
 
