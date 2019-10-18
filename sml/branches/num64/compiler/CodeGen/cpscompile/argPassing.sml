@@ -37,11 +37,6 @@ functor ArgPassing (
 	  in
 	    to (i, List.drop(regs, i))
 	  end
-(*DEBUG*)
-handle ex => (
-Control.Print.say(concat["** fromto(", Int.toString i, ",", Int.toString j, ",[",
-String.concatWithMap "," (fn _ => "_") regs, "])\n"]);
-raise ex)
 
     fun gprfromto (i, j, vfp) = fromto(i, j, gpregs vfp)
     fun fprfromto (i, j, vfp) = fromto(i, j, fpregs)
