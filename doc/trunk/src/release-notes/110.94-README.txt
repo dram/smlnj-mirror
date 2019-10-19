@@ -65,6 +65,14 @@ instruction selector.
 
 === Runtime System
 
+=== ML-LPT
+
+Switched the type of source-file positions from `Position.int` to `Int.int`.
+This change is because the `Position.int` type was changed to `Int64.int` in
+https://smlnj.org/dist/working/110.89/110.89-README.html[version 110.89],
+which is excessive for source-file parsing and which introduces space
+overhead (64-bit integers are boxed).
+
 == Bugs
 
 Here is a list of tracked bugs fixed (or closed) with this release, please see the
