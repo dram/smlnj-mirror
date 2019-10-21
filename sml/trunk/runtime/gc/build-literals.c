@@ -3,7 +3,7 @@
  * This file implements a simple bytecode interpreter that implements a language
  * for initializing a record of compile-time constant values.
  *
- * This code needs to agree with the code generator in base/FLINT/main/literals.sml
+ * This code needs to agree with the code generator in base/CPS/main/new-literals.sml
  *
  * See dev-notes/new-literals.md for a description of the bytecode.
  *

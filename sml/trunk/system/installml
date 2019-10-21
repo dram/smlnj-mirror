@@ -15,23 +15,24 @@ cd $here
 # Parse command line
 #
 SIZE_OPT="-32"
-if [ x"$1" = x-32 ] ; then
-  SIZE_OPT="-32"; shift
-elif [ x"$1" = x-64 ] ; then
-  SIZE_OPT="-64"; shift
-fi
-if test x"$1" = x-clean ; then
-  shift
-  CLEAN=true
-else
-  CLEAN=false
-fi
-if [ $# -gt 0 ] ; then
-    STEM=$1
-else
-    STEM=sml
-fi
-
+CLEAN=false
+STEM=sml
+# Process command-line arguments
+#
+while [ "$#" != "0" ] ; do
+    arg=$1; shift
+    case $arg in
+    -32) SIZE_OPT=$arg ;;
+    -64) SIZE_OPT=$arg ;;
+    -clean)
+	CLEAN=true
+	;;
+    *)
+# TODO: check for excess arguments
+	STEM=$arg
+	;;
+    esac
+done
 
 MAIN_HEAP_DIR=$twoup/bin/.heap
 MAIN_LIB_DIR=$twoup/lib

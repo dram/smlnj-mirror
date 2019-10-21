@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# COPYRIGHT (c) 2012 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # script to compile using the batch compiler
@@ -13,17 +13,26 @@
 
 set -x
 
+# for now, we use 32-bits as the default size, but this will change
+#
+SIZE_OPT="-32"
 SML=sml
+ARGS=""
+# Process command-line arguments
+#
+while [ "$#" != "0" ] ; do
+    arg=$1; shift
+    case $arg in
+    -32) SIZE_OPT=$arg ;;
+    -64) SIZE_OPT=$arg ;;
+    -C*) ARGS="$ARGS $arg" ;;
+    -D*) ARGS="$ARGS $arg" ;;
+    *)  SML=$arg
+	break
+	;;
+    esac
+done
 
-if test $# -ge 1 ; then
-  case $1 in
-    -C*) ;; # ignore compiler flags
-    *) SML=$1
-       shift
-    ;;
-  esac
-fi
-
-exec $SML $@ -DNO_PLUGINS '$smlnj/cmb.cm' <<XXXX
+exec $SML $SIZE_OPT $ARGS $@ -DNO_PLUGINS '$smlnj/cmb.cm' <<XXXX
 CMB.make();
 XXXX
