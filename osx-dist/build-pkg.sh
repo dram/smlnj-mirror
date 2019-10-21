@@ -1,21 +1,36 @@
 #!/bin/sh
 #
-# Script to build the installer package for x86 on Mac OS X (10.7+)
+# Script to build the installer package for x86/amd64 on Mac OS X (10.7+)
+#
+# usage:
+#	build-pkg.sh [-32 | -64] <version>
 #
 
 CMD="build-pkg.sh"
 
+SIZE="32"
+ARCH="x86"
+if [ x"$1" = x-32 ] ; then
+  SIZE=32
+  ARCH="x86"
+  shift
+elif [ x"$1" = x-64 ] ; then
+  SIZE=64
+  ARCH="amd64"
+  shift
+fi
+
 # get the version number
 #
 if [ $# != 1 ] ; then
-  echo "usage: $CMD version"
+  echo "usage: $CMD [-32 | -64] version"
   exit 1
 fi
 VERSION=$1
 
 CONFIGURL=http://smlnj.cs.uchicago.edu/dist/working/$VERSION/config.tgz
 DISTROOT=smlnj.dst
-ID=org.smlnj.x86.pkg
+ID=org.smlnj.$ARCH.pkg
 ROOT=$(pwd)
 RSRC=Resources
 
@@ -65,7 +80,7 @@ fi
 
 # build the distribution (note that this assumes that config/targets is what we want!)
 #
-config/install.sh
+config/install.sh -default $SIZE
 if [ "$?" != 0 ] ; then
   echo "$CMD [Error]: problem building SML/NJ"
   exit 1
@@ -114,12 +129,12 @@ pkgbuild $PKG_OPTS smlnj.pkg
 # build distribution package
 #
 BUILD_OPTS="--package-path components --resources $RSRC \
-  --distribution $RSRC/distribution.xml ./smlnj-x86-$VERSION.pkg"
+  --distribution $RSRC/distribution.xml ./smlnj-$ARCH-$VERSION.pkg"
 if [ x"$SIGN" = xnone ] ; then
-  echo "$CMD: building unsigned package smlnj-x86-$VERSION.pkg"
+  echo "$CMD: building unsigned package smlnj-$ARCH-$VERSION.pkg"
   productbuild $BUILD_OPTS
 else
-  echo "$CMD: building signed package smlnj-x86-$VERSION.pkg"
+  echo "$CMD: building signed package smlnj-$ARCH-$VERSION.pkg"
   productbuild --sign "$SIGN" $BUILD_OPTS
 fi
 
