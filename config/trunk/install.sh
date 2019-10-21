@@ -19,18 +19,30 @@ complain() {
 this=$0
 
 # process options
-SIZE_OPT="-32"
+SIZE_OPT=
+DEFAULT_SIZE="32"
 nolib=false
 while [ "$#" != "0" ] ; do
     arg=$1; shift
     case $arg in
       -32) SIZE_OPT=$arg ;;
       -64) SIZE_OPT=$arg ;;
-      nolib) nolib=true ;;
-      *) complain "usage: $this [-32 | -64] [nolib]"
+      -default)
+	case x"$1" in
+	  x32) DEFAULT_SIZE="32"; shift ;;
+	  x64) DEFAULT_SIZE="64"; shift ;;
+	  x) complain "missing size argument for '-default'" ;;
+	  *) complain "invalid size argument for '-default'; should be 32 or 64" ;;
+	esac ;;
+      -nolib) nolib=true ;;
+      *) complain "usage: $this [-32 | -64] [-default <sz>] [-nolib]"
       ;;
     esac
 done
+
+if [ x"$SIZE_OPT" = x ] ; then
+    SIZE_OPT="-"$DEFAULT_SIZE
+fi
 
 if [ x${INSTALL_QUIETLY} = xtrue ] ; then
     export CM_VERBOSE
@@ -239,6 +251,7 @@ installdriver() {
 	    -e "s,@LIBDIR@,$LIBDIR," \
 	    -e "s,@VERSION@,$VERSION," \
 	    -e "s,@CMDIRARC@,${CM_DIR_ARC:-dummy}," \
+	    -e "s,@SIZE@,$DEFAULT_SIZE," \
 	    > "$BINDIR"/"$ddst"
 	chmod 555 "$BINDIR"/"$ddst"
 	if [ ! -x "$BINDIR"/"$ddst" ]; then

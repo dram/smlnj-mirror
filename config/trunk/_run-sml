@@ -80,7 +80,10 @@ if [ `basename "$0"` = sml ] ; then
 fi
 
 ALLOC=""
-SIZE_OPT="-32"
+
+# the default size; this is set by the config/install.sh script
+#
+SIZE_OPT="-"@SIZE@
 
 #
 # Process command line arguments

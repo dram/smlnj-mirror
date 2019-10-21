@@ -19,13 +19,23 @@ die () {
 	exit 1
 }
 
+# the default size; this is set by the config/install.sh script
+#
+SIZE=@SIZE@
+if [ x"$1" = x-32 ] ; then
+  SIZE=32
+elif [ x"$1" = x-64 ] ; then
+  SIZE=64
+fi
+SIZE_OPT="-"$SIZE
+
 if [ x${SMLNJ_HOME} = x ] ; then
     BIN_DIR="@BINDIR@"
 else
     BIN_DIR=${SMLNJ_HOME}/bin
 fi
 
-ARCH_N_OPSYS=`"$BIN_DIR/.arch-n-opsys"`
+ARCH_N_OPSYS=`"$BIN_DIR/.arch-n-opsys $SIZE_OPT"`
 if [ "$?" != "0" ]; then
 	die "unable to determine architecture/operating system"
 fi
@@ -120,7 +130,7 @@ if [ ! -f $H2A ]; then
 fi
 
 RESULT=0
-if ${H2A} "$heapfile" "$execfile".s ; then
+if ${H2A} $SIZE_OPT "$heapfile" "$execfile".s ; then
 	if [ -f "$execfile".s ] ; then
 		if ${CC} -c -o "$execfile".o "$execfile".s ; then
 			rm "$execfile".s

@@ -14,9 +14,9 @@
 export PATH
 PATH="/bin:/usr/bin"
 
-# for now, the default size is 32 bits, but this will change in the future
+# the default size; this is set by the config/install.sh script
 #
-SIZE=32
+SIZE=@SIZE@
 
 # check for word-size override
 #

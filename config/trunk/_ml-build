@@ -40,7 +40,9 @@ usage() {
     exit 1
 }
 
-SIZE_OPT="-32"
+# the default size; this is set by the config/install.sh script
+#
+SIZE_OPT="-"@SIZE@
 setup=
 
 while [ $# != 0 ] ; do

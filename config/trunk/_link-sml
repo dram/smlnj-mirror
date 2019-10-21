@@ -11,9 +11,9 @@
 #
 unset ENV
 
-# for now, we use 32-bits as the default size, but this will change
+# the default size; this is set by the config/install.sh script
 #
-SIZE_OPT="-32"
+SIZE_OPT="-"@SIZE@
 
 RUN=""
 BOOT=""
