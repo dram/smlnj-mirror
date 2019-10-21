@@ -1,4 +1,4 @@
-Installation instructions for SML/NJ under MacOS X
+Installation instructions for SML/NJ under macOS
 --------------------------------------------------
 
 We provide a disk image containing an installer package
@@ -22,9 +22,9 @@ global environment variables such as SMLNJ_HOME.
 ----
 
 When developer tools are present on a MacOS X machine,
-then it is also always possible to do a generic install
-(see file INSTALL).  The runtime system makefile for
-Mac OS X on Intel (mk.x86-darwin) is configured to
+then it is also always possible to do a generic Unix
+install (see file INSTALL).  The runtime system makefile
+for Mac OS X on Intel (mk.x86-darwin) is configured to
 support Mac OS X 10.5 (Leopard), but recent versions
 of Xcode do not provide the 10.5 SDKs.  You will either
 need to obtain the 10.5 SDKs from the Apple Decveloper
