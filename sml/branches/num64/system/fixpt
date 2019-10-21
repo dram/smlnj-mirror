@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# fixpt
+# fixpt [-32 | -64]
 #  - to be run in src/system to iterate compilation to a fixed point
 #  - assumes no sml.boot... directory in src/system (but uses it if it
 #    is there and the base is set to "sml" -- which is the default)
@@ -15,38 +15,7 @@ cd $here
 
 SML=$twoup/bin/sml
 ARCH=x86
-
-#
-# use the arch-n-opsys script to determine the ARCH/OS if possible
-#
-if [ -f $twoup/bin/.arch-n-opsys ]; then
-    ARCH_N_OPSYS=`$twoup/bin/.arch-n-opsys`
-    if [ "$?" = "0" ]; then
-	eval $ARCH_N_OPSYS
-	echo Architecture: $ARCH
-    fi
-fi
-
-BIN=.bin.$ARCH-unix
-BOOT=.boot.$ARCH-unix
-ITER=3
-BASE=sml
-REBUILD="-rebuild"
-SETLIGHT=""
-SAVE=false		# should we save intermediate boot and bin directories?
-
-#
-# Function to do one round of compilation to get the initial set of binfiles.
-# (The funky ML comment is there to un-confuse emacs fontlock mode. :)
-#
-initcompile() {
-$SML '$smlnj/cmb.cm' <<EOF
-local open OS.Process CMB in
-   $SETLIGHT
-   val _ = exit (if make' (SOME "$BASE") then success else failure) (* ' *)
-end
-EOF
-}
+SIZE_OPT="-32"
 
 #
 # Parse command line
@@ -54,6 +23,8 @@ EOF
 while [ "$#" != 0 ] ; do
     arg=$1; shift
     case $arg in
+    -32) SIZE_OPT="-32" ;;
+    -64) SIZE_OPT="-64" ;;
     -iter)
 	if [ "$#" = 0 ] ; then
 	    echo "$this: missing argument for \"-iter\" option"
@@ -82,6 +53,38 @@ while [ "$#" != 0 ] ; do
     esac
 done
 
+#
+# use the arch-n-opsys script to determine the ARCH/OS if possible
+#
+if [ -f $twoup/bin/.arch-n-opsys ]; then
+    ARCH_N_OPSYS=`$twoup/bin/.arch-n-opsys $SIZE_OPT`
+    if [ "$?" = "0" ]; then
+	eval $ARCH_N_OPSYS
+	echo Architecture: $ARCH
+    fi
+fi
+
+BIN=.bin.$ARCH-unix
+BOOT=.boot.$ARCH-unix
+ITER=3
+BASE=sml
+REBUILD="-rebuild"
+SETLIGHT=""
+SAVE=false		# should we save intermediate boot and bin directories?
+
+#
+# Function to do one round of compilation to get the initial set of binfiles.
+# (The funky ML comment is there to un-confuse emacs fontlock mode. :)
+#
+initcompile() {
+$SML $SIZE_OPT '$smlnj/cmb.cm' <<EOF
+local open OS.Process CMB in
+   $SETLIGHT
+   val _ = exit (if make' (SOME "$BASE") then success else failure) (* ' *)
+end
+EOF
+}
+
 iter=0
 iterbase=$BASE
 
@@ -91,7 +94,7 @@ if initcompile ; then
 	prevbase=$iterbase
 	iter=`expr $iter + 1`
 	iterbase=$BASE$iter
-	if ./makeml -boot $prevbase$BOOT $REBUILD $iterbase ; then
+	if ./makeml $SIZE_OPT -boot $prevbase$BOOT $REBUILD $iterbase ; then
 	    if diff -r $prevbase$BIN $iterbase$BIN >/dev/null 2>&1 ; then
 		echo "$this: fixpoint reached in round $iter"
 		if $SAVE ; then
