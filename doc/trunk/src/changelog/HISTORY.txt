@@ -93,6 +93,56 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/10/21]::
++
+Modified the Unix installer script (`base/system/smlnj/installer/nix-install.sml`)
+to pass a size argument to the configuration script.  This argument is used
+by the **ASDL** configuration.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/21]::
++
+Overhauled the installation script (`config/install.sh`) and various
+script templates (__e.g.__, `config/_run-sml`) to allow setting the
+default size.  The `config/install.sh` script now supports the following
+arguments:
++
+--
+  **-default** __size__::
+    specify the default size for the **sml** and other commands, where
+    __size__ is either **32** or **64**.
+
+  **-32**::
+    install the 32-bit version of the system.
+
+  **-64**::
+    install the 64-bit version of the system.
+--
++
+It is possible to install both versions in the same location by running
+the `install.sh` script twice.  For example, the commands
++
+[source,shell]
+--------------
+% config/install.sh -default 64
+% config/install.sh -32
+--------------
++
+will install both versions with the 64-bit version as default.  One
+would then use the command **sml -32** to run the 32-bit version of
+the system.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/21]::
++
+Added support for the **-64** flag to the `fixpt` script in `base/system`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2019/10/17]::
