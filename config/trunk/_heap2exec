@@ -23,9 +23,9 @@ die () {
 #
 SIZE=@SIZE@
 if [ x"$1" = x-32 ] ; then
-  SIZE=32
+  SIZE=32 ; shift
 elif [ x"$1" = x-64 ] ; then
-  SIZE=64
+  SIZE=64 ; shift
 fi
 SIZE_OPT="-"$SIZE
 
