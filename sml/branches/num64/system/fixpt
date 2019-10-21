@@ -1,5 +1,8 @@
 #!/bin/sh
-
+#
+# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
 # fixpt [-32 | -64]
 #  - to be run in src/system to iterate compilation to a fixed point
 #  - assumes no sml.boot... directory in src/system (but uses it if it
