@@ -30,17 +30,19 @@ structure UnixInstall : sig end =
 			       OS.Path.concat (installdir, "bin"))
 	  fun bincmd cmd = OS.Path.concat (bindir, cmd)
 	  val runsml = ".run-sml"		(* don't prepend bindir! *)
-	(* the build command is a standard script that takes a size argument *)
-	  val buildcmd = let
+	(* the config and build commands are standard scripts that take a size argument *)
+	  val (configcmd, buildcmd) = let
 		val sz = Int.toString(SMLofNJ.SysInfo.getHostSize())
+		val confidcmd = "./config.sh -" ^ sz
+		val buildcmt = "CM_LOCAL_PATHCONFIG=/dev/null ./build.sh -" ^ sz
 		in
-		  "CM_LOCAL_PATHCONFIG=/dev/null ./build.sh -" ^ sz
+		  (configcmd, buildcmd)
 		end
 	  in
 	    I.proc {
 		smlnjroot = home,
 		installdir = installdir,
-	 	configcmd = "./config.sh",
+	 	configcmd = configcmd,
 		buildcmd = buildcmd,
 		unpack = SOME unpack,
 		instcmd = fn target => let
