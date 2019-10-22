@@ -85,6 +85,10 @@ ALLOC=""
 #
 SIZE_OPT="-"@SIZE@
 
+# if "yes" then we report the heap suffix and quit
+#
+REPORT_SUFFIX=no
+
 #
 # Process command line arguments
 #
@@ -115,8 +119,8 @@ while [ "$#" != "0" ]; do
       exit 0
       ;;
     @SMLsuffix)
-      echo "$HEAP_SUFFIX"
-      exit 0
+      shift
+      REPORT_SUFFIX=yes
       ;;
     @SMLalloc=*)
       shift
@@ -137,6 +141,13 @@ if [ "$?" != "0" ]; then
   exit 1
 fi
 eval $ARCH_N_OPSYS
+
+# if the `@SMLsuffix` option was specified, then report the suffix and quit
+#
+if [ $REPORT_SUFFIX = yes ] ; then
+    echo $HEAP_SUFFIX
+    exit 0
+fi
 
 #
 # Try to figure out the CPU's cache size and set the allocation area
