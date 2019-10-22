@@ -278,10 +278,12 @@ structure TransPrim : sig
 			mkFn (argt) (fn p =>
 			  mkLet (L.SELECT(0, p)) (fn w =>
 			  mkLet (L.SELECT(1, p)) (fn cnt =>
-			  mkLet (mkApp2(lshiftOp wordKind, w, lword delta)) (fn w' =>
+			  mkLet (mkApp2(lshiftOp wordKind, w, delta')) (fn w' =>
 			    mkCOND(
 			      mkApp2(cmpShiftAmt, shiftLimit, cnt),
-			      mkApp2(rshiftOp wordKind, w', shiftWidth),
+			      mkApp2(rshiftlOp wordKind,
+			        mkApp2(rshiftOp wordKind, w', shiftWidth),
+				delta'),
 			      mkApp2(rshiftlOp wordKind,
 				mkApp2(rshiftOp wordKind, w', cnt),
 				delta'))))))
