@@ -796,31 +796,31 @@ and g hdlr = let
 		  end
 	    (***** COPY : word -> int *****)
 	      | PURE(P.COPY{from=m, to=n}, [v], x, t, e) => let
-		  fun mkCOPY (from, to, v, x, t, e) =
+		  fun mkCOPY (from, to, x, t, e) =
 			if (from = to)
-			  then (newname(x, v); g' e)
-			  else PURE(P.COPY{from=from, to=to}, [v], x, t, g' e)
+			  then (newname(x, ren v); g' e)
+			  else doPure (P.COPY{from=from, to=to}, [v], x, t, e)
 		  fun mkEXTEND (from, to, v, x, t, e) = if (from = to)
 			then (newname(x, v); g' e)
-			else PURE(P.EXTEND{from=from, to=to}, [v], x, t, g' e)
-		  fun skip () = mkCOPY(m, n, ren v, x, t, g' e)
+			else doPure (P.EXTEND{from=from, to=to}, [v], x, t, e)
+		  fun skip () = mkCOPY(m, n, x, t, g' e)
 		  in
 		    case e
 		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
 			  if not (cvtPreCondition (n, n2, x, v2))
 			    then skip ()
 			  else if (m < p)
-			    then mkCOPY(m, p, ren v, x2, t2, e2)
+			    then mkCOPY(m, p, x2, t2, e2)
 			    else ARITH(P.TESTU{from=m, to=p}, [ren v], x2, t2, g' e2)
 		      | ARITH(P.TESTU{from=n2, to=p}, [v2], x2, t2, e2) =>
 			  if not (cvtPreCondition (n, n2, x, v2))
 			    then skip ()
 			  else if (m < p)
-			    then mkCOPY(m, p, ren v, x2, t2, e2)
+			    then mkCOPY(m, p, x2, t2, e2)
 			    else ARITH(P.TESTU{from=m, to=p}, [ren v], x2, t2, g' e2)
 		      | PURE(P.COPY{from=n2, to=p}, [v2], x2, t2, e2) =>
 			  if cvtPreCondition (n, n2, x, v2)
-			    then mkCOPY(m, p, ren v, x2, t2, e2)
+			    then mkCOPY(m, p, x2, t2, e2)
 			    else skip ()
 		      | PURE(P.EXTEND{from=n2, to=p}, [v2], x2, t2, e2) =>
 			  if not (cvtPreCondition (n, n2, x, v2))
@@ -830,7 +830,7 @@ and g hdlr = let
 			  if not (cvtPreCondition (n, n2, x, v2))
 			    then skip ()
 			  else if (m <= p)
-			    then mkCOPY(m, p, ren v, x2, t2, e2)
+			    then mkCOPY(m, p, x2, t2, e2)
 			    else PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2)
 		      | PURE(P.COPY_INF n2, [v2, f], x2, t2, e2) =>
 			  if cvtPreCondition (n, n2, x, v2)
@@ -847,17 +847,17 @@ and g hdlr = let
 		  end
 	    (***** EXTEND *****)
 	      | PURE(P.EXTEND{from=m, to=n}, [v], x, t, e) => let
-		  fun mkEXTEND (from, to, v, x, t, e) = if (from = to)
-			then (newname(x, v); g' e)
-			else PURE(P.EXTEND{from=from, to=to}, [v], x, t, g' e)
-		  fun skip () = PURE(P.EXTEND{from=m, to=n}, [ren v], x, t, g' e)
+		  fun mkEXTEND (from, to, x, t, e) = if (from = to)
+			then (newname(x, ren v); g' e)
+			else doPure( P.EXTEND{from=from, to=to}, [v], x, t, e)
+		  fun skip () = doPure (P.EXTEND{from=m, to=n}, [v], x, t, e)
 		  in
 		    case e
 		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
 			  if not (cvtPreCondition (n, n2, x, v2))
 			    then skip ()
 			  else if (p >= n)
-			    then mkEXTEND(m, p, ren v, x2, t2, e2)
+			    then mkEXTEND(m, p, x2, t2, e2)
 			    else ARITH(P.TEST{from=m, to=p}, [v2], x2, t2, g' e2)
 		      | ARITH(P.TESTU{from=n2, to=p}, [v2], x2, t2, e2) =>
 			  if not (cvtPreCondition (n, n2, x, v2))
@@ -869,17 +869,17 @@ and g hdlr = let
 			  if not (cvtPreCondition (n, n2, x, v2))
 			    then skip ()
 			  else if (n2 = p)
-			    then mkEXTEND(m, p, ren v, x2, t2, e2)
+			    then mkEXTEND(m, p, x2, t2, e2)
 			    else skip ()
 		      | PURE(P.EXTEND{from=n2, to=p}, [v2], x2, t2, e2) =>
 			  if cvtPreCondition (n, n2, x, v2)
-			    then mkEXTEND(m, p, ren v, x2, t2, e2)
+			    then mkEXTEND(m, p, x2, t2, e2)
 			    else skip ()
 		      | PURE(P.TRUNC{from=n2, to=p}, [v2], x2, t2, e2) =>
 			  if not (cvtPreCondition (n, n2, x, v2))
 			    then skip ()
 			  else if (p >= m)
-			    then mkEXTEND(m, p, ren v, x2, t2, e2)
+			    then mkEXTEND(m, p, x2, t2, e2)
 			    else PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2)
 		      | PURE(P.EXTEND_INF n2, [v2, f], x2, t2, e2) =>
 			  if cvtPreCondition (n, n2, x, v2)
@@ -890,7 +890,7 @@ and g hdlr = let
 		  end
 	    (***** TRUNC : int -> word *****)
 	      | PURE(P.TRUNC{from=m, to=n}, [v], x, t, e) => let
-		  fun skip () = PURE(P.TRUNC{from=m, to=n}, [ren v], x, t, g' e)
+		  fun skip () = doPure (P.TRUNC{from=m, to=n}, [v], x, t, e)
 		  in
 		    case e
 		     of PURE(P.TRUNC{from=n2, to=p}, [v2], x2, t2, e2) =>
@@ -976,29 +976,7 @@ and g hdlr = let
 		    (* end case *)
 		  end
 	    (***** other PURE cases *****)
-	      | PURE(rator, vl, w, t, e) => let
-		  val vl' = List.map ren vl
-		  val {used, ...} = get w
-		  fun rest () = let
-			val e' = g' e
-			in
-			  if !used=0 andalso deadup
-			    then (List.app use_less vl'; click "*"; e')
-			    else PURE(rator, vl', w, t, e')
-			end
-		  in
-		    if !used=0 andalso !CG.deadvars
-		      then (click "m"; List.app use_less vl'; g' e)
-		    else if !CG.arithopt
-		      then (case pure(rator, vl')
-			 of SOME v => (
-			      List.app use_less vl';
-			      newname(w, v);
-			      g' e)
-			  | NONE => rest()
-		       (* end case *))
-		      else rest()
-		  end
+	      | PURE arg => doPure arg
 	    (***** RCC *****)
 	      | RCC(k,l,p,vl,wtl,e) =>
 		(* leave raw C calls alone *)
@@ -1046,6 +1024,30 @@ and g hdlr = let
 		    (* end case *)
 		  end
 	    (* end case *))
+    (***** other PURE cases *****)
+      and doPure (rator, vl, w, t, e) = let
+	    val vl' = List.map ren vl
+	    val {used, ...} = get w
+	    fun rest () = let
+		  val e' = g' e
+		  in
+		    if !used=0 andalso deadup
+		      then (List.app use_less vl'; click "*"; e')
+		      else PURE(rator, vl', w, t, e')
+		  end
+	    in
+	      if !used=0 andalso !CG.deadvars
+		then (click "m"; List.app use_less vl'; g' e)
+	      else if !CG.arithopt
+		then (case pure(rator, vl')
+		   of SOME v => (
+			List.app use_less vl';
+			newname(w, v);
+			g' e)
+		    | NONE => rest()
+		 (* end case *))
+		else rest()
+	    end
       in
 (*DEBUG*)
         fn cexp => ((g' cexp)
