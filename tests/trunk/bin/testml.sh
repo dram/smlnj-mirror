@@ -24,28 +24,11 @@ KSH=/bin/ksh
 DIFF=diff
 ECHO=print
 TESTDIR=bugs
-BADDIR=$TESTDIR/bad
+DFLT_BADDIR=$TESTDIR/bad
 TSML=$TESTDIR/tsml
-TMPFILE=$TESTDIR/tmp
+DFLT_TMPFILE=$TESTDIR/tmp
 TESTMODE="TESTONLY"
 OPENBUGSLIST=$TESTDIR/openbugs
-
-# default ARCH and OPSYS
-ARCH=${ARCH:-x86}
-OPSYS=${OPSYS:-darwin}
-
-#
-# use the arch-n-opsys script to determine the ARCH/OS if possible
-#
-if [[ (-f ./bin/arch-n-opsys.sh) && (-x ./bin/arch-n-opsys.sh) ]]
-then
-  ARCH_N_OPSYS=`./bin/arch-n-opsys.sh`
-  if [[ "$?" = "0" ]]
-  then
-    eval $ARCH_N_OPSYS
-  fi
-fi
-SUFFIX="$ARCH-$OPSYS"
 
 #
 # Command line processing
@@ -54,11 +37,11 @@ SUFFIX="$ARCH-$OPSYS"
 function printUsage {
  $ECHO -u2 "testml.sh testdir"
  $ECHO -u2 "    [-f <testfile>]"
- $ECHO -u2 "    [-tmp <tmpfileName>   default=$TSML and $TMPFILE]"
+ $ECHO -u2 "    [-tmp <tmpfileName>   default=$TSML and $DFLT_TMPFILE]"
  $ECHO -u2 "    [-sml <executable>    default=$SML]"
  $ECHO -u2 "    [-cpu <cpulimit>      default=$CPULIMIT]"
  $ECHO -u2 "    [-openbugs <filename> default=$OPENBUGSLIST]"
- $ECHO -u2 "    [-bad <dir>           default=$BADDIR]"
+ $ECHO -u2 "    [-bad <dir>           default=$DFLT_BADDIR]"
  $ECHO -u2 "    [-depositOnly]"
  $ECHO -u2 "    [-help]"
 }
@@ -83,9 +66,10 @@ else
     esac
 fi
 
-BADDIR=$TESTDIR/bad.$SUFFIX
+
+BADDIR=
 TSML=$TESTDIR/tsml
-TMPFILE=$TESTDIR/tmp.$SUFFIX
+TMPFILE=
 TESTMODE="TESTONLY"
 OPENBUGSLIST=$TESTDIR/openbugs
 
@@ -155,6 +139,14 @@ do
 	esac
 done
 
+SUFFIX=`$SML @SMLsuffix`
+
+if [ x"$BADDIR" = x ] ; then
+  BADDIR=$TESTDIR/bad.$SUFFIX
+fi
+if [ x"$TMPFILE" = x ] ; then
+  TMPFILE=$TESTDIR/tmp.$SUFFIX
+fi
 
 #
 # Do the requisite directories and files exist
@@ -193,7 +185,7 @@ then
 fi
 
 
-$ECHO -u2 ${CMD} Building special version of SML for $OPSYS ...
+$ECHO -u2 ${CMD} Building special version of SML for $SUFFIX ...
 $SML @SMLquiet @SMLdebug=/dev/null << xxx 1>/dev/null
   	Control.primaryPrompt:="";
   	Control.secondaryPrompt:="";
@@ -218,15 +210,15 @@ xxx
 function testMLFile
 {
 $ECHO -u2 -n "."
-case $OPSYS in
- hpux)
+case $SUFFIX in
+ *-hpux)
         # ulimit is broken on hppa (any other ways to limit cpu time?)
 	$KSH <<-YYY 1>$TMPFILE 2>&1
 		(echo "(*#line 0 \"$srcFile\"*)"; cat $file) | \
 		    $SML @SMLquiet @SMLdebug=/dev/null @SMLload=$TSML
 YYY
         ;;
- linux | aix | irix6 | solaris | dunix | darwin)
+ *-linux | *-aix | *-solaris | *-darwin)
 	$KSH <<-YYY 1>$TMPFILE 2>&1
 		ulimit -t $CPULIMIT
 		(echo "(*#line 0 \\"$srcFile\\"*)"; cat $file) | \

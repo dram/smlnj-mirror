@@ -19,22 +19,6 @@
 # Command line processing.
 #
 
-# default ARCH and OPSYS
-ARCH=${ARCH:-x86}
-OPSYS=${OPSYS:-darwin}
-#
-# use the arch-n-opsys script to determine the ARCH/OS if possible
-#
-if [[ (-f ./bin/arch-n-opsys.sh) && (-x ./bin/arch-n-opsys.sh) ]]
-then
-  ARCH_N_OPSYS=`./bin/arch-n-opsys.sh`
-  if [[ "$?" = "0" ]]
-  then
-    eval $ARCH_N_OPSYS
-  fi
-fi
-SUFFIX="$ARCH-$OPSYS"
-
 # initial default values for usage message
 TESTDIR=bugs
 BADDIR=$TESTDIR/bad.$SUFFIX
@@ -42,7 +26,7 @@ LOGFILE=$TESTDIR/LOG.$SUFFIX
 DIFF=0
 
 function printUsage {
-  echo "Usage: process.sh testdir"
+  echo "Usage: process.sh <testdir> <heap-suffix>"
   echo "                  [-log <log-file>]     default=$LOGFILE"
   echo "                  [-bad <baddir>]       default=$BADDIR"
   echo "                  [-diff]               default=<no diffs>"
@@ -52,22 +36,20 @@ function printUsage {
 #
 # testdir must be the first (manditory) parameter.
 #
-if [[ $# -eq 0 ]]
-then
-    printUsage
-    exit 1
-else
-    case $1 in
-      -*)
-	printUsage
-	exit 1
-	;;
-      *)
-	TESTDIR=$1
-	shift
-	;;
-    esac
-fi
+case x"$1" in
+  x) printUsage; exit 1 ;;
+  x-*)  printUsage; exit 1 ;;
+  *) TESTDIR=$1; shift ;;
+esac
+
+#
+# heapsuffix must be the second (manditory) parameter.
+#
+case x"$1" in
+  x) printUsage; exit 1 ;;
+  x-*)  printUsage; exit 1 ;;
+  *) SUFFIX=$1; shift ;;
+esac
 
 BADDIR=$TESTDIR/bad.$SUFFIX
 LOGFILE=$TESTDIR/LOG.$SUFFIX

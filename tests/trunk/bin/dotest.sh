@@ -19,23 +19,6 @@ SMLX=${SML:-"$SML_PATH"}
 ECHO=print
 DIFFS=
 
-# default ARCH and OPSYS
-ARCH=${ARCH:-x86}
-OPSYS=${OPSYS:-darwin}
-
-#
-# use the arch-n-opsys script to determine the ARCH/OS if possible
-#
-if [[ (-f ./bin/arch-n-opsys.sh) && (-x ./bin/arch-n-opsys.sh) ]]
-then
-  ARCH_N_OPSYS=`./bin/arch-n-opsys.sh`
-  if [[ "$?" = "0" ]]
-  then
-    eval $ARCH_N_OPSYS
-  fi
-fi
-SUFFIX="$ARCH-$OPSYS"
-
 function printUsage {
  $ECHO -u2 "dotest.sh [options] testdir "
  $ECHO -u2 "    -sml <sml-path>]     default=$SMLX"
@@ -73,6 +56,8 @@ if [ x"$TESTDIR" = x ] ; then
     exit 1
 fi
 
+SUFFIX=`$SMLX @SMLsuffix`
+
 #
 # Make sure output files do not exist
 #
@@ -93,8 +78,7 @@ fi
 #
 $ECHO $CMD Running testml.sh for $TESTDIR ...
 ./bin/testml.sh $TESTDIR -sml $SMLX 1>$TESTDIR/LOG.$SUFFIX
-if [[ $? -eq 0 ]]
-then
-	$ECHO $CMD Running process.sh for $TESTDIR ...
-	./bin/process.sh $TESTDIR $DIFFS 1>$TESTDIR/RESULTS.$SUFFIX 2>&1
+if [[ $? -eq 0 ]] ; then
+    $ECHO $CMD Running process.sh for $TESTDIR $SUFFIX ...
+    ./bin/process.sh $TESTDIR $SUFFIX $DIFFS 1>$TESTDIR/RESULTS.$SUFFIX 2>&1
 fi
