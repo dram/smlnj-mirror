@@ -11,7 +11,6 @@ sig
   type rtype
   val tcode_void   : tcode
   val tcode_record : tcode
-  val tcode_int32  : tcode	(* 64BIT: FIXME *)
   val tcode_pair   : tcode
   val tcode_fpair  : tcode
   val tcode_real   : tcode
@@ -198,18 +197,16 @@ fun UNWRAP(t, u) =
 
   val tcode_void = 0
   val tcode_record = 1
-  val tcode_int32 = 2
-  val tcode_pair = 3
-  val tcode_fpair = 4
-  val tcode_real = 5
-  fun tcode_realN n = n * 5
+  val tcode_pair = 2
+  val tcode_fpair = 3
+  val tcode_real = 4
+  fun tcode_realN n = n * 4
 
 
   fun tovalue i = FLINT.INT{ival = IntInf.fromInt i, ty = Target.defaultIntSz}
   val tolexp = fn tcode => RET[tovalue tcode]
   val tcode_void   : lexp = tolexp tcode_void
   val tcode_record : lexp = tolexp tcode_record
-  val tcode_int32  : lexp = tolexp tcode_int32
   val tcode_pair   : lexp = tolexp tcode_pair
   val tcode_fpair  : lexp = tolexp tcode_fpair
   val tcode_real   : lexp = tolexp tcode_real
@@ -305,8 +302,7 @@ fun rtLexp (kenv : kenv) (tc : tyc) =
 				  before debugmsg "<<rtLexp TC_PROJ")
 	   | (TC_PRIM pt) =>
 		if (pt = PT.ptc_real) then tcode_real
-		else if (pt = PT.ptc_num 32) then tcode_int32 (* 64BIT: FIXME *)
-		     else tcode_void
+		else tcode_void
 	   | (TC_VAR(i, j)) => RET[(VAR(vlookKE(kenv, i, j)))]
 	   | (TC_TUPLE (_, [t1,t2])) =>
 	       (debugmsg ">>rtLexp TC_TUPLE";
