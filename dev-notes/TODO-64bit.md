@@ -121,11 +121,11 @@ as **DONE**, even though they are not changed.
   * `compiler/FLINT/reps/rttype.sml` <br/>
     there is a type code for 32-bit numbers (`tcode_int32`); it can probably
     be replaced by `tcode_void`.
+    **[DONE]**
 
   * `compiler/MiscUtil/print/ppobj.sml` <br/>
     there is a mysterious test for `int32Tyc`/`word32Tyc` in the function
     `isUbxTy`.  What should this function do on 64-bit targets?
-
 
 #### MLRISC
 
@@ -142,12 +142,10 @@ as **DONE**, even though they are not changed.
 ### Known bugs
 
 
-1. the scalb function in `AMD64.prim.asm` is untested
-
-2. `Int32` arithmetic is not catching `Overflow` in some cases (not sure if this
+1. `Int32` arithmetic may not be generating `Overflow` in some cases (not sure if this
    is really a bug)
 
-3. There are issues with `IntInf` literals.  For example:
+2. There are issues with `IntInf` literals.  For example:
 
 	- 0x40000000:IntInf.int;
 	val it = 9223372035781033984 : IntInf.int
@@ -161,3 +159,6 @@ as **DONE**, even though they are not changed.
     I've currently added workarounds to `MLRISC/amd64/mltree/amd64-gen.sml` and
     `base/compiler/CPS/main/new-literals.sml`.  The hack is to define the lower
     and upper-bounds for 32-bit values by converting from Word64.
+
+3. `Word8.toIntX (Word8.~>> (Word8.fromInt ~128, Word.fromInt 8))` evaluates to
+    `~257` instead of `~1`.
