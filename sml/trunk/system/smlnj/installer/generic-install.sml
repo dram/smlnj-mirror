@@ -65,7 +65,6 @@ structure GenericInstall : sig
 
     fun getInputTokens s = (case TextIO.inputLine s
 	   of NONE => NONE
-	    | SOME "" => NONE
 	    | SOME l => if String.sub (l, 0) = #"#"
 		then getInputTokens s
 	        else SOME (String.tokens Char.isSpace l)
@@ -199,6 +198,105 @@ structure GenericInstall : sig
 	      before TextIO.closeIn s
 	  end
 
+  (* representation of requests in the targets file *)
+    datatype target_req
+      = REQUEST of string
+      | IFDEF of string * target_req list * target_req list
+
+  (* parse the targets file.  The syntax of requests is:
+   *
+   *    <file> ::= <req>*
+   *	<req>  ::= 'request' <module> NL
+   *		|  'if' SYMBOL NL <req>* <elif>* 'endif' NL
+   *    <elif> ::= 'elif' SYMBOL NL <req>*
+   *
+   * where NL represents end-of-line and SYMBOL is one of
+   *
+   *	SIZE_32		-- true for 32-bit systems
+   *	SIZE_64		-- true for 64-bit systems
+   *	WINDOWS		-- true for Microsoft Windows
+   *	UNIX		-- true for Unix systems (including macOS and Linux)
+   *)
+    fun parseTargets (file, actions) = let
+	  val inS = TextIO.openIn file
+	  fun badLine l = fail ["ill-formed targets line: ", tokenLine l, "\n"]
+	  fun unexpected (tok, l) = fail ["unexpected '", tok, "': ", tokenLine l, "\n"]
+	  fun eof () = fail ["unexpected end-of-file in conditional"]
+	  fun parse reqs = (case getInputTokens inS
+		 of NONE => List.rev reqs
+		  | SOME [x as ("dont_move_libraries" | "move_libraries")] => (
+		      warn [
+			  "\"", x, "\" no longer supported",
+			  " (installer always moves libraries)\n"
+			];
+		      parse reqs)
+		  | SOME["request", module] => parse (REQUEST module :: reqs)
+		  | SOME["if", symb] => parse (parseIf symb :: reqs)
+		  | SOME(l as ["elif", _]) => unexpected("elif", l)
+		  | SOME(l as ["endif"]) => unexpected("endif", l)
+		  | SOME[] => parse reqs
+		  | SOME l => badLine l
+		(* end case *))
+	  and parseIf (symb) : target_req = let
+	      (* parse the contents of an 'if' or 'elif' block *)
+		fun condBlk (symb, reqs) : target_req = (case getInputTokens inS
+			 of NONE => eof ()
+			  | SOME["request", module] => condBlk (symb, REQUEST module :: reqs)
+			  | SOME["if",  symb'] => condBlk (symb, parseIf symb' :: reqs)
+			  | SOME["elif", symb'] =>
+			      IFDEF(symb, List.rev reqs, [condBlk (symb, [])])
+			  | SOME["else", symb'] =>
+			      IFDEF(symb, List.rev reqs, elseBlk [])
+			  | SOME["endif"] =>
+			      IFDEF(symb, List.rev reqs, [])
+			  | SOME[] => condBlk (symb, reqs)
+			  | SOME l => badLine l
+			(* end case *))
+	      (* parse the contents of an 'else' block *)
+		and elseBlk reqs = (case getInputTokens inS
+			 of NONE => eof ()
+			  | SOME["request", module] => elseBlk (REQUEST module :: reqs)
+			  | SOME["if",  symb'] => elseBlk (parseIf symb' :: reqs)
+			  | SOME(l as ["elif", symb']) => unexpected("elif", l)
+			  | SOME(l as ["else", symb']) => unexpected("else", l)
+			  | SOME["endif"] => List.rev reqs
+			  | SOME[] => elseBlk reqs
+			  | SOME l => badLine l
+			(* end case *))
+		in
+		  condBlk (symb, [])
+		end
+	  val requests = parse []
+	  val _ = TextIO.closeIn inS
+	(* process the requests *)
+	  fun loop ([], modules, srcReqs, allsrc) = (modules, srcReqs, allsrc)
+	    | loop (REQUEST "src-smlnj" :: reqs, modules, srcReqs, allsrc) =
+		loop (reqs, modules, srcReqs, true)
+	    | loop (REQUEST module :: reqs, modules, srcReqs, allsrc) =
+		if SM.inDomain(actions, module)
+		  then loop (reqs, module :: modules, srcReqs, allsrc)
+		  else loop (reqs, modules, module :: srcReqs, allsrc) (* assume a src module *)
+	    | loop (IFDEF(symb, tReqs, fReqs) :: reqs, modules, srcReqs, allsrc) = let
+		val cond = (case String.map Char.toUpper symb
+(* FIXME: for backward compatibility with 110.93 (and earlier), we use a different size test
+		       of "SIZE_32" => (SMLofNJ.SysInfo.getHostSize() = 32)
+			| "SIZE_64" => (SMLofNJ.SysInfo.getHostSize() = 64)
+*)
+		       of "SIZE_32" => (valOf Int.precision = 31)
+			| "SIZE_64" => (valOf Int.precision = 63)
+			| "UNIX" => (SMLofNJ.SysInfo.getOSKind() = SMLofNJ.SysInfo.UNIX)
+			| "WINDOWS" => (SMLofNJ.SysInfo.getOSKind() = SMLofNJ.SysInfo.WIN32)
+			| _ => fail ["unknown symbol '", symb, "' in conditional\n"]
+		      (* end case *))
+		val (modules, srcReqs, allsrc) =
+		      loop (if cond then tReqs else fReqs, modules, srcReqs, allsrc)
+		in
+		  loop (reqs, modules, srcReqs, allsrc)
+		end
+	  in
+	    loop (requests, [], [], false)
+	  end
+
   (* our main routine *)
     fun proc { smlnjroot, installdir, configcmd, buildcmd, instcmd, unpack } = let
 	  val smlnjroot = F.fullPath smlnjroot
@@ -235,29 +333,14 @@ structure GenericInstall : sig
 	          P.concat (configdir, "targets.customized"),
 	          P.concat (configdir, "targets")
 		]
-	  val s = (case List.find U.fexists targetsfiles
-		 of SOME f => TextIO.openIn f
+	  val targetFile = (case List.find U.fexists targetsfiles
+		 of SOME f => f
 		  | NONE => fail ["cannot find targets file in '", configdir, "'\n"]
 		(* end case *))
 	(* get the actions from the actionfile *)
 	  val (actions, allmoduleset) = parseActions actionfile
 	(* parse the targets file *)
-	  fun loop (ml, srcReqs, allsrc) = (case getInputTokens s
-		 of NONE => (TextIO.closeIn s; (ml, srcReqs, allsrc))
-		  | SOME [x as ("dont_move_libraries" | "move_libraries")] => (
-		      warn [
-			  "\"", x, "\" no longer supported",
-			  " (installer always moves libraries)\n"
-			];
-		      loop (ml, srcReqs, allsrc))
-		  | SOME ["request", "src-smlnj"] => loop (ml, srcReqs, true)
-		  | SOME ["request", module] => if SM.inDomain(actions, module)
-		      then loop (module :: ml, srcReqs, allsrc)
-		      else loop (ml, module :: srcReqs, allsrc) (* assume a src module *)
-		  | SOME [] => loop (ml, srcReqs, allsrc)
-		  | SOME l => fail ["ill-formed targets line: ", tokenLine l, "\n"]
-		(* end case *))
-	  val (modules, srcReqs, allsrc) = loop ([], [], false)
+	  val (modules, srcReqs, allsrc) = parseTargets (targetFile, actions)
 	(* now resolve dependencies; get full list of modules in correct build order: *)
 	  val modules = resolve (modules, depfile)
 	  val moduleset = SS.fromList modules
