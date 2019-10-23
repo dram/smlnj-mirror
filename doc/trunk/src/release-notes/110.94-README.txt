@@ -29,7 +29,11 @@ FILES::
 
 == Summary
 
-This release fixes a critical bug in the Windows implementation.
+This release is the first to provide support for 64-bit executables on
+Linux and macOS.
+
+This release also fixes a critical bug in the Windows implementation of
+some of the `Math` functions.
 
 == Details
 
@@ -85,6 +89,8 @@ for more details.
 | failure to raise `Bind` exception
 | [.bugid]#225#
 | `Math.ln` giving erroneous answers on Windows
+| [.bugid]#226#
+| SML/NJ does not support 64-bit systems
 |=======
 
 == Supported systems
