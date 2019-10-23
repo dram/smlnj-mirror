@@ -803,7 +803,7 @@ and g hdlr = let
 		  fun mkEXTEND (from, to, v, x, t, e) = if (from = to)
 			then (newname(x, v); g' e)
 			else doPure (P.EXTEND{from=from, to=to}, [v], x, t, e)
-		  fun skip () = mkCOPY(m, n, x, t, g' e)
+		  fun skip () = mkCOPY(m, n, x, t, e)
 		  in
 		    case e
 		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
