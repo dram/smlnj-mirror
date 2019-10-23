@@ -92,6 +92,15 @@ structure ContractPrim : sig
       | sizeOfKind (P.UINT sz) = sz
       | sizeOfKind (P.FLOAT _) = bug "sizeOfKind(FLOAT _)"
 
+    fun mkNum (sz, ival) = let
+	(* NOTE: currently all tagged integer constants have the default size *)
+	  val ty = if (sz <= Target.defaultIntSz)
+		then {sz=Target.defaultIntSz, tag=true}
+		else {sz=sz, tag=false}
+	  in
+	    NUM{ival=ival, ty=ty}
+	  end
+
   (* contraction for impure arithmetic operations; note that 64-bit IMUL, IDIV,
    * IMOD, IQUOT, and IREM have three arguments on 32-bit targets, so we need
    * to allow for the extra argument in the patterns.
@@ -121,6 +130,14 @@ structure ContractPrim : sig
 		SOME(NUM{ival = CA.sSub(sz, #ival i, #ival j), ty = #ty i})
 	    | (P.IARITH{oper=P.INEG, sz=sz}, [NUM i]) =>
 		SOME(NUM{ival = CA.sNeg(sz, #ival i), ty = #ty i})
+	    | (P.TEST{from, to}, [NUM{ival, ...}]) => let
+	      (* first convert to signed representation and then narrow *)
+		val ival' = CA.sNarrow(to, CA.toSigned(from, ival))
+		in
+		  SOME(mkNum(to, ival'))
+		end
+	    | (P.TESTU{from, to}, [NUM{ival, ...}]) =>
+		SOME(mkNum(to, CA.sNarrow(to, ival)))
 	    | _ => NONE
 	  (* end case *))
 	    handle _ => NONE)
@@ -192,6 +209,17 @@ structure ContractPrim : sig
 	    | (P.PURE_ARITH{oper=P.NOTB, kind}, [NUM i]) =>
 		SOME(NUM{ival = CA.bNot(sizeOfKind kind, #ival i), ty = #ty i})
 	    | (P.LENGTH, [STRING s]) => SOME(tagInt(size s))
+	    | (P.COPY{from, to}, [NUM{ival, ...}]) => SOME(mkNum(to, ival))
+	    | (P.EXTEND{from, to}, [NUM{ival, ...}]) =>
+		if (ival > 0)
+		andalso (IntInf.andb(IntInf.<<(1, Word.fromInt(from-1)), ival) <> 0)
+		  then SOME(mkNum(to, ival - IntInf.<<(1, Word.fromInt from)))
+		  else SOME(mkNum(to, ival))
+	    | (P.TRUNC{from, to}, [NUM{ival, ...}]) => let
+		val ival' = IntInf.andb(IntInf.<<(1, Word.fromInt to)-1, ival)
+		in
+		  SOME(mkNum(to, ival'))
+		end
 	    | (P.INT_TO_REAL{to, ...}, [NUM{ival, ...}]) =>
 	      (* NOTE: this conversion might lose precision *)
 		SOME(REAL{rval = RealLit.fromInt ival, ty=to})

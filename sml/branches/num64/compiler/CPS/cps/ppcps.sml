@@ -45,7 +45,9 @@ structure PPCps : PPCPS =
     fun value2str (VAR v) = LV.lvarName v
       | value2str (LABEL v) = "(L)" ^ LV.lvarName v
       | value2str (NUM{ival, ty={sz=0, ...}}) = "(II)" ^ IntInf.toString ival
-      | value2str (NUM{ival, ty={tag=true, ...}}) = "(I)" ^ IntInf.toString ival
+      | value2str (NUM{ival, ty={sz, tag=true}}) = concat[
+	    "(I", Int.toString sz, "t)", IntInf.toString ival
+	  ]
       | value2str (NUM{ival, ty={sz, ...}}) = concat[
 	    "(I", Int.toString sz, ")", IntInf.toString ival
 	  ]

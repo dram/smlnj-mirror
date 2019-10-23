@@ -1433,7 +1433,15 @@ functor MLRiscGen (
 			   of P.UINT sz => sz
 			    | _ => error "unexpected numkind in pure notb arithop")
 		    in
-		      if isTaggedInt sz
+		      if (sz < Target.defaultIntSz)
+			then let
+			(* xor with mask that is all ones for sz bits, but 0 for the tag *)
+			  val mask = IntInf.<<(1, Word.fromInt sz) - 1
+			  val mask = M.LI(IntInf.<<(mask, 0w1))
+			  in
+			    defTAGINT(x, M.XORB(ity, regbind v, mask), e, hp)
+			  end
+		      else if (sz = Target.defaultIntSz)
 			then defTAGINT(x, M.SUB(ity, zero, regbind v), e, hp)
 			else defINT(x, M.XORB(ity, regbind v, allOnes), e, hp)
 		    end
@@ -1481,9 +1489,10 @@ functor MLRiscGen (
 		      then defTAGINT (x, M.ORB(ity, M.SLL(ity, regbind v, one), one), e, hp)
 		    else if (to < Target.defaultIntSz)
 		      then let
+		      (* if `from` is tagged, then we include the tag bit in the mask *)
 			val mask = if (from <= Target.defaultIntSz)
-			      then LI(IntInf.<<(1, Word.fromInt(from+1)) - 1) (* mask includes tag bit *)
-			      else LI(IntInf.<<(1, Word.fromInt from) - 1)
+			      then LI(IntInf.<<(1, Word.fromInt(to+1)) - 1)
+			      else LI(IntInf.<<(1, Word.fromInt to) - 1)
 			in
 			  if (from <= Target.defaultIntSz)
 			    then defTAGINT (x, M.ANDB(ity, regbind v, mask), e, hp)

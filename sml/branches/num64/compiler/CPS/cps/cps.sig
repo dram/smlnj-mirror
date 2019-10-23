@@ -97,8 +97,8 @@ signature CPS =
       (* These might raise exceptions, never have functions as arguments.*)
 	datatype arith
 	  = IARITH of {oper: arithop, sz: int}
-	  | TEST of {from: int, to: int}
-	  | TESTU of {from: int, to: int}
+	  | TEST of {from: int, to: int}	(* int -> int conversion with Overflow *)
+	  | TESTU of {from: int, to: int}	(* word -> int conversion with Overflow *)
 	  | TEST_INF of int
 	  | REAL_TO_INT of {floor: bool, from: int, to: int}
 
