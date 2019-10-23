@@ -51,7 +51,9 @@ If you are running Win32, see WININSTALL.
 			   but does not override the default size.  These
 			   options can be used to install both the 32-
 			   and 64-bit versions in the same location
-			   (by running the install.sh script twice).
+			   by running the install.sh script twice.
+			   In this case, you need to run the installation
+			   of the default size second.
 
      ** WARNING **
      The 64-bit version of SML/NJ is new as of 110.94 and has not been
