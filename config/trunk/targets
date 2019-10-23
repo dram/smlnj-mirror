@@ -144,7 +144,7 @@ request ckit
 # This preview release currently works under X86/Linux, Sparc/Solaris,
 # PPC/MacOSX, and X86/Win32.
 #
-request ml-nlffi-lib
+#request ml-nlffi-lib
 
 # build ML-NLFFI-Gen, a program generator tool used in conjunction with
 # the new "NLFFI" foreign function interface.  The tool generates ML
@@ -153,7 +153,7 @@ request ml-nlffi-lib
 # This preview release currently works under X86/Linux, Sparc/Solaris,
 # PPC/MacOSX, and X86/Win32.
 #
-request ml-nlffigen
+#request ml-nlffigen
 
 # pre-compile and install the MLRISC Tools library.
 # This library is for parsing and pretty printing SML code.
