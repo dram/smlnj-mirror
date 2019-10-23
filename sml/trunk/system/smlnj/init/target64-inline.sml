@@ -89,8 +89,8 @@ structure InlineT =
 	val from_int : int -> real        = InLine.int_to_real64
 
 	fun floor (x : real) =
-	      if InLine.real64_le(~2305843009213693952.0, x)
-	      andalso InLine.real64_lt(x, 2305843009213693952.0)
+	      if InLine.real64_le(~4611686018427387904.0, x)
+	      andalso InLine.real64_lt(x, 4611686018427387904.0)
 		then Assembly.A.floor x
 	      else if InLine.real64_eql(x, x)
 		then raise Assembly.Overflow
