@@ -716,7 +716,7 @@ and g hdlr = let
 		  end
 	    (***** TEST *****)
 	      | ARITH(P.TEST{from=m, to=n}, [v], x, t, e) => let
-		  fun skip () = ARITH(P.TEST{from=m, to=n}, [ren v], x, t, g' e)
+		  fun skip () = doArith (P.TEST{from=m, to=n}, [v], x, t, e)
 		  in
 		    case e
 		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
@@ -728,7 +728,7 @@ and g hdlr = let
 		  end
 	      | ARITH(P.TEST{from=m, to=n}, [v, f], x, t, e) => let
 		(* this case is for m=64 on 32-bit systems *)
-		  fun skip () = ARITH(P.TEST{from=m, to=n}, [ren v, ren f], x, t, g' e)
+		  fun skip () = doArith (P.TEST{from=m, to=n}, [v, f], x, t, e)
 		  in
 		    case e
 		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
@@ -740,7 +740,7 @@ and g hdlr = let
 		  end
 	    (***** TESTU : word -> int *****)
 	      | ARITH(P.TESTU{from=m, to=n}, [v], x, t, e) => let
-		  fun skip () = ARITH(P.TESTU{from=m, to=n}, [ren v], x, t, g' e)
+		  fun skip () = doArith (P.TESTU{from=m, to=n}, [v], x, t, e)
 		  in
 		    case e
 		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
@@ -752,7 +752,7 @@ and g hdlr = let
 		  end
 	      | ARITH(P.TESTU{from=m, to=n}, [v, f], x, t, e) => let
 		(* this case is for m=64 on 32-bit systems *)
-		  fun skip () = ARITH(P.TESTU{from=m, to=n}, [ren v, ren f], x, t, g' e)
+		  fun skip () = doArith (P.TESTU{from=m, to=n}, [v, f], x, t, e)
 		  in
 		    case e
 		     of ARITH(P.TEST{from=n2, to=p}, [v2], x2, t2, e2) =>
@@ -781,19 +781,7 @@ and g hdlr = let
 		    (* end case *)
 		  end
 	    (***** other ARITH cases *****)
-	      | ARITH(rator, vl, w, t, e) => let
-		  val vl' = List.map ren vl
-		  in
-		    if !CG.arithopt
-		      then (case arith(rator, vl')
-			 of SOME v => (
-			      List.app use_less vl';
-			      newname (w, v);
-			      g' e)
-			  | NONE => ARITH(rator, vl', w, t, g' e)
-			(* end case *))
-		      else ARITH(rator, vl', w, t, g' e)
-		  end
+	      | ARITH arg => doArith arg
 	    (***** COPY : word -> int *****)
 	      | PURE(P.COPY{from=m, to=n}, [v], x, t, e) => let
 		  fun mkCOPY (from, to, x, t, e) =
@@ -1024,6 +1012,20 @@ and g hdlr = let
 		    (* end case *)
 		  end
 	    (* end case *))
+    (***** other ARITH cases *****)
+      and doArith (rator, vl, w, t, e) = let
+	    val vl' = List.map ren vl
+	    in
+	      if !CG.arithopt
+		then (case arith(rator, vl')
+		   of SOME v => (
+			List.app use_less vl';
+			newname (w, v);
+			g' e)
+		    | NONE => ARITH(rator, vl', w, t, g' e)
+		  (* end case *))
+		else ARITH(rator, vl', w, t, g' e)
+	    end
     (***** other PURE cases *****)
       and doPure (rator, vl, w, t, e) = let
 	    val vl' = List.map ren vl

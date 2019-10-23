@@ -130,6 +130,14 @@ structure ContractPrim : sig
 		SOME(NUM{ival = CA.sSub(sz, #ival i, #ival j), ty = #ty i})
 	    | (P.IARITH{oper=P.INEG, sz=sz}, [NUM i]) =>
 		SOME(NUM{ival = CA.sNeg(sz, #ival i), ty = #ty i})
+	    | (P.TEST{from, to}, [NUM{ival, ...}]) => let
+	      (* first convert to signed representation and then narrow *)
+		val ival' = CA.sNarrow(to, CA.toSigned(from, ival))
+		in
+		  SOME(mkNum(to, ival'))
+		end
+	    | (P.TESTU{from, to}, [NUM{ival, ...}]) =>
+		SOME(mkNum(to, CA.sNarrow(to, ival)))
 	    | _ => NONE
 	  (* end case *))
 	    handle _ => NONE)

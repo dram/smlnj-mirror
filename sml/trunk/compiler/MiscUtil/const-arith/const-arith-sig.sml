@@ -85,8 +85,15 @@ signature CONST_ARITH =
     val bXor : width * t * t -> t
     val bNot : width * t -> t
 
-  (* conversions between signed and unsigned interpretations *)
-    val toSigned : width * t -> t       (* unsigned -> signed; uses sNarrow for overflow checking  *)
+  (* `toSigned (w, n)` converts an unsigned value `n` of width `w` to
+   * a signed value of width `w`.  We assume that `0 <= n < 2^w-1`.
+   *)
+    val toSigned : width * t -> t       (* unsigned -> signed *)
+
+  (* `toUnsigned (w, n)` converts a signed value `n` in the range
+   * `~2^(w-1) <= n < 2^(w-1)` to an unsigned value in the range
+   * `0 <= n < 2^w-1`.
+   *)
     val toUnsigned : width * t -> t     (* signed -> unsigned *)
 
   end
