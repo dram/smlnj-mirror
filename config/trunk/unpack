@@ -111,7 +111,7 @@ urlgetter() {
 	    # automatically figure out which wrapper to use
 	    if testurlgetter wget --help ; then
 		URLGETTER="fetchurl usewget"
-	    elif testurlgetter curl -s -O file:///dev/null -o /dev/null ; then
+	    elif testurlgetter curl -s file:///dev/null -o /dev/null ; then
 		URLGETTER="fetchurl usecurl"
 	    elif testurlgetter lynx -help ; then
 		URLGETTER="fetchurl uselynx"
