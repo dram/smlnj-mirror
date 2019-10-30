@@ -296,7 +296,7 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
 
 	    if (p->info.o.sizeB > 0) {
 		addrOffset[i][j] = (Addr_t)(ap->tospBase) - (Addr_t)(p->info.o.baseAddr);
-		HeapIO_Seek (bp, (long)(p->offset));
+		HeapIO_Seek (bp, (off_t)(p->offset));
 		HeapIO_ReadBlock(bp, (ap->tospBase), p->info.o.sizeB);
 		ap->nextw	= (ml_val_t *)((Addr_t)(ap->tospBase) + p->info.o.sizeB);
 		ap->oldTop	= ap->tospBase;
@@ -471,9 +471,10 @@ PVT bigobj_desc_t *AllocBODesc (
     totSzB = ROUNDUP(objHdr->sizeB, BIGOBJ_PAGE_SZB);
     npages = (totSzB >> BIGOBJ_PAGE_SHIFT);
     region = free->region;
-    if (free->sizeB == totSzB)
+    if (free->sizeB == totSzB) {
       /* allocate the whole free area to the object */
 	newObj = free;
+    }
     else {
       /* split the free object */
 	newObj		= NEW_OBJ(bigobj_desc_t);

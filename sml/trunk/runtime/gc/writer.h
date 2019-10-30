@@ -17,8 +17,8 @@ typedef struct writer {
     void	(*putWord)(struct writer *, Word_t);
     void	(*write)(struct writer *, const void *, Addr_t);
     void	(*flush)(struct writer *);
-    long	(*tell)(struct writer *);
-    void	(*seek)(struct writer *, long offset);
+    off_t	(*tell)(struct writer *);
+    void	(*seek)(struct writer *, off_t offset);
     void	(*free)(struct writer *);
 } writer_t;
 

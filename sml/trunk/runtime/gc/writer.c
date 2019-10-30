@@ -16,8 +16,8 @@
 PVT void Put (writer_t *wr, Word_t w);
 PVT void Write (writer_t *wr, const void *data, Addr_t nbytes);
 PVT void Flush (writer_t *wr);
-PVT long Tell (writer_t *wr);
-PVT void Seek (writer_t *wr, long offset);
+PVT off_t Tell (writer_t *wr);
+PVT void Seek (writer_t *wr, off_t offset);
 PVT void Free (writer_t *wr);
 
 #define FileOf(wr)	((FILE *)((wr)->data))
@@ -81,7 +81,7 @@ PVT void Flush (writer_t *wr)
 
 /* Tell:
  */
-PVT long Tell (writer_t *wr)
+PVT off_t Tell (writer_t *wr)
 {
     return ftell(FileOf(wr));
 
@@ -89,7 +89,7 @@ PVT long Tell (writer_t *wr)
 
 /* Seek:
  */
-PVT void Seek (writer_t *wr, long offset)
+PVT void Seek (writer_t *wr, off_t offset)
 {
     if (fseek(FileOf(wr), offset, SEEK_SET) != 0)
 	wr->errFlg = TRUE;
