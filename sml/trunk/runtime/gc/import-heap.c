@@ -340,6 +340,7 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
 		}
 
 	      /* setup the big-object descriptors and per-object relocation info */
+		bdp = freeObj;
 		for (k = 0;  k < p->info.bo.numBigObjs;  k++) {
 		  /* find the region relocation info for the object's region in
 		   * the exported heap.

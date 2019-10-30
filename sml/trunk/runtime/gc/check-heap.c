@@ -93,7 +93,7 @@ void CheckBIBOP (heap_t *heap)
       /* check the big-objects */
 	for (j = 0;  j < NUM_BIGOBJ_KINDS;  j++) {
 	    bigobj_desc_t *bo = g->bigObjs[j];
-
+/* TODO */
 	}
     }
 

@@ -122,7 +122,6 @@ PVT void TrimHeap (heap_t *heap, int maxCollectedGen);
 char		*ArenaName[NUM_ARENAS+1] = {
 	"new", "record", "pair", "string", "array"
     };
-/* DEBUG */PVT char *StateName[] = {"FREE", "YOUNG", "FORWARD", "OLD", "PROMOTE"};
 
 /* Check a word for a from-space reference */
 #ifdef TOSPACE_ID
