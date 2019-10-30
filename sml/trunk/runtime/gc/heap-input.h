@@ -28,13 +28,13 @@ typedef struct {	    /* An input source for reading heap data.  We need */
 /** Big-object relocation info **/
 
 typedef struct {	/* big-object relocation info */
-    Addr_t	    oldAddr;
-    bigobj_desc_t   *newObj;
+    Addr_t	    oldAddr;	/* address in imported heap */
+    bigobj_desc_t   *newObj;	/* corresponding object in the new heap */
 } bo_reloc_t;
 
 typedef struct {	/* big-object region relocation info */
     Addr_t	    firstPage;	/* the address of the first page of the region */
-    int		    nPages;	/* the number of pages in the region */
+    int		    nPages;	/* the number of big-object pages in the region */
     bo_reloc_t	    **objMap;   /* the map from pages to big-object relocation */
 				/* info. */
 } bo_region_reloc_t;

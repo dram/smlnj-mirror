@@ -1,8 +1,9 @@
-/* addr-hash.h
+/*! \file addr-hash.h
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * Hash tables for mapping addresses to objects.
+ * Hash tables for mapping machine addresses to objects.
  */
 
 #ifndef _ADDR_HASH_
@@ -10,7 +11,8 @@
 
 typedef struct addr_tbl addr_tbl_t;
 
-/* Allocate an address hash table.
+/* Allocate an address hash table.  The `ignoreBits` parameter specifies
+ * how many lower-order bits are ignored by the hashing algorithm.
  */
 extern addr_tbl_t *MakeAddrTbl (int ignoreBits, int size);
 
