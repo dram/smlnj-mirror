@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
+# cross compile to all supported targets
+#
+
+#TARGETS="alpha32-unix hppa-unix ppc-unix sparc-unix x86-unix x86-win32"
+TARGETS="ppc-unix sparc-unix x86-unix x86-win32 amd64-unix"
+
+for target in $TARGETS ; do
+  ./cmb-cross -z $target || exit 1
+done
