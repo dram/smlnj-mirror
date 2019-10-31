@@ -62,23 +62,14 @@ SML/NJ is <a href="license.html">free, open source</a> software.
 
 <h3>Support for 64-bit architectures</h3>
 <p>
-We have been working on porting SML/NJ to run on 64-bit architectures (specifically
-the amd64 or x86-64) since version 110.81.
-This project was a major undertaking because of significant technical debt in
-the compiler.
-</p>
-<p>
-As of October 2019, we can boot the 64-bit code to the command-prompt and can
-run some simple examples.
-This version is still quite buggy, however, so it is not ready for use.
-We hope to include a more stable version (suitable for beta testing) in the 110.94
-release later this month.
+As of version <a href="dist/working/110.94/index.html">110.94</a>, we now have
+support for 64-bit executables on <b>macOS</b> and <b>Linux</b>.
 </p>
 
 <a href="dist/working/index.html">
 <h3>Downloads</h3>
 </a>
-The latest release is  <a href="dist/working/110.93/index.html">110.93</a>;
+The latest release is  <a href="dist/working/110.94/index.html">110.94</a>;
 we believe that this version is stable, but there have been a lot of low-level
 changes that might have introduced bugs, so if you have any problems with the
 system you should report them and then revert to
@@ -86,7 +77,7 @@ system you should report them and then revert to
 Previous versions are also available through our
 <a href="dist/working/index.html">release history</a> page.
 A history of the changes to the system is also
-<a href="dist/working/110.93/HISTORY.html">available</a>.
+<a href="dist/working/110.94/HISTORY.html">available</a>.
 
 <a href="svn.html">
 <h3>Subversion access</h3>
@@ -104,6 +95,13 @@ download a snapshot of the most recent sources at any time.
 </a>
 
 <ul>
+  <li>[10/31/19] Version <a href="dist/working/110.94/index.html">110.94</a> is
+    released.
+    This is the first version of SML/NJ to support 64-bit platforms; specifically
+    64-bit executables on <b>macOS</b> and <b>Linux</b>.
+    See the <a href="dist/working/110.94/110.94-README.html">README</a>
+    for details. <br/>
+  </li>
   <li>[09/05/19] Version <a href="dist/working/110.93/index.html">110.93</a> is
     released.
     See the <a href="dist/working/110.93/110.93-README.html">README</a>
@@ -176,12 +174,21 @@ download a snapshot of the most recent sources at any time.
     the <strong>SML/NJ</strong> system and related software.
   </li>
   <li>
-    A signed installer for macOS is available
-    (<a href="dist/working/110.93/smlnj-x86-110.93.pkg">smlnj-x86-110.93.pkg</a>).
+    Signed installers for macOS are available:
+    <ul>
+      <li>
+	<a href="dist/working/110.94/smlnj-x86-110.94.pkg">smlnj-x86-110.94.pkg</a>
+	(32 bit)
+      </li>
+      <li>
+	<a href="dist/working/110.94/smlnj-amd64-110.94.pkg">smlnj-amd64-110.94.pkg</a>
+	(64 bit)
+      </li>
+    </ul>
   </li>
   <li>
     A Windows <strong>msi installer</strong> for Windows 7+
-    is available (<a href="dist/working/110.93/smlnj-110.93.msi">smlnj-110.93.msi</a>).
+    is available (<a href="dist/working/110.94/smlnj-110.94.msi">smlnj-110.94.msi</a>).
   </li>
 </ul>
 

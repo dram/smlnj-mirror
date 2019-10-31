@@ -325,6 +325,8 @@ $ ./build-pkg.sh <i>$VERSION</i>
 <p>
 will build the signed installer package file
 <tt>smlnj-x86-<i>$VERSION</i>.pkg</tt>.
+To build the AMD64 installer (<tt>smlnj-amd64-<i>$VERSION</i>.pkg</tt>), use the
+<tt>-64</tt> option when running <tt>build-pkg.sh</tt>.
 This script assumes that the distribution files have already been uploaded
 to the standard distribution site (Step 15 above) and that the targets file is
 initialized correctly.
@@ -343,8 +345,9 @@ Once the installer is built, it needs to be copied to the release directory
 (do not forget to check permissions once the file is copied!).
 </p>
 <ul>
-  <li> <tt>$ scp smlnj-x86-<i>$VERSION</i>.pkg $release_dir</tt>
+  <li> <tt>$ scp smlnj-<i>$ARCH</i>-<i>$VERSION</i>.pkg $release_dir</tt>
 </ul>
+where <i>$ARCH</i> is either <tt>x86<tt> or <tt>amd64</tt>.
 
 <a name="msi-files"><h2>Building a Windows installer (MSI)</h2></a>
 
@@ -452,6 +455,6 @@ prompt.
 
     <hr>
 <!-- Created: Mon May  7 13:30:08 CDT 2007 -->
-<!-- hhmts start -->Last modified: June 13, 2019 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: October 31, 2019 <!-- hhmts end -->
   </body>
 </html>
