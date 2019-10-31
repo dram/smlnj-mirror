@@ -93,6 +93,41 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+
+//--------------------------------------------------------------------
+[2019/10/23]::
++
+Modified the generic installed (`base/system/smlnj/installer/generic-install.sml`)
+to support conditional targets.  You can now write tests like
++
+[source]
+--------
+if UNIX
+  unix-utils
+endif
+--------
++
+The symbols that can currently be tested for are `SIZE_32`, `SIZE_64`,
+`UNIX`, and `WINDOWS`.  See the `config/targets` file for more details.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/23]::
++
+Fixed bug bugref:227[] (CPS contraction is taking an excessive amount
+of time on word8 basis test).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/10/22]::
++
+Modified the CPS contraction phase to optimize the case where a
+numeric conversion is applied to a constant value.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //--------------------------------------------------------------------
 [2019/10/21]::
 +

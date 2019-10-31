@@ -88,9 +88,11 @@ for more details.
 | [.bugid]#130#
 | failure to raise `Bind` exception
 | [.bugid]#225#
-| `Math.ln` giving erroneous answers on Windows
+| `Math.ln` giving erroneous answers on **Windows**
 | [.bugid]#226#
-| SML/NJ does not support 64-bit systems
+| **SML/NJ** does not support 64-bit systems
+| [.bugid]#227#
+| CPS contraction is taking an excessive amount of time on word8 basis test
 |=======
 
 == Supported systems
@@ -101,6 +103,8 @@ tested some of them:
 [.support-table,cols="^2s,^4v,^3v",options="header",strips="none"]
 |=======
 | Architecture | Operating System | Status
+| AMD64 | macOS 10.14 (Mojave) | Tested
+| | Linux | Tested
 | Power PC | Mac OS X 10.5 (Leopard) |
 | | AIX |
 | {nbsp} | |
@@ -123,14 +127,3 @@ tested some of them:
 | | Windows 10 |
 | | Cygwin (32-bit) |
 |=======
-
-=== A note about 64-bit support
-
-Apple is in the process of deprecating 32-bit support in macOS.
-With macOS 10.14 Mojave, compiling 32-bit applications, such as the SML/NJ
-runtime system, requires using an older SDK.
-The SML/NJ {dist-dir}smlnj-x86-{version}.pkg[installer],
-however, works without issue on macOS 10.14 Mojave.
-
-We have been working on 64-bit support since 110.81 we expect to have it in place
-before the release of macOS 10.15.
