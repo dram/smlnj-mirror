@@ -325,10 +325,10 @@ PrintRegionMap(rp);
 	      /* initialize the big-object headers */
 		q = hdr;
 		for (bdp = heap->gen[i]->bigObjs[j];  bdp != NIL(bigobj_desc_t *);  bdp = bdp->next) {
-		    q->gen		= bdp->gen;
-		    q->objKind		= j;
+		    q->gen	= bdp->gen;
+		    q->objKind	= j;
 		    q->baseAddr	= (Addr_t)(bdp->obj);
-		    q->sizeB		= bdp->sizeB;
+		    q->sizeB	= bdp->sizeB;
 		    q++;
 		}
 	      /* write the big-object headers */

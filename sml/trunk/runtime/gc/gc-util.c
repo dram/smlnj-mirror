@@ -169,7 +169,7 @@ void NewDirtyVector (gen_t *gen)
 /* MarkRegion:
  *
  * Mark the BIBOP entries corresponding to the range [baseAddr, baseAddr+szB)
- * with aid.
+ * with aid.  The `szb` parameter should be a multiple of the BIBOP page size
  */
 void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
 {

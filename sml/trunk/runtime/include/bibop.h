@@ -27,16 +27,17 @@ typedef Unsigned16_t page_id_t;
  * 64-bit hardware).  The top-level (L1) table consists of pointers to L2 tables.
  * We preallocate a special L2 table for unmapped regions.
  *
- * A 64-bit address is logic ally partitioned into four parts:
+ * A 64-bit address is logically partitioned into four parts:
  *
  *	|00000000|00000000|aaaaaaaa|aaaaaaaa|bbbbbbbb|bbbbbbcc|cccccccc|cccccccc|
  *
  *	[63..48]	-- assumed to be zero and ignored
- *	[47..32] (a)	-- L1 index
- *	[31..18] (b)	-- L2 index
+ *	[47..32] (a)	-- L1 index (16 bits)
+ *	[31..18] (b)	-- L2 index (14 bits)
  *	[17..00] (c)	-- page bits
  *
- * The concatenation of the L1 and L2 indices define the flat BIBOP index.
+ * The concatenation of the L1 and L2 indices define the flat BIBOP index,
+ * which is 30 bits.
  */
 
 /* we assume that the virtual address space is limited to 48 bits */
@@ -45,7 +46,7 @@ typedef Unsigned16_t page_id_t;
 #define BIBOP_L1_BITS		16
 /* the log2 size of the L2 bibop table */
 #define BIBOP_L2_BITS		14
-/* the log2 size of a BIBOP index */
+/* the log2 size of a flat BIBOP index */
 #define BIBOP_BITS		(BIBOP_L1_BITS + BIBOP_L2_BITS)
 /* the log2 size of a BIBOP page in bytes */
 #define BIBOP_PAGE_BITS		(BIBOP_ADDR_BITS - BIBOP_BITS)
