@@ -1,5 +1,5 @@
 :version: 110.94
-:date: November 1, 2019
+:date: October 31, 2019
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -30,7 +30,8 @@ FILES::
 == Summary
 
 This release is the first to provide support for 64-bit executables on
-Linux and macOS.
+Linux and macOS.  Support for other operating systems (BSD variants and
+64-bit windows) will be included in future releases.
 
 This release also fixes a critical bug in the Windows implementation of
 some of the `Math` functions.
@@ -38,6 +39,44 @@ some of the `Math` functions.
 == Details
 
 === Installation
+
+==== 64-bit support
+
+The various installation and configuration scripts have been updated
+to accept a command-line argument to override the
+default machine size when running on the x86/amd64 architecture.
+For the `config/install.sh` script, you can specify the machine-word
+size of the target architecture as follows:
+
+--
+  **-default** __size__::
+    specify the default size for the **sml** and other commands, where
+    __size__ is either **32** or **64**.
+
+  **-32**::
+    install the 32-bit version of the system.
+
+  **-64**::
+    install the 64-bit version of the system.
+--
+
+It is possible to install both versions in the same location by running
+the `install.sh` script twice.  For example, the commands
+
+[source,shell]
+--------------
+  % config/install.sh -32
+  % config/install.sh -default 64
+--------------
+
+will install both versions with the 64-bit version as default.  One
+would then use the command **sml -32** to run the 32-bit version of
+the system.
+
+If both versions are installed, then use the **-32** or **-64** flag
+to override the default version.
+
+==== macOS issues
 
 While the {dist-dir}smlnj-x86-{version}.pkg[installer]
 for {version} works on macOS 10.14 Mojave, building from source
@@ -61,6 +100,25 @@ and resume the build.
 
 === Compiler
 
+Various changes were made to support 64-bit targets.
+
+Improved the CPS optimizer to do constant folding on numeric conversions when
+the argument is a constant.
+
+The fix for bug 130 required a change in the semantics of the type checker.
+The definition of SML specifies that when typechecking a binding like
+the following:
+[source,sml]
+------------
+  val (x, NONE) = ([], SOME 1)
+------------
+the type of `x` should be polymorphic since the right-hand-side of the
+binding is a syntactic value.  As of version 110.94, we now have a more
+restrictive rule for when the left-hand-side variables are made polymorphic.
+Specifically, the right-hand-side expression must be a syntactic value and
+the left-hand-side pattern must be **irrefutable** (which is not the case
+in this example).
+
 === MLRISC
 
 Fixed a number of bugs in the instruction selection and encoding for the
@@ -68,6 +126,12 @@ Fixed a number of bugs in the instruction selection and encoding for the
 instruction selector.
 
 === Runtime System
+
+The runtime system has a two-level data structure for the garbage-collector's
+BIBOP on 64-bit machines.
+
+Made the handling of the `SysInt.int` and `SysWord.word` types consistent between
+the runtime system and **SML** code.
 
 === ML-LPT
 
@@ -104,7 +168,8 @@ tested some of them:
 |=======
 | Architecture | Operating System | Status
 | AMD64 | macOS 10.14 (Mojave) | Tested
-| | Linux | Tested
+| | Ubuntu 16.04.3 LTS | Tested
+| {nbsp} | |
 | Power PC | Mac OS X 10.5 (Leopard) |
 | | AIX |
 | {nbsp} | |
@@ -126,4 +191,6 @@ tested some of them:
 | | Windows 7 |
 | | Windows 10 |
 | | Cygwin (32-bit) |
+| {nbsp} | |
 |=======
+

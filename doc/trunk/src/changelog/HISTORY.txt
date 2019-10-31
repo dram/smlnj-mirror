@@ -93,6 +93,8 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//====================================================================
+== Version 110.94; 2019/10/31
 
 //--------------------------------------------------------------------
 [2019/10/23]::
@@ -162,13 +164,13 @@ the `install.sh` script twice.  For example, the commands
 +
 [source,shell]
 --------------
-% config/install.sh -default 64
 % config/install.sh -32
+% config/install.sh -default 64
 --------------
 +
 will install both versions with the 64-bit version as default.  One
 would then use the command **sml -32** to run the 32-bit version of
-the system.
+the system.  Note that the default version must be installed second.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
