@@ -352,6 +352,7 @@ PVT void ReadHeap (inbuf_t *bp, ml_heap_hdr_t *hdr, ml_state_t *msp, ml_val_t *e
 			continue;
 		    }
 		    region = LookupBORegion (boRegionTbl, indx);
+		    ASSERT(region != NIL(bo_region_reloc_t *));
 		  /* allocate the big-object descriptor for the object, and
 		   * link it into the list of big-objects for its generation.
 		   */
@@ -483,7 +484,9 @@ PVT bigobj_desc_t *AllocBODesc (
 	newObj->region	= region;
 	free->obj	= (Addr_t)(free->obj) + totSzB;
 	free->sizeB	-= totSzB;
+      /* update region's big-object mapping for the new object */
 	firstPage	= ADDR_TO_BOPAGE(region, newObj->obj);
+        ASSERT(firstPage + npages <= region->nPages);
 	for (i = 0;  i < npages;  i++) {
 	    region->objMap[firstPage+i] = newObj;
 	}

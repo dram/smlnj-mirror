@@ -199,7 +199,7 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
 	    l2_bibop_t *l2Tbl = bibop[ix];
 	    ASSERT (l2Tbl != 0);
 	    l2Start = (topStart < ix) ? 0 : (Unsigned32_t)BIBOP_INDEX_TO_L2_INDEX(start);
-	    l2End = (ix < topEnd) ? BIBOP_L2_SZ : (Unsigned32_t)(BIBOP_INDEX_TO_L2_INDEX(end)+1);
+	    l2End = (ix < topEnd) ? BIBOP_L2_SZ : (Unsigned32_t)(BIBOP_INDEX_TO_L2_INDEX(end));
 /* FIXME: if l2Start == 0 and l2End == BIBOP_L2_SZ, then we can replace the table with
  * L2_Unmapped.
  */
@@ -214,7 +214,7 @@ void MarkRegion (bibop_t bibop, ml_val_t *baseAddr, Addr_t szB, aid_t aid)
 	for (ix = topStart;  ix <= topEnd;  ix++) {
 	    l2_bibop_t *l2Tbl = bibop[ix];
 	    l2Start = (topStart < ix) ? 0 : (Unsigned32_t)BIBOP_INDEX_TO_L2_INDEX(start);
-	    l2End = (ix < topEnd) ? BIBOP_L2_SZ : (Unsigned32_t)(BIBOP_INDEX_TO_L2_INDEX(end)+1);
+	    l2End = (ix < topEnd) ? BIBOP_L2_SZ : (Unsigned32_t)(BIBOP_INDEX_TO_L2_INDEX(end));
 	    if (l2Tbl == UNMAPPED_L2_TBL) {
 		bibop[ix] =
 		l2Tbl = NEW_OBJ(l2_bibop_t);
