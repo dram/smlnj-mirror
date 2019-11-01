@@ -168,6 +168,7 @@ tested some of them:
 |=======
 | Architecture | Operating System | Status
 | AMD64 | macOS 10.14 (Mojave) | Tested
+| | macOS 10.15 (Catalina) | Tested
 | | Ubuntu 16.04.3 LTS | Tested
 | {nbsp} | |
 | Power PC | Mac OS X 10.5 (Leopard) |
