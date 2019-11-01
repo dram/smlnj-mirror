@@ -23,7 +23,17 @@ SCRIPTDIR=`pwd`
 DST=$2
 
 cd $DST
-config/install.sh -nolib
+
+# determine the default configuration
+#
+eval `bin/.arch-n-opsys`
+case $ARCH
+  x86) SIZE=32 ;;
+  amd64) SIZE=64 ;;
+  *) exit 1 ;;
+esac
+
+config/install.sh -default $SIZE -nolib
 
 $SCRIPTDIR/copy-doc $DST
 
