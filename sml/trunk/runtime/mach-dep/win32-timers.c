@@ -70,12 +70,12 @@ PVT BOOL destroy_win32_timer (win32_timer_t *ct)
 
 PVT BOOL halt_win32_timer (win32_timer_t *ct)
 {
-    return SuspendThread(ct->handle) != INVALID_HANDLE_VALUE;
+    return SuspendThread(ct->handle) != -1;
 }
 
 PVT BOOL resume_win32_timer (win32_timer_t *ct)
 {
-    return ResumeThread(ct->handle) != INVALID_HANDLE_VALUE;
+    return ResumeThread(ct->handle) != -1;
 }
 
 PVT win32_timer_t wt;
@@ -95,13 +95,13 @@ PVT void win32_fake_sigalrm()
 {
     vproc_state_t   *vsp = SELF_VPROC;
 
-    if (SuspendThread (win32_ML_thread_handle) == INVALID_HANDLE_VALUE) {
+    if (SuspendThread (win32_ML_thread_handle) == -1) {
 	Die ("win32_fake_sigalrm: unable to suspend ML thread");
     }
 
     win32_generic_handler(SIGALRM);
 
-    if (ResumeThread (win32_ML_thread_handle) == INVALID_HANDLE_VALUE) {
+    if (ResumeThread (win32_ML_thread_handle) == -1) {
 	Die ("win32_fake_sigalrm: unable to resume ML thread");
     }
 }

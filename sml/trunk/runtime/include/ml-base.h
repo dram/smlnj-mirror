@@ -75,6 +75,10 @@
 
 #include <stdlib.h>
 
+#ifdef OPSYS_WIN32
+typedef long off_t;	/* Windows does not define a file offset type */
+#endif
+
 #define PVT	static
 
 #define STATIC_INLINE	static inline
