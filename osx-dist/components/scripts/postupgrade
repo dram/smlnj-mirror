@@ -23,7 +23,7 @@ SCRIPTDIR=`pwd`
 DST=$2
 
 cd $DST
-config/install.sh nolib
+config/install.sh -nolib
 
 $SCRIPTDIR/copy-doc $DST
 
