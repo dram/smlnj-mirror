@@ -76,12 +76,15 @@ the system.
 If both versions are installed, then use the **-32** or **-64** flag
 to override the default version.
 
-==== macOS issues
+==== 32-bit macOS issues
 
-While the {dist-dir}smlnj-x86-{version}.pkg[installer]
-for {version} works on macOS 10.14 Mojave, building from source
-requires some extra steps.  Another issue that you may encounter
-when building on macOS 10.14 Mojave is an error message for a shell
+While the {dist-dir}smlnj-x86-{version}.pkg[x86 installer]
+for {version} works on **macOs** 10.14 Mojave, building from source
+requires some extra steps because the version of **Xcode**
+distributed for Mojave does include a 32-bit SDK.
+
+Another issue that you may encounter
+when building on **macOs** 10.14 Mojave is an error message for a shell
 script of the form
 
 .....
@@ -122,7 +125,7 @@ in this example).
 === MLRISC
 
 Fixed a number of bugs in the instruction selection and encoding for the
-**AMD64** architecture.  Also made a slight improvement to the **X86**
+**amd64** architecture.  Also made a slight improvement to the **x86**
 instruction selector.
 
 === Runtime System
