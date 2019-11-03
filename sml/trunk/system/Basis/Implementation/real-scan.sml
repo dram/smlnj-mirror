@@ -133,19 +133,21 @@ structure RealScan : sig
 				      else (false, cs1)  (* no sign *)
 				val (optExp, overflow, cs4) = scanExp cs3
 				in
-				  case (optExp, overflow)
-				   of (_, true) => if negExp
-					then SOME(negate(neg, 0.0), cs4)
-					else SOME(negate(neg, Real64Values.posInf), cs4)
-				    | (SOME exp, _) => let
-					val num = negate(neg, num)
-					in
-					  if negExp
-					    then SOME(scaleDown(num, exp), cs4)
-					    else SOME(scaleUp(num, exp), cs4)
-					end
-				    | (NONE, _) => SOME(negate(neg, num), cs)
-				  (* end case *)
+				  if R.!=(num, 0.0)
+				    then (case (optExp, overflow)
+				       of (_, true) => if negExp
+					    then SOME(negate(neg, 0.0), cs4)
+					    else SOME(negate(neg, Real64Values.posInf), cs4)
+					| (SOME exp, _) => let
+					    val num = negate(neg, num)
+					    in
+					      if negExp
+						then SOME(scaleDown(num, exp), cs4)
+						else SOME(scaleUp(num, exp), cs4)
+					    end
+					| (NONE, _) => SOME(negate(neg, num), cs)
+				      (* end case *))
+				    else SOME(negate(neg, 0.0), cs)
 				end
 			    | NONE => SOME(negate(neg, num), cs)
 			  (* end case *))
