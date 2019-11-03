@@ -81,7 +81,7 @@ PVT status_t MapMemory (mem_obj_t *obj, Addr_t szb)
 #endif
 
   /* we grab an extra BIBOP_PAGE_SZB bytes to give us some room for alignment */
-    addr = (Addr_t) mmap (MMAP_ADDR, szb+BIBOP_PAGE_SZB, PROT_ALL, MMAP_FLGS, fd, 0);
+    addr = (Addr_t) mmap (0, szb+BIBOP_PAGE_SZB, PROT_ALL, MMAP_FLGS, fd, 0);
     if (addr == -1) {
 	Error ("unable to map %d bytes, errno = %d\n", szb, errno);
 #ifndef HAS_ANON_MMAP
