@@ -4,7 +4,7 @@ This is an elaboration of the instructions in build-install.html
 
 1. Install latest 32-bit Cygwin  (www.cygwin.org?)
 
-2. Install Visual Studio Community 2017
+2. Install Visual Studio Community 2017 (or 2019?)
   a. Individual components
     Compilers, build tools, and runtimes
       C++/CLI support

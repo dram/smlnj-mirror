@@ -1,0 +1,78 @@
+builds-110_94.txt
+
+Record of builds from source of 110.94
+--------------------------------------
+
+MacOS
+
+1. MacOS 10.14.6 (iMac late 2015)
+   a. ARCH=x86 (32-bit)
+      OPSYS=darwin (18.7.0)
+      Xcode 11.2, with macOSX10.13.sdk added in
+        Xcode/Contents/Developer/Platforms/MacOSX/Developer/SDKs
+      command: config/install.sh
+   b. ARCH=amd64 (64-bit)
+      OPSYS=darwin (18.7.0)
+      Xcode 11.2, with only default macOSX10.15.sdk
+      command: config/install.sh -default 64
+
+2. MacOS 10.15.1 (MacBook Pro, late 2013)
+   ARCH=amd64
+   OPSYS=darwin (19.0.0)
+   Xcode 11.2, with only default macOSX10.15.sdk
+   64-bit: config/install.sh -default 64
+
+
+Linux
+
+1 Ubuntu 18.04.3 LTS (64 bit); generic 2016 PC build, 4GHz Core i7 proceesor
+  a. ARCH=x86 (32 bit)
+     OPSYS=linux
+     (see below for 32-bit support packages installed)
+     command: config/install.sh
+  b. ARCH=amd64 (64 bit)
+     OPSYS=linux
+     command: config/install.sh -default 64
+     
+Note: For the 32-bit build, first followed instructions for
+"recent version [sic] of Ubuntu" in dist/working/110.94/INSTALL:
+
+      dpkg --add-architecture i386
+      apt-get update
+      apt-get install libc6:i386
+  
+but this was not sufficient to compile the runtime, so needed
+to add:
+
+      apt-get install gcc-multilib
+      apt-get install g++-multilib
+
+after which runtime compiled successfully. So I don't know if
+libc6:i386 was actually necessary.
+
+64-bit compile was in the same environment, with these 32-bit
+packages installed, so haven't tested 64-bit build without
+these packages. Could uninstall them and test the 64-bit build
+again.
+
+QUESTION: On all recent (64 bit) Linux systems with basic
+tool chain (gcc, etc.) installed, does the 64 bit build succeed
+without needing additional 32-bit support packages?
+
+INSTALL needs to be updated. Also, it should be formated as
+HTML since plain text is mangled by Microsoft Edge.
+
+
+Windows 10 (64 bit, Version 1903)
+  Visual Studio Community 2019, Version 16.3.7
+  
+Note: where are the current, up-to-date instructions for building
+the compiler from source on Windows 10 with Visual Studio Community?
+There are two possible files:
+
+    dev-notes/windows10-installer.txt
+    dist/working/110.94/WININSTALL.html
+
+Neither of these seems up-to-date and correct.  For instance,
+the file base/runtime/c-lib/win32/win32-debug.c mentioned in
+windows10-installer.txt does not exist.
