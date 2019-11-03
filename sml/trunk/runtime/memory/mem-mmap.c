@@ -27,17 +27,6 @@
 #  define MMAP_FLGS	MAP_PRIVATE
 #endif
 
-#if (defined(HOST_ALPHA32) && (defined(OPSYS_OSF1) || defined(OPSYS_DUNIX)))
-  /* To insure that mmap returns a 32-bit address, we need to specify a non-zero
-   * address to mmap().  The address 0x2000000 is the location of the text segment,
-   * which is a good minimum value since the C stack lives just below this address
-   * and mmap will find regions above it.
-   */
-#  define MMAP_ADDR	(caddr_t)0x2000000
-#else
-#  define MMAP_ADDR	0
-#endif
-
 struct mem_obj {
     Word_t	*base;	  /* the base address of the object. */
     Addr_t	sizeB;	  /* the object's size (in bytes) */
