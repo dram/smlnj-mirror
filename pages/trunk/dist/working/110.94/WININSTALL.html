@@ -21,29 +21,40 @@
   </style>
 </head>
 <body>
-<h1>Installation instructions for SML/NJ under Windows</h1>
-
-We now provide a Microsoft Installer package for SML/NJ.
+<h1>Installing SML/NJ under Windows</h1>
+<p>
+We now provide a Microsoft Installer package for SML/NJ:
+<a href="smlnj-110.94.msi">smlnj-110.94.msi</a>.
 The installer contains a full installation including
-nearly all optional components.  (We only exclude
-"mlrisc-tools" and "nowhere".)
-
+nearly all optional components except for "mlrisc-tools"
+and "nowhere".
+</p>
+<p>
 You can choose the installation directory. The default
-is <tt>C:\Program Files\SMLNJ</tt>. The bin directory containing
-the sml command is added to the default PATH, though
-note that you will need to re-open command windows to see
-the binding. The SMLNJ_HOME environment variable is also
-set up to point at the location that SML/NJ was installed.
-
-You can either launch the interpreter directly from a 
+is <code>C:\Program Files\SMLNJ</code>. The bin directory containing
+the <code>sml</code> command is added to the default <code>PATH</code>, though
+note that you will need to re-open a command window to see
+the binding. The <code>SMLNJ_HOME</code> environment variable is also
+set to point at the location where SML/NJ was installed.
+</p>
+<p>
+You can either launch the interactive top-level directly from the 
 Start Menu entry or by opening a command prompt and 
-typing "<tt>sml</tt>".
-
+typing "<code>sml</code>".
+</p>
+<br>
 <hr />
+<blockquote>
+<strong>Note</strong>: The instructions below for building from sources on Windows using
+Visual Studio are no longer current. Current, tested instructions
+can be found at
+<a href="http://www.smlnj.org/local/build-release.html">
+<code>http://www.smlnj.org/local/build-release.html</code></a>.
+Follow steps 1 through 14 in the section "Building a Windows installer (MSI)".
+</blockquote>
 
-To compile from scratch, assuming Microsoft Visual Studio or
+To compile from sources, we assume Microsoft Visual Studio or
 at least the Visual C++ Express Edition and the Platform SDK:
-
 <ul>
 <li> Run "vcvars32" command or open the "Visual Studio Command
 Prompt" menu item.
@@ -54,8 +65,50 @@ Prompt" menu item.
 source tree.
 <li> Set environment variable SMLNJ_HOME to root of source tree.
 <li> Edit config\targets to one's taste.
-<li> Run <tt>config\install.bat</tt>.
-<li> To generate the msi, run <tt>config\WinSetup\buildSetup.bat</tt>.
+<li> Run <code>config\install.bat</code>.
+<li> To generate the msi installer, run <code>config\WinSetup\buildSetup.bat</code>.
 </ul>
+<br>
+<hr>
+<h1>Installing SML/NJ under Windows using Cygwin</h1> 
+<blockquote>
+<strong>Note</strong>: The instructions below are incomplete and do not currently work for
+Release 110.94.  Stay tuned for updated instructions for building
+under 32-bit Cygwin. [DBM, 2019.11.4]
+</blockquote>
+In releases before 110.77, the default behavior of
+config/install.sh on Cygwin was to build and use the Win32 runtime
+system.  As of 110.77, the default behavior is to build and use the
+Cygwin (i.e., Unix) version of the runtime.  For the old behavior, one
+should set the environment variable SMLNJ_WINDOWS_RUNTIME:
+<pre>
+	export SMLNJ_WINDOWS_RUNTIME
+	SMLNJ_WINDOWS_RUNTIME=1
+</pre>
+
+<h2>Pre-110.77 instructions</h2>
+<ol>
+<li>Choose a directory to install SML/NJ.  Note that currently 
+   SML/NJ *must* be installed in a directory mounted in binmode.
+   Installation will fail if you try to install it in a directory
+   mounted in textmode.  See the manpage for 'mount' for details.
+<li>Set SMLNJ_CYGWIN_RUNTIME=1 and export the environment variable.
+   E.g.,
+<pre>
+       SMLNJ_CYGWIN_RUNTIME=1
+       export SMLNJ_CYGWIN_RUNTIME
+</pre>
+   in Bourne sh and variants.  Or
+<pre>
+       setenv SMLNJ_CYGWIN_RUNTIME 1
+</pre>
+   in csh and variants.      
+    
+   When this is set SML/NJ will select the Cygwin runtime instead of
+   the default Windows runtime.
+<li> Simply treat Cygwin as a Unix, and follow the usual installation
+   instructions.  
+</ol>
+
 </body>
 </html>
