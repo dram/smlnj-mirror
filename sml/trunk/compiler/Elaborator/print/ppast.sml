@@ -887,6 +887,11 @@ and ppDec (context as (env,source_opt)) ppstrm =
 		 withtycs;
 	       closeBox ())
 	  end
+	| ppDec'(DataReplDec(symb, path), _) = (
+	    openHVBox 0;
+	      pps "datatype "; ppSym ppstrm symb; pps " = datatype ";
+	      pp_path ppstrm path;
+	    closeBox())
 	| ppDec'(AbstypeDec{abstycs,withtycs=[],body},d) =
 	  let fun prd ppstrm dbing = (ppDb context ppstrm (dbing, d))
 	      fun prw ppstrm tbing = (ppTb context ppstrm (tbing, d))
