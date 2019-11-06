@@ -1,0 +1,92 @@
+<!-- Copyright (c) 2019 The Fellowship of SML/NJ -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>macOS X Istallation</title>
+  <style>
+    body {
+      background-color: white;
+      margin-left: 1cm;
+      margin-right: 1cm;
+    }
+    pre {
+      margin-bottom: 0.1em;
+    }
+    td {
+      padding: 10px 10px 10px 10px;
+    }
+    dd {
+      margin-bottom: 0.5em;
+    }
+    .file-list a {
+      font-family: "Courier", monospace;
+    }
+    span.tt {
+      font-family: "Courier", monospace;
+    }
+  </style>
+</head>
+<body>
+<h1>Installing SML/NJ under macOS</h1>
+
+<p>We provide two macOS installer packages for the
+<a href="smlnj-x86-110.94.pkg">32 bit (x86) compiler</a> 
+and the
+<a href="smlnj-amd64-110.94.pkg">64 bit (amd64) compiler</a>.
+These packages contain a full installation
+including nearly all optional components. (We only
+exclude "mlrisc-tools" and "nowhere".) The 64 bit package
+is necessary for installing on macOS Catalina (10.15) and later, and
+it currently considered a beta version, so bug reports are appreciated.
+These packages are not yet notorized by Apple, so to
+open them on Catalina or later, you must choose "Open" from the contextual menu for
+the file (i.e. right click on the package icon).</p>
+
+<p>The current installer lets the user choose an installation
+root directory. The default is /usr/local/smlnj.
+The SML/NJ-specific "bin" directory containing the
+"sml" command and its siblings is not automatically
+added to the shell's search path, though.</p>
+
+<p>When using the installer package (even in the case
+when the installation directory is not the default
+/usr/local/smlnj) it is NOT necessary to set any
+global environment variables such as <code>SMLNJ_HOME</code>.</p>
+
+<hr>
+<p>When developer tools (Xcode) are present on a MacOS X machine,
+then it is also always possible to do a generic Unix
+install (see the file
+<a href="INSTALL.html">INSTALL.html</a>). The runtime system makefile
+for Mac OS X on Intel (<code>mk.x86-darwin</code>) is configured to
+support macOS versions up through Mac OS X 10.15 (Catalina).<\p>
+<hr>
+
+<p>Versions of Xcode after 10.1, which is Apple's development environment for
+macOS 10.14 Mojave, do not include the libraries needed
+to build 32-bit executables, such as the SML/NJ runtime,
+although 32-bit programs will still run on Mojave.</p>
+
+<p>To support building the 32-bit version on Mojave, there is a Makefile
+(<code>mk.x86-darwin18</code>) for the runtime system. which the
+config/install.sh script will use when necessary. This
+new makefile expects that the <code>MacOSX10.13.sdk</code> directory
+from Xcode 9 has been copied into the Xcode SDKs directory</p>
+<pre>
+    Xcode/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
+</pre>
+<p>Note that updating Xcode from the AppStore will likely
+remove the 10.13 SDK, so you should keep a copy in a safe
+place.</p>
+
+<p>You can determine the path to the
+current developer directory using the command
+<pre>
+    % xcode-select -p
+</pre>
+</p>
+<hr>
+</body>
+</html>
