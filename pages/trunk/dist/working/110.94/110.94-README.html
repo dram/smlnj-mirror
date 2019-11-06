@@ -201,12 +201,16 @@ to override the default version.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_macos_issues">macOS issues</h4>
+<h4 id="_32_bit_macos_issues">32-bit macOS issues</h4>
 <div class="paragraph">
-<p>While the <a href="https://smlnj.org/dist/working/110.94/smlnj-x86-110.94.pkg">installer</a>
-for 110.94 works on macOS 10.14 Mojave, building from source
-requires some extra steps.  Another issue that you may encounter
-when building on macOS 10.14 Mojave is an error message for a shell
+<p>While the <a href="https://smlnj.org/dist/working/110.94/smlnj-x86-110.94.pkg">x86 installer</a>
+for 110.94 works on <strong>macOs</strong> 10.14 Mojave, building from source
+requires some extra steps because the version of <strong>Xcode</strong>
+distributed for Mojave does not include a 32-bit SDK.</p>
+</div>
+<div class="paragraph">
+<p>Another issue that you may encounter
+when building on <strong>macOs</strong> 10.14 Mojave is an error message for a shell
 script of the form</p>
 </div>
 <div class="literalblock">
@@ -260,7 +264,7 @@ in this example).</p>
 <h3 id="_mlrisc">MLRISC</h3>
 <div class="paragraph">
 <p>Fixed a number of bugs in the instruction selection and encoding for the
-<strong>AMD64</strong> architecture.  Also made a slight improvement to the <strong>X86</strong>
+<strong>amd64</strong> architecture.  Also made a slight improvement to the <strong>x86</strong>
 instruction selector.</p>
 </div>
 </div>
@@ -489,7 +493,7 @@ tested some of them:</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-10-31 21:38:44 -0500
+Last updated 2019-11-02 08:06:41 -0500
 </div>
 </div>
 <style>
