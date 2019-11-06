@@ -64,15 +64,65 @@ HTML since plain text is mangled by Microsoft Edge.
 
 
 Windows 10 (64 bit, Version 1903)
-  Visual Studio Community 2019, Version 16.3.7
-  
-Note: where are the current, up-to-date instructions for building
-the compiler from source on Windows 10 with Visual Studio Community?
-There are two possible files:
 
-    dev-notes/windows10-installer.txt
-    dist/working/110.94/WININSTALL.html
+Note: There are three different files with instructions on
+building/installing SML/NJ under Windows (not Cygwin):
 
-Neither of these seems up-to-date and correct.  For instance,
+a. dev-notes/windows10-installer.txt
+b. dist/working/110.94/WININSTALL.html
+c. http://www.smlnj.org/local/build-release.html
+
+The first two are neither correct not up-to-date.  For instance,
 the file base/runtime/c-lib/win32/win32-debug.c mentioned in
 windows10-installer.txt does not exist.
+
+The third set of instructions (c) works with Windows 10 and
+Visual Studio Community 2019 (which set of packages?).  These
+instructions use a mixture of Cygwin and Visual Studio steps,
+with Cygwin being used to download and set up the necessary
+files, with the actual build being done in the Visual Studio
+Developer Command Prompt.
+
+1. Visual Studio Community 2019, Version 16.3.7
+   32-bit Cygwin [with which packages loaded?]
+   Following instructions (c).
+   Note: step (9), disabling asdl, was verified to be necessary.
+
+2. Cygwin (32-bit)
+   Plain Cygwin build using config/install.sh fails at the end of compiling the runtime:
+
+gcc -std=gnu99 -o run.x86-cygwin -O2  main.o c-libraries.o unix-raise-syserr.o ml-options.o boot.o load-ml.o run-ml.o globals.o ml-state.o error.o timers.o unix-timers.o qualify-name.o swap-bytes.o unix-fault.o signal-util.o unix-signal.o unix-prof.o prim.o   ../c-libs/posix-os/libposix-os.a ../c-libs/smlnj-runtime/libsmlnj-runt.a ../c-libs/smlnj-signals/libsmlnj-sig.a ../c-libs/smlnj-prof/libsmlnj-prof.a ../c-libs/smlnj-sockets/libsmlnj-sock.a ../c-libs/smlnj-time/libsmlnj-time.a ../c-libs/smlnj-date/libsmlnj-date.a ../c-libs/smlnj-math/libsmlnj-math.a ../c-libs/posix-process/libposix-process.a ../c-libs/posix-procenv/libposix-procenv.a ../c-libs/posix-filesys/libposix-filesys.a ../c-libs/posix-io/libposix-io.a ../c-libs/posix-sysdb/libposix-sysdb.a ../c-libs/posix-signal/libposix-signal.a ../c-libs/posix-tty/libposix-tty.a ../c-libs/posix-error/libposix-error.a ../gc/libgc.a ../memory/libmem.a ../c-libs/dl/libunix-dynload.a -lws2_32 -Wl,--export-all cygwin.def -lm
+/usr/lib/gcc/i686-pc-cygwin/7.4.0/../../../../i686-pc-cygwin/bin/ld: Cannot export _ml_Date_asctime: symbol not defined
+/usr/lib/gcc/i686-pc-cygwin/7.4.0/../../../../i686-pc-cygwin/bin/ld: Cannot export machine_id: symbol not defined
+/usr/lib/gcc/i686-pc-cygwin/7.4.0/../../../../i686-pc-cygwin/bin/ld: Cannot export set_request: symbol not defined
+collect2: error: ld returned 1 exit status
+make[1]: *** [makefile:116: run.x86-cygwin] Error 1
+make[1]: Leaving directory '/home/Dave/sml/Dev/test/base/runtime/objs'
+make: *** [mk.x86-cygwin:22: all] Error 2
+config/install.sh: !!! Run-time system build failed for some reason.
+
+There are 3 "Cannot export" error messages for 3 symbols that are not
+defined: _ml_Date_asctime, machine_id, and set_request.  Could not
+find these symbols by grepping the runtime source code. Do they come
+from some missing libraries?
+
+
+Cygwin32 packages installed were:
+
+binutils
+curl
+gcc-core
+gcc-debuginfo
+gcc-g++
+gcc-tools-epoch2-autoconf
+gcc-tools-epoch2-automake
+gccmakedep
+make
+make-debuginfo
+makedepend
+makedepend-debuginfo
+subversion
+subversion-debuginfo
+subversion-devel
+subversion--tools
+wget
