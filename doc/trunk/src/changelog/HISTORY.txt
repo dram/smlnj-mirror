@@ -93,6 +93,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/11/07]::
++
+Fix for bug bugref:229[] (`Real.fromString` errors). This bug was
+actually two unrelated issues.  The problem that `Real.toString`
+returns `Real.posInf` for `0.0e123213213123213123123` has been
+fixed in the `RealScan` module (`system/basis/Implementation/real-scan.sml`).
+The second bug was a regression introduced in 110.93, where the
+`SIGFPE` signal was specified as the result of the `into` instruction,
+whereas **Linux** actually signals `SIGSEGV` for `into`.  Note that
+there may be a related issue of **BSD** systems, where `SIGBUS` might
+be the signal, but we need access to a test machine to verify.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2019/11/07]::
