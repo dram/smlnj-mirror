@@ -499,13 +499,15 @@ ALIGNED_ENTRY(create_v_a)
 	CHECKLIMIT
 	MOV	(REGIND(stdarg),temp)		/* temp = len tagged */
 	PUSH	(misc0)
-	PUSH	(misc1)
 #define temp1 misc0
-#define temp2 misc1
+
 	MOV	(temp,temp1)
 	SAR	(IM(1),temp1)			/* temp1 = untagged len */
 	CMP	(IM(SMALL_OBJ_SZW),temp1)
 	JGE	(L_create_v_large)
+
+	PUSH	(misc1)
+#define temp2 misc1
 
 	SAL	(IM(TAG_SHIFTW),temp1)
 	OR	(IM(MAKE_TAG(DTAG_vec_data)),temp1)
@@ -538,6 +540,7 @@ LABEL(L_create_v_lp)
 #undef temp2
 
 LABEL(L_create_v_large)
+	POP	(misc0)				/* restore misc0 */
 	MOVE	(stdlink, temp, pc)
 	MOV	(IM(REQ_ALLOC_VECTOR),request_w)
 	JMP	(CSYM(set_request))
