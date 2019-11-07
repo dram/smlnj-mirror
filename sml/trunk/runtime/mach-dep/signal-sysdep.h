@@ -266,13 +266,16 @@ extern void SetFSR(int);
 #    define INTO_OPCODE		0xce	/* the 'into' instruction is a single */
 					/* instruction that signals Overflow */
 
-#    define SIG_OVERFLOW		SIGFPE
+#    define SIG_OVERFLOW		SIGSEGV
 
 #    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_EIP])
 /* for linux, SIG_GetCode simply returns the address of the fault */
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[REG_EIP])
 #    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_EIP] = (long)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
+/* macro to check if SIGSEGV was caused by `into` instruction */
+#    define SIG_IS_OVERFLOW_TRAP(pc)	(((Byte_t*)pc)[-1] == 0xce)
 
 #  elif defined(OPSYS_FREEBSD)
     /** x86, FreeBSD **/
@@ -287,7 +290,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_NETBSD2)
     /** x86, NetBSD (version 2.x) **/
-#    define SIG_OVERFLOW		SIGFPE
+#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -298,7 +301,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_NETBSD)
     /** x86, NetBSD (version 3.x) **/
-#    define SIG_OVERFLOW		SIGFPE
+#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		(_UC_MACHINE_PC(scp))
@@ -307,7 +310,7 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_OPENBSD)
     /** x86, OpenBSD **/
-#    define SIG_OVERFLOW		SIGFPE
+#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_pc)
@@ -330,10 +333,11 @@ extern void SetFSR(int);
 
 #  elif defined(OPSYS_CYGWIN)
 
+#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGSEGV? */
+
+#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
      typedef void SigReturn_t;
-#    define SIG_OVERFLOW		SIGFPE
-#    define INT_DIVZERO(s, c)	((s) == SIGFPE)
-#    define SIG_ZeroLimitPtr(scp)  { ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
 #  elif defined(OPSYS_DARWIN)
     /** x86, Darwin **/
@@ -361,7 +365,7 @@ extern void SetFSR(int);
 #  define SIG_InitFPE()
 
 #  if defined(OPSYS_LINUX)
-    /** AMD64, LINUX **/
+    /** amd64, LINUX **/
 /* on linux, the "int 4" instruction causes a SIGSEGV */
 
 #    define SIG_OVERFLOW		SIGSEGV
@@ -372,7 +376,8 @@ extern void SetFSR(int);
 #    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_RIP] = (long)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.gregs[REG_R14] = 0; }
 
-#    define SIG_IsINT4(pc)	\
+/* macro to check if SIGSEGV was caused by `int 4` instruction */
+#    define SIG_IS_OVERFLOW_TRAP(pc)	\
 	((((Byte_t*)pc)[-2] == 0xcd) && (((Byte_t*)pc)[-1] == 0x04))
 
 #  elif defined(OPSYS_FREEBSD)

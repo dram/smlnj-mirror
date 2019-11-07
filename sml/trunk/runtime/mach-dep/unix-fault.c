@@ -85,9 +85,9 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *c)
 	Die ("bogus fault not in ML: pc = %p, sig = %d\n", (void*)pc, signal);
     }
 
-#ifdef SIG_IsINT4
+#ifdef SIG_IS_OVERFLOW_TRAP
   /* verify that the signal actually comes from an overflow */
-    if (! SIG_IsINT4(pc)) {
+    if (! SIG_IS_OVERFLOW_TRAP(pc)) {
 	Die ("bogus overflow fault: pc = %p, sig = %d\n", (void*)pc, signal);
     }
 #endif
