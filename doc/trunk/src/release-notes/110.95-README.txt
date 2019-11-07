@@ -1,5 +1,5 @@
-:version: 110.94
-:date: October 31, 2019
+:version: 110.95
+:date: November 11, 2019
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -29,12 +29,8 @@ FILES::
 
 == Summary
 
-This release is the first to provide support for 64-bit executables on
-Linux and macOS.  Support for other operating systems (BSD variants and
-64-bit windows) will be included in future releases.
-
-This release also fixes a critical bug in the Windows implementation of
-some of the `Math` functions.
+This release fixes a few problems with the 64-bit version, as well as a
+couple of other bugs.  There are no new features or other major changes.
 
 == Details
 
@@ -100,49 +96,11 @@ shell script.  To fix the problem, remove the attribute using the command
 -----
 and resume the build.
 
-
-=== Compiler
-
-Various changes were made to support 64-bit targets.
-
-Improved the CPS optimizer to do constant folding on numeric conversions when
-the argument is a constant.
-
-The fix for bug 130 required a change in the semantics of the type checker.
-The definition of SML specifies that when typechecking a binding like
-the following:
-[source,sml]
-------------
-  val (x, NONE) = ([], SOME 1)
-------------
-the type of `x` should be polymorphic since the right-hand-side of the
-binding is a syntactic value.  As of version 110.94, we now have a more
-restrictive rule for when the left-hand-side variables are made polymorphic.
-Specifically, the right-hand-side expression must be a syntactic value and
-the left-hand-side pattern must be **irrefutable** (which is not the case
-in this example).
-
-=== MLRISC
-
-Fixed a number of bugs in the instruction selection and encoding for the
-**amd64** architecture.  Also made a slight improvement to the **x86**
-instruction selector.
-
 === Runtime System
 
-The runtime system has a two-level data structure for the garbage-collector's
-BIBOP on 64-bit machines.
-
-Made the handling of the `SysInt.int` and `SysWord.word` types consistent between
-the runtime system and **SML** code.
-
-=== ML-LPT
-
-Switched the type of source-file positions from `Position.int` to `Int.int`.
-This change is because the `Position.int` type was changed to `Int64.int` in
-https://smlnj.org/dist/working/110.89/110.89-README.html[version 110.89],
-which is excessive for source-file parsing and which introduces space
-overhead (64-bit integers are boxed).
+The runtime now uses `MAP_ANON` for allocating memory on 64-bit Linux.
+This change fixes a problem with versions of Linux that do not allow
+access to `/dev/zero`.
 
 == Bugs
 
@@ -152,15 +110,21 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
-| [.bugid]#130#
-| failure to raise `Bind` exception
-| [.bugid]#225#
-| `Math.ln` giving erroneous answers on **Windows**
-| [.bugid]#226#
-| **SML/NJ** does not support 64-bit systems
-| [.bugid]#227#
-| CPS contraction is taking an excessive amount of time on word8 basis test
+| [.bugid]#229#
+| `Real.fromString` errors
+| [.bugid]#230#
+| segmentation fault when compiling MLton sources with SML/NJ 64-bit
 |=======
+
+
+The following unnumbered bugs were also fixed:
+--
+  * Fixed the AST pretty printer so that it handles datatype replication
+    declarations.
+
+  * Fixed problem with 64-bit runtime on some versions of Linux (*e.g.*.
+    Linux on ChromeBooks).
+--
 
 == Supported systems
 

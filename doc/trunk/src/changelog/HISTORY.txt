@@ -93,6 +93,26 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+
+//--------------------------------------------------------------------
+[2019/11/07]::
++
+Fix for bug bugref:230[] (segmentation fault when compiling MLton sources
+with SML/NJ 64-bit).  The problem was that when a large vector was
+being created, the assembly code did not correctly restore the stack
+state before trying to call the runtime system to do the allocation.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/11/04]::
++
+The runtime now uses `MAP_ANON` for allocating memory on 64-bit Linux.
+This change fixes a problem with versions of Linux that do not allow
+access to `/dev/zero` (such as on **ChromeBooks**.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.94; 2019/10/31
 
