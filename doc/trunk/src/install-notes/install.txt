@@ -11,4 +11,42 @@
 == Introduction
 These instructions are for installing Standard ML of New Jersey
 (**SML/NJ**) on **Unix** and Unix-like operating systems (including
-**Cygwin**, **Linux**, and **macOS**).
+**Cygwin**, **Linux**, and **macOS**) from source and the pre-compiled
+bin files.
+
+To install **SML/NJ** on **macOS** using the installer package, see
+the {dist-dir}macos.html[**macOS** installation instructions].
+
+To install **SML/NJ** on **Windows**, see the
+{dist-dir}windows.html[**Windows** installation instructions].
+
+== Preparing for installation
+
+== Installing 32-bit SML/NJ
+
+Currently, the default installation of SML/NJ is for 32-bit machines.
+
+== Installing 64-bit SML/NJ
+
+As of version 110.94, SML/NJ supports 64-bit installations on some
+systems (currently **Linux** and **macOS**).
+
+[source,shell]
+--------------
+% config/install.sh -default 64
+--------------
+
+== Installing both 32-bit and 64-bit versions of SML/NJ
+
+It is possible to install both versions in the same location by running
+the `install.sh` script twice.  For example, the commands
+
+[source,shell]
+--------------
+% config/install.sh -32
+% config/install.sh -default 64
+--------------
+
+will install both versions with the 64-bit version as default.  One
+can then use the command **sml -32** to run the 32-bit version of
+the system.  Note that the default version must be installed second.

@@ -54,5 +54,27 @@ supporting the building of 32-bit programs in **macOS** 10.14 (Mojave),
 and stopped allowing execution of 32-bit programs in **macOS** 10.15 (Catalina).
 If you are running **macOS** 10.14 or later, we recommend that you install
 the 64-bit version of **SML/NJ**, but it is possible to build and run the 32-bit
-version on **macOS** 10.14.
+version on **macOS** 10.14 (see the instructions below).
 =========
+
+== Installing 32-bit SML/NJ on macOS 10.14 (Mojave)
+
+**Xcode** 10.1 (and later) does not include the libraries needed to
+build 32-bit executables, such as the **SML/NJ** runtime.
+
+To support building on Mojave, there is a special makefile (`mk.x86-darwin18`)
+for the runtime system and the `config/install.sh` uses this makefile
+when necessary.  This makefile expects that the `MacOSX10.13.sdk` directory
+from **Xcode** 9 has been
+copied into the **Xcode** 10 `SDKs` directory.  Note that updating **Xcode**
+from the AppStore will remove the 10.13 SDK, so you should keep
+a copy in a safe place.
+
+The **Xcode** SDKs live in `Platforms/MacOSX.platform/Developer/SDKs`
+under the `Developer` directory.  One can determine the path to the
+current developer directory using the command
+
+[source,shell]
+--------------
+% xcode-select -p
+--------------
