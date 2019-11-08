@@ -310,7 +310,7 @@ case $OPSYS in
 	10.9*) AS_ACCEPTS_SDK=no ;;
 	10.14*)
 	  AS_ACCEPTS_SDK=yes
-	  # Mojave needs a special makefile, but we need to be careful
+	  # Mojave needs a special makefile for the x86, but we need to be careful
 	  # about when we are running the postinstall script, so we check
 	  # for the nolib argument
 	  if [ x"$nolib" = xfalse ] ; then
