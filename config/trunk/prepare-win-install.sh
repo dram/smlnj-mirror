@@ -12,6 +12,16 @@ complain() {
     exit 1
 }
 
+vsay() {
+    if [ x${INSTALL_DEBUG} = xtrue ] ; then
+	echo "$@"
+    elif [ x${INSTALL_QUIETLY} = xtrue ] ; then
+	:
+    else
+	echo "$@"
+    fi
+}
+
 this=$0
 
 ROOT=`pwd`
@@ -21,7 +31,6 @@ ROOT=`pwd`
 #
 CONFIGDIR=$ROOT/config
 BASEDIR=$ROOT/base		# where the base source tree is rooted
-LIBDIR=$INSTALLDIR/lib		# where libraries live
 BOOT_ARCHIVE=boot.x86-win32
 
 #
@@ -47,11 +56,42 @@ makedir() {
 }
 
 #
-# create the various sub directories
+# the release version that we are installing
 #
-for dir in "$LIBDIR" "$BASEDIR" ; do
-    makedir "$dir"
-done
+VERSION=`cat "$CONFIGDIR/version"`
+vsay $this: Preparing version $VERSION for Windows installation.
+
+#
+# create the base source subdirectory
+#
+makedir "$BASEDIR"
 
 "$CONFIGDIR"/unpack "$ROOT" runtime
 "$CONFIGDIR"/unpack "$ROOT" "$BOOT_ARCHIVE"
+"$CONFIGDIR"/unpack "$ROOT" smlnj-lib
+
+# source code for the various targets that are part of the
+# standard Windows installation.
+#
+EXTRA_TARGETS="\
+  ckit \
+  cml \
+  doc \
+  MLRISC \
+  ml-burg \
+  ml-lex
+  ml-lpt \
+  ml-yacc \
+  nlffi \
+  pgraph \
+  trace-debug-profile \
+"
+
+for file in $EXTRA_TARGETS ; do
+  "$CONFIGDIR"/unpack "$ROOT" $file
+done
+
+#
+# remove tar files
+#
+rm -rf *tgz
