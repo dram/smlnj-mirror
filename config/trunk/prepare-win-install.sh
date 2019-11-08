@@ -25,6 +25,28 @@ LIBDIR=$INSTALLDIR/lib		# where libraries live
 BOOT_ARCHIVE=boot.x86-win32
 
 #
+# Function to make a directory including its ancestors.
+#
+makedir() {
+    if [ x"$1" = x ] ; then
+	:
+    elif [ -d "$1" ] ; then
+	:
+    else
+	makedirtmp=`dirname "$1"`
+	makedir "$makedirtmp"
+	if [ x${INSTALL_VERBOSE} = xtrue ] ; then
+	    vsay "$this: Making directory $1"
+	fi
+	if mkdir "$1" ; then
+	    :
+	else
+	    complain "$this: !!! Unable to make directory $1!"
+	fi
+    fi
+}
+
+#
 # create the various sub directories
 #
 for dir in "$LIBDIR" "$BASEDIR" ; do
