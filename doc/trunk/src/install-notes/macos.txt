@@ -1,0 +1,58 @@
+= Installing SML/NJ under macOS
+:revnumber: {version}
+:revdate: {release-date}
+:source-highlighter: pygments
+:dist-dir: https://smlnj.org/dist/working/{version}/
+:history: {dist-dir}HISTORY.html
+:release-notes: {dist-dir}{version}-README.html
+:stem: latexmath
+:source-highlighter: pygments
+
+== Introduction
+These instructions are for installing Standard ML of New Jersey
+(**SML/NJ**) on **macOS**.
+
+== Using the installer package
+
+The most direct way to install **SML/NJ** is to use one of the
+provided installer packages:
+--
+  * {dist-dir}smlnj-x86-{version}.pkg[[.tt]#smlnj-x86-{version}.pkg#] (32-bits)
+
+  * {dist-dir}smlnj-amd64-{version}.pkg[[.tt]#smlnj-amd64-{version}.pkg#] (64-bits)
+--
+
+There is also a https://brew.sh[Homebrew] cask that wraps the 64-bit installation
+package.  If you have homebrew installed, then you can run the following command
+to install **SML/NJ**:
+
+[source,shell]
+--------------
+% brew cask install smlnj
+--------------
+
+== Installing from source
+
+It is also possible to install **SML/NJ** from source code and the pre-compiled
+bin files.  To do so, you will need a copy of Apple's **Xcode** development
+environment.  Furthermore, you will need to install the command-line tools,
+which you can do by running the command
+
+[source,shell]
+--------------
+% xcode-select --install
+--------------
+
+With the command-line tools installed, you can follow the standard
+{dist-dir}install.html[instructions] for installing on **Unix/Linux**
+systems.
+
+[CAUTION]
+=========
+Apple deprecated 32-bit support in **macOS** 10.13 (High Sierra), stopped
+supporting the building of 32-bit programs in **macOS** 10.14 (Mojave),
+and stopped allowing execution of 32-bit programs in **macOS** 10.15 (Catalina).
+If you are running **macOS** 10.14 or later, we recommend that you install
+the 64-bit version of **SML/NJ**, but it is possible to build and run the 32-bit
+version on **macOS** 10.14.
+=========

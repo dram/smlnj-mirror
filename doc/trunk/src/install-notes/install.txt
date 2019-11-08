@@ -1,0 +1,14 @@
+= Installing SML/NJ on Unix
+:revnumber: {version}
+:revdate: {release-date}
+:source-highlighter: pygments
+:dist-dir: https://smlnj.org/dist/working/{version}/
+:history: {dist-dir}HISTORY.html
+:release-notes: {dist-dir}{version}-README.html
+:stem: latexmath
+:source-highlighter: pygments
+
+== Introduction
+These instructions are for installing Standard ML of New Jersey
+(**SML/NJ**) on **Unix** and Unix-like operating systems (including
+**Cygwin**, **Linux**, and **macOS**).

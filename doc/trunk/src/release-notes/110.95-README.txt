@@ -29,7 +29,7 @@ FILES::
 
 == Summary
 
-This release fixes a few problems with the 64-bit version, as well as a
+This release fixes a few critical problems with 110.94, as well as a
 couple of other bugs.  There are no new features or other major changes.
 
 == Details
@@ -137,6 +137,7 @@ tested some of them:
 | AMD64 | macOS 10.14 (Mojave) | Tested
 | | macOS 10.15 (Catalina) | Tested
 | | Ubuntu 16.04.3 LTS | Tested
+| | Ubuntu 18.04.3 LTS | Tested
 | {nbsp} | |
 | Power PC | Mac OS X 10.5 (Leopard) |
 | | AIX |

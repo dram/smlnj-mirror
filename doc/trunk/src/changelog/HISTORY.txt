@@ -94,6 +94,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/11/08]::
++
+Created the script `config/prepare-win-install.sh`, which implements
+the fetching and unbundling of source and bin files in preparation
+for a Windows installation.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/11/07]::
 +
 Fix for bug bugref:229[] (`Real.fromString` errors). This bug was
