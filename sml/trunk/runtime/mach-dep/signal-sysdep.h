@@ -426,7 +426,9 @@ extern void SetFSR(int);
 
 #    define SIG_OVERFLOW		SIGFPE
 
-#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+#    define SIG_GetPC(scp)		((scp)->uc_mcontext.rip)
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.rip = (Addr_t) addr; }
+#    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.r14 = 0; }
 
      typedef void SigReturn_t;
 

@@ -66,9 +66,9 @@ void InitFaultHandlers (ml_state_t *msp)
  */
 #if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
 
-PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *c)
+PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *uc)
 {
-    ucontext_t	    *scp = (ucontext_t *)c;
+    ucontext_t	    *scp = (ucontext_t *)uc;
     Addr_t	    pc = (Addr_t)SIG_GetPC(scp);
     ml_state_t	    *msp = SELF_VPROC->vp_state;
     extern Word_t   request_fault[];
