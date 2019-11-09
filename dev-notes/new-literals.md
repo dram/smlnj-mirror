@@ -50,7 +50,7 @@ We describe the instruction encoding below.
 
 * **INT32**(*n*) 32-bit literal value for either the type `Int32.int` or `Word32.int`.
 
-* **INT64**(*n*) 64-bit literal value for either the type `Int32.int` or `Word32.int`.
+* **INT64**(*n*) 64-bit literal value for either the type `Int64.int` or `Word64.int`.
 
 * **BIGINT**(*n*) arbitrary precision integer literal (currently not used).
 
@@ -75,7 +75,7 @@ We describe the instruction encoding below.
      for the type `Real32Vector.vector` (currently not used).
 
 * **RVEC64**(*n*, *F~1~*, ..., *F~n~*) packed vector of 64-bit floating-point literals
-     for the type `Real32Vector.vector`.
+     for the type `Real64Vector.vector`.
 
 * **STR8**(s) string literal (8-bit characters)
 
