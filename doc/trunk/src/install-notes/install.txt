@@ -17,25 +17,154 @@ bin files.
 To install **SML/NJ** on **macOS** using the installer package, see
 the {dist-dir}macos.html[**macOS** installation instructions].
 
-To install **SML/NJ** on **Windows**, see the
+To install **SML/NJ** on **Windows** using the installer, the
 {dist-dir}windows.html[**Windows** installation instructions].
 
-== Preparing for installation
+== Basic installation
 
+The standard Unix installation of *SML/NJ* is mostly automated via
+a installation shell script and installer written in *SML*.
+The only manual steps are downloading the installer, unbundling it, and
+running the script.
+
+--
+1. Create a directory to do the installation and *cd* to that directory.
+
+2. Then use either *curl* or *wget* to down load the
+   {dist-dir}config.tgz[[.tt]#config.tgz#] file.
+   For example,
++
+[source,shell,subs="attributes+"]
+--------------
+% wget {dist-dir}config.tgz
+--------------
+
+3. Unbundle the `config.tgz` file.
++
+[source,shell,subs="attributes+"]
+--------------
+% tar -xzf config.tgz
+--------------
+
+4. Optionally edit the `config/targets` file to add or remove installation
+   targets.
+
+5. Run the install script.  For some systems (currently *Linux* and *macOS*),
+   there is a choice of 32 vs. 64-bit installations.  For other systems,
+   the installation is always 32-bit.
++
+[source,shell,subs="+quotes"]
+--------------
+% config/install.sh __options__
+--------------
++
+For systems that support 64-bit installations, the installer options are
++
+**-default** __size__::
+  specify the default size for the **sml** and other commands, where
+  __size__ is either **32** or **64**.
++
+**-32**::
+  install the 32-bit version of the system (see xref:install-32[below] for details).
++
+**-64**::
+  install the 64-bit version of the system (see xref:install-64[below] for details).
+
+--
+
+[#install-32]
 == Installing 32-bit SML/NJ
 
-Currently, the default installation of SML/NJ is for 32-bit machines.
+Currently, the default installation of **SML/NJ** is the 32-bit version
+(even on machines that support 64-bits).  Thus, one can just run the
+installer without options:
 
+[source,shell]
+--------------
+% config/install.sh
+--------------
+
+=== Troubleshooting the 32-bit install
+
+To install the 32-bit version on a 64-bit architecture, you must have
+support for compiling and running 32-bit binaries. On **macOS** (prior
+to Mojave), this support is standard, but most 64-bit Linux systems
+are not configured with 32-bit support.
+In such a case, you will get the message
+
+[source]
+--------
+!!! SML/NJ requires support for 32-bit executables
+--------
+
+during the install process.
+To fix this problem, you will need to acquire the 32-bit emulation
+libraries for your particular *Linux* distribution.
+
+For *Debian* (7.0 Wheezy and later) and recent version of *Ubuntu*, you
+will need to enable multiarch support.
+See https://wiki.ubuntu.com/MultiarchSpec[] for details, or try the
+following commands:
+
+[source,shell]
+--------------
+% dpkg --add-architecture i386
+% apt-get update
+% apt-get install libc6:i386
+--------------
+
+You may also need to install the two following packages:
+
+[source,shell]
+--------------
+% apt-get install gcc-multilib g++-multilib
+--------------
+
+For RedHat Fedora (at least Fedora 16), you will need to install
+`glibc-devel.i686`:
+
+[source,shell]
+--------------
+% yum install glibc-devel.i686
+--------------
+
+For Red Hat Enterprise Linux (or CentOS), you may also have to install
+the rpm package libgcc-multilib, e.g.:
+
+[source,shell]
+--------------
+% yum groupinstall "Development tools"
+% yum install libgcc.i686
+% yum install glibc-devel.i686
+--------------
+
+Older instructions for *RHEL* and *CentOS*: download the `libgcc-multilib`
+package from https://rpmseek.com[[.tt]#rpmseek.com#] and then run
+
+[source,shell]
+--------------
+rpm -ivh libgcc-multilib-xxx.x86_64.rpm
+--------------
+
+where the libgcc-multilib package is the one you downloaded.
+For *openSUSE* use the YaST administration tool to install the
+`gcc-32bit` package.
+
+[#install-64]
 == Installing 64-bit SML/NJ
 
-As of version 110.94, SML/NJ supports 64-bit installations on some
-systems (currently **Linux** and **macOS**).
+As of version 110.94, **SML/NJ** supports 64-bit installations on some
+systems (currently **Linux** and **macOS**).  It is possible to have
+both the 32 and 64-bit versions installed in the same place (see
+xref:dual-installation[below] for details), but if you want to just
+install the 64-bit version, then use the following command:
 
 [source,shell]
 --------------
 % config/install.sh -default 64
 --------------
 
+[#dual-installation]
 == Installing both 32-bit and 64-bit versions of SML/NJ
 
 It is possible to install both versions in the same location by running

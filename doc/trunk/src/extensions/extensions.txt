@@ -1,7 +1,7 @@
 Standard ML of New Jersey Extensions
 ====================================
 The Fellowship of SML/NJ
-{version}, {releasedate}:
+{version}, {release-date}:
 
 The Standard ML of New Jersey (SML/NJ) system implements a number of extensions
 to the language as defined by the Definition.
@@ -123,7 +123,7 @@ literal.  Examples include
 This extension adds _line comments_ (__i.e.__, comments that are terminated by
 the end of the line) to SML.  These comments are denoted using the character
 sequence "++(*)++".  Line comments properly nest into conventional block
-comments.  For example, the following block comment is well formed: 
+comments.  For example, the following block comment is well formed:
 
 [source,sml]
 ------------

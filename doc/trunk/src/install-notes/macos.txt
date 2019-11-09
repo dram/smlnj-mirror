@@ -31,6 +31,14 @@ to install **SML/NJ**:
 % brew cask install smlnj
 --------------
 
+If you have previously installed **SML/NJ** using Homebrew, then you will
+need to use the command
+
+[source,shell]
+--------------
+% brew cask upgrade smlnj
+--------------
+
 == Installing from source
 
 It is also possible to install **SML/NJ** from source code and the pre-compiled

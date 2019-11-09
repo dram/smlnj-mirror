@@ -19,7 +19,7 @@ HTML_OUT_DIR =	@OUT_DIR@/html
 WEB_OUT_DIR =	@WEB_OUT_DIR@
 
 ATTRS =		--attribute=version=$(SMLNJ_VERSION) \
-		--attribute=releasedate="$(SMLNJ_DATE)"
+		--attribute=release-date="$(SMLNJ_DATE)"
 
 CONF =
 

@@ -1,7 +1,7 @@
 = Standard ML of New Jersey Change Log
 The Fellowship of SML/NJ
 :revnumber: {version}
-:revdate: {releasedate}
+:revdate: {release-date}
 :source-highlighter: pygments
 
 This file documents changes to the *Standard ML of New Jersey* system since
