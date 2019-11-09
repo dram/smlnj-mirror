@@ -320,13 +320,18 @@ case $OPSYS in
 	      echo "$this: !!! /usr/bin/xcode-select is missing; please install Xcode"
 	      exit 1
 	    fi
-	    SDK_DIR=`xcode-select -p`/Platforms/MacOSX.platform/Developer/SDKs
+	    XCODE_DEV_PATH=`xcode-select -p`
+	    if [ x"$XCODE_DEV_PATH" = x/Library/Developer/CommandLineTools ] ; then
+	      XCODE_SDK_PATH="$XCODE_DEV_PATH/SDKs"
+	    else
+	      XCODE_SDK_PATH="$XCODE_DEV_PATH/Platforms/MacOSX.platform/Developer/SDKs"
+	    fi
 	    # look for an SDK that supports 32-bit builds (starting with 10.13 High Sierra
 	    # and going back to 10.10 Yosemite)
 	    #
 	    for SDK_VERS in 13 12 11 10 ; do
-	      if [ -d $SDK_DIR/MacOSX10.$SDK_VERS.sdk ] ; then
-		SDK="$SDK_DIR/MacOSX10.$SDK_VERS.sdk"
+	      if [ -d "$XCODE_SDK_PATH/MacOSX10.$SDK_VERS.sdk" ] ; then
+		SDK="$XCODE_SDK_PATH/MacOSX10.$SDK_VERS.sdk"
 		break
 	      fi
 	    done
@@ -367,7 +372,7 @@ case $OPSYS in
 	  if [ "$?" != "0" ] ; then
 	    rm -f /tmp/$tmpFile /tmp/$tmpFile.c
 	    echo "$this: !!! SML/NJ requires support for 32-bit executables."
-	    echo "$this: !!! Please see http://www.smlnj.org/dist/working/$VERSION/INSTALL for more details."
+	    echo "$this: !!! Please see http://www.smlnj.org/dist/working/$VERSION/install.html for more details."
 	    exit 1
 	  else
 	    rm -f /tmp/$tmpFile /tmp/$tmpFile.c
