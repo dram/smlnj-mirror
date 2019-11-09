@@ -69,6 +69,7 @@ makedir "$BASEDIR"
 "$CONFIGDIR"/unpack "$ROOT" runtime
 "$CONFIGDIR"/unpack "$ROOT" "$BOOT_ARCHIVE"
 "$CONFIGDIR"/unpack "$ROOT" smlnj-lib
+"$CONFIGDIR"/unpack "$ROOT" system
 
 # source code for the various targets that are part of the
 # standard Windows installation.
@@ -83,6 +84,7 @@ EXTRA_TARGETS="\
   ml-lpt \
   ml-yacc \
   nlffi \
+  old-basis \
   pgraph \
   trace-debug-profile \
 "
@@ -90,6 +92,12 @@ EXTRA_TARGETS="\
 for file in $EXTRA_TARGETS ; do
   "$CONFIGDIR"/unpack "$ROOT" $file
 done
+
+#
+# need to make sure that the generated files have a newer timestamp
+# so that the config\install.bat script works
+#
+touch smlnj-lib/HTML4/*.l.sml smlnj-lib/HTML4/*.g.sml
 
 #
 # remove tar files
