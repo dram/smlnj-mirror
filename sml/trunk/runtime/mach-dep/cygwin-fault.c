@@ -1,4 +1,8 @@
-/*
+/*! \file cygwin-fault.c
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  * Special signal handling for cygwin on Windows.
  *
  * Even though cygwin behaves like "unix", its signal handling mechanism
@@ -6,7 +10,6 @@
  * the siginfo_t and related data structures.  So here I'm using
  * Windows and some gcc assembly hacks to get things done.
  */
-
 
 #if defined(__i386__) && defined(__CYGWIN32__) && defined(__GNUC__)
 

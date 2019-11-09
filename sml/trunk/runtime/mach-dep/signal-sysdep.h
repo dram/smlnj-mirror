@@ -332,8 +332,9 @@ extern void SetFSR(int);
 #    define SIG_ZeroLimitPtr()		{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
 #  elif defined(OPSYS_CYGWIN)
+     /** x86, Cygwin -- see mach-dep/cygwin-fault.c */
 
-#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGSEGV? */
+#    define SIG_OVERFLOW		SIGFPE
 
 #    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
@@ -421,11 +422,13 @@ extern void SetFSR(int);
 #    error Solaris/AMD64 not supported yet
 
 #  elif defined(OPSYS_CYGWIN)
+     /** amd64, Cygwin -- see mach-dep/cygwin-fault.c */
+
+#    define SIG_OVERFLOW		SIGFPE
+
+#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
      typedef void SigReturn_t;
-#    define SIG_OVERFLOW		SIGFPE
-#    define INT_DIVZERO(s, c)	((s) == SIGFPE)
-/*#    define SIG_ZeroLimitPtr(scp)  { ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }*/
 
 #    error Cygwin/AMD64 not supported yet
 
