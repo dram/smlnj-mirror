@@ -9,12 +9,10 @@ CFLAGS =	-O2
 CPP =		gcc -x assembler-with-cpp -E -P
 XOBJS =
 XLIBS =		../c-libs/dl/libunix-dynload.a
-#LD_LIBS =	-lws2_32 -Wl,--export-all -output-def=smlnj.def
-#LD_LIBS =	-lws2_32 -Wl,--export-all cygwin.def
 LD_LIBS =	-lws2_32
 XDEFS =
 BASE_DEFS =
-DEFS		= $(XDEFS) $(BASE_DEFS) -DHOST_X86 -DTARGET_X86 -DOPSYS_UNIX -DOPSYS_CYGWIN -DGNU_ASSEMBLER -DDLOPEN -DINDIRECT_CFUNC
+DEFS		= $(XDEFS) $(BASE_DEFS) -DHOST_X86 -DTARGET_X86 -DDSIZE_32 -DOPSYS_UNIX -DOPSYS_CYGWIN -DGNU_ASSEMBLER -DDLOPEN -DINDIRECT_CFUNC
 TARGET =	X86
 VERSION =	v-x86-cygwin
 RUNTIME =	run.x86-cygwin
