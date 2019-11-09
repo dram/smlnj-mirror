@@ -57,13 +57,22 @@ case "$VERSION" in
 	# Note that for Mojave (macOS 10.14; Darwin 18.x), we use the High Sierra SDK, since
 	# building 32-bit apps is no longer supported.
 	18.*) SDK=MacOSX10.13.sdk ;;
+	19.*)
+	  echo "macOS 10.15 Catalina does not support 32-bit executables"
+	  exit 1
+	  ;;
 	*) SDK=none ;;
       esac
       if test x$SDK != xnone ; then
 	# note: at some point, we might use "xcrun --show-sdk-path", but that only works
 	# with Xcode 5.x+
 	XCODE_DEV_PATH=`xcode-select --print-path`
-	INCLFILE=$XCODE_DEV_PATH/Platforms/MacOSX.platform/Developer/SDKs/$SDK/usr/include/unistd.h
+	if [ x"$XCODE_DEV_PATH" = x/Library/Developer/CommandLineTools ] ; then
+	  XCODE_SDK_PATH="$XCODE_DEV_PATH"/SDKs
+	else
+	  XCODE_SDK_PATH=`xcode-select -p`/Platforms/MacOSX.platform/Developer/SDKs
+	fi
+	INCLFILE=$XCODE_SDK_PATH/$SDK/usr/include/unistd.h
         # verify that unistd.h exists at the expected place
         #
         if test ! -r $INCLFILE ; then
@@ -74,8 +83,8 @@ case "$VERSION" in
     fi
     ;;
   *amd64-darwin)
-    SDK_PATH=`xcrun --show-sdk-path`
-    INCLFILE=$SDK_PATH/usr/include/unistd.h
+    XCODE_SDK_PATH=`xcrun --show-sdk-path`
+    INCLFILE=$XCODE_SDK_PATH/usr/include/unistd.h
     # verify that unistd.h exists at the expected place
     #
     if test ! -r $INCLFILE ; then
