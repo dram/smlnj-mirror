@@ -249,7 +249,7 @@ extern char	*sys_errlist[];
 #  define STAT_HAS_TIMESPEC
 #  define HAS_NANOSLEEP
 
-#elif (defined(TARGET_X86) && defined(OPSYS_CYGWIN))
+#elif defined(OPSYS_CYGWIN)
 #  define OS_NAME	"Cygwin"
 #  define HAS_POSIX_LIBRARIES
 #  define HAS_POSIX_SIGS
