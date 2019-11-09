@@ -216,6 +216,20 @@ organized by operating system (Unix/Linux, macOS, Windows).
   </li>
   <li>
     <p>
+    Tag the release.
+    </p>
+    <ul>
+      <li>
+        <tt>$ ./admin/make-release.sh <i>$VERSION</i></tt><br/>
+	Note that each major directory under smlnj has its own trunk and
+	release branches, <i>e.g.</i>, <tt>$smlnj/sml/trunk</tt>,
+	<tt>$smlnj/sml/releases/release-<i>$VERSION</i></tt>, except for <tt>ml-lpt</tt>,
+	which does not have release branches.
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>
     Update web pages.
     </p>
     <ul>
@@ -237,28 +251,6 @@ organized by operating system (Unix/Linux, macOS, Windows).
         Define an alias for the distribution directory.<br>
         <tt>$ release_dir=linux.cs.uchicago.edu:/stage/web_static/smlnj/htdocs/dist/working/<i>$VERSION</i></tt>
       </li>
-      <li>
-	Copy the <tt>boot</tt> tarballs and various documentation files
-        into the release directory.<br>
-        <tt>$ scp base/system/*.tgz $release_dir</tt><br>
-        <tt>$ scp base/NOTES/CYGWININSTALL $release_dir</tt><br>
-        <tt>$ scp base/NOTES/INSTALL $release_dir</tt><br>
-        <tt>$ scp base/NOTES/WININSTALL $release_dir</tt><br>
-      </li>
-    </ul>
-  </li>
-  <li>
-    <p>
-    Tag the release.
-    </p>
-    <ul>
-      <li>
-        <tt>$ ./admin/make-release.sh <i>$VERSION</i></tt><br/>
-	Note that each major directory under smlnj has its own trunk and
-	release branches, <i>e.g.</i>, <tt>$smlnj/sml/trunk</tt>,
-	<tt>$smlnj/sml/releases/release-<i>$VERSION</i></tt>, except for <tt>ml-lpt</tt>,
-	which does not have release branches.
-      </li>
     </ul>
   </li>
   <li>
@@ -274,12 +266,30 @@ organized by operating system (Unix/Linux, macOS, Windows).
   </li>
   <li>
     <p>
-    Copy documentation and source tarballs into the release directory.
+    Copy documentation into the release directory.
     </p>
     <ul>
-      <li> <tt>$ scp doc/doc/html/HISTORY.html $release_dir</tt>
-      <li> <tt>$ scp doc/doc/html/readme/<i>$VERSION</i>-README.html $release_dir</tt>
-      <li> <tt>$ scp *.tgz $release_dir</tt>
+      <li> <tt>$ scp doc/doc/html/install-notes/cygwin.html $release_dir</tt </li>
+      <li> <tt>$ scp doc/doc/html/install-notes/install.html $release_dir</tt> </li>
+      <li> <tt>$ scp doc/doc/html/install-notes/macos.html $release_dir</tt> </li>
+      <li> <tt>$ scp doc/doc/html/install-notes/windows.html $release_dir</tt> </li>
+      <li> <tt>$ scp doc/doc/html/HISTORY.html $release_dir</tt> </li>
+      <li> <tt>$ scp doc/doc/html/readme/<i>$VERSION</i>-README.html $release_dir</tt> </li>
+    </ul>
+    <p>
+    <b>Note</b>: an alternative approach is to copy these files into a working copy
+    of the web-pages svn repository, add and commit them, and then do an <tt>svn update</tt>
+    on <tt>linux.cs.uchicago.edu</tt>.
+    </p>
+  </li>
+  <li>
+    <p>
+    Copy source tarballs into the release directory.
+    </p>
+    <ul>
+      <li> <tt>$ scp *.tgz $release_dir</tt> </li>
+      <li> <tt>$ cd ..</tt> </li>
+      <li> <tt>$ scp base/system/*.tgz $release_dir</tt> </li>
     </ul>
     <p>
     Once the files have been copied, you should <b>ssh</b> into <tt>linux.cs.uchicago.edu</tt>
@@ -396,53 +406,30 @@ prompt.
 </ul>
 </li><br>
 
-<li>[cygwin] <tt>$ cd gf; svn co $smlnj/admin</tt><br>
-   Create gf/admin directory with the usual scripts.
+<li>[cygwin] Fetch and unbundle the <tt>config.tgz</tt> file.
   <ul>
-    <li> <tt>$ cd gf</tt> </li>
-    <li> <tt>$ svn export --username anonsvn --password anonsvn $smlnj/admin </tt> </li>
+  <li> <tt>$ curl -O https://smlnj.org/dist/working/$VERSION/config.tgz</tt> </li>
+  <li> <tt>$ tar -xzf config.tgz</tt> </li>
   </ul>
-</li><br>
+</li>
 
-<li>[cygwin] <tt>$ cd ../release</tt><br>
-    Go to build directory.</li>
-</li><br>
+<li>[cygwin] Prepare the files for building the Windows version.
+  <ul>
+  <li> <tt>$ config/prepare-win-install.sh</tt> </li>
+  </ul>
+</li>
 
-<li>[cygwin] <tt>$ ../gf/admin/checkout-all.sh --release $VERSION -e</tt><br>
-   Run checkout-all.sh script to export the source files; the <tt>--release</tt> option
-   requires that <tt>make-release</tt> was already run to tag the release sources
-   (as described above).
-</li><br>
-
-<li>[cygwin] <tt>$ touch smlnj-lib/HTML4/*.l.sml smlnj-lib/HTML4/*.g.sml</tt><br>
-   Ensure that the generated files look more recent than the parser/lexer
-   specifications.
-</li><br>
-
-<li>[cygwin] Edit the file <tt>config/actions</tt> and comment out the lines
-   that specify <tt>asdl</tt>.  This modification is necessary because we currently
-   do not have a way to configure ASDL.
-</li><br>
-
-<li>[cygwin] <tt>$ curl -O http://www.smlnj.org/dist/working/<i>$VERSION</i>/boot.x86-win32.tgz</tt><br>
-   Manually fetch to boot tarball for Windows.
-</li><br>
-
-<li>[cygwin] <tt>$ tar xzvf boot.x86-win32.tgz</tt><br>
-   Manually untar the boot tarball.
-</li><br>
-
-<li>[vc++] <tt>set SMLNJ_HOME=C:\cygwin\home\jhr\Work\smlnj\release</tt><br>
+<li>[vs] <tt>set SMLNJ_HOME=C:\cygwin\home\jhr\Work\smlnj\release</tt><br>
     Define <tt>SMLNJ_HOME</tt> variable.
 </li><br>
 
-<li>[vc++] <tt>chdir %SMLNJ_HOME%</tt>
+<li>[vs] <tt>chdir %SMLNJ_HOME%</tt>
 </li><br>
 
-<li>[vc++] <tt>config\install.bat</tt><br>
+<li>[vs] <tt>config\install.bat</tt><br>
 </li><br>
 
-<li>[vc++] <tt>config\WinSetup\buildSetup.bat</tt><br>
+<li>[vs] <tt>config\WinSetup\buildSetup.bat</tt><br>
     The file <tt>smlnj.msi</tt> produced is the final installer for Windows.
 </li>
 
@@ -455,6 +442,6 @@ prompt.
 
     <hr>
 <!-- Created: Mon May  7 13:30:08 CDT 2007 -->
-<!-- hhmts start -->Last modified: October 31, 2019 <!-- hhmts end -->
+<!-- hhmts start -->Last modified: November 9, 2019 <!-- hhmts end -->
   </body>
 </html>
