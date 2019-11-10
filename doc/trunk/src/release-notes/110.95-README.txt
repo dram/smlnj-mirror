@@ -114,6 +114,8 @@ for more details.
 | `Real.fromString` errors
 | [.bugid]#230#
 | segmentation fault when compiling MLton sources with SML/NJ 64-bit
+| [.bugid]#231#
+| New literals-lifting code does not handle pair of reals
 |=======
 
 

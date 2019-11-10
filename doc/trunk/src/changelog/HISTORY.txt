@@ -99,6 +99,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2019/11/09]::
 +
+Fix for bug bugref:230[] (New literals-lifting code does not handle
+pair of reals).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/11/09]::
++
 Simplified the runtime-system build rules for Cygwin.
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
