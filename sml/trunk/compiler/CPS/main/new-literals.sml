@@ -607,24 +607,35 @@ structure NewLiterals : LITERALS =
 	  fun doFun (fk, f, vl, cl, e) = doExp e
 	(* process a CPS expression *)
 	  and doExp ce = (case ce
-		 of C.RECORD(C.RK_RAWBLOCK, fields, v, e) => let
-		      val ul = List.map fieldToValue fields
-		      fun isImmed (C.NUM _) = true
-			| isImmed _ = false
-		      fun encode (C.NUM{ty={sz, ...}, ival}) = largeIntToBytes(sz, ival)
-			| encode _ = bug "RAWBLOCK: impossible"
-		      in
-			if List.all isImmed ul
-			  then addRaw (W8V.concat(List.map encode ul), v)
-			  else useValues ul;
-			doExp e
-		      end
-		  | C.RECORD(rk, fields, v, e) => let
+		 of C.RECORD(rk, fields, v, e) => let
 		      val ul = List.map fieldToValue fields
 		      in
-			if List.all isConst ul
-			  then addRecord (rk, List.map useValue' ul, v)
-			  else useValues ul;
+			case rk
+			 of C.RK_RAWBLOCK => let
+			      fun isImmed (C.NUM _) = true
+				| isImmed _ = false
+			      fun encode (C.NUM{ty={sz, ...}, ival}) =
+				    largeIntToBytes(sz, ival)
+				| encode _ = bug "RAWBLOCK: impossible"
+			      in
+				if List.all isImmed ul
+				  then addRaw (W8V.concat(List.map encode ul), v)
+				  else useValues ul
+			      end
+			  | C.RK_RAW64BLOCK => let
+			      fun isImmed (C.REAL _) = true
+				| isImmed _ = false
+			      fun encode (C.REAL{ty, rval}) = real64ToBytes rval
+				| encode _ = bug "RAWBLOCK: impossible"
+			      in
+				if List.all isImmed ul
+				  then addRaw64 (W8V.concat(List.map encode ul), v)
+				  else useValues ul
+			      end
+			  | _ => if List.all isConst ul
+			      then addRecord (rk, List.map useValue' ul, v)
+			      else useValues ul
+			(* end case *);
 			doExp e
 		      end
 		  | C.SELECT(i, u, v, t, e) => (useValue u; doExp e)
