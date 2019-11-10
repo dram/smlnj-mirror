@@ -91,7 +91,33 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-//== Recent updates
+== Recent updates
+
+//--------------------------------------------------------------------
+[2019/11/10]::
++
+Many years ago, *SML/NJ* had a bytecode interpreter, but it was mostly
+removed from the system a long time ago.  There were, however, some
+remnants of it in the runtime system.  These have now been removed.
++
+Having made this change, the distinction between the "target" and
+"host" architectures is no longer necessary.  Therefore, these have
+been merged into a single architecture property.  The effects of this
+merge are as follows:
++
+--
+* the `TARGET_xxx` and `HOST_xxx` C-preprocessor symbols have been
+  replaced with a single `ARCH_xxx` symbol in the runtime system.
++
+* The `SMLofNJ.SysInfo` structure now provides `getArchName` and
+  `getArchSize` functions.
++
+* The following `SMLofNJ.SysInfo` functions are deprecated and will
+  be removed in 110.97: `getHostSize`, `getHostArch`, and
+  `getTargetArch`.
+--
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //====================================================================
 == Version 110.95; 2019/11/09
@@ -150,7 +176,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 +
 The runtime now uses `MAP_ANON` for allocating memory on 64-bit Linux.
 This change fixes a problem with versions of Linux that do not allow
-access to `/dev/zero` (such as on **ChromeBooks**.
+access to `/dev/zero` (such as on **ChromeBooks**).
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
