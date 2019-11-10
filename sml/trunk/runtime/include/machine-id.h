@@ -19,8 +19,6 @@
 #  define MACHINE_ID	"sparc"
 #elif defined(TARGET_X86)
 #  define MACHINE_ID	"x86"
-#elif defined(TARGET_BYTECODE)
-#  define MACHINE_ID	"bytecode"
 #else
 #  error unknown architecture type
 #endif

@@ -22,10 +22,6 @@
 
 FILE		*DebugF = NULL;
 
-#ifdef TARGET_BYTECODE
-FILE		*BC_stdout = NULL;
-#endif
-
 /* Runtime globals */
 bool_t		SilentLoad = TRUE;
 bool_t          DumpObjectStrings = FALSE;
@@ -56,11 +52,6 @@ int main (int argc, char **argv)
 
   /* process the command-line options */
     ParseOptions (argc, argv, &heapParams);
-
-#ifdef TARGET_BYTECODE
-    if (BC_stdout == NULL)
-	BC_stdout = fdopen(dup(1), "w");
-#endif
 
     InitTimers ();
     RecordGlobals ();
@@ -165,18 +156,6 @@ PVT void ParseOptions (int argc, char **argv, heap_params_t **heapParams)
 		}
 	    }
 #endif
-#ifdef TARGET_BYTECODE
-	    else if (MATCH("dump")) {
-		CHECK("dump");
-		BC_stdout = fopen (optionArg, "w");
-	    }
-#ifdef INSTR_TRACE
-	    else if (MATCH("trace")) {
-		extern bool_t	traceOn;
-		traceOn = TRUE;
-	    }
-#endif
-#endif
 	}
 	else {
 	    *nextArg++ = arg;
@@ -203,12 +182,6 @@ void Exit (int code)
     if (StatsFD >= 0) {
 	STATS_FLUSH_BUF();
 	close (StatsFD);
-    }
-#endif
-#if (defined(TARGET_BYTECODE) && defined(INSTR_COUNT))
-    {
-	extern void PrintInstrCount (FILE *f);
-	PrintInstrCount (DebugF);
     }
 #endif
 

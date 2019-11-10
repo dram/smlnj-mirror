@@ -34,7 +34,6 @@ KERN_DIR =	$(ROOT_DIR)/kernel
 MACH_DIR =	$(ROOT_DIR)/mach-dep
 MEM_DIR =	$(ROOT_DIR)/memory
 MP_DIR =	$(ROOT_DIR)/mp
-BC_DIR =	$(ROOT_DIR)/bytecode
 CLIB_DIR =	$(ROOT_DIR)/c-libs
 CONFIG_DIR =	$(ROOT_DIR)/config
 
@@ -278,9 +277,6 @@ prim.o:		$(MACH_DIR)/$(TARGET).prim.asm \
 	$(CPP) -D_ASM_ $(DEFS) $(INCLUDES) $(MACH_DIR)/$(TARGET).prim.asm > prim.s
 	$(AS) -o prim.o prim.s
 
-$(MACH_DIR)/BYTECODE.prim.asm: bc-instr-def.h $(BC_DIR)/bc-instrs.h $(BC_DIR)/bc.h
-
-
 #
 #
 
@@ -288,41 +284,6 @@ mlstate-offsets.h:	gen-offsets ml-sizes.h system-signals.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/vproc-state.h \
 		$(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h
 	./gen-offsets
-
-
-#
-# bytecode interpreter
-#
-interp.o:	$(BC_DIR)/interp.c \
-		ml-sizes.h system-signals.h \
-		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-values.h \
-		$(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h \
-		$(INC_DIR)/tags.h $(INC_DIR)/bibop.h \
-		$(GC_DIR)/arena-id.h \
-		$(BC_DIR)/bc.h $(BC_DIR)/bc-trace.h $(BC_DIR)/memory-trace.h
-	$(CC) -c $(CFLAGS) $(DEFS) $(GC_INCLUDES) $(BC_DIR)/interp.c
-
-print-bc.o:	$(BC_DIR)/print-bc.c \
-		ml-sizes.h $(INC_DIR)/ml-base.h \
-		$(BC_DIR)/bc.h $(BC_DIR)/bc-trace.h $(BC_DIR)/print-bc.h
-	$(CC) -c $(CFLAGS) $(DEFS) $(INCLUDES) $(BC_DIR)/print-bc.c
-
-memory-trace.o:	$(BC_DIR)/memory-trace.c \
-		ml-sizes.h system-signals.h \
-		$(INC_DIR)/ml-base.h $(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h $(INC_DIR)/cntr.h \
-		$(INC_DIR)/bibop.h \
-		$(GC_DIR)/heap.h $(GC_DIR)/arena-id.h \
-		$(BC_DIR)/memory-trace.h
-	$(CC) -c $(CFLAGS) $(DEFS) $(GC_INCLUDES) $(BC_DIR)/memory-trace.c
-
-primops.o:	$(BC_DIR)/primops.asm \
-		$(INC_DIR)/asm-base.h
-	$(CPP) -D_ASM_ $(DEFS) $(INCLUDES) $(BC_DIR)/primops.asm > primops.s
-	$(AS) -o primops.o primops.s
-
-bc-instr-def.h:	gen-bc-instr-def \
-		$(BC_DIR)/bc.h $(BC_DIR)/print-bc.h
-	./gen-bc-instr-def
 
 
 #
@@ -383,11 +344,6 @@ gen-offsets:	$(CONFIG_DIR)/gen-offsets.c gen-common.o $(CONFIG_DIR)/gen.h \
 		$(INC_DIR)/ml-base.h $(INC_DIR)/vproc-state.h \
 		$(INC_DIR)/ml-roots.h $(INC_DIR)/ml-state.h
 	$(CC) $(CFLAGS) $(DEFS) $(GEN_INCLUDES) -o gen-offsets $(CONFIG_DIR)/gen-offsets.c gen-common.o
-
-gen-bc-instr-def:	$(CONFIG_DIR)/gen-bc-instr-def.c \
-		gen-common.o $(CONFIG_DIR)/gen.h \
-		$(BC_DIR)/bc.h $(BC_DIR)/print-bc.h
-	$(CC) $(CFLAGS) $(GEN_INCLUDES) -I$(BC_DIR) -o gen-bc-instr-def $(CONFIG_DIR)/gen-bc-instr-def.c gen-common.o
 
 gen-unix-signals:	$(CONFIG_DIR)/gen-unix-signals.c \
 		unix-signals.o gen-common.o \

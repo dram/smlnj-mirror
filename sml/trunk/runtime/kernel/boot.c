@@ -282,11 +282,9 @@ PVT FILE *OpenBinFile (const char *fname, bool_t isBinary)
  *
  *  The code area contains multiple code segements.  There will be at least
  *  two.  The very first segment is the "data" segment -- responsible for
- *  creating literal constants on the heap.  The idea is that code in the
- *  data segment will be executed only once at link-time. Thus, it can
- *  then be garbage-collected immediatly. (In the future it is possible that
- *  the data segment will not contain executable code at all but some form
- *  of bytecode that is to be interpreted separately.)
+ *  creating literal constants on the heap.  This code is actually a simple
+ *  bytecode that is interpreted to build the literals record (see
+ *  gc/build-literals.c).
  *
  *  In the binfile, each code segment is represented by its size s and its
  *  entry point offset (in bytes -- written as 4-byte big-endian integers)

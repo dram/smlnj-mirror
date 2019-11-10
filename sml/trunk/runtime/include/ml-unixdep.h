@@ -21,8 +21,6 @@
  *   HAS_PARTIAL_MUNMAP		if OS allows unmapping of subranges of a mapped
  *				object
  *   HAS_VM_ALLOCATE		if OS provides vm_allocate (MACH)
- *   HAS_SCALBN			if OS provides scalbn(3m) (used by bytecode)
- *   HAS_ILOGB			if OS provides ilogb(3m) (used by bytecode)
  *   HAS_SELECT			if OS supports BSD style select(2)
  *   HAS_POLL			if OS supports SystemV style poll(2)
  *   HAS_POSIX_SIGS		if OS provides POSIX sigaction signal interface
@@ -125,8 +123,6 @@ extern char	*sys_errlist[];
 #  define HAS_SETITIMER
 #  define HAS_MMAP
 #  define HAS_PARTIAL_MUNMAP
-#  define HAS_SCALBN
-#  define HAS_ILOGB
 #  define HAS_POLL
 #  define HAS_UCONTEXT
 #  define INCLUDE_SIGINFO_H <siginfo.h>
@@ -210,8 +206,6 @@ extern char	*sys_errlist[];
 #  define HAS_ANON_MMAP
 #  define HAS_PARTIAL_MUNMAP
 #  define HAS_SELECT
-#  define HAS_SCALBN
-#  define HAS_ILOGB
 #  define HAS_SIGCONTEXT
 #  define HAS_STRERROR
 #  define STAT_HAS_TIMESPEC
@@ -225,8 +219,6 @@ extern char	*sys_errlist[];
 #  define HAS_SETITIMER
 #  define HAS_MMAP
 #  define HAS_SELECT
-#  define HAS_SCALBN
-#  define HAS_ILOGB
 #  define HAS_UCONTEXT
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP
@@ -241,8 +233,6 @@ extern char	*sys_errlist[];
 #  define HAS_SETITIMER
 #  define HAS_MMAP
 #  define HAS_SELECT
-#  define HAS_SCALBN
-#  define HAS_ILOGB
 #  define HAS_SIGCONTEXT
 #  define HAS_STRERROR
 #  define HAS_MKSTEMP

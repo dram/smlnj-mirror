@@ -11,11 +11,6 @@
 
 extern FILE	*DebugF;
 
-#ifdef TARGET_BYTECODE
-extern FILE	*BC_stdout;
-#endif
-
-
 /* Say:
  * Print a message to the standard output.
  */
@@ -71,16 +66,6 @@ void Die (char *fmt, ...)
     vfprintf (stderr, fmt, ap);
     fprintf (stderr, "\n");
     va_end(ap);
-
-#if (defined(TARGET_BYTECODE) && defined(INSTR_HISTORY))
-    {
-	extern void PrintRegs (FILE *);
-	extern void PrintInstrHistory (FILE *);
-
-	PrintRegs (BC_stdout);
-	PrintInstrHistory (BC_stdout);
-    }
-#endif
 
 #ifdef MP_SUPPORT
     MP_Shutdown ();

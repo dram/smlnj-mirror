@@ -68,10 +68,6 @@ ml_val_t _ml_RunT_sysinfo (ml_state_t *msp, ml_val_t arg)
 	res = ML_CString(msp, "SPARC");
 #elif defined(TARGET_X86)
 	res = ML_CString(msp, "X86");
-#elif defined(TARGET_C)
-	res = ML_CString(msp, "C");
-#elif defined(TARGET_BYTECODE)
-	res = ML_CString(msp, "BYTECODE");
 #else
 	res = ML_CString(msp, "<unknown>");
 #endif

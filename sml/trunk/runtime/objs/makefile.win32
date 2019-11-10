@@ -43,7 +43,6 @@ KERN_DIR =	$(ROOT_DIR)\kernel
 MACH_DIR =	$(ROOT_DIR)\mach-dep
 MEM_DIR =	$(ROOT_DIR)\memory
 MP_DIR =	$(ROOT_DIR)\mp
-BC_DIR =	$(ROOT_DIR)\bytecode
 CLIB_DIR =	$(ROOT_DIR)\c-libs
 CONFIG_DIR =	$(ROOT_DIR)\config
 
@@ -289,9 +288,6 @@ prim.obj:	$(MACH_DIR)\$(TARGET).prim.asm \
 	$(AS) /c prim.s
 
 
-$(MACH_DIR)\BYTECODE.prim.asm: bc-instr-def.h $(BC_DIR)\bc-instrs.h $(BC_DIR)\bc.h
-
-
 #
 #
 
@@ -300,43 +296,6 @@ mlstate-offsets.h:	gen-offsets.exe ml-sizes.h \
 		$(INC_DIR)\ml-base.h $(INC_DIR)\vproc-state.h \
 		$(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h
 	.\gen-offsets.exe
-
-
-#
-# bytecode interpreter
-#
-interp.obj:	$(BC_DIR)\interp.c \
-		ml-sizes.h reg-mask.h \
-                system-signals.h \
-		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-values.h \
-		$(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h \
-		$(INC_DIR)\tags.h $(INC_DIR)\bibop.h \
-		$(GC_DIR)\arena-id.h \
-		$(BC_DIR)\bc.h $(BC_DIR)\bc-trace.h $(BC_DIR)\memory-trace.h
-	$(CC) /c $(CFLAGS) $(DEFS) $(GC_INCLUDES) $(BC_DIR)\interp.c
-
-print-bc.obj:	$(BC_DIR)\print-bc.c \
-		ml-sizes.h $(INC_DIR)\ml-base.h \
-		$(BC_DIR)\bc.h $(BC_DIR)\bc-trace.h $(BC_DIR)\print-bc.h
-	$(CC) /c $(CFLAGS) $(DEFS) $(INCLUDES) $(BC_DIR)\print-bc.c
-
-memory-trace.obj:	$(BC_DIR)\memory-trace.c \
-		ml-sizes.h \
-                system-signals.h \
-		$(INC_DIR)\ml-base.h $(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h $(INC_DIR)\cntr.h \
-		$(INC_DIR)\bibop.h \
-		$(GC_DIR)\heap.h $(GC_DIR)\arena-id.h \
-		$(BC_DIR)\memory-trace.h
-	$(CC) /c $(CFLAGS) $(DEFS) $(GC_INCLUDES) $(BC_DIR)\memory-trace.c
-
-primops.obj:	$(BC_DIR)\primops.asm \
-		$(INC_DIR)\asm-base.h
-	$(CPP) /D_ASM_ $(DEFS) $(INCLUDES) $(BC_DIR)\primops.asm > primops.s
-	$(AS) -o primops.obj primops.s
-
-bc-instr-def.h:	gen-bc-instr-def.exe \
-		$(BC_DIR)\bc.h $(BC_DIR)\print-bc.h
-	.\gen-bc-instr-def.exe
 
 
 #
@@ -403,11 +362,6 @@ gen-offsets.exe:	$(CONFIG_DIR)\gen-offsets.c gen-common.obj $(CONFIG_DIR)\gen.h 
 		$(INC_DIR)\ml-base.h $(INC_DIR)\vproc-state.h \
 		$(INC_DIR)\ml-roots.h $(INC_DIR)\ml-state.h
 	$(CC) $(DEFS) $(GEN_INCLUDES) /Fegen-offsets $(CONFIG_DIR)\gen-offsets.c gen-common.obj
-
-gen-bc-instr-def.exe:	$(CONFIG_DIR)\gen-bc-instr-def.c \
-		gen-common.obj $(CONFIG_DIR)\gen.h \
-		$(BC_DIR)\bc.h $(BC_DIR)\print-bc.h
-	$(CC) $(GEN_INCLUDES) /I$(BC_DIR) /Fegen-bc-instr-def.exe $(CONFIG_DIR)\gen-bc-instr-def.c gen-common.obj
 
 gen-win32-signals.exe:	$(CONFIG_DIR)\gen-win32-signals.c $(CONFIG_DIR)\win32-sigtab.h \
 		gen-common.obj \

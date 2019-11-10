@@ -235,18 +235,6 @@
 #   define MISC17_INDX	    24		/* 96(esp) */
 #   define MISC18_INDX	    25		/* 100(esp) */
 
-#elif defined (TARGET_BYTECODE)
-
-#   define NROOTS	    18		/* GPR[0-14], PC, exnPtr, varPtr */
-#   define N_ARG_REGS       15		/* GPR[0-14] */
-#   define PC_INDX	    15
-#   define EXN_INDX	    16		/* exnPtr */
-#   define ARG_INDX	    0		/* GPR[0] */
-#   define CONT_INDX	    1		/* GPR[1] */
-#   define CLOSURE_INDX	    2		/* GPR[2] */
-#   define LINK_INDX	    3		/* GPR[3] */
-#   define VAR_INDX         17          /* varPtr */
-
 #endif
 
 #endif /* !_ML_ROOTS_ */

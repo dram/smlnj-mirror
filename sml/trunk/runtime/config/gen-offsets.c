@@ -40,9 +40,6 @@ int main (void)
 
     f = OpenFile ("mlstate-offsets.h", "_MLSTATE_OFFSETS_");
 
-#if TARGET_BYTECODE
-    fprintf (f, "/* TARGET_BYTECODE */\n");
-#else
     PMOFFSET("VProc", ml_vproc);
     PMOFFSET("AllocPtr", ml_allocPtr);
     PMOFFSET("LimitPtr", ml_limitPtr);
@@ -68,7 +65,6 @@ int main (void)
     PVOFFSET("InSigHandler", vp_inSigHandler);
     PVOFFSET("SigsRecv", vp_totalSigCount.nReceived);
     PVOFFSET("SigsHandled", vp_totalSigCount.nHandled);
-#endif /* !BYTECODE */
 
     CloseFile (f, "_MLSTATE_OFFSETS_");
 
