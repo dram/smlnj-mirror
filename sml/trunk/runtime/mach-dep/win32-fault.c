@@ -180,7 +180,7 @@ int restoreregs (ml_state_t *msp)
     return request;
 
   } __except(fault_handler(GetExceptionCode(), (Addr_t)(GetExceptionInformation())->ContextRecord->Eip) ?
-#ifdef HOST_X86
+#ifdef ARCH_X86
 	     ((Word_t *)(GetExceptionInformation())->ContextRecord->Eip = request_fault,
               EXCEPTION_CONTINUE_EXECUTION) :
 	      EXCEPTION_CONTINUE_SEARCH)

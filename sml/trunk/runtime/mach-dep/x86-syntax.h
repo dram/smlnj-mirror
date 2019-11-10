@@ -117,13 +117,13 @@
 #define DATA		.data
 #define ALIGN_CODE	.p2align 4
 
-#if defined(HOST_X86)
+#if defined(ARCH_X86)
 #define ALIGN4		.p2align 2
 #define WORD(lab)	LABEL(lab) .long 0
-#else /* HOST_AMD_64 */
+#else /* ARCH_AMD_64 */
 #define ALIGN8		.p2align 3
 #define WORD(lab)	LABEL(lab) .long 0, 0
-#endif /* HOST_X86 */
+#endif /* ARCH_X86 */
 
 /* operands */
 #define IM(x)		CONCAT($,x)
@@ -132,7 +132,7 @@
 #define REGIND_16(r)	(r)
 #define REGOFF(d,r)	d(r)
 #define CODEPTR(r)	*r
-#if defined(HOST_AMD64)
+#if defined(ARCH_AMD64)
 #  define CODEADDR(lab)	lab(REG(rip))
 #endif
 
@@ -151,22 +151,22 @@
 #define DATA		.DATA
 #define ALIGN_CODE	ALIGN 4
 
-#if defined(HOST_X86)
+#if defined(ARCH_X86)
 #  define ALIGN4	ALIGN 4
 #  define WORD(lab)	lab DWORD 0
-#else /* HOST_AMD_64 */
+#else /* ARCH_AMD_64 */
 #  define ALIGN8	ALIGN 8
 #  define WORD(lab)	lab QWORD 0
-#endif /* HOST_X86 */
+#endif /* ARCH_X86 */
 
 /* operands */
 #define IM(x)		x
 #define REG(r)		r
-#ifdef TARGET_X86
+#ifdef ARCH_X86
 #  define REGIND(r)	dword ptr [r]
 #  define REGIND_16(r)	word ptr [r]
 #  define REGOFF(d,r)	dword ptr [r + d]
-#else /* TARGET_AMD64 */
+#else /* ARCH_AMD64 */
 #  define REGIND(r)	qword ptr [r]
 #  define REGOFF(d,r)	qword ptr [r + d]
 #endif
@@ -183,7 +183,7 @@
 #define JNE(lab)		jne lab
 #define RET			ret
 
-#ifdef TARGET_X86
+#ifdef ARCH_X86
 /* 16-bit operations */
 #define ANDW(src,dst)		CHOICE(andw ARGS2(src,dst), and ARGS2(src,dst))
 #define MOVW(src,dst)		CHOICE(movw ARGS2(src,dst), mov ARGS2(src,dst))
@@ -229,9 +229,9 @@
 #  define REGOFF_W(d,r)		word ptr [r + d]
 #  define REGOFF_DBL(d,r)	real8 ptr [r + d]
 #endif /* GNU_ASSEMBLER */
-#endif /* TARGET_X86 */
+#endif /* ARCH_X86 */
 
-#ifdef TARGET_AMD64
+#ifdef ARCH_AMD64
 /* 64-bit sized operations */
 #define ADD(src,dst)		CHOICE(addq ARGS2(src,dst), add ARGS2(src,dst))
 #define AND(src,dst)		CHOICE(andq ARGS2(src,dst), and ARGS2(src,dst))
@@ -293,7 +293,7 @@
 #define XMM13		REG(xmm13)
 #define XMM14		REG(xmm14)
 #define XMM15		REG(xmm15)
-#endif /* TARGET_AMD64 */
+#endif /* ARCH_AMD64 */
 
 /* MOVE(src,tmp,dst) copies one memory location `src` to `dst``, using register `tmp`. */
 #ifdef GNU_ASSEMBLER

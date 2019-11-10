@@ -1,12 +1,13 @@
 /* ml-fp.h
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * NOTE: changes to this file must be tracked in ml-fp.c.
  */
 
 
-#ifdef TARGET_X86
+#ifdef ARCH_X86
 
 extern void Save_C_FPState();
 extern void Restore_C_FPState();

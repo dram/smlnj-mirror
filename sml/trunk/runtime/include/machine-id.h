@@ -11,13 +11,13 @@
 #  include "ml-base.h"
 #endif
 
-#if defined(TARGET_AMD64)
+#if defined(ARCH_AMD64)
 #  define MACHINE_ID	"amd64"
-#elif defined(TARGET_PPC)
+#elif defined(ARCH_PPC)
 #  define MACHINE_ID	"ppc"
-#elif defined(TARGET_SPARC)
+#elif defined(ARCH_SPARC)
 #  define MACHINE_ID	"sparc"
-#elif defined(TARGET_X86)
+#elif defined(ARCH_X86)
 #  define MACHINE_ID	"x86"
 #else
 #  error unknown architecture type

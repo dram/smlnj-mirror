@@ -278,12 +278,8 @@ structure GenericInstall : sig
 		  else loop (reqs, modules, module :: srcReqs, allsrc) (* assume a src module *)
 	    | loop (IFDEF(symb, tReqs, fReqs) :: reqs, modules, srcReqs, allsrc) = let
 		val cond = (case String.map Char.toUpper symb
-(* FIXME: for backward compatibility with 110.93 (and earlier), we use a different size test
-		       of "SIZE_32" => (SMLofNJ.SysInfo.getHostSize() = 32)
-			| "SIZE_64" => (SMLofNJ.SysInfo.getHostSize() = 64)
-*)
-		       of "SIZE_32" => (valOf Int.precision = 31)
-			| "SIZE_64" => (valOf Int.precision = 63)
+		       of "SIZE_32" => (SMLofNJ.SysInfo.getArchSize() = 32)
+			| "SIZE_64" => (SMLofNJ.SysInfo.getArchSize() = 64)
 			| "UNIX" => (SMLofNJ.SysInfo.getOSKind() = SMLofNJ.SysInfo.UNIX)
 			| "WINDOWS" => (SMLofNJ.SysInfo.getOSKind() = SMLofNJ.SysInfo.WIN32)
 			| _ => fail ["unknown symbol '", symb, "' in conditional\n"]

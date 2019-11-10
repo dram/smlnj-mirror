@@ -22,17 +22,14 @@ signature SYS_INFO =
     val getOSName    : unit -> string
     val getOSVersion : unit -> string
 
-    val getHostSize : unit -> int
-	(* returns word size of the host architecture (either 32 or 64) *)
+    val getArchName  : unit -> string
+	(* returns the name of the architecture we are running on. *)
+    val getArchSize : unit -> int
+	(* returns word size of the architecture (either 32 or 64) *)
 
-    val getHostArch   : unit -> string
-	(* returns the HOST_ARCH value from the run-time build *)
-    val getTargetArch : unit -> string
-	(* returns the TARGET_ARCH value from the run-time build; this is
-	 * usually the same as the host architecture, except in the case that
-	 * some form of emulation is being run (e.g., ML-to-C, or an
-	 * interpreter).
-	 *)
+    val getHostSize : unit -> int	(* DEPRECATED: use getArchSize *)
+    val getHostArch   : unit -> string	(* DEPRECATED: use getArchName *)
+    val getTargetArch : unit -> string	(* DEPRECATED: use getArchName *)
 
     val hasSoftwarePolling : unit -> bool
 	(* returns true, if the run-time system was compiled to support software

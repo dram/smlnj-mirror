@@ -33,13 +33,19 @@ structure SysInfo : SYS_INFO =
 	  (* end case *))
     fun getOSVersion () = getInfoStr(sysInfo "OS_VERSION")
 
-    fun getHostSize () = (case getInfoStr(sysInfo "HOST_ARCH")
+    fun getArchName () = (case getInfoStr(sysInfo "ARCH_NAME")
+	   of "<unknown>" => getInfoStr(sysInfo "HOST_ARCH")	(* REMOVE in 110.97 *)
+	    | arch => arch
+	  (* end case *))
+    fun getArchSize () = (case getArchName()
 	   of "AMD64" => 64
 	    | _ => 32
 	  (* end case *))
 
-    fun getHostArch () = getInfoStr(sysInfo "HOST_ARCH")
-    fun getTargetArch () = getInfoStr(sysInfo "TARGET_ARCH")
+  (* these functions are deprecated and will go away in 110.97 *)
+    val getHostSize = getArchSize
+    val getHostArch = getArchName
+    val getTargetArch = getArchName
 
     fun hasSoftwarePolling () = getFlag "HAS_SOFT_POLL"
     fun hasMultiprocessing () = getFlag "HAS_MP"
@@ -47,5 +53,3 @@ structure SysInfo : SYS_INFO =
     fun getHeapSuffix () = getInfoStr (sysInfo "HEAP_SUFFIX")
 
   end
-
-

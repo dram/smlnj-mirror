@@ -1,15 +1,16 @@
-/* c-entry.asm 
+/*! \file c-entry.asm
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #include "asm-base.h"
 
-#if defined(TARGET_X86)
+#if defined(ARCH_X86)
 #define CALL_BIAS 	5
 #define cresult	%eax
 
-#elif defined(TARGET_MIPS)
+#elif defined(ARCH_MIPS)
 
 #define CALL_BIAS	20
 
@@ -23,7 +24,7 @@
 #define tmp0	$3
 #define tmp1    $8
 
-#elif defined(TARGET_SPARC)
+#elif defined(ARCH_SPARC)
 
 #define CALL_BIAS	8
 #define DELAY 	nop
@@ -68,7 +69,7 @@ ENDM
 
 #endif
 
-#if defined(TARGET_X86)
+#if defined(ARCH_X86)
 #if defined(OPSYS_LINUX)
 CSYM(grabPC):
 /*->*/	call	grabPCaux		/* put pc in %eax */
@@ -125,22 +126,22 @@ CSYM(asm_entry_szb) DWORD CSYM(grabPCend) - CSYM(grabPC)
 #else
 #error unknown x86 opsys
 #endif
-#elif defined(TARGET_MIPS)
+#elif defined(ARCH_MIPS)
 
 grabPCaux:
 	j	tmp1
-		
+
 	.align 	2
 	.ent	grabPC 2
 CSYM(grabPC):
-/*->*/	la	tmp0,grabPCaux		  /* load address of grabPCaux */ 
+/*->*/	la	tmp0,grabPCaux		  /* load address of grabPCaux */
 	jalr	tmp1,tmp0		  /* call it, putting pc in tmp1 */
 	subu	tmp1,CALL_BIAS		  /* adjust pc to point at "->" */
 	la	tmp0,CSYM(last_entry)	  /* save it */
 	sw	tmp1,0(tmp0)
-	lw	tmp0,NARGS_OFFSET(tmp1) 
+	lw	tmp0,NARGS_OFFSET(tmp1)
 	bnez	tmp0,some_args
-	la	t9,CSYM(no_args_entry)	  
+	la	t9,CSYM(no_args_entry)
 	j	t9			  /* call C, must use t9 here */
 	/* should never get here */
 some_args:
@@ -149,18 +150,18 @@ some_args:
 	/* should never get here */
 CSYM(grabPCend):
 
-#elif defined(TARGET_SPARC)
+#elif defined(ARCH_SPARC)
 	.align 	4
 CSYM(grabPC):
 /*->*/	st	%o0,[%sp-4]		  /* get some temps */
 	mov	%o7,%g1			  /* save ret addr in %g1 */
-	call	grabPCaux		  /* call leaves pc in %o7 */ 
+	call	grabPCaux		  /* call leaves pc in %o7 */
 	DELAY
 	mov	%o7,%o0			  /* restore ret addr */
 	mov	%g1,%o7
 	sub	%o0,CALL_BIAS,%o0	  /* unbias saved pc */
 	set	CSYM(last_entry),%g1	  /* store it */
-	st	%o0,[%g1]    
+	st	%o0,[%g1]
 	ld	[%o0+NARGS_OFFSET],%o0  /* get # of args */
 	tst	%o0
 	ld	[%sp-4],%o0		  /* relinquish temps */
@@ -187,7 +188,7 @@ CSYM(grabPCend):
 
 #ifdef OPSYS_WIN32
 	END
-#elif !defined(TARGET_SPARC)
+#elif !defined(ARCH_SPARC)
 	.end
 #endif
 

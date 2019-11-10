@@ -32,7 +32,7 @@ structure UnixInstall : sig end =
 	  val runsml = ".run-sml"		(* don't prepend bindir! *)
 	(* the config and build commands are standard scripts that take a size argument *)
 	  val (configcmd, buildcmd) = let
-		val sz = Int.toString(SMLofNJ.SysInfo.getHostSize())
+		val sz = Int.toString(SMLofNJ.SysInfo.getArchSize())
 		val configcmd = "./config.sh -" ^ sz
 		val buildcmd = "CM_LOCAL_PATHCONFIG=/dev/null ./build.sh -" ^ sz
 		in

@@ -133,7 +133,7 @@ extern char	*sys_errlist[];
 extern int	sys_nerr;
 extern char	*sys_errlist[];
 
-#elif (defined(TARGET_AMD64) && defined(OPSYS_LINUX))
+#elif (defined(ARCH_AMD64) && defined(OPSYS_LINUX))
 #  define OS_NAME	"Linux"
 #  define HAS_POSIX_LIBRARIES
 #  define HAS_POSIX_SIGS
@@ -154,7 +154,7 @@ extern char	*sys_errlist[];
 
 #include <features.h>
 
-#elif (defined(TARGET_X86) && defined(OPSYS_LINUX))
+#elif (defined(ARCH_X86) && defined(OPSYS_LINUX))
 #  define OS_NAME	"Linux"
 #  define HAS_POSIX_LIBRARIES
 #  define HAS_POSIX_SIGS
@@ -175,7 +175,7 @@ extern char	*sys_errlist[];
 
 #include <features.h>
 
-#elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+#elif (defined(ARCH_PPC) && defined(OPSYS_LINUX))
 #  define OS_NAME	"Linux"
 #  define HAS_POSIX_LIBRARIES
 #  define HAS_POSIX_SIGS

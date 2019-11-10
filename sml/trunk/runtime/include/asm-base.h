@@ -30,7 +30,7 @@
 #  define CSYM(ID)	ID
 #endif
 
-#if defined(HOST_SPARC)
+#if defined(ARCH_SPARC)
 #  if defined(OPSYS_SOLARIS)
 #    define _ASM
 #    include <sys/stack.h>
@@ -45,7 +45,7 @@
 #  define BEGIN_PROC(P)
 #  define END_PROC(P)
 
-#elif defined(HOST_PPC)
+#elif defined(ARCH_PPC)
 #  if defined(OPSYS_AIX)
 #    define CFUNSYM(ID)	CONCAT(.,ID)
 #    define USE_TOC
@@ -58,7 +58,7 @@
 #    define DOUBLE(V)	.double V
 #    define LABEL(ID)   ID:
 
-#  elif (defined(OPSYS_LINUX) && defined(TARGET_PPC))
+#  elif defined(OPSYS_LINUX)
 #    define CFUNSYM(ID)	ID
 #    define GLOBAL(ID)	.globl ID
 #    define TEXT	.section ".text"
@@ -69,7 +69,7 @@
 #    define DOUBLE(V)	.double V
 #    define LABEL(ID)	ID:
 
-#  elif (defined(OPSYS_DARWIN) && defined(TARGET_PPC))
+#  elif defined(OPSYS_DARWIN)
 #    define CFUNSYM(ID) CSYM(ID)
 #    define GLOBAL(ID)  .globl  ID
 #    define TEXT        .text
@@ -81,7 +81,7 @@
 #    define LABEL(ID)	ID:
 #    define __SC__      @
 
-#  elif (defined(OPSYS_OPENBSD) && defined(TARGET_PPC))
+#  elif defined(OPSYS_OPENBSD)
 #    define CFUNSYM(ID) CSYM(ID)
 #    define GLOBAL(ID)  .globl  ID
 #    define TEXT        .text
@@ -98,7 +98,7 @@
     LABEL(CFUNSYM(ID))
 
 /* FIXME: move these definitions to the x86-prim.h file */
-#elif defined(HOST_X86) || defined(HOST_AMD64)
+#elif defined(ARCH_X86) || defined(ARCH_AMD64)
 #  error use x86-syntax.h instead if ml-base.h
 
 #else
@@ -112,7 +112,6 @@
 
 #  define CGLOBAL(ID)	GLOBAL(CSYM(ID))
 
-/* #if !(defined(TARGET_X86) || defined(TARGET_AMD64)) */
 #define ENTRY(ID)				\
     CGLOBAL(ID) __SC__				\
     LABEL(CSYM(ID))
@@ -122,7 +121,6 @@
 	    ALIGN4 __SC__			\
     LABEL(CSYM(name))
 #define IMMED(x) CONST(x)
-/* #endif */ /* not x86 or amd64 */
 
 #endif /* !_ASM_BASE_ */
 

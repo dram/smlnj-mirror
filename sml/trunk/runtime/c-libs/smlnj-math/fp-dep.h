@@ -107,7 +107,7 @@ extern int fesetround (int);
 #  define FE_UPWARD		FP_RP
 #  define FE_DOWNWARD		FP_RM
 typedef int fe_rnd_mode_t;
-#  if defined(TARGET_X86)
+#  if defined(ARCH_X86)
   /* There is a bug in the Solaris X86 implementation of
    * fpgetround() and fpsetround(); we use the assembler code instead.
    */
@@ -119,7 +119,7 @@ extern int fesetround (int);
 #    define fesetround(RM)        fpsetround(RM)
 #  endif
 
-#elif defined(OPSYS_DARWIN) && defined(TARGET_PPC)
+#elif defined(OPSYS_DARWIN) && defined(ARCH_PPC)
 #   include <architecture/ppc/fp_regs.h>
 #   define FE_TONEAREST RN_NEAREST
 #   define FE_UPWARD RN_TOWARD_PLUS

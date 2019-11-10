@@ -29,12 +29,13 @@
  *
  * Current queries:
  *   "OS_NAME"
- *   "OS_VERSION"
- *   "HOST_ARCH"
- *   "TARGET_ARCH"
+ *   "OS_VERSION"	(not supported)
+ *   "ARCH"
+ *   "ARCH_ARCH"	(deprecated; use "ARCH")
+ *   "TARGET_ARCH"	(deprecated; use "ARCH")
  *   "HAS_SOFT_POLL"
  *   "HAS_MP"
- *   "HEAP_SUFFIX"      -- added by Blume (7/2000)
+ *   "HEAP_SUFFIX"
  */
 ml_val_t _ml_RunT_sysinfo (ml_state_t *msp, ml_val_t arg)
 {
@@ -47,26 +48,16 @@ ml_val_t _ml_RunT_sysinfo (ml_state_t *msp, ml_val_t arg)
 	res = ML_CString(msp, "<unknown>");
     else if (STREQ("HEAP_SUFFIX", name))
         res = ML_CString(msp, MACHINE_ID "-" OPSYS_ID);
-    else if (STREQ("HOST_ARCH", name))
-#if   defined(HOST_AMD64)
+    else if (STREQ("ARCH_NAME", name)
+    || STREQ("ARCH_ARCH", name)		/* DEPRECATED */
+    || STREQ("TARGET_ARCH", name))	/* DEPRECATED */
+#if   defined(ARCH_AMD64)
 	res = ML_CString(msp, "AMD64");
-#elif defined(HOST_PPC)
+#elif defined(ARCH_PPC)
 	res = ML_CString(msp, "PPC");
-#elif defined(HOST_SPARC)
+#elif defined(ARCH_SPARC)
 	res = ML_CString(msp, "SPARC");
-#elif defined(HOST_X86)
-	res = ML_CString(msp, "X86");
-#else
-	res = ML_CString(msp, "<unknown>");
-#endif
-    else if (STREQ("TARGET_ARCH", name))
-#if   defined(TARGET_AMD64)
-	res = ML_CString(msp, "AMD64");
-#elif defined(TARGET_PPC)
-	res = ML_CString(msp, "PPC");
-#elif defined(TARGET_SPARC)
-	res = ML_CString(msp, "SPARC");
-#elif defined(TARGET_X86)
+#elif defined(ARCH_X86)
 	res = ML_CString(msp, "X86");
 #else
 	res = ML_CString(msp, "<unknown>");

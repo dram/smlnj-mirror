@@ -166,7 +166,7 @@ typedef int SigMask_t;
 
 /** Machine/OS dependent stuff **/
 
-#if defined(HOST_SPARC)
+#if defined(ARCH_SPARC)
 
 extern void SetFSR(int);
   /* disable all FP exceptions */
@@ -188,7 +188,7 @@ extern void SetFSR(int);
 
 #  endif
 
-#elif defined(HOST_PPC)
+#elif defined(ARCH_PPC)
 #  if defined (OPSYS_AIX)
     /** RS6000 or PPC, AIX **/
 #    include <fpxcp.h>
@@ -225,7 +225,7 @@ extern void SetFSR(int);
    */
 #    define SIG_ZeroLimitPtr(scp)	{  (scp)->uc_mcontext->ss.r15 = 0; }
 
-#  elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+#  elif (defined(ARCH_PPC) && defined(OPSYS_LINUX))
     /* PPC, Linux */
 
 #    include <signal.h>
@@ -251,9 +251,9 @@ extern void SetFSR(int);
 
     typedef void SigReturn_t;
 
-#  endif /* HOST_PPC */
+#  endif /* ARCH_PPC */
 
-#elif defined(HOST_X86)
+#elif defined(ARCH_X86)
 
 #  define LIMITPTR_X86OFFSET	3	/* offset (words) of limitptr in ML stack */
 					/* frame (see X86.prim.asm) */
@@ -261,7 +261,7 @@ extern void SetFSR(int);
    extern void FPEEnable ();		/* defined in X86.prim.asm */
 #  define SIG_InitFPE()    FPEEnable()
 
-#  if (defined(TARGET_X86) && defined(OPSYS_LINUX))
+#  if (defined(ARCH_X86) && defined(OPSYS_LINUX))
     /** X86, LINUX **/
 #    define INTO_OPCODE		0xce	/* the 'into' instruction is a single */
 					/* instruction that signals Overflow */
@@ -361,7 +361,7 @@ extern void SetFSR(int);
 #    error "unknown OPSYS for x86"
 #  endif
 
-#elif defined(TARGET_AMD64)
+#elif defined(ARCH_AMD64)
 
 #  define SIG_InitFPE()
 

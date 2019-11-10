@@ -46,7 +46,7 @@ end = struct
 
   (* figure out who and what we are *)
     fun platformInfo () = let
-	  val arch = String.map Char.toLower (SI.getHostArch ())
+	  val arch = String.map Char.toLower (SI.getArchName ())
 	  val (isUnix, oskind) = (case SI.getOSKind ()
 		 of SI.UNIX => (true, "unix")
 		  | SI.WIN32 => (false, "win32")

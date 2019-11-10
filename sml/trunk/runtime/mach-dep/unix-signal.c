@@ -38,7 +38,7 @@ extern		ZeroLimitPtr[];
 /* local routines */
 #if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
 PVT SigReturn_t CSigHandler (int sig, SigInfo_t info, void *scp);
-#elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+#elif (defined(ARCH_PPC) && defined(OPSYS_LINUX))
 PVT SigReturn_t CSigHandler (int sig, SigContext_t *scp);
 #else
 PVT SigReturn_t CSigHandler (int sig, SigInfo_t info, SigContext_t *scp);
@@ -163,14 +163,14 @@ sig, vsp->vp_handlerPending, vsp->vp_inSigHandler);
 
 PVT SigReturn_t CSigHandler (
     int		    sig,
-#if (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+#if (defined(ARCH_PPC) && defined(OPSYS_LINUX))
     SigContext_t    *scp)
 #else
     SigInfo_t	    info,
     SigContext_t    *scp)
 #endif
 {
-#if defined(OPSYS_LINUX) && defined(TARGET_X86) && defined(USE_ZERO_LIMIT_PTR_FN)
+#if defined(OPSYS_LINUX) && defined(ARCH_X86) && defined(USE_ZERO_LIMIT_PTR_FN)
     SigContext_t    *scp = &sc;
 #endif
     vproc_state_t   *vsp = SELF_VPROC;

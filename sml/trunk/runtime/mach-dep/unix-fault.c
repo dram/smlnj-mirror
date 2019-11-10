@@ -32,7 +32,7 @@
 /* local routines */
 #if defined(HAS_POSIX_SIGS) && defined(HAS_UCONTEXT)
 PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, void *scp);
-#elif (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+#elif (defined(ARCH_PPC) && defined(OPSYS_LINUX))
 PVT SigReturn_t FaultHandler (int sig, SigContext_t *scp);
 #else
 PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, SigContext_t *scp);
@@ -109,7 +109,7 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *uc)
 
 PVT SigReturn_t FaultHandler (
     int		    signal,
-#if (defined(TARGET_PPC) && defined(OPSYS_LINUX))
+#if (defined(ARCH_PPC) && defined(OPSYS_LINUX))
     SigContext_t    *scp)
 #else
     SigInfo_t	    info,
@@ -142,7 +142,7 @@ PVT SigReturn_t FaultHandler (
 
 #endif
 
-#if ((defined(TARGET_RS6000) || defined(TARGET_PPC)) && defined(OPSYS_AIX))
+#if ((defined(ARCH_RS6000) || defined(ARCH_PPC)) && defined(OPSYS_AIX))
 
 /* SIG_GetCode:
  *

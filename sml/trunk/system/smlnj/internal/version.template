@@ -18,7 +18,7 @@ structure SMLNJVersion : sig
 
   end = struct
 
-    val size = Int.toString(SMLofNJ.SysInfo.getHostSize())
+    val size = Int.toString(SMLofNJ.SysInfo.getArchSize())
 
     (* generate date string at boot time *)
     val version = {

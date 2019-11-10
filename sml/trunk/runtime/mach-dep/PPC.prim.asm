@@ -1,6 +1,7 @@
 /* PPC.prim.asm
  *
- * COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  */
 
 #ifndef _ASM_
@@ -850,7 +851,7 @@ CENTRY(RestoreFPRegs)
 	lfd	f31, 136(r3)
 	blr
 
-#if (defined(TARGET_PPC) && (defined(OPSYS_LINUX) || defined(OPSYS_DARWIN) ))
+#if (defined(ARCH_PPC) && (defined(OPSYS_LINUX) || defined(OPSYS_DARWIN) ))
 
 #define CACHE_LINE_SZB		32
 #define CACHE_LINE_MASK		(CACHE_LINE_SZB-1)
