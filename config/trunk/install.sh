@@ -461,7 +461,7 @@ else
     cd "$ROOT"/"$BOOT_FILES"
 
     # now link (boot) the system and let it initialize itself...
-    if "$BINDIR"/.link-sml @SMLheap="$ROOT"/sml @SMLboot=BOOTLIST @SMLalloc=$ALLOC
+    if "$BINDIR"/.link-sml $SIZE_OPT @SMLheap="$ROOT"/sml @SMLboot=BOOTLIST @SMLalloc=$ALLOC
     then
 	cd "$ROOT"
 	if [ -r sml.$HEAP_SUFFIX ]; then
