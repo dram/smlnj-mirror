@@ -128,6 +128,7 @@ case `uname -s` in
     case `uname -m` in
       *86) ARCH=x86 ;;
       x86_64) ARCH=$(pick_arch x86 amd64) ;;
+      amd64) ARCH=$(pick_arch x86 amd64) ;;
       *) exit 1 ;;
     esac
     ;;
