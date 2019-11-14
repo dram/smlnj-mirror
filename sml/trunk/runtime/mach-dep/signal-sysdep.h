@@ -396,7 +396,7 @@ extern void SetFSR(int);
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext.mc_rip)
 #    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.mc_rip = (Addr_t)(addr); }
-#    define SIG_SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.mc_r14 = 0; }
+#    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.mc_r14 = 0; }
 
      typedef void SigReturn_t;
 

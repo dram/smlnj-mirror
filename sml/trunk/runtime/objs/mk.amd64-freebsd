@@ -9,7 +9,7 @@ MAKE =		make
 AS =		as --64
 CC =		cc -std=gnu99
 CFLAGS =	-O2 -m64
-CPP =		gcc -x assembler-with-cpp -E -P
+CPP =		cc -x assembler-with-cpp -E -P
 XOBJS =
 XLIBS =		../c-libs/dl/libunix-dynload.a
 LD_LIBS =	-ldl
