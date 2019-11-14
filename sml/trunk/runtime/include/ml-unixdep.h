@@ -199,7 +199,7 @@ extern char	*sys_errlist[];
 #elif defined(OPSYS_FREEBSD)
 #  define OS_NAME	"BSD"
 #  define HAS_POSIX_LIBRARIES
-#  define HAS_BSD_SIGS
+#  define HAS_POSIX_SIGS
 #  define HAS_GETRUSAGE
 #  define HAS_SETITIMER
 #  define HAS_CLOCK_GETRES
