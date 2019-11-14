@@ -7,7 +7,7 @@ SHELL =		/bin/sh
 
 MAKE =		make
 AS =		as --64
-CC =		gcc -std=gnu99
+CC =		cc -std=gnu99
 CFLAGS =	-O2 -m64
 CPP =		gcc -x assembler-with-cpp -E -P
 XOBJS =
