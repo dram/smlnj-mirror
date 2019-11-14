@@ -365,63 +365,7 @@ extern void SetFSR(int);
 
 #  define SIG_InitFPE()
 
-#  if defined(OPSYS_LINUX)
-    /** amd64, LINUX **/
-/* on linux, the "int 4" instruction causes a SIGSEGV */
-
-#    define SIG_OVERFLOW		SIGSEGV
-
-#    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_RIP])
-/* for linux, SIG_GetCode simply returns the address of the fault */
-#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[REG_RIP])
-#    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_RIP] = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.gregs[REG_R14] = 0; }
-
-/* macro to check if SIGSEGV was caused by `int 4` instruction */
-#    define SIG_IS_OVERFLOW_TRAP(pc)	\
-	((((Byte_t*)pc)[-2] == 0xcd) && (((Byte_t*)pc)[-1] == 0x04))
-
-#  elif defined(OPSYS_FREEBSD)
-    /** amd64, FreeBSD **/
-#    define SIG_OVERFLOW		SIGFPE
-
-#    define SIG_GetCode(info, scp)	(info)
-#    define SIG_GetPC(scp)		((scp)->sc_pc)
-#    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (long)(addr); }
-#    define SIG_SIG_ZeroLimitPtr(scp)	{ (scp)->sc_r14 = 0; }
-
-     typedef void SigReturn_t;
-
-#  elif defined(OPSYS_NETBSD)
-    /** amd64, NetBSD (version 3.x) **/
-#    define SIG_OVERFLOW		SIGFPE
-
-#    define SIG_GetCode(info, scp)	(info)
-#    define SIG_GetPC(scp)		((uc)->uc_mcontext.__gregs[_REG_RIP])
-#    define SIG_SetPC(scp, addr)	{ (uc)->uc_mcontext.__gregs[_REG_RIP] = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.__gregs[_REG_R14] = 0; }
-
-#  elif defined(OPSYS_OPENBSD)
-    /** amd64, OpenBSD **/
-#    define SIG_OVERFLOW		SIGFPE
-
-#    define SIG_GetCode(info, scp)	(info)
-#    define SIG_GetPC(scp)		((scp)->sc_rip)
-#    define SIG_SetPC(scp, addr)	{ (scp)->sc_rip = (long)(addr); }
-#    define SIG_SIG_ZeroLimitPtr(scp)	{ (scp)->sc_r14 = 0; }
-
-     typedef void SigReturn_t;
-
-#  elif defined(OPSYS_SOLARIS)
-     /** amd64, Solaris */
-
-#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[EIP])
-#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (Addr_t)(addr); }
-/*#    define SIG_ZeroLimitPtr(scp)  { ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }*/
-
-#    error Solaris/AMD64 not supported yet
-
-#  elif defined(OPSYS_CYGWIN)
+#  if defined(OPSYS_CYGWIN)
      /** amd64, Cygwin -- see mach-dep/cygwin-fault.c */
 
 #    define SIG_OVERFLOW		SIGFPE
@@ -443,6 +387,66 @@ extern void SetFSR(int);
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext->__ss.__rip)
 #    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->__ss.__rip = (Addr_t) addr; }
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext->__ss.__r14 = 0; }
+
+#  elif defined(OPSYS_FREEBSD)
+    /** amd64, FreeBSD **/
+#    define SIG_OVERFLOW		SIGFPE
+
+#    define SIG_GetCode(info, scp)	(info)
+#    define SIG_GetPC(scp)		((scp)->uc_mcontext.mc_rip)
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.mc_rip = (Addr_t)(addr); }
+#    define SIG_SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.mc_r14 = 0; }
+
+     typedef void SigReturn_t;
+
+#  elif defined(OPSYS_LINUX)
+    /** amd64, LINUX **/
+/* on linux, the "int 4" instruction causes a SIGSEGV */
+
+#    define SIG_OVERFLOW		SIGSEGV
+
+#    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_RIP])
+/* for linux, SIG_GetCode simply returns the address of the fault */
+#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[REG_RIP])
+#    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_RIP] = (long)(addr); }
+#    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.gregs[REG_R14] = 0; }
+
+/* macro to check if SIGSEGV was caused by `int 4` instruction */
+#    define SIG_IS_OVERFLOW_TRAP(pc)	\
+	((((Byte_t*)pc)[-2] == 0xcd) && (((Byte_t*)pc)[-1] == 0x04))
+
+#  elif defined(OPSYS_NETBSD)
+    /** amd64, NetBSD (version 3.x) **/
+#    define SIG_OVERFLOW		SIGFPE
+
+#    define SIG_GetCode(info, scp)	(info)
+#    define SIG_GetPC(scp)		((uc)->uc_mcontext.__gregs[_REG_RIP])
+#    define SIG_SetPC(scp, addr)	{ (uc)->uc_mcontext.__gregs[_REG_RIP] = (long)(addr); }
+#    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.__gregs[_REG_R14] = 0; }
+
+#    error NetBSD/AMD64 not supported yet
+
+#  elif defined(OPSYS_OPENBSD)
+    /** amd64, OpenBSD **/
+#    define SIG_OVERFLOW		SIGFPE
+
+#    define SIG_GetCode(info, scp)	(info)
+#    define SIG_GetPC(scp)		((scp)->sc_rip)
+#    define SIG_SetPC(scp, addr)	{ (scp)->sc_rip = (long)(addr); }
+#    define SIG_SIG_ZeroLimitPtr(scp)	{ (scp)->sc_r14 = 0; }
+
+     typedef void SigReturn_t;
+
+#    error OpenBSD/AMD64 not supported yet
+
+#  elif defined(OPSYS_SOLARIS)
+     /** amd64, Solaris */
+
+#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[EIP])
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (Addr_t)(addr); }
+/*#    define SIG_ZeroLimitPtr(scp)  { ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }*/
+
+#    error Solaris/AMD64 not supported yet
 
 #  else
 #    error "unknown OPSYS for amd64"
