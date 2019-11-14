@@ -33,9 +33,9 @@ structure SysInfo : SYS_INFO =
 	  (* end case *))
     fun getOSVersion () = getInfoStr(sysInfo "OS_VERSION")
 
-    fun getArchName () = (case getInfoStr(sysInfo "ARCH_NAME")
-	   of "<unknown>" => getInfoStr(sysInfo "HOST_ARCH")	(* REMOVE in 110.97 *)
-	    | arch => arch
+    fun getArchName () = (case sysInfo "ARCH_NAME"
+	   of NONE => getInfoStr(sysInfo "HOST_ARCH")	(* REMOVE in 110.97 *)
+	    | SOME arch => arch
 	  (* end case *))
     fun getArchSize () = (case getArchName()
 	   of "AMD64" => 64
