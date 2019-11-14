@@ -1,6 +1,6 @@
 # mk.x86-freebsd
 #
-# makefile for "Free BSD", which is a BSD 4.4 clone.
+# makefile for "Free BSD" on the x86 architecture, which is a BSD 4.4 clone.
 #
 
 SHELL =		/bin/sh

@@ -180,8 +180,8 @@ extern void SetFSR(int);
 
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[REG_PC])
 #    define SIG_SetPC(scp, addr)	{			\
-	(scp)->uc_mcontext.gregs[REG_PC] = (long)(addr);	\
-	(scp)->uc_mcontext.gregs[REG_nPC] = (long)(addr) + 4;	\
+	(scp)->uc_mcontext.gregs[REG_PC] = (Addr_t)(addr);	\
+	(scp)->uc_mcontext.gregs[REG_nPC] = (Addr_t)(addr) + 4;	\
     }
 #    define SIG_ZeroLimitPtr(scp)	\
 	{ (scp)->uc_mcontext.gregs[REG_G4] = 0; }
@@ -197,7 +197,7 @@ extern void SetFSR(int);
      PVT int SIG_GetCode (SigInfo_t info, SigContext_t *scp);
 #    define SIG_GetPC(scp)	((scp)->sc_jmpbuf.jmp_context.iar)
 #    define SIG_SetPC(scp, addr)	\
-	{ (scp)->sc_jmpbuf.jmp_context.iar = (long)(addr); }
+	{ (scp)->sc_jmpbuf.jmp_context.iar = (Addr_t)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	\
 	{ (scp)->sc_jmpbuf.jmp_context.gpr[15] = 0; }
 #    define SIG_ResetFPE(scp)	{						\
@@ -234,7 +234,7 @@ extern void SetFSR(int);
 #    define SIG_OVERFLOW          	SIGTRAP
 
 #    define SIG_GetPC(scp)              ((scp)->regs->nip)
-#    define SIG_SetPC(scp, addr)        { (scp)->regs->nip = (long)(addr); }
+#    define SIG_SetPC(scp, addr)        { (scp)->regs->nip = (Addr_t)(addr); }
 #    define SIG_ZeroLimitPtr(scp)       { ((scp)->regs->gpr[15] = 0); } /* limitptr = 15 (see src/runtime/mach-dep/PPC.prim.asm) */
 #    define SIG_GetCode(info,scp)       ((scp)->regs->gpr[PT_FPSCR])
 #    define SIG_ResetFPE(scp)           { (scp)->regs->gpr[PT_FPSCR] = 0x0; }
@@ -245,7 +245,7 @@ extern void SetFSR(int);
 
 #    define SIG_OVERFLOW			SIGTRAP
 #    define SIG_GetPC(scp)              ((scp)->sc_frame.srr0)
-#    define SIG_SetPC(scp, addr)        { (scp)->sc_frame.srr0 = (long)(addr); }
+#    define SIG_SetPC(scp, addr)        { (scp)->sc_frame.srr0 = (Addr_t)(addr); }
 #    define SIG_ZeroLimitPtr(scp)       { ((scp)->sc_frame.fixreg[15] = 0); } /* limitptr = 15 (see src/runtime/mach-dep/PPC.prim.asm) */
 #    define SIG_GetCode(info,scp)       (info)
 
@@ -261,77 +261,8 @@ extern void SetFSR(int);
    extern void FPEEnable ();		/* defined in X86.prim.asm */
 #  define SIG_InitFPE()    FPEEnable()
 
-#  if (defined(ARCH_X86) && defined(OPSYS_LINUX))
-    /** X86, LINUX **/
-#    define INTO_OPCODE		0xce	/* the 'into' instruction is a single */
-					/* instruction that signals Overflow */
-
-#    define SIG_OVERFLOW		SIGSEGV
-
-#    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_EIP])
-/* for linux, SIG_GetCode simply returns the address of the fault */
-#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[REG_EIP])
-#    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_EIP] = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
-
-/* macro to check if SIGSEGV was caused by `into` instruction */
-#    define SIG_IS_OVERFLOW_TRAP(pc)	(((Byte_t*)pc)[-1] == 0xce)
-
-#  elif defined(OPSYS_FREEBSD)
-    /** x86, FreeBSD **/
-#    define SIG_OVERFLOW		SIGFPE
-
-#    define SIG_GetCode(info, scp)	(info)
-#    define SIG_GetPC(scp)		((scp)->sc_pc)
-#    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
-
-     typedef void SigReturn_t;
-
-#  elif defined(OPSYS_NETBSD2)
-    /** x86, NetBSD (version 2.x) **/
-#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
-
-#    define SIG_GetCode(info, scp)	(info)
-#    define SIG_GetPC(scp)		((scp)->sc_pc)
-#    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
-
-     typedef void SigReturn_t;
-
-#  elif defined(OPSYS_NETBSD)
-    /** x86, NetBSD (version 3.x) **/
-#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
-
-#    define SIG_GetCode(info, scp)	(info)
-#    define SIG_GetPC(scp)		(_UC_MACHINE_PC(scp))
-#    define SIG_SetPC(scp, addr)	{ _UC_MACHINE_SET_PC(scp, ((long) (addr))); }
-#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
-
-#  elif defined(OPSYS_OPENBSD)
-    /** x86, OpenBSD **/
-#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
-
-#    define SIG_GetCode(info, scp)	(info)
-#    define SIG_GetPC(scp)		((scp)->sc_pc)
-#    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (long)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
-
-     typedef void SigReturn_t;
-
-#  elif defined(OPSYS_SOLARIS)
-     /** x86, Solaris */
-#    define SIG_OVERFLOW		SIGFPE
-
-#    define SIG_GetCode(info, scp)	((info)->si_code)
-#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[EIP])
-#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (Addr_t)(addr); }
-#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
-
-#  elif defined(OPSYS_WIN32)
-#    define SIG_ZeroLimitPtr()		{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
-
-#  elif defined(OPSYS_CYGWIN)
+  /** OS-specific definitions for x86 */
+#  if defined(OPSYS_CYGWIN)
      /** x86, Cygwin -- see mach-dep/cygwin-fault.c */
 
 #    define SIG_OVERFLOW		SIGFPE
@@ -356,6 +287,76 @@ extern void SetFSR(int);
 #      define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext->__ss.__eip = (Addr_t) addr; }
 #    endif
 #    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
+#  elif defined(OPSYS_FREEBSD)
+    /** x86, FreeBSD **/
+#    define SIG_OVERFLOW		SIGFPE
+
+#    define SIG_GetCode(info, scp)	(info)
+#    define SIG_GetPC(scp)		((scp)->uc_mcontext.mc_eip)
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.mc_eip = (Addr_t)(addr); }
+#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
+     typedef void SigReturn_t;
+
+#  elif defined(OPSYS_LINUX)
+    /** X86, LINUX **/
+#    define INTO_OPCODE		0xce	/* the 'into' instruction is a single */
+					/* instruction that signals Overflow */
+
+#    define SIG_OVERFLOW		SIGSEGV
+
+#    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_EIP])
+/* for linux, SIG_GetCode simply returns the address of the fault */
+#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[REG_EIP])
+#    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_EIP] = (Addr_t)(addr); }
+#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
+/* macro to check if SIGSEGV was caused by `into` instruction */
+#    define SIG_IS_OVERFLOW_TRAP(pc)	(((Byte_t*)pc)[-1] == 0xce)
+
+#  elif defined(OPSYS_NETBSD2)
+    /** x86, NetBSD (version 2.x) **/
+#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
+
+#    define SIG_GetCode(info, scp)	(info)
+#    define SIG_GetPC(scp)		((scp)->sc_pc)
+#    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (Addr_t)(addr); }
+#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
+     typedef void SigReturn_t;
+
+#  elif defined(OPSYS_NETBSD)
+    /** x86, NetBSD (version 3.x) **/
+#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
+
+#    define SIG_GetCode(info, scp)	(info)
+#    define SIG_GetPC(scp)		(_UC_MACHINE_PC(scp))
+#    define SIG_SetPC(scp, addr)	{ _UC_MACHINE_SET_PC(scp, ((Addr_t) (addr))); }
+#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
+#  elif defined(OPSYS_OPENBSD)
+    /** x86, OpenBSD **/
+#    define SIG_OVERFLOW		SIGFPE	/* maybe this should be SIGBUS? */
+
+#    define SIG_GetCode(info, scp)	(info)
+#    define SIG_GetPC(scp)		((scp)->sc_pc)
+#    define SIG_SetPC(scp, addr)	{ (scp)->sc_pc = (Addr_t)(addr); }
+#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
+     typedef void SigReturn_t;
+
+#  elif defined(OPSYS_SOLARIS)
+     /** x86, Solaris */
+#    define SIG_OVERFLOW		SIGFPE
+
+#    define SIG_GetCode(info, scp)	((info)->si_code)
+#    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[EIP])
+#    define SIG_SetPC(scp, addr)	{ (scp)->uc_mcontext.gregs[EIP] = (Addr_t)(addr); }
+#    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
+
+#  elif defined(OPSYS_WIN32)
+#    define SIG_ZeroLimitPtr()		{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
 #  else
 #    error "unknown OPSYS for x86"
@@ -408,7 +409,7 @@ extern void SetFSR(int);
 #    define SIG_GetCode(info,scp)	((scp)->uc_mcontext.gregs[REG_RIP])
 /* for linux, SIG_GetCode simply returns the address of the fault */
 #    define SIG_GetPC(scp)		((scp)->uc_mcontext.gregs[REG_RIP])
-#    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_RIP] = (long)(addr); }
+#    define SIG_SetPC(scp,addr)		{ (scp)->uc_mcontext.gregs[REG_RIP] = (Addr_t)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.gregs[REG_R14] = 0; }
 
 /* macro to check if SIGSEGV was caused by `int 4` instruction */
@@ -421,7 +422,7 @@ extern void SetFSR(int);
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((uc)->uc_mcontext.__gregs[_REG_RIP])
-#    define SIG_SetPC(scp, addr)	{ (uc)->uc_mcontext.__gregs[_REG_RIP] = (long)(addr); }
+#    define SIG_SetPC(scp, addr)	{ (uc)->uc_mcontext.__gregs[_REG_RIP] = (Addr_t)(addr); }
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.__gregs[_REG_R14] = 0; }
 
 #    error NetBSD/AMD64 not supported yet
@@ -432,7 +433,7 @@ extern void SetFSR(int);
 
 #    define SIG_GetCode(info, scp)	(info)
 #    define SIG_GetPC(scp)		((scp)->sc_rip)
-#    define SIG_SetPC(scp, addr)	{ (scp)->sc_rip = (long)(addr); }
+#    define SIG_SetPC(scp, addr)	{ (scp)->sc_rip = (Addr_t)(addr); }
 #    define SIG_SIG_ZeroLimitPtr(scp)	{ (scp)->sc_r14 = 0; }
 
      typedef void SigReturn_t;
