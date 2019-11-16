@@ -156,6 +156,8 @@ for more details.
 | failure to raise `Bind` exception
 | [.bugid]#180#
 | Missing warning for nonexhaustive valbind patterns
+| [.bugid]#199#
+| Compiler bug in pretty printing of result
 | [.bugid]#225#
 | `Math.ln` giving erroneous answers on **Windows**
 | [.bugid]#226#
