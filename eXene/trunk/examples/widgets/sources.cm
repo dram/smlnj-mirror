@@ -1,3 +1,9 @@
+(* sources.cm
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
 Group
 is
 #if defined (NEW_CM)
@@ -11,6 +17,6 @@ is
   ../../sources.cm
 #endif
 
-label-slider.sml      
+label-slider.sml
 simple.sml
-simple-with-menu.sml  
+simple-with-menu.sml

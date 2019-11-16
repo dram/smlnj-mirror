@@ -51,7 +51,7 @@ structure XReply =
       fun get32 (s, i) = Word32.fromLargeWord(PackWord32Big.subVec(s, i div 4))
       fun getSigned32 (s, i) =
         Int32.fromLarge(LargeWord.toLargeInt(PackWord32Big.subVecX(s, i div 4)))
-      fun getWord (s, i) = Word.fromLargeWord(get32(s, i))
+      fun getWord (s, i) = Word.fromLargeWord(PackWord32Big.subVec(s, i div 4))
       fun getInt (s, i) = LargeWord.toIntX(PackWord32Big.subVecX(s, i div 4))
 
       val w8vextract = Word8VectorSlice.vector o Word8VectorSlice.slice
@@ -212,8 +212,8 @@ val getInt = wrapFn "getInt" getInt
          of 0w0 => XTy.LSBFirst
           | _ => XTy.MSBFirst)
       fun getFormat (buf, i) = XTy.FORMAT {
-          depth = getInt8(buf, i), 
-          bits_per_pixel = getInt8(buf, i+1), 
+          depth = getInt8(buf, i),
+          bits_per_pixel = getInt8(buf, i+1),
           scanline_pad = getRawFormat(buf, i+2)
         }
       fun getVisualDepth (buf, i, depth) = XTy.VisualDepth{
@@ -495,7 +495,7 @@ val getInt = wrapFn "getInt" getInt
           window = getXId(buf, 4),
           atom = getXAtom(buf, 8),
           time = getTime(buf, 12),
-          deleted = getBool(buf, 16)        
+          deleted = getBool(buf, 16)
         }
       fun decodeSelectionClear buf = XEvt.SelectionClearXEvt {
           time = getTime(buf, 4),
@@ -523,7 +523,7 @@ val getInt = wrapFn "getInt" getInt
           new = getBool(buf, 12),
           installed = getBool(buf, 13)
         }
-      fun decodeClientMessage buf = 
+      fun decodeClientMessage buf =
       (XEvt.ClientMessageXEvt {
           window = getXId(buf, 4),
           typ = getXAtom(buf, 8),
@@ -973,7 +973,7 @@ val getInt = wrapFn "getInt" getInt
     fun decodeQueryTreeReply msg = {
         root = getXId(msg, 8),
         parent = getXIdOption(msg, 12),
-        children = getXIdList (msg, 32, getInt16(msg, 16)) 
+        children = getXIdList (msg, 32, getInt16(msg, 16))
       }
 
     local

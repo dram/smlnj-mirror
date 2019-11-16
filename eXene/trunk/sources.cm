@@ -1,6 +1,13 @@
+(* sources.cm
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
 Library
+
 #if defined (NEW_CM)
-#error Not for use with new CM!
+#error eXene/sources.cm is not for use with new CM! Use eXene/eXene.cm
 #endif
 
   (** from lib **)

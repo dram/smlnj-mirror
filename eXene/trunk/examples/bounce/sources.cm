@@ -1,7 +1,13 @@
-(* sources file for bounce demo *)
+(* sources.cm
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+* sources file for bounce demo
+ *)
 Group
 is
-#if defined (NEW_CM)
+#if defined(NEW_CM)
   $cml/basis.cm
   $cml/cml.cm
   $cml-lib/smlnj-lib.cm

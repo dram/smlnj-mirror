@@ -1,6 +1,14 @@
-(* sources file for triangle demo *)
+(* sources.cm
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * sources file for triangle demo
+ *)
+
 Group
 is
+
 #if defined (NEW_CM)
   $cml/basis.cm
   $cml/cml.cm

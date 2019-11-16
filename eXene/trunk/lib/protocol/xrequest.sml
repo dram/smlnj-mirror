@@ -84,7 +84,7 @@ structure XRequest =
 	    putSigned16(buf, i+8, border))
 
       fun putTS (buf, i, XTy.CurrentTime) = put32(buf, i, 0w0)
-	| putTS (buf, i, XTy.TimeStamp(XTime.XT t)) = put32(buf, i, t)
+	| putTS (buf, i, XTy.TimeStamp(XTime.XT t)) = put32(buf, i, Word32.toLarge t)
 
       fun putRGB (buf, i, XTy.RGB{red, green, blue}) = (
 	    putWord16(buf, i, red);
@@ -935,7 +935,7 @@ structure XRequest =
 	    val p = pad l
 	    val msg = mkExtraReq (req_info, p div 4)
 	    in
-	      if (p = l) then () else put8(msg, 16+l, 0w0);  (* Xlib does this *) 
+	      if (p = l) then () else put8(msg, 16+l, 0w0);  (* Xlib does this *)
 	      putXId(msg, 4, drawable);
 	      putXId(msg, 8, gc);
 	      putPt(msg, 12, pt);

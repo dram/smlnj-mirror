@@ -1,5 +1,12 @@
-(* sources file for mixer example *)
-Group 
+(* sources.cm
+ *
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * sources file for mixer example
+ *)
+
+Group
 is
 
 #if defined (NEW_CM)
@@ -11,6 +18,6 @@ is
   ../../sources.cm
 #endif
 
-color-state.sml  
-spot.sml    
-mixer.sml    
+color-state.sml
+spot.sml
+mixer.sml
