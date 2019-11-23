@@ -55,14 +55,12 @@ With the command-line tools installed, you can follow the standard
 {dist-dir}install.html[instructions] for installing on **Unix/Linux**
 systems.
 
-[CAUTION]
+[NOTE]
 =========
-Apple deprecated 32-bit support in **macOS** 10.13 (High Sierra), stopped
-supporting the building of 32-bit programs in **macOS** 10.14 (Mojave),
-and stopped allowing execution of 32-bit programs in **macOS** 10.15 (Catalina).
-If you are running **macOS** 10.14 or later, we recommend that you install
-the 64-bit version of **SML/NJ**, but it is possible to build and run the 32-bit
-version on **macOS** 10.14 (see the instructions below).
+For **macOS** 10.13 High Sierra and earlier, the default install is 32-bits.
+Starting with **macOS** 10.14 Mojave, the default install is 64 bits.
+It is possible to install **SML/NJ** on Mojave, but it requires some
+extra steps (see the instructions below).
 =========
 
 == Installing 32-bit SML/NJ on macOS 10.14 (Mojave)

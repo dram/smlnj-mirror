@@ -94,6 +94,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Recent updates
 
 //--------------------------------------------------------------------
+[2019/11/23]::
++
+Changed the default installation size to 64 bits on **macOS** 10.14
+Mojave and later.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/11/14]::
 +
 Fixed some code rot in the *eXene* sources (bug bugref:233[]).  With
