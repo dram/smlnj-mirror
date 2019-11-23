@@ -18,9 +18,21 @@ complain() {
 
 this=$0
 
+# set the default size for the install.  Currently, the default is 32 on
+# most systems; the one exception is for macOS 10.14 Mojave (which does not
+# support building 32-bit executables) and later (which do not support
+# running 32-bit executables), we set the default to 64.
+#
+DEFAULT_SIZE=32
+case `uname -s` in
+  Darwin) case `uname -r` in
+    18*) DEFAULT_SIZE=64 ;;	# macOS 10.14 Mojave
+    19*) DEFAULT_SIZE=64 ;;	# macOS 10.15 Catalina
+    esac ;;
+esac
+
 # process options
 SIZE_OPT=
-DEFAULT_SIZE="32"
 nolib=false
 while [ "$#" != "0" ] ; do
     arg=$1; shift
