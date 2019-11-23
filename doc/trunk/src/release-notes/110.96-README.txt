@@ -110,6 +110,8 @@ for more details.
 |=======
 | [.bugid]#233#
 | eXene build fails for 64bit install
+| [.bugid]#235#
+| Mac OS Catalina Compilation Failure
 |=======
 
 
@@ -157,4 +159,3 @@ tested some of them:
 | | Cygwin (32-bit) |
 | {nbsp} | |
 |=======
-
