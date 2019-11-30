@@ -112,6 +112,8 @@ for more details.
 | eXene build fails for 64bit install
 | [.bugid]#235#
 | Mac OS Catalina Compilation Failure
+| [.bugid]#236#
+| Unable to package smlnj for 64-bit x86, for Arch Linux
 |=======
 
 
