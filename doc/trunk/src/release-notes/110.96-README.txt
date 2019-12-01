@@ -114,6 +114,8 @@ for more details.
 | Mac OS Catalina Compilation Failure
 | [.bugid]#236#
 | Unable to package smlnj for 64-bit x86, for Arch Linux
+| [.bugid]#237#
+| heap2exec script fails on 110.95
 |=======
 
 
