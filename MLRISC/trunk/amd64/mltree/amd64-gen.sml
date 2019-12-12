@@ -1227,29 +1227,58 @@ functor AMD64Gen (
 	 *      goto lab
 	 *)
 	and fbranch (fty, fcc, t1, t2, lab, an) = let
-	    fun j cc = mark (I.JCC {cond=cc, opnd=immedLabel lab}, an)
-	    in
-	      fbranch' (fty, fcc, t1, t2, j)
-	    end
+	      fun j cc = mark (I.JCC {cond=cc, opnd=immedLabel lab}, an)
+	      in
+		fbranch' (fty, fcc, t1, t2, j)
+	      end
 
 	and fbranch' (fty, fcc, x, y, j) = let
+	    (* the condition code bits are set as follows:
+	     *
+	     *			P  Z  C
+	     *   x < y		0  0  1
+	     *   x > y		0  0  0
+	     *   x = y		0  1  0
+	     *   unordered	1  1  1
+ 	     *
+	     * and the AMD64 condition tests are as follows:
+	     *
+	     *   A		-  0  0		-- implies ordered
+	     *   AE		-  -  0
+	     *   B		-  -  1
+	     *   BE		-  1  -
+	     *              or  -  -  1
+	     *   EQ		-  1  -
+	     *   NE		-  0  -
+	     *   NP		0  -  -
+	     *   P		1  -  -
+	     *)
             fun branch fcc = (case fcc
-                of T.==   => j I.EQ
-                 | T.?<>  => (j I.P; j I.NE)
-                 | T.?    => j I.P
-                 | T.<=>  => j I.NP
-                 | T.>    => j I.A
-                 | T.?<=  => (j I.P; j I.BE)
-                 | T.>=   => j I.AE
-                 | T.?<   => (j I.P; j I.BE)
-                 | T.<    => j I.B
-                 | T.?>=  => (j I.P; j I.AE)
-                 | T.<=   => j I.BE
-                 | T.?>   => (j I.P; j I.A)
-                 | T.<>   => j I.NE
-                 | T.?=   => j I.EQ
-                 | _      => error(concat["fbranch(", T.Basis.fcondToString fcc, ")"])
-               (* end case *))
+		  of T.==   => orderedOnly I.EQ
+		   | T.?<>  => (j I.P; j I.NE)
+		   | T.?    => j I.P
+		   | T.<=>  => j I.NP
+		   | T.>    => j I.A
+		   | T.?<=  => (j I.P; j I.BE)
+		   | T.>=   => orderedOnly I.AE
+		   | T.?<   => (j I.P; j I.BE)
+		   | T.<    => orderedOnly I.B
+		   | T.?>=  => (j I.P; j I.AE)
+		   | T.<=   => orderedOnly I.BE
+		   | T.?>   => (j I.P; j I.A)
+		   | T.<>   => orderedOnly I.NE
+		   | T.?=   => j I.EQ
+		   | _      => error(concat["fbranch(", T.Basis.fcondToString fcc, ")"])
+		 (* end case *))
+	  (* branch on condition if ordered *)
+(* FIXME: the emitted jump does not have an annotations! *)
+	    and orderedOnly fcc = let
+		  val lab = Label.anon()
+		  in
+		    emit (I.JCC{cond=I.P, opnd=immedLabel lab});
+		    j fcc;
+                    defineLabel lab
+		  end
 	    (* compare for condition  (x op y)
 	     *
 	     *              (y)          (x)
