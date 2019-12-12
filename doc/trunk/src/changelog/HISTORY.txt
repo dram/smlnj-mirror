@@ -91,7 +91,37 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-== Recent updates
+//== Recent updates
+
+//====================================================================
+== Version 110.96; 2019/12/13
+
+//--------------------------------------------------------------------
+[2019/12/12]::
++
+Fix for bug bugref:234[] (Converting NaN to a string causes an infinite
+loop on 64-bit machines).  The problem was in `MLRISC/amd64/mltree/amd64-gen.sml`,
+which was not generating comparisons that work correctly when the
+arguments are unordered.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/12/12]::
++
+Removed assertion checking from the **amd64** runtime makefiles.  It
+has not turned up any errors since 110.94 was released, so we will
+assume that things are working the way that they should.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/12/01]::
++
+Bugfix for bug bugref:237[] (**heap2exec** script fails on 110.95).
+The fix was provided by Kirill Boltaev.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //--------------------------------------------------------------------
 [2019/11/23]::
@@ -118,6 +148,16 @@ effort, we fixed a couple of regressions (makefile issues) for the
 32-bit version on **FreeBSD** that were introduced when the `X86.prim.asm`
 file was rewritten.  We also switch from *BSD* signal handling to
 *POSIX* signal handling, since that is what we use for most other systems.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/11/12]::
++
+Fixed `config/install.sh` script, which was not passing the size
+option to the `.link-sml`, which caused confusion for the "**-64**"
+flag.  This problem was later reported as bugs bugref:235[] and
+bugref:236[].
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 

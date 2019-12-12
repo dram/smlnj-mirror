@@ -1,5 +1,5 @@
 :version: 110.96
-:date: December ??, 2019
+:date: December 13, 2019
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -29,7 +29,9 @@ FILES::
 
 == Summary
 
-This release adds 64-bit support for **FreeBSD**.
+This release fixes a couple of scripting bugs related to supporting both
+32 and 64-bit versions of the system, as well as some other 64-bit-related
+issues.  It also adds 64-bit support for **FreeBSD**.
 
 == Details
 
@@ -95,10 +97,23 @@ shell script.  To fix the problem, remove the attribute using the command
 -----
 and resume the build.
 
+=== MLRISC
+
+Fixed a bug in the way that floating-point comparisons were being generated
+for the **AMD64** target (bug 234).
+
 === Runtime System
 
 We now use *POSIX* signal handling on *FreeBSD* (instead of the "Traditional BSD"
 signal handling).
+
+=== ML-LPT
+
+The `AntlrStreamPos` structure now has a `FilePos` substructure that has the
+`INTEGER` signature.  This substructure defines the representation type for
+positions and can be used to write code that will be portable against any
+future changes in that type (__e.g.__, the switch from `Position.int` to `int`
+in 110.94).
 
 == Bugs
 
@@ -110,6 +125,8 @@ for more details.
 |=======
 | [.bugid]#233#
 | eXene build fails for 64bit install
+| [.bugid]#234#
+| Converting NaN to a string causes an infinite loop on 64-bit machines
 | [.bugid]#235#
 | Mac OS Catalina Compilation Failure
 | [.bugid]#236#
@@ -117,13 +134,6 @@ for more details.
 | [.bugid]#237#
 | heap2exec script fails on 110.95
 |=======
-
-
-The following unnumbered bugs were also fixed:
---
-  * ???
-
---
 
 == Supported systems
 
