@@ -1370,7 +1370,9 @@ struct
                    | T.?<>  => (j(I.P); j(I.NE))
                    | T.?    => j(I.P)
                    | T.<=>  => j(I.NP)
-                   | T.>    => orderedOnly(I.A)
+                   | T.>    => j(I.A)	(* "JA" tests that _both_ Z and C are zero, so
+					 * we do not need a separate test of P.
+					 *)
                    | T.?<=  => j(I.BE)
                    | T.>=   => orderedOnly(I.AE)
                    | T.?<   => j(I.B)

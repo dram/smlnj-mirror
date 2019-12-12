@@ -1271,7 +1271,7 @@ functor AMD64Gen (
 		   | _      => error(concat["fbranch(", T.Basis.fcondToString fcc, ")"])
 		 (* end case *))
 	  (* branch on condition if ordered *)
-(* FIXME: the emitted jump does not have an annotations! *)
+(* FIXME: the emitted jump does not have annotations! *)
 	    and orderedOnly fcc = let
 		  val lab = Label.anon()
 		  in
