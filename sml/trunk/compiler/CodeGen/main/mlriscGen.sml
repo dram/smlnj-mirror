@@ -927,26 +927,33 @@ functor MLRiscGen (
 				  Regs.storeptr vfp, R.storelist));
 		    emit (assign(Regs.storeptr vfp, M.ADD(addrTy, Regs.allocptr, LI' hp))))
 
-	    (* generate a floating-point comparison of the given size *)
+	    (* generate a floating-point comparison of the given size. *)
 	      fun floatCmp (oper, sz, v, w) = let
-		    val fcond = (case oper
-			   of P.F_EQ => M.==
-			    | P.F_ULG => M.?<>
-			    | P.F_UN => M.?
-			    | P.F_LEG => M.<=>
-			    | P.F_GT => M.>
-			    | P.F_GE  => M.>=
-			    | P.F_UGT => M.?>
-			    | P.F_UGE => M.?>=
-			    | P.F_LT => M.<
-			    | P.F_LE  => M.<=
-			    | P.F_ULT => M.?<
-			    | P.F_ULE => M.?<=
-			    | P.F_LG => M.<>
-			    | P.F_UE  => M.?=
-			  (* end case *))
+		    val v = fregbind v
+		    val w = fregbind w
+		    fun fcmp (cc, a, b) = M.FCMP(sz, cc, a, b)
 		    in
-		      M.FCMP(sz, fcond, fregbind v, fregbind w)
+		      case oper
+		       of P.F_EQ => fcmp (M.==, v, w)
+			| P.F_ULG => fcmp (M.?<>, v, w)
+			| P.F_UN => fcmp (M.?, v, w)
+			| P.F_LEG => fcmp (M.<=>, v, w)
+			| P.F_GT => fcmp (M.>, v, w)
+			| P.F_GE  => fcmp (M.>=, v, w)
+			| P.F_UGT => fcmp (M.?>, v, w)
+			| P.F_UGE => fcmp (M.?>=, v, w)
+		      (* NOTE: on the x86 and amd64, it is more efficient to test
+		       * (a > b) than (b < a), because the latter requires an initial
+		       * test for unordered arguments (see MLRISC/amd64/mltree/amd64-gen.sml
+		       * for details).
+		       *)
+			| P.F_LT => fcmp (M.>, w, v)
+			| P.F_LE  => fcmp (M.<=, v, w)
+			| P.F_ULT => fcmp (M.?<, v, w)
+			| P.F_ULE => fcmp (M.?<=, v, w)
+			| P.F_LG => fcmp (M.<>, v, w)
+			| P.F_UE  => fcmp (M.?=, v, w)
+		      (* end case *)
 		    end
 
 	    (*
