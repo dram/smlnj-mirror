@@ -1,6 +1,7 @@
 (* real-format.sml
  *
- * COPYRIGHT (c) 1995 AT&T Bell Laboratories.
+ * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Code for converting from real (IEEE 64-bit floating-point) to string.
  * This ought to be replaced with David Gay's conversion algorithm.
@@ -9,10 +10,7 @@
 
 structure RealFormat : sig
 
-    val fmtReal : StringCvt.realfmt -> real -> string
-(** The type should be:
     val fmtReal : StringCvt.realfmt -> LargeReal.real -> string
- **)
 
   end = struct
 
@@ -29,6 +27,7 @@ structure RealFormat : sig
     val op >  = InlineT.Real64.>
     val op >= = InlineT.Real64.>=
     val op == = InlineT.Real64.==
+    val op != = InlineT.Real64.!=
 
     val real  = InlineT.Real64.from_int
     val floor = InlineT.Real64.floor
@@ -199,64 +198,56 @@ structure RealFormat : sig
 	      else {sign="", whole="0", frac="", exp=NONE}
 	  end (* realGFormat *)
 
-   val infinity = let fun bigger x = let val y = x*x
-				     in if y>x then bigger y else x
-				     end
-                   in bigger 100.0
-                  end
+    fun fmtInfNan x = if (x != x) then "nan"
+	  else if (x == Real64Values.posInf) then "inf"
+          else "~inf"
 
-   fun fmtInfNan x =
-        if x==infinity then "inf"
-        else if x == ~infinity then "~inf"
-        else "nan"
+    fun isFinite r = (Real64Values.negInf < r) andalso (r < Real64Values.posInf)
 
   (* convert a real number to a string of the form [~]d.dddE[~]dd, where
    * the precision (number of fractional digits) is specified by the
    * second argument.
    *)
-    fun realToSciStr prec r =
-	if ~infinity < r andalso r < infinity
-	then let
-	  val {sign, mantissa, exp} = realEFormat (r, prec)
-	  in
-	    (* minimum size exponent string, no padding *)
-	    concat[sign, mantissa, "E", atoi exp]
-	  end
-        else fmtInfNan r
+    fun realToSciStr prec r = if isFinite r
+	  then let
+	    val {sign, mantissa, exp} = realEFormat (r, prec)
+	    in
+	      (* minimum size exponent string, no padding *)
+	      concat[sign, mantissa, "E", atoi exp]
+	    end
+	  else fmtInfNan r
 
   (* convert a real number to a string of the form [~]ddd.ddd, where
    * the precision (number of fractional digits) is specified by the
    * second argument.
    *)
-    fun realToFixStr prec x =
-	if ~infinity < x andalso x < infinity
-	then let
-	  val {sign, mantissa} = realFFormat (x, prec)
-	  in
-	    sign^mantissa
-	  end
-        else fmtInfNan x
+    fun realToFixStr prec r = if isFinite r
+	  then let
+	    val {sign, mantissa} = realFFormat (r, prec)
+	    in
+	      sign^mantissa
+	    end
+	  else fmtInfNan r
 
-    fun realToGenStr prec r =
-	if ~infinity < r andalso r < infinity
-	then let
-  	  val {sign, whole, frac, exp} = realGFormat(r, prec)
- 	  val (frac,expStr) = (case exp
- 		 of NONE => if (frac = "")
-		      then (".0", "")
-		      else ("." ^ frac, "")
- 		  | (SOME e) => let
-		      val expStr = if I.<(e, 0)
-			    then "E~" ^ zeroLPad(atoi(I.~ e), 2)
-			    else "E" ^ zeroLPad(atoi e, 2)
- 		      in
- 			((if (frac = "") then "" else ("." ^ frac)), expStr)
- 		      end
-  		(* end case *))
-  	  in
-  	    concat[sign, whole, frac, expStr]
-  	  end
-        else fmtInfNan r
+    fun realToGenStr prec r = if isFinite r
+	  then let
+	    val {sign, whole, frac, exp} = realGFormat(r, prec)
+	    val (frac,expStr) = (case exp
+		   of NONE => if (frac = "")
+			then (".0", "")
+			else ("." ^ frac, "")
+		    | (SOME e) => let
+			val expStr = if I.<(e, 0)
+			      then "E~" ^ zeroLPad(atoi(I.~ e), 2)
+			      else "E" ^ zeroLPad(atoi e, 2)
+			in
+			  ((if (frac = "") then "" else ("." ^ frac)), expStr)
+			end
+		  (* end case *))
+	    in
+	      concat[sign, whole, frac, expStr]
+	    end
+	  else fmtInfNan r
 
   (* Note that the SML Basis Library specification requires the Size exception to be
    * raised as soon as Real.fmt is applied to an invalid format specifier.
@@ -270,6 +261,6 @@ structure RealFormat : sig
       | fmtReal (StringCvt.GEN NONE) = realToGenStr 12
       | fmtReal (StringCvt.GEN(SOME prec)) = realToGenStr (checkPrec prec)
       | fmtReal StringCvt.EXACT =
-	raise Fail "RealFormat: fmtReal: EXACT not supported"
+	  raise Fail "RealFormat: fmtReal: EXACT not supported"
 
   end
