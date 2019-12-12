@@ -93,6 +93,9 @@ void RunML (ml_state_t *msp)
 
 	if (request == REQ_GC) {
 	    if (vsp->vp_handlerPending) { /* this is really a signal */
+#ifdef SIGNAL_DEBUG
+		SayDebug("RunML: handler pending\n");
+#endif
 	      /* check for GC */
 		if (NeedGC (msp, ONE_K*WORD_SZB)) {
 		    InvokeGC (msp, 0);

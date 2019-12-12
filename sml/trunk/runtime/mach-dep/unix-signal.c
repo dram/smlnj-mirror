@@ -138,8 +138,8 @@ PVT SigReturn_t CSigHandler (int sig, siginfo_t *si, void *c)
     vsp->vp_totalSigCount.nReceived++;
 
 #ifdef SIGNAL_DEBUG
-SayDebug ("CSigHandler: sig = %d, pending = %d, inHandler = %d\n",
-sig, vsp->vp_handlerPending, vsp->vp_inSigHandler);
+SayDebug ("\nCSigHandler[1]: sig = %d, inML = %d, pending = %d, inHandler = %d\n",
+sig, vsp->vp_inMLFlag, vsp->vp_handlerPending, vsp->vp_inSigHandler);
 #endif
 
     /* The following line is needed only when currently executing
@@ -179,8 +179,8 @@ PVT SigReturn_t CSigHandler (
     vsp->vp_totalSigCount.nReceived++;
 
 #ifdef SIGNAL_DEBUG
-SayDebug ("CSigHandler: sig = %d, pending = %d, inHandler = %d\n",
-sig, vsp->vp_handlerPending, vsp->vp_inSigHandler);
+SayDebug ("\nCSigHandler[2]: sig = %d, inML = %d, pending = %d, inHandler = %d\n",
+sig, vsp->vp_inMLFlag, vsp->vp_handlerPending, vsp->vp_inSigHandler);
 #endif
 
     /* The following line is needed only when currently executing
