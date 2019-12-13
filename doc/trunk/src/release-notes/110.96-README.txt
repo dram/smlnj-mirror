@@ -100,7 +100,8 @@ and resume the build.
 === MLRISC
 
 Fixed a bug in the way that floating-point comparisons were being generated
-for the **AMD64** target (bug 234).
+for the **AMD64** target.  This was the root cause of bug 234, but could affect
+other code.
 
 === Runtime System
 
@@ -134,6 +135,12 @@ for more details.
 | [.bugid]#237#
 | heap2exec script fails on 110.95
 |=======
+
+The following unnumbered bug was also fixed:
+--
+  * Fixed a problem where a **control-C** (`SIGINT`), or other signal, might
+    be ignored.
+--
 
 == Supported systems
 

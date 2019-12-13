@@ -99,6 +99,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2019/12/12]::
 +
+Bug fix for a problem where ^C (and other signals might be ignored).
+The fix was to use word-sized fields in VProc state vector so that
+the word-sized move operations in the assembly code do not clobber
+adjacent fields.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2019/12/12]::
++
 Fix for bug bugref:234[] (Converting NaN to a string causes an infinite
 loop on 64-bit machines).  The problem was in `MLRISC/amd64/mltree/amd64-gen.sml`,
 which was not generating comparisons that work correctly when the
