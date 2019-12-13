@@ -43,6 +43,19 @@ fi
 #
 LOG=LOG-$VERSION
 
+# determine the size of the installed version of SML that we are going to
+# use to build the release.
+#
+if [ -x bin/sml ] ; then
+  case $(bin/sml @SMLsuffix) in
+    amd64-*) SZ_OPT="-64" ;;
+    *) SZ_OPT="-32" ;;
+  esac
+else
+  echo "bin/sml is missing"
+  exit 1
+fi
+
 # function to compile to fixed point and build an installation from
 # the compiled code.  This corresponds to steps 2 -- 6 in the guide.
 #
@@ -51,25 +64,25 @@ function build_from_fixpt {
   echo "compiling to a fixed point ..."
   echo "***** cd base/system" >> $LOG
   cd base/system
-  echo "***** ./fixpt" >> $LOG
-  ./fixpt >> $LOG 2>&1 || exit 1
+  echo "***** ./fixpt $SZ_OPT" >> $LOG
+  ./fixpt $SZ_OPT >> $LOG 2>&1 || exit 1
 
   # makeml
   echo "makeml ..."
-  echo "***** ./makeml" >> $LOG
-  ./makeml >> $LOG 2>&1 || exit 1
+  echo "***** ./makeml $SZ_OPT" >> $LOG
+  ./makeml $SZ_OPT >> $LOG 2>&1 || exit 1
 
   # installml
   echo "installml ..."
-  echo "***** ./installml -clean" >> $LOG
-  ./installml -clean >> $LOG 2>&1 || exit 1
+  echo "***** ./installml $SZ_OPT -clean" >> $LOG
+  ./installml $SZ_OPT -clean >> $LOG 2>&1 || exit 1
 
   # install.sh
   echo "config/install.sh ..."
   echo "***** cd $HERE" >> $LOG
   cd $HERE
-  echo "***** ./config/install.sh" >> $LOG
-  ./config/install.sh >> $LOG 2>&1 || exit 1
+  echo "***** ./config/install.sh $SZ_OPT" >> $LOG
+  ./config/install.sh $SZ_OPT >> $LOG 2>&1 || exit 1
 }
 
 # step 1: refresh output
