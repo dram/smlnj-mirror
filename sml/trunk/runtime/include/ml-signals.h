@@ -8,10 +8,10 @@
 
 typedef struct {		/* counters for pending signals; we keep two counters */
 				/* to avoid race conditions */
-    unsigned int	nReceived;  /* the count of how many signals of this variety */
+    Word_t		nReceived;  /* the count of how many signals of this variety */
 				    /* have been received. This counter is incremented */
 				    /* the signal handler */
-    unsigned int	nHandled;  /* the count of how many of this kind of */
+    Word_t		nHandled;  /* the count of how many of this kind of */
 				    /* signal have been handled.  This counter */
 				    /* is incremented by the main thread. */
 } sig_count_t;

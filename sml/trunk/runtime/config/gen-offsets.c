@@ -60,11 +60,11 @@ int main (void)
     PMOFFSET("InPollHandler", ml_inPollHandler);
 #endif
     PVOFFSET("InML", vp_inMLFlag);
-    PVOFFSET("LimitPtrMask", vp_limitPtrMask);
     PVOFFSET("HandlerPending", vp_handlerPending);
     PVOFFSET("InSigHandler", vp_inSigHandler);
     PVOFFSET("SigsRecv", vp_totalSigCount.nReceived);
     PVOFFSET("SigsHandled", vp_totalSigCount.nHandled);
+    PVOFFSET("LimitPtrMask", vp_limitPtrMask);
 
     CloseFile (f, "_MLSTATE_OFFSETS_");
 
