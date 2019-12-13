@@ -41,7 +41,7 @@ fi
 
 # the log file
 #
-LOG=LOG-$VERSION
+LOG=$HERE/LOG-$VERSION
 
 # determine the size of the installed version of SML that we are going to
 # use to build the release.
