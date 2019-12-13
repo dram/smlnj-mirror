@@ -100,7 +100,7 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 [2019/12/12]::
 +
 Bug fix for a problem where ^C (and other signals might be ignored).
-The fix was to use word-sized fields in VProc state vector so that
+The fix is to use word-sized fields in the VProc state vector so that
 the word-sized move operations in the assembly code do not clobber
 adjacent fields.
 +
