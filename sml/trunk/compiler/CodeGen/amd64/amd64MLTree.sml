@@ -41,7 +41,6 @@ structure AMD64MLTreeStream =
       (structure T = AMD64MLTree
        structure S = AMD64Stream)
 
-
 (* specialised AMD64 instruction set *)
 structure AMD64Instr = AMD64Instr(AMD64MLTree)
 
@@ -53,14 +52,13 @@ structure AMD64Props =
 
 structure AMD64Shuffle = AMD64Shuffle(AMD64Instr)
 
-(* Assembly code emmitter *)
+(* Assembly code emitter *)
 structure AMD64AsmEmitter=
   AMD64AsmEmitter(structure Instr=AMD64Instr
 		structure Shuffle=AMD64Shuffle
 		structure MLTreeEval=AMD64MLTreeEval
 		structure S = AMD64Stream
 		val memRegBase=SOME(AMD64Instr.C.rsp))
-
 
 (* Machine code emitter *)
 structure AMD64MCEmitter =
