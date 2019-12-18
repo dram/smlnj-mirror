@@ -93,6 +93,13 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+[2019/12/18]::
++
+Fix bug bugref:239[] (`Date.toTime` is incorrect (by a factor of 10E9)).
+Thanks to Johannes 5 Joemann for both the report and fix.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.96; 2019/12/13
 
