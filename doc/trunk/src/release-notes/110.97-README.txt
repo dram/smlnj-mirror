@@ -107,6 +107,8 @@ for more details.
 |=======
 | [.bugid]#239#
 | `Date.toTime` is incorrect (by a factor of 10E9)
+| [.bugid]#240#
+| Non-default 64-bit installation build failure
 |=======
 
 == Supported systems
