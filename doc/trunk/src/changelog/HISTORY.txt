@@ -93,6 +93,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+//--------------------------------------------------------------------
+[2019/12/23]::
++
+Fix for bug bugreg:244[] (Compiler bug: PPObj: ppFields in ppval.sml).
+The code generator was using the wrong length tag for raw64 records
+on 64-bit machines (twice the length).
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/12/21]::
 +
 Clean up various issues in the configuration/build machinery for **asdl**.
@@ -101,6 +111,7 @@ build failure)
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
+//--------------------------------------------------------------------
 [2019/12/18]::
 +
 Fix bug bugref:239[] (`Date.toTime` is incorrect (by a factor of 10E9)).

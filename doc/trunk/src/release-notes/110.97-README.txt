@@ -109,6 +109,8 @@ for more details.
 | `Date.toTime` is incorrect (by a factor of 10E9)
 | [.bugid]#240#
 | Non-default 64-bit installation build failure
+| [.bugid[#244#
+| Compiler bug: PPObj: ppFields in ppval.sml
 |=======
 
 == Supported systems
