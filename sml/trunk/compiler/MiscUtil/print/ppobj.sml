@@ -499,15 +499,18 @@ and ppUrList(obj:object, ty:T.ty, membersOp, depth:int, length: int,accu) =
         closeBox ppstrm
     end
 
-and ppTuple(objs: object list, tys: T.ty list, membersOp, depth:int, accu) : unit =
-    let fun ppFields([f],[ty]) = ppValShare (f, ty, membersOp, depth-1, accu)
-	  | ppFields(f::restf, ty::restty) =
+and ppTuple (objs: object list, tys: T.ty list, membersOp, depth:int, accu) : unit =
+    let fun ppFields ([f],[ty]) = ppValShare (f, ty, membersOp, depth-1, accu)
+	  | ppFields (f::restf, ty::restty) =
 	      (ppValShare (f, ty, membersOp, depth-1, accu);
                PP.string ppstrm (",");
                break ppstrm {nsp=0,offset=0};
 	       ppFields(restf,restty))
-	  | ppFields([], []) = ()
-          | ppFields _ = bug "ppFields in ppval.sml"
+	  | ppFields ([], []) = ()
+          | ppFields _ = bug(concat[
+		"ppTuple.ppFields: arity mismatch; ", Int.toString(length objs),
+		" objects vs. ", Int.toString(length tys), " fields"
+	      ])
      in openHOVBox ppstrm (PP.Rel 1);
         PP.string ppstrm ("(");
         ppFields(objs, tys);
@@ -515,7 +518,7 @@ and ppTuple(objs: object list, tys: T.ty list, membersOp, depth:int, accu) : uni
         closeBox ppstrm
     end
 
-and ppRecord(objs: object list, labels: T.label list,
+and ppRecord (objs: object list, labels: T.label list,
 	     tys: T.ty list, membersOp, depth: int, accu) =
     let fun ppFields([f],[l],[ty]) =
 	      (openHVBox ppstrm (PP.Rel 2);
@@ -533,7 +536,7 @@ and ppRecord(objs: object list, labels: T.label list,
                break ppstrm {nsp=0,offset=0};
                ppFields(restf,restl,restty))
 	  | ppFields([],[],[]) = ()
-          | ppFields _ = bug "ppFields in ppval.sml"
+          | ppFields _ = bug "ppRecord.ppFields in ppval.sml"
      in openHOVBox ppstrm (PP.Rel 1);
         PP.string ppstrm ("{");
         ppFields(objs,labels,tys);
