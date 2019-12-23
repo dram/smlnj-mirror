@@ -123,6 +123,7 @@ functor MLRiscGen (
     val fty = 64 (* size in bits of ML's real number *)			(* REAL32: FIXME *)
     val ws = MS.wordByteWidth
     val addrTy = MS.addressBitWidth	(* naturalsize of address arithmetic *)
+    val wordsPerDbl = 8 div ws
 
     val zero = M.LI 0
     val one  = M.LI 1
@@ -1140,12 +1141,12 @@ functor MLRiscGen (
 (* REAL32: FIXME *)
 	      and mkFblock (vl, w, e, hp) = let
 		    val len = List.length vl
-		    val desc = D.makeDesc'(len+len, D.tag_raw64)
-		    (* At initialization the allocation pointer is aligned on
-		     * an odd-word boundary, and the heap offset set to zero. If an
-		     * odd number of words have been allocated then the heap pointer
-		     * is misaligned for this record creation.
-		     *)
+		    val desc = D.makeDesc'(wordsPerDbl * len, D.tag_raw64)
+		  (* At initialization the allocation pointer is aligned on
+		   * an odd-word boundary, and the heap offset set to zero. If an
+		   * odd number of words have been allocated then the heap pointer
+		   * is misaligned for this record creation. (32-bits only)
+		   *)
 		    val hp = if ws = 4 andalso Word.andb(Word.fromInt hp, 0w4) <> 0w0
 			    then hp+4
 			    else hp
