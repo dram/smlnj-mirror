@@ -168,6 +168,23 @@ functor SplaySetFn (K : ORD_KEY) : ORD_SET =
 	  in
 	    cmp (left(!s1, []), left(!s2, []))
 	  end
+
+    fun disjoint (EMPTY, _) = true
+      | disjoint (_, EMPTY) = true
+      | disjoint (SET{root=rt, ...}, SET{root=rt', ...}) = let
+	  fun walk (t1, t2) = (case (next t1, next t2)
+		 of ((SplayNil, _), _) => true
+		  | (_, (SplayNil, _)) => true
+		  | ((SplayObj{value=e1, ...}, r1), (SplayObj{value=e2, ...}, r2)) => (
+		      case Key.compare(e1, e2)
+		       of LESS => walk(r1, t2)
+			| EQUAL => false
+			| GREATER => walk(t1, r2)
+		      (* end case *))
+		(* end case *))
+	  in
+	    walk (left(!rt, []), left(!rt', []))
+	  end
     end (* local *)
 
 	(* Return the number of items in the table *)

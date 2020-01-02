@@ -170,6 +170,14 @@ functor ListSetFn (K : ORD_KEY) :> ORD_SET where type Key.ord_key = K.ord_key =
 	    f (s1, s2)
 	  end
 
+    fun disjoint ([], _) = true
+      | disjoint (_, []) = true
+      | disjoint (x::r1, y::r2) = (case Key.compare(x, y)
+	   of LESS => disjoint (r1, y::r2)
+	    | EQUAL => false
+	    | GREATER => disjoint (x::r1, r2)
+	  (* end case *))
+
   (* Return the number of items in the set *)
     fun numItems l = List.length l
 

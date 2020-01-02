@@ -163,14 +163,18 @@ structure IntListSet :> ORD_SET where type Key.ord_key = Int.int =
     fun isSubset (s1, s2) = let
 	  fun f ([], _) = true
 	    | f (_, []) = false
-	    | f (x::r1, y::r2) = (case Key.compare(x, y)
-		   of LESS => false
-		    | EQUAL => f (r1, r2)
-		    | GREATER => f (x::r1, r2)
-		  (* end case *))
+	    | f (x::r1, y::r2) =
+		((x = y) andalso f (r1, r2))
+		orelse ((x > y) andalso f (x::r1, r2))
 	  in
 	    f (s1, s2)
 	  end
+
+    fun disjoint ([], _) = true
+      | disjoint (_, []) = true
+      | disjoint (x::r1, y::r2) =
+	  ((x < y) andalso disjoint (r1, y::r2))
+	  orelse ((x > y) andalso disjoint (x::r1, r2))
 
   (* Return the number of items in the set *)
     fun numItems l = List.length l

@@ -343,6 +343,18 @@ structure IntBinarySet :> ORD_SET where type Key.ord_key = Int.int =
 	  in
 	    cmp (left(s1, []), left(s2, []))
 	  end
+
+    fun disjoint (s1, s2) = let
+	  fun walk (t1, t2) = (case (next t1, next t2)
+		 of ((E, _), _) => true
+		  | (_, (E, _)) => true
+		  | ((T{elt=e1, ...}, r1), (T{elt=e2, ...}, r2)) =>
+		      ((e1 < e2) andalso walk (r1, t2))
+		      orelse ((e1 > e2) andalso walk (t1, r2))
+		(* end case *))
+	  in
+	    walk (left(s1, []), left(s2, []))
+	  end
     end
 
     fun delete (E,x) = raise LibBase.NotFound

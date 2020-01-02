@@ -70,6 +70,9 @@ signature ORD_SET =
     val isSubset : (set * set) -> bool
 	(* Return true if and only if the first set is a subset of the second *)
 
+    val disjoint : set * set -> bool
+	(* are the two sets disjoint? *)
+
     val numItems : set ->  int
 	(* Return the number of items in the table *)
 

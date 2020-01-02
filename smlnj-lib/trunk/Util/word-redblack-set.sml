@@ -314,6 +314,19 @@ structure WordRedBlackSet :> ORD_SET where type Key.ord_key = word =
 	    cmp (start s1, start s2)
 	  end
 
+  (* Return true if the two sets are disjoint *)
+    fun disjoint (SET(0, _), _) = true
+      | disjoint (_, SET(0, _)) = true
+      | disjoint (SET(_, s1), SET(_, s2)) = let
+	  fun walk ((E, _), _) = true
+	    | walk (_, (E, _)) = true
+	    | walk (t1 as (T(_, _, x, _), r1), t2 as (T(_, _, y, _), r2)) =
+		((x < y) andalso walk (next r1, t2))
+		orelse ((x > y) andalso walk (t1, next r2))
+	  in
+	    walk (next (start s1), next (start s2))
+	  end
+
   (* support for constructing red-black trees in linear time from increasing
    * ordered sequences (based on a description by R. Hinze).  Note that the
    * elements in the digits are ordered with the largest on the left, whereas
