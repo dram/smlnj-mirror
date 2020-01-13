@@ -156,6 +156,8 @@ for more details.
 | failure to raise `Bind` exception
 | [.bugid]#180#
 | Missing warning for nonexhaustive valbind patterns
+| [.bugid]#190#
+| Unexpected exception in SML/NJ with invalid list pattern match
 | [.bugid]#199#
 | Compiler bug in pretty printing of result
 | [.bugid]#225#

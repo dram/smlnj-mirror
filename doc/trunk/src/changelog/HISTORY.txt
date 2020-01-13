@@ -432,8 +432,9 @@ The fix does not deal properly with refutability of OR patterns, but
 OR patterns in val bindings is a dubious feature.
 +
 This change also fixes bug bugref:188[] (Missing warning for
-nonexhaustive valbind patterns) and bugref:199[] (Compiler bug in
-pretty printing of result).
+nonexhaustive valbind patterns), bug bugref:190[] (Unexpected exception
+in SML/NJ with invalid list pattern match), and bugref:199[] (Compiler
+bug in pretty printing of result).
 +
 owner:cs.uchicago.edu/~dbm[David MacQueen]
 
