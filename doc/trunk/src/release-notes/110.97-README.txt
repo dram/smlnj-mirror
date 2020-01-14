@@ -95,6 +95,9 @@ and resume the build.
 
 === Runtime System
 
+=== SML/NJ Library
+  * Added the `disjoint` function to the `ORD_SET` signature.
+
 === ML-LPT
 
 == Bugs
@@ -109,8 +112,10 @@ for more details.
 | `Date.toTime` is incorrect (by a factor of 10E9)
 | [.bugid]#240#
 | Non-default 64-bit installation build failure
-| [.bugid[#244#
+| [.bugid]#244#
 | Compiler bug: PPObj: ppFields in ppval.sml
+| [.bugid]#245#
+| Lazy data types result in Compiler Bug error
 |=======
 
 == Supported systems

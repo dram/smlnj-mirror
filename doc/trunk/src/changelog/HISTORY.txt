@@ -94,9 +94,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/01/14]::
++
+Fix for bug bugref:245[] (Lazy data types result in Compiler Bug error).
+The problem was that a number of symbols (__e.g.__, `deref`) had been
+dropped from the `_Core` structure, but were required to support
+the laxy (and profiling) features in the compiler.  The symbols have
+been reinstated and a comment has been added to explain why they
+are being included.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2019/12/23]::
 +
-Fix for bug bugreg:244[] (Compiler bug: PPObj: ppFields in ppval.sml).
+Fix for bug bugref:244[] (Compiler bug: PPObj: ppFields in ppval.sml).
 The code generator was using the wrong length tag for raw64 records
 on 64-bit machines (twice the length).
 +
