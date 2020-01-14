@@ -173,8 +173,8 @@ structure Core =
       (* LAZY: The following definitions are essentially stolen from
        *  SMLofNJ.Susp.  Unfortunately, they had to be copied here in
        *  order to implement lazyness (in particular, in order to be
-       *  able to compute pids for them.) *)
-
+       *  able to compute pids for them.)
+       *)
        local
 	   structure Susp :> sig
 	       type 'a susp
@@ -375,6 +375,16 @@ structure Core =
 	val testInf64 = CoreIntInf.testInf64		(* for `P.TEST_INF 64` *)
 	val copy64Inf = CoreIntInf.copy64Inf		(* for `P.COPY_INF 64` *)
 	val extend64Inf = CoreIntInf.extend64Inf	(* for `P.EXTEND_INF 64` *)
+
+      (* the compilation of profiling (compiler/DebugProf/profile/tprof.sml) and
+       * the lazy features (compiler/Elaborator/elaborate/elabcore.sm)
+       * requires access to these operations
+       *)
+	val assign = ( InLine.:= )
+        val deref = ( InLine.! )
+	val unboxedupdate = InLine.arr_unboxed_update
+	val subscript = InLine.arr_unsafe_sub
+	val iadd = InLine.int_add
 
     end (* local *)
 

@@ -414,6 +414,16 @@ structure Core =
 	val w64Div = CoreWord64.div
 	val w64Mod = CoreWord64.mod
 
+      (* the compilation of profiling (compiler/DebugProf/profile/tprof.sml) and
+       * the lazy features (compiler/Elaborator/elaborate/elabcore.sm)
+       * requires access to these operations
+       *)
+	val assign = ( InLine.:= )
+        val deref = ( InLine.! )
+	val unboxedupdate = InLine.arr_unboxed_update
+	val subscript = InLine.arr_unsafe_sub
+	val iadd = InLine.int_add
+
     end (* local *)
 
     val profile_sregister = ref(fn (x:Assembly.object,s:string)=>x)
