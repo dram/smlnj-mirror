@@ -26,6 +26,9 @@ structure CoreAccess : sig
 end = struct
 
     fun impossible m = ErrorMsg.impossible ("CoreAccess: " ^ m)
+    fun impossibleWithId (m, xs) = ErrorMsg.impossible(concat[
+	    "CoreAccess: ", m, " '", String.concatWith "." xs, "'"
+	  ])
 
     exception NoCore
 
@@ -41,11 +44,11 @@ end = struct
 
     fun getVar' err env xs = (case getCore env xs
 	   of VarCon.VAL r => r
-	    | _ => impossible "getVar"
+	    | _ => impossibleWithId("getVar'", xs)
 	  (* end case *))
 	    handle NoCore => err ()
 
-    fun getVar env xs = getVar' (fn () => impossible "getVar") env xs
+    fun getVar env xs = getVar' (fn () => impossibleWithId("getVar", xs)) env xs
 
     fun getCon' err env xs = (case getCore env xs
 	   of VarCon.CON c => c
@@ -53,7 +56,7 @@ end = struct
 	  (* end case *))
 	    handle NoCore => err ()
 
-    fun getCon env xs = getCon' (fn () => impossible "getCon") env xs
+    fun getCon env xs = getCon' (fn () => impossibleWithId("getCon'", xs)) env xs
 
     fun getExn env xs = getCon' (fn () => VarCon.bogusEXN) env xs
 
