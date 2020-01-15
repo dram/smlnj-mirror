@@ -10,4 +10,6 @@ Here is a list of web resources:
 
   * [Customizing the Notarization Workflow](https://developer.apple.com/documentation/xcode/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow)
 
+  * [Hardened Runtime Entitlements](https://developer.apple.com/documentation/security/hardened_runtime_entitlements)
 
+  * [Resolving Common Notarization Issues](https://developer.apple.com/documentation/xcode/notarizing_macos_software_before_distribution/resolving_common_notarization_issues)
