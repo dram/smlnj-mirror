@@ -4,15 +4,15 @@ This is a list of things (both major and minor) that should be fixed/improved/ch
 in the SML/NJ compiler.  It is organized into short-term goals by proposed release
 target plus an additional "wish-list" of long-term goals.
 
-## For Version 110.94
+## For 110.97
 
-  * Switch to new encoding of literals (see new-literals.md)
+  * Bug fixing: some good candidates are 195, 196, 200, and 220.
 
-## For Version 110.95+
-
-  * Must have 64-bit port done by Fall 2019 (but earlier would be better).
+  * check if the problem with IntInf literals has gone away.
 
 ## Future work
+
+  * 64-bit support for Windows
 
   * Better type error messages:
     - Do not use the **same** name to refer to types that are **different**
@@ -82,10 +82,10 @@ target plus an additional "wish-list" of long-term goals.
   * Expose the two-level representation of arrays and vectors and add compiler support
     for slices.
 
+  * New-new-runtime: new GC and core services with old version of C functions.
+
   * LLVM code generator: use ASDL to export CPS representation to runtime-system code
     generator.  This probably requires a specialized calling convention.  We can then
     use this code generator to add ARM support.
-
-  * New-new-runtime: new GC and core services with old version of C functions.
 
   * FLINT replacement (switch to 3CPS?)
