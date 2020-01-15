@@ -159,6 +159,3 @@ as **DONE**, even though they are not changed.
     I've currently added workarounds to `MLRISC/amd64/mltree/amd64-gen.sml` and
     `base/compiler/CPS/main/new-literals.sml`.  The hack is to define the lower
     and upper-bounds for 32-bit values by converting from Word64.
-
-3. `Word8.toIntX (Word8.~>> (Word8.fromInt ~128, Word.fromInt 8))` evaluates to
-    `~257` instead of `~1`.
