@@ -5,6 +5,9 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-02-27]
+	Added `RESET` as a command to the `ANSITerm` structure.
+
 [2020-01-02]
 	Added the `disjoint` function to the `ORD_SET` signature.
 

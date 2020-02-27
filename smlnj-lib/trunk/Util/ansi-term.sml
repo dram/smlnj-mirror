@@ -1,6 +1,6 @@
 (* ansi-term.sml
  *
- * COPYRIGHT (c) 2005 John Reppy (http://www.cs.uchicago.edu/~jhr)
+ * COPYRIGHT (c) 2020 John Reppy (http://www.cs.uchicago.edu/~jhr)
  * All rights reserved.
  *
  * Support for ANSI terminal control codes.  Currently, this support
@@ -20,6 +20,7 @@ structure ANSITerm : sig
       | BLINK
       | REV		(* reverse video *)
       | INVIS		(* invisible *)
+      | RESET
 
   (* return the command string for the given styles; the empty list is "normal" *)
     val toString : style list -> string
@@ -40,6 +41,7 @@ structure ANSITerm : sig
       | BLINK
       | REV		(* reverse video *)
       | INVIS		(* invisible *)
+      | RESET
 
   (* basic color codes *)
     fun colorToCmd Black = 0
@@ -59,6 +61,7 @@ structure ANSITerm : sig
       | styleToCmd BLINK = 5
       | styleToCmd REV = 7
       | styleToCmd INVIS = 8
+      | styleToCmd RESET = 0
 
     fun cmdStr [] = ""
       | cmdStr (cmd :: r) = let
