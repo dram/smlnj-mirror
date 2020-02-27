@@ -113,9 +113,9 @@ for more details.
 | [.bugid]#240#
 | Non-default 64-bit installation build failure
 | [.bugid]#244#
-| Compiler bug: PPObj: ppFields in ppval.sml
+| Compiler bug: PPObj: ppFields in ppval.sml (also **248**)
 | [.bugid]#245#
-| Lazy data types result in Compiler Bug error
+| Lazy data types result in Compiler Bug error (also **249**)
 |=======
 
 == Supported systems
