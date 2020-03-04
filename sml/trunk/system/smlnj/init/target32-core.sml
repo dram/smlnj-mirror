@@ -141,15 +141,15 @@ structure Core =
     in
 
      (* limit of array, string, etc. element count is one greater than
-      * the maximum length field value (sign should be 0).
+      * the maximum length field value (sign bit should be 0).
       *)
-       val max_length =
-	   let val op - = InLine.word_sub
-	       infix << val op << = InLine.word_lshift
-	       val int = InLine.signed_word_to_int
-	   in
-	       int ((0w1 << (0w31 - width_tags)) - 0w1)
-	   end
+       val max_length = let
+	    val op - = InLine.word_sub
+	    infix << val op << = InLine.word_lshift
+	    val int = InLine.signed_word_to_int
+	    in
+	      int ((0w1 << (0w31 - width_tags)) - 0w1)
+	    end
 
        fun mkNormArray (n, init) =
              if ieql(n, 0) then InLine.newArray0()
