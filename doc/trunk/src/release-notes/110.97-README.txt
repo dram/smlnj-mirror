@@ -118,6 +118,11 @@ for more details.
 | Lazy data types result in Compiler Bug error (also **249**)
 |=======
 
+The following unnumbered bug was also fixed:
+--
+  * Fixed the calculation of the maximum array/vector length for 64-bit targets.
+--
+
 == Supported systems
 
 We believe that SML/NJ will build and run on the following systems, but have only

@@ -94,6 +94,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/03/04]::
++
+Fixed the calculation of the maximum array/vector length for
+64-bit targets.  We had been using the calculation for 32-bit
+targets.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2020/01/14]::
 +
 Fix for bug bugref:245[] (Lazy data types result in Compiler Bug error).
