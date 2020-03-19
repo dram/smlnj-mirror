@@ -260,7 +260,7 @@ structure NewLiterals : LITERALS =
     local
       fun enc (opb, oph) (buf, slot) = if (slot <= 255)
 	  then (W8B.add1(buf, opb); addInt8(buf, slot))
-	  else (W8B.add1(buf, opb); addInt16(buf, slot))
+	  else (W8B.add1(buf, oph); addInt16(buf, slot))
     in
     val encSAVE = enc (opSAVEb, opSAVEh)
     val encLOAD = enc (opLOADb, opLOADh)
