@@ -440,7 +440,6 @@ STATIC_INLINE double GetR64Arg (Byte_t *code)
 #define GetRawArg	GetU32Arg
 #endif
 
-
 /* the size of a list cons cell in bytes */
 #define CONS_SZB	(WORD_SZB*3)
 
@@ -452,6 +451,12 @@ STATIC_INLINE double GetR64Arg (Byte_t *code)
 /* for backward compatibility */
 ml_val_t BuildLiteralsV1 (ml_state_t *msp, Byte_t *lits, int pc, int len);
 
+#ifdef DEBUG_LITERALS
+#  define GC_MESSAGE	SayDebug("BuildLiterals: invoke GC\n");
+#else
+#  define GC_MESSAGE
+#endif
+
 /* BuildLiterals:
  *
  * NOTE: we allocate all of the objects in the first generation, and allocate
@@ -460,6 +465,9 @@ ml_val_t BuildLiteralsV1 (ml_state_t *msp, Byte_t *lits, int pc, int len);
 ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 {
     int		pc = 0;
+#ifdef DEBUG_LITERALS
+    int		depth = 0;
+#endif
     Unsigned32_t magic, maxDepth, wordSz, maxSaved;
     ml_val_t	stk;
     ml_val_t	res;
@@ -479,7 +487,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #define GC_CHECK										\
     do {											\
 	if (spaceReq > availSpace) {								\
-	    SayDebug("BuildLiterals: invoke GC\n");						\
+	    GC_MESSAGE										\
 	    InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, &saved, NIL(ml_val_t *));	\
 	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr) - CONS_SZB;	\
 	}											\
@@ -531,14 +539,16 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
     stk = ML_nil;
     availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr);
+#ifdef DEBUG_LITERALS
+    SayDebug("BuildLiterals: avail = %d bytes; maxDepth = %d, maxSaved = %d\n",
+	(int)availSpace, (int)maxDepth, (int)maxSaved);
+#endif
     while (TRUE) {
 	ASSERT(pc < len);
 	ASSERT(availSpace <= (Int32_t)((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr));
 	if (availSpace < 512 * WORD_SZB) {
 	    if (NeedGC(msp, FREE_REQ_SZB)) {
-#ifdef DEBUG_LITERALS
-	        SayDebug("BuildLiterals: invoke GC\n");
-#endif
+	        GC_MESSAGE
 		InvokeGCWithRoots (msp, 0, (ml_val_t *)&code, &stk, &saved, NIL(ml_val_t *));
 	    }
 	    availSpace = ((size_t)msp->ml_limitPtr - (size_t)msp->ml_allocPtr);
@@ -547,6 +557,12 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 #ifdef DEBUG_LITERALS
 	int startPC = pc;
+#endif
+
+#ifdef DEBUG_LITERALS
+#  define PUSH(arg)	do { LIST_cons(msp, stk, (arg), stk); depth++; } while(0)
+#else
+#  define PUSH(arg)	LIST_cons(msp, stk, (arg), stk)
 #endif
 
     /* get the next instruction */
@@ -601,18 +617,18 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case INT:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: INT(%" PRINT ")\n", startPC, arg.iArg);
+	    SayDebug("[%04d/%4d]: INT(%" PRINT ")\n", startPC, depth, arg.iArg);
 #endif
-	    LIST_cons(msp, stk, INT_CtoML(arg.iArg), stk);
+	    PUSH (INT_CtoML(arg.iArg));
 	    break;
 
 #ifdef SIZE_32
 	  case INT32:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: INT32(%" PRINT ")\n", startPC, arg.iArg);
+	    SayDebug("[%04d/%4d]: INT32(%" PRINT ")\n", startPC, depth, arg.iArg);
 #endif
 	    res = INT32_CtoML(msp, arg.iArg);
-	    LIST_cons(msp, stk, res, stk);
+	    PUSH (res);
 	    availSpace -= 2*WORD_SZB;
 	    break;
 #endif
@@ -620,10 +636,10 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #ifdef SIZE_64
 	  case INT64:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: INT64(" PRINT ")\n", startPC, arg.iArg);
+	    SayDebug("[%04d/%4d]: INT64(" PRINT ")\n", startPC, depth, arg.iArg);
 #endif
 	    res = ML_AllocWord64(msp, arg.iArg);
-	    LIST_cons(msp, stk, res, stk);
+	    PUSH (res);
 	    availSpace -= 2*WORD_SZB;
 	    break;
 #endif
@@ -658,10 +674,13 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case REAL64:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: REAL64(%f)\n", startPC, GetR64Arg(&(code[pc])));
+	    SayDebug("[%04d/%4d]: REAL64(%f)\n", startPC, depth, GetR64Arg(&(code[pc])));
 #endif
 	    REAL64_ALLOC(msp, res, GetR64Arg(&(code[pc])));  pc += 8;
-	    availSpace -= 2*REALD_SZW;
+	    availSpace -= WORD_SZB + REALD_SZB;
+#ifdef ALIGN_REALDS
+	    availSpace -= WORD_SZB;
+#endif
 	    break;
 
 	  case RVEC32:
@@ -674,13 +693,13 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case STR8:
 #ifdef DEBUG_LITERALS
-	SayDebug("[%04d]: STR8(%" PRWORD ") [...]", startPC, arg.uArg);
+	SayDebug("[%04d/%4d]: STR8(%" PRWORD ") [...]", startPC, depth, arg.uArg);
 #endif
 	    if (arg.uArg == 0) {
 #ifdef DEBUG_LITERALS
 	SayDebug("\n");
 #endif
-		LIST_cons(msp, stk, ML_string0, stk);
+		PUSH (ML_string0);
 		break;
 	    }
 	    ui = BYTES_TO_WORDS(arg.uArg+1);  /* include space for '\0' */
@@ -701,19 +720,19 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	  /* allocate the header object */
 	    SEQHDR_ALLOC(msp, res, DESC_string, res, arg.uArg);
 	  /* push on stack */
-	    LIST_cons(msp, stk, res, stk);
+	    PUSH (res);
 	    availSpace -= spaceReq;
 	    break;
 
 	  case RECORD:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: RECORD(%" PRWORD ") [", startPC, arg.uArg);
+	    SayDebug("[%04d/%4d]: RECORD(%" PRWORD ") [", startPC, depth, arg.uArg);
 #endif
 	    if (arg.uArg == 0) {
 #ifdef DEBUG_LITERALS
 	    SayDebug("]\n");
 #endif
-		LIST_cons(msp, stk, ML_unit, stk);
+		PUSH (ML_unit);
 		break;
 	    }
 	    else {
@@ -725,24 +744,27 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    for (ui = arg.uArg;  ui > 0;  ui--) {
 		ML_AllocWrite(msp, ui, LIST_hd(stk));
 		stk = LIST_tl(stk);
+#ifdef DEBUG_LITERALS
+		depth--;
+#endif
 	    }
 	    res = ML_Alloc(msp, arg.uArg);
 #ifdef DEBUG_LITERALS
 	    SayDebug("...] @ %p\n", (void *)res);
 #endif
-	    LIST_cons(msp, stk, res, stk);
+	    PUSH (res);
 	    availSpace -= spaceReq;
 	    break;
 
 	  case VECTOR:
 #ifdef DEBUG_LITERALS
-	SayDebug("[%04d]: VECTOR(%" PRWORD ") [", startPC, arg.uArg);
+	SayDebug("[%04d/%4d]: VECTOR(%" PRWORD ") [", startPC, depth, arg.uArg);
 #endif
 	    if (arg.uArg == 0) {
 #ifdef DEBUG_LITERALS
 	SayDebug("]\n");
 #endif
-		LIST_cons(msp, stk, ML_vector0, stk);
+		PUSH (ML_vector0);
 		break;
 	    }
 	  /* the space request includes space for the data-object header word and
@@ -757,6 +779,9 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	    for (ui = arg.uArg;  ui > 0;  ui--) {
 		ML_AllocWrite(msp, ui, LIST_hd(stk));
 		stk = LIST_tl(stk);
+#ifdef DEBUG_LITERALS
+		depth--;
+#endif
 	    }
 	    res = ML_Alloc(msp, arg.uArg);
 	  /* allocate the header object */
@@ -764,7 +789,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #ifdef DEBUG_LITERALS
 	SayDebug("...] @ %p\n", (void *)res);
 #endif
-	    LIST_cons(msp, stk, res, stk);
+	    PUSH (res);
 	    availSpace -= spaceReq;
 	    break;
 
@@ -772,7 +797,8 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 #ifdef DEBUG_LITERALS
 	    {
 		int i, n;
-	        SayDebug("[%04d]: RAW(%" PRWORD ") [%02x", startPC, arg.uArg, code[pc]);
+	        SayDebug("[%04d/%4d]: RAW(%" PRWORD ") [%02xn",
+		    startPC, depth, arg.uArg, code[pc]);
 	        n = (WORD_SZB*arg.uArg > 8) ? 8 : WORD_SZB*arg.uArg;
 		for (i = 1;  i < n;  i++) {
 		    SayDebug(" %02x", code[pc+i]);
@@ -793,7 +819,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 		ML_AllocWrite (msp, ui, (ml_val_t)GetRawArg(&(code[pc])));  pc += WORD_SZB;
 	    }
 	    res = ML_Alloc (msp, arg.uArg);
-	    LIST_cons(msp, stk, res, stk);
+	    PUSH (res);
 	    availSpace -= spaceReq;
 	    break;
 
@@ -803,7 +829,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case RAW64:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: RAW64(%" PRWORD ") [...]\n", startPC, arg.uArg);
+	    SayDebug("[%04d/%4d]: RAW64(%" PRWORD ") [...]\n", startPC, depth, arg.uArg);
 #endif
 	    ASSERT(arg.uArg > 0);
 	    spaceReq = 8*(arg.uArg+1);
@@ -821,7 +847,7 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 		PTR_MLtoC(double, res)[ui] = GetR64Arg(&(code[pc]));
 		pc += 8;
 	    }
-	    LIST_cons(msp, stk, res, stk);
+	    PUSH (res);
 	    availSpace -= spaceReq;
 	    break;
 
@@ -831,7 +857,8 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 	  case SAVE: {
 		ml_val_t *loc;
 #ifdef DEBUG_LITERALS
-		SayDebug("[%04d]: SAVE(%" PRWORD ") %p\n", startPC, arg.uArg, (void*)LIST_hd(stk));
+		SayDebug("[%04d/%4d]: SAVE(%" PRWORD ") %p\n",
+		    startPC, depth, arg.uArg, (void*)LIST_hd(stk));
 #endif
 		ASSERT(saved != ML_nil);
 		ASSERT(stk != ML_nil);
@@ -842,16 +869,17 @@ ml_val_t BuildLiterals (ml_state_t *msp, Byte_t *code, int len)
 
 	  case LOAD:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: LOAD(%" PRWORD ") %p\n",
-		startPC, arg.uArg, PTR_MLtoC(ml_val_t *, saved)[arg.uArg]);
+	    SayDebug("[%04d/%4d]: LOAD(%" PRWORD ") %p\n",
+		startPC, depth, arg.uArg, PTR_MLtoC(ml_val_t *, saved)[arg.uArg]);
 #endif
 	    ASSERT(saved != ML_nil);
-	    LIST_cons(msp, stk, PTR_MLtoC(ml_val_t, saved)[arg.uArg], stk);
+	    PUSH (PTR_MLtoC(ml_val_t, saved)[arg.uArg]);
 	    break;
 
 	  case RETURN:
 #ifdef DEBUG_LITERALS
-	    SayDebug("[%04d]: RETURN(%p)\n", startPC, (void *)LIST_hd(stk));
+	    SayDebug("[%04d/%4d]: RETURN(%p); depth = %d\n",
+		startPC, depth, (void *)LIST_hd(stk), depth);
 #endif
 	    ASSERT(pc == len);
 	    ASSERT((stk != ML_nil) && (LIST_tl(stk) == ML_nil));
