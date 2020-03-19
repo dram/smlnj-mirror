@@ -94,6 +94,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/03/19]::
++
+Fix for bug bugref:252[] (Boyer Benchmark Compile Failure).  This crash
+was caused by a typo in the `CPS/main/build-literals.sml` code that
+caused an incorrect opcode to be generated for `SAVE`/`LOAD`
+instructions when the offset was `>= 256`.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2020/03/04]::
 +
 Fixed the calculation of the maximum array/vector length for
