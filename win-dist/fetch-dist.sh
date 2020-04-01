@@ -97,10 +97,10 @@ fi
 #
 mkdir "$BASEDIR"
 
-"$CONFIGDIR"/unpack "$ROOT" runtime
-"$CONFIGDIR"/unpack "$ROOT" "$BOOT_ARCHIVE"
-"$CONFIGDIR"/unpack "$ROOT" smlnj-lib
-"$CONFIGDIR"/unpack "$ROOT" system
+"$CONFIGDIR"/unpack "$DISTROOT" runtime
+"$CONFIGDIR"/unpack "$DISTROOT" "$BOOT_ARCHIVE"
+"$CONFIGDIR"/unpack "$DISTROOT" smlnj-lib
+"$CONFIGDIR"/unpack "$DISTROOT" system
 
 # source code for the various targets that are part of the
 # standard Windows installation.
