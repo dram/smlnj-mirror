@@ -17,24 +17,20 @@ complain() {
 }
 
 SIZE="32"
-ARCH="x86"
-if [ x"$1" = x-32 ] ; then
-  SIZE=32
+case x"$1" in
+  x-32) SIZE=32; shift ;;
+  x-64) SIZE=64; shift ;;
+esac
+
+if [ "$SIZE" = 32 ] ; then
   ARCH="x86"
   OPSYS="win32"
-  shift
-elif [ x"$1" = x-64 ] ; then
-  SIZE=64
+else # SIZE = 64
   ARCH="amd64"
   OPSYS="win64"
-  shift
-fi
-
-# we currently only support 32-bit builds
-#
-if [ $SIZE = "64" ] ; then
+  # we currently only support 32-bit builds
+  #
   complain only 32-bit builds are currently supported for Windows
-  exit 1
 fi
 
 # get the version number
