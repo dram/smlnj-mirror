@@ -69,6 +69,7 @@ structure BitVector
 structure CharMap
 structure DynamicArray
 structure Fifo
+structure FNVHash
 structure Format
 structure FormatComb
 structure HashString
@@ -161,6 +162,7 @@ dynamic-array-fn.sml
 fifo-sig.sml
 fifo.sml
 fmt-fields.sml
+fnv-hash.sml
 format-sig.sml
 format.sml
 format-comb-sig.sml

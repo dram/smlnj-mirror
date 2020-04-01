@@ -91,12 +91,12 @@ structure Atom :> ATOM =
 	  end
 
   (* instantiate atom0 for the string case *)
-    val atom = atom0 (fn s => s, HashString.hashString, op = )
+    val atom = atom0 (fn s => s, FNVHash.hashString, op = )
 
   (* instantiate atom0 for the substring case *)
     val atom' = atom0 (
 	  Substring.string,
-	  HashString.hashSubstring,
+	  FNVHash.hashSubstring,
 	  fn (ss, s) => (Substring.compare(ss, Substring.full s) = EQUAL))
 
   end (* structure Atom *)

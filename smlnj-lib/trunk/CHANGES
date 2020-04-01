@@ -5,6 +5,14 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-01]
+	Added new library for generating and manipulating "Universally
+	Unique Identifiers" (UUID/uuid-lib.cm).
+
+[2020-04-01]
+	Added structure `FNVHash`, which implements the Fowler-Noll-Vo
+	hashing algorithm
+
 [2020-02-27]
 	Added `RESET` as a command to the `ANSITerm` structure.
 
