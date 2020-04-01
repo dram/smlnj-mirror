@@ -86,10 +86,9 @@ if [ ! -r config/version ] ; then
 fi
 CONFIG_VERSION=$(cat config/version)
 if [ x"$VERSION" != x"$CONFIG_VERSION" ] ; then
-  complain "version in config/version is $CONFIG_VERSION"
   cd $ROOT
   rm -rf $DISTROOT
-  exit 1
+  complain "version in config/version is $CONFIG_VERSION"
 fi
 
 #
@@ -121,7 +120,7 @@ EXTRA_TARGETS="\
 "
 
 for file in $EXTRA_TARGETS ; do
-  "$CONFIGDIR"/unpack "$ROOT" $file
+  "$CONFIGDIR"/unpack "$DISTROOT" $file
 done
 
 #
