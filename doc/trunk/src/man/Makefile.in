@@ -67,7 +67,7 @@ CLEAN_SUBDIRS =
 CLEAN_FILES =
 
 DISTCLEAN_FILES +=	Makefile \
-			$(MAN1_PAGES) $(MAN2_PAGES) \
+			$(MAN1_PAGES) $(MAN7_PAGES) \
 			$(HTML)
 
 include @ROOT_DIR@/mk/clean-rules.gmk
