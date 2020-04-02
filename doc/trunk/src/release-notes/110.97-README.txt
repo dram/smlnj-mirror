@@ -102,6 +102,8 @@ for more details.
 | Compiler bug: PPObj: ppFields in ppval.sml (also **248**)
 | [.bugid]#245#
 | Lazy data types result in Compiler Bug error (also **249**)
+| [.bugid]#247#
+| `@SMLVersion` should report 64/32 bit
 | [.bugid]#252#
 | Boyer Benchmark Compile Failure
 |=======

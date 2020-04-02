@@ -27,8 +27,13 @@ OPTIONS
   run the 64-bit version of the SML/NJ system.  This option only applies to
   the **x86-64** (aka **amd64**) architecture.
 
+*@SMLwordsize*::
+  echo the wordsize (_i.e._, either `32` or `64`) of the system to standard
+  output and then exit.  (This option was added in version 110.97).
+
 *@SMLversion*::
-  echo the version of SML/NJ to standard output and then exit
+  echo the command name and SML/NJ version (_e.g._, "++sml {version}++")
+  to standard output and then exit.
 
 *@SMLload*='IMAGE'::
   specifies the name of the heap-image file to load.  The heap suffix can be omitted
