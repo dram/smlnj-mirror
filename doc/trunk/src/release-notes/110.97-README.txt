@@ -31,45 +31,36 @@ FILES::
 
 == Details
 
+=== SML/NJ Library
+
+There are a number of additions to the **SML/NJ Library** in
+this release.
+
+  * Added the `disjoint` function to the `ORD_SET` signature.
+
+  * Added `RESET` as a command to the `ANSITerm` structure.
+
+  * Added the structure `FNVHash` to the `Util` library.  This
+    structure implements the
+    https://en.wikipedia.org/wiki/Fowler–Noll–Vo_hash_function[Fowler-Noll-Vo]
+    hashing algorithm.
+
+  * Added a new library for generating and manipulating "Universally
+    Unique Identifiers" (`UUID/uuid-lib.cm`).
+
+=== Documentation
+
+Additional manual pages have been added for the commands that are part
+of the standard installation.
+
 === Installation
 
-==== 64-bit support
+We have updated our infrastructure for building MSI files for Windows
+to use the latest version of the https://wixtoolset.org[WiX Toolset].
+This change should not have any impact on the user-side of the
+installation process.
 
-The various installation and configuration scripts have been updated
-to accept a command-line argument to override the
-default machine size when running on the x86/amd64 architecture.
-For the `config/install.sh` script, you can specify the machine-word
-size of the target architecture as follows:
-
---
-  **-default** __size__::
-    specify the default size for the **sml** and other commands, where
-    __size__ is either **32** or **64**.
-
-  **-32**::
-    install the 32-bit version of the system.
-
-  **-64**::
-    install the 64-bit version of the system.
---
-
-It is possible to install both versions in the same location by running
-the `install.sh` script twice.  For example, the commands
-
-[source,shell]
---------------
-  % config/install.sh -32
-  % config/install.sh -default 64
---------------
-
-will install both versions with the 64-bit version as default.  One
-would then use the command **sml -32** to run the 32-bit version of
-the system.
-
-If both versions are installed, then use the **-32** or **-64** flag
-to override the default version.
-
-==== 32-bit macOS issues
+=== 32-bit macOS issues
 
 While the {dist-dir}smlnj-x86-{version}.pkg[x86 installer]
 for {version} works on **macOs** 10.14 Mojave, building from source
@@ -93,13 +84,6 @@ shell script.  To fix the problem, remove the attribute using the command
 -----
 and resume the build.
 
-=== Runtime System
-
-=== SML/NJ Library
-  * Added the `disjoint` function to the `ORD_SET` signature.
-
-=== ML-LPT
-
 == Bugs
 
 Here is a list of tracked bugs fixed (or closed) with this release, please see the
@@ -108,6 +92,8 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
+| [.bugid]#176#
+| Manpages
 | [.bugid]#239#
 | `Date.toTime` is incorrect (by a factor of 10E9)
 | [.bugid]#240#

@@ -1,5 +1,5 @@
 ML-BURG(1)
-===========
+==========
 :doctype:	manpage
 :man source:	SML/NJ
 :man version:	{version}

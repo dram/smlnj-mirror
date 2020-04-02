@@ -24,15 +24,7 @@ ATTRS =		--attribute=version=$(SMLNJ_VERSION) \
 
 # Section 1 pages
 #
-ADOC1_FILES =	ml-antlr.1.adoc \
-		ml-build.1.adoc \
-		ml-burg.1.adoc \
-		ml-lex.1.adoc \
-		ml-makedepend.1.adoc \
-		ml-nlffigen.1.adoc \
-		ml-ulex.1.adoc \
-		ml-yacc.1 \
-		sml.1.adoc
+ADOC1_FILES =	$(wildcard *.1.adoc)
 
 # Section 7 pages
 #
