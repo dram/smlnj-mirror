@@ -1,47 +1,84 @@
 (* heap2asm.sml
  *
- *   Generating an assembly code file corresponding to a heap image.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * Copyright (c) 2005 by The Fellowship of SML/NJ
+ * Generating an assembly code file corresponding to a heap image.
  *
- * Author: Matthias Blume (blume@tti-c.org)
+ * NOTE: there is an argument that this program should be part of the
+ * runtime system, because it would make getting the correct assembly
+ * directives right easier.
  *)
-structure Main: sig
+
+structure Main : sig
+
     val main: string * string list -> OS.Process.status
-end = struct
 
-    val N = 20
+  end = struct
 
-    fun one (inf, outf) =
-	let val (si, so) = (TextIO.openIn inf, TextIO.openOut outf)
-	    fun out s = TextIO.output (so, s)
-	    fun finish n =
-		(out ".text\n\t.align 2\n_smlnj_heap_image_len:\n\t.long ";
-		 out (Int.toString n); out "\n")
-	    fun line l =
-		let val bl = map (Int.toString o ord) (String.explode l)
-		in out ("\t.byte " ^ String.concatWith "," bl ^ "\n")
+  (* number of bytes per line *)
+    val bytesPerLine = 20
+
+    val size64 = (SMLofNJ.SysInfo.getArchSize() = 64)
+
+  (* assembly directives *)
+    val textSection = "\t.text\n"
+    val alignCode = if size64 then "\t.p2align 4\n" else "\t.p2align 3\n"
+    val alignData = if size64 then "\t.p2align 3\n" else "\t.p2align 2\n"
+    fun word n = concat [
+	    if size64 then "\t.quad " else "\t.long ", Int.toString n, "\n"
+	  ]
+    fun global lab = concat["\t.globl ", lab, "\n"]
+    fun label s = s ^ ":\n"
+
+    fun doFile (inf, outf) = let
+	  val inS = BinIO.openIn inf
+	  val outS = TextIO.openOut outf
+	  fun out s = TextIO.output (outS, s)
+	  fun finish nb = (
+		out textSection;
+		out alignData;
+		out (label "_smlnj_heap_image_len");
+		out (word nb))
+	  fun lineOut bytes = let
+		fun b2s b = Word8.fmt StringCvt.DEC b
+		in
+		  out (concat[
+		      "\t.byte ",
+		      String.concatWithMap "," b2s (Word8Vector.toList bytes),
+		      "\n"
+		    ])
 		end
-	    fun lines n =
-		case TextIO.inputN (si, N) of
-		    "" => finish n
-		  | l => let val s = size l
-			 in line l; if s < N then finish (n+s) else lines (n+s)
-			 end
-	in out "\t.globl _smlnj_heap_image\n\
-	       \\t.globl _smlnj_heap_image_len\n\
-	       \.text\n\t.align 2\n\
-	       \_smlnj_heap_image:\n";
-	   lines 0;
-	   TextIO.closeIn si; TextIO.closeOut so
-	end
+	  fun lines nb = let
+		val bytes = BinIO.inputN (inS, bytesPerLine)
+		in
+		  case Word8Vector.length bytes
+		   of 0 => finish nb
+		    | n => (
+			lineOut bytes;
+			if (n < bytesPerLine)
+			  then finish (nb + n)
+			  else lines (nb + n))
+		  (* end case *)
+		end
+	  in
+	    out (global "_smlnj_heap_image");
+	    out (global "_smlnj_heap_image_len");
+	    out textSection;
+	    out alignCode;
+	    out (label "_smlnj_heap_image");
+	    lines 0;
+	    BinIO.closeIn inS;
+	    TextIO.closeOut outS
+	  end
 
-    fun complain (p, s) =
-	(TextIO.output (TextIO.stdErr, concat [p, ": ", s, "\n"]);
-	 OS.Process.failure)
+    fun complain (p, s) = (
+	  TextIO.output (TextIO.stdErr, concat [p, ": ", s, "\n"]);
+	  OS.Process.failure)
 
-    fun main (p, [inf, outf]) =
-	((one (inf, outf); OS.Process.success)
-	 handle e => complain (p, "exception: " ^ General.exnMessage e))
+    fun main (p, [inf, outf]) = (
+	(doFile (inf, outf); OS.Process.success)
+	  handle e => complain (p, "exception: " ^ General.exnMessage e))
       | main (p, _) = complain (p, "usage: " ^ p ^ " heapfile asmfile")
-end
+
+  end
