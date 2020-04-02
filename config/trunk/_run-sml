@@ -118,6 +118,13 @@ while [ "$#" != "0" ]; do
       echo "$CMD @VERSION@"
       exit 0
       ;;
+    @SMLwordsize)
+      case $SIZE_OPT in
+	-32) echo "32" ;;
+	-64) echo "64" ;;
+      esac
+      exit 0
+      ;;
     @SMLsuffix)
       shift
       REPORT_SUFFIX=yes
