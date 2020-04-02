@@ -1,6 +1,6 @@
 # Makefile for SML/NJ Manual pages
 #
-# COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+# COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
 # @configure_input@
@@ -24,23 +24,27 @@ ATTRS =		--attribute=version=$(SMLNJ_VERSION) \
 
 # Section 1 pages
 #
-TXT1_FILES =	ml-antlr.1.txt \
-		ml-build.1.txt \
-		ml-ulex.1.txt \
-		ml-makedepend.1.txt \
-		sml.1.txt
+ADOC1_FILES =	ml-antlr.1.adoc \
+		ml-build.1.adoc \
+		ml-burg.1.adoc \
+		ml-lex.1.adoc \
+		ml-makedepend.1.adoc \
+		ml-nlffigen.1.adoc \
+		ml-ulex.1.adoc \
+		ml-yacc.1 \
+		sml.1.adoc
 
 # Section 7 pages
 #
-TXT7_FILES =	smlnj.7.txt
+ADOC7_FILES =	smlnj.7.adoc
 
-TXT_FILES =	$(TXT1_FILES) $(TXT7_FILES)
+ADOC_FILES =	$(ADOC1_FILES) $(ADOC7_FILES)
 
-MAN1_PAGES =	$(TXT1_FILES:.txt=)
-MAN7_PAGES =	$(TXT7_FILES:.txt=)
+MAN1_PAGES =	$(ADOC1_FILES:.adoc=)
+MAN7_PAGES =	$(ADOC7_FILES:.adoc=)
 
-MAN1_HTML =	$(TXT1_FILES:.txt=.html)
-MAN7_HTML =	$(TXT7_FILES:.txt=.html)
+MAN1_HTML =	$(ADOC1_FILES:.adoc=.html)
+MAN7_HTML =	$(ADOC7_FILES:.adoc=.html)
 HTML =		$(MAN1_HTML) $(MAN7_HTML)
 
 .PHONY:		doc
@@ -58,10 +62,10 @@ man:		$(MAN1_PAGES) $(MAN7_PAGES)
 .PHONY:		html
 html:		$(HTML)
 
-% : %.txt
+% : %.adoc
 	$(ASCIIDOCTOR) $(ATTRS) -d manpage -b manpage $<
 
-%.html : %.txt
+%.html : %.adoc
 	$(ASCIIDOCTOR) $(ATTRS) -d manpage -b html5 $<
 
 #################### Cleanup ####################

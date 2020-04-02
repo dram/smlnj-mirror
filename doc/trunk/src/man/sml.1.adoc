@@ -6,7 +6,7 @@ SML(1)
 
 NAME
 ----
-sml - an interactive Standard ML system
+sml - the interactive Standard ML of New Jersey system
 
 SYNOPSIS
 --------
@@ -14,8 +14,8 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-It is an incremental, interactive compiler that accepts declarations and expressions
-to be evaluated from standard input.
+*Standard ML of New Jersey* is an incremental, interactive compiler that
+accepts *SML* declarations and expressions to be evaluated from standard input.
 
 OPTIONS
 -------
@@ -114,19 +114,20 @@ OPTIONS
 'file.fun'::       (use)
   execute +use+ 'file.fun' before entering the SML top-level loop.
 
-
 AUTHOR
 ------
 sml(1) was originally created by Andrew Appel and David MacQueen in 1987.
-The system is currently maintained by David MacQueen and John Reppy.
-
-COPYING
--------
-Copyright (C) 2017 The Fellowship of SML/NJ
-
-This is free software; see the source for copying  conditions.   There  is  NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+The system is currently maintained by Matthias Blume, David MacQueen, and John Reppy.
 
 SEE-ALSO
 --------
 smlnj(7)
+
+https://smlnj.org[_Standard ML of New Jersey website_]
+
+COPYING
+-------
+Copyright (C) 2020 The Fellowship of SML/NJ
+
+This is free software; see the source for copying  conditions.   There  is  NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
