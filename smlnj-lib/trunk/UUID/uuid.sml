@@ -50,6 +50,8 @@ structure UUID :> sig
 
     type t = W8V.vector
 
+    val null : t = W8V.tabulate(16, fn _ => 0w0)
+
   (* compare two UUIDs *)
     val compare = W8V.collate Word8.compare
 
