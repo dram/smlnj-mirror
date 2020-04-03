@@ -6,7 +6,7 @@
 #
 # options:
 #   -32 | -64		-- specify target word size (default 32)
-#   -o image		-- specify the name of the heap image, "ml-lex"
+#   -o image		-- specify the name of the heap image, "heap2asm"
 #			   is the default.
 
 CMD=$0

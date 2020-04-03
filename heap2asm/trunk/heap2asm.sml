@@ -19,15 +19,14 @@ structure Main : sig
   (* number of bytes per line *)
     val bytesPerLine = 20
 
-    val size64 = (SMLofNJ.SysInfo.getArchSize() = 64)
+(* FIXME: getHostSize is deprecated and should be replaced with getArchSize *)
+    val size64 = (SMLofNJ.SysInfo.getHostSize() = 64)
 
   (* assembly directives *)
     val textSection = "\t.text\n"
     val alignCode = if size64 then "\t.p2align 4\n" else "\t.p2align 3\n"
-    val alignData = if size64 then "\t.p2align 3\n" else "\t.p2align 2\n"
-    fun word n = concat [
-	    if size64 then "\t.quad " else "\t.long ", Int.toString n, "\n"
-	  ]
+    val alignData = "\t.p2align 2\n"
+    fun long n = concat ["\t.long ", Int.toString n, "\n"]
     fun global lab = concat["\t.globl ", lab, "\n"]
     fun label s = s ^ ":\n"
 
@@ -39,7 +38,7 @@ structure Main : sig
 		out textSection;
 		out alignData;
 		out (label "_smlnj_heap_image_len");
-		out (word nb))
+		out (long nb))
 	  fun lineOut bytes = let
 		fun b2s b = Word8.fmt StringCvt.DEC b
 		in
