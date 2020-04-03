@@ -108,10 +108,10 @@ ml_state_t *ImportHeapImage (const char *fname, heap_params_t *params)
 #if defined(DLOPEN) && !defined(OPSYS_WIN32)
 	void *lib = dlopen (NULL, RTLD_LAZY);
 	void *vimg, *vimglenptr;
-	if ((vimg = dlsym(lib,HEAP_IMAGE_SYMBOL)) == NULL) {
+	if ((vimg = dlsym(lib, HEAP_IMAGE_SYMBOL)) == NULL) {
 	    Die("no in-core heap image found\n");
 	}
-	if ((vimglenptr = dlsym(lib,HEAP_IMAGE_LEN_SYMBOL)) == NULL) {
+	if ((vimglenptr = dlsym(lib, HEAP_IMAGE_LEN_SYMBOL)) == NULL) {
 	    Die("unable to find length of in-core heap image\n");
 	}
 
@@ -119,7 +119,7 @@ ml_state_t *ImportHeapImage (const char *fname, heap_params_t *params)
 	inBuf.needsSwap = FALSE;
 	inBuf.base = vimg;
 	inBuf.buf = inBuf.base;
-	inBuf.nbytes = *(long*)vimglenptr;
+	inBuf.nbytes = *(long *)vimglenptr;
 #else
       Die("in-core heap images not implemented\n");
 #endif
