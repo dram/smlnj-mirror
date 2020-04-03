@@ -299,6 +299,10 @@ installdriver _run-sml .run-sml
 installdriver _link-sml .link-sml
 installdriver _ml-makedepend ml-makedepend
 
+#
+# we optimistically install heap2exec, but will remove it if heap2asm
+# is not installed
+#
 installdriver _heap2exec heap2exec
 
 #
@@ -521,6 +525,12 @@ if [ $nolib = false ] ; then
     export CM_TOLERATE_TOOL_FAILURES
     if "$BINDIR"/sml $SIZE_OPT -m \$smlnj/installer.cm
     then
+	# because we create heap2exec without knowing if heap2asm is going
+	# to be installed, we need this hack to remove heap2exec when heap2asm
+	# is not available
+	if [ ! -x "$BINDIR"/heap2asm ] ; then
+	    rm -f "$BINDIR"/heap2exec
+	fi
 	vsay $this: Installation complete.
     else
 	complain "$this: !!! Installation of libraries and programs failed."
