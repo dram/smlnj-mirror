@@ -31,7 +31,7 @@ CFLAGS =	-g -O2 -D_DARWIN_C_SOURCE $(SYSROOT)
 CPP =           cc -x assembler-with-cpp -E -P -std=c99
 XOBJS =
 XLIBS =         ../c-libs/dl/libunix-dynload.a
-LD_LIBS =       -ldl
+LD_LIBS =
 XDEFS =
 BASE_DEFS =
 DEFS		= $(XDEFS) $(BASE_DEFS) -DARCH_X86 -DDSIZE_32 \
