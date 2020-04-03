@@ -96,6 +96,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2020/04/02]::
 +
+Various minor changes related to the *heap2exec* and *heap2asm*
+programs.
++
+    * Modified the `config/install.sh` script to remove `bin/heap2exec`
+      when the required helper `bin/heap2asm` is _not_ installed.
+    * Added `-static` and `-dynamic` as options to *heap2exec*
+      (these are the same as `--linkwith-a` and `--linkwith-so`)
+    * Rewrote *heap2asm* be a bit more future-proof.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/04/02]::
++
 Addressed bug bugref:247[] (@SMLVersion should report 64/32 bit) by
 adding a new command-line option (`@SMLwordsize`) to the `.run-sml`
 command script.  Specifying this option will cause the the wordsize

@@ -39,11 +39,14 @@ OPTIONS
 EXAMPLES
 --------
 
-`ml-build sources.cm`::
+`ml-build foo.cm`::
+  builds the program `foo` assuming a main function named `Test.main`.
 
-`ml-build sources.cm Main.main`::
+`ml-build foo.cm Main.main`::
+  builds the program `foo` with main function named `Main.main`.
 
 `ml-build sources.cm Main.main prog`::
+  builds the program `prog` with main function named `Main.main`.
 
 AUTHOR
 ------
@@ -51,7 +54,7 @@ AUTHOR
 
 SEE-ALSO
 --------
-ml-makedepend(1), sml(1), smlnj(7)
+*ml-makedepend*(1), *sml*(1), *smlnj*(7)
 
 COPYING
 -------
