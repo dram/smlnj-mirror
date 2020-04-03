@@ -206,7 +206,7 @@ request ml-burg
 # This facility is currently only supported on Linux and macOS
 #
 if UNIX
-#request heap2asm
+#  request heap2asm
 endif
 
 # Download the documentation directory.

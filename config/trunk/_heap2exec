@@ -3,14 +3,24 @@
 # COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
 # All rights reserved.
 #
-# usage: heap2exec [--linkwith-<format>] heapfile execfile
+# usage: heap2exec [ <options> ] heapfile execfile
+#
+# where the options are
+#
+#	-static
+#	-linkwith-a	-- use static linking on Linux/FreeBSD systems
+#
+#	-dynamic
+#	-linkwith-so	-- use dynamic linking on Linux/FreeBSF systems
 #
 
 CMD=`basename "$0"`
 
 usage() {
-	echo "usage: $CMD [--linkwith-<format>] <heapfile> <execfile>"
-	echo "       <format> = exec | so | a"
+	echo "usage: $CMD [ -32 | -64 ] [ <link> ] <heapfile> <execfile>"
+	echo "  where <link> is one of"
+	echo "      -static,  --linkwith-a    -- use static linking (Linux/FreeBSD)"
+	echo "      -dynamic, --linkwith-so   -- use dynamic linking (Linux/FreeBSD)"
 	exit 1
 }
 
@@ -53,10 +63,10 @@ if [ $# != 2 ] ; then
 	    --linkwith-exec)
 		FORMAT=exec
 		;;
-	    --linkwith-so)
+	    -dynamic|--linkwith-so)
 		FORMAT=so
 		;;
-	    --linkwith-a)
+	    -static|--linkwith-a)
 		FORMAT=a
 		;;
 	    *)
@@ -128,6 +138,11 @@ if [ ! -f $H2A ]; then
     echo "${CMD}: heap2asm is not installed"
     exit 2
 fi
+
+#
+# TODO: it would be better to check the linking command etc before
+# running heap2asm, since that can take a long time
+#
 
 RESULT=0
 if ${H2A} $SIZE_OPT "$heapfile" "$execfile".s ; then
