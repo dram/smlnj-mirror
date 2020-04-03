@@ -14,7 +14,7 @@ CPP =		gcc -x assembler-with-cpp -E -P
 
 XOBJS =
 XLIBS =		../c-libs/dl/libunix-dynload.a
-LD_LIBS =
+LD_LIBS =	-lm
 BASE_DEFS =
 DEFS =          $(XDEFS) $(BASE_DEFS) -DARCH_PPC -DDSIZE_32 -DOPSYS_UNIX -DOPSYS_OPENBSD -DDLOPEN
 TARGET =	PPC

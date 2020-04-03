@@ -112,7 +112,7 @@ clean:
 
 
 $(RUNTIME):	$(VERSION) main.o $(OBJS) $(ALL_LIBS)
-	$(CC) -o $(RUNTIME) $(CFLAGS) $(LDFLAGS) main.o $(OBJS) $(ALL_LIBS) $(LD_LIBS) -lm
+	$(CC) -o $(RUNTIME) $(CFLAGS) $(LDFLAGS) main.o $(OBJS) $(ALL_LIBS) $(LD_LIBS)
 
 $(RUNTIME_A):	$(VERSION) main.o $(OBJS) $(ALL_LIBS)
 	rm -f $(RUNTIME_A)

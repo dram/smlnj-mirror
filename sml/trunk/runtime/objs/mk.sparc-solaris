@@ -13,13 +13,9 @@ CFLAGS =	-O3
 CPP =		$(GCC) -x c -E -P
 RANLIB =	$(AR) ts
 
-#XOBJS =	xmonitor.o
-#LD_LIBS =	-lX11
-#BASE_DEFS =	-DHEAP_MONITOR
 XOBJS =
 XLIBS =		../c-libs/dl/libunix-dynload.a
-LD_LIBS =	-lsocket -lnsl -ldl
-#XDEFS =		-DASSERT_ON -DNO_GC_INLINE -DCHECK_HEAP
+LD_LIBS =	-lm -lsocket -lnsl -ldl
 XDEFS =
 BASE_DEFS =	-D__STDC__=0
 DEFS =		$(XDEFS) $(BASE_DEFS) -DARCH_SPARC -DDSIZE_32 \
