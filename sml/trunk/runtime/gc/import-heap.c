@@ -81,40 +81,45 @@ ml_state_t *ImportHeapImage (const char *fname, heap_params_t *params)
       /* Resolve the name of the image.  If the file exists use it, otherwise try the
        * pathname with the machine ID as an extension.
        */
-      if ((inBuf.file = fopen(fname, "rb")) != NULL) {
-	if (! SilentLoad)
-	  Say("loading %s ", fname);
-      }
-      else {
-	char	buf[1024];
-
-	if (QualifyImageName(strcpy(buf, fname))
-	    && ((inBuf.file = fopen(buf, "rb")) != NULL)) {
-	  if (! SilentLoad)
-	    Say("loading %s ", buf);
+	if ((inBuf.file = fopen(fname, "rb")) != NULL) {
+	    if (! SilentLoad) {
+		Say("loading %s ", fname);
+	    }
 	}
-	else
-	  Die ("unable to open heap image \"%s\"\n", fname);
-      }
+	else {
+	    char	buf[1024];
 
-      inBuf.needsSwap = FALSE;
-      inBuf.buf	    = NIL(Byte_t *);
-      inBuf.nbytes    = 0;
+	    if (QualifyImageName(strcpy(buf, fname))
+	    && ((inBuf.file = fopen(buf, "rb")) != NULL)) {
+		if (! SilentLoad) {
+		    Say("loading %s ", buf);
+		}
+	    }
+	    else {
+		Die ("unable to open heap image \"%s\"\n", fname);
+	    }
+	}
+
+	inBuf.needsSwap = FALSE;
+	inBuf.buf	    = NIL(Byte_t *);
+	inBuf.nbytes    = 0;
     } else {
       /* fname == NULL, so try to find an in-core heap image */
 #if defined(DLOPEN) && !defined(OPSYS_WIN32)
-      void *lib = dlopen (NULL, RTLD_LAZY);
-      void *vimg, *vimglenptr;
-      if ((vimg = dlsym(lib,HEAP_IMAGE_SYMBOL)) == NULL)
-	Die("no in-core heap image found\n");
-      if ((vimglenptr = dlsym(lib,HEAP_IMAGE_LEN_SYMBOL)) == NULL)
-	Die("unable to find length of in-core heap image\n");
+	void *lib = dlopen (NULL, RTLD_LAZY);
+	void *vimg, *vimglenptr;
+	if ((vimg = dlsym(lib,HEAP_IMAGE_SYMBOL)) == NULL) {
+	    Die("no in-core heap image found\n");
+	}
+	if ((vimglenptr = dlsym(lib,HEAP_IMAGE_LEN_SYMBOL)) == NULL) {
+	    Die("unable to find length of in-core heap image\n");
+	}
 
-      inBuf.file = NULL;
-      inBuf.needsSwap = FALSE;
-      inBuf.base = vimg;
-      inBuf.buf = inBuf.base;
-      inBuf.nbytes = *(long*)vimglenptr;
+	inBuf.file = NULL;
+	inBuf.needsSwap = FALSE;
+	inBuf.base = vimg;
+	inBuf.buf = inBuf.base;
+	inBuf.nbytes = *(long*)vimglenptr;
 #else
       Die("in-core heap images not implemented\n");
 #endif
