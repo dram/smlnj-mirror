@@ -1100,7 +1100,7 @@ let
 		  updtExp downtyvars
 		end
 	  in
-	    (DOdec exp, env, TS.empty, updt)
+	    (DOdec exp, SE.empty, TS.empty, updt)
 	  end
 
     and elabFUNdec(fb,etvs,env,rpath,region) =

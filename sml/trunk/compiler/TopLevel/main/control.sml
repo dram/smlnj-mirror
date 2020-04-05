@@ -222,6 +222,7 @@ structure Control : CONTROL =
 		 val overloadKW = ref false
 		 val lazysml = ref false
 		 val quotation = ref false
+                 val setSuccML : bool -> unit
      *)
 
     val debugging = new ("debugging", "?", false)

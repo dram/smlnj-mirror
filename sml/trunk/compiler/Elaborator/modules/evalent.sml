@@ -4,7 +4,7 @@
 signature EVALENTITY =
 sig
 
-  structure Instantiate : INSTANTIATE
+(*  structure Instantiate : INSTANTIATE *)
 
   val evalApp : Modules.fctEntity * Modules.strEntity
                 * DebIndex.depth * EntPathContext.context
@@ -15,8 +15,7 @@ sig
 
 end (* signature EVALENTITY *)
 
-(* functorized to factor out dependencies on FLINT... *)
-functor EvalEntityFn (structure I : INSTANTIATE): EVALENTITY =
+structure EvalEntity : EVALENTITY =
 struct
 
 local (* structure DI = DebIndex *)
@@ -29,10 +28,11 @@ local (* structure DI = DebIndex *)
       structure EU = ElabUtil
       structure MI = ModuleId
       structure MU = ModuleUtil
+      structure I = Instantiate
       open Modules
 in
 
-structure Instantiate = I
+(* structure Instantiate = I *)
 
 (* debugging *)
 val say = Control_Print.say

@@ -162,11 +162,12 @@ TopLevel/main/pptable.sml
 
 (* Semantic analysis (elaborator) specialized for SML/NJ. *)
 
+(* redundant functor applications
 Semant/elaborate/elabmod.sml
 Semant/elaborate/elabtop.sml
-
 Semant/modules/evalent.sml
 Semant/modules/sigmatch.sml
+*)
 
 Semant/pickle/pickle-sym-pid.sml
 Semant/pickle/pickmod.sml

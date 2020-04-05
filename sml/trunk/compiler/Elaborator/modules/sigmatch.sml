@@ -7,7 +7,7 @@
 signature SIGMATCH =
 sig
 
-  structure EvalEntity : EVALENTITY
+(*  structure EvalEntity : EVALENTITY *)
 
   (*** these four functions are only called inside elabmod.sml ***)
   val matchStr :
@@ -72,20 +72,19 @@ sig
 end (* signature SIGMATCH *)
 
 
-(* functorized to factor out dependencies on FLINT... *)
-functor SigMatchFn (structure EV : EVALENTITY) : SIGMATCH =
+structure SigMatch : SIGMATCH =
 struct
 
 local structure A  = Absyn
       structure B  = Bindings
       structure DA = Access
-      (* structure DI = DebIndex *)
       structure EE = EntityEnv
       structure EM = ErrorMsg
       structure EP = EntPath
       structure EPC = EntPathContext
       structure EU = ElabUtil
-      structure INS = EV.Instantiate
+      structure EV = EvalEntity
+      structure INS = Instantiate
       structure IP = InvPath
       structure M  = Modules
       structure MU = ModuleUtil
@@ -103,7 +102,7 @@ local structure A  = Absyn
 
 in
 
-structure EvalEntity = EV
+(* structure EvalEntity = EV *)
 
 exception BadBinding
 

@@ -24,7 +24,8 @@ end (* signature ELABMOD *)
 
 
 (* functorized to factor out dependencies on FLINT... *)
-functor ElabModFn (structure SM : SIGMATCH) : ELABMOD =
+(* functor ElabModFn (structure SM : SIGMATCH) : ELABMOD = *)
+structure ElabMod : ELABMOD =
 struct
 
 local structure S  = Symbol
@@ -46,9 +47,8 @@ local structure S  = Symbol
       structure ES = ElabSig
       structure B  = Bindings
       structure LU = Lookup
-      (* structure SM = SigMatch *)
-      structure INS = SM.EvalEntity.Instantiate
-      (* structure II = InlInfo *)
+      structure SM = SigMatch
+      structure INS = Instantiate
       structure SE = StaticEnv
       structure EM = ErrorMsg
       structure PP = PrettyPrint
@@ -560,7 +560,8 @@ fun extractSig (env, epContext, context,
 		   foldl (fn (dec,names) => (getDeclOrder dec)@names) [] decs
 	       | A.MARKdec(dec,_) => getDeclOrder dec
 	       | A.FIXdec{ops,...} => ops
-	       | _ => bug "elabmod: extractSig Unexpected dec"
+	       | A.DOdec _ => []
+	       | _ => bug "extractSig: Unexpected dec"
 	  end
 
 	(* suppressDuplicates is not strictly necessary for correctness

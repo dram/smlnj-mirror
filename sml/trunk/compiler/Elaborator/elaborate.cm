@@ -9,7 +9,6 @@ Group
 	structure ElabControl
 
 	signature BASICTYPES
-(*	signature INSTANTIATE_PARAM *)
 	signature INSTANTIATE
 	signature EVALENTITY
 	signature ELABTOP
@@ -18,10 +17,10 @@ Group
 	signature SIGMATCH
 
 	structure Instantiate
-	functor EvalEntityFn
-	functor SigMatchFn
-	functor ElabModFn
-	functor ElabTopFn
+	structure EvalEntity
+	structure SigMatch
+	structure ElabMod
+	structure ElabTop
 
 	structure BasicTypes
 	structure ElabUtil
