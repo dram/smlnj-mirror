@@ -29,6 +29,9 @@ FILES::
 
 == Summary
 
+This release is primarily a bug-fix release, but it also includes a number
+of additions to the **SML/NJ Library** and some additional documentation.
+
 == Details
 
 === SML/NJ Library
@@ -94,6 +97,10 @@ for more details.
 |=======
 | [.bugid]#176#
 | Manpages
+| [.bugid]#195#
+| SuccessorML [.kw]#do# expression in functor arguments.
+| [.bugid]#196#
+| `dontPickle` error when trying to use SuccessorML
 | [.bugid]#239#
 | `Date.toTime` is incorrect (by a factor of 10E9)
 | [.bugid]#240#

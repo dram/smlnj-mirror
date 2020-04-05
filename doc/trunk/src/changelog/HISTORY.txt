@@ -96,21 +96,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2020/04/05]::
 +
-Turned several functors (ElabModFn, ElabTopFn, SigMatchFn, etc. into
+Turned several functors (`ElabModFn`, `ElabTopFn`, `SigMatchFn`, etc. into
 structures and removed the redundant functor application files (and
-the directories) in Semant/elaborate and Semant/modules.
+the directories) in `Semant/elaborate` and `Semant/modules`.
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
 //--------------------------------------------------------------------
 [2020/04/05]::
 +
-Fixed bugs 195 and 196
+Fixed bugs bugref:195[] and bugref:196[]
 +
-    * 195: added missing DOdec case in function getDeclOrder in
-      ElabMod (Elaborator/elaborate/elabmod.sml l. ~563)
-    * 196: modified elabDOdec in Elaborator/elaborate/elabcore.sml to
-      return the empty Stantic environment (SE.empty)
+    * bugref:195[]: added missing `DOdec` case in function `getDeclOrder` in
+      `ElabMod` (Elaborator/elaborate/elabmod.sml l. ~563)
+    * bugref:196[]: modified `elabDOdec` in `Elaborator/elaborate/elabcore.sml` to
+      return the empty Static environment (`SE.empty`)
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
