@@ -1,4 +1,4 @@
-= `*structure* JSON`
+= The `JSON` structure
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
@@ -58,4 +58,5 @@ datatype value
 
 == See Also
 
+link:json-util.html[`JSONUtil`]
 link:json-lib.html[`json-lib`]

@@ -1,10 +1,39 @@
+= The `JSONParser` structure
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+some overview
+
+== Synopsis
+
 [source,sml]
 ------------
-structure JSONParser : sig
-
-    val parse : TextIO.instream -> JSON.value
-
-    val parseFile : string -> JSON.value
-
-  end
+structure JSONParser
 ------------
+
+== Interface
+
+[source,sml]
+------------
+val parse : TextIO.instream -> JSON.value
+
+val parseFile : string -> JSON.value
+------------
+
+== Description
+
+`[.kw]#val# parse : TextIO.instream -> JSON.value`::
+  something
+
+`[.kw]#val# parseFile : string -> JSON.value`::
+  something
+
+== See Also
+
+link:json.html[`JSON`]
+link:json-stream-parser.html[`JSONStreamParser`]
+link:json-util.html[`JSONUtil`]
+link:json-lib.html[`json-lib`]

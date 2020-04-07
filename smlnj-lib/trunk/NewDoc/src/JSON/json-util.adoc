@@ -1,7 +1,23 @@
+= The `JSONUtil` structure
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+some overview
+
+== Synopsis
+
 [source,sml]
 ------------
-structure JSONUtil : sig
+structure JSONUtil
+------------
 
+== Interface
+
+[source,sml]
+------------
   (* exceptions for conversion functions *)
     exception NotBool of JSON.value
     exception NotInt of JSON.value
@@ -82,6 +98,17 @@ structure JSONUtil : sig
    * in `jv`
    *)
     val append : JSON.value * path * JSON.value list -> JSON.value
-
-  end
 ------------
+
+== Description
+
+`[.kw]type foo`::
+  something
+
+`[.kw]val bar : foo -> foo`::
+  something
+
+== See Also
+
+link:json.html[`JSON`]
+link:json-lib.html[`json-lib`]

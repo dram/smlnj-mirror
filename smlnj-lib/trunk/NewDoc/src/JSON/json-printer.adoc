@@ -1,9 +1,37 @@
+= The `JSONPrinter` structure
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+some overview
+
+== Synopsis
+
 [source,sml]
 ------------
-structure JSONPrinter : sig
-
-    val print : TextIO.outstream * JSON.value -> unit
-    val print' : {strm : TextIO.outstream, pretty : bool} -> JSON.value -> unit
-
-  end
+structure JSONPrinter
 ------------
+
+== Interface
+
+[source,sml]
+------------
+val print : TextIO.outstream * JSON.value -> unit
+val print' : {strm : TextIO.outstream, pretty : bool} -> JSON.value -> unit
+------------
+
+== Description
+
+`[.kw]#val# print : TextIO.outstream * JSON.value -> unit`::
+  something
+
+`[.kw]#val# print' : {strm : TextIO.outstream, pretty : bool} -> JSON.value -> unit`::
+  something
+
+== See Also
+
+link:json.html[`JSON`]
+link:json-stream-printer.html[`JSONStreamPrinter`]
+link:json-lib.html[`json-lib`]

@@ -21,10 +21,10 @@ some overview
 
 == Description
 
-`[.kw]type foo`::
+`[.kw]#type# foo`::
   something
 
-`[.kw]val bar : foo -> foo`::
+`[.kw]#val# bar : foo -> foo`::
   something
 
 == See Also
