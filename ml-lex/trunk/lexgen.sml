@@ -45,6 +45,9 @@ see the COPYRIGHT NOTICE for details and restrictions.
 		and characters.
 	02/08/95 (jhr) Modified to use new List module interface.
 	05/18/95 (jhr) changed Vector.vector to Vector.fromList
+	04/07/20 (jhr) Switch to using RedBlackMapFn from SML/NJ Library
+	04/07/20 (jhr) Replaced uses of polymorphic equality with pattern
+		matching.
 
  * Revision 1.9  1998/01/06 19:23:53  appel
  *   added %posarg feature to permit position-within-file to be passed
