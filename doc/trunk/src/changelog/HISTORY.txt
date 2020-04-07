@@ -94,6 +94,16 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/04/07]::
++
+Some clean up in the `ml-lex/lexgen.sml` code.  Replaced the one-off
+implementation of finite maps with the `RedBlackMapFn` functor from
+the *SML/NJ Library*.  Also got rid of the uses of polymorphic equality
+by changing token equality tests to pattern matching.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2020/04/05]::
 +
 Turned several functors (`ElabModFn`, `ElabTopFn`, `SigMatchFn`, etc. into
