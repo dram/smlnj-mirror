@@ -1,10 +1,15 @@
+(* ml-lex.cm
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
 Library
-	structure ExportLexGen
+  structure ExportLexGen
 is
 
-# if defined (NEW_CM)
   $/basis.cm
-# endif
+  $/smlnj-lib.cm
 
   lexgen.sml
   export-lex.sml
