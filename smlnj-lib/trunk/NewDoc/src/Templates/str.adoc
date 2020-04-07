@@ -1,0 +1,32 @@
+= `*structure* XXX`
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+some overview
+
+== Synopsis
+
+[source,sml]
+------------
+------------
+
+== Interface
+
+[source,sml]
+------------
+------------
+
+== Description
+
+`[.kw]type foo`::
+  something
+
+`[.kw]val bar : foo -> foo`::
+  something
+
+== See Also
+
+link:XXX-lib.html[`XXX-lib`]

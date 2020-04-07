@@ -1,0 +1,10 @@
+[source,sml]
+------------
+structure JSONParser : sig
+
+    val parse : TextIO.instream -> JSON.value
+
+    val parseFile : string -> JSON.value
+
+  end
+------------

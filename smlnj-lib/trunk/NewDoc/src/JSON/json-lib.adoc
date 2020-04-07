@@ -1,0 +1,45 @@
+= SML/NJ Library -- `json-lib`
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+== Overview
+The `json-lib` library provides a representation of the
+https://www.json.org/json-en.html[JavaScript Object Notation (*JSON*)]
+with support for parsing, printing, and manipulating *JSON*
+values as trees.  There is also support for processing *JSON* data as
+streams using a "SAX-style" API.
+
+== Contents
+
+=== Tree-based API
+
+  link:json.html[`[.kw]#structure# JSON`]::
+    Defines the representation of *JSON* values as an *SML* datatype.
+
+  link:json-parser.html[`[.kw]#structure# JSONParser`]::
+    A parser for *JSON* input.
+
+  link:json-printer.html[`[.kw]#structure# JSONPrinter`]::
+    A printer for *JSON* output.
+
+  link:json-util.html[`[.kw]#structure# JSONUtil`]::
+    A collection of utility functions for working with *JSON* values.
+
+=== Stream-based API
+
+  link:json-stream-parser.html[`[.kw]#structure# JSONStreamParser`]::
+    A stream (or event) based parser for JSON input.
+
+  link:json-stream-printer.html[`[.kw]#structure# JSONStreamPrinter`]::
+    A stream based printer for JSON input.
+
+== Usage
+
+For https://smlnj.org[*SML/NJ*], include `$/json-lib.cm` in your
+*CM* file.
+
+For use in http://www.mlton.org/[*MLton*], include
+`$(SML_LIB)/smlnj-lib/JSON/json-lib.mlb` in your *MLB* file.

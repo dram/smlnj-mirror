@@ -1,0 +1,61 @@
+= `*structure* JSON`
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+== Synopsis
+
+[source,sml]
+------------
+structure JSON
+------------
+
+== Interface
+
+[source,sml]
+------------
+datatype value
+  = OBJECT of (string * value) list
+  | ARRAY of value list
+  | NULL
+  | BOOL of bool
+  | INT of IntInf.int
+  | FLOAT of real
+  | STRING of string
+------------
+
+== Description
+
+`[.kw]#datatype# value = ...`::
+  This datatype represents *JSON* values as trees.  The constructors
+  are
++
+--
+    `OBJECT of (string * value) list`::
+      represents a *JSON* object value; _i.e._, a list of key-value pairs.
+      Note that the keys should be unique.
+
+    `ARRAY of value list`::
+      represents a *JSON* array value.
+
+    `NULL`::
+      represents the *JSON* value `"null"`.
+
+    `BOOL of bool`::
+      represents the *JSON* values `"true"` and `"false"`.
+
+    `INT of IntInf.int`::
+      represents *JSON* integer numbers.
+
+    `FLOAT of real`::
+      represents *JSON* floating-point numbers.
+
+    `STRING of string`::
+      represents *JSON* strings, which are assumed to be UTF-8 encoded.
+--
+
+== See Also
+
+link:json-lib.html[`json-lib`]
