@@ -23,6 +23,13 @@ ATTRS =         -a sml-basis-url="$(SML_BASIS_URL)" \
 		-a smlnj-version="$(SMLNJ_VERSION)" \
                 -a release-date="$(SMLNJ_DATE)"
 
+ASCIIDOCTOR_HTML_FLAGS = -b html
+
+# command to generate HTML files
+#
+ASCIIDOCTOR_HTML =	$(ASCIIDOCTOR) $(ASCIIDOCTOR_HTML_FLAGS) $(ATTRS)
+
+
 # default target base
 #
 TARGET_BASE =           http://smlnj.org
@@ -48,6 +55,9 @@ DOC_SUBDIRS =           JSON
 
 HTML_SUBDIRS =		$(addprefix $(HTML_DST_ROOT)/,$(DOC_SUBDIRS))
 
+ADOC_FILES =		index.adoc \
+			$(wildcard JSON/*.adoc)
+
 STYLE_IN_FILES =        $(notdir $(wildcard styles/*.in))
 STYLE_DST_FILES =       $(addprefix $(STYLES_DST)/,$(STYLE_IN_FILES:_css.in=.css)))
 IMAGE_FILES =           $(notdir $(wildcard images/*.png images/*jpg))
@@ -56,6 +66,12 @@ IMAGE_DST_FILES =       $(addprefix $(IMAGES_DST)/,$(IMAGE_FILES))
 .PHONY:         doc
 doc:            html $(DOC_DIR)
 
+.PHONY:		html
+html:
+	$(ASCIIDOCTOR_HTML) index.adoc
+	for dir in $(DOC_SUBDIRS) ; do \
+	    (cd $$dir; $(ASCIIDOCTOR_HTML) *.adoc) ; \
+	done
 
 include @MK_DIR@/clean-rules.gmk
 

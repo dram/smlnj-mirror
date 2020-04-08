@@ -9,7 +9,7 @@ AC_INIT([smlnj-lib-doc],[1.0],[],[],[http://smlnj.org])
 
 AC_PREREQ(2.60)
 AC_COPYRIGHT([[COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)]])
-AC_CONFIG_SRCDIR(JSON/json-lib.adoc)
+AC_CONFIG_SRCDIR(src/JSON/json-lib.adoc)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
 
@@ -119,14 +119,7 @@ dnl
 AC_CONFIG_FILES(
 dnl ***** Makefiles *****
   mk/doc-rules.gmk:config/doc-rules_gmk.in
-  Makefile
   src/Makefile
-  src/changelog/Makefile
-  src/extensions/Makefile
-  src/install-notes/Makefile
-  src/man/Makefile
-  src/manuals/Makefile
-  src/release-notes/Makefile
 )
 
 AC_OUTPUT
