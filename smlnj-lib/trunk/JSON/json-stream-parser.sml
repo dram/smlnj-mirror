@@ -1,6 +1,6 @@
 (* json-stream-parser.sml
  *
- * COPYRIGHT (c) 2008 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -18,7 +18,7 @@ structure JSONStreamParser : sig
 	endObject : 'ctx -> 'ctx,
 	startArray : 'ctx -> 'ctx,
 	endArray : 'ctx -> 'ctx,
-	error : 'ctx * string -> 'ctx
+	error : 'ctx * string -> unit
       }
 
     val parse : 'ctx callbacks -> (TextIO.instream * 'ctx) -> 'ctx
@@ -42,7 +42,7 @@ structure JSONStreamParser : sig
 	endObject : 'ctx -> 'ctx,
 	startArray : 'ctx -> 'ctx,
 	endArray : 'ctx -> 'ctx,
-	error : 'ctx * string -> 'ctx
+	error : 'ctx * string -> unit
       }
 
     fun error (cb : 'a callbacks, ctx, msg) = (

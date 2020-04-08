@@ -5,6 +5,14 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-08]
+	The `JSONStreamPrinter` implementation now raises the `Fail`
+	exception when printing is attempted on a closed printer.
+
+[2020-04-08]
+	Changed the return type of the `error` call-back function in
+	the `JSONStreamParser.callbacks` type to `unit`.
+
 [2020-04-01]
 	Added a new library for generating and manipulating "Universally
 	Unique Identifiers" (UUID/uuid-lib.cm).

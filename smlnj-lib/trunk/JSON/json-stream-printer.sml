@@ -1,6 +1,6 @@
 (* json-stream-printer.sml
  *
- * COPYRIGHT (c) 2008 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -38,7 +38,8 @@ structure JSONStreamPrinter : sig
    * and punctuation, etc.
    *)
     and context
-      = TOP			(* top-most context *)
+      = CLOSED			(* closed printer *)
+      | TOP			(* top-most context *)
       | FIRST of context	(* first element of object or array; the argument *)
 				(* must be one of OBJECT or ARRAY. *)
       | OBJECT of context	(* in an object (after the first element) *)
@@ -54,8 +55,11 @@ structure JSONStreamPrinter : sig
 
     fun new strm = new' {strm = strm, pretty = false}
 
-    fun close (P{ctx = ref TOP, strm, ...}) = TextIO.output(strm, "\n")
-      | close _ = raise Fail "premature close"
+    fun close (P{ctx, strm, ...}) = (case !ctx
+	   of CLOSED => ()
+	    | TOP => (TextIO.output(strm, "\n"); ctx := CLOSED)
+	    | _ => raise Fail "premature close"
+	  (* end case *))
 
     fun pr (P{strm, ...}, s) = TextIO.output(strm, s)
 
@@ -90,7 +94,8 @@ structure JSONStreamPrinter : sig
 	  (* end case *))
 
   (* print a value, which may be proceeded by a comma if it is in a sequence *)
-    fun prVal (p, v) = (optComma p; pr(p, v))
+    fun prVal (P{ctx = ref CLOSED, ...}, _) = raise Fail "closed printer"
+      | prVal (p, v) = (optComma p; pr(p, v))
 
     fun null p = prVal (p, "null")
     fun boolean (p, false) = prVal (p, "false")
@@ -122,16 +127,23 @@ structure JSONStreamPrinter : sig
 	    prVal (p, F.format "\"%s\"" [F.STR(tr (0, []))])
 	  end
 
-    fun beginObject (p as P{ctx, ...}) = (
-	  optComma p;
-	  pr (p, "{"); incIndent(p, 2); nl p;
-	  ctx := FIRST(OBJECT(!ctx)))
+    fun beginObject (p as P{ctx, ...}) = (case !ctx
+	   of CLOSED => raise Fail "closed printer"
+	    | _ => (
+		optComma p;
+		pr (p, "{"); incIndent(p, 2); nl p;
+		ctx := FIRST(OBJECT(!ctx)))
+	  (* end case *))
 
-    fun objectKey (p as P{ctx = ref(KEY _), ...}, field) =
-	  raise Fail(concat["objectKey \"", field, "\" where value was expected"])
-      | objectKey (p as P{ctx, ...}, field) = (
-	  string (p, field);
-	  ctx := KEY(!ctx))
+    fun objectKey (p as P{ctx, ...}, field) = (case !ctx
+	   of CLOSED => raise Fail "closed printer"
+	    | KEY _ => raise Fail(concat[
+		  "objectKey \"", field, "\" where value was expected"
+		])
+	    | _ => (
+		string (p, field);
+		ctx := KEY(!ctx))
+	  (* end case *))
 
     fun endObject (p as P{ctx, ...}) = let
 	  fun prEnd ctx' = (
@@ -139,16 +151,21 @@ structure JSONStreamPrinter : sig
 		indent(p, ~1); pr(p, "}"); decIndent (p, 2))
 	  in
 	    case !ctx
-	     of OBJECT ctx' => (nl p; prEnd ctx')
+	     of CLOSED => raise Fail "closed printer"
+	      | OBJECT ctx' => (nl p; prEnd ctx')
 	      | FIRST(OBJECT ctx') => prEnd ctx'
+	      | KEY _ => raise Fail "expecting value after key"
 	      | _ => raise Fail "endObject not in object context"
 	    (* end case *)
 	  end
 
-    fun beginArray (p as P{ctx, ...}) = (
-	  optComma p;
-	  pr (p, "["); incIndent(p, 2); nl p;
-	  ctx := FIRST(ARRAY(!ctx)))
+    fun beginArray (p as P{ctx, ...}) = (case !ctx
+	   of CLOSED => raise Fail "closed printer"
+	    | _ => (
+		optComma p;
+		pr (p, "["); incIndent(p, 2); nl p;
+		ctx := FIRST(ARRAY(!ctx)))
+	  (* end case *))
 
     fun endArray (p as P{ctx, ...}) = let
 	  fun prEnd ctx' = (
@@ -156,7 +173,8 @@ structure JSONStreamPrinter : sig
 		indent(p, ~1); pr(p, "]"); decIndent (p, 2))
 	  in
 	    case !ctx
-	     of ARRAY ctx' => (nl p; prEnd ctx')
+	     of CLOSED => raise Fail "closed printer"
+	      | ARRAY ctx' => (nl p; prEnd ctx')
 	      | FIRST(ARRAY ctx') => prEnd ctx'
 	      | _ => raise Fail "endArray not in array context"
 	    (* end case *)
