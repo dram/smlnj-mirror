@@ -9,17 +9,15 @@
 
 == Contents
 
-  link:FILE.html[`[.kw]#structure# FOO`]::
+  link:sig-FOO.html[`[.kw]#signature# FOO`]::
     something
 
-  link:json-parser.html[`[.kw]#structure# JSONParser`]::
-    A parser for *JSON* input.
+  link:str-Foo.html[`[.kw]#structure# Foo`]::
+    something
 
-  link:json-printer.html[`[.kw]#structure# JSONPrinter`]::
-    A printer for *JSON* output.
+  link:fun-FooFn.html[`[.kw]#functor# FooFn`]::
+    something
 
-  link:json-util.html[`[.kw]#structure# JSONUtil`]::
-    A collection of utility functions for working with *JSON* values.
 
 == Usage
 

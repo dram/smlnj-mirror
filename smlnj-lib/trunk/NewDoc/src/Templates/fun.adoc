@@ -1,4 +1,4 @@
-= `*functor* XXX`
+= The `@NAME@` functor
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
@@ -35,4 +35,4 @@ some overview
 
 == See Also
 
-link:XXX-lib.html[`XXX-lib`]
+link:@LIBRARY@.html[`@LIBRARY@`]
