@@ -57,6 +57,30 @@ datatype value
       represents *JSON* strings, which are assumed to be UTF-8 encoded.
 --
 
+== Example
+
+The *JSON* value
+
+[source,json]
+-------------
+{ "a" : 23,
+  "b" : [ false, true ],
+  "c" : "hello world"
+}
+-------------
+
+has the following representation using the *value* datatype:
+
+[source,sml]
+------------
+OBJECT[
+  ("a", INT 23),
+  ("b", ARRAY[BOOL false, BOOL true]),
+  ("c", STRING "hello world")
+]
+------------
+
+
 == See Also
 
 link:json-util.html[`JSONUtil`]

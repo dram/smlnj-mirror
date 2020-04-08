@@ -35,7 +35,7 @@ type 'ctx callbacks = {
     endObject : 'ctx -> 'ctx,
     startArray : 'ctx -> 'ctx,
     endArray : 'ctx -> 'ctx,
-    error : 'ctx * string -> 'ctx
+    error : 'ctx * string -> unit
   }
 
 val parse : 'ctx callbacks -> (TextIO.instream * 'ctx) -> 'ctx
@@ -88,9 +88,14 @@ val parseFile : 'ctx callbacks -> (string * 'ctx) -> 'ctx
         called at the end of a *JSON* array definition (_i.e._,
         when a "`]`" is encountered).
 
-    `error : 'ctx * string \-> 'ctx`::
+    `error : 'ctx * string \-> unit`::
         called when a syntax error is encountered in the input.  The
         second argument is an error message describing the error.
+	It is expected that this call-back does not return (_i.e._, it
+	either raises an exception or terminates the program).
+	If it does return, then the parser will raise the
+	{sml-basis-url}/general.html#SIG:GENERAL.Fail:EXN[`Fail`]
+	exception.
 --
 
 `[.kw]#val# parse : 'ctx callbacks \-> (TextIO.instream * 'ctx) \-> 'ctx`::

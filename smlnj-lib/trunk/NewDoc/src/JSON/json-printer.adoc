@@ -24,11 +24,15 @@ val print' : {strm : TextIO.outstream, pretty : bool} -> JSON.value -> unit
 
 == Description
 
-`[.kw]#val# print : TextIO.outstream * JSON.value -> unit`::
-  something
+`[.kw]#val# print : TextIO.outstream * JSON.value \-> unit`::
+  `print (outS, jv)` prints the *JSON* value `jv` to the outstream `outS`
+  in _condensed_ format (_i.e._, without newlines or indentation).
 
-`[.kw]#val# print' : {strm : TextIO.outstream, pretty : bool} -> JSON.value -> unit`::
-  something
+`[.kw]#val# print' : {strm : TextIO.outstream, pretty : bool} \-> JSON.value \-> unit`::
+  `print' {outS, pretty} jv` prints the *JSON* value `jv` to the
+  outstream `outS`, where the value of the `pretty` field controls whether
+  the output is condensed (when `pretty` is `false`) or printed with
+  new lines and indentation to improve readability (when `pretty` is `true`).
 
 == See Also
 
