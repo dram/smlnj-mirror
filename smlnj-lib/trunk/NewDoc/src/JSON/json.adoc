@@ -34,26 +34,26 @@ datatype value
   are
 +
 --
-    `OBJECT of (string * value) list`::
+    `OBJECT [.kw]#of# (string * value) list`::
       represents a *JSON* object value; _i.e._, a list of key-value pairs.
       Note that the keys should be unique.
 
-    `ARRAY of value list`::
+    `ARRAY [.kw]#of# value list`::
       represents a *JSON* array value.
 
     `NULL`::
       represents the *JSON* value `"null"`.
 
-    `BOOL of bool`::
+    `BOOL [.kw]#of# bool`::
       represents the *JSON* values `"true"` and `"false"`.
 
-    `INT of IntInf.int`::
+    `INT [.kw]#of# IntInf.int`::
       represents *JSON* integer numbers.
 
-    `FLOAT of real`::
+    `FLOAT [.kw]#of# real`::
       represents *JSON* floating-point numbers.
 
-    `STRING of string`::
+    `STRING [.kw]#of# string`::
       represents *JSON* strings, which are assumed to be UTF-8 encoded.
 --
 

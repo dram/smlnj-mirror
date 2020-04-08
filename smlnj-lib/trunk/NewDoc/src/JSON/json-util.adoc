@@ -18,93 +18,53 @@ structure JSONUtil
 
 [source,sml]
 ------------
-  (* exceptions for conversion functions *)
-    exception NotBool of JSON.value
-    exception NotInt of JSON.value
-    exception NotNumber of JSON.value
-    exception NotString of JSON.value
+exception NotBool of JSON.value
+exception NotInt of JSON.value
+exception NotNumber of JSON.value
+exception NotString of JSON.value
 
-  (* exception that is raised when trying to process a non-object value as an object *)
-    exception NotObject of JSON.value
+exception NotObject of JSON.value
 
-  (* exception that is raised when the given field is not found in an object *)
-    exception FieldNotFound of JSON.value * string
+exception FieldNotFound of JSON.value * string
 
-  (* exception that is raised when trying to process a non-array value as an array *)
-    exception NotArray of JSON.value
+exception NotArray of JSON.value
 
-  (* exception that is raise when access to an array value is out of bounds *)
-    exception ArrayBounds of JSON.value * int
+exception ArrayBounds of JSON.value * int
 
-  (* map the above exceptions to a message string; we use General.exnMessage for other
-   * exceptions.
-   *)
-    val exnMessage : exn -> string
+val exnMessage : exn -> string
 
-  (* conversion functions for atomic values.  These raise the corresponding
-   * "NotXXX" exceptions when their argument has the wrong shape.  Also note
-   * that asNumber will accept both integers and floats and asInt may raise
-   * Overflow if the number is too large.
-   *)
-    val asBool : JSON.value -> bool
-    val asInt : JSON.value -> Int.int
-    val asIntInf : JSON.value -> IntInf.int
-    val asNumber : JSON.value -> Real.real
-    val asString : JSON.value -> string
+val asBool : JSON.value -> bool
+val asInt : JSON.value -> Int.int
+val asIntInf : JSON.value -> IntInf.int
+val asNumber : JSON.value -> Real.real
+val asString : JSON.value -> string
 
-  (* find a field in an object; this function raises the NotObject exception when
-   * the supplied value is not an object.
-   *)
-    val findField : JSON.value -> string -> JSON.value option
+val findField : JSON.value -> string -> JSON.value option
 
-  (* lookup a field in an object; this function raises the NotObject exception when
-   * the supplied value is not an object and raises FieldNotFound if the value is
-   * an object, but does not have the specified field.
-   *)
-    val lookupField : JSON.value -> string -> JSON.value
+val lookupField : JSON.value -> string -> JSON.value
 
-  (* convert a JSON array to an SML vector *)
-    val asArray : JSON.value -> JSON.value vector
+val asArray : JSON.value -> JSON.value vector
 
-  (* map a conversion function over a JSON array to produce a list; this function
-   * raises the NotArray exception if the second argument is not an array.
-   *)
-    val arrayMap : (JSON.value -> 'a) -> JSON.value -> 'a list
+val arrayMap : (JSON.value -> 'a) -> JSON.value -> 'a list
 
-  (* path specification for indexing into JSON values *)
-    datatype edge
-      = SUB of int      (* index into array component *)
-      | SEL of string   (* select field of object *)
+datatype edge = SUB of int | SEL of string
 
-    type path = edge list
+type path = edge list
 
-  (* `get (jv, path)` returns the component of `jv` named by `path`.  It raises
-   * the NotObject, NotArray, and FieldNotFound exceptions if there is an inconsistency
-   * between the path and the structure of `jv`.
-   *)
-    val get : JSON.value * path -> JSON.value
+val get : JSON.value * path -> JSON.value
 
-  (* `replace (jv, path, v)` replaces the component of `jv` named by `path`
-   * with the value `v`.
-   *)
-    val replace : JSON.value * path * JSON.value -> JSON.value
+val replace : JSON.value * path * JSON.value -> JSON.value
 
-  (* `insert (jv, path, lab, v)` inserts `lab : v` into the object named by `path`
-   * in `jv`
-   *)
-    val insert : JSON.value * path * string * JSON.value -> JSON.value
+val insert : JSON.value * path * string * JSON.value -> JSON.value
 
-  (* `append (jv, path, vs)` appends the list of values `vs` onto the array named by `path`
-   * in `jv`
-   *)
-    val append : JSON.value * path * JSON.value list -> JSON.value
+val append : JSON.value * path * JSON.value list -> JSON.value
 ------------
 
 == Description
 
 `[.kw]#exception# NotBool [.kw]#of# JSON.value`::
   [[exn:NotBool]]
-  raised if ...
+  raised by the
 
 `[.kw]#exception# NotInt [.kw]#of# JSON.value`::
   [[exn:NotInt]]
@@ -122,9 +82,99 @@ structure JSONUtil
   [[exn:NotObject]]
   raised if ...
 
+`[.kw]#exception# FieldNotFound [.kw]#of# JSON.value * string`::
+  [[exn:FieldNotFound]]
+  This exception is raised when the given field is not found in an object.
+
+`[.kw]#exception# NotArray [.kw]#of# JSON.value`::
+  [[exn:NotArray]]
+  This exception is raised when trying to process a non-array value as an array.
+
+`[.kw]#exception# ArrayBounds [.kw]#of# JSON.value * int`::
+  [[exn:ArrayBounds]]
+  This exception is raised when access to an array value is out of bounds.
+
+  (* map the above exceptions to a message string; we use General.exnMessage for other
+   * exceptions.
+   *)
+`[.kw]#val# exnMessage : exn -> string`::
+  `exnMessage exn` returns an error-message string for the exception value
+  `exn`.  This function produces specialized messages for the exceptions defined
+  in the `JSONUtil` structure and falls back to the
+  {sml-basis-url}/general.html#SIG:GENERAL.exnMessage:VAL[General.exnMessage]
+  function for other exceptions.
+
+`[.kw]#val# asBool : JSON.value -> bool`::
+  `asBool (JSON.BOOL b)` returns the value `b`.  This function raises
+  the xref:exn:NotBool[`NotBool`] exception if the value is not a
+  *JSON* boolean value.
+
+`[.kw]#val# asInt : JSON.value -> int`::
+  `asInt (JSON.INT n)` returns the value `n` converted to `int`.
+  This function raises the xref:exn:NotInt[`NotInt`] exception if the
+  value is not a *JSON* integer value.  It may also raise the
+  {sml-basis-url}/general.html#SIG:GENERAL.Overflow:EXN[`Overflow`]
+  exception if `n` is too large for the default `int` type.
+
+`[.kw]#val# asIntInf : JSON.value -> IntInf.int`::
+  `asIntInf (JSON.INT n)` returns the value `n`.
+  This function raises the xref:exn:NotInt[`NotInt`] exception if the
+  value is not a *JSON* integer value.
+
+`[.kw]#val# asNumber : JSON.value -> Real.real`::
+  `asNumber jv` converts the *JSON* number `jv` to an SML `real` value.
+  The `jv` argument can either have the form `JSON.INT n`, in which case
+  `n` is converted to the `real` type and returned, or `JSON.FLOAT f`,
+  in which case `f` is returned; otherwise, the
+  xref:exn:NotNumber[`NotNumber`] exception is raised.
+
+`[.kw]#val# asString : JSON.value -> string`::
+  `asBool (JSON.STRING s)` returns the value `s`.  This function raises
+  the xref:exn:NotString[`NotString`] exception if the value is not a
+  *JSON* string value.
+
+  (* find a field in an object; this function raises the NotObject exception when
+   * the supplied value is not an object.
+   *)
+`[.kw]#val# findField : JSON.value -> string -> JSON.value option`::
+  `findField (JSON.OBJECT flds) key` returns `SOME jv` when the
+  list of fields `flds` contains `(key, jv)` and `NONE` otherwise.
+  If `findField` is called on a value that is not a *JSON* object,
+  then it raises the xref:exn:NotObject[`NotObject`] exception.
+
+  (* lookup a field in an object; this function raises the NotObject exception when
+   * the supplied value is not an object and raises FieldNotFound if the value is
+   * an object, but does not have the specified field.
+   *)
+`[.kw]#val# lookupField : JSON.value -> string -> JSON.value`::
+  something
+
+  (* convert a JSON array to an SML vector *)
+`[.kw]#val# asArray : JSON.value -> JSON.value vector`::
+  something
+
+`[.kw]#val# arrayMap : (JSON.value -> 'a) -> JSON.value -> 'a list`::
+  map a conversion function over a JSON array to produce a list; this function
+  raises the xref:exn:NotArray[`NotArray`] exception if the second argument
+  is not an array.
+
+`[.kw]#datatype# edge = ...`::
+  path specification for indexing into JSON values
++
+--
+    `SUB [.kw]#of# int`::
+	index into array component
+    `SEL [.kw]#of# string`::
+	select field of object
+--
+
+`[.kw]#type# path = edge list`::
+  something
+
+
 `[.kw]#val# get : JSON.value * path \-> JSON.value`::
   `get (jv, path)` returns the component of `jv` named by `path`.  It raises
-  one of the xref:exn:NotObject[`NotObject`], xref:exn:NotArrau[`NotArray`],
+  one of the xref:exn:NotObject[`NotObject`], xref:exn:NotArray[`NotArray`],
   or xref:exn:FieldNotFound[`FieldNotFound`] exceptions if there is an
   inconsistency between the path and the structure of `jv`.
 
