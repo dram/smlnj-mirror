@@ -102,11 +102,31 @@ structure JSONUtil
 
 == Description
 
-`[.kw]type foo`::
-  something
+`[.kw]#exception# NotBool [.kw]#of# JSON.value`::
+  [[exn:NotBool]]
+  raised if ...
 
-`[.kw]val bar : foo -> foo`::
-  something
+`[.kw]#exception# NotInt [.kw]#of# JSON.value`::
+  [[exn:NotInt]]
+  raised if ...
+
+`[.kw]#exception# NotNumber [.kw]#of# JSON.value`::
+  [[exn:NotNumber]]
+  raised if ...
+
+`[.kw]#exception# NotString [.kw]#of# JSON.value`::
+  [[exn:NotString]]
+  raised if ...
+
+`[.kw]#exception# NotObject [.kw]#of# JSON.value`::
+  [[exn:NotObject]]
+  raised if ...
+
+`[.kw]#val# get : JSON.value * path \-> JSON.value`::
+  `get (jv, path)` returns the component of `jv` named by `path`.  It raises
+  one of the xref:exn:NotObject[`NotObject`], xref:exn:NotArrau[`NotArray`],
+  or xref:exn:FieldNotFound[`FieldNotFound`] exceptions if there is an
+  inconsistency between the path and the structure of `jv`.
 
 == See Also
 
