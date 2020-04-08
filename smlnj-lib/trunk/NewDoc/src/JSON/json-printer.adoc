@@ -5,7 +5,8 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-some overview
+The `JSONPrinter` structure implements a printer for the
+link:json.html#type:value[`JSON.value`] type.
 
 == Synopsis
 
