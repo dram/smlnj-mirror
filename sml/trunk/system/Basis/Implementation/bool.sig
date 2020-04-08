@@ -7,7 +7,8 @@
 signature BOOL =
   sig
 
-    datatype bool = true | false
+    (*    datatype bool = true | false *)
+    datatype bool = datatype PrimTypes.bool
     val not : bool -> bool
 
     val toString   : bool -> string

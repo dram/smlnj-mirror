@@ -112,7 +112,7 @@ fun elabDB((tyc,args,name,def,region,lazyp),env,rpath:IP.path,error) =
 
 	fun elabConstr (cname, tyOp) =
 	    (if EU.checkForbiddenCons cname
-	     then error region EM.WARN
+	     then error region EM.COMPLAIN
 			(concat["datatype \"", S.name name, "\" has forbidden constructor name: \"",
 				S.name cname, "\""])
 			EM.nullErrorBody
