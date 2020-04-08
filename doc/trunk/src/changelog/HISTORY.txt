@@ -94,6 +94,24 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/04/08]::
++
+Fixed bug 209
++
+    * added function checkForbiddenCons to ElabUtil
+      (Elaborator/elaborate/elabutil.{sig,sml}). Checks if a symbol
+      is in the forbidden constructor set (it, true, false, nil, ::)
+    * modified elabEXCEPTIONdec in to check for forbidden exception
+      constructor names. Rewrote function elabEb to simplify.
+    * added a test for forbidden constructor names in function
+      elabConstr within elabDB. Failure of the test produces a
+      "Warning", not an "Error" because the forbidden constructor
+      names true, false, nil, :: appear in list.sig and bool.sig
+      during bootstrapping.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2020/04/07]::
 +
 Some clean up in the `ml-lex/lexgen.sml` code.  Replaced the one-off
@@ -173,7 +191,7 @@ owner:cs.uchicago.edu/~jhr[John Reppy]
 Fix for bug bugref:245[] (Lazy data types result in Compiler Bug error).
 The problem was that a number of symbols (__e.g.__, `deref`) had been
 dropped from the `_Core` structure, but were required to support
-the laxy (and profiling) features in the compiler.  The symbols have
+the lazy (and profiling) features in the compiler.  The symbols have
 been reinstated and a comment has been added to explain why they
 are being included.
 +
