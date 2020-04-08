@@ -43,6 +43,7 @@ sig
   val bindVARp : Absyn.pat list * ErrorMsg.complainer -> StaticEnv.staticEnv
 
   val checkUniq : ErrorMsg.complainer * string * Symbol.symbol list -> unit
+  val checkForbiddenCons : Symbol.symbol -> bool
 
   val clean_pat : ErrorMsg.complainer -> Absyn.pat -> Absyn.pat
 

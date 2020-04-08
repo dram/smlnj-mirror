@@ -110,11 +110,18 @@ fun elabDB((tyc,args,name,def,region,lazyp),env,rpath:IP.path,error) =
 	      in findname(typ)
 	     end
 
-	fun elabConstr (name,SOME ty) =
-	      let val (t,tv) = elabType(ty,env,error,region)
-	       in ((name,false,(t --> rhs)),tv)
-	      end
-	  | elabConstr (name,NONE) = ((name,true,rhs),TS.empty)
+	fun elabConstr (cname, tyOp) =
+	    (if EU.checkForbiddenCons cname
+	     then error region EM.WARN
+			(concat["datatype \"", S.name name, "\" has forbidden constructor name: \"",
+				S.name cname, "\""])
+			EM.nullErrorBody
+	     else ();
+	     case tyOp
+	      of SOME ty => let val (t,tv) = elabType(ty,env,error,region)
+			    in ((cname,false,(t --> rhs)),tv)
+			    end
+	       | NONE => ((cname,true,rhs),TS.empty))
 
 	val arity = length args
 	val isrec = (app checkrec def; false) handle ISREC => true
@@ -241,15 +248,14 @@ fun elabDATATYPEdec({datatycs,withtycs}, env0, sigContext,
 				  path=IP.extend(rpath,name)}
 
 		    else tyc
-	     in SOME{tvs=tvs, name=name,def=def,region=region,
-		     tyc=tyc, binddef=binddef,lazyp=lazyp,
-		     strictName=strictName}
+	     in {tvs=tvs, name=name,def=def,region=region,
+		 tyc=tyc, binddef=binddef,lazyp=lazyp,
+		 strictName=strictName}
 	    end
 	  | preprocess _ (MarkDb(db',region')) = preprocess region' db'
 
-        val dbs = List.mapPartial (preprocess region) datatycs
+        val dbs = map (preprocess region) datatycs
         val _ = debugmsg "--elabDATATYPEdec: preprocessing done"
-
 
         val envDTycs = (* staticEnv containing preliminary datatycs *)
 	      foldl (fn ({name,binddef,...},env) =>

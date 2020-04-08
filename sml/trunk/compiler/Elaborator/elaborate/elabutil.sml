@@ -79,12 +79,12 @@ local
 end
 
 val EQUALsym = S.varSymbol "="
+
 val anonParamName = S.strSymbol "<AnonParam>"
 
 (* following could go in Absyn *)
 val bogusID = S.varSymbol "*bogus*"
 val bogusExnID = S.varSymbol "*Bogus*"
-
 
 val TRUEpat = CONpat(trueDcon,[])
 val TRUEexp = CONexp(trueDcon,[])
@@ -103,15 +103,24 @@ val bogusExp = VARexp(ref(V.mkVALvar(bogusID, A.nullAcc)), [])
 (* Verifies that all the elements of a list are unique *)
 fun checkUniq (err,message,names) =
     let val names' = ListMergeSort.sort S.symbolGt names
-	fun f (x::y::rest) = (
-	      if S.eq(x,y)
-	      then err COMPLAIN (message^ ": " ^ S.name x) nullErrorBody
+	fun check (x::y::rest) =
+	     (if S.eq(x,y)
+	      then err COMPLAIN (message ^ ": " ^ S.name x) nullErrorBody
 	      else ();
-	      f(y::rest))
-	  | f _ = ()
-     in f names'
+	      check (y::rest))
+	  | check _ = ()
+     in check names'
     end
 
+(* symbols that are forbidden for use as data or exn constructor names *)
+val forbiddenConstructors =
+    [EQUALsym, S.varSymbol "it", S.varSymbol "true", S.varSymbol "false",
+     S.varSymbol "nil", S.varSymbol "::", S.varSymbol "ref"]
+
+(* checks whether names contains a forbidden constructor name *)
+fun checkForbiddenCons symbol =
+    List.exists (fn x => S.eq(symbol,x)) forbiddenConstructors
+ 
 (*
  * Extract all the variables from a pattern
  * NOTE: the "freeOrVars" function in elabcore.sml should probably
@@ -122,7 +131,7 @@ fun bindVARp (patlist,err) =
 	val env = ref(SE.empty: SE.staticEnv)
 	fun f (VARpat(v as VALvar{path=SP.SPATH[name],...})) =
 	       (if S.eq(name, EQUALsym)
-		then err WARN "rebinding =" nullErrorBody
+		then err WARN "rebinding \"=\" is not allowed" nullErrorBody
 		else ();
 		env := SE.bind(name,B.VALbind v,!env);
 		vl := name :: !vl)

@@ -256,49 +256,51 @@ let
 
     (**** EXCEPTION DECLARATIONS ****)
 
-    fun elabEb (region:region) (env:SE.staticEnv) (eb:Ast.eb) =
+    fun elabEb (eb:Ast.eb, env:SE.staticEnv, region:region) =
 	case eb
-	  of EbGen{exn=id,etype=NONE} =>
-	       let val exn =
-		     DATACON{name=id, const=true, typ=exnTy, lazyp=false,
-			     rep=EXN(LVAR(mkv(SOME id))), sign=CNIL}
-		in ([EBgen{exn=exn, etype=NONE,
-                           ident=STRINGexp(S.name id)}],
-		    SE.bind(id, B.CONbind exn, SE.empty),TS.empty)
+	  of EbGen{exn=ename,etype} =>
+	       let val (ety,evt,etyOp,const) =
+	       	       case etype
+		         of NONE => (exnTy, TS.empty, NONE, true)
+			  | SOME typ =>
+			    let val (ty,vt) = ET.elabType(typ,env,error,region)
+                             in (ty-->exnTy, vt, SOME ty, false)
+			    end 
+	           val exn =      
+		     DATACON{name=ename, const=const, typ=ety, lazyp=false,
+			     rep=EXN(LVAR(mkv(SOME ename))), sign=CNIL}
+		in (EBgen{exn=exn, etype=etyOp,
+                          ident=STRINGexp(S.name ename)},
+		    ename, SE.bind(ename, B.CONbind exn, SE.empty), evt)
 	       end
-	   | EbGen{exn=id,etype=SOME typ} =>
-	       let val (ty,vt) = ET.elabType(typ,env,error,region)
-		   val exn =
-                     DATACON{name=id, const=false, typ=(ty --> exnTy), lazyp=false,
-			     rep=EXN(LVAR(mkv(SOME id))), sign=CNIL}
-		in ([EBgen{exn=exn,etype=SOME ty,
-			   ident=STRINGexp(S.name id)}],
-		    SE.bind(id,B.CONbind exn, SE.empty),vt)
-	       end
-	   | EbDef{exn=id,edef=qid} =>
+	   | EbDef{exn=ename,edef=qid} =>
 	       let val edef as DATACON{const,typ,sign,...} =
-		     LU.lookExn(env,SP.SPATH qid,error region)
-                   val nrep = EXN(LVAR(mkv(SOME id)))
-	           val exn = DATACON{name=id, const=const, typ=typ, lazyp=false,
+		       LU.lookExn(env,SP.SPATH qid,error region)
+                   val nrep = EXN(LVAR(mkv(SOME ename)))
+	           val exn = DATACON{name=ename, const=const, typ=typ, lazyp=false,
                                      sign=sign, rep=nrep}
-		in ([EBdef{exn=exn,edef=edef}],
-		    SE.bind(id,B.CONbind exn,SE.empty),TS.empty)
+		in (EBdef{exn=exn,edef=edef},
+		    ename, SE.bind(ename,B.CONbind exn,SE.empty), TS.empty)
 	       end
-	   | MarkEb(eb,region) => elabEb region env eb
+	   | MarkEb(eb,region) => elabEb(eb,env,region)
 
     fun elabEXCEPTIONdec(excbinds:Ast.eb list, env: SE.staticEnv, region) =
-	let val (ebs,env,vt) =
+	let val (ebs,enames,env,vt) =
 	      foldl
-		(fn (exc1,(ebs1,env1,vt1)) =>
-		   let val (eb2,env2,vt2) = elabEb region env exc1
-		    in (eb2@ebs1, SE.atop(env2,env1),
-                        union(vt1,vt2,error region))
+		(fn (exc,(ebs,enames,env_c,vt_c)) =>
+		   let val (eb,ename,env_i,vt_i) = elabEb(exc,env,region)
+		   in if checkForbiddenCons ename
+		      then error region EM.COMPLAIN
+			    (concat["exception name \"", S.name ename, "\" is forbidden"])
+			    EM.nullErrorBody
+		      else ();
+		      (eb::ebs, ename::enames, SE.atop(env_i,env_c),
+                       union(vt_c,vt_i,error region))
 		   end)
-		 ([],SE.empty,TS.empty) excbinds
-	    fun getname(EBgen{exn=DATACON{name,...},...}) = name
-	      | getname(EBdef{exn=DATACON{name,...},...}) = name
+		([], [], SE.empty, TS.empty)
+		excbinds
 	 in EU.checkUniq (error region, "duplicate exception declaration",
-		       map getname ebs);
+		         enames);
 	    (EXCEPTIONdec(rev ebs),env,vt,no_updt)
 	end
 
