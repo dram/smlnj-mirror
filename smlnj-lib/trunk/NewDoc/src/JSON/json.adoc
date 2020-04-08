@@ -29,6 +29,7 @@ datatype value
 == Description
 
 `[.kw]#datatype# value = ...`::
+  [[type:value]]
   This datatype represents *JSON* values as trees.  The constructors
   are
 +

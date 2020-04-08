@@ -15,8 +15,13 @@ ASCIIDOCTOR =   @ASCIIDOCTOR@
 SMLNJ_VERSION = @SMLNJ_VERSION@
 SMLNJ_DATE =    @SMLNJ_DATE@
 
-ATTRS =         --attribute=smlnj-version=$(SMLNJ_VERSION) \
-                --attribute=release-date="$(SMLNJ_DATE)"
+# URL for online SML Basis Library documentation
+#
+SML_BASIS_URL =	https://standardml.org/Basis
+
+ATTRS =         -a sml-basis-url="$(SML_BASIS_URL)" \
+		-a smlnj-version="$(SMLNJ_VERSION)" \
+                -a release-date="$(SMLNJ_DATE)"
 
 # default target base
 #
