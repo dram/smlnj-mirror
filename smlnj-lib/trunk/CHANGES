@@ -5,6 +5,12 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-09]
+	Reimplemented the `find` functions in `UnixPath` to use the
+	`PathUtil` implementation, rather than reimplementing it.
+	Also changed the result types of `findFile` and `findFileOfType`
+	to return `string option`, instead of raising an exception.
+
 [2020-04-08]
 	The `JSONStreamPrinter` implementation now raises the `Fail`
 	exception when printing is attempted on a closed printer.
