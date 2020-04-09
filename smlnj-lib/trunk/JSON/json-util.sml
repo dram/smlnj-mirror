@@ -23,7 +23,7 @@ structure JSONUtil : sig
   (* exception that is raised when trying to process a non-array value as an array *)
     exception NotArray of JSON.value
 
-  (* exception that is raise when access to an array value is out of bounds *)
+  (* exception that is raised when access to an array value is out of bounds *)
     exception ArrayBounds of JSON.value * int
 
   (* map the above exceptions to a message string; we use General.exnMessage for other

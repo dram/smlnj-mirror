@@ -24,7 +24,7 @@ structure UUID :> sig
     val hash : t -> word
 
   (* format the UUID as "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" where each "x" is
-   * a lower-case hexidecimal digit.
+   * a lower-case hexadecimal digit.
    *)
     val toString : t -> string
 

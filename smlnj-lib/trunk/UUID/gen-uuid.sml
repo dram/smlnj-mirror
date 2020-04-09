@@ -24,7 +24,6 @@ structure GenUUID : sig
 	(* initial random seed *)
 	  val r = Random.rand (Int.fromLarge(secs mod maxInt), Int.fromLarge usecs)
 	(* run the random number generator a few steps *)
-
 	  val r = let
 		val n = let val (s, us) = getTime()
 		      in
