@@ -7,15 +7,15 @@
 
 == Overview
 
-The *Unix Library* ...
+The *Unix Library* provides some *Unix*-specific utilities.
 
 == Contents
 
-link:sig-UNIX_ENV.html[`[.kw]#signature# UNIX_ENV`]::
-  something
-
 link:str-UnixEnv.html[`[.kw]#structure# UnixEnv`]::
-  something
+  This structure provides support for querying the user's environment.
+
+link:str-UnixPath.html[`[.kw]#structure# UnixPath`]::
+  This structure supports *Unix*-specific file-system searches.
 
 == Usage
 
@@ -24,4 +24,3 @@ For https://smlnj.org[*SML/NJ*], include `$/unix-lib.cm` in your
 
 For use in http://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/Unix/unix-lib.mlb` in your *MLB* file.
-
