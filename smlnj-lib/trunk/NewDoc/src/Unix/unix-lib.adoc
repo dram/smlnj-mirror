@@ -1,4 +1,4 @@
-= SML/NJ Library -- `unix-lib`
+= The Unix Library
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
@@ -7,19 +7,15 @@
 
 == Overview
 
+The *Unix Library* ...
+
 == Contents
 
-  link:FILE.html[`[.kw]#structure# FOO`]::
-    something
+link:sig-UNIX_ENV.html[`[.kw]#signature# UNIX_ENV`]::
+  something
 
-  link:json-parser.html[`[.kw]#structure# JSONParser`]::
-    A parser for *JSON* input.
-
-  link:json-printer.html[`[.kw]#structure# JSONPrinter`]::
-    A printer for *JSON* output.
-
-  link:json-util.html[`[.kw]#structure# JSONUtil`]::
-    A collection of utility functions for working with *JSON* values.
+link:str-UnixEnv.html[`[.kw]#structure# UnixEnv`]::
+  something
 
 == Usage
 
@@ -28,3 +24,4 @@ For https://smlnj.org[*SML/NJ*], include `$/unix-lib.cm` in your
 
 For use in http://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/Unix/unix-lib.mlb` in your *MLB* file.
+
