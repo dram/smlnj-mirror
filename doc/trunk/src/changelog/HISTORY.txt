@@ -96,17 +96,18 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2020/04/08]::
 +
-Fixed bug 209
+Fixed bug bugref:209[]
 +
-    * Added function checkForbiddenCons to ElabUtil
-      (Elaborator/elaborate/elabutil.{sig,sml}). Checks if a symbol
-      is in the forbidden constructor set (it, true, false, nil, ::, ref).
-    * Modified elabEXCEPTIONdec in to check for forbidden exception
-      constructor names. Rewrote function elabEb to simplify.
+    * Added function `checkForbiddenCons` to `ElabUtil`
+      (`Elaborator/elaborate/elabutil.{sig,sml}`) that checks if
+      a symbol is in the forbidden constructor set (`it`, `true`,
+      `false`, `nil`, `::`, and `ref`).
+    * Modified `elabEXCEPTIONdec` to check for forbidden exception
+      constructor names. Rewrote function `elabEb` to simplify.
     * Added a test for forbidden constructor names in function
-      elabConstr within elabDB.
+      `elabConstr` within `elabDB`.
     * Changed specs for types list and bool to datatype replication
-      specs in system/Basis/Implementation/{list.sig, bool.sig}
+      specs in `system/Basis/Implementation/{list,bool}.sig`
       to avoid an error caused by the occurrence of "forbidden"
       constructors.
 +

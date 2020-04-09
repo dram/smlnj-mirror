@@ -30,7 +30,7 @@ FILES::
 == Summary
 
 This release is primarily a bug-fix release, but it also includes a number
-of additions to the **SML/NJ Library** and some additional documentation.
+of additions to the **SML/NJ Library** and additional documentation.
 
 == Details
 
@@ -50,6 +50,13 @@ this release.
 
   * Added a new library for generating and manipulating "Universally
     Unique Identifiers" (`UUID/uuid-lib.cm`).
+
+  * Made some changes to the stream processing modules in the *JSON*
+    library.  The return type for the `error` call-back function in
+    the `JSONStreamParser.callbacks` type is changed to `unit` (note
+    that the function is not expected to return).  The `JSONStreamPrinter`
+    implementation now raises the `Fail` exception when printing is
+    attempted on a closed printer.
 
 === Documentation
 
@@ -101,6 +108,8 @@ for more details.
 | SuccessorML [.kw]#do# expression in functor arguments.
 | [.bugid]#196#
 | `dontPickle` error when trying to use SuccessorML
+| [.bugid]#209#
+| Special identifiers can be rebound in datatype and exception declarations
 | [.bugid]#239#
 | `Date.toTime` is incorrect (by a factor of 10E9)
 | [.bugid]#240#
