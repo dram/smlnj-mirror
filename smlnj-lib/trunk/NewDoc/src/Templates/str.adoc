@@ -5,7 +5,7 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-some overview
+The `@NAME@` structure ...
 
 == Synopsis
 
