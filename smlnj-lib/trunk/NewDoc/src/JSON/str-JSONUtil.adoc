@@ -148,10 +148,6 @@ val append : JSON.value * path * JSON.value list -> JSON.value
   If `findField` is called on a value that is not a *JSON* object,
   then it raises the xref:exn:NotObject[`NotObject`] exception.
 
-  (* lookup a field in an object; this function raises the NotObject exception when
-   * the supplied value is not an object and raises FieldNotFound if the value is
-   * an object, but does not have the specified field.
-   *)
 `[.kw]#val# lookupField : JSON.value -> string -> JSON.value`::
   [[val:lookupField]]
   `lookupField (JSON.OBJECT flds) key` returns `jv` when the
