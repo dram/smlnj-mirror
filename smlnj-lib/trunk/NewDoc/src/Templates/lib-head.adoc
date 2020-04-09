@@ -1,4 +1,4 @@
-= The `@DIR@` Library
+= The @DIR@ Library
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
@@ -7,6 +7,7 @@
 
 == Overview
 
-The @DIR@ library ...
+The *@DIR@ Library* ...
 
 == Contents
+

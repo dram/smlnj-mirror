@@ -11,6 +11,7 @@ some overview
 
 [source,sml]
 ------------
+signature @NAME@
 ------------
 
 == Interface
@@ -29,4 +30,4 @@ some overview
 
 == See Also
 
-link:@LIBRARY@.html[`@LIBRARY@`]
+link:@LIBRARY@.html[__The @DIR@ Library__]

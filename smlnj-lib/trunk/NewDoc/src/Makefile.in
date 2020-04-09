@@ -51,7 +51,7 @@ include @MK_DIR@/doc-rules.gmk
 
 # we have one sub-directory per documented library
 #
-DOC_SUBDIRS =           JSON
+DOC_SUBDIRS =           JSON UUID
 
 HTML_SUBDIRS =		$(addprefix $(HTML_DST_ROOT)/,$(DOC_SUBDIRS))
 

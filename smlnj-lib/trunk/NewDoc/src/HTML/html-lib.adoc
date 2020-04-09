@@ -1,4 +1,4 @@
-= SML/NJ Library -- `html-lib`
+= The HTML Library
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
@@ -7,19 +7,30 @@
 
 == Overview
 
+The *HTML Library* ...
+
 == Contents
 
-  link:FILE.html[`[.kw]#structure# FOO`]::
-    something
+link:sig-HTML_ERROR.html[`[.kw]#signature# HTML_ERROR`]::
+  something
 
-  link:json-parser.html[`[.kw]#structure# JSONParser`]::
-    A parser for *JSON* input.
+link:sig-HTML.html[`[.kw]#signature# HTML`]::
+  something
 
-  link:json-printer.html[`[.kw]#structure# JSONPrinter`]::
-    A printer for *JSON* output.
+link:str-HTML.html[`[.kw]#structure# HTML`]::
+  something
 
-  link:json-util.html[`[.kw]#structure# JSONUtil`]::
-    A collection of utility functions for working with *JSON* values.
+link:str-MakeHTML.html[`[.kw]#structure# MakeHTML`]::
+  something
+
+link:str-PrHTML.html[`[.kw]#structure# PrHTML`]::
+  something
+
+link:str-HTMLDefaults.html[`[.kw]#structure# HTMLDefaults`]::
+  something
+
+link:fun-HTMLParserFn.html[`[.kw]#functor# HTMLParserFn`]::
+  something
 
 == Usage
 
@@ -28,3 +39,4 @@ For https://smlnj.org[*SML/NJ*], include `$/html-lib.cm` in your
 
 For use in http://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/HTML/html-lib.mlb` in your *MLB* file.
+

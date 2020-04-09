@@ -126,6 +126,6 @@ val endArray : printer -> unit
 
 == See Also
 
-link:str-JSONPrinter.html[`JSONPrinter`]
-link:str-JSONSteamParser.html[`JSONStreamParser`]
-link:json-lib.html[`json-lib`]
+link:str-JSONPrinter.html[`JSONPrinter`],
+link:str-JSONSteamParser.html[`JSONStreamParser`],
+link:json-lib.html[__The JSON Library__]

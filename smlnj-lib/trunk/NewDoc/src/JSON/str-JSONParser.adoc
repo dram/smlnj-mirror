@@ -6,7 +6,7 @@
 :VERSION: {smlnj-version}
 
 The `JSONParser` structure implements a parser for the
-link:json.html#type:value[`JSON.value`] type.
+link:str-JSON.html#type:value[`JSON.value`] type.
 
 == Synopsis
 
@@ -43,7 +43,7 @@ val parseFile : string -> JSON.value
 
 == See Also
 
-link:json.html[`JSON`]
-link:json-stream-parser.html[`JSONStreamParser`]
-link:json-util.html[`JSONUtil`]
-link:json-lib.html[`json-lib`]
+link:str-JSON.html[`JSON`],
+link:str-JSONSteamParser.html[`JSONStreamParser`],
+link:str-JSONUtil.html[`JSONUtil`],
+link:json-lib.html[__The JSON Library__]

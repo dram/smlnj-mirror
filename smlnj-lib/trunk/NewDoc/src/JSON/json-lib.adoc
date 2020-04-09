@@ -1,4 +1,4 @@
-= SML/NJ Library -- `json-lib`
+= The JSON Library
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
@@ -6,7 +6,7 @@
 :VERSION: {smlnj-version}
 
 == Overview
-The `json-lib` library provides a representation of the
+The *JSON Library* provides a representation of the
 https://www.json.org/json-en.html[JavaScript Object Notation (*JSON*)]
 with support for parsing, printing, and manipulating *JSON*
 values as trees.  There is also support for processing *JSON* data as
