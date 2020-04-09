@@ -31,4 +31,4 @@ val new : unit -> UUID.t
 == See Also
 
 link:str-UUID.html[`UUID`],
-link:uuid-lib.html[__The @LIBRARY@ Library__]
+link:uuid-lib.html[__The UUID Library__]
