@@ -55,12 +55,12 @@ functor BinaryMapFn (K : ORD_KEY) : ORD_MAP =
     fun wt (i : int) = i + i + i
 
     datatype 'a map
-      = E 
+      = E
       | T of {
-          key : K.ord_key, 
-          value : 'a, 
-          cnt : int, 
-          left : 'a map, 
+          key : K.ord_key,
+          value : 'a,
+          cnt : int,
+          left : 'a map,
           right : 'a map
 	}
 
@@ -86,19 +86,19 @@ local
     fun N(k,v,E,E) = T{key=k,value=v,cnt=1,left=E,right=E}
       | N(k,v,E,r as T n) = T{key=k,value=v,cnt=1+(#cnt n),left=E,right=r}
       | N(k,v,l as T n,E) = T{key=k,value=v,cnt=1+(#cnt n),left=l,right=E}
-      | N(k,v,l as T n,r as T n') = 
+      | N(k,v,l as T n,r as T n') =
           T{key=k,value=v,cnt=1+(#cnt n)+(#cnt n'),left=l,right=r}
 
-    fun single_L (a,av,x,T{key=b,value=bv,left=y,right=z,...}) = 
+    fun single_L (a,av,x,T{key=b,value=bv,left=y,right=z,...}) =
           N(b,bv,N(a,av,x,y),z)
       | single_L _ = raise Match
-    fun single_R (b,bv,T{key=a,value=av,left=x,right=y,...},z) = 
+    fun single_R (b,bv,T{key=a,value=av,left=x,right=y,...},z) =
           N(a,av,x,N(b,bv,y,z))
       | single_R _ = raise Match
     fun double_L (a,av,w,T{key=c,value=cv,left=T{key=b,value=bv,left=x,right=y,...},right=z,...}) =
           N(b,bv,N(a,av,w,x),N(c,cv,y,z))
       | double_L _ = raise Match
-    fun double_R (c,cv,T{key=a,value=av,left=w,right=T{key=b,value=bv,left=x,right=y,...},...},z) = 
+    fun double_R (c,cv,T{key=a,value=av,left=w,right=T{key=b,value=bv,left=x,right=y,...},...},z) =
           N(b,bv,N(a,av,w,x),N(c,cv,y,z))
       | double_R _ = raise Match
 
@@ -128,21 +128,21 @@ local
             in
               if rln < rrn then  single_L p  else  double_L p
             end
-        
+
           else if ln >= wt rn then  (*left is too big*)
             let val lln = numItems ll
                 val lrn = numItems lr
             in
               if lrn < lln then  single_R p  else  double_R p
             end
-    
+
           else T{key=k,value=v,cnt=ln+rn+1,left=l,right=r}
 
     local
       fun min (T{left=E,key,value,...}) = (key,value)
         | min (T{left,...}) = min left
         | min _ = raise Match
-  
+
       fun delmin (T{left=E,right,...}) = right
         | delmin (T{key,value,left,right,...}) = T'(key,value,delmin left,right)
         | delmin _ = raise Match
@@ -155,7 +155,7 @@ local
     end
 in
     fun mkDict () = E
-    
+
     fun singleton (x,v) = T{key=x,value=v,cnt=1,left=E,right=E}
 
     fun insert (E,x,v) = T{key=x,value=v,cnt=1,left=E,right=E}
@@ -166,7 +166,24 @@ in
           | _ => T{key=x,value=v,left=left,right=right,cnt= #cnt set}
     fun insert' ((k, x), m) = insert(m, k, x)
 
-    fun inDomain (set, x) = let 
+    fun insertWithi comb (m, x, v) = let
+	  fun insert E = T{key=x,value=v,cnt=1,left=E,right=E}
+	    | insert (T{key,left,right,value,cnt}) = (
+		case K.compare (key,x)
+		 of GREATER => T'(key, value, insert left, right)
+		  | LESS => T'(key, value, left, insert right)
+		  | EQUAL => let
+		      val v' = comb(x, value, v)
+		      in
+			T{key=x,value=v',left=left,right=right,cnt=cnt}
+		      end
+		(* end case *))
+	  in
+	    insert m
+	  end
+    fun insertWith comb = insertWithi (fn (_, x1, x2) => comb(x1, x2))
+
+    fun inDomain (set, x) = let
 	  fun mem E = false
 	    | mem (T(n as {key,left,right,...})) = (case K.compare (x,key)
 		 of GREATER => mem right
@@ -177,7 +194,7 @@ in
 	    mem set
 	  end
 
-    fun find (set, x) = let 
+    fun find (set, x) = let
 	  fun mem E = NONE
 	    | mem (T(n as {key,left,right,...})) = (case K.compare (x,key)
 		 of GREATER => mem right
@@ -188,7 +205,7 @@ in
 	    mem set
 	  end
 
-    fun lookup (set, x) = let 
+    fun lookup (set, x) = let
 	  fun mem E = raise LibBase.NotFound
 	    | mem (T(n as {key,left,right,...})) = (case K.compare (x,key)
 		 of GREATER => mem right

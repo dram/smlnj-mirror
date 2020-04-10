@@ -47,6 +47,18 @@ structure IntListMap :> ORD_MAP where type Key.ord_key = Int.int =
 	  end
     fun insert' ((k, x), m) = insert(m, k, x)
 
+    fun insertWithi comb (l, key, item) = let
+	  fun f [] = [(key, item)]
+	    | f ((elem as (key', item'))::r) = (case Key.compare(key, key')
+		   of LESS => (key, item) :: elem :: r
+		    | EQUAL => (key, comb(key, item', item)) :: r
+		    | GREATER => elem :: (f r)
+		  (* end case *))
+	  in
+	    f l
+	  end
+    fun insertWith comb = insertWithi (fn (_, x1, x2) => comb(x1, x2))
+
   (* return true if the key is in the map's domain *)
     fun inDomain (l, key) = let
 	  fun f [] = false

@@ -73,6 +73,37 @@ functor SplayMapFn (K : ORD_KEY) : ORD_MAP =
           | (_,SplayNil) => raise LibBase.Impossible "SplayMapFn.insert SplayNil"
     fun insert' ((k, x), m) = insert(m, k, x)
 
+    fun insertWithi comb (m, key, v) = let
+	  fun insert EMPTY =
+		MAP{nobj=1,root=ref(SplayObj{value=(key,v),left=SplayNil,right=SplayNil})}
+	    | insert (MAP{root,nobj}) = (case splay (cmpf key, !root)
+		 of (EQUAL, SplayObj{value,left,right}) => let
+		      val v' = (key, comb(key, #2 value, v))
+		      in
+			MAP{
+			    nobj=nobj,
+			    root=ref(SplayObj{value=v', left=left, right=right})
+		          }
+		      end
+		 | (LESS,SplayObj{value,left,right}) => MAP{
+			nobj=nobj+1,
+			root=ref(SplayObj{value=(key,v),left=SplayObj{value=value,left=left,right=SplayNil},right=right})
+		      }
+		 | (GREATER,SplayObj{value,left,right}) => MAP{
+			nobj=nobj+1,
+			root=ref(SplayObj{
+			  value=(key,v),
+			  left=left,
+			  right=SplayObj{value=value,left=SplayNil,right=right}
+			})
+		      }
+		| (_,SplayNil) => raise LibBase.Impossible "SplayMapFn.insert SplayNil"
+	      (* end case *))
+	  in
+	    insert m
+	  end
+    fun insertWith comb = insertWithi (fn (_, x1, x2) => comb(x1, x2))
+
     fun inDomain (EMPTY, _) = false
       | inDomain (MAP{root,nobj}, key) = (case splay (cmpf key, !root)
 	   of (EQUAL, r as SplayObj{value,...}) => (root := r; true)

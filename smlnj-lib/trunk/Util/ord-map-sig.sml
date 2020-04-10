@@ -1,6 +1,6 @@
 (* ord-map-sig.sml
  *
- * COPYRIGHT (c) 2012 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * COPYRIGHT (c) 1996 by AT&T Research.  See COPYRIGHT file for details.
@@ -29,6 +29,16 @@ signature ORD_MAP =
     val insert  : 'a map * Key.ord_key * 'a -> 'a map
     val insert' : ((Key.ord_key * 'a) * 'a map) -> 'a map
 	(* Insert an item. *)
+
+    val insertWith  : ('a * 'a -> 'a) -> 'a map * Key.ord_key * 'a -> 'a map
+	(* Insert an item with a combining function to resolve collisions.
+	 * The first argument to the combining function is the existing value,
+	 * and the second argument is the value being inserted into the map.
+	 *)
+    val insertWithi : (Key.ord_key * 'a * 'a -> 'a) -> 'a map * Key.ord_key * 'a -> 'a map
+	(* Like insertWith, except that the combining function also takes the
+	 * key as an argument.
+	 *)
 
     val find : 'a map * Key.ord_key -> 'a option
 	(* Look for an item, return NONE if the item doesn't exist *)
