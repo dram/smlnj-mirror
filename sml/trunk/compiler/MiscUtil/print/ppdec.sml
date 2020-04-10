@@ -114,14 +114,13 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 			 	     ppType static ppstrm (trueValType path
 					   handle OVERLOAD => ty)
                                  end)
-                           else (PP.string ppstrm "<hidden-value>";
+                           else (PP.string ppstrm "<hidden>";
 				 break ppstrm {nsp=1,offset=0};
 				 PP.string ppstrm ": ";
 			 	 ppType static ppstrm ty)
-		       | _ => PP.string ppstrm "<PPDec.getVal failure>")
+		       | _ => PP.string ppstrm "<hidden>")
 
-           (*** | PRIMOP _ => PP.string ppstrm "<primop>" *)
- 	        | _ => ErrorMsg.impossible "ppDec.ppVb.ppBind.VARpat";
+ 	        | _ => ErrorMsg.impossible "ppDec.ppVar";
 
 	      closeBox ppstrm;
 	      PP.newline ppstrm;

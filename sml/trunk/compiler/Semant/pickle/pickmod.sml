@@ -1276,8 +1276,9 @@ in
         (* next line is an alternative to using Env.consolidate *)
 	val syms = ListMergeSort.uniqueSort symCmp (StaticEnv.symbols senv)
 	fun newAccess i = A.PATH (A.EXTERN hash, i)
-	fun mapbinding (sym, (i, env, lvars)) = (case StaticEnv.look (senv, sym)
-	     of B.VALbind(V.VALvar{access, prim=z, path=p, typ= ref t, btvs}) =>
+	fun mapbinding (sym, (i, env, lvars)) =
+	    (case StaticEnv.look (senv, sym)
+	       of B.VALbind(V.VALvar{access, prim=z, path=p, typ= ref t, btvs}) =>
 	          (case access of
 		     A.LVAR k =>
 		     (i+1,
@@ -1294,49 +1295,46 @@ in
 			"', access = ", A.prAcc access
 		      ])
 		  (* end case *))
-	      | B.STRbind (M.STR { sign = s, rlzn = r, access = a, prim =z }) =>
-		(case a of
-		     A.LVAR k =>
+		| B.STRbind (M.STR { sign, rlzn, access, prim }) =>
+		  (case access
+		    of A.LVAR k =>
 		     (i+1,
 		      StaticEnv.bind (sym,
 				      B.STRbind (M.STR
 						     { access = newAccess i,
-						       sign = s, rlzn = r,
-						       prim = z }),
+						       sign = sign, rlzn = rlzn,
+						       prim = prim }),
 				env),
 		      k :: lvars)
-		   | _ => bug ("dontPickle 2" ^ A.prAcc a))
-	      | B.FCTbind (M.FCT { sign = s, rlzn = r, access = a, prim = z }) =>
-		(case a of
-		     A.LVAR k =>
+		   | _ => bug ("dontPickle 2" ^ A.prAcc access))
+		| B.FCTbind (M.FCT { sign, rlzn, access, prim }) =>
+		  (case access
+		    of A.LVAR k =>
 		     (i+1,
 		      StaticEnv.bind (sym,
 				      B.FCTbind (M.FCT
 						     { access = newAccess i,
-						       sign = s, rlzn = r,
-						       prim = z }),
+						       sign = sign, rlzn = rlzn,
+						       prim = prim }),
 				      env),
 		      k :: lvars)
-		   | _ => bug ("dontPickle 3" ^ A.prAcc a))
-	      | B.CONbind (T.DATACON { name = n, const = c, typ = t, sign = s,
-				       lazyp= false, rep as (A.EXN a) }) => let
-		    val newrep = A.EXN (newAccess i)
-		in
-		    case a of
-			A.LVAR k =>
+		     | _ => bug ("dontPickle 3" ^ A.prAcc access))
+		| B.CONbind (T.DATACON { name, const, typ, sign,
+					 lazyp = false, rep = (A.EXN a) }) =>
+		  (case a
+		    of A.LVAR k =>
 			(i+1,
 			 StaticEnv.bind (sym,
 					 B.CONbind (T.DATACON
-							{ rep = newrep,
-							  name = n,
+							{ rep = A.EXN (newAccess i),
+							  name = name,
 							  lazyp = false,
-							  const = c, typ = t,
-							  sign = s }),
+							  const = const, typ = typ,
+							  sign = sign }),
 				   env),
 			 k :: lvars)
-		      | _ => bug ("dontPickle 4" ^ A.prAcc a)
-		end
-	      | binding => (i, StaticEnv.bind (sym, binding, env), lvars)
+		       | _ => bug ("dontPickle 4" ^ A.prAcc a))
+		| binding => (i, StaticEnv.bind (sym, binding, env), lvars)
 	    (* end case *))
 	val (_,newenv,lvars) = foldl mapbinding (0, StaticEnv.empty, nil) syms
 	val hasExports = not (List.null lvars)
