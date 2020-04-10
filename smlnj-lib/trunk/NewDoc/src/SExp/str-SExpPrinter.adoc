@@ -1,0 +1,36 @@
+= The `SExpPrinter` structure
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `SExpPrinter` structure implements a printer for S-Expressions.
+This printer does not introduce any line breaks.  For output that
+is more readable, use the link:str-SExpPP.html[`SExpPP`] module.
+
+== Synopsis
+
+[source,sml]
+------------
+structure SExpPrinter
+------------
+
+== Interface
+
+[source,sml]
+------------
+val print : TextIO.outstream * SExp.value -> unit
+------------
+
+== Description
+
+`[.kw]#val# print : TextIO.outstream * SExp.value \-> unit`::
+  `print (outS, v)` prints the S-Expression value `v` to the
+  output stream `outS`.
+
+== See Also
+
+link:str-SExp.html[`SExp`],
+link:str-SExpPP.html[`SExpPP`],
+link:sexp-lib.html[__The SExp Library__]
