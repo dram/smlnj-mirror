@@ -39,7 +39,7 @@ val compare : value * value -> order
 +
 --
     `SYMBOL [.kw]#of# Atom.atom`::
-	represents an identifier.  We use the link:../Util/str-Atom.html[`atom`]
+	represents an identifier.  We use the link:../Util/str-Atom.html#type-atom[`atom`]
 	type to represent these for fast equality testing.
 
     `BOOL [.kw]#of# bool`::
