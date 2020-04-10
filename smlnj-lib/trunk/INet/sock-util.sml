@@ -1,6 +1,7 @@
-(* sock-util-sig.sml
+(* sock-util.sml
  *
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Various utility functions for programming with sockets.
  *)
@@ -41,7 +42,7 @@ structure SockUtil : SOCK_UTIL =
    * port is either a service name or a decimal number.  Legal host names
    * must begin with a letter, and may contain any alphanumeric character,
    * the minus sign (-) and period (.), where the period is used as a
-   * domain separator.  
+   * domain separator.
    *)
     fun scanAddr getc strm =
 	  PC.seqWith (fn (host, port) => {host=host, port=port}) (

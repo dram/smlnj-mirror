@@ -1,6 +1,7 @@
 (* sock-util-sig.sml
  *
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Various utility functions for programming with sockets.
  *)
@@ -21,7 +22,7 @@ signature SOCK_UTIL =
 	 * port is either a service name or a decimal number.  Legal host names
 	 * must begin with a letter, and may contain any alphanumeric character,
 	 * the minus sign (-) and period (.), where the period is used as a
-	 * domain separator.  
+	 * domain separator.
 	 *)
     val addrFromString : string -> {host : hostname, port : port option} option
 
@@ -38,7 +39,7 @@ signature SOCK_UTIL =
 
     val connectINetStrm : {addr : NetHostDB.in_addr, port : int}
 	  -> INetSock.inet stream_sock
-	(* establish a client-side connection to a INET domain stream socket *)
+	(* establish a client-side connection to an INET domain stream socket *)
 
     val recvVec : ('a stream_sock * int) -> Word8Vector.vector
     val recvStr : ('a stream_sock * int) -> string

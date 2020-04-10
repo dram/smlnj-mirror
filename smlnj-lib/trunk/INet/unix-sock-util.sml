@@ -1,13 +1,14 @@
 (* unix-sock-util.sml
  *
- * COPYRIGHT (c) 1999 Bell Labs, Lucent Technologies.
- * 
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  * Bind SockUtil structure on Unix systems
  *)
 
 signature UNIX_SOCK_UTIL =
   sig
-  
+
     include SOCK_UTIL
 
     val connectUnixStrm : string -> UnixSock.unix stream_sock
@@ -30,4 +31,3 @@ structure UnixSockUtil : UNIX_SOCK_UTIL =
 	  end
 
   end
-
