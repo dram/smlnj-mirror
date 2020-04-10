@@ -94,6 +94,17 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/04/09]::
++
+Fixed bug bugref:214[]
++
+    * Changed printed message when a VALvar binding is shaddowed to
+      print "<hidden>" (function ppVar in MiscUtil/print/ppdec.sml).
+    * Minor cleanup of dontPickle function in Semant/pickle/pickmod.sml.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2020/04/08]::
 +
 Fixed bug bugref:209[]
