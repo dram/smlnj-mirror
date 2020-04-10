@@ -1,0 +1,42 @@
+= The `UnixSockUtil` structure
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `UnixSockUtil` structure extends the link:str-SockUtil.html[`SockUtil`]
+structure with an additional operation for making Unix-domain connections.
+
+== Synopsis
+
+[source,sml]
+------------
+signature UNIX_SOCK_UTIL
+structure UnixSockUtil : UNIX_SOCK_UTIL
+------------
+
+== Interface
+
+[source,sml]
+------------
+include SOCK_UTIL
+
+val connectUnixStrm : string -> UnixSock.unix stream_sock
+------------
+
+== Description
+
+`[.kw]#include# SOCK_UTIL`::
+  The `UnixSockUtil` structure includes the operations from the
+  link:str-SockUtil.html[`SockUtil`] structure.
+
+`[.kw]#val# connectUnixStrm : string \-> UnixSock.unix stream_sock`::
+  `connectUnixStrm path` establishs a client-side connection to the
+   Unix-domain stream socket specified by `path`.
+
+== See Also
+
+link:str-SockUtil.html[`SockUtil`],
+https://smlfamily.github.io/Basis/unix-sock.html#UnixSock:STR:SPEC[`UnixSock` (*SML Basis*)],
+link:inet-lib.html[__The INet Library__]

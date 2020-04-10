@@ -1,4 +1,4 @@
-= SML/NJ Library -- `inet-lib`
+= The INet Library
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
@@ -7,19 +7,15 @@
 
 == Overview
 
+The *INet Library* provides utilities for network programming with sockets.
+
 == Contents
 
-  link:FILE.html[`[.kw]#structure# FOO`]::
-    something
+link:str-SockUtil.html[`[.kw]#structure# SockUtil`]::
+  Various utility functions for programming with sockets.
 
-  link:json-parser.html[`[.kw]#structure# JSONParser`]::
-    A parser for *JSON* input.
-
-  link:json-printer.html[`[.kw]#structure# JSONPrinter`]::
-    A printer for *JSON* output.
-
-  link:json-util.html[`[.kw]#structure# JSONUtil`]::
-    A collection of utility functions for working with *JSON* values.
+link:str-UnixSockUtil.html[`[.kw]#structure# UnixSockUtil`]::
+  Various utility functions for programming with Unix-domain sockets.
 
 == Usage
 

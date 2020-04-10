@@ -1,0 +1,67 @@
+= SML/NJ Library
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The **Standard ML of New Jersey Library** (**SML/NJ Library**)
+is a collection of over 200 modules grouped into 14 libraries.
+It was designed to build on the {sml-basis-url}/index.html[**Standard ML Basis Library**]
+by providing higher-level and application-specific services
+that were out of scope for the Basis Library.
+The **SML/NJ Library** is distributed as part of both the
+https://smlnj.org[**SML/NJ**] and
+https://mlton.org[**MLton SML Compiler**] systems.
+
+== Libraries
+
+The following is a list of the libraries that comprise the
+**SML/NJ Library** with a brief description of what they
+provide.  These are listed in alphabetical order:
+
+link:Controls/controls-lib.html[*Controls Library*]::
+  __not yet written__
+
+link:HTML/html-lib.html[*HTML Library*]::
+  __not yet written__
+
+link:HTML4/html4-lib.html[*HTML4 Library*]::
+  __not yet written__
+
+link:HashCons/hash-cons-lib.html[*HashCons Library*]::
+  __not yet written__
+
+link:INet/inet-lib.html[*INet Library*]::
+  Provides utilities for network programming with sockets
+
+link:JSON/json-lib.html[*JSON Library*]::
+  The *JSON Library* provides support for parsing, printing, and
+  manipulating https://www.json.org/json-en.html[*JSON*] data.
+
+link:PP/pp-lib.html[*PP Library*]::
+  __not yet written__
+
+link:Reactive/reactive-lib.html[*Reactive Library*]::
+  __not yet written__
+
+link:RegExp/regexp-lib.html[*RegExp Library*]::
+  __not yet written__
+
+link:SExp/sexp-lib.html[*SExp Library*]::
+  Supports the parsing and printing of semi-structured data as
+  https://en.wikipedia.org/wiki/S-expression[S-expressions].
+
+link:UUID/uuid-lib.html[*UUID Library*]::
+  The *UUID Library* provides support for generating and using
+  UUIDs (_aka_ GUIDs).
+
+link:Unix/unix-lib.html[*Unix Library*]::
+  The *Unix Library* provides some *Unix*-specific utilities.
+
+link:Util/smlnj-lib.html[*Util Library*]::
+  __not yet written__
+
+link:XML/xml-lib.html[*XML Library*]::
+  __not yet written__
+
