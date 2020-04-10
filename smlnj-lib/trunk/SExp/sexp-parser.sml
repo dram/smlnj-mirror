@@ -28,7 +28,7 @@ structure SExpParser : sig
 
 	(* returns (tok, pos, nextStrm, strm) where the difference between
 	 * nextStrm and strm is that tok is the next token in strm
-	 * whereas the token _after_ tok is the next up in nextStrm.  
+	 * whereas the token _after_ tok is the next up in nextStrm.
 	 *
 	 * In other words, strm has had all leading whitespace consumed.
 	 *)
@@ -42,6 +42,10 @@ structure SExpParser : sig
 		in
 		  case tok
 		   of T.DELIM(delim, T.OPEN) => parseList (delim, strm)
+		    | T.QUOTE => let val (strm', value) = parseValue strm
+			in
+			  (strm, S.QUOTE value)
+			end
 		    | T.KW_true => (strm, S.BOOL true)
 		    | T.KW_false => (strm, S.BOOL false)
 		    | T.INT n => (strm, S.INT n)
@@ -64,11 +68,11 @@ structure SExpParser : sig
 			    val (strm, v) = parseValue strm
 			  (* expect either a separator (whitespace) or a delimiter *)
 			    val (tok, pos, nextStrm, strm) = lexNWS strm
-			    in 
-			      if matchDelim tok 
+			    in
+			      if matchDelim tok
 				then (nextStrm, v::items)
-				else (loop(strm, v::items) 
-				  handle (Fail msg) => 
+				else (loop(strm, v::items)
+				  handle (Fail msg) =>
 				    error(pos, "parsing list gave '" ^ msg ^ "'" , tok))
 			    end
 		      val (strm, items) = loop (strm, [])
@@ -102,4 +106,3 @@ structure SExpParser : sig
 	  end
 
   end
-

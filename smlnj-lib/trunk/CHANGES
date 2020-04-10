@@ -5,6 +5,11 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-10]
+	Added a `QUOTE` constructor to the `SExp.value` datatype and
+	cleaned up the details of the syntax of identifiers.  Also
+	added a `compare` function for the `SExp.value` datatype.
+
 [2020-04-09]
 	Reimplemented the `find` functions in `UnixPath` to use the
 	`PathUtil` implementation, rather than reimplementing it.

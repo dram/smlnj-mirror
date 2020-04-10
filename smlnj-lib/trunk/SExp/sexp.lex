@@ -41,17 +41,20 @@
 %let frac = "."{digits};
 %let exp = [eE][+-]?{digits};
 %let xdigit = {digit}|[a-fA-F];
-%let alpha = ([a-z] | [A-Z]);
-%let punct = [-\^_/~!@$%&*\\:?.<>|+='#];
-%let symbol = ({alpha} | {punct})({alpha} | {punct} | {digit})*;
+%let alpha = ([a-zA-Z]);
+%let initial = {alpha} | [-+.@!$%&*/:<=>?^_~];
+%let subsequent = {initial} | {digit};
+%let ident = {initial} {subsequent}*;
 
 %states S;
 
 <INITIAL>[ \t\n\r]+		=> ( T.WHITE );
 <INITIAL>";"[^\n\r]*[\n\r]+	=> ( skip() (* comment *));
 
-<INITIAL>"'"([^\ \t\n\r]+)	=> ( T.SYMBOL (String.extract(yytext, 1, NONE)) );
+<INITIAL>{identifier}		=> ( T.SYMBOL (yytext) );
+<INITIAL>{symbol}       	=> ( T.SYMBOL yytext );
 
+<INITIAL>"'"			=> ( T.QUOTE );
 <INITIAL>"("			=> ( T.DELIM (T.PAREN, T.OPEN) );
 <INITIAL>")"			=> ( T.DELIM (T.PAREN, T.CLOSE) );
 <INITIAL>"["			=> ( T.DELIM (T.BRACKET, T.OPEN) );
@@ -66,7 +69,7 @@
   * get negatives, write "-0xdeadbeef".  This means that the string from C's
   * `printf("%x", -1)` will be parsed as INT_MAX.  TODO is this a good idea? *)
 
-<INITIAL>[+-]?"0x"{xdigit}+      => ( 
+<INITIAL>[+-]?"0x"{xdigit}+      => (
   let
     (* TODO Doesn't StringCvt.HEX handle stripping the "0x" prefix? *)
     val digits = if String.isPrefix "+"  yytext         (* "+0xdeadbeef" *)
@@ -76,7 +79,7 @@
                  else String.extract(yytext, 2, NONE)   (* "0xdeadbeef" *)
     val SOME(value) = StringCvt.scanString (IntInf.scan StringCvt.HEX) digits
   in
-    T.INT(value) 
+    T.INT(value)
   end
 );
 
@@ -88,7 +91,6 @@
 
 <INITIAL>"\""			=> ( YYBEGIN S; continue() );
 
-<INITIAL>{symbol}       	=> ( T.SYMBOL yytext );
 (* TODO backport this to the JSON parser, which hangs if it sees a \\ in a
 * string. *)
 <S>"\\"				=> ( addStr "\\"; continue() );

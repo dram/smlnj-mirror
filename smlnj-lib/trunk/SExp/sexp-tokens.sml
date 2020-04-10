@@ -17,6 +17,7 @@ structure SExpTokens =
     datatype token
       = EOF		(* end-of-file *)
       | DELIM of (delim_type * delim_open)
+      | QUOTE		(* "'" *)
       | KW_true		(* "#t" *)
       | KW_false	(* "#f" *)
       | INT of IntInf.int
@@ -34,8 +35,9 @@ structure SExpTokens =
       | toString (DELIM(BRACKET, CLOSE)) = "]"
       | toString (DELIM(BRACE, OPEN)) = "{"
       | toString (DELIM(BRACE, CLOSE)) = "}"
-      | toString KW_true = "true"
-      | toString KW_false = "false"
+      | toString QUOTE = "'"
+      | toString KW_true = "#t"
+      | toString KW_false = "#f"
       | toString (INT i) =
 	  if (i < 0) then "-" ^ IntInf.toString(~i)
 	  else IntInf.toString i

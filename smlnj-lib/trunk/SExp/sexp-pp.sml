@@ -33,12 +33,13 @@ structure SExpPP : sig
 		    str ")";
 		  PP.closeBox strm;
 		PP.closeBox strm)
-	  and ppVal (S.LIST value) = ppList (value)
-	    | ppVal (S.SYMBOL value) = str (Atom.toString value)
+	  and ppVal (S.SYMBOL value) = str (Atom.toString value)
 	    | ppVal (S.BOOL value) = str (if value then "#t" else "#f")
 	    | ppVal (S.INT value) = str (F.format "%d" [F.LINT value])
 	    | ppVal (S.FLOAT value) = str (F.format "%g" [F.REAL value])
 	    | ppVal (S.STRING value) = str (concat ["\"", String.toString value, "\""])
+	    | ppVal (S.QUOTE value) = (str "'"; ppVal value)
+	    | ppVal (S.LIST values) = ppList values
 	  in
 	    PP.openVBox strm (PP.Abs 0);
 	      ppVal sexp;

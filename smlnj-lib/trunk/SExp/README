@@ -1,42 +1,46 @@
-This library supports the reading and writing of structured data using
-the S-expressions.  It is a work in progress, and does not fully conform with
-any formal S-exp specification.  A few notes:
+The *SExp Library* supports the reading and writing of structured data using
+the S-expression syntax.  It is a work in progress, and does not fully conform with
+any formal S-exp specification.
 
-- The negative sign is either "-" or "~"
+- End-of-line comments begin with a semicolon character
 
-- Lists may be delimited by matched pairs of () [] or {}, nested freely.
+- An S-Expression is either an atomic token (boolean, number, symbol, or
+  string), a quoted expression, or a list of S-Expressions enclosed in brackets.
 
-- List items are separated with [,;\ \t\n\r].  There are two other methods that
-  currently happen to work but are not supported and are _strongly_ discouraged:
+- Quoted expressions are formed by the single-quote character (``'``) followed
+  by an expression.
 
-  1. to use other characters (e.g., grave `) as delimiters,
-  2. to run in unambiguous sequences of tokens (e.g., (1"2") or (0x))
+- Lists are be delimited by matched pairs of `()` `[]` or `{}`, nested freely.
 
-- The format of a floating point number is
-    [+-]?[0-9]+\.[0-9]+([eE][0-9]+)?
-  Notably, "1." and ".1" are invalid and "1" is an integer---floats must have a
-  dot and it must have digits on both sides.
+- List items are separated with whitespace (space, tab, newlines, or carriage
+  returns).
 
-- The entire input must parse to a single S-expression.
+- Symbols (or _identifiers_) begin with an initial character followed by
+  zero or more _subsequent_ characters, where an initial character is
+  either a letter or one of the characters `-+.@!$%&*/:<=>?^_~` and
+  a subsequent character is either an initial character, a decimal digit,
+  or the character `#`.
 
-- Symbols are either 
-    '[^\ \t\n\r]+
-  or a string where the first has only characters from
-    [A-Z] | [a-z] | [-\^_/~!@$%&*\\:?.<>|+=']
-  and the rest can be any of the previous characters or a digit 0-9
+- Booleans are represented by the literals `#f` (false) and `#t` (true).
 
-  The difference between symbols and strings is that symbols are represented as
-  Atom.atom types, so equality comparisons are more efficient.
-
-  Note that the leading-single-quote form of a symbol means that strings MUST
-  be double-quoted.  The input 'foo' would be parsed as a symbol called foo'.
-
-- Please do not use # as a leading character for a symbol, as I may later add
-  support for individual characters in the format  #"0xff".
+- Numbers are either signed integers or floating-point numbers; the
+  sign (if present) is one of "'+'," "`-`," or "`~`".
 
 - Integers may be specified in decimal without any prefix, or in hexadecimal
   with the prefix "0x".  In hex, the value is assumed to be unsigned, so -255
-  should be written "-0xff" rather than "0x-ff".  
-  
-  N.B. this means that printing the bytes of two's-complement signed integers
-  does not parse correctly: the output of `printf("%x", -1)` parses to INT_MIN.
+  should be written "-0xff" rather than "0x-ff".
+
+- The format of a floating point number is described by the following
+  regular expression: <sign>? <digit>+ '.' <digit>+ ([eE] <sign>? <digit>+)
+  Notably, "`1.`" and "`.1`" are invalid and "`1`" is an
+  integer --- floats must have a dot with digits
+  on both sides.
+
+- Strings are enclosed in double quotes (``"``).
++
+  The difference between symbols and strings is that symbols are represented as
+  Atom.atom types, so equality comparisons are more efficient.
+
+The original version of the library was written by Damon Wang
+at the University of Chicago.  It has since been modified and
+maintained by John Reppy.
