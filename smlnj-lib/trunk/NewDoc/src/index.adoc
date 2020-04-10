@@ -30,7 +30,7 @@ link:HTML4/html4-lib.html[*HTML4 Library*]::
   __not yet written__
 
 link:HashCons/hash-cons-lib.html[*HashCons Library*]::
-  __not yet written__
+  Supports the implementation of hash-consed representations of data structures.
 
 link:INet/inet-lib.html[*INet Library*]::
   Provides utilities for network programming with sockets
