@@ -5,6 +5,25 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-11]
+	Replaced the "directional" fold functions (_e.g._, `foldl`, `foldri`)
+	with non-directional functions (_e.g., `fold`, `foldi`) in the
+	`HashConsSet` and `HashConsMap` structures.  The reason for this
+	change is that the order of objects is pretty arbitrary, so there
+	is not any usefulness to processing elements in increasing or
+	decreasing order.
+	For backward compatibility, the old names will continue to work,
+	but they are deprecated amd will be removed in some future release.
+
+[2020-04-10]
+	Added `insertWith` and `insertWithi` functions to the `ORD_MAP`
+	signature.
+
+[2020-04-10]
+	Added operations to the `HashConsSet` and `HashConsMap` structures
+	(and corresponding signatures) to bring them inline with the
+	`ORD_SET` and `ORD_MAP` interfaces.  Also reimplemented these
+
 [2020-04-10]
 	Added a `QUOTE` constructor to the `SExp.value` datatype and
 	cleaned up the details of the syntax of identifiers.  Also

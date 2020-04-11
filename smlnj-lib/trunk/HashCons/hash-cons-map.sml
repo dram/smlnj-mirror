@@ -45,6 +45,7 @@ structure HashConsMap : HASH_CONS_MAP =
 	  end
 
     fun find (map : ('a, 'b) map, obj) = Option.map #2 (Map.find(map, HC.tag obj))
+    fun lookup (map : ('a, 'b) map, obj) = #2 (Map.lookup(map, HC.tag obj))
     fun inDomain (map, obj) = Map.inDomain (map, HC.tag obj)
     fun remove (map, obj) = let
 	  val (map, (_, v)) = Map.remove (map, HC.tag obj)
@@ -66,14 +67,36 @@ structure HashConsMap : HASH_CONS_MAP =
 	  Map.intersectWith (fn ((k, a), (_, b)) => (k, join(a, b)))
     fun intersectWithi join =
 	  Map.intersectWithi (lift2i (fn (k, a, b) => (k, join(k, a, b))))
+    fun mergeWith join = let
+	  fun result (k, SOME c) = SOME(k, c)
+	    | result (_, NONE) = NONE
+	  fun join' (SOME(k, a), SOME(_, b)) = result (k, join(SOME a, SOME b))
+	    | join' (SOME(k, a), NONE) = result (k, join(SOME a, NONE))
+	    | join' (NONE, SOME(k, b)) = result (k, join(NONE, SOME b))
+	    | join' (NONE, NONE) = raise Fail "impossible"
+	  in
+	    Map.mergeWith join'
+	  end
+    fun mergeWithi join = let
+	  fun result (k, SOME c) = SOME(k, c)
+	    | result (_, NONE) = NONE
+	  fun join' (SOME(k, a), SOME(_, b)) = result (k, join(k, SOME a, SOME b))
+	    | join' (SOME(k, a), NONE) = result (k, join(k, SOME a, NONE))
+	    | join' (NONE, SOME(k, b)) = result (k, join(k, NONE, SOME b))
+	    | join' (NONE, NONE) = raise Fail "impossible"
+	  in
+	    Map.mergeWith join'
+	  end
     fun app f = Map.app (fn (_, v) => f v)
     val appi = Map.app
     fun map f = Map.map (fn (k, v) => (k, f v))
     fun mapi f = Map.map (fn (k, v) => (k, f(k, v)))
-    fun foldl f = Map.foldl (fn ((_, x), acc) => f(x, acc))
-    fun foldli f = Map.foldl (fn ((k, x), acc) => f(k, x, acc))
-    fun foldr f = Map.foldr (fn ((_, x), acc) => f(x, acc))
-    fun foldri f = Map.foldr (fn ((k, x), acc) => f(k, x, acc))
+    fun fold f = Map.foldl (fn ((_, x), acc) => f(x, acc))
+    fun foldi f = Map.foldl (fn ((k, x), acc) => f(k, x, acc))
+    val foldl = fold	(* DEPRECATED *)
+    val foldli = foldi	(* DEPRECATED *)
+    val foldr = fold	(* DEPRECATED *)
+    val foldri = foldi	(* DEPRECATED *)
     fun filter pred = Map.filter (fn (_, x) => pred x)
     val filteri = Map.filter
     fun mapPartial f =
@@ -82,5 +105,9 @@ structure HashConsMap : HASH_CONS_MAP =
     fun mapPartiali f =
 	  Map.mapPartial
 	    (fn (k, v) => case f(k, v) of SOME v => SOME(k, v) | NONE => NONE)
+    fun exists f = Map.exists (fn (k, v) => f v)
+    fun existsi f = Map.exists f
+    fun all f = Map.all (fn (k, v) => f v)
+    fun alli f = Map.all f
 
   end

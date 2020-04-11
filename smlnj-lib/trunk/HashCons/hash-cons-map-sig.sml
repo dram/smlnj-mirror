@@ -39,6 +39,9 @@ signature HASH_CONS_MAP =
     val find : ('a, 'b) map * 'a obj -> 'b option
 	(* Look for an item, return NONE if the item doesn't exist *)
 
+    val lookup : ('a, 'b) map * 'a obj -> 'b
+	(* look for an item, raise the NotFound exception if it doesn't exist *)
+
     val inDomain : (('a, 'b) map * 'a obj) -> bool
 	(* return true, if the key is in the domain of the map *)
 
@@ -83,6 +86,16 @@ signature HASH_CONS_MAP =
 	 * two input maps, using the supplied function to define the range.
 	 *)
 
+    val mergeWith : ('b option * 'c option -> 'd option)
+	  -> (('a, 'b) map * ('a, 'c) map) -> ('a, 'd) map
+    val mergeWithi : ('a obj * 'b option * 'c option -> 'd option)
+	  -> (('a, 'b) map * ('a, 'c) map) -> ('a, 'd) map
+	(* merge two maps using the given function to control the merge. For
+	 * each key k in the union of the two maps domains, the function
+	 * is applied to the image of the key under the map.  If the function
+	 * returns SOME y, then (k, y) is added to the resulting map.
+	 *)
+
     val app  : ('b -> unit) -> ('a, 'b) map -> unit
     val appi : (('a obj * 'b) -> unit) -> ('a, 'b) map -> unit
 	(* Apply a function to the entries of the map in map order. *)
@@ -93,17 +106,15 @@ signature HASH_CONS_MAP =
          * name/value pairs in the map.
          *)
 
+    val fold  : ('b * 'c -> 'c) -> 'c -> ('a, 'b) map -> 'c
+    val foldi : ('a obj * 'b * 'c -> 'c) -> 'c -> ('a, 'b) map -> 'c
+	(* Apply a folding function to the entries of the map *)
+
     val foldl  : ('b * 'c -> 'c) -> 'c -> ('a, 'b) map -> 'c
     val foldli : ('a obj * 'b * 'c -> 'c) -> 'c -> ('a, 'b) map -> 'c
-	(* Apply a folding function to the entries of the map
-         * in increasing map order.
-         *)
-
     val foldr  : ('b * 'c -> 'c) -> 'c -> ('a, 'b) map -> 'c
     val foldri : ('a obj * 'b * 'c -> 'c) -> 'c -> ('a, 'b) map -> 'c
-	(* Apply a folding function to the entries of the map
-         * in decreasing map order.
-         *)
+	(* these functions are DEPRECATED *)
 
     val filter  : ('b -> bool) -> ('a, 'b) map -> ('a, 'b) map
     val filteri : ('a obj * 'b -> bool) -> ('a, 'b) map -> ('a, 'b) map
@@ -115,6 +126,20 @@ signature HASH_CONS_MAP =
     val mapPartiali : ('a obj * 'b -> 'c option) -> ('a, 'b) map -> ('a, 'c) map
 	(* map a partial function over the elements of a map in increasing
 	 * map order.
+	 *)
+
+    val exists : ('b -> bool) -> ('a, 'b) map -> bool
+    val existsi : ('a obj * 'b -> bool) -> ('a, 'b) map -> bool
+	(* check the elements of a map with a predicate and return true if
+	 * any element satisfies the predicate. Return false otherwise.
+	 * Elements are checked in key order.
+	 *)
+
+    val all : ('b -> bool) -> ('a, 'b) map -> bool
+    val alli : ('a obj * 'b -> bool) -> ('a, 'b) map -> bool
+	(* check the elements of a map with a predicate and return true if
+	 * they all satisfy the predicate. Return false otherwise.  Elements
+	 * are checked in key order.
 	 *)
 
   end
