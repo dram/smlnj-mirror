@@ -1,0 +1,269 @@
+= Implementation of Overloading
+:Author: Dave MacQueen
+:Date: 2020/04/11
+:VERSION: 110.97
+
+== Introduction
+
+This document describes the implementation of overloading and overloading
+resolution in SML/NJ 110.97 (revised from 110.96). Initially the description
+will use the 110.96 representations, but these will evolve into modified
+110.97 versions.
+
+File paths are relative to base/.
+
+== Declaring overloading
+
+files: compiler/Parse/parse/sml.grm
+
+The declaration form for overloadings is:
+
+[source,sml]
+-----------
+OVERLOAD id COLON ty AS exp_pa
+-----------
+where exp_pa is an "and" separated sequence of expressions
+but these will only be path expressions.
+
+Each element of the expression (path) list exp_pa determines a unique
+indicator type, which can be reduced to one of the primitive type
+constructors defined in compiler/ElabData/types/basictypes.{sig,sml}.
+These primitive types serving as "indicators" for resolving overloadings
+are:
+
+intTy/intTycon
+int32Ty/int32Tycon
+int64Ty/int64Tycon
+intinfTy/intinfTycon
+
+wordTy/wordTycon
+word8Ty/word8Tycon
+word32Ty/word32Tycon
+word64Ty/word64Tycon
+
+realTy/realTycon  (= R64.real)
+
+charTy/charTycon
+
+stringTy/stringTycon
+
+realTy, charTy, stringTy could split into multiple cases in the future.
+
+
+== Overloadings
+
+files: system/smlnj/init/pervasive.sml
+
+This file defines the pervasive environment, including
+all overload bindings.
+
+[source,sml]
+-----------
+overload ~ :   ('a -> 'a)
+   as  Int.~ and I32.~ and I64.~ and CII.~
+   and Word.~ and W8.~ and W32.~ and W64.~
+    and R64.~
+overload + :   ('a * 'a -> 'a)
+  as  Int.+ and I32.+ and I64.+ and CII.+
+  and Word.+ and W8.+ and W32.+ and W64.+
+  and R64.+
+overload - :   ('a * 'a -> 'a)
+  as  Int.- and I32.- and I64.- and CII.-
+  and Word.- and W8.- and W32.- and W64.-
+  and R64.-
+overload * :   ('a * 'a -> 'a)
+  as  Int.* and I32.* and I64.* and CII.*
+  and Word.* and W8.* and W32.* and W64.*
+  and R64.*
+(*
+overload / : ('a * 'a -> 'a)
+  as R64./
+*)
+val op / = R64./		(* temporary hack around overloading bug *)
+overload div : ('a * 'a -> 'a)
+  as  Int.div and I32.div and I64.div and CII.div
+  and Word.div and W8.div and W32.div and W64.div
+overload mod : ('a * 'a -> 'a)
+  as  Int.mod and I32.mod and I64.mod and CII.mod
+  and Word.mod and W8.mod and W32.mod and W64.mod
+overload < :   ('a * 'a -> bool)
+  as  Int.< and I32.< and I64.< and CII.<
+  and Word.< and W8.< and W32.< and W64.<
+  and R64.<
+  and InlineT.Char.<
+  and stringlt
+overload <= :   ('a * 'a -> bool)
+  as  Int.<= and I32.<= and I64.<= and CII.<=
+  and Word.<= and W8.<= and W32.<= and W64.<=
+  and R64.<=
+  and InlineT.Char.<=
+  and stringle
+overload > :   ('a * 'a -> bool)
+  as  Int.> and I32.> and I64.> and CII.>
+  and Word.> and W8.> and W32.> and W64.>
+  and R64.>
+  and InlineT.Char.>
+  and stringgt
+overload >= :   ('a * 'a -> bool)
+  as  Int.>= and I32.>= and I64.>= and CII.>=
+  and Word.>= and W8.>= and W32.>= and W64.>=
+  and R64.>=
+  and InlineT.Char.>=
+  and stringge
+overload abs : ('a -> 'a)
+  as Int.abs and I32.abs and I64.abs and CII.abs and R64.abs
+-----------
+
+The set of overloaded operators is fixed, though implementation
+dependent.
+
+== Overloading Classes
+
+As defined in DefnRev, Appendix E.1, overloaded operators can be
+associated with "overloading classes" which are sets of primitive
+types that determine the different "resolutions" of the operator
+
+Int = {intTy, int32Ty, int64Ty, intinfTy}
+Word = {wordTy, word8Ty, word32Ty, word64Ty}
+Real = {realTy}
+Char = {charTy}
+String = {StringTy}
+WordInt = Word U Int   (U = union)
+RealInt = Real U Int
+Num = Word U Int U Real
+NumTxt = Num U {charTy, stringTy}
+
+The association with overloaded operators is:
+
+~, +, - * : Num
+div, mod : WordInt
+<, <=, >, >= : NumTxt
+abs : RealInt
+
+So only Num, WordInt, NumTxt, RealInt are associated with overloaded
+operators (so far).
+
+For a given applied occurrence of an overloaded operator, resolution
+is based on a single primitive type determined by the type checker.
+This "indicator" type will be a member of the operator's overloading
+class. In cases where the type checker does not produce a unique
+indicator (the occurrence remains undetermined) then a "default"
+member of its overloading class is used to resolve the operator.
+The defaults for the relevant classes are all the same, namely intTy:
+
+WordInt : intTy
+RealInt : intTy
+Num : intTy
+NumTxt : intTy
+
+
+== Semantic representations
+
+files: compiler/ElabData/types.{sig,sml}
+
+[source,sml]
+------------
+and ovldSource
+  = OVAR of S.symbol * SourceMap.region		(* overloaded variable *)
+  | OINT of IntInf.int * SourceMap.region	(* overloaded int literal *)
+  | OWORD of IntInf.int * SourceMap.region	(* overloaded word literal *)
+  (* in future, may need to add real, char, string literals as sources *)
+
+and tvKind
+  = ...
+  | OVLD of (* overloaded operator type scheme variable,
+	     * representing one of a finite set of ground type options *)
+     {sources: ovldSource list,   (* name of overloaded variable or literal value *)
+      options: ty list} (* potential resolution types *)
+------------
+
+Concentrating on the overloaded variable (operator) case, the source identifier
+and its source region at recorded as arguments of the OVAR constructor of ovldSource.
+
+Question: What is an example where the sources field has multiple elements?
+It seems that a new OVLD tyvar would be created for each occurrence of an
+operator.  But they could be "merged" through unification.
+
+Example: (fn x => x > x; x * x)
+  The univariables introduced for ">" and "*" will be unified via the tyvar for
+  the lambda-bound variable x.
+
+When two such OVLD tyvars are unified, the options are narrowed by intersecting
+the options of each tyvar, and the new sources are the union (concatenation) of
+the sources of the two variables.
+
+When overloading resolution is performed the resulting primitive type
+(if unique; i.e. if a single element of the options matches) is used
+to resolve the operators at each of the sources.
+
+== Elaboration of overload declarations
+
+files: compiler/Elaborator/elaborate/elabcore.sml
+       compiler/ElabData/syntax/varcon.{sig,sml} [VALvar, OVLDvar]
+       compiler/ElabData/types/types.{sig,sml}  [TYFUN]
+       compiler/Elaborator/types/overload.sml  [Overload.matchScheme]
+       
+[source,sml]
+------------
+    and elabOVERLOADdec((id,typeScheme,exps),env,rpath,region) =
+	(* exps are simple variables or paths, with monomorphic types;
+	 * typescheme is a type scheme with a single type variable parameter,
+	 * which matches the type of each exp *)
+	let val (body,tyvars) = ET.elabType(typeScheme,env,error,region)
+	    val tvs = TS.elements tyvars (* ASSERT: length tyvars = 1 *)
+	    val scheme = (TU.bindTyvars tvs; TU.compressTy body;
+			  TYFUN{arity=length tvs, body=body})
+	    fun option (MARKexp(e,_)) = option e
+	      | option (VARexp(ref (v as VALvar{typ,...}),_)) =
+		  {indicator = Overload.matchScheme(scheme,!typ), variant = v}
+	      | option _ = bug "evalOVERLOADdec.option"
+	    val options =
+		map (fn exp => option(#1(elabExp(exp,env,region)))) exps
+	    val ovldvar = OVLDvar{name=id,scheme=scheme,
+				  options=options}
+	in
+	    (OVLDdec ovldvar, SE.bind(id,B.VALbind ovldvar,SE.empty),
+             TS.empty, no_updt)
+	end
+------------
+
+where
+
+   val elabExp : Ast.exp * SE.staticEnv * region
+                 -> Absyn.exp * TS.tyvarset * tyvUpdate
+
+and for the paths occuring in overload decl the resulting Absyn.exp will be of the
+form VARexp(ref v, []), were v is the VarCon.VALvar obtained by looking up the path
+in the environment. From varcon.sml (structure VarCon):
+
+[source,sml]
+------------
+(* from varcon.sml *)
+datatype var
+  = VALvar of 		              (* ordinary variables *)
+      {path : SP.path,
+       typ : T.ty ref,
+       btvs : T.tyvar list ref,
+       access : A.access,
+       prim : PrimopId.prim_id}
+  | OVLDvar of       	      	      (* overloaded identifier *)
+      {name : S.symbol,
+       options: {indicator: T.ty, variant: var} list,
+       scheme: T.tyfun}
+  | ERRORvar                          (* error variables *)
+------------
+
+So the overloaded variable (id) is bound ot an OVLDvar structure, which contains
+the mapping from indicator types to the VALvar (:VarCon.vars) obtained by
+elaborating the paths for each option.
+
+The typeScheme part of the overload declaration is translated into a TYFUN
+(always of arity 1). This is then "matched" using Overload.matchScheme with the
+type of the type of each option VALvar
+
+
+== Type inference process
+
+files: compiler/Elaborator/types/overload.sml
+
+== Overloading resolution
