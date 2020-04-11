@@ -89,9 +89,7 @@ signature HASH_CONS_SET =
          *)
 
     val app : ('a obj -> unit) -> 'a set -> unit
-	(* Apply a function to the entries of the set
-         * in decreasing order
-         *)
+	(* Apply a function to the entries of the set *)
 
     val fold : ('a obj * 'b -> 'b) -> 'b -> 'a set -> 'b
 	(* Apply a folding function to the entries of the set *)
