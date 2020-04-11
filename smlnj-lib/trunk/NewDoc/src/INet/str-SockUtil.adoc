@@ -68,17 +68,17 @@ val sendArr : ('a stream_sock * Word8Array.array) -> unit
 
 `[.kw]#val# addrFromString : string \-> {host : hostname, port : port option} option`::
   `addrFromString addr` converts the string `addr` to a host-port address specifier.
-  The syntax of addresses is as described for link:val:scanAddr[`scanAddr`].
+  The syntax of addresses is as described for link:#val:scanAddr[`scanAddr`].
 
 [[exn-BadAddr]]
 `[.kw]#exception# BadAddr [.kw]#of# string`::
-  This exception is raised by link:val-resolveAddr[`resolveAddr`].
+  This exception is raised by link:#val:resolveAddr[`resolveAddr`].
 
 [[val-resolveAddr]]
 `[.kw]#val# resolveAddr : {host : hostname, port : port option} \-> {host : string, addr : NetHostDB.in_addr, port : int option}`::
   `resolveAddr {host, port}` resolves the hostname and optional port in the
   host and service databases.  If either the host or service name is not
-  found, then the link:exn-BadAddr[`BadAddr`] exception is raised.
+  found, then the link:#exn-BadAddr[`BadAddr`] exception is raised.
 
 `[.kw]#type# 'a stream_sock = ('a, Socket.active Socket.stream) Socket.sock`::
   A type abbreviation for active stream sockets.
