@@ -1,4 +1,4 @@
-= SML/NJ Library -- `controls-lib`
+= The Controls Library
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
@@ -7,19 +7,26 @@
 
 == Overview
 
+The *Controls Library* provides support for managing application
+controls via command-line options, environment variables, and
+code.
+
+The original design and implementation of the *Controls Library*
+was by Matthias Blume.
+
 == Contents
 
-  xref:FILE.adoc[`[.kw]#structure# FOO`]::
-    something
+xref:str-Controls.adoc[`[.kw]#structure# Controls`]::
+  something
 
-  xref:json-parser.adoc[`[.kw]#structure# JSONParser`]::
-    A parser for *JSON* input.
+xref:str-ControlSet.adoc[`[.kw]#structure# ControlSet`]::
+  something
 
-  xref:json-printer.adoc[`[.kw]#structure# JSONPrinter`]::
-    A printer for *JSON* output.
+xref:str-ControlRegistry.adoc[`[.kw]#structure# ControlRegistry`]::
+  something
 
-  xref:json-util.adoc[`[.kw]#structure# JSONUtil`]::
-    A collection of utility functions for working with *JSON* values.
+xref:str-ControlUtil.adoc[`[.kw]#structure# ControlUtil`]::
+  something
 
 == Usage
 
@@ -28,3 +35,4 @@ For https://smlnj.org[*SML/NJ*], include `$/controls-lib.cm` in your
 
 For use in http://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/Controls/controls-lib.mlb` in your *MLB* file.
+
