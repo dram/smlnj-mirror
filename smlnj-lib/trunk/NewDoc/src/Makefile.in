@@ -21,9 +21,13 @@ SML_BASIS_URL =	https://standardml.org/Basis
 
 ATTRS =         -a sml-basis-url="$(SML_BASIS_URL)" \
 		-a smlnj-version="$(SMLNJ_VERSION)" \
-                -a release-date="$(SMLNJ_DATE)" \
+                -a release-date="$(SMLNJ_DATE)"
+
+HTML_ATTRS =	$(ATTRS) \
 		-a linkcss \
 		-a stylesheet=smlnj-lib.css
+
+PDF_ATTRS =	$(ATTRS)
 
 STYLES_DIR_ROOT = -a stylesdir=styles
 STYLES_DIR =	-a stylesdir=../styles
@@ -32,8 +36,13 @@ ASCIIDOCTOR_HTML_FLAGS = -b html
 
 # command to generate HTML files
 #
-ASCIIDOCTOR_HTML =	$(ASCIIDOCTOR) $(ASCIIDOCTOR_HTML_FLAGS) $(ATTRS)
+ASCIIDOCTOR_HTML =	$(ASCIIDOCTOR) $(ASCIIDOCTOR_HTML_FLAGS) $(HTML_ATTRS)
 
+ASCIIDOCTOR_PDF_FLAGS	= -d book -r asciidoctor-mathematical
+
+# command to generate HTML files
+#
+ASCIIDOCTOR_PDF =	$(ASCIIDOCTOR)-pdf $(ASCIIDOCTOR_PDF_FLAGS) $(PDF_ATTRS)
 
 # default target base
 #
@@ -77,6 +86,9 @@ html:
 	    (cd $$dir; $(ASCIIDOCTOR_HTML) $(STYLES_DIR) *.adoc) ; \
 	done
 	cp styles/smlnj-lib-pygments.css styles/pygments-default.css
+
+smlnj-lib-manual.pdf:
+	$(ASCIIDOCTOR_PDF) -o smlnj-lib-manual.pdf root.adoc
 
 $(DOC_DIR):
 	mkdir -p $(HTML_DST_ROOT)
