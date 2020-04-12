@@ -21,7 +21,11 @@ SML_BASIS_URL =	https://standardml.org/Basis
 
 ATTRS =         -a sml-basis-url="$(SML_BASIS_URL)" \
 		-a smlnj-version="$(SMLNJ_VERSION)" \
-                -a release-date="$(SMLNJ_DATE)"
+                -a release-date="$(SMLNJ_DATE)" \
+		-a linkcss
+
+STYLES_DIR_ROOT = -a stylesdir=styles
+STYLES_DIR =	-a stylesdir=../styles
 
 ASCIIDOCTOR_HTML_FLAGS = -b html
 
@@ -68,9 +72,9 @@ doc:            html $(DOC_DIR)
 
 .PHONY:		html
 html:
-	$(ASCIIDOCTOR_HTML) index.adoc
+	$(ASCIIDOCTOR_HTML) $(STYLES_DIR_ROOT) index.adoc
 	for dir in $(DOC_SUBDIRS) ; do \
-	    (cd $$dir; $(ASCIIDOCTOR_HTML) *.adoc) ; \
+	    (cd $$dir; $(ASCIIDOCTOR_HTML) $(STYLES_DIR) *.adoc) ; \
 	done
 
 include @MK_DIR@/clean-rules.gmk

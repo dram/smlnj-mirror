@@ -5,7 +5,9 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `HashConsMap` structure ...
+The `HashConsMap` structure implements functional, finite maps keyed
+by hash-consed objects.  A balanced tree structure is used in the
+representation.
 
 == Synopsis
 
@@ -22,8 +24,6 @@ structure HashConsMap : HASH_CONS_MAP
 type 'a obj = 'a HashCons.obj
 
 type ('a, 'b) map
-
-val empty : ('a, 'b) map
 
 val isEmpty : ('a, 'b) map -> bool
 
@@ -45,8 +45,7 @@ val inDomain : (('a, 'b) map * 'a obj) -> bool
 
 val remove : ('a, 'b) map * 'a obj -> ('a, 'b) map * 'b
 
-val first : ('a, 'b) map -> 'b option
-val firsti : ('a, 'b) map -> ('a obj * 'b) option
+val empty : ('a, 'b) map
 
 val numItems : ('a, 'b) map ->  int
 
@@ -96,190 +95,248 @@ val alli : ('a obj * 'b -> bool) -> ('a, 'b) map -> bool
 
 == Description
 
+In the description of operations below, we write latexmath:[\mathbf{dom}(m)]
+for the _domain_ of the map latexmath:[m] (_i.e_, the set of keys for which
+latexmath:[m] is defined), and latexmath:[\mathbf{rng}(m)] for its _range_
+(_i.e._, the set latexmath:[\{ m(k)\;|\;k \in \mathbf{dom}(m) \}]).  It is also
+useful to view a map as the set of key-value pairs
+latexmath:[\{ (k, m(k))\;|\;k \in \mathbf{dom}(m) \}], which we call the _items_
+of latexmath:[m].
+
 `[.kw]#type# 'a obj = 'a HashCons.obj`::
-  something
+  Hash-consed objects are the search keys for the finite maps.
 
 `[.kw]#type# ('a, 'b) map`::
-  something
+  A finite map from ``'a obj`` values to ``'b`` values.
 
 `[.kw]#val# empty : ('a, 'b) map`::
-  something
-	(* The empty map *)
+  The empty map.
 
-`[.kw]#val# isEmpty : ('a, 'b) map -> bool`::
-  something
-	(* Return true if and only if the map is empty *)
+`[.kw]#val# singleton : ('a obj * 'b) \-> ('a, 'b) map`::
+  `singleton (obj, v)` creates the singleton map that maps `obj` to `v`.
 
-`[.kw]#val# singleton : ('a obj * 'b) -> ('a, 'b) map`::
-  something
-	(* return the specified singleton map *)
+`[.kw]#val# insert : ('a, 'b) map * 'a obj * 'b \-> ('a, 'b) map`::
+  `insert (m, obj, v)` adds the mapping from `obj` to `v` to `m`.
+  This mapping overrides any previous mapping from `obj`.
 
-`[.kw]#val# insert  : ('a, 'b) map * 'a obj * 'b -> ('a, 'b) map`::
-  something
+`[.kw]#val# insert' : (('a obj * 'b) * ('a, 'b) map) \-> ('a, 'b) map`::
+  `insert ((obj, v), map)` adds the mapping from `obj` to `v` to `m`.
+  This mapping overrides any previous mapping from `obj`.
 
-`[.kw]#val# insert' : (('a obj * 'b) * ('a, 'b) map) -> ('a, 'b) map`::
-  something
-	(* Insert an item. *)
+`[.kw]#val# insertWith  : (('b * 'b) \-> 'b) \-> ('a, 'b) map * 'a obj * 'b \-> ('a, 'b) map`::
+  `insert comb (m, obj, v)` adds the mapping from `obj` to `value` to `m`,
+  where `value = comb(v', v)`, if `m` already contained a mapping from `obj`
+  to `v'`; otherwise, `value = v`.
 
-`[.kw]#val# insertWith  : (('b * 'b) -> 'b)`::
-  something
-	  -> ('a, 'b) map * 'a obj * 'b -> ('a, 'b) map
-	(* Insert an item with a combining function to resolve collisions.
-	 * The first argument to the combining function is the existing value,
-	 * and the second argument is the value being inserted into the map.
-	 *)
+`[.kw]#val# insertWithi :  (('a obj * 'b * 'b) \-> 'b) \-> ('a, 'b) map * 'a obj * 'b \-> ('a, 'b) map`::
+  `insert comb (m, obj, v)` adds the mapping from `obj` to `value` to `m`,
+  where `value = comb(obj, v', v)`, if `m` already contained a mapping from `obj`
+  to `v'`; otherwise, `value = v`.
 
-`[.kw]#val# insertWithi :  (('a obj * 'b * 'b) -> 'b)`::
-  something
-	  -> ('a, 'b) map * 'a obj * 'b -> ('a, 'b) map
-	(* Like insertWith, except that the combining function also takes the
-	 * key as an argument.
-	 *)
+`[.kw]#val# find : ('a, 'b) map * 'a obj \-> 'b option`::
+  `find (m, obj)` returns `SOME v`, if `m` maps `obj` to `v` and `NONE` otherwise.
 
-`[.kw]#val# find : ('a, 'b) map * 'a obj -> 'b option`::
-  something
-	(* Look for an item, return NONE if the item doesn't exist *)
+`[.kw]#val# lookup : ('a, 'b) map * 'a obj \-> 'b`::
+  `find (m, obj)` returns `v`, if `m` maps `obj` to `v`; otherwise it
+  raises the exception link:../Util/str-LibBase.html#exn:NotFound[`NotFound`].
 
-`[.kw]#val# lookup : ('a, 'b) map * 'a obj -> 'b`::
-  something
-	(* look for an item, raise the NotFound exception if it doesn't exist *)
+`[.kw]#val# inDomain : (('a, 'b) map * 'a obj) \-> bool`::
+  `inDomain (m, obj)` returns `true` if `obj` is in the domain of `m`.
 
-`[.kw]#val# inDomain : (('a, 'b) map * 'a obj) -> bool`::
-  something
-	(* return true, if the key is in the domain of the map *)
+`[.kw]#val# remove : ('a, 'b) map * 'a obj \-> ('a, 'b) map * 'b`::
+  `find (m, obj)` returns the pair `(m', v)`, if `m` maps `obj` to `v`
+  and where `m'` is `m` with `obj` removed from its domain.  If `obj`
+  is not in the domain of `m`, then it raises the exception
+  link:../Util/str-LibBase.html#exn:NotFound[`NotFound`].
 
-`[.kw]#val# remove : ('a, 'b) map * 'a obj -> ('a, 'b) map * 'b`::
-  something
-	(* Remove an item, returning new map and value removed.
-         * Raises LibBase.NotFound if not found.
-	 *)
+`[.kw]#val# isEmpty : ('a, 'b) map \-> bool`::
+  `isEmpty m` returns true if, and only if, `m` is empty.
 
-`[.kw]#val# first : ('a, 'b) map -> 'b option`::
-  something
+`[.kw]#val# numItems : ('a, 'b) map \->  int`::
+  `numItems m` returns the size of ``m``'s domain.
 
-`[.kw]#val# firsti : ('a, 'b) map -> ('a obj * 'b) option`::
-  something
-	(* return the first item in the map (or NONE if it is empty) *)
+`[.kw]#val# listItems  : ('a, 'b) map \-> 'b list`::
+  `listItems m` returns a list of the values in the _range_ of `m`.
+  Note that this list will contain duplicates when multiple keys in
+  ``m``'s domain map to the same value.
 
-`[.kw]#val# numItems : ('a, 'b) map ->  int`::
-  something
-	(* Return the number of items in the map *)
+`[.kw]#val# listKeys : ('a, 'b) map \-> 'a obj list`::
+  `listKeys m` returns a list of the objects in the domain of `m`.
 
-`[.kw]#val# listItems  : ('a, 'b) map -> 'b list`::
-  something
+`[.kw]#val# listItemsi : ('a, 'b) map \-> ('a obj * 'b) list`::
+  `listItemsi m` returns a list of `(obj, v)` pairs, where `m` maps
+  `obj` to `v`.
 
-`[.kw]#val# listItemsi : ('a, 'b) map -> ('a obj * 'b) list`::
-  something
-	(* Return an ordered list of the items (and their keys) in the map. *)
+`[.kw]#val# collate : ('b * 'b \-> order) \-> (('a, 'b) map * ('a, 'b) map) \-> order`::
+  `collate cmpV (m1, m2)` returns the order of the two maps, where `cmpV` is
+  used to compare the values in the domain.
 
-`[.kw]#val# listKeys : ('a, 'b) map -> 'a obj list`::
-  something
-	(* return an ordered list of the keys in the map. *)
+`[.kw]#val# unionWith  : ('b * 'b \-> 'b) \-> (('a, 'b) map * ('a, 'b) map) \-> ('a, 'b) map`::
+  `unionWith comb (m1, m2)` returns the union of the two maps, using the function `comb`
+  to combine values when there is a collision of keys.  More formally, this expression
+  returns the map
++
+[latexmath]
++++++++++++
+  \begin{array}{l}
+  \{ (k, \mathtt{m1}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \setminus \mathbf{dom}(\mathtt{m2}) \}
+  \cup \\
+  \{ (k, \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m2}) \setminus \mathbf{dom}(\mathtt{m1}) \}
+  \cup \\
+  \{ (k, \mathtt{comb}(\mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}
+  \end{array}
++++++++++++
++
+For example, we could implement a _multiset_ of objects by mapping objects to their
+multiplicity.  Then, the union of two multisets could be defined by
++
+[source,sml]
+------------
+fun union (ms1, ms2) = unionWith Int.+ (ms1, ms2)
+------------
 
-`[.kw]#val# collate : ('b * 'b -> order) -> (('a, 'b) map * ('a, 'b) map) -> order`::
-  something
-	(* given an ordering on the map's range, return an ordering
-	 * on the map.
-	 *)
+`[.kw]#val# unionWithi : ('a obj * 'b * 'b \-> 'b) \-> (('a, 'b) map * ('a, 'b) map) \-> ('a, 'b) map`::
+  `unionWithi comb (m1, m2)` returns the union of the two maps, using the function `comb`
+  to combine values when there is a collision of keys.  More formally, this expression
+  returns the map
++
+[latexmath]
++++++++++++
+  \begin{array}{l}
+  \{ (k, \mathtt{m1}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \setminus \mathbf{dom}(\mathtt{m2}) \}
+  \cup \\
+  \{ (k, \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m2}) \setminus \mathbf{dom}(\mathtt{m1}) \}
+  \cup \\
+  \{ (k, \mathtt{comb}(k, \mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}
+  \end{array}
++++++++++++
 
-`[.kw]#val# unionWith  : ('b * 'b -> 'b) -> (('a, 'b) map * ('a, 'b) map)`::
-  something
-	  -> ('a, 'b) map
 
-`[.kw]#val# unionWithi : ('a obj * 'b * 'b -> 'b) -> (('a, 'b) map * ('a, 'b) map)`::
-  something
-	  -> ('a, 'b) map
-	(* return a map whose domain is the union of the domains of the two input
-	 * maps, using the supplied function to define the map on elements that
-	 * are in both domains.
-	 *)
+`[.kw]#val# intersectWith  : ('b * 'c \-> 'd) \-> (('a, 'b) map * ('a, 'c) map) \-> ('a, 'd) map`::
+  `intersectWith comb (m1, m2)` returns the intersection of the two maps,
+  where the values in the range are a computed by applying the function
+  `comb` to the values from the two maps.  More formally, this expression
+  returns the map
++
+[latexmath]
++++++++++++
+  \{ (k, \mathtt{comb}(\mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}
++++++++++++
 
-`[.kw]#val# intersectWith  : ('b * 'c -> 'd) -> (('a, 'b) map * ('a, 'c) map)`::
-  something
-	  -> ('a, 'd) map
+`[.kw]#val# intersectWithi : ('a obj * 'b * 'c \-> 'd) \-> (('a, 'b) map * ('a, 'c) map) \-> ('a, 'd) map`::
+  `intersectWithi comb (m1, m2)` returns the intersection of the two maps,
+  where the values in the range are a computed by applying the function
+  `comb` to the kay and the values from the two maps.  More formally, this
+  expression returns the map
++
+[latexmath]
++++++++++++
+  \{ (k, \mathtt{comb}(k, \mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}
++++++++++++
 
-`[.kw]#val# intersectWithi : ('a obj * 'b * 'c -> 'd) -> (('a, 'b) map * ('a, 'c) map)`::
-  something
-	  -> ('a, 'd) map
-	(* return a map whose domain is the intersection of the domains of the
-	 * two input maps, using the supplied function to define the range.
-	 *)
+`[.kw]#val# mergeWith : ('b option * 'c option \-> 'd option) \-> (('a, 'b) map * ('a, 'c) map) \-> ('a, 'd) map`::
+  `mergeWith comb (m1, m2)` merges the two maps using the function `comb`
+  as a decision procedure for adding elements to the new map.  For each object
+  latexmath:[\mathtt{obj} \in \mathbf{dom}(\mathtt{m1}) \cup \mathbf{dom}(\mathtt{m2})],
+  we evaluate `comb(optV1, optV2)`, where `optV1` is `SOME v` if
+  latexmath:[(\mathtt{obj}, \mathtt{v}) \in \mathtt{m1}] and is `NONE` if
+  latexmath:[\mathtt{obj} \not\in \mathbf{dom}(\mathtt{m1}); likewise for `optV2`.
+  If `comb(optV1, optV2)` returns ``SOME v'``, then we add ``(obj, v')``
+  to the result.
++
+The `mergeWith` function is a generalization of the `unionWith` and
+`intersectionWith` functions.
 
-`[.kw]#val# mergeWith : ('b option * 'c option -> 'd option)`::
-  something
-	  -> (('a, 'b) map * ('a, 'c) map) -> ('a, 'd) map
+`[.kw]#val# mergeWithi : ('a obj * 'b option * 'c option \-> 'd option) \-> (('a, 'b) map * ('a, 'c) map) \-> ('a, 'd) map`::
+  `mergeWithi comb (m1, m2)` merges the two maps using the function `comb`
+  as a decision procedure for adding elements to the new map.  The difference
+  between this function and `mergeWith` is that the `comb` function takes the
+  `key` value in addition to the optional values from the range.
 
-`[.kw]#val# mergeWithi : ('a obj * 'b option * 'c option -> 'd option)`::
-  something
-	  -> (('a, 'b) map * ('a, 'c) map) -> ('a, 'd) map
-	(* merge two maps using the given function to control the merge. For
-	 * each key k in the union of the two maps domains, the function
-	 * is applied to the image of the key under the map.  If the function
-	 * returns SOME y, then (k, y) is added to the resulting map.
-	 *)
+`[.kw]#val# app  : ('b \-> unit) \-> ('a, 'b) map \-> unit`::
+  `app f m` applies the function `f` to the values in the range of `m`.
 
-`[.kw]#val# app  : ('b -> unit) -> ('a, 'b) map -> unit`::
-  something
+`[.kw]#val# appi : (('a obj * 'b) \-> unit) \-> ('a, 'b) map \-> unit`::
+  `appi f map` applies the function `f` to the key-value pairs that
+  define `m`.
 
-`[.kw]#val# appi : (('a obj * 'b) -> unit) -> ('a, 'b) map -> unit`::
-  something
-	(* Apply a function to the entries of the map in map order. *)
+`[.kw]#val# map  : ('b \-> 'c) \-> ('a, 'b) map \-> ('a, 'c) map`::
+  `map f m` creates a new finite map ``m'`` by applying the function `f` to the
+  values in the range of `m`.  Thus, if
+  latexmath:[(\mathtt{obj}, \mathtt{v}) \in \mathtt{m}], then
+  `(obj, f v)` will be in ``m'``.
 
-`[.kw]#val# map  : ('b -> 'c) -> ('a, 'b) map -> ('a, 'c) map`::
-  something
+`[.kw]#val# mapi : ('a obj * 'b \-> 'c) \-> ('a, 'b) map \-> ('a, 'c) map`::
+  `map f m` creates a new finite map ``m'`` by applying the function `f` to the
+  key-value pairs of `m`.  Thus, if
+  latexmath:[(\mathtt{obj}, \mathtt{v}) \in \mathtt{m}], then
+  `(obj, f(obj, v))` will be in ``m'``.
 
-`[.kw]#val# mapi : ('a obj * 'b -> 'c) -> ('a, 'b) map -> ('a, 'c) map`::
-  something
-	(* Create a new map by applying a map function to the
-         * name/value pairs in the map.
-         *)
+`[.kw]#val# fold : ('b * 'c \-> 'c) \-> 'c \-> ('a, 'b) map \-> 'c`::
+  `fold f init m` folds the function `f` over the range of
+  `m` using `init` as the initial value.
 
-`[.kw]#val# fold  : ('b * 'c -> 'c) -> 'c -> ('a, 'b) map -> 'c`::
-  something
-
-`[.kw]#val# foldi : ('a obj * 'b * 'c -> 'c) -> 'c -> ('a, 'b) map -> 'c`::
-  something
+`[.kw]#val# foldi : ('a obj * 'b * 'c \-> 'c) \-> 'c \-> ('a, 'b) map \-> 'c`::
+  `fold f init m` folds the function `f` over the range of
+  `m` using `init` as the initial value.
 	(* Apply a folding function to the entries of the map *)
 
-`[.kw]#val# filter  : ('b -> bool) -> ('a, 'b) map -> ('a, 'b) map`::
-  something
+`[.kw]#val# filter : ('b \-> bool) \-> ('a, 'b) map \-> ('a, 'b) map`::
+  `filter pred m` filters out those items `(obj, v)` from `m`, such that
+  `pred v` returns `false`.  More formally, this expression returns the map
+  latexmath:[\{ (\mathtt{obj}, \mathtt{v})\;|\;\mathtt{obj} \in \mathbf{dom}(\mathtt{m})
+  \wedge \mathtt{pred}(\mathtt{v}) \}].
 
-`[.kw]#val# filteri : ('a obj * 'b -> bool) -> ('a, 'b) map -> ('a, 'b) map`::
-  something
-	(* Filter out those elements of the map that do not satisfy the
-	 * predicate.  The filtering is done in increasing map order.
-	 *)
+`[.kw]#val# filteri : ('a obj * 'b \-> bool) \-> ('a, 'b) map \-> ('a, 'b) map`::
+  `filteri pred m` filters out those items `(obj, v)` from `m`, such that
+  `pred(obj, v)` returns `false`.  More formally, this expression returns the map
+  latexmath:[\{ (\mathtt{obj}, \mathtt{v})\;|\;\mathtt{obj} \in \mathbf{dom}(\mathtt{m})
+  \wedge \mathtt{pred}(\mathtt{obj}, \mathtt{v}) \}].
 
-`[.kw]#val# mapPartial  : ('b -> 'c option) -> ('a, 'b) map -> ('a, 'c) map`::
-  something
+`[.kw]#val# mapPartial : ('b \-> 'c option) \-> ('a, 'b) map \-> ('a, 'c) map`::
+  `mapPartial f m` maps the partial function `f` over the items of `m`.
+  More formally, this expression returns the map
+[latexmath]
++++++++++++
+  \{ (k, v') \;|\; (k, v) \in \mathtt{m} \wedge \mathtt{f}(v) = \mathtt{SOME}(v') \}
++++++++++++
 
-`[.kw]#val# mapPartiali : ('a obj * 'b -> 'c option) -> ('a, 'b) map -> ('a, 'c) map`::
-  something
-	(* map a partial function over the elements of a map in increasing
-	 * map order.
-	 *)
+`[.kw]#val# mapPartiali : ('a obj * 'b \-> 'c option) \-> ('a, 'b) map \-> ('a, 'c) map`::
+  `mapPartial f m` maps the partial function `f` over the items of `m`.
+  More formally, this expression returns the map
+[latexmath]
++++++++++++
+  \{ (k, v') \;|\; (k, v) \in \mathtt{m} \wedge \mathtt{f}(k, v) = \mathtt{SOME}(v') \}
++++++++++++
 
-`[.kw]#val# exists : ('b -> bool) -> ('a, 'b) map -> bool`::
-  something
+`[.kw]#val# exists : ('b \-> bool) \-> ('a, 'b) map \-> bool`::
+  `exists pred m` returns `true` if, and only if, there exists an item
+  latexmath:[(\mathtt{obj}, \mathtt{v}) \in \mathtt{m}],
+  such that `pred v` returns `true`.
 
-`[.kw]#val# existsi : ('a obj * 'b -> bool) -> ('a, 'b) map -> bool`::
-  something
-	(* check the elements of a map with a predicate and return true if
-	 * any element satisfies the predicate. Return false otherwise.
-	 * Elements are checked in key order.
-	 *)
+`[.kw]#val# existsi : ('a obj * 'b \-> bool) \-> ('a, 'b) map \-> bool`::
+  `exists pred m` returns `true` if, and only if, there exists an item
+  latexmath:[(\mathtt{obj}, \mathtt{v}) \in \mathtt{m}], such that
+  `pred(obj, v)` returns `true`.
 
-`[.kw]#val# all : ('b -> bool) -> ('a, 'b) map -> bool`::
-  something
+`[.kw]#val# all : ('b \-> bool) \-> ('a, 'b) map \-> bool`::
+  `all pred m` returns `true` if, and only if, `pred v` returns `true`
+  for all items latexmath:[(\mathtt{obj}, \mathtt{v}) \in \mathtt{m}].
 
-`[.kw]#val# alli : ('a obj * 'b -> bool) -> ('a, 'b) map -> bool`::
-  something
-	(* check the elements of a map with a predicate and return true if
-	 * they all satisfy the predicate. Return false otherwise.  Elements
-	 * are checked in key order.
-	 *)
+`[.kw]#val# alli : ('a obj * 'b \-> bool) \-> ('a, 'b) map \-> bool`::
+  `all pred m` returns `true` if, and only if, `pred(obj, v)` returns `true`
+  for all items latexmath:[(\mathtt{obj}, \mathtt{v}) \in \mathtt{m}].
 
 == See Also
 
-link:str-hash-cons.html[`HashCons`],
+link:str-HashCons.html[`HashCons`],
+link:str-HashConsSet.html[`HashConsSet`],
 link:hash-cons-lib.html[__The HashCons Library__]

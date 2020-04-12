@@ -1,0 +1,26 @@
+The Standard ML of New Jersey Library: Reference Manual
+=======================================================
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+:toc:
+
+== Introduction
+
+The **Standard ML of New Jersey Library** (**SML/NJ Library**)
+is a collection of over 200 modules grouped into 14 libraries.
+It was designed to build on the {sml-basis-url}/index.html[**Standard ML Basis Library**]
+by providing higher-level and application-specific services
+that were out of scope for the Basis Library.
+The **SML/NJ Library** is distributed as part of both the
+https://smlnj.org[**SML/NJ**] and
+https://mlton.org[**MLton SML Compiler**] systems.
+
+// Push titles down one level.
+:leveloffset: 1
+
+// Return to normal title levels.
+:leveloffset: 0
+
