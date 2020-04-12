@@ -21,7 +21,7 @@ functor HashConsGroundFn (T : HASH_KEY)
 
 == Arguments
 
-* `T : link:../Util/sig-HASH_KEY.html[HASH_KEY]`::
+* `T : xref:../Util/sig-HASH_KEY.adoc[HASH_KEY]`::
   The argument structure `T` defines the type, equality function, and
   hashing function a the "leaf" type.
 

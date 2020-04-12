@@ -9,16 +9,16 @@
 
 == Contents
 
-  link:FILE.html[`[.kw]#structure# FOO`]::
+  xref:FILE.adoc[`[.kw]#structure# FOO`]::
     something
 
-  link:json-parser.html[`[.kw]#structure# JSONParser`]::
+  xref:json-parser.adoc[`[.kw]#structure# JSONParser`]::
     A parser for *JSON* input.
 
-  link:json-printer.html[`[.kw]#structure# JSONPrinter`]::
+  xref:json-printer.adoc[`[.kw]#structure# JSONPrinter`]::
     A printer for *JSON* output.
 
-  link:json-util.html[`[.kw]#structure# JSONUtil`]::
+  xref:json-util.adoc[`[.kw]#structure# JSONUtil`]::
     A collection of utility functions for working with *JSON* values.
 
 == Usage

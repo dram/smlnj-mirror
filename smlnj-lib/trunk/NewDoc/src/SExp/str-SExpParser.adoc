@@ -37,5 +37,5 @@ val parseFile : string -> SExp.value list
 
 == See Also
 
-link:str-SExp.html[`SExp`],
-link:sexp-lib.html[__The SExp Library__]
+xref:str-SExp.adoc[`SExp`],
+xref:sexp-lib.adoc[__The SExp Library__]

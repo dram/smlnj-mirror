@@ -25,10 +25,10 @@ val new : unit -> UUID.t
 
 == Description
 
-`[.kw]#val# new : unit -> UUID.t`::
+`[.kw]#val# new : unit \-> UUID.t`::
   `new ()` generates a new Variant 1, Type 4 UUID.
 
 == See Also
 
-link:str-UUID.html[`UUID`],
-link:uuid-lib.html[__The UUID Library__]
+xref:str-UUID.adoc[`UUID`],
+xref:uuid-lib.adoc[__The UUID Library__]

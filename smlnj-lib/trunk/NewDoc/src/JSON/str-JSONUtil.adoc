@@ -192,5 +192,5 @@ val append : JSON.value * path * JSON.value list -> JSON.value
 
 == See Also
 
-link:str-JSON.html[`JSON`],
-link:json-lib.html[__The JSON Library__]
+xref:str-JSON.adoc[`JSON`],
+xref:json-lib.adoc[__The JSON Library__]

@@ -6,7 +6,7 @@
 :VERSION: {smlnj-version}
 
 The `JSONPrinter` structure implements a printer for the
-link:str-JSON.html#type:value[`JSON.value`] type.
+xref:str-JSON.adoc#type:value[`JSON.value`] type.
 
 == Synopsis
 
@@ -37,6 +37,6 @@ val print' : {strm : TextIO.outstream, pretty : bool} -> JSON.value -> unit
 
 == See Also
 
-link:str-JSON.html[`JSON`],
-link:str-JSONStreamPrinter.html[`JSONStreamPrinter`],
-link:json-lib.html[__The JSON Library__]
+xref:str-JSON.adoc[`JSON`],
+xref:str-JSONStreamPrinter.adoc[`JSONStreamPrinter`],
+xref:json-lib.adoc[__The JSON Library__]

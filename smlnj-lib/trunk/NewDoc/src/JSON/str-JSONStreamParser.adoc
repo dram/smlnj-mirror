@@ -11,7 +11,7 @@ for scanning large files for particular items without having
 to first build an in-memory data structure.  It can also
 be useful to directly translate from *JSON* to a specific *SML*
 datatype without having to go through the intermediate
-link:str-JSON.html#type:value[`JSON.value`] representation.
+xref:str-JSON.adoc#type:value[`JSON.value`] representation.
 
 == Synopsis
 
@@ -177,6 +177,6 @@ fun getNames file = let
 
 == See Also
 
-link:str-JSONParser.html[`JSONParser`],
-link:str-JSONStreamPrinter.html[`JSONStreamPrinter`],
-link:json-lib.html[__The JSON Library__]
+xref:str-JSONParser.adoc[`JSONParser`],
+xref:str-JSONStreamPrinter.adoc[`JSONStreamPrinter`],
+xref:json-lib.adoc[__The JSON Library__]

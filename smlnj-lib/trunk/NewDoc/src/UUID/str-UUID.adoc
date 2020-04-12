@@ -49,19 +49,19 @@ val fromBytes : Word8Vector.vector -> t
 `[.kw]#val# null : t`::
   `null` is the all-zeros UUID
 
-`[.kw]#val# compare : t * t -> order`::
+`[.kw]#val# compare : t * t \-> order`::
   `compare (uuid1, uuid2)` does a byte-wise comparison of the two
   UUIDs and returns their order.
 
-`[.kw]#val# same : t * t -> bool`::
+`[.kw]#val# same : t * t \-> bool`::
   `same (uuid1, uuid2)` does a byte-wise comparison of the two
   UUIDs and returns `true` is they are equal and `false` otherwise.
 
-`[.kw]#val# hash : t -> word`::
+`[.kw]#val# hash : t \-> word`::
   `hash uuid` returns a hash of the UUID.
 
 [[val:toString]]
-`[.kw]#val# toString : t -> string`::
+`[.kw]#val# toString : t \-> string`::
   `toString uuid` formats `uuid` as a string of the form
 [source,sml]
 ------------
@@ -70,17 +70,17 @@ val fromBytes : Word8Vector.vector -> t
   where each "`x`" is a lower-case hexadecimal digit.  The first two digits
   in the string correspond to the first byte, and so on.
 
-`[.kw]#val# fromString : string -> t option`::
+`[.kw]#val# fromString : string \-> t option`::
   `fromString s` converts the string `s`, which should be of the form returned
   by xref:val:toString[`toString`] to `SOME uuid`, where `uuid` is the UUID
   denoted by the string.  Leading whitespace is ignored.  If the string does
   not have the correct format, then `NONE` is returned.
 
-`[.kw]#val# toBytes : t -> Word8Vector.vector`::
+`[.kw]#val# toBytes : t \-> Word8Vector.vector`::
   `toBytes uuid` returns the 16-element `Word8Vector.vector` value
   that represents `uuid`.
 
-`[.kw]#val# fromBytes : Word8Vector.vector -> t`::
+`[.kw]#val# fromBytes : Word8Vector.vector \-> t`::
   `fromBytes bytes` takes a 16-element vector of bytes and converts it to
   a UUID.  The {sml-basis-url}/general.html#SIG:GENERAL.Size:EXN[`Size`]
   exception is raised if the length of the vector is not exactly 16.
@@ -89,5 +89,5 @@ val fromBytes : Word8Vector.vector -> t
 
 == See Also
 
-link:str-GenUUID.html[`GenUUID`],
-link:uuid-lib.html[__The UUID Library__]
+xref:str-GenUUID.adoc[`GenUUID`],
+xref:uuid-lib.adoc[__The UUID Library__]

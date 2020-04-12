@@ -16,24 +16,24 @@ streams using a "SAX-style" API.
 
 === Tree-based API
 
-  link:str-JSON.html[`[.kw]#structure# JSON`]::
+  xref:str-JSON.adoc[`[.kw]#structure# JSON`]::
     Defines the representation of *JSON* values as an *SML* datatype.
 
-  link:str-JSONParser.html[`[.kw]#structure# JSONParser`]::
+  xref:str-JSONParser.adoc[`[.kw]#structure# JSONParser`]::
     A parser for *JSON* input.
 
-  link:str-JSONPrinter.html[`[.kw]#structure# JSONPrinter`]::
+  xref:str-JSONPrinter.adoc[`[.kw]#structure# JSONPrinter`]::
     A printer for *JSON* output.
 
-  link:str-JSONUtil.html[`[.kw]#structure# JSONUtil`]::
+  xref:str-JSONUtil.adoc[`[.kw]#structure# JSONUtil`]::
     A collection of utility functions for working with *JSON* values.
 
 === Stream-based API
 
-  link:str-JSONStreamParser.html[`[.kw]#structure# JSONStreamParser`]::
+  xref:str-JSONStreamParser.adoc[`[.kw]#structure# JSONStreamParser`]::
     A stream (or event) based parser for JSON input.
 
-  link:str-JSONStreamPrinter.html[`[.kw]#structure# JSONStreamPrinter`]::
+  xref:str-JSONStreamPrinter.adoc[`[.kw]#structure# JSONStreamPrinter`]::
     A stream based printer for JSON input.
 
 == Usage

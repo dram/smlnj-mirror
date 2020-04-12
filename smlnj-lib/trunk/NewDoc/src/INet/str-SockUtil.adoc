@@ -111,4 +111,4 @@ val sendArr : ('a stream_sock * Word8Array.array) -> unit
 == See Also
 
 https://smlfamily.github.io/Basis/socket.html[`Socket` (*SML Basis*)],
-link:inet-lib.html[__The INet Library__]
+xref:inet-lib.adoc[__The INet Library__]

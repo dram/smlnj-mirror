@@ -63,16 +63,16 @@ maintained by John Reppy.
 
 == Contents
 
-link:str-SExp.html[`[.kw]#structure# SExp`]::
+xref:str-SExp.adoc[`[.kw]#structure# SExp`]::
   Defines the tree representation of S-expression data.
 
-link:str-SExpParser.html[`[.kw]#structure# SExpParser`]::
+xref:str-SExpParser.adoc[`[.kw]#structure# SExpParser`]::
   Implements an S-Expression parser.
 
-link:str-SExpPP.html[`[.kw]#structure# SExpPP`]::
+xref:str-SExpPP.adoc[`[.kw]#structure# SExpPP`]::
   Implements an S-Expression pretty-printer.
 
-link:str-SExpPrinter.html[`[.kw]#structure# SExpPrinter`]::
+xref:str-SExpPrinter.adoc[`[.kw]#structure# SExpPrinter`]::
   Implements an S-Expression printer that produces _condensed_
   output without indentation or line breaks.
 

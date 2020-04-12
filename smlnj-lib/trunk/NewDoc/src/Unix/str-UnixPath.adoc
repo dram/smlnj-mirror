@@ -9,8 +9,8 @@ The `UnixPath` structure provides support for searching for files
 in the *Unix* file system using a list of possible locations.
 
 Note that this module is largely superseded by the
-link:../Util/str-PathUtil.html[`PathUtil`] module
-in the link:../Util/smlnj-lib.html[*Util Library*].
+xref:../Util/str-PathUtil.adoc[`PathUtil`] module
+in the xref:../Util/smlnj-lib.adoc[*Util Library*].
 
 == Synopsis
 
@@ -81,5 +81,5 @@ val findFilesOfType : (path_list * file_type * access_mode list) -> string -> st
 
 == See Also
 
-link:str-UnixEnv.html[`UnixEnv`],
-link:unix-lib.html[__The Unix Library__]
+xref:str-UnixEnv.adoc[`UnixEnv`],
+xref:unix-lib.adoc[__The Unix Library__]

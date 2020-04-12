@@ -9,13 +9,13 @@
 
 == Contents
 
-  link:sig-FOO.html[`[.kw]#signature# FOO`]::
+  xref:sig-FOO.adoc[`[.kw]#signature# FOO`]::
     something
 
-  link:str-Foo.html[`[.kw]#structure# Foo`]::
+  xref:str-Foo.adoc[`[.kw]#structure# Foo`]::
     something
 
-  link:fun-FooFn.html[`[.kw]#functor# FooFn`]::
+  xref:fun-FooFn.adoc[`[.kw]#functor# FooFn`]::
     something
 
 

@@ -19,10 +19,10 @@ The *UUID Library* was first included in Version 110.97 of *SML/NJ*.
 
 == Contents
 
-link:str-UUID.html[`[.kw]#structure# UUID`]::
+xref:str-UUID.adoc[`[.kw]#structure# UUID`]::
   This structure implements an abstract type for representing UUIDs.
 
-link:str-GenUUID.html[`[.kw]#structure# GenUUID`]::
+xref:str-GenUUID.adoc[`[.kw]#structure# GenUUID`]::
   This structure implements a generator for UUIDs.
 
 == Usage

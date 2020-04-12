@@ -74,4 +74,4 @@ val getEnv : string -> string option
 
 == See Also
 
-link:unix-lib.html[__The Unix Library__]
+xref:unix-lib.adoc[__The Unix Library__]

@@ -7,7 +7,7 @@
 
 The `SExpPrinter` structure implements a printer for S-Expressions.
 This printer does not introduce any line breaks.  For output that
-is more readable, use the link:str-SExpPP.html[`SExpPP`] module.
+is more readable, use the xref:str-SExpPP.adoc[`SExpPP`] module.
 
 == Synopsis
 
@@ -31,6 +31,6 @@ val print : TextIO.outstream * SExp.value -> unit
 
 == See Also
 
-link:str-SExp.html[`SExp`],
-link:str-SExpPP.html[`SExpPP`],
-link:sexp-lib.html[__The SExp Library__]
+xref:str-SExp.adoc[`SExp`],
+xref:str-SExpPP.adoc[`SExpPP`],
+xref:sexp-lib.adoc[__The SExp Library__]

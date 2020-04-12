@@ -83,5 +83,5 @@ OBJECT[
 
 == See Also
 
-link:str-JSONUtil.html[`JSONUtil`],
-link:json-lib.html[__The JSON Library__]
+xref:str-JSONUtil.adoc[`JSONUtil`],
+xref:json-lib.adoc[__The JSON Library__]

@@ -11,10 +11,10 @@ The *INet Library* provides utilities for network programming with sockets.
 
 == Contents
 
-link:str-SockUtil.html[`[.kw]#structure# SockUtil`]::
+xref:str-SockUtil.adoc[`[.kw]#structure# SockUtil`]::
   Various utility functions for programming with sockets.
 
-link:str-UnixSockUtil.html[`[.kw]#structure# UnixSockUtil`]::
+xref:str-UnixSockUtil.adoc[`[.kw]#structure# UnixSockUtil`]::
   Various utility functions for programming with Unix-domain sockets.
 
 == Usage

@@ -29,6 +29,6 @@ val output : TextIOPP.stream * SExp.value -> unit
 
 == See Also
 
-link:str-SExp.html[`SExp`],
-link:str-SExpParser.html[`SExpParser`],
-link:sexp-lib.html[__The SExp Library__]
+xref:str-SExp.adoc[`SExp`],
+xref:str-SExpParser.adoc[`SExpParser`],
+xref:sexp-lib.adoc[__The SExp Library__]

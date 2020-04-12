@@ -11,10 +11,10 @@ The *Unix Library* provides some *Unix*-specific utilities.
 
 == Contents
 
-link:str-UnixEnv.html[`[.kw]#structure# UnixEnv`]::
+xref:str-UnixEnv.adoc[`[.kw]#structure# UnixEnv`]::
   This structure provides support for querying the user's environment.
 
-link:str-UnixPath.html[`[.kw]#structure# UnixPath`]::
+xref:str-UnixPath.adoc[`[.kw]#structure# UnixPath`]::
   This structure supports *Unix*-specific file-system searches.
 
 == Usage
