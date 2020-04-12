@@ -181,4 +181,4 @@ record types are involved.
 
 == See Also
 
-link:hash-cons-lib.html[__The HashCons Library__]
+xref:hash-cons-lib.adoc[__The HashCons Library__]

@@ -138,7 +138,7 @@ of latexmath:[m].
 
 `[.kw]#val# lookup : ('a, 'b) map * 'a obj \-> 'b`::
   `find (m, obj)` returns `v`, if `m` maps `obj` to `v`; otherwise it
-  raises the exception link:../Util/str-LibBase.html#exn:NotFound[`NotFound`].
+  raises the exception xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`].
 
 `[.kw]#val# inDomain : (('a, 'b) map * 'a obj) \-> bool`::
   `inDomain (m, obj)` returns `true` if `obj` is in the domain of `m`.
@@ -147,7 +147,7 @@ of latexmath:[m].
   `find (m, obj)` returns the pair `(m', v)`, if `m` maps `obj` to `v`
   and where `m'` is `m` with `obj` removed from its domain.  If `obj`
   is not in the domain of `m`, then it raises the exception
-  link:../Util/str-LibBase.html#exn:NotFound[`NotFound`].
+  xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`].
 
 `[.kw]#val# isEmpty : ('a, 'b) map \-> bool`::
   `isEmpty m` returns true if, and only if, `m` is empty.
@@ -337,6 +337,6 @@ The `mergeWith` function is a generalization of the `unionWith` and
 
 == See Also
 
-link:str-HashCons.html[`HashCons`],
-link:str-HashConsSet.html[`HashConsSet`],
-link:hash-cons-lib.html[__The HashCons Library__]
+xref:str-HashCons.adoc[`HashCons`],
+xref:str-HashConsSet.adoc[`HashConsSet`],
+xref:hash-cons-lib.adoc[__The HashCons Library__]

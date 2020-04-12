@@ -20,48 +20,48 @@ The following is a list of the libraries that comprise the
 **SML/NJ Library** with a brief description of what they
 provide.  These are listed in alphabetical order:
 
-link:Controls/controls-lib.html[*Controls Library*]::
+xref:Controls/controls-lib.adoc[*Controls Library*]::
   __not yet written__
 
-link:HTML/html-lib.html[*HTML Library*]::
+xref:HTML/html-lib.adoc[*HTML Library*]::
   __not yet written__
 
-link:HTML4/html4-lib.html[*HTML4 Library*]::
+xref:HTML4/html4-lib.adoc[*HTML4 Library*]::
   __not yet written__
 
-link:HashCons/hash-cons-lib.html[*HashCons Library*]::
+xref:HashCons/hash-cons-lib.adoc[*HashCons Library*]::
   Supports the implementation of hash-consed representations of data structures.
 
-link:INet/inet-lib.html[*INet Library*]::
+xref:INet/inet-lib.adoc[*INet Library*]::
   Provides utilities for network programming with sockets
 
-link:JSON/json-lib.html[*JSON Library*]::
+xref:JSON/json-lib.adoc[*JSON Library*]::
   The *JSON Library* provides support for parsing, printing, and
   manipulating https://www.json.org/json-en.html[*JSON*] data.
 
-link:PP/pp-lib.html[*PP Library*]::
+xref:PP/pp-lib.adoc[*PP Library*]::
   __not yet written__
 
-link:Reactive/reactive-lib.html[*Reactive Library*]::
+xref:Reactive/reactive-lib.adoc[*Reactive Library*]::
   __not yet written__
 
-link:RegExp/regexp-lib.html[*RegExp Library*]::
+xref:RegExp/regexp-lib.adoc[*RegExp Library*]::
   __not yet written__
 
-link:SExp/sexp-lib.html[*SExp Library*]::
+xref:SExp/sexp-lib.adoc[*SExp Library*]::
   Supports the parsing and printing of semi-structured data as
   https://en.wikipedia.org/wiki/S-expression[S-expressions].
 
-link:UUID/uuid-lib.html[*UUID Library*]::
+xref:UUID/uuid-lib.adoc[*UUID Library*]::
   The *UUID Library* provides support for generating and using
   UUIDs (_aka_ GUIDs).
 
-link:Unix/unix-lib.html[*Unix Library*]::
+xref:Unix/unix-lib.adoc[*Unix Library*]::
   The *Unix Library* provides some *Unix*-specific utilities.
 
-link:Util/smlnj-lib.html[*Util Library*]::
+xref:Util/smlnj-lib.adoc[*Util Library*]::
   __not yet written__
 
-link:XML/xml-lib.html[*XML Library*]::
+xref:XML/xml-lib.adoc[*XML Library*]::
   __not yet written__
 

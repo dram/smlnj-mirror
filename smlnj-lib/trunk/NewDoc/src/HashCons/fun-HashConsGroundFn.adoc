@@ -8,7 +8,7 @@
 The `HashConsGroundFn` functor provides a mechanism for defining
 a hash-consed representations for "leaf" (or "ground") types.
 These are types that might be atomic (_e.g._,
-the link:str-HashConsAtom.html[`HashConsAtom structure`]) or
+the xref:str-HashConsAtom.adoc[`HashConsAtom structure`]) or
 datatypes, but they are treated as atomic values by the *HashCons Library*
 and are the leaves of the hash-consed data structures.
 
@@ -64,5 +64,5 @@ structure HCPairs = HashConsGroundFn (
 
 == See Also
 
-link:str-hash-cons.html[`HashCons`],
-link:hash-cons-lib.html[__The HashCons Library__]
+xref:str-hash-cons.adoc[`HashCons`],
+xref:hash-cons-lib.adoc[__The HashCons Library__]

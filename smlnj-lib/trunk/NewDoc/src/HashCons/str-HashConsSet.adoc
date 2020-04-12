@@ -118,7 +118,7 @@ val find : ('a obj -> bool) -> 'a set -> 'a obj option
 `[.kw]#val# delete : 'a set * 'a obj \-> 'a set`::
   `subtract (set, obj)` removes the object `obj` from `set`.
   Unlike `subtract`, this function raises the
-  link:../Util/str-LibBase#exn:NotFound[`NotFound`]
+  xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`]
   exception if `obj` is not in the set.
 
 `[.kw]#val# member : 'a set * 'a obj \-> bool`::
@@ -232,16 +232,16 @@ The following functions are part of the interface, but have been
 deprecated.
 
 `[.kw]#val# listItems : 'a set \-> 'a obj list`::
-  Use link:#val:toList[`toList`] instead.
+  Use xref:#val:toList[`toList`] instead.
 
 `[.kw]#val# foldl : ('a obj * 'b \-> 'b) \-> 'b \-> 'a set \-> 'b`::
-  Use link:#val:fold[`fold`] instead.
+  Use xref:#val:fold[`fold`] instead.
 
 `[.kw]#val# foldr : ('a obj * 'b \-> 'b) \-> 'b \-> 'a set \-> 'b`::
-  Use link:#val:fold[`fold`] instead.
+  Use xref:#val:fold[`fold`] instead.
 
 == See Also
 
-link:str-HashCons.html[`HashCons`],
-link:str-HashConsMap.html[`HashConsMap`],
-link:hash-cons-lib.html[__The HashCons Library__]
+xref:str-HashCons.adoc[`HashCons`],
+xref:str-HashConsMap.adoc[`HashConsMap`],
+xref:hash-cons-lib.adoc[__The HashCons Library__]

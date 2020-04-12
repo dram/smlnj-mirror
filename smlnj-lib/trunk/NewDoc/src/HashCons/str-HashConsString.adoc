@@ -7,7 +7,7 @@
 
 The `HashConsString` structure  embeds the `string`
 type as a hash-consed object.
-It is implemented using the link:fun-HashConsGroundFn.html[`HashConsGroundFn`]
+It is implemented using the xref:fun-HashConsGroundFn.adoc[`HashConsGroundFn`]
 functor.
 
 == Synopsis
@@ -40,5 +40,5 @@ val mk : hash_key -> obj
 
 == See Also
 
-link:str-hash-cons.html[`HashCons`],
-link:hash-cons-lib.html[__The HashCons Library__]
+xref:str-hash-cons.adoc[`HashCons`],
+xref:hash-cons-lib.adoc[__The HashCons Library__]
