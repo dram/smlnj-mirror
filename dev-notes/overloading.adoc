@@ -12,6 +12,19 @@ will use the 110.96 representations, but these will evolve into modified
 
 File paths are relative to base/.
 
+== Terminology
+
+An overloaded operator is a variable bound in the pervasive
+environment to an OVLDvar structure. A primitive type, called an
+_indicator_, that is inferred for a given occurrence of an operator,
+will determine which _variant_ of that operator is used at that
+occurrence (e.g. Int.+ for an occurrence of the overloaded "+"
+operator). If a primitive type is not inferred for an occurrence of an
+operator, the default variant will used. This process of determining which
+definite operator replaces an occurrence of an overloaded operator variable
+is called _overloading resolution_.
+
+
 == Declaring overloading
 
 files: compiler/Parse/parse/sml.grm
@@ -115,7 +128,11 @@ overload abs : ('a -> 'a)
 -----------
 
 The set of overloaded operators is fixed, though implementation
-dependent.
+dependent.  This means that these are the only overoadings that will
+exist, and there is nothing changing in the derived information.
+The set of operators is fixed, their ground types are fixed, and
+the mapping from indicator types to the corresponding VALvars is
+fixed.
 
 == Overloading Classes
 
@@ -133,7 +150,7 @@ RealInt = Real U Int
 Num = Word U Int U Real
 NumTxt = Num U {charTy, stringTy}
 
-The association with overloaded operators is:
+The association of classes with overloaded operators is:
 
 ~, +, - * : Num
 div, mod : WordInt
@@ -149,12 +166,20 @@ This "indicator" type will be a member of the operator's overloading
 class. In cases where the type checker does not produce a unique
 indicator (the occurrence remains undetermined) then a "default"
 member of its overloading class is used to resolve the operator.
-The defaults for the relevant classes are all the same, namely intTy:
+The defaults for the relevant classes are all the same, namely intTy;
+intTy is the universal default indicator.
 
 WordInt : intTy
 RealInt : intTy
 Num : intTy
 NumTxt : intTy
+
+The overload classes actually play no role in the overloading resolution
+algorithm. They are just a potentially useful notion in the "metatheory"
+of overloading resolution.
+
+Note that none of the four "relevant" overloading classes is disjoint from
+the others.  Indeed, Int is the intersection of them all.
 
 
 == Semantic representations
@@ -178,23 +203,31 @@ and tvKind
 ------------
 
 Concentrating on the overloaded variable (operator) case, the source identifier
-and its source region at recorded as arguments of the OVAR constructor of ovldSource.
+and its source region are recorded as arguments of the OVAR constructor of ovldSource.
+There can be multiple sources as the overload tvars for multiple overloaded identifiers
+get unified. Example
 
-Question: What is an example where the sources field has multiple elements?
-It seems that a new OVLD tyvar would be created for each occurrence of an
-operator.  But they could be "merged" through unification.
-
-Example: (fn x => x > x; x * x)
-  The univariables introduced for ">" and "*" will be unified via the tyvar for
-  the lambda-bound variable x.
+[source,sml]
+------------
+(fn x => x < x; x * x)
+------------
+where the type checker will unify the OVLD tyvar introduced for "<" with the tyvar for "x"
+and then that will get unififed with the OVLD tyvar for "*".
 
 When two such OVLD tyvars are unified, the options are narrowed by intersecting
 the options of each tyvar, and the new sources are the union (concatenation) of
 the sources of the two variables.
 
+The options actually play no essential role.  In the end, the type inferred for an
+overloaded operator occurrence will either be a single primitive type, which will
+be used to _resolve_ the operator, or it will remain an OVLD tyvar, in which case
+the operator will be resolved by its default type (which is always intTy).
+
 When overloading resolution is performed the resulting primitive type
 (if unique; i.e. if a single element of the options matches) is used
 to resolve the operators at each of the sources.
+** Actually, the options field of OVLD is irrelevant. If 
+
 
 == Elaboration of overload declarations
 
@@ -253,17 +286,122 @@ datatype var
   | ERRORvar                          (* error variables *)
 ------------
 
-So the overloaded variable (id) is bound ot an OVLDvar structure, which contains
+So the overloaded variable (id) is bound to an OVLDvar structure, which contains
 the mapping from indicator types to the VALvar (:VarCon.vars) obtained by
-elaborating the paths for each option.
+elaborating the paths for each option. The overload class of the variable is
+just the domain of the options mapping.
 
 The typeScheme part of the overload declaration is translated into a TYFUN
 (always of arity 1). This is then "matched" using Overload.matchScheme with the
-type of the type of each option VALvar
+type of each option VALvar to return an "indicator" type, which will be a primitive
+type -- one of the types in the maximal overload class NumTex.
 
 
 == Type inference process
 
 files: compiler/Elaborator/types/overload.sml
+       compiler/Elaborator/types/typecheck.sml
+       compiler/Elaborator/types/unify.sml
+
+[source,sml]
+------------
+       | VARexp(refvar as ref(OVLDvar _),_) =>
+ 	   (exp, olv_push (refvar, region, err region))
+------------
+When the type checker encounters a VARexp whose variable is an OVLDvar, it
+calls olv_push to push the refvar onto the overloading stack for this call of
+the top-level TypeCheck.decType. olv_push is defined by
+
+[source,sml]
+------------
+(* setup for recording and resolving overloaded variables and literals *)
+val { pushv = olv_push, pushl = oll_push, resolve = ol_resolve } = Overload.new ()
+------------
+
+The type of olv_push is given by [overload.sml, l. 19]:
+
+[source,sml]
+------------
+ pushv : VarCon.var ref * SourceMap.region * ErrorMsg.complainer -> Types.ty,
+------------
+
+The type returned by pushv/olv_push is the type scheme for the overloaded variable
+instantiated with a fresh OVLD tyvar. This OVLD tyvar contains the source info for this
+particular VARexp (variable name and region) and a copy of the instance --> variant
+mapping for this overloaded operator (which is the same for each occurrence, hence
+does not need to be reconstructed for each new OVLD tyvar!).
+
+When unification involving this OVLD tyvar occurs, two things can happen:
+
+1) if the OVLD tyvar is instantiated to a type [instTyvar, l. 427], the typechecker
+checks whether the instantiating type (ty') is in the options list of the tyvar,
+and if not immediately raises a Unify exception (which generates a type error message).
+The options list at this point contains a (potentially proper) subset of the overloading
+class of the operator that generated the OVLD tyvar (one of the sources). Only the
+first source, if there are multiple ones, is mentioned in the printed metatypevariable
+[BUG].
+
+2) if the OVLD tyvar is being unified with another tyvar:
+
+2a) if the other tyvar is also an OVLD, then new options (options')
+are defined as the intersection of the options of the old (i1) and new
+(i2) OVLD tyvars. If this intersection is nil [IMPOSSIBLE!],
+then Unify is raised and there is a type error reported. Otherwise a new OVLD
+is defined with the concatenation of the sources and the (non-nil) intersection of
+the options, and both the tyvars are assigned this new OVLD value.
+
+2b) if the other tyvar is an OPEN, then its eq attribute is used to filter out
+non-equality elements of options (i.e. realTy), thus indirectly disqualifying
+realTy as an valid indicator and thereby possibly causing a type error later on
+when the tyvar is instantiated. If after filter out realTy, options are nil
+[IMPOSSIBLE!], Unify is raised, otherwise a new OVLD is constructed with the same sources
+and the filtered options and assigned to the old and new tyvar refs.
+
+If an OPEN tyvar is instantiated to the OVLD tyvar, then subcase OVLD [unify.sml, l. 184]
+of the iter function is invoked. This "propagates" (incorrectly) a true equality type
+attribute of the instantiated OPEN tyvar to the OVLD tyvar by filtering out non-equality
+types (which could only be realTy) from the options of the OVLD tyvar. This will cause
+a type error if later the OVLD tyvar is instantiated to realTy (or any other random type
+not in the relevant overloading class, but the type error will not be properly blamed on
+the equality mismatch [BUG].
+
+Side Note: The CONty(DEFtyc...) case of iter [unify.sml, l 196] is bogus and needs to
+be rewritten to expand definitions incrementally as the instantiating type is traversed,
+in order to deal with nonstrict (irrelevant) arguments and imbedded OBJ constructors
+properly.
+
 
 == Overloading resolution
+
+1. An ordinary variable expression elaborates to a VARexp(ref v, []) where v is
+the variable representation returned by looking up the variable path in the static
+environment. If v is an OVLDvar, the ref allows it to be replaced by the resolved
+variant, a VALvar, to effect overloading resolution.
+
+During typechecking [typecheck.sml, l. 526], the VarCon.OVLDvar ref is pushed onto a
+overloaded variable stack created by the call to Overload.new [typecheck.sml, l. 75]
+for that TypeCheck.decType call.  A similar thing happens for overloaded literals (oll_push),
+but we are not concerned with that at the moment.
+
+After the normal type checking is completed, ol_resolve is called and it iterates through
+the pushed var refs and attempts to resolve and replace each one, based on an indicator
+type extracted to the (possibly) instantiated type of the VARexp determined by the
+type checker.  Note that OVLD tyvars may have been unified, so more than one of the
+overloaded operators may be resolved by the same type instantiation.
+
+There are three cases for OVLD tyvar.
+
+1) The OVLD tyvars may have been instantiated to a primitive type belonging to the appropriate
+class, in which case overloading is resolved and the VARexp ref is updated with the corresponding
+VALvar.
+
+2) The OVLD tyvar is instantiated to a type that is not in the overloading class for an
+operator, in which case resolution is unsuccessful and there is a type error (but reported
+during resolution, or earlier?).
+
+3) The OVLD tyvar is not instantiated (but may have been modified by unification with other
+variables.  In this case, the operator is resolved to the default variant, which will _always_
+be intTy, which is an equality type.  Thus default resolution will always be possible, even
+if the OVLD tyvar's equality attribute has been turned on during unification!  Default resolution
+cannot cause a equality mismatch type error [INVARIANT].
+
