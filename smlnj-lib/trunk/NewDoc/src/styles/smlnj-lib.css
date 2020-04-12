@@ -430,3 +430,5 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 dt > code { color: #19177C } /* tok-nv in pygments */
 code > span.kw { color: #008000; font-weight: bold } /* tok-k in pygments */
 code > span.tv { color: #AA22FF } /* tok-nd in pygments */
+code > span.ty { color: #B00040 } /* tok-kt in pygments */
+code > span.con { color: #0000FF; font-weight: bold } /* tok-nc in pygments */

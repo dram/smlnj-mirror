@@ -22,7 +22,8 @@ SML_BASIS_URL =	https://standardml.org/Basis
 ATTRS =         -a sml-basis-url="$(SML_BASIS_URL)" \
 		-a smlnj-version="$(SMLNJ_VERSION)" \
                 -a release-date="$(SMLNJ_DATE)" \
-		-a linkcss
+		-a linkcss \
+		-a stylesheet=smlnj-lib.css
 
 STYLES_DIR_ROOT = -a stylesdir=styles
 STYLES_DIR =	-a stylesdir=../styles
@@ -42,14 +43,12 @@ TARGET_BASE =           http://smlnj.org
 #
 DOC_DIR =               @OUT_DIR@
 HTML_DST_ROOT =         $(DOC_DIR)/html
-STYLES_DST =            $(HTML_DST_ROOT)/styles  # not used yet
-IMAGES_DST =            $(HTML_DST_ROOT)/images  # not used yet
+STYLES_DST =            $(HTML_DST_ROOT)/styles
 
 # root path to place generated HTML files for the SML/NJ web site
 #
 WEB_HTMLDST_ROOT =      @ROOT_DIR@/htdocs
 WEB_STYLES_DST =        $(WEB_HTML_DST_ROOT)/styles
-WEB_IMAGES_DST =        $(WEB_HTML_DST_ROOT)/images
 
 include @MK_DIR@/doc-rules.gmk
 
@@ -62,19 +61,28 @@ HTML_SUBDIRS =		$(addprefix $(HTML_DST_ROOT)/,$(DOC_SUBDIRS))
 ADOC_FILES =		index.adoc \
 			$(wildcard JSON/*.adoc)
 
-STYLE_IN_FILES =        $(notdir $(wildcard styles/*.in))
-STYLE_DST_FILES =       $(addprefix $(STYLES_DST)/,$(STYLE_IN_FILES:_css.in=.css)))
-IMAGE_FILES =           $(notdir $(wildcard images/*.png images/*jpg))
-IMAGE_DST_FILES =       $(addprefix $(IMAGES_DST)/,$(IMAGE_FILES))
-
 .PHONY:         doc
 doc:            html $(DOC_DIR)
+	cp -p index.html $(HTML_DST_ROOT)
+	cp -p styles/smlnj-lib.css $(STYLES_DST)
+	cp -p styles/smlnj-lib-pygments.css $(STYLES_DST)/pygments-default.css
+	for dir in $(DOC_SUBDIRS) ; do \
+	    cp -p $$dir/*html $(HTML_DST_ROOT)/$$dir ; \
+	done
 
 .PHONY:		html
 html:
 	$(ASCIIDOCTOR_HTML) $(STYLES_DIR_ROOT) index.adoc
 	for dir in $(DOC_SUBDIRS) ; do \
 	    (cd $$dir; $(ASCIIDOCTOR_HTML) $(STYLES_DIR) *.adoc) ; \
+	done
+	cp styles/smlnj-lib-pygments.css styles/pygments-default.css
+
+$(DOC_DIR):
+	mkdir -p $(HTML_DST_ROOT)
+	mkdir -p $(STYLES_DST)
+	for dir in $(DOC_SUBDIRS) ; do \
+	    mkdir -p $(HTML_DST_ROOT)/$$dir ; \
 	done
 
 include @MK_DIR@/clean-rules.gmk
