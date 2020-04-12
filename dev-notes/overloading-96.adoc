@@ -1,7 +1,9 @@
-= Implementation of Overloading
+= Implementation of Overloading [110.96 version]
 :Author: Dave MacQueen
 :Date: 2020/04/11
-:VERSION: 110.97
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: 110.96
 
 == Introduction
 
@@ -27,7 +29,7 @@ is called _overloading resolution_.
 
 == Declaring overloading
 
-files: compiler/Parse/parse/sml.grm
+  files: compiler/Parse/parse/sml.grm
 
 The declaration form for overloadings is:
 
@@ -35,37 +37,33 @@ The declaration form for overloadings is:
 -----------
 OVERLOAD id COLON ty AS exp_pa
 -----------
-where exp_pa is an "and" separated sequence of expressions
-but these will only be path expressions.
+where `exp_pa` is an "and"-separated sequence of expressions,
+but these will only be simple path expressions (e.g. `Int.+`).
 
-Each element of the expression (path) list exp_pa determines a unique
+Each element of the expression (path) list `exp_pa` determines a unique
 indicator type, which can be reduced to one of the primitive type
 constructors defined in compiler/ElabData/types/basictypes.{sig,sml}.
 These primitive types serving as "indicators" for resolving overloadings
 are:
 
-intTy/intTycon
-int32Ty/int32Tycon
-int64Ty/int64Tycon
-intinfTy/intinfTycon
+  intTy/intTycon
+  int32Ty/int32Tycon
+  int64Ty/int64Tycon
+  intinfTy/intinfTycon
+  wordTy/wordTycon
+  word8Ty/word8Tycon
+  word32Ty/word32Tycon
+  word64Ty/word64Tycon
+  realTy/realTycon  (= R64.real)
+  charTy/charTycon
+  stringTy/stringTycon
 
-wordTy/wordTycon
-word8Ty/word8Tycon
-word32Ty/word32Tycon
-word64Ty/word64Tycon
-
-realTy/realTycon  (= R64.real)
-
-charTy/charTycon
-
-stringTy/stringTycon
-
-realTy, charTy, stringTy could split into multiple cases in the future.
+`realTy`, `charTy`, `stringTy` could split into multiple cases in the future.
 
 
 == Overloadings
 
-files: system/smlnj/init/pervasive.sml
+  files: system/smlnj/init/pervasive.sml
 
 This file defines the pervasive environment, including
 all overload bindings.
@@ -140,22 +138,22 @@ As defined in DefnRev, Appendix E.1, overloaded operators can be
 associated with "overloading classes" which are sets of primitive
 types that determine the different "resolutions" of the operator
 
-Int = {intTy, int32Ty, int64Ty, intinfTy}
-Word = {wordTy, word8Ty, word32Ty, word64Ty}
-Real = {realTy}
-Char = {charTy}
-String = {StringTy}
-WordInt = Word U Int   (U = union)
-RealInt = Real U Int
-Num = Word U Int U Real
-NumTxt = Num U {charTy, stringTy}
+  Int = {intTy, int32Ty, int64Ty, intinfTy}
+  Word = {wordTy, word8Ty, word32Ty, word64Ty}
+  Real = {realTy}
+  Char = {charTy}
+  String = {StringTy}
+  WordInt = Word U Int   (U = union)
+  RealInt = Real U Int
+  Num = Word U Int U Real
+  NumTxt = Num U {charTy, stringTy}
 
 The association of classes with overloaded operators is:
 
-~, +, - * : Num
-div, mod : WordInt
-<, <=, >, >= : NumTxt
-abs : RealInt
+  ~, +, - * : Num
+  div, mod : WordInt
+  <, <=, >, >= : NumTxt
+  abs : RealInt
 
 So only Num, WordInt, NumTxt, RealInt are associated with overloaded
 operators (so far).
@@ -169,10 +167,10 @@ member of its overloading class is used to resolve the operator.
 The defaults for the relevant classes are all the same, namely intTy;
 intTy is the universal default indicator.
 
-WordInt : intTy
-RealInt : intTy
-Num : intTy
-NumTxt : intTy
+  WordInt : intTy
+  RealInt : intTy
+  Num : intTy
+  NumTxt : intTy
 
 The overload classes actually play no role in the overloading resolution
 algorithm. They are just a potentially useful notion in the "metatheory"
@@ -184,7 +182,7 @@ the others.  Indeed, Int is the intersection of them all.
 
 == Semantic representations
 
-files: compiler/ElabData/types.{sig,sml}
+  files: compiler/ElabData/types.{sig,sml}
 
 [source,sml]
 ------------
@@ -231,10 +229,10 @@ to resolve the operators at each of the sources.
 
 == Elaboration of overload declarations
 
-files: compiler/Elaborator/elaborate/elabcore.sml
-       compiler/ElabData/syntax/varcon.{sig,sml} [VALvar, OVLDvar]
-       compiler/ElabData/types/types.{sig,sml}  [TYFUN]
-       compiler/Elaborator/types/overload.sml  [Overload.matchScheme]
+  files: compiler/Elaborator/elaborate/elabcore.sml
+         compiler/ElabData/syntax/varcon.{sig,sml} [VALvar, OVLDvar]
+         compiler/ElabData/types/types.{sig,sml}  [TYFUN]
+         compiler/Elaborator/types/overload.sml  [Overload.matchScheme]
        
 [source,sml]
 ------------
@@ -262,8 +260,11 @@ files: compiler/Elaborator/elaborate/elabcore.sml
 
 where
 
+[source,sml]
+------------
    val elabExp : Ast.exp * SE.staticEnv * region
                  -> Absyn.exp * TS.tyvarset * tyvUpdate
+------------
 
 and for the paths occuring in overload decl the resulting Absyn.exp will be of the
 form VARexp(ref v, []), were v is the VarCon.VALvar obtained by looking up the path
@@ -299,14 +300,14 @@ type -- one of the types in the maximal overload class NumTex.
 
 == Type inference process
 
-files: compiler/Elaborator/types/overload.sml
-       compiler/Elaborator/types/typecheck.sml
-       compiler/Elaborator/types/unify.sml
+  files: compiler/Elaborator/types/overload.sml
+         compiler/Elaborator/types/typecheck.sml
+         compiler/Elaborator/types/unify.sml
 
 [source,sml]
 ------------
        | VARexp(refvar as ref(OVLDvar _),_) =>
- 	   (exp, olv_push (refvar, region, err region))
+         (exp, olv_push (refvar, region, err region))
 ------------
 When the type checker encounters a VARexp whose variable is an OVLDvar, it
 calls olv_push to push the refvar onto the overloading stack for this call of
@@ -333,7 +334,7 @@ does not need to be reconstructed for each new OVLD tyvar!).
 
 When unification involving this OVLD tyvar occurs, two things can happen:
 
-1) if the OVLD tyvar is instantiated to a type [instTyvar, l. 427], the typechecker
+. If the OVLD tyvar is instantiated to a type [instTyvar, l. 427], the typechecker
 checks whether the instantiating type (ty') is in the options list of the tyvar,
 and if not immediately raises a Unify exception (which generates a type error message).
 The options list at this point contains a (potentially proper) subset of the overloading
@@ -341,20 +342,20 @@ class of the operator that generated the OVLD tyvar (one of the sources). Only t
 first source, if there are multiple ones, is mentioned in the printed metatypevariable
 [BUG].
 
-2) if the OVLD tyvar is being unified with another tyvar:
+. If the OVLD tyvar is being unified with another tyvar:
 
-2a) if the other tyvar is also an OVLD, then new options (options')
+.. if the other tyvar is also an OVLD, then new options (options')
 are defined as the intersection of the options of the old (i1) and new
-(i2) OVLD tyvars. If this intersection is nil [IMPOSSIBLE!],
+(i2) OVLD tyvars. If this intersection is nil [*IMPOSSIBLE!*],
 then Unify is raised and there is a type error reported. Otherwise a new OVLD
 is defined with the concatenation of the sources and the (non-nil) intersection of
 the options, and both the tyvars are assigned this new OVLD value.
 
-2b) if the other tyvar is an OPEN, then its eq attribute is used to filter out
+.. if the other tyvar is an OPEN, then its eq attribute is used to filter out
 non-equality elements of options (i.e. realTy), thus indirectly disqualifying
 realTy as an valid indicator and thereby possibly causing a type error later on
 when the tyvar is instantiated. If after filter out realTy, options are nil
-[IMPOSSIBLE!], Unify is raised, otherwise a new OVLD is constructed with the same sources
+[*IMPOSSIBLE!*], Unify is raised, otherwise a new OVLD is constructed with the same sources
 and the filtered options and assigned to the old and new tyvar refs.
 
 If an OPEN tyvar is instantiated to the OVLD tyvar, then subcase OVLD [unify.sml, l. 184]
@@ -363,9 +364,9 @@ attribute of the instantiated OPEN tyvar to the OVLD tyvar by filtering out non-
 types (which could only be realTy) from the options of the OVLD tyvar. This will cause
 a type error if later the OVLD tyvar is instantiated to realTy (or any other random type
 not in the relevant overloading class, but the type error will not be properly blamed on
-the equality mismatch [BUG].
+the equality mismatch [*BUG*].
 
-Side Note: The CONty(DEFtyc...) case of iter [unify.sml, l 196] is bogus and needs to
+*Side Note*: The `CONty(DEFtyc...)` case of `iter` [unify.sml, l. 196] is bogus and needs to
 be rewritten to expand definitions incrementally as the instantiating type is traversed,
 in order to deal with nonstrict (irrelevant) arguments and imbedded OBJ constructors
 properly.
@@ -373,7 +374,10 @@ properly.
 
 == Overloading resolution
 
-1. An ordinary variable expression elaborates to a VARexp(ref v, []) where v is
+  files: compiler/Elaborator/types/typecheck.sml
+         compiler/Elaborator/types/overload.sml
+
+An ordinary variable expression elaborates to a VARexp(ref v, []) where v is
 the variable representation returned by looking up the variable path in the static
 environment. If v is an OVLDvar, the ref allows it to be replaced by the resolved
 variant, a VALvar, to effect overloading resolution.
@@ -391,17 +395,17 @@ overloaded operators may be resolved by the same type instantiation.
 
 There are three cases for OVLD tyvar.
 
-1) The OVLD tyvars may have been instantiated to a primitive type belonging to the appropriate
+. The OVLD tyvars may have been instantiated to a primitive type belonging to the appropriate
 class, in which case overloading is resolved and the VARexp ref is updated with the corresponding
 VALvar.
 
-2) The OVLD tyvar is instantiated to a type that is not in the overloading class for an
+. The OVLD tyvar is instantiated to a type that is not in the overloading class for an
 operator, in which case resolution is unsuccessful and there is a type error (but reported
 during resolution, or earlier?).
 
-3) The OVLD tyvar is not instantiated (but may have been modified by unification with other
+. The OVLD tyvar is not instantiated (but may have been modified by unification with other
 variables.  In this case, the operator is resolved to the default variant, which will _always_
 be intTy, which is an equality type.  Thus default resolution will always be possible, even
 if the OVLD tyvar's equality attribute has been turned on during unification!  Default resolution
-cannot cause a equality mismatch type error [INVARIANT].
+cannot cause a equality mismatch type error [*INVARIANT*].
 
