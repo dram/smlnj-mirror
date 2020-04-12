@@ -14,9 +14,6 @@ signature HASH_CONS_MAP =
     val empty : ('a, 'b) map
 	(* The empty map *)
 
-    val isEmpty : ('a, 'b) map -> bool
-	(* Return true if and only if the map is empty *)
-
     val singleton : ('a obj * 'b) -> ('a, 'b) map
 	(* return the specified singleton map *)
 
@@ -50,9 +47,8 @@ signature HASH_CONS_MAP =
          * Raises LibBase.NotFound if not found.
 	 *)
 
-    val first : ('a, 'b) map -> 'b option
-    val firsti : ('a, 'b) map -> ('a obj * 'b) option
-	(* return the first item in the map (or NONE if it is empty) *)
+    val isEmpty : ('a, 'b) map -> bool
+	(* Return true if and only if the map is empty *)
 
     val numItems : ('a, 'b) map ->  int
 	(* Return the number of items in the map *)
@@ -98,7 +94,7 @@ signature HASH_CONS_MAP =
 
     val app  : ('b -> unit) -> ('a, 'b) map -> unit
     val appi : (('a obj * 'b) -> unit) -> ('a, 'b) map -> unit
-	(* Apply a function to the entries of the map in map order. *)
+	(* Apply a function to the entries of the map. *)
 
     val map  : ('b -> 'c) -> ('a, 'b) map -> ('a, 'c) map
     val mapi : ('a obj * 'b -> 'c) -> ('a, 'b) map -> ('a, 'c) map
@@ -119,27 +115,23 @@ signature HASH_CONS_MAP =
     val filter  : ('b -> bool) -> ('a, 'b) map -> ('a, 'b) map
     val filteri : ('a obj * 'b -> bool) -> ('a, 'b) map -> ('a, 'b) map
 	(* Filter out those elements of the map that do not satisfy the
-	 * predicate.  The filtering is done in increasing map order.
+	 * predicate.
 	 *)
 
     val mapPartial  : ('b -> 'c option) -> ('a, 'b) map -> ('a, 'c) map
     val mapPartiali : ('a obj * 'b -> 'c option) -> ('a, 'b) map -> ('a, 'c) map
-	(* map a partial function over the elements of a map in increasing
-	 * map order.
-	 *)
+	(* map a partial function over the elements of a map. *)
 
     val exists : ('b -> bool) -> ('a, 'b) map -> bool
     val existsi : ('a obj * 'b -> bool) -> ('a, 'b) map -> bool
 	(* check the elements of a map with a predicate and return true if
 	 * any element satisfies the predicate. Return false otherwise.
-	 * Elements are checked in key order.
 	 *)
 
     val all : ('b -> bool) -> ('a, 'b) map -> bool
     val alli : ('a obj * 'b -> bool) -> ('a, 'b) map -> bool
 	(* check the elements of a map with a predicate and return true if
-	 * they all satisfy the predicate. Return false otherwise.  Elements
-	 * are checked in key order.
+	 * they all satisfy the predicate. Return false otherwise.
 	 *)
 
   end

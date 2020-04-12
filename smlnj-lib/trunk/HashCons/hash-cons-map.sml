@@ -22,7 +22,6 @@ structure HashConsMap : HASH_CONS_MAP =
     fun lift2i f (_, (k, a), (_, b)) = f(k, a, b)
 
     val empty = Map.empty
-    val isEmpty = Map.isEmpty
     fun singleton (obj, v) = Map.singleton (HC.tag obj, (obj, v))
     fun insert (m, obj, v) = Map.insert(m, HC.tag obj, (obj, v))
     fun insert' (p as (obj, v), m) = Map.insert(m, HC.tag obj, p)
@@ -52,8 +51,7 @@ structure HashConsMap : HASH_CONS_MAP =
 	  in
 	    (map, v)
 	  end
-    fun first (map : ('a, 'b) map) = Option.map #2 (Map.first map)
-    val firsti = Map.first
+    val isEmpty = Map.isEmpty
     val numItems = Map.numItems
     fun listItems map = Map.foldr (fn ((_, v), vs) => v::vs) [] map
     val listItemsi = Map.listItems
