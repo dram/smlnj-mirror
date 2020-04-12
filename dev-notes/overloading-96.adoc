@@ -1,6 +1,6 @@
 = Implementation of Overloading [110.96 version]
 :Author: Dave MacQueen
-:Date: 2020/04/11
+:Date: 2020/04/12
 :stem: latexmath
 :source-highlighter: pygments
 :VERSION: 110.96
