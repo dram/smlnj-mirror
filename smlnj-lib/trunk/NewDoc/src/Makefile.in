@@ -99,4 +99,7 @@ $(DOC_DIR):
 
 include @MK_DIR@/clean-rules.gmk
 
+CLEAN_FILES =	stem-*.png
+
 CLEAN_SUBDIRS = $(DOC_SUBDIRS)
+

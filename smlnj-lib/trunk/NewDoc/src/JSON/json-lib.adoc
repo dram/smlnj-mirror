@@ -43,3 +43,25 @@ For https://smlnj.org[*SML/NJ*], include `$/json-lib.cm` in your
 
 For use in http://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/JSON/json-lib.mlb` in your *MLB* file.
+
+ifdef::backend-pdf[]
+
+// Push titles down one level.
+:leveloffset: 1
+
+include::str-JSON.adoc[]
+
+include::str-JSONParser.adoc[]
+
+include::str-JSONPrinter.adoc[]
+
+include::str-JSONUtil.adoc[]
+
+include::str-JSONStreamParser.adoc[]
+
+include::str-JSONStreamPrinter.adoc[]
+
+// Return to normal title levels.
+:leveloffset: 0
+
+endif::[]

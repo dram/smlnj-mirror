@@ -35,3 +35,17 @@ For use in http://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/UUID/uuid-lib.mlb` in your *MLB* file.
 */
 The *UUID Library* is not yet included in *MLton*.
+
+ifdef::backend-pdf[]
+
+// Push titles down one level.
+:leveloffset: 1
+
+include::str-UUID.adoc[]
+
+include::str-GenUUID.adoc[]
+
+// Return to normal title levels.
+:leveloffset: 0
+
+endif::[]

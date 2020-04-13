@@ -1,8 +1,5 @@
-== Usage
 
-For https://smlnj.org[*SML/NJ*], include `$/@LIBRARY@.cm` in your
-*CM* file.
+// Return to normal title levels.
+:leveloffset: 0
 
-For use in http://www.mlton.org/[*MLton*], include
-`$(SML_LIB)/smlnj-lib/@DIR@/@LIBRARY@.mlb` in your *MLB* file.
-
+endif::[]
