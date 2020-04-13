@@ -5,6 +5,10 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-13]
+	Made the `ControlUtil.Cvt.bool` converter case insensitive.  Also,
+	it now allows "yes"/"no" as values.
+
 [2020-04-11]
 	Replaced the "directional" fold functions (_e.g._, `foldl`, `foldri`)
 	with non-directional functions (_e.g., `fold`, `foldi`) in the

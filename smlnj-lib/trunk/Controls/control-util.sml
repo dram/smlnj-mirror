@@ -12,7 +12,13 @@ structure ControlUtil : CONTROL_UTIL =
 		    fromString = Int.fromString,
 		    toString = Int.toString }
         val bool = { tyName = "bool",
-		     fromString = Bool.fromString,
+		     fromString = fn s => (case String.map Char.toUpper s
+			 of "FALSE" => SOME false
+			  | "TRUE" => SOME true
+			  | "NO" => SOME false
+			  | "YES" => SOME true
+			  | _ => NONE
+			(* end case *)),
 		     toString = Bool.toString }
         val real = { tyName = "real",
 		     fromString = Real.fromString,
