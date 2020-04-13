@@ -1,0 +1,39 @@
+= The `BSearchFn` functor
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `BSearchFn` functor ...
+
+== Synopsis
+
+[source,sml]
+------------
+functor BSearchFn ()
+------------
+
+== Arguments
+
+[source,sml]
+------------
+------------
+
+== Interface
+
+[source,sml]
+------------
+------------
+
+== Description
+
+`[.kw]#type# foo`::
+  something
+
+`[.kw]#val# bar : foo -> foo`::
+  something
+
+== See Also
+
+xref:smlnj-lib.adoc[__The Util Library__]

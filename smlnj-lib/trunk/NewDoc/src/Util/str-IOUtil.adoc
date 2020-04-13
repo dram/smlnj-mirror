@@ -1,0 +1,33 @@
+= The `IOUtil` structure
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `IOUtil` structure ...
+
+== Synopsis
+
+[source,sml]
+------------
+structure IOUtil
+------------
+
+== Interface
+
+[source,sml]
+------------
+------------
+
+== Description
+
+`[.kw]#type# foo`::
+  something
+
+`[.kw]#val# bar : foo -> foo`::
+  something
+
+== See Also
+
+xref:smlnj-lib.adoc[__The Util Library__]

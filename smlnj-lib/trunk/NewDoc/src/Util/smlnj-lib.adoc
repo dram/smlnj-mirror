@@ -1,0 +1,292 @@
+= The Util Library
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+== Overview
+
+The *Util Library* provides a large collection of utility data structures
+and algorithms.  It is the core library in the *SML/NJ Library* suite.
+
+== Contents
+
+xref:str-ANSITerm.adoc[`[.kw]#structure# ANSITerm`]::
+  provides support for displaying stylized text using the
+  https://en.wikipedia.org/wiki/ANSI_escape_code[ANSI escape codes].
+
+xref:str-Atom.adoc[`[.kw]#structure# Atom`]::
+  provides hashed strings that have fast equality testing.
+
+xref:str-Base64.adoc[`[.kw]#structure# Base64`]::
+  Provides support for *Base-64* encoding/decoding as specified
+  by https://www.ietf.org/rfc/rfc4648.txt[RFC 4648].
+
+xref:str-BitArray.adoc[`[.kw]#structure# BitArray`]::
+  something
+
+xref:str-BitVector.adoc[`[.kw]#structure# BitVector`]::
+  something
+
+xref:fun-BSearchFn.adoc[`[.kw]#functor# BSearchFn`]::
+  something
+
+xref:str-CharMap.adoc[`[.kw]#structure# CharMap`]::
+  something
+
+xref:str-DynamicArray.adoc[`[.kw]#structure# DynamicArray`]::
+  something
+
+xref:str-Fifo.adoc[`[.kw]#structure# Fifo`]::
+  something
+
+xref:str-FNVHash.adoc[`[.kw]#structure# FNVHash`]::
+  something
+
+xref:str-Format.adoc[`[.kw]#structure# Format`]::
+  something
+
+xref:str-FormatComb.adoc[`[.kw]#structure# FormatComb`]::
+  something
+
+xref:fun-GraphSCCFn.adoc[`[.kw]#functor# GraphSCCFn`]::
+  something
+
+xref:sig-HASH_KEY.adoc[`[.kw]#signature# HASH_KEY`]::
+  something
+
+xref:sig-HASH_SET.adoc[`[.kw]#signature# HASH_SET`]::
+  something
+
+xref:fun-HashSetFn.adoc[`[.kw]#functor# HashSetFn`]::
+  something
+
+xref:str-HashString.adoc[`[.kw]#structure# HashString`]::
+  something
+
+xref:str-HashTable.adoc[`[.kw]#structure# HashTable`]::
+  something
+
+xref:fun-HashTableFn.adoc[`[.kw]#functor# HashTableFn`]::
+  something
+
+xref:fun-Hash2TableFn.adoc[`[.kw]#functor# Hash2TableFn`]::
+  something
+
+xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
+  something
+
+xref:str-IOUtil.adoc[`[.kw]#structure# IOUtil`]::
+  something
+
+xref:str-GetOpt.adoc[`[.kw]#structure# GetOpt`]::
+  something
+
+xref:fun-KeywordFn.adoc[`[.kw]#functor# KeywordFn`]::
+  something
+
+xref:str-LibBase.adoc[`[.kw]#structure# LibBase`]::
+  something
+
+xref:str-ListFormat.adoc[`[.kw]#structure# ListFormat`]::
+  something
+
+xref:str-ListMergeSort.adoc[`[.kw]#structure# ListMergeSort`]::
+  something
+
+xref:str-ListXProd.adoc[`[.kw]#structure# ListXProd`]::
+  something
+
+xref:fun-MonoArrayFn.adoc[`[.kw]#functor# MonoArrayFn`]::
+  something
+
+xref:sig-MONO_ARRAY_SORT.adoc[`[.kw]#signature# MONO_ARRAY_SORT`]::
+  something
+
+xref:sig-MONO_DYNAMIC_ARRAY.adoc[`[.kw]#signature# MONO_DYNAMIC_ARRAY`]::
+  something
+
+xref:sig-MONO_HASH_TABLE.adoc[`[.kw]#signature# MONO_HASH_TABLE`]::
+  something
+
+xref:sig-MONO_PRIORITYQ.adoc[`[.kw]#signature# MONO_PRIORITYQ`]::
+  something
+
+xref:sig-ORD_KEY.adoc[`[.kw]#signature# ORD_KEY`]::
+  something
+
+xref:sig-ORD_MAP.adoc[`[.kw]#signature# ORD_MAP`]::
+  something
+
+xref:sig-ORD_SET.adoc[`[.kw]#signature# ORD_SET`]::
+  something
+
+xref:str-ParserComb.adoc[`[.kw]#structure# ParserComb`]::
+  something
+
+xref:str-PathUtil.adoc[`[.kw]#structure# PathUtil`]::
+  something
+
+xref:str-PrimeSizes.adoc[`[.kw]#structure# PrimeSizes`]::
+  something
+
+xref:sig-PRIORITY.adoc[`[.kw]#signature# PRIORITY`]::
+  something
+
+xref:str-PropList.adoc[`[.kw]#structure# PropList`]::
+  something
+
+xref:str-Queue.adoc[`[.kw]#structure# Queue`]::
+  something
+
+xref:str-Rand.adoc[`[.kw]#structure# Rand`]::
+  something
+
+xref:str-Random.adoc[`[.kw]#structure# Random`]::
+  something
+
+xref:str-RealOrderStats.adoc[`[.kw]#structure# RealOrderStats`]::
+  something
+
+xref:str-Scan.adoc[`[.kw]#structure# Scan`]::
+  something
+
+xref:str-SplayTree.adoc[`[.kw]#structure# SplayTree`]::
+  something
+
+xref:str-TimeLimit.adoc[`[.kw]#structure# TimeLimit`]::
+  something
+
+xref:str-UnivariateStats.adoc[`[.kw]#structure# UnivariateStats`]::
+  something
+
+xref:sig-UREF.adoc[`[.kw]#signature# UREF`]::
+  something
+
+xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
+  something
+
+== Usage
+
+By default, the *Util Library* is autoloaded by *CM*, which means that it is
+immediately available to interactive use in the *SML/NJ* REPL.
+
+For https://smlnj.org[*SML/NJ*], include `$/smlnj-lib.cm` in your
+*CM* file.
+
+For use in http://www.mlton.org/[*MLton*], include
+`$(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb` in your *MLB* file.
+
+ifdef::backend-pdf[]
+
+// Push titles down one level.
+:leveloffset: 1
+
+include::sig-HASH_KEY.adoc[]
+
+include::sig-HASH_SET.adoc[]
+
+include::sig-MONO_ARRAY_SORT.adoc[]
+
+include::sig-MONO_DYNAMIC_ARRAY.adoc[]
+
+include::sig-MONO_HASH_TABLE.adoc[]
+
+include::sig-MONO_PRIORITYQ.adoc[]
+
+include::sig-ORD_KEY.adoc[]
+
+include::sig-ORD_MAP.adoc[]
+
+include::sig-ORD_SET.adoc[]
+
+include::sig-PRIORITY.adoc[]
+
+include::sig-UREF.adoc[]
+
+include::str-ANSITerm.adoc[]
+
+include::str-Atom.adoc[]
+
+include::str-Base64.adoc[]
+
+include::str-BitArray.adoc[]
+
+include::str-BitVector.adoc[]
+
+include::str-CharMap.adoc[]
+
+include::str-DynamicArray.adoc[]
+
+include::str-Fifo.adoc[]
+
+include::str-FNVHash.adoc[]
+
+include::str-Format.adoc[]
+
+include::str-FormatComb.adoc[]
+
+include::str-HashString.adoc[]
+
+include::str-HashTable.adoc[]
+
+include::str-IOUtil.adoc[]
+
+include::str-GetOpt.adoc[]
+
+include::str-LibBase.adoc[]
+
+include::str-ListFormat.adoc[]
+
+include::str-ListMergeSort.adoc[]
+
+include::str-ListXProd.adoc[]
+
+include::str-ParserComb.adoc[]
+
+include::str-PathUtil.adoc[]
+
+include::str-PrimeSizes.adoc[]
+
+include::str-PropList.adoc[]
+
+include::str-Queue.adoc[]
+
+include::str-Rand.adoc[]
+
+include::str-Random.adoc[]
+
+include::str-Scan.adoc[]
+
+include::str-SplayTree.adoc[]
+
+include::str-TimeLimit.adoc[]
+
+include::str-RealOrderStats.adoc[]
+
+include::str-UnivariateStats.adoc[]
+
+include::str-UTF8.adoc[]
+
+include::fun-BSearchFn.adoc[]
+
+include::fun-GraphSCCFn.adoc[]
+
+include::fun-HashSetFn.adoc[]
+
+include::fun-HashTableFn.adoc[]
+
+include::fun-Hash2TableFn.adoc[]
+
+include::fun-IntervalSetFn.adoc[]
+
+include::fun-KeywordFn.adoc[]
+
+include::fun-MonoArrayFn.adoc[]
+
+
+// Return to normal title levels.
+:leveloffset: 0
+
+endif::[]
