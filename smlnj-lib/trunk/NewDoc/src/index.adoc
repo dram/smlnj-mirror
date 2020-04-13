@@ -21,7 +21,7 @@ The following is a list of the libraries that comprise the
 provide.  These are listed in alphabetical order:
 
 xref:Controls/controls-lib.adoc[*Controls Library*]::
-  __not yet written__
+  Support for managing application controls.
 
 xref:HTML/html-lib.adoc[*HTML Library*]::
   __not yet written__

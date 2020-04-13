@@ -17,16 +17,18 @@ was by Matthias Blume.
 == Contents
 
 xref:str-Controls.adoc[`[.kw]#structure# Controls`]::
-  something
+  The main structure of the *Controls Library*, which defines the
+  representation and basic operations for controls.
 
 xref:str-ControlSet.adoc[`[.kw]#structure# ControlSet`]::
-  something
+  Provides facilities for managing sets of controls, with
+  associated information, by name.
 
 xref:str-ControlRegistry.adoc[`[.kw]#structure# ControlRegistry`]::
-  something
+  Provides infrastructure for defining a hierarchical registry of controls.
 
 xref:str-ControlUtil.adoc[`[.kw]#structure# ControlUtil`]::
-  something
+  Provides utility functions for defining controls.
 
 == Usage
 

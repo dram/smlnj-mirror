@@ -5,7 +5,8 @@
 :source-highlighter:  CONTROL_REGISTRY
 :VERSION: {smlnj-version}
 
-The `ControlRegistry` structure ...
+The `ControlRegistry` structure provides infrastructure for defining
+a hierarchical registry of controls.
 
 == Synopsis
 
@@ -19,103 +20,120 @@ structure ControlRegistry : CONTROL_REGISTRY
 
 [source,sml]
 ------------
-    type registry
+type registry
 
-    type control_info = { envName : string option }
+type control_info = { envName : string option }
 
-    val new : {
-	    help : string	(* registry's description *)
-	  } -> registry
+val new : {help : string} -> registry
 
-  (* register a control *)
-    val register : registry -> {
-	    ctl : string Controls.control,
-	    envName : string option
-	  } -> unit
+val register : registry -> {
+        ctl : string Controls.control,
+        envName : string option
+      } -> unit
 
-  (* register a set of controls *)
-    val registerSet : registry -> {
-	    ctls : (string, 'a) ControlSet.control_set,
-	    mkEnvName : string -> string option
-	  } -> unit
+val registerSet : registry -> {
+        ctls : (string, 'a) ControlSet.control_set,
+        mkEnvName : string -> string option
+      } -> unit
 
-  (* nest a registry inside another registry *)
-    val nest : registry -> {
-	    prefix : string option,
-	    pri : Controls.priority,	(* registry's priority *)
-            obscurity : int,		(* registry's detail level; higher means *)
-					(* more obscure *)
-	    reg : registry
-	  } -> unit
+val nest : registry -> {
+        prefix : string option,
+        pri : Controls.priority,
+        obscurity : int,
+        reg : registry
+      } -> unit
 
-  (* find a control *)
-    val control : registry -> string list -> string Controls.control option
+val control : registry -> string list -> string Controls.control option
 
-  (* initialize the controls in the registry from the environment *)
-    val init : registry -> unit
+val init : registry -> unit
 
-    datatype registry_tree = RTree of {
-	path : string list,
-	help : string,
-	ctls : { ctl : string Controls.control, info : control_info } list,
-	subregs : registry_tree list
-      }
+datatype registry_tree = RTree of {
+    path : string list,
+    help : string,
+    ctls : { ctl : string Controls.control, info : control_info } list,
+    subregs : registry_tree list
+  }
 
-  (* get the registry-tree representation of a registry; an optional obscurity
-   * argument may be supplied to filter out obscure options.
-   *)
-    val controls : (registry * int option) -> registry_tree
+val controls : (registry * int option) -> registry_tree
 ------------
 
 == Description
 
-    type registry
+`[.kw]#type# registry`::
+  something
 
-    type control_info = { envName : string option }
+`[.kw]#type# control_info = { envName : string option }`::
+  something
 
-    val new : {
-	    help : string	(* registry's description *)
-	  } \-> registry
+`[.kw]#val# new : {help : string} \-> registry`::
+  `new {help}` creates a new registry, where the `help` string
+  describes the registry.
 
-  (* register a control *)
-    val register : registry \-> {
-	    ctl : string Controls.control,
-	    envName : string option
-	  } \-> unit
+`[.kw]#val# register : registry \-> {ctl, envName} \-> unit`::
+  `register {ctl, envName}` adds the control `ctl` to the registry `reg`.
+  The optional string `envName` specifies the name of the environment
+  variable that can be used to specify the value of the control.
 
-  (* register a set of controls *)
-    val registerSet : registry \-> {
-	    ctls : (string, 'a) ControlSet.control_set,
-	    mkEnvName : string \-> string option
-	  } \-> unit
+`[.kw]#val# registerSet : registry \-> {ctls, mkEnvName} \-> unit`::
+  `registerSet {ctls, mkEnvName}` registers the controls in the
+  xref:str-ControlSet.adoc#:type:control_set[control set] `ctls`.
+  The function `mkEnvName` is applied to the names of the controls
+  to generate the optional environment-variable names.
 
   (* nest a registry inside another registry *)
-    val nest : registry \-> {
-	    prefix : string option,
-	    pri : Controls.priority,	(* registry's priority *)
-            obscurity : int,		(* registry's detail level; higher means *)
-					(* more obscure *)
-	    reg : registry
-	  } \-> unit
+`[.kw]#val# nest : registry \-> {prefix, pri, obscurity, reg} \-> unit`::
+  `nest parent {prefix, pri, obscurity, reg}` adds the registry `reg` as
+  a child of the registry `parent`.  The fields of the second argument
+  have the following meaning:
++
+--
+    `prefix : string option`::
+        The prefix (or name) that qualifies the child registry
+	(see the xref:#val:control[control] function).
 
-  (* find a control *)
-    val control : registry \-> string list \-> string Controls.control option
+    `pri : Controls.priority`::
+        The registry's priority; used when ordering the elements in a
+	registry.
+
+    `obscurity : int`::
+        The _obscurity_ level of the registrion (higher means more obscure).
+
+    `reg : registry`::
+        The child registry being added to `parent`.
+--
+
+`[.kw]#val# control : registry \-> string list \-> string Controls.control option`::
+  `control reg path` searches the registry for a control with the given `path`.
 
   (* initialize the controls in the registry from the environment *)
-    val init : registry \-> unit
+`[.kw]#val# init : registry \-> unit`::
+  `init reg` uses the host process's environment (as accessed by the
+  https://smlfamily.github.io/Basis/os-process.html#SIG:OS_PROCESS.getEnv:VAL[`OS.Process.getEnv`]
+  function) to initialize those controls that have associated environment-variables.
 
-    datatype registry_tree = RTree of {
-	path : string list,
-	help : string,
-	ctls : { ctl : string Controls.control, info : control_info } list,
-	subregs : registry_tree list
-      }
+`[.kw]#datatype# registry_tree = RTree of { ... }`::
+  something
++
+--
+    `path : string list`::
+        something
 
-  (* get the registry-tree representation of a registry; an optional obscurity
-   * argument may be supplied to filter out obscure options.
-   *)
-    val controls : (registry * int option) \-> registry_tree
+    `help : string`::
+        something
+
+    `ctls : { ctl : string Controls.control, info : control_info } list`::
+        something
+
+    `subregs : registry_tree list`::
+        something
+--
+
+`[.kw]#val# controls : (registry * int option) \-> registry_tree`::
+  `controls (reg, optLevel)` returns the `registry_tree` representation
+  of the registry `reg`.  If `optLevel` is `SOME n`, then sub-registries
+  that have an obscurity level greater or equal to `n` are omitted
+  from the result.
 
 == See Also
 
-link:controls-lib.html[__The Controls Library__]
+xref:controls-lib.adoc[__The Controls Library__]
