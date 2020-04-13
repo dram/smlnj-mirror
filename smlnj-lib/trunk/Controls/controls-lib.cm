@@ -32,9 +32,9 @@ is
   control-reps.sml
   controls-sig.sml
   controls.sml
+  control-registry-sig.sml
+  control-registry.sml
   control-set-sig.sml
   control-set.sml
   control-util-sig.sml
   control-util.sml
-  registry-sig.sml
-  registry.sml
