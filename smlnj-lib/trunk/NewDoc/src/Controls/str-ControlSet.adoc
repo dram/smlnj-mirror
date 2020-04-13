@@ -83,7 +83,6 @@ val stringControls : 'a Controls.value_cvt -> ('a, 'b) control_set
   priority, but omits any controls with an obscurity level greater or equal to
   `level`.
 
-  (* apply a function to the controls in a set *)
 `[.kw]#val# app : ({ctl : 'a control, info : 'b} \-> unit) \-> ('a, 'b) control_set \-> unit`::
   `app f ctlSet` applies the function `f` to the controls (and their associated
   information).  The order in which `f` is applied is unspecified.

@@ -106,30 +106,47 @@ val compare : ('a control * 'a control) -> order
       The function for converting from the type to strings.
 --
 
-  (* create a new control *)
 `[.kw]#val# control : {name, pri, obscurity, help, ctl} \-> 'a control`::
-  something
+  `control {name, pri, obscurity, help, ctl}` creates a new control,
+  where the arguments are
 +
 --
     `name : string`::
-        name of the control
+        the name of the control.
 
     `pri : priority`::
-        control's priority
+        the control's priority.
 
     `obscurity : int`::
-        control's detail level; higher means more obscure
+        the control's obscurity level (higher means more obscure).
 
     `help : string`::
-        control's description
+        the control's description.
 
     `ctl : 'a ref`::
-        ref cell holding control's state
+        the reference cell that holds the control's state.
 --
 
-  (* generate a control *)
 `[.kw]#val# genControl : {name, pri, obscurity, help, ctl, default} \-> 'a control`::
-  something
+  `genControl {name, pri, obscurity, help, default}` creates a new control,
+  where the arguments are
++
+--
+    `name : string`::
+        the name of the control.
+
+    `pri : priority`::
+        the control's priority.
+
+    `obscurity : int`::
+        the control's obscurity level (higher means more obscure).
+
+    `help : string`::
+        the control's description.
+
+    `default : 'a`::
+        the initial, or default, value of the control.
+--
 
 `[.kw]#exception# ValueSyntax of {tyName : string, ctlName : string, value : string}`::
   This exception is raised to communicate that there is a syntax error
@@ -139,88 +156,109 @@ val compare : ('a control * 'a control) -> order
   `stringControl cvt ctl` creates a string-valued interface to the control `ctl`
   using the given value converter.
 
-  (* control operations *)
 `[.kw]#val# name : 'a control \-> string`::
-  something
+  `name ctl` returns the name of the control `ctl`.
 
 `[.kw]#val# get : 'a control \-> 'a`::
-  something
+  `get ctl` returns the value of the control `ctl`.
 
 `[.kw]#val# set : 'a control * 'a \-> unit`::
-  something
+  `set (ctl, v)` sets the value of the control `ctl` to `v`.
 
 `[.kw]#val# set' : 'a control * 'a \-> unit \-> unit (* delayed; error checking in 1st stage *)`::
-  something
+  `set (ctl, v)` returns a `unit \-> unit` function that will set
+  the value of the control `ctl` to `v`.  This staged evaluation is useful
+  when the control does some error checking (_i.e._, because it is the
+  result of xref:#val:stringControl[`stringControl`]) on the value `v`.
+  In that case, the value is checked for syntactic correctness and
+  converted when ``set'`` is applied.
 
 `[.kw]#val# help : 'a control \-> string`::
-  something
+  `help ctl` returns the description of the control `ctl`.
 
 `[.kw]#val# info : 'a control \-> {priority : priority, obscurity : int, help : string}`::
-  something
+  `info ctl` returns a record `{priority, obscurity, help}`,
+  where the fields of the result are
++
+--
+    `priority : priority`::
+        the control's priority.
 
-  (* package a boolean control as a GetOpt option descriptor (NoArg) *)
-`[.kw]#val# mkOptionFlag : {ctl, short, long} \-> unit GetOpt.opt_descr`::
-  something
+    `obscurity : int`::
+        the control's obscurity level (higher means more obscure).
+
+    `help : string`::
+        the control's description.
+--
+
+`[.kw]#val# mkOptionFlag : {ctl, short, long} \-> unit xref:../Util/str-GetOpt.adoc#type:opt_descr[GetOpt.opt_descr]`::
+  `mkOptionFlag {ctl, short, long}` returns a command-line-option
+  xref:../Util/str-GetOpt.adoc#con:NoArg[`GetOpt.NoArg`] descriptor
+  for a boolean control.  The arguments are
 +
 --
     `ctl : bool control`::
-        the control that will be set by the command-line option
+        the control that will be set by the command-line option.
 
     `short : string`::
-        the short name for the option; either zero or one chars
+        the short name for the command-line option; either zero or one chars.
 
     `long : string option`::
-        an optional long-name for the option
+        an optional long-name for the command-line option.
 --
 
-  (* package a string control as a GetOpt option descriptor with required argument (ReqArg)  *)
-`[.kw]#val# mkOptionReqArg : {ctl, arg, short, long} \-> unit GetOpt.opt_descr`::
-  something
+`[.kw]#val# mkOptionReqArg : {ctl, arg, short, long} \-> unit xref:../Util/str-GetOpt.adoc#type:opt_descr[GetOpt.opt_descr]`::
+  `mkOptionReqArg {ctl, arg, short, long}` returns a command-line-option
+  xref:../Util/str-GetOpt.adoc#con:ReqArg[`GetOpt.ReqArg`] descriptor
+  for a string control, where an argument for the command-line option
+  is required.  The arguments to the call are
 +
 --
     `ctl : string control`::
-        the control that will be set by the command-line option
+        the control that will be set by the command-line option.
 
     `arg : string`::
-        the name for the argument, which is used in the usage message
+        the name for the argument, which is used in the usage message.
 
     `short : string`::
-        the short name for the option; either zero or one chars
+        the short name for the option; either zero or one chars.
 
     `long : string option`::
-        an optional long-name for the option
+        an optional long-name for the option.
 --
 
-  (* package a string control as a GetOpt option descriptor with an optional argument (OptArg) *)
 `[.kw]#val# mkOption : {ctl, arg, default, short, long} \-> unit GetOpt.opt_descr`::
-  something
+  `mkOptionReqArg {ctl, arg, short, long}` returns a command-line-option
+  xref:../Util/str-GetOpt.adoc#con:OptArg[`GetOpt.OptArg`] descriptor
+  for a string control, where an argument for the command-line option
+  is optional.  The arguments to the call are
 +
 --
     `ctl : string control`::
-        the control that will be set by the command-line option
+        the control that will be set by the command-line option.
 
     `arg : string`::
-        the name for the argument, which is used in the usage message
+        the name for the argument, which is used in the usage message.
 
     `default : string`::
-        the default value for when no argument is given
+        the default value for when no argument is given.
 
     `short : string`::
-        the short name for the option; either zero or one chars
+        the short name for the command-line option; either zero or one chars.
 
     `long : string option`::
-        an optional long-name for the option
+        an optional long-name for the command-line  option.
 --
 
 `[.kw]#val# save'restore : 'a control \-> unit \-> unit`::
   ``save'restore ctl`` saves the current value of the control and
   returns a `unit -> unit` function that will restore the value.
 
-  (* compare the priority of two controls *)
 `[.kw]#val# compare : ('a control * 'a control) \-> order`::
   `compare (ctl1, ctl2)` returns the priority order of the two controls.
 
 == See Also
 
 xref:str-ControlUtil.adoc[`ControlUtil`],
-xref:controls-lib.adoc[__The Controls Library__]
+xref:controls-lib.adoc[__The Controls Library__],
+xref:../Util/str-GetOpt.adoc[`GetOpt`]

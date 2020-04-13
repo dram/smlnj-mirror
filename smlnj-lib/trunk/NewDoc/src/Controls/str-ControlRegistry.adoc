@@ -80,7 +80,6 @@ val controls : (registry * int option) -> registry_tree
   The function `mkEnvName` is applied to the names of the controls
   to generate the optional environment-variable names.
 
-  (* nest a registry inside another registry *)
 `[.kw]#val# nest : registry \-> {prefix, pri, obscurity, reg} \-> unit`::
   `nest parent {prefix, pri, obscurity, reg}` adds the registry `reg` as
   a child of the registry `parent`.  The fields of the second argument
@@ -105,7 +104,6 @@ val controls : (registry * int option) -> registry_tree
 `[.kw]#val# control : registry \-> string list \-> string Controls.control option`::
   `control reg path` searches the registry for a control with the given `path`.
 
-  (* initialize the controls in the registry from the environment *)
 `[.kw]#val# init : registry \-> unit`::
   `init reg` uses the host process's environment (as accessed by the
   https://smlfamily.github.io/Basis/os-process.html#SIG:OS_PROCESS.getEnv:VAL[`OS.Process.getEnv`]
