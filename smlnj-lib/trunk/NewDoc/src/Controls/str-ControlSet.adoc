@@ -96,4 +96,5 @@ val stringControls : 'a Controls.value_cvt -> ('a, 'b) control_set
 == See Also
 
 xref:str-Controls.adoc[`Controls`],
+xref:str-ControlRegistry.adoc[`ControlRegistry`],
 xref:controls-lib.adoc[__The Controls Library__]

@@ -112,20 +112,23 @@ val controls : (registry * int option) -> registry_tree
   function) to initialize those controls that have associated environment-variables.
 
 `[.kw]#datatype# registry_tree = RTree of { ... }`::
-  something
+  The `registry_tree` datatype provides a concrete representation of the
+  registry hierarchy.
 +
 --
     `path : string list`::
-        something
+        is the full path to the node in the tree.
 
     `help : string`::
-        something
+        is the description of the node in the tree.
 
     `ctls : { ctl : string Controls.control, info : control_info } list`::
-        something
+        is a priority-ordered list of the controls at the node
+	in the tree.
 
     `subregs : registry_tree list`::
-        something
+        is a priority-ordered list of the sub-registries at the node
+	in the tree.
 --
 
 `[.kw]#val# controls : (registry * int option) \-> registry_tree`::
@@ -136,4 +139,6 @@ val controls : (registry * int option) -> registry_tree
 
 == See Also
 
+xref:str-Controls.adoc[`Controls`],
+xref:str-ControlSet.adoc[`ControlSet`],
 xref:controls-lib.adoc[__The Controls Library__]
