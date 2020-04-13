@@ -36,4 +36,4 @@ functor @NAME@ ()
 
 == See Also
 
-link:@LIBRARY@.html[__The @DIR@ Library__]
+xref:@LIBRARY@.adoc[__The @DIR@ Library__]
