@@ -1,6 +1,7 @@
 (* bsearch-fn.sml
  *
- * COPYRIGHT (c) 1994 by AT&T Bell Laboratories.  See COPYRIGHT file for details.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Binary searching on sorted monomorphic arrays.
  *)
@@ -25,15 +26,15 @@ functor BSearchFn (A : MONO_ARRAY) : sig
    * type.
    *)
     fun bsearch cmp (key, arr) = let
-	  fun look (lo, hi) = 
+	  fun look (lo, hi) =
                 if hi >= lo then let
 		  val m = lo + (hi - lo) div 2
 		  val x = A.sub(arr, m)
 		  in
 	 	    case cmp(key, x)
-		    of LESS => look(lo, m-1)
-		     | EQUAL => (SOME(m, x))
-		     | GREATER => look(m+1, hi)
+		     of LESS => look(lo, m-1)
+		      | EQUAL => (SOME(m, x))
+		      | GREATER => look(m+1, hi)
 		    (* end case *)
 		  end
                 else NONE
@@ -42,4 +43,3 @@ functor BSearchFn (A : MONO_ARRAY) : sig
 	  end
 
   end; (* BSearch *)
-

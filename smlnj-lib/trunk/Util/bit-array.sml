@@ -1,7 +1,7 @@
 (* bit-array.sml
  *
- * COPYRIGHT (c) 1995 by AT&T Bell Laboratories.  See COPYRIGHT file for details.
- *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure BitArray :> BIT_ARRAY =
@@ -80,18 +80,17 @@ structure BitArray :> BIT_ARRAY =
                           then d - charA + 0w10
                         else if (chara <= d) andalso (d <= charf)
                           then d - chara + 0w10
-                        else badArg("stringToBits",
-                              "illegal character: ord = 0wx"^(Word8.toString d))
+                        else raise Domain
                       end
-                fun init ([], _) = ()
-                  | init ([x], i) = W8A.update(bits, i, nibble x)
+                fun init ([], _) = SOME bv
+                  | init ([x], i) = (W8A.update(bits, i, nibble x); SOME bv)
                   | init (x1::x2::r, i) = (
                       W8A.update(bits, i, ((nibble x2) << 0w4) ++ (nibble x1));
                       init (r, i+1))
                 in
-                  init (rev(explode s), 0);
-                  bv
+                  init (rev(explode s), 0)
                 end
+		  handle _ => NONE
 
           fun toString (BA{nbits=0,...}) = ""
             | toString (BA{nbits,bits}) = let
@@ -243,10 +242,10 @@ structure BitArray :> BIT_ARRAY =
                     val newbits = W8A.array(len, 0wxff)
                     val nbytes = byteOf nbits
                     val left = mask7 nbits
-                    fun last () =
-                          case mask7 n of
-                            0 => ()
-                          | lft => W8A.update(newbits, len-1, (newbits sub (len-1)) & (lobits lft))
+                    fun last () = (case mask7 n
+			   of 0 => ()
+                            | lft => W8A.update(newbits, len-1, (newbits sub (len-1)) & (lobits lft))
+			  (* end case *))
                     fun adjust j = (
                           if left = 0
                             then ()
@@ -264,10 +263,10 @@ structure BitArray :> BIT_ARRAY =
           fun fit(lb,rb,rbits) = (rb & (lobits rbits)) ++ (lb & (hibits rbits))
 
           fun simpleCopy (src,dest,lastbyte,len) arg = let
-                fun last (s,d) =
-                      case mask7 len of
-                        0 => W8A.update(dest,d,src sub s)
-                      | lft => W8A.update(dest,d,fit(dest sub d,src sub s,lft))
+                fun last (s,d) = (case mask7 len
+		       of 0 => W8A.update(dest,d,src sub s)
+                        | lft => W8A.update(dest,d,fit(dest sub d,src sub s,lft))
+		      (* end case *))
                 fun cpy (arg as (s,d)) =
                       if d = lastbyte
                         then last arg
@@ -358,16 +357,19 @@ structure BitArray :> BIT_ARRAY =
                   else copy ()
                 end
 
-          fun lshift (ba as BA{nbits,bits},shft) =
-                if shft < 0 then badArg("lshift","negative shift")
-                else if shft = 0 then mkCopy ba
-                else let
-                  val newlen = nbits + shft
-                  val newbits = W8A.array(sizeOf newlen,0w0)
-                  in
-                    leftblt(bits,newbits,shft,nbits);
-                    BA{nbits=newlen,bits=newbits}
-                  end
+	  fun lshift_w (ba, 0w0) = mkCopy ba
+	    | lshift_w (BA{nbits, bits}, n) = let
+		val shft = Word.toIntX n
+		val newlen = nbits + shft
+		val newbits = W8A.array(sizeOf newlen, 0w0)
+		in
+		  leftblt(bits,newbits,shft,nbits);
+		  BA{nbits=newlen,bits=newbits}
+		end
+
+          fun lshift (ba, shft) = if shft < 0
+		then badArg("lshift", "negative shift")
+		else lshift_w(ba, Word.fromInt shft)
 
           fun op @ (BA{nbits,bits},BA{nbits=nbits',bits=bits'}) = let
                 val newlen = nbits + nbits'
@@ -411,17 +413,24 @@ structure BitArray :> BIT_ARRAY =
                   then raise Subscript
                   else slice (ba,sbit,nbits-sbit)
 
-          fun rshift (ba as BA{nbits,bits},shft) =
-                if shft < 0 then badArg("rshift","negative shift")
-                else if shft = 0 then mkCopy ba
-                else if shft >= nbits then array (0, false)
-                else let
-                  val newlen = nbits - shft
-                  val newbits = W8A.array(sizeOf newlen,0w0)
-                  in
-                    rightblt(bits,newbits,shft,newlen);
-                    BA{nbits=newlen,bits=newbits}
-                  end
+	  fun rshift_w (ba, 0w0) = mkCopy ba
+	    | rshift_w (BA{nbits, bits}, n) = let
+		val shft = Word.toIntX n
+                in
+		  if shft >= nbits
+		    then array (0, false)
+		    else let
+		      val newlen = nbits - shft
+		      val newbits = W8A.array(sizeOf newlen,0w0)
+		      in
+			rightblt (bits, newbits, shft, newlen);
+			BA{nbits=newlen, bits=newbits}
+		      end
+		end
+
+          fun rshift (ba, shft) = if shft < 0
+		then badArg("rshift", "negative shift")
+		else rshift_w(ba, Word.fromInt shft)
 
           fun trim (tgt,len) =
                 case mask7 len of
@@ -707,6 +716,9 @@ structure BitArray :> BIT_ARRAY =
 		end
 
           end (* local *)
+
+	  val << = lshift_w
+	  val >> = rshift_w
         end (* structure Vector *)
 
     open Vector

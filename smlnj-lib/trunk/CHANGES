@@ -5,6 +5,20 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-14]
+	Update the `BitArray:BIT_ARRAY` and `BitVector:BIT_VECTOR` interfaces
+	to follow standard patterns (these interfaces were originally designed
+	before the SML Basis Library, so did not follow the conventions).
+	The changes are to have the `fromString` function return `NONE`,
+	instead of raising an exception on bad input, and to use deprecate
+	the `lshift` and `rshift` operations in favor of `>>` and `<<` (which
+	use `word` for the shift amount).
+
+[2020-04-13]
+	Added more modes to the `ANSITerm` command set.  Specifically, we added
+	the `Default` color specifier and the styles `DIM`, `NORMAL`, `UL_OFF`,
+	`BLINK_OFF`, `REV_OFF`, and `INVIS_OFF`.
+
 [2020-04-13]
 	Made the `ControlUtil.Cvt.bool` converter case insensitive.  Also,
 	it now allows "yes"/"no" as values.
