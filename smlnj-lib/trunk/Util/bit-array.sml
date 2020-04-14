@@ -52,9 +52,9 @@ structure BitArray :> BIT_ARRAY =
           val maxLen = 8*Word8Array.maxLen
 		handle Overflow => Word8Array.maxLen (* would valOf Int.maxInt be better? *)
 
-          fun array (0,init) = BA{nbits=0,bits=W8A.array(0,0w0)}
-            | array (len,false) = BA{nbits=len,bits=W8A.array(sizeOf len,0w0)}
-            | array (len,true) = let
+          fun array (0, init) = BA{nbits=0,bits=W8A.array(0, 0w0)}
+            | array (len, false) = BA{nbits=len,bits=W8A.array(sizeOf len, 0w0)}
+            | array (len, true) = let
                 val sz = sizeOf len
                 val bits = W8A.array (sz, 0wxff)
                 in

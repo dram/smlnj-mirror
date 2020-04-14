@@ -6,9 +6,9 @@ SML/NJ 110.97
 -------------------
 
 [2020-04-14]
-	Update the `BitArray:BIT_ARRAY` and `BitVector:BIT_VECTOR` interfaces
-	to follow standard patterns (these interfaces were originally designed
-	before the SML Basis Library, so did not follow the conventions).
+	Updated the `BitArray:BIT_ARRAY` interface to follow standard patterns
+	(this interfaces was originally designed before the SML Basis Library,
+	so it did not follow the conventions).
 	The changes are to have the `fromString` function return `NONE`,
 	instead of raising an exception on bad input, and to use deprecate
 	the `lshift` and `rshift` operations in favor of `>>` and `<<` (which

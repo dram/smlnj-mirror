@@ -13,7 +13,6 @@ signature ARRAY_SORT
 signature ATOM
 signature BASE64
 signature BIT_ARRAY
-signature BIT_VECTOR
 signature CHAR_MAP
 signature DYNAMIC_ARRAY
 signature FIFO
@@ -63,9 +62,6 @@ structure AtomSet
 structure AtomTable
 structure Base64
 structure BitArray
-(****
-structure BitVector
-****)
 structure CharMap
 structure DynamicArray
 structure Fifo
@@ -149,10 +145,6 @@ binary-map-fn.sml
 binary-set-fn.sml
 bit-array-sig.sml
 bit-array.sml
-bit-vector-sig.sml
-(****
-bit-vector.sml
-****)
 bsearch-fn.sml
 char-map-sig.sml
 char-map.sml
