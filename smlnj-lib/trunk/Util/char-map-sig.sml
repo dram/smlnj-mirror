@@ -1,13 +1,9 @@
 (* char-map-sig.sml
  *
- * COPYRIGHT (c) 1994 by AT&T Bell Laboratories.  See COPYRIGHT file for details.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Fast, read-only, maps from characters to values.
- *
- * AUTHOR:  John Reppy
- *	    AT&T Bell Laboratories
- *	    Murray Hill, NJ 07974
- *	    jhr@research.att.com
  *)
 
 signature CHAR_MAP =

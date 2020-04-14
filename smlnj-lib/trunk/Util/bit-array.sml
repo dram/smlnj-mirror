@@ -210,7 +210,7 @@ structure BitArray :> BIT_ARRAY =
                       if nbits >= nbits'
                         then arg
                         else (ba',ba)
-                val (BA{nbits,bits},BA{bits=bits',nbits=nbits'}) = order arg
+                val (BA{nbits,bits}, BA{bits=bits',nbits=nbits'}) = order arg
                 val minlen = W8A.length bits'
                 fun iszero i = (bits sub i) = 0w0 andalso (iszero (i+1))
                 fun cmp i =
