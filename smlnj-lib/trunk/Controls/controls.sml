@@ -32,18 +32,20 @@ structure Controls : CONTROLS =
     fun stringControl {tyName, fromString, toString} (Ctl c) = let
 	  val {name, get, set, priority, obscurity, help} = c
 	  fun fromString' s = (case fromString s
-		 of NONE => raise ValueSyntax { tyName = tyName,
-						ctlName = Atom.toString name,
-						value = s }
+		 of NONE => raise ValueSyntax{
+			tyName = tyName, ctlName = Atom.toString name, value = s
+		      }
 		  | SOME v => v
 		(* end case *))
 	  in
-	    Ctl { name = name,
-		  get = toString o get,
-		  set = set o Option.map fromString',
-		  priority = priority,
-		  obscurity = obscurity,
-		  help = help }
+	    Ctl{
+		name = name,
+		get = toString o get,
+		set = set o Option.map fromString',
+		priority = priority,
+		obscurity = obscurity,
+		help = help
+	      }
 	  end
 
     fun name (Ctl{name, ...}) = Atom.toString name
