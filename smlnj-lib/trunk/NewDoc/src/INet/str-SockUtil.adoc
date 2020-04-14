@@ -7,7 +7,7 @@
 
 The `SockUtil` structure provides a collection of utility functions for
 programming with the *Basis Library*
-https://smlfamily.github.io/Basis/socket.html[`Socket`] structure
+{sml-basis-url}/socket.html[`Socket`] structure
 
 == Synopsis
 
@@ -110,5 +110,5 @@ val sendArr : ('a stream_sock * Word8Array.array) -> unit
 
 == See Also
 
-https://smlfamily.github.io/Basis/socket.html[`Socket` (*SML Basis*)],
+{sml-basis-url}/socket.html[`Socket` (*SML Basis*)],
 xref:inet-lib.adoc[__The INet Library__]

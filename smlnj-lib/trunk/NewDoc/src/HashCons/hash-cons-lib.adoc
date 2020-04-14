@@ -97,7 +97,7 @@ xref:fun-HashConsGroundFn.adoc[`[.kw]#functor# HashConsGroundFn`]::
 For https://smlnj.org[*SML/NJ*], include `$/hash-cons-lib.cm` in your
 *CM* file.
 
-For use in http://www.mlton.org/[*MLton*], include
+For use in https://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/HashCons/hash-cons-lib.mlb` in your *MLB* file.
 
 ifdef::backend-pdf[]

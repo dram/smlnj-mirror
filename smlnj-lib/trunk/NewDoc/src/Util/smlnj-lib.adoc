@@ -175,7 +175,7 @@ immediately available to interactive use in the *SML/NJ* REPL.
 For https://smlnj.org[*SML/NJ*], include `$/smlnj-lib.cm` in your
 *CM* file.
 
-For use in http://www.mlton.org/[*MLton*], include
+For use in https://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb` in your *MLB* file.
 
 ifdef::backend-pdf[]

@@ -5,7 +5,8 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `BSearchFn` functor ...
+The `BSearchFn` functor implements binary search on sorted monomorphic
+arrays.
 
 == Synopsis
 

@@ -38,5 +38,5 @@ val connectUnixStrm : string -> UnixSock.unix stream_sock
 == See Also
 
 xref:str-SockUtil.adoc[`SockUtil`],
-https://smlfamily.github.io/Basis/unix-sock.html#UnixSock:STR:SPEC[`UnixSock` (*SML Basis*)],
+{sml-basis-url}/unix-sock.html#UnixSock:STR:SPEC[`UnixSock` (*SML Basis*)],
 xref:inet-lib.adoc[__The INet Library__]

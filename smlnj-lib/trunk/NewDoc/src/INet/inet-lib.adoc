@@ -22,7 +22,7 @@ xref:str-SockUtil.adoc[`[.kw]#structure# UnixSockUtil`]::
 For https://smlnj.org[*SML/NJ*], include `$/inet-lib.cm` in your
 *CM* file.
 
-For use in http://www.mlton.org/[*MLton*], include
+For use in https://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/INet/inet-lib.mlb` in your *MLB* file.
 
 ifdef::backend-pdf[]

@@ -106,7 +106,7 @@ val controls : (registry * int option) -> registry_tree
 
 `[.kw]#val# init : registry \-> unit`::
   `init reg` uses the host process's environment (as accessed by the
-  https://smlfamily.github.io/Basis/os-process.html#SIG:OS_PROCESS.getEnv:VAL[`OS.Process.getEnv`]
+  {sml-basis-url}/os-process.html#SIG:OS_PROCESS.getEnv:VAL[`OS.Process.getEnv`]
   function) to initialize those controls that have associated environment-variables.
 
 `[.kw]#datatype# registry_tree = RTree of { ... }`::

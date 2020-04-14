@@ -22,7 +22,7 @@ xref:str-UnixPath.adoc[`[.kw]#structure# UnixPath`]::
 For https://smlnj.org[*SML/NJ*], include `$/unix-lib.cm` in your
 *CM* file.
 
-For use in http://www.mlton.org/[*MLton*], include
+For use in https://www.mlton.org/[*MLton*], include
 `$(SML_LIB)/smlnj-lib/Unix/unix-lib.mlb` in your *MLB* file.
 
 ifdef::backend-pdf[]
