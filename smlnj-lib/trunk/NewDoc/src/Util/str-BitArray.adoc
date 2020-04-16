@@ -8,13 +8,15 @@
 The `BitArray` structure provides a implementation of
 monomorphic arrays of booleans implemented one bit per
 element.  The `BitArray` structure extends the
-
+{sml-basis-url}/mono-array.html[`MONO_ARRAY`] signature
+with bit-level operations.
 
 == Synopsis
 
 [source,sml]
 ------------
-structure BitArray
+signature BIT_ARRAY
+structure BitArray :> BIT_ARRAY
 ------------
 
 == Interface
@@ -23,7 +25,7 @@ structure BitArray
 ------------
 include MONO_ARRAY
 
-val fromString : string -> array
+val fromString : string -> array option
 
 val bits : (int * int list) -> array
 
@@ -45,8 +47,8 @@ val xorb : (array * array * int) -> array
 
 val notb  : array -> array
 
-val lshift  : (array * int) -> array
-val rshift  : (array * int) -> array
+val <<  : (array * word) -> array
+val >>  : (array * word) -> array
 
 val setBit : (array * int) -> unit
 val clrBit : (array * int) -> unit
@@ -55,110 +57,154 @@ val union : array -> array -> unit
 val intersection : array -> array -> unit
 
 val complement : array -> unit
+
+val lshift  : (array * int) -> array
+val rshift  : (array * int) -> array
 ------------
 
 == Description
 
-    include MONO_ARRAY
+`[.kw]#include# {sml-basis-url}/mono-array.html[MONO_ARRAY]`::
+  The `BIT_ARRAY` signature extends the
+  {sml-basis-url}/mono-array.html[`MONO_ARRAY`] signature from
+  the *Standard ML Basis Library*.  Note that while the
+  `MONO_ARRAY` signature includes a corresponding monomorphic
+  `vector` type, there is currently no implementation of a
+  corresponding `BitVector` structure.
 
-    val fromString : string -> array
-      (* The string argument gives a hexadecimal
-       * representation of the bits set in the
-       * array. Characters 0-9, a-f and A-F are
-       * allowed. For example,
-       *  fromString "1af8" = 0001101011111000
-       *  (by convention, 0 corresponds to false and 1 corresponds
-       *  to true, bit 0 appears on the right,
-       *  and indices increase to the left)
-       * The length of the array will be 4*(size string).
-       * Raises LibBase.BadArg if a non-hexadecimal character
-       * appears in the string.
-       *)
+`[.kw]#val# fromString : string \-> array option`::
+  `fromString s` returns `SOME ba` when the string `s` is
+  a sequence of hexadecimal digits.  The length of `ba` will
+  be `4*(length s)`.  Returns `NONE` of a non-hexadecimal
+  character is encountered.
 
-    val bits : (int * int list) -> array
-      (* Create array of the given length with the indices of its set bits
-       * given by the list argument.
-       * Raises Subscript if a list item is < 0 or >= length.
-       *)
+`[.kw]#val# bits : (int * int list) \-> array`::
+  `bits (n, ixs)` returns a new array `ba` of length `n`, where
+  `ba[ix]` is `true` for each `ix` in the list of indices `ixs`.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Size:EXN:SPEC[`Size`]
+  exception if `n < 0` and the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Subscript:EXN:SPEC[`Subscript`]
+  exception if any index is out of bounds.
 
-    val getBits : array -> int list
-      (* Returns list of bits set in bit array, in increasing
-       * order of indices.
-       *)
+`[.kw]#val# getBits : array \-> int list`::
+  `getBits ba` returns a list of indices `ix` for which `ba[ix]` is true
+  in increasing order.
 
-    val toString : array -> string
-      (* Inverse of stringToBits.
-       * The bit array is zero-padded to the next
-       * length that is a multiple of 4.
-       *)
+`[.kw]#val# toString : array \-> string`::
+  `toString ba` returns a string representation of the array as a sequence
+  of hexadecimal digits in little-endian order (_i.e._, ba[0] is represented
+  as the high-order bit in the first digit).
 
-    val isZero  : array -> bool
-      (* Returns true if and only if no bits are set. *)
+`[.kw]#val# isZero  : array \-> bool`::
+  `isZero ba` returns true if, and only if, no elements are `true` in `ba`.
 
-    val extend0 : (array * int) -> array
-    val extend1 : (array * int) -> array
-      (* Extend bit array by 0's or 1's to given length.
-       * If bit array is already >= argument length, return a copy
-       * of the bit array.
-       * Raises Size if length < 0.
-       *)
+`[.kw]#val# extend0 : (array * int) \-> array`::
+  `extend0 (ba, n)` returns a new array ``ba'`` that is `max(n, length ba)`
+  elements long, where the `length ba` elements of ``ba'`` are copied from
+  `ba` and the remaining elements are `false`.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Size:EXN:SPEC[`Size`]
+  exception if `n < 0`.
 
-    val eqBits : (array * array) -> bool
-      (* true if set bits are identical *)
-    val equal : (array * array) -> bool
-      (* true if same length and same set bits *)
+`[.kw]#val# extend1 : (array * int) \-> array`::
+  `extend1 (ba, n)` returns a new array ``ba'`` that is `max(n, length ba)`
+  elements long, where the `length ba` elements of ``ba'`` are copied from
+  `ba` and the remaining elements are `true`.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Size:EXN:SPEC[`Size`]
+  exception if `n < 0`.
 
-    val andb : (array * array * int) -> array
-    val orb  : (array * array * int) -> array
-    val xorb : (array * array * int) -> array
-      (* Create new array of the given length
-       * by logically combining bits of original
-       * array using and, or and xor, respectively.
-       * If necessary, the array are
-       * implicitly extended by 0 to be the same length
-       * as the new array.
-       *)
+`[.kw]#val# eqBits : (array * array) \-> bool`::
+  `eqBits (ba1, ba2)` returns true if the two arrays have
+  the same `true` entries.   In other words, the following identity
+  holds
++
+[source,sml]
+------------
+eqBits(ba1, ba2) = (getBits ba1 = getBits ba2)
+------------
 
-    val notb  : array -> array
-      (* Create new array with all bits of original
-       * array inverted.
-       *)
+`[.kw]#val# equal : (array * array) \-> bool`::
+  `equal (ba1, ba2)` returns true if the two arrays are the same length
+  and have the same elements.
 
-    val lshift  : (array * int) -> array
-      (* lshift(ba,n) creates a new array by
-       * inserting n 0's on the right of ba.
-       * The new array has length n + length ba.
-       *)
+`[.kw]#val# andb : (array * array * int) \-> array`::
+  `andb (ba1, ba2, n)` returns a new array `ba` of length `n`,
+  where the element `ba[ix]` is the logical *AND* of `ba1[ix]`
+  and `ba2[ix]`, where the inputs are extended with `false` as
+  necessary.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Size:EXN:SPEC[`Size`]
+  exception if `n < 0`.
 
-    val rshift  : (array * int) -> array
-      (* rshift(ba,n) creates a new array of
-       * of length max(0,length ba - n) consisting
-       * of bits n,n+1,...,length ba - 1 of ba.
-       * If n >= length ba, the new arraarray has length 0.
-       *)
+`[.kw]#val# orb  : (array * array * int) \-> array`::
+  `orb (ba1, ba2, n)` returns a new array `ba` of length `n`,
+  where the element `ba[ix]` is the logical *OR* of `ba1[ix]`
+  and `ba2[ix]`, where the inputs are extended with `false` as
+  necessary.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Size:EXN:SPEC[`Size`]
+  exception if `n < 0`.
 
-  (* mutable operations for array *)
+`[.kw]#val# xorb : (array * array * int) \-> array`::
+  `xorb (ba1, ba2, n)` returns a new array `ba` of length `n`,
+  where the element `ba[ix]` is the logical *XOR* of `ba1[ix]`
+  and `ba2[ix]`, where the inputs are extended with `false` as
+  necessary.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Size:EXN:SPEC[`Size`]
+  exception if `n < 0`.
 
-    val setBit : (array * int) -> unit
-    val clrBit : (array * int) -> unit
-      (* Update value at given index to new value.
-       * Raises Subscript if index < 0 or >= length.
-       * setBit(ba,i) = update(ba,i,true)
-       * clrBit(ba,i) = update(ba,i,false)
-       *)
+`[.kw]#val# notb  : array \-> array`::
+  `notb ba` returns a new array of the same length as `ba` with
+  the elements negated.
 
-    val union : array -> array -> unit
-    val intersection : array -> array -> unit
-      (* Or (and) second bitarray into the first. Second is
-       * implicitly truncated or extended by 0's to match
-       * the length of the first.
-       *)
+`[.kw]#val# <<  : (array * word) \-> array`::
+  `<< (ba, n)`returns a new array by appending `n` `false`
+  elements on the end of `ba`.  The new array will have
+  length equal to `n + length ba`.
 
-    val complement : array -> unit
-      (* Invert all bits. *)
+`[.kw]#val# >>  : (array * word) \-> array`::
+  `>> (ba, n)`returns a new array by trimming `n` elements
+  from the "right" of `ba`.  The new array will have
+  `max(0, length ba - n)` elements.
+
+`[.kw]#val# setBit : (array * int) \-> unit`::
+  `setBit (ba, ix)` sets the element of `ba` at index `ix` to `true`.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Subscript:EXN:SPEC[`Subscript`]
+  exception if `ix` is out of bounds.
+
+`[.kw]#val# clrBit : (array * int) \-> unit`::
+  `setBit (ba, ix)` sets the element of `ba` at index `ix` to `false`.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Subscript:EXN:SPEC[`Subscript`]
+  exception if `ix` is out of bounds.
+
+`[.kw]#val# union : array \-> array \-> unit`::
+  `union ba1 ba2` updates `ba1` by setting each element `ba1[ix]` to
+  the logical *OR* of `ba1[ix]` and `ba2[ix]`, where `ba2[ix]` is
+  extended with `false` elements as necessary to match the length of `ba1`.
+
+`[.kw]#val# intersection : array \-> array \-> unit`::
+  `intersection ba1 ba2` updates `ba1` by setting each element `ba1[ix]` to
+  the logical *AND* of `ba1[ix]` and `ba2[ix]`, where `ba2[ix]` is
+  extended with `false` elements as necessary to match the length of `ba1`.
+
+`[.kw]#val# complement : array \-> unit`::
+  `complement ba` logically negates all of the elements of `ba`.
+
+=== Deprecated Functions
+
+`[.kw]#val# lshift  : (array * int) \-> array`::
+    Use xref:#val:<<[`<<`] instead.
+
+`[.kw]#val# rshift  : (array * int) \-> array`::
+    Use xref:#val:>>[`>>`] instead.
 
 == See Also
 
 xref:str-BitVector.adoc[`BitVector`],
-{sml-basis-url}/mono-array.html
+{sml-basis-url}/mono-array.html[`MONO_ARRAY`],
 xref:smlnj-lib.adoc[__The Util Library__]

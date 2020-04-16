@@ -8,7 +8,9 @@
 == Overview
 
 The *Util Library* provides a large collection of utility data structures
-and algorithms.  It is the core library in the *SML/NJ Library* suite.
+and algorithms.  It is the core library in the *SML/NJ Library* suite
+and dates back to the early 1990's, where it was created as part of
+the *eXene* *X11* toolkit.
 
 == Contents
 
@@ -24,28 +26,29 @@ xref:str-Base64.adoc[`[.kw]#structure# Base64`]::
   by https://www.ietf.org/rfc/rfc4648.txt[RFC 4648].
 
 xref:str-BitArray.adoc[`[.kw]#structure# BitArray`]::
-  something
-
-xref:str-BitVector.adoc[`[.kw]#structure# BitVector`]::
-  something
+  Provides mutable arrays of booleans represented by one bit per element.
 
 xref:fun-BSearchFn.adoc[`[.kw]#functor# BSearchFn`]::
-  something
+  Provides binary search on sorted monomorphic arrays.
 
 xref:str-CharMap.adoc[`[.kw]#structure# CharMap`]::
-  something
+  Provides fast, read-only, maps from 8-bit characters to values.
 
 xref:str-DynamicArray.adoc[`[.kw]#structure# DynamicArray`]::
-  something
+  Provides dynamically sized polymorphic arrays.
 
 xref:str-Fifo.adoc[`[.kw]#structure# Fifo`]::
-  something
+  Provides a functional queue data structure.
 
 xref:str-FNVHash.adoc[`[.kw]#structure# FNVHash`]::
-  something
+  Provides an implementation of the
+  https://en.wikipedia.org/wiki/Fowler–Noll–Vo_hash_function[__Fowler-Noll-Vo__]
+  hashing algorithm.
 
 xref:str-Format.adoc[`[.kw]#structure# Format`]::
-  something
+  Provides `printf`-style string formatting.
+
+// 10
 
 xref:str-FormatComb.adoc[`[.kw]#structure# FormatComb`]::
   something
@@ -77,6 +80,8 @@ xref:fun-Hash2TableFn.adoc[`[.kw]#functor# Hash2TableFn`]::
 xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
   something
 
+// 20
+
 xref:str-IOUtil.adoc[`[.kw]#structure# IOUtil`]::
   something
 
@@ -106,6 +111,8 @@ xref:sig-MONO_ARRAY_SORT.adoc[`[.kw]#signature# MONO_ARRAY_SORT`]::
 
 xref:sig-MONO_DYNAMIC_ARRAY.adoc[`[.kw]#signature# MONO_DYNAMIC_ARRAY`]::
   something
+
+// 30
 
 xref:sig-MONO_HASH_TABLE.adoc[`[.kw]#signature# MONO_HASH_TABLE`]::
   something
@@ -137,6 +144,8 @@ xref:sig-PRIORITY.adoc[`[.kw]#signature# PRIORITY`]::
 xref:str-PropList.adoc[`[.kw]#structure# PropList`]::
   something
 
+// 40
+
 xref:str-Queue.adoc[`[.kw]#structure# Queue`]::
   something
 
@@ -166,6 +175,8 @@ xref:sig-UREF.adoc[`[.kw]#signature# UREF`]::
 
 xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
   something
+
+// 50
 
 == Usage
 
@@ -284,7 +295,6 @@ include::fun-IntervalSetFn.adoc[]
 include::fun-KeywordFn.adoc[]
 
 include::fun-MonoArrayFn.adoc[]
-
 
 // Return to normal title levels.
 :leveloffset: 0
