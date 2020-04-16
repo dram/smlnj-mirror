@@ -5,6 +5,10 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-16]
+	Renamed the `HASH_SET` signature to `MONO_HASH_SET`, which is
+	the correct name given the naming conventions.
+
 [2020-04-14]
 	Added the `fromVector`a, `toList`, and `toVector` functions to
 	the `DynamicArray:DYNAMIC_ARRAY` interface.
