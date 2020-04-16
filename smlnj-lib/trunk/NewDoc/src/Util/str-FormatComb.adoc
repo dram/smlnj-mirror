@@ -5,7 +5,38 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `FormatComb` structure ...
+The `FormatComb` structure provides weel-typed formating (or _unparsing_)
+combinators in the style of Olivier Danvy's "Functional Unparsing" work.
+
+The idea is to use combinators for constructing something akin to
+the format string of *C*'s `printf` function.  The difference is, however,
+that our formats are not strings.  Instead, format( fragment)s have
+meaningful types, and passing them to the `format` function results
+in a curried function whose arguments have precisely the types that
+correspond to argument-consuming parts of the format.  (Such
+argument-consuming parts are similar to the conversion-specifications
+the xref:str-Format.adoc[`Format`] structure.
+
+There is an underlying notion of "abstract formats" of type `'a format`,
+but the user operates at the level of "format fragments," which
+have type `('a, 'b) fragment` and are typically polymorphic
+in ``'a`` (where ``'b`` is instantiated to some type containing ``'a``).
+Fragments are functions from formats to formats and can be composed
+freely using the infix function-composition operator (`o`).  This
+form of format composition translates to a corresponding concatenation
+of the resulting output.
+
+Fragments are composed from two kids of primitve fragments called
+_elements_ and _glue_, respectively.  An element is a fragment that
+consumes some argument (which thanks to the typing magic appears as a
+curried argument when the format gets executed).  Glue are fragments
+that do not consume arguments but merely insert fixed text (fixed
+at format construction time) into the output.
+
+There are also adjustment operations that pad, trim, or fit the output
+of entire fragments (primitive or not) to a given size.
+
+Matthias Blume wrote the code for this module.
 
 == Synopsis
 
@@ -18,16 +49,243 @@ structure FormatComb
 
 [source,sml]
 ------------
+type 'a format
+type ('a, 'b) fragment = 'a format -> 'b format
+
+type 'a glue = ('a, 'a) fragment
+type ('a, 't) element = ('a, 't -> 'a) fragment
+type 'a gg
+
+val format  : (string, 'a) fragment -> 'a
+
+val format' : (string list -> 'b) -> ('b, 'a) fragment -> 'a
+
+val using : ('t -> string) -> ('a, 't) element
+
+val int     : ('a, int) element
+val real    : ('a, real) element
+val bool    : ('a, bool) element
+val string  : ('a, string) element
+val string' : ('a, string) element
+val char    : ('a, char) element
+val char'   : ('a, char) element
+
+val int'  : StringCvt.radix   -> ('a, int) element
+val real' : StringCvt.realfmt -> ('a, real) element
+
+val list   : ('a, 'x) element -> ('a, 'x list) element
+val option : ('a, 'x) element -> ('a, 'x option) element
+val seq    : (('x * 'a gg -> 'a gg) -> 'a gg -> 's -> 'a gg) -> (* foldr *)
+	     'a glue ->
+	     ('a, 'x) element -> ('a, 's) element
+
+val glue : ('a, 't) element -> 't -> 'a glue
+
+val elem : ('t -> 'a glue) -> ('a, 't) element
+
+val nothing :           'a glue
+val text    : string -> 'a glue
+val sp      : int ->    'a glue
+val nl      :           'a glue
+val tab     :           'a glue
+
+val listg   : ('t -> 'a glue) -> ('t list -> 'a glue)
+val optiong : ('t -> 'a glue) -> ('t option -> 'a glue)
+
+val seqg   : (('x * 'a gg -> 'a gg) -> 'a gg -> 's -> 'a gg) -> (* foldr *)
+	     'a glue ->
+	     ('x -> 'a glue) ->
+	     's -> 'a glue
+
+type place
+val left   : place
+val center : place
+val right  : place
+
+val pad  : place -> int -> ('a, 't) fragment -> ('a, 't) fragment
+val trim : place -> int -> ('a, 't) fragment -> ('a, 't) fragment
+val fit  : place -> int -> ('a, 't) fragment -> ('a, 't) fragment
+
+val padl : int -> ('a, 't) fragment -> ('a, 't) fragment
+val padr : int -> ('a, 't) fragment -> ('a, 't) fragment
 ------------
 
 == Description
 
-`[.kw]#type# foo`::
+ (* We reveal "fragments" to be functions from abstract formats
+  * to abstract formats.  This is to make sure we can use function
+  * composition on them.
+  *)
+`[.kw]#type# 'a format`::
   something
 
-`[.kw]#val# bar : foo -> foo`::
+`[.kw]#type# ('a, 'b) fragment = 'a format \-> 'b format`::
   something
+
+  (* Two primitive kinds of fragments:  Glue inserts some text
+   * into the output without consuming an argument.  Elements
+   * insert text corresponding to some (curried) argument into
+   * the output:
+   *)
+`[.kw]#type# 'a glue          = ('a, 'a) fragment`::
+  something
+
+`[.kw]#type# ('a, 't) element = ('a, 't \-> 'a) fragment`::
+  something
+
+`[.kw]#type# 'a gg			(* abstract helper type *)`::
+  something
+
+  (* Format execution... *)
+  (*  1. Simple version, produce final result as a string: *)
+`[.kw]#val# format  : (string, 'a) fragment \-> 'a`::
+  something
+
+  (*  2. Complex version, take a receiver function that will
+   *     be invoked with the final result.  The result is
+   *     still in non-concatenated form at this time.
+   *     (Internally, the combinators avoid string concatenation
+   *      as long as there is no padding/trimming/fitting going on.)
+   *)
+`[.kw]#val# format' : (string list \-> 'b) \-> ('b, 'a) fragment \-> 'a`::
+  something
+
+  (* Make a type-specific element given a toString function for this type *)
+`[.kw]#val# using : ('t \-> string) \-> ('a, 't) element`::
+  something
+
+  (* Instantiate 'using' for a few types... *)
+`[.kw]#val# int     : ('a, int) element	(* using Int.toString *)`::
+  something
+
+`[.kw]#val# real    : ('a, real) element	(* using Real.toString *)`::
+  something
+
+`[.kw]#val# bool    : ('a, bool) element	(* using Bool.toString *)`::
+  something
+
+`[.kw]#val# string  : ('a, string) element	(* using (fn x => x) *)`::
+  something
+
+`[.kw]#val# string' : ('a, string) element	(* using String.toString *)`::
+  something
+
+`[.kw]#val# char    : ('a, char) element	(* using String.str *)`::
+  something
+
+`[.kw]#val# char'   : ('a, char) element	(* using Char.toString *)`::
+  something
+
+  (* Parameterized elements... *)
+`[.kw]#val# int'  : StringCvt.radix   \-> ('a, int) element  (* using (Int.fmt r) *)`::
+  something
+
+`[.kw]#val# real' : StringCvt.realfmt \-> ('a, real) element	(* using(Real.fmt f) *)`::
+  something
+
+  (* "polymorphic" elements *)
+`[.kw]#val# list   : ('a, 'x) element \-> ('a, 'x list) element (* "[", ", ", "]" *)`::
+  something
+
+`[.kw]#val# option : ('a, 'x) element \-> ('a, 'x option) element`::
+  something
+
+`[.kw]#val# seq    : (('x * 'a gg \-> 'a gg) \-> 'a gg \-> 's \-> 'a gg) \-> (* foldr *)`::
+  something
+		 'a glue \->	(* separator *)
+		 ('a, 'x) element \-> ('a, 's) element
+
+  (* Generic "gluifier". *)
+`[.kw]#val# glue : ('a, 't) element \-> 't \-> 'a glue`::
+  something
+
+  (* Inverse -- useful for writing extensions *)
+`[.kw]#val# elem : ('t \-> 'a glue) \-> ('a, 't) element`::
+  something
+
+  (* Other glue... *)
+`[.kw]#val# nothing :           'a glue	(* null glue *)`::
+  something
+
+`[.kw]#val# text    : string \-> 'a glue	(* constant text glue *)`::
+  something
+
+`[.kw]#val# sp      : int \->    'a glue	(* n spaces glue *)`::
+  something
+
+`[.kw]#val# nl      :           'a glue	(* newline glue *)`::
+  something
+
+`[.kw]#val# tab     :           'a glue	(* tabulator glue *)`::
+  something
+
+  (* glue generator constructors *)
+`[.kw]#val# listg   : ('t \-> 'a glue) \-> ('t list \-> 'a glue)`::
+  something
+
+`[.kw]#val# optiong : ('t \-> 'a glue) \-> ('t option \-> 'a glue)`::
+  something
+
+`[.kw]#val# seqg   : (('x * 'a gg \-> 'a gg) \-> 'a gg \-> 's \-> 'a gg) \-> (* foldr *)`::
+  something
+		 'a glue \->	    (* separator *)
+		 ('x \-> 'a glue) \->  (* glue maker *)
+		 's \-> 'a glue	    (* glue maker for container *)
+
+
+  (* "Places" say which side of a string to pad or trim... *)
+`[.kw]#type# place`::
+  something
+
+`[.kw]#val# left   : place`::
+  something
+
+`[.kw]#val# center : place`::
+  something
+
+`[.kw]#val# right  : place`::
+  something
+
+  (* Pad, trim, or fit to size n the output corresponding to
+   * a format fragment:
+   *)
+`[.kw]#val# pad  : place \-> int \-> ('a, 't) fragment \-> ('a, 't) fragment`::
+  something
+
+`[.kw]#val# trim : place \-> int \-> ('a, 't) fragment \-> ('a, 't) fragment`::
+  something
+
+`[.kw]#val# fit  : place \-> int \-> ('a, 't) fragment \-> ('a, 't) fragment`::
+  something
+
+  (* specialized padding (left and right) *)
+`[.kw]#val# padl : int \-> ('a, 't) fragment \-> ('a, 't) fragment`::
+  something
+
+`[.kw]#val# padr : int \-> ('a, 't) fragment \-> ('a, 't) fragment`::
+  something
+
+== Examples
+
+Here are examples on how to use this facility.
+
+[source,sml]
+------------
+format nothing          (* ==> "" *)
+format int 1234         (* ==> "1234" *)
+
+format (text "The square of " o int o text " is " o int o text ".") 2 4
+                        (* ==> "The square of 2 is 4." *)
+
+format (int o bool o char) 1 true #"x"
+                        (* ==> "1truex"
+
+format (glue string "glue vs. " o string o glue int 42 o sp 5 o int)
+       "ordinary text " 17
+                        (* ==> "glue vs. ordinary text 42     17"
+------------
 
 == See Also
 
+xref:str-Format.adoc[`Format`],
 xref:smlnj-lib.adoc[__The Util Library__]

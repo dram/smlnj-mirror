@@ -5,7 +5,11 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `GetOpt` structure ...
+The `GetOpt` structure provides command-line option processing similar
+to the GNU *getopt* library.
+
+This implementation was ported from Sven Panne's Haskell implementation
+by Riccardo Pucella and has then been updated in various ways.
 
 == Synopsis
 
@@ -18,16 +22,112 @@ structure GetOpt
 
 [source,sml]
 ------------
+      datatype 'a arg_order
+        = RequireOrder
+        | Permute
+        | ReturnInOrder of string -> 'a
+      (* What to do with options following non-options:
+       * RequireOrder: no option processing after first non-option
+       * Permute: freely intersperse options and non-options
+       * ReturnInOrder: wrap non-options into options
+       *)
+
+      datatype 'a arg_descr
+        = NoArg of unit -> 'a
+        | ReqArg of (string -> 'a) * string
+        | OptArg of (string option -> 'a) * string
+      (* Description of an argument option:
+       * NoArg: no argument required
+       * ReqArg: option requires an argument; the string is the argument name
+       * OptArg: optional argument; the string is the argument name
+       *)
+
+      type 'a opt_descr = {
+          short : string,
+          long : string list,
+          desc : 'a arg_descr,
+          help : string
+        }
+      (* Description of a single option *)
+
+      val usageInfo : {
+	      header : string,
+	      options : 'a opt_descr list
+	    } -> string
+      (* takes a header string and a list of option descriptions and
+       * returns a string explaining the usage information.  A newline will
+       * be added following the header, so it should not be newline terminated.
+       *)
+
+      val getOpt : {
+	      argOrder : 'a arg_order,
+	      options : 'a opt_descr list,
+	      errFn : string -> unit
+	    } -> string list -> ('a list * string list)
+      (* takes as argument an arg_order to specify the non-options
+       * handling, a list of option descriptions, an error callback,
+       * and a command line containing the options and arguments,
+       * and returns a list of (options, non-options)
+       *)
 ------------
 
 == Description
 
-`[.kw]#type# foo`::
+`[.kw]#datatype# 'a arg_order`::
   something
+        = RequireOrder
+        | Permute
+        | ReturnInOrder of string \-> 'a
+      (* What to do with options following non-options:
+       * RequireOrder: no option processing after first non-option
+       * Permute: freely intersperse options and non-options
+       * ReturnInOrder: wrap non-options into options
+       *)
 
-`[.kw]#val# bar : foo -> foo`::
+`[.kw]#datatype# 'a arg_descr`::
   something
+        = NoArg of unit \-> 'a
+        | ReqArg of (string \-> 'a) * string
+        | OptArg of (string option \-> 'a) * string
+      (* Description of an argument option:
+       * NoArg: no argument required
+       * ReqArg: option requires an argument; the string is the argument name
+       * OptArg: optional argument; the string is the argument name
+       *)
+
+`[.kw]#type# 'a opt_descr = {`::
+  something
+          short : string,
+          long : string list,
+          desc : 'a arg_descr,
+          help : string
+        }
+      (* Description of a single option *)
+
+`[.kw]#val# usageInfo : {`::
+  something
+	      header : string,
+	      options : 'a opt_descr list
+	    } \-> string
+      (* takes a header string and a list of option descriptions and
+       * returns a string explaining the usage information.  A newline will
+       * be added following the header, so it should not be newline terminated.
+       *)
+
+`[.kw]#val# getOpt : {`::
+  something
+	      argOrder : 'a arg_order,
+	      options : 'a opt_descr list,
+	      errFn : string \-> unit
+	    } \-> string list \-> ('a list * string list)
+      (* takes as argument an arg_order to specify the non-options
+       * handling, a list of option descriptions, an error callback,
+       * and a command line containing the options and arguments,
+       * and returns a list of (options, non-options)
+       *)
 
 == See Also
 
+xref:../Controls/str-ControlUtil.adoc[`Controls`],
+xref:../Controls/controls-lib.adoc[__The Controls Library__],
 xref:smlnj-lib.adoc[__The Util Library__]

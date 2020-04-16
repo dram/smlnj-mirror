@@ -53,14 +53,15 @@ xref:str-Format.adoc[`[.kw]#structure# Format`]::
 xref:str-FormatComb.adoc[`[.kw]#structure# FormatComb`]::
   something
 
+xref:str-GetOpt.adoc[`[.kw]#structure# GetOpt`]::
+  something
+
 xref:fun-GraphSCCFn.adoc[`[.kw]#functor# GraphSCCFn`]::
   something
 
 xref:sig-HASH_KEY.adoc[`[.kw]#signature# HASH_KEY`]::
-  something
-
-xref:sig-HASH_SET.adoc[`[.kw]#signature# HASH_SET`]::
-  something
+  Defines an interface to a monomorphic type with an equality
+  test and hashing function.
 
 xref:fun-HashSetFn.adoc[`[.kw]#functor# HashSetFn`]::
   something
@@ -85,9 +86,6 @@ xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
 xref:str-IOUtil.adoc[`[.kw]#structure# IOUtil`]::
   something
 
-xref:str-GetOpt.adoc[`[.kw]#structure# GetOpt`]::
-  something
-
 xref:fun-KeywordFn.adoc[`[.kw]#functor# KeywordFn`]::
   something
 
@@ -110,6 +108,9 @@ xref:sig-MONO_ARRAY_SORT.adoc[`[.kw]#signature# MONO_ARRAY_SORT`]::
   something
 
 xref:sig-MONO_DYNAMIC_ARRAY.adoc[`[.kw]#signature# MONO_DYNAMIC_ARRAY`]::
+  something
+
+xref:sig-MONO_HASH_SET.adoc[`[.kw]#signature# MONO_HASH_SET`]::
   something
 
 // 30
