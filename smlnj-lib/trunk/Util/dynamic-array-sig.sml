@@ -1,6 +1,6 @@
 (* dynamic-array-sig.sml
  *
- * COPYRIGHT (c) 2009 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Signature for unbounded polymorphic arrays.
@@ -18,19 +18,30 @@ signature DYNAMIC_ARRAY =
        *)
 
     val subArray : ('a array * int * int) -> 'a array
-      (* subArray (a,lo,hi) creates a new array with the same default
-       * as a, and whose values in the range [0,hi-lo] are equal to
-       * the values in b in the range [lo, hi].
+      (* `subArray (a,lo,hi)` creates a new array with the same default
+       * as `a`, and whose values in the range [0,hi-lo] are equal to
+       * the values in `a` in the range [lo, hi].
        * Raises Size if lo > hi
        *)
 
     val fromList : 'a list * 'a -> 'a array
-      (* arrayoflist (l, v) creates an array using the list of values l
+      (* fromList (l, v) creates an array using the list of values l
        * plus the default value v.
        *)
 
+    val fromVector : 'a Vector.vector * 'a -> 'a array
+      (* fromVector (vec, dflt) creates an array using the vector of values vec
+       * plus the default value dflt.
+       *)
+
+    val toList : 'a array -> 'a list
+      (* return the array's contents as a list *)
+
+    val toVector : 'a array -> 'a vector
+      (* return the array's contents as a vector *)
+
     val tabulate: (int * (int -> 'a) * 'a) -> 'a array
-      (* tabulate (sz,fill,dflt) acts like Array.tabulate, plus 
+      (* tabulate (sz,fill,dflt) acts like Array.tabulate, plus
        * stores default value dflt.  Raises Size if sz < 0.
        *)
 
@@ -44,20 +55,17 @@ signature DYNAMIC_ARRAY =
        *)
 
     val update : ('a array * int * 'a) -> unit
-      (* update (a,idx,v) sets the value at index idx of the array to v. 
+      (* update (a,idx,v) sets the value at index idx of the array to v.
        * Raises Subscript if idx < 0
        *)
 
     val bound : 'a array -> int
       (* bound returns an upper bound on the index of values that have been
-       * changed.
+       * changed; i.e., values at indices above the bound are the default.
        *)
 
     val truncate : ('a array * int) -> unit
       (* truncate (a,sz) makes every entry with index > sz the default value *)
-
-    val vector : 'a array -> 'a vector
-      (* return the array's contents as a vector *)
 
   (* standard array iterators *)
     val appi : (int * 'a -> unit) -> 'a array -> unit
@@ -78,6 +86,11 @@ signature DYNAMIC_ARRAY =
     val copy : {di:int, dst:'a array, src:'a array} -> unit
     val copyVec : {di:int, dst:'a array, src:'a vector} -> unit
 *)
+
+    val vector : 'a array -> 'a vector
+      (* return the array's contents as a vector.
+       * Note: this function is DEPRECATED in favor of toVector.
+       *)
 
   end (* DYNAMIC_ARRAY *)
 

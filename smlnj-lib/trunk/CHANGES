@@ -6,6 +6,10 @@ SML/NJ 110.97
 -------------------
 
 [2020-04-14]
+	Added the `fromVector`a, `toList`, and `toVector` functions to
+	the `DynamicArray:DYNAMIC_ARRAY` interface.
+
+[2020-04-14]
 	Updated the `BitArray:BIT_ARRAY` interface to follow standard patterns
 	(this interfaces was originally designed before the SML Basis Library,
 	so it did not follow the conventions).

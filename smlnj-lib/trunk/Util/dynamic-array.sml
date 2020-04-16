@@ -1,6 +1,6 @@
 (* dynamic-array.sml
  *
- * COPYRIGHT (c) 2009 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Polymorhic arrays of unbounded length
@@ -14,10 +14,10 @@ structure DynamicArray :> DYNAMIC_ARRAY =
   (* BLOCK(arr, dflt, bnd):
    *	arr	- current data store; is at least !bnd+1 elements
    *	dflt	- default value
-   *	bnd	- values at !bnd and above are default for reading
+   *	bnd	- values at indices above !bnd are default for reading
    *)
     datatype 'a array = BLOCK of ('a A.array ref * 'a * int ref)
- 
+
     exception Subscript = General.Subscript
     exception Size = General.Size
 
@@ -32,7 +32,25 @@ structure DynamicArray :> DYNAMIC_ARRAY =
 	    BLOCK(ref arr, dflt, ref(A.length arr - 1))
 	  end
 
-  (* tabulate (sz,fill,dflt) acts like Array.tabulate, plus 
+    fun toList (BLOCK(ref arr, _, bnd)) = let
+	  val len = !bnd + 1
+	  in
+	    List.tabulate (len, fn i => Array.sub(arr, i))
+	  end
+
+    fun fromVector (vec, dflt) = let
+	  val arr = A.fromVector vec
+	  in
+	    BLOCK(ref arr, dflt, ref(Vector.length vec - 1))
+	  end
+
+    fun toVector (BLOCK(ref arr, _, bnd)) = let
+	  val len = !bnd + 1
+	  in
+	    ArraySlice.vector (ArraySlice.slice(arr, 0, SOME len))
+	  end
+
+  (* tabulate (sz,fill,dflt) acts like Array.tabulate, plus
    * stores default value dflt.  Raises Size if sz < 0.
    *)
     fun tabulate (sz, fillFn, dflt) =
@@ -45,7 +63,7 @@ structure DynamicArray :> DYNAMIC_ARRAY =
           in
             if hi <= bnd
               then BLOCK(ref(A.tabulate(hi-lo, copy)), dflt, ref(hi-lo))
-            else if lo <= bnd 
+            else if lo <= bnd
               then BLOCK(ref(A.tabulate(bnd-lo, copy)), dflt, ref(bnd-lo))
             else
               array(0, dflt)
@@ -53,7 +71,7 @@ structure DynamicArray :> DYNAMIC_ARRAY =
 
     fun default (BLOCK(_, dflt, _)) = dflt
 
-    fun sub (BLOCK(arr, dflt, _), idx) = (A.sub(!arr, idx)) 
+    fun sub (BLOCK(arr, dflt, _), idx) = (A.sub(!arr, idx))
           handle Subscript => if idx < 0 then raise Subscript else dflt
 
     fun bound (BLOCK(_, _, bnd)) = (!bnd)
@@ -64,11 +82,11 @@ structure DynamicArray :> DYNAMIC_ARRAY =
             A.tabulate(newlen, fillfn)
           end
 
-    fun update (BLOCK(arr, dflt, bnd), idx, v) = let 
+    fun update (BLOCK(arr, dflt, bnd), idx, v) = let
           val len = A.length (!arr)
           in
-            if idx >= len 
-              then arr := expand(!arr, len, Int.max(len+len,idx+1), dflt) 
+            if idx >= len
+              then arr := expand(!arr, len, Int.max(len+len,idx+1), dflt)
               else ();
             A.update(!arr,idx,v);
             if idx > !bnd then bnd := idx else ()

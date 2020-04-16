@@ -55,9 +55,7 @@ structure Format : FORMAT =
       | intToStr (PosInt i) = LargeInt.toString i
     fun intToHex MaxInt = maxInt16
       | intToHex (PosInt i) = LargeInt.fmt SC.HEX i
-    fun intToHeX i =
-	  String.implode (
-	    CharVector.foldr (fn (c, l) => Char.toUpper c :: l) [] (intToHex i))
+    fun intToHeX i = String.map Char.toUpper (intToHex i)
     end (* local *)
 
   (* word to string conversions *)
@@ -142,7 +140,7 @@ structure Format : FORMAT =
 		fun hexidecimal i = let
 		      val (sign, i) = doSign i
 		      val sign = if (#base flags) then sign^"0x" else sign
-		      val s = intToHex i 
+		      val s = intToHex i
 		      in
 		        if (#zero_pad flags)
 			  then sign ^ zeroPadFn(sign, s)
@@ -151,7 +149,7 @@ structure Format : FORMAT =
 	        fun capHexidecimal i = let
 		      val (sign, i) = doSign i
 		      val sign = if (#base flags) then sign^"0X" else sign
-		      val s = intToHeX i 
+		      val s = intToHeX i
 		      in
 		        if (#zero_pad flags)
 			  then sign ^ zeroPadFn(sign, s)
@@ -183,7 +181,7 @@ structure Format : FORMAT =
 		fun hexidecimalW i = let
 		      val sign = doWordSign ()
 		      val sign = if (#base flags) then sign^"0x" else sign
-		      val s = wordToHex i 
+		      val s = wordToHex i
 		      in
 		        if (#zero_pad flags)
 			  then sign ^ zeroPadFn(sign, s)
@@ -192,7 +190,7 @@ structure Format : FORMAT =
 	        fun capHexidecimalW i = let
 		      val sign = doWordSign ()
 		      val sign = if (#base flags) then sign^"0X" else sign
-		      val s = wordToHeX i 
+		      val s = wordToHeX i
 		      in
 		        if (#zero_pad flags)
 			  then sign ^ zeroPadFn(sign, s)
@@ -278,16 +276,10 @@ structure Format : FORMAT =
 			else if Real.==(Real.posInf, r)
 			  then doRealSign false ^ "inf"
 			  else "nan"
-		    | (_, LEFT(w, arg)) => let
-		        val flags = {
-			        sign = (#sign flags), neg_char = (#neg_char flags),
-			        zero_pad = (#zero_pad flags), base = (#base flags),
-			        ljust = true, large = false
-			      }
-		        in
-			  doField (flags, Wid w, ty, arg)
-		        end
-		    | (_, RIGHT(w, arg)) => doField (flags, Wid w, ty, arg)
+		    | (_, LEFT(w, arg)) =>
+			StringCvt.padLeft #" " w (doField (flags, wid, ty, arg))
+		    | (_, RIGHT(w, arg)) =>
+			StringCvt.padRight #" " w (doField (flags, Wid w, ty, arg))
 		    | _ => raise BadFmtList
 		  (* end case *)
 		end
