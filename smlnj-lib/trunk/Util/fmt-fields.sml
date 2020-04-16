@@ -21,7 +21,6 @@ structure FmtFields : sig
 	neg_char : neg_sign,
 	zero_pad : bool,
 	base : bool,
-	ljust : bool,
 	large : bool
       }
 
@@ -85,7 +84,6 @@ structure FmtFields : sig
 	neg_char : neg_sign,
 	zero_pad : bool,
 	base : bool,
-	ljust : bool,
 	large : bool
       }
 
@@ -103,7 +101,7 @@ structure FmtFields : sig
       | CapHexField
       | CharField
       | BoolField
-      | StrField
+      | StrField of int option
       | RealField of {prec : int, format : real_format}
 
     datatype fmt_spec
@@ -139,55 +137,55 @@ structure FmtFields : sig
     fun scanFieldSpec fmtStr = let
 	  val (fmtStr, flags) = let
 		fun doFlags (ss, flags : field_flags) = (
-print(concat["doFlags: ss = \"", String.toString(SS.string ss), "\"\n"]);
 		      case (SS.getc ss, flags)
-		       of (SOME(#" ", ss'), {sign=AlwaysSign, ...}) =>
+		       of (SOME(#" ", _), {sign=AlwaysSign, ...}) =>
 			    raise BadFormat
 			| (SOME(#" ", ss'), _) =>
 			    doFlags (ss', {
 				sign = BlankSign, neg_char = #neg_char flags,
 				zero_pad = #zero_pad flags, base = #base flags,
-				ljust = #ljust flags, large = #large flags
+				large = #large flags
 			      })
-			| (SOME(#"+", ss'), {sign=BlankSign, ...}) =>
+			| (SOME(#"+", _), {sign=BlankSign, ...}) =>
 			    raise BadFormat
 			| (SOME(#"+", ss'), _) =>
 			    doFlags (ss', {
 				sign = AlwaysSign, neg_char = #neg_char flags,
 				zero_pad = #zero_pad flags, base = #base flags,
-				ljust = #ljust flags, large = #large flags
+				large = #large flags
 			      })
 			| (SOME(#"~", ss'), _) =>
 			    doFlags (ss', {
 				sign = #sign flags, neg_char = TildeSign,
 				zero_pad = #zero_pad flags, base = #base flags,
-				ljust = #ljust flags, large = #large flags
+				large = #large flags
 			      })
+			| (SOME(#"-", _), {neg_char = TildeSign, ...}) =>
+			    raise BadFormat
 			| (SOME(#"-", ss'), _) =>
 			    doFlags (ss', {
-				sign = #sign flags, neg_char = #neg_char flags,
+				sign = #sign flags, neg_char = MinusSign,
 				zero_pad = #zero_pad flags, base = #base flags,
-				ljust = true, large = #large flags
+				large = #large flags
 			      })
 			| (SOME(#"#", ss'), _) =>
 			    doFlags (ss', {
 				sign = #sign flags, neg_char = #neg_char flags,
 				zero_pad = #zero_pad flags, base = true,
-				ljust = #ljust flags, large = #large flags
+				large = #large flags
 			      })
 			| (SOME(#"0", ss'), _) =>
 			    doFlags (ss', {
 				sign = #sign flags, neg_char = #neg_char flags,
 				zero_pad = true, base = #base flags,
-				ljust = #ljust flags, large = #large flags
+				large = #large flags
 			      })
 			| _ => (ss, flags)
 		      (* end case *))
 		in
 		  doFlags (fmtStr, {
 		      sign = DfltSign, neg_char = MinusSign,
-		      zero_pad = false, base = false, ljust = false,
-		      large = false
+		      zero_pad = false, base = false, large = false
 		    })
 		end
 	  val (wid, fmtStr) = if (Char.isDigit(valOf(SS.first fmtStr)))
@@ -201,34 +199,32 @@ print(concat["doFlags: ss = \"", String.toString(SS.string ss), "\"\n"]);
 		  | (SOME(#"x", ss)) => (HexField, ss)
 		  | (SOME(#"o", ss)) => (OctalField, ss)
 		  | (SOME(#"c", ss)) => (CharField, ss)
-		  | (SOME(#"s", ss)) => (StrField, ss)
+		  | (SOME(#"s", ss)) => (StrField NONE, ss)
 		  | (SOME(#"b", ss)) => (BoolField, ss)
-		  | (SOME(#".", ss)) => (case decToInt SS.getc ss
+		  | (SOME(#".", ss)) => let
 (* NOTE: "." ought to be allowed for d,X,x,o and s formats as it is in ANSI C *)
 		      val (n, ss) = (case decToInt SS.getc ss
 			     of SOME(n, ss') => (n, ss')
 			      | NONE => (0, ss)
 			    (* end case *))
-		      val (format, ss) = (case SS.getc ss
-			     of (SOME(#"E" , ss))=> (E_Format true, ss)
-			      | (SOME(#"e" , ss))=> (E_Format false, ss)
-			      | (SOME(#"f" , ss))=> (F_Format, ss)
-			      | (SOME(#"G" , ss))=> (G_Format true, ss)
-			      | (SOME(#"g", ss)) => (G_Format false, ss)
-			      | _ => raise BadFormat
-			    (* end case *))
+		      fun real (format, ss) = (RealField{prec = n, format = format}, ss)
 		      in
-			(RealField{prec = n, format = format}, ss)
+			case SS.getc ss
+			 of (SOME(#"E" , ss))=> real(E_Format true, ss)
+			  | (SOME(#"e" , ss))=> real(E_Format false, ss)
+			  | (SOME(#"f" , ss))=> real(F_Format, ss)
+			  | (SOME(#"G" , ss))=> real(G_Format true, ss)
+			  | (SOME(#"g", ss)) => real(G_Format false, ss)
+			  | (SOME(#"s", ss)) => (StrField(SOME n), ss)
+			  | _ => raise BadFormat
+			(* end case *)
 		      end
 		  | (SOME(#"E", ss)) => (RealField{prec=6, format=E_Format true}, ss)
 		  | (SOME(#"e", ss)) => (RealField{prec=6, format=E_Format false}, ss)
 		  | (SOME(#"f", ss)) => (RealField{prec=6, format=F_Format}, ss)
 		  | (SOME(#"G", ss)) => (RealField{prec=6, format=G_Format true}, ss)
 		  | (SOME(#"g", ss)) => (RealField{prec=6, format=G_Format false}, ss)
-		  | _ =>
-(print(concat["fmtStr = \"", String.toString(SS.string fmtStr), "\"\n"]);
-raise BadFormat
-)
+		  | _ => raise BadFormat
 		(* end case *))
 	  in
 	    (Field(flags, wid, ty), fmtStr)

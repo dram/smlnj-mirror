@@ -85,16 +85,23 @@ structure Format : FORMAT =
 
     fun format s = let
 	  val fmts = compileFormat s
-	  fun doField (flags, wid, ty, arg) = let
-		fun padFn s = (case (#ljust flags, wid)
-		       of (_, NoPad) => s
-			| (false, Wid i) => padLeft(s, i)
-			| (true, Wid i) => padRight(s, i)
+	  fun doField (flags : field_flags, wid, ty, arg) = let
+		fun padFn s = (case wid
+		       of NoPad => s
+			| Wid i => padLeft(s, i)
 		      (* end case *))
 		fun zeroPadFn (sign, s) = (case wid
 		       of NoPad => raise BadFormat
 			| (Wid i) => zeroLPad(s, i - (String.size sign))
 		      (* end case *))
+		fun trimFn (NONE, s) = padFn s
+		  | trimFn (SOME maxWid, s) = let
+		      val s = if (size s > maxWid)
+			    then String.substring(s, 0, maxWid)
+			    else s
+		      in
+			padFn s
+		      end
 		fun negate i = ((PosInt(~i)) handle _ => MaxInt)
 		fun doSign i = (case (i < 0, #sign flags, #neg_char flags)
 		       of (false, AlwaysSign, _) => ("+", PosInt i)
@@ -221,8 +228,8 @@ structure Format : FORMAT =
 		    | (CharField, CHR c) => padFn(String.str c)
 		    | (BoolField, BOOL false) => padFn "false"
 		    | (BoolField, BOOL true) => padFn "true"
-		    | (StrField, ATOM s) => padFn(Atom.toString s)
-		    | (StrField, STR s) => padFn s
+		    | (StrField prec, ATOM s) => trimFn(prec, Atom.toString s)
+		    | (StrField prec, STR s) => trimFn(prec, s)
 		    | (RealField{prec, format}, REAL r) =>
 			if (Real.isFinite r)
 			  then (case format
