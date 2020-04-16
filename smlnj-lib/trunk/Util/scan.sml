@@ -134,7 +134,8 @@ structure Scan : SCAN =
 		    | CapHexField => getInt SC.HEX
 		    | CharField => next(CHR, getc strm)
 		    | BoolField => next(BOOL, Bool.scan getc strm)
-		    | StrField => let
+(* QUESTION: should we use the precision? *)
+		    | StrField prec => let
 			val notSpace = not o Char.isSpace
 			val pred = (case wid
 			       of NoPad => notSpace
