@@ -181,10 +181,12 @@ link() {
     fi
 }
 
-if [ $OPSYS = win32 ] ; then
-    BOOT_DIR="sml.boot.${ARCH}-win32"
-else
-    BOOT_DIR="sml.boot.${ARCH}-unix"
+if [ x"$BOOT_DIR" = x ] ; then
+    if [ $OPSYS = win32 ] ; then
+        BOOT_DIR="sml.boot.${ARCH}-win32"
+    else
+        BOOT_DIR="sml.boot.${ARCH}-unix"
+    fi
 fi
 
 cd $BOOT_DIR
