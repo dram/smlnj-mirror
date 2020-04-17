@@ -182,7 +182,7 @@ structure GetOpt :> GET_OPT =
         	end
 	  fun get ([], opts, nonOpts) = (List.rev opts, List.rev nonOpts)
 	    | get ("--"::rest, opts, nonOpts) = let
-		val nonOpts = List.revAppend(nonOpts, rest)
+		val nonOpts = List.revAppend(nonOpts, "--" :: rest)
 		in
 		  case argOrder
 		   of ReturnInOrder f => (List.revAppend(opts, List.map f nonOpts), [])
