@@ -38,7 +38,7 @@ structure SExp =
 		if (a = b) then EQUAL
 		else if a then LESS
 		else GREATER
-	    | (INT a, INT b) => IntInf.compare
+	    | (INT a, INT b) => IntInf.compare (a, b)
 	    | (INT _, _) => LESS
 	    | (_, INT _) => GREATER
 	    | (FLOAT a, FLOAT b) => Real.compare(a, b)
@@ -50,7 +50,7 @@ structure SExp =
 	    | (QUOTE a, QUOTE b) => compare(a, b)
 	    | (QUOTE _, _) => LESS
 	    | (_, QUOTE _) => GREATER
-	    | (LIST a, LIST b) => ListPair.collate compare (a, b)
+	    | (LIST a, LIST b) => List.collate compare (a, b)
 	  (* end case *))
 
   end

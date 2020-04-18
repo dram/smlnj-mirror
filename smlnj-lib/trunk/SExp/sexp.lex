@@ -42,7 +42,7 @@
 %let exp = [eE][+-]?{digits};
 %let xdigit = {digit}|[a-fA-F];
 %let alpha = ([a-zA-Z]);
-%let initial = {alpha} | [-+.@!$%&*/:<=>?^_~];
+%let initial = {alpha} | "^" | [-+.@!$%&*/:<=>?_~];
 %let subsequent = {initial} | {digit};
 %let ident = {initial} {subsequent}*;
 
@@ -51,8 +51,7 @@
 <INITIAL>[ \t\n\r]+		=> ( T.WHITE );
 <INITIAL>";"[^\n\r]*[\n\r]+	=> ( skip() (* comment *));
 
-<INITIAL>{identifier}		=> ( T.SYMBOL (yytext) );
-<INITIAL>{symbol}       	=> ( T.SYMBOL yytext );
+<INITIAL>{ident}		=> ( T.SYMBOL (yytext) );
 
 <INITIAL>"'"			=> ( T.QUOTE );
 <INITIAL>"("			=> ( T.DELIM (T.PAREN, T.OPEN) );
