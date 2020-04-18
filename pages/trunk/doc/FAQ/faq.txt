@@ -1,3 +1,5 @@
+!!!!! WARNING: This document is out of date !!!!!
+
 1. Language
 
 1.1. Core
@@ -65,7 +67,7 @@ Q: I get sml source code from students and want to check if it is correct.
 In the first step i would like to know, if the signature of functions
 is the same as I expect.
 How can I compare one signature (i.e. value type) in sml to another?
-Example: 
+Example:
   (* function provided by student, my have wrong signature *)
   fun fx(a,b) = a ^ b;
   (* my program should evaluate, if the signature is correct *)
@@ -99,7 +101,7 @@ your example above.  Before one could write (and still can write)
 where the type variable 'a is implicitly scoped at this declaration,
 but the rules that determine the scope of a type variable appearing
 in a type constraint are rather arcane, and even experienced ML
-programmers are occasionally fooled.  Experience has shown that 
+programmers are occasionally fooled.  Experience has shown that
 a requirement for explicit binding of type parameters would have
 been a better idea.
 
@@ -155,8 +157,8 @@ Q: It seems I can bind exceptions to names, say
    val x = bla;
 and  'raise x' will generate an exception 'bla'
 However, if I try to handle the exception 'x', it will
-handle every exception (x is handled as a wildcard pattern). 
-There seems to be a deep asymmetry in the behavior of 
+handle every exception (x is handled as a wildcard pattern).
+There seems to be a deep asymmetry in the behavior of
 exceptions. Is this wanted?
 ---------
 A: Yes.  It is just an instance of the usual distinction between
@@ -167,7 +169,7 @@ exceptions in this behavior.  E.g.
 
   case [3] of x => 0 | z::y => z;
 
-The occurrence of "x" in the first rule of the case expression is 
+The occurrence of "x" in the first rule of the case expression is
 a binding occurrence of a new variable "x" that is distinct from
 the variable x in the first declaration.  The variable "x" in the
 case rule is a pattern that will match any value, hence the case
@@ -233,7 +235,7 @@ Q: [Allen Stoughton] When compiling an expression like
 A: [Zhong] No, the current compiler is not supporting this kind of optimizations.
 
 We might implement something like this in the future; of course, only
-when "f n" does not incur any side effects. 
+when "f n" does not incur any side effects.
 
 Q: [Allen Stoughton] When compiling an expression like
 
@@ -260,7 +262,7 @@ Q: What is the relation between modules in SML and objects in OO langauges?
 Q: [Allyn Dimock] Recursive modules
 I hit a situation where I want to define a datatype as follows:
 
-datatype foo = 
+datatype foo =
   simple of int
 | messy of int * foo Set
 
@@ -270,11 +272,11 @@ definition of a set.
 The SML/NJ utility library however defines a set functor, and sml
 doesn't allow a recursive definition of the sort:
 
-datatype foo = 
+datatype foo =
   simple of int
 | messy of int * fooSet
 
-and 
+and
 structure FooSet = SplaySetFn(struct
 				type ord_key = foo
 				val compare = fn(x,y) => ...
@@ -287,11 +289,11 @@ val bar : foo = ...
 Using polymorphism won't help with the forward reference since it
 would leave an unbound type variable in the definition of FooSet:
 
-datatype 'a foo = 
+datatype 'a foo =
   simple of int
 | messy of int * 'a
 
-and 
+and
 structure FooSet = SplaySetFn(struct
 				type ord_key = 'a foo
 				val compare = fn(x,y) => ...
@@ -435,7 +437,7 @@ A: For a structure declaration,
 
   structure S :> SIG = <strexp>  (* SML96 *)
 
-will be equivalent to 
+will be equivalent to
 
   abstraction S : SIG = <strexp>  (* SML/NJ 0.93 through 109.19 *)
 
@@ -463,7 +465,7 @@ signatures S =
   sig
      structure T : T
 
-     local 
+     local
        open T
      in
         val f : t -> t
@@ -478,7 +480,7 @@ one uses meaningful structure and type names.
 
 Q: Why does the following code fail?
 
-  signature Sig = 
+  signature Sig =
   sig
     ...
     datatype Constraint = ...
@@ -487,7 +489,7 @@ Q: Why does the following code fail?
     ...
   end
 
-This causes 
+This causes
 
   Error: rigid type spec in sharing: item
 -------------
@@ -573,7 +575,7 @@ this case), which in this example would yield:
 The problem here is that v is not in scope where t is specified
 (or if it is, it refers to a different type than the one in
 substructure A.  In some cases this can be fixed by permuting the
-order of the specifications, but not in this case because the 
+order of the specifications, but not in this case because the
 signature of A indirectly depends on t (via u).
 
 The rules for determining when the modified signature could be
@@ -670,7 +672,7 @@ means that structures can contain expression level declarations
 expressions, cannot contain structure declarations.
 
 This is somewhat inconsistent, since it is actually no more difficult
-to accomodate structure and functor declarations within an expression 
+to accomodate structure and functor declarations within an expression
 than it is to accomodate type declarations, which are allowed.  There
 has been discussion about removing this restriction, but it hasn't
 happened so far.
@@ -798,7 +800,7 @@ can find documentation for SML/NJ at our web site
 	http://www.smlnj.org/index.html
 
 There you can find a porting guide that explains how to port your
-SML'90 programs to SML'97.  
+SML'90 programs to SML'97.
 
 
 
@@ -927,7 +929,7 @@ struct ...
 ...
 	(* RANDOM NUMBER GENERATION *)
 
-	val seed = 
+	val seed =
 	    let
 		val Date.DATE(d) = Date.fromTime(Time.now())
 		val m            = #minute d
@@ -944,7 +946,7 @@ end
 ----------------------------------------------
 
 Q: Have I missed some sources of information?
-A: [emden] 
+A: [emden]
 The source code files random-sig.sml and random.sml in src/smlnj-lib/Util
 are reasonably well commented.
 Q: Am I feeding a proper seed to the Random.rand function?
@@ -972,21 +974,21 @@ in
 end
 
 Q: [Paulson, 10/96]
-Isabelle contains the following code (for inserting a string into the 
+Isabelle contains the following code (for inserting a string into the
 compiler's input):
 
-fun use_string commands = 
+fun use_string commands =
    Compiler.Interact.use_stream (open_string (implode commands));
 
 Unfortunately, with SML/NJ 109.19 this results in errors:
 
-NJ1xx.ML:102.4-102.32 Error: unbound variable or constructor: use_stream in 
+NJ1xx.ML:102.4-102.32 Error: unbound variable or constructor: use_stream in
 path Compiler.Interact.use_stream
 NJ1xx.ML:102.34-102.45 Error: unbound variable or constructor: open_string
 
 What has happened to these functions?
 --------
-        
+
 
 Q: I'm running NT now on my notebook and desktop (having abandoned Apple).
 I discovered that the Posix structure is apparently missing from
@@ -997,11 +999,11 @@ A: [Lorenz] Short answer: use OS.FileSys.chDir which is part of the new basis an
 must be implemented (and is for all the SML/NJ platforms including NT).
 See http://www.research.att.com/~jhr/sml/basis/os-file-sys.html
 
-Long Answer: Yes, Posix is available in NT, but not via SML/NJ.  
-This is because if one links with Posix libraries, the Win32 libraries 
-(all the gui stuff, for example) become inaccessible.  We therefore decided 
-to shun Posix under NT (it's basically only there so that Microsoft can sell 
-NT to certain customers) so that we may access the full functionality of NT 
+Long Answer: Yes, Posix is available in NT, but not via SML/NJ.
+This is because if one links with Posix libraries, the Win32 libraries
+(all the gui stuff, for example) become inaccessible.  We therefore decided
+to shun Posix under NT (it's basically only there so that Microsoft can sell
+NT to certain customers) so that we may access the full functionality of NT
 in the future.  The basis was designed to support a least-common-denominator
 of Unix, Win32, and MacOS.  Hence the OS structure.
 A: [Reppy] Posix == Unix.  The Posix compatibility provided by WindowsNT
@@ -1167,7 +1169,7 @@ comp.lang.ml FAQ:
     used.
   2 ML functions System.Directory.listDir and System.Directory.getWD not
     working at the moment.
-  3 There have been reported problems with the Div exceptions 
+  3 There have been reported problems with the Div exceptions
     (real & int). The problems have been corrected.  See:
 	  ftp.id.dth.dk (Internet 130.225.76.51)
 	  file pub/sestoft/sml93-linux99pl12/sml.gz
@@ -1224,7 +1226,7 @@ compile SML/NJ in a temporary location and move the final binaries to
 a shared location (like /usr/local or /opt) at install time.  Will CM
 be able to locate its .BIN files if I do this?
 ---------
-A: Yes, this should be possible, though we have not set things up 
+A: Yes, this should be possible, though we have not set things up
 specifically to support this nor have we documented the process.
 We'll try to correct that in future versions.
 
@@ -1257,7 +1259,7 @@ I think we really ought to provide an install-time option for
 specifying where the files will eventually reside.  (At the moment the
 install script simply assumes, that it will be the current directory.)
 Most CM parameters can be controlled via environment variables.
-Moreover, the default (for absent environment variables) can be chosen 
+Moreover, the default (for absent environment variables) can be chosen
 at the time the binfiles are loaded during the initial bootstrap step.
 
 For example, if the current directory is
@@ -1341,7 +1343,7 @@ option to look into.
 
 
 Q: I have looked and have not been able to identify a trace facility in sml
-similar to that in lisp or prolog.  Is there such a facility?  
+similar to that in lisp or prolog.  Is there such a facility?
 --------
 A: Sorry, but we do not have a trace facility in SML/NJ.  The MLWorks
 compiler from Harlequin has some debugging facilities.
@@ -1364,7 +1366,7 @@ for examples.
 
 2) by using the higher-level C interface found in the src/smlnj-c/
 directory.  The README file gives some info and a paper on my web
-page gives more details.  You'll need 109.32 for this to compile 
+page gives more details.  You'll need 109.32 for this to compile
 out of the box.
 
 Note that both methods will drastically change as soon as
@@ -1472,7 +1474,7 @@ files, but there are some common conventions.
   foo.cm       CM description files
 
 
-Q: How to I find out information about error messages and how to 
+Q: How to I find out information about error messages and how to
 interpret them and correct the problem?
 ---------
 A: See the error message catalogue.
@@ -1500,7 +1502,7 @@ architecture and operating system) with messages directed to
 /dev/null and an allocation space of 1 Megabyte.
 
 
-Q: How can I read numbers and similar sorts of data values from 
+Q: How can I read numbers and similar sorts of data values from
 files?
 ---------
 A: As far as reading integers, etc. from strings or input streams, you
@@ -1532,7 +1534,7 @@ and can be changed by setting these references:
   val it = () : unit
   % 3;
   val it = 3 : int
-  % 
+  %
 
 The documentation for the Compiler.Control structure is at the
 following URL:
@@ -1682,7 +1684,7 @@ You can also find examples there.
 A slightly out-of-date paper that describes this interface is also available.
 Let me know if you would like a copy.
 
-The SMLNJ-C library now has it's own web page.  
+The SMLNJ-C library now has it's own web page.
 
   http://www.smlnj.org/doc/SMLNJ-C/index.html
 
@@ -1717,7 +1719,7 @@ different semantics (RTFM for details).
 You can use TextIO.output1(stream, c) to output a character to TextIO.outstream.
 
 
-Q[2]: 
+Q[2]:
 I'm having a problem accessing the imperative IO functionality.
 I can't seem to make the connection with open_out, output, std_out, etc.
 
@@ -1811,17 +1813,17 @@ demand",  and I'd like to keep it's impact as limited as possible.
 Q: What can I do about this? It seems to me that this specifies the
 function:
 
-  cos : real -> real 
+  cos : real -> real
   * : real -> real?
 
 Should this not produce a real? are these not all reals?
- 
+
   - 2.0 * cos (3.4);
   stdIn:1.1-38.5 Error: operator and operand don't agree (tycon mismatch)
     operator domain: int * int
     operand:         real * real
     in expression:
-      * (2.0,cos (3.4)) 
+      * (2.0,cos (3.4))
 ---------
 A: It looks to me like you have opened the Int structure at top level.
 This causes the special overloaded version of * to be replaced by
@@ -1882,7 +1884,7 @@ the following example.
   x
   y
   z
-  vex$ 
+  vex$
 
 Here the sparc/solaris runtime is run.sparc-solaris.  The image file
 produced by SMLofNJ.exportFn is foo.sparc-solaris, and it's name is passed
@@ -1979,7 +1981,7 @@ Q: In order install SML under Solaris (or any Unix), do I need the
 binary distribution?  Is it possible to instal SML from source and
 say a C compiler?
 ---------
-A: No, you can't bootstrap the SML/NJ compiler from source alone.  
+A: No, you can't bootstrap the SML/NJ compiler from source alone.
 You need the bin files (say, bin.x86-unix for Solaris/x86), the
 src/sml-nj directory (just for the makeml script), the src/runtime
 directory, and a C compiler and assembler to compile the run-time
@@ -2008,7 +2010,7 @@ it?  [More generally, how to install CML.]
 A: ?
 
 
-Q: Is there a set of tests that I can run to check if my build 
+Q: Is there a set of tests that I can run to check if my build
 of SML/NJ went through fine?
 ---------
 A: We don't provide any tests.  Generally, if the install script
@@ -2027,7 +2029,7 @@ the *.cm files at smlnj/lib have alias point to smlnj/src).
 ---------
 A: Some of the sources in smlnj/src can be removed, some are needed if
 you want to use some of the SML/NJ libraries.
-You should keep:  
+You should keep:
   smlnj/src/smlnj-lib     (the smlnj library)
   smlnj/src/ml-yacc/lib   (the library used by ml-yacc generated code)
   smlnj/src/cml           (Concurrent ML library)
@@ -2052,8 +2054,8 @@ Q: Is the SML '97 Conversion Guide available as a postscript document?
 A: Not yet.  Should be available in the spring of 1999.
 
 
-Q: Do you know where I can find documentation about graphic, 
-Input/Output, math., and other libraries supported by 'Standard ML of 
+Q: Do you know where I can find documentation about graphic,
+Input/Output, math., and other libraries supported by 'Standard ML of
 New Jersey'.
 ----------
 A: See the Users Guide web page, Basis documentation pages, SML/NJ
@@ -2168,7 +2170,7 @@ improve the system.
 
 Q: How can one report a bug?
 ---------
-A: 
+A:
 
 
 Q: How can one check on what bugs have been reported, or check the
@@ -2215,7 +2217,7 @@ working again with some effort.
 made to work under Windows without much effort.  A more advanced
 tcl/tk interface library is being considered for the next release, and
 this should work under Windows.
-	
+
 
 11. Miscellaneous
 
@@ -2288,7 +2290,7 @@ By the way, you might get in touch with the Foxnet group at CMU
 have a lot of SML-based programming expertese.  It fact, they have
 implemented their own SML compiler, TILT.  This is the group that
 implemented TCP/IP and other network software (like a web server)
-in SML.  See 
+in SML.  See
 
   http://www.cs.cmu.edu/afs/cs/project/fox/mosaic/HomePage.html
 
