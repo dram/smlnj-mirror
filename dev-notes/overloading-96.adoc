@@ -179,6 +179,11 @@ of overloading resolution.
 Note that none of the four "relevant" overloading classes is disjoint from
 the others.  Indeed, Int is the intersection of them all.
 
+This would change if additional real (float) types are added (e.g. real32
+or float32) with division "/" being overloaded for all the real types.
+Then the overloading class for "/" would be disjoint from WordInt, and
+would have a different default type.
+
 
 == Semantic representations
 
