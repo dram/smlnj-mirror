@@ -154,7 +154,7 @@ xref:str-PropList.adoc[`[.kw]#structure# PropList`]::
   something
 
 xref:str-Queue.adoc[`[.kw]#structure# Queue`]::
-  something
+  Provides an imperative queue data structure.
 
 xref:str-Rand.adoc[`[.kw]#structure# Rand`]::
   something
@@ -183,7 +183,8 @@ xref:sig-UREF.adoc[`[.kw]#signature# UREF`]::
 // 50
 
 xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
-  something
+  Provides support for working with https://en.wikipedia.org/wiki/UTF-8[*UTF-8*]
+  encoded strings.
 
 == Usage
 

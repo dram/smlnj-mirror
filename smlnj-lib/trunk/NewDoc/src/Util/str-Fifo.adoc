@@ -14,7 +14,8 @@ dequeuing operations will have amortized constant time.
 
 [source,sml]
 ------------
-structure Fifo
+signature FIFO
+structure Fifo :> FIFO
 ------------
 
 == Interface
@@ -73,7 +74,7 @@ val foldr : ('a * 'b -> 'b) -> 'b -> 'a fifo -> 'b
 
 `[.kw]#val# delete : ('a fifo * ('a \-> bool)) \-> 'a fifo`::
   `delete (q, pred)` removes those items from `q` for which the
-  function `pred` returns `true`.
+  function `pred` returns `true` and returns the resulting queue.
 
 `[.kw]#val# head : 'a fifo \-> 'a`::
   `head q` returns the first element of `q` or raises the exception
