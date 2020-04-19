@@ -172,7 +172,8 @@ xref:str-SplayTree.adoc[`[.kw]#structure# SplayTree`]::
   something
 
 xref:str-TimeLimit.adoc[`[.kw]#structure# TimeLimit`]::
-  something
+  Provides a mechanism for limiting the execution
+  time of a computation.
 
 xref:str-UnivariateStats.adoc[`[.kw]#structure# UnivariateStats`]::
   something
