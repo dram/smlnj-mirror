@@ -7,6 +7,9 @@
 
 The `GraphSCCFn` functor implements an algorithm for
 calculating the strongly-connected components of a directed graph.
+The resulting components are topologically-sorted; _i.e._, if a component
+_A_ comes before a component _B_ in the result, then there is no
+path from _B_ to _A_ (but there might be a path from _A_ to _B_).
 
 == Synopsis
 
@@ -38,9 +41,9 @@ datatype component
   = SIMPLE of node
   | RECURSIVE of node list
 
-val topOrder': { roots: node list, follow: node -> node list } -> component list
+val topOrder' : digraph -> component list
 
-val topOrder : { root: node, follow: node -> node list } -> component list
+val topOrder : digraph -> component list
 ------------
 
 == Description
@@ -59,18 +62,18 @@ val topOrder : { root: node, follow: node -> node list } -> component list
   constructor.
 
 `[.kw]#val# topOrder': { roots: node list, follow: node \-> node list } \-> component list`::
-  something
-	(* take root node(s) and follow function and return
-	 * list of topologically sorted strongly-connected components;
-	 * the component that contains the first of the given "roots"
-	 * goes first
-	 *)
+  `topOrder` {roots, follow}` returns a topologically-sorted list of
+  strongly-connected components for a directed graph.  The graph is specified
+  by a list of root nodes and a _follow_ (or _successor_) function that returns
+  the list of successors for a node.  The first component in the result will
+  contain the first node in the `roots` list.
 
 `[.kw]#val# topOrder : { root: node, follow: node \-> node list } \-> component list`::
-  something
-        (* for backward compatibility;
-	 * AXIOM: topOrder{root,follow}==topOrder'{roots=[root],follow=follow}
-	 *)
+  `topOrder {root, follow}` is equivalent to the expression
+[source,sml]
+------------
+topOrder' {roots = [root], follow = follow}
+------------
 
 == See Also
 

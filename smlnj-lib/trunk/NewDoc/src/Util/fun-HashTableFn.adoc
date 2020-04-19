@@ -5,35 +5,19 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `HashTableFn` functor ...
+The `HashTableFn` functor can be applied to a `Key` structure to
+implement imperative maps on `Key.hash_key` values, where the maps
+are represented as hash tables.
 
 == Synopsis
 
 [source,sml]
 ------------
-functor HashTableFn ()
+functor HashTableFn (Key : HASH_KEY) : MONO_HASH_TABLE
 ------------
-
-== Arguments
-
-[source,sml]
-------------
-------------
-
-== Interface
-
-[source,sml]
-------------
-------------
-
-== Description
-
-`[.kw]#type# foo`::
-  something
-
-`[.kw]#val# bar : foo -> foo`::
-  something
 
 == See Also
 
+xref:sig-HASH_KEY.adoc[`HASH_KEY`],
+xref:sig-MONO_HASH_TABLE.adoc[`MONO_HASH_TABLE`],
 xref:smlnj-lib.adoc[__The Util Library__]

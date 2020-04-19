@@ -54,34 +54,40 @@ xref:str-FormatComb.adoc[`[.kw]#structure# FormatComb`]::
   something
 
 xref:str-GetOpt.adoc[`[.kw]#structure# GetOpt`]::
-  something
+  Provides command-line argument processing.
 
 xref:fun-GraphSCCFn.adoc[`[.kw]#functor# GraphSCCFn`]::
-  something
+  Provides an algorithm for computing the strongly-connected
+  components of a directed graph.
 
 xref:sig-HASH_KEY.adoc[`[.kw]#signature# HASH_KEY`]::
   Defines an interface to a monomorphic type with an equality
   test and hashing function.
 
 xref:fun-HashSetFn.adoc[`[.kw]#functor# HashSetFn`]::
-  something
+  Provides a functor for implementing hash-table-based imperative sets.
 
 xref:str-HashString.adoc[`[.kw]#structure# HashString`]::
-  something
+  Provides hashing functions for strings and substrings.
 
 xref:str-HashTable.adoc[`[.kw]#structure# HashTable`]::
   something
 
 xref:fun-HashTableFn.adoc[`[.kw]#functor# HashTableFn`]::
-  something
+  Provides a functor for implementing hash-table-based imperative maps.
 
 xref:fun-Hash2TableFn.adoc[`[.kw]#functor# Hash2TableFn`]::
   something
 
-xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
-  something
+xref:sig-INTERVAL_DOMAIN.adoc[`[.kw]#signature# INTERVAL_DOMAIN`]::
+  Defines a representation of an abstract ordered domain that is
+  used as an argument to the xref:fun-IntervalSetFn.adoc[`IntervalSetFn`]
+  functor.
 
 // 20
+
+xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
+  something
 
 xref:str-IOUtil.adoc[`[.kw]#structure# IOUtil`]::
   something
@@ -110,10 +116,10 @@ xref:sig-MONO_ARRAY_SORT.adoc[`[.kw]#signature# MONO_ARRAY_SORT`]::
 xref:sig-MONO_DYNAMIC_ARRAY.adoc[`[.kw]#signature# MONO_DYNAMIC_ARRAY`]::
   something
 
+// 30
+
 xref:sig-MONO_HASH_SET.adoc[`[.kw]#signature# MONO_HASH_SET`]::
   something
-
-// 30
 
 xref:sig-MONO_HASH_TABLE.adoc[`[.kw]#signature# MONO_HASH_TABLE`]::
   something
@@ -142,10 +148,10 @@ xref:str-PrimeSizes.adoc[`[.kw]#structure# PrimeSizes`]::
 xref:sig-PRIORITY.adoc[`[.kw]#signature# PRIORITY`]::
   something
 
+// 40
+
 xref:str-PropList.adoc[`[.kw]#structure# PropList`]::
   something
-
-// 40
 
 xref:str-Queue.adoc[`[.kw]#structure# Queue`]::
   something
@@ -174,10 +180,10 @@ xref:str-UnivariateStats.adoc[`[.kw]#structure# UnivariateStats`]::
 xref:sig-UREF.adoc[`[.kw]#signature# UREF`]::
   something
 
+// 50
+
 xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
   something
-
-// 50
 
 == Usage
 
@@ -195,28 +201,6 @@ ifdef::backend-pdf[]
 // Push titles down one level.
 :leveloffset: 1
 
-include::sig-HASH_KEY.adoc[]
-
-include::sig-HASH_SET.adoc[]
-
-include::sig-MONO_ARRAY_SORT.adoc[]
-
-include::sig-MONO_DYNAMIC_ARRAY.adoc[]
-
-include::sig-MONO_HASH_TABLE.adoc[]
-
-include::sig-MONO_PRIORITYQ.adoc[]
-
-include::sig-ORD_KEY.adoc[]
-
-include::sig-ORD_MAP.adoc[]
-
-include::sig-ORD_SET.adoc[]
-
-include::sig-PRIORITY.adoc[]
-
-include::sig-UREF.adoc[]
-
 include::str-ANSITerm.adoc[]
 
 include::str-Atom.adoc[]
@@ -225,7 +209,7 @@ include::str-Base64.adoc[]
 
 include::str-BitArray.adoc[]
 
-include::str-BitVector.adoc[]
+include::fun-BSearchFn.adoc[]
 
 include::str-CharMap.adoc[]
 
@@ -237,15 +221,35 @@ include::str-FNVHash.adoc[]
 
 include::str-Format.adoc[]
 
+// 10
+
 include::str-FormatComb.adoc[]
+
+include::str-GetOpt.adoc[]
+
+include::fun-GraphSCCFn.adoc[]
+
+include::sig-HASH_KEY.adoc[]
+
+include::fun-HashSetFn.adoc[]
 
 include::str-HashString.adoc[]
 
 include::str-HashTable.adoc[]
 
+include::fun-HashTableFn.adoc[]
+
+include::fun-Hash2TableFn.adoc[]
+
+include::sig-INTERVAL_DOMAIN.adoc[]
+
+// 20
+
 include::str-IOUtil.adoc[]
 
-include::str-GetOpt.adoc[]
+include::fun-IntervalSetFn.adoc[]
+
+include::fun-KeywordFn.adoc[]
 
 include::str-LibBase.adoc[]
 
@@ -255,11 +259,35 @@ include::str-ListMergeSort.adoc[]
 
 include::str-ListXProd.adoc[]
 
+include::fun-MonoArrayFn.adoc[]
+
+include::sig-MONO_ARRAY_SORT.adoc[]
+
+include::sig-MONO_DYNAMIC_ARRAY.adoc[]
+
+// 30
+
+include::sig-MONO_HASH_SET.adoc[]
+
+include::sig-MONO_HASH_TABLE.adoc[]
+
+include::sig-MONO_PRIORITYQ.adoc[]
+
+include::sig-ORD_KEY.adoc[]
+
+include::sig-ORD_MAP.adoc[]
+
+include::sig-ORD_SET.adoc[]
+
 include::str-ParserComb.adoc[]
 
 include::str-PathUtil.adoc[]
 
 include::str-PrimeSizes.adoc[]
+
+include::sig-PRIORITY.adoc[]
+
+// 40
 
 include::str-PropList.adoc[]
 
@@ -269,33 +297,21 @@ include::str-Rand.adoc[]
 
 include::str-Random.adoc[]
 
+include::str-RealOrderStats.adoc[]
+
 include::str-Scan.adoc[]
 
 include::str-SplayTree.adoc[]
 
 include::str-TimeLimit.adoc[]
 
-include::str-RealOrderStats.adoc[]
-
 include::str-UnivariateStats.adoc[]
 
+include::sig-UREF.adoc[]
+
+// 50
+
 include::str-UTF8.adoc[]
-
-include::fun-BSearchFn.adoc[]
-
-include::fun-GraphSCCFn.adoc[]
-
-include::fun-HashSetFn.adoc[]
-
-include::fun-HashTableFn.adoc[]
-
-include::fun-Hash2TableFn.adoc[]
-
-include::fun-IntervalSetFn.adoc[]
-
-include::fun-KeywordFn.adoc[]
-
-include::fun-MonoArrayFn.adoc[]
 
 // Return to normal title levels.
 :leveloffset: 0

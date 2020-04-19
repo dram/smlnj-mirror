@@ -5,7 +5,9 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `HashString` structure ...
+The `HashString` structure provides hashing functions for strings
+and substrings.  It is currently implemented as an alias for the
+same functions from the xref:str-FNVHash.adoc[`FNVHash`] structure.
 
 == Synopsis
 
@@ -18,16 +20,20 @@ structure HashString
 
 [source,sml]
 ------------
+val hashString  : string -> word
+
+val hashSubstring : substring -> word
 ------------
 
 == Description
 
-`[.kw]#type# foo`::
-  something
+`[.kw]#val# hashString  : string \-> word`::
+  `hashString s` returns a hash code for the string `s`.
 
-`[.kw]#val# bar : foo -> foo`::
-  something
+`[.kw]#val# hashSubstring : substring \-> word`::
+  `hashSubstring s` returns a hash code for the substring `ss`.
 
 == See Also
 
+xref:str-FNVHash.adoc[`FNVHash`],
 xref:smlnj-lib.adoc[__The Util Library__]

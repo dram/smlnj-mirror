@@ -5,35 +5,204 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `IntervalSetFn` functor ...
+The `IntervalSetFn` functor provides sets over a discrete ordered domain,
+where the sets are represented by intervals.  It is meant for representing
+dense sets (__e.g.__, unicode character classes).
 
 == Synopsis
 
 [source,sml]
 ------------
-functor IntervalSetFn ()
+signature INTERVAL_SET
+functor IntervalSetFn (D : INTERVAL_DOMAIN) : INTERVAL_SET
 ------------
 
 == Arguments
 
-[source,sml]
-------------
-------------
+`D : xref:sig-INTERVAL_DOMAIN.adoc[INTERVAL_DOMAIN]`::
+  The argument defines the type of points in the domain and
+  their order structure.
 
 == Interface
 
 [source,sml]
 ------------
+structure D : INTERVAL_DOMAIN
+
+type item = D.point
+type interval = (item * item)
+type set
+
+val empty : set
+val universe : set
+
+val singleton : item -> set
+
+val interval : item * item -> set
+
+val isEmpty : set -> bool
+val isUniverse : set -> bool
+
+val member : set * item -> bool
+
+val items : set -> item list
+
+val intervals : set -> interval list
+
+val add : set * item -> set
+val add' : item * set -> set
+
+val addInt : set * interval -> set
+val addInt' : interval * set -> set
+
+val complement : set -> set
+val union : (set * set) -> set
+val intersect : (set * set) -> set
+val difference : (set * set) -> set
+
+val app    : (item -> unit) -> set -> unit
+val foldl  : (item * 'a -> 'a) -> 'a -> set -> 'a
+val foldr  : (item * 'a -> 'a) -> 'a -> set -> 'a
+val filter : (item -> bool) -> set -> set
+val all    : (item -> bool) -> set -> bool
+val exists : (item -> bool) -> set -> bool
+
+val appInt    : (interval -> unit) -> set -> unit
+val foldlInt  : (interval * 'a -> 'a) -> 'a -> set -> 'a
+val foldrInt  : (interval * 'a -> 'a) -> 'a -> set -> 'a
+val filterInt : (interval -> bool) -> set -> set
+val allInt    : (interval -> bool) -> set -> bool
+val existsInt : (interval -> bool) -> set -> bool
+
+val compare : set * set -> order
+val isSubset : set * set -> bool
 ------------
 
 == Description
 
-`[.kw]#type# foo`::
+`[.kw]#structure# D : INTERVAL_DOMAIN`::
+  The argument structure.
+
+`[.kw]#type# item = D.point`::
+  The type of items in the set.
+
+`[.kw]#type# interval = (item * item)`::
+  A collection of items defined by an interval.
+
+`[.kw]#type# set`::
+  The type of a set of items.
+
+`[.kw]#val# empty : set`::
+  The empty set.
+
+`[.kw]#val# universe : set`::
+  The set of all elements in the domain, which is specified as the
+  interval `(xref:INTERVAL_DOMAIN.adoc#val:minPt[D.minPt], xref:INTERVAL_DOMAIN.adoc#val:maxPt[D.maxPt])`.
+
+  (* a set of a single element *)
+`[.kw]#val# singleton : item \-> set`::
+  `singleton item` returns a singleton set containing `item`.
+
+  (* set the covers the given interval *)
+`[.kw]#val# interval : item * item \-> set`::
+  `singleton (pt1, pt2)` returns a set containing the items between
+  the items `pt1` and `pt2` (as ordered by
+  xref:sig-INTERVAL_DOMAIN.adoc#compare[`D.compare`]).
+  This expression raises the
+  {sml-basis-url}/general.html#SIG:GENERAL.Domain:EXN[`Domain`] exception
+  if `D.compare(pt1, pt2) = GREATER`.
+
+`[.kw]#val# isEmpty : set \-> bool`::
+  `isEmpty set` returns `true` if, and only if, `set` is empty.
+
+`[.kw]#val# isUniverse : set \-> bool`::
+  `isUniverse set` returns `true` if, and only if, `set` contains all of
+  the elements of the domain.
+
+`[.kw]#val# member : set * item \-> bool`::
+  `isEmpty (set, item)` returns `true` if, and only if, `item` is contained
+  in `set`.
+
+  (* return the list of items in the set *)
+`[.kw]#val# items : set \-> item list`::
   something
 
-`[.kw]#val# bar : foo -> foo`::
+  (* return a list of intervals that represents the set *)
+`[.kw]#val# intervals : set \-> interval list`::
+  something
+
+  (* add a single element to the set *)
+`[.kw]#val# add : set * item \-> set`::
+  something
+
+`[.kw]#val# add' : item * set \-> set`::
+  something
+
+  (* add an interval to the set *)
+`[.kw]#val# addInt : set * interval \-> set`::
+  something
+
+`[.kw]#val# addInt' : interval * set \-> set`::
+  something
+
+  (* set operations *)
+`[.kw]#val# complement : set \-> set`::
+  something
+
+`[.kw]#val# union : (set * set) \-> set`::
+  something
+
+`[.kw]#val# intersect : (set * set) \-> set`::
+  something
+
+`[.kw]#val# difference : (set * set) \-> set`::
+  something
+
+  (* iterators on elements *)
+`[.kw]#val# app    : (item \-> unit) \-> set \-> unit`::
+  something
+
+`[.kw]#val# foldl  : (item * 'a \-> 'a) \-> 'a \-> set \-> 'a`::
+  something
+
+`[.kw]#val# foldr  : (item * 'a \-> 'a) \-> 'a \-> set \-> 'a`::
+  something
+
+`[.kw]#val# filter : (item \-> bool) \-> set \-> set`::
+  something
+
+`[.kw]#val# all    : (item \-> bool) \-> set \-> bool`::
+  something
+
+`[.kw]#val# exists : (item \-> bool) \-> set \-> bool`::
+  something
+
+  (* iterators on intervals *)
+`[.kw]#val# appInt    : (interval \-> unit) \-> set \-> unit`::
+  something
+`[.kw]#val# foldlInt  : (interval * 'a \-> 'a) \-> 'a \-> set \-> 'a`::
+  something
+
+`[.kw]#val# foldrInt  : (interval * 'a \-> 'a) \-> 'a \-> set \-> 'a`::
+  something
+
+`[.kw]#val# filterInt : (interval \-> bool) \-> set \-> set`::
+  something
+
+`[.kw]#val# allInt    : (interval \-> bool) \-> set \-> bool`::
+  something
+
+`[.kw]#val# existsInt : (interval \-> bool) \-> set \-> bool`::
+  something
+
+  (* ordering on sets *)
+`[.kw]#val# compare : set * set \-> order`::
+  something
+
+`[.kw]#val# isSubset : set * set \-> bool`::
   something
 
 == See Also
 
+xref:sig-INTERVAL_DOMAIN.adoc[`INTERVAL_DOMAIN`],
 xref:smlnj-lib.adoc[__The Util Library__]

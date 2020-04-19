@@ -5,35 +5,19 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `HashSetFn` functor ...
+The `HashSetFn` functor can be applied to a `Key` structure to
+implement imperative sets of `Key.hash_key` values, where the sets
+are represented as hash tables.
 
 == Synopsis
 
 [source,sml]
 ------------
-functor HashSetFn ()
+functor HashSetFn (Key : HASH_KEY) : MONO_HASH_SET
 ------------
-
-== Arguments
-
-[source,sml]
-------------
-------------
-
-== Interface
-
-[source,sml]
-------------
-------------
-
-== Description
-
-`[.kw]#type# foo`::
-  something
-
-`[.kw]#val# bar : foo -> foo`::
-  something
 
 == See Also
 
+xref:sig-HASH_KEY.adoc[`HASH_KEY`],
+xref:sig-MONO_HASH_SET.adoc[`MONO_HASH_SET`],
 xref:smlnj-lib.adoc[__The Util Library__]
