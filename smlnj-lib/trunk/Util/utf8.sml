@@ -1,22 +1,17 @@
 (* utf8.sml
  *
- * COPYRIGHT (c) 2007 John Reppy (http://www.cs.uchicago.edu/~jhr)
+ * COPYRIGHT (c) 2020 John Reppy (http://www.cs.uchicago.edu/~jhr)
  * All rights reserved.
  *
  * Routines for working with UTF8 encoded strings.
  *
- *	Unicode value		1st byte    2nd byte    3rd byte    4th byte
- *	-----------------	--------    --------    --------    --------
- *	00000000 0xxxxxxx	0xxxxxxx	
- *	00000yyy yyxxxxxx	110yyyyy    10xxxxxx
- *	zzzzyyyy yyxxxxxx	1110zzzz    10yyyyyy	10xxxxxx
- *	110110ww wwzzzzyy+
- *	110111yy yyxxxxxx	11110uuu    10uuzzzz	10yyyyyy    10xxxxxx!
+ *	Unicode value		        1st byte    2nd byte    3rd byte    4th byte
+ *	-----------------------	        --------    --------    --------    --------
+ *	00000 00000000 0xxxxxxx	        0xxxxxxx
+ *	00000 00000yyy yyxxxxxx	        110yyyyy    10xxxxxx
+ *	00000 zzzzyyyy yyxxxxxx	        1110zzzz    10yyyyyy	10xxxxxx
+ *      wwwzz zzzzyyyy yyxxxxxx         11110www    10zzzzzz    10yyyyyy    10xxxxxx
  *
- * (!) where uuuuu = wwww+1
- *
- * TODO:
- *    Add support for surrogate pairs.
  *)
 
 structure UTF8 :> UTF8 =
@@ -27,11 +22,27 @@ structure UTF8 :> UTF8 =
 
     type wchar = W.word
 
+    fun w2c w = Char.chr(W.toInt w)
+
     val maxCodePoint : wchar = 0wx0010FFFF
+
+  (* maximum values for the first byte for each encoding length *)
+    val max1Byte : W.word = 0wx7f (* 0xxx xxxx *)
+    val max2Byte : W.word = 0wxdf (* 110x xxxx *)
+    val max3Byte : W.word = 0wxef (* 1110 xxxx *)
+    val max4Byte : W.word = 0wxf7 (* 1111 0xxx *)
+
+  (* bit masks for the first byte for each encoding length *)
+    val mask2Byte : W.word = 0wx1f
+    val mask3Byte : W.word = 0wx0f
+    val mask4Byte : W.word = 0wx07
 
     exception Incomplete
 	(* raised by some operations when applied to incomplete strings. *)
 
+  (* add a continuation byte to the end of wc.  Continuation bytes have
+   * the form 0b10xxxxxx.
+   *)
     fun getContByte getc (wc, ss) = (case (getc ss)
 	   of NONE => raise Incomplete
 	    | SOME(c, ss') => let
@@ -48,76 +59,26 @@ structure UTF8 :> UTF8 =
 	  val getContByte = getContByte getc
 	  fun get strm = (case getc strm
 		 of NONE => NONE
-		  | SOME(c, strm) => let
+		  | SOME(c, ss) => let
 		      val w = W.fromInt(Char.ord c)
+		      val (wc, ss) = if (w <= max1Byte)
+			  then (w, ss)
+			else if (w <= max2Byte)
+			  then getContByte (W.andb(mask2Byte, w), ss)
+			else if (w <= max3Byte)
+			  then getContByte(getContByte(W.andb(mask3Byte, w), ss))
+			else if (w <= max4Byte)
+			  then getContByte(getContByte(getContByte(W.andb(mask4Byte, w), ss)))
+			  else raise Incomplete
 		      in
-			if (w < 0w128)
-			  then SOME(w, strm)
-			else (case (W.andb(0wxe0, w))
-			   of 0wxc0 => SOME(getContByte (W.andb(0wx1f, w), strm))
-			    | 0wxe0 => SOME(getContByte(getContByte(W.andb(0wx0f, w), strm)))
-			    | _ => raise Incomplete
-			  (* end case *))
+			SOME(wc, ss)
 		      end
 		(* end case *))
 	  in
 	    get
 	  end
 
-  (* fold a function over the Unicode characters in the string *)
-    fun fold f = let
-	  val getContByte = getContByte SS.getc
-	  fun foldf (ss, acc) = (case SS.getc ss
-		 of NONE => acc
-		  | SOME(c, ss) => let
-		      val w = W.fromInt(Char.ord c)
-		      in
-			if (w < 0w128)
-			  then foldf (ss, f(w, acc))
-			else (case (W.andb(0wxe0, w))
-			   of 0wxc0 => let
-				val (wc, ss) = getContByte(W.andb(0wx1f, w), ss)
-				in
-				  foldf (ss, f(wc, acc))
-				end
-			    | 0wxe0 => let
-				val (wc, ss) =
-				      getContByte(
-					getContByte(W.andb(0wx0f, w), ss))
-				in
-				  foldf (ss, f(wc, acc))
-				end
-			    | _ => raise Incomplete
-			  (* end case *))
-		      end
-		(* end case *))
-	  in
-	    fn init => fn s => foldf (SS.full s, init)
-	  end
-
-  (* return the list of wide characters that are encoded by a string *)
-    fun explode s = rev(fold (op ::) [] s)
-
-  (* return the number of Unicode characters *)
-    fun size s = fold (fn (_, n) => n+1) 0 s
-
-    fun w2c w = Char.chr(W.toInt w)
-
-  (* return the UTF8 encoding of a wide character *)
-    fun encode wc = if (W.<(wc, 0wx80))
-	    then String.str(w2c wc)
-	  else if (W.<(wc, 0wx800))
-	    then String.implode[
-		w2c(W.orb(0wxc0, W.>>(wc, 0w6))),
-		w2c(W.orb(0wx80, W.andb(wc, 0wx3f)))
-	      ]
-	    else String.implode[
-		w2c(W.orb(0wxe0, W.>>(wc, 0w12))),
-		w2c(W.orb(0wx80, W.andb(W.>>(wc, 0w6), 0wx3f))),
-		w2c(W.orb(0wx80, W.andb(wc, 0wx3f)))
-	      ]
-
-    fun isAscii (wc : wchar) = (wc < 0wx80)
+    fun isAscii (wc : wchar) = (wc <= max1Byte)
     fun toAscii (wc : wchar) = w2c(W.andb(0wx7f, wc))
     fun fromAscii c = W.andb(0wx7f, W.fromInt(Char.ord c))
 
@@ -125,7 +86,130 @@ structure UTF8 :> UTF8 =
     fun toString wc =
 	  if isAscii wc
 	    then Char.toCString(toAscii wc)
-	    else "\\u" ^ (StringCvt.padLeft #"0" 4 (W.toString wc))
+	  else if (wc <= max2Byte)
+	    then "\\u" ^ (StringCvt.padLeft #"0" 4 (W.toString wc))
+	  (* NOTE: the following is not really SML syntax *)
+	    else "\\u" ^ (StringCvt.padLeft #"0" 8 (W.toString wc))
+
+  (* return a list of characters that is the UTF8 encoding of a wide character *)
+    fun encode' (wc, chrs) = if (wc <= 0wx7f)
+	    then w2c wc :: chrs
+	  else if (wc <= 0wx7ff)
+	    then w2c(W.orb(0wxc0, W.>>(wc, 0w6))) ::
+	      w2c(W.orb(0wx80, W.andb(wc, 0wx3f))) :: chrs
+	  else if (wc <= 0wxffff)
+	    then w2c(W.orb(0wxe0, W.>>(wc, 0w12))) ::
+	      w2c(W.orb(0wx80, W.andb(W.>>(wc, 0w6), 0wx3f))) ::
+	      w2c(W.orb(0wx80, W.andb(wc, 0wx3f))) :: chrs
+	  else if (wc <= maxCodePoint)
+	    then w2c(W.orb(0wxf0, W.>>(wc, 0w18))) ::
+	      w2c(W.orb(0wx80, W.andb(W.>>(wc, 0w12), 0wx3f))) ::
+	      w2c(W.orb(0wx80, W.andb(W.>>(wc, 0w6), 0wx3f))) ::
+	      w2c(W.orb(0wx80, W.andb(wc, 0wx3f))) :: chrs
+	    else raise Domain
+
+    fun encode wc = String.implode(encode'(wc, []))
+
+    val getContByte = getContByte SS.getc
+
+    fun getWC (c1, ss) = let
+	  val w = W.fromInt(Char.ord c1)
+	  val (wc, ss) = if (w <= max1Byte)
+	      then (w, ss)
+	    else if (w <= max2Byte)
+	      then getContByte (W.andb(mask2Byte, w), ss)
+	    else if (w <= max3Byte)
+	      then getContByte(getContByte(W.andb(mask3Byte, w), ss))
+	    else if (w <= max4Byte)
+	      then getContByte(getContByte(getContByte(W.andb(mask4Byte, w), ss)))
+	      else raise Incomplete
+	  in
+	    (wc, ss)
+	  end
+
+  (* return the number of Unicode characters *)
+    fun size s = let
+	  fun len (ss, n) = (case SS.getc ss
+		 of NONE => n
+		  | SOME arg => let
+		      val (_, ss) = getWC arg
+		      in
+			len (ss, n+1)
+		      end
+		(* end case *))
+	  in
+	    len (SS.full s, 0)
+	  end
+
+    fun map f s = let
+	  fun mapf (ss, chrs) = (case SS.getc ss
+		 of NONE => String.implodeRev chrs
+		  | SOME arg => let
+		      val (wc, ss) = getWC arg
+		      in
+			mapf (ss, List.revAppend(encode'(wc, []), chrs))
+		      end
+		(* end case *))
+	  in
+	    mapf (SS.full s, [])
+	  end
+
+    fun app f s = let
+	  fun appf ss = (case SS.getc ss
+		 of NONE => ()
+		  | SOME arg => let
+		      val (wc, ss) = getWC arg
+		      in
+			f wc; appf ss
+		      end
+		(* end case *))
+	  in
+	    appf (SS.full s)
+	  end
+
+  (* fold a function over the Unicode characters in the string *)
+    fun fold f = let
+	  fun foldf (ss, acc) = (case SS.getc ss
+		 of NONE => acc
+		  | SOME arg => let
+		      val (wc, ss) = getWC arg
+		      in
+			foldf (ss, f (wc, acc))
+		      end
+		(* end case *))
+	  in
+	    fn init => fn s => foldf (SS.full s, init)
+	  end
+
+    fun all pred s = let
+	  fun allf ss = (case SS.getc ss
+		 of NONE => true
+		  | SOME arg => let
+		      val (wc, ss) = getWC arg
+		      in
+			pred wc andalso allf ss
+		      end
+		(* end case *))
+	  in
+	    allf (SS.full s)
+	  end
+
+    fun exists pred s = let
+	  fun existsf ss = (case SS.getc ss
+		 of NONE => true
+		  | SOME arg => let
+		      val (wc, ss) = getWC arg
+		      in
+			pred wc orelse existsf ss
+		      end
+		(* end case *))
+	  in
+	    existsf (SS.full s)
+	  end
+
+  (* return the list of wide characters that are encoded by a string *)
+    fun explode s = List.rev(fold (op ::) [] s)
+
+    fun implode wcs = String.implode(List.foldr encode' [] wcs)
 
   end
-

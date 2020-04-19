@@ -5,6 +5,11 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-19]
+	Added `implode`, `map`, `app`, `all`, and `exists` functions to
+	the `UTF8` signature. Also implemented the handling of 4-byte
+	encodings, which were previously not supported.
+
 [2020-04-16]
 	Renamed the `HASH_SET` signature to `MONO_HASH_SET`, which is
 	the correct name given the naming conventions.
