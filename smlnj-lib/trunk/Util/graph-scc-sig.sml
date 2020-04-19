@@ -1,12 +1,13 @@
 (* graph-scc-sig.sml
  *
- * COPYRIGHT (c) 1999 Lucent Bell Laboratories.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  *   Calculate strongly-connected components of directed graph.
  *   The graph can have nodes with self-loops.
  *
  * author: Matthias Blume
- *) 
+ *)
 
 signature GRAPH_SCC =
   sig
