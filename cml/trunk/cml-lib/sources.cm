@@ -4,7 +4,6 @@
  * All rights reserved.
  *
  * Sources file for the CML version of smlnj-lib.cm.
- *
  *)
 
 Group
@@ -22,10 +21,7 @@ Group
   library($/smlnj-lib.cm) - structure TimeLimit
 
 (** Modules from the SML/NJ Unix Library *)
-#if defined(OPSYS_UNIX)
-  signature UNIX_ENV
-  structure UnixEnv
-#endif
+  library($/unix-lib.cm)
 
 (** Modules from the SML/NJ INet Library *)
   signature SOCK_UTIL		(* copied to avoid typing problems *)
@@ -36,7 +32,6 @@ Group
 #endif
 is
 
-#if defined (NEW_CM)
   $cml/basis.cm
   $/smlnj-lib.cm
 # if defined(OPSYS_UNIX)
@@ -44,15 +39,6 @@ is
 # endif
   $cml/cml.cm
   $cml-lib/trace-cml.cm		(* for trace-cml-sig.sml and trace-cml.sml *)
-#else
-  smlnj-lib.cm
-# if defined(OPSYS_UNIX)
-   unix-lib.cm
-# endif
-  ../src/cml.cm
-  trace-cml.cm		(* for trace-cml-sig.sml and trace-cml.sml *)
-#endif
-
 
   SMLNJ-Util/cml-atom-new.sml
   SMLNJ-Util/atom-binary-map.sml
