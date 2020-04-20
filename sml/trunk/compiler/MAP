@@ -59,7 +59,7 @@ Parse/
   * translation from ast to abstract syntax and static environment (elaboration)
   * core type checking and inference, overloading resolution
   * modules and signatures, signature matching, functor application
-  * code found in directories Semant, ElabData, Elaborator
+  * code found in directories ElabData, Elaborator
 
 Basics/
 
@@ -138,41 +138,6 @@ Basics/
       printWarning control flag, topregistry
       uses: ControlRegistry, Controls
       defs: BASIC_CONTROL, BasicControl
-
-
-Semant/
-  Modules related to primops and pickling (serialized external
-  representation of static environments)
-
-  Semant/prim [See also: ElabData/prim]
-  definition and support for primops (primitive, built-in operations)
-  [should these be moved to ElabData/prim?]
-    primop-bindings.sml
-      defining the primops and their types
-      defs: PrimopBindings (inline sig)
-    prim-env.sml
-      packaging the primos in a static environment
-      defs: PRIM_ENV, PrimEnv: PRIM_ENV
-
-  Semant/pickle/
-  pickling (serialization) and unpickling static environments
-    pickle-sym-pid.sml
-      pickling symbols and pids (persistant stamps)
-      uses: PickleUtil
-      defs: PickleSymPid (inline sig)
-    unpickle-sym-pid.sml
-      unpickling symbols and pids (persistant stamps)
-      defs: UnpickleSymPid (inline sig)
-    pickmod.sml
-      pickling functions for each type involved in staticEnv
-      defs: PICKMOD, PickMod :> PICKMOD
-    unpickmod.sml
-      unpickling functions for each type involved in staticEnv
-      defs: UNPICKMOD, UnpickMod : UNPICKMOD
-    rehash.sml
-      recompute hash of an environment resulting from filtering
-      a larger invironment
-      defs: Rehash (inline sig)
 
 
 ElabData/
@@ -284,6 +249,7 @@ Basic datastructures used in elaboration (including type checking)
       defs: ENT_PATH_CONTEXT, EntPathContext :> ENT_PATH_CONTEXT
 
   ElabData/prim/
+  primop representation and machinery
     cproto.sml
       An ad-hoc encoding of PrimCTypes.c_proto in ML types.
       defs: CProto 
@@ -301,6 +267,33 @@ Basic datastructures used in elaboration (including type checking)
     primop.sig/sml
       datatype Primop, defining various primitive operations
       defs: PRIMOP, Primop
+    primop-bindings.sml
+      defining the primops and their types
+      defs: PrimopBindings (inline sig)
+    prim-env.sml
+      packaging the primos in a static environment
+      defs: PRIM_ENV, PrimEnv: PRIM_ENV
+
+  ElabData/pickle/
+  pickling (serialization) and unpickling static environments
+  [see MiscUtil/{pickle=lib.cm, pickle-util.sml, unpickle-util.sml}]
+    pickle-sym-pid.sml
+      pickling symbols and pids (persistant stamps)
+      uses: PickleUtil
+      defs: PickleSymPid (inline sig)
+    unpickle-sym-pid.sml
+      unpickling symbols and pids (persistant stamps)
+      defs: UnpickleSymPid (inline sig)
+    pickmod.sml
+      pickling functions for each type involved in staticEnv
+      defs: PICKMOD, PickMod :> PICKMOD
+    unpickmod.sml
+      unpickling functions for each type involved in staticEnv
+      defs: UNPICKMOD, UnpickMod : UNPICKMOD
+    rehash.sml
+      recompute hash of an environment resulting from filtering
+      a larger invironment
+      defs: Rehash (inline sig)
       
   ElabData/main/
     compinfo.sml
