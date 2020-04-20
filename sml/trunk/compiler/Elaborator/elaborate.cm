@@ -53,8 +53,9 @@ is
 
 	types/eqtypes.sml
 	types/unify.sml
+	types/overloadclasses.sml
+	types/overloadvar.sml
 	types/overload.sml
-	types/overloadlit.sml
 	types/typecheck.sml
 
 	modules/expandtycon.sml

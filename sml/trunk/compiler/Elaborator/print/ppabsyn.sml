@@ -607,19 +607,6 @@ and ppDec (context as (env,source_opt)) ppstrm =
 	      PU.ppvlist ppstrm ("structure ","and ", f, sbs);
 	      closeBox ()
 	  end
-        | ppDec'(ABSdec sbs,d) = let
-	      fun f ppstrm (STRB{name, str=M.STR { access, ... }, def}) =
-		  (PU.ppSym ppstrm name;
-		   ppAccess ppstrm access;
-		   pps " = ";
- 		   PP.break ppstrm {nsp=1,offset=2};
-		   ppStrexp context ppstrm (def,d-1))
-		| f _ _ = bug "ppDec':ABSdec"
-	  in
-	      openHVBox 0;
-	      PU.ppvlist ppstrm ("abstraction ","and ", f, sbs);
-	      closeBox ()
-	  end
         | ppDec'(FCTdec fbs,d) = let
 	      fun f ppstrm (FCTB{name=fname, fct=M.FCT { access, ... }, def}) =
                   (PU.ppSym ppstrm fname;

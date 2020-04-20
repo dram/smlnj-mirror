@@ -132,21 +132,12 @@ fun ppDebugVar ii2string ppstrm env  =
 	      pps "typ=ref "; ppType env ppstrm (!typ);
 	      pps "})";
 	      closeBox(); closeBox())
-	  | ppDV (OVLDvar {name,options,scheme}) =
+	  | ppDV (OVLDvar {name,variants}) =
 	     (openHVBox 0;
 	      pps "OVLDvar";
 	      openHVBox 3;
 	      pps "({name="; ppSym ppstrm (name); ppcomma_nl ppstrm;
-	      pps "options=[";
-	      (ppvseq ppstrm 0 ","
-	       (fn ppstrm => fn {indicator,variant} =>
-		  (pps "{indicator=";ppType env ppstrm  indicator;
-		   ppcomma_nl ppstrm;
-		   pps " variant =";
-		   ppDebugVar ii2string ppstrm env variant; pps "}"))
-	       options);
-	      pps "]"; ppcomma_nl ppstrm;
-	      pps "scheme="; ppTyfun env ppstrm scheme; pps "})";
+	      ppcomma_nl ppstrm; pps "})";
 	      closeBox();
 	      closeBox())
 	  | ppDV (ERRORvar) = pps "<ERRORvar>"
@@ -161,15 +152,9 @@ fun ppVariable ppstrm  =
 	       if !internals then ppAccess ppstrm access else ();
 	       pps " : "; ppType env ppstrm (!typ);
 	       closeBox())
-	  | ppV (env,OVLDvar {name,options=optl,scheme=TYFUN{body,...}}) =
+	  | ppV (env,OVLDvar {name,variants}) =
 	      (openHVBox 0;
-	       ppSym ppstrm (name); pps " : "; ppType env ppstrm body;
-	       pps " as ";
-	       ppSequence ppstrm
-		 {sep=C PP.break {nsp=1,offset=0},
-		  pr=(fn ppstrm => fn{variant,...} => ppV(env,variant)),
-		  style=CONSISTENT}
-		 optl;
+	       ppSym ppstrm (name);
 	       closeBox())
 	  | ppV(_,ERRORvar) = pps "<ERRORvar>"
      in ppV

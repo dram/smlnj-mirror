@@ -550,7 +550,6 @@ fun extractSig (env, epContext, context,
 	       | A.ABSTYPEdec{abstycs,withtycs,body} =>
 		   (proctycs abstycs)@(proctycs withtycs)@(getDeclOrder body)
 	       | A.EXCEPTIONdec(ebs) => procebs ebs
-	       | A.ABSdec(strbs) => procstrbs strbs
 	       | A.FCTdec(fctbs) => procfctbs fctbs
 	       | A.OPENdec(pathstrs) =>
 		   foldl (fn (str,names) => (rev (procstr str))@names) []
@@ -629,7 +628,6 @@ fun constrStr(transp, sign, str, strDec, strExp, evOp, tdepth, entEnv, rpath,
              in (A.SEQdec[strDec, resDec1, resDec2], resStr2, resExp2)
             end)
   end
-
 
 
 (*** elabStr: elaborate the raw structure, without signature constraint ***)
@@ -1194,11 +1192,7 @@ val _ = debugmsg ">>elabStrbs"
 
 fun loop([], decls, entDecls, env, entEnv) =
       let val _ = debugmsg "<<elabStrbs"
-          val resDec =
-            let val decls' = rev decls
-             in if transp then A.STRdec decls' else A.ABSdec decls'
-            end
-
+          val resDec = A.STRdec (rev decls)
           val entDec = case entDecls of [] => M.EMPTYdec
                                       | _ => seqEntDec(rev entDecls)
        in (resDec, entDec, env, entEnv)
@@ -1327,46 +1321,44 @@ fun loop([], decls, entDecls, env, entEnv) =
           val decls' = sb :: decls
 
           val (entEnv', entDecls') =
-            case context
-             of EU.INFCT {flex,...} =>
-                  (let val entEnv1 = EE.atopSp(deltaEntEnv, entEnv)
-                       val entEnv2 = EE.bind(entv, strEnt, entEnv1)
-                       val entEnv3 = EE.mark(mkStamp, entEnv2)
+	      (case context
+		of EU.INFCT {flex,...} =>
+		     (let val entEnv1 = EE.atopSp(deltaEntEnv, entEnv)
+			  val entEnv2 = EE.bind(entv, strEnt, entEnv1)
+			  val entEnv3 = EE.mark(mkStamp, entEnv2)
 
-          val _ = debugmsg "--elabStrbs: about to mapPaths bindStr"
-                       (*
-                        * We are remapping entPaths for elements of
-                        * the new structure unconditionally, even if
-                        * there is no signature constraint and the
-                        * defining strexp is BaseStr (DAVE).
-                        *)
-                       val _ = mapPaths(EPC.enterOpen(epContext, SOME entv),
-                                        bindStr, flex)
-          val _ = debugmsg "--elabStrbs: mapPaths bindStr done"
-                       val _ =
-                         (case bindStr
-                           of STR { sign, rlzn, ... } =>
-                              EPC.bindStrPath(epContext,
-                                              MU.strId2(sign,rlzn), entv)
-                            | _ => ())
-
-                    in (entEnv3, ((M.STRdec(entv, resExp, name))::entDecls))
-                   end)
-              | _ => (entEnv, entDecls)
+			  val _ = debugmsg "--elabStrbs: about to mapPaths bindStr"
+			  (*
+			   * We are remapping entPaths for elements of
+			   * the new structure unconditionally, even if
+			   * there is no signature constraint and the
+			   * defining strexp is BaseStr (DAVE).
+			   *)
+			  val _ = mapPaths(EPC.enterOpen(epContext, SOME entv),
+					   bindStr, flex)
+			  val _ = debugmsg "--elabStrbs: mapPaths bindStr done"
+			  val _ = (case bindStr
+				    of STR { sign, rlzn, ... } =>
+				       EPC.bindStrPath(epContext,
+						       MU.strId2(sign,rlzn), entv)
+				     | _ => ())
+		      in  (entEnv3, ((M.STRdec(entv, resExp, name))::entDecls))
+		      end)
+		  | _ => (entEnv, entDecls))
 
           val _ = showStr("--elabStrbs: bindStr: ",bindStr,env)
 
           val env' = SE.bind(name, B.STRbind bindStr, env)
 
        in loop(rest, decls', entDecls', env', entEnv')
-      end
+      end   (* function loop *)
 
  in loop(strbs, [], [], SE.empty, EE.empty)
       handle EE.Unbound =>
-       (debugmsg("$elabStrbs0: " ^ (if transp then "StrDec" else "AbsDec"));
-        raise EE.Unbound)
+	     (debugmsg "$elabStrbs0(StrDec): EE.Unbound";
+              raise EE.Unbound)
 
-end (* end of function elabStrbs *)
+end (* function elabStrbs *)
 
 
 (*** elabDecl0: elaborate an arbitrary module-level declarations ***)
@@ -1387,10 +1379,6 @@ and elabDecl0
 (case decl
   of StrDec strbs =>
        elabStrbs(strbs, true, env0, entEnv0, context, tdepth, epContext,
-                 rpath, region, compInfo)
-
-   | AbsDec strbs =>
-       elabStrbs(strbs, false, env0, entEnv0, context, tdepth, epContext,
                  rpath, region, compInfo)
 
    | OpenDec paths =>

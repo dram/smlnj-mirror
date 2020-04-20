@@ -985,7 +985,6 @@ and mkDec (dec, d) =
         | mkDec0 (ABSTYPEdec{body,...}) = mkDec0 body
         | mkDec0 (EXCEPTIONdec ebs) = mkEBs(ebs, d)
         | mkDec0 (STRdec sbs) = mkStrbs(sbs, d)
-        | mkDec0 (ABSdec sbs) = mkStrbs(sbs, d)
         | mkDec0 (FCTdec fbs) = mkFctbs(fbs, d)
         | mkDec0 (LOCALdec(ld, vd)) = (mkDec0 ld) o (mkDec0 vd)
         | mkDec0 (SEQdec ds) =  foldr (op o) ident (map mkDec0 ds)

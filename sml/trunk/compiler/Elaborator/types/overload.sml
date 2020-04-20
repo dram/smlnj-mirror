@@ -7,9 +7,6 @@
 signature OVERLOAD =
   sig
 
-  (* matching a scheme against a target type -- used declaring overloadings *)
-    val matchScheme : Types.tyfun * Types.ty -> Types.ty
-
   (* create a new overloading environment, which is represented by three functions:
    *	pushv -- add an overloaded variable to the environment
    *	pushl -- add an overloaded literal to the environment
@@ -38,46 +35,14 @@ structure Overload : OVERLOAD =
     structure PU = PPUtilNew
     structure Ty = Types
     structure VC = VarCon
-
-    fun bug msg = ErrorMsg.impossible("Unify: "^msg)
+    structure OLV = OverloadVar
+			
+    fun bug msg = ErrorMsg.impossible("Overload: "^msg)
 
     fun debugMsg (msg: string) = ED.debugMsg debugging msg
 
     val ppType = PPType.ppType StaticEnv.empty
     fun debugPPType (msg, ty) = ED.debugPrint debugging (msg, ppType, ty)
-
-  (* matching a scheme against a target type to extract an indicator type
-   * for an overload declaration (in ElabCore)
-   *)
-    fun matchScheme (Ty.TYFUN{arity, body}: Ty.tyfun, target: Ty.ty) : Ty.ty = let
-	(* Assert: arity = 1; target is a (pruned) monomorphic type *)
-	  val tyref = ref Ty.UNDEFty (* holds unique instantiation of IBOUND 0 *)
-	  fun matchTyvar(ty: Ty.ty) : unit = (case !tyref
-		 of Ty.UNDEFty => tyref := ty
-		  | ty' => if TU.equalType(ty, ty')
-		      then ()
-		      else bug("this compiler was inadvertantly \
-				\distributed to a user who insists on \
-				\playing with 'overload' declarations.")
-		(* end case *))
-	  fun match(scheme:Ty.ty, target:Ty.ty) : unit = (
-		case (TU.prune scheme, TU.prune target)
-		 of ((Ty.IBOUND 0),ty) => matchTyvar ty
-		  | (Ty.CONty(tycon1,args1), Ty.CONty(tycon2,args2)) =>
-		      if TU.eqTycon(tycon1,tycon2)
-			then ListPair.app match (args1, args2)
-			else (match(TU.reduceType scheme, target)
-			     handle TU.ReduceType =>
-			       (match(scheme, TU.reduceType target)
-				handle TU.ReduceType =>
-				  bug "matchScheme, match -- tycons "))
-		  | _ => bug "TypesUtil.matchScheme > match"
-		(* end case *))
-	  in
-	    match(body,target);
-	    debugPPType("matchScheme type:", !tyref);
-	    !tyref
-	  end
 
   (* information about overloaded literals; once the type has been resolved, we use this
    * information to check that the literal value is within range for its type.
@@ -85,103 +50,97 @@ structure Overload : OVERLOAD =
     type num_info = IntInf.int * string * Ty.ty * ErrorMsg.complainer
 
   (* overloaded functions *)
-    fun new () = let
-	  val overloadedvars = ref (nil: (VC.var ref * ErrorMsg.complainer * Ty.tyvar) list)
+    fun new () =
+	let (* the overloaded variable and literal stacks *)
+	  val overloadedvars = ref (nil: (VC.var ref * Ty.tyvar * ErrorMsg.complainer) list)
 	  val overloadedlits = ref (nil: num_info list)
-	(* push an overloaded variable onto the var list *)
-	  fun pushvar (refvar as ref(VC.OVLDvar{name,options,scheme}), region, err) = let
-	        val indicators = map #indicator options
-		val tyvar = ref(Ty.OVLD{sources=[Ty.OVAR(name,region)],options=indicators})
-		val scheme' = TU.applyTyfun(scheme,[Ty.VARty tyvar])
-		in
+				   
+	  (* push an overloaded variable onto the var list *)
+	  fun pushvar (varref as ref(VC.OVLDvar{name,variants}), region, err) =
+	      let val tyvar = ref(Ty.OVLDV{eq=false,sources=[(name,region)]})
+		  val scheme = OLV.symToScheme name
+		  val schemeInst = TU.applyTyfun(scheme,[Ty.VARty tyvar])
+	      in
 		  debugMsg ">>ovld-push";
-		  map (fn ty => debugPPType("%%%",ty)) indicators;
-		  overloadedvars := (refvar,err,tyvar) :: !overloadedvars;
-		  debugPPType("<<ovld-push "^Symbol.name name, scheme');
-		  scheme'
-		end
+		  overloadedvars := (varref,tyvar,err) :: !overloadedvars;
+		  debugPPType("<<ovld-push "^Symbol.name name, schemeInst);
+		  schemeInst
+	      end
 	    | pushvar _ = bug "Overload.push"
-      (* push an overloaded literal onto the var list *)
-	fun pushlit info = (
-	      overloadedlits := info :: !overloadedlits;
-	      #3 info)
-      (* resolve overloadings *)
-	fun resolve env = let
-	    (* this function implements defaulting behavior -- if more
-	     * than one variant matches the context type, the first one matching
-	     * (which will always be the first variant) is used as the default.
+
+          (* push an overloaded literal onto the lit list *)
+	  fun pushlit (info as (_,_,ty,_)) =
+	      (overloadedlits := info :: !overloadedlits;
+	       ty)
+
+        (* resolve variable and literal overloadings *)
+	fun resolve env =
+	    (* this function implements defaulting behavior -- if the context type
+	     * is uninstantiated, and all variants match, the first one variant
+	     * is used as the default (at the moment, this is always the intTy variant,
+	     * until more overloaded ops (for reals, chars, or strings) are added).
 	     * For defaulting to work correctly when matching different OVLD tyvars,
 	     * it is assumed that the ordering of options is consistent (e.g., between
-	     * operators like +, -, and * ).
+	     * operators like +, -, and * ). These orderings are established by the
+	     * order they appear in the overload declaration.
 	     *)
-	      fun resolveOVLDvar(rv as ref(VC.OVLDvar{name,options,...}), err, context) =
-		    let
-		    val contextTy = TU.headReduceType(Ty.VARty context)
-		    val _ = debugPPType(concat[
-			    ">>resolveOVLDvar ", Symbol.name name, ", contextTy:"
-			  ], contextTy)
-		    val (isCompatible, instantiate) = (case contextTy
-			   of Ty.VARty(tvar as ref(Ty.OVLD{options,...})) => (
-				app (fn ty => debugPPType("$$$",ty)) options;
-				((fn ty => TU.inClass(ty,options)),
-				 (fn ty => tvar := Ty.INSTANTIATED ty)))
-			    | _ =>
-				((fn ty => TU.equalType(contextTy, ty)),
-				 (fn ty => ()))
-			  (* end case *))
-		    fun select ({indicator,variant}::rest) =
-			  if isCompatible indicator
-			    then (debugPPType("@resolveOVLDvar: match",indicator);
-				  instantiate indicator;
-				  rv := variant)
-			    else (debugPPType("@resolveOVLDvar: no match",indicator);
-				  select rest)
-		      | select [] =
-			  err EM.COMPLAIN "overloaded variable not defined at type"
-			    (fn ppstrm =>
-			      (PPType.resetPPType();
-			       PP.newline ppstrm;
-			       PP.string ppstrm "symbol: ";
-			       PU.ppSym ppstrm name;
-			       PP.newline ppstrm;
-			       PP.string ppstrm "type: ";
-			       PPType.ppType env ppstrm (Ty.VARty context)))
-		    in
-		      select options
-		    end
-	    (* resolve overloaded literals *)
-	      fun resolveOVLDlit (value, _, ty, _) = (
-		  (* first, resolve the type *)
-		    case ty
-		     of Ty.VARty(tyvar as ref(Ty.OVLD{sources,options})) => (
-		          case options
-			   of ty::_ => tyvar := Ty.INSTANTIATED ty (* default *)
-			    | [] => bug "resolveOVLDlit 1"
-			  (* end case *))
-		      | Ty.VARty(ref(Ty.INSTANTIATED _)) => ()
-			  (* already resolved by type checking *)
-		      | _ => bug "resolveOVLDlit 2"
-		    (* end case *))
+	    let fun resolveOVLDvar(varref as ref(VC.OVLDvar{name,variants}), context, err) =
+		    let val contextTy = TU.headReduceType(Ty.VARty context)
+			val defaultTy = OLV.defaultTy name
+			val (defaultVar :: _) = variants
+			val _ = debugPPType
+			      (concat[">>resolveOVLDvar ", Symbol.name name, ", contextTy:"],
+			       contextTy)
+		    in case contextTy
+			of Ty.VARty(tyvar as ref(Ty.OVLDV _)) =>
+			   (varref := defaultVar;
+			    tyvar := Ty.INSTANTIATED defaultTy)
+			 | _ =>
+			   (case OverloadVar.resolveVar(name,contextTy,variants)
+			     of SOME var => varref := var
+			     |  NONE => 
+				err EM.COMPLAIN "overloaded variable not defined at type"
+				    (fn ppstrm =>
+					(PPType.resetPPType();
+					 PP.newline ppstrm;
+					 PP.string ppstrm "symbol: ";
+					 PU.ppSym ppstrm name;
+					 PP.newline ppstrm;
+					 PP.string ppstrm "type: ";
+					 PPType.ppType env ppstrm (Ty.VARty context))))
+		    end (* fun resolveOVLDvar *)
+
+	        (* resolve overloaded literals *)
+	        fun resolveOVLDlit (value, _, Ty.VARty tyvar, _) =
+		    (case !tyvar
+		      of Ty.OVLDI _ =>
+			 (tyvar := Ty.INSTANTIATED BT.intTy)  (* default *)
+		       | Ty.OVLDW _ =>
+			 (tyvar := Ty.INSTANTIATED BT.wordTy) (* default *)
+		       | Ty.INSTANTIATED ty => ()
+		       | _ => bug "resolveOVLDlit")
+
 	    (* check that overloaded literals are in range; note that we have
 	     * do this check as a separate pass after *all* overloading has
 	     * been resolved, because literal resolution does not follow
 	     * instance chains.
 	     *)
-	      fun checkLitRange (value, src, ty, err) =
+	        fun checkLitRange (value, src, ty, err) =
 		    if TU.numInRange(value, ty)
-		      then ()
-		      else err EM.COMPLAIN (concat[
-			  "literal '", src, "' is too large for type "
-			])
-			(fn ppstrm => PPType.ppType env ppstrm ty)
-	      val overloadedLits = rev (!overloadedlits)
-	      in
+		    then ()
+		    else err EM.COMPLAIN
+			     (concat["literal '", src, "' is too large for type "])
+			     (fn ppstrm => PPType.ppType env ppstrm ty)
+
+	        val overloadedLits = rev (!overloadedlits)
+		val overloadedVars = rev (!overloadedvars)
+	     in
 		app resolveOVLDlit overloadedLits;
-		app resolveOVLDvar (rev(!overloadedvars));
+		app resolveOVLDvar overloadedVars;
 		app checkLitRange overloadedLits
-	      end
-	  in
+	    end (* fun resolve *)
+	 in
 	    {pushv = pushvar, pushl = pushlit, resolve = resolve}
-	  end (* new *)
+	 end (* new *)
 
   end (* structure Overload *)

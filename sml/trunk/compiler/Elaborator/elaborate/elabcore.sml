@@ -79,16 +79,10 @@ fun showDec(msg,dec,env) =
 infix -->
 
 fun mkIntLiteralTy (v : IntInf.int, r : SourceMap.region) : ty =
-      VARty(mkTyvar(OVLD{
-	  sources = [OINT(v, r)],
-	  options = OverloadLit.intTypes
-	}))
+      VARty(mkTyvar(OVLDI [(v, r)]))
 
 fun mkWordLiteralTy (v : IntInf.int, r : SourceMap.region) : ty =
-      VARty(mkTyvar(OVLD{
-	  sources = [OWORD(v, r)],
-	  options = OverloadLit.wordTypes
-	}))
+      VARty(mkTyvar(OVLDW [(v, r)]))
 
 (* REAL32: eventually this will be an overload instance *)
 fun mkRealLiteralTy (v : RealLit.t, r : SourceMap.region) : ty = realTy
@@ -752,7 +746,6 @@ let
 		in (cMARKdec(d,region'), env,tv,updt)
 	       end
 	   | StrDec _ => bug "strdec"
-	   | AbsDec _ => bug "absdec"
 	   | FctDec _ => bug "fctdec"
 	   | SigDec _ => bug "sigdec"
 	   | FsigDec _ => bug "fsigdec")
@@ -760,24 +753,18 @@ let
 
     (**** OVERLOADING ****)
 
-    and elabOVERLOADdec((id,typeScheme,exps),env,rpath,region) =
-	(* exps are simple variables or paths, with monomorphic types;
-	 * typescheme is a type scheme with a single type variable parameter,
-	 * which matches the type of each exp *)
-	let val (body,tyvars) = ET.elabType(typeScheme,env,error,region)
-	    val tvs = TS.elements tyvars (* ASSERT: length tyvars = 1 *)
-	    val scheme = (TU.bindTyvars tvs; TU.compressTy body;
-			  TYFUN{arity=length tvs, body=body})
-	    fun option (MARKexp(e,_)) = option e
-	      | option (VARexp(ref (v as VALvar{typ,...}),_)) =
-		  {indicator = Overload.matchScheme(scheme,!typ), variant = v}
-	      | option _ = bug "evalOVERLOADdec.option"
-	    val options =
-		map (fn exp => option(#1(elabExp(exp,env,region)))) exps
-	    val ovldvar = OVLDvar{name=id,scheme=scheme,
-				  options=options}
+    and elabOVERLOADdec((id,exps),env,rpath,region) =
+	(* exps are simple variable paths, with monomorphic types that
+	 * are ground instances of the known typeScheme for id *)
+	let fun getVar exp =
+		(case exp
+		   of VARexp(ref(v),_) => v
+		    | MARKexp(e,_) => getVar e
+		    | _ => bug "evalOVERLOADdec.getVar")
+	    val val_vars = map (fn exp => getVar(#1(elabExp(exp,env,region)))) exps
+	    val ovldvar = OVLDvar{name = id, variants = val_vars}
 	in
-	    (OVLDdec ovldvar, SE.bind(id,B.VALbind ovldvar,SE.empty),
+	    (OVLDdec ovldvar, SE.bind(id, B.VALbind ovldvar, SE.empty),
              TS.empty, no_updt)
 	end
 

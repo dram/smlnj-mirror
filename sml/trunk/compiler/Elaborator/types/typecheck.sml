@@ -319,7 +319,7 @@ fun generalizeTy(VALvar{typ,path,btvs,...}, userbound: tyvar list,
 			     tv := INSTANTIATED WILDCARDty;
 			     WILDCARDty))
 		  else (debugmsg "is not local"; ty))
-	      | VARty(ref(OVLD _)) => ty
+	      | VARty(ref(OVLDV _ | OVLDI _ | OVLDW _)) => ty
 	      | CONty(tyc,args) => CONty(tyc, map gen args) (*shareMap*)
 	      | WILDCARDty => WILDCARDty
 	      | MARKty(ty, region) =>
@@ -518,13 +518,12 @@ let fun boolUnifyErr { ty, name, message } =
 	end
 in
      case exp
-      of VARexp(r as ref(v as VALvar{typ, ...}), _) => let
-	    val (ty, insts) = instantiatePoly(!typ)
-	    in
-	      (VARexp(r, insts), MARKty(ty, region))
-	    end
-       | VARexp(refvar as ref(OVLDvar _),_) =>
- 	   (exp, olv_push (refvar, region, err region))
+      of VARexp(r as ref(v as VALvar{typ, ...}), _) =>
+	   let val (ty, insts) = instantiatePoly(!typ)
+	    in (VARexp(r, insts), MARKty(ty, region))
+	   end
+       | VARexp(varref as ref(OVLDvar _),_) =>
+ 	   (exp, olv_push (varref, region, err region))
        | VARexp(r as ref ERRORvar, _) => (exp, WILDCARDty)
        | CONexp(dcon as DATACON{typ,...},_) =>
            let val (ty,insts) = instantiatePoly typ
@@ -961,7 +960,6 @@ and decType0(decl,occ,tdepth,region) : dec =
        * of debugger or profiler.
        *)
        | STRdec strbs => STRdec(map (strbType(occ,tdepth,region)) strbs)
-       | ABSdec strbs => ABSdec(map (strbType(occ,tdepth,region)) strbs)
        | FCTdec fctbs => FCTdec(map (fctbType(occ,tdepth,region)) fctbs)
        | _ => decl
 

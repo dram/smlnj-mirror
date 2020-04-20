@@ -9,16 +9,18 @@ signature ACCESS = sig
     type lvar = LambdaVar.lvar
 
   (* How to find the dynamic value corresponding to a variable.
-   * An LVAR is just a lambda-bound variable --- a temporary used to denote
-   * a binding in the current compilation unit. EXTERN refers to a binding
-   * defined externally (in other modules). PATH is an absolute address from
-   * a lambda-bound variable (i.e., we find the value of the lambda-bound
-   * variable, and then do selects from that). PATH's are kept in reverse
-   * order. NO_ACCESS is used to denote built-in structures that do not
-   * have corresponding dynamic objects (e.g., the built-in Inline is a
-   * structure that declares all the built-in primitives --- it is likely
-   * that NO_ACCESS will go away in the future once we have cleaned up the
-   * bootstrap procedure.
+   * -- LVAR is just a lambda-bound variable --- a "local" varialbe used to
+   *    denote a binding in the current compilation unit.
+   * -- EXTERN refers to a binding defined externally (in other modules).
+   * -- PATH is an address relative a lambda-bound variable or external binding
+   *    we find the value of the lambda-bound variable or external, and
+   *    then do successive slot selects from that.
+   *    PATH's are kept in reverse order.
+   * -- NO_ACCESS is used to denote built-in structures that do not
+   *    have corresponding dynamic objects (e.g., the built-in Inline is a
+   *    structure that declares all the built-in primitives --- it is likely
+   *    that NO_ACCESS will go away in the future once we have cleaned up the
+   *    bootstrap procedure.
    *)
     datatype access
       = LVAR of lvar

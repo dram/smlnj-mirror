@@ -14,17 +14,16 @@ local structure A  = Access
 in
 
 datatype var
-  = VALvar of 		              (* ordinary variables *)
+  = VALvar of 		          (* ordinary variables *)
       {path : SP.path,
        typ : T.ty ref,
        btvs : T.tyvar list ref,
        access : A.access,
        prim : PrimopId.prim_id}
-  | OVLDvar of       	      	      (* overloaded identifier *)
-      {name : S.symbol,
-       options: {indicator: T.ty, variant: var} list,
-       scheme: T.tyfun}
-  | ERRORvar                          (* error variables *)
+  | OVLDvar of       	      	  (* overloaded identifier *)
+      {name : S.symbol,           (* name of the overloaded operator *)
+       variants : var list}       (* variant variables (VALvars) *)
+  | ERRORvar                      (* error variables *)
 
 type datacon = T.datacon
 

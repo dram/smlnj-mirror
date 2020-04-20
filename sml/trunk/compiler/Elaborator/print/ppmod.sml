@@ -196,15 +196,9 @@ fun ppVariable ppstrm  =
 	       if !internals then PPVal.ppAccess ppstrm access else ();
 	       pps " : "; ppType env ppstrm (!typ);
 	       closeBox())
-	  | ppV (V.OVLDvar {name,options=optl,scheme=T.TYFUN{body,...}},env) =
+	  | ppV (V.OVLDvar {name,variants},env) =
 	      (openHVBox 0;
-	       ppSym ppstrm (name); pps " : "; ppType env ppstrm body;
-	       pps " as ";
-	       ppSequence ppstrm
-		 {sep=C PrettyPrintNew.break{nsp=1,offset=0},
-		  pr=(fn ppstrm => fn{variant,...} =>ppV(variant,env)),
-		  style=CONSISTENT}
-		 optl;
+	       ppSym ppstrm (name);
 	       closeBox())
 	  | ppV(V.ERRORvar,_) = pps "<ERRORvar>"
      in ppV

@@ -68,7 +68,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 		  of SymPath.SPATH[id] =>
 		      (case Lookup.lookValSym(static,id,err)
 			 of V.VAL(V.VALvar{typ,...}) => !typ
-			  | V.VAL(V.OVLDvar{name,scheme,...}) =>
+			  | V.VAL(V.OVLDvar{name,...}) =>
 			     (print ("#trueValType: OVLDvar"^Symbol.name name^"\n");
 			      raise OVERLOAD)
 			  | V.VAL(V.ERRORvar) =>
@@ -252,7 +252,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
  	       PP.newline ppstrm;
 	       closeBox ppstrm)
 
-	and ppStrb isAbs (STRB{name,str,...}) =    (* isAbs strvar *)
+	and ppStrb (STRB{name,str,...}) =
 	    (openHVBox ppstrm (PP.Rel 0);
 	      openHVBox ppstrm (PP.Rel 0);
 	       pps "structure ";
@@ -347,8 +347,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 		    app ppTb withtycs;
 		    ppDec0 body)
 	       | EXCEPTIONdec ebs => app ppEb ebs
-	       | STRdec strbs => app (ppStrb false) strbs
-	       | ABSdec strbs => app (ppStrb true) strbs
+	       | STRdec strbs => app ppStrb strbs
 	       | FCTdec fctbs => app ppFctb fctbs
 	       | SIGdec sigbs => app ppSigb sigbs
 	       | FSIGdec fsigbs => app ppFsigb fsigbs

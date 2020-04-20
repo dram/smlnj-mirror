@@ -13,8 +13,6 @@ sig
   val mkMETA : int -> Types.tvKind
   val mkFLEX : ((Symbol.symbol * Types.ty) list) * int -> Types.tvKind
   val mkUBOUND : Symbol.symbol -> Types.tvKind
-(*  val mkLITERALty : Types.litKind * SourceMap.region -> Types.ty
- *  moved to ElabCore *)
   val mkMETAty : unit -> Types.ty
   val mkMETAtyBounded : int -> Types.ty
 
@@ -52,8 +50,6 @@ sig
   val dconName : Types.datacon -> Symbol.symbol
   val dconTyc : Types.datacon -> Types.tycon
   val dconType : Types.tycon * Types.ty option  -> Types.ty
-
-  val inClass : Types.ty * Types.ty list -> bool
 
   (* get rid of INSTANTIATED indirections throughout a type *)
   val compressTy : Types.ty -> unit

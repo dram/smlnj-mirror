@@ -149,7 +149,7 @@ structure TypesUtil : TYPESUTIL =
 	  Stamps.eq(s1,s2)
       | eqTycon _ = false
 
-  (* prune: ty -> ty; eliminates INSTANTIATED indirections *)
+  (* prune: ty -> ty; eliminates outermost INSTANTIATED indirections *)
     fun prune (MARKty(ty, _)) = prune ty
       | prune (VARty(tv as ref(INSTANTIATED ty))) = let
 	  val pruned = prune ty
@@ -397,20 +397,16 @@ structure TypesUtil : TYPESUTIL =
 					  | SOME dom =>
 					    dom --> CONty(tyc,boundargs(arity))}})
 
-  (* inClass: ty * ty list -> bool
-   * inClass(ty,tys) tests whether ty occurs in the list tys;
-   * used in overloading resolution for operators and literals *)
-    fun inClass(ty, tys) = List.exists (fn ty' => equalType(ty,ty')) tys
-
-
-    val rec compressTy =
-       fn t as VARty(x as ref(INSTANTIATED(VARty(ref v)))) =>
+    (* compressTy : ty -> unit
+     * uses of compressTy can probably be replaced by calls of mapTy (fn x => x)
+     *)
+    fun compressTy (t as VARty(x as ref(INSTANTIATED(VARty(ref v))))) =
 	    (x := v; compressTy t)
-	| VARty(ref(OPEN{kind=FLEX fields,...})) =>
+      | compressTy (VARty(ref(OPEN{kind=FLEX fields,...}))) =
 	    app (compressTy o #2) fields
-	| CONty(tyc,tyl) => app compressTy tyl
-	| POLYty{tyfun=TYFUN{body,...},...} => compressTy body
-	| _ => ()
+      | compressTy (CONty(tyc,tyl)) = app compressTy tyl
+      | compressTy (POLYty{tyfun=TYFUN{body,...},...}) = compressTy body
+      | compressTy _ = ()
 
   (*
    * 8/18/92: cleaned up occ "state machine" some and fixed bug #612.
@@ -1045,17 +1041,21 @@ structure TypesUtil : TYPESUTIL =
 		(* end case *))
 	  in
 	    case ty
-	     of VARty(ref kind) => (case kind
+	     of VARty(ref kind) =>
+		(case kind
 		   of INSTANTIATED _ => "<tv:INSTANTIATED>"
 		    | OPEN _ => "<tv:OPEN>"
 		    | UBOUND _ => "<tv:UBOUND>"
-		    | OVLD _ => "<tv:OVLD>"
+		    | OVLDV _ => "<tv:OVLDV>"
+		    | OVLDI _ => "<tv:OVLDI>"
+		    | OVLDW _ => "<tv:OVLDW>"
 		    | LBOUND _ => "<tv:LBOUND>"
 		  (* end case *))
 	      | IBOUND n => concat["<", Int.toString n, ">"]
 	      | CONty(tyc,args) =>
 		if BT.isArrowType ty
-		   then concat["(", tyToString (BT.domain ty), " -> ", tyToString (BT.range ty), ")"]
+		then concat["(", tyToString (BT.domain ty), " -> ",
+			    tyToString (BT.range ty), ")"]
 		else if null args
 		   then Symbol.name(tycName tyc)
 		   else concat["(", showargs args, ") ", Symbol.name(tycName tyc)]

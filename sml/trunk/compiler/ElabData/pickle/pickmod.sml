@@ -951,7 +951,7 @@ in
 	and ty arg = let
 	    val op $ = PU.$ T
 	    fun ty (T.VARty (ref (T.INSTANTIATED t))) = ty t
-	      | ty (T.VARty (ref (T.OPEN _))) =
+ 	      | ty (T.VARty (ref (T.OPEN _))) =
 		bug "uninstantiated VARty in pickmod"
 	      | ty (T.CONty (c, l)) = "a" $ [tycon c, list ty l]
 	      | ty (T.IBOUND i) = "b" $ [int i]
@@ -980,16 +980,10 @@ in
 	val op $ = PU.$ VAR
 	fun var (V.VALvar { access = a, prim, path, typ = ref t, ...}) =
 	    "1" $ [access a, primId prim, spath path, ty t]
-	  | var (V.OVLDvar { name, options = p,
-			     scheme = T.TYFUN { arity, body } }) =
-	    "2" $ [symbol name, list overld p, int arity, ty body]
-	  | var V.ERRORvar = "3" $ []
-
-	and overld { indicator, variant } = let
-	    val op $ = PU.$ OVERLD
-	in
-	    "o" $ [ty indicator, var variant]
-	end
+	  | var (V.OVLDvar { name, variants }) =
+	    "2" $ [symbol name, list var variants]
+	  | var V.ERRORvar =
+	    "3" $ []
 
 	fun strDef arg = let
 	    val op $ = PU.$ SD
@@ -1276,9 +1270,8 @@ in
         (* next line is an alternative to using Env.consolidate *)
 	val syms = ListMergeSort.uniqueSort symCmp (StaticEnv.symbols senv)
 	fun newAccess i = A.PATH (A.EXTERN hash, i)
-	fun mapbinding (sym, (i, env, lvars)) =
-	    (case StaticEnv.look (senv, sym)
-	       of B.VALbind(V.VALvar{access, prim=z, path=p, typ= ref t, btvs}) =>
+	fun mapbinding (sym, (i, env, lvars)) = (case StaticEnv.look (senv, sym)
+	     of B.VALbind(V.VALvar{access, prim=z, path=p, typ= ref t, btvs}) =>
 	          (case access of
 		     A.LVAR k =>
 		     (i+1,
@@ -1295,46 +1288,49 @@ in
 			"', access = ", A.prAcc access
 		      ])
 		  (* end case *))
-		| B.STRbind (M.STR { sign, rlzn, access, prim }) =>
-		  (case access
-		    of A.LVAR k =>
+	      | B.STRbind (M.STR { sign = s, rlzn = r, access = a, prim =z }) =>
+		(case a of
+		     A.LVAR k =>
 		     (i+1,
 		      StaticEnv.bind (sym,
 				      B.STRbind (M.STR
 						     { access = newAccess i,
-						       sign = sign, rlzn = rlzn,
-						       prim = prim }),
+						       sign = s, rlzn = r,
+						       prim = z }),
 				env),
 		      k :: lvars)
-		   | _ => bug ("dontPickle 2" ^ A.prAcc access))
-		| B.FCTbind (M.FCT { sign, rlzn, access, prim }) =>
-		  (case access
-		    of A.LVAR k =>
+		   | _ => bug ("dontPickle 2" ^ A.prAcc a))
+	      | B.FCTbind (M.FCT { sign = s, rlzn = r, access = a, prim = z }) =>
+		(case a of
+		     A.LVAR k =>
 		     (i+1,
 		      StaticEnv.bind (sym,
 				      B.FCTbind (M.FCT
 						     { access = newAccess i,
-						       sign = sign, rlzn = rlzn,
-						       prim = prim }),
+						       sign = s, rlzn = r,
+						       prim = z }),
 				      env),
 		      k :: lvars)
-		     | _ => bug ("dontPickle 3" ^ A.prAcc access))
-		| B.CONbind (T.DATACON { name, const, typ, sign,
-					 lazyp = false, rep = (A.EXN a) }) =>
-		  (case a
-		    of A.LVAR k =>
+		   | _ => bug ("dontPickle 3" ^ A.prAcc a))
+	      | B.CONbind (T.DATACON { name = n, const = c, typ = t, sign = s,
+				       lazyp= false, rep as (A.EXN a) }) => let
+		    val newrep = A.EXN (newAccess i)
+		in
+		    case a of
+			A.LVAR k =>
 			(i+1,
 			 StaticEnv.bind (sym,
 					 B.CONbind (T.DATACON
-							{ rep = A.EXN (newAccess i),
-							  name = name,
+							{ rep = newrep,
+							  name = n,
 							  lazyp = false,
-							  const = const, typ = typ,
-							  sign = sign }),
+							  const = c, typ = t,
+							  sign = s }),
 				   env),
 			 k :: lvars)
-		       | _ => bug ("dontPickle 4" ^ A.prAcc a))
-		| binding => (i, StaticEnv.bind (sym, binding, env), lvars)
+		      | _ => bug ("dontPickle 4" ^ A.prAcc a)
+		end
+	      | binding => (i, StaticEnv.bind (sym, binding, env), lvars)
 	    (* end case *))
 	val (_,newenv,lvars) = foldl mapbinding (0, StaticEnv.empty, nil) syms
 	val hasExports = not (List.null lvars)

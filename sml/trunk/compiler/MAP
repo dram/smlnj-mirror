@@ -139,58 +139,23 @@ Basics/
       uses: ControlRegistry, Controls
       defs: BASIC_CONTROL, BasicControl
 
+
 Semant/
-  Modules related to elaboration and pickling (external representation
-  of static environments)
+  Modules related to primops and pickling (serialized external
+  representation of static environments)
 
- [#Deleted: replaced by ElabData/basics/primopid.sig,sml
-  Semant/basics/
-    inlinfo.sig/sml
-      inlining info [FLINT]
-      defs: INL_INFO, InlInfo: INL_INFO
- ]
-
-  Semant/elaborate/
-  apply functors defined in corresponding Elaborate/elaborate modules
-  [these could be in Elaborator]
-    elabmod.sml
-      module level elaboration: defines ElabMod by calling ElabModFn defined
-      in Elaborate/elaborate/elabmod.sml (should go to Elaborator)
-      see: Elaborator/elaborate/elabmod.sml
-      defs: ElabMod
-    elabtop.sml
-      top-level elaboration: defined ElabTop by calling ElabTopFn defined
-      in Elaborator/elaborate/elabtop.sml (should go to Elaborator)
-      see: Elaborator/elaborate/elabtop.sml
-      defs: ElabTop
-
-  Semant/modules/
-  support for module elaboration
-    evalent.sml
-      entity expression evaluation;
-      applies functor EvalEntityFn from Elaborator/modules/evalent.sml
-      see: Elaborator/modules/evalent.sml
-      defs: EvalEntity
-    instantiate.sml
-      apply InstantitateFn defined in Elaborator/modules/instantiate.sml
-      see: Elaborator/modules/instantiate.sml
-      defs: Instantiate
-    instantiate-param.sml
-      defines parameter passed to InstantiateFn in ./instantiate.sml
-      see: Semant/modules/instantiate.sml  (previous file)
-      defs: InstantiateParam
-    module-plists.sml [FLINT]
-      defines PropList properties for attaching FLINT Lambda types to
-      various semantic entities
-      see: smlnj-lib/Util/plist{-sig}.sml
-      defs: ModulePropLists
-    sigmatch.sml
-      apply SigmatchFn defined in Elaborator/modules/sigmatch.sml
-      see: Elaborator/modules/sigmatch.sml
-      defs: SigMatch
+  Semant/prim [See also: ElabData/prim]
+  definition and support for primops (primitive, built-in operations)
+  [should these be moved to ElabData/prim?]
+    primop-bindings.sml
+      defining the primops and their types
+      defs: PrimopBindings (inline sig)
+    prim-env.sml
+      packaging the primos in a static environment
+      defs: PRIM_ENV, PrimEnv: PRIM_ENV
 
   Semant/pickle/
-  pickling static environments
+  pickling (serialization) and unpickling static environments
     pickle-sym-pid.sml
       pickling symbols and pids (persistant stamps)
       uses: PickleUtil
@@ -208,24 +173,6 @@ Semant/
       recompute hash of an environment resulting from filtering
       a larger invironment
       defs: Rehash (inline sig)
-
-  Semant/types/
-  some types-related stuff
-    cproto.sml
-      relating ML types and C types (CTypes.c_proto from MLRISC) for C call mechanism
-      defs: CProto
-    tp-var-info.sml [FLINT]
-      packaging some FLINT info as an exception
-      defs: TVI
-    types-reformat.sml [FLINT]
-      FLINT-related "reformatting" of types, used to be in typesutil.sml
-      defs: TypesReformat
-   [#Deleted: type checker is no longer functorized
-    typecheck.sml [FLINT]
-      apply TypecheckFn defined in Elaborator/types/typecheck.sml (should eliminate)
-      see: Elaborator/types/typecheck.sml
-      defs: TypeCheck
-   ]
 
 
 ElabData/
@@ -399,11 +346,14 @@ Elaborator/
     unify.sml
       type unification
       defs: UNIFY, Unify: UNIFY
-    overloadlit.sml
-      overloaded numeric literals
-      defs: OVERLOADLIT, OverloadLit: OVERLOADLIT
+    overloadclasses.sml
+      overloading classes (lists of type constants like intTy)
+      defs: OverloadClasses (no signature)
+    overloadvar.sml
+      machinery for resolving overloading of variables (like +, *)
+      defs: OVERLOADVAR, OverloadVar: OVERLOADVAR
     overload.sml
-      overloading resolution
+      overloading resolution for variables and literals
       defs: OVERLOAD, Overload
     typecheck.sml [FLINT dirt]
       defines typechecking _functor_ TypecheckFn, taking some FLINT-related

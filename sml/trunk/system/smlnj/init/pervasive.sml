@@ -60,19 +60,19 @@ local
     fun stringgt (a, b) = stringlt (b, a)
     fun stringge (a, b) = stringle (b, a)
 in
-overload ~ :   ('a -> 'a)
+overload ~
    as  Int.~ and I32.~ and I64.~ and CII.~
    and Word.~ and W8.~ and W32.~ and W64.~
    and R64.~
-overload + :   ('a * 'a -> 'a)
+overload +
   as  Int.+ and I32.+ and I64.+ and CII.+
   and Word.+ and W8.+ and W32.+ and W64.+
   and R64.+
-overload - :   ('a * 'a -> 'a)
+overload -
   as  Int.- and I32.- and I64.- and CII.-
   and Word.- and W8.- and W32.- and W64.-
   and R64.-
-overload * :   ('a * 'a -> 'a)
+overload *
   as  Int.* and I32.* and I64.* and CII.*
   and Word.* and W8.* and W32.* and W64.*
   and R64.*
@@ -81,37 +81,37 @@ overload / : ('a * 'a -> 'a)
   as R64./
 *)
 val op / = R64./		(* temporary hack around overloading bug *)
-overload div : ('a * 'a -> 'a)
+overload div
   as  Int.div and I32.div and I64.div and CII.div
   and Word.div and W8.div and W32.div and W64.div
-overload mod : ('a * 'a -> 'a)
+overload mod
   as  Int.mod and I32.mod and I64.mod and CII.mod
   and Word.mod and W8.mod and W32.mod and W64.mod
-overload < :   ('a * 'a -> bool)
+overload <
   as  Int.< and I32.< and I64.< and CII.<
   and Word.< and W8.< and W32.< and W64.<
   and R64.<
   and InlineT.Char.<
   and stringlt
-overload <= :   ('a * 'a -> bool)
+overload <=
   as  Int.<= and I32.<= and I64.<= and CII.<=
   and Word.<= and W8.<= and W32.<= and W64.<=
   and R64.<=
   and InlineT.Char.<=
   and stringle
-overload > :   ('a * 'a -> bool)
+overload >
   as  Int.> and I32.> and I64.> and CII.>
   and Word.> and W8.> and W32.> and W64.>
   and R64.>
   and InlineT.Char.>
   and stringgt
-overload >= :   ('a * 'a -> bool)
+overload >=
   as  Int.>= and I32.>= and I64.>= and CII.>=
   and Word.>= and W8.>= and W32.>= and W64.>=
   and R64.>=
   and InlineT.Char.>=
   and stringge
-overload abs : ('a -> 'a)
+overload abs
   as Int.abs and I32.abs and I64.abs and CII.abs and R64.abs
 
 type unit = PrimTypes.unit

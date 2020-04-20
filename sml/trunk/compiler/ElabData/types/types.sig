@@ -13,34 +13,34 @@ type polysign (* = bool list *)
 
 datatype eqprop = YES | NO | IND | OBJ | DATA | ABS | UNDEF
 
+type varSource = Symbol.symbol * SourceMap.region
+type litSource = IntInf.int * SourceMap.region
+
+(*
+and ovldSource
+  = OVAR of Symbol.symbol * SourceMap.region	(* overloaded variable occurrence *)
+  | OINT of IntInf.int * SourceMap.region	(* overloaded int literal occurrence *)
+  | OWORD of IntInf.int * SourceMap.region	(* overloaded word literal occurrence *)
+*)
 datatype openTvKind
   = META
   | FLEX of (label * ty) list
-
-and ovldSource
-  = OVAR of Symbol.symbol * SourceMap.region	(* overloaded variable *)
-  | OINT of IntInf.int * SourceMap.region	(* overloaded int literal *)
-  | OWORD of IntInf.int * SourceMap.region	(* overloaded word literal *)
-  (* in future, may need to add real, char, string literals as sources *)
-
+			 
+(* In future, may need to add real, char, string literals as new forms of
+ * overload tvKinds *)
 and tvKind
   = INSTANTIATED of ty
   | OPEN of {depth: int, eq: bool, kind: openTvKind}
   | UBOUND of {depth: int, eq: bool, name: Symbol.symbol}
-  | OVLD of (* overloaded operator type scheme variable,
-	     * representing one of a finite set of ground type options *)
-     {sources: ovldSource list,   (* name of overloaded variable *)
-      options: ty list} (* possible resolution types *)
-  (* for marking a type variable so that it can be easily identified
-   * (A type variable's ref cell provides an identity already, but
-   * since ref cells are unordered, this is not enough for efficient
-   * data structure lookups (binary trees...).  TV_MARK is really
-   * a hack for the benefit of later translation phases (FLINT),
-   * but unlike the old "LBOUND" thing, it does not need to know about
-   * specific types used by those phases. In any case, we should figure
-   * out how to get rid of it altogether.)
-   ** DBM: confusing and apparently obsolete comment. Sounds like TV_MARK
-   ** was supposed to replace LBOUND *)
+  | OVLDV of  (* overloaded variable (operator) *)
+    {eq: bool,  (* equality attribute, may be set by unification *)
+     sources: varSource list} (* names and locations of overloaded
+				  variables or literals *)
+     (* used to instantiate overloaded operator type scheme,
+      * representing one of a finite set of possible ground types used as
+      * "indicator" types to resolve the overloading *)
+  | OVLDI of litSource list  (* overloaded integer literal *)
+  | OVLDW of litSource list  (* overloaded word literal *)
   | LBOUND of {depth: int, eq: bool, index: int}
      (* FLINT-style de Bruijn index for notional "lambda"-bound type variables
       * associated with polymorphic bindings (including val bindings and

@@ -58,11 +58,12 @@ val unitPath = IP.extend(IP.empty,Symbol.tycSymbol "unit")
 fun boundTyvarName k =
     let val a = Char.ord #"a"
      in if k < 26
-	then String.str(Char.chr(k+a))
+	then String.str(Char.chr(a+k))
 	else implode[Char.chr(Int.div(k,26) + a),
                      Char.chr(Int.mod(k,26) + a)]
     end
 
+(* metaTyvarName' : int -> string *)
 fun metaTyvarName' k =
     let val a = Char.ord #"Z" (* use reverse order for meta vars *)
      in if k < 26
@@ -96,42 +97,46 @@ in
   fun resetPPType() = (count := ~1; metaTyvars := [])
 end
 
-fun tvHead (eq,base) =
-    (if eq then "''" else "'")^base
-
-fun annotate (name,annotation,depthOp) =
+fun tyvarInternals (annotation,depthOp) =
     if !internals
-      then concat(name::"."::annotation::
-		  (case depthOp
-		     of SOME depth => ["[",(Int.toString depth),"]"]
-		      | NONE => nil))
-    else name
+    then concat(annotation::
+		(case depthOp
+		  of SOME depth => ["[",(Int.toString depth),"]"]
+		   | NONE => nil))
+    else ""
 
-fun sourcesToString (OVAR(name,_) :: _) = Symbol.name name
-  | sourcesToString (OINT _ :: _) = "int"
-  | sourcesToString (OWORD _ :: _) = "word"
+fun sourcesToString [(name,_)] = Symbol.name name
+  | sourcesToString ((name,_)::rest) =
+    concat[Symbol.name name,",",sourcesToString rest]
   | sourcesToString nil = bug "sourcesToString"
 
 fun tyvarPrintname (tyvar) =
-let fun prKind info =
-	case info of
-	    INSTANTIATED(VARty(tyvar)) => tyvarPrintname tyvar
-	  | INSTANTIATED _ => "<INSTANTIATED ?>"
-	  | OPEN{depth,eq,kind} =>
-	    tvHead(eq, annotate(metaTyvarName tyvar,
-				case kind of META => "M" | FLEX _ => "F",
-				SOME depth))
-	  | UBOUND{name,depth,eq} =>
-	    tvHead(eq,annotate(Symbol.name name,"U",SOME depth))
-	  | OVLD{sources,options} =>
-	    annotate("["^sourcesToString sources ^ " ty]",
-		     "O:" ^ Int.toString(length options),NONE)
-	  | LBOUND{depth,eq,index} =>
-	      (if eq then "<LBDeq" else "<LBD")^Int.toString depth^"."
-	      ^Int.toString index^">"
-in
-    prKind (!tyvar)
-end
+    let fun prKind info =
+	    case info
+	     of INSTANTIATED(VARty(tyvar)) => tyvarPrintname tyvar
+	      | INSTANTIATED _ => "[INSTANTIATED]"
+	      | OPEN{depth,eq,kind} =>
+		concat["[",metaTyvarName tyvar,":OPEN",
+		       tyvarInternals(case kind of META => ".M" | FLEX _ => ".F",
+				      SOME depth),
+		       if eq then ":eq" else "",
+		       "]"]
+	      | UBOUND{name,depth,eq} =>
+		concat[(if eq then "''" else "'"), Symbol.name name,
+		       tyvarInternals(".U",SOME depth)]
+	      | OVLDV{sources,eq} =>
+		concat["[",metaTyvarName tyvar,
+		       ":OL(",sourcesToString sources,")", if eq then ":eq" else "","]"]
+	      | OVLDI sources =>
+		concat["[",metaTyvarName tyvar, ":INT]"]
+	      | OVLDW sources =>
+		concat["[",metaTyvarName tyvar, ":WORD]"]
+	      | LBOUND{depth,eq,index} =>
+		concat["[LB", if eq then ":eq:" else ":", Int.toString depth, ".",
+		       Int.toString index, "]"]
+    in
+	prKind (!tyvar)
+    end
 
 fun ppkind ppstrm kind =
     pps ppstrm
@@ -287,7 +292,7 @@ and ppType1 env ppstrm (ty: ty, sign: T.polysign,
 	       | IBOUND n =>
 		   let val eq = List.nth(sign,n)
 		                handle Subscript => false
-		    in pps (tvHead(eq,(boundTyvarName n)))
+		    in pps ((if eq then "''" else "'") ^ boundTyvarName n)
 		   end
 	       | CONty(tycon, args) => let
 		     fun otherwise () =

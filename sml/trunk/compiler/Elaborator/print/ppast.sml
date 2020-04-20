@@ -944,16 +944,6 @@ and ppDec (context as (env,source_opt)) ppstrm =
 		   style=INCONSISTENT}
 		   sbs
 		end
-        | ppDec'(AbsDec sbs,d) =
-          let fun f ppstrm (Strb{name, def, constraint}) =
-		    (ppSym ppstrm name;
-		     break ppstrm {nsp=1,offset=2};
-		     ppStrExp context ppstrm (def,d-1))
-		| f _ _ = bug "ppDec':ABSdec"
-	   in openHVBox 0;
-	      ppvlist ppstrm ("abstraction ","and ", f, sbs);
-	      closeBox ()
-	  end
         | ppDec'(FctDec fbs,d) =
 	  let fun f ppstrm fctb = ppFctb context ppstrm (fctb,d)
 	   in openHVBox 0;
@@ -1005,7 +995,7 @@ and ppDec (context as (env,source_opt)) ppstrm =
 	      style=INCONSISTENT}
              strbs;
 	   closeBox ())
-        | ppDec'(OvldDec (sym, ty, explist),d) = ppSym ppstrm sym
+        | ppDec'(OvldDec (sym, explist),d) = ppSym ppstrm sym
 	| ppDec'(FixDec {fixity,ops},d) =
 	  (openHVBox 0;
 	   case fixity

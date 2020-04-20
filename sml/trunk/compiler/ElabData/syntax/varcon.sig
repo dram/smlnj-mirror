@@ -14,10 +14,9 @@ sig
 	 btvs : Types.tyvar list ref,
          access : Access.access,
          prim   : PrimopId.prim_id}
-    | OVLDvar of			(* overloaded identifier *)
-        {name : Symbol.symbol,
-	 options: {indicator: Types.ty, variant: var} list,
-	 scheme: Types.tyfun}
+    | OVLDvar of       	               (* overloaded identifier *)
+      {name : Symbol.symbol,                (* name of the overloaded operator *)
+       variants : var list}            (* variant variables (VALvars) *)
     | ERRORvar
 
   type datacon = Types.datacon

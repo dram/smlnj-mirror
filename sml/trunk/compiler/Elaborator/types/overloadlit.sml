@@ -9,6 +9,10 @@
  * All rights reserved.
  *)
 
+(* This structure now redundant.  Function taken over by OverloadClasses
+ * (Elaborator/types/overloadclasses.sml).
+ *)
+
 signature OVERLOADLIT =
   sig
 

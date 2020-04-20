@@ -21,17 +21,22 @@ type polysign = bool list
 
 datatype eqprop = YES | NO | IND | OBJ | DATA | ABS | UNDEF
 
+type varSource = S.symbol * SourceMap.region (* the "occurrence" of an overloaded identifier *)
+type litSource = IntInf.int * SourceMap.region (* the "occurrence" of an overloaded literal *)
+
+(*
+and ovldSource
+  = OVAR of S.symbol * SourceMap.region	    (* overloaded variable occurrence *)
+  | OINT of IntInf.int * SourceMap.region   (* overloaded int literal occurrence *)
+  | OWORD of IntInf.int * SourceMap.region  (* overloaded word literal occurrence *)
+   (* in future, may need to add real, char, string literals as sources *)
+*)
+
 datatype openTvKind
   = META                          (* metavariables:
                                      depth = infinity for meta-args
                                      depth < infinity for lambda bound *)
   | FLEX of (label * ty) list     (* flex record variables *)
-
-and ovldSource
-  = OVAR of S.symbol * SourceMap.region		(* overloaded variable *)
-  | OINT of IntInf.int * SourceMap.region	(* overloaded int literal *)
-  | OWORD of IntInf.int * SourceMap.region	(* overloaded word literal *)
-  (* in future, may need to add real, char, string literals as sources *)
 
 and tvKind
   = INSTANTIATED of ty (* instantiation of an OPEN *)
@@ -39,10 +44,15 @@ and tvKind
      {depth: int, eq: bool, kind: openTvKind}
   | UBOUND of (* explicit type variables *)
      {depth: int, eq: bool, name: S.symbol}
-  | OVLD of (* overloaded operator type scheme variable,
-	     * representing one of a finite set of ground type options *)
-     {sources: ovldSource list,   (* name of overloaded variable or literal value *)
-      options: ty list} (* potential resolution types *)
+  | OVLDV of
+    {eq: bool,  (* equality attribute, may be set by unification *)
+     sources: varSource list} (* names and locations of overloaded
+				  variables or literals *)
+     (* used to instantiate overloaded operator type scheme,
+      * representing one of a finite set of possible ground types used as
+      * "indicator" types to resolve the overloading *)
+  | OVLDI of litSource list  (* overloaded integer literal *)
+  | OVLDW of litSource list  (* overloaded word literal *)
   | LBOUND of {depth: int, eq: bool, index: int}
      (* FLINT-style de Bruijn index for notional "lambda"-bound type variables
       * associated with polymorphic bindings (including val bindings and
@@ -52,7 +62,8 @@ and tvKind
       * equality type information for signature matching because the OPENs
       * are turned into LBOUNDs before equality type information is matched. *)
 
-and tycpath (* FLINT!!! *)
+(* FLINT!!! -- reconstruct it at translate time (presumed redundant info)? *)
+and tycpath
     = TP_VAR of
         { tdepth: DebIndex.depth,
 	  num: int, kind: TKind.tkind }

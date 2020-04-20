@@ -162,21 +162,14 @@ TopLevel/main/pptable.sml
 
 (* Semantic analysis (elaborator) specialized for SML/NJ. *)
 
-(* redundant functor applications
-Semant/elaborate/elabmod.sml
-Semant/elaborate/elabtop.sml
-Semant/modules/evalent.sml
-Semant/modules/sigmatch.sml
-*)
+ElabData/pickle/pickle-sym-pid.sml
+ElabData/pickle/pickmod.sml
+ElabData/pickle/unpickle-sym-pid.sml
+ElabData/pickle/unpickmod.sml
+ElabData/pickle/rehash.sml
 
-Semant/pickle/pickle-sym-pid.sml
-Semant/pickle/pickmod.sml
-Semant/pickle/unpickle-sym-pid.sml
-Semant/pickle/unpickmod.sml
-Semant/pickle/rehash.sml
-
-Semant/prim/primop-bindings.sml
-Semant/prim/prim-env.sml
+ElabData/prim/primop-bindings.sml
+ElabData/prim/prim-env.sml
 
 (* The FLINT optimizer ("middle-end"). *)
 FLINT/flint/chkflint.sml

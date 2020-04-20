@@ -64,7 +64,6 @@ signature ABSYN =
 		       withtycs: Types.tycon list, body: dec}
       | EXCEPTIONdec of eb list
       | STRdec of strb list
-      | ABSdec of strb list
       | FCTdec of fctb list
       | SIGdec of Modules.Signature list
       | FSIGdec of Modules.fctSig list

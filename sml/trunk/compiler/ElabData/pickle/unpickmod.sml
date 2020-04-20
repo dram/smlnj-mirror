@@ -450,6 +450,7 @@ structure UnpickMod : UNPICKMOD = struct
 	val symbolListM = UU.mkMap ()
 	val spathListM = UU.mkMap ()
 	val spathListListM = UU.mkMap ()
+	val varListM = UU.mkMap ()
 	val dataconM = UU.mkMap ()
 	val tkM = UU.mkMap ()
 	val dtiM = UU.mkMap ()
@@ -765,14 +766,10 @@ structure UnpickMod : UNPICKMOD = struct
 		end
 	      | v #"2" =
 		let val n = symbol ()
-		    val (ol, oltr) = overldlist' ()
-		    val ar = int ()
-		    val (b, btr) = ty' ()
+		    val (vl,vltr) = varlist' ()
 		in
-		    (V.OVLDvar { name = n,
-				 options = ol,
-				 scheme = T.TYFUN { arity = ar, body = b } },
-		     branch [oltr, btr])
+		    (V.OVLDvar { name = n, variants = vl},
+		     vltr)
 		end
 	      | v #"3" = (V.ERRORvar, notree)
 	      | v _ = raise Format
@@ -780,21 +777,8 @@ structure UnpickMod : UNPICKMOD = struct
 	    share vM v
 	end
 
-	and overld' () = let
-	    fun ov #"o" =
-		let val (t, ttr) = ty' ()
-		    val (v, vtr) = var' ()
-		in
-		    ({ indicator = t, variant = v },
-		     branch [ttr, vtr])
-		end
-	      | ov _ = raise Format
-	in
-	    share overldM ov
-	end
-
-	and overldlist' () = let
-	    val (l, trl) = ListPair.unzip (list olListM overld' ())
+	and varlist' () = let
+	    val (l, trl) = ListPair.unzip (list varListM var' ())
 	in
 	    (l, branch trl)
 	end

@@ -73,7 +73,6 @@ structure Absyn : ABSYN =
       | ABSTYPEdec of {abstycs: Ty.tycon list, withtycs: Ty.tycon list, body: dec}
       | EXCEPTIONdec of eb list
       | STRdec of strb list
-      | ABSdec of strb list      (* should be merged with STRdec in the future *)
       | FCTdec of fctb list
       | SIGdec of Modules.Signature list
       | FSIGdec of Modules.fctSig list
