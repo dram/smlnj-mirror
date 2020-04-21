@@ -1,5 +1,5 @@
 :version: 110.97
-:date: ??
+:date: April 21, 2020
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
