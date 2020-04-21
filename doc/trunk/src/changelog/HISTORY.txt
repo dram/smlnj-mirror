@@ -99,13 +99,9 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //--------------------------------------------------------------------
 [2020/04/21]::
 +
-Changed printing of tyvars (type metavariables)
-+
-    * Changed printing of tyvars. E.g. and OVLDV tyvar introduced
-      by an occurrence of overloaded operator "*" that acquires the
-      equality attribute will be printed as "''Z[OL(*)]".
-
-    * files: Elaborator/print/pptype.sml
+Changed the printing of tyvars; _e.g._, an OVLDV tyvar introduced
+by an occurrence of the overloaded operator "++*++" that also
+acquires the equality attribute will be printed as ++''Z[OL(*)]++.
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
@@ -114,28 +110,28 @@ owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 +
 Eliminated AbsDec and ABSdec constructors
 +
-    * Eliminated AbsDec constructor in Parse/ast/ast.{sig,sml}
-      and ABSdec constructor in ElabData/syntax/absyn.{sig,sml}
+--
+    * Eliminated `AbsDec` constructor in `Parse/ast/ast.`{`sig`,`sml`}
+      and `ABSdec` constructor in `ElabData/syntax/absyn.`{`sig`,`sml`}
       The "abstraction" declaration that these constructors
       implemented was in SML/NJ 0.93, but was eliminated in favor
       of opaque "sealing" signature ascription after SML '97.
 
     * Eliminated all other occurrences of these constructors
       throughout the compiler (Front End, FLINT, and cm).
+--
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
 //--------------------------------------------------------------------
 [2020/04/20]::
 +
-Eliminated Semant directory
-+
-    * File structure reoganization: Top-level compiler/Semant
-      directory was eliminated. Remaining relevant subdirectories
-      were Semant/pickle, which moved to ElabData, and Semant/prim,
-      whose two files, prim-env.sml and primop-bindings.sml moved to
-      the existing ElabData/prim directory. CM files compiler/core.cm
-      and ElabData/elabdata.cm changed accordingly.
+File structure reoganization: the top-level `compiler/Semant`
+directory was eliminated. Remaining relevant subdirectories
+were `Semant/pickle`, which moved to `ElabData`, and `Semant/prim`,
+whose two files, `prim-env.sml` and `primop-bindings.sml` moved to
+the existing `ElabData/prim` directory. CM files `compiler/core.cm`
+and `ElabData/elabdata.cm` changed accordingly.
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
@@ -144,6 +140,7 @@ owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 +
 Fixed bug bugref:220[]
 +
+--
     * Major redesign of the overloading resolution mechanisms.
       Changed syntax of overload declaration (partly deferred to
       110.98). Changed OVLDvar in VarCon.var, added files
@@ -156,13 +153,14 @@ Fixed bug bugref:220[]
 
     * Changed printing of overload type metavariables (unification
       type variables (Types.tyvar)).
-      
+
     * Files:
       ElabData/types/types.{sig,sml}
       ElabData/types/overloadclasses.sml  (new)
       ElabData/types/overloadvar.sml (new)
       ElabData/types/overload.sml
       Elaborator/elaborate/elabcore.sml
+--
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
@@ -171,9 +169,12 @@ owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 +
 Fixed bug bugref:214[]
 +
-    * Changed printed message when a VALvar binding is shaddowed to
-      print "<hidden>" (function ppVar in MiscUtil/print/ppdec.sml).
-    * Minor cleanup of dontPickle function in Semant/pickle/pickmod.sml.
+--
+    * Changed printed message when a VALvar binding is shadowed to
+      print "`<hidden>`" (function `ppVar` in `MiscUtil/print/ppdec.sml`).
+
+    * Minor cleanup of `dontPickle` function in `Semant/pickle/pickmod.sml`.
+--
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
@@ -182,6 +183,7 @@ owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 +
 Fixed bug bugref:209[]
 +
+--
     * Added function `checkForbiddenCons` to `ElabUtil`
       (`Elaborator/elaborate/elabutil.{sig,sml}`) that checks if
       a symbol is in the forbidden constructor set (`it`, `true`,
@@ -194,6 +196,7 @@ Fixed bug bugref:209[]
       specs in `system/Basis/Implementation/{list,bool}.sig`
       to avoid an error caused by the occurrence of "forbidden"
       constructors.
+--
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
@@ -221,10 +224,12 @@ owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 +
 Fixed bugs bugref:195[] and bugref:196[]
 +
+--
     * bugref:195[]: added missing `DOdec` case in function `getDeclOrder` in
       `ElabMod` (Elaborator/elaborate/elabmod.sml l. ~563)
     * bugref:196[]: modified `elabDOdec` in `Elaborator/elaborate/elabcore.sml` to
       return the empty Static environment (`SE.empty`)
+--
 +
 owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 
@@ -234,11 +239,13 @@ owner:cs.uchicago.edu/~dbm[Dave MacQueen]
 Various minor changes related to the *heap2exec* and *heap2asm*
 programs.
 +
+--
     * Modified the `config/install.sh` script to remove `bin/heap2exec`
       when the required helper `bin/heap2asm` is _not_ installed.
     * Added `-static` and `-dynamic` as options to *heap2exec*
       (these are the same as `--linkwith-a` and `--linkwith-so`)
     * Rewrote *heap2asm* be a bit more future-proof.
+--
 +
 owner:cs.uchicago.edu/~jhr[John Reppy]
 
