@@ -97,6 +97,19 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Version 110.97; 2020/04/21
 
 //--------------------------------------------------------------------
+[2020/04/21]::
++
+Changed printing of tyvars (type metavariables)
++
+    * Changed printing of tyvars. E.g. and OVLDV tyvar introduced
+      by an occurrence of overloaded operator "*" that acquires the
+      equality attribute will be printed as "''Z[OL(*)]".
+
+    * files: Elaborator/print/pptype.sml
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2020/04/20]::
 +
 Eliminated AbsDec and ABSdec constructors
