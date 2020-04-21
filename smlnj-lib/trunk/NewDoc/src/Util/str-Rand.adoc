@@ -5,7 +5,7 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `Rand` structure is a simple random number generator as described
+The `Rand` structure provides a simple random number generator as described
 in Larry Paulson in __ML for the Working Programmer__ (pp. 170-171).
 The original algorithm was recommended by Park and Miller in
 https://doi.org/10.1145/63039.63042[__Random number generators: good ones
@@ -14,6 +14,9 @@ in CACM 1993 (pp. 105-110).
 
 Note: it is recommended that one use the xref:str-Random.adoc[`Random`]
 structure when the quality of the generated numbers is at all important.
+The main advantages of this implementation is that it is functional
+(the generators provided by the `Random` structure are imperative) and
+it is fast.
 
 == Synopsis
 

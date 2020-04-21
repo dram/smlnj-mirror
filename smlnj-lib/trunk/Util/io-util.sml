@@ -1,6 +1,8 @@
 (* io-util.sml
  *
- * COPYRIGHT (c) 1997 AT&T Labs Research.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  *)
 
 structure IOUtil : IO_UTIL =

@@ -51,7 +51,7 @@ xref:str-Format.adoc[`[.kw]#structure# Format`]::
 // 10
 
 xref:str-FormatComb.adoc[`[.kw]#structure# FormatComb`]::
-  something
+  **To be written**
 
 xref:str-GetOpt.adoc[`[.kw]#structure# GetOpt`]::
   Provides command-line argument processing.
@@ -71,13 +71,13 @@ xref:str-HashString.adoc[`[.kw]#structure# HashString`]::
   Provides hashing functions for strings and substrings.
 
 xref:str-HashTable.adoc[`[.kw]#structure# HashTable`]::
-  something
+  **To be written**
 
 xref:fun-HashTableFn.adoc[`[.kw]#functor# HashTableFn`]::
   Provides a functor for implementing hash-table-based imperative maps.
 
 xref:fun-Hash2TableFn.adoc[`[.kw]#functor# Hash2TableFn`]::
-  something
+  **To be written**
 
 xref:sig-INTERVAL_DOMAIN.adoc[`[.kw]#signature# INTERVAL_DOMAIN`]::
   Defines a representation of an abstract ordered domain that is
@@ -87,67 +87,68 @@ xref:sig-INTERVAL_DOMAIN.adoc[`[.kw]#signature# INTERVAL_DOMAIN`]::
 // 20
 
 xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
-  something
+  **To be written**
 
 xref:str-IOUtil.adoc[`[.kw]#structure# IOUtil`]::
-  something
+  Provides support for redirecting the standard input and output streams.
 
 xref:fun-KeywordFn.adoc[`[.kw]#functor# KeywordFn`]::
-  something
+  **To be written**
 
 xref:str-LibBase.adoc[`[.kw]#structure# LibBase`]::
   Provides some common definitions that are
   shared across the *SML/NJ Lbrary*.
 
 xref:str-ListFormat.adoc[`[.kw]#structure# ListFormat`]::
-  something
+  **To be written**
 
 xref:str-ListMergeSort.adoc[`[.kw]#structure# ListMergeSort`]::
-  something
+  **To be written**
 
 xref:str-ListXProd.adoc[`[.kw]#structure# ListXProd`]::
-  something
+  **To be written**
 
 xref:fun-MonoArrayFn.adoc[`[.kw]#functor# MonoArrayFn`]::
-  something
+  **To be written**
 
 xref:sig-MONO_ARRAY_SORT.adoc[`[.kw]#signature# MONO_ARRAY_SORT`]::
-  something
+  **To be written**
 
 xref:sig-MONO_DYNAMIC_ARRAY.adoc[`[.kw]#signature# MONO_DYNAMIC_ARRAY`]::
-  something
+  **To be written**
 
 // 30
 
 xref:sig-MONO_HASH_SET.adoc[`[.kw]#signature# MONO_HASH_SET`]::
-  something
+  **To be written**
 
 xref:sig-MONO_HASH_TABLE.adoc[`[.kw]#signature# MONO_HASH_TABLE`]::
-  something
+  **To be written**
 
 xref:sig-MONO_PRIORITYQ.adoc[`[.kw]#signature# MONO_PRIORITYQ`]::
-  something
+  **To be written**
 
 xref:sig-ORD_KEY.adoc[`[.kw]#signature# ORD_KEY`]::
-  something
+  **To be written**
 
 xref:sig-ORD_MAP.adoc[`[.kw]#signature# ORD_MAP`]::
-  something
+  **To be written**
 
 xref:sig-ORD_SET.adoc[`[.kw]#signature# ORD_SET`]::
-  something
+  **To be written**
 
 xref:str-ParserComb.adoc[`[.kw]#structure# ParserComb`]::
-  something
+  **To be written**
 
 xref:str-PathUtil.adoc[`[.kw]#structure# PathUtil`]::
-  something
+  Provides support for searching for files
+  in the file system using a list of possible locations.
 
 xref:sig-PRIORITY.adoc[`[.kw]#signature# PRIORITY`]::
-  something
+  **To be written**
 
 xref:str-PropList.adoc[`[.kw]#structure# PropList`]::
-  something
+  **To be written**
 
 // 40
 
@@ -155,29 +156,29 @@ xref:str-Queue.adoc[`[.kw]#structure# Queue`]::
   Provides an imperative queue data structure.
 
 xref:str-Rand.adoc[`[.kw]#structure# Rand`]::
-  something
+  Provides a simple random number generator.
 
 xref:str-Random.adoc[`[.kw]#structure# Random`]::
-  something
+  Provides a more sophisticated random number generator.
 
 xref:str-RealOrderStats.adoc[`[.kw]#structure# RealOrderStats`]::
-  something
+  **To be written**
 
 xref:str-Scan.adoc[`[.kw]#structure# Scan`]::
-  something
+  **To be written**
 
 xref:str-SplayTree.adoc[`[.kw]#structure# SplayTree`]::
-  something
+  **To be written**
 
 xref:str-TimeLimit.adoc[`[.kw]#structure# TimeLimit`]::
   Provides a mechanism for limiting the execution
   time of a computation.
 
 xref:str-UnivariateStats.adoc[`[.kw]#structure# UnivariateStats`]::
-  something
+  **To be written**
 
 xref:sig-UREF.adoc[`[.kw]#signature# UREF`]::
-  something
+  **To be written**
 
 xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
   Provides support for working with https://en.wikipedia.org/wiki/UTF-8[*UTF-8*]
