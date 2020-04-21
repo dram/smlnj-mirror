@@ -47,7 +47,9 @@ complete list of changes.
 
   * Added the `disjoint` function to the `ORD_SET` signature.
 
-  * Added `RESET` as a command to the `ANSITerm` structure.
+  * Added more modes to the `ANSITerm` command set.  Specifically, we added
+    the `Default` color specifier and the styles `DIM`, `NORMAL`, `UL_OFF`,
+    `BLINK_OFF`, `REV_OFF`, `INVIS_OFF`, and `RESET`.
 
   * Added the structure `FNVHash` to the `Util` library.  This
     structure implements the
@@ -91,10 +93,6 @@ complete list of changes.
 
   * Made the `ControlUtil.Cvt.bool` converter case insensitive.  Also,
     it now allows "yes"/"no" as values.
-
-  * Added more modes to the `ANSITerm` command set.  Specifically, we added
-    the `Default` color specifier and the styles `DIM`, `NORMAL`, `UL_OFF`,
-    `BLINK_OFF`, `REV_OFF`, and `INVIS_OFF`.
 
   * Updated the `BitArray:BIT_ARRAY` interface to follow standard patterns
     (this interfaces was originally designed before the SML Basis Library,
