@@ -40,7 +40,7 @@ HTML4AttrTokens
     structure UserCode =
       struct
 
-fun attr_PROD_1_SUBRULE_1_PROD_1_ACT (NAME, attr_value, EQUALS, NAME_SPAN : (Lex.pos * Lex.pos), attr_value_SPAN : (Lex.pos * Lex.pos), EQUALS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun attr_PROD_1_SUBRULE_1_PROD_1_ACT (NAME, EQUALS, attr_value, NAME_SPAN : (Lex.pos * Lex.pos), EQUALS_SPAN : (Lex.pos * Lex.pos), attr_value_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (attr_value)
 fun attr_PROD_1_ACT (SR, NAME, SR_SPAN : (Lex.pos * Lex.pos), NAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((NAME, SR))
@@ -198,7 +198,7 @@ fun attr_NT (strm) = let
             val (attr_value_RES, attr_value_SPAN, strm') = attr_value_NT(strm')
             val FULL_SPAN = (#1(EQUALS_SPAN), #2(attr_value_SPAN))
             in
-              (UserCode.attr_PROD_1_SUBRULE_1_PROD_1_ACT (NAME_RES, attr_value_RES, EQUALS_RES, NAME_SPAN : (Lex.pos * Lex.pos), attr_value_SPAN : (Lex.pos * Lex.pos), EQUALS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.attr_PROD_1_SUBRULE_1_PROD_1_ACT (NAME_RES, EQUALS_RES, attr_value_RES, NAME_SPAN : (Lex.pos * Lex.pos), EQUALS_SPAN : (Lex.pos * Lex.pos), attr_value_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun attr_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
