@@ -73,7 +73,7 @@ fi
 
 # get host ARCH and OPSYS variables
 if [ -f $twoup/bin/.arch-n-opsys ]; then
-    ARCH_N_OPSYS=`$twoup/bin/.arch-n-opsys`
+    ARCH_N_OPSYS=`$twoup/bin/.arch-n-opsys $SIZE_OPT`
     if [ "$?" = "0" ]; then
 	eval $ARCH_N_OPSYS
     fi
@@ -146,7 +146,7 @@ XXXX
 
 # the following is equivalent to running
 #
-#	./makeml -boot $TARGET-cross.boot.x86-unix -rebuild $architecture
+#	./makeml $SIZE_OPT -boot $TARGET-cross.boot.x86-unix -rebuild $architecture
 #
 echo "$this: cross compile to $TARGET"
 
