@@ -79,7 +79,7 @@ fun typeFormals n =
      in loop 0
     end
 
-local  (* WARNING -- compiler global variables *)
+local  (* WARNING -- compiler global variables. Imposes reset requirement. *)
   val count = ref(~1)
   val metaTyvars = ref([]:tyvar list)
 in
@@ -110,30 +110,32 @@ fun sourcesToString [(name,_)] = Symbol.name name
     concat[Symbol.name name,",",sourcesToString rest]
   | sourcesToString nil = bug "sourcesToString"
 
+fun tyvarHead true = "''"
+  | tyvarHead false = "'"
+
 fun tyvarPrintname (tyvar) =
     let fun prKind info =
 	    case info
 	     of INSTANTIATED(VARty(tyvar)) => tyvarPrintname tyvar
 	      | INSTANTIATED _ => "[INSTANTIATED]"
 	      | OPEN{depth,eq,kind} =>
-		concat["[",metaTyvarName tyvar,":OPEN",
+		concat[tyvarHead eq,
+		       metaTyvarName tyvar,
 		       tyvarInternals(case kind of META => ".M" | FLEX _ => ".F",
-				      SOME depth),
-		       if eq then ":eq" else "",
-		       "]"]
+				      SOME depth) ]
 	      | UBOUND{name,depth,eq} =>
-		concat[(if eq then "''" else "'"), Symbol.name name,
+		concat[tyvarHead eq, Symbol.name name,
 		       tyvarInternals(".U",SOME depth)]
 	      | OVLDV{sources,eq} =>
-		concat["[",metaTyvarName tyvar,
-		       ":OL(",sourcesToString sources,")", if eq then ":eq" else "","]"]
+		concat[tyvarHead eq, metaTyvarName tyvar,
+		       "[OL(",sourcesToString sources,")]"]
 	      | OVLDI sources =>
-		concat["[",metaTyvarName tyvar, ":INT]"]
+		concat["'",metaTyvarName tyvar, "[INT]"]
 	      | OVLDW sources =>
-		concat["[",metaTyvarName tyvar, ":WORD]"]
+		concat["'",metaTyvarName tyvar, "[WORD]"]
 	      | LBOUND{depth,eq,index} =>
-		concat["[LB", if eq then ":eq:" else ":", Int.toString depth, ".",
-		       Int.toString index, "]"]
+		concat[tyvarHead eq, metaTyvarName tyvar,
+		       "[LB(", Int.toString depth, ".", Int.toString index, ")]"]
     in
 	prKind (!tyvar)
     end
