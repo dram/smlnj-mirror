@@ -170,6 +170,8 @@ for more details.
 | `dontPickle` error when trying to use SuccessorML
 | [.bugid]#209#
 | Special identifiers can be rebound in datatype and exception declarations
+| [.bugid]#214#
+| exception raised by pretty printer in REPL
 | [.bugid]#220#
 | Incorrect error message for equality-type failure?
 | [.bugid]#239#
