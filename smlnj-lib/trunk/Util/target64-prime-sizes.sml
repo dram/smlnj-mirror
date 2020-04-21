@@ -1,8 +1,9 @@
-(* prime-sizes.sml
+(* target64-prim-sizes.sml
  *
- * COPYRIGHT (c) 2001 Bell Labs, Lucent Technologies
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * A list of prime numbers for sizing hash tables, etc.
+ * A list of prime numbers for sizing hash tables, etc. on 64-bit targets.
  *)
 
 structure PrimeSizes : sig

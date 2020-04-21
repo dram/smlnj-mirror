@@ -1,11 +1,17 @@
 (* time-limit.sml
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.  See COPYRIGHT file for details.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Limit the execution time of a computation.
  *)
 
 structure TimeLimit : sig
+
     exception TimeOut
+
     val timeLimit : Time.time -> ('a -> 'b) -> 'a -> 'b
+
   end = struct
 
     exception TimeOut

@@ -5,6 +5,11 @@ correspond to SML/NJ releases.
 SML/NJ 110.97
 -------------------
 
+[2020-04-21]
+	Removed the `version` and `banner` components from the `LibBase`
+	structure, since the library has been tracking SML/NJ release
+	versions for a very long time.
+
 [2020-04-19]
 	Added `implode`, `map`, `app`, `all`, and `exists` functions to
 	the `UTF8` signature. Also implemented the handling of 4-byte
