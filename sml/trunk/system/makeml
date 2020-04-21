@@ -64,6 +64,9 @@ esac
 #
 SIZE_OPT="-32"
 
+rebuilt=no
+bare=no
+
 # Process command-line arguments
 #
 while [ "$#" != "0" ] ; do
@@ -134,9 +137,6 @@ while [ "$#" != "0" ] ; do
 	;;
     esac
 done
-
-rebuilt=no
-bare=no
 
 #
 # Set CM_PATHCONFIG to ../../../lib/pathconfig
