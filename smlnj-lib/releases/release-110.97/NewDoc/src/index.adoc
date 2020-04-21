@@ -1,0 +1,67 @@
+= SML/NJ Library
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The **Standard ML of New Jersey Library** (**SML/NJ Library**)
+is a collection of over 200 modules grouped into 14 libraries.
+It was designed to build on the {sml-basis-url}/index.html[**Standard ML Basis Library**]
+by providing higher-level and application-specific services
+that were out of scope for the Basis Library.
+The **SML/NJ Library** is distributed as part of both the
+https://smlnj.org[**SML/NJ**] and
+https://mlton.org[**MLton SML Compiler**] systems.
+
+== Libraries
+
+The following is a list of the libraries that comprise the
+**SML/NJ Library** with a brief description of what they
+provide.  These are listed in alphabetical order:
+
+xref:Controls/controls-lib.adoc[*Controls Library*]::
+  Support for managing application controls.
+
+xref:HTML/html-lib.adoc[*HTML Library*]::
+  __not yet written__
+
+xref:HTML4/html4-lib.adoc[*HTML4 Library*]::
+  __not yet written__
+
+xref:HashCons/hash-cons-lib.adoc[*HashCons Library*]::
+  Supports the implementation of hash-consed representations of data structures.
+
+xref:INet/inet-lib.adoc[*INet Library*]::
+  Provides utilities for network programming with sockets
+
+xref:JSON/json-lib.adoc[*JSON Library*]::
+  The *JSON Library* provides support for parsing, printing, and
+  manipulating https://www.json.org/json-en.html[*JSON*] data.
+
+xref:PP/pp-lib.adoc[*PP Library*]::
+  __not yet written__
+
+xref:Reactive/reactive-lib.adoc[*Reactive Library*]::
+  __not yet written__
+
+xref:RegExp/regexp-lib.adoc[*RegExp Library*]::
+  __not yet written__
+
+xref:SExp/sexp-lib.adoc[*SExp Library*]::
+  Supports the parsing and printing of semi-structured data as
+  https://en.wikipedia.org/wiki/S-expression[S-expressions].
+
+xref:UUID/uuid-lib.adoc[*UUID Library*]::
+  The *UUID Library* provides support for generating and using
+  UUIDs (_aka_ GUIDs).
+
+xref:Unix/unix-lib.adoc[*Unix Library*]::
+  The *Unix Library* provides some *Unix*-specific utilities.
+
+xref:Util/smlnj-lib.adoc[*Util Library*]::
+  __not yet written__
+
+xref:XML/xml-lib.adoc[*XML Library*]::
+  __not yet written__
+

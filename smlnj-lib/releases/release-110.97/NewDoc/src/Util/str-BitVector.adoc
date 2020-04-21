@@ -1,0 +1,158 @@
+= The `BitVector` structure
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `BitVector` structure provides a implementation of
+monomorphic vectors of booleans implemented one bit per
+element.  The `BitVector` structure extends the
+{sml-basis-url}/mono-vector.html[`MONO_VECTOR`] signature
+with bit-level operations.
+
+== Synopsis
+
+[source,sml]
+------------
+signature BIT_VECTOR
+structure BitVector :> BIT_VECTOR
+------------
+
+== Interface
+
+[source,sml]
+------------
+include MONO_VECTOR
+
+val fromString : string -> vector option
+
+val bits : (int * int list) -> vector
+
+val getBits : vector -> int list
+
+val toString : vector -> string
+
+val isZero  : vector -> bool
+
+val extend0 : (vector * int) -> vector
+val extend1 : (vector * int) -> vector
+
+val eqBits : (vector * vector) -> bool
+val equal : (vector * vector) -> bool
+
+val andb : (vector * vector * int) -> vector
+val orb  : (vector * vector * int) -> vector
+val xorb : (vector * vector * int) -> vector
+
+val notb  : vector -> vector
+
+val <<  : (vector * word) -> vector
+val >>  : (vector * word) -> vector
+
+val lshift  : (vector * int) -> vector
+val rshift  : (vector * int) -> vector
+------------
+
+== Description
+
+`[.kw]#include# {sml-basis-url}/mono-vector.html[MONO_VECTOR]`::
+  The `BIT_VECTOR` signature extends the
+  {sml-basis-url}/mono-vector.html[`MONO_VECTOR`] signature from
+  the *Standard ML Basis Library*.
+
+`[.kw]#val# fromString : string \-> vector option`::
+  `fromString s` returns `SOME bv` when the string `s` is
+  a sequence of hexadecimal digits.  The length of `bv` will
+  be `4*(size s)`.  Returns `NONE` of a non-hexadecimal
+  character is encountered.
+
+`[.kw]#val# bits : (int * int list) \-> vector`::
+  `bits (n, ixs)` returns a new array `bv` of length `n`, where
+  `bv[ix]` is `true` for each `ix` in the list of indices `ixs`.
+  This function raises the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Size:EXN:SPEC[`Size`]
+  exception if `n < 0` and the
+  link:{sml-basis-url}/general.html#SIG:GENERAL.Subscript:EXN:SPEC[`Subscript`]
+  exception if any index is out of bounds.
+
+`[.kw]#val# getBits : vector \-> int list`::
+  `getBits bv` returns a list of indices `ix` for which `bv[ix]` is true
+  in increasing order.
+
+`[.kw]#val# toString : vector \-> string`::
+  something
+      (* Inverse of stringToBits.
+       * The bit array is zero-padded to the next
+       * length that is a multiple of 4.
+       *)
+
+`[.kw]#val# isZero  : vector \-> bool`::
+  something
+      (* Returns true if and only if no bits are set. *)
+
+`[.kw]#val# extend0 : (vector * int) \-> vector`::
+  something
+`[.kw]#val# extend1 : (vector * int) \-> vector`::
+  something
+      (* Extend bit array by 0's or 1's to given length.
+       * If bit array is already >= argument length, return a copy
+       * of the bit array.
+       * Raises Size if length < 0.
+       *)
+
+`[.kw]#val# eqBits : (vector * vector) \-> bool`::
+  something
+      (* true if set bits are identical *)
+`[.kw]#val# equal : (vector * vector) \-> bool`::
+  something
+      (* true if same length and same set bits *)
+
+`[.kw]#val# andb : (vector * vector * int) \-> vector`::
+  something
+`[.kw]#val# orb  : (vector * vector * int) \-> vector`::
+  something
+`[.kw]#val# xorb : (vector * vector * int) \-> vector`::
+  something
+      (* Create new vector of the given length
+       * by logically combining bits of original
+       * vectors using and, or and xor, respectively.
+       * If necessary, the vectors are
+       * implicitly extended by 0 to be the same length
+       * as the new vector.
+       *)
+
+`[.kw]#val# notb  : vector \-> vector`::
+  something
+      (* Create new vector with all bits of original
+       * vector inverted.
+       *)
+
+`[.kw]#val# <<  : (vector * word) \-> vector`::
+  something
+      (* lshift(ba,n) creates a new vector by
+       * inserting n 0's on the right of ba.
+       * The new vector has length n + length ba.
+       *)
+
+`[.kw]#val# >>  : (vector * word) \-> vector`::
+  something
+      (* rshift(ba,n) creates a new vector of
+       * of length max(0,length ba - n) consisting
+       * of bits n,n+1,...,length ba - 1 of ba.
+       * If n >= length ba, the new vector has length 0.
+       *)
+
+=== Deprecated Functions
+
+`[.kw]#val# lshift  : (array * int) \-> array`::
+    Use xref:#val:<<[`<<`] instead.
+
+`[.kw]#val# rshift  : (array * int) \-> array`::
+    Use xref:#val:>>[`>>`] instead.
+
+== See Also
+
+xref:str-BitArray.adoc[`BitArray`],
+{sml-basis-url}/mono-vector.html[`MONO_VECTOR`],
+xref:smlnj-lib.adoc[__The Util Library__]

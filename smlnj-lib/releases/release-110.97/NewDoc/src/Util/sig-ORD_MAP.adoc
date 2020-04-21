@@ -1,0 +1,33 @@
+= The `ORD_MAP` signature
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `ORD_MAP` signature ...
+
+== Synopsis
+
+[source,sml]
+------------
+signature ORD_MAP
+------------
+
+== Interface
+
+[source,sml]
+------------
+------------
+
+== Description
+
+`[.kw]#type# foo`::
+  something
+
+`[.kw]#val# bar : foo -> foo`::
+  something
+
+== See Also
+
+xref:smlnj-lib.adoc[__The Util Library__]

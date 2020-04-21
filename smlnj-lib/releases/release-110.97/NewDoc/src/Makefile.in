@@ -1,0 +1,105 @@
+# Makefile for SML/NJ Library documentation
+#
+# COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
+# @configure_input@
+#
+
+SHELL =         @SHELL@
+INSTALL =       @INSTALL@
+@SET_MAKE@
+
+ASCIIDOCTOR =   @ASCIIDOCTOR@
+
+SMLNJ_VERSION = @SMLNJ_VERSION@
+SMLNJ_DATE =    @SMLNJ_DATE@
+
+# URL for online SML Basis Library documentation
+#
+SML_BASIS_URL =	https://standardml.org/Basis
+
+ATTRS =         -a sml-basis-url="$(SML_BASIS_URL)" \
+		-a smlnj-version="$(SMLNJ_VERSION)" \
+                -a release-date="$(SMLNJ_DATE)"
+
+HTML_ATTRS =	$(ATTRS) \
+		-a linkcss \
+		-a stylesheet=smlnj-lib.css
+
+PDF_ATTRS =	$(ATTRS)
+
+STYLES_DIR_ROOT = -a stylesdir=styles
+STYLES_DIR =	-a stylesdir=../styles
+
+ASCIIDOCTOR_HTML_FLAGS = -b html
+
+# command to generate HTML files
+#
+ASCIIDOCTOR_HTML =	$(ASCIIDOCTOR) $(ASCIIDOCTOR_HTML_FLAGS) $(HTML_ATTRS)
+
+ASCIIDOCTOR_PDF_FLAGS	= -d book -r asciidoctor-mathematical
+
+# command to generate HTML files
+#
+ASCIIDOCTOR_PDF =	$(ASCIIDOCTOR)-pdf $(ASCIIDOCTOR_PDF_FLAGS) $(PDF_ATTRS)
+
+# default target base
+#
+TARGET_BASE =           http://smlnj.org
+
+# place to put documentation for doc target
+#
+DOC_DIR =               @OUT_DIR@
+HTML_DST_ROOT =         $(DOC_DIR)/html
+STYLES_DST =            $(HTML_DST_ROOT)/styles
+
+# root path to place generated HTML files for the SML/NJ web site
+#
+WEB_HTMLDST_ROOT =      @ROOT_DIR@/htdocs
+WEB_STYLES_DST =        $(WEB_HTML_DST_ROOT)/styles
+
+include @MK_DIR@/doc-rules.gmk
+
+# we have one sub-directory per documented library
+#
+DOC_SUBDIRS =           Controls HashCons INet JSON SExp Unix Util UUID
+
+HTML_SUBDIRS =		$(addprefix $(HTML_DST_ROOT)/,$(DOC_SUBDIRS))
+
+ADOC_FILES =		index.adoc \
+			$(wildcard JSON/*.adoc)
+
+.PHONY:         doc
+doc:            html $(DOC_DIR)
+	cp -p index.html $(HTML_DST_ROOT)
+	cp -p styles/smlnj-lib.css $(STYLES_DST)
+	cp -p styles/smlnj-lib-pygments.css $(STYLES_DST)/pygments-default.css
+	for dir in $(DOC_SUBDIRS) ; do \
+	    cp -p $$dir/*html $(HTML_DST_ROOT)/$$dir ; \
+	done
+
+.PHONY:		html
+html:
+	$(ASCIIDOCTOR_HTML) $(STYLES_DIR_ROOT) index.adoc
+	for dir in $(DOC_SUBDIRS) ; do \
+	    (cd $$dir; $(ASCIIDOCTOR_HTML) $(STYLES_DIR) *.adoc) ; \
+	done
+	cp styles/smlnj-lib-pygments.css styles/pygments-default.css
+
+smlnj-lib-manual.pdf:
+	$(ASCIIDOCTOR_PDF) -o smlnj-lib-manual.pdf root.adoc
+
+$(DOC_DIR):
+	mkdir -p $(HTML_DST_ROOT)
+	mkdir -p $(STYLES_DST)
+	for dir in $(DOC_SUBDIRS) ; do \
+	    mkdir -p $(HTML_DST_ROOT)/$$dir ; \
+	done
+
+include @MK_DIR@/clean-rules.gmk
+
+CLEAN_FILES =	stem-*.png
+
+CLEAN_SUBDIRS = $(DOC_SUBDIRS)
+
