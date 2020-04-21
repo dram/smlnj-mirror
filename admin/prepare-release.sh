@@ -115,6 +115,6 @@ echo "cross compile ..."
 echo "***** cd base/system" >> $LOG
 cd base/system
 echo "***** ./allcross" >> $LOG
-./allcross >> $LOG 2>&1 || exit 1
+./allcross $SZ_OPT >> $LOG 2>&1 || exit 1
 
 echo "done; the next step is to update the HISTORY.txt file"
