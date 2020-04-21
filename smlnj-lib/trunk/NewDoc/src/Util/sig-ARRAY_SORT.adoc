@@ -1,17 +1,17 @@
-= The `SplayTree` structure
+= The `ARRAY_SORT` signature
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `SplayTree` structure ...
+The `ARRAY_SORT` signature ...
 
 == Synopsis
 
 [source,sml]
 ------------
-structure SplayTree
+signature ARRAY_SORT
 ------------
 
 == Interface

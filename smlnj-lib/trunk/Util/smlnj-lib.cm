@@ -92,7 +92,6 @@ structure Rand
 structure Random
 structure Scan
 structure SimpleURef
-structure SplayTree
 structure TimeLimit
 structure URef
 structure WordHashTable

@@ -20,7 +20,7 @@ SML/NJ 110.97
 	the correct name given the naming conventions.
 
 [2020-04-14]
-	Added the `fromVector`a, `toList`, and `toVector` functions to
+	Added the `fromVector`, `toList`, and `toVector` functions to
 	the `DynamicArray:DYNAMIC_ARRAY` interface.
 
 [2020-04-14]
