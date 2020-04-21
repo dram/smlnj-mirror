@@ -64,10 +64,12 @@ Group
 	structure Primop
 	structure PrimopUtil
 	structure PrimopBind
+	structure PrimopBindings
 	structure CProto
 	structure PrimCTypes
 	structure TKind
 	structure SigPropList
+
 is
 	main/edcontrol.sig
 	main/edcontrol.sml
@@ -133,6 +135,7 @@ is
 	prim/primop-util.sml
 	prim/cproto.sml
 	prim/prim-c-types.sml
+	prim/primop-bindings.sml
 
 	$smlnj/viscomp/basics.cm
 	$smlnj/viscomp/parser.cm
