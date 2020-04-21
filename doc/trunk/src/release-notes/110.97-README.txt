@@ -37,9 +37,16 @@ documentation, and a large number of changes and additions to the
 
 === Compiler
 
-As part of the fix for bug #220#, there has been a change to the way
+As part of the fix for bug *220*, there has been a change to the way
 that "meta" (or "unification") type variables are printed in error
-messages.
+messages.  Such meta variables will be represented by type variables
+with upper-case letters from the end of the alphabet (_e.g._, ``'X``,
+and ``''Z``).  Overloading constraints are added as a suffix enclosed
+in square brackets.  For example, the variable ``''Z[OL(*)]`` has
+an equality constraint (denoted by the double quotes and an overload
+constraint introduced by an occurrence of the overloaded multiplication
+operator.  Overload constraints for literals are denoted by `WORD`
+and `INT`.
 
 === SML/NJ Library
 
