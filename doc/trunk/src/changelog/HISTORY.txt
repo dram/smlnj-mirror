@@ -97,6 +97,63 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 == Version 110.97; 2020/04/21
 
 //--------------------------------------------------------------------
+[2020/04/20]::
++
+Eliminated AbsDec and ABSdec constructors
++
+    * Eliminated AbsDec constructor in Parse/ast/ast.{sig,sml}
+      and ABSdec constructor in ElabData/syntax/absyn.{sig,sml}
+      The "abstraction" declaration that these constructors
+      implemented was in SML/NJ 0.93, but was eliminated in favor
+      of opaque "sealing" signature ascription after SML '97.
+
+    * Eliminated all other occurrences of these constructors
+      throughout the compiler (Front End, FLINT, and cm).
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
+[2020/04/20]::
++
+Eliminated Semant directory
++
+    * File structure reoganization: Top-level compiler/Semant
+      directory was eliminated. Remaining relevant subdirectories
+      were Semant/pickle, which moved to ElabData, and Semant/prim,
+      whose two files, prim-env.sml and primop-bindings.sml moved to
+      the existing ElabData/prim directory. CM files compiler/core.cm
+      and ElabData/elabdata.cm changed accordingly.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
+[2020/04/20]::
++
+Fixed bug bugref:220[]
++
+    * Major redesign of the overloading resolution mechanisms.
+      Changed syntax of overload declaration (partly deferred to
+      110.98). Changed OVLDvar in VarCon.var, added files
+      overloadclasses.sml and overloadvar.sml to Elaborator/types.
+      Changed Types.tvKind in ElabData/types/types.{sig,sml},
+      splitting OVLD tvKind into OVLDV (overloaded
+      variables/operators), OVLDI (overloaded int literals) and
+      OVLDW (overloaded word literals). Modified treatment of the
+      overload metavariables in Unify (Elaborator/types/unify.sml).
+
+    * Changed printing of overload type metavariables (unification
+      type variables (Types.tyvar)).
+      
+    * Files:
+      ElabData/types/types.{sig,sml}
+      ElabData/types/overloadclasses.sml  (new)
+      ElabData/types/overloadvar.sml (new)
+      ElabData/types/overload.sml
+      Elaborator/elaborate/elabcore.sml
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2020/04/09]::
 +
 Fixed bug bugref:214[]
