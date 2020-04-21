@@ -1,45 +1,48 @@
 (* elabcontrol.sml
  *
- * (C) 2001 Lucent Technologies, Bell Labs
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Flags controlling the elaborator.
  *)
 
 structure ElabControl : ELAB_CONTROL =
-struct
+  struct
 
-  local
-	val priority = [10, 10, 7]
-	val clear = 2
-	val obscure = 6
-	val prefix = "elab"
+    local
+      val priority = [10, 10, 7]
+      val clear = 2
+      val obscure = 6
+      val prefix = "elab"
 
-	val registry = ControlRegistry.new { help = "elaborator flags" }
+      val registry = ControlRegistry.new { help = "elaborator flags" }
 
-	val _ = BasicControl.nest (prefix, registry, priority)
+      val _ = BasicControl.nest (prefix, registry, priority)
 
-	val nextpri = ref 0
+      val nextpri = ref 0
 
-	fun new ob (n, h, d) = let
+      fun new ob (n, h, d) = let
 	    val r = ref d
 	    val p = !nextpri
-	    val ctl = Controls.control { name = n,
-					 pri = [p],
-					 obscurity = ob,
-					 help = h,
-					 ctl = r }
-	in
-	    nextpri := p + 1;
-	    ControlRegistry.register
-		registry
-		{ ctl = Controls.stringControl ControlUtil.Cvt.bool ctl,
-		  envName = SOME (ControlUtil.EnvName.toUpper "ELAB_" n) };
-	    r
-	end
+	    val ctl = Controls.control {
+		    name = n,
+		    pri = [p],
+		    obscurity = ob,
+		    help = h,
+		    ctl = r
+		  }
+	    in
+	      nextpri := p + 1;
+	      ControlRegistry.register registry {
+		  ctl = Controls.stringControl ControlUtil.Cvt.bool ctl,
+		  envName = SOME (ControlUtil.EnvName.toUpper "ELAB_" n)
+		};
+	      r
+	    end
 
-	val cnew = new clear
-	val onew = new obscure
-  in
+      val cnew = new clear
+      val onew = new obscure
+    in
 
     val etdebugging = onew ("et-debugging", "ElabType debugging", false)
         (* ElabType *)
@@ -72,22 +75,41 @@ struct
     val boxedconstconreps = onew ("boxedconstreps", "boxed const constructors", false)
         (* ConRep *)
 
-    val multDefWarn = cnew ("mult-def-warn", "warn on multiple defs", false)
-        (* Instantiate, Control_MC (TopLevel/main/control.sml) *)
-
-    val shareDefError = cnew ("share-def-error", "check share defs", true)
-        (* Instantiate, Control_MC *)
-
-    val valueRestrictionLocalWarn =
-	cnew ("value-restriction-local-warn", "warn on value restriction for local defs", false)
-
-    val valueRestrictionTopWarn =
-	cnew ("value-restriction-top-warn", "warn on value restriction at top level", true)
-
-    val showTypeErrorCulprits =
-	cnew ("show-type-error-culprits", "show culprits in type error messages", false)
-
     val printAbsyn = ref false
 
-  end (* local *)
-end (* structure ElabControl *)
+  (***** Controls for warning messages *****)
+
+    val unusedWarn = cnew (
+	  "unused-warn",
+	  "warn when variables are defined but not used",
+	  true)
+
+    val multDefWarn = cnew (
+	  "mult-def-warn",
+	  "warn on multiple defs",
+	  false)
+        (* Instantiate, Control_MC (TopLevel/main/control.sml) *)
+
+    val shareDefError = cnew (
+	  "share-def-error",
+	  "check share defs",
+	  true)
+        (* Instantiate, Control_MC *)
+
+    val valueRestrictionLocalWarn = cnew (
+	  "value-restriction-local-warn",
+	  "warn on value restriction for local defs",
+	  false)
+
+    val valueRestrictionTopWarn = cnew (
+	  "value-restriction-top-warn",
+	  "warn on value restriction at top level", true)
+
+    val showTypeErrorCulprits = cnew (
+	  "show-type-error-culprits",
+	  "show culprits in type error messages",
+	  false)
+
+    end (* local *)
+
+  end (* structure ElabControl *)

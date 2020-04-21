@@ -5,29 +5,29 @@
  *)
 
 signature VARCON =
-sig
+  sig
 
-  datatype var
-    = VALvar of				(* ordinary variables *)
-        {path : SymPath.path,
-	 typ : Types.ty ref,
-	 btvs : Types.tyvar list ref,
-         access : Access.access,
-         prim   : PrimopId.prim_id}
-    | OVLDvar of       	               (* overloaded identifier *)
-      {name : Symbol.symbol,                (* name of the overloaded operator *)
-       variants : var list}            (* variant variables (VALvars) *)
-    | ERRORvar
+    datatype var
+      = VALvar of	                (* ordinary variables *)
+	  {path : SymPath.path,
+	   typ : Types.ty ref,
+	   btvs : Types.tyvar list ref,
+	   access : Access.access,
+	   prim   : PrimopId.prim_id}
+      | OVLDvar of       	        (* overloaded identifier *)
+	{name : Symbol.symbol,          (* name of the overloaded operator *)
+	 variants : var list}           (* variant variables (VALvars) *)
+      | ERRORvar
 
-  type datacon = Types.datacon
+    type datacon = Types.datacon
 
-  datatype value
-    = VAL of var
-    | CON of datacon
+    datatype value
+      = VAL of var
+      | CON of datacon
 
-  val mkVALvar : Symbol.symbol * Access.access ->  var
+    val mkVALvar : Symbol.symbol * Access.access ->  var
 
-  val bogusCON : datacon
-  val bogusEXN : datacon
+    val bogusCON : datacon
+    val bogusEXN : datacon
 
-end (* signature VARCON *)
+  end (* signature VARCON *)

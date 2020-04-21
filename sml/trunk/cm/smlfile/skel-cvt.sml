@@ -1,7 +1,9 @@
-(*
- * Convert ASTs to CM's trimmed version thereof ("skeletons").
+(* skel-cvt.sml
  *
- *   Copyright (c) 1999 by Lucent Technologies, Bell Laboratories
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Convert ASTs to CM's trimmed version thereof ("skeletons").
  *
  *   The ideas here are based on those found in the original SC and
  *   also in an older version of CM (before 1999).  However, nearly
@@ -16,18 +18,28 @@
  * author: Matthias Blume (blume@cs.princeton.edu)
  *
  * The copyright notices of the earlier versions are:
+ *   Copyright (c) 1999 by Lucent Technologies, Bell Laboratories
  *   Copyright (c) 1995 by AT&T Bell Laboratories
  *   Copyright (c) 1993 by Carnegie Mellon University,
  *                         School of Computer Science
  *                         contact: Gene Rollins (rollins+@cs.cmu.edu)
  *)
-signature SKELCVT = sig
-    val convert : { tree: Ast.dec,
-		    err: ErrorMsg.severity -> Ast.region -> string -> unit }
-	-> { skeleton : Skeleton.decl, complain : unit -> unit }
-end
 
-structure SkelCvt :> SKELCVT = struct
+signature SKELCVT =
+  sig
+
+    val convert : {
+	    tree: Ast.dec,
+	    err: ErrorMsg.severity -> Ast.region -> string -> unit
+	  } -> {
+	    skeleton : Skeleton.decl,
+	    complain : unit -> unit
+	  }
+
+  end
+
+structure SkelCvt :> SKELCVT =
+  struct
 
     open Ast Skeleton
 
@@ -417,19 +429,18 @@ structure SkelCvt :> SKELCVT = struct
 	      | sameReg (OpenDec _, k) =
 		(fn () => (k (); err EM.COMPLAIN reg "toplevel open"))
 	      | sameReg (MarkDec (arg, reg), k) = complainCM reg (arg, k)
-	      | sameReg ((StrDec _ | FctDec _ | SigDec _ |
-			  FsigDec _), k) = k
+	      | sameReg ((StrDec _ | FctDec _ | SigDec _ | FsigDec _), k) = k
 	      | sameReg (_, k) =
 		(fn () =>
 		 (k (); err EM.WARN reg "definition not tracked by CM"))
-
-	in
-	    sameReg
-	end
+	    in
+	      sameReg
+	    end
 
 	fun warn0 () = ()
 	val complain = complainCM (0, 0) (tree, warn0)
-    in
-	{ complain = complain, skeleton = c_dec tree }
-    end
-end
+	in
+	  { complain = complain, skeleton = c_dec tree }
+	end
+
+  end

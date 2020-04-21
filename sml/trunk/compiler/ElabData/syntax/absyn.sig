@@ -7,7 +7,7 @@
 signature ABSYN =
   sig
 
-    type region
+    type region = Ast.region  (* = int * int *)
 
     datatype numberedLabel = LABEL of {name: Symbol.symbol, number: int}
 

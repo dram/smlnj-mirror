@@ -1,53 +1,66 @@
 (* elabcontrol.sig
  *
- * (C) SML Fellowship
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * Flags controlling the elaborator.
  *)
 
 signature ELAB_CONTROL =
-sig
+  sig
 
-  val etdebugging : bool ref
-      (* ElabType *)
-  val esdebugging : bool ref
-      (* ElabSig *)
-  val insdebugging : bool ref
-      (* Instantiate *)
-  val smdebugging : bool ref
-      (* Sigmatch *)
-  val ecdebugging : bool ref
-      (* ElabCore *)
-  val emdebugging : bool ref
-      (* ElabMod *)
-  val tcdebugging : bool ref
-      (* Typecheck *)
-  val unidebugging : bool ref
-      (* Unify *)
-  val ovlddebugging : bool ref
-      (* Overload *)
-  val instantiateSigs : bool ref
-      (* ElabMod, Control_MC *)
-  val etopdebugging : bool ref
+    val etdebugging : bool ref
+	(* ElabType *)
+    val esdebugging : bool ref
+	(* ElabSig *)
+    val insdebugging : bool ref
+	(* Instantiate *)
+    val smdebugging : bool ref
+	(* Sigmatch *)
+    val ecdebugging : bool ref
+	(* ElabCore *)
+    val emdebugging : bool ref
+	(* ElabMod *)
+    val tcdebugging : bool ref
+	(* Typecheck *)
+    val unidebugging : bool ref
+	(* Unify *)
+    val ovlddebugging : bool ref
+	(* Overload *)
+    val instantiateSigs : bool ref
+	(* ElabMod, Control_MC *)
+    val etopdebugging : bool ref
 
-  val internals : bool ref
+    val internals : bool ref
 
-  val markabsyn : bool ref
-      (* ElabCore, ElabTop, ElabUtil, Control_MC *)
+    val markabsyn : bool ref
+	(* ElabCore, ElabTop, ElabUtil, Control_MC *)
 
-  val boxedconstconreps : bool ref
-      (* ConRep *)
+    val boxedconstconreps : bool ref
+	(* ConRep *)
 
-  val multDefWarn : bool ref
-      (* Instantiate, Control_MC (TopLevel/main/control.sml) *)
+    val printAbsyn : bool ref
 
-  val shareDefError : bool ref
-      (* Instantiate, Control_MC *)
+  (***** Controls for warning messages *****)
 
-  val valueRestrictionLocalWarn : bool ref
+  (* warning message when variables are defined but not used (default true) *)
+    val unusedWarn : bool ref
 
-  val valueRestrictionTopWarn : bool ref
+  (* warning message on multiple defs (default false) *)
+    val multDefWarn : bool ref
+	(* Instantiate, Control_MC (TopLevel/main/control.sml) *)
 
-  val showTypeErrorCulprits : bool ref
+  (* check share defs (default true) *)
+    val shareDefError : bool ref
+	(* Instantiate, Control_MC *)
 
-  val printAbsyn : bool ref
+  (* warn on value restriction for local defs (default false) *)
+    val valueRestrictionLocalWarn : bool ref
 
-end (* signature ELAB_CONTROL *)
+  (* warn on value restriction at top level (default true) *)
+    val valueRestrictionTopWarn : bool ref
+
+  (* show culprits in type error messages (default false) *)
+    val showTypeErrorCulprits : bool ref
+
+  end (* signature ELAB_CONTROL *)
