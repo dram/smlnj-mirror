@@ -76,3 +76,22 @@ cproto.sml defines a structure CProto. This is not needed for primops
 in the front-end.  It is used only in FLINT/trans/translate.sml and
 FLINT/cps/convert.sml.  It therefore probably does not belong in
 ElabData/prim (or in the front-end in general).
+
+
+110.97
+------
+The two files prim-env.sml and primop-bindings.sml have been moved
+from Semant/prim to ElabData/prim and the Semant directory has been
+deleted.
+
+Files:
+ElabData/prim/
+  primop.{sig,sml}
+  primop-id.{sig,sml}
+  primop-bind.sml
+  primop-util.sml
+  arithops.sml
+  cproto.sml
+  prim-c-types.sml  (* duplicate version of MLRISC/c-calls/c-types.sml *)
+  primop-bindings.sml  (* moved from Semant/prim *)
+  prim-env.sml (* moved from Semant/prim *)
