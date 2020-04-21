@@ -21,6 +21,9 @@ provided installer packages:
 
   * {dist-dir}smlnj-amd64-{version}.pkg[[.tt]#smlnj-amd64-{version}.pkg#] (64-bits)
 --
+These packages put the installation in `/usr/local/smlnj`.  If there is an
+existing installation, then it will be updated.  We recommend that you
+add `/usr/local/smlnj/bin` to your shell's `PATH` variable.
 
 There is also a https://brew.sh[Homebrew] cask that wraps the 64-bit installation
 package.  If you have homebrew installed, then you can run the following command
