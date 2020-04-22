@@ -7,7 +7,7 @@
  *
  *	optional "|" at the beginning of a match
  *
- *	optional ";" at the end of a sequence of statements
+ *	optional ";" at the end of a sequence of statements (TODO)
  *
  *	"do" exp syntax where "val" bindings are allowed.
  *)
