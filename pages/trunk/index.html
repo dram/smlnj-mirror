@@ -60,46 +60,19 @@ tools, and documentation.
 SML/NJ is <a href="license.html">free, open source</a> software.
 </p>
 
-<h3>Support for 64-bit architectures</h3>
-<p>
-The latest version (<a href="dist/working/110.96/index.html">110.96</a>)
-supports 64-bit executables on <b>macOS</b> and <b>Linux</b>.
-</p>
-<p>
-Note that to install <b>SML/NJ</b> on <b>macOS</b> 10.15 Catalina, you will have to
-<b>right-click</b> on the installer package, which should open up a dialog
-box.  Click on the <b>Open</b> button to run the installer.
-</p>
-
-<a href="dist/working/index.html">
-<h3>Downloads</h3>
-</a>
-The latest release is  <a href="dist/working/110.96/index.html">110.96</a>;
-we believe that this version is stable, but there have been a lot of low-level
-changes that might have introduced bugs, so if you have any problems with the
-system you should report them and then revert to
-<a href="dist/working/110.87/index.html">110.87</a>.
-Previous versions are also available through our
-<a href="dist/working/index.html">release history</a> page.
-A history of the changes to the system is also
-<a href="dist/working/110.96/HISTORY.html">available</a>.
-
-<a href="svn.html">
-<h3>Subversion access</h3>
-</a>
-
-Our master source repository is kept on a <a
-href="https://www.fusionforge.org">FusionForge</a> server (a successor
-to GForge) under <a href="https://subversion.apache.org/">Subversion</a> control.
-We provide anonymous read-only access to the repository, so anyone can
-download a snapshot of the most recent sources at any time.
-<a href="svn.html">Instructions are here.</a>
-
 <a href="new.html">
 <h3>What's New</h3>
 </a>
 
 <ul>
+  <li>[2020-04-21] Version <a href="dist/working/110.97/index.html">110.97</a> is
+    released.
+    This release is fairly substantial, with a bunch of bug fixes, additional
+    documentation, and a large number of changes and additions to the
+    <strong>SML/NJ Library</strong>.
+    See the <a href="dist/working/110.97/110.97-README.html">README</a>
+    for details. <br/>
+  </li>
   <li>[2019-12-13] Version <a href="dist/working/110.96/index.html">110.96</a> is
     released.
     This release fixes a number of issues with the 64-bit version; see the
@@ -177,33 +150,79 @@ download a snapshot of the most recent sources at any time.
   <li><a href="old-news.html">Older news</a></li>
 </ul>
 
-<a href="software.html">
-<h3>Downloading SML/NJ</h3>
-</a>
+<p>
+<strong>A node about version numbers</strong><br/>
+A long time ago, we had version numbers like <b>0.93</b>; when we hit <b>0.100</b>,
+we dropped the leading zero and switched to <b>100</b>, <b>101</b>, etc.
+For some reason, when we hit version <b>110</b>, we stopped incrementing
+the first number and just bumped up the second (no one remembers why).
+We are now approaching version <b>110.100</b>.  At that time, we plan to
+switch to a different numbering scheme, where versions will have a major
+number determined by the year and a minor number determined by the release
+number for that year.  For example, if we have three more releases
+this year, then the last release will be number <b>2020.4</b>, since it
+will be the fourth release of the year.
+</p>
 
+<h3>Support for 64-bit architectures</h3>
+<p>
+The latest version (<a href="dist/working/110.97/index.html">110.97</a>)
+supports 64-bit executables on <b>macOS</b> and <b>Linux</b>.
+</p>
+
+<a href="dist/working/index.html">
+<h3>Downloads</h3>
+</a>
 <ul>
-  <li>
-    Information on <a href="software.html">downloading and installing</a>
-    the <strong>SML/NJ</strong> system and related software.
-  </li>
-  <li>
-    Signed installers for macOS are available:
+  <li><p>
+    The latest release is  <a href="dist/working/110.97/index.html">110.97</a>;
+    we believe that this version is stable, but there have been a lot of low-level
+    changes that might have introduced bugs, so if you have any problems with the
+    system you should report them and then revert to
+    <a href="dist/working/110.87/index.html">110.87</a>.
+  </p></li>
+  <li><p>
+    Previous versions are also available through our
+    <a href="dist/working/index.html">release history</a> page.
+    A history of the changes to the system is also
+    <a href="dist/working/110.97/HISTORY.html">available</a>.
+  </p></li>
+  <li><p>
+    Signed installers for macOS are available, which install the system
+    in <code>/usr/local/smlnj</code>.
+    </p>
     <ul>
       <li>
-	<a href="dist/working/110.96/smlnj-x86-110.96.pkg">smlnj-x86-110.96.pkg</a>
+	<a href="dist/working/110.97/smlnj-x86-110.97.pkg">smlnj-x86-110.97.pkg</a>
 	(32 bit)
       </li>
       <li>
-	<a href="dist/working/110.96/smlnj-amd64-110.96.pkg">smlnj-amd64-110.96.pkg</a>
+	<a href="dist/working/110.97/smlnj-amd64-110.97.pkg">smlnj-amd64-110.97.pkg</a>
 	(64 bit)
       </li>
     </ul>
+    <p>
+    Note that to install <b>SML/NJ</b> on <b>macOS</b> 10.15 Catalina, you will have to
+    <b>right-click</b> on the installer package, which should open up a dialog
+    box.  Click on the <b>Open</b> button to run the installer.
+    </p>
   </li>
-  <li>
+  <li></p>
     A Windows <strong>msi installer</strong> for Windows 7+
-    is available (<a href="dist/working/110.96/smlnj-110.96.msi">smlnj-110.96.msi</a>).
-  </li>
+    is available (<a href="dist/working/110.97/smlnj-110.97.msi">smlnj-110.97.msi</a>).
+  </p></li>
 </ul>
+
+<a href="svn.html">
+<h3>Subversion access</h3>
+</a>
+
+Our master source repository is kept on a <a
+href="https://www.fusionforge.org">FusionForge</a> server (a successor
+to GForge) under <a href="https://subversion.apache.org/">Subversion</a> control.
+We provide anonymous read-only access to the repository, so anyone can
+download a snapshot of the most recent sources at any time.
+<a href="svn.html">Instructions are here.</a>
 
 <h3>Background</h3>
 
@@ -289,7 +308,7 @@ reflect the views of the National Science Foundation (NSF).
 
 <hr />
 Send comments to <img src="smlnj-list-logo.png" alt="smlnj-dev-list" style="vertical-align: middle;"><br />
-<span style="font-size: small">Copyright &#169; 2004-2019, SML/NJ Fellowship.</span><br />
+<span style="font-size: small">Copyright &#169; 2004-2020, SML/NJ Fellowship.</span><br />
 
 </body>
 </html>
