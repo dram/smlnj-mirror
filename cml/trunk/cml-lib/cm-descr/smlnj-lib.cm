@@ -21,7 +21,7 @@ Library
   structure TraceCML
 
   library($/smlnj-lib.cm) - structure TimeLimit
-#if defined (OPSYS_UNIX)
+#if defined(OPSYS_UNIX)
   library($/unix-lib.cm)
 #endif
   library($/inet-lib.cm)
