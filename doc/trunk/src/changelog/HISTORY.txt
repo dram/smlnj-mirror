@@ -111,7 +111,7 @@ Some comments about the changes:
     to the `LambdaVar` structure (_e.g._, `IntHashTable` ==> `LambdaVar.Tbl`).
 
  * there were a few place where debugging code assumed that lvars
-   could be printed as integers
+   could be printed as integers.
 
  * the pickling code requires a mechanism to convert between integers and
    lvars; this is the one place where the abstraction is broken.
