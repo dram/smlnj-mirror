@@ -95,6 +95,37 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 
 [2020/04/24]::
 +
+The `LambdaVar.lvar` type is represented as an integer; since the earliest
+days of the compiler this representation has been concrete, which meant
+that the type system was not able to provide any guarantees that `int`s and
+`lvar`s were not being mixed up.  As of this change, `LambdaVar.lvar` is
+now an abstract equality type (internally, it is still and `int`).
+Some comments about the changes:
+--
+ * The `LambdaVar` structure now includes substructures that implement
+   hash tables (`LambdaVar.Tbl`), finite maps (`LambdaVar.Map`), and
+   finite sets (`LambdaVar.Set`).
+
+ * most of the changes involved replacing `IntHashTable`, `IntRedBlackSet`,
+   `IntRedBlackMap` with the equivalent substructures that were added
+    to the `LambdaVar` structure (_e.g._, `IntHashTable` ==> `LambdaVar.Tbl`).
+
+ * there were a few place where debugging code assumed that lvars
+   could be printed as integers
+
+ * the pickling code requires a mechanism to convert between integers and
+   lvars; this is the one place where the abstraction is broken.
+
+ * the worst abuse of the fact that the lvar type was `int` was in the
+   code generator, where arithmetic was used to generate a unique negative
+   number that could be used as a hash key, so that a given `lvar` could
+   be mapped to two different labels.  I fixed this by using two tables.
+--
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+[2020/04/24]::
++
 Fixed bug bugref:256[] (`Ref.exchange` incorrect). The original
 source of the bug was the *Basis Library* sample code, which
 has also been fixed.
