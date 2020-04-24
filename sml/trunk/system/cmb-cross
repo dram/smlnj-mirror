@@ -28,7 +28,6 @@ cd $here
 
 SIZE_OPT=
 CTL_FLAGS=
-SIZE_OPT="-32"
 MAKE_TARBALL=no
 TARGET=
 
@@ -54,6 +53,14 @@ done
 
 if [ x"$TARGET" = x ] ; then
   usage
+fi
+
+# if the size was not specified on the command line, then we use
+# the size from the sml executable.
+#
+if [ x"SIZE_OPT" = x ] ; then
+  SIZE=`../../bin/sml @SMLwordsize`
+  SIZE_OPT="-$SIZE"
 fi
 
 to_lower() {
