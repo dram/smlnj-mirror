@@ -184,8 +184,8 @@ structure FContract :> FCONTRACT =
   struct
 
     structure F  = FLINT
-    structure M  = FLINTIntMap
-    structure S  = IntRedBlackSet
+    structure M  = LambdaVar.Map
+    structure S  = LambdaVar.Set
     structure C  = Collect
     structure O  = Option
     structure DI = DebIndex

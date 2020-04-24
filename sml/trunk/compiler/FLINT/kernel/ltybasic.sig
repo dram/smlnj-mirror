@@ -1,5 +1,8 @@
-(* Copyright (c) 1998 YALE FLINT PROJECT *)
-(* ltybasic.sig *)
+(* ltybasic.sig
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 (*
  * This file contains all the standard operations defined in LtyDef plus

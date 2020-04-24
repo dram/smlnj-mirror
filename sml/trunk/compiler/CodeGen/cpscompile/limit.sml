@@ -25,13 +25,13 @@ structure Limit : LIMIT =
 
     fun findescapes fl = let
 	  exception Limit
-	  val m : fun_kind IntHashTable.hash_table = IntHashTable.mkTable(32,Limit)
-	  val _ = app (fn (k,f,_,_,_) => IntHashTable.insert m (f,k)) fl
-	  val escapes = IntHashTable.lookup m
+	  val m : fun_kind LambdaVar.Tbl.hash_table = LambdaVar.Tbl.mkTable(32,Limit)
+	  val _ = app (fn (k,f,_,_,_) => LambdaVar.Tbl.insert m (f,k)) fl
+	  val escapes = LambdaVar.Tbl.lookup m
 	  in {
 	    escapes = escapes,
 	    check = fn f => (case escapes f
-	       of KNOWN => IntHashTable.insert m (f, KNOWN_CHECK)
+	       of KNOWN => LambdaVar.Tbl.insert m (f, KNOWN_CHECK)
 		| _ => ()
 	      (* end case *))
 	  } end
@@ -50,13 +50,13 @@ structure Limit : LIMIT =
   (* path now counts instructions as well as allocations, for polling *)
     fun path escapes fl = let
 	  exception Limit'
-	  val b : cexp IntHashTable.hash_table = IntHashTable.mkTable(32,Limit')
-	  val _ = app (IntHashTable.insert b o (fn (_,f,_,_,body) => (f,body))) fl
-	  val body = IntHashTable.lookup b
+	  val b : cexp LambdaVar.Tbl.hash_table = LambdaVar.Tbl.mkTable(32,Limit')
+	  val _ = app (LambdaVar.Tbl.insert b o (fn (_,f,_,_,body) => (f,body))) fl
+	  val body = LambdaVar.Tbl.lookup b
 
-	  val m : {known: fun_kind, alloc: int, instrs: int} IntHashTable.hash_table =
-		IntHashTable.mkTable(32,Limit')
-	  val look = IntHashTable.lookup m
+	  val m : {known: fun_kind, alloc: int, instrs: int} LambdaVar.Tbl.hash_table =
+		LambdaVar.Tbl.mkTable(32,Limit')
+	  val look = LambdaVar.Tbl.lookup m
 	(* compute required storage in ml-value-sized words *)
 	  fun g (d, RECORD(RK_RAW64BLOCK,vl,_,e)) = g(d + record64Sz(length vl), e)
 	    | g (d, RECORD(RK_FCONT,vl,_,e)) = g(d + record64Sz(length vl), e)
@@ -106,7 +106,7 @@ structure Limit : LIMIT =
 		 of {known=KNOWN, alloc=n, instrs=i} =>
 		    if d+n > MAX_ALLOC
 		      then (
-			IntHashTable.insert m (w,{known=KNOWN_CHECK, alloc=n, instrs=i});
+			LambdaVar.Tbl.insert m (w,{known=KNOWN_CHECK, alloc=n, instrs=i});
 			d)
 		      else d+n
 		  | _ => d
@@ -143,16 +143,16 @@ structure Limit : LIMIT =
 			      then {known=KNOWN_CHECK,alloc=n,instrs=i}
 			      else {known=KNOWN,alloc=n,instrs=i}
 			in
-			  IntHashTable.insert m (w,z);
+			  LambdaVar.Tbl.insert m (w,z);
 			  z
 			end
 		   | kind => let
 			val bod = body w
-			val z = (IntHashTable.insert m (
+			val z = (LambdaVar.Tbl.insert m (
 				w, {known=kind, alloc=0, instrs=0});
 				{known=kind, alloc=g(1,bod), instrs=h(0,bod)})
 			in
-			  IntHashTable.insert m (w,z); z
+			  LambdaVar.Tbl.insert m (w,z); z
 			end
 		  (* end case *))
 

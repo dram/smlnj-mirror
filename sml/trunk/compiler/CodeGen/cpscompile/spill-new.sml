@@ -112,7 +112,7 @@ struct
   structure P   = CPS.P
   structure U   = CPSUtil
   structure LV  = LambdaVar
-  structure H   = IntHashTable     (* For mapping from lvar *)
+  structure H   = LV.Tbl     (* For mapping from lvar *)
 
   val debug_cps_spill = Control.MLRISC.mkFlag ("debug-cps-spill", "CPS spill debug mode")
   val debug_cps_spill_info = Control.MLRISC.mkFlag ("debug-cps-spill-info",
@@ -142,16 +142,14 @@ struct
   (*
    * The following data structure groups together type specific functions.
    *)
-  datatype type_info =
-      TYPE_INFO of
-      { maxLive  : int,             (* max live values allowed *)
+  datatype type_info = TYPE_INFO of {
+        maxLive  : int,             (* max live values allowed *)
         isVar   : CPS.lvar -> bool, (* is variable a candidate for spilling? *)
         itemSize : int              (* number of words per item *)
       }
 
-  datatype spill_candidate =
-      SPILL_CANDIDATE of
-      { lvar : CPS.lvar,
+  datatype spill_candidate = SPILL_CANDIDATE of {
+        lvar : CPS.lvar,
         cty  : CPS.cty,
         rank : int          (* distance to next use *)
       }
@@ -159,13 +157,13 @@ struct
   (* Cheap set representation *)
   structure SimpleSet =
   struct
-      structure Set = IntRedBlackSet
+      structure Set = LV.Set
       val op \/ = Set.union
       val op /\ = Set.intersection
       val op -- = Set.difference
       val O     = Set.empty
       val card  = Set.numItems     (* cardinality *)
-      fun rmv(S, x) = Set.delete(S, x) handle _ => S
+      fun rmv(S, x) = Set.subtract(S, x)
   end
 
   (* Spill candidates set representation; this one has to be ranked *)
@@ -176,7 +174,7 @@ struct
          fun compare(SPILL_CANDIDATE{rank=r1,lvar=v1,...},
                      SPILL_CANDIDATE{rank=r2,lvar=v2,...}) =
              case Int.compare(r1,r2) of
-               EQUAL => Int.compare(v1,v2)
+               EQUAL => LV.compare(v1,v2)
              | ord   => ord
         )
      exception Item of Set.item

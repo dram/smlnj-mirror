@@ -1,5 +1,8 @@
-(* Copyright 1996 by Bell Laboratories *)
-(* unrebind.sml *)
+(* unrebind.sml
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 (****************************************************************************
  *                                                                          *
@@ -12,15 +15,15 @@
  *                                                                          *
  ****************************************************************************)
 
-signature UNREBIND = 
+signature UNREBIND =
   sig
     val unrebind : CPS.function -> CPS.function
   end
 
 structure UnRebind : UNREBIND = struct
 
-local 
-  open CPS 
+local
+  open CPS
 in
 
 fun bug s = ErrorMsg.impossible ("UnRebind: " ^ s)
@@ -28,13 +31,13 @@ fun bug s = ErrorMsg.impossible ("UnRebind: " ^ s)
 fun unrebind (fk,v,args,cl,ce) =
 let fun rename rebind(VAR v) =
 	  let fun f nil = VAR v
-		| f ((w:int,v')::t) = if v=w then v' else f t
+		| f ((w:LambdaVar.lvar, v')::t) = if v=w then v' else f t
 	   in f rebind
           end
       | rename _ x = x
 
     fun f (kind,l,args,cl,b) =
-      let val (args',rebind') = 
+      let val (args',rebind') =
             foldr (fn (v,(args',rebind')) =>
 		       let val v' = LambdaVar.dupLvar v
 			in  (v'::args',(v, VAR v')::rebind')
@@ -71,7 +74,7 @@ let fun rename rebind(VAR v) =
 		| ARITH(i,vl,w,t,e) => ARITH(i,map rename vl,w,t,h e)
 		| PURE(i,vl,w,t,e) => PURE(i,map rename vl,w,t,h e)
 		| RCC(k,l,p,vl,wtl,e) => RCC(k, l, p, map rename vl, wtl, h e)
-       in  h 
+       in  h
       end
 
  in (fk,v,args,cl,g nil ce)

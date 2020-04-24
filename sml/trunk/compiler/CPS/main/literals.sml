@@ -37,12 +37,12 @@ structure Literals : LITERALS =
 
     structure W8V = Word8Vector
     structure LV = LambdaVar
-    structure Intset = struct
-	type intset = IntRedBlackSet.set ref
-	fun new() = ref IntRedBlackSet.empty
-	fun add set i = set := IntRedBlackSet.add(!set, i)
-	fun mem set i =  IntRedBlackSet.member(!set, i)
-	fun rmv set i = set := IntRedBlackSet.delete(!set, i)
+    structure Set = struct
+	type intset = LV.Set.set ref
+	fun new() = ref LV.Set.empty
+	fun add set i = set := LV.Set.add(!set, i)
+	fun mem set i =  LV.Set.member(!set, i)
+	fun rmv set i = set := LV.Set.delete(!set, i)
       end
 
     open CPS
@@ -277,19 +277,19 @@ structure Literals : LITERALS =
     (* lifting all literals from a CPS program *)
     fun liftlits (body, root, offset) = let
         (* the list of record, string, and real constants *)
-	  val m : info IntHashTable.hash_table = IntHashTable.mkTable(32, LitInfo)
+	  val m : info LV.Tbl.hash_table = LV.Tbl.mkTable(32, LitInfo)
 	  val freevars : lvar list ref = ref []
 	  fun addv x = (freevars := (x :: (!freevars)))
 	(* check if an lvar is used by the main program *)
-	  val refset : Intset.intset = Intset.new()
-	  val used : lvar -> unit = Intset.add refset
-	  val isUsed : lvar -> bool = Intset.mem refset
+	  val refset : Set.intset = Set.new()
+	  val used : lvar -> unit = Set.add refset
+	  val isUsed : lvar -> bool = Set.mem refset
 	(* memoize the information on which corresponds to what *)
-	  fun enter (v, i) = (IntHashTable.insert m (v, i); addv v)
-	  fun const (VAR v) = ((IntHashTable.lookup m v; true) handle _ => false)
+	  fun enter (v, i) = (LV.Tbl.insert m (v, i); addv v)
+	  fun const (VAR v) = ((LV.Tbl.lookup m v; true) handle _ => false)
 	    | const (NUM _ | REAL _ | STRING _) = true
 	    | const _ = bug "unexpected case in const"
-	  fun cstlit (VAR v) = ((IntHashTable.lookup m v; true) handle _ => false)
+	  fun cstlit (VAR v) = ((LV.Tbl.lookup m v; true) handle _ => false)
 	    | cstlit (REAL _ | STRING _) = true
 	    | cstlit _ = false
 	(* register a string literal *)
@@ -415,7 +415,7 @@ structure Literals : LITERALS =
 		val toplit =
 		  let fun g ([], z) = LI_TOP z
 			| g (x::r, z) =
-			     (case IntHashTable.lookup m x
+			     (case LV.Tbl.lookup m x
 			       of ZZ_STR s => g(r, (LI_STRING s)::z)
 				| _ => g(r, (LI_VAR x)::z))
 		   in g(exports, [])
@@ -427,7 +427,7 @@ structure Literals : LITERALS =
 		    fun unINT32 (CPS.NUM{ival, ...}) = ival
 		      | unINT32 _ = bug "unINT32"
 		    in
-		      case IntHashTable.lookup m v
+		      case LV.Tbl.lookup m v
 		       of (ZZ_STR s) =>
 			    bug "currently we don't expect ZZ_STR in mklit"
 			(* lit   --- or we could inline string *)
@@ -452,7 +452,7 @@ structure Literals : LITERALS =
 
 			   fun mkhdr (v, (i, hh)) =
 			     let val nh =
-				   (case IntHashTable.lookup m v
+				   (case LV.Tbl.lookup m v
 				     of (ZZ_STR s) => bug "ZZ_STR in mkhdr"
 					  (* (fn ce =>
 						SELECT(i, rval, v, CPSUtil.BOGt, ce)) *)

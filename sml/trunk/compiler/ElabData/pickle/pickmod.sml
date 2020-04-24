@@ -72,7 +72,6 @@ end
 
 local
     functor MapFn = RedBlackMapFn
-    structure IntMap = IntRedBlackMap
 in
   structure PickMod :> PICKMOD = struct
 
@@ -251,22 +250,23 @@ in
     val symbol = PSymPid.w_symbol
     val pid = PSymPid.w_pid
 
+  (* create a function that maps lvars to integers *)
     fun mkAlphaConvert () = let
-	val m = ref IntMap.empty
-	val cnt = ref 0
-	fun cvt i =
-	    case IntMap.find (!m, i) of
-		SOME i' => i'
-	      | NONE => let
-		    val i' = !cnt
-		in
-		    cnt := i' + 1;
-		    m := IntMap.insert (!m, i, i');
-		    i'
-		end
-	in
-	  cvt
-	end
+	  val m = ref LambdaVar.Map.empty
+	  val cnt = ref 0
+	  fun cvt lv = (case  LambdaVar.Map.find (!m, lv)
+		 of SOME i' => i'
+		  | NONE => let
+		      val i' = !cnt
+		      in
+			cnt := i' + 1;
+			m :=  LambdaVar.Map.insert (!m, lv, i');
+			i'
+		      end
+		(* end case *))
+	  in
+	    cvt
+	  end
 
     fun numkind arg = let
 	val op $ = PU.$ NK

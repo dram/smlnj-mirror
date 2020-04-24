@@ -28,7 +28,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
     structure DI = DebIndex
     structure F  = FLINT
     structure FU = FlintUtil
-    structure M  = IntBinaryMap
+    structure M  = LV.Map
     structure CU = CPSUtil
 
     open CPS
@@ -289,16 +289,16 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 	   end
 
 	 local exception Rename
-	       val m : value IntHashTable.hash_table =
-		   IntHashTable.mkTable(32, Rename)
+	       val m : value LV.Tbl.hash_table =
+		   LV.Tbl.mkTable(32, Rename)
 	 in
 	 (* F.lvar -> CPS.value *)
-	 fun rename v = IntHashTable.lookup m v handle Rename => VAR v
+	 fun rename v = LV.Tbl.lookup m v handle Rename => VAR v
 
 	 (* F.lvar * CPS.value -> unit *)
 	 fun newname (v, w) =
 	   (case w of VAR w' => LV.sameName (v, w') | _ => ();
-	    IntHashTable.insert m (v, w))
+	    LV.Tbl.insert m (v, w))
 
 	 (* F.lvar list * CPS.value list -> unit *)
 	 fun newnames (v::vs, w::ws) = (newname(v,w); newnames(vs, ws))
@@ -310,7 +310,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 	     (* If the function is in the global renaming table and it's
 	      * renamed to itself, then it's most likely a while loop and
 	      * should *not* be eta-reduced *)
-	     if ((case IntHashTable.lookup m lv of
+	     if ((case LV.Tbl.lookup m lv of
 		      VAR lv' => lv = lv'
 		    | _ => false)
 		 handle Rename => false) then NONE else

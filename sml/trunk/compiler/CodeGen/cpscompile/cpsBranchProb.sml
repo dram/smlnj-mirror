@@ -65,11 +65,11 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
   fun error msg = MLRiscErrorMsg.error ("CpsBranchProb", msg)
 
   fun branchProb fs = let
-    val infoTbl : info IntHashTable.hash_table = IntHashTable.mkTable(32, InfoTbl)
-    val insertInfo = IntHashTable.insert infoTbl
-    val findInfo = IntHashTable.find infoTbl
+    val infoTbl : info LambdaVar.Tbl.hash_table = LambdaVar.Tbl.mkTable(32, InfoTbl)
+    val insertInfo = LambdaVar.Tbl.insert infoTbl
+    val findInfo = LambdaVar.Tbl.find infoTbl
 
-    val brProbTbl : Prob.prob IntHashTable.hash_table = IntHashTable.mkTable(32, CpsProbTbl)
+    val brProbTbl : Prob.prob LambdaVar.Tbl.hash_table = LambdaVar.Tbl.mkTable(32, CpsProbTbl)
 
 
     fun buildInfo(fk, f, args, tys, e) = let
@@ -248,7 +248,7 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
 	in
 	   case List.foldl combine NONE [ph, oh, rh, raiseExn, boundsCheck]
 	    of NONE => ()
-	     | SOME prob => IntHashTable.insert brProbTbl (x, prob)
+	     | SOME prob => LambdaVar.Tbl.insert brProbTbl (x, prob)
 	   (*esac*);
 	   assign(c1);
 	   assign(c2)
@@ -261,7 +261,7 @@ structure CpsBranchProb : CPS_BRANCH_PROB = struct
       else let val condensed = List.map buildInfo fs
         in
 	  List.app assign condensed;
-	  IntHashTable.find brProbTbl
+	  LambdaVar.Tbl.find brProbTbl
         end
   end
 end

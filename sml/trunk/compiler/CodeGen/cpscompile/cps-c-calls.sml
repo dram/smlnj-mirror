@@ -105,7 +105,7 @@ functor CPSCCalls (
    structure M   = TS.T           (* MLRISC trees *)
    structure CPS = CPS            (* CPS expressions *)
    structure R   = M.Region       (* Aliasing info *)
-   structure Set = IntRedBlackSet (* typed set for liveness *)
+   structure Set = LambdaVar.Set  (* typed set for liveness *)
    structure D   = MS.ObjDesc     (* ML Object Descriptors *)
    structure CB  = CellsBasis
 

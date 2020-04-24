@@ -1323,6 +1323,8 @@ structure UnpickMod : UNPICKMOD = struct
 	val lvTkPLM = UU.mkMap ()
 	val tycLvPM = UU.mkMap ()
 
+	val lvar = LambdaVar.fromId o int
+
 	fun lty () = let
 	    fun lt #"A" = LD.ltc_tyc (tyc ())
 	      | lt #"B" = LD.ltc_str (ltylist ())
@@ -1337,7 +1339,7 @@ structure UnpickMod : UNPICKMOD = struct
 
 	and tyc () = let
 	    fun tc #"A" = LD.tcc_var (DI.di_fromint (int ()), int ())
-	      | tc #"B" = LD.tcc_nvar (int ())
+	      | tc #"B" = LD.tcc_nvar (lvar ())
 	      | tc #"C" = LD.tcc_prim (PT.pt_fromint (int ()))
 	      | tc #"D" = LD.tcc_fn (tkindlist (), tyc ())
 	      | tc #"E" = LD.tcc_app (tyc (), tyclist ())
@@ -1362,7 +1364,6 @@ structure UnpickMod : UNPICKMOD = struct
         and strlist () = list strListM string ()
 	and tyclist () = list tycListM tyc ()
 
-	val lvar = int
 	val lvarlist = list lvarListM lvar
 
 	fun value () = let
@@ -1506,7 +1507,7 @@ structure UnpickMod : UNPICKMOD = struct
     fun unpickleFLINT pickle = let
 	val session =
 	    UU.mkSession (UU.stringGetter (Byte.bytesToString pickle))
-	val sharedStuff = mkSharedStuff (session, A.LVAR)
+	val sharedStuff = mkSharedStuff (session, A.LVAR o LambdaVar.fromId)
 	val flint = mkFlintUnpickler (session, sharedStuff)
 	val foM = UU.mkMap ()
     in
@@ -1515,7 +1516,7 @@ structure UnpickMod : UNPICKMOD = struct
 
     fun mkUnpicklers sessionInfo context = let
 	val { session, stringlist } = sessionInfo
-	val sharedStuff = mkSharedStuff (session, A.LVAR)
+	val sharedStuff = mkSharedStuff (session, A.LVAR o LambdaVar.fromId)
 	val { symbol, pid, ... } = sharedStuff
 	val sylM = UU.mkMap ()
 	val symbollist = UU.r_list session sylM symbol

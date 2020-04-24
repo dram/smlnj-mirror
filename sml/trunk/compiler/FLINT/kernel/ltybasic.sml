@@ -1,5 +1,8 @@
-(* Copyright (c) 1997 YALE FLINT PROJECT *)
-(* ltybasic.sml *)
+(* ltybasic.sml
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 structure LtyBasic : LTYBASIC =
 struct
@@ -156,7 +159,7 @@ fun tk_print (x : tkind) =
 fun tc_print (x : tyc) =
   (case (tc_out x)
     of LT.TC_VAR(i,j) => "TV(" ^ (DI.di_print i) ^ "," ^ (itos j) ^ ")"
-     | LT.TC_NVAR v => "NTV(v" ^ (itos v) ^ ")"
+     | LT.TC_NVAR v => "NTV(v" ^ LambdaVar.prLvar v ^ ")"
      | LT.TC_PRIM pt => PT.pt_print pt
      | LT.TC_FN(ks, t) =>
          "(\\[" ^ plist(tk_print, ks) ^ "]." ^ (tc_print t) ^ ")"
@@ -273,16 +276,16 @@ val teCons = LT.teCons
  ***************************************************************************)
 
 (** utility values and functions on ltyEnv *)
-type ltyEnv = (lty * DebIndex.depth) IntRedBlackMap.map
+type ltyEnv = (lty * DebIndex.depth) LambdaVar.Map.map
 
 exception ltUnbound
-val initLtyEnv : ltyEnv = IntRedBlackMap.empty
+val initLtyEnv : ltyEnv = LambdaVar.Map.empty
 
 fun ltLookup (venv, lv, nd) =
-  (case IntRedBlackMap.find(venv, lv)
+  (case LambdaVar.Map.find(venv, lv)
      of NONE  =>
 	  (say "**** hmmm, I didn't find the variable ";
-	   say (Int.toString lv); say "\n";
+	   say (LambdaVar.prLvar lv); say "\n";
 	   raise ltUnbound)
       | SOME (lt, d) =>
 	  if d=nd then lt
@@ -290,7 +293,7 @@ fun ltLookup (venv, lv, nd) =
 	       else ltc_env(lt, 0, nd - d, LT.teEmpty)
   (*easc*))
 
-fun ltInsert (venv, lv, lt, d) = IntRedBlackMap.insert(venv, lv, (lt, d))
+fun ltInsert (venv, lv, lt, d) = LambdaVar.Map.insert(venv, lv, (lt, d))
 
 end (* top-level local *)
 end (* structure LtyBasic *)

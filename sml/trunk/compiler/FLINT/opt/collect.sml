@@ -51,7 +51,7 @@ sig
     (* function to collect info about a newly created lexp *)
     val uselexp : FLINT.lexp -> unit
     (* function to copy (and collect info) a lexp *)
-    val copylexp : FLINT.lvar FLINTIntMap.map  -> FLINT.lexp -> FLINT.lexp
+    val copylexp : FLINT.lvar LambdaVar.Map.map  -> FLINT.lexp -> FLINT.lexp
 
     (* mostly useful for PPFlint *)
     val LVarString : FLINT.lvar -> string
@@ -89,7 +89,7 @@ structure Collect :> COLLECT =
 struct
 local
     structure F  = FLINT
-    structure M  = IntHashTable
+    structure M  = LambdaVar.Tbl
     structure FU = FlintUtil
     structure LV = LambdaVar
     structure PP = PPFlint

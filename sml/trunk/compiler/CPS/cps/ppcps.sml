@@ -13,7 +13,7 @@ signature PPCPS =
 
     val rkToString : CPS.record_kind -> string
 
-    val printcps : (CPS.function * LtyDef.lty IntHashTable.hash_table) -> unit
+    val printcps : (CPS.function * LtyDef.lty LambdaVar.Tbl.hash_table) -> unit
     val printcps0: CPS.function -> unit
     val prcps : CPS.cexp -> unit
 
@@ -226,7 +226,7 @@ structure PPCps : PPCPS =
 			  | g (_,nil) = ()
 			in
 			  space n; say "case "; sayv v; say "  [";
-			  say(Int.toString(c));
+			  say(LV.prLvar c);
 			  say "] of\n";
 			  g(0,cl)
 			end
@@ -268,7 +268,7 @@ structure PPCps : PPCPS =
 			  say(LtyExtern.lt_print t); say "\n")
 	  val _ = if (!Control.CG.debugRep)
 		  then (say "************************************************\n";
-			IntHashTable.appi ptv m;
+			LV.Tbl.appi ptv m;
 			say "************************************************\n")
 		  else ()
 	  fun sayv(v) = say(LV.lvarName v)
@@ -283,8 +283,8 @@ structure PPCps : PPCPS =
 	  end
 
     exception NULLTABLE
-    val nulltable : LtyDef.lty IntHashTable.hash_table =
-	  IntHashTable.mkTable(8, NULLTABLE)
+    val nulltable : LtyDef.lty LV.Tbl.hash_table =
+	  LV.Tbl.mkTable(8, NULLTABLE)
 
     fun printcps0 f = printcps(f,nulltable)
 

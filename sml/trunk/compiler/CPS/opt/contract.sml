@@ -201,12 +201,12 @@ fun debugflush() = if debug then Control.Print.flush() else ()
 
 local exception UsageMap
 in  val m : {info: info, used : int ref, called : int ref}
-		IntHashTable.hash_table =
-	        IntHashTable.mkTable(128, UsageMap)
-    val get = fn i => IntHashTable.lookup m i
-	        handle UsageMap => bug ("UsageMap on " ^ Int.toString i)
-    val enter = IntHashTable.insert m
-    fun rmv i = ignore (IntHashTable.remove m i) handle _ => ()
+		LV.Tbl.hash_table =
+	        LV.Tbl.mkTable(128, UsageMap)
+    val get = fn i => LV.Tbl.lookup m i
+	        handle UsageMap => bug ("UsageMap on " ^ LV.prLvar i)
+    val enter = LV.Tbl.insert m
+    fun rmv i = ignore (LV.Tbl.remove m i) handle _ => ()
 end
 
 fun use (VAR v) = inc(#used(get v))
@@ -361,8 +361,8 @@ fun pass1 cexp = let
 
 local
   exception Beta
-  val m2 : value IntHashTable.hash_table = IntHashTable.mkTable(32, Beta)
-  val mapm2 = IntHashTable.lookup m2
+  val m2 : value LV.Tbl.hash_table = LV.Tbl.mkTable(32, Beta)
+  val mapm2 = LV.Tbl.lookup m2
 in
 
 fun ren(v0 as VAR v) = (ren(mapm2 v) handle Beta => v0)
@@ -380,7 +380,7 @@ fun newname (vw as (v,w)) = let
 	| f _ = ()
       in
 	if deadup then f (ren w) else ();
-	rmv v; sameName vw; IntHashTable.insert m2 vw
+	rmv v; sameName vw; LV.Tbl.insert m2 vw
       end
 
 end (* local *)
@@ -1059,7 +1059,7 @@ and g hdlr = let
 in  debugprint "Contract: "; debugflush();
     enterMISC0 fvar; app enterMISC0 fargs;
     pass1 cexp;
-    cpssize := IntHashTable.numItems m;
+    cpssize := LV.Tbl.numItems m;
     let val cexp' = reduce cexp
     in  debugprint "\n";
 	if debug

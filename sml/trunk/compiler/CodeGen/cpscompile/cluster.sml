@@ -25,14 +25,14 @@ structure Cluster : sig
 
 	(* mapping of function names to a dense integer range *)
 	  exception FuncId
-	  val funcToIdTbl : int IntHashTable.hash_table =
-		IntHashTable.mkTable(numOfFuncs, FuncId)
-	  val lookup = IntHashTable.lookup funcToIdTbl
+	  val funcToIdTbl : int LambdaVar.Tbl.hash_table =
+		LambdaVar.Tbl.mkTable(numOfFuncs, FuncId)
+	  val lookup = LambdaVar.Tbl.lookup funcToIdTbl
 
 	(* mapping of ids to functions *)
 	  val idToFuncTbl = let
 		val tbl = Array.array(numOfFuncs, hd funcs)
-		val add = IntHashTable.insert funcToIdTbl
+		val add = LambdaVar.Tbl.insert funcToIdTbl
 		in
 		  List.appi
 		    (fn (id, func as (_,f,_,_,_)) => (add(f, id); Array.update(tbl, id, func)))

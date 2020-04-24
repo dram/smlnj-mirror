@@ -1,5 +1,8 @@
-(* control.sml *)
-(* copyright 1999 YALE FLINT project *)
+(* control.sml
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 structure FLINT_Control :> FLINTCONTROL =
 struct
@@ -42,11 +45,11 @@ struct
     val printFctTypes   = new (flag_cvt, "print-fct-types",
 			       "show function types", false)
     val plchk           = new (flag_cvt, "plchk", "typecheck plambda", false)
-    val nmdebugging     = new (flag_cvt, "nmdebugging", 
+    val nmdebugging     = new (flag_cvt, "nmdebugging",
 			       "PLambda normalization debugging", false)
     val redebugging     = new (flag_cvt, "redebugging",
 			       "reify phase debugging", false)
-    val rtdebugging     = new (flag_cvt, "rtdebugging", 
+    val rtdebugging     = new (flag_cvt, "rtdebugging",
 			       "runtime types(?) debugging", false)
     (* `split' should probably be called just after `fixfix' since
      * fcontract might eliminate some uncurry wrappers which are
@@ -59,7 +62,7 @@ struct
 	      "loopify", "fixfix", "split", "fcontract",
 	      "wrap", "fcontract", "reify",
 	      (*"abcopt",*) "fcontract", "fixfix", "fcontract+eta"])
-			  
+
     val tmdebugging = new (flag_cvt, "tmdebugging", "TransTypes debugging", false)
     val trdebugging = new (flag_cvt, "trdebugging", "Translate debugging", false)
 
@@ -70,7 +73,7 @@ struct
 			       "unroll threshold", 20)
     val maxargs = new (int_cvt, "maxargs", "max number of arguments", 6)
     val dropinvariant = new (flag_cvt, "dropinvariant", "dropinvariant", true)
-			      
+
     val specialize = new (flag_cvt, "specialize",
 			  "whether to specialize", true)
     (* val liftLiterals	= ref false *)
@@ -78,10 +81,10 @@ struct
 			 "whether to share wrappers", true)
     val saytappinfo = new (flag_cvt, "saytappinfo",
 			   "whether to show typelifting stats", false)
-				  
+
     (* only for temporary debugging *)
     val misc = ref 0
-			  
+
     (* FLINT internal type-checking controls *)
     val check = new (flag_cvt, "check", "whether to typecheck the IR", false)
         (* fails on MLRISC/*/*RegAlloc.sml *)
@@ -92,7 +95,7 @@ struct
 			  "check kinding information", true)
 
     (* exported for use in FLINT/main/flintcomp.sml *)
-    val recover : (int -> unit) ref = ref(fn x => ())
+    val recover : (LambdaVar.lvar -> unit) ref = ref(fn x => ())
 
    end
 end

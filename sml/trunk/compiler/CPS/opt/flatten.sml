@@ -53,11 +53,11 @@ fun debugflush() = if debug then Control.Print.flush() else ()
 val maxregs = maxfree - MachSpec.numCalleeSaves
 
 local exception UsageMap
-      val m: info IntHashTable.hash_table = IntHashTable.mkTable(128, UsageMap)
-      val umap = IntHashTable.lookup m
+      val m: info LV.Tbl.hash_table = LV.Tbl.mkTable(128, UsageMap)
+      val umap = LV.Tbl.lookup m
 in
     fun get i = umap i handle UsageMap => MISCinfo
-    val enter = IntHashTable.insert m
+    val enter = LV.Tbl.insert m
 end
 
 fun select(VAR v,i) =

@@ -17,8 +17,8 @@ struct
 
 local
     structure F  = FLINT
-    structure S  = IntRedBlackSet
-    structure M  = FLINTIntMap
+    structure S  = LambdaVar.Set
+    structure M  = LambdaVar.Map
     structure O  = Option
     structure OU = OptUtils
     structure FU = FlintUtil
@@ -51,9 +51,9 @@ fun split (fdec, NONE) = (fdec, NONE)
   | split (fdec as (fk,f,args,body), SOME aggressiveness) = let
     val {getLty,addLty,...} = Recover.recover (fdec, false)
 
-    val m = IntHashTable.mkTable(64, Unknown)
-    fun addpurefun f = IntHashTable.insert m (f, false)
-    fun funeffect f = (IntHashTable.lookup m f) handle Uknown => true
+    val m = LambdaVar.Tbl.mkTable(64, Unknown)
+    fun addpurefun f = LambdaVar.Tbl.insert m (f, false)
+    fun funeffect f = (LambdaVar.Tbl.lookup m f) handle Uknown => true
 
 (* sexp: env -> lexp -> (leE, leI, fvI, leRet)
  * - env: IntSetF.set	current environment

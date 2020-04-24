@@ -545,7 +545,7 @@ type smap = (tvar * tyc) list
 fun intersectionNonEmpty(nil,_:tvar list) = false
   | intersectionNonEmpty(_,nil) = false
   | intersectionNonEmpty(s1 as (h1:tvar,_)::t1, s2 as h2::t2) =
-        case Int.compare (h1, h2) of
+        case LambdaVar.compare (h1, h2) of
             LESS => intersectionNonEmpty(t1, s2)
           | GREATER => intersectionNonEmpty(s1, t2)
           | EQUAL => true
@@ -553,7 +553,7 @@ fun intersectionNonEmpty(nil,_:tvar list) = false
 fun searchSubst (tv:tvar, s) =
     let fun h [] = NONE
           | h ((tv':tvar,tyc)::s) =
-                case Int.compare (tv, tv') of
+                case LambdaVar.compare (tv, tv') of
                     LESS => NONE
                   | GREATER => h s
                   | EQUAL => SOME tyc
@@ -678,7 +678,7 @@ type tvoffs = (tvar * int) list
 fun intersect(nil, _:tvar list) = nil
   | intersect(_, nil) = nil
   | intersect(s1 as (h1:tvar,n)::t1, s2 as h2::t2) =
-        case Int.compare (h1, h2) of
+        case LambdaVar.compare (h1, h2) of
             LESS => intersect(t1, s2)
           | GREATER => intersect(s1, t2)
           | EQUAL => (h1,n) :: intersect(t1, t2)
@@ -818,8 +818,8 @@ fun lt_nvpoly(tvks, lt) =
 	    (rev ks, rev tvoffs)
 
 	val (ks, tvoffs) = frob (tvks, 0, [], [])
-	fun cmp ((tvar1,_), (tvar2,_)) = tvar1 > tvar2
-	val tvoffs = ListMergeSort.sort cmp tvoffs
+	fun gt ((tvar1,_), (tvar2,_)) = LambdaVar.>(tvar1, tvar2)
+	val tvoffs = ListMergeSort.sort gt tvoffs
 
 	(* temporarily gen() *)
 	val ltSubst = lt_nvar_cvt_gen() tvoffs (DI.next DI.top)

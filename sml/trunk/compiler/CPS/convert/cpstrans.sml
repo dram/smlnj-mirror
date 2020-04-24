@@ -25,14 +25,14 @@ functor CPStrans(MachSpec : MACH_SPEC) : sig
     fun cpstrans fe = let
         (* variable substitution table *)
 	  exception CPSSUBST
-	  val M : value IntHashTable.hash_table = IntHashTable.mkTable(32,CPSSUBST)
-	  val addvl = IntHashTable.insert M
-	  fun mapvl v = ((IntHashTable.lookup M v) handle CPSSUBST => VAR v)
+	  val M : value LV.Tbl.hash_table = LV.Tbl.mkTable(32,CPSSUBST)
+	  val addvl = LV.Tbl.insert M
+	  fun mapvl v = ((LV.Tbl.lookup M v) handle CPSSUBST => VAR v)
         (* variable to type hash*)
 	  exception CTYMAP
-	  val CT : cty IntHashTable.hash_table = IntHashTable.mkTable(32,CTYMAP)
-	  val addty = IntHashTable.insert CT
-	  val getty = IntHashTable.lookup CT
+	  val CT : cty LV.Tbl.hash_table = LV.Tbl.mkTable(32,CTYMAP)
+	  val addty = LV.Tbl.insert CT
+	  val getty = LV.Tbl.lookup CT
 	  fun grabty (VAR v) = ((getty v) handle _ => CPSUtil.BOGt)
 	    | grabty (NUM{ty, ...}) = NUMt ty
 	    | grabty (REAL{ty, ...}) = FLTt ty

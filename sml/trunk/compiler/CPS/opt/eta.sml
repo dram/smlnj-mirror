@@ -1,5 +1,8 @@
-(* Copyright 1996 by Bell Laboratories *)
-(* eta.sml *)
+(* eta.sml
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 (***********************************************************************
  *                                                                     *
@@ -84,55 +87,55 @@ end (* signature ETA *)
 structure Eta : ETA =
 struct
 
-local open CPS 
+local open CPS
       structure LV = LambdaVar
-      structure Intset = struct
-	type intset = IntRedBlackSet.set ref
-	fun new() = ref IntRedBlackSet.empty
-	fun add set i = set := IntRedBlackSet.add(!set, i)
-	fun mem set i =  IntRedBlackSet.member(!set, i)
-	fun rmv set i = set := IntRedBlackSet.delete(!set, i)
+      structure Set = struct
+	type intset = LV.Set.set ref
+	fun new() = ref LV.Set.empty
+	fun add set i = set := LV.Set.add(!set, i)
+	fun mem set i =  LV.Set.member(!set, i)
+	fun rmv set i = set := LV.Set.delete(!set, i)
       end
 
 in
 
 fun eta {function=(fkind,fvar,fargs,ctyl,cexp),
-	 click} = 
+	 click} =
 let
 
 val debug = !Control.CG.debugcps (* false *)
 fun debugprint s = if debug then Control.Print.say s else ()
 fun debugflush() = if debug then Control.Print.flush() else ()
 
-fun map1 f (a,b) = (f a, b) 
-fun member(i : int, a::b) = i=a orelse member(i,b)
+fun map1 f (a,b) = (f a, b)
+fun member(i : LV.lvar, a::b) = i=a orelse member(i,b)
   | member(i,[]) = false
 fun same(v::vl, (VAR w)::wl) = v=w andalso same(vl,wl)
   | same(nil,nil) = true
   | same _ = false
-fun sameName(x,VAR y) = LV.sameName(x,y) 
-  | sameName(x,LABEL y) = LV.sameName(x,y) 
+fun sameName(x,VAR y) = LV.sameName(x,y)
+  | sameName(x,LABEL y) = LV.sameName(x,y)
   | sameName _ = ()
 exception M2
-val m : value IntHashTable.hash_table = IntHashTable.mkTable(32, M2)
-val name = IntHashTable.lookup m
+val m : value LV.Tbl.hash_table = LV.Tbl.mkTable(32, M2)
+val name = LV.Tbl.lookup m
 fun rename(v0 as VAR v) = (rename(name v) handle M2 => v0)
   | rename(v0 as LABEL v) = (rename(name v) handle M2 => v0)
   | rename x = x
-fun newname x = (sameName x; IntHashTable.insert m x)
+fun newname x = (sameName x; LV.Tbl.insert m x)
 
-local val km : Intset.intset =  Intset.new()
+local val km : Set.intset =  Set.new()
 in
-fun addvt (v, CNTt) = Intset.add km v
+fun addvt (v, CNTt) = Set.add km v
   | addvt _ = ()
-fun addft (CONT, v, _, _, _) = Intset.add km v
+fun addft (CONT, v, _, _, _) = Set.add km v
   | addft _ = ()
-fun isCont v = Intset.mem km v
+fun isCont v = Set.mem km v
 end  (* local *)
 
 val id = (fn x => x)
 val doagain = ref false
-val rec pass2 = 
+val rec pass2 =
    fn RECORD(k,vl,w,e) => RECORD(k, map (map1 rename) vl, w, pass2 e)
     | SELECT(i,v,w,t,e) => SELECT(i, v, w, t, pass2 e)
     | OFFSET(i,v,w,e) => OFFSET(i, v, w, pass2 e)
@@ -149,7 +152,7 @@ val rec pass2 =
 	FIX(map (fn (fk,f,vl,cl,body) => (fk,f,vl,cl,pass2 body)) l,
 	    pass2 e)
 
-val rec reduce = 
+val rec reduce =
    fn RECORD(k,vl,w,e) => RECORD(k, map (map1 rename) vl, w, reduce e)
     | SELECT(i,v,w,t,e) => (addvt(w,t); SELECT(i, v, w, t, reduce e))
     | OFFSET(i,v,w,e) => OFFSET(i, v, w, reduce e)
@@ -157,34 +160,34 @@ val rec reduce =
     | SWITCH(v,c,el) => SWITCH(v, c,map reduce el)
     | BRANCH(i,vl,c,e1,e2) =>
           BRANCH(i, map rename vl, c, reduce e1, reduce e2)
-    | LOOKER(i,vl,w,t,e) => 
+    | LOOKER(i,vl,w,t,e) =>
           (addvt(w, t); LOOKER(i,map rename vl, w, t, reduce e))
-    | ARITH(i,vl,w,t,e) => 
+    | ARITH(i,vl,w,t,e) =>
           (addvt(w, t); ARITH(i,map rename vl, w, t, reduce e))
-    | PURE(i,vl,w,t,e) => 
+    | PURE(i,vl,w,t,e) =>
           (addvt(w, t); PURE(i,map rename vl, w, t, reduce e))
     | SETTER(i,vl,e) => SETTER(i,map rename vl, reduce e)
-    | RCC (k,l,p,vl,wtl,e) => 
+    | RCC (k,l,p,vl,wtl,e) =>
           (app addvt wtl; RCC (k, l, p, map rename vl, wtl, reduce e))
     | FIX(l,e) =>
        let val _ = app addft l
            fun eta_elim nil = (nil,id,false)
-             | eta_elim((fk as NO_INLINE_INTO,f,vl,cl,body)::r) = 
+             | eta_elim((fk as NO_INLINE_INTO,f,vl,cl,body)::r) =
                  let val (r',h,leftover) = eta_elim r
                      val body' = reduce body
                   in ((fk,f,vl,cl,body')::r',h,true)
                  end
 	     | eta_elim((fk,f,vl,cl,body)::r) =
                  let val (r',h,leftover) = eta_elim r
-                     fun rightKind (VAR v | LABEL v) = 
+                     fun rightKind (VAR v | LABEL v) =
                            ((fk = CONT) = (isCont v))
                        | rightKind _ = false
 
                      fun selectapp(SELECT(i,VAR w,v,t,e)) =
-                           (case selectapp e 
+                           (case selectapp e
                              of NONE => NONE
                               | SOME(h',u) =>
-                                 if not (member(w,f::vl)) then 
+                                 if not (member(w,f::vl)) then
                                     SOME(fn ce => SELECT(i,VAR w,v,t,h' ce),u)
                                  else NONE)
                        | selectapp(APP(g,wl)) =
@@ -192,7 +195,7 @@ val rec reduce =
                                val z = (case g' of VAR x => member(x,f::vl)
                                                  | LABEL x => member(x,f::vl)
                                                  | _ => false)
-                               
+
                             in if ((not z) andalso (same(vl,wl))
                                            andalso (rightKind g')) then
 			         SOME(fn ce => ce, g')
@@ -209,7 +212,7 @@ val rec reduce =
 					 newname(f,u);
 					 (r',h' o h,leftover))
                  end
-        in  case (eta_elim l) 
+        in  case (eta_elim l)
              of ([],h,_) => h(reduce e)
    	      | (l',h,_) => h(FIX(l',reduce e))
         end

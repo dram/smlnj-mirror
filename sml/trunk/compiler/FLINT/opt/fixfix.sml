@@ -1,7 +1,9 @@
-(* copyright 1998 YALE FLINT PROJECT *)
-(* monnier@cs.yale.edu *)
-
-(* This module does various FIX-related transformations:
+(* fixfix.sml
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * This module does various FIX-related transformations:
  * - FIXes are split into their strongly-connected components
  * - small non-recursive functions are marked inlinable
  * - curried functions are uncurried
@@ -25,8 +27,8 @@ struct
 
 local
     structure F  = FLINT
-    structure S = IntRedBlackSet
-    structure M = IntRedBlackMap
+    structure S = LambdaVar.Set
+    structure M = LambdaVar.Map
     structure PP = PPFlint
     structure LT = LtyExtern
     structure LK = LtyKernel
@@ -46,17 +48,16 @@ val cplv = LambdaVar.dupLvar
 (* to limit the amount of uncurrying *)
 val maxargs = CTRL.maxargs
 
-structure SccNode = struct
+structure SCC = GraphSCCFn (struct
     type ord_key = LambdaVar.lvar
-    val compare = Int.compare
-end
-structure SCC = GraphSCCFn (SccNode)
+    val compare = LambdaVar.compare
+  end)
 
 datatype info = Fun of int ref
 	      | Arg of int * (int * int) ref
 
-(* fexp: int ref intmapf -> lexp) -> (int * intset * lexp)
- * The intmap contains refs to counters.  The meaning of the counters
+(* fexp: int ref LambdaVar.Map.map -> lexp) -> (int * intset * lexp)
+ * The map contains refs to counters.  The meaning of the counters
  * is slightly overloaded:
  * - if the counter is negative, it means the lvar
  *   is a locally known function and the counter's absolute value denotes

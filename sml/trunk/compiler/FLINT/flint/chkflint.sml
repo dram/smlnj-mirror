@@ -28,7 +28,7 @@ local structure LT = LtyExtern
       structure DI = DebIndex
       structure PP = PPFlint
       structure PO = Primop
-      structure S  = IntRedBlackSet
+      structure S  = LV.Set
       open FLINT
 
 fun bug s = ErrorMsg.impossible ("ChkFlint: "^s)

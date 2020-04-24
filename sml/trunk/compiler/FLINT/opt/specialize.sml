@@ -21,7 +21,7 @@ local structure LD = LtyDef
       structure DI = DebIndex
       structure PT = PrimTyc
       structure PF = PFlatten
-      structure IntMap = IntRedBlackMap (* IntBinaryMap *)
+      structure LVMap = LambdaVar.Map
       open FLINT
 in
 
@@ -174,8 +174,8 @@ datatype dinfo
 
 type depth = DI.depth
 type info = (tyc list * lvar list) list
-type itable = info IntHashTable.hash_table   (* lvar -> (tyc list * lvar) *)
-type dtable = (depth * dinfo) IntHashTable.hash_table
+type itable = info LambdaVar.Tbl.hash_table   (* lvar -> (tyc list * lvar) *)
+type dtable = (depth * dinfo) LambdaVar.Tbl.hash_table
 datatype infoEnv = IENV of (itable * (tvar * tkind) list) list * dtable
 
 (****************************************************************************
@@ -183,20 +183,20 @@ datatype infoEnv = IENV of (itable * (tvar * tkind) list) list * dtable
  ****************************************************************************)
 (** initializing a new info environment : unit -> infoEnv *)
 fun initInfoEnv () =
-  let val itable : itable = IntHashTable.mkTable (32, ITABLE)
-      val dtable : dtable = IntHashTable.mkTable (32, DTABLE)
+  let val itable : itable = LambdaVar.Tbl.mkTable (32, ITABLE)
+      val dtable : dtable = LambdaVar.Tbl.mkTable (32, DTABLE)
    in IENV ([(itable,[])], dtable)
   end
 
 (** register a definition of sth interesting into the info environment *)
 fun entDtable (IENV(_, dtable), v, ddinfo) =
-    IntHashTable.insert dtable (v, ddinfo)
+    LambdaVar.Tbl.insert dtable (v, ddinfo)
 
 (** mark an lvar in the dtable as escape *)
 fun escDtable (IENV(_, dtable), v) =
-    case IntHashTable.find dtable v of
+    case LambdaVar.Tbl.find dtable v of
 	SOME (_, ESCAPE) => ()
-      | SOME (d, _) => IntHashTable.insert dtable (v, (d, ESCAPE))
+      | SOME (d, _) => LambdaVar.Tbl.insert dtable (v, (d, ESCAPE))
       | NONE => ()
 
 (*
@@ -206,7 +206,7 @@ fun escDtable (IENV(_, dtable), v) =
  *)
 fun regDtable (IENV(kenv, dtable), v, infos) =
   let val (dd, dinfo) =
-        ((IntHashTable.lookup dtable v) handle _ =>
+        ((LambdaVar.Tbl.lookup dtable v) handle _ =>
                 bug "unexpected cases in regDtable")
    in (case dinfo
         of ESCAPE => ()
@@ -218,7 +218,7 @@ fun regDtable (IENV(kenv, dtable), v, infos) =
                         in CSTR nbnds
                        end
                  val ndinfo = foldr h dinfo infos
-              in IntHashTable.insert dtable (v, (dd, ndinfo))
+              in LambdaVar.Tbl.insert dtable (v, (dd, ndinfo))
              end)
   end (* function regDtable *)
 
@@ -228,7 +228,7 @@ fun regDtable (IENV(kenv, dtable), v, infos) =
  *)
 fun sumDtable(IENV(kenv, dtable), v, infos) =
   let val (dd, dinfo) =
-        ((IntHashTable.lookup dtable v) handle _ =>
+        ((LambdaVar.Tbl.lookup dtable v) handle _ =>
                 bug "unexpected cases in sumDtable")
    in (case dinfo
         of ESCAPE => (dd, ESCAPE)
@@ -245,12 +245,12 @@ fun sumDtable(IENV(kenv, dtable), v, infos) =
   end
 
 (** find out the set of nvars in a list of tycs *)
-fun tcs_nvars tcs = SortedList.foldmerge (map LK.tc_nvars tcs)
+fun tcs_nvars tcs = LambdaVar.SortedList.foldmerge (map LK.tc_nvars tcs)
 
 (** look and add a new type instance into the itable *)
 fun lookItable (IENV (itabs,dtab), d, v, ts, getlty, nv_depth) =
   let val (dd, _) =
-        ((IntHashTable.lookup dtab v)
+        ((LambdaVar.Tbl.lookup dtab v)
 	 handle _ => bug "unexpected cases in lookItable")
 
       val nd = List.foldr Int.max dd (map nv_depth (tcs_nvars ts))
@@ -259,13 +259,13 @@ fun lookItable (IENV (itabs,dtab), d, v, ts, getlty, nv_depth) =
                       bug "unexpected itables in lookItable")
 
       val nts = map (fn t => (LT.tc_adj(t, d, nd) handle LT.TCENV => bug "lookItable")) ts
-      val xi = getOpt (IntHashTable.find itab v, [])
+      val xi = getOpt (LambdaVar.Tbl.find itab v, [])
 
       fun h ((ots,xs)::r) = if tcs_eqv(ots, nts) then (map VAR xs) else h r
         | h [] = let val oldt = getlty (VAR v)     (*** old type is ok ***)
                      val bb = LT.lt_inst(oldt, ts)
                      val nvs =  map mkv  bb
-                     val _ = IntHashTable.insert itab (v, (nts, nvs)::xi)
+                     val _ = LambdaVar.Tbl.insert itab (v, (nts, nvs)::xi)
                   in map VAR nvs
                  end
    in h xi
@@ -273,7 +273,7 @@ fun lookItable (IENV (itabs,dtab), d, v, ts, getlty, nv_depth) =
 
 (** push a new layer of type abstraction : infoEnv -> infoEnv *)
 fun pushItable (IENV(itables, dtable), tvks) =
-  let val nt : itable = IntHashTable.mkTable(32, ITABLE)
+  let val nt : itable = LambdaVar.Tbl.mkTable(32, ITABLE)
    in (IENV((nt,tvks)::itables, dtable))
   end
 
@@ -284,7 +284,7 @@ fun pushItable (IENV(itables, dtable), tvks) =
 fun popItable (IENV([], _)) =
       bug "unexpected empty information env in popItable"
   | popItable (ienv as IENV((nt,_)::_, _)) =
-      let val infos = IntHashTable.listItemsi nt
+      let val infos = LambdaVar.Tbl.listItemsi nt
           fun h ((v,info), hdr) =
             let val _ = regDtable(ienv, v, info)
                 fun g ((ts, xs), e) = LET(xs, TAPP(VAR v, ts), e)
@@ -297,12 +297,12 @@ fun popItable (IENV([], _)) =
 fun chkOutEsc (IENV([], _), v) =
       bug "unexpected empty information env in chkOut"
   | chkOutEsc (ienv as IENV((nt,_)::_, _), v) =
-      let val info = getOpt (IntHashTable.find nt v, [])
+      let val info = getOpt (LambdaVar.Tbl.find nt v, [])
           fun g ((ts, xs), e) = LET(xs, TAPP(VAR v, ts), e)
           val hdr = fn e => foldr g e info
       in
 	  (* remove this v so it won't be considered again *)
-	  ignore (IntHashTable.remove nt v) handle _ => ();
+	  ignore (LambdaVar.Tbl.remove nt v) handle _ => ();
 	  hdr
       end
 
@@ -317,7 +317,7 @@ fun chkOutNorm (IENV([], _), v, oks, d) =
       bug "unexpected empty information env in chkOut"
 
   | chkOutNorm (ienv as IENV((nt,_)::_, dtable), v, oks, d) =
-      let val info = getOpt (IntHashTable.find nt v, [])
+      let val info = getOpt (LambdaVar.Tbl.find nt v, [])
           val (_, dinfo) = sumDtable(ienv, v, info)
           val spinfo =
             (case dinfo
@@ -340,7 +340,7 @@ fun chkOutNorm (IENV([], _), v, oks, d) =
                | _ => LET(xs, TAPP(VAR v, ts), e))
           val hdr = fn e => foldr mkhdr e info
 	  (* don't consider it again... *)
-	  val _ = IntHashTable.remove nt v handle _ => []
+	  val _ = LambdaVar.Tbl.remove nt v handle _ => []
        in (hdr, spinfo)
       end
 
@@ -352,12 +352,12 @@ fun chkOutNorm (IENV([], _), v, oks, d) =
 type smap = (tvar * tyc) list
 val initsmap = []
 
-fun mergesmaps (s1:smap as h1::t1, s2:smap as h2::t2) =
-    (case Int.compare (#1 h1, #1 h2) of
-         LESS => h1 :: (mergesmaps (t1, s2))
-       | GREATER => h2 :: (mergesmaps (s1, t2))
-       | EQUAL => h1 :: (mergesmaps (t1, t2)) (* drop h2 *)
-         )
+fun mergesmaps (s1:smap as h1::t1, s2:smap as h2::t2) = (
+      case LambdaVar.compare (#1 h1, #1 h2)
+       of LESS => h1 :: (mergesmaps (t1, s2))
+        | GREATER => h2 :: (mergesmaps (s1, t2))
+        | EQUAL => h1 :: (mergesmaps (t1, t2)) (* drop h2 *)
+      (* end case *))
   | mergesmaps (s1, []) = s1
   | mergesmaps ([], s2) = s2
 
@@ -365,7 +365,7 @@ fun addsmap (tvks, ts, smap) =
     let
         fun select ((tvar,tkind),tyc) = (tvar,tyc)
         val tvtcs = ListPair.map select (tvks, ts)
-        fun cmp ((tvar1,_), (tvar2,_)) = tvar1 > tvar2
+        fun cmp ((tvar1,_), (tvar2,_)) = LambdaVar.>(tvar1, tvar2)
         val tvtcs = ListMergeSort.sort cmp tvtcs
     in
         mergesmaps (tvtcs, smap)
@@ -373,16 +373,16 @@ fun addsmap (tvks, ts, smap) =
 (***** end of the substitution intmapf hack *********************)
 
 (***** the nvar-depth intmapf: named variable -> DI.depth *********)
-type nmap = DI.depth IntMap.map
-val initnmap = IntMap.empty
+type nmap = DI.depth LVMap.map
+val initnmap = LVMap.empty
 fun addnmap (tvks, d, nmap) =
   let fun h ((tv,_)::xs, nmap) =
-           h(xs, IntMap.insert(nmap, tv, d))
+           h(xs, LVMap.insert(nmap, tv, d))
         | h ([], nmap) = nmap
    in h(tvks, nmap)
   end
 fun looknmap nmap nvar =
-    case IntMap.find(nmap, nvar) of SOME d => d | NONE => DI.top
+    case LVMap.find(nmap, nvar) of SOME d => d | NONE => DI.top
      (*  bug "unexpected case in looknmap") *)
 (***** end of the substitution intmapf hack *********************)
 

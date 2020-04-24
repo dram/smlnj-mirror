@@ -57,10 +57,10 @@ type num = int
 type abstract = bool
 
 type var = (lty * lvar list * depth * tdepth * abstract * num)
-type venv = var IntHashTable.hash_table
+type venv = var LambdaVar.Tbl.hash_table
 
 type freevar = (lvar * lty)
-type fenv = (freevar IntHashTable.hash_table) list
+type fenv = (freevar LambdaVar.Tbl.hash_table) list
 
 
 
@@ -78,16 +78,16 @@ val fkfct = {isrec=NONE, known=false, inline=IH_SAFE, cconv=CC_FCT}
 fun adjust(t, ntd, otd) = LE.lt_adj(t, otd, ntd)
 
 fun findEnv(v, Ienv(venv,fenvs)) =
-    (IntHashTable.lookup venv v)
-    handle _ => (print (Int.toString v); bug "findEnv: var not found" )
+    (LambdaVar.Tbl.lookup venv v)
+    handle _ => (print (LambdaVar.prLvar v); bug "findEnv: var not found" )
 
 fun getVar (v, Ienv(venv,fenv :: fenvs), t, td, td') =
     ((let
-	val (v', nt') = (IntHashTable.lookup fenv v)
+	val (v', nt') = (LambdaVar.Tbl.lookup fenv v)
     in  (v', nt', nil)
     end) handle _ => let val v' = mkv()
 	                 val nt' = adjust(t, td, td')
-			 val _ = IntHashTable.insert fenv (v, (v', nt'))
+			 val _ = LambdaVar.Tbl.insert fenv (v, (v', nt'))
 
 		     in  (v', nt', [v])
 		     end )
@@ -110,7 +110,7 @@ fun newVar(v, env, td) =
 
 
 fun pushFenv (Ienv(venv,fenvs)) =
-    let val nt = IntHashTable.mkTable(32,FTABLE)
+    let val nt = LambdaVar.Tbl.mkTable(32,FTABLE)
     in  Ienv(venv, nt::fenvs)
     end
 
@@ -119,7 +119,7 @@ fun popFenv (Ienv(venv, fenv::fenvs)) = Ienv(venv,fenvs)
 
 fun addEnv (Ienv(venv,fenvs), vs, ts, fvs, td, d, abs) =
     let
-	fun f (v, t) = IntHashTable.insert venv (v, (t, fvs, td, d, abs, 0))
+	fun f (v, t) = LambdaVar.Tbl.insert venv (v, (t, fvs, td, d, abs, 0))
 	fun zip([], [], acc) = acc
 	  | zip (a::r, a'::r', acc) = zip (r, r', (a, a')::acc)
 	  | zip _ = raise LiftCompileError
@@ -128,12 +128,12 @@ fun addEnv (Ienv(venv,fenvs), vs, ts, fvs, td, d, abs) =
     end
 
 fun rmEnv(Ienv(venv,fenvs), v) =
-    ignore (IntHashTable.remove venv v) handle _ => ()
+    ignore (LambdaVar.Tbl.remove venv v) handle _ => ()
 
 
 fun getFreeVar(fvs, Ienv(venv, fenv::fenvs)) =
     let
-	fun f(v) = (IntHashTable.lookup fenv v)
+	fun f(v) = (LambdaVar.Tbl.lookup fenv v)
 	    handle _ => bug "freevar not found"
     in
 	map f fvs
@@ -193,8 +193,8 @@ fun writeHeader(hd, exp) =
    and td < td' then change var  *)
 
 fun initInfoEnv () =
-    let val venv : venv = IntHashTable.mkTable(32, VENV)
-	val fenv = IntHashTable.mkTable(32, FENV)
+    let val venv : venv = LambdaVar.Tbl.mkTable(32, VENV)
+	val fenv = LambdaVar.Tbl.mkTable(32, FENV)
     in
 	Ienv (venv, [fenv])
     end
@@ -353,7 +353,7 @@ fun lift (e, env, td, d, ad, rename) =
 		       VAR v'' =>
 			       let
 				   val (t', fvs', len2, vd, _, _) =
-				       (IntHashTable.lookup venv v'')
+				       (LambdaVar.Tbl.lookup venv v'')
 				       handle _ =>
 				          bug "Tapp var not found"
 			       in

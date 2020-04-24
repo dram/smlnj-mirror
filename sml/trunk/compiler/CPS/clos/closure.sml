@@ -26,10 +26,10 @@ functor Closure(MachSpec : MACH_SPEC) : CLOSURE = struct
 local
   open CPS
   structure U = CPSUtil
-  structure SL = SortedList
+  structure LV = LambdaVar
+  structure SL = LV.SortedList
   structure CGoptions = Control.CG
   structure SProf = StaticProf(MachSpec)
-  structure LV = LambdaVar
   val saveLvarNames = LV.saveLvarNames
   val dupLvar = LV.dupLvar
   val mkLvar = LV.mkLvar
@@ -118,29 +118,31 @@ fun uniqvar l = SL.uniq(clean l)
 fun entervar(VAR v,l) = SL.enter(v,l)
   | entervar(_,l) = l
 
-fun member l (v:int) =
-  let fun f [] = false
-	| f (a::r) = if a<v then f r else (v=a)
-   in  f l
-  end
+fun member3 l (v:LV.lvar) = let
+      fun h [] = false
+        | h ((a,_,_)::r) = (case LV.compare(a, v)
+	     of LESS => h r
+	      | EQUAL => true
+	      | GREATER => false
+	    (* end case *))
+      in
+	h l
+      end
 
-fun member3 l (v:int) =
-  let fun h [] = false
-        | h ((a,_,_)::r) = if a<v then h r else (v=a)
-   in h l
-  end
+fun mergeV (l1 : (lvar*int*int) list, l2) = let
+      fun h (l1 as ((u1 as (x1,a1,b1))::r1), l2 as ((u2 as (x2,a2,b2))::r2)) = (
+	    case LV.compare(x1, x2)
+	     of LESS => u1 :: h(r1,l2)
+	      | EQUAL => (x1,Int.min(a1,a2),Int.max(b1,b2)) :: h(r1,r2)
+	      | GREATER => u2 :: h(l1,r2)
+	    (* end case *))
+        | h (l1,[]) = l1
+        | h ([],l2) = l2
+      in
+	h (l1, l2)
+      end
 
-fun mergeV(l1 : (lvar*int*int) list,l2) =
-  let fun h(l1 as ((u1 as (x1,a1,b1))::r1),  l2 as ((u2 as (x2,a2,b2))::r2)) =
-            if (x1 < x2) then u1::(h(r1,l2))
-            else if (x1 > x2) then u2::(h(l1,r2))
-                 else (x1,Int.min(a1,a2),Int.max(b1,b2))::(h(r1,r2))
-        | h(l1,[]) = l1
-        | h([],l2) = l2
-   in h(l1,l2)
-  end
-
-fun addV(vl,m,n,l) = mergeV(map (fn x => (x,m,n)) vl, l)
+fun addV(vl,m,n,l) = mergeV (map (fn x => (x,m,n)) vl, l)
 
 fun uniqV z =
   let fun h([],l) = l
@@ -148,20 +150,23 @@ fun uniqV z =
    in h(z,[])
   end
 
-fun removeV(vl : lvar list,l) =
-  let fun h(l1 as (x1::r1),l2 as ((u2 as (x2,_,_))::r2)) =
-            if x2 < x1 then u2::(h(l1,r2))
-            else if x2 > x1 then h(r1,l2)
-                 else h(r1,r2)
-        | h([],l2) = l2
-        | h(l1,[]) = []
-   in h(vl,l)
-  end
+fun removeV (vl : lvar list, l) = let
+      fun h (l1 as (x1::r1), l2 as ((u2 as (x2,_,_))::r2)) = (
+	    case LV.compare (x1, x2)
+	     of LESS => h(r1, l2)
+	      | EQUAL => h(r1, r2)
+	      | GREATER => u2 :: h(l1, r2)
+	    (* end case *))
+	| h ([], l2) = l2
+	| h (l1, []) = []
+      in
+	h(vl, l)
+      end
 
 fun accumV([],_) = ([],1000000,0,0)
   | accumV(vl,free) =
      let fun h((v,m,n),(z,i,j,k)) =
-           if member vl v then (v::z,Int.min(m,i),Int.max(n,j),k+1)
+           if SL.member vl v then (v::z,Int.min(m,i),Int.max(n,j),k+1)
            else (z,i,j,k)
       in foldr h ([],1000000,0,0) free
      end
@@ -217,15 +222,13 @@ fun sortlud1 x =
    in ListMergeSort.sort ludfud1 x
   end
 
-fun sortlud2(l,vl) =
-  let fun h(v,m,i) =
-        if member vl v then (i*1000+m*10) else (i*1000+m*10+1)
-      fun ludfud2((_,m,v),(_,n,w)) =
-                  (m>n) orelse ((m=n) andalso (v<w))
-
+fun sortlud2 (l, vl) = let
+      fun h (v, m, i) = if SL.member vl v then (i*1000+m*10) else (i*1000+m*10+1)
+      fun ludfud2 ((_,m:int,v), (_,n,w)) = (m>n) orelse ((m=n) andalso LV.<(v,w))
       val nl = map (fn (u as (v,_,_)) => (u,h u,v)) l
-   in map #1 (ListMergeSort.sort ludfud2 nl)
-  end
+      in
+	map #1 (ListMergeSort.sort ludfud2 nl)
+      end
 
 (* cut out the first n elements, returns both the header and the rest *)
 fun partvnum(l,n) =
@@ -244,10 +247,12 @@ fun spillFree(free,n,vbase,sbase) =
             end)
   end
 
-fun get_vn([],v) = NONE
-  | get_vn((a,m,n)::r,v : lvar) =
-       if v > a then get_vn(r,v)
-       else if v = a then SOME (m,n) else NONE
+fun get_vn ([],v) = NONE
+  | get_vn ((a,m,n)::r, v : lvar) = (case LV.compare(a, v)
+       of LESS => get_vn(r, v)
+        | EQUAL => SOME(m, n)
+        | GREATER => NONE
+      (* end case *))
 
 (* check if x is a subset of y, x and y must be sorted lists *)
 fun subset (x,y) = (case SL.difference(x,y) of [] => true | _ => false)
@@ -333,7 +338,7 @@ fun mutRec [] = false
 abstype env = Env of lvar list *                    (* values *)
 	             (lvar * closureRep) list *     (* closures *)
                      lvar list *                    (* disposable cells *)
-                     object IntHashTable.hash_table (* what map *)
+                     object LV.Tbl.hash_table       (* what map *)
 with
 
 (****************************************************************************
@@ -341,11 +346,11 @@ with
  ****************************************************************************)
 
 exception NotBound
-fun emptyEnv() = Env([],[],[],IntHashTable.mkTable(32,NotBound))
+fun emptyEnv() = Env([],[],[],LV.Tbl.mkTable(32,NotBound))
 
 (* add a new object to an environment *)
 fun augment(m as (v,obj),e as Env(valueL,closureL,dispL,whatMap)) =
-  (IntHashTable.insert whatMap m;
+  (LV.Tbl.insert whatMap m;
    case obj
     of Value _ => Env(v::valueL,closureL,dispL,whatMap)
      | Closure cr => Env(valueL,(v,cr)::closureL,dispL,whatMap)
@@ -416,9 +421,9 @@ fun printEnv(Env(valueL,closureL,dispL,whatMap)) =
         | cp _ = ()
       fun p(indent,l,seen) =
 	let fun c(v,CR(off, {functions,values,closures,stamp,kind,...})) =
-	      (indent(); pr "Closure "; vp v; pr "/"; ip stamp;
+	      (indent(); pr "Closure "; vp v; pr "/"; pr(LV.prLvar stamp);
 	       pr " @"; ip off;
-	       if member seen stamp
+	       if SL.member seen stamp
 	       then pr "(seen)\n"
 	       else (pr ":\n";
 		     case functions
@@ -433,9 +438,9 @@ fun printEnv(Env(valueL,closureL,dispL,whatMap)) =
   in  pr "Values:"; ilist valueL;
       pr "Closures:\n"; p(fn () => (),closureL,nil);
       pr "Disposable records:\n"; ilist dispL;
-      pr "Known function mapping:\n"; IntHashTable.appi fp whatMap;
+      pr "Known function mapping:\n"; LV.Tbl.appi fp whatMap;
       pr "Callee-save continuation mapping:\n";
-      IntHashTable.appi cp whatMap
+      LV.Tbl.appi cp whatMap
   end
 
 (****************************************************************************
@@ -444,7 +449,7 @@ fun printEnv(Env(valueL,closureL,dispL,whatMap)) =
 
 exception Lookup of string * lvar * env
 fun whatIs(env as Env(_,_,_,whatMap),v) =
-  IntHashTable.lookup whatMap v handle NotBound => raise Lookup("whatIs", v,env)
+  LV.Tbl.lookup whatMap v handle NotBound => raise Lookup("whatIs", v,env)
 
 (* Add v to the access environment, v must be in whatMap already *)
 fun augvar(v,e as Env(valueL,closureL,dispL,whatMap)) =
@@ -487,7 +492,7 @@ fun whereIs (env as Env(valueL,closureL,_,whatMap), target) = let
 	    in
 	      Path (bfs(s,nil))
             end
-      fun withTgt (v,CR(_,{free,...})) = member free target
+      fun withTgt (v,CR(_,{free,...})) = SL.member free target
       fun lookC ((v,cr)::tl) =
             if target=v then Direct
             else (case cr
@@ -527,7 +532,7 @@ fun extractClosures (l,n,base) =
 
       fun s([],vl,r) = r
         | s((u as (v,_))::z,vl,r) =
-             if member vl v then s(z,vl,r)
+             if SL.member vl v then s(z,vl,r)
              else s(z,SL.enter(v,vl),u::r)
 
    in s(h(n,l,l@base),[],[])
@@ -550,7 +555,7 @@ fun fetchClosures(env as Env(_,closureL,_,_),lives,fkind) =
 
       fun reusable (v,CR(_,{core,kind,...})) =
            ((sharable(kind,fkind)) andalso
-            ((subset(core,lives)) orelse (member lives v)))
+            ((subset(core,lives)) orelse (SL.member lives v)))
 
       fun reusable2 (_,CR(_,{kind,...})) = sharable(kind,fkind)
 
@@ -578,7 +583,7 @@ fun getImmedClosure (Env(_,closureL,_,_)) =
 
 (* vl is a list of continuation frames that were reused along this path *)
 fun recoverFrames(vl,Env(valueL,closureL,dispL,whatMap)) =
-  let fun h(a,l) = if member vl a then l else a::l
+  let fun h(a,l) = if SL.member vl a then l else a::l
       val ndispL = foldr h [] dispL
    in Env(valueL,closureL,ndispL,whatMap)
   end
@@ -681,7 +686,7 @@ fun partnull l =
 (* create a template of the base callee-save registers (n : extra cs regs) *)
 fun mkbase(regs,free,n) =
   let fun h((VAR v),(r,z)) =
-             if member free v then ((SOME v)::r,SL.enter(v,z))
+             if SL.member free v then ((SOME v)::r,SL.enter(v,z))
              else (dumcs::r,z)
         | h(_,(r,z)) = (dumcs::r,z)
    in foldr h (extraDummy(n),[]) regs
@@ -690,7 +695,7 @@ fun mkbase(regs,free,n) =
 (* modify the base, retain only those variables in free *)
 fun modifybase(base,free,n) =
   let fun h(s as (SOME v),(r,z,m)) =
-             if member free v then (s::r,SL.rmv(v,z),m)
+             if SL.member free v then (s::r,SL.rmv(v,z),m)
              else (if m > 0 then (s::r,z,m-1) else (dumcs::r,z,m))
         | h(NONE,(r,z,m)) = (NONE::r,z,m)
    in foldr h ([],free,n) base
@@ -1000,7 +1005,7 @@ fun link(env,cfree,rk,fk) =
   case getImmedClosure(env)
    of NONE => flat(env,cfree,rk,fk)
     | SOME (z,CR(_,{free,...})) =>
-       let val notIn = sublist (not o (member free)) cfree
+       let val notIn = sublist (not o (SL.member free)) cfree
         in if (length(notIn) = length(cfree))
            then flat(env,cfree,rk,fk)
            else flat(env,SL.enter(z,cfree),rk,fk)
@@ -1121,7 +1126,7 @@ fun thinFree(vfree,vlen,closlist,limit) =
         let val (zl,m,n) = foldr g ([],0,0) free
          in if m < limit then x else (v,zl,m*10000-n)::x
         end
-      fun worse ((_,_,i), (_,_,j) : (lvar * int list * int)) = (i<j)
+      fun worse ((_,_,i), (_,_,j) : (lvar * lvar list * int)) = (i<j)
       fun m([],s,r,k) = (s,r)
         | m((v,x,_)::y,s,r,k) =
            if k < limit then (s,r)
@@ -1355,7 +1360,7 @@ val (escapeB,calleeB,kcontB) =
 
 val escapeV = SL.uniq(map #2 escapeB)
 val knownV = SL.uniq(map #2 knownB)
-fun knownlvar3(v,_,_) = member knownV v
+fun knownlvar3(v,_,_) = SL.member knownV v
 
 (*** check whether the basic closure assumptions are valid or not ***)
 val (fixKind,nret) =
@@ -1867,7 +1872,7 @@ val (nenv, calleeFrags : frags) =
 
             val ncsg = map (fn (SOME v) => VAR v | NONE => tagInt 0) gpbase
             val ncsf = map (fn (SOME v) => VAR v | NONE => VOID) fpbase
-            val (benv,nenv) = splitEnv(nenv,member (freevCSregs(gpbase,nenv)))
+            val (benv,nenv) = splitEnv(nenv,SL.member (freevCSregs(gpbase,nenv)))
 
             fun g({kind,sn,v,l,args,cl,body},z) =
               let val env = installFrames(nframes,benv)

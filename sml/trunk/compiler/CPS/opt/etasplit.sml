@@ -46,21 +46,21 @@ structure EtaSplit : ETASPLIT =
 
 	  local
 	    exception SPLIT2
-	    val m : value IntHashTable.hash_table = IntHashTable.mkTable(32, SPLIT2)
+	    val m : value LV.Tbl.hash_table = LV.Tbl.mkTable(32, SPLIT2)
 	  in
-	  fun makealias x = (sameName x; IntHashTable.insert m x)
-	  fun alias (VAR v) = (SOME(IntHashTable.lookup m v) handle SPLIT2 => NONE)
+	  fun makealias x = (sameName x; LV.Tbl.insert m x)
+	  fun alias (VAR v) = (SOME(LV.Tbl.lookup m v) handle SPLIT2 => NONE)
 	    | alias _ = NONE
 	  end (* local *)
 
 	  local
 	    exception SPLIT3
-	    val m : {used : int ref, called : int ref} IntHashTable.hash_table =
-		      IntHashTable.mkTable(32,SPLIT3)
+	    val m : {used : int ref, called : int ref} LV.Tbl.hash_table =
+		      LV.Tbl.mkTable(32,SPLIT3)
 	  in
-	  val get = IntHashTable.lookup m
+	  val get = LV.Tbl.lookup m
 	  fun enterFN(_,f,_,_,_) =
-	      IntHashTable.insert m (f,{used=ref 0,called=ref 0})
+	      LV.Tbl.insert m (f,{used=ref 0,called=ref 0})
 	    (* Perhaps I shouldn't bother to enterFN continuations... *)
 	  fun use (VAR v) =
 	    (let val {used=u,...} = get v

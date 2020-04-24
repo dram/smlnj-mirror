@@ -4,8 +4,6 @@
  * All rights reserved.
  *)
 
-structure FLINTIntMap = IntRedBlackMap (* IntBinaryMap *)
-
 signature FLINTUTIL =
 sig
   val rk_tuple : FLINT.rkind
@@ -27,11 +25,11 @@ sig
    * free variables remain unchanged except for the renaming specified
    * in the first (types) and second (values) argument *)
   val copy : (FLINT.tvar * FLINT.tyc) list ->
-             FLINT.lvar FLINTIntMap.map ->
+             FLINT.lvar LambdaVar.Map.map ->
              FLINT.lexp -> FLINT.lexp
   val copyfdec : FLINT.fundec -> FLINT.fundec
 
-  val freevars : FLINT.lexp -> IntRedBlackSet.set
+  val freevars : FLINT.lexp -> LambdaVar.Set.set
 
   val dcon_eq : FLINT.dcon * FLINT.dcon -> bool
 
@@ -51,10 +49,10 @@ local structure EM = ErrorMsg
       structure LT = LtyExtern
       structure PO = Primop
       structure DA = Access
-      structure M  = FLINTIntMap
+      structure M  = LambdaVar.Map
       structure A  = Access
       structure O  = Option
-      structure S  = IntRedBlackSet
+      structure S  = LambdaVar.Set
       structure F  = FLINT
       open FLINT
 in
@@ -117,8 +115,7 @@ fun copy ta alpha le = let
     val tc_subst = LT.tc_nvar_subst_gen()
     val lt_subst = LT.lt_nvar_subst_gen()
 
-    val tmap_sort = ListMergeSort.sort (fn ((v1,_),(v2,_)) => v1 > v2)
-
+    val tmap_sort = ListMergeSort.sort (fn ((v1,_),(v2,_)) => LambdaVar.>(v1, v2))
     fun substvar alpha lv = case M.find(alpha,lv) of SOME(lv) => lv | NOE => lv
     fun substval alpha (VAR lv) = VAR(substvar alpha lv)
       | substval alpha v = v

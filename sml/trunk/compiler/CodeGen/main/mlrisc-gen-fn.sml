@@ -73,7 +73,7 @@ functor MLRiscGen (
     structure PB = PseudoOpsBasisTyp
     structure An = MLRiscAnnotations
     structure CB = CellsBasis
-    structure Tbl = IntHashTable
+    structure Tbl = LambdaVar.Tbl
 
   (* Argument passing *)
     structure ArgP = ArgPassing(
@@ -257,15 +257,18 @@ functor MLRiscGen (
 		(* end case *)) :: known rest
 
 	(*
-	 * labelTbl is a mapping of function names (CPS.lvars) to labels.
+	 * A mapping of function names (CPS.lvars) to labels.
 	 * If the flag splitEntry is on, we also distinguish between external and
 	 * internal labels, make sure that no directly branches go to the
 	 * external labels.
 	 *)
 	  exception LabelBind
-	  val labelTbl : Label.label Tbl.hash_table = Tbl.mkTable(32, LabelBind)
-	  val functionLabel = Tbl.lookup labelTbl
-	  val addLabelTbl = Tbl.insert labelTbl
+	  val externLabelTbl : Label.label Tbl.hash_table = Tbl.mkTable(32, LabelBind)
+	  val externLabel = Tbl.lookup externLabelTbl
+	  val addExternLabel = Tbl.insert externLabelTbl
+	  val localLabelTbl : Label.label Tbl.hash_table = Tbl.mkTable(32, LabelBind)
+	  val localLabel = Tbl.lookup localLabelTbl
+	  val addLocalLabel = Tbl.insert localLabelTbl
 
 	(*
 	 * typTbl is a mapping of CPS.lvars to CPS types
@@ -280,12 +283,12 @@ functor MLRiscGen (
 	 *)
 	  fun mkGlobalTables (fk, f, _, _, _) = (
 	      (* internal label *)
-		addLabelTbl (f, newLabel());
+		addExternLabel (f, newLabel());
 	      (* external entry label *)
 		if splitEntry
 		  then (case fk
 		     of (C.CONT | C.ESCAPE) =>
-			  addLabelTbl (~f-1, Label.label(Int.toString f) ())
+			  addLocalLabel (f, Label.label(LambdaVar.prLvar f) ())
 		      | _ => ()
 		    (* end case *))
 		  else ();
@@ -454,8 +457,9 @@ functor MLRiscGen (
 	      fun regbind (C.VAR v) = resolveHpOffset(lookupGpRegTbl v)
 		| regbind (C.NUM{ival, ty={tag=true, ...}}) = LI(ival+ival+1)
 		| regbind (C.NUM{ival, ...}) = LI ival
-		| regbind (C.LABEL v) =
-		    laddr(functionLabel(if splitEntry then ~v-1 else v), 0)
+		| regbind (C.LABEL v) = if splitEntry
+		    then laddr(localLabel v, 0)
+		    else laddr(externLabel v, 0)
 		| regbind _ = error "regbind"
 
 	    (*
@@ -471,8 +475,9 @@ functor MLRiscGen (
 	      fun regbind' (C.VAR v) = resolveHpOffset'(lookupGpRegTbl v)
 		| regbind' (C.NUM{ival, ty={tag=true, ...}}) = LI(ival+ival+1)
 		| regbind' (C.NUM{ival, ...}) = LI ival
-		| regbind' (C.LABEL v) =
-		    laddr(functionLabel(if splitEntry then ~v - 1 else v), 0)
+		| regbind' (C.LABEL v) = if splitEntry
+		    then laddr(localLabel v, 0)
+		    else laddr(externLabel v, 0)
 		| regbind' _ = error "regbind'"
 
 	    (*
@@ -926,7 +931,9 @@ functor MLRiscGen (
 				   of (M.GPR linkreg::regfmlsTl) => (linkreg, regfmlsTl)
 				    | _ => error "no linkreg for standard function"
 				  (* end case *))
-			    val entryLab = if splitEntry then functionLabel(~f - 1) else lab
+			    val entryLab = if splitEntry
+				  then localLabel f
+				  else lab
 			    in
 			      if splitEntry
 				then (
@@ -1236,10 +1243,10 @@ functor MLRiscGen (
 		     of Frag.KNOWNFUN(ref(Frag.GEN formals)) => (
 			  updtHeapPtr hp;
 			  callSetup (formals, args);
-			  emit (branchToLabel(functionLabel f)))
+			  emit (branchToLabel(externLabel f)))
 		      | Frag.KNOWNFUN(r as ref(Frag.UNGEN(f,vl,tl,e))) => let
 			  val formals = known tl
-			  val lab = functionLabel f
+			  val lab = externLabel f
 			  in
 			    r := Frag.GEN formals;
 			    updtHeapPtr hp;
@@ -1250,7 +1257,7 @@ functor MLRiscGen (
 			  val formals = if MS.fixedArgPassing
 				then ArgP.fixed{argTys=tl, vfp=vfp}
 				else known tl
-			  val lab = functionLabel f
+			  val lab = externLabel f
 			  in
 			    r := Frag.GEN formals;
 			    callSetup (formals, args);
@@ -1260,13 +1267,13 @@ functor MLRiscGen (
 		     | Frag.KNOWNCHK(ref(Frag.GEN formals)) => (
 			  callSetup (formals, args);
 			  testLimit hp;
-			  emit (branchToLabel(functionLabel f)))
+			  emit (branchToLabel(externLabel f)))
 		     | Frag.STANDARD{fmlTyps, ...} => let
 			  val formals = ArgP.standard{fnTy=typmap f, argTys=fmlTyps, vfp=vfp}
 			  in
 			    callSetup(formals, args);
 			    testLimit hp;
-			    emit(branchToLabel(functionLabel f))
+			    emit(branchToLabel(externLabel f))
 			  end
 		    (* end case *))
 
@@ -1960,7 +1967,7 @@ raise Fail "unexpected constant branch"
 	     *)
 	      fun initFrags (start::rest : C.function list) = let
 		    fun init (func as (fk, f, _, _, _)) =
-			  addGenTbl (f, Frag.makeFrag(func, functionLabel f))
+			  addGenTbl (f, Frag.makeFrag(func, externLabel f))
 		    in
 		      app init rest;
 		      init start
@@ -1998,7 +2005,7 @@ raise Fail "unexpected constant branch"
 		compile (endCluster NO_OPT)
 	      end
 
-	fun entrypoint ((_,f,_,_,_)::_) () = Label.addrOf (functionLabel f)
+	fun entrypoint ((_,f,_,_,_)::_) () = Label.addrOf (externLabel f)
 	  | entrypoint [] () = error "entrypoint: no functions"
 	in
 	  app mkGlobalTables funcs;

@@ -34,7 +34,7 @@ structure NewLiterals : LITERALS =
     structure W8V = Word8Vector
     structure W8B = Word8Buffer
     structure LV = LambdaVar
-    structure IntTbl = IntHashTable
+    structure LVTbl = LV.Tbl
     structure WordTbl = WordHashTable
     structure C = CPS
 
@@ -447,14 +447,14 @@ structure NewLiterals : LITERALS =
 	datatype t = LE of {
 	    hasReal64Lits : bool ref,		(* true if there are unbound real64 literals *)
 	    lits : literal LTbl.hash_table,	(* table of unique literals in the module *)
-	    vMap : var_info IntTbl.hash_table	(* map from variables to the literals that they *)
+	    vMap : var_info LV.Tbl.hash_table	(* map from variables to the literals that they *)
 						(* are bound to *)
 	  }
 
 	fun new () = LE{
 		hasReal64Lits = ref false,
 		lits = LTbl.mkTable(32, Fail "LitTbl"),
-		vMap = IntTbl.mkTable(32, Fail "VarTbl")
+		vMap = LV.Tbl.mkTable(32, Fail "VarTbl")
 	      }
 
 	fun setHasReal64 (LE{hasReal64Lits, ...}) = (hasReal64Lits := true)
@@ -493,7 +493,7 @@ structure NewLiterals : LITERALS =
 
 	fun addRecord (tbl as LE{lits, vMap, ...}) = let
 	      val add = add lits
-	      val insert = IntTbl.insert vMap
+	      val insert = LV.Tbl.insert vMap
 	      in
 		fn (rk, flds, v) => insert (v, (false, add (LV_RECORD(rk, flds))))
 	      end
@@ -501,7 +501,7 @@ structure NewLiterals : LITERALS =
 	local
 	  fun addRawLit wrap (tbl as LE{lits, vMap, ...}) = let
 		val add = add lits
-		val insert = IntTbl.insert vMap
+		val insert = LV.Tbl.insert vMap
 		in
 		  fn (data, v) => insert (v, (false, add (wrap data)))
 		end
@@ -510,12 +510,12 @@ structure NewLiterals : LITERALS =
 	val addRaw64 = addRawLit LV_RAW64
 	end (* local *)
 
-	fun findVar (LE{vMap, ...}) = IntTbl.find vMap
+	fun findVar (LE{vMap, ...}) = LV.Tbl.find vMap
 
-	fun insertVar (LE{vMap, ...}) = IntTbl.insert vMap
+	fun insertVar (LE{vMap, ...}) = LV.Tbl.insert vMap
 
 	fun isConst (LE{vMap, ...}) = let
-	      val inDomain = IntTbl.inDomain vMap
+	      val inDomain = LV.Tbl.inDomain vMap
 	      in
 		fn (C.VAR x) => inDomain x
 		 | (C.LABEL _) => bug "unexpected LABEL"
@@ -527,7 +527,7 @@ structure NewLiterals : LITERALS =
 
 	fun findValue (LE{lits, vMap, ...}) = let
 	      val findLit = LTbl.find lits
-	      val findVar = IntTbl.find vMap
+	      val findVar = LV.Tbl.find vMap
 	      in
 		fn (C.VAR x) => Option.map #2 (findVar x)
 		 | (C.LABEL _) => bug "unexpected LABEL"
@@ -580,7 +580,7 @@ structure NewLiterals : LITERALS =
 	fun allLits (LE{lits, ...}) = LTbl.listItems lits
 
 	fun boundVars (LE{vMap, ...}) =
-	      IntTbl.foldi
+	      LV.Tbl.foldi
 		(fn (x, (true, lit), acc) => (x, lit)::acc | (_, _, acc) => acc)
 		  [] vMap
 

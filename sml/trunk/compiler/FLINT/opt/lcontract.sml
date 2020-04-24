@@ -17,7 +17,7 @@ local structure DI = DebIndex
       structure LT = LtyExtern
       structure FU = FlintUtil
       structure PO = Primop
-      structure M  = IntHashTable
+      structure M  = LambdaVar.Tbl
       open FLINT
 in
 

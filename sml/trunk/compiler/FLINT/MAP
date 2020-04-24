@@ -93,7 +93,7 @@ flint/
     defs: FLINT, FLINT: FLINT
 
   flintutil.sml
-    defs: FLINTIntMap, FLINTUTIL, FlintUtil : FLINTUTIL
+    defs: FLINTUTIL, FlintUtil : FLINTUTIL
 
   ppflint.sig/sml
     pseudo prettyprinting of FLINT lexp

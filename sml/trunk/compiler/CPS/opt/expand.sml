@@ -72,11 +72,11 @@ fun expand {function=(fkind,fvar,fargs,ctyl,cexp),unroll,bodysize,click,afterClo
    fun copyLvar v = LV.dupLvar v
 
  local exception Expand
-       val m : info IntHashTable.hash_table = IntHashTable.mkTable(128,Expand)
-       val get' = IntHashTable.lookup m
- in    val note = IntHashTable.insert m
+       val m : info LV.Tbl.hash_table = LV.Tbl.mkTable(128,Expand)
+       val get' = LV.Tbl.lookup m
+ in    val note = LV.Tbl.insert m
        fun get i = get' i handle Expand => Other
-       fun discard_pass1_info() = IntHashTable.clear m
+       fun discard_pass1_info() = LV.Tbl.clear m
  end
    fun getval (VAR v) = get v
      | getval (LABEL v) = get v
@@ -250,9 +250,9 @@ fun expand {function=(fkind,fvar,fargs,ctyl,cexp),unroll,bodysize,click,afterClo
    fun substitute(args,wl,e,alpha) =
     let
 	exception Alpha
-        val vm: value IntHashTable.hash_table = IntHashTable.mkTable(16, Alpha)
-        fun look (v,default) = getOpt (IntHashTable.find vm v, default)
-        val enter = IntHashTable.insert vm
+        val vm: value LV.Tbl.hash_table = LV.Tbl.mkTable(16, Alpha)
+        fun look (v,default) = getOpt (LV.Tbl.find vm v, default)
+        val enter = LV.Tbl.insert vm
 	fun use(v0 as VAR v) = look(v,v0)
 	  | use(v0 as LABEL v) = look(v,v0)
 	  | use x = x
@@ -493,7 +493,7 @@ fun expand {function=(fkind,fvar,fargs,ctyl,cexp),unroll,bodysize,click,afterClo
 						    gamma e,
 						    false)
 			     in
-				 click "!"; debugprint(Int.toString f);
+				 click "!"; debugprint(LV.prLvar f);
 				 enter 0 (fk,f',vl',cl,e');
 				 (fk,f,vl,cl,FIX([(fk,f',vl',cl,e')],
 						 APP(label f', map VAR vl)))
@@ -519,7 +519,7 @@ fun expand {function=(fkind,fvar,fargs,ctyl,cexp),unroll,bodysize,click,afterClo
 	   (case !decisions
 	     of YES{formals,body}::rest =>
 		 (click "^";
-                  case v of VAR vv => debugprint(Int.toString vv) | _ => ();
+                  case v of VAR vv => debugprint(LV.prLvar vv) | _ => ();
 		  debugflush();
 		  decisions := rest;
 		  substitute(vl,formals,body,true))

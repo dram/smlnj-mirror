@@ -36,7 +36,7 @@ signature FLINTCONTROL =
     val plchk           : bool ref    (* type check plambda after translate *)
 
     (* for use in FLINT/main/flintcomp.sml *)
-    val recover : (int -> unit) ref
+    val recover : (LambdaVar.lvar -> unit) ref
 
     (* only for temporary debugging *)
     val misc		: int ref
