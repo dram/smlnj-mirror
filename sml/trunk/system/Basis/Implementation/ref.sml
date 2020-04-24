@@ -40,7 +40,7 @@ structure Ref : REF =
     val ! = !
     val op := = op :=
 
-    fun exchange (r as ref x, y) = (r := x; y)
+    fun exchange (r as ref x, y) = (r := y; x)
     fun swap (rx as ref x, ry as ref y) = (rx := y; ry := x)
 
     fun app f (ref x) = f x
