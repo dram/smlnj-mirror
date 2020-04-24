@@ -93,13 +93,21 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+[2020/04/24]::
++
+Fixed bug bugref:256[] (`Ref.exchange` incorrect). The original
+source of the bug was the *Basis Library* sample code, which
+has also been fixed.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 //====================================================================
 == Version 110.97; 2020/04/21
 
 //--------------------------------------------------------------------
 [2020/04/21]::
 +
-Changed the printing of tyvars; _e.g._, an OVLDV tyvar introduced
+Changed the printing of tyvars; _e.g._, an `OVLDV` tyvar introduced
 by an occurrence of the overloaded operator "++*++" that also
 acquires the equality attribute will be printed as ++''Z[OL(*)]++.
 +
