@@ -460,13 +460,6 @@ MiscUtil/
       register for user-defined prettyprinters for datatypes
       defs: PPTABLE, PPTable : PPTABLE
 
-  util/
-  A couple of miscellaneous leftovers.
-    feedback.sml
-      Compute minimum feedback vertex set of a given directed graph.
-      should be part of a graph library (move to ../library?)
-      defs: Feedback
-
 
 3. Middle End
 -------------
