@@ -295,6 +295,7 @@ CodeGen/cpscompile/cpsBranchProb.sml
 CodeGen/cpscompile/cpsRegions.sig
 CodeGen/cpscompile/cpsRegions.sml
 CodeGen/cpscompile/cpsRegs.sig
+CodeGen/cpscompile/feedback.sml
 CodeGen/cpscompile/frag.sig
 CodeGen/cpscompile/frag.sml
 CodeGen/cpscompile/invokegc.sig
@@ -335,8 +336,6 @@ MiscUtil/const-arith/sources.cm
 MiscUtil/print/ppdec.sml
 MiscUtil/print/ppobj.sml
 MiscUtil/print/pptable.sml
-
-MiscUtil/util/feedback.sml
 
 (* Libraries that are part of the visible compiler framework. *)
 $smlnj/viscomp/basics.cm

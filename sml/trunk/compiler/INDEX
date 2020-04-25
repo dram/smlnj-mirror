@@ -195,8 +195,6 @@ FASTSYMBOL
   Basics/mlcomp/fastsymbol.sig
 FastSymbol
   Basics/mlcomp/fastsymbol.sml
-Feedback
-  MiscUtil/util/feedback.sml
 FIXITY
   Basics/mlcomp/fixity.sml
 Fixity
