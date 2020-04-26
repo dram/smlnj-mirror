@@ -172,8 +172,12 @@ TopLevel/main/cconfig.sig
 TopLevel/main/code-generator.sig
 TopLevel/main/compile.sig
 TopLevel/main/compile.sml
-TopLevel/main/printhooks.sml
-TopLevel/main/pptable.sml
+
+TopLevel/print/ppdec.sml
+TopLevel/print/ppobj.sml
+TopLevel/print/pptable.sml
+TopLevel/print/compilerpptable.sml
+TopLevel/print/printhooks.sml
 
 (* Semantic analysis (elaborator) specialized for SML/NJ. *)
 
@@ -332,10 +336,7 @@ CodeGen/main/object-desc.sml
 CodeGen/main/spill-table.sml
 
 (* Miscellaneous utilities. *)
-MiscUtil/const-arith/sources.cm
-MiscUtil/print/ppdec.sml
-MiscUtil/print/ppobj.sml
-MiscUtil/print/pptable.sml
+Library/const-arith/sources.cm
 
 (* Libraries that are part of the visible compiler framework. *)
 $smlnj/viscomp/basics.cm

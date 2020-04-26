@@ -4,7 +4,7 @@ root.cm			../system
 
 smlnj			../system/smlnj
 SMLNJ-MLRISC		../../MLRISC/cm
-pickle-lib.cm		../compiler/MiscUtil/library
+pickle-lib.cm		../compiler/Library/pickle
 
 pgraph.cm		../../pgraph
 cm			../cm
