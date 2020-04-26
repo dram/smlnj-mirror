@@ -420,7 +420,7 @@ Elaborator/
 
 3. Miscellaneous utilities
 
-MiscUtil/
+Library/   (was MiscUtil)
   Contains various kinds of utility programs
 
   bignums/
@@ -433,7 +433,30 @@ MiscUtil/
       generate ML real (i.e. ieee floating point?) constants
       defs: PRIMREAL, REALCONST, RealConst: PRIMREAL => REALCONST
 
-  library/
+  const-arith/
+  Implements constant arithmetic on SML integer and word constants.
+  (adapted from the SML Compiler Utilities)
+    bitwise-const-arith-sig.sml
+      defs: BITWISE_CONST_ARITH
+    bitwise-const-arith.sml
+      defs: BitwiseConstArith : BITWISE_CONST_ARITH
+    const-arith-glue-fn.sml
+      defs: functor ConstArithGlueFn
+    const-arith-sig.sml
+      defs: CONST_ARITH
+    const-arith.sml
+      defs: ConstArith
+    signed-const-arith-sig.sml
+      defs: SIGNED_CONST_ARITH
+    signed-trapping-arith.sml
+      defs: SignedTrappingArith : SIGNED_CONST_ARITH
+    unsigned-const-arith-sig.sml
+      defs: UNSIGNED_CONST_ARITH
+    unsigned-wrapping-arith.sml
+      defs: UnsignedWrappingArith : UNSIGNED_CONST_ARITH
+    sources.cm
+
+  pickle/
   Utility modules that are candidates for eventual
   promotion to general libraries (crc and pickling)
     crc.sml
@@ -448,18 +471,6 @@ MiscUtil/
       supporting unpickling
       defs: UNPICKLE_UTIL, UnpickleUtil :> UNPICKLE_UTIL
 
-  print/
-  Pretty printing for absyn declarations, values
-    ppdec.sml
-      printing results of top-level declarations, including values and types
-      defs: PPDEC, PPDec : PPDEC
-    ppobj.sml
-      print top-level values
-      defs: PPOBJ, PPObj : PPOBJ
-    pptable.sml
-      register for user-defined prettyprinters for datatypes
-      defs: PPTABLE, PPTable : PPTABLE
-
 
 3. Middle End
 -------------
@@ -472,6 +483,22 @@ intermediate representation (a form of typed lambda calculus)
 
 4. Back End
 -----------
+
+CodeGen/
+  alpha32/
+  alpha32x/
+  amd64/
+  cpscompile/
+    ...
+    feedback.sml  (moved from MiscUtil/util)
+      Compute minimum feedback vertex set of a given directed graph.
+      defs: Feedback (inline opaque sig)
+  hppa/
+  main/
+  optimizer/
+  ppc/
+  sparc/
+  x86/
 
 MLRISC/
 MLRISC based code generators
@@ -550,6 +577,22 @@ TopLevel/
       creating top-level loops
       defs: INTERACT, Interact: EVALLOOP => INTERACT
 
+  print/
+  Pretty printing for absyn declarations, values
+    ppdec.sml
+      printing results of top-level declarations, including values and types
+      defs: PPDEC, PPDec : PPDEC
+    ppobj.sml
+      print top-level values
+      defs: PPOBJ, PPObj : PPOBJ
+    pptable.sml
+      register for user-defined prettyprinters for datatypes
+      defs: PPTABLE, PPTable : PPTABLE
+    pptable.sml
+      defs: CompilerPPTable
+    printhooks.sml
+      defs: PrintHooks
+    
   main/
     control.sig
       defs: MCCONTROL, FLINTCONTROL, CGCONTROL, CONTROL
@@ -558,10 +601,6 @@ TopLevel/
     version.sml
       records the compiler version and version date
       defs: CompilerVersion
-    printhooks.sml
-      defs: PrintHooks
-    pptable.sml
-      defs: CompilerPPTable
     code-generator.sig
       defs: CODEGENERATOR
     compile.sig
