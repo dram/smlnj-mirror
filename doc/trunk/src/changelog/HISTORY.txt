@@ -93,6 +93,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //====================================================================
 //== Recent updates
 
+[2020/04/27]::
++
+Added a pass to the elaborator that check for variables that are
+bound, but never referenced.  This check can be controlled by
+the `Control.Elab.unusedWarn` flag and is enabled by default.
+Unused top-level variables are not reported (unless they are
+bound in the local part of a local declaration).
++
+The implementation was influenced by
+https://gist.github.com/jvanburen/2ef1a722fba13fc169b670ba6392da52[
+Jacob Van Buren's patchfor Version 110.82].
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
 [2020/04/24]::
 +
 The `LambdaVar.lvar` type is represented as an integer; since the earliest
