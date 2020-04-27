@@ -1,9 +1,9 @@
 (* elaborate.cm
  *
- * (C) 2001 Lucent Technologies, Bell Labs
- *
- * The SML/NJ elaborator.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
+
 Group
         signature ELAB_CONTROL
 	structure ElabControl
@@ -76,6 +76,7 @@ is
 	elaborate/elabdebug.sml
 	elaborate/elabmod.sml
 	elaborate/elabtop.sml
+	elaborate/check-unused.sml
 
 	print/ppprim.sml
 	print/pputil.sig
