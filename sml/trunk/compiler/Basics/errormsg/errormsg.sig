@@ -1,10 +1,13 @@
-(* <errormsg.sig>=                                                          *)
-(* Copyright 1989 by AT&T Bell Laboratories *)
+(* errormsg.sig
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
 signature ERRORMSG =
  sig
     datatype severity = WARN | COMPLAIN
-    type complainer (*  = severity -> string -> (PrettyPrintNew.stream -> unit)
-                          -> unit *)
+    type complainer = severity -> string -> (PrettyPrintNew.stream -> unit) -> unit
     type errorFn = SourceMap.region -> complainer
     type errors (* = {error: errorFn,
                       errorMatch: region->string,
