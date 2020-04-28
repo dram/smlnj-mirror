@@ -1,6 +1,6 @@
 -- cps.asdl
 --
--- COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
+-- COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
 -- All rights reserved.
 --
 -- ASDL description of the CPS IR.
@@ -159,8 +159,8 @@ module CPS_Prim (import CPS_Type) {
   -- These might raise exceptions, never have functions as arguments.
     arith
       = ARITH (arithop oper, numkind kind)
-      | TEST (int from, int to)
-      | TESTU (int from, int to)
+      | TEST (int from, int to)			-- int -> int conversion with Overflow
+      | TESTU (int from, int to)		-- word -> int conversion with Overflow
       | TEST_INF (int)				-- conversion from IntInf.int
       | REAL_TO_INT (bool floor, int from, int to)
 
@@ -179,11 +179,12 @@ module CPS_Prim (import CPS_Type) {
       | SUBSCRIPTV
       | GETTAG | MKSPECIAL | CAST | GETCON | GETEXN
       | BOX | UNBOX
-  -- tagging/boxing of numbers; numkind should be either `INT` or `FLOAT`
+      -- tagging/boxing of numbers; numkind should be either `INT` or `FLOAT`
       | WRAP (numkind) | UNWRAP (numkind)
       | FWRAP | FUNWRAP | IWRAP | IUNWRAP | I32WRAP | I32UNWRAP
       | GETSEQDATA | RECSUBSCRIPT | RAW64SUBSCRIPT | NEWARRAY0
-      | RAWRECORD (CPS_Type.record_kind?)	-- allocate uninitialized words from the heap
+      -- allocate uninitialized words from the heap
+      | RAWRECORD (CPS_Type.record_kind?)
 
 }
 
@@ -191,6 +192,7 @@ module CPS_Prim (import CPS_Type) {
 --
 module CPS_Rep (
     import LambdaVar
+    import CPS_IntConst
     import CPS_RealConst
     import CTypes
     import CPS_Prim
@@ -228,13 +230,17 @@ module CPS_Rep (
       | OFFSET (int, value, LambdaVar.lvar, cexp)
       | APP (value, value*)
       | FIX (function*, cexp)
+      -- `SWITCH(v, id, exps)` is a multiway branch on `v`.  The lvar `id` is used
+      -- as a unique ID in contraction.
       | SWITCH (value, LambdaVar.lvar, cexp*)
+      -- `BRANCH(br, args, id, trueExp, falseExp)` is a two-way conditional branch.
+      -- The lvar `id` is used as a unique ID in contraction.
       | BRANCH (CPS_Prim.branch, value*, LambdaVar.lvar, cexp, cexp)
       | SETTER (CPS_Prim.setter, value*, cexp)
       | LOOKER (CPS_Prim.looker, value*, LambdaVar.lvar, CPS_Type.cty, cexp)
       | ARITH (CPS_Prim.arith, value*, LambdaVar.lvar, CPS_Type.cty, cexp)
       | PURE (CPS_Prim.pure, value*, LambdaVar.lvar, CPS_Type.cty, cexp)
-    -- experimental "raw C call" (Blume, 1/2001)
+      -- experimental "raw C call" (Blume, 1/2001)
       | RCC (rcc_kind, string, CTypes.c_proto, value*, rcc_param*, cexp)
 
     field = (value, accesspath)
