@@ -32,7 +32,8 @@ structure CheckUnused : sig
 	val empty : set
 	val add : set * VarCon.var -> set
 	val member : set * VarCon.var -> bool
-	val remove : set * VarCon.var -> set
+	val delete : set * VarCon.var -> set
+	val toList : set -> LambdaVar.lvar list
       end = struct
 	type set = LambdaVar.Set.set
 	val empty = LambdaVar.Set.empty
@@ -42,13 +43,19 @@ structure CheckUnused : sig
 	fun member (set, VarCon.VALvar{access=Access.LVAR lv, ...}) =
 	      LambdaVar.Set.member (set, lv)
 	  | member (set, _) = false (* QUESTION: should this case be a compiler error? *)
-	fun remove (set, VarCon.VALvar{access=Access.LVAR lv, ...}) =
+	fun delete (set, VarCon.VALvar{access=Access.LVAR lv, ...}) =
 	      LambdaVar.Set.delete (set, lv)
-	  | remove (set, _) = set
+	  | delete (set, _) = set
+	val toList = LambdaVar.Set.toList
       end
 
+    fun debugPrSet (msg, used) = debugmsg (concat [
+	    msg, "{", String.concatWithMap "," LambdaVar.lvarName (VSet.toList used),
+	    "}\n"
+	  ])
+
     fun check err = let
-	  fun warning (region, VarCon.VALvar{path, ...}) =
+	  fun warning (region, VarCon.VALvar{path, access, ...}) =
 		err region ErrorMsg.WARN (concat [
 		    "variable ", Symbol.name (SymPath.first path),
 		    " is defined but not used"
@@ -103,7 +110,7 @@ structure CheckUnused : sig
 	  and chkPat top = let
 		fun chk (region, p, used) = (case p
 		       of A.VARpat x => if VSet.member(used, x)
-			    then VSet.remove(used, x)
+			    then VSet.delete(used, x)
 			    else (
 			    (* we do not warn about unused top-level vars *)
 			      if top then () else warning (region, x);
@@ -137,14 +144,14 @@ structure CheckUnused : sig
 	  and chkDec (region, top, d, used) = (case d
 		 of A.VALdec vbs => let
 		      fun chkVB (A.VB{pat, exp, ...}, used) =
-			    chkExp (region, exp, chkPat top (region, pat, used))
+			    chkPat top (region, pat, chkExp (region, exp, used))
 		      in
 			List.foldr chkVB used vbs
 		      end
 		  | A.VALRECdec rvbs => let
 		      fun chk1 (A.RVB{exp, ...}, used) = chkExp(region, exp, used)
 		      fun chk2 (A.RVB{var, ...}, used) = if VSet.member(used, var)
-			    then VSet.remove(used, var)
+			    then VSet.delete(used, var)
 			    else (
 			      if top then () else warning (region, var);
 			      used)

@@ -79,10 +79,15 @@ structure ElabControl : ELAB_CONTROL =
 
   (***** Controls for warning messages *****)
 
+(* NOTE: we currently disable this check because of false positives for
+ * mutually recursive functions.  The false positives are caused by a
+ * transformation done during type checking, which should be removed
+ * at some point.
+ *)
     val unusedWarn = cnew (
 	  "unused-warn",
 	  "warn when variables are defined but not used",
-	  true)
+	  false)
 
     val multDefWarn = cnew (
 	  "mult-def-warn",
