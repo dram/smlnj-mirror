@@ -97,9 +97,43 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 +
 Added a pass to the elaborator that check for variables that are
 bound, but never referenced.  This check can be controlled by
-the `Control.Elab.unusedWarn` flag and is enabled by default.
-Unused top-level variables are not reported (unless they are
-bound in the local part of a local declaration).
+the `Control.Elab.unusedWarn` flag. Unused top-level variables
+are not reported (unless they are bound in the local part of
+a local declaration).
++
+The check is currently disabled because of false positives
+caused by a transformation in the type checker.  For example,
+the following function declaration:
+[source,sml]
+------------
+fun foo n = let
+      fun f x = g x - 1
+      and g x = f x + 1
+      in
+	f n
+      end;
+------------
+gets represented by the following `Absyn`:
+[source,sml]
+------------
+val foo = let
+      val foo = (fn n => let
+	      local
+		val tmp = let
+		      val rec f = (fn x => Int.- (g x,1))
+			  and g = (fn x => Int.+ (f x,1))
+		      in (f,g)
+		      end
+	      in
+		val f = #1 tmp
+		val g = #2 tmp
+	      end
+	    in f n
+	    end)
+      in foo
+      end
+------------
+where the instance of `g` bound to `#2 tmp` is unused.
 +
 The implementation was influenced by
 https://gist.github.com/jvanburen/2ef1a722fba13fc169b670ba6392da52[
