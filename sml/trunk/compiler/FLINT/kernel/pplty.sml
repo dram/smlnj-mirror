@@ -12,12 +12,12 @@ sig
   val dtPrintNames : bool ref
   val printIND : bool ref
 
-  val ppList : PrettyPrintNew.stream ->
-               {sep: string, pp : PrettyPrintNew.stream -> 'a -> unit} ->
+  val ppList : PrettyPrint.stream ->
+               {sep: string, pp : PrettyPrint.stream -> 'a -> unit} ->
                'a list -> unit
-  val ppTKind : int -> PrettyPrintNew.stream -> Lty.tkind -> unit
-  val ppTyc : int -> PrettyPrintNew.stream -> Lty.tyc -> unit
-  val ppLty : int -> PrettyPrintNew.stream -> Lty.lty -> unit
+  val ppTKind : int -> PrettyPrint.stream -> Lty.tkind -> unit
+  val ppTyc : int -> PrettyPrint.stream -> Lty.tyc -> unit
+  val ppLty : int -> PrettyPrint.stream -> Lty.lty -> unit
 end
 
 structure PPLty (* : PPLTY *) =
@@ -25,8 +25,8 @@ struct
 
 local
     structure PT = PrimTyc
-    structure PP = PrettyPrintNew
-    open PPUtilNew
+    structure PP = PrettyPrint
+    open PPUtil
 in
 
 val dtPrintNames : bool ref = ref true

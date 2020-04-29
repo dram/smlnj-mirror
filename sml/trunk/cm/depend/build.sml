@@ -42,7 +42,7 @@ structure BuildDepend :> BUILDDEPEND = struct
     structure DE = DAEnv
     structure EM = ErrorMsg
     structure SP = SymPath
-    structure PP = PrettyPrintNew
+    structure PP = PrettyPrint
 
     type impexp = DG.impexp
 

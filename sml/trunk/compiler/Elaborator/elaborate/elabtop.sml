@@ -17,8 +17,8 @@ signature ELABTOP =
 structure ElabTop : ELABTOP =
   struct
 
-    structure PP = PrettyPrintNew
-    structure PU = PPUtilNew
+    structure PP = PrettyPrint
+    structure PU = PPUtil
     structure S = Symbol
     structure SP = SymPath
     structure IP = InvPath

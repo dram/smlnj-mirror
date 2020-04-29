@@ -10,7 +10,7 @@ signature PPLEXP =
 sig
 
   val conToString : PLambda.con -> string
-  val ppLexp : int -> PrettyPrintNew.ppstream -> PLambda.lexp -> unit
+  val ppLexp : int -> PrettyPrint.ppstream -> PLambda.lexp -> unit
   val printMatch : StaticEnv.staticEnv ->
                        (Absyn.pat * PLambda.lexp) list -> unit
   val printFun : PLambda.lexp -> LambdaVar.lvar -> unit
@@ -26,10 +26,10 @@ struct
 local structure A = Absyn
       structure DA = Access
       structure S = Symbol
-      structure PP = PrettyPrintNew
-      structure PU = PPUtilNew
+      structure PP = PrettyPrint
+      structure PU = PPUtil
       structure LT = PLambdaType
-      open PLambda PPUtilNew
+      open PLambda PPUtil
 in
 
 fun bug s = ErrorMsg.impossible ("PPLexp: "^s)

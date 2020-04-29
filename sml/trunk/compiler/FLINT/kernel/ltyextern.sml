@@ -37,8 +37,8 @@ local structure PT = PrimTyc
 
 in
 
-structure PP = PrettyPrintNew
-structure PU = PPUtilNew
+structure PP = PrettyPrint
+structure PU = PPUtil
 val with_pp = PP.with_default_pp
 
 open LtyBasic

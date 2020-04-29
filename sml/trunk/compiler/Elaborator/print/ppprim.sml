@@ -8,9 +8,9 @@ structure PPPrim =
 struct
 
 local
-  structure PP = PrettyPrintNew
-  structure PU = PPUtilNew
-  open PPUtilNew
+  structure PP = PrettyPrint
+  structure PU = PPUtil
+  open PPUtil
 in
 
 fun ppPrim ppstrm prim =
@@ -31,7 +31,7 @@ fun ppStrPrimInfo ppstrm strPrimInfo =
           pr = (fn _ => fn elem =>
                            (openHOVBox 1;
                             pps "(";
-                            ppStrPrimElem ppstrm;
+                            ppStrPrimElem ppstrm elem;
                             pps ")";
                             closeBox())),
           style = INCONSISTENT}

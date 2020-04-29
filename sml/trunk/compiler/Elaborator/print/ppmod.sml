@@ -8,22 +8,22 @@
 
 signature PPMOD =
 sig
-  val ppSignature: PrettyPrintNew.stream
+  val ppSignature: PrettyPrint.stream
         -> Modules.Signature * StaticEnv.staticEnv * int -> unit
-  val ppStructure: PrettyPrintNew.stream
+  val ppStructure: PrettyPrint.stream
         -> Modules.Structure * StaticEnv.staticEnv * int -> unit
-  val ppOpen: PrettyPrintNew.stream
+  val ppOpen: PrettyPrint.stream
         -> SymPath.path * Modules.Structure * StaticEnv.staticEnv * int -> unit
-  val ppStructureName : PrettyPrintNew.stream
+  val ppStructureName : PrettyPrint.stream
 	-> Modules.Structure * StaticEnv.staticEnv -> unit
-  val ppFunctor : PrettyPrintNew.stream
+  val ppFunctor : PrettyPrint.stream
 	-> Modules.Functor * StaticEnv.staticEnv * int -> unit
-  val ppFunsig : PrettyPrintNew.stream
+  val ppFunsig : PrettyPrint.stream
         -> Modules.fctSig * StaticEnv.staticEnv * int -> unit
-  val ppBinding: PrettyPrintNew.stream
+  val ppBinding: PrettyPrint.stream
 	-> Symbol.symbol * Bindings.binding * StaticEnv.staticEnv * int
              -> unit
-  val ppEnv : PrettyPrintNew.stream
+  val ppEnv : PrettyPrint.stream
 	      -> StaticEnv.staticEnv * StaticEnv.staticEnv * int *
 	         Symbol.symbol list option
 	      -> unit
@@ -31,14 +31,14 @@ sig
   (* module internals *)
 
   val ppElements : (StaticEnv.staticEnv * int * Modules.entityEnv option)
-                   -> PrettyPrintNew.stream
+                   -> PrettyPrint.stream
                    -> Modules.elements -> unit
 
-  val ppEntity : PrettyPrintNew.stream
+  val ppEntity : PrettyPrint.stream
                  -> Modules.entity * StaticEnv.staticEnv * int
                  -> unit
 
-  val ppEntityEnv : PrettyPrintNew.stream
+  val ppEntityEnv : PrettyPrint.stream
                     -> Modules.entityEnv * StaticEnv.staticEnv * int
                     -> unit
 
@@ -52,7 +52,6 @@ local structure S = Symbol
       structure SP = SymPath
       structure IP = InvPath
       structure A = Access
-      (* structure II = InlInfo *)
       structure T = Types
       structure TU = TypesUtil
       structure BT = BasicTypes
@@ -64,9 +63,9 @@ local structure S = Symbol
       structure EE = EntityEnv
       structure LU = Lookup
 
-      structure PP = PrettyPrintNew
-      structure PU = PPUtilNew
-      open PrettyPrintNew PPUtilNew
+      structure PP = PrettyPrint
+      structure PU = PPUtil
+      open PrettyPrint PPUtil
 
 in
 
@@ -224,7 +223,7 @@ fun ppConBinding ppstrm =
     end
 
 fun ppStructure ppstrm (str,env,depth) =
-    let val {openHVBox, openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
+    let val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
      in case str
 	  of M.STR { sign, rlzn as { entities, ... }, prim, ... } =>
 	     (if !internals
@@ -240,15 +239,14 @@ fun ppStructure ppstrm (str,env,depth) =
 			break {nsp=1,offset=2};
 			ppStrEntity ppstrm (rlzn,env,depth-1);
 			newline();
-			pps "prim:";
-			break {nsp=1,offset=2};
-			(* GK: This should be cleaned up soon so as to use a
-			   ppStrInfo that is an actual pretty printer conforming
-			   to the pattern of the other pretty printers.
-			PrimopId.ppStrInfo prim; *)
-			PPPrim.ppStrPrimInfo ppstrm prim;
+			(case prim
+			  of nil => ()
+			   | _ =>
+			     (pps "prim:";
+			      break {nsp=1,offset=2};
+			      PPPrim.ppStrPrimInfo ppstrm prim));
 		       closeBox();
-		      closeBox())
+		    closeBox())
 		else case sign
 		       of M.SIG { name = SOME sym, ... } =>
 			  ((if MU.eqSign
@@ -539,7 +537,7 @@ and ppFunsig ppstrm (sign,env,depth) =
 
 and ppStrEntity ppstrm (e,env,depth) =
     let val {stamp,entities,properties,rpath,stub} = e
-	val {openHVBox, openHOVBox,closeBox,pps,ppi,break,newline} =
+	val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} =
             en_pp ppstrm
      in if depth <= 1
 	then pps "<structure entity>"
@@ -554,11 +552,14 @@ and ppStrEntity ppstrm (e,env,depth) =
 		pps (Stamps.toShortString stamp);
 		newline();
 		pps "entities:";
+		if null(EE.toList entities)
+		then ()
+		else (nl_indent ppstrm 2;
+		      ppEntityEnv ppstrm (entities,env,depth-1);
+		      newline());
+(*		pps "lambdaty:";
 		nl_indent ppstrm 2;
-		ppEntityEnv ppstrm (entities,env,depth-1);
-		newline();
-		pps "lambdaty:";
-		nl_indent ppstrm 2;
+*)
 	       closeBox ();
 	      closeBox ())
     end
@@ -581,12 +582,13 @@ and ppFctEntity ppstrm (e, env, depth) =
 		pps "closure:";
 		break{nsp=1,offset=2};
 		ppClosure ppstrm (closure,depth-1);
-		newline();
+(*		newline();
 		pps "lambdaty:";
 		break{nsp=1,offset=2};
 		pps "tycpath:";
 		break{nsp=1,offset=2};
 		pps "--printing of tycpath not implemented yet--";
+*)
 	       closeBox ();
 	      closeBox ())
     end
@@ -770,16 +772,16 @@ and ppEntity ppstrm (entity,env,depth) =
 and ppEntityEnv ppstrm (entEnv,env,depth) =
     if depth <= 1
     then pps ppstrm "<entityEnv>"
-    else (ppvseq ppstrm 2 ""
+    else (ppvseq ppstrm 0 ""
 	      (fn ppstrm => fn (entVar,entity) =>
 		let val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} =
 			 en_pp ppstrm
-		 in openHVBox 2;
+		 in openHVBox 0;
 		     pps (EntPath.entVarToString entVar);
 		     pps ":";
 		     nl_indent ppstrm 2;
 		     ppEntity ppstrm (entity,env,depth-1);
-		     newline();
+		  (*   newline(); *)
 		    closeBox()
 		end)
 	  (EE.toList entEnv))
@@ -954,11 +956,13 @@ and ppBinding ppstrm (name,binding:B.binding,env:SE.staticEnv,depth:int) =
 	      closeBox()
 	  end
        | B.FCTbind fct =>
-	  let val {openHVBox,openHOVBox,closeBox,pps,...} = en_pp ppstrm
+	  let val {openHVBox,openHOVBox,closeBox,pps,break,...} = en_pp ppstrm
 	   in openHVBox 0;
 	       pps "functor ";
 	       ppSym ppstrm name;
-	       pps " : <sig>";  (* DBM -- should print the signature *)
+	       pps " :";
+	       break{nsp=1,offset=2};
+	       ppFunctor ppstrm (fct,env,depth);
 	      closeBox()
 	  end
        | B.FIXbind fixity =>

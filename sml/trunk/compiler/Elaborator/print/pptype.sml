@@ -10,19 +10,19 @@ signature PPTYPE =
 sig
   val typeFormals : int -> string list
   val tyvarPrintname : Types.tyvar -> string
-  val ppTycon : StaticEnv.staticEnv -> PrettyPrintNew.stream
+  val ppTycon : StaticEnv.staticEnv -> PrettyPrint.stream
                 -> Types.tycon -> unit
-  val ppTyfun : StaticEnv.staticEnv -> PrettyPrintNew.stream
+  val ppTyfun : StaticEnv.staticEnv -> PrettyPrint.stream
                 -> Types.tyfun -> unit
-  val ppType  : StaticEnv.staticEnv -> PrettyPrintNew.stream
+  val ppType  : StaticEnv.staticEnv -> PrettyPrint.stream
                 -> Types.ty -> unit
   val ppDconDomain : (Types.dtmember vector * Types.tycon list)
                      -> StaticEnv.staticEnv
-                     -> PrettyPrintNew.stream -> Types.ty -> unit
-  val ppDataconTypes : StaticEnv.staticEnv -> PrettyPrintNew.stream
+                     -> PrettyPrint.stream -> Types.ty -> unit
+  val ppDataconTypes : StaticEnv.staticEnv -> PrettyPrint.stream
                 -> Types.tycon -> unit
   val resetPPType : unit -> unit
-  val ppFormals : PrettyPrintNew.stream -> int -> unit
+  val ppFormals : PrettyPrint.stream -> int -> unit
 
   val debugging : bool ref
   val unalias : bool ref
@@ -38,9 +38,9 @@ local
       structure BT = BasicTypes
       structure T = Types
       structure TU = TypesUtil
-      structure PP = PrettyPrintNew
-      structure PU = PPUtilNew
-      open Types PPUtilNew
+      structure PP = PrettyPrint
+      structure PU = PPUtil
+      open Types PPUtil
 in
 
 val debugging = ref false

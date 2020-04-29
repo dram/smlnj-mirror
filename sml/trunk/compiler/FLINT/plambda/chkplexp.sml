@@ -37,8 +37,8 @@ val fname_ref : string ref = ref "yyy"
 fun bug s = ErrorMsg.impossible ("CheckLty: "^s)
 val say = Control.Print.say
 
-structure PP = PrettyPrintNew
-structure PU = PPUtilNew
+structure PP = PrettyPrint
+structure PU = PPUtil
 val with_pp = PP.with_default_pp
 val pd = ref 20
 

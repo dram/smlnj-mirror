@@ -35,8 +35,8 @@ end (* signature LTYKINDCHK *)
 structure LtyKindChk : LTYKINDCHK =
 struct
 
-structure PP = PrettyPrintNew
-structure PU = PPUtilNew
+structure PP = PrettyPrint
+structure PU = PPUtil
 open Lty
 
 fun bug s = ErrorMsg.impossible ("LtyKindChk:" ^ s)

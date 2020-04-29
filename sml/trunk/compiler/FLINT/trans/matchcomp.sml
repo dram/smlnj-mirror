@@ -48,11 +48,11 @@ local structure DA = Access
       structure EM = ErrorMsg
       structure TP = Types
       structure LN = LiteralToNum
-      structure PP = PrettyPrintNew
+      structure PP = PrettyPrint
 
       open VarCon Types
       open Absyn PLambda
-      open PrettyPrintNew
+      open PrettyPrint
       open MCCommon
 
 in

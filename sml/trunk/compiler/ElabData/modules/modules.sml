@@ -50,13 +50,6 @@ and tycSpecInfo
   = RegTycSpec of {spec : T.tycon, repl: bool, scope: int} (* normal signature *)
   | InfTycSpec of {name: S.symbol, arity: int} (* inferred signature *)
 
-(*
- * and specEnv
- *  = NILsenv
- *  | BINDsenv of spec E.env * specEnv
- *  | INCLsenv of int * spec E.env * specEnv
- *)
-
 and fctSig
   = FSIG of {kind     : S.symbol option,
 	     paramsig : Signature,
@@ -94,7 +87,7 @@ and entity (* elements of a entityEnv *)
   | STRent of strEntity
   | FCTent of fctEntity
   | ERRORent
-       (* no entities for val, con, exn, but this may change *)
+       (* no entities for val, con, exn, but this may change [? DBM] *)
 
 and fctClosure (* realization for functors *)
   = CLOSURE of {param : EP.entVar, body : strExp, env : entityEnv}

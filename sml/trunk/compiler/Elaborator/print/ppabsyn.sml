@@ -6,21 +6,21 @@
 
 signature PPABSYN =
 sig
-  val ppPat  : StaticEnv.staticEnv -> PrettyPrintNew.stream
+  val ppPat  : StaticEnv.staticEnv -> PrettyPrint.stream
                -> Absyn.pat * int -> unit
   val ppExp  : StaticEnv.staticEnv * Source.inputSource option
-               -> PrettyPrintNew.stream -> Absyn.exp * int -> unit
+               -> PrettyPrint.stream -> Absyn.exp * int -> unit
   val ppRule : StaticEnv.staticEnv * Source.inputSource option
-               -> PrettyPrintNew.stream -> Absyn.rule * int -> unit
+               -> PrettyPrint.stream -> Absyn.rule * int -> unit
   val ppVB   : StaticEnv.staticEnv * Source.inputSource option
-               -> PrettyPrintNew.stream -> Absyn.vb * int -> unit
+               -> PrettyPrint.stream -> Absyn.vb * int -> unit
   val ppRVB  : StaticEnv.staticEnv * Source.inputSource option
-               -> PrettyPrintNew.stream -> Absyn.rvb * int -> unit
+               -> PrettyPrint.stream -> Absyn.rvb * int -> unit
   val ppDec  : StaticEnv.staticEnv * Source.inputSource option
-               -> PrettyPrintNew.stream -> Absyn.dec * int -> unit
+               -> PrettyPrint.stream -> Absyn.dec * int -> unit
 
   val ppStrexp : StaticEnv.staticEnv * Source.inputSource option
-                 -> PrettyPrintNew.stream -> Absyn.strexp * int -> unit
+                 -> PrettyPrint.stream -> Absyn.strexp * int -> unit
 
   val lineprint : bool ref
 
@@ -36,8 +36,8 @@ local structure EM = ErrorMsg
       structure M = Modules
       structure B = Bindings
       structure S = Symbol
-      structure PP = PrettyPrintNew
-      structure PU = PPUtilNew
+      structure PP = PrettyPrint
+      structure PU = PPUtil
 
       open Absyn Tuples Fixity VarCon Types PPType PPVal
 in
@@ -700,33 +700,34 @@ and ppDec (context as (env,source_opt)) ppstrm =
 		ppDec'(dec,d); pps ",";
 		prpos(ppstrm,source,s); pps ",";
 		prpos(ppstrm,source,e); pps ")")
-
 	     | NONE => ppDec'(dec,d))
 
      in ppDec'
     end
 
-and ppStrexp (context as (_,source_opt)) ppstrm =
+and ppStrexp (context as (statenv,source_opt)) ppstrm =
   let val pps = PP.string ppstrm
       fun ppStrexp'(_,0) = pps "<strexp>"
 
-	| ppStrexp'(VARstr (M.STR { access, ... }), d) = ppAccess ppstrm access
+	| ppStrexp'(VARstr (M.STR{access, rlzn={rpath,...},...}), d) =
+	  (pps (InvPath.toString rpath); ppAccess ppstrm access)
 
 	| ppStrexp'(APPstr{oper=M.FCT { access = fa, ... },
 			   arg=M.STR { access = sa, ... }, ...}, d) =
 	      (ppAccess ppstrm fa; pps"("; ppAccess ppstrm sa; pps")")
         | ppStrexp'(STRstr bindings, d) =
               (PP.openHVBox ppstrm (PP.Rel 0);
-               pps "struct"; PU.nl_indent ppstrm 2;
-(*               pps "..."; *)
-               (* ppBinding not yet undefined *)
-                 PU.ppSequence ppstrm
-                   {sep=PP.newline,
-                    pr=(fn ppstrm => fn (B.VALbind v) => ppVar ppstrm v | b => pps "#"),
-                          (*ppBinding context ppstrm (b,d-1)),*)
-                    style=PU.CONSISTENT}
-                 bindings;
-               pps "end";
+		pps "struct"; PP.newline ppstrm;
+		PP.openHVBox ppstrm (PP.Rel 2);
+		 PU.ppSequence ppstrm
+		    {sep=PP.newline,
+		     pr=(fn ppstrm => fn binding =>
+			    PPModules.ppBinding ppstrm
+				 (Bindings.bindingSymbol binding,binding,statenv,d-1)),
+		     style=PU.CONSISTENT}
+		 bindings;
+		 PP.newline ppstrm; pps "end";
+		PP.closeBox ppstrm;
                PP.closeBox ppstrm)
 	| ppStrexp'(LETstr(dec,body),d) =
 	      (PP.openHVBox ppstrm (PP.Rel 0);

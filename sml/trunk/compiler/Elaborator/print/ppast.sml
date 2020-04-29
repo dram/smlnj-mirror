@@ -9,10 +9,10 @@ local structure EM = ErrorMsg
       structure B = Bindings
       structure S = Symbol
       structure BT = BasicTypes
-      structure PP = PrettyPrintNew
-      structure PU = PPUtilNew
+      structure PP = PrettyPrint
+      structure PU = PPUtil
 
-      open Ast Tuples Fixity VarCon Types PrettyPrintNew PPUtilNew PPType PPVal
+      open Ast Tuples Fixity VarCon Types PrettyPrint PPUtil PPType PPVal
 in
 
 val internals = ElabControl.internals

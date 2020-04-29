@@ -24,8 +24,8 @@ local structure LT = PLambdaType
       structure FU = FlintUtil
       structure DA = Access
       structure BT = BasicTypes
-      structure PP = PrettyPrintNew
-      structure PU = PPUtilNew
+      structure PP = PrettyPrint
+      structure PU = PPUtil
 in
 
 (* debugging *)
@@ -403,9 +403,9 @@ and lexps2values (venv,d,lexps,cont) =
 	val _ = 1
 
 fun ppTycEnv tenv =
-    PrettyPrintNew.with_default_pp (fn ppstrm => PPLty.ppTycEnv 20 ppstrm tenv)
+    PrettyPrint.with_default_pp (fn ppstrm => PPLty.ppTycEnv 20 ppstrm tenv)
 fun ppTyc tyc =
-    PrettyPrintNew.with_default_pp (fn ppstrm => PPLty.ppTyc 20 ppstrm tyc)
+    PrettyPrint.with_default_pp (fn ppstrm => PPLty.ppTyc 20 ppstrm tyc)
 
 	fun f [] (vals,ltys) = cont (rev vals, rev ltys)
 	  | f (lexp::lexps) (vals,ltys) =

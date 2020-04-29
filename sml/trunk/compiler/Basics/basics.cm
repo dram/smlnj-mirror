@@ -36,8 +36,6 @@ Group
 	structure CompileExn
 	structure PrettyPrint
 
-	structure PrettyPrintNew
-
 	structure Stats
 	structure PrintUtil
 	structure WordStringHashTable
@@ -56,21 +54,20 @@ Group
 	signature TARGET
 	structure Target
 is
-	main/basiccontrol.sml
+	control/basiccontrol.sml
 
-	mlcomp/compileexn.sml
-	mlcomp/fastsymbol.sig
-	mlcomp/fastsymbol.sml
-	mlcomp/fixity.sml
-        mlcomp/int-const.sml
-	mlcomp/persstamps.sig
-	mlcomp/persstamps.sml
-	mlcomp/persmap.sml
-	mlcomp/pidenv.sig
-	mlcomp/pidenv.sml
-        mlcomp/real-const.sml
-	mlcomp/symbol.sig
-	mlcomp/symbol.sml
+	symbol/symbol.sig
+	symbol/symbol.sml
+	symbol/fastsymbol.sig
+	symbol/fastsymbol.sml
+	symbol/symbol-hashtable.sml
+	symbol/fixity.sml
+
+	pid/persstamps.sig
+	pid/persstamps.sml
+	pid/persmap.sml
+	pid/pidenv.sig
+	pid/pidenv.sml
 
 	source/source.sig
 	source/source.sml
@@ -86,39 +83,40 @@ is
 	print/printcontrol.sml
 	print/printutil.sig
 	print/printutil.sml
-	print/pp-init.sml
-	print/pp-init-new.sml
+	print/prettyprint.sml
 
-	miscutil/wordstr-hashtable.sml
-	miscutil/symbol-hashtable.sml
+	util/wordstr-hashtable.sml
 
 	reals/real-lit.sml
 	reals/real-to-bits.sig
 	reals/real-to-bits-fn.sml
 	reals/real64-to-bits.sml
 
-	mlcomp/target.sig
+        compiler/int-const.sml
+        compiler/real-const.sml
+	compiler/compileexn.sml
+	compiler/target.sig
 
 #if defined(TARGET_BIG_ENDIAN)
-        mlcomp/endianess-big.sml
+        compiler/endianess-big.sml
 #elif defined(TARGET_LITTLE_ENDIAN)
-        mlcomp/endianess-little.sml
+        compiler/endianess-little.sml
         (* falling back on host-specific endianness spec *)
 #elif defined(BIG_ENDIAN)
-	mlcomp/endianess-big.sml
+	compiler/endianess-big.sml
 #else
-	mlcomp/endianess-little.sml
+	compiler/endianess-little.sml
 #endif
 
 #if defined(TARGET_SIZE_32)
-        mlcomp/target32.sml
+        compiler/target32.sml
 #elif defined(TARGET_SIZE_64)
-        mlcomp/target64.sml
+        compiler/target64.sml
         (* falling back on host-specific size spec *)
 #elif defined(SIZE_32)
-	mlcomp/target32.sml
+	compiler/target32.sml
 #else
-	mlcomp/target64.sml
+	compiler/target64.sml
 #endif
 
 	$smlnj/basis/basis.cm

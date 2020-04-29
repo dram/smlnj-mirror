@@ -12,8 +12,8 @@ val debugging : bool ref = ref false
 val dp : int ref = ref 20
 fun bug s = ErrorMsg.impossible ("LtyKernel:" ^ s)
 
-structure PP = PrettyPrintNew
-structure PU = PPUtilNew
+structure PP = PrettyPrint
+structure PU = PPUtil
 structure EM = ErrorMsg
 open PPLty
 

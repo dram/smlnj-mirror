@@ -11,10 +11,10 @@ signature SOURCE =
         sourceStream: TextIO.instream, 
         content: string option ref,
         anyErrors: bool ref,
-        errConsumer: PrettyPrintNew.device
+        errConsumer: PrettyPrint.device
       }
 
-    val newSource : (string * TextIO.instream * bool * PrettyPrintNew.device)
+    val newSource : (string * TextIO.instream * bool * PrettyPrint.device)
           -> inputSource
 
     val closeSource: inputSource -> unit

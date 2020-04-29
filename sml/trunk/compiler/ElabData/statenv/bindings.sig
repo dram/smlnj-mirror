@@ -20,4 +20,6 @@ signature BINDINGS =
   (* used for statenv sorting in env/statenv.sml *)
     val binderGt : (Symbol.symbol * binding) * (Symbol.symbol * binding) -> bool
 
+    val bindingSymbol : binding -> Symbol.symbol
+
   end (* signature BINDINGS *)

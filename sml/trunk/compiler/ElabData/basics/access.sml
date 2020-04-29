@@ -49,10 +49,17 @@ structure Access : ACCESS =
    *                    UTILITY FUNCTIONS ON ACCESS                           *
    ****************************************************************************)
 
+  (** shortened print name for pid *)
+    fun prPid pid =
+	let val s = PS.toHex pid
+	    val n = size s
+	 in String.extract (s, n-5, NONE)
+	end
+
   (** printing the access *)
     fun prAcc (LVAR i) = "LVAR(" ^ LV.prLvar i ^ ")"
       | prAcc (PATH(a,i)) = "PATH(" ^ Int.toString i ^ ","^ prAcc a ^ ")"
-      | prAcc (EXTERN pid) = "EXTERN(" ^ PS.toHex pid ^ ")"
+      | prAcc (EXTERN pid) = "EXTERN(." ^ prPid pid ^ ")"
       | prAcc (NO_ACCESS) = "NO_ACCESS"
 
   (** printing the conrep *)

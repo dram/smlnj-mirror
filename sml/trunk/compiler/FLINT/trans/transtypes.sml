@@ -34,7 +34,7 @@ structure TransTypes : TRANSTYPES =
     structure MU = ModuleUtil
     structure SE = StaticEnv
     structure TU = TypesUtil
-    structure PP = PrettyPrintNew
+    structure PP = PrettyPrint
     open Types Modules ElabDebug
 
     fun bug msg = ErrorMsg.impossible ("TransTypes: " ^ msg)

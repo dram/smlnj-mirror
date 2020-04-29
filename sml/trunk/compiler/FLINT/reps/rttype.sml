@@ -42,7 +42,7 @@ fun say (s : string) = Control.Print.say s
 
 fun debugmsg(m) = if !debugging then (say m; say "\n") else ()
 fun ppTyc tc =
-    PrettyPrintNew.with_default_pp (fn ppstrm => PPLty.ppTycEnv 20 ppstrm tc)
+    PrettyPrint.with_default_pp (fn ppstrm => PPLty.ppTycEnv 20 ppstrm tc)
 
 fun mkv _ = LV.mkLvar()
 val ident = fn le => le

@@ -30,7 +30,6 @@ Group
 	structure Typecheck
 
 	signature PPUTIL
-	signature PPUTILNEW
 	signature PPTYPE
 	signature PPABSYN
 	signature PPMOD
@@ -38,7 +37,6 @@ Group
 	signature PPAST
 
 	structure PPUtil
-	structure PPUtilNew
 	structure PPPrim
 	structure PPType
 	structure PPAbsyn
@@ -81,8 +79,6 @@ is
 	print/ppprim.sml
 	print/pputil.sig
 	print/pputil.sml
-	print/pputil-new.sig
-	print/pputil-new.sml
 	print/pptype.sml
 	print/ppval.sml
 	print/ppabsyn.sml

@@ -639,12 +639,12 @@ str	: qid	((MarkStr(VarStr(qid strSymbol),(qidleft,qidright))))
 	        (MarkStr(ConstrainedStr(str,Opaque sign),
 		         (strleft,signright)))
 
-arg_fct : LPAREN strdecs RPAREN arg_fct   ((MarkStr(BaseStr strdecs,
+arg_fct : LPAREN strdecs RPAREN arg_fct  ((MarkStr(BaseStr strdecs,
 						  (strdecsleft,strdecsright)),
 					  false) :: arg_fct)
-	| LPAREN str RPAREN arg_fct	((str, true) :: arg_fct)
-	| LPAREN str RPAREN 		([(str, true)])
-	| LPAREN strdecs RPAREN 		([(MarkStr(BaseStr strdecs,
+	| LPAREN str RPAREN arg_fct	 ((str, true) :: arg_fct)
+	| LPAREN str RPAREN 		 ([(str, true)])
+	| LPAREN strdecs RPAREN 	 ([(MarkStr(BaseStr strdecs,
 						   (strdecsleft,strdecsright)),
 					   false)])
 
@@ -664,24 +664,26 @@ sdecs'	: sdec sdecs'		(makeSEQdec (markdec(sdec,sdecleft,sdecright),
 
 strdec	: STRUCTURE strb	(StrDec strb)
 	| FUNCTOR fctb		(FctDec fctb)
-	| LOCAL strdecs IN strdecs END (LocalDec(markdec(strdecs1,
-				     strdecs1left,strdecs1right),
-  			       markdec(strdecs2,strdecs2left,strdecs2right)))
+	| LOCAL strdecs IN strdecs END
+		                (LocalDec(markdec(strdecs1,
+						  strdecs1left,strdecs1right),
+  					  markdec(strdecs2,strdecs2left,strdecs2right)))
 	| ldec			(markdec(ldec,ldecleft,ldecright))
 
 sdec	: STRUCTURE strb	(StrDec strb)
 	| SIGNATURE sigb	(SigDec sigb)
 	| FUNSIG fsigb		(FsigDec fsigb)
 	| FUNCTOR fctb		(FctDec fctb)
-	| LOCAL sdecs IN sdecs END (LocalDec(markdec(sdecs1,
-						     sdecs1left,sdecs1right),
-				    markdec(sdecs2,sdecs2left,sdecs2right)))
+	| LOCAL sdecs IN sdecs END
+		                (LocalDec(markdec(sdecs1,
+						  sdecs1left,sdecs1right),
+					  markdec(sdecs2,sdecs2left,sdecs2right)))
 	| ldec			(markdec(ldec,ldecleft,ldecright))
 
 strb	: IDA sigconstraint_op EQUALOP str
-	   		([MarkStrb(Strb{name = strSymbol IDA, def = str,
-					constraint=sigconstraint_op},
-				   (IDAleft,strright))])
+	                        ([MarkStrb(Strb{name = strSymbol IDA, def = str,
+						constraint=sigconstraint_op},
+					   (IDAleft,strright))])
 	| strb AND strb		(strb1 @ strb2)
 
 fparam	: IDA COLON sign	((SOME(strSymbol IDA),sign))

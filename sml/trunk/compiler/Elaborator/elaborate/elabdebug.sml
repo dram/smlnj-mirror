@@ -6,10 +6,10 @@ sig
   val debugMsg : bool ref -> string -> unit
   val debugPrint : bool ref 
                    -> (string *
-		       (PrettyPrintNew.stream -> 'a -> unit) *
+		       (PrettyPrint.stream -> 'a -> unit) *
 		       'a)
                    -> unit
-  val ppSymList : PrettyPrintNew.stream -> Symbol.symbol list -> unit
+  val ppSymList : PrettyPrint.stream -> Symbol.symbol list -> unit
   val envSymbols : StaticEnv.staticEnv -> Symbol.symbol list
   val checkEnv : StaticEnv.staticEnv * Symbol.symbol -> string
   val withInternals : (unit -> 'a) -> 'a
@@ -23,8 +23,8 @@ struct
 local
   structure S  = Symbol
   structure SE = StaticEnv
-  structure PP = PrettyPrintNew
-  structure PU = PPUtilNew
+  structure PP = PrettyPrint
+  structure PU = PPUtil
   structure EM = ErrorMsg
 
   open PP

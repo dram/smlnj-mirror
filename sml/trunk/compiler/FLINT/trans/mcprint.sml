@@ -11,7 +11,7 @@ sig
   val debugMsg : bool ref -> string -> unit
   val debugPrint : bool ref 
                    -> (string *
-		       (PrettyPrintNew.stream -> 'a -> unit) *
+		       (PrettyPrint.stream -> 'a -> unit) *
 		       'a)
                    -> unit
 end (* signature PPMC *)
@@ -21,10 +21,10 @@ structure PPMatchComp (* : PPMC *) =
 struct
 	 
 local
-   structure PP = PrettyPrintNew
+   structure PP = PrettyPrint
    open MCCommon
    open PP
-   open PPUtilNew
+   open PPUtil
 in
 
 fun bug s = ErrorMsg.impossible ("PPMC: "^s)

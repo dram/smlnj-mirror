@@ -35,19 +35,18 @@ struct
 
   fun equal(SPATH p1: path, SPATH p2: path) = ListPair.all Symbol.eq (p1, p2)
 
-  val resultId = Symbol.strSymbol "<resultStr>"
-  val returnId = Symbol.strSymbol "<returnStr>"
-
   fun toString(SPATH p: path) =
-     let fun f [s] = [Symbol.name s]
-	   | f (a::r) = 
-                 if (Symbol.eq(a,resultId)) orelse
-                    (Symbol.eq(a,returnId)) 
-                 then f r
-                 else Symbol.name a :: "." :: f r
-	   | f nil = ["<empty spath>"]
-      in concat(f p)
-     end
+      let fun f [s] = [Symbol.name s]
+	    | f (a::r) = Symbol.name a :: "." :: f r
+(* [DBM, 2020.04.25] misplaced hack for curried/noncurried functor absyn expansions
+		  if (Symbol.eq(a,resultId)) orelse
+		     (Symbol.eq(a,returnId)) 
+		  then f r
+		  else Symbol.name a :: "." :: f r
+*)
+	    | f nil = ["<empty spath>"]
+       in concat(f p)
+      end
 
 end (* structure SymPath *)
 

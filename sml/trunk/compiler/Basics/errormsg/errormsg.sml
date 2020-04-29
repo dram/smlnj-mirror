@@ -7,7 +7,7 @@
 structure ErrorMsg : ERRORMSG =
 struct
 
-  structure PP = PrettyPrintNew
+  structure PP = PrettyPrint
   open PP SourceMap
 
  (* error reporting *)

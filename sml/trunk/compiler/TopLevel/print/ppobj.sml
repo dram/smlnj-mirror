@@ -8,7 +8,7 @@ signature PPOBJ =
 sig
   type object
   val ppObj : StaticEnv.staticEnv
-              -> PrettyPrintNew.stream
+              -> PrettyPrint.stream
                  -> object * Types.ty * int
                     -> unit
   val debugging : bool ref
@@ -18,8 +18,8 @@ end
 structure PPObj : PPOBJ =
 struct
 
-structure PP = PrettyPrintNew
-structure PU = PPUtilNew
+structure PP = PrettyPrint
+structure PU = PPUtil
 structure V = Vector
 structure A = Access
 structure T = Types
@@ -28,7 +28,7 @@ structure BT = BasicTypes
 structure F = Fixity
 structure Obj = Unsafe.Object
 
-open PrettyPrintNew PPUtilNew
+open PrettyPrint PPUtil
 
 (* debugging *)
 val say = Control.Print.say

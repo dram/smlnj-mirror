@@ -41,4 +41,46 @@ structure Bindings : BINDINGS =
 	      | LESS => false
 	  end
 
+    (* bindingSymbol : binding -> Symbol.symbol
+     * tries to determine the bound name associated with a binding from the
+     * binding itself. This name is not always available. So here we are
+     * returning "suggestive" pseudo-names, e.g. <ERRORvar>.
+     * It would probably be better to returns a symbol option. *)
+    fun bindingSymbol (VALbind v) =
+	(case v
+	  of V.VALvar{path,...} => SymPath.last path
+	   | V.OVLDvar{name,...} => name
+	   | ERRORvar => S.varSymbol "<ERRORvar")
+      | bindingSymbol (CONbind(T.DATACON{name,...})) = name
+      | bindingSymbol (TYCbind(tyc)) =
+	(case tyc
+	  of T.GENtyc{path,...} => InvPath.last path
+	   | T.DEFtyc{path,...} => InvPath.last path
+	   | T.PATHtyc{path,...} => InvPath.last path
+	   | T.ERRORtyc => S.tycSymbol "<ERRORtyc>"
+	   | _ => S.tycSymbol "anonTyc")
+      | bindingSymbol (SIGbind sg) =
+	(case sg
+	  of M.SIG{name,...} =>
+	     (case name
+	       of SOME s => s
+		| NONE => S.sigSymbol "<anonSig>")
+	   | M.ERRORsig => S.sigSymbol "<ERRORsig>")
+      | bindingSymbol (STRbind str) =
+	(case str
+	  of M.STR{rlzn={rpath,...},...} => InvPath.last rpath
+	   | M.STRSIG _ => S.strSymbol "<STRSIG>"
+	   | M.ERRORstr => S.strSymbol "<ERRORstr>")
+      | bindingSymbol (FSGbind fsig) =
+        (* the name bound is not recoverable from the binding *)
+	(case fsig
+	  of M.FSIG _ => S.fsigSymbol "<FSIG>"
+	   | M.ERRORfsig => S.fsigSymbol "<ERRORfsig>")
+      | bindingSymbol (FCTbind fct) =
+	(case fct
+	  of M.FCT{rlzn={rpath,...},...} => InvPath.last rpath
+	   | M.ERRORfct => S.fctSymbol "<ERRORfct>")
+      | bindingSymbol (FIXbind _) = S.fixSymbol "<FIXITY>"
+        (* the name bound is not recoverable from the binding *)
+				     
   end (* structure Bindings *)

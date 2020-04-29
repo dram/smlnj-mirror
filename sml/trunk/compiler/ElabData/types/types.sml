@@ -24,14 +24,6 @@ datatype eqprop = YES | NO | IND | OBJ | DATA | ABS | UNDEF
 type varSource = S.symbol * SourceMap.region (* the "occurrence" of an overloaded identifier *)
 type litSource = IntInf.int * SourceMap.region (* the "occurrence" of an overloaded literal *)
 
-(*
-and ovldSource
-  = OVAR of S.symbol * SourceMap.region	    (* overloaded variable occurrence *)
-  | OINT of IntInf.int * SourceMap.region   (* overloaded int literal occurrence *)
-  | OWORD of IntInf.int * SourceMap.region  (* overloaded word literal occurrence *)
-   (* in future, may need to add real, char, string literals as sources *)
-*)
-
 datatype openTvKind
   = META                          (* metavariables:
                                      depth = infinity for meta-args

@@ -9,7 +9,8 @@ local
     structure DG = DependencyGraph
     structure GG = GroupGraph
     structure EM = ErrorMsg
-    structure PP = PrettyPrintNew
+
+    structure PP = PrettyPrint
     structure SM = SourceMap
     structure GP = GeneralParams
     structure Pid = PersStamps

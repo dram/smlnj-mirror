@@ -1,3 +1,4 @@
+
 Front End Map
 -------------
 
@@ -418,13 +419,13 @@ Elaborator/
       defs: ELABTOP, ElabTopFn : ELABMOD => ELABTOP
 
 
-3. Miscellaneous utilities
+3. Miscellaneous (library) utilities
 
 Library/   (was MiscUtil)
   Contains various kinds of utility programs
 
-  bignums/
-  supporting real constants (using bignums?)
+  bignums/   -- could be renamed real-literals?
+  supporting real constants (using bignums?, IntInf?)
     ieeereal.sml
       Support for IEEE floating-point constants. calls RealConst functor
       see: MiscUtil/bignums/realconst.sml
@@ -459,6 +460,7 @@ Library/   (was MiscUtil)
   pickle/
   Utility modules that are candidates for eventual
   promotion to general libraries (crc and pickling)
+  [if this is our choice for a general purpose pickling technology!]
     crc.sml
       crc codes
       defs: CRC, CRC :> CRC
@@ -693,8 +695,11 @@ control
   Control_Print    (Basics/print/printcontrol.sml)
 
   Control          (TopLevel/main/control.sml)
+    main consolodated control structure
   Control_CG       (TopLevel/main/control.sml)
+    controls for code generation, substructure of Control
   Control_MC       (TopLevel/main/control.sml)
+    controls for match compiler, substructure of Control
 
 
 ==========================================================================
@@ -709,14 +714,13 @@ is, CoreBasicTypes defines only those types that must be provided in
 any SML implementation.  BasicTypes adds those types that are specific
 to SML/NJ.
 
-
-2. What is the distinction between Basics and Semant?  Should these be
-merged?  How about ElabData?  Some of these files (Semant/types) might
-also fit there.
-
-We have Basics/*, Semant/basics, ElabData/basics, and Elaborator/basics.
+2. We have Basics/*, ElabData/basics, and Elaborator/basics.
 What is the rationale telling us what goes in each of these places?
 
 This complex organization seems to be partially motivated by the goal
 of separating out any features that are SML/NJ-specific from the generic
 SML stuff.
+
+3. MiscUtil was renamed Library, and has been simplified.  It now contains
+only three subdirectories, which can possibly be thought of as somewhat
+general purpose libraries.

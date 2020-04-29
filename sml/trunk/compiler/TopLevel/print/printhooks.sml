@@ -11,7 +11,7 @@ structure PrintHooks :
 struct
 
    fun prAbsyn env d  = 
-	PrettyPrintNew.with_default_pp
+	PrettyPrint.with_default_pp
           (fn ppstrm => PPAbsyn.ppDec(env,NONE) ppstrm (d,200))
 
 end (* structure PrintHooks *)

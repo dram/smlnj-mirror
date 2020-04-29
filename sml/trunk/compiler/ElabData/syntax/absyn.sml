@@ -84,7 +84,7 @@ structure Absyn : ABSYN =
       | MARKdec of dec * region
 
     (*
-     * The "argtycs" field in APPstr is used to record the list of instantiated
+     * [FLINT] The "argtycs" field in APPstr is used to record the list of instantiated
      * hotycs passed to functor during the functor application.
      *)
     and strexp
@@ -95,7 +95,7 @@ structure Absyn : ABSYN =
       | MARKstr of strexp * region
 
     (*
-     * For typing purpose, a functor is viewed as a high-order type constructor
+     * [FLINT] For typing purpose, a functor is viewed as a high-order type constructor
      * (hotyc) that takes a list of hotycs returns another list of hotycs. The
      * "argtycs" field in FCTfct records the list of formal hotyc paramaters.
      *)
@@ -106,10 +106,11 @@ structure Absyn : ABSYN =
       | MARKfct of fctexp * region
 
     (*
-     * Each value binding vb only binds one variable identifier. That is,
-     * pat is always a simple VARpat (with type constraints) or it simply
+     * Each value binding vb only binds one variable identifier [FLINT "normalization"].
+     * That is, pat is always a simple VARpat (with type constraints) or it simply
      * does not contain any variable patterns; boundtvs gives the list of
-     * type variables that are being generalized at this binding.
+     * type variables that are being generalized at this binding, as determined
+     * (and recorded via updating the ref?) during type checking.
      *)
     and vb = VB of {pat: pat, exp: exp, boundtvs: Ty.tyvar list,
 		    tyvars: Ty.tyvar list ref}

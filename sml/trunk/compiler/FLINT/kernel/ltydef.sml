@@ -25,8 +25,8 @@ local structure PT = PrimTyc
       val lt_eqv = LK.lt_eqv
 
       (* debugging *)
-      structure PP = PrettyPrintNew
-      structure PU = PPUtilNew
+      structure PP = PrettyPrint
+      structure PU = PPUtil
       structure EM = ErrorMsg
       open PPLty
       val with_pp = PP.with_default_pp
@@ -299,7 +299,7 @@ val ltd_tyc    : lty -> tyc = fn lt =>
 		       | LT.LT_ENV _ => bug "unexpected lty in ltd_tyc (i.e. LT_ENV)"
 		       | LT.LT_STR _ => bug "unexpected LT_STR"
 		       | LT.LT_FCT _ => bug "unexpected LT_FCT"
-		       | LT.LT_POLY _ => (PrettyPrintNew.with_default_pp(fn s => PPLty.ppLty 10 s lt);
+		       | LT.LT_POLY _ => (PrettyPrint.with_default_pp(fn s => PPLty.ppLty 10 s lt);
 					  raise DeconExn;
 					  bug "unexpected LT_POLY")
 		       | LT.LT_CONT _ => bug "unexpected LT_CONT"

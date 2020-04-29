@@ -34,7 +34,7 @@ structure PEqual : PEQUAL =
     structure SE = StaticEnv
     structure PO = Primop
     structure PU = PrimopUtil
-    structure PP = PrettyPrintNew
+    structure PP = PrettyPrint
     open Types PLambda
     (* mentions Target *)
 
