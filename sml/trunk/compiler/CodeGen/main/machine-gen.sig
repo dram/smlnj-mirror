@@ -3,7 +3,8 @@
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Generation of machine code from a list of CPS functions
+ * The interface the the machine-code generator.  See machine-gen.sml
+ * for the implementation.
  *)
 
 signature MACHINE_GEN =
@@ -28,8 +29,17 @@ signature MACHINE_GEN =
 				     * boxen. *)
 
     val codegen : {
+	  (* the functions to generate code for; the first function is the main
+	   * entrypoint for the compilation unit.
+	   *)
 	    funcs: CPS.function list,
+	  (* mapping from functions to a pair `(maxAlloc, nInstrs)`, where `maxAlloc`
+	   * is the maximum number of words allocated on any execution path in the
+	   * function and `nInstrs` is a count of the number of CPS instructions
+	   * on that path.
+	   *)
 	    limits: CPS.lvar -> int * int,
+	  (* the source filename *)
 	    source: string
 	  } -> (unit -> int)
 
