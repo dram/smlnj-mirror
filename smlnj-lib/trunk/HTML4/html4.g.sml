@@ -568,34 +568,34 @@ fun optListToList NONE = []
 
 fun document_PROD_1_SUBRULE_1_PROD_1_ACT (DOCTYPE, cdata_opt, DOCTYPE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.DOCTYPE DOCTYPE)) :: cdata_opt)
-fun document_PROD_1_SUBRULE_2_PROD_1_ACT (SR1, STARTHTML, cdata_opt, SR1_SPAN : (Lex.pos * Lex.pos), STARTHTML_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun document_PROD_1_SUBRULE_2_PROD_1_ACT (SR1, cdata_opt, STARTHTML, SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTHTML_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.STARTHTML STARTHTML)) :: cdata_opt)
-fun document_PROD_1_SUBRULE_4_PROD_1_ACT (SR1, SR2, SR3, head, ENDHTML, cdata_opt, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), head_SPAN : (Lex.pos * Lex.pos), ENDHTML_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun document_PROD_1_SUBRULE_4_PROD_1_ACT (head, SR1, SR2, SR3, cdata_opt, ENDHTML, head_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDHTML_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDHTML)) :: cdata_opt)
-fun document_PROD_1_ACT (SR1, SR2, SR3, SR4, head, cdata_opt, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), SR4_SPAN : (Lex.pos * Lex.pos), head_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun document_PROD_1_ACT (head, SR1, SR2, SR3, SR4, cdata_opt, head_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), SR4_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "DOCUMENT", 
                    cdata_opt @ (optListToList SR1) @ (optListToList SR2) @
                    (head :: SR3 :: (optListToList SR4))))
-fun head_PROD_1_SUBRULE_1_PROD_1_ACT (STARTHEAD, cdata_opt, STARTHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun head_PROD_1_SUBRULE_1_PROD_1_ACT (cdata_opt, STARTHEAD, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTHEAD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.STARTHEAD STARTHEAD)) :: cdata_opt)
 fun head_PROD_1_SUBRULE_2_PROD_1_ACT (SR1, cdata_opt, head_content, SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), head_content_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (head_content :: cdata_opt)
-fun head_PROD_1_SUBRULE_3_PROD_1_ACT (SR1, SR2, ENDHEAD, cdata_opt, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), ENDHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun head_PROD_1_SUBRULE_3_PROD_1_ACT (SR1, SR2, cdata_opt, ENDHEAD, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDHEAD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDHEAD)) :: cdata_opt)
 fun head_PROD_1_ACT (SR1, SR2, SR3, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "HEAD",
                (optListToList SR1) @ (foldr op@ [] SR2) @ (optListToList SR3)))
-fun title_PROD_1_ACT (ENDTITLE, cdata_opt, STARTTITLE, ENDTITLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTITLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun title_PROD_1_ACT (STARTTITLE, cdata_opt, ENDTITLE, STARTTITLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDTITLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "TITLE",
                 (Lf (Tok.STARTTITLE STARTTITLE)) ::
                 (cdata_opt @ [Lf (Tok.ENDTITLE)])))
 fun base_PROD_1_ACT (STARTBASE, STARTBASE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "BASE", [Lf (Tok.STARTBASE STARTBASE)]))
-fun script_PROD_1_ACT (ENDSCRIPT, cdata_opt, STARTSCRIPT, ENDSCRIPT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSCRIPT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun script_PROD_1_ACT (cdata_opt, STARTSCRIPT, ENDSCRIPT, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSCRIPT_SPAN : (Lex.pos * Lex.pos), ENDSCRIPT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "SCRIPT",
                  (Lf (Tok.STARTSCRIPT STARTSCRIPT)) ::
                  (cdata_opt @ [Lf (Tok.ENDSCRIPT)])))
-fun style_PROD_1_ACT (ENDSTYLE, cdata_opt, STARTSTYLE, ENDSTYLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSTYLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun style_PROD_1_ACT (cdata_opt, STARTSTYLE, ENDSTYLE, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSTYLE_SPAN : (Lex.pos * Lex.pos), ENDSTYLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "STYLE",
                  (Lf (Tok.STARTSTYLE STARTSTYLE)) ::
                  (cdata_opt @ [Lf (Tok.ENDSTYLE)])))
@@ -603,7 +603,7 @@ fun meta_PROD_1_ACT (STARTMETA, STARTMETA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN 
   (Nd (Atom.atom "META", [Lf (Tok.STARTMETA STARTMETA)]))
 fun link_PROD_1_ACT (STARTLINK, STARTLINK_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "LINK", [Lf (Tok.STARTLINK STARTLINK)]))
-fun object_PROD_1_ACT (SR, ENDOBJECT, STARTOBJECT, SR_SPAN : (Lex.pos * Lex.pos), ENDOBJECT_SPAN : (Lex.pos * Lex.pos), STARTOBJECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun object_PROD_1_ACT (SR, STARTOBJECT, ENDOBJECT, SR_SPAN : (Lex.pos * Lex.pos), STARTOBJECT_SPAN : (Lex.pos * Lex.pos), ENDOBJECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "OBJECT",
                  (Lf (Tok.STARTOBJECT STARTOBJECT)) ::
                  (SR @ [Lf (Tok.ENDOBJECT)])))
@@ -614,22 +614,22 @@ fun body_PROD_1_ACT (STARTBODY, body_rest, STARTBODY_SPAN : (Lex.pos * Lex.pos),
                (Lf (Tok.STARTBODY STARTBODY)) :: body_rest))
 fun body_PROD_2_ACT (SR, body_rest, SR_SPAN : (Lex.pos * Lex.pos), body_rest_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "BODY", SR :: body_rest))
-fun body_rest_PROD_1_SUBRULE_2_PROD_1_ACT (SR1, ENDBODY, cdata_opt, SR1_SPAN : (Lex.pos * Lex.pos), ENDBODY_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun body_rest_PROD_1_SUBRULE_2_PROD_1_ACT (ENDBODY, SR1, cdata_opt, ENDBODY_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDBODY)) :: cdata_opt)
 fun body_rest_PROD_1_ACT (SR1, SR2, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (SR1 @ (optListToList SR2))
-fun a_PROD_1_ACT (ENDA, STARTA, inline, ENDA_SPAN : (Lex.pos * Lex.pos), STARTA_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun a_PROD_1_ACT (inline, STARTA, ENDA, inline_SPAN : (Lex.pos * Lex.pos), STARTA_SPAN : (Lex.pos * Lex.pos), ENDA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "A",
                  (Lf (Tok.STARTA STARTA)) :: (inline @ [Lf (Tok.ENDA)])))
 fun abbr_PROD_1_ACT (inline, ENDABBR, STARTABBR, inline_SPAN : (Lex.pos * Lex.pos), ENDABBR_SPAN : (Lex.pos * Lex.pos), STARTABBR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "ABBR",
                  (Lf (Tok.STARTABBR STARTABBR)) ::
                  (inline @ [Lf (Tok.ENDABBR)])))
-fun acronym_PROD_1_ACT (inline, ENDACRONYM, STARTACRONYM, inline_SPAN : (Lex.pos * Lex.pos), ENDACRONYM_SPAN : (Lex.pos * Lex.pos), STARTACRONYM_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun acronym_PROD_1_ACT (inline, STARTACRONYM, ENDACRONYM, inline_SPAN : (Lex.pos * Lex.pos), STARTACRONYM_SPAN : (Lex.pos * Lex.pos), ENDACRONYM_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "ACRONYM",
                  (Lf (Tok.STARTACRONYM STARTACRONYM)) ::
                  (inline @ [Lf (Tok.ENDACRONYM)])))
-fun address_PROD_1_ACT (inline, ENDADDRESS, STARTADDRESS, inline_SPAN : (Lex.pos * Lex.pos), ENDADDRESS_SPAN : (Lex.pos * Lex.pos), STARTADDRESS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun address_PROD_1_ACT (inline, STARTADDRESS, ENDADDRESS, inline_SPAN : (Lex.pos * Lex.pos), STARTADDRESS_SPAN : (Lex.pos * Lex.pos), ENDADDRESS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "ADDRESS",
                  (Lf (Tok.STARTADDRESS STARTADDRESS)) ::
                  (inline @ [Lf (Tok.ENDADDRESS)])))
@@ -639,34 +639,34 @@ fun applet_PROD_1_ACT (SR, ENDAPPLET, STARTAPPLET, SR_SPAN : (Lex.pos * Lex.pos)
                  (SR @ [Lf (Tok.ENDAPPLET)])))
 fun area_PROD_1_ACT (STARTAREA, STARTAREA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "AREA", [Lf (Tok.STARTAREA STARTAREA)]))
-fun b_PROD_1_ACT (ENDB, STARTB, inline, ENDB_SPAN : (Lex.pos * Lex.pos), STARTB_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun b_PROD_1_ACT (inline, STARTB, ENDB, inline_SPAN : (Lex.pos * Lex.pos), STARTB_SPAN : (Lex.pos * Lex.pos), ENDB_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "B",
                  (Lf (Tok.STARTB STARTB)) :: (inline @ [Lf (Tok.ENDB)])))
 fun basefont_PROD_1_ACT (STARTBASEFONT, STARTBASEFONT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "BASEFONT", [Lf (Tok.STARTBASEFONT STARTBASEFONT)]))
-fun bdo_PROD_1_ACT (ENDBDO, inline, STARTBDO, ENDBDO_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTBDO_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun bdo_PROD_1_ACT (inline, ENDBDO, STARTBDO, inline_SPAN : (Lex.pos * Lex.pos), ENDBDO_SPAN : (Lex.pos * Lex.pos), STARTBDO_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "BDO",
                  (Lf (Tok.STARTBDO STARTBDO)) ::
                  (inline @ [Lf (Tok.ENDBDO)])))
-fun big_PROD_1_ACT (ENDBIG, inline, STARTBIG, ENDBIG_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTBIG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun big_PROD_1_ACT (inline, ENDBIG, STARTBIG, inline_SPAN : (Lex.pos * Lex.pos), ENDBIG_SPAN : (Lex.pos * Lex.pos), STARTBIG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "BIG",
                  (Lf (Tok.STARTBIG STARTBIG)) ::
                  (inline @ [Lf (Tok.ENDBIG)])))
-fun blockquote_PROD_1_ACT (SR, ENDBLOCKQUOTE, STARTBLOCKQUOTE, SR_SPAN : (Lex.pos * Lex.pos), ENDBLOCKQUOTE_SPAN : (Lex.pos * Lex.pos), STARTBLOCKQUOTE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun blockquote_PROD_1_ACT (SR, STARTBLOCKQUOTE, ENDBLOCKQUOTE, SR_SPAN : (Lex.pos * Lex.pos), STARTBLOCKQUOTE_SPAN : (Lex.pos * Lex.pos), ENDBLOCKQUOTE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "BLOCKQUOTE",
                  (Lf (Tok.STARTBLOCKQUOTE STARTBLOCKQUOTE)) ::
                  (SR @ [Lf (Tok.ENDBLOCKQUOTE)])))
 fun br_PROD_1_ACT (STARTBR, STARTBR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "BR", [Lf (Tok.STARTBR STARTBR)]))
-fun button_PROD_1_ACT (flow, ENDBUTTON, STARTBUTTON, flow_SPAN : (Lex.pos * Lex.pos), ENDBUTTON_SPAN : (Lex.pos * Lex.pos), STARTBUTTON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun button_PROD_1_ACT (STARTBUTTON, flow, ENDBUTTON, STARTBUTTON_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), ENDBUTTON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "BUTTON",
                  (Lf (Tok.STARTBUTTON STARTBUTTON)) ::
                  (flow @ [Lf (Tok.ENDBUTTON)])))
-fun caption_PROD_1_ACT (inline, ENDCAPTION, STARTCAPTION, inline_SPAN : (Lex.pos * Lex.pos), ENDCAPTION_SPAN : (Lex.pos * Lex.pos), STARTCAPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun caption_PROD_1_ACT (inline, STARTCAPTION, ENDCAPTION, inline_SPAN : (Lex.pos * Lex.pos), STARTCAPTION_SPAN : (Lex.pos * Lex.pos), ENDCAPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "CAPTION",
                   (Lf (Tok.STARTCAPTION STARTCAPTION)) ::
                   (inline @ [Lf (Tok.ENDCAPTION)])))
-fun center_PROD_1_ACT (flow, ENDCENTER, STARTCENTER, flow_SPAN : (Lex.pos * Lex.pos), ENDCENTER_SPAN : (Lex.pos * Lex.pos), STARTCENTER_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun center_PROD_1_ACT (ENDCENTER, flow, STARTCENTER, ENDCENTER_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTCENTER_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "CENTER",
                  (Lf (Tok.STARTCENTER STARTCENTER)) ::
                  (flow @ [Lf (Tok.ENDCENTER)])))
@@ -680,28 +680,28 @@ fun code_PROD_1_ACT (inline, ENDCODE, STARTCODE, inline_SPAN : (Lex.pos * Lex.po
                (inline @ [Lf (Tok.ENDCODE)])))
 fun col_PROD_1_ACT (STARTCOL, STARTCOL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "COL", [Lf (Tok.STARTCOL STARTCOL)]))
-fun colgroup_PROD_1_SUBRULE_1_PROD_1_ACT (col, cdata_opt, STARTCOLGROUP, col_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun colgroup_PROD_1_SUBRULE_1_PROD_1_ACT (STARTCOLGROUP, cdata_opt, col, STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), col_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (col :: cdata_opt)
-fun colgroup_PROD_1_SUBRULE_2_PROD_1_ACT (SR1, cdata_opt, ENDCOLGROUP, STARTCOLGROUP, SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDCOLGROUP_SPAN : (Lex.pos * Lex.pos), STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun colgroup_PROD_1_SUBRULE_2_PROD_1_ACT (STARTCOLGROUP, SR1, cdata_opt, ENDCOLGROUP, STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDCOLGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Lf (Tok.ENDCOLGROUP))
-fun colgroup_PROD_1_ACT (SR1, SR2, cdata_opt, STARTCOLGROUP, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun colgroup_PROD_1_ACT (STARTCOLGROUP, SR1, SR2, cdata_opt, STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "COLGROUP",
                    (Lf (Tok.STARTCOLGROUP STARTCOLGROUP)) ::
                    (cdata_opt @ (foldr op@ [] SR1) @ (optToList SR2))))
-fun dd_PROD_1_SUBRULE_2_PROD_1_ACT (flow, ENDDD, STARTDD, flow_SPAN : (Lex.pos * Lex.pos), ENDDD_SPAN : (Lex.pos * Lex.pos), STARTDD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun dd_PROD_1_SUBRULE_2_PROD_1_ACT (ENDDD, STARTDD, flow, ENDDD_SPAN : (Lex.pos * Lex.pos), STARTDD_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Lf (Tok.ENDDD))
-fun dd_PROD_1_ACT (SR, flow, STARTDD, SR_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTDD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun dd_PROD_1_ACT (SR, STARTDD, flow, SR_SPAN : (Lex.pos * Lex.pos), STARTDD_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "DD",
              (Lf (Tok.STARTDD STARTDD)) :: (flow @ (optToList SR))))
 fun del_PROD_1_ACT (flow, ENDDEL, STARTDEL, flow_SPAN : (Lex.pos * Lex.pos), ENDDEL_SPAN : (Lex.pos * Lex.pos), STARTDEL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "DEL",
               (Lf (Tok.STARTDEL STARTDEL)) ::
               (flow @ [Lf (Tok.ENDDEL)])))
-fun dfn_PROD_1_ACT (ENDDFN, inline, STARTDFN, ENDDFN_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTDFN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun dfn_PROD_1_ACT (inline, ENDDFN, STARTDFN, inline_SPAN : (Lex.pos * Lex.pos), ENDDFN_SPAN : (Lex.pos * Lex.pos), STARTDFN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "DFN",
               (Lf (Tok.STARTDFN STARTDFN)) ::
               (inline @ [Lf (Tok.ENDDFN)])))
-fun dir_PROD_1_ACT (li, ENDDIR, STARTDIR, cdata_opt, li_SPAN : (Lex.pos * Lex.pos), ENDDIR_SPAN : (Lex.pos * Lex.pos), STARTDIR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun dir_PROD_1_ACT (li, cdata_opt, ENDDIR, STARTDIR, li_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDDIR_SPAN : (Lex.pos * Lex.pos), STARTDIR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "DIR",
               (Lf (Tok.STARTDIR STARTDIR)) ::
               (cdata_opt @ li @ [Lf (Tok.ENDDIR)])))
@@ -709,7 +709,7 @@ fun div_PROD_1_ACT (flow, ENDDIV, STARTDIV, flow_SPAN : (Lex.pos * Lex.pos), END
   (Nd (Atom.atom "DIV",
               (Lf (Tok.STARTDIV STARTDIV)) ::
               (flow @ [Lf (Tok.ENDDIV)])))
-fun dl_PROD_1_ACT (SR, ENDDL, STARTDL, cdata_opt, SR_SPAN : (Lex.pos * Lex.pos), ENDDL_SPAN : (Lex.pos * Lex.pos), STARTDL_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun dl_PROD_1_ACT (ENDDL, SR, cdata_opt, STARTDL, ENDDL_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTDL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "DL",
              (Lf (Tok.STARTDL STARTDL)) ::
              (cdata_opt @ SR @ [Lf (Tok.ENDDL)])))
@@ -721,7 +721,7 @@ fun dt_PROD_1_ACT (SR, inline, STARTDT, SR_SPAN : (Lex.pos * Lex.pos), inline_SP
 fun em_PROD_1_ACT (ENDEM, inline, STARTEM, ENDEM_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTEM_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "EM",
              (Lf (Tok.STARTEM STARTEM)) :: (inline @ [Lf (Tok.ENDEM)])))
-fun fieldset_PROD_1_ACT (flow, legend, cdata_opt, ENDFIELDSET, STARTFIELDSET, flow_SPAN : (Lex.pos * Lex.pos), legend_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDFIELDSET_SPAN : (Lex.pos * Lex.pos), STARTFIELDSET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun fieldset_PROD_1_ACT (cdata_opt, legend, flow, ENDFIELDSET, STARTFIELDSET, cdata_opt_SPAN : (Lex.pos * Lex.pos), legend_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), ENDFIELDSET_SPAN : (Lex.pos * Lex.pos), STARTFIELDSET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "FIELDSET",
                    (Lf (Tok.STARTFIELDSET STARTFIELDSET)) ::
                    (cdata_opt @ [legend] @ flow @
@@ -736,9 +736,9 @@ fun form_PROD_1_ACT (SR, ENDFORM, STARTFORM, SR_SPAN : (Lex.pos * Lex.pos), ENDF
                (SR @ [Lf (Tok.ENDFORM)])))
 fun frame_PROD_1_ACT (STARTFRAME, STARTFRAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "FRAME", [Lf (Tok.STARTFRAME STARTFRAME)]))
-fun frameset_PROD_1_SUBRULE_2_PROD_1_ACT (SR1, noframes, cdata_opt, STARTFRAMESET, SR1_SPAN : (Lex.pos * Lex.pos), noframes_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTFRAMESET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun frameset_PROD_1_SUBRULE_2_PROD_1_ACT (SR1, cdata_opt, STARTFRAMESET, noframes, SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTFRAMESET_SPAN : (Lex.pos * Lex.pos), noframes_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (noframes::cdata_opt)
-fun frameset_PROD_1_ACT (SR1, SR2, ENDFRAMESET, STARTFRAMESET, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), ENDFRAMESET_SPAN : (Lex.pos * Lex.pos), STARTFRAMESET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun frameset_PROD_1_ACT (SR1, SR2, STARTFRAMESET, ENDFRAMESET, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), STARTFRAMESET_SPAN : (Lex.pos * Lex.pos), ENDFRAMESET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "FRAMESET",
                    (Lf (Tok.STARTFRAMESET STARTFRAMESET)) ::
                    (SR1 @ (optListToList SR2) @ [Lf (Tok.ENDFRAMESET)])))
@@ -762,11 +762,11 @@ fun h6_PROD_1_ACT (ENDH6, inline, STARTH6, ENDH6_SPAN : (Lex.pos * Lex.pos), inl
              (Lf (Tok.STARTH6 STARTH6)) :: (inline @ [Lf (Tok.ENDH6)])))
 fun hr_PROD_1_ACT (STARTHR, STARTHR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "HR", [Lf (Tok.STARTHR STARTHR)]))
-fun i_PROD_1_ACT (ENDI, STARTI, inline, ENDI_SPAN : (Lex.pos * Lex.pos), STARTI_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun i_PROD_1_ACT (inline, STARTI, ENDI, inline_SPAN : (Lex.pos * Lex.pos), STARTI_SPAN : (Lex.pos * Lex.pos), ENDI_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "I",
                  (Lf (Tok.STARTI STARTI)) ::
                  (inline @ [Lf (Tok.ENDI)])))
-fun iframe_PROD_1_ACT (flow, ENDIFRAME, STARTIFRAME, flow_SPAN : (Lex.pos * Lex.pos), ENDIFRAME_SPAN : (Lex.pos * Lex.pos), STARTIFRAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun iframe_PROD_1_ACT (ENDIFRAME, STARTIFRAME, flow, ENDIFRAME_SPAN : (Lex.pos * Lex.pos), STARTIFRAME_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "IFRAME",
                  (Lf (Tok.STARTIFRAME STARTIFRAME)) ::
                  (flow @ [Lf (Tok.ENDIFRAME)])))
@@ -774,13 +774,13 @@ fun img_PROD_1_ACT (STARTIMG, STARTIMG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (
   (Nd (Atom.atom "IMG", [Lf (Tok.STARTIMG STARTIMG)]))
 fun input_PROD_1_ACT (STARTINPUT, STARTINPUT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "INPUT", [Lf (Tok.STARTINPUT STARTINPUT)]))
-fun ins_PROD_1_ACT (flow, ENDINS, STARTINS, flow_SPAN : (Lex.pos * Lex.pos), ENDINS_SPAN : (Lex.pos * Lex.pos), STARTINS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun ins_PROD_1_ACT (STARTINS, flow, ENDINS, STARTINS_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), ENDINS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "INS",
                  (Lf (Tok.STARTINS STARTINS)) ::
                  (flow @ [Lf (Tok.ENDINS)])))
 fun isindex_PROD_1_ACT (STARTISINDEX, STARTISINDEX_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "ISINDEX", [Lf (Tok.STARTISINDEX STARTISINDEX)]))
-fun kbd_PROD_1_ACT (ENDKBD, inline, STARTKBD, ENDKBD_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTKBD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun kbd_PROD_1_ACT (inline, STARTKBD, ENDKBD, inline_SPAN : (Lex.pos * Lex.pos), STARTKBD_SPAN : (Lex.pos * Lex.pos), ENDKBD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "KBD",
                  (Lf (Tok.STARTKBD STARTKBD)) ::
                  (inline @ [Lf (Tok.ENDKBD)])))
@@ -792,19 +792,19 @@ fun legend_PROD_1_ACT (inline, ENDLEGEND, STARTLEGEND, inline_SPAN : (Lex.pos * 
   (Nd (Atom.atom "LEGEND",
                  (Lf (Tok.STARTLEGEND STARTLEGEND)) ::
                  (inline @ [Lf (Tok.ENDLEGEND)])))
-fun li_PROD_1_SUBRULE_2_PROD_1_ACT (flow, ENDLI, STARTLI, flow_SPAN : (Lex.pos * Lex.pos), ENDLI_SPAN : (Lex.pos * Lex.pos), STARTLI_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun li_PROD_1_SUBRULE_2_PROD_1_ACT (ENDLI, STARTLI, flow, ENDLI_SPAN : (Lex.pos * Lex.pos), STARTLI_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Lf (Tok.ENDLI))
-fun li_PROD_1_ACT (SR, flow, STARTLI, SR_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTLI_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun li_PROD_1_ACT (SR, STARTLI, flow, SR_SPAN : (Lex.pos * Lex.pos), STARTLI_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "LI",
              (Lf (Tok.STARTLI STARTLI)) :: (flow @ (optToList SR))))
-fun map_PROD_1_ACT (SR, ENDMAP, STARTMAP, SR_SPAN : (Lex.pos * Lex.pos), ENDMAP_SPAN : (Lex.pos * Lex.pos), STARTMAP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun map_PROD_1_ACT (SR, STARTMAP, ENDMAP, SR_SPAN : (Lex.pos * Lex.pos), STARTMAP_SPAN : (Lex.pos * Lex.pos), ENDMAP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "MAP",
               (Lf (Tok.STARTMAP STARTMAP)) :: (SR @ [Lf (Tok.ENDMAP)])))
-fun menu_PROD_1_ACT (li, ENDMENU, STARTMENU, cdata_opt, li_SPAN : (Lex.pos * Lex.pos), ENDMENU_SPAN : (Lex.pos * Lex.pos), STARTMENU_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun menu_PROD_1_ACT (li, cdata_opt, STARTMENU, ENDMENU, li_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTMENU_SPAN : (Lex.pos * Lex.pos), ENDMENU_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "MENU",
                (Lf (Tok.STARTMENU STARTMENU)) ::
                (cdata_opt @ li @ [Lf (Tok.ENDMENU)])))
-fun noframes_PROD_1_ACT (body, ENDNOFRAMES, STARTNOFRAMES, body_SPAN : (Lex.pos * Lex.pos), ENDNOFRAMES_SPAN : (Lex.pos * Lex.pos), STARTNOFRAMES_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun noframes_PROD_1_ACT (STARTNOFRAMES, ENDNOFRAMES, body, STARTNOFRAMES_SPAN : (Lex.pos * Lex.pos), ENDNOFRAMES_SPAN : (Lex.pos * Lex.pos), body_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "NOFRAMES",
                    [Lf (Tok.STARTNOFRAMES STARTNOFRAMES), body,
                     Lf (Tok.ENDNOFRAMES)]))
@@ -812,40 +812,40 @@ fun noscript_PROD_1_ACT (SR, ENDNOSCRIPT, STARTNOSCRIPT, SR_SPAN : (Lex.pos * Le
   (Nd (Atom.atom "NOSCRIPT",
                    (Lf (Tok.STARTNOSCRIPT STARTNOSCRIPT)) ::
                    (SR @ [Lf (Tok.ENDNOSCRIPT)])))
-fun ol_PROD_1_ACT (li, ENDOL, STARTOL, cdata_opt, li_SPAN : (Lex.pos * Lex.pos), ENDOL_SPAN : (Lex.pos * Lex.pos), STARTOL_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun ol_PROD_1_ACT (ENDOL, li, cdata_opt, STARTOL, ENDOL_SPAN : (Lex.pos * Lex.pos), li_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTOL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "OL",
              (Lf (Tok.STARTOL STARTOL)) ::
              (cdata_opt @ li @ [Lf (Tok.ENDOL)])))
-fun optgroup_PROD_1_ACT (option, cdata_opt1, cdata_opt2, ENDOPTGROUP, STARTOPTGROUP, option_SPAN : (Lex.pos * Lex.pos), cdata_opt1_SPAN : (Lex.pos * Lex.pos), cdata_opt2_SPAN : (Lex.pos * Lex.pos), ENDOPTGROUP_SPAN : (Lex.pos * Lex.pos), STARTOPTGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun optgroup_PROD_1_ACT (option, STARTOPTGROUP, ENDOPTGROUP, cdata_opt1, cdata_opt2, option_SPAN : (Lex.pos * Lex.pos), STARTOPTGROUP_SPAN : (Lex.pos * Lex.pos), ENDOPTGROUP_SPAN : (Lex.pos * Lex.pos), cdata_opt1_SPAN : (Lex.pos * Lex.pos), cdata_opt2_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "OPTGROUP",
                    (Lf (Tok.STARTOPTGROUP STARTOPTGROUP)) ::
                    (cdata_opt1 @ option @ ((Lf (Tok.ENDOPTGROUP))
                                            :: cdata_opt2))))
-fun option_PROD_1_SUBRULE_1_PROD_1_ACT (ENDOPTION, cdata_opt, STARTOPTION, ENDOPTION_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTOPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun option_PROD_1_SUBRULE_1_PROD_1_ACT (STARTOPTION, cdata_opt, ENDOPTION, STARTOPTION_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDOPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDOPTION)) ::
                                   cdata_opt)
-fun option_PROD_1_ACT (SR, cdata_opt, STARTOPTION, SR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTOPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun option_PROD_1_ACT (SR, STARTOPTION, cdata_opt, SR_SPAN : (Lex.pos * Lex.pos), STARTOPTION_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "OPTION",
                  (Lf (Tok.STARTOPTION STARTOPTION)) ::
                  (cdata_opt @ (optListToList SR))))
-fun p_PROD_1_ACT (ENDP, STARTP, inline, ENDP_SPAN : (Lex.pos * Lex.pos), STARTP_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun p_PROD_1_ACT (inline, STARTP, ENDP, inline_SPAN : (Lex.pos * Lex.pos), STARTP_SPAN : (Lex.pos * Lex.pos), ENDP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "P",
             (Lf (Tok.STARTP STARTP)) :: (inline @ [Lf (Tok.ENDP)])))
-fun pre_PROD_1_ACT (ENDPRE, inline, STARTPRE, ENDPRE_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTPRE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun pre_PROD_1_ACT (inline, ENDPRE, STARTPRE, inline_SPAN : (Lex.pos * Lex.pos), ENDPRE_SPAN : (Lex.pos * Lex.pos), STARTPRE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "PRE",
               (Lf (Tok.STARTPRE STARTPRE)) ::
               (inline @ [Lf (Tok.ENDPRE)])))
-fun q_PROD_1_ACT (ENDQ, STARTQ, inline, ENDQ_SPAN : (Lex.pos * Lex.pos), STARTQ_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun q_PROD_1_ACT (inline, STARTQ, ENDQ, inline_SPAN : (Lex.pos * Lex.pos), STARTQ_SPAN : (Lex.pos * Lex.pos), ENDQ_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "Q",
             (Lf (Tok.STARTQ STARTQ)) :: (inline @ [Lf (Tok.ENDQ)])))
-fun s_PROD_1_ACT (ENDS, STARTS, inline, ENDS_SPAN : (Lex.pos * Lex.pos), STARTS_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun s_PROD_1_ACT (inline, STARTS, ENDS, inline_SPAN : (Lex.pos * Lex.pos), STARTS_SPAN : (Lex.pos * Lex.pos), ENDS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "S",
             (Lf (Tok.STARTS STARTS)) :: (inline @ [Lf (Tok.ENDS)])))
-fun samp_PROD_1_ACT (inline, ENDSAMP, STARTSAMP, inline_SPAN : (Lex.pos * Lex.pos), ENDSAMP_SPAN : (Lex.pos * Lex.pos), STARTSAMP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun samp_PROD_1_ACT (inline, STARTSAMP, ENDSAMP, inline_SPAN : (Lex.pos * Lex.pos), STARTSAMP_SPAN : (Lex.pos * Lex.pos), ENDSAMP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "SAMP",
                (Lf (Tok.STARTSAMP STARTSAMP)) ::
                (inline @ [Lf (Tok.ENDSAMP)])))
-fun select_PROD_1_ACT (SR, ENDSELECT, cdata_opt, STARTSELECT, SR_SPAN : (Lex.pos * Lex.pos), ENDSELECT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSELECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun select_PROD_1_ACT (STARTSELECT, SR, cdata_opt, ENDSELECT, STARTSELECT_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDSELECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "SELECT",
                  (Lf (Tok.STARTSELECT STARTSELECT)) ::
                  (cdata_opt @ SR @ [Lf (Tok.ENDSELECT)])))
@@ -853,46 +853,46 @@ fun small_PROD_1_ACT (inline, ENDSMALL, STARTSMALL, inline_SPAN : (Lex.pos * Lex
   (Nd (Atom.atom "SMALL",
                 (Lf (Tok.STARTSMALL STARTSMALL)) ::
                 (inline @ [Lf (Tok.ENDSMALL)])))
-fun span_PROD_1_ACT (inline, ENDSPAN, STARTSPAN, inline_SPAN : (Lex.pos * Lex.pos), ENDSPAN_SPAN : (Lex.pos * Lex.pos), STARTSPAN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun span_PROD_1_ACT (inline, STARTSPAN, ENDSPAN, inline_SPAN : (Lex.pos * Lex.pos), STARTSPAN_SPAN : (Lex.pos * Lex.pos), ENDSPAN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "SPAN",
                (Lf (Tok.STARTSPAN STARTSPAN)) ::
                (inline @ [Lf (Tok.ENDSPAN)])))
-fun strike_PROD_1_ACT (inline, ENDSTRIKE, STARTSTRIKE, inline_SPAN : (Lex.pos * Lex.pos), ENDSTRIKE_SPAN : (Lex.pos * Lex.pos), STARTSTRIKE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun strike_PROD_1_ACT (inline, STARTSTRIKE, ENDSTRIKE, inline_SPAN : (Lex.pos * Lex.pos), STARTSTRIKE_SPAN : (Lex.pos * Lex.pos), ENDSTRIKE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "STRIKE",
                  (Lf (Tok.STARTSTRIKE STARTSTRIKE)) ::
                  (inline @ [Lf (Tok.ENDSTRIKE)])))
-fun strong_PROD_1_ACT (inline, ENDSTRONG, STARTSTRONG, inline_SPAN : (Lex.pos * Lex.pos), ENDSTRONG_SPAN : (Lex.pos * Lex.pos), STARTSTRONG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun strong_PROD_1_ACT (inline, STARTSTRONG, ENDSTRONG, inline_SPAN : (Lex.pos * Lex.pos), STARTSTRONG_SPAN : (Lex.pos * Lex.pos), ENDSTRONG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "STRONG",
                  (Lf (Tok.STARTSTRONG STARTSTRONG)) ::
                  (inline @ [Lf (Tok.ENDSTRONG)])))
-fun sub_PROD_1_ACT (ENDSUB, inline, STARTSUB, ENDSUB_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTSUB_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun sub_PROD_1_ACT (inline, ENDSUB, STARTSUB, inline_SPAN : (Lex.pos * Lex.pos), ENDSUB_SPAN : (Lex.pos * Lex.pos), STARTSUB_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "SUB",
               (Lf (Tok.STARTSUB STARTSUB)) ::
               (inline @ [Lf (Tok.ENDSUB)])))
-fun sup_PROD_1_ACT (ENDSUP, inline, STARTSUP, ENDSUP_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTSUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun sup_PROD_1_ACT (inline, ENDSUP, STARTSUP, inline_SPAN : (Lex.pos * Lex.pos), ENDSUP_SPAN : (Lex.pos * Lex.pos), STARTSUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "SUP",
               (Lf (Tok.STARTSUP STARTSUP)) ::
               (inline @ [Lf (Tok.ENDSUP)])))
-fun table_PROD_1_SUBRULE_1_PROD_1_ACT (caption, cdata_opt, STARTTABLE, caption_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTABLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun table_PROD_1_SUBRULE_1_PROD_1_ACT (STARTTABLE, cdata_opt, caption, STARTTABLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), caption_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (caption :: cdata_opt)
-fun table_PROD_1_ACT (SR, ENDTABLE, cdata_opt, STARTTABLE, col_or_colgroups, table_content, SR_SPAN : (Lex.pos * Lex.pos), ENDTABLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTABLE_SPAN : (Lex.pos * Lex.pos), col_or_colgroups_SPAN : (Lex.pos * Lex.pos), table_content_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun table_PROD_1_ACT (SR, STARTTABLE, cdata_opt, table_content, ENDTABLE, col_or_colgroups, SR_SPAN : (Lex.pos * Lex.pos), STARTTABLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), table_content_SPAN : (Lex.pos * Lex.pos), ENDTABLE_SPAN : (Lex.pos * Lex.pos), col_or_colgroups_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "TABLE",
                 (Lf (Tok.STARTTABLE STARTTABLE)) ::
                 (cdata_opt @ (optListToList SR) @ col_or_colgroups @
                  table_content @ [Lf (Tok.ENDTABLE)])))
-fun table_content_PROD_1_ACT (tfoot, thead, tbodies, tfoot_SPAN : (Lex.pos * Lex.pos), thead_SPAN : (Lex.pos * Lex.pos), tbodies_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun table_content_PROD_1_ACT (tbodies, tfoot, thead, tbodies_SPAN : (Lex.pos * Lex.pos), tfoot_SPAN : (Lex.pos * Lex.pos), thead_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (thead :: ((optToList tfoot)) @ tbodies)
-fun table_content_PROD_2_ACT (tfoot, tbodies, tfoot_SPAN : (Lex.pos * Lex.pos), tbodies_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun table_content_PROD_2_ACT (tbodies, tfoot, tbodies_SPAN : (Lex.pos * Lex.pos), tfoot_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (tfoot :: tbodies)
 fun col_or_colgroups_PROD_1_ACT (FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ([])
-fun col_or_colgroups_PROD_2_SUBRULE_1_PROD_1_ACT (col, cdata_opt, col_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun col_or_colgroups_PROD_2_SUBRULE_1_PROD_1_ACT (cdata_opt, col, cdata_opt_SPAN : (Lex.pos * Lex.pos), col_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (col :: cdata_opt)
 fun col_or_colgroups_PROD_2_ACT (SR, SR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (foldr op@ [] SR)
 fun tbodies_nostart_PROD_1_SUBRULE_1_PROD_1_ACT (cdata_opt, STARTTBODY, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTBODY_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.STARTTBODY STARTTBODY)) :: cdata_opt)
-fun tbodies_nostart_PROD_1_ACT (SR, tr, tbodies_rest, SR_SPAN : (Lex.pos * Lex.pos), tr_SPAN : (Lex.pos * Lex.pos), tbodies_rest_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun tbodies_nostart_PROD_1_ACT (tr, SR, tbodies_rest, tr_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), tbodies_rest_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (let val (tbody_rest, tbody_peers) =
                               case tbodies_rest of
                                   NONE => ([], [])
@@ -906,7 +906,7 @@ fun tbodies_PROD_1_ACT (tr, cdata_opt, STARTTBODY, tbodies_rest, tr_SPAN : (Lex.
                       (Lf (Tok.STARTTBODY STARTTBODY)) ::
                       (cdata_opt @ tr @ tbody_rest))) ::
                  tbody_peers end)
-fun tbodies_rest_PROD_1_ACT (tbodies, ENDTBODY, cdata_opt, tbodies_SPAN : (Lex.pos * Lex.pos), ENDTBODY_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun tbodies_rest_PROD_1_ACT (cdata_opt, tbodies, ENDTBODY, cdata_opt_SPAN : (Lex.pos * Lex.pos), tbodies_SPAN : (Lex.pos * Lex.pos), ENDTBODY_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDTBODY)) :: cdata_opt,
                    optListToList tbodies)
 fun tbodies_rest_PROD_2_ACT (tr, cdata_opt, STARTTBODY, tbodies_rest, tr_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTBODY_SPAN : (Lex.pos * Lex.pos), tbodies_rest_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -917,49 +917,49 @@ fun tbodies_rest_PROD_2_ACT (tr, cdata_opt, STARTTBODY, tbodies_rest, tr_SPAN : 
                                 (Lf (Tok.STARTTBODY STARTTBODY)) ::
                                 (cdata_opt @ tr @ tbody_rest))) :: tbody_peers)
                    end)
-fun td_PROD_1_SUBRULE_2_PROD_1_ACT (flow, ENDTD, STARTTD, cdata_opt, flow_SPAN : (Lex.pos * Lex.pos), ENDTD_SPAN : (Lex.pos * Lex.pos), STARTTD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun td_PROD_1_SUBRULE_2_PROD_1_ACT (ENDTD, cdata_opt, STARTTD, flow, ENDTD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTD_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDTD)) :: cdata_opt)
-fun td_PROD_1_ACT (SR, flow, STARTTD, SR_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTTD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun td_PROD_1_ACT (SR, STARTTD, flow, SR_SPAN : (Lex.pos * Lex.pos), STARTTD_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "TD",
              (Lf (Tok.STARTTD STARTTD)) :: (flow @ (optListToList SR))))
-fun textarea_PROD_1_ACT (cdata_opt, ENDTEXTAREA, STARTTEXTAREA, cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDTEXTAREA_SPAN : (Lex.pos * Lex.pos), STARTTEXTAREA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun textarea_PROD_1_ACT (cdata_opt, STARTTEXTAREA, ENDTEXTAREA, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTEXTAREA_SPAN : (Lex.pos * Lex.pos), ENDTEXTAREA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "TEXTAREA",
                    (Lf (Tok.STARTTEXTAREA STARTTEXTAREA)) ::
                    (cdata_opt @ [Lf (Tok.ENDTEXTAREA)])))
-fun tfoot_PROD_1_SUBRULE_2_PROD_1_ACT (tr, ENDTFOOT, cdata_opt, STARTTFOOT, tr_SPAN : (Lex.pos * Lex.pos), ENDTFOOT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTFOOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun tfoot_PROD_1_SUBRULE_2_PROD_1_ACT (tr, STARTTFOOT, cdata_opt, ENDTFOOT, tr_SPAN : (Lex.pos * Lex.pos), STARTTFOOT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDTFOOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDTFOOT)) :: cdata_opt)
-fun tfoot_PROD_1_ACT (SR, tr, cdata_opt, STARTTFOOT, SR_SPAN : (Lex.pos * Lex.pos), tr_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTFOOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun tfoot_PROD_1_ACT (tr, SR, STARTTFOOT, cdata_opt, tr_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), STARTTFOOT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "TFOOT",
                 (Lf (Tok.STARTTFOOT STARTTFOOT)) :: (cdata_opt @ tr @
                                                      (optListToList SR))))
-fun th_PROD_1_SUBRULE_2_PROD_1_ACT (flow, ENDTH, STARTTH, cdata_opt, flow_SPAN : (Lex.pos * Lex.pos), ENDTH_SPAN : (Lex.pos * Lex.pos), STARTTH_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun th_PROD_1_SUBRULE_2_PROD_1_ACT (ENDTH, cdata_opt, STARTTH, flow, ENDTH_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTH_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDTH)) :: cdata_opt)
-fun th_PROD_1_ACT (SR, flow, STARTTH, SR_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTTH_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun th_PROD_1_ACT (SR, STARTTH, flow, SR_SPAN : (Lex.pos * Lex.pos), STARTTH_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "TH",
              (Lf (Tok.STARTTH STARTTH)) :: (flow @ (optListToList SR))))
-fun thead_PROD_1_SUBRULE_2_PROD_1_ACT (tr, ENDTHEAD, cdata_opt, STARTTHEAD, tr_SPAN : (Lex.pos * Lex.pos), ENDTHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTHEAD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun thead_PROD_1_SUBRULE_2_PROD_1_ACT (tr, STARTTHEAD, ENDTHEAD, cdata_opt, tr_SPAN : (Lex.pos * Lex.pos), STARTTHEAD_SPAN : (Lex.pos * Lex.pos), ENDTHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDTHEAD)) :: cdata_opt)
-fun thead_PROD_1_ACT (SR, tr, cdata_opt, STARTTHEAD, SR_SPAN : (Lex.pos * Lex.pos), tr_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTHEAD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun thead_PROD_1_ACT (tr, SR, STARTTHEAD, cdata_opt, tr_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), STARTTHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "THEAD",
                 (Lf (Tok.STARTTHEAD STARTTHEAD)) :: (cdata_opt @ tr @
                                                      (optListToList SR))))
-fun tr_PROD_1_SUBRULE_2_PROD_1_ACT (SR1, ENDTR, STARTTR, cdata_opt, SR1_SPAN : (Lex.pos * Lex.pos), ENDTR_SPAN : (Lex.pos * Lex.pos), STARTTR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun tr_PROD_1_SUBRULE_2_PROD_1_ACT (ENDTR, SR1, cdata_opt, STARTTR, ENDTR_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ((Lf (Tok.ENDTR)) :: cdata_opt)
-fun tr_PROD_1_ACT (SR1, SR2, STARTTR, cdata_opt, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), STARTTR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun tr_PROD_1_ACT (SR1, SR2, cdata_opt, STARTTR, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "TR",
              (Lf (Tok.STARTTR STARTTR)) :: (cdata_opt @ SR1 @
                                             (optListToList SR2))))
 fun tt_PROD_1_ACT (ENDTT, inline, STARTTT, ENDTT_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTTT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "TT",
              (Lf (Tok.STARTTT STARTTT)) :: (inline @ [Lf (Tok.ENDTT)])))
-fun u_PROD_1_ACT (ENDU, STARTU, inline, ENDU_SPAN : (Lex.pos * Lex.pos), STARTU_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun u_PROD_1_ACT (inline, STARTU, ENDU, inline_SPAN : (Lex.pos * Lex.pos), STARTU_SPAN : (Lex.pos * Lex.pos), ENDU_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "U",
             (Lf (Tok.STARTU STARTU)) :: (inline @ [Lf (Tok.ENDU)])))
-fun ul_PROD_1_ACT (li, ENDUL, STARTUL, cdata_opt, li_SPAN : (Lex.pos * Lex.pos), ENDUL_SPAN : (Lex.pos * Lex.pos), STARTUL_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun ul_PROD_1_ACT (li, ENDUL, cdata_opt, STARTUL, li_SPAN : (Lex.pos * Lex.pos), ENDUL_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTUL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "UL",
              ((Lf (Tok.STARTUL STARTUL)) :: (cdata_opt @ li @
                                              [Lf (Tok.ENDUL)]))))
-fun var_PROD_1_ACT (ENDVAR, inline, STARTVAR, ENDVAR_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTVAR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun var_PROD_1_ACT (inline, STARTVAR, ENDVAR, inline_SPAN : (Lex.pos * Lex.pos), STARTVAR_SPAN : (Lex.pos * Lex.pos), ENDVAR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (Nd (Atom.atom "VAR",
               (Lf (Tok.STARTVAR STARTVAR)) :: (inline @
                                                [Lf (Tok.ENDVAR)])))
@@ -1744,7 +1744,7 @@ fun matchEOF strm = (case (lex(strm))
   | _ => fail()
 (* end case *))
 
-val (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT) = 
+val (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT) = 
 let
 fun cdata_NT (strm) = let
       val (SR_RES, SR_SPAN, strm') = let
@@ -1818,6 +1818,122 @@ fun cdata_opt_NT (strm) = let
         (UserCode.cdata_opt_PROD_1_ACT (cdata_RES, cdata_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
+fun textarea_NT (strm) = let
+      val (STARTTEXTAREA_RES, STARTTEXTAREA_SPAN, strm') = matchSTARTTEXTAREA(strm)
+      val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
+      val (ENDTEXTAREA_RES, ENDTEXTAREA_SPAN, strm') = matchENDTEXTAREA(strm')
+      val FULL_SPAN = (#1(STARTTEXTAREA_SPAN), #2(ENDTEXTAREA_SPAN))
+      in
+        (UserCode.textarea_PROD_1_ACT (cdata_opt_RES, STARTTEXTAREA_RES, ENDTEXTAREA_RES, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTEXTAREA_SPAN : (Lex.pos * Lex.pos), ENDTEXTAREA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun option_NT (strm) = let
+      val (STARTOPTION_RES, STARTOPTION_SPAN, strm') = matchSTARTOPTION(strm)
+      val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
+      fun option_PROD_1_SUBRULE_1_NT (strm) = let
+            val (ENDOPTION_RES, ENDOPTION_SPAN, strm') = matchENDOPTION(strm)
+            val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
+            val FULL_SPAN = (#1(ENDOPTION_SPAN), #2(cdata_opt_SPAN))
+            in
+              (UserCode.option_PROD_1_SUBRULE_1_PROD_1_ACT (STARTOPTION_RES, cdata_opt_RES, ENDOPTION_RES, STARTOPTION_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDOPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun option_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.ENDOPTION, _, strm') => true
+              | _ => false
+            (* end case *))
+      val (SR_RES, SR_SPAN, strm') = EBNF.optional(option_PROD_1_SUBRULE_1_PRED, option_PROD_1_SUBRULE_1_NT, strm')
+      val FULL_SPAN = (#1(STARTOPTION_SPAN), #2(SR_SPAN))
+      in
+        (UserCode.option_PROD_1_ACT (SR_RES, STARTOPTION_RES, cdata_opt_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTOPTION_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun optgroup_NT (strm) = let
+      val (STARTOPTGROUP_RES, STARTOPTGROUP_SPAN, strm') = matchSTARTOPTGROUP(strm)
+      val (cdata_opt1_RES, cdata_opt1_SPAN, strm') = cdata_opt_NT(strm')
+      fun optgroup_PROD_1_SUBRULE_1_NT (strm) = let
+            val (option_RES, option_SPAN, strm') = option_NT(strm)
+            val FULL_SPAN = (#1(option_SPAN), #2(option_SPAN))
+            in
+              ((option_RES), FULL_SPAN, strm')
+            end
+      fun optgroup_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.STARTOPTION(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (option_RES, option_SPAN, strm') = EBNF.posclos(optgroup_PROD_1_SUBRULE_1_PRED, optgroup_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDOPTGROUP_RES, ENDOPTGROUP_SPAN, strm') = matchENDOPTGROUP(strm')
+      val (cdata_opt2_RES, cdata_opt2_SPAN, strm') = cdata_opt_NT(strm')
+      val FULL_SPAN = (#1(STARTOPTGROUP_SPAN), #2(cdata_opt2_SPAN))
+      in
+        (UserCode.optgroup_PROD_1_ACT (option_RES, STARTOPTGROUP_RES, ENDOPTGROUP_RES, cdata_opt1_RES, cdata_opt2_RES, option_SPAN : (Lex.pos * Lex.pos), STARTOPTGROUP_SPAN : (Lex.pos * Lex.pos), ENDOPTGROUP_SPAN : (Lex.pos * Lex.pos), cdata_opt1_SPAN : (Lex.pos * Lex.pos), cdata_opt2_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun select_NT (strm) = let
+      val (STARTSELECT_RES, STARTSELECT_SPAN, strm') = matchSTARTSELECT(strm)
+      val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
+      fun select_PROD_1_SUBRULE_1_NT (strm) = let
+            fun select_PROD_1_SUBRULE_1_PROD_1 (strm) = let
+                  val (optgroup_RES, optgroup_SPAN, strm') = optgroup_NT(strm)
+                  val FULL_SPAN = (#1(optgroup_SPAN), #2(optgroup_SPAN))
+                  in
+                    ((optgroup_RES), FULL_SPAN, strm')
+                  end
+            fun select_PROD_1_SUBRULE_1_PROD_2 (strm) = let
+                  val (option_RES, option_SPAN, strm') = option_NT(strm)
+                  val FULL_SPAN = (#1(option_SPAN), #2(option_SPAN))
+                  in
+                    ((option_RES), FULL_SPAN, strm')
+                  end
+            in
+              (case (lex(strm))
+               of (Tok.STARTOPTION(_), _, strm') =>
+                    select_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTOPTGROUP(_), _, strm') =>
+                    select_PROD_1_SUBRULE_1_PROD_1(strm)
+                | _ => fail()
+              (* end case *))
+            end
+      fun select_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.STARTOPTGROUP(_), _, strm') => true
+              | (Tok.STARTOPTION(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (SR_RES, SR_SPAN, strm') = EBNF.posclos(select_PROD_1_SUBRULE_1_PRED, select_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDSELECT_RES, ENDSELECT_SPAN, strm') = matchENDSELECT(strm')
+      val FULL_SPAN = (#1(STARTSELECT_SPAN), #2(ENDSELECT_SPAN))
+      in
+        (UserCode.select_PROD_1_ACT (STARTSELECT_RES, SR_RES, cdata_opt_RES, ENDSELECT_RES, STARTSELECT_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDSELECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun input_NT (strm) = let
+      val (STARTINPUT_RES, STARTINPUT_SPAN, strm') = matchSTARTINPUT(strm)
+      val FULL_SPAN = (#1(STARTINPUT_SPAN), #2(STARTINPUT_SPAN))
+      in
+        (UserCode.input_PROD_1_ACT (STARTINPUT_RES, STARTINPUT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun basefont_NT (strm) = let
+      val (STARTBASEFONT_RES, STARTBASEFONT_SPAN, strm') = matchSTARTBASEFONT(strm)
+      val FULL_SPAN = (#1(STARTBASEFONT_SPAN), #2(STARTBASEFONT_SPAN))
+      in
+        (UserCode.basefont_PROD_1_ACT (STARTBASEFONT_RES, STARTBASEFONT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun param_NT (strm) = let
+      val (STARTPARAM_RES, STARTPARAM_SPAN, strm') = matchSTARTPARAM(strm)
+      val FULL_SPAN = (#1(STARTPARAM_SPAN), #2(STARTPARAM_SPAN))
+      in
+        (UserCode.param_PROD_1_ACT (STARTPARAM_RES, STARTPARAM_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun area_NT (strm) = let
+      val (STARTAREA_RES, STARTAREA_SPAN, strm') = matchSTARTAREA(strm)
+      val FULL_SPAN = (#1(STARTAREA_SPAN), #2(STARTAREA_SPAN))
+      in
+        (UserCode.area_PROD_1_ACT (STARTAREA_RES, STARTAREA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
 fun isindex_NT (strm) = let
       val (STARTISINDEX_RES, STARTISINDEX_SPAN, strm') = matchSTARTISINDEX(strm)
       val FULL_SPAN = (#1(STARTISINDEX_SPAN), #2(STARTISINDEX_SPAN))
@@ -1840,7 +1956,7 @@ fun colgroup_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(col_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.colgroup_PROD_1_SUBRULE_1_PROD_1_ACT (col_RES, cdata_opt_RES, STARTCOLGROUP_RES, col_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.colgroup_PROD_1_SUBRULE_1_PROD_1_ACT (STARTCOLGROUP_RES, cdata_opt_RES, col_RES, STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), col_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun colgroup_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
@@ -1852,7 +1968,7 @@ fun colgroup_NT (strm) = let
             val (ENDCOLGROUP_RES, ENDCOLGROUP_SPAN, strm') = matchENDCOLGROUP(strm)
             val FULL_SPAN = (#1(ENDCOLGROUP_SPAN), #2(ENDCOLGROUP_SPAN))
             in
-              (UserCode.colgroup_PROD_1_SUBRULE_2_PROD_1_ACT (SR1_RES, cdata_opt_RES, ENDCOLGROUP_RES, STARTCOLGROUP_RES, SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDCOLGROUP_SPAN : (Lex.pos * Lex.pos), STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.colgroup_PROD_1_SUBRULE_2_PROD_1_ACT (STARTCOLGROUP_RES, SR1_RES, cdata_opt_RES, ENDCOLGROUP_RES, STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDCOLGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun colgroup_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -1862,7 +1978,7 @@ fun colgroup_NT (strm) = let
       val (SR2_RES, SR2_SPAN, strm') = EBNF.optional(colgroup_PROD_1_SUBRULE_2_PRED, colgroup_PROD_1_SUBRULE_2_NT, strm')
       val FULL_SPAN = (#1(STARTCOLGROUP_SPAN), #2(SR2_SPAN))
       in
-        (UserCode.colgroup_PROD_1_ACT (SR1_RES, SR2_RES, cdata_opt_RES, STARTCOLGROUP_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.colgroup_PROD_1_ACT (STARTCOLGROUP_RES, SR1_RES, SR2_RES, cdata_opt_RES, STARTCOLGROUP_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun col_or_colgroups_NT (strm) = let
@@ -1878,7 +1994,7 @@ fun col_or_colgroups_NT (strm) = let
                   val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
                   val FULL_SPAN = (#1(col_SPAN), #2(cdata_opt_SPAN))
                   in
-                    (UserCode.col_or_colgroups_PROD_2_SUBRULE_1_PROD_1_ACT (col_RES, cdata_opt_RES, col_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                    (UserCode.col_or_colgroups_PROD_2_SUBRULE_1_PROD_1_ACT (cdata_opt_RES, col_RES, cdata_opt_SPAN : (Lex.pos * Lex.pos), col_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                       FULL_SPAN, strm')
                   end
             fun col_or_colgroups_PROD_2_SUBRULE_1_PRED (strm) = (case (lex(strm))
@@ -1931,123 +2047,7 @@ fun script_NT (strm) = let
       val (ENDSCRIPT_RES, ENDSCRIPT_SPAN, strm') = matchENDSCRIPT(strm')
       val FULL_SPAN = (#1(STARTSCRIPT_SPAN), #2(ENDSCRIPT_SPAN))
       in
-        (UserCode.script_PROD_1_ACT (ENDSCRIPT_RES, cdata_opt_RES, STARTSCRIPT_RES, ENDSCRIPT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSCRIPT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-fun textarea_NT (strm) = let
-      val (STARTTEXTAREA_RES, STARTTEXTAREA_SPAN, strm') = matchSTARTTEXTAREA(strm)
-      val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
-      val (ENDTEXTAREA_RES, ENDTEXTAREA_SPAN, strm') = matchENDTEXTAREA(strm')
-      val FULL_SPAN = (#1(STARTTEXTAREA_SPAN), #2(ENDTEXTAREA_SPAN))
-      in
-        (UserCode.textarea_PROD_1_ACT (cdata_opt_RES, ENDTEXTAREA_RES, STARTTEXTAREA_RES, cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDTEXTAREA_SPAN : (Lex.pos * Lex.pos), STARTTEXTAREA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-fun option_NT (strm) = let
-      val (STARTOPTION_RES, STARTOPTION_SPAN, strm') = matchSTARTOPTION(strm)
-      val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
-      fun option_PROD_1_SUBRULE_1_NT (strm) = let
-            val (ENDOPTION_RES, ENDOPTION_SPAN, strm') = matchENDOPTION(strm)
-            val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
-            val FULL_SPAN = (#1(ENDOPTION_SPAN), #2(cdata_opt_SPAN))
-            in
-              (UserCode.option_PROD_1_SUBRULE_1_PROD_1_ACT (ENDOPTION_RES, cdata_opt_RES, STARTOPTION_RES, ENDOPTION_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTOPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-                FULL_SPAN, strm')
-            end
-      fun option_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.ENDOPTION, _, strm') => true
-              | _ => false
-            (* end case *))
-      val (SR_RES, SR_SPAN, strm') = EBNF.optional(option_PROD_1_SUBRULE_1_PRED, option_PROD_1_SUBRULE_1_NT, strm')
-      val FULL_SPAN = (#1(STARTOPTION_SPAN), #2(SR_SPAN))
-      in
-        (UserCode.option_PROD_1_ACT (SR_RES, cdata_opt_RES, STARTOPTION_RES, SR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTOPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-fun optgroup_NT (strm) = let
-      val (STARTOPTGROUP_RES, STARTOPTGROUP_SPAN, strm') = matchSTARTOPTGROUP(strm)
-      val (cdata_opt1_RES, cdata_opt1_SPAN, strm') = cdata_opt_NT(strm')
-      fun optgroup_PROD_1_SUBRULE_1_NT (strm) = let
-            val (option_RES, option_SPAN, strm') = option_NT(strm)
-            val FULL_SPAN = (#1(option_SPAN), #2(option_SPAN))
-            in
-              ((option_RES), FULL_SPAN, strm')
-            end
-      fun optgroup_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.STARTOPTION(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (option_RES, option_SPAN, strm') = EBNF.posclos(optgroup_PROD_1_SUBRULE_1_PRED, optgroup_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDOPTGROUP_RES, ENDOPTGROUP_SPAN, strm') = matchENDOPTGROUP(strm')
-      val (cdata_opt2_RES, cdata_opt2_SPAN, strm') = cdata_opt_NT(strm')
-      val FULL_SPAN = (#1(STARTOPTGROUP_SPAN), #2(cdata_opt2_SPAN))
-      in
-        (UserCode.optgroup_PROD_1_ACT (option_RES, cdata_opt1_RES, cdata_opt2_RES, ENDOPTGROUP_RES, STARTOPTGROUP_RES, option_SPAN : (Lex.pos * Lex.pos), cdata_opt1_SPAN : (Lex.pos * Lex.pos), cdata_opt2_SPAN : (Lex.pos * Lex.pos), ENDOPTGROUP_SPAN : (Lex.pos * Lex.pos), STARTOPTGROUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-fun select_NT (strm) = let
-      val (STARTSELECT_RES, STARTSELECT_SPAN, strm') = matchSTARTSELECT(strm)
-      val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
-      fun select_PROD_1_SUBRULE_1_NT (strm) = let
-            fun select_PROD_1_SUBRULE_1_PROD_1 (strm) = let
-                  val (optgroup_RES, optgroup_SPAN, strm') = optgroup_NT(strm)
-                  val FULL_SPAN = (#1(optgroup_SPAN), #2(optgroup_SPAN))
-                  in
-                    ((optgroup_RES), FULL_SPAN, strm')
-                  end
-            fun select_PROD_1_SUBRULE_1_PROD_2 (strm) = let
-                  val (option_RES, option_SPAN, strm') = option_NT(strm)
-                  val FULL_SPAN = (#1(option_SPAN), #2(option_SPAN))
-                  in
-                    ((option_RES), FULL_SPAN, strm')
-                  end
-            in
-              (case (lex(strm))
-               of (Tok.STARTOPTION(_), _, strm') =>
-                    select_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTOPTGROUP(_), _, strm') =>
-                    select_PROD_1_SUBRULE_1_PROD_1(strm)
-                | _ => fail()
-              (* end case *))
-            end
-      fun select_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.STARTOPTGROUP(_), _, strm') => true
-              | (Tok.STARTOPTION(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (SR_RES, SR_SPAN, strm') = EBNF.posclos(select_PROD_1_SUBRULE_1_PRED, select_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDSELECT_RES, ENDSELECT_SPAN, strm') = matchENDSELECT(strm')
-      val FULL_SPAN = (#1(STARTSELECT_SPAN), #2(ENDSELECT_SPAN))
-      in
-        (UserCode.select_PROD_1_ACT (SR_RES, ENDSELECT_RES, cdata_opt_RES, STARTSELECT_RES, SR_SPAN : (Lex.pos * Lex.pos), ENDSELECT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSELECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-fun input_NT (strm) = let
-      val (STARTINPUT_RES, STARTINPUT_SPAN, strm') = matchSTARTINPUT(strm)
-      val FULL_SPAN = (#1(STARTINPUT_SPAN), #2(STARTINPUT_SPAN))
-      in
-        (UserCode.input_PROD_1_ACT (STARTINPUT_RES, STARTINPUT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-fun basefont_NT (strm) = let
-      val (STARTBASEFONT_RES, STARTBASEFONT_SPAN, strm') = matchSTARTBASEFONT(strm)
-      val FULL_SPAN = (#1(STARTBASEFONT_SPAN), #2(STARTBASEFONT_SPAN))
-      in
-        (UserCode.basefont_PROD_1_ACT (STARTBASEFONT_RES, STARTBASEFONT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-fun param_NT (strm) = let
-      val (STARTPARAM_RES, STARTPARAM_SPAN, strm') = matchSTARTPARAM(strm)
-      val FULL_SPAN = (#1(STARTPARAM_SPAN), #2(STARTPARAM_SPAN))
-      in
-        (UserCode.param_PROD_1_ACT (STARTPARAM_RES, STARTPARAM_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-fun area_NT (strm) = let
-      val (STARTAREA_RES, STARTAREA_SPAN, strm') = matchSTARTAREA(strm)
-      val FULL_SPAN = (#1(STARTAREA_SPAN), #2(STARTAREA_SPAN))
-      in
-        (UserCode.area_PROD_1_ACT (STARTAREA_RES, STARTAREA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.script_PROD_1_ACT (cdata_opt_RES, STARTSCRIPT_RES, ENDSCRIPT_RES, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSCRIPT_SPAN : (Lex.pos * Lex.pos), ENDSCRIPT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun br_NT (strm) = let
@@ -2064,7 +2064,90 @@ fun img_NT (strm) = let
         (UserCode.img_PROD_1_ACT (STARTIMG_RES, STARTIMG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
-fun inline_NT (strm) = let
+fun flow_NT (strm) = let
+      fun flow_PROD_1 (strm) = let
+            val (block_RES, block_SPAN, strm') = block_NT(strm)
+            val FULL_SPAN = (#1(block_SPAN), #2(block_SPAN))
+            in
+              ((block_RES), FULL_SPAN, strm')
+            end
+      fun flow_PROD_2 (strm) = let
+            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
+            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
+            in
+              ((inline_RES), FULL_SPAN, strm')
+            end
+      in
+        (case (lex(strm))
+         of (Tok.COMMENT(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.PCDATA(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.CHAR_REF(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.ENTITY_REF(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTA(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTABBR(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTACRONYM(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTAPPLET(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTB(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTBASEFONT(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTBDO(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTBIG(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTBR(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTBUTTON(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTCITE(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTCODE(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTDFN(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTEM(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTFONT(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTI(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTIFRAME(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTIMG(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTINPUT(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTKBD(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTLABEL(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTMAP(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTOBJECT(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTQ(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTS(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSAMP(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSCRIPT(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSELECT(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSMALL(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSPAN(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSTRIKE(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSTRONG(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSUB(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTSUP(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTTEXTAREA(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTTT(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTU(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTVAR(_), _, strm') => flow_PROD_2(strm)
+          | (Tok.STARTADDRESS(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTBLOCKQUOTE(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTCENTER(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTDIR(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTDIV(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTDL(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTFIELDSET(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTFORM(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTH1(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTH2(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTH3(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTH4(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTH5(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTH6(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTHR(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTISINDEX(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTMENU(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTNOSCRIPT(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTOL(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTP(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTPRE(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTTABLE(_), _, strm') => flow_PROD_1(strm)
+          | (Tok.STARTUL(_), _, strm') => flow_PROD_1(strm)
+          | _ => fail()
+        (* end case *))
+      end
+and inline_NT (strm) = let
       fun inline_PROD_1 (strm) = let
             val (fontstyle_RES, fontstyle_SPAN, strm') = fontstyle_NT(strm)
             val FULL_SPAN = (#1(fontstyle_SPAN), #2(fontstyle_SPAN))
@@ -2263,91 +2346,986 @@ and button_NT (strm) = let
       val (ENDBUTTON_RES, ENDBUTTON_SPAN, strm') = matchENDBUTTON(strm')
       val FULL_SPAN = (#1(STARTBUTTON_SPAN), #2(ENDBUTTON_SPAN))
       in
-        (UserCode.button_PROD_1_ACT (flow_RES, ENDBUTTON_RES, STARTBUTTON_RES, flow_SPAN : (Lex.pos * Lex.pos), ENDBUTTON_SPAN : (Lex.pos * Lex.pos), STARTBUTTON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.button_PROD_1_ACT (STARTBUTTON_RES, flow_RES, ENDBUTTON_RES, STARTBUTTON_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), ENDBUTTON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
-and flow_NT (strm) = let
-      fun flow_PROD_1 (strm) = let
-            val (block_RES, block_SPAN, strm') = block_NT(strm)
-            val FULL_SPAN = (#1(block_SPAN), #2(block_SPAN))
-            in
-              ((block_RES), FULL_SPAN, strm')
-            end
-      fun flow_PROD_2 (strm) = let
+and label_NT (strm) = let
+      val (STARTLABEL_RES, STARTLABEL_SPAN, strm') = matchSTARTLABEL(strm)
+      fun label_PROD_1_SUBRULE_1_NT (strm) = let
             val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
             val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
             in
               ((inline_RES), FULL_SPAN, strm')
             end
+      fun label_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (inline_RES, inline_SPAN, strm') = EBNF.closure(label_PROD_1_SUBRULE_1_PRED, label_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDLABEL_RES, ENDLABEL_SPAN, strm') = matchENDLABEL(strm')
+      val FULL_SPAN = (#1(STARTLABEL_SPAN), #2(ENDLABEL_SPAN))
+      in
+        (UserCode.label_PROD_1_ACT (inline_RES, ENDLABEL_RES, STARTLABEL_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDLABEL_SPAN : (Lex.pos * Lex.pos), STARTLABEL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and special_NT (strm) = let
+      fun special_PROD_1 (strm) = let
+            val (a_RES, a_SPAN, strm') = a_NT(strm)
+            val FULL_SPAN = (#1(a_SPAN), #2(a_SPAN))
+            in
+              ((a_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_2 (strm) = let
+            val (img_RES, img_SPAN, strm') = img_NT(strm)
+            val FULL_SPAN = (#1(img_SPAN), #2(img_SPAN))
+            in
+              ((img_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_3 (strm) = let
+            val (object_RES, object_SPAN, strm') = object_NT(strm)
+            val FULL_SPAN = (#1(object_SPAN), #2(object_SPAN))
+            in
+              ((object_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_4 (strm) = let
+            val (br_RES, br_SPAN, strm') = br_NT(strm)
+            val FULL_SPAN = (#1(br_SPAN), #2(br_SPAN))
+            in
+              ((br_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_5 (strm) = let
+            val (script_RES, script_SPAN, strm') = script_NT(strm)
+            val FULL_SPAN = (#1(script_SPAN), #2(script_SPAN))
+            in
+              ((script_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_6 (strm) = let
+            val (map_RES, map_SPAN, strm') = map_NT(strm)
+            val FULL_SPAN = (#1(map_SPAN), #2(map_SPAN))
+            in
+              ((map_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_7 (strm) = let
+            val (q_RES, q_SPAN, strm') = q_NT(strm)
+            val FULL_SPAN = (#1(q_SPAN), #2(q_SPAN))
+            in
+              ((q_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_8 (strm) = let
+            val (sub_RES, sub_SPAN, strm') = sub_NT(strm)
+            val FULL_SPAN = (#1(sub_SPAN), #2(sub_SPAN))
+            in
+              ((sub_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_9 (strm) = let
+            val (sup_RES, sup_SPAN, strm') = sup_NT(strm)
+            val FULL_SPAN = (#1(sup_SPAN), #2(sup_SPAN))
+            in
+              ((sup_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_10 (strm) = let
+            val (span_RES, span_SPAN, strm') = span_NT(strm)
+            val FULL_SPAN = (#1(span_SPAN), #2(span_SPAN))
+            in
+              ((span_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_11 (strm) = let
+            val (bdo_RES, bdo_SPAN, strm') = bdo_NT(strm)
+            val FULL_SPAN = (#1(bdo_SPAN), #2(bdo_SPAN))
+            in
+              ((bdo_RES), FULL_SPAN, strm')
+            end
+      fun special_PROD_12 (strm) = let
+            val (special_loose_RES, special_loose_SPAN, strm') = special_loose_NT(strm)
+            val FULL_SPAN = (#1(special_loose_SPAN), #2(special_loose_SPAN))
+            in
+              ((special_loose_RES), FULL_SPAN, strm')
+            end
       in
         (case (lex(strm))
-         of (Tok.COMMENT(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.PCDATA(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.CHAR_REF(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.ENTITY_REF(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTA(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTABBR(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTACRONYM(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTAPPLET(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTB(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTBASEFONT(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTBDO(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTBIG(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTBR(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTBUTTON(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTCITE(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTCODE(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTDFN(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTEM(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTFONT(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTI(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTIFRAME(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTIMG(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTINPUT(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTKBD(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTLABEL(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTMAP(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTOBJECT(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTQ(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTS(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSAMP(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSCRIPT(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSELECT(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSMALL(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSPAN(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSTRIKE(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSTRONG(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSUB(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTSUP(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTTEXTAREA(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTTT(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTU(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTVAR(_), _, strm') => flow_PROD_2(strm)
-          | (Tok.STARTADDRESS(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTBLOCKQUOTE(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTCENTER(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTDIR(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTDIV(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTDL(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTFIELDSET(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTFORM(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTH1(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTH2(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTH3(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTH4(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTH5(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTH6(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTHR(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTISINDEX(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTMENU(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTNOSCRIPT(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTOL(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTP(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTPRE(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTTABLE(_), _, strm') => flow_PROD_1(strm)
-          | (Tok.STARTUL(_), _, strm') => flow_PROD_1(strm)
+         of (Tok.STARTAPPLET(_), _, strm') => special_PROD_12(strm)
+          | (Tok.STARTBASEFONT(_), _, strm') => special_PROD_12(strm)
+          | (Tok.STARTFONT(_), _, strm') => special_PROD_12(strm)
+          | (Tok.STARTIFRAME(_), _, strm') => special_PROD_12(strm)
+          | (Tok.STARTSPAN(_), _, strm') => special_PROD_10(strm)
+          | (Tok.STARTSUB(_), _, strm') => special_PROD_8(strm)
+          | (Tok.STARTMAP(_), _, strm') => special_PROD_6(strm)
+          | (Tok.STARTBR(_), _, strm') => special_PROD_4(strm)
+          | (Tok.STARTIMG(_), _, strm') => special_PROD_2(strm)
+          | (Tok.STARTA(_), _, strm') => special_PROD_1(strm)
+          | (Tok.STARTOBJECT(_), _, strm') => special_PROD_3(strm)
+          | (Tok.STARTSCRIPT(_), _, strm') => special_PROD_5(strm)
+          | (Tok.STARTQ(_), _, strm') => special_PROD_7(strm)
+          | (Tok.STARTSUP(_), _, strm') => special_PROD_9(strm)
+          | (Tok.STARTBDO(_), _, strm') => special_PROD_11(strm)
           | _ => fail()
         (* end case *))
+      end
+and special_loose_NT (strm) = let
+      fun special_loose_PROD_1 (strm) = let
+            val (applet_RES, applet_SPAN, strm') = applet_NT(strm)
+            val FULL_SPAN = (#1(applet_SPAN), #2(applet_SPAN))
+            in
+              ((applet_RES), FULL_SPAN, strm')
+            end
+      fun special_loose_PROD_2 (strm) = let
+            val (basefont_RES, basefont_SPAN, strm') = basefont_NT(strm)
+            val FULL_SPAN = (#1(basefont_SPAN), #2(basefont_SPAN))
+            in
+              ((basefont_RES), FULL_SPAN, strm')
+            end
+      fun special_loose_PROD_3 (strm) = let
+            val (font_RES, font_SPAN, strm') = font_NT(strm)
+            val FULL_SPAN = (#1(font_SPAN), #2(font_SPAN))
+            in
+              ((font_RES), FULL_SPAN, strm')
+            end
+      fun special_loose_PROD_4 (strm) = let
+            val (iframe_RES, iframe_SPAN, strm') = iframe_NT(strm)
+            val FULL_SPAN = (#1(iframe_SPAN), #2(iframe_SPAN))
+            in
+              ((iframe_RES), FULL_SPAN, strm')
+            end
+      in
+        (case (lex(strm))
+         of (Tok.STARTIFRAME(_), _, strm') => special_loose_PROD_4(strm)
+          | (Tok.STARTBASEFONT(_), _, strm') => special_loose_PROD_2(strm)
+          | (Tok.STARTAPPLET(_), _, strm') => special_loose_PROD_1(strm)
+          | (Tok.STARTFONT(_), _, strm') => special_loose_PROD_3(strm)
+          | _ => fail()
+        (* end case *))
+      end
+and iframe_NT (strm) = let
+      val (STARTIFRAME_RES, STARTIFRAME_SPAN, strm') = matchSTARTIFRAME(strm)
+      fun iframe_PROD_1_SUBRULE_1_NT (strm) = let
+            val (flow_RES, flow_SPAN, strm') = flow_NT(strm)
+            val FULL_SPAN = (#1(flow_SPAN), #2(flow_SPAN))
+            in
+              ((flow_RES), FULL_SPAN, strm')
+            end
+      fun iframe_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTADDRESS(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBLOCKQUOTE(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCENTER(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTDIR(_), _, strm') => true
+              | (Tok.STARTDIV(_), _, strm') => true
+              | (Tok.STARTDL(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFIELDSET(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTFORM(_), _, strm') => true
+              | (Tok.STARTH1(_), _, strm') => true
+              | (Tok.STARTH2(_), _, strm') => true
+              | (Tok.STARTH3(_), _, strm') => true
+              | (Tok.STARTH4(_), _, strm') => true
+              | (Tok.STARTH5(_), _, strm') => true
+              | (Tok.STARTH6(_), _, strm') => true
+              | (Tok.STARTHR(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTISINDEX(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTMENU(_), _, strm') => true
+              | (Tok.STARTNOSCRIPT(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTOL(_), _, strm') => true
+              | (Tok.STARTP(_), _, strm') => true
+              | (Tok.STARTPRE(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTABLE(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTUL(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (flow_RES, flow_SPAN, strm') = EBNF.closure(iframe_PROD_1_SUBRULE_1_PRED, iframe_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDIFRAME_RES, ENDIFRAME_SPAN, strm') = matchENDIFRAME(strm')
+      val FULL_SPAN = (#1(STARTIFRAME_SPAN), #2(ENDIFRAME_SPAN))
+      in
+        (UserCode.iframe_PROD_1_ACT (ENDIFRAME_RES, STARTIFRAME_RES, flow_RES, ENDIFRAME_SPAN : (Lex.pos * Lex.pos), STARTIFRAME_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and font_NT (strm) = let
+      val (STARTFONT_RES, STARTFONT_SPAN, strm') = matchSTARTFONT(strm)
+      fun font_PROD_1_SUBRULE_1_NT (strm) = let
+            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
+            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
+            in
+              ((inline_RES), FULL_SPAN, strm')
+            end
+      fun font_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (inline_RES, inline_SPAN, strm') = EBNF.closure(font_PROD_1_SUBRULE_1_PRED, font_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDFONT_RES, ENDFONT_SPAN, strm') = matchENDFONT(strm')
+      val FULL_SPAN = (#1(STARTFONT_SPAN), #2(ENDFONT_SPAN))
+      in
+        (UserCode.font_PROD_1_ACT (inline_RES, ENDFONT_RES, STARTFONT_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDFONT_SPAN : (Lex.pos * Lex.pos), STARTFONT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and applet_NT (strm) = let
+      val (STARTAPPLET_RES, STARTAPPLET_SPAN, strm') = matchSTARTAPPLET(strm)
+      fun applet_PROD_1_SUBRULE_1_NT (strm) = let
+            fun applet_PROD_1_SUBRULE_1_PROD_1 (strm) = let
+                  val (param_RES, param_SPAN, strm') = param_NT(strm)
+                  val FULL_SPAN = (#1(param_SPAN), #2(param_SPAN))
+                  in
+                    ((param_RES), FULL_SPAN, strm')
+                  end
+            fun applet_PROD_1_SUBRULE_1_PROD_2 (strm) = let
+                  val (flow_RES, flow_SPAN, strm') = flow_NT(strm)
+                  val FULL_SPAN = (#1(flow_SPAN), #2(flow_SPAN))
+                  in
+                    ((flow_RES), FULL_SPAN, strm')
+                  end
+            in
+              (case (lex(strm))
+               of (Tok.COMMENT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.PCDATA(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.CHAR_REF(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.ENTITY_REF(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTA(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTABBR(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTACRONYM(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTADDRESS(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTAPPLET(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTB(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTBASEFONT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTBDO(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTBIG(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTBLOCKQUOTE(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTBR(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTBUTTON(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTCENTER(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTCITE(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTCODE(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTDFN(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTDIR(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTDIV(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTDL(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTEM(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTFIELDSET(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTFONT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTFORM(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH1(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH2(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH3(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH4(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH5(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH6(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTHR(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTI(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTIFRAME(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTIMG(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTINPUT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTISINDEX(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTKBD(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTLABEL(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTMAP(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTMENU(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTNOSCRIPT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTOBJECT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTOL(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTP(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTPRE(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTQ(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTS(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSAMP(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSCRIPT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSELECT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSMALL(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSPAN(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSTRIKE(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSTRONG(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSUB(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTSUP(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTTABLE(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTTEXTAREA(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTTT(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTU(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTUL(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTVAR(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTPARAM(_), _, strm') =>
+                    applet_PROD_1_SUBRULE_1_PROD_1(strm)
+                | _ => fail()
+              (* end case *))
+            end
+      fun applet_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTADDRESS(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBLOCKQUOTE(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCENTER(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTDIR(_), _, strm') => true
+              | (Tok.STARTDIV(_), _, strm') => true
+              | (Tok.STARTDL(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFIELDSET(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTFORM(_), _, strm') => true
+              | (Tok.STARTH1(_), _, strm') => true
+              | (Tok.STARTH2(_), _, strm') => true
+              | (Tok.STARTH3(_), _, strm') => true
+              | (Tok.STARTH4(_), _, strm') => true
+              | (Tok.STARTH5(_), _, strm') => true
+              | (Tok.STARTH6(_), _, strm') => true
+              | (Tok.STARTHR(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTISINDEX(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTMENU(_), _, strm') => true
+              | (Tok.STARTNOSCRIPT(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTOL(_), _, strm') => true
+              | (Tok.STARTP(_), _, strm') => true
+              | (Tok.STARTPARAM(_), _, strm') => true
+              | (Tok.STARTPRE(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTABLE(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTUL(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (SR_RES, SR_SPAN, strm') = EBNF.closure(applet_PROD_1_SUBRULE_1_PRED, applet_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDAPPLET_RES, ENDAPPLET_SPAN, strm') = matchENDAPPLET(strm')
+      val FULL_SPAN = (#1(STARTAPPLET_SPAN), #2(ENDAPPLET_SPAN))
+      in
+        (UserCode.applet_PROD_1_ACT (SR_RES, ENDAPPLET_RES, STARTAPPLET_RES, SR_SPAN : (Lex.pos * Lex.pos), ENDAPPLET_SPAN : (Lex.pos * Lex.pos), STARTAPPLET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and bdo_NT (strm) = let
+      val (STARTBDO_RES, STARTBDO_SPAN, strm') = matchSTARTBDO(strm)
+      fun bdo_PROD_1_SUBRULE_1_NT (strm) = let
+            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
+            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
+            in
+              ((inline_RES), FULL_SPAN, strm')
+            end
+      fun bdo_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (inline_RES, inline_SPAN, strm') = EBNF.closure(bdo_PROD_1_SUBRULE_1_PRED, bdo_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDBDO_RES, ENDBDO_SPAN, strm') = matchENDBDO(strm')
+      val FULL_SPAN = (#1(STARTBDO_SPAN), #2(ENDBDO_SPAN))
+      in
+        (UserCode.bdo_PROD_1_ACT (inline_RES, ENDBDO_RES, STARTBDO_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDBDO_SPAN : (Lex.pos * Lex.pos), STARTBDO_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and span_NT (strm) = let
+      val (STARTSPAN_RES, STARTSPAN_SPAN, strm') = matchSTARTSPAN(strm)
+      fun span_PROD_1_SUBRULE_1_NT (strm) = let
+            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
+            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
+            in
+              ((inline_RES), FULL_SPAN, strm')
+            end
+      fun span_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (inline_RES, inline_SPAN, strm') = EBNF.closure(span_PROD_1_SUBRULE_1_PRED, span_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDSPAN_RES, ENDSPAN_SPAN, strm') = matchENDSPAN(strm')
+      val FULL_SPAN = (#1(STARTSPAN_SPAN), #2(ENDSPAN_SPAN))
+      in
+        (UserCode.span_PROD_1_ACT (inline_RES, STARTSPAN_RES, ENDSPAN_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTSPAN_SPAN : (Lex.pos * Lex.pos), ENDSPAN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and sup_NT (strm) = let
+      val (STARTSUP_RES, STARTSUP_SPAN, strm') = matchSTARTSUP(strm)
+      fun sup_PROD_1_SUBRULE_1_NT (strm) = let
+            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
+            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
+            in
+              ((inline_RES), FULL_SPAN, strm')
+            end
+      fun sup_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (inline_RES, inline_SPAN, strm') = EBNF.closure(sup_PROD_1_SUBRULE_1_PRED, sup_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDSUP_RES, ENDSUP_SPAN, strm') = matchENDSUP(strm')
+      val FULL_SPAN = (#1(STARTSUP_SPAN), #2(ENDSUP_SPAN))
+      in
+        (UserCode.sup_PROD_1_ACT (inline_RES, ENDSUP_RES, STARTSUP_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDSUP_SPAN : (Lex.pos * Lex.pos), STARTSUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and sub_NT (strm) = let
+      val (STARTSUB_RES, STARTSUB_SPAN, strm') = matchSTARTSUB(strm)
+      fun sub_PROD_1_SUBRULE_1_NT (strm) = let
+            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
+            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
+            in
+              ((inline_RES), FULL_SPAN, strm')
+            end
+      fun sub_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (inline_RES, inline_SPAN, strm') = EBNF.closure(sub_PROD_1_SUBRULE_1_PRED, sub_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDSUB_RES, ENDSUB_SPAN, strm') = matchENDSUB(strm')
+      val FULL_SPAN = (#1(STARTSUB_SPAN), #2(ENDSUB_SPAN))
+      in
+        (UserCode.sub_PROD_1_ACT (inline_RES, ENDSUB_RES, STARTSUB_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDSUB_SPAN : (Lex.pos * Lex.pos), STARTSUB_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and q_NT (strm) = let
+      val (STARTQ_RES, STARTQ_SPAN, strm') = matchSTARTQ(strm)
+      fun q_PROD_1_SUBRULE_1_NT (strm) = let
+            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
+            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
+            in
+              ((inline_RES), FULL_SPAN, strm')
+            end
+      fun q_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTA(_), _, strm') => true
+              | (Tok.STARTABBR(_), _, strm') => true
+              | (Tok.STARTACRONYM(_), _, strm') => true
+              | (Tok.STARTAPPLET(_), _, strm') => true
+              | (Tok.STARTB(_), _, strm') => true
+              | (Tok.STARTBASEFONT(_), _, strm') => true
+              | (Tok.STARTBDO(_), _, strm') => true
+              | (Tok.STARTBIG(_), _, strm') => true
+              | (Tok.STARTBR(_), _, strm') => true
+              | (Tok.STARTBUTTON(_), _, strm') => true
+              | (Tok.STARTCITE(_), _, strm') => true
+              | (Tok.STARTCODE(_), _, strm') => true
+              | (Tok.STARTDFN(_), _, strm') => true
+              | (Tok.STARTEM(_), _, strm') => true
+              | (Tok.STARTFONT(_), _, strm') => true
+              | (Tok.STARTI(_), _, strm') => true
+              | (Tok.STARTIFRAME(_), _, strm') => true
+              | (Tok.STARTIMG(_), _, strm') => true
+              | (Tok.STARTINPUT(_), _, strm') => true
+              | (Tok.STARTKBD(_), _, strm') => true
+              | (Tok.STARTLABEL(_), _, strm') => true
+              | (Tok.STARTMAP(_), _, strm') => true
+              | (Tok.STARTOBJECT(_), _, strm') => true
+              | (Tok.STARTQ(_), _, strm') => true
+              | (Tok.STARTS(_), _, strm') => true
+              | (Tok.STARTSAMP(_), _, strm') => true
+              | (Tok.STARTSCRIPT(_), _, strm') => true
+              | (Tok.STARTSELECT(_), _, strm') => true
+              | (Tok.STARTSMALL(_), _, strm') => true
+              | (Tok.STARTSPAN(_), _, strm') => true
+              | (Tok.STARTSTRIKE(_), _, strm') => true
+              | (Tok.STARTSTRONG(_), _, strm') => true
+              | (Tok.STARTSUB(_), _, strm') => true
+              | (Tok.STARTSUP(_), _, strm') => true
+              | (Tok.STARTTEXTAREA(_), _, strm') => true
+              | (Tok.STARTTT(_), _, strm') => true
+              | (Tok.STARTU(_), _, strm') => true
+              | (Tok.STARTVAR(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (inline_RES, inline_SPAN, strm') = EBNF.closure(q_PROD_1_SUBRULE_1_PRED, q_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDQ_RES, ENDQ_SPAN, strm') = matchENDQ(strm')
+      val FULL_SPAN = (#1(STARTQ_SPAN), #2(ENDQ_SPAN))
+      in
+        (UserCode.q_PROD_1_ACT (inline_RES, STARTQ_RES, ENDQ_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTQ_SPAN : (Lex.pos * Lex.pos), ENDQ_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and map_NT (strm) = let
+      val (STARTMAP_RES, STARTMAP_SPAN, strm') = matchSTARTMAP(strm)
+      fun map_PROD_1_SUBRULE_1_NT (strm) = let
+            fun map_PROD_1_SUBRULE_1_PROD_1 (strm) = let
+                  val (cdata_RES, cdata_SPAN, strm') = cdata_NT(strm)
+                  val FULL_SPAN = (#1(cdata_SPAN), #2(cdata_SPAN))
+                  in
+                    ((cdata_RES), FULL_SPAN, strm')
+                  end
+            fun map_PROD_1_SUBRULE_1_PROD_2 (strm) = let
+                  val (block_RES, block_SPAN, strm') = block_NT(strm)
+                  val FULL_SPAN = (#1(block_SPAN), #2(block_SPAN))
+                  in
+                    ((block_RES), FULL_SPAN, strm')
+                  end
+            fun map_PROD_1_SUBRULE_1_PROD_3 (strm) = let
+                  val (area_RES, area_SPAN, strm') = area_NT(strm)
+                  val FULL_SPAN = (#1(area_SPAN), #2(area_SPAN))
+                  in
+                    ((area_RES), FULL_SPAN, strm')
+                  end
+            in
+              (case (lex(strm))
+               of (Tok.STARTAREA(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_3(strm)
+                | (Tok.COMMENT(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_1(strm)
+                | (Tok.PCDATA(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_1(strm)
+                | (Tok.CHAR_REF(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_1(strm)
+                | (Tok.ENTITY_REF(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_1(strm)
+                | (Tok.STARTADDRESS(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTBLOCKQUOTE(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTCENTER(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTDIR(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTDIV(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTDL(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTFIELDSET(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTFORM(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH1(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH2(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH3(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH4(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH5(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTH6(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTHR(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTISINDEX(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTMENU(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTNOSCRIPT(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTOL(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTP(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTPRE(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTTABLE(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | (Tok.STARTUL(_), _, strm') =>
+                    map_PROD_1_SUBRULE_1_PROD_2(strm)
+                | _ => fail()
+              (* end case *))
+            end
+      fun map_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMENT(_), _, strm') => true
+              | (Tok.PCDATA(_), _, strm') => true
+              | (Tok.CHAR_REF(_), _, strm') => true
+              | (Tok.ENTITY_REF(_), _, strm') => true
+              | (Tok.STARTADDRESS(_), _, strm') => true
+              | (Tok.STARTAREA(_), _, strm') => true
+              | (Tok.STARTBLOCKQUOTE(_), _, strm') => true
+              | (Tok.STARTCENTER(_), _, strm') => true
+              | (Tok.STARTDIR(_), _, strm') => true
+              | (Tok.STARTDIV(_), _, strm') => true
+              | (Tok.STARTDL(_), _, strm') => true
+              | (Tok.STARTFIELDSET(_), _, strm') => true
+              | (Tok.STARTFORM(_), _, strm') => true
+              | (Tok.STARTH1(_), _, strm') => true
+              | (Tok.STARTH2(_), _, strm') => true
+              | (Tok.STARTH3(_), _, strm') => true
+              | (Tok.STARTH4(_), _, strm') => true
+              | (Tok.STARTH5(_), _, strm') => true
+              | (Tok.STARTH6(_), _, strm') => true
+              | (Tok.STARTHR(_), _, strm') => true
+              | (Tok.STARTISINDEX(_), _, strm') => true
+              | (Tok.STARTMENU(_), _, strm') => true
+              | (Tok.STARTNOSCRIPT(_), _, strm') => true
+              | (Tok.STARTOL(_), _, strm') => true
+              | (Tok.STARTP(_), _, strm') => true
+              | (Tok.STARTPRE(_), _, strm') => true
+              | (Tok.STARTTABLE(_), _, strm') => true
+              | (Tok.STARTUL(_), _, strm') => true
+              | _ => false
+            (* end case *))
+      val (SR_RES, SR_SPAN, strm') = EBNF.posclos(map_PROD_1_SUBRULE_1_PRED, map_PROD_1_SUBRULE_1_NT, strm')
+      val (ENDMAP_RES, ENDMAP_SPAN, strm') = matchENDMAP(strm')
+      val FULL_SPAN = (#1(STARTMAP_SPAN), #2(ENDMAP_SPAN))
+      in
+        (UserCode.map_PROD_1_ACT (SR_RES, STARTMAP_RES, ENDMAP_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTMAP_SPAN : (Lex.pos * Lex.pos), ENDMAP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
       end
 and block_NT (strm) = let
       fun block_PROD_1 (strm) = let
@@ -2562,7 +3540,7 @@ and center_NT (strm) = let
       val (ENDCENTER_RES, ENDCENTER_SPAN, strm') = matchENDCENTER(strm')
       val FULL_SPAN = (#1(STARTCENTER_SPAN), #2(ENDCENTER_SPAN))
       in
-        (UserCode.center_PROD_1_ACT (flow_RES, ENDCENTER_RES, STARTCENTER_RES, flow_SPAN : (Lex.pos * Lex.pos), ENDCENTER_SPAN : (Lex.pos * Lex.pos), STARTCENTER_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.center_PROD_1_ACT (ENDCENTER_RES, flow_RES, STARTCENTER_RES, ENDCENTER_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTCENTER_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and address_NT (strm) = let
@@ -2622,7 +3600,7 @@ and address_NT (strm) = let
       val (ENDADDRESS_RES, ENDADDRESS_SPAN, strm') = matchENDADDRESS(strm')
       val FULL_SPAN = (#1(STARTADDRESS_SPAN), #2(ENDADDRESS_SPAN))
       in
-        (UserCode.address_PROD_1_ACT (inline_RES, ENDADDRESS_RES, STARTADDRESS_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDADDRESS_SPAN : (Lex.pos * Lex.pos), STARTADDRESS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.address_PROD_1_ACT (inline_RES, STARTADDRESS_RES, ENDADDRESS_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTADDRESS_SPAN : (Lex.pos * Lex.pos), ENDADDRESS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and fieldset_NT (strm) = let
@@ -2707,7 +3685,7 @@ and fieldset_NT (strm) = let
       val (ENDFIELDSET_RES, ENDFIELDSET_SPAN, strm') = matchENDFIELDSET(strm')
       val FULL_SPAN = (#1(STARTFIELDSET_SPAN), #2(ENDFIELDSET_SPAN))
       in
-        (UserCode.fieldset_PROD_1_ACT (flow_RES, legend_RES, cdata_opt_RES, ENDFIELDSET_RES, STARTFIELDSET_RES, flow_SPAN : (Lex.pos * Lex.pos), legend_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDFIELDSET_SPAN : (Lex.pos * Lex.pos), STARTFIELDSET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.fieldset_PROD_1_ACT (cdata_opt_RES, legend_RES, flow_RES, ENDFIELDSET_RES, STARTFIELDSET_RES, cdata_opt_SPAN : (Lex.pos * Lex.pos), legend_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), ENDFIELDSET_SPAN : (Lex.pos * Lex.pos), STARTFIELDSET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and legend_NT (strm) = let
@@ -2778,7 +3756,7 @@ and table_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(caption_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.table_PROD_1_SUBRULE_1_PROD_1_ACT (caption_RES, cdata_opt_RES, STARTTABLE_RES, caption_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTABLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.table_PROD_1_SUBRULE_1_PROD_1_ACT (STARTTABLE_RES, cdata_opt_RES, caption_RES, STARTTABLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), caption_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun table_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
@@ -2791,7 +3769,7 @@ and table_NT (strm) = let
       val (ENDTABLE_RES, ENDTABLE_SPAN, strm') = matchENDTABLE(strm')
       val FULL_SPAN = (#1(STARTTABLE_SPAN), #2(ENDTABLE_SPAN))
       in
-        (UserCode.table_PROD_1_ACT (SR_RES, ENDTABLE_RES, cdata_opt_RES, STARTTABLE_RES, col_or_colgroups_RES, table_content_RES, SR_SPAN : (Lex.pos * Lex.pos), ENDTABLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTABLE_SPAN : (Lex.pos * Lex.pos), col_or_colgroups_SPAN : (Lex.pos * Lex.pos), table_content_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.table_PROD_1_ACT (SR_RES, STARTTABLE_RES, cdata_opt_RES, table_content_RES, ENDTABLE_RES, col_or_colgroups_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTTABLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), table_content_SPAN : (Lex.pos * Lex.pos), ENDTABLE_SPAN : (Lex.pos * Lex.pos), col_or_colgroups_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and table_content_NT (strm) = let
@@ -2811,7 +3789,7 @@ and table_content_NT (strm) = let
             val (tbodies_RES, tbodies_SPAN, strm') = tbodies_NT(strm')
             val FULL_SPAN = (#1(thead_SPAN), #2(tbodies_SPAN))
             in
-              (UserCode.table_content_PROD_1_ACT (tfoot_RES, thead_RES, tbodies_RES, tfoot_SPAN : (Lex.pos * Lex.pos), thead_SPAN : (Lex.pos * Lex.pos), tbodies_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.table_content_PROD_1_ACT (tbodies_RES, tfoot_RES, thead_RES, tbodies_SPAN : (Lex.pos * Lex.pos), tfoot_SPAN : (Lex.pos * Lex.pos), thead_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun table_content_PROD_2 (strm) = let
@@ -2819,7 +3797,7 @@ and table_content_NT (strm) = let
             val (tbodies_RES, tbodies_SPAN, strm') = tbodies_NT(strm')
             val FULL_SPAN = (#1(tfoot_SPAN), #2(tbodies_SPAN))
             in
-              (UserCode.table_content_PROD_2_ACT (tfoot_RES, tbodies_RES, tfoot_SPAN : (Lex.pos * Lex.pos), tbodies_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.table_content_PROD_2_ACT (tbodies_RES, tfoot_RES, tbodies_SPAN : (Lex.pos * Lex.pos), tfoot_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun table_content_PROD_3 (strm) = let
@@ -2877,7 +3855,7 @@ and tbodies_nostart_NT (strm) = let
       val (tbodies_rest_RES, tbodies_rest_SPAN, strm') = EBNF.optional(tbodies_nostart_PROD_1_SUBRULE_3_PRED, tbodies_nostart_PROD_1_SUBRULE_3_NT, strm')
       val FULL_SPAN = (#1(SR_SPAN), #2(tbodies_rest_SPAN))
       in
-        (UserCode.tbodies_nostart_PROD_1_ACT (SR_RES, tr_RES, tbodies_rest_RES, SR_SPAN : (Lex.pos * Lex.pos), tr_SPAN : (Lex.pos * Lex.pos), tbodies_rest_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.tbodies_nostart_PROD_1_ACT (tr_RES, SR_RES, tbodies_rest_RES, tr_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), tbodies_rest_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and tbodies_rest_NT (strm) = let
@@ -2897,7 +3875,7 @@ and tbodies_rest_NT (strm) = let
             val (tbodies_RES, tbodies_SPAN, strm') = EBNF.optional(tbodies_rest_PROD_1_SUBRULE_1_PRED, tbodies_rest_PROD_1_SUBRULE_1_NT, strm')
             val FULL_SPAN = (#1(ENDTBODY_SPAN), #2(tbodies_SPAN))
             in
-              (UserCode.tbodies_rest_PROD_1_ACT (tbodies_RES, ENDTBODY_RES, cdata_opt_RES, tbodies_SPAN : (Lex.pos * Lex.pos), ENDTBODY_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.tbodies_rest_PROD_1_ACT (cdata_opt_RES, tbodies_RES, ENDTBODY_RES, cdata_opt_SPAN : (Lex.pos * Lex.pos), tbodies_SPAN : (Lex.pos * Lex.pos), ENDTBODY_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun tbodies_rest_PROD_2 (strm) = let
@@ -2975,7 +3953,7 @@ and tr_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(ENDTR_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.tr_PROD_1_SUBRULE_2_PROD_1_ACT (SR1_RES, ENDTR_RES, STARTTR_RES, cdata_opt_RES, SR1_SPAN : (Lex.pos * Lex.pos), ENDTR_SPAN : (Lex.pos * Lex.pos), STARTTR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.tr_PROD_1_SUBRULE_2_PROD_1_ACT (ENDTR_RES, SR1_RES, cdata_opt_RES, STARTTR_RES, ENDTR_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun tr_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -2985,7 +3963,7 @@ and tr_NT (strm) = let
       val (SR2_RES, SR2_SPAN, strm') = EBNF.optional(tr_PROD_1_SUBRULE_2_PRED, tr_PROD_1_SUBRULE_2_NT, strm')
       val FULL_SPAN = (#1(STARTTR_SPAN), #2(SR2_SPAN))
       in
-        (UserCode.tr_PROD_1_ACT (SR1_RES, SR2_RES, STARTTR_RES, cdata_opt_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), STARTTR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.tr_PROD_1_ACT (SR1_RES, SR2_RES, cdata_opt_RES, STARTTR_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and td_NT (strm) = let
@@ -3070,7 +4048,7 @@ and td_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(ENDTD_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.td_PROD_1_SUBRULE_2_PROD_1_ACT (flow_RES, ENDTD_RES, STARTTD_RES, cdata_opt_RES, flow_SPAN : (Lex.pos * Lex.pos), ENDTD_SPAN : (Lex.pos * Lex.pos), STARTTD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.td_PROD_1_SUBRULE_2_PROD_1_ACT (ENDTD_RES, cdata_opt_RES, STARTTD_RES, flow_RES, ENDTD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTD_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun td_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -3080,7 +4058,7 @@ and td_NT (strm) = let
       val (SR_RES, SR_SPAN, strm') = EBNF.optional(td_PROD_1_SUBRULE_2_PRED, td_PROD_1_SUBRULE_2_NT, strm')
       val FULL_SPAN = (#1(STARTTD_SPAN), #2(SR_SPAN))
       in
-        (UserCode.td_PROD_1_ACT (SR_RES, flow_RES, STARTTD_RES, SR_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTTD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.td_PROD_1_ACT (SR_RES, STARTTD_RES, flow_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTTD_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and th_NT (strm) = let
@@ -3165,7 +4143,7 @@ and th_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(ENDTH_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.th_PROD_1_SUBRULE_2_PROD_1_ACT (flow_RES, ENDTH_RES, STARTTH_RES, cdata_opt_RES, flow_SPAN : (Lex.pos * Lex.pos), ENDTH_SPAN : (Lex.pos * Lex.pos), STARTTH_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.th_PROD_1_SUBRULE_2_PROD_1_ACT (ENDTH_RES, cdata_opt_RES, STARTTH_RES, flow_RES, ENDTH_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTH_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun th_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -3175,7 +4153,7 @@ and th_NT (strm) = let
       val (SR_RES, SR_SPAN, strm') = EBNF.optional(th_PROD_1_SUBRULE_2_PRED, th_PROD_1_SUBRULE_2_NT, strm')
       val FULL_SPAN = (#1(STARTTH_SPAN), #2(SR_SPAN))
       in
-        (UserCode.th_PROD_1_ACT (SR_RES, flow_RES, STARTTH_RES, SR_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTTH_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.th_PROD_1_ACT (SR_RES, STARTTH_RES, flow_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTTH_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and tbodies_NT (strm) = let
@@ -3217,7 +4195,7 @@ and tfoot_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(ENDTFOOT_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.tfoot_PROD_1_SUBRULE_2_PROD_1_ACT (tr_RES, ENDTFOOT_RES, cdata_opt_RES, STARTTFOOT_RES, tr_SPAN : (Lex.pos * Lex.pos), ENDTFOOT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTFOOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.tfoot_PROD_1_SUBRULE_2_PROD_1_ACT (tr_RES, STARTTFOOT_RES, cdata_opt_RES, ENDTFOOT_RES, tr_SPAN : (Lex.pos * Lex.pos), STARTTFOOT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDTFOOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun tfoot_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -3227,7 +4205,7 @@ and tfoot_NT (strm) = let
       val (SR_RES, SR_SPAN, strm') = EBNF.optional(tfoot_PROD_1_SUBRULE_2_PRED, tfoot_PROD_1_SUBRULE_2_NT, strm')
       val FULL_SPAN = (#1(STARTTFOOT_SPAN), #2(SR_SPAN))
       in
-        (UserCode.tfoot_PROD_1_ACT (SR_RES, tr_RES, cdata_opt_RES, STARTTFOOT_RES, SR_SPAN : (Lex.pos * Lex.pos), tr_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTFOOT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.tfoot_PROD_1_ACT (tr_RES, SR_RES, STARTTFOOT_RES, cdata_opt_RES, tr_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), STARTTFOOT_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and thead_NT (strm) = let
@@ -3249,7 +4227,7 @@ and thead_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(ENDTHEAD_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.thead_PROD_1_SUBRULE_2_PROD_1_ACT (tr_RES, ENDTHEAD_RES, cdata_opt_RES, STARTTHEAD_RES, tr_SPAN : (Lex.pos * Lex.pos), ENDTHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTHEAD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.thead_PROD_1_SUBRULE_2_PROD_1_ACT (tr_RES, STARTTHEAD_RES, ENDTHEAD_RES, cdata_opt_RES, tr_SPAN : (Lex.pos * Lex.pos), STARTTHEAD_SPAN : (Lex.pos * Lex.pos), ENDTHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun thead_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -3259,7 +4237,7 @@ and thead_NT (strm) = let
       val (SR_RES, SR_SPAN, strm') = EBNF.optional(thead_PROD_1_SUBRULE_2_PRED, thead_PROD_1_SUBRULE_2_NT, strm')
       val FULL_SPAN = (#1(STARTTHEAD_SPAN), #2(SR_SPAN))
       in
-        (UserCode.thead_PROD_1_ACT (SR_RES, tr_RES, cdata_opt_RES, STARTTHEAD_RES, SR_SPAN : (Lex.pos * Lex.pos), tr_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTHEAD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.thead_PROD_1_ACT (tr_RES, SR_RES, STARTTHEAD_RES, cdata_opt_RES, tr_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), STARTTHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and caption_NT (strm) = let
@@ -3319,7 +4297,7 @@ and caption_NT (strm) = let
       val (ENDCAPTION_RES, ENDCAPTION_SPAN, strm') = matchENDCAPTION(strm')
       val FULL_SPAN = (#1(STARTCAPTION_SPAN), #2(ENDCAPTION_SPAN))
       in
-        (UserCode.caption_PROD_1_ACT (inline_RES, ENDCAPTION_RES, STARTCAPTION_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDCAPTION_SPAN : (Lex.pos * Lex.pos), STARTCAPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.caption_PROD_1_ACT (inline_RES, STARTCAPTION_RES, ENDCAPTION_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTCAPTION_SPAN : (Lex.pos * Lex.pos), ENDCAPTION_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and form_NT (strm) = let
@@ -3559,7 +4537,7 @@ and blockquote_NT (strm) = let
       val (ENDBLOCKQUOTE_RES, ENDBLOCKQUOTE_SPAN, strm') = matchENDBLOCKQUOTE(strm')
       val FULL_SPAN = (#1(STARTBLOCKQUOTE_SPAN), #2(ENDBLOCKQUOTE_SPAN))
       in
-        (UserCode.blockquote_PROD_1_ACT (SR_RES, ENDBLOCKQUOTE_RES, STARTBLOCKQUOTE_RES, SR_SPAN : (Lex.pos * Lex.pos), ENDBLOCKQUOTE_SPAN : (Lex.pos * Lex.pos), STARTBLOCKQUOTE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.blockquote_PROD_1_ACT (SR_RES, STARTBLOCKQUOTE_RES, ENDBLOCKQUOTE_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTBLOCKQUOTE_SPAN : (Lex.pos * Lex.pos), ENDBLOCKQUOTE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and noscript_NT (strm) = let
@@ -3790,7 +4768,7 @@ and dl_NT (strm) = let
       val (ENDDL_RES, ENDDL_SPAN, strm') = matchENDDL(strm')
       val FULL_SPAN = (#1(STARTDL_SPAN), #2(ENDDL_SPAN))
       in
-        (UserCode.dl_PROD_1_ACT (SR_RES, ENDDL_RES, STARTDL_RES, cdata_opt_RES, SR_SPAN : (Lex.pos * Lex.pos), ENDDL_SPAN : (Lex.pos * Lex.pos), STARTDL_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.dl_PROD_1_ACT (ENDDL_RES, SR_RES, cdata_opt_RES, STARTDL_RES, ENDDL_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTDL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and dd_NT (strm) = let
@@ -3874,7 +4852,7 @@ and dd_NT (strm) = let
             val (ENDDD_RES, ENDDD_SPAN, strm') = matchENDDD(strm)
             val FULL_SPAN = (#1(ENDDD_SPAN), #2(ENDDD_SPAN))
             in
-              (UserCode.dd_PROD_1_SUBRULE_2_PROD_1_ACT (flow_RES, ENDDD_RES, STARTDD_RES, flow_SPAN : (Lex.pos * Lex.pos), ENDDD_SPAN : (Lex.pos * Lex.pos), STARTDD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.dd_PROD_1_SUBRULE_2_PROD_1_ACT (ENDDD_RES, STARTDD_RES, flow_RES, ENDDD_SPAN : (Lex.pos * Lex.pos), STARTDD_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun dd_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -3884,7 +4862,7 @@ and dd_NT (strm) = let
       val (SR_RES, SR_SPAN, strm') = EBNF.optional(dd_PROD_1_SUBRULE_2_PRED, dd_PROD_1_SUBRULE_2_NT, strm')
       val FULL_SPAN = (#1(STARTDD_SPAN), #2(SR_SPAN))
       in
-        (UserCode.dd_PROD_1_ACT (SR_RES, flow_RES, STARTDD_RES, SR_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTDD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.dd_PROD_1_ACT (SR_RES, STARTDD_RES, flow_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTDD_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and dt_NT (strm) = let
@@ -4021,7 +4999,7 @@ and pre_NT (strm) = let
       val (ENDPRE_RES, ENDPRE_SPAN, strm') = matchENDPRE(strm')
       val FULL_SPAN = (#1(STARTPRE_SPAN), #2(ENDPRE_SPAN))
       in
-        (UserCode.pre_PROD_1_ACT (ENDPRE_RES, inline_RES, STARTPRE_RES, ENDPRE_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTPRE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.pre_PROD_1_ACT (inline_RES, ENDPRE_RES, STARTPRE_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDPRE_SPAN : (Lex.pos * Lex.pos), STARTPRE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and list_NT (strm) = let
@@ -4089,7 +5067,7 @@ and menu_NT (strm) = let
       val (ENDMENU_RES, ENDMENU_SPAN, strm') = matchENDMENU(strm')
       val FULL_SPAN = (#1(STARTMENU_SPAN), #2(ENDMENU_SPAN))
       in
-        (UserCode.menu_PROD_1_ACT (li_RES, ENDMENU_RES, STARTMENU_RES, cdata_opt_RES, li_SPAN : (Lex.pos * Lex.pos), ENDMENU_SPAN : (Lex.pos * Lex.pos), STARTMENU_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.menu_PROD_1_ACT (li_RES, cdata_opt_RES, STARTMENU_RES, ENDMENU_RES, li_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTMENU_SPAN : (Lex.pos * Lex.pos), ENDMENU_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and li_NT (strm) = let
@@ -4173,7 +5151,7 @@ and li_NT (strm) = let
             val (ENDLI_RES, ENDLI_SPAN, strm') = matchENDLI(strm)
             val FULL_SPAN = (#1(ENDLI_SPAN), #2(ENDLI_SPAN))
             in
-              (UserCode.li_PROD_1_SUBRULE_2_PROD_1_ACT (flow_RES, ENDLI_RES, STARTLI_RES, flow_SPAN : (Lex.pos * Lex.pos), ENDLI_SPAN : (Lex.pos * Lex.pos), STARTLI_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.li_PROD_1_SUBRULE_2_PROD_1_ACT (ENDLI_RES, STARTLI_RES, flow_RES, ENDLI_SPAN : (Lex.pos * Lex.pos), STARTLI_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun li_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -4183,7 +5161,7 @@ and li_NT (strm) = let
       val (SR_RES, SR_SPAN, strm') = EBNF.optional(li_PROD_1_SUBRULE_2_PRED, li_PROD_1_SUBRULE_2_NT, strm')
       val FULL_SPAN = (#1(STARTLI_SPAN), #2(SR_SPAN))
       in
-        (UserCode.li_PROD_1_ACT (SR_RES, flow_RES, STARTLI_RES, SR_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), STARTLI_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.li_PROD_1_ACT (SR_RES, STARTLI_RES, flow_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTLI_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and dir_NT (strm) = let
@@ -4203,7 +5181,7 @@ and dir_NT (strm) = let
       val (ENDDIR_RES, ENDDIR_SPAN, strm') = matchENDDIR(strm')
       val FULL_SPAN = (#1(STARTDIR_SPAN), #2(ENDDIR_SPAN))
       in
-        (UserCode.dir_PROD_1_ACT (li_RES, ENDDIR_RES, STARTDIR_RES, cdata_opt_RES, li_SPAN : (Lex.pos * Lex.pos), ENDDIR_SPAN : (Lex.pos * Lex.pos), STARTDIR_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.dir_PROD_1_ACT (li_RES, cdata_opt_RES, ENDDIR_RES, STARTDIR_RES, li_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDDIR_SPAN : (Lex.pos * Lex.pos), STARTDIR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and ol_NT (strm) = let
@@ -4223,7 +5201,7 @@ and ol_NT (strm) = let
       val (ENDOL_RES, ENDOL_SPAN, strm') = matchENDOL(strm')
       val FULL_SPAN = (#1(STARTOL_SPAN), #2(ENDOL_SPAN))
       in
-        (UserCode.ol_PROD_1_ACT (li_RES, ENDOL_RES, STARTOL_RES, cdata_opt_RES, li_SPAN : (Lex.pos * Lex.pos), ENDOL_SPAN : (Lex.pos * Lex.pos), STARTOL_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.ol_PROD_1_ACT (ENDOL_RES, li_RES, cdata_opt_RES, STARTOL_RES, ENDOL_SPAN : (Lex.pos * Lex.pos), li_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTOL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and ul_NT (strm) = let
@@ -4243,7 +5221,7 @@ and ul_NT (strm) = let
       val (ENDUL_RES, ENDUL_SPAN, strm') = matchENDUL(strm')
       val FULL_SPAN = (#1(STARTUL_SPAN), #2(ENDUL_SPAN))
       in
-        (UserCode.ul_PROD_1_ACT (li_RES, ENDUL_RES, STARTUL_RES, cdata_opt_RES, li_SPAN : (Lex.pos * Lex.pos), ENDUL_SPAN : (Lex.pos * Lex.pos), STARTUL_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.ul_PROD_1_ACT (li_RES, ENDUL_RES, cdata_opt_RES, STARTUL_RES, li_SPAN : (Lex.pos * Lex.pos), ENDUL_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTUL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and heading_NT (strm) = let
@@ -4711,985 +5689,7 @@ and p_NT (strm) = let
       val (ENDP_RES, ENDP_SPAN, strm') = matchENDP(strm')
       val FULL_SPAN = (#1(STARTP_SPAN), #2(ENDP_SPAN))
       in
-        (UserCode.p_PROD_1_ACT (ENDP_RES, STARTP_RES, inline_RES, ENDP_SPAN : (Lex.pos * Lex.pos), STARTP_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and label_NT (strm) = let
-      val (STARTLABEL_RES, STARTLABEL_SPAN, strm') = matchSTARTLABEL(strm)
-      fun label_PROD_1_SUBRULE_1_NT (strm) = let
-            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
-            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
-            in
-              ((inline_RES), FULL_SPAN, strm')
-            end
-      fun label_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (inline_RES, inline_SPAN, strm') = EBNF.closure(label_PROD_1_SUBRULE_1_PRED, label_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDLABEL_RES, ENDLABEL_SPAN, strm') = matchENDLABEL(strm')
-      val FULL_SPAN = (#1(STARTLABEL_SPAN), #2(ENDLABEL_SPAN))
-      in
-        (UserCode.label_PROD_1_ACT (inline_RES, ENDLABEL_RES, STARTLABEL_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDLABEL_SPAN : (Lex.pos * Lex.pos), STARTLABEL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and special_NT (strm) = let
-      fun special_PROD_1 (strm) = let
-            val (a_RES, a_SPAN, strm') = a_NT(strm)
-            val FULL_SPAN = (#1(a_SPAN), #2(a_SPAN))
-            in
-              ((a_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_2 (strm) = let
-            val (img_RES, img_SPAN, strm') = img_NT(strm)
-            val FULL_SPAN = (#1(img_SPAN), #2(img_SPAN))
-            in
-              ((img_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_3 (strm) = let
-            val (object_RES, object_SPAN, strm') = object_NT(strm)
-            val FULL_SPAN = (#1(object_SPAN), #2(object_SPAN))
-            in
-              ((object_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_4 (strm) = let
-            val (br_RES, br_SPAN, strm') = br_NT(strm)
-            val FULL_SPAN = (#1(br_SPAN), #2(br_SPAN))
-            in
-              ((br_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_5 (strm) = let
-            val (script_RES, script_SPAN, strm') = script_NT(strm)
-            val FULL_SPAN = (#1(script_SPAN), #2(script_SPAN))
-            in
-              ((script_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_6 (strm) = let
-            val (map_RES, map_SPAN, strm') = map_NT(strm)
-            val FULL_SPAN = (#1(map_SPAN), #2(map_SPAN))
-            in
-              ((map_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_7 (strm) = let
-            val (q_RES, q_SPAN, strm') = q_NT(strm)
-            val FULL_SPAN = (#1(q_SPAN), #2(q_SPAN))
-            in
-              ((q_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_8 (strm) = let
-            val (sub_RES, sub_SPAN, strm') = sub_NT(strm)
-            val FULL_SPAN = (#1(sub_SPAN), #2(sub_SPAN))
-            in
-              ((sub_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_9 (strm) = let
-            val (sup_RES, sup_SPAN, strm') = sup_NT(strm)
-            val FULL_SPAN = (#1(sup_SPAN), #2(sup_SPAN))
-            in
-              ((sup_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_10 (strm) = let
-            val (span_RES, span_SPAN, strm') = span_NT(strm)
-            val FULL_SPAN = (#1(span_SPAN), #2(span_SPAN))
-            in
-              ((span_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_11 (strm) = let
-            val (bdo_RES, bdo_SPAN, strm') = bdo_NT(strm)
-            val FULL_SPAN = (#1(bdo_SPAN), #2(bdo_SPAN))
-            in
-              ((bdo_RES), FULL_SPAN, strm')
-            end
-      fun special_PROD_12 (strm) = let
-            val (special_loose_RES, special_loose_SPAN, strm') = special_loose_NT(strm)
-            val FULL_SPAN = (#1(special_loose_SPAN), #2(special_loose_SPAN))
-            in
-              ((special_loose_RES), FULL_SPAN, strm')
-            end
-      in
-        (case (lex(strm))
-         of (Tok.STARTAPPLET(_), _, strm') => special_PROD_12(strm)
-          | (Tok.STARTBASEFONT(_), _, strm') => special_PROD_12(strm)
-          | (Tok.STARTFONT(_), _, strm') => special_PROD_12(strm)
-          | (Tok.STARTIFRAME(_), _, strm') => special_PROD_12(strm)
-          | (Tok.STARTSPAN(_), _, strm') => special_PROD_10(strm)
-          | (Tok.STARTSUB(_), _, strm') => special_PROD_8(strm)
-          | (Tok.STARTMAP(_), _, strm') => special_PROD_6(strm)
-          | (Tok.STARTBR(_), _, strm') => special_PROD_4(strm)
-          | (Tok.STARTIMG(_), _, strm') => special_PROD_2(strm)
-          | (Tok.STARTA(_), _, strm') => special_PROD_1(strm)
-          | (Tok.STARTOBJECT(_), _, strm') => special_PROD_3(strm)
-          | (Tok.STARTSCRIPT(_), _, strm') => special_PROD_5(strm)
-          | (Tok.STARTQ(_), _, strm') => special_PROD_7(strm)
-          | (Tok.STARTSUP(_), _, strm') => special_PROD_9(strm)
-          | (Tok.STARTBDO(_), _, strm') => special_PROD_11(strm)
-          | _ => fail()
-        (* end case *))
-      end
-and special_loose_NT (strm) = let
-      fun special_loose_PROD_1 (strm) = let
-            val (applet_RES, applet_SPAN, strm') = applet_NT(strm)
-            val FULL_SPAN = (#1(applet_SPAN), #2(applet_SPAN))
-            in
-              ((applet_RES), FULL_SPAN, strm')
-            end
-      fun special_loose_PROD_2 (strm) = let
-            val (basefont_RES, basefont_SPAN, strm') = basefont_NT(strm)
-            val FULL_SPAN = (#1(basefont_SPAN), #2(basefont_SPAN))
-            in
-              ((basefont_RES), FULL_SPAN, strm')
-            end
-      fun special_loose_PROD_3 (strm) = let
-            val (font_RES, font_SPAN, strm') = font_NT(strm)
-            val FULL_SPAN = (#1(font_SPAN), #2(font_SPAN))
-            in
-              ((font_RES), FULL_SPAN, strm')
-            end
-      fun special_loose_PROD_4 (strm) = let
-            val (iframe_RES, iframe_SPAN, strm') = iframe_NT(strm)
-            val FULL_SPAN = (#1(iframe_SPAN), #2(iframe_SPAN))
-            in
-              ((iframe_RES), FULL_SPAN, strm')
-            end
-      in
-        (case (lex(strm))
-         of (Tok.STARTIFRAME(_), _, strm') => special_loose_PROD_4(strm)
-          | (Tok.STARTBASEFONT(_), _, strm') => special_loose_PROD_2(strm)
-          | (Tok.STARTAPPLET(_), _, strm') => special_loose_PROD_1(strm)
-          | (Tok.STARTFONT(_), _, strm') => special_loose_PROD_3(strm)
-          | _ => fail()
-        (* end case *))
-      end
-and iframe_NT (strm) = let
-      val (STARTIFRAME_RES, STARTIFRAME_SPAN, strm') = matchSTARTIFRAME(strm)
-      fun iframe_PROD_1_SUBRULE_1_NT (strm) = let
-            val (flow_RES, flow_SPAN, strm') = flow_NT(strm)
-            val FULL_SPAN = (#1(flow_SPAN), #2(flow_SPAN))
-            in
-              ((flow_RES), FULL_SPAN, strm')
-            end
-      fun iframe_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTADDRESS(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBLOCKQUOTE(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCENTER(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTDIR(_), _, strm') => true
-              | (Tok.STARTDIV(_), _, strm') => true
-              | (Tok.STARTDL(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFIELDSET(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTFORM(_), _, strm') => true
-              | (Tok.STARTH1(_), _, strm') => true
-              | (Tok.STARTH2(_), _, strm') => true
-              | (Tok.STARTH3(_), _, strm') => true
-              | (Tok.STARTH4(_), _, strm') => true
-              | (Tok.STARTH5(_), _, strm') => true
-              | (Tok.STARTH6(_), _, strm') => true
-              | (Tok.STARTHR(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTISINDEX(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTMENU(_), _, strm') => true
-              | (Tok.STARTNOSCRIPT(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTOL(_), _, strm') => true
-              | (Tok.STARTP(_), _, strm') => true
-              | (Tok.STARTPRE(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTABLE(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTUL(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (flow_RES, flow_SPAN, strm') = EBNF.closure(iframe_PROD_1_SUBRULE_1_PRED, iframe_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDIFRAME_RES, ENDIFRAME_SPAN, strm') = matchENDIFRAME(strm')
-      val FULL_SPAN = (#1(STARTIFRAME_SPAN), #2(ENDIFRAME_SPAN))
-      in
-        (UserCode.iframe_PROD_1_ACT (flow_RES, ENDIFRAME_RES, STARTIFRAME_RES, flow_SPAN : (Lex.pos * Lex.pos), ENDIFRAME_SPAN : (Lex.pos * Lex.pos), STARTIFRAME_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and font_NT (strm) = let
-      val (STARTFONT_RES, STARTFONT_SPAN, strm') = matchSTARTFONT(strm)
-      fun font_PROD_1_SUBRULE_1_NT (strm) = let
-            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
-            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
-            in
-              ((inline_RES), FULL_SPAN, strm')
-            end
-      fun font_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (inline_RES, inline_SPAN, strm') = EBNF.closure(font_PROD_1_SUBRULE_1_PRED, font_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDFONT_RES, ENDFONT_SPAN, strm') = matchENDFONT(strm')
-      val FULL_SPAN = (#1(STARTFONT_SPAN), #2(ENDFONT_SPAN))
-      in
-        (UserCode.font_PROD_1_ACT (inline_RES, ENDFONT_RES, STARTFONT_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDFONT_SPAN : (Lex.pos * Lex.pos), STARTFONT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and applet_NT (strm) = let
-      val (STARTAPPLET_RES, STARTAPPLET_SPAN, strm') = matchSTARTAPPLET(strm)
-      fun applet_PROD_1_SUBRULE_1_NT (strm) = let
-            fun applet_PROD_1_SUBRULE_1_PROD_1 (strm) = let
-                  val (param_RES, param_SPAN, strm') = param_NT(strm)
-                  val FULL_SPAN = (#1(param_SPAN), #2(param_SPAN))
-                  in
-                    ((param_RES), FULL_SPAN, strm')
-                  end
-            fun applet_PROD_1_SUBRULE_1_PROD_2 (strm) = let
-                  val (flow_RES, flow_SPAN, strm') = flow_NT(strm)
-                  val FULL_SPAN = (#1(flow_SPAN), #2(flow_SPAN))
-                  in
-                    ((flow_RES), FULL_SPAN, strm')
-                  end
-            in
-              (case (lex(strm))
-               of (Tok.COMMENT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.PCDATA(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.CHAR_REF(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.ENTITY_REF(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTA(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTABBR(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTACRONYM(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTADDRESS(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTAPPLET(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTB(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTBASEFONT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTBDO(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTBIG(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTBLOCKQUOTE(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTBR(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTBUTTON(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTCENTER(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTCITE(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTCODE(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTDFN(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTDIR(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTDIV(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTDL(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTEM(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTFIELDSET(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTFONT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTFORM(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH1(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH2(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH3(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH4(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH5(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH6(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTHR(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTI(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTIFRAME(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTIMG(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTINPUT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTISINDEX(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTKBD(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTLABEL(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTMAP(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTMENU(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTNOSCRIPT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTOBJECT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTOL(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTP(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTPRE(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTQ(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTS(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSAMP(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSCRIPT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSELECT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSMALL(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSPAN(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSTRIKE(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSTRONG(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSUB(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTSUP(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTTABLE(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTTEXTAREA(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTTT(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTU(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTUL(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTVAR(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTPARAM(_), _, strm') =>
-                    applet_PROD_1_SUBRULE_1_PROD_1(strm)
-                | _ => fail()
-              (* end case *))
-            end
-      fun applet_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTADDRESS(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBLOCKQUOTE(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCENTER(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTDIR(_), _, strm') => true
-              | (Tok.STARTDIV(_), _, strm') => true
-              | (Tok.STARTDL(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFIELDSET(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTFORM(_), _, strm') => true
-              | (Tok.STARTH1(_), _, strm') => true
-              | (Tok.STARTH2(_), _, strm') => true
-              | (Tok.STARTH3(_), _, strm') => true
-              | (Tok.STARTH4(_), _, strm') => true
-              | (Tok.STARTH5(_), _, strm') => true
-              | (Tok.STARTH6(_), _, strm') => true
-              | (Tok.STARTHR(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTISINDEX(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTMENU(_), _, strm') => true
-              | (Tok.STARTNOSCRIPT(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTOL(_), _, strm') => true
-              | (Tok.STARTP(_), _, strm') => true
-              | (Tok.STARTPARAM(_), _, strm') => true
-              | (Tok.STARTPRE(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTABLE(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTUL(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (SR_RES, SR_SPAN, strm') = EBNF.closure(applet_PROD_1_SUBRULE_1_PRED, applet_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDAPPLET_RES, ENDAPPLET_SPAN, strm') = matchENDAPPLET(strm')
-      val FULL_SPAN = (#1(STARTAPPLET_SPAN), #2(ENDAPPLET_SPAN))
-      in
-        (UserCode.applet_PROD_1_ACT (SR_RES, ENDAPPLET_RES, STARTAPPLET_RES, SR_SPAN : (Lex.pos * Lex.pos), ENDAPPLET_SPAN : (Lex.pos * Lex.pos), STARTAPPLET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and bdo_NT (strm) = let
-      val (STARTBDO_RES, STARTBDO_SPAN, strm') = matchSTARTBDO(strm)
-      fun bdo_PROD_1_SUBRULE_1_NT (strm) = let
-            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
-            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
-            in
-              ((inline_RES), FULL_SPAN, strm')
-            end
-      fun bdo_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (inline_RES, inline_SPAN, strm') = EBNF.closure(bdo_PROD_1_SUBRULE_1_PRED, bdo_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDBDO_RES, ENDBDO_SPAN, strm') = matchENDBDO(strm')
-      val FULL_SPAN = (#1(STARTBDO_SPAN), #2(ENDBDO_SPAN))
-      in
-        (UserCode.bdo_PROD_1_ACT (ENDBDO_RES, inline_RES, STARTBDO_RES, ENDBDO_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTBDO_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and span_NT (strm) = let
-      val (STARTSPAN_RES, STARTSPAN_SPAN, strm') = matchSTARTSPAN(strm)
-      fun span_PROD_1_SUBRULE_1_NT (strm) = let
-            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
-            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
-            in
-              ((inline_RES), FULL_SPAN, strm')
-            end
-      fun span_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (inline_RES, inline_SPAN, strm') = EBNF.closure(span_PROD_1_SUBRULE_1_PRED, span_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDSPAN_RES, ENDSPAN_SPAN, strm') = matchENDSPAN(strm')
-      val FULL_SPAN = (#1(STARTSPAN_SPAN), #2(ENDSPAN_SPAN))
-      in
-        (UserCode.span_PROD_1_ACT (inline_RES, ENDSPAN_RES, STARTSPAN_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDSPAN_SPAN : (Lex.pos * Lex.pos), STARTSPAN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and sup_NT (strm) = let
-      val (STARTSUP_RES, STARTSUP_SPAN, strm') = matchSTARTSUP(strm)
-      fun sup_PROD_1_SUBRULE_1_NT (strm) = let
-            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
-            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
-            in
-              ((inline_RES), FULL_SPAN, strm')
-            end
-      fun sup_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (inline_RES, inline_SPAN, strm') = EBNF.closure(sup_PROD_1_SUBRULE_1_PRED, sup_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDSUP_RES, ENDSUP_SPAN, strm') = matchENDSUP(strm')
-      val FULL_SPAN = (#1(STARTSUP_SPAN), #2(ENDSUP_SPAN))
-      in
-        (UserCode.sup_PROD_1_ACT (ENDSUP_RES, inline_RES, STARTSUP_RES, ENDSUP_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTSUP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and sub_NT (strm) = let
-      val (STARTSUB_RES, STARTSUB_SPAN, strm') = matchSTARTSUB(strm)
-      fun sub_PROD_1_SUBRULE_1_NT (strm) = let
-            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
-            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
-            in
-              ((inline_RES), FULL_SPAN, strm')
-            end
-      fun sub_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (inline_RES, inline_SPAN, strm') = EBNF.closure(sub_PROD_1_SUBRULE_1_PRED, sub_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDSUB_RES, ENDSUB_SPAN, strm') = matchENDSUB(strm')
-      val FULL_SPAN = (#1(STARTSUB_SPAN), #2(ENDSUB_SPAN))
-      in
-        (UserCode.sub_PROD_1_ACT (ENDSUB_RES, inline_RES, STARTSUB_RES, ENDSUB_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTSUB_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and q_NT (strm) = let
-      val (STARTQ_RES, STARTQ_SPAN, strm') = matchSTARTQ(strm)
-      fun q_PROD_1_SUBRULE_1_NT (strm) = let
-            val (inline_RES, inline_SPAN, strm') = inline_NT(strm)
-            val FULL_SPAN = (#1(inline_SPAN), #2(inline_SPAN))
-            in
-              ((inline_RES), FULL_SPAN, strm')
-            end
-      fun q_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTA(_), _, strm') => true
-              | (Tok.STARTABBR(_), _, strm') => true
-              | (Tok.STARTACRONYM(_), _, strm') => true
-              | (Tok.STARTAPPLET(_), _, strm') => true
-              | (Tok.STARTB(_), _, strm') => true
-              | (Tok.STARTBASEFONT(_), _, strm') => true
-              | (Tok.STARTBDO(_), _, strm') => true
-              | (Tok.STARTBIG(_), _, strm') => true
-              | (Tok.STARTBR(_), _, strm') => true
-              | (Tok.STARTBUTTON(_), _, strm') => true
-              | (Tok.STARTCITE(_), _, strm') => true
-              | (Tok.STARTCODE(_), _, strm') => true
-              | (Tok.STARTDFN(_), _, strm') => true
-              | (Tok.STARTEM(_), _, strm') => true
-              | (Tok.STARTFONT(_), _, strm') => true
-              | (Tok.STARTI(_), _, strm') => true
-              | (Tok.STARTIFRAME(_), _, strm') => true
-              | (Tok.STARTIMG(_), _, strm') => true
-              | (Tok.STARTINPUT(_), _, strm') => true
-              | (Tok.STARTKBD(_), _, strm') => true
-              | (Tok.STARTLABEL(_), _, strm') => true
-              | (Tok.STARTMAP(_), _, strm') => true
-              | (Tok.STARTOBJECT(_), _, strm') => true
-              | (Tok.STARTQ(_), _, strm') => true
-              | (Tok.STARTS(_), _, strm') => true
-              | (Tok.STARTSAMP(_), _, strm') => true
-              | (Tok.STARTSCRIPT(_), _, strm') => true
-              | (Tok.STARTSELECT(_), _, strm') => true
-              | (Tok.STARTSMALL(_), _, strm') => true
-              | (Tok.STARTSPAN(_), _, strm') => true
-              | (Tok.STARTSTRIKE(_), _, strm') => true
-              | (Tok.STARTSTRONG(_), _, strm') => true
-              | (Tok.STARTSUB(_), _, strm') => true
-              | (Tok.STARTSUP(_), _, strm') => true
-              | (Tok.STARTTEXTAREA(_), _, strm') => true
-              | (Tok.STARTTT(_), _, strm') => true
-              | (Tok.STARTU(_), _, strm') => true
-              | (Tok.STARTVAR(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (inline_RES, inline_SPAN, strm') = EBNF.closure(q_PROD_1_SUBRULE_1_PRED, q_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDQ_RES, ENDQ_SPAN, strm') = matchENDQ(strm')
-      val FULL_SPAN = (#1(STARTQ_SPAN), #2(ENDQ_SPAN))
-      in
-        (UserCode.q_PROD_1_ACT (ENDQ_RES, STARTQ_RES, inline_RES, ENDQ_SPAN : (Lex.pos * Lex.pos), STARTQ_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
-and map_NT (strm) = let
-      val (STARTMAP_RES, STARTMAP_SPAN, strm') = matchSTARTMAP(strm)
-      fun map_PROD_1_SUBRULE_1_NT (strm) = let
-            fun map_PROD_1_SUBRULE_1_PROD_1 (strm) = let
-                  val (cdata_RES, cdata_SPAN, strm') = cdata_NT(strm)
-                  val FULL_SPAN = (#1(cdata_SPAN), #2(cdata_SPAN))
-                  in
-                    ((cdata_RES), FULL_SPAN, strm')
-                  end
-            fun map_PROD_1_SUBRULE_1_PROD_2 (strm) = let
-                  val (block_RES, block_SPAN, strm') = block_NT(strm)
-                  val FULL_SPAN = (#1(block_SPAN), #2(block_SPAN))
-                  in
-                    ((block_RES), FULL_SPAN, strm')
-                  end
-            fun map_PROD_1_SUBRULE_1_PROD_3 (strm) = let
-                  val (area_RES, area_SPAN, strm') = area_NT(strm)
-                  val FULL_SPAN = (#1(area_SPAN), #2(area_SPAN))
-                  in
-                    ((area_RES), FULL_SPAN, strm')
-                  end
-            in
-              (case (lex(strm))
-               of (Tok.STARTAREA(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_3(strm)
-                | (Tok.COMMENT(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_1(strm)
-                | (Tok.PCDATA(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_1(strm)
-                | (Tok.CHAR_REF(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_1(strm)
-                | (Tok.ENTITY_REF(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_1(strm)
-                | (Tok.STARTADDRESS(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTBLOCKQUOTE(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTCENTER(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTDIR(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTDIV(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTDL(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTFIELDSET(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTFORM(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH1(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH2(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH3(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH4(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH5(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTH6(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTHR(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTISINDEX(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTMENU(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTNOSCRIPT(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTOL(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTP(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTPRE(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTTABLE(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | (Tok.STARTUL(_), _, strm') =>
-                    map_PROD_1_SUBRULE_1_PROD_2(strm)
-                | _ => fail()
-              (* end case *))
-            end
-      fun map_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMENT(_), _, strm') => true
-              | (Tok.PCDATA(_), _, strm') => true
-              | (Tok.CHAR_REF(_), _, strm') => true
-              | (Tok.ENTITY_REF(_), _, strm') => true
-              | (Tok.STARTADDRESS(_), _, strm') => true
-              | (Tok.STARTAREA(_), _, strm') => true
-              | (Tok.STARTBLOCKQUOTE(_), _, strm') => true
-              | (Tok.STARTCENTER(_), _, strm') => true
-              | (Tok.STARTDIR(_), _, strm') => true
-              | (Tok.STARTDIV(_), _, strm') => true
-              | (Tok.STARTDL(_), _, strm') => true
-              | (Tok.STARTFIELDSET(_), _, strm') => true
-              | (Tok.STARTFORM(_), _, strm') => true
-              | (Tok.STARTH1(_), _, strm') => true
-              | (Tok.STARTH2(_), _, strm') => true
-              | (Tok.STARTH3(_), _, strm') => true
-              | (Tok.STARTH4(_), _, strm') => true
-              | (Tok.STARTH5(_), _, strm') => true
-              | (Tok.STARTH6(_), _, strm') => true
-              | (Tok.STARTHR(_), _, strm') => true
-              | (Tok.STARTISINDEX(_), _, strm') => true
-              | (Tok.STARTMENU(_), _, strm') => true
-              | (Tok.STARTNOSCRIPT(_), _, strm') => true
-              | (Tok.STARTOL(_), _, strm') => true
-              | (Tok.STARTP(_), _, strm') => true
-              | (Tok.STARTPRE(_), _, strm') => true
-              | (Tok.STARTTABLE(_), _, strm') => true
-              | (Tok.STARTUL(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (SR_RES, SR_SPAN, strm') = EBNF.posclos(map_PROD_1_SUBRULE_1_PRED, map_PROD_1_SUBRULE_1_NT, strm')
-      val (ENDMAP_RES, ENDMAP_SPAN, strm') = matchENDMAP(strm')
-      val FULL_SPAN = (#1(STARTMAP_SPAN), #2(ENDMAP_SPAN))
-      in
-        (UserCode.map_PROD_1_ACT (SR_RES, ENDMAP_RES, STARTMAP_RES, SR_SPAN : (Lex.pos * Lex.pos), ENDMAP_SPAN : (Lex.pos * Lex.pos), STARTMAP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.p_PROD_1_ACT (inline_RES, STARTP_RES, ENDP_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTP_SPAN : (Lex.pos * Lex.pos), ENDP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and object_NT (strm) = let
@@ -5917,7 +5917,7 @@ and object_NT (strm) = let
       val (ENDOBJECT_RES, ENDOBJECT_SPAN, strm') = matchENDOBJECT(strm')
       val FULL_SPAN = (#1(STARTOBJECT_SPAN), #2(ENDOBJECT_SPAN))
       in
-        (UserCode.object_PROD_1_ACT (SR_RES, ENDOBJECT_RES, STARTOBJECT_RES, SR_SPAN : (Lex.pos * Lex.pos), ENDOBJECT_SPAN : (Lex.pos * Lex.pos), STARTOBJECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.object_PROD_1_ACT (SR_RES, STARTOBJECT_RES, ENDOBJECT_RES, SR_SPAN : (Lex.pos * Lex.pos), STARTOBJECT_SPAN : (Lex.pos * Lex.pos), ENDOBJECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and a_NT (strm) = let
@@ -5977,7 +5977,7 @@ and a_NT (strm) = let
       val (ENDA_RES, ENDA_SPAN, strm') = matchENDA(strm')
       val FULL_SPAN = (#1(STARTA_SPAN), #2(ENDA_SPAN))
       in
-        (UserCode.a_PROD_1_ACT (ENDA_RES, STARTA_RES, inline_RES, ENDA_SPAN : (Lex.pos * Lex.pos), STARTA_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.a_PROD_1_ACT (inline_RES, STARTA_RES, ENDA_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTA_SPAN : (Lex.pos * Lex.pos), ENDA_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and phrase_NT (strm) = let
@@ -6113,7 +6113,7 @@ and acronym_NT (strm) = let
       val (ENDACRONYM_RES, ENDACRONYM_SPAN, strm') = matchENDACRONYM(strm')
       val FULL_SPAN = (#1(STARTACRONYM_SPAN), #2(ENDACRONYM_SPAN))
       in
-        (UserCode.acronym_PROD_1_ACT (inline_RES, ENDACRONYM_RES, STARTACRONYM_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDACRONYM_SPAN : (Lex.pos * Lex.pos), STARTACRONYM_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.acronym_PROD_1_ACT (inline_RES, STARTACRONYM_RES, ENDACRONYM_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTACRONYM_SPAN : (Lex.pos * Lex.pos), ENDACRONYM_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and abbr_NT (strm) = let
@@ -6293,7 +6293,7 @@ and var_NT (strm) = let
       val (ENDVAR_RES, ENDVAR_SPAN, strm') = matchENDVAR(strm')
       val FULL_SPAN = (#1(STARTVAR_SPAN), #2(ENDVAR_SPAN))
       in
-        (UserCode.var_PROD_1_ACT (ENDVAR_RES, inline_RES, STARTVAR_RES, ENDVAR_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTVAR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.var_PROD_1_ACT (inline_RES, STARTVAR_RES, ENDVAR_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTVAR_SPAN : (Lex.pos * Lex.pos), ENDVAR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and kbd_NT (strm) = let
@@ -6353,7 +6353,7 @@ and kbd_NT (strm) = let
       val (ENDKBD_RES, ENDKBD_SPAN, strm') = matchENDKBD(strm')
       val FULL_SPAN = (#1(STARTKBD_SPAN), #2(ENDKBD_SPAN))
       in
-        (UserCode.kbd_PROD_1_ACT (ENDKBD_RES, inline_RES, STARTKBD_RES, ENDKBD_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTKBD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.kbd_PROD_1_ACT (inline_RES, STARTKBD_RES, ENDKBD_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTKBD_SPAN : (Lex.pos * Lex.pos), ENDKBD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and samp_NT (strm) = let
@@ -6413,7 +6413,7 @@ and samp_NT (strm) = let
       val (ENDSAMP_RES, ENDSAMP_SPAN, strm') = matchENDSAMP(strm')
       val FULL_SPAN = (#1(STARTSAMP_SPAN), #2(ENDSAMP_SPAN))
       in
-        (UserCode.samp_PROD_1_ACT (inline_RES, ENDSAMP_RES, STARTSAMP_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDSAMP_SPAN : (Lex.pos * Lex.pos), STARTSAMP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.samp_PROD_1_ACT (inline_RES, STARTSAMP_RES, ENDSAMP_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTSAMP_SPAN : (Lex.pos * Lex.pos), ENDSAMP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and code_NT (strm) = let
@@ -6533,7 +6533,7 @@ and dfn_NT (strm) = let
       val (ENDDFN_RES, ENDDFN_SPAN, strm') = matchENDDFN(strm')
       val FULL_SPAN = (#1(STARTDFN_SPAN), #2(ENDDFN_SPAN))
       in
-        (UserCode.dfn_PROD_1_ACT (ENDDFN_RES, inline_RES, STARTDFN_RES, ENDDFN_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTDFN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.dfn_PROD_1_ACT (inline_RES, ENDDFN_RES, STARTDFN_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDDFN_SPAN : (Lex.pos * Lex.pos), STARTDFN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and strong_NT (strm) = let
@@ -6593,7 +6593,7 @@ and strong_NT (strm) = let
       val (ENDSTRONG_RES, ENDSTRONG_SPAN, strm') = matchENDSTRONG(strm')
       val FULL_SPAN = (#1(STARTSTRONG_SPAN), #2(ENDSTRONG_SPAN))
       in
-        (UserCode.strong_PROD_1_ACT (inline_RES, ENDSTRONG_RES, STARTSTRONG_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDSTRONG_SPAN : (Lex.pos * Lex.pos), STARTSTRONG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.strong_PROD_1_ACT (inline_RES, STARTSTRONG_RES, ENDSTRONG_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTSTRONG_SPAN : (Lex.pos * Lex.pos), ENDSTRONG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and em_NT (strm) = let
@@ -6791,7 +6791,7 @@ and strike_NT (strm) = let
       val (ENDSTRIKE_RES, ENDSTRIKE_SPAN, strm') = matchENDSTRIKE(strm')
       val FULL_SPAN = (#1(STARTSTRIKE_SPAN), #2(ENDSTRIKE_SPAN))
       in
-        (UserCode.strike_PROD_1_ACT (inline_RES, ENDSTRIKE_RES, STARTSTRIKE_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDSTRIKE_SPAN : (Lex.pos * Lex.pos), STARTSTRIKE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.strike_PROD_1_ACT (inline_RES, STARTSTRIKE_RES, ENDSTRIKE_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTSTRIKE_SPAN : (Lex.pos * Lex.pos), ENDSTRIKE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and s_NT (strm) = let
@@ -6851,7 +6851,7 @@ and s_NT (strm) = let
       val (ENDS_RES, ENDS_SPAN, strm') = matchENDS(strm')
       val FULL_SPAN = (#1(STARTS_SPAN), #2(ENDS_SPAN))
       in
-        (UserCode.s_PROD_1_ACT (ENDS_RES, STARTS_RES, inline_RES, ENDS_SPAN : (Lex.pos * Lex.pos), STARTS_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.s_PROD_1_ACT (inline_RES, STARTS_RES, ENDS_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTS_SPAN : (Lex.pos * Lex.pos), ENDS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and u_NT (strm) = let
@@ -6911,7 +6911,7 @@ and u_NT (strm) = let
       val (ENDU_RES, ENDU_SPAN, strm') = matchENDU(strm')
       val FULL_SPAN = (#1(STARTU_SPAN), #2(ENDU_SPAN))
       in
-        (UserCode.u_PROD_1_ACT (ENDU_RES, STARTU_RES, inline_RES, ENDU_SPAN : (Lex.pos * Lex.pos), STARTU_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.u_PROD_1_ACT (inline_RES, STARTU_RES, ENDU_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTU_SPAN : (Lex.pos * Lex.pos), ENDU_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and small_NT (strm) = let
@@ -7031,7 +7031,7 @@ and big_NT (strm) = let
       val (ENDBIG_RES, ENDBIG_SPAN, strm') = matchENDBIG(strm')
       val FULL_SPAN = (#1(STARTBIG_SPAN), #2(ENDBIG_SPAN))
       in
-        (UserCode.big_PROD_1_ACT (ENDBIG_RES, inline_RES, STARTBIG_RES, ENDBIG_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), STARTBIG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.big_PROD_1_ACT (inline_RES, ENDBIG_RES, STARTBIG_RES, inline_SPAN : (Lex.pos * Lex.pos), ENDBIG_SPAN : (Lex.pos * Lex.pos), STARTBIG_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and b_NT (strm) = let
@@ -7091,7 +7091,7 @@ and b_NT (strm) = let
       val (ENDB_RES, ENDB_SPAN, strm') = matchENDB(strm')
       val FULL_SPAN = (#1(STARTB_SPAN), #2(ENDB_SPAN))
       in
-        (UserCode.b_PROD_1_ACT (ENDB_RES, STARTB_RES, inline_RES, ENDB_SPAN : (Lex.pos * Lex.pos), STARTB_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.b_PROD_1_ACT (inline_RES, STARTB_RES, ENDB_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTB_SPAN : (Lex.pos * Lex.pos), ENDB_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and i_NT (strm) = let
@@ -7151,7 +7151,7 @@ and i_NT (strm) = let
       val (ENDI_RES, ENDI_SPAN, strm') = matchENDI(strm')
       val FULL_SPAN = (#1(STARTI_SPAN), #2(ENDI_SPAN))
       in
-        (UserCode.i_PROD_1_ACT (ENDI_RES, STARTI_RES, inline_RES, ENDI_SPAN : (Lex.pos * Lex.pos), STARTI_SPAN : (Lex.pos * Lex.pos), inline_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.i_PROD_1_ACT (inline_RES, STARTI_RES, ENDI_RES, inline_SPAN : (Lex.pos * Lex.pos), STARTI_SPAN : (Lex.pos * Lex.pos), ENDI_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and tt_NT (strm) = let
@@ -7377,7 +7377,7 @@ fun ins_NT (strm) = let
       val (ENDINS_RES, ENDINS_SPAN, strm') = matchENDINS(strm')
       val FULL_SPAN = (#1(STARTINS_SPAN), #2(ENDINS_SPAN))
       in
-        (UserCode.ins_PROD_1_ACT (flow_RES, ENDINS_RES, STARTINS_RES, flow_SPAN : (Lex.pos * Lex.pos), ENDINS_SPAN : (Lex.pos * Lex.pos), STARTINS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.ins_PROD_1_ACT (STARTINS_RES, flow_RES, ENDINS_RES, STARTINS_SPAN : (Lex.pos * Lex.pos), flow_SPAN : (Lex.pos * Lex.pos), ENDINS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun body_rest_NT (strm) = let
@@ -7516,7 +7516,7 @@ fun body_rest_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(ENDBODY_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.body_rest_PROD_1_SUBRULE_2_PROD_1_ACT (SR1_RES, ENDBODY_RES, cdata_opt_RES, SR1_SPAN : (Lex.pos * Lex.pos), ENDBODY_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.body_rest_PROD_1_SUBRULE_2_PROD_1_ACT (ENDBODY_RES, SR1_RES, cdata_opt_RES, ENDBODY_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun body_rest_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -7660,7 +7660,7 @@ fun noframes_NT (strm) = let
       val (ENDNOFRAMES_RES, ENDNOFRAMES_SPAN, strm') = matchENDNOFRAMES(strm')
       val FULL_SPAN = (#1(STARTNOFRAMES_SPAN), #2(ENDNOFRAMES_SPAN))
       in
-        (UserCode.noframes_PROD_1_ACT (body_RES, ENDNOFRAMES_RES, STARTNOFRAMES_RES, body_SPAN : (Lex.pos * Lex.pos), ENDNOFRAMES_SPAN : (Lex.pos * Lex.pos), STARTNOFRAMES_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.noframes_PROD_1_ACT (STARTNOFRAMES_RES, ENDNOFRAMES_RES, body_RES, STARTNOFRAMES_SPAN : (Lex.pos * Lex.pos), ENDNOFRAMES_SPAN : (Lex.pos * Lex.pos), body_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun frame_NT (strm) = let
@@ -7723,7 +7723,7 @@ fun frameset_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(noframes_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.frameset_PROD_1_SUBRULE_2_PROD_1_ACT (SR1_RES, noframes_RES, cdata_opt_RES, STARTFRAMESET_RES, SR1_SPAN : (Lex.pos * Lex.pos), noframes_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTFRAMESET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.frameset_PROD_1_SUBRULE_2_PROD_1_ACT (SR1_RES, cdata_opt_RES, STARTFRAMESET_RES, noframes_RES, SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTFRAMESET_SPAN : (Lex.pos * Lex.pos), noframes_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun frameset_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -7734,7 +7734,7 @@ fun frameset_NT (strm) = let
       val (ENDFRAMESET_RES, ENDFRAMESET_SPAN, strm') = matchENDFRAMESET(strm')
       val FULL_SPAN = (#1(STARTFRAMESET_SPAN), #2(ENDFRAMESET_SPAN))
       in
-        (UserCode.frameset_PROD_1_ACT (SR1_RES, SR2_RES, ENDFRAMESET_RES, STARTFRAMESET_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), ENDFRAMESET_SPAN : (Lex.pos * Lex.pos), STARTFRAMESET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.frameset_PROD_1_ACT (SR1_RES, SR2_RES, STARTFRAMESET_RES, ENDFRAMESET_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), STARTFRAMESET_SPAN : (Lex.pos * Lex.pos), ENDFRAMESET_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun link_NT (strm) = let
@@ -7757,7 +7757,7 @@ fun style_NT (strm) = let
       val (ENDSTYLE_RES, ENDSTYLE_SPAN, strm') = matchENDSTYLE(strm')
       val FULL_SPAN = (#1(STARTSTYLE_SPAN), #2(ENDSTYLE_SPAN))
       in
-        (UserCode.style_PROD_1_ACT (ENDSTYLE_RES, cdata_opt_RES, STARTSTYLE_RES, ENDSTYLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSTYLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.style_PROD_1_ACT (cdata_opt_RES, STARTSTYLE_RES, ENDSTYLE_RES, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTSTYLE_SPAN : (Lex.pos * Lex.pos), ENDSTYLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun base_NT (strm) = let
@@ -7773,7 +7773,7 @@ fun title_NT (strm) = let
       val (ENDTITLE_RES, ENDTITLE_SPAN, strm') = matchENDTITLE(strm')
       val FULL_SPAN = (#1(STARTTITLE_SPAN), #2(ENDTITLE_SPAN))
       in
-        (UserCode.title_PROD_1_ACT (ENDTITLE_RES, cdata_opt_RES, STARTTITLE_RES, ENDTITLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTTITLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.title_PROD_1_ACT (STARTTITLE_RES, cdata_opt_RES, ENDTITLE_RES, STARTTITLE_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDTITLE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun head_content_NT (strm) = let
@@ -7837,7 +7837,7 @@ fun head_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(STARTHEAD_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.head_PROD_1_SUBRULE_1_PROD_1_ACT (STARTHEAD_RES, cdata_opt_RES, STARTHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.head_PROD_1_SUBRULE_1_PROD_1_ACT (cdata_opt_RES, STARTHEAD_RES, cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTHEAD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun head_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
@@ -7869,7 +7869,7 @@ fun head_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(ENDHEAD_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.head_PROD_1_SUBRULE_3_PROD_1_ACT (SR1_RES, SR2_RES, ENDHEAD_RES, cdata_opt_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), ENDHEAD_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.head_PROD_1_SUBRULE_3_PROD_1_ACT (SR1_RES, SR2_RES, cdata_opt_RES, ENDHEAD_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDHEAD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun head_PROD_1_SUBRULE_3_PRED (strm) = (case (lex(strm))
@@ -7902,7 +7902,7 @@ fun document_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(STARTHTML_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.document_PROD_1_SUBRULE_2_PROD_1_ACT (SR1_RES, STARTHTML_RES, cdata_opt_RES, SR1_SPAN : (Lex.pos * Lex.pos), STARTHTML_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.document_PROD_1_SUBRULE_2_PROD_1_ACT (SR1_RES, cdata_opt_RES, STARTHTML_RES, SR1_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), STARTHTML_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun document_PROD_1_SUBRULE_2_PRED (strm) = (case (lex(strm))
@@ -7992,7 +7992,7 @@ fun document_NT (strm) = let
             val (cdata_opt_RES, cdata_opt_SPAN, strm') = cdata_opt_NT(strm')
             val FULL_SPAN = (#1(ENDHTML_SPAN), #2(cdata_opt_SPAN))
             in
-              (UserCode.document_PROD_1_SUBRULE_4_PROD_1_ACT (SR1_RES, SR2_RES, SR3_RES, head_RES, ENDHTML_RES, cdata_opt_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), head_SPAN : (Lex.pos * Lex.pos), ENDHTML_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.document_PROD_1_SUBRULE_4_PROD_1_ACT (head_RES, SR1_RES, SR2_RES, SR3_RES, cdata_opt_RES, ENDHTML_RES, head_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), ENDHTML_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun document_PROD_1_SUBRULE_4_PRED (strm) = (case (lex(strm))
@@ -8002,32 +8002,32 @@ fun document_NT (strm) = let
       val (SR4_RES, SR4_SPAN, strm') = EBNF.optional(document_PROD_1_SUBRULE_4_PRED, document_PROD_1_SUBRULE_4_NT, strm')
       val FULL_SPAN = (#1(cdata_opt_SPAN), #2(SR4_SPAN))
       in
-        (UserCode.document_PROD_1_ACT (SR1_RES, SR2_RES, SR3_RES, SR4_RES, head_RES, cdata_opt_RES, SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), SR4_SPAN : (Lex.pos * Lex.pos), head_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.document_PROD_1_ACT (head_RES, SR1_RES, SR2_RES, SR3_RES, SR4_RES, cdata_opt_RES, head_SPAN : (Lex.pos * Lex.pos), SR1_SPAN : (Lex.pos * Lex.pos), SR2_SPAN : (Lex.pos * Lex.pos), SR3_SPAN : (Lex.pos * Lex.pos), SR4_SPAN : (Lex.pos * Lex.pos), cdata_opt_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 in
-  (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT)
+  (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT)
 end
 val document_NT =  fn s => unwrap (Err.launch (eh, lexFn, document_NT , true) s)
+val block_NT =  fn s => unwrap (Err.launch (eh, lexFn, block_NT , false) s)
+val cdata_opt_NT =  fn s => unwrap (Err.launch (eh, lexFn, cdata_opt_NT , false) s)
+val inline_NT =  fn s => unwrap (Err.launch (eh, lexFn, inline_NT , false) s)
 val body_NT =  fn s => unwrap (Err.launch (eh, lexFn, body_NT , false) s)
 val flow_NT =  fn s => unwrap (Err.launch (eh, lexFn, flow_NT , false) s)
-val block_NT =  fn s => unwrap (Err.launch (eh, lexFn, block_NT , false) s)
-val inline_NT =  fn s => unwrap (Err.launch (eh, lexFn, inline_NT , false) s)
-val cdata_opt_NT =  fn s => unwrap (Err.launch (eh, lexFn, cdata_opt_NT , false) s)
 
-in (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT) end
+in (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT) end
   in
-fun parse lexFn  s = let val (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT) = mk lexFn in document_NT s end
+fun parse lexFn  s = let val (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT) = mk lexFn in document_NT s end
 
-fun parsebody lexFn  s = let val (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT) = mk lexFn in body_NT s end
+fun parseblock lexFn  s = let val (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT) = mk lexFn in block_NT s end
 
-fun parseflow lexFn  s = let val (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT) = mk lexFn in flow_NT s end
+fun parsecdata_opt lexFn  s = let val (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT) = mk lexFn in cdata_opt_NT s end
 
-fun parseblock lexFn  s = let val (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT) = mk lexFn in block_NT s end
+fun parseinline lexFn  s = let val (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT) = mk lexFn in inline_NT s end
 
-fun parseinline lexFn  s = let val (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT) = mk lexFn in inline_NT s end
+fun parsebody lexFn  s = let val (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT) = mk lexFn in body_NT s end
 
-fun parsecdata_opt lexFn  s = let val (document_NT, body_NT, flow_NT, block_NT, inline_NT, cdata_opt_NT) = mk lexFn in cdata_opt_NT s end
+fun parseflow lexFn  s = let val (document_NT, block_NT, cdata_opt_NT, inline_NT, body_NT, flow_NT) = mk lexFn in flow_NT s end
 
   end
 
