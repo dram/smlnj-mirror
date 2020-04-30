@@ -65,16 +65,21 @@ Parse/
 Basics/
 
   Basics/mlcomp/
-  some basic types involved in absyn and statenv and elaboration process
+  Symbol types involved in absyn and statenv and elaboration process
     symbol.sig/sml
       symbols (should be in ElabData)
-      defs: SYMBOL, Symbol
+      defs: Symbol: SYMBOL
     fastsymbol.sig/sml
       fast symbols (should be in ElabData)
-      defs: FASTSYMBOL, FastSymbol
+      defs: FastSymbol: FASTSYMBOL
     fixity.sml
       fixity properties (should be in ElabData)
-      defs: FIXITY, Fixity
+      defs: Fixity: FIXITY
+    symbol-hashtable.sml
+      Hashtables with symbol as key
+      defs: SymbolHashTable
+
+  Basics/pid
     persstamps.sig/sml
       persistant stamps, or globally unique identifiers (16 byte vectors),
       aka "pids"
@@ -85,18 +90,43 @@ Basics/
     pidenv.sig/sml
       environments using pids (persistant stamps) as keys
       defs: PIDENV, PidEnvFn
+
+  Basics/compiler
     compileexn.sml
       Compile exception (where used?)
       defs: CompileExn
-
-  Basics/miscutil/  (why not in MiscUtil?)
-    intstrmap.sig/sml
-      int/string maps for use in environments;
-      appears redundant with IntStrMapV defined in
-      Env (ElabData/basics/env.sml)
-      used in Tuples, ElabCore, Parse/lex/tokentable.sml.
+    endianness-big.sml
+      Defines bigEndian flag (true)
+      defs: Endianess
+    endianness-little.sml
+      Defines bigEndian flag (false)
+      defs: Endianess
+    target.sig
+      Defines target attributes (e.g. sizes)
+      defs: TARGET
+    target32.sml
+      Defines 32-bit target attributes
+      defs: Target: TARGET
+    target64.sml
+      Defines 64-bit target attributes
+      defs: Target: TARGET
+    int-const.sml
+      A common representation of typed integer literals to use in
+      intermediate representations (from Absyn to CPS).
+      defs: IntConst
+    real-const.sml
+      A common representation of typed real literals to use in
+      intermediate representations (from Absyn to CPS).
+      defs: RealConst
+      
+  Basics/util/
+    wordstr-hashtable.sml
+      word * string hash table
+      [may be redundant with IntStrMapV defined in
+       Env (ElabData/basics/env.sml)]
+      defs: WordSringHashTable
+      used: ElabData/types/tuples.sml, Parse/lex/tokentable.sml
       see: ElabData/basics/env.sml
-      defs: INTSTRMAP, IntStrMap
 
   Basics/errormsg/
     errormsg.sig/sml
@@ -117,14 +147,14 @@ Basics/
 
   Basics/print/
   utilities for prettyprinting
-    [pp-wrapper.sml -- obsolete for mcz, where new pp is used directly]
-      implements old PP interface using new SML/NJ Lib PP
-    pp-init.sml
-      extend standard prettyprinter interface to match old one
-      defs: PRETTYPRINT, PrettyPrint
+    prettyprint.sml
+      extend smlnj-lib/PP prettyprinter interface to match old one
+      defs: PrettyPrint: PRETTYPRINT
     printutil.sig/sml
-      some print utilities (uses Symbol)
-      defs: PRINTUTIL, PrintUtil
+      some simple, non-pretty-printing print/formatting utility functions
+      defs: PrintUtil: PRINTUTIL
+      uses: Symbol, SYMBOL
+      see: Elaborator/print/pputil.{sig,sml} for pretty printing versions
     printcontrol.sml
       print control flags, out, say
       defs: PRINTCONTROL, Control_Print
