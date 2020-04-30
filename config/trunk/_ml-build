@@ -70,7 +70,7 @@ done
 if [ $# = 4 ] ; then
   # assume that first argument is setup; e.g., "$smlnj-tdp/back-trace.cm"
     if [ x"$setup" != x ] ; then
-        usage()
+        usage setup was already specified
     fi
     setup=$1
     root=$2
