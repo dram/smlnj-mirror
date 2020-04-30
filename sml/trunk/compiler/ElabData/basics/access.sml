@@ -58,7 +58,7 @@ structure Access : ACCESS =
 	  end
 
   (** printing the access *)
-    fun prAcc (LVAR i) = concat["LVAR(", LV.prLvar i, ")"
+    fun prAcc (LVAR i) = concat["LVAR(", LV.prLvar i, ")"]
       | prAcc (PATH(a,i)) = concat["PATH(", prAcc a, ",", Int.toString i, ")"]
       | prAcc (EXTERN pid) = concat["EXTERN(.", prPid pid, ")"]
       | prAcc (NO_ACCESS) = "NO_ACCESS"
