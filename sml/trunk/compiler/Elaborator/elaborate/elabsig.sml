@@ -31,6 +31,7 @@ structure ElabSig : ELABSIG =
 struct
 
 local structure S  = Symbol
+      structure SS = SpecialSymbols
       structure EM = ErrorMsg
       structure A = Access
       structure EP = EntPath
@@ -63,8 +64,6 @@ fun debugPrint x = ElabDebug.debugPrint debugging x
 
 open ElabDebug
 val debugPrint = (fn x => debugPrint debugging x)
-
-val resultId = Symbol.strSymbol "<resultStr>"
 
 (* utility stuff *)
 fun stripMarkSig(MarkSig(sigexp,region'),_) = stripMarkSig(sigexp,region')
@@ -1100,7 +1099,7 @@ case fsigexp
           val (result,region) = stripMarkSig(result,region)
 
           val result = if curried then result
-		       else BaseSig[StrSpec[(resultId,result,NONE)]]
+		       else BaseSig[StrSpec[(SS.resultId,result,NONE)]]
 
           val bodySig =
             elabSig0 {sigexp=result, nameOp=NONE, env=env', entEnv=entEnv,

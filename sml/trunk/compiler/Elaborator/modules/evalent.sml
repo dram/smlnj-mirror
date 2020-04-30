@@ -19,6 +19,7 @@ structure EvalEntity : EVALENTITY =
 struct
 
 local (* structure DI = DebIndex *)
+      structure SS = SpecialSymbols
       structure EP = EntPath
       structure IP = InvPath
       structure S = SourceMap
@@ -44,11 +45,14 @@ open ElabDebug
 
 val debugPrint = (fn x => debugPrint debugging x)  (* Value Restriction *)
 fun bug msg = ErrorMsg.impossible ("EvalEntity: " ^ msg);
+
+(* DBM: should the following three "special symbols" be added to SpecialSymbols? *)
 val anonFctSym = Symbol.fctSymbol "AnonFct"
 val paramSym = Symbol.strSymbol "<FsigParamInst>"
 val anonStrSym = Symbol.strSymbol "<AnonStr>"
-val resultId = Symbol.strSymbol "<resultStr>"
-val returnId = Symbol.strSymbol "<returnStr>"
+
+val resultId = SS.resultId
+val returnId = SS.returnId
 
 val defaultError =
     ErrorMsg.errorNoFile(ErrorMsg.defaultConsumer(),ref false) (0,0)

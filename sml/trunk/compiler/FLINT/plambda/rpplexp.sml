@@ -47,7 +47,7 @@ fun conToString (DATAcon((sym, _, _), _, v)) = ((S.name sym) ^ "." ^ (lvarName v
   | conToString (INTINFcon i) = "(II)" ^ IntInf.toString i
   | conToString (WORDcon i) = "(W)" ^ (Word.toString i)
   | conToString (WORD32con i) = "(W32)" ^ (Word32.toString i)
-  | conToString (STRINGcon s) = PU.mlstr s
+  | conToString (STRINGcon s) = PrintUtil.formatString s
   | conToString (VLENcon n) = Int.toString n
 
 (** use of complex in printLexp may lead to stupid n^2 behavior. *)
@@ -115,7 +115,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
           | ppl (INT32 i) = (pps "(I32)"; pps(Int32.toString i))
           | ppl (WORD32 i) = (pps "(W32)"; pps(Word32.toString i))
           | ppl (REAL s) = pps s
-          | ppl (STRING s) = pps (mlstr s)
+          | ppl (STRING s) = PPUtil.ppString ppstrm s
           | ppl (ETAG (l,_)) = ppl l
 
           | ppl (RECORD l) =

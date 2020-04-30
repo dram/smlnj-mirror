@@ -4,12 +4,12 @@
 structure PrintUtil : PRINTUTIL = 
 struct
 
+  (* printing functions -- print to stdOut *)
   val say = Control_Print.say
-
-  structure Symbol : SYMBOL = Symbol
 
   fun newline () = say "\n"
   fun tab 0 = () | tab n = (say " "; tab(n-1))
+  fun nlindent n = (newline(); tab n)
 
   fun printSequence (separator: string) pr elems =
       let fun prElems [el] = pr el
@@ -18,29 +18,6 @@ struct
        in prElems elems
       end
 
-  fun printClosedSequence (front: string, sep, back:string) pr elems =
-      (say front; printSequence sep pr elems; say back)
-
-  fun printSym(s: Symbol.symbol) = TextIO.print(Symbol.name s)
-      (* fix -- maybe this belongs in Symbol *)
-
-  fun formatQid p =
-    let fun f [s] = [Symbol.name s]
-          | f (a::r) = Symbol.name a :: "." :: f r
-	  | f nil = ["<bogus qid>"]
-     in concat(f p)
-    end
-
-  fun trimmed (s, maxsz) =
-      if size s <= maxsz then s
-      else String.substring (s, 0, maxsz) ^ "#"
-
-  fun mlstr s = concat ["\"", String.toString s, "\""]
-  fun pr_mlstr s = mlstr (trimmed (s, !Control_Print.stringDepth))
-  fun pr_intinf i = trimmed (IntInf.toString i, !Control_Print.intinfDepth)
-
-  fun nlindent n = (newline(); tab n)
-
   fun printvseq ind (sep:string) pr elems =
       let fun prElems [el] = pr el
 	    | prElems (el::rest) = (pr el; nlindent ind; say sep; prElems rest)
@@ -48,9 +25,20 @@ struct
        in prElems elems
       end
 
-  (* debug print functions *)
-  val prIntPath = printClosedSequence ("[",",","]") (say o Int.toString)
-  val prSymPath = printSequence "." printSym
+  fun printClosedSequence (front: string, sep, back:string) pr elems =
+      (say front; printSequence sep pr elems; say back)
+
+  fun printSym(s: Symbol.symbol) = say (Symbol.name s)
+
+  (* formatting functions -- translate to "formatted" string *)
+
+  fun trimmed (s, maxsz) =
+      if size s <= maxsz then s
+      else String.substring (s, 0, maxsz) ^ "#"
+
+  fun quoteString s = concat ["\"", String.toString s, "\""]
+  fun formatString s = quoteString (trimmed (s, !Control_Print.stringDepth))
+  fun formatIntInf i = trimmed (IntInf.toString i, !Control_Print.intinfDepth)
 
 end (* structure PrintUtil *)
 

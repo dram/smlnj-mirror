@@ -47,7 +47,7 @@ fun conToString (DATAcon((sym, _, _), _, v)) = ((S.name sym) ^ "." ^ (lvarName v
       concat["(I", Int.toString ty, ")", IntInf.toString ival]
   | conToString (WORDcon{ival, ty}) =
       concat["(W", Int.toString ty, ")", IntInf.toString ival]
-  | conToString (STRINGcon s) = PU.mlstr s
+  | conToString (STRINGcon s) = PrintUtil.formatString s
   | conToString (VLENcon n) = Int.toString n
 
 (** use of complex in ppLexp may lead to stupid n^2 behavior. *)
@@ -105,7 +105,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
 	      pps(concat["(W", Int.toString ty, ")", IntInf.toString ival])
           | ppl pd (REAL{rval, ty}) =
 	      pps(concat["(R", Int.toString ty, ")", RealLit.toString rval])
-          | ppl pd (STRING s) = pps (mlstr s)
+          | ppl pd (STRING s) = pps (PrintUtil.formatString s)
           | ppl pd (ETAG (l,_)) = ppl pd l
 
           | ppl pd (RECORD l) =

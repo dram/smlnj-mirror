@@ -93,8 +93,6 @@ fun sublist test =
 
 fun spillLvar() = LV.namedLvar spillname
 
-val ilist = PrintUtil.prIntPath
-
 fun sayv(VAR v) = pr(LV.lvarName v)
   | sayv(LABEL v) = pr("(L)" ^ LV.lvarName v)
   | sayv(INT i) = pr(Int.toString i)

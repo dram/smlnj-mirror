@@ -75,7 +75,7 @@ struct
 	  concat["(I", Int.toString ty, ")", IntInf.toString ival]
       | toStringCon (F.WORDcon{ival, ty}) =
 	  concat["(W", Int.toString ty, ")", IntInf.toString ival]
-      | toStringCon (F.STRINGcon s) = PU.mlstr s
+      | toStringCon (F.STRINGcon s) = PrintUtil.formatString s
       | toStringCon (F.VLENcon n)   = Int.toString n
 
     val printCon = say o toStringCon
@@ -88,7 +88,7 @@ struct
 	  concat["(W", Int.toString ty, ")", IntInf.toString ival]
       | toStringValue (F.REAL{rval, ty}) =
 	  concat["(R", Int.toString ty, ")", RealLit.toString rval]
-      | toStringValue (F.STRING s) = PU.mlstr s
+      | toStringValue (F.STRING s) = PrintUtil.formatString s
 
     val printSval = say o toStringValue
     val LVarString = ref LV.lvarName

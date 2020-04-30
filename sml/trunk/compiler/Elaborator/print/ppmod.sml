@@ -49,6 +49,7 @@ structure PPModules : PPMOD =
 struct
 
 local structure S = Symbol
+      structure SS = SpecialSymbols
       structure SP = SymPath
       structure IP = InvPath
       structure A = Access
@@ -78,8 +79,6 @@ val ppType = PPType.ppType
 val ppTycon = PPType.ppTycon
 val ppTyfun = PPType.ppTyfun
 val ppFormals = PPType.ppFormals
-
-val resultId = S.strSymbol "<resultStr>"
 
 fun strToEnv(M.SIG {elements,...},entities) =
     let fun bindElem ((sym,spec), env) =
@@ -495,7 +494,7 @@ and ppFunsig ppstrm (sign,env,depth) =
 	fun trueBodySig (orig as M.SIG { elements =
 					 [(sym, M.STRspec { sign, ... })],
 					 ... }) =
-	    if Symbol.eq (sym, resultId) then sign else orig
+	    if Symbol.eq (sym, SS.resultId) then sign else orig
 	  | trueBodySig orig = orig
      in if depth<=0 then pps "<fctsig>"
 	else case sign

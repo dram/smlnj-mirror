@@ -102,8 +102,8 @@ fun ppPat env ppstrm =
 	  | ppPat' (VARpat v,_) = ppVar ppstrm v
 	  | ppPat' (WILDpat,_) = pps "_"
           | ppPat' (NUMpat(src, _), _) = pps src
-	  | ppPat' (STRINGpat s,_) = PU.pp_mlstr ppstrm s
-	  | ppPat' (CHARpat s,_) = (pps "#"; PU.pp_mlstr ppstrm s)
+	  | ppPat' (STRINGpat s,_) = PU.ppString ppstrm s
+	  | ppPat' (CHARpat s,_) = (pps "#"; PU.ppString ppstrm s)
 	  | ppPat' (LAYEREDpat (v,p),d) =
 	      (openHVBox 0;
 	       ppPat'(v,d); pps " as "; ppPat'(p,d-1);
@@ -237,8 +237,8 @@ fun ppExp (context as (env,source_opt)) ppstrm =
 	  | ppExp' (CONexp(con,_),_,_) = ppDcon ppstrm con
           | ppExp' (NUMexp(src, _), _, _) = pps src
 	  | ppExp' (REALexp(src, _),_,_) = pps src
-	  | ppExp' (STRINGexp s,_,_) = PU.pp_mlstr ppstrm s
-	  | ppExp' (CHARexp s,_,_) = (pps "#"; PU.pp_mlstr ppstrm s)
+	  | ppExp' (STRINGexp s,_,_) = PU.ppString ppstrm s
+	  | ppExp' (CHARexp s,_,_) = (pps "#"; PU.ppString ppstrm s)
 	  | ppExp' (r as RECORDexp fields,_,d) =
 	      if isTUPLEexp r
 	      then PU.ppClosedSequence ppstrm

@@ -64,7 +64,7 @@ fun ppPcon (pd: int) ppstrm (c : pcon) : unit =
 	 of DATApcon (datacon, _) => ppSym ppstrm (TypesUtil.dconName datacon)
 	  | INTpcon (intConst) => pps (IntConst.toString intConst)
 	  | WORDpcon (intConst) => pps (IntConst.toString intConst)
-	  | STRINGpcon s => pp_mlstr ppstrm s
+	  | STRINGpcon s => ppString ppstrm s
 	  | VLENpcon (n,_) => pps "VLENpcon"
     end
 

@@ -45,7 +45,7 @@ end = struct
      * Syntactic changes made on ast by the elaborator should be propagated
      * to this function so that CM can do the correct job. I personally think 
      * that syntactic changes on curried functors and insertions of
-     * <resultStr>s should be done on Ast directly, before the
+     * resultId (<resultStr>) symbols should be done on Ast directly, before the
      * elaboration --- this way, we don't have to write the following ugly
      * sigenvSp function. 
      *)

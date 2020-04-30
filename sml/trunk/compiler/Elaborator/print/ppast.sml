@@ -98,8 +98,8 @@ fun ppPat (context as (env, source_opt)) ppstrm =
 	  | ppPat' (VarPat p, d) =  pp_symbol_list(p)
 	  | ppPat' (IntPat(src, _),_) = pps src
 	  | ppPat' (WordPat(src, _),_) = pps src
-	  | ppPat' (StringPat s, _) = pp_mlstr ppstrm s
-	  | ppPat' (CharPat s,_) = (pps "#"; pp_mlstr ppstrm s)
+	  | ppPat' (StringPat s, _) = ppString ppstrm s
+	  | ppPat' (CharPat s,_) = (pps "#"; ppString ppstrm s)
 	  | ppPat' (LayeredPat {varPat,expPat},d) =
 	      (openHVBox 0;
 	       ppPat'(varPat,d); pps " as "; ppPat'(expPat,d-1);
@@ -284,8 +284,8 @@ and ppExp (context as (env, source_opt)) ppstrm =
 	| ppExp' (IntExp(src, _),_,_) = pps src
 	| ppExp' (WordExp(src, _),_,_) = pps src
 	| ppExp' (RealExp(src, _),_,_) = pps src
-	| ppExp' (StringExp s,_,_) = pp_mlstr ppstrm s
-	| ppExp' (CharExp s,_,_) = (pps "#"; pp_mlstr ppstrm s)
+	| ppExp' (StringExp s,_,_) = ppString ppstrm s
+	| ppExp' (CharExp s,_,_) = (pps "#"; ppString ppstrm s)
 	| ppExp'(r as RecordExp fields,_,d) =
 	      if isTUPLEexp r
 	      then ppClosedSequence ppstrm

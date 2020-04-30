@@ -5,6 +5,7 @@ structure PPUtil : PPUTIL =
 struct
 
   structure S : SYMBOL = Symbol
+  structure SS = SpecialSymbols
   structure PP = PrettyPrint
   structure IP = InvPath
   structure SP = SymPath
@@ -50,9 +51,7 @@ struct
 
   val stringDepth = Control_Print.stringDepth
 
-  val mlstr = PrintUtil.mlstr
-  fun pp_mlstr ppstream = PP.string ppstream o PrintUtil.pr_mlstr
-  fun pp_intinf ppstream = PP.string ppstream o PrintUtil.pr_intinf
+  fun ppString ppstream = PP.string ppstream o PrintUtil.formatString
 
   fun ppvseq ppstream ind (sep:string) pr elems =
       let fun prElems [el] = pr ppstream el
@@ -135,12 +134,9 @@ struct
     the way all symbolic path names are stored within static semantic objects.
    *)
 
-  val resultId = S.strSymbol "<resultStr>"
-  val returnId = S.strSymbol "<returnStr>"
-
   fun findPath (IP.IPATH p: IP.path, check, look): (S.symbol list * bool) =
       let fun try(name::untried,tried) =
-	        (if (S.eq(name,resultId)) orelse (S.eq(name,returnId)) 
+	        (if (S.eq(name,SS.resultId)) orelse (S.eq(name,SS.returnId)) 
 		 then try(untried,tried)
 		 else
 		   let val elem = look(SP.SPATH(name :: tried))
@@ -151,7 +147,6 @@ struct
 	    | try([],tried) = (tried, false)
        in try(p,[])
       end
-
 
   fun ppi ppstrm (i:int) = pps ppstrm (Int.toString i)
 
