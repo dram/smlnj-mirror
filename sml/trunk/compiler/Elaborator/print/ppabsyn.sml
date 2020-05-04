@@ -96,6 +96,27 @@ fun lookFIX (env,sym) =
 fun stripMark (MARKexp(a,_)) = stripMark a
   | stripMark x = x
 
+fun ppRpath ppstrm rpath = PP.string ppstrm (InvPath.toString rpath)
+
+fun ppStr ppstrm str =
+    (case str
+      of M.STR{access,rlzn={rpath,...},...} =>
+	 (ppRpath ppstrm rpath;
+	  PP.string ppstrm "[";
+	  ppAccess ppstrm access;
+	  PP.string ppstrm "]")
+       | M.STRSIG _ => PP.string ppstrm "SIGSTR"
+       | M.ERRORstr => PP.string ppstrm "ERRORstr")
+
+fun ppFct ppstrm fct =
+    (case fct
+      of M.FCT{access,rlzn={rpath,...},...} =>
+	 (ppRpath ppstrm rpath;
+	  PP.string ppstrm "[";
+	  ppAccess ppstrm access;
+	  PP.string ppstrm "]")
+       | M.ERRORfct => PP.string ppstrm "ERRORfct")
+
 fun ppPat env ppstrm =
     let val {openHOVBox, openHVBox, closeBox, pps, ppi, ...} = PU.en_pp ppstrm
 	fun ppPat' (_,0) = pps "<pat>"
@@ -706,34 +727,30 @@ and ppDec (context as (env,source_opt)) ppstrm =
     end
 
 and ppStrexp (context as (statenv,source_opt)) ppstrm =
-  let val pps = PP.string ppstrm
+    let val pps = PP.string ppstrm
+				   
       fun ppStrexp'(_,0) = pps "<strexp>"
 
-	| ppStrexp'(VARstr (M.STR{access, rlzn={rpath,...},...}), d) =
-	  (pps (InvPath.toString rpath); ppAccess ppstrm access)
+	| ppStrexp'(VARstr str, d) = (ppStr ppstrm str)
 
-	| ppStrexp'(APPstr{oper=M.FCT { access = fa, ... },
-			   arg=M.STR { access = sa, ... }, ...}, d) =
-	      (ppAccess ppstrm fa; pps"("; ppAccess ppstrm sa; pps")")
+	| ppStrexp'(APPstr{oper, arg, ...}, d) =
+	  (ppFct ppstrm oper; pps"("; ppStr ppstrm arg; pps")")
         | ppStrexp'(STRstr bindings, d) =
-              (PP.openHVBox ppstrm (PP.Rel 0);
-		pps "struct"; PP.newline ppstrm;
-		PP.openHVBox ppstrm (PP.Rel 2);
-		 PU.ppSequence ppstrm
-		    {sep=PP.newline,
-		     pr=(fn ppstrm => fn binding =>
-			    PPModules.ppBinding ppstrm
-				 (Bindings.bindingSymbol binding,binding,statenv,d-1)),
-		     style=PU.CONSISTENT}
+              (PP.openVBox ppstrm (PP.Abs 0);
+	       pps "struct";
+	       PU.ppvseq ppstrm 2 ""
+		 (fn ppstrm => fn binding =>
+		     PPModules.ppBinding ppstrm
+			(Bindings.bindingSymbol binding,binding,statenv,d-1))
 		 bindings;
-		 PP.newline ppstrm; pps "end";
-		PP.closeBox ppstrm;
+	       pps "end";
                PP.closeBox ppstrm)
 	| ppStrexp'(LETstr(dec,body),d) =
-	      (PP.openHVBox ppstrm (PP.Rel 0);
+	      (PP.openHVBox ppstrm (PP.Abs 0);
 	       pps "let "; ppDec context ppstrm (dec,d-1);
-               PP.newline ppstrm;
-	       pps " in "; ppStrexp'(body,d-1); PP.newline ppstrm;
+               PP.cut ppstrm;
+	       pps " in "; ppStrexp'(body,d-1);
+	       PP.cut ppstrm;
 	       pps "end";
 	       PP.closeBox ppstrm)
         | ppStrexp'(MARKstr(body,(s,e)),d) =
@@ -745,8 +762,6 @@ and ppStrexp (context as (statenv,source_opt)) ppstrm =
 		    prpos(ppstrm,source,e); pps ")")
 	         | NONE => ppStrexp'(body,d))
 
-        | ppStrexp' _ = bug "unexpected structure expression in ppStrexp'"
-
    in ppStrexp'
   end
 
@@ -754,19 +769,24 @@ and ppFctexp (context as (_,source_opt)) ppstrm =
   let val pps = PP.string ppstrm
 
       fun ppFctexp'(_, 0) = pps "<fctexp>"
-        | ppFctexp'(VARfct (M.FCT { access, ... }), d) = ppAccess ppstrm access
 
-        | ppFctexp'(FCTfct{param=M.STR { access, ... }, def, ...}, d) =
-            (pps " FCT(";
-	     ppAccess ppstrm access;
-	     pps ") => "; PP.newline ppstrm;
- 	     ppStrexp context ppstrm (def,d-1))
+        | ppFctexp'(VARfct fct, d) = ppFct ppstrm fct
+
+        | ppFctexp'(FCTfct{param, def, ...}, d) =
+            (pps "FCT(";
+	     ppStr ppstrm param;
+	     pps ") => ";
+	     PP.openHVBox ppstrm (PP.Abs 2);
+	       PP.cut ppstrm;
+ 	       ppStrexp context ppstrm (def,d-1);
+	     PP.closeBox ppstrm)
 
         | ppFctexp'(LETfct(dec,body),d) =
-	    (PP.openHVBox ppstrm (PP.Rel 0);
+	    (PP.openHVBox ppstrm (PP.Abs 0);
 	     pps "let "; ppDec context ppstrm (dec,d-1);
-             PP.newline ppstrm;
-	     pps " in "; ppFctexp'(body,d-1); PP.newline ppstrm;
+             PP.cut ppstrm;
+	     pps " in "; ppFctexp'(body,d-1);
+	     PP.cut ppstrm;
 	     pps "end";
 	     PP.closeBox ppstrm)
 
@@ -778,8 +798,6 @@ and ppFctexp (context as (_,source_opt)) ppstrm =
 		    prpos(ppstrm,source,s); pps ",";
 		    prpos(ppstrm,source,e); pps ")")
                | NONE => ppFctexp'(body,d))
-
-        | ppFctexp' _ = bug "unexpected functor expression in ppFctexp'"
 
    in ppFctexp'
   end

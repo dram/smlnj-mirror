@@ -30,9 +30,7 @@ fun dgPrint (msg: string, printfn: PP.stream -> 'a -> unit, arg: 'a) =
 	   PP.openHVBox ppstrm (PP.Rel 0);
 	   printfn ppstrm arg;
 	   PP.closeBox ppstrm;
-	   PP.newline ppstrm;
-	   PP.closeBox ppstrm;
-	   PP.flushStream ppstrm))
+	   PP.closeBox ppstrm))
   else ()
 
 exception TCENV
@@ -326,12 +324,12 @@ and tc_lzrd(t: tyc) =
                                             handle Subscript =>
                                             (* kind/arity error! *)
                     (with_pp(fn s =>
-                       let val {break,newline,openHVBox,openHOVBox,
+                       let val {break,newline,openHVBox,openHOVBox,openVBox,
 				closeBox, pps, ppi} = PU.en_pp s
                        in openHVBox 0;
-                          pps "***Debugging***"; newline();
+                          pps "***Debugging***"; break{nsp=1,offset=0};
                           pps "tc_lzrd arg:"; newline();
-                          PPLty.ppTyc (!dp) s t; newline();
+                          PPLty.ppTyc (!dp) s t; break{nsp=1,offset=0};
 		          pps "n = "; ppi n; pps ", k = "; ppi k;
 			  newline();
                           pps "length(ts) = : "; ppi (length ts);
@@ -340,8 +338,7 @@ and tc_lzrd(t: tyc) =
                           openHOVBox 2;
                           ppList s {sep=",",pp=ppTyc (!dp)} ts;
                           closeBox ();
-                          closeBox ();
-                          newline(); PP.flushStream s
+                          closeBox ()
 			end);
 			raise teUnbound2)
                                  in (* ASSERT: nl >= nl' *)

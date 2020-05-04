@@ -644,7 +644,7 @@ and ppWhereSpec (context as (env,source_opt)) ppstrm =
   end
 
 and ppSigExp (context as (env,source_opt)) ppstrm =
-  let val {openHOVBox, openHVBox, closeBox, pps, ppi, newline, break} = en_pp ppstrm
+  let val {openVBox, openHOVBox, openHVBox, closeBox, pps, ppi, newline, break} = en_pp ppstrm
       fun ppSigExp'(_,0) = pps "<SigExp>"
 	| ppSigExp'(VarSig s,d) = (ppSym ppstrm s)
 	| ppSigExp'(AugSig (sign, wherel),d) =
@@ -661,14 +661,10 @@ and ppSigExp (context as (env,source_opt)) ppstrm =
 	    (pps "sig"; nbSpace ppstrm 1; pps"end")
 	| ppSigExp'(BaseSig specl,d) =
 	  let fun pr ppstrm speci = (ppSpec context ppstrm (speci,d))
-	   in (openVBox ppstrm (Rel 0);
-                pps "sig"; PU.nl_indent ppstrm 2;
-                ppSequence ppstrm
-                 {sep=(fn ppstrm => (PP.newline ppstrm)),
-                  pr=pr,
-                  style=INCONSISTENT}
-                 specl;
-                newline (); pps"end";
+	   in (PP.openVBox ppstrm (PP.Abs 0);
+                pps "sig";
+                ppvseq ppstrm 2 "" pr specl;
+                pps "end";
                PP.closeBox ppstrm)
 	  end
 	| ppSigExp'(MarkSig (m,r),d) = ppSigExp context ppstrm (m,d)

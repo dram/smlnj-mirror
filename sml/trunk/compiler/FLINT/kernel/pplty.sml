@@ -33,14 +33,12 @@ val dtPrintNames : bool ref = ref true
 val printIND : bool ref = ref false
 
 fun ppSeq ppstrm {sep: string, pp : PP.stream -> 'a -> unit} (list: 'a list) =
-    let val {openHOVBox, closeBox, pps, ...} = en_pp ppstrm
-     in	ppSequence ppstrm
-	   {sep = fn ppstrm => (PP.string ppstrm sep;
-			        PP.break ppstrm {nsp=1, offset=0}),
-	    style = INCONSISTENT,
-            pr = pp}
-           list
-    end (* ppSeq *)
+    ppSequence ppstrm
+      {sep = fn ppstrm => (PP.string ppstrm sep;
+			   PP.break ppstrm {nsp=1, offset=0}),
+       style = INCONSISTENT,
+       pr = pp}
+      list
 
 fun ppList ppstrm {sep: string, pp : PP.stream -> 'a -> unit} (list: 'a list) =
     ppClosedSequence ppstrm
@@ -303,7 +301,7 @@ fun ppTycEnv pd ppstrm (tycEnv : Lty.tycEnv) =
 
 fun ppLty pd ppstrm (lty: Lty.lty) =
     if pd < 1 then pps ppstrm "<tyc>" else
-    let val {openHOVBox, openHVBox, closeBox, pps, ppi, break, newline} =
+    let val {openHOVBox, openHVBox, openVBox, closeBox, pps, ppi, break, newline} =
             en_pp ppstrm
 	val ppList' : {pp:PP.stream -> 'a -> unit, sep: string} -> 'a list -> unit =
               fn x => ppList ppstrm x

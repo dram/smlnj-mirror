@@ -49,12 +49,15 @@ struct
     fun flush {consumer, linewidth, flush} = flush()
   end
 
+  (* create an instance of the pretty printer library *)
   structure PP = PPStreamFn
       (structure Token = StringToken
        structure Device = Dev)
 
   open PP
 
+  (* extend the pretty printer interface with the following functions *)
+	   
   val defaultDevice : device =
       {consumer = Control_Print.say,
        linewidth = (fn () => !Control_Print.linewidth),
@@ -63,12 +66,14 @@ struct
   fun with_pp device (f: PP.stream -> unit) =
       let val ppstrm = PP.openStream device
        in f ppstrm;
+	  PP.newline ppstrm;
           PP.closeStream ppstrm
       end
 
   fun with_default_pp (f: PP.stream -> unit) =
       let val ppstrm = PP.openStream(defaultDevice)
        in f ppstrm;
+          PP.newline ppstrm;	 
           PP.closeStream ppstrm
       end
 

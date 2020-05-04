@@ -105,7 +105,7 @@ fun ppLexp (pd:int) ppstrm (l: lexp): unit =
 	      pps(concat["(W", Int.toString ty, ")", IntInf.toString ival])
           | ppl pd (REAL{rval, ty}) =
 	      pps(concat["(R", Int.toString ty, ")", RealLit.toString rval])
-          | ppl pd (STRING s) = pps (PrintUtil.formatString s)
+          | ppl pd (STRING s) = PU.ppString ppstrm s
           | ppl pd (ETAG (l,_)) = ppl pd l
 
           | ppl pd (RECORD l) =

@@ -312,19 +312,18 @@ val ltd_fct    : lty -> lty list * lty list = fn lt =>
       (case lt_out lt of LT.LT_FCT x => x
                        | _ => bug "unexpected lty in ltd_fct")
 val ltd_poly   : lty -> tkind list * lty list = fn lt =>
-      (case lt_out lt of LT.LT_POLY x => x
-                       | _ =>
-                    (with_pp(fn s =>
-                       let val {break,newline,openHVBox,openHOVBox,
-				closeBox, pps, ppi} = PU.en_pp s
-                       in openHVBox 0;
-                          pps "***ltd_poly***"; newline();
+    (case lt_out lt
+      of LT.LT_POLY x => x
+       | _ => (with_pp(fn s =>
+			  let val {break,newline,openHVBox,openHOVBox,openVBox,
+				   closeBox, pps, ppi} = PU.en_pp s
+			  in openHVBox 0;
+                          pps "***ltd_poly***"; break{nsp=1,offset=0};
                           pps "arg:"; newline();
-                          PPLty.ppLty (!dp) s lt; newline();
-                          closeBox ();
-                          newline(); PP.flushStream s
-			end);
- bug "unexpected lty in ltd_poly"))
+                          PPLty.ppLty (!dp) s lt; break{nsp=1,offset=0};
+                          closeBox ()
+			  end);
+	       bug "unexpected lty in ltd_poly"))
 
 (** lty predicates *)
 val ltp_tyc    : lty -> bool = fn lt =>

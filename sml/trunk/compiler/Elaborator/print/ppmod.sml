@@ -222,7 +222,8 @@ fun ppConBinding ppstrm =
     end
 
 fun ppStructure ppstrm (str,env,depth) =
-    let val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
+    let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
+	    en_pp ppstrm
      in case str
 	  of M.STR { sign, rlzn as { entities, ... }, prim, ... } =>
 	     (if !internals
@@ -384,7 +385,7 @@ and ppElements (env,depth,entityEnvOp) ppstrm elements =
     end
 
 and ppSignature0 ppstrm (sign,env,depth,entityEnvOp) =
-    let val {openHVBox, openHOVBox,closeBox,pps,ppi,break,newline} =
+    let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
             en_pp ppstrm
 	val env = SE.atop(case entityEnvOp
 			    of NONE => sigToEnv sign
@@ -489,7 +490,7 @@ and ppSignature0 ppstrm (sign,env,depth,entityEnvOp) =
     end
 
 and ppFunsig ppstrm (sign,env,depth) =
-    let val {openHVBox, openHOVBox,closeBox,pps,ppi,break,newline} =
+    let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
             en_pp ppstrm
 	fun trueBodySig (orig as M.SIG { elements =
 					 [(sym, M.STRspec { sign, ... })],
@@ -536,7 +537,7 @@ and ppFunsig ppstrm (sign,env,depth) =
 
 and ppStrEntity ppstrm (e,env,depth) =
     let val {stamp,entities,properties,rpath,stub} = e
-	val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} =
+	val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
             en_pp ppstrm
      in if depth <= 1
 	then pps "<structure entity>"
@@ -565,7 +566,8 @@ and ppStrEntity ppstrm (e,env,depth) =
 
 and ppFctEntity ppstrm (e, env, depth) =
     let val {stamp,closure,properties,tycpath,rpath,stub} = e
-	val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
+	val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
+	    en_pp ppstrm
     in if depth <= 1
 	then pps "<functor entity>"
 	else (openHVBox 0;
@@ -593,7 +595,8 @@ and ppFctEntity ppstrm (e, env, depth) =
     end
 
 and ppFunctor ppstrm =
-    let val {openHVBox, openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
+    let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
+	    en_pp ppstrm
 	fun ppF (M.FCT { sign, rlzn, ... }, env, depth) =
 		if depth <= 1
 		then pps "<functor>"
@@ -611,7 +614,8 @@ and ppFunctor ppstrm =
     end
 
 and ppTycBind ppstrm (tyc,env) =
-    let val {openHVBox, openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
+    let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
+	    en_pp ppstrm
         fun visibleDcons(tyc,dcons) =
 	    let fun checkCON(V.CON c) = c
 		  | checkCON _ = raise SE.Unbound
@@ -734,7 +738,7 @@ and ppTycBind ppstrm (tyc,env) =
 
 and ppReplBind ppstrm =
     let
-	val {openHVBox, openHOVBox,closeBox,pps,ppi,break,newline} =
+	val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
 	      en_pp ppstrm
     in
         fn (T.DEFtyc{tyfun=T.TYFUN{body=T.CONty(rightTyc,_),...},path,...},
@@ -773,7 +777,7 @@ and ppEntityEnv ppstrm (entEnv,env,depth) =
     then pps ppstrm "<entityEnv>"
     else (ppvseq ppstrm 0 ""
 	      (fn ppstrm => fn (entVar,entity) =>
-		let val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} =
+		let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} =
 			 en_pp ppstrm
 		 in openHVBox 0;
 		     pps (EntPath.entVarToString entVar);
@@ -914,12 +918,13 @@ and ppBodyExp ppstrm (bodyExp,depth) =
 *)
 
 and ppClosure ppstrm (M.CLOSURE{param,body,env},depth) =
-    let val {openHVBox, openHOVBox,closeBox,pps,newline,break,...} = en_pp ppstrm
-     in openHVBox 0;
-	 pps "CL:"; break{nsp=1,offset=1};
-	  openHVBox 0;
-	   pps "param: "; ppEntVar ppstrm param; newline();
-	   pps "body: "; ppStrExp ppstrm (body,depth-1); newline();
+    let val {openHVBox,openHOVBox,openVBox,closeBox,pps,newline,break,...} = en_pp ppstrm
+     in openVBox 0;
+	 pps "CL:";
+	 PP.openVBox ppstrm (PP.Abs 2);
+	   PP.cut ppstrm;
+	   pps "param: "; ppEntVar ppstrm param; PP.cut ppstrm;
+	   pps "body: "; ppStrExp ppstrm (body,depth-1); PP.cut ppstrm;
            pps "env: "; ppEntityEnv ppstrm (env,SE.empty,depth-1);
 	  closeBox();
 	closeBox()
@@ -932,36 +937,41 @@ and ppBinding ppstrm (name,binding:B.binding,env:SE.staticEnv,depth:int) =
        | B.CONbind con => ppConBinding ppstrm (con,env)
        | B.TYCbind tycon => ppTycBind ppstrm (tycon,env)
        | B.SIGbind sign =>
-	  let val {openHVBox,openHOVBox,closeBox,pps,ppi,break,...} = en_pp ppstrm
-	   in openHVBox 0;
+	  let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,...} = en_pp ppstrm
+	   in openVBox 0;
 	       pps "signature "; ppSym ppstrm name; pps " =";
-	       break{nsp=1,offset=2};
 	       ppSignature0 ppstrm (sign,env,depth,NONE);
 	      closeBox()
 	  end
        | B.FSGbind fs =>
-	  let val {openHVBox,openHOVBox,closeBox,pps,...} = en_pp ppstrm
-	   in openHVBox 2;
+	  let val {openHVBox,openVBox,closeBox,pps,...} = en_pp ppstrm
+	   in openVBox 0;
 	       pps "funsig "; ppSym ppstrm name;
-	       ppFunsig ppstrm (fs,env,depth);
+	       openVBox 2;
+	         PP.cut ppstrm;
+	         ppFunsig ppstrm (fs,env,depth);
+		 closeBox();
 	      closeBox()
 	  end
        | B.STRbind str =>
-	  let val {openHVBox, openHOVBox,closeBox,pps,ppi,break,...} = en_pp ppstrm
+	  let val {openHVBox,openVBox,closeBox,pps,...} = en_pp ppstrm
 	   in openHVBox 0;
 	       pps "structure "; ppSym ppstrm name; pps " :";
-	       break{nsp=1,offset=2};
-	       ppStructure ppstrm (str,env,depth);
+	       openVBox 2;
+		 PP.cut ppstrm;
+		 ppStructure ppstrm (str,env,depth);
+	       closeBox();
 	      closeBox()
 	  end
        | B.FCTbind fct =>
-	  let val {openHVBox,openHOVBox,closeBox,pps,break,...} = en_pp ppstrm
+	  let val {openHVBox,openVBox,closeBox,pps,break,...} = en_pp ppstrm
 	   in openHVBox 0;
 	       pps "functor ";
 	       ppSym ppstrm name;
 	       pps " :";
-	       break{nsp=1,offset=2};
-	       ppFunctor ppstrm (fct,env,depth);
+	       openVBox 2; PP.cut ppstrm;
+	         ppFunctor ppstrm (fct,env,depth);
+	       closeBox ();
 	      closeBox()
 	  end
        | B.FIXbind fixity =>
@@ -983,7 +993,7 @@ and ppEnv ppstrm (env,topenv,depth,boundsyms) =
 				[] l
 	val pp_env = StaticEnv.atop(env,topenv)
      in ppSequence ppstrm
-	  {sep=newline,
+	  {sep=PP.cut,
 	   pr=(fn ppstrm => fn (name,binding) =>
 	          ppBinding ppstrm (name,binding,pp_env,depth)),
 	   style=CONSISTENT}
@@ -991,7 +1001,7 @@ and ppEnv ppstrm (env,topenv,depth,boundsyms) =
     end
 
 fun ppOpen ppstrm (path,str,env,depth) =
-    let val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
+    let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
      in openHVBox 0;
 	 openHVBox 2;
 	  pps "opening ";

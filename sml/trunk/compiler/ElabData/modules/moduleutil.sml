@@ -102,6 +102,7 @@ fun getFct (elements, entEnv, sym, dacc, dinfo) =
 
 val errorStrStamp = ST.special "ERRORstr"
 val errorStrName = InvPath.IPATH[S.strSymbol "ERRORstr"]
+val errorFctName = InvPath.IPATH[S.fctSymbol "ERRORfct"]
 
 fun getStrStamp(STR { rlzn = {stamp, ...}, ... }) = stamp
   | getStrStamp ERRORstr = errorStrStamp
@@ -110,6 +111,9 @@ fun getStrStamp(STR { rlzn = {stamp, ...}, ... }) = stamp
 fun getStrName(STR { rlzn = {rpath,...}, ... }) = rpath
   | getStrName ERRORstr = errorStrName
   | getStrName _ = bug "getStrName"
+
+fun getFctName(FCT{ rlzn = {rpath,...}, ... }) = rpath
+  | getFctName ERRORfct = errorFctName
 
 fun getStrs (STR { sign = SIG{elements,...}, rlzn = {entities,...}, access,prim,...}) =
     List.mapPartial

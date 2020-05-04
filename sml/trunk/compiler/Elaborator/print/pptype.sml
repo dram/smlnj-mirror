@@ -286,7 +286,7 @@ fun ppTycon1 env ppstrm membersOp =
 
 and ppType1 env ppstrm (ty: ty, sign: T.polysign,
                         membersOp: (T.dtmember vector * T.tycon list) option) : unit =
-    let val {openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
+    let val {openVBox,openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
         fun prty ty =
 	    case ty
 	      of VARty(ref(INSTANTIATED ty')) => prty(ty')

@@ -90,7 +90,9 @@ structure Absyn : ABSYN =
     and strexp
       = VARstr of Modules.Structure
       | STRstr of B.binding list
-      | APPstr of {oper: Modules.Functor, arg: Modules.Structure, argtycs: Ty.tycpath list}
+      | APPstr of {oper: Modules.Functor,
+		   arg: Modules.Structure,
+		   argtycs: Ty.tycpath list}
       | LETstr of dec * strexp
       | MARKstr of strexp * region
 

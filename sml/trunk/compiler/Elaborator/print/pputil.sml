@@ -24,7 +24,6 @@ struct
 	    | prElems (el::rest) =
 	        (pr ppstream el;
 		 sep ppstream;
-                 PP.break ppstream {nsp=0,offset=0};
                  prElems rest)
 	    | prElems [] = ()
        in prElems elems
@@ -49,40 +48,39 @@ struct
 
   fun ppSym ppstream (s:S.symbol) = PP.string ppstream (S.name s)
 
-  val stringDepth = Control_Print.stringDepth
-
   fun ppString ppstream = PP.string ppstream o PrintUtil.formatString
 
-  fun ppvseq ppstream ind (sep:string) pr elems =
-      let fun prElems [el] = pr ppstream el
-	    | prElems (el::rest) = (pr ppstream el; 
+  fun ppvseq ppstream ind (sep:string) pr_elem elems =
+      let fun prElems [el] = pr_elem ppstream el
+	    | prElems (el::rest) = (pr_elem ppstream el; 
                                     PP.string ppstream sep; 
-                                    PP.newline ppstream;
+				    PP.cut ppstream;
                                     prElems rest)
 	    | prElems [] = ()
-       in PP.openHVBox ppstream (PP.Rel ind);
-          prElems elems;
+       in PP.openVBox ppstream (PP.Abs ind);
+	   PP.cut ppstream;
+           prElems elems;
           PP.closeBox ppstream
       end
 
-  fun ppvlist ppstrm (header,separator,pr_item,items) =
-      case items
+  fun ppvlist ppstrm (header,separator,pr_elem,elems) =
+      case elems
 	of nil => ()
 	 | first::rest =>
 	     (PP.string ppstrm header;
-	      pr_item ppstrm first;
-	      app (fn x => (PP.newline ppstrm;
+	      pr_elem ppstrm first;
+	      app (fn x => (PP.cut ppstrm;
 			    PP.string ppstrm separator;
-			    pr_item ppstrm x))
+			    pr_elem ppstrm x))
 		   rest)
 
-  fun ppvlist' ppstrm (header,separator,pr_item,items) =
-      case items
+  fun ppvlist' ppstrm (header,separator,pr_elem,elems) =
+      case elems
 	of nil => ()
 	 | first::rest =>
-	     (pr_item ppstrm header first;
+	     (pr_elem ppstrm header first;
 	      app (fn x => (PP.newline ppstrm;
-			    pr_item ppstrm separator x))
+			    pr_elem ppstrm separator x))
 		   rest)
 
   (* debug print functions *)
@@ -94,18 +92,11 @@ struct
 	 style=INCONSISTENT,
 	 pr=(fn pps => PP.string pps o Int.toString)}
 
-  fun ppSymPath ppstream (sp: SymPath.path) = 
-      PP.string ppstream (SymPath.toString sp)
+  fun ppSymPath ppstream (path: SymPath.path) = 
+      PP.string ppstream (SymPath.toString path)
 
-  fun ppInvPath ppstream (InvPath.IPATH path: InvPath.path) =
-      ppClosedSequence ppstream 
-	{front=(fn pps => PP.string pps "<"),
-	 sep=(fn pps => (PP.string pps ".")),
-	 back=(fn pps => PP.string pps ">"),
-	 style=INCONSISTENT,
-	 pr=ppSym}
-        path
-
+  fun ppInvPath ppstream (rpath: InvPath.path) =
+      PP.string ppstream (InvPath.toString rpath)
 
   (* findPath:  convert inverse symbolic path names to a printable string in the
     context of an environment.
@@ -155,9 +146,7 @@ struct
   fun ppcomma_nl ppstrm  = (ppcomma ppstrm; PP.newline ppstrm)
 
   fun nl_indent ppstrm i =
-      let val linewidth = 10000
-       in PP.break ppstrm {nsp=linewidth,offset=i}
-      end
+      PP.break ppstrm {nsp=1000,offset=i}
 
   fun nl_app ppstrm f =
       let fun g [] = ()
@@ -174,8 +163,9 @@ struct
       end
 
   fun en_pp ppstrm =
-      {openHVBox = (fn indent => PP.openHVBox ppstrm (PP.Rel indent)),  (* CONSISTENT *)
-       openHOVBox = (fn indent => PP.openHOVBox ppstrm (PP.Rel indent)),  (* INCONSISTENT *)
+      {openVBox = (fn indent => PP.openVBox ppstrm (PP.Abs indent)),  (* vertical *)
+       openHVBox = (fn indent => PP.openHVBox ppstrm (PP.Abs indent)),  (* CONSISTENT *)
+       openHOVBox = (fn indent => PP.openHOVBox ppstrm (PP.Abs indent)),  (* INCONSISTENT *)
        closeBox = fn () => PP.closeBox ppstrm,
        pps = pps ppstrm,
        ppi = ppi ppstrm,

@@ -55,6 +55,7 @@ sig
   val en_pp : PrettyPrint.stream -> 
               {break      : {nsp: int, offset: int} -> unit, 
 	       newline    : unit -> unit,
+	       openVBox   : int -> unit,
 	       openHVBox  : int -> unit,
 	       openHOVBox : int -> unit,
 	       closeBox   : unit -> unit, 
