@@ -96,5 +96,49 @@ struct
       InvPath.IPATH(rev p)
   fun invertIPath(InvPath.IPATH p : InvPath.path) : SymPath.path =
       SymPath.SPATH(rev p)
+		   
+  (* findPath: convert inverse symbolic path names to a printable string in the
+    context of an environment.
+
+    Its arguments are the inverse symbolic path, a check predicate on static
+    semantic values, and a lookup function mapping paths to their bindings
+    (if any) in an environment and raising Env.Unbound on paths with no
+    binding.
+
+    It looks up each suffix of the path name, going from shortest to longest
+    suffix, in the current environment until it finds one whose lookup value
+    satisfies the check predicate.  It then converts that suffix to a string.
+    If it doesn't find any suffix, the full path (reversed, i.e. in the 
+    normal order) and the boolean value false are returned, otherwise the
+    suffix and true are returned.
+
+    Example:
+	   Given A.B.t as a path, and a lookup function for an
+	   environment, this function tries:
+		     t
+		     B.t
+		     A.B.t
+	   If none of these work, it returns ?.A.B.t
+
+    Note: the symbolic path is passed in reverse order because that is
+    the way all symbolic path names are stored within static semantic objects.
+   *)
+
+  fun findPath (InvPath.IPATH p: InvPath.path, check, look): (Symbol.symbol list * bool) =
+      let fun try(name::untried,tried) =
+	      (if (Symbol.eq(name,SpecialSymbols.resultId)) orelse
+		  (Symbol.eq(name,SpecialSymbols.returnId)) 
+		 then try(untried,tried)
+		 else let val elemOp = look(SymPath.SPATH(name :: tried))
+		       in case elemOp
+			    of NONE => try(untried,name::tried)
+			     | SOME elem =>
+			       if check elem
+			       then (name::tried,true)
+			       else try(untried,name::tried)
+		      end)
+	    | try([],tried) = (tried, false)
+       in try(p,[])
+      end
 
 end (* structure ConvertPaths *)

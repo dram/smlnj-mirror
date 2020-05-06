@@ -31,8 +31,6 @@ signature ELAB_CONTROL =
 	(* ElabMod, Control_MC *)
     val etopdebugging : bool ref
 
-    val internals : bool ref
-
     val markabsyn : bool ref
 	(* ElabCore, ElabTop, ElabUtil, Control_MC *)
 

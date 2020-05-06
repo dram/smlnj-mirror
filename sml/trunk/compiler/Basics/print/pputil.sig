@@ -32,14 +32,12 @@ sig
                -> string * string * (PrettyPrint.stream -> string -> 'a -> unit)
                     * 'a list
                -> unit
+(*
   val ppIntPath : PrettyPrint.stream -> int list -> unit
   val ppSymPath : PrettyPrint.stream -> SymPath.path -> unit
   val ppInvPath : PrettyPrint.stream -> InvPath.path -> unit
+*)
   val nl_indent : PrettyPrint.stream -> int -> unit
-
-  (* needed in PPTypes, PPModules *)
-  val findPath : InvPath.path * ('a -> bool) * (SymPath.path -> 'a)
-                 -> (Symbol.symbol list * bool)
 
   val ppTuple: PrettyPrint.stream
 	       -> (PrettyPrint.stream -> 'a -> unit) -> 'a list -> unit

@@ -32,7 +32,7 @@ local
 
 in
 
-val internals = ElabControl.internals
+val internals = ElabDataControl.varconInternals
 
 fun C f x y = f y x
 

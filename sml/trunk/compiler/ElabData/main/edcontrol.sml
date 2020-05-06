@@ -2,7 +2,9 @@
  *
  * (C) 2001 Lucent Technologies, Bell Labs
  *)
-structure ElabDataControl : ELABDATA_CONTROL = struct
+
+structure ElabDataControl : ELABDATA_CONTROL =
+struct
 
     val priority = [10, 10, 7]
     val obscurity = 6
@@ -34,11 +36,35 @@ structure ElabDataControl : ELABDATA_CONTROL = struct
     end
 
 
-    val saveLvarNames = new ("save-lvar-names", "?", false)
-    val eedebugging = new ("ee-debugging", "?", false)
-    val mudebugging = new ("mu-debugging", "?", false)
+    val saveLvarNames = new ("save-lvar-names", "save Lvar names", false)
+    val eedebugging = new ("ee-debugging", "EntityEnv debugging", false)
+    val mudebugging = new ("mu-debugging", "ModuleUtil debugging", false)
 
-    val tudebugging = new ("tu-debugging", "?", false)
+    val tudebugging = new ("tu-debugging", "TypesUtil debugging", false)
         (* TypesUtil *)
 
-end
+
+    val typesInternals = new ("types-internals", "show internal types reps", false)
+    val modulesInternals = new ("modules-internals", "show internal module reps", false)
+    val absynInternals = new ("absyn-internals", "show internal absyn info", false)
+    val varconInternals = new ("varcon-internals", "show internal var/con reps", false)
+    val internals = new ("general-internals", "show internal reps", false)
+
+    fun setInternals () =
+	(varconInternals := true;
+	 absynInternals := true;
+	 typesInternals := true;
+	 modulesInternals := true;
+	 internals := true)
+
+    fun resetInternals () =
+	(varconInternals := false;
+	 absynInternals := false;
+	 typesInternals := false;
+	 modulesInternals := false;
+	 internals := false)
+
+    val boxedconstconreps = new ("boxedconstreps", "boxed const constructors", false)
+        (* ConRep *)
+
+end (* EladDataControl *)

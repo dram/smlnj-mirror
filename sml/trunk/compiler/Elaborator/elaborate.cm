@@ -24,39 +24,21 @@ Group
 
 	structure BasicTypes
 	structure ElabUtil
-	structure SpecialSymbols
 	structure ElabDebug
 	structure Unify
 	structure Typecheck
 
-	signature PPUTIL
-	signature PPTYPE
-	signature PPABSYN
-	signature PPMOD
-	signature PPVAL
-	signature PPAST
-
-	structure PPUtil
-	structure PPPrim
-	structure PPType
-	structure PPAbsyn
-	structure PPModules
-	structure PPVal
-	structure PPAst
 is
 
-	basics/elabcontrol.sig
-	basics/elabcontrol.sml
-	basics/conrep.sml
+	control/elabcontrol.sig
+	control/elabcontrol.sml
 
-	types/eqtypes.sml
 	types/unify.sml
 	types/overloadclasses.sml
 	types/overloadvar.sml
 	types/overload.sml
 	types/typecheck.sml
 
-	modules/expandtycon.sml
 	modules/sigmatch.sml
 	modules/instantiate.sml
 	modules/evalent.sml
@@ -64,7 +46,6 @@ is
 	elaborate/tyvarset.sml
 	elaborate/elabutil.sig
 	elaborate/elabutil.sml
-	elaborate/specialsyms.sml
 	elaborate/elabtype.sig
 	elaborate/elabtype.sml
 	elaborate/precedence.sml
@@ -75,16 +56,6 @@ is
 	elaborate/elabmod.sml
 	elaborate/elabtop.sml
 	elaborate/check-unused.sml
-
-	print/ppprim.sml
-	print/pputil.sig
-	print/pputil.sml
-	print/pptype.sml
-	print/ppval.sml
-	print/ppabsyn.sml
-	print/ppmod.sml
-	print/ppast.sig
-	print/ppast.sml
 
 	$smlnj/viscomp/elabdata.cm
 	$smlnj/viscomp/basics.cm

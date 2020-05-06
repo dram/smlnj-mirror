@@ -5,10 +5,7 @@ structure PPUtil : PPUTIL =
 struct
 
   structure S : SYMBOL = Symbol
-  structure SS = SpecialSymbols
   structure PP = PrettyPrint
-  structure IP = InvPath
-  structure SP = SymPath
 
   val pps = PP.string
 
@@ -31,7 +28,7 @@ struct
 
   fun ppSequence ppstream {sep:PP.stream->unit, pr:PP.stream->'a->unit, 
                            style:break_style} (elems: 'a list) =
-      (openStyleBox style ppstream (PP.Rel 0);
+      (openStyleBox style ppstream (PP.Abs 0);
        ppSequence0 ppstream (sep,pr,elems);
        PP.closeBox ppstream)
 
@@ -40,7 +37,7 @@ struct
                                 style:break_style} (elems:'a list) =
       (PP.openHVBox ppstream (PP.Rel 1);
        front ppstream;
-       openStyleBox style ppstream (PP.Rel 0);
+       openStyleBox style ppstream (PP.Abs 0);
        ppSequence0 ppstream (sep,pr,elems); 
        PP.closeBox ppstream;
        back ppstream;
@@ -57,8 +54,7 @@ struct
 				    PP.cut ppstream;
                                     prElems rest)
 	    | prElems [] = ()
-       in PP.openVBox ppstream (PP.Abs ind);
-	   PP.cut ppstream;
+       in PP.openVBoxI ppstream ind;
            prElems elems;
           PP.closeBox ppstream
       end
@@ -83,6 +79,8 @@ struct
 			    pr_elem ppstrm separator x))
 		   rest)
 
+(* these don't belong here: ppIntPath not used, ppSympath, ppInvPath too specialized,
+ and reverse introduce dependence on ElabData/basics/sympath.sml.
   (* debug print functions *)
   fun ppIntPath ppstream =
       ppClosedSequence ppstream 
@@ -97,47 +95,7 @@ struct
 
   fun ppInvPath ppstream (rpath: InvPath.path) =
       PP.string ppstream (InvPath.toString rpath)
-
-  (* findPath:  convert inverse symbolic path names to a printable string in the
-    context of an environment.
-
-    Its arguments are the inverse symbolic path, a check predicate on static
-    semantic values, and a lookup function mapping paths to their bindings
-    (if any) in an environment and raising Env.Unbound on paths with no
-    binding.
-
-    It looks up each suffix of the path name, going from shortest to longest
-    suffix, in the current environment until it finds one whose lookup value
-    satisfies the check predicate.  It then converts that suffix to a string.
-    If it doesn't find any suffix, the full path (reversed, i.e. in the 
-    normal order) and the boolean value false are returned, otherwise the
-    suffix and true are returned.
-
-    Example:
-	   Given A.B.t as a path, and a lookup function for an
-	   environment, this function tries:
-		     t
-		     B.t
-		     A.B.t
-	   If none of these work, it returns ?.A.B.t
-
-    Note: the symbolic path is passed in reverse order because that is
-    the way all symbolic path names are stored within static semantic objects.
-   *)
-
-  fun findPath (IP.IPATH p: IP.path, check, look): (S.symbol list * bool) =
-      let fun try(name::untried,tried) =
-	        (if (S.eq(name,SS.resultId)) orelse (S.eq(name,SS.returnId)) 
-		 then try(untried,tried)
-		 else
-		   let val elem = look(SP.SPATH(name :: tried))
-		    in if check elem
-		       then (name::tried,true)
-		       else try(untried,name::tried)
-		   end handle StaticEnv.Unbound => try(untried,name::tried))
-	    | try([],tried) = (tried, false)
-       in try(p,[])
-      end
+*)
 
   fun ppi ppstrm (i:int) = pps ppstrm (Int.toString i)
 

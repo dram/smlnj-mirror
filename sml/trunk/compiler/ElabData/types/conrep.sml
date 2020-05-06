@@ -31,7 +31,7 @@ structure ConRep : CONREP =
       | infer _ cons = let
 	  val multiple = (count cons) > 1
 	  fun decide (ctag,vtag, (_,true,_)::rest, reps) =
-		if multiple andalso !ElabControl.boxedconstconreps
+		if multiple andalso !ElabDataControl.boxedconstconreps
 		  then decide(ctag, vtag+1, rest, (TAGGED vtag) :: reps)
 		  else decide(ctag+1, vtag, rest, (CONSTANT ctag) :: reps)
 	    | decide (ctag,vtag, (_,false,CONty(_,[_,_]))::rest, reps) =

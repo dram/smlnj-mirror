@@ -14,6 +14,7 @@
 signature PRETTYPRINT =
 sig 
   include PP_STREAM
+  val openVBoxI : stream -> int -> unit	    
   val defaultDevice : device
   val with_pp : device -> (stream -> unit) -> unit
   val with_default_pp : (stream -> unit) -> unit
@@ -56,6 +57,11 @@ struct
 
   open PP
 
+  (* open a VBox with Abs indent and immediately cut *)
+  fun openVBoxI ppstream (indent: int) =
+      (openVBox ppstream (Abs indent);
+       cut ppstream)
+	   
   (* extend the pretty printer interface with the following functions *)
 	   
   val defaultDevice : device =

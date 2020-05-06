@@ -13,33 +13,37 @@ Group
 
 	signature PRINTCONTROL
 	structure Control_Print
+	signature PRETTYPRINT
+	signature PPUTIL
+	structure PrintUtil
 
 	signature SYMBOL
 	signature FASTSYMBOL
-	signature PERSSTAMPS
 	signature FIXITY
 	structure Symbol
 	structure FastSymbol
+	structure Fixity
+	structure SymbolHashTable
+	structure SpecialSymbols
+
+	signature PERSSTAMPS
 	structure PersStamps
 	structure PersMap
-	structure Fixity
+
+	signature ERRORMSG
+	signature STATS
 
 	signature SOURCE
 	signature SOURCE_MAP
-	signature ERRORMSG
-	signature PRETTYPRINT
-	signature STATS
-
 	structure Source
 	structure SourceMap
 	structure ErrorMsg
 	structure CompileExn
 	structure PrettyPrint
-
+        structure PPUtil
+	
 	structure Stats
-	structure PrintUtil
 	structure WordStringHashTable
-	structure SymbolHashTable
 
 	signature PIDENV
 	functor PidEnvFn
@@ -62,6 +66,7 @@ is
 	symbol/fastsymbol.sml
 	symbol/symbol-hashtable.sml
 	symbol/fixity.sml
+	symbol/specialsyms.sml
 
 	pid/persstamps.sig
 	pid/persstamps.sml
@@ -84,6 +89,8 @@ is
 	print/printutil.sig
 	print/printutil.sml
 	print/prettyprint.sml
+	print/pputil.sig
+	print/pputil.sml
 
 	util/wordstr-hashtable.sml
 

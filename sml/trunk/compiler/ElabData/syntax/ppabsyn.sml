@@ -49,7 +49,7 @@ fun debugmsg (msg: string) =
       if !debugging then (say msg; say "\n") else ()
 fun bug msg = ErrorMsg.impossible("PPAbsyn: "^msg)
 
-val internals = ElabControl.internals
+val internals = ElabDataControl.absynInternals
 
 val lineprint = ref false
 

@@ -70,8 +70,10 @@ local structure S = Symbol
 
 in
 
-val internals = ElabControl.internals
+val internals = ElabDataControl.modulesInternals
+
 fun bug msg = ErrorMsg.impossible("PPModules: "^msg)
+
 fun C f x y = f y x;
 
 val pps = PP.string
@@ -179,9 +181,10 @@ fun ppStructureName ppstrm (str,env) =
 	    case str
 	     of M.STR { rlzn, ... } => #rpath rlzn
 	      | _ => bug "ppStructureName"
-	fun look a = LU.lookStr(env,a,(fn _ => raise StaticEnv.Unbound))
 	fun check str' = MU.eqOrigin(str',str)
-	val (syms,found) = findPath(rpath,check,look)
+	fun look a = SOME(LU.lookStr(env,a,(fn _ => raise StaticEnv.Unbound)))
+			 handle StaticEnv.Unbound => NONE
+	val (syms,found) = ConvertPaths.findPath(rpath, check, look)
      in pps ppstrm (if found then SP.toString(SP.SPATH syms)
 		    else "?"^(SP.toString(SP.SPATH syms)))
     end
@@ -377,7 +380,7 @@ and ppElements (env,depth,entityEnvOp) ppstrm elements =
  		 else () (* don't pring ordinary data constructor,
                           * because it was printed with its datatype *)
 
-     in openHVBox ppstrm (PP.Rel 0);
+    in openVBoxI ppstrm 0;
 	case elements
           of nil => ()
 	   | first :: rest => (pr true first; app (pr false) rest);
@@ -392,20 +395,19 @@ and ppSignature0 ppstrm (sign,env,depth,entityEnvOp) =
 			     | SOME entEnv => strToEnv(sign,entEnv),
 			  env)
 	fun ppConstraints (variety,constraints : M.sharespec list) =
-		(openHVBox 0;
-		 ppvseq ppstrm 0 ""
-		  (fn ppstrm => fn paths =>
-		      (openHOVBox 2;
-			pps "sharing "; pps variety;
-			ppSequence ppstrm
-			 {sep=(fn ppstrm =>
-				(pps " ="; break{nsp=1,offset=0})),
-			  pr=ppSymPath,
-			  style=INCONSISTENT}
-			 paths;
-		       closeBox()))
-		  constraints;
-		closeBox ())
+	    (ppvseq ppstrm 0 ""
+	       (fn ppstrm => fn paths =>
+		   (openHOVBox 2;
+		    pps "sharing "; pps variety;
+		    ppSequence ppstrm
+		      {sep=(fn ppstrm =>
+			       (pps " ="; break{nsp=1,offset=0})),
+		       pr=(fn ppstrm => (fn sympath =>
+			      PP.string ppstrm (SymPath.toString sympath))),
+		       style=INCONSISTENT}
+		      paths;
+		    closeBox()))
+		  constraints)
 	val somePrint = ref false (* i.e., signature is not empty sig end *)
      in if depth <= 0
 	then pps "<sig>"
@@ -427,64 +429,47 @@ and ppSignature0 ppstrm (sign,env,depth,entityEnvOp) =
 		    elements
 	     in
 	     if !internals then
-	       (openHVBox 0;
+	       (PP.openHVBox ppstrm (PP.Abs 0);
 		 pps "SIG:";
-		 nl_indent ppstrm 2;
-		 openHVBox 0;
+		 PP.openVBoxI ppstrm 2;
 		  pps "stamp: "; pps (Stamps.toShortString stamp);
-		  newline();
-		  pps "name: ";
+		  cut ppstrm; pps "name: ";
 		  case name
 		    of NONE => pps "ANONYMOUS"
 		     | SOME p => (pps "NAMED "; ppSym ppstrm p);
 		  case elements
 		    of nil => ()
-		     | _ => (newline(); pps "elements:";
-			     nl_indent ppstrm 2;
+		     | _ => (cut ppstrm; pps "elements:";
 			     ppElements (env,depth,entityEnvOp) ppstrm elements);
 		  case strsharing
                     of nil => ()
-		     | _ => (newline(); pps "strsharing:";
-			     nl_indent ppstrm 2;
+		     | _ => (cut ppstrm; pps "strsharing:";
 			     ppConstraints("",strsharing));
 		  case typsharing
                     of nil => ()
-		     | _ => (newline(); pps "tycsharing:";
-			     nl_indent ppstrm 2;
+		     | _ => (cut ppstrm; pps "tycsharing:";
 			     ppConstraints("type ",typsharing));
 		 closeBox();
 		closeBox())
 	      else (* not !internals *)
-		(openHVBox 0;
-		  pps "sig";
-		  (case elements
-		       of nil => pps " "
-			| [(_,M.STRspec _)] => nl_indent ppstrm 2
-			| [_] => pps " "
-			| _ => nl_indent ppstrm 2);
-		  openHVBox 0;
-		   case elements
-		     of nil => ()
-		      | _ => (ppElements (env,depth,entityEnvOp) ppstrm elems';
-			      somePrint := true);
-		   case strsharing
-		     of nil => ()
-		      | _ => (if !somePrint then newline() else ();
-			      ppConstraints("",strsharing);
-			      somePrint := true);
-		   case typsharing
-		     of nil => ()
-		      | _ => (if !somePrint then newline() else ();
-			      ppConstraints("type ",typsharing);
-			      somePrint := true);
-		  closeBox();
-		  (case elements
-		    of nil => ()
-		     | [(_,M.STRspec _)] => newline()
-		     | [_] => pps " "
-		     | _ => newline());
-		  pps "end";
-		 closeBox())
+		 (case elements
+		   of nil => pps "sig end"
+		    | _ =>
+		      (openVBoxI ppstrm 0;
+		       pps "sig";
+		       openVBoxI ppstrm 0;
+		         ppElements (env,depth,entityEnvOp) ppstrm elems';
+			 case strsharing
+			   of nil => ()
+			    | _ => (cut ppstrm;
+				    ppConstraints("",strsharing));
+			 case typsharing
+			   of nil => ()
+			    | _ => (cut ppstrm;
+				    ppConstraints("type ",typsharing));
+		       closeBox();
+		       pps "end";
+		       closeBox()))
 	     end
 	   | M.ERRORsig => pps "<error sig>"
     end
@@ -503,19 +488,18 @@ and ppFunsig ppstrm (sign,env,depth) =
 		   if !internals
 		   then (openHVBox 0;
 			  pps "FSIG:";
-			  nl_indent ppstrm 2;
-			  openHVBox 0;
+			  openVBoxI ppstrm 2;
 			   pps "psig: ";
 			   ppSignature0 ppstrm (paramsig,env,depth-1,NONE);
-			   newline();
+			   cut ppstrm;
 			   pps "pvar: ";
 			   pps (EntPath.entVarToString paramvar);
-			   newline();
+			   cut ppstrm;
 			   pps "psym: ";
 			   (case paramsym
 			      of NONE => pps "<anonymous>"
 			       | SOME sym => ppSym ppstrm sym);
-			   newline();
+			   cut ppstrm;
 			   pps "bsig: ";
 			   ppSignature0 ppstrm (bodysig,env,depth-1,NONE);
 			  closeBox();
@@ -821,7 +805,7 @@ and ppStrExp ppstrm (strExp,depth) =
            ppEntPath ppstrm ep)
        | M.CONSTstr { stamp, rpath, ... } =>
 	 (pps ppstrm "SE.C:"; break ppstrm {nsp=1,offset=1};
-	  ppInvPath ppstrm rpath)
+	  pps ppstrm (InvPath.toString rpath))
        | M.STRUCTURE{stamp,entDec} =>
 	  (pps ppstrm "SE.S:"; break ppstrm {nsp=1,offset=1};
 	   ppEntDec ppstrm (entDec,depth-1))
@@ -870,7 +854,8 @@ and ppFctExp ppstrm (fctExp,depth) =
       of M.VARfct ep =>
 	  (pps ppstrm "FE.V:"; ppEntPath ppstrm ep)
        | M.CONSTfct { rpath, ... } =>
-	  (pps ppstrm "FE.C:"; ppInvPath ppstrm rpath)
+	  (pps ppstrm "FE.C:";
+	   pps ppstrm (InvPath.toString rpath))
        | M.LAMBDA_TP {param, body, ...} =>
 	  (openHVBox ppstrm (PP.Rel 0);
 	    pps ppstrm "FE.LP:"; break ppstrm {nsp=1,offset=1};
@@ -921,8 +906,7 @@ and ppClosure ppstrm (M.CLOSURE{param,body,env},depth) =
     let val {openHVBox,openHOVBox,openVBox,closeBox,pps,newline,break,...} = en_pp ppstrm
      in openVBox 0;
 	 pps "CL:";
-	 PP.openVBox ppstrm (PP.Abs 2);
-	   PP.cut ppstrm;
+	 PP.openVBoxI ppstrm 2;
 	   pps "param: "; ppEntVar ppstrm param; PP.cut ppstrm;
 	   pps "body: "; ppStrExp ppstrm (body,depth-1); PP.cut ppstrm;
            pps "env: "; ppEntityEnv ppstrm (env,SE.empty,depth-1);
@@ -938,8 +922,8 @@ and ppBinding ppstrm (name,binding:B.binding,env:SE.staticEnv,depth:int) =
        | B.TYCbind tycon => ppTycBind ppstrm (tycon,env)
        | B.SIGbind sign =>
 	  let val {openHVBox,openHOVBox,openVBox,closeBox,pps,ppi,break,...} = en_pp ppstrm
-	   in openVBox 0;
-	       pps "signature "; ppSym ppstrm name; pps " =";
+	   in PP.openVBox ppstrm (Abs 0);
+	       ppString ppstrm "signature "; ppSym ppstrm name; pps " =";
 	       ppSignature0 ppstrm (sign,env,depth,NONE);
 	      closeBox()
 	  end
@@ -1005,19 +989,16 @@ fun ppOpen ppstrm (path,str,env,depth) =
      in openHVBox 0;
 	 openHVBox 2;
 	  pps "opening ";
-	  ppSymPath ppstrm path;
+	  pps (SymPath.toString path);
 	  if depth < 1 then ()
           else (case str
 		  of M.STR { sign, rlzn as {entities,...}, ... } =>
 		     (case sign
 			 of M.SIG {elements = [],...} => ()
 			  | M.SIG {elements,...} =>
-			    (newline ();
-			     openHVBox 0;
-			     ppElements (SE.atop(sigToEnv sign, env),
-					 depth,SOME entities)
-				        ppstrm elements;
-			     closeBox ())
+			    (ppElements (SE.atop(sigToEnv sign, env),
+					depth,SOME entities)
+			      ppstrm elements)
 			  | M.ERRORsig => ())
 		   | M.ERRORstr => ()
 		   | M.STRSIG _ => bug "ppOpen");

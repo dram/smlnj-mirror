@@ -19,6 +19,9 @@ signature PARSER_CONTROL =
   (* controls backquote quotation *)
     val quotation : bool ref
 
+  (* controls printing of internal Ast info *)
+    val astInternals : bool ref			 
+
   (* set/clear Successor ML mode *)
     val setSuccML : bool -> unit
 
@@ -87,6 +90,9 @@ structure ParserControl : sig
 
     val quotation =
 	  new (flag_cvt, "quotations", "whether (anti-)quotations are recognized", false)
+
+    val astInternals =
+	  new (flag_cvt, "astInternals", "printing of ast internal info", false)
 
     val succML =
 	  new (flag_cvt, "succ-ml", "whether Successor-ML extensions are recognized", false)

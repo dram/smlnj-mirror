@@ -95,7 +95,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
              (openHVBox ppstrm (PP.Rel 0);
 	      openHOVBox ppstrm (PP.Rel 2);
 	      PP.string ppstrm "val ";
-	      ppSymPath ppstrm path;
+	      PP.string ppstrm (SymPath.toString path);
 	      PP.string ppstrm " =";
 	      break ppstrm {nsp=1,offset=0};
 
@@ -326,7 +326,7 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 		  PP.string ppstrm "open ";
 		  ppSequence ppstrm {sep=C break {nsp=1,offset=0},
 			     pr=(fn ppstrm => fn (path,_)
-				    => ppSymPath ppstrm path),
+				    => (PP.string ppstrm (SymPath.toString path))),
 			     style=INCONSISTENT}
 			     pathStrs;
 		  closeBox ppstrm;

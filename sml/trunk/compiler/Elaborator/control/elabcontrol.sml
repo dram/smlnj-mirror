@@ -67,8 +67,6 @@ structure ElabControl : ELAB_CONTROL =
     val etopdebugging = onew ("etop-debugging", "ElabTop debugging", false)
         (* ElabTop *)
 
-    val internals = onew ("internals", "show internal reps", false)
-
     val markabsyn = onew ("markabsyn", "mark abstract syntax", true)
         (* ElabCore, ElabTop, ElabUtil, Control_MC *)
 

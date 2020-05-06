@@ -110,7 +110,7 @@ functor EvalLoopF (Compile: TOP_COMPILE) : EVALLOOP =
 		      (* conditional diagnostic code to print ast - could it be involked from parser?
 			 if so, what statenv would be used? *)
 		      val _ = let fun ppAstDec ppstrm d =
-				      PPAst.ppDec (statenv,NONE) ppstrm (d,!printDepth)
+				      PPAst.ppDec NONE ppstrm (d,!printDepth)
 			      in debugPrint Control.printAst ("AST::", ppAstDec, ast)
 			      end
 

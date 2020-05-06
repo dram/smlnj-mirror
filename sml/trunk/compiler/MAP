@@ -24,6 +24,9 @@ Parse/
     astutil.sig/sml
       some utility functions
       defs: ASTUTIL, AstUtil: ASTUTIL
+    ppast.sig/sml
+      pretty printing Ast
+      defs: PPAst: PPAST
 
   Parse/lex/
   lexical analysis (via ML-Lex)
@@ -64,7 +67,7 @@ Parse/
 
 Basics/
 
-  Basics/mlcomp/
+  Basics/symbol/
   Symbol types involved in absyn and statenv and elaboration process
     symbol.sig/sml
       symbols (should be in ElabData)
@@ -78,8 +81,12 @@ Basics/
     symbol-hashtable.sml
       Hashtables with symbol as key
       defs: SymbolHashTable
+    specialsyms.sml
+      definition of special symbols for internal use during elaboration
+      defs: SpecialSymbols
 
   Basics/pid
+    persistent stamps and persistent identifiers (pids)
     persstamps.sig/sml
       persistant stamps, or globally unique identifiers (16 byte vectors),
       aka "pids"
@@ -158,6 +165,9 @@ Basics/
     printcontrol.sml
       print control flags, out, say
       defs: PRINTCONTROL, Control_Print
+    pputil.sig/sml
+      prettyprint utilities (generic)  [**MOVE**]
+      defs: PPUtil: PPUTIL
 
   Basics/stats/
     stats.sml
@@ -203,10 +213,6 @@ Basic datastructures used in elaboration (including type checking)
       defines the special structure symbol "_Core" used to access certain
       special bindings (e.g Match and Bind exceptions)
       defs: CoreSym
-    primopid.sig/sml
-      defines front-end representation of primops, where a primop is identified
-      with a string name
-      defs: PRIMOPID, PrimopId
 
   ElabData/syntax/
   (typed) abstract syntax
@@ -219,21 +225,34 @@ Basic datastructures used in elaboration (including type checking)
     absynutil.sml
       utility functions for building tuple patterns and expressions
       defs: AbsynUtil
-
+    ppabsyn.sml
+      prettyprint absyn (uses PPUtil(pputil.s??),
+      PPVal(ppval.sml), PPType(pptype.sml))
+      defs: PPAbsyn : PPABSYN
+    ppval.sml
+      pretty printing vars, datacons, access, conrep
+      defs : PPVal : PPVAL
+      
   ElabData/types/
   representing, constructing and manipulating types
     types.sig/sml
       the representation of SML types
-      defs: TYPES, Types: TYPES
+      defs: Types: TYPES
     typesutil.sig/sml
       large collection of utility functions for working with types
-      defs: TYPESUTIL, TypesUtil: TYPESUTIL
+      defs: TypesUtil: TYPESUTIL
     tuples.sml
       fns for constructing tuple and record types
-      defs: TUPLES, Tuples: TUPLES
+      defs: Tuples: TUPLES
     basictypes.sig/sml
       building the primitive types and associated values
-      defs: BASICTYPES, BasicTypes
+      defs: BasicTypes: BASICTYPES
+    conrep.sml
+      inferring conreps for data constructors
+      defs: ConRep: CONREP
+    pptype.sml
+      prettyprint types
+      defs: PPType: PPTYPE
 
   ElabData/statenv/
   static environments
@@ -278,7 +297,17 @@ Basic datastructures used in elaboration (including type checking)
       related to nesting of modules (ep stands for
       "entity path"?)
       defs: ENT_PATH_CONTEXT, EntPathContext :> ENT_PATH_CONTEXT
-
+    expandtycon.sml
+      interpret PATHtycs in entity environments
+      defs: EXPAND_TYCON, ExpandTycon : EXPAND_TYCON
+    eqtypes.sml
+      equivalence of types
+      (located here because of dependence on modules)
+      defs: EQTYPES, EqTypes: EQTYPES
+    ppmod.sml
+      prettyprint modules and signatures
+      defs: PPMod: PPMOD
+      
   ElabData/prim/
   primop representation and machinery
     cproto.sml
@@ -341,34 +370,14 @@ Elaborator/
   The main elaborator code, plus some representation stuff in basics/,
   plus printing modules in print/.
 
-  Elaborator/basics/
-  some control flags, some representation types, some FLINT stuff
+  Elaborator/control/
+  some control flags
     elabcontrol.sig/sml
       Elaborator control flags
       defs: ELAB_CONTROL, ElabControl
-    conrep.sml
-      inferring conreps for data constructors
-      defs: CONREP, ConRep: CONREP
-
-  Elaborator/print/  [should be in ElabData?]
-  print utilities and print modules for elaboration data structures
-    pputil.sig/sml
-      prettyprint utilities (generic)  [**MOVE**]
-    pptype.sml
-      prettyprint types
-    ppval.sml
-      prettyprint variables and dcons
-    ppmod.sml
-      prettyprint modules and signatures
-    ppabsyn.sml
-      prettyprint absyn (uses PPUtil(pputil.s??),
-      PPVal(ppval.sml), PPType(pptype.sml))
 
   Elaborator/types/
-  building basic types + typechecking modules
-    eqtypes.sml
-      equivalence of types
-      defs: EQTYPES, EqTypes: EQTYPES
+  type checking, including resolving overloaded operators and literals
     unify.sml
       type unification
       defs: UNIFY, Unify: UNIFY
@@ -393,9 +402,6 @@ Elaborator/
       which is called to define EvalEntity structure in Semant/modules/evalent.sml
       see: Semant/modules/evalent.sml
       defs: EVALENTITY, EvalEntityFn : INSTANTIATE => EVALENTITY
-    expandtycon.sml
-      interpret PATHtycs in entity environments
-      defs: EXPAND_TYCON, ExpandTycon : EXPAND_TYCON
     instantiate.sml
       free instantiation of signatures. defines InstantiateFn which is applied
       to define structure Instantiate in Semant/modules/instantiate.sml
@@ -413,9 +419,6 @@ Elaborator/
     tyvarset.sml
       type var sets for keeping track of implicit scopes of user type vars
       defs: TYVARSET, TyvarSet :> TYVARSET
-    specialsyms.sml
-      definition of special symbols for internal use
-      defs: SpecialSymbols
     elabutil.sig/sml
       general utilities for elaboration
       defs: ELABUTIL, ElabUtil : ELABUTIL

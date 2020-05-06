@@ -51,7 +51,7 @@ val pps = PP.string
 
 fun C f x y = f y x
 
-val internals = ElabControl.internals
+val internals = ElabDataControl.typesInternals
 
 val unitPath = IP.extend(IP.empty,Symbol.tycSymbol "unit")
 
@@ -154,10 +154,10 @@ fun effectivePath(path,tyc,env) : string =
 	    SOME path
 	  | tycPath _ = NONE
 	fun find(path,tyc) =
-	    (findPath(path,
+	    (ConvertPaths.findPath(path,
 		(fn tyc' => TU.equalTycon(tyc',tyc)),
-		(fn x => Lookup.lookTyc(env,x,
-					(fn _ => raise StaticEnv.Unbound)))))
+		(fn x => SOME(Lookup.lookTyc(env,x,(fn _ => raise StaticEnv.Unbound)))
+		         handle StaticEnv.Unbound => NONE)))
 	fun search(path,tyc) =
 	    let val (suffix,found) = find(path,tyc)
 	     in if found then (suffix,true)
@@ -207,8 +207,12 @@ fun ppEqProp ppstrm p =
      in pps ppstrm a
     end
 
-fun ppInvPath ppstream (InvPath.IPATH path: InvPath.path) =
-    PP.string ppstream (SymPath.toString (SymPath.SPATH(rev path)))
+(* the following two functions used to be defined in PPUtil *)
+fun ppSymPath ppstream (path: SymPath.path) =
+    PP.string ppstream (SymPath.toString path)
+
+fun ppInvPath ppstream (rpath: InvPath.path) =
+    PP.string ppstream (InvPath.toString rpath)
 
 fun ppBool ppstream b =
     case b of true => pps ppstream "t" | false => pps ppstream "f"

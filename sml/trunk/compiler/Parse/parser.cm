@@ -13,8 +13,10 @@ Group
 	signature AST
 	signature ASTUTIL
 	signature SMLFILE
+	signature PPAST
 
 	structure Ast
+	structure PPAst
 	structure AstUtil
 	structure SmlFile
 
@@ -23,6 +25,8 @@ is
 	ast/ast.sml
 	ast/astutil.sig
 	ast/astutil.sml
+	ast/ppast.sig
+	ast/ppast.sml
 
 	lex/tokentable.sml
 	lex/user.sml

@@ -1,11 +1,6 @@
 (* Copyright 1996 by AT&T Bell Laboratories *)
 (* eqtypes.sml *)
 
-(*
- * This file probably should not belong here ! It relies on the module
- * semantics; and probably it should be moved to modules/ directory. (ZHONG)
- *)
-
 signature EQTYPES =
 sig
 
@@ -14,13 +9,16 @@ sig
 
   val defineEqProps : Types.tycon list * ExpandTycon.sigContext
                       * EntityEnv.entityEnv -> unit
+
   val checkEqTySig : Types.ty * Types.polysign -> bool
       (* check whether type ty is an equality type, given a polysign
        * indicating which IBOUND elements are equality types.
        * This isn't accurate on (relatized) types containing PATHtycs,
        * which are effectively treated as OBJ *)
+
   val isEqTycon : Types.tycon -> bool
   val isEqType : Types.ty -> bool
+
   val debugging : bool ref
 
 end (* signature EQTYPES *)

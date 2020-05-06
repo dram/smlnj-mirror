@@ -137,7 +137,9 @@ structure ElabTop : ELABTOP =
 			      (fn pps => fn paths =>
 				 PU.ppSequence pps
 				   {sep=(fn pps => PP.string pps ","),
-				    pr=PU.ppSymPath, style=PU.INCONSISTENT}
+				    pr=(fn ppstrm => (fn sympath =>
+					  PP.string ppstrm (SymPath.toString sympath))),
+				    style=PU.INCONSISTENT}
 				 (List.map SymPath.SPATH paths)), paths)
 
 		    val err = error region

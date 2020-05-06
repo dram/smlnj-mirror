@@ -28,14 +28,24 @@ Group
 	signature ENTITY_ENV
 	signature PRIMOP_ID
 	signature PRIMOP
+	signature PPUTIL
+	signature PPTYPE
+	signature PPABSYN
+	signature PPMOD
+	signature PPVAL
+	signature EQTYPES
+	signature EXPAND_TYCON
+	signature CONREP
 
 	structure ElabDataControl
 	structure Access
 	structure DebIndex
 	structure Types
+	structure PPType
 	structure TypesUtil
 	structure Tuples
 	structure Absyn
+	structure PPAbsyn
 	structure AbsynUtil
 	structure SymPath
 	structure InvPath
@@ -47,10 +57,13 @@ Group
 	structure VarCon
 	structure Modules
 	structure ModuleUtil
+	structure PPModules
 	structure ModuleId
 	structure EntityEnv
 	structure EntPathContext
 	structure Bindings
+	structure EqTypes
+	structure ExpandTycon
 	structure StaticEnv
 	structure Lookup
 	structure CompInfo
@@ -60,6 +73,7 @@ Group
 	structure CoreAccess
 	structure BrowseStatEnv
 	structure PrimopId
+	structure PPPrim
 	structure ArithOps
 	structure Primop
 	structure PrimopUtil
@@ -69,6 +83,9 @@ Group
 	structure PrimCTypes
 	structure TKind
 	structure SigPropList
+	structure PPUtil
+	structure PPVal
+	structure ConRep
 
 is
 	main/edcontrol.sig
@@ -94,20 +111,25 @@ is
 
 	syntax/absyn.sig
 	syntax/absyn.sml
+	syntax/ppabsyn.sml
 	syntax/varcon.sig
 	syntax/varcon.sml
 	syntax/absynutil.sml
+	syntax/ppval.sml
 
 	types/types.sig
 	types/types.sml
+	types/pptype.sml
 	types/tuples.sml
 	types/basictypes.sig
 	types/basictypes.sml
 	types/typesutil.sig
 	types/typesutil.sml
+	types/conrep.sml
 
 	modules/modules.sig
 	modules/modules.sml
+	modules/ppmod.sml
 	modules/entpath.sml
 	modules/epcontext.sml
 	modules/moduleutil.sig
@@ -115,6 +137,8 @@ is
 	modules/moduleid.sml
 	modules/entityenv.sig
 	modules/entityenv.sml
+	modules/eqtypes.sml
+	modules/expandtycon.sml
 
 	statenv/bindings.sig
 	statenv/bindings.sml
@@ -133,6 +157,7 @@ is
 	prim/primop-id.sig
 	prim/primop-id.sml
 	prim/primop-util.sml
+	prim/ppprim.sml
 	prim/cproto.sml
 	prim/prim-c-types.sml
 	prim/primop-bindings.sml
