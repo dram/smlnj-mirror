@@ -1,0 +1,192 @@
+# Notes on using LLVM for code generation in SML/NJ
+
+This document describes the plan for replacing the MLRISC backend
+with an LLVM backend.  It includes instructions for how to patch
+LLVM to support the "Jump with Arguments" (**JWA**) calling convention that
+was developed to support continuation-passing, closure-passing
+style (see [Compiling with Continuations and LLVM](https://doi.org/10.4204/EPTCS.285.5)
+for more details.
+
+## Basic architecture
+
+## CFG IR
+
+## Patching LLVM
+
+LLVM needs to be modified to support the **JWA** calling convention
+that we use.  The modifications are fairly simple, and are
+described for LLVM 10.0.x below, where `$LLVM` denotes the root of
+the LLVM source tree.
+
+### `CallingConv.h`
+
+The file `$LLVM/include/llvm/IR/CallingConv.h` assigns integer codes for
+the various calling conventions.  In LLVM 10.0.x, the last number assigned
+is `19`, so we use `20` for **JWA**.  Add the following code to the file just
+before the first target-specific code (which will be `64`).
+
+````C
+    /// JWA - "Jump With Arguments" is a calling convention that requires the
+    /// use of registers for parameter passing. It is designed for language
+    /// implementations that do not use a stack, however, it will not warn
+    /// if there are not enough registers for a given function. The lack of
+    /// warning is needed in order to properly utilize musttail calls as
+    /// jumps because they are picky about parameters.
+    JWA = 20,
+````
+
+### `Target/X86`
+
+To support the **JWA** convention on the `X86`, we need to modify a number
+of files in the directory `$LLVM/lib/Target/X86/`.
+
+#### `X86CallingConv.td`
+
+The file `$LLVM/lib/Target/X86/X86CallingConv.td` describes the calling
+conventions for the *x86* and *x86-64* (aka *amd64*) architectures.
+We need to several chunks of code to the file.  I added the first
+just before the definition for `RetCC_X86_32`.
+
+````
+// The JWA calling convention for x86_64. Note that this is
+// also used as the return convention in order to implement call/cc.
+// True returns are not the norm. We _never_ use the stack.
+def CC_X86_64_JWA : CallingConv<[
+
+  // Promote i8/i16/i32 arguments to i64.
+  CCIfType<[i8, i16, i32], CCPromoteToType<i64>>,
+
+  // The only registers we skip are RBP and RSP.
+
+  // NOTE(kavon): alloc, vproc, clos, retk, exh, stdArg, otherArgs
+
+  CCIfType<[i64],
+  CCAssignToReg<[RSI, R11, RDI, R8, R9, RAX,
+                 RDX, RCX, R10, RBX, R12, R13, R14, R15]>>,
+
+
+  // TODO(kavon): check if something breaks if the target
+  // does not support SSE registers? should add a check for that.
+
+  // Use as many vector registers as possible!
+  CCIfType<[i64, f32, f64, v16i8, v8i16, v4i32, v2i64, v4f32, v2f64],
+           CCAssignToReg<[XMM0, XMM1, XMM2, XMM3,
+                          XMM4, XMM5, XMM6, XMM7,
+                          XMM8, XMM9, XMM10, XMM11,
+                          XMM12, XMM13, XMM14, XMM15]>>,
+
+  // 256-bit vectors registers
+  CCIfType<[i64, f32, f64, v32i8, v16i16, v8i32, v4i64, v8f32, v4f64],
+           CCAssignToReg<[YMM0, YMM1, YMM2, YMM3,
+                          YMM4, YMM5, YMM6, YMM7,
+                          YMM8, YMM9, YMM10, YMM11,
+                          YMM12, YMM13, YMM14, YMM15]>>,
+
+  // 512-bit vector registers
+  CCIfType<[i64, f32, f64, v64i8, v32i16, v16i32, v8i64, v16f32, v8f64],
+           CCAssignToReg<[ZMM0, ZMM1, ZMM2, ZMM3,
+                          ZMM4, ZMM5, ZMM6, ZMM7,
+                          ZMM8, ZMM9, ZMM10, ZMM11,
+                          ZMM12, ZMM13, ZMM14, ZMM15,
+                          ZMM16, ZMM17, ZMM18, ZMM19,
+                          ZMM20, ZMM21, ZMM22, ZMM23,
+                          ZMM24, ZMM25, ZMM26, ZMM27,
+                          ZMM28, ZMM29, ZMM30, ZMM31]>>
+
+]>;
+````
+
+Because the JWA convention does not really return (instead, we use **JWA**
+to invoke a return continuation), we delegate the return convention to
+the calling convetion.  The following lines need to be added to the
+definition of the "root return-value convention for the X86-64 backend"
+(`RetCC_X86_64`):
+
+````
+  // Handle JWA calls.
+  CCIfCC<"CallingConv::JWA", CCDelegateTo<CC_X86_64_JWA>>,
+````
+
+The following line needs to be added to the definition of the
+"root argument convention for the X86-64 backend" (`CC_X86_64`):
+
+````
+CCIfCC<"CallingConv::JWA", CCDelegateTo<CC_X86_64_JWA>>,
+````
+
+#### `X86FastISel.cpp`
+
+In the file `$LLVM/lib/Target/X86/X86FastISel.cpp`, the function
+`computeBytesPoppedByCalleeForSRet` needs to be modified to
+recognize the **JWA** convention.
+
+To the code
+````
+  if (CC == CallingConv::Fast || CC == CallingConv::GHC ||
+      CC == CallingConv::HiPE || CC == CallingConv::Tail)
+    return 0;
+````
+add a test for **JWA** (`CC == CallingConv::JWA`).
+
+#### `X86ISelLowering.cpp`
+
+In the file `$LLVM/lib/Target/X86/X86ISelLowering.cpp`, we need to add
+a check for **JWA** to the function `canGuaranteeTCO`.
+
+````
+  return (CC == CallingConv::Fast || CC == CallingConv::GHC ||
+          CC == CallingConv::X86_RegCall || CC == CallingConv::HiPE ||
+          CC == CallingConv::HHVM || CC == CallingConv::Tail ||
+	  CC == CallingConv::JWA);
+````
+
+#### `X86RegisterInfo.cpp`
+
+In the file `$LLVM/lib/Target/X86/X86RegisterInfo.cpp`, we need to add
+cases for **JWA** to the method `getCalleeSavedRegs`:
+````
+  case CallingConv::GHC:
+  case CallingConv::HiPE:
+  case CallingConv::JWA:
+    return CSR_NoRegs_SaveList;
+````
+and to the method `getCallPreservedMask`
+````
+  case CallingConv::GHC:
+  case CallingConv::HiPE:
+  case CallingConv::JWA:
+    return CSR_NoRegs_RegMask;
+````
+
+## Building LLVM
+
+Once the above edits have been made to the LLVM sources, you can use the
+following steps to build the LLVM library that will be linked with the
+**SML/NJ** runtime system.
+
+````
+# make a directory to build LLVM in
+#
+mkdir llvm-build
+cd llvm-build
+
+# configure the build
+#
+CMAKE_OPTS="\
+  -DLLVM_ENABLE_ASSERTIONS=ON \
+  -DLLVM_USE_LINKER=gold \
+  -DLLVM_OPTIMIZED_TABLEGEN=ON \
+  -DLLVM_CCACHE_BUILD=true" \
+  -DCMAKE_INSTALL_PREFIX=../llvm \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DLLVM_TARGETS_TO_BUILD=X86 \
+  -DLLVM_INCLUDE_TOOLS=OFF \
+  -LLVM_BUILD_LLVM_DYLIB=ON \
+"
+
+cmake -G "Unix Makefiles" "$CMAKE_OPTS" ../llvm-src
+
+# build LLVM using $NPROC processors
+#
+make -j $NPROC install
+````
