@@ -9,7 +9,34 @@ for more details.
 
 ## Basic architecture
 
+We want to preserve the "on-the-fly" code generation behavior that the
+system currently uses.  To this end, we plan to link the runtime system
+with a LLVM code generator.  We will use **ASDL** to communicate between
+the **SML** backend and the runtime system code generator.
+
 ## CFG IR
+
+The **MLRISC** code generator takes the first-order CPS IR and generates
+**MLRISC** expression trees and statements that are then turned into
+machine code by the **MLRISC** library.  My original plan was to use
+ASDL to communicate the first-order CPS IR to the runtime and then
+compile that into LLVM using a similar strategy as is currently done
+for **MLRISC**.  This approach has a couple of drawbacks, however:
+
+* The CPS IR includes a number of syntactic forms that are no longer
+  present in the first-order form, but which would have to be handled
+  by the C++ code.
+
+* The translation to **MLRISC** relies on meta data that is outside the
+  IR (*e.g.*, a mapping from function names to calling conventions).
+  Either this meta data would have to be recomputed in the C++ code
+  generator or transmitted to the runtime.
+
+As an alternative, we propose to add a new, lower-level IR, called
+**CFG** (for Control-Flow Graph) that will sit between the first-order
+CPS IR and code generation.  This IR will make explicit features like
+calling conventions, GC tests, tagged arithmetic, *etc*.  As a first
+step, we propose to implement an **MLRISC** code generator for this IR.
 
 ## Patching LLVM
 
