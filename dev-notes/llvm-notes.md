@@ -38,6 +38,15 @@ CPS IR and code generation.  This IR will make explicit features like
 calling conventions, GC tests, tagged arithmetic, *etc*.  As a first
 step, we propose to implement an **MLRISC** code generator for this IR.
 
+The **CFG** IR has two main types:
+
+* Expressions (`exp`), which are trees that define computations.  These roughly
+  correspond to the **MLRISC** `mltree` type and the LLVM `Value`
+  type.
+
+* Statements (`stm`), which are extended basic blocks with operations
+  for allocation, updates, and control flow.
+
 ## Patching LLVM
 
 LLVM needs to be modified to support the **JWA** calling convention
@@ -70,8 +79,9 @@ of files in the directory `$LLVM/lib/Target/X86/`.
 #### `X86CallingConv.td`
 
 The file `$LLVM/lib/Target/X86/X86CallingConv.td` describes the calling
-conventions for the *x86* and *x86-64* (aka *amd64*) architectures.
-We need to several chunks of code to the file.  I added the first
+conventions for the *x86* and *x86-64* (aka *amd64*) architectures
+using LLVM's [**TabgeGen**](https://llvm.org/docs/TableGen/) language.
+We need to add several chunks of code to the file.  I added the first
 just before the definition for `RetCC_X86_32`.
 
 ````
@@ -123,9 +133,20 @@ def CC_X86_64_JWA : CallingConv<[
 ]>;
 ````
 
+The convention definition above specifies the decision procedure for assigning
+each argument of a function, from left-to-right, based on the type of the
+argument.  The first directive says to treat all `i8`/`i16`/`i32` values
+as `i64`, since x86-64 general-purpose registers can handle any of these
+values via their narrower aliases.  Then, the next directive says if the
+argument can be treated as an i64, use the first available register from
+the given list.  For calls that do not make use of, say, the standard
+return-continuation register, an LLVM `undef` value can be passed in to
+that argument position in the LLVM IR in order to effectively skip-over
+that register during this convention decision procedure.
+
 Because the JWA convention does not really return (instead, we use **JWA**
 to invoke a return continuation), we delegate the return convention to
-the calling convetion.  The following lines need to be added to the
+the calling convention.  The following lines need to be added to the
 definition of the "root return-value convention for the X86-64 backend"
 (`RetCC_X86_64`):
 
