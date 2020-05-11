@@ -116,7 +116,7 @@ val find : ('a obj -> bool) -> 'a set -> 'a obj option
   Acts as the identity if `obj` is not in the set.
 
 `[.kw]#val# delete : 'a set * 'a obj \-> 'a set`::
-  `subtract (set, obj)` removes the object `obj` from `set`.
+  `delete (set, obj)` removes the object `obj` from `set`.
   Unlike `subtract`, this function raises the
   xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`]
   exception if `obj` is not in the set.
@@ -159,7 +159,7 @@ val find : ('a obj -> bool) -> 'a set -> 'a obj option
   `intersection (set1, set2)` returns the intersection of the two sets.
 
 `[.kw]#val# difference : 'a set * 'a set \-> 'a set`::
-  `union (set1, set2)` returns the difference of the two sets;
+  `difference (set1, set2)` returns the difference of the two sets;
   _i.e._, the set of objects that are in `set1`, but not in
   `set2`.
 
@@ -213,6 +213,12 @@ List.foldl f init (toList set)
 `[.kw]#val# filter : ('a obj \-> bool) \-> 'a set \-> 'a set`::
   `filter pred set` filters out any elements of set for which the
   predicate `pred` returns false.
+  This expression is equivalent to
++
+[source,sml]
+------------
+#1 (partition pred set)
+------------
 
 `[.kw]#val# all : ('a obj \-> bool) \-> 'a set \-> bool`::
   `all pred set` returns `true` if, and only if, `pred obj` returns
