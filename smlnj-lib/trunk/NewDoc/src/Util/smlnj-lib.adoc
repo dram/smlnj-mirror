@@ -139,7 +139,7 @@ xref:sig-ORD_MAP.adoc[`[.kw]#signature# ORD_MAP`]::
   **To be written**
 
 xref:sig-ORD_SET.adoc[`[.kw]#signature# ORD_SET`]::
-  **To be written**
+  Defines an interface to finite sets of ordered elements.
 
 xref:str-ParserComb.adoc[`[.kw]#structure# ParserComb`]::
   **To be written**
