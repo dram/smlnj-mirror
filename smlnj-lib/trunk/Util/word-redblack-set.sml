@@ -448,6 +448,12 @@ structure WordRedBlackSet :> ORD_SET where type Key.ord_key = word =
 	    foldl addf empty
 	  end
 
+    fun mapPartial f = let
+	  fun f' (x, acc) = (case f x of SOME x' => add(acc, x') | NONE => acc)
+	  in
+	    foldl f' empty
+	  end
+
   (* Filter out those elements of the set that do not satisfy the
    * predicate.  The filtering is done in increasing map order.
    *)

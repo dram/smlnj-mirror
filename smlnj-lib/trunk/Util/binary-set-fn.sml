@@ -400,6 +400,20 @@ functor BinarySetFn (K : ORD_KEY) : ORD_SET =
 	    map' (E, set)
 	  end
 
+    fun mapPartial f set = let
+	  fun map' (acc, E) = acc
+	    | map' (acc, T{elt, left, right, ...}) = let
+		val acc = map' (acc, left)
+		in
+		  case f elt
+		   of NONE => map' (acc, right)
+		    | SOME elt' => map' (add (acc, elt'), right)
+		  (* end case *)
+		end
+	  in
+	    map' (E, set)
+	  end
+
     fun app apf =
          let fun apply E = ()
                | apply (T{elt,left,right,...}) =

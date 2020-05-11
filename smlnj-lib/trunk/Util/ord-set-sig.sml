@@ -95,6 +95,11 @@ signature ORD_SET =
 	 * of the set.
          *)
 
+    val mapPartial : (item -> item option) -> set -> set
+	(* Create a new set by mapping a partial function over the
+	 * items in the set.
+	 *)
+
     val app : (item -> unit) -> set -> unit
 	(* Apply a function to the entries of the set
          * in increasing order

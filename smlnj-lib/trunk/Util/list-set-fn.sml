@@ -186,6 +186,11 @@ functor ListSetFn (K : ORD_KEY) :> ORD_SET where type Key.ord_key = K.ord_key =
 
     val app = List.app
     fun map f s1 = List.foldl (fn (x, s) => add(s, f x)) [] s1
+    fun mapPartial f s = let
+	  fun f' (x, acc) = (case f x of SOME x' => add(acc, x') | NONE => acc)
+	  in
+	    List.foldl f' [] s
+	  end
     val foldr = List.foldr
     val foldl = List.foldl
     val filter = List.filter

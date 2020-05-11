@@ -292,6 +292,21 @@ functor SplaySetFn (K : ORD_KEY) : ORD_SET =
 	    mapf (EMPTY, !root)
 	  end
 
+    fun mapPartial f EMPTY = EMPTY
+      | mapPartial f (SET{root, ...}) = let
+	  fun mapf (acc, SplayNil) = acc
+	    | mapf (acc, SplayObj{value,left,right}) = let
+		val acc = mapf (acc, left)
+		in
+		  case f value
+		   of SOME value' => mapf (add(acc, value'), right)
+		    | NONE => mapf (acc, right)
+		  (* end case *)
+		end
+	  in
+	    mapf (EMPTY, !root)
+	  end
+
     fun app af EMPTY = ()
       | app af (SET{root,...}) =
           let fun apply SplayNil = ()
