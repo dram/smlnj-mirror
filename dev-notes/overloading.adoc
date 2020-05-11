@@ -8,11 +8,9 @@
 == Introduction
 
 This document describes the implementation of overloading and overloading
-resolution in SML/NJ 110.97 (revised from 110.96). Initially the description
-will use the 110.96 representations, but these will evolve into modified
-110.97 versions.
+resolution in SML/NJ 110.97 (revised from 110.96).
 
-File paths are relative to base/.
+File paths are relative to base (e.g. /Users/dbm/sml/Dev/110.97/base).
 
 == Terminology
 

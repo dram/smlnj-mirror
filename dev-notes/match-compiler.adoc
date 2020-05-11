@@ -1,0 +1,88 @@
+= Match Compilation [110.97 version]
+:Author: Dave MacQueen
+:Date: 2020/05/09
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: 110.98
+
+== Introduction
+
+This document describes the revised implementation of the match compiler
+SML/NJ 110.98. This document replaces the Alex Aiken note.
+
+== Files (relative to base/compiler/FLINT/trans
+   mcommon.sml  -- match compiler types
+   andor.sml  -- building the and-or trees
+   matchcomp.sml  -- the main (or reset of the) match compiler
+
+== Terminology anb basic types
+
+The types used in the match compiler are defined 
+
+- type ruleno = int
+   index, zero-based, of a rule in a match (pre- or post- ?) OR expansion
+   E.g. "allRules" defined in matchComp, which is the list after OR expansion
+
+- type ruleset = ruleno list = int list
+   an ordered list of rule indices (no duplicates) representing rule index sets
+   [should be abstract]
+   
+- type dconinfo = datacon * tyvar list
+   a dataconstructor (occurring in a pattern) with an "associated"? list of tyvars
+   [Q: what is the relation between the datacon and the tyvars?]
+
+- "destructuring paths" (datatype path)
+  [paths that record a position in a decision tree? But paths are _trees_ because
+   of the RECORDPATH constructor! ]
+
+Two compilcations in the and-or analysis.
+
+- layered patterns. But the pattern that is layered over a base pattern is
+  restricted to be a variable (possibly with at type constraint), so the "information
+  content is not modified by a layered pattern. It just introduces a variable
+  binding at that node.
+
+- vector patterns. These are _both_ OR (dispatching on the length of the vector)
+  and AND in the sense that all the element patterns of the vector pattern must
+  be matched.  These two roles could possibly be separated, splitting the node
+  into an OR over lengths, and for each 
+
+   case x 
+     of #[nil, x::y] => ...
+      | #[z::w, nil] => ...
+
+  Here the two patterns are vectors of the same length, but the element patterns
+  for OR choices. This case should be analyzed similarly to
+
+   case x 
+     of {a = nil, b = x::y} => ...
+      | {a = z::w, b = nil} => ...
+
+  where on the "a"-field there is an OR choice on {nil, z::w} and on the "b"-field
+  there is an OR choice on {x::y, nil}. But we know (from type-checking} that all
+  record patterns at the same node will have the same record type and hence the same
+  fields.  So there is no OR choice at the level of the record patterns themselves,
+  only at the level of corresponding field patterns, where in this case, both the
+  "a"-field and "b"-field give rise to OR choices (which will have to be ordered 
+  during the construction of the decision tree).
+
+  But two vector patterns at the same node may be of different lengths:
+
+      case x 
+	 of #[nil, x::y] => ...
+	  | #[z::w, nil, u] => ...
+
+  Here we do the OR dispatch solely on the vector length, and the respective field
+  patterns (here {nil, z::w} for the 1st element) do not constitute an OR choice --
+  they are "independent" because they lie in separate OR branches.  This is analagous
+  to the following situation:
+
+     datatype t = A of int list * int list
+                | B of int list * int list
+
+     case x
+       of A(nil,x::y) =>
+        | B(z::w,nil) =>
+
+  where we don't dispatch on the {nil, z::w} patterns because the A vs B OR node
+  has separated them into two branches.
