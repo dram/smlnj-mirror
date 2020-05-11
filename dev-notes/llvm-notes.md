@@ -238,3 +238,6 @@ cmake -G "Unix Makefiles" "$CMAKE_OPTS" ../llvm-src
 #
 make -j $NPROC install
 ````
+
+In the future, we may want to add `AArch64` (64-bit ARM), `PowerPC`, `RISCV`,
+and `Sparc` as targets.
