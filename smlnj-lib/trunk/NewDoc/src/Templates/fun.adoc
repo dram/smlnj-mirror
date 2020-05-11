@@ -14,11 +14,19 @@ The `@NAME@` functor ...
 functor @NAME@ ()
 ------------
 
-== Arguments
+== Functor Argument Interface
 
 [source,sml]
 ------------
 ------------
+
+== Functor Argument Description
+
+`[.kw]#type# foo`::
+  something
+
+`[.kw]#val# bar : foo -> foo`::
+  something
 
 == Interface
 
@@ -26,7 +34,7 @@ functor @NAME@ ()
 ------------
 ------------
 
-== Description
+== Interface Description
 
 `[.kw]#type# foo`::
   something
