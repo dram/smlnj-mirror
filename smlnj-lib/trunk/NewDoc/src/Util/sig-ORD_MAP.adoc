@@ -7,7 +7,10 @@
 
 The `ORD_MAP` signature defines an interface to finite maps
 over ordered keys. The **SML/NJ Library** provides a number of
-different implementations of this interface.
+different implementations of this interface.  Functors are
+provided for constructing maps for user-defined key types;
+in addition, a number of instances for specific types
+are also provided.
 
 == Synopsis
 
@@ -353,6 +356,32 @@ The `mergeWith` function is a generalization of the `unionWith` and
   for all items latexmath:[(\mathtt{key}, \mathtt{v}) \in \mathtt{m}].
 
 == Instances
+
+`[.kw]#structure# AtomMap`::
+  This structure is an alias for `AtomRedBlackMap`.
+
+`[.kw]#structure# AtomBinaryMap`::
+  Maps over atoms implemented using balanced binary trees.
+  Note that it is recommended that one use the `AtomMap` structure
+  as it provides better performance.
+
+`[.kw]#structure# AtomRedBlackMap`::
+  Maps over atoms implemented using red-black trees.
+
+`[.kw]#structure# IntBinaryMap`::
+  Maps over ints implemented using balanced binary trees.
+  Note that it is recommended that one use the `IntRedBlackMap` structure
+  as it provides better performance.
+
+`[.kw]#structure# IntListMap`::
+  Maps over words implemented using sorted lists.  This implementation
+  is fast for small sets, but does not scale well to large sizes.
+
+`[.kw]#structure# IntRedBlackMap`::
+  Maps over ints implemented using red-black binary trees.
+
+`[.kw]#structure# WordRedBlackMap`::
+  Maps over words implemented using red-black binary trees.
 
 == See Also
 
