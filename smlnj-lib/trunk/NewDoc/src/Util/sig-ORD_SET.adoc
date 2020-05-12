@@ -97,7 +97,7 @@ val find : (item -> bool) -> set -> item option
 == Description
 
 `[.kw]#`structure# Key : ORD_KEY`::
-  This substructure defines the type if elements in the set and
+  This substructure defines the type of elements in the set and
   the comparison function used to order them.
 
 `[.kw]#type# item = Key.ord_key`::

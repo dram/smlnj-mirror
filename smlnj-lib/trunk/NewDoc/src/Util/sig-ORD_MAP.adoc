@@ -104,7 +104,7 @@ val alli : (Key.ord_key * 'a -> bool) -> 'a map -> bool
 == Description
 
 `[.kw]#structure# Key : ORD_KEY`::
-  This substructure defines the type if elements in the set and
+  This substructure defines the type of keys used to index the maps and
   the comparison function used to order them.
 
 `[.kw]#type# 'a map`::

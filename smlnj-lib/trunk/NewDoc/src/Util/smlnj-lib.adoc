@@ -74,20 +74,17 @@ xref:str-HashString.adoc[`[.kw]#structure# HashString`]::
   Provides hashing functions for strings and substrings.
 
 xref:str-HashTable.adoc[`[.kw]#structure# HashTable`]::
-  **To be written**
-
-xref:fun-HashTableFn.adoc[`[.kw]#functor# HashTableFn`]::
-  Provides a functor for implementing hash-table-based imperative maps.
+  Provides an implementation of polymorphic hash tables.
 
 xref:fun-Hash2TableFn.adoc[`[.kw]#functor# Hash2TableFn`]::
   **To be written**
-
-// 20
 
 xref:sig-INTERVAL_DOMAIN.adoc[`[.kw]#signature# INTERVAL_DOMAIN`]::
   Defines a representation of an abstract ordered domain that is
   used as an argument to the xref:fun-IntervalSetFn.adoc[`IntervalSetFn`]
   functor.
+
+// 20
 
 xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
   **To be written**
@@ -117,10 +114,10 @@ xref:fun-MonoArrayFn.adoc[`[.kw]#functor# MonoArrayFn`]::
 xref:sig-MONO_ARRAY_SORT.adoc[`[.kw]#signature# MONO_ARRAY_SORT`]::
   **To be written**
 
-// 30
-
 xref:sig-MONO_DYNAMIC_ARRAY.adoc[`[.kw]#signature# MONO_DYNAMIC_ARRAY`]::
   **To be written**
+
+// 30
 
 xref:sig-MONO_HASH_SET.adoc[`[.kw]#signature# MONO_HASH_SET`]::
   **To be written**
@@ -151,10 +148,10 @@ xref:str-PathUtil.adoc[`[.kw]#structure# PathUtil`]::
 xref:sig-PRIORITY.adoc[`[.kw]#signature# PRIORITY`]::
   **To be written**
 
-// 40
-
 xref:str-PropList.adoc[`[.kw]#structure# PropList`]::
   **To be written**
+
+// 40
 
 xref:str-Queue.adoc[`[.kw]#structure# Queue`]::
   Provides an imperative queue data structure.
@@ -185,7 +182,7 @@ xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
   Provides support for working with https://en.wikipedia.org/wiki/UTF-8[*UTF-8*]
   encoded strings.
 
-// 50
+// 49
 
 == Usage
 
