@@ -161,7 +161,7 @@ val bucketSizes : 'a hash_table -> int list
   `pred item` returns `false`.
 
 `[.kw]#val# filteri : ((Key.hash_key * 'a) -> bool) -> 'a hash_table -> unit`::
-  `filter pred tbl` removes any entry `(key, item)` from `tbl` for which
+  `filteri pred tbl` removes any entry `(key, item)` from `tbl` for which
   `pred(key, item)` returns `false`.
 
 `[.kw]#val# copy : 'a hash_table -> 'a hash_table`::
