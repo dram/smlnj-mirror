@@ -136,7 +136,7 @@ xref:sig-ORD_KEY.adoc[`[.kw]#signature# ORD_KEY`]::
   of keys with a comparison function.
 
 xref:sig-ORD_MAP.adoc[`[.kw]#signature# ORD_MAP`]::
-  **To be written**
+  Defines an interface to finite maps over ordered keys.
 
 xref:sig-ORD_SET.adoc[`[.kw]#signature# ORD_SET`]::
   Defines an interface to finite sets of ordered elements.

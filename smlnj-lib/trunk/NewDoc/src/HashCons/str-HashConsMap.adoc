@@ -120,16 +120,16 @@ of latexmath:[m].
   This mapping overrides any previous mapping from `obj`.
 
 `[.kw]#val# insert' : (('a obj * 'b) * ('a, 'b) map) \-> ('a, 'b) map`::
-  `insert ((obj, v), map)` adds the mapping from `obj` to `v` to `m`.
+  `insert' ((obj, v), map)` adds the mapping from `obj` to `v` to `m`.
   This mapping overrides any previous mapping from `obj`.
 
 `[.kw]#val# insertWith  : (('b * 'b) \-> 'b) \-> ('a, 'b) map * 'a obj * 'b \-> ('a, 'b) map`::
-  `insert comb (m, obj, v)` adds the mapping from `obj` to `value` to `m`,
+  `insertWith comb (m, obj, v)` adds the mapping from `obj` to `value` to `m`,
   where `value = comb(v', v)`, if `m` already contained a mapping from `obj`
   to `v'`; otherwise, `value = v`.
 
 `[.kw]#val# insertWithi :  (('a obj * 'b * 'b) \-> 'b) \-> ('a, 'b) map * 'a obj * 'b \-> ('a, 'b) map`::
-  `insert comb (m, obj, v)` adds the mapping from `obj` to `value` to `m`,
+  `insertWithi comb (m, obj, v)` adds the mapping from `obj` to `value` to `m`,
   where `value = comb(obj, v', v)`, if `m` already contained a mapping from `obj`
   to `v'`; otherwise, `value = v`.
 
@@ -137,14 +137,14 @@ of latexmath:[m].
   `find (m, obj)` returns `SOME v`, if `m` maps `obj` to `v` and `NONE` otherwise.
 
 `[.kw]#val# lookup : ('a, 'b) map * 'a obj \-> 'b`::
-  `find (m, obj)` returns `v`, if `m` maps `obj` to `v`; otherwise it
+  `lookup (m, obj)` returns `v`, if `m` maps `obj` to `v`; otherwise it
   raises the exception xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`].
 
 `[.kw]#val# inDomain : (('a, 'b) map * 'a obj) \-> bool`::
   `inDomain (m, obj)` returns `true` if `obj` is in the domain of `m`.
 
 `[.kw]#val# remove : ('a, 'b) map * 'a obj \-> ('a, 'b) map * 'b`::
-  `find (m, obj)` returns the pair `(m', v)`, if `m` maps `obj` to `v`
+  `remove (m, obj)` returns the pair `(m', v)`, if `m` maps `obj` to `v`
   and where `m'` is `m` with `obj` removed from its domain.  If `obj`
   is not in the domain of `m`, then it raises the exception
   xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`].
@@ -275,7 +275,7 @@ The `mergeWith` function is a generalization of the `unionWith` and
   `(obj, f v)` will be in ``m'``.
 
 `[.kw]#val# mapi : ('a obj * 'b \-> 'c) \-> ('a, 'b) map \-> ('a, 'c) map`::
-  `map f m` creates a new finite map ``m'`` by applying the function `f` to the
+  `mapi f m` creates a new finite map ``m'`` by applying the function `f` to the
   key-value pairs of `m`.  Thus, if
   latexmath:[(\mathtt{obj}, \mathtt{v}) \in \mathtt{m}], then
   `(obj, f(obj, v))` will be in ``m'``.
@@ -285,9 +285,8 @@ The `mergeWith` function is a generalization of the `unionWith` and
   `m` using `init` as the initial value.
 
 `[.kw]#val# foldi : ('a obj * 'b * 'c \-> 'c) \-> 'c \-> ('a, 'b) map \-> 'c`::
-  `fold f init m` folds the function `f` over the range of
+  `foldi f init m` folds the function `f` over the key-value pairs in
   `m` using `init` as the initial value.
-	(* Apply a folding function to the entries of the map *)
 
 `[.kw]#val# filter : ('b \-> bool) \-> ('a, 'b) map \-> ('a, 'b) map`::
   `filter pred m` filters out those items `(obj, v)` from `m`, such that
@@ -310,7 +309,7 @@ The `mergeWith` function is a generalization of the `unionWith` and
 +++++++++++
 
 `[.kw]#val# mapPartiali : ('a obj * 'b \-> 'c option) \-> ('a, 'b) map \-> ('a, 'c) map`::
-  `mapPartial f m` maps the partial function `f` over the items of `m`.
+  `mapPartiali f m` maps the partial function `f` over the items of `m`.
   More formally, this expression returns the map
 [latexmath]
 +++++++++++
