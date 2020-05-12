@@ -38,9 +38,14 @@ are part of.
 
 Some examples:
 
-	link:#fld:point.x[x]
+	xref:#fld:point.x[x]
 		-- local reference to `x` field of point type
 
-	link:str-Vec3D.html#val:cross[cross]
+	xref:str-Vec3D.adoc#val:cross[cross]
 		-- cross-file reference to `cross` function in
 		   the Vec3D structure.
+
+Note that we use `xref:` instead of `link:`, because the latter
+is specific to HTML generation, whereas the former applies to
+PDF as well.
+
