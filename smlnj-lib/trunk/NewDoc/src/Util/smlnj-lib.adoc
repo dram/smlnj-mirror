@@ -93,7 +93,12 @@ xref:str-IOUtil.adoc[`[.kw]#structure# IOUtil`]::
   Provides support for redirecting the standard input and output streams.
 
 xref:fun-KeywordFn.adoc[`[.kw]#functor# KeywordFn`]::
-  **To be written**
+  Provides a simple way to support a table of keyword
+  (or reserved) identifiers in a scanner.
+
+xref:fun-LeftPriorityQFn.adoc[`[.kw]#functor# LeftPriorityQFn`]::
+  Provides a functional implementation of priority
+  queues using leaftist heaps.
 
 xref:str-LibBase.adoc[`[.kw]#structure# LibBase`]::
   Provides some common definitions that are
@@ -106,27 +111,25 @@ xref:str-ListMergeSort.adoc[`[.kw]#structure# ListMergeSort`]::
  Provides a merge-sort algorithm for lists.
 
 xref:str-ListXProd.adoc[`[.kw]#structure# ListXProd`]::
-  **To be written**
+  Provides list combinators for computing
+  over the "Cartesian product" of two lists.
 
 xref:fun-MonoArrayFn.adoc[`[.kw]#functor# MonoArrayFn`]::
-  **To be written**
+  Provides easy construction of new monomorphic array structures.
 
 xref:sig-MONO_ARRAY_SORT.adoc[`[.kw]#signature# MONO_ARRAY_SORT`]::
   **To be written**
 
+// 30
+
 xref:sig-MONO_DYNAMIC_ARRAY.adoc[`[.kw]#signature# MONO_DYNAMIC_ARRAY`]::
   **To be written**
-
-// 30
 
 xref:sig-MONO_HASH_SET.adoc[`[.kw]#signature# MONO_HASH_SET`]::
   **To be written**
 
 xref:sig-MONO_HASH_TABLE.adoc[`[.kw]#signature# MONO_HASH_TABLE`]::
-  **To be written**
-
-xref:sig-MONO_PRIORITYQ.adoc[`[.kw]#signature# MONO_PRIORITYQ`]::
-  **To be written**
+  Defines an interface to imperative hash tables with monomorphic keys.
 
 xref:sig-ORD_KEY.adoc[`[.kw]#signature# ORD_KEY`]::
   Defines an interface to an abstract type
@@ -145,16 +148,14 @@ xref:str-PathUtil.adoc[`[.kw]#structure# PathUtil`]::
   Provides support for searching for files
   in the file system using a list of possible locations.
 
-xref:sig-PRIORITY.adoc[`[.kw]#signature# PRIORITY`]::
-  **To be written**
-
 xref:str-PropList.adoc[`[.kw]#structure# PropList`]::
-  **To be written**
-
-// 40
+  Provides a extensible, but type safe, implementation
+  of property lists.
 
 xref:str-Queue.adoc[`[.kw]#structure# Queue`]::
   Provides an imperative queue data structure.
+
+// 40
 
 xref:str-Rand.adoc[`[.kw]#structure# Rand`]::
   Provides a simple random number generator.
@@ -182,7 +183,7 @@ xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
   Provides support for working with https://en.wikipedia.org/wiki/UTF-8[*UTF-8*]
   encoded strings.
 
-// 49
+// 48
 
 == Usage
 
@@ -202,6 +203,8 @@ ifdef::backend-pdf[]
 
 include::str-ANSITerm.adoc[]
 
+include::sig-ARRAY_SORT.adoc[]
+
 include::str-Atom.adoc[]
 
 include::str-Base64.adoc[]
@@ -218,9 +221,9 @@ include::str-Fifo.adoc[]
 
 include::str-FNVHash.adoc[]
 
-include::str-Format.adoc[]
-
 // 10
+
+include::str-Format.adoc[]
 
 include::str-FormatComb.adoc[]
 
@@ -236,19 +239,19 @@ include::str-HashString.adoc[]
 
 include::str-HashTable.adoc[]
 
-include::fun-HashTableFn.adoc[]
-
 include::fun-Hash2TableFn.adoc[]
 
 include::sig-INTERVAL_DOMAIN.adoc[]
 
 // 20
 
-include::str-IOUtil.adoc[]
-
 include::fun-IntervalSetFn.adoc[]
 
+include::str-IOUtil.adoc[]
+
 include::fun-KeywordFn.adoc[]
+
+include::fun-LeftPriorityQFn.adoc[]
 
 include::str-LibBase.adoc[]
 
@@ -262,15 +265,13 @@ include::fun-MonoArrayFn.adoc[]
 
 include::sig-MONO_ARRAY_SORT.adoc[]
 
-include::sig-MONO_DYNAMIC_ARRAY.adoc[]
-
 // 30
+
+include::sig-MONO_DYNAMIC_ARRAY.adoc[]
 
 include::sig-MONO_HASH_SET.adoc[]
 
 include::sig-MONO_HASH_TABLE.adoc[]
-
-include::sig-MONO_PRIORITYQ.adoc[]
 
 include::sig-ORD_KEY.adoc[]
 
@@ -282,13 +283,11 @@ include::str-ParserComb.adoc[]
 
 include::str-PathUtil.adoc[]
 
-include::sig-PRIORITY.adoc[]
-
 include::str-PropList.adoc[]
 
-// 40
-
 include::str-Queue.adoc[]
+
+// 40
 
 include::str-Rand.adoc[]
 
@@ -297,8 +296,6 @@ include::str-Random.adoc[]
 include::str-RealOrderStats.adoc[]
 
 include::str-Scan.adoc[]
-
-include::str-SplayTree.adoc[]
 
 include::str-TimeLimit.adoc[]
 

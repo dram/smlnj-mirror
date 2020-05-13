@@ -51,7 +51,7 @@ val cmap = mkCharMap {
             ("abcdefghijklmnopqrstuvwxyz", LOWER),
             ("ABCDEFGHIJKLMNOPQRSTUVWXYZ", UPPER),
             ("0123456789", DIGIT)
-	  ]
+          ]
       }
 ------------
 
