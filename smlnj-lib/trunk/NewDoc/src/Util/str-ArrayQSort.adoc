@@ -1,17 +1,17 @@
-= The `ARRAY_SORT` signature
+= The `ArrayQSort` structure
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `ARRAY_SORT` signature ...
+The `ArrayQSort` structure ...
 
 == Synopsis
 
 [source,sml]
 ------------
-signature ARRAY_SORT
+structure ArrayQSort
 ------------
 
 == Interface

@@ -18,7 +18,10 @@ xref:str-ANSITerm.adoc[`[.kw]#structure# ANSITerm`]::
   provides support for displaying stylized text using the
   https://en.wikipedia.org/wiki/ANSI_escape_code[ANSI escape codes].
 
-xref:sig-ARRAY_SORT.adoc[`[.kw]#signature# ARRAY_SORT`]::
+xref:str-ArrayQSort.adoc[`[.kw]#structure# ArrayQSort`]::
+  **To be written**
+
+xref:fun-ArrayQSortFn.adoc[`[.kw]#functor# ArrayQSortFn`]::
   **To be written**
 
 xref:str-Atom.adoc[`[.kw]#structure# Atom`]::

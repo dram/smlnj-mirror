@@ -1,18 +1,32 @@
-= The `MONO_ARRAY_SORT` signature
+= The `ArrayQSortFn` functor
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `MONO_ARRAY_SORT` signature ...
+The `ArrayQSortFn` functor ...
 
 == Synopsis
 
 [source,sml]
 ------------
-signature MONO_ARRAY_SORT
+functor ArrayQSortFn ()
 ------------
+
+== Functor Argument Interface
+
+[source,sml]
+------------
+------------
+
+== Functor Argument Description
+
+`[.kw]#type# foo`::
+  something
+
+`[.kw]#val# bar : foo -> foo`::
+  something
 
 == Interface
 
@@ -20,7 +34,7 @@ signature MONO_ARRAY_SORT
 ------------
 ------------
 
-== Description
+== Interface Description
 
 `[.kw]#type# foo`::
   something
