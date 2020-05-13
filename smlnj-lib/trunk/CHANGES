@@ -1,6 +1,17 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-05-12]
+	Changed the `ListXProd` interface to follow the Basis Library
+	conventions (this module was written in the early 1990's
+	before the conventions had been established).  The function
+	names are now `app`, `map`, and `fold` and the types follow
+	the Basis Library conventions (`app` expects a `unit` return
+	type for its first argument and the initial value for `fold`
+	is the second argument, instead of the third).  The old
+	`appX`, `mapX`, and `foldX` functions are deprecated, but
+	remain for backward compatibility.
+
 [2020-05-11]
 	Added `mapPartial` function to `ORD_SET` interface.
 
