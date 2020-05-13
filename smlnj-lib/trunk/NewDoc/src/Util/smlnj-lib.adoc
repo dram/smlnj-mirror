@@ -19,10 +19,12 @@ xref:str-ANSITerm.adoc[`[.kw]#structure# ANSITerm`]::
   https://en.wikipedia.org/wiki/ANSI_escape_code[ANSI escape codes].
 
 xref:str-ArrayQSort.adoc[`[.kw]#structure# ArrayQSort`]::
-  **To be written**
+  Provides _in situ_ sorting of polymorphic arrays
+  using the quicksort algorithm.
 
 xref:fun-ArrayQSortFn.adoc[`[.kw]#functor# ArrayQSortFn`]::
-  **To be written**
+  Provides _in situ_ sorting of monomorphic arrays
+  using the quicksort algorithm.
 
 xref:str-Atom.adoc[`[.kw]#structure# Atom`]::
   provides hashed strings that have fast equality testing.
