@@ -36,7 +36,7 @@ structure ListXProd : LIST_XPROD =
 	  end
 
   (* fold a function across the Cartesian product of two lists *)
-    fun fold f (l1, l2) = let
+    fun fold f init (l1, l2) = let
 	  fun lp1 ([], accum) = accum
 	    | lp1 (x::r, accum) = let
 		fun lp2 ([], accum) = lp1 (r, accum)
@@ -45,13 +45,13 @@ structure ListXProd : LIST_XPROD =
 		  lp2 (l2, accum)
 		end
 	  in
-	    fn init => lp1 (l1, init)
+	    lp1 (l1, init)
 	  end
 
   (* DEPRECATED FUNCTIONS *)
 
     val appX = app
     val mapX = map
-    val foldX f arg init = fold f init arg
+    fun foldX f arg init = fold f init arg
 
   end; (* ListXProd *)
