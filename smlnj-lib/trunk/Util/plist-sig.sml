@@ -1,15 +1,17 @@
 (* plist-sig.sml
  *
- * COPYRIGHT (c) 1999 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Property lists using Stephen Weeks's implementation.
  *)
 
-signature PROP_LIST = 
-  sig 
-    type holder 
+signature PROP_LIST =
+  sig
 
-    val newHolder : unit -> holder 
+    type holder
+
+    val newHolder : unit -> holder
 
     val hasProps : holder -> bool
 	(* return true if the holder has any properties. *)

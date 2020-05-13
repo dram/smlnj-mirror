@@ -1,15 +1,16 @@
 (* list-xprod.sml
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.  See COPYRIGHT file for details.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
- * Functions for computing with the cross product of two lists.
+ * Functions for computing with the Cartesian product of two lists.
  *)
 
 structure ListXProd : LIST_XPROD =
   struct
 
-  (* apply a function to the cross product of two lists *)
-    fun appX f (l1, l2) = let
+  (* apply a function to the Cartesian product of two lists *)
+    fun app f (l1, l2) = let
 	  fun lp1 [] = ()
 	    | lp1 (x::r) = let
 		fun lp2 [] = lp1 r
@@ -21,8 +22,8 @@ structure ListXProd : LIST_XPROD =
 	    lp1 l1
 	  end
 
-  (* map a function across the cross product of two lists *)
-    fun mapX f (l1, l2) = let
+  (* map a function across the Cartesian product of two lists *)
+    fun map f (l1, l2) = let
 	  fun lp1 ([], resL) = rev resL
 	    | lp1 (x::r, resL) = let
 		fun lp2 ([], resL) = lp1 (r, resL)
@@ -34,8 +35,8 @@ structure ListXProd : LIST_XPROD =
 	    lp1 (l1, [])
 	  end
 
-  (* fold a function across the cross product of two lists *)
-    fun foldX f (l1, l2) = let
+  (* fold a function across the Cartesian product of two lists *)
+    fun fold f (l1, l2) = let
 	  fun lp1 ([], accum) = accum
 	    | lp1 (x::r, accum) = let
 		fun lp2 ([], accum) = lp1 (r, accum)
@@ -46,5 +47,11 @@ structure ListXProd : LIST_XPROD =
 	  in
 	    fn init => lp1 (l1, init)
 	  end
+
+  (* DEPRECATED FUNCTIONS *)
+
+    val appX = app
+    val mapX = map
+    val foldX f arg init = fold f init arg
 
   end; (* ListXProd *)

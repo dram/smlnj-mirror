@@ -1,11 +1,11 @@
 (* mono-priorityq-sig.sml
  *
- * COPYRIGHT (c) 2002 Bell Labs, Lucent Technologies
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This signature describes the interface to monomorphic functional
  * priority queues.
  *)
-
 
 signature MONO_PRIORITYQ =
   sig
@@ -44,4 +44,3 @@ signature MONO_PRIORITYQ =
 	(* return true, if the queue is empty *)
 
   end;
-

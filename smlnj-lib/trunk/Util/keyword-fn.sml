@@ -1,6 +1,7 @@
 (* keyword-fn.sml
  *
- * COPYRIGHT (c) 1997 AT&T Labs Research.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This functor is meant to be used as part of a scanner, where identifiers
  * and keywords are scanned using the same lexical rules and are then
@@ -47,4 +48,4 @@ functor KeywordFn (KW : sig
 	  end
 
   end;
- 
+

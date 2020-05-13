@@ -1,6 +1,7 @@
 (* priority-sig.sml
  *
- * COPYRIGHT (c) 2002 Bell Labs, Lucent Technologies
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * Argument signature for functors that implement priority queues.
  *)
@@ -12,4 +13,3 @@ signature PRIORITY =
     type item
     val priority : item -> priority
   end;
-
