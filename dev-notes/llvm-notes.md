@@ -1,8 +1,8 @@
 # Notes on using LLVM for code generation in SML/NJ
 
-This document describes the plan for replacing the MLRISC backend
-with an LLVM backend.  It includes instructions for how to patch
-LLVM to support the "Jump with Arguments" (**JWA**) calling convention that
+This document describes the plan for replacing the **MLRISC** backend
+with an **LLVM** backend.  It includes instructions for how to patch
+**LLVM** to support the "Jump with Arguments" (**JWA**) calling convention that
 was developed to support continuation-passing, closure-passing
 style (see [Compiling with Continuations and LLVM](https://doi.org/10.4204/EPTCS.285.5)
 for more details.
@@ -11,8 +11,16 @@ for more details.
 
 We want to preserve the "on-the-fly" code generation behavior that the
 system currently uses.  To this end, we plan to link the runtime system
-with a LLVM code generator.  We will use **ASDL** to communicate between
+with a **LLVM** code generator.  We will use **ASDL** to communicate between
 the **SML** backend and the runtime system code generator.
+
+In more detail, we plan to replace the current code generator, which
+translates a first-order variant of the **CPS** IR to **MLRISC** with
+a two stage translation.  The first stage will translate the first-order
+**CPS** to a simpler, and more explicit, control-flow-graph IR (**CFG**).
+To validate this translation, we will write a **CFG** to **MLRISC**
+code generator.  Eventually, this code generator will be replaced with
+by an **LLVM** based code generator written in C++.
 
 ## CFG IR
 
@@ -20,7 +28,7 @@ The **MLRISC** code generator takes the first-order CPS IR and generates
 **MLRISC** expression trees and statements that are then turned into
 machine code by the **MLRISC** library.  My original plan was to use
 ASDL to communicate the first-order CPS IR to the runtime and then
-compile that into LLVM using a similar strategy as is currently done
+compile that into **LLVM** using a similar strategy as is currently done
 for **MLRISC**.  This approach has a couple of drawbacks, however:
 
 * The CPS IR includes a number of syntactic forms that are no longer
@@ -41,23 +49,52 @@ step, we propose to implement an **MLRISC** code generator for this IR.
 The **CFG** IR has two main types:
 
 * Expressions (`exp`), which are trees that define computations.  These roughly
-  correspond to the **MLRISC** `mltree` type and the LLVM `Value`
+  correspond to the **MLRISC** `mltree` type and the **LLVM** `Value`
   type.
 
 * Statements (`stm`), which are extended basic blocks with operations
   for allocation, updates, and control flow.
 
+## Code generation details
+
+This section discusses how various aspects of the current **MLRISC**
+code generator will map to **LLVM**.
+
+### SML/NJ's Runtime Model
+
+The **SML/NJ** system does not use a conventional stack for executing
+**SML** code.  Instead, the runtime system allocates a single frame for
+executing **SML** code and all internal function calls are implemented
+as tail calls with an explicit return-continuation closure as an argument.
+The frame allocated by the runtime system is large enough to support
+the spilling of up to 1,000 variables.  It also contains some additional
+linkage information and, on some architectures, virtual registers.
+
+### Calling conventions
+
+### Stack frame access
+
+Because the generated code is not directly linked to the runtime system,
+we use reserved locations in the stack frame.
+
+### LLVM Intrinsics
+
+There are a number of primitive operations that will have to be mapped to
+**LLVM** intrinsics.  These include support for [overflow
+detection](http://llvm.org/docs/LangRef.html#arithmetic-with-overflow-intrinsics)
+in integer arithmetic and various floating-point operations.
+
 ## Patching LLVM
 
-LLVM needs to be modified to support the **JWA** calling convention
+**LLVM** needs to be modified to support the **JWA** calling convention
 that we use.  The modifications are fairly simple, and are
-described for LLVM 10.0.x below, where `$LLVM` denotes the root of
-the LLVM source tree.
+described for **LLVM** 10.0.x below, where `$LLVM` denotes the root of
+the **LLVM** source tree.
 
 ### `CallingConv.h`
 
 The file `$LLVM/include/llvm/IR/CallingConv.h` assigns integer codes for
-the various calling conventions.  In LLVM 10.0.x, the last number assigned
+the various calling conventions.  In **LLVM** 10.0.x, the last number assigned
 is `19`, so we use `20` for **JWA**.  Add the following code to the file just
 before the first target-specific code (which will be `64`).
 
@@ -80,7 +117,7 @@ of files in the directory `$LLVM/lib/Target/X86/`.
 
 The file `$LLVM/lib/Target/X86/X86CallingConv.td` describes the calling
 conventions for the *x86* and *x86-64* (aka *amd64*) architectures
-using LLVM's [**TabgeGen**](https://llvm.org/docs/TableGen/) language.
+using **LLVM**'s [**TabgeGen**](https://llvm.org/docs/TableGen/) language.
 We need to add several chunks of code to the file.  I added the first
 just before the definition for `RetCC_X86_32`.
 
@@ -140,8 +177,8 @@ as `i64`, since x86-64 general-purpose registers can handle any of these
 values via their narrower aliases.  Then, the next directive says if the
 argument can be treated as an i64, use the first available register from
 the given list.  For calls that do not make use of, say, the standard
-return-continuation register, an LLVM `undef` value can be passed in to
-that argument position in the LLVM IR in order to effectively skip-over
+return-continuation register, an **LLVM** `undef` value can be passed in to
+that argument position in the **LLVM** IR in order to effectively skip-over
 that register during this convention decision procedure.
 
 Because the JWA convention does not really return (instead, we use **JWA**
@@ -208,8 +245,8 @@ and to the method `getCallPreservedMask`
 
 ## Building LLVM
 
-Once the above edits have been made to the LLVM sources, you can use the
-following steps to build the LLVM library that will be linked with the
+Once the above edits have been made to the **LLVM** sources, you can use the
+following steps to build the **LLVM** library that will be linked with the
 **SML/NJ** runtime system.
 
 ````
