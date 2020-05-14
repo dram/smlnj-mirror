@@ -178,8 +178,8 @@ xref:str-TimeLimit.adoc[`[.kw]#structure# TimeLimit`]::
 xref:str-UnivariateStats.adoc[`[.kw]#structure# UnivariateStats`]::
   **To be written**
 
-xref:sig-UREF.adoc[`[.kw]#signature# UREF`]::
-  **To be written**
+xref:str-URef.adoc[`[.kw]#structure# URef`]::
+  Provides mutable references with __Union-Find__ semantics.
 
 xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
   Provides support for working with https://en.wikipedia.org/wiki/UTF-8[*UTF-8*]
@@ -302,7 +302,7 @@ include::str-TimeLimit.adoc[]
 
 include::str-UnivariateStats.adoc[]
 
-include::sig-UREF.adoc[]
+include::str-URef.adoc[]
 
 include::str-UTF8.adoc[]
 
