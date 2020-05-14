@@ -49,6 +49,7 @@ val array : (int * elem) -> array
 val subArray : array * int * int -> array
 
 val fromList : elem list * elem -> array
+val toList : array -> elem list
 
 val tabulate: int * (int -> elem) * elem -> array
 
@@ -89,6 +90,10 @@ val truncate : array * int -> unit
   `fromList (lst, dflt)` returns a new array created from the elements
   of `lst` and with default value `dflt`.  The bound of the array will be
   `length lst - 1`.
+
+`[.kw]#val# toList : 'a array \-> 'a list`::
+  `toList arr` returns a list of the array's contents.  The resulting
+  list will have the array's bound plus one elements.
 
 `[.kw]#val# tabulate: int * (int \-> elem) * elem \-> array`::
   `tabulate (sz, init, dflt)` returns a new array with the first
