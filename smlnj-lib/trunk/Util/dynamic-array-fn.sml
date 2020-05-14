@@ -1,9 +1,13 @@
 (* dynamic-array-fn.sml
  *
- * COPYRIGHT (c) 2009 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Monomorphic arrays of unbounded length
+ *
+ * TODO: add the missing operations that the DynamicArray structure
+ * provides.  Adding these will require uncluding the MONO_ARRAY_SLICE
+ * structure as a functor parameter.
  *)
 
 functor DynamicArrayFn (A : MONO_ARRAY) : MONO_DYNAMIC_ARRAY =
@@ -17,7 +21,7 @@ functor DynamicArrayFn (A : MONO_ARRAY) : MONO_DYNAMIC_ARRAY =
    *	bnd	- values at !bnd and above are default for reading
    *)
     datatype array = BLOCK of A.array ref * elem * int ref
- 
+
     exception Subscript = General.Subscript
     exception Size = General.Size
 
@@ -25,7 +29,6 @@ functor DynamicArrayFn (A : MONO_ARRAY) : MONO_DYNAMIC_ARRAY =
 
   (* fromList (l, v) creates an array using the list of values l
    * plus the default value v.
-   * NOTE: Once MONO_ARRAY includes arrayoflist, this will become trivial.
    *)
     fun fromList (initList, dflt) = let
 	  val arr = A.fromList initList
@@ -33,7 +36,13 @@ functor DynamicArrayFn (A : MONO_ARRAY) : MONO_DYNAMIC_ARRAY =
 	    BLOCK(ref arr, dflt, ref(A.length arr - 1))
 	  end
 
-  (* tabulate (sz,fill,dflt) acts like Array.tabulate, plus 
+    fun toList (BLOCK(ref arr, _, bnd)) = let
+	  val len = !bnd + 1
+	  in
+	    List.tabulate (len, fn i => A.sub(arr, i))
+	  end
+
+  (* tabulate (sz,fill,dflt) acts like Array.tabulate, plus
    * stores default value dflt.  Raises Size if sz < 0.
    *)
     fun tabulate (sz, fillFn, dflt) =
@@ -46,7 +55,7 @@ functor DynamicArrayFn (A : MONO_ARRAY) : MONO_DYNAMIC_ARRAY =
           in
             if hi <= bnd
               then BLOCK(ref(A.tabulate(hi-lo, copy)), dflt, ref(hi-lo))
-            else if lo <= bnd 
+            else if lo <= bnd
               then BLOCK(ref(A.tabulate(bnd-lo, copy)), dflt, ref(bnd-lo))
             else
               array(0,dflt)
@@ -54,7 +63,7 @@ functor DynamicArrayFn (A : MONO_ARRAY) : MONO_DYNAMIC_ARRAY =
 
     fun default (BLOCK(_, dflt, _)) = dflt
 
-    fun sub (BLOCK(arr, dflt, _), idx) = (A.sub(!arr, idx)) 
+    fun sub (BLOCK(arr, dflt, _), idx) = (A.sub(!arr, idx))
           handle Subscript => if idx < 0 then raise Subscript else dflt
 
     fun bound (BLOCK(_, _, bnd)) = (!bnd)
@@ -65,11 +74,11 @@ functor DynamicArrayFn (A : MONO_ARRAY) : MONO_DYNAMIC_ARRAY =
             A.tabulate(newlen, fillfn)
           end
 
-    fun update (BLOCK(arr, dflt, bnd), idx, v) = let 
+    fun update (BLOCK(arr, dflt, bnd), idx, v) = let
           val len = A.length (!arr)
           in
-            if idx >= len 
-              then arr := expand(!arr, len, Int.max(len+len, idx+1), dflt) 
+            if idx >= len
+              then arr := expand(!arr, len, Int.max(len+len, idx+1), dflt)
               else ();
             A.update(!arr,idx,v);
             if idx > !bnd then bnd := idx else ()
@@ -95,4 +104,3 @@ functor DynamicArrayFn (A : MONO_ARRAY) : MONO_DYNAMIC_ARRAY =
           end
 
   end (* DynamicArrayFn *)
-

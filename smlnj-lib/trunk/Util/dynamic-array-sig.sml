@@ -93,4 +93,3 @@ signature DYNAMIC_ARRAY =
        *)
 
   end (* DYNAMIC_ARRAY *)
-

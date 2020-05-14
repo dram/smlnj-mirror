@@ -1,9 +1,12 @@
 (* mono-dynamic-array-sig.sml
  *
- * COPYRIGHT (c) 2009 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * Signature for monomorphic unbounded arrays.
+ *
+ * TODO: add the missing operations that the DynamicArray structure
+ * provides.
  *)
 
 signature MONO_DYNAMIC_ARRAY =
@@ -30,8 +33,11 @@ signature MONO_DYNAMIC_ARRAY =
        * plus the default value v.
        *)
 
+    val toList : array -> elem list
+      (* return the array's contents as a list *)
+
     val tabulate: int * (int -> elem) * elem -> array
-      (* tabulate (sz,fill,dflt) acts like Array.tabulate, plus 
+      (* tabulate (sz,fill,dflt) acts like Array.tabulate, plus
        * stores default value dflt.  Raises Size if sz < 0.
        *)
 
@@ -45,7 +51,7 @@ signature MONO_DYNAMIC_ARRAY =
        *)
 
     val update : array * int * elem -> unit
-      (* update (a,idx,v) sets the value at index idx of the array to v. 
+      (* update (a,idx,v) sets the value at index idx of the array to v.
        * Raises Subscript if idx < 0
        *)
 

@@ -1,6 +1,9 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-05-14]
+	Add `toList` function to `MONO_DYNAMIC_ARRAY` signature.
+
 [2020-05-12]
 	Changed the `ListXProd` interface to follow the Basis Library
 	conventions (this module was written in the early 1990's
