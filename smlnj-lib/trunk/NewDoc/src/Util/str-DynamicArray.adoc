@@ -211,5 +211,6 @@ val vector : 'a array -> 'a vector
 
 == See Also
 
+xref:fun-DynamicArrayFn.adoc[`DynamicArrayFn`],
 {sml-basis-url}/array.html[`Array`],
 xref:smlnj-lib.adoc[__The Util Library__]

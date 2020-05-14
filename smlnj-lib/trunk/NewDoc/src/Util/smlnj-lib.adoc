@@ -9,8 +9,8 @@
 
 The *Util Library* provides a large collection of utility data structures
 and algorithms.  It is the core library in the *SML/NJ Library* suite
-and dates back to the early 1990's, where it was created as part of
-the *eXene* *X11* toolkit.
+and dates back to the early 1990's, where it was originally developed
+by Emden Gansner and John Reppy as part of the *eXene* *X11* toolkit.
 
 == Contents
 
@@ -45,6 +45,11 @@ xref:str-CharMap.adoc[`[.kw]#structure# CharMap`]::
 xref:str-DynamicArray.adoc[`[.kw]#structure# DynamicArray`]::
   Provides dynamically sized polymorphic arrays.
 
+xref:fun-DynamicArrayFn.adoc[`[.kw]#functor# DynamicArrayFn`]::
+  Provides dynamically sized monomorphic arrays.
+
+// 10
+
 xref:str-Fifo.adoc[`[.kw]#structure# Fifo`]::
   Provides a functional queue data structure.
 
@@ -52,8 +57,6 @@ xref:str-FNVHash.adoc[`[.kw]#structure# FNVHash`]::
   Provides an implementation of the
   https://en.wikipedia.org/wiki/Fowler–Noll–Vo_hash_function[__Fowler-Noll-Vo__]
   hashing algorithm.
-
-// 10
 
 xref:str-Format.adoc[`[.kw]#structure# Format`]::
   Provides `printf`-style string formatting.
@@ -68,6 +71,9 @@ xref:fun-GraphSCCFn.adoc[`[.kw]#functor# GraphSCCFn`]::
   Provides an algorithm for computing the strongly-connected
   components of a directed graph.
 
+xref:fun-Hash2TableFn.adoc[`[.kw]#functor# Hash2TableFn`]::
+  **To be written**
+
 xref:sig-HASH_KEY.adoc[`[.kw]#signature# HASH_KEY`]::
   Defines an interface to a monomorphic type with an equality
   test and hashing function.
@@ -78,18 +84,15 @@ xref:fun-HashSetFn.adoc[`[.kw]#functor# HashSetFn`]::
 xref:str-HashString.adoc[`[.kw]#structure# HashString`]::
   Provides hashing functions for strings and substrings.
 
+// 20
+
 xref:str-HashTable.adoc[`[.kw]#structure# HashTable`]::
   Provides an implementation of polymorphic hash tables.
-
-xref:fun-Hash2TableFn.adoc[`[.kw]#functor# Hash2TableFn`]::
-  **To be written**
 
 xref:sig-INTERVAL_DOMAIN.adoc[`[.kw]#signature# INTERVAL_DOMAIN`]::
   Defines a representation of an abstract ordered domain that is
   used as an argument to the xref:fun-IntervalSetFn.adoc[`IntervalSetFn`]
   functor.
-
-// 20
 
 xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
   **To be written**
@@ -119,16 +122,10 @@ xref:str-ListXProd.adoc[`[.kw]#structure# ListXProd`]::
   Provides list combinators for computing
   over the "Cartesian product" of two lists.
 
-xref:fun-MonoArrayFn.adoc[`[.kw]#functor# MonoArrayFn`]::
-  Provides easy construction of new monomorphic array structures.
-
-xref:sig-MONO_ARRAY_SORT.adoc[`[.kw]#signature# MONO_ARRAY_SORT`]::
-  **To be written**
-
 // 30
 
-xref:sig-MONO_DYNAMIC_ARRAY.adoc[`[.kw]#signature# MONO_DYNAMIC_ARRAY`]::
-  **To be written**
+xref:fun-MonoArrayFn.adoc[`[.kw]#functor# MonoArrayFn`]::
+  Provides easy construction of new monomorphic array structures.
 
 xref:sig-MONO_HASH_SET.adoc[`[.kw]#signature# MONO_HASH_SET`]::
   **To be written**
@@ -208,7 +205,9 @@ ifdef::backend-pdf[]
 
 include::str-ANSITerm.adoc[]
 
-include::sig-ARRAY_SORT.adoc[]
+include::str-ArrayQSort.adoc[]
+
+include::fun-ArrayQSortFn.adoc[]
 
 include::str-Atom.adoc[]
 
@@ -222,11 +221,13 @@ include::str-CharMap.adoc[]
 
 include::str-DynamicArray.adoc[]
 
+include::fun-DynamicArrayFn.adoc[]
+
+// 10
+
 include::str-Fifo.adoc[]
 
 include::str-FNVHash.adoc[]
-
-// 10
 
 include::str-Format.adoc[]
 
@@ -236,19 +237,19 @@ include::str-GetOpt.adoc[]
 
 include::fun-GraphSCCFn.adoc[]
 
+include::fun-Hash2TableFn.adoc[]
+
 include::sig-HASH_KEY.adoc[]
 
 include::fun-HashSetFn.adoc[]
 
 include::str-HashString.adoc[]
 
+// 20
+
 include::str-HashTable.adoc[]
 
-include::fun-Hash2TableFn.adoc[]
-
 include::sig-INTERVAL_DOMAIN.adoc[]
-
-// 20
 
 include::fun-IntervalSetFn.adoc[]
 
@@ -266,16 +267,11 @@ include::str-ListMergeSort.adoc[]
 
 include::str-ListXProd.adoc[]
 
-include::fun-MonoArrayFn.adoc[]
-
-include::sig-MONO_ARRAY_SORT.adoc[]
-
 // 30
 
-include::sig-MONO_DYNAMIC_ARRAY.adoc[]
+include::fun-MonoArrayFn.adoc[]
 
-include::sig-MONO_HASH_SET.adoc[]
-
+sig-MONO_HASH_SET.adoc		/* merge into fun-HashSetFn.adoc */
 include::sig-MONO_HASH_TABLE.adoc[]
 
 include::sig-ORD_KEY.adoc[]
@@ -310,7 +306,7 @@ include::sig-UREF.adoc[]
 
 include::str-UTF8.adoc[]
 
-// 50
+// 48
 
 // Return to normal title levels.
 :leveloffset: 0
