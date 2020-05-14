@@ -1,5 +1,8 @@
 (* uref.sml
  *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  * UNIONFIND DATA STRUCTURE WITH PATH COMPRESSION AND RANKED UNION
  *
  * Author:
@@ -29,7 +32,7 @@ structure URef : UREF =
 	   of ECR (x, _) => x
 	    | _ => raise Match
 	  (* end case *))
-      
+
     fun equal (p, p') = (find p = find p')
 
     fun update (p, x) = (case find p
