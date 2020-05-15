@@ -39,6 +39,7 @@ val hash : atom -> word
 
 == Description
 
+[[type:atom]]
 `[.kw]#type# atom`::
   The abstract type of hashed strings that support fast equality testing.
 

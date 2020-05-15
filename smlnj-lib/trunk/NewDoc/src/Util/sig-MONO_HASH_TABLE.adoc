@@ -23,8 +23,6 @@ signature MONO_HASH_TABLE
 structure AtomTable :> MONO_HASH_TABLE where type Key.hash_key = Atom.atom
 structure IntHashTable :> MONO_HASH_TABLE where type Key.hash_key = int
 structure WordHashTable :> MONO_HASH_TABLE where type Key.hash_key = word
-
-functor HashTableFn (Key : HASH_KEY) : MONO_HASH_TABLE
 ------------
 
 == Interface
@@ -177,8 +175,21 @@ map (fn x => x) tbl
   bucket.  This function allows users to gauge the quality of their
   hashing function.
 
+== Instances
+
+`[.kw]#structure# AtomTable`::
+  This structure implements hash tables keyed by the
+  xref:str-Atom.adoc#type:atom[`Atom.atom`] type.
+
+`[.kw]#structure# IntHashTable`::
+  This structure implements hash tables keyed by the default `int` type.
+
+`[.kw]#structure# WordHashTable`::
+  This structure implements hash tables keyed by the default `word` type.
+
 == See Also
 
 xref:sig-HASH_KEY.adoc[`HASH_KEY`],
 xref:str-HashTable.adoc[`HashTable`],
+xref:str-HashTableFn.adoc[`HashTableFn`],
 xref:smlnj-lib.adoc[__The Util Library__]

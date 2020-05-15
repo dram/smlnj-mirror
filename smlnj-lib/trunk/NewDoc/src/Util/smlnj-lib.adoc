@@ -33,6 +33,14 @@ xref:str-Base64.adoc[`[.kw]#structure# Base64`]::
   Provides support for *Base-64* encoding/decoding as specified
   by https://www.ietf.org/rfc/rfc4648.txt[RFC 4648].
 
+xref:fun-BinaryMapFn.adoc[`[.kw]#functor# BinaryMapFn`]::
+  Provides a balanced-binary-tree implementation of the
+  xref:sig-ORD_MAP.adoc[`ORD_MAP`] signature parameterized over the key type.
+
+xref:fun-BinarySetFn.adoc[`[.kw]#functor# BinarySetFn`]::
+  Provides a balanced-binary-tree implementation of the
+  xref:sig-ORD_SET.adoc[`ORD_SET`] signature parameterized over the element type.
+
 xref:str-BitArray.adoc[`[.kw]#structure# BitArray`]::
   Provides mutable arrays of booleans represented by one bit per element.
 
@@ -42,13 +50,13 @@ xref:fun-BSearchFn.adoc[`[.kw]#functor# BSearchFn`]::
 xref:str-CharMap.adoc[`[.kw]#structure# CharMap`]::
   Provides fast, read-only, maps from 8-bit characters to values.
 
+// 10
+
 xref:str-DynamicArray.adoc[`[.kw]#structure# DynamicArray`]::
   Provides dynamically sized polymorphic arrays.
 
 xref:fun-DynamicArrayFn.adoc[`[.kw]#functor# DynamicArrayFn`]::
   Provides dynamically sized monomorphic arrays.
-
-// 10
 
 xref:str-Fifo.adoc[`[.kw]#structure# Fifo`]::
   Provides a functional queue data structure.
@@ -78,16 +86,21 @@ xref:sig-HASH_KEY.adoc[`[.kw]#signature# HASH_KEY`]::
   Defines an interface to a monomorphic type with an equality
   test and hashing function.
 
+// 20
+
 xref:fun-HashSetFn.adoc[`[.kw]#functor# HashSetFn`]::
-  Provides a functor for implementing hash-table-based imperative sets.
+  Provides a hash-table-based implementation of imperative sets
+  parameterized over a `Key` structure.
 
 xref:str-HashString.adoc[`[.kw]#structure# HashString`]::
   Provides hashing functions for strings and substrings.
 
-// 20
-
 xref:str-HashTable.adoc[`[.kw]#structure# HashTable`]::
   Provides an implementation of polymorphic hash tables.
+
+xref:fun-HashTableFn.adoc[`[.kw]#functor# HashTableFn`]::
+  Provides a functor that implements the
+  xref:sig-MONO_HASH_TABLE.adoc[`MONO_HASH_TABLE`] signature.
 
 xref:sig-INTERVAL_DOMAIN.adoc[`[.kw]#signature# INTERVAL_DOMAIN`]::
   Defines a representation of an abstract ordered domain that is
@@ -112,23 +125,28 @@ xref:str-LibBase.adoc[`[.kw]#structure# LibBase`]::
   Provides some common definitions that are
   shared across the *SML/NJ Lbrary*.
 
+// 30
+
 xref:str-ListFormat.adoc[`[.kw]#structure# ListFormat`]::
   **To be written**
 
+xref:fun-ListMapFn.adoc[`[.kw]#functor# ListMapFn`]::
+  Provides a sorted-list implementation of the
+  xref:sig-ORD_MAP.adoc[`ORD_MAP`] signature parameterized over the key type.
+
 xref:str-ListMergeSort.adoc[`[.kw]#structure# ListMergeSort`]::
  Provides a merge-sort algorithm for lists.
+
+xref:fun-ListSetFn.adoc[`[.kw]#functor# ListSetFn`]::
+  Provides a sorted-list implementation of the
+  xref:sig-ORD_SET.adoc[`ORD_SET`] signature parameterized over the element type.
 
 xref:str-ListXProd.adoc[`[.kw]#structure# ListXProd`]::
   Provides list combinators for computing
   over the "Cartesian product" of two lists.
 
-// 30
-
 xref:fun-MonoArrayFn.adoc[`[.kw]#functor# MonoArrayFn`]::
   Provides easy construction of new monomorphic array structures.
-
-xref:sig-MONO_HASH_SET.adoc[`[.kw]#signature# MONO_HASH_SET`]::
-  **To be written**
 
 xref:sig-MONO_HASH_TABLE.adoc[`[.kw]#signature# MONO_HASH_TABLE`]::
   Defines an interface to imperative hash tables with monomorphic keys.
@@ -142,6 +160,8 @@ xref:sig-ORD_MAP.adoc[`[.kw]#signature# ORD_MAP`]::
 
 xref:sig-ORD_SET.adoc[`[.kw]#signature# ORD_SET`]::
   Defines an interface to finite sets of ordered elements.
+
+// 40
 
 xref:str-ParserComb.adoc[`[.kw]#structure# ParserComb`]::
   **To be written**
@@ -157,8 +177,6 @@ xref:str-PropList.adoc[`[.kw]#structure# PropList`]::
 xref:str-Queue.adoc[`[.kw]#structure# Queue`]::
   Provides an imperative queue data structure.
 
-// 40
-
 xref:str-Rand.adoc[`[.kw]#structure# Rand`]::
   Provides a simple random number generator.
 
@@ -168,8 +186,26 @@ xref:str-Random.adoc[`[.kw]#structure# Random`]::
 xref:str-RealOrderStats.adoc[`[.kw]#structure# RealOrderStats`]::
   **To be written**
 
+xref:fun-RedBlackMapFn.adoc[`[.kw]#functor# RedBlackMapFn`]::
+  Provides a red-black-tree implementation of the
+  xref:sig-ORD_MAP.adoc[`ORD_MAP`] signature parameterized over the key type.
+
+xref:fun-RedBlackSetFn.adoc[`[.kw]#functor# RedBlackSetFn`]::
+  Provides a red-black-tree implementation of the
+  xref:sig-ORD_SET.adoc[`ORD_SET`] signature parameterized over the element type.
+
 xref:str-Scan.adoc[`[.kw]#structure# Scan`]::
   **To be written**
+
+// 50
+
+xref:fun-SplayMapFn.adoc[`[.kw]#functor# SplayMapFn`]::
+  Provides a splay-tree implementation of the
+  xref:sig-ORD_MAP.adoc[`ORD_MAP`] signature parameterized over the key type.
+
+xref:fun-SplaySetFn.adoc[`[.kw]#functor# SplaySetFn`]::
+  Provides a splay-tree implementation of the
+  xref:sig-ORD_SET.adoc[`ORD_SET`] signature parameterized over the element type.
 
 xref:str-TimeLimit.adoc[`[.kw]#structure# TimeLimit`]::
   Provides a mechanism for limiting the execution
@@ -213,17 +249,21 @@ include::str-Atom.adoc[]
 
 include::str-Base64.adoc[]
 
+include::fun-BinaryMapFn.adoc[]
+
+include::fun-BinarySetFn.adoc[]
+
 include::str-BitArray.adoc[]
 
 include::fun-BSearchFn.adoc[]
 
 include::str-CharMap.adoc[]
 
+// 10
+
 include::str-DynamicArray.adoc[]
 
 include::fun-DynamicArrayFn.adoc[]
-
-// 10
 
 include::str-Fifo.adoc[]
 
@@ -241,13 +281,15 @@ include::fun-Hash2TableFn.adoc[]
 
 include::sig-HASH_KEY.adoc[]
 
+// 20
+
 include::fun-HashSetFn.adoc[]
 
 include::str-HashString.adoc[]
 
-// 20
-
 include::str-HashTable.adoc[]
+
+include::fun-HashTableFn.adoc[]
 
 include::sig-INTERVAL_DOMAIN.adoc[]
 
@@ -261,17 +303,20 @@ include::fun-LeftPriorityQFn.adoc[]
 
 include::str-LibBase.adoc[]
 
+// 30
+
 include::str-ListFormat.adoc[]
+
+include::fun-ListMapFn.adoc[]
 
 include::str-ListMergeSort.adoc[]
 
-include::str-ListXProd.adoc[]
+include::fun-ListSetFn.adoc[]
 
-// 30
+include::str-ListXProd.adoc[]
 
 include::fun-MonoArrayFn.adoc[]
 
-sig-MONO_HASH_SET.adoc		/* merge into fun-HashSetFn.adoc */
 include::sig-MONO_HASH_TABLE.adoc[]
 
 include::sig-ORD_KEY.adoc[]
@@ -279,6 +324,8 @@ include::sig-ORD_KEY.adoc[]
 include::sig-ORD_MAP.adoc[]
 
 include::sig-ORD_SET.adoc[]
+
+// 40
 
 include::str-ParserComb.adoc[]
 
@@ -288,15 +335,23 @@ include::str-PropList.adoc[]
 
 include::str-Queue.adoc[]
 
-// 40
-
 include::str-Rand.adoc[]
 
 include::str-Random.adoc[]
 
 include::str-RealOrderStats.adoc[]
 
+include::fun-RedBlackMapFn.adoc[]
+
+include::fun-RedBlackSetFn.adoc[]
+
 include::str-Scan.adoc[]
+
+// 50
+
+include::fun-SplayMapFn.adoc[]
+
+include::fun-SplaySetFn.adoc[]
 
 include::str-TimeLimit.adoc[]
 
@@ -306,7 +361,7 @@ include::str-URef.adoc[]
 
 include::str-UTF8.adoc[]
 
-// 48
+// 56
 
 // Return to normal title levels.
 :leveloffset: 0

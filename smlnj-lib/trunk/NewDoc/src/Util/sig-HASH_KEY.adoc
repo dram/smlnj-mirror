@@ -32,6 +32,7 @@ val sameKey : (hash_key * hash_key) -> bool
 
 == Description
 
+[[type:hash_key]]
 `[.kw]#type# hash_key`::
   The type of key values.
 
@@ -45,8 +46,7 @@ val sameKey : (hash_key * hash_key) -> bool
 
 == See Also
 
-xref:fun-HashSet.adoc[`HashSetFn`],
+xref:fun-HashSetFn.adoc[`HashSetFn`],
 xref:fun-HashTableFn.adoc[`HashTableFn`],
-xref:sig-MONO_HASH_SET.adoc[`MONO_HASH_SET`],
 xref:sig-MONO_HASH_TABLE.adoc[`MONO_HASH_TABLE`],
 xref:smlnj-lib.adoc[__The Util Library__]
