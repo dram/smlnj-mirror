@@ -128,7 +128,8 @@ xref:str-LibBase.adoc[`[.kw]#structure# LibBase`]::
 // 30
 
 xref:str-ListFormat.adoc[`[.kw]#structure# ListFormat`]::
-  **To be written**
+  Provides some utility functions for converting
+  lists into strings (and back).
 
 xref:fun-ListMapFn.adoc[`[.kw]#functor# ListMapFn`]::
   Provides a sorted-list implementation of the
@@ -221,7 +222,7 @@ xref:str-UTF8.adoc[`[.kw]#structure# UTF8`]::
   Provides support for working with https://en.wikipedia.org/wiki/UTF-8[*UTF-8*]
   encoded strings.
 
-// 48
+// 56
 
 == Usage
 
