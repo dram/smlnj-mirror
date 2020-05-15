@@ -21,6 +21,9 @@ signature MONO_HASH_SET =
     val mkFromList : item list -> set
 	(* create a set from a list of items *)
 
+    val toList : set -> item list
+	(* Return a list of the items in the set *)
+
     val add  : set * item -> unit
     val addc : set -> item -> unit
 	(* Insert an item. *)
@@ -28,8 +31,11 @@ signature MONO_HASH_SET =
     val addList : set * item list -> unit
 	(* Insert items from list. *)
 
-    val without : set * item -> unit
-	(* Remove the item, if it is in the set.  Otherwise the set is unchanged. *)
+    val subtract : set * item -> unit
+	(* Remove the item, if it is in the set.  Otherwise the set is unchanged.
+ 	 * The `without` function is deprecated in favor of `subtract`, whose name
+	 * is consistent with the other set-like APIs.
+	 *)
 
     val delete : set * item -> bool
 	(* Remove an item.  Return false if the item was not present. *)
@@ -46,9 +52,6 @@ signature MONO_HASH_SET =
     val numItems : set ->  int
 	(* Return the number of items in the table *)
 
-    val listItems : set -> item list
-	(* Return a list of the items in the set *)
-
     val map : (item -> item) -> set -> set
 	(* Create a new set by applying a map function to the elements
 	 * of the set.
@@ -60,6 +63,9 @@ signature MONO_HASH_SET =
     val fold : (item * 'b -> 'b) -> 'b -> set -> 'b
 	(* Apply a folding function to the entries of the set. *)
 
+  (* DEPRECATED FUNCTIONS *)
+
+    val listItems : set -> item list
+    val without : set * item -> unit
+
   end (* MONO_HASH_SET *)
-
-

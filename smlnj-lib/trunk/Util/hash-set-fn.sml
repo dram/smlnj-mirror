@@ -134,6 +134,17 @@ functor HashSetFn (Key : HASH_KEY) : MONO_HASH_SET =
             set
           end
 
+  (* Return a list of the items in the set *)
+    fun toList (SET{table, nItems}) =
+          if (!nItems = 0)
+            then []
+            else let
+              fun f (NIL, l) = l
+                | f (B(_, x, r), l) = f(r, x::l)
+              in
+                Array.foldl f [] (!table)
+              end
+
   (* Insert items from list. *)
     fun addList (set, items) = List.app (addc set) items
 
@@ -155,7 +166,7 @@ functor HashSetFn (Key : HASH_KEY) : MONO_HASH_SET =
           end
 
   (* Remove the item, if it is in the set.  Otherwise the set is unchanged. *)
-    fun without (set, item) = ignore(delete (set, item))
+    fun subtract (set, item) = ignore(delete (set, item))
 
   (* Return true if and only if item is an element in the set *)
     fun member (SET{table, ...}, item) = let
@@ -204,17 +215,6 @@ functor HashSetFn (Key : HASH_KEY) : MONO_HASH_SET =
   (* Return the number of items in the table *)
     fun numItems (SET{nItems, ...}) = !nItems
 
-  (* Return a list of the items in the set *)
-    fun listItems (SET{table, nItems}) =
-          if (!nItems = 0)
-            then []
-            else let
-              fun f (NIL, l) = l
-                | f (B(_, x, r), l) = f(r, x::l)
-              in
-                Array.foldl f [] (!table)
-              end
-
   (* Create a new set by applying a map function to the elements
    * of the set.
    *)
@@ -243,5 +243,9 @@ functor HashSetFn (Key : HASH_KEY) : MONO_HASH_SET =
             Array.foldl foldf init (!table)
           end
 
-  end
+  (* DEPRECATED FUNCTIONS *)
 
+    val listItems = toList
+    val without = subtract
+
+  end

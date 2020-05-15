@@ -1,6 +1,11 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-05-15]
+	Renamed `without` as `subtract` and `listItems` as `toList`
+	in the `MONO_HASH_SET` signature.  The old names are still
+	present, but are marked as deprecated.
+
 [2020-05-14]
 	Add `toList` function to `MONO_DYNAMIC_ARRAY` signature.
 
