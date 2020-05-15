@@ -1,7 +1,7 @@
 (* list-format.sml
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.  See COPYRIGHT file for details.
- *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *)
 
 structure ListFormat : LIST_FORMAT =
@@ -58,21 +58,21 @@ structure ListFormat : LIST_FORMAT =
 	  val isInit = eat init
 	  val isSep = eat sep
 	  val isFinal = eat final
-	  fun scan (strm, l) = (case (isSep strm)
-		 of (true, strm) => (case scanItem strm
-		       of (SOME(x, strm)) => scan (strm, x::l)
-			| NONE => NONE
-		      (* end case *))
-		  | (false, strm) => (case (isFinal strm)
-		       of (true, strm) => SOME(rev l, strm)
-			| (false, strm) => NONE
+	  fun scan (strm, l) = (case (isFinal strm)
+		 of (true, strm) => SOME(rev l, strm)
+		  | (false, strm) => (case isSep strm
+		       of (true, strm) => (case scanItem (skipWS strm)
+			     of (SOME(x, strm)) => scan (strm, x::l)
+			      | NONE => NONE
+			    (* end case *))
+			| _ => NONE
 		      (* end case *))
 		(* end case *))
 	  in
 	    case (isInit strm)
 	     of (true, strm) => (case (isFinal strm)
 		   of (true, strm) => SOME([], strm)
-		    | (false, strm) => (case scanItem strm
+		    | (false, strm) => (case scanItem (skipWS strm)
 			 of (SOME(x, strm)) => scan (strm, [x])
 			  | NONE => NONE
 			(* end case *))
