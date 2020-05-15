@@ -3,8 +3,6 @@
  * COPYRIGHT (c) 2012 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.  See COPYRIGHT file for details.
- *
  * This code was adapted from Stephen Adams' binary tree implementation
  * of applicative integer sets.
  *
@@ -43,7 +41,7 @@
  *
  *)
 
-functor BinaryMapFn (K : ORD_KEY) : ORD_MAP =
+functor BinaryMapFn (K : ORD_KEY) :> ORD_MAP where type Key.ord_key = K.ord_key =
   struct
 
     structure Key = K

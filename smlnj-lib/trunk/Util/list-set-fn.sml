@@ -1,6 +1,5 @@
 (* list-set-fn.sml
  *
- * COPYRIGHT (c) 1996 by AT&T Research.  See COPYRIGHT file for details.
  * COPYRIGHT (c) 2012 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *

@@ -1,6 +1,7 @@
 (* binary-set-fn.sml
  *
- * COPYRIGHT (c) 1993 by AT&T Bell Laboratories.  See COPYRIGHT file for details.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This code was adapted from Stephen Adams' binary tree implementation
  * of applicative integer sets.
@@ -60,7 +61,7 @@
  *   Modified to functor to support general ordered values
  *)
 
-functor BinarySetFn (K : ORD_KEY) : ORD_SET =
+functor BinarySetFn (K : ORD_KEY) :> ORD_SET where type Key.ord_key = K.ord_key =
   struct
 
     structure Key = K

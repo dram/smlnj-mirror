@@ -3,8 +3,6 @@
  * COPYRIGHT (c) 2014 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * COPYRIGHT (c) 1999 Bell Labs, Lucent Technologies.
- *
  * This code is based on Chris Okasaki's implementation of
  * red-black trees.  The linear-time tree construction code is
  * based on the paper "Constructing red-black trees" by Hinze,
@@ -23,7 +21,7 @@
  * will be black and its child will be a red leaf.
  *)
 
-functor RedBlackSetFn (K : ORD_KEY) :> ORD_SET where Key = K =
+functor RedBlackSetFn (K : ORD_KEY) :> ORD_SET where type Key.ord_key = K.ord_key =
   struct
 
     structure Key = K
