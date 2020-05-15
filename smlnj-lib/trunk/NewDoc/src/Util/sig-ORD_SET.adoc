@@ -134,15 +134,15 @@ val find : (item -> bool) -> set -> item option
   Acts as the identity if `item` is not in the set.
 
 `[.kw]#val# subtract' : (item * set) \-> set`::
-  `subtract (item, set)` removes the object `item` from `set`.
+  `subtract' (item, set)` removes the object `item` from `set`.
   Acts as the identity if `item` is not in the set.
 
 `[.kw]#val# subtractList : set * item list \-> set`::
   `subtractList (set, items)` removes the items from the set.
 
 `[.kw]#val# delete : set * item \-> set`::
-  `subtract (set, item)` removes the object `item` from `set`.
-  Unlike `subtract`, this function raises the
+  `delete (set, item)` removes the object `item` from `set`.
+  Unlike `subtract`, the `delete` function raises the
   xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`]
   exception if `item` is not in the set.
 

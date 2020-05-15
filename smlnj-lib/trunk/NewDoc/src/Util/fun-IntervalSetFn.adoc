@@ -17,7 +17,7 @@ signature INTERVAL_SET
 functor IntervalSetFn (D : INTERVAL_DOMAIN) : INTERVAL_SET
 ------------
 
-== Arguments
+== Functor Argument Description
 
 `D : xref:sig-INTERVAL_DOMAIN.adoc[INTERVAL_DOMAIN]`::
   The argument defines the type of points in the domain and
@@ -78,7 +78,7 @@ val compare : set * set -> order
 val isSubset : set * set -> bool
 ------------
 
-== Description
+== Interface Description
 
 `[.kw]#structure# D : INTERVAL_DOMAIN`::
   The argument structure.
