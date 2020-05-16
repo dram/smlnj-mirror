@@ -165,12 +165,12 @@ signature CPS =
       | APP of value * value list
       | FIX of function list * cexp
 (* FIXME: SWITCH is currently restricted to tagged integers, should also support boxed ints *)
-    (* `SWITCH(v, id, exps)` is a multiway branch on `v`.  The lvar `id` is used as a unique
-     * ID in contraction.
+    (* `SWITCH(v, id, exps)` is a multiway branch on `v`.  The lvar `id`
+     * is used as a unique ID in contraction.
      *)
       | SWITCH of value * lvar * cexp list
-    (* `BRANCH(br, args, id, trueExp, falseExp)` is a two-way conditional branch.  The lvar
-     * `id` is used as a unique ID in contraction.
+    (* `BRANCH(br, args, id, trueExp, falseExp)` is a two-way conditional
+     * branch.  The lvar `id` is used as a unique ID in contraction.
      *)
       | BRANCH of P.branch * value list * lvar * cexp * cexp
       | SETTER of P.setter * value list * cexp
