@@ -64,7 +64,6 @@ functor MLRiscGen (
     structure C  = CPS
     structure P  = C.P			(* CPS primitive operators *)
     structure R  = CPSRegions		(* Regions *)
-    structure PT = R.PT			(* PointsTo *)
     structure CG = Control.CG		(* Compiler Control *)
     structure MS = MachineSpec		(* Machine Specification *)
     structure D  = MS.ObjDesc		(* ML Object Descriptors *)
@@ -1394,6 +1393,7 @@ functor MLRiscGen (
 			      | P.RSHIFT => defTAGINT(x, tagIntRShift(M.SRA,v,w),e,hp)
 			      | P.ADD => defTAGINT(x, tagIntAdd(M.ADD, v, w), e, hp)
 			      | P.SUB => defTAGINT(x, tagIntSub(M.SUB, v, w), e, hp)
+(* QUESTION: can we ever get P.MUL for signed ints? *)
 			      | P.MUL => defTAGINT(x, tagIntMul(true, M.MULS, v, w), e, hp)
 			      | _ => error "gen: PURE INT TAGGED"
 			    (* end case *))
