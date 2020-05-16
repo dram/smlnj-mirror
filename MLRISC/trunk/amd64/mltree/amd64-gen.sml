@@ -582,7 +582,7 @@ functor AMD64Gen (
                   end
 
 	      (* division with rounding towards negative infinity *)
-	      fun divinf0 (ty, overflow, e1, e2) = let
+	      fun divinf0 (ty, e1, e2) = let
 		  val o1 = operand ty e1
 		  val o2 = operand ty e2
 		  val l = Label.anon ()
@@ -592,7 +592,9 @@ functor AMD64Gen (
 		  mark (I.MULTDIV { multDivOp = O.idivOp ty,
 		                     src = regOrMem (ty, o2) },
 			an);
+(* NOTE: on the x86-64, the IDIV instruction traps on overflow
 		  if overflow then trap() else ();
+*)
 		  app emit [(O.cmpOp ty) { lsrc = rdx ty, rsrc = I.Immed 0 },
 			    I.JCC { cond = I.EQ, opnd = immedLabel l },
 			    I.BINARY { binOp = O.xorOp ty,
@@ -606,8 +608,8 @@ functor AMD64Gen (
 
 	      (* Division by a power of two when rounding to neginf is the
 	       * same as an arithmetic right shift. *)
-	      fun divinf (ty, overflow, e1, e2 as T.LI n') = (case analyze n'
-		     of NONE => divinf0 (ty, overflow, e1, e2)
+	      fun divinf (ty, e1, e2 as T.LI n') = (case analyze n'
+		     of NONE => divinf0 (ty, e1, e2)
 		      | SOME(_, false, _, p) =>
 		          shift (ty, O.sarOp, T.REG (ty, getExpr e1), p)
 		      | SOME(_, true, _, p) => let
@@ -617,7 +619,7 @@ functor AMD64Gen (
 			    shift (ty, O.sarOp, T.REG (ty, reg), p)
 			  end
 		    (* eed case *))
-		| divinf (ty, overflow, e1, e2) = divinf0 (ty, overflow, e1, e2)
+		| divinf (ty, e1, e2) = divinf0 (ty, e1, e2)
 
 	      fun reminf0 (ty, e1, e2) = let
 		  val o1 = operand ty e1
@@ -662,18 +664,22 @@ functor AMD64Gen (
 		| reminf (ty, e1, e2) = reminf0 (ty, e1, e2)
 
               (* Division or remainder: divisor must be in %rdx:%rax pair *)
-              fun divrem(ty, signed, overflow, e1, e2, resultReg) =
-		  let val (opnd1, opnd2) = (operand ty e1, operand ty e2)
-                      val _ = move(ty, opnd1, rax ty)
-                      val oper = if signed then (emit(signExtend ty); O.idiv1Op ty)
-				 else (zero (ty, rdx ty); O.div1Op ty)
-		  in  mark(I.MULTDIV{multDivOp=oper, src=regOrMem (ty, opnd2)},an);
-                      move(ty, resultReg, dstOpnd);
+              fun divrem (ty, signed, e1, e2, resultReg) = let
+		    val (opnd1, opnd2) = (operand ty e1, operand ty e2)
+		    val _ = move(ty, opnd1, rax ty)
+		    val oper = if signed
+			  then (emit(signExtend ty); O.idiv1Op ty)
+			  else (zero (ty, rdx ty); O.div1Op ty)
+		    in
+		      mark(I.MULTDIV{multDivOp=oper, src=regOrMem (ty, opnd2)},an);
+                      move(ty, resultReg, dstOpnd)
+(* NOTE: on the x86-64, the IDIV instruction traps on overflow
                       if overflow then trap() else ()
-		  end
+*)
+		    end
 
               (* Optimize the special case for division *)
-              fun divide (ty, signed, overflow, e1, e2 as T.LI n') = (case analyze n'
+              fun divide (ty, signed, e1, e2 as T.LI n') = (case analyze n'
 		     of SOME(n, isneg, a, p) =>
 		       if signed then
 			   let val label = Label.anon ()
@@ -700,10 +706,9 @@ functor AMD64Gen (
 			   end
 		       else shift (ty, O.shrOp, e1, p)
 		     | NONE =>
-		       divrem(ty, signed, overflow andalso (n' = ~1 orelse n' = 0),
-			      e1, e2, rax ty))
-		| divide (ty, signed, overflow, e1, e2) =
-		  divrem (ty, signed, overflow, e1, e2, rax ty)
+		       divrem(ty, signed, e1, e2, rax ty))
+		| divide (ty, signed, e1, e2) =
+		  divrem (ty, signed, e1, e2, rax ty)
 
 	      (* rem never causes overflow *)
               fun rem (ty, signed, e1, e2 as T.LI n') = (case analyze n'
@@ -743,14 +748,14 @@ functor AMD64Gen (
 		       else
 			   if isneg then
 			       (* this is really strange... *)
-			       divrem (ty, false, false, e1, e2, rdx ty)
+			       divrem (ty, false, e1, e2, rdx ty)
 			   else
 (* 64BIT: FIXME what if n-1 does not fit in 32 bits? *)
 			       binaryComm (ty, O.andOp, e1,
 					   T.LI (T.I.fromInt32 (ty, n - 1)))
-		     | NONE => divrem (ty, signed, false, e1, e2, rdx ty))
+		     | NONE => divrem (ty, signed, e1, e2, rdx ty))
 		| rem(ty, signed, e1, e2) =
-                  divrem(ty, signed, false, e1, e2, rdx ty)
+                    divrem(ty, signed, e1, e2, rdx ty)
 
 
 	      (* unsigned integer multiplication *)
@@ -886,13 +891,12 @@ functor AMD64Gen (
 		 | T.SUB(ty, e1, e2) => binary(ty, O.subOp, e1, e2)
 		 (* unsigned *)
 		 | T.MULU(ty, x, y) => uMultiply(ty, x, y)
-		 | T.DIVU(ty, x, y) => divide(ty, false, false, x, y)
+		 | T.DIVU(ty, x, y) => divide(ty, false, x, y)
 		 | T.REMU(ty, x, y) => rem(ty, false, x, y)
 		 (* signed *)
 		 | T.MULS(ty, x, y) => multiply_notrap (ty, x, y)
-		 | T.DIVS(T.DIV_TO_ZERO, ty, x, y) =>
-		   divide(ty, true, false, x, y)
-		 | T.DIVS(T.DIV_TO_NEGINF, ty, x, y) => divinf (ty, false, x, y)
+		 | T.DIVS(T.DIV_TO_ZERO, ty, x, y) => divide(ty, true, x, y)
+		 | T.DIVS(T.DIV_TO_NEGINF, ty, x, y) => divinf (ty, x, y)
 		 | T.REMS(T.DIV_TO_ZERO, ty, x, y) => rem(ty, true, x, y)
 		 | T.REMS(T.DIV_TO_NEGINF, ty, x, y) => reminf (ty, x, y)
 		 (* trapping *)
@@ -900,9 +904,8 @@ functor AMD64Gen (
 		 | T.SUBT(ty, T.LI 0, y) => (unary(ty, O.negOp, y); trap())
 		 | T.SUBT(ty, x, y) => (binary(ty, O.subOp, x, y); trap())
 		 | T.MULT(ty, x, y) => (multiply (ty, x, y); trap ())
-		 | T.DIVT(T.DIV_TO_ZERO, ty, x, y) =>
-		   divide(ty, true, true, x, y)
-		 | T.DIVT(T.DIV_TO_NEGINF, ty, x, y) => divinf (ty, true, x, y)
+		 | T.DIVT(T.DIV_TO_ZERO, ty, x, y) => divide(ty, true, x, y)
+		 | T.DIVT(T.DIV_TO_NEGINF, ty, x, y) => divinf (ty, x, y)
 		 (* bitwise operations *)
 		 | T.ANDB(ty, x, y) => binaryComm(ty, O.andOp, x, y)
 		 | T.ORB(ty, x, y)  => binaryComm(ty, O.orOp, x, y)

@@ -540,18 +540,20 @@ struct
               end
 
               (* Division or remainder: divisor must be in %edx:%eax pair *)
-              fun divrem(signed, overflow, e1, e2, resultReg) =
+              fun divrem (signed, e1, e2, resultReg) =
               let val (opnd1, opnd2) = (operand e1, operand e2)
                   val _ = move(opnd1, eax)
                   val oper = if signed then (emit(I.CDQ); I.IDIVL1)
                              else (zero edx; I.DIVL1)
               in  mark(I.MULTDIV{multDivOp=oper, src=regOrMem opnd2},an);
-                  move(resultReg, rdOpnd);
+                  move(resultReg, rdOpnd)
+(* NOTE: on the x86, the IDIV instruction traps on overflow
                   if overflow then trap() else ()
+*)
               end
 
 	      (* division with rounding towards negative infinity *)
-	      fun divinf0 (overflow, e1, e2) = let
+	      fun divinf0 (e1, e2) = let
 		  val o1 = operand e1
 		  val o2 = operand e2
 		  val l = Label.anon ()
@@ -560,7 +562,9 @@ struct
 		  emit I.CDQ;
 		  mark (I.MULTDIV { multDivOp = I.IDIVL1, src = regOrMem o2 },
 			an);
+(* NOTE: on the x86, the IDIV instruction traps on overflow
 		  if overflow then trap() else ();
+*)
 		  app emit [I.CMPL { lsrc = edx, rsrc = I.Immed 0 },
 			    I.JCC { cond = I.EQ, opnd = immedLabel l },
 			    I.BINARY { binOp = I.XORL,
@@ -591,9 +595,9 @@ struct
 
 	      (* Division by a power of two when rounding to neginf is the
 	       * same as an arithmetic right shift. *)
-	      fun divinf (overflow, e1, e2 as T.LI n') =
+	      fun divinf (e1, e2 as T.LI n') =
 		  (case analyze n' of
-		       (_, NONE) => divinf0 (overflow, e1, e2)
+		       (_, NONE) => divinf0 (e1, e2)
 		     | (_, SOME (false, _, p)) =>
 		       shift (I.SARL, T.REG (32, expr e1), p)
 		     | (_, SOME (true, _, p)) => let
@@ -602,7 +606,7 @@ struct
 			  emit(I.UNARY { unOp = I.NEGL, opnd = I.Direct reg });
 			  shift (I.SARL, T.REG (32, reg), p)
 		       end)
-		| divinf (overflow, e1, e2) = divinf0 (overflow, e1, e2)
+		| divinf (e1, e2) = divinf0 (e1, e2)
 
 	      fun reminf0 (e1, e2) = let
 		  val o1 = operand e1
@@ -647,7 +651,7 @@ struct
 		| reminf (e1, e2) = reminf0 (e1, e2)
 
               (* Optimize the special case for division *)
-              fun divide (signed, overflow, e1, e2 as T.LI n') =
+              fun divide (signed, e1, e2 as T.LI n') =
 		  (case analyze n' of
 		       (n, SOME (isneg, a, p)) =>
 		       if signed then
@@ -674,11 +678,8 @@ struct
 			       shift (I.SARL, T.REG (32, reg1), p)
 			   end
 		       else shift (I.SHRL, e1, p)
-		     | (n, NONE) =>
-		       divrem(signed, overflow andalso (n = ~1 orelse n = 0),
-			      e1, e2, eax))
-		| divide (signed, overflow, e1, e2) =
-		  divrem (signed, overflow, e1, e2, eax)
+		     | (n, NONE) => divrem(signed, e1, e2, eax))
+		| divide (signed, e1, e2) = divrem (signed, e1, e2, eax)
 
 	      (* rem never causes overflow *)
               fun rem (signed, e1, e2 as T.LI n') =
@@ -719,13 +720,12 @@ struct
 		       else
 			   if isneg then
 			       (* this is really strange... *)
-			       divrem (false, false, e1, e2, edx)
+			       divrem (false, e1, e2, edx)
 			   else
 			       binaryComm (I.ANDL, e1,
 					   T.LI (T.I.fromInt32 (32, n - 1)))
-		     | (_, NONE) => divrem (signed, false, e1, e2, edx))
-		| rem(signed, e1, e2) =
-                  divrem(signed, false, e1, e2, edx)
+		     | (_, NONE) => divrem (signed, e1, e2, edx))
+		| rem(signed, e1, e2) = divrem(signed, e1, e2, edx)
 
                   (* Makes sure the destination must be a register *)
               fun dstMustBeReg f =
@@ -1027,12 +1027,12 @@ struct
              | T.SUB(32, e1, e2) => binary(I.SUBL, e1, e2)
 
              | T.MULU(32, x, y) => uMultiply(x, y)
-             | T.DIVU(32, x, y) => divide(false, false, x, y)
+             | T.DIVU(32, x, y) => divide(false, x, y)
              | T.REMU(32, x, y) => rem(false, x, y)
 
              | T.MULS(32, x, y) => multiply_notrap (x, y)
-             | T.DIVS(T.DIV_TO_ZERO, 32, x, y) => divide(true, false, x, y)
-	     | T.DIVS(T.DIV_TO_NEGINF, 32, x, y) => divinf (false, x, y)
+             | T.DIVS(T.DIV_TO_ZERO, 32, x, y) => divide(true, x, y)
+	     | T.DIVS(T.DIV_TO_NEGINF, 32, x, y) => divinf (x, y)
              | T.REMS(T.DIV_TO_ZERO, 32, x, y) => rem(true, x, y)
 	     | T.REMS(T.DIV_TO_NEGINF, 32, x, y) => reminf (x, y)
 
@@ -1040,8 +1040,8 @@ struct
              | T.SUBT(32, T.LI 0, y) => (unary(I.NEGL, y); trap())
              | T.SUBT(32, x, y) => (binary(I.SUBL, x, y); trap())
              | T.MULT(32, x, y) => (multiply (x, y); trap ())
-             | T.DIVT(T.DIV_TO_ZERO, 32, x, y) => divide(true, true, x, y)
-	     | T.DIVT(T.DIV_TO_NEGINF, 32, x, y) => divinf (true, x, y)
+             | T.DIVT(T.DIV_TO_ZERO, 32, x, y) => divide(true, x, y)
+	     | T.DIVT(T.DIV_TO_NEGINF, 32, x, y) => divinf (x, y)
 
              | T.ANDB(32, x, y) => binaryComm(I.ANDL, x, y)
              | T.ORB(32, x, y)  => binaryComm(I.ORL, x, y)
