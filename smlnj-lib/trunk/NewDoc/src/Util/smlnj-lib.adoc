@@ -11,6 +11,8 @@ The *Util Library* provides a large collection of utility data structures
 and algorithms.  It is the core library in the *SML/NJ Library* suite
 and dates back to the early 1990's, where it was originally developed
 by Emden Gansner and John Reppy as part of the *eXene* *X11* toolkit.
+Modules from this library are autoloaded into the *SML/NJ* interactive
+environment by default.
 
 == Contents
 
