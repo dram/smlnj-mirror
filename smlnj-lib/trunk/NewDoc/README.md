@@ -49,3 +49,9 @@ Note that we use `xref:` instead of `link:`, because the latter
 is specific to HTML generation, whereas the former applies to
 PDF as well.
 
+### Odds and ends
+
+For inline code enclosed in back quotes, it is necessary to escape
+the function type constructor (++\->++); otherwise, the entitie
+`&#8594;` will be inserted in the HTML.
+
