@@ -174,7 +174,7 @@ val append : JSON.value * path * JSON.value list -> JSON.value
 +
 --
     `SUB [.kw]#of# int`::
-	`SUB i` specifies the `i`th element of a *JSON* array.
+	`SUB i` specifies the ``i``th element of a *JSON* array.
     `SEL [.kw]#of# string`::
 	`SEL key` specifies the value labeled by `key` in a *JSON* object.
 --
