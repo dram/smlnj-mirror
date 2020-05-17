@@ -39,9 +39,20 @@ FILES::
 
 === Compiler
 
+Made the `LambdaVar.lvar` type abstract.  This is an internal change
+that should not affect compiler behavior.
+
 === CM
 
 === MLRISC
+
+The *MLRISC* instruction selector for the *x86* and *amd64* targets
+erroneously assumed that the `idiv` instruction sets the `OF` (overflow)
+condition code when dividing the largest negative number by ``~1``.
+In fact, such a division operation traps, which is okay, because the
+runtime system maps the trap to the `Overflow` exception.  Since the
+check for overflow is unnecessary, it has been removed from the files
+`MLRISC/amd64/mltree/amd64-gen.sml` and `MLRISC/x86/mltree/x86.sml`.
 
 === Runtime System
 
@@ -50,6 +61,14 @@ FILES::
 === SML/NJ Library
 
 === Successor ML
+
+=== ML-LPT
+
+Changed the semantics of the `--debug` command-line option for *ml-antlr*.
+Previously this option replaced the actions with a print expression, but that
+limited its usefulness because of type errors in the generated code.  The new
+behavior is to preserve the existing actions and just add the printing code.
+
 
 === Documentation
 
@@ -88,7 +107,7 @@ for more details.
 [.buglist,cols="^1,<15"]
 |=======
  | [.bugid]#256#
-// | `Ref.exchange` incorrect
+| `Ref.exchange` incorrect
 |=======
 
 // ***** include a list of unnumbered bugs here *****
