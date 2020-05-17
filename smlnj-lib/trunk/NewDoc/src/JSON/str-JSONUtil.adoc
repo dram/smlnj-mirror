@@ -100,20 +100,20 @@ val append : JSON.value * path * JSON.value list -> JSON.value
   [[exn:ArrayBounds]]
   This exception is raised when access to an array value is out of bounds.
 
-`[.kw]#val# exnMessage : exn -> string`::
+`[.kw]#val# exnMessage : exn \-> string`::
   `exnMessage exn` returns an error-message string for the exception value
   `exn`.  This function produces specialized messages for the exceptions defined
   in the `JSONUtil` structure and falls back to the
   {sml-basis-url}/general.html#SIG:GENERAL.exnMessage:VAL[General.exnMessage]
   function for other exceptions.
 
-`[.kw]#val# asBool : JSON.value -> bool`::
+`[.kw]#val# asBool : JSON.value \-> bool`::
   [[val:asBool]]
   `asBool (JSON.BOOL b)` returns the value `b`.  This function raises
   the xref:exn:NotBool[`NotBool`] exception if the value is not a
   *JSON* boolean value.
 
-`[.kw]#val# asInt : JSON.value -> int`::
+`[.kw]#val# asInt : JSON.value \-> int`::
   [[val:asInt]]
   `asInt (JSON.INT n)` returns the value `n` converted to `int`.
   This function raises the xref:exn:NotInt[`NotInt`] exception if the
@@ -121,13 +121,13 @@ val append : JSON.value * path * JSON.value list -> JSON.value
   {sml-basis-url}/general.html#SIG:GENERAL.Overflow:EXN[`Overflow`]
   exception if `n` is too large for the default `int` type.
 
-`[.kw]#val# asIntInf : JSON.value -> IntInf.int`::
+`[.kw]#val# asIntInf : JSON.value \-> IntInf.int`::
   [[val:asIntInf]]
   `asIntInf (JSON.INT n)` returns the value `n`.
   This function raises the xref:exn:NotInt[`NotInt`] exception if the
   value is not a *JSON* integer value.
 
-`[.kw]#val# asNumber : JSON.value -> Real.real`::
+`[.kw]#val# asNumber : JSON.value \-> Real.real`::
   [[val:asNumber]]
   `asNumber jv` converts the *JSON* number `jv` to an SML `real` value.
   The `jv` argument can either have the form `JSON.INT n`, in which case
@@ -135,20 +135,20 @@ val append : JSON.value * path * JSON.value list -> JSON.value
   in which case `f` is returned; otherwise, the
   xref:exn:NotNumber[`NotNumber`] exception is raised.
 
-`[.kw]#val# asString : JSON.value -> string`::
+`[.kw]#val# asString : JSON.value \-> string`::
   [[val:asString]]
   `asBool (JSON.STRING s)` returns the value `s`.  This function raises
   the xref:exn:NotString[`NotString`] exception if the value is not a
   *JSON* string value.
 
-`[.kw]#val# findField : JSON.value -> string -> JSON.value option`::
+`[.kw]#val# findField : JSON.value \-> string \-> JSON.value option`::
   [[val:findField]]
   `findField (JSON.OBJECT flds) key` returns `SOME jv` when the
   list of fields `flds` contains `(key, jv)` and `NONE` otherwise.
   If `findField` is called on a value that is not a *JSON* object,
   then it raises the xref:exn:NotObject[`NotObject`] exception.
 
-`[.kw]#val# lookupField : JSON.value -> string -> JSON.value`::
+`[.kw]#val# lookupField : JSON.value \-> string \-> JSON.value`::
   [[val:lookupField]]
   `lookupField (JSON.OBJECT flds) key` returns `jv` when the
   list of fields `flds` contains `(key, jv)` and raises the
@@ -156,14 +156,13 @@ val append : JSON.value * path * JSON.value list -> JSON.value
   If `lookupField` is called on a value that is not a *JSON* object,
   then it raises the xref:exn:NotObject[`NotObject`] exception.
 
-  (* convert a JSON array to an SML vector *)
-`[.kw]#val# asArray : JSON.value -> JSON.value vector`::
+`[.kw]#val# asArray : JSON.value \-> JSON.value vector`::
   [[val:asArray]]
   `asArray jv` converts the *JSON* array value `jv` to an *SML*
   vector value.  It raises the xref:exn:NotArray[`NotArray`] exception
   when `jv` is not a *JSON* array.
 
-`[.kw]#val# arrayMap : (JSON.value -> 'a) -> JSON.value -> 'a list`::
+`[.kw]#val# arrayMap : (JSON.value \-> 'a) \-> JSON.value \-> 'a list`::
   [[val:arrayMap]]
   map a conversion function over a JSON array to produce a list; this function
   raises the xref:exn:NotArray[`NotArray`] exception if the second argument

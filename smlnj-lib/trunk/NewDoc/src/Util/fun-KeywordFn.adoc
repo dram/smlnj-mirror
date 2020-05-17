@@ -35,12 +35,12 @@ val keywords : (string * ((pos * pos) -> token)) list
   positions in the source file).
 
 [[val:ident]]
-`[.kw]#val# ident : (Atom.atom * pos * pos) -> token`::
+`[.kw]#val# ident : (Atom.atom * pos * pos) \-> token`::
  `ident (id, pos, pos)` is used to create an identifier token (_i.e._, non-keyword)
   for the given string, and start and end file positions.
 
 [[val:keywords]]
-`[.kw]#val# keywords : (string * ((pos * pos) -> token)) list`::
+`[.kw]#val# keywords : (string * ((pos * pos) \-> token)) list`::
   A list of string-function pairs, where the strings are the keywords and
   the functions are used to create the corresponding scanner tokens from
   start and end file positions.

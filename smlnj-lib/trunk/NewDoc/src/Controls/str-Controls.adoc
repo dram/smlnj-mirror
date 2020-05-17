@@ -99,10 +99,10 @@ val compare : ('a control * 'a control) -> order
     `tyName : string`::
       The name of the type being converted,
 
-    `fromString : string -> 'a option`::
+    `fromString : string \-> 'a option`::
       The function for converting from strings to the type.
 
-    `toString : 'a -> string'`::
+    `toString : 'a \-> string'`::
       The function for converting from the type to strings.
 --
 
@@ -252,7 +252,7 @@ val compare : ('a control * 'a control) -> order
 
 `[.kw]#val# save'restore : 'a control \-> unit \-> unit`::
   ``save'restore ctl`` saves the current value of the control and
-  returns a `unit -> unit` function that will restore the value.
+  returns a `unit \-> unit` function that will restore the value.
 
 `[.kw]#val# compare : ('a control * 'a control) \-> order`::
   `compare (ctl1, ctl2)` returns the priority order of the two controls.
