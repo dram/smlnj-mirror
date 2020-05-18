@@ -78,9 +78,9 @@ ifdef::backend-pdf[]
 
 include::Controls/controls-lib.adoc[]
 
-include::HTML/html-lib.adoc[]
+//include::HTML/html-lib.adoc[]
 
-include::HTML4/html4-lib.adoc[]
+//include::HTML4/html4-lib.adoc[]
 
 include::HashCons/hash-cons-lib.adoc[]
 
@@ -88,11 +88,11 @@ include::INet/inet-lib.adoc[]
 
 include::JSON/json-lib.adoc[]
 
-include::PP/pp-lib.adoc[]
+//include::PP/pp-lib.adoc[]
 
-include::Reactive/reactive-lib.adoc[]
+//include::Reactive/reactive-lib.adoc[]
 
-include::RegExp/regexp-lib.adoc[]
+//include::RegExp/regexp-lib.adoc[]
 
 include::SExp/sexp-lib.adoc[]
 
@@ -102,6 +102,6 @@ include::Unix/unix-lib.adoc[]
 
 include::Util/smlnj-lib.adoc[]
 
-include::XML/xml-lib.adoc[]
+//include::XML/xml-lib.adoc[]
 
 endif::[]
