@@ -1,0 +1,97 @@
+<!-- HTML/iterate.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Iterate structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>Iterate</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="ITERATE:SIG:SPEC"><CODE>ITERATE</CODE></A><BR>
+<B>structure </B><A NAME="Iterate:STR:SPEC"><CODE>Iterate</CODE></A><B> : </B>ITERATE<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The Iterate structure provides wrappers for simple forms of iteration. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>val</B> <A NAME="SIG:ITERATE.iterate:VAL:SPEC" HREF="#SIG:ITERATE.iterate:VAL">iterate</A> <B>:</B> ('a -&gt; 'a) -&gt; int -&gt; 'a -&gt; 'a       <BR>
+<B>val</B> <A NAME="SIG:ITERATE.repeat:VAL:SPEC" HREF="#SIG:ITERATE.repeat:VAL">repeat</A> <B>:</B> ((int * 'a) -&gt; 'a) -&gt; int -&gt; 'a -&gt; 'a       <BR>
+<B>val</B> <A NAME="SIG:ITERATE.for:VAL:SPEC" HREF="#SIG:ITERATE.for:VAL">for</A> <B>:</B> ((int * 'a) -&gt; 'a) -&gt; (int * int * int) -&gt; 'a -&gt; 'a       <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:ITERATE.iterate:VAL"><CODE>iterate <VAR>f</VAR> <VAR>cnt</VAR> <VAR>a</VAR>
+          </CODE></A>
+<DD>
+invokes the function <VAR>f</VAR> <VAR>cnt</VAR> times, starting with           the value <VAR>a</VAR>, and using the result of one iteration as           the argument in the next. Recursively, we have           
+<PRE>
+          iterate f cnt v = iterate f (cnt-1) (f v)
+          iterate f 0 v = v
+          
+</PRE>
+           Raises the <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A> exception if           <VAR>cnt</VAR> is negative.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ITERATE.repeat:VAL"><CODE>repeat <VAR>f</VAR> <VAR>cnt</VAR> <VAR>a</VAR>
+          </CODE></A>
+<DD>
+is similar to <CODE>iterate</CODE> except that the function <VAR>f</VAR>           is also passed the iteration index. In particular, it is           equivalent to:           
+<PRE>
+          #2(iterate (fn (i,v) =&gt; (i+1,f(i,v))) cnt (0,init))
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ITERATE.for:VAL"><CODE>for <VAR>f</VAR> (<VAR>start</VAR>, <VAR>stop</VAR>, <VAR>inc</VAR>) <VAR>a</VAR>
+          </CODE></A>
+<DD>
+provides more control over the range and step-size involved           in the interation. Recursively, we have           
+<PRE>
+          for f (start,stop,inc) a = for f (start+inc,stop,inc) (f(start,a))
+          
+</PRE>
+           halting when <VAR>start</VAR> &gt; <VAR>stop</VAR> for           negative <VAR>inc</VAR> and halting when            <VAR>stop</VAR> &gt; <VAR>start</VAR> for positive <VAR>inc</VAR>.           If <VAR>inc</VAR> is zero, <VAR>start</VAR> and <VAR>~TOP</VAR> must be equal,           and we have           
+<PRE>
+          for f (start,stop,0) a = f(start,a)
+          
+</PRE>
+           Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A> if either <VAR>inc</VAR> is           non-positive and <VAR>stop</VAR> &gt; <VAR>start</VAR>,            or if <VAR>inc</VAR> is non-negative and           <VAR>start</VAR> &gt; <VAR>stop</VAR>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 10, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

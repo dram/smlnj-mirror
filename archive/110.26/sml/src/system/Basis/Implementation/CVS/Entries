@@ -1,0 +1,90 @@
+D/IO////
+D/NJ////
+D/OS////
+D/Posix////
+D/Sockets////
+D/Unix////
+D/Unsafe////
+D/Win32////
+/array.sig/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/array.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/array2.sig/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/array2.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-int-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-largeint-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-largereal-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-largeword-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-math-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-position-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-real-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-sysword-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bind-word-32.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bool.sig/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/bool.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/byte.sig/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/byte.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/char-array.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/char-vector.sml/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/char.sig/1.2/Thu Oct 26 16:07:50 2000/-ko/
+/char.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/command-line.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/command-line.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/date.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/date.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/exn-name.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/general.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/general.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/ieee-real.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/ieee-real.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/int31.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/int32.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/integer.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/internal-timer.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/list-pair.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/list-pair.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/list.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/list.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/math.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/math64.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/mono-array.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/mono-array2.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/mono-vector.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/num-format.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/num-scan.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/option.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/option.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/pack-word-b16.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/pack-word-b32.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/pack-word-l16.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/pack-word-l32.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/pack-word.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/pre-basis.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/pre-string.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/real-format.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/real.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/real64-array.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/real64-vector.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/real64.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/sml90.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/sml90.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/sources.cm/1.6/Thu Oct 26 16:07:51 2000/-ko/
+/string-cvt.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/string-cvt.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/string.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/string.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/substring.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/substring.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/text.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/text.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/time.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/time.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/timer.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/timer.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/vector.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/vector.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/word.sig/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/word31.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/word32.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/word8-array.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/word8-vector.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/
+/word8.sml/1.2/Thu Oct 26 16:07:51 2000/-ko/

@@ -1,0 +1,281 @@
+<!-- HTML/ord-set.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The ORD_SET signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>ORD_SET</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="ORD_SET:SIG:SPEC"><CODE>ORD_SET</CODE></A><BR>
+<B>structure </B><A NAME="IntBinarySet:STR:SPEC"><CODE>IntBinarySet</CODE></A><B> :> </B>ORD_SET<BR>
+<B>structure </B><A NAME="IntListSet:STR:SPEC"><CODE>IntListSet</CODE></A><B> :> </B>ORD_SET<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The ORD_SET signature provides an abstract description of applicative-style sets on a linearly ordered type. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> Key <B>:</B> ORD_KEY<BR>
+<B>type</B> <A NAME="SIG:ORD_SET.item:TY:SPEC" HREF="#SIG:ORD_SET.item:TY">item</A> <B>=</B> Key.ord_key     <BR>
+<B>type</B> <A NAME="SIG:ORD_SET.set:TY:SPEC" HREF="#SIG:ORD_SET.set:TY">set</A><BR>
+<B>val</B> <A NAME="SIG:ORD_SET.empty:VAL:SPEC" HREF="#SIG:ORD_SET.empty:VAL">empty</A> <B>:</B> set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.singleton:VAL:SPEC" HREF="#SIG:ORD_SET.singleton:VAL">singleton</A> <B>:</B> item -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.add:VAL:SPEC" HREF="#SIG:ORD_SET.add:VAL">add</A> <B>:</B> (set * item) -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.add':VAL:SPEC" HREF="#SIG:ORD_SET.add':VAL">add'</A> <B>:</B> (item * set) -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.addList:VAL:SPEC" HREF="#SIG:ORD_SET.addList:VAL">addList</A> <B>:</B> (set * item list) -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.delete:VAL:SPEC" HREF="#SIG:ORD_SET.delete:VAL">delete</A> <B>:</B> (set * item) -&gt; set       <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.member:VAL:SPEC" HREF="#SIG:ORD_SET.member:VAL">member</A> <B>:</B> (set * item) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.isEmpty:VAL:SPEC" HREF="#SIG:ORD_SET.isEmpty:VAL">isEmpty</A> <B>:</B> set -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.equal:VAL:SPEC" HREF="#SIG:ORD_SET.equal:VAL">equal</A> <B>:</B> (set * set) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.compare:VAL:SPEC" HREF="#SIG:ORD_SET.compare:VAL">compare</A> <B>:</B> (set * set) -&gt; order         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.isSubset:VAL:SPEC" HREF="#SIG:ORD_SET.isSubset:VAL">isSubset</A> <B>:</B> (set * set) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.numItems:VAL:SPEC" HREF="#SIG:ORD_SET.numItems:VAL">numItems</A> <B>:</B> set -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.listItems:VAL:SPEC" HREF="#SIG:ORD_SET.listItems:VAL">listItems</A> <B>:</B> set -&gt; item list         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.union:VAL:SPEC" HREF="#SIG:ORD_SET.union:VAL">union</A> <B>:</B> (set * set) -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.intersection:VAL:SPEC" HREF="#SIG:ORD_SET.intersection:VAL">intersection</A> <B>:</B> (set * set) -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.difference:VAL:SPEC" HREF="#SIG:ORD_SET.difference:VAL">difference</A> <B>:</B> (set * set) -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.map:VAL:SPEC" HREF="#SIG:ORD_SET.map:VAL">map</A> <B>:</B> (item -&gt; item) -&gt; set -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.app:VAL:SPEC" HREF="#SIG:ORD_SET.app:VAL">app</A> <B>:</B> (item -&gt; unit) -&gt; set -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.foldl:VAL:SPEC" HREF="#SIG:ORD_SET.foldl:VAL">foldl</A> <B>:</B> ((item * 'b) -&gt; 'b) -&gt; 'b -&gt; set -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.foldr:VAL:SPEC" HREF="#SIG:ORD_SET.foldr:VAL">foldr</A> <B>:</B> ((item * 'b) -&gt; 'b) -&gt; 'b -&gt; set -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.filter:VAL:SPEC" HREF="#SIG:ORD_SET.filter:VAL">filter</A> <B>:</B> (item -&gt; bool) -&gt; set -&gt; set         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.exists:VAL:SPEC" HREF="#SIG:ORD_SET.exists:VAL">exists</A> <B>:</B> (item -&gt; bool) -&gt; set -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:ORD_SET.find:VAL:SPEC" HREF="#SIG:ORD_SET.find:VAL">find</A> <B>:</B> (item -&gt; bool) -&gt; set -&gt; item option         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:ORD_SET.item:TY"><CODE><B>type</B> item</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.set:TY"><CODE><B>type</B> set</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.empty:VAL"><CODE><B>val</B> empty</CODE></A>
+<DD>
+ The empty set.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.singleton:VAL"><CODE>singleton <VAR>v</VAR>
+          </CODE></A>
+<DD>
+creates a singleton set containing <VAR>v</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.add:VAL"><CODE>add (<VAR>se</VAR>, <VAR>v</VAR>)
+          </CODE></A>
+<DD>
+returns a set that is the union of <VAR>se</VAR> and {v}.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.add':VAL"><CODE>add' (<VAR>v</VAR>, <VAR>se</VAR>)
+          </CODE></A>
+<DD>
+returns a set that is the union of <VAR>se</VAR> and {v}.           This differs from <CODE>add</CODE> only in the order of its arguments,           for use with fold functions.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.addList:VAL"><CODE>addList (<VAR>se</VAR>, <VAR>l</VAR>)
+          </CODE></A>
+<DD>
+returns the set consisting of the union of <VAR>se</VAR> with the           items in <VAR>l</VAR>. This is equivalent to:           
+<PRE>
+          List.foldl add' se l
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.delete:VAL"><CODE>delete (<VAR>se</VAR>, <VAR>v</VAR>)
+          </CODE></A>
+<DD>
+removes the item <VAR>v</VAR> from <VAR>se</VAR> and returns the resulting set.           Raises the exception <A HREF="lib-base.html#SIG:LIB_BASE.NotFound:EXN:SPEC">NotFound</A>           if the element is not found.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.member:VAL"><CODE>member (<VAR>se</VAR>, <VAR>v</VAR>)
+          </CODE></A>
+<DD>
+returns true if and only if <VAR>v</VAR> is an element in the set.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.isEmpty:VAL"><CODE>isEmpty <VAR>se</VAR>
+          </CODE></A>
+<DD>
+returns true if and only if the set is empty.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.equal:VAL"><CODE>equal (<VAR>se</VAR>, <VAR>se2</VAR>)
+          </CODE></A>
+<DD>
+returns true if and only if the two sets are equal.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.compare:VAL"><CODE>compare (<VAR>se</VAR>, <VAR>se2</VAR>)
+          </CODE></A>
+<DD>
+does a lexical comparison of two sets.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.isSubset:VAL"><CODE>isSubset (<VAR>se</VAR>, <VAR>se2</VAR>)
+          </CODE></A>
+<DD>
+returns true if and only if the first set is a subset of the second.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.numItems:VAL"><CODE>numItems <VAR>se</VAR>
+          </CODE></A>
+<DD>
+returns the number of items in the set.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.listItems:VAL"><CODE>listItems <VAR>se</VAR>
+          </CODE></A>
+<DD>
+returns the items in <VAR>se</VAR>, listed in increasing order.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.union:VAL"><CODE>union (<VAR>se</VAR>, <VAR>se2</VAR>)
+          </CODE></A>
+<DD>
+returns the union of the two sets.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.intersection:VAL"><CODE>intersection (<VAR>se</VAR>, <VAR>se2</VAR>)
+          </CODE></A>
+<DD>
+returns the intersection of the two sets.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.difference:VAL"><CODE>difference (<VAR>se</VAR>, <VAR>se2</VAR>)
+          </CODE></A>
+<DD>
+returns the difference of the two sets, i.e., those elements           in <VAR>se</VAR> not in <VAR>se2</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.map:VAL"><CODE>map <VAR>f</VAR> <VAR>se</VAR>
+          </CODE></A>
+<DD>
+creates a new set by applying <VAR>f</VAR> to all the elements in <VAR>se</VAR>.           This is equivalent to:           
+<PRE>
+          List.foldl add' empty (List.map f (listItems se))
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.app:VAL"><CODE>app <VAR>f</VAR> <VAR>se</VAR>
+          </CODE></A>
+<DD>
+applies <VAR>f</VAR> to the entries of <VAR>se</VAR> in increasing order.           This is equivalent to:           
+<PRE>
+          List.app f (listItems se)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.foldl:VAL"><CODE>foldl <VAR>f</VAR> <VAR>a</VAR> <VAR>se</VAR>
+          </CODE></A>
+<DD>
+applies the folding function <VAR>f</VAR> to the entries of <VAR>se</VAR>           in increasing order. This is equivalent to:           
+<PRE>
+          List.foldl f a (listItems se)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.foldr:VAL"><CODE>foldr <VAR>f</VAR> <VAR>a</VAR> <VAR>se</VAR>
+          </CODE></A>
+<DD>
+applies the folding function <VAR>f</VAR> to the entries of <VAR>se</VAR>           in decreasing order. This is equivalent to:           
+<PRE>
+          List.foldr f a (listItems se)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.filter:VAL"><CODE>filter <VAR>f</VAR> <VAR>se</VAR>
+          </CODE></A>
+<DD>
+creates a new set containing only those elements of <VAR>se</VAR>           that satisfy the predicate <VAR>f</VAR>. This is equivalent to:           
+<PRE>
+          List.foldl add' empty (List.filter f (listItems se))
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.exists:VAL"><CODE>exists <VAR>f</VAR> <VAR>se</VAR>
+          </CODE></A>
+<DD>
+returns true if and only if some element in <VAR>se</VAR> satisfies           the predicate <VAR>f</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_SET.find:VAL"><CODE>find <VAR>f</VAR> <VAR>se</VAR>
+          </CODE></A>
+<DD>
+returns an item in <VAR>se</VAR> satisfying the predicate <VAR>f</VAR>,           if one exists. Otherwise, it returns 	  <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/option.html#SIG:OPTION.option:TY:SPEC">NONE</A>.   
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="ord-map.html#ORD_MAP:SIG:SPEC">ORD_MAP</A>, <A HREF="ord-key.html#ORD_KEY:SIG:SPEC">ORD_KEY</A>, <A HREF="binary-set-fn.html#BinarySetFn:FCT:SPEC">BinarySetFn</A>, <A HREF="splay-set-fn.html#SplaySetFn:FCT:SPEC">SplaySetFn</A>, <A HREF="list-set-fn.html#ListSetFn:FCT:SPEC">ListSetFn</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 9, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

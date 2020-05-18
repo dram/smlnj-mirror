@@ -1,0 +1,200 @@
+Group 
+	signature BUILD_RTL
+	signature CONSTANT
+	signature ENV
+	signature INSTRUCTION_STREAM
+	signature LABEL
+	signature LABELEXP
+	signature LAMBDA_RTL
+	signature MD_AST
+	signature MD_AST_UTIL
+	signature MD_BUILD
+	signature MD_COMPILE
+	signature MD_ENV
+	signature MD_ERROR
+	signature MD_GEN
+	signature MD_GEN2_MODULE
+	signature MD_GEN_MODULE
+	signature MD_PP
+	signature MD_RTL
+	signature MD_TRANS
+	signature MD_TYPE_UTILS
+	signature MD_TYPING
+	signature MLTREE
+	signature MLTREE_BASIS
+	signature MLTREE_EXTENSION
+	signature MLTREE_FOLD
+	signature MLTREE_REWRITE
+	signature MLTREE_RTL
+	signature MLTREE_UTILS
+	signature PP
+	signature PRECEDENCE_PARSER
+	signature PSEUDO_OPS
+	signature REGION
+	signature SOURCE_MAP
+	signature SYMBOL
+	structure BuildRTL
+	structure Env
+	structure Label
+	structure LambdaRTL
+	structure MDAst
+	structure MDAstUtil
+	structure MDBuild
+	structure MDCompile
+	structure MDEnv
+	structure MDError
+	structure MDGen
+	structure MDPP
+	structure MDRTL
+	structure MDTrans
+	structure MDTypeUtils
+	structure MDTyping
+	structure MLTreeBasis
+	structure MLTreeRTL
+	structure PP
+	structure PrecedenceParser
+	structure SourceMap
+	structure Symbol
+	functor InstructionStream
+	functor LabelExp
+	functor MDAstUtil
+	functor MDBuild
+	functor MDCompile
+	functor MDDummyGen
+	functor MDEnv
+	functor MDGen
+	functor MDPP
+	functor MDRTL
+	functor MDTrans
+	functor MDTypeUtils
+	functor MDTyping
+	functor MLTreeF
+	functor MLTreeFold
+	functor MLTreeRewrite
+	functor MLTreeUtils
+is
+
+#if defined(NEW_CM) 
+#if SMLNJ_VERSION * 100 + SMLNJ_MINOR_VERSION >= 11028 
+	$basis.cm
+	$smlnj-lib.cm
+	$ml-yacc-lib.cm
+	$host-compiler.cm
+#else
+	basis.cm
+	smlnj-lib.cm
+	ml-yacc-lib.cm
+	host-compiler.cm
+#endif
+#else
+	smlnj-lib.cm
+	ml-yacc-lib.cm
+#endif
+
+	../control/Control.cm
+	../library/Lib.cm
+
+	../instructions/stream.sig
+	../instructions/stream.sml
+	../instructions/pseudoOps.sig
+	../instructions/labels.sml
+	../instructions/labelExp.sml
+	../instructions/region.sig
+	../instructions/constant.sig
+	../mltree/mltree-extension.sig
+	../mltree/mltree-basis.sig
+	../mltree/mltree-basis.sml
+	../mltree/mltree.sig
+	../mltree/mltree.sml
+	../mltree/mltree-utils.sig
+	../mltree/mltree-utils.sml
+	../mltree/mltree-fold.sig
+	../mltree/mltree-fold.sml
+	../mltree/mltree-rewrite.sig
+	../mltree/mltree-rewrite.sml
+	../mltree/mltree-rtl.sig
+	../mltree/mltree-rtl.sml
+	../mltree/build-rtl.sig
+	../mltree/build-rtl.sml
+
+	(* Pretty printer *)
+	pp.sig
+	pp.sml
+
+	(* line number mapping utility *)
+	symbol.sig
+	symbol.sml
+	sourceMap.sig
+	sourceMap.sml
+
+	(* Precedence parsing *)
+	prec-parse.sml
+
+	(* Error reporting *)
+	md-error.sig
+	md-error.sml
+
+	(* Abstract syntax tree *)
+	md-ast.sig
+	md-ast.sml
+	md-ast-util.sig
+	md-ast-util.sml
+
+	(* Parser *)
+	md.grm
+
+	(* Lexer *)
+	md.lex
+
+	(* Abstract syntax tree pretty printing *)
+	md-pp.sig
+	md-pp.sml
+
+	(* A simple environment abstract type *)
+	env.sml
+
+	(* Environment *)
+	md-env.sig
+	md-env.sml
+
+	(* Type checking *)
+	md-type-utils.sig
+	md-type-utils.sml
+	md-typing.sig
+	md-typing.sml
+
+	(* Transformation *)
+	md-trans.sig
+	md-trans.sml
+
+	(* Process rtl description *)
+	md-rtl.sig
+	md-rtl.sml
+
+	(* Semantics *)
+	lambda-rtl.sig
+	lambda-rtl.sml
+	(* md-build-rtl.sml *)
+
+	(* The compiler *)
+	md-compile.sig
+	md-compile.sml
+
+	(* Glue *)
+	md-build.sml
+	md-gen.sig
+	md-gen.sml
+	md-dummygen.sml
+	md-glue.sml
+
+	(* Various modules for generating different structures/functors *)
+	md-cells.sml (* generate Cells *)
+	md-instr.sml (* generate the instruction set *)
+	md-asm.sml   (* generate the assembler *)
+	md-mc.sml    (* generate the machine code emitter *)
+	md-delay.sml (* generate the delay slots properties *)
+	md-props.sml (* generate the instruction properties *)
+	md-rtlprops.sml (* generate the rtl properties *)
+	md-ssaprops.sml (* generate the ssa properties *)
+	md-rewrite.sml (* generate the rewrite module *)
+	md-schedprops.sml (* generate the scheduling properties *)

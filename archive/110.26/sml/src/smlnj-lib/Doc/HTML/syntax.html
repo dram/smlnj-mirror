@@ -1,0 +1,98 @@
+<!-- HTML/syntax.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The RegExpSyntax structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>RegExpSyntax</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="REGEXP_SYNTAX:SIG:SPEC"><CODE>REGEXP_SYNTAX</CODE></A><BR>
+<B>structure </B><A NAME="RegExpSyntax:STR:SPEC"><CODE>RegExpSyntax</CODE></A><B> : </B>REGEXP_SYNTAX<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+This structure implements the abstract syntax for regular expressions to which the concrete syntax translates and that is recognized by matching engines. 
+<P>
+ 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>exception</B> <A NAME="SIG:REGEXP_SYNTAX.CannotParse:EXN:SPEC" HREF="#SIG:REGEXP_SYNTAX.CannotParse:EXN">CannotParse</A><BR>
+<B>exception</B> <A NAME="SIG:REGEXP_SYNTAX.CannotCompile:EXN:SPEC" HREF="#SIG:REGEXP_SYNTAX.CannotCompile:EXN">CannotCompile</A><BR>
+<B>structure</B> CharSet <B>:</B> ORD_SET         <BR>
+<B>datatype</B> <A NAME="SIG:REGEXP_SYNTAX.syntax:TY:SPEC" HREF="#SIG:REGEXP_SYNTAX.syntax:TY">syntax</A><BR>
+&nbsp;&nbsp;<B>=</B> Group <B>of</B> syntax         <BR>
+&nbsp;&nbsp;<B>|</B> Alt <B>of</B> syntax list         <BR>
+&nbsp;&nbsp;<B>|</B> Concat <B>of</B> syntax list         <BR>
+&nbsp;&nbsp;<B>|</B> Interval <B>of</B> (syntax * int * int option)         <BR>
+&nbsp;&nbsp;<B>|</B> Option <B>of</B> syntax         <BR>
+&nbsp;&nbsp;<B>|</B> Star <B>of</B> syntax         <BR>
+&nbsp;&nbsp;<B>|</B> Plus <B>of</B> syntax         <BR>
+&nbsp;&nbsp;<B>|</B> MatchSet <B>of</B> CharSet.set         <BR>
+&nbsp;&nbsp;<B>|</B> NonmatchSet <B>of</B> CharSet.set         <BR>
+&nbsp;&nbsp;<B>|</B> Char <B>of</B> char         <BR>
+&nbsp;&nbsp;<B>|</B> Begin<BR>
+&nbsp;&nbsp;<B>|</B> End<BR>
+<B>val</B> <A NAME="SIG:REGEXP_SYNTAX.addRange:VAL:SPEC" HREF="#SIG:REGEXP_SYNTAX.addRange:VAL">addRange</A> <B>:</B> (CharSet.set * char * char) -&gt; CharSet.set         <BR>
+<B>val</B> <A NAME="SIG:REGEXP_SYNTAX.allChars:VAL:SPEC" HREF="#SIG:REGEXP_SYNTAX.allChars:VAL">allChars</A> <B>:</B> CharSet.set         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:REGEXP_SYNTAX.CannotParse:EXN"><CODE><B>exception</B> CannotParse</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:REGEXP_SYNTAX.CannotCompile:EXN"><CODE><B>exception</B> CannotCompile</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:REGEXP_SYNTAX.syntax:TY"><CODE><B>datatype</B> syntax</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:REGEXP_SYNTAX.addRange:VAL"><CODE>addRange (<VAR>s</VAR>, <VAR>c1</VAR>, <VAR>c2</VAR>)
+          </CODE></A>
+<DD>
+adds the range of characters from <VAR>c1</VAR> to <VAR>c2</VAR> to the character set <VAR>s</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:REGEXP_SYNTAX.allChars:VAL"><CODE>allChars
+          </CODE></A>
+<DD>
+is a character set containing all the characters.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="regexp-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 3, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

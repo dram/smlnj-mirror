@@ -1,0 +1,307 @@
+This is TeX, Version 3.14159 (Web2C 7.3.1) (format=latex 1999.9.25)  3 JAN 2000 15:27
+**md-gen.tex
+(md-gen.tex
+LaTeX2e <1998/12/01> patch level 1
+Babel <v3.6x> and hyphenation patterns for american, french, german, ngerman, i
+talian, nohyphenation, loaded.
+(/usr/share/texmf/tex/latex/base/article.cls
+Document Class: article 1999/01/07 v1.4a Standard LaTeX document class
+(/usr/share/texmf/tex/latex/base/size10.clo
+File: size10.clo 1999/01/07 v1.4a Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/share/texmf/tex/latex/base/alltt.sty
+Package: alltt 1997/06/16 v2.0g defines alltt environment
+) (md-gen.aux)
+\openout1 = `md-gen.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 14.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 14.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 14.
+
+
+LaTeX Warning: Citation `MLRISC' on page 1 undefined on input line 18.
+
+
+LaTeX Warning: Citation `smlnj' on page 1 undefined on input line 25.
+
+[1
+
+]
+
+LaTeX Warning: Citation `SML' on page 2 undefined on input line 59.
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 74--74
+[]   \OT1/cmtt/m/n/10 always architecture assembly at backwards big bits branch
+ing called[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 74--74
+[]   \OT1/cmtt/m/n/10 candidate cell cells cellset debug delayslot dependent en
+dian field[] 
+ []
+
+
+Overfull \hbox (43.49661pt too wide) in paragraph at lines 74--74
+[]   \OT1/cmtt/m/n/10 fields formats forwards instruction internal little locat
+ions lowercase[] 
+ []
+
+
+Overfull \hbox (64.49643pt too wide) in paragraph at lines 74--74
+[]   \OT1/cmtt/m/n/10 name never nodelayslot nullified opcode ordering padded p
+ipeline predicated[] 
+ []
+
+
+Overfull \hbox (32.9967pt too wide) in paragraph at lines 74--74
+[]   \OT1/cmtt/m/n/10 register semantics signed span storage superscalar unsign
+ed uppercase[] 
+ []
+
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 104.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 104.
+[2] [3]
+Overfull \hbox (38.24666pt too wide) in paragraph at lines 188--188
+[]   \OT1/cmtt/m/n/10 | FP = 32 cells of 64 bits in cellset called "floating po
+int register"[] 
+ []
+
+
+Overfull \hbox (38.24666pt too wide) in paragraph at lines 188--188
+[]   \OT1/cmtt/m/n/10 | CC = cells of 64 bits in cellset GP called "condition c
+ode register"[] 
+ []
+
+[4] [5]
+LaTeX Font Info:    Try loading font information for OMS+cmtt on input line 268
+.
+LaTeX Font Info:    No file OMScmtt.fd. on input line 268.
+
+
+LaTeX Font Warning: Font shape `OMS/cmtt/m/n' undefined
+(Font)              using `OMS/cmsy/m/n' instead
+(Font)              for symbol `textbraceleft' on input line 268.
+
+
+Overfull \hbox (42.99673pt too wide) in paragraph at lines 273--273
+[]   \OT1/cmtt/m/n/10 | Operate0\OMS/cmtt/m/n/10 f\OT1/cmtt/m/n/10 opc:6,ra:GP 
+5,rb:GP 5,sbz:13..15=0,_:1=0,func:5..11,rc:GP 5\OMS/cmtt/m/n/10 g[] 
+ []
+
+
+Overfull \hbox (27.24687pt too wide) in paragraph at lines 274--274
+[]   \OT1/cmtt/m/n/10 | Operate1\OMS/cmtt/m/n/10 f\OT1/cmtt/m/n/10 opc:6,ra:GP 
+5,lit:signed 13..20,_:1=1,func:5..11,rc:GP 5\OMS/cmtt/m/n/10 g[] 
+ []
+
+
+Overfull \hbox (16.74696pt too wide) in paragraph at lines 319--319
+[]   \OT1/cmtt/m/n/10 Operate1\OMS/cmtt/m/n/10 f\OT1/cmtt/m/n/10 opc:6,ra:GP 5,
+lit:signed 13..20,_:1=1,func:5..11,rc:GP 5\OMS/cmtt/m/n/10 g[] 
+ []
+
+[6]
+Overfull \hbox (48.74657pt too wide) in paragraph at lines 353--353
+[]     \OT1/cmtt/m/n/10 | I.LABop le => Operate1{opc,ra,lit=itow(LabelExp.value
+Of le),func,rc}[] 
+ []
+
+
+Overfull \hbox (48.74657pt too wide) in paragraph at lines 353--353
+[]     \OT1/cmtt/m/n/10 | I.CONSTop c => Operate1{opc,ra,lit=itow(Constant.valu
+eOf c),func,rc}[] 
+ []
+
+[7]
+Overfull \hbox (32.9967pt too wide) in paragraph at lines 422--422
+[]      \OT1/cmtt/m/n/10 (* Auxiliary function for computing the displacement o
+f a label *)[] 
+ []
+
+[8]
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 499--499
+[]   \OT1/cmtt/m/n/10 | LOAD of {ldOp:load, r: $GP, b: $GP, d:operand, mem:Regi
+on.region}[] 
+ []
+
+
+Overfull \hbox (32.9967pt too wide) in paragraph at lines 499--499
+[]   \OT1/cmtt/m/n/10 | STORE of {stOp:store, r: $GP, b: $GP, d:operand, mem:Re
+gion.region}[] 
+ []
+
+[9] [10]
+Overfull \hbox (17.24684pt too wide) in paragraph at lines 573--573
+[]       \OT1/cmtt/m/n/10 ADDL  (0wx10,0wx00)                       | ADDQ (0wx
+10,0wx20)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]                           \OT1/cmtt/m/n/10 | CMPBGE(0wx10,0wx0f) | CMPEQ (0w
+x10,0wx2d)[] 
+ []
+
+
+Overfull \hbox (27.74675pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | CMPLE (0wx10,0wx6d) | CMPLT (0wx10,0wx4d) | CMPULE (0
+wx10,0wx3d)[] 
+ []
+
+
+Overfull \hbox (32.9967pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | S4ADDL(0wx10,0wx02) | S4ADDQ (0wx10,0wx22) | S4SUBL (
+0wx10,0wx0b)[] 
+ []
+
+
+Overfull \hbox (32.9967pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | S4SUBQ(0wx10,0wx2b) | S8ADDL (0wx10,0wx12) | S8ADDQ (
+0wx10,0wx32)[] 
+ []
+
+
+Overfull \hbox (17.24684pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | AND   (0wx11,0wx00) | BIC    (0wx11,0wx08) | BIS (0wx
+11,0wx20)[] 
+ []
+
+
+Overfull \hbox (17.24684pt too wide) in paragraph at lines 573--573
+[]                                                  \OT1/cmtt/m/n/10 | EQV (0wx
+11,0wx48)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | EXTBL (0wx12,0wx06) | EXTLH  (0wx12,0wx6a) | EXTLL(0w
+x12,0wx26)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | EXTQH (0wx12,0wx7a) | EXTQL  (0wx12,0wx36) | EXTWH(0w
+x12,0wx5a)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | EXTWL (0wx12,0wx16) | INSBL  (0wx12,0wx0b) | INSLH(0w
+x12,0wx67)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | INSLL (0wx12,0wx2b) | INSQH  (0wx12,0wx77) | INSQL(0w
+x12,0wx3b)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | INSWH (0wx12,0wx57) | INSWL  (0wx12,0wx1b) | MSKBL(0w
+x12,0wx02)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | MSKLH (0wx12,0wx62) | MSKLL  (0wx12,0wx22) | MSKQH(0w
+x12,0wx72)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | MSKQL (0wx12,0wx32) | MSKWH  (0wx12,0wx52) | MSKWL(0w
+x12,0wx12)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | SLL   (0wx12,0wx39) | SRA    (0wx12,0wx3c) | SRL  (0w
+x12,0wx34)[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 573--573
+[]     \OT1/cmtt/m/n/10 | MULL  (0wx13,0wx00)                        | MULQ (0w
+x13,0wx20)[] 
+ []
+
+[11]
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 599--599
+[]   \OT1/cmtt/m/n/10 | LOAD of {ldOp:load, r: $GP, b: $GP, d:operand, mem:Regi
+on.region}[] 
+ []
+
+
+Overfull \hbox (32.9967pt too wide) in paragraph at lines 599--599
+[]   \OT1/cmtt/m/n/10 | STORE of {stOp:store, r: $GP, b: $GP, d:operand, mem:Re
+gion.region}[] 
+ []
+
+
+Overfull \hbox (32.9967pt too wide) in paragraph at lines 599--599
+[]   \OT1/cmtt/m/n/10 | FLOAD of {ldOp:fload, r: $FP, b: $GP, d:operand, mem:Re
+gion.region}[] 
+ []
+
+
+Overfull \hbox (43.49661pt too wide) in paragraph at lines 599--599
+[]   \OT1/cmtt/m/n/10 | FSTORE of {stOp:fstore, r: $FP, b: $GP, d:operand, mem:
+Region.region}[] 
+ []
+
+
+Overfull \hbox (48.74657pt too wide) in paragraph at lines 599--599
+[]   \OT1/cmtt/m/n/10 | JSR of {r: $GP, b: $GP, d:int} * C.cellset * C.cellset 
+* Region.region[] 
+ []
+
+[12] (md-gen.aux)
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
+
+LaTeX Warning: There were undefined references.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 261 strings out of 10898
+ 2631 string characters out of 96881
+ 49307 words of memory out of 263001
+ 3245 multiletter control sequences out of 10000+0
+ 9681 words of font info for 34 fonts, out of 400000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 23i,8n,22p,141b,321s stack positions out of 300i,100n,500p,50000b,4000s
+
+Output written on md-gen.dvi (12 pages, 29652 bytes).

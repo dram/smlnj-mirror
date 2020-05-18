@@ -1,0 +1,88 @@
+<!-- format.html -->
+
+<!-- COPYRIGHT (c) 1996 AT\|@AMP\|T Bell Laboratories. -->
+
+<HTML>
+<HEAD>
+  <TITLE>The FORMAT signature</TITLE>
+
+</HEAD>
+<BODY>
+<H1><A NAME="top-of-document">The SML/NJ Library Reference Manual</A></H1>
+<HR>
+
+<H3>The <CODE>FORMAT</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="FORMAT:SIG:SPEC"><CODE>FORMAT</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>datatype</B> <A HREF="#SIG:FORMAT.fmt_item:TY" NAME="SIG:FORMAT.fmt_item:TY:SPEC">fmt_item</A><BR>
+&nbsp;&nbsp;<B>=</B> ATOM <B>of</B> Atom.atom         <BR>
+&nbsp;&nbsp;<B>|</B> LINT <B>of</B> LargestInt.int         <BR>
+&nbsp;&nbsp;<B>|</B> INT <B>of</B> Int.int         <BR>
+&nbsp;&nbsp;<B>|</B> LWORD <B>of</B> LargestWord.word         <BR>
+&nbsp;&nbsp;<B>|</B> WORD <B>of</B> Word.word         <BR>
+&nbsp;&nbsp;<B>|</B> WORD8 <B>of</B> Word8.word         <BR>
+&nbsp;&nbsp;<B>|</B> BOOL <B>of</B> bool         <BR>
+&nbsp;&nbsp;<B>|</B> CHR <B>of</B> char         <BR>
+&nbsp;&nbsp;<B>|</B> STR <B>of</B> string         <BR>
+&nbsp;&nbsp;<B>|</B> REAL <B>of</B> Real.real         <BR>
+&nbsp;&nbsp;<B>|</B> LREAL <B>of</B> LargestReal.real         <BR>
+&nbsp;&nbsp;<B>|</B> LEFT <B>of</B> (int * fmt_item)         <BR>
+&nbsp;&nbsp;<B>|</B> RIGHT <B>of</B> (int * fmt_item)       <BR>
+<B>exception</B> <A HREF="#SIG:FORMAT.BadFormat:EXN" NAME="SIG:FORMAT.BadFormat:EXN:SPEC">BadFormat</A><BR>
+<B>exception</B> <A HREF="#SIG:FORMAT.BadFmtList:EXN" NAME="SIG:FORMAT.BadFmtList:EXN:SPEC">BadFmtList</A><BR>
+<B>val</B> <A HREF="#SIG:FORMAT.format:VAL" NAME="SIG:FORMAT.format:VAL:SPEC">format</A> <B>:</B> string -&gt; fmt_item list -&gt; string         <BR>
+<B>val</B> <A HREF="#SIG:FORMAT.formatf:VAL" NAME="SIG:FORMAT.formatf:VAL:SPEC">formatf</A> <B>:</B> string -&gt; (string -&gt; unit) -&gt; fmt_item list -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:FORMAT.sscanf:VAL" NAME="SIG:FORMAT.sscanf:VAL:SPEC">sscanf</A> <B>:</B> string -&gt; string -&gt; fmt_item list option         <BR>
+<B>val</B> <A HREF="#SIG:FORMAT.scanf:VAL" NAME="SIG:FORMAT.scanf:VAL:SPEC">scanf</A> <B>:</B> string -&gt; (char,'a) StringCvt.reader -&gt; (fmt_item list,'a) StringCvt.reader         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+  <DT> <A NAME="SIG:FORMAT.fmt_item:TY"><CODE><B>datatype</B> fmt_item</CODE></A>
+  <DD>
+    <BR>
+  <DT> <A NAME="SIG:FORMAT.BadFormat:EXN"><CODE><B>exception</B> BadFormat</CODE></A>
+  <DD>
+    <BR>
+  <DT> <A NAME="SIG:FORMAT.BadFmtList:EXN"><CODE><B>exception</B> BadFmtList</CODE></A>
+  <DD>
+    <BR>
+  <DT> <A NAME="SIG:FORMAT.format:VAL"><CODE>format <VAR>s</VAR> <VAR>l</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of format HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:FORMAT.formatf:VAL"><CODE>formatf <VAR>s</VAR> <VAR>f</VAR> <VAR>l</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of formatf HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:FORMAT.sscanf:VAL"><CODE>sscanf <VAR>s</VAR> <VAR>t</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of sscanf HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:FORMAT.scanf:VAL"><CODE>scanf <VAR>s</VAR> <VAR>re</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of scanf HERE.
+    <BR>
+    <BR>
+</DL>
+<HR>
+<HR>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="format.html">TOP</A>
+   | <A HREF="">Parent</A> | <A HREF="">Root</A>
+   ]</B>
+<P>
+<I>Last Modified May 29, 1996</I><BR>
+Copyright &copy; 1996 AT&amp;T Research <BR>
+<HR>
+</BODY>
+</HTML>

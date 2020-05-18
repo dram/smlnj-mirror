@@ -1,0 +1,20 @@
+/generic-sock.sig/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/host-db.sig/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/host-db.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/inet-sock.sig/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/inet-sock.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/net-db.sig/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/net-db.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/pre-sock.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/prot-db.sig/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/prot-db.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/serv-db.sig/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/serv-db.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/socket.sig/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/unix-generic-sock.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/unix-sock.sig/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/unix-sock.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/unix-socket.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/win32-generic-sock.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+/win32-socket.sml/1.2/Thu Oct 26 16:07:52 2000/-ko/
+D

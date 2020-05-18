@@ -1,0 +1,49 @@
+<!-- HTML/splay-map-fn.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The SplayMapFn functor</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>SplayMapFn</CODE> functor</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>functor </B><A NAME="SplayMapFn:FCT:SPEC"><CODE>SplayMapFn</CODE></A><B> (</B>ORD_KEY<B>)</B><B> : </B>ORD_MAP<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The SplayMapFn functor implements applicative maps on an ordered type. It is based on Sleator-Tarjan splay trees. 
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="ord-key.html#ORD_KEY:SIG:SPEC">ORD_KEY</A>, <A HREF="ord-map.html#ORD_MAP:SIG:SPEC">ORD_MAP</A>, <A HREF="binary-map-fn.html#BinaryMapFn:FCT:SPEC">BinaryMapFn</A>, <A HREF="list-map-fn.html#ListMapFn:FCT:SPEC">ListMapFn</A>, <A HREF="splaytree.html#SplayTree:STR:SPEC">SplayTree</A>, <A HREF="ord-set.html#ORD_SET:SIG:SPEC">ORD_SET</A>
+</BLOCKQUOTE>
+<H4>Discussion</H4>
+<P>
+Note that inserting a pair into a map that already contains a pair using the same key (in the sense that both keys are considered equal by the comparison function) causes the current pair to be replaced by the new one.
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 10, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

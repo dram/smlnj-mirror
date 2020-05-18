@@ -1,0 +1,204 @@
+<!-- HTML/bit-array.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The BitArray structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>BitArray</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="BIT_ARRAY:SIG:SPEC"><CODE>BIT_ARRAY</CODE></A><BR>
+<B>structure </B><A NAME="BitArray:STR:SPEC"><CODE>BitArray</CODE></A><B> : </B>BIT_ARRAY<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The BitArray structure   provides compacted arrays of booleans, with one bit for each boolean value. A 0 (1) bit corresponds to the boolean value <CODE>false</CODE> (<CODE>true</CODE>), respectively. These arrays can be used to implement sets of integers. Member testing takes constant time and,  since a <CODE>bitarray</CODE> is mutable, adding and deleting elements are also constant time operations. In addition, the structure provides a complementary set  of applicative operations.  
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>include</B> <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/mono-array.html#MONO_ARRAY:SIG:SPEC">MONO_ARRAY</A><BR>
+&nbsp;&nbsp;<B>where type</B> elem <B>=</B> bool<BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.fromString:VAL:SPEC" HREF="#SIG:BIT_ARRAY.fromString:VAL">fromString</A> <B>:</B> string -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.bits:VAL:SPEC" HREF="#SIG:BIT_ARRAY.bits:VAL">bits</A> <B>:</B> (int * int list) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.getBits:VAL:SPEC" HREF="#SIG:BIT_ARRAY.getBits:VAL">getBits</A> <B>:</B> array -&gt; int list         <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.toString:VAL:SPEC" HREF="#SIG:BIT_ARRAY.toString:VAL">toString</A> <B>:</B> array -&gt; string         <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.isZero:VAL:SPEC" HREF="#SIG:BIT_ARRAY.isZero:VAL">isZero</A> <B>:</B> array -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.extend0:VAL:SPEC" HREF="#SIG:BIT_ARRAY.extend0:VAL">extend0</A> <B>:</B> (array * int) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.extend1:VAL:SPEC" HREF="#SIG:BIT_ARRAY.extend0:VAL">extend1</A> <B>:</B> (array * int) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.eqBits:VAL:SPEC" HREF="#SIG:BIT_ARRAY.eqBits:VAL">eqBits</A> <B>:</B> (array * array) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.equal:VAL:SPEC" HREF="#SIG:BIT_ARRAY.equal:VAL">equal</A> <B>:</B> (array * array) -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.andb:VAL:SPEC" HREF="#SIG:BIT_ARRAY.andb:VAL">andb</A> <B>:</B> (array * array * int) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.orb:VAL:SPEC" HREF="#SIG:BIT_ARRAY.andb:VAL">orb</A> <B>:</B> (array * array * int) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.xorb:VAL:SPEC" HREF="#SIG:BIT_ARRAY.andb:VAL">xorb</A> <B>:</B> (array * array * int) -&gt; array         <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.notb:VAL:SPEC" HREF="#SIG:BIT_ARRAY.notb:VAL">notb</A> <B>:</B> array -&gt; array         <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.lshift:VAL:SPEC" HREF="#SIG:BIT_ARRAY.lshift:VAL">lshift</A> <B>:</B> (array * int) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.rshift:VAL:SPEC" HREF="#SIG:BIT_ARRAY.rshift:VAL">rshift</A> <B>:</B> (array * int) -&gt; array       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.setBit:VAL:SPEC" HREF="#SIG:BIT_ARRAY.setBit:VAL">setBit</A> <B>:</B> (array * int) -&gt; unit       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.clrBit:VAL:SPEC" HREF="#SIG:BIT_ARRAY.setBit:VAL">clrBit</A> <B>:</B> (array * int) -&gt; unit       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.union:VAL:SPEC" HREF="#SIG:BIT_ARRAY.union:VAL">union</A> <B>:</B> array -&gt; array -&gt; unit       <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.intersection:VAL:SPEC" HREF="#SIG:BIT_ARRAY.union:VAL">intersection</A> <B>:</B> array -&gt; array -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:BIT_ARRAY.complement:VAL:SPEC" HREF="#SIG:BIT_ARRAY.complement:VAL">complement</A> <B>:</B> array -&gt; unit         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:BIT_ARRAY.fromString:VAL"><CODE>fromString <VAR>s</VAR>
+          </CODE></A>
+<DD>
+creates an array from the string argument <VAR>s</VAR>, which should           contain a hexadecimal representation of the bits set in the array.            Characters 0-9, a-f and A-F are allowed. For example,            <CODE>fromString &quot;1af8&quot; = 0001101011111000</CODE>. (By convention, 0            corresponds to <CODE>false</CODE> and 1 corresponds to <CODE>true</CODE>,            bit 0 appears on the right, and indices increase to the left.)            The length of the array will be <CODE>4*(size <VAR>s</VAR>)</CODE>.            Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A> if a non-hexadecimal character            appears in the string.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.bits:VAL"><CODE>bits (<VAR>sz</VAR>, <VAR>l</VAR>)
+          </CODE></A>
+<DD>
+creates an array of length <VAR>sz</VAR> with the indices of its set bits             given by <VAR>l</VAR>. Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A>            if a list item is less than 0, or greater than or equal to <VAR>sz</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.getBits:VAL"><CODE>getBits <VAR>arr</VAR>
+          </CODE></A>
+<DD>
+returns a list of indices of the bits set in <VAR>arr</VAR>,            in increasing order.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.toString:VAL"><CODE>toString <VAR>arr</VAR>
+          </CODE></A>
+<DD>
+encodes a bit array as a string. The bit array is zero-padded to            the next length that is a multiple of 4.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.isZero:VAL"><CODE>isZero <VAR>arr</VAR>
+          </CODE></A>
+<DD>
+returns true if and only if no bits are set.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.extend0:VAL"><CODE>extend0 (<VAR>arr</VAR>, <VAR>len</VAR>)
+          </CODE></A>
+<DT> <CODE>          extend1 (<VAR>arr</VAR>, <VAR>len</VAR>)
+          </CODE>
+<DD>
+create a new arrays by extending the argument bit array            by 0's or 1's to given length. If <VAR>arr</VAR>            is already as long as <VAR>len</VAR>, return a copy of the bit array.            Raise <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Size:EXN:SPEC">Size</A> 	  if <VAR>len</VAR> is negative.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.eqBits:VAL"><CODE>eqBits (<VAR>arr</VAR>, <VAR>arr2</VAR>)
+          </CODE></A>
+<DD>
+returns true if the set bits in the two arrays are the same. This           is equivalent to:           
+<PRE>
+            getBits <VAR>arr</VAR> = getBits <VAR>arr2</VAR>
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.equal:VAL"><CODE>equal (<VAR>arr</VAR>, <VAR>arr2</VAR>)
+          </CODE></A>
+<DD>
+returns true if the two arrays are equivalent, i.e., have the           same length and set bits.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.andb:VAL"><CODE>andb (<VAR>arr</VAR>, <VAR>arr2</VAR>, <VAR>len</VAR>)
+          </CODE></A>
+<DT> <CODE>          orb (<VAR>arr</VAR>, <VAR>arr2</VAR>, <VAR>len</VAR>)
+          </CODE>
+<DT> <CODE>          xorb (<VAR>arr</VAR>, <VAR>arr2</VAR>, <VAR>len</VAR>)
+          </CODE>
+<DD>
+creates a new array of length <VAR>len</VAR> by logically combining the            bits of <VAR>arr</VAR> and <VAR>arr2</VAR> using and, or and xor, respectively.           If necessary, the arrays are implicitly extended by 0 to be the            same length  as the new array.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.notb:VAL"><CODE>notb <VAR>arr</VAR>
+          </CODE></A>
+<DD>
+creates a new array with all bits of original array inverted.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.lshift:VAL"><CODE>lshift (<VAR>arr</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+creates a new array by inserting <VAR>n</VAR> 0's on the right            of <VAR>arr</VAR>. The new array has            length <VAR>n</VAR> + <CODE>length</CODE> <VAR>arr</VAR>.           Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A> if <VAR>n</VAR> is negative.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.rshift:VAL"><CODE>rshift (<VAR>arr</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+creates a new array of            length max(0,<CODE>length</CODE> <VAR>arr</VAR> - <VAR>n</VAR>) consisting            of bits n,n+1,...,<CODE>length</CODE> <VAR>arr</VAR> - 1 of <VAR>arr</VAR>.            If <VAR>n</VAR> &gt;= <CODE>length</CODE> <VAR>arr</VAR>, the new array            has length 0.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.setBit:VAL"><CODE>setBit (<VAR>arr</VAR>, <VAR>i</VAR>)
+          </CODE></A>
+<DT> <CODE>          clrBit (<VAR>arr</VAR>, <VAR>i</VAR>)
+          </CODE>
+<DD>
+updates the value at index <VAR>i</VAR> to new value, true and false,           respectively. These are equivalent to:           
+<PRE>
+          update(arr,i,true)
+          update(arr,i,false)
+          
+</PRE>
+           respectively. Raises <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Subscript:EXN:SPEC">Subscript</A> if            <VAR>i</VAR> is negative            or <VAR>i</VAR> $GREATEREQ; <CODE>length</CODE> <VAR>arr</VAR>.      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.union:VAL"><CODE>union <VAR>arr</VAR> <VAR>arr2</VAR>
+          </CODE></A>
+<DT> <CODE>          intersection <VAR>arr</VAR> <VAR>arr2</VAR>
+          </CODE>
+<DD>
+Or (respectively, and) <VAR>arr2</VAR> into <VAR>arr</VAR>. The array <VAR>arr2</VAR>           is implicitly truncated or extended by 0's to match the length            of the <VAR>arr</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:BIT_ARRAY.complement:VAL"><CODE>complement <VAR>arr</VAR>
+          </CODE></A>
+<DD>
+inverts all the bits in <VAR>arr</VAR>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="bit-vector.html#BitVector:STR:SPEC">BitVector</A>, <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/mono-array.html#MONO_ARRAY:SIG:SPEC">MONO_ARRAY</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 9, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

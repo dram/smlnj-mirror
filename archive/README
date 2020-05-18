@@ -65,7 +65,7 @@ tape1:
 tape2:
   mldist.33: SML/NJ Version 0.33, 31 March 1989 (from file creation dates; src only)
   mldist.39: SML/NJ Version 0.39, 22 August 1989 (from file creation dates; src only)
-  mldist.44: SML/NJ Version 0.44, 29 November 1989 (from file creation dates)
+  mldist.44: SML/NJ Version 0.44, 29 November 1989 (from file creation dates) [Duba revision of match compiler]
   mldist.53: SML/NJ Version 0.53, 21 March 1990 (from file creation dates)
   mldist.54: SML/NJ Version 0.54, 29 March 1990 (from file creation dates; src only)
   mldist.57: SML/NJ Version 0.57, 10 May 1990 (from file creation dates)
@@ -97,4 +97,6 @@ tape4:
   mlsave.38: SML/NJ Version 0.38, 22 August 1989 (from file creation dates)
   mlsave.39: SML/NJ Version 0.39, 8 September 1989 (doc/NEWS.39, supercedes Tape2 version)
   
-  
+Other versions in archive
+-------------------------
+0.93, 15 February 1993 [William Aitken rewrite of the match compiler, with pattern macros, OR patterns]

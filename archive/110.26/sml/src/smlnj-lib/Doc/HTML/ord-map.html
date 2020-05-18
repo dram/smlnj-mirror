@@ -1,0 +1,259 @@
+<!-- HTML/ord-map.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The ORD_MAP signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>ORD_MAP</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="ORD_MAP:SIG:SPEC"><CODE>ORD_MAP</CODE></A><BR>
+<B>structure </B><A NAME="IntBinaryMap:STR:SPEC"><CODE>IntBinaryMap</CODE></A><B> :> </B>ORD_MAP<BR>
+<B>structure </B><A NAME="IntListMap:STR:SPEC"><CODE>IntListMap</CODE></A><B> :> </B>ORD_MAP<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The ORD_MAP signature provides an abstract description of applicative-style maps on a linearly ordered key type. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> Key <B>:</B> ORD_KEY<BR>
+<B>type</B> 'a <A NAME="SIG:ORD_MAP.map:TY:SPEC" HREF="#SIG:ORD_MAP.map:TY">map</A><BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.empty:VAL:SPEC" HREF="#SIG:ORD_MAP.empty:VAL">empty</A> <B>:</B> 'a map         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.insert:VAL:SPEC" HREF="#SIG:ORD_MAP.insert:VAL">insert</A> <B>:</B> ('a map * Key.ord_key * 'a) -&gt; 'a map       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.insert':VAL:SPEC" HREF="#SIG:ORD_MAP.insert:VAL">insert'</A> <B>:</B> ((Key.ord_key * 'a) * 'a map) -&gt; 'a map         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.find:VAL:SPEC" HREF="#SIG:ORD_MAP.find:VAL">find</A> <B>:</B> ('a map * Key.ord_key) -&gt; 'a option         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.remove:VAL:SPEC" HREF="#SIG:ORD_MAP.remove:VAL">remove</A> <B>:</B> ('a map * Key.ord_key) -&gt; ('a map * 'a)       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.numItems:VAL:SPEC" HREF="#SIG:ORD_MAP.numItems:VAL">numItems</A> <B>:</B> 'a map -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.listItems:VAL:SPEC" HREF="#SIG:ORD_MAP.listItems:VAL">listItems</A> <B>:</B> 'a map -&gt; 'a list       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.listItemsi:VAL:SPEC" HREF="#SIG:ORD_MAP.listItems:VAL">listItemsi</A> <B>:</B> 'a map -&gt; (Key.ord_key * 'a) list         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.collate:VAL:SPEC" HREF="#SIG:ORD_MAP.collate:VAL">collate</A> <B>:</B> (('a * 'a) -&gt; order) -&gt; ('a map * 'a map) -&gt; order         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.unionWith:VAL:SPEC" HREF="#SIG:ORD_MAP.unionWith:VAL">unionWith</A> <B>:</B> (('a * 'a) -&gt; 'a) -&gt; ('a map * 'a map) -&gt; 'a map       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.unionWithi:VAL:SPEC" HREF="#SIG:ORD_MAP.unionWith:VAL">unionWithi</A> <B>:</B> ((Key.ord_key * 'a * 'a) -&gt; 'a) -&gt; ('a map * 'a map) -&gt; 'a map         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.intersectWith:VAL:SPEC" HREF="#SIG:ORD_MAP.intersectWith:VAL">intersectWith</A> <B>:</B> (('a * 'b) -&gt; 'c) -&gt; ('a map * 'b map) -&gt; 'c map       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.intersectWithi:VAL:SPEC" HREF="#SIG:ORD_MAP.intersectWith:VAL">intersectWithi</A> <B>:</B> ((Key.ord_key * 'a * 'b) -&gt; 'c) -&gt; ('a map * 'b map) -&gt; 'c map         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.app:VAL:SPEC" HREF="#SIG:ORD_MAP.app:VAL">app</A> <B>:</B> ('a -&gt; unit) -&gt; 'a map -&gt; unit       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.appi:VAL:SPEC" HREF="#SIG:ORD_MAP.app:VAL">appi</A> <B>:</B> ((Key.ord_key * 'a) -&gt; unit) -&gt; 'a map -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.map:VAL:SPEC" HREF="#SIG:ORD_MAP.map:VAL">map</A> <B>:</B> ('a -&gt; 'b) -&gt; 'a map -&gt; 'b map       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.mapi:VAL:SPEC" HREF="#SIG:ORD_MAP.map:VAL">mapi</A> <B>:</B> ((Key.ord_key * 'a) -&gt; 'b) -&gt; 'a map -&gt; 'b map         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.foldl:VAL:SPEC" HREF="#SIG:ORD_MAP.foldl:VAL">foldl</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a map -&gt; 'b       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.foldli:VAL:SPEC" HREF="#SIG:ORD_MAP.foldl:VAL">foldli</A> <B>:</B> ((Key.ord_key * 'a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a map -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.foldr:VAL:SPEC" HREF="#SIG:ORD_MAP.foldr:VAL">foldr</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a map -&gt; 'b       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.foldri:VAL:SPEC" HREF="#SIG:ORD_MAP.foldr:VAL">foldri</A> <B>:</B> ((Key.ord_key * 'a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a map -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.filter:VAL:SPEC" HREF="#SIG:ORD_MAP.filter:VAL">filter</A> <B>:</B> ('a -&gt; bool) -&gt; 'a map -&gt; 'a map       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.filteri:VAL:SPEC" HREF="#SIG:ORD_MAP.filter:VAL">filteri</A> <B>:</B> ((Key.ord_key * 'a) -&gt; bool) -&gt; 'a map -&gt; 'a map         <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.mapPartial:VAL:SPEC" HREF="#SIG:ORD_MAP.mapPartial:VAL">mapPartial</A> <B>:</B> ('a -&gt; 'b option) -&gt; 'a map -&gt; 'b map       <BR>
+<B>val</B> <A NAME="SIG:ORD_MAP.mapPartiali:VAL:SPEC" HREF="#SIG:ORD_MAP.mapPartial:VAL">mapPartiali</A> <B>:</B> ((Key.ord_key * 'a) -&gt; 'b option) -&gt; 'a map -&gt; 'b map         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:ORD_MAP.map:TY"><CODE><B>type</B> 'a map</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.empty:VAL"><CODE><B>val</B> empty</CODE></A>
+<DD>
+        The empty map.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.insert:VAL"><CODE>insert (<VAR>ma</VAR>, <VAR>ok</VAR>, <VAR>a</VAR>)
+          </CODE></A>
+<DT> <CODE>          insert' ((<VAR>ok</VAR>, <VAR>a</VAR>), <VAR>ma</VAR>)
+          </CODE>
+<DD>
+creates a new map by inserting the key-value pair into <VAR>ma</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.find:VAL"><CODE>find (<VAR>ma</VAR>, <VAR>ok</VAR>)
+          </CODE></A>
+<DD>
+looks for an item in <VAR>ma</VAR> keyed by <VAR>ok</VAR>. It returns the           item if it finds it; otherwise, returns 	  <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/option.html#SIG:OPTION.option:TY:SPEC">NONE</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.remove:VAL"><CODE>remove (<VAR>ma</VAR>, <VAR>ok</VAR>)
+          </CODE></A>
+<DD>
+removes an item from <VAR>ma</VAR> corresponding to the key <VAR>ok</VAR>.           If found, the resulting map and item are returned. Raises           <A HREF="lib-base.html#SIG:LIB_BASE.NotFound:EXN:SPEC">NotFound</A> if no such item exists.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.numItems:VAL"><CODE>numItems <VAR>ma</VAR>
+          </CODE></A>
+<DD>
+returns the number of items in the map.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.listItems:VAL"><CODE>listItems <VAR>ma</VAR>
+          </CODE></A>
+<DT> <CODE>          listItemsi <VAR>ma</VAR>
+          </CODE>
+<DD>
+return a list of the items in the map, ordered by increasing           key. The second form also returns the key.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.collate:VAL"><CODE>collate <VAR>f</VAR>
+          </CODE></A>
+<DD>
+returns an ordering on maps, given an ordering on the maps'           range.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.unionWith:VAL"><CODE>unionWith <VAR>f</VAR> (<VAR>ma</VAR>, <VAR>ma2</VAR>)
+          </CODE></A>
+<DT> <CODE>          unionWithi <VAR>f</VAR> (<VAR>ma</VAR>, <VAR>ma2</VAR>)
+          </CODE>
+<DD>
+returns a map that is the union of the maps <VAR>ma</VAR> and <VAR>ma2</VAR>.           The first argument is used to define the map on elements that           are in the domain of both maps. In the second form, the function           takes the shared key as well as the two range values.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.intersectWith:VAL"><CODE>intersectWith <VAR>f</VAR> (<VAR>ma</VAR>, <VAR>ma2</VAR>)
+          </CODE></A>
+<DT> <CODE>          intersectWithi <VAR>f</VAR> (<VAR>ma</VAR>, <VAR>ma2</VAR>)
+          </CODE>
+<DD>
+returns a map defined on the intersection of the domains of           the maps <VAR>ma</VAR> and <VAR>ma2</VAR>. The function <VAR>f</VAR> is           used to define the range. Specifically, if <CODE>(k,u)</CODE> is in           <VAR>ma</VAR> and <CODE>(k,v)</CODE> is in <VAR>ma2</VAR>, the new map contains           <CODE>(k,f(u,v))</CODE> (or <CODE>(k,f(k,u,v))</CODE>, in the second case).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.app:VAL"><CODE>app <VAR>f</VAR> <VAR>ma</VAR>
+          </CODE></A>
+<DT> <CODE>          appi <VAR>f</VAR> <VAR>ma</VAR>
+          </CODE>
+<DD>
+applies the function <VAR>f</VAR> to the items in the map in           increasing order of the key.            These are respectively equivalent to:           
+<PRE>
+          List.app <VAR>f</VAR> (listItems <VAR>ma</VAR>)
+          List.app <VAR>f</VAR> (listItemsi <VAR>ma</VAR>)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.map:VAL"><CODE>map <VAR>f</VAR> <VAR>ma</VAR>
+          </CODE></A>
+<DT> <CODE>          mapi <VAR>f</VAR> <VAR>ma</VAR>
+          </CODE>
+<DD>
+creates a new map by applying the function <VAR>f</VAR> to the           elements of the old map <VAR>ma</VAR>.           These are respectively equivalent to:           
+<PRE>
+          List.foldl (fn((k,v),m) =&gt; insert(m,k,f v)) empty (listItemsi ma)
+          List.foldl (fn((k,v),m) =&gt; insert(m,k,f(k,v))) empty (listItemsi ma)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.foldl:VAL"><CODE>foldl <VAR>f</VAR> <VAR>a</VAR> <VAR>ma</VAR>
+          </CODE></A>
+<DT> <CODE>          foldli <VAR>f</VAR> <VAR>a</VAR> <VAR>ma</VAR>
+          </CODE>
+<DD>
+applies the folding function <VAR>f</VAR> to the entries of <VAR>ma</VAR>           in increasing order. These are respectively equivalent to:           
+<PRE>
+          List.foldl f a (listItems ma)
+          List.foldl (fn((k,v),b) =&gt; f(k,v,b)) a (listItemsi ma)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.foldr:VAL"><CODE>foldr <VAR>f</VAR> <VAR>a</VAR> <VAR>ma</VAR>
+          </CODE></A>
+<DT> <CODE>          foldri <VAR>f</VAR> <VAR>a</VAR> <VAR>ma</VAR>
+          </CODE>
+<DD>
+applies the folding function <VAR>f</VAR> to the entries of <VAR>ma</VAR>           in decreasing order. These are respectively equivalent to:           
+<PRE>
+          List.foldr f a (listItems ma)
+          List.foldr (fn((k,v),b) =&gt; f(k,v,b)) a (listItemsi ma)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.filter:VAL"><CODE>filter <VAR>f</VAR> <VAR>ma</VAR>
+          </CODE></A>
+<DT> <CODE>          filteri <VAR>f</VAR> <VAR>ma</VAR>
+          </CODE>
+<DD>
+creates a new map containing only those elements of <VAR>ma</VAR>           that satisfy the predicate <VAR>f</VAR>.            These are equivalent to:           
+<PRE>
+          List.foldl insert' empty (List.filter (fn(k,v) =&gt; f v) (listItemsi ma))
+          List.foldl insert' empty (List.filter f (listItemsi ma))
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:ORD_MAP.mapPartial:VAL"><CODE>mapPartial <VAR>f</VAR> <VAR>ma</VAR>
+          </CODE></A>
+<DT> <CODE>          mapPartiali <VAR>f</VAR> <VAR>ma</VAR>
+          </CODE>
+<DD>
+creates a new map by applying the partial function <VAR>f</VAR> to the           map <VAR>ma</VAR> in increasing key order.           The function <CODE>mapPartiali</CODE> can be implemented as:           
+<PRE>
+          fun mapPartiali f ma = let
+                fun f' (key,value) = case f (key,value)
+                   of NONE =&gt; NONE
+                    | SOME v =&gt; SOME(key,v)
+                val items = List.mapPartial f' (listItemsi ma)
+                in
+                  List.foldl insert' empty items
+                end
+          
+</PRE>
+           The function <CODE>mapPartial</CODE> is equivalent to:           
+<PRE>
+          fun mapPartial f ma = mapPartiali (fn (_, item) =&gt; f item) ma
+          
+</PRE>
+            
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="ord-set.html#ORD_SET:SIG:SPEC">ORD_SET</A>, <A HREF="ord-key.html#ORD_KEY:SIG:SPEC">ORD_KEY</A>, <A HREF="binary-map-fn.html#BinaryMapFn:FCT:SPEC">BinaryMapFn</A>, <A HREF="splay-map-fn.html#SplayMapFn:FCT:SPEC">SplayMapFn</A>, <A HREF="list-map-fn.html#ListMapFn:FCT:SPEC">ListMapFn</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 10, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

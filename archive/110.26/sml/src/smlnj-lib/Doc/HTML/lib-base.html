@@ -1,0 +1,97 @@
+<!-- HTML/lib-base.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The LibBase structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>LibBase</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="LIB_BASE:SIG:SPEC"><CODE>LIB_BASE</CODE></A><BR>
+<B>structure </B><A NAME="LibBase:STR:SPEC"><CODE>LibBase</CODE></A><B> : </B>LIB_BASE<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The LibBase structure provides a set of  common types, exceptions, and utility functions for the library. Although defined and used within the library, the components of LibBase are meant to be used by program built on top of the library. For example, most code has need of an <CODE>Unimplemented</CODE> exception to flag code yet to be written, or an <CODE>Impossible</CODE> exception, to mark cases that should not occur. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>exception</B> <A NAME="SIG:LIB_BASE.Unimplemented:EXN:SPEC" HREF="#SIG:LIB_BASE.Unimplemented:EXN">Unimplemented</A> <B>of</B> string       <BR>
+<B>exception</B> <A NAME="SIG:LIB_BASE.Impossible:EXN:SPEC" HREF="#SIG:LIB_BASE.Impossible:EXN">Impossible</A> <B>of</B> string       <BR>
+<B>exception</B> <A NAME="SIG:LIB_BASE.NotFound:EXN:SPEC" HREF="#SIG:LIB_BASE.NotFound:EXN">NotFound</A><BR>
+<B>val</B> <A NAME="SIG:LIB_BASE.failure:VAL:SPEC" HREF="#SIG:LIB_BASE.failure:VAL">failure</A> <B>:</B> {module : string, func : string, msg : string} -&gt; 'a       <BR>
+<B>val</B> <A NAME="SIG:LIB_BASE.version:VAL:SPEC" HREF="#SIG:LIB_BASE.version:VAL">version</A> <B>:</B> {date : string, system : string, version_id : int list}         <BR>
+<B>val</B> <A NAME="SIG:LIB_BASE.banner:VAL:SPEC" HREF="#SIG:LIB_BASE.banner:VAL">banner</A> <B>:</B> string         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:LIB_BASE.Unimplemented:EXN"><CODE><B>exception</B> Unimplemented</CODE></A>
+<DD>
+        Raised to report unimplemented features.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIB_BASE.Impossible:EXN"><CODE><B>exception</B> Impossible</CODE></A>
+<DD>
+        Raised to report internal errors.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIB_BASE.NotFound:EXN"><CODE><B>exception</B> NotFound</CODE></A>
+<DD>
+        Raised to indicate various search failures.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIB_BASE.failure:VAL"><CODE>failure {<VAR>module</VAR>, <VAR>func</VAR>, <VAR>msg</VAR>}
+          </CODE></A>
+<DD>
+raises the exception <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.Fail:EXN:SPEC">Fail</A>     with a standard message format. By convention, <VAR>func</VAR> and <VAR>module</VAR>      should be the names of the function and structure, respectively, in      which the failure occurs. The <VAR>msg</VAR> string should provide additional     information as to the cause or location of the problem.      
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIB_BASE.version:VAL"><CODE>version
+          </CODE></A>
+<DD>
+is a record providing information about the library version in a       conventional format. The <CODE>system</CODE> field specifies the subsystem       involved, in this case the SML/NJ library; the <CODE>date</CODE> field gives        the date of the release; the <CODE>version_id</CODE> field provides a list       of integers indicating the major and various minor release numbers       associated with the current release. The closer to the head of the       list, the more significant is the release number; in particular, the       head of <CODE>version_id</CODE> is the major release number.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:LIB_BASE.banner:VAL"><CODE>banner
+          </CODE></A>
+<DD>
+encodes the information in <CODE>version</CODE> as a string, e.g.,          <CODE>&quot;SML</CODE>NJ Library, Version 1.0, June 1, 1996&quot;.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified May 6, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

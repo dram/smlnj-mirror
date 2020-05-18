@@ -1,0 +1,191 @@
+<!-- HTML/fifo.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Fifo structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>Fifo</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="FIFO:SIG:SPEC"><CODE>FIFO</CODE></A><BR>
+<B>structure </B><A NAME="Fifo:STR:SPEC"><CODE>Fifo</CODE></A><B> : </B>FIFO<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The Fifo structure provides an applicative implementation of queues, in one of the greater abuses of notation. 
+<P>
+As the implementation uses a pair of lists, the amortized cost for calling <CODE>enqueue</CODE>, <CODE>dequeue</CODE> or <CODE>head</CODE> is constant time. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> 'a <A NAME="SIG:FIFO.fifo:TY:SPEC" HREF="#SIG:FIFO.fifo:TY">fifo</A><BR>
+<B>exception</B> <A NAME="SIG:FIFO.Dequeue:EXN:SPEC" HREF="#SIG:FIFO.Dequeue:EXN">Dequeue</A><BR>
+<B>val</B> <A NAME="SIG:FIFO.empty:VAL:SPEC" HREF="#SIG:FIFO.empty:VAL">empty</A> <B>:</B> 'a fifo         <BR>
+<B>val</B> <A NAME="SIG:FIFO.isEmpty:VAL:SPEC" HREF="#SIG:FIFO.isEmpty:VAL">isEmpty</A> <B>:</B> 'a fifo -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:FIFO.enqueue:VAL:SPEC" HREF="#SIG:FIFO.enqueue:VAL">enqueue</A> <B>:</B> ('a fifo * 'a) -&gt; 'a fifo         <BR>
+<B>val</B> <A NAME="SIG:FIFO.dequeue:VAL:SPEC" HREF="#SIG:FIFO.dequeue:VAL">dequeue</A> <B>:</B> 'a fifo -&gt; ('a fifo * 'a)       <BR>
+<B>val</B> <A NAME="SIG:FIFO.delete:VAL:SPEC" HREF="#SIG:FIFO.delete:VAL">delete</A> <B>:</B> ('a fifo * ('a -&gt; bool)) -&gt; 'a fifo         <BR>
+<B>val</B> <A NAME="SIG:FIFO.head:VAL:SPEC" HREF="#SIG:FIFO.head:VAL">head</A> <B>:</B> 'a fifo -&gt; 'a       <BR>
+<B>val</B> <A NAME="SIG:FIFO.peek:VAL:SPEC" HREF="#SIG:FIFO.peek:VAL">peek</A> <B>:</B> 'a fifo -&gt; 'a option         <BR>
+<B>val</B> <A NAME="SIG:FIFO.length:VAL:SPEC" HREF="#SIG:FIFO.length:VAL">length</A> <B>:</B> 'a fifo -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:FIFO.contents:VAL:SPEC" HREF="#SIG:FIFO.contents:VAL">contents</A> <B>:</B> 'a fifo -&gt; 'a list         <BR>
+<B>val</B> <A NAME="SIG:FIFO.app:VAL:SPEC" HREF="#SIG:FIFO.app:VAL">app</A> <B>:</B> ('a -&gt; unit) -&gt; 'a fifo -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:FIFO.map:VAL:SPEC" HREF="#SIG:FIFO.map:VAL">map</A> <B>:</B> ('a -&gt; 'b) -&gt; 'a fifo -&gt; 'b fifo         <BR>
+<B>val</B> <A NAME="SIG:FIFO.foldl:VAL:SPEC" HREF="#SIG:FIFO.foldl:VAL">foldl</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a fifo -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:FIFO.foldr:VAL:SPEC" HREF="#SIG:FIFO.foldr:VAL">foldr</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a fifo -&gt; 'b         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:FIFO.fifo:TY"><CODE><B>type</B> 'a fifo</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.Dequeue:EXN"><CODE><B>exception</B> Dequeue</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.empty:VAL"><CODE>empty
+          </CODE></A>
+<DD>
+is an empty queue.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.isEmpty:VAL"><CODE>isEmpty <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+returns true if <VAR>fi</VAR> is empty.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.enqueue:VAL"><CODE>enqueue (<VAR>fi</VAR>, <VAR>a</VAR>)
+          </CODE></A>
+<DD>
+creates a new queue by appending <VAR>a</VAR> to the tail of <VAR>fi</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.dequeue:VAL"><CODE>dequeue <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+returns the head of <VAR>fi</VAR> plus the remainder of <VAR>fi</VAR> after           the head is removed. Raises the exception <A HREF="fifo.html#SIG:FIFO.Dequeue:EXN:SPEC">Dequeue</A>           if <VAR>fi</VAR> is empty.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.delete:VAL"><CODE>delete (<VAR>fi</VAR>, <VAR>f</VAR>)
+          </CODE></A>
+<DD>
+creates a new queue by deleting from <VAR>fi</VAR> all elements           satisfying the predicate <VAR>f</VAR>. The order of the remaining           elements is preserved.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.head:VAL"><CODE>head <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+returns the head of <VAR>fi</VAR>, without changing <VAR>fi</VAR>.           Raises the exception <A HREF="fifo.html#SIG:FIFO.Dequeue:EXN:SPEC">Dequeue</A>           if <VAR>fi</VAR> is empty.                
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.peek:VAL"><CODE>peek <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+returns the head of <VAR>fi</VAR> if it exists; otherwise, returns           <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/option.html#SIG:OPTION.option:TY:SPEC">NONE</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.length:VAL"><CODE>length <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+returns the number of elements in <VAR>fi</VAR>. At present, this           is a linear time operation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.contents:VAL"><CODE>contents <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+returns the elements in <VAR>fi</VAR> in queue order. This           is a linear time operation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.app:VAL"><CODE>app <VAR>f</VAR> <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+applies the function <VAR>f</VAR> to the elements in <VAR>fi</VAR> in           queue order. This is equivalent to:           
+<PRE>
+            List.app f (contents fi)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.map:VAL"><CODE>map <VAR>f</VAR> <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+creates a new queue by mapping the elements in <VAR>fi</VAR> by           <VAR>f</VAR>. This is equivalent to:           
+<PRE>
+            List.foldl (fn (v,q) =&gt; enqueue(q,v)) empty (List.map f (contents fi))
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.foldl:VAL"><CODE>foldl <VAR>f</VAR> <VAR>a</VAR> <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+folds the elements of the queue from the head to the tail.            This is equivalent to:           
+<PRE>
+            List.foldl f a (contents fi))
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:FIFO.foldr:VAL"><CODE>foldr <VAR>f</VAR> <VAR>a</VAR> <VAR>fi</VAR>
+          </CODE></A>
+<DD>
+folds the elements of the queue from the tail to the head.            This is equivalent to:           
+<PRE>
+            List.foldr f a (contents fi))
+          
+</PRE>
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="queue.html#Queue:STR:SPEC">Queue</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified May 14, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

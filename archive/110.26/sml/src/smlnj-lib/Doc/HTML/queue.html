@@ -1,0 +1,202 @@
+<!-- HTML/queue.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The Queue structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>Queue</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="QUEUE:SIG:SPEC"><CODE>QUEUE</CODE></A><BR>
+<B>structure </B><A NAME="Queue:STR:SPEC"><CODE>Queue</CODE></A><B> : </B>QUEUE<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The Queue structure provides a simple implementation of mutable queues. The current implementation relies on the applicative queues defined in Fifo, and therefore has similar performance. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> 'a <A NAME="SIG:QUEUE.queue:TY:SPEC" HREF="#SIG:QUEUE.queue:TY">queue</A><BR>
+<B>exception</B> <A NAME="SIG:QUEUE.Dequeue:EXN:SPEC" HREF="#SIG:QUEUE.Dequeue:EXN">Dequeue</A><BR>
+<B>val</B> <A NAME="SIG:QUEUE.mkQueue:VAL:SPEC" HREF="#SIG:QUEUE.mkQueue:VAL">mkQueue</A> <B>:</B> unit -&gt; 'a queue         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.clear:VAL:SPEC" HREF="#SIG:QUEUE.clear:VAL">clear</A> <B>:</B> 'a queue -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.isEmpty:VAL:SPEC" HREF="#SIG:QUEUE.isEmpty:VAL">isEmpty</A> <B>:</B> 'a queue -&gt; bool         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.enqueue:VAL:SPEC" HREF="#SIG:QUEUE.enqueue:VAL">enqueue</A> <B>:</B> ('a queue * 'a) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.dequeue:VAL:SPEC" HREF="#SIG:QUEUE.dequeue:VAL">dequeue</A> <B>:</B> 'a queue -&gt; 'a       <BR>
+<B>val</B> <A NAME="SIG:QUEUE.delete:VAL:SPEC" HREF="#SIG:QUEUE.delete:VAL">delete</A> <B>:</B> ('a queue * ('a -&gt; bool)) -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.head:VAL:SPEC" HREF="#SIG:QUEUE.head:VAL">head</A> <B>:</B> 'a queue -&gt; 'a       <BR>
+<B>val</B> <A NAME="SIG:QUEUE.peek:VAL:SPEC" HREF="#SIG:QUEUE.peek:VAL">peek</A> <B>:</B> 'a queue -&gt; 'a option         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.length:VAL:SPEC" HREF="#SIG:QUEUE.length:VAL">length</A> <B>:</B> 'a queue -&gt; int         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.contents:VAL:SPEC" HREF="#SIG:QUEUE.contents:VAL">contents</A> <B>:</B> 'a queue -&gt; 'a list         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.app:VAL:SPEC" HREF="#SIG:QUEUE.app:VAL">app</A> <B>:</B> ('a -&gt; unit) -&gt; 'a queue -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.map:VAL:SPEC" HREF="#SIG:QUEUE.map:VAL">map</A> <B>:</B> ('a -&gt; 'b) -&gt; 'a queue -&gt; 'b queue         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.foldl:VAL:SPEC" HREF="#SIG:QUEUE.foldl:VAL">foldl</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a queue -&gt; 'b         <BR>
+<B>val</B> <A NAME="SIG:QUEUE.foldr:VAL:SPEC" HREF="#SIG:QUEUE.foldr:VAL">foldr</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a queue -&gt; 'b         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:QUEUE.queue:TY"><CODE><B>type</B> 'a queue</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.Dequeue:EXN"><CODE><B>exception</B> Dequeue</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.mkQueue:VAL"><CODE>mkQueue <VAR>()</VAR>
+          </CODE></A>
+<DD>
+returns an empty queue.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.clear:VAL"><CODE>clear <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+removes all the elements in <VAR>qu</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.isEmpty:VAL"><CODE>isEmpty <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+returns true if <VAR>qu</VAR> is empty.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.enqueue:VAL"><CODE>enqueue (<VAR>qu</VAR>, <VAR>a</VAR>)
+          </CODE></A>
+<DD>
+appends <VAR>a</VAR> to the end of <VAR>qu</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.dequeue:VAL"><CODE>dequeue <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+removes and returns the head element in <VAR>qu</VAR>.           Raises the exception <A HREF="queue.html#SIG:QUEUE.Dequeue:EXN:SPEC">Dequeue</A>           if <VAR>qu</VAR> is empty.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.delete:VAL"><CODE>delete (<VAR>qu</VAR>, <VAR>f</VAR>)
+          </CODE></A>
+<DD>
+deletes all elements in <VAR>qu</VAR> satisfying the predicate <VAR>f</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.head:VAL"><CODE>head <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+returns the head of <VAR>qu</VAR> without removing it.           Raises the exception <A HREF="queue.html#SIG:QUEUE.Dequeue:EXN:SPEC">Dequeue</A>           if <VAR>qu</VAR> is empty.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.peek:VAL"><CODE>peek <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+returns the head of <VAR>qu</VAR> if it exists; otherwise, returns           <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/option.html#SIG:OPTION.option:TY:SPEC">NONE</A>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.length:VAL"><CODE>length <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+returns the number of elements in <VAR>qu</VAR>. At present, this           is a linear time operation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.contents:VAL"><CODE>contents <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+returns the elements in <VAR>qu</VAR> in queue order. This           is a linear time operation.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.app:VAL"><CODE>app <VAR>f</VAR> <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+applies the function <VAR>f</VAR> to the elements in <VAR>qu</VAR> in           queue order. This is equivalent to:           
+<PRE>
+            List.app f (contents qu)
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.map:VAL"><CODE>map <VAR>f</VAR> <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+creates a new queue by mapping the elements in <VAR>qu</VAR> by           <VAR>f</VAR>. This is equivalent to:           
+<PRE>
+            let
+              val newq = mkQueue ()
+            in
+              app (fn v =&gt; enqueue(newq,f v)) qu;
+              newq
+            end
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.foldl:VAL"><CODE>foldl <VAR>f</VAR> <VAR>a</VAR> <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+folds the elements of the queue from the head to the tail.            This is equivalent to:           
+<PRE>
+            List.foldl f a (contents qu))
+          
+</PRE>
+     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:QUEUE.foldr:VAL"><CODE>foldr <VAR>f</VAR> <VAR>a</VAR> <VAR>qu</VAR>
+          </CODE></A>
+<DD>
+folds the elements of the queue from the tail to the head.            This is equivalent to:           
+<PRE>
+            List.foldr f a (contents qu))
+          
+</PRE>
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="fifo.html#Fifo:STR:SPEC">Fifo</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified May 14, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

@@ -1,0 +1,68 @@
+<!-- HTML/ord-key.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The ORD_KEY signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>ORD_KEY</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="ORD_KEY:SIG:SPEC"><CODE>ORD_KEY</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+The ORD_KEY signature provides an abstract description of ordered keys. It specifies a type plus a trivalent comparison function. 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:ORD_KEY.ord_key:TY:SPEC" HREF="#SIG:ORD_KEY.ord_key:TY">ord_key</A><BR>
+<B>val</B> <A NAME="SIG:ORD_KEY.compare:VAL:SPEC" HREF="#SIG:ORD_KEY.compare:VAL">compare</A> <B>:</B> (ord_key * ord_key) -&gt; order         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:ORD_KEY.ord_key:TY"><CODE><B>type</B> ord_key</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:ORD_KEY.compare:VAL"><CODE>compare (<VAR>key</VAR>, <VAR>key'</VAR>)
+          </CODE></A>
+<DD>
+returns <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.order:TY:SPEC">LESS</A>,  	  <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.order:TY:SPEC">EQUAL</A>, 	  or <A HREF="http://www.cs.bell-labs.com/~jhr/sml/basis/pages/general.html#SIG:GENERAL.order:TY:SPEC">GREATER</A>            if and only if <VAR>key</VAR> is less than, equal to, or greater            than <VAR>key'</VAR>, respectively, in some defined linear ordering.
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="ord-map.html#ORD_MAP:SIG:SPEC">ORD_MAP</A>, <A HREF="ord-set.html#ORD_SET:SIG:SPEC">ORD_SET</A>, <A HREF="binary-set-fn.html#BinarySetFn:FCT:SPEC">BinarySetFn</A>, <A HREF="binary-map-fn.html#BinaryMapFn:FCT:SPEC">BinaryMapFn</A>, <A HREF="splay-set-fn.html#SplaySetFn:FCT:SPEC">SplaySetFn</A>, <A HREF="splay-map-fn.html#SplayMapFn:FCT:SPEC">SplayMapFn</A>, <A HREF="list-set-fn.html#ListSetFn:FCT:SPEC">ListSetFn</A>, <A HREF="list-map-fn.html#ListMapFn:FCT:SPEC">ListMapFn</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="util-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 5, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

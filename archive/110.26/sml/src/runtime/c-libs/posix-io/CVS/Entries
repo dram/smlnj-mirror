@@ -1,0 +1,23 @@
+/cfun-list.h/1.2/Thu Oct 26 16:07:41 2000//
+/cfun-proto-list.h/1.2/Thu Oct 26 16:07:41 2000//
+/clib-list.h/1.2/Thu Oct 26 16:07:41 2000//
+/close.c/1.2/Thu Oct 26 16:07:41 2000//
+/dup.c/1.2/Thu Oct 26 16:07:41 2000//
+/dup2.c/1.2/Thu Oct 26 16:07:41 2000//
+/fcntl_d.c/1.2/Thu Oct 26 16:07:41 2000//
+/fcntl_gfd.c/1.2/Thu Oct 26 16:07:41 2000//
+/fcntl_gfl.c/1.2/Thu Oct 26 16:07:41 2000//
+/fcntl_l.c/1.2/Thu Oct 26 16:07:41 2000//
+/fcntl_sfd.c/1.2/Thu Oct 26 16:07:41 2000//
+/fcntl_sfl.c/1.2/Thu Oct 26 16:07:41 2000//
+/fsync.c/1.2/Thu Oct 26 16:07:41 2000//
+/lseek.c/1.2/Thu Oct 26 16:07:41 2000//
+/makefile/1.2/Thu Oct 26 16:07:41 2000//
+/osval.c/1.2/Thu Oct 26 16:07:41 2000//
+/pipe.c/1.2/Thu Oct 26 16:07:41 2000//
+/posix-io-lib.c/1.2/Thu Oct 26 16:07:41 2000//
+/read.c/1.2/Thu Oct 26 16:07:41 2000//
+/readbuf.c/1.2/Thu Oct 26 16:07:41 2000//
+/write.c/1.2/Thu Oct 26 16:07:41 2000//
+/writebuf.c/1.2/Thu Oct 26 16:07:41 2000//
+D

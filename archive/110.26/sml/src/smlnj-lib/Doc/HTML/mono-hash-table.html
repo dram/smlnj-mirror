@@ -1,0 +1,149 @@
+<!-- mono-hash-table.html -->
+
+<!-- COPYRIGHT (c) 1996 AT\|@AMP\|T Bell Laboratories. -->
+
+<HTML>
+<HEAD>
+  <TITLE>The MONO_HASH_TABLE signature</TITLE>
+
+</HEAD>
+<BODY>
+<H1><A NAME="top-of-document">The SML/NJ Library Reference Manual</A></H1>
+<HR>
+
+<H3>The <CODE>MONO_HASH_TABLE</CODE> signature</H3>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="MONO_HASH_TABLE:SIG:SPEC"><CODE>MONO_HASH_TABLE</CODE></A><BR>
+</CODE>
+</BLOCKQUOTE>
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>structure</B> <A HREF="#SIG:MONO_HASH_TABLE.Key:STR" NAME="SIG:MONO_HASH_TABLE.Key:STR:SPEC">Key</A> <B>:</B> HASH_KEY<BR>
+<B>type</B> 'a <A HREF="#SIG:MONO_HASH_TABLE.hash_table:TY" NAME="SIG:MONO_HASH_TABLE.hash_table:TY:SPEC">hash_table</A><BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.mkTable:VAL" NAME="SIG:MONO_HASH_TABLE.mkTable:VAL:SPEC">mkTable</A> <B>:</B> (int * exn) -&gt; 'a hash_table         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.insert:VAL" NAME="SIG:MONO_HASH_TABLE.insert:VAL:SPEC">insert</A> <B>:</B> 'a hash_table -&gt; (Key.hash_key * 'a) -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.lookup:VAL" NAME="SIG:MONO_HASH_TABLE.lookup:VAL:SPEC">lookup</A> <B>:</B> 'a hash_table -&gt; Key.hash_key -&gt; 'a         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.find:VAL" NAME="SIG:MONO_HASH_TABLE.find:VAL:SPEC">find</A> <B>:</B> 'a hash_table -&gt; Key.hash_key -&gt; 'a option         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.remove:VAL" NAME="SIG:MONO_HASH_TABLE.remove:VAL:SPEC">remove</A> <B>:</B> 'a hash_table -&gt; Key.hash_key -&gt; 'a         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.numItems:VAL" NAME="SIG:MONO_HASH_TABLE.numItems:VAL:SPEC">numItems</A> <B>:</B> 'a hash_table -&gt; int         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.listItems:VAL" NAME="SIG:MONO_HASH_TABLE.listItems:VAL:SPEC">listItems</A> <B>:</B> 'a hash_table -&gt; (Key.hash_key * 'a) list         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.app:VAL" NAME="SIG:MONO_HASH_TABLE.app:VAL:SPEC">app</A> <B>:</B> ('a -&gt; unit) -&gt; 'a hash_table -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.appi:VAL" NAME="SIG:MONO_HASH_TABLE.appi:VAL:SPEC">appi</A> <B>:</B> ((Key.hash_key * 'a) -&gt; unit) -&gt; 'a hash_table -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.map:VAL" NAME="SIG:MONO_HASH_TABLE.map:VAL:SPEC">map</A> <B>:</B> ('a -&gt; 'b) -&gt; 'a hash_table -&gt; 'b hash_table         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.mapi:VAL" NAME="SIG:MONO_HASH_TABLE.mapi:VAL:SPEC">mapi</A> <B>:</B> ((Key.hash_key * 'a) -&gt; 'b) -&gt; 'a hash_table -&gt; 'b hash_table         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.fold:VAL" NAME="SIG:MONO_HASH_TABLE.fold:VAL:SPEC">fold</A> <B>:</B> (('a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a hash_table -&gt; 'b         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.foldi:VAL" NAME="SIG:MONO_HASH_TABLE.foldi:VAL:SPEC">foldi</A> <B>:</B> ((Key.hash_key * 'a * 'b) -&gt; 'b) -&gt; 'b -&gt; 'a hash_table -&gt; 'b         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.filter:VAL" NAME="SIG:MONO_HASH_TABLE.filter:VAL:SPEC">filter</A> <B>:</B> ('a -&gt; bool) -&gt; 'a hash_table -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.filteri:VAL" NAME="SIG:MONO_HASH_TABLE.filteri:VAL:SPEC">filteri</A> <B>:</B> ((Key.hash_key * 'a) -&gt; bool) -&gt; 'a hash_table -&gt; unit         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.copy:VAL" NAME="SIG:MONO_HASH_TABLE.copy:VAL:SPEC">copy</A> <B>:</B> 'a hash_table -&gt; 'a hash_table         <BR>
+<B>val</B> <A HREF="#SIG:MONO_HASH_TABLE.bucketSizes:VAL" NAME="SIG:MONO_HASH_TABLE.bucketSizes:VAL:SPEC">bucketSizes</A> <B>:</B> 'a hash_table -&gt; int list         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.Key:STR"><CODE><B>structure</B> Key</CODE></A>
+  <DD>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.hash_table:TY"><CODE><B>type</B> 'a hash_table</CODE></A>
+  <DD>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.mkTable:VAL"><CODE>mkTable (<VAR>i</VAR>, <VAR>ex</VAR>)           </CODE></A>
+  <DD>
+    explain the use and semantics of mkTable HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.insert:VAL"><CODE>insert <VAR>ht</VAR> (<VAR>hk</VAR>, <VAR>a</VAR>)           </CODE></A>
+  <DD>
+    explain the use and semantics of insert HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.lookup:VAL"><CODE>lookup <VAR>ht</VAR> <VAR>hk</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of lookup HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.find:VAL"><CODE>find <VAR>ht</VAR> <VAR>hk</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of find HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.remove:VAL"><CODE>remove <VAR>ht</VAR> <VAR>hk</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of remove HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.numItems:VAL"><CODE>numItems <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of numItems HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.listItems:VAL"><CODE>listItems <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of listItems HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.app:VAL"><CODE>app <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of app HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.appi:VAL"><CODE>appi <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of appi HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.map:VAL"><CODE>map <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of map HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.mapi:VAL"><CODE>mapi <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of mapi HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.fold:VAL"><CODE>fold <VAR>f</VAR> <VAR>a</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of fold HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.foldi:VAL"><CODE>foldi <VAR>f</VAR> <VAR>a</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of foldi HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.filter:VAL"><CODE>filter <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of filter HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.filteri:VAL"><CODE>filteri <VAR>f</VAR> <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of filteri HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.copy:VAL"><CODE>copy <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of copy HERE.     
+    <BR>
+    <BR>
+  <DT> <A NAME="SIG:MONO_HASH_TABLE.bucketSizes:VAL"><CODE>bucketSizes <VAR>ht</VAR>           </CODE></A>
+  <DD>
+    explain the use and semantics of bucketSizes HERE.
+    <BR>
+    <BR>
+</DL>
+<HR>
+<HR>
+<B>[ <A HREF="index-all.html">INDEX</A> | <A HREF="mono-hash-table.html">TOP</A>
+   | <A HREF="">Parent</A> | <A HREF="">Root</A>
+   ]</B>
+<P>
+<I>Last Modified May 29, 1996</I><BR>
+Copyright &copy; 1996 AT&amp;T Research <BR>
+<HR>
+</BODY>
+</HTML>

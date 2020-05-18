@@ -1,0 +1,108 @@
+<!-- HTML/match-tree.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The MatchTree structure</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>MatchTree</CODE> structure</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="MATCH_TREE:SIG:SPEC"><CODE>MATCH_TREE</CODE></A><BR>
+<B>structure </B><A NAME="MatchTree:STR:SPEC"><CODE>MatchTree</CODE></A><B> : </B>MATCH_TREE<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+This structure implements the type used to report matching information and associated operations. 
+<P>
+ 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>datatype</B> 'a <A NAME="SIG:MATCH_TREE.match_tree:TY:SPEC" HREF="#SIG:MATCH_TREE.match_tree:TY">match_tree</A><BR>
+&nbsp;&nbsp;<B>=</B> Match <B>of</B> ('a * 'a match_tree list)       <BR>
+<B>val</B> <A NAME="SIG:MATCH_TREE.root:VAL:SPEC" HREF="#SIG:MATCH_TREE.root:VAL">root</A> <B>:</B> 'a match_tree -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:MATCH_TREE.nth:VAL:SPEC" HREF="#SIG:MATCH_TREE.nth:VAL">nth</A> <B>:</B> ('a match_tree * int) -&gt; 'a         <BR>
+<B>val</B> <A NAME="SIG:MATCH_TREE.map:VAL:SPEC" HREF="#SIG:MATCH_TREE.map:VAL">map</A> <B>:</B> ('a -&gt; 'b) -&gt; 'a match_tree -&gt; 'b match_tree         <BR>
+<B>val</B> <A NAME="SIG:MATCH_TREE.app:VAL:SPEC" HREF="#SIG:MATCH_TREE.app:VAL">app</A> <B>:</B> ('a -&gt; unit) -&gt; 'a match_tree -&gt; unit         <BR>
+<B>val</B> <A NAME="SIG:MATCH_TREE.find:VAL:SPEC" HREF="#SIG:MATCH_TREE.find:VAL">find</A> <B>:</B> ('a -&gt; bool) -&gt; 'a match_tree -&gt; 'a option         <BR>
+<B>val</B> <A NAME="SIG:MATCH_TREE.num:VAL:SPEC" HREF="#SIG:MATCH_TREE.num:VAL">num</A> <B>:</B> 'a match_tree -&gt; int         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:MATCH_TREE.match_tree:TY"><CODE><B>datatype</B> 'a match_tree</CODE></A>
+<DD>
+<BR>
+
+<DT> <A NAME="SIG:MATCH_TREE.root:VAL"><CODE>root <VAR>mt</VAR>
+          </CODE></A>
+<DD>
+returns the root (outermost) match in the tree <VAR>mt</VAR>.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MATCH_TREE.nth:VAL"><CODE>nth (<VAR>mt</VAR>, <VAR>n</VAR>)
+          </CODE></A>
+<DD>
+returns the <VAR>n</VAR>th match in the tree <VAR>mt</VAR>. Matches are labeled in preorder, starting at 0. The <VAR>n</VAR>th match in a tree correspond to the match of the <VAR>n</VAR>th subexpression of a regular expression, when counted from left to right (and letting the full expression be indexed at 0).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MATCH_TREE.map:VAL"><CODE>map <VAR>f</VAR> <VAR>mt</VAR>
+          </CODE></A>
+<DD>
+maps a function <VAR>f</VAR> over the tree <VAR>mt</VAR> in preorder.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MATCH_TREE.app:VAL"><CODE>app <VAR>f</VAR> <VAR>mt</VAR>
+          </CODE></A>
+<DD>
+applies a given function <VAR>f</VAR> over every element of the tree <VAR>mt</VAR> in preorder.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MATCH_TREE.find:VAL"><CODE>find <VAR>f</VAR> <VAR>mt</VAR>
+          </CODE></A>
+<DD>
+finds the first match in the tree <VAR>mt</VAR> that satisfies the predicate <VAR>f</VAR> (or <CODE>NONE</CODE>).     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:MATCH_TREE.num:VAL"><CODE>num <VAR>mt</VAR>
+          </CODE></A>
+<DD>
+returns the number of matches included in the tree <VAR>mt</VAR>.
+<BR>
+<BR>
+
+</DL>
+<HR>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="regexp-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 3, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

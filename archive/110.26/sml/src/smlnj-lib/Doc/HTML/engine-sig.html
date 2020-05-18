@@ -1,0 +1,100 @@
+<!-- HTML/engine-sig.html -->
+
+<!-- COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies. -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<TITLE>The REGEXP_ENGINE signature</TITLE>
+</HEAD>
+<BODY><A NAME="top"></A>
+<H1 align=CENTER>SML/NJ Library Manual</H1>
+<HR>
+
+
+<H2><A NAME="section:0">The <CODE>REGEXP_ENGINE</CODE> signature</A></H2>
+<HR>
+<H4>Synopsis</H4>
+<BLOCKQUOTE>
+<CODE><B>signature </B><A NAME="REGEXP_ENGINE:SIG:SPEC"><CODE>REGEXP_ENGINE</CODE></A><BR>
+<B>structure </B><A NAME="BackTrackEngine:STR:SPEC"><CODE>BackTrackEngine</CODE></A><B> : </B>REGEXP_ENGINE<BR>
+<B>structure </B><A NAME="DfaEngine:STR:SPEC"><CODE>DfaEngine</CODE></A><B> : </B>REGEXP_ENGINE<BR>
+</CODE>
+</BLOCKQUOTE>
+<P>
+This is the signature of a concrete matching engine. It defines an abstract type <CODE>regexp</CODE> into which regular expressions are compiled, as well as functions to match the compiled regular expression with various semantics. 
+<P>
+ Two engines are provided. The structure <CODE>BackTrackEngine</CODE> is a backtracking engine that is slow, but requires little memory, incurs low startup overhead and reports full matching information (matching information for all subexpressions of the regular expression). The structure <CODE>DfaEngine</CODE> is a finite-automaton implementation, and thus provides fast matching, but is memory-itensive, has a startup overhead (the creation of the automaton), and only reports the root match.
+<P>
+ 
+<HR>
+<H4>Interface</H4>
+<BLOCKQUOTE>
+<CODE><B>type</B> <A NAME="SIG:REGEXP_ENGINE.regexp:TY:SPEC" HREF="#SIG:REGEXP_ENGINE.regexp:TY">regexp</A><BR>
+<B>val</B> <A NAME="SIG:REGEXP_ENGINE.compile:VAL:SPEC" HREF="#SIG:REGEXP_ENGINE.compile:VAL">compile</A> <B>:</B> RegExpSyntax.syntax -&gt; regexp         <BR>
+<B>val</B> <A NAME="SIG:REGEXP_ENGINE.find:VAL:SPEC" HREF="#SIG:REGEXP_ENGINE.find:VAL">find</A> <B>:</B> regexp -&gt; (char,'a) StringCvt.reader -&gt; ({pos : 'a, len : int} option MatchTree.match_tree,'a) StringCvt.reader         <BR>
+<B>val</B> <A NAME="SIG:REGEXP_ENGINE.prefix:VAL:SPEC" HREF="#SIG:REGEXP_ENGINE.prefix:VAL">prefix</A> <B>:</B> regexp -&gt; (char,'a) StringCvt.reader -&gt; ({pos : 'a, len : int} option MatchTree.match_tree,'a) StringCvt.reader         <BR>
+<B>val</B> <A NAME="SIG:REGEXP_ENGINE.match:VAL:SPEC" HREF="#SIG:REGEXP_ENGINE.match:VAL">match</A> <B>:</B> (RegExpSyntax.syntax * ({pos : 'a, len : int} option MatchTree.match_tree -&gt; 'b)) list -&gt; (char,'a) StringCvt.reader -&gt; ('b,'a) StringCvt.reader         <BR>
+</CODE>
+</BLOCKQUOTE>
+<H4>Description</H4>
+<DL>
+<DT> <A NAME="SIG:REGEXP_ENGINE.regexp:TY"><CODE><B>type</B> regexp</CODE></A>
+<DD>
+          the type of a compiled regular expression.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:REGEXP_ENGINE.compile:VAL"><CODE>compile <VAR>s</VAR>
+          </CODE></A>
+<DD>
+compiles a regular expression from the abstract syntax.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:REGEXP_ENGINE.find:VAL"><CODE>find <VAR>r</VAR> <VAR>getc</VAR>
+          </CODE></A>
+<DD>
+Given a compiled regular expression <VAR>r</VAR> and a character  reader <VAR>getc</VAR>, this function returns a reader that scans the stream for the first match of the regular expression. The reader returns <CODE>NONE</CODE> if no match is found.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:REGEXP_ENGINE.prefix:VAL"><CODE>prefix <VAR>r</VAR> <VAR>getc</VAR>
+          </CODE></A>
+<DD>
+Given a compiled regular expression <VAR>r</VAR> and a character  reader <VAR>getc</VAR>, this functions returns a reader that attempts to match the stream at its current position with the regular expression. The reader returns <CODE>NONE</CODE> if there is not match at the current position of the stream.     
+<BR>
+<BR>
+
+<DT> <A NAME="SIG:REGEXP_ENGINE.match:VAL"><CODE>match <VAR>l</VAR> <VAR>getc</VAR>
+          </CODE></A>
+<DD>
+Given a list <VAR>l</VAR> of tuples made up of a regular expression (in abstract syntax) and a function from matching tree to values of type <CODE>'b</CODE>, and given a character reader <VAR>getc</VAR>, this function returns a reader that attempts to match one of the given regular expressions at the current position of the stream. If a match is found, the corresponding function is applied to the match tree and the result is returned. The reader returns <CODE>NONE</CODE> if no match is found.    
+<BR>
+<BR>
+
+</DL>
+<HR>
+<H4>See Also</H4>
+<BLOCKQUOTE>
+<A HREF="match-tree.html#MatchTree:STR:SPEC">MatchTree</A>, <A HREF="syntax.html#RegExpSyntax:STR:SPEC">RegExpSyntax</A>
+</BLOCKQUOTE>
+
+
+<HR>
+<CENTER>
+<B>[ <A HREF="#top">Top</A>
+   | <A HREF="regexp-lib-part.html">Parent</A>
+   | <A HREF="toc.html">Contents</A>
+   | <A HREF="index-all.html">Index</A>
+   | <A HREF="smlnj-lib.html">Root</A>
+   ]</B>
+</CENTER>
+<P>
+<I>Last Modified June 3, 1998</I><BR>
+<I>Comments to <A HREF="mailto:jhr@research.bell-labs.com">John Reppy</A></I><BR>
+
+Copyright &copy; 1998 Bell Labs, Lucent Technologies <BR>
+
+<HR>
+</BODY></HTML>

@@ -1,0 +1,37 @@
+/aid.sml/1.1.1.1/Wed Apr  5 18:34:54 2000//
+/aidtab.sml/1.1.1.1/Wed Apr  5 18:34:54 2000//
+/anonymous-structs.sml/1.1.1.1/Wed Apr  5 18:34:54 2000//
+/ast-sig.sml/1.1.1.1/Wed Apr  5 18:34:54 2000//
+/ast.sml/1.1.1.1/Wed Apr  5 18:34:54 2000//
+/bindings.sml/1.1.1.1/Wed Apr  5 18:34:54 2000//
+/build-ast-sig.sml/1.1.1.1/Wed Apr  5 18:34:54 2000//
+/build-ast.sml/1.4/Fri Jun 16 04:43:57 2000//
+/cnv-ext-sig.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/ctype-eq.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/initializer-normalizer-sig.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/initializer-normalizer.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/parse-to-ast-sig.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/parse-to-ast.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/pid.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/pidtab.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/simplify-assign-ops.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/sizeof-sig.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/sizeof.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/sizes-sig.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/sizes.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/sources.cm/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/state-sig.sml/1.1.1.1/Wed Apr  5 18:34:55 2000//
+/state.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/symbol-sig.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/symbol.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/tables.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/tid.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/tidtab.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/type-util-sig.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/type-util.sml/1.2/Fri Jun 16 04:43:57 2000//
+/uid-fn.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/uid-sig.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/uidtabimp-fn.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+/uidtabimp-sig.sml/1.1.1.1/Wed Apr  5 18:34:56 2000//
+D/extensions////
+D/pp////
