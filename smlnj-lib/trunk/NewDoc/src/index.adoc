@@ -4,7 +4,6 @@
 :stem: latexmath
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
-:toc: left
 
 == Introduction
 
