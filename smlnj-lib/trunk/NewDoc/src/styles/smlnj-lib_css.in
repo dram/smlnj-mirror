@@ -8,7 +8,7 @@ html{
 }
 
 body{
-  background:#fff;
+  background:@BACKGROUND@;
   color:rgba(0,0,0,.8);
   padding:0;
   margin:0;
@@ -57,7 +57,7 @@ h6{font-size:1em}
   left: 0px;
   height: 2em;
   width: 100%;
-  background-color: #fff;
+  background-color: @BACKGROUND@;
   z-index: 5;
 }
 
@@ -75,7 +75,7 @@ h6{font-size:1em}
 #layout-banner {
   margin: 0;
   padding: 1.25em;
-  background-color: #ececec;
+  background-color: @MEDIUM_BACKGROUND@;
   font-family: Arial, Helvetica, Geneva, sans-serif;
   text-align: left;
   -webkit-border-top-left-radius: 1em;
@@ -99,13 +99,13 @@ h6{font-size:1em}
 #layout-title-main {
   font-size: 4.0em;
   margin: 0 0 5px;
-  color: #000099;
+  color: @TITLE_COLOR@;
 }
 
 #layout-title-description {
   font-size: 2.4em;
   margin: 0;
-  color: #000099;
+  color: @TITLE_COLOR@;
 }
 
 #layout-logo {
@@ -124,7 +124,7 @@ h6{font-size:1em}
   top: 10em;
   bottom: 0;
   z-index: 2;
-  background-color: #ececec;
+  background-color: @MEDIUM_BACKGROUND@;
   overflow: auto;
 }
 
@@ -147,7 +147,7 @@ h6{font-size:1em}
 }
 
 #layout-footer {
-  border-top: 2px solid #527bbd;
+  border-top: 2px solid @HR_COLOR@;
 }
 
 #layout-footer-text {
@@ -155,7 +155,7 @@ h6{font-size:1em}
   font-size: 0.8em;
   padding-top: 0.2em;
   padding-bottom: 0.5em;
-  border-bottom: 2px solid #527bbd;
+  border-bottom: 2px solid @HR_COLOR@;
   margin-bottom: 1em;
 }
 
