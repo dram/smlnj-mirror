@@ -80,10 +80,11 @@ doc:
 	    cp -p $$dir/*html $(HTML_DST_ROOT)/$$dir ; \
 	done
 
-styles:
-	$(SCRIPTS)/gen-css.sh $(STYLES)/smlnj-lib-base_css.in > $(STYLES)/smlnj-lib-base.css
-	$(SCRIPTS)/gen-css.sh $(STYLES)/smlnj-lib.in > $(STYLES)smlnj-lib.css
-	$(SCRIPTS)/gen-css.sh $(STYLES)/smlnj-lib-pygments_css.in > $(STYLES)/smlnj-lib-pygments.css
+.PHONY:		css
+css:
+	scripts/gen-css.sh styles/smlnj-lib-base_css.in > styles/smlnj-lib-base.css
+	scripts/gen-css.sh styles/smlnj-lib_css.in > styles/smlnj-lib.css
+	scripts/gen-css.sh styles/smlnj-lib-pygments_css.in > styles/smlnj-lib-pygments.css
 
 .PHONY:		html
 html:

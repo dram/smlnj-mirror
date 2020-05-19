@@ -1,53 +1,7 @@
-/* CSS for SML/NJ Library documentation */
-
-/* defaults */
-html{
-  font-family:sans-serif;
-  -ms-text-size-adjust:100%;
-  -webkit-text-size-adjust:100%
-}
-
-body{
-  background:@BACKGROUND@;
-  color:rgba(0,0,0,.8);
-  padding:0;
-  margin:0;
-  font-family:"Noto Serif","DejaVu Serif",serif;
-  font-weight:400;
-  font-style:normal;
-  line-height:1;
-  position:relative;
-  cursor:auto;
-  tab-size:8;
-  -moz-osx-font-smoothing:grayscale;
-  -webkit-font-smoothing:antialiased
-}
-
-/* Title font. */
-h1, h2, h3, h4, h5, h6,
-div.title, caption.title,
-thead, p.table.header,
-#toctitle,
-#author, #revnumber, #revdate, #revremark,
-#footer {
-  font-family: Arial,Helvetica,sans-serif;
-}
-
-/* anchors */
-a{background:none}
-a:focus{outline:thin dotted}
-a:active,a:hover{outline:0}
-a:hover{cursor:pointer}
-a{color:#2156a5;text-decoration:underline;line-height:inherit}
-a:hover,a:focus{color:#1d4b8f}
-
-/* headers */
-h1{font-size:2em;margin:.67em 0}
-h1{font-size:2.125em}
-h2{font-size:1.6875em}
-h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
-h4,h5{font-size:1.125em}
-h6{font-size:1em}
+/* CSS for SML/NJ Library documentation
+ * This file overrides the default asciidoctor definitions
+ * in smlnj-lib-base.css.
+ */
 
 /* page layout */
 
@@ -75,7 +29,7 @@ h6{font-size:1em}
 #layout-banner {
   margin: 0;
   padding: 1.25em;
-  background-color: @MEDIUM_BACKGROUND@;
+  background-color: @BANNER_BACKGROUND@;
   font-family: Arial, Helvetica, Geneva, sans-serif;
   text-align: left;
   -webkit-border-top-left-radius: 1em;
@@ -94,18 +48,29 @@ h6{font-size:1em}
 
 #layout-title {
   height: 7.5em;
+  color: @TITLE_COLOR@;
 }
 
 #layout-title-main {
   font-size: 4.0em;
   margin: 0 0 5px;
-  color: @TITLE_COLOR@;
+  color: inherit;
+}
+
+#layout-title-main a {
+  color: inherit;
+  text-decoration: none;
 }
 
 #layout-title-description {
   font-size: 2.4em;
   margin: 0;
-  color: @TITLE_COLOR@;
+  color: inherit;
+}
+
+#layout-title-description code {
+  color: inherit;
+  background-color: inherit;
 }
 
 #layout-logo {
@@ -115,6 +80,8 @@ h6{font-size:1em}
 }
 
 #layout-logo img {
+  height: 7.5em;
+  max-width: none; /* override smlnj-lib-base.css */
 }
 
 #layout-toc {
@@ -124,7 +91,8 @@ h6{font-size:1em}
   top: 10em;
   bottom: 0;
   z-index: 2;
-  background-color: @MEDIUM_BACKGROUND@;
+  background-color: @BANNER_BACKGROUND@;
+  color: @TITLE_COLOR@;
   overflow: auto;
 }
 
@@ -167,6 +135,21 @@ h6{font-size:1em}
 }
 #content #toc>:first-child{margin-top:0}
 #content #toc>:last-child{margin-bottom:0}
+
+#toc a{
+  color: inherit;
+  background-color: inherit;
+  text-decoration: none;
+}
+
+#toc a:hover{
+  background-color: @TOC_HIGHLIGHT@;
+}
+
+#toc code{
+  color: inherit;
+  background-color: inherit;
+}
 
 ul.toc-lib-list{
   font-size: 1.1em;

@@ -8,8 +8,9 @@
   <meta name="author" content="@AUTHOR@">
   <meta name="keywords" content="Standard ML, SML">
   <title>@TITLE@</title>
-  <link rel="stylesheet" href="@STYLESDIR@/smlnj-lib.css" type="text/css" />
-  <link rel="stylesheet" href="@STYLESDIR@/pygments-default.css">
+  <link rel="stylesheet" href="@BASE@styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="@BASE@styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="@BASE@styles/pygments-default.css">
   <!-- support for latexmath -->
   <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
@@ -47,7 +48,7 @@
         </a>
       </div> <!-- layout-logo -->
       <div id="layout-title">
-	<div id="layout-title-main">The SML of NJ Library</div>
+	<div id="layout-title-main"><a href="@BASE@index.html">The SML of NJ Library</a></div>
 	<div id="layout-title-description">@STYLED-TITLE@</div>
       </div> <!-- layout-title -->
     </div> <!-- layout-banner -->

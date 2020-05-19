@@ -13,10 +13,13 @@
 # general document colors
 #
 BACKGROUND="#fff"
+LIGHT_BACKGROUND="#f8f8f7"
 MEDIUM_BACKGROUND="#ececec"
 #MEDIUM_BACKGROUND="#f8f8f7"
 #MEDIUM_BACKGROUND="#99ccff"
 DARK_BACKGROUND="#cae5ff"		# previously #369
+BANNER_BACKGROUND="$MEDIUM_BACKGROUND"
+TOC_HIGHLIGHT="#99ccff"			# hover color for TOC hrefs
 HIGHLIGHT_BACKGROUND="yellow"		# background for highlighted text
 TITLE_COLOR="#000099"			# color for title in banner
 MAJOR_HEADER_COLOR="#cc6600"		# orange/tawny for major headers
@@ -48,8 +51,11 @@ TV_COLOR="#aa22ff"			# color for type variables
 TY_COLOR="#b00040"			# color for type names
 
 sed -e s/@BACKGROUND@/$BACKGROUND/g \
+    -e s/@LIGHT_BACKGROUND@/$MEDIUM_BACKGROUND/g \
     -e s/@MEDIUM_BACKGROUND@/$MEDIUM_BACKGROUND/g \
     -e s/@DARK_BACKGROUND@/$DARK_BACKGROUND/g \
+    -e s/@BANNER_BACKGROUND@/$BANNER_BACKGROUND/g \
+    -e s/@TOC_HIGHLIGHT@/$TOC_HIGHLIGHT/g \
     -e s/@HIGHLIGHT_BACKGROUND@/$HIGHLIGHT_BACKGROUND/g \
     -e s/@TITLE_COLOR@/$TITLE_COLOR/g \
     -e s/@MAJOR_HEADER_COLOR@/$MAJOR_HEADER_COLOR/g \
