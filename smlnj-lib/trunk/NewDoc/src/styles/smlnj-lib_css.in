@@ -198,85 +198,9 @@ li.toc-page{
   color: blue;
 }
 
-/* from the default asciidoctor style */
-article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section{display:block}
-audio,canvas,video{display:inline-block}
-audio:not([controls]){display:none;height:0}
-script{display:none!important}
-p{
-  font-family:inherit;
-  font-weight:400;
-  font-size:1em;
-  line-height:1.6;
-  margin-bottom:1.25em;
-  text-rendering:optimizeLegibility
-}
-
-.literalblock pre, .listingblock > .content > pre{
-  -webkit-border-radius:4px;
-  border-radius:4px;
-  word-wrap:break-word;
-  overflow-x:auto;
-  padding:1em;
-  font-size:.8125em
-}
-@media screen and (min-width:768px){
-  .literalblock pre, .listingblock > .content>pre{
-    font-size:.90625em
-}}
-@media screen and (min-width:1280px){
-  .literalblock pre, .listingblock > .content>pre{
-    font-size:1em}}
-.literalblock.output pre{
-  color:#f7f7f8;
-  background:rgba(0,0,0,.9)}
-.listingblock>.content>pre:not(.highlight),
-.listingblock>.content>pre[class="highlight"],
-.listingblock>.content>pre[class^="highlight "]{
-  background:#f7f7f8
-}
-.listingblock>.content{
-  position:relative
-}
-.listingblock code[data-lang]::before{
-  display:none;
-  content:attr(data-lang);
-  position:absolute;
-  font-size:.75em;
-  top:.425rem;
-  right:.5rem;
-  line-height:1;
-  text-transform:uppercase;
-  color:inherit;
-  opacity:.5
-}
-.listingblock:hover code[data-lang]::before{
-  display:block
-}
-.listingblock.terminal pre .command::before{
-  content:attr(data-prompt);
-  padding-right:.5em;
-  color:inherit;
-  opacity:.5
-}
-.listingblock.terminal pre .command:not([data-prompt])::before{
-  content:"$"
-}
-.listingblock pre.highlightjs{
-  padding:0
-}
-.listingblock pre.highlightjs>code{
-  padding:1em;
-  -webkit-border-radius:4px;
-  border-radius:4px
-}
-.listingblock pre.prettyprint{
-  border-width:0
-}
-
 /* additional code styling support */
 dt > code { color: #19177C } /* tok-nv in pygments */
-code > span.kw { color: #008000; font-weight: bold } /* tok-k in pygments */
+code > span.kw { color: @KW_COLOR@; font-weight: bold } /* tok-k in pygments */
 code > span.tv { color: #AA22FF } /* tok-nd in pygments */
 code > span.ty { color: #B00040 } /* tok-kt in pygments */
-code > span.con { color: #0000FF; font-weight: bold } /* tok-nc in pygments */
+code > span.con { color: @BIND_COLOR@; font-weight: bold } /* tok-nc in pygments */

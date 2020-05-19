@@ -71,13 +71,19 @@ ADOC_FILES =		index.adoc \
 			$(wildcard JSON/*.adoc)
 
 .PHONY:         doc
-doc:            html $(DOC_DIR)
+doc:
 	cp -p index.html $(HTML_DST_ROOT)
+	cp -p styles/smlnj-lib-base.css $(STYLES_DST)
 	cp -p styles/smlnj-lib.css $(STYLES_DST)
-	cp -p styles/smlnj-lib-pygments.css $(STYLES_DST)/pygments-default.css
+	cp -p styles/smlnj-lib-pygments.css $(STYLES_DST)
 	for dir in $(DOC_SUBDIRS) ; do \
 	    cp -p $$dir/*html $(HTML_DST_ROOT)/$$dir ; \
 	done
+
+styles:
+	$(SCRIPTS)/gen-css.sh $(STYLES)/smlnj-lib-base_css.in > $(STYLES)/smlnj-lib-base.css
+	$(SCRIPTS)/gen-css.sh $(STYLES)/smlnj-lib.in > $(STYLES)smlnj-lib.css
+	$(SCRIPTS)/gen-css.sh $(STYLES)/smlnj-lib-pygments_css.in > $(STYLES)/smlnj-lib-pygments.css
 
 .PHONY:		html
 html:

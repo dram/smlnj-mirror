@@ -5,6 +5,7 @@ pre.pygments .hll { background-color: #ffffcc }
 pre.pygments { font-size: 0.9em; background: @CODE_BACKGROUND@; }	/* code background */
 pre.pygments .tok-k { color: @KW_COLOR@; font-weight: bold }		/* Keyword */
 pre.pygments .tok-kr { color: @KW_COLOR@; font-weight: bold; }		/* keywords */
+pre.pygments .tok-kt { color: @TY_COLOR@; }				/* type */
 pre.pygments .tok-o { color: @KW_COLOR@; }				/* Operator */
 pre.pygments .tok-c { color: @COM_COLOR@; font-style: italic; }		/* comments */
 pre.pygments .tok-cm { color: @COM_COLOR@; font-style: italic; }	/* comments */
@@ -21,3 +22,4 @@ pre.pygments .tok-nn { color: @BIND_COLOR@; font-weight: bold; }	/* Module names
 pre.pygments .tok-nv { color: @BIND_COLOR@; font-weight: bold; }	/* variable names in val bindings */
 pre.pygments .tok-nf { color: @BIND_COLOR@; font-weight: bold; }	/* function names in fun bindings */
 pre.pygments .tok-nc { color: @BIND_COLOR@; font-weight: bold; }	/* data constructor name in rhs of datatype */
+pre.pygments .tok-nd { color: @TV_COLOR@; }				/* type variable */

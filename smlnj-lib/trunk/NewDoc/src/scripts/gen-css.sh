@@ -43,6 +43,9 @@ COM_COLOR="#dc322f"			# comment color
 LIT_COLOR="#b58900"			# color for literals
 BIND_COLOR="#6c71c4"			# color for identifiers at binding sites
 PUNCT_COLOR="#6c71c4"			# color for punctuation
+# NOTE: the following two colors are from the default pygments color scheme
+TV_COLOR="#aa22ff"			# color for type variables
+TY_COLOR="#b00040"			# color for type names
 
 sed -e s/@BACKGROUND@/$BACKGROUND/g \
     -e s/@MEDIUM_BACKGROUND@/$MEDIUM_BACKGROUND/g \
@@ -69,4 +72,6 @@ sed -e s/@BACKGROUND@/$BACKGROUND/g \
     -e s/@LIT_COLOR@/$LIT_COLOR/g \
     -e s/@BIND_COLOR@/$BIND_COLOR/g \
     -e s/@PUNCT_COLOR@/$PUNCT_COLOR/g \
+    -e s/@TV_COLOR@/$TV_COLOR/g \
+    -e s/@TY_COLOR@/$TY_COLOR/g \
     $1
