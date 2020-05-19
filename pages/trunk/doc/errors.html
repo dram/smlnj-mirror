@@ -5,7 +5,7 @@
 <BODY BGCOLOR="d3f8fc">
 <H1>SML/NJ Error and Warning Messages</H1>
 This document contains lists of error and warning messages produced by
-the SML/NJ Version 110 compiler, sorted alphabetically, with 
+the SML/NJ Version 110 compiler, sorted alphabetically, with
 short explanations and examples.
 
 <h3>Parsing Errors</h3>
@@ -19,7 +19,7 @@ tokens.  The parser produces error messages like:
   foo.sml:1.5 Error: syntax error: inserting  VAL
 </pre>
 This error message indicates how the parser attempted to "repair"
-the input (from a file <tt>foo.sml</tt>), 
+the input (from a file <tt>foo.sml</tt>),
 and in this case indicates that the parser thinks that
 <tt>val</tt> is needed after the <tt>let</tt> (at line 1, column 5 of
 <tt>foo.sml</tt>).
@@ -41,9 +41,9 @@ the compiler.  Example:
 <pre>
 Error: Compiler bug: ModuleUtil: getStr: bad entity
 </pre>
-Such a message indicates a bug in the compiler, and it 
+Such a message indicates a bug in the compiler, and it
 should be reported to
-<img src="../smlnj-list-logo.png" align=center>, with self-contained code
+<img src="../images/smlnj-list-logo.png" align=center>, with self-contained code
 to reproduce the message if possible.
 <p>
 Most such messages will be <em>secondary</em> error messages, meaning
@@ -193,7 +193,7 @@ Usually occurs because the constructors for a datatype declared in a
 structure don't agree with the constructors (in names or number) of
 a signature that the structure must match.
 <pre>
-  signature S = 
+  signature S =
   sig
     datatype t = A of int
   end;
@@ -509,7 +509,7 @@ same type or not.
   <i>stdIn:33.3-34.14 Error: duplicate value specifications for x caused by include</i>
 
   signature S4 =
-  sig 
+  sig
     include S1
     val x : int
   end;
@@ -549,14 +549,14 @@ handler must agree with the type of the base expression that the
 handler is attached to, because the value returned by the entire
 handle expression is either that of the base expression or the
 value returned by one of the handler rules.
-<pre> 
+<pre>
   fun f x = (hd x)+1 handle Empty => true;
   <i>stdIn:2.6-38.7 Error: expression and handler don't agree [literal]
     body:          int
     handler range:          bool
     in expression:
       hd x + 1
-      handle 
+      handle
 	  Empty => true
       | exn => raise exn</i>
 </pre>
@@ -640,7 +640,7 @@ handles exceptions not handled by the explicit rules of the handler.
     handler domain: 'Z list
     in expression:
       3
-      handle 
+      handle
 	  nil => 4
       | exn => raise exn</i>
 </pre>
@@ -695,22 +695,22 @@ or the equal sign); otherwise it may not be parenthesized.
 
 <dt>[38] <strong>inconsistent arities in type sharing % = %: % has arity % and % has arity %</strong><dd>
 Two types involved in a type sharing constraint have different
-arities. 
-<pre>	
+arities.
+<pre>
   signature XSIG = sig
     datatype ('a, 'b) t = A of 'a | B of 'b
   end
 
   functor F
-     (type u 
+     (type u
       structure X: XSIG
-	  sharing type X.t = u) = 
+	  sharing type X.t = u) =
   struct
   end
 
   <i>stdIn:49.11-54.6 Error: inconsistent arities in type sharing t = u : t
   has arity 2 and u has arity 0.</i>
-</pre>	
+</pre>
 
 <dt>[39] <strong>inconsistent equality properties in type sharing</strong><dd>
 This error occurs when type constructors with incompatible equality
@@ -727,8 +727,8 @@ signature is not consistent, and could not be successfully matched.
 </pre>
 
 <dt>[40] <strong>infix operator "%" used without "op" in fun dec</strong><dd>
-    A function symbol declared to be an infix symbol is used in a 
-    function declaration used to declare nonfix functions. 
+    A function symbol declared to be an infix symbol is used in a
+    function declaration used to declare nonfix functions.
 <pre>
   infix foo;
   <i>infix foo</i>
@@ -795,10 +795,10 @@ be called at top level.
 </pre>
 
 <dt>[45] <strong>int constant too large</strong><dd>
-    Integer literal in program is too large. Default integers are 
-    represented using 31 bits, and range from ~1073741824 to 1073741823, 
+    Integer literal in program is too large. Default integers are
+    represented using 31 bits, and range from ~1073741824 to 1073741823,
     or from:
-<pre>		
+<pre>
 	 Option.valOf(Int.minInt) to Option.valOf(Int.maxInt)
 </pre>
 
@@ -817,7 +817,7 @@ be called at top level.
 </pre>
 
 <dt>[46] <strong>match nonexhaustive</strong><dd>
-Insufficient patterns in clause to match against all the 
+Insufficient patterns in clause to match against all the
 possible inputs. This is an error if the flag
 <code>Compiler.Control.MC.matchNonExhaustiveError</code>
 is set to true (the default is false), otherwise it is a warning if
@@ -835,14 +835,14 @@ the compiler does not complain about nonexhaustive matches.
 </pre>
 
 <dt>[47] <strong>match redundant</strong><dd>
-A pattern is provided that is covered by some earlier pattern. 
-If the compiler flag 
+A pattern is provided that is covered by some earlier pattern.
+If the compiler flag
 <code>Compiler.Control.MC.matchRedundantError</code>
 is set to false (default is true), only a warning message
-is given.  If 
+is given.  If
 <code>Compiler.Control.MC.matchRedundantWarn</code>
 is also false (default is true), no message is generated.
-<pre>	
+<pre>
   fun f (0, true) = 1
     | f (0, false) = 2
     | f (0, _) = 3
@@ -852,10 +852,10 @@ is also false (default is true), no message is generated.
 	    (0,false) => ...
       -->   (0,_) => ...
 	    _ => ...</i>
-</pre>  
+</pre>
 
 <dt>[48] <strong>match redundant and nonexhaustive</strong><dd>
-A pattern is provided that is covered by some earlier pattern, 
+A pattern is provided that is covered by some earlier pattern,
 and the set of patterns do not cover all the possible inputs.
 Whether this message is generated, and its severity (Error or
 Warning), are controlled by the compiler flags
@@ -882,7 +882,7 @@ bind the same type-specification multiple times.
 <pre>
   signature S = sig
     type t
-  end 
+  end
   where type t = int
     and type t = bool;
   <i>stdIn:1.1-72.20 Error: multiple where defs for t</i>
@@ -902,11 +902,11 @@ The value applied to an argument in a pattern is not a constructor.
 <pre>
   fun f (0 0) = true;
   <i>stdIn:17.5-17.19 Error: non-constructor applied to argument in pattern</i>
-</pre>    
+</pre>
 
 <dt>[51] <strong>non-constructor applied to argument in pattern: %</strong><dd>
-Same error as [58]. This particular error occurs when the applied value has a 
-name that can be reported. 
+Same error as [58]. This particular error occurs when the applied value has a
+name that can be reported.
 <pre>
   val a = 0;
   <i>val a = 0 : int</i>
@@ -927,7 +927,7 @@ specification was not declared in the current signature.
 </pre>
 
 <dt>[53] <strong>nonlocal path in type sharing: %</strong><dd>
-A type participating in a type <strong>sharing</strong> specification 
+A type participating in a type <strong>sharing</strong> specification
 was not declared in the current signature.
 <pre>
   signature S = sig
@@ -938,7 +938,7 @@ was not declared in the current signature.
 </pre>
 
 <dt>[54] <strong>operator and operand don't agree</strong><dd>
-A function (operator) is applied to a value (operand) with a type different than 
+A function (operator) is applied to a value (operand) with a type different than
 the type expected by the function.
 <pre>
   fun f true = 0
@@ -978,14 +978,14 @@ of all the subpatterns must agree.
 <dt>[57] <strong>out-of-range word literal in pattern: 0w%</strong><dd>
 A word literal used in a pattern is larger than the largest representable word.
 <pre>
-  fun f 0w100000000000 = 0 
+  fun f 0w100000000000 = 0
     | f _ = 1;
   <i>stdIn:1.1-27.12 Error: out-of-range word literal in pattern: 0w100000000000</i>
 </pre>
 
 <dt>[58] <strong>overloaded variable not defined at type</strong><dd>
-An overloaded variable is being instantiated at a type for which it has no 
-definition. Typical overloaded variables include numerical operations, 
+An overloaded variable is being instantiated at a type for which it has no
+definition. Typical overloaded variables include numerical operations,
 overloaded over the numerical types (int, word, etc.)
 <pre>
   true + true;
@@ -996,7 +996,7 @@ overloaded over the numerical types (int, word, etc.)
 
 <dt>[59] <strong>parameter or result constraints of clauses don't agree</strong><dd>
 In a <code><strong>fun</strong></code> declaration, each clause, or rule, separated by
-<code><strong>|</strong></code> (vertical bar symbol), has to have the same type (both 
+<code><strong>|</strong></code> (vertical bar symbol), has to have the same type (both
 in the type accepted by the clauses, and the type returned by the clauses).
 <pre>
   datatype typeA = A;
@@ -1015,7 +1015,7 @@ in the type accepted by the clauses, and the type returned by the clauses).
 </pre>
 
 <dt>[60] <strong>parentheses illegal around variable in AS pattern</strong><dd>
-In an "as"-pattern <code><i>pat</i> as <i>pat</i></code>, where the pattern to the left 
+In an "as"-pattern <code><i>pat</i> as <i>pat</i></code>, where the pattern to the left
 of the "as" is a simple variable, the variable must not be wrapped in parentheses.
 <pre>
   val ((a) as (b,c)) = (4,5);
@@ -1076,22 +1076,22 @@ or data constructors.
 </pre>
 
 <dt>[66] <strong>possibly inconsistent structure definitions at: %</strong><dd>
-When a signature contains a sharing constraint between 
+When a signature contains a sharing constraint between
 two structure-specifications, each of which is specified using a <tt>where</tt>
 clause, the compiler is unable to calculate whether the structures
 are compatible.  This is a bug in the compiler and will be fixed
 in a future version.
 <pre>
-  signature SIG =  
+  signature SIG =
   sig
      structure A : sig end
-     structure B : sig structure Z : sig end 
+     structure B : sig structure Z : sig end
                    end where Z = A
-     structure C : sig structure Z : sig end 
+     structure C : sig structure Z : sig end
                    end where Z = A
      sharing B = C
   end;
-  
+
   <i>stdIn:1.1-38.4 Error: possibly inconsistent structure definitions at: B.Z</i>
 </pre>
 
@@ -1099,11 +1099,11 @@ in a future version.
 A real literal must have an exponent in the proper range for the
 floating-point representation of the target machine.  At present
 all SML/NJ target machines use IEEE double-precision floating point,
-so real literals must be in the range 
+so real literals must be in the range
 ~1.79769313486e308 to 1.79769313486e308.
 <pre>
   2e309;
- 
+
   <i>uncaught exception BadReal
     raised at: bignums/realconst.sml:228.54-228.63</i>
 </pre>
@@ -1165,7 +1165,7 @@ that binds the name <code><i>id1</i></code> to the existing datatype
 <code><i>id2</i></code>, requires that <code><i>id2</i></code> must be
 a datatype, and not an ordinary type.
 <pre>
-  signature S = sig type t   
+  signature S = sig type t
                     datatype d = datatype t
                 end;
   <i>stdIn:37.18-40.17 Error: rhs of datatype replication spec not a datatype</i>
@@ -1187,7 +1187,7 @@ in the function-result type constraint (if it is present).
 A structure cannot share with one of its components.
 <pre>
   signature S = sig structure A : sig structure B : sig end end
-                    sharing A = A.B 
+                    sharing A = A.B
                 end;
   <i>stdIn:1.1-44.20 Error: Sharing structure with a descendent substructure</i>
 </pre>
@@ -1760,10 +1760,10 @@ and Word8.word (bound 0w256).
 <h3>Warnings</h3>
 <dl>
 <dt>[1] <strong>match nonexhaustive</strong><dd>
-Insufficient patterns in clause to match against all the 
+Insufficient patterns in clause to match against all the
 possible inputs. This is an warning if the flag
 <code>Compiler.Control.MC.matchNonExhaustiveError</code>
-is set to <code>false</code> (the default), 
+is set to <code>false</code> (the default),
 <code>Compiler.Control.MC.matchNonExhaustiveWarn</code>
 is set to true.  If neither of these flags is true, then
 the compiler does not complain about nonexhaustive matches.
@@ -1778,13 +1778,13 @@ the compiler does not complain about nonexhaustive matches.
 </pre>
 
 <dt>[2] <strong>match redundant</strong><dd>
-A pattern is provided that is covered by some earlier pattern. 
-This is a warning if the compiler flag 
+A pattern is provided that is covered by some earlier pattern.
+This is a warning if the compiler flag
 <code>Compiler.Control.MC.matchRedundantError</code>
 is set to false (default is true) and
 <code>Compiler.Control.MC.matchRedundantWarn</code>
 is <code>true</code> (the default).
-<pre>	
+<pre>
   fun f (0, true) = 1
     | f (0, false) = 2
     | f (0, _) = 3
@@ -1794,10 +1794,10 @@ is <code>true</code> (the default).
 	    (0,false) => ...
       -->   (0,_) => ...
 	    _ => ...</i>
-</pre>  
+</pre>
 
 <dt>[3] <strong>match redundant and nonexhaustive</strong><dd>
-A pattern is provided that is covered by some earlier pattern, 
+A pattern is provided that is covered by some earlier pattern,
 and the set of patterns do not cover all the possible inputs.
 Whether this message is generated, and its severity (Error or
 Warning), are controlled by the compiler flags
@@ -1876,7 +1876,7 @@ its lenght (0), but one cannot cons any values onto <code>x</code>).
 | <A HREF="index.html">SML/NJ Documentation Home Page</A> |
 </STRONG></CENTER>
 <HR>
-Send your comments to <img src="../smlnj-list-logo.png" align=center>.<br>
+Send your comments to <img src="../images/smlnj-list-logo.png" align=center>.<br>
 <FONT SIZE="-3">
   Copyright &#169; 1998,
   <A HREF="http://www.lucent.com/">Lucent Technologies; Bell Laboratories</A>.

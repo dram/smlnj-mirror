@@ -59,9 +59,9 @@ is defined at top level and will load a file containing SML source
 code if applied to a string containing the name of the file (i.e. a
 file path name in the syntax of the host operating system).  For
 instance
-<pre>  
+<pre>
   use "../lib/sort.sml";
-</pre>  
+</pre>
 would cause the contents of the file "<code>../lib/sort.sml</code>" (assuming Unix
 file name syntax) to be loaded into the top-level interactive system
 as though it had been typed or pasted into the top-level interactive
@@ -114,7 +114,7 @@ CM also provides an <em>autoloading feature</em>, which causes selected
 library modules to be loaded automatically when they are mentioned in
 the interactive system.  By default, the Util and Unix sections of
 the SML/NJ Library are registered for autoloading when the SML/NJ
-system is built.  This means that if you refer to any of these library 
+system is built.  This means that if you refer to any of these library
 modules in code entered into the interactive system (directly or via
 the function <code>use</code>), they will be loaded automatically by
 CM.  Which libraries are initially registered for autoloading is
@@ -129,14 +129,14 @@ See the <a href="../CM/index.html">CM manual</a> for further information.
 <dt><strong>How do I determine the current directory of the SML process?
 </strong><dd>
 <p>
-The function <code>OS.FileSys.getDir</code> returns the current 
+The function <code>OS.FileSys.getDir</code> returns the current
 directory of the interactive loop or of an SML program that calls it.
 <p>
 
 <a name="chDir"></a>
 <dt><strong>How do I change the current directory of the SML process?</strong><dd>
 <p>
-The function <code>OS.FileSys.chDir</code> sets the current 
+The function <code>OS.FileSys.chDir</code> sets the current
 directory of the interactive loop or of an SML program that calls it.
 <p>
 
@@ -162,7 +162,7 @@ call of <code>exportML</code> returns false.
 <DT><strong>How do I run a saved SML image?</strong><DD>
 <p>
 Having created a heap image file, say <code>image.<i>arch-opsys</i></code>
-with the 
+with the
 <A HREF="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exportML:VAL">exportML</A>
 function, you can run the image, resuming the interactive loop from
 the point where <code>exportML</code> was called by executing
@@ -186,7 +186,7 @@ being true to indicate that we are in the resumed image.
 <p>
 To create a stand-alone application, use the function
 <pre>
-  <A HREF="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exportFn:VAL">exportFn</A>: (string * ((string * string list) -> OS.Process.status)) -> unit 
+  <A HREF="../SMLofNJ/pages/smlnj.html#SIG:SML_OF_NJ.exportFn:VAL">exportFn</A>: (string * ((string * string list) -> OS.Process.status)) -> unit
 </pre>
 which is defined in the
 <A HREF="../SMLofNJ/pages/smlnj.html"><code>SMLofNJ</code></A>
@@ -210,7 +210,7 @@ create a normal executable file by using Lorenz Huelsbergen's
 | <A HREF="../../index.html">SML/NJ Home Page</A> |
 </STRONG></CENTER>
 <HR>
-Send your comments or questions to <img src="../../smlnj-list-logo.png" align=center>.<br>
+Send your comments or questions to <img src="../../images/smlnj-list-logo.png" align=center>.<br>
 Created by <A HREF="http://cm.bell-labs.com/cm/cs/who/dbm/">David MacQueen</A>
 on Wednesday, 9 Apr 1997.
 <BR>
