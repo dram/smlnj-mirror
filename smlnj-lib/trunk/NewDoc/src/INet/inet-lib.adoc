@@ -14,7 +14,7 @@ The *INet Library* provides utilities for network programming with sockets.
 xref:str-SockUtil.adoc[`[.kw]#structure# SockUtil`]::
   Various utility functions for programming with sockets.
 
-xref:str-SockUtil.adoc[`[.kw]#structure# UnixSockUtil`]::
+xref:str-UnixSockUtil.adoc[`[.kw]#structure# UnixSockUtil`]::
   Various utility functions for programming with Unix-domain sockets.
 
 == Usage
@@ -32,7 +32,7 @@ ifdef::backend-pdf[]
 
 include::str-SockUtil.adoc[]
 
-include::str-SockUtil.adoc[]
+include::str-UnixSockUtil.adoc[]
 
 // Return to normal title levels.
 :leveloffset: 0
