@@ -226,10 +226,14 @@ functor Hash2TableFn (
 	    HTRep.appi ins (! tbl1); newTbl
 	  end
 
+(* TODO: add mapPartial and mapPartiali *)
+
     fun fold f init (TBL{tbl1, ...}) =
 	  HTRep.fold (fn ((_, v), accum) => f(v, accum)) init (! tbl1)
     fun foldi f init (TBL{tbl1, ...}) =
 	  HTRep.foldi (fn (k1, (k2, v), accum) => f(k1, k2, v, accum)) init (! tbl1)
+
+(* TODO: add modify and modifyi *)
 
   (* remove any hash table items that do not satisfy the given
    * predicate.

@@ -95,4 +95,3 @@ structure MatchTree :> MATCH_TREE =
 	  end
 
   end (* MatchTree *)
-

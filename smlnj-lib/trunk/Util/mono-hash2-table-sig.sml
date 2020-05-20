@@ -66,11 +66,14 @@ signature MONO_HASH2_TABLE =
 		-> 'b hash_table
 	(* Map a table to a new table that has the same keys *)
 
+(* TODO: add mapPartial and mapPartiali *)
+
     val fold  : (('a * 'b) -> 'b) -> 'b -> 'a hash_table -> 'b
     val foldi : ((Key1.hash_key * Key2.hash_key * 'a * 'b) -> 'b) -> 'b
 		-> 'a hash_table -> 'b
 
-(** Also mapPartial?? *)
+(* TODO: add modify and modifyi *)
+
     val filter  : ('a -> bool) -> 'a hash_table -> unit
     val filteri : ((Key1.hash_key * Key2.hash_key * 'a) -> bool) -> 'a hash_table
 		-> unit
