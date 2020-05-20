@@ -18,7 +18,7 @@ structure MakeIndex : sig
   end = struct
 
     fun usage sts = (
-	  TextIO.print "usage: make-index index.json\n";
+	  TextIO.print "usage: make-index <outfile>\n";
 	  OS.Process.exit sts)
 
     fun main (cmd, args) = (case args
