@@ -1,0 +1,17 @@
+$archive/notes.txt
+
+1. Pattern match code versions through 0.93
+
+* 0.6	187.10.8   -- original match compiler  (src/translate/mc.sml, mcopt.sml)
+* 0.22	1988.9.9
+* 0.33	1989.3.31  -- same as 0.22, with minor differences; release version
+* 0.39	1989.8.22  -- same as 0.33
+* 0.44	1989,11,29 -- Duba version, changes mainly in mcopt.sml (choice heuristics); release version
+* 0.60	1990.7.13  -- same as 0.44 (minor, inessential changes)
+* 0.67	1990.11.21 -- same as 0.60 (minor changes)
+* 0.74	1991.10.10 -- same as 0.67 (minor changes); 0.75 was a major release
+* sml386 1992.2.7  -- Windows x386 port, appears to be based on 0.67 (or some pre-0.75 version)
+* 0.93	1993.2.15  -- Bill Aitken's rewrite of the match compiler, with OR patterns and pattern macros
+
+* late 90s, early 2000s, DBM simplifies MC, removing code supporting pattern macros [check version]
+
