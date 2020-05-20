@@ -1,4 +1,5 @@
-= SML/NJ Library
+= Overview
+:title: SML/NJ Library Overview
 :Author: John Reppy
 :Date: {release-date}
 :stem: latexmath

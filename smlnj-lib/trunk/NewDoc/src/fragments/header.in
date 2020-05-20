@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="generator" content="Asciidoctor 2.0.10">
-  <meta name="author" content="@AUTHOR@">
-  <meta name="keywords" content="Standard ML, SML">
+  <meta name="generator" content="Asciidoctor 2.0.10">@AUTHOR@@KEYWORDS@
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
   <title>@TITLE@</title>
   <link rel="stylesheet" href="@BASE@styles/smlnj-lib-base.css" type="text/css" />
   <link rel="stylesheet" href="@BASE@styles/smlnj-lib.css" type="text/css" />
