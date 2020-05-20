@@ -143,7 +143,7 @@ val bucketSizes : 'a hash_table -> int list
   using `init` as an initial value.
 
 `[.kw]#val# foldi : ((Key.hash_key * 'a * 'b) \-> 'b) \-> 'b \-> 'a hash_table \-> 'b`::
-  `foldi f init tbl` folds the function `f` over the key-velu entries in `tbl`
+  `foldi f init tbl` folds the function `f` over the key-value entries in `tbl`
   using `init` as an initial value.
 
 `[.kw]#val# modify  : ('a \-> 'a) \-> 'a hash_table \-> unit`::

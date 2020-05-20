@@ -82,7 +82,7 @@ xref:fun-GraphSCCFn.adoc[`[.kw]#functor# GraphSCCFn`]::
   components of a directed graph.
 
 xref:fun-Hash2TableFn.adoc[`[.kw]#functor# Hash2TableFn`]::
-  **To be written**
+  Provides hash tables that are keyed by two different key types.
 
 xref:sig-HASH_KEY.adoc[`[.kw]#signature# HASH_KEY`]::
   Defines an interface to a monomorphic type with an equality
