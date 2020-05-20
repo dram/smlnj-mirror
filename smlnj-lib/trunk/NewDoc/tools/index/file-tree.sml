@@ -9,36 +9,61 @@
 
 structure FileTree : sig
 
-  (* the root file of the documentation *)
-    datatype t = ROOT of {
-	stem : string,		(* should be "index" *)
-	libs : library list	(* list of libraries *)
+  (* meta data extracted from the attributes *)
+    type meta = {
+	author : string option,	(* value of "author" attribute *)
+	kws : string list,	(* value of "keywords" attribute *)
+	title : string option	(* alternate title to use in document header *)
       }
 
-    and library = LIB of {
+  (* a node in the file tree; the `info` field is used to distinguish the kind
+   * of node (root, library, or page).
+   *)
+    datatype 'a file = FILE of {
 	dir : string,		(* directory relative to the root of the documentation *)
 	stem : string,		(* file-name stem; e.g., "json-lib" *)
 	title : string,		(* title of page *)
-	tutorial : page option,	(* optional tutorial page *)
-	pages : page list	(* list of manual pages for library *)
+	meta : meta,		(* meta data from attributes *)
+	info : 'a		(* information specific to the type of file in the tree *)
       }
 
-    and page = PAGE of {
-	dir : string,		(* directory relative to the root of the documentation *)
-	stem : string,		(* file-name stem; e.g., "str-JSON" *)
-	title : string,		(* title of page *)
+  (* the leaves of the tree are the pages that describe the modules; the info is
+   * `NONE` for tutorial pages.
+   *)
+    type page = {
 	kind : string,		(* specifies the kind of the main module; will be
 				 * one of "signature", "structure", or "functor"
 				 *)
 	name : string		(* the main module name *)
-      }
+      } option file
+
+  (* the interior nodes correspond to libraries.  The info describes the pages
+   * that comprise the library's documentation.
+   *)
+    type library = {
+	tutorial : page option,	(* optional tutorial page *)
+	pages : page list	(* list of manual pages for library *)
+      } file
+
+  (* the root file of the documentation; the info is the list of libraries *)
+    type t = {libs : library list} file
 
   (* test equality by name *)
-    val sameLib : library * library -> bool
-    val samePage : page * page -> bool
+    val same : 'a file * 'a file -> bool
 
   (* is a page in a library? *)
     val inLibrary : library -> page -> bool
+
+  (* get various components of a tree node *)
+    val getAuthor : 'a file -> string option
+    val getKeywords : 'a file -> string list
+    val getAltTitle : 'a file -> string option
+    val getDir : 'a file -> string
+    val getStem : 'a file -> string
+    val getTitle : 'a file -> string
+    val getLibs : t -> library list
+    val getTutorial : library -> page option
+    val getPages : library -> page list
 
   (* apply the functions to the nodes of the tree *)
     val app : {
@@ -65,113 +90,169 @@ structure FileTree : sig
 
     structure U = JSONUtil
 
-    datatype t = ROOT of {
-	stem : string,
-	libs : library list
+  (* meta data extracted from the attributes *)
+    type meta = {
+	author : string option,	(* value of "author" attribute *)
+	kws : string list,	(* value of "keywords" attribute *)
+	title : string option	(* alternate title to use in document header *)
       }
 
-    and library = LIB of {
-	dir : string,
-	stem : string,
-	title : string,
-	tutorial : page option,
-	pages : page list
+    datatype 'a file = FILE of {
+	dir : string,		(* directory relative to the root of the documentation *)
+	stem : string,		(* file-name stem; e.g., "json-lib" *)
+	title : string,		(* title of page *)
+	meta : meta,		(* meta data from attributes *)
+	info : 'a		(* information specific to the type of file in the tree *)
       }
 
-    and page = PAGE of {
-	dir : string,
-	stem : string,
-	title : string,
-	kind : string,
-	name : string
-      }
+  (* the leaves of the tree are the pages that describe the modules; the info is
+   * `NONE` for tutorial pages.
+   *)
+    type page = {
+	kind : string,		(* specifies the kind of the main module; will be
+				 * one of "signature", "structure", or "functor"
+				 *)
+	name : string		(* the main module name *)
+      } option file
 
-    fun sameLib (LIB lib1, LIB lib2) = (#dir lib1 = #dir lib2)
+  (* the interior nodes correspond to libraries.  The info describes the pages
+   * that comprise the library's documentation.
+   *)
+    type library = {
+	tutorial : page option,	(* optional tutorial page *)
+	pages : page list	(* list of manual pages for library *)
+      } file
 
-    fun samePage (PAGE p1, PAGE p2) =
-	  (#dir p1 = #dir p2) andalso (#stem p1 = #stem p2)
+  (* the root file of the documentation; the info is the list of libraries *)
+    type t = {libs : library list} file
 
-    fun inLibrary (LIB lib) (PAGE p) = (#dir lib = #dir p)
+  (* test equality by name *)
+    fun same (FILE f1, FILE f2) = (#dir f1 = #dir f2) andalso (#stem f1 = #stem f2)
 
-    fun app {root, lib, page} (ft as ROOT{libs, ...}) = let
-	  fun walkLib (l as LIB{tutorial, pages, ...}) = (
+  (* is a page in a library? *)
+    fun inLibrary (FILE lib) (FILE p) = (#dir lib = #dir p)
+
+  (* get various components of a tree node *)
+    fun getAuthor (FILE{meta={author, ...}, ...}) = author
+    fun getKeywords (FILE{meta={kws, ...}, ...}) = kws
+    fun getAltTitle (FILE{meta={title, ...}, ...}) = title
+    fun getDir (FILE{dir, ...}) = dir
+    fun getStem (FILE{stem, ...}) = stem
+    fun getTitle (FILE{title, ...}) = title
+    fun getLibs (FILE{info={libs}, ...}) = libs
+    fun getTutorial (FILE{info={tutorial, pages}, ...}) = tutorial
+    fun getPages (FILE{info={tutorial=SOME p, pages}, ...}) = p :: pages
+      | getPages (FILE{info={pages, ...}, ...}) = pages
+
+    fun inLibrary (FILE lib) (FILE p) = (#dir lib = #dir p)
+
+    fun app {root, lib, page} (ft : t) = let
+	  fun walkLib (l : library) = (
 		lib (ft, l);
-		Option.app (fn p => page(ft, l, p)) tutorial;
-		List.app (fn p => page(ft, l, p)) pages)
+		List.app (fn p => page(ft, l, p)) (getPages l))
 	  in
 	    root ft;
-	    List.app walkLib libs
+	    List.app walkLib (getLibs ft)
 	  end
 
-    fun walk {root, lib, page} (ft as ROOT{libs, ...}) = let
-	  fun walkLib (l as LIB{tutorial, pages, ...}) = (
+    fun walk {root, lib, page} (ft : t) = let
+	  fun walkLib (l : library) = (
 		lib (true, ft, l);
-		Option.app (fn p => page(ft, l, p)) tutorial;
-		List.app (fn p => page(ft, l, p)) pages;
+		List.app (fn p => page(ft, l, p)) (getPages l);
 		lib (false, ft, l))
 	  in
 	    root (true, ft);
-	    List.app walkLib libs;
+	    List.app walkLib (getLibs ft);
 	    root (false, ft)
 	  end
 
     datatype value = datatype JSON.value
 
     fun fromJSON root = let
-	  fun jsonToLib obj = let
+	  fun jsonToMeta findField = {
+		  author = (case findField "meta-author"
+		     of NONE => NONE
+		      | SOME NULL => NONE
+		      | SOME obj => SOME(U.asString obj)
+		    (* end case *)),
+		  kws = (case findField "meta-keywords"
+		     of NONE => []
+		      | SOME NULL => []
+		      | SOME kws => U.arrayMap U.asString kws
+		    (* end case *)),
+		  title = (case findField "meta-title"
+		     of NONE => NONE
+		      | SOME NULL => NONE
+		      | SOME obj => SOME(U.asString obj)
+		    (* end case *))
+		}
+	  fun jsonToFile obj getInfo = let
 		val get = U.lookupField obj
+		val find = U.findField obj
 		in
-		  LIB{
+		  FILE{
 		      dir = U.asString(get "dir"),
 		      stem = U.asString(get "stem"),
 		      title = U.asString(get "title"),
-		      tutorial = (case U.findField obj "tutorial"
-			 of NONE => NONE
-			  | SOME NULL => NONE
-			  | SOME obj => SOME(jsonToPage obj)
-			(* end case *)),
-		      pages = U.arrayMap jsonToPage (get "pages")
+		      meta = jsonToMeta find,
+		      info = getInfo (get, find)
 		    }
 		end
-	  and jsonToPage obj = let
-		val get = U.lookupField obj
-		in
-		  PAGE{
-		      dir = U.asString(get "dir"),
-		      stem = U.asString(get "stem"),
-		      title = U.asString(get "title"),
-		      kind = U.asString(get "kind"),
-		      name = U.asString(get "name")
-		    }
-		end
-	  val get = U.lookupField root
+	  fun jsonToPage obj = jsonToFile obj (fn (_, find) => (
+		case (find "kind", find "name")
+		 of (SOME k, SOME n) => SOME{kind = U.asString k, name = U.asString n}
+		  | (NONE, NONE) => NONE
+		  | _ => raise Fail "misformed page"
+		(* end case *)))
+	  fun jsonToLib obj = jsonToFile obj (fn (get, find) => {
+		  tutorial = (case find "tutorial"
+		     of NONE => NONE
+		      | SOME NULL => NONE
+		      | SOME obj => SOME(jsonToPage obj)
+		    (* end case *)),
+		  pages = U.arrayMap jsonToPage (get "pages")
+		})
 	  in
-	    ROOT{
-		stem = U.asString(get "stem"),
+	    jsonToFile root (fn (get, _) => {
 		libs = U.arrayMap jsonToLib (get "libraries")
-	      }
+	      })
 	  end
 
-    fun toJSON (ROOT{stem, libs}) = let
-	  fun libToJSON (LIB{dir, stem, title, tutorial, pages}) = OBJECT[
-		  ("dir", STRING dir),
-		  ("stem", STRING stem),
-		  ("title", STRING title),
-		  ("tutorial", case tutorial of SOME p => pageToJSON p | _ => NULL),
-		  ("pages", ARRAY(map pageToJSON pages))
-		]
-	  and pageToJSON (PAGE{dir, stem, title, kind, name}) = OBJECT[
-		  ("dir", STRING dir),
-		  ("stem", STRING stem),
-		  ("title", STRING title),
-		  ("kind", STRING kind),
-		  ("name", STRING name)
-		]
+    fun toJSON root = let
+	  fun metaToJSON (meta : meta, fields) = let
+		val fields = (case #title meta
+		       of NONE => fields
+			| SOME s => ("meta-title", STRING s) :: fields
+		      (* end case *))
+		val fields = (case #kws meta
+		       of [] => fields
+			| kws => ("meta-keywords", ARRAY(List.map STRING kws)) :: fields
+		      (* end case *))
+		val fields = (case #author meta
+		       of NONE => fields
+			| SOME s => ("meta-author", STRING s) :: fields
+		      (* end case *))
+		in
+		  fields
+		end
+	  fun fileToJSON (FILE{dir, stem, title, meta, info}) infoToJSON = let
+		val fields = infoToJSON info
+		val fields = metaToJSON (meta, fields)
+		in
+		  OBJECT(
+		    ("dir", STRING dir) ::
+		    ("stem", STRING stem) ::
+		    ("title", STRING title) ::
+		    fields)
+		end
+	  fun pageToJSON page = fileToJSON page
+		(fn NONE => []
+		  | SOME{kind, name} => [("kind", STRING kind), ("name", STRING name)])
+	  fun libToJSON lib = fileToJSON lib
+		(fn _ => [("pages", ARRAY(map pageToJSON (getPages lib)))])
 	  in
-	    OBJECT[
-		("stem", STRING stem),
-		("libraries", ARRAY(map libToJSON libs))
-	      ]
+	    fileToJSON root
+	      (fn {libs} => [("libraries", ARRAY(map libToJSON libs))])
 	  end
 
   end

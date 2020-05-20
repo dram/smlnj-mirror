@@ -43,7 +43,7 @@ structure GenTOC : sig
    *	inRoot  -- the containing page is at root level
    *)
     fun libItemOpen {lib, link, cur, inRoot} = let
-	  val FT.LIB{dir, stem, title, ...} = lib
+	  val FT.FILE{dir, stem, title, ...} = lib
 	  val s = if link then ["</a>"] else []
 	  val s = if cur
 		then "<span class=\"toc-lib-title\" id=\"toc-current\">"
@@ -67,14 +67,14 @@ structure GenTOC : sig
    *	cur     -- this library is the current page
    *)
     fun pageItem {page, link, cur} = let
-	  val FT.PAGE{stem, title, ...} = page
+	  val title = styleText(FT.getTitle page)
 	  val s = if link then ["</a></li>"] else ["</li>"]
 	  val s = if cur
 		then "<span class=\"toc-lib-page\" id=\"toc-current\">"
-		  :: styleText title :: "</span>" :: s
-		else "<span class=\"toc-lib-page\">" :: styleText title :: "</span>" :: s
+		  :: title :: "</span>" :: s
+		else "<span class=\"toc-lib-page\">" :: title :: "</span>" :: s
 	  val s = if link
-		then "<a href=\"" ::  stem :: ".html\">" :: s
+		then "<a href=\"" :: FT.getStem page :: ".html\">" :: s
 		else s
 	  val s = "<li class=\"toc-page\">" :: s
 	  in
@@ -85,7 +85,7 @@ structure GenTOC : sig
       | doRoot outS (false, _) = pr(outS, "</ul>\n")
 
   (* generate a TOC file for the root page *)
-    fun root (ft as FT.ROOT{stem, ...}) outS = doTOC outS (fn outS => let
+    fun root (ft) outS = doTOC outS (fn outS => let
 	  fun doLib (true, _, lib) =
 		prl(outS, [
 		    "  ", libItemOpen{lib=lib, link=true, cur=false, inRoot=true}
@@ -100,9 +100,9 @@ structure GenTOC : sig
 	  end)
 
   (* generate a TOC file for a library page *)
-    fun lib (ft, lib as FT.LIB{dir, stem, ...}) outS = doTOC outS (fn outS => let
+    fun lib (ft, lib) outS = doTOC outS (fn outS => let
 	  fun doLib (true, _, lib') = let
-		val cur = FT.sameLib(lib, lib')
+		val cur = FT.same(lib, lib')
 		in
 		  prl(outS, [
 		      "  ", libItemOpen{lib=lib', link=not cur, cur=cur, inRoot=false}
@@ -111,10 +111,10 @@ structure GenTOC : sig
 		    then pr(outS, "\n    <ul class=\"toc-page-list\">\n")
 		    else ()
 		end
-	    | doLib (false, _, lib') = if FT.sameLib(lib, lib')
+	    | doLib (false, _, lib') = if FT.same(lib, lib')
 		then prl(outS, ["    </ul>\n", "  </li>\n"])
 		else pr(outS, "</li>\n")
-	  fun doPage (_, lib', page) = if FT.sameLib(lib, lib')
+	  fun doPage (_, lib', page) = if FT.same(lib, lib')
 		then prl(outS, [
 		    "      ",
 		    pageItem {page=page, link=true, cur=false},
@@ -130,10 +130,10 @@ structure GenTOC : sig
 	  end)
 
   (* generate a TOC file for a manual page *)
-    fun page (ft, lib, page as FT.PAGE{dir, stem, ...}) outS =
+    fun page (ft, lib, page) outS =
 	  doTOC outS (fn outS => let
 	    fun doLib (true, _, lib') = let
-		  val cur = FT.sameLib(lib, lib')
+		  val cur = FT.same(lib, lib')
 		  in
 		    prl(outS, [
 			"  ", libItemOpen{lib=lib', link=true, cur=false, inRoot=false}
@@ -142,12 +142,12 @@ structure GenTOC : sig
 		      then pr(outS, "\n    <ul class=\"toc-page-list\">\n")
 		      else ()
 		  end
-	      | doLib (false, _, lib') = if FT.sameLib(lib, lib')
+	      | doLib (false, _, lib') = if FT.same(lib, lib')
 		  then prl(outS, ["    </ul>\n", "  </li>\n"])
 		  else pr(outS, "</li>\n")
-	    fun doPage (_, lib', page') = if FT.sameLib(lib, lib')
+	    fun doPage (_, lib', page') = if FT.same(lib, lib')
 		  then let
-		    val cur = FT.samePage(page, page')
+		    val cur = FT.same(page, page')
 		    in
 		      prl(outS, [
 		          "      ",

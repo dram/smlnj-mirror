@@ -23,7 +23,9 @@ structure ExtractIndex : sig
 	structure E = BackTrackEngine)
     structure MT = MatchTree
     structure SS = Substring
+    structure SIO = TextIO.StreamIO
 
+    val attrRE = RE.compileString "^:!?([^!:]+)!?:(.*)"
     val includeRE = RE.compileString "^include::([^.]+\\.adoc)\\[\\]"
     val pageRefRE =
 	  RE.compileString
@@ -40,8 +42,39 @@ structure ExtractIndex : sig
 
     fun trimWS ss = SS.dropr Char.isSpace (SS.dropl Char.isSpace ss)
 
+  (* match an asciidoctor atrribute *)
+    val matchAttr = match attrRE
+
+  (* extract attribute values from lines immediately following the title *)
+    fun scanMeta inputStrm = let
+	  val inS' = TextIO.getInstream inputStrm
+	  val author = ref NONE
+	  val keywords = ref []
+	  val title = ref NONE
+	  fun trim s = SS.string(trimWS(SS.full s))
+	  fun scan inS = (case SIO.inputLine inS
+		 of SOME(ln, inS') => (case matchAttr ln
+		       of SOME(MT.Match(_, [MT.Match(a, []), MT.Match(v, [])])) => (
+			    case String.map Char.toLower a
+			     of "author" => author := SOME(trim v)
+			      | "keywords" => keywords :=
+				  List.map trim
+				    (String.tokens (fn #"," => true | _ => false) v)
+			      | "title" => title := SOME(trim v)
+			      | _ => ()
+			    (* end case *);
+			    scan inS')
+			| _ => inS
+		      (* end case *))
+		  | NONE => inS
+		(* end case *))
+	  in
+	    TextIO.setInstream (inputStrm, scan (TextIO.getInstream inputStrm));
+	    { author = !author, kws = !keywords, title = !title }
+	  end
+
   (* open a documentation file and extract some common information *)
-    fun openFile rootDir path = let
+    fun scanFile rootDir path getContents processContent = let
 	  val dir = P.dir path
 	  val stem = P.base(P.file path)
 	  val inS = openIn (rootDir, path)
@@ -49,12 +82,18 @@ structure ExtractIndex : sig
 	  val title = if String.isPrefix "= " firstLn
 	        then SS.string(trimWS(SS.extract(firstLn, 2, NONE)))
 		else "<title>"
-	  in {
-	    dir = dir,
-	    stem = stem,
-	    title = title,
-	    inS = inS
-	  } end
+	  val meta = scanMeta inS
+	  val contents = getContents inS
+	  in
+	    TextIO.closeIn inS;
+	    FT.FILE{
+		dir = dir,
+		stem = stem,
+		title = title,
+		meta = meta,
+		info = processContent contents
+	      }
+	  end
 
   (* scan the input stream until a line for which f returns `SOME v` is encountered *)
     fun scanLines f inS = let
@@ -75,27 +114,24 @@ structure ExtractIndex : sig
   (* find the next page reference *)
     fun findPageRef inS = scanLines (match pageRefRE) inS
 
-    fun doPage rootDir libDir {file, kw, name} = let
+    fun doPage rootDir libDir {file, info} = let
 	  val pagePath = P.joinDirFile{dir = libDir, file = file}
-	  val {dir, stem, title, inS} = openFile rootDir pagePath
 	  in
-	    FT.PAGE{
-		dir = dir,
-		stem = stem,
-		title = title,
-		kind = kw,
-		name = name
-	      }
-	    before TextIO.closeIn inS
+(* NOTE: for now, we only extract the header info from pages, but eventually
+ * we should get the list of defined modules.
+ *)
+	    scanFile rootDir pagePath
+	      (fn inS => info)
+		(fn info => info)
 	  end
 
-  (* extract the list of manual-page files from a library document *)
+  (* extract the list of page files from a library document *)
     fun getPagesFromLib inS = let
 	  fun getPages pages = (case findPageRef inS
 		 of SOME(MT.Match(_, [
 		      MT.Match(file, []), MT.Match(kw, []), MT.Match(name, [])
 		    ])) => let
-		      val page = {file = file, kw = kw, name = name}
+		      val page = {file = file, info = SOME{kind = kw, name = name}}
 		      in
 			getPages (page::pages)
 		      end
@@ -105,20 +141,21 @@ structure ExtractIndex : sig
 		      ])
 		(* end case *))
 	  in
-	    getPages [] before TextIO.closeIn inS
+	    {tutorial = NONE, pages = getPages []}
 	  end
 
+  (* process a library file *)
     fun doLib rootDir libPath = let
-	  val {dir, stem, title, inS} = openFile rootDir libPath
+	  val libDir = P.dir libPath
 	  in
-	    FT.LIB{
-		dir = dir,
-		stem = stem,
-		title = title,
-		tutorial = NONE,	(* FIXME *)
-		pages = List.map (doPage rootDir dir) (getPagesFromLib inS)
-	      }
-	    before TextIO.closeIn inS
+	    scanFile rootDir libPath
+	      getPagesFromLib
+		(fn {tutorial, pages} => let
+		    val doPage = doPage rootDir libDir
+		    in {
+		      tutorial = Option.map doPage tutorial,
+		      pages = List.map doPage pages
+		    } end)
 	  end
 
   (* extract the list of library files from the root document *)
@@ -132,16 +169,15 @@ structure ExtractIndex : sig
 		      ])
 		(* end case *))
 	  in
-	    getIncludes [] before TextIO.closeIn inS
+	    getIncludes []
 	  end
 
     fun extract rootDir = let
 	  val rootDir = OS.FileSys.fullPath rootDir
-	  val inS = openIn (rootDir, "index.adoc")
-	  val libs = getLibsFromRoot inS
 	  in
-	    FT.ROOT{stem = "index", libs = List.map (doLib rootDir) libs}
-	      before TextIO.closeIn inS
+	    scanFile rootDir "index.adoc"
+	      getLibsFromRoot
+		(fn libs => {libs = List.map (doLib rootDir) libs})
 	  end
 
   end

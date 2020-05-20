@@ -14,28 +14,44 @@ structure Main : sig
     structure P = OS.Path
 
   (* create a copy-file function with the specified substitutions *)
-    fun copy {author, title, file, base} = let
+    fun copy {meta : FT.meta, title, file, base} = let
 	  val d = Date.fromTimeUniv(OS.FileSys.modTime file)
 	  val date = Date.fmt "%Y-%m-%d" d
 	  val time = Date.fmt "%H:%M:%S UTC" d
+	  val substs = [
+		  ("STYLED-TITLE", Util.style title),
+		  ("DATE", !Options.releaseDate),
+		  ("VERSION", !Options.version),
+		  ("FILEDATE", date),
+		  ("FILETIME", time),
+		  ("BASE", base)
+		]
+	  fun metaStr (k, v) = concat[
+		  "\n  <meta name=\"", k, "\" content=\"", v, "\">"
+		]
+	(* the contents of the <title> element in the <head> *)
+	  val substs = (case #title meta
+		 of SOME s => ("TITLE", s) :: substs
+		  | NONE => ("TITLE", Util.clean title) :: substs
+		(* end case *))
+	  val substs = (case #author meta
+		 of SOME s => ("AUTHOR", metaStr("author", s)) :: substs
+		  | NONE => ("AUTHOR", "") :: substs
+		(* end case *))
+	  val substs = (case #kws meta
+		 of [] => ("KEYWORDS", "") :: substs
+		  | l => ("KEYWORDS", metaStr("keywords", String.concatWith "," l))
+		      :: substs
+		(* end case *))
 	  in
-	    CopyFile.copy [
-		("AUTHOR", author),
-		("TITLE", Util.clean title),
-		("STYLED-TITLE", Util.style title),
-		("DATE", !Options.releaseDate),
-		("VERSION", !Options.version),
-		("FILEDATE", date),
-		("FILETIME", time),
-		("BASE", base)
-	      ]
+	    CopyFile.copy substs
 	  end
 
-    fun gen {dir, stem, title, genTOC} = let
+    fun gen genTOC (FT.FILE{dir, stem, title, meta, ...}) = let
 	  val srcFile = P.concat(dir, stem ^ ".adoc")
 	  val htmlFile = P.concat(dir, stem ^ ".html")
 	  val copy = copy {
-		  author = "??",
+		  meta = meta,
 		  title = title,
 		  file = srcFile,
 		  base = if dir = "" then "" else "../"
@@ -54,28 +70,13 @@ structure Main : sig
 	  end
 
   (* generate the root page *)
-    fun appRoot (ft as FT.ROOT{stem, ...}) = gen {
-	    dir = "",
-	    stem = stem,
-	    title = "Overview",
-	    genTOC = GenTOC.root ft
-	  }
+    fun appRoot ft = gen (GenTOC.root ft) ft
 
   (* generate a library page *)
-    fun appLib (ft, lib as FT.LIB{dir, stem, title, ...}) = gen {
-	    dir = dir,
-	    stem = stem,
-	    title = title,
-	    genTOC = GenTOC.lib (ft, lib)
-	  }
+    fun appLib (ft, lib) = gen (GenTOC.lib (ft, lib)) lib
 
   (* generate a TOC file for a manual page *)
-    fun appPage (ft, lib, page as FT.PAGE{dir, stem, title, ...}) = gen {
-	    dir = dir,
-	    stem = stem,
-	    title = title,
-	    genTOC = GenTOC.page (ft, lib, page)
-	  }
+    fun appPage (ft, lib, page) = gen (GenTOC.page (ft, lib, page)) page
 
     fun loadIndex indexFile = FT.fromJSON (JSONParser.parseFile indexFile)
 
