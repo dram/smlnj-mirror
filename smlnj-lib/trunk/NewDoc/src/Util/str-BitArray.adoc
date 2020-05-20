@@ -160,11 +160,13 @@ eqBits(ba1, ba2) = (getBits ba1 = getBits ba2)
   `notb ba` returns a new array of the same length as `ba` with
   the elements negated.
 
+[[val:_lt_lt_]]
 `[.kw]#val# <<  : (array * word) \-> array`::
   `<< (ba, n)`returns a new array by appending `n` `false`
   elements on the end of `ba`.  The new array will have
   length equal to `n + length ba`.
 
+[[val:_gt_gt_]]
 `[.kw]#val# >>  : (array * word) \-> array`::
   `>> (ba, n)`returns a new array by trimming `n` elements
   from the "right" of `ba`.  The new array will have
@@ -198,13 +200,12 @@ eqBits(ba1, ba2) = (getBits ba1 = getBits ba2)
 === Deprecated Functions
 
 `[.kw]#val# lshift  : (array * int) \-> array`::
-    Use xref:#val:<<[`<<`] instead.
+    Use xref:#val:_lt_lt_[`<<`] instead.
 
 `[.kw]#val# rshift  : (array * int) \-> array`::
-    Use xref:#val:>>[`>>`] instead.
+    Use xref:#val:_gt_gt_[`>>`] instead.
 
 == See Also
 
-xref:str-BitVector.adoc[`BitVector`],
 {sml-basis-url}/mono-array.html[`MONO_ARRAY`],
 xref:smlnj-lib.adoc[__The Util Library__]

@@ -142,7 +142,7 @@ val alli : (Key.ord_key * 'a -> bool) -> 'a map -> bool
 
 `[.kw]#val# lookup : 'a map * Key.ord_key \-> 'a`::
   `lookup (m, key)` returns `v`, if `m` maps `key` to `v`; otherwise it
-  raises the exception xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`].
+  raises the exception xref:str-LibBase.adoc#exn:NotFound[`NotFound`].
 
 `[.kw]#val# inDomain : ('a map * Key.ord_key) \-> bool`::
   `inDomain (m, key)` returns `true` if `key` is in the domain of `m`.
@@ -151,7 +151,7 @@ val alli : (Key.ord_key * 'a -> bool) -> 'a map -> bool
   `remove (m, key)` returns the pair `(m', v)`, if `m` maps `key` to `v`
   and where `m'` is `m` with `key` removed from its domain.  If `key`
   is not in the domain of `m`, then it raises the exception
-  xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`].
+  xref:str-LibBase.adoc#exn:NotFound[`NotFound`].
 
 `[.kw]#val# first : 'a map \-> 'a option`::
   `first m` returns `SOME item` when `item` is the value associated with
@@ -357,29 +357,36 @@ The `mergeWith` function is a generalization of the `unionWith` and
 
 == Instances
 
+[[str:AtomMap]]
 `[.kw]#structure# AtomMap`::
   This structure is an alias for `AtomRedBlackMap`.
 
+[[str:AtomBinaryMap]]
 `[.kw]#structure# AtomBinaryMap`::
   Maps over atoms implemented using balanced binary trees.
   Note that it is recommended that one use the `AtomMap` structure
   as it provides better performance.
 
+[[str:AtomRedBlackMap]]
 `[.kw]#structure# AtomRedBlackMap`::
   Maps over atoms implemented using red-black trees.
 
+[[str:IntBinaryMap]]
 `[.kw]#structure# IntBinaryMap`::
   Maps over ints implemented using balanced binary trees.
   Note that it is recommended that one use the `IntRedBlackMap` structure
   as it provides better performance.
 
+[[str:IntListMap]]
 `[.kw]#structure# IntListMap`::
   Maps over words implemented using sorted lists.  This implementation
   is fast for small sets, but does not scale well to large sizes.
 
+[[str:IntRedBlackMap]]
 `[.kw]#structure# IntRedBlackMap`::
   Maps over ints implemented using red-black binary trees.
 
+[[str:WordRedBlackMap]]
 `[.kw]#structure# WordRedBlackMap`::
   Maps over words implemented using red-black binary trees.
 
@@ -389,5 +396,5 @@ xref:fun-BinaryMapFn.adoc[`BinaryMapFn`],
 xref:fun-ListMapFn.adoc[`ListMapFn`],
 xref:sig-ORD_KEY.adoc[`ORD_KEY`],
 xref:fun-RedBlackMapFn.adoc[`RedBlackMapFn`],
-xref:fun-SplayMapFn[`SplayMapFn`],
+xref:fun-SplayMapFn.adoc[`SplayMapFn`],
 xref:smlnj-lib.adoc[__The Util Library__]

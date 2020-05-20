@@ -60,10 +60,11 @@ val controls : (registry * int option) -> registry_tree
 == Description
 
 `[.kw]#type# registry`::
-  something
+  the type of a control registry hierarchy.
 
 `[.kw]#type# control_info = { envName : string option }`::
-  something
+  a record of information about a control.  Currently, this record type
+  only contains an optional environment-variable name for the control.
 
 `[.kw]#val# new : {help : string} \-> registry`::
   `new {help}` creates a new registry, where the `help` string
@@ -76,7 +77,7 @@ val controls : (registry * int option) -> registry_tree
 
 `[.kw]#val# registerSet : registry \-> {ctls, mkEnvName} \-> unit`::
   `registerSet {ctls, mkEnvName}` registers the controls in the
-  xref:str-ControlSet.adoc#:type:control_set[control set] `ctls`.
+  xref:str-ControlSet.adoc#type:control_set[control set] `ctls`.
   The function `mkEnvName` is applied to the names of the controls
   to generate the optional environment-variable names.
 
@@ -101,6 +102,7 @@ val controls : (registry * int option) -> registry_tree
         The child registry being added to `parent`.
 --
 
+[[val:control]]
 `[.kw]#val# control : registry \-> string list \-> string Controls.control option`::
   `control reg path` searches the registry for a control with the given `path`.
 

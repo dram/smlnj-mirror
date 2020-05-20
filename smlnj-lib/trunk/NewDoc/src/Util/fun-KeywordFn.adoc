@@ -78,5 +78,5 @@ is maintained for backward compatibility.
 == See Also
 
 xref:str-Atom.adoc[`Atom`],
-xref:str-AtomTable.adoc[`AtomTable`],
+xref:sig-MONO_HASH_TABLE.adoc#str:AtomTable[`AtomTable`],
 xref:smlnj-lib.adoc[__The Util Library__]

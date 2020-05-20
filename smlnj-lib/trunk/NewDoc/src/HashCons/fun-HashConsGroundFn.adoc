@@ -64,5 +64,5 @@ structure HCPairs = HashConsGroundFn (
 
 == See Also
 
-xref:str-hash-cons.adoc[`HashCons`],
+xref:str-HashCons.adoc[`HashCons`],
 xref:hash-cons-lib.adoc[__The HashCons Library__]

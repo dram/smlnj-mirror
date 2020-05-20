@@ -143,7 +143,7 @@ val find : (item -> bool) -> set -> item option
 `[.kw]#val# delete : set * item \-> set`::
   `delete (set, item)` removes the object `item` from `set`.
   Unlike `subtract`, the `delete` function raises the
-  xref:../Util/str-LibBase.adoc#exn:NotFound[`NotFound`]
+  xref:str-LibBase.adoc#exn:NotFound[`NotFound`]
   exception if `item` is not in the set.
 
 `[.kw]#val# member : set * item \-> bool`::
@@ -284,29 +284,36 @@ deprecated.
 
 == Instances
 
+[[str:AtomSet]]
 `[.kw]#structure# AtomSet`::
   This structure is an alias for `AtomRedBlackSet`.
 
+[[str:AtomBinarySet]]
 `[.kw]#structure# AtomBinarySet`::
   Sets of atoms implemented using balanced binary trees.
   Note that it is recommended that one use the `AtomSet` structure
   as it provides better performance.
 
+[[str:AtomRedBlackSet]]
 `[.kw]#structure# AtomRedBlackSet`::
   Sets of atoms implemented using red-black trees.
 
+[[str:IntBinarySet]]
 `[.kw]#structure# IntBinarySet`::
   Sets of ints implemented using balanced binary trees.
   Note that it is recommended that one use the `IntRedBlackSet` structure
   as it provides better performance.
 
+[[str:IntListSet]]
 `[.kw]#structure# IntListSet`::
   Sets of words implemented using sorted lists.  This implementation
   is fast for small sets, but does not scale well to large sizes.
 
+[[str:IntRedBlackSet]]
 `[.kw]#structure# IntRedBlackSet`::
   Sets of ints implemented using red-black binary trees.
 
+[[str:WordRedBlackSet]]
 `[.kw]#structure# WordRedBlackSet`::
   Sets of words implemented using red-black binary trees.
 
@@ -316,5 +323,5 @@ xref:fun-BinarySetFn.adoc[`BinarySetFn`],
 xref:fun-ListSetFn.adoc[`ListSetFn`],
 xref:sig-ORD_KEY.adoc[`ORD_KEY`],
 xref:fun-RedBlackSetFn.adoc[`RedBlackSetFn`],
-xref:fun-SplaySetFn[`SplaySetFn`],
+xref:fun-SplaySetFn.adoc[`SplaySetFn`],
 xref:smlnj-lib.adoc[__The Util Library__]

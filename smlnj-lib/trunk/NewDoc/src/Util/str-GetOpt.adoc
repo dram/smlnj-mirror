@@ -82,19 +82,23 @@ val getOpt : {
   The constructors are interpreted as follows:
 +
 --
+[[con:NoArg]]
 `NoArg of unit \-> 'a`::
   The option does not have an argument, the supplied function is applied to
   unit when processing the option.
 
+[[con:ReqArg]]
 `ReqArg of (string \-> 'a) * string`::
   The option requires an argument, which is handled by the given function.
   The string is the name of the argument used when printing a usage message.
 
+[[con:OptArg]]
 `OptArg of (string option \-> 'a) * string`::
   The argument is optional and
   The string is the name of the argument used when printing a usage message.
 --
 
+[[type:opt_descr]]
 `[.kw]#type# 'a opt_descr = { ... }`::
   This record type describes the properties of a command-line option.
   Its fields have the following meaning:

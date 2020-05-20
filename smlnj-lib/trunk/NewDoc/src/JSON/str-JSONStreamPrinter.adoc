@@ -127,5 +127,5 @@ val endArray : printer -> unit
 == See Also
 
 xref:str-JSONPrinter.adoc[`JSONPrinter`],
-xref:str-JSONSteamParser.adoc[`JSONStreamParser`],
+xref:str-JSONStreamParser.adoc[`JSONStreamParser`],
 xref:json-lib.adoc[__The JSON Library__]

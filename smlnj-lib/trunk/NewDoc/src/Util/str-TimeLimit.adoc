@@ -34,7 +34,7 @@ val timeLimit : Time.time -> ('a -> 'b) -> 'a -> 'b
 `[.kw]#val# timeLimit : Time.time \-> ('a \-> 'b) \-> 'a \-> 'b`::
   `timeLimit t f x` computes the expression `f x`.  If the computation
   takes longer than the time limit `t`, then the
-  xref:#exn:TimeLimit[`TimeLimit`] exception is raised.
+  xref:#exn:TimeOut[`TimeOut`] exception is raised.
 
 == See Also
 

@@ -41,7 +41,7 @@ val maxPt : point
 `[.kw]#type# point`::
   The abstract type of elements in the ordered domain.
 
-[[#val:compare]]
+[[val:compare]]
 `[.kw]#val# compare : (point * point) \-> order`::
   `compare (pt1, pt2)` returns the relation between two points
   in the domain.
@@ -60,11 +60,11 @@ val maxPt : point
   `isSucc (pt1, pt2)` returns `true` if `pt1` is the predecessor
   of `pt2` and `pt2 is the successor of `pt1`.
 
-[[#val:minPt]]
+[[val:minPt]]
 `[.kw]#val# minPt : point`::
   The minimum point in the domain.
 
-[[#val:maxPt]]
+[[val:maxPt]]
 `[.kw]#val# maxPt : point`::
   The maximum point in the domain.
 

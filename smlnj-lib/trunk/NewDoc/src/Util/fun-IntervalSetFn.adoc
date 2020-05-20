@@ -97,7 +97,7 @@ val isSubset : set * set -> bool
 
 `[.kw]#val# universe : set`::
   The set of all elements in the domain, which is specified as the
-  interval `(xref:INTERVAL_DOMAIN.adoc#val:minPt[D.minPt], xref:INTERVAL_DOMAIN.adoc#val:maxPt[D.maxPt])`.
+  interval `(xref:sig-INTERVAL_DOMAIN.adoc#val:minPt[D.minPt], xref:sig-INTERVAL_DOMAIN.adoc#val:maxPt[D.maxPt])`.
 
   (* a set of a single element *)
 `[.kw]#val# singleton : item \-> set`::
@@ -107,7 +107,7 @@ val isSubset : set * set -> bool
 `[.kw]#val# interval : item * item \-> set`::
   `singleton (pt1, pt2)` returns a set containing the items between
   the items `pt1` and `pt2` (as ordered by
-  xref:sig-INTERVAL_DOMAIN.adoc#compare[`D.compare`]).
+  xref:sig-INTERVAL_DOMAIN.adoc#val:compare[`D.compare`]).
   This expression raises the
   {sml-basis-url}/general.html#SIG:GENERAL.Domain:EXN[`Domain`] exception
   if `D.compare(pt1, pt2) = GREATER`.

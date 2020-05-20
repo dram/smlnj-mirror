@@ -177,13 +177,16 @@ map (fn x => x) tbl
 
 == Instances
 
+[[str:AtomTable]]
 `[.kw]#structure# AtomTable`::
   This structure implements hash tables keyed by the
   xref:str-Atom.adoc#type:atom[`Atom.atom`] type.
 
+[[str:IntHashTable]]
 `[.kw]#structure# IntHashTable`::
   This structure implements hash tables keyed by the default `int` type.
 
+[[str:WordHashTable]]
 `[.kw]#structure# WordHashTable`::
   This structure implements hash tables keyed by the default `word` type.
 
@@ -191,5 +194,5 @@ map (fn x => x) tbl
 
 xref:sig-HASH_KEY.adoc[`HASH_KEY`],
 xref:str-HashTable.adoc[`HashTable`],
-xref:str-HashTableFn.adoc[`HashTableFn`],
+xref:fun-HashTableFn.adoc[`HashTableFn`],
 xref:smlnj-lib.adoc[__The Util Library__]

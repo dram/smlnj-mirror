@@ -104,6 +104,7 @@ val fold : (item * 'b -> 'b) -> 'b -> set -> 'b
 `[.kw]#val# addList : set * item list \-> unit`::
   `addList (set, items)` destructively adds the list of items to the set.
 
+[[val:subtract]]
 `[.kw]#val# subtract : set * item \-> unit`::
   `subtract (set, item)` removes the object `item` from `set`; it has no
   effect if `item` is not in `set`.
@@ -156,5 +157,5 @@ mkFromList (List.map f (toList set))
 == See Also
 
 xref:sig-HASH_KEY.adoc[`HASH_KEY`],
-xref:sig-MONO_ORD_SET.adoc[`MONO_ORD_SET`],
+xref:sig-ORD_SET.adoc[`ORD_SET`],
 xref:smlnj-lib.adoc[__The Util Library__]

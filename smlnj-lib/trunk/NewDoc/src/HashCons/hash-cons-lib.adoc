@@ -77,7 +77,7 @@ xref:str-HashCons.adoc[`[.kw]#structure# HashCons`]::
   and various utility functions.
 
 xref:str-HashConsAtom.adoc[`[.kw]#structure# HashConsAtom`]::
-  Code to package the link:../Util/str-Atom#type:atom[`Atom.atom`] type
+  Code to package the xref:../Util/str-Atom.adoc#type:atom[`Atom.atom`] type
   as a hash-consed object.
 
 xref:str-HashConsMap.adoc[`[.kw]#structure# HashConsMap`]::

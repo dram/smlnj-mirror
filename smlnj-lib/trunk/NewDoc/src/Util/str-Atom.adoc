@@ -53,6 +53,7 @@ val hash : atom -> word
 `[.kw]#val# toString : atom \-> string`::
   `toString atm` returns the string representation of the atom `atm`.
 
+[[val:same]]
 `[.kw]#val# same : (atom * atom) \-> bool`::
   `same (atm1, atm2)` returns true if the two atoms are the same (_i.e._, their
   string representations are equal).
@@ -62,6 +63,7 @@ val hash : atom -> word
   unspecified total order.  Use xref:#val:lexCompare[`lexCompare`] to
   compare atoms lexicographically.
 
+[[val:lexCompare]]
 `[.kw]#val# lexCompare : (atom * atom) \-> order`::
   `compare (atm1, atm2)` returns the relation of the two atoms in lexical order.
 
@@ -78,7 +80,7 @@ deprecated.
 
 == See Also
 
-xref:str-AtomMap.adoc[`AtomMap`],
-xref:str-AtomSet.adoc[`AtomSet`],
-xref:str-AtomTable.adoc[`AtomTable`],
+xref:sig-ORD_MAP.adoc#str:AtomMap[`AtomMap`],
+xref:sig-ORD_SET.adoc#str:AtomSet[`AtomSet`],
+xref:sig-MONO_HASH_TABLE.adoc#str:AtomTable[`AtomTable`],
 xref:smlnj-lib.adoc[__The Util Library__]

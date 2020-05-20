@@ -36,6 +36,7 @@ val failure : {module : string, func : string, msg : string} -> 'a
 `[.kw]#exception# Impossible of string`::
   This exception is raised to report internal errors.
 
+[[exn:NotFound]]
 `[.kw]#exception# NotFound`::
   This exception is raised by searching operations when something being
   searched for is missing.

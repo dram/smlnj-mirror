@@ -21,7 +21,7 @@ functor SplayMapFn (K : ORD_KEY) :> ORD_MAP where type Key.ord_key = K.ord_key
 
 == See Also
 
-xref:sig-ORD_KEY[`ORD_KEY`],
-xref:sig-ORD_MAP[`ORD_MAP`],
+xref:sig-ORD_KEY.adoc[`ORD_KEY`],
+xref:sig-ORD_MAP.adoc[`ORD_MAP`],
 xref:fun-RedBlackMapFn.adoc[`RedBlackMapFn`],
 xref:smlnj-lib.adoc[__The Util Library__]

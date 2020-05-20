@@ -152,6 +152,7 @@ val compare : ('a control * 'a control) -> order
   This exception is raised to communicate that there is a syntax error
   in a string representation of a control value.
 
+[[val:stringControl]]
 `[.kw]#val# stringControl : 'a value_cvt \-> 'a control \-> string control`::
   `stringControl cvt ctl` creates a string-valued interface to the control `ctl`
   using the given value converter.

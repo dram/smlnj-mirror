@@ -21,7 +21,7 @@ functor SplaySetFn (K : ORD_KEY) :> ORD_SET where type Key.ord_key = K.ord_key
 
 == See Also
 
-xref:sig-ORD_KEY[`ORD_KEY`],
-xref:sig-ORD_SET[`ORD_SET`],
+xref:sig-ORD_KEY.adoc[`ORD_KEY`],
+xref:sig-ORD_SET.adoc[`ORD_SET`],
 xref:fun-RedBlackSetFn.adoc[`RedBlackSetFn`],
 xref:smlnj-lib.adoc[__The Util Library__]
