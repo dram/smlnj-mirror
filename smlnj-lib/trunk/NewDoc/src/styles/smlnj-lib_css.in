@@ -101,11 +101,6 @@
   z-index: 0;
 }
 
-#layout-content {
-  font-size: 1.2em;
-  padding: 1em;
-}
-
 #layout-footer-box {
   margin-left: 15em;
   margin-top: 4.0em;
@@ -133,8 +128,8 @@
   margin-left: 0;
   margin-bottom: 2em;
 }
-#content #toc>:first-child{margin-top:0}
-#content #toc>:last-child{margin-bottom:0}
+#toc>:first-child{margin-top:0}
+#toc>:last-child{margin-bottom:0}
 
 #toc a{
   color: inherit;
