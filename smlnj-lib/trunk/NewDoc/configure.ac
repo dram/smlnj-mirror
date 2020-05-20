@@ -120,6 +120,7 @@ AC_CONFIG_FILES(
 dnl ***** Makefiles *****
   mk/doc-rules.gmk:config/doc-rules_gmk.in
   src/Makefile
+  tools/gen-pages/config.sml:tools/gen-pages/config_sml.in
 )
 
 AC_OUTPUT
