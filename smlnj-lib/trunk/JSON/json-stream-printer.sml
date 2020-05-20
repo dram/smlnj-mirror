@@ -107,19 +107,23 @@ structure JSONStreamPrinter : sig
 	  val getWChar = UTF8.getu getChar
 	  fun tr (i, chrs) = (case getWChar i
 		 of SOME(wchr, i) => if (wchr <= 0w126)
-		      then (case UTF8.toAscii wchr
-			 of #"\"" => "\\\""
-			  | #"\\" => "\\\\"
-			  | #"/" => "\\/"
-			  | #"\b" => "\\b"
-			  | #"\f" => "\\f"
-			  | #"\n" => "\\n"
-			  | #"\r" => "\\r"
-			  | #"\t" => "\\t"
-			  | c => if (wchr < 0w32)
-			      then tr(i, F.format "\\u%04x" [F.WORD wchr] :: chrs)
-			      else tr(i, str c :: chrs)
-			(* end case *))
+		      then let
+			val c = (case UTF8.toAscii wchr
+			       of #"\"" => "\\\""
+				| #"\\" => "\\\\"
+				| #"/" => "\\/"
+				| #"\b" => "\\b"
+				| #"\f" => "\\f"
+				| #"\n" => "\\n"
+				| #"\r" => "\\r"
+				| #"\t" => "\\t"
+				| c => if (wchr < 0w32)
+				    then F.format "\\u%04x" [F.WORD wchr]
+				    else str c
+			      (* end case *))
+			in
+			  tr (i, c :: chrs)
+			end
 		      else tr(i, F.format "\\u%04x" [F.WORD wchr] :: chrs)
 		  | NONE => String.concat(List.rev chrs)
 		(* end case *))
