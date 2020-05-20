@@ -9,8 +9,8 @@ The `HASH_KEY` signature describes a monomorphic type with an equality
 test and hashing function.  It is used as the argument signature for
 the xref:fun-HashSetFn.adoc[`HashSetFn`] and xref:fun-HashTableFn.adoc[`HashTableFn`]
 functors, and as a sub-structure signature in the
-xref:sig-MONO_HASH_SET.adoc[`MONO_HASH_SET`] and
-xref:sig-MONO_HASH_TABLE.adoc[`MONO_HASH_TABLE`] signatures.
+xref:fun-HashSetFn.adoc[`MONO_HASH_SET`] and
+xref:fun-HashTableFn.adoc[`MONO_HASH_TABLE`] signatures.
 
 == Synopsis
 

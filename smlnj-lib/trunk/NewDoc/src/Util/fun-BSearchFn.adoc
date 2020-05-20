@@ -56,6 +56,6 @@ val bsearch : (('a * A.elem) -> order) -> ('a * A.array) -> (int * A.elem) optio
 
 {sml-basis-url}/Basis/mono-array.html[`MONO_ARRAY`],
 xref:fun-MonoArrayFn.adoc[`MonoArrayFn`],
-xref:sig-MONO_ARRAY_SORT.adoc[`MONO_ARRAY_SORT`],
+xref:fun-ArrayQSortFn.adoc[`ArrayQSortFn`],
 xref:smlnj-lib.adoc[__The Util Library__]
 

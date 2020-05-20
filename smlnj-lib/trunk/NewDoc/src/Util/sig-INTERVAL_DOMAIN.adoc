@@ -48,12 +48,12 @@ val maxPt : point
 
 `[.kw]#val# succ : point \-> point`::
   `succ item` returns the successor to `item`.  If `item` is
-  the maximum element (xref:#maxPt[`maxPt`]), then `maxPt` is
+  the maximum element (xref:#val:maxPt[`maxPt`]), then `maxPt` is
   returned.
 
 `[.kw]#val# pred : point \-> point`::
   `succ item` returns the successor to `item`.  If `item` is
-  the minimum element (xref:#minPt[`minPt`]), then `minPt` is
+  the minimum element (xref:#val:minPt[`minPt`]), then `minPt` is
   returned.
 
 `[.kw]#val# isSucc : (point * point) \-> bool`::
