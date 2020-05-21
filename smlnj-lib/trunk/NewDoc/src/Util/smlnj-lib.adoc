@@ -110,7 +110,8 @@ xref:sig-INTERVAL_DOMAIN.adoc[`[.kw]#signature# INTERVAL_DOMAIN`]::
   functor.
 
 xref:fun-IntervalSetFn.adoc[`[.kw]#functor# IntervalSetFn`]::
-  **To be written**
+  Provides sets over a discrete ordered domain, where the
+  sets are represented by intervals.
 
 xref:str-IOUtil.adoc[`[.kw]#structure# IOUtil`]::
   Provides support for redirecting the standard input and output streams.
@@ -167,7 +168,7 @@ xref:sig-ORD_SET.adoc[`[.kw]#signature# ORD_SET`]::
 // 40
 
 xref:str-ParserComb.adoc[`[.kw]#structure# ParserComb`]::
-  **To be written**
+  Provides parser combinators over character readers.
 
 xref:str-PathUtil.adoc[`[.kw]#structure# PathUtil`]::
   Provides support for searching for files

@@ -110,10 +110,10 @@ val find : (item -> bool) -> set -> item option
   The empty set.
 
 `[.kw]#val# singleton : item \-> set`::
-  `singleton item` creates a singleton set containing `item`.
+  `singleton item` returns a singleton set containing `item`.
 
 `[.kw]#val# fromList : item list \-> set`::
-  `fromList items` creates a set from the list of items.
+  `fromList items` returns the set containing the list of items.
 
 [[val:toList]]
 `[.kw]#val# toList : set \-> item list`::
@@ -234,7 +234,7 @@ List.foldl f init (toList set)
 ------------
 
 `[.kw]#val# foldr : (item * 'b \-> 'b) \-> 'b \-> set \-> 'b`::
-  `foldl f init set` folds the function `f` over the items in
+  `foldr f init set` folds the function `f` over the items in
   `set` in decreasing order using `init` as the initial value.
   This expression is equivalent to
 +
