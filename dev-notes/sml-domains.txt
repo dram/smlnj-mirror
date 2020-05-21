@@ -1,0 +1,105 @@
+% sml-domains.txt %
+
+Standard ML and SML/NJ Domain registrations
+
+1. sml-family.org
+registered to David MacQueen
+  transferred from Robert Harper, 2020.03.21
+transferred to Google Domains, 2020.05.21
+registrar : Goodle Domains
+forwards to : smlfamily.github.io
+autorenewal : ON
+renews on: 2021.5.31
+managers: DBM, JHR (jhreppy@gmail.com), RWH (rwh@andrew.cmu.edu) 
+
+2. successor-ml.org
+registered to David MacQueen
+  transferred from Robert Harper, 2020.03.21
+registrar : GoDaddy
+forwards to : smlfamily.github.io
+tranferable : 2020.05.21 (will transfer to Google Domains)
+autorenewal : OFF
+Note: may decide not to renew or transfer, replace by successorml.org
+
+3. standardml.org
+registered to : David MacQueen
+  transferred from Tom Murphy (years ago)
+registrar: Google Domains
+forwards to : smlfamily.github.io
+managed by : DBM, JHR, RWH 
+autorenewal : ON
+renews on : 2021.08.09
+managers: DBM, JHR (jhreppy@gmail.com), RWH (rwh@andrew.cmu.edu) 
+
+4. standardml.net
+registered to : David MacQueen
+registrar : Google Domains
+forwards to : smlfamily.github.io
+managed by : DBM, JHR, RWH 
+autorenewal : ON
+renews on : 2021.09.01
+managers: DBM, JHR (jhreppy@gmail.com), RWH (rwh@andrew.cmu.edu) 
+
+5. standardml.com
+registered to : David MacQueen
+registrar : Google Domains
+forwards to : smlfamily.github.io
+managed by : DBM, JHR, RWH 
+autorenewal : ON
+renews on : 2021.09.01
+managers: DBM, JHR (jhreppy@gmail.com), RWH (rwh@andrew.cmu.edu) 
+
+6. smlfamily.org
+registered to : David MacQueen
+registrar : Google Domains
+forwards to : smlfamily.github.io
+managed by : DBM, JHR, RWH
+autorenewal : ON
+renews on : 2021.04.01
+managers: DBM, JHR (jhreppy@gmail.com), RWH (rwh@andrew.cmu.edu) 
+
+7. successorml.org
+registered to : David MacQueen
+registrar : Google Domains
+forwards to : smlfamily.github.io/successor-ml
+managed by : DBM, JHR, RWH
+autorenewal : ON
+renews on : 2021.04.01
+managers: DBM, JHR (jhreppy@gmail.com), RWH (rwh@andrew.cmu.edu) 
+
+8. smlnj.org
+registered to : David MacQueen
+registrar : Google Domains
+forwards to : smlnj.cs.uchicago.edu (manual DNS records)
+managed by : DBM, JHR
+autorenewal : ON
+renews on : 2022.03.22
+
+DNS records for forwarding/redirecting to smlnj.cs.uchicago.edu
+@   	    A		128.135.164.125
+www 	    CNAME	smlnj.org.
+* 	    CNAME	smlnj.org.
+
+Transferred from enom.com
+Old host records at enom.com:
+@   CNAME(Alias) smlnj.cs.uchicago.edu
+www CNAME(Alias) smlnj.cs.uchicago.edu
+*   CNAME(Alias) smlnj.cs.uchicago.edu
+cvs CNAME(Alias) smlnj.cvs.sourceforge.net
+
+
+Notes
+-----
+The plan is to have all six domains registered at Google Domains after
+sml-family.org and successor-ml.org become transferable on 2020.05.21.
+
+Google Domains charges $12/year for .org domains.
+
+Troubleshooting
+
+Message on GitHub.com website admin page when setting custom domain:
+
+"Your site's DNS settings are using a custom subdomain, smlfamily.org,
+that's set up with an AAAA record. GitHub Pages currently does not
+support IPv6. For more information, see
+https://help.github.com/articles/setting-up-a-custom-domain-with-github-pages/."
