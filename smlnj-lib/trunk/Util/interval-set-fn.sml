@@ -86,6 +86,8 @@ functor IntervalSetFn (D : INTERVAL_DOMAIN) : INTERVAL_SET =
 	  end
     fun add' (x, m) = add (m, x)
 
+    fun fromList items = List.foldl add' empty items
+
   (* is a point in any of the intervals in the set *)
     fun member (SET l, pt) = let
 	  fun look [] = false
@@ -207,7 +209,7 @@ functor IntervalSetFn (D : INTERVAL_DOMAIN) : INTERVAL_SET =
 	      then SOME(a, r)
 	      else SOME(a, (D.succ a, b)::r)
     in
-    fun items (SET l) = let
+    fun toList (SET l) = let
 	  fun list (l, items) = (case next l
 		 of NONE => List.rev items
 		  | SOME(x, r) => list(r, x::items)
@@ -343,5 +345,8 @@ functor IntervalSetFn (D : INTERVAL_DOMAIN) : INTERVAL_SET =
 	  in
 	    test (l1, l2)
 	  end
+
+ (* DEPRECATED FUNCTIONS *)
+    val listItems = toList
 
   end

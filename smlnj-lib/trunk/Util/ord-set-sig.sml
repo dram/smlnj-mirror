@@ -76,11 +76,6 @@ signature ORD_SET =
     val numItems : set ->  int
 	(* Return the number of items in the table *)
 
-    val listItems : set -> item list
-	(* Return an ordered list of the items in the set.
-	 * Deprecated in favor of toList in 110.80.
-	 *)
-
     val union : set * set -> set
         (* Union *)
 
@@ -141,5 +136,8 @@ signature ORD_SET =
 
     val find : (item -> bool) -> set -> item option
 	(* find an element in the set for which the predicate is true *)
+
+  (* DEPRECATED FUNCTIONS *)
+    val listItems : set -> item list
 
   end (* ORD_SET *)

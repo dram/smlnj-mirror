@@ -511,7 +511,7 @@ functor RedBlackSetFn (K : ORD_KEY) :> ORD_SET where type Key.ord_key = K.ord_ke
 	    fn (SET(_, t)) => test t
 	  end
 
-  (* deprecated *)
+  (* DEPRECATED FUNCTIONS *)
     val listItems = toList
 
   end;

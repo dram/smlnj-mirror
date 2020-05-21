@@ -24,7 +24,9 @@ signature INTERVAL_SET =
   (* a set of a single element *)
     val singleton : item -> set
 
-  (* set the covers the given interval *)
+    val fromList : item list -> set
+
+  (* set that covers the given interval *)
     val interval : item * item -> set
 
     val isEmpty : set -> bool
@@ -33,7 +35,7 @@ signature INTERVAL_SET =
     val member : set * item -> bool
 
   (* return the list of items in the set *)
-    val items : set -> item list
+    val toList : set -> item list
 
   (* return a list of intervals that represents the set *)
     val intervals : set -> interval list
@@ -71,5 +73,8 @@ signature INTERVAL_SET =
   (* ordering on sets *)
     val compare : set * set -> order
     val isSubset : set * set -> bool
+
+  (* DEPRECATED FUNCTIONS *)
+    val listItems : set -> item list
 
   end
