@@ -305,7 +305,7 @@ The `mergeWith` function is a generalization of the `unionWith` and
   decreasing order of their key values.
 
 `[.kw]#val# foldri : (Key.ord_key * 'a * 'b \-> 'b) \-> 'b \-> 'a map \-> 'b`::
-  `foldli f init m` folds the function `f` over the key-value pairs in
+  `foldri f init m` folds the function `f` over the key-value pairs in
   `m` using `init` as the initial value.  Items are processed in
   decreasing order of their key values.
 
