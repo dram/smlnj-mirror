@@ -249,6 +249,6 @@ SOME (LET ("x", ADD (NUM 1, NUM 2), ADD (VAR "x", VAR "x")))
 
 == See Also
 
-https://smlnj.org/doc/ml-lpt/manual.pdf[__SML/NJ Language Processing Tools: User Guide],
+https://smlnj.org/doc/ml-lpt/manual.pdf[__SML/NJ Language Processing Tools: User Guide__],
 https://smlnj.org/doc/ML-Yacc/index.html[__ML-Yacc User's Manual__],
 xref:smlnj-lib.adoc[__The Util Library__]

@@ -70,7 +70,7 @@ algorithms.  Modules from this library are autoloaded into
 the *SML/NJ* interactive environment by default.
 
 === xref:XML/xml-lib.adoc[XML Library]
-__not yet written__
+The *XML Library* is a small library for parsing *XML* files.
 
 endif::[]
 
@@ -102,6 +102,6 @@ include::Unix/unix-lib.adoc[]
 
 include::Util/smlnj-lib.adoc[]
 
-//include::XML/xml-lib.adoc[]
+include::XML/xml-lib.adoc[]
 
 endif::[]
