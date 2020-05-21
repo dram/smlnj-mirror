@@ -64,6 +64,7 @@ val token : (char -> bool) -> (string, 'strm) parser
 
 == Description
 
+[[type:parser]]
 `[.kw]#type# ('a, 'strm) parser = (char, 'strm) StringCvt.reader \-> ('a, 'strm) StringCvt.reader`::
   A parser is a function that takes a
   {sml-basis-url}/string-cvt.html#SIG:STRING_CVT.reader:TY[character reader]
