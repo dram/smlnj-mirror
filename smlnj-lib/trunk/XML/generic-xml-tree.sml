@@ -7,8 +7,10 @@
  * elements and attributes as Atom.atom values.  It does not preserve whitespace.
  *)
 
-structure GenericXMLTree =
-  struct
+structure GenericXMLTree : XML_TREE
+    where type Schema.element = Atom.atom
+    where type Schema.attribute = Atom.atom * string
+  = struct
     local
       structure Schema =
 	struct
