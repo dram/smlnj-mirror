@@ -63,7 +63,7 @@ include @MK_DIR@/doc-rules.gmk
 
 # we have one sub-directory per documented library
 #
-DOC_SUBDIRS =           Controls HashCons INet JSON SExp Unix Util UUID
+DOC_SUBDIRS =           Controls HashCons INet JSON SExp Unix Util UUID XML
 
 HTML_SUBDIRS =		$(addprefix $(HTML_DST_ROOT)/,$(DOC_SUBDIRS))
 

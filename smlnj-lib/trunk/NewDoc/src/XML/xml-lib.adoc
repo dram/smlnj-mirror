@@ -7,7 +7,8 @@
 
 == Overview
 
-The *XML Library* is a small library for parsing *XML* files.  It does
+The *XML Library* is a small library for parsing
+https://www.w3.org/TR/REC-xml[*XML*] files.  It does
 *not* support validation (_e.g._, against a *DTD* or *Schema*).  The
 basic idea is that the user supplies a "schema" module that describes
 the elements and attribute representation of an *XML* document.  From this,
@@ -72,7 +73,6 @@ include::fun-XMLTreeFn.adoc[]
 include::fun-XMLParserFn.adoc[]
 
 include::str-GenericXMLTree.adoc[]
-
 
 // Return to normal title levels.
 :leveloffset: 0

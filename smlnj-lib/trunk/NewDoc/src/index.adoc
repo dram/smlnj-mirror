@@ -57,10 +57,6 @@ __not yet written__
 Supports the parsing and printing of semi-structured data as
 https://en.wikipedia.org/wiki/S-expression[S-expressions].
 
-=== xref:UUID/uuid-lib.adoc[UUID Library]
-The *UUID Library* provides support for generating and using
-UUIDs (_aka_ GUIDs).
-
 === xref:Unix/unix-lib.adoc[Unix Library]
 The *Unix Library* provides some *Unix*-specific utilities.
 
@@ -69,8 +65,13 @@ The *Util Library* provides a grab bag of data structures and
 algorithms.  Modules from this library are autoloaded into
 the *SML/NJ* interactive environment by default.
 
+=== xref:UUID/uuid-lib.adoc[UUID Library]
+The *UUID Library* provides support for generating and using
+UUIDs (_aka_ GUIDs).
+
 === xref:XML/xml-lib.adoc[XML Library]
-The *XML Library* is a small library for parsing *XML* files.
+The *XML Library* is a small library for parsing
+https://www.w3.org/TR/REC-xml[*XML*] files.
 
 endif::[]
 
