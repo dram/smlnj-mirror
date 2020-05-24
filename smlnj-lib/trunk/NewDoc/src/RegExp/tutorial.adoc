@@ -1,0 +1,29 @@
+= Using the RegExp Library
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+== Introduction
+
+The *RegExp Library* is designed for flexibility; it allows mixing and
+matching of different front-end syntax with back-end engines, as well
+as supporting arbitrary input sources.
+This flexibility, however, comes at the cost of making some of the
+simple applications a bit less obvious.  This tutorial shows how the
+*RegExp Library* can be used in a variety of common applications.
+
+== Assembling an Regular Expression Matcher
+
+Before we can do anything else, we must assemble a regular-expression
+matcher.  For the purposes of this tutorial, we will use a combination
+of the `AwkSyntax` front end and the `BackTrackEngine` back end.
+
+[source,sml]
+------------
+structure RE = RegExpFn(
+    structure P = AwkSyntax
+    structure E = BackTrackEngine)
+------------
+

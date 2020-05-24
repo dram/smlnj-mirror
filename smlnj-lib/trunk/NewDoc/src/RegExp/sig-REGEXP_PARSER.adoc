@@ -1,0 +1,34 @@
+= The `REGEXP_PARSER` signature
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `REGEXP_PARSER` signature ...
+
+== Synopsis
+
+[source,sml]
+------------
+signature REGEXP_PARSER
+------------
+
+== Interface
+
+[source,sml]
+------------
+val scan : (char, 'a) StringCvt.reader -> (RegExpSyntax.syntax, 'a) StringCvt.reader
+------------
+
+== Description
+
+`[.kw]#val# scan : (char, 'a) StringCvt.reader \-> (RegExpSyntax.syntax, 'a) StringCvt.reader`::
+  *something*
+	(* read an external representation of a regular expression
+	 * from the stream and return an abstract syntax representation
+	 *)
+
+== See Also
+
+xref:regexp-lib.adoc[__The RegExp Library__]

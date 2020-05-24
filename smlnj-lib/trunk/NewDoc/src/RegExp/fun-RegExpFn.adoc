@@ -1,0 +1,97 @@
+= The `RegExpFn` functor
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `RegExpFn` functor ...
+
+== Synopsis
+
+[source,sml]
+------------
+signature REGEXP
+functor RegExpFn (
+    structure P : REGEXP_PARSER
+    structure E : REGEXP_ENGINE
+  ) :> REGEXP where type regexp = E.regexp
+------------
+
+== Functor Argument Interface
+
+[source,sml]
+------------
+structure P : REGEXP_PARSER
+structure E : REGEXP_ENGINE
+------------
+
+== Functor Argument Description
+
+`[.kw]#structure# P : xref:sig-REGEXP_PARSER.adoc[REGEXP_PARSER]`::
+  *something*
+
+`[.kw]#structure# E : xref:sig-REGEXP_ENGINE.adoc[REGEXP_ENGINE]`::
+  *something*
+
+== Interface
+
+[source,sml]
+------------
+type regexp
+
+type 'a match = {pos : 'a, len : int} MatchTree.match_tree
+
+val compile : (char,'a) StringCvt.reader -> (regexp, 'a) StringCvt.reader
+val compileString : string -> regexp
+
+val find : regexp -> (char,'a) StringCvt.reader -> ('a match, 'a) StringCvt.reader
+
+val prefix : regexp -> (char,'a) StringCvt.reader -> ('a match, 'a) StringCvt.reader
+
+val match : (string * ('a match -> 'b)) list
+      -> (char,'a) StringCvt.reader -> ('b, 'a) StringCvt.reader
+------------
+
+== Interface Description
+
+`[.kw]#type# regexp`::
+  *something*
+	(* the type of a compiled regular expression
+	 *)
+
+  (* a match specifies the position (as a stream) and the length of the match *)
+`[.kw]#type# 'a match = {pos : 'a, len : int} MatchTree.match_tree`::
+  *something*
+
+`[.kw]#val# compile : (char,'a) StringCvt.reader \-> (regexp, 'a) StringCvt.reader`::
+  *something*
+	(* read an external representation of a regular expression from a stream
+	 *)
+
+`[.kw]#val# compileString : string \-> regexp`::
+  *something*
+	(* read an external representation of a regular expression from a string
+	 *)
+
+`[.kw]#val# find : regexp \-> (char,'a) StringCvt.reader \-> ('a match, 'a) StringCvt.reader`::
+  *something*
+        (* scan the stream for the first occurence of the regular expression
+	 *)
+
+`[.kw]#val# prefix : regexp \-> (char,'a) StringCvt.reader \-> ('a match, 'a) StringCvt.reader`::
+  *something*
+        (* attempt to match the stream at the current position with the
+	 * regular expression
+	 *)
+
+`[.kw]#val# match : (string * ('a match \-> 'b)) list \-> (char,'a) StringCvt.reader \-> ('b, 'a) StringCvt.reader`::
+  *something*
+        (* attempt to match the stream at the current position with one
+	 * of the external representations of regular expressions and trigger
+	 * the corresponding action
+	 *)
+
+== See Also
+
+xref:regexp-lib.adoc[__The RegExp Library__]

@@ -1,0 +1,22 @@
+= The `DfaEngine` structure
+:Author: John Reppy
+:Date: {release-date}
+:stem: latexmath
+:source-highlighter: pygments
+:VERSION: {smlnj-version}
+
+The `DfaEngine` structure ...
+
+== Synopsis
+
+[source,sml]
+------------
+structure DfaEngine : REGEXP_ENGINE
+------------
+
+== Description
+
+== See Also
+
+xref:sig-REGEXP_ENGINE[`REGEXP_ENGINE`],
+xref:regexp-lib.adoc[__The RegExp Library__]
