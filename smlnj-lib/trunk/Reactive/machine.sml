@@ -1,6 +1,7 @@
 (* machine.sml
  *
- * COPYRIGHT (c) 1997 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This is an implementation of the reactive interpreter instructions,
  * and functions to generate them.
@@ -411,6 +412,11 @@ structure Machine : sig
 	    eval c
 	  end
 
+  (* evaluate the signal configuration `c` returning `SOME b` if
+   * the signals are in known state and `b` is the result of the
+   * configuration.  Otherwise, return `NONE` if one or more signals
+   * are in unknown state.
+   *)
     fun fixedEval (m, c) = let
 	  fun f (I.posConfig id) = (case presence(m, id)
 		 of UNKNOWN => NONE

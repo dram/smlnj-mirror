@@ -11,10 +11,10 @@ Information about SugarCubes can be found at
 
 	http://www-sop.inria.fr/meije/rc/SugarCubes/index.html
 
-A reactive script is written as an abstract syntax tree of type Machine.instruction.
-
-in the Instruction module.  This type is parameterized over a context type, which is the
-type of the runtime environment.  
+A reactive script is written as an abstract syntax tree of type
+Machine.instruction, which is defined in the Instruction module.
+This type is parameterized over a context type, which is the
+type of the runtime environment.
 
 Reactive scripting language:
 
