@@ -25,10 +25,15 @@ signature MATCH_TREE =
 	(* map a function over the tree (in preorder) *)
     val app : ('a -> unit) -> 'a match_tree -> unit
 	(* apply a given function over ever element of the tree (in preorder) *)
+    val foldl : ('a * 'b -> 'b) -> 'b -> 'a match_tree -> 'b
+	(* fold in left-to-right pre-order *)
+    val foldr : ('a * 'b -> 'b) -> 'b -> 'a match_tree -> 'b
+	(* fold in right-to-left post-order *)
     val find : ('a -> bool) -> 'a match_tree -> 'a option
 	(* find the first match that satisfies the predicate (or NONE) *)
     val num : 'a match_tree -> int
 	(* return the number of submatches included in the match tree *)
+
   end;
 
 structure MatchTree :> MATCH_TREE =
@@ -37,10 +42,10 @@ structure MatchTree :> MATCH_TREE =
     datatype 'a match_tree = Match of 'a * 'a match_tree list
 
     fun num m = let
-	  fun countList [] = 0
-	    | countList ((Match (x,l))::ms) = 1+countList(l)+countList(ms)
+	  fun count ([], n) = n
+	    | count (Match(_, l) :: ms, n) = count (ms, count (l, n + 1))
 	  in
-	    (countList [m])-1
+	    count([m], ~1)
 	  end
 
   (* return the root (outermost) match in the tree *)
@@ -50,7 +55,7 @@ structure MatchTree :> MATCH_TREE =
    * starting at 0.
    *)
     fun nth (t, n) = let
-	  datatype 'a sum = INL of int | INR of 'a
+	  datatype sum = datatype Either.either
 	  fun walk (0, Match (x, _)) = INR x
 	    | walk (i, Match (_, children)) = let
 		fun walkList (i, []) = INL i
@@ -78,6 +83,20 @@ structure MatchTree :> MATCH_TREE =
 	  end
 
     fun app f (Match (c,children)) = (f c; List.app (app f) children)
+
+  (* fold in left-to-right pre-order *)
+    fun foldl f init mt = let
+	  fun foldf (Match(x, kids), acc) = List.foldl foldf (f (x, acc)) kids
+	  in
+	    foldf (mt, init)
+	  end
+
+  (* fold in right-to-left post-order *)
+    fun foldr f init mt = let
+	  fun foldf (Match(x, kids), acc) = f (x, List.foldr foldf acc kids)
+	  in
+	    foldf (mt, init)
+	  end
 
   (* find the first match that satisfies the predicate *)
     fun find pred = let

@@ -1,6 +1,18 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-05-25]
+	Some cleanup and additions to the `RegExpSyntax` structure in
+	the *RegExp Library*.  Instead of having constructors for
+	the optional, closure, and positive-closure operators, we
+	now support them via functions.  This change is because the
+	constructors were redundant with the more general `Interval`
+	constructor.
+	We also added more support for character ranges.  The new
+	function `fromRange` constructs a character set for a range,
+	and pre-defined character sets are provided for the POSIX
+	character classes (plus ``[:ascii:]`` and ``[:word:]``.
+
 [2020-05-20]
 	Fixed bug in printing JSON strings that include characters
 	that need to be escaped.

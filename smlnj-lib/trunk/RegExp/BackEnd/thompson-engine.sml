@@ -98,10 +98,7 @@ structure ThompsonEngine : REGEXP_ENGINE =
 		  | RE.Interval(re, 0, SOME 1) => option re
 		  | RE.Interval(re, 0, NONE) => closure re
 		  | RE.Interval(re, 1, NONE) => posClosure re
-		  | RE.Interval(re, i, SOME j) => raise Fail "unimplemented"
-		  | RE.Option re => option re
-		  | RE.Star re => closure re
-		  | RE.Plus re => posClosure re
+		  | RE.Interval _ => raise Fail "unimplemented"
 		  | RE.MatchSet cset => let
 		      val out = ref final
 		      in
@@ -295,12 +292,12 @@ String.concatWith "," (List.map stateToString nextNfaState), "}\n"]);
 		      | loop ((re, act)::r, max, maxLen) = (case scan(re, getc) (true, strm)
 			   of NONE => loop (r, max, maxLen)
 			    | SOME(m as MatchTree.Match({len, ...}, _), cs) =>
-				if (len > maxLen) 
+				if (len > maxLen)
 				  then loop (r, SOME(m, act, cs), len)
 				  else loop (r, max, maxLen)
 			  (* end case *))
 		    in
-		      case loop (l, NONE, ~1) 
+		      case loop (l, NONE, ~1)
 		       of NONE => NONE
 			| SOME(m, act, cs) => SOME(act m, cs)
 		      (* end case *)

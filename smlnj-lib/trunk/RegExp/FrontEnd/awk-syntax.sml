@@ -6,7 +6,7 @@
  * This module implements the AWK syntax for regular expressions.  The
  * syntax is defined on pp. 28-30 of "The AWK Programming Language,"
  * by Aho, Kernighan and Weinberger.  We have extended it with interval
- * syntax, whcih was added as part of the POSIX standard.
+ * syntax, which was added as part of the POSIX standard.
  *
  * The meta characters are:
  *	"\" "^" "$" "." "[" "]" "|" "(" ")" "*" "+" "?"
@@ -89,17 +89,17 @@ structure AwkSyntax : REGEXP_PARSER =
 		end
 	  fun getHexChar (c,cs) = (case (getc cs)
                  of NONE => returnVal (SC.HEX,[c],cs)
-		  | SOME (c',cs') => 
+		  | SOME (c',cs') =>
 		     if not (C.isHexDigit c') then returnVal (SC.HEX,[c],cs)
 		     else returnVal (SC.HEX,[c,c'],cs')
 		(* end case *))
 	  fun getOctalChar (c,cs) = (case (getc cs)
 		 of NONE => returnVal (SC.OCT,[c],cs)
-	          | SOME(c',cs') => 
+	          | SOME(c',cs') =>
 		      if not (isOctDigit c') then returnVal (SC.OCT,[c],cs)
 		      else (case (getc cs')
 			of NONE => returnVal (SC.OCT,[c,c'],cs')
-		         | SOME (c'',cs'') => 
+		         | SOME (c'',cs'') =>
 			     if not (isOctDigit c'') then returnVal (SC.OCT,[c,c'],cs')
 			     else returnVal (SC.OCT,[c,c',c''],cs'')))
 	  fun getEscapeChar cs = (case (getc' cs)
@@ -136,9 +136,9 @@ structure AwkSyntax : REGEXP_PARSER =
 			in
 			  scanSeq (R.Interval(re, n, m)::r, cs'')
 			end
-		    | (re::r, SOME(#"?", cs')) => scanSeq (R.Option re :: r, cs')
-		    | (re::r, SOME(#"*", cs')) => scanSeq (R.Star re :: r, cs')
-		    | (re::r, SOME(#"+", cs')) => scanSeq (R.Plus re :: r, cs')
+		    | (re::r, SOME(#"?", cs')) => scanSeq (R.optional re :: r, cs')
+		    | (re::r, SOME(#"*", cs')) => scanSeq (R.closure re :: r, cs')
+		    | (re::r, SOME(#"+", cs')) => scanSeq (R.posClosure re :: r, cs')
 		    | (_, SOME(#"|", _)) => done()
 		    | (_, SOME(#")", _)) => done()
 		    | (_, SOME(#"(", cs')) => continue(scanGrp cs')
@@ -222,7 +222,7 @@ structure AwkSyntax : REGEXP_PARSER =
 			case (getc' cs)
 			 of (#"-", cs) =>
 			      scanRange1(R.CharSet.add(R.CharSet.empty, #"-"), cs)
-		          | (#"]", cs) => 
+		          | (#"]", cs) =>
 			      scanRange2(R.CharSet.empty, #"]", cs)  (* as per bwk test suite *)
 			  | _ => scanRange1(R.CharSet.empty, cs)
 			(* end case *)

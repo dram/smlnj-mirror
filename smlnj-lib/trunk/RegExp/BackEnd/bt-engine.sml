@@ -32,9 +32,6 @@ structure BackTrackEngine : REGEXP_ENGINE =
 	      | getMatchStructure (S.Alt l) = List.concat (map getMatchStructure l)
 	      | getMatchStructure (S.Concat l) = List.concat (map getMatchStructure l)
 	      | getMatchStructure (S.Interval (e,_,_)) = getMatchStructure e
-	      | getMatchStructure (S.Option e) = getMatchStructure e
-	      | getMatchStructure (S.Star e) = getMatchStructure e
-	      | getMatchStructure (S.Plus e) = getMatchStructure e
 	      | getMatchStructure (_) = []
 	    (* Walk a regular expression in continuation-passing style
 	     * The continuation is simply a list of all that is left to do
@@ -133,11 +130,8 @@ structure BackTrackEngine : REGEXP_ENGINE =
 				  else [(b'',matches'@matches'',last'',s'')]
 			 end
 		end
-	      | walk (S.Interval (e,n1,k),cont,p,inits) =
+	      | walk (S.Interval(e,n1,k), cont, p, inits) =
 		walk (S.Concat [e,S.Interval (e,n1-1,optMinus1 k)],cont,p,inits)
-	      | walk (S.Option e,cont,p,inits) = walk (S.Interval (e,0,SOME 1),cont,p,inits)
-	      | walk (S.Star e,cont,p,inits) = walk (S.Interval (e,0,NONE),cont,p,inits)
-	      | walk (S.Plus e,cont,p,inits) = walk (S.Interval (e,1,NONE),cont,p,inits)
 	      | walk (S.MatchSet set,[],p,inits) =
 		if (S.CharSet.isEmpty set)
 		    then [(true,[],p,inits)]
