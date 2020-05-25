@@ -49,7 +49,7 @@ signature REGEXP_SYNTAX =
     val lower : CharSet.set	(* lower-case letters *)
     val print : CharSet.set	(* printable characters (includes space) *)
     val punct : CharSet.set	(* visible characters other than letters and digits *)
-    val space : CharSet.set	(* #"\t", #"\r", #"\n", #"\n", #"\f", and space *)
+    val space : CharSet.set	(* #"\t", #"\r", #"\n", #"\v", #"\f", and space *)
     val upper : CharSet.set	(* upper-case letters *)
     val word : CharSet.set	(* letters, digit, and underscore *)
     val xdigit : CharSet.set	(* hexadecimal digits *)

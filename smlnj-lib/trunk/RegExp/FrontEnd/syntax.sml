@@ -60,7 +60,7 @@ structure RegExpSyntax : REGEXP_SYNTAX =
 	    #":", #";", #"<", #"=", #">", #"?", #"@", #"\\",
 	    #"^", #"_", #"`", #"{", #"|", #"}", #"~", #"-"
 	  ]
-    val space = CharSet.fromList [#"\t", #"\r", #"\n", #"\n", #"\f", #" "]
+    val space = CharSet.fromList [#"\t", #"\r", #"\n", #"\v", #"\f", #" "]
     val word = CharSet.add(alnum, #"_")
     val xdigit = addRange (addRange (digit, #"a", #"f"), #"A", #"F")
 
