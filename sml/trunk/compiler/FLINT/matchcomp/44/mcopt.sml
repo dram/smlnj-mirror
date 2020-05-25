@@ -97,17 +97,20 @@ fun arity ((hd::_)::_) =
   | arity _ = impossible "arity in mcopt"
 
 exception Record
-val rec relevant =
- fn VARpat _ => false
-  | WILDpat => false (* any var always matches so never relevant *)
-  | RECORDpat{pats=ref [],...} => false (* unit isDCB never relevant *)
-  | RECORDpat _ => raise Record (* otherwise, immediately expand records *)
-  | LAYEREDpat (_,p) => relevant p
-  | CONSTRAINTpat (p,_) => relevant p
-    (* if only one data constructor, no need to test *)
-  | CONpat(DATACON{sign = [_],...}) => false
-  | APPpat(DATACON{sign = [_],...},p) => relevant p
-  | _ => true (* everything else is relevant *)
+
+(* relevant : pat -> bool *)
+fun relevant pat =
+    case pat
+     of VARpat _ => false
+      | WILDpat => false (* any var always matches so never relevant *)
+      | RECORDpat{pats=ref [],...} => false (* unit isDCB never relevant *)
+      | RECORDpat _ => raise Record (* otherwise, immediately expand records *)
+      | LAYEREDpat (_,p) => relevant p
+      | CONSTRAINTpat (p,_) => relevant p
+      (* if only one data constructor, no need to test *)
+      | CONpat(DATACON{sign = [_],...}) => false
+      | APPpat(DATACON{sign = [_],...},p) => relevant p
+      | _ => true (* everything else is relevant *)
 
 fun rel fs = fold (fn (a::_,b) => if relevant a then b else b+1) fs 0
 	

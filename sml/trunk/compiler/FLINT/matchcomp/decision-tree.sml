@@ -79,7 +79,7 @@ fun genDecisionTree((choices, delayed), live) =
          of (BND(path, _), rest) =>
 	      genDecisionTree(fireConstraint(path,delayed,rest,nil),live)
           | (CHOICE{path, defaults, choices}, rest) =>
-	     (* case choices
+	     (* case choices  (* disregard degenerate (single constructor) DATA choices *)
                   of DATAchoices [(dcon,_,guarded)] =>
                        if singleDcon dcon
                        then genDecisionTree(rest@guarded, delayed), live)
