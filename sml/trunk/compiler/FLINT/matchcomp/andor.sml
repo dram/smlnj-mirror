@@ -1,3 +1,5 @@
+(* makeandor.sml *)
+
 (* andor.sml *)
 
 structure AndOr =
@@ -7,19 +9,16 @@ local
   structure TU = TypesUtil
   structure BT = BasicTypes
   structure IC = IntConst
-  open Absyn MCCommon
+  open Absyn MCTypes
   (* also used: IntInf, Target, Char, String *)
 in
 
-(* test for 64-bit int/word types, which are represented as pairs of 32-bit words *)
-(* not used!?
-fun isInt64 ty = TU.equalType(ty, BT.int64Ty)
-fun isWord64 ty = TU.equalType(ty, BT.word64Ty)
-*)
+fun bug msg = Errormsg.impossible msg
 
-fun numCon (v, ty, msg) =
-    let fun mkWORD sz = IC.WORDconst {ival = v, ty = sz}
-	fun mkINT sz = IC.INTconst {ival = v, ty = sz}
+(* numCon : IntInf.int * int -> constCon *)
+fun numCon (v, ty) =
+    let fun mkWORD sz = WORDconst(IC.WORDconst {ival = v, ty = sz})
+	fun mkINT sz = INTconst(IC.INTconst {ival = v, ty = sz})
     in
 	if TU.equalType(ty, BT.intTy)
 	  then mkINT Target.defaultIntSz
@@ -39,71 +38,203 @@ fun numCon (v, ty, msg) =
 	  then mkWORD 32
         else if TU.equalType(ty, BT.word64Ty)
           then mkWORD 64
-	  else bug msg
+	else bug "numCon"
     end
 
-(* default integer pattern constant *)
-fun intCon n = IC.INTconst{ival = IntInf.fromInt n, ty = Target.defaultIntSz}
-
-(* pattern constant for character literal *)
-(* QUESTION: perhaps this should be a Word8.word literal? *)
-fun charCon s = intCon (Char.ord (String.sub (s, 0)))
+(* charCon : string -> char *)
+fun charCon s = String.sub (s, 0)
 
 (* addAsBinding : binding * andor -> andor *)
-fun addAsBinding (b, AS(andor, bindings)) = AS(andor, b::bindings)
-  | addAsBinding (b, andor) = AS(andor, [b])
+fun addAsBinding (b, AND{path,asvars,vars,live,defaults,children}) =
+    AND{path=path,asvars = b::asvars,vars=vars,live=live,defaults=defaults,children=children}
+  | addAsBinding (b, OR{path,asvars,vars,live,defaults,variants}) =
+    OR{path=path,asvars = b::asvars,vars=vars,live=live,defaults=defaults,variants=variants}
+  | addAsBinding (b, SINGLE{path,asvars,vars,dcon,arg}) = 
+    SINGLE{path=path,asvars = b::asvars,vars=vars,dcon=dcon,arg=arg})
+  | addAsBinding (b, VARS{path,asvars,vars,dcon,arg}) = 
+    VARS{path=path,asvars = b::asvars,vars=vars,live=live}
+  | addAsBinding (b, LEAF _) = bug "addAsBinding - LEAF"
 
 (* addVarBinding : binding * andor -> andor *)
-fun addVarBinding (b, VARS(andor, bindings)) = VARS(andor, b::bindings)
-  | addVarBinding (b, andor) = VARS(andor, [b])
+fun addVarBinding (b, AND{path,asvars,vars,live,defaults,children}) =
+    AND{path=path,asvars=asvars,vars=b::vars,live=live,defaults=defaults,children=children}
+  | addVarBinding (b, OR{path,asvars,vars,live,defaults,variants}) =
+    OR{path=path,asvars=asvars,vars=b::vars,live=live,defaults=defaults,variants=variants}
+  | addVarBinding (b, SINGLE{path,asvars,vars,dcon,arg}) = 
+    SINGLE{path=path,asvars=asvars,vars=b::vars,dcon=dcon,arg=arg})
+  | addVarBinding (b, VARS{path,asvars,vars,dcon,arg}) = 
+    VARS{path=path,asvars=asvars,vars=b::vars,live=live}
+  | addVarBinding (b, LEAF _) = bug "addVarBinding - LEAF"
 
 (* merge AS bindings so there is only one layer of AS for an andor tree *)
 fun mergeAsBindings (bindings, AS(andor, bindings')) =
-      (* could "merge" the two bindings lists instead of just appending them *)
+      (* could "merge" the two bindings lists instead of just appending them? *)
       AS(andor, bindings@bindings')
   | mergeAsBindings (bindings, andor) = AS(andor, bindings)
 
-(* addConstChild: constCon * ruleno * constChild list -> constChild list *)
-fun addConstChild (const, rule, nil) =
-      [(const, R.singleton rule)]
-  | addConstChild (const, rule, (branch as (const', rules))::rest) =
-      if constantEq(const, const')
-      then (const, R.add(rules,rule))::rest
-      else branch::(addConstChild(const, rule, rest))
+(* addConstChild: constCon * path * ruleno * (constCon * andor) list -> (constCon * andor) list *)
+fun addConstChild (const, path, rule, nil) =  (* new constant variant *)
+    [(const, LEAF{path = addPath(path, CL const), live=R.singleton rule})]
+  | addConstChild (const, path, rule, (child as (const', LEAF{live,...}))::rest) =
+      if eqConst(const, const')
+      then (const, LEAF{path=path,live=R.add(live,rule)})::rest
+      else child::(addConstChild(const, path, rule, rest))
 
 (* makeAndor : pat list -> andor *)
 (* looks like makeAndor only depends on the first (path,pat) component of each triple
  * forming an element of the matchRep argument (which is a list of triples) *)
 fun makeAndor pats =
 let
-    (* initAnd : pat list * ruleno -> andor list
-     * preserves order of pattern list *)
-    fun initAnd (nil, rule) = nil
-      | initAnd (pat::rest, rule) = (initAndor(pat,rule))::initAnd((rest,rule))
+    (* initialization based on the first pattern (rule = 0). No need to pass ruleno
+     * since it will always be 0 for initialization *)
 
-    (* initAndor : pat * ruleno -> andor *)
-    and initAndor (VARpat var, rule) =
-	  VARS (VAR, [(var,rule)])
+    (* pushDefaults : int list * matchTree -> matchTree *)
+    (* Pushes down default rules introduced by variable patterns to all
+     * the nodes in the matchTree to which the variable is attached by mergePat.
+     * This is used as a post-processing phase after the initial matchTree is
+     * constructued by calls of mergePat. *)
+    fun pushDefaults (defaults : ruleset, andor: andor) : andor =
+	case andor
+	 of OR{path,asvars,vars,live,defaults,variants} =>
+	 let val defaults' = R.union(defaults, map #2 vars)
+	     fun push (key,andor') = (key, pushDefaults(defaults', andor'))
+	 in OR{path=path,
+	       asvars=asvars,
+	       vars=vars,
+	       live=live, (* doesn't affect live *)
+	       defaults = defaults',
+	       variants=case variants
+			 of ORdata children =>
+			    ORdata(map push children)
+			 | ORvec(ty, children) => 
+			    ORvec(ty, map push children)
+			 | ORconst children => 
+			    ORconst(map push children)}
+	       end
+       | SINGLE{path,asvars,vars,dcon,andor} =>
+	 let val defaults' = R.union(defaults, map #2 vars)
+	  in SINGLE{path=path,dcon=dcon,asvars=asvars,vars=vars,
+		    arg=pushDefaults(defaults',tree)}
+	 end
+       | AND{path,asvars,vars,live,defaults,children} =>
+	 let val defaults' = R.union(defaults, map #2 vars)
+	 in AND{path=path,
+		asvars=asvars,
+		vars=vars,
+		live=live,
+		children = map (fn mt => pushDefaults(defaults',mt)) children}
+	 end
+       | VARS{path,asvars,vars,live} => 
+	 let val defaults' = R.union(defaults, map #2 vars)
+	  in VAR{path=path,asvars=asvars,vars=vars,live=live,defaults=defaults'}
+       | LEAF{path,live} =>
+	 LEAF{path=path,live=live}  (* needs defaults? *)
+
+
+    val initLive : ruleset = R.add(R.empty, 0)
+
+    (* initAnd : pat list -> andor list
+     * preserves order of pattern list *)
+    fun initAnd (pats, path) =
+	rev(#1 (foldl
+		 (fn (pat,(andors,index)) => (initAndor(pat,addPath(path, RL index))::andors, index+1))
+		 (nil,0) pats)
+
+    (* initAndor : pat * path -> andor *)
+    (* build AND-OR tree from pattern of first rule
+     * All the nodes get the same live ruleset: initLive = {0} *)
+    and initAndor (VARpat var, path) =
+	VARS{path = path,
+	     vars = [(var,0)],
+	     live = initLive}
       | initAndor (WILDpat, rule) =
-          (* wildcard pat treated as a special variable pattern *)
-	  VARS (VAR, [(wildVar, rule)])
-      | initAndor (LAYEREDpat(var,_,basepat), rule) = (* ignoring constraint option *)
-	  addAsBinding ((var,rule), initAndor (basepat, rule))
-      | initAndor (NUMpat(_, {ival, ty}), rule) =
-	  ORconst [(numCon(ival, ty, "initAndor NUMpat"), [rule])]
-      | initAndor (STRINGpat s, rule) =
-	  ORconst [(STRINGconst s, [rule])]
-      | initAndor (CHARpat s, rule) =
-	  (* NOTE: this won't work for cross compiling to multi-byte characters. *)
-	  ORconst [(charCon s, [rule])]
-      | initAndor (RECORDpat{fields,...}, rule) =
-	  AND (initAnd(map #2 fields, rule)}
+          (* wildcard pat treated as a particular variable pattern *)
+	VARS{path = path,
+	     vars = [(genWildVar(),0)],
+	     live = initLive}
+      | initAndor (LAYEREDpat(var,_,basepat), path) = (* ignoring type constraint option *)
+	  addAsBinding ((var,rule), initAndor (basepat, path))  (* no link added for AS basepat *)
+      | initAndor (NUMpat(_, {ival, ty}), rule) =  (* how are int and word distinguished? *)
+	  let val constCon = numCon(ival,ty)
+	      val newpath = addPath(path, CL(constCon))
+	   in OR{path = path,
+		 asvars = nil,
+		 vars = nil,
+		 live = initLive,
+		 defaults = R.empty,
+		 variants = ORconst [(constCon, LEAF{path=newpath,live=initLive})]
+	  end
+      | initAndor (STRINGpat s, path) =
+	  let val constCon = STRINGconst s
+	      val newpath = addPath(path, CL(constCon))
+	   in OR{path = path,
+		 asvars = nil,
+		 vars = nil,
+		 live = initLive,
+		 defaults = R.empty,
+		 variants = ORconst [(constCon, LEAF{path=newpath,live=initLive})]}
+	  end
+      | initAndor (CHARpat s, path) =
+	  let val constCon = CHARconst(charCon s)
+	      val newPath = addPath(path, CL(constCon))
+	   in OR{path = path,
+		 asvars = nil,
+		 vars = nil,
+		 live = 
+		 defaults = R.empty,
+		 variants = ORconst [(constCon, LEAF{path=newpath, live=initLive})]}
+	  end
+      | initAndor (RECORDpat{fields,...}, path) =
+	  AND{path = path,
+	      asvars = nil,
+	      vars = nil,
+	      live = initLive,
+	      defaults = R.empty,
+	      children = (initAnd(map #2 fields, path)}
+      | initAndor (CONpat(dcon,tvs), rule) =  (* constant datacon *)
+	  let val newpath = addPath(path, DL(dcon))
+  	   in if singletonDatacon dcon
+	      then SINGLE{path = path,
+			  dcon = dcon,
+			  asvars = nil,
+			  vars = nil,
+			  defaults = R.empty, ???
+			  live = R.singleton rule,  (* redundant ??? *)
+			  arg = LEAF{path = newpath, live = R.singleton rule}}
+	      else OR{path = path,
+		      asvars = nil,
+		      vars = nil,
+		      live = initLive,
+		      defaults = R.empty,
+		      variants = ORdata [((dcon, tvs), LEAF{path=newpath, live=initLive})]}
+	  end
+      | initAndor (APPpat(dcon,tvs,pat), rule) =
+	let val newpath = insert(DL(dcon), path)
+	 in if singletonDatacon dcon
+	    then SINGLE{path = path,  (* SINGLE's arg gets the new link *)
+			dcon = dcon,  (* there is only one *)
+			asvars = nil,
+			vars = nil,
+			live = initLive,  (* redundant -- same as child *)
+			defaults = R.empty, (* no variables on path, because 1 pattern *)
+			arg = initAndor(pat,rule,newpath)}
+	    else OR{path = path,
+		    live = initLive,
+		    defaults = R.empty,
+		    asvars = nil,
+		    vars = nil,
+		    variants = ORdata [((dcon, tvs), initAndor(pat,rule,newpath))]}
+	end
       | initAndor (VECTORpat(pats,ty), rule) =
-	  ORvec (ty, [((length pats), AND(initAnd(pats, rule)), R.singleton rule)]) 
-      | initAndor (CONpat(dcon,tvs), rule) =
-	  ORdata [((dcon, tvs), NONE, [rule])]
-      | initAndor (APPpat(k,tvs,pat), rule) =
-	  ORdata [((k,tvs), SOME(AND(initAndor(pat, rule))), R.singleton rule)]
+	let val vlen = length pats
+	    val newpath = insert(VL(vlen), path)
+	in OR{path = path,
+	      asvars = nil,
+	      vars = nil,
+	      live = initLive,
+	      defaults = R.empty,
+	      variants = ORvec (ty, [(vlen, AND(initAnd(pats, newpath)))])}
+	end
       | initAndor _ =
 	  bug "initAndor - unexpected pat arg"
 
@@ -117,106 +248,168 @@ let
           never with a ORdata or ORconst or ORvec andor node (which are varieties of OR nodes).
         - vector element patterns will only be merged with andor nodes (lists) of the
           same length (after discriminating on the length at a ORvec node).
+        -- push defaults down paths and accumulte them
      *)
 
-    (* mergeAndor : pat * andor * ruleno -> andor *)
-    and mergeAndor (VARpat v, andor, rule) =
-	  addVarBinding ((v,rule), andor)
-      | mergeAndor (WILDpat, andor, rule) =
-	  addVarBinding ((wildVar,rule), andor)
-      | mergeAndor (CONSTRAINTpat(pat, _), andor, rule) =
-	  (* disregard constraint *)
-	  mergeAndor(pat, andor, rule)
-      | mergeAndor (LAYEREDpat(v,_,basepat), andor, rule) =
-	  addAsBinding ((v,rule), mergeAndor (basepat, andor, rule))
-      | mergeAndor (NUMpat(_, {ival, ty}), ORconst constChildren, rule) =
-	  let val const = numCon(ival, ty, "mergeAndor NUMpat")
-	   in ORconst (addConstChild(const, rule, constChildren))
-	  end
-      | mergeAndor (STRINGpat s, ORconst constChildren, rule) =
-	  ORconst(addConstChild(STRINGconst s, rule, constChildren))
-      | mergeAndor (CHARpat s, ORconst constChildren, rule) =
-          (* NOTE: this won't work for cross compiling to multi-byte characters *)
-          ORconst (addConstChild(charCon s, rule, constChildren))
-      | mergeAndor (RECORDpat{fields,...}, AND elements, rule) =
-	  (* arity of record and AND andor node are equal *)
-	  AND (mergeAnd (map #2 fields, elements, rule))
-      | mergeAndor (VECTORpat(pats,ty), ORvec(ty', vecChildren), rule) =
-	  (* assume ty and ty' are equal *)
-	  ORvec(mergeVector (pats,rule,vecChildren))
-      | mergeAndor (CONpat(dcon,tvs), ORdata dataChildren, rule) =
-	  ORdata (mergeData (dcon, NONE, dataChildren, rule))
-      | mergeAndor (APPpat(dcon,tvs,pat), ORdata dataChildren, rule) =
-	  ORdata (mergeData (dcon, SOME pat, dataChildren, rule))
-      | mergeAndor (pat, VAR, rule) =
-	  initAndor (pat, rule)
-      | mergeAndor (pat, AS(andor,bindings), rule) =
-	  mergeAsBindings (mergeAndor(pat,andor,rule), bindings)
-      | mergeAndor (pat, VARS(andor, defaults), rule) =
-      (* remaining cases impossible: incompatible types *)
-      | mergeAndor (NUMpat _, AND _, _) =
-          bug "mergeAndor: NUMpat - AND"
-      | mergeAndor (CONpat _, AND _, _) =
-	  bug "mergeAndor: CONpat - AND"
-      | mergeAndor (APPpat _, AND _, _) =
-	  bug "mergeAndor: APPpat - AND"
-      | mergeAndor _ =
+    (* DEFAULT RULE:
+     * If we systematically add an extra default rule (e.g. "_ => raise MATCH") to close
+     * a potentially nonexhaustive match, then the rule number of that default rule will
+     * be n (if the original match had n rules, numbered starting with 0).
+     * This means that rule n will be a default rule for the entire andor tree of the
+     * match.
+     *)
+
+
+
+
+
+    (* mergeAndor : pat * ruleno * andor -> andor *)
+    (* merge the next pat at rule ruleno into the partially constructed andor tree 
+     *  -- don't need to pass a path argument because paths will be found in andor arg?
+     *  -- add ruleno to live set at each merged node
+     *  -- will typically create new branches (links) under OR nodes, unless keys agree
+     *     with an existing variant
+     *  -- merging a variable pattern introduces a default rule that has to be propaged
+     *     through the entire andor tree being merged into.
+     *)
+    and mergeAndor (VARpat v, rule, andor) =
+	addVarBinding ((v,rule), andor)
+          (* rule should be propagated into defaults for all nodes in andor!
+           * Since the andor tree has already been build, this will have to be
+           * done by altering it. Probably best to batch these default propagations
+           * rather than doing it repeatedly for each variable pattern when encountered *)
+      | mergeAndor (WILDpat, rule, andor) =
+	  addVarBinding ((genWildVar(),rule), andor)
+          (* same as for VARpat case *)
+      | mergeAndor (CONSTRAINTpat(pat, _), rule, andor) =
+	  (* disregard type constraints -- they have no role in pattern matching *)
+	  mergeAndor(pat, rule, andor)
+      | mergeAndor (LAYEREDpat(v,_,basepat), rule, andor) =
+	  addAsBinding ((v,rule), mergeAndor (basepat, rule, andor))
+      | mergeAndor (NUMpat(_, {ival, ty}), rule,
+		    OR{path,asvars,vars,live,defaults,variants=ORconst(children)}) =
+	  OR{path = path,
+	     asvars = asvars,
+	     vars = vars,
+	     live = R.add(live,rule),
+	     defaults = defaults,
+	     variants = ORconst (addConstChild(numCon(ival, ty), path, rule, constChildren))}
+      | mergeAndor (STRINGpat s, rule,
+		    OR{path,asvars,vars,live,defaults,variants=ORconst(children)}) =
+	  OR{path = path,
+	     asvars = asvars,
+	     vars = vars,
+	     live = R.add(live,rule),
+	     defaults = defaults,
+	     variants = ORconst (addConstChild(STRINGconst s, path, rule, constChildren))}
+      | mergeAndor (CHARpat s, rule,
+		    OR{path,asvars,vars,live,defaults,variants=ORconst(children)}) =
+	  OR{path = path,
+	     asvars = asvars,
+	     vars = vars,
+	     live = R.add(live,rule),
+	     defaults = defaults,
+	     variants = ORconst (addConstChild(charCon s, path, rule, constChildren))}
+      | mergeAndor (RECORDpat{fields,...}, rule, AND andors) =
+	  (* arity of record and AND andor node are equal because they have the same type *)
+	  AND (mergeAnd (map #2 fields, andors, rule))
+      | mergeAndor (VECTORpat(pats,ty), rule,
+		    OR{path,asvars,vars,live,defaults,children})
+	  (* ASSERT: ty and ty' are equal *)
+	  OR{path = path,
+	     asvars = asvars,
+	     vars = vars,
+	     live = R.add(live,rule),
+	     defaults = defaults,
+	     variants = ORvec (mergeVector (pats,rule,path,children)))
+      | mergeAndor (CONpat(dcon,tvs), rule,
+		    OR{path,asvars,vars,live,defaults,children)) =
+	  OR{path = path,
+	     asvars = asvars,
+	     vars = vars,
+	     live = R.add(live,rule),
+	     defaults = defaults,
+	     variants = ORdata(mergeData (dcon,NONE,rule,path,children))}
+      | mergeAndor (APPpat(dcon,tvs,pat), rule,
+		    OR{path,asvars,vars,live,defaults,children)) =
+	  OR{path = path,
+	     asvars = asvars,
+	     vars = vars,
+	     live = R.add(live,rule),
+	     defaults = defaults,
+	     variants = ORdata(mergeData (dcon, SOME pats, rule, path,children))}
+      | mergeAndor (pat, rule, VARS{path,asvars,vars,live}) =
+	  mergeVars (pat, rule)
+      | mergeAndor _ =  (* remaining cases impossible: incompatible types *)
 	  bug "mergeAndor: incompatible pat and andor tree"
 
-    and mergeAnd (nil, nil, rule) = nil
-      | mergeAnd (pat::pats, elem::elems, rule) =
-	 (mergeAndor(pat, elem, rule))::(mergeAnd(pats, elems, rule))
+    (* mergeAnd : pat list * ruleno * andor list -> andor list *)
+    and mergeAnd (nil, rule, nil) = nil
+      | mergeAnd (pat::pats, rule, andor::andors) =
+	 (mergeAndor(pat, rule, andor))::(mergeAnd(pats, rule, andors))
       | mergeAnd _ = bug "mergeAnd - list length mismatch" (* impossible *)
 
-    and mergeVector (pats,rule,vecChildren: vecChild list) : vecChild list =
+    (* mergeVector : pat list * rule * path * (int * andor) list -> (int * andor) list *)
+    and mergeVector (pats,rule,path,children: (int * andor) list) : (int * andor) list =
 	let val len = length pats (* could be 0 *)
-	    fun merge (vbs as (vb as (len', AND andors, ruleset)::rest), others) =
+	    fun merge (vbs as (vb as (len', AND andors)::rest), prefix) =
 		if len < len'  (* new vector length *)
-		then List.revAppend(others,
-		       (len, AND(initAnd pats), R.singleton rule)::vbs)
+		then List.revAppend(prefix,
+		       (len, AND(initAnd(pats, path, rule)))::vbs)
 		else if len = len'
-		then List.revAppend(others,
-		       (len, mergeAnd(pats, AND andors), R.add(ruleset,rule))::rest)
-		else merge (rest, vb::others)
-	      | merge (nil,others) = rev((len, AND(initAnd pats), R.singleton rule)::others)
-	 in merge(vecChildren,nil)
+		then List.revAppend(prefix,
+		       (len, AND(mergeAnd(pats, andors, rule)))::rest)
+		else merge (rest, vb::prefix)
+	      | merge (nil,prefix) = rev((len, AND(initAnd(pats,rule,path)))::prefix)
+	 in merge(children,nil)
 	end
 
-    and mergeData (dcon, patOp, dataChildren, rule) =
-	let fun merge ((dcon',andorOp,ruleset)::rest, others) =
+    (* mergeData : datacon * pat option * ruleno * (dataCon * andor) list -> (dataCon * andor) list *)
+    (* can the tvs of two dataCons with the same datacon differ? If so, how to handle this? *)
+    and mergeData (dcon, patOp, rule, path, children) =
+	let fun merge ((dcon',andor,ruleset)::rest, revprefix) =
 		  if eqDcon(dcon,dcon')
-		  then
-		    let val dataChild =
-			    case (patOp, andorOp)
-			      of (NONE, NONE) =>  (* constant dcon *)
-				  (dcon, NONE, R.add(ruleset,rule))
-			       | (SOME pat, SOME andor) => 
-				  (dcon, SOME(mergeAndor(pat,andor,rule)),
-				   R.add(ruleset,rule))
-			       | _ => bug "mergeData 1"
-		      in List.revAppend (others, dataChild::rest)
-		     end
-		  else merge(rest, db::others)
-	      | merge (nil, others) =  (* dcon is new *)
-		  let val dataChild =
+		  then let val child =
+			       case (patOp, andorOp)
+				 of (NONE, LEAF{path,live}) =>  (* constant dcon *)
+				     (dcon, LEAF{path=path, live=R.add(ruleset,rule)})
+				  | (SOME pat, andor) => 
+				     (dcon, mergeAndor(pat,andor,rule))
+				  | _ => bug "mergeData 1"
+			 in List.revAppend (revprefix, child::rest)
+			end
+		  else merge(rest, db::revprefix)
+	      | merge (nil, revprefix) =  (* dcon is new to the OR node *)
+		  let val child =
 			  case patOp
-			    of NONE =>
-				(dcon, NONE, R.singleton rule)
+			    of NONE =>  (* constant dcon *)
+				(dcon, LEAF{path=addPath(path,DL(dcon)), live=R.singleton rule})
 			     | SOME pat =>
-			        (dcon, SOME(initAndor(pat,rule)), R.singleton rule)
-		   in rev (dataChild::others)
+			        (dcon, initAndor(pat,rule,addPath(path,DL(dcon))))
+		   in rev (child::revprefix)
 		  end
 	      | merge _ = bug "mergeData 2"
-	 in merge(dataChildren`, nil)
+	 in merge(children`, nil)
 	end
 
-    (* makeAndor' : pat list * ruleno -> andor *)
-    fun makeAndor' (nil, rule) = bug "makeAndor' - no rules"
-      | makeAndor' ([pat], rule) = initAndor (pat, rule)
-      | makeAndor' (pat::pats, rule) =   (* at least 2 pats, |rest| >= 1 *)
-	  mergeAndor(pat, makeAndor'(pats, next(rule)), rule)
+    and mergeVars (pat, rule, VARS{path, asvars, vars, live}) =
+        (* does live ruleset from the VARS node play a part? *)
+	let val andor0 = initAndor(pat, rule, path)
+	    val andor1 = addVarBindings(vars, andor0)
+	    val andor2 = addAsBindings(asvars, andor1)
+	 in andor2
+	end
 
-in makeAndor' (pats,0)
+
+    (* makeAndor0 : pat list -> andor *)
+    fun makeAndor0 (pat::pats) =
+	let val andor0 = initAndor(pat,rootPath)   (* rule 0 *)
+	in #1 (foldl (fn (pat,(andor, rule)) =>
+			 (mergeAndor(pat,rule,andor), next rule)) (andor0,next 0)) pats
+	end
+      | makeAndor0 nil = bug "makeAndor0"
+
+in pushDefaults(R.empty, (makeAndor0 pats))
 
 end (* fun makeAndor *)
 

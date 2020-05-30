@@ -1,6 +1,6 @@
 (* FLINT/matchcomp/generate.sml *)
 				    
-(* generate match "code" *)
+(* generate match "code" from decision tree and andor tree *)
 
 (* The "code" for the match is generated from the decision tree and information from
  * the original andor (about record deconstruction and variable bindings (and types).
@@ -26,7 +26,7 @@ datatype code
   | SWITCHS     (* switch on a string *)
 (*  | TFN       (* type abstraction *)
     | TAPP      (* type application *)
- *)
+*)
 
 (* How can this code representation be translated into Absyn? What new Absyn
  * forms are needed? *)
