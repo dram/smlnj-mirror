@@ -307,3 +307,148 @@ the AND-OR tree.
 
 
 
+Rule sets associated with an AND-OR node:
+
+(1) live rules: relation Live(rule,node)
+Defn. A rule is live at a node if there is no OR choice above that node that is not
+compatible with that rule. This means that there exists a value that could match that
+rule. If the value was pushed down the branches of the andor tree, it would not have
+been eliminated by the time it reaches this node.
+
+(2) relevant rules (static?, or relevant to choice order in a decision tree?)
+Defn: Relevance (static): a node is (absolutely) relevant to a rule if that
+rule is live for the node (Live(rule,node)) and the rule is not live for some
+immediate child of the node (i.e. one of the choices rules it out). Can a rule
+ruled out for _all_ children?  Two cases
+
+  (a) the rule introduces one of the children of the OR nodes (in which case it
+      will be live for that child.
+  (b) the rule does not introduce a new child
+      (b1) it contains a variant that was already introduced by an earlier rule, in
+           which case it is live for that variant
+      (b2) it does not introduce a variant at all, in which case it must have
+           a variable at this nodes position. In this case it becomes a default
+           rule for this node, and for all its descendents, and is therefore 
+	   considered "live" (= live union defaults)
+
+(3) default rules: relation Default(rule,node)
+Defn: a rule is a default rule at a node if there is a variable binding for that rule
+at some node on the path to the node (including the node as the end of the path).
+If Default(rule,node), then that rule cannot be ruled out at that node (i.e. the
+node is not relevant to that rule.
+
+Example:
+
+  (1) cons(x,     nil)
+  (2) cons(true,  cons(y,    nil))
+[ (3) cons(false, cons(true, z))  ]
+  (4) _
+
+variable x in rule 1 makes rule 1 a default for the [R1,D(cons)] node. Rule 1 is
+live for that node and any descendents of that node.
+
+  [] ORdata(list) cons {1,2,3; 4}} (vars = (_,4)) (partial)
+     [DL(cons)] AND {1,2,3}
+                [RL0] OR(bool) {1,2,3; 1,4}  vars=(x,1)
+		      [DL(true)] # {2; 1,4}
+		      [DL(false)] # {3; 1,4}
+		[RL1] OR(list) {1,2,3; 4}
+                      [DL(nil)] # {1; 4}
+		      [DL(cons)] AND {2,3; 4}
+ 		                 [RL0] OR(bool) {2,3; 2,4} (vars = (y,2)) (partial)
+				       [DL(true)] # {3; 2,4}
+				 [RL1] OR(list) {2,3; 4} (vars = (z,3) (partial)
+				       [DL(nil)] {2; 34}
+
+A _partial_ OR node is a datatype or node with not all dataconstructors prepresented
+in the children of the node.  
+
+(All constant and vector OR nodes are partial by default.)
+
+live(node) = {rule: Live(rule,node)}
+
+live [] = allrules
+
+
+
+================================================================================
+Theory
+================================================================================
+
+Defn. A patternable type is a type with some concrete product and sum (datatype)
+structure at the top (where ty vector is an "honorary datatype descriminating on
+the vector lenght).  Some primitive types (int, word, char, string) are also
+deemed patternable.  Abstract types and function types are not patternable.
+
+Defn. Abstractly, a tree is a prefix-closed set of paths (Milner, Webs, 1985). Each
+path determines a "node" in the tree, and nodes can have attributes attached to them.
+"Paths" are lists (finite or infinite) of "links", which may have structure and
+attributes of their own.
+
+Defn. Path concatention. If p and p' are paths, p@p' is the concatenation of the
+paths, consisting of the links of p followed by the links of p' (the concatenation
+of the paths as lists of links).
+
+Defn. A path p' is a _prefix_ of a path p if E(p''). p = p'@p''. (depends on an
+equality relation on links)
+
+Defn. If T is a tree, T' \subset T is the _subtree_ at path p if T' consists of all paths
+in T having p as an prefix.  Subtree(p,T) = {p' | p@p' \in T).  It is a tree (prefix closed).
+
+Defn. An _initial_ tree of a tree T is a prefix-closed subset of T. A finite initial tree
+is an initial tree that is finite.
+
+For any patternable (ML) type t, there is a pattern tree P(t) that expresses the potential
+pattern spaces of the type.  This tree has nodes of three kinds:
+
+ (1) product (AND) nodes that may have a finite number of successors (or children)
+     indexed by natural numbers (non-negative integers). The subtype at a product
+     node is a product (record, tuple) type.
+
+ (2) sum (OR) nodes, that have a finite number of successors indexed by "keys" that
+     are either data constructors (datacons) for a datatype, or constants
+     (for a patternable primitive type). The subtype at a sum node is a sum type
+     (i.e. a datatype).
+ (3) terminal (LEAF) nodes for constants (datatype or primitive)
+
+Note: Vector types are treated as a kind of sum type (over some finite
+range of vector lengths).  Natural numbers serve as keys for vector
+types, indicating to the vector length.
+
+Let t be a patternable type. A pattern pat: t is represented as an initial
+tree of P(t).
+
+Defn: Pat(p) \subset P(t) where pat: t.
+(inductive definition on pattern structure or concrete structure of type t)
+
+A variable in a pattern generates a (potentially infinite) subtree of the P(t).
+
+Defn. The pattern space of a pattern list is the union of Pat(pi) for pi \in pat list.
+
+This pattern space is represented concretely by an AND-OR tree.
+
+
+================================================================================
+variable patterns, default rulesets, propagation of defaults
+
+[datatype t = A | B | C]
+  (1) A
+  (2) x
+  (3) C
+
+Some rules may become "inaccessible" because of defaulting from variables.
+In this example, rule (3) will never be "fired" in a match because it is
+"shadowed" by rule (2).
+
+Thus rule (3) will never be chosen on a branch of the decision tree (because,
+while it may be live at a leaf, it will not be the _least_ live node at a leaf.
+Here we have
+
+  [] DEC(t)
+     A {1,2}
+     C {2,3}
+     [B] {2}  -- default branch
+
+C leads to live set {2,3} which will select the least rule, i.e. (2).
+B goes down an "else" branch with default ruleset {2}
+A leads to live set {1,2} which selects rule (1)
