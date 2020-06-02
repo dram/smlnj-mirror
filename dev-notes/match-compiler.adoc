@@ -436,6 +436,13 @@ variable patterns, default rulesets, propagation of defaults
   (2) x
   (3) C
 
+N0:
+[] OR(t) {1,2,3}  Vars (x,2)
+   [DL(A)] {1; 2}
+   [DL(C)] {3; 2}
+
+Rule 2 is default for the DL(A) and DL(C) variants.
+
 Some rules may become "inaccessible" because of defaulting from variables.
 In this example, rule (3) will never be "fired" in a match because it is
 "shadowed" by rule (2).
@@ -452,3 +459,296 @@ Here we have
 C leads to live set {2,3} which will select the least rule, i.e. (2).
 B goes down an "else" branch with default ruleset {2}
 A leads to live set {1,2} which selects rule (1)
+Rule 3 is redundant, will never be matched.
+
+r in Defaults(Node)
+  ==>
+  (1) Var(Pat(r)[Path(Node)]), or
+  (2) Exists p < Path(Node). Var(Pat(r)[p])
+
+which is the same as:
+
+   Exists p <= Path(Node). Var(Pat(r)[p])
+
+This means that Pat(r)[p] _cannot cause a mismatch_.
+
+If for p0 < Path(Node), Var(Pat(r)[p]). r contributes no
+pattern structure below p0. There may be pattern structure below
+p, but it is contributed by other rules (earlier or later than r).
+
+In above example: Var(Pat(2)[[]])
+
+
+Defn: Relevant(N,r): An OR node N is relevant to a rule r if
+  the choice made at that rule can affect whether that rule matches
+  i.e. some variant is compatible with that rule and another variant
+  is incompatible with that rule.
+  i.e. Pat(r)[Path(N)] is not a variable, therefore is either
+       a constant or a constructor (constant or applied)
+       therefore Pat(r)[Path(N)] is a key for the choice made
+       at N (N.variants).
+
+Defn: Pat(r) (r a ruleno) is the pattern part of rule r (r.pat)
+
+Defn: Pat(r)[p] = pattern element at longest possible prefix of
+      path p in Pat(r).
+
+Prop: Var(Pat(r)[N]) <=> r in Defaults(N)
+
+Defn: Given an andor tree N for a given rule set
+    Compat(r,p) if Pat(r) is "compatible" with all choices made
+    on path p.
+
+Notation: N an andor tree, p a path, Np is the andor tree found at
+  the end of path p.
+    N[] = N
+    N[CL(c)] = LEAF ...
+    N[DL(d)] = N' where N = OR{variants=ORdata [(d,N'),...],...}
+    N[VL(l)] = N' where N = OR{variants=ORvec [(d,N'),...],...}
+    N[RL(i)] = Ni where N = AND [..., Ni,...]
+    otherwise, N
+
+Defn: Compat(pattern, andor) : 
+      Compat(pat, N[])  -- no choices made (yet) at root path
+      Compat(c, N[CL(c)])   -- constant pattern; N is OR[ORconst] = LEAF
+      Compat((p0,p1), AND(a0,a1)) if Compat(p0,a0) and Compat(p1,a1)
+        -- and so on for n-ary products  (a0 = N[RL(0)], a1 = N[RL(1)]
+      Compat(d, N[DL(d)])   -- constant datacon
+      Compat(d(p), N[DL(d)]) if Compat(p,N)
+      Compat(v, N))  true
+   In which case r is live for node N(p)
+
+pat@path = the subpattern (if any) of pat at the point designated
+           by path (if "compatible")
+
+Prop: Compat(r,p) <==> r in Live(Node(p)) ?
+
+Prop: If Var(Pat(r)[path]), then r in Defaults(N(path)),
+      where N = andor(rules).
+
+Note: Pat(r)[path] is always defined, though the actual path for this
+subpattern may be a strict prefix of path.
+
+Example:
+
+  (1)  true,  false, true
+  (2)  true,  x,     false
+  (3)  false, true,  y
+
+AND-OR tree
+
+[] AND
+   [RL(1)] OR(bool) {1,2,3}
+           [DL(true) LF {1,2}
+           [DL(false) LF {3}
+   [RL(2)] OR(bool) {1,3; 2}  var: (x,2)   [2 goes to defaults, not live]
+           [DL(true) LF {3; 2}
+           [DL(false) LF {1; 2}
+   [RL(3)] OR(bool) {1,2; 3}  var: (y,3)
+           [DL(true) LF {1; 3}
+           [DL(false) LF {2; 3}
+   
+metric:
+   [RL(1)] : (0, 2)   (#defaults,breadth)
+   [RL(2)] : (1, 2)   (#defaults,breadth)  (x, 2)
+   [RL(3)] : (1, 2)   (#defaults,breadth)  (y, 3)
+
+   [RL(1)] < [RL(2)] = [RL(3)]
+
+Relevance: {1,2,3}, least: 1
+   [RL(1)]: true
+   [RL(2)]: true
+   [RL(3)]: true
+
+Decision tree:
+
+D[RL(1)] {1,2,3}
+   true  : {1,2}, least: 1
+      Relevance: [RL(2)]: true  (1 not in defaults = {2})
+                 [RL(3)]: true  (1 not in defaults = {3})
+      D[RL(2)]  {1,3; 2}
+         true  : {2!,3} inter {1,2} = {2}, least: 2
+	   Relevance: [RL(3)] : true  (2 not in defaults = {3})
+	   [RL(3)] {1,2; 3} > {1,3!}
+	      true  : {1,3!} inter {2} = empty ==> MATCH!
+	      false : {2,3!}, least: 2   
+	        no more choices  ==> (2)
+	 false : {1,2!} inter {1,2} = {1,2}, least: 1
+	   Relevance: [RL(3)] : true  (1 not in defaults = {3})
+	   [RL(3)] {1,2; 3}
+	      true  : {1,3!} inter {1,2!} = {1}, least : 1  ==> (1)
+	        [[no more choices  ==> (1)]]
+	      false  : {2,3!} inter {1,2} = {2}, least : 1  ==> (2)
+	        [[no more choices  ==> (2)]]
+   false : {3}
+      Relevance: [RL(2)] : true  (3 not in defaults={2})
+                 [RL(3)] : true  (3 not in defaults={2})
+      D[RL(2)] {1,3; 2}
+         true: {2!,3} inter {3} = {3}, least: 3  ==> (3)
+	   [[ Relevance: [RL(3)]: false  (2 in defaults = {2})   [==> (3)] ]]
+	 false: {1,2!} inter {3} = {},    ==> MATCH!
+	   [[ Relevance: [RL(3)]: true  (1 not in defaults = {3})
+	   D[RL(3)]: {1,2; 3}
+	      true: {1,3!}, least: 1
+	        no more choice nodes  ==> (1)
+	      false: {2,3!}, least 2
+	        no more choice nodes  ==> (2)  ]]
+
+Abbreviated decision tree:
+
+  [RL(10]
+  true =>
+    [RL(2)]
+    true  => 
+      [RL(3)]
+      true  => MATCH!
+      false => (2)
+    false =>
+      [RL(3)]
+      true  => (1)
+      false => (2)
+  false =>
+    [RL(2)]
+     true  => (3)
+     false => MATCH!
+
+
+match?: (true,true,true) ==>  MATCH!
+        (false,true,false) ==> (3)
+	(false,false,false) ==> MATCH!
+
+Example (where rule is chosen because no relevant OR nodes)
+
+  (1)  A,  false, true
+  (2)  B,  x,     false
+  (3)  z,  true,  y
+
+AND-OR tree
+
+[] AND
+   [RL(1)] OR(t) {1,2,3z}
+           [DL(A) LF {1,3z}
+           [DL(B) LF {2,3z}
+   [RL(2)] OR(bool) {1,2x,3}  var: 2x   [2 goes to defaults, not live]
+           [DL(true) LF {2x,3}
+           [DL(false) LF {1,2x}
+   [RL(3)] OR(bool) {1,2,3y}  var: 3y
+           [DL(true) LF {1,3y}
+           [DL(false) LF {2,3y}
+  
+metric(RL(1)) = (1,2)
+metric(RL(2)) = (1,2)
+metric(RL(3)) = (1,2)
+(all three nodes have 1 variable, 2 keys)
+
+accessible = [RL(1),RL(2),RL(3)]
+
+D[RL(1)] {1,2,3}  (= allrules)
+   A  : {1,3z}, least: 1
+      Relevance: [RL(2)]: true  (1 not in defaults = {2})
+                 [RL(3)]: true  (1 not in defaults = {3})
+      D[RL(2)]  {1,2x,3}
+         true  : {2x,3} inter {1,3z} = {3z}, least: 3z  ==> (3)
+	 false : {1,2x} inter {1,3z} = {1}, least: 1
+	   Relevance: [RL(3)] : true  (1 not in defaults = {3})
+	   [RL(3)] {1,2,3z}
+	      true  : {1,3z} inter {1,2x} = {1}, least : 1  ==> (1)
+	        [[no more choices  ==> (1)]]
+	      false  : {2,3z} inter {3z} = {3z}, least : 3  ==> (3z)
+	        [[no more choices  ==> (2)]]
+   B : {2,3z}, least: 2
+      Relevance: [RL(2)] : false  (2 is in defaults={2x})
+                 [RL(3)] : true  (2 not in defaults={3y})
+      D[RL(3)] {1,2,3y}
+         true: {1,3y} inter {2,3z} = {3yz}, singleton  ==> (3)
+	 false: {2,3y} inter {2,3z} = {2,3yz}, least {2},  ==> (2)
+	   [[ Relevance: [RL(2)]: false  (2 in defaults = {2x})
+   X : {C} {3z} ==> (3)   -- immediate, because singleton live
+
+Abbreviated decision tree:
+
+  [RL(1)]
+  A =>
+    [RL(2)]
+    true  => (3)
+    false =>
+      [RL(3)]
+      true  => (1)
+      false => (3)
+  B =>
+    [RL(3)]
+     true  => (3)
+     false => (2)
+  [C] => {3}
+
+  
+================================================================================
+email to Bob, 2020.5.31
+
+I am trying to reconstruct the match compilation algorithm from first
+principles (after having spend way too much time trying to reverse
+engineer the existing (Bill Aitken) code).  The reverse engineering,
+while slow and painful, was one way to come to grips with the
+essential ideas.  I have been writing lots of notes as I gradually
+understand what is going on.  One simple way of thinking of the
+problem is that any “pattern-matchable” type (a type with outer layers
+of concrete product/sum structure, plus a few primitive types with
+constants allowed in patterns, i.e. int, work, char, string) has an
+associated “pattern space” that can be represented as a (potentially
+infinite) tree which is obtained by unrolling the concrete structure
+(abstract types and function types are “atomic” for this purpose).  A
+particular pattern is a finite “initial segment” (prefix-closed set of
+paths) in this pattern space, and a set of patterns can be
+characterized by the union of the initial segments for the patterns.
+This union gives one an AND-OR tree (AND for product nodes, OR for sum
+nodes corresponding to datatypes or “open” patternable types like int,
+string, exceptions (with unbounded numbers of alternatives).  For
+engineering/algorithmic purposes you need to annotate this AND-OR tree
+with additional information (which bits come from which patterns,
+which patterns are “live” or compatible at a given point in the
+pattern space, and what kind of “defaulting” is introduced by
+occurrences of variables in the patterns. [This AND-OR representation
+evolved from an earlier “matrix” view of a pattern sequence that has
+been used in lots of formulations — I wrote one up in May, 1084 for
+the first time.  The formulating the pattern space as a tree was also
+partly inspired by Milner’s Webs note.]
+
+Having constructed the AND-OR tree to concretely represent the pattern
+space, the next step is to order the “accessible” (non-nested) OR
+nodes by some heuristic criteria and from this ordering (roughly)
+construct a decision tree using all the “relevant” choices represented
+by the OR nodes.  Once you “choose” an OR node to be the next choice
+on a branch of the decision tree, the AND-OR structure beneath its
+children (variants), if any, is opened up and introduces new available
+OR nodes for including in the decision tree.  When you have used up
+the “relevant” OR nodes, you have the complete decision tree.
+
+The final step is to flatten the decision tree into (pseudo) code
+(e.g. abstract syntax or FLINT plambda). You have to deal with types
+and type variables if the code is typed.  Another engineering
+challenge is to try to avoid duplicating the switch code because of
+the branching structure of the decision tree, where an single OR node
+in the static AND-OR representation might be replicated under the
+branches of another OR node.
+
+There are various optimality criteria that may be used to drive the
+building of the decision tree, such as total code size, minimizing the
+number of tests (switches), etc.  At the very least, there will be no
+redundant tests performed dynamically (any given OR node from the
+AND-OR tree will be represented at most once on any branch of the
+decision tree).  The underlying fundamental idea is not to forget any
+information derived from a test so that the test might need to be
+performed again somewhere down the line.
+
+So that is a capsule summary of my current approach.  There are lots
+of variations.  For instance, there are “backtracking” pattern
+matchers that same on code size at the expense of having to repeat
+tests.
+
+So far, as I said, I’ve been reconstructing this from first
+principles.  Before writing this up (as a very tardy follow up to
+Baudinet and MacQueen, 1985), I’ll need to review the literature (see
+SML-history/Implementation/pat-match) to see what wheels I have
+re-invented.
+
+================================================================================
