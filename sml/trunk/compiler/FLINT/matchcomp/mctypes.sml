@@ -1,6 +1,6 @@
 (* mctypes.sml *)
 (* types for the match compiler
- * replaces older versions of mccommon.sml *)
+ * replaces older versions of the file named mccommon.sml *)
 
 structure MCTypes =
 struct
@@ -16,10 +16,9 @@ in
 
 fun bug s = EM.impossible ("MCCommon: " ^ s)
 
-type ruleno = R.ruleno  (* == int, the index number of a rule in the match, zero-based *)
-type ruleset = R.ruleset
+type ruleno = R.ruleno    (* == int, the index number of a rule in the match, zero-based *)
+type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers, maintained in strictly ascending order without duplicates *)
-   (* == IntBinarySet.set *)
 
 type binding = var * ruleno
    (* a variable bound at some point in the given rule, either as a
@@ -28,7 +27,7 @@ type varBindings = binding list  (* variables bound by VARpat *)
 type asBindings = binding list   (* variables bound by LAYEREDpat, i.e. an "as" pattern *)
 			  
 (* datatype constructors in patterns *)
-type dataCon = datacon * tyvar list   (* do we need the tyvar list (bound tyvars)? *)
+type dataCon = datacon * T.tyvar list   (* do we need the tyvar list (bound tyvars)? *)
 
 datatype constCon
   = INTconst of int IntConst.t
@@ -38,8 +37,8 @@ datatype constCon
      (* avoid treating chars as int -- leave them as characters *)
 	     
 (* eqConst : constCon * constCon -> bool *)
-fun eqConst (INTconst v1, INTconst v2) = v1 = v2
-  | eqConst (WORDconst v1, WORDconst v2) = v1 = v2
+fun eqConst (INTconst v1, INTconst v2) = IntConst.same(v1, v2)
+  | eqConst (WORDconst v1, WORDconst v2) = IntConst.same(v1, v2)
   | eqConst (CHARconst v1, CHARconst v2) = v1 = v2
   | eqConst (STRINGconst v1, STRINGconst v2) = v1 = v2
 							
@@ -91,6 +90,26 @@ Differs from old andor tree: Single (for singlton datacons), Initial, starting
 place for merging patterns (no initAndor needed), and Leaf, which seems to be used
 as a phantom argument for nullary dcons. (?) *)
 
+(* Do we need to, or would it be useful to, explicitly include the type
+ * for each node. Given the type is known before match compilation, it would
+ * be easy to propagate types down through the constructed AND-OR tree.
+ * How would we use such types? 
+ *   Could also maintain a mapping from paths to types of the nodes designated
+ * by those paths.
+ *)
+
+(* keys for "variants" lists of choices 
+ *   These key values could be used to distinguish the different flavors of OR nodes *)
+datatype choiceKey
+  = DATAkey of (T.datacon * T.tyvar list)  (* content of "dataCon" *)
+  | VECTORkey of int * ty (* -- vector length and element type, a kludge *)
+  | CONSTkey of ConstCon
+(*| INTkey of int IntConst.t  -- superceding type constCon 
+  | WORDkey of int IntConst.t
+  | CHARkey of char
+  | STRINGkey of string
+*)
+		    
 datatype andor
   = AND of   (* product pattern *)
     {path : path,              (* unique path to this node *)
@@ -133,28 +152,40 @@ and orKind
 (* ASSERT: arguments of ORdata, ORvec, ORconst are non-null 
  * INVARIANT: the andor of an ORconst variant is always a LEAF, and the main
  *   purpose of that LEAF node is to record a live ruleset for that position *)
-			  
-(* don't need these definitions, which have been expanded in place above
-withtype
-    dataLink = dataCon * andor
-         (* The andor provides the andor tree for the argument pattern
-          * for dataCon, LEAF{live} if dataCon is a constant (nullary)
-          * could replace dataCon with datacon and have tyvar list as a separate
-          * component, if it is indeed needed *)
-and vecLink = int * andor
-         (* andor is an AND. vecLinks are ordered by the int (length) field *)
-and constLink = constCon * andor (* andor = LEAF{live} *)
-         (* no subsidiary (argument) patterns, so andor = LEAF *)
-*)
 
+withtype variant = (choiceKey * andor) list
+(* this pushes the discrimination of the OR-kind into the keys of the variants.
+ * what is the impact on the andor tree construction? *)
+
+			  
 (* potentially useful functions:
+ 
+(* a datatype that could be viewed as an alternative to including the type of a node *)
+datatype nodeKind
+ = DATAkind of T.ty (* type of datacon keys *)  (* OR datatype node (or SINGLE?) *)
+ | VECTORkind of ty (* element type *)          (* OR vector node *)
+ | INTkind | WORDkind | CHARkind | STRINGkind (* OR constant nodes)
+ | VARSkind
+ | LEAFkind  (* terminal below a constant *)
+ | ANDkind 
+
+nodeKind : andor -> nodeKind (type)
+eqNode : andor * andor -> bool
+(two nodes are equal if their path component is equal, needed only for OR nodes?)
 
 findPath : path * andor -> andor
+(the andor subtree located at path in the given andor tree *)
+
+pathToType : path * ty -> ty
 
 partial: andor -> bool
    andor is an OR node, and partial(node) is true if 
    (1) variants is ORdata and not all construtors appear in variants list
    (2) ORvec or ORconst, which are inherently partial coverage
+
+orBreadth : andor -> int option
+(number of children of an OR node, NONE for non-OR nodes *)
+
 *)
 
 
