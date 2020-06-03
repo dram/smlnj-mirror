@@ -41,7 +41,7 @@ fun numCon (v, ty) =
 	else bug "numCon"
     end
 
-(* charCon : string -> char *)
+(* charCon : string -> char; string assumed to be of size = 1 *)
 fun charCon s = String.sub (s, 0)
 
 (* addAsBinding : binding * andor -> andor *)
@@ -54,7 +54,8 @@ fun addAsBinding (b, AND{path,asvars,vars,live,defaults,children}) =
   | addAsBinding (b, VARS{path,asvars,vars,dcon,arg}) = 
     VARS{path=path,asvars = b::asvars,vars=vars,live=live}
   | addAsBinding (b, LEAF _) = bug "addAsBinding - LEAF"
-
+  (* as-binding for a (say) constant will be attached to the parent OR node *)
+				   
 (* addVarBinding : binding * andor -> andor *)
 fun addVarBinding (b, AND{path,asvars,vars,live,defaults,children}) =
     AND{path=path,asvars=asvars,vars=b::vars,live=live,defaults=defaults,children=children}
@@ -65,19 +66,14 @@ fun addVarBinding (b, AND{path,asvars,vars,live,defaults,children}) =
   | addVarBinding (b, VARS{path,asvars,vars,dcon,arg}) = 
     VARS{path=path,asvars=asvars,vars=b::vars,live=live}
   | addVarBinding (b, LEAF _) = bug "addVarBinding - LEAF"
+  (* var-binding for a (say) constant will be attached to the parent OR node *)
 
-(* merge AS bindings so there is only one layer of AS for an andor tree *)
-fun mergeAsBindings (bindings, AS(andor, bindings')) =
-      (* could "merge" the two bindings lists instead of just appending them? *)
-      AS(andor, bindings@bindings')
-  | mergeAsBindings (bindings, andor) = AS(andor, bindings)
-
-(* addConstChild: constCon * path * ruleno * (constCon * andor) list -> (constCon * andor) list *)
-fun addConstChild (const, path, rule, nil) =  (* new constant variant *)
-    [(const, LEAF{path = addPath(path, CL const), live=R.singleton rule})]
-  | addConstChild (const, path, rule, (child as (const', LEAF{live,...}))::rest) =
-      if eqConst(const, const')
-      then (const, LEAF{path=path,live=R.add(live,rule)})::rest
+(* addConstChild: choiceKey * path * ruleno * (choiceKey * andor) list -> (choiceKey * andor) list *)
+fun addConstChild (constKey, path, rule, nil) =  (* new constant variant *)
+    [(const, LEAF{path = addPath(path, CL constKey), live=R.singleton rule})]
+  | addConstChild (constKey, path, rule, (child as (constKey', LEAF{live,...}))::rest) =
+      if eqConstKey(constKey, constKey')
+      then (constKey, LEAF{path=path,live=R.add(live,rule)})::rest
       else child::(addConstChild(const, path, rule, rest))
 
 (* makeAndor : pat list -> andor *)
@@ -103,14 +99,7 @@ let
 	       vars=vars,
 	       live=live, (* doesn't affect live *)
 	       defaults = defaults',
-	       variants=case variants
-			 of ORdata children =>
-			    ORdata(map push children)
-			 | ORvec(ty, children) => 
-			    ORvec(ty, map push children)
-			 | ORconst children => 
-			    ORconst(map push children)}
-	       end
+	       variants = map push variants}
        | SINGLE{path,asvars,vars,dcon,andor} =>
 	 let val defaults' = R.union(defaults, map #2 vars)
 	  in SINGLE{path=path,dcon=dcon,asvars=asvars,vars=vars,
@@ -127,8 +116,8 @@ let
        | VARS{path,asvars,vars,live} => 
 	 let val defaults' = R.union(defaults, map #2 vars)
 	  in VAR{path=path,asvars=asvars,vars=vars,live=live,defaults=defaults'}
-       | LEAF{path,live} =>
-	 LEAF{path=path,live=live}  (* needs defaults? *)
+       | LEAF{path,live,defaults=defaults0} =>  (* push defaults all the way down to LEAF nodes? *)
+	 LEAF{path=path,live=live,defaults=R.union(defaults,defaults0)}  (* needs defaults? *)
 
 
     val initLive : ruleset = R.add(R.empty, 0)
@@ -137,7 +126,7 @@ let
      * preserves order of pattern list *)
     fun initAnd (pats, path) =
 	rev(#1 (foldl
-		 (fn (pat,(andors,index)) => (initAndor(pat,addPath(path, RL index))::andors, index+1))
+		 (fn (pat,(andors,index)) => (initAndor(pat,addToPath(path, RL index))::andors, index+1))
 		 (nil,0) pats)
 
     (* initAndor : pat * path -> andor *)
@@ -155,34 +144,32 @@ let
       | initAndor (LAYEREDpat(var,_,basepat), path) = (* ignoring type constraint option *)
 	  addAsBinding ((var,rule), initAndor (basepat, path))  (* no link added for AS basepat *)
       | initAndor (NUMpat(_, {ival, ty}), rule) =  (* how are int and word distinguished? *)
-	  let val constCon = numCon(ival,ty)
-	      val newpath = addPath(path, CL(constCon))
+	  let val intKey = INTkey(ival,ty)  (* how about word? *)
+	      val newpath = addToPath(path, CL(intKey))
 	   in OR{path = path,
 		 asvars = nil,
 		 vars = nil,
 		 live = initLive,
 		 defaults = R.empty,
-		 variants = ORconst [(constCon, LEAF{path=newpath,live=initLive})]
+		 variants = [(intKey, LEAF{path=newpath,live=initLive})]
 	  end
       | initAndor (STRINGpat s, path) =
-	  let val constCon = STRINGconst s
-	      val newpath = addPath(path, CL(constCon))
+	  let val newpath = addToPath(path, CL(constCon))
 	   in OR{path = path,
 		 asvars = nil,
 		 vars = nil,
 		 live = initLive,
 		 defaults = R.empty,
-		 variants = ORconst [(constCon, LEAF{path=newpath,live=initLive})]}
+		 variants = [(STRINGkey s, LEAF{path=newpath,live=initLive})]}
 	  end
       | initAndor (CHARpat s, path) =
-	  let val constCon = CHARconst(charCon s)
-	      val newPath = addPath(path, CL(constCon))
+	  let val newPath = addToPath(path, CL(constCon))
 	   in OR{path = path,
 		 asvars = nil,
 		 vars = nil,
 		 live = 
 		 defaults = R.empty,
-		 variants = ORconst [(constCon, LEAF{path=newpath, live=initLive})]}
+		 variants = [(CHARkey(charCon s), LEAF{path=newpath, live=initLive})]}
 	  end
       | initAndor (RECORDpat{fields,...}, path) =
 	  AND{path = path,
@@ -192,7 +179,7 @@ let
 	      defaults = R.empty,
 	      children = (initAnd(map #2 fields, path)}
       | initAndor (CONpat(dcon,tvs), rule) =  (* constant datacon *)
-	  let val newpath = addPath(path, DL(dcon))
+	  let val newpath = addToPath(path, DL(dcon))
   	   in if singletonDatacon dcon
 	      then SINGLE{path = path,
 			  dcon = dcon,
@@ -206,7 +193,7 @@ let
 		      vars = nil,
 		      live = initLive,
 		      defaults = R.empty,
-		      variants = ORdata [((dcon, tvs), LEAF{path=newpath, live=initLive})]}
+		      variants = [(DATAkey(dcon, tvs), LEAF{path=newpath, live=initLive})]}
 	  end
       | initAndor (APPpat(dcon,tvs,pat), rule) =
 	let val newpath = insert(DL(dcon), path)
@@ -223,7 +210,7 @@ let
 		    defaults = R.empty,
 		    asvars = nil,
 		    vars = nil,
-		    variants = ORdata [((dcon, tvs), initAndor(pat,rule,newpath))]}
+		    variants = [(DATAkey(dcon, tvs), initAndor(pat,rule,newpath))]}
 	end
       | initAndor (VECTORpat(pats,ty), rule) =
 	let val vlen = length pats
@@ -287,49 +274,49 @@ let
       | mergeAndor (LAYEREDpat(v,_,basepat), rule, andor) =
 	  addAsBinding ((v,rule), mergeAndor (basepat, rule, andor))
       | mergeAndor (NUMpat(_, {ival, ty}), rule,
-		    OR{path,asvars,vars,live,defaults,variants=ORconst(children)}) =
+		    OR{path,asvars,vars,live,defaults,variants}) =
 	  OR{path = path,
 	     asvars = asvars,
 	     vars = vars,
 	     live = R.add(live,rule),
 	     defaults = defaults,
-	     variants = ORconst (addConstChild(numCon(ival, ty), path, rule, constChildren))}
+	     variants = addConstChild(numCon(ival, ty), path, rule, variants)}
       | mergeAndor (STRINGpat s, rule,
-		    OR{path,asvars,vars,live,defaults,variants=ORconst(children)}) =
+		    OR{path,asvars,vars,live,defaults,variants}) =
 	  OR{path = path,
 	     asvars = asvars,
 	     vars = vars,
 	     live = R.add(live,rule),
 	     defaults = defaults,
-	     variants = ORconst (addConstChild(STRINGconst s, path, rule, constChildren))}
+	     variants = addConstChild(STRINGkey s, path, rule, variants)}
       | mergeAndor (CHARpat s, rule,
-		    OR{path,asvars,vars,live,defaults,variants=ORconst(children)}) =
+		    OR{path,asvars,vars,live,defaults,variants}) =
 	  OR{path = path,
 	     asvars = asvars,
 	     vars = vars,
 	     live = R.add(live,rule),
 	     defaults = defaults,
-	     variants = ORconst (addConstChild(charCon s, path, rule, constChildren))}
+	     variants = ORconst (addConstChild(CHARkey(charCon s), path, rule, variants))}
       | mergeAndor (RECORDpat{fields,...}, rule, AND andors) =
 	  (* arity of record and AND andor node are equal because they have the same type *)
 	  AND (mergeAnd (map #2 fields, andors, rule))
       | mergeAndor (VECTORpat(pats,ty), rule,
-		    OR{path,asvars,vars,live,defaults,children})
+		    OR{path,asvars,vars,live,defaults,variants})
 	  (* ASSERT: ty and ty' are equal *)
 	  OR{path = path,
 	     asvars = asvars,
 	     vars = vars,
 	     live = R.add(live,rule),
 	     defaults = defaults,
-	     variants = ORvec (mergeVector (pats,rule,path,children)))
+	     variants = ORvec (mergeVector (pats,rule,path,variants)))
       | mergeAndor (CONpat(dcon,tvs), rule,
-		    OR{path,asvars,vars,live,defaults,children)) =
+		    OR{path,asvars,vars,live,defaults,variants)) =
 	  OR{path = path,
 	     asvars = asvars,
 	     vars = vars,
 	     live = R.add(live,rule),
 	     defaults = defaults,
-	     variants = ORdata(mergeData (dcon,NONE,rule,path,children))}
+	     variants = mergeData (DATAkey(dcon,tvs), NONE, rule, path, variants))}
       | mergeAndor (APPpat(dcon,tvs,pat), rule,
 		    OR{path,asvars,vars,live,defaults,children)) =
 	  OR{path = path,
@@ -337,7 +324,7 @@ let
 	     vars = vars,
 	     live = R.add(live,rule),
 	     defaults = defaults,
-	     variants = ORdata(mergeData (dcon, SOME pats, rule, path,children))}
+	     variants = mergeData (DATAkey(dcon,tvs), SOME pats, rule, path,children))}
       | mergeAndor (pat, rule, VARS{path,asvars,vars,live}) =
 	  mergeVars (pat, rule)
       | mergeAndor _ =  (* remaining cases impossible: incompatible types *)
@@ -364,17 +351,17 @@ let
 	 in merge(children,nil)
 	end
 
-    (* mergeData : datacon * pat option * ruleno * (dataCon * andor) list -> (dataCon * andor) list *)
+    (* mergeData : datacon * pat option * ruleno * variant list -> variant list *)
     (* can the tvs of two dataCons with the same datacon differ? If so, how to handle this? *)
-    and mergeData (dcon, patOp, rule, path, children) =
-	let fun merge ((dcon',andor,ruleset)::rest, revprefix) =
-		  if eqDcon(dcon,dcon')
+    and mergeData (dataKey, patOp, rule, path, variants) =
+	let fun merge ((dataKey',andor)::rest, revprefix) =
+		  if eqChoiceKey(dataKey,dataKey')
 		  then let val child =
 			       case (patOp, andorOp)
 				 of (NONE, LEAF{path,live}) =>  (* constant dcon *)
-				     (dcon, LEAF{path=path, live=R.add(ruleset,rule)})
+				     (dataKey, LEAF{path=path, live=R.add(ruleset,rule)})
 				  | (SOME pat, andor) => 
-				     (dcon, mergeAndor(pat,andor,rule))
+				     (dataKey, mergeAndor(pat,andor,rule))
 				  | _ => bug "mergeData 1"
 			 in List.revAppend (revprefix, child::rest)
 			end
@@ -383,9 +370,10 @@ let
 		  let val child =
 			  case patOp
 			    of NONE =>  (* constant dcon *)
-				(dcon, LEAF{path=addPath(path,DL(dcon)), live=R.singleton rule})
+			       (dataKey,
+				LEAF{path=addToPath(path,DL(dcon)), live=R.singleton rule})
 			     | SOME pat =>
-			        (dcon, initAndor(pat,rule,addPath(path,DL(dcon))))
+			       (dataKey, initAndor(pat,rule,addToPath(path,DL(dcon))))
 		   in rev (child::revprefix)
 		  end
 	      | merge _ = bug "mergeData 2"
@@ -393,13 +381,13 @@ let
 	end
 
     and mergeVars (pat, rule, VARS{path, asvars, vars, live}) =
-        (* does live ruleset from the VARS node play a part? *)
+        (* does live ruleset from the VARS node play a part?  
+         * Is live = R.empty and invariant? *)
 	let val andor0 = initAndor(pat, rule, path)
 	    val andor1 = addVarBindings(vars, andor0)
 	    val andor2 = addAsBindings(asvars, andor1)
 	 in andor2
 	end
-
 
     (* makeAndor0 : pat list -> andor *)
     fun makeAndor0 (pat::pats) =
@@ -407,7 +395,7 @@ let
 	in #1 (foldl (fn (pat,(andor, rule)) =>
 			 (mergeAndor(pat,rule,andor), next rule)) (andor0,next 0)) pats
 	end
-      | makeAndor0 nil = bug "makeAndor0"
+      | makeAndor0 nil = bug "makeAndor0" (* INVARIANT: pats arg not null *)
 
 in pushDefaults(R.empty, (makeAndor0 pats))
 

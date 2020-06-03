@@ -1,0 +1,9 @@
+TODO.txt
+TODO list for new match compiler
+
+* add support for word constants (like "0w8") as constant patterns.
+
+* translate andor tree + decision tree into pseudo code
+
+* replace pseudo code by (extended) absyn and/or FLINT plambda
+
