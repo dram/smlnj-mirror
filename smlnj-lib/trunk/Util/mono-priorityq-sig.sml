@@ -34,6 +34,12 @@ signature MONO_PRIORITYQ =
 	 * if the queue is empty.
 	 *)
 
+    val findAndRemove : queue * (item -> bool) -> (item * queue) option
+	(* find the item with the highest priority that satisfies the predicate *)
+
+    val delete : queue * (item -> bool) -> queue
+	(* delete all elements satisfying the given predicate *)
+
     val merge : (queue * queue) -> queue
 	(* Merge two queues. *)
 

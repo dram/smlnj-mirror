@@ -1,6 +1,10 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-06-03]
+	Added the functions `delete` and `findAndRemove` to the
+	`MONO_PRIORITYQ` signature.
+
 [2020-05-25]
 	Some cleanup and additions to the `RegExpSyntax` structure in
 	the *RegExp Library*.  Instead of having constructors for

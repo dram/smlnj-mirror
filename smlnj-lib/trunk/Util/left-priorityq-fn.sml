@@ -35,13 +35,34 @@ functor LeftPriorityQFn (P : PRIORITY) : MONO_PRIORITYQ =
 	    | _ => mkNode(y, h21, mergeHeap(h1, h22))
 	  (* end case *))
 
-    fun insert (x, Q(n, h)) = Q(n+1, mergeHeap(singletonHeap x, h))
+    fun insertHeap (h, x) = mergeHeap(singletonHeap x, h)
+
+    fun insert (x, Q(n, h)) = Q(n+1, insertHeap (h, x))
 
     fun next (Q(_, EMPTY)) = NONE
       | next (Q(n, ND(_, x, h1, h2))) = SOME(x, Q(n-1, mergeHeap(h1, h2)))
 
     fun remove (Q(_, EMPTY)) = raise List.Empty
       | remove (Q(n, ND(_, x, h1, h2))) = (x, Q(n-1, mergeHeap(h1, h2)))
+
+  (* this is a somewhat brute force implementation that probably could be improved *)
+    fun findAndRemove (Q(n, heap), pred) = let
+	  fun find (EMPTY, rejects) = NONE
+	    | find (ND(_, x, h1, h2), rejects) = if pred x
+		then SOME(x, Q(n-1, mergeHeap(rejects, mergeHeap(h1, h2))))
+		else find (mergeHeap(h1, h2), insertHeap (rejects, x))
+	  in
+	    find (heap, EMPTY)
+	  end
+
+    fun delete (Q(n, heap), pred) = let
+	  fun filter (EMPTY, (n, residual)) = (n, residual)
+	    | filter (ND(_, x, h1, h2), (n, residual)) = if pred x
+		then filter (h2, filter (h1, (n-1, residual)))
+		else filter (h2, filter (h1, (n, insertHeap (residual, x))))
+	  in
+	    Q (filter (heap, (n, EMPTY)))
+	  end
 
     fun merge (Q(n1, h1), Q(n2, h2)) = Q(n1+n2, mergeHeap(h1, h2))
 
