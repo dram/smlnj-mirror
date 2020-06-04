@@ -65,7 +65,7 @@ structure CopyFile : sig
 	  fun rewrite (srcFile, outS) = let
 		val inS = TextIO.openIn srcFile
 		fun lp () = (case TextIO.inputLine inS
-		       of NONE => ()
+		       of NONE => TextIO.closeIn inS
 			| SOME s => (rewriteLine(outS, s); lp ())
 		      (* end case *))
 		in
