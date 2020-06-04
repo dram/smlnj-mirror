@@ -5,7 +5,8 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `REGEXP_PARSER` signature ...
+The `REGEXP_PARSER` signature defines the interface to a parser for a
+concrete regular-expression syntax.
 
 == Synopsis
 
@@ -24,11 +25,15 @@ val scan : (char, 'a) StringCvt.reader -> (RegExpSyntax.syntax, 'a) StringCvt.re
 == Description
 
 `[.kw]#val# scan : (char, 'a) StringCvt.reader \-> (RegExpSyntax.syntax, 'a) StringCvt.reader`::
-  *something*
-	(* read an external representation of a regular expression
-	 * from the stream and return an abstract syntax representation
-	 *)
+  `scan getc strm` parses a regular expression from the input stream `strm` using
+  the {sml-basis-url}/string-cvt.html#SIG:STRING_CVT.reader:TY[character reader] `getc`.
+  If successful, it returns `SOME(re, strm')`, where `re` is the abstract syntax
+  of the regular expression and ``strm'`` is the residual input stream.  It returns
+  `NONE` if there is a syntax error in the input.
 
 == See Also
 
+xref:str-AwkSyntax.adoc[`AwkSyntax`],
+xref:fun-RegExpFn.adoc[`RegExpFn`],
+xref:str-RegExpSyntax.adoc[`RegExpSyntax`],
 xref:regexp-lib.adoc[__The RegExp Library__]

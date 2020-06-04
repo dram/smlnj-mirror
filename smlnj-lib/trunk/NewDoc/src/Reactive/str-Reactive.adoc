@@ -236,10 +236,10 @@ The following functions are part of the interface, but have been
 deprecated.
 
 `[.kw]#val# inputSignal : in_signal -> signal`::
-  se xref:#val:toList[`nameOfInput`] instead.
+  se xref:#val:nameOfInput[`nameOfInput`] instead.
 
 `[.kw]#val# outputSignal : out_signal -> signal`::
-  se xref:#val:toList[`nameOfOutput`] instead.
+  se xref:#val:nameOfOutput[`nameOfOutput`] instead.
 
 == See Also
 

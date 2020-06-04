@@ -28,12 +28,15 @@ val root : 'a match_tree -> 'a
 val nth : ('a match_tree * int) -> 'a (* raises Subscript *)
 val map : ('a -> 'b) -> 'a match_tree -> 'b match_tree
 val app : ('a -> unit) -> 'a match_tree -> unit
+val foldl : ('a * 'b -> 'b) -> 'b -> 'a match_tree -> 'b
+val foldr : ('a * 'b -> 'b) -> 'b -> 'a match_tree -> 'b
 val find : ('a -> bool) -> 'a match_tree -> 'a option
 val num : 'a match_tree -> int
 ------------
 
 == Description
 
+[[type:match_tree]]
 `[.kw]#datatype# 'a match_tree = Match of 'a * 'a match_tree list`::
   The representation of the results of a nested grouping of regular expressions.
   The type variable ``'a`` is typically instantiated to information about the
@@ -60,6 +63,14 @@ val num : 'a match_tree -> int
   `app f mt` applies the given function to the nodes in the tree
   in pre-order.
 
+`[.kw]#val# foldl : ('a * 'b \-> 'b) \-> 'b \-> 'a match_tree \-> 'b`::
+  `foldl f init mt` folds the function `f` over `mt` in left-to-right pre-order
+  using `init` as the initial value.
+
+`[.kw]#val# foldr : ('a * 'b \-> 'b) \-> 'b \-> 'a match_tree \-> 'b`::
+  `foldr f init mt` folds the function `f` over `mt` in right-to-left post-order
+  using `init` as the initial value.
+
 `[.kw]#val# find : ('a \-> bool) \-> 'a match_tree \-> 'a option`::
   `find pred mt` returns `SOME info` where `info` is the first
   information that satisfies `pred` in a pre-order traversal of
@@ -72,4 +83,5 @@ val num : 'a match_tree -> int
 
 == See Also
 
+xref:fun-RegExpFn.adoc[`RegExpFn`],
 xref:regexp-lib.adoc[__The RegExp Library__]

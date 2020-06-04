@@ -18,5 +18,5 @@ structure BackTrackEngine : REGEXP_ENGINE
 
 == See Also
 
-xref:sig-REGEXP_ENGINE[`REGEXP_ENGINE`],
+xref:sig-REGEXP_ENGINE.adoc[`REGEXP_ENGINE`],
 xref:regexp-lib.adoc[__The RegExp Library__]
