@@ -91,17 +91,17 @@ include::JSON/json-lib.adoc[]
 
 //include::PP/pp-lib.adoc[]
 
-//include::Reactive/reactive-lib.adoc[]
+include::Reactive/reactive-lib.adoc[]
 
-//include::RegExp/regexp-lib.adoc[]
+include::RegExp/regexp-lib.adoc[]
 
 include::SExp/sexp-lib.adoc[]
-
-include::UUID/uuid-lib.adoc[]
 
 include::Unix/unix-lib.adoc[]
 
 include::Util/smlnj-lib.adoc[]
+
+include::UUID/uuid-lib.adoc[]
 
 include::XML/xml-lib.adoc[]
 
