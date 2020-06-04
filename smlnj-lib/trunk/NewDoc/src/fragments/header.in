@@ -9,7 +9,7 @@
   <title>@TITLE@</title>
   <link rel="stylesheet" href="@BASE@styles/smlnj-lib-base.css" type="text/css" />
   <link rel="stylesheet" href="@BASE@styles/smlnj-lib.css" type="text/css" />
-  <link rel="stylesheet" href="@BASE@styles/pygments-default.css">
+  <link rel="stylesheet" href="@BASE@styles/smlnj-lib-pygments.css">
   <!-- support for latexmath -->
   <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
