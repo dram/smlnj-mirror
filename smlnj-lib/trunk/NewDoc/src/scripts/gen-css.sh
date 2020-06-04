@@ -32,7 +32,7 @@ EM_COLOR="#000044"			# color for emphasis elements
 STRONG_COLOR="#000044"			# color for strong elements
 BULLET_COLOR="green"			# color for UL bullets
 BLOCK_BORDER="#527bbd"			# border for inset blocks
-BLOCK_BACKGROUND="#dcdcdc"		# background for inset blocks
+BLOCK_BACKGROUND="#f8f8f8"		# background for inset blocks
 BLOCK_COLOR="#839496"			# foreground color for inset blocks
 
 #

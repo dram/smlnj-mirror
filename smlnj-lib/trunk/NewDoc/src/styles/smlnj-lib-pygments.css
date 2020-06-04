@@ -2,7 +2,7 @@
   pygmentize filter for SML code
 */
 pre.pygments .hll { background-color: #ffffcc }
-pre.pygments { font-size: 0.9em; background: #dcdcdc; }	/* code background */
+pre.pygments { font-size: 0.9em; background: #f8f8f8; }	/* code background */
 pre.pygments .tok-k { color: #268bd2; font-weight: bold }		/* Keyword */
 pre.pygments .tok-kr { color: #268bd2; font-weight: bold; }		/* keywords */
 pre.pygments .tok-kt { color: #b00040; }				/* type */
