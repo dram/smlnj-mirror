@@ -106,8 +106,10 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
- | [.bugid]#256#
+| [.bugid]#256#
 | `Ref.exchange` incorrect
+| [.bugid]#257#
+| `HASH_TABLE` `listItems` error in reference manual
 |=======
 
 // ***** include a list of unnumbered bugs here *****
