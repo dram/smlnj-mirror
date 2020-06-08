@@ -45,12 +45,17 @@ val mkSingleton : item -> set
 
 val mkFromList : item list -> set
 
+val toList : set -> item list
+
 val add  : set * item -> unit
 val addc : set -> item -> unit
 
 val addList : set * item list -> unit
 
-val without : set * item -> unit
+val subtract  : set * item -> unit
+val subtractc : set -> item -> unit
+
+val subtractList : set * item list -> unit
 
 val delete : set * item -> bool
 
@@ -62,11 +67,22 @@ val isSubset : (set * set) -> bool
 
 val numItems : set ->  int
 
-val listItems : set -> item list
-
 val map : (item -> item) -> set -> set
+val mapPartial : (item -> item option) -> set -> set
 val app : (item -> unit) -> set -> unit
 val fold : (item * 'b -> 'b) -> 'b -> set -> 'b
+
+val partition : (item -> bool) -> set -> (set * set)
+
+val filter : (item -> bool) -> set -> unit
+
+val exists : (item -> bool) -> set -> bool
+val all : (item -> bool) -> set -> bool
+
+val find : (item -> bool) -> set -> item option
+
+val listItems : set -> item list
+val without : set * item -> unit
 ------------
 
 == Interface Description
@@ -109,6 +125,19 @@ val fold : (item * 'b -> 'b) -> 'b -> set -> 'b
   `subtract (set, item)` removes the object `item` from `set`; it has no
   effect if `item` is not in `set`.
 
+`[.kw]#val# subtractc : set \-> item \-> unit`::
+  `subtractc set item` removes the object `item` from `set`; it has no
+  effect if `item` is not in `set`.
+
+`[.kw]#val# subtractList : set \-> item list \-> unit`::
+  `subtractList set items` removes the `items` from `set`.  This expression
+  is equivalent to
++
+[source,sml]
+------------
+List.app (subtractc set) items
+------------
+
 `[.kw]#val# delete : set * item \-> bool`::
   `subtract (set, item)` removes the object `item` from `set` (if present)
   and returns `true` if the item was removed and `false` if it was not
@@ -139,12 +168,47 @@ val fold : (item * 'b -> 'b) -> 'b -> set -> 'b
 mkFromList (List.map f (toList set))
 ------------
 
+`[.kw]#val# mapPartial : (item \-> item option) \-> set \-> set`::
+  `mapPartial f set` creates a new set from the result of applying the
+  partial function `f` to the elements of `set`.  This expression is
+  equivalent to
++
+[source,sml]
+------------
+mkFromList (List.mapPartial f (toList set))
+------------
+
 `[.kw]#val# app : (item \-> unit) \-> set \-> unit`::
   `app f set` applies the function `f` to the items in `set`.
 
 `[.kw]#val# fold : (item * 'b \-> 'b) \-> 'b \-> set \-> 'b`::
   `foldl f init set` folds the function `f` over the items in
   `set` using `init` as the initial value.
+
+`[.kw]#val# partition : (item \-> bool) \-> set \-> (set * set)`::
+  `partition pred set` returns a pair of disjoint sets `(tSet, fSet)`,
+  where the predicate `pred` returns true for every element of `tSet`,
+ `false` for every element of `fSet`, and `set` is the union of `tSet`
+  and `fSet`.
+
+`[.kw]#val# filter : (item \-> bool) \-> set \-> unit`::
+  `filter pred set` removes any elements of set for which the
+  predicate `pred` returns false.
+
+`[.kw]#val# exists : (item \-> bool) \-> set \-> bool`::
+  `all pred set` returns `true` if, and only if, `pred item` returns
+  true for all elements `item` in `set`. Elements are checked in
+  an undefined order.
+
+`[.kw]#val# all : (item \-> bool) \-> set \-> bool`::
+  `exists pred set` returns `true` if, and only if, there exists an
+  element `item` in `set` such that `pred item` returns `true`.
+  Elements are checked in an undefined order.
+
+`[.kw]#val# find : (item \-> bool) \-> set \-> item option`::
+  `find pred set` returns `SOME item` if there exists an object `item`
+  in the set for which `pred item` returns `true`; otherwise `NONE` is
+  returned.  Items are tested in an undefined order.
 
 === Deprecated functions
 

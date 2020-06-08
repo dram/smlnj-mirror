@@ -61,6 +61,10 @@ val remove : queue -> (item * queue)
 
 val next : queue -> (item * queue) option
 
+val findAndRemove : queue * (item -> bool) -> (item * queue) option
+
+val delete : queue * (item -> bool) -> queue
+
 val merge : (queue * queue) -> queue
 
 val numItems : queue -> int
@@ -98,6 +102,16 @@ val isEmpty : queue -> bool
   `remove pq` returns `SOME(item, pq')`, where `item` is the highest
   priority item in `pq` and ``pq'`` is the result of removing `item`
   from `pq`.  If `pq` is empty, then `NONE` is returned.
+
+`[.kw]#val# findAndRemove : queue * (item -> bool) -> (item * queue) option`::
+  `findAndRemove (pq, pred)` returns `SOME(item, pq')`, where `item` is the
+  highest priority item in `pq` such that `pred item` returns `true`, and
+  and ``pq'`` is the result of removing `item` from `pq`.  If no such item
+  exists, then `NONE` is returned.
+
+`[.kw]#val# delete : queue * (item -> bool) -> queue`::
+  `delete (pq, pred)` deletes any item in `pq` that satisfies the predicate
+  and returns the resulting queue.
 
 `[.kw]#val# merge : (queue * queue) \-> queue`::
   `merge (pq1, pq2)` returns the priority queue formed by merging the items in

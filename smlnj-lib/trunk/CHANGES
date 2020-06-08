@@ -1,6 +1,14 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-06-08]
+	Added several functions to the `MONO_HASH_SET` signature
+	(and `HashSetFn` functor) to make its interface closer
+	to that of the `ORD_SET` signature.  The new functions are
+	`subtractc`, `subtractList`, `mapPartial`, `partition`,
+	`filter`, `exists`, `all`, and `find`.
+	In addition, also added the `copy` function.
+
 [2020-06-03]
 	Added the functions `delete` and `findAndRemove` to the
 	`MONO_PRIORITYQ` signature.
