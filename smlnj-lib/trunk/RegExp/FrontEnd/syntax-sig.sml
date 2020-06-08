@@ -12,7 +12,6 @@
 signature REGEXP_SYNTAX =
   sig
 
-    exception CannotParse
     exception CannotCompile
 
     structure CharSet : ORD_SET where type Key.ord_key = char

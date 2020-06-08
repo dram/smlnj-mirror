@@ -8,10 +8,10 @@
  *)
 
 functor RegExpFn (
-    structure P : REGEXP_PARSER 
+    structure P : REGEXP_PARSER
     structure E : REGEXP_ENGINE
   ) :> REGEXP where type regexp = E.regexp = struct
-	
+
     structure M = MatchTree
 
     type regexp = E.regexp
@@ -19,18 +19,16 @@ functor RegExpFn (
   (* a match specifies the position (as a stream) and the length of the match *)
     type 'a match = {pos : 'a, len : int} MatchTree.match_tree
 
-    fun compile reader s = (case (P.scan reader s) 
-	   of NONE => NONE
-	    | SOME (syntax,s') => let
-		val v = E.compile syntax
-		in
-		    SOME (v,s')
-		end
+    exception CannotParse
+
+    fun compile reader s = (case (P.scan reader s)
+	   of SOME (syntax, s') => SOME(E.compile syntax, s')
+	    | NONE => NONE
 	  (* end case *))
 
     fun compileString str = (case (StringCvt.scanString P.scan str)
-	   of SOME r => E.compile (r) 
-	    | NONE => raise RegExpSyntax.CannotParse
+	   of SOME syntax => E.compile syntax
+	    | NONE => raise CannotParse
 	  (* end case *))
 
     val prefix = E.prefix
@@ -39,7 +37,7 @@ functor RegExpFn (
     fun match l = let
 	  fun parse (s, f) = (case (StringCvt.scanString P.scan s)
 		 of SOME r => (r, f)
-		  | NONE => raise RegExpSyntax.CannotParse
+		  | NONE => raise CannotParse
 		(* end case *))
 	  val m = E.match (map parse l)
 	  in

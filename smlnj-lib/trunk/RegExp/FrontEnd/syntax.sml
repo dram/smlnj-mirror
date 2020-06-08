@@ -12,7 +12,6 @@
 structure RegExpSyntax : REGEXP_SYNTAX =
   struct
 
-    exception CannotParse
     exception CannotCompile
 
     structure CharSet = ListSetFn (
