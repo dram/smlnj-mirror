@@ -11,7 +11,7 @@
  * (or translated into) Absyn (perhaps modified appropriately.
  *)
 
-type var = int
+type var = Lvar.lvar
 
 datatype mcexp
   = Var of var
@@ -122,18 +122,30 @@ fun mccode (AND children, dectree, rules) =
 (* destruct : andor * path -> ... *)
 (* path is where the exp being wrapped lives *)
 fun destruct(node, path, ...) =
-    let fun build (exp) =
+    let fun build (exp) = xxx
 	    (* build the destructuring around this exp, which will 
              * be the exp for the then _next_ decTree
              * we need to "expose" the variable for the next decTree *)
+    in
+    end
 
 fun top andor =
     fn (hole: mcexp) =>
        (case andor
-	 of OR = hole
-	  | LEAF _ => ???  (RHS)
-	  | VARS _ => ???  (lvar(andor))
+	 of OR => hole
+	  | LEAF _ => ???  (* RHS *)
+	  | VARS _ => ???  (* lvar(andor) *)
 	  | AND{lvar, children, ...}) =>
-	    let val lvars = map andorLvar children
-		val letbody = 
-	     in Letr (vars, lvar, letbody)
+	    let val lvars = map getLvar children
+		val letbody = fullAND children
+	    in Letr (vars, lvar, letbody)
+	    end)
+
+fun fullAND (node::nodes) =
+    (case node
+       of AND{lvar,children,...} =>
+          let val lvars = map getLvars children
+	   in Letr (var, vars, fullAND (children@nodes))
+	  end
+	| _ => fullAND nodes (* skip OR, VARS, LEAF *)
+  | fullAND nil = hole
