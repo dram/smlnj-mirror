@@ -3,7 +3,16 @@ TODO list for new match compiler
 
 * add support for word constants (like "0w8") as constant patterns.
 
-* translate andor tree + decision tree into pseudo code
+* add handling of OR patterns in line in andor.sml
 
-* replace pseudo code by (extended) absyn and/or FLINT plambda
+* translate andor tree + decision tree into pseudo code
+  1. pure patterns, no vars
+  2. vars
+  3. as vars
+  4. types
+
+* replace (or translate) pseudo code by (extended) absyn and/or FLINT plambda
+
+* polymorphism
+
 

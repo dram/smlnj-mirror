@@ -1,21 +1,17 @@
 (* ordered-or-nodes.sml *)
 
 (* Extract the OR nodes from the base andor tree and sort them according to the
- * "best choice" heuristic criteria. *)
+ * "best choice" heuristic criteria (compare and priority). The sorted sets of
+ * OR nodes are represented by priority queues using the SML/NJ Library Util
+ * functor LeftPriorityQFn. *)
 
 structure OrderedOrNodes =
 struct
 
 local
-    structure TU = TypesUtil
     structure R = Rules
-    open MCCommon
+    open MCTypes (* AND, OR, SINGLE, VARS, LEAF *)
 in
-
-(* datatypeWidth : T.datacon -> int *)
-(* number of distince datacons for the datatype to which the datacon belongs *)
-fun datatypeWidth dcon = 
-    TU.dataconWidth dcon   (* dataconCount in TypesUtil *)
 
 structure AndorPriority =
 struct
@@ -36,26 +32,41 @@ struct
 	     | GREATER => LESS)
 	| GREATER => LESS
   
-(* priority: andor -> goodness *)
-(* priority intended only for OR nodes *)
-fun priority (OR{defaults,variants,...}) : goodness =
-    (length defaults, length variants)
-  | priority _ = (10000,10000)  (* "infinite" metric for non-OR nodes *)
+  (* priority: andor -> goodness *)
+  (* priority intended only for OR nodes *)
+  fun priority (OR{defaults,variants,...}) : priority =
+	(length defaults, length variants)
+    | priority _ = (10000,10000)
+	(* "infinitely low" priority for non-OR nodes, which won't occur in queues *)
 
 end (* structure AndorPriority *)
     
-(* priority queues of OR nodes *)
+(* APQ: priority queues of OR nodes *)
 structure APQ = LeftPriorityQFn(AndorPriority)
+
+(* findAndRemove: (APQ.item -> bool) -> APQ.queue -> (APQ.item * APQ.queue) option *)
+(* This function will be added to the Priority Queue interface, at which point it
+ * will not need to be defined here. This version is specific to APQ. *)
+fun findAndRemove pred queue =
+    let fun find(queue: APQ.queue, prefix: item list) =
+	    case APQ.next
+	     of SOME(item, queue') =>
+		  if pred item
+		  then SOME(item, foldl APQ.insert (rev prefix) queue')
+		  else find(queue', item::prefix)
+	      | NONE => NONE
+     in find(queue, nil)
+    end
 
 (* accessible : andor -> APQ.queue *)
 (* collect the "accessible" OR nodes, i.e. all OR nodes that are reachable from 
  * the root without passing through another OR node. If there are no OR nodes, 
- * accessibleOrNodes returns nil. All accessible nodes are independent (incomparable
+ * accessible returns nil. All accessible nodes are independent (incomparable
  * with respect to path prefix ordering), because we stop at the first OR node
  * reachable from the root. Singleton datatypes produce SINGLE nodes, not OR nodes,
  * and SINGLE nodes are treated as "transparent" (like AND nodes) wrt collecting OR nodes.
- * The resulting node list is sorted in ascending order wrt nodeGt, i.e.the "best" OR
- * node (least metric) is at the beginning. *)
+ * The result is a priority queue of nodes (APQ.queue) sorted by AndorPriority.compare.
+ * the node with the greatest priority (wrt compare) is returned first. *)
 fun accessible andor =
     case andor
      of AND{children,...} =>
@@ -66,17 +77,13 @@ fun accessible andor =
       | VARS _ = APQ.empty
 
 (* selectBestRelevant : APQ.queue * ruleno -> (andor * APQ.queue) option *)
-fun selectBestRelevant (orNodes, leastLive) =
-    let fun search(queue, prefix)
-              (case APQ.next orNodes
-		 of SOME((andor as OR{defaults,...}), orNodes') =>
-		    if not(R.member(leastLive, defaults)) (* OR node is relevant *)
-		    then SOME(andor,
-			      foldl APQ.insert (rev prefix) orNodes')
-		    else search(orNodes', andor::prefix)
-		  | NONE => NONE
-		  | _ => bug "selectBestRelevant")
-    in search(orNodes, nil)
+fun selectBestRelevant (orNodes: APQ.queue, leastLive: ruleno, oldpath) =
+    let fun relevant (OR{path,defaults,...}) =>
+	    not(R.member(leastLive, defaults)) andalso
+	    not(incompatible(oldpath,path)
+	      (* OR node is relevant *)
+	  | relevant _ => bug "relevant"
+     in findAndRemove relevant orNodes
     end
 
 end (* structure OrderedOrNodes *)
