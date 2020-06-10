@@ -184,18 +184,26 @@ orBreadth : andor -> int option
 
 *)
 
-(* path : andor -> path *)
-fun path(AND{path,...}) = path
-  | path(OR{path,...} = path
-  | path(SINGLE{path,...}) = path
-  | path(VARS{path,...}) = path
-  | path(LEAF{path,...}) = path
+(* getPath : andor -> path *)
+fun getPath(AND{path,...}) = path
+  | getPath(OR{path,...} = path
+  | getPath(SINGLE{path,...}) = path
+  | getPath(VARS{path,...}) = path
+  | getPath(LEAF{path,...}) = path
+
+(* getLvar : andor -> lvar *)
+fun getLvar(AND{lvar,...} = lvar
+  | getLvar(OR{lvar,...} = lvar
+  | getLvar(SINGLE{lvar,...} = lvar					    
+  | getLvar(VARS{lvar,...} = lvar					    
+  | getLvar(LEAF _) = bug "getLvar"
 
 fun findKey (key, (key'::n)::rest) =
     if eqKey(key,key') then SOME n
     else findKey(key, rest)
   | findKey nil = NONE
 
+(* REQUIRE: for getNode(andor,path,depth): depth <= length path *)
 fun getNode(andor, _, 0) = andor
   | getNode(andor, nil, _) = andor
   | getNode(andor, key::path, depth) =

@@ -36,11 +36,12 @@ fun partial (OR{variants as (key,node)::_,...}) =
         | _ => true)
   | partial _ =  bug "parial"
 
-(* makeDecisionTree : (APQ.queue * ruleset -> (decTree * APQ.queue) option *)
+(* makeDecisionTree : (APQ.queue * ruleset * path -> (decTree * APQ.queue) option *)
 (* orNodes is a nodeGt sorted list of OR nodes
  * -- oldlive is a ruleset containing rules that are live on this branch,
  *    i.e. have survived earlier decisions on this branch
- * -- keyDts processes each variant of an OR node.
+ * -- path is the path of the parent, candidate OR nodes must be compatible with this path
+ * -- variantDecTrees processes each variant of the selected OR node.
  * -- keys all have type choiceKey, making it easier to iterate over variants *)
 fun makeDecisionTree(orNodes, oldLive, oldPath) =
       (case selectBestRelevant(orNodes, R.minItem oldLive, oldPath)
@@ -66,10 +67,9 @@ fun makeDecisionTree(orNodes, oldLive, oldPath) =
 	       val (decvariants, remainder') = variantDecTrees(variants, nil, newOrNodes)
 	       val (defaultChild, remainder'') =
 		   if partial node
-		   then let val (dt, remainer'') =
-				makeDecisionTree(remainder', R.intersect(oldLive, defaults))
-			in (SOME dt, remainder'')
-			end
+		   then case (makeDecisionTree(remainder', R.intersect(oldLive, defaults), path?))
+			 of SOME(dt, remainder'') => (SOME dt, remainder'')
+			 | NONE => (NONE, remainder')
 		   else (NONE, remainder')
 	       in SOME(CHOICE{node = node, branches = decvariants, default = defaultChild},
 		       remainder'')

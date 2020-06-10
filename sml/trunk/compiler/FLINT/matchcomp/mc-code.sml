@@ -129,23 +129,20 @@ fun destruct(node, path, ...) =
     in
     end
 
-fun top andor =
-    fn (hole: mcexp) =>
-       (case andor
-	 of OR => hole
-	  | LEAF _ => ???  (* RHS *)
-	  | VARS _ => ???  (* lvar(andor) *)
-	  | AND{lvar, children, ...}) =>
-	    let val lvars = map getLvar children
-		val letbody = fullAND children
-	    in Letr (vars, lvar, letbody)
-	    end)
+fun genTop andor hole =
+     (case andor
+       of OR => hole  (* top node is OR, hence first OR-node choice *)
+	| LEAF _ => hole
+	| VARS _ => RHS 0
+	| AND _ => genAND ([andor], hole))
 
-fun fullAND (node::nodes) =
+fun genAND (node::nodes, inner) =
     (case node
        of AND{lvar,children,...} =>
-          let val lvars = map getLvars children
-	   in Letr (var, vars, fullAND (children@nodes))
+          let val lvars = map getLvar children
+	   in Letr (var, vars, genAND(children,(genAND nodes inner)))
 	  end
-	| _ => fullAND nodes (* skip OR, VARS, LEAF *)
-  | fullAND nil = hole
+	| _ => genlAND(nodes,inner))  (* skip OR, VARS, LEAF *)
+  | genAND (nil,inner) = inner
+
+fun genDec 			    
