@@ -5,22 +5,24 @@
 structure MCTypes =
 struct
 
-local structure EM = ErrorMsg
-      structure DA = Access
-      structure LV = LambdaVar
-      structure T = Types
-      structure R = Rules
-      open VarCon PLambda Absyn
-      (* also used: IntConst, ListPair *)
+local
+  structure EM = ErrorMsg
+  structure LV = LambdaVar
+  structure T = Types
+  structure TU = TypesUtil
+  structure R = Rules
+  structure V = VarCon
+  open VarCon Absyn
+      (* also used/mentioned: IntConst, ListPair *)
 in
 
-fun bug s = EM.impossible ("MCCommon: " ^ s)
+fun bug s = EM.impossible ("MCTypes: " ^ s)
 
 type ruleno = R.ruleno    (* == int, the index number of a rule in the match, zero-based *)
 type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers, maintained in strictly ascending order without duplicates *)
 
-type binding = var * ruleno
+type binding = V.var * ruleno
    (* a variable bound at some point in the given rule, either as a
     * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
 type varBindings = binding list  (* variables bound by VARpat *)		    
@@ -32,9 +34,9 @@ type asBindings = binding list   (* variables bound by LAYEREDpat, i.e. an "as" 
  *   of OR nodes (data, vector and 4 varieties of constants). *)
 datatype key
   = D of (T.datacon * T.tyvar list)  (* content of "dataCon" *)
-  | V of int * ty (* -- vector length and element type, a kludge
+  | V of int * T.ty (* -- vector length and element type, a kludge
                    * all vector keys in a node have same ty -- redundancy *)
-  | I of int IntConst.t  -- superceding type constCon 
+  | I of int IntConst.t  (* superceding type constCon *)
   | W of int IntConst.t
   | C of char
   | S of string
@@ -83,7 +85,7 @@ fun extendRPath (p, k) = k::p  (* cheap *)
 (* Two paths are incompatible if they diverge at a choice (OR) node.
  * Paths that diverge at a product node (diff first at R links) are
  * compatible; paths that are prefix comparable are compatible. *)
-fun incompatible (k1::rest1, k2:rest2) =
+fun incompatible (k1::rest1, k2::rest2) =
       if eqKey(k1,k2) then incompatible(rest1, rest2)
       else (case k1
 	     of R _ => false
@@ -114,40 +116,41 @@ as a phantom argument for nullary dcons. (?) *)
 
 datatype andor
   = AND of   (* product pattern *)
-    {lvar: lvar,               (* lvar to be bound to value at this point *)
+    {lvar: LV.lvar,               (* lvar to be bound to value at this point *)
      path : path,              (* unique path to this node *)
-     asvars: asbindings,       (* at _this_ node *)
-     vars : varbindings,       (* variables bound at this point *)
+     asvars: asBindings,       (* at _this_ node *)
+     vars : varBindings,       (* variables bound at this point *)
      live : ruleset,           (* live rules *)
      defaults : ruleset,       (* rules matching be default (vars) *)
      children: andor list}     (* tuple components as children -- AND node *)
   | OR of (* datatype, vector, or constant pattern/type *)
-    {lvar: lvar,
+    {lvar: LV.lvar,
      path : path,              (* unique path to this node *)
-     asvars: asbindings,       (* layered variable at _this_ node *)
-     vars : varbindings,       (* variables bound to this point, with rule no. *)
+     asvars: asBindings,       (* layered variable at _this_ node *)
+     vars : varBindings,       (* variables bound to this point, with rule no. *)
      live : ruleset,           (* rule patterns matchable at this point *)
      defaults: ruleset,        (* rules matching here by default (vars) *)
      variants: variant list} (* the branches/choices of OR node; non-null *)
   | SINGLE of  (* singular datacon app, a kind of no-op for pattern matching *)
-    {lvar : lvar,
+    {lvar : LV.lvar,
      path : path,              (* unique path to this node *)
-     asvars: asbindings,       (* at _this_ node *)
-     vars: varbindings,        (* variables bound to this point *)
-     dcon: dcon,               (* the singleton dcon of the datatype for this node *)
+     asvars: asBindings,       (* at _this_ node *)
+     vars: varBindings,        (* variables bound to this point *)
+     dcon: T.datacon,          (* the singleton dcon of the datatype for this node *)
      arg: andor}               (* arg of the dcon, LEAF if it is a constant *)
   | VARS of  (* a node occupied only by variables *)
-    {lvar: lvar,
+    {lvar: LV.lvar,
      path : path,              (* unique path to this node *)
-     asvars: asbindings,       (* at _this_ node *)
-     vars: varbindings,        (* Invariant: live = map #2 vars ?? *)
+     asvars: asBindings,       (* at _this_ node *)
+     vars: varBindings,        (* Invariant: live = map #2 vars ?? *)
      live: ruleset}            (* rules live at this point ??? *)
 	(* should VARS have a defaults field? == map #2 vars + inherited from the path *)
   | LEAF of   (* leaf, with live rules, used in place of "arg" of constant dcon *)
     {path: path,
      live: ruleset,
      defaults: ruleset}
-(*  | INITIAL   (* initial empty andor into which patterns are merged *) *)
+  | INITIAL   (* initial empty andor into which initial pattern is merged
+               * to begin the construction of an AND-OR tree *)
 
 withtype variant = key * andor
 (* this pushes the discrimination of the OR-kind into the keys of the variants. *)
@@ -186,43 +189,49 @@ orBreadth : andor -> int option
 
 (* getPath : andor -> path *)
 fun getPath(AND{path,...}) = path
-  | getPath(OR{path,...} = path
+  | getPath(OR{path,...}) = path
   | getPath(SINGLE{path,...}) = path
   | getPath(VARS{path,...}) = path
   | getPath(LEAF{path,...}) = path
+  | getPath _ = bug "getPath"
 
 (* getLvar : andor -> lvar *)
-fun getLvar(AND{lvar,...} = lvar
-  | getLvar(OR{lvar,...} = lvar
-  | getLvar(SINGLE{lvar,...} = lvar					    
-  | getLvar(VARS{lvar,...} = lvar					    
-  | getLvar(LEAF _) = bug "getLvar"
+fun getLvar(AND{lvar,...}) = lvar
+  | getLvar(OR{lvar,...}) = lvar
+  | getLvar(SINGLE{lvar,...}) = lvar					    
+  | getLvar(VARS{lvar,...}) = lvar					    
+  | getLvar(LEAF _) = bug "getLvar(LEAF)"
+  | getLvar _ = bug "getLvar"
 
-fun findKey (key, (key'::n)::rest) =
+(* findKey : key * variant list -> andor option *)
+fun findKey (key, (key',n)::rest) =
     if eqKey(key,key') then SOME n
     else findKey(key, rest)
-  | findKey nil = NONE
+  | findKey (_, nil) = NONE
 
+(* getNode : andor * path * int -> andor *)
 (* REQUIRE: for getNode(andor,path,depth): depth <= length path *)
 fun getNode(andor, _, 0) = andor
   | getNode(andor, nil, _) = andor
   | getNode(andor, key::path, depth) =
     (case (andor,key)
-      of (AND children, R i) =
-	 getNode(nth(children, i),path,depth-1)
+      of (AND{children,...}, R i) =>
+	   getNode(List.nth(children, i),path,depth-1)
        | (OR{variants,...},key) =>
-	 (case findKey(key,variants)
-	    of NONE => bug"getNode"
-	     | SOME node => getNode(node, path, depth-1))
+	   (case findKey(key,variants)
+	      of NONE => bug "getNode"
+	       | SOME node => getNode(node, path, depth-1))
        | (SINGLE{arg,...}, key) =>
-	 getNode(arg, path, depth-1)
-       | (VARS _. LEAF _) => bug "getNode")
-
+	   getNode(arg, path, depth-1)
+       | ((VARS _ | LEAF _),_) => bug "getNode(VARS|LEAF)"
+       | _ => bug "getNode arg")
+	
 (* parentNode: andor * andor -> andor *)
 fun parent (andor, root) =
-    let val path = path(andor)
-        val d = length(path) -1
-     in getNode(root, path(andor), d)
+    let val path = getPath(andor)
+        val d = length(path) - 1
+     in getNode(root, path, d)
     end  
 
+end (* local *)
 end (* structure MCTypes *)

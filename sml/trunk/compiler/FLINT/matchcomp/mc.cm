@@ -1,14 +1,27 @@
 Group is
 
-setup.sml
+lib/errormsg.sml
+lib/symbol.sml
+lib/types.sml
+lib/int-const.sml
+lib/lambdavar.sml
+lib/varcon.sig
+lib/varcon.sml
+lib/absyn.sml
 
 rules.sig
 rules.sml
 mctypes.sml
-andor.sml
+(* andor.sml
 ordered-or-nodes.sml
 dec-tree.sml
 mc-code.sml
 
+setup.sml
 mcprint.sml
+
 test.sml
+*)
+
+$smlnj/smlnj-lib/smlnj-lib.cm
+$smlnj/basis/basis.cm

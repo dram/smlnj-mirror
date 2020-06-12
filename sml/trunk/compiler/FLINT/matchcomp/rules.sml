@@ -4,12 +4,12 @@
 structure Rules (* :> RULES *) =
 struct
 
-type ruleno = int
-
-local structure S = IntBinarySet
+local
+  structure S = IntBinarySet
 in
 
-type ruleset = set
+type ruleno = int
+type ruleset = IntBinarySet.set
 
 fun next (rule: ruleno) : ruleno = rule + 1
 		   
@@ -21,8 +21,8 @@ val union = S.union
 val difference = S.difference
 val listItems = S.listItems
 		    
-val unionList rulesets =
-    List.foldl (fn (set, acc) => union(set,acc)) empty rulesets
+fun unionList rulesets =
+    List.foldl S.union S.empty rulesets
 
 end (* local *)
 end (* structure Rules *)
