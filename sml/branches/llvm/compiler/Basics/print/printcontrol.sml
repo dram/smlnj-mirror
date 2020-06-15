@@ -12,7 +12,7 @@ signature PRINTCONTROL = sig
     val printOpens : bool ref
     val out : {say : string -> unit, flush : unit -> unit} ref
     val linewidth : int ref
-    val say : string -> unit 
+    val say : string -> unit
     val flush: unit -> unit
 end
 
@@ -48,8 +48,8 @@ structure Control_Print : PRINTCONTROL = struct
 	r
     end
 
-    val printDepth = new (int_cvt, "depth", "max print depth", 5)
-    val printLength = new (int_cvt, "length", "max print length", 12)
+    val printDepth = new (int_cvt, "depth", "max print depth", 10)
+    val printLength = new (int_cvt, "length", "max print length", 16)
     val stringDepth =
 	new (int_cvt, "string-depth", "max string print depth", 70)
     val intinfDepth =

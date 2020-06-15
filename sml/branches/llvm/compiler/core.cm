@@ -1,6 +1,6 @@
 (* core.cm
  *
- * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
  * This is the machine-independent "core" part of the compiler
@@ -109,12 +109,12 @@ Group
 	signature PRIM_ENV
 	signature ENVREF
 	signature MODULE_ID
-	
+
 	signature PICKMOD
 	signature UNPICKMOD
 
 	signature PRIM_ENV
-	
+
 	signature FLINT
 
 	signature TYPES
@@ -149,6 +149,10 @@ Group
 
 	signature TARGET
 	structure Target
+
+(* new codegen structures *)
+	structure CFG
+	structure PPCfg
 
 is
 
@@ -334,6 +338,16 @@ CodeGen/main/mlrisc-gen-fn.sml
 CodeGen/main/object-desc.sig
 CodeGen/main/object-desc.sml
 CodeGen/main/spill-table.sml
+
+NewCodeGen/cfg/cfg.sml
+NewCodeGen/cfg/ppcfg.sml
+NewCodeGen/cfg/cfg-util.sml
+(*
+NewCodeGen/cfg-to-mlrisc/mlrisc-gen-fn.sml
+NewCodeGen/cps-to-cfg/cps-to-cfg.sml
+NewCodeGen/cps-to-cfg/pure-arith.sml
+NewCodeGen/cps-to-cfg/cluster.sml
+*)
 
 (* Miscellaneous utilities. *)
 Library/const-arith/sources.cm

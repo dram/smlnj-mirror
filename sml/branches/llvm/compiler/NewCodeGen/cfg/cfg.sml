@@ -7,7 +7,7 @@
  *)
 
 structure CFG_Type = struct
-    datatype cty
+    datatype ty
       = NUMt of int
       | FLTt of int
       | PTRt
@@ -47,18 +47,18 @@ structure CFG_Prim =
       | FABS | FSQRT
 
     datatype pure
-      = PURE_ARITH of {oper : arithop, size : int}
+      = PURE_ARITH of {oper : pureop, sz : int}
       | COPY of {from : int, to : int}
       | EXTEND of {from : int, to : int}
       | TRUNC of {from : int, to : int}
       | INT_TO_REAL of {from : int, to : int}
-      | LOAD_WORD of {offset : int, ty : CPS_Type.cty}
+      | LOAD_WORD of {offset : int}
       | LOAD_RAW of {offset : int, kind : numkind, sz : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
 
     datatype arith
-      = ARITH of {oper : arithop, size : int}
+      = ARITH of {oper : arithop, sz : int}
       | TEST of {from : int, to : int}
       | TESTU of {from : int, to : int}
       | REAL_TO_INT of {floor : bool, from : int, to : int}
@@ -66,13 +66,13 @@ structure CFG_Prim =
     datatype looker
       = DEREF
       | SUBSCRIPT
-      | RAW_SUBSCRIPT of {kind : numkind, size : int}
+      | RAW_SUBSCRIPT of {kind : numkind, sz : int}
       | GETHDLR | GETVAR
 
     datatype setter
       = UNBOXED_UPDATE | UPDATE
       | UNBOXED_ASSIGN | ASSIGN
-      | RAW_UPDATE of {kind : numkind, size : int}
+      | RAW_UPDATE of {kind : numkind, sz : int}
       | SETHDLR | SETVAR
 
   (* fcmpop conforms to the IEEE std 754 predicates. *)
@@ -105,7 +105,7 @@ structure CFG =
       | REENTRANT_RCC
 
   (* fragment/function parameters *)
-    type param = LambdaVar.lvar * CFG_Type.cty
+    type param = LambdaVar.lvar * CFG_Type.ty
 
     datatype exp
       = VAR of LambdaVar.lvar
@@ -115,10 +115,6 @@ structure CFG =
       | PURE of CFG_Prim.pure * exp list
       | SELECT of int * exp
       | OFFSET of int * exp
-
-    type accesspath = int list * int
-
-    type field = exp * accesspath
 
     datatype stm
       = LET of exp * LambdaVar.lvar * stm
