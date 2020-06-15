@@ -22,20 +22,20 @@ struct
 
   (* compare: priority * priority -> order *)
   (* smaller numbers are "better", hence GREATER *)
-  fun compare ((d1,b1),(d2,b2)) =
-      case compare(d1, d2)
-       of LESS => GREATER
-	| EQUAL =>
-	  (case compare(w1,w2)
-	    of LESS => GREATER
-	     | EQUAL => EQUAL
-	     | GREATER => LESS)
-	| GREATER => LESS
+  fun compare ((d1,v1),(d2,v2)) =
+      (case Int.compare(d1, d2)
+         of LESS => GREATER
+	  | EQUAL =>
+	      (case Int.compare(v1,v2)
+		 of LESS => GREATER
+		  | EQUAL => EQUAL
+		  | GREATER => LESS)
+	| GREATER => LESS)
   
   (* priority: andor -> goodness *)
   (* priority intended only for OR nodes *)
   fun priority (OR{defaults,variants,...}) : priority =
-	(length defaults, length variants)
+	(R.numItems defaults, length variants)
     | priority _ = (10000,10000)
 	(* "infinitely low" priority for non-OR nodes, which won't occur in queues *)
 
@@ -47,12 +47,12 @@ structure APQ = LeftPriorityQFn(AndorPriority)
 (* findAndRemove: (APQ.item -> bool) -> APQ.queue -> (APQ.item * APQ.queue) option *)
 (* This function will be added to the Priority Queue interface, at which point it
  * will not need to be defined here. This version is specific to APQ. *)
-fun findAndRemove pred queue =
-    let fun find(queue: APQ.queue, prefix: item list) =
-	    case APQ.next
+fun findAndRemove (pred: APQ.item -> bool) (queue: APQ.queue) =
+    let fun find(queue: APQ.queue, prefix: APQ.item list) =
+	    case APQ.next queue
 	     of SOME(item, queue') =>
 		  if pred item
-		  then SOME(item, foldl APQ.insert (rev prefix) queue')
+		  then SOME(item, foldl APQ.insert queue' (rev prefix))
 		  else find(queue', item::prefix)
 	      | NONE => NONE
      in find(queue, nil)
@@ -68,23 +68,25 @@ fun findAndRemove pred queue =
  * The result is a priority queue of nodes (APQ.queue) sorted by AndorPriority.compare.
  * the node with the greatest priority (wrt compare) is returned first. *)
 fun accessible andor =
-    case andor
-     of AND{children,...} =>
-	  foldl (fn (andor,queue) = APQ.merge(accessible andor, queue)) APQ.empty children
-      | SINGLE{arg,...} = accessible arg (* SINGLE nodes are "transparent" *)
-      | (andor as OR _) = APQ.singleton andor (* non-degenerate OR node is opaque *)
-      | LEAF _ = APQ.empty
-      | VARS _ = APQ.empty
+    (case andor
+       of AND{children,...} => accessibleList children
+	| OR _ => APQ.singleton andor       (* non-degenerate OR node is opaque *)
+	| SINGLE{arg,...} => accessible arg (* SINGLE nodes are "transparent" *)
+	| _ => APQ.empty)
+
+(* accessibleList : andor list -> APQ.queue *)
+and accessibleList andors =
+    foldl (fn (andor,queue) => APQ.merge(accessible andor, queue)) APQ.empty andors
 
 (* selectBestRelevant : APQ.queue * ruleno -> (andor * APQ.queue) option *)
-fun selectBestRelevant (orNodes: APQ.queue, leastLive: ruleno, oldpath) =
-    let fun relevant (OR{path,defaults,...}) =>
-	    not(R.member(leastLive, defaults)) andalso
-	    not(incompatible(oldpath,path)
-	      (* OR node is relevant *)
-	  | relevant _ => bug "relevant"
+fun selectBestRelevant (orNodes: APQ.queue, leastLive: ruleno, oldpath: path) =
+    let fun relevant (OR{path,defaults,...}) =
+	    not(R.member(defaults, leastLive)) andalso
+	    not(incompatible(oldpath,path)) (* OR node is relevant *)
+	  | relevant _ = bug "relevant"
      in findAndRemove relevant orNodes
     end
 
+end (* local *)
 end (* structure OrderedOrNodes *)
 

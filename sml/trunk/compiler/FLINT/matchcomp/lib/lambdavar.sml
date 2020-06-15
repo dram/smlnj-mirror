@@ -9,5 +9,7 @@ struct
   val varcount = ref 0
   fun mkLvar () = (inc varcount; !varcount)
 
+  fun reset () = varcount := 0
+
 end
     

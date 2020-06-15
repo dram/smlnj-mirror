@@ -1,7 +1,7 @@
 (* rules.sml *)
 (* rule numbers and (ordered) rule number sets *)
 
-structure Rules (* :> RULES *) =
+structure Rules :> RULES =
 struct
 
 local
@@ -11,16 +11,22 @@ in
 type ruleno = int
 type ruleset = IntBinarySet.set
 
-fun next (rule: ruleno) : ruleno = rule + 1
+fun increment (rule: ruleno) : ruleno = rule + 1
 		   
 val empty = S.empty
 val isEmpty = S.isEmpty
+val member = S.member
 val add = S.add
+val addList = S.addList
 val singleton = S.singleton
 val union = S.union
+val intersection = S.intersection
 val difference = S.difference
+
+val minItem = S.minItem
 val listItems = S.listItems
-		    
+val numItems = S.numItems
+		   
 fun unionList rulesets =
     List.foldl S.union S.empty rulesets
 

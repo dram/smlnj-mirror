@@ -40,7 +40,7 @@ datatype key
   | W of int IntConst.t
   | C of char
   | S of string
-  | R of int    (* not a choice key, but a selection key for products,
+  | R of int    (* not a choice discriminator, but a selection key for products,
                  * will only appear in paths, not in variants *)
 
 (* eqKey : key * key -> bool
@@ -97,7 +97,9 @@ fun incompatible (k1::rest1, k2::rest2) =
 
 pathPrefix: path * path -> bool  (* prefix ordering *)
 pathAppend: path * path -> path
-*)
+ *)
+
+(* INVARIANT: In any variant (key, andor), getPath(andor) ends with key. *)
 			    
 (* ================================================================================ *)
 (* andor trees *)
@@ -112,6 +114,7 @@ as a phantom argument for nullary dcons. (?) *)
  * How would we use such types? 
  *   Could also maintain a mapping from paths to types of the nodes designated
  * by those paths.
+ *   Do we need defaults fields for VARS and LEAF nodes?
  *)
 
 datatype andor
@@ -130,7 +133,7 @@ datatype andor
      vars : varBindings,       (* variables bound to this point, with rule no. *)
      live : ruleset,           (* rule patterns matchable at this point *)
      defaults: ruleset,        (* rules matching here by default (vars) *)
-     variants: variant list} (* the branches/choices of OR node; non-null *)
+     variants: variant list}   (* the branches/choices of OR node; non-null *)
   | SINGLE of  (* singular datacon app, a kind of no-op for pattern matching *)
     {lvar : LV.lvar,
      path : path,              (* unique path to this node *)
@@ -143,9 +146,10 @@ datatype andor
      path : path,              (* unique path to this node *)
      asvars: asBindings,       (* at _this_ node *)
      vars: varBindings,        (* Invariant: live = map #2 vars ?? *)
-     live: ruleset}            (* rules live at this point ??? *)
+     live: ruleset,            (* rules live at this point ??? *)
+     defaults: ruleset}        (* rules matching here by default *)
 	(* should VARS have a defaults field? == map #2 vars + inherited from the path *)
-  | LEAF of   (* leaf, with live rules, used in place of "arg" of constant dcon *)
+  | LEAF of   (* used as variant andor for constants, with live and default rules *)
     {path: path,
      live: ruleset,
      defaults: ruleset}
@@ -193,7 +197,7 @@ fun getPath(AND{path,...}) = path
   | getPath(SINGLE{path,...}) = path
   | getPath(VARS{path,...}) = path
   | getPath(LEAF{path,...}) = path
-  | getPath _ = bug "getPath"
+  | getPath INITIAL = bug "getPath(INITIAL)"
 
 (* getLvar : andor -> lvar *)
 fun getLvar(AND{lvar,...}) = lvar
@@ -201,7 +205,23 @@ fun getLvar(AND{lvar,...}) = lvar
   | getLvar(SINGLE{lvar,...}) = lvar					    
   | getLvar(VARS{lvar,...}) = lvar					    
   | getLvar(LEAF _) = bug "getLvar(LEAF)"
-  | getLvar _ = bug "getLvar"
+  | getLvar INITIAL = bug "getLvar(INITIAL)"
+
+(* getLive : andor -> ruleset *)
+fun getLive(AND{live,...}) = live
+  | getLive(OR{live,...}) = live
+  | getLive(SINGLE{arg,...}) = getLive arg 
+  | getLive(VARS{live,...}) = live
+  | getLive(LEAF{live,...}) = live
+  | getLive INITIAL = bug "getLvar(INITIAL)"
+
+(* getDefaults : andor -> ruleset *)
+fun getDefaults(AND{defaults,...}) = defaults
+  | getDefaults(OR{defaults,...}) = defaults
+  | getDefaults(SINGLE{arg,...}) = getDefaults arg 
+  | getDefaults(VARS{defaults,...}) = defaults
+  | getDefaults(LEAF{defaults,...}) = defaults
+  | getDefaults _ = bug "getLvar(INITIAL)"
 
 (* findKey : key * variant list -> andor option *)
 fun findKey (key, (key',n)::rest) =

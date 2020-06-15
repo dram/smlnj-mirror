@@ -23,4 +23,6 @@ structure VarCon : VARCON =
 		 access = lvar,
 		 btvs = ref []}
 
+    fun varName (VALvar{name,...}) = name
+
   end (* structure VarCon *)

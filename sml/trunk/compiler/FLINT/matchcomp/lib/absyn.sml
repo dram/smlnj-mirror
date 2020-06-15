@@ -42,9 +42,8 @@ struct
       | STRINGpat of string
       | CHARpat of string
       | CONpat of T.datacon * T.tyvar list (* See comment for VARexp *)
-      | RECORDpat of {fields: (T.label * pat) list, flex: bool, typ: T.ty ref}
+      | RECORDpat of {fields: (T.label * pat) list}
       | APPpat of T.datacon * T.tyvar list * pat
-      | CONSTRAINTpat of pat * T.ty
       | LAYEREDpat of VarCon.var * pat
       | ORpat of pat * pat
       | VECTORpat of pat list * T.ty

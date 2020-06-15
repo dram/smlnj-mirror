@@ -16,4 +16,6 @@ signature VARCON =
 
     val mkVALvar : Symbol.symbol * LambdaVar.lvar ->  var
 
+    val varName : var -> Symbol.symbol
+
   end (* signature VARCON *)

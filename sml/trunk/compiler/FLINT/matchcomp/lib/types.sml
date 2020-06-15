@@ -22,6 +22,9 @@ type datacon =
 
 type label = string
 
+(* mkLabel : string -> label *)
+fun mkLabel (s: string) : label = s
+
 end (* structure Types *)
 
 
@@ -43,6 +46,9 @@ local open Types in
   (* dataconEq : datacon * datacon -> bool *)
   fun dataconEq ({name = name1, ...}: datacon, {name = name2,...}: datacon) =
       name1 = name2
+
+  (* dataconName : datacon -> Symbol.symbol *)
+  fun dataconName ({name,...}: datacon) = name
 
   (* dataconWidth : datacon -> int *)
   fun dataconWidth ({width,...}: datacon) = width
