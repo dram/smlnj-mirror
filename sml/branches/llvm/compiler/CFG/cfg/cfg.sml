@@ -6,17 +6,17 @@
  * CFG IR for SML/NJ code generation.
  *)
 
-structure CPS_Type =
-  struct
-    type intty = {sz : int, tag : bool}
-    datatype pkind = datatype CPS.pkind
-    datatype cty = datatype CPS.cty
-    datatype record_kind = datatype CPS.record_kind
+structure CFG_Type = struct
+    datatype cty
+      = NUMt of int
+      | FLTt of int
+      | PTRt
+      | FUNt
+      | CNTt
   end
 
 structure CFG_Prim =
   struct
-  (* numkind includes kind and size *)
     datatype numkind = INT | UINT | FLT
 
   (* allocation operations *)
@@ -44,18 +44,13 @@ structure CFG_Prim =
       | LSHIFT | RSHIFT | RSHIFTL
       | ORB | XORB | ANDB
       | FADD | FSUB | FMUL | FDIV
-      | FABS
-      | FSQRT
-      | FSIN | FCOS | FTAN
+      | FABS | FSQRT
 
     datatype pure
       = PURE_ARITH of {oper : arithop, size : int}
       | COPY of {from : int, to : int}
       | EXTEND of {from : int, to : int}
       | TRUNC of {from : int, to : int}
-      | COPY_INF of int
-      | EXTEND_INF of int
-      | TRUNC_INF of int
       | INT_TO_REAL of {from : int, to : int}
       | LOAD_WORD of {offset : int, ty : CPS_Type.cty}
       | LOAD_RAW of {offset : int, kind : numkind, sz : int}
@@ -66,7 +61,6 @@ structure CFG_Prim =
       = ARITH of {oper : arithop, size : int}
       | TEST of {from : int, to : int}
       | TESTU of {from : int, to : int}
-      | TEST_INF of int
       | REAL_TO_INT of {floor : bool, from : int, to : int}
 
     datatype looker
@@ -97,16 +91,21 @@ structure CFG_Prim =
 structure CFG =
   struct
 
-    datatype fun_kind
-      = STANDARD
-      | GC_CHECK
+    datatype frag_kind
+      = GC_CHECK
       | INTERNAL
+
+    datatype calling_conv
+      = STD_FUN
+      | STD_CONT
+      | KNOWN
 
     datatype rcc_kind
       = FAST_RCC
       | REENTRANT_RCC
 
-    type rcc_param = LambdaVar.lvar * CPS_Type.cty
+  (* fragment/function parameters *)
+    type param = LambdaVar.lvar * CFG_Type.cty
 
     datatype exp
       = VAR of LambdaVar.lvar
@@ -124,14 +123,20 @@ structure CFG =
     datatype stm
       = LET of exp * LambdaVar.lvar * stm
       | ALLOC of CFG_Prim.alloc * exp list * LambdaVar.lvar * stm
-      | RECORD of CPS_Type.record_kind * field list * LambdaVar.lvar * stm
-      | APP of exp * exp list
+      | APP of calling_conv * exp * exp list
+      | GOTO of LambdaVar.lvar * exp list
       | SWITCH of exp * stm list
       | BRANCH of CFG_Prim.branch * exp list * stm * stm
       | ARITH of CFG_Prim.arith * exp list * LambdaVar.lvar * stm
       | SETTER of CFG_Prim.setter * exp list * stm
-      | RCC of rcc_kind * string * CTypes.c_proto * exp list * rcc_param list * stm
+      | RCC of rcc_kind * string * PrimCTypes.c_proto * exp list * param list * stm
 
-    type function = fun_kind * LambdaVar.lvar * LambdaVar.lvar list * CPS_Type.cty list * stm
+  (* an extended basic block *)
+    type frag = frag_kind * LambdaVar.lvar * param list * stm
+
+  (* the entry fragment of a cluster *)
+    type function = calling_conv * LambdaVar.lvar * param list * stm
+
+    type cluster = function * frag list
 
   end
