@@ -33,6 +33,8 @@ val C = {name = S.make "A", width = 3}
 val L = {name = S.make "L", width = 2}  (* short for Leaf *)
 val N = {name = S.make "N", width = 2}  (* short for Node *)
 
+val dcons = [T,F,Nil,Cons,A,B,C,L,N]
+
 val truePat = CONpat(T, [])
 val falsePat = CONpat(F, [])
 
@@ -72,6 +74,9 @@ val p1 = APPpat(N, [], mkTuplePat[xpat, Lpat])
 val p2 = APPpat(N, [], mkTuplePat[Lpat, ypat])
 val p3 = zpat
 val example1 = [p1,p2,p3]
+
+val example1s =
+"N(x,L); N(L,y); z"    
 
 end (* local *)
 end (* structure Stuff *)

@@ -21,7 +21,20 @@ dec-tree.sml
 mc-code.sml
 
 mcprint.sml
+
+parse/token.sml
+parse/reader.sig
+parse/reader.sml
+parse/charstream.sig
+parse/stringstream.sml
+parse/lexer.sml
+parse/syntax.sml
+parse/parser.sml
+parse/elaborate.sml
+parse/parse-patterns.sml
+
 setup.sml
+
 test.sml
 
 $/pp-lib.cm
