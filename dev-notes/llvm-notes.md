@@ -77,6 +77,10 @@ linkage information and, on some architectures, virtual registers.
 Because the generated code is not directly linked to the runtime system,
 we use reserved locations in the stack frame.
 
+*LLVM* provides the intrinsic function [`@llvm.read_register`](https://llvm.org/docs/LangRef.html#llvm-read-register-and-llvm-write-register-intrinsics)
+that can be used to read the value of the stack pointer.  We may be able to use
+this intrinsic to access those values that are in the stack frame.
+
 ### LLVM Intrinsics
 
 There are a number of primitive operations that will have to be mapped to
