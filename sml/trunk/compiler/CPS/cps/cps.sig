@@ -73,7 +73,7 @@ signature CPS =
 	  | FSGN of int
 	  | BOXED | UNBOXED | PEQL | PNEQ
 (* FIXME: make length part of string equality test
-          | streq of int | strneq of int (* streq n is defined on strings of length n *)
+          | STREQ of int | STRNEQ of int (* streq n is defined on strings of length n *)
 *)
 	  | STREQL | STRNEQ
 	      (* streq(n,a,b) is defined only if strings a and b have

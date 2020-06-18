@@ -109,12 +109,12 @@ Group
 	signature PRIM_ENV
 	signature ENVREF
 	signature MODULE_ID
-	
+
 	signature PICKMOD
 	signature UNPICKMOD
 
 	signature PRIM_ENV
-	
+
 	signature FLINT
 
 	signature TYPES
