@@ -4,9 +4,7 @@ This is a list of things (both major and minor) that should be fixed/improved/ch
 in the SML/NJ compiler.  It is organized into short-term goals by proposed release
 target plus an additional "wish-list" of long-term goals.
 
-## For 110.97
-
-  * Bug fixing: some good candidates are 195, 196, 200, and 220.
+## For 110.98
 
   * check if the problem with IntInf literals has gone away.
 
@@ -21,6 +19,12 @@ target plus an additional "wish-list" of long-term goals.
     - For record types, distinguish between field name mismatches, missing/extra
       fields, and field type mismatches.
     - Sort error messages by file position.
+
+  * Expand the `FSGN` primop in `CPS/convert/convert.sml` (as we do for `REAL_TO_BITS`)
+    and remove it from the `CPS.P.branch` type.  This change would simplify the code
+    generator.  Eventually, we should move the `REAL_TO_BITS` primop into the
+    code generator so that it can be exposed to machines for which a register-to-register
+    operation is possible.  We should also add a `BITS_TO_REAL` primop.
 
   * Cleanup `compiler/CPS/clos/closure.sml`; there is a lot of code that was
     written to support quasi-stacks, which is no longer needed.
