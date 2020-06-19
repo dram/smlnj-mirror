@@ -360,8 +360,7 @@ val ppCode =
                PP.closeBox ppstrm
 	    end
 	and ppcase ppstrm (key,lvarOp,rhsExp) =
-	    (PP.openHVBox ppstrm (PP.Rel 0);
-	     PP.openHBox ppstrm;
+	    (PP.openHBox ppstrm;
 	     PP.string ppstrm (keyToString key);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     (case lvarOp
@@ -370,11 +369,8 @@ val ppCode =
 		  (ppLvar ppstrm lvar;
 		   PP.break ppstrm {nsp=1,offset=0}));
 	     PP.string ppstrm "=>";
-	     PP.closeBox ppstrm;
-	     PP.openVBox ppstrm (PP.Abs 2);
 	     PP.break ppstrm {nsp=1,offset=0};
 	     ppc ppstrm rhsExp;
-	     PP.closeBox ppstrm;
 	     PP.closeBox ppstrm)
     in ppc
     end
@@ -387,6 +383,9 @@ val printDepth = ref 10
 fun tppPat pat =
     PP.with_default_pp(fn ppstrm => ppPat ppstrm (pat,!printDepth))
 
+fun tppPats pats =
+    List.app tppPat pats
+	     
 fun tppAndor andor =
     PP.with_default_pp(fn ppstrm => ppAndor ppstrm andor)
 

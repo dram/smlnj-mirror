@@ -32,66 +32,61 @@ val numberChars = 256  (* this should be a basic configuration parameter in Targ
  * and providing a default for missing keys? *)
 fun partial (OR{variants as (key,andor)::_,...}) =
     (case key
-       of D (dcon,_) => length variants < TU.dataconWidth dcon
+       of D (dcon,_) => length variants < TU.dataconWidth dcon  (* missing constructor keys *)
         | C _ => length variants < numberChars
         | _ => true)
   | partial _ =  bug "parial"
 
-(* makeDecisionTree : (APQ.queue * ruleset * path -> (decTree * APQ.queue) option *)
-(* orNodes is a nodeGt sorted list of OR nodes
+(* makeDecisionTree : (APQ.queue * ruleset * path -> decTree *)
+(* orNodes is a priority queue (APQ.queue) of OR nodes
  * -- oldlive is a ruleset containing rules that are live on this branch,
  *    i.e. have survived earlier decisions on this branch
- * -- path is the path of the parent, candidate OR nodes must be compatible with this path
+ * -- oldPath is the path of the parent decision, which is the path of its OR node,
+ *    candidate OR nodes must be compatible with this path
  * -- variantDecTrees processes each variant of the selected OR node.
- * -- keys all have type choiceKey, making it easier to iterate over variants *)
-fun makeDecisionTree(orNodes, survivors, oldPath) =
-      (case OO.selectBestRelevant(orNodes, R.minItem survivors, oldPath)
-        of SOME (node as OR{path, direct, defaults, variants, ...}, remainder) =>
-	   (* best relevant OR node, oldOrNodes is rest of orNodes, still sorted *)
+ * -- keys all have type choiceKey, making it easier to iterate over variants
+ * -- if survivors is empty, returns RAISEMATCH *)
+fun makeDecisionTree(orNodes, survivors, thisPath) =
+    if R.isEmpty survivors then RAISEMATCH else
+      (case OO.selectBestRelevant(orNodes, R.minItem survivors, thisPath)
+        of SOME (node as OR{path, direct, defaults, variants, ...}, candidates) =>
+	   (* best relevant OR node, remainder is queue of remaining OR nodes *)
 	   let val _ =
 		  (print "makeDecisionTree: \n";
-		   print "  oldPath: "; MCPrint.tppPath oldPath; print "\n";
-	           print "  survivors: "; MCPrint.tppRules survivors; print "\n";
-		   print "  path: "; MCPrint.tppPath path; print "\n")
-	       val newCandidates = APQ.merge(remainder, OO.accessibleList(map #2 variants))
-		   (* add the newly accessible OR nodes to remainder *)
-	           (* throws in a bunch of incompatible OR nodes; could be more careful
-                    * and do it per variant. *)
+		   print "  thisPath: "; MCPrint.tppPath thisPath;
+	           print "  survivors: "; MCPrint.tppRules survivors;
+		   print "  path: "; MCPrint.tppPath path)
 	       (* variantDecTrees: variant list * decVariant list * APQ.queue
                                    -> decVariant list * APQ.queue *)
-	       fun variantDecTrees ((key,andor)::rest, decvariants, candidates) =
-		   let val live = getLive andor
-		       val survivors' = R.intersection(live, survivors)
-		    in if R.isEmpty survivors'  (* would never happen with final default rule *)
-		       then variantDecTrees(rest, (key, RAISEMATCH)::decvariants, candidates)
- 		       else (case makeDecisionTree(candidates, survivors', path)
-			      of SOME(dtree, remaining) =>
-				   variantDecTrees(rest, (key, dtree) :: decvariants, candidates)
-			       | NONE =>  (* no relevant rules for this OR node *)
-				 variantDecTrees(rest,
-						 (key, DLEAF(R.minItem survivors'))::decvariants,
-						 candidates))
+	       fun variantDecTrees ((key,andor)::rest, decvariants) =
+		   let val variantPath = getPath andor
+		       val variantLive = getLive andor
+		       val variantSurvivors = R.intersection(variantLive, survivors)
+		       val variantCandidates = APQ.merge(candidates, OO.accessible andor)
+			    (* add newly accessible OR nodes only under this variant,
+			     * OR nodes under other variants will be incompatible *)
+		       val dectree =
+			   makeDecisionTree(variantCandidates, variantSurvivors, variantPath)
+		    in variantDecTrees(rest, (key, dectree) :: decvariants)
 		   end
-		 | variantDecTrees(nil, decvariants, ornodes) = (rev decvariants, ornodes)
-	       val (decvariants, remainder') = variantDecTrees(variants, nil, newCandidates)
-	       val (defaultOp,remainder0) =
+		 | variantDecTrees(nil, decvariants) = (rev decvariants)
+	       val decvariants = variantDecTrees(variants, nil)
+	       val defaultOp =
 		   if partial node andalso not(R.isEmpty defaults)
-		   then let val survivors' = R.intersection(survivors, defaults)
-			in if R.isEmpty survivors'
-			   then (print "%%%%%\n";
-				 MCPrint.tppRules survivors; print "\n";
-				 MCPrint.tppRules defaults; print "\n";
-				 raise Empty)
-			   else
-		       case (makeDecisionTree(remainder', R.intersection(survivors,defaults), path))
-			  of SOME(dt, remainder'') => (SOME dt, remainder'')
-			   | NONE => (NONE, remainder')
+		   then let val defaultSurvivors = R.intersection(survivors, defaults)
+			in if R.isEmpty defaultSurvivors
+			   then (print "Default: no survivors\n";
+				 print "survivors: ";
+				 MCPrint.tppRules survivors;
+				 print "local live: ";
+				 MCPrint.tppRules defaults)
+			   else ();
+			   SOME(makeDecisionTree(candidates, defaultSurvivors, thisPath))
 			end
-		   else (NONE, remainder')
-	       in SOME(CHOICE{node = node, choices = decvariants, default = defaultOp},
-		       remainder0)
+		   else NONE  (* no default clause *)
+	       in CHOICE{node = node, choices = decvariants, default = defaultOp}
 	   end
-	 | NONE => NONE  (* no relevant OR nodes in orNodes *)
+	 | NONE => DLEAF(R.minItem survivors)  (* no relevant OR nodes; pick minimum rule *)
 	 | _ => bug "makeDecisionTree")
 
 (* What to do when there are no relevant OR nodes in the queue? In this case, is the
@@ -101,10 +96,9 @@ fun makeDecisionTree(orNodes, survivors, oldPath) =
 (* decistionTree: andor -> decTree *)
 fun decisionTree andor =
     let val orNodes = OO.accessible andor
-	val rules = R.union(getLive andor, getDefaults andor)  (* this should be = allRules? *)
-    in case makeDecisionTree(orNodes, rules, rootPath)
-	of SOME (dectree,_) => SOME dectree
-         | NONE => NONE
+	val rules = R.union(getLive andor, getDefaults andor)
+		(* this should = allRules for the top andor *)
+     in makeDecisionTree(orNodes, rules, rootPath)
     end
 
 end (* local *)

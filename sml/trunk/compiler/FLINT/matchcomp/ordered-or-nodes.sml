@@ -10,6 +10,7 @@ struct
 
 local
     structure R = Rules
+    structure TU = TypesUtil
     open MCTypes (* AND, OR, SINGLE, VARS, LEAF *)
 in
 
@@ -24,20 +25,32 @@ struct
   (* smaller numbers are "better", hence GREATER *)
   fun compare ((d1,v1),(d2,v2)) =
       (case Int.compare(d1, d2)
-         of LESS => GREATER
+         of LESS => GREATER            (* fewer defaults *)
 	  | EQUAL =>
 	      (case Int.compare(v1,v2)
-		 of LESS => GREATER
+		 of LESS => GREATER    (* fewer variants *)
 		  | EQUAL => EQUAL
 		  | GREATER => LESS)
-	| GREATER => LESS)
+	  | GREATER => LESS)
   
   (* priority: andor -> goodness *)
   (* priority applies only to OR nodes *)
   fun priority (OR{defaults,variants,...}) : priority =
-	(R.numItems defaults, length variants)
+      let val variantsLength = length variants
+	  val variantsCount =
+	      case variants
+	       of (D(dcon,_),_)::_ =>
+		   if variantsLength < TU.dataconWidth dcon
+                      andalso not(R.isEmpty defaults)
+		   then variantsLength + 1
+		   else variantsLength
+		| _ =>
+		   if not(R.isEmpty defaults) then variantsLength + 1 else variantsLength
+       in (R.numItems defaults, variantsCount)
+	(* variants counts only the keys that actually occur in the patterns *)
+      end
     | priority _ = (10000,10000)
-	(* "infinitely low" priority for non-OR nodes, which won't occur in queues *)
+	(* "infinitely low" priority for non-OR nodes, which won't occur in queues anyway *)
 
 end (* structure AndorPriority *)
     
