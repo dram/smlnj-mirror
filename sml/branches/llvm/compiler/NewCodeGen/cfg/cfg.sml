@@ -21,9 +21,9 @@ structure CFG_Prim =
 
   (* allocation operations *)
     datatype alloc
-      = RECORD of {tag : IntInf.int, mut : bool}
-      | RAW_RECORD of {tag : IntInf.int, align : int}
-      | RAW_ALLOC of {tag : IntInf.int, align : int, len : int}
+      = RECORD of {desc : IntInf.int, mut : bool}
+      | RAW_RECORD of {desc : IntInf.int, kind : numkind, sz : int}
+      | RAW_ALLOC of {desc : IntInf.int option, align : int, len : int}
 
   (* arithmetic operations that may overflow; for the division operators,
    * we assume that the second argument is never zero (i.e., an explicit
@@ -38,21 +38,18 @@ structure CFG_Prim =
    * done before the operation).
    *)
     datatype pureop
-      = ADD | SUB | MUL
-      | SDIV | SREM
-      | UDIV | UREM
+      = ADD | SUB
+      | SMUL | SDIV | SREM
+      | UMUL | UDIV | UREM
       | LSHIFT | RSHIFT | RSHIFTL
       | ORB | XORB | ANDB
       | FADD | FSUB | FMUL | FDIV
-      | FABS | FSQRT
+      | FNEG | FABS | FSQRT
 
     datatype pure
       = PURE_ARITH of {oper : pureop, sz : int}
-      | COPY of {from : int, to : int}
-      | EXTEND of {from : int, to : int}
-      | TRUNC of {from : int, to : int}
+      | EXTEND of {signed : bool, from : int, to : int}
       | INT_TO_REAL of {from : int, to : int}
-      | LOAD_WORD of {offset : int}
       | LOAD_RAW of {offset : int, kind : numkind, sz : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
@@ -67,13 +64,14 @@ structure CFG_Prim =
       = DEREF
       | SUBSCRIPT
       | RAW_SUBSCRIPT of {kind : numkind, sz : int}
-      | GETHDLR | GETVAR
+      | GET_HDLR | GET_VAR
 
     datatype setter
-      = UNBOXED_UPDATE | UPDATE
-      | UNBOXED_ASSIGN | ASSIGN
-      | RAW_UPDATE of {kind : numkind, sz : int}
-      | SETHDLR | SETVAR
+      = UNBOXED_UPDATE | UPDATE				(* array update *)
+      | UNBOXED_ASSIGN | ASSIGN				(* reference assignment *)
+      | RAW_UPDATE of {kind : numkind, sz : int}	(* raw array update *)
+      | RAW_STORE of {kind : numkind, sz : int}		(* raw store to base+offset *)
+      | SET_HDLR | SET_VAR
 
   (* fcmpop conforms to the IEEE std 754 predicates. *)
     datatype fcmpop = datatype CPS.P.fcmpop
@@ -84,7 +82,12 @@ structure CFG_Prim =
     datatype cmpop = datatype CPS.P.cmpop
 
   (* These are two-way branches dependent on pure inputs *)
-    datatype branch = datatype CPS.P.branch
+    datatype branch
+      = CMP of {oper: cmpop, signed: bool, sz : int}
+      | FCMP of {oper: fcmpop, sz: int}
+      | FSGN of int
+      | BOXED | UNBOXED
+      | PEQL | PNEQ
 
   end
 
@@ -107,6 +110,11 @@ structure CFG =
   (* fragment/function parameters *)
     type param = LambdaVar.lvar * CFG_Type.ty
 
+  (* branch probabilities are measured in percent (1..99).  We use 0 to
+   * represent the absence of probability information.
+   *)
+    type probability = int
+
     datatype exp
       = VAR of LambdaVar.lvar
       | LABEL of LambdaVar.lvar
@@ -117,13 +125,13 @@ structure CFG =
       | OFFSET of int * exp
 
     datatype stm
-      = LET of exp * LambdaVar.lvar * stm
+      = LET of exp * param * stm
       | ALLOC of CFG_Prim.alloc * exp list * LambdaVar.lvar * stm
       | APP of calling_conv * exp * exp list
       | GOTO of LambdaVar.lvar * exp list
       | SWITCH of exp * stm list
-      | BRANCH of CFG_Prim.branch * exp list * stm * stm
-      | ARITH of CFG_Prim.arith * exp list * LambdaVar.lvar * stm
+      | BRANCH of CFG_Prim.branch * exp list * probability * stm * stm
+      | ARITH of CFG_Prim.arith * exp list * param * stm
       | SETTER of CFG_Prim.setter * exp list * stm
       | RCC of rcc_kind * string * PrimCTypes.c_proto * exp list * param list * stm
 

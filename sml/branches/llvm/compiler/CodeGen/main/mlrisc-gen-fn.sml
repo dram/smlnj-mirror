@@ -61,7 +61,7 @@ functor MLRiscGen (
 
     structure M  = Regs.T		(* MLTree *)
     structure E  = Ext			(* Extensions *)
-    structure C  = CPS
+    structure C  = CFG
     structure P  = C.P			(* CPS primitive operators *)
     structure R  = CPSRegions		(* Regions *)
     structure PT = R.PT			(* PointsTo *)
@@ -109,8 +109,6 @@ functor MLRiscGen (
     val print = Control.Print.say
 
     val NO_OPT = [#create An.NO_OPTIMIZATION ()]
-
-    fun sameRegAs x y = CB.sameCell (x, y)
 
     fun isTaggedInt sz = (sz <= Target.defaultIntSz)
 

@@ -33,25 +33,39 @@ structure PPCfg : sig
     val i2s = Int.toString
 
     fun numkindToString (P.INT, bits) = ["i", i2s bits]
-      | numkindToString (P.UINT, bits) = ["u", i2s bits]
       | numkindToString (P.FLT, bits) = ["f", i2s bits]
 
     val arithopToString = ArithOps.arithopToString
-    val cmpopToString = PPCps.cmpopToString
+    val cmpopToString = ArithOps.cmpopToString
     val fcmpopToString = PPCps.fcmpopToString
-    val branchToString = PPCps.branchToString
 
-    fun allocToString (P.RECORD{tag, mut=false}) =
-	  concat["record[0x", IntInf.fmt StringCvt.HEX tag, "]"]
-      | allocToString (P.RECORD{tag, mut=true}) =
-	  concat["mut_record[0x", IntInf.fmt StringCvt.HEX tag, "]"]
-      | allocToString (P.RAW_RECORD{tag, align}) = concat[
-	    "raw_record", i2s align, "[0x", IntInf.fmt StringCvt.HEX tag, "]"
-	  ]
-      | allocToString (P.RAW_ALLOC{tag, align, len}) = concat[
-	    "raw_alloc", i2s align, "[0x", IntInf.fmt StringCvt.HEX tag,
-	    ";", i2s len, "]"
-	  ]
+    fun branchToString oper = (case oper
+	   of P.CMP{oper, signed, sz} => concat[
+		  cmpopToString oper, if signed then "_i" else "_u",
+		  Int.toString sz
+		]
+	    | P.FCMP{oper, sz} => concat[fcmpopToString oper, "_f", Int.toString sz]
+	    | P.FSGN sz => concat["f", Int.toString sz, "sgn"]
+	    | P.BOXED => "boxed"
+	    | P.UNBOXED => "unboxed"
+	    | P.PEQL => "peql"
+	    | P.PNEQ => "pneq"
+	  (* end case *))
+
+    fun allocToString (P.RECORD{desc, mut=false}) =
+	  concat["record[0x", IntInf.fmt StringCvt.HEX desc, "]"]
+      | allocToString (P.RECORD{desc, mut=true}) =
+	  concat["mut_record[0x", IntInf.fmt StringCvt.HEX desc, "]"]
+      | allocToString (P.RAW_RECORD{desc, kind, sz}) = concat(
+	  "raw_" :: numkindToString(kind, sz) @ [
+	      "_record[0x", IntInf.fmt StringCvt.HEX desc, "]"
+	    ])
+      | allocToString (P.RAW_ALLOC{desc, align, len}) = concat(
+	  "raw_" :: i2s align :: "_alloc[" ::
+	  (case desc
+	   of SOME d => ["0x", IntInf.fmt StringCvt.HEX d, ";"]
+	    | _ => []
+	  (* end case *)) @ [i2s len, "]"])
 
     fun setterToString P.UNBOXED_UPDATE = "unboxedupdate"
       | setterToString P.UPDATE = "update"
@@ -59,15 +73,17 @@ structure PPCfg : sig
       | setterToString P.ASSIGN = "assign"
       | setterToString (P.RAW_UPDATE{kind, sz}) =
 	  concat("update_" :: numkindToString(kind, sz))
-      | setterToString P.SETHDLR = "sethdlr"
-      | setterToString P.SETVAR = "setvar"
+      | setterToString (P.RAW_STORE{kind, sz}) =
+	  concat("store_" :: numkindToString(kind, sz))
+      | setterToString P.SET_HDLR = "sethdlr"
+      | setterToString P.SET_VAR = "setvar"
 
     fun lookerToString P.DEREF = "!"
       | lookerToString P.SUBSCRIPT = "array_sub"
       | lookerToString (P.RAW_SUBSCRIPT{kind, sz}) =
 	  concat("array_sub_" :: numkindToString(kind, sz))
-      | lookerToString P.GETHDLR = "gethdlr"
-      | lookerToString P.GETVAR = "getvar"
+      | lookerToString P.GET_HDLR = "gethdlr"
+      | lookerToString P.GET_VAR = "getvar"
 
     fun cvtParams (prefix, from, to) =
 	  concat[prefix, "_", i2s from, "_to_", i2s to]
@@ -79,34 +95,35 @@ structure PPCfg : sig
 	  cvtParams (if floor then "floor" else "round", from, to)
 
     fun pureopToString rator = (case rator
-	   of P.ADD => "ADD"
-	    | P.SUB => "SUB"
-	    | P.MUL => "MUL"
-	    | P.SDIV => "SDIV"
-	    | P.SREM => "SREM"
-	    | P.UDIV => "UDIV"
-	    | P.UREM => "UREM"
-	    | P.LSHIFT => "LSHIFT"
-	    | P.RSHIFT => "RSHIFT"
-	    | P.RSHIFTL => "RSHIFTL"
-	    | P.ORB => "ORB"
-	    | P.XORB => "XORB"
-	    | P.ANDB => "ANDB"
-	    | P.FADD => "FADD"
-	    | P.FSUB => "FSUB"
-	    | P.FMUL => "FMUL"
-	    | P.FDIV => "FDIV"
-	    | P.FABS => "FABS"
-	    | P.FSQRT => "FSQRT"
+	   of P.ADD => "add"
+	    | P.SUB => "sub"
+	    | P.SMUL => "smul"
+	    | P.SDIV => "sdiv"
+	    | P.SREM => "srem"
+	    | P.UMUL => "umul"
+	    | P.UDIV => "udiv"
+	    | P.UREM => "urem"
+	    | P.LSHIFT => "lshift"
+	    | P.RSHIFT => "rshift"
+	    | P.RSHIFTL => "rshiftl"
+	    | P.ORB => "orb"
+	    | P.XORB => "xorb"
+	    | P.ANDB => "andb"
+	    | P.FADD => "fadd"
+	    | P.FSUB => "fsub"
+	    | P.FMUL => "fmul"
+	    | P.FDIV => "fdiv"
+	    | P.FNEG => "fneg"
+	    | P.FABS => "fabs"
+	    | P.FSQRT => "fsqrt"
 	  (* end case *))
 
     fun pureToString (P.PURE_ARITH{oper, sz}) = pureopToString oper ^ i2s sz
-      | pureToString (P.COPY{from, to}) = cvtParams ("copy_", from, to)
-      | pureToString (P.EXTEND{from, to}) = cvtParams ("extend_", from, to)
-      | pureToString (P.TRUNC{from, to}) = cvtParams ("trunc_", from, to)
+      | pureToString (P.EXTEND{signed=true, from, to}) =
+	  cvtParams ("sign_extend_", from, to)
+      | pureToString (P.EXTEND{signed=false, from, to}) =
+	  cvtParams ("zero_extend_", from, to)
       | pureToString (P.INT_TO_REAL{from, to}) = cvtParams ("real", from, to)
-      | pureToString (P.LOAD_WORD{offset}) =
-	  concat ["load[@", i2s offset, "]"]
       | pureToString (P.LOAD_RAW{offset, kind, sz}) =
 	  concat("load_" :: numkindToString(kind, sz)
 	    @ ["[@", i2s offset, "]"])
@@ -152,7 +169,7 @@ structure PPCfg : sig
 		space n;
 		case stm
 		 of C.LET(e, x, stm) => (
-		      say(expToString e); say " -> "; sayv x; say "\n"; pr stm)
+		      say(expToString e); say " -> "; sayParam x; say "\n"; pr stm)
 		  | C.ALLOC(p as P.RAW_ALLOC _, [], x, stm) => (
 		      say (allocToString p); say " -> "; sayv x; say "\n"; pr stm)
 		  | C.ALLOC(p, args, x, stm) => (
@@ -176,15 +193,23 @@ structure PPCfg : sig
 			List.appi sayCase cases;
 			space n; say "}\n"
 		      end
-		  | C.BRANCH(p, args, stm1, stm2) => (
+		  | C.BRANCH(p, args, 0, stm1, stm2) => (
 		      say "if "; sayApp (branchToString p, args); say " {\n";
 		      prStm (n+2) stm1;
 		      space n; say "} else {\n";
 		      prStm (n+2) stm2;
 		      space n; say "}\n")
+		  | C.BRANCH(p, args, prob, stm1, stm2) => (
+		      say "if "; sayApp (branchToString p, args);
+		      say " { ["; say(Int.toString prob); say "/100]\n";
+		      prStm (n+2) stm1;
+		      space n; say "} else { [";
+		      say(Int.toString(100-prob)); say "/100]\n";
+		      prStm (n+2) stm2;
+		      space n; say "}\n")
 		  | C.ARITH(p, args, x, stm) => (
 		      sayApp (arithToString p, args);
-		      say " -> "; sayv x; say "\n"; pr stm)
+		      say " -> "; sayParam x; say "\n"; pr stm)
 		  | C.SETTER(p, args, stm) => (
 		      sayApp (setterToString p, args); say "\n"; pr stm)
 		  | C.RCC(rk, f, proto, args, results, stm) => (
