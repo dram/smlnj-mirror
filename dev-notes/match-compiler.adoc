@@ -225,13 +225,12 @@ For instance, consider the pattern sequence
 
 This forms an OR node at the root:
 
-    []: OR-data {1,2,3}
-        var: (x, rule 3)
-         [D cons]
+    []: OR(list) {1,2,3} var: (x,3)
+         [cons]
 	    AND {1,3}  [rule 2, nil, is eliminated, but not rule 3]
 	      tree(p1)
 	      tree(p2)
-         [D nil] {2,3} *
+         [nil] {2,3} *
 
 All the rules live at the top OR-data node remain live for the two immediate
 children nodes.  Note that the variable x does not consitute a child node of
@@ -257,13 +256,13 @@ A layered variable binding does not extend the lifetime of rules:
 (1) x as cons(p1,p2)
 (2) nil
 
-    []: OR-data {1,2}
+    []: OR(list) {1,2}
         as-var: (x, rule 1)
-         [D cons]
+         [cons]
 	    AND {1}
 	      tree(p1)
 	      tree(p2)
-         [D nil] {2} *
+         [nil] {2} *
 
 So a primitive var pattern creates a "default" rule that remains live below
 (this) node, while a layered variable does not.
@@ -305,8 +304,6 @@ nodes from the subtree below the chosen node (if any).  So the set of remaining 
 nodes may grow (or shrink by one if there are no choice nodes below the chosen one in
 the AND-OR tree.
 
-
-
 Rule sets associated with an AND-OR node:
 
 (1) live rules: relation Live(rule,node)
@@ -347,23 +344,23 @@ Example:
 variable x in rule 1 makes rule 1 a default for the [R1,D(cons)] node. Rule 1 is
 live for that node and any descendents of that node.
 
-  [] ORdata(list) cons {1,2,3; 4}} (vars = (_,4)) (partial)
-     [DL(cons)] AND {1,2,3}
-                [RL0] OR(bool) {1,2,3; 1,4}  vars=(x,1)
-		      [DL(true)] # {2; 1,4}
-		      [DL(false)] # {3; 1,4}
-		[RL1] OR(list) {1,2,3; 4}
-                      [DL(nil)] # {1; 4}
-		      [DL(cons)] AND {2,3; 4}
- 		                 [RL0] OR(bool) {2,3; 2,4} (vars = (y,2)) (partial)
-				       [DL(true)] # {3; 2,4}
-				 [RL1] OR(list) {2,3; 4} (vars = (z,3) (partial)
-				       [DL(nil)] {2; 34}
+  [] OR(list) cons {1,2,3; 4} (vars = (_,4)) (partial)
+     [cons] AND {1,2,3}
+                [0] OR(bool) {1,2,3; 1,4}  vars=(x,1)
+		      [true] LEAF {2; 1,4}
+		      [false] LEAF {3; 1,4}
+		[1] OR(list) {1,2,3; 4}
+                      [nil] LEAF {1; 4}
+		      [cons] AND {2,3; 4}
+ 		                 [0] OR(bool) {2,3; 2,4} (vars = (y,2)) (partial)
+				       [true] # {3; 2,4}
+				 [1] OR(list) {2,3; 4} (vars = (z,3) (partial)
+				       [nil] {2; 34}
 
-A _partial_ OR node is a datatype or node with not all dataconstructors prepresented
+A _partial_ OR node is a datatype or node with not all datacons represented
 in the children of the node.  
 
-(All constant and vector OR nodes are partial by default.)
+(All constant (except char) and vector OR nodes are partial by default.)
 
 live(node) = {rule: Live(rule,node)}
 
@@ -429,19 +426,29 @@ This pattern space is represented concretely by an AND-OR tree.
 
 
 ================================================================================
-variable patterns, default rulesets, propagation of defaults
+Variable patterns, live rulesets, default rulesets, propagation of defaults
+
+Notational conventions for links, paths, keys:
+  [n] represents [Rn], where n is the index of a product/tuple/record component (0 based)
+  [K] represents [D(K,_)] where K is a dataconstructor name
+  (not currently using other constant keys (num, char, string) in examples)
+
+Conjectures:
+1. live field of AND nodes do not play a role.  But live sets during decision tree
+   building need to be propagated down through AND nodes.
+2. Same for live field of VARS nodes?
 
 [datatype t = A | B | C]
-  (1) A
-  (2) x
-  (3) C
+  (0) A
+  (1) x
+  (2) C
 
 N0:
-[] OR(t) {1,2,3}  Vars (x,2)
-   [DL(A)] {1; 2}
-   [DL(C)] {3; 2}
+[] OR(t) {0,1,2}  Vars (x,2)
+   [A] {0; 1x}
+   [C] {2; 1x}
 
-Rule 2 is default for the DL(A) and DL(C) variants.
+Rule 2 is default for the [A] and [C] variants.
 
 Some rules may become "inaccessible" because of defaulting from variables.
 In this example, rule (3) will never be "fired" in a match because it is
@@ -452,9 +459,9 @@ while it may be live at a leaf, it will not be the _least_ live node at a leaf.
 Here we have
 
   [] DEC(t)
-     A {1,2}
-     C {2,3}
-     [B] {2}  -- default branch
+     A {1,2x}  -- 1 chosen
+     C {2x,3}  -- 2 chosen
+     [B] {2x}  -- default branch
 
 C leads to live set {2,3} which will select the least rule, i.e. (2).
 B goes down an "else" branch with default ruleset {2}
@@ -529,66 +536,154 @@ Prop: If Var(Pat(r)[path]), then r in Defaults(N(path)),
 Note: Pat(r)[path] is always defined, though the actual path for this
 subpattern may be a strict prefix of path.
 
-Example:
 
-  (1)  true,  false, true
-  (2)  true,  x,     false
-  (3)  false, true,  y
+================================================================================
+Example 1:
 
-AND-OR tree
+datatype tree = L | N of tree * tree
+
+           
+
+      [0]         [N]
+              [N0]  [N1]
+  (0) N      (x,    L)
+  (1) N      (L,    y)
+  (2) z
+
+AND-OR tree:
+([n] is short for [Rn] (record selection n))
+
+[] OR(tree) {0,1,2z}
+   [N] AND {0,1,2z}
+       [0] OR(tree) {0x,1,2z}
+           [N] # {0x,2z}
+	   [L] LF {0x,1,2z}
+       [1] OR(tree) {0,1y,2z}
+           [N] # {1y,2z}
+	   [L] LF {0,1y,2z}
+   [L] LF {2z}
+
+Priorities:
+  []   : (1,2)
+  [N0] : (2,2)
+  [N1] : (2,2)
+  
+  [] < [N0] = [N1]
+  [N0] || [N1]  ([N0] and [N1] are compatible; diverge at AND node [N])
+  [N0], [N1] dominated by [] ([] is a prefix of ...)
+
+Decision Tree:
+
+D[] {0,1,2(z)}
+   N : {0,1,2z}
+       Relevance:
+         [N0] false (0 \in {0x,3z})
+         [N1] true  (0 not \in {1y,2z})
+     D[N1] {0x,1,2z}
+        N*: {1y,2z}   ==> (1)
+	    Relevance:
+	      [N0] false (? not in {0x,2z}) [no _hard_ live rule]
+	L : {0,1y,2z} ==> (0)
+	    Relevance:
+	      [N0] (0 in {0x,2z}) false
+   L*: {2z} ==> (2)	       
+       Relevance:  [N0], [N1] not compatible with [L] (diverge at OR[0])
+
+Abbreviated Decision Tree:
+
+  []
+  N =>
+    [N1]
+    N* => (1)
+    L => (0)
+  L* => (2)
+
+Note: OR node [N0] not used, because not relevant after [N1].
+
+Code:
+
+   Case vtop                 (vtop = v[0]: tree)
+     of N v1 =>              (v1 = v[N]: tree * tree)
+          letr (v2,v3) = v1  (v2 = v[N0]: tree, v3 = v[N1]: tree)
+            in Case v3
+	         of N => RHS 1
+	          | L => RHS 0
+        L => RHS 2
+
+Code with external variable bindings:
+
+   Case vtop                 (vtop = v[0]: tree)
+     of N v1 =>              (v1 = v[N]: tree * tree)
+          letr (v2,v3) = v1  (v2 = v[N0]: tree, v3 = v[N1]: tree)
+            in Case v3
+	         of N =>
+		    Let1 y = v3 in RHS 1
+	          | L => Let1 x = v2 in RHS 0
+        L => Let1 z = vtop in RHS 2
+
+================================================================================
+Example 2:
+
+       [0]     [1]     [2]
+ 
+  (0)  true,   false,  true
+  (1)  true,   x,      false
+  (2)  false,  true,   y
+
+AND-OR tree:
 
 [] AND
-   [RL(1)] OR(bool) {1,2,3}
-           [DL(true) LF {1,2}
-           [DL(false) LF {3}
-   [RL(2)] OR(bool) {1,3; 2}  var: (x,2)   [2 goes to defaults, not live]
-           [DL(true) LF {3; 2}
-           [DL(false) LF {1; 2}
-   [RL(3)] OR(bool) {1,2; 3}  var: (y,3)
-           [DL(true) LF {1; 3}
-           [DL(false) LF {2; 3}
+   [0] OR(bool) {0,1,2}
+         [true]  LF {0,1}
+         [false] LF {2}
+   [1] OR(bool) {0,2; 3y}  var: (x,2)   [2 goes to defaults, not live]
+         [true]  LF {2; 1x}
+         [false] LF {0; 1x}
+   [2] OR(bool) {0,1; 2y}  var: (y,3)
+         [true]  LF {0; 2y}
+         [false] LF {1; 2y}
    
-metric:
-   [RL(1)] : (0, 2)   (#defaults,breadth)
-   [RL(2)] : (1, 2)   (#defaults,breadth)  (x, 2)
-   [RL(3)] : (1, 2)   (#defaults,breadth)  (y, 3)
+Priorities:
+   [0] : (0, 2)   (#defaults, width)
+   [1] : (1, 2)   (#defaults, width)  (x, 2)
+   [2] : (1, 2)   (#defaults, width)  (y, 3)
 
-   [RL(1)] < [RL(2)] = [RL(3)]
+   [0] < [1] = [2]
 
 Relevance: {1,2,3}, least: 1
-   [RL(1)]: true
-   [RL(2)]: true
-   [RL(3)]: true
+   [0]: true  (1 /in {})
+   [1]: true  (1 /in {2x})
+   [2]: true  (1 /in {3y})
 
 Decision tree:
 
-D[RL(1)] {1,2,3}
+D[0] {1,2,3}
    true  : {1,2}, least: 1
-      Relevance: [RL(2)]: true  (1 not in defaults = {2})
-                 [RL(3)]: true  (1 not in defaults = {3})
-      D[RL(2)]  {1,3; 2}
-         true  : {2!,3} inter {1,2} = {2}, least: 2
-	   Relevance: [RL(3)] : true  (2 not in defaults = {3})
-	   [RL(3)] {1,2; 3} > {1,3!}
+      Relevance: [1]: true  (1 not in defaults = {2})
+                 [2]: true  (1 not in defaults = {3})
+      D[1]  {1,3; 2x}
+         true  : {2x,3} inter {1,2} = {2}, least: 2
+	   Relevance: [2] : true  (2 not in defaults = {3}); [1],[2] compatible
+	   D[2] {1,2,3y} > {1,3!}
 	      true  : {1,3!} inter {2} = empty ==> MATCH!
 	      false : {2,3!}, least: 2   
 	        no more choices  ==> (2)
-	 false : {1,2!} inter {1,2} = {1,2}, least: 1
-	   Relevance: [RL(3)] : true  (1 not in defaults = {3})
-	   [RL(3)] {1,2; 3}
+	 false : {1,2x} inter {1,2} = {1,2}, least: 1
+	   Relevance: [2] : true  (1 not in defaults = {3}); [1],[2] compatible
+	   D[2] {1,2,3y}
 	      true  : {1,3!} inter {1,2!} = {1}, least : 1  ==> (1)
 	        [[no more choices  ==> (1)]]
 	      false  : {2,3!} inter {1,2} = {2}, least : 1  ==> (2)
 	        [[no more choices  ==> (2)]]
    false : {3}
-      Relevance: [RL(2)] : true  (3 not in defaults={2})
-                 [RL(3)] : true  (3 not in defaults={2})
-      D[RL(2)] {1,3; 2}
+      Relevance: [1] : true  (3 not in defaults={2})
+                 [2] : true  (3 not in defaults={2})
+      D[1] {1,3; 2}
          true: {2!,3} inter {3} = {3}, least: 3  ==> (3)
-	   [[ Relevance: [RL(3)]: false  (2 in defaults = {2})   [==> (3)] ]]
+	   [[ Relevance: [3]: false  (2 in defaults = {2})   [==> (3)] ]]
 	 false: {1,2!} inter {3} = {},    ==> MATCH!
-	   [[ Relevance: [RL(3)]: true  (1 not in defaults = {3})
-	   D[RL(3)]: {1,2; 3}
+	   [[ Relevance: [3]: true  (1 not in defaults = {3})
+	   D[2]: {1,2; 3}
 	      true: {1,3!}, least: 1
 	        no more choice nodes  ==> (1)
 	      false: {2,3!}, least 2
@@ -596,162 +691,654 @@ D[RL(1)] {1,2,3}
 
 Abbreviated decision tree:
 
-  [RL(10]
+  [0]
   true =>
-    [RL(2)]
+    [1]
     true  => 
-      [RL(3)]
-      true  => MATCH!
+      [2]
+      true  => MATCH!   (counterexample: (true,true,true))
       false => (2)
     false =>
-      [RL(3)]
+      [2]
       true  => (1)
       false => (2)
   false =>
-    [RL(2)]
-     true  => (3)
-     false => MATCH!
-
-
-match?: (true,true,true) ==>  MATCH!
-        (false,true,false) ==> (3)
-	(false,false,false) ==> MATCH!
-
-Example (where rule is chosen because no relevant OR nodes)
-
-  (1)  A,  false, true
-  (2)  B,  x,     false
-  (3)  z,  true,  y
-
-AND-OR tree
-
-[] AND
-   [RL(1)] OR(t) {1,2,3z}
-           [DL(A) LF {1,3z}
-           [DL(B) LF {2,3z}
-   [RL(2)] OR(bool) {1,2x,3}  var: 2x   [2 goes to defaults, not live]
-           [DL(true) LF {2x,3}
-           [DL(false) LF {1,2x}
-   [RL(3)] OR(bool) {1,2,3y}  var: 3y
-           [DL(true) LF {1,3y}
-           [DL(false) LF {2,3y}
-  
-metric(RL(1)) = (1,2)
-metric(RL(2)) = (1,2)
-metric(RL(3)) = (1,2)
-(all three nodes have 1 variable, 2 keys)
-
-accessible = [RL(1),RL(2),RL(3)]
-
-D[RL(1)] {1,2,3}  (= allrules)
-   A  : {1,3z}, least: 1
-      Relevance: [RL(2)]: true  (1 not in defaults = {2})
-                 [RL(3)]: true  (1 not in defaults = {3})
-      D[RL(2)]  {1,2x,3}
-         true  : {2x,3} inter {1,3zy} = {3zy}, least: 3z  ==> (3)
-	 false : {1,2x} inter {1,3zy} = {1}, least: 1
-	   Relevance: [RL(3)] : true  (1 not in defaults = {3})
-	   [RL(3)] {1,2,3z}
-	      true  : {1,3z} inter {1,2x} = {1}, least : 1  ==> (1)
-	        [[no more choices  ==> (1)]]
-	      false  : {2,3z} inter {3z} = {3z}, least : 3  ==> (3z)
-	        [[no more choices  ==> (2)]]
-   B : {2,3z}, least: 2
-      Relevance: [RL(2)] : false  (2 is in defaults={2x})
-                 [RL(3)] : true  (2 not in defaults={3y})
-      D[RL(3)] {1,2,3y}
-         true: {1,3y} inter {2,3z} = {3yz}, singleton  ==> (3)
-	 false: {2,3y} inter {2,3z} = {2,3yz}, least {2},  ==> (2)
-	   [[ Relevance: [RL(2)]: false  (2 in defaults = {2x})
-   X : {C} {3z} ==> (3)   -- immediate, because singleton live
-
-Abbreviated decision tree:
-
-  [RL(1)]
-  A =>
-    [RL(2)]
+    [1]
     true  => (3)
-    false =>
-      [RL(3)]
-      true  => (1)
-      false => (3)
-  B =>
-    [RL(3)]
-     true  => (3)
-     false => (2)
-  [C] => {3}
+    false => MATCH!   (counterexample: (false,false,*))
 
-Example (where rule is chosen because no relevant OR nodes)
+Tests: (true,true,true) ==>  MATCH!
+       (false,true,false) ==> (3)
+       (false,false,false) ==> MATCH!
 
-  (1)  A,  false, true
-  (2)  B,  x,     false
-  (3)  z,  true,  false
+Code:
+  Letr (v1,v2,v3) = vtop (argument)
+    in Case v1
+         of true =>
+	     Case v2
+	       of true  => 
+		   Case0 v3
+                      of true  => Raise Match
+		       | false => RHS 2
+		| false =>
+                   Case0 v3
+		      of true  => RHS 1
+		       | false => RHS 2
+          | false =>
+	     Case v2
+               of true  => RHS 3
+	        | false => Raise Mmatch
+		 
+
+================================================================================
+Example 3:
+(where a rule is chosen because no relevant OR nodes)
+
+Type:    t * bool *  bool
+        [0]  [1]     [2]
+-----------------------------
+  (0)  (A,   false,  true)
+  (1)  (B,   x,      false)
+  (2)  (z,   true,   y)
 
 AND-OR tree
 
 [] AND
-   [RL(1)] OR(t) {1,2,3z}     var: 3z
-           [DL(A) LF {1,3z}
-           [DL(B) LF {2,3z}
-   [RL(2)] OR(bool) {1,2x,3}  var: 2x   [2 goes to defaults, not live]
-           [DL(true) LF {2x,3}
-           [DL(false) LF {1,2x}
-   [RL(3)] OR(bool) {1,2,3}
-           [DL(true) LF {1}
-           [DL(false) LF {2,3}
+   [0] OR(t) {0,1,2z}  -- [partial]
+         [A] LF {0,2z}
+         [B] LF {1,2z}
+   [1] OR(bool) {0,1x,2}  var: 1x
+         [true]  LF {1x,2}
+         [false] LF {1,1x}
+   [2] OR(bool) {0,1,2y}  var: 2y
+         [true]  LF {0,2y}
+         [false] LF {1,2y}
   
-metric(RL(1)) = (1,3)
-metric(RL(2)) = (1,2)
-metric(RL(3)) = (0,2)
+Priorities:
+  [0] : (1,2)
+  [1] : (1,2)
+  [2] : (1,2)
+(all three nodes have 1 variable, 2 keys ==> equal priorities)
 
-accessible = [RL(1),RL(2),RL(3)]
+top accessible = [[0],[1],[2]]
 
-D[RL(3)] {1,2,3}  (= allrules)
-  true : {1}, least: 1
-      Relevance: [RL(1)]: true  (1 not in {3z})
-      Relevance: [RL(2)]: true  (1 not in {2x})  RL(2) chosen by metric
-      D[RL(2)] {1,2x,3}
-        true : {2x,3} inter {1} = {}  ==> MATCH! 
-	false: {1,2x} inter {1} = {1}  =/=> (1)!  -- Don't know whether RL(1) will match!
-	   Relevance: [RL(1)]: true  (1 not in {3z})
-	   D[RL(1)] {1,2,3z}
-	     A: {1,3z} inter {1} = {1}  ==> (1) (no more OR nodes)
-	     B: {2,3z} inter {1} = {}  ==> MATCH!
-	     [C]: {3z} inter {1} = {}  ==> MATCH!
-  false: {2,3}, least 2
-      Relevance: [RL(2)]: false  (2 in {2x})
-      Relevance: [RL(1)]: true (2 not in {3z})
-      D[RL(1)] {1,2,3z}
-        A: {1,3z} inter {2,3} = {3}
-        B: {2,3z} inter {2,3} = {2,3}, least 2
-	   Relevance: [RL(2)]: false (2 in {2x})  ==> (2) least of {2,3}
-	[C]: {3z} inter {2,3} = {3z}
-	   Relevance: [RL(2)]: true (3 not in {2x})
-	   D[RL(2)]: {1.2x.3}
-	     true: {2x,3} inter {3z} = {3}  ==> (3) (no more OR nodes)
-	     false: {1,2x} inter {3z} = {}  ==> MATCH!
+D[0] {0,1,2}  (= allrules)
+   A  : {0,2z}, least: 0
+      Relevance:
+        [1]: true  (0 not in defaults = {1x}) -- chosen
+        [2]: true  (0 not in defaults = {2y})
+      D[1] {0,2}
+         true  : {1x,2} inter {0,2} = {2}, least: 2  ==> (2)
+	       Relevance:
+	         [2]:  (2 in {2y}) false
+	 false : {0,1x} inter {0,2z} = {0}, least: 0
+	   Relevance: [2] : true  (0 not in defaults = {2y})
+	   D[2] {0}
+	      true  : {0,2y} inter {0} = {0}, least : 0  ==> (0)
+	        [no more OR nodes  ==> (0)]
+	      false : {1,2y} inter {0} = {}  ==> MATCH (A,false,false)
+	        [no more choices -- irrelevant]
+   B : survivors = {1,2z}, least: 1
+      Relevance:
+        [1] : false  (1 is in defaults[1]={1x})
+        [2] : true  (1 not in defaults[2]={2y})
+      D[2] {1,2z}
+         true: {0,2y} inter {1,2z} = {2yz}
+	   Relevance:
+	     [1]: (2 not in {1x}?) true
+	   D[1] {0,2y}
+	      true  : survivors = {1,2z} inter {0,2y} = {2zy}
+	         OR-nodes exhausted ==> (2)
+	      false : survivors = {0,1x} inter {2} = {}  ==> MATCH
+	 false: {1,2y} inter {1,2z} = {1,2yz}, least {1},  ==> (1)
+	   Relevance: [1]: false  (1 in defaults = {1x})
+	   no relevant OR node => choose least({1,2yz}) = (1)
+   * : {2z} [not finished: e.g. (C,false,*) doesn't match]
+      Relevance: [1] : (2 not in {1x}) true
+                 [2] : (2 in 2y} false
+      D[1] {2}
+         true: {1x,2} inter {2} = {2}
+           D[2] not relevant ==> (2)
+	 false: {0,1x} inter {2} = {}  ==> MATCH (C,false, any)
+	 
+Abbreviated decision tree: (exhaustive)
+
+  [0]
+  A =>
+    [1]
+    true  => (2)
+    false =>
+      [2]
+      true  => (0)
+      false => MATCH  (A,false,false)
+  B =>
+    [2]
+     true  => (2)
+       [1]
+       true => (2)
+       false => MATCH  (B,false,true)
+     false => (1)
+  * =>  [C]
+    [1]
+     true => (2)
+     false => MATCH  (C,false, *) 
+
+
+=========================================================================================
+Example 4:
+(where rule is chosen because no relevant OR nodes)
+
+  (0)  A,  false, true
+  (1)  B,  x,     false
+  (2)  z,  true,  false
+
+AND-OR tree
+
+[] AND
+   [0] OR(t) {0,1,2z}     var: 2z
+           [A] LF {0,2z}
+           [B] LF {1,2z}  (only _direct_ keys appear in andor tree)
+   [1] OR(bool) {0,1x,2}  var: 1x   [1 goes to defaults, not live]
+           [true] LF {1x,2}
+           [false] LF {0,1x}
+   [2] OR(bool)] {0,1,2}
+           [true] LF {0}
+           [false] LF {1,2}
+
+*** andor ***
+[] AND {0,1,2} {}
+   [0] OR {0,1} {2}  (vars: (z,3))
+      A LEAF {0} {2}  {0,2z}
+      B LEAF {1} {2}  {1,2z}
+   [1] OR {0,2} {1}
+      T LEAF {2} {1}  {1x,2}
+      F LEAF {0} {1}  {0,1x}
+   [2] OR {0,1,2} {}
+      T LEAF {0} {}   {0}
+      F LEAF {1,2} {} {1,2}
+
+Priority:
+  [0] : (1,3)  (2 variants + default = 3 branches)
+  [1] : (1,2)  (2 variants, 2 constructors *)
+  [2] : (0,2)
+
+  [2] > [1] =? [0]
+
+top accessible = [[0],[1],[2]]
+all three OR nodes compatible: [0] || [1], [0] || [2], [1] || [2]
+  (diverge from []AND )
+
+Decision Tree:
+
+D[2](bool) {1,2,3}  (= allrules)
+  true : survivors' = {0}, least: 0
+      Relevance:
+        [0]: true  (0 not in {2z})
+        [1]: true  (0 not in {1x})
+        priority [1] > priority [0]
+      D[1](bool) {0,1x,2}
+        true : survivors' = {1x,2} inter {0} = {}  ==> MATCH 
+	false: survivors' = {0,1x} inter {0} = {0}, least: 0
+	   Relevance: [0]: (0 not in {1x}?) true
+	   D[0] {0,1,2z}
+	     A: survivors' = {0,2z} inter {0} = {0}  ==> (0) (no more OR nodes)
+	     B: survivors' = {1,2z} inter {0} = {}  ==> MATCH
+	     *: {2z} inter {0} = {}  ==> MATCH  <--- failure!!!  Catch this and generate MATCH
+  false: survivors = {1,2}, least 1
+      Relevance:
+        [1]: (1 not in {1x}?) false,
+        [0]: (1 not in {2z}?) true
+           [1] not relevant, so [0] chosen, even though lower priority
+      D[0](t) {0,1,2z}
+        A: survivors' = {0,2z} inter {1,2} = {2}, least: 2
+	   Relevance: [1] (2 not in {1x}?) true
+	   D[1]: {0,1x,2}
+	     true: survivors' = {1x,2} inter {2} = {2}
+	       queue exhausted  ==> (2)
+	     false: survivors' = {0,1x} inter {2} = {} ==> MATCH
+        B: survivors = {1,2z} inter {1,2} = {1,2}; least 1
+	   Relevance:
+	     [1]: (1 not in {1x}? => false)
+	     no more relevant tests  ==> (1) least of {1,2}
+	*: survivors = {2z} inter {1,2} = {2z}
+	   Relevance:
+	     [1]: (2 not in {1x}?) true  (2 least live, even though from defaults)
+	   D[1]: {0.1x.2}
+	     true: survivors = {1x,2} inter {2z} = {2}  ==> (2) (OR node queue exhausted)
+	     false: survivors = {0,1x} inter {2z} = {}  ==> MATCH
 	     
 Abbreviated decision tree:
 
-  [RL(3)]
+  [2]
   true =>
-    [RL(2)]
-    true  => MATCH!
+    [1]
+    true  => MATCH     (*,true,true)
     false =>
-      [RL(1)]
-      A  => (1)
-      B => MATCH!
-      *[C] => MATCH!
+      [0]
+      A  => (0)
+      B  => MATCH      (B,false,true)
+      * => MATCH       (C,false,true)
   false =>
-    [RL(1)]
-     A => (3)
-     B => (2)
-     *[C] [RL(2)]
-        true => (3)
-        false => MATCH!
+     [0]
+     A => 
+       [1]
+       true => (2)
+       false => MATCH  (A,false,false)
+     B => (1)
+     * =>
+       [1]
+       true => (2)
+       false => MATCH  (C,false,false)
   
+Code:
+
+  Letr (v1,v2,v3) = vtop
+    Case v3
+      true =>
+        Case v2
+	  true => MATCH
+	  false =>
+	    Case v1
+	      A => RHS 2
+	      B => MATCH
+	      * => MATCH
+     false =>
+       case v1
+         A =>
+	   Case v2
+	     true => RHS 2
+	     false => MATCH
+	 B => RHS 1
+	 * =>
+	   Case v2
+	     true => RHS 2
+	     false => MATCH
+		
+
 ================================================================================
-email to Bob, 2020.5.31
+Theory (Clarification): live ruleset, defaults ruleset, relevance, survival
+================================================================================
+
+(re: Construction of decision tree)
+
+Rule sets are associated with andor nodes, which represent/designate points in the
+pattern space (through their path).
+
+Let's say the "live" ruleset is the set of all rules that have a chance of
+  successfully matching at a given pattern point.
+
+Live rules can be characterized as either "direct" or "default".
+
+A rule is a "direct" live rule at p if that rule/p determines/contributes/matches
+a particular discriminator key (constructor or constant or vector length). Thus
+
+in the example 
+
+       [p] OR(bool)
+   (0) true   ...
+   (1) x      ...
+   (2) false  ...
+
+rules (0) and (2) are directly live at [].  Rule (1) introduces a variable
+default (1x), which also matches the direct keys true and false.  So for
+this node:
+
+  direct = {0,2}
+  default = {1}
+
+The live ruleset is
+
+  live = direct U default = {0,1,2},
+
+sometimes writen as {0,1x,2} to make it clear that 0 and 2 are direct and
+2 is a default (introduced by the occurrence of x).
+
+CONJECTURE: The relevance test should use the least rule in the _live_ set,
+which includes both direct and default rules. This least rule may therefore
+be a default rule.
+
+Thus at a point in the decision tree construction, rule (0) may have been
+eliminate by a higher ([]) false choice (in another column), in which case
+the surviving live rules may be {1,2}.  A futher decision may be able to
+elimate (1) even though 1 \in defaults.
+
+At an OR node, there is a set of _live_ rules.  Each associated key for that
+node determines a subset of live, live/key that is consistent with that key.
+These are the rules that have that key at this pattern point, or are default
+rules (because of having a variable at that pattern point or above on the path).
+
+In the decision tree construction, the effective live set (for a given key)
+is the intersection of live/key and the surviver set being passed down from
+higher in the decision tree, i.e.
+
+  survivors' = survivors inter (live/key)
+
+This is the ruleset that should be passed to the call of makeDecisionTree
+to compute that decVariant (key,dectree).  It eliminates direct rules with
+keys other than the current key. E.g. in the above example, for key false,
+live = {0,1x,2} and live/false = {1x,2} and if survivors = {0,2}, say, then
+the new survivors for the call of makeDecisionTree for this decVariant is
+
+  survivors' = {0,2} inter {1x,2} = {2}
+
+CONJECTURE. direct and defaults rulesets are only active for OR nodes, so
+they don't need to be computed or saved for other kinds of nodes: AND, SINGLE,
+VARS, LEAF.
+
+For an OR node, each ruleno in direct is associated with some key in
+the variants. If we want to isolate the rulenos introduced with some
+particular key, how can we do that?  Look at the andor in that key's
+variant, use its direct ruleset. This will be a subset of the OR nodes
+direct (?). But its andor may be an AND or a LEAF, or a SINGLE. So have
+to be able to derive their direct and defaults sets. Thus any andor that
+can be the andor of a variant will have to have direct and defaults.
+
+
+================================================================================
+OR node queue management in DecisionTree
+================================================================================
+File: dec-tree.sml
+
+OR nodes get "used up" while building a branch downward.
+They do not get "used up" across separate, incompatible branches.
+
+Hence, a node is passed down and as decision nodes are added, the queue
+is eventually exhausted, _or_ the decision tree branches may terminate
+while the queue is still not empty (redundant OR nodes).
+
+Under each variant of an OR node, new (dominated) OR nodes may become
+accessible, but OR nodes from "sibling" variants will be incompatible
+and do not need to be added to the queue. Only OR nodes within that
+variant andor need to be added for further consideration.
+
+================================================================================
+OR node priorities
+================================================================================
+The priority function is based on two factors:
+
+  (1) number of default rules (fewer is better)
+  (2) branching factor
+
+At a first approximation, branching factor = number of variants
+(length(variants)). But if there is a default rule (covered by a
+variable) that can apply where there are missing constructors (keys),
+then the branching factor can be
+
+   length (variants) + 1  (for the default branch)
+
+Does this occur only where variants are _partial_, meaning some keys
+(e.g. datacons) are missing? [See example 4, path [0]].  Or is it
+possible that a default with a _complete_ list of variants (covering
+all constructors) can result in an increased branching factor?
+
+Example (conjectural)
+
+      p
+  (0) T
+  (1) F
+  (2) x
+
+Could the x in rule (2) result in a third branch at position p?
+
+================================================================================
+Code generation
+================================================================================
+File: mc-code.sml
+
+Provisional datatype for code: mcexp
+
+Variables:
+_Internal variables_ used to name value components. These are in 1-1 correspondence
+with paths in the pattern space of the match (and hence AND-OR nodes). Could
+generate a fresh internal variable as we construct each andor node, and then
+would have the variables already available and "connected" with their path.
+
+Otherwise, might maintain a mapping or two:
+
+  variable --> path == node
+  path/node --> variable
+
+Multiple _external_ variables (the source variables that appear in the patterns)
+may be associated (equivalent, denote the same value component) with a given
+internal variable.  (i_variable <--> node => vars, asvars).  Will need parallel
+bindings of internal and external variables (or bindings on external variables
+_to_ internal variables).
+
+Each internal variable will have a definite type == the type of the node/path,
+== the type of corresponding value components.  Some of these types will be
+represented by type variables (not metavariables/univariables!).
+Make the abstraction over these "real" type variables explicit.
+
+  AND(v0, [N1(v1), N2(v2), ..., Nn(vn)\])  ==>
+   
+    letr (v1,v2,...,vn) = v0  (* destructuring a product value *)
+      (unpackaging(next choice))
+       
+  OR(v0, [(k1,N1(v1)), (k2,N2(v2)), ..., (kn,(Nn(vn)))])  ==>
+
+    case v0          (v0 is the "scrutinee" *)
+      k1 v1 => exp1  (= (unpackaging(next choice)))
+      k2 v2 => exp2
+      ...
+      kn vn => expn
+
+  For some keys, there will not be arguments, hence no variable binding needed.
+  vi designates the ki-destructuring of the value bound to v0, etc.
+
+  Example:
+
+      (1) nil => rhs1
+      (2) cons(x,y) => rhs2
+
+      OR v0
+        [(nil, LEAF({1})),
+	 (cons, AND(v1, [VARS(v2,[(x,2)],{2}), VARS(v3,[(y,2)],{2})]))]
+
+      case v0
+        nil => rhs1
+	cons v1 =>
+	  letr (v2,v3) = v1
+	    rhs2'     -- need to identify x with v2 and y with v3
+	              -- or substitute (v2,v3) for (x,y) in rhs2
+
+Observations
+* Each OR node scrutinizes a particular point in the value structure
+  (determined by its path in the pattern space), assuming the value
+  is compatible with that path (agrees with OR choices along the path).
+
+* Each value (component) scrutinized should be named by a (internal) variable.
+  - A variable could be assigned to every AND-OR node, even though not all such
+  variables might be needed -- but most of them will be used.  We don't need
+  internal variables for LEAF nodes, since their partent OR node will have a
+  variable naming the value already.
+  - Some "internal" variables will pair with "external" variables (from vars
+  or asvars fields).  How do we manage this association?
+  
+
+Example 3: [datatype t = Leaf | Node of t * t
+
+      Node   1               2      Node  1                  2
+  (1) Node  (Leaf,           Node        (Leaf,              x))
+  (2) Node  (Node(y, Leaf),  Node        (Node(Leaf, Leaf),  Leaf))
+  (3) Node  (z,              Leaf)
+  (4) Leaf
+
+Andor:
+
+1 [] OR(t) {1,2,3,4}
+    [Node] AND {1,2,3}
+2      [1] OR(t) {1,2,3z}     (var: (z,3))
+            [Node] AND {2,3z}
+4	      [1] OR(t) {2y,3z}  (var: (y,2))
+5	      [2] OR(t) {2,3z}
+	          [Node] - {3z}
+	          [Leaf] # {2,3z}
+	    [Leaf] # {1,3z}
+3      [2] OR(t) {1,2,3}
+            [Node] AND {1,2}
+6	      [1] OR(t) {1,2}
+	           [Node] AND {2}
+8	             [1] OR(t) {2}
+		          [Node] - {}
+	                  [Leaf] # {2}
+9		     [2] OR(t) {2}
+		          [Node] - {}
+	                  [Leaf] # {2}
+                   [Leaf] # {1}
+7	      [2] OR(t) {1x,2}  (var: (x,1))
+	           [Node] - {1x}
+	           [Leaf] # {1x,2}
+	    [Leaf] # {3}
+    [Leaf] # {4}
+
+Priorities:
+1 []                     = (0,2)
+2 [Node,1]               = (1,2)   (z)
+3 [Node,2]               = (0,2)
+4 [Node,1,Node,1]        = (2,2)   (y,z)
+5 [Node,1,Node,2]        = (1,2)
+6 [Node,2,Node,1]        = (0,2)
+7 [Node,2,Node,2]        = (1,2)   (x)
+8 [Node,2,Node,1,Node,1] = (0,2)
+9 [Node,2,Node,1,Node,2] = (0,2)
+
+Decision tree:
+
+  D[[]] {1,2,3,4}
+    Node: {1,2,3}, least 1
+       Relevance: [Node,1] true, (1 not in {3z})
+       Relevance: [Node,2] true, (1 not in {})
+       [Node,2] {1,2,3}  ("lower" priority)
+         Node: {1,2} inter {1,2,3} = {1,2}
+	 Leaf: {3} inter {1,2,3} = {3}
+    Leaf: {4}, least 4  (do we need more choices in this case?)
+       Relevance: [Node,1] true, (4 not in {3z}); Compatible: false
+       Relevance: [Node,2] true, (4 not in {});   Compatible: false
+
+* Only use "path compatible" tests.
+  E.g. [Node,1] is not "compatible" with the decision branch [Leaf].
+  so it should not be tested under Leaf.
+
+* When choosing the next OR node in building a decTree, the set of
+  OR nodes selected from should be "independent of"(?) and "consistent
+  with" the current branch/node in the decTree that is being extended.
+
+* Two nodes are consistent if their paths have no divergences.  A divergence
+  is a point on the two paths where distinct and inconsistent keys are followed
+  to the next node.  E.g. [... D(true) ...] and [... D(false) ...] where the
+  true and false keys occur at the same point (the ith link) in the path.
+
+* Being consistent means that both nodes can be "fired" during the matching
+  of some potential value.
+
+* In Example 3 above, the [Leaf] path is inconsistent with all the remaining
+  OR nodes, since they all have paths beginning with [Node ...]. The first
+  links (keys) in the paths are inconsistent. Therefore the [LEAF] node of
+  the decTree is terminal -- there will be no further tests on this branch.
+  
+* Defn: Two paths p1 and p2 are incompatible ("diverge hard") if the first
+  link (key) at which they differ is an OR (choice) key, e.g. D(true) vs
+  D(false) or I(1) vs I(2).  Two OR nodes N1 and N2 are _incompatible_ if
+  their paths Path(N1) and Path(N2) are incompatible.
+
+  Prop: If OR nodes N1 and N2 are incompatible, then they will not both be
+    tested when matching a value.  In particular, they will not be comparable
+    in the path prefix ordering.  There is a test that dominates both N1 and
+    N2 that discriminates between them, namely the test that is the source of
+    the two divergent keys on their path.
+
+  When selecting the next OR node while building the decision tree, the
+  selected node should be both _relevant_ and _compatible_ with the "current"
+  node.
+
+Decision Tree 1 (8 ORs)
+
+   []
+   Node =>
+      [N2]
+      Node =>
+         [N2N1]
+         Node =>
+            [N2N1N1]
+            Node => MATCH!
+            Leaf =>
+               [N2N1N2]
+               Node => MATCH!
+               Leaf =>
+ 	          [N1]
+                  Node =>
+                     [N2N2]
+	             Node => MATCH!
+	             Leaf => (2)
+                  Leaf => MATCH!
+         Leaf => 
+            [N1]
+            Node => MATCH!
+            Leaf => (1)
+      Leaf => (3)
+   Leaf => (4)
+  
+Decision Tree 2 (hand crafted) (8 ORs)
+
+   [] 
+   Node => {1,2,3}
+      [N2]
+      Node => {1,2}
+         [N2N1]
+         Node => {2}
+            [N2N1N1]
+	    Node => {} MATCH!
+	    Leaf => {2}
+	       [N2N1N2]
+	       Node => {} MATCH!
+	       Leaf => {2}
+	          [N1]
+		  Node => {2}
+		     [N1N2]
+		     Node => {} MATCH!
+		     Leaf => {2} (2)
+		  Leaf => MATCH!
+         Leaf =>
+            [N1]
+	    Node => {} MATCH!
+	    Leaf => {1} (1)
+      Leaf => (3)
+   Leaf => (4)
+
+Code:
+(No context around top decision node.)
+
+  Case vtop  (* [] *)
+    of Node v1 =>
+         letr (v2,v3) = v1   (* v2 = Var[N1], v3 = Var[N2] *)
+	   in Case v3  -- [N2]
+	        of Node v4 =>
+		     Letr (v5,v6) = v4
+		       in Case v5  - [N2N1]
+		            of Node v7 =>
+			     | Leaf =>
+			         Case v2
+		 | Leaf => RHS 3
+     | Leaf => RHS 4
+
+
+
+================================================================================
+Adding types
+================================================================================
+
+Observations:
+
+1. The type of all the rules is known (post type checking).
+
+2. The type of any andor node (path, point in the pattern space) can easily
+be computed.
+
+
+
+
+================================================================================
+email to Bob, 2020.5.31 - high level overview of rebuilt match compiler
 ================================================================================
 
 I am trying to reconstruct the match compilation algorithm from first
