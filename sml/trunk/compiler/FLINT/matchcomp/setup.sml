@@ -14,7 +14,8 @@ local
     structure VC = VarCon
     open Absyn
 in
-val _ = LV.reset ()
+
+val reset = LV.reset
 
 (* bool datacons *)
 val T = {name = S.make "T", width = 2}
@@ -26,8 +27,8 @@ val Cons = {name = S.make "Cons", width = 2}
 
 (* datatype t = A | B | C *)
 val A = {name = S.make "A", width = 3}
-val B = {name = S.make "A", width = 3}
-val C = {name = S.make "A", width = 3}
+val B = {name = S.make "B", width = 3}
+val C = {name = S.make "C", width = 3}
 
 (* datatype tree = L | N of tree * tree *)
 val L = {name = S.make "L", width = 2}  (* short for Leaf *)
@@ -77,6 +78,21 @@ val example1 = [p1,p2,p3]
 
 val example1s =
 "N(x,L); N(L,y); z"    
+
+val example2 =
+"(T, F, T);\
+\(T, x, F);\
+\(F, T, y)"
+
+val example3 =
+"(A, F, T);\
+\(B, x, F);\
+\(z, T, y)"
+
+val example4 =
+"(A, F, T);\
+\(B, x, F);\
+\(z, T, F)"
 
 end (* local *)
 end (* structure Stuff *)

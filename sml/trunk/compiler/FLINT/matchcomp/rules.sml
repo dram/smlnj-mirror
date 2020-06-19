@@ -16,6 +16,7 @@ fun increment (rule: ruleno) : ruleno = rule + 1
 val empty = S.empty
 val isEmpty = S.isEmpty
 val member = S.member
+val fromList = S.fromList
 val add = S.add
 val addList = S.addList
 val singleton = S.singleton

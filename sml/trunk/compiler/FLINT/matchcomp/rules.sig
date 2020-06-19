@@ -11,6 +11,7 @@ sig
     val empty : ruleset	     
     val isEmpty : ruleset -> bool
     val member : ruleset * ruleno -> bool
+    val fromList : ruleno list -> ruleset
     val add : ruleset * ruleno -> ruleset
     val addList : ruleset * ruleno list -> ruleset
     val singleton : ruleno -> ruleset

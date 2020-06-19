@@ -33,7 +33,7 @@ struct
 	| GREATER => LESS)
   
   (* priority: andor -> goodness *)
-  (* priority intended only for OR nodes *)
+  (* priority applies only to OR nodes *)
   fun priority (OR{defaults,variants,...}) : priority =
 	(R.numItems defaults, length variants)
     | priority _ = (10000,10000)
@@ -79,10 +79,10 @@ and accessibleList andors =
     foldl (fn (andor,queue) => APQ.merge(accessible andor, queue)) APQ.empty andors
 
 (* selectBestRelevant : APQ.queue * ruleno -> (andor * APQ.queue) option *)
-fun selectBestRelevant (orNodes: APQ.queue, leastLive: ruleno, oldpath: path) =
+fun selectBestRelevant (orNodes: APQ.queue, leastLive: ruleno, currentPath: path) =
     let fun relevant (OR{path,defaults,...}) =
 	    not(R.member(defaults, leastLive)) andalso
-	    not(incompatible(oldpath,path)) (* OR node is relevant *)
+	    not(incompatible(currentPath,path)) (* OR node is relevant *)
 	  | relevant _ = bug "relevant"
      in findAndRemove relevant orNodes
     end

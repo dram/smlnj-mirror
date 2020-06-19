@@ -22,18 +22,6 @@ local
     open MCTypes
 in
 
-(* type decTree: decision trees *)	
-datatype decTree
-  = DLEAF of ruleno    (* old version: RHS *)
-     (* if you get to this node, bind variables along branch and dispatch to RHS(ruleno) *)
-  | RAISEMATCH  (* probably redundant -- remove when sure *)
-  | CHOICE of
-    {node : andor,  (* an OR node used for dispatching *)
-     choices : decVariant list,
-     default : decTree option}
-       (* one child for each variant of the node, + a default if node is partial *)
-withtype decVariant = key * decTree
-
 (* need to recover and traverse AND structure for selecting values to test. Can
  * recover from the original andor tree? *)
 
@@ -56,50 +44,64 @@ fun partial (OR{variants as (key,andor)::_,...}) =
  * -- path is the path of the parent, candidate OR nodes must be compatible with this path
  * -- variantDecTrees processes each variant of the selected OR node.
  * -- keys all have type choiceKey, making it easier to iterate over variants *)
-fun makeDecisionTree(orNodes, oldLive, oldPath) =
-      (case OO.selectBestRelevant(orNodes, R.minItem oldLive, oldPath)
-        of SOME (node as OR{path, live, defaults, variants, ...}, oldOrNodes) =>
+fun makeDecisionTree(orNodes, survivors, oldPath) =
+      (case OO.selectBestRelevant(orNodes, R.minItem survivors, oldPath)
+        of SOME (node as OR{path, direct, defaults, variants, ...}, remainder) =>
 	   (* best relevant OR node, oldOrNodes is rest of orNodes, still sorted *)
-	   let val newOrNodes = APQ.merge(oldOrNodes, OO.accessibleList(map #2 variants))
-		   (* add the newly accessible OR nodes to oldOrNodes *)
+	   let val _ =
+		  (print "makeDecisionTree: \n";
+		   print "  oldPath: "; MCPrint.tppPath oldPath; print "\n";
+	           print "  survivors: "; MCPrint.tppRules survivors; print "\n";
+		   print "  path: "; MCPrint.tppPath path; print "\n")
+	       val newCandidates = APQ.merge(remainder, OO.accessibleList(map #2 variants))
+		   (* add the newly accessible OR nodes to remainder *)
+	           (* throws in a bunch of incompatible OR nodes; could be more careful
+                    * and do it per variant. *)
 	       (* variantDecTrees: variant list * decVariant list * APQ.queue
                                    -> decVariant list * APQ.queue *)
 	       fun variantDecTrees ((key,andor)::rest, decvariants, candidates) =
 		   let val live = getLive andor
-		       val defaults = getDefaults andor
-		       val variantLive = R.intersection(R.union(live,defaults), oldLive)
-		    in if R.isEmpty variantLive  (* should never happen with final default rule *)
+		       val survivors' = R.intersection(live, survivors)
+		    in if R.isEmpty survivors'  (* would never happen with final default rule *)
 		       then variantDecTrees(rest, (key, RAISEMATCH)::decvariants, candidates)
- 		       else (case makeDecisionTree(candidates, R.union(variantLive,defaults), path)
+ 		       else (case makeDecisionTree(candidates, survivors', path)
 			      of SOME(dtree, remaining) =>
 				   variantDecTrees(rest, (key, dtree) :: decvariants, candidates)
 			       | NONE =>  (* no relevant rules for this OR node *)
 				 variantDecTrees(rest,
-						 (key, DLEAF(R.minItem variantLive))::decvariants,
+						 (key, DLEAF(R.minItem survivors'))::decvariants,
 						 candidates))
 		   end
 		 | variantDecTrees(nil, decvariants, ornodes) = (rev decvariants, ornodes)
-	       val (decvariants, remainder') = variantDecTrees(variants, nil, newOrNodes)
-	       val (defaultOp, remainder'') =
-		   if partial node
-		   then case (makeDecisionTree(remainder', R.intersection(oldLive, defaults), path))
-			 of SOME(dt, remainder'') => (SOME dt, remainder'')
-			 | NONE => (NONE, remainder')
+	       val (decvariants, remainder') = variantDecTrees(variants, nil, newCandidates)
+	       val (defaultOp,remainder0) =
+		   if partial node andalso not(R.isEmpty defaults)
+		   then let val survivors' = R.intersection(survivors, defaults)
+			in if R.isEmpty survivors'
+			   then (print "%%%%%\n";
+				 MCPrint.tppRules survivors; print "\n";
+				 MCPrint.tppRules defaults; print "\n";
+				 raise Empty)
+			   else
+		       case (makeDecisionTree(remainder', R.intersection(survivors,defaults), path))
+			  of SOME(dt, remainder'') => (SOME dt, remainder'')
+			   | NONE => (NONE, remainder')
+			end
 		   else (NONE, remainder')
 	       in SOME(CHOICE{node = node, choices = decvariants, default = defaultOp},
-		       remainder'')
+		       remainder0)
 	   end
 	 | NONE => NONE  (* no relevant OR nodes in orNodes *)
 	 | _ => bug "makeDecisionTree")
 
 (* What to do when there are no relevant OR nodes in the queue? In this case, is the
  * match degenerate (only one pattern/rule)? Produce degenerate CHOICE{andor,DLEAF,NONE}? 
- * Or possibly DLEAF(andor)? *)
+ * Or possibly DLEAF(andor)? Or a new decTree constructor? Examples? *)
 
 (* decistionTree: andor -> decTree *)
 fun decisionTree andor =
     let val orNodes = OO.accessible andor
-	val rules = R.union(getLive andor, getDefaults andor)
+	val rules = R.union(getLive andor, getDefaults andor)  (* this should be = allRules? *)
     in case makeDecisionTree(orNodes, rules, rootPath)
 	of SOME (dectree,_) => SOME dectree
          | NONE => NONE

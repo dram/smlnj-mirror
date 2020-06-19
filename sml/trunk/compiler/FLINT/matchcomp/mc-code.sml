@@ -18,15 +18,6 @@ local
    open MCTypes DecisionTree
 in
 
-type lvar = LambdaVar.lvar
-
-datatype mcexp
-  = Var of lvar  (* how used? *)
-  | Letr of lvar * lvar list * mcexp  (* to destructure an AND *)
-  | Case of lvar * (key * lvar option * mcexp) list * mcexp option (* to destructure an OR *)
-  | RHS of ruleno  (* dispatch to appropriate RHS *)
-  | MATCH  (* raise a match exception -- may be redundant *)
-
 (* top level code generating function?
 (* mcCode : andor * decTree * ruleset -> mcexp *)
 fun mccode (dectree) = ???
@@ -78,7 +69,7 @@ fun genDec (decTree) =
 		  val default =
 		      case default
 		       of NONE => NONE
-			| SOME dt => SOME (genDec dt) (* to many inners *)
+			| SOME dt => SOME (genDec dt)
 	      in Case(lvar, sbody, default)
 	      end
 	    | _ => bug "genDec")
