@@ -9,7 +9,7 @@ structure CFGUtil : sig
   (* does a cluster contain any raw C calls? *)
     val hasRCC : CFG.cluster -> bool
 
-    val tyToString : CFG_Type.ty -> string
+    val tyToString : CFG.ty -> string
 
   end = struct
 
@@ -32,10 +32,10 @@ structure CFGUtil : sig
 	    stmHasRCC stm orelse List.exists fragHasRCC frags
 	  end
 
-    fun tyToString (CFG_Type.NUMt sz) = "i" ^ Int.toString sz
-      | tyToString (CFG_Type.FLTt sz) = "f" ^ Int.toString sz
-      | tyToString CFG_Type.PTRt = "ptr"
-      | tyToString CFG_Type.FUNt = "fun"
-      | tyToString CFG_Type.CNTt = "cont"
+    fun tyToString (CFG.NUMt sz) = "i" ^ Int.toString sz
+      | tyToString (CFG.FLTt sz) = "f" ^ Int.toString sz
+      | tyToString CFG.PTRt = "ptr"
+      | tyToString CFG.FUNt = "fun"
+      | tyToString CFG.CNTt = "cont"
 
   end

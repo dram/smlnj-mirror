@@ -6,18 +6,12 @@
  * CFG IR for SML/NJ code generation.
  *)
 
-structure CFG_Type = struct
-    datatype ty
-      = NUMt of int
-      | FLTt of int
-      | PTRt
-      | FUNt
-      | CNTt
-  end
-
 structure CFG_Prim =
   struct
-    datatype numkind = INT | UINT | FLT
+    datatype numkind = INT | FLT
+
+  (* rounding modes for float conversions *)
+      datatype rounding_mode = TO_NEAREST | TO_NEGINF | TO_POSINF | TO_ZERO
 
   (* allocation operations *)
     datatype alloc
@@ -58,7 +52,7 @@ structure CFG_Prim =
       = ARITH of {oper : arithop, sz : int}
       | TEST of {from : int, to : int}
       | TESTU of {from : int, to : int}
-      | REAL_TO_INT of {floor : bool, from : int, to : int}
+      | REAL_TO_INT of {mode : rounding_mode, from : int, to : int}
 
     datatype looker
       = DEREF
@@ -94,6 +88,13 @@ structure CFG_Prim =
 structure CFG =
   struct
 
+    datatype ty
+      = NUMt of int
+      | FLTt of int
+      | PTRt
+      | FUNt
+      | CNTt
+
     datatype frag_kind
       = GC_CHECK
       | INTERNAL
@@ -101,14 +102,14 @@ structure CFG =
     datatype calling_conv
       = STD_FUN
       | STD_CONT
-      | KNOWN
+      | KNOWN of {gcChk : bool}
 
     datatype rcc_kind
       = FAST_RCC
       | REENTRANT_RCC
 
   (* fragment/function parameters *)
-    type param = LambdaVar.lvar * CFG_Type.ty
+    type param = LambdaVar.lvar * ty
 
   (* branch probabilities are measured in percent (1..99).  We use 0 to
    * represent the absence of probability information.

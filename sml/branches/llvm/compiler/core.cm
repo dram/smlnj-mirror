@@ -343,6 +343,7 @@ CodeGen/main/spill-table.sml
 NewCodeGen/cfg/cfg.sml
 NewCodeGen/cfg/ppcfg.sml
 NewCodeGen/cfg/cfg-util.sml
+NewCodeGen/cfg-to-mlrisc/arg-passing-fn.sml
 NewCodeGen/cfg-to-mlrisc/cfg-regions.sml
 NewCodeGen/cfg-to-mlrisc/mlrisc-gen-fn.sml
 (*

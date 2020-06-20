@@ -66,8 +66,7 @@ functor NewMLRiscGenFn (
     structure Tbl = LambdaVar.Tbl
 
   (* Argument passing *)
-    structure ArgP = ArgPassing(
-	structure Cells = Cells
+    structure ArgP = ArgPassingFn(
 	structure C = Regs
 	structure MS = MachineSpec)
 
@@ -341,10 +340,10 @@ functor NewMLRiscGenFn (
 		      advancedHP := save
 		    end
 	    (* Generate code for a statement *)
-	      and gen (C.LET(e, (x, CFG_Type.FLTt sz), k), hp) = (
+	      and gen (C.LET(e, (x, CFG.FLTt sz), k), hp) = (
 		    fbind (x, sz, genFExp e);
 		    gen (k, hp))
-		| gen (C.LET(e, (x, CFG_Type.NUMt sz), k), hp) = (
+		| gen (C.LET(e, (x, CFG.NUMt sz), k), hp) = (
 		    bind (x, sz, genExp e);
 		    gen (k, hp))
 		| gen (C.LET(e, (x, _), k), hp) = (
@@ -406,7 +405,10 @@ functor NewMLRiscGenFn (
 		      gen (k, hp + len)
 		    end
 	      (** Function/Continuation Application **)
-		| gen (C.APP(cc, f, args), hp) = ??
+		| gen (C.APP(C.STD_FUN, f, args), hp) = ??
+		| gen (C.APP(C.STD_CONT, f, args), hp) = ??
+		| gen (C.APP(C.KNOWN{gcChk}, f, args), hp) = ??
+		| gen (C.GOTO(f, args), hp) = ??
 	      (** Control Flow **)
 		| gen (C.SWITCH(arg, ks), hp) = let
 		    val lab = newLabel ()
@@ -458,7 +460,44 @@ functor NewMLRiscGenFn (
 		      gen (kTrue, hp)
 		    end
 	      (** Arithmetic (w/ Side Effects) **)
-		| gen (C.ARITH(rator, args, x, k), hp) = ??
+		| gen (C.ARITH(rator, args, (x, _), k), hp) = let
+		    fun binOp (sz, oper, a, b) = (
+			  bind(x, sz, oper(sz, genExp a, genExp b));
+			  gen (k, hp))
+		    fun divOp (sz, oper, rnd, a, b) = (
+			  bind(x, sz, oper(rnd, sz, genExp a, genExp b));
+			  gen (k, hp))
+		    in
+		      case (rator, args)
+		       of (P.ARITH{oper=P.IADD, sz}, [a, b]) => binOp(sz, M.ADDT, a, b)
+			| (P.ARITH{oper=P.ISUB, sz}, [a, b]) => binOp(sz, M.SUBT, a, b)
+			| (P.ARITH{oper=P.IMUL, sz}, [a, b]) => binOp(sz, M.MULT, a, b)
+			| (P.ARITH{oper=P.IDIV, sz}, [a, b]) =>
+			    divOp(sz, M.DIVT, M.DIV_TO_NEGINF, a, b)
+			| (P.ARITH{oper=P.IMOD, sz}, [a, b]) =>
+			    divOp(sz, M.REMS, M.DIV_TO_NEGINF, a, b)
+			| (P.ARITH{oper=P.IQUOT, sz}, [a, b]) =>
+			    divOp(sz, M.DIVT, M.DIV_TO_ZERO, a, b)
+			| (P.ARITH{oper=P.IREM, sz}, [a, b]) =>
+			    divOp(sz, M.REMS, M.DIV_TO_ZERO, a, b)
+			| (P.TEST{from, to}, [a]) => ??
+			| (P.TESTU{from, to}, [a]) => ??
+			| (P.REAL_TO_INT{mode, from, to}, [a]) => let
+(* NOTE: currently, this primop is never generated because Real.floor, etc.
+ * functions are mapped to the Assembly.A.floor function.
+ *)
+			    fun cvt mode =
+				  bind (x, to, M.CVTF2I(to, mode, from, genFExp a))
+			    in
+			      case mode
+			       of P.TO_NEAREST => cvt M.TO_NEAREST
+				| P.TO_NEGINF => cvt M.TO_NEGINF
+				| P.TO_POSINF => cvt M.TO_POSINF
+				| P.TO_ZERO => cvt M.TO_ZERO
+			      (* end case *)
+			    end
+		      (* end case *)
+		    end
 	      (** Updates **)
 		| gen (C.SETTER(rator, args, k), hp) = let
 		    fun store (sz, adr, v) =

@@ -91,8 +91,16 @@ structure PPCfg : sig
     fun arithToString (P.ARITH{oper, sz}) = arithopToString oper ^ i2s sz
       | arithToString (P.TEST{from, to}) = cvtParams ("test_", from, to)
       | arithToString (P.TESTU{from, to}) = cvtParams ("testu_", from, to)
-      | arithToString (P.REAL_TO_INT{floor, from, to}) =
-	  cvtParams (if floor then "floor" else "round", from, to)
+      | arithToString (P.REAL_TO_INT{mode, from, to}) = let
+	  fun toS prefix = concat[prefix, i2s from, "_i", i2s to]
+	  in
+	    case mode
+	     of P.TO_NEAREST => toS "round_f"
+	      | P.TO_NEGINF => toS "floor_f"
+	      | P.TO_POSINF => toS "ceil_f"
+	      | P.TO_ZERO => toS "trunc_f"
+	    (* end case *)
+	  end
 
     fun pureopToString rator = (case rator
 	   of P.ADD => "add"
@@ -179,7 +187,7 @@ structure PPCfg : sig
 		      case cc
 		       of C.STD_FUN => say "std_apply "
 			| C.STD_CONT => say "std_throw "
-			| C.KNOWN => say "known_apply "
+			| C.KNOWN _ => say "known_apply "
 		      (* end case *);
 		      say (appToS (expToString f, args)); say "\n")
 		  | C.GOTO(lab, args) => (
@@ -239,7 +247,7 @@ structure PPCfg : sig
 	  case cc
 	   of C.STD_FUN => say "std_fun "
 	    | C.STD_CONT => say "std_cont "
-	    | C.KNOWN => say "known "
+	    | C.KNOWN _ => say "known "
 	  (* end case *);
 	  say "(L)"; sayv f; say " "; sayList sayParam params; say " {\n";
 	  say "  entry {\n";
