@@ -263,7 +263,7 @@ structure PPCps : PPCPS =
 	    indent
 	  end (* show0 *)
 
-    fun printcps((_,f,vl,cl,e),m) = let
+    fun printcps ((fk,f,vl,cl,e),m) = let
 	  fun ptv(v,t) = (say(LV.lvarName v); say " type ===>>>";
 			  say(LtyExtern.lt_print t); say "\n")
 	  val _ = if (!Control.CG.debugRep)
@@ -276,8 +276,17 @@ structure PPCps : PPCPS =
 	    | sayparam (nil,nil) = ()
 	    | sayparam (v::vl,ct::cl) = (sayv v; sayt ct; say ","; sayparam(vl,cl))
 	    | sayparam _ = ErrorMsg.impossible "sayparam in ppcps.sml 3435"
-
 	  in
+	    case fk
+	     of CONT => say "std_cont "
+	      | KNOWN => say "known "
+	      | KNOWN_REC => say "known_rec "
+	      | KNOWN_CHECK => say "known_chk "
+	      | KNOWN_TAIL => say "known_tail "
+	      | KNOWN_CONT => say "known_cont "
+	      | ESCAPE => say "std "
+	      | NO_INLINE_INTO => ()
+	    (* end case *);
 	    say(LV.lvarName f); say "("; sayparam(vl,cl); say ") =\n";
 	    show0 say 3 e
 	  end
