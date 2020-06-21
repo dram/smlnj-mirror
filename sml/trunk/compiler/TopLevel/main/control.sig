@@ -54,7 +54,6 @@ signature CGCONTROL =
     val calleeGen : int ref
     val spillGen : int ref
     val etasplit : bool ref
-    val printit : bool ref
     val uncurry : bool ref
     val ifidiom : bool ref
     val comparefold : bool ref
@@ -63,6 +62,8 @@ signature CGCONTROL =
     val debugRep : bool ref
     val deadup : bool ref
     val memDisambiguate : bool ref	(* used by MLRISC *)
+    val printit : bool ref
+    val printClusters : bool ref
   end (* signature CGCONTROL *)
 
 (* main Control structure *)
