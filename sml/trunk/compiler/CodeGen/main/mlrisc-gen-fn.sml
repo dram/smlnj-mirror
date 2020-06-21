@@ -109,8 +109,6 @@ functor MLRiscGen (
 
     val NO_OPT = [#create An.NO_OPTIMIZATION ()]
 
-    fun sameRegAs x y = CB.sameCell (x, y)
-
     fun isTaggedInt sz = (sz <= Target.defaultIntSz)
 
   (*
@@ -258,7 +256,7 @@ functor MLRiscGen (
 	(*
 	 * A mapping of function names (CPS.lvars) to labels.
 	 * If the flag splitEntry is on, we also distinguish between external and
-	 * internal labels, make sure that no directly branches go to the
+	 * internal labels, make sure that no direct branches go to the
 	 * external labels.
 	 *)
 	  exception LabelBind
@@ -564,6 +562,10 @@ functor MLRiscGen (
 			else advBy hp
 		    end
 
+	    (* emit a heap-limit test that sets the "exhausted" register to true if
+	     * a GC is required just prior to a control transfer.  The actual jump
+	     * to GC is done at the entry to the function.
+	     *)
 	      fun testLimit hp = let
 		    fun assignCC (M.CC(_, cc), v) = emit(M.CCMV(cc, v))
 		      | assignCC _ = error "testLimit.assign"
@@ -1957,9 +1959,9 @@ raise Fail "unexpected constant branch"
 			    genCPSFunction(lab, k, f, vl, formals, tl, e);
 			    continue()
 			  end
-	      in
-		fcomp (Frag.next())
-	      end (* fragComp *)
+		    in
+		      fcomp (Frag.next())
+		    end (* fragComp *)
 
 	    (*
 	     * execution starts at the first CPS function -- the frag
