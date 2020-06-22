@@ -3,23 +3,46 @@
 structure Types =
 struct
 
+type stamp = Stamp.stamp
+
+type tyvar = {stamp : stamp}
+
 datatype tycon
-  = Tycon of string
+  = Tycon of
+    {name : string,
+     stamp : stamp,
+     arity : int,
+     kind : tycKind}
 
-datatype tyvarKind
+and tycKind
+    = PRIM
+    | DATA of datacon list ref
+
+datatype metaKind
   = INST of ty
-  | PARAM of LambdaVar.lvar
-
+  | META
+	
 and ty
   = UNDEFty
+  | TYVAR of tyvar
+  | METAVAR of metatyvar
+  | DBVAR of int
   | CONty of tycon * ty list
 
-withtype tyvar = tyvarKind ref
-			
-type datacon =
-     {name: Symbol.symbol,
-      width: int}
+and polyTy
+  = POLY of
+      {arity : int,
+       body : ty}
 
+and datacon
+  = DCON of
+    {name: Symbol.symbol,
+     stamp : stamp,
+     owner : tycon,
+     type : polyTy}
+
+withtype metatyvar = tyvarKind ref
+			
 type label = string
 
 (* mkLabel : string -> label *)
@@ -34,7 +57,8 @@ struct
 local open Types in
 
   (* equalTycon : tycon * tycon -> bool *)
-  fun equalTycon (Tycon s1, Tycon s2) = s1 = s2
+  fun equalTycon (Tycon{stamp=s1,...}, Tycon{stamp=s2,...}) =
+      Stamp.same(s1,s2)
 
   (* equalType : ty * ty -> bool *)
   fun equalType (ty1: Types.ty, ty2: Types.ty) =
@@ -44,14 +68,45 @@ local open Types in
 	  equalTycon(tyc1, tyc2) andalso ListPair.allEq equalType (args1,args2)
 
   (* dataconEq : datacon * datacon -> bool *)
-  fun dataconEq ({name = name1, ...}: datacon, {name = name2,...}: datacon) =
-      name1 = name2
+  fun dataconEq (DCON{stamp = s1, ...}: datacon, DCON{stamp = s2,...}: datacon) =
+      Stamp.same(s1,s2)
 
   (* dataconName : datacon -> Symbol.symbol *)
-  fun dataconName ({name,...}: datacon) = name
+  fun dataconName (DCON{name,...}: datacon) = name
+
+  fun datatypeWidth (Tycon{kind=DATA(dcons),...}) =
+      length (!dcons)
+    | dataconWidth _ = raise Fail "dataconWidth"
 
   (* dataconWidth : datacon -> int *)
-  fun dataconWidth ({width,...}: datacon) = width
+  fun dataconWidth (DCON{owner,...}: datacon) = datatypeWidth owner
+
+  fun mkPrimTycon (name, arity) =
+      Tycon{name = name,
+	    stamp = Stamp.new(),
+	    arity = arity,
+	    tycKind = PRIM}
+
+  fun mkDataTycon (name, arity) =
+      let val dcons = ref nil
+      in (Tycon {name = name,
+		 stamp = stamp,
+		 arity = arity,
+		 kind = DATA dcons},
+	  dcons)
+      end
+
+  (* instantiatePoly : polyTy * ty list -> ty *)
+  fun instantiatePoly (POLYty{arity,body}, argtys: ty list) =
+      let fun subst(DBVAR n) = List.nth(args,n)
+	    | subst(CONty(tyc,args)) = CONty(tyc, map subst args)
+	    | subst ty = ty
+       in if arity <> length args
+	    then bug "applyTyfun: arity mismatch"
+	  else if arity > 0
+	    then subst body
+	  else body
+      end
 
 end (* local *)
 end (* structure TypesUtil *)
@@ -61,15 +116,14 @@ struct
 
 local open Types in
 
-val intTycon = Tycon "intTycon"
-val int32Tycon = Tycon "int32Tycon"
-val int64Tycon = Tycon "int64Tycon"
-val intinfTycon = Tycon "intinfTycon"
-val wordTycon = Tycon "wordTycon"
-val word8Tycon = Tycon "word8Tycon"
-val word32Tycon = Tycon "word32Tycon"
-val word64Tycon = Tycon "word64Tycon"
-val boolTycon = Tycon "bool"
+val intTycon = mkPrimTycon ("int",0)
+val int32Tycon = mkPrimTycon "int32"
+val int64Tycon = mkPrimTycon "int64"
+val intinfTycon = mkPrimTycon "intinf"
+val wordTycon = mkPrimTycon "word"
+val word8Tycon = mkPrimTycon "word8"
+val word32Tycon = mkPrimTycon "word32"
+val word64Tycon = mkPrimTycon "word64"
 
 val intTy = CONty(intTycon, [])
 val int32Ty = CONty(int32Tycon, [])
@@ -79,8 +133,41 @@ val wordTy = CONty(wordTycon, [])
 val word8Ty = CONty(word8Tycon, [])
 val word32Ty = CONty(wordTycon, [])
 val word64Ty = CONty(wordTycon, [])
-val boolTy = CONty(boolTycon, [])
 		  
-end (* local *)
+val funTycon = mkPrimTycon("->", 2)
+val tuple2Tycon = mkPrimTycon("tuple2", 2)
+val tuple3Tycon = mkPrimTycon("tuple3", 3)
+val tuple4Tycon = mkPrimTycon("tuple4", 4)
 
+val (boolTycon, boolDcons) = mkDataTycon("bool", 0)
+val boolTy = POLYty{arity = 0, body = CONty(boolTycon, nil)}
+val trueDcon = DCon{name = "true",
+		    stamp = Stamp.new(),
+		    owner = boolTycon,
+		    type = boolTy}
+val falseDcon = DCon{name = "false",
+		     stamp = Stamp.new(),
+		     owner = boolTycon,
+		     type = boolTy}
+val _ = boolDcons := [trueDcon, falseDcon]
+
+val (listTycon, listDcons) = mkDataTycon("list", 1)
+val nilTy = POLYty{arity = 1, body = CONty(listTycon, DBVAR 0)}
+val consTy = POLYty{arity = 1,
+		    body = CONty(funTycon,
+				 [CONty(tuple2Tycon, [DBVAR 0,
+						      CONty(listTycon, DBVAR 0)]),
+				  CONty(listTycon, DBVAR 0)])}
+val nilDcon = DCon{name = "Nil",
+		   stamp = Stamp.new(),
+		   owner = listTycon,
+		   type = nilTy}
+val consDcon = DCon{name = "Cons",
+		    stamp = Stamp.new(),
+		    owner = listTycon,
+		     type = consTy}
+val _ = listDcons := [nilDcon, consDcon]
+			
+
+end (* local *)
 end (* structure BasicTypes *)

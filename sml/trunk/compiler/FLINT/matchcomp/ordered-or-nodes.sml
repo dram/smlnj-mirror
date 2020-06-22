@@ -71,6 +71,10 @@ fun findAndRemove (pred: APQ.item -> bool) (queue: APQ.queue) =
      in find(queue, nil)
     end
 
+(* DEFN: two (OR) nodes are compatible with one another if their paths do not
+ * diverge at an OR node (i.e. the first key difference in their paths is not
+ * a choice key). *)
+
 (* accessible : andor -> APQ.queue *)
 (* collect the "accessible" OR nodes, i.e. all OR nodes that are reachable from 
  * the root without passing through another OR node. If there are no OR nodes, 
@@ -80,6 +84,7 @@ fun findAndRemove (pred: APQ.item -> bool) (queue: APQ.queue) =
  * and SINGLE nodes are treated as "transparent" (like AND nodes) wrt collecting OR nodes.
  * The result is a priority queue of nodes (APQ.queue) sorted by AndorPriority.compare.
  * the node with the greatest priority (wrt compare) is returned first. *)
+(* CLAIM: all the OR nodes in the result queue are compatible with one another. *)
 fun accessible andor =
     (case andor
        of AND{children,...} => accessibleList children
@@ -92,6 +97,8 @@ and accessibleList andors =
     foldl (fn (andor,queue) => APQ.merge(accessible andor, queue)) APQ.empty andors
 
 (* selectBestRelevant : APQ.queue * ruleno -> (andor * APQ.queue) option *)
+(* CLAIM: the compatibility test is probably redundant, because queues will always
+ * contain only mutually compatible OR nodes. *)
 fun selectBestRelevant (orNodes: APQ.queue, leastLive: ruleno, currentPath: path) =
     let fun relevant (OR{path,defaults,...}) =
 	    not(R.member(defaults, leastLive)) andalso

@@ -8,7 +8,7 @@ struct
 
 local
   structure T = Types
-  structure VC = VarCon
+  structure V = Var
   structure LV = LambdaVar
   structure A = Absyn
   structure S = PatSyntax
@@ -30,7 +30,7 @@ fun elaborate (S.Id s, env) =
     (case lookup(env,s)
       of NONE =>
 	 if s = "_" then A.WILDpat
-	 else A.VARpat(VC.mkVALvar(Symbol.make s, LV.mkLvar ()))
+	 else A.VARpat(V.mkVALvar(Symbol.make s, LV.mkLvar ()))
       | SOME dcon => A.CONpat(dcon,[]))
   | elaborate (S.NumPat s, env) = 
       (case IntInf.fromString s

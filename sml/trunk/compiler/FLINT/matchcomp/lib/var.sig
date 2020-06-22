@@ -4,7 +4,7 @@
  * All rights reserved.
  *)
 
-signature VARCON =
+signature VAR =
   sig
 
     datatype var

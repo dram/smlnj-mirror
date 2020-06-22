@@ -45,7 +45,8 @@ fun partial (OR{variants as (key,andor)::_,...}) =
  *    candidate OR nodes must be compatible with this path
  * -- variantDecTrees processes each variant of the selected OR node.
  * -- keys all have type choiceKey, making it easier to iterate over variants
- * -- if survivors is empty, returns RAISEMATCH *)
+ * -- if survivors is empty, returns RAISEMATCH.
+ * CLAIM: The orNodes queue argument will always be internally compatible. *)
 fun makeDecisionTree(orNodes, survivors, thisPath) =
     if R.isEmpty survivors then RAISEMATCH else
       (case OO.selectBestRelevant(orNodes, R.minItem survivors, thisPath)

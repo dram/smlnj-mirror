@@ -11,9 +11,8 @@ local
   structure T = Types
   structure TU = TypesUtil
   structure R = Rules
-  structure VC = VarCon
-  open VarCon Absyn
-      (* also used/mentioned: IntConst, ListPair *)
+  open Var Absyn
+  (* also used/mentioned: IntConst, ListPair *)
 in
 
 fun bug s = EM.impossible ("MCTypes: " ^ s)
@@ -22,7 +21,7 @@ type ruleno = R.ruleno    (* == int, the index number of a rule in the match, ze
 type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers, maintained in strictly ascending order without duplicates *)
 
-type binding = VC.var * ruleno
+type binding = Var.var * ruleno
    (* a variable bound at some point in the given rule, either as a
     * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
 type varBindings = binding list  (* variables bound by VARpat *)		    
@@ -270,7 +269,7 @@ fun parent (andor, root) =
 datatype decTree
   = DLEAF of ruleno    (* old version: RHS *)
      (* if you get to this node, bind variables along branch and dispatch to RHS(ruleno) *)
-  | RAISEMATCH  (* probably redundant -- remove when sure *)
+  | DMATCH  (* probably redundant -- remove when sure *)
   | CHOICE of
     {node : andor,  (* an OR node used for dispatching *)
      choices : decVariant list,
@@ -280,15 +279,26 @@ withtype decVariant = key * decTree
 
 
 (* code *)
-type lvar = LambdaVar.lvar
+datatype var
+  = VAR{stamp : Stamp.stamp,
+	ty : Types.ty}
 
 datatype mcexp
-  = Var of lvar  (* how used? *)
-  | Letr of lvar * lvar list * mcexp  (* to destructure an AND *)
-  | Case of lvar * (key * lvar option * mcexp) list * mcexp option (* to destructure an OR *)
+  = Var of var  (* how used? *)
+  | Letr of var * var list * mcexp  (* destructure an AND *)
+  | Case of var * (key * var option * mcexp) list * mcexp option
+      (* destructure an OR *)
   | RHS of ruleno  (* dispatch to appropriate RHS *)
   | MATCH  (* raise a match exception -- may be redundant *)
-
 				
+structure VarKey =
+struct
+  type ord_key = var
+  fun compare (VAR{stamp=s1,...}, VAR{stamp=s2,...}) =
+      Stamp.compare (s1,s2)
+end
+
+structure VarMap = RedBlackMapFn(VarKey)
+
 end (* local *)
 end (* structure MCTypes *)

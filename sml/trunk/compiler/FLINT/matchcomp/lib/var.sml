@@ -4,7 +4,7 @@
  * All rights reserved.
  *)
 
-structure VarCon : VARCON =
+structure Var : VAR =
   struct
 
     structure T  = Types

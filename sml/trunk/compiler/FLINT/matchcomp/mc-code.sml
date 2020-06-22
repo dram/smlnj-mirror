@@ -30,21 +30,22 @@ fun genNode andor inner =
     let fun genAND (node::nodes, inner) =
             (* genAND: andor list * mcexp -> mcexp *)
 	    (case node
-	      of AND{lvar,children,...} =>
-		 let val lvars = map getLvar children
-		 in Letr (lvar, lvars, genAND(children,(genAND(nodes, inner))))
+	      of AND{var,children,...} =>
+		 let val vars = map getVar children
+		 in Letr (var, vars, genAND(children,(genAND(nodes, inner))))
 		 end
 	       | _ => genAND(nodes,inner))  (* skip OR, VARS, LEAF *)
 	  | genAND (nil,inner) = inner
     in (case andor
 	 of OR _ => inner  (* top node is OR, hence first OR-node choice *)
-	  | LEAF _ => inner
-	  | VARS _ => RHS 0
+	  | LEAF _ => inner  (* should not happen *)
+	  | VARS _ => RHS(R.minItem(getLive andor))
 	  | AND _ => genAND ([andor], inner)
 	  | _ => bug "genNode")
     end
 
 (* genDec: decTree * mcexp -> mcexp *)
+(* need to pass a var-type map and insert types for variables bindings *)
 fun genDec (decTree) =
     (case decTree
        of CHOICE{node, choices, default} =>
@@ -55,12 +56,12 @@ fun genDec (decTree) =
 	      let fun switchBody ((key,node0)::rest, (key',decTree0)::rest', sbody) =
 	             (* ASSERT: key = key'.  Verifty? *)
 	              let val letBindings = genNode node0
-			  val lvarOp =
+			  val varOp =
 			      (case node0
 				of LEAF _ => NONE
-				 | _ => SOME(getLvar node0))
+				 | _ => SOME(getVar node0))
 	                  val decCode =
-			      (key, lvarOp, letBindings (genDec decTree0))
+			      (key, varOp, letBindings (genDec decTree0))
 		      in switchBody(rest,rest',decCode::sbody)
 		      end
 		    | switchBody (nil,_,sbody) = rev sbody
@@ -73,7 +74,7 @@ fun genDec (decTree) =
 	      in Case(lvar, sbody, default)
 	      end
 	    | _ => bug "genDec")
-       | RAISEMATCH => MATCH
+       | DMATCH => MATCH
        | DLEAF rule => RHS rule)
 
 fun code (andor, decTree) =
