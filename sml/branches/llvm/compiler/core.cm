@@ -345,6 +345,7 @@ NewCodeGen/cfg/ppcfg.sml
 NewCodeGen/cfg/cfg-util.sml
 NewCodeGen/cfg-to-mlrisc/arg-passing-fn.sml
 NewCodeGen/cfg-to-mlrisc/cfg-regions.sml
+NewCodeGen/cfg-to-mlrisc/invoke-gc-fn.sml
 NewCodeGen/cfg-to-mlrisc/mlrisc-gen-fn.sml
 (*
 NewCodeGen/cps-to-cfg/cps-to-cfg.sml

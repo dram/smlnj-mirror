@@ -100,9 +100,10 @@ structure CFG =
       | INTERNAL
 
     datatype calling_conv
-      = STD_FUN
-      | STD_CONT
-      | KNOWN of {gcChk : bool}
+      = STD_FUN		(* escaping function *)
+      | STD_CONT	(* escaping continuation *)
+      | KNOWN_CHK	(* non-escaping function with GC check *)
+      | KNOWN		(* non-escaping function *)
 
     datatype rcc_kind
       = FAST_RCC
@@ -128,8 +129,9 @@ structure CFG =
     datatype stm
       = LET of exp * param * stm
       | ALLOC of CFG_Prim.alloc * exp list * LambdaVar.lvar * stm
-      | APP of calling_conv * exp * exp list
-      | GOTO of LambdaVar.lvar * exp list
+      | APPLY of exp list * ty list
+      | THROW of exp list * ty list
+      | GOTO of calling_conv * LambdaVar.lvar * exp list * ty list
       | SWITCH of exp * stm list
       | BRANCH of CFG_Prim.branch * exp list * probability * stm * stm
       | ARITH of CFG_Prim.arith * exp list * param * stm

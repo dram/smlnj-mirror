@@ -143,7 +143,7 @@ structure PPCfg : sig
 
     fun expToString e = (case e
 	   of C.VAR x => LV.lvarName x
-	    | C.LABEL lab => "(L)" ^ LV.lvarName lab
+	    | C.LABEL lab => "L_" ^ LV.lvarName lab
 	    | C.NUM{iv, signed=true, sz} =>
 		concat["(i", i2s sz, ")", IntInf.toString iv]
 	    | C.NUM{iv, signed=false, sz} =>
@@ -170,8 +170,16 @@ structure PPCfg : sig
     fun sayTy cty = say(CFGUtil.tyToString cty)
 
     fun sayParam (x, ty) = (sayv x; say ":"; sayTy ty)
+    fun sayArg (e, ty) = (say(expToString e); say ":"; sayTy ty)
+
+    fun sayArgs ([], []) = say "()"
+      | sayArgs (arg::args, ty::tys) = (
+	  say "("; sayArg (arg, ty);
+	  ListPair.app (fn arg => (say ","; sayArg arg)) (args, tys);
+	  say ")")
 
     fun prStm n = let
+	  fun sayExp e = say(expToString e)
 	  fun sayApp (prefix, args) = (say(appToS(prefix, args)); say "\n")
 	  fun pr stm = (
 		space n;
@@ -183,15 +191,20 @@ structure PPCfg : sig
 		  | C.ALLOC(p, args, x, stm) => (
 		      sayApp (allocToString p, args);
 		      say " -> "; sayv x; say "\n"; pr stm)
-		  | C.APP(cc, f, args) => (
+		  | C.APPLY(args as f::_, tys) => (
+		      say "apply "; sayExp f; sayArgs (args, tys); say "\n")
+		  | C.APPLY _ => raise Fail "malformed APPLY"
+		  | C.THROW(f::args, fTy::tys) => (
+		      say "throw "; sayExp f; sayArgs (args, tys); say "\n")
+		  | C.THROW _ => raise Fail "malformed THROW"
+		  | C.GOTO(cc, lab, args, tys) => (
 		      case cc
-		       of C.STD_FUN => say "std_apply "
-			| C.STD_CONT => say "std_throw "
-			| C.KNOWN _ => say "known_apply "
+		       of C.STD_FUN => say "goto std_fun "
+			| C.STD_CONT => say "goto std_cont "
+			| C.KNOWN_CHK => say "goto known_chk "
+			| C.KNOWN => say "goto known "
 		      (* end case *);
-		      say (appToS (expToString f, args)); say "\n")
-		  | C.GOTO(lab, args) => (
-		      say (appToS ("goto (L)" ^ LV.lvarName lab, args)); say "\n")
+		      say ("L_" ^ LV.lvarName lab); sayArgs (args, tys); say "\n")
 		  | C.SWITCH(arg, cases) =>  let
 		      fun sayCase (i, e) = (
 			    space n; say "case "; say(i2s i);
@@ -247,7 +260,8 @@ structure PPCfg : sig
 	  case cc
 	   of C.STD_FUN => say "std_fun "
 	    | C.STD_CONT => say "std_cont "
-	    | C.KNOWN _ => say "known "
+	    | C.KNOWN_CHK => say "known_chk "
+	    | C.KNOWN => say "known "
 	  (* end case *);
 	  say "(L)"; sayv f; say " "; sayList sayParam params; say " {\n";
 	  say "  entry {\n";

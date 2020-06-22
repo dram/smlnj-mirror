@@ -13,11 +13,15 @@ functor ArgPassingFn (
 
     structure T : MLTREE
 
-  (* standard convention for functions  *)
-    val stdFun : {argTys : CFG.ty list, vfp : bool} -> T.mlrisc list
+  (* standard convention for functions; returns the register for the call
+   * plus the formal argument registers, which includes the function.
+   *)
+    val stdFun : {argTys : CFG.ty list, vfp : bool} -> T.rexp * T.mlrisc list
 
-  (* standard convention for continuations *)
-    val stdCont : {argTys : CFG.ty list, vfp : bool} -> T.mlrisc list
+  (* standard convention for continuations; returns the register for the call
+   * plus the formal argument registers, which includes the function.
+   *)
+    val stdCont : {argTys : CFG.ty list, vfp : bool} -> T.rexp * T.mlrisc list
 
   (* fixed calling convention for known functions that require
    * garbage collection on machines that have registers implemented
@@ -72,13 +76,20 @@ functor ArgPassingFn (
       | scan ([], _, _) = []
 
     fun stdFun {vfp, argTys} = let
+	(* for a standard function call, the first three arguments are the
+	 * stdLink, stdClos, and stdCont registers; then come callee-save regs,
+	 * then come arguments.  The list `rest` will be the arguments.
+	 *)
 	  val rest = List.drop(argTys, ncs+nfcs+3)
 	  val len = length argTys
 	  val gpr = stdarg vfp :: gprfromto(ncs+4, len, vfp)
 	  val fpr = fprfromto(nfcs, len, vfp)
+	  val stdLink = C.stdlink vfp
+	  val formals = T.GPR stdLink :: stdclos vfp :: stdcont vfp
+		:: calleesaveregs vfp
+	        @ scan(rest, gpr, fpr)
 	  in
-	    stdlink vfp :: stdclos vfp :: stdcont vfp :: calleesaveregs vfp
-	      @ scan(rest, gpr, fpr)
+	    (stdLink, formals)
 	  end
 
     fun stdCont {vfp, argTys} = let
@@ -88,10 +99,12 @@ functor ArgPassingFn (
 	  val len = length argTys
 	  val gpr = stdarg vfp :: gprfromto(ncs+4, 1+len, vfp)
 	  val fpr = fprfromto(nfcs, len, vfp)
+	  val stdCont = C.stdcont vfp
+	  val stdLink = C.stdlink vfp
 	  in
 	    if ncs > 0
-	      then stdcont vfp :: calleesaveregs vfp @ scan(rest, gpr, fpr)
-	      else stdlink vfp :: stdcont vfp :: scan(rest, gpr, fpr)
+	      then (stdCont, T.GPR stdCont :: calleesaveregs vfp @ scan(rest, gpr, fpr))
+	      else (stdLink, T.GPR stdLink :: T.GPR stdCont :: scan(rest, gpr, fpr))
 	  end
 
   (* use an arbitary but fixed set of registers. *)

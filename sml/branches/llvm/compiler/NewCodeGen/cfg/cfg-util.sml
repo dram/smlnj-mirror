@@ -19,7 +19,8 @@ structure CFGUtil : sig
 	  fun stmHasRCC stm = (case stm
 		 of C.LET(_, _, k) => stmHasRCC k
 		  | C.ALLOC(_, _, _, k) => stmHasRCC k
-		  | C.APP _ => false
+		  | C.APPLY _ => false
+		  | C.THROW _ => false
 		  | C.GOTO _ => false
 		  | C.SWITCH(_, stms) => List.exists stmHasRCC stms
 		  | C.BRANCH(_, _, _, k1, k2) =>  stmHasRCC k1 orelse  stmHasRCC k2
