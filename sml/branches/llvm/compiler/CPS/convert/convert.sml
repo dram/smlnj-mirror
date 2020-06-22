@@ -151,16 +151,17 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 	    | {oper, kind} => P.CMP{oper=oper, kind=numkind kind}
 	  (* end case *))
 
-  (* map_branch:  AP.primop -> P.branch *)
-    fun map_branch p = (case p
+  (* mapBranch:  AP.primop -> P.branch *)
+    fun mapBranch p = (case p
 	   of AP.BOXED => P.BOXED
 	    | AP.UNBOXED => P.UNBOXED
+(* TODO: expand FSGN using the same technique as REAL_TO_BITS *)
 	    | AP.FSGN sz => P.FSGN sz
 	    | AP.CMP stuff => cmpop stuff
 	    | AP.PTREQL => P.PEQL
 	    | AP.PTRNEQ => P.PNEQ
 	    | _ => bug(concat[
-		  "unexpected primop ", PrimopUtil.toString p, " in map_branch"
+		  "unexpected primop ", PrimopUtil.toString p, " in mapBranch"
 		])
 	  (* end case *))
 
@@ -725,7 +726,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 	      | F.BRANCH(po as (_,p,_,_), ul, e1, e2) =>
 		  let val (hdr, F) = preventEta c
 		      val kont = makmc(fn vl => APP(F, vl), rttys c)
-		   in hdr(BRANCH(map_branch p, lpvars ul, mkv(),
+		   in hdr(BRANCH(mapBranch p, lpvars ul, mkv(),
 				 loop(e1, kont), loop(e2, kont)))
 		  end
 	 end
