@@ -88,6 +88,9 @@ structure InlineT =
 
 	val from_int : int -> real        = InLine.int_to_real64
 
+(* FIXME: should use InLine.floor_real64_to_int, but it is currently not supported by
+ * the CPS code generator.  Can also use InLine.round_real64_to_int.
+ *)
 	fun floor (x : real) =
 	      if InLine.real64_le(~4611686018427387904.0, x)
 	      andalso InLine.real64_lt(x, 4611686018427387904.0)
