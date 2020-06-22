@@ -64,7 +64,6 @@ functor MLRiscGen (
     structure C  = CFG
     structure P  = C.P			(* CPS primitive operators *)
     structure R  = CPSRegions		(* Regions *)
-    structure PT = R.PT			(* PointsTo *)
     structure CG = Control.CG		(* Compiler Control *)
     structure MS = MachineSpec		(* Machine Specification *)
     structure D  = MS.ObjDesc		(* ML Object Descriptors *)
@@ -257,7 +256,7 @@ functor MLRiscGen (
 	(*
 	 * A mapping of function names (CPS.lvars) to labels.
 	 * If the flag splitEntry is on, we also distinguish between external and
-	 * internal labels, make sure that no directly branches go to the
+	 * internal labels, make sure that no direct branches go to the
 	 * external labels.
 	 *)
 	  exception LabelBind
@@ -280,9 +279,9 @@ functor MLRiscGen (
 	 * mkGlobalTables define the labels and cty for all CPS functions
 	 *)
 	  fun mkGlobalTables (fk, f, _, _, _) = (
-	      (* internal label *)
-		addExternLabel (f, newLabel());
 	      (* external entry label *)
+		addExternLabel (f, newLabel());
+	      (* internal label *)
 		if splitEntry
 		  then (case fk
 		     of (C.CONT | C.ESCAPE) =>
@@ -563,6 +562,10 @@ functor MLRiscGen (
 			else advBy hp
 		    end
 
+	    (* emit a heap-limit test that sets the "exhausted" register to true if
+	     * a GC is required just prior to a control transfer.  The actual jump
+	     * to GC is done at the entry to the function.
+	     *)
 	      fun testLimit hp = let
 		    fun assignCC (M.CC(_, cc), v) = emit(M.CCMV(cc, v))
 		      | assignCC _ = error "testLimit.assign"
@@ -1392,6 +1395,7 @@ functor MLRiscGen (
 			      | P.RSHIFT => defTAGINT(x, tagIntRShift(M.SRA,v,w),e,hp)
 			      | P.ADD => defTAGINT(x, tagIntAdd(M.ADD, v, w), e, hp)
 			      | P.SUB => defTAGINT(x, tagIntSub(M.SUB, v, w), e, hp)
+(* QUESTION: can we ever get P.MUL for signed ints? *)
 			      | P.MUL => defTAGINT(x, tagIntMul(true, M.MULS, v, w), e, hp)
 			      | _ => error "gen: PURE INT TAGGED"
 			    (* end case *))
@@ -1955,9 +1959,9 @@ raise Fail "unexpected constant branch"
 			    genCPSFunction(lab, k, f, vl, formals, tl, e);
 			    continue()
 			  end
-	      in
-		fcomp (Frag.next())
-	      end (* fragComp *)
+		    in
+		      fcomp (Frag.next())
+		    end (* fragComp *)
 
 	    (*
 	     * execution starts at the first CPS function -- the frag

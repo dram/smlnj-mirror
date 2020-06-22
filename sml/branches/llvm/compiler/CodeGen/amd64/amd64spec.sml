@@ -30,8 +30,6 @@ structure AMD64Spec : MACH_SPEC =
     val numFloatCalleeSaves = 0
 
     val constBaseRegOffset = 0
-  (* probably should be true *)
-    val fixedArgPassing = false
 
     val ML_STATE_OFFSET = 176
     val VProcOffMSP = 8
