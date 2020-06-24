@@ -590,21 +590,19 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 		      | cty AP.CCML = CU.BOGt
 		      | cty AP.CCI64 = CU.BOGt	(* 64BIT: FIXME *)
 		    val a' = lpvar a
-		    val rcckind = if reentrant then REENTRANT_RCC else FAST_RCC
 		    fun rcc args = let
 			val al = map VAR args
-			val (al,linkage) =
-			    case f of
-			      F.STRING linkage => (al, linkage)
-			    | _  => (lpvar f :: al, "")
+			val (al,linkage) = (case f
+			       of F.STRING linkage => (al, linkage)
+			        | _  => (lpvar f :: al, ""))
 		    in  case ml_res_opt
 			 of NONE =>
-			    RCC (rcckind, linkage, c_proto, al, [(v, tagIntTy)], loop (e, c))
+			    RCC (reentrant, linkage, c_proto, al, [(v, tagIntTy)], loop (e, c))
 (* 64BIT: this code implements the fake 64-bit integers that are used on 32-bit targets *)
 			  | SOME AP.CCI64 =>
 			    let val (v1, v2) = (mkv (), mkv ())
 			    in
-			      RCC (rcckind, linkage, c_proto, al,
+			      RCC (reentrant, linkage, c_proto, al,
 				   [(v1, boxIntTy 32), (v2, boxIntTy 32)],
 				   recordNM([VAR v1, VAR v2],[boxIntTy 32, boxIntTy 32],
 					    v, loop (e, c)))
@@ -613,7 +611,7 @@ functor Convert (MachSpec : MACH_SPEC) : CONVERT =
 				val v' = mkv ()
 				val res_cty = cty rt
 			    in
-				RCC (rcckind, linkage, c_proto, al, [(v', res_cty)],
+				RCC (reentrant, linkage, c_proto, al, [(v', res_cty)],
 				     PURE(primwrap res_cty, [VAR v'], v, CU.BOGt,
 					  loop (e, c)))
 			    end

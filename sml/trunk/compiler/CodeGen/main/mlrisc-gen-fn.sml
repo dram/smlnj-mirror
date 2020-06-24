@@ -279,9 +279,9 @@ functor MLRiscGen (
 	 * mkGlobalTables define the labels and cty for all CPS functions
 	 *)
 	  fun mkGlobalTables (fk, f, _, _, _) = (
-	      (* internal label *)
-		addExternLabel (f, newLabel());
 	      (* external entry label *)
+		addExternLabel (f, newLabel());
+	      (* internal label *)
 		if splitEntry
 		  then (case fk
 		     of (C.CONT | C.ESCAPE) =>
