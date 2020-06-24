@@ -150,7 +150,7 @@ structure Control_CG : CGCONTROL =
     val deadup = new (b, "deadup", "?", true)
     val memDisambiguate = new (b, "mem-disambiguate", "?", false)
     val printit = new (b, "printit", "whether to show CPS", false)
-    val printClusters = new (b, "print-clusters", "whether to clusters prior to codegen", false)
+    val printClusters = new (b, "print-clusters", "whether to print clusters prior to codegen", false)
   end (* structure Control_CG *)
 
 
