@@ -13,9 +13,9 @@ fun bind (dcon,env) =
 
 val env0 = foldl bind nil Setup.dcons
 
-fun testp (example: Absyn.pat list) =
+fun testp (example: Absyn.pat list, polyty: Types.polyTy) =
     (print "*** patterns ***\n"; MCPrint.tppPats example; print "\n";
-    let val andor = AndOr.makeAndor example
+    let val andor = AndOr.makeAndor(example, TU.body polyty)
         val _ = (print "*** andor ***\n";
                  MCPrint.tppAndor andor)
 	val dectree = DecisionTree.decisionTree andor

@@ -1,11 +1,11 @@
-(* varcon.sml
+(* var.sml
  *
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
 structure Var : VAR =
-  struct
+struct
 
     structure T  = Types
     structure S  = Symbol
@@ -25,4 +25,4 @@ structure Var : VAR =
 
     fun varName (VALvar{name,...}) = name
 
-  end (* structure VarCon *)
+end (* structure VarCon *)

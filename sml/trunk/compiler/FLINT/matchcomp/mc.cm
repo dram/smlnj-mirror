@@ -2,11 +2,14 @@ Group is
 
 lib/errormsg.sml
 lib/symbol.sml
+lib/stamps.sml
 lib/types.sml
 lib/int-const.sml
 lib/lambdavar.sml
-lib/varcon.sig
-lib/varcon.sml
+lib/var.sig
+lib/var.sml
+lib/svar.sig
+lib/svar.sml
 lib/absyn.sml
 lib/prettyprint.sml
 lib/pputil.sml
@@ -18,6 +21,7 @@ mctypes.sml
 andor.sml
 ordered-or-nodes.sml
 dec-tree.sml
+vartypes.sml
 mc-code.sml
 
 mcprint.sml

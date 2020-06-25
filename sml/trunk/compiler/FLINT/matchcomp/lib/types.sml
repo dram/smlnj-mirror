@@ -18,7 +18,7 @@ and tycKind
     = PRIM
     | DATA of datacon list ref
 
-datatype metaKind
+and metaKind
   = INST of ty
   | META
 	
@@ -108,6 +108,28 @@ local open Types in
 	  else body
       end
 
+  (* mkTupleTycon0 : int -> tycon *)
+  fun mkTupleTycon0 (n: int) : tycon =
+      mkPrimTycon(Int.toString n ^ "-tuple", n)
+
+  val tupleTycons = Vector.tabulate (20, mkTupleTycon0)
+(*
+      #[mkTupleTycon0 2, mkTupleTycon0 3, mkTupleTycon0 4, mkTupleTycon0 5, 
+	mkTupleTycon0 6, mkTupleTycon0 7, mkTupleTycon0 8, mkTupleTycon0 9, 
+	mkTupleTycon0 10, mkTupleTycon0 11, mkTupleTycon0 12, mkTupleTycon0 13] 
+*)
+  fun tupleTycon n = Vector.sub(tupleTycons, n)
+
+  (* T.ty * int -> T.ty list *)
+  fun replicateTy (ty,len) =
+      let fun build (0,tys) = tys
+            | build (n,tys) = build (n-1, ty:tys)
+      in build (n,nil)
+      end
+	  
+  fun mkTupleTy (tys: ty list) =
+      CONty(tupleTycon (length tys), tys)
+
 end (* local *)
 end (* structure TypesUtil *)
 
@@ -135,9 +157,6 @@ val word32Ty = CONty(wordTycon, [])
 val word64Ty = CONty(wordTycon, [])
 		  
 val funTycon = mkPrimTycon("->", 2)
-val tuple2Tycon = mkPrimTycon("tuple2", 2)
-val tuple3Tycon = mkPrimTycon("tuple3", 3)
-val tuple4Tycon = mkPrimTycon("tuple4", 4)
 
 val (boolTycon, boolDcons) = mkDataTycon("bool", 0)
 val boolTy = POLYty{arity = 0, body = CONty(boolTycon, nil)}
@@ -155,7 +174,7 @@ val (listTycon, listDcons) = mkDataTycon("list", 1)
 val nilTy = POLYty{arity = 1, body = CONty(listTycon, DBVAR 0)}
 val consTy = POLYty{arity = 1,
 		    body = CONty(funTycon,
-				 [CONty(tuple2Tycon, [DBVAR 0,
+				 [CONty(tupleTycon 2, [DBVAR 0,
 						      CONty(listTycon, DBVAR 0)]),
 				  CONty(listTycon, DBVAR 0)])}
 val nilDcon = DCon{name = "Nil",

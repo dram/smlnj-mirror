@@ -1,11 +1,11 @@
-(* varcon.sig
+(* var.sig
  *
  * COPYRIGHT (c) 2017 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
 signature VAR =
-  sig
+sig
 
     datatype var
       = VALvar of	                (* ordinary variables *)
@@ -18,4 +18,4 @@ signature VAR =
 
     val varName : var -> Symbol.symbol
 
-  end (* signature VARCON *)
+end (* signature VAR *)
