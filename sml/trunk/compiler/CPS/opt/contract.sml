@@ -189,6 +189,7 @@ datatype info = datatype ContractPrim.info
   | IFIDIOMinfo of {body : (lvar * cexp * cexp) option ref}
   | MISCinfo of cty
 *)
+datatype result = datatype ContractPrim.result
 
 fun contract {function=(fkind,fvar,fargs,ctyl,cexp), click, last, size=cpssize} =
 let
@@ -1018,11 +1019,19 @@ and g hdlr = let
 	    in
 	      if !CG.arithopt
 		then (case arith(rator, vl')
-		   of SOME v => (
+		   of Val v => (
 			List.app use_less vl';
 			newname (w, v);
 			g' e)
-		    | NONE => ARITH(rator, vl', w, t, g' e)
+		    | Arith(rator', vl'') => (
+			List.app use_less vl';
+			List.app use vl'';
+			ARITH(rator', vl'', w, t, g' e))
+		    | Pure(rator', vl'') => (
+			List.app use_less vl';
+			List.app use vl'';
+			PURE(rator', vl'', w, t, g' e))
+		    | None => ARITH(rator, vl', w, t, g' e)
 		  (* end case *))
 		else ARITH(rator, vl', w, t, g' e)
 	    end
@@ -1042,11 +1051,15 @@ and g hdlr = let
 		then (click "m"; List.app use_less vl'; g' e)
 	      else if !CG.arithopt
 		then (case pure(rator, vl')
-		   of SOME v => (
+		   of Val v => (
 			List.app use_less vl';
 			newname(w, v);
 			g' e)
-		    | NONE => rest()
+		    | Pure(rator', vl'') => (
+			List.app use_less vl';
+			List.app use vl'';
+			PURE(rator', vl'', w, t, g' e))
+		    | _ => rest()
 		 (* end case *))
 		else rest()
 	    end
