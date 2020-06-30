@@ -663,11 +663,13 @@ functor MLRiscGen (
 		| tag (true, e) = tagSigned e
 
 	      fun untagUnsigned (C.NUM{ty={tag=true, ...}, ival}) = LI ival
-		| untagUnsigned (C.NUM _) = error "untagUnsigned: boxed int"
+		| untagUnsigned (v as C.NUM _) =
+		    error("untagUnsigned: " ^ PPCps.value2str v)
 		| untagUnsigned v = M.SRL(ity, regbind v, one)
 
 	      fun untagSigned (C.NUM{ty={tag=true, ...}, ival}) = LI ival
-		| untagSigned (C.NUM _) = error "untagSigned: boxed int"
+		| untagSigned (v as C.NUM _) =
+		    error("untagSigned: " ^ PPCps.value2str v)
 		| untagSigned v = M.SRA(ity, regbind v, one)
 
 	      fun untag (true, e) = untagSigned e
