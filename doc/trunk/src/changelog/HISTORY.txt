@@ -94,6 +94,20 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/06/30]::
++
+Improved the *CPS* contraction phase by adding strength-reduction
+optimizations to `ContractPrim`.  These include recognizing when
+multiplications and divisions by powers of 2 can be replaced by
+shifts.  Previously, these sorts of optimizations were provided
+by *MLRISC*, but we plan to simplify the *CPS* IR prior to code
+generation by replacing `div` and `mod` operations with native
+machine arithmetic, which would prevent *MLRISC* from making the
+optimizations.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2020/05/16]::
 +
 The *MLRISC* instruction selector for the *x86* and *amd64* targets
