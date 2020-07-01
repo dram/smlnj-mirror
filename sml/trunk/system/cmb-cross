@@ -142,6 +142,7 @@ unset VERSIONTOOL_BUMP_RELEASE
 
 echo "$this: build $TARGET-cross bin/boot files"
 ../../bin/sml $SIZE_OPT -DNO_PLUGINS \$smlnj/cmb.cm << XXXX
+#set (CMB.symval "CMB_CROSS") (SOME 1);
 #set (CMB.symval "ARCH_${HOST_ARCH}") NONE;
 #set (CMB.symval "OPSYS_${HOST_OPSYS}") NONE;
 #set (CMB.symval "ARCH_${TARGET_ARCH}") (SOME 1);
