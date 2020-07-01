@@ -11,7 +11,6 @@ Group
   structure ANSITermDev
   structure ANSITermPP
   structure CharBufferPP
-  structure HTMLDev
   structure SimpleTextIODev
   structure StringToken
   structure TextIOPP
@@ -21,15 +20,12 @@ is
 
   $/basis.cm
   $/smlnj-lib.cm
-  $/html-lib.cm
   ../src/sources.cm
 
   ansi-term-dev.sml
   ansi-term-pp.sml
   char-buffer-pp.sml
-  html-dev.sml
   simple-textio-dev.sml
   string-token.sml
   textio-pp.sml
   text-pp.sml
-

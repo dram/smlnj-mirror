@@ -49,52 +49,35 @@ structure ANSITermDev : sig
 
   (* compute the commands to transition from one state to another *)
     fun transition (s1 : state, s2 : state) = let
-	  fun needsColorReset proj = (case (proj s1, proj s2)
-		 of (SOME _, NONE) => true
-		  | _ => false
-		(* end case *))
-	  fun needsReset proj = (case (proj s1, proj s2)
-		 of (true, false) => true
-		  | _ => false
-		(* end case *))
-	(* does the state transition require reseting the attributes first? *)
-	  val reset = (needsColorReset #fg orelse needsColorReset #bg
-		orelse needsReset #bold orelse needsReset #blink
-		orelse needsReset #ul orelse needsReset #rev
-		orelse needsReset #invis)
 	(* compute the commands to set the foreground color *)
-	  val mv = (case (reset, #fg s1, #fg s2)
-		 of (false, SOME c1, SOME c2) => if c1 = c2 then [] else [A.FG c2]
-		  | (_, _, SOME c) => [A.FG c]
-		  | (_, _, NONE) => []
+	  val mv = (case (#fg s1, #fg s2)
+		 of (SOME c1, SOME c2) => if c1 = c2 then [] else [A.FG c2]
+		  | (_, SOME c) => [A.FG c]
+		  | (_, NONE) => [A.FG A.Default]
 		(* end case *))
 	(* compute the commands to set the background color *)
-	  val mv = (case (reset, #bg s1, #bg s2)
-		 of (false, SOME c1, SOME c2) => if c1 = c2 then mv else A.FG c2 :: mv
-		  | (_, _, SOME c) => A.BG c :: mv
-		  | (_, _, NONE) => mv
+	  val mv = (case (#bg s1, #bg s2)
+		 of (SOME c1, SOME c2) => if c1 = c2 then mv else A.FG c2 :: mv
+		  | (_, SOME c) => A.BG c :: mv
+		  | (_, NONE) => A.FG A.Default :: mv
 		(* end case *))
 	(* compute the commands to set the other display attributes *)
-	  fun add (proj, cmd, mv) =
-		if ((reset orelse not(proj s1)) andalso proj s2)
-		  then cmd::mv
-		  else mv
-	  val mv = add (#bold, A.BF, mv)
-	  val mv = add (#blink, A.BLINK, mv)
-	  val mv = add (#ul, A.UL, mv)
-	  val mv = add (#rev, A.REV, mv)
-	  val mv = add (#invis, A.INVIS, mv)
+	  fun add (proj, cmd, off, mv) = (case (proj s1, proj s2)
+		 of (false, true) => cmd::mv
+		  | (true, false) => off::mv
+		  | _ => mv
+		(* end case *))
+	  val mv = add (#bold, A.BF, A.NORMAL, mv)
+	  val mv = add (#blink, A.BLINK, A.BLINK_OFF, mv)
+	  val mv = add (#ul, A.UL, A.UL_OFF, mv)
+	  val mv = add (#rev, A.REV, A.REV_OFF, mv)
+	  val mv = add (#invis, A.INVIS, A.INVIS_OFF, mv)
 	  in
-	    case (reset, mv)
-	     of (false, []) => ""
-	      | (true, []) => A.toString[]
-	      | (true, mv) => A.toString[] ^ A.toString mv
-	      | (false, mv) => A.toString mv
-	    (* end case *)
+	    if null mv then "" else A.toString mv
 	  end
 
   (* apply a command to a state *)
-    fun updateState1 (cmd, {fg, bg, bold, blink, ul, rev, invis}) = (
+    fun updateState1 (cmd, style as {fg, bg, bold, blink, ul, rev, invis}) = (
 	  case cmd
 	   of A.FG c =>
 		{fg=SOME c,  bg=bg, bold=bold, blink=blink, ul=ul,   rev=rev,  invis=invis}
@@ -110,11 +93,12 @@ structure ANSITermDev : sig
 		{fg=fg, bg=bg,      bold=bold, blink=blink, ul=ul,   rev=true, invis=invis}
 	    | A.INVIS =>
 		{fg=fg, bg=bg,      bold=bold, blink=blink, ul=ul,   rev=rev,  invis=true}
+(* TODO: add support for A.DIM *)
+	    | _ => style
 	  (* end case *))
 
   (* apply a sequence of commands to a state *)
-    fun updateState ([], st) = st
-      | updateState (cmd::r, st) = updateState (r, updateState1 (cmd, st))
+    fun updateState (cmds, st) = List.foldl updateState1 st cmds
 
     type style = A.style list
 

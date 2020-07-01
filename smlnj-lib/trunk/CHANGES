@@ -1,6 +1,13 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-07-01]
+	Updated the `ANSITermDev` structure in the pretty-printing
+	library to use the new control modes that were introduced
+	in 110.97.  Also moved the `HTMLDev` structure into a new
+	`pp-extras-lib.cm` library.  Doing so eliminates a dependency
+	from the compiler to the HTML library.
+
 [2020-06-08]
 	Added several functions to the `MONO_HASH_SET` signature
 	(and `HashSetFn` functor) to make its interface closer

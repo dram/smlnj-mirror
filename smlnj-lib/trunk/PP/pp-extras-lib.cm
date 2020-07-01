@@ -1,9 +1,10 @@
-(* pp-lib.cm
+(* pp-extras-lib.cm
  *
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * The main sources file for the PP library.
+ *
+ * CM file for compiling the PP Library with the extra devices.
  *)
 
 Library
@@ -26,6 +27,14 @@ Library
   structure ANSITermPP
   structure StringToken
 
+(* extras *)
+  structure HTMLDev
+
 is
-  src/sources.cm
-  devices/sources.cm
+
+  $/basis.cm
+  $/html-lib.cm
+
+  pp-lib.cm
+
+  devices/html-dev.sml
