@@ -160,19 +160,25 @@ ifdef SIZE_32 \
 	bind inline = target32-inline.sml (core, primitive, xcore)
 ifdef SIZE_64 \
 	bind inline = target64-inline.sml (core, primitive, xcore)
+# The PPC does not have hardware support for sqrt
 ifdef ARCH_PPC \
 	bind math-inlT = math-built-in-none.sml (core, primitive, xcore)
-ifdef ARCH_X86 \
-	bind math-inlT = math-built-in-x86.sml (core, primitive, xcore)
-ifndef ARCH_X86 ifndef ARCH_PPC \
+ifndef ARCH_PPC \
 	bind math-inlT = math-built-in.sml (core, primitive, xcore)
 
-ifdef ARCH_X86 \
+# raw memory support for FFI (but not when cross compiling)
+ifndef CMB_CROSS ifdef ARCH_X86 \
 	bind rawmem = rawmem.sml (core, primitive, xcore)
-ifdef ARCH_SPARC \
+ifdef CMB_CROSS ifdef ARCH_X86 \
+	bind rawmem = rawmem-dummy.sml (core, primitive, xcore)
+ifndef CMB_CROSS ifdef ARCH_SPARC \
 	bind rawmem = rawmem.sml (core, primitive, xcore)
-ifdef ARCH_PPC \
+ifdef CMB_CROSS ifdef ARCH_SPARC \
+	bind rawmem = rawmem-dummy.sml (core, primitive, xcore)
+ifndef CMB_CROSS ifdef ARCH_PPC \
 	bind rawmem = rawmem.sml (core, primitive, xcore)
+ifdef CMB_CROSS ifdef ARCH_PPC \
+	bind rawmem = rawmem-dummy.sml (core, primitive, xcore)
 ifndef ARCH_X86 ifndef ARCH_SPARC ifndef ARCH_PPC \
 	bind rawmem = rawmem-dummy.sml (core, primitive, xcore)
 
