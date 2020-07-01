@@ -488,7 +488,12 @@ structure PrimopBindings : sig
   (* primops for C FFI *)
     val prims = let
 	(* representation of pointers to raw values *)
+(* TODO: use BT.pointerTy tof the adrTy *)
 	  val adrTy = if Target.is64 then BT.word64Ty else BT.word32Ty
+	(* offsets into structs/arrays; currently limited to 32 bits, but should
+	 * be target specific.
+	 *)
+	  val offsetTy = BT.word32Ty
 	(* The type of the RAW_CCALL primop (as far as the type checker is concerned)
 	 * is:
 	 *    adr * 'a * 'b -> 'd
@@ -511,10 +516,10 @@ structure PrimopBindings : sig
 	  fun mkSt(name, ty, nk) =
 		("raw_store_" ^ name, ar(tup[adrTy, ty], BT.unitTy), P.RAW_STORE nk)
 	  fun mkSub (name, ty, nk) =
-		("raw_sub_" ^ name, p1(ar(tup[tv1, adrTy], ty)), P.RAW_LOAD nk)
+		("raw_sub_" ^ name, p1(ar(tup[tv1, offsetTy], ty)), P.RAW_LOAD nk)
 	  fun mkUpd (name, ty, nk) = (
 		  "raw_update_" ^ name,
-		  p1(ar(tup[tv1, adrTy, ty], BT.unitTy)),
+		  p1(ar(tup[tv1, offsetTy, ty], BT.unitTy)),
 		  P.RAW_STORE nk
 		)
 	  in
