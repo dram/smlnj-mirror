@@ -39,7 +39,7 @@ struct
       let val variantsLength = length variants
 	  val variantsCount =
 	      case variants
-	       of (D(dcon,_),_)::_ =>
+	       of (D dcon, _)::_ =>
 		   if variantsLength < TU.dataconWidth dcon
                       andalso not(R.isEmpty defaults)
 		   then variantsLength + 1

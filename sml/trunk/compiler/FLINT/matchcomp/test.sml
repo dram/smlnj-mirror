@@ -6,6 +6,7 @@ struct
 local
   structure TU = TypesUtil
   structure E = ElaboratePat
+  structure MT = MCTypes
 in
 
 fun bind (dcon,env) =
@@ -13,22 +14,26 @@ fun bind (dcon,env) =
 
 val env0 = foldl bind nil Setup.dcons
 
-fun testp (example: Absyn.pat list, polyty: Types.polyTy) =
-    (print "*** patterns ***\n"; MCPrint.tppPats example; print "\n";
-    let val andor = AndOr.makeAndor(example, TU.body polyty)
+fun testp (rules: MT.rule list, polyTy: Types.polyTy) =
+    let val patterns = map #1 rules;
+	val _ = (print "*** patterns ***\n";
+		 MCPrint.tppPats patterns; print "\n")
+        val (typevars, ty) = TU.instantiatePoly polyTy
+	val andor = AndOr.makeAndor(patterns, ty)
         val _ = (print "*** andor ***\n";
                  MCPrint.tppAndor andor)
-	val dectree = DecisionTree.decisionTree andor
+	val (dectree,ruleCounts) = DecisionTree.decisionTree andor
         val _ = (print "\n*** decision tree***\n";
                  MCPrint.tppDecTree dectree)
-	val code = MCCode.code (andor,dectree)
-    in print "\n*** code ***\n";
-       MCPrint.tppCode code
-    end)
+	val code = MCCode.code (rules,andor,dectree,ruleCounts,typevars)
+     in print "\n*** code ***\n";
+	MCPrint.tppCode code
+    end
 
-fun tests (s: string) = 
-    let val example = ParsePat.parsepats(s,env0)
-    in testp example
+fun tests (s: string, polyTy) = 
+    let val pats = ParsePat.parsepats(s,env0)
+	val rules = map (fn p => (p, Absyn.STRINGexp "x")) pats
+    in testp (rules, polyTy)
     end
 
 end (* local *)

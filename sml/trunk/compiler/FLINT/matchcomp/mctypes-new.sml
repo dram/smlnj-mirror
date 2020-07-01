@@ -11,13 +11,15 @@ local
   structure T = Types
   structure TU = TypesUtil
   structure R = Rules
-  structure SV = Svar		    
+  structure V = Var
+  structure SV = SVar		    
   open Absyn
   (* also used/mentioned: IntConst, ListPair *)
 in
 
 fun bug msg = EM.impossible ("MCTypes: " ^ msg)
 
+type rule = Absyn.pat * Absyn.exp
 type ruleno = R.ruleno    (* == int, the index number of a rule in the match, zero-based *)
 type ruleset = R.ruleset  (* == IntBinarySet.set *)
    (* a set of rule numbers, maintained in strictly ascending order without duplicates *)
@@ -59,6 +61,14 @@ fun eqKey (D dcon1, D dcon2) = TU.dataconEq(dcon1,dcon2)
   | eqKey (R i1, R i2) = i1 = i2
   | eqKey _ = false  (* mismatching key constructors *)
 
+fun keyToString (D dcon) = substring((TU.dataconName dcon),0,1)
+  | keyToString (V n) = "V"^(Int.toString n)
+  | keyToString (I{ival,ty}) = "I"^(IntInf.toString ival)
+  | keyToString (W{ival,ty}) = "W"^(IntInf.toString ival)
+  | keyToString (C c) = "C"^(Char.toString c)
+  | keyToString (S s) = "S["^ s ^ "]"
+  | keyToString (R i) = Int.toString i
+
 (* ================================================================================ *)
 (* paths: 
    paths locate points in the "pattern space" determined by a sequence of patterns
@@ -98,6 +108,9 @@ fun incompatible (k1::rest1, k2::rest2) =
   | incompatible (nil, path2) = false
   | incompatible (path1, nil) = false
 
+fun pathToString path =
+    concat("<"::(map keyToString path@[">"]))
+
 (* potentially useful functions on paths:
 
 pathPrefix: path * path -> bool  (* prefix ordering *)
@@ -133,14 +146,14 @@ datatype andor
      asvars: asBindings,       (* layered variables bound at _this_ point *)
      vars : varBindings,       (* variables bound at this point *)
      direct : ruleset,         (* direct rules: rules with product pats at this pattern point *)
-     defaults : ruleset,       (* rules matching matching because of variables along the path *)
+     defaults : ruleset,       (* rules matching here because of variables along the path *)
      children: andor list}     (* tuple components as children -- AND node *)
   | OR of (* datatype, vector, or constant pattern/type *)
     {svar: SV.svar,
      path : path,              (* ditto *)
      asvars: asBindings,       (* ditto *)
      vars : varBindings,       (* ditto *)
-     direct : ruleset,         (* ditto *)
+     direct : ruleset,         (* rules matching one of the variant keys at this point *)
      defaults: ruleset,        (* ditto *)
      variants: variant list}   (* the branches/choices of OR node; non-null *)
   | SINGLE of  (* singular datacon app, a kind of no-op for pattern matching *)
@@ -151,15 +164,18 @@ datatype andor
      dcon: T.datacon,          (* the singleton dcon of the datatype for this node *)
      arg: andor}               (* arg of the dcon, LEAF if it is a constant *)
   | VARS of  (* a node occupied only by variables;
-              * VIRTUAL field : direct = map #2 vars *)
+              * VIRTUAL field : direct = map #2 vars = rules havine _a_ variable at this point *)
     {svar: SV.svar,
      path : path,              (* ditto *)
      asvars: asBindings,       (* ditto *)
      vars: varBindings,        
      defaults: ruleset}        (* rules matching here by default *)
-  | LEAF of   (* used as variant andor for constants, with direct and default rules *)
+  | LEAF of   (* used as the andor of variants with constant keys, with direct and default rules
+               * but no svar, since the svar is bound at the parent OR node. A LEAF
+	       * node also does not have an independent type; its type is determined
+	       * by the parent OR node (through its svar). *)
     {path: path,               (* ditto *)
-     direct: ruleset,
+     direct: ruleset,          (* rules having _this_ key (end of path) at this point *)
      defaults: ruleset}
   | INITIAL   (* initial empty andor into which initial pattern is merged
                * to begin the construction of an AND-OR tree *)
@@ -177,15 +193,9 @@ followPath : path * andor -> andor
 (the andor subtree located at path in the given andor tree)
 
 pathToType : path * ty -> ty  (* don't need a node, path suffices *)
-nodeType : andor -> ty
 
-partial: andor -> bool
-   andor is an OR node, and partial(node) is true if 
-   (1) variants is ORdata and not all construtors appear in variants list
-   (2) ORvec or ORconst, which are inherently partial coverage
-
-orBreadth : andor -> int option
-(number of children of an OR node, NONE for non-OR nodes; == length variants)
+andorBreadth : andor -> int option
+(number of children of an OR node, NONE for non-OR nodes; == SOME(length variants) )
 
 *)
 
@@ -206,6 +216,7 @@ fun getSvar(AND{svar,...}) = svar
   | getSvar INITIAL = bug "getSvar(INITIAL)"
 
 (* getType : andor -> T.ty *)
+(* fails (bug) for andor nodes without svar: LEAF, INITIAL *)
 fun getType andor = SV.svarType (getSvar andor)
 
 (* getDirect : andor -> ruleset *)
@@ -265,12 +276,14 @@ fun parent (andor, root) =
      in getNode(root, path, d)
     end  
 
-
 (* decision trees *)	
 datatype decTree
   = DLEAF of ruleno    (* old version: RHS *)
      (* if you get to this node, bind variables along branch and dispatch to RHS(ruleno) *)
-  | DMATCH  (* possibly redundant -- if we add a final default rule with wildcard pat *)
+  | DMATCH (* of trail -- path in decTree to this DMATCH node *)
+      (* would be redundant if we add a final default rule with wildcard pat
+       * to guarantee that all pattern sets are known to be exhaustive,
+       * but the path argument gives an easy way to construct a counterexample *)
   | CHOICE of
     {node : andor,  (* an OR node used for dispatching *)
      choices : decVariant list,  (* corresponding to the (OR) node variants *)
@@ -279,24 +292,22 @@ datatype decTree
 withtype decVariant = key * decTree
 
 
-(* code *)
-
+(* match "code" *)
+(* "bodies" of expressions for rule RHSs will be Absyn.exp,
+ * representing a "raw" RHS of a rule. *)
 datatype mcexp
-  = Var of SV.svar  (* how used? *)
+  = Var of SV.svar  (* how/where used? *)
   | Letr of SV.svar * SV.svar list * mcexp  (* destructure an AND *)
+  | Letf of SV.svar * mcexp * mcexp   (* 1st mcexp will be an Sfun *)
+  | Letm of V.var list * SV.svar list * Absyn.exp  (* non-functionalized RHS *)
   | Case of SV.svar * (key * SV.svar option * mcexp) list * mcexp option
-      (* destructure an OR *)
-  | RHS of ruleno  (* dispatch to appropriate RHS *)
-  | MATCH  (* raise a match exception -- may be redundant *)
+      (* destructure an OR, with svar binding if key is not a constant *)
+  | Sfun of V.var list * Absyn.exp  (* functionalized RHS expression *)
+  | Sapp of SV.svar * SV.svar list  (* A-normal-style. Function and args have all been
+				     * bound to svars *)
+  | Tfun of T.typevar list * mcexp    (* type function bindings tyvars *)
+  | MATCH  (* raise a match exception -- may be redundant if matches guaranteed exhaustive *)
 				
-structure VarKey =
-struct
-  type ord_key = var
-  fun compare (VAR{stamp=s1,...}, VAR{stamp=s2,...}) =
-      Stamp.compare (s1,s2)
-end
-
-structure VarMap = RedBlackMapFn(VarKey)
 
 end (* local *)
 end (* structure MCTypes *)

@@ -13,21 +13,20 @@ structure Stamp :> sig
 
     type stamp
 
-    val new : unit -> t
+    val new : unit -> stamp
 
-    val same : (t * t) -> bool
-    val compare : (t * t) -> order
-    val hash : t -> word
+    val same : (stamp * stamp) -> bool
+    val compare : (stamp * stamp) -> order
+    val hash : stamp -> word
 
-    val toString : t -> string
+    val toString : stamp -> string
 
-    structure Set : ORD_SET where type Key.ord_key = t
-    structure Map : ORD_MAP where type Key.ord_key = t
-    structure Tbl : MONO_HASH_TABLE where type Key.hash_key = t
+    structure Set : ORD_SET where type Key.ord_key = stamp
+    structure Map : ORD_MAP where type Key.ord_key = stamp
+    structure Tbl : MONO_HASH_TABLE where type Key.hash_key = stamp
 
-  end = struct
-
-    structure W = Word
+  end =
+  struct
 
     datatype stamp = STAMP of {
 	id : Word.word
@@ -35,19 +34,20 @@ structure Stamp :> sig
 
     val cnt = ref 0w0
 
-    fun new () = let val w = !cnt in cnt := w+0w1; STAMP{id = w} end
+    fun new () = let val id = !cnt in cnt := id+0w1; STAMP{id = id} end
 
     fun same (STAMP{id, ...}, STAMP{id=id', ...}) = (id = id')
-    fun compare (STAMP{id, ...}, STAMP{id=id', ...}) = W.compare(id, id')
+    fun compare (STAMP{id, ...}, STAMP{id=id', ...}) = Word.compare(id, id')
     fun hash (STAMP{id, ...}) = id
 
-    fun toString (STAMP{id, ...}) = StringCvt.padLeft #"0" 4 (W.toString id)
+    fun toString (STAMP{id, ...}) = StringCvt.padLeft #"0" 4 (Word.toString id)
 
     structure Key =
       struct
 	type ord_key = stamp
 	val compare = compare
       end
+
     structure Map = RedBlackMapFn (Key)
     structure Set = RedBlackSetFn (Key)
 

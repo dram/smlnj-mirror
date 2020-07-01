@@ -5,17 +5,17 @@ sig
 
     (* "simple" variables, with fixed type and lvar as _access_ *)
     
-    datatype var
+    datatype svar
       = SVAR of	                (* "simple" variables *)
 	  {name : Symbol.symbol,
 	   typ : Types.ty,
 	   lvar : LambdaVar.lvar}
 
-    val mkSvar : Symbol.symbol * Types.ty * LambdaVar.lvar ->  var
-    val newSvar : Symbol.symbol * Types.ty -> svar
+    val mkSvar : Symbol.symbol * Types.ty * LambdaVar.lvar ->  svar
+    val newSvar : string * Types.ty -> svar
 
-    val svarName : var -> Symbol.symbol
-    val svarType : var -> Types.ty
-    val svarLvar : var -> LambdaVar.lvar
+    val svarName : svar -> Symbol.symbol
+    val svarType : svar -> Types.ty
+    val svarLvar : svar -> LambdaVar.lvar
 
 end (* signature SVAR *)

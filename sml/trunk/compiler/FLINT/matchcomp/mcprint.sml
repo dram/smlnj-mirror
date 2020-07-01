@@ -11,7 +11,8 @@ local
     structure PU = PPUtil
     structure T = Types
     structure TU = TypesUtil
-    structure VC = VarCon
+    structure V = Var
+    structure SV = SVar
     structure R = Rules
     open Absyn MCTypes
 in
@@ -29,8 +30,8 @@ fun isTUPLEpat (RECORDpat{fields=[_]}) = false  (* one element records are not t
   | isTUPLEpat _ = false
 
 (* pretty printing (restricted) patterns *)
-fun ppVar ppstrm (var: VC.var) =
-    PP.string ppstrm (S.name(VC.varName var))
+fun ppVar ppstrm (var: V.var) =
+    PP.string ppstrm (S.name(V.varName var))
 	      
 fun ppDcon ppstrm (dcon: T.datacon) =
     PP.string ppstrm (S.name(TU.dataconName dcon))
@@ -125,6 +126,7 @@ and ppDconPat ppstrm =
      in ppDconPat'
     end
 
+(*
 (* keys and paths *)
 
 fun keyToString (D(dcon,_)) = substring((TU.dataconName dcon),0,1)
@@ -137,7 +139,8 @@ fun keyToString (D(dcon,_)) = substring((TU.dataconName dcon),0,1)
 
 fun pathToString path =
     concat(map keyToString path)
-	    
+*)
+
 fun ppPath ppstrm path =
     (PP.openHBox ppstrm;
      PP.string ppstrm "["; PP.string ppstrm (pathToString path); PP.string ppstrm "]";
@@ -162,7 +165,7 @@ fun ppVarBindings ppstrm vars =
     let fun ppvar ppstrm (v,r) =
             (PP.openHBox ppstrm;
 	     PP.string ppstrm "(";
-	     PP.string ppstrm (S.name(VC.varName v));
+	     PP.string ppstrm (S.name(V.varName v));
 	     PP.string ppstrm ",";
 	     PU.ppi ppstrm r;
 	     PP.string ppstrm ")";
@@ -289,34 +292,43 @@ val ppDecTree =
 
 (* mcexp printing *)
 
-fun ppLvar ppstrm lvar =
-    (PP.openHBox ppstrm;
-     PP.string ppstrm "v";
-     PU.ppi ppstrm lvar;
-     PP.closeBox ppstrm)
+fun ppSvar ppstrm svar = PU.ppSym ppstrm (SV.svarName svar)
 
-fun ppLvars ppstrm lvars =
+fun ppSvars ppstrm svars =
     (PP.openHBox ppstrm;
      PP.string ppstrm "(";
      PU.ppSequence ppstrm
 	 {sep = (fn ppstrm => PP.string ppstrm ","),
-	  pr = ppLvar,
+	  pr = ppSvar,
 	  style = PU.INCONSISTENT}
-	 lvars;
+	 svars;
      PP.string ppstrm ")";
      PP.closeBox ppstrm)
 	
+fun ppVar ppstrm (var: Var.var) = PU.ppSym ppstrm (V.varName var)
+
+fun ppVars ppstrm svars =
+    (PP.openHBox ppstrm;
+     PP.string ppstrm "(";
+     PU.ppSequence ppstrm
+	 {sep = (fn ppstrm => PP.string ppstrm ","),
+	  pr = ppVar,
+	  style = PU.INCONSISTENT}
+	 svars;
+     PP.string ppstrm ")";
+     PP.closeBox ppstrm)
+
 val ppCode =
     let fun ppc ppstrm (Letr(v,vars,body)) =
 	    (PP.openVBox ppstrm (PP.Abs 2);
              PP.openHBox ppstrm;
 	     PP.string ppstrm "Letr";
 	     PP.break ppstrm {nsp=1,offset=0};
-	     ppLvars ppstrm vars;
+	     ppSvars ppstrm vars;
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm "=";
 	     PP.break ppstrm {nsp=1,offset=0};
-	     ppLvar ppstrm v;
+	     ppSvar ppstrm v;
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm "in";
 	     PP.closeBox ppstrm;
@@ -328,16 +340,56 @@ val ppCode =
 	     PP.openHBox ppstrm;
 	     PP.string ppstrm "Case";
 	     PP.break ppstrm {nsp=1,offset=0};
-	     ppLvar ppstrm v;
+	     ppSvar ppstrm v;
 	     PP.closeBox ppstrm;
 	     ppcases ppstrm (cases,default);
 	     PP.closeBox ppstrm)
-	  | ppc ppstrm (Var lvar) =
-	     PU.ppi ppstrm lvar
-	  | ppc ppstrm (RHS r) = 
+	  | ppc ppstrm (Var svar) =
+	     ppSvar ppstrm svar
+	  | ppc ppstrm (Letf(funsvar,funexp,body)) = 
 	    (PP.openHBox ppstrm;
-	     PP.string ppstrm "RHS ";
-	     PU.ppi ppstrm r;
+	     PP.string ppstrm "Letf ";
+	     ppSvar ppstrm funsvar;
+     	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "=";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     ppc ppstrm funexp;
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "in";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     ppc ppstrm body;
+	     PP.closeBox ppstrm)
+	  | ppc ppstrm (Letm(vars, svars, body)) =
+    	    (PP.openVBox ppstrm (PP.Abs 2);
+             PP.openHBox ppstrm;
+	     PP.string ppstrm "Letm";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     ppVars ppstrm vars;
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "=";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     ppSvars ppstrm svars;
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "in";
+	     PP.closeBox ppstrm;
+	     PP.cut ppstrm;
+	     PP.string ppstrm "<RHS:absyn>";
+	     PP.closeBox ppstrm)
+	  | ppc ppstrm (Sfun(vars, body)) =
+    	    (PP.openVBox ppstrm (PP.Abs 2);
+             PP.openHBox ppstrm;
+	     PP.string ppstrm "sfn";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     ppVars ppstrm vars;
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "=>";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "<RHS:absyn>";
+	     PP.closeBox ppstrm)
+	  | ppc ppstrm (Sapp(funsvar, argsvars)) = 
+	    (PP.openHBox ppstrm;
+	     ppSvar ppstrm funsvar;
+	     ppSvars ppstrm argsvars;
 	     PP.closeBox ppstrm)
 	  | ppc ppstrm MATCH =
 	     PP.string ppstrm "MATCH"
@@ -359,14 +411,14 @@ val ppCode =
 		  | NONE => ());
                PP.closeBox ppstrm
 	    end
-	and ppcase ppstrm (key,lvarOp,rhsExp) =
+	and ppcase ppstrm (key,svarOp,rhsExp) =
 	    (PP.openHBox ppstrm;
 	     PP.string ppstrm (keyToString key);
 	     PP.break ppstrm {nsp=1,offset=0};
-	     (case lvarOp
+	     (case svarOp
 	       of NONE => ()
-		| SOME lvar =>
-		  (ppLvar ppstrm lvar;
+		| SOME svar =>
+		  (ppSvar ppstrm svar;
 		   PP.break ppstrm {nsp=1,offset=0}));
 	     PP.string ppstrm "=>";
 	     PP.break ppstrm {nsp=1,offset=0};

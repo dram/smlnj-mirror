@@ -2,8 +2,10 @@ Group is
 
 lib/errormsg.sml
 lib/symbol.sml
-lib/stamps.sml
+lib/stamp.sml
 lib/types.sml
+lib/typesutil.sml
+lib/basictypes.sml
 lib/int-const.sml
 lib/lambdavar.sml
 lib/var.sig
@@ -17,11 +19,11 @@ lib/pputil.sig
 
 rules.sig
 rules.sml
-mctypes.sml
-andor.sml
+mctypes-new.sml
+typed-andor.sml
 ordered-or-nodes.sml
+varmap.sml
 dec-tree.sml
-vartypes.sml
 mc-code.sml
 
 mcprint.sml

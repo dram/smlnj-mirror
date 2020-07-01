@@ -15,70 +15,97 @@ structure MCCode =
 struct
 
 local
+   structure T = Types
+   structure A = Absyn
+   structure R = Rules
+   structure SV = SVar
+   structure M = RuleVarMap
    open MCTypes DecisionTree
 in
 
-(* top level code generating function?
-(* mcCode : andor * decTree * ruleset -> mcexp *)
-fun mccode (dectree) = ???
-*)
+(* code : rules * andor * decTree * int vector * typevar list -> mcexp *)
+(* top level code generating function *)
+fun code (rules: (A.pat * A.exp) list, andor, decTree, ruleCounts, tyvars) =
+let fun multiple ruleno = Vector.sub(ruleCounts, ruleno) > 1
+    fun ruleRHS n = #2(List.nth(rules,n))
+    val ruleVarMap = M.makeRuleMap andor
+    val multirules = List.filter multiple (List.tabulate (length rules, (fn n => n)))
+    val funSvars = map (fn r => SV.newSvar("rhsfun"^(Int.toString r), T.UNDEFty)) multirules
+    fun wrapFn (n, exp) =
+	let val paramSvar = SV.newSvar("frule"^(Int.toString n), T.UNDEFty)
+	 in Letf(List.nth(funSvars,n), Sfun(map #1 (M.lookup(ruleVarMap,n)), ruleRHS n), exp)
+	end
+    fun bindTyvars exp =
+	(case tyvars
+	  of nil => exp
+	   | _ => Tfun(tyvars, exp))
+    fun genPrelude inner =
+	bindTyvars (foldr wrapFn inner multirules)
+    fun genRHS rule =
+	let val varmap = M.lookup(ruleVarMap, rule)
+	 in if multiple rule
+	    then Sapp(List.nth(funSvars,rule), map #2 varmap)
+	    else Letm(map #1 varmap, map #2 varmap, ruleRHS rule)
+	end
+	     
+    (* genNode: andor -> mcexp -> mcexp *)
+    (* translates top AND structure (if any) into nested Letr expressions
+     * wrapped around a body expression "inner". *)
+    fun genNode (andor, inner) =
+	let fun genAND (node::nodes, inner) =
+		(* genAND: andor list * mcexp -> mcexp *)
+		(case node
+		  of AND{svar,children,...} =>
+		     let val svars = map getSvar children
+		     in Letr (svar, svars, genAND(children,(genAND(nodes, inner))))
+		     end
+		   | _ => genAND(nodes,inner))  (* skip OR, VARS, LEAF *)
+	      | genAND (nil,inner) = inner
+	in (case andor
+	     of OR _ => inner  (* top node is OR, hence first OR-node choice *)
+	      | VARS _ => genRHS(R.minItem(getLive andor))
+	      | AND _ => genAND ([andor], inner)
+	      | SINGLE{arg,...} => genAND([arg], inner)   (* BUG!!! -- need to strip dcon *)
+	      | LEAF _ => bug "genNode: LEAF"
+	          (* should not happen! LEAF if found only _below_ an OR *)
+	      | _ => bug "genNode")
+	end
 
-(* genNode: andor -> mcexp -> mcexp *)
-(* translates top AND structure (if any) into nested Letr expressions
- * wrapped around a body expression "inner". *)	
-fun genNode andor inner =
-    let fun genAND (node::nodes, inner) =
-            (* genAND: andor list * mcexp -> mcexp *)
-	    (case node
-	      of AND{var,children,...} =>
-		 let val vars = map getVar children
-		 in Letr (var, vars, genAND(children,(genAND(nodes, inner))))
-		 end
-	       | _ => genAND(nodes,inner))  (* skip OR, VARS, LEAF *)
-	  | genAND (nil,inner) = inner
-    in (case andor
-	 of OR _ => inner  (* top node is OR, hence first OR-node choice *)
-	  | LEAF _ => inner  (* should not happen *)
-	  | VARS _ => RHS(R.minItem(getLive andor))
-	  | AND _ => genAND ([andor], inner)
-	  | _ => bug "genNode")
-    end
-
-(* genDec: decTree * mcexp -> mcexp *)
-(* need to pass a var-type map and insert types for variables bindings *)
-fun genDec (decTree) =
-    (case decTree
-       of CHOICE{node, choices, default} =>
-	 (case node
-	   of OR{lvar, variants,...} =>  (* ASSERT: node must be OR *)
-	      (* ASSERT: choices and variants are "congruent" (same keys
-               * in same order) *)
-	      let fun switchBody ((key,node0)::rest, (key',decTree0)::rest', sbody) =
-	             (* ASSERT: key = key'.  Verifty? *)
-	              let val letBindings = genNode node0
-			  val varOp =
-			      (case node0
-				of LEAF _ => NONE
-				 | _ => SOME(getVar node0))
-	                  val decCode =
-			      (key, varOp, letBindings (genDec decTree0))
-		      in switchBody(rest,rest',decCode::sbody)
-		      end
-		    | switchBody (nil,_,sbody) = rev sbody
-		    | switchBody _ = bug "genDec.switchBody"
-		  val sbody = switchBody(variants, choices, nil)
-		  val default =
-		      case default
-		       of NONE => NONE
-			| SOME dt => SOME (genDec dt)
-	      in Case(lvar, sbody, default)
-	      end
-	    | _ => bug "genDec")
-       | DMATCH => MATCH
-       | DLEAF rule => RHS rule)
-
-fun code (andor, decTree) =
-    genNode andor (genDec decTree)
+    (* genDec: decTree * mcexp -> mcexp *)
+    (* need to pass a var-type map and insert types for variables bindings *)
+    fun genDec (decTree) =
+	(case decTree
+	   of CHOICE{node, choices, default} =>
+	     (case node    (* ASSERT: node must be OR *)
+	       of OR{svar, variants,...} =>
+		  (* ASSERT: choices and variants are "congruent" (same keys
+		   * in same order) *)
+		  let fun switchBody ((key,node0)::rest, (key',decTree0)::rest', sbody) =
+			 (* ASSERT: key = key'.  Verify? *)
+			  let val svarOp =
+				  (case node0
+				    of LEAF _ => NONE
+				     | _ => SOME(getSvar node0))
+			      val decCode =
+				  (key, svarOp, genNode(node0, genDec decTree0))
+			  in switchBody(rest,rest',decCode::sbody)
+			  end
+			| switchBody (nil,_,sbody) = rev sbody
+			| switchBody _ = bug "genDec.switchBody"
+		      val sbody = switchBody(variants, choices, nil)
+		      val default =
+			  case default
+			   of NONE => NONE
+			    | SOME dt => SOME (genDec dt)
+		  in Case(svar, sbody, default)
+		  end
+		| _ => bug "genDec")
+	   | DMATCH => MATCH
+	   | DLEAF rule => genRHS rule)
+              
+in
+    genPrelude(genNode(andor, genDec decTree))
+end (* fun code *)
 
 end (* local *)
 end (* structure MCCode *)

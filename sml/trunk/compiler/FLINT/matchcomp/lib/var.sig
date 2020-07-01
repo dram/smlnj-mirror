@@ -11,10 +11,12 @@ sig
       = VALvar of	                (* ordinary variables *)
 	  {name : Symbol.symbol,
 	   typ : Types.ty ref,
-	   btvs : Types.tyvar list ref,
+	   btvs : Types.metavar list ref,
 	   access : LambdaVar.lvar}
 
     val mkVALvar : Symbol.symbol * LambdaVar.lvar ->  var
+
+    val newVALvar : string * Types.ty -> var
 
     val varName : var -> Symbol.symbol
 

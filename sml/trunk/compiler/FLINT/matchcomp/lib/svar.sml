@@ -16,16 +16,18 @@ in
     datatype svar
       = SVAR of			(* ordinary variables *)
 	  {name : S.symbol,
-	   typ : T.ty ref,
+	   typ : T.ty,
 	   lvar : LambdaVar.lvar}
 
-    fun mkSvar (id, ,ty, lvar) =
+    (* mkSvar : Symbol.symbol * T.ty * LambdaVar.lvar -> svar *)
+    fun mkSvar (id, ty, lvar) =
 	  SVAR{name = id,
 	       typ = ty,
 	       lvar = lvar}
 
+    (* newSvar : string * T.ty -> svar *)
     fun newSvar (id, ty) =  (* internally generates fresh lvar *)
-	SVAR{name = id,
+	SVAR{name = S.make id,
 	     typ = ty,
 	     lvar = LambdaVar.mkLvar()}
 

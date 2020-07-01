@@ -13,8 +13,8 @@ struct
     datatype numberedLabel = LABEL of {name: S.symbol, number: int}
 
     datatype exp
-      = VARexp of Var.var ref * T.tyvar list
-      | CONexp of T.datacon * T.tyvar list
+      = VARexp of Var.var ref * T.metavar list
+      | CONexp of T.datacon * T.metavar list
       | NUMexp of string * num_lit
       | STRINGexp of string
       | CHARexp of string
@@ -41,9 +41,9 @@ struct
       | NUMpat of string * num_lit	(* string is source text of literal *)
       | STRINGpat of string
       | CHARpat of string
-      | CONpat of T.datacon * T.tyvar list (* See comment for VARexp *)
+      | CONpat of T.datacon * T.metavar list (* See comment for VARexp *)
       | RECORDpat of {fields: (T.label * pat) list}
-      | APPpat of T.datacon * T.tyvar list * pat
+      | APPpat of T.datacon * T.metavar list * pat
       | LAYEREDpat of Var.var * pat
       | ORpat of pat * pat
       | VECTORpat of pat list * T.ty
@@ -56,11 +56,11 @@ struct
       | LOCALdec of dec * dec
       | SEQdec of dec list
 
-    and vb = VB of {pat: pat, exp: exp, boundtvs: T.tyvar list,
-		    tyvars: T.tyvar list ref}
+    and vb = VB of {pat: pat, exp: exp, boundtvs: T.metavar list,
+		    tyvars: T.metavar list ref}
 
-     and rvb = RVB of {var: Var.var, exp: exp, boundtvs: T.tyvar list,
-		      resultty: T.ty option, tyvars: T.tyvar list ref}
+     and rvb = RVB of {var: Var.var, exp: exp, boundtvs: T.metavar list,
+		      resultty: T.ty option, tyvars: T.metavar list ref}
 
      withtype fnrules = rule list * T.ty
          and num_lit = Types.ty IntConst.t

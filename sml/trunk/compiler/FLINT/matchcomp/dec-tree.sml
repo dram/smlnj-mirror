@@ -32,11 +32,20 @@ val numberChars = 256  (* this should be a basic configuration parameter in Targ
  * and providing a default for missing keys? *)
 fun partial (OR{variants as (key,andor)::_,...}) =
     (case key
-       of D (dcon,_) => length variants < TU.dataconWidth dcon  (* missing constructor keys *)
+       of D dcon => length variants < TU.dataconWidth dcon  (* missing constructor keys *)
         | C _ => length variants < numberChars
         | _ => true)
   | partial _ =  bug "parial"
 
+(* decistionTree: andor -> decTree * int Vector.vector *)
+fun decisionTree andor =
+    let val orNodes = OO.accessible andor
+	val rules = R.union(getLive andor, getDefaults andor)
+		(* this should = allRules for the top andor *)
+	val ruleCounts = Array.tabulate (R.numItems rules, (fn i => 0))
+	fun incrementRuleCount r =
+	    Array.update(ruleCounts, r, Array.sub(ruleCounts,r)+1)
+		
 (* makeDecisionTree : (APQ.queue * ruleset * path -> decTree *)
 (* orNodes is a priority queue (APQ.queue) of OR nodes
  * -- oldlive is a ruleset containing rules that are live on this branch,
@@ -48,7 +57,7 @@ fun partial (OR{variants as (key,andor)::_,...}) =
  * -- if survivors is empty, returns RAISEMATCH.
  * CLAIM: The orNodes queue argument will always be internally compatible. *)
 fun makeDecisionTree(orNodes, survivors, thisPath) =
-    if R.isEmpty survivors then RAISEMATCH else
+    if R.isEmpty survivors then DMATCH else
       (case OO.selectBestRelevant(orNodes, R.minItem survivors, thisPath)
         of SOME (node as OR{path, direct, defaults, variants, ...}, candidates) =>
 	   (* best relevant OR node, remainder is queue of remaining OR nodes *)
@@ -87,20 +96,20 @@ fun makeDecisionTree(orNodes, survivors, thisPath) =
 		   else NONE  (* no default clause *)
 	       in CHOICE{node = node, choices = decvariants, default = defaultOp}
 	   end
-	 | NONE => DLEAF(R.minItem survivors)  (* no relevant OR nodes; pick minimum rule *)
+	 | NONE =>
+	   (* no relevant OR nodes; pick minimum rule *)
+	   let val rule = R.minItem survivors
+	    in incrementRuleCount rule;
+	       DLEAF rule
+	   end
 	 | _ => bug "makeDecisionTree")
 
 (* What to do when there are no relevant OR nodes in the queue? In this case, is the
  * match degenerate (only one pattern/rule)? Produce degenerate CHOICE{andor,DLEAF,NONE}? 
  * Or possibly DLEAF(andor)? Or a new decTree constructor? Examples? *)
 
-(* decistionTree: andor -> decTree *)
-fun decisionTree andor =
-    let val orNodes = OO.accessible andor
-	val rules = R.union(getLive andor, getDefaults andor)
-		(* this should = allRules for the top andor *)
-     in makeDecisionTree(orNodes, rules, rootPath)
-    end
+     in (makeDecisionTree(orNodes, rules, rootPath), Array.vector ruleCounts)
+    end  (* function decistionTree *)
 
 end (* local *)
 end (* structure DecisionTree *)
