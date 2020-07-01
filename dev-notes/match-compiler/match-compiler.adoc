@@ -542,8 +542,6 @@ Example 1:
 
 datatype tree = L | N of tree * tree
 
-           
-
       [0]         [N]
               [N0]  [N1]
   (0) N      (x,    L)
@@ -837,7 +835,7 @@ AND-OR tree
 [] AND
    [0] OR(t) {0,1,2z}     var: 2z
            [A] LF {0,2z}
-           [B] LF {1,2z}  (only _direct_ keys appear in andor tree)
+           [B] LF {1,2z}  (only _explicit_ keys appear in andor tree)
    [1] OR(bool) {0,1x,2}  var: 1x   [1 goes to defaults, not live]
            [true] LF {1x,2}
            [false] LF {0,1x}
@@ -1050,6 +1048,36 @@ Under each variant of an OR node, new (dominated) OR nodes may become
 accessible, but OR nodes from "sibling" variants will be incompatible
 and do not need to be added to the queue. Only OR nodes within that
 variant andor need to be added for further consideration.
+
+Defn: Two andor nodes or paths are compatible if the point where they first
+diverge is not a choice key (i.e. is an R key).
+
+Defn: An OR-node queue is (internally) compatible if any pair of nodes
+in the queue are compatible.
+
+Prop: If two nodes are incompatible, they cannot both be tested in a single
+(dynamic) match.
+
+Important invariants:
+
+1. The OR node queue returned by the accessible function in OrderedOrNodes
+will always be compatible, because all paths will differ at AND nodes --
+OR-nodes terminate the traversal and their variants are not explored.
+
+2. In makeDecsionTree (DecisionTree) The variantCandidates queue will be
+compatible if the candidates queue returned by selectBestRelevant is
+consistent, because all new OR nodes added lie beneath a single key variant
+of the OR node chosen (from orNodes argument).
+2.1. The top call of makeDecisionTree will be passed (as orNodes) the queue
+produced by accessible applied to the top andor node.
+2.2. Hence (inductively) all calls of makeDecsionTree will be passed compatible
+queues.
+2.3. selectBestRelevant will be passed a compatible queue, and the path
+argument will be either (1) rootPath (for top call) or (2) the path of one of
+the earlier, previously selected, compatible queues, and hence the path will
+be compatible with all the nodes in the queue argument.  Hence the compatibility
+test in the filter used in selectBestRelevant is redundant. (Check by
+generating a warning message, or impossible message.)
 
 ================================================================================
 OR node priorities
@@ -1324,7 +1352,7 @@ Code:
 
 
 ================================================================================
-Adding types
+Adding types, polymorphism, type variable bindings
 ================================================================================
 
 Observations:
@@ -1334,8 +1362,151 @@ Observations:
 2. The type of any andor node (path, point in the pattern space) can easily
 be computed.
 
+3. Be careful to distinguish between _real_ type variables and type
+_metavariables_ (or unification variables), which are part of the type
+inference machinery, but shouldn't appear in the types per se.
+Definition of type needs to be modified to include _real_ type variables.
+
+4. Real tyvars should have well-defined, explicit binding points.
+Need a new Absyn construct for binding _real_ type variables.
+
+Example: null
+
+  fun null Nil => true
+    | null (Cons(x,y)) => false
+    
+LHS pats
+  (0) Nil           ConPat(Nil,tvs)  where tvs : tyvar list (produced by TC)
+  (1) Cons(x,y)
+
+[Typed] Code:
+
+  let null = 
+      TFN X =>   (* X is a real tyvar *)
+        fn (x: X list) =>
+	   Case[X list] x
+	     Nil => true[bool]
+             Cons v => false[bool]   [v : X * X list, not used]
+
+  null : (All X) X list -> bool
+
+Where do we get X?  From an (uninstantiated) tyvar extracted from where?
+From the pattern(s) type or from tvs stored with datacons (which are lists
+of type metavariables).
+
+tvs : tyvar list left by TC, which may be instantiated, in which case
+their instantiations may contain further uninstantiated ty metavariables
+which should be abstracted.
+
+The pattern type could either be stored by the type checker in the
+"rule" datastructure, or reconstructed from the basic "constructor"
+values in the patterns (or just first pattern?) and the instantiation
+information in the tvs fields for datacons and the element type for
+vector patterns.  Uninstantiated metavariables in the pattern type
+could then be instantiated to new "real" tyvars, which could be abstracted
+over by a new TFN form in Absyn.
+
+-------
+Probably best to add types to the variables as they are created during
+makeAndor.  The top type would be passed to makeAndor along with the patterns.
+It would be broken down into appropriate components as the function recurses
+over pattern structure (which is coordinated with the type structure anyway).
+The top type should have "generalized" type variables instantiated to real
+tyvars, but it may contain tyvars generalized in an outer scope, so the list
+of tyvars generalized "at" this match should be available explicitly, and
+the match code would be wrapped in a TFN binding of these "locally" generalized
+tyvars.  The type passed to makeAndor should be compressed and free of
+meta-tyvars, which makes it simpler to break down (no pruning needed).
+
+The type checker needs to be modified to:
+
+(1) intantiate the generalized meta-tyvars to fresh _real_ tyvars, and
+
+(2) add these abstracted/generalized tyvars to the abstract syntax in
+some appropriate way (perhaps as a temporary kludge, there might be a
+tyvar list ref element included in the appropriate construct (match, fn, binding, ?).
+When type checker is modified to produce a new "typed" abstract syntax, the
+representation could be more direct in terms of an appropriatley scoped binding
+construct like TFN.
+
+The inferred+generalized type of the lhs of the rules (i.e. the patterns) should
+also be available in the absyn in order to be passed to makeAndor with the
+patterns. [It could be reconstructed by effectively re-typechecking the patterns,
+using the embedded types of dcons and variables if we want to avoid changing
+the absyn util the type checker overhaul.]
+
+** Explicit polymorphic abstraction (TFN) in the match code
+
+Derived from the polymorphic type of the match.
+Abstraction over "real" typevars, which in turn have been used to "instantiate"
+the polytype. This instantiated polytype is what is used as the type argument
+to makeAndor.
+
+(also bindings, handler matches need to be treated appropriately)
 
 
+================================================================================
+external (source) variable binding and RHSs linkage and dispatch
+================================================================================
+
+After the decision tree is constructed, we need the following:
+
+For each _occurrence_ of a source variable in a pattern, we need
+(1) the rule number of that occurrence (available in vars fields), and
+(2) the corresponding internal varialbe (with its type) for that node in the pattern
+  space (andor tree)
+
+Then at each LEAF node of the decision tree, we need (during code generation) to add
+bindings of the source variables of the chosen rule to the appropriate internal
+variables.
+
+We also need to have a count of how many times a rule occurs at a LEAF node of the
+decision tree.
+  -- if it occurs 0 times, the rule is redundant
+  -- if it occurs > 1 times, we need to form a RHS function by abstracting over
+     the rule source variables, and at each of its LEAF nodes, we need to
+     apply that RHS function to the tuple of corresponding internal variables.
+     
+Create a mapping from
+  (source var, ruleno) to (internal) svar (equivalently the andor path)
+  ruleno to set of (source var, path)
+
+What we have in the andor tree is essentially
+  path -> (source var, ruleno)  (through the vars and asvars fields)
+
+Another even more useful mapping would be:
+
+  varmap: ruleno -> [(source var, svar), ...]
+
+Could this mapping be constructed (on the side) while makeAndor builds the
+andor tree?  Only issue is where a VAR node is constructed first and then another
+structured pattern is merged into it, perhaps replacing the svar of the VAR node
+with a new one [as in the next to last rule of mergeAndor]. This could be fixed
+by _resetting_ the svar field of the node produced by the call of mergeAndor in this
+rule.
+
+Otherwise, could do a global post-pass on the entire andor tree to construct this
+mapping.
+
+   for each node N:
+     for each (v,r) in N.vars: insert(r, (v, N.svar), varmap)   (* destructively? *) 
+     for each (v,r) in N.asvars: insert(r, (v, N.svar), varmap)
+(this could also be done functionally)
+
+Then when constructing the linkage for a RHS (LEAF) node for rule r, we lookup
+r in var map: (v_ext,v_int) then do let-bindings let v_ext = v_int in ...
+around the rhs expression.
+
+Or, if the rhs is shared by multiple rules, form
+
+   f = (lambda (v_ext1,...,v_extn) . rhs_exp)
+
+at the dispatch point
+
+   rhs_r = f(v_int1,...,v_intn)
+
+the bindings of the dispatch function f would be wrapped around the body of
+the match expression.
 
 ================================================================================
 email to Bob, 2020.5.31 - high level overview of rebuilt match compiler
