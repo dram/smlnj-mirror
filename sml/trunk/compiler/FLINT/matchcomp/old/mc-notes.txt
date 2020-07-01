@@ -1,5 +1,13 @@
 Architecture of the Existing (110.97) Match Compiler
 
+================================================================================
+These are early notes made during the "discovery" phase while trying
+to understand the workings of the Aitken match compiler
+[amc1992]. They are largely concerned with working out the types and
+the roles played by different types or components.
+Most of these notes are not relevant to the new match compiler [mc2020].
+================================================================================
+
 This version of the match compiler was written by Bill Aitken in the
 summer or 1992 and appeared somewhere between version 0.74
 (1991.10.10) and 0.93 (1992.02.15).

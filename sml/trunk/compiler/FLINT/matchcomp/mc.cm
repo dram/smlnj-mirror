@@ -19,8 +19,8 @@ lib/pputil.sig
 
 rules.sig
 rules.sml
-mctypes-new.sml
-typed-andor.sml
+mctypes.sml
+andor.sml
 ordered-or-nodes.sml
 varmap.sml
 dec-tree.sml
