@@ -12,6 +12,11 @@
 structure RawMemInlineT =
   struct
 
+(* FIXME: we should use PrimTypes.c_pointer for the load/store
+ * operations and a target-dependent offset type for the sub/update
+ * operations.
+ *)
+
     val w8l  : word32 -> word32           = InLine.raw_load_word8
     val i8l  : word32 -> int32            = InLine.raw_load_int8
     val w16l : word32 -> word32           = InLine.raw_load_word16

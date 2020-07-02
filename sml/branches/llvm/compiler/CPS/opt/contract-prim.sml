@@ -27,9 +27,16 @@ structure ContractPrim : sig
 
     val infoToString : info -> string
 
-    val arith : CPS.P.arith * CPS.value list -> CPS.value option
+  (* the result of contracting an arithmetic operation *)
+    datatype result
+      = None					(* no contraction *)
+      | Val of CPS.value			(* contract to value *)
+      | Arith of CPS.P.arith * CPS.value list	(* strength reduction *)
+      | Pure of CPS.P.pure * CPS.value list	(* strength reduction *)
 
-    val pure : get_info -> CPS.P.pure * CPS.value list -> CPS.value option
+    val arith : CPS.P.arith * CPS.value list -> result
+
+    val pure : get_info -> CPS.P.pure * CPS.value list -> result
 
     val branch : get_info -> CPS.P.branch * CPS.value list -> bool option
 
@@ -101,141 +108,240 @@ structure ContractPrim : sig
 	    NUM{ival=ival, ty=ty}
 	  end
 
+    fun log2 n = if (n > 0)
+	  then let
+	    val k = IntInf.log2 n
+	    in
+	      if (IntInf.<<(1, Word.fromInt k) = n)
+		then SOME k
+		else NONE
+	    end
+	  else NONE
+
+  (* the result of contracting an arithmetic operation *)
+    datatype result
+      = None					(* no contraction *)
+      | Val of CPS.value			(* contract to value *)
+      | Arith of CPS.P.arith * CPS.value list	(* strength reduction *)
+      | Pure of CPS.P.pure * CPS.value list	(* strength reduction *)
+
+    fun lshift sz = P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT sz}
+    fun rshift sz = P.PURE_ARITH{oper=P.RSHIFT, kind=P.INT sz}
+    fun rshiftl sz = P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT sz}
+    fun andb sz = P.PURE_ARITH{oper=P.ANDB, kind=P.INT sz}
+
+  (* optimize non-trapping multiplication by a power of two.
+   * Eventually, we might generalize this to non-power-of-2 constants.
+   *)
+    fun mulByConst (sz, v, ival) = (case log2 ival
+	   of SOME k => Pure(lshift sz, [v, tagInt k])
+	    | NONE => None
+	  (* end case *))
+
   (* contraction for impure arithmetic operations; note that 64-bit IMUL, IDIV,
    * IMOD, IQUOT, and IREM have three arguments on 32-bit targets, so we need
    * to allow for the extra argument in the patterns.
    *)
     fun arith (rator, args) = ((case (rator, args)
-	   of (P.IARITH{oper=P.IMUL, ...}, NUM{ival=1, ...} :: v :: _) => SOME v
-	    | (P.IARITH{oper=P.IMUL, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
-	    | (P.IARITH{oper=P.IMUL, ...}, (v as NUM{ival=0, ...}) :: _) => SOME v
-	    | (P.IARITH{oper=P.IMUL, ...}, _ :: (v as NUM{ival=0, ...}) :: _) => SOME v
+	    (***** IADD *****)
+	   of (P.IARITH{oper=P.IADD, ...}, [NUM{ival=0, ...}, v]) => Val v
+	    | (P.IARITH{oper=P.IADD, ...}, [v, NUM{ival=0, ...}]) => Val v
+	    | (P.IARITH{oper=P.IADD, sz}, [NUM i, NUM j]) =>
+		Val(NUM{ival = CA.sAdd(sz, #ival i, #ival j), ty = #ty i})
+	    (***** ISUB *****)
+	    | (P.IARITH{oper=P.ISUB, ...}, [v, NUM{ival=0, ...}]) => Val v
+	    | (P.IARITH{oper=P.ISUB, sz}, [NUM i, NUM j]) =>
+		Val(NUM{ival = CA.sSub(sz, #ival i, #ival j), ty = #ty i})
+	    (***** IMUL *****)
+	    | (P.IARITH{oper=P.IMUL, ...}, NUM{ival=1, ...} :: v :: _) => Val v
+	    | (P.IARITH{oper=P.IMUL, ...}, v :: NUM{ival=1, ...} :: _) => Val v
+	    | (P.IARITH{oper=P.IMUL, ...}, (z as NUM{ival=0, ...}) :: _) => Val z
+	    | (P.IARITH{oper=P.IMUL, ...}, _ :: (z as NUM{ival=0, ...}) :: _) => Val z
 	    | (P.IARITH{oper=P.IMUL, sz=sz}, NUM i :: NUM j :: _) =>
-		SOME(NUM{ival = CA.sMul(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.IARITH{oper=P.IQUOT, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
-	    | (P.IARITH{oper=P.IQUOT, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
-	    | (P.IARITH{oper=P.IQUOT, sz=sz}, NUM i :: NUM j :: _) =>
-		SOME(NUM{ival = CA.sQuot(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.IARITH{oper=P.IDIV, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
-	    | (P.IARITH{oper=P.IDIV, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
+		Val(NUM{ival = CA.sMul(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.IARITH{oper=P.IMUL, sz}, NUM{ival= ~1, ...} :: v :: _) =>
+		Arith(P.IARITH{oper=P.INEG, sz=sz}, [v])
+	    | (P.IARITH{oper=P.IMUL, sz}, v :: NUM{ival= ~1, ...} :: _) =>
+		Arith(P.IARITH{oper=P.INEG, sz=sz}, [v])
+	    | (P.IARITH{oper=P.IMUL, sz}, NUM{ival= 2, ...} :: v :: _) =>
+		Arith(P.IARITH{oper=P.IADD, sz=sz}, [v, v])
+	    | (P.IARITH{oper=P.IMUL, sz}, v :: NUM{ival= 2, ...} :: _) =>
+		Arith(P.IARITH{oper=P.IADD, sz=sz}, [v, v])
+	    (***** IDIV *****)
+	    | (P.IARITH{oper=P.IDIV, ...}, v :: NUM{ival=1, ...} :: _) => Val v
+	    | (P.IARITH{oper=P.IDIV, ...}, _ :: NUM{ival=0, ...} :: _) => None
 	    | (P.IARITH{oper=P.IDIV, sz=sz}, NUM i :: NUM j :: _) =>
-		SOME(NUM{ival = CA.sDiv(sz, #ival i, #ival j), ty = #ty i})
-	    (* FIXME: should we do anything for mod or rem here? *)
-	    | (P.IARITH{oper=P.IADD, ...}, [NUM{ival=0, ...}, v]) => SOME v
-	    | (P.IARITH{oper=P.IADD, ...}, [v, NUM{ival=0, ...}]) => SOME v
-	    | (P.IARITH{oper=P.IADD, sz=sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.sAdd(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.IARITH{oper=P.ISUB, ...}, [v, NUM{ival=0, ...}]) => SOME v
-	    | (P.IARITH{oper=P.ISUB, sz=sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.sSub(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.IARITH{oper=P.INEG, sz=sz}, [NUM i]) =>
-		SOME(NUM{ival = CA.sNeg(sz, #ival i), ty = #ty i})
+		Val(NUM{ival = CA.sDiv(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.IARITH{oper=P.IDIV, sz}, v :: NUM{ival= ~1, ...} :: _) =>
+		Arith(P.IARITH{oper=P.INEG, sz=sz}, [v])
+	    | (P.IARITH{oper=P.IDIV, sz}, v :: NUM{ival, ...} :: _) => (case log2 ival
+		 of SOME k => Pure(rshift sz, [v, tagInt k])
+		  | NONE => None
+		(* end case *))
+	    (***** IMOD *****)
+	    | (P.IARITH{oper=P.IMOD, sz=sz}, NUM i :: NUM j :: _) =>
+		Val(NUM{ival = CA.sMod(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.IARITH{oper=P.IMOD, sz}, v :: NUM{ival, ...} :: _) => (case log2 ival
+		 of SOME k => Pure(andb sz, [v, mkNum(sz, ival-1)])
+		  | NONE => None
+		(* end case *))
+	    (***** IQUOT *****)
+	    | (P.IARITH{oper=P.IQUOT, ...}, v :: NUM{ival=1, ...} :: _) => Val v
+	    | (P.IARITH{oper=P.IQUOT, ...}, _ :: NUM{ival=0, ...} :: _) => None
+	    | (P.IARITH{oper=P.IQUOT, sz=sz}, NUM i :: NUM j :: _) =>
+		Val(NUM{ival = CA.sQuot(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.IARITH{oper=P.IQUOT, sz}, v :: NUM{ival= ~1, ...} :: _) =>
+		Arith(P.IARITH{oper=P.INEG, sz=sz}, [v])
+	    (***** IREM *****)
+	    | (P.IARITH{oper=P.IREM, sz=sz}, NUM i :: NUM j :: _) =>
+		Val(NUM{ival = CA.sRem(sz, #ival i, #ival j), ty = #ty i})
+	    (***** INEG *****)
+	    | (P.IARITH{oper=P.INEG, sz}, [NUM i]) =>
+		Val(NUM{ival = CA.sNeg(sz, #ival i), ty = #ty i})
+	    (***** TEST *****)
 	    | (P.TEST{from, to}, [NUM{ival, ...}]) => let
 	      (* first convert to signed representation and then narrow *)
 		val ival' = CA.sNarrow(to, CA.toSigned(from, ival))
 		in
-		  SOME(mkNum(to, ival'))
+		  Val(mkNum(to, ival'))
 		end
+	    (***** TESTU *****)
 	    | (P.TESTU{from, to}, [NUM{ival, ...}]) =>
-		SOME(mkNum(to, CA.sNarrow(to, ival)))
-	    | _ => NONE
+		Val(mkNum(to, CA.sNarrow(to, ival)))
+	    | _ => None
 	  (* end case *))
-	    handle _ => NONE)
+	    handle _ => None)
 
   (* contraction for pure operations; note that 64-bit MUL, QUOT, and REM
    * have three arguments on 32-bit targets, so we need to allow for the
    * extra argument in the patterns.
    *)
     fun pure (get : get_info) arg = (case arg
-	   of (P.PURE_ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => SOME v
-	    | (P.PURE_ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => SOME v
+	    (***** ADD *****)
+	   of (P.PURE_ARITH{oper=P.ADD, ...}, [NUM{ival=0, ...}, v]) => Val v
+	    | (P.PURE_ARITH{oper=P.ADD, ...}, [v, NUM{ival=0, ...}]) => Val v
 	    | (P.PURE_ARITH{oper=P.ADD, kind=P.UINT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.uAdd(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => SOME v
+		Val(NUM{ival = CA.uAdd(sz, #ival i, #ival j), ty = #ty i})
+	    (***** SUB *****)
+	    | (P.PURE_ARITH{oper=P.SUB, ...}, [v, NUM{ival=0, ...}]) => Val v
 	    | (P.PURE_ARITH{oper=P.SUB, kind=P.UINT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.uSub(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.MUL, ...}, NUM{ival=1, ...} :: v :: _) => SOME v
-	    | (P.PURE_ARITH{oper=P.MUL, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
-	    | (P.PURE_ARITH{oper=P.MUL, ...}, (v as NUM{ival=0, ...}) :: _) => SOME v
-	    | (P.PURE_ARITH{oper=P.MUL, ...}, _ :: (v as NUM{ival=0, ...}) :: _) => SOME v
+		Val(NUM{ival = CA.uSub(sz, #ival i, #ival j), ty = #ty i})
+	    (***** MUL *****)
+	    | (P.PURE_ARITH{oper=P.MUL, ...}, NUM{ival=1, ...} :: v :: _) => Val v
+	    | (P.PURE_ARITH{oper=P.MUL, ...}, v :: NUM{ival=1, ...} :: _) => Val v
+	    | (P.PURE_ARITH{oper=P.MUL, ...}, (v as NUM{ival=0, ...}) :: _) => Val v
+	    | (P.PURE_ARITH{oper=P.MUL, ...}, _ :: (v as NUM{ival=0, ...}) :: _) => Val v
 	    | (P.PURE_ARITH{oper=P.MUL, kind=P.UINT sz}, NUM i :: NUM j :: _) =>
-		SOME(NUM{ival = CA.uMul(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.QUOT, ...}, v :: NUM{ival=1, ...} :: _) => SOME v
-	    | (P.PURE_ARITH{oper=P.QUOT, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
+		Val(NUM{ival = CA.uMul(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.MUL, kind=P.INT sz}, NUM{ival, ...} :: v :: _) =>
+		mulByConst (sz, v, ival)
+	    | (P.PURE_ARITH{oper=P.MUL, kind=P.INT sz}, v :: NUM{ival, ...} :: _) =>
+		mulByConst (sz, v, ival)
+	    | (P.PURE_ARITH{oper=P.MUL, kind=P.UINT sz}, NUM{ival, ...} :: v :: _) =>
+		mulByConst (sz, v, ival)
+	    | (P.PURE_ARITH{oper=P.MUL, kind=P.UINT sz}, v :: NUM{ival, ...} :: _) =>
+		mulByConst (sz, v, ival)
+	    (***** QUOT *****)
+	    | (P.PURE_ARITH{oper=P.QUOT, ...}, v :: NUM{ival=1, ...} :: _) => Val v
+	    | (P.PURE_ARITH{oper=P.QUOT, kind}, v :: NUM{ival= ~1, ...} :: _) =>
+		Pure(P.PURE_ARITH{oper=P.NEG, kind=kind}, [v])
+	    | (P.PURE_ARITH{oper=P.QUOT, ...}, _ :: NUM{ival=0, ...} :: _) => None
 	    | (P.PURE_ARITH{oper=P.QUOT, kind=P.UINT sz}, NUM i :: NUM j :: _) =>
-		SOME(NUM{ival = CA.uDiv(sz, #ival i, #ival j), ty = #ty i})
+		Val(NUM{ival = CA.uDiv(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.QUOT, kind=P.UINT sz}, v :: NUM{ival, ...} :: _) => (
+		case log2 ival
+		 of SOME k => Pure(rshiftl sz, [v, tagInt k])
+		  | NONE => None
+		(* end case *))
+	    (***** REM *****)
 	    | (P.PURE_ARITH{oper=P.REM, ...}, v :: NUM{ival=1, ty} :: _) =>
-		SOME(NUM{ival=0, ty=ty})
-	    | (P.PURE_ARITH{oper=P.REM, ...}, _ :: NUM{ival=0, ...} :: _) => NONE
+		Val(NUM{ival=0, ty=ty})
+	    | (P.PURE_ARITH{oper=P.REM, ...}, _ :: NUM{ival=0, ...} :: _) => None
 	    | (P.PURE_ARITH{oper=P.REM, kind=P.UINT sz}, NUM i :: NUM j :: _) =>
-		SOME(NUM{ival = CA.uMod(sz, #ival i, #ival j), ty = #ty i})
+		Val(NUM{ival = CA.uMod(sz, #ival i, #ival j), ty = #ty i})
+	    | (P.PURE_ARITH{oper=P.REM, kind=P.UINT sz}, v :: NUM{ival, ...} :: _) => (
+		case log2 ival
+		 of SOME k => if (k < sz)
+		      then Pure(andb sz, [v, mkNum(sz, ival-1)])
+		      else None
+		  | NONE => None
+		(* end case *))
+	    (***** NEG *****)
 	    | (P.PURE_ARITH{oper=P.NEG, kind=P.UINT sz}, [NUM i]) =>
-		SOME(NUM{ival = CA.uNeg(sz, #ival i), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
-	    | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v, NUM{ival=0, ...}]) => SOME v
+		Val(NUM{ival = CA.uNeg(sz, #ival i), ty = #ty i})
+	    (***** LSHIFT *****)
+	    | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v as NUM{ival=0, ...}, _]) => Val v
+	    | (P.PURE_ARITH{oper=P.LSHIFT, ...}, [v, NUM{ival=0, ...}]) => Val v
 	    | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.INT sz}, [NUM i, NUM j]) => (
-		SOME(NUM{ival = CA.sShL(sz, #ival i, #ival j), ty = #ty i})
-		  handle Overflow => NONE)
+		Val(NUM{ival = CA.sShL(sz, #ival i, #ival j), ty = #ty i})
+		  handle Overflow => None)
 	    | (P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.uShL(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [i as NUM{ival=0, ...}, _]) => SOME i
-	    | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [v, NUM{ival=0, ...}]) => SOME v
+		Val(NUM{ival = CA.uShL(sz, #ival i, #ival j), ty = #ty i})
+	    (***** RSHIFT *****)
+	    | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [i as NUM{ival=0, ...}, _]) => Val i
+	    | (P.PURE_ARITH{oper=P.RSHIFT, ...}, [v, NUM{ival=0, ...}]) => Val v
 	    | (P.PURE_ARITH{oper=P.RSHIFT, kind=P.INT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.sShR(sz, #ival i, #ival j), ty = #ty i})
+		Val(NUM{ival = CA.sShR(sz, #ival i, #ival j), ty = #ty i})
 	    | (P.PURE_ARITH{oper=P.RSHIFT, kind=P.UINT sz}, [NUM i, NUM j]) => let
 	      (* to get the sign-extension right, we need to convert to a signed literal
 	       * and then back to unsigned.
 	       *)
 		val res = CA.toUnsigned(sz, CA.sShR(sz, CA.toSigned(sz, #ival i), #ival j))
 		in
-		  SOME(NUM{ival = res, ty = #ty i})
+		  Val(NUM{ival = res, ty = #ty i})
 		end
-	    | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [i as NUM{ival=0, ...}, _]) => SOME i
-	    | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [v, NUM{ival=0, ...}]) => SOME v
+	    (***** RSHIFTL *****)
+	    | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [i as NUM{ival=0, ...}, _]) => Val i
+	    | (P.PURE_ARITH{oper=P.RSHIFTL, ...}, [v, NUM{ival=0, ...}]) => Val v
 	    | (P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT sz}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.uShR(sz, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.ORB, ...}, [NUM{ival=0, ...}, v]) => SOME v
-	    | (P.PURE_ARITH{oper=P.ORB, ...}, [v, NUM{ival=0, ...}]) => SOME v
+		Val(NUM{ival = CA.uShR(sz, #ival i, #ival j), ty = #ty i})
+	    (***** ORB *****)
+	    | (P.PURE_ARITH{oper=P.ORB, ...}, [NUM{ival=0, ...}, v]) => Val v
+	    | (P.PURE_ARITH{oper=P.ORB, ...}, [v, NUM{ival=0, ...}]) => Val v
 	    | (P.PURE_ARITH{oper=P.ORB, kind}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.bOr(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.XORB, ...}, [NUM{ival=0, ...}, v]) => SOME v
-	    | (P.PURE_ARITH{oper=P.XORB, ...}, [v, NUM{ival=0, ...}]) => SOME v
+		Val(NUM{ival = CA.bOr(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
+	    (***** XORB *****)
+	    | (P.PURE_ARITH{oper=P.XORB, ...}, [NUM{ival=0, ...}, v]) => Val v
+	    | (P.PURE_ARITH{oper=P.XORB, ...}, [v, NUM{ival=0, ...}]) => Val v
 	    | (P.PURE_ARITH{oper=P.XORB, kind}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.bXor(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
-	    | (P.PURE_ARITH{oper=P.ANDB, ...}, [v as NUM{ival=0, ...}, _]) => SOME v
-	    | (P.PURE_ARITH{oper=P.ANDB, ...}, [_, v as NUM{ival=0, ...}]) => SOME v
+		Val(NUM{ival = CA.bXor(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
+	    (***** ANDB *****)
+	    | (P.PURE_ARITH{oper=P.ANDB, ...}, [v as NUM{ival=0, ...}, _]) => Val v
+	    | (P.PURE_ARITH{oper=P.ANDB, ...}, [_, v as NUM{ival=0, ...}]) => Val v
 	    | (P.PURE_ARITH{oper=P.ANDB, kind}, [NUM i, NUM j]) =>
-		SOME(NUM{ival = CA.bAnd(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
+		Val(NUM{ival = CA.bAnd(sizeOfKind kind, #ival i, #ival j), ty = #ty i})
+	    (***** NOTB *****)
 	    | (P.PURE_ARITH{oper=P.NOTB, kind}, [NUM i]) =>
-		SOME(NUM{ival = CA.bNot(sizeOfKind kind, #ival i), ty = #ty i})
-	    | (P.LENGTH, [STRING s]) => SOME(tagInt(size s))
-	    | (P.COPY{from, to}, [NUM{ival, ...}]) => SOME(mkNum(to, ival))
+		Val(NUM{ival = CA.bNot(sizeOfKind kind, #ival i), ty = #ty i})
+	    (***** Other primops *****)
+	    | (P.LENGTH, [STRING s]) => Val(tagInt(size s))
+	    | (P.COPY{from, to}, [NUM{ival, ...}]) => Val(mkNum(to, ival))
 	    | (P.EXTEND{from, to}, [NUM{ival, ...}]) =>
 		if (ival > 0)
 		andalso (IntInf.andb(IntInf.<<(1, Word.fromInt(from-1)), ival) <> 0)
-		  then SOME(mkNum(to, ival - IntInf.<<(1, Word.fromInt from)))
-		  else SOME(mkNum(to, ival))
+		  then Val(mkNum(to, ival - IntInf.<<(1, Word.fromInt from)))
+		  else Val(mkNum(to, ival))
 	    | (P.TRUNC{from, to}, [NUM{ival, ...}]) => let
 		val ival' = IntInf.andb(IntInf.<<(1, Word.fromInt to)-1, ival)
 		in
-		  SOME(mkNum(to, ival'))
+		  Val(mkNum(to, ival'))
 		end
 	    | (P.INT_TO_REAL{to, ...}, [NUM{ival, ...}]) =>
 	      (* NOTE: this conversion might lose precision *)
-		SOME(REAL{rval = RealLit.fromInt ival, ty=to})
+		Val(REAL{rval = RealLit.fromInt ival, ty=to})
 	    | (P.UNWRAP(P.INT sz), [x as VAR v]) => (case get v
 		  of {info=WRPinfo(P.INT sz', u), ...} => if (sz = sz')
-		       then SOME u
+		       then Val u
 		       else bug "wrap/unwrap float size conflict"
-		   | _ => NONE
+		   | _ => None
 		 (* end case *))
 	    | (P.UNWRAP(P.FLOAT sz), [x as VAR v]) => (case get v
 		  of {info=WRPinfo(P.FLOAT sz', u), ...} => if (sz = sz')
-		       then SOME u
+		       then Val u
 		       else bug "wrap/unwrap int size conflict"
-		   | _ => NONE
+		   | _ => None
 		 (* end case *))
-	    | _ => NONE
+	    | _ => None
 	  (* end case *))
 
   (* contraction for branch operations *)

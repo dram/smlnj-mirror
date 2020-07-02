@@ -21,6 +21,8 @@ functor CPSCompFn (
 
     structure Machine = Gen
 
+    structure CPStoCFG = CPStoCFGFn (MachSpec)
+
     val architecture = Gen.MachSpec.architecture
     val abi_variant = Gen.abi_variant
 
@@ -66,6 +68,17 @@ functor CPSCompFn (
 		      val carg = globalfix fx
 		      val carg = spill carg
 		      val (carg, limit) = limit carg
+		      val _ = if !Control.CG.dumpCFG
+			    then let
+			      val cfg = CPStoCFG.translate {
+				      source = source, funcs = carg, limits = limit
+				    }
+			      in
+				say "***** CFG *****\n";
+				List.app PPCfg.prCluster cfg;
+				say "***** END CFG *****\n"
+			      end
+			    else ()
 		      val epthunk = codegen {
 			      funcs = carg, limits = limit, source = source
 			    }

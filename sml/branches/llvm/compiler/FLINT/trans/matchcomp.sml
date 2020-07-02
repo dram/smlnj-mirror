@@ -565,7 +565,7 @@ fun removePath (path, path1::rest) =
   | removePath (path, nil) = nil
 
 (* fireConstraint : path
- *                  * (path list * decision list) list
+ *                  * (path list * decision list) list     -- [(needPaths, decisions), ...]
  *                  * decision list                        -- ready list
  *                  * (path list * decision list) list     -- delayed list
  *                  -> decision list * (path list * decision list) list *)

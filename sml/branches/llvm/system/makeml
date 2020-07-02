@@ -38,7 +38,7 @@ fi
 verbosity=${MAKEML_VERBOSITY:-"@SMLverbose"}
 
 ALLOC=1M
-ARCH=x86
+ARCH=amd64
 HEAP="sml"
 ARGS=""
 MODE=""
@@ -60,9 +60,9 @@ case $verbosity in
 	;;
 esac
 
-# for now, we use 32-bits as the default size, but this will change
+# default to 64-bits, since that is our primary development architecture
 #
-SIZE_OPT="-32"
+SIZE_OPT="-64"
 
 rebuilt=no
 bare=no

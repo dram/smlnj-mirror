@@ -251,7 +251,7 @@ structure PPCps : PPCPS =
 			indent (n+3) e2)
 		  | f (RCC(k,l,p,vl,wtl,e)) = (
 			space n;
-			if k = REENTRANT_RCC then say "reentrant " else ();
+			if k then say "reentrant " else ();
 			if l = "" then () else (say l; say " ");
 			say "rcc("; sayvlist vl; say ") -> ";
 			app (fn (w, t) => (sayv (VAR w); sayt(t))) wtl;

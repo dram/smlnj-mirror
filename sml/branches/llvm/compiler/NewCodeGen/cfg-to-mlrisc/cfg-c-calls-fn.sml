@@ -76,28 +76,36 @@
  *)
 
 functor CFGCCallsFn (
+
     structure MS         : MACH_SPEC
     structure C          : CPSREGS where T.Region=CPSRegions
     structure Cells      : CELLS
     structure MLTreeComp : MLTREECOMP where TS.T = C.T
     structure CCalls     : C_CALLS where T = C.T
+
   ) : sig
 
-    val c_call : {
-	  stream   : MLTreeComp.mltreeStream, (* mltree stream *)
-	  regbind  : CPS.value -> C.T.rexp,   (* lookup integer lvar *)
-	  fregbind : CPS.value -> C.T.fexp,   (* lookup fp lvar *)
-	  typmap   : CPS.lvar -> CPS.cty,     (* lvar -> cty *)
-	  vfp      : bool,                    (* virtual frame pointer *)
-	  hp       : int                      (* heap pointer *)
-	} ->
-	   (* arguments to RCC *)
-	 CPS.rcc_kind * string * CTypes.c_proto * CPS.value list *
-	 (CPS.lvar * CPS.cty) list * CPS.cexp ->
-	   (* return *)
-	 { result : C.T.mlrisc list,		(* result(s) *)
-	   hp     : int                 	(* heap pointer *)
-	 }
+    val emitCall : {
+	  stream   : MLTreeComp.mltreeStream,	(* mltree stream *)
+	  regbind  : CPS.value -> C.T.rexp,	(* lookup integer lvar *)
+	  fregbind : CPS.value -> C.T.fexp,	(* lookup fp lvar *)
+	  typmap   : CPS.lvar -> CPS.cty,	(* lvar -> cty *)
+	  vfp      : bool,			(* virtual frame pointer *)
+	  hp       : int			(* heap pointer *)
+	} -> {
+	(* arguments to RCC *)
+	  reentrant : bool,
+	  name : string option,
+	  proto : CTypes.c_proto,
+	  args : CFG.exp list,
+	  results : CFG.param list,
+	  live : CFG.param list,
+	  k : CFG.stm
+	} -> {
+	(* return *)
+	  result : C.T.mlrisc list,
+	  hp : int
+	}
 
   end = struct
 

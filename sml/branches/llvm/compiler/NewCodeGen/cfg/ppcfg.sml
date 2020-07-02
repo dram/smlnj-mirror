@@ -35,9 +35,18 @@ structure PPCfg : sig
     fun numkindToString (P.INT, bits) = ["i", i2s bits]
       | numkindToString (P.FLT, bits) = ["f", i2s bits]
 
-    val arithopToString = ArithOps.arithopToString
     val cmpopToString = ArithOps.cmpopToString
     val fcmpopToString = PPCps.fcmpopToString
+
+    fun arithopToString oper = (case oper
+	   of P.IADD => "IADD"
+	    | P.ISUB => "ISUB"
+	    | P.IMUL => "IMUL"
+	    | P.IDIV => "IDIV"
+	    | P.IMOD => "IMOD"
+	    | P.IQUOT => "IQUOT"
+	    | P.IREM => "IREM"
+	  (* end case *))
 
     fun branchToString oper = (case oper
 	   of P.CMP{oper, signed, sz} => concat[
@@ -233,20 +242,21 @@ structure PPCfg : sig
 		      say " -> "; sayParam x; say "\n"; pr stm)
 		  | C.SETTER(p, args, stm) => (
 		      sayApp (setterToString p, args); say "\n"; pr stm)
-		  | C.RCC(rk, f, proto, args, results, stm) => (
-		      if rk = C.REENTRANT_RCC
-			then say "reentrant_cc "
-			else say "fast_cc ";
-		      if f = "" then () else (say f; say " ");
+		  | C.RCC{reentrant, linkage, proto, args, results, live, k} => (
+		      if reentrant
+			then say "reentrant c_call "
+			else say "c_call ";
+		      if linkage = "" then () else (say linkage; say " ");
 		      sayList (fn e => say(expToString e)) args;
 		      say " -> "; sayList sayParam results; say "\n";
-		      pr stm)
+(* FIXME: print live set too *)
+		      pr k)
 		(* end case *))
 	  in
 	    pr
 	  end
 
-    fun prFrag n (fk, lab, params, stm) = (
+    fun prFrag n (C.Frag(fk, lab, params, stm)) = (
 	  space n;
 	  case fk
 	   of C.GC_CHECK => say "GC_CHECK "
@@ -256,7 +266,7 @@ structure PPCfg : sig
 	  prStm (n+2) stm;
 	  space n; say "}\n")
 
-    fun prCluster ((cc, f, params, stm), frags) = (
+    fun prCluster (C.Cluster(attrs, C.Entry(cc, f, params, stm), frags)) = (
 	  case cc
 	   of C.STD_FUN => say "std_fun "
 	    | C.STD_CONT => say "std_cont "

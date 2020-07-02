@@ -22,6 +22,19 @@ structure Cluster : sig
 
     fun error msg = ErrorMsg.impossible ("Cluster." ^ msg)
 
+  (* print clusters if requested *)
+    fun print clusters = let
+	  val say = Control.Print.say
+	  fun prCluster (fn1::fns) = (
+		say "***** CLUSTER START *****\n";
+		PPCps.printcps0 fn1;
+		List.app (fn f => (say "***** FRAG *****\n"; PPCps.printcps0 f)) fns;
+		say "***** CLUSTER END *****\n")
+	  in
+	    List.app prCluster clusters;
+	    clusters
+	  end
+
     fun cluster funcs = let
 	  val numOfFuncs = length funcs
 	(* mapping of function names to a dense integer range *)
@@ -101,7 +114,9 @@ structure Cluster : sig
 		end
 	  in
 	    build funcs;
-	    extract()
+	    if !Control.CG.printClusters
+	      then print (extract())
+	      else extract()
 	  end (* cluster *)
 
   end

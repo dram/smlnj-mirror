@@ -29,7 +29,7 @@ signature PRIMOP =
       = ADD | SUB | MUL | QUOT | REM | NEG
       | LSHIFT | RSHIFT | RSHIFTL
       | ORB | XORB | ANDB | NOTB
-      | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN
+      | FDIV | FABS | FSQRT
 
   (* comparison operators *)
     datatype cmpop

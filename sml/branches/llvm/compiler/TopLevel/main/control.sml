@@ -141,7 +141,6 @@ structure Control_CG : CGCONTROL =
     val calleeGen = new (i, "callee-gen", "?", 0)
     val spillGen = new (i, "spill-gen", "?", 0)
     val etasplit = new (b, "etasplit", "?", true)
-    val printit = new (b, "printit", "whether to show CPS", false)
     val uncurry = new (b, "uncurry", "enable uncurrying optimization", true)
     val ifidiom = new (b, "if-idiom", "enable if-idiom optimization", true)
     val comparefold = new (b, "comparefold", "enable optimization of conditional tests", true)
@@ -150,6 +149,9 @@ structure Control_CG : CGCONTROL =
     val debugRep = new (b, "debug-rep", "?", false)
     val deadup = new (b, "deadup", "?", true)
     val memDisambiguate = new (b, "mem-disambiguate", "?", false)
+    val printit = new (b, "printit", "whether to show CPS", false)
+    val printClusters = new (b, "print-clusters", "whether to print clusters prior to codegen", false)
+    val dumpCFG = new (b, "dump-cfg", "whether to convert to CFG and print it", false)
   end (* structure Control_CG *)
 
 

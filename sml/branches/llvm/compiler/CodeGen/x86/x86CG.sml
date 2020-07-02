@@ -1,6 +1,11 @@
-(*
+(* x86CG.sml
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
  * X86 specific backend.  This one uses the new RA8 scheme.
  *)
+
 local
     val fast_floating_point =
 	MLRiscControl.mkFlag ("x86-fast-fp",
@@ -21,7 +26,7 @@ functor X86CG (structure CCallParams: sig val frameAlign : int
     val abi_variant      = abi_variant
     structure ClientPseudoOps = X86ClientPseudoOps
     structure PseudoOps  = X86PseudoOps
-    structure Ext        = X86_SMLNJMLTreeExt(* x86-specific *)
+    structure Ext        = SMLNJMLTreeExt (* generic extension *)
     structure CpsRegs    = X86CpsRegs
     structure InsnProps  = X86Props
     structure Asm        = X86AsmEmitter
@@ -31,7 +36,7 @@ functor X86CG (structure CCallParams: sig val frameAlign : int
 
     structure CCalls     = IA32SVID_CCalls (
         structure T = X86MLTree
-        fun ix x = x
+        fun ix x = ()
 	val fast_floating_point = fast_floating_point
 (* NOTE: the following need to be changed for MacOS X on Intel *)
 	val frameAlign = CCallParams.frameAlign
@@ -72,13 +77,11 @@ functor X86CG (structure CCallParams: sig val frameAlign : int
     structure MLTreeComp=
        X86(structure X86Instr=X86Instr
 	   structure MLTreeUtils = MLTreeUtils
-           structure ExtensionComp = X86MLTreeExtComp
-               (structure I = X86Instr
-                structure T = X86MLTree
-		structure CFG = X86CFG
-		structure TS = X86MLTreeStream
-		val fast_fp = fast_floating_point
-               )
+	   structure ExtensionComp = SMLNJMLTreeExtComp (
+	       structure I = X86Instr
+	       structure T = X86MLTree
+	       structure CFG = X86CFG
+	       structure TS = X86MLTreeStream)
 	   structure MLTreeStream = X86MLTreeStream
            datatype arch = Pentium | PentiumPro | PentiumII | PentiumIII
            val arch = ref Pentium (* Lowest common denominator *)

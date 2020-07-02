@@ -601,7 +601,7 @@ functor NewMLRiscGenFn (
 			  | (P.TEST{from, to}, [a]) => ??
 			  | (P.TESTU{from, to}, [a]) => ??
 			  | (P.REAL_TO_INT{mode, from, to}, [a]) => let
-(* NOTE: currently, this primop is never generated because Real.floor, etc.
+(* NOTE: currently, the REAL_TO_INT primop is never generated because Real.floor, etc.
  * functions are mapped to the Assembly.A.floor function.
  *)
 			      fun cvt mode =

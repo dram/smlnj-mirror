@@ -8,7 +8,7 @@
 structure X86MLTree =
   MLTreeF(structure Constant = SMLNJConstant
           structure Region=CPSRegions
-	  structure Extension=X86_SMLNJMLTreeExt)
+	  structure Extension=SMLNJMLTreeExt)
 
 structure X86MLTreeEval =
     MLTreeEval

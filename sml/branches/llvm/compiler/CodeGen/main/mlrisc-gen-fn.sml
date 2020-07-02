@@ -61,7 +61,7 @@ functor MLRiscGen (
 
     structure M  = Regs.T		(* MLTree *)
     structure E  = Ext			(* Extensions *)
-    structure C  = CFG
+    structure C  = CPS
     structure P  = C.P			(* CPS primitive operators *)
     structure R  = CPSRegions		(* Regions *)
     structure CG = Control.CG		(* Compiler Control *)
@@ -663,11 +663,13 @@ functor MLRiscGen (
 		| tag (true, e) = tagSigned e
 
 	      fun untagUnsigned (C.NUM{ty={tag=true, ...}, ival}) = LI ival
-		| untagUnsigned (C.NUM _) = error "untagUnsigned: boxed int"
+		| untagUnsigned (v as C.NUM _) =
+		    error("untagUnsigned: " ^ PPCps.value2str v)
 		| untagUnsigned v = M.SRL(ity, regbind v, one)
 
 	      fun untagSigned (C.NUM{ty={tag=true, ...}, ival}) = LI ival
-		| untagSigned (C.NUM _) = error "untagSigned: boxed int"
+		| untagSigned (v as C.NUM _) =
+		    error("untagSigned: " ^ PPCps.value2str v)
 		| untagSigned v = M.SRA(ity, regbind v, one)
 
 	      fun untag (true, e) = untagSigned e
@@ -741,7 +743,7 @@ functor MLRiscGen (
 		    M.LOAD(ity, M.SUB(pty, regbind v, LI' ws), R.memory)
 
 	      fun getObjLength v =
-		    M.SRL(ity, getObjDescriptor v, LW'(D.tagWidth - 0w1))
+		    orTag (M.SRL(ity, getObjDescriptor v, LW'(D.tagWidth - 0w1)))
 
 	    (* scale-and-add, where the second argument is a tagged integer *)
 	      fun scale1 (a, C.NUM{ival=0, ...}) = a
@@ -1365,9 +1367,6 @@ functor MLRiscGen (
 		       of P.NEG => treeifyDefF64 (x, M.FNEG(fty,r), e, hp)
 			| P.FABS => treeifyDefF64 (x, M.FABS(fty,r), e, hp)
 			| P.FSQRT => treeifyDefF64 (x, M.FSQRT(fty,r), e, hp)
-			| P.FSIN => computef64 (x, M.FEXT(fty, E.FSINE r), e, hp)
-			| P.FCOS => computef64 (x, M.FEXT(fty, E.FCOSINE r), e, hp)
-			| P.FTAN => computef64 (x, M.FEXT(fty, E.FTANGENT r), e, hp)
 			| _ => error "unexpected primop in pure unary float64"
 		      (* end case *)
 		    end
@@ -1512,7 +1511,7 @@ functor MLRiscGen (
 		| gen (C.PURE(P.TRUNC_INF _, _, _, _, _), hp) =
 		    error "gen:PURE:TRUNC_INF"
 		| gen (C.PURE(P.OBJLENGTH, [v], x, _, e), hp) =
-		    defTAGINT(x, orTag(getObjLength v), e, hp)
+		    defTAGINT(x, getObjLength v, e, hp)
 		| gen (C.PURE(P.LENGTH, [v], x, t, e), hp) = select(1, v, x, t, e, hp)
 		| gen (C.PURE(P.SUBSCRIPTV, [v, ix as NUM{ty={tag=true, ...}, ...}], x, t, e), hp) = let
 		  (* get data pointer *)
@@ -1789,7 +1788,7 @@ functor MLRiscGen (
 		| gen (C.LOOKER(P.GETVAR, [], x, _, e), hp) = defBoxed(x, Regs.varptr vfp, e, hp)
 		| gen (C.LOOKER(P.GETSPECIAL, [v], x, _, e), hp) =
 		  (* special tag is in length field; we assume it is unsigned *)
-		    defTAGINT(x, orTag(getObjLength v), e, hp)
+		    defTAGINT(x, getObjLength v, e, hp)
 		| gen (C.LOOKER(P.RAWLOAD{ kind }, [i], x, _, e), hp) =
 		    rawload (kind, regbind i, x, e, hp)
 		| gen (C.LOOKER(P.RAWLOAD{ kind }, [i,j], x, _, e), hp) =

@@ -347,9 +347,9 @@ NewCodeGen/cfg-to-mlrisc/arg-passing-fn.sml
 NewCodeGen/cfg-to-mlrisc/cfg-regions.sml
 NewCodeGen/cfg-to-mlrisc/invoke-gc-fn.sml
 NewCodeGen/cfg-to-mlrisc/mlrisc-gen-fn.sml
+NewCodeGen/cps-to-cfg/cps-to-cfg-fn.sml
+NewCodeGen/cps-to-cfg/tagged-arith.sml
 (*
-NewCodeGen/cps-to-cfg/cps-to-cfg.sml
-NewCodeGen/cps-to-cfg/pure-arith.sml
 NewCodeGen/cps-to-cfg/cluster.sml
 *)
 

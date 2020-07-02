@@ -15,23 +15,7 @@ structure CFGUtil : sig
 
     structure C = CFG
 
-    fun hasRCC ((_, _, _, stm), frags) = let
-	  fun stmHasRCC stm = (case stm
-		 of C.LET(_, _, k) => stmHasRCC k
-		  | C.ALLOC(_, _, _, k) => stmHasRCC k
-		  | C.APPLY _ => false
-		  | C.THROW _ => false
-		  | C.GOTO _ => false
-		  | C.SWITCH(_, stms) => List.exists stmHasRCC stms
-		  | C.BRANCH(_, _, _, k1, k2) =>  stmHasRCC k1 orelse  stmHasRCC k2
-		  | C.ARITH(_, _, _, k) => stmHasRCC k
-		  | C.SETTER(_, _, k) => stmHasRCC k
-		  | C.RCC _ => true
-		(* end case *))
-	  fun fragHasRCC (_, _, _, stm) = stmHasRCC stm
-	  in
-	    stmHasRCC stm orelse List.exists fragHasRCC frags
-	  end
+    fun hasRCC (C.Cluster({hasRCC, ...}, _, _)) = hasRCC
 
     fun tyToString (CFG.NUMt sz) = "i" ^ Int.toString sz
       | tyToString (CFG.FLTt sz) = "f" ^ Int.toString sz

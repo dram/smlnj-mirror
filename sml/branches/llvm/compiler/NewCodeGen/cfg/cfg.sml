@@ -22,9 +22,13 @@ structure CFG_Prim =
   (* arithmetic operations that may overflow; for the division operators,
    * we assume that the second argument is never zero (i.e., an explicit
    * test for zero is done before the operation).
-   * NOTE: this type is defined in the ArithOps structure (ElabData/prim/arithops.sml)
    *)
-    datatype arithop = datatype CPS.P.arithop
+    datatype arithop
+      = IADD | ISUB | IMUL
+(* Quesion: perhaps the division operators should be moved out of `arith`, since
+ * the div-by-zero and overflow tests will have to be explicit?
+ *)
+      | IDIV | IMOD | IQUOT | IREM
 
   (* arithmetic operations that do not overflow; for the division operators,
    * we distinguish between signed and unsigned operations, and assume that
@@ -136,14 +140,33 @@ structure CFG =
       | BRANCH of CFG_Prim.branch * exp list * probability * stm * stm
       | ARITH of CFG_Prim.arith * exp list * param * stm
       | SETTER of CFG_Prim.setter * exp list * stm
-      | RCC of rcc_kind * string * PrimCTypes.c_proto * exp list * param list * stm
+      | RCC of {
+	    reentrant : bool,		(* true for reentrant functions *)
+	    linkage : string,		(*  *)
+	    proto : CTypes.c_proto,	(* function prototype *)
+	    args : exp list,		(* arguments; first arg is function pointer *)
+	    results : param list,	(* result bindings *)
+	    live : param list,		(* variables that are live across the call;
+					 * this list is [] for non-reentrant functions.
+					 *)
+	    k : stm			(* the continuation *)
+	  }
 
   (* an extended basic block *)
-    type frag = frag_kind * LambdaVar.lvar * param list * stm
+    datatype frag = Frag of frag_kind * LambdaVar.lvar * param list * stm
 
   (* the entry fragment of a cluster *)
-    type function = calling_conv * LambdaVar.lvar * param list * stm
+    datatype entry = Entry of calling_conv * LambdaVar.lvar * param list * stm
 
-    type cluster = function * frag list
+    type attrs = {
+	alignHP : int,		(* alignment requirement in bytes for heap pointer *)
+	needsBasePtr : bool,	(* true if cluster does PC-relative addressing *)
+	hasRCC : bool		(* true if cluster contains raw C Calls *)
+      }
+
+  (* a cluster is a maximal flow graph where every known call is to a
+   * fragment in the the cluster.
+   *)
+    datatype cluster = Cluster of attrs * entry * frag list
 
   end

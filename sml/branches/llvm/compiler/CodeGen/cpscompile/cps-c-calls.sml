@@ -92,7 +92,7 @@ functor CPSCCalls (
 	  hp       : int                      (* heap pointer *)
 	} ->
 	   (* arguments to RCC *)
-	 CPS.rcc_kind * string * CTypes.c_proto * CPS.value list *
+	 bool * string * CTypes.c_proto * CPS.value list *
 	 (CPS.lvar * CPS.cty) list * CPS.cexp ->
 	   (* return *)
 	 { result : C.T.mlrisc list,  (* result(s) *)
