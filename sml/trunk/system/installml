@@ -14,7 +14,7 @@ cd $here
 #
 # Parse command line
 #
-SIZE_OPT="-32"
+SIZE_OPT="-64"
 CLEAN=false
 STEM=sml
 # Process command-line arguments

@@ -17,8 +17,8 @@ twoup=`pwd`
 cd $here
 
 SML=$twoup/bin/sml
-ARCH=x86
-SIZE_OPT="-32"
+ARCH=amd64
+SIZE_OPT="-64"
 
 #
 # Parse command line
