@@ -70,9 +70,6 @@ structure ElabControl : ELAB_CONTROL =
     val markabsyn = onew ("markabsyn", "mark abstract syntax", true)
         (* ElabCore, ElabTop, ElabUtil, Control_MC *)
 
-    val boxedconstconreps = onew ("boxedconstreps", "boxed const constructors", false)
-        (* ConRep *)
-
     val printAbsyn = ref false
 
   (***** Controls for warning messages *****)

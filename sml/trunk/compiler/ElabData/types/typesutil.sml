@@ -149,6 +149,13 @@ structure TypesUtil : TYPESUTIL =
 	  Stamps.eq(s1,s2)
       | eqTycon _ = false
 
+    (* eqDatacon : datacon * datacon -> bool
+     * equality of datacons belonging to the same datatype, based on
+     * the fact that no two datacons of a datatype have the same rep value,
+     * and conrep is an equality type. *)
+    fun eqDatacon(DATACON{rep=a1,...}: datacon, DATACON{rep=a2,...}: datacon) =
+        (a1 = a2)
+
   (* prune: ty -> ty; eliminates outermost INSTANTIATED indirections *)
     fun prune (MARKty(ty, _)) = prune ty
       | prune (VARty(tv as ref(INSTANTIATED ty))) = let
@@ -1100,5 +1107,9 @@ structure TypesUtil : TYPESUTIL =
 		| {wid, ...} => (n < pow2 wid) (* we assume that n > 0, since it is unsigned *)
 	      (* end case *)
 	    end
+
+    fun dataconSign (DATACON{sign,...}) = sign
+
+    fun dataconIsConst (DATACON{const,...}) = const
 
   end (* structure TypesUtil *)

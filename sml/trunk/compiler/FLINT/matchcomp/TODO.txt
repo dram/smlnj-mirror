@@ -37,7 +37,9 @@ TODO list for new match compiler
 [*] polymorphism: explicit abstraction over "typevar"s in mcexp.
 
 * Translation from mcexp [+absyn] to Plambda.
-
+  -- special case of matching intinf constants, see getintinfswitch
+     in trans/translate.sml
+     
 * Type checker modification to introduce new "typevar"s when
   generalizing types, and saving those new typevars in the Absyn
   in an appropriate place. [Temporary fix -- later will revise

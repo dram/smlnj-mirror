@@ -19,37 +19,7 @@ in
 
 fun bug msg = ErrorMsg.impossible msg
 
-(* numKey : Types.ty IntConst * T.ty -> key *)
-(* Translates a front-end numeric literal (Types.ty IntConst.t) into a FLINT-style
- * numeric literal representation (int IntCons.t).
- * For compilation of matches to Absyn, we should stick withy front-end literals
- * and do the translation in FLINT/trans, so this function is not needed. *)
-(* QUESTION: perhaps we should preserve the size, in the case of
- * word8, for better jump tables? [This applies to the translation to FLINT literals]. *)
-(*
-fun numKey ({ival, ty}: T.ty IC.t) : int IC.t =
-    let fun mkWORD sz = W({ival = v, ty = sz})  (* FLINT-style literal *)
-	fun mkINT sz  = I({ival = v, ty = sz})  (* FLINT-style literal *)
-	val defaultIntSz = 63 (* = Target.defaultIntSz *)
-     in if TU.equalType(ty, BT.intTy)
-	  then mkINT defaultIntSz
-	else if TU.equalType(ty, BT.int32Ty)
-	  then mkINT 32
-	else if TU.equalType(ty, BT.int64Ty)
-	  then mkINT 64
-	else if TU.equalType(ty, BT.intinfTy)
-	  then mkINT 0
-	else if TU.equalType(ty, BT.wordTy)
-	  then mkWORD defaultIntSz
-	else if TU.equalType(ty, BT.word8Ty)
-	  then mkWORD defaultIntSz
-	else if TU.equalType(ty, BT.word32Ty)
-	  then mkWORD 32
-        else if TU.equalType(ty, BT.word64Ty)
-          then mkWORD 64
-	else bug "numCon"
-    end
-*)
+(* numToKey : T.ty IntConst.t -> key *)
 fun numToKey ((num as {ival,ty}): T.ty IntConst.t) : key =
     if List.exists (fn ty' => TU.equalType(ty,ty'))
 		   [BT.intTy, BT.int32Ty, BT.int64Ty, BT.intinfTy]

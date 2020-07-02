@@ -25,6 +25,7 @@ sig
   val tyconArity : Types.tycon -> int
   val setTycPath : Types.tycon * InvPath.path -> Types.tycon
   val eqTycon : Types.tycon * Types.tycon -> bool
+  val eqDatacon : Types.datacon * Types.datacon -> bool
 
   val prune : Types.ty -> Types.ty
   val pruneTyvar : Types.tyvar -> Types.ty
@@ -129,5 +130,11 @@ sig
 
 (* check an integer/word literal value for being in range as defined by its type *)
   val numInRange : IntInf.int * Types.ty -> bool
+
+  val dataconSign : Types.datacon -> Access.consig
+  (* the "sign" of a datacon, which is the sign of its datatype *)
+
+  val dataconIsConst : Types.datacon -> bool
+  (* returns true if the datacon is a constant *)
 
 end  (* signature TYPESUTIL *)
