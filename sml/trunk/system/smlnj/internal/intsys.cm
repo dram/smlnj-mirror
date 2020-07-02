@@ -1,6 +1,8 @@
-(* Copyright YALE FLINT PROJECT 1997 *)
-(* Copyright Bell Labs, Lucent Technologies 1999 *)
-(* intsys.cm *)
+(* intsys.cm
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
 
 (*
  * Revised for using the new CM. (M.Blume, 7/1999)
@@ -65,13 +67,6 @@ is
 	 * so we know they are in sync with the rest of the code... *)
 	$smlnj/installer.cm
 	$smlnj/library-install.cm
-
-	(* We add the HTML lib.  It gets compiled anyway (even though
-	 * the compiler does not need it) because of a static dependence
-	 * from a module in pp-lib.cm.  Since the code gets compiled,
-	 * we should arrange for it to show up in a sensible location.
-	 * That's why we mention it here. *)
-	$smlnj/smlnj-lib/html-lib.cm
 
 # if not defined(LIGHT)
 	$smlnj/compiler/all.cm
