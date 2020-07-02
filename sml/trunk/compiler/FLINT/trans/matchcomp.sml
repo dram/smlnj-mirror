@@ -359,9 +359,13 @@ fun makeAndor (matchRep,err) = let
 		      subtrees=subtrees}
 	      | _ => bug "mergeAndor - genAndor returned bogusly")
       | mergeAndor (NUMpat(_, {ival, ty}), c as CASE{bindings, cases, constraints, sign}, rule) =
-	  let val pcon = numCon(ival, ty, "mergeAndor NUMpat")
-	  in CASE{bindings = bindings, constraints = constraints,
-		sign = sign, cases = addACase(pcon, [], rule, cases)}
+	  let
+	  val pcon = numCon(ival, ty, "mergeAndor NUMpat")
+	  in
+	    CASE{
+		bindings = bindings, constraints = constraints,
+		sign = sign, cases = addACase(pcon, [], rule, cases)
+	      }
 	  end
       | mergeAndor (NUMpat(_, {ival, ty}), c as AND _, rule) =
 	  bug "mergeAndor - bad pattern merge: NUMpat AND"

@@ -743,7 +743,7 @@ functor MLRiscGen (
 		    M.LOAD(ity, M.SUB(pty, regbind v, LI' ws), R.memory)
 
 	      fun getObjLength v =
-		    M.SRL(ity, getObjDescriptor v, LW'(D.tagWidth - 0w1))
+		    orTag (M.SRL(ity, getObjDescriptor v, LW'(D.tagWidth - 0w1)))
 
 	    (* scale-and-add, where the second argument is a tagged integer *)
 	      fun scale1 (a, C.NUM{ival=0, ...}) = a
@@ -1511,7 +1511,7 @@ functor MLRiscGen (
 		| gen (C.PURE(P.TRUNC_INF _, _, _, _, _), hp) =
 		    error "gen:PURE:TRUNC_INF"
 		| gen (C.PURE(P.OBJLENGTH, [v], x, _, e), hp) =
-		    defTAGINT(x, orTag(getObjLength v), e, hp)
+		    defTAGINT(x, getObjLength v, e, hp)
 		| gen (C.PURE(P.LENGTH, [v], x, t, e), hp) = select(1, v, x, t, e, hp)
 		| gen (C.PURE(P.SUBSCRIPTV, [v, ix as NUM{ty={tag=true, ...}, ...}], x, t, e), hp) = let
 		  (* get data pointer *)
@@ -1788,7 +1788,7 @@ functor MLRiscGen (
 		| gen (C.LOOKER(P.GETVAR, [], x, _, e), hp) = defBoxed(x, Regs.varptr vfp, e, hp)
 		| gen (C.LOOKER(P.GETSPECIAL, [v], x, _, e), hp) =
 		  (* special tag is in length field; we assume it is unsigned *)
-		    defTAGINT(x, orTag(getObjLength v), e, hp)
+		    defTAGINT(x, getObjLength v, e, hp)
 		| gen (C.LOOKER(P.RAWLOAD{ kind }, [i], x, _, e), hp) =
 		    rawload (kind, regbind i, x, e, hp)
 		| gen (C.LOOKER(P.RAWLOAD{ kind }, [i,j], x, _, e), hp) =
