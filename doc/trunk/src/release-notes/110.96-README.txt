@@ -124,6 +124,8 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
+| [.bugid]#168#
+| `heap2exec` broken on 64-bit machines with default toolchains
 | [.bugid]#233#
 | eXene build fails for 64bit install
 | [.bugid]#234#

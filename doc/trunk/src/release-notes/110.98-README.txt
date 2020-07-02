@@ -42,6 +42,11 @@ FILES::
 Made the `LambdaVar.lvar` type abstract.  This is an internal change
 that should not affect compiler behavior.
 
+Support for mapping the trigonometry functions `sin`, `cos`, and `tan`
+to hardware instructions on the *x86* architecture has been removed.
+This change was made to simplify the code generator as we work on
+migrating to a new *LLVM* backend.
+
 === CM
 
 === MLRISC
@@ -59,6 +64,13 @@ check for overflow is unnecessary, it has been removed from the files
 === Basis Library
 
 === SML/NJ Library
+
+The `HTMLDev` structure in the pretty-printing library (`$/pp-lib.cm`) has
+been renamed as `HTML3Dev` and moved into its own library (`pp-extras-lib.cm`).
+The renaming is in anticipation of renaming the HTML Library to "HTML3"
+and the moving it to its own library removes a dependency from the compiler
+on `$/html-lib.cm`.
+
 
 === Successor ML
 

@@ -94,6 +94,36 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/07/02]::
++
+The `HTMLDev` structure in the pretty-printing library has been
+moved into its own library (`pp-extras-lib.cm`) and renamed as
+`HTML3Dev`.  This change removes the dependency of `pp-lib.cm`
+on `html-lib.cm`, which allowed us to remove all mention of
+`html-lib.cm` from the compiler *CM* files.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/07/02]::
++
+Completed the removal of the trigonometry operators from the primops.
+This change also allowed the removal of extension support from the
+*MLRISC* code generator for the x86.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/07/01]::
++
+Disabled the use of the hardware instructions for the basic trig
+functions on the *x86*.  Doing so simplifies cross compilation
+from non *x86* hosts and also paves the way to removing the operations
+from the compiler's primitive operators.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2020/06/30]::
 +
 Improved the *CPS* contraction phase by adding strength-reduction
