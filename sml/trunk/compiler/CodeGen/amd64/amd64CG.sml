@@ -26,7 +26,7 @@ functor AMD64CG (
     val abi_variant      = abi_variant
     structure ClientPseudoOps = AMD64ClientPseudoOps
     structure PseudoOps  = AMD64PseudoOps
-    structure Ext        = AMD64_SMLNJMLTreeExt(* amd64-specific *)
+    structure Ext        = SMLNJMLTreeExt (* generic extension *)
     structure CpsRegs    = AMD64CpsRegs
     structure InsnProps  = AMD64Props
     structure Asm        = AMD64AsmEmitter
@@ -65,12 +65,11 @@ functor AMD64CG (
     structure MLTreeComp = AMD64Gen(
 	structure I=AMD64Instr
 	structure MLTreeUtils = MLTreeUtils
-	structure ExtensionComp = AMD64MLTreeExtComp (
+	structure ExtensionComp = SMLNJMLTreeExtComp (
 	    structure I = AMD64Instr
 	    structure T = AMD64MLTree
 	    structure CFG = AMD64CFG
-	    structure TS = AMD64MLTreeStream
-	  )
+	    structure TS = AMD64MLTreeStream)
 	structure MLTreeStream = AMD64MLTreeStream
 	val floats16ByteAligned = floats16ByteAligned
       (* the signBit and negateSignBit constants are stored in the stack; see

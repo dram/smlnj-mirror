@@ -309,9 +309,6 @@ in
 	  | arithopc P.FDIV = "\013"
 	  | arithopc P.FABS = "\014"
           | arithopc P.FSQRT = "\015"
-	  | arithopc P.FSIN = "\016"
-	  | arithopc P.FCOS = "\017"
-	  | arithopc P.FTAN = "\018"
 	in
 	  arithopc oper $ []
 	end

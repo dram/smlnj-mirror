@@ -1367,9 +1367,6 @@ functor MLRiscGen (
 		       of P.NEG => treeifyDefF64 (x, M.FNEG(fty,r), e, hp)
 			| P.FABS => treeifyDefF64 (x, M.FABS(fty,r), e, hp)
 			| P.FSQRT => treeifyDefF64 (x, M.FSQRT(fty,r), e, hp)
-			| P.FSIN => computef64 (x, M.FEXT(fty, E.FSINE r), e, hp)
-			| P.FCOS => computef64 (x, M.FEXT(fty, E.FCOSINE r), e, hp)
-			| P.FTAN => computef64 (x, M.FEXT(fty, E.FTANGENT r), e, hp)
 			| _ => error "unexpected primop in pure unary float64"
 		      (* end case *)
 		    end

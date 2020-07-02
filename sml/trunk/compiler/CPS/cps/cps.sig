@@ -51,7 +51,7 @@ signature CPS =
 	  = ADD | SUB | MUL | QUOT | REM | NEG
 	  | LSHIFT | RSHIFT | RSHIFTL
 	  | ORB | XORB | ANDB | NOTB
-	  | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN
+	  | FDIV | FABS | FSQRT
 
       (* comparison operators
        * NOTE: this type is defined in the ArithOps structure (ElabData/prim/arithops.sml)

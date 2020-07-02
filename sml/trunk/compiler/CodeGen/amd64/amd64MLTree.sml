@@ -9,7 +9,7 @@
 structure AMD64MLTree =
   MLTreeF(structure Constant = SMLNJConstant
           structure Region=CPSRegions
-	  structure Extension=AMD64_SMLNJMLTreeExt)
+	  structure Extension=SMLNJMLTreeExt)
 
 structure AMD64MLTreeEval =
     MLTreeEval

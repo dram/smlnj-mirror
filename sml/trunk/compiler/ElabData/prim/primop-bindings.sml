@@ -181,9 +181,6 @@ structure PrimopBindings : sig
 	    mk_rr_r("min", P.INLMIN nk) :-:
 	    mk_rr_r("max", P.INLMAX nk) :-:
 	    arith_r_r("abs", P.FABS) :-:
-	    arith_r_r("sin", P.FSIN) :-:
-	    arith_r_r("cos", P.FCOS) :-:
-	    arith_r_r("tan", P.FTAN) :-:
 	    arith_r_r("sqrt", P.FSQRT) :-:
 	  (* note that the argument type is 'a to force boxing of the real *)
 	    mk("to_bits", p1(ar(tv1, wTy sz)), P.REAL_TO_BITS sz)

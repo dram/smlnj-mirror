@@ -25,7 +25,7 @@ structure ArithOps =
       = ADD | SUB | MUL | QUOT | REM | NEG
       | LSHIFT | RSHIFT | RSHIFTL
       | ORB | XORB | ANDB | NOTB
-      | FDIV | FABS | FSQRT | FSIN | FCOS | FTAN
+      | FDIV | FABS | FSQRT
 
   (* comparison operators *)
     datatype cmpop
@@ -56,9 +56,6 @@ structure ArithOps =
       | pureopToString FDIV = "fdiv"
       | pureopToString FABS = "fabs"
       | pureopToString FSQRT = "fsqrt"
-      | pureopToString FSIN = "fsin"
-      | pureopToString FCOS = "fcos"
-      | pureopToString FTAN = "ftan"
 
     fun cmpopToString GT = ">"
       | cmpopToString LT = "<"
