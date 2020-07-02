@@ -1,12 +1,12 @@
-(* html-dev.sml
+(* html3-dev.sml
  *
  * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * A pretty printing device that uses HTML markup to control layout.
+ * A pretty printing device that uses HTML (Version 3.2) markup to control layout.
  *)
 
-structure HTMLDev : sig
+structure HTML3Dev : sig
 
     include PP_DEVICE
 

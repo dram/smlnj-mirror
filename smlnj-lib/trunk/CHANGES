@@ -1,6 +1,11 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-07-02]
+	Renamed the `HTMLDev` structure to `HTML3Dev`.  At some
+	point, the `HTML` library will also be renamed, since
+	"HTML" implies HTML5 these days.
+
 [2020-07-01]
 	Updated the `ANSITermDev` structure in the pretty-printing
 	library to use the new control modes that were introduced

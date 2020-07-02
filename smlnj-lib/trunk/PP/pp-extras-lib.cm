@@ -28,13 +28,12 @@ Library
   structure StringToken
 
 (* extras *)
-  structure HTMLDev
+  structure HTML3Dev
 
 is
 
   $/basis.cm
   $/html-lib.cm
+  $/pp-lib.cm
 
-  pp-lib.cm
-
-  devices/html-dev.sml
+  devices/html3-dev.sml
