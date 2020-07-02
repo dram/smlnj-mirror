@@ -263,14 +263,14 @@ cd llvm-build
 #
 CMAKE_OPTS="\
   -DLLVM_ENABLE_ASSERTIONS=ON \
-  -DLLVM_USE_LINKER=gold \
   -DLLVM_OPTIMIZED_TABLEGEN=ON \
-  -DLLVM_CCACHE_BUILD=true" \
+  -DLLVM_CCACHE_BUILD=OFF \
   -DCMAKE_INSTALL_PREFIX=../llvm \
   -DCMAKE_BUILD_TYPE=Release \
   -DLLVM_TARGETS_TO_BUILD=X86 \
   -DLLVM_INCLUDE_TOOLS=OFF \
-  -LLVM_BUILD_LLVM_DYLIB=ON \
+  -DLLVM_TOOL_LLVM_CONFIG_BUILD=ON \
+  -DLLVM_BUILD_LLVM_DYLIB=ON \
 "
 
 cmake -G "Unix Makefiles" "$CMAKE_OPTS" ../llvm-src
@@ -279,6 +279,9 @@ cmake -G "Unix Makefiles" "$CMAKE_OPTS" ../llvm-src
 #
 make -j $NPROC install
 ````
+
+On **Linux** systems, you should add the option `-DLLVM_USE_LINKER=gold` to
+the `CMAKE_OPTS` definition.
 
 In the future, we may want to add `AArch64` (64-bit ARM), `PowerPC`, `RISCV`,
 and `Sparc` as targets.
