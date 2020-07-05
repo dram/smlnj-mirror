@@ -20,4 +20,6 @@ sig
 
     val varName : var -> Symbol.symbol
 
+    val varAccess : var -> LambdaVar.lvar
+
 end (* signature VAR *)

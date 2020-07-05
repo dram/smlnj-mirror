@@ -34,4 +34,6 @@ struct
 		
     fun varName (VALvar{name,...}) = name
 
+    fun varAccess (VALvar{access,...}) = access
+
 end (* structure VarCon *)
