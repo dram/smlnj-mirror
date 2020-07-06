@@ -87,6 +87,11 @@ case `uname -s` in
 	      exit 1;
 	    fi
 	    OPSYS=darwin;  HEAP_OPSYS=darwin ;; # macOS 10.15 Catalina
+	  20*)
+	    if [ $SIZE = 32 ] ; then # Big Sur only supports 64-bit executables
+	      exit 1;
+	    fi
+	    OPSYS=darwin;  HEAP_OPSYS=darwin ;; # macOS 11 Big Sur
 	  *) exit 1;;
 	esac;;
     esac
