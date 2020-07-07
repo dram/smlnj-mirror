@@ -103,7 +103,7 @@ fun evalTyc (entv, tycExp, entEnv, epc, rpath,
 	      (* tycId=stamp (this should perhaps be more abstract some day) *)
 	      val _ = EPC.bindTycPath (epc, newstamp, entv)
 	      val newbody = MU.transType entEnv body
-	      val newstrict = TU.calc_strictness(arity, newbody)
+	      val newstrict = TU.calcStrictness(arity, newbody)
 	  in
 	      T.DEFtyc{stamp = newstamp,
 		       tyfun=T.TYFUN{arity=arity, body=newbody},

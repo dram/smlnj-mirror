@@ -358,10 +358,10 @@ structure TypesUtil : TYPESUTIL =
 	      end)
 	 end
 
-    (* calc_strictness : int * Types.ty -> bool list *)
+    (* calcStrictness : int * Types.ty -> bool list *)
     (* Returns a list of bools of length arity, where the ith element indicates
      * whether DB index (IBOUND i) occurs in the type "body". *)
-    fun calc_strictness (arity, body) =
+    fun calcStrictness (arity, body) =
 	let val argument_found = Array.array(arity,false)
 	    fun search (VARty(ref(tvkind))) =
 		  (case tvkind
@@ -373,9 +373,9 @@ structure TypesUtil : TYPESUTIL =
 		     of DEFtyc _ => search(headReduceType ty)
 		      | _ => app search args)
 	      | search (MARKty(ty,_)) = search ty
-	      | search (POLYty _) = bug "calc_strictness: POLYty"
-	      | search WILDCARDty = bug "calc_strictness: WILDCARDty"
-	      | search UNDEFty = bug "calc_strictness: UNDEFty"
+	      | search (POLYty _) = bug "calcStrictness: POLYty"
+	      | search WILDCARDty = bug "calcStrictness: WILDCARDty"
+	      | search UNDEFty = bug "calcStrictness: UNDEFty"
 	 in search body;
 	    Array.foldr (op ::) nil argument_found
 	end
