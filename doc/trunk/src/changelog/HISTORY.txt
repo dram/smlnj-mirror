@@ -3,6 +3,7 @@ The Fellowship of SML/NJ
 :revnumber: {version}
 :revdate: {release-date}
 :source-highlighter: pygments
+:tabsize: 8
 
 This file documents changes to the *Standard ML of New Jersey* system since
 March of 2000 (around Version 110.26).  The change log  primarily covers
