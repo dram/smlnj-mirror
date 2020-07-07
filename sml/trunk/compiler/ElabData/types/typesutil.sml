@@ -358,6 +358,28 @@ structure TypesUtil : TYPESUTIL =
 	      end)
 	 end
 
+    (* calc_strictness : int * Types.ty -> bool list *)
+    (* Returns a list of bools of length arity, where the ith element indicates
+     * whether DB index (IBOUND i) occurs in the type "body". *)
+    fun calc_strictness (arity, body) =
+	let val argument_found = Array.array(arity,false)
+	    fun search (VARty(ref(tvkind))) =
+		  (case tvkind
+		     of INSTANTIATED ty => search ty
+		      | _ => ())
+	      | search (IBOUND n) = Array.update(argument_found,n,true)
+	      | search (ty as CONty(tycon, args)) =
+		  (case tycon
+		     of DEFtyc _ => search(headReduceType ty)
+		      | _ => app search args)
+	      | search (MARKty(ty,_)) = search ty
+	      | search (POLYty _) = bug "calc_strictness: POLYty"
+	      | search WILDCARDty = bug "calc_strictness: WILDCARDty"
+	      | search UNDEFty = bug "calc_strictness: UNDEFty"
+	 in search body;
+	    Array.foldr (op ::) nil argument_found
+	end
+
   (* instantiating polytypes *)
 
     fun typeArgs n =

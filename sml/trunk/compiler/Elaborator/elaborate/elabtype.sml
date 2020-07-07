@@ -194,7 +194,7 @@ fun elabTBlist(tbl:Ast.tb list,notwith:bool,env0,rpath,region,
 		       val tycon =
 			   DEFtyc{stamp=mkStamp(),
 				  path=InvPath.extend(rpath,name),
-				  strict=EU.calc_strictness(arity,ty),
+				  strict=TU.calc_strictness(arity,ty),
 				  tyfun=TYFUN{arity=arity, body=ty}}
 		    in (tycon,name)
 		   end

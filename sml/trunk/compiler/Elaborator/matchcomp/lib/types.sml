@@ -27,9 +27,9 @@ and metaKind
 	
 and ty
   = UNDEFty
-  | TYVAR of typevar
+  | TYVAR of typevar         (* externally bound "real" type variable *)
   | METAVAR of metavar
-  | DBindex of int
+  | DBI of int               (* de Bruijn index for polymorphic bound variable *)
   | CONty of tycon * ty list
 
 and polyTy

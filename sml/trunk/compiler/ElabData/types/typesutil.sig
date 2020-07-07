@@ -44,6 +44,11 @@ sig
   val equalTypeP : Types.ty * Types.ty -> bool
   val equalTycon : Types.tycon * Types.tycon -> bool
 
+  val calc_strictness : int * Types.ty -> bool list
+    (* calc_strictness(arity,ty): returns a list of bools of length arity,
+       where the ith element indicates whether DB index (IBOUND i) occurs
+       in ty. *)
+
   (* making a "generic" copy of a type *)
   val typeArgs : int -> Types.ty list
   val mkPolySign : int -> Types.polysign

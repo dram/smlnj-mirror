@@ -399,21 +399,6 @@ fun makeLAYEREDpat ((x as VARpat _), y, _) = LAYEREDpat(x,y)
       (err COMPLAIN "pattern to left of \"as\" must be variable" nullErrorBody;
        y)
 
-fun calc_strictness (arity, body) =
-    let val argument_found = Array.array(arity,false)
-	fun search(VARty(ref(INSTANTIATED ty))) = search ty
-	  | search(IBOUND n) = Array.update(argument_found,n,true)
-	  | search(ty as CONty(tycon, args)) =
-              (case tycon
-                 of DEFtyc _ => search(headReduceType ty)
-                  | _ => app search args)
-	  | search(MARKty(ty,_)) = search ty
-	  | search _ = (print "#### calc_strictness ####\n")	(* for now... ???? *)
-     in search body;
-	Array.foldr (op ::) nil argument_found
-    end
-
-
 (* checkBoundTyvars: check whether the tyvars appearing in a type (used) are
    bound (as parameters in a type declaration) *)
 fun checkBoundTyvars(used,bound,err) =

@@ -82,6 +82,10 @@ local open Types in
   val funTycon = mkPrimTycon("->", 2)
   fun funTy (ty1, ty2) = CONty(funTycon, [ty1,ty2])
 
+  fun isFunTy (CONty(tycon, [ty1,ty2])) =
+      equalTycon(tycon, funTycon)
+    | isFunTy _ = false
+
   fun domain_range (CONty(tycon,[domain,range])) =
       if equalTycon(tycon, funTycon)
       then (domain,range)
@@ -91,10 +95,14 @@ local open Types in
   (* matchPoly : T.ty * T.PolyTy -> T.ty vector *)
   fun matchPoly (ty, POLY{arity,body}) =
       let val instArray = Array.array(arity,UNDEFty)
-          fun match (ty, DBindex i) =
-	      if equalType(ty, Array.sub(instArray, i))
-	      then ()
-	      else Array.update(instArray, i, ty)
+          fun match (ty, DBI i) =
+	      let val instTy = Array.sub(instArray, i)
+	      in case instTy
+		  of UNDEFty => Array.update(instArray, i, ty)
+		  | _ => if equalType(ty, instTy)
+			 then ()
+			 else bug "matchPoly 0"
+	      end
 	    | match (CONty(tyc1,args1), (CONty(tyc2,args2))) =
 	      if equalTycon (tyc1,tyc2)
 	      then ListPair.appEq match (args1, args2)
@@ -106,15 +114,29 @@ local open Types in
 
   (* instTy : ty vector -> ty -> ty *)
   fun instTy vec (CONty(tyc, args)) = CONty(tyc, map (instTy vec) args)
-    | instTy vec (DBindex i) = Vector.sub(vec,i)
+    | instTy vec (DBI i) = Vector.sub(vec,i)
     | instTy vec ty = ty
 
-  (* destructCon : T.ty * dcon -> T.ty
+  (* dataconInstArgs : T.ty * dcon -> T.ty vector
    * given an instance of the range of the type of a dcon, returns corresponding instance
+   * of the domain of the dcon *)
+  fun dataconInstArgs(ty,dcon) =
+      (* ASSERT: dcon is not a constant dcon, and ty is the range of an instance of 
+       * the (possibly polymorphic) type of dcon *)
+      let val dconTy as POLY{arity,body} = dataconType dcon
+      in if isFunTy body
+	 then let val (domain, range) = domain_range body (* dconTy is a function type *)
+	      in matchPoly (ty, POLY{arity=arity, body=range})
+	      end
+	 else matchPoly (ty, dconTy)
+      end
+	  
+  (* destructCon : T.ty * dcon -> T.ty
+   * given the range (ty) of an instance of the type of a dcon, returns corresponding instance
    * of the domain of the dcon *)
   fun destructCon(ty,dcon) =
       (* ASSERT: dcon is not a constant dcon, and ty is the range of an instance of 
-       * the (possibly polymorphic) type of dcon *)
+       * the polymorphic type of dcon *)
       let val POLY{arity,body} = dataconType dcon
 	  val (domain, range) = domain_range body (* dconTy assumed to be a function type *)
 	  val instVector = matchPoly (ty, POLY{arity=arity, body=range})

@@ -64,8 +64,6 @@ sig
        (Symbol.symbol * Absyn.pat) list * bool * ErrorMsg.complainer
        -> Absyn.pat
 
-  val calc_strictness : int * Types.ty -> bool list
-
   val checkBoundTyvars :
        TyvarSet.tyvarset * Types.tyvar list * ErrorMsg.complainer -> unit
 
