@@ -94,6 +94,15 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/07/06]::
++
+Fix for bug 261 (spurious "#### calc_strictness ####" messages).
+Rewrote the function ElabUtil.calc_strictness and moved it to
+TypesUtil.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2020/07/02]::
 +
 The `HTMLDev` structure in the pretty-printing library has been
