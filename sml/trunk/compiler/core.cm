@@ -261,7 +261,6 @@ FLINT/lsplit/ls-inline.sml
 
 (* The CPS stages *)
 CPS/clos/cps-split.sml
-CPS/clos/freemap.sml
 CPS/clos/globalfix.sml
 CPS/clos/closure.sml
 CPS/clos/freeclose.sml
@@ -277,13 +276,16 @@ CPS/cps/cps-util.sml
 CPS/opt/contract.sml
 CPS/opt/contract-prim.sml
 CPS/opt/cpsopt.sml
+CPS/opt/divcnv.sml
 CPS/opt/eta.sml
 CPS/opt/etasplit.sml
 CPS/opt/expand.sml
 CPS/opt/flatten.sml
-CPS/opt/uncurry.sml
 CPS/opt/infcnv.sml
+CPS/opt/lower.sml
 CPS/opt/num64cnv.sml
+CPS/opt/testcnv.sml
+CPS/opt/uncurry.sml
 CPS/main/cps-comp.sml
 CPS/main/literals.sml
 CPS/main/new-literals.sml
