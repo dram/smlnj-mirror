@@ -1,6 +1,4 @@
-// A template for creating release notes for a version
-//
-:version: @VERSION@
+:version: 110.98
 :date: @DATE@
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
@@ -42,10 +40,27 @@ FILES::
 Made the `LambdaVar.lvar` type abstract.  This is an internal change
 that should not affect compiler behavior.
 
-Support for mapping the trigonometry functions `sin`, `cos`, and `tan`
-to hardware instructions on the *x86* architecture has been removed.
-This change was made to simplify the code generator as we work on
-migrating to a new *LLVM* backend.
+We have started a project to migrate the backend of SML/NJ to use
+the https://llvm.org[*LLVM*] infrastructure for code generation.
+The prepare the ground for this migration, we have made a number
+of changes to the compiler internals:
+--
+* Support for mapping the trigonometry functions `sin`, `cos`, and `tan`
+  to hardware instructions on the *x86* architecture has been removed.
+  This change was made to simplify the code generator as we work on
+  migrating to a new *LLVM* backend.
+
+* The *SML* operators `div` and `mod` have a __floor__ rounding semantics
+  instead of the __truncation__ semantics supported by hardware.  Previously,
+  we relied on *MLRISC* to handle the implementation of these operators,
+  but we now do that in a new lowering pass.  We also added optimizations
+  for when the second argument to `div` or `mod` is a power of two to
+  the *CPS* contraction phase.
+
+* The lowering pass also lowers trapping conversions (**CPS** primops
+  `TEST` and `TESTU`) such that they only involve conversions that
+  can be checked using trapping add operations.
+--
 
 === CM
 
@@ -71,6 +86,8 @@ The renaming is in anticipation of renaming the HTML Library to "HTML3"
 and the moving it to its own library removes a dependency from the compiler
 on `$/html-lib.cm`.
 
+The *SML/NJ Library* is now mostly documented; see `doc/html/smlnj-lib/index.html`
+in the distribution or https://smlnj.org/doc/smlnj-lib/index.html[] online.
 
 === Successor ML
 
@@ -83,6 +100,11 @@ behavior is to preserve the existing actions and just add the printing code.
 
 
 === Documentation
+
+This release contains a substantial amount of new documentation for the
+*SML/NJ Library* (see `doc/html/smlnj-lib`).  While the documentation is
+not complete, it does cover the most commonly used components (with the
+exception of the pretty-printing library).
 
 === Installation
 
@@ -122,7 +144,7 @@ for more details.
 | `Ref.exchange` incorrect
 | [.bugid]#257#
 | `HASH_TABLE` `listItems` error in reference manual
-| [.bugid[#261#
+| [.bugid]#261#
 | Weird "calc_strictness" message being printed
 |=======
 
