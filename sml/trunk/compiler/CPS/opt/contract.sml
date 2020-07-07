@@ -398,19 +398,18 @@ fun newnames(v::vl, w::wl) = (newname(v,w); newnames(vl,wl))
 local val use_less = use_less o ren
       val call_less = call_less o ren
 in
-fun drop_body(APP(f,vl)) = (call_less f; app use_less vl)
-  | drop_body(SELECT(_,v,_,_,e)) = (use_less v; drop_body e)
-  | drop_body(OFFSET(_,v,_,e)) = (use_less v; drop_body e)
-  | drop_body(RECORD(_,vl,_,e)) = (app (use_less o #1) vl; drop_body e)
-  | drop_body(FIX(l,e)) = (app (drop_body o #5) l; drop_body e)
-  | drop_body(SWITCH(v,_,el)) = (use_less v; app drop_body el)
-  | drop_body(BRANCH(_,vl,_,e1,e2)) = (app use_less vl;
-				       drop_body e1; drop_body e2)
-  | drop_body(SETTER(_,vl,e)) = (app use_less vl; drop_body e)
-  | drop_body(LOOKER(_,vl,_,_,e)) = (app use_less vl; drop_body e)
-  | drop_body(ARITH(_,vl,_,_,e)) = (app use_less vl; drop_body e)
-  | drop_body(PURE(_,vl,_,_,e)) = (app use_less vl; drop_body e)
-  | drop_body(RCC(_,_,_,vl,_,e)) = (app use_less vl; drop_body e)
+fun drop_body (APP(f,vl)) = (call_less f; app use_less vl)
+  | drop_body (SELECT(_,v,_,_,e)) = (use_less v; drop_body e)
+  | drop_body (OFFSET(_,v,_,e)) = (use_less v; drop_body e)
+  | drop_body (RECORD(_,vl,_,e)) = (app (use_less o #1) vl; drop_body e)
+  | drop_body (FIX(l,e)) = (app (drop_body o #5) l; drop_body e)
+  | drop_body (SWITCH(v,_,el)) = (use_less v; app drop_body el)
+  | drop_body (BRANCH(_,vl,_,e1,e2)) = (app use_less vl; drop_body e1; drop_body e2)
+  | drop_body (SETTER(_,vl,e)) = (app use_less vl; drop_body e)
+  | drop_body (LOOKER(_,vl,_,_,e)) = (app use_less vl; drop_body e)
+  | drop_body (ARITH(_,vl,_,_,e)) = (app use_less vl; drop_body e)
+  | drop_body (PURE(_,vl,_,_,e)) = (app use_less vl; drop_body e)
+  | drop_body (RCC(_,_,_,vl,_,e)) = (app use_less vl; drop_body e)
 end (* local *)
 
 fun setter (P.UPDATE, [_, _, NUM{ty={tag=true, ...}, ...}]) = P.UNBOXEDUPDATE
@@ -432,8 +431,8 @@ fun cvtInfPrecondition (x, v2) =
  * do not have a handle on the Core function that actually does the 64-bit
  * test.
  *)
-fun testFusePrecondition 64 = Target.is64
-  | testFusePrecondition _ = true
+fun test64On32 64 = Target.is64
+  | test64On32 _ = true
 
 (* contraction for primops *)
 val arith = ContractPrim.arith
@@ -901,7 +900,7 @@ and g hdlr = let
 			    then (
 			      use_less f; use_less f2;
 			      PURE(P.COPY{from=m, to=p}, [ren v], x2, t2, g' e2))
-			  else if testFusePrecondition m
+			  else if test64On32 m
 			    then (
 			      use_less f; use_less f2;
 			      ARITH(P.TESTU{from=m, to=p}, [ren v], x2, t2, g' e2))
@@ -913,7 +912,7 @@ and g hdlr = let
 			      then (
 				use_less f; use_less f2;
 				PURE(P.COPY{from=m, to=p}, [ren v], x2, t2, g' e2))
-			    else if testFusePrecondition m
+			    else if test64On32 m
 			      then (
 				use_less f; use_less f2;
 				PURE(P.TRUNC{from=m, to=p}, [ren v], x2, t2, g' e2))
@@ -936,7 +935,7 @@ and g hdlr = let
 			      then (
 				use_less f; use_less f2;
 				mkEXTEND(m, p, ren v, x2, t2, e2))
-			    else if testFusePrecondition m
+			    else if test64On32 m
 			      then (
 				use_less f; use_less f2;
 				ARITH(P.TEST{from=m, to=p}, [ren v], x2, t2, g' e2))

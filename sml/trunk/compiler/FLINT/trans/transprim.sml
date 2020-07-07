@@ -3,7 +3,18 @@
  * COPYRIGHT (c) 2019 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *
- * Translation of primops to PLambda.
+ * Translation of primops to PLambda.  The translation adds extra
+ * arguments to some primops so that they will be available for
+ * the CPS lowering phase.  The extra arguments are as follows:
+ *
+ *	- for `COPY_INF`, `EXTEND_INF`, `TRUNC_INF`, and `TEST_INF`
+ *        the function from `Core` that implements the operation is
+ *	  added as a second argument.
+ *
+ *      - for most 64-bit arithmetic operations on 32-bit targets,
+ *        the implementation functions from `Core` are added as a
+ *	  second or third argument.  The exceptions are addition,
+ *	  subtraction, negation, and the bit-wise operations.
  *)
 
 structure TransPrim : sig
