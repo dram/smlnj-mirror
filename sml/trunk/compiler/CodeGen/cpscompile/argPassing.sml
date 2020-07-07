@@ -30,7 +30,7 @@ functor ArgPassing (
   (* return the elements indexed i..j from the list regs *)
     fun fromto (i, j, regs) = let
 	(* NOTE: the `to` function is almost `List.take`, but it does not raise
-	 * an exception when k >= lenth regs.
+	 * an exception when k >= length regs.
 	 *)
 	  fun to (k, []) = []
 	    | to (k, r::rs) = if k > j then [] else r::to(k+1, rs)
