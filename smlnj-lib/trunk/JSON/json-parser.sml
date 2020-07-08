@@ -7,7 +7,7 @@
 structure JSONParser :> sig
 
   (* abstract type of JSON input *)
-    type source
+    type source = JSONSource.source
 
   (* open a text input stream as a source *)
     val openStream : TextIO.instream -> source
@@ -31,61 +31,17 @@ structure JSONParser :> sig
     structure T = JSONTokens
     structure J = JSON
 
-    datatype source = Src of {
-	srcMap : AntlrStreamPos.sourcemap,
-	strm : Lex.strm ref,
-	close : unit -> unit,
-	closed : bool ref
-      }
+    datatype source = datatype JSONSource.source
 
-    fun openStream inS = let
-	  val closed = ref false
-	  in
-	    Src{
-		srcMap = AntlrStreamPos.mkSourcemap (),
-		strm = ref(Lex.streamifyInstream inS),
-		close = fn () => (),
-		closed = closed
-	      }
-	  end
-
-    fun openFile file = let
-	  val closed = ref false
-	  val inStrm = TextIO.openIn file
-	  in
-	    Src{
-		srcMap = AntlrStreamPos.mkSourcemap (),
-		strm = ref(Lex.streamifyInstream inStrm),
-		close = fn () => TextIO.closeIn inStrm,
-		closed = closed
-	      }
-	  end
-
-    fun openString s = let
-	  val closed = ref false
-	  in
-	    Src{
-		srcMap = AntlrStreamPos.mkSourcemap (),
-		strm = ref(Lex.streamify (fn () => s)),
-		close = fn () => (),
-		closed = closed
-	      }
-	  end
-
-    fun close (Src{closed = ref true, ...}) = ()
-      | close (Src{closed, close, ...}) = (
-	  closed := true;
-	  close())
+    val openStream = JSONSource.openStream
+    val openFile = JSONSource.openFile
+    val openString = JSONSource.openString
+    val close = JSONSource.close
 
     fun parse (Src{closed = ref true, ...}) = raise Fail "closed JSON source"
-      | parse (Src{srcMap, strm, ...}) = let
-	  fun error (span, _, T.ERROR msg) = raise Fail(concat(
-		"error " :: AntlrStreamPos.spanToString srcMap span :: ": " ::
-		  msg))
-	    | error (span, msg, tok) = raise Fail(concat[
-		  "error ", AntlrStreamPos.spanToString srcMap span, ": ",
-		  msg, ", found '", JSONTokens.toString tok, "'"
-		])
+      | parse (src as Src{srcMap, strm, ...}) = let
+	  val errorMsg = JSONSource.errorMsg src
+	  fun error arg = raise Fail(errorMsg arg)
 	  val lexer = Lex.lex srcMap
 	  fun parseValue (strm : Lex.strm) = let
 		val (tok, span, strm) = lexer strm

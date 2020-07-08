@@ -31,6 +31,7 @@ is
   json.sml
   json-parser.sml
   json-printer.sml
+  json-source.sml
   json-stream-parser.sml
   json-stream-printer.sml
   json-tokens.sml

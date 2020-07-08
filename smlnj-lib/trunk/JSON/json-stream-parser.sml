@@ -7,7 +7,22 @@
  * structure.
  *)
 
-structure JSONStreamParser : sig
+structure JSONStreamParser :> sig
+
+  (* abstract type of JSON input *)
+    type source = JSONSource.source
+
+  (* open a text input stream as a source *)
+    val openStream : TextIO.instream -> source
+
+  (* open a text file as a source *)
+    val openFile : string -> source
+
+  (* open a string as a source *)
+    val openString : string -> source
+
+  (* close a source *)
+    val close : source -> unit
 
   (* callback functions for the different parsing events *)
     type 'ctx callbacks = {
@@ -24,7 +39,7 @@ structure JSONStreamParser : sig
 	error : 'ctx * string -> unit
       }
 
-    val parse : 'ctx callbacks -> (TextIO.instream * 'ctx) -> 'ctx
+    val parse : 'ctx callbacks -> (source * 'ctx) -> 'ctx
 
     val parseFile : 'ctx callbacks -> (string * 'ctx) -> 'ctx
 
@@ -32,6 +47,13 @@ structure JSONStreamParser : sig
 
     structure Lex = JSONLexer
     structure T = JSONTokens
+
+    datatype source = datatype JSONSource.source
+
+    val openStream = JSONSource.openStream
+    val openFile = JSONSource.openFile
+    val openString = JSONSource.openString
+    val close = JSONSource.close
 
   (* callback functions for the different parsing events *)
     type 'ctx callbacks = {
@@ -52,10 +74,12 @@ structure JSONStreamParser : sig
 	  #error cb (ctx, msg);
 	  raise Fail "error")
 
-    fun parser (cb : 'a callbacks) (srcMap, inStrm, ctx) = let
-	  val lexer = Lex.lex (AntlrStreamPos.mkSourcemap ())
+    fun parse (cb : 'a callbacks) (src as Src{srcMap, strm, ...}, ctx) = let
+	  val lexer = Lex.lex srcMap
+	  val errorMsg = JSONSource.errorMsg src
+	  fun err (ctx, span, msg, tok) = error (cb, ctx, errorMsg (span, msg, tok))
 	  fun parseValue (strm : Lex.strm, ctx) = let
-		val (tok, pos, strm) = lexer strm
+		val (tok, span, strm) = lexer strm
 		in
 		  case tok
 		   of T.LB => parseArray (strm, ctx)
@@ -66,8 +90,7 @@ structure JSONStreamParser : sig
 		    | T.INT n => (strm, #integer cb (ctx, n))
 		    | T.FLOAT f => (strm, #float cb (ctx, f))
 		    | T.STRING s => (strm, #string cb (ctx, s))
-		    | T.ERROR msg => error (cb, ctx, concat msg)
-		    | _ => error (cb, ctx, "error parsing value")
+		    | _ => err (ctx, span, "error parsing value", tok)
 		  (* end case *)
 		end
 	  and parseArray (strm : Lex.strm, ctx) = (case lexer strm
@@ -76,13 +99,12 @@ structure JSONStreamParser : sig
 		      fun loop (strm, ctx) = let
 			    val (strm, ctx) = parseValue (strm, ctx)
 			  (* expect either a "," or a "]" *)
-			    val (tok, pos, strm) = lexer strm
+			    val (tok, span, strm) = lexer strm
 			    in
 			      case tok
 			       of T.RB => (strm, ctx)
 				| T.COMMA => loop (strm, ctx)
-				| T.ERROR msg => error (cb, ctx, concat msg)
-				| _ => error (cb, ctx, "error parsing array")
+				| _ => err (ctx, span, "error parsing array", tok)
 			      (* end case *)
 			    end
 		      val ctx = #startArray cb ctx
@@ -93,13 +115,13 @@ structure JSONStreamParser : sig
 		(* end case *))
 	  and parseObject (strm : Lex.strm, ctx) = let
 		fun parseField (strm, ctx) = (case lexer strm
-		       of (T.STRING s, pos, strm) => let
+		       of (T.STRING s, span, strm) => let
 			    val ctx = #objectKey cb (ctx, s)
 			    in
 			      case lexer strm
 			       of (T.COLON, _, strm) => parseValue (strm, ctx)
-				| (T.ERROR msg, _, _) => error (cb, ctx, concat msg)
-				| _ => error (cb, ctx, "error parsing field")
+				| (tok, span, _) =>
+				    err (ctx, span, "error parsing field", tok)
 			      (* end case *)
 			    end
 			| _ => (strm, ctx)
@@ -109,10 +131,10 @@ structure JSONStreamParser : sig
 		      in
 			(* expect either "," or "}" *)
 			case lexer strm
-			 of (T.RCB, pos, strm) => (strm, ctx)
-			  | (T.COMMA, pos, strm) => loop (strm, ctx)
-			  | (T.ERROR msg, _, _) => error (cb, ctx, concat msg)
-			  | _ => error (cb, ctx, "error parsing object")
+			 of (T.RCB, span, strm) => (strm, ctx)
+			  | (T.COMMA, span, strm) => loop (strm, ctx)
+			  | (tok, span, _) =>
+			      err (ctx, span, "error parsing object", tok)
 			(* end case *)
 		      end
 		val ctx = #startObject cb ctx
@@ -120,30 +142,24 @@ structure JSONStreamParser : sig
 		in
 		  (strm, #endObject cb ctx)
 		end
+	  val (inStrm, cxt) = parseValue (!strm, ctx)
 	  in
-	    #2 (parseValue (Lex.streamifyInstream inStrm, ctx))
-	  end
-
-    fun parse cb = let
-	  val parser = parser cb
-	  fun parse' (inStrm, ctx) =
-		parser(AntlrStreamPos.mkSourcemap (), inStrm, ctx)
-	  in
-	    parse'
+	    strm := inStrm;
+	    ctx
 	  end
 
     fun parseFile cb = let
-	  val parser = parser cb
-	  fun parse (fileName, ctx) = let
-		val inStrm = TextIO.openIn fileName
-		val ctx = parser (AntlrStreamPos.mkSourcemap' fileName, inStrm, ctx)
-		      handle ex => (TextIO.closeIn inStrm; raise ex)
+	  val parse = parse cb
+	  fun parser (fileName, ctx) = let
+		val inStrm = openFile fileName
+		val ctx = parse (inStrm, ctx)
+		      handle ex => (close inStrm; raise ex)
 		in
-		  TextIO.closeIn inStrm;
+		  close inStrm;
 		  ctx
 		end
 	  in
-	    parse
+	    parser
 	  end
 
   end
