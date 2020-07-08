@@ -146,6 +146,10 @@ for more details.
 | `HASH_TABLE` `listItems` error in reference manual
 | [.bugid]#261#
 | Weird "calc_strictness" message being printed
+| [.bugid]#262#
+| JSON parser fails on empty object
+| [.bugid]#263#
+| JSON parser ignores suffixes
 |=======
 
 // ***** include a list of unnumbered bugs here *****
