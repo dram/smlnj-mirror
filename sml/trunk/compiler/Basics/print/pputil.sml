@@ -17,12 +17,12 @@ struct
          | INCONSISTENT => PP.openHOVBox
 
   fun ppSequence0 ppstream (sep:PP.stream->unit,pr,elems) =
-      let fun prElems [el] = pr ppstream el
+      let fun prElems [] = ()
+	    | prElems [el] = pr ppstream el
 	    | prElems (el::rest) =
 	        (pr ppstream el;
 		 sep ppstream;
                  prElems rest)
-	    | prElems [] = ()
        in prElems elems
       end
 
@@ -47,16 +47,26 @@ struct
 
   fun ppString ppstream = PP.string ppstream o PrintUtil.formatString
 
-  fun ppvseq ppstream ind (sep:string) pr_elem elems =
+  fun ppvseqNoBox ppstream pr_elem elems =
+      let fun prElems [el] = pr_elem ppstream el
+	    | prElems (el::rest) = (pr_elem ppstream el; 
+				    PP.cut ppstream;
+                                    prElems rest)
+	    | prElems [] = ()
+       in prElems elems
+      end
+
+  fun ppvseq ppstream indent (sep:string) pr_elem elems =
       let fun prElems [el] = pr_elem ppstream el
 	    | prElems (el::rest) = (pr_elem ppstream el; 
                                     PP.string ppstream sep; 
 				    PP.cut ppstream;
                                     prElems rest)
 	    | prElems [] = ()
-       in PP.openVBoxI ppstream ind;
-           prElems elems;
-          PP.closeBox ppstream
+      in PP.openVBox ppstream (PP.Abs indent);
+	   PP.cut ppstream;
+	   prElems elems;
+         PP.closeBox ppstream
       end
 
   fun ppvlist ppstrm (header,separator,pr_elem,elems) =

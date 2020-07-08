@@ -98,7 +98,6 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	      PP.string ppstrm (SymPath.toString path);
 	      PP.string ppstrm " =";
 	      break ppstrm {nsp=1,offset=0};
-
 	      case access
 	       of LVAR lv =>
                     (case StaticEnv.look (static, SymPath.last path)
@@ -123,7 +122,6 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
  	        | _ => ErrorMsg.impossible "ppDec.ppVar";
 
 	      closeBox ppstrm;
-	      PP.newline ppstrm;
  	      closeBox ppstrm)
 
          | ppVar _ = ()
@@ -158,12 +156,11 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	       break ppstrm {nsp=1,offset=0};
 	       ppType static ppstrm body;
 	       closeBox ppstrm;
-	       PP.newline ppstrm;
 	       closeBox ppstrm
 	   end
 	 | ppTb _ = bug "ppTb:DEFtyc"
 
-	and ppAbsTyc(GENtyc { path, arity, eq, ... }) =
+	and ppAbsTyc (GENtyc { path, arity, eq, ... }) =
 	    (case !eq of
 		 ABS =>
 		 (openHVBox ppstrm (PP.Rel 0);
@@ -173,7 +170,6 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 		  break ppstrm {nsp=1,offset=0};
 		  ppSym ppstrm (InvPath.last path);
 		  closeBox ppstrm;
-		  PP.newline ppstrm;
 		  closeBox ppstrm)
 	       | _ =>
 		 (openHVBox ppstrm (PP.Rel 0);
@@ -183,7 +179,6 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	          break ppstrm {nsp=1,offset=0};
 	          ppSym ppstrm (InvPath.last path);
 	          closeBox ppstrm;
-		  PP.newline ppstrm;
 	          closeBox ppstrm))
           | ppAbsTyc _ = bug "unexpected case in ppAbsTyc"
 
@@ -220,7 +215,6 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 		ppDcons dcons;
 		closeBox ppstrm;
 		closeBox ppstrm;
-		PP.newline ppstrm;
 		closeBox ppstrm
 	    end
 	  | ppDataTyc _ = bug "unexpected case in ppDataTyc"
@@ -237,7 +231,6 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 			    break ppstrm {nsp=1,offset=0};
 			    ppType static ppstrm ty');
 	       closeBox ppstrm;
- 	       PP.newline ppstrm;
 	       closeBox ppstrm)
 
 	  | ppEb(EBdef{exn=DATACON{name,...},edef=DATACON{name=dname,...}}) =
@@ -249,44 +242,44 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	       break ppstrm {nsp=1,offset=0};
 	       ppSym ppstrm dname;
 	       closeBox ppstrm;
- 	       PP.newline ppstrm;
 	       closeBox ppstrm)
 
 	and ppStrb (STRB{name,str,...}) =
-	    (openHVBox ppstrm (PP.Rel 0);
-	      openHVBox ppstrm (PP.Rel 0);
-	       pps "structure ";
-	       ppSym ppstrm name;
-	       pps " :";
-	       break ppstrm {nsp=1,offset=2};
-	       PPModules.ppStructure ppstrm (str,static,!signatures);
-	      closeBox ppstrm;
-	      PP.newline ppstrm;
+	    (openVBox ppstrm (PP.Abs 2);
+	       openHBox ppstrm;
+	         PP.string ppstrm "structure ";
+	         ppSym ppstrm name;
+	         break ppstrm {nsp=1,offset=0};
+	         PP.string ppstrm ":";
+	       closeBox ppstrm;
+	       (* PP.break ppstrm {nsp=1,offset=2}; *)
+	       PP.cut ppstrm;
+               PPModules.ppStructure ppstrm (str,static,!signatures);
 	     closeBox ppstrm)
 
 	and ppFctb(FCTB{name,fct,...}) =
-	    (openHVBox ppstrm (PP.Rel 0);
+	    (openHVBox ppstrm (PP.Abs 0);
 	      pps "functor ";
 	      ppSym ppstrm name;
-	      case fct of
-		  M.FCT { sign, ... } =>
+	      case fct
+		of M.FCT { sign, ... } =>
 		    PPModules.ppFunsig ppstrm (sign, static, !signatures)
-		| _ => pps " : <sig>";  (* blume: cannot (?) happen *)
-	      PP.newline ppstrm;
+		 | _ => pps " : <fsig>";  (* blume: cannot (?) happen *)
 	    closeBox ppstrm)
 
         and ppSigb sign =
-	    let val name = case sign
-                            of M.SIG { name, ... } => getOpt (name, anonSym)
-                             | _ => anonSym
-
-             in (openHVBox ppstrm (PP.Rel 0);
-		  openHVBox ppstrm (PP.Rel 0);
-   	           pps "signature "; ppSym ppstrm name; pps " =";
-	           break ppstrm {nsp=1,offset=2};
+	    let val name =
+		    case sign
+                      of M.SIG { name, ... } => getOpt (name, anonSym)
+                       | _ => anonSym
+             in (openHVBox ppstrm (PP.Abs 2);
+		   openHBox ppstrm;
+   	             PP.string ppstrm "signature "; ppSym ppstrm name;
+		     PP.break ppstrm {nsp=1,offset=0};
+		     PP.string ppstrm "=";
+		   closeBox ppstrm;
+	           PP.cut ppstrm;
 	           PPModules.ppSignature ppstrm (sign,static,!signatures);
-	          closeBox ppstrm;
-	         PP.newline ppstrm;
 	         closeBox ppstrm)
             end
 
@@ -294,11 +287,11 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 	    let val name = case fsig
                             of M.FSIG{kind=SOME s, ...} => s
                              | _ => anonFsym
-
-	     in (openHVBox ppstrm (PP.Rel 0);
-	         pps "funsig "; ppSym ppstrm name;
-	         PPModules.ppFunsig ppstrm (fsig,static,!signatures);
-	         PP.newline ppstrm;
+	     in (openHVBox ppstrm (PP.Abs 0);
+	           PP.string ppstrm "funsig";
+		   PP.break ppstrm {nsp=1,offset=0};
+		   ppSym ppstrm name;
+	           PPModules.ppFunsig ppstrm (fsig,static,!signatures);
 	         closeBox ppstrm)
             end
 
@@ -311,7 +304,6 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 			                  style=INCONSISTENT}
 	                          ops;
 	     closeBox ppstrm;
-	     PP.newline ppstrm;
 	     closeBox ppstrm)
 
 	and ppOpen(pathStrs) =
@@ -330,7 +322,6 @@ fun ppDec ({static,dynamic,...}: Environment.environment)
 			     style=INCONSISTENT}
 			     pathStrs;
 		  closeBox ppstrm;
-		  PP.newline ppstrm;
 		  closeBox ppstrm)
 
 	and ppDec0 dec =
