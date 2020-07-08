@@ -9,6 +9,8 @@ correspond to SML/NJ releases.
 	which is an abstraction of a JSON input source.  Several
 	functions are included for creating sources from strings,
 	input streams, etc.
+	This mechanism has also been added to the JSONStreamParser
+	structure's interface too.
 
 [2020-07-07]
 	Fixed bug #262, which was that the JSON parser didn't
