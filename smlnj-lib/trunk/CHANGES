@@ -1,6 +1,15 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-07-08]
+	Fixed bug #263 (JSON parser ignores suffixes).  To fix this
+	bug required changing the interface to the `JSONParser`
+	structure, including the type of the `parse` function.
+	The `JSONParser` structure now exports a `source` type,
+	which is an abstraction of a JSON input source.  Several
+	functions are included for creating sources from strings,
+	input streams, etc.
+
 [2020-07-07]
 	Fixed bug #262, which was that the JSON parser didn't
 	handle empty objects correctly.

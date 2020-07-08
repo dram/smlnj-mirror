@@ -4,9 +4,24 @@
  * All rights reserved.
  *)
 
-structure JSONParser : sig
+structure JSONParser :> sig
 
-    val parse : TextIO.instream -> JSON.value
+  (* abstract type of JSON input *)
+    type source
+
+  (* open a text input stream as a source *)
+    val openStream : TextIO.instream -> source
+
+  (* open a text file as a source *)
+    val openFile : string -> source
+
+  (* open a string as a source *)
+    val openString : string -> source
+
+  (* close a source *)
+    val close : source -> unit
+
+    val parse : source -> JSON.value
 
     val parseFile : string -> JSON.value
 
@@ -16,14 +31,64 @@ structure JSONParser : sig
     structure T = JSONTokens
     structure J = JSON
 
-    fun parse' (srcMap, inStrm) = let
-	  fun error (pos, msg, tok) = raise Fail(concat[
-		  "error ", AntlrStreamPos.spanToString srcMap pos, ": ",
+    datatype source = Src of {
+	srcMap : AntlrStreamPos.sourcemap,
+	strm : Lex.strm ref,
+	close : unit -> unit,
+	closed : bool ref
+      }
+
+    fun openStream inS = let
+	  val closed = ref false
+	  in
+	    Src{
+		srcMap = AntlrStreamPos.mkSourcemap (),
+		strm = ref(Lex.streamifyInstream inS),
+		close = fn () => (),
+		closed = closed
+	      }
+	  end
+
+    fun openFile file = let
+	  val closed = ref false
+	  val inStrm = TextIO.openIn file
+	  in
+	    Src{
+		srcMap = AntlrStreamPos.mkSourcemap (),
+		strm = ref(Lex.streamifyInstream inStrm),
+		close = fn () => TextIO.closeIn inStrm,
+		closed = closed
+	      }
+	  end
+
+    fun openString s = let
+	  val closed = ref false
+	  in
+	    Src{
+		srcMap = AntlrStreamPos.mkSourcemap (),
+		strm = ref(Lex.streamify (fn () => s)),
+		close = fn () => (),
+		closed = closed
+	      }
+	  end
+
+    fun close (Src{closed = ref true, ...}) = ()
+      | close (Src{closed, close, ...}) = (
+	  closed := true;
+	  close())
+
+    fun parse (Src{closed = ref true, ...}) = raise Fail "closed JSON source"
+      | parse (Src{srcMap, strm, ...}) = let
+	  fun error (span, _, T.ERROR msg) = raise Fail(concat(
+		"error " :: AntlrStreamPos.spanToString srcMap span :: ": " ::
+		  msg))
+	    | error (span, msg, tok) = raise Fail(concat[
+		  "error ", AntlrStreamPos.spanToString srcMap span, ": ",
 		  msg, ", found '", JSONTokens.toString tok, "'"
 		])
 	  val lexer = Lex.lex srcMap
 	  fun parseValue (strm : Lex.strm) = let
-		val (tok, pos, strm) = lexer strm
+		val (tok, span, strm) = lexer strm
 		in
 		  case tok
 		   of T.LB => parseArray strm
@@ -34,7 +99,7 @@ structure JSONParser : sig
 		    | T.INT n => (strm, J.INT n)
 		    | T.FLOAT f => (strm, J.FLOAT f)
 		    | T.STRING s => (strm, J.STRING s)
-		    | _ => error (pos, "parsing value", tok)
+		    | _ => error (span, "parsing value", tok)
 		  (* end case *)
 		end
 	  and parseArray (strm : Lex.strm) = (case lexer strm
@@ -43,12 +108,12 @@ structure JSONParser : sig
 		      fun loop (strm, items) = let
 			    val (strm, v) = parseValue strm
 			  (* expect either a "," or a "]" *)
-			    val (tok, pos, strm) = lexer strm
+			    val (tok, span, strm) = lexer strm
 			    in
 			      case tok
 			       of T.RB => (strm, v::items)
 				| T.COMMA => loop (strm, v::items)
-				| _ => error (pos, "parsing array", tok)
+				| _ => error (span, "parsing array", tok)
 			      (* end case *)
 			    end
 		      val (strm, items) = loop (strm, [])
@@ -63,34 +128,33 @@ structure JSONParser : sig
 			    in
 			      parseFields (strm, (s, v)::flds)
 			    end
-			| (tok, pos, _) => error (pos, "parsing field", tok)
+			| (tok, span, _) => error (span, "parsing field", tok)
 		      (* end case *))
-		  | parseField ((tok, pos, _), _) = error (pos, "parsing field", tok)
+		  | parseField ((tok, span, _), _) = error (span, "parsing field", tok)
 		and parseFields (strm, flds) = (case lexer strm
-		       of (T.RCB, pos, strm) => (strm, J.OBJECT(List.rev flds))
-			| (T.COMMA, pos, strm) => parseField (lexer strm, flds)
-			| (tok, pos, _) => error (pos, "parsing object", tok)
+		       of (T.RCB, span, strm) => (strm, J.OBJECT(List.rev flds))
+			| (T.COMMA, span, strm) => parseField (lexer strm, flds)
+			| (tok, span, _) => error (span, "parsing object", tok)
 		      (* end case *))
 		in
 		  case lexer strm
-		   of (T.RCB, pos, strm) => (strm, J.OBJECT[])
+		   of (T.RCB, span, strm) => (strm, J.OBJECT[])
 		    | tokEtc => parseField (tokEtc, [])
 		  (* end case *)
 		end
+	  val (inStrm, value) = parseValue (!strm)
 	  in
-	    #2 (parseValue (Lex.streamifyInstream inStrm))
+	    strm := inStrm;
+	    value
 	  end
 
-    fun parse inStrm = parse' (AntlrStreamPos.mkSourcemap (), inStrm)
-
     fun parseFile fileName = let
-	  val inStrm = TextIO.openIn fileName
-	  val v = parse' (AntlrStreamPos.mkSourcemap' fileName, inStrm)
-		handle ex => (TextIO.closeIn inStrm; raise ex)
+	  val inStrm = openFile fileName
+	  val v = parse inStrm
+		handle ex => (close inStrm; raise ex)
 	  in
-	    TextIO.closeIn inStrm;
+	    close inStrm;
 	    v
 	  end
 
   end
-

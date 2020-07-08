@@ -21,6 +21,7 @@ structure JSONTokens =
       | INT of IntInf.int
       | FLOAT of real
       | STRING of string
+      | ERROR of string list
 
     fun toString EOF = "<eof>"
       | toString LB = "["
@@ -43,5 +44,6 @@ structure JSONTokens =
 	  in
 	    String.concat("\"" :: (List.foldr f ["\""] (UTF8.explode s)))
 	  end
+      | toString (ERROR msg) = "<error>" (* default behavior should be overridden *)
 
   end

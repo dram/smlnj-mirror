@@ -2,6 +2,9 @@
  *
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * TODO: use the same "source" abstraction supported by the `JSONParser`
+ * structure.
  *)
 
 structure JSONStreamParser : sig
@@ -63,6 +66,7 @@ structure JSONStreamParser : sig
 		    | T.INT n => (strm, #integer cb (ctx, n))
 		    | T.FLOAT f => (strm, #float cb (ctx, f))
 		    | T.STRING s => (strm, #string cb (ctx, s))
+		    | T.ERROR msg => error (cb, ctx, concat msg)
 		    | _ => error (cb, ctx, "error parsing value")
 		  (* end case *)
 		end
@@ -77,6 +81,7 @@ structure JSONStreamParser : sig
 			      case tok
 			       of T.RB => (strm, ctx)
 				| T.COMMA => loop (strm, ctx)
+				| T.ERROR msg => error (cb, ctx, concat msg)
 				| _ => error (cb, ctx, "error parsing array")
 			      (* end case *)
 			    end
@@ -93,6 +98,7 @@ structure JSONStreamParser : sig
 			    in
 			      case lexer strm
 			       of (T.COLON, _, strm) => parseValue (strm, ctx)
+				| (T.ERROR msg, _, _) => error (cb, ctx, concat msg)
 				| _ => error (cb, ctx, "error parsing field")
 			      (* end case *)
 			    end
@@ -105,6 +111,7 @@ structure JSONStreamParser : sig
 			case lexer strm
 			 of (T.RCB, pos, strm) => (strm, ctx)
 			  | (T.COMMA, pos, strm) => loop (strm, ctx)
+			  | (T.ERROR msg, _, _) => error (cb, ctx, concat msg)
 			  | _ => error (cb, ctx, "error parsing object")
 			(* end case *)
 		      end

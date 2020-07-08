@@ -185,7 +185,12 @@ fun yyAction24 (strm, lastMatch : yymatch) = let
 fun yyAction25 (strm, lastMatch : yymatch) = (yystrm := strm;
         YYBEGIN INITIAL; finishString() )
 fun yyAction26 (strm, lastMatch : yymatch) = (yystrm := strm;   skip() )
-fun yyAction27 (strm, lastMatch : yymatch) = (yystrm := strm;   skip() )
+fun yyAction27 (strm, lastMatch : yymatch) = let
+      val yytext = yymktext(strm)
+      in
+        yystrm := strm;
+          T.ERROR["bad character '", String.toString yytext, "'"]
+      end
 fun yyQ33 (strm, lastMatch : yymatch) = (case (yygetc(strm))
        of NONE => yyAction2(strm, yyNO_MATCH)
         | SOME(inp, strm') => yyAction2(strm, yyNO_MATCH)

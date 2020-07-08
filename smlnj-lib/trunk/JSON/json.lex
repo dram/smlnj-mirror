@@ -75,5 +75,4 @@
 
 <INITIAL>"/*"(~(.*"*/".*))"*/"	=> ( skip() );
 
-(* FIXME: add some error reporting *)
-<INITIAL>.			=> ( skip() );
+<INITIAL>. => ( T.ERROR["bad character '", String.toString yytext, "'"]);
