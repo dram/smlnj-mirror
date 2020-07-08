@@ -95,6 +95,23 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/07/08]::
++
+Fixes for structure and signature pretty printing problems that were
+introduced in the extensive pretty printer/pretty printing
+modifications around revision 6291.
++
+Files affected include ElabData/modules/ppmod.sml, ElabData/types/pptype.sml,
+TopLevel/print/ppdec.sml, Basics/print/pputil.{sig,sml}.
++
+The pretty printing for modules still seems quite fragile, so there
+are likely to be more pretty printing problems to be fixed later. In
+particular, pretty printing of functor and functor signature
+declarations haven't been tested.
++
+owner:cs.uchicago.edu/~dbm[Dave MacQueen]
+
+//--------------------------------------------------------------------
 [2020/07/07]::
 +
 Added a new _lowering_ pass following *CPS* optimization, but before
