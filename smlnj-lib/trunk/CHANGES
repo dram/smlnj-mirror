@@ -1,6 +1,10 @@
 This is a list of changes to the SML/NJ Library; the version numbers
 correspond to SML/NJ releases.
 
+[2020-07-07]
+	Fixed bug #262, which was that the JSON parser didn't
+	handle empty objects correctly.
+
 [2020-07-02]
 	Renamed the `HTMLDev` structure to `HTML3Dev`.  At some
 	point, the `HTML` library will also be renamed, since

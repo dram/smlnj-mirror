@@ -57,30 +57,25 @@ structure JSONParser : sig
 		      end
 		(* end case *))
 	  and parseObject (strm : Lex.strm) = let
-		fun parseField strm = (case lexer strm
-		       of (T.STRING s, pos, strm) => (case lexer strm
-			     of (T.COLON, _, strm) => let
-				  val (strm, v) = parseValue strm
-				  in
-				    SOME(strm, (s, v))
-				  end
-			      | (tok, pos, _) => error (pos, "parsing field", tok)
-			    (* end case *))
-			| _ => NONE
+		fun parseField ((T.STRING s, _, strm), flds) = (case lexer strm
+		       of (T.COLON, _, strm) => let
+			    val (strm, v) = parseValue strm
+			    in
+			      parseFields (strm, (s, v)::flds)
+			    end
+			| (tok, pos, _) => error (pos, "parsing field", tok)
 		      (* end case *))
-		fun loop (strm, flds) = (case parseField strm
-		       of SOME(strm, fld) => (
-			  (* expect either "," or "}" *)
-			    case lexer strm
-			     of (T.RCB, pos, strm) => (strm, fld::flds)
-			      | (T.COMMA, pos, strm) => loop (strm, fld::flds)
-			      | (tok, pos, _) => error (pos, "parsing object", tok)
-			    (* end case *))
-			| NONE => (strm, flds)
+		  | parseField ((tok, pos, _), _) = error (pos, "parsing field", tok)
+		and parseFields (strm, flds) = (case lexer strm
+		       of (T.RCB, pos, strm) => (strm, J.OBJECT(List.rev flds))
+			| (T.COMMA, pos, strm) => parseField (lexer strm, flds)
+			| (tok, pos, _) => error (pos, "parsing object", tok)
 		      (* end case *))
-		val (strm, flds) = loop (strm, [])
 		in
-		  (strm, J.OBJECT(List.rev flds))
+		  case lexer strm
+		   of (T.RCB, pos, strm) => (strm, J.OBJECT[])
+		    | tokEtc => parseField (tokEtc, [])
+		  (* end case *)
 		end
 	  in
 	    #2 (parseValue (Lex.streamifyInstream inStrm))
