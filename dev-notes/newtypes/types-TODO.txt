@@ -1,0 +1,30 @@
+types-TODO.txt
+
+TODO list for type checker overhaul
+
+---------------
+Front-end types
+---------------
+
+* Deal with unnecessary ?.t printing of types (and structures, etc.)
+
+* Type checker produces "reduced" or "simplified" typed abstract syntax
+  -- eliminate artifacts of the type inference algorithm like type metavariables
+  -- compact type representations (fully "pruned")
+  -- explicit binding of polymorphic type variables
+     ** introduce explicit type abstractions around polymorphic expressions
+     ** explicit type applications to instantiate applied occurrences of polymorphic
+        variables
+  -- "real" type variables replace certain "kinds" of type metavariables (LBOUND)
+
+* Fix as many type-related bugs as possible
+
+------------
+FLINT types
+------------
+
+* drastically simplify FLINT plambda/Flint types
+  -- replace Nadathur closures by a simpler form
+  -- experiment to see what the current benefit/necessity is for hash-consing types
+
+* try to simplify translation from explicitly typed absyn to typed plambda
