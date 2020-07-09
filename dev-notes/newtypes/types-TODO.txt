@@ -8,6 +8,11 @@ Front-end types
 
 * Deal with unnecessary ?.t printing of types (and structures, etc.)
 
+* Redesign type representation
+  -- "real" type variables
+  -- POLYty is a separate type from ty, only occurring in var/con bindings
+ [-- stored "owner" datatype for datacons?]  
+
 * Type checker produces "reduced" or "simplified" typed abstract syntax
   -- eliminate artifacts of the type inference algorithm like type metavariables
   -- compact type representations (fully "pruned")
@@ -16,6 +21,17 @@ Front-end types
      ** explicit type applications to instantiate applied occurrences of polymorphic
         variables
   -- "real" type variables replace certain "kinds" of type metavariables (LBOUND)
+
+* "Batched" treatment of type errors.
+  -- store type error records and sort them by file location before
+     generating error messages
+
+* Present detailed report of how complex types clash
+
+* Presentation of abstract syntax and site where type error is detected 
+
+* Get "culprits" mechanism working and tested and integrated into
+  type error messages
 
 * Fix as many type-related bugs as possible
 
