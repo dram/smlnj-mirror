@@ -21,7 +21,7 @@ rules.sig
 rules.sml
 mctypes.sml
 andor.sml
-ordered-or-nodes.sml
+or-queues.sml
 varmap.sml
 dec-tree.sml
 mc-code.sml

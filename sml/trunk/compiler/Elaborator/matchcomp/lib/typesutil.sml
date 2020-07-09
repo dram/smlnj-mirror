@@ -51,7 +51,7 @@ local open Types in
 
   (* instantiatePoly : polyTy * ty list -> ty *)
   fun instantiatePoly (POLY{arity,body}, argtys: ty list) =
-      let fun subst(DBindex n) = List.nth(argtys,n)
+      let fun subst(DBI i) = List.nth(argtys,i)
 	    | subst(CONty(tyc,args)) = CONty(tyc, map subst args)
 	    | subst ty = ty
        in if arity <> length argtys
@@ -158,7 +158,7 @@ local open Types in
   fun instantiatePoly (POLY{arity,body}) =
       let val newTypeVars = List.tabulate(arity, (fn i => newTypeVar()))
 	  fun inst (CONty(tyc, args)) = CONty(tyc, map inst args)
-	    | inst (DBindex i) = TYVAR(List.nth(newTypeVars, i))
+	    | inst (DBI i) = TYVAR(List.nth(newTypeVars, i))
 	    | inst ty = ty
       in (newTypeVars, inst body)
       end

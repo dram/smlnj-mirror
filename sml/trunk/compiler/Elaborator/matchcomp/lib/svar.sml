@@ -5,21 +5,22 @@
  *)
 (* "simple variables *)
 
-structure SVar : SVAR =
+structure SVar :> SVAR =
 struct
 
 local
-    structure T  = Types
     structure S  = Symbol
+    structure T  = Types
+    structure LV = LambdaVar
 in
 
     datatype svar
       = SVAR of			(* ordinary variables *)
 	  {name : S.symbol,
 	   typ : T.ty,
-	   lvar : LambdaVar.lvar}
+	   lvar : LV.lvar}
 
-    (* mkSvar : Symbol.symbol * T.ty * LambdaVar.lvar -> svar *)
+    (* mkSvar : Symbol.symbol * T.ty * LV.lvar -> svar *)
     fun mkSvar (id, ty, lvar) =
 	  SVAR{name = id,
 	       typ = ty,
@@ -29,11 +30,25 @@ in
     fun newSvar (id, ty) =  (* internally generates fresh lvar *)
 	SVAR{name = S.make id,
 	     typ = ty,
-	     lvar = LambdaVar.mkLvar()}
+	     lvar = LV.mkLvar()}
 
     fun svarName (SVAR{name,...}) = name
     fun svarType (SVAR{typ,...}) = typ
-    fun svarLvar (SVAR{lvar,...}) = lvar				       
+    fun svarLvar (SVAR{lvar,...}) = lvar
 
+    fun svarToVar (SVAR{name,typ,lvar}) =
+	Var.VALvar{name = name,
+		   typ = ref typ,
+		   btvs = ref nil,
+		   access = (* Access.LVAR *) lvar}
+
+(*
+    fun svarToVar (SVAR{name,typ,lvar}) =
+	VarCon.VALvar{path = SymPath.SPATH [name],
+		      typ = ref typ,
+		      btvs = ref nil,
+		      access = Access.LVAR(lvar),
+		      prim = PrimopId.NonPrim}
+*)
 end (* local *)
 end (* structure VarCon *)

@@ -62,6 +62,10 @@ fun mkDcon (DATACON {name, rep, typ, ...}) =
       (name, rep, toDconLty toLty typ)
 
 (* keyToCon : MC.key * SV.svar option -> P.con *)
+(* In the case of V n, there will be a variable to be bound to
+ * the vector contents? (a tuple? the whole vector?). In the
+ * case of D dcon, there may or not be a variable, depending
+ * on whether the constructor is a constant or not. *)
 fun keyToCon(key,svarOp,ty) =
     (case key
       of D dcon => 
@@ -75,7 +79,7 @@ fun keyToCon(key,svarOp,ty) =
                     * translated to FLINT tycs *)
 	    in P.DATAcon (mkDcon dcon, argtycs, lvar)
 	   end
-	 | V n => P.VLENcon n      (* svarOp = NONE ? *)
+	 | V n => P.VLENcon n      (* svarOp = SOME v *)
 	 | I num => transNum num   (* svarOp = NONE *)
 	 | W num => transNum num   (* svarOp = NONE *)
 	 | S s => P.STRINGcon s    (* svarOp = NONE *)
@@ -98,7 +102,7 @@ fun mctrans (Letr(svars,defsvar,body), toLty) =
      in trLetr(svars, 0)
     end
 
-  | mctrans (Letr(svar, funexp, body)) = 
+  | mctrans (Letf(svar, funexp, body)) = 
     P.LET(SV.svarLvar svar, mctrans funexp, mctrans body)
 
   | mctrans (Letm(vars, svars, body)) = 
@@ -135,8 +139,8 @@ fun mctrans (Letr(svars,defsvar,body), toLty) =
                           val (lexp',ltys) = transArgs(vars,n+1)
                        in (LET(lv, SELECT(n, VAR argvar), lexp'), lty :: ltys)
                       end
-                val (lbody,ltys) = transArgs(vl,0)
-             in P.FN(argvar, LT.ltc_tuple ltys, lbody)
+                val (funbody,ltys) = transArgs(vl,0)
+             in P.FN(argvar, LT.ltc_tuple ltys, funbody)
             end
      in transFun (vars, lbody)
     end 
