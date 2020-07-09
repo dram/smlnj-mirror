@@ -24,6 +24,8 @@ structure JSONStreamParser
 
 [source,sml]
 ------------
+type source
+
 type 'ctx callbacks = {
     null : 'ctx -> 'ctx,
     boolean : 'ctx * bool -> 'ctx,
@@ -38,12 +40,23 @@ type 'ctx callbacks = {
     error : 'ctx * string -> unit
   }
 
-val parse : 'ctx callbacks -> (TextIO.instream * 'ctx) -> 'ctx
+val openStream : TextIO.instream -> source
+val openFile : string -> source
+val openString : string -> source
+
+val close : source -> unit
+
+val parse : 'ctx callbacks -> (source * 'ctx) -> 'ctx
 
 val parseFile : 'ctx callbacks -> (string * 'ctx) -> 'ctx
 ------------
 
 == Description
+
+[[type:source]]
+`[.kw]#type# source`::
+  The abstract type of JSON input sources.  Note that this type is the
+  same as xref:str-JSONStreamParser.adoc#type:source[`JSONParser.source`].
 
 `[.kw]#type# 'ctx callbacks = { ... }`::
   This type is a record of the parsing-event call-back functions, where
@@ -98,15 +111,41 @@ val parseFile : 'ctx callbacks -> (string * 'ctx) -> 'ctx
 	exception.
 --
 
-`[.kw]#val# parse : 'ctx callbacks \-> (TextIO.instream * 'ctx) \-> 'ctx`::
-  `parse cbs (inS, cxt)` will parse the *JSON* input from the input stream
-  `inS`, using the record of call-back functions `cbs` and the initial
+[[val::openStream]]
+`[.kw]#val# openStream : TextIO.instream -> source`::
+  `openStream inS` returns a input source for the given input stream.
+
+[[val:openFile]]
+`[.kw]#val# openFile : string -> source`::
+  `openStream file` returns a input source for the given file.  This function
+  opens an input stream for reading from the file, so one should make sure to
+  call xref:val:close[`close`] on the source once all of the *JSON* values
+  have been read from the file.
+
+`[.kw]#val# openString : string -> source`::
+  `openStream s` returns a input source for the given string.
+
+[[val:close]]
+`[.kw]#val# close : source -> unit`::
+  `close src` closes the input source, which has the effect of marking the source
+  as _closed_.  Furthermore, if `src` was created by a call to
+  xref:#val:openFile[`openFile`], then the underlying input stream that
+  was created for the file is closed.  This function does *not* close the
+  input stream for sources created by xref:#val:openStream[`openStream`]
+
+[[val:parse]]
+`[.kw]#val# parse : 'ctx callbacks \-> (source * 'ctx) \-> 'ctx`::
+  `parse cbs (src, cxt)` will parse the *JSON* input from the input source
+  `src`, using the record of call-back functions `cbs` and the initial
   context `cxt`.
 
 `[.kw]#val# parseFile : 'ctx callbacks \-> (string * 'ctx) \-> 'ctx`::
   `parse cbs (f, cxt)` will parse the *JSON* input from the file
   `f`, using the record of call-back functions `cbs` and the initial
-  context `cxt`.
+  context `cxt`.  Note that this function will only parse a single
+  *JSON* value from the file; to parse multiple values, one should used
+  the xref:val:parse[`parse`] function with a source created by
+  xref:val:openFile[`openFile`].
 
 == Exampless
 
