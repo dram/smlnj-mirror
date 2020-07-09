@@ -28,6 +28,7 @@ case `uname -s` in
   Darwin) case `uname -r` in
     18*) DEFAULT_SIZE=64 ;;	# macOS 10.14 Mojave
     19*) DEFAULT_SIZE=64 ;;	# macOS 10.15 Catalina
+    20*) DEFAULT_SIZE=64 ;;	# macOS 11.0 Big Sur
     esac ;;
 esac
 
