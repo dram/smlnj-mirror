@@ -16,6 +16,8 @@ structure DfaEngine : REGEXP_ENGINE
 
 == Description
 
+SOMETHING
+
 == See Also
 
 xref:sig-REGEXP_ENGINE.adoc[`REGEXP_ENGINE`],

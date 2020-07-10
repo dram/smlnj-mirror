@@ -83,6 +83,7 @@ val xdigit : CharSet.se
   is supported by the library.  The constructors are defined as follows:
 +
 --
+
 [[con:Group]]
 * `Group re`::
   defines a match group (_i.e._, that produce a corresponding

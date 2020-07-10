@@ -11,7 +11,7 @@ The *RegExp Library* ...
 
 == Contents
 
-xref:tutorial.adoc[Using the *RegExp Library*]
+xref:tutorial.adoc[Using the *RegExp Library*]::
   A tutorial guide to using this library.
 
 xref:sig-REGEXP_PARSER.adoc[`[.kw]#signature# REGEXP_PARSER`]::

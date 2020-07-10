@@ -39,7 +39,7 @@ val parseFile : string -> JSON.value
   The abstract type of JSON input sources.  Note that this type is the
   same as xref:str-JSONStreamParser.adoc#type:source[`JSONStreamParser.source`].
 
-[[val::openStream]]
+[[val:openStream]]
 `[.kw]#val# openStream : TextIO.instream -> source`::
   `openStream inS` returns a input source for the given input stream.
 

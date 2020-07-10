@@ -111,7 +111,7 @@ val parseFile : 'ctx callbacks -> (string * 'ctx) -> 'ctx
 	exception.
 --
 
-[[val::openStream]]
+[[val:openStream]]
 `[.kw]#val# openStream : TextIO.instream -> source`::
   `openStream inS` returns a input source for the given input stream.
 
