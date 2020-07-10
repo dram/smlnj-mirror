@@ -95,6 +95,14 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2019/06/04]::
++
+Implemented https://github.com/SMLFamily/BasisLibrary/wiki/2020-001-Addition-of-Universal-module[
+Basis Library proposal 2020-001 (Addition of Universal module)].
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2020/07/10]::
 +
 Changed the `config/install.sh` script so that the default size

@@ -28,7 +28,9 @@ FILES::
 ''''''''
 
 == Summary
-
+// bug fixes
+// groundwork for LLVM
+// new Basis Library module
 // **** summary description of release
 
 == Details
@@ -78,6 +80,15 @@ check for overflow is unnecessary, it has been removed from the files
 
 === Basis Library
 
+This version implements the following Basis Library proposal:
+--
+**[2020-001]**::
+https://github.com/SMLFamily/BasisLibrary/wiki/2020-001-Addition-of-Universal-module[
+Basis Library proposal 2020-001 (Addition of Universal module)] --
+This proposal adds the `Universal` structure found in **Poly/ML** to the
+Basis Library.
+--
+
 === SML/NJ Library
 
 The `HTMLDev` structure in the pretty-printing library (`$/pp-lib.cm`) has
@@ -107,6 +118,10 @@ not complete, it does cover the most commonly used components (with the
 exception of the pretty-printing library).
 
 === Installation
+
+The default installation for machines that report "``x86_64``" as their
+hardware is no 64 bits.  See the installation instructions for more
+details.
 
 === 32-bit macOS issues
 
@@ -140,6 +155,8 @@ for more details.
 
 [.buglist,cols="^1,<15"]
 |=======
+| [.bugid]#238#
+| Cross compilation from *amd64* to *x86* does not work
 | [.bugid]#256#
 | `Ref.exchange` incorrect
 | [.bugid]#257#
