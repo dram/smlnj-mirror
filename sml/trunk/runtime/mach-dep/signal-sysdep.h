@@ -418,8 +418,8 @@ extern void SetFSR(int);
 #    define SIG_ZeroLimitPtr(scp)	{ (scp)->uc_mcontext.gregs[REG_R14] = 0; }
 
 /* macro to check if SIGSEGV was caused by `int 4` instruction */
-#    define SIG_IS_OVERFLOW_TRAP(sig,pc)	\
-	(((sig) == SIG_OVERFLOW2) ||
+#    define SIG_IS_OVERFLOW_TRAP(sig,pc)					\
+	(((sig) == SIG_OVERFLOW2) ||						\
 	    ((((Byte_t*)pc)[-2] == 0xcd) && (((Byte_t*)pc)[-1] == 0x04)))
 
 #  elif defined(OPSYS_NETBSD)
