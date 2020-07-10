@@ -27,21 +27,20 @@ structure FileTree : sig
 	info : 'a		(* information specific to the type of file in the tree *)
       }
 
-  (* the leaves of the tree are the pages that describe the modules; the info is
-   * `NONE` for tutorial pages.
-   *)
+    datatype page_kind = SigPage | StructPage | FunctPage | OtherPage
+
+  (* the leaves of the tree are the pages that describe the modules *)
     type page = {
-	kind : string,		(* specifies the kind of the main module; will be
-				 * one of "signature", "structure", or "functor"
+	kind : page_kind,	(* specifies the kind of the main module
+				 * or `OtherPage` for other material.
 				 *)
-	name : string		(* the main module name *)
-      } option file
+	name : string		(* the main module name or page title *)
+      } file
 
   (* the interior nodes correspond to libraries.  The info describes the pages
    * that comprise the library's documentation.
    *)
     type library = {
-	tutorial : page option,	(* optional tutorial page *)
 	pages : page list	(* list of manual pages for library *)
       } file
 
@@ -62,7 +61,6 @@ structure FileTree : sig
     val getStem : 'a file -> string
     val getTitle : 'a file -> string
     val getLibs : t -> library list
-    val getTutorial : library -> page option
     val getPages : library -> page list
 
   (* apply the functions to the nodes of the tree *)
@@ -105,21 +103,20 @@ structure FileTree : sig
 	info : 'a		(* information specific to the type of file in the tree *)
       }
 
-  (* the leaves of the tree are the pages that describe the modules; the info is
-   * `NONE` for tutorial pages.
-   *)
+    datatype page_kind = SigPage | StructPage | FunctPage | OtherPage
+
+  (* the leaves of the tree are the pages that describe the modules *)
     type page = {
-	kind : string,		(* specifies the kind of the main module; will be
-				 * one of "signature", "structure", or "functor"
+	kind : page_kind,	(* specifies the kind of the main module
+				 * or `OtherPage` for other material.
 				 *)
-	name : string		(* the main module name *)
-      } option file
+	name : string		(* the main module name or page title *)
+      } file
 
   (* the interior nodes correspond to libraries.  The info describes the pages
    * that comprise the library's documentation.
    *)
     type library = {
-	tutorial : page option,	(* optional tutorial page *)
 	pages : page list	(* list of manual pages for library *)
       } file
 
@@ -140,9 +137,7 @@ structure FileTree : sig
     fun getStem (FILE{stem, ...}) = stem
     fun getTitle (FILE{title, ...}) = title
     fun getLibs (FILE{info={libs}, ...}) = libs
-    fun getTutorial (FILE{info={tutorial, pages}, ...}) = tutorial
-    fun getPages (FILE{info={tutorial=SOME p, pages}, ...}) = p :: pages
-      | getPages (FILE{info={pages, ...}, ...}) = pages
+    fun getPages (FILE{info={pages}, ...}) = pages
 
     fun inLibrary (FILE lib) (FILE p) = (#dir lib = #dir p)
 
@@ -200,16 +195,20 @@ structure FileTree : sig
 		end
 	  fun jsonToPage obj = jsonToFile obj (fn (_, find) => (
 		case (find "kind", find "name")
-		 of (SOME k, SOME n) => SOME{kind = U.asString k, name = U.asString n}
-		  | (NONE, NONE) => NONE
+		 of (SOME k, SOME n) => let
+		      val kind = (case U.asString k
+			     of "signature" => SigPage
+			      | "structure" => StructPage
+			      | "functor" => FunctPage
+			      | "other" => OtherPage
+			      | s => raise Fail(concat["unknown page kind \"", s, "\""])
+			    (* end case *))
+		      in
+			{kind = kind, name = U.asString n}
+		      end
 		  | _ => raise Fail "misformed page"
 		(* end case *)))
 	  fun jsonToLib obj = jsonToFile obj (fn (get, find) => {
-		  tutorial = (case find "tutorial"
-		     of NONE => NONE
-		      | SOME NULL => NONE
-		      | SOME obj => SOME(jsonToPage obj)
-		    (* end case *)),
 		  pages = U.arrayMap jsonToPage (get "pages")
 		})
 	  in
@@ -245,9 +244,20 @@ structure FileTree : sig
 		    ("title", STRING title) ::
 		    fields)
 		end
-	  fun pageToJSON page = fileToJSON page
-		(fn NONE => []
-		  | SOME{kind, name} => [("kind", STRING kind), ("name", STRING name)])
+	  fun pageToJSON page = let
+		fun infoToJSON {kind, name} = let
+		      val kind = (case kind
+			     of SigPage => "signature"
+			      | StructPage => "structure"
+			      | FunctPage => "functor"
+			      | OtherPage => "other"
+			    (* end case *))
+		      in
+			[("kind", STRING kind), ("name", STRING name)]
+		      end
+		in
+		  fileToJSON page infoToJSON
+		end
 	  fun libToJSON lib = fileToJSON lib
 		(fn _ => [("pages", ARRAY(map pageToJSON (getPages lib)))])
 	  in

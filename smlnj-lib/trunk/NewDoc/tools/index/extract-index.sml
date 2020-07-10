@@ -27,9 +27,10 @@ structure ExtractIndex : sig
 
     val attrRE = RE.compileString "^:!?([^!:]+)!?:(.*)"
     val includeRE = RE.compileString "^include::([^.]+\\.adoc)\\[\\]"
-    val pageRefRE =
-	  RE.compileString
-	    "[ ]*xref:([^.]+\\.adoc)\\[`\\[\\.kw\\]#([a-z]+)# ([^`]+)`\\]::"
+    val xrefRE = RE.compileString
+	  "[ ]*xref:([^.]+\\.adoc)\\[([^\\]]+|`\\[\\.kw\\]#[a-z]+# [^`]+`)\\]::"
+  (* match the title text for a module xref *)
+    val pageRefRE = RE.compileString "`\\[\\.kw\\]#([a-z]+)# ([^`]+)`"
 
     fun match re = let
 	  val prefix = StringCvt.scanString (RE.prefix re)
@@ -111,8 +112,11 @@ structure ExtractIndex : sig
   (* find the next "include" directive in the input stream *)
     fun findInclude inS = scanLines (match includeRE) inS
 
-  (* find the next page reference *)
-    fun findPageRef inS = scanLines (match pageRefRE) inS
+  (* find the next "xref" directive in the input stream *)
+    fun findXRef inS = scanLines (match xrefRE) inS
+
+  (* match a module page reference *)
+    val matchPageRef = match pageRefRE
 
     fun doPage rootDir libDir {file, info} = let
 	  val pagePath = P.joinDirFile{dir = libDir, file = file}
@@ -127,21 +131,42 @@ structure ExtractIndex : sig
 
   (* extract the list of page files from a library document *)
     fun getPagesFromLib inS = let
-	  fun getPages pages = (case findPageRef inS
-		 of SOME(MT.Match(_, [
-		      MT.Match(file, []), MT.Match(kw, []), MT.Match(name, [])
-		    ])) => let
-		      val page = {file = file, info = SOME{kind = kw, name = name}}
-		      in
-			getPages (page::pages)
-		      end
+	(* first we get the `xref` list items *)
+	  fun getPages pages = (case findXRef inS
+		 of SOME(MT.Match(_, [MT.Match(file, []), MT.Match(title, [])])) => (
+		      case matchPageRef title
+		       of SOME(MT.Match(_, [MT.Match(kw, []), MT.Match(name, [])])) => let
+			    val kind = (case kw
+				   of "signature" => FT.SigPage
+				    | "structure" => FT.StructPage
+				    | "functor" => FT.FunctPage
+				    | _ => raise Fail(concat[
+					  "**bogus keyword \"", kw, "\""
+					])
+				  (* end case *))
+			    val page = {
+				    file = file,
+				    info = {kind = kind, name = name}
+				  }
+			    in
+			      getPages (page :: pages)
+			    end
+			| _ => let (* non-module page *)
+			    val page = {
+				    file = file,
+				    info = {kind = FT.OtherPage, name = title}
+				  }
+			    in
+			      getPages (page :: pages)
+			    end
+		      (* end case *))
 		  | NONE => List.rev pages
 		  | SOME(MT.Match(s, _)) => raise Fail(concat[
-			"**bogus page ref \"", String.toString s, "\""
+			"**bogus xref \"", String.toString s, "\""
 		      ])
 		(* end case *))
 	  in
-	    {tutorial = NONE, pages = getPages []}
+	    {pages = getPages []}
 	  end
 
   (* process a library file *)
@@ -150,12 +175,7 @@ structure ExtractIndex : sig
 	  in
 	    scanFile rootDir libPath
 	      getPagesFromLib
-		(fn {tutorial, pages} => let
-		    val doPage = doPage rootDir libDir
-		    in {
-		      tutorial = Option.map doPage tutorial,
-		      pages = List.map doPage pages
-		    } end)
+		(fn {pages} => {pages = List.map (doPage rootDir libDir) pages})
 	  end
 
   (* extract the list of library files from the root document *)
