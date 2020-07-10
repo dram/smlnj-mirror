@@ -44,11 +44,14 @@ PVT SigReturn_t FaultHandler (int sig, SigInfo_t code, SigContext_t *scp);
 void InitFaultHandlers (ml_state_t *msp)
 {
 
-  /** Set up the Div and Overflow faults **/
+  /** Set up the Overflow fault(s) **/
 #ifdef SIG_OVERFLOW
     SIG_SetHandler (SIG_OVERFLOW, FaultHandler);
 #else
 # error now signal for Overflow specified
+#endif
+#ifdef SIG_OVERFLOW2
+    SIG_SetHandler (SIG_OVERFLOW2, FaultHandler);
 #endif
 
   /** Initialize the floating-point unit **/
@@ -87,7 +90,7 @@ PVT SigReturn_t FaultHandler (int signal, siginfo_t *si, void *uc)
 
 #ifdef SIG_IS_OVERFLOW_TRAP
   /* verify that the signal actually comes from an overflow */
-    if (! SIG_IS_OVERFLOW_TRAP(pc)) {
+    if (! SIG_IS_OVERFLOW_TRAP(signal,pc)) {
 	Die ("bogus overflow fault: pc = %p, sig = %d\n", (void*)pc, signal);
     }
 #endif
