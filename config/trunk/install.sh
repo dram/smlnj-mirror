@@ -1,14 +1,14 @@
 #!/bin/sh
 #
 # Copyright (c) 1994 AT&T Bell Laboratories.
-# Copyright (c) 2014-2019 The Fellowship of SML/NJ
+# Copyright (c) 2014-2020 The Fellowship of SML/NJ
 #
 # Installation script for SML/NJ and related tools.
 #
 # Significant changes to take advantage of a new portable installer
 # script for everything after booting the interactive system.
 #
-# Author: Matthias Blume (blume@tti-c.org)
+# Author: Matthias Blume and John Reppy
 #
 
 complain() {
@@ -18,18 +18,13 @@ complain() {
 
 this=$0
 
-# set the default size for the install.  Currently, the default is 32 on
-# most systems; the one exception is for macOS 10.14 Mojave (which does not
-# support building 32-bit executables) and later (which do not support
-# running 32-bit executables), we set the default to 64.
+# set the default size for the install.  Currently, the default is 64 for
+# systems that report "x86_64" for `uname -m`.  These include macOS and
+# Linux systems.  We set the default size to 32 for all other systems.
 #
 DEFAULT_SIZE=32
-case `uname -s` in
-  Darwin) case `uname -r` in
-    18*) DEFAULT_SIZE=64 ;;	# macOS 10.14 Mojave
-    19*) DEFAULT_SIZE=64 ;;	# macOS 10.15 Catalina
-    20*) DEFAULT_SIZE=64 ;;	# macOS 11.0 Big Sur
-    esac ;;
+case `uname -m` in
+  x86_64) DEFAULT_SIZE=64 ;;
 esac
 
 # process options
