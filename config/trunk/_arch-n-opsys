@@ -112,8 +112,6 @@ case `uname -s` in
 	  *) exit 1 ;;
 	esac
 	;;
-    # As long as we do not natively support the amd64 architecture,
-    # we should fallback to the x86 compatibility mode.  --Stef
       x86_64)
 	ARCH=$(pick_arch x86 amd64)
 	;;
