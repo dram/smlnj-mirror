@@ -3,7 +3,7 @@
  * This is the default SML/NJ Basis, which includes the latest updates (and proposed changes)
  * to the Standard ML Basis Library (see https://github.com/SMLFamily/BasisLibrary).
  *
- * Copyright (c) 2015 by The Fellowship of SML/NJ
+ * Copyright (c) 2020 by The Fellowship of SML/NJ
  *)
 
 Library
@@ -59,6 +59,7 @@ Library
 	signature FN		(* proposal 2015-005 *)
 	signature REF		(* proposal 2015-007 *)
 	signature MONO_BUFFER	(* proposal 2018-001 *)
+	signature UNIVERSAL	(* proposal 2020-001 *)
 
 	signature SML90
 
@@ -167,6 +168,7 @@ Library
 	structure Ref		(* proposal 2015-007 *)
 	structure CharBuffer	(* proposal 2018-001 *)
 	structure Word8Buffer	(* proposal 2018-001 *)
+	structure Universal	(* proposal 2020-001 *)
 
 	structure SML90
 

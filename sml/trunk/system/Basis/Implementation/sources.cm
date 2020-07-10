@@ -63,6 +63,7 @@ Group
 	signature FN		(* proposal 2015-005 *)
 	signature REF		(* proposal 2015-007 *)
 	signature MONO_BUFFER	(* proposal 2018-001 *)
+	signature UNIVERSAL	(* proposal 2020-001 *)
 
       (* old versions of basis signatures from the 2004 published spec *)
 	signature ARRAY_2004
@@ -191,6 +192,7 @@ Group
 	structure Ref		(* proposal 2015-007 *)
 	structure CharBuffer	(* proposal 2018-001 *)
 	structure Word8Buffer	(* proposal 2018-001 *)
+	structure Universal	(* proposal 2020-001 *)
 
 	functor PrimIO
 
@@ -484,6 +486,9 @@ is
       (* basis proposal 2015-007 *)
 	ref.sig
 	ref.sml
+      (* basis proposl 2020-001 *)
+	universal.sig
+	universal.sml
 
 	bit-flags.sig
 	bit-flags-fn.sml
