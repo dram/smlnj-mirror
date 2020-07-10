@@ -95,14 +95,32 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //== Recent updates
 
 //--------------------------------------------------------------------
+[2020/07/10]::
++
+Changed the `config/install.sh` script so that the default size
+is 64 bits for any machine that reports its machine as "x86_64`."
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
+[2020/07/10]::
++
+Fixed bug bugref:260[] (Perform divide on `Position.int` crashes
+with FPE on Linux).  The fix required adding SIGFPE as a second
+source of `Overflow` exceptions on Linux/amd64 machines.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
+
+//--------------------------------------------------------------------
 [2020/07/08]::
 +
 Fixes for structure and signature pretty printing problems that were
 introduced in the extensive pretty printer/pretty printing
 modifications around revision 6291.
 +
-Files affected include ElabData/modules/ppmod.sml, ElabData/types/pptype.sml,
-TopLevel/print/ppdec.sml, Basics/print/pputil.{sig,sml}.
+Files affected include `ElabData/modules/ppmod.sml`,
+`ElabData/types/pptype.sml`, `TopLevel/print/ppdec.sml`,
+and ``Basics/print/pputil.``{``sig``,``sml``}.
 +
 The pretty printing for modules still seems quite fragile, so there
 are likely to be more pretty printing problems to be fixed later. In

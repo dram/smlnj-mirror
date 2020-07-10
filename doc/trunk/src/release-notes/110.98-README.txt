@@ -144,6 +144,8 @@ for more details.
 | `Ref.exchange` incorrect
 | [.bugid]#257#
 | `HASH_TABLE` `listItems` error in reference manual
+| [.bugid]#260#
+| Perform divide on `Position.int` crashes with FPE on Linux
 | [.bugid]#261#
 | Weird "calc_strictness" message being printed
 | [.bugid]#262#
