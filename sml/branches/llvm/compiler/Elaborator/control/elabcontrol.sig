@@ -34,7 +34,7 @@ signature ELAB_CONTROL =
     val markabsyn : bool ref
 	(* ElabCore, ElabTop, ElabUtil, Control_MC *)
 
-    val boxedconstconreps : bool ref
+(*    val boxedconstconreps : bool ref *)
 	(* ConRep *)
 
     val printAbsyn : bool ref

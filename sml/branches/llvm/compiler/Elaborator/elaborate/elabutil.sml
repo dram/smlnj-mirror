@@ -120,7 +120,7 @@ val forbiddenConstructors =
 (* checks whether names contains a forbidden constructor name *)
 fun checkForbiddenCons symbol =
     List.exists (fn x => S.eq(symbol,x)) forbiddenConstructors
- 
+
 (*
  * Extract all the variables from a pattern
  * NOTE: the "freeOrVars" function in elabcore.sml should probably
@@ -398,21 +398,6 @@ fun makeLAYEREDpat ((x as VARpat _), y, _) = LAYEREDpat(x,y)
   | makeLAYEREDpat (x,y,err) =
       (err COMPLAIN "pattern to left of \"as\" must be variable" nullErrorBody;
        y)
-
-fun calc_strictness (arity, body) =
-    let val argument_found = Array.array(arity,false)
-	fun search(VARty(ref(INSTANTIATED ty))) = search ty
-	  | search(IBOUND n) = Array.update(argument_found,n,true)
-	  | search(ty as CONty(tycon, args)) =
-              (case tycon
-                 of DEFtyc _ => search(headReduceType ty)
-                  | _ => app search args)
-	  | search(MARKty(ty,_)) = search ty
-	  | search _ = (print "#### calc_strictness ####\n")	(* for now... ???? *)
-     in search body;
-	Array.foldr (op ::) nil argument_found
-    end
-
 
 (* checkBoundTyvars: check whether the tyvars appearing in a type (used) are
    bound (as parameters in a type declaration) *)

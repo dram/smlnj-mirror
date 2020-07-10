@@ -87,21 +87,21 @@ local exception Found
 in
 fun findFetch(v,k) body =
       (* find whether field k of variable v is guaranteed to exist *)
-  let fun f(RECORD(_, fields,_,e)) = (app g fields; f e)
-	| f(SELECT(i,VAR v',w,_,e)) =
+  let fun f (RECORD(_, fields,_,e)) = (app g fields; f e)
+	| f (SELECT(i,VAR v',w,_,e)) =
                if v=v' andalso i=k then raise Found else f e
-	| f(SELECT(_,_,_,_,e)) = f e
-	| f(OFFSET(_,_,_,e)) = f e
-	| f(FIX(_,e)) = f e
-	| f(BRANCH(_,_,_,e1,e2)) = findFetch(v,k) e1 andalso findFetch(v,k) e2
-	| f(LOOKER(_,_,_,_,e)) = f e
-	| f(SETTER(_,_,e)) = f e
-	| f(ARITH(_,_,_,_,e)) = f e
-	| f(PURE(_,_,_,_,e)) = f e
-	| f(RCC(_,_,_,_,_,e)) = f e
-	| f(SWITCH(_,_,el)) = not(List.exists (not o findFetch(v,k)) el)
+	| f (SELECT(_,_,_,_,e)) = f e
+	| f (OFFSET(_,_,_,e)) = f e
+	| f (FIX(_,e)) = f e
+	| f (BRANCH(_,_,_,e1,e2)) = findFetch(v,k) e1 andalso findFetch(v,k) e2
+	| f (LOOKER(_,_,_,_,e)) = f e
+	| f (SETTER(_,_,e)) = f e
+	| f (ARITH(_,_,_,_,e)) = f e
+	| f (PURE(_,_,_,_,e)) = f e
+	| f (RCC(_,_,_,_,_,e)) = f e
+	| f (SWITCH(_,_,el)) = not(List.exists (not o findFetch(v,k)) el)
 	| f _ = false
-      and g(VAR v',SELp(i,_)) = if v=v' andalso i=k then raise Found else ()
+      and g (VAR v',SELp(i,_)) = if v=v' andalso i=k then raise Found else ()
 	| g _  = ()
   in  f body handle Found => true
   end
@@ -253,4 +253,3 @@ end
 
 end (* toplevel local *)
 end (* functor Flatten *)
-

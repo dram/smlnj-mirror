@@ -125,7 +125,7 @@ Basics/
       A common representation of typed real literals to use in
       intermediate representations (from Absyn to CPS).
       defs: RealConst
-      
+
   Basics/util/
     wordstr-hashtable.sml
       word * string hash table
@@ -136,21 +136,22 @@ Basics/
       see: ElabData/basics/env.sml
 
   Basics/errormsg/
+  error message machinery (depends oun Basics/source)
     errormsg.sig/sml
       error messages
-      defs: ERRORMSG, ErrorMsg
+      defs: ErrorMsg: ERRORMSG
 
   Basics/source/
   managing ML source files or streams
     pathnames.sig/sml
       file path names
-      defs: PATHNAMES, Pathnames
+      defs: Pathnames: PATHNAMES
     source.sig/sml
       input source datastructure
-      defs: SOURCE, Source
+      defs: Source: SOURCE
     sourcemap.sig/sml
       map character positions in source to line no/column supporting #line "declaration"
-      defs: SOURCE_MAP, SourcMap
+      defs: SourceMap: SOURCE_MAP
 
   Basics/print/
   utilities for prettyprinting
@@ -166,7 +167,7 @@ Basics/
       print control flags, out, say
       defs: PRINTCONTROL, Control_Print
     pputil.sig/sml
-      prettyprint utilities (generic)  [**MOVE**]
+      prettyprint utilities (generic)
       defs: PPUtil: PPUTIL
 
   Basics/stats/
@@ -174,7 +175,7 @@ Basics/
       facilities for defining timed phases
       defs: STATS, Stats
 
-  Basics/main/
+  Basics/main/  (* rename: name -> control *)
     basiccontrol.sml
       printWarning control flag, topregistry
       uses: ControlRegistry, Controls
@@ -232,7 +233,7 @@ Basic datastructures used in elaboration (including type checking)
     ppval.sml
       pretty printing vars, datacons, access, conrep
       defs : PPVal : PPVAL
-      
+
   ElabData/types/
   representing, constructing and manipulating types
     types.sig/sml
@@ -307,7 +308,7 @@ Basic datastructures used in elaboration (including type checking)
     ppmod.sml
       prettyprint modules and signatures
       defs: PPMod: PPMOD
-      
+
   ElabData/prim/
   primop representation and machinery
     cproto.sml
@@ -356,9 +357,9 @@ Basic datastructures used in elaboration (including type checking)
       recompute hash of an environment resulting from filtering
       a larger invironment
       defs: Rehash (inline sig)
-      
-  ElabData/main/
-    compinfo.sml
+
+  ElabData/main/  (* should become ElabData/control after compinfo.sml is moved *)
+    compinfo.sml  (* SHOULD MOVE to basics? *)
       elaboration context parameter
       defs: CompInfo
     edcontrol.sig/sml
@@ -627,7 +628,7 @@ TopLevel/
       defs: CompilerPPTable
     printhooks.sml
       defs: PrintHooks
-    
+
   main/
     control.sig
       defs: MCCONTROL, FLINTCONTROL, CGCONTROL, CONTROL

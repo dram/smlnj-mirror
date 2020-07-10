@@ -311,7 +311,7 @@ fun elabWhere (sigexp,env,epContext,mkStamp,error,region) =
 			  val _ = TU.compressTy ty
 			  val stamp = mkStamp ()
 			  val path = IP.IPATH [List.last path]
-			  val strict = EU.calc_strictness(arity,ty)
+			  val strict = TU.calcStrictness(arity,ty)
 			  val (nty,relative) = MU.relativizeType epContext ty
 			  val tycon =
                             T.DEFtyc{stamp=stamp,
@@ -389,7 +389,7 @@ fun elabTYPEspec(tspecs, env, elements, eqspec, region) =
                             val (nty,_) = MU.relativizeType epContext ty
                          in T.DEFtyc{stamp = mkStamp(),
                                      path=IP.IPATH [name],
-                                     strict=EU.calc_strictness(arity,ty),
+                                     strict=TU.calcStrictness(arity,ty),
                                      tyfun=T.TYFUN{arity=arity,body=nty}}
                         end
                     | NONE => T.GENtyc {stamp = mkStamp(),

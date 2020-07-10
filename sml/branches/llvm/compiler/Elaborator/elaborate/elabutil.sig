@@ -5,7 +5,7 @@
 signature ELABUTIL =
 sig
 
-  datatype context 
+  datatype context
     = TOP    (* at top level -- not inside any module, rigid *)
     | INSTR  (* inside a rigid structure, i.e. not inside any functor body *)
     | INFCT of {flex: Stamps.stamp -> bool,  depth: DebIndex.depth}
@@ -58,18 +58,16 @@ sig
   val makeAPPpat : ErrorMsg.complainer -> Absyn.pat * Absyn.pat -> Absyn.pat
   val makeHANDLEexp : Absyn.exp * Absyn.rule list * compInfo -> Absyn.exp
   val makeLAYEREDpat : Absyn.pat * Absyn.pat * ErrorMsg.complainer -> Absyn.pat
-  val makeRECORDexp : 
+  val makeRECORDexp :
        (Symbol.symbol * Absyn.exp) list * ErrorMsg.complainer -> Absyn.exp
   val makeRECORDpat :
        (Symbol.symbol * Absyn.pat) list * bool * ErrorMsg.complainer
        -> Absyn.pat
 
-  val calc_strictness : int * Types.ty -> bool list
-
   val checkBoundTyvars :
        TyvarSet.tyvarset * Types.tyvar list * ErrorMsg.complainer -> unit
 
-  val pat_id : 
+  val pat_id :
        SymPath.path * StaticEnv.staticEnv * ErrorMsg.complainer * compInfo
        -> Absyn.pat
 
@@ -79,18 +77,18 @@ sig
 
   val FUNdec :
        (Absyn.rule list -> Absyn.rule list)
-       * {var : VarCon.var, 
-          clauses: {pats: Absyn.pat list, 
-                    resultty: Types.ty option, 
-                    exp: Absyn.exp} list, 
+       * {var : VarCon.var,
+          clauses: {pats: Absyn.pat list,
+                    resultty: Types.ty option,
+                    exp: Absyn.exp} list,
           tyvars: Types.tyvar list ref,
-	  region: Ast.region } list 
+	  region: Ast.region } list
        * compInfo -> (Absyn.dec * StaticEnv.staticEnv)
 
-  val wrapRECdec : Absyn.rvb list * compInfo 
+  val wrapRECdec : Absyn.rvb list * compInfo
                    -> (Absyn.dec * StaticEnv.staticEnv)
 
-  val labsym : Absyn.numberedLabel -> Symbol.symbol 
+  val labsym : Absyn.numberedLabel -> Symbol.symbol
 
   val recDecs : Absyn.rvb list -> Absyn.dec
 

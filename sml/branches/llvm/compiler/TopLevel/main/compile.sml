@@ -15,7 +15,7 @@ functor CompileF (
     fun mkCompInfo { source, transform } = CompInfo.mkCompInfo {
 	    source = source,
 	    transform = transform,
-	    mkMkStamp = CC.mkMkStamp
+	    mkStampGenerator = CC.mkMkStamp
 	  }
 
     type pickle     = CC.pickle		(* pickled format *)

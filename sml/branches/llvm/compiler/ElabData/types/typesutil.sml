@@ -149,6 +149,13 @@ structure TypesUtil : TYPESUTIL =
 	  Stamps.eq(s1,s2)
       | eqTycon _ = false
 
+    (* eqDatacon : datacon * datacon -> bool
+     * equality of datacons belonging to the same datatype, based on
+     * the fact that no two datacons of a datatype have the same rep value,
+     * and conrep is an equality type. *)
+    fun eqDatacon(DATACON{rep=a1,...}: datacon, DATACON{rep=a2,...}: datacon) =
+        (a1 = a2)
+
   (* prune: ty -> ty; eliminates outermost INSTANTIATED indirections *)
     fun prune (MARKty(ty, _)) = prune ty
       | prune (VARty(tv as ref(INSTANTIATED ty))) = let
@@ -350,6 +357,28 @@ structure TypesUtil : TYPESUTIL =
 	      in equalType(CONty(t1,args),CONty(t2,args))
 	      end)
 	 end
+
+    (* calcStrictness : int * Types.ty -> bool list *)
+    (* Returns a list of bools of length arity, where the ith element indicates
+     * whether DB index (IBOUND i) occurs in the type "body". *)
+    fun calcStrictness (arity, body) =
+	let val argument_found = Array.array(arity,false)
+	    fun search (VARty(ref(tvkind))) =
+		  (case tvkind
+		     of INSTANTIATED ty => search ty
+		      | _ => ())
+	      | search (IBOUND n) = Array.update(argument_found,n,true)
+	      | search (ty as CONty(tycon, args)) =
+		  (case tycon
+		     of DEFtyc _ => search(headReduceType ty)
+		      | _ => app search args)
+	      | search (MARKty(ty,_)) = search ty
+	      | search (POLYty _) = bug "calcStrictness: POLYty"
+	      | search WILDCARDty = bug "calcStrictness: WILDCARDty"
+	      | search UNDEFty = bug "calcStrictness: UNDEFty"
+	 in search body;
+	    Array.foldr (op ::) nil argument_found
+	end
 
   (* instantiating polytypes *)
 
@@ -1100,5 +1129,9 @@ structure TypesUtil : TYPESUTIL =
 		| {wid, ...} => (n < pow2 wid) (* we assume that n > 0, since it is unsigned *)
 	      (* end case *)
 	    end
+
+    fun dataconSign (DATACON{sign,...}) = sign
+
+    fun dataconIsConst (DATACON{const,...}) = const
 
   end (* structure TypesUtil *)

@@ -475,48 +475,49 @@ structure Literals : LITERALS =
 	  fun lpfn (fk, f, vl, cl, e) = (fk, f, vl, cl, loop e)
 
 	  and loop ce = (case ce
-	      of RECORD (rk, ul, v, e) => record (rk, ul, v) (loop e)
-	       | SELECT (i, u, v, t, e) =>
-		   let val (nu, hh) = lpsv u
-		    in hh(SELECT(i, nu, v, t, loop e))
-		   end
-	       | OFFSET _ => bug "unexpected OFFSET in loop"
-	       | APP (u, ul) =>
-		   let val (nu, h1) = lpsv u
-		       val (nl, h2) = lpvs ul
-		    in h1(h2(APP(nu, nl)))
-		   end
-	       | FIX (fns, e) => FIX(map lpfn fns, loop e)
-	       | SWITCH (u, v, es) =>
-		   let val (nu, hh) = lpsv u
-		    in hh(SWITCH(nu, v, map loop es))
-		   end
-	       | BRANCH (p, ul, v, e1, e2) =>
-		   let val (nl, hh) = lpvs ul
-		    in hh(BRANCH(p, nl, v, loop e1, loop e2))
-		   end
-	       | SETTER (p, ul, e) =>
-		   let val (nl, hh) = lpvs ul
-		    in hh(SETTER(p, nl, loop e))
-		   end
-	       | LOOKER (p, ul, v, t, e) =>
-		   let val (nl, hh) = lpvs ul
-		    in hh(LOOKER(p, nl, v, t, loop e))
-		   end
-	       | ARITH (p, ul, v, t, e) =>
-		   let val (nl, hh) = lpvs ul
-		    in hh(ARITH(p, nl, v, t, loop e))
-		   end
+	       of RECORD (rk, ul, v, e) => record (rk, ul, v) (loop e)
+		| SELECT (i, u, v, t, e) =>
+		    let val (nu, hh) = lpsv u
+		     in hh(SELECT(i, nu, v, t, loop e))
+		    end
+		| OFFSET _ => bug "unexpected OFFSET in loop"
+		| APP (u, ul) =>
+		    let val (nu, h1) = lpsv u
+			val (nl, h2) = lpvs ul
+		     in h1(h2(APP(nu, nl)))
+		    end
+		| FIX (fns, e) => FIX(map lpfn fns, loop e)
+		| SWITCH (u, v, es) =>
+		    let val (nu, hh) = lpsv u
+		     in hh(SWITCH(nu, v, map loop es))
+		    end
+		| BRANCH (p, ul, v, e1, e2) =>
+		    let val (nl, hh) = lpvs ul
+		     in hh(BRANCH(p, nl, v, loop e1, loop e2))
+		    end
+		| SETTER (p, ul, e) =>
+		    let val (nl, hh) = lpvs ul
+		     in hh(SETTER(p, nl, loop e))
+		    end
+		| LOOKER (p, ul, v, t, e) =>
+		    let val (nl, hh) = lpvs ul
+		     in hh(LOOKER(p, nl, v, t, loop e))
+		    end
+		| ARITH (p, ul, v, t, e) =>
+		    let val (nl, hh) = lpvs ul
+		     in hh(ARITH(p, nl, v, t, loop e))
+		    end
 (* QUESTION: should there be a case for `P.WRAP(P.INT _)` here? *)
-	       | PURE (P.WRAP(P.FLOAT sz), [u], v, t, e) => wrapfloat (sz, u, v, t) (loop e)
-	       | PURE (p, ul, v, t, e) =>
-		   let val (nl, hh) = lpvs ul
-		    in hh(PURE(p, nl, v, t, loop e))
-		   end
-	       | RCC (k, l, p, ul, vtl, e) =>
-		   let val (nl, hh) = lpvs ul
-		    in hh(RCC(k, l, p, nl, vtl, loop e))
-		   end)
+		| PURE (P.WRAP(P.FLOAT sz), [u], v, t, e) => wrapfloat (sz, u, v, t) (loop e)
+		| PURE (p, ul, v, t, e) =>
+		    let val (nl, hh) = lpvs ul
+		     in hh(PURE(p, nl, v, t, loop e))
+		    end
+		| RCC (k, l, p, ul, vtl, e) =>
+		    let val (nl, hh) = lpvs ul
+		     in hh(RCC(k, l, p, nl, vtl, loop e))
+		    end
+	      (* end case *))
 
 	  val newbody = loop body
 	  val (lit, hdr) = getInfo ()
