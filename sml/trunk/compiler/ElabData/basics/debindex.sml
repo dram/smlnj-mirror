@@ -40,7 +40,9 @@ in
 
 fun bug s = EM.impossible ("DebIndex: " ^ s)
 
+(* depth: (current) depth of nested type abstractions *)
 type depth = int  (* INVARIANT: 0 <= depth *)
+(* index: relative depth with respect to binding occurrence of type variables *)
 type index = int  (* INVARIANT: 1 <= index *)
 
 val top = 0
@@ -58,11 +60,11 @@ fun dp_print i = Int.toString i
 fun dp_toint (i : depth) = i
 fun dp_fromint (i : int) = i
 
-fun calc (cur:int, def) = 
-  if def > cur then bug "the definition is deeper than the use"
-  else (cur - def)
+fun getIndex (cur:depth, def:depth) : index = 
+    if def > cur then bug "the definition is deeper than the use"
+    else (cur - def)
 
-val cmp = Int.compare
+val cmp : depth * depth -> order = Int.compare
 
 fun di_key i = i
 
@@ -77,5 +79,3 @@ fun di_inner i = i+1
 
 end (* local *)
 end (* structure DebIndex *)
-
-

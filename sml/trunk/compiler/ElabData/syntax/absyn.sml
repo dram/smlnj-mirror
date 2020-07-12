@@ -21,8 +21,8 @@ structure Absyn : ABSYN =
       = VARexp of VarCon.var ref * Ty.tyvar list
 	(* the 2nd arg is a type univar list used to capture the instantiation
 	   parameters for this occurence of VarCon.var when its type is polymorphic.
-	   FLINT will use these to provide explicit type parameters for
-	   VarCon.var if VarCon.var is bound to a primop. These will then be used to specialize
+	   FLINT will use these to provide explicit type parameters for VarCon.var
+           if VarCon.var is bound to a primop, which will be used to specialize
 	   the primop. *)
       | CONexp of VarCon.datacon * Ty.tyvar list (* ditto *)
       | NUMexp of string * num_lit	(* string is source text of literal *)
@@ -65,7 +65,7 @@ structure Absyn : ABSYN =
       | NOpat
 
     and dec
-      = VALdec of vb list        (* always a single element list (FLINT normalization) *)
+      = VALdec of vb list  (* always a single element list (FLINT normalization) *)
       | VALRECdec of rvb list
       | DOdec of exp
       | TYPEdec of Ty.tycon list

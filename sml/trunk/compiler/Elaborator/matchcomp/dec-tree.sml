@@ -61,11 +61,11 @@ fun makeDecisionTree(orNodes, survivors, thisPath) =
       (case OO.selectBestRelevant(orNodes, R.minItem survivors, thisPath)
         of SOME (node as OR{path, direct, defaults, variants, ...}, candidates) =>
 	   (* best relevant OR node, remainder is queue of remaining OR nodes *)
-	   let val _ =
+	   let (* val _ =
 		  (print "makeDecisionTree: \n";
 		   print "  thisPath: "; MCPrint.tppPath thisPath;
 	           print "  survivors: "; MCPrint.tppRules survivors;
-		   print "  path: "; MCPrint.tppPath path)
+		   print "  path: "; MCPrint.tppPath path) *)
 	       (* variantDecTrees: variant list * decVariant list * APQ.queue
                                    -> decVariant list * APQ.queue *)
 	       fun variantDecTrees ((key,andor)::rest, decvariants) =

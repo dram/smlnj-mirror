@@ -15,7 +15,7 @@ sig
   val next : depth -> depth
   val prev : depth -> depth
   val eq   : depth * depth -> bool
-  val calc : depth * depth -> index
+  val getIndex : depth * depth -> index
   val cmp  : depth * depth -> order
 
   val dp_print : depth -> string
@@ -33,5 +33,4 @@ sig
   val di_inner : index -> index
 
 end (* signature DEB_INDEX *)
-
 

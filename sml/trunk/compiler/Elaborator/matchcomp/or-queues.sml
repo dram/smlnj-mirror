@@ -1,4 +1,4 @@
-(* ordered-or-nodes.sml *)
+(* or-queues.sml *)
 
 (* Extract the OR nodes from the base andor tree and sort them according to the
  * "best choice" heuristic criteria (compare and priority). The sorted sets of

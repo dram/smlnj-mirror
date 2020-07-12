@@ -10,7 +10,7 @@ local
 in
 
 fun bind (dcon,env) =
-    E.insert(env,TU.dataconName dcon, dcon)
+    E.insert(env, TU.dataconName dcon, dcon)
 
 val env0 = foldl bind nil Setup.dcons
 

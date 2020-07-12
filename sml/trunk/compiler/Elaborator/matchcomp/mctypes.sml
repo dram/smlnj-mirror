@@ -174,7 +174,7 @@ datatype andor
                * but no svar, since the svar is bound at the parent OR node. A LEAF
 	       * node also does not have an independent type; its type is determined
 	       * by the parent OR node (through its svar). *)
-    {path: path,               (* ditto *)
+    {path: path,               (* path is parent path extended by key *)
      direct: ruleset,          (* rules having _this_ key (end of path) at this point *)
      defaults: ruleset}
   | INITIAL   (* initial empty andor into which initial pattern is merged
@@ -283,7 +283,7 @@ datatype decTree
   | DMATCH (* of trail -- path in decTree to this DMATCH node *)
       (* would be redundant if we add a final default rule with wildcard pat
        * to guarantee that all pattern sets are known to be exhaustive,
-       * but the path argument gives an easy way to construct a counterexample *)
+       * but the trail argument should give an easy way to construct a counterexample *)
   | CHOICE of
     {node : andor,  (* an OR node used for dispatching *)
      choices : decVariant list,  (* corresponding to the (OR) node variants *)
@@ -297,17 +297,36 @@ withtype decVariant = key * decTree
  * representing a "raw" RHS of a rule. *)
 datatype mcexp
   = Var of SV.svar  (* how/where used? *)
-  | Letr of SV.svar * SV.svar list * mcexp  (* destructure an AND *)
-  | Letf of SV.svar * mcexp * mcexp   (* 1st mcexp will be an Sfun *)
-  | Letm of V.var list * SV.svar list * Absyn.exp  (* non-functionalized RHS *)
+      (* "sv" as an expression *)
+  | Letr of SV.svar list * SV.svar * mcexp
+      (* "let (sv1, ..., svn) = sv0 in body"; destructure an AND *)
+  | Letf of SV.svar * mcexp * mcexp
+      (* "let f = << fn sv => fbody >> in body" *)
+      (* 1st mcexp will always be an Sfun. The function will be a
+       * functionalized RHS. *)
+  | Letm of V.var list * SV.svar list * Absyn.exp
+      (* "let (v1, ..., vn) = (sv1, ..., svn) in rhsexp" *)
+      (* non-functionalized, single use, rule RHS, with linkage for svars *)
+  | Case1 of SV.svar * T.datacon * SV.svar * mcexp
+      (* "let dcon sv2 = sv1 in body" == "let sv2 = dcon^{-1} sv1 in body" *)
+      (* Destructure of a SINGLE datacon; not generated if dcon is constant. *)
   | Case of SV.svar * (key * SV.svar option * mcexp) list * mcexp option
-      (* destructure an OR, with svar binding if key is not a constant *)
-  | Sfun of V.var list * Absyn.exp  (* functionalized RHS expression *)
-  | Sapp of SV.svar * SV.svar list  (* A-normal-style. Function and args have all been
-				     * bound to svars *)
-  | Tfun of T.typevar list * mcexp    (* type function bindings tyvars *)
-  | MATCH  (* raise a match exception -- may be redundant if matches guaranteed exhaustive *)
-				
+      (* Destructure an OR, with svar binding if key is not a constant. *)
+  | Sfun of V.var list * Absyn.exp
+      (* "fn (v0, ..., vn) => body"; functionalized, multi-use rule RHS *)
+  | Sapp of SV.svar * SV.svar list
+      (* "sv0 (sv1, ..., svn)";  A-normal-style: function and args have all been
+       * bound to svars. Will only be used for instances of functionaolized RHSs,
+       * so sv0 will be bound (using Letf) to a RHS function. *)
+  | Tfun of T.typevar list * mcexp
+      (* "tfun (tyv0, ..., tyvn) => body"; type function with tyvar parameters. *)
+      (* ??? type-level abstraction may be left to Translate phase? *)
+  | MATCH
+      (* "raise MATCH"; May be redundant if matches guaranteed exhaustive. *)
+
+(* NOTE: we don't need letm case if we translate svars to corresponding vars while
+ * translating the body of the letm (using map from svar to (var,rule)), and keeping
+ * track of which rule rhs we are translating. *)
 
 end (* local *)
 end (* structure MCTypes *)

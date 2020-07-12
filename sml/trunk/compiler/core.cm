@@ -131,6 +131,7 @@ Group
 	signature UNIFY
 
 	(* export of structures required to use FLINT directly *)
+	structure TransUtil
 	structure Translate
 	structure Lty
 	structure LtyKindChk
@@ -252,6 +253,7 @@ FLINT/trans/matchcomp.sml
 FLINT/trans/mccommon.sml
 FLINT/trans/mcprint.sml
 FLINT/trans/pequal.sml
+FLINT/trans/transutil.sml
 FLINT/trans/translate.sml
 FLINT/trans/transprim.sml
 FLINT/trans/transtypes.sml

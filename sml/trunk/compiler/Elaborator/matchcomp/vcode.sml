@@ -1,6 +1,6 @@
 (* vcode.sml *)
 
-(* virtual version of mcexp where pseudo-constructors translate to absyn
+(* virtual version of mcexps where pseudo-constructors translate to absyn
  * A pseudo-constructor function is defined for each constructor of the mcexp
  * (e.g. vVar for Var) *)
 
@@ -9,6 +9,7 @@ struct
 
 local
   structure A = Absyn
+  structure AU = AbsynUtil
   structure SV = SVar  (* simplified (virtual) variables *)
   structure MT = MCTypes
   open Absyn
@@ -30,14 +31,14 @@ fun mkLet (svar, defexp, body) =
 		      tyvars = ref nil}],
 	   body)
 
-fun mkTupplePat () = ()
-		
+(* caseToRule : MCTypes.key * SV.svar option * Absyn.exp -> Absyn.rule *)
+(* svarOp is SOME sv if key is D dcon where dcon is not constant *)
 fun caseToRule (key, svarOp, rhsexp) =
     let val pat = (*make pattern from key and svarOp *)
 	    (case key
 	      of (D dcon) =>
 		 (case svarOp
-		   of NONE => CONpat(dcon, nil)
+		   of NONE => CONpat(dcon, nil)  (* => constant dcon *)
 		    | SOME sv => APPpat(dcon, nil, VARpat(SV.svarToVar sv)))
 	       | I num => NUMpat("", num)
 	       | S s => STRINGpat s
@@ -47,11 +48,13 @@ fun caseToRule (key, svarOp, rhsexp) =
     end
 
 (* vVar: SV.svar -> mcexp *)
+(* Convert an svar to a VarCon.var and treat as expression. 
+ * Should the tyvar list (polymorphic instantiation args) be reconstructed? *)
 fun vVar (sv : SV.svar) = A.VARexp(ref(SV.svarToVar sv), nil)
 
-(* vLetr : SV.svar * SV.svar list * mcexp -> mcexp *)
-(* "let svars = svar in body" *)
-fun vLetr (svar, svars, body) =
+(* vLetr : SV.svar list * SV.svar * mcexp -> mcexp *)
+(* "let (sv1,...,svn) = sv0 in body"; destructure a tuple *)
+fun vLetr (svars, svar, body) =
     let val defvar = SV.svarToVar svar
 	fun wrapLets (nil, _) = body
 	  | wrapLets (sv::rest, n) = 
@@ -65,6 +68,7 @@ fun vLetr (svar, svars, body) =
 fun vLetf (svar, funexp, body) = mkLet(svar, funexp, body)
 
 (* vLetr : V.var list * SV.svar list * mcexp -> mcexp *)
+(* "let (v1, ..., vn) = (sv1, ..., svn) in rhsexp" *)
 fun vLetm (vars, svars, body) =
     let fun wrapLets (nil,nil) = body
 	  | wrapLets (v::restv, sv::restsv) = 
@@ -72,6 +76,13 @@ fun vLetm (vars, svars, body) =
 		  wrapLets(restv,restsv))
 	  | wrapLets _ = bug "vLetm"
     in wrapLets (vars,svars)
+    end
+
+(* vCase1 : SV.svar * T.datacon * SV.svar * mcexp *)
+fun vCase1 (svar, dcon, svardest, rhsexp) =
+    let val scrutinee = vVar svar
+	val rule = caseToRule (D dcon, SOME svardest, rhsexp)
+     in CASEexp(scrutinee, [rule], true)  (* true signals vCase1 form; kludge! *)
     end
 
 (* vCase : SV.svar * branch list * mcexp option *)
@@ -82,19 +93,21 @@ fun vCase (svar, cases, defaultOp) =
 	    case defaultOp
 	      of NONE => rules
 	       | SOME exp => rules@[RULE(WILDpat, exp)]
-     in CASEexp(scrutinee, rules', << "match or bind?" >>)
+     in CASEexp(scrutinee, rules', false)  (* false signals vCase form; kludge! *)
     end
 
 (* vSfun : V.var list * mcexp -> mcexp *)
+(* "fn (v0, ..., vn) => body"; functionalized, multi-use rule RHS *)
 fun vSfun (pvars, body) =
-    let val rule = RULE(mkTuplePat pvars, body)
-	val ty = << ??? >>
-    in FUNexp([rule], ty)
+    let val pats = map (fn sv => VARpat(SV.svarToVar sv)) pvars
+	val rule = RULE(TUPLEpat pats, body)
+	val ty = << ty??? >>
+     in FNexp([rule], T.UNDEFty)  (* FNexp always applied to UNDEFty in elabcore.sml *)
     end
 
 (* vSapp : SV.svar * SV.svar list -> mcexp *)
 fun vSapp (funsvar, argsvars) =
-    APPexp(vVar funsvar, mkTupleExp(map vVar argsvars))
+    APPexp(vVar funsvar, AU.TUPLEexp(map vVar argsvars))
 
 (* vMatch : mcexp *)
 val vMatch = RAISEexp(<< Match exn >>, << ty? >>)

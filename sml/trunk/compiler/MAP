@@ -227,8 +227,8 @@ Basic datastructures used in elaboration (including type checking)
       utility functions for building tuple patterns and expressions
       defs: AbsynUtil
     ppabsyn.sml
-      prettyprint absyn (uses PPUtil(pputil.s??),
-      PPVal(ppval.sml), PPType(pptype.sml))
+      prettyprint absyn
+      uses: PPUtil(pputil.s??), PPVal(ppval.sml), PPType(pptype.sml))
       defs: PPAbsyn : PPABSYN
     ppval.sml
       pretty printing vars, datacons, access, conrep
@@ -452,7 +452,18 @@ Elaborator/
       see: Semant/elaborate/elabtop.sml
       defs: ELABTOP, ElabTopFn : ELABMOD => ELABTOP
 
-
+  Elaborator/matchcomp
+  New match compiler, compiling to absyn.
+    rules.{sig,sml}
+    mctypes.sml
+    andor.sml
+    or-queues.sml
+    dec-tree.sml
+    varmap.sml
+    mc-code.sml
+    lib/svar.{sig,sml}
+      virtual simplified variables
+        
 3. Miscellaneous (library) utilities
 
 Library/   (was MiscUtil)
@@ -716,11 +727,13 @@ modules (signatures, structures, functors)
   ModulePropLists  (Semant/modules/module-plists.sml) [FLINT]
 
 primop
-  PrimOp           (FLINT/kernel/primop.sml)
-  PrimOpBindings   (Semant/prim/primop-bindings.sml)
-  PrimOpId	   (ElabData/basics/primopid.sml)
-  PrimEnv          (Semant/statenv/prim.sml)
-
+  PrimOp           (ElabData/prim/primop.sml)
+  PrimOpBindings   (ElabData/prim/primop-bindings.sml)
+  PrimOpId	   (ElabData/prim/primopid.sml)
+  PrimEnv          (ElabData/prim/prim-env.sml)
+  PrimopUtil       (ElabData/prim/primop-util.sml)
+  PrimopBind       (ElabData/prim/primop-bind.sml)
+  
 control
   BasicControl     (Basics/main/basiccontrol.sml)
   ParserControl    (Parse/main/parsercontrol.sml)

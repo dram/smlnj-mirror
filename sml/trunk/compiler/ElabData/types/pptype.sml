@@ -211,8 +211,8 @@ fun ppEqProp ppstrm p =
 fun ppSymPath ppstream (path: SymPath.path) =
     PP.string ppstream (SymPath.toString path)
 
-fun ppInvPath ppstream (InvPath.IPATH rpath: InvPath.path) =
-    PP.string ppstream (SymPath.toString(SymPath.SPATH(rev rpath)))
+fun ppInvPath ppstream (ipath: InvPath.path) =
+    PP.string ppstream (SymPath.toString(ConvertPaths.invertIPath ipath))
 
 fun ppBool ppstream b =
     case b of true => pps ppstream "t" | false => pps ppstream "f"

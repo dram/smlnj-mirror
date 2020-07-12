@@ -319,7 +319,7 @@ fun ppVars ppstrm svars =
      PP.closeBox ppstrm)
 
 val ppCode =
-    let fun ppc ppstrm (Letr(v,vars,body)) =
+    let fun ppc ppstrm (Letr(vars,v,body)) =
 	    (PP.openVBox ppstrm (PP.Abs 2);
              PP.openHBox ppstrm;
 	     PP.string ppstrm "Letr";
@@ -343,6 +343,24 @@ val ppCode =
 	     ppSvar ppstrm v;
 	     PP.closeBox ppstrm;
 	     ppcases ppstrm (cases,default);
+	     PP.closeBox ppstrm)
+	  | ppc ppstrm (Case1(v1,dcon,v2,body)) =
+	    (PP.openVBox ppstrm (PP.Rel 2);
+	     PP.openHBox ppstrm;
+	     PP.string ppstrm "Case1";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     ppSvar ppstrm v1;  (* definiens svar *)
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "of";
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm (TU.dataconName dcon);
+	     PP.break ppstrm {nsp=1,offset=0};
+             ppSvar ppstrm v2;  (* "pattern" svar *)
+	     PP.break ppstrm {nsp=1,offset=0};
+	     PP.string ppstrm "=>";
+	     PP.closeBox ppstrm;
+	     PP.cut ppstrm;
+	     ppc ppstrm body;
 	     PP.closeBox ppstrm)
 	  | ppc ppstrm (Var svar) =
 	     ppSvar ppstrm svar

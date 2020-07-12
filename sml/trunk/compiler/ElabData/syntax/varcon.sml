@@ -56,3 +56,7 @@ structure VarCon : VARCON =
 	  }
 
   end (* structure VarCon *)
+
+(* rename Var : VAR, with value datatype moved to Absyn(?), and
+ * bogusCON and bogusEXN moved to TypesUtil.
+ *)
