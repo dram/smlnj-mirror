@@ -99,7 +99,7 @@ fun tpsTyc d tp =
   let fun h (TP_VAR x, cur) =
 	  let val { tdepth, num, ... } = x
 	  in
-              LT.tcc_var(DI.calc(cur, tdepth), num)
+              LT.tcc_var(DI.getIndex(cur, tdepth), num)
 	  end
         | h (TP_TYC tc, cur) = tycTyc(tc, cur)
         | h (TP_SEL (tp, i), cur) = LT.tcc_proj(h(tp, cur), i)
@@ -201,58 +201,59 @@ and tfTyc (TYFUN{arity=0, body}, d) = toTyc d body
        in LT.tcc_fn(ks, toTyc (DI.next d) body)
       end
 
+(* toTyc : DI.depth -> TP.ty -> LT.tyc *)
 and toTyc d t =
-  let val m : (tyvar * LT.tyc) list ref = ref []
+  let val tvDict : (TP.tyvar * LT.tyc) list ref = ref []
       fun lookTv tv =
-        let val xxx = !m
-            fun uu ((z as (a,x))::r, b, n) =
-                 if a = tv then (x, z::((rev b)@r)) else uu(r, z::b, n+1)
-              | uu ([], b, n) = let val zz = h (!tv)
-                                    val nb = if n > 64 then tl b else b
-                                 in (zz, (tv, zz)::(rev b))
-                                end
-            val (res, nxx) = uu(xxx, [], 0)
-         in m := nxx; res
+        let val tv_alist = !tvDict
+            fun lookup ((a,x)::rest) =
+                 if a = tv then x else lookup rest
+              | lookup nil =  (* tv not found in tvDict *)
+		 let val tyc = trMTyvarKind (!tv)
+                  in tvDict := (tv, tyc) :: tv_alist;  (* bind new tyc in tvDict *)
+		     tyc
+                 end
+         in lookup tv_alist
         end
 
-      and h (INSTANTIATED t) = g t
-        | h (LBOUND{depth,index,...}) =
-             LT.tcc_var(DI.calc(d, depth), index)
-        | h (UBOUND _) = LT.tcc_void
+      and trMTyvarKind (INSTANTIATED t) = trTy t
+        | trMTyvarKind (LBOUND{depth,index,...}) =
+             LT.tcc_var(DI.getIndex(d, depth), index)
+        | trMTyvarKind (UBOUND _) = LT.tcc_void
             (* dbm: a user-bound type variable that didn't get generalized;
-               treat the same as an uninstantiated unification variable.
+               treat the same as an uninstantiated metatyvar.
 	       E.g. val x = ([]: 'a list; 1) *)
-        | h (OPEN _) = LT.tcc_void
-            (* dbm: a unification variable that was neither instantiated nor
-	       generalized.  E.g. val x = ([],1); -- the unification variable
+        | trMTyvarKind (OPEN _) = LT.tcc_void
+            (* dbm: a metatyvar that was neither instantiated nor
+	       generalized.  E.g. val x = ([],1); -- the metatyvar
                introduced by the generic instantiation of the type of [] is
                neither instantiated nor generalized. *)
-        | h _ = bug "toTyc:h" (* OVLD should not occur *)
+        | trMTyvarKind _ = bug "toTyc:h" (* OVLD should have been resolved *)
 
-      and g (VARty tv) = (* h(!tv) *) lookTv tv
-        | g (CONty(RECORDtyc _, [])) = LT.tcc_unit
-        | g (CONty(RECORDtyc _, ts)) = LT.tcc_tuple (map g ts)
-        | g (CONty(tyc, [])) = tycTyc(tyc, d)
-        | g (CONty(DEFtyc{tyfun,...}, args)) = g(TU.applyTyfun(tyfun,args))
-	| g (CONty (tc as GENtyc { kind, ... }, ts)) =
+      and trTy (VARty tv) = (* h(!tv) *) lookTv tv
+        | trTy (CONty(RECORDtyc _, [])) = LT.tcc_unit
+        | trTy (CONty(RECORDtyc _, tys)) = LT.tcc_tuple (map trTy tys)
+        | trTy (CONty(tyc, [])) = tycTyc(tyc, d)
+        | trTy (CONty(DEFtyc{tyfun,...}, args)) = trTy (TU.applyTyfun(tyfun,args))
+	| trTy (CONty (tc as GENtyc { kind, ... }, ts)) =
 	  (case (kind, ts) of
 	       (ABSTRACT _, ts) =>
-	       LT.tcc_app(tycTyc(tc, d), map g ts)
+	       LT.tcc_app(tycTyc(tc, d), map trTy ts)
              | (_, [t1, t2]) =>
-               if TU.eqTycon(tc, BT.arrowTycon) then LT.tcc_parrow(g t1, g t2)
-               else LT.tcc_app(tycTyc(tc, d), [g t1, g t2])
-	     | _ => LT.tcc_app (tycTyc (tc, d), map g ts))
-        | g (CONty(tyc, ts)) = LT.tcc_app(tycTyc(tyc, d), map g ts)
-        | g (IBOUND i) = LT.tcc_var(DI.innermost, i)
+               if TU.eqTycon(tc, BT.arrowTycon) then LT.tcc_parrow(trTy t1, trTy t2)
+               else LT.tcc_app(tycTyc(tc, d), [trTy t1, trTy t2])
+	     | _ => LT.tcc_app (tycTyc (tc, d), map trTy ts))
+        | trTy (CONty(tyc, ts)) = LT.tcc_app(tycTyc(tyc, d), map trTy ts)
+        | trTy (IBOUND i) = LT.tcc_var(DI.innermost, i)
 			 (* [KM] IBOUNDs are encountered when toTyc
                           * is called on the body of a POLYty in
                           * toLty (see below). *)
-	| g (MARKty (t, _)) = g t
-        | g (POLYty _) = bug "unexpected poly-type in toTyc"
-        | g (UNDEFty) = (* mkVB kluge!!! *) LT.tcc_void
+	| trTy (MARKty (t, _)) = trTy t
+        | trTy (POLYty _) = bug "unexpected poly-type in toTyc"
+        | trTy (UNDEFty) = (* mkVB kluge!!! *) LT.tcc_void
 	    (* bug "unexpected undef-type in toTyc" *)
-        | g (WILDCARDty) = bug "unexpected wildcard-type in toTyc"
-   in g t
+        | trTy (WILDCARDty) = bug "unexpected wildcard-type in toTyc"
+   in trTy t
   end
 
 and toLty d (POLYty {tyfun=TYFUN{arity=0, body}, ...}) = toLty d body

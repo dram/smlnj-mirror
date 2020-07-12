@@ -1092,6 +1092,7 @@ fun generate (dt, matchRep, rootVar, (toTyc, toLty), giis) =
             end
         | genpath (ROOTPATH, env) = VAR(lookupPath(ROOTPATH, env))
 
+      (* moved to trans/translate.sml for new match compiler *)
       fun genswitch (sv, sign, [(DATAcon((_, DA.REF, lt), ts, x), e)], NONE) =
             LET(x, APP (PRIM (Primop.DEREF, LT.lt_swap lt, ts), sv), e)
         | genswitch(sv, sign, [(DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt),
