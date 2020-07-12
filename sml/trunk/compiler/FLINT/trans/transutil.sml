@@ -5,17 +5,26 @@ struct
 
 local  (* don't need all these structures *)
   structure DA = Access
-  structure EM = ErrorMsg
   structure S  = Symbol
   structure SP = SymPath
   structure VC = VarCon
   structure TP = Types
   structure TU = TypesUtil
+  structure PL = PLambda
   open Absyn
 in
 
+val debugging = FLINT_Control.trdebugging
+fun bug msg = ErrorMsg.impossible("TransUtil: " ^ msg)
+val say = Control.Print.say
+
+fun ppType ty =
+    ElabDebug.withInternals
+     (fn () => ElabDebug.debugPrint debugging
+		("type: ", PPType.ppType StaticEnv.empty, ty))
+
 fun ident x = x
-val unitLexp = RECORD []
+val unitLexp = PL.RECORD []
 
 (* pathToName would be a better name for this function *)
 fun getNameOp p = if SP.null p then NONE else SOME(SP.last p)

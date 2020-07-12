@@ -201,9 +201,9 @@ and tfTyc (TYFUN{arity=0, body}, d) = toTyc d body
        in LT.tcc_fn(ks, toTyc (DI.next d) body)
       end
 
-(* toTyc : DI.depth -> TP.ty -> LT.tyc *)
+(* toTyc : DI.depth -> ty -> LT.tyc *)
 and toTyc d t =
-  let val tvDict : (TP.tyvar * LT.tyc) list ref = ref []
+  let val tvDict : (tyvar * LT.tyc) list ref = ref []
       fun lookTv tv =
         let val tv_alist = !tvDict
             fun lookup ((a,x)::rest) =
