@@ -120,7 +120,7 @@ val forbiddenConstructors =
 (* checks whether names contains a forbidden constructor name *)
 fun checkForbiddenCons symbol =
     List.exists (fn x => S.eq(symbol,x)) forbiddenConstructors
- 
+
 (*
  * Extract all the variables from a pattern
  * NOTE: the "freeOrVars" function in elabcore.sml should probably
