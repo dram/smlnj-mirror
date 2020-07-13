@@ -124,16 +124,6 @@ fun toDconLty d ty =
      | _ => if BT.isArrowType ty then toLty d ty
             else toLty d (BT.-->(BT.unitTy, ty)))
 
-(*
-(** the special lookup functions for the Core environment *)
-(* DBM: not used -- superceded by CoreAccess *)
-fun coreLookup(id, env) =
-  let val sp = SymPath.SPATH [CoreSym.coreSym, S.varSymbol id]
-      val err = fn _ => fn _ => fn _ => raise NoCore
-   in Lookup.lookVal(env, sp, err)
-  end
-*)
-
 fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
   | CON' ((_, DA.SUSP (SOME(DA.LVAR d, _)), lt), ts, e) =
       let val v   = mkv ()
@@ -142,15 +132,39 @@ fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
       end
   | CON' x = CON x
 
+   
+(* mkDcon : Types.datacon -> Plambda.dataconstr *)
+fun mkDcon (DATACON {name, rep, typ, ...}) =
+      (name, rep, toDconLty toLty typ)
+
+(* patToCon : AS.pat * -> Plambda.con *)
+and patToCon pat =
+    (case pat
+       of CONpat (dccon, tvs) =>
+	    let val newvar = mkv()
+		val nts = map (toTyc o TP.VARty) ts
+	     in DATAcon (mkDcon dc, nts, newvar)
+	    end
+	| VECTORpat(pats,(i, t) => VLENcon i
+	| NUMpat (src, lit as {ival,ty}) =>
+	    if List.exists (fn ty' => TU.equalType(ty,ty'))
+		   [BT.intTy, BT.int32Ty, BT.int64Ty, BT.intinfTy]
+	    then INTcon (transNum lit)
+	    else WORDcon (transNum lit)
+	| STRINGpat s => STRINGcon s
+      (* end case *))
+
+
 (*
  * The following code implements the exception tracking and
  * errormsg reporting.
  *)
 
-local val region = ref(0,0)
-      val markexn = PRIM(PO.MARKEXN,
-		      LT.ltc_parrow(LT.ltc_tuple [LT.ltc_exn, LT.ltc_string],
-				    LT.ltc_exn), [])
+local
+  val region = ref(0,0)
+  val markexn = PRIM(PO.MARKEXN,
+		  LT.ltc_parrow(LT.ltc_tuple [LT.ltc_exn, LT.ltc_string],
+				LT.ltc_exn), [])
 in
 
 fun withRegion loc f x =
@@ -187,13 +201,19 @@ end (* markexn-local *)
 exception HASHTABLE
 type key = int
 
-(** hashkey of accesspath + accesspath + resvar *)
+(** hashtable: hashkey(lvar) ->  accesspath hash * accesspath * resvar *)
 type info = (key * int list * lvar)
 val hashtable : info list LambdaVar.Tbl.hash_table =
     LambdaVar.Tbl.mkTable(32,HASHTABLE)
+
+(* hashkey : int list -> int *)
 fun hashkey l = foldr (fn (x,y) => ((x * 10 + y) mod 1019)) 0 l
 
-fun buildHdr v =
+(* buildHeader : (lvar = int) -> (lexp -> lexp) *)
+(* creates a wrapper function that wraps a nested sequence of let declarations
+ * around its argument, where the definiens of each let is nested SELECTS for
+ * the accesspath in each info item starting from VAR v for the argument v. *)
+fun buildHeader v =
   let val info = LambdaVar.Tbl.lookup hashtable v
       fun h((_, l, w), hdr) =
              let val le = foldl (fn (k,e) => SELECT(k,e)) (VAR v) l
@@ -202,17 +222,20 @@ fun buildHdr v =
    in foldr h ident info
   end handle _ => ident
 
-fun bindvar (v, [], _) =  v
-  | bindvar (v, l, nameOp) =
-      let val info = (LambdaVar.Tbl.lookup hashtable v) handle _ => []
-          val key = hashkey l
-          fun h [] =
-                let val u = mkvN nameOp
-                 in LambdaVar.Tbl.insert hashtable (v,(key,l,u)::info); u
+(* bindvar : (lvar = int) * int list * string option -> lvar *)
+(* the int argument will actually be an lvar (breaking abstraction for lvar) *)
+fun bindvar (v, [], _) = v
+  | bindvar (v, accesspath, nameOp) =
+      let val infolist = (LambdaVar.Tbl.lookup hashtable v) handle _ => []
+          val key = hashkey accesspath  (* hash of accesspath *)
+          fun look [] =
+                let val lvar = mkvN nameOp
+                in LambdaVar.Tbl.insert hashtable (v, (key,accesspath,lvar)::info);
+		   lvar
                 end
-            | h((k',l',w)::r) =
-                if (k' = key) then (if (l'=l) then w else h r) else h r
-       in h info
+            | look ((key',accesspath',lvar)::rest) =
+                if (key' = key) andalso (accesspath'=accesspath) then lvar else look rest
+       in look infolist
       end
 
 datatype pidInfo = ANON of (int * pidInfo) list
@@ -314,31 +337,32 @@ fun mkAcc (p, nameOp) =
  *)
 exception NoCore
 
-fun coreExn ids = (case CoreAccess.getCon' (fn () => raise NoCore) oldenv ids
-       of TP.DATACON { name, rep as DA.EXN _, typ, ... } => let
-            val nt = toDconLty DI.top typ
-	    val nrep = mkRep(rep, nt, name)
-	    val _ = debugmsg ">>coreExn in translate.sml: "
-	 (* val _ = PPLexp.printLexp (CON'((name, nrep, nt), [], unitLexp))
-	   val _ = print "\n" *)
-            in
-	      SOME (CON'((name, nrep, nt), [], unitLexp))
-            end
-        | _ => bug "coreExn in translate"
+fun coreExn ids =
+    (case CoreAccess.getCon' (fn () => raise NoCore) oldenv ids
+      of TP.DATACON { name, rep as DA.EXN _, typ, ... } =>
+	   let val nt = toDconLty DI.top typ
+	       val nrep = mkRep(rep, nt, name)
+	       val _ = debugmsg ">>coreExn in translate.sml: "
+              (* val _ = PPLexp.printLexp (CON'((name, nrep, nt), [], unitLexp))
+	         val _ = print "\n" *)
+            in SOME (CON'((name, nrep, nt), [], unitLexp))
+           end
+       | _ => bug "coreExn in translate"
       (* end case *))
-        handle NoCore => NONE
+    handle NoCore => NONE
 
-and coreAcc id = (case CoreAccess.getVar' (fn () => raise NoCore) oldenv [id]
+and coreAcc id =
+    (case CoreAccess.getVar' (fn () => raise NoCore) oldenv [id]
        of V.VALvar { access, typ, path, ... } =>
 	    mkAccT(access, toLty DI.top (!typ), getNameOp path)
         | _ => bug "coreAcc in translate"
-      (* end case *))
-	handle NoCore => (
-	  warn(concat["no Core access for '", id, "'\n"]);
-	  INT{ival = 0, ty = Tgt.defaultIntSz})
+    (* end case *))
+    handle NoCore =>
+	(warn(concat["no Core access for '", id, "'\n"]);
+	 INT{ival = 0, ty = Tgt.defaultIntSz})
 
-(** expands the flex record pattern and convert the EXN access pat *)
-(** internalize the conrep's access, always exceptions *)
+(* expands the flex record pattern and convert the EXN access pat *)
+(* internalize the conrep's access, always exceptions *)
 and mkRep (rep, lt, name) =
   let fun g (DA.LVAR v, l, t)  = bindvar(v, l, SOME name)
         | g (DA.PATH(a, i), l, t) = g(a, i::l, t)
@@ -513,7 +537,7 @@ fun genintinfswitch (sv, cases, default) =
 
 
 (* genswitch : <<SWITCH domain>> -> Plambda.lexp *)
-(* This function moved here from trans/matchcomp (the old match compiler). It
+
  * treats the special single (pseudo-) constructor pattern cases involving
  * the "ref" and "susp" constructors, and the special case of switching on
  * intinf constants. For all other cases, immediately builds a SWITCH. *)
@@ -879,7 +903,7 @@ and mkFctexp (fe, d) =
                let val knds = map tpsKnd argtycs
                    val nd = DI.next d  (* reflecting type abstraction *)
                    val body = mkStrexp (def, nd)
-                   val hdr = buildHdr v
+                   val hdr = buildHeader v
                (* binding of all v's components *)
                in
 		   TFN(knds, FN(v, strLty(param, nd, compInfo), hdr body))
@@ -896,7 +920,7 @@ and mkStrbs (sbs, d) =
   let fun g (STRB{str=M.STR { access, ... }, def, ... }, b) =
 	  (case access of
 	       DA.LVAR v =>
-               let val hdr = buildHdr v
+               let val hdr = buildHeader v
                (* binding of all v's components *)
                in
 		   LET(v, mkStrexp(def, d), hdr b)
@@ -910,7 +934,7 @@ and mkFctbs (fbs, d) =
   let fun g (FCTB{fct=M.FCT { access, ... }, def, ... }, b) =
 	  (case access of
 	       DA.LVAR v =>
-               let val hdr = buildHdr v
+               let val hdr = buildHeader v
                in
 		   LET(v, mkFctexp(def, d), hdr b)
                end
@@ -1034,24 +1058,39 @@ and mkExp (exp, d) =
 					    genintinfswitch))
              end
 
-        | mkExp0 (FNexp (l, ty)) =
-             let val rootv = mkv()
-                 fun f x = FN(rootv, tLty ty, x)
-              in MC.matchCompile (env, mkRules l, f, rootv, toTcLt d,
-				  complain, genintinfswitch)
+        | mkExp0 (FNexp (rules, ty)) =
+	     (* we need ty to be the type of lhs's (i.e. patterns) of the rules *)
+	     (* Unfortunately, now ty (as defined in elabcore.sml) will always be
+              * UNDEFty!? *)
+             let val (matchexp, rootvar) = matchCompile (rules, ty)
+		 val body = mkExp0 matchexp  (* what about d? *)
+              in FN(rootvar, tLty ty, body)  (* what type is expected here? *)
              end
 
-        | mkExp0 (CASEexp (ee, l, isMatch)) =
-             let val rootv = mkv()
-                 val ee' = mkExp0 ee
-                 fun f x = LET(rootv, ee', x)
-                 val l' = mkRules l
-              in if isMatch
-                 then MC.matchCompile (env, l', f, rootv, toTcLt d,
-				       complain, genintinfswitch)
-                 else MC.bindCompile (env, l', f, rootv, toTcLt d,
-				      complain, genintinfswitch)
-             end
+        (* next two should explicity construct SWITCH expressions as the result.
+	 * All CASEexp's are the result of previous match compilation. Here 
+         * rules will always be exhaustive, since any necessary default will 
+         * have been added as a final wildcard rule. *)
+        | mkExp0 (CASEexp (scrutinee, rules, false)) =  (* non-degenerate case *)
+             let val scrutinee' = mkExp0 scrutinee
+		 fun getCon (CONpat(dcon,tvs)) = dcon
+		   | getCon (APPpat(dcon,tvs)) = dcon
+						   
+		 val consig = ()
+		 fun trRule (pat, rhs) = (getCon pat, mkExp0 rhs)
+              in SWITCH(scrutinee', consig, map trRule rules, NONE)
+             end  (* where is the SWITCH created? *)
+
+	(* single datacon case, including special cases of ref and susp *)
+        | mkExp0 (CASEexp (scrutinee, rules, true)) =
+             let val scrutinee' = mkExp0 scrutinee
+                 val (matchexp, rootvar) = matchCompile (rules, ty)
+		     (* where does ty come from? *)
+		 val body = mkExp0 matchexp
+              in LET(rootvar, scrutinee', body)
+             end (* where is the (degenerate) SWITCH created? *)
+
+          (* genswitch special cases? REF, SUSP, IntInf *)
 
 	| mkExp0 (IFexp { test, thenCase, elseCase }) =
 	    COND (mkExp0 test, mkExp0 thenCase, mkExp0 elseCase)

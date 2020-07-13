@@ -70,8 +70,8 @@ structure TransTypes : TRANSTYPES =
   (****************************************************************************
    *               TRANSLATING ML TYPES INTO FLINT TYPES                      *
    ****************************************************************************)
-    local val recTyContext = ref [~1]
-    in
+local val recTyContext = ref [~1]
+in
     fun enterRecTy (a) = (recTyContext := (a::(!recTyContext)))
     fun exitRecTy () = (recTyContext := tl (!recTyContext))
     fun recTyc (i) =
@@ -88,11 +88,12 @@ structure TransTypes : TRANSTYPES =
 	      else if x > 0 then LT.tcc_var(DI.di_inner base, i)
 		   else bug "unexpected RECtyc"
 	  end
-    end (* end of recTyc and freeTyc hack *)
+end (* end of recTyc and freeTyc hack *)
 
-    fun tpsKnd (TP_VAR x) = TransTKind.trans(#kind x)
-      | tpsKnd _ = bug "unexpected tycpath parameters in tpsKnd"
+fun tpsKnd (TP_VAR x) = TransTKind.trans(#kind x)
+  | tpsKnd _ = bug "unexpected tycpath parameters in tpsKnd"
 
+(* ---------------- begin genTT ---------------- *)
 fun genTT () = let
 
 fun tpsTyc d tp =
@@ -484,5 +485,6 @@ structure MIDict = RedBlackMapFn(struct type ord_key = ModuleId.modId
    in {tpsKnd=tpsKnd, tpsTyc=tpsTyc,
        toTyc=toTyc, toLty=toLty, strLty=strLty, fctLty=fctLty}
   end (* function genTT *)
+(* ---------------- end genTT ---------------- *)
 
 end (* structure TransTypes *)
