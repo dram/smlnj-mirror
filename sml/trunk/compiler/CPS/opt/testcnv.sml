@@ -61,12 +61,6 @@ structure TestCnv : sig
 	  end
 
     fun test (from, to, [v], x, ty, k) =
-(if !Control.CG.printit
-then Control.Print.say(concat[
-    "## test_", Int.toString from, "_", Int.toString to, " ", PPCps.value2str v,
-    " -> ", LV.lvarName x, "\n"
-  ])
-else ();
 	  if (from = ity) andalso (to = tty)
 	    then C.ARITH(P.TEST{from=from, to=to}, [v], x, ty, k)
 	  else if (from = to)
@@ -94,7 +88,6 @@ else ();
 			C.APP(jk', [C.VAR x'])))))
 	      end
 	    else bug "TEST with unexpected precisions"
-)
       | test _ = bug "TEST with bogus arguments"
 
     fun testu (from, to, [v], x, ty, k) =
