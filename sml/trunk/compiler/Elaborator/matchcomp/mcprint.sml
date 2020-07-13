@@ -32,7 +32,7 @@ fun isTUPLEpat (RECORDpat{fields=[_]}) = false  (* one element records are not t
 (* pretty printing (restricted) patterns *)
 fun ppVar ppstrm (var: V.var) =
     PP.string ppstrm (S.name(V.varName var))
-	      
+
 fun ppDcon ppstrm (dcon: T.datacon) =
     PP.string ppstrm (S.name(TU.dataconName dcon))
 
@@ -147,7 +147,7 @@ fun ppPath ppstrm path =
      PP.closeBox ppstrm)
 
 (* rulesets *)
-	
+
 fun ppRuleset ppstrm rules =
     let val rules' = R.listItems rules
     in PP.openHBox ppstrm;
@@ -161,7 +161,7 @@ fun ppRuleset ppstrm rules =
        PP.closeBox ppstrm
     end
 
-fun ppVarBindings ppstrm vars =	
+fun ppVarBindings ppstrm vars =
     let fun ppvar ppstrm (v,r) =
             (PP.openHBox ppstrm;
 	     PP.string ppstrm "(";
@@ -178,7 +178,7 @@ fun ppVarBindings ppstrm vars =
     end
 
 (* andor trees *)
-	
+
 (* ppAndor : ppstrm -> andor -> unit *)
 (* bare-bones pretty printer for AND-OR nodes *)
 fun ppAndor ppstrm =
@@ -195,7 +195,7 @@ fun ppAndor ppstrm =
 	     PP.closeBox ppstrm;
 	     ppAndChildren ppstrm children;
 	     PP.closeBox ppstrm)
-	  | ppNode ppstrm (OR{path,direct,defaults,variants,...}) = 
+	  | ppNode ppstrm (OR{path,direct,defaults,variants,...}) =
 	    (PP.openHOVBox ppstrm (PP.Abs 0);
              PP.openHBox ppstrm;
 	     ppPath ppstrm path;
@@ -304,7 +304,7 @@ fun ppSvars ppstrm svars =
 	 svars;
      PP.string ppstrm ")";
      PP.closeBox ppstrm)
-	
+
 fun ppVar ppstrm (var: Var.var) = PU.ppSym ppstrm (V.varName var)
 
 fun ppVars ppstrm svars =
@@ -364,7 +364,7 @@ val ppCode =
 	     PP.closeBox ppstrm)
 	  | ppc ppstrm (Var svar) =
 	     ppSvar ppstrm svar
-	  | ppc ppstrm (Letf(funsvar,funexp,body)) = 
+	  | ppc ppstrm (Letf(funsvar,funexp,body)) =
 	    (PP.openHBox ppstrm;
 	     PP.string ppstrm "Letf ";
 	     ppSvar ppstrm funsvar;
@@ -404,7 +404,7 @@ val ppCode =
 	     PP.break ppstrm {nsp=1,offset=0};
 	     PP.string ppstrm "<RHS:absyn>";
 	     PP.closeBox ppstrm)
-	  | ppc ppstrm (Sapp(funsvar, argsvars)) = 
+	  | ppc ppstrm (Sapp(funsvar, argsvars)) =
 	    (PP.openHBox ppstrm;
 	     ppSvar ppstrm funsvar;
 	     ppSvars ppstrm argsvars;
@@ -414,7 +414,7 @@ val ppCode =
 	and ppcases ppstrm (cases,default) =
 	    let fun prElems [el] = ppcase ppstrm el
 		  | prElems (el::rest) =
-		      (ppcase ppstrm el; 
+		      (ppcase ppstrm el;
 		       PP.cut ppstrm;
                        prElems rest)
 		  | prElems [] = ()
@@ -444,18 +444,18 @@ val ppCode =
 	     PP.closeBox ppstrm)
     in ppc
     end
-		   
+
 (* top-level printing functions *)
 
 val printDepth = ref 10
-		     
+
 (* top-level print functions *)
 fun tppPat pat =
     PP.with_default_pp(fn ppstrm => ppPat ppstrm (pat,!printDepth))
 
 fun tppPats pats =
     List.app tppPat pats
-	     
+
 fun tppAndor andor =
     PP.with_default_pp(fn ppstrm => ppAndor ppstrm andor)
 
@@ -464,7 +464,7 @@ fun tppDecTree dectree =
 
 fun tppCode mcexp =
     PP.with_default_pp(fn ppstrm => ppCode ppstrm mcexp)
-		      
+
 fun tppRules ruleset =
     PP.with_default_pp(fn ppstrm => ppRuleset ppstrm ruleset)
 

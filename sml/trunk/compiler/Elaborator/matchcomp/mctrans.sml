@@ -68,7 +68,7 @@ fun mkDcon (DATACON {name, rep, typ, ...}) =
  * on whether the constructor is a constant or not. *)
 fun keyToCon(key,svarOp,ty) =
     (case key
-      of D dcon => 
+      of D dcon =>
 	   let lvar = (case svarOp
 			of SOME sv = SV.svarLvar sv
 			| NONE => LambdaVar.mkLvar())
@@ -96,18 +96,18 @@ fun keyConsig ((key,_,_)::_) =
 fun mctrans (Letr(svars,defsvar,body), toLty) =
     let val deflvar = P.VAR(SV.svarLvar defsvar)
 	fun trLetr (nil, _) = mctrans body
-	  | trLetr (sv::rest, n) = 
+	  | trLetr (sv::rest, n) =
 	    P.LET(getLvar sv, P.SELECT(n, deflvar),
 		  trLetr(rest, n+1))
      in trLetr(svars, 0)
     end
 
-  | mctrans (Letf(svar, funexp, body)) = 
+  | mctrans (Letf(svar, funexp, body)) =
     P.LET(SV.svarLvar svar, mctrans funexp, mctrans body)
 
-  | mctrans (Letm(vars, svars, body)) = 
+  | mctrans (Letm(vars, svars, body)) =
     let fun trLetm (nil,nil) = mctrans body
-	  | trLetm (v::restv, sv::restsv) = 
+	  | trLetm (v::restv, sv::restsv) =
 	    P.LET(V.varAccess v, P.VAR(SV.svarLvar sv),
 		  trLetm(restv,restsv))
 	  | trLetm _ = bug "mctrans: Letm"
@@ -143,13 +143,13 @@ fun mctrans (Letr(svars,defsvar,body), toLty) =
              in P.FN(argvar, LT.ltc_tuple ltys, funbody)
             end
      in transFun (vars, lbody)
-    end 
-  
+    end
+
   | mctrans (Sapp(svar, argsvars)) =
       P.APP(P.VAR(SV.svarLvar svar),
 	    P.RECORD(map (fn sv => P.VAR(SV.svarLvar sv)) argsvars))
 
-  | mctrans (Tfun(typevars, body)) = 
+  | mctrans (Tfun(typevars, body)) =
     let val tkinds = map (fn tv => LT.tkc_mono) typevars
      in P.TFN(tkinds, mctrans body)
     end

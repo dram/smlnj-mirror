@@ -12,7 +12,7 @@ local
   structure TU = TypesUtil
   structure R = Rules
   structure V = Var
-  structure SV = SVar		    
+  structure SV = SVar
   open Absyn
   (* also used/mentioned: IntConst, ListPair *)
 in
@@ -27,9 +27,9 @@ type ruleset = R.ruleset  (* == IntBinarySet.set *)
 type binding = Var.var * ruleno
    (* a variable bound at some point in the given rule, either as a
     * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
-type varBindings = binding list  (* variables bound by VARpat *)		    
+type varBindings = binding list  (* variables bound by VARpat *)
 type asBindings = binding list   (* variables bound by LAYEREDpat, i.e. an "as" pattern *)
-			  
+
 (* keys: most keys (D,V,I,W,C,S) are used to discriminate choices in the "variants"
  *   field of OR nodes and the decVariants of decision trees. These key values
  *   (appearing in variants) determine the different flavors of OR nodes
@@ -45,10 +45,10 @@ datatype key
   | W of T.ty IntConst.t  (* word constant, as determined by ty *)
   | C of char             (* char constant (span depends of charwidth) *)
   | S of string           (* string constant *)
-  
+
   (* record selection: not a choice discriminator, but a selection key for products,
    * Will only appear in paths, never in variants. ASSERT: int >= 0 *)
-  | R of int    
+  | R of int
 
 (* eqKey : key * key -> bool
  * type info disregarded when comparing Dkeys and Vkeys *)
@@ -70,7 +70,7 @@ fun keyToString (D dcon) = substring((TU.dataconName dcon),0,1)
   | keyToString (R i) = Int.toString i
 
 (* ================================================================================ *)
-(* paths: 
+(* paths:
    paths locate points in the "pattern space" determined by a sequence of patterns
       (a finite subtree of the complete pattern tree determined by the common type of
       the patterns). Points in the pattern space correspond to andor nodes, which
@@ -118,7 +118,7 @@ pathAppend: path * path -> path
  *)
 
 (* INVARIANT: In any variant (key, andor), getPath(andor) ends with that key. *)
-			    
+
 (* ================================================================================ *)
 (* andor trees *)
 (* Version modified based on toy-mc/matchtree.sml.
@@ -129,7 +129,7 @@ as a phantom argument for nullary dcons. (?) *)
 (* Do we need to, or would it be useful to, explicitly include the type
  * for each node. Given the type is known before match compilation, it would
  * be easy to propagate types down through the constructed AND-OR tree.
- * How would we use such types? 
+ * How would we use such types?
  *   Could also maintain a mapping from paths to types of the nodes designated
  * by those paths.
  *   Do we need defaults fields for VARS and LEAF nodes?  Yes (probably).
@@ -168,7 +168,7 @@ datatype andor
     {svar: SV.svar,
      path : path,              (* ditto *)
      asvars: asBindings,       (* ditto *)
-     vars: varBindings,        
+     vars: varBindings,
      defaults: ruleset}        (* rules matching here by default *)
   | LEAF of   (* used as the andor of variants with constant keys, with direct and default rules
                * but no svar, since the svar is bound at the parent OR node. A LEAF
@@ -183,9 +183,9 @@ datatype andor
 withtype variant = key * andor
 (* this pushes the discrimination of the OR-kind into the keys of the variants. *)
 
-			  
+
 (* potentially useful functions:
- 
+
 eqNode : andor * andor -> bool
 (two nodes are equal if their path component is equal, needed only for OR nodes?)
 
@@ -210,8 +210,8 @@ fun getPath(AND{path,...}) = path
 (* getSvar : andor -> SV.svar *)
 fun getSvar(AND{svar,...}) = svar
   | getSvar(OR{svar,...}) = svar
-  | getSvar(SINGLE{svar,...}) = svar					    
-  | getSvar(VARS{svar,...}) = svar					    
+  | getSvar(SINGLE{svar,...}) = svar
+  | getSvar(VARS{svar,...}) = svar
   | getSvar(LEAF _) = bug "getSvar(LEAF)"
   | getSvar INITIAL = bug "getSvar(INITIAL)"
 
@@ -222,7 +222,7 @@ fun getType andor = SV.svarType (getSvar andor)
 (* getDirect : andor -> ruleset *)
 fun getDirect(AND{direct,...}) = direct
   | getDirect(OR{direct,...}) = direct
-  | getDirect(SINGLE{arg,...}) = getDirect arg 
+  | getDirect(SINGLE{arg,...}) = getDirect arg
   | getDirect(VARS{vars,...}) = R.fromList(map #2 vars)
   | getDirect(LEAF{direct,...}) = direct
   | getDirect INITIAL = bug "getDirect(INITIAL)"
@@ -230,7 +230,7 @@ fun getDirect(AND{direct,...}) = direct
 (* getDefaults : andor -> ruleset *)
 fun getDefaults(AND{defaults,...}) = defaults
   | getDefaults(OR{defaults,...}) = defaults
-  | getDefaults(SINGLE{arg,...}) = getDefaults arg 
+  | getDefaults(SINGLE{arg,...}) = getDefaults arg
   | getDefaults(VARS{defaults,...}) = defaults
   | getDefaults(LEAF{defaults,...}) = defaults
   | getDefaults INITIAL = bug "getDefaults(INITIAL)"
@@ -239,7 +239,7 @@ fun getDefaults(AND{defaults,...}) = defaults
    live rules is union of direct and defaults *)
 fun getLive(AND{direct,defaults,...}) = R.union(direct,defaults)
   | getLive(OR{direct,defaults,...}) = R.union(direct,defaults)
-  | getLive(SINGLE{arg,...}) = getLive arg 
+  | getLive(SINGLE{arg,...}) = getLive arg
   | getLive(VARS{defaults,...}) = defaults  (* direct subset defaults *)
   | getLive(LEAF{direct,defaults,...}) = R.union(direct,defaults)
   | getLive INITIAL = bug "getLive(INITIAL)"
@@ -268,15 +268,15 @@ fun getNode(andor, _, 0) = andor
 	   getNode(arg, path, depth-1)
        | ((VARS _ | LEAF _),_) => bug "getNode(VARS|LEAF)"
        | _ => bug "getNode arg")
-	
+
 (* parentNode: andor * andor -> andor *)
 fun parent (andor, root) =
     let val path = getPath(andor)
         val d = length(path) - 1
      in getNode(root, path, d)
-    end  
+    end
 
-(* decision trees *)	
+(* decision trees *)
 datatype decTree
   = DLEAF of ruleno    (* old version: RHS *)
      (* if you get to this node, bind variables along branch and dispatch to RHS(ruleno) *)

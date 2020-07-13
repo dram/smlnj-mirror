@@ -4,7 +4,7 @@ signature SVAR =
 sig
 
     (* "simple" variables, with fixed type and lvar as _access_ *)
-    
+
     type svar
 (*      = SVAR of	                (* "simple" variables *)
 	  {name : Symbol.symbol,

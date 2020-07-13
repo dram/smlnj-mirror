@@ -11,7 +11,7 @@ struct
 
   datatype break_style = CONSISTENT | INCONSISTENT
 
-  fun openStyleBox style = 
+  fun openStyleBox style =
       case style
         of CONSISTENT => PP.openHVBox
          | INCONSISTENT => PP.openHOVBox
@@ -26,7 +26,7 @@ struct
        in prElems elems
       end
 
-  fun ppSequence ppstream {sep:PP.stream->unit, pr:PP.stream->'a->unit, 
+  fun ppSequence ppstream {sep:PP.stream->unit, pr:PP.stream->'a->unit,
                            style:break_style} (elems: 'a list) =
       (openStyleBox style ppstream (PP.Abs 0);
        ppSequence0 ppstream (sep,pr,elems);
@@ -38,7 +38,7 @@ struct
       (PP.openHVBox ppstream (PP.Rel 1);
        front ppstream;
        openStyleBox style ppstream (PP.Abs 0);
-       ppSequence0 ppstream (sep,pr,elems); 
+       ppSequence0 ppstream (sep,pr,elems);
        PP.closeBox ppstream;
        back ppstream;
        PP.closeBox ppstream)
@@ -49,7 +49,7 @@ struct
 
   fun ppvseqNoBox ppstream pr_elem elems =
       let fun prElems [el] = pr_elem ppstream el
-	    | prElems (el::rest) = (pr_elem ppstream el; 
+	    | prElems (el::rest) = (pr_elem ppstream el;
 				    PP.cut ppstream;
                                     prElems rest)
 	    | prElems [] = ()
@@ -58,8 +58,8 @@ struct
 
   fun ppvseq ppstream indent (sep:string) pr_elem elems =
       let fun prElems [el] = pr_elem ppstream el
-	    | prElems (el::rest) = (pr_elem ppstream el; 
-                                    PP.string ppstream sep; 
+	    | prElems (el::rest) = (pr_elem ppstream el;
+                                    PP.string ppstream sep;
 				    PP.cut ppstream;
                                     prElems rest)
 	    | prElems [] = ()
@@ -93,14 +93,14 @@ struct
  and reverse introduce dependence on ElabData/basics/sympath.sml.
   (* debug print functions *)
   fun ppIntPath ppstream =
-      ppClosedSequence ppstream 
+      ppClosedSequence ppstream
 	{front=(fn pps => PP.string pps "["),
 	 sep=(fn pps => (PP.string pps ","; PP.break pps {nsp=0,offset=0})),
 	 back=(fn pps => PP.string pps "]"),
 	 style=INCONSISTENT,
 	 pr=(fn pps => PP.string pps o Int.toString)}
 
-  fun ppSymPath ppstream (path: SymPath.path) = 
+  fun ppSymPath ppstream (path: SymPath.path) =
       PP.string ppstream (SymPath.toString path)
 
   fun ppInvPath ppstream (rpath: InvPath.path) =
@@ -142,10 +142,10 @@ struct
 
   fun ppArray ppstrm (f:PP.stream -> 'a -> unit, a:'a array) =
       let val {openHVBox,openHOVBox,pps,break,closeBox,...} = en_pp ppstrm
-	  fun loop i = 
+	  fun loop i =
 	      let val elem = Array.sub(a,i)
 	       in pps (Int.toString i);
-		  pps ": "; 
+		  pps ": ";
 		  f ppstrm elem;
 		  break {nsp=1,offset=0};
 		  loop (i+1)
@@ -158,7 +158,7 @@ struct
   fun C f x y = f y x;
 
   fun ppTuple ppstrm f =
-      ppClosedSequence ppstrm 
+      ppClosedSequence ppstrm
 	{front=C pps "(",
 	 sep=fn ppstrm => (pps ppstrm ","; PP.break ppstrm {nsp=0,offset=0}),
 	 back=C pps ")",

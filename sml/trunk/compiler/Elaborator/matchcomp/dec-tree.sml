@@ -45,7 +45,7 @@ fun decisionTree andor =
 	val ruleCounts = Array.tabulate (R.numItems rules, (fn i => 0))
 	fun incrementRuleCount r =
 	    Array.update(ruleCounts, r, Array.sub(ruleCounts,r)+1)
-		
+
 (* makeDecisionTree : (APQ.queue * ruleset * path -> decTree *)
 (* orNodes is a priority queue (APQ.queue) of OR nodes
  * -- oldlive is a ruleset containing rules that are live on this branch,
@@ -105,7 +105,7 @@ fun makeDecisionTree(orNodes, survivors, thisPath) =
 	 | _ => bug "makeDecisionTree")
 
 (* What to do when there are no relevant OR nodes in the queue? In this case, is the
- * match degenerate (only one pattern/rule)? Produce degenerate CHOICE{andor,DLEAF,NONE}? 
+ * match degenerate (only one pattern/rule)? Produce degenerate CHOICE{andor,DLEAF,NONE}?
  * Or possibly DLEAF(andor)? Or a new decTree constructor? Examples? *)
 
      in (makeDecisionTree(orNodes, rules, rootPath), Array.vector ruleCounts)

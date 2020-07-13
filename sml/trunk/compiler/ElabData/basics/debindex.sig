@@ -6,7 +6,7 @@
  * it is made to be unaware of such middle-end specifics.
  * (08/2001 Blume) *)
 
-signature DEB_INDEX = 
+signature DEB_INDEX =
 sig
   eqtype depth
   eqtype index
@@ -27,10 +27,9 @@ sig
   val di_key : index -> int
   val di_toint: index -> int
   val di_fromint: int -> index
- 
+
   val innermost : index
   val innersnd : index
   val di_inner : index -> index
 
 end (* signature DEB_INDEX *)
-

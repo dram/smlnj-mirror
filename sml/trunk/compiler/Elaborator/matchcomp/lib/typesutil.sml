@@ -6,7 +6,7 @@ struct
 local open Types in
 
   fun bug msg = ErrorMsg.impossible msg
-				  
+
   (* equalTycon : tycon * tycon -> bool *)
   fun equalTycon (Tycon{stamp=s1,...}, Tycon{stamp=s2,...}) =
       Stamp.same(s1,s2)
@@ -33,7 +33,7 @@ local open Types in
   fun dataconWidth (DCON{owner,...}: datacon) = datatypeWidth owner
 
   fun dataconType (DCON{polyty,...}) = polyty
-				       
+
   fun mkPrimTycon (name, arity) =
       Tycon{name = name,
 	    stamp = Stamp.new(),
@@ -75,7 +75,7 @@ local open Types in
             | build (n,tys) = build (n-1, ty::tys)
       in build (len,nil)
       end
-	  
+
   fun mkTupleTy (tys: ty list) =
       CONty(tupleTycon (length tys), tys)
 
@@ -91,7 +91,7 @@ local open Types in
       then (domain,range)
       else bug "domain_range: arg not a function type"
     | domain_range _ = bug "domain_range: unexpected type"
-			   
+
   (* matchPoly : T.ty * T.PolyTy -> T.ty vector *)
   fun matchPoly (ty, POLY{arity,body}) =
       let val instArray = Array.array(arity,UNDEFty)
@@ -121,7 +121,7 @@ local open Types in
    * given an instance of the range of the type of a dcon, returns corresponding instance
    * of the domain of the dcon *)
   fun dataconInstArgs(ty,dcon) =
-      (* ASSERT: dcon is not a constant dcon, and ty is the range of an instance of 
+      (* ASSERT: dcon is not a constant dcon, and ty is the range of an instance of
        * the (possibly polymorphic) type of dcon *)
       let val dconTy as POLY{arity,body} = dataconType dcon
       in if isFunTy body
@@ -130,19 +130,19 @@ local open Types in
 	      end
 	 else matchPoly (ty, dconTy)
       end
-	  
+
   (* destructCon : T.ty * dcon -> T.ty
    * given the range (ty) of an instance of the type of a dcon, returns corresponding instance
    * of the domain of the dcon *)
   fun destructCon(ty,dcon) =
-      (* ASSERT: dcon is not a constant dcon, and ty is the range of an instance of 
+      (* ASSERT: dcon is not a constant dcon, and ty is the range of an instance of
        * the polymorphic type of dcon *)
       let val POLY{arity,body} = dataconType dcon
 	  val (domain, range) = domain_range body (* dconTy assumed to be a function type *)
 	  val instVector = matchPoly (ty, POLY{arity=arity, body=range})
       in instTy instVector domain
       end
-	  
+
   fun destructRecord (CONty(_, elemTys)) = elemTys
 
   val tyvarCount = ref 0 (* a global variable *)

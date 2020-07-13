@@ -24,7 +24,7 @@ val wordTy = CONty(wordTycon, [])
 val word8Ty = CONty(word8Tycon, [])
 val word32Ty = CONty(wordTycon, [])
 val word64Ty = CONty(wordTycon, [])
-		  
+
 val (boolTycon, boolDconsRef) = mkDataTycon("bool", 0)
 val boolTy = CONty(boolTycon, nil)
 val boolPolyTy = POLY{arity = 0, body = boolTy}

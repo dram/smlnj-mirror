@@ -1,12 +1,12 @@
 (* COPYRIGHT (c) 1997 YALE FLINT PROJECT *)
 (* debindex.sml *)
 
-(* 
+(*
  * This implements the abstraction of de Bruijn indices used
  * by the FLINT type and term language. The notion of depth
  * refers to the type-binding depth relative to the top level
- * of the current compilation unit. I can't make type depth 
- * and index abstract because certain clients want to use 
+ * of the current compilation unit. I can't make type depth
+ * and index abstract because certain clients want to use
  * the values of these types as table indices.
  *)
 
@@ -32,7 +32,7 @@
  * is >= 1.
 *)
 
-structure DebIndex : DEB_INDEX = 
+structure DebIndex : DEB_INDEX =
 struct
 
 local structure EM = ErrorMsg
@@ -60,7 +60,7 @@ fun dp_print i = Int.toString i
 fun dp_toint (i : depth) = i
 fun dp_fromint (i : int) = i
 
-fun getIndex (cur:depth, def:depth) : index = 
+fun getIndex (cur:depth, def:depth) : index =
     if def > cur then bug "the definition is deeper than the use"
     else (cur - def)
 

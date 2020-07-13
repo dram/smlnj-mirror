@@ -18,7 +18,7 @@ val emptyRuleMap = M.empty
 fun lookuplist (map, rule) =
     M.lookup(map, rule)
     handle LibBase.NotFound => nil
-				   
+
 (* makemap : andor * rulemap -> rulemap *)
 fun makemap (VARS{svar,vars,asvars,...}, map) =
     let val map1 = foldl (fn ((var, rule),map) => M.insert(map,rule,(var,svar)::lookuplist(map,rule)))
@@ -27,7 +27,7 @@ fun makemap (VARS{svar,vars,asvars,...}, map) =
 			 map1 asvars
     in map2
     end
-  | makemap (AND{svar,vars,asvars,children,...}, map) = 
+  | makemap (AND{svar,vars,asvars,children,...}, map) =
     let val map1 = foldl (fn ((var, rule),map) => M.insert(map,rule,(var,svar)::lookuplist(map,rule)))
 			 map vars
 	val map2 = foldl (fn ((var, rule),map) => M.insert(map,rule,(var,svar)::lookuplist(map,rule)))
@@ -35,7 +35,7 @@ fun makemap (VARS{svar,vars,asvars,...}, map) =
 	val map3 = foldl makemap map2 children
     in map3
     end
-  | makemap (OR{svar,vars,asvars,variants,...}, map) = 
+  | makemap (OR{svar,vars,asvars,variants,...}, map) =
     let val map1 = foldl (fn ((var, rule),map) => M.insert(map,rule,(var,svar)::lookuplist(map,rule)))
 			 map vars
 	val map2 = foldl (fn ((var, rule),map) => M.insert(map,rule,(var,svar)::lookuplist(map,rule)))
@@ -43,7 +43,7 @@ fun makemap (VARS{svar,vars,asvars,...}, map) =
 	val map3 = foldl (fn ((k,andor),map) => (makemap(andor,map))) map2 variants
     in map3
     end
-  | makemap (SINGLE{svar,vars,asvars,arg,...}, map) = 
+  | makemap (SINGLE{svar,vars,asvars,arg,...}, map) =
     let val map1 = foldl (fn ((var, rule),map) => M.insert(map,rule,(var,svar)::lookuplist(map,rule)))
 			 map vars
 	val map2 = foldl (fn ((var, rule),map) => M.insert(map,rule,(var,svar)::lookuplist(map,rule)))

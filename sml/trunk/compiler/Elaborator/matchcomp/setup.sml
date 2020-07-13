@@ -67,7 +67,7 @@ val pats1 = [pat11, pat12]
 
 val pat21 = mkTuplePat [truePat, falsePat]
 val pat22 = mkTuplePat [falsePat, truePat]
-				   
+
 val example0 = [pat21, pat22]
 
 val xpat = VARpat(V.mkVALvar(S.make "x", LV.mkLvar()))
@@ -92,7 +92,7 @@ val example0 = [p1,p2,p3]
 val example1 =
 "N(x,L);\
 \N(L,y);\
-\z"    
+\z"
 val polyty1 = POLY{arity=0, body=CONty(treeTycon, [])}
 
 val example2 =
