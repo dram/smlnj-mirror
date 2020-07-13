@@ -1,6 +1,9 @@
 (* code-string.sml
  *
- * COPYRIGHT (c) 1998 Bell Labs, Lucent Technologies.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *
+ * This file implements the MLRISC CODE_STRING interface.
  *)
 
 structure CodeString : CODE_STRING =
@@ -30,4 +33,3 @@ structure CodeString : CODE_STRING =
 	  end
 
   end;
-
