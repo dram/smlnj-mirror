@@ -81,12 +81,12 @@ signature CPS =
 
       (* These all update the store *)
 	datatype setter
-	  = NUMUPDATE of {kind: numkind}
-	  | UNBOXEDUPDATE | UPDATE
-	  | UNBOXEDASSIGN | ASSIGN
+	  = NUMUPDATE of {kind: numkind}	(* packed array update *)
+	  | UNBOXEDUPDATE | UPDATE		(* polymorphic array update *)
+	  | UNBOXEDASSIGN | ASSIGN		(* reference assignment *)
 	  | SETHDLR | SETVAR | SETSPECIAL
-	  | RAWSTORE of {kind: numkind}
-	  | RAWUPDATE of cty
+	  | RAWSTORE of {kind: numkind}		(* store into raw record *)
+	  | RAWUPDATE of cty			(* spill-record store *)
 
       (* These fetch from the store, never have functions as arguments. *)
 	datatype looker

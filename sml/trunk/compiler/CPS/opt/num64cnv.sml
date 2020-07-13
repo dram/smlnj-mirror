@@ -596,7 +596,7 @@ structure Num64Cnv : sig
 	    | chkExp (C.BRANCH(P.CMP{kind=P.UINT 64, ...}, _, _, _, _)) = true
 	    | chkExp (C.BRANCH(_, vs, _, e1, e2)) =
 		chkValues vs orelse chkExp e1 orelse chkExp e2
-(* QUESTION: what about RAWUPDATE and RAWSTORE? *)
+(* QUESTION: what about RAWSTORE? *)
 	    | chkExp (C.SETTER(_, vs, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.LOOKER(_, vs, _, _, e)) = chkValues vs orelse chkExp e
 	    | chkExp (C.ARITH(P.IARITH{sz=64, ...}, _, _, _, _)) = true

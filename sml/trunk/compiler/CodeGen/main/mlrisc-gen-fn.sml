@@ -1103,8 +1103,10 @@ functor MLRiscGen (
 			    emit(M.BCC(cmpWord(LI' i), false_lab));
 			    unroll (i + ws))
 		    in
+		    (* get data pointers *)
 		      emit (M.MV(ity, r1, M.LOAD(ity, regbind v, R.readonly)));
 		      emit (M.MV(ity, r2, M.LOAD(ity, regbind w, R.readonly)));
+		    (* compare the data *)
 		      unroll 0;
 		      genCont (yes, hp);
 		      genlab (false_lab, no, hp)
