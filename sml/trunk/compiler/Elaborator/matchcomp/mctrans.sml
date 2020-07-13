@@ -15,7 +15,7 @@ local
 in
 (* refers to : toLty, toTyc -- from PlambdaType? *)
 
-(* numKey : Types.ty IntConst.t * T.ty -> int IntConst.t *)
+(* transNum : Types.ty IntConst.t * T.ty -> int IntConst.t *)
 (* Translates a front-end numeric literal (Types.ty IntConst.t) into a FLINT-style
  * numeric literal representation (int IntCons.t).
  * QUESTION: perhaps we should preserve the size, in the case of

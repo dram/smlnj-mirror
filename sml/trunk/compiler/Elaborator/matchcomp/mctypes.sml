@@ -327,6 +327,10 @@ datatype mcexp
 (* NOTE: we don't need letm case if we translate svars to corresponding vars while
  * translating the body of the letm (using map from svar to (var,rule)), and keeping
  * track of which rule rhs we are translating. *)
+(* NOTE: all Case forms will be exhaustive, with a default created for cases where the
+ * explicit keys are not exhaustive (in particular for int, word, string constants,
+ * and cases where not all datacons are explicitly present.). Code generation/translation
+ * will represent these defaults as additional rules with a wildcard pattern. *)
 
 end (* local *)
 end (* structure MCTypes *)

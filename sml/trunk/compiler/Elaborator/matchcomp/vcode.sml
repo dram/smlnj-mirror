@@ -78,14 +78,15 @@ fun vLetm (vars, svars, body) =
     in wrapLets (vars,svars)
     end
 
-(* vCase1 : SV.svar * T.datacon * SV.svar * mcexp *)
+(* vCase1 : SV.svar * T.datacon * SV.svar * mcexp -> mcexp *)
 fun vCase1 (svar, dcon, svardest, rhsexp) =
     let val scrutinee = vVar svar
 	val rule = caseToRule (D dcon, SOME svardest, rhsexp)
      in CASEexp(scrutinee, [rule], true)  (* true signals vCase1 form; kludge! *)
     end
 
-(* vCase : SV.svar * branch list * mcexp option *)
+(* vCase : SV.svar * branch list * mcexp option -> mcexp *)
+(* The default, if available, is integrated into the rules. *)
 fun vCase (svar, cases, defaultOp) =
     let val scrutinee = vVar svar
 	val rules = map caseToRule case
