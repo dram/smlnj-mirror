@@ -53,7 +53,7 @@
  *       Assigns to x to the ith component of record v.
  *       The storelist is not updated.
  *
- * We use these new primops for both spilling and increment record construction.
+ * We use these new primops for both spilling and incremental record construction.
  *
  *  1. Spilling.
  *
