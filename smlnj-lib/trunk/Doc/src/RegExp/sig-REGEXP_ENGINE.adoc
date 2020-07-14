@@ -94,7 +94,7 @@ val match : (RegExpSyntax.syntax * ('a match -> 'b)) list
 [[str:ThompsonEngine]]
 `[.kw]#structure# ThompsonEngine`::
   An implementation of Ken Thompson's famous
-  https://doi.org/10.1145/363347.363387[__Regular Expression Search Algorithm].
+  https://doi.org/10.1145/363347.363387[__Regular Expression Search Algorithm__].
 
 == See Also
 
