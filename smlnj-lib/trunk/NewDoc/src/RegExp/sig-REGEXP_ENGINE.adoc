@@ -12,6 +12,10 @@ The `REGEXP_ENGINE` signature ...
 [source,sml]
 ------------
 signature REGEXP_ENGINE
+
+structure BackTrackEngine : REGEXP_ENGINE
+structure DfaEngine : REGEXP_ENGINE
+structure ThompsonEngine : REGEXP_ENGINE
 ------------
 
 == Interface
@@ -71,6 +75,26 @@ val match : (RegExpSyntax.syntax * ('a match -> 'b)) list
 	 * the abstract syntax representations of regular expressions and trigger
 	 * the corresponding action
 	 *)
+
+== Instances
+
+[[str:BackTrackEngine]]
+`[.kw]#structure# BackTrackEngine`::
+  A backtracking interpreter for the regular-expression syntax.  This implementation
+  requires no extra compilation time, but backtracking can result in slow searches
+  for some regular expressions.
+
+[[str:DfaEngine]]
+`[.kw]#structure# DfaEngine`::
+  This implementation compiles the regular expression to a nondeterministic
+  finite-state machine and then coverts that to a deterministic machine.
+  The resulting machine is fast, but can be exponential in size for some
+  regular expressions.
+
+[[str:ThompsonEngine]]
+`[.kw]#structure# ThompsonEngine`::
+  An implementation of Ken Thompson's famous
+  https://doi.org/10.1145/363347.363387[__Regular Expression Search Algorithm].
 
 == See Also
 

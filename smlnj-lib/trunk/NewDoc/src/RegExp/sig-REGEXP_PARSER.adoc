@@ -13,6 +13,8 @@ concrete regular-expression syntax.
 [source,sml]
 ------------
 signature REGEXP_PARSER
+
+structure AwkSyntax : REGEXP_PARSER
 ------------
 
 == Interface
@@ -30,6 +32,12 @@ val scan : (char, 'a) StringCvt.reader -> (RegExpSyntax.syntax, 'a) StringCvt.re
   If successful, it returns `SOME(re, strm')`, where `re` is the abstract syntax
   of the regular expression and ``strm'`` is the residual input stream.  It returns
   `NONE` if there is a syntax error in the input.
+
+== Instances
+
+[[str:AwkSyntax]]
+`[.kw]#structure# xref:str-AwkSyntax.adoc[AwkSyntax]`::
+  A parser for the regular-expression syntax defined by the AWK language.
 
 == See Also
 

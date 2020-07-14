@@ -122,11 +122,11 @@ substrings, or text input).
 
 [[val:match]]
 `[.kw]#val# match : (string * ('a match \-> 'b)) list \-> (char,'a) StringCvt.reader \-> ('b, 'a) StringCvt.reader`::
-  *something*
-        (* attempt to match the stream at the current position with one
-	 * of the external representations of regular expressions and trigger
-	 * the corresponding action
-	 *)
+  `match rules getc strm` attempts to match one of the `rules` starting at the
+  current stream position.  Each rule is a pair of a regular expression and
+  an action.  The rules are tested in order; if a rule `(re, act)` matches with
+  the result `mt`, then the result of `match` will be `SOME(act mt)`.
+  If no rule matches, then `NONE` is the result.
 
 == See Also
 
