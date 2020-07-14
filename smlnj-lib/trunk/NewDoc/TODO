@@ -1,0 +1,2 @@
+Scan generated HTML for &#8594;, which is the Unicode arrow symbol (occurs when
+we forget to write arrow as \->.
