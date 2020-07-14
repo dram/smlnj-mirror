@@ -1,0 +1,39 @@
+# Makefile.in
+#
+# COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+# All rights reserved.
+#
+# Makefile for SML/NJ Library documentation
+#
+# @configure_input@
+#
+
+SHELL =         @SHELL@
+INSTALL =       @INSTALL@
+@SET_MAKE@
+
+# target for generating the documentation
+#
+.PHONY:         install
+install:
+	(cd src && make install)
+
+# target for building the documentation generation tools
+#
+.PHONY:		tools
+tools:
+	(cd tools && make install)
+
+
+#################### Cleanup ####################
+
+CLEAN_SUBDIRS = src tools
+
+CLEAN_FILES =
+
+DISTCLEAN_FILES +=	Makefile config.status config.log \
+			autom4te*.cache
+
+DEVCLEAN_FILES =	configure
+
+include @MK_DIR@/clean-rules.gmk

@@ -70,6 +70,13 @@ $(DOC_DIR):
 	    mkdir -p $(HTML_DST_ROOT)/$$dir ; \
 	done
 
-include @MK_DIR@/clean-rules.gmk
 
-CLEAN_FILES =	index.html */*html
+#################### Cleanup ####################
+
+CLEAN_FILES =	index.html */*html index.json \
+		styles/smlnj-lib-base.css \
+		styles/smlnj-lib.css \
+		styles/smlnj-lib-pygments.css \
+		tools/gen-pages/config.sml
+
+include @MK_DIR@/clean-rules.gmk

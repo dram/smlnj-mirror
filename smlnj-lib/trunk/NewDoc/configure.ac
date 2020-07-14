@@ -148,7 +148,6 @@ dnl ******************** write output ********************
 dnl
 AC_CONFIG_FILES(
 dnl ***** Makefiles *****
-  mk/doc-rules.gmk:config/doc-rules_gmk.in
   Makefile
   src/Makefile
   tools/Makefile
