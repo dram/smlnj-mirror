@@ -70,24 +70,25 @@ structure TransTypes : TRANSTYPES =
   (****************************************************************************
    *               TRANSLATING ML TYPES INTO FLINT TYPES                      *
    ****************************************************************************)
-local val recTyContext = ref [~1]
+local
+  val recTyContext = ref [~1]
 in
-    fun enterRecTy (a) = (recTyContext := (a::(!recTyContext)))
-    fun exitRecTy () = (recTyContext := tl (!recTyContext))
-    fun recTyc (i) =
-	  let val x = hd(!recTyContext)
-	      val base = DI.innermost
-	   in if x = 0 then LT.tcc_var(base, i)
-	      else if x > 0 then LT.tcc_var(DI.di_inner base, i)
-		   else bug "unexpected RECtyc"
-	  end
-    fun freeTyc (i) =
-	  let val x = hd(!recTyContext)
-	      val base = DI.di_inner (DI.innermost)
-	   in if x = 0 then LT.tcc_var(base, i)
-	      else if x > 0 then LT.tcc_var(DI.di_inner base, i)
-		   else bug "unexpected RECtyc"
-	  end
+  fun enterRecTy (a) = (recTyContext := (a::(!recTyContext)))
+  fun exitRecTy () = (recTyContext := tl (!recTyContext))
+  fun recTyc (i) =
+	let val x = hd(!recTyContext)
+	    val base = DI.innermost
+	 in if x = 0 then LT.tcc_var(base, i)
+	    else if x > 0 then LT.tcc_var(DI.di_inner base, i)
+		 else bug "unexpected RECtyc"
+	end
+  fun freeTyc (i) =
+	let val x = hd(!recTyContext)
+	    val base = DI.di_inner (DI.innermost)
+	 in if x = 0 then LT.tcc_var(base, i)
+	    else if x > 0 then LT.tcc_var(DI.di_inner base, i)
+		 else bug "unexpected RECtyc"
+	end
 end (* end of recTyc and freeTyc hack *)
 
 fun tpsKnd (TP_VAR x) = TransTKind.trans(#kind x)

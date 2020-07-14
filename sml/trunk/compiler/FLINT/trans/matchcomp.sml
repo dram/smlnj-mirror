@@ -1066,21 +1066,16 @@ fun generate (dt, matchRep, rootVar, (toTyc, toLty), giis) =
             SELECT(n, VAR(lookupPath(path, env)))
         | genpath (p as DELTAPATH(pcon, path), env) =
             VAR(lookupPath(p, env))
-        | genpath (VPIPATH(n, t, path), env) = let
-            val tc = toTyc t
-	    val lt_sub = let
-                  val x = LT.ltc_vector (LT.ltc_tv 0)
-                  in
-		    LT.ltc_poly([LT.tkc_mono],
-                      [LT.ltc_parrow(LT.ltc_tuple [x, LT.ltc_int], LT.ltc_tv 0)])
-                  end
-	    in
-	      APP(
-		PRIM(PO.SUBSCRIPTV, lt_sub, [tc]),
-		RECORD[
-		    VAR(lookupPath(path, env)),
-		    INT{ival = IntInf.fromInt n, ty = Target.defaultIntSz}
-		  ])
+        | genpath (VPIPATH(n, t, path), env) =
+	    let val tc = toTyc t
+		val lt_sub =
+                    let val x = LT.ltc_vector (LT.ltc_tv 0)
+                    in LT.ltc_poly([LT.tkc_mono],
+				   [LT.ltc_parrow(LT.ltc_tuple [x, LT.ltc_int], LT.ltc_tv 0)])
+                    end
+	    in APP(PRIM(PO.SUBSCRIPTV, lt_sub, [tc]),
+		   RECORD[ VAR(lookupPath(path, env)),
+		           INT{ival = IntInf.fromInt n, ty = Target.defaultIntSz} ])
             end
         | genpath (VLENPATH (t, path), env) =
             let val tc = toTyc t

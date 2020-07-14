@@ -137,15 +137,18 @@ fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
 fun mkDcon (DATACON {name, rep, typ, ...}) =
       (name, rep, toDconLty toLty typ)
 
-(* patToCon : AS.pat * -> Plambda.con *)
-and patToCon pat =
+fun patToConsig pat =
     (case pat
-       of CONpat (dccon, tvs) =>
+
+(* patToCon : AS.pat * -> Plambda.con *)
+fun patToCon pat =
+    (case pat
+       of CONpat (dcon, tvs) =>
 	    let val newvar = mkv()
 		val nts = map (toTyc o TP.VARty) ts
 	     in DATAcon (mkDcon dc, nts, newvar)
 	    end
-	| VECTORpat(pats,(i, t) => VLENcon i
+	| VECTORpat(pats,ty) => VLENcon (length pats)
 	| NUMpat (src, lit as {ival,ty}) =>
 	    if List.exists (fn ty' => TU.equalType(ty,ty'))
 		   [BT.intTy, BT.int32Ty, BT.int64Ty, BT.intinfTy]
@@ -153,7 +156,6 @@ and patToCon pat =
 	    else WORDcon (transNum lit)
 	| STRINGpat s => STRINGcon s
       (* end case *))
-
 
 (*
  * The following code implements the exception tracking and
@@ -180,13 +182,13 @@ fun mkRaise(x, lt) =
    in RAISE(e, lt)
   end
 
-fun complain s = error (!region) s
-fun repErr x = complain EM.COMPLAIN x EM.nullErrorBody
+fun complain msg = error (!region) msg
+fun repErr msg = complain EM.COMPLAIN msg EM.nullErrorBody
+fun repWarn msg = complain EM.WARN msg EM.nullErrorBody
 fun repPolyEq () =
     if !Control.polyEqWarn then complain EM.WARN "calling polyEqual" EM.nullErrorBody
     else ()
 
-fun repWarn msg = complain EM.WARN msg EM.nullErrorBody
 
 (** This may shadow previous definition of mkv ... this version reports the
     site of introduction of the lvar *)
@@ -1071,22 +1073,19 @@ and mkExp (exp, d) =
 	 * All CASEexp's are the result of previous match compilation. Here 
          * rules will always be exhaustive, since any necessary default will 
          * have been added as a final wildcard rule. *)
-        | mkExp0 (CASEexp (scrutinee, rules, false)) =  (* non-degenerate case *)
+        | mkExp0 (CASEexp (scrutinee, rules, _)) = 
              let val scrutinee' = mkExp0 scrutinee
-		 fun getCon (CONpat(dcon,tvs)) = dcon
-		   | getCon (APPpat(dcon,tvs)) = dcon
-						   
-		 val consig = ()
-		 fun trRule (pat, rhs) = (getCon pat, mkExp0 rhs)
+		 val consig = let val AS.RULE(pat,exp)::_ = rules
+			      in patToConsig pat
+			      end
+		 fun trRule (pat, rhs) = (patToCon pat, mkExp0 rhs)
               in SWITCH(scrutinee', consig, map trRule rules, NONE)
              end  (* where is the SWITCH created? *)
 
 	(* single datacon case, including special cases of ref and susp *)
         | mkExp0 (CASEexp (scrutinee, rules, true)) =
              let val scrutinee' = mkExp0 scrutinee
-                 val (matchexp, rootvar) = matchCompile (rules, ty)
-		     (* where does ty come from? *)
-		 val body = mkExp0 matchexp
+
               in LET(rootvar, scrutinee', body)
              end (* where is the (degenerate) SWITCH created? *)
 
