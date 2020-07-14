@@ -10,6 +10,7 @@
  *
  * The meta characters are:
  *	"\" "^" "$" "." "[" "]" "|" "(" ")" "*" "+" "?"
+ *
  *    Atomic REs:
  *      c	matches the character c (for non-metacharacters c)
  *      "^"	matches the empty string at the beginning of a line
