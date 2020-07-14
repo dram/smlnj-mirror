@@ -22,7 +22,7 @@ PROGRAM =		make-index
 HEAP_IMAGE =		$(PROGRAM).$(HEAP_SUFFIX)
 
 .PHONY:			install
-install:
+install:		$(HEAP_IMAGE)
 	$(INSTALL_WRAPPER) $(PROGRAM) $(TOOL_BIN)
 
 $(HEAP_IMAGE):		$(wildcard ../*.sml) make-index.sml

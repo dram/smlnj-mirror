@@ -27,8 +27,6 @@ STYLES_DST =            $(HTML_DST_ROOT)/styles
 WEB_HTMLDST_ROOT =      @ROOT_DIR@/htdocs
 WEB_STYLES_DST =        $(WEB_HTML_DST_ROOT)/styles
 
-include @MK_DIR@/doc-rules.gmk
-
 # we have one sub-directory per documented library
 #
 DOC_SUBDIRS =           Controls HashCons INet JSON Reactive RegExp SExp Unix Util UUID XML

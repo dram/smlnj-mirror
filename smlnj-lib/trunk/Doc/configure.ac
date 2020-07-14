@@ -36,18 +36,14 @@ case "$host_os" in
     ROOT_DIR=`pwd`
   ;;
 esac
-SMLNJ_ROOT=$ROOT_DIR/../..
+
 SRC_DIR=$ROOT_DIR/src
-OUT_DIR=$ROOT_DIR/doc
-WEB_OUT_DIR=$ROOT_DIR/htdocs
 MK_DIR=$ROOT_DIR/mk
 SRC_CONFIG_DIR=$SRC_DIR/config
 SRC_STYLES_DIR=$SRC_DIR/styles
 TOOL_BIN_DIR=$ROOT_DIR/tools/bin
 
 AC_SUBST(ROOT_DIR)
-AC_SUBST(OUT_DIR)
-AC_SUBST(WEB_OUT_DIR)
 AC_SUBST(SRC_DIR)
 AC_SUBST(MK_DIR)
 AC_SUBST(SRC_CONFIG_DIR)
@@ -55,12 +51,40 @@ AC_SUBST(SRC_STYLES_DIR)
 AC_SUBST(TOOL_BIN_DIR)
 
 dnl
+dnl ******************** get SML/NJ root directory ********************
+dnl
+AC_ARG_WITH([smlnj-root],
+  AC_HELP_STRING([--with-smlnj-root=DIR], [specify the SML/NJ root directory path]),
+  [SMLNJ_ROOT=$withval],
+  [SMLNJ_ROOT=none])
+if test x"$SMLNJ_ROOT" = xnone ; then
+  if test -d $ROOT_DIR/../../base/compiler ; then
+    SMLNJ_ROOT=$ROOT_DIR/../..
+  else
+    AC_MSG_ERROR([please specify the SML/NJ root directory path])
+  fi
+fi
+AC_SUBST(SMLNJ_ROOT)
+
+dnl
+dnl ******************** get the output directory ********************
+dnl
+AC_ARG_WITH([output-dir],
+  AC_HELP_STRING([--with-output-dir=DIR], [specify the output directory path]),
+  [OUT_DIR=$withval],
+  [OUT_DIR=none])
+if test x"$OUT_DIR" = xnone ; then
+  OUT_DIR=$ROOT_DIR/doc
+fi
+AC_SUBST(OUT_DIR)
+
+dnl
 dnl ******************** get SML/NJ release number and date ********************
 dnl
 SMLNJ_DATE=`date "+%B %d, %Y"`
 
 AC_ARG_WITH([version],
-  AC_HELP_STRING([--with-version], ["specify the SML/NJ release version"]),
+  AC_HELP_STRING([--with-version=VERS], [specify the SML/NJ release version]),
   [SMLNJ_VERSION=$withval],
   [SMLNJ_VERSION=none])
 if test x"$SMLNJ_VERSION" = xnone ; then
@@ -75,7 +99,7 @@ fi
 AC_SUBST(SMLNJ_VERSION)
 
 AC_ARG_WITH([date],
-  AC_HELP_STRING([--with-date], ["specify the SML/NJ release date"]),
+  AC_HELP_STRING([--with-date=DATE], [specify the SML/NJ release date]),
   [SMLNJ_DATE=$withval],
   [SMLNJ_DATE=none])
 if test x"$SMLNJ_DATE" = xnone ; then
