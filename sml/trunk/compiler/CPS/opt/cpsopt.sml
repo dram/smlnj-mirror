@@ -1,6 +1,6 @@
 (* cpsopt.sml
  *
- * COPYRIGHT (c) 2018 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
  *)
 
@@ -241,7 +241,12 @@ functor CPSopt (MachSpec: MACH_SPEC) : CPSOPT =
 		(* expand out the 64-bit and IntInf operations and then do one last
 		 * contraction pass.
 		 *)
-		  last_contract (IntInfCnv.elim (Num64Cnv.elim optimized))
+		  if !CG.printit
+		    then (
+		      say ["\n\n[Before lowering]\n\n"];
+		      PPCps.printcps0 optimized)
+		    else ();
+		  last_contract (LowerCPS.transform optimized)
 		end)
 	    before (debugprint["\n"]; debugflush())
 	  end (* fun reduce *)
