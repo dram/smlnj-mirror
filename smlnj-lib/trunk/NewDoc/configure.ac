@@ -13,6 +13,8 @@ AC_CONFIG_SRCDIR(src/JSON/json-lib.adoc)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
 
+sinclude(config/check_smlnj.m4)
+
 dnl
 dnl get host information
 dnl
@@ -41,6 +43,7 @@ WEB_OUT_DIR=$ROOT_DIR/htdocs
 MK_DIR=$ROOT_DIR/mk
 SRC_CONFIG_DIR=$SRC_DIR/config
 SRC_STYLES_DIR=$SRC_DIR/styles
+TOOL_BIN_DIR=$ROOT_DIR/tools/bin
 
 AC_SUBST(ROOT_DIR)
 AC_SUBST(OUT_DIR)
@@ -49,6 +52,7 @@ AC_SUBST(SRC_DIR)
 AC_SUBST(MK_DIR)
 AC_SUBST(SRC_CONFIG_DIR)
 AC_SUBST(SRC_STYLES_DIR)
+AC_SUBST(TOOL_BIN_DIR)
 
 dnl
 dnl ******************** get SML/NJ release number and date ********************
@@ -92,6 +96,32 @@ AC_MSG_NOTICE(["SML/NJ release date: $SMLNJ_DATE"])
 AC_SUBST(SMLNJ_DATE)
 
 dnl
+dnl ******************** get SML/NJ info (for generation tools) ********************
+dnl
+
+dnl ***** TODO: once it is released, the version number should be 110.98 to avoid
+dnl ***** a bug in the JSON library
+
+dnl check that we have a compatible version of SML/NJ
+dnl
+CHECK_SMLNJ([AC_MSG_ERROR([unable to find SML/NJ installation; please add it to your PATH or set SML_CMD])])
+if test $SMLNJ_MAJOR_VERSION -lt 110 \
+  -o $SMLNJ_MINOR_VERSION -lt 97
+then
+  AC_MSG_ERROR([installation requires SML/NJ version 110.97+ (available from smlnj.org)])
+fi
+
+dnl
+dnl look for ml-build
+dnl
+tmpPATH="$SMLNJ_PATH:$PATH"
+AC_PATH_PROG(ML_BUILD, ml-build, none, $tmpPATH)
+if test $ML_BUILD = none ; then
+  AC_MSG_ERROR([ml-build not found])
+fi
+AC_SUBST(ML_BUILD)
+
+dnl
 dnl ******************** check for asciidoctor ********************
 dnl
 AC_PATH_PROGS([ASCIIDOCTOR], [asciidoctor], [none])
@@ -119,8 +149,20 @@ dnl
 AC_CONFIG_FILES(
 dnl ***** Makefiles *****
   mk/doc-rules.gmk:config/doc-rules_gmk.in
+  Makefile
   src/Makefile
+  tools/Makefile
+  tools/gen-pages/Makefile
+  tools/make-index/Makefile
+dnl ***** SML files *****
   tools/gen-pages/config.sml:tools/gen-pages/config_sml.in
 )
+
+dnl
+dnl shell scripts
+dnl
+AC_CONFIG_FILES([
+  bin/install-sml-wrapper.sh:config/install-sml-wrapper_sh.in
+], [chmod +x bin/install-sml-wrapper.sh])
 
 AC_OUTPUT

@@ -12,7 +12,10 @@ is
 
   $/basis.cm
   $/smlnj-lib.cm
+(*
   $/json-lib.cm
+*)
+../../../JSON/json-lib.cm
 
   ../index/sources.cm
 

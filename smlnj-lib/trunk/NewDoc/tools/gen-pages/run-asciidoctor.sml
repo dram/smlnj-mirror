@@ -27,7 +27,7 @@ structure RunAsciidoctor : sig
 	    file
 	  ]
 
-    fun run (srcFile, outS) = let
+    fun run' (srcFile, outS) = let
 	  val args = args srcFile
 	  val _ = if !Options.verbose
 		then print(String.concatWith " " (cmd :: args @ ["\n"]))
@@ -39,5 +39,12 @@ structure RunAsciidoctor : sig
 	    TextIO.closeOut toProc;
 	    Unix.reap proc
 	  end
+
+  (* wrapper that first verifies that the file exists *)
+    fun run (srcFile, outS) = if OS.FileSys.access (srcFile, [OS.FileSys.A_READ])
+	  then run' (srcFile, outS)
+	  else raise Fail(concat[
+	      "RunAsciidoctor.run: \"", String.toString srcFile, "\" not found"
+	    ])
 
   end
