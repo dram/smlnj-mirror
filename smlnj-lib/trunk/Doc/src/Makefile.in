@@ -18,8 +18,7 @@ MAKE_INDEX =		@TOOL_BIN_DIR@/make-index
 
 # place to put documentation for doc target
 #
-DOC_DIR =               @OUT_DIR@
-HTML_DST_ROOT =         $(DOC_DIR)/html
+HTML_DST_ROOT =         @OUT_DIR@
 STYLES_DST =            $(HTML_DST_ROOT)/styles
 
 # root path to place generated HTML files for the SML/NJ web site
@@ -37,7 +36,7 @@ ADOC_FILES =		index.adoc \
 			$(wildcard */*.adoc)
 
 .PHONY:         install
-install:	$(DOC_DIR) css html
+install:	$(HTML_DST_ROOT) css html
 	cp -p index.html $(HTML_DST_ROOT)
 	cp -p styles/smlnj-lib-base.css $(STYLES_DST)
 	cp -p styles/smlnj-lib.css $(STYLES_DST)
@@ -61,7 +60,7 @@ index.html:	index.json
 index.json:	$(ADOC_FILES)
 	$(MAKE_INDEX) index.json
 
-$(DOC_DIR):
+$(HTML_DST_ROOT):
 	mkdir -p $(HTML_DST_ROOT)
 	mkdir -p $(STYLES_DST)
 	for dir in $(DOC_SUBDIRS) ; do \

@@ -74,7 +74,7 @@ AC_ARG_WITH([output-dir],
   [OUT_DIR=$withval],
   [OUT_DIR=none])
 if test x"$OUT_DIR" = xnone ; then
-  OUT_DIR=$ROOT_DIR/doc
+  OUT_DIR=$ROOT_DIR/doc/html
 fi
 AC_SUBST(OUT_DIR)
 
