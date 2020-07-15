@@ -37,7 +37,10 @@ structure RunAsciidoctor : sig
 	  in
 	    pipe (fromProc, outS);
 	    TextIO.closeOut toProc;
-	    Unix.reap proc
+	    Unix.reap proc;
+	    if not (!Options.verbose)
+	      then print "."
+	      else ()
 	  end
 
   (* wrapper that first verifies that the file exists *)

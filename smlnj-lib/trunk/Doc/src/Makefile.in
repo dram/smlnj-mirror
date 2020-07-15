@@ -16,10 +16,15 @@ GEN_PAGES =		@TOOL_BIN_DIR@/gen-pages
 GEN_PAGES_FLAGS =	-v
 MAKE_INDEX =		@TOOL_BIN_DIR@/make-index
 
+ifeq(WEB,yes)
+GEN_PAGES_FLAGS +=	--base-url=https://smlnj.org/doc/smlnj-lib
+endif
+
 # place to put documentation for doc target
 #
 HTML_DST_ROOT =         @OUT_DIR@
 STYLES_DST =            $(HTML_DST_ROOT)/styles
+IMAGES_DST =		$(HTML_DST_ROOT)/images
 
 # root path to place generated HTML files for the SML/NJ web site
 #
@@ -35,8 +40,15 @@ HTML_SUBDIRS =		$(addprefix $(HTML_DST_ROOT)/,$(DOC_SUBDIRS))
 ADOC_FILES =		index.adoc \
 			$(wildcard */*.adoc)
 
-.PHONY:         install
-install:	$(HTML_DST_ROOT) css html
+# install-offline includes the images directory so that things render
+# properly offline
+.PHONY:		install-offline
+install-offline:	install
+	mkdir -p $(IMAGES_DST)
+	cp -p images/smlnj-logo.png $(IMAGES_DST)
+
+.PHONY:         	install
+install:		$(HTML_DST_ROOT) css html
 	cp -p index.html $(HTML_DST_ROOT)
 	cp -p styles/smlnj-lib-base.css $(STYLES_DST)
 	cp -p styles/smlnj-lib.css $(STYLES_DST)

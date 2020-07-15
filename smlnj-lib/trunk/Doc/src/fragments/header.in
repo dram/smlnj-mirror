@@ -43,7 +43,7 @@
     <div id="layout-banner">
       <div id="layout-logo">
         <a href="https://smlnj.org">
-          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+          <img src="@IMAGES_URL@/smlnj-logo.png" height="120" alt="SML/NJ logo" />
         </a>
       </div> <!-- layout-logo -->
       <div id="layout-title">

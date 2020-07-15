@@ -27,6 +27,7 @@ structure Options : sig
     val baseURL : string option ref
     val basisLibURL : string ref
     val indexFile : string ref
+    val imagesURL : string ref
 
   end = struct
 
@@ -38,6 +39,7 @@ structure Options : sig
     val baseURL : string option ref = ref NONE
     val basisLibURL = ref "https://standardml.org/Basis"
     val indexFile = ref "index.json"
+    val imagesURL = ref(SOME "https://smlnj.org/images")
 
     val helpFlg = ref false
 
@@ -92,7 +94,10 @@ structure Options : sig
 	      then usage OS.Process.success
 	    else if !errFlg orelse not(null excess)
 	      then usage OS.Process.failure
-	      else ()
+	      else ();
+	    case !baseURL
+	     of NONE => imagesURL := NONE	(* use relative path to images *)
+	      | _ => ()
 	  end
 
   end

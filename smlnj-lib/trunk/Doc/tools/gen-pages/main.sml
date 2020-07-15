@@ -2,6 +2,22 @@
  *
  * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
  * All rights reserved.
+ *
+ * Main function for *gen-pages* tool.  This program has the following
+ * usage:
+ *
+ *	gen-pages [options]
+ *
+ *	Options:
+ *
+ *	    -h, --help			print help message and exit
+ *	    -v, --verbose		run in verbose mode
+ *	    --release-date=<date>
+ *	    --version=<version>
+ *	    --base-url=<url>
+ *	    --basis-lib-url=<url>
+ *	    --index=<file>
+ *
  *)
 
 structure Main : sig
@@ -13,18 +29,24 @@ structure Main : sig
     structure FT = FileTree
     structure P = OS.Path
 
+(* TODO: support relative path for @IMAGES_URL@.  The actual value depends on
+ * the path of the file we are generating, since we may need an extra ".." prefix.
+ *)
+
   (* create a copy-file function with the specified substitutions *)
     fun copy {meta : FT.meta, title, file, base} = let
 	  val d = Date.fromTimeUniv(OS.FileSys.modTime file)
 	  val date = Date.fmt "%Y-%m-%d" d
 	  val time = Date.fmt "%H:%M:%S UTC" d
+	  val imagesURL = Option.getOpt(!Options.imagesURL, base ^ "images")
 	  val substs = [
 		  ("STYLED-TITLE", Util.style title),
 		  ("DATE", !Options.releaseDate),
 		  ("VERSION", !Options.version),
 		  ("FILEDATE", date),
 		  ("FILETIME", time),
-		  ("BASE", base)
+		  ("BASE", base),
+		  ("IMAGES_URL", imagesURL)
 		]
 	  fun metaStr (k, v) = concat[
 		  "\n  <meta name=\"", k, "\" content=\"", v, "\">"
@@ -86,6 +108,7 @@ structure Main : sig
     fun main (cmd, opts) = (
 	  Options.process opts;
 	  walkTree (loadIndex (!Options.indexFile));
+	  if not(!Options.verbose) then print " done\n" else print "done\n";
 	  OS.Process.success)
 	    handle ex => (
 	      TextIO.output(TextIO.stdErr, concat[
