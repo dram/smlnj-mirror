@@ -98,7 +98,8 @@ and the moving it to its own library removes a dependency from the compiler
 on `$/html-lib.cm`.
 
 The *SML/NJ Library* is now mostly documented; see `doc/html/smlnj-lib/index.html`
-in the distribution or https://smlnj.org/doc/smlnj-lib/index.html[] online.
+in the distribution or the https://smlnj.org/doc/smlnj-lib/index.html[online
+documentation].
 
 === Successor ML
 

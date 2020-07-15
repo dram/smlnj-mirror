@@ -71,11 +71,11 @@ smlnj-lib-doc:	smlnj-lib/configure
 	  --with-version="@SMLNJ_VERSION@" \
 	  --with-date="@SMLNJ_DATE@")
 	(cd smlnj-lib && make tools)
-	(cd smlnj-lib && make install)
+	(cd smlnj-lib && make install-offline)
 
 smlnj-lib/configure:
 	(cd smlnj-lib && autoconf -Iconfig)
 
 include @MK_DIR@/clean-rules.gmk
 
-CLEAN_SUBDIRS =	$(DOC_SUBDIRS)
+CLEAN_SUBDIRS =	$(DOC_SUBDIRS) smlnj-lib
