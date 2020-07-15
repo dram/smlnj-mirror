@@ -13,10 +13,7 @@ is
 
   $/basis.cm
   $/smlnj-lib.cm
-(*
   $/json-lib.cm
-*)
-../../../JSON/json-lib.cm
   $/regexp-lib.cm
 
   extract-index.sml
