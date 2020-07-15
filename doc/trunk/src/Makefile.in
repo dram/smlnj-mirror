@@ -42,7 +42,7 @@ IMAGE_FILES =		$(notdir $(wildcard images/*.png images/*jpg))
 IMAGE_DST_FILES =	$(addprefix $(IMAGES_DST)/,$(IMAGE_FILES))
 
 .PHONY:		doc
-doc:		html $(DOC_DIR) readmes
+doc:		html $(DOC_DIR) readmes smlnj-lib-doc
 
 .PHONY:		html
 html:
@@ -60,6 +60,21 @@ $(DOC_DIR):
 readmes:
 	mkdir -p $(HTML_DST_ROOT)/readme
 	cp -p release-notes/*.html $(HTML_DST_ROOT)/readme
+
+# configure and make the SML/NJ Library documentation
+#
+.PHONY:		smlnj-lib-doc
+smlnj-lib-doc:	smlnj-lib/configure
+	(cd smlnj-lib && configure \
+	  --with-smlnj-root="@ROOT_DIR@/.." \
+	  --with-output-dir="@OUT_DIR@/smlnj-lib" \
+	  --with-version="@SMLNJ_VERSION@" \
+	  --with-date="@SMLNJ_DATE@")
+	(cd smlnj-lib && make tools)
+	(cd smlnj-lib && make install)
+
+smlnj-lib/configure:
+	(cd smlnj-lib && autoconf -Iconfig)
 
 include @MK_DIR@/clean-rules.gmk
 
