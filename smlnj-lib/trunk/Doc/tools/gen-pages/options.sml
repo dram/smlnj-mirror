@@ -27,7 +27,7 @@ structure Options : sig
     val baseURL : string option ref
     val basisLibURL : string ref
     val indexFile : string ref
-    val imagesURL : string ref
+    val imagesURL : string option ref
 
   end = struct
 
