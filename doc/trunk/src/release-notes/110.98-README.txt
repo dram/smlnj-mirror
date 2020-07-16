@@ -1,5 +1,5 @@
 :version: 110.98
-:date: @DATE@
+:date: July 16, 2020
 :dist-dir: https://smlnj.org/dist/working/{version}/
 :history: {dist-dir}HISTORY.html
 :stem: latexmath
@@ -28,14 +28,24 @@ FILES::
 ''''''''
 
 == Summary
-// bug fixes
-// groundwork for LLVM
-// new Basis Library module
-// **** summary description of release
+
+This release includes substantial improvements to the documentation
+(the *SML/NJ Library* is now mostly documented) as well as various
+other improvements and bug fixes.
+
+== Future Plans
+
+We are reworking the back-end of the compiler in preparation for
+migrating from our current *MLRISC* code generator to one based
+on *LLVM*.  With that migration, we expect to drop support for
+all processors other than the *x86-64* (aka *amd64*), but we plan
+to add support for the *arm64* (aka *AArch64*).
+
+If you are a user of *SML/NJ* on the *Sparc*, *PowerPC*, or 32-bit
+*x86* and would like to see support for that system continued,
+please contact us.
 
 == Details
-
-// **** details: include those sections that are relevant
 
 === Compiler
 
@@ -64,8 +74,6 @@ of changes to the compiler internals:
   can be checked using trapping add operations.
 --
 
-=== CM
-
 === MLRISC
 
 The *MLRISC* instruction selector for the *x86* and *amd64* targets
@@ -75,8 +83,6 @@ In fact, such a division operation traps, which is okay, because the
 runtime system maps the trap to the `Overflow` exception.  Since the
 check for overflow is unnecessary, it has been removed from the files
 `MLRISC/amd64/mltree/amd64-gen.sml` and `MLRISC/x86/mltree/x86.sml`.
-
-=== Runtime System
 
 === Basis Library
 
@@ -101,15 +107,12 @@ The *SML/NJ Library* is now mostly documented; see `doc/html/smlnj-lib/index.htm
 in the distribution or the https://smlnj.org/doc/smlnj-lib/index.html[online
 documentation].
 
-=== Successor ML
-
 === ML-LPT
 
 Changed the semantics of the `--debug` command-line option for *ml-antlr*.
 Previously this option replaced the actions with a print expression, but that
 limited its usefulness because of type errors in the generated code.  The new
 behavior is to preserve the existing actions and just add the printing code.
-
 
 === Documentation
 
