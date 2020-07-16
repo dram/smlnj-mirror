@@ -112,17 +112,18 @@ val {tpsKnd, tpsTyc, toTyc, toLty, strLty, fctLty} =
     TT.genTT()
 fun toTcLt d = (toTyc d, toLty d)
 
+(* toDconLty : DebIndex.depth -> Types.ty -> lty *)
 (** translating the typ field in DATACON into lty; constant datacons
     will take ltc_unit as the argument *)
 fun toDconLty d ty =
-  (case ty
-    of TP.POLYty{sign, tyfun=TP.TYFUN{arity, body}} =>
-         if BT.isArrowType body then toLty d ty
-         else toLty d (TP.POLYty{sign=sign,
-                               tyfun=TP.TYFUN{arity=arity,
-                                              body=BT.-->(BT.unitTy, body)}})
-     | _ => if BT.isArrowType ty then toLty d ty
-            else toLty d (BT.-->(BT.unitTy, ty)))
+    (case ty
+       of TP.POLYty{sign, tyfun=TP.TYFUN{arity, body}} =>
+            if BT.isArrowType body then toLty d ty
+            else toLty d (TP.POLYty{sign=sign,
+				    tyfun=TP.TYFUN{arity=arity,
+						   body=BT.-->(BT.unitTy, body)}})
+	| _ => if BT.isArrowType ty then toLty d ty
+               else toLty d (BT.-->(BT.unitTy, ty)))
 
 fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
   | CON' ((_, DA.SUSP (SOME(DA.LVAR d, _)), lt), ts, e) =
@@ -134,21 +135,32 @@ fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
 
    
 (* mkDcon : Types.datacon -> Plambda.dataconstr *)
-fun mkDcon (DATACON {name, rep, typ, ...}) =
+fun mkDcon (TP.DATACON {name, rep, typ, ...}) =
       (name, rep, toDconLty toLty typ)
 
-fun patToConsig pat =
-    (case pat
-
+fun patToConsig (APPpat(dcon,_,_) = TU.dataconSign dcon
+  | patToConsig (CONpat(dcon,_)) = TU.dataconSign dcon
+  | patToConsig _ = TP.CNIL
+ 
 (* patToCon : AS.pat * -> Plambda.con *)
+(* How does the fresh lvar introduced in the CONpat and APPpat cases get 
+ * connected to the rhs expression of rules? Is a lambda-abstraction over
+ * the new lvar wrapped around the corresponding rhs?  Or is a Let-binding
+ * of the lvar to the argument of the constuctor (unit for constant constructors)
+ * introduced somewhere (or implicit in the semantics of SWITCH)?  We have already
+ * introduced svars that represent to argument to constructors. *)
 fun patToCon pat =
     (case pat
-       of CONpat (dcon, tvs) =>
-	    let val newvar = mkv()
-		val nts = map (toTyc o TP.VARty) ts
-	     in DATAcon (mkDcon dc, nts, newvar)
+       of CONpat (datacon, tvs) =>
+	    let val dummyvar = mkv()  (* fresh lvar to be bound to nonexistent datacon "argument" *)
+		val nts = map (toTyc o TP.VARty) tvs
+	     in DATAcon (mkDcon datacon, nts, dummyvar)
 	    end
-	| VECTORpat(pats,ty) => VLENcon (length pats)
+	| APPpat (datacon, tvs, VARpat(V.VALvar{access=A.LVAR lvar,...})) => 
+	    let val nts = map (toTyc o TP.VARty) tvs
+	     in DATAcon (mkDcon datacon, nts, lvar)
+	    end
+	| VECTORpat(pats, ty) => VLENcon (length pats)
 	| NUMpat (src, lit as {ival,ty}) =>
 	    if List.exists (fn ty' => TU.equalType(ty,ty'))
 		   [BT.intTy, BT.int32Ty, BT.int64Ty, BT.intinfTy]
@@ -224,7 +236,7 @@ fun buildHeader v =
    in foldr h ident info
   end handle _ => ident
 
-(* bindvar : (lvar = int) * int list * string option -> lvar *)
+(* bindvar : (lvar = int) * int list * symbol option -> lvar *)
 (* the int argument will actually be an lvar (breaking abstraction for lvar) *)
 fun bindvar (v, [], _) = v
   | bindvar (v, accesspath, nameOp) =
@@ -243,6 +255,7 @@ fun bindvar (v, [], _) = v
 datatype pidInfo = ANON of (int * pidInfo) list
                  | NAMED of lvar * lty * (int * pidInfo) list
 
+(* mkPidInfo : lty * int list * symbol option -> pidInfo * lvar *)
 fun mkPidInfo (t, l, nameOp) =
   let val v = mkvN nameOp
       fun h [] = NAMED(v, t, [])
@@ -280,6 +293,7 @@ fun mergePidInfo (pi, t, l, nameOp) =
 (** a map that stores information about external references *)
 val persmap = ref (PersMap.empty : pidInfo PersMap.map)
 
+(* mkPid : pid * lty * int list * symbol option -> lvar *)
 fun mkPid (pid, t, l, nameOp) =
     case PersMap.find (!persmap, pid)
       of NONE =>
@@ -353,6 +367,7 @@ fun coreExn ids =
       (* end case *))
     handle NoCore => NONE
 
+(* coreAcc : symbol -> lexp *)
 and coreAcc id =
     (case CoreAccess.getVar' (fn () => raise NoCore) oldenv [id]
        of V.VALvar { access, typ, path, ... } =>
@@ -363,18 +378,19 @@ and coreAcc id =
 	(warn(concat["no Core access for '", id, "'\n"]);
 	 INT{ival = 0, ty = Tgt.defaultIntSz})
 
+(* mkRep : Access.conrep * lty * S.symbol -> Access.conrep *)
 (* expands the flex record pattern and convert the EXN access pat *)
 (* internalize the conrep's access, always exceptions *)
 and mkRep (rep, lt, name) =
-  let fun g (DA.LVAR v, l, t)  = bindvar(v, l, SOME name)
-        | g (DA.PATH(a, i), l, t) = g(a, i::l, t)
-        | g (DA.EXTERN p, l, t) = mkPid(p, t, l, SOME name)
-        | g _ = bug "unexpected access in mkRep"
+  let fun accessToLvar (DA.LVAR v, l, t)  = bindvar(v, l, SOME name)
+        | accessToLvar (DA.PATH(a, i), l, t) = accessToLvar(a, i::l, t)
+        | accessToLvar (DA.EXTERN p, l, t) = mkPid(p, t, l, SOME name)
+        | accessToLvar _ = bug "unexpected access in mkRep"
 
    in case rep
-       of (DA.EXN x) =>
+       of (DA.EXN access) =>
              let val (argt, _) = LT.ltd_parrow lt
-              in DA.EXN (DA.LVAR (g(x, [], LT.ltc_etag argt)))
+              in DA.EXN (DA.LVAR (accessToLvar(access, [], LT.ltc_etag argt)))
              end
         | (DA.SUSP NONE) =>  (* a hack to support "delay-force" primitives *)
              (case (coreAcc "delay", coreAcc "force")
@@ -500,6 +516,7 @@ val transPrim = TransPrim.trans {
 	coreAcc = coreAcc, coreExn = coreExn, mkv = mkv, mkRaise = mkRaise
       }
 
+(* genintinfswitch : var, (con * exp) list, lexp -> lexp *)
 (* generates PLambda.lexp code for a case over an IntInf.int value. *)
 (* where does this belong?  At what level should it be coded?  To Absyn? *)
 (* This belongs in trans/translate.sml. It's input should be an Absyn CASEexp
@@ -537,34 +554,6 @@ fun genintinfswitch (sv, cases, default) =
 (* similar special cases for REF and SUSP constructors in pattern.  See genswitch in
  * FLINT/trans/matchcomp.sml. *)
 
-
-(* genswitch : <<SWITCH domain>> -> Plambda.lexp *)
-
- * treats the special single (pseudo-) constructor pattern cases involving
- * the "ref" and "susp" constructors, and the special case of switching on
- * intinf constants. For all other cases, immediately builds a SWITCH. *)
-fun genswitch (sv, sign, [(DATAcon((_, DA.REF, lt), ts, x), e)], NONE) =
-      (* deconstructor (DEREF primop) for SINGLE pseudo-constructor "ref". *)
-      LET(x, APP (PRIM (Primop.DEREF, LT.lt_swap lt, ts), sv), e)
-  | genswitch(sv, sign, [(DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt),
-				  ts, x), e)], NONE) =
-      (* deconstruction for SINGLE pseudo-constructor "susp" --
-       * Should we treat susp as a pseudo-constructor? Let's not! *)
-      let val v = mkv()
-       in LET(x, LET(v, TAPP(VAR f, ts), APP(VAR v, sv)), e)
-      end
-  | genswitch (sv, sign, cases as ((INTcon{ty=0, ...}, _) :: _), default) =
-      let fun strip (INTcon{ty=0, ival}, e) = (ival, e)
-	    | strip _ = bug "genswitch - INTINFcon"
-       in case default
-	    of NONE => bug "genswitch - no default in switch on IntInf"
-	     | SOME d => genintinfswitch (sv, map strip cases, d)
-      end
-  | genswitch x = SWITCH x
-
-(* A SWITCH is build for all other match constructs -- including those for
- * SINGLE datatypes (with a single datacon).  So for SINGLE datacons, deconstruction
- * is handled by SWITCH (where?). *)
 
 (***************************************************************************
  *                                                                         *
@@ -784,7 +773,7 @@ and mkVBs (vbs, d) =
                   LET(v, mkPE(exp, d, boundtvs), body)
 
               | pat =>
-		(* boundtvs is cumulative bound univariables for the whole pattern *)
+		(* boundtvs is cumulative bound metatyvars for the whole pattern *)
 		let val (newpat,oldvars,newvars) = aconvertPat(pat, compInfo)
 		      (* this is the only call of aconvertPat; it replaces pattern variables with
 		       * new versions with fresh lvar access values *)
@@ -810,23 +799,25 @@ and mkVBs (vbs, d) =
 				    (* bound univariables for this particular pattern variable
 				       btvs is a subset of boundtvs -- possibly proper *)
 				    val tvarity = length(btvs)
-				    val defn = case (boundtvs, btvs)
-						of ([],[]) =>
-						   SELECT(i,VAR(newVar))
-						 | (_,[]) =>
-						   SELECT(i,TAPP(VAR(newVar),
-								 map (fn _ => LT.tcc_void) boundtvs))
-						 | _ =>
-						   let val indices = List.tabulate(tvarity, (fn x => x))
-						       (* 0-based index into bound type variable sequence *)
-						       val tvToIndex = ListPair.zip(btvs,indices)
-						       val targs = map (fn tv => case lookup tv tvToIndex
-										  of NONE => LT.tcc_void
-										   | SOME k => LT.tcc_var(1,k))
-								       boundtvs
-						   in TFN(LT.tkc_arg(tvarity),
-							  SELECT(i,TAPP(VAR(newVar),targs)))
-						   end
+				    val defn =
+					case (boundtvs, btvs)
+					  of ([],[]) =>
+					       SELECT(i,VAR(newVar))
+					   | (_,[]) =>
+					       SELECT(i,TAPP(VAR(newVar),
+							     map (fn _ => LT.tcc_void) boundtvs))
+					   | _ =>
+					      let val indices = List.tabulate(tvarity, (fn x => x))
+						    (* 0-based index into bound type variable sequence *)
+						  val tvToIndex = ListPair.zip(btvs,indices)
+						  val targs = map (fn tv =>
+								      case lookup tv tvToIndex
+								        of NONE => LT.tcc_void
+									 | SOME k => LT.tcc_var(1,k))
+								  boundtvs
+					      in TFN(LT.tkc_arg(tvarity),
+						     SELECT(i,TAPP(VAR(newVar),targs)))
+					      end
 				 in buildDec(rest,i+1,LET(lv, defn, body))
 				end
 
@@ -1070,26 +1061,44 @@ and mkExp (exp, d) =
              end
 
         (* next two should explicity construct SWITCH expressions as the result.
-	 * All CASEexp's are the result of previous match compilation. Here 
+	 * All CASEexp's are the produced by match compilation. Their
          * rules will always be exhaustive, since any necessary default will 
-         * have been added as a final wildcard rule. *)
-        | mkExp0 (CASEexp (scrutinee, rules, _)) = 
+         * have been added as a final wildcard rule. The pat of each rule will
+         * be "shallow", meaning it constant (INTpat, ..., CONpat) or an APPpat
+         * of the form APPpat(dcon, tvs, VARpat v), where v is an "internal" (svar)
+         * variable. The rhs corresponding to an APPpat will use the unique
+         * variable in its pattern (if any) to refer to the constructor argument
+	 * The special single (pseudo-) constructor pattern cases involving
+         * the "ref" and "susp" constructors, and the special case of switching on
+         * intinf constants are treated as speical cases. For all other cases,
+         * immediately builds a SWITCH. *)  (* DBM: WRONG! Need explicit default for SWITCH. *)
+	 (* NOTE: the default case should not be integrated with the rules using a
+          * WILDpat rule since we have to separate it out again to pass to SWITCH. *)
+	(* ASSERT: length rules > 0, and length rules = 1 in the case of SINGLE dcons *)
+        | mkExp0 (CASEexp (scrutinee, rules, false)) =  (* non-degenerate case, multiple rules *)
              let val scrutinee' = mkExp0 scrutinee
-		 val consig = let val AS.RULE(pat,exp)::_ = rules
-			      in patToConsig pat
-			      end
+		 val RULE(pat1, _) = hd rules  (* get the first pattern *)
+		 val con1 = getCon pat1
+		 val consig = patToConsig pat1
+		 fun getDefault nil = NONE
+		   | getDefault ((WILDpat, exp)::rest) = SOME exp (* recovering default from WILDpat rule *)
+		   | getDefault (_ :: rest) = getDefault rest
+		 val defaultOp = Option.map mkExp0 (getDefault rules)
 		 fun trRule (pat, rhs) = (patToCon pat, mkExp0 rhs)
-              in SWITCH(scrutinee', consig, map trRule rules, NONE)
-             end  (* where is the SWITCH created? *)
-
-	(* single datacon case, including special cases of ref and susp *)
-        | mkExp0 (CASEexp (scrutinee, rules, true)) =
-             let val scrutinee' = mkExp0 scrutinee
-
-              in LET(rootvar, scrutinee', body)
-             end (* where is the (degenerate) SWITCH created? *)
-
-          (* genswitch special cases? REF, SUSP, IntInf *)
+             in case con1
+		 of DATAcon((_, DA.REF, lt), ts, lvar) =>  (* ref pseudo-constructor *)
+		      LET(lvar, APP (PRIM (Primop.DEREF, LT.lt_swap lt, ts), sv), e)
+		  | DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt), ts, x) =>  (* susp pseudo-constructor *)
+		      let val v = mkv()
+		       in LET(x, LET(v, TAPP(VAR f, ts), APP(VAR v, sv)), e)
+		      end
+		  | INTcon{ty=0, ...} => (* IntInf.int constant *)
+		      let fun strip (INTcon{ty=0, ival}, e) = (ival, e)
+			    | strip _ = bug "genswitch - INTINFcon"
+		      in genintinfswitch (sv, map strip (map trRule rules), Option.valof defaultOp)
+		      end
+		  | _ => SWITCH(scrutinee', consig, map trRule rules, defaultOp)
+             end
 
 	| mkExp0 (IFexp { test, thenCase, elseCase }) =
 	    COND (mkExp0 test, mkExp0 thenCase, mkExp0 elseCase)

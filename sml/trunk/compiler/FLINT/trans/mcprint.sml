@@ -72,8 +72,7 @@ fun ppPath (pd: int) ppstrm (p: path) : unit =
     let val {openHOVBox, openHVBox, closeBox, break, newline, pps, ppi, ...} =
             en_pp ppstrm
      in case p
-	 of RECORDPATH paths => pps "RECORDPATH"
-	  | PIPATH (n, path) =>
+	 of PIPATH (n, path) =>
 	    (pps "PIPATH("; ppi n; pps ","; ppPath (pd-1) ppstrm path; pps ")")
 	  | VPIPATH (n, ty, path) =>
 	    (pps "VPIPATH("; ppi n; pps ","; ppPath (pd-1) ppstrm path; pps ")")
@@ -134,10 +133,6 @@ fun ppDectree (pd: int) ppstrm (dt: dectree) : unit =
 		    deftreeOp;
 		 closeBox();
 		 closeBox())
-	      | ABSTEST0 (path, dconinfo, dectree1, dectree2) =>
-		   pps "ABSTEST0"
-	      | ABSTEST1 (path, dconinfo, dectree1, dectree2) =>
-		   pps "ABSTEST1"
 	      | RHS r =>
 		   (pps "RHS("; ppi r; pps ")")
 	      | BIND (path, dectree) =>
@@ -150,11 +145,11 @@ fun ppAndor (pd: int) ppstrm (ao: andor) : unit =
     let val {openHOVBox, openHVBox, closeBox, break, newline, pps, ppi, ...} =
             en_pp ppstrm
      in case ao
-	 of AND {bindings, subtrees, constraints} =>
+	 of AND {bindings, subtrees} =>
             (pps "AND")
-	  | CASE {bindings, sign, cases, constraints} => 
+	  | CASE {bindings, sign, cases} => 
             (pps "CASE")
-	  | LEAF {bindings, constraints} =>
+	  | LEAF {bindings} =>
 	    (pps "LEAF")
     end
 	
@@ -164,8 +159,6 @@ fun ppDecision (pd: int) ppstrm (decn: decision) : unit =
      in case decn
 	 of CASEDEC (path, consig, cases, defaults) =>
             (pps "CASEDEC")
-	  | ABSCONDEC (path, dconinfo, rules, decisions, defaults) =>
-            (pps "ABSCONDEC")
 	  | BINDDEC (path, rules) =>
             (pps "BINDDEC")
     end

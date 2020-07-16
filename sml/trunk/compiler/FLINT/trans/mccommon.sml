@@ -25,53 +25,48 @@ datatype pcon
   | VLENpcon of int * ty
 
 datatype path
-  = RECORDPATH of path list
-  | PIPATH of int * path
-  | VPIPATH of int * ty * path
-  | VLENPATH of ty * path
-  | DELTAPATH of pcon * path
-  | ROOTPATH
-
-datatype dectree
-  = CASETEST of
-      path
-      * Access.consig
-      * (pcon * dectree) list
-      * dectree option
-  | ABSTEST0 of path * dconinfo * dectree * dectree
-  | ABSTEST1 of path * dconinfo * dectree * dectree
-  | RHS of int
-  | BIND of path * dectree
+  = PIPATH of int * path        (* record/tuple selection *)
+  | VPIPATH of int * ty * path  (* vector selection *)
+  | VLENPATH of ty * path       (* vector length "calculation" !? *)
+  | DELTAPATH of pcon * path    (* datacon/constant/vector-length discriminant *)
+  | ROOTPATH                    (* root (empty) path *)
 
 type ruleno = int   (* the number identifying a rule *)
-type rules = ruleno list
+type ruleset = ruleno list
    (* a list of rule numbers in strictly ascending order without dups *)
-(* Which occurrences of the int list type in the andor and decision definitions
- * are rules? Conjecture: all are. *)
 
 datatype andor
   = AND of
      {bindings : (int * var) list,
-      subtrees : andor list,
-      constraints : (dconinfo * rules * andor option) list}
+      subtrees : andor list}
   | CASE of
      {bindings : (int * var) list,
       sign : DA.consig,
-      cases : (pcon * rules * andor list) list,
-      constraints : (dconinfo * rules * andor option) list}
-   | LEAF of
-     {bindings : (int * var) list,
-      constraints : (dconinfo * rules * andor option) list}
+      cases : andorCase list}
+  | LEAF of
+     {bindings : (int * var) list}
+
+withtype andorCase = pcon * ruleset * andor list
 
 datatype decision
   = CASEDEC of path
 	     * DA.consig
-             * (pcon * rules * decision list) list
+             * (pcon * ruleset * decision list) list
 	     * int list
-  | ABSCONDEC of path * dconinfo * rules * decision list * int list
-  | BINDDEC of path * rules
+  | BINDDEC of path * ruleset
 
+datatype dectree
+  = CASETEST of
+      path
+      * DA.consig
+      * (pcon * dectree) list
+      * dectree option
+  | BIND of path * dectree
+  | RHS of int
 
+(* ================================================================================ *)
+(* match compiler utility definitions *)
+	       
 fun bug s = EM.impossible ("MCCommon: " ^ s)
 
 fun mkRECORDpat (RECORDpat{fields, flex=false, typ, ...}) pats =
@@ -93,14 +88,11 @@ fun constantEq (DATApcon (d1, _), DATApcon (d2, _)) = conEq(d1, d2)
   | constantEq (VLENpcon (n, _), VLENpcon (n',_)) = n = n'
   | constantEq _ = false
 
-fun pathEq(RECORDPATH(a::ar),RECORDPATH(b::br)) =
-	pathEq(a,b) andalso pathEq(RECORDPATH ar, RECORDPATH br)
-  | pathEq(RECORDPATH nil, RECORDPATH nil) = true
-  | pathEq(PIPATH(i1,p1),PIPATH(i2,p2)) = i1=i2 andalso pathEq(p1,p2)
+fun pathEq(PIPATH(i1,p1),PIPATH(i2,p2)) = i1=i2 andalso pathEq(p1,p2)
   | pathEq(VPIPATH(i1,_,p1),VPIPATH(i2,_,p2)) = i1=i2 andalso pathEq(p1,p2)
   | pathEq(VLENPATH(_, p1),VLENPATH(_, p2)) = pathEq(p1,p2)
   | pathEq(DELTAPATH(c1,p1),DELTAPATH(c2,p2)) =
-	               constantEq(c1,c2) andalso pathEq(p1,p2)
+      constantEq(c1,c2) andalso pathEq(p1,p2)
   | pathEq(ROOTPATH,ROOTPATH) = true
   | pathEq _ = false
 

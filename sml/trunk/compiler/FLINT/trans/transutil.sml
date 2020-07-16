@@ -72,7 +72,7 @@ fun instPoly(ty: TP.ty, tys : TP.ty list) : TP.ty =
  *   new ones, with fresh LVAR accesses and new refs for the typ field.
  *   Returns the converted pattern, the list of the original pattern
  *   variables (VALvars), and the list of new variables (VALvars).
- *   Called only once, in mkVB inside mkVBs below. *)
+ *   Called only once, in mkVB inside mkVBs in Translate. *)
 
 fun aconvertPat (pat, {mkLvar=mkv, ...} : compInfo)
     : Absyn.pat * VC.var list * VC.var list =
