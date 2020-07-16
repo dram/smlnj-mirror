@@ -16,7 +16,7 @@ GEN_PAGES =		@TOOL_BIN_DIR@/gen-pages
 GEN_PAGES_FLAGS =	-v
 MAKE_INDEX =		@TOOL_BIN_DIR@/make-index
 
-ifeq(WEB,yes)
+ifeq ($(WEB),yes)
 GEN_PAGES_FLAGS +=	--base-url=https://smlnj.org/doc/smlnj-lib
 endif
 
