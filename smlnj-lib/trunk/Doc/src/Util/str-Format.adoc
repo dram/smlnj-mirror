@@ -44,6 +44,7 @@ val formatf : string -> (string -> unit) -> fmt_item list -> unit
 
 == Description
 
+[[type:fmt_item]]
 `[.kw]#datatype# fmt_item = ...`::
   The `fmt_item` datatype is a union of the types that the `format` function
   supports.  The constructors are interpreted as follows:

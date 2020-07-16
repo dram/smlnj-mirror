@@ -5,7 +5,8 @@
 :source-highlighter: pygments
 :VERSION: {smlnj-version}
 
-The `Scan` structure ...
+The `Scan` structure provides **C**-style conversions from string
+representations.
 
 == Synopsis
 
@@ -44,6 +45,7 @@ val scanf  : string -> (char, 'a) StringCvt.reader
 == Description
 
 
+[[type:fmt_item]]
 `[.kw]#datatype# fmt_item`::
 This datatype, which is the same type as
 xref:str-Format.adoc#type:fmt_item[`Format.fmt_item`], is used as a union
@@ -111,9 +113,21 @@ type to represent the results of scanning input.
 
 The `sscanf and `scanf` functions take a format string as their first
 argument.  The format string is composed of zero or more
-directives, which are either ordinary characters (excluding `%`) or conversion
-specifiers.
+directives, which are either ordinary characters (excluding `%`)
+or conversion specifiers.  The result of applying one of the scan functions
+to an input will be a list of xref:#type:fmt_item[`fmt_item`] corresponding
+to the conversion specifiers in the format string.  All conversions are
+introduced by the `%` character.  The format string may also contain
+other characters.  White space (such as blanks, tabs, or newlines) in the format
+string match any amount of white space, including none, in the input.  Everything
+else matches only itself.  Scanning stops when an input character does not match
+such a format character.  Scanning also stops when an input conversion cannot be
+made (see below).
 
+//Conversion specifiers begin with the percent (`%`) character followed by
+//the following in sequence:
+
+**To be written**
 
 == See Also
 
