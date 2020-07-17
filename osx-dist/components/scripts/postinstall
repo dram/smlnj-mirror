@@ -26,11 +26,7 @@ cd $DST
 
 # determine the default configuration
 #
-ARCH_N_OPSYS=`./bin/.arch-n-opsys`
-echo "postinstall: SHELL = $SHELL"
-echo "postinstall: ARCH_N_OPSYS = $ARCH_N_OPSYS"
-eval $ARCH_N_OPSYS
-echo "postinstall: ARCH = $ARCH"
+eval `./bin/.arch-n-opsys`
 case $ARCH in
   x86) SIZE=32 ;;
   amd64) SIZE=64 ;;
