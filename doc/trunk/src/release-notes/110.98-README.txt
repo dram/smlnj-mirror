@@ -30,8 +30,9 @@ FILES::
 == Summary
 
 This release includes substantial improvements to the documentation
-(the *SML/NJ Library* is now mostly documented) as well as various
-other improvements and bug fixes.
+(the *SML/NJ Library* is now mostly documented) as well as many small
+improvements to the *SML/NJ Library*, various
+improvements in other parts of the system, and bug fixes.
 
 == Future Plans
 
@@ -97,15 +98,18 @@ Basis Library.
 
 === SML/NJ Library
 
+The *SML/NJ Library* is now mostly documented; see `doc/html/smlnj-lib/index.html`
+in the distribution or the https://smlnj.org/doc/smlnj-lib/index.html[online
+documentation].
+
 The `HTMLDev` structure in the pretty-printing library (`$/pp-lib.cm`) has
 been renamed as `HTML3Dev` and moved into its own library (`pp-extras-lib.cm`).
 The renaming is in anticipation of renaming the HTML Library to "HTML3"
 and the moving it to its own library removes a dependency from the compiler
 on `$/html-lib.cm`.
 
-The *SML/NJ Library* is now mostly documented; see `doc/html/smlnj-lib/index.html`
-in the distribution or the https://smlnj.org/doc/smlnj-lib/index.html[online
-documentation].
+There were many small improvements (and a couple of bug fixes) to various
+parts of the *SML/NJ Library*; see the `smlnj-lib/CHANGES` file for details.
 
 === ML-LPT
 
