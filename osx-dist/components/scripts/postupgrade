@@ -27,8 +27,8 @@ cd $DST
 
 # determine the default configuration
 #
-eval `bin/.arch-n-opsys`
-case $ARCH
+eval `./bin/.arch-n-opsys`
+case $ARCH in
   x86) SIZE=32 ;;
   amd64) SIZE=64 ;;
   *) exit 1 ;;
