@@ -1,7 +1,7 @@
 This directory contains the infrastructure for building a Mac OS X installer
 for SML/NJ on Intel hardware.  The basic command
 
-	./build-pkg.sh $VERSION
+	./build-pkg.sh [-32 | -64] $VERSION
 
 will build a signed installer package for the specified version (e.g., 110.76).
 This script assumes that the distribution files have already been uploaded
