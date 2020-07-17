@@ -28,7 +28,8 @@ structure Num64Cnv : sig
       | isNum64Ty _ = false
     val pairTy = C.PTRt C.VPT
     val box32Ty = C.PTRt C.VPT
-    val raw32Ty = C.NUMt{sz = 32, tag = false}	(* assuming a 32-bit machine *)
+    val raw32ITy = {sz = 32, tag = false}
+    val raw32Ty = C.NUMt raw32ITy		(* assuming a 32-bit machine *)
     val tagNumTy = C.NUMt{sz = 31, tag = true}
     val si32 = P.INT 32
     val ui32 = P.UINT 32
@@ -107,18 +108,21 @@ structure Num64Cnv : sig
 	      k (fn v => C.APP(C.VAR fnId, [v])))
 	  end
 
+    fun toRes64 (hi, lo, res, cexp) =
+	  C.RECORD(C.RK_RAWBLOCK, [(hi, C.OFFp 0), (lo, C.OFFp 0)], res, cexp)
+
   (* given two 32-bit values that comprise a 64-bit number and a continuation `k`,
    * make code to create the 64-bit object
    *)
     fun to64 (hi, lo, k) = let
 	  val pair = LV.mkLvar()
 	  in
-	    C.RECORD(C.RK_RAWBLOCK, [(hi, C.OFFp 0), (lo, C.OFFp 0)],
-		pair, k(C.VAR pair))
+	    toRes64 (hi, lo, pair, k(C.VAR pair))
 	  end
 
-  (* given a 64-bit object and a continuation `k`, make code to unpackage the value into
-   * two 32-bit values, which are passed to `k`.
+  (* given a 64-bit object and a continuation `k`, make code to unpackage the
+   * value into two 32-bit values, which are passed to `k`.  Note that we rely
+   * on the "last_contract" phase to handle the case where `n` is a literal.
    *)
     fun from64 (n, k) = let
 	  val hi = LV.mkLvar()
@@ -166,7 +170,7 @@ structure Num64Cnv : sig
    *         (hi, lo)
    *       end
    *)
-    fun w64Add (n1, n2, res, cexp) = join (res, cexp, fn k =>
+    fun w64Add (n1, n2, res, cexp) =
 	  from64 (n1, fn (hi1, lo1) =>
 	  from64 (n2, fn (hi2, lo2) =>
 	  pure_arith32(P.ADD, [hi1, hi2], fn hi =>
@@ -178,7 +182,7 @@ structure Num64Cnv : sig
 	  pure_arith32(P.ORB, [lo1_and_lo2, tmp1], fn tmp2 =>
 	  pure_arith32(P.RSHIFTL, [tmp2, tagNum 31], fn carry =>
 	  pure_arith32(P.ADD, [hi, carry], fn hi =>
-	    to64(hi, lo, k)))))))))))))
+	    toRes64 (hi, lo, res, cexp))))))))))))
 
   (*
    * fun sub ((hi1, lo1), (hi2, lo2)) = let
@@ -191,7 +195,7 @@ structure Num64Cnv : sig
    *         (hi, lo)
    *       end
    *)
-    fun w64Sub (n1, n2, res, cexp) = join (res, cexp, fn k =>
+    fun w64Sub (n1, n2, res, cexp) =
 	  from64 (n1, fn (hi1, lo1) =>
 	  from64 (n2, fn (hi2, lo2) =>
 	  pure_arith32(P.SUB, [hi1, hi2], fn hi =>
@@ -203,46 +207,46 @@ structure Num64Cnv : sig
 	  pure_arith32(P.ORB, [tmp1, tmp2], fn tmp3 =>
 	  pure_arith32(P.RSHIFTL, [tmp3, tagNum 31], fn borrow =>
 	  pure_arith32(P.SUB, [hi, borrow], fn hi =>
-	    to64(hi, lo, k)))))))))))))
+	    toRes64 (hi, lo, res, cexp))))))))))))
 
   (*
    * fun orb (W64(hi1, lo1), W64(hi2, lo2)) = W64(hi1 ++ hi2, lo1 ++ lo2)
    *)
-    fun w64Orb (n1, n2, res, cexp) = join (res, cexp, fn k =>
+    fun w64Orb (n1, n2, res, cexp) =
 	  from64 (n1, fn (hi1, lo1) =>
 	  from64 (n2, fn (hi2, lo2) =>
 	  pure_arith32(P.ORB, [lo1, lo2], fn lo =>
 	  pure_arith32(P.ORB, [hi1, hi2], fn hi =>
-	    to64 (hi, lo, k))))))
+	    toRes64 (hi, lo, res, cexp)))))
 
   (*
    * fun xorb (W64(hi1, lo1), W64(hi2, lo2)) = W64(hi1 ^^ hi2, lo1^^ lo2)
    *)
-    fun w64Xorb (n1, n2, res, cexp) = join (res, cexp, fn k =>
+    fun w64Xorb (n1, n2, res, cexp) =
 	  from64 (n1, fn (hi1, lo1) =>
 	  from64 (n2, fn (hi2, lo2) =>
 	  pure_arith32(P.XORB, [lo1, lo2], fn lo =>
 	  pure_arith32(P.XORB, [hi1, hi2], fn hi =>
-	    to64 (hi, lo, k))))))
+	    toRes64 (hi, lo, res, cexp)))))
 
   (*
    * fun andb (W64(hi1, lo1), W64(hi2, lo2)) = W64(hi1 & hi2, lo1 & lo2)
    *)
-    fun w64Andb (n1, n2, res, cexp) = join (res, cexp, fn k =>
+    fun w64Andb (n1, n2, res, cexp) =
 	  from64 (n1, fn (hi1, lo1) =>
 	  from64 (n2, fn (hi2, lo2) =>
 	  pure_arith32(P.ANDB, [lo1, lo2], fn lo =>
 	  pure_arith32(P.ANDB, [hi1, hi2], fn hi =>
-	    to64 (hi, lo, k))))))
+	    toRes64 (hi, lo, res, cexp)))))
 
   (*
    * fun notb (W64(hi, lo)) = W64(Word32.notb hi, Word32.notb lo)
    *)
-    fun w64Notb (n, res, cexp) = join (res, cexp, fn k =>
+    fun w64Notb (n, res, cexp) =
 	  from64 (n, fn (hi, lo) =>
 	  pure_arith32(P.NOTB, [hi], fn hi' =>
 	  pure_arith32(P.NOTB, [lo], fn lo' =>
-	    to64 (hi', lo', k)))))
+	    toRes64 (hi', lo', res, cexp))))
 
   (*
     fun neg (hi, 0w0) = (W32.~ hi, 0w0)
@@ -603,6 +607,7 @@ structure Num64Cnv : sig
 	    | chkExp (C.ARITH(P.TEST{from=64, ...}, _, _, _, _)) = true
 	    | chkExp (C.ARITH(P.TESTU{from=64, ...}, _, _, _, _)) = true
 	    | chkExp (C.ARITH(_, vs, _, _, e)) = chkValues vs orelse chkExp e
+	    | chkExp (C.PURE(P.PURE_ARITH{kind=P.INT 64, ...}, _, _, _, _)) = true
 	    | chkExp (C.PURE(P.PURE_ARITH{kind=P.UINT 64, ...}, _, _, _, _)) = true
 	    | chkExp (C.PURE(P.COPY{to=64, ...},  _, _, _, _)) = true
 	    | chkExp (C.PURE(P.EXTEND{to=64, ...},  _, _, _, _)) = true
@@ -699,6 +704,18 @@ structure Num64Cnv : sig
 		values (args, fn args' => testu64To(to, args', res, cty, cexp e))
 	    | cexp (C.ARITH(rator, args, res, ty, e)) =
 		values (args, fn args' => C.ARITH(rator, args', res, ty, cexp e))
+	    | cexp (C.PURE(P.PURE_ARITH{oper, kind=P.INT 64}, args, res, _, e)) =
+	      (* This case probably cannot happen, but we include it to be safe! *)
+		values (args, fn args' => (case (oper, args')
+		   of (P.ORB, [a, b]) => w64Orb(a, b, res, cexp e)
+		    | (P.XORB, [a, b]) => w64Xorb(a, b, res, cexp e)
+		    | (P.ANDB, [a, b]) => w64Andb(a, b, res, cexp e)
+		    | (P.NOTB, [a]) => w64Notb(a, res, cexp e)
+		    | (P.RSHIFT, [a, b]) => w64RShift(a, b, res, cexp e)
+		    | (P.RSHIFTL, [a, b]) => w64RShiftL(a, b, res, cexp e)
+		    | (P.LSHIFT, [a, b]) => w64LShift(a, b, res, cexp e)
+		    | _ => bug "impossible PURE_ARITH; INT 64"
+		  (* end case *)))
 	    | cexp (C.PURE(P.PURE_ARITH{oper, kind=P.UINT 64}, args, res, _, e)) =
 		values (args, fn args' => (case (oper, args')
 		   of (P.ADD, [a, b]) => w64Add(a, b, res, cexp e)
