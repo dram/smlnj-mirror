@@ -1,6 +1,7 @@
 (* fmt-fields.sml
  *
- * COPYRIGHT (c) 1996 AT&T Research.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * This module defines types and routines that are common to both
  * the Format and Scan structures.
@@ -13,9 +14,11 @@ structure FmtFields : sig
       = DfltSign	(* default: put a sign on negative numbers *)
       | AlwaysSign	(* "+"      always has sign (+ or -) *)
       | BlankSign	(* " "      put a blank in the sign field for positive numbers *)
+
     datatype neg_sign
       = MinusSign	(* default: use "-" for negative numbers *)
       | TildeSign	(* "~"      use "~" for negative numbers *)
+
     type field_flags = {
 	sign : sign,
 	neg_char : neg_sign,
@@ -76,9 +79,11 @@ structure FmtFields : sig
       = DfltSign	(* default: put a sign on negative numbers *)
       | AlwaysSign	(* "+"      always has sign (+ or -) *)
       | BlankSign	(* " "      put a blank in the sign field for positive numbers *)
+
     datatype neg_sign
       = MinusSign	(* default: use "-" for negative numbers *)
       | TildeSign	(* "~"      use "~" for negative numbers *)
+
     type field_flags = {
 	sign : sign,
 	neg_char : neg_sign,

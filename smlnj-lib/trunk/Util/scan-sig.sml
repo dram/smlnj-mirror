@@ -1,12 +1,13 @@
 (* scan-sig.sml
  *
- * COPYRIGHT (c) 1996 by AT&T Research.  See COPYRIGHT file for details.
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
  *
  * C-style conversions from string representations.
  *
- * AUTHOR:  John Reppy
- *	    AT&T Research
- *	    jhr@research.att.com
+ * TODO: replace the fmt_item type with a datatype that reflects the more
+ * limited set of possible results.  Also replace the shared implementation
+ * of format-string processing with processing that is specific to scanning.
  *)
 
 signature SCAN =
