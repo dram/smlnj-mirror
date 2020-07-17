@@ -67,7 +67,7 @@ readmes:
 smlnj-lib-doc:	smlnj-lib/configure
 	(cd smlnj-lib && configure \
 	  --with-smlnj-root="@ROOT_DIR@/.." \
-	  --with-output-dir="@OUT_DIR@/smlnj-lib" \
+	  --with-output-dir="$(HTML_DST_ROOT)/smlnj-lib" \
 	  --with-version="@SMLNJ_VERSION@" \
 	  --with-date="@SMLNJ_DATE@")
 	(cd smlnj-lib && make tools)
