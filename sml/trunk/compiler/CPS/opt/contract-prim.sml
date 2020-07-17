@@ -128,7 +128,7 @@ structure ContractPrim : sig
     fun lshift sz = P.PURE_ARITH{oper=P.LSHIFT, kind=P.UINT sz}
     fun rshift sz = P.PURE_ARITH{oper=P.RSHIFT, kind=P.INT sz}
     fun rshiftl sz = P.PURE_ARITH{oper=P.RSHIFTL, kind=P.UINT sz}
-    fun andb sz = P.PURE_ARITH{oper=P.ANDB, kind=P.INT sz}
+    fun andb sz = P.PURE_ARITH{oper=P.ANDB, kind=P.UINT sz}
 
   (* optimize non-trapping multiplication by a power of two.
    * Eventually, we might generalize this to non-power-of-2 constants.
