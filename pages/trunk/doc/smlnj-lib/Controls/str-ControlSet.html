@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The ControlSet structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>ControlSet</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-Controls.html"><span class="toc-lib-page">The <code>Controls</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>ControlSet</code> structure</span></li>
+      <li class="toc-page"><a href="str-ControlRegistry.html"><span class="toc-lib-page">The <code>ControlRegistry</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ControlUtil.html"><span class="toc-lib-page">The <code>ControlUtil</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ControlSet</code> structure provides facilities for managing sets
+of controls, with associated information, by name.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">CONTROL_SET</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">ControlSet</span> <span class="tok-p">:</span> <span class="tok-n">CONTROL_SET</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">control</span> <span class="tok-p">=</span> <span class="tok-nd">&#39;a</span> <span class="tok-nn">Controls</span><span class="tok-p">.</span><span class="tok-n">control</span>
+<span class="tok-kr">type</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-kt">control_set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">new</span> <span class="tok-p">:</span> <span class="tok-n">unit</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">member</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span> <span class="tok-n">*</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">find</span>   <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span> <span class="tok-n">*</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">{</span><span class="tok-n">ctl</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span><span class="tok-p">,</span> <span class="tok-n">info</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;b</span><span class="tok-p">}</span> <span class="tok-n">option</span>
+<span class="tok-kr">val</span> <span class="tok-nv">insert</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">remove</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span> <span class="tok-n">*</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">infoOf</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">listControls</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span> <span class="tok-p">-&gt;</span> <span class="tok-p">{</span><span class="tok-n">ctl</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span><span class="tok-p">,</span> <span class="tok-n">info</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;b</span><span class="tok-p">}</span> <span class="tok-n">list</span>
+<span class="tok-kr">val</span> <span class="tok-nv">listControls&#39;</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">{</span><span class="tok-n">ctl</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span><span class="tok-p">,</span> <span class="tok-n">info</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;b</span><span class="tok-p">}</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">app</span> <span class="tok-p">:</span> <span class="tok-p">({</span><span class="tok-n">ctl</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span><span class="tok-p">,</span> <span class="tok-n">info</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;b</span><span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">stringControls</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-nn">Controls</span><span class="tok-p">.</span><span class="tok-n">value_cvt</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">string</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">control_set</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div id="type:control_set" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> ('a, 'b) control_set</code></dt>
+<dd>
+<p>The abstract type of <em>control set</em>, where the first type parameter
+is the value-type of the controls in the set and the second is the
+type of the information associated with each control.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> new : unit -&gt; ('a, 'b) control_set</code></dt>
+<dd>
+<p><code>new ()</code> creates a new, empty, set of controls.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> member : (('a, 'b) control_set * Atom.atom) -&gt; bool</code></dt>
+<dd>
+<p><code>member (ctlSet, name)</code> returns true if there is a control with
+the given name in the set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : (('a, 'b) control_set * Atom.atom) -&gt; {ctl : 'a control, info : 'b} option</code></dt>
+<dd>
+<p><code>find (ctsSet, name)</code> returns <code>SOME{ctl, info}</code> when the control <code>ctl</code>, which
+has the name <code>name</code> is in the set and <code>info</code> is its associated information.
+Otherwise, <code>NONE</code> is returned.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insert : (('a, 'b) control_set * 'a control * 'b) -&gt; unit</code></dt>
+<dd>
+<p><code>insert (ctsSet, ctl, info)</code> inserts the control <code>ctl</code> with associated
+information <code>into</code> into the control set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> remove : (('a, 'b) control_set * Atom.atom) -&gt; unit</code></dt>
+<dd>
+<p><code>remove (ctlSet, name)</code> removes the named control from the set (if
+it is present).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> infoOf : ('a, 'b) control_set -&gt; 'a control -&gt; 'b option</code></dt>
+<dd>
+<p><code>infoOf ctlSet ctl</code> returns <code>SOME info</code>, when <code>ctl</code> is in the set
+with associated information <code>info</code>.  If <code>ctl</code> is not in the set,
+then <code>NONE</code> is returned.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listControls : ('a, 'b) control_set -&gt; {ctl : 'a control, info : 'b} list</code></dt>
+<dd>
+<p><code>listControls ctlSet</code> returns a list of the controls in the set ordered by
+priority.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listControls' : (('a, 'b) control_set * int) -&gt; {ctl : 'a control, info : 'b} list</code></dt>
+<dd>
+<p><code>listControls (ctlSet, level)</code> returns a list of the controls in the set ordered by
+priority, but omits any controls with an obscurity level greater or equal to
+<code>level</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> app : ({ctl : 'a control, info : 'b} -&gt; unit) -&gt; ('a, 'b) control_set -&gt; unit</code></dt>
+<dd>
+<p><code>app f ctlSet</code> applies the function <code>f</code> to the controls (and their associated
+information).  The order in which <code>f</code> is applied is unspecified.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> stringControls : 'a Controls.value_cvt -&gt; ('a, 'b) control_set -&gt; (string, 'b) control_set</code></dt>
+<dd>
+<p><code>stringControls cvt ctlSet</code> returns a set of string controls, where the controls
+in the new set are created by applying the value-converter <code>cvt</code> to the controls
+in <code>ctlSet</code>.  The associated information is preserved.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-Controls.html"><code>Controls</code></a>,
+<a href="str-ControlRegistry.html"><code>ControlRegistry</code></a>,
+<a href="controls-lib.html"><em>The Controls Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

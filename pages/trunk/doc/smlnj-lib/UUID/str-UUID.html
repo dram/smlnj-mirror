@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The UUID structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>UUID</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>UUID</code> structure</span></li>
+      <li class="toc-page"><a href="str-GenUUID.html"><span class="toc-lib-page">The <code>GenUUID</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>UUID</code> structure provides an implementation of
+<a href="https://en.wikipedia.org/wiki/Universally_unique_identifier">
+UUIDs (<em><strong>U</strong>niversally <strong>U</strong>nique <strong>ID</strong>entifiers</em>)</a>.
+UUIDs, which are also known as GUIDs (<em><strong>G</strong>lobally <strong>U</strong>nique <strong>ID</strong>entifiers</em>),
+are sequences of 16-bytes.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">UUID</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">t</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">null</span> <span class="tok-p">:</span> <span class="tok-n">t</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">compare</span> <span class="tok-p">:</span> <span class="tok-n">t</span> <span class="tok-n">*</span> <span class="tok-n">t</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">same</span> <span class="tok-p">:</span> <span class="tok-n">t</span> <span class="tok-n">*</span> <span class="tok-n">t</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">hash</span> <span class="tok-p">:</span> <span class="tok-n">t</span> <span class="tok-p">-&gt;</span> <span class="tok-n">word</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">toString</span> <span class="tok-p">:</span> <span class="tok-n">t</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">fromString</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">t</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">toBytes</span> <span class="tok-p">:</span> <span class="tok-n">t</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">Word8Vector</span><span class="tok-p">.</span><span class="tok-n">vector</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">fromBytes</span> <span class="tok-p">:</span> <span class="tok-nn">Word8Vector</span><span class="tok-p">.</span><span class="tok-n">vector</span> <span class="tok-p">-&gt;</span> <span class="tok-n">t</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> t</code></dt>
+<dd>
+<p>the abstract type of UUIDs.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> null : t</code></dt>
+<dd>
+<p><code>null</code> is the all-zeros UUID</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> compare : t * t -&gt; order</code></dt>
+<dd>
+<p><code>compare (uuid1, uuid2)</code> does a byte-wise comparison of the two
+UUIDs and returns their order.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> same : t * t -&gt; bool</code></dt>
+<dd>
+<p><code>same (uuid1, uuid2)</code> does a byte-wise comparison of the two
+UUIDs and returns <code>true</code> is they are equal and <code>false</code> otherwise.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> hash : t -&gt; word</code></dt>
+<dd>
+<p><code>hash uuid</code> returns a hash of the UUID.</p>
+</dd>
+</dl>
+</div>
+<div id="val:toString" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> toString : t -&gt; string</code></dt>
+<dd>
+<p><code>toString uuid</code> formats <code>uuid</code> as a string of the form</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-s2">&quot;xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx&quot;</span></code></pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>where each "`x`" is a lower-case hexadecimal digit.  The first two digits
+in the string correspond to the first byte, and so on.</pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> fromString : string -&gt; t option</code></dt>
+<dd>
+<p><code>fromString s</code> converts the string <code>s</code>, which should be of the form returned
+by <a href="#val:toString"><code>toString</code></a> to <code>SOME uuid</code>, where <code>uuid</code> is the UUID
+denoted by the string.  Leading whitespace is ignored.  If the string does
+not have the correct format, then <code>NONE</code> is returned.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> toBytes : t -&gt; Word8Vector.vector</code></dt>
+<dd>
+<p><code>toBytes uuid</code> returns the 16-element <code>Word8Vector.vector</code> value
+that represents <code>uuid</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fromBytes : Word8Vector.vector -&gt; t</code></dt>
+<dd>
+<p><code>fromBytes bytes</code> takes a 16-element vector of bytes and converts it to
+a UUID.  The <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN"><code>Size</code></a>
+exception is raised if the length of the vector is not exactly 16.
+Otherwise, there is no validity chechking of the UUID (<em>i.e.</em>, the variant
+and type are not checked).</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-GenUUID.html"><code>GenUUID</code></a>,
+<a href="uuid-lib.html"><em>The UUID Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

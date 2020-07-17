@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The FormatComb structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>FormatComb</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>FormatComb</code> structure</span></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>FormatComb</code> structure provides well-typed formating (or <em>unparsing</em>)
+combinators in the style of Olivier Danvy&#8217;s
+<a href="https://www.brics.dk/RS/98/12/"><em>Functional Unparsing</em></a> work.</p>
+</div>
+<div class="paragraph">
+<p>The idea is to use combinators for constructing something akin to
+the format string of <strong>C</strong>'s <code>printf</code> function.  The difference is, however,
+that our formats are not strings.  Instead, format fragments have
+meaningful types, and passing them to the <code>format</code> function results
+in a curried function whose arguments have precisely the types that
+correspond to argument-consuming parts of the format.  (Such
+argument-consuming parts are similar to the conversion-specifications
+the <a href="str-Format.html"><code>Format</code></a> structure.)</p>
+</div>
+<div class="paragraph">
+<p>There is an underlying notion of "abstract formats" of type <code>'a format</code>,
+but the user operates at the level of "format fragments," which
+have type <code>('a, 'b) fragment</code> and are typically polymorphic
+in <code>'a</code> (where <code>'b</code> is instantiated to some type containing <code>'a</code>).
+Fragments are functions from formats to formats and can be composed
+freely using the infix function-composition operator (<code>o</code>).  This
+form of format composition translates to a corresponding concatenation
+of the resulting output.</p>
+</div>
+<div class="paragraph">
+<p>Fragments are composed from two kids of primitve fragments called
+<em>elements</em> and <em>glue</em>, respectively.  An element is a fragment that
+consumes some argument (which thanks to the typing magic appears as a
+curried argument when the format gets executed).  Glue are fragments
+that do not consume arguments but merely insert fixed text (fixed
+at format construction time) into the output.</p>
+</div>
+<div class="paragraph">
+<p>There are also adjustment operations that pad, trim, or fit the output
+of entire fragments (primitive or not) to a given size.</p>
+</div>
+<div class="paragraph">
+<p>Matthias Blume wrote the code for this module.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">FORMAT_COMB</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">FormatComb</span> <span class="tok-p">:</span> <span class="tok-n">FORMAT_COMB</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">format</span>
+<span class="tok-kr">type</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-kt">fragment</span> <span class="tok-p">=</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">format</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">format</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">glue</span> <span class="tok-p">=</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">fragment</span>
+<span class="tok-kr">type</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-kt">element</span> <span class="tok-p">=</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">fragment</span>
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">gg</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">format</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">string</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">fragment</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">format&#39;</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">fragment</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">using</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;t</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">int</span>     <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">real</span>    <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">real</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">bool</span>    <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">string</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">string</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">string&#39;</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">string</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">char</span>    <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">char</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">char&#39;</span>   <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">char</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">int&#39;</span>  <span class="tok-p">:</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">radix</span>   <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">real&#39;</span> <span class="tok-p">:</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">realfmt</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">real</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">list</span>   <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;x</span><span class="tok-p">)</span> <span class="tok-n">element</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;x</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">option</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;x</span><span class="tok-p">)</span> <span class="tok-n">element</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;x</span> <span class="tok-n">option</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+<span class="tok-kr">val</span> <span class="tok-nv">seq</span>    <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;x</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">gg</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">gg</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">gg</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;s</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">gg</span><span class="tok-p">)</span>
+	     <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+	     <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;x</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+	     <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;s</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">glue</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">element</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;t</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">elem</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;t</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">element</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">nothing</span> <span class="tok-p">:</span>           <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+<span class="tok-kr">val</span> <span class="tok-nv">text</span>    <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+<span class="tok-kr">val</span> <span class="tok-nv">sp</span>      <span class="tok-p">:</span> <span class="tok-n">int</span> <span class="tok-p">-&gt;</span>    <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+<span class="tok-kr">val</span> <span class="tok-nv">nl</span>      <span class="tok-p">:</span>           <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+<span class="tok-kr">val</span> <span class="tok-nv">tab</span>     <span class="tok-p">:</span>           <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">listg</span>   <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;t</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;t</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span><span class="tok-p">)</span>
+<span class="tok-kr">val</span> <span class="tok-nv">optiong</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;t</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;t</span> <span class="tok-n">option</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span><span class="tok-p">)</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">seqg</span>   <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;x</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">gg</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">gg</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">gg</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;s</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">gg</span><span class="tok-p">)</span>
+	     <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+	     <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;x</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span><span class="tok-p">)</span>
+	     <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;s</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">glue</span>
+
+<span class="tok-kr">type</span> <span class="tok-kt">place</span>
+<span class="tok-kr">val</span> <span class="tok-nv">left</span>   <span class="tok-p">:</span> <span class="tok-n">place</span>
+<span class="tok-kr">val</span> <span class="tok-nv">center</span> <span class="tok-p">:</span> <span class="tok-n">place</span>
+<span class="tok-kr">val</span> <span class="tok-nv">right</span>  <span class="tok-p">:</span> <span class="tok-n">place</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">pad</span>  <span class="tok-p">:</span> <span class="tok-n">place</span> <span class="tok-p">-&gt;</span> <span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span>
+<span class="tok-kr">val</span> <span class="tok-nv">trim</span> <span class="tok-p">:</span> <span class="tok-n">place</span> <span class="tok-p">-&gt;</span> <span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span>
+<span class="tok-kr">val</span> <span class="tok-nv">fit</span>  <span class="tok-p">:</span> <span class="tok-n">place</span> <span class="tok-p">-&gt;</span> <span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">padl</span> <span class="tok-p">:</span> <span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span>
+<span class="tok-kr">val</span> <span class="tok-nv">padr</span> <span class="tok-p">:</span> <span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;t</span><span class="tok-p">)</span> <span class="tok-n">fragment</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a format</code></dt>
+<dd>
+<p>An abstract type; values of this type are internal to the
+implementation.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> ('a, 'b) fragment = 'a format -&gt; 'b format</code></dt>
+<dd>
+<p>A fragment is a function from formats to formats.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a glue          = ('a, 'a) fragment</code></dt>
+<dd>
+<p>A <code>glue</code> fragment insertes text into the output without consuming
+and argument.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> ('a, 't) element = ('a, 't -&gt; 'a) fragment</code></dt>
+<dd>
+<p>An <code>element</code> fragment consumes an argument of type <code>'t</code>, converts it to a string,
+and inserts the result in the output.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a gg</code></dt>
+<dd>
+<p>An abstract helper type that is internal to the implementation.</p>
+</dd>
+</dl>
+</div>
+<div id="val:format" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> format  : (string, 'a) fragment -&gt; 'a</code></dt>
+<dd>
+<p><code>format fmt</code> returns a format function as defined by the expression <code>fmt</code>
+that will produce a string result when applied to the necessary arguments.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> format' : (string list -&gt; 'b) -&gt; ('b, 'a) fragment -&gt; 'a</code></dt>
+<dd>
+<p><code>format' consumer fmt</code> returns a format function as defined by the
+expression <code>fmt</code> that will invoke the <code>consumer</code> on the list of strings
+produced by formating when applied to the necessary arguments.
+(The argument to the <code>consumer</code> is a string list to avoid
+premature string concatenation in the implementation).
+Note that the <a href="#val:format"><code>format</code></a> function can be defined in
+terms of <code>format'</code> as follows:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">val</span> <span class="tok-nv">format</span> <span class="tok-p">=</span> <span class="tok-n">format&#39;</span> <span class="tok-nn">String</span><span class="tok-p">.</span><span class="tok-n">concat</span></code></pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  (* Make a type-specific element given a toString function for this type *)
+`[.kw]#val# using : ('t \-&gt; string) \-&gt; ('a, 't) element`::
+  `using tos` returns an element fragment that represents the given
+  "value-to-string" conversion.</pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> int : ('a, int) element</code></dt>
+<dd>
+<p>an element fragment for formating integers; it is equivalent to the
+expression <code>using <a href="https://standardml.org/Basis/integer.html#SIG:INTEGER.toString:VAL">Int.toString</a></code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> int' : StringCvt.radix -&gt; ('a, int) element</code></dt>
+<dd>
+<p><code>int' radix</code> returns an element fragment for formating integers in the specified
+<code>radix</code>. It is equivalent to the expression
+<code>using (<a href="https://standardml.org/Basis/integer.html#SIG:INTEGER.fmt:VAL">Int.fmt</a> radix)</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> real : ('a, real) element</code></dt>
+<dd>
+<p>an element fragment for formating reals; it is equivalent to the
+expression <code>using <a href="https://standardml.org/Basis/real.html#SIG:REAL.toString:VAL">Real.toString</a></code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> real' : StringCvt.realfmt -&gt; ('a, real) element</code></dt>
+<dd>
+<p><code>real' rf</code> returns an element fragment for formating reals with the specified
+format. It is equivalent to the expression
+<code>using (<a href="https://standardml.org/Basis/real.html#SIG:REAL.fmt:VAL">Real.fmt</a> rf)</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> bool : ('a, bool) element</code></dt>
+<dd>
+<p>an element fragment for formating booleans; it is equivalent to the
+expression <code>using <a href="https://standardml.org/Basis/bool.html#SIG:BOOL.toString:VAL">Bool.toString</a></code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> string : ('a, string) element</code></dt>
+<dd>
+<p>an element fragment for formating raw strings; it is equivalent to the
+expression <code>using (fn x &#8658; x)</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> string' : ('a, string) element</code></dt>
+<dd>
+<p>an element fragment for formating strings with escapes; it is equivalent to the
+expression <code>using <a href="https://standardml.org/Basis/string.html#SIG:STRING.toString:VAL">String.toString</a></code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> char : ('a, char) element	(* using String.str *)</code></dt>
+<dd>
+<p>an element fragment for formating raw characters; it is equivalent to the
+expression <code>using <a href="https://standardml.org/Basis/string.html#SIG:STRING.str:VAL">String.str</a></code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> char' : ('a, char) element	(* using Char.toString *)</code></dt>
+<dd>
+<p>an element fragment for formating characters with escapes; it is equivalent to the
+expression <code>using <a href="https://standardml.org/Basis/char.html#SIG:CHAR.toString:VAL">Char.toString</a></code>.</p>
+<div class="literalblock">
+<div class="content">
+<pre>(* "polymorphic" elements *)</pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> list : ('a, 'x) element -&gt; ('a, 'x list) element (* "[", ", ", "]" *)</code></dt>
+<dd>
+<p><code>list elemFmt</code> returns an element fragment that formats lists of items
+using the <code>elemFmt</code> element fragment to format items.  The list will be enclosed
+in brackets (&#8220;`[<code>&#8221; &#8220;</code>]`&#8221;) with elements separated by commas.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> option : ('a, 'x) element -&gt; ('a, 'x option) element</code></dt>
+<dd>
+<p><code>option elemFmt</code> returns an element fragment that formats optional items
+using the <code>elemFmt</code> element fragment to format the item value.  For
+an argument of <code>NONE</code>, the string <code>"NONE"</code> is returned, while for an argument
+of <code>SOME v</code>, the string <code>"SOME(s)"</code> is returned, where <code>s</code> is the result
+of formatting <code>v</code> using <code>elemFmt</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> seq : (('x * 'a gg -&gt; 'a gg) -&gt; 'a gg -&gt; 's -&gt; 'a gg) -&gt; 'a glue -&gt; ('a, 'x) element -&gt; ('a, 's) element</code></dt>
+<dd>
+<p>something</p>
+</dd>
+</dl>
+</div>
+<div id="val:glue" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> glue : ('a, 't) element -&gt; 't -&gt; 'a glue</code></dt>
+<dd>
+<p><code>glue fmt arg</code> returns a glue element that renders as the string
+that results from using <code>fmt</code> to convert <code>arg</code> to a string.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> elem : ('t -&gt; 'a glue) -&gt; ('a, 't) element</code></dt>
+<dd>
+<p><code>elem glueGen</code> returns an element for rendering arguments to the
+<code>glueGen</code> function.  This function is the inverse of <a href="#val:glue"><code>glue</code></a>
+and is useful for extending the set of combinators.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> nothing : 'a glue</code></dt>
+<dd>
+<p>A glue fragment that renders as the empty string.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> text : string -&gt; 'a glue</code></dt>
+<dd>
+<p><code>text s</code> returns a glue fragment that renders as the text <code>s</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> sp : int -&gt; 'a glue</code></dt>
+<dd>
+<p><code>sp n</code> returns a glue fragment that renders as <code>n</code> space characters.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> nl : 'a glue</code></dt>
+<dd>
+<p>A glue fragment that renders as a newline character.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> tab : 'a glue</code></dt>
+<dd>
+<p>A glue fragment that renders as a tab character.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listg : ('t -&gt; 'a glue) -&gt; ('t list -&gt; 'a glue)</code></dt>
+<dd>
+<p>something</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> optiong : ('t -&gt; 'a glue) -&gt; ('t option -&gt; 'a glue)</code></dt>
+<dd>
+<p>something</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> seqg : (('x * 'a gg -&gt; 'a gg) -&gt; 'a gg -&gt; 's -&gt; 'a gg) -&gt; 'a glue -&gt; ('x -&gt; 'a glue) -&gt; 's -&gt; 'a glue</code></dt>
+<dd>
+<p>something</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> place</code></dt>
+<dd>
+<p>An abstract type that represents how to pad or trim of string.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> left : place</code></dt>
+<dd>
+<p>Pad or trim the left side of a string.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> center : place</code></dt>
+<dd>
+<p>Pad or trim both sides of a string.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> right : place</code></dt>
+<dd>
+<p>Pad or trim the left side of a string.</p>
+</dd>
+</dl>
+</div>
+<div id="val:pad" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> pad : place -&gt; int -&gt; ('a, 't) fragment -&gt; ('a, 't) fragment</code></dt>
+<dd>
+<p><code>pad place n frag</code> wraps the fragment <code>frag</code> with padding to bring the total
+with to no fewer than <code>n</code> characters.  The <code>place</code> specifies where padding
+spaces will be added.  Padding never reduces the size of the result.</p>
+</dd>
+</dl>
+</div>
+<div id="val:trim" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> trim : place -&gt; int -&gt; ('a, 't) fragment -&gt; ('a, 't) fragment</code></dt>
+<dd>
+<p><code>trim place n frag</code> wraps the fragment <code>frag</code> with a trimming operation
+to bring the total with to no more than <code>n</code> characters.  The <code>place</code> specifies
+where trimming occurs.  Trimming never increases the size of the result.</p>
+</dd>
+</dl>
+</div>
+<div id="val:fit" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> fit : place -&gt; int -&gt; ('a, 't) fragment -&gt; ('a, 't) fragment</code></dt>
+<dd>
+<p><code>fit place n frag</code> wraps the fragment <code>frag</code> with an operation that
+guarantees the result will be exactly <code>n</code> characters by either padding or
+trimming as necessary.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> padl : int -&gt; ('a, 't) fragment -&gt; ('a, 't) fragment</code></dt>
+<dd>
+<p><code>padl n frag</code> is equivalent to <code>pad left n frag</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> padr : int -&gt; ('a, 't) fragment -&gt; ('a, 't) fragment</code></dt>
+<dd>
+<p><code>padr n frag</code> is equivalent to <code>pad right n frag</code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">Examples</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here are examples on how to use this facility.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">format</span> <span class="tok-n">nothing</span>          <span class="tok-cm">(* ==&gt; &quot;&quot; *)</span>
+<span class="tok-n">format</span> <span class="tok-n">int</span> <span class="tok-mi">1234</span>         <span class="tok-cm">(* ==&gt; &quot;1234&quot; *)</span>
+
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">text</span> <span class="tok-s2">&quot;The square of &quot;</span> <span class="tok-n">o</span> <span class="tok-n">int</span> <span class="tok-n">o</span> <span class="tok-n">text</span> <span class="tok-s2">&quot; is &quot;</span> <span class="tok-n">o</span> <span class="tok-n">int</span> <span class="tok-n">o</span> <span class="tok-n">text</span> <span class="tok-s2">&quot;.&quot;</span><span class="tok-p">)</span> <span class="tok-mi">2</span> <span class="tok-mi">4</span>
+                        <span class="tok-cm">(* ==&gt; &quot;The square of 2 is 4.&quot; *)</span>
+
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">o</span> <span class="tok-n">bool</span> <span class="tok-n">o</span> <span class="tok-n">char</span><span class="tok-p">)</span> <span class="tok-mi">1</span> <span class="tok-n">true</span> <span class="tok-sc">#&quot;x&quot;</span>
+                        <span class="tok-cm">(* ==&gt; &quot;1truex&quot; *)</span>
+
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">glue</span> <span class="tok-n">string</span> <span class="tok-s2">&quot;glue vs. &quot;</span> <span class="tok-n">o</span> <span class="tok-n">string</span> <span class="tok-n">o</span> <span class="tok-n">glue</span> <span class="tok-n">int</span> <span class="tok-mi">42</span> <span class="tok-n">o</span> <span class="tok-n">sp</span> <span class="tok-mi">5</span> <span class="tok-n">o</span> <span class="tok-n">int</span><span class="tok-p">)</span>
+       <span class="tok-s2">&quot;ordinary text &quot;</span> <span class="tok-mi">17</span>
+                        <span class="tok-cm">(* ==&gt; &quot;glue vs. ordinary text 42     17&quot; *)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and here are examples of how the
+<a href="#val:pad"><code>pad</code></a>/<a href="#val:trim"><code>trim</code></a>/<a href="#val:fit"><code>fit</code></a> functions work.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">pad</span> <span class="tok-n">left</span> <span class="tok-mi">6</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">1234</span>        <span class="tok-cm">(* ==&gt; &quot;  1234&quot; *)</span>
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">pad</span> <span class="tok-n">center</span> <span class="tok-mi">6</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">1234</span>      <span class="tok-cm">(* ==&gt; &quot; 1234 &quot; *)</span>
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">pad</span> <span class="tok-n">right</span> <span class="tok-mi">6</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">1234</span>       <span class="tok-cm">(* ==&gt; &quot;1234  &quot; *)</span>
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">trim</span> <span class="tok-n">left</span> <span class="tok-mi">2</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">1234</span>       <span class="tok-cm">(* ==&gt; &quot;34&quot;     *)</span>
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">trim</span> <span class="tok-n">center</span> <span class="tok-mi">2</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">1234</span>     <span class="tok-cm">(* ==&gt; &quot;23&quot;     *)</span>
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">trim</span> <span class="tok-n">right</span> <span class="tok-mi">2</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">1234</span>      <span class="tok-cm">(* ==&gt; &quot;12&quot;     *)</span>
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">fit</span> <span class="tok-n">left</span> <span class="tok-mi">3</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">12</span>          <span class="tok-cm">(* ==&gt; &quot; 12&quot;    *)</span>
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">fit</span> <span class="tok-n">left</span> <span class="tok-mi">3</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">123</span>         <span class="tok-cm">(* ==&gt; &quot;123&quot;    *)</span>
+<span class="tok-n">format</span> <span class="tok-p">(</span><span class="tok-n">fit</span> <span class="tok-n">left</span> <span class="tok-mi">3</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-mi">1234</span>        <span class="tok-cm">(* ==&gt; &quot;234&quot;    *)</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-Format.html"><code>Format</code></a>,
+<a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-17 01:49:59 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

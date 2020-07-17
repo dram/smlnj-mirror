@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The SExp Library</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The SExp Library</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><span class="toc-lib-title" id="toc-current">The SExp Library</span>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-SExp.html"><span class="toc-lib-page">The <code>SExp</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-SExpParser.html"><span class="toc-lib-page">The <code>SExpParser</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-SExpPP.html"><span class="toc-lib-page">The <code>SExpPP</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-SExpPrinter.html"><span class="toc-lib-page">The <code>SExpPrinter</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <strong>SExp Library</strong> supports the reading and writing of structured data using
+the S-expression syntax.  It is a work in progress, and does not fully conform with
+any formal S-exp specification.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>End-of-line comments begin with a semicolon (<code>;</code>)</p>
+</li>
+<li>
+<p>An S-Expression is either an atomic token (boolean, number, symbol, or
+string), a quoted expression, or a list of S-Expressions enclosed in brackets.</p>
+</li>
+<li>
+<p>Quoted expressions are formed by the single-quote character (<code>'</code>) followed
+by an expression.</p>
+</li>
+<li>
+<p>Lists are be delimited by matched pairs of <code>()</code> <code>[]</code> or <code>{}</code>, nested freely.</p>
+</li>
+<li>
+<p>List items are separated with whitespace (space, tab, newlines, or carriage
+returns).</p>
+</li>
+<li>
+<p>Symbols (or <em>identifiers</em>) begin with an initial character followed by
+zero or more <em>subsequent</em> characters, where an initial character is
+either a letter or one of the characters <code>-+.@!$%&amp;*/:&lt;&#8658;?^_~</code> and
+a subsequent character is either an initial character, a decimal digit,
+or the character <code>#</code>.</p>
+</li>
+<li>
+<p>Booleans are represented by the literals <code>#f</code> (false) and <code>#t</code> (true).</p>
+</li>
+<li>
+<p>Numbers are either signed integers or floating-point numbers; the
+sign (if present) is one of "'+'," &#8220;-<code>," or "</code>~&#8221;.</p>
+</li>
+<li>
+<p>Integers may be specified in decimal without any prefix, or in hexadecimal
+with the prefix "0x".  In hex, the value is assumed to be unsigned, so -255
+should be written "-0xff" rather than "0x-ff".</p>
+</li>
+<li>
+<p>The format of a floating point number is described by the following
+regular expression:</p>
+<div class="stemblock">
+<div class="content">
+\[  \mathit{sign}^{?}\,\mathit{digit}^{+}\,\mathtt{.}\;\mathit{digit}^{+}\,
+  ([\mathtt{eE}]\,\mathit{sign}^{?}\,\mathit{digit}^{+})^{?}\]
+</div>
+</div>
+<div class="paragraph">
+<p>Notably, &#8220;1.&#8221; and &#8220;.1&#8221; are invalid and &#8220;1&#8221; is parsed as an
+integer&#8201;&#8212;&#8201;floats must have a dot with digits
+on both sides.</p>
+</div>
+</li>
+<li>
+<p>Strings are enclosed in double quotes (<code>"</code>).</p>
+<div class="paragraph">
+<p>The difference between symbols and strings is that symbols are represented as
+Atom.atom types, so equality comparisons are more efficient.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The original version of the library was written by Damon Wang
+at the University of Chicago.  It has since been modified and
+maintained by John Reppy.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_contents">Contents</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><a href="str-SExp.html"><code><span class="kw">structure</span> SExp</code></a></dt>
+<dd>
+<p>Defines the tree representation of S-expression data.</p>
+</dd>
+<dt class="hdlist1"><a href="str-SExpParser.html"><code><span class="kw">structure</span> SExpParser</code></a></dt>
+<dd>
+<p>Implements an S-Expression parser.</p>
+</dd>
+<dt class="hdlist1"><a href="str-SExpPP.html"><code><span class="kw">structure</span> SExpPP</code></a></dt>
+<dd>
+<p>Implements an S-Expression pretty-printer.</p>
+</dd>
+<dt class="hdlist1"><a href="str-SExpPrinter.html"><code><span class="kw">structure</span> SExpPrinter</code></a></dt>
+<dd>
+<p>Implements an S-Expression printer that produces <em>condensed</em>
+output without indentation or line breaks.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_usage">Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For <a href="https://smlnj.org"><strong>SML/NJ</strong></a>, include <code>$/sexp-lib.cm</code> in your
+<strong>CM</strong> file.</p>
+</div>
+<div class="paragraph">
+<p>For use in <a href="https://www.mlton.org/"><strong>MLton</strong></a>, include
+<code>$(SML_LIB)/smlnj-lib/SExp/sexp-lib.mlb</code> in your <strong>MLB</strong> file.</p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

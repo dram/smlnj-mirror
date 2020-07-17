@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The KeywordFn functor</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>KeywordFn</code> functor</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>KeywordFn</code> functor</span></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>KeywordFn</code> functor provides a simple way to support a table of keyword
+(or reserved) identifiers in a scanner.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">functor</span> <span class="tok-nn">KeywordFn</span> <span class="tok-p">()</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functor_argument_interface">Functor Argument Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">token</span>
+<span class="tok-kr">type</span> <span class="tok-kt">pos</span>
+<span class="tok-kr">val</span> <span class="tok-nv">ident</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span> <span class="tok-n">*</span> <span class="tok-n">pos</span> <span class="tok-n">*</span> <span class="tok-n">pos</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">token</span>
+<span class="tok-kr">val</span> <span class="tok-nv">keywords</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-p">((</span><span class="tok-n">pos</span> <span class="tok-n">*</span> <span class="tok-n">pos</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">token</span><span class="tok-p">))</span> <span class="tok-n">list</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functor_argument_description">Functor Argument Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> token</code></dt>
+<dd>
+<p>The type of tokens in the scanner.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> pos</code></dt>
+<dd>
+<p>The type of source file positions used by the scanner (<em>e.g.</em>, character
+positions in the source file).</p>
+</dd>
+</dl>
+</div>
+<div id="val:ident" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> ident : (Atom.atom * pos * pos) -&gt; token</code></dt>
+<dd>
+<p><code>ident (id, pos, pos)</code> is used to create an identifier token (<em>i.e.</em>, non-keyword)
+ for the given string, and start and end file positions.</p>
+</dd>
+</dl>
+</div>
+<div id="val:keywords" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> keywords : (string * pos * pos) -&gt; token list</code></dt>
+<dd>
+<p>A list of string-function pairs, where the strings are the keywords and
+the functions are used to create the corresponding scanner tokens from
+start and end file positions.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span>    <span class="tok-kr">type</span> <span class="tok-kt">token</span>
+    <span class="tok-kr">type</span> <span class="tok-kt">pos</span>
+    <span class="tok-kr">val</span> <span class="tok-nv">keyword</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-n">pos</span> <span class="tok-n">*</span> <span class="tok-n">pos</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">token</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface_description">Interface Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> token</code></dt>
+<dd>
+<p>The type of tokens in the scanner.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> pos</code></dt>
+<dd>
+<p>The type of source file positions used by the scanner.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> keyword : (string * pos * pos) &#8594; token</code></dt>
+<dd>
+<p><code>keyword (id, p1, p2)</code> returns the token for the identifier <code>id</code>,
+which is either one of the keyword tokens from the
+<a href="#val:keywords"><code>keywords</code></a> list or otherwise is an identifier
+token created using the <a href="#val:ident"><code>ident</code></a> function.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_discussion">Discussion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This functor was designed for the <a href="https://smlnj.org/doc/ML-Yacc/index.html"><strong>ml-yacc</strong></a>
+scanner interface, where tokens contain their file position.  It is not clear that
+it adds much utility over just using the <a href="str-Atom.html"><code>atom</code></a> type, but
+is maintained for backward compatibility.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-Atom.html"><code>Atom</code></a>,
+<a href="sig-MONO_HASH_TABLE.html#str:AtomTable"><code>AtomTable</code></a>,
+<a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

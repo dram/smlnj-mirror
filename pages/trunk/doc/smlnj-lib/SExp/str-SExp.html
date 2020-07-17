@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The SExp structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>SExp</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>SExp</code> structure</span></li>
+      <li class="toc-page"><a href="str-SExpParser.html"><span class="toc-lib-page">The <code>SExpParser</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-SExpPP.html"><span class="toc-lib-page">The <code>SExpPP</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-SExpPrinter.html"><span class="toc-lib-page">The <code>SExpPrinter</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>SExp</code> structure defines the tree representation of S-expression data.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">SExp</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">datatype</span> <span class="tok-kt">value</span>
+  <span class="tok-p">=</span> <span class="tok-nc">SYMBOL</span> <span class="tok-kr">of</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span>
+  <span class="tok-p">|</span> <span class="tok-nc">BOOL</span> <span class="tok-kr">of</span> <span class="tok-n">bool</span>
+  <span class="tok-p">|</span> <span class="tok-nc">INT</span> <span class="tok-kr">of</span> <span class="tok-nn">IntInf</span><span class="tok-p">.</span><span class="tok-n">int</span>
+  <span class="tok-p">|</span> <span class="tok-nc">FLOAT</span> <span class="tok-kr">of</span> <span class="tok-n">real</span>
+  <span class="tok-p">|</span> <span class="tok-nc">STRING</span> <span class="tok-kr">of</span> <span class="tok-n">string</span>
+  <span class="tok-p">|</span> <span class="tok-nc">QUOTE</span> <span class="tok-kr">of</span> <span class="tok-n">value</span>
+  <span class="tok-p">|</span> <span class="tok-nc">LIST</span> <span class="tok-kr">of</span> <span class="tok-n">value</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">same</span> <span class="tok-p">:</span> <span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">compare</span> <span class="tok-p">:</span> <span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">datatype</span> value = &#8230;&#8203;</code></dt>
+<dd>
+<p>This datatype represents S-expression trees.  The constuctors are
+defined as follows:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>SYMBOL <span class="kw">of</span> Atom.atom</code></dt>
+<dd>
+<p>represents an identifier.  We use the <a href="../Util/str-Atom.html#type:atom"><code>atom</code></a>
+type to represent these for fast equality testing.</p>
+</dd>
+<dt class="hdlist1"><code>BOOL <span class="kw">of</span> bool</code></dt>
+<dd>
+<p>represents a boolean literal.</p>
+</dd>
+<dt class="hdlist1"><code>INT <span class="kw">of</span> IntInf.int</code></dt>
+<dd>
+<p>represents an integer number.</p>
+</dd>
+<dt class="hdlist1"><code>FLOAT <span class="kw">of</span> real</code></dt>
+<dd>
+<p>represents a floating-point number.</p>
+</dd>
+<dt class="hdlist1"><code>STRING <span class="kw">of</span> string</code></dt>
+<dd>
+<p>represents a string value.</p>
+</dd>
+<dt class="hdlist1"><code>QUOTE <span class="kw">of</span> value list</code></dt>
+<dd>
+<p>represents a quoted value.</p>
+</dd>
+<dt class="hdlist1"><code>LIST <span class="kw">of</span> value list</code></dt>
+<dd>
+<p>represents a list of values.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> same : value * value -&gt; bool</code></dt>
+<dd>
+<p><code>same (se1, se2)</code> compares <code>se1</code> and <code>se2</code> for equality and returns
+true if, and only if, they are equal.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> compares : value * value -&gt; order</code></dt>
+<dd>
+<p><code>same (se1, se2)</code> compares <code>se1</code> and <code>se2</code> for their order.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-SExpParser.html"><code>SExpParser</code></a>,
+<a href="str-SExpPP.html"><code>SExpPP</code></a>,
+<a href="str-SExpPrinter.html"><code>SExpPrinter</code></a>,
+<a href="sexp-lib.html"><em>The SExp Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

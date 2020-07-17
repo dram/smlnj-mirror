@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The RegExpSyntax structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>RegExpSyntax</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="tutorial.html"><span class="toc-lib-page">Using the RegExp Library</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_PARSER.html"><span class="toc-lib-page">The <code>REGEXP_PARSER</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_ENGINE.html"><span class="toc-lib-page">The <code>REGEXP_ENGINE</code> signature</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>RegExpSyntax</code> structure</span></li>
+      <li class="toc-page"><a href="str-MatchTree.html"><span class="toc-lib-page">The <code>MatchTree</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-AwkSyntax.html"><span class="toc-lib-page">The <code>AwkSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RegExpFn.html"><span class="toc-lib-page">The <code>RegExpFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>RegExpSyntax</code> structure provides an abstract-syntax-tree
+representation of regular expressions.  Its main purpose is to
+provide communication between different front-ends (implementing
+different RE specification languages), and different back-ends
+(implementing different compilation/searching algorithms).
+It is also possible, however, to use it as a way to directly
+specify a regular expression for a back-end engine.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">REGEXP_SYNTAX</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">RegExpSyntax</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_SYNTAX</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">exception</span> <span class="tok-nc">CannotCompile</span>
+
+<span class="tok-kr">structure</span> <span class="tok-nn">CharSet</span> <span class="tok-p">:</span> <span class="tok-n">ORD_SET</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">Key</span><span class="tok-err">.ord_key</span> <span class="tok-p">=</span> <span class="tok-n">char</span>
+
+<span class="tok-kr">datatype</span> <span class="tok-kt">syntax</span>
+  <span class="tok-p">=</span> <span class="tok-nc">Group</span> <span class="tok-kr">of</span> <span class="tok-n">syntax</span>
+  <span class="tok-p">|</span> <span class="tok-nc">Alt</span> <span class="tok-kr">of</span> <span class="tok-n">syntax</span> <span class="tok-n">list</span>
+  <span class="tok-p">|</span> <span class="tok-nc">Concat</span> <span class="tok-kr">of</span> <span class="tok-n">syntax</span> <span class="tok-n">list</span>
+  <span class="tok-p">|</span> <span class="tok-nc">Interval</span> <span class="tok-kr">of</span> <span class="tok-p">(</span><span class="tok-n">syntax</span> <span class="tok-n">*</span> <span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-n">int</span> <span class="tok-n">option</span><span class="tok-p">)</span>
+  <span class="tok-p">|</span> <span class="tok-nc">MatchSet</span> <span class="tok-kr">of</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+  <span class="tok-p">|</span> <span class="tok-nc">NonmatchSet</span> <span class="tok-kr">of</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+  <span class="tok-p">|</span> <span class="tok-nc">Char</span> <span class="tok-kr">of</span> <span class="tok-n">char</span>
+  <span class="tok-p">|</span> <span class="tok-nc">Begin</span>
+  <span class="tok-p">|</span> <span class="tok-nc">End</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">optional</span> <span class="tok-p">:</span> <span class="tok-n">syntax</span> <span class="tok-p">-&gt;</span> <span class="tok-n">syntax</span>
+<span class="tok-kr">val</span> <span class="tok-nv">closure</span> <span class="tok-p">:</span> <span class="tok-n">syntax</span> <span class="tok-p">-&gt;</span> <span class="tok-n">syntax</span>
+<span class="tok-kr">val</span> <span class="tok-nv">posClosure</span> <span class="tok-p">:</span> <span class="tok-n">syntax</span> <span class="tok-p">-&gt;</span> <span class="tok-n">syntax</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">fromRange</span> <span class="tok-p">:</span> <span class="tok-n">char</span> <span class="tok-n">*</span> <span class="tok-n">char</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">addRange</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-n">char</span> <span class="tok-n">*</span> <span class="tok-n">char</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">allChars</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">alnum</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">alpha</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">ascii</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">blank</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">cntl</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">digit</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">graph</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">lower</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">print</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">punct</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">space</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">upper</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">word</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">xdigit</span> <span class="tok-p">:</span> <span class="tok-nn">CharSet</span><span class="tok-p">.</span><span class="tok-n">se</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div id="exn:CannotCompile" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">exception</span> CannotCompile</code></dt>
+<dd>
+<p>This exception is meant to be raised by back-ends when they encounter
+a feature that they cannot handle.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">structure</span> CharSet : ORD_SET where type Key.ord_key = char</code></dt>
+<dd>
+<p>This substructure implements sets of 8-bit characters.  Currently it
+is implemented using sorted lists (<em>i.e.</em>, using the
+<a href="../Util/fun-ListSetFn.html"><code>ListSetFn</code></a> functor), but that may
+be changed in the future.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">datatype</span> syntax</code></dt>
+<dd>
+<p>This datatype defines the abstract syntax of regular expressions that
+ is supported by the library.  The constructors are defined as follows:</p>
+<div class="openblock">
+<div class="content">
+<div id="con:Group" class="ulist">
+<ul>
+<li>
+<p><code>Group re</code>::
+defines a match group (<em>i.e.</em>, that produce a corresponding
+match-tree node for the input matched by <code>re</code>.</p>
+</li>
+<li>
+<p><code>Alt[re1, re2, &#8230;&#8203;, ren]</code>::
+matches any of <code>re1</code>, <code>re2</code>, &#8230;&#8203;, <code>ren</code>.  If the list is empty, then it
+matches nothing.</p>
+</li>
+<li>
+<p><code>Concat[re1, re2, &#8230;&#8203;, ren]</code>::
+matches the concatenation of <code>re1</code>, <code>re2</code>, &#8230;&#8203;, <code>ren</code>.  If the list
+is empty, then it matches the empty string.</p>
+</li>
+<li>
+<p><code>Interval(re, n, NONE)</code>::
+matches <code>re</code> repeated at least <code>n</code> times.</p>
+</li>
+<li>
+<p><code>Interval(re, n, SOME m)</code>::
+matches <code>re</code> repeated from <code>n</code> to <code>m</code> times.</p>
+</li>
+<li>
+<p><code>MatchSet cs</code>::
+matches a single character that is in the set <code>cs</code>.</p>
+</li>
+<li>
+<p><code>NonmatchSet cs</code>::
+matches a single character that is <strong>not</strong> in the set <code>cs</code>.</p>
+</li>
+<li>
+<p><code>Char c</code>::
+matches the single character <code>c</code>.</p>
+</li>
+<li>
+<p><code>Begin</code>::
+matches beginning of the input stream.</p>
+</li>
+<li>
+<p><code>End</code>::
+matches end of the input stream.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> optional : syntax &#8594; syntax</code></dt>
+<dd>
+<p><code>optional re</code> is equivalent to <code>Interval(re, 0, SOME 1)</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> closure : syntax &#8594; syntax</code></dt>
+<dd>
+<p><code>closure re</code> is equivalent to <code>Interval(re, 0, NONE)</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> posClosure : syntax &#8594; syntax</code></dt>
+<dd>
+<p><code>posClosure re</code> is equivalent to <code>Interval(re, 1, NONE)</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fromRange : char * char -&gt; CharSet.set</code></dt>
+<dd>
+<p><code>fromRange (c1, c2)</code> returns the set containing the characters
+in the range from <code>c1</code> to <code>c2</code> (inclusive).  This expression
+raises the <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN"><code>Size</code></a>
+exception if <code>c2 &lt; c1</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> addRange : CharSet.set * char * char -&gt; CharSet.set</code></dt>
+<dd>
+<p><code>addRange (cs, c1, c2)</code> adds the set of characters in the range
+from <code>c1</code> to <code>c2</code> (inclusive) to <code>cs</code>.  This expression raises
+the <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN"><code>Size</code></a>
+exception if <code>c2 &lt; c1</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> allChars : CharSet.set</code></dt>
+<dd>
+<p>is the set of all 8-bit characters.</p>
+</dd>
+</dl>
+</div>
+<div class="sect2">
+<h3 id="_posix_character_classes">POSIX Character Classes</h3>
+<div class="paragraph">
+<p>The <code>RegExpSyntax</code> structure pre-defines the following character sets,
+which are part of the POSIX regular-expression standard (plus a couple
+of extras):</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> alnum : CharSet.set</code></dt>
+<dd>
+<p>is the set of letters and digits.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> alpha : CharSet.set</code></dt>
+<dd>
+<p>is the set of letters.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> ascii : CharSet.set</code></dt>
+<dd>
+<p>is the set of characters <code>c</code> such that <code>0 &lt;= ord c &lt;= 127</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> blank : CharSet.set</code></dt>
+<dd>
+<p>is the set of <code>#"\t"</code> and space.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> cntl : CharSet.set</code></dt>
+<dd>
+<p>is the set of non-printable characters.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> digit : CharSet.set</code></dt>
+<dd>
+<p>is the set of decimal digits.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> graph : CharSet.set</code></dt>
+<dd>
+<p>is the set of visible characters (does not include space).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> lower : CharSet.set</code></dt>
+<dd>
+<p>is the set of lower-case letters.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> print : CharSet.set</code></dt>
+<dd>
+<p>is the set of printable characters (includes space).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> punct : CharSet.set</code></dt>
+<dd>
+<p>is the set of visible characters other than letters and digits.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> space : CharSet.set</code></dt>
+<dd>
+<p>is the set of <code>#"\t"</code>, <code>#"\r"</code>, <code>#"\n"</code>, <code>#"\v"</code>, <code>#"\f"</code>, and space.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> upper : CharSet.set</code></dt>
+<dd>
+<p>is the set of upper-case letters.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> word : CharSet.set</code></dt>
+<dd>
+<p>is the set of letters, digit, and <code>#"_"</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> xdigit : CharSet.set</code></dt>
+<dd>
+<p>is the set of hexadecimal digits.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="sig-REGEXP_ENGINE.html"><code>REGEXP_ENGINE</code></a>,
+<a href="regexp-lib.html"><em>The RegExp Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

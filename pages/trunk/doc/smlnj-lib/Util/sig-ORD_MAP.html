@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The ORD_MAP signature</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>ORD_MAP</code> signature</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>ORD_MAP</code> signature</span></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ORD_MAP</code> signature defines an interface to finite maps
+over ordered keys. The <strong>SML/NJ Library</strong> provides a number of
+different implementations of this interface.  Functors are
+provided for constructing maps for user-defined key types;
+in addition, a number of instances for specific types
+are also provided.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">ORD_MAP</span>
+
+<span class="tok-kr">structure</span> <span class="tok-nn">AtomMap</span> <span class="tok-p">:</span> <span class="tok-n">ORD_MAP</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">Key</span><span class="tok-err">.ord_key</span> <span class="tok-p">=</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">AtomBinaryMap</span> <span class="tok-p">:</span> <span class="tok-n">ORD_MAP</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">Key</span><span class="tok-err">.ord_key</span> <span class="tok-p">=</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">AtomRedBlackMap</span> <span class="tok-p">:</span> <span class="tok-n">ORD_MAP</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">Key</span><span class="tok-err">.ord_key</span> <span class="tok-p">=</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">IntBinaryMap</span> <span class="tok-p">:</span> <span class="tok-n">ORD_MAP</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">Key</span><span class="tok-err">.ord_key</span> <span class="tok-p">=</span> <span class="tok-n">int</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">IntListMap</span> <span class="tok-p">:</span> <span class="tok-n">ORD_MAP</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">Key</span><span class="tok-err">.ord_key</span> <span class="tok-p">=</span> <span class="tok-n">int</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">IntRedBlackMap</span> <span class="tok-p">:</span> <span class="tok-n">ORD_MAP</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">Key</span><span class="tok-err">.ord_key</span> <span class="tok-p">=</span> <span class="tok-n">int</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">WordRedBlackMap</span> <span class="tok-p">:</span> <span class="tok-n">ORD_MAP</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">Key</span><span class="tok-err">.ord_key</span> <span class="tok-p">=</span> <span class="tok-n">word</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">Key</span> <span class="tok-p">:</span> <span class="tok-n">ORD_KEY</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">empty</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">isEmpty</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">singleton</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">insert</span>  <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">insert&#39;</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">insertWith</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">insertWithi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">find</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">lookup</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">inDomain</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">remove</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">first</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">option</span>
+<span class="tok-kr">val</span> <span class="tok-nv">firsti</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">numItems</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span>  <span class="tok-n">int</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">listItems</span>  <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">list</span>
+<span class="tok-kr">val</span> <span class="tok-nv">listItemsi</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">listKeys</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">collate</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">unionWith</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">unionWithi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">intersectWith</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">intersectWithi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mergeWith</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">option</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">option</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">option</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">mergeWithi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">option</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">option</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">option</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">app</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">appi</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">map</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">mapi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">foldl</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldli</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldr</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldri</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">filter</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">filteri</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mapPartial</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">option</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">mapPartiali</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">option</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">exists</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">existsi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">all</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">alli</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">Key</span><span class="tok-p">.</span><span class="tok-n">ord_key</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> Key : ORD_KEY</code></dt>
+<dd>
+<p>This substructure defines the type of keys used to index the maps and
+the comparison function used to order them.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a map</code></dt>
+<dd>
+<p>A finite map from <code>Key.ord_key</code> values to <code>'b</code> values.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> empty : 'a map</code></dt>
+<dd>
+<p>The empty map.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> isEmpty : 'a map -&gt; bool</code></dt>
+<dd>
+<p><code>isEmpty m</code> returns true if, and only if, <code>m</code> is empty.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> singleton : (Key.ord_key * 'a) -&gt; 'a map</code></dt>
+<dd>
+<p><code>singleton (key, v)</code> creates the singleton map that maps <code>key</code> to <code>v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insert  : 'a map * Key.ord_key * 'a -&gt; 'a map</code></dt>
+<dd>
+<p><code>insert (m, key, v)</code> adds the mapping from <code>key</code> to <code>v</code> to <code>m</code>.
+This mapping overrides any previous mapping from <code>key</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insert' : ((Key.ord_key * 'a) * 'a map) -&gt; 'a map</code></dt>
+<dd>
+<p><code>insert' ((key, v), map)</code> adds the mapping from <code>key</code> to <code>v</code> to <code>m</code>.
+This mapping overrides any previous mapping from <code>key</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insertWith  : ('a * 'a -&gt; 'a) -&gt; 'a map * Key.ord_key * 'a -&gt; 'a map</code></dt>
+<dd>
+<p><code>insertWith comb (m, key, v)</code> adds the mapping from <code>key</code> to <code>value</code> to <code>m</code>,
+where <code>value = comb(v', v)</code>, if <code>m</code> already contained a mapping from <code>key</code>
+to <code>v'</code>; otherwise, <code>value = v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insertWithi : (Key.ord_key * 'a * 'a -&gt; 'a) -&gt; 'a map * Key.ord_key * 'a -&gt; 'a map</code></dt>
+<dd>
+<p><code>insertWithi comb (m, key, v)</code> adds the mapping from <code>key</code> to <code>value</code> to <code>m</code>,
+where <code>value = comb(key, v', v)</code>, if <code>m</code> already contained a mapping from <code>key</code>
+to <code>v'</code>; otherwise, <code>value = v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : 'a map * Key.ord_key -&gt; 'a option</code></dt>
+<dd>
+<p><code>find (m, key)</code> returns <code>SOME v</code>, if <code>m</code> maps <code>key</code> to <code>v</code> and <code>NONE</code> otherwise.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> lookup : 'a map * Key.ord_key -&gt; 'a</code></dt>
+<dd>
+<p><code>lookup (m, key)</code> returns <code>v</code>, if <code>m</code> maps <code>key</code> to <code>v</code>; otherwise it
+raises the exception <a href="str-LibBase.html#exn:NotFound"><code>NotFound</code></a>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> inDomain : ('a map * Key.ord_key) -&gt; bool</code></dt>
+<dd>
+<p><code>inDomain (m, key)</code> returns <code>true</code> if <code>key</code> is in the domain of <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> remove : 'a map * Key.ord_key -&gt; 'a map * 'a</code></dt>
+<dd>
+<p><code>remove (m, key)</code> returns the pair <code>(m', v)</code>, if <code>m</code> maps <code>key</code> to <code>v</code>
+and where <code>m'</code> is <code>m</code> with <code>key</code> removed from its domain.  If <code>key</code>
+is not in the domain of <code>m</code>, then it raises the exception
+<a href="str-LibBase.html#exn:NotFound"><code>NotFound</code></a>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> first : 'a map -&gt; 'a option</code></dt>
+<dd>
+<p><code>first m</code> returns <code>SOME item</code> when <code>item</code> is the value associated with
+the first (or smallest) key in the domain of the map <code>m</code>.  It returns
+<code>NONE</code> when the map is empty.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> firsti : 'a map -&gt; (Key.ord_key * 'a) option</code></dt>
+<dd>
+<p><code>first m</code> returns <code>SOME(key, item)</code> when <code>key</code> is the first (or smallest)
+key in the domain of the map <code>m</code> and <code>key</code> maps to <code>item</code>.  It returns
+<code>NONE</code> when the map is empty.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> numItems : 'a map -&gt;  int</code></dt>
+<dd>
+<p><code>numItems m</code> returns the size of <code>m</code>'s domain.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listItems  : 'a map -&gt; 'a list</code></dt>
+<dd>
+<p><code>listItems m</code> returns a list of the values in the <em>range</em> of <code>m</code>.
+Note that this list will contain duplicates when multiple keys in
+<code>m</code>'s domain map to the same value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listItemsi : 'a map -&gt; (Key.ord_key * 'a) list</code></dt>
+<dd>
+<p><code>listItemsi m</code> returns a list of the key-value pairs in <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listKeys : 'a map -&gt; Key.ord_key list</code></dt>
+<dd>
+<p><code>listKeys m</code> returns a list of the keys in the domain of <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> collate : ('a * 'a -&gt; order) -&gt; ('a map * 'a map) -&gt; order</code></dt>
+<dd>
+<p><code>collate cmpV (m1, m2)</code> returns the order of the two maps, where <code>cmpV</code> is
+used to compare the values in the domain.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> unionWith  : ('a * 'a -&gt; 'a) -&gt; ('a map * 'a map) -&gt; 'a map</code></dt>
+<dd>
+<p><code>unionWith comb (m1, m2)</code> returns the union of the two maps, using the function <code>comb</code>
+to combine values when there is a collision of keys.  More formally, this expression
+returns the map</p>
+<div class="stemblock">
+<div class="content">
+\[  \begin{array}{l}
+  \{ (k, \mathtt{m1}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \setminus \mathbf{dom}(\mathtt{m2}) \}
+  \cup \\
+  \{ (k, \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m2}) \setminus \mathbf{dom}(\mathtt{m1}) \}
+  \cup \\
+  \{ (k, \mathtt{comb}(\mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}
+  \end{array}\]
+</div>
+</div>
+<div class="paragraph">
+<p>For example, we could implement a <em>multiset</em> of keys by mapping keys to their
+multiplicity.  Then, the union of two multisets could be defined by</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">union</span> <span class="tok-p">(</span><span class="tok-n">ms1</span><span class="tok-p">,</span> <span class="tok-n">ms2</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-n">unionWith</span> <span class="tok-nn">Int</span><span class="tok-p">.</span><span class="tok-n">+</span> <span class="tok-p">(</span><span class="tok-n">ms1</span><span class="tok-p">,</span> <span class="tok-n">ms2</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> unionWithi : (Key.ord_key * 'a * 'a -&gt; 'a) -&gt; ('a map * 'a map) -&gt; 'a map</code></dt>
+<dd>
+<p><code>unionWithi comb (m1, m2)</code> returns the union of the two maps, using the function <code>comb</code>
+to combine values when there is a collision of keys.  More formally, this expression
+returns the map</p>
+<div class="stemblock">
+<div class="content">
+\[  \begin{array}{l}
+  \{ (k, \mathtt{m1}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \setminus \mathbf{dom}(\mathtt{m2}) \}
+  \cup \\
+  \{ (k, \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m2}) \setminus \mathbf{dom}(\mathtt{m1}) \}
+  \cup \\
+  \{ (k, \mathtt{comb}(k, \mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}
+  \end{array}\]
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> intersectWith  : ('a * 'b -&gt; 'c) -&gt; ('a map * 'b map) -&gt; 'c map</code></dt>
+<dd>
+<p><code>intersectWith comb (m1, m2)</code> returns the intersection of the two maps,
+where the values in the range are a computed by applying the function
+<code>comb</code> to the values from the two maps.  More formally, this expression
+returns the map</p>
+<div class="stemblock">
+<div class="content">
+\[  \{ (k, \mathtt{comb}(\mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}\]
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> intersectWithi : (Key.ord_key * 'a * 'b -&gt; 'c) -&gt; ('a map * 'b map) -&gt; 'c map</code></dt>
+<dd>
+<p><code>intersectWithi comb (m1, m2)</code> returns the intersection of the two maps,
+where the values in the range are a computed by applying the function
+<code>comb</code> to the kay and the values from the two maps.  More formally, this
+expression returns the map</p>
+<div class="stemblock">
+<div class="content">
+\[  \{ (k, \mathtt{comb}(k, \mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}\]
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mergeWith : ('a option * 'b option -&gt; 'c option) -&gt; ('a map * 'b map) -&gt; 'c map</code></dt>
+<dd>
+<p><code>mergeWith comb (m1, m2)</code> merges the two maps using the function <code>comb</code>
+as a decision procedure for adding elements to the new map.  For each key
+\(\mathtt{key} \in \mathbf{dom}(\mathtt{m1}) \cup \mathbf{dom}(\mathtt{m2})\),
+we evaluate <code>comb(optV1, optV2)</code>, where <code>optV1</code> is <code>SOME v</code> if
+\((\mathtt{key}, \mathtt{v}) \in \mathtt{m1}\) and is <code>NONE</code> if
+latexmath:[\mathtt{key} \not\in \mathbf{dom}(\mathtt{m1}); likewise for <code>optV2</code>.
+If <code>comb(optV1, optV2)</code> returns <code>SOME v'</code>, then we add <code>(key, v')</code>
+to the result.</p>
+<div class="paragraph">
+<p>The <code>mergeWith</code> function is a generalization of the <code>unionWith</code> and
+<code>intersectionWith</code> functions.</p>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mergeWithi : (Key.ord_key * 'a option * 'b option -&gt; 'c option) -&gt; ('a map * 'b map) -&gt; 'c map</code></dt>
+<dd>
+<p><code>mergeWithi comb (m1, m2)</code> merges the two maps using the function <code>comb</code>
+as a decision procedure for adding elements to the new map.  The difference
+between this function and <code>mergeWith</code> is that the <code>comb</code> function takes the
+<code>key</code> value in addition to the optional values from the range.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> app  : ('a -&gt; unit) -&gt; 'a map -&gt; unit</code></dt>
+<dd>
+<p><code>app f m</code> applies the function <code>f</code> to the values in the range of <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> appi : ((Key.ord_key * 'a) -&gt; unit) -&gt; 'a map -&gt; unit</code></dt>
+<dd>
+<p><code>appi f map</code> applies the function <code>f</code> to the key-value pairs that
+define <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> map  : ('a -&gt; 'b) -&gt; 'a map -&gt; 'b map</code></dt>
+<dd>
+<p><code>map f m</code> creates a new finite map <code>m'</code> by applying the function <code>f</code> to the
+values in the range of <code>m</code>.  Thus, if
+\((\mathtt{key}, \mathtt{v}) \in \mathtt{m}\), then
+<code>(key, f v)</code> will be in <code>m'</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mapi : (Key.ord_key * 'a -&gt; 'b) -&gt; 'a map -&gt; 'b map</code></dt>
+<dd>
+<p><code>mapi f m</code> creates a new finite map <code>m'</code> by applying the function <code>f</code> to the
+key-value pairs of <code>m</code>.  Thus, if
+\((\mathtt{key}, \mathtt{v}) \in \mathtt{m}\), then
+<code>(key, f(key, v))</code> will be in <code>m'</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldl  : ('a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a map -&gt; 'b</code></dt>
+<dd>
+<p><code>foldl fl init m</code> folds the function <code>f</code> over the range of
+<code>m</code> using <code>init</code> as the initial value.  Items are processed in
+increasing order of their key values.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldli : (Key.ord_key * 'a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a map -&gt; 'b</code></dt>
+<dd>
+<p><code>foldli f init m</code> folds the function <code>f</code> over the key-value pairs in
+<code>m</code> using <code>init</code> as the initial value.  Items are processed in
+increasing order of their key values.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldr  : ('a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a map -&gt; 'b</code></dt>
+<dd>
+<p><code>foldr fl init m</code> folds the function <code>f</code> over the range of
+<code>m</code> using <code>init</code> as the initial value.  Items are processed in
+decreasing order of their key values.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldri : (Key.ord_key * 'a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a map -&gt; 'b</code></dt>
+<dd>
+<p><code>foldri f init m</code> folds the function <code>f</code> over the key-value pairs in
+<code>m</code> using <code>init</code> as the initial value.  Items are processed in
+decreasing order of their key values.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> filter  : ('a -&gt; bool) -&gt; 'a map -&gt; 'a map</code></dt>
+<dd>
+<p><code>filter pred m</code> filters out those items <code>(key, v)</code> from <code>m</code>, such that
+<code>pred v</code> returns <code>false</code>.  More formally, this expression returns the map
+\(\{ (\mathtt{key}, \mathtt{v})\;|\;\mathtt{key} \in \mathbf{dom}(\mathtt{m})
+\wedge \mathtt{pred}(\mathtt{v}) \}\).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> filteri : (Key.ord_key * 'a -&gt; bool) -&gt; 'a map -&gt; 'a map</code></dt>
+<dd>
+<p><code>filteri pred m</code> filters out those items <code>(key, v)</code> from <code>m</code>, such that
+<code>pred(key, v)</code> returns <code>false</code>.  More formally, this expression returns the map
+\(\{ (\mathtt{key}, \mathtt{v})\;|\;\mathtt{key} \in \mathbf{dom}(\mathtt{m})
+\wedge \mathtt{pred}(\mathtt{key}, \mathtt{v}) \}\).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mapPartial  : ('a -&gt; 'b option) -&gt; 'a map -&gt; 'b map</code></dt>
+<dd>
+<p><code>mapPartial f m</code> maps the partial function <code>f</code> over the items of <code>m</code>.
+More formally, this expression returns the map</p>
+</dd>
+</dl>
+</div>
+<div class="stemblock">
+<div class="content">
+\[  \{ (k, v') \;|\; (k, v) \in \mathtt{m} \wedge \mathtt{f}(v) = \mathtt{SOME}(v') \}\]
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> mapPartiali : (Key.ord_key * 'a -&gt; 'b option) -&gt; 'a map -&gt; 'b map</code></dt>
+<dd>
+<p><code>mapPartiali f m</code> maps the partial function <code>f</code> over the items of <code>m</code>.
+More formally, this expression returns the map</p>
+</dd>
+</dl>
+</div>
+<div class="stemblock">
+<div class="content">
+\[  \{ (k, v') \;|\; (k, v) \in \mathtt{m} \wedge \mathtt{f}(k, v) = \mathtt{SOME}(v') \}\]
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> exists : ('a -&gt; bool) -&gt; 'a map -&gt; bool</code></dt>
+<dd>
+<p><code>exists pred m</code> returns <code>true</code> if, and only if, there exists an item
+\((\mathtt{key}, \mathtt{v}) \in \mathtt{m}\),
+such that <code>pred v</code> returns <code>true</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> existsi : (Key.ord_key * 'a -&gt; bool) -&gt; 'a map -&gt; bool</code></dt>
+<dd>
+<p><code>exists pred m</code> returns <code>true</code> if, and only if, there exists an item
+\((\mathtt{key}, \mathtt{v}) \in \mathtt{m}\), such that
+<code>pred(key, v)</code> returns <code>true</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> all : ('a -&gt; bool) -&gt; 'a map -&gt; bool</code></dt>
+<dd>
+<p><code>all pred m</code> returns <code>true</code> if, and only if, <code>pred v</code> returns <code>true</code>
+for all items \((\mathtt{key}, \mathtt{v}) \in \mathtt{m}\).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> alli : (Key.ord_key * 'a -&gt; bool) -&gt; 'a map -&gt; bool</code></dt>
+<dd>
+<p><code>all pred m</code> returns <code>true</code> if, and only if, <code>pred(key, v)</code> returns <code>true</code>
+for all items \((\mathtt{key}, \mathtt{v}) \in \mathtt{m}\).</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_instances">Instances</h2>
+<div class="sectionbody">
+<div id="str:AtomMap" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> AtomMap</code></dt>
+<dd>
+<p>This structure is an alias for <code>AtomRedBlackMap</code>.</p>
+</dd>
+</dl>
+</div>
+<div id="str:AtomBinaryMap" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> AtomBinaryMap</code></dt>
+<dd>
+<p>Maps over atoms implemented using balanced binary trees.
+Note that it is recommended that one use the <code>AtomMap</code> structure
+as it provides better performance.</p>
+</dd>
+</dl>
+</div>
+<div id="str:AtomRedBlackMap" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> AtomRedBlackMap</code></dt>
+<dd>
+<p>Maps over atoms implemented using red-black trees.</p>
+</dd>
+</dl>
+</div>
+<div id="str:IntBinaryMap" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> IntBinaryMap</code></dt>
+<dd>
+<p>Maps over ints implemented using balanced binary trees.
+Note that it is recommended that one use the <code>IntRedBlackMap</code> structure
+as it provides better performance.</p>
+</dd>
+</dl>
+</div>
+<div id="str:IntListMap" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> IntListMap</code></dt>
+<dd>
+<p>Maps over words implemented using sorted lists.  This implementation
+is fast for small sets, but does not scale well to large sizes.</p>
+</dd>
+</dl>
+</div>
+<div id="str:IntRedBlackMap" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> IntRedBlackMap</code></dt>
+<dd>
+<p>Maps over ints implemented using red-black binary trees.</p>
+</dd>
+</dl>
+</div>
+<div id="str:WordRedBlackMap" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> WordRedBlackMap</code></dt>
+<dd>
+<p>Maps over words implemented using red-black binary trees.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="fun-BinaryMapFn.html"><code>BinaryMapFn</code></a>,
+<a href="fun-ListMapFn.html"><code>ListMapFn</code></a>,
+<a href="sig-ORD_KEY.html"><code>ORD_KEY</code></a>,
+<a href="fun-RedBlackMapFn.html"><code>RedBlackMapFn</code></a>,
+<a href="fun-SplayMapFn.html"><code>SplayMapFn</code></a>,
+<a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The HashConsSet structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>HashConsSet</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-HashCons.html"><span class="toc-lib-page">The <code>HashCons</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsAtom.html"><span class="toc-lib-page">The <code>HashConsAtom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsMap.html"><span class="toc-lib-page">The <code>HashConsMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsString.html"><span class="toc-lib-page">The <code>HashConsString</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>HashConsSet</code> structure</span></li>
+      <li class="toc-page"><a href="fun-HashConsGroundFn.html"><span class="toc-lib-page">The <code>HashConsGroundFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>HashConsSet</code> structure implements finite sets of hash-consed objects.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">HASH_CONS_SET</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">HashConsSet</span> <span class="tok-p">:</span> <span class="tok-n">HASH_CONS_SET</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">obj</span> <span class="tok-p">=</span> <span class="tok-nd">&#39;a</span> <span class="tok-nn">HashCons</span><span class="tok-p">.</span><span class="tok-n">obj</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">empty</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">singleton</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">fromList</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">add</span>  <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">add&#39;</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">addList</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">subtract</span>  <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">subtract&#39;</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">subtractList</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">delete</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">member</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">isEmpty</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">equal</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">compare</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">isSubset</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">disjoint</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">numItems</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span>  <span class="tok-n">int</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">toList</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">list</span>
+<span class="tok-kr">val</span> <span class="tok-nv">listItems</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">union</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">intersection</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+<span class="tok-kr">val</span> <span class="tok-nv">difference</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">map</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mapPartial</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">option</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">app</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">foldl</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldr</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">partition</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span><span class="tok-p">)</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">filter</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">all</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">exists</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">find</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">set</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">option</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a obj = 'a HashCons.obj</code></dt>
+<dd>
+<p>The elements in the set are hash-cons objects.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a set</code></dt>
+<dd>
+<p>A finite set of <code>'a obj</code> values.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> empty : 'a set</code></dt>
+<dd>
+<p>The empty set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> singleton : 'a obj -&gt; 'a set</code></dt>
+<dd>
+<p><code>singleton obj</code> creates a singleton set containing <code>obj</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fromList : 'a obj list -&gt; 'a set</code></dt>
+<dd>
+<p><code>fromList objs</code> creates a set from the list of objects.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> add  : 'a set * 'a obj -&gt; 'a set</code></dt>
+<dd>
+<p><code>add (set, obj)</code> adds the object to the set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> add' : ('a obj * 'a set) -&gt; 'a set</code></dt>
+<dd>
+<p><code>add' (obj, set)</code> adds the object to the set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> addList : 'a set * 'a obj list -&gt; 'a set</code></dt>
+<dd>
+<p><code>addList (set, objs)</code> adds the list of objects to the set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> subtract  : 'a set * 'a obj -&gt; 'a set</code></dt>
+<dd>
+<p><code>subtract (set, obj)</code> removes the object <code>obj</code> from <code>set</code>.
+Acts as the identity if <code>obj</code> is not in the set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> subtract' : ('a obj * 'a set) -&gt; 'a set</code></dt>
+<dd>
+<p><code>subtract (obj, set)</code> removes the object <code>obj</code> from <code>set</code>.
+Acts as the identity if <code>obj</code> is not in the set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> delete : 'a set * 'a obj -&gt; 'a set</code></dt>
+<dd>
+<p><code>delete (set, obj)</code> removes the object <code>obj</code> from <code>set</code>.
+Unlike <code>subtract</code>, this function raises the
+<a href="../Util/str-LibBase.html#exn:NotFound"><code>NotFound</code></a>
+exception if <code>obj</code> is not in the set.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> member : 'a set * 'a obj -&gt; bool</code></dt>
+<dd>
+<p><code>member (obj, set)</code> returns <code>true</code> if, and only if, <code>obj</code>
+is an element of <code>set</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> isEmpty : 'a set -&gt; bool</code></dt>
+<dd>
+<p><code>isEmpty set</code> returns true if, and only if, <code>set</code> is empty.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> equal : ('a set * 'a set) -&gt; bool</code></dt>
+<dd>
+<p><code>equal (set1, set2)</code> returns true if, and only if, the two
+sets are equal (<em>i.e.</em>, they contain the same elements).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> compare : ('a set * 'a set) -&gt; order</code></dt>
+<dd>
+<p><code>compare (set1, set2)</code> returns the lexical order of
+the two sets.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> isSubset : ('a set * 'a set) -&gt; bool</code></dt>
+<dd>
+<p><code>isSubset (set1, set2)</code> returns true if, and only if, <code>set1</code>
+is a subset of <code>set2</code> (<em>i.e.</em>, any element of <code>set1</code> is an
+element of <code>set2</code>).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> disjoint : 'a set * 'a set -&gt; bool</code></dt>
+<dd>
+<p><code>equal (set1, set2)</code> returns true if, and only if, the two
+sets are disjoint (<em>i.e.</em>, their intersection is empty).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> numItems : 'a set -&gt;  int</code></dt>
+<dd>
+<p><code>numItems set</code> returns the number of items in the <code>set</code>.</p>
+</dd>
+</dl>
+</div>
+<div id="val:toList" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> toList : 'a set -&gt; 'a obj list</code></dt>
+<dd>
+<p><code>toList set</code> returns a list of the objects in <code>set</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> union : 'a set * 'a set -&gt; 'a set</code></dt>
+<dd>
+<p><code>union (set1, set2)</code> returns the union of the two sets.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> intersection : 'a set * 'a set -&gt; 'a set</code></dt>
+<dd>
+<p><code>intersection (set1, set2)</code> returns the intersection of the two sets.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> difference : 'a set * 'a set -&gt; 'a set</code></dt>
+<dd>
+<p><code>difference (set1, set2)</code> returns the difference of the two sets;
+<em>i.e.</em>, the set of objects that are in <code>set1</code>, but not in
+<code>set2</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> map : ('a obj -&gt; 'b obj) -&gt; 'a set -&gt; 'b set</code></dt>
+<dd>
+<p><code>map f set</code> constructs a new set from the result of applying the
+function <code>f</code> to the elements of <code>set</code>.  This expression is
+equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">fromList</span> <span class="tok-p">(</span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">map</span> <span class="tok-n">f</span> <span class="tok-p">(</span><span class="tok-n">toList</span> <span class="tok-n">set</span><span class="tok-p">))</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mapPartial : ('a obj -&gt; 'b obj option) -&gt; 'a set -&gt; 'b set</code></dt>
+<dd>
+<p><code>mapPartial f set</code> constructs a new set from the result of applying the
+function <code>f</code> to the elements of <code>set</code>.  This expression is
+equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">fromList</span> <span class="tok-p">(</span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">mapPartial</span> <span class="tok-n">f</span> <span class="tok-p">(</span><span class="tok-n">toList</span> <span class="tok-n">set</span><span class="tok-p">))</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> app : ('a obj -&gt; unit) -&gt; 'a set -&gt; unit</code></dt>
+<dd>
+<p><code>app f set</code> applies the function <code>f</code> to the objects in <code>set</code>.
+This expression is equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">app</span> <span class="tok-n">f</span> <span class="tok-p">(</span><span class="tok-n">toList</span> <span class="tok-n">set</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div id="val:fold" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> fold : ('a obj * 'b -&gt; 'b) -&gt; 'b -&gt; 'a set -&gt; 'b</code></dt>
+<dd>
+<p><code>fold f init set</code> folds the function <code>f</code> over the objects in
+<code>set</code> using <code>init</code> as the initial value.
+This expression is equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">foldl</span> <span class="tok-n">f</span> <span class="tok-n">init</span> <span class="tok-p">(</span><span class="tok-n">toList</span> <span class="tok-n">set</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Although the order in which the elements are processed is unspecified.</p>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> partition : ('a obj -&gt; bool) -&gt; 'a set -&gt; ('a set * 'a set)</code></dt>
+<dd>
+<p> <code>partition pred set</code> returns a pair of disjoint sets <code>(tSet, fSet)</code>, where
+ the predicate <code>pred</code> returns true for every element of <code>tSet</code>,
+<code>false</code> for every element of <code>fSet</code>, and <code>set</code> is the union of <code>tSet</code>
+ and <code>fSet</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> filter : ('a obj -&gt; bool) -&gt; 'a set -&gt; 'a set</code></dt>
+<dd>
+<p><code>filter pred set</code> filters out any elements of set for which the
+predicate <code>pred</code> returns false.
+This expression is equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nl">#1</span> <span class="tok-p">(</span><span class="tok-n">partition</span> <span class="tok-n">pred</span> <span class="tok-n">set</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> all : ('a obj -&gt; bool) -&gt; 'a set -&gt; bool</code></dt>
+<dd>
+<p><code>all pred set</code> returns <code>true</code> if, and only if, <code>pred obj</code> returns
+true for all elements <code>obj</code> in <code>set</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> exists : ('a obj -&gt; bool) -&gt; 'a set -&gt; bool</code></dt>
+<dd>
+<p><code>exists pred set</code> returns <code>true</code> if, and only if, there exists an
+element <code>obj</code> in <code>set</code> such that <code>pred obj</code> returns <code>true</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : ('a obj -&gt; bool) -&gt; 'a set -&gt; 'a obj option</code></dt>
+<dd>
+<p><code>find pred set</code> returns <code>SOME obj</code> if there exists an object <code>obj</code>
+in the set for which <code>pred obj</code> returns <code>true</code>; otherwise <code>NONE</code> is returned.</p>
+</dd>
+</dl>
+</div>
+<div class="sect2">
+<h3 id="_deprecated_functions">Deprecated functions</h3>
+<div class="paragraph">
+<p>The following functions are part of the interface, but have been
+deprecated.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> listItems : 'a set -&gt; 'a obj list</code></dt>
+<dd>
+<p>Use <a href="#val:toList"><code>toList</code></a> instead.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldl : ('a obj * 'b -&gt; 'b) -&gt; 'b -&gt; 'a set -&gt; 'b</code></dt>
+<dd>
+<p>Use <a href="#val:fold"><code>fold</code></a> instead.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldr : ('a obj * 'b -&gt; 'b) -&gt; 'b -&gt; 'a set -&gt; 'b</code></dt>
+<dd>
+<p>Use <a href="#val:fold"><code>fold</code></a> instead.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-HashCons.html"><code>HashCons</code></a>,
+<a href="str-HashConsMap.html"><code>HashConsMap</code></a>,
+<a href="hash-cons-lib.html"><em>The HashCons Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The JSONUtil structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>JSONUtil</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-JSON.html"><span class="toc-lib-page">The <code>JSON</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONParser.html"><span class="toc-lib-page">The <code>JSONParser</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONPrinter.html"><span class="toc-lib-page">The <code>JSONPrinter</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>JSONUtil</code> structure</span></li>
+      <li class="toc-page"><a href="str-JSONStreamParser.html"><span class="toc-lib-page">The <code>JSONStreamParser</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONStreamPrinter.html"><span class="toc-lib-page">The <code>JSONStreamPrinter</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>some overview</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">JSONUtil</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">exception</span> <span class="tok-nc">NotBool</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+<span class="tok-kr">exception</span> <span class="tok-nc">NotInt</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+<span class="tok-kr">exception</span> <span class="tok-nc">NotNumber</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+<span class="tok-kr">exception</span> <span class="tok-nc">NotString</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+
+<span class="tok-kr">exception</span> <span class="tok-nc">NotObject</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+
+<span class="tok-kr">exception</span> <span class="tok-nc">FieldNotFound</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">exception</span> <span class="tok-nc">NotArray</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+
+<span class="tok-kr">exception</span> <span class="tok-nc">ArrayBounds</span> <span class="tok-kr">of</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">int</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">exnMessage</span> <span class="tok-p">:</span> <span class="tok-n">exn</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">asBool</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">asInt</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">Int</span><span class="tok-p">.</span><span class="tok-n">int</span>
+<span class="tok-kr">val</span> <span class="tok-nv">asIntInf</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">IntInf</span><span class="tok-p">.</span><span class="tok-n">int</span>
+<span class="tok-kr">val</span> <span class="tok-nv">asNumber</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">Real</span><span class="tok-p">.</span><span class="tok-n">real</span>
+<span class="tok-kr">val</span> <span class="tok-nv">asString</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">findField</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">lookupField</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">asArray</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">vector</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">arrayMap</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">datatype</span> <span class="tok-kt">edge</span> <span class="tok-p">=</span> <span class="tok-nc">SUB</span> <span class="tok-kr">of</span> <span class="tok-n">int</span> <span class="tok-p">|</span> <span class="tok-nc">SEL</span> <span class="tok-kr">of</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">type</span> <span class="tok-kt">path</span> <span class="tok-p">=</span> <span class="tok-n">edge</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">get</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">path</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">replace</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">path</span> <span class="tok-n">*</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">insert</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">path</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">append</span> <span class="tok-p">:</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">*</span> <span class="tok-n">path</span> <span class="tok-n">*</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-nn">JSON</span><span class="tok-p">.</span><span class="tok-n">value</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">exception</span> NotBool <span class="kw">of</span> JSON.value</code></dt>
+<dd>
+<p><a id="exn:NotBool"></a>
+raised by the <a href="#val:asBool"><code>asBool</code></a> function when the argument
+is not a <strong>JSON</strong> boolean.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> NotInt <span class="kw">of</span> JSON.value</code></dt>
+<dd>
+<p><a id="exn:NotInt"></a>
+raised by the <a href="#val:asInt"><code>asInt</code></a> and <a href="#val:asIntInf"><code>asIntInf</code></a>
+functions when the argument is not a <strong>JSON</strong> integer number.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> NotNumber <span class="kw">of</span> JSON.value</code></dt>
+<dd>
+<p><a id="exn:NotNumber"></a>
+raised by the <a href="#val:asNumber"><code>asNumber</code></a> function when the argument
+is not a <strong>JSON</strong> number.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> NotString <span class="kw">of</span> JSON.value</code></dt>
+<dd>
+<p><a id="exn:NotString"></a>
+raised by the <a href="#val:asString"><code>asString</code></a> function when the argument
+is not a <strong>JSON</strong> string.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> NotObject <span class="kw">of</span> JSON.value</code></dt>
+<dd>
+<p><a id="exn:NotObject"></a>
+raised by the <a href="#val:findField"><code>findField</code></a> and
+<a href="#val:lookupField"><code>lookupField</code></a> functions when the
+argument is not a <strong>JSON</strong> object.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> FieldNotFound <span class="kw">of</span> JSON.value * string</code></dt>
+<dd>
+<p><a id="exn:FieldNotFound"></a>
+This exception is raised when the given field is not found in an object.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> NotArray <span class="kw">of</span> JSON.value</code></dt>
+<dd>
+<p><a id="exn:NotArray"></a>
+This exception is raised when trying to process a non-array value as an array.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> ArrayBounds <span class="kw">of</span> JSON.value * int</code></dt>
+<dd>
+<p><a id="exn:ArrayBounds"></a>
+This exception is raised when access to an array value is out of bounds.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> exnMessage : exn -&gt; string</code></dt>
+<dd>
+<p><code>exnMessage exn</code> returns an error-message string for the exception value
+<code>exn</code>.  This function produces specialized messages for the exceptions defined
+in the <code>JSONUtil</code> structure and falls back to the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.exnMessage:VAL">General.exnMessage</a>
+function for other exceptions.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> asBool : JSON.value -&gt; bool</code></dt>
+<dd>
+<p><a id="val:asBool"></a>
+<code>asBool (JSON.BOOL b)</code> returns the value <code>b</code>.  This function raises
+the <a href="#exn:NotBool"><code>NotBool</code></a> exception if the value is not a
+<strong>JSON</strong> boolean value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> asInt : JSON.value -&gt; int</code></dt>
+<dd>
+<p><a id="val:asInt"></a>
+<code>asInt (JSON.INT n)</code> returns the value <code>n</code> converted to <code>int</code>.
+This function raises the <a href="#exn:NotInt"><code>NotInt</code></a> exception if the
+value is not a <strong>JSON</strong> integer value.  It may also raise the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Overflow:EXN"><code>Overflow</code></a>
+exception if <code>n</code> is too large for the default <code>int</code> type.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> asIntInf : JSON.value -&gt; IntInf.int</code></dt>
+<dd>
+<p><a id="val:asIntInf"></a>
+<code>asIntInf (JSON.INT n)</code> returns the value <code>n</code>.
+This function raises the <a href="#exn:NotInt"><code>NotInt</code></a> exception if the
+value is not a <strong>JSON</strong> integer value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> asNumber : JSON.value -&gt; Real.real</code></dt>
+<dd>
+<p><a id="val:asNumber"></a>
+<code>asNumber jv</code> converts the <strong>JSON</strong> number <code>jv</code> to an SML <code>real</code> value.
+The <code>jv</code> argument can either have the form <code>JSON.INT n</code>, in which case
+<code>n</code> is converted to the <code>real</code> type and returned, or <code>JSON.FLOAT f</code>,
+in which case <code>f</code> is returned; otherwise, the
+<a href="#exn:NotNumber"><code>NotNumber</code></a> exception is raised.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> asString : JSON.value -&gt; string</code></dt>
+<dd>
+<p><a id="val:asString"></a>
+<code>asBool (JSON.STRING s)</code> returns the value <code>s</code>.  This function raises
+the <a href="#exn:NotString"><code>NotString</code></a> exception if the value is not a
+<strong>JSON</strong> string value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> findField : JSON.value -&gt; string -&gt; JSON.value option</code></dt>
+<dd>
+<p><a id="val:findField"></a>
+<code>findField (JSON.OBJECT flds) key</code> returns <code>SOME jv</code> when the
+list of fields <code>flds</code> contains <code>(key, jv)</code> and <code>NONE</code> otherwise.
+If <code>findField</code> is called on a value that is not a <strong>JSON</strong> object,
+then it raises the <a href="#exn:NotObject"><code>NotObject</code></a> exception.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> lookupField : JSON.value -&gt; string -&gt; JSON.value</code></dt>
+<dd>
+<p><a id="val:lookupField"></a>
+<code>lookupField (JSON.OBJECT flds) key</code> returns <code>jv</code> when the
+list of fields <code>flds</code> contains <code>(key, jv)</code> and raises the
+<a href="#exn:FieldNotFound"><code>FieldNotFound</code></a> exception otherwise.
+If <code>lookupField</code> is called on a value that is not a <strong>JSON</strong> object,
+then it raises the <a href="#exn:NotObject"><code>NotObject</code></a> exception.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> asArray : JSON.value -&gt; JSON.value vector</code></dt>
+<dd>
+<p><a id="val:asArray"></a>
+<code>asArray jv</code> converts the <strong>JSON</strong> array value <code>jv</code> to an <strong>SML</strong>
+vector value.  It raises the <a href="#exn:NotArray"><code>NotArray</code></a> exception
+when <code>jv</code> is not a <strong>JSON</strong> array.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> arrayMap : (JSON.value -&gt; 'a) -&gt; JSON.value -&gt; 'a list</code></dt>
+<dd>
+<p><a id="val:arrayMap"></a>
+map a conversion function over a JSON array to produce a list; this function
+raises the <a href="#exn:NotArray"><code>NotArray</code></a> exception if the second argument
+is not an array.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">datatype</span> edge = &#8230;&#8203;</code></dt>
+<dd>
+<p>specifies an edge of a path into a <strong>JSON</strong> value.
+The constructors have the following meaning:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>SUB <span class="kw">of</span> int</code></dt>
+<dd>
+<p><code>SUB i</code> specifies the <code>i</code>th element of a <strong>JSON</strong> array.</p>
+</dd>
+<dt class="hdlist1"><code>SEL <span class="kw">of</span> string</code></dt>
+<dd>
+<p><code>SEL key</code> specifies the value labeled by <code>key</code> in a <strong>JSON</strong> object.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> path = edge list</code></dt>
+<dd>
+<p>specifies a path into a <strong>JSON</strong> value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> get : JSON.value * path -&gt; JSON.value</code></dt>
+<dd>
+<p><a id="val:get"></a>
+<code>get (jv, path)</code> returns the component of <code>jv</code> named by <code>path</code>.  It raises
+one of the <a href="#exn:NotObject"><code>NotObject</code></a>, <a href="#exn:NotArray"><code>NotArray</code></a>,
+or <a href="#exn:FieldNotFound"><code>FieldNotFound</code></a> exceptions if there is an
+inconsistency between the path and the structure of <code>jv</code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-JSON.html"><code>JSON</code></a>,
+<a href="json-lib.html"><em>The JSON Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The DynamicArray structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>DynamicArray</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>DynamicArray</code> structure</span></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>DynamicArray</code> structure provides dynamically sized polymorphic
+arrays.  Each array has an associated <em>default</em> value, which is
+covers those elements that have not been explicitly initialized
+(conceptually, one can view an array as having an infinite size).
+Thus, reads from indices above the bound will return the default value.
+The <em>bound</em> of an array is the highest index of an initialized
+element (or <code>~1</code> if there are no initialized elements).  The
+<em>defined range</em> of the array are the elements in the positions
+indexed from zero to the bound.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">DynamicArray</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">array</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">subArray</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">fromList</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">list</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span>
+<span class="tok-kr">val</span> <span class="tok-nv">fromVector</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">vector</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">toList</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">list</span>
+<span class="tok-kr">val</span> <span class="tok-nv">toVector</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">vector</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">tabulate</span><span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">default</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">sub</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">update</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">bound</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">int</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">truncate</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">appi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">app</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">modifyi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">modify</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldli</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldri</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldl</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldr</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">findi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">option</span>
+<span class="tok-kr">val</span> <span class="tok-nv">find</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">option</span>
+<span class="tok-kr">val</span> <span class="tok-nv">exists</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">all</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">collate</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">vector</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">vector</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a array</code></dt>
+<dd>
+<p>The polymorphic type of dynamic arrays.  Each array has a <em>default value</em>
+and a <em>bound</em>, where the <em>bound</em> is the largest index for which an explicit
+value has been set.  Reads from indices above the bound will return the
+default value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> array : (int * 'a) -&gt; 'a array</code></dt>
+<dd>
+<p><code>array (sz, dflt)</code> returns a new array with bound <code>~1</code> and default
+value <code>dflt</code>.  The <code>sz</code> argument, which must be non-negative, is used
+as a hint of the potential range of indices.  This function raises
+the <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>sz &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> subArray : ('a array * int * int) -&gt; 'a array</code></dt>
+<dd>
+<p><code>subArray (arr, lo, hi)</code> returns a new array with the same default
+as <code>arr</code>, and whose values in the range <code>[0, hi-lo]</code> are equal to
+the values in <code>arr</code> in the range <code>[lo, hi]</code>.  This function raises
+the <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>lo &gt; hi</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fromList : 'a list * 'a -&gt; 'a array</code></dt>
+<dd>
+<p><code>fromList (lst, dflt)</code> returns a new array created from the elements
+of <code>lst</code> and with default value <code>dflt</code>.  The bound of the array will be
+<code>length lst - 1</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fromVector : 'a Vector.vector * 'a -&gt; 'a array</code></dt>
+<dd>
+<p><code>fromVector (vec, dflt)</code> returns a new array created from the elements
+of <code>vec</code> and with default value <code>dflt</code>.  The bound of the array will be
+<code>length vec - 1</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> toList : 'a array -&gt; 'a list</code></dt>
+<dd>
+<p><code>toList arr</code> returns a list of the array&#8217;s contents.  The resulting
+list will have the array&#8217;s bound plus one elements.</p>
+</dd>
+</dl>
+</div>
+<div id="val:toVector" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> toVector : 'a array -&gt; 'a vector</code></dt>
+<dd>
+<p><code>toVector arr</code> returns a list of the array&#8217;s contents.  The resulting
+vector will have the array&#8217;s bound plus one elements.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> tabulate: (int * (int -&gt; 'a) * 'a) -&gt; 'a array</code></dt>
+<dd>
+<p><code>tabulate (sz, init, dflt)</code> returns a new array with the first
+<code>sz</code> elements initialized using the function <code>init</code> and the
+default value <code>dflt</code>.  This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>sz &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> default : 'a array -&gt; 'a</code></dt>
+<dd>
+<p><code>default arr</code> returns the default value for the array.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> sub : ('a array * int) -&gt; 'a</code></dt>
+<dd>
+<p><code>sub (arr, ix)</code> returns the value of the array at index <code>ix</code>.
+If that value has not been explicitly set, then it returns the array&#8217;s
+default value.  This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Subscript:EXN:SPEC"><code>Subscript</code></a>
+exception if <code>ix &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> update : ('a array * int * 'a) -&gt; unit</code></dt>
+<dd>
+<p><code>update (arr, ix, v)</code> sets the value at index <code>ix</code> of the array to <code>v</code>.
+If <code>ix</code> is greater than the current bound of the array, then the bound
+is set to <code>ix</code>.  This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Subscript:EXN:SPEC"><code>Subscript</code></a>
+exception if <code>ix &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> bound : 'a array -&gt; int</code></dt>
+<dd>
+<p><code>bound arr</code> returns the current bound of the array, which is the highest
+index that has been explicitly set (<em>e.g.</em>, by <code>update</code>).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> truncate : ('a array * int) -&gt; unit</code></dt>
+<dd>
+<p><code>truncate (arr, sz)</code> sets every entry with index greater or equal to
+<code>sz</code> to the array&#8217;s default value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> appi : (int * 'a -&gt; unit) -&gt; 'a array -&gt; unit</code></dt>
+<dd>
+<p><code>appi f arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.appi:VAL"><code>Array.appi</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> app : ('a -&gt; unit) -&gt; 'a array -&gt; unit</code></dt>
+<dd>
+<p><code>app f arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.app:VAL"><code>Array.app</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> modifyi : (int * 'a -&gt; 'a) -&gt; 'a array -&gt; unit</code></dt>
+<dd>
+<p><code>modifyi f arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.modifyi:VAL"><code>Array.modifyi</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> modify : ('a -&gt; 'a) -&gt; 'a array -&gt; unit</code></dt>
+<dd>
+<p><code>modify f arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.modify:VAL"><code>Array.modify</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldli : (int * 'a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a array -&gt; 'b</code></dt>
+<dd>
+<p><code>foldli f init arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.foldli:VAL"><code>Array.foldli</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldri : (int * 'a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a array -&gt; 'b</code></dt>
+<dd>
+<p><code>foldri f init arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.foldri:VAL"><code>Array.foldri</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldl : ('a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a array -&gt; 'b</code></dt>
+<dd>
+<p><code>foldl f init arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.foldl:VAL"><code>Array.foldl</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldr : ('a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a array -&gt; 'b</code></dt>
+<dd>
+<p><code>foldr f init arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.foldr:VAL"><code>Array.foldr</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> findi : (int * 'a -&gt; bool) -&gt; 'a array -&gt; (int * 'a) option</code></dt>
+<dd>
+<p><code>findi f arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.findi:VAL"><code>Array.findi</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : ('a -&gt; bool) -&gt; 'a array -&gt; 'a option</code></dt>
+<dd>
+<p><code>find f arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.find:VAL"><code>Array.find</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> exists : ('a -&gt; bool) -&gt; 'a array -&gt; bool</code></dt>
+<dd>
+<p><code>exists f arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.exists:VAL"><code>Array.exists</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> all : ('a -&gt; bool) -&gt; 'a array -&gt; bool</code></dt>
+<dd>
+<p><code>all f arr</code> behaves like the
+<a href="https://standardml.org/Basis/mono-array.html#SIG:ARRAY.all:VAL"><code>Array.all</code></a>
+function on the defined range of <code>arr</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> collate : ('a * 'a -&gt; order) -&gt; 'a array * 'a array -&gt; order</code></dt>
+<dd>
+<p><code>collate cmp (arr1, arr2)</code> return the lexicographic order of the defined
+ranges of the two arrays using the given comparison <code>cmp</code> on elements.</p>
+</dd>
+</dl>
+</div>
+<div class="sect2">
+<h3 id="_deprecated_functions">Deprecated functions</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> vector : 'a array -&gt; 'a vector</code></dt>
+<dd>
+<p>Use <a href="#val:toVector"><code>toVector</code></a> instead.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="fun-DynamicArrayFn.html"><code>DynamicArrayFn</code></a>,
+<a href="https://standardml.org/Basis/array.html"><code>Array</code></a>,
+<a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

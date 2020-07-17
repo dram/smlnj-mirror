@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The ControlRegistry structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>ControlRegistry</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-Controls.html"><span class="toc-lib-page">The <code>Controls</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ControlSet.html"><span class="toc-lib-page">The <code>ControlSet</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>ControlRegistry</code> structure</span></li>
+      <li class="toc-page"><a href="str-ControlUtil.html"><span class="toc-lib-page">The <code>ControlUtil</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ControlRegistry</code> structure provides infrastructure for defining
+a hierarchical registry of controls.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-sml" data-lang="sml">signature CONTROL_REGISTRY
+structure ControlRegistry : CONTROL_REGISTRY</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-sml" data-lang="sml">type registry
+
+type control_info = { envName : string option }
+
+val new : {help : string} -&gt; registry
+
+val register : registry -&gt; {
+        ctl : string Controls.control,
+        envName : string option
+      } -&gt; unit
+
+val registerSet : registry -&gt; {
+        ctls : (string, 'a) ControlSet.control_set,
+        mkEnvName : string -&gt; string option
+      } -&gt; unit
+
+val nest : registry -&gt; {
+        prefix : string option,
+        pri : Controls.priority,
+        obscurity : int,
+        reg : registry
+      } -&gt; unit
+
+val control : registry -&gt; string list -&gt; string Controls.control option
+
+val init : registry -&gt; unit
+
+datatype registry_tree = RTree of {
+    path : string list,
+    help : string,
+    ctls : { ctl : string Controls.control, info : control_info } list,
+    subregs : registry_tree list
+  }
+
+val controls : (registry * int option) -&gt; registry_tree</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> registry</code></dt>
+<dd>
+<p>the type of a control registry hierarchy.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> control_info = { envName : string option }</code></dt>
+<dd>
+<p>a record of information about a control.  Currently, this record type
+only contains an optional environment-variable name for the control.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> new : {help : string} -&gt; registry</code></dt>
+<dd>
+<p><code>new {help}</code> creates a new registry, where the <code>help</code> string
+describes the registry.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> register : registry -&gt; {ctl, envName} -&gt; unit</code></dt>
+<dd>
+<p><code>register {ctl, envName}</code> adds the control <code>ctl</code> to the registry <code>reg</code>.
+The optional string <code>envName</code> specifies the name of the environment
+variable that can be used to specify the value of the control.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> registerSet : registry -&gt; {ctls, mkEnvName} -&gt; unit</code></dt>
+<dd>
+<p><code>registerSet {ctls, mkEnvName}</code> registers the controls in the
+<a href="str-ControlSet.html#type:control_set">control set</a> <code>ctls</code>.
+The function <code>mkEnvName</code> is applied to the names of the controls
+to generate the optional environment-variable names.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> nest : registry -&gt; {prefix, pri, obscurity, reg} -&gt; unit</code></dt>
+<dd>
+<p><code>nest parent {prefix, pri, obscurity, reg}</code> adds the registry <code>reg</code> as
+a child of the registry <code>parent</code>.  The fields of the second argument
+have the following meaning:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>prefix : string option</code></dt>
+<dd>
+<p>       The prefix (or name) that qualifies the child registry
+(see the <a href="#val:control">control</a> function).</p>
+</dd>
+<dt class="hdlist1"><code>pri : Controls.priority</code></dt>
+<dd>
+<p>       The registry&#8217;s priority; used when ordering the elements in a
+registry.</p>
+</dd>
+<dt class="hdlist1"><code>obscurity : int</code></dt>
+<dd>
+<p>The <em>obscurity</em> level of the registrion (higher means more obscure).</p>
+</dd>
+<dt class="hdlist1"><code>reg : registry</code></dt>
+<dd>
+<p>The child registry being added to <code>parent</code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div id="val:control" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> control : registry -&gt; string list -&gt; string Controls.control option</code></dt>
+<dd>
+<p><code>control reg path</code> searches the registry for a control with the given <code>path</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> init : registry -&gt; unit</code></dt>
+<dd>
+<p><code>init reg</code> uses the host process&#8217;s environment (as accessed by the
+<a href="https://standardml.org/Basis/os-process.html#SIG:OS_PROCESS.getEnv:VAL"><code>OS.Process.getEnv</code></a>
+function) to initialize those controls that have associated environment-variables.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">datatype</span> registry_tree = RTree of { &#8230;&#8203; }</code></dt>
+<dd>
+<p>The <code>registry_tree</code> datatype provides a concrete representation of the
+registry hierarchy.</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>path : string list</code></dt>
+<dd>
+<p>is the full path to the node in the tree.</p>
+</dd>
+<dt class="hdlist1"><code>help : string</code></dt>
+<dd>
+<p>is the description of the node in the tree.</p>
+</dd>
+<dt class="hdlist1"><code>ctls : { ctl : string Controls.control, info : control_info } list</code></dt>
+<dd>
+<p>       is a priority-ordered list of the controls at the node
+in the tree.</p>
+</dd>
+<dt class="hdlist1"><code>subregs : registry_tree list</code></dt>
+<dd>
+<p>       is a priority-ordered list of the sub-registries at the node
+in the tree.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> controls : (registry * int option) -&gt; registry_tree</code></dt>
+<dd>
+<p><code>controls (reg, optLevel)</code> returns the <code>registry_tree</code> representation
+of the registry <code>reg</code>.  If <code>optLevel</code> is <code>SOME n</code>, then sub-registries
+that have an obscurity level greater or equal to <code>n</code> are omitted
+from the result.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-Controls.html"><code>Controls</code></a>,
+<a href="str-ControlSet.html"><code>ControlSet</code></a>,
+<a href="controls-lib.html"><em>The Controls Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

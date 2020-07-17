@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The MatchTree structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>MatchTree</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="tutorial.html"><span class="toc-lib-page">Using the RegExp Library</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_PARSER.html"><span class="toc-lib-page">The <code>REGEXP_PARSER</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_ENGINE.html"><span class="toc-lib-page">The <code>REGEXP_ENGINE</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-RegExpSyntax.html"><span class="toc-lib-page">The <code>RegExpSyntax</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>MatchTree</code> structure</span></li>
+      <li class="toc-page"><a href="str-AwkSyntax.html"><span class="toc-lib-page">The <code>AwkSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RegExpFn.html"><span class="toc-lib-page">The <code>RegExpFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>MatchTree</code> structure provides a tree-structured representation
+of the result of a successful regular expression match.  The tree structure
+corresponds to the nesting of <a href="str-RegExpSyntax.html#con:Group">groups</a>
+in the regular expression.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">MATCH_TREE</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">MatchTree</span> <span class="tok-p">:</span> <span class="tok-n">MATCH_TREE</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">datatype</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">match_tree</span> <span class="tok-p">=</span> <span class="tok-nc">Match</span> <span class="tok-kr">of</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">root</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+<span class="tok-kr">val</span> <span class="tok-nv">nth</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-cm">(* raises Subscript *)</span>
+<span class="tok-kr">val</span> <span class="tok-nv">map</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">match_tree</span>
+<span class="tok-kr">val</span> <span class="tok-nv">app</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldl</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldr</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+<span class="tok-kr">val</span> <span class="tok-nv">find</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">option</span>
+<span class="tok-kr">val</span> <span class="tok-nv">num</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">match_tree</span> <span class="tok-p">-&gt;</span> <span class="tok-n">int</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div id="type:match_tree" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">datatype</span> 'a match_tree = Match of 'a * 'a match_tree list</code></dt>
+<dd>
+<p>The representation of the results of a nested grouping of regular expressions.
+The type variable <code>'a</code> is typically instantiated to information about the
+particular range of the source that the node covers.  For example,
+it might be the pair of the start position and length of the match.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> root : 'a match_tree -&gt; 'a</code></dt>
+<dd>
+<p><code>root mt</code> returns the information about the root (outermost) match in the tree.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> nth : ('a match_tree * int) -&gt; 'a (* raises Subscript *)</code></dt>
+<dd>
+<p><code>nth (mt, i)</code> returns the information about the <code>i</code>'th match in the tree,
+where matches are labeled in <em>pre-order</em> starting with <code>0</code> for the root.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Subscript:EXN"><code>Subscript</code></a> exception
+if <code>i &lt; 0</code> or there are fewer than <code>i-1</code> nodes in the tree.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> map : ('a -&gt; 'b) -&gt; 'a match_tree -&gt; 'b match_tree</code></dt>
+<dd>
+<p><code>map f mt</code> returns the result of mapping the function <code>f</code> over <code>mt</code>.
+For example, this function can be used to convert a match-tree of
+position information to a tree of strings.  The function is applied
+to the tree in pre-order.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> app : ('a -&gt; unit) -&gt; 'a match_tree -&gt; unit</code></dt>
+<dd>
+<p><code>app f mt</code> applies the given function to the nodes in the tree
+in pre-order.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldl : ('a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a match_tree -&gt; 'b</code></dt>
+<dd>
+<p><code>foldl f init mt</code> folds the function <code>f</code> over <code>mt</code> in left-to-right pre-order
+using <code>init</code> as the initial value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldr : ('a * 'b -&gt; 'b) -&gt; 'b -&gt; 'a match_tree -&gt; 'b</code></dt>
+<dd>
+<p><code>foldr f init mt</code> folds the function <code>f</code> over <code>mt</code> in right-to-left post-order
+using <code>init</code> as the initial value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : ('a -&gt; bool) -&gt; 'a match_tree -&gt; 'a option</code></dt>
+<dd>
+<p><code>find pred mt</code> returns <code>SOME info</code> where <code>info</code> is the first
+information that satisfies <code>pred</code> in a pre-order traversal of
+the tree.  It returns <code>NONE</code> if there is no match information
+that satisfies <code>pred</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> num : 'a match_tree -&gt; int</code></dt>
+<dd>
+<p><code>num mt</code> returns the number of <strong>sub-matches</strong> in the tree; <em>i.e.</em>, the number
+of nodes not counting the root.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="fun-RegExpFn.html"><code>RegExpFn</code></a>,
+<a href="regexp-lib.html"><em>The RegExp Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

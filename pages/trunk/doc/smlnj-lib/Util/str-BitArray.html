@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The BitArray structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>BitArray</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>BitArray</code> structure</span></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>BitArray</code> structure provides a implementation of
+monomorphic arrays of booleans implemented one bit per
+element.  The <code>BitArray</code> structure extends the
+<a href="https://standardml.org/Basis/mono-array.html"><code>MONO_ARRAY</code></a> signature
+with bit-level operations.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">BIT_ARRAY</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">BitArray</span> <span class="tok-p">:&gt;</span> <span class="tok-n">BIT_ARRAY</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">include</span> <span class="tok-nn">MONO_ARRAY</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">fromString</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">bits</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-n">int</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">getBits</span> <span class="tok-p">:</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">int</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">toString</span> <span class="tok-p">:</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">isZero</span>  <span class="tok-p">:</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">extend0</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+<span class="tok-kr">val</span> <span class="tok-nv">extend1</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">eqBits</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">array</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">equal</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">array</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">andb</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+<span class="tok-kr">val</span> <span class="tok-nv">orb</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+<span class="tok-kr">val</span> <span class="tok-nv">xorb</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">notb</span>  <span class="tok-p">:</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">&lt;&lt;</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">word</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+<span class="tok-kr">val</span> <span class="tok-nv">&gt;&gt;</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">word</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">setBit</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">clrBit</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">union</span> <span class="tok-p">:</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">intersection</span> <span class="tok-p">:</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">complement</span> <span class="tok-p">:</span> <span class="tok-n">array</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">lshift</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span>
+<span class="tok-kr">val</span> <span class="tok-nv">rshift</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">array</span> <span class="tok-n">*</span> <span class="tok-n">int</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">array</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">include</span> <a href="https://standardml.org/Basis/mono-array.html">MONO_ARRAY</a></code></dt>
+<dd>
+<p>The <code>BIT_ARRAY</code> signature extends the
+<a href="https://standardml.org/Basis/mono-array.html"><code>MONO_ARRAY</code></a> signature from
+the <strong>Standard ML Basis Library</strong>.  Note that while the
+<code>MONO_ARRAY</code> signature includes a corresponding monomorphic
+<code>vector</code> type, there is currently no implementation of a
+corresponding <code>BitVector</code> structure.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fromString : string -&gt; array option</code></dt>
+<dd>
+<p><code>fromString s</code> returns <code>SOME ba</code> when the string <code>s</code> is
+a sequence of hexadecimal digits.  The length of <code>ba</code> will
+be <code>4*(length s)</code>.  Returns <code>NONE</code> of a non-hexadecimal
+character is encountered.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> bits : (int * int list) -&gt; array</code></dt>
+<dd>
+<p><code>bits (n, ixs)</code> returns a new array <code>ba</code> of length <code>n</code>, where
+<code>ba[ix]</code> is <code>true</code> for each <code>ix</code> in the list of indices <code>ixs</code>.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>n &lt; 0</code> and the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Subscript:EXN:SPEC"><code>Subscript</code></a>
+exception if any index is out of bounds.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> getBits : array -&gt; int list</code></dt>
+<dd>
+<p><code>getBits ba</code> returns a list of indices <code>ix</code> for which <code>ba[ix]</code> is true
+in increasing order.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> toString : array -&gt; string</code></dt>
+<dd>
+<p><code>toString ba</code> returns a string representation of the array as a sequence
+of hexadecimal digits in little-endian order (<em>i.e.</em>, ba[0] is represented
+as the high-order bit in the first digit).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> isZero  : array -&gt; bool</code></dt>
+<dd>
+<p><code>isZero ba</code> returns true if, and only if, no elements are <code>true</code> in <code>ba</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> extend0 : (array * int) -&gt; array</code></dt>
+<dd>
+<p><code>extend0 (ba, n)</code> returns a new array <code>ba'</code> that is <code>max(n, length ba)</code>
+elements long, where the <code>length ba</code> elements of <code>ba'</code> are copied from
+<code>ba</code> and the remaining elements are <code>false</code>.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>n &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> extend1 : (array * int) -&gt; array</code></dt>
+<dd>
+<p><code>extend1 (ba, n)</code> returns a new array <code>ba'</code> that is <code>max(n, length ba)</code>
+elements long, where the <code>length ba</code> elements of <code>ba'</code> are copied from
+<code>ba</code> and the remaining elements are <code>true</code>.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>n &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> eqBits : (array * array) -&gt; bool</code></dt>
+<dd>
+<p><code>eqBits (ba1, ba2)</code> returns true if the two arrays have
+the same <code>true</code> entries.   In other words, the following identity
+holds</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">eqBits</span><span class="tok-p">(</span><span class="tok-n">ba1</span><span class="tok-p">,</span> <span class="tok-n">ba2</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-p">(</span><span class="tok-n">getBits</span> <span class="tok-n">ba1</span> <span class="tok-p">=</span> <span class="tok-n">getBits</span> <span class="tok-n">ba2</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> equal : (array * array) -&gt; bool</code></dt>
+<dd>
+<p><code>equal (ba1, ba2)</code> returns true if the two arrays are the same length
+and have the same elements.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> andb : (array * array * int) -&gt; array</code></dt>
+<dd>
+<p><code>andb (ba1, ba2, n)</code> returns a new array <code>ba</code> of length <code>n</code>,
+where the element <code>ba[ix]</code> is the logical <strong>AND</strong> of <code>ba1[ix]</code>
+and <code>ba2[ix]</code>, where the inputs are extended with <code>false</code> as
+necessary.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>n &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> orb  : (array * array * int) -&gt; array</code></dt>
+<dd>
+<p><code>orb (ba1, ba2, n)</code> returns a new array <code>ba</code> of length <code>n</code>,
+where the element <code>ba[ix]</code> is the logical <strong>OR</strong> of <code>ba1[ix]</code>
+and <code>ba2[ix]</code>, where the inputs are extended with <code>false</code> as
+necessary.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>n &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> xorb : (array * array * int) -&gt; array</code></dt>
+<dd>
+<p><code>xorb (ba1, ba2, n)</code> returns a new array <code>ba</code> of length <code>n</code>,
+where the element <code>ba[ix]</code> is the logical <strong>XOR</strong> of <code>ba1[ix]</code>
+and <code>ba2[ix]</code>, where the inputs are extended with <code>false</code> as
+necessary.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Size:EXN:SPEC"><code>Size</code></a>
+exception if <code>n &lt; 0</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> notb  : array -&gt; array</code></dt>
+<dd>
+<p><code>notb ba</code> returns a new array of the same length as <code>ba</code> with
+the elements negated.</p>
+</dd>
+</dl>
+</div>
+<div id="val:_lt_lt_" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> &lt;&lt;  : (array * word) -&gt; array</code></dt>
+<dd>
+<p><code>&lt;&lt; (ba, n)`returns a new array by appending `n</code> <code>false</code>
+elements on the end of <code>ba</code>.  The new array will have
+length equal to <code>n + length ba</code>.</p>
+</dd>
+</dl>
+</div>
+<div id="val:_gt_gt_" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> &gt;&gt;  : (array * word) -&gt; array</code></dt>
+<dd>
+<p><code>&gt;&gt; (ba, n)`returns a new array by trimming `n</code> elements
+from the "right" of <code>ba</code>.  The new array will have
+<code>max(0, length ba - n)</code> elements.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> setBit : (array * int) -&gt; unit</code></dt>
+<dd>
+<p><code>setBit (ba, ix)</code> sets the element of <code>ba</code> at index <code>ix</code> to <code>true</code>.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Subscript:EXN:SPEC"><code>Subscript</code></a>
+exception if <code>ix</code> is out of bounds.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> clrBit : (array * int) -&gt; unit</code></dt>
+<dd>
+<p><code>setBit (ba, ix)</code> sets the element of <code>ba</code> at index <code>ix</code> to <code>false</code>.
+This function raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Subscript:EXN:SPEC"><code>Subscript</code></a>
+exception if <code>ix</code> is out of bounds.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> union : array -&gt; array -&gt; unit</code></dt>
+<dd>
+<p><code>union ba1 ba2</code> updates <code>ba1</code> by setting each element <code>ba1[ix]</code> to
+the logical <strong>OR</strong> of <code>ba1[ix]</code> and <code>ba2[ix]</code>, where <code>ba2[ix]</code> is
+extended with <code>false</code> elements as necessary to match the length of <code>ba1</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> intersection : array -&gt; array -&gt; unit</code></dt>
+<dd>
+<p><code>intersection ba1 ba2</code> updates <code>ba1</code> by setting each element <code>ba1[ix]</code> to
+the logical <strong>AND</strong> of <code>ba1[ix]</code> and <code>ba2[ix]</code>, where <code>ba2[ix]</code> is
+extended with <code>false</code> elements as necessary to match the length of <code>ba1</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> complement : array -&gt; unit</code></dt>
+<dd>
+<p><code>complement ba</code> logically negates all of the elements of <code>ba</code>.</p>
+</dd>
+</dl>
+</div>
+<div class="sect2">
+<h3 id="_deprecated_functions">Deprecated Functions</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> lshift  : (array * int) -&gt; array</code></dt>
+<dd>
+<p>Use <a href="#val:_lt_lt_"><code>&lt;&lt;</code></a> instead.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> rshift  : (array * int) -&gt; array</code></dt>
+<dd>
+<p>Use <a href="#val:_gt_gt_"><code>&gt;&gt;</code></a> instead.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://standardml.org/Basis/mono-array.html"><code>MONO_ARRAY</code></a>,
+<a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

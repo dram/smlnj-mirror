@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The UnixPath structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>UnixPath</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-UnixEnv.html"><span class="toc-lib-page">The <code>UnixEnv</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>UnixPath</code> structure</span></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>UnixPath</code> structure provides support for searching for files
+in the <strong>Unix</strong> file system using a list of possible locations.</p>
+</div>
+<div class="paragraph">
+<p>Note that this module is largely superseded by the
+<a href="../Util/str-PathUtil.html"><code>PathUtil</code></a> module
+in the <a href="../Util/smlnj-lib.html"><strong>Util Library</strong></a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">UNIX_PATH</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">UnixPath</span> <span class="tok-p">:</span> <span class="tok-n">UNIX_PATH</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">path_list</span> <span class="tok-p">=</span> <span class="tok-n">string</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">getPath</span> <span class="tok-p">:</span> <span class="tok-n">unit</span> <span class="tok-p">-&gt;</span> <span class="tok-n">path_list</span>
+
+<span class="tok-kr">datatype</span> <span class="tok-kt">access_mode</span> <span class="tok-p">=</span> <span class="tok-kr">datatype</span> <span class="tok-nn">OS</span><span class="tok-p">.</span><span class="tok-nn">FileSys</span><span class="tok-p">.</span><span class="tok-n">access_mode</span>
+<span class="tok-kr">datatype</span> <span class="tok-kt">file_type</span> <span class="tok-p">=</span> <span class="tok-nc">F_REGULAR</span> <span class="tok-p">|</span> <span class="tok-nc">F_DIR</span> <span class="tok-p">|</span> <span class="tok-nc">F_SYMLINK</span> <span class="tok-p">|</span> <span class="tok-nc">F_SOCK</span> <span class="tok-p">|</span> <span class="tok-nc">F_CHR</span> <span class="tok-p">|</span> <span class="tok-nc">F_BLK</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">findFile</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">path_list</span> <span class="tok-n">*</span> <span class="tok-n">access_mode</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">findFiles</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">path_list</span> <span class="tok-n">*</span> <span class="tok-n">access_mode</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">findFileOfType</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">path_list</span> <span class="tok-n">*</span> <span class="tok-n">file_type</span> <span class="tok-n">*</span> <span class="tok-n">access_mode</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">findFilesOfType</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">path_list</span> <span class="tok-n">*</span> <span class="tok-n">file_type</span> <span class="tok-n">*</span> <span class="tok-n">access_mode</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">list</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> path_list = string list</code></dt>
+<dd>
+<p>A list of file-system paths that is used to search for files.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> getPath : unit -&gt; path_list</code></dt>
+<dd>
+<p><code>getPath ()</code> return&#8217;s the value of the user&#8217;s <code>PATH</code> shell variable
+as a <code>path_list</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">datatype</span> access_mode = <span class="kw">datatype</span> <a href="https://standardml.org/Basisos-file-sys.html#SIG:OS_FILE_SYS.access_mode:TY">OS.FileSys.access_mode</a></code></dt>
+<dd>
+<p>Rebind the file-system access-mode constructors.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">datatype</span> file_type = F_REGULAR | F_DIR | F_SYMLINK | F_SOCK | F_CHR | F_BLK</code></dt>
+<dd>
+<p>The different types of file-system objects in <strong>Unix</strong>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> findFile : (path_list * access_mode list) -&gt; string -&gt; string option</code></dt>
+<dd>
+<p><code>findFile (paths, mode) <em>name</em></code> returns <code>SOME path</code>, where <code>path</code> is a string of
+ the form <code>"<em>p</em>/<em>name</em>"</code> and <code><em>p</em></code> is the first string in <code>paths</code>
+ such that <code>path</code> has the given access modes (the empty list of access modes
+ is used to test for existence).  If no such file exists, then <code>NONE</code> is returned.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> findFiles : (path_list * access_mode list) -&gt; string -&gt; string list</code></dt>
+<dd>
+<p><code>findFiles (paths, mode) <em>name</em></code> returns a list of strings, such that each string
+<code>s</code> in the result has the form <code>"<em>p</em>/<em>name</em>"</code> with <code><em>p</em></code> in <code>paths</code>
+and the file named by <code>path</code> has the specified access modes.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> findFileOfType : (path_list * file_type * access_mode list) -&gt; string -&gt; string option</code></dt>
+<dd>
+<p><code>findFileOfType (paths, ftype, mode) <em>name</em></code> returns the <code>SOME path</code>, where <code>path</code> is
+ a string of the form <code>"<em>p</em>/<em>name</em>"</code> and <code><em>p</em></code> is the first string
+ in <code>paths</code> such that <code>path</code> has the given access modes (the empty list of
+ access modes is used to test for existence) and is of the specified file type.
+ If no such file exists, then <code>NONE</code> is returned.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> findFilesOfType : (path_list * file_type * access_mode list) -&gt; string -&gt; string list</code></dt>
+<dd>
+<p><code>findFilesOfType (paths, mode) <em>name</em></code> returns a list of strings,
+such that each string <code>s</code> in the result has the form <code>"<em>p</em>/<em>name</em>"</code>
+with <code><em>p</em></code> in <code>paths</code> and the file named by <code>path</code> has the specified
+access modes and is of the specified file type.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-UnixEnv.html"><code>UnixEnv</code></a>,
+<a href="../Util/str-PathUtil.html"><code>PathUtil</code></a>,
+<a href="unix-lib.html"><em>The Unix Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

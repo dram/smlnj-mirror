@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The REGEXP_PARSER signature</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>REGEXP_PARSER</code> signature</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="tutorial.html"><span class="toc-lib-page">Using the RegExp Library</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>REGEXP_PARSER</code> signature</span></li>
+      <li class="toc-page"><a href="sig-REGEXP_ENGINE.html"><span class="toc-lib-page">The <code>REGEXP_ENGINE</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-RegExpSyntax.html"><span class="toc-lib-page">The <code>RegExpSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-MatchTree.html"><span class="toc-lib-page">The <code>MatchTree</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-AwkSyntax.html"><span class="toc-lib-page">The <code>AwkSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RegExpFn.html"><span class="toc-lib-page">The <code>RegExpFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>REGEXP_PARSER</code> signature defines the interface to a parser for a
+concrete regular-expression syntax.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">REGEXP_PARSER</span>
+
+<span class="tok-kr">structure</span> <span class="tok-nn">AwkSyntax</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_PARSER</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">val</span> <span class="tok-nv">scan</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nn">RegExpSyntax</span><span class="tok-p">.</span><span class="tok-n">syntax</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> scan : (char, 'a) StringCvt.reader -&gt; (RegExpSyntax.syntax, 'a) StringCvt.reader</code></dt>
+<dd>
+<p><code>scan getc strm</code> parses a regular expression from the input stream <code>strm</code> using
+the <a href="https://standardml.org/Basis/string-cvt.html#SIG:STRING_CVT.reader:TY">character reader</a> <code>getc</code>.
+If successful, it returns <code>SOME(re, strm')</code>, where <code>re</code> is the abstract syntax
+of the regular expression and <code>strm'</code> is the residual input stream.  It returns
+<code>NONE</code> if there is a syntax error in the input.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_instances">Instances</h2>
+<div class="sectionbody">
+<div id="str:AwkSyntax" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> <a href="str-AwkSyntax.html">AwkSyntax</a></code></dt>
+<dd>
+<p>A parser for the regular-expression syntax defined by the AWK language.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-AwkSyntax.html"><code>AwkSyntax</code></a>,
+<a href="fun-RegExpFn.html"><code>RegExpFn</code></a>,
+<a href="str-RegExpSyntax.html"><code>RegExpSyntax</code></a>,
+<a href="regexp-lib.html"><em>The RegExp Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

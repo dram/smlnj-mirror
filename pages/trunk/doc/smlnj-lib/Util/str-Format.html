@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The Format structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>Format</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>Format</code> structure</span></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>Format</code> structure provides <code>printf</code>-style string formatting.
+The syntax of format strings is a subset of that
+supported by the <strong>C</strong> <code>printf</code> function.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">Format</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">datatype</span> <span class="tok-kt">fmt_item</span>
+  <span class="tok-p">=</span> <span class="tok-nc">ATOM</span> <span class="tok-kr">of</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span>
+  <span class="tok-p">|</span> <span class="tok-nc">LINT</span> <span class="tok-kr">of</span> <span class="tok-nn">LargeInt</span><span class="tok-p">.</span><span class="tok-n">int</span>
+  <span class="tok-p">|</span> <span class="tok-nc">INT</span> <span class="tok-kr">of</span> <span class="tok-nn">Int</span><span class="tok-p">.</span><span class="tok-n">int</span>
+  <span class="tok-p">|</span> <span class="tok-nc">LWORD</span> <span class="tok-kr">of</span> <span class="tok-nn">LargeWord</span><span class="tok-p">.</span><span class="tok-n">word</span>
+  <span class="tok-p">|</span> <span class="tok-nc">WORD</span> <span class="tok-kr">of</span> <span class="tok-nn">Word</span><span class="tok-p">.</span><span class="tok-n">word</span>
+  <span class="tok-p">|</span> <span class="tok-nc">WORD8</span> <span class="tok-kr">of</span> <span class="tok-nn">Word8</span><span class="tok-p">.</span><span class="tok-n">word</span>
+  <span class="tok-p">|</span> <span class="tok-nc">BOOL</span> <span class="tok-kr">of</span> <span class="tok-n">bool</span>
+  <span class="tok-p">|</span> <span class="tok-nc">CHR</span> <span class="tok-kr">of</span> <span class="tok-n">char</span>
+  <span class="tok-p">|</span> <span class="tok-nc">STR</span> <span class="tok-kr">of</span> <span class="tok-n">string</span>
+  <span class="tok-p">|</span> <span class="tok-nc">REAL</span> <span class="tok-kr">of</span> <span class="tok-nn">Real</span><span class="tok-p">.</span><span class="tok-n">real</span>
+  <span class="tok-p">|</span> <span class="tok-nc">LREAL</span> <span class="tok-kr">of</span> <span class="tok-nn">LargeReal</span><span class="tok-p">.</span><span class="tok-n">real</span>
+  <span class="tok-p">|</span> <span class="tok-nc">LEFT</span> <span class="tok-kr">of</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-n">fmt_item</span><span class="tok-p">)</span>
+  <span class="tok-p">|</span> <span class="tok-nc">RIGHT</span> <span class="tok-kr">of</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-n">fmt_item</span><span class="tok-p">)</span>
+
+<span class="tok-kr">exception</span> <span class="tok-nc">BadFormat</span>
+<span class="tok-kr">exception</span> <span class="tok-nc">BadFmtList</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">format</span>  <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">fmt_item</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+<span class="tok-kr">val</span> <span class="tok-nv">formatf</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">fmt_item</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div id="type:fmt_item" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">datatype</span> fmt_item = &#8230;&#8203;</code></dt>
+<dd>
+<p>The <code>fmt_item</code> datatype is a union of the types that the <code>format</code> function
+supports.  The constructors are interpreted as follows:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>ATOM atm</code></dt>
+<dd>
+<p>specifies an atom <code>atm</code> to convert (the conversion
+specifier must be &#8220;s&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>LINT n</code></dt>
+<dd>
+<p>specifies a large integer value <code>n</code> to convert
+(the conversion specifier must be one of &#8220;d&#8221;, &#8220;o&#8221;, &#8220;x&#8221;, or &#8220;X&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>INT n</code></dt>
+<dd>
+<p>specifies a default integer value <code>n</code> to convert
+(the conversion specifier must be one of &#8220;d&#8221;, &#8220;o&#8221;, &#8220;x&#8221;, or &#8220;X&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>LWORD w</code></dt>
+<dd>
+<p>specifies a large word value <code>w</code> to convert
+(the conversion specifier must be one of &#8220;d&#8221;, &#8220;o&#8221;, &#8220;x&#8221;, or &#8220;X&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>WORD w</code></dt>
+<dd>
+<p>specifies a default word value <code>w</code> to convert
+(the conversion specifier must be one of &#8220;d&#8221;, &#8220;o&#8221;, &#8220;x&#8221;, or &#8220;X&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>WORD8 w</code></dt>
+<dd>
+<p>specifies an 8-bit word value <code>w</code> to convert
+(the conversion specifier must be one of &#8220;d&#8221;, &#8220;o&#8221;, &#8220;x&#8221;, or &#8220;X&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>BOOL b</code></dt>
+<dd>
+<p>specifies a Boolean value <code>b</code> to convert
+(the conversion specifier must be &#8220;b&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>CHR c</code></dt>
+<dd>
+<p>specifies a character value
+(the conversion specifier must be &#8220;c&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>STR s</code></dt>
+<dd>
+<p>specifies a string value <code>s</code> to convert
+(the conversion specifier must be &#8220;s&#8221;).  The conversion is the
+identity; <em>e.g.</em>, <code>STR "\n"</code> will produce a newline in the result
+string.</p>
+</dd>
+<dt class="hdlist1"><code>REAL r</code></dt>
+<dd>
+<p>specifies a default real value <code>r</code> to convert
+(the conversion specifier must be one of &#8220;e&#8221;, &#8220;E&#8221;, &#8220;f&#8221;,
+&#8220;F&#8221;, &#8220;g&#8221;, or &#8220;G&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>LREAL r</code></dt>
+<dd>
+<p>specifies a large real value <code>r</code> to convert
+(the conversion specifier must be one of &#8220;e&#8221;, &#8220;E&#8221;, &#8220;f&#8221;,
+&#8220;F&#8221;, &#8220;g&#8221;, or &#8220;G&#8221;).</p>
+</dd>
+<dt class="hdlist1"><code>LEFT(wid, item)</code></dt>
+<dd>
+<p>specifies a left-padded (right-justified)
+conversion, where the result of formatting <code>item</code>
+is padded on the left with spaces to the width specified
+by <code>wid</code>.  Note that the padding occurs <em>after</em> <code>item</code>
+formatted, so it can be combined with width specifiers and
+zero padding.</p>
+</dd>
+<dt class="hdlist1"><code>RIGHT(wid, item)</code></dt>
+<dd>
+<p>specifies a right-padded (left-justified)
+conversion, where the result of formatting <code>item</code>
+is padded on the right with spaces to the width specified
+by <code>wid</code>.  Note that the padding occurs <em>after</em> <code>item</code>
+formatted, so it can be combined with width specifiers and
+zero padding.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> BadFormat</code></dt>
+<dd>
+<p>This exception is raised when either <code>format</code> or <code>formatf</code> is applied
+to an ill-formed format string.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> BadFmtList</code></dt>
+<dd>
+<p>This exception is raised when there is a mismatch in either
+number or type between the format string and the list of items.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> format : string -&gt; fmt_item list -&gt; string</code></dt>
+<dd>
+<p><code>format fmt</code> returns a function for formating a list of format items as
+a string by converting the list of items according to the format
+string <code>fmt</code>.  If the format string is ill formed, the <code>BadFormat</code>
+exception will be raised.  Likewise, if there is a mismatch between
+the conversion specifiers in the format string and the list of items,
+then the <code>BadFmtList</code> exception is raised.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> formatf : string -&gt; (string -&gt; unit) -&gt; fmt_item list -&gt; unit</code></dt>
+<dd>
+<p><code>format fmt consumer items</code> is equivalent to the expression</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">consumer</span> <span class="tok-p">(</span><span class="tok-n">format</span> <span class="tok-n">fmt</span> <span class="tok-n">items</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_format_strings">Format Strings</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>format and `formatf</code> functions take a format string and a list of
+format items as arguments.  The format string is composed of zero or more
+directives, which are either ordinary characters (excluding <code>%</code>), which are
+copied to the result, or conversion specifiers, which are used to convert
+the corresponding format items to strings that are then added to the result.</p>
+</div>
+<div class="paragraph">
+<p>Conversion specifiers begin with the percent (<code>%</code>) character followed by
+the following in sequence:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Zero or more of the following single-character flags.  Note that these
+only apply to the numeric conversion specifiers.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>A " " (space), which means that a space character is used as the
+sign for positive numbers.  This flag is incompatible with the
+&#8220;+&#8221; flag.</p>
+</li>
+<li>
+<p>A &#8220;+&#8221;, which means that a <code>+</code> character is used as the sign for positive
+numbers.  This flag is incompatible with the "` `" flag.</p>
+</li>
+<li>
+<p>A &#8220;~&#8221;, which means that the tilde character is used as the sign for negative
+numbers (<em>i.e.</em>, <strong>SML</strong> syntax).</p>
+</li>
+<li>
+<p>A &#8220;0&#8221;, which means that the zero character should be used to pad the number
+(on the left) to the requested width.</p>
+</li>
+<li>
+<p>A &#8220;-&#8221;, which means that the minus character is used as the sign for negative
+numbers, which is the default behavior.  Note that this interpretation
+of the &#8220;-&#8221; flag differs from the <strong>C</strong> <code>printf</code> function, where it is
+used to specify left justification; use the <code>LEFT</code> constructor for that
+purpose.</p>
+</li>
+<li>
+<p>A &#8220;#&#8221;, which means that a <em>base</em> specifier should be prepended to
+the representation of the number.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>an optional decimal number specifying a minimum field width.  If the
+converted value has fewer characters than the field width, it will be padded
+on the left with spaces (or zeros, when zero-padding has been specified).</p>
+</li>
+<li>
+<p>An optional precision, in the form of a period &#8220;.&#8221; followed by an optional
+decimal number.  If the number is omitted, the precision is taken as zero.
+The precision specifies the the number of digits to appear after the
+decimal-point for &#8220;a&#8221;, &#8220;A&#8221;, &#8220;e&#8221;, &#8220;E&#8221;, &#8220;f&#8221;, and &#8220;F&#8221; conversions,
+the maximum number of significant digits for &#8220;g&#8221; and &#8220;G&#8221; conversions, and
+the maximum number of characters for the &#8220;s&#8221; conversion.</p>
+</li>
+<li>
+<p>The conversion-specifier character, which must match the corresponding
+format item.  The conversion character is one of the following:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>A &#8220;d&#8221;, which specifies the conversion of an integer (<code>INT</code> or <code>LINT</code>)
+or word (<code>WORD</code>, <code>LWORD</code>, or <code>WORD8</code>) item to its decimal representation.</p>
+</li>
+<li>
+<p>An &#8220;o&#8221;, which specifies the conversion of an integer (<code>INT</code> or <code>LINT</code>)
+or word (<code>WORD</code>, <code>LWORD</code>, or <code>WORD8</code>) item to its octal representation.  If the
+&#8220;#&#8221; flag was specifies, then a leading <code>"0"</code> is prepended to the result.</p>
+</li>
+<li>
+<p>An &#8220;x&#8221; or &#8220;X&#8221;, which specifies the conversion of an integer
+(<code>INT</code> or <code>LINT</code>) or word (<code>WORD</code>, <code>LWORD</code>, or <code>WORD8</code>) item to its hexadecimal
+representation.  The digits are lower-case for &#8220;x&#8221; and upper-case
+for &#8220;X&#8221;.  If the &#8220;#&#8221; flag was specifies, then a leading &#8220;0x&#8221; (or &#8220;0X&#8221;)
+is prepended to the result.</p>
+</li>
+<li>
+<p>An &#8220;e&#8221; or &#8220;E&#8221;, which specifies the conversion of a real (<code>REAL</code> or
+<code>LREAL</code>) item to the format <code><em>s</em> <em>d</em> <strong>.</strong> <em>ddd</em> <strong>e</strong> <em>s</em> <em>dd</em></code>,
+where there is one digit before the decimal-point character and the
+number of digits after the decimal-point is equal to the precision.
+(The &#8220;`<strong>e</strong><code>&#8221; is replaced by &#8220;</code><strong>E</strong>`&#8221; for the &#8220;E&#8221; conversion specifier.)
+If the precision is missing, it defaults to six and if the precision is
+zero, no decimal-point character appears.  The signs (<code><em>s</em></code>)
+of the number and exponent are displayed as specified by the flags.</p>
+</li>
+<li>
+<p>A &#8220;f&#8221; or &#8220;F&#8221;, which specifies the conversion of a real (<code>REAL</code> or
+<code>LREAL</code>) item to the format <code><em>s</em> <em>ddd</em> <strong>.</strong> <em>ddd</em></code>, where the
+number of digits after the decimal-point is equal to the precision
+specification (or six if not specified).</p>
+</li>
+<li>
+<p>A &#8220;g&#8221; or &#8220;G&#8221;, which specifies the conversion of a real (<code>REAL</code> or
+<code>LREAL</code>) item to either the format specified by &#8220;e&#8221; or &#8220;f&#8221;
+(or &#8220;E&#8221; or &#8220;F&#8221; in the case of &#8220;G&#8221;).</p>
+</li>
+<li>
+<p>A &#8220;b&#8221;, which specifies the conversion of a boolean (<code>BOOL</code>) item,
+which will be displayed as either &#8220;true&#8221; or "`false`."</p>
+</li>
+<li>
+<p>A &#8220;c&#8221;, which specifies the identity conversion of a character (<code>CHAR</code>) item.</p>
+</li>
+<li>
+<p>A &#8220;s&#8221;, which specifies the identity conversion of a string (<code>STR</code>) or
+atom (<code>ATOM</code>) item.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-FormatComb.html"><code>FormatComb</code></a>,
+<a href="str-Scan.html"><code>Scan</code></a>,
+<a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-17 01:49:59 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The AwkSyntax structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>AwkSyntax</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="tutorial.html"><span class="toc-lib-page">Using the RegExp Library</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_PARSER.html"><span class="toc-lib-page">The <code>REGEXP_PARSER</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_ENGINE.html"><span class="toc-lib-page">The <code>REGEXP_ENGINE</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-RegExpSyntax.html"><span class="toc-lib-page">The <code>RegExpSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-MatchTree.html"><span class="toc-lib-page">The <code>MatchTree</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>AwkSyntax</code> structure</span></li>
+      <li class="toc-page"><a href="fun-RegExpFn.html"><span class="toc-lib-page">The <code>RegExpFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>AwkSyntax</code> structure implements the AWK syntax for regular expressions.
+The syntax is defined on pp. 28-30 of <em>The AWK Programming Language</em>,
+by Aho, Kernighan and Weinberger.  The syntax has been extended with interval
+syntax, which was added as part of the POSIX standard.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">AwkSyntax</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_PARSER</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The meta characters are:
+       "\" "^" "$" "." "[" "]" "|" "(" ")" "*" "+" "?"</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Atomic REs:
+  c	matches the character c (for non-metacharacters c)
+  "^"	matches the empty string at the beginning of a line
+    "$"	matches the empty string at the end of a line
+  "."	matches any single character (except \000 and \n)</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Escape sequences:
+    "\b"	matches backspace
+    "\f"	matches formfeed
+    "\n"	matches newline (linefeed)
+    "\r"	matches carriage return
+    "\t"	matches tab
+    "\"ddd	matches the character with octal code ddd.
+    "\"c	matches the character c (e.g., \\ for \, \" for ")
+  "\x"dd  matches the character with hex code dd.</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Character classes:
+    [...]	matches any character in "..."
+    [^...]	a complemented character list, which matches any character not
+     in the list "..."</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Compound regular expressions, where A and B are REs:
+    A|B	matches A or B
+    AB	matches A followed by B
+    A?	matches zero or one As
+    A*	matches zero or more As
+    A+	matches one or more As
+    A{n}	matches n copies of A
+    A{n,}	matches n copies of A
+    A{n,m}	matches n copies of A
+    (A)	matches A</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="regexp-lib.html"><em>The RegExp Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

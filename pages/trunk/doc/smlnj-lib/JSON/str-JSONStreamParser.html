@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The JSONStreamParser structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>JSONStreamParser</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-JSON.html"><span class="toc-lib-page">The <code>JSON</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONParser.html"><span class="toc-lib-page">The <code>JSONParser</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONPrinter.html"><span class="toc-lib-page">The <code>JSONPrinter</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONUtil.html"><span class="toc-lib-page">The <code>JSONUtil</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>JSONStreamParser</code> structure</span></li>
+      <li class="toc-page"><a href="str-JSONStreamPrinter.html"><span class="toc-lib-page">The <code>JSONStreamPrinter</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>JSONStreamParser</code> structure provides an event-based
+(or <em>stream</em>) parsing model for <strong>JSON</strong> files.  It is suitable
+for scanning large files for particular items without having
+to first build an in-memory data structure.  It can also
+be useful to directly translate from <strong>JSON</strong> to a specific <strong>SML</strong>
+datatype without having to go through the intermediate
+<a href="str-JSON.html#type:value"><code>JSON.value</code></a> representation.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">JSONStreamParser</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">source</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-kt">callbacks</span> <span class="tok-p">=</span> <span class="tok-p">{</span>
+    <span class="tok-n">null</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">boolean</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-n">*</span> <span class="tok-n">bool</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">integer</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-n">*</span> <span class="tok-nn">IntInf</span><span class="tok-p">.</span><span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">float</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-n">*</span> <span class="tok-n">real</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">string</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">startObject</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">objectKey</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">endObject</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">startArray</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">endArray</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">,</span>
+    <span class="tok-n">error</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+  <span class="tok-p">}</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">openStream</span> <span class="tok-p">:</span> <span class="tok-nn">TextIO</span><span class="tok-p">.</span><span class="tok-n">instream</span> <span class="tok-p">-&gt;</span> <span class="tok-n">source</span>
+<span class="tok-kr">val</span> <span class="tok-nv">openFile</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">source</span>
+<span class="tok-kr">val</span> <span class="tok-nv">openString</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">source</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">close</span> <span class="tok-p">:</span> <span class="tok-n">source</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">parse</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-n">callbacks</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">source</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">parseFile</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;ctx</span> <span class="tok-n">callbacks</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;ctx</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;ctx</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div id="type:source" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> source</code></dt>
+<dd>
+<p>The abstract type of JSON input sources.  Note that this type is the
+same as <a href="#type:source"><code>JSONParser.source</code></a>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'ctx callbacks = { &#8230;&#8203; }</code></dt>
+<dd>
+<p>This type is a record of the parsing-event call-back functions, where
+the type parameter <code>'cxt</code> is instantiated to the context (or state)
+needed to preserve information between events.  The call-back functions
+in this record type are invoked as follows:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>null : 'ctx -&gt; 'ctx</code></dt>
+<dd>
+<p>called when the <strong>JSON</strong> <strong>null</strong> value is encountered.</p>
+</dd>
+<dt class="hdlist1"><code>boolean : 'ctx * bool -&gt; 'ctx</code></dt>
+<dd>
+<p>called when the <strong>JSON</strong> <strong>true</strong>  or <strong>false</strong> values are encountered.</p>
+</dd>
+<dt class="hdlist1"><code>integer : 'ctx * IntInf.int -&gt; 'ctx</code></dt>
+<dd>
+<p>called when a <strong>JSON</strong> integral-number value encountered.</p>
+</dd>
+<dt class="hdlist1"><code>float : 'ctx * real -&gt; 'ctx</code></dt>
+<dd>
+<p>called when a <strong>JSON</strong> floating-point-number value encountered.</p>
+</dd>
+<dt class="hdlist1"><code>string : 'ctx * string -&gt; 'ctx</code></dt>
+<dd>
+<p>called when a <strong>JSON</strong> string value encountered.</p>
+</dd>
+<dt class="hdlist1"><code>startObject : 'ctx -&gt; 'ctx</code></dt>
+<dd>
+<p>called at the beginning of a <strong>JSON</strong> object definition (<em>i.e.</em>,
+when a &#8220;{&#8221; is encountered).</p>
+</dd>
+<dt class="hdlist1"><code>objectKey : 'ctx * string -&gt; 'ctx</code></dt>
+<dd>
+<p>called when a <strong>JSON</strong> object key is encountered (including the
+"`:").  The next call-back will specify the value
+associated with the key.</p>
+</dd>
+<dt class="hdlist1"><code>endObject : 'ctx -&gt; 'ctx</code></dt>
+<dd>
+<p>called at the end of a <strong>JSON</strong> object definition (<em>i.e.</em>,
+when a &#8220;}&#8221; is encountered).</p>
+</dd>
+<dt class="hdlist1"><code>startArray : 'ctx -&gt; 'ctx</code></dt>
+<dd>
+<p>called at the beginning of a <strong>JSON</strong> array definition (<em>i.e.</em>,
+when a &#8220;[&#8221; is encountered).</p>
+</dd>
+<dt class="hdlist1"><code>endArray : 'ctx -&gt; 'ctx</code></dt>
+<dd>
+<p>called at the end of a <strong>JSON</strong> array definition (<em>i.e.</em>,
+when a &#8220;]&#8221; is encountered).</p>
+</dd>
+<dt class="hdlist1"><code>error : 'ctx * string -&gt; unit</code></dt>
+<dd>
+<p>       called when a syntax error is encountered in the input.  The
+       second argument is an error message describing the error.
+It is expected that this call-back does not return (<em>i.e.</em>, it
+either raises an exception or terminates the program).
+If it does return, then the parser will raise the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div id="val:openStream" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> openStream : TextIO.instream &#8594; source</code></dt>
+<dd>
+<p><code>openStream inS</code> returns a input source for the given input stream.</p>
+</dd>
+</dl>
+</div>
+<div id="val:openFile" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> openFile : string &#8594; source</code></dt>
+<dd>
+<p><code>openStream file</code> returns a input source for the given file.  This function
+opens an input stream for reading from the file, so one should make sure to
+call <a href="#val:close"><code>close</code></a> on the source once all of the <strong>JSON</strong> values
+have been read from the file.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> openString : string &#8594; source</code></dt>
+<dd>
+<p><code>openStream s</code> returns a input source for the given string.</p>
+</dd>
+</dl>
+</div>
+<div id="val:close" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> close : source &#8594; unit</code></dt>
+<dd>
+<p><code>close src</code> closes the input source, which has the effect of marking the source
+as <em>closed</em>.  Furthermore, if <code>src</code> was created by a call to
+<a href="#val:openFile"><code>openFile</code></a>, then the underlying input stream that
+was created for the file is closed.  This function does <strong>not</strong> close the
+input stream for sources created by <a href="#val:openStream"><code>openStream</code></a></p>
+</dd>
+</dl>
+</div>
+<div id="val:parse" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> parse : 'ctx callbacks -&gt; (source * 'ctx) -&gt; 'ctx</code></dt>
+<dd>
+<p><code>parse cbs (src, cxt)</code> will parse the <strong>JSON</strong> input from the input source
+<code>src</code>, using the record of call-back functions <code>cbs</code> and the initial
+context <code>cxt</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> parseFile : 'ctx callbacks -&gt; (string * 'ctx) -&gt; 'ctx</code></dt>
+<dd>
+<p><code>parse cbs (f, cxt)</code> will parse the <strong>JSON</strong> input from the file
+<code>f</code>, using the record of call-back functions <code>cbs</code> and the initial
+context <code>cxt</code>.  Note that this function will only parse a single
+<strong>JSON</strong> value from the file; to parse multiple values, one should used
+the <a href="#val:parse"><code>parse</code></a> function with a source created by
+<a href="#val:openFile"><code>openFile</code></a>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_exampless">Exampless</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Consider the following <strong>JSON</strong> input:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="json"><span></span><span class="tok-p">{</span> <span class="tok-nt">&quot;a&quot;</span> <span class="tok-p">:</span> <span class="tok-mi">23</span><span class="tok-p">,</span>
+  <span class="tok-nt">&quot;b&quot;</span> <span class="tok-p">:</span> <span class="tok-p">[</span> <span class="tok-kc">false</span><span class="tok-p">,</span> <span class="tok-kc">true</span> <span class="tok-p">],</span>
+  <span class="tok-nt">&quot;c&quot;</span> <span class="tok-p">:</span> <span class="tok-s2">&quot;hello world&quot;</span>
+<span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Parsing this value has the same result as evaluating the following
+function:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">f</span> <span class="tok-n">cxt</span> <span class="tok-p">=</span> <span class="tok-kr">let</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">startObject</span> <span class="tok-n">cxt</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">objectKey</span> <span class="tok-p">(</span><span class="tok-n">cxt</span><span class="tok-p">,</span> <span class="tok-s2">&quot;a&quot;</span><span class="tok-p">)</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">integer</span> <span class="tok-p">(</span><span class="tok-n">cxt</span><span class="tok-p">,</span> <span class="tok-mi">23</span><span class="tok-p">)</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">objectKey</span> <span class="tok-p">(</span><span class="tok-n">cxt</span><span class="tok-p">,</span> <span class="tok-s2">&quot;b&quot;</span><span class="tok-p">)</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">startArray</span> <span class="tok-n">cxt</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">boolean</span> <span class="tok-p">(</span><span class="tok-n">cxt</span><span class="tok-p">,</span> <span class="tok-n">false</span><span class="tok-p">)</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">boolean</span> <span class="tok-p">(</span><span class="tok-n">cxt</span><span class="tok-p">,</span> <span class="tok-n">true</span><span class="tok-p">)</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">endArray</span> <span class="tok-n">cxt</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">objectKey</span> <span class="tok-p">(</span><span class="tok-n">cxt</span><span class="tok-p">,</span> <span class="tok-s2">&quot;c&quot;</span><span class="tok-p">)</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">objectString</span> <span class="tok-p">(</span><span class="tok-n">cxt</span><span class="tok-p">,</span> <span class="tok-s2">&quot;hello world&quot;</span><span class="tok-p">)</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cxt</span> <span class="tok-p">=</span> <span class="tok-n">endObject</span> <span class="tok-n">cxt</span>
+      <span class="tok-kr">in</span>
+        <span class="tok-n">cxt</span>
+      <span class="tok-kr">end</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following function returns a list of all of the string-valued
+fields labeled as <code>"name"</code> in the input file.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">getNames</span> <span class="tok-n">file</span> <span class="tok-p">=</span> <span class="tok-kr">let</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">objectKey</span> <span class="tok-p">({</span><span class="tok-n">names</span><span class="tok-p">,</span> <span class="tok-p">...},</span> <span class="tok-s2">&quot;name&quot;</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-p">{</span><span class="tok-n">names</span> <span class="tok-p">=</span> <span class="tok-n">names</span><span class="tok-p">,</span> <span class="tok-n">isName</span> <span class="tok-p">=</span> <span class="tok-n">true</span><span class="tok-p">}</span>
+        <span class="tok-p">|</span> <span class="tok-nf">objectKey</span> <span class="tok-p">(</span><span class="tok-n">cxt</span><span class="tok-p">,</span> <span class="tok-p">_)</span> <span class="tok-p">=</span> <span class="tok-n">cxt</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">string</span> <span class="tok-p">(</span><span class="tok-n">cxt</span> <span class="tok-kr">as</span> <span class="tok-p">{</span><span class="tok-n">names</span><span class="tok-p">,</span> <span class="tok-n">isName</span><span class="tok-p">},</span> <span class="tok-n">s</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-kr">if</span> <span class="tok-n">isName</span>
+            <span class="tok-kr">then</span> <span class="tok-p">{</span><span class="tok-n">names</span> <span class="tok-p">=</span> <span class="tok-n">s</span> <span class="tok-n">::</span> <span class="tok-n">names</span><span class="tok-p">,</span> <span class="tok-n">isName</span> <span class="tok-p">=</span> <span class="tok-n">false</span><span class="tok-p">}</span>
+            <span class="tok-kr">else</span> <span class="tok-n">cxt</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">default</span> <span class="tok-p">({</span><span class="tok-n">names</span><span class="tok-p">,</span> <span class="tok-n">isName</span><span class="tok-p">},</span> <span class="tok-p">_)</span> <span class="tok-p">=</span> <span class="tok-p">{</span><span class="tok-n">names</span> <span class="tok-p">=</span> <span class="tok-n">names</span><span class="tok-p">,</span> <span class="tok-n">isName</span> <span class="tok-p">=</span> <span class="tok-n">false</span><span class="tok-p">}</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">cbs</span> <span class="tok-p">=</span> <span class="tok-p">{</span>
+              <span class="tok-n">null</span> <span class="tok-p">=</span> <span class="tok-nn">Fn</span><span class="tok-p">.</span><span class="tok-n">id</span><span class="tok-p">,</span>
+              <span class="tok-n">boolean</span> <span class="tok-p">=</span> <span class="tok-n">default</span><span class="tok-p">,</span>
+              <span class="tok-n">integer</span> <span class="tok-p">=</span> <span class="tok-n">default</span><span class="tok-p">,</span>
+              <span class="tok-n">float</span> <span class="tok-p">=</span> <span class="tok-n">default</span><span class="tok-p">,</span>
+              <span class="tok-n">string</span> <span class="tok-p">=</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+              <span class="tok-n">startObject</span> <span class="tok-p">=</span> <span class="tok-nn">Fn</span><span class="tok-p">.</span><span class="tok-n">id</span><span class="tok-p">,</span>
+              <span class="tok-n">objectKey</span> <span class="tok-p">=</span> <span class="tok-n">objectKey</span><span class="tok-p">,</span>
+              <span class="tok-n">endObject</span> <span class="tok-p">=</span> <span class="tok-nn">Fn</span><span class="tok-p">.</span><span class="tok-n">id</span><span class="tok-p">,</span>
+              <span class="tok-n">startArray</span> <span class="tok-p">=</span> <span class="tok-nn">Fn</span><span class="tok-p">.</span><span class="tok-n">id</span><span class="tok-p">,</span>
+              <span class="tok-n">endArray</span> <span class="tok-p">=</span> <span class="tok-nn">Fn</span><span class="tok-p">.</span><span class="tok-n">id</span><span class="tok-p">,</span>
+              <span class="tok-n">error</span> <span class="tok-p">=</span> <span class="tok-kr">fn</span> <span class="tok-p">(_,</span> <span class="tok-n">msg</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-kr">raise</span> <span class="tok-n">Fail</span> <span class="tok-n">msg</span>
+            <span class="tok-p">}</span>
+      <span class="tok-kr">val</span> <span class="tok-p">{</span><span class="tok-n">names</span><span class="tok-p">,</span> <span class="tok-p">...}</span> <span class="tok-p">=</span>
+            <span class="tok-nn">JSONStreamParser</span><span class="tok-p">.</span><span class="tok-n">parseFile</span> <span class="tok-n">cbs</span> <span class="tok-p">(</span><span class="tok-n">file</span><span class="tok-p">,</span> <span class="tok-p">{</span><span class="tok-n">names</span> <span class="tok-p">=</span> <span class="tok-p">[],</span> <span class="tok-n">isName</span> <span class="tok-p">=</span> <span class="tok-n">false</span><span class="tok-p">})</span>
+      <span class="tok-kr">in</span>
+        <span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">rev</span> <span class="tok-n">names</span>
+      <span class="tok-kr">end</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-JSONParser.html"><code>JSONParser</code></a>,
+<a href="str-JSONStreamPrinter.html"><code>JSONStreamPrinter</code></a>,
+<a href="json-lib.html"><em>The JSON Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

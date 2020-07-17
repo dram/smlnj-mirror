@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The Reactive structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>Reactive</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>Reactive</code> structure</span></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>Reactive</code> structure provides types and operations to build and
+run reactive systems.  The inputs and outputs of a reactive system
+are sets of <em>signals</em>, which can either be <em>present</em> (<em>i.e.</em>, <code>true</code>)
+or <em>absent</em> (<em>i.e.</em>, <code>false</code>).  A reactive system runs in discrete
+timesteps.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">REACTIVE</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">Reactive</span> <span class="tok-p">:</span> <span class="tok-n">REACTIVE</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">machine</span>
+<span class="tok-kr">type</span> <span class="tok-kt">instruction</span>
+<span class="tok-kr">type</span> <span class="tok-kt">signal</span> <span class="tok-p">=</span> <span class="tok-nn">Atom</span><span class="tok-p">.</span><span class="tok-n">atom</span>
+<span class="tok-kr">type</span> <span class="tok-kt">config</span>
+<span class="tok-kr">type</span> <span class="tok-kt">in_signal</span>
+<span class="tok-kr">type</span> <span class="tok-kt">out_signal</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">machine</span> <span class="tok-p">:</span> <span class="tok-p">{</span>
+	<span class="tok-n">inputs</span> <span class="tok-p">:</span> <span class="tok-n">signal</span> <span class="tok-n">list</span><span class="tok-p">,</span>
+	<span class="tok-n">outputs</span> <span class="tok-p">:</span> <span class="tok-n">signal</span> <span class="tok-n">list</span><span class="tok-p">,</span>
+	<span class="tok-n">body</span> <span class="tok-p">:</span> <span class="tok-n">instruction</span>
+      <span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">machine</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">run</span> <span class="tok-p">:</span> <span class="tok-n">machine</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">reset</span> <span class="tok-p">:</span> <span class="tok-n">machine</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">inputsOf</span> <span class="tok-p">:</span> <span class="tok-n">machine</span> <span class="tok-p">-&gt;</span> <span class="tok-n">in_signal</span> <span class="tok-n">list</span>
+<span class="tok-kr">val</span> <span class="tok-nv">outputsOf</span> <span class="tok-p">:</span> <span class="tok-n">machine</span> <span class="tok-p">-&gt;</span> <span class="tok-n">out_signal</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">inputSignal</span> <span class="tok-p">:</span> <span class="tok-n">in_signal</span> <span class="tok-p">-&gt;</span> <span class="tok-n">signal</span>
+<span class="tok-kr">val</span> <span class="tok-nv">outputSignal</span> <span class="tok-p">:</span> <span class="tok-n">out_signal</span> <span class="tok-p">-&gt;</span> <span class="tok-n">signal</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">setInSignal</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">in_signal</span> <span class="tok-n">*</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">getInSignal</span>  <span class="tok-p">:</span> <span class="tok-n">in_signal</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">getOutSignal</span> <span class="tok-p">:</span> <span class="tok-n">out_signal</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">||</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">instruction</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">&amp;</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">instruction</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">nothing</span> <span class="tok-p">:</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">stop</span> <span class="tok-p">:</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">suspend</span> <span class="tok-p">:</span> <span class="tok-n">instruction</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">action</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">machine</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">exec</span>   <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">machine</span> <span class="tok-p">-&gt;</span> <span class="tok-p">{</span><span class="tok-n">stop</span> <span class="tok-p">:</span> <span class="tok-n">unit</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">,</span> <span class="tok-n">done</span> <span class="tok-p">:</span> <span class="tok-n">unit</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">})</span>
+	      <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">ifThenElse</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-n">machine</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">repeat</span>     <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">loop</span>       <span class="tok-p">:</span> <span class="tok-n">instruction</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">close</span>      <span class="tok-p">:</span> <span class="tok-n">instruction</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">signal</span>   <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">signal</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">rebind</span>   <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">signal</span> <span class="tok-n">*</span> <span class="tok-n">signal</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">when</span>     <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">config</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">trap</span>     <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">config</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">trapWith</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">config</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span> <span class="tok-n">*</span> <span class="tok-n">instruction</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">emit</span>     <span class="tok-p">:</span> <span class="tok-n">signal</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+<span class="tok-kr">val</span> <span class="tok-nv">await</span>    <span class="tok-p">:</span> <span class="tok-n">config</span> <span class="tok-p">-&gt;</span> <span class="tok-n">instruction</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">posConfig</span> <span class="tok-p">:</span> <span class="tok-n">signal</span> <span class="tok-p">-&gt;</span> <span class="tok-n">config</span>
+<span class="tok-kr">val</span> <span class="tok-nv">negConfig</span> <span class="tok-p">:</span> <span class="tok-n">signal</span> <span class="tok-p">-&gt;</span> <span class="tok-n">config</span>
+<span class="tok-kr">val</span> <span class="tok-nv">orConfig</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">config</span> <span class="tok-n">*</span> <span class="tok-n">config</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">config</span>
+<span class="tok-kr">val</span> <span class="tok-nv">andConfig</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">config</span> <span class="tok-n">*</span> <span class="tok-n">config</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">config</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The description of the interface is organized into sections.</p>
+</div>
+<div class="sect2">
+<h3 id="_types">Types</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> machine</code></dt>
+<dd>
+<p>The type of a reactive system.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> instruction</code></dt>
+<dd>
+<p>The abstract representation of a reactive program.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> signal = <a href="../Util/str-Atom.html#type:atom">Atom.atom</a></code></dt>
+<dd>
+<p>The name of a signal.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> config</code></dt>
+<dd>
+<p>A signal configuration is a logical combination of signals.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> in_signal</code></dt>
+<dd>
+<p>An input signal for a reactive system.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> out_signal</code></dt>
+<dd>
+<p>An output signal for a reactive system.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_machines">Machines</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> machine : { &#8230;&#8203; } -&gt; machine</code></dt>
+<dd>
+<p><code>machine {inputs, outputs, body}</code> creates a new reactive system (or machine)
+from a list of input signal names, a list of output signal names, and a reactive
+program.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> run : machine -&gt; bool</code></dt>
+<dd>
+<p><code>run m</code> will run the reactive system <code>m</code> one instant (or activation).
+It returns <code>true</code> if, and only if, the machine ends in a terminal state
+(_i.e., by executing the <a href="#val:stop"><code>stop</code></a> instruction).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> reset : machine -&gt; unit</code></dt>
+<dd>
+<p><code>reset m</code> resets the state of <code>m</code> to its initial state.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> inputsOf : machine -&gt; in_signal list</code></dt>
+<dd>
+<p><code>inputsOf m</code> returns a list of the input signals in the machine.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> outputsOf : machine -&gt; out_signal list</code></dt>
+<dd>
+<p><code>outputsOf m</code> returns a list of the output signals in the machine.</p>
+</dd>
+</dl>
+</div>
+<div id="val:nameOfInput" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> nameOfInput : in_signal -&gt; signal</code></dt>
+<dd>
+<p><code>inputSignal inSig</code> returns the name of the input signal.</p>
+</dd>
+</dl>
+</div>
+<div id="val:nameOfOutput" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> nameOfOutput : out_signal -&gt; signal</code></dt>
+<dd>
+<p><code>inputSignal outSig</code> returns the name of the output signal.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> setInSignal : (in_signal * bool) -&gt; unit</code></dt>
+<dd>
+<p><code>setInSignal (inSig, b)</code> sets the value of the input signal to <code>b</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> getInSignal : in_signal -&gt; bool</code></dt>
+<dd>
+<p><code>getInSignal inSig</code> gets the current value of the input signal.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> getOutSignal : out_signal -&gt; bool</code></dt>
+<dd>
+<p><code>getOutSignal inSig</code> gets the current value of the output signal.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_instructions">Instructions</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> || : (instruction * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><code>|| (i1, i2)</code> forms the parallel composition of the two programs.
+Activation of the resulting program will interleave the two
+programs until either one of them suspends (see the
+<a href="#val:suspend"><code>suspend</code></a> instruction) or both programs terminate.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> &amp; : (instruction * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><code>&amp; (i1, i2)</code> forms the sequential composition of the two programs.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> nothing : instruction</code></dt>
+<dd>
+<p>The program that does nothing.</p>
+</dd>
+</dl>
+</div>
+<div id="val:stop" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> stop : instruction</code></dt>
+<dd>
+<p>The program that stops; <em>i.e.</em>, reaches the terminal state for
+the current and all future activations.</p>
+</dd>
+</dl>
+</div>
+<div id="val:suspend" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> suspend : instruction</code></dt>
+<dd>
+<p>The program that suspends the current activation.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> action : (machine -&gt; unit) -&gt; instruction</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> exec : (machine -&gt; {stop : unit -&gt; unit, done : unit -&gt; bool}) -&gt; instruction</code></dt>
+<dd>
+<p><code>exec f</code> returns a program that encapsulates the <strong>SML</strong> computation defined by
+the function <code>f</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> ifThenElse : ((machine -&gt; bool) * instruction * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> repeat : (int * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> loop : instruction -&gt; instruction</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> close : instruction -&gt; instruction</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> signal : (signal * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> rebind : (signal * signal * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> when : (config * instruction * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> trapWith : (config * instruction * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><code>trapWith (cfg, i1, i2)</code> returns the program that &#8230;&#8203;</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> trap : (config * instruction) -&gt; instruction</code></dt>
+<dd>
+<p><code>trap (cfg, i)</code>
+This expression is equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">trapWith</span> <span class="tok-p">(</span><span class="tok-n">cfg</span><span class="tok-p">,</span> <span class="tok-n">i</span><span class="tok-p">,</span> <span class="tok-n">nothing</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> emit : signal -&gt; instruction</code></dt>
+<dd>
+<p><code>emit sigId</code> returns the program that emits the signal with the given
+name (<em>i.e.</em>, the signal is <em>present</em>).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> await : config -&gt; instruction</code></dt>
+<dd>
+<p><code>await cfg</code> returns the program that waits for the configuration to hold.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_signal_configurations">Signal configurations</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> posConfig : signal -&gt; config</code></dt>
+<dd>
+<p><code>posConfig sigId</code> defines a configuration that holds if, and only if,
+the signal named <code>sigId</code> is present.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> negConfig : signal -&gt; config</code></dt>
+<dd>
+<p><code>negConfig sigId</code> defines a configuration that holds if, and only if,
+the signal named <code>sigId</code> is <strong>not</strong> present.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> orConfig : (config * config) -&gt; config</code></dt>
+<dd>
+<p><code>orConfig (cfg1, cfg2)</code> defines a configuration that holds if either <code>cfg1</code>
+or <code>cfg2</code> (inclusive) holds.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> andConfig : (config * config) -&gt; config</code></dt>
+<dd>
+<p><code>andConfig (cfg1, cfg2)</code> defines a configuration that holds if both <code>cfg1</code>
+and <code>cfg2</code> hold.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deprecated_functions">Deprecated functions</h3>
+<div class="paragraph">
+<p>The following functions are part of the interface, but have been
+deprecated.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> inputSignal : in_signal &#8594; signal</code></dt>
+<dd>
+<p>use <a href="#val:nameOfInput"><code>nameOfInput</code></a> instead.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> outputSignal : out_signal &#8594; signal</code></dt>
+<dd>
+<p>use <a href="#val:nameOfOutput"><code>nameOfOutput</code></a> instead.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="reactive-lib.html"><em>The Reactive Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The UnixEnv structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>UnixEnv</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>UnixEnv</code> structure</span></li>
+      <li class="toc-page"><a href="str-UnixPath.html"><span class="toc-lib-page">The <code>UnixPath</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>UnixEnv</code> structure supports operations on the host process&#8217;s <em>environment</em>,
+which is essentially a list of strings of the form &#8220;`<em>name</em>=<em>value</em>`&#8221;, where
+the &#8220;=&#8221; character does not appear in <code><em>name</em></code>.  We assume that environments
+are "well formed;" <em>i.e.</em>, that an environment variable is only defined once.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Binding the user&#8217;s environment as an SML value and then exporting the
+SML heap image can result in incorrect behavior, since the environment bound
+in the heap image may differ from the user&#8217;s environment when the exported
+heap image is loaded.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">UNIX_ENV</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">UnixEnv</span> <span class="tok-p">:</span> <span class="tok-n">UNIX_ENV</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">val</span> <span class="tok-nv">getFromEnv</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">getValue</span> <span class="tok-p">:</span> <span class="tok-p">{</span><span class="tok-n">name</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span> <span class="tok-n">default</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span> <span class="tok-n">env</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-n">list</span><span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">removeFromEnv</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">addToEnv</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-n">list</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">environ</span> <span class="tok-p">:</span> <span class="tok-n">unit</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">getEnv</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">option</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> getFromEnv : (string * string list) -&gt; string option</code></dt>
+<dd>
+<p><code>getEnv (name, env)</code> returns <code>SOME v</code> if <code>(name, v)</code> is in the environment
+<code>env</code>.  Otherwise, it returns <code>NONE</code> if <code>name</code> is not bound in <code>env</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> getValue : {name : string, default : string, env : string list} -&gt; string</code></dt>
+<dd>
+<p><code>getEnv {name, default, env}</code> returns <code>v</code> if <code>(name, v)</code> is in the
+environment <code>env</code>.  Otherwise, it returns <code>default</code> if <code>name</code> is not
+bound in <code>env</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> removeFromEnv : (string * string list) -&gt; string list</code></dt>
+<dd>
+<p><code>removeFromEnv (name, env)</code> removes any binding of <code>name</code> from the
+environment.  Note that if <code>env</code> has multiple bindings of <code>name</code>
+(<em>i.e.</em>, <code>env</code> is <strong>not</strong> well formed), then only the first binding
+is removed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> addToEnv : (string * string list) -&gt; string list</code></dt>
+<dd>
+<p><code>addToEnv (bind, env)</code> adds the binding <code>bind</code>, which should be of the
+form &#8220;`<em>name</em>=<em>value</em>`&#8221;, to the environment.  If there was an
+existing binding of <code><em>name</em></code> in <code>env</code>, then it will be replaced.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> environ : unit -&gt; string list</code></dt>
+<dd>
+<p><code>env ()</code> returns the user&#8217;s (host process) environment.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> getEnv : string -&gt; string option</code></dt>
+<dd>
+<p><code>getEnv name</code> returns the binding of the environment variable <code>name</code>
+in the user&#8217;s (host process) environment.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="unix-lib.html"><em>The Unix Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

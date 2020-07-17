@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The UTF8 structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>UTF8</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>UTF8</code> structure</span></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>UTF8</code> structure provides support for working
+with <a href="https://en.wikipedia.org/wiki/UTF-8"><strong>UTF-8</strong></a>
+encoded strings.  <strong>UTF-8</strong> is a way to represent <strong>Unicode</strong>
+code points in an 8-bit character type while being backward
+compatible with the <strong>ASCII</strong> encoding for 7-bit characters.
+The encoding scheme uses one to four bytes as follows:</p>
+</div>
+<table class="tableblock frame-all grid-rows" style="width: 80%;">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-top">Wide Character Bits</th>
+<th class="tableblock halign-center valign-top">Byte 0</th>
+<th class="tableblock halign-center valign-top">Byte 1</th>
+<th class="tableblock halign-center valign-top">Byte 2</th>
+<th class="tableblock halign-center valign-top">Byte 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>00000</code> <code>00000000</code> <code>0xxxxxxx</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>0xxxxxxx</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>00000</code> <code>00000yyy</code> <code>yyxxxxxx</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>110yyyyy</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>10xxxxxx</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>00000</code> <code>zzzzyyyy</code> <code>yyxxxxxx</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>1110zzzz</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>10yyyyyy</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>10xxxxxx</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>wwwzz</code> <code>zzzzyyyy</code> <code>yyxxxxxx</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>11110www</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>10zzzzzz</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>10yyyyyy</code></p>
+</div></div></td>
+<td class="tableblock halign-center valign-top"><div class="content"><div class="paragraph">
+<p><code>10xxxxxx</code></p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">UTF8</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">UTF8</span> <span class="tok-p">:&gt;</span> <span class="tok-n">UTF8</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">wchar</span> <span class="tok-p">=</span> <span class="tok-n">word</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">maxCodePoint</span> <span class="tok-p">:</span> <span class="tok-n">wchar</span>
+
+<span class="tok-kr">exception</span> <span class="tok-nc">Incomplete</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">getu</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">wchar</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">encode</span> <span class="tok-p">:</span> <span class="tok-n">wchar</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">isAscii</span> <span class="tok-p">:</span> <span class="tok-n">wchar</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">toAscii</span> <span class="tok-p">:</span> <span class="tok-n">wchar</span> <span class="tok-p">-&gt;</span> <span class="tok-n">char</span>
+<span class="tok-kr">val</span> <span class="tok-nv">fromAscii</span> <span class="tok-p">:</span> <span class="tok-n">char</span> <span class="tok-p">-&gt;</span> <span class="tok-n">wchar</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">toString</span> <span class="tok-p">:</span> <span class="tok-n">wchar</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">size</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">int</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">explode</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">wchar</span> <span class="tok-n">list</span>
+<span class="tok-kr">val</span> <span class="tok-nv">implode</span> <span class="tok-p">:</span> <span class="tok-n">wchar</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">map</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">wchar</span> <span class="tok-p">-&gt;</span> <span class="tok-n">wchar</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+<span class="tok-kr">val</span> <span class="tok-nv">app</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">wchar</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">fold</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-n">wchar</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+<span class="tok-kr">val</span> <span class="tok-nv">all</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">wchar</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">exists</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">wchar</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> wchar = word</code></dt>
+<dd>
+<p>The type of a <strong>Unicode</strong> code point.<br>
+Note that we use the <code>word</code> type for this because <strong>SML/NJ</strong> does not currently
+have a wide-character type.  If such a type is introduced, then this type
+definition will likely change.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> maxCodePoint : wchar</code></dt>
+<dd>
+<p>The maximum code point in the <strong>Unicode</strong> character set (<code>0wx10FFFF</code>).</p>
+</dd>
+</dl>
+</div>
+<div id="exn:Incomplete" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">exception</span> Incomplete</code></dt>
+<dd>
+<p>This exception is raised when certain operations are applied to incomplete
+strings (<em>i.e.</em>, strings that end with a partial <strong>UTF-8</strong> character encoding).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> getu : (char, 'strm) <a href="https://standardml.org/Basis/string-cvt.html#SIG:STRING_CVT.reader:TY">StringCvt.reader</a> -&gt; (wchar, 'strm) <a href="https://standardml.org/Basis/string-cvt.html#SIG:STRING_CVT.reader:TY">StringCvt.reader</a></code></dt>
+<dd>
+<p><code>getu getc</code> returns a wide-character reader for the character reader <code>getc</code>.
+The resulting reader will raise the <a href="#exn:Incomplete"><code>Incomplete</code></a> exception
+if it encounters an incomplete <strong>UTF-8</strong> character.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> encode : wchar -&gt; string</code></dt>
+<dd>
+<p><code>encode wc</code> returns the <strong>UTF-8</strong> encoding of the wide character <code>wc</code>.
+This expression raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Domain:EXN"><code>Domain</code></a> exception
+if <code>wc</code> is greater than the maximum <strong>Unicode</strong> code point.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> isAscii : wchar -&gt; bool</code></dt>
+<dd>
+<p><code>isAscii wc</code> returns <code>true</code> if, and only if, <code>wc</code> is an ASCII character.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> toAscii : wchar -&gt; char		(* truncates to 7-bits *)</code></dt>
+<dd>
+<p><code>toAscii wc</code> converts <code>wc</code> to an 8-bit character by truncating <code>wc</code>
+to its low seven bits.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fromAscii : char -&gt; wchar	(* truncates to 7-bits *)</code></dt>
+<dd>
+<p><code>toAscii c</code> converts the 8-bit character <code>c</code> to a wide character in
+the ASCII range (the high bit of <code>c</code> is ignored).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> toString : wchar -&gt; string</code></dt>
+<dd>
+<p><code>toString wc</code> returns a printable string representation of a wide character
+as a <strong>Unicode</strong> escape sequence.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> size : string -&gt; int</code></dt>
+<dd>
+<p><code>size s</code> returns the number of <strong>UTF-8</strong> encoded <strong>Unicode</strong> characters
+in the string <code>s</code>.  This expression raises the
+<a href="#exn:Incomplete"><code>Incomplete</code></a> exception if an incomplete
+character is encountered.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> explode : string -&gt; wchar list</code></dt>
+<dd>
+<p><code>explode s</code> returns the list of <strong>UTF-8</strong> encoded Unicode characters that
+comprise the string <code>s</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> implode : wchar list -&gt; string</code></dt>
+<dd>
+<p><code>implode wcs</code> returns the <strong>UTF-8</strong> encoded string that represents
+the list <code>wcs</code> of Unicode code points.
+This expression raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Domain:EXN"><code>Domain</code></a> exception
+if any character in the list is greater than the maximum <strong>Unicode</strong> code point.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> map : (wchar -&gt; wchar) -&gt; string -&gt; string</code></dt>
+<dd>
+<p><code>map f s</code> maps the function <code>f</code> over the <strong>UTF-8</strong> encoded characters
+in the string <code>s</code> to produce a new <strong>UTF-8</strong> string. This expression raises
+the <a href="#exn:Incomplete"><code>Incomplete</code></a> exception if an incomplete
+character is encountered and the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Domain:EXN"><code>Domain</code></a> exception
+if <code>f</code> returns a value that is greater than the maximum <strong>Unicode</strong> code point.
+It is equivalent to the expression</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">implode</span> <span class="tok-p">(</span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">map</span> <span class="tok-n">f</span> <span class="tok-p">(</span><span class="tok-n">explode</span> <span class="tok-n">s</span><span class="tok-p">))</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> app : (wchar -&gt; unit) -&gt; string -&gt; unit</code></dt>
+<dd>
+<p><code>app f s</code> applies the function <code>f</code> to the  <strong>UTF-8</strong> encoded characters
+in the string <code>s</code>.  This expression raises the
+<a href="#exn:Incomplete"><code>Incomplete</code></a> exception if an incomplete
+character is encountered.  It is equivalent to the expression</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">app</span> <span class="tok-n">f</span> <span class="tok-p">(</span><span class="tok-n">explode</span> <span class="tok-n">s</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fold : ((wchar * 'a) -&gt; 'a) -&gt; 'a -&gt; string -&gt; 'a</code></dt>
+<dd>
+<p><code>fold f init s</code> folds a function from left-to-right over the
+<strong>UTF-8</strong> encoded characters in the string.  This expression raises
+the <a href="#exn:Incomplete"><code>Incomplete</code></a> exception if an incomplete
+character is encountered.  It is equivalent to the expression</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">foldl</span> <span class="tok-n">f</span> <span class="tok-n">init</span> <span class="tok-p">(</span><span class="tok-n">explode</span> <span class="tok-n">s</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> all : (wchar -&gt; bool) -&gt; string -&gt; bool</code></dt>
+<dd>
+<p><code>all pred s</code> returns <code>true</code> if, and only if, the function <code>pred</code>
+returns true for all of the <strong>UTF-8</strong> encoded characters in the
+string.  It short-circuits evaluation as soon as a character
+is encountered for which <code>pred</code> returns <code>false</code>.  This expression
+raises the <a href="#exn:Incomplete"><code>Incomplete</code></a> exception if an incomplete
+character is encountered.  It is equivalent to the expression</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">all</span> <span class="tok-n">pred</span> <span class="tok-p">(</span><span class="tok-n">explode</span> <span class="tok-n">s</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>when <code>s</code> only contains complete characters.</p>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> exists : (wchar -&gt; bool) -&gt; string -&gt; bool</code></dt>
+<dd>
+<p><code>exists pred s</code> returns <code>true</code> if, and only if, the function <code>pred</code>
+returns <code>true</code> for at least one <strong>UTF-8</strong> encoded character in
+the string <code>s</code>.  It short-circuits evaluation as soon as a character
+is encountered for which <code>pred</code> returns <code>true</code>.  This expression raises
+the <a href="#exn:Incomplete"><code>Incomplete</code></a> exception if an incomplete
+character is encountered.  It is equivalent to the expression</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">exists</span> <span class="tok-n">pred</span> <span class="tok-p">(</span><span class="tok-n">explode</span> <span class="tok-n">s</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>when <code>s</code> only contains complete characters.</p>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

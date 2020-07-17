@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The RegExpFn functor</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>RegExpFn</code> functor</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="tutorial.html"><span class="toc-lib-page">Using the RegExp Library</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_PARSER.html"><span class="toc-lib-page">The <code>REGEXP_PARSER</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_ENGINE.html"><span class="toc-lib-page">The <code>REGEXP_ENGINE</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-RegExpSyntax.html"><span class="toc-lib-page">The <code>RegExpSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-MatchTree.html"><span class="toc-lib-page">The <code>MatchTree</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-AwkSyntax.html"><span class="toc-lib-page">The <code>AwkSyntax</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>RegExpFn</code> functor</span></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>RegExpFn</code> functor glues together a front-end regular-expression
+parser with a back-end regular-expression engine.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">REGEXP</span>
+<span class="tok-kr">functor</span> <span class="tok-nn">RegExpFn</span> <span class="tok-p">(</span>
+    <span class="tok-kr">structure</span> <span class="tok-nn">P</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_PARSER</span>
+    <span class="tok-kr">structure</span> <span class="tok-nn">E</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_ENGINE</span>
+  <span class="tok-p">)</span> <span class="tok-p">:&gt;</span> <span class="tok-n">REGEXP</span> <span class="tok-kr">where</span> <span class="tok-kr">type</span> <span class="tok-kt">regexp</span> <span class="tok-p">=</span> <span class="tok-nn">E</span><span class="tok-p">.</span><span class="tok-n">regexp</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functor_argument_interface">Functor Argument Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">P</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_PARSER</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">E</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_ENGINE</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_functor_argument_description">Functor Argument Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> P : <a href="sig-REGEXP_PARSER.html">REGEXP_PARSER</a></code></dt>
+<dd>
+<p>The front-end parser for the regular-expression syntax.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">structure</span> E : <a href="sig-REGEXP_ENGINE.html">REGEXP_ENGINE</a></code></dt>
+<dd>
+<p>The back-end engine.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">regexp</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">match</span> <span class="tok-p">=</span> <span class="tok-p">{</span><span class="tok-n">pos</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">len</span> <span class="tok-p">:</span> <span class="tok-n">int</span><span class="tok-p">}</span> <span class="tok-nn">MatchTree</span><span class="tok-p">.</span><span class="tok-n">match_tree</span>
+
+<span class="tok-kr">exception</span> <span class="tok-nc">CannotParse</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">compile</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span><span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">regexp</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span>
+<span class="tok-kr">val</span> <span class="tok-nv">compileString</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">regexp</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">find</span> <span class="tok-p">:</span> <span class="tok-n">regexp</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span><span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">match</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">prefix</span> <span class="tok-p">:</span> <span class="tok-n">regexp</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span><span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">match</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">match</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">match</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">))</span> <span class="tok-n">list</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span><span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface_description">Interface Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> regexp</code></dt>
+<dd>
+<p>The type of a compiled regular expression.</p>
+<div class="literalblock">
+<div class="content">
+<pre>(* a match specifies the position (as a stream) and the length of the match *)</pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a match = {pos : 'a, len : int} MatchTree.match_tree</code></dt>
+<dd>
+<p>A <a href="str-MatchTree.html#type:match_tree">match tree</a> specifying the starting
+position and size of matches.  For a general
+<a href="https://standardml.org/Basis/string-cvt.html#SIG:STRING_CVT.reader:TY">character reader</a> <code>getc</code>,
+we can extract the string for a match using the following function:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">getMatchString</span> <span class="tok-p">{</span><span class="tok-n">pos</span><span class="tok-p">,</span> <span class="tok-n">len</span><span class="tok-p">}</span> <span class="tok-p">=</span> <span class="tok-kr">let</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">get</span> <span class="tok-p">(_,</span> <span class="tok-mi">0</span><span class="tok-p">,</span> <span class="tok-n">chrs</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-nn">String</span><span class="tok-p">.</span><span class="tok-n">implodeRev</span> <span class="tok-n">chrs</span>
+        <span class="tok-p">|</span> <span class="tok-nf">get</span> <span class="tok-p">(</span><span class="tok-n">strm</span><span class="tok-p">,</span> <span class="tok-n">n</span><span class="tok-p">,</span> <span class="tok-n">chrs</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-kr">let</span>
+            <span class="tok-kr">val</span> <span class="tok-nv">SOME</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">,</span> <span class="tok-n">rest</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-n">getc</span> <span class="tok-n">strm</span>
+            <span class="tok-kr">in</span>
+              <span class="tok-n">get</span> <span class="tok-p">(</span><span class="tok-n">rest</span><span class="tok-p">,</span> <span class="tok-n">n-</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-n">c::chrs</span><span class="tok-p">)</span>
+            <span class="tok-kr">end</span>
+      <span class="tok-kr">in</span>
+        <span class="tok-n">get</span> <span class="tok-p">(</span><span class="tok-n">pos</span><span class="tok-p">,</span> <span class="tok-n">len</span><span class="tok-p">,</span> <span class="tok-p">[])</span>
+      <span class="tok-kr">end</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>More direct means are possible for specific input sources (<em>e.g.</em>, strings,
+substrings, or text input).</p>
+</div>
+</dd>
+</dl>
+</div>
+<div id="exn:CannotParse" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">exception</span> CannotParse</code></dt>
+<dd>
+<p>This exception is raised by the functions <a href="#val:compileString"><code>compileString</code></a>
+<a href="#val:match"><code>match</code></a> when the front-end encounters a syntax error.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> compile : (char,'a) StringCvt.reader -&gt; (regexp, 'a) StringCvt.reader</code></dt>
+<dd>
+<p><code>compile getc strm</code> parses and compiles a regular expression from the input
+stream <code>strm</code> using the
+<a href="https://standardml.org/Basis/string-cvt.html#SIG:STRING_CVT.reader:TY">character reader</a> <code>getc</code>.
+If successful, it returns <code>SOME(re, strm')</code>, where <code>re</code> is the compiled
+regular expression and <code>strm'</code> is the residual input stream.  It returns
+<code>NONE</code> if there is a syntax error in the input.  If the source regular
+expression contains features that are not supported by the back-end engine,
+then the <a href="str-RegExpSyntax.html#exn:CannotCompile"><code>CannotCompile</code></a>
+exception is raised.</p>
+</dd>
+</dl>
+</div>
+<div id="val:compileString" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> compileString : string -&gt; regexp</code></dt>
+<dd>
+<p><code>compileString s</code> returns the compiled regular expression defined
+by the string <code>s</code>.  The <a href="#exn:CannotParse"><code>CannotParse</code></a> exception
+is raised if there was a syntax error when parsing <code>s</code> and the
+<a href="str-RegExpSyntax.html#exn:CannotCompile"><code>CannotCompile</code></a> exception
+is raised if  the source regular expression contains features that are
+not supported by the back-end engine.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : regexp -&gt; (char,'a) StringCvt.reader -&gt; ('a match, 'a) StringCvt.reader</code></dt>
+<dd>
+<p><code>find re getc strm</code> returns <code>SOME mt</code> where <code>mt</code> describes the <strong>first</strong>
+match of <code>re</code> in the input stream; otherwise it returns <code>NONE</code> if there
+is no match.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> prefix : regexp -&gt; (char,'a) StringCvt.reader -&gt; ('a match, 'a) StringCvt.reader</code></dt>
+<dd>
+<p><code>prefix re getc strm</code> returns <code>SOME mt</code> where <code>mt</code> describes the
+matching of <code>re</code> at the <strong>beginning</strong> of the input stream; otherwise it
+returns <code>NONE</code> if <code>re</code> does not match a prefix of the input.</p>
+</dd>
+</dl>
+</div>
+<div id="val:match" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> match : (string * ('a match -&gt; 'b)) list -&gt; (char,'a) StringCvt.reader -&gt; ('b, 'a) StringCvt.reader</code></dt>
+<dd>
+<p><code>match rules getc strm</code> attempts to match one of the <code>rules</code> starting at the
+current stream position.  Each rule is a pair of a regular expression and
+an action.  The rules are tested in order; if a rule <code>(re, act)</code> matches with
+the result <code>mt</code>, then the result of <code>match</code> will be <code>SOME(act mt)</code>.
+If no rule matches, then <code>NONE</code> is the result.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="regexp-lib.html"><em>The RegExp Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The HashConsMap structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>HashConsMap</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-HashCons.html"><span class="toc-lib-page">The <code>HashCons</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsAtom.html"><span class="toc-lib-page">The <code>HashConsAtom</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>HashConsMap</code> structure</span></li>
+      <li class="toc-page"><a href="str-HashConsString.html"><span class="toc-lib-page">The <code>HashConsString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsSet.html"><span class="toc-lib-page">The <code>HashConsSet</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashConsGroundFn.html"><span class="toc-lib-page">The <code>HashConsGroundFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>HashConsMap</code> structure implements functional, finite maps keyed
+by hash-consed objects.  A balanced tree structure is used in the
+representation.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">HASH_CONS_MAP</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">HashConsMap</span> <span class="tok-p">:</span> <span class="tok-n">HASH_CONS_MAP</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">obj</span> <span class="tok-p">=</span> <span class="tok-nd">&#39;a</span> <span class="tok-nn">HashCons</span><span class="tok-p">.</span><span class="tok-n">obj</span>
+
+<span class="tok-kr">type</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-kt">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">isEmpty</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">singleton</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">insert</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">insert&#39;</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">insertWith</span>  <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">insertWithi</span> <span class="tok-p">:</span>  <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">find</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">lookup</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">inDomain</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">remove</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">empty</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">numItems</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span>  <span class="tok-n">int</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">listItems</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">list</span>
+<span class="tok-kr">val</span> <span class="tok-nv">listItemsi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">listKeys</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">collate</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">unionWith</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">unionWithi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">intersectWith</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;d</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">map</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;d</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">intersectWithi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;d</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">map</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;d</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mergeWith</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">option</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">option</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">option</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;d</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">mergeWithi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">option</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">option</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">option</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">map</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;d</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">app</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">appi</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">map</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">mapi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">fold</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">filter</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">filteri</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mapPartial</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">option</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+<span class="tok-kr">val</span> <span class="tok-nv">mapPartiali</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">option</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">map</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">exists</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">existsi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">all</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">alli</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">map</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In the description of operations below, we write \(\mathbf{dom}(m)\)
+for the <em>domain</em> of the map \(m\) (<em>i.e</em>, the set of keys for which
+\(m\) is defined), and \(\mathbf{rng}(m)\) for its <em>range</em>
+(<em>i.e.</em>, the set \(\{ m(k)\;|\;k \in \mathbf{dom}(m) \}\)).  It is also
+useful to view a map as the set of key-value pairs
+\(\{ (k, m(k))\;|\;k \in \mathbf{dom}(m) \}\), which we call the <em>items</em>
+of \(m\).</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a obj = 'a HashCons.obj</code></dt>
+<dd>
+<p>Hash-consed objects are the search keys for the finite maps.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> ('a, 'b) map</code></dt>
+<dd>
+<p>A finite map from <code>'a obj</code> values to <code>'b</code> values.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> empty : ('a, 'b) map</code></dt>
+<dd>
+<p>The empty map.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> singleton : ('a obj * 'b) -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>singleton (obj, v)</code> creates the singleton map that maps <code>obj</code> to <code>v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insert : ('a, 'b) map * 'a obj * 'b -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>insert (m, obj, v)</code> adds the mapping from <code>obj</code> to <code>v</code> to <code>m</code>.
+This mapping overrides any previous mapping from <code>obj</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insert' : (('a obj * 'b) * ('a, 'b) map) -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>insert' ((obj, v), map)</code> adds the mapping from <code>obj</code> to <code>v</code> to <code>m</code>.
+This mapping overrides any previous mapping from <code>obj</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insertWith  : (('b * 'b) -&gt; 'b) -&gt; ('a, 'b) map * 'a obj * 'b -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>insertWith comb (m, obj, v)</code> adds the mapping from <code>obj</code> to <code>value</code> to <code>m</code>,
+where <code>value = comb(v', v)</code>, if <code>m</code> already contained a mapping from <code>obj</code>
+to <code>v'</code>; otherwise, <code>value = v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insertWithi :  (('a obj * 'b * 'b) -&gt; 'b) -&gt; ('a, 'b) map * 'a obj * 'b -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>insertWithi comb (m, obj, v)</code> adds the mapping from <code>obj</code> to <code>value</code> to <code>m</code>,
+where <code>value = comb(obj, v', v)</code>, if <code>m</code> already contained a mapping from <code>obj</code>
+to <code>v'</code>; otherwise, <code>value = v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : ('a, 'b) map * 'a obj -&gt; 'b option</code></dt>
+<dd>
+<p><code>find (m, obj)</code> returns <code>SOME v</code>, if <code>m</code> maps <code>obj</code> to <code>v</code> and <code>NONE</code> otherwise.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> lookup : ('a, 'b) map * 'a obj -&gt; 'b</code></dt>
+<dd>
+<p><code>lookup (m, obj)</code> returns <code>v</code>, if <code>m</code> maps <code>obj</code> to <code>v</code>; otherwise it
+raises the exception <a href="../Util/str-LibBase.html#exn:NotFound"><code>NotFound</code></a>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> inDomain : (('a, 'b) map * 'a obj) -&gt; bool</code></dt>
+<dd>
+<p><code>inDomain (m, obj)</code> returns <code>true</code> if <code>obj</code> is in the domain of <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> remove : ('a, 'b) map * 'a obj -&gt; ('a, 'b) map * 'b</code></dt>
+<dd>
+<p><code>remove (m, obj)</code> returns the pair <code>(m', v)</code>, if <code>m</code> maps <code>obj</code> to <code>v</code>
+and where <code>m'</code> is <code>m</code> with <code>obj</code> removed from its domain.  If <code>obj</code>
+is not in the domain of <code>m</code>, then it raises the exception
+<a href="../Util/str-LibBase.html#exn:NotFound"><code>NotFound</code></a>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> isEmpty : ('a, 'b) map -&gt; bool</code></dt>
+<dd>
+<p><code>isEmpty m</code> returns true if, and only if, <code>m</code> is empty.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> numItems : ('a, 'b) map -&gt;  int</code></dt>
+<dd>
+<p><code>numItems m</code> returns the size of <code>m</code>'s domain.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listItems  : ('a, 'b) map -&gt; 'b list</code></dt>
+<dd>
+<p><code>listItems m</code> returns a list of the values in the <em>range</em> of <code>m</code>.
+Note that this list will contain duplicates when multiple keys in
+<code>m</code>'s domain map to the same value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listKeys : ('a, 'b) map -&gt; 'a obj list</code></dt>
+<dd>
+<p><code>listKeys m</code> returns a list of the objects in the domain of <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listItemsi : ('a, 'b) map -&gt; ('a obj * 'b) list</code></dt>
+<dd>
+<p><code>listItemsi m</code> returns a list of <code>(obj, v)</code> pairs, where <code>m</code> maps
+<code>obj</code> to <code>v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> collate : ('b * 'b -&gt; order) -&gt; (('a, 'b) map * ('a, 'b) map) -&gt; order</code></dt>
+<dd>
+<p><code>collate cmpV (m1, m2)</code> returns the order of the two maps, where <code>cmpV</code> is
+used to compare the values in the domain.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> unionWith  : ('b * 'b -&gt; 'b) -&gt; (('a, 'b) map * ('a, 'b) map) -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>unionWith comb (m1, m2)</code> returns the union of the two maps, using the function <code>comb</code>
+to combine values when there is a collision of keys.  More formally, this expression
+returns the map</p>
+<div class="stemblock">
+<div class="content">
+\[  \begin{array}{l}
+  \{ (k, \mathtt{m1}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \setminus \mathbf{dom}(\mathtt{m2}) \}
+  \cup \\
+  \{ (k, \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m2}) \setminus \mathbf{dom}(\mathtt{m1}) \}
+  \cup \\
+  \{ (k, \mathtt{comb}(\mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}
+  \end{array}\]
+</div>
+</div>
+<div class="paragraph">
+<p>For example, we could implement a <em>multiset</em> of objects by mapping objects to their
+multiplicity.  Then, the union of two multisets could be defined by</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">union</span> <span class="tok-p">(</span><span class="tok-n">ms1</span><span class="tok-p">,</span> <span class="tok-n">ms2</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-n">unionWith</span> <span class="tok-nn">Int</span><span class="tok-p">.</span><span class="tok-n">+</span> <span class="tok-p">(</span><span class="tok-n">ms1</span><span class="tok-p">,</span> <span class="tok-n">ms2</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> unionWithi : ('a obj * 'b * 'b -&gt; 'b) -&gt; (('a, 'b) map * ('a, 'b) map) -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>unionWithi comb (m1, m2)</code> returns the union of the two maps, using the function <code>comb</code>
+to combine values when there is a collision of keys.  More formally, this expression
+returns the map</p>
+<div class="stemblock">
+<div class="content">
+\[  \begin{array}{l}
+  \{ (k, \mathtt{m1}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \setminus \mathbf{dom}(\mathtt{m2}) \}
+  \cup \\
+  \{ (k, \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m2}) \setminus \mathbf{dom}(\mathtt{m1}) \}
+  \cup \\
+  \{ (k, \mathtt{comb}(k, \mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}
+  \end{array}\]
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> intersectWith  : ('b * 'c -&gt; 'd) -&gt; (('a, 'b) map * ('a, 'c) map) -&gt; ('a, 'd) map</code></dt>
+<dd>
+<p><code>intersectWith comb (m1, m2)</code> returns the intersection of the two maps,
+where the values in the range are a computed by applying the function
+<code>comb</code> to the values from the two maps.  More formally, this expression
+returns the map</p>
+<div class="stemblock">
+<div class="content">
+\[  \{ (k, \mathtt{comb}(\mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}\]
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> intersectWithi : ('a obj * 'b * 'c -&gt; 'd) -&gt; (('a, 'b) map * ('a, 'c) map) -&gt; ('a, 'd) map</code></dt>
+<dd>
+<p><code>intersectWithi comb (m1, m2)</code> returns the intersection of the two maps,
+where the values in the range are a computed by applying the function
+<code>comb</code> to the kay and the values from the two maps.  More formally, this
+expression returns the map</p>
+<div class="stemblock">
+<div class="content">
+\[  \{ (k, \mathtt{comb}(k, \mathtt{m1}(k), \mathtt{m2}(k))
+    \;|\;k \in \mathbf{dom}(\mathtt{m1}) \cap \mathbf{dom}(\mathtt{m2}) \}\]
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mergeWith : ('b option * 'c option -&gt; 'd option) -&gt; (('a, 'b) map * ('a, 'c) map) -&gt; ('a, 'd) map</code></dt>
+<dd>
+<p><code>mergeWith comb (m1, m2)</code> merges the two maps using the function <code>comb</code>
+as a decision procedure for adding elements to the new map.  For each object
+\(\mathtt{obj} \in \mathbf{dom}(\mathtt{m1}) \cup \mathbf{dom}(\mathtt{m2})\),
+we evaluate <code>comb(optV1, optV2)</code>, where <code>optV1</code> is <code>SOME v</code> if
+\((\mathtt{obj}, \mathtt{v}) \in \mathtt{m1}\) and is <code>NONE</code> if
+latexmath:[\mathtt{obj} \not\in \mathbf{dom}(\mathtt{m1}); likewise for <code>optV2</code>.
+If <code>comb(optV1, optV2)</code> returns <code>SOME v'</code>, then we add <code>(obj, v')</code>
+to the result.</p>
+<div class="paragraph">
+<p>The <code>mergeWith</code> function is a generalization of the <code>unionWith</code> and
+<code>intersectionWith</code> functions.</p>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mergeWithi : ('a obj * 'b option * 'c option -&gt; 'd option) -&gt; (('a, 'b) map * ('a, 'c) map) -&gt; ('a, 'd) map</code></dt>
+<dd>
+<p><code>mergeWithi comb (m1, m2)</code> merges the two maps using the function <code>comb</code>
+as a decision procedure for adding elements to the new map.  The difference
+between this function and <code>mergeWith</code> is that the <code>comb</code> function takes the
+<code>key</code> value in addition to the optional values from the range.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> app  : ('b -&gt; unit) -&gt; ('a, 'b) map -&gt; unit</code></dt>
+<dd>
+<p><code>app f m</code> applies the function <code>f</code> to the values in the range of <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> appi : (('a obj * 'b) -&gt; unit) -&gt; ('a, 'b) map -&gt; unit</code></dt>
+<dd>
+<p><code>appi f map</code> applies the function <code>f</code> to the key-value pairs that
+define <code>m</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> map  : ('b -&gt; 'c) -&gt; ('a, 'b) map -&gt; ('a, 'c) map</code></dt>
+<dd>
+<p><code>map f m</code> creates a new finite map <code>m'</code> by applying the function <code>f</code> to the
+values in the range of <code>m</code>.  Thus, if
+\((\mathtt{obj}, \mathtt{v}) \in \mathtt{m}\), then
+<code>(obj, f v)</code> will be in <code>m'</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mapi : ('a obj * 'b -&gt; 'c) -&gt; ('a, 'b) map -&gt; ('a, 'c) map</code></dt>
+<dd>
+<p><code>mapi f m</code> creates a new finite map <code>m'</code> by applying the function <code>f</code> to the
+key-value pairs of <code>m</code>.  Thus, if
+\((\mathtt{obj}, \mathtt{v}) \in \mathtt{m}\), then
+<code>(obj, f(obj, v))</code> will be in <code>m'</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fold : ('b * 'c -&gt; 'c) -&gt; 'c -&gt; ('a, 'b) map -&gt; 'c</code></dt>
+<dd>
+<p><code>fold f init m</code> folds the function <code>f</code> over the range of
+<code>m</code> using <code>init</code> as the initial value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldi : ('a obj * 'b * 'c -&gt; 'c) -&gt; 'c -&gt; ('a, 'b) map -&gt; 'c</code></dt>
+<dd>
+<p><code>foldi f init m</code> folds the function <code>f</code> over the key-value pairs in
+<code>m</code> using <code>init</code> as the initial value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> filter : ('b -&gt; bool) -&gt; ('a, 'b) map -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>filter pred m</code> filters out those items <code>(obj, v)</code> from <code>m</code>, such that
+<code>pred v</code> returns <code>false</code>.  More formally, this expression returns the map
+\(\{ (\mathtt{obj}, \mathtt{v})\;|\;\mathtt{obj} \in \mathbf{dom}(\mathtt{m})
+\wedge \mathtt{pred}(\mathtt{v}) \}\).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> filteri : ('a obj * 'b -&gt; bool) -&gt; ('a, 'b) map -&gt; ('a, 'b) map</code></dt>
+<dd>
+<p><code>filteri pred m</code> filters out those items <code>(obj, v)</code> from <code>m</code>, such that
+<code>pred(obj, v)</code> returns <code>false</code>.  More formally, this expression returns the map
+\(\{ (\mathtt{obj}, \mathtt{v})\;|\;\mathtt{obj} \in \mathbf{dom}(\mathtt{m})
+\wedge \mathtt{pred}(\mathtt{obj}, \mathtt{v}) \}\).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mapPartial : ('b -&gt; 'c option) -&gt; ('a, 'b) map -&gt; ('a, 'c) map</code></dt>
+<dd>
+<p><code>mapPartial f m</code> maps the partial function <code>f</code> over the items of <code>m</code>.
+More formally, this expression returns the map</p>
+</dd>
+</dl>
+</div>
+<div class="stemblock">
+<div class="content">
+\[  \{ (k, v') \;|\; (k, v) \in \mathtt{m} \wedge \mathtt{f}(v) = \mathtt{SOME}(v') \}\]
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> mapPartiali : ('a obj * 'b -&gt; 'c option) -&gt; ('a, 'b) map -&gt; ('a, 'c) map</code></dt>
+<dd>
+<p><code>mapPartiali f m</code> maps the partial function <code>f</code> over the items of <code>m</code>.
+More formally, this expression returns the map</p>
+</dd>
+</dl>
+</div>
+<div class="stemblock">
+<div class="content">
+\[  \{ (k, v') \;|\; (k, v) \in \mathtt{m} \wedge \mathtt{f}(k, v) = \mathtt{SOME}(v') \}\]
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> exists : ('b -&gt; bool) -&gt; ('a, 'b) map -&gt; bool</code></dt>
+<dd>
+<p><code>exists pred m</code> returns <code>true</code> if, and only if, there exists an item
+\((\mathtt{obj}, \mathtt{v}) \in \mathtt{m}\),
+such that <code>pred v</code> returns <code>true</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> existsi : ('a obj * 'b -&gt; bool) -&gt; ('a, 'b) map -&gt; bool</code></dt>
+<dd>
+<p><code>exists pred m</code> returns <code>true</code> if, and only if, there exists an item
+\((\mathtt{obj}, \mathtt{v}) \in \mathtt{m}\), such that
+<code>pred(obj, v)</code> returns <code>true</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> all : ('b -&gt; bool) -&gt; ('a, 'b) map -&gt; bool</code></dt>
+<dd>
+<p><code>all pred m</code> returns <code>true</code> if, and only if, <code>pred v</code> returns <code>true</code>
+for all items \((\mathtt{obj}, \mathtt{v}) \in \mathtt{m}\).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> alli : ('a obj * 'b -&gt; bool) -&gt; ('a, 'b) map -&gt; bool</code></dt>
+<dd>
+<p><code>all pred m</code> returns <code>true</code> if, and only if, <code>pred(obj, v)</code> returns <code>true</code>
+for all items \((\mathtt{obj}, \mathtt{v}) \in \mathtt{m}\).</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-HashCons.html"><code>HashCons</code></a>,
+<a href="str-HashConsSet.html"><code>HashConsSet</code></a>,
+<a href="hash-cons-lib.html"><em>The HashCons Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

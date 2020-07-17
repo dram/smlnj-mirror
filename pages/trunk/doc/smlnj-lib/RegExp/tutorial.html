@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>Using the RegExp Library</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">Using the RegExp Library</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">Using the RegExp Library</span></li>
+      <li class="toc-page"><a href="sig-REGEXP_PARSER.html"><span class="toc-lib-page">The <code>REGEXP_PARSER</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_ENGINE.html"><span class="toc-lib-page">The <code>REGEXP_ENGINE</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-RegExpSyntax.html"><span class="toc-lib-page">The <code>RegExpSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-MatchTree.html"><span class="toc-lib-page">The <code>MatchTree</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-AwkSyntax.html"><span class="toc-lib-page">The <code>AwkSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RegExpFn.html"><span class="toc-lib-page">The <code>RegExpFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div class="sect1">
+<h2 id="_introduction">Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <strong>RegExp Library</strong> is designed for flexibility; it allows mixing and
+matching of different front-end syntax with back-end engines, as well
+as supporting arbitrary input sources.
+This flexibility, however, comes at the cost of making some of the
+simple applications a bit less obvious.  This tutorial shows how the
+<strong>RegExp Library</strong> can be used in a variety of common applications.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_assembling_an_regular_expression_matcher">Assembling an Regular Expression Matcher</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before we can do anything else, we must assemble a regular-expression
+matcher.  For the purposes of this tutorial, we will use a combination
+of the <code>AwkSyntax</code> front-end and the <code>BackTrackEngine</code> back-end.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">RE</span> <span class="tok-p">=</span> <span class="tok-n">RegExpFn</span><span class="tok-p">(</span>
+    <span class="tok-kr">structure</span> <span class="tok-nn">P</span> <span class="tok-p">=</span> <span class="tok-n">AwkSyntax</span>
+    <span class="tok-kr">structure</span> <span class="tok-nn">E</span> <span class="tok-p">=</span> <span class="tok-n">BackTrackEngine</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_match_trees">Match trees</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">MT</span> <span class="tok-p">=</span> <span class="tok-n">MatchTree</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example_scanning_tokens">Example: scanning tokens</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>match</code> function in the <code>REGEXP</code> signature allows one to distinguish
+between a set of possible regular expression matches.  One application of
+this mechanism is a simple scanner.  Let us define a datatype for tokens,
+which can be white space, numbers, or identifiers.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">datatype</span> <span class="tok-kt">tok</span>
+  <span class="tok-p">=</span> <span class="tok-nc">WS</span> <span class="tok-p">|</span> <span class="tok-nc">NUM</span> <span class="tok-kr">of</span> <span class="tok-nn">IntInf</span><span class="tok-p">.</span><span class="tok-n">int</span> <span class="tok-p">|</span> <span class="tok-nc">ID</span> <span class="tok-kr">of</span> <span class="tok-n">string</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can then define the scanner as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">scanner</span> <span class="tok-n">getc</span> <span class="tok-n">gets</span> <span class="tok-p">=</span> <span class="tok-kr">let</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">getMatch</span> <span class="tok-n">cons</span> <span class="tok-p">(</span><span class="tok-nn">MT</span><span class="tok-p">.</span><span class="tok-n">Match</span><span class="tok-p">({</span><span class="tok-n">pos</span><span class="tok-p">,</span> <span class="tok-n">len</span><span class="tok-p">},</span> <span class="tok-p">_))</span> <span class="tok-p">=</span> <span class="tok-n">cons</span> <span class="tok-p">(</span><span class="tok-n">gets</span> <span class="tok-p">(</span><span class="tok-n">pos</span><span class="tok-p">,</span> <span class="tok-n">len</span><span class="tok-p">))</span>
+      <span class="tok-kr">in</span>
+	<span class="tok-nn">RE</span><span class="tok-p">.</span><span class="tok-n">match</span> <span class="tok-p">[</span>
+	    <span class="tok-p">(</span><span class="tok-s2">&quot;[ </span><span class="tok-se">\t\n</span><span class="tok-s2">]+&quot;</span><span class="tok-p">,</span> <span class="tok-n">getMatch</span> <span class="tok-p">(</span><span class="tok-kr">fn</span> <span class="tok-p">_</span> <span class="tok-p">=&gt;</span> <span class="tok-n">WS</span><span class="tok-p">)),</span>
+	    <span class="tok-p">(</span><span class="tok-s2">&quot;[0-9]+&quot;</span><span class="tok-p">,</span> <span class="tok-n">getMatch</span> <span class="tok-p">(</span><span class="tok-kr">fn</span> <span class="tok-n">s</span> <span class="tok-p">=&gt;</span> <span class="tok-n">NUM</span><span class="tok-p">(</span><span class="tok-n">valOf</span><span class="tok-p">(</span><span class="tok-nn">IntInf</span><span class="tok-p">.</span><span class="tok-n">fromString</span> <span class="tok-n">s</span><span class="tok-p">)))),</span>
+	    <span class="tok-p">(</span><span class="tok-s2">&quot;[a-zA-Z][a-zA-Z0-9]*&quot;</span><span class="tok-p">,</span> <span class="tok-n">getMatch</span> <span class="tok-n">ID</span><span class="tok-p">)</span>
+	  <span class="tok-p">]</span> <span class="tok-n">getc</span>
+      <span class="tok-kr">end</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here the <code>getc</code> parameter is the standard character reader; we have also included
+the <code>gets</code> parameter, which is a function of type</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nd">&#39;strm</span> <span class="tok-n">*</span> <span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>for getting a string from a stream.  For many input sources, the <code>gets</code> function
+has an efficient and direct implementation, but it can also be implemented in
+terms of the <code>getc</code> function as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">gets</span> <span class="tok-n">getc</span> <span class="tok-p">(</span><span class="tok-n">strm</span><span class="tok-p">,</span> <span class="tok-n">n</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-kr">let</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">getChrs</span> <span class="tok-p">(</span><span class="tok-mi">0</span><span class="tok-p">,</span> <span class="tok-p">_,</span> <span class="tok-n">chrs</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-nn">String</span><span class="tok-p">.</span><span class="tok-n">implodeRev</span> <span class="tok-n">chrs</span>
+	<span class="tok-p">|</span> <span class="tok-nf">getChrs</span> <span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-p">,</span> <span class="tok-n">strm</span><span class="tok-p">,</span> <span class="tok-n">chrs</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-p">(</span><span class="tok-kr">case</span> <span class="tok-n">getc</span> <span class="tok-n">strm</span>
+	     <span class="tok-kr">of</span> <span class="tok-n">NONE</span> <span class="tok-p">=&gt;</span> <span class="tok-kr">raise</span> <span class="tok-n">Fail</span> <span class="tok-s2">&quot;empty stream&quot;</span>
+	      <span class="tok-n">|</span> <span class="tok-n">SOME</span><span class="tok-p">(</span><span class="tok-n">c</span><span class="tok-p">,</span> <span class="tok-n">strm</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-n">getChrs</span> <span class="tok-p">(</span><span class="tok-n">n-</span><span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-n">strm</span><span class="tok-p">,</span> <span class="tok-n">c::chrs</span><span class="tok-p">)</span>
+	    <span class="tok-cm">(* end case *)</span><span class="tok-p">)</span>
+      <span class="tok-kr">in</span>
+	<span class="tok-n">getChrs</span> <span class="tok-p">(</span><span class="tok-n">n</span><span class="tok-p">,</span> <span class="tok-n">strm</span><span class="tok-p">,</span> <span class="tok-p">[])</span>
+      <span class="tok-kr">end</span><span class="tok-p">;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Because this function is only called <strong>after</strong> the <code>scanner</code> function has matched
+a sequence of <code>n</code> characters from <code>strm</code>, the <code>"empty stream"</code> case will not
+occur for well behaving input streams.</p>
+</div>
+<div class="paragraph">
+<p>Here is an example of using the scanner to tokenize strings, where we use the
+<strong>Basis Library</strong> substring type to implement the stream type:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">tokens</span> <span class="tok-n">s</span> <span class="tok-p">=</span> <span class="tok-kr">let</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">gets</span> <span class="tok-p">(</span><span class="tok-n">ss</span><span class="tok-p">,</span> <span class="tok-n">n</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-nn">Substring</span><span class="tok-p">.</span><span class="tok-n">string</span><span class="tok-p">(</span><span class="tok-nn">Substring</span><span class="tok-p">.</span><span class="tok-n">slice</span> <span class="tok-p">(</span><span class="tok-n">ss</span><span class="tok-p">,</span> <span class="tok-mi">0</span><span class="tok-p">,</span> <span class="tok-n">SOME</span> <span class="tok-n">n</span><span class="tok-p">))</span>
+      <span class="tok-kr">val</span> <span class="tok-nv">scan</span> <span class="tok-p">=</span> <span class="tok-n">scanner</span> <span class="tok-nn">Substring</span><span class="tok-p">.</span><span class="tok-n">getc</span> <span class="tok-n">gets</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">lp</span> <span class="tok-p">(</span><span class="tok-n">ss</span><span class="tok-p">,</span> <span class="tok-n">toks</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-p">(</span><span class="tok-kr">case</span> <span class="tok-n">scan</span> <span class="tok-n">ss</span>
+	     <span class="tok-kr">of</span> <span class="tok-n">SOME</span><span class="tok-p">(</span><span class="tok-n">tok</span><span class="tok-p">,</span> <span class="tok-n">ss&#39;</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-n">lp</span> <span class="tok-p">(</span><span class="tok-n">ss&#39;</span><span class="tok-p">,</span> <span class="tok-n">tok::toks</span><span class="tok-p">)</span>
+	      <span class="tok-n">|</span> <span class="tok-n">NONE</span> <span class="tok-p">=&gt;</span> <span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">rev</span> <span class="tok-n">toks</span>
+	    <span class="tok-cm">(* end case *)</span><span class="tok-p">)</span>
+      <span class="tok-kr">in</span>
+	<span class="tok-n">lp</span> <span class="tok-p">(</span><span class="tok-nn">Substring</span><span class="tok-p">.</span><span class="tok-n">full</span> <span class="tok-n">s</span><span class="tok-p">,</span> <span class="tok-p">[])</span>
+      <span class="tok-kr">end</span><span class="tok-p">;</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

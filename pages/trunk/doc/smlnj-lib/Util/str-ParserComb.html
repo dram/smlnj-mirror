@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The ParserComb structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>ParserComb</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>ParserComb</code> structure</span></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>ParserComb</code> structure provides parser combinators over
+character readers. This structure is modeled after the Haskell
+combinators of Hutton and Meijer. The main difference is that
+they return a single result, instead of a list of results.
+This fact means that the <code>or</code> combinator is a <strong>committed</strong> choice;
+once one branch succeeds, the others will not be enabled.  While
+this property is somewhat limiting, for many applications it
+will not be a problem.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">PARSER_COMB</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">ParserComb</span> <span class="tok-p">:</span> <span class="tok-n">PARSER_COMB</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-kt">parser</span> <span class="tok-p">=</span>
+      <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">result</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">failure</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">wrap</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">))</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">seq</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">),</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+<span class="tok-kr">val</span> <span class="tok-nv">seqWith</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span><span class="tok-p">)</span>
+	<span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;c</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">bind</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span><span class="tok-p">))</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">eatChar</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">char</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">char</span>   <span class="tok-p">:</span> <span class="tok-n">char</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+<span class="tok-kr">val</span> <span class="tok-nv">string</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">string</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">skipBefore</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">char</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">or</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+<span class="tok-kr">val</span> <span class="tok-nv">or&#39;</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">zeroOrMore</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">list</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+<span class="tok-kr">val</span> <span class="tok-nv">oneOrMore</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">list</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">option</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">option</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+<span class="tok-kr">val</span> <span class="tok-nv">join</span>   <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">option</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">token</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">char</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">string</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div id="type:parser" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> ('a, 'strm) parser = (char, 'strm) StringCvt.reader -&gt; ('a, 'strm) StringCvt.reader</code></dt>
+<dd>
+<p>A parser is a function that takes a
+<a href="https://standardml.org/Basis/string-cvt.html#SIG:STRING_CVT.reader:TY">character reader</a>
+and returns reader for the type of values the parser accepts.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> result : 'a -&gt; ('a, 'strm) parser</code></dt>
+<dd>
+<p><code>result v getc strm</code> returns <code>SOME(v, strm)</code>; <em>i.e.</em>, <code>result v</code>
+lifts the value <code>v</code> to a parser that returns <code>v</code> without consuming
+any input.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> failure : ('a, 'strm) parser</code></dt>
+<dd>
+<p><code>failure getc strm</code> returns <code>NONE</code>; <em>i.e.</em> it is the parser that
+does not accept any input.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> wrap : 'a, 'strm) parser * ('a -&gt; 'b -&gt; ('b, 'strm) parser</code></dt>
+<dd>
+<p><code>wrap parser f</code> composes the function <code>f</code> with <code>parser</code></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> seq : (('a, 'strm) parser * ('b, 'strm) parser) -&gt; (('a * 'b), 'strm) parser</code></dt>
+<dd>
+<p><code>seq (parser1, parser2)</code> returns a parser is the sequential combination of the
+two parsers; <em>i.e.</em>, a parser that will first parse a value <code>v1</code>
+from the input using <code>parser1</code> and then parse a value <code>v2</code> using <code>parser2</code>
+yielding the pair <code>(v1, v2)</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> seqWith : (('a * 'b) -&gt; 'c) -&gt; (('a, 'strm) parser * ('b, 'strm) parser) -&gt; ('c, 'strm) parser</code></dt>
+<dd>
+<p><code>seq f (parser1, parser2)</code> is the sequential combination of the two parsers composed
+with the function <code>f</code>;  <em>i.e.</em>, a parser that will first parse a value <code>v1</code>
+from the input using <code>parser1</code> and then parse a value <code>v2</code> using <code>parser2</code>
+yielding the result of <code>f(v1, v2)</code>.  This expression is equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">wrap</span> <span class="tok-p">(</span><span class="tok-n">seq</span> <span class="tok-p">(</span><span class="tok-n">parser1</span><span class="tok-p">,</span> <span class="tok-n">parser2</span><span class="tok-p">),</span> <span class="tok-n">f</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> bind : 'a, 'strm) parser * ('a -&gt; ('b, 'strm) parser -&gt; ('b, 'strm) parser</code></dt>
+<dd>
+<p><code>bind parser f</code> returns a parser that first uses <code>parser</code> to parse a value <code>v</code>
+from the input and then continues using the parser that results from <code>f v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> eatChar : (char -&gt; bool) -&gt; (char, 'strm) parser</code></dt>
+<dd>
+<p><code>eatChar pred</code> returns a parser that parses <strong>one</strong> character <code>c</code> for which
+<code>pred c</code> returns <code>true</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> char : char -&gt; (char, 'strm) parser</code></dt>
+<dd>
+<p><code>char c</code> returns a parser that parses the character <code>c</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> string : string -&gt; (string, 'strm) parser</code></dt>
+<dd>
+<p><code>string s`returns a parser that parses the string `s</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> skipBefore : (char -&gt; bool) -&gt; ('a, 'strm) parser -&gt; ('a, 'strm) parser</code></dt>
+<dd>
+<p><code>skipBefore pred parser</code> returns a parser that first skips any prefix of characters
+that satisfy the predicate <code>pred</code> and then applies <code>parser</code> to the input.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> or : (('a, 'strm) parser * ('a, 'strm) parser) -&gt; ('a, 'strm) parser</code></dt>
+<dd>
+<p><code>or (parser1, parser2)</code> returns the ordered choice of the two parsers; <em>i.e.</em>,
+it returns a parser that first attempts to parse the input using <code>parser1</code>; if
+<code>parser1</code> fails on the input, then it uses <code>parser2</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> or' : ('a, 'strm) parser list -&gt; ('a, 'strm) parser</code></dt>
+<dd>
+<p><code>or' parsers</code> returns the ordered choice of a list of parsers.  This
+expression is equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">foldr</span> <span class="tok-n">or</span> <span class="tok-n">failure</span> <span class="tok-n">parsers</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> zeroOrMore : ('a, 'strm) parser -&gt; ('a list, 'strm) parser</code></dt>
+<dd>
+<p><code>zeroOrMore parser</code> returns a parser that parses a list of zero or more
+items using <code>parser</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> oneOrMore : ('a, 'strm) parser -&gt; ('a list, 'strm) parser</code></dt>
+<dd>
+<p><code>oneOrMore parser</code> returns a parser that parses a list of one or more
+items using <code>parser</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> option : ('a, 'strm) parser -&gt; ('a option, 'strm) parser</code></dt>
+<dd>
+<p><code>option parser</code> returns a parser that parses an optional item
+(<em>i.e.</em>, zero or one occurrences) using <code>parser</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> join : ('a option, 'strm) parser -&gt; ('a, 'strm) parser</code></dt>
+<dd>
+<p><code>join parser</code> returns a parser that requires the optional item parsed
+by <code>parser</code> to be present.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> token : (char -&gt; bool) -&gt; (string, 'strm) parser</code></dt>
+<dd>
+<p><code>token pred</code> returns a parser for a string of characters, where every
+character satisfies the predicate function <code>pred</code>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">Examples</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As noted above, the <a href="#type:parser"><code>parser</code></a> type and combinators are
+designed around the
+<a href="https://standardml.org/Basis/string-cvt.html#SIG:STRING_CVT.reader:TY">StringCvt.reader</a>
+representation of input streams.
+Thus, the <code>scan</code> functions defined in the {basis-lib-url}/index.html[<strong>Basis Library</strong>]
+are compatible with the <code>parser</code> type defined here.  For example,</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">val</span> <span class="tok-nv">boolParser</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">bool</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-p">=</span> <span class="tok-nn">Bool</span><span class="tok-p">.</span><span class="tok-n">scan</span>
+<span class="tok-kr">val</span> <span class="tok-nv">intParser</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-n">int</span><span class="tok-p">,</span> <span class="tok-nd">&#39;strm</span><span class="tok-p">)</span> <span class="tok-n">parser</span> <span class="tok-p">=</span> <span class="tok-nn">Int</span><span class="tok-p">.</span><span class="tok-n">scan</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">DEC</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let us define the abstract syntax of a small expression language with
+addition, numbers, and let-bound variables.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">datatype</span> <span class="tok-kt">exp</span>
+  <span class="tok-p">=</span> <span class="tok-nc">VAR</span> <span class="tok-kr">of</span> <span class="tok-n">string</span>
+  <span class="tok-p">|</span> <span class="tok-nc">NUM</span> <span class="tok-kr">of</span> <span class="tok-n">int</span>
+  <span class="tok-p">|</span> <span class="tok-nc">ADD</span> <span class="tok-kr">of</span> <span class="tok-n">exp</span> <span class="tok-n">*</span> <span class="tok-n">exp</span>
+  <span class="tok-p">|</span> <span class="tok-nc">LET</span> <span class="tok-kr">of</span> <span class="tok-n">string</span> <span class="tok-n">*</span> <span class="tok-n">exp</span> <span class="tok-n">*</span> <span class="tok-n">exp</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can use parser combinators to implement a simple parser
+for this language as follows.</p>
+</div>
+<div class="paragraph">
+<p>We start by defining a few utility definitions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">P</span> <span class="tok-p">=</span> <span class="tok-n">ParserComb</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">+&gt;</span> <span class="tok-p">=</span> <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">seq</span>
+<span class="tok-kr">infixr</span> <span class="tok-mi">3</span> <span class="tok-n">+&gt;</span>
+
+<span class="tok-kr">fun</span> <span class="tok-nf">skipWS</span> <span class="tok-n">getc</span> <span class="tok-p">=</span> <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">skipBefore</span> <span class="tok-nn">Char</span><span class="tok-p">.</span><span class="tok-n">isSpace</span> <span class="tok-n">getc</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can then define parsers for the atomic expressions
+(numbers and variables):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">numParser</span> <span class="tok-n">getc</span> <span class="tok-p">=</span> <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">wrap</span> <span class="tok-p">(</span><span class="tok-nn">Int</span><span class="tok-p">.</span><span class="tok-n">scan</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">DEC</span><span class="tok-p">,</span> <span class="tok-n">NUM</span><span class="tok-p">)</span> <span class="tok-n">getc</span>
+<span class="tok-kr">fun</span> <span class="tok-nf">idParser</span> <span class="tok-n">getc</span> <span class="tok-p">=</span> <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">seqWith</span> <span class="tok-nn">String</span><span class="tok-p">.</span><span class="tok-n">^</span> <span class="tok-p">(</span>
+      <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">wrap</span> <span class="tok-p">(</span><span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">eatChar</span> <span class="tok-nn">Char</span><span class="tok-p">.</span><span class="tok-n">isAlpha</span><span class="tok-p">,</span> <span class="tok-n">str</span><span class="tok-p">),</span>
+      <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">token</span> <span class="tok-nn">Char</span><span class="tok-p">.</span><span class="tok-n">isAlphaNum</span><span class="tok-p">)</span> <span class="tok-n">getc</span>
+<span class="tok-kr">fun</span> <span class="tok-nf">varParser</span> <span class="tok-n">getc</span> <span class="tok-p">=</span> <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">wrap</span><span class="tok-p">(</span><span class="tok-n">idParser</span><span class="tok-p">,</span> <span class="tok-n">VAR</span><span class="tok-p">)</span> <span class="tok-n">getc</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We need the separate <code>idParser</code> to parse let-bound identifiers.</p>
+</div>
+<div class="paragraph">
+<p>We then define three, mutually-recursive, functions to parse
+expressions.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">fun</span> <span class="tok-nf">letParser</span> <span class="tok-n">getc</span> <span class="tok-p">=</span> <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">wrap</span> <span class="tok-p">(</span>
+      <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">string</span> <span class="tok-s2">&quot;let&quot;</span> <span class="tok-n">+&gt;</span> <span class="tok-n">skipWS</span><span class="tok-p">(</span><span class="tok-n">idParser</span><span class="tok-p">)</span> <span class="tok-n">+&gt;</span> <span class="tok-n">skipWS</span><span class="tok-p">(</span><span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">char</span> <span class="tok-sc">#&quot;=&quot;</span><span class="tok-p">)</span> <span class="tok-n">+&gt;</span> <span class="tok-n">expParser</span>
+      <span class="tok-n">+&gt;</span> <span class="tok-n">skipWS</span><span class="tok-p">(</span><span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">string</span> <span class="tok-s2">&quot;in&quot;</span><span class="tok-p">)</span> <span class="tok-n">+&gt;</span> <span class="tok-n">expParser</span><span class="tok-p">,</span>
+      <span class="tok-kr">fn</span> <span class="tok-p">(_,</span> <span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">,</span> <span class="tok-p">(_,</span> <span class="tok-p">(</span><span class="tok-n">e1</span><span class="tok-p">,</span> <span class="tok-p">(_,</span> <span class="tok-n">e2</span><span class="tok-p">)))))</span> <span class="tok-p">=&gt;</span> <span class="tok-n">LET</span><span class="tok-p">(</span><span class="tok-n">x</span><span class="tok-p">,</span> <span class="tok-n">e1</span><span class="tok-p">,</span> <span class="tok-n">e2</span><span class="tok-p">))</span> <span class="tok-n">getc</span>
+<span class="tok-kr">and</span> <span class="tok-nf">expParser</span> <span class="tok-n">getc</span> <span class="tok-p">=</span> <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">wrap</span> <span class="tok-p">(</span>
+      <span class="tok-n">skipWS</span> <span class="tok-p">(</span><span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">seq</span> <span class="tok-p">(</span>
+	<span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">or&#39;</span> <span class="tok-p">[</span><span class="tok-n">letParser</span><span class="tok-p">,</span> <span class="tok-n">numParser</span><span class="tok-p">,</span> <span class="tok-n">varParser</span><span class="tok-p">],</span>
+	<span class="tok-n">addParser</span><span class="tok-p">)),</span>
+      <span class="tok-kr">fn</span> <span class="tok-p">(</span><span class="tok-n">e</span><span class="tok-p">,</span> <span class="tok-n">es</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-nn">List</span><span class="tok-p">.</span><span class="tok-n">foldl</span> <span class="tok-p">(</span><span class="tok-kr">fn</span> <span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-n">b</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-n">ADD</span><span class="tok-p">(</span><span class="tok-n">b</span><span class="tok-p">,</span> <span class="tok-n">a</span><span class="tok-p">))</span> <span class="tok-n">e</span> <span class="tok-n">es</span><span class="tok-p">)</span> <span class="tok-n">getc</span>
+<span class="tok-kr">and</span> <span class="tok-nf">addParser</span> <span class="tok-n">getc</span> <span class="tok-p">=</span>
+      <span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">zeroOrMore</span> <span class="tok-p">(</span><span class="tok-n">skipWS</span> <span class="tok-p">(</span><span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">wrap</span> <span class="tok-p">(</span><span class="tok-nn">P</span><span class="tok-p">.</span><span class="tok-n">char</span> <span class="tok-sc">#&quot;+&quot;</span> <span class="tok-n">+&gt;</span> <span class="tok-n">expParser</span><span class="tok-p">,</span> <span class="tok-nl">#2</span><span class="tok-p">)))</span> <span class="tok-n">getc</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the <code>letParser</code> must appear before the <code>varParser</code> in the
+list of parsers combined by <code>or'</code> to avoid treating the string <code>"let"</code>
+as a variable. Another detail is that we use
+<a href="https://standardml.org/Basis/list.html#SIG:LIST.foldl:VAL"><code>List.foldl</code></a> with a
+function that swaps the order of its arguments in order
+that addition is left associative.</p>
+</div>
+<div class="paragraph">
+<p>If we evaluate the expression</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">scanString</span> <span class="tok-n">expParser</span> <span class="tok-s2">&quot; let x = 1+2 in x + x &quot;</span><span class="tok-p">;</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>we get the expected result</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">SOME</span> <span class="tok-p">(</span><span class="tok-n">LET</span> <span class="tok-p">(</span><span class="tok-s2">&quot;x&quot;</span><span class="tok-p">,</span> <span class="tok-n">ADD</span> <span class="tok-p">(</span><span class="tok-n">NUM</span> <span class="tok-mi">1</span><span class="tok-p">,</span> <span class="tok-n">NUM</span> <span class="tok-mi">2</span><span class="tok-p">),</span> <span class="tok-n">ADD</span> <span class="tok-p">(</span><span class="tok-n">VAR</span> <span class="tok-s2">&quot;x&quot;</span><span class="tok-p">,</span> <span class="tok-n">VAR</span> <span class="tok-s2">&quot;x&quot;</span><span class="tok-p">)))</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://smlnj.org/doc/ml-lpt/manual.pdf"><em>SML/NJ Language Processing Tools: User Guide</em></a>,
+<a href="https://smlnj.org/doc/ML-Yacc/index.html"><em>ML-Yacc User&#8217;s Manual</em></a>,
+<a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

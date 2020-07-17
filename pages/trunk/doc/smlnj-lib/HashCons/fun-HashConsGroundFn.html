@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The HashConsGroundFn functor</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>HashConsGroundFn</code> functor</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-HashCons.html"><span class="toc-lib-page">The <code>HashCons</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsAtom.html"><span class="toc-lib-page">The <code>HashConsAtom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsMap.html"><span class="toc-lib-page">The <code>HashConsMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsString.html"><span class="toc-lib-page">The <code>HashConsString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsSet.html"><span class="toc-lib-page">The <code>HashConsSet</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>HashConsGroundFn</code> functor</span></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>HashConsGroundFn</code> functor provides a mechanism for defining
+a hash-consed representations for "leaf" (or "ground") types.
+These are types that might be atomic (<em>e.g.</em>,
+the <a href="str-HashConsAtom.html"><code>HashConsAtom structure</code></a>) or
+datatypes, but they are treated as atomic values by the <strong>HashCons Library</strong>
+and are the leaves of the hash-consed data structures.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">functor</span> <span class="tok-nn">HashConsGroundFn</span> <span class="tok-p">(</span><span class="tok-n">T</span> <span class="tok-p">:</span> <span class="tok-n">HASH_KEY</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_arguments">Arguments</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><code>T : <a href="../Util/sig-HASH_KEY.html">HASH_KEY</a></code>::
+The argument structure <code>T</code> defines the type, equality function, and
+hashing function a the "leaf" type.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">hash_key</span> <span class="tok-p">=</span> <span class="tok-nn">T</span><span class="tok-p">.</span><span class="tok-n">hash_key</span>
+<span class="tok-kr">type</span> <span class="tok-kt">obj</span> <span class="tok-p">=</span> <span class="tok-n">hash_key</span> <span class="tok-nn">HashCons</span><span class="tok-p">.</span><span class="tok-n">obj</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mk</span> <span class="tok-p">:</span> <span class="tok-n">hash_key</span> <span class="tok-p">-&gt;</span> <span class="tok-n">obj</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> hash_key = T.hash_key</code></dt>
+<dd>
+<p>something</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> obj = hash_key HashCons.obj</code></dt>
+<dd>
+<p>something</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mk : hash_key -&gt; obj</code></dt>
+<dd>
+<p>something</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example">Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Suppose that we wish to have pairs of integers as a ground type
+for a hash-consed data structure.  We might implement this using
+the following functor application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">HCPairs</span> <span class="tok-p">=</span> <span class="tok-n">HashConsGroundFn</span> <span class="tok-p">(</span>
+    <span class="tok-kr">struct</span>
+      <span class="tok-kr">type</span> <span class="tok-kt">hash_key</span> <span class="tok-p">=</span> <span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-n">int</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">sameKey</span> <span class="tok-p">(</span><span class="tok-n">a</span> <span class="tok-p">:</span> <span class="tok-n">hash_key</span><span class="tok-p">,</span> <span class="tok-n">b</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-p">(</span><span class="tok-n">a</span> <span class="tok-p">=</span> <span class="tok-n">b</span><span class="tok-p">)</span>
+      <span class="tok-kr">fun</span> <span class="tok-nf">hashVal</span> <span class="tok-p">(</span><span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-n">b</span><span class="tok-p">)</span> <span class="tok-p">=</span> <span class="tok-nn">Word</span><span class="tok-p">.</span><span class="tok-n">xorb</span><span class="tok-p">(</span><span class="tok-nn">Word</span><span class="tok-p">.</span><span class="tok-n">fromInt</span> <span class="tok-n">a</span><span class="tok-p">,</span> <span class="tok-nn">Word</span><span class="tok-p">.</span><span class="tok-n">fromInt</span> <span class="tok-n">b</span><span class="tok-p">)</span>
+    <span class="tok-kr">end</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-HashCons.html"><code>HashCons</code></a>,
+<a href="hash-cons-lib.html"><em>The HashCons Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

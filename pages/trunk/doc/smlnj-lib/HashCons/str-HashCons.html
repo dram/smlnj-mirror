@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The HashCons structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>HashCons</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>HashCons</code> structure</span></li>
+      <li class="toc-page"><a href="str-HashConsAtom.html"><span class="toc-lib-page">The <code>HashConsAtom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsMap.html"><span class="toc-lib-page">The <code>HashConsMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsString.html"><span class="toc-lib-page">The <code>HashConsString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashConsSet.html"><span class="toc-lib-page">The <code>HashConsSet</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashConsGroundFn.html"><span class="toc-lib-page">The <code>HashConsGroundFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>HashCons</code> structure is the main module for the <strong>HashCons Library</strong>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">HASH_CONS</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">HashCons</span> <span class="tok-p">:</span> <span class="tok-n">HASH_CONS</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">tbl</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">new</span> <span class="tok-p">:</span> <span class="tok-p">{</span><span class="tok-n">eq</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">clear</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">obj</span> <span class="tok-p">=</span> <span class="tok-p">{</span> <span class="tok-n">nd</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">tag</span> <span class="tok-p">:</span> <span class="tok-n">word</span><span class="tok-p">,</span> <span class="tok-n">hash</span> <span class="tok-p">:</span> <span class="tok-n">word</span> <span class="tok-p">}</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">node</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+<span class="tok-kr">val</span> <span class="tok-nv">tag</span>  <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">word</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">same</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+<span class="tok-kr">val</span> <span class="tok-nv">compare</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">cons0</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">cons1</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">))</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">cons2</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">))</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">cons3</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">))</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">cons4</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;e</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">))</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;e</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">cons5</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;e</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;f</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">))</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;e</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;f</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">consList</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">))</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">consR1</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span><span class="tok-p">))</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">consR2</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span><span class="tok-p">))</span>
+        <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">consR3</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span>
+        <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span><span class="tok-p">))</span>
+        <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">consR4</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;e</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span>
+        <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;e</span> <span class="tok-n">obj</span><span class="tok-p">))</span>
+        <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span>
+<span class="tok-kr">val</span> <span class="tok-nv">consR5</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">tbl</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">word</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;e</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;f</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span>
+        <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;d</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;e</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;f</span> <span class="tok-n">obj</span><span class="tok-p">))</span>
+        <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;r</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">obj</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a tbl</code></dt>
+<dd>
+<p>The type of a table for hash-consing objects of type <code>'a</code>.  Typically, only
+one table per distinct type should be defined.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> new : {eq : 'a * 'a -&gt; bool} -&gt; 'a tbl</code></dt>
+<dd>
+<p><code>new {eq}</code> creates a new hash-cons table using the equality function <code>eq</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> clear : 'a tbl -&gt; unit</code></dt>
+<dd>
+<p><code>clear tbl</code> clears the table of all elements.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a obj = { &#8230;&#8203; }</code></dt>
+<dd>
+<p>The representation of a hash-consed object.  The fields are</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>nd</code></dt>
+<dd>
+<p>the underlying representation of the object.</p>
+</dd>
+<dt class="hdlist1"><code>tag</code></dt>
+<dd>
+<p>a tag that is unique for the object (for the object&#8217;s table)</p>
+</dd>
+<dt class="hdlist1"><code>hash</code></dt>
+<dd>
+<p>a hash of the object (used to index into the table)</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> node : 'a obj -&gt; 'a</code></dt>
+<dd>
+<p><code>node obj</code> projects out the node from <code>obj</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> tag  : 'a obj -&gt; word</code></dt>
+<dd>
+<p><code>tag obj</code> projects out the unique tag from <code>obj</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> same : ('a obj * 'a obj) -&gt; bool</code></dt>
+<dd>
+<p><code>same (obj1, obj2)</code> returns true if the objects are the same; this test
+is constant time (it compares the object tags).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> compare : ('a obj * 'a obj) -&gt; order</code></dt>
+<dd>
+<p><code>compare (obj1, obj2)</code> returns the order of the two objects; this test
+is constant time (it compares the object tags).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> cons0 : 'a tbl -&gt; (word * 'a) -&gt; 'a obj</code></dt>
+<dd>
+<p><code>cons0 tbl (h, x)</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for the value <code>x</code>, where <code>h</code> is the hash of <code>x</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> cons1 : 'a tbl -&gt; (word * ('b obj -&gt; 'a)) -&gt; 'b obj -&gt; 'a obj</code></dt>
+<dd>
+<p><code>cons1 tbl (h, mk) obj1</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk obj1</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> cons2 : 'a tbl -&gt; (word * ('b obj * 'c obj -&gt; 'a)) -&gt; &#8230;&#8203;</code></dt>
+<dd>
+<p><code>cons2 tbl (h, mk) (obj1, obj2)</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk (obj1, obj2)</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> cons3 : 'a tbl -&gt; (word * ('b obj * 'c obj * 'd obj -&gt; 'a)) -&gt; &#8230;&#8203;</code></dt>
+<dd>
+<p><code>cons3 tbl (h, mk) (obj1, obj2, obj3)</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk (obj1, obj2, obj3)</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> cons4 : 'a tbl -&gt; (word * ('b obj * 'c obj * 'd obj * 'e obj -&gt; 'a)) -&gt; &#8230;&#8203;</code></dt>
+<dd>
+<p><code>cons4 tbl (h, mk) (obj1, obj2, obj3, obj4)</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>)
+representation for <code>mk (obj1, obj2, obj3, obj4)</code>, where <code>h</code> is a hash code
+for the term constructor <code>mk</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> cons5 : 'a tbl -&gt; (word * ('b obj * 'c obj * 'd obj * 'e obj * 'f obj -&gt; 'a)) -&gt; &#8230;&#8203;</code></dt>
+<dd>
+<p><code>cons5 tbl (h, mk) (obj1, obj2, obj3, obj4, obj5)</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>)
+representation for <code>mk (obj1, obj2, obj3, obj4, obj5)</code>, where <code>h</code> is a hash code
+for the term constructor <code>mk</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> consList : 'a tbl -&gt; (word * ('b obj list -&gt; 'a)) -&gt; 'b obj list -&gt; 'a obj</code></dt>
+<dd>
+<p><code>consList tbl (h, mk) objs</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk objs</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> consR1 : 'a tbl -&gt; (word * ('b obj -&gt; 'a) * ('r -&gt; 'b obj)) -&gt; 'r -&gt; 'a obj</code></dt>
+<dd>
+<p><code>consR1 (h, mk, proj) r</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk (proj r)</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>
+and <code>proj</code> projects the sub-component of <code>r</code> as an object.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> consR2 : 'a tbl -&gt; (word * ('b obj * 'c obj -&gt; 'a) * ('r -&gt; 'b obj * 'c obj)) -&gt; 'r -&gt; 'a obj</code></dt>
+<dd>
+<p><code>consR2 (h, mk, proj) r</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk (proj r)</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>
+and <code>proj</code> projects the sub-components of <code>r</code> as a tuple of objects.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> consR3 : 'a tbl -&gt; (word * ('b obj * 'c obj * 'd obj -&gt; 'a) -&gt; &#8230;&#8203;</code></dt>
+<dd>
+<p><code>consR3 (h, mk, proj) r</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk (proj r)</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>
+and <code>proj</code> projects the sub-components of <code>r</code> as a tuple of objects.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> consR4 : 'a tbl -&gt; (word * ('b obj * 'c obj * 'd obj * 'e obj -&gt; 'a) -&gt; &#8230;&#8203;</code></dt>
+<dd>
+<p><code>consR4 (h, mk, proj) r</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk (proj r)</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>
+and <code>proj</code> projects the sub-components of <code>r</code> as a tuple of objects.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> consR5 : 'a tbl -&gt; (word * ('b obj * 'c obj * 'd obj * 'e obj * 'f obj -&gt; 'a) -&gt; &#8230;&#8203;</code></dt>
+<dd>
+<p><code>consR5 (h, mk, proj) r</code> creates a unique (<em>w.r.t.</em> <code>tbl</code>) representation
+for <code>mk (proj r)</code>, where <code>h</code> is a hash code for the term constructor <code>mk</code>
+and <code>proj</code> projects the sub-components of <code>r</code> as a tuple of objects.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_discussion">Discussion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The functions <code>cons1</code>, <code>cons2</code>, <em>etc</em>., provide an easy way to convert a data
+constructor of the given arity to a hash-cons constructor.  For example, if
+we have</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">datatype</span> <span class="tok-kt">t</span> <span class="tok-p">=</span> <span class="tok-err">...</span> <span class="tok-p">|</span> <span class="tok-nc">Foo</span> <span class="tok-kr">of</span> <span class="tok-p">(</span><span class="tok-n">x</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-n">y</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-n">z</span> <span class="tok-n">obj</span><span class="tok-p">)</span> <span class="tok-n">|</span> <span class="tok-p">...</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>as a constructor in our two-level hash-consed datatype, then we can
+define a hash-cons constructor for <code>Foo</code> has</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">val</span> <span class="tok-nv">mkFoo</span> <span class="tok-p">:</span> <span class="tok-n">x</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-n">y</span> <span class="tok-n">obj</span> <span class="tok-n">*</span> <span class="tok-n">z</span> <span class="tok-n">obj</span> <span class="tok-p">-&gt;</span> <span class="tok-n">t</span> <span class="tok-n">obj</span> <span class="tok-p">=</span> <span class="tok-n">cons3</span> <span class="tok-p">(</span><span class="tok-mi">0w17</span><span class="tok-p">,</span> <span class="tok-n">Foo</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>where <code>0w17</code> is the hash code we selected for the <code>Foo</code> constructor.</p>
+</div>
+<div class="paragraph">
+<p>Likewise, the <code>cons1R</code>, <code>cons2R</code>, <em>etc</em>., functions can be used when
+record types are involved.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="hash-cons-lib.html"><em>The HashCons Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The REGEXP_ENGINE signature</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>REGEXP_ENGINE</code> signature</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="tutorial.html"><span class="toc-lib-page">Using the RegExp Library</span></a></li>
+      <li class="toc-page"><a href="sig-REGEXP_PARSER.html"><span class="toc-lib-page">The <code>REGEXP_PARSER</code> signature</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>REGEXP_ENGINE</code> signature</span></li>
+      <li class="toc-page"><a href="str-RegExpSyntax.html"><span class="toc-lib-page">The <code>RegExpSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-MatchTree.html"><span class="toc-lib-page">The <code>MatchTree</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-AwkSyntax.html"><span class="toc-lib-page">The <code>AwkSyntax</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RegExpFn.html"><span class="toc-lib-page">The <code>RegExpFn</code> functor</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>REGEXP_ENGINE</code> signature &#8230;&#8203;</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">REGEXP_ENGINE</span>
+
+<span class="tok-kr">structure</span> <span class="tok-nn">BackTrackEngine</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_ENGINE</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">DfaEngine</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_ENGINE</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">ThompsonEngine</span> <span class="tok-p">:</span> <span class="tok-n">REGEXP_ENGINE</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">regexp</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">match</span> <span class="tok-p">=</span> <span class="tok-p">{</span><span class="tok-n">pos</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-n">len</span> <span class="tok-p">:</span> <span class="tok-n">int</span><span class="tok-p">}</span> <span class="tok-nn">MatchTree</span><span class="tok-p">.</span><span class="tok-n">match_tree</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">compile</span> <span class="tok-p">:</span> <span class="tok-nn">RegExpSyntax</span><span class="tok-p">.</span><span class="tok-n">syntax</span> <span class="tok-p">-&gt;</span> <span class="tok-n">regexp</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">find</span> <span class="tok-p">:</span> <span class="tok-n">regexp</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span><span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">match</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">prefix</span> <span class="tok-p">:</span> <span class="tok-n">regexp</span> <span class="tok-p">-&gt;(</span><span class="tok-n">char</span><span class="tok-p">,</span><span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">match</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">match</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nn">RegExpSyntax</span><span class="tok-p">.</span><span class="tok-n">syntax</span> <span class="tok-n">*</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">match</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">))</span> <span class="tok-n">list</span>
+	      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">char</span><span class="tok-p">,</span><span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span><span class="tok-p">,</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-nn">StringCvt</span><span class="tok-p">.</span><span class="tok-n">reader</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> regexp</code></dt>
+<dd>
+<p> <strong>something</strong>
+(* the type of a compiled regular expression
+ *)</p>
+<div class="literalblock">
+<div class="content">
+<pre>(* a match specifies the position (as a stream) and the length of the match *)</pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a match = {pos : 'a, len : int} MatchTree.match_tree</code></dt>
+<dd>
+<p><strong>something</strong></p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> compile : RegExpSyntax.syntax -&gt; regexp</code></dt>
+<dd>
+<p> <strong>something</strong>
+(* compile a regular expression from the abstract syntax
+ *)</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : regexp -&gt; (char,'a) StringCvt.reader -&gt; ('a match, 'a) StringCvt.reader</code></dt>
+<dd>
+<p> <strong>something</strong>
+(* scan the stream for the first occurence of the regular expression.  The call
+ *</p>
+<div class="ulist">
+<ul>
+<li>
+<p>find re getc strm
+*</p>
+</li>
+<li>
+<p>returns NONE if the end of stream is reached without a match.  Otherwise it</p>
+</li>
+<li>
+<p>returns SOME(match, strm'), where match is the match-tree for the match and</p>
+</li>
+<li>
+<p>strm' is the stream following the match.
+*)</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> prefix : regexp -&gt;(char,'a) StringCvt.reader -&gt; ('a match, 'a) StringCvt.reader</code></dt>
+<dd>
+<p> <strong>something</strong>
+(* attempt to match the stream at the current position with the</p>
+<div class="ulist">
+<ul>
+<li>
+<p>regular expression
+*)</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> match : (RegExpSyntax.syntax * ('a match -&gt; 'b)) list -&gt; (char,'a) StringCvt.reader -&gt; ('b, 'a) StringCvt.reader</code></dt>
+<dd>
+<p> <strong>something</strong>
+(* attempt to the match the stream at the current position with one of</p>
+<div class="ulist">
+<ul>
+<li>
+<p>the abstract syntax representations of regular expressions and trigger</p>
+</li>
+<li>
+<p>the corresponding action
+*)</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_instances">Instances</h2>
+<div class="sectionbody">
+<div id="str:BackTrackEngine" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> BackTrackEngine</code></dt>
+<dd>
+<p>A backtracking interpreter for the regular-expression syntax.  This implementation
+requires no extra compilation time, but backtracking can result in slow searches
+for some regular expressions.</p>
+</dd>
+</dl>
+</div>
+<div id="str:DfaEngine" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> DfaEngine</code></dt>
+<dd>
+<p>This implementation compiles the regular expression to a nondeterministic
+finite-state machine and then coverts that to a deterministic machine.
+The resulting machine is fast, but can be exponential in size for some
+regular expressions.</p>
+</dd>
+</dl>
+</div>
+<div id="str:ThompsonEngine" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">structure</span> ThompsonEngine</code></dt>
+<dd>
+<p>An implementation of Ken Thompson&#8217;s famous
+<a href="https://doi.org/10.1145/363347.363387"><em>Regular Expression Search Algorithm</em></a>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="regexp-lib.html"><em>The RegExp Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

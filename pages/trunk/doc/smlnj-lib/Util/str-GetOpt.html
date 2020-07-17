@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The GetOpt structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>GetOpt</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>GetOpt</code> structure</span></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-HashTable.html"><span class="toc-lib-page">The <code>HashTable</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>GetOpt</code> structure provides command-line argument processing similar
+to the GNU <strong>getopt</strong> library.   It supports both short options (a single
+character preceded by a single minus character) and long options (multi-character
+names preceded by two minus characters).  Options may require an argument;
+for short options, the argument is the next command-line argument, while for
+long options, the argument follows an equal character (<em>e.g.</em>,
+"--foo=bar"). If the command-line arguments contains the string
+"--", then all subsequent arguments are passed through
+as non-options.</p>
+</div>
+<div class="paragraph">
+<p>This implementation was ported from Sven Panne&#8217;s Haskell implementation
+by Riccardo Pucella and has then been updated in various ways.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">GetOpt</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">datatype</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">arg_order</span>
+  <span class="tok-p">=</span> <span class="tok-nc">RequireOrder</span>
+  <span class="tok-p">|</span> <span class="tok-nc">Permute</span>
+  <span class="tok-p">|</span> <span class="tok-nc">ReturnInOrder</span> <span class="tok-kr">of</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+
+<span class="tok-kr">datatype</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">arg_descr</span>
+  <span class="tok-p">=</span> <span class="tok-nc">NoArg</span> <span class="tok-kr">of</span> <span class="tok-n">unit</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+  <span class="tok-p">|</span> <span class="tok-nc">ReqArg</span> <span class="tok-kr">of</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-n">string</span>
+  <span class="tok-p">|</span> <span class="tok-nc">OptArg</span> <span class="tok-kr">of</span> <span class="tok-p">(</span><span class="tok-n">string</span> <span class="tok-n">option</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">opt_descr</span> <span class="tok-p">=</span> <span class="tok-p">{</span>
+    <span class="tok-n">short</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+    <span class="tok-n">long</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-n">list</span><span class="tok-p">,</span>
+    <span class="tok-n">desc</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">arg_descr</span><span class="tok-p">,</span>
+    <span class="tok-n">help</span> <span class="tok-p">:</span> <span class="tok-n">string</span>
+  <span class="tok-p">}</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">usageInfo</span> <span class="tok-p">:</span> <span class="tok-p">{</span>
+        <span class="tok-n">header</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">options</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">opt_descr</span> <span class="tok-n">list</span>
+      <span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">getOpt</span> <span class="tok-p">:</span> <span class="tok-p">{</span>
+        <span class="tok-n">argOrder</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">arg_order</span><span class="tok-p">,</span>
+        <span class="tok-n">options</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">opt_descr</span> <span class="tok-n">list</span><span class="tok-p">,</span>
+        <span class="tok-n">errFn</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+      <span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">list</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">list</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-n">list</span><span class="tok-p">)</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">datatype</span> 'a arg_order = &#8230;&#8203;</code></dt>
+<dd>
+<p>This datatype is used to specify the ordering policy for command-line
+arguments.  The constructors are interpreted as follows:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>RequireOrder</code></dt>
+<dd>
+<p>No options are processed after the first non-option argument is encountered.</p>
+</dd>
+<dt class="hdlist1"><code>Permute</code></dt>
+<dd>
+<p>Options and non-options may be freely mixed.</p>
+</dd>
+<dt class="hdlist1"><code>ReturnInOrder <span class="kw">of</span> string -&gt; 'a</code></dt>
+<dd>
+<p>Non-options are converted to options using the supplied function.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">datatype</span> 'a arg_descr</code> = &#8230;&#8203;</dt>
+<dd>
+<p>This datatype is used to describe the optional argument of an option.
+Each of the constructors has a function as an argument that is used
+to generate the representation of the processed option.
+The constructors are interpreted as follows:</p>
+<div class="openblock">
+<div class="content">
+<div id="con:NoArg" class="dlist">
+<dl>
+<dt class="hdlist1"><code>NoArg of unit -&gt; 'a</code></dt>
+<dd>
+<p>The option does not have an argument, the supplied function is applied to
+unit when processing the option.</p>
+</dd>
+</dl>
+</div>
+<div id="con:ReqArg" class="dlist">
+<dl>
+<dt class="hdlist1"><code>ReqArg of (string -&gt; 'a) * string</code></dt>
+<dd>
+<p>The option requires an argument, which is handled by the given function.
+The string is the name of the argument used when printing a usage message.</p>
+</dd>
+</dl>
+</div>
+<div id="con:OptArg" class="dlist">
+<dl>
+<dt class="hdlist1"><code>OptArg of (string option -&gt; 'a) * string</code></dt>
+<dd>
+<p>The argument is optional and
+The string is the name of the argument used when printing a usage message.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div id="type:opt_descr" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a opt_descr = { &#8230;&#8203; }</code></dt>
+<dd>
+<p>This record type describes the properties of a command-line option.
+Its fields have the following meaning:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>short : string</code></dt>
+<dd>
+<p>A string containing the allowed short flags for the option.</p>
+</dd>
+<dt class="hdlist1"><code>long : string list</code></dt>
+<dd>
+<p>A list of the allowed long flags for the option.</p>
+</dd>
+<dt class="hdlist1"><code>desc : 'a arg_descr</code></dt>
+<dd>
+<p>The description of how to process the option&#8217;s argument.</p>
+</dd>
+<dt class="hdlist1"><code>help : string</code></dt>
+<dd>
+<p> A descriptive message that is used to construct the usage message
+(see the <code>usageInfo</code> function).</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> usageInfo : {header, options} -&gt; string</code></dt>
+<dd>
+<p><code>usageInfo {header, options}</code> returns a usage string suitable for a help
+message.  The <code>header</code> argument is prepended to the message (with a newline
+between it and the rest of the message).  Each option is described on its
+own line.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> getOpt : {&#8230;&#8203;} -&gt; string list -&gt; ('a list * string list)</code></dt>
+<dd>
+<p><code>getOpt {argOrder, options, errFn}</code> returns a function for processing
+command-line options, which will return a list of results from processing
+the options and a list of the residual command-line arguments.  The
+arguments to the call are</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>argOrder : 'a arg_order</code></dt>
+<dd>
+<p>Specifies the ordering policy for processing command-line arguments.</p>
+</dd>
+<dt class="hdlist1"><code>options : 'a opt_descr list</code></dt>
+<dd>
+<p>The descriptors for the command-line options.</p>
+</dd>
+<dt class="hdlist1"><code>errFn : string -&gt; unit</code></dt>
+<dd>
+<p>An error callback function that is used to report errors during
+argument processing.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_examples">Examples</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are two common approaches to using the <code>GetOpt</code> structure.  The first
+is to define a type that classifies the command-line options.  For example,</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">datatype</span> <span class="tok-kt">opt</span> <span class="tok-p">=</span> <span class="tok-nc">AFlg</span> <span class="tok-p">|</span> <span class="tok-nc">B</span> <span class="tok-kr">of</span> <span class="tok-n">string</span> <span class="tok-p">|</span> <span class="tok-nc">C</span> <span class="tok-kr">of</span> <span class="tok-n">int</span> <span class="tok-p">|</span> <span class="tok-nc">Other</span> <span class="tok-kr">of</span> <span class="tok-n">string</span> <span class="tok-p">|</span> <span class="tok-nc">Bad</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">opts</span> <span class="tok-p">=</span> <span class="tok-p">[</span>
+        <span class="tok-p">{</span> <span class="tok-n">short</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;aA&quot;</span><span class="tok-p">,</span> <span class="tok-n">long</span> <span class="tok-p">=</span> <span class="tok-p">[],</span>
+          <span class="tok-n">desc</span> <span class="tok-p">=</span> <span class="tok-n">NoArg</span><span class="tok-p">(</span><span class="tok-kr">fn</span> <span class="tok-p">()</span> <span class="tok-p">=&gt;</span> <span class="tok-n">AFlg</span><span class="tok-p">),</span>
+          <span class="tok-n">help</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;Set A flag&quot;</span>
+        <span class="tok-p">},</span>
+        <span class="tok-p">{</span> <span class="tok-n">short</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;b&quot;</span><span class="tok-p">,</span> <span class="tok-n">long</span> <span class="tok-p">=</span> <span class="tok-p">[</span><span class="tok-s2">&quot;set-b&quot;</span><span class="tok-p">],</span>
+          <span class="tok-n">desc</span> <span class="tok-p">=</span> <span class="tok-n">ReqArg</span><span class="tok-p">(</span><span class="tok-n">B</span><span class="tok-p">,</span> <span class="tok-s2">&quot;&lt;name&gt;&quot;</span><span class="tok-p">),</span> <span class="tok-n">help</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;Set B name&quot;</span>
+        <span class="tok-p">},</span>
+        <span class="tok-p">{</span> <span class="tok-n">short</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;&quot;</span><span class="tok-p">,</span> <span class="tok-n">long</span> <span class="tok-p">=</span> <span class="tok-p">[</span><span class="tok-s2">&quot;cval&quot;</span><span class="tok-p">],</span>
+          <span class="tok-n">desc</span> <span class="tok-p">=</span> <span class="tok-n">OptArg</span> <span class="tok-p">(</span>
+            <span class="tok-kr">fn</span> <span class="tok-p">(</span><span class="tok-n">SOME</span> <span class="tok-n">s</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">(</span><span class="tok-kr">case</span> <span class="tok-nn">Int</span><span class="tok-p">.</span><span class="tok-n">fromString</span> <span class="tok-n">s</span>
+                   <span class="tok-kr">of</span> <span class="tok-n">SOME</span> <span class="tok-n">n</span> <span class="tok-p">=&gt;</span> <span class="tok-n">C</span> <span class="tok-n">n</span>
+                    <span class="tok-n">|</span> <span class="tok-n">NONE</span> <span class="tok-p">=&gt;</span> <span class="tok-n">Bad</span><span class="tok-p">)</span>
+             <span class="tok-n">|</span> <span class="tok-n">NONE</span> <span class="tok-p">=&gt;</span> <span class="tok-n">C</span> <span class="tok-mi">0</span><span class="tok-p">,</span>
+            <span class="tok-s2">&quot;&lt;n&gt;&quot;</span><span class="tok-p">),</span>
+          <span class="tok-n">help</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;Set C value (default 0)&quot;</span>
+        <span class="tok-p">}</span>
+      <span class="tok-p">]</span>
+
+<span class="tok-kr">fun</span> <span class="tok-nf">usage</span> <span class="tok-p">()</span> <span class="tok-p">=</span> <span class="tok-n">print</span> <span class="tok-p">(</span><span class="tok-n">usageInfo</span><span class="tok-p">{</span><span class="tok-n">header</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;usage:&quot;</span><span class="tok-p">,</span> <span class="tok-n">options</span> <span class="tok-p">=</span> <span class="tok-n">opts</span><span class="tok-p">})</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">doOpts</span> <span class="tok-p">=</span> <span class="tok-n">getOpt</span> <span class="tok-p">{</span>
+        <span class="tok-n">argOrder</span> <span class="tok-p">=</span> <span class="tok-n">ReturnInOrder</span> <span class="tok-p">(</span><span class="tok-kr">fn</span> <span class="tok-n">s</span> <span class="tok-p">=&gt;</span> <span class="tok-n">Other</span> <span class="tok-n">s</span><span class="tok-p">),</span>
+        <span class="tok-n">options</span> <span class="tok-p">=</span> <span class="tok-n">opts</span><span class="tok-p">,</span>
+        <span class="tok-n">errFn</span> <span class="tok-p">=</span> <span class="tok-kr">fn</span> <span class="tok-n">msg</span> <span class="tok-p">=&gt;</span> <span class="tok-kr">raise</span> <span class="tok-n">Fail</span> <span class="tok-n">msg</span>
+      <span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The usage function will print the following text:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code><span></span>usage:
+  -a, -A                     Set A flag
+  -b &lt;name&gt;  --set-b=&lt;name&gt;  Set B name
+             --cval[=&lt;n&gt;]    Set C value (default 0)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Applying the <code>doOpts</code> function with the following arguments</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">doOpts</span> <span class="tok-p">[</span><span class="tok-s2">&quot;-A&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;foo&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;--&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;-c&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;baz&quot;</span><span class="tok-p">];</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>results in</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-p">([</span><span class="tok-n">AFlg</span><span class="tok-p">,</span> <span class="tok-n">Other</span> <span class="tok-s2">&quot;foo&quot;</span><span class="tok-p">,</span> <span class="tok-n">Other</span> <span class="tok-s2">&quot;--&quot;</span><span class="tok-p">,</span> <span class="tok-n">Other</span> <span class="tok-s2">&quot;-c&quot;</span><span class="tok-p">,</span> <span class="tok-n">Other</span> <span class="tok-s2">&quot;baz&quot;</span><span class="tok-p">],</span> <span class="tok-p">[])</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the second component of the result will always be the empty list
+because the non-options were wrapped with <code>Other</code>.  The &#8220;-c&#8221; argument was
+treated as a non-option because it came after the "--."</p>
+</div>
+<div class="paragraph">
+<p>The other approach to using the <code>GetOpt</code> structure is to define references
+for the various options and then update them in the argument-descriptor
+functions.  For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">val</span> <span class="tok-nv">aFlg</span> <span class="tok-p">:</span> <span class="tok-n">bool</span> <span class="tok-n">ref</span> <span class="tok-p">=</span> <span class="tok-n">ref</span> <span class="tok-n">false</span>
+<span class="tok-kr">val</span> <span class="tok-nv">bOpt</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-n">option</span> <span class="tok-n">ref</span> <span class="tok-p">=</span> <span class="tok-n">ref</span> <span class="tok-n">NONE</span>
+<span class="tok-kr">val</span> <span class="tok-nv">cVal</span> <span class="tok-p">:</span> <span class="tok-n">int</span> <span class="tok-n">option</span> <span class="tok-n">ref</span> <span class="tok-p">=</span> <span class="tok-n">ref</span> <span class="tok-n">NONE</span>
+<span class="tok-kr">val</span> <span class="tok-nv">errorFlg</span> <span class="tok-p">:</span> <span class="tok-n">bool</span> <span class="tok-n">ref</span> <span class="tok-p">=</span> <span class="tok-n">ref</span> <span class="tok-n">false</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">opts</span> <span class="tok-p">=</span> <span class="tok-p">[</span>
+        <span class="tok-p">{</span> <span class="tok-n">short</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;aA&quot;</span><span class="tok-p">,</span> <span class="tok-n">long</span> <span class="tok-p">=</span> <span class="tok-p">[],</span>
+          <span class="tok-n">desc</span> <span class="tok-p">=</span> <span class="tok-n">NoArg</span><span class="tok-p">(</span><span class="tok-kr">fn</span> <span class="tok-p">()</span> <span class="tok-p">=&gt;</span> <span class="tok-n">aFlg</span> <span class="tok-n">:=</span> <span class="tok-n">true</span><span class="tok-p">),</span>
+          <span class="tok-n">help</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;Set A flag&quot;</span>
+        <span class="tok-p">},</span>
+        <span class="tok-p">{</span> <span class="tok-n">short</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;b&quot;</span><span class="tok-p">,</span> <span class="tok-n">long</span> <span class="tok-p">=</span> <span class="tok-p">[</span><span class="tok-s2">&quot;set-b&quot;</span><span class="tok-p">],</span>
+          <span class="tok-n">desc</span> <span class="tok-p">=</span> <span class="tok-n">ReqArg</span><span class="tok-p">(</span><span class="tok-kr">fn</span> <span class="tok-n">s</span> <span class="tok-p">=&gt;</span> <span class="tok-n">bOpt</span> <span class="tok-n">:=</span> <span class="tok-n">SOME</span> <span class="tok-n">s</span><span class="tok-p">,</span> <span class="tok-s2">&quot;&lt;name&gt;&quot;</span><span class="tok-p">),</span>
+          <span class="tok-n">help</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;Set B name&quot;</span>
+        <span class="tok-p">},</span>
+        <span class="tok-p">{</span> <span class="tok-n">short</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;&quot;</span><span class="tok-p">,</span> <span class="tok-n">long</span> <span class="tok-p">=</span> <span class="tok-p">[</span><span class="tok-s2">&quot;cval&quot;</span><span class="tok-p">],</span>
+          <span class="tok-n">desc</span> <span class="tok-p">=</span> <span class="tok-n">OptArg</span> <span class="tok-p">(</span>
+            <span class="tok-kr">fn</span> <span class="tok-p">(</span><span class="tok-n">SOME</span> <span class="tok-n">s</span><span class="tok-p">)</span> <span class="tok-p">=&gt;</span> <span class="tok-p">(</span><span class="tok-kr">case</span> <span class="tok-nn">Int</span><span class="tok-p">.</span><span class="tok-n">fromString</span> <span class="tok-n">s</span>
+                   <span class="tok-kr">of</span> <span class="tok-n">NONE</span> <span class="tok-p">=&gt;</span> <span class="tok-n">errorFlg</span> <span class="tok-n">:=</span> <span class="tok-n">true</span>
+                    <span class="tok-n">|</span> <span class="tok-n">someN</span> <span class="tok-p">=&gt;</span> <span class="tok-n">cVal</span> <span class="tok-n">:=</span> <span class="tok-n">someN</span><span class="tok-p">)</span>
+             <span class="tok-n">|</span> <span class="tok-n">NONE</span> <span class="tok-p">=&gt;</span> <span class="tok-n">cVal</span> <span class="tok-n">:=</span> <span class="tok-n">SOME</span> <span class="tok-mi">0</span><span class="tok-p">,</span>
+            <span class="tok-s2">&quot;&lt;n&gt;&quot;</span><span class="tok-p">),</span>
+          <span class="tok-n">help</span> <span class="tok-p">=</span> <span class="tok-s2">&quot;Set C value (default 0)&quot;</span>
+        <span class="tok-p">}</span>
+      <span class="tok-p">]</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">doOpts</span> <span class="tok-p">=</span> <span class="tok-n">getOpt</span> <span class="tok-p">{</span>
+        <span class="tok-n">argOrder</span> <span class="tok-p">=</span> <span class="tok-n">Permute</span><span class="tok-p">,</span>
+        <span class="tok-n">options</span> <span class="tok-p">=</span> <span class="tok-n">opts</span><span class="tok-p">,</span>
+        <span class="tok-n">errFn</span> <span class="tok-p">=</span> <span class="tok-kr">fn</span> <span class="tok-n">msg</span> <span class="tok-p">=&gt;</span> <span class="tok-kr">raise</span> <span class="tok-n">Fail</span> <span class="tok-n">msg</span>
+      <span class="tok-p">}</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this version, applying the <code>doOpts</code> function with the following arguments</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">doOpts</span> <span class="tok-p">[</span><span class="tok-s2">&quot;-A&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;foo&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;--&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;-c&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;baz&quot;</span><span class="tok-p">];</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>results in</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-p">([()],</span> <span class="tok-p">[</span><span class="tok-s2">&quot;foo&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;--&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;-c&quot;</span><span class="tok-p">,</span> <span class="tok-s2">&quot;baz&quot;</span><span class="tok-p">])</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>with the <code>aFlg</code> set to <code>true</code> and the other flags unchanged.  One reason
+for using this imperative approach is that it is supported by the
+<a href="../Controls/controls-lib.html"><strong>Controls Library</strong></a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_bugs">Bugs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The function arguments to <code>ReqArg</code> and <code>OptArg</code> should really have
+an option return type so that the case where the argument is badly formed
+can be identified in the <code>GetOpt</code> implementation.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="../Controls/str-ControlUtil.html"><code>Controls</code></a>,
+<a href="../Controls/controls-lib.html"><em>The Controls Library</em></a>,
+<a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

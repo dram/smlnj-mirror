@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The HashTable structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>HashTable</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-ANSITerm.html"><span class="toc-lib-page">The <code>ANSITerm</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ArrayQSort.html"><span class="toc-lib-page">The <code>ArrayQSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ArrayQSortFn.html"><span class="toc-lib-page">The <code>ArrayQSortFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Atom.html"><span class="toc-lib-page">The <code>Atom</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Base64.html"><span class="toc-lib-page">The <code>Base64</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BinaryMapFn.html"><span class="toc-lib-page">The <code>BinaryMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-BinarySetFn.html"><span class="toc-lib-page">The <code>BinarySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-BitArray.html"><span class="toc-lib-page">The <code>BitArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-BSearchFn.html"><span class="toc-lib-page">The <code>BSearchFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-CharMap.html"><span class="toc-lib-page">The <code>CharMap</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-DynamicArray.html"><span class="toc-lib-page">The <code>DynamicArray</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-DynamicArrayFn.html"><span class="toc-lib-page">The <code>DynamicArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Fifo.html"><span class="toc-lib-page">The <code>Fifo</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FNVHash.html"><span class="toc-lib-page">The <code>FNVHash</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Format.html"><span class="toc-lib-page">The <code>Format</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-FormatComb.html"><span class="toc-lib-page">The <code>FormatComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-GetOpt.html"><span class="toc-lib-page">The <code>GetOpt</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-GraphSCCFn.html"><span class="toc-lib-page">The <code>GraphSCCFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-Hash2TableFn.html"><span class="toc-lib-page">The <code>Hash2TableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-HASH_KEY.html"><span class="toc-lib-page">The <code>HASH_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-HashSetFn.html"><span class="toc-lib-page">The <code>HashSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-HashString.html"><span class="toc-lib-page">The <code>HashString</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>HashTable</code> structure</span></li>
+      <li class="toc-page"><a href="fun-HashTableFn.html"><span class="toc-lib-page">The <code>HashTableFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-INTERVAL_DOMAIN.html"><span class="toc-lib-page">The <code>INTERVAL_DOMAIN</code> signature</span></a></li>
+      <li class="toc-page"><a href="fun-IntervalSetFn.html"><span class="toc-lib-page">The <code>IntervalSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-IOUtil.html"><span class="toc-lib-page">The <code>IOUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-KeywordFn.html"><span class="toc-lib-page">The <code>KeywordFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-LeftPriorityQFn.html"><span class="toc-lib-page">The <code>MONO_PRIORITYQ</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-LibBase.html"><span class="toc-lib-page">The <code>LibBase</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ListFormat.html"><span class="toc-lib-page">The <code>ListFormat</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListMapFn.html"><span class="toc-lib-page">The <code>ListMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListMergeSort.html"><span class="toc-lib-page">The <code>ListMergeSort</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-ListSetFn.html"><span class="toc-lib-page">The <code>ListSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-ListXProd.html"><span class="toc-lib-page">The <code>ListXProd</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-MonoArrayFn.html"><span class="toc-lib-page">The <code>MonoArrayFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="sig-MONO_HASH_TABLE.html"><span class="toc-lib-page">The <code>MONO_HASH_TABLE</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_KEY.html"><span class="toc-lib-page">The <code>ORD_KEY</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_MAP.html"><span class="toc-lib-page">The <code>ORD_MAP</code> signature</span></a></li>
+      <li class="toc-page"><a href="sig-ORD_SET.html"><span class="toc-lib-page">The <code>ORD_SET</code> signature</span></a></li>
+      <li class="toc-page"><a href="str-ParserComb.html"><span class="toc-lib-page">The <code>ParserComb</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PathUtil.html"><span class="toc-lib-page">The <code>PathUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-PropList.html"><span class="toc-lib-page">The <code>PropList</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Queue.html"><span class="toc-lib-page">The <code>Queue</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Rand.html"><span class="toc-lib-page">The <code>Rand</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-Random.html"><span class="toc-lib-page">The <code>Random</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-RealOrderStats.html"><span class="toc-lib-page">The <code>RealOrderStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackMapFn.html"><span class="toc-lib-page">The <code>RedBlackMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-RedBlackSetFn.html"><span class="toc-lib-page">The <code>RedBlackSetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-Scan.html"><span class="toc-lib-page">The <code>Scan</code> structure</span></a></li>
+      <li class="toc-page"><a href="fun-SplayMapFn.html"><span class="toc-lib-page">The <code>SplayMapFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="fun-SplaySetFn.html"><span class="toc-lib-page">The <code>SplaySetFn</code> functor</span></a></li>
+      <li class="toc-page"><a href="str-TimeLimit.html"><span class="toc-lib-page">The <code>TimeLimit</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UnivariateStats.html"><span class="toc-lib-page">The <code>UnivariateStats</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-URef.html"><span class="toc-lib-page">The <code>URef</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-UTF8.html"><span class="toc-lib-page">The <code>UTF8</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>HashTable</code> structure implements hash tables that are polymorphic
+in the key type.</p>
+</div>
+<div class="paragraph">
+<p>The tables are implemented as an array of <em>buckets</em>, which are
+lists of key-value pairs.  The number of buckets grows with the number
+of table entries.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">HashTable</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-kt">hash_table</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mkTable</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">word</span><span class="tok-p">)</span> <span class="tok-n">*</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">))</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-n">int</span> <span class="tok-n">*</span> <span class="tok-n">exn</span><span class="tok-p">)</span>
+      <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span><span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">clear</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">insert</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">inDomain</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">lookup</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">find</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">option</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">remove</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">numItems</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span>  <span class="tok-n">int</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">listItems</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">list</span>
+<span class="tok-kr">val</span> <span class="tok-nv">listItemsi</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">list</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">app</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">appi</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">map</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span>
+<span class="tok-kr">val</span> <span class="tok-nv">mapi</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">fold</span>  <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;b</span> <span class="tok-n">*</span><span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span>
+<span class="tok-kr">val</span> <span class="tok-nv">foldi</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;c</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">modify</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">modifyi</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">filter</span>  <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;b</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">filteri</span> <span class="tok-p">:</span> <span class="tok-p">((</span><span class="tok-nd">&#39;a</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">bool</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">copy</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">bucketSizes</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span><span class="tok-p">,</span> <span class="tok-nd">&#39;b</span><span class="tok-p">)</span> <span class="tok-n">hash_table</span> <span class="tok-p">-&gt;</span> <span class="tok-n">int</span> <span class="tok-n">list</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> ('a, 'b) hash_table</code></dt>
+<dd>
+<p>The type of imperative hash tables indexed by <code>'a</code> values</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mkTable : 'a -&gt; word) * (('a * 'a) -&gt; bool -&gt; (int * exn) -&gt; ('a,'b) hash_table</code></dt>
+<dd>
+<p><code>mkTable (hash, same) (n, ex)</code> creates a new hash table that uses the <code>hash</code>
+function to compute hash values for keys and the <code>same</code> function to test
+key equality.  The table will be initially sized to hold at least <code>n</code> items.
+The exception <code>ex</code> is raised by the <a href="#val:lookup"><code>lookup</code></a> and
+<a href="#val:remove"><code>remove</code></a> functions when the search key is not in the domain.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> clear : ('a, 'b) hash_table -&gt; unit</code></dt>
+<dd>
+<p><code>clear tbl</code> removes all of the entries in the table.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> insert : ('a, 'b) hash_table -&gt; ('a * 'b) -&gt; unit</code></dt>
+<dd>
+<p><code>insert tbl (key, item)</code> inserts a mapping from <code>key</code> to <code>item</code> into <code>tbl</code>.
+Any existing mapping of <code>key</code> is discarded.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> inDomain : ('a, 'b) hash_table -&gt; 'a -&gt; bool</code></dt>
+<dd>
+<p><code>inDomain tbl key</code> returns <code>true</code> if, and only if, <code>key</code> is in the
+domain of the table</p>
+</dd>
+</dl>
+</div>
+<div id="val:lookup" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> lookup : ('a, 'b) hash_table -&gt; 'a -&gt; 'b</code></dt>
+<dd>
+<p><code>lookup tbl key</code> returns the item that <code>key</code> maps to if <code>key</code> is in
+the domain of <code>tbl</code>.  Otherwise, the table&#8217;s exception is raised.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> find : ('a, 'b) hash_table -&gt; 'a -&gt; 'b option</code></dt>
+<dd>
+<p><code>find tbl key</code> returns the <code>SOME v</code> if <code>key</code> is mapped to <code>v</code> in <code>tbl</code>.
+Otherwise, it returns <code>NONE</code>.</p>
+</dd>
+</dl>
+</div>
+<div id="val:remove" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> remove : ('a, 'b) hash_table -&gt; 'a -&gt; 'b</code></dt>
+<dd>
+<p><code>remove tbl key</code> returns the item that <code>key</code> maps to if <code>key</code> is in
+the domain of <code>tbl</code> and removes it from the table.  Otherwise, the
+table&#8217;s exception is raised.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> numItems : ('a, 'b) hash_table -&gt;  int</code></dt>
+<dd>
+<p><code>numItems tbl</code> returns the number of entries in the table.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listItems  : ('a, 'b) hash_table -&gt; 'b list</code></dt>
+<dd>
+<p><code>listItems tbl</code> returns a list of the items in the range of <code>tbl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> listItemsi : ('a, 'b) hash_table -&gt; ('a * 'b) list</code></dt>
+<dd>
+<p><code>listItemsi tbl</code> returns a list of the key-value entries in <code>tbl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> app  : ('b -&gt; unit) -&gt; ('a, 'b) hash_table -&gt; unit</code></dt>
+<dd>
+<p><code>app f tbl</code> applies the function <code>f</code> to each item in the range of <code>tbl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> appi : (('a * 'b) -&gt; unit) -&gt; ('a, 'b) hash_table -&gt; unit</code></dt>
+<dd>
+<p><code>appi f tbl</code> applies the function <code>f</code> to each item in the
+key-value entries in <code>tbl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> map  : ('b -&gt; 'c) -&gt; ('a, 'b) hash_table -&gt; ('a, 'c) hash_table</code></dt>
+<dd>
+<p><code>map f tbl</code> creates a new table with an entry <code>(key, f(lookup tbl key))</code>
+in the new table for every <code>key</code> in <code>tbl</code>.  The new table inherits its
+hash and key-equality functions, and exception from <code>tbl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mapi : (('a * 'b) -&gt; 'c) -&gt; ('a, 'b) hash_table -&gt; ('a, 'c) hash_table</code></dt>
+<dd>
+<p><code>mapi f tbl</code> creates a new table with an entry <code>(key, f(key, lookup tbl key))</code>
+in the new table for every <code>key</code> in <code>tbl</code>.  The new table inherits its
+hash and key-equality functions, and exception from <code>tbl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> fold  : (('b *'c) -&gt; 'c) -&gt; 'c -&gt; ('a, 'b) hash_table -&gt; 'c</code></dt>
+<dd>
+<p><code>fold f init tbl</code> folds the function <code>f</code> over the items in the range of <code>tbl</code>
+using <code>init</code> as an initial value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> foldi : (('a * 'b * 'c) -&gt; 'c) -&gt; 'c -&gt; ('a, 'b) hash_table -&gt; 'c</code></dt>
+<dd>
+<p><code>foldi f init tbl</code> folds the function <code>f</code> over the key-velu entries in <code>tbl</code>
+using <code>init</code> as an initial value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> modify  : ('b -&gt; 'b) -&gt; ('a, 'b) hash_table -&gt; unit</code></dt>
+<dd>
+<p><code>modify f tbl</code> applies the function <code>f</code> for effect to the items in the
+range of <code>tbl</code>, replacing the old items with the result of applying <code>f</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> modifyi : (('a * 'b) -&gt; 'b) -&gt; ('a, 'b) hash_table -&gt; unit</code></dt>
+<dd>
+<p><code>modifyi f tbl</code> applies the function <code>f</code> for effect to the key-value
+entries in <code>tbl</code>, replacing the old items with the result of applying <code>f</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> filter  : ('b -&gt; bool) -&gt; ('a, 'b) hash_table -&gt; unit</code></dt>
+<dd>
+<p><code>filter pred tbl</code> removes any entry <code>(key, item)</code> from <code>tbl</code> for which
+<code>pred item</code> returns <code>false</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> filteri : (('a * 'b) -&gt; bool) -&gt; ('a, 'b) hash_table -&gt; unit</code></dt>
+<dd>
+<p><code>filteri pred tbl</code> removes any entry <code>(key, item)</code> from <code>tbl</code> for which
+<code>pred(key, item)</code> returns <code>false</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> copy : ('a, 'b) hash_table -&gt; ('a, 'b) hash_table</code></dt>
+<dd>
+<p><code>copy tbl</code> creates a copy of <code>tbl</code>.  This expression is equivalent to</p>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-n">map</span> <span class="tok-p">(</span><span class="tok-kr">fn</span> <span class="tok-n">x</span> <span class="tok-p">=&gt;</span> <span class="tok-n">x</span><span class="tok-p">)</span> <span class="tok-n">tbl</span></code></pre>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> bucketSizes : ('a, 'b) hash_table -&gt; int list</code></dt>
+<dd>
+<p><code>bucketSizes tbl</code> returns a list of the current number of items per
+bucket.  This function allows users to gauge the quality of their
+hashing function.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="smlnj-lib.html"><em>The Util Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The JSONStreamPrinter structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>JSONStreamPrinter</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a></li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><a href="str-JSON.html"><span class="toc-lib-page">The <code>JSON</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONParser.html"><span class="toc-lib-page">The <code>JSONParser</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONPrinter.html"><span class="toc-lib-page">The <code>JSONPrinter</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONUtil.html"><span class="toc-lib-page">The <code>JSONUtil</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-JSONStreamParser.html"><span class="toc-lib-page">The <code>JSONStreamParser</code> structure</span></a></li>
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>JSONStreamPrinter</code> structure</span></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>JSONStreamPrinter</code> structure provides an imperative
+printer for producing <strong>JSON</strong> output.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">structure</span> <span class="tok-nn">JSONStreamPrinter</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">printer</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">new</span> <span class="tok-p">:</span> <span class="tok-nn">TextIO</span><span class="tok-p">.</span><span class="tok-n">outstream</span> <span class="tok-p">-&gt;</span> <span class="tok-n">printer</span>
+<span class="tok-kr">val</span> <span class="tok-nv">new&#39;</span> <span class="tok-p">:</span> <span class="tok-p">{</span><span class="tok-n">strm</span> <span class="tok-p">:</span> <span class="tok-nn">TextIO</span><span class="tok-p">.</span><span class="tok-n">outstream</span><span class="tok-p">,</span> <span class="tok-n">pretty</span> <span class="tok-p">:</span> <span class="tok-n">bool</span><span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">printer</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">close</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">null</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">boolean</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-n">*</span> <span class="tok-n">bool</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">integer</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-n">*</span> <span class="tok-nn">IntInf</span><span class="tok-p">.</span><span class="tok-n">int</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">float</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-n">*</span> <span class="tok-n">real</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">string</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">beginObject</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">objectKey</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-n">*</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">endObject</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">beginArray</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">endArray</span> <span class="tok-p">:</span> <span class="tok-n">printer</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> printer</code></dt>
+<dd>
+<p>The abstract type of the pretty-printer state.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> new : TextIO.outstream -&gt; printer</code></dt>
+<dd>
+<p><code>new outS</code> creates a new printer from the outputstream <code>outS</code>.
+The printer produces a <em>condensed</em> format without newlines or
+indentation; use the <code>new'</code> function to create a pretty-printer
+for <strong>JSON</strong> output.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> new' : {strm : TextIO.outstream, pretty : bool} -&gt; printer</code></dt>
+<dd>
+<p><code>new' {strm, pretty}</code> creates a new pretty-printing stream from the output
+stream <code>strm</code>, where the value of the <code>pretty</code> field controls whether
+the output is condensed (when <code>pretty</code> is <code>false</code>) or printed with
+new lines and indentation to improve readability (when <code>pretty</code> is <code>true</code>).</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> close : printer -&gt; unit</code></dt>
+<dd>
+<p><code>close pr</code> closes the printer, but not the underlying output stream.
+Closing the printer while there is an open object or array results in
+the <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception being raised.  Also, calling any of the below printing
+functions on a closed printer will result in the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception being raised.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> null : printer -&gt; unit</code></dt>
+<dd>
+<p><code>null pr</code> prints the <strong>JSON</strong> <strong>null</strong> value.  Raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> boolean : printer * bool -&gt; unit</code></dt>
+<dd>
+<p><code>boolean (pr, b)</code> prints the <strong>JSON</strong> boolean value <code>b</code>.  Raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> integer : printer * IntInf.int -&gt; unit</code></dt>
+<dd>
+<p><code>integer (pr, n)</code> prints the <strong>JSON</strong> number <code>n</code>.  Raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> float : printer * real -&gt; unit</code></dt>
+<dd>
+<p><code>float (pr, r)</code> prints the <strong>JSON</strong> floating-point number <code>r</code>.
+Raises the <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> string : printer * string -&gt; unit</code></dt>
+<dd>
+<p><code>string (pr, s)</code> prints the <strong>JSON</strong> string <code>s</code>.  Raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> beginObject : printer -&gt; unit</code></dt>
+<dd>
+<p><code>beginArray pr</code> prints the opening &#8220;{&#8221; for a <strong>JSON</strong> object.
+Note that each call to <code>beginObject</code> should be matched by a call
+to <code>endObject</code>.  Raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> objectKey : printer * string -&gt; unit</code></dt>
+<dd>
+<p><code>objectKey (pr, key)</code> prints the <strong>JSON</strong> key-value <code>key</code> followed
+by a &#8220;:&#8221;.  This function should be inside matched
+<code>beginObject</code>/<code>endObject</code> calls and should be followed by
+the printing of a <strong>JSON</strong> value.  Raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> endObject : printer -&gt; unit</code></dt>
+<dd>
+<p><code>endObject pr</code> prints the closing <code>}</code> for the currently open object.
+The <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception is raised if the current context is not an open object,
+if a key has been printed without an associated value, or
+if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> beginArray : printer -&gt; unit</code></dt>
+<dd>
+<p><code>beginArray pr</code> prints the opening &#8220;[&#8221; for a <strong>JSON</strong> array.
+Note that each call to <code>beginArray</code> should be matched by a call
+to <code>endArray</code>.  Raises the
+<a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception if the printer is closed.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> endArray : printer -&gt; unit</code></dt>
+<dd>
+<p><code>endArray pr</code> prints the closing <code>]</code> for the currently open array.
+The <a href="https://standardml.org/Basis/general.html#SIG:GENERAL.Fail:EXN"><code>Fail</code></a>
+exception is raised if the current context is not an open array
+or if the printer is closed.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-JSONPrinter.html"><code>JSONPrinter</code></a>,
+<a href="str-JSONStreamParser.html"><code>JSONStreamParser</code></a>,
+<a href="json-lib.html"><em>The JSON Library</em></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:15 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>

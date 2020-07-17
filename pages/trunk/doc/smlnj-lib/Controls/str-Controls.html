@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="generator" content="Asciidoctor 2.0.10">
+  <meta name="author" content="John Reppy">
+  <meta name="keywords" content="Standard ML, SML, SML/NJ Library">
+  <title>The Controls structure</title>
+  <link rel="stylesheet" href="../styles/smlnj-lib-base.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib.css" type="text/css" />
+  <link rel="stylesheet" href="../styles/smlnj-lib-pygments.css">
+  <!-- support for latexmath -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "none",
+      tex2jax: {
+	inlineMath: [["\\(", "\\)"]],
+	displayMath: [["\\[", "\\]"]],
+	ignoreClass: "nostem|nolatexmath"
+      },
+      asciimath2jax: {
+	delimiters: [["\\$", "\\$"]],
+	ignoreClass: "nostem|noasciimath"
+      },
+      TeX: { equationNumbers: { autoNumber: "none" } }
+    })
+    MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+      MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+	if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+	  data.math.root.display = "block"
+	}
+	return data
+      })
+    })
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
+</head>
+<body class="article">
+  <div id="layout-top-mask"></div> <!-- to mask scrolled content from below -->
+  <div id="layout-main">
+    <div id="layout-banner-spacer"></div>
+    <div id="layout-banner">
+      <div id="layout-logo">
+        <a href="https://smlnj.org">
+          <img src="https://smlnj.org/images/smlnj-logo.png" height="120" alt="SML/NJ logo" />
+        </a>
+      </div> <!-- layout-logo -->
+      <div id="layout-title">
+	<div id="layout-title-main"><a href="../index.html">The SML of NJ Library</a></div>
+	<div id="layout-title-description">The <code>Controls</code> structure</div>
+      </div> <!-- layout-title -->
+    </div> <!-- layout-banner -->
+    <div class="clearer"></div>
+<div id="layout-toc">
+<div id="toc">
+<ul class="toc-lib-list">
+  <li class="toc-lib"><a href="../Controls/controls-lib.html"><span class="toc-lib-title">The Controls Library</span></a>
+    <ul class="toc-page-list">
+      <li class="toc-page"><span class="toc-lib-page" id="toc-current">The <code>Controls</code> structure</span></li>
+      <li class="toc-page"><a href="str-ControlSet.html"><span class="toc-lib-page">The <code>ControlSet</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ControlRegistry.html"><span class="toc-lib-page">The <code>ControlRegistry</code> structure</span></a></li>
+      <li class="toc-page"><a href="str-ControlUtil.html"><span class="toc-lib-page">The <code>ControlUtil</code> structure</span></a></li>
+    </ul>
+  </li>
+  <li class="toc-lib"><a href="../HashCons/hash-cons-lib.html"><span class="toc-lib-title">The HashCons Library</span></a></li>
+  <li class="toc-lib"><a href="../INet/inet-lib.html"><span class="toc-lib-title">The INet Library</span></a></li>
+  <li class="toc-lib"><a href="../JSON/json-lib.html"><span class="toc-lib-title">The JSON Library</span></a></li>
+  <li class="toc-lib"><a href="../Reactive/reactive-lib.html"><span class="toc-lib-title">The Reactive Library</span></a></li>
+  <li class="toc-lib"><a href="../RegExp/regexp-lib.html"><span class="toc-lib-title">The RegExp Library</span></a></li>
+  <li class="toc-lib"><a href="../SExp/sexp-lib.html"><span class="toc-lib-title">The SExp Library</span></a></li>
+  <li class="toc-lib"><a href="../Unix/unix-lib.html"><span class="toc-lib-title">The Unix Library</span></a></li>
+  <li class="toc-lib"><a href="../Util/smlnj-lib.html"><span class="toc-lib-title">The Util Library</span></a></li>
+  <li class="toc-lib"><a href="../UUID/uuid-lib.html"><span class="toc-lib-title">The UUID Library</span></a></li>
+  <li class="toc-lib"><a href="../XML/xml-lib.html"><span class="toc-lib-title">The XML Library</span></a></li>
+</ul>
+</div> <!-- toc -->
+</div> <!-- layout-toc -->
+    <div id="layout-content-box">
+      <div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>Controls</code> structure defines the basic types and operations
+for the <strong>Controls Library</strong>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_synopsis">Synopsis</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">signature</span> <span class="tok-nn">CONTROLS</span>
+<span class="tok-kr">structure</span> <span class="tok-nn">Controls</span> <span class="tok-p">:</span> <span class="tok-n">CONTROLS</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface">Interface</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="sml"><span></span><span class="tok-kr">type</span> <span class="tok-kt">priority</span> <span class="tok-p">=</span> <span class="tok-n">int</span> <span class="tok-n">list</span>
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">control</span>
+
+<span class="tok-kr">type</span> <span class="tok-nd">&#39;a</span> <span class="tok-kt">value_cvt</span> <span class="tok-p">=</span> <span class="tok-p">{</span>
+    <span class="tok-n">tyName</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+    <span class="tok-n">fromString</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">option</span><span class="tok-p">,</span>
+    <span class="tok-n">toString</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+  <span class="tok-p">}</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">control</span> <span class="tok-p">:</span> <span class="tok-p">{</span>
+        <span class="tok-n">name</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">pri</span> <span class="tok-p">:</span> <span class="tok-n">priority</span><span class="tok-p">,</span>
+        <span class="tok-n">obscurity</span> <span class="tok-p">:</span> <span class="tok-n">int</span><span class="tok-p">,</span>
+        <span class="tok-n">help</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">ctl</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">ref</span>
+      <span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">genControl</span> <span class="tok-p">:</span> <span class="tok-p">{</span>
+        <span class="tok-n">name</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">pri</span> <span class="tok-p">:</span> <span class="tok-n">priority</span><span class="tok-p">,</span>
+        <span class="tok-n">obscurity</span> <span class="tok-p">:</span> <span class="tok-n">int</span><span class="tok-p">,</span>
+        <span class="tok-n">help</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">default</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span>
+      <span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span>
+
+<span class="tok-kr">exception</span> <span class="tok-nc">ValueSyntax</span> <span class="tok-kr">of</span> <span class="tok-p">{</span><span class="tok-n">tyName</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span> <span class="tok-n">ctlName</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span> <span class="tok-n">value</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">}</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">stringControl</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">value_cvt</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span> <span class="tok-n">control</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">name</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+<span class="tok-kr">val</span> <span class="tok-nv">get</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-p">-&gt;</span> <span class="tok-nd">&#39;a</span>
+<span class="tok-kr">val</span> <span class="tok-nv">set</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">set&#39;</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+<span class="tok-kr">val</span> <span class="tok-nv">help</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-p">-&gt;</span> <span class="tok-n">string</span>
+<span class="tok-kr">val</span> <span class="tok-nv">info</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-p">-&gt;</span> <span class="tok-p">{</span><span class="tok-n">priority</span> <span class="tok-p">:</span> <span class="tok-n">priority</span><span class="tok-p">,</span> <span class="tok-n">obscurity</span> <span class="tok-p">:</span> <span class="tok-n">int</span><span class="tok-p">,</span> <span class="tok-n">help</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">}</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mkOptionFlag</span> <span class="tok-p">:</span> <span class="tok-p">{</span>
+        <span class="tok-n">ctl</span> <span class="tok-p">:</span> <span class="tok-n">bool</span> <span class="tok-n">control</span><span class="tok-p">,</span>
+        <span class="tok-n">short</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">long</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-n">option</span>
+      <span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span> <span class="tok-nn">GetOpt</span><span class="tok-p">.</span><span class="tok-n">opt_descr</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mkOptionReqArg</span> <span class="tok-p">:</span> <span class="tok-p">{</span>
+        <span class="tok-n">ctl</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-n">control</span><span class="tok-p">,</span>
+        <span class="tok-n">arg</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">short</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">long</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-n">option</span>
+      <span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span> <span class="tok-nn">GetOpt</span><span class="tok-p">.</span><span class="tok-n">opt_descr</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">mkOption</span> <span class="tok-p">:</span> <span class="tok-p">{</span>
+        <span class="tok-n">ctl</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-n">control</span><span class="tok-p">,</span>
+        <span class="tok-n">arg</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">default</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">short</span> <span class="tok-p">:</span> <span class="tok-n">string</span><span class="tok-p">,</span>
+        <span class="tok-n">long</span> <span class="tok-p">:</span> <span class="tok-n">string</span> <span class="tok-n">option</span>
+      <span class="tok-p">}</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span> <span class="tok-nn">GetOpt</span><span class="tok-p">.</span><span class="tok-n">opt_descr</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">save&#39;restore</span> <span class="tok-p">:</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span> <span class="tok-p">-&gt;</span> <span class="tok-n">unit</span>
+
+<span class="tok-kr">val</span> <span class="tok-nv">compare</span> <span class="tok-p">:</span> <span class="tok-p">(</span><span class="tok-nd">&#39;a</span> <span class="tok-n">control</span> <span class="tok-n">*</span> <span class="tok-nd">&#39;a</span> <span class="tok-n">control</span><span class="tok-p">)</span> <span class="tok-p">-&gt;</span> <span class="tok-n">order</span></code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_description">Description</h2>
+<div class="sectionbody">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> priority = int list</code></dt>
+<dd>
+<p>something</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a control</code></dt>
+<dd>
+<p>something</p>
+</dd>
+</dl>
+</div>
+<div id="type:value_cvt" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">type</span> 'a value_cvt = { &#8230;&#8203; }</code></dt>
+<dd>
+<p>A value converter is used to convert between strings and another
+type.  The fields have the following meaning:</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>tyName : string</code></dt>
+<dd>
+<p>The name of the type being converted,</p>
+</dd>
+<dt class="hdlist1"><code>fromString : string -&gt; 'a option</code></dt>
+<dd>
+<p>The function for converting from strings to the type.</p>
+</dd>
+<dt class="hdlist1"><code>toString : 'a -&gt; string'</code></dt>
+<dd>
+<p>The function for converting from the type to strings.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> control : {name, pri, obscurity, help, ctl} -&gt; 'a control</code></dt>
+<dd>
+<p><code>control {name, pri, obscurity, help, ctl}</code> creates a new control,
+where the arguments are</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>name : string</code></dt>
+<dd>
+<p>the name of the control.</p>
+</dd>
+<dt class="hdlist1"><code>pri : priority</code></dt>
+<dd>
+<p>the control&#8217;s priority.</p>
+</dd>
+<dt class="hdlist1"><code>obscurity : int</code></dt>
+<dd>
+<p>the control&#8217;s obscurity level (higher means more obscure).</p>
+</dd>
+<dt class="hdlist1"><code>help : string</code></dt>
+<dd>
+<p>the control&#8217;s description.</p>
+</dd>
+<dt class="hdlist1"><code>ctl : 'a ref</code></dt>
+<dd>
+<p>the reference cell that holds the control&#8217;s state.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> genControl : {name, pri, obscurity, help, ctl, default} -&gt; 'a control</code></dt>
+<dd>
+<p><code>genControl {name, pri, obscurity, help, default}</code> creates a new control,
+where the arguments are</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>name : string</code></dt>
+<dd>
+<p>the name of the control.</p>
+</dd>
+<dt class="hdlist1"><code>pri : priority</code></dt>
+<dd>
+<p>the control&#8217;s priority.</p>
+</dd>
+<dt class="hdlist1"><code>obscurity : int</code></dt>
+<dd>
+<p>the control&#8217;s obscurity level (higher means more obscure).</p>
+</dd>
+<dt class="hdlist1"><code>help : string</code></dt>
+<dd>
+<p>the control&#8217;s description.</p>
+</dd>
+<dt class="hdlist1"><code>default : 'a</code></dt>
+<dd>
+<p>the initial, or default, value of the control.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">exception</span> ValueSyntax of {tyName : string, ctlName : string, value : string}</code></dt>
+<dd>
+<p>This exception is raised to communicate that there is a syntax error
+in a string representation of a control value.</p>
+</dd>
+</dl>
+</div>
+<div id="val:stringControl" class="dlist">
+<dl>
+<dt class="hdlist1"><code><span class="kw">val</span> stringControl : 'a value_cvt -&gt; 'a control -&gt; string control</code></dt>
+<dd>
+<p><code>stringControl cvt ctl</code> creates a string-valued interface to the control <code>ctl</code>
+using the given value converter.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> name : 'a control -&gt; string</code></dt>
+<dd>
+<p><code>name ctl</code> returns the name of the control <code>ctl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> get : 'a control -&gt; 'a</code></dt>
+<dd>
+<p><code>get ctl</code> returns the value of the control <code>ctl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> set : 'a control * 'a -&gt; unit</code></dt>
+<dd>
+<p><code>set (ctl, v)</code> sets the value of the control <code>ctl</code> to <code>v</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> set' : 'a control * 'a -&gt; unit -&gt; unit (* delayed; error checking in 1st stage *)</code></dt>
+<dd>
+<p><code>set (ctl, v)</code> returns a <code>unit -&gt; unit</code> function that will set
+the value of the control <code>ctl</code> to <code>v</code>.  This staged evaluation is useful
+when the control does some error checking (<em>i.e.</em>, because it is the
+result of <a href="#val:stringControl"><code>stringControl</code></a>) on the value <code>v</code>.
+In that case, the value is checked for syntactic correctness and
+converted when <code>set'</code> is applied.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> help : 'a control -&gt; string</code></dt>
+<dd>
+<p><code>help ctl</code> returns the description of the control <code>ctl</code>.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> info : 'a control -&gt; {priority : priority, obscurity : int, help : string}</code></dt>
+<dd>
+<p><code>info ctl</code> returns a record <code>{priority, obscurity, help}</code>,
+where the fields of the result are</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>priority : priority</code></dt>
+<dd>
+<p>the control&#8217;s priority.</p>
+</dd>
+<dt class="hdlist1"><code>obscurity : int</code></dt>
+<dd>
+<p>the control&#8217;s obscurity level (higher means more obscure).</p>
+</dd>
+<dt class="hdlist1"><code>help : string</code></dt>
+<dd>
+<p>the control&#8217;s description.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mkOptionFlag : {ctl, short, long} -&gt; unit <a href="../Util/str-GetOpt.html#type:opt_descr">GetOpt.opt_descr</a></code></dt>
+<dd>
+<p><code>mkOptionFlag {ctl, short, long}</code> returns a command-line-option
+<a href="../Util/str-GetOpt.html#con:NoArg"><code>GetOpt.NoArg</code></a> descriptor
+for a boolean control.  The arguments are</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>ctl : bool control</code></dt>
+<dd>
+<p>the control that will be set by the command-line option.</p>
+</dd>
+<dt class="hdlist1"><code>short : string</code></dt>
+<dd>
+<p>the short name for the command-line option; either zero or one chars.</p>
+</dd>
+<dt class="hdlist1"><code>long : string option</code></dt>
+<dd>
+<p>an optional long-name for the command-line option.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mkOptionReqArg : {ctl, arg, short, long} -&gt; unit <a href="../Util/str-GetOpt.html#type:opt_descr">GetOpt.opt_descr</a></code></dt>
+<dd>
+<p><code>mkOptionReqArg {ctl, arg, short, long}</code> returns a command-line-option
+<a href="../Util/str-GetOpt.html#con:ReqArg"><code>GetOpt.ReqArg</code></a> descriptor
+for a string control, where an argument for the command-line option
+is required.  The arguments to the call are</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>ctl : string control</code></dt>
+<dd>
+<p>the control that will be set by the command-line option.</p>
+</dd>
+<dt class="hdlist1"><code>arg : string</code></dt>
+<dd>
+<p>the name for the argument, which is used in the usage message.</p>
+</dd>
+<dt class="hdlist1"><code>short : string</code></dt>
+<dd>
+<p>the short name for the option; either zero or one chars.</p>
+</dd>
+<dt class="hdlist1"><code>long : string option</code></dt>
+<dd>
+<p>an optional long-name for the option.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> mkOption : {ctl, arg, default, short, long} -&gt; unit GetOpt.opt_descr</code></dt>
+<dd>
+<p><code>mkOptionReqArg {ctl, arg, short, long}</code> returns a command-line-option
+<a href="../Util/str-GetOpt.html#con:OptArg"><code>GetOpt.OptArg</code></a> descriptor
+for a string control, where an argument for the command-line option
+is optional.  The arguments to the call are</p>
+<div class="openblock">
+<div class="content">
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>ctl : string control</code></dt>
+<dd>
+<p>the control that will be set by the command-line option.</p>
+</dd>
+<dt class="hdlist1"><code>arg : string</code></dt>
+<dd>
+<p>the name for the argument, which is used in the usage message.</p>
+</dd>
+<dt class="hdlist1"><code>default : string</code></dt>
+<dd>
+<p>the default value for when no argument is given.</p>
+</dd>
+<dt class="hdlist1"><code>short : string</code></dt>
+<dd>
+<p>the short name for the command-line option; either zero or one chars.</p>
+</dd>
+<dt class="hdlist1"><code>long : string option</code></dt>
+<dd>
+<p>an optional long-name for the command-line  option.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> save&#8217;restore : 'a control -&gt; unit -&gt; unit</code></dt>
+<dd>
+<p><code>save&#8217;restore ctl</code> saves the current value of the control and
+returns a <code>unit -&gt; unit</code> function that will restore the value.</p>
+</dd>
+<dt class="hdlist1"><code><span class="kw">val</span> compare : ('a control * 'a control) -&gt; order</code></dt>
+<dd>
+<p><code>compare (ctl1, ctl2)</code> returns the priority order of the two controls.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_see_also">See Also</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="str-ControlUtil.html"><code>ControlUtil</code></a>,
+<a href="controls-lib.html"><em>The Controls Library</em></a>,
+<a href="../Util/str-GetOpt.html"><code>GetOpt</code></a></p>
+</div>
+</div>
+</div>
+      </div> <!-- content -->
+    </div> <!-- layout-content-box -->
+    <div id="layout-footer-box">
+      <div id="layout-footer">
+	<div id="layout-footer-text">
+	  <strong>SML/NJ</strong> Version 110.98 (July 16, 2020)<br />
+	  Last updated 2020-07-15 22:22:14 UTC
+	</div> <!-- layout-footer-text -->
+      </div> <!-- layout-footer -->
+    </div> <!-- layout-footer-box -->
+  </div> <!-- layout-main -->
+</body>
+</html>
