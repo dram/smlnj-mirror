@@ -66,7 +66,7 @@ datatype dectree
 
 (* ================================================================================ *)
 (* match compiler utility definitions *)
-	       
+
 fun bug s = EM.impossible ("MCCommon: " ^ s)
 
 fun mkRECORDpat (RECORDpat{fields, flex=false, typ, ...}) pats =

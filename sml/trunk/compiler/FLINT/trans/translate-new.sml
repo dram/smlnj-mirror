@@ -133,7 +133,7 @@ fun CON' ((_, DA.REF, lt), ts, e) = APP (PRIM (PO.MAKEREF, lt, ts), e)
       end
   | CON' x = CON x
 
-   
+
 (* mkDcon : Types.datacon -> Plambda.dataconstr *)
 fun mkDcon (TP.DATACON {name, rep, typ, ...}) =
       (name, rep, toDconLty toLty typ)
@@ -141,9 +141,9 @@ fun mkDcon (TP.DATACON {name, rep, typ, ...}) =
 fun patToConsig (APPpat(dcon,_,_) = TU.dataconSign dcon
   | patToConsig (CONpat(dcon,_)) = TU.dataconSign dcon
   | patToConsig _ = TP.CNIL
- 
+
 (* patToCon : AS.pat * -> Plambda.con *)
-(* How does the fresh lvar introduced in the CONpat and APPpat cases get 
+(* How does the fresh lvar introduced in the CONpat and APPpat cases get
  * connected to the rhs expression of rules? Is a lambda-abstraction over
  * the new lvar wrapped around the corresponding rhs?  Or is a Let-binding
  * of the lvar to the argument of the constuctor (unit for constant constructors)
@@ -156,7 +156,7 @@ fun patToCon pat =
 		val nts = map (toTyc o TP.VARty) tvs
 	     in DATAcon (mkDcon datacon, nts, dummyvar)
 	    end
-	| APPpat (datacon, tvs, VARpat(V.VALvar{access=A.LVAR lvar,...})) => 
+	| APPpat (datacon, tvs, VARpat(V.VALvar{access=A.LVAR lvar,...})) =>
 	    let val nts = map (toTyc o TP.VARty) tvs
 	     in DATAcon (mkDcon datacon, nts, lvar)
 	    end
@@ -1062,7 +1062,7 @@ and mkExp (exp, d) =
 
         (* next two should explicity construct SWITCH expressions as the result.
 	 * All CASEexp's are the produced by match compilation. Their
-         * rules will always be exhaustive, since any necessary default will 
+         * rules will always be exhaustive, since any necessary default will
          * have been added as a final wildcard rule. The pat of each rule will
          * be "shallow", meaning it constant (INTpat, ..., CONpat) or an APPpat
          * of the form APPpat(dcon, tvs, VARpat v), where v is an "internal" (svar)

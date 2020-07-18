@@ -463,7 +463,7 @@ Elaborator/
     mc-code.sml
     lib/svar.{sig,sml}
       virtual simplified variables
-        
+
 3. Miscellaneous (library) utilities
 
 Library/   (was MiscUtil)
@@ -733,7 +733,7 @@ primop
   PrimEnv          (ElabData/prim/prim-env.sml)
   PrimopUtil       (ElabData/prim/primop-util.sml)
   PrimopBind       (ElabData/prim/primop-bind.sml)
-  
+
 control
   BasicControl     (Basics/main/basiccontrol.sml)
   ParserControl    (Parse/main/parsercontrol.sml)

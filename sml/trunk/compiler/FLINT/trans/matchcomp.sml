@@ -975,7 +975,7 @@ fun generate (dt, matchRep, rootVar, (toTyc, toLty), giis) =
         | pass2 (CASETEST(path, sign, cases, dft), env, rhs) =
             let val switchVar = VAR(lookupPath(path, env))
 		val switchCases = pass2cases(path,cases,env,rhs)
-		val switchDefault = 
+		val switchDefault =
                     (case dft
                        of NONE => NONE
                         | SOME subtree => SOME(pass2(subtree,env,rhs)))

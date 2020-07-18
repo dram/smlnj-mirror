@@ -24,7 +24,7 @@ fun mkVarExp svar =
 
 (* mkLet : SV.svar * mcexp * mcexp -> mcexp *)
 (* "let svar = defexp in body" *)
-fun mkLet (svar, defexp, body) = 
+fun mkLet (svar, defexp, body) =
     LETexp(VALdec [VB{pat = VARpat(SV.svarToVar sv),
 		      exp = defexp,
 		      boundtvs = nil,
@@ -48,7 +48,7 @@ fun caseToRule (key, svarOp, rhsexp) =
     end
 
 (* vVar: SV.svar -> mcexp *)
-(* Convert an svar to a VarCon.var and treat as expression. 
+(* Convert an svar to a VarCon.var and treat as expression.
  * Should the tyvar list (polymorphic instantiation args) be reconstructed? *)
 fun vVar (sv : SV.svar) = A.VARexp(ref(SV.svarToVar sv), nil)
 
@@ -57,7 +57,7 @@ fun vVar (sv : SV.svar) = A.VARexp(ref(SV.svarToVar sv), nil)
 fun vLetr (svars, svar, body) =
     let val defvar = SV.svarToVar svar
 	fun wrapLets (nil, _) = body
-	  | wrapLets (sv::rest, n) = 
+	  | wrapLets (sv::rest, n) =
 	      mkLet(sv, <<select>>(n, defvar),
 		    wrapLets (rest, n+1))
     in wrapLets (svars, 0)
@@ -71,7 +71,7 @@ fun vLetf (svar, funexp, body) = mkLet(svar, funexp, body)
 (* "let (v1, ..., vn) = (sv1, ..., svn) in rhsexp" *)
 fun vLetm (vars, svars, body) =
     let fun wrapLets (nil,nil) = body
-	  | wrapLets (v::restv, sv::restsv) = 
+	  | wrapLets (v::restv, sv::restsv) =
 	    mkLet(v, VARexp(ref(SV.svarToVar sv), nil),
 		  wrapLets(restv,restsv))
 	  | wrapLets _ = bug "vLetm"
@@ -129,4 +129,4 @@ datatype mcexp
 				     * bound to svars *)
   | Tfun of T.typevar list * mcexp    (* type function bindings tyvars *)
   | MATCH  (* raise a match exception -- may be redundant if matches guaranteed exhaustive *)
-*)			
+*)

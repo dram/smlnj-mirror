@@ -9,7 +9,7 @@
 signature PPMC =
 sig
   val debugMsg : bool ref -> string -> unit
-  val debugPrint : bool ref 
+  val debugPrint : bool ref
                    -> (string *
 		       (PrettyPrint.stream -> 'a -> unit) *
 		       'a)
@@ -19,7 +19,7 @@ end (* signature PPMC *)
 
 structure PPMatchComp (* : PPMC *) =
 struct
-	 
+
 local
    structure PP = PrettyPrint
    open MCCommon
@@ -95,7 +95,7 @@ fun ppList ppstrm ppfn elems =
        style = CONSISTENT}
       elems
 
-fun ppOption ppstrm ppfn elemOp =      
+fun ppOption ppstrm ppfn elemOp =
     case elemOp
      of NONE => PP.string ppstrm "<<>>"
       | SOME e => (PP.string ppstrm "<< "; ppfn ppstrm e; PP.string ppstrm " >>")
@@ -110,7 +110,7 @@ fun ppDectree (pd: int) ppstrm (dt: dectree) : unit =
 		 pps "CASETEST"; nl_indent ppstrm 4;
 		 openHOVBox 0;
 		 pps "path: "; ppPath (pd-1) ppstrm path; newline();
-		 pps "sign: "; 
+		 pps "sign: ";
 		 (case consig
 		    of Access.CSIG(n,m) =>
 		       (pps "CSIG("; ppi n; pps ","; ppi m; pps ")")
@@ -137,22 +137,22 @@ fun ppDectree (pd: int) ppstrm (dt: dectree) : unit =
 		   (pps "RHS("; ppi r; pps ")")
 	      | BIND (path, dectree) =>
 		   pps "BIND"
-		      
+
     in ppdt pd dt
     end
-	
+
 fun ppAndor (pd: int) ppstrm (ao: andor) : unit =
     let val {openHOVBox, openHVBox, closeBox, break, newline, pps, ppi, ...} =
             en_pp ppstrm
      in case ao
 	 of AND {bindings, subtrees} =>
             (pps "AND")
-	  | CASE {bindings, sign, cases} => 
+	  | CASE {bindings, sign, cases} =>
             (pps "CASE")
 	  | LEAF {bindings} =>
 	    (pps "LEAF")
     end
-	
+
 fun ppDecision (pd: int) ppstrm (decn: decision) : unit =
     let val {openHOVBox, openHVBox, closeBox, break, newline, pps, ppi, ...} =
             en_pp ppstrm
@@ -162,7 +162,7 @@ fun ppDecision (pd: int) ppstrm (decn: decision) : unit =
 	  | BINDDEC (path, rules) =>
             (pps "BINDDEC")
     end
-	
+
 end (* top local *)
 
 end (* structure PPMatchComp *)
