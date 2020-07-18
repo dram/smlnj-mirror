@@ -313,7 +313,8 @@ extern void SetFSR(int);
 #    define SIG_ZeroLimitPtr(scp)	{ ML_X86Frame[LIMITPTR_X86OFFSET] = 0; }
 
 /* macro to check if SIGSEGV was caused by `into` instruction */
-#    define SIG_IS_OVERFLOW_TRAP(pc)	(((Byte_t*)pc)[-1] == 0xce)
+#    define SIG_IS_OVERFLOW_TRAP(sig,pc) \
+	(((Byte_t*)pc)[-1] == 0xce)
 
 #  elif defined(OPSYS_NETBSD2)
     /** x86, NetBSD (version 2.x) **/
