@@ -21,6 +21,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
 
 class code_buffer {
   public:
@@ -49,7 +50,7 @@ class code_buffer {
   // get intinsics; these are cached for the current module
     llvm::Function *sadd32WOvflw ()
     {
-	if (this->_sadd32WO == nilptr) {
+	if (this->_sadd32WO == nullptr) {
 	    this->_sadd32WO =
 		_getIntrinsic (llvm::Intrinsic::sadd_with_overflow, this->i32Ty);
 	}
@@ -57,7 +58,7 @@ class code_buffer {
     }
     llvm::Function *ssub32WOvflw ()
     {
-	if (this->_ssub32WO == nilptr) {
+	if (this->_ssub32WO == nullptr) {
 	    this->_ssub32WO =
 		_getIntrinsic (llvm::Intrinsic::ssub_with_overflow, this->i32Ty);
 	}
@@ -65,7 +66,7 @@ class code_buffer {
     }
     llvm::Function *smul32WOvflw ()
     {
-	if (this->_smul32WO == nilptr) {
+	if (this->_smul32WO == nullptr) {
 	    this->_smul32WO =
 		_getIntrinsic (llvm::Intrinsic::smul_with_overflow, this->i32Ty);
 	}
@@ -73,7 +74,7 @@ class code_buffer {
     }
     llvm::Function *sadd64WOvflw ()
     {
-	if (this->_sadd64WO == nilptr) {
+	if (this->_sadd64WO == nullptr) {
 	    this->_sadd64WO =
 		_getIntrinsic (llvm::Intrinsic::sadd_with_overflow, this->i64Ty);
 	}
@@ -81,7 +82,7 @@ class code_buffer {
     }
     llvm::Function *ssub64WOvflw ()
     {
-	if (this->_ssub64WO == nilptr) {
+	if (this->_ssub64WO == nullptr) {
 	    this->_ssub64WO =
 		_getIntrinsic (llvm::Intrinsic::ssub_with_overflow, this->i64Ty);
 	}
@@ -89,7 +90,7 @@ class code_buffer {
     }
     llvm::Function *smul64WOvflw ()
     {
-	if (this->_smul64WO == nilptr) {
+	if (this->_smul64WO == nullptr) {
 	    this->_smul64WO =
 		_getIntrinsic (llvm::Intrinsic::smul_with_overflow, this->i64Ty);
 	}
@@ -97,12 +98,12 @@ class code_buffer {
     }
 
   // cached types
-    const llvm::IntegerType *i8Ty;
-    const llvm::IntegerType *i16Ty;
-    const llvm::IntegerType *i32Ty;
-    const llvm::IntegerType *i64Ty;
-    const llvm::Type *f32Ty;
-    const llvm::Type *f64Ty;
+    llvm::IntegerType *i8Ty;
+    llvm::IntegerType *i16Ty;
+    llvm::IntegerType *i32Ty;
+    llvm::IntegerType *i64Ty;
+    llvm::Type *f32Ty;
+    llvm::Type *f64Ty;
 
   private:
     llvm::LLVMContext		_context;
@@ -113,11 +114,11 @@ class code_buffer {
     llvm::Function *_sadd32WO;
     llvm::Function *_ssub32WO;
     llvm::Function *_smul32WO;
-    llvm::Function *_sad64dWO;
+    llvm::Function *_sadd64WO;
     llvm::Function *_ssub64WO;
     llvm::Function *_smul64WO;
 
-    void llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, llvm::Type *ty);
+    llvm::Function *_getIntrinsic (llvm::Intrinsic::ID id, llvm::Type *ty);
 };
 
 #endif // !__CODE_BUFFER_HXX__
