@@ -25,10 +25,16 @@ structure CFG_Prim =
    *)
     datatype arithop
       = IADD | ISUB | IMUL
-(* Quesion: perhaps the division operators should be moved out of `arith`, since
+(* Question: perhaps the division operators should be moved out of `arith`, since
  * the div-by-zero and overflow tests will have to be explicit?
  *)
-      | IDIV | IMOD | IQUOT | IREM
+      | IDIV | IREM
+
+    datatype arith
+      = ARITH of {oper : arithop, sz : int}
+      | TEST of {from : int, to : int}
+      | TESTU of {from : int, to : int}
+      | REAL_TO_INT of {mode : rounding_mode, from : int, to : int}
 
   (* arithmetic operations that do not overflow; for the division operators,
    * we distinguish between signed and unsigned operations, and assume that
@@ -47,21 +53,16 @@ structure CFG_Prim =
     datatype pure
       = PURE_ARITH of {oper : pureop, sz : int}
       | EXTEND of {signed : bool, from : int, to : int}
+      | TRUNC of {from : int, to : int}
       | INT_TO_REAL of {from : int, to : int}
-      | LOAD_RAW of {offset : int, kind : numkind, sz : int}
       | PURE_SUBSCRIPT
       | PURE_RAW_SUBSCRIPT of {kind : numkind, sz : int}
-
-    datatype arith
-      = ARITH of {oper : arithop, sz : int}
-      | TEST of {from : int, to : int}
-      | TESTU of {from : int, to : int}
-      | REAL_TO_INT of {mode : rounding_mode, from : int, to : int}
 
     datatype looker
       = DEREF
       | SUBSCRIPT
       | RAW_SUBSCRIPT of {kind : numkind, sz : int}
+      | RAW_LOAD of {kind : numkind, sz : int}
       | GET_HDLR | GET_VAR
 
     datatype setter
@@ -84,8 +85,8 @@ structure CFG_Prim =
       = CMP of {oper: cmpop, signed: bool, sz : int}
       | FCMP of {oper: fcmpop, sz: int}
       | FSGN of int
-      | BOXED | UNBOXED
       | PEQL | PNEQ
+      | STREQL of int					(* string data equality test *)
 
   end
 
@@ -116,7 +117,7 @@ structure CFG =
   (* fragment/function parameters *)
     type param = LambdaVar.lvar * ty
 
-  (* branch probabilities are measured in percent (1..99).  We use 0 to
+  (* branch probabilities are measured in thousandths (1..999).  We use 0 to
    * represent the absence of probability information.
    *)
     type probability = int
@@ -124,7 +125,7 @@ structure CFG =
     datatype exp
       = VAR of LambdaVar.lvar
       | LABEL of LambdaVar.lvar
-      | NUM of {iv : IntInf.int, signed : bool, sz : int}
+      | NUM of {iv : IntInf.int, sz : int}
       | LOOKER of CFG_Prim.looker * exp list
       | PURE of CFG_Prim.pure * exp list
       | SELECT of int * exp

@@ -158,7 +158,7 @@ structure TvarCvt :> TVARCVT =
 	  (case LambdaVar.Map.find(env, tvar)
 	    of NONE => NONE
 	     | SOME(defnDepth, i) =>
-	         SOME (LT.tcc_var (DI.calc (currDepth, defnDepth), i))
+	         SOME (LT.tcc_var (DI.getIndex (currDepth, defnDepth), i))
           (*esac*))
 
         val tc_nvar_elim = LT.tc_nvar_elim_gen()

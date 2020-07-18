@@ -12,7 +12,7 @@ local
   structure TU = TypesUtil
   structure R = Rules
   structure V = Var
-  structure SV = SVar		    
+  structure SV = SVar
   open Absyn
   (* also used/mentioned: IntConst, ListPair *)
 in
@@ -27,9 +27,9 @@ type ruleset = R.ruleset  (* == IntBinarySet.set *)
 type binding = Var.var * ruleno
    (* a variable bound at some point in the given rule, either as a
     * basic var pattern (VARpat) or through an "as" pattern (LAYEREDpat) *)
-type varBindings = binding list  (* variables bound by VARpat *)		    
+type varBindings = binding list  (* variables bound by VARpat *)
 type asBindings = binding list   (* variables bound by LAYEREDpat, i.e. an "as" pattern *)
-			  
+
 (* keys: most keys (D,V,I,W,C,S) are used to discriminate choices in the "variants"
  *   field of OR nodes and the decVariants of decision trees. These key values
  *   (appearing in variants) determine the different flavors of OR nodes
@@ -45,10 +45,10 @@ datatype key
   | W of T.ty IntConst.t  (* word constant, as determined by ty *)
   | C of char             (* char constant (span depends of charwidth) *)
   | S of string           (* string constant *)
-  
+
   (* record selection: not a choice discriminator, but a selection key for products,
    * Will only appear in paths, never in variants. ASSERT: int >= 0 *)
-  | R of int    
+  | R of int
 
 (* eqKey : key * key -> bool
  * type info disregarded when comparing Dkeys and Vkeys *)
@@ -70,7 +70,7 @@ fun keyToString (D dcon) = substring((TU.dataconName dcon),0,1)
   | keyToString (R i) = Int.toString i
 
 (* ================================================================================ *)
-(* paths: 
+(* paths:
    paths locate points in the "pattern space" determined by a sequence of patterns
       (a finite subtree of the complete pattern tree determined by the common type of
       the patterns). Points in the pattern space correspond to andor nodes, which
@@ -118,7 +118,7 @@ pathAppend: path * path -> path
  *)
 
 (* INVARIANT: In any variant (key, andor), getPath(andor) ends with that key. *)
-			    
+
 (* ================================================================================ *)
 (* andor trees *)
 (* Version modified based on toy-mc/matchtree.sml.
@@ -129,7 +129,7 @@ as a phantom argument for nullary dcons. (?) *)
 (* Do we need to, or would it be useful to, explicitly include the type
  * for each node. Given the type is known before match compilation, it would
  * be easy to propagate types down through the constructed AND-OR tree.
- * How would we use such types? 
+ * How would we use such types?
  *   Could also maintain a mapping from paths to types of the nodes designated
  * by those paths.
  *   Do we need defaults fields for VARS and LEAF nodes?  Yes (probably).
@@ -168,13 +168,13 @@ datatype andor
     {svar: SV.svar,
      path : path,              (* ditto *)
      asvars: asBindings,       (* ditto *)
-     vars: varBindings,        
+     vars: varBindings,
      defaults: ruleset}        (* rules matching here by default *)
   | LEAF of   (* used as the andor of variants with constant keys, with direct and default rules
                * but no svar, since the svar is bound at the parent OR node. A LEAF
 	       * node also does not have an independent type; its type is determined
 	       * by the parent OR node (through its svar). *)
-    {path: path,               (* ditto *)
+    {path: path,               (* path is parent path extended by key *)
      direct: ruleset,          (* rules having _this_ key (end of path) at this point *)
      defaults: ruleset}
   | INITIAL   (* initial empty andor into which initial pattern is merged
@@ -183,9 +183,9 @@ datatype andor
 withtype variant = key * andor
 (* this pushes the discrimination of the OR-kind into the keys of the variants. *)
 
-			  
+
 (* potentially useful functions:
- 
+
 eqNode : andor * andor -> bool
 (two nodes are equal if their path component is equal, needed only for OR nodes?)
 
@@ -210,8 +210,8 @@ fun getPath(AND{path,...}) = path
 (* getSvar : andor -> SV.svar *)
 fun getSvar(AND{svar,...}) = svar
   | getSvar(OR{svar,...}) = svar
-  | getSvar(SINGLE{svar,...}) = svar					    
-  | getSvar(VARS{svar,...}) = svar					    
+  | getSvar(SINGLE{svar,...}) = svar
+  | getSvar(VARS{svar,...}) = svar
   | getSvar(LEAF _) = bug "getSvar(LEAF)"
   | getSvar INITIAL = bug "getSvar(INITIAL)"
 
@@ -222,7 +222,7 @@ fun getType andor = SV.svarType (getSvar andor)
 (* getDirect : andor -> ruleset *)
 fun getDirect(AND{direct,...}) = direct
   | getDirect(OR{direct,...}) = direct
-  | getDirect(SINGLE{arg,...}) = getDirect arg 
+  | getDirect(SINGLE{arg,...}) = getDirect arg
   | getDirect(VARS{vars,...}) = R.fromList(map #2 vars)
   | getDirect(LEAF{direct,...}) = direct
   | getDirect INITIAL = bug "getDirect(INITIAL)"
@@ -230,7 +230,7 @@ fun getDirect(AND{direct,...}) = direct
 (* getDefaults : andor -> ruleset *)
 fun getDefaults(AND{defaults,...}) = defaults
   | getDefaults(OR{defaults,...}) = defaults
-  | getDefaults(SINGLE{arg,...}) = getDefaults arg 
+  | getDefaults(SINGLE{arg,...}) = getDefaults arg
   | getDefaults(VARS{defaults,...}) = defaults
   | getDefaults(LEAF{defaults,...}) = defaults
   | getDefaults INITIAL = bug "getDefaults(INITIAL)"
@@ -239,7 +239,7 @@ fun getDefaults(AND{defaults,...}) = defaults
    live rules is union of direct and defaults *)
 fun getLive(AND{direct,defaults,...}) = R.union(direct,defaults)
   | getLive(OR{direct,defaults,...}) = R.union(direct,defaults)
-  | getLive(SINGLE{arg,...}) = getLive arg 
+  | getLive(SINGLE{arg,...}) = getLive arg
   | getLive(VARS{defaults,...}) = defaults  (* direct subset defaults *)
   | getLive(LEAF{direct,defaults,...}) = R.union(direct,defaults)
   | getLive INITIAL = bug "getLive(INITIAL)"
@@ -268,22 +268,22 @@ fun getNode(andor, _, 0) = andor
 	   getNode(arg, path, depth-1)
        | ((VARS _ | LEAF _),_) => bug "getNode(VARS|LEAF)"
        | _ => bug "getNode arg")
-	
+
 (* parentNode: andor * andor -> andor *)
 fun parent (andor, root) =
     let val path = getPath(andor)
         val d = length(path) - 1
      in getNode(root, path, d)
-    end  
+    end
 
-(* decision trees *)	
+(* decision trees *)
 datatype decTree
   = DLEAF of ruleno    (* old version: RHS *)
      (* if you get to this node, bind variables along branch and dispatch to RHS(ruleno) *)
   | DMATCH (* of trail -- path in decTree to this DMATCH node *)
       (* would be redundant if we add a final default rule with wildcard pat
        * to guarantee that all pattern sets are known to be exhaustive,
-       * but the path argument gives an easy way to construct a counterexample *)
+       * but the trail argument should give an easy way to construct a counterexample *)
   | CHOICE of
     {node : andor,  (* an OR node used for dispatching *)
      choices : decVariant list,  (* corresponding to the (OR) node variants *)
@@ -297,17 +297,40 @@ withtype decVariant = key * decTree
  * representing a "raw" RHS of a rule. *)
 datatype mcexp
   = Var of SV.svar  (* how/where used? *)
-  | Letr of SV.svar * SV.svar list * mcexp  (* destructure an AND *)
-  | Letf of SV.svar * mcexp * mcexp   (* 1st mcexp will be an Sfun *)
-  | Letm of V.var list * SV.svar list * Absyn.exp  (* non-functionalized RHS *)
+      (* "sv" as an expression *)
+  | Letr of SV.svar list * SV.svar * mcexp
+      (* "let (sv1, ..., svn) = sv0 in body"; destructure an AND *)
+  | Letf of SV.svar * mcexp * mcexp
+      (* "let f = << fn sv => fbody >> in body" *)
+      (* 1st mcexp will always be an Sfun. The function will be a
+       * functionalized RHS. *)
+  | Letm of V.var list * SV.svar list * Absyn.exp
+      (* "let (v1, ..., vn) = (sv1, ..., svn) in rhsexp" *)
+      (* non-functionalized, single use, rule RHS, with linkage for svars *)
+  | Case1 of SV.svar * T.datacon * SV.svar * mcexp
+      (* "let dcon sv2 = sv1 in body" == "let sv2 = dcon^{-1} sv1 in body" *)
+      (* Destructure of a SINGLE datacon; not generated if dcon is constant. *)
   | Case of SV.svar * (key * SV.svar option * mcexp) list * mcexp option
-      (* destructure an OR, with svar binding if key is not a constant *)
-  | Sfun of V.var list * Absyn.exp  (* functionalized RHS expression *)
-  | Sapp of SV.svar * SV.svar list  (* A-normal-style. Function and args have all been
-				     * bound to svars *)
-  | Tfun of T.typevar list * mcexp    (* type function bindings tyvars *)
-  | MATCH  (* raise a match exception -- may be redundant if matches guaranteed exhaustive *)
-				
+      (* Destructure an OR, with svar binding if key is not a constant. *)
+  | Sfun of V.var list * Absyn.exp
+      (* "fn (v0, ..., vn) => body"; functionalized, multi-use rule RHS *)
+  | Sapp of SV.svar * SV.svar list
+      (* "sv0 (sv1, ..., svn)";  A-normal-style: function and args have all been
+       * bound to svars. Will only be used for instances of functionaolized RHSs,
+       * so sv0 will be bound (using Letf) to a RHS function. *)
+  | Tfun of T.typevar list * mcexp
+      (* "tfun (tyv0, ..., tyvn) => body"; type function with tyvar parameters. *)
+      (* ??? type-level abstraction may be left to Translate phase? *)
+  | MATCH
+      (* "raise MATCH"; May be redundant if matches guaranteed exhaustive. *)
+
+(* NOTE: we don't need letm case if we translate svars to corresponding vars while
+ * translating the body of the letm (using map from svar to (var,rule)), and keeping
+ * track of which rule rhs we are translating. *)
+(* NOTE: all Case forms will be exhaustive, with a default created for cases where the
+ * explicit keys are not exhaustive (in particular for int, word, string constants,
+ * and cases where not all datacons are explicitly present.). Code generation/translation
+ * will represent these defaults as additional rules with a wildcard pattern. *)
 
 end (* local *)
 end (* structure MCTypes *)

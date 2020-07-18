@@ -131,6 +131,7 @@ Group
 	signature UNIFY
 
 	(* export of structures required to use FLINT directly *)
+	structure TransUtil
 	structure Translate
 	structure Lty
 	structure LtyKindChk
@@ -257,6 +258,7 @@ FLINT/trans/matchcomp.sml
 FLINT/trans/mccommon.sml
 FLINT/trans/mcprint.sml
 FLINT/trans/pequal.sml
+FLINT/trans/transutil.sml
 FLINT/trans/translate.sml
 FLINT/trans/transprim.sml
 FLINT/trans/transtypes.sml
@@ -349,11 +351,11 @@ NewCodeGen/cfg-to-mlrisc/arg-passing-fn.sml
 NewCodeGen/cfg-to-mlrisc/cfg-regions.sml
 NewCodeGen/cfg-to-mlrisc/invoke-gc-fn.sml
 NewCodeGen/cfg-to-mlrisc/mlrisc-gen-fn.sml
-NewCodeGen/cps-to-cfg/cps-to-cfg-fn.sml
-NewCodeGen/cps-to-cfg/tagged-arith.sml
 (*
 NewCodeGen/cps-to-cfg/cluster.sml
 *)
+NewCodeGen/cps-to-cfg/cps-to-cfg-fn.sml
+NewCodeGen/cps-to-cfg/tagged-arith.sml
 
 (* Miscellaneous utilities. *)
 Library/const-arith/sources.cm

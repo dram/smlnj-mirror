@@ -767,7 +767,7 @@ functor NewMLRiscGenFn (
 	      (* translate a CFG expression to an MLRisc fexp value *)
 		and genFExp (C.VAR x) = flookup x
 		  | genFExp (C.LABEL l) = error ["unexpected LABEL in float expression"]
-		  | genFExp (C.NUM{iv, signed, sz}) =
+		  | genFExp (C.NUM{iv, sz}) =
 		      error ["unexpected NUM in float expression"]
 		  | genFExp (C.LOOKER(rator, args)) = (case (rator, List.map genExp args)
 		       of (P.RAW_SUBSCRIPT{kind=FLT, sz}, [adr, idx]) =>

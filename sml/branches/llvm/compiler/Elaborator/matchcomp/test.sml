@@ -10,7 +10,7 @@ local
 in
 
 fun bind (dcon,env) =
-    E.insert(env,TU.dataconName dcon, dcon)
+    E.insert(env, TU.dataconName dcon, dcon)
 
 val env0 = foldl bind nil Setup.dcons
 
@@ -30,7 +30,7 @@ fun testp (rules: MT.rule list, polyTy: Types.polyTy) =
 	MCPrint.tppCode code
     end
 
-fun tests (s: string, polyTy) = 
+fun tests (s: string, polyTy) =
     let val pats = ParsePat.parsepats(s,env0)
 	val rules = map (fn p => (p, Absyn.STRINGexp "x")) pats
     in testp (rules, polyTy)

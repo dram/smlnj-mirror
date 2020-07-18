@@ -45,14 +45,15 @@ and tvKind
       * "indicator" types to resolve the overloading *)
   | OVLDI of litSource list  (* overloaded integer literal *)
   | OVLDW of litSource list  (* overloaded word literal *)
-  | LBOUND of {depth: int, eq: bool, index: int}
+  | LBOUND of {depth: int, index: int, eq: bool}
      (* FLINT-style de Bruijn index for notional "lambda"-bound type variables
       * associated with polymorphic bindings (including val bindings and
       * functor parameter bindings). The depth is depth of type lambda bindings,
       * (1-based), and the index is the index within a sequence of
       * type variables bound at a given binding site. LBOUNDs must carry
       * equality type information for signature matching because the OPENs
-      * are turned into LBOUNDs before equality type information is matched. *)
+      * are turned into LBOUNDs before equality type information is matched.
+      * The "index" is called the "count" in ElabData/basics/debindex.sml. *)
 
 (* FLINT!!! -- reconstruct it at translate time (presumed redundant info)? *)
 and tycpath

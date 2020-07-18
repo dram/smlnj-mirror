@@ -6,9 +6,28 @@
  * Translate CPS to MLRISC.  This version removes various optimizations
  * that were not enabled.
  *
- * NOTE: once we switch to this version of MLRiscGen, then we can remove the
- * support for optimized code in invokegc.sml (i.e., the optimizedKnwCheckLimit
- * function is no longer used).
+ * We make the following assumptions about the CPS IR that is passed to
+ * the `codegen` function.
+ *
+ *	- there are no nested FIX bindings (i.e., it is first order)
+ *
+ *	- there are no IntInf operations.
+ *
+ *	- on 32-bit targets, there are no 64-bit arithmetic operations
+ *
+ *	- the `IDIV` and `IMOD` operators have been replaced by code
+ *	  that uses the native machine operations (`IQUOT` and `IREM`)
+ *
+ *	- any `TEST{from, to}` operator will have `from` equal to the
+ *	  native integer size (i.e., 32 or 64 bits) and `to` equal
+ *	  to the default tagged int size (i.e., 31 or 63 bits).
+ *	  All other `TEST` operators have been replaced with explicit
+ *	  limit checks.
+ *
+ *	- any `TESTU{from, to}` operator will have `from = to` and
+ *	  `from` will either be the native word size or the default
+ *	  tagged integer size.  All other `TEST` operators have been
+ *	  replaced with explicit limit checks.
  *)
 
 signature MLRISCGEN =
@@ -696,31 +715,36 @@ functor MLRiscGen (
 		      addTag(mulOp(ity, v, w))
 		    end
 
-	      fun tagIntDiv (signed, drm, v, w) = let
+	      fun tagIntQuot (signed, v, w) = let
 		    val (v, w) = (case (v, w)
 			   of (C.NUM{ival=k, ...}, C.NUM{ival=j, ...}) => (LI k, LI j)
 			    | (C.NUM{ival=k, ...}, w) => (LI k, untag(signed, w))
 			    | (v, C.NUM{ival=k, ...}) => (untag(signed, v), LI k)
 			    | (v, w) => (untag(signed, v), untag(signed, w))
 			  (* end case *))
+		  (* The only way a tagged-int div can overflow is when the result
+		   * gets retagged, therefore we can use M.DIVS instead of M.DIVT.
+		   *)
+		    val exp = if signed
+			  then M.DIVS (M.DIV_TO_ZERO, ity, v, w)
+			  else M.DIVU (ity, v, w)
 		    in
-		    (* The only way a tagged-int div can overflow is when the result
-		     * gets retagged, therefore we can use M.DIVS instead of M.DIVT.
-		     *)
-		      tag (signed,
-			   if signed then M.DIVS (drm, ity, v, w) else M.DIVU (ity, v, w))
+		      tag (signed, exp)
 		    end
 
-	      fun tagIntRem (signed, drm, v, w) = let
+	      fun tagIntRem (signed, v, w) = let
 		    val (v, w) = (case (v, w)
 			   of (C.NUM{ival=k, ...}, C.NUM{ival=j, ...}) => (LI k, LI j)
 			    | (C.NUM{ival=k, ...}, w) => (LI k, untag(signed, w))
 			    | (v, C.NUM{ival=k, ...}) => (untag(signed, v), LI k)
 			    | (v, w) => (untag(signed, v), untag(signed, w))
 			  (* end case *))
+		    val exp = if signed
+			  then M.REMS (M.DIV_TO_ZERO, ity, v, w)
+			  else M.REMU (ity, v, w)
 		    in
-		      tag (false,		(* cannot overflow, so we tag like unsigned *)
-			   if signed then M.REMS (drm, ity, v, w) else M.REMU (ity, v, w))
+		    (* cannot overflow, so we tag like unsigned *)
+		      tagUnsigned exp
 		    end
 
 	      fun tagIntXor (C.NUM{ival=k, ...}, w) = M.XORB(ity, LI(k+k), regbind w)
@@ -1103,8 +1127,10 @@ functor MLRiscGen (
 			    emit(M.BCC(cmpWord(LI' i), false_lab));
 			    unroll (i + ws))
 		    in
+		    (* get data pointers *)
 		      emit (M.MV(ity, r1, M.LOAD(ity, regbind v, R.readonly)));
 		      emit (M.MV(ity, r2, M.LOAD(ity, regbind w, R.readonly)));
+		    (* compare the data *)
 		      unroll 0;
 		      genCont (yes, hp);
 		      genlab (false_lab, no, hp)
@@ -1112,6 +1138,10 @@ functor MLRiscGen (
 
 	      and arithINT (oper, v, w, x, e, hp) =
 		    defINT(x, oper(ity, regbind v, regbind w), e, hp)
+
+	    (* quot/rem on native integers *)
+	      and divINT (oper, v, w, x, e, hp) =
+		    defINT(x, oper(M.DIV_TO_ZERO, ity, regbind v, regbind w), e, hp)
 
 	      and shiftINT (oper, v, w, x, e, hp) =
 		    defINT(x, oper(ity, regbind v, untagUnsigned w), e, hp)
@@ -1386,7 +1416,8 @@ functor MLRiscGen (
 		    defWithKind(kind, x, M.ORB(ity, regbind v, regbind w), e, hp)
 		| gen (C.PURE(P.PURE_ARITH{oper=P.ANDB, kind}, [v,w], x, _, e), hp) =
 		    defWithKind(kind, x, M.ANDB(ity, regbind v, regbind w), e, hp)
-		| gen (C.PURE(P.PURE_ARITH{oper, kind}, [v,w], x, ty, e), hp) = (case kind
+		| gen (C.PURE(p as P.PURE_ARITH{oper, kind}, [v,w], x, ty, e), hp) = (
+		    case kind
 		     of P.INT sz => if isTaggedInt sz
 			  then (case oper
 			     of P.XORB => defTAGINT(x, tagIntXor(v,w), e, hp)
@@ -1396,13 +1427,17 @@ functor MLRiscGen (
 			      | P.SUB => defTAGINT(x, tagIntSub(M.SUB, v, w), e, hp)
 (* QUESTION: can we ever get P.MUL for signed ints? *)
 			      | P.MUL => defTAGINT(x, tagIntMul(true, M.MULS, v, w), e, hp)
-			      | _ => error "gen: PURE INT TAGGED"
+			      | _ => error ("gen: " ^ PPCps.pureToString p)
 			    (* end case *))
 			  else (case oper
-			     of P.XORB  => arithINT(M.XORB, v, w, x, e, hp)
+			     of P.ADD => arithINT(M.ADD, v, w, x, e, hp)
+			      | P.SUB => arithINT(M.SUB, v, w, x, e, hp)
+			      | P.QUOT => divINT(M.DIVS, v, w, x, e, hp)
+			      | P.REM => divINT(M.REMS, v, w, x, e, hp)
+			      | P.XORB  => arithINT(M.XORB, v, w, x, e, hp)
 			      | P.LSHIFT => shiftINT(M.SLL, v, w, x, e, hp)
 			      | P.RSHIFT => shiftINT(M.SRA, v, w, x, e, hp)
-			      | _ => error "gen: PURE INT"
+			      | _ => error ("gen: " ^ PPCps.pureToString p)
 			    (* end case *))
 		      | P.UINT sz => if isTaggedInt sz
 			  then (case oper
@@ -1412,13 +1447,13 @@ functor MLRiscGen (
 			    (* we now explicitly defend agains div by 0 in translate, so these
 			     * two operations can be treated as pure op:
 			     *)
-			      | P.QUOT => defTAGINT(x, tagIntDiv(false, M.DIV_TO_ZERO, v, w), e, hp)
-			      | P.REM => defTAGINT(x, tagIntRem(false, M.DIV_TO_ZERO, v, w), e, hp)
+			      | P.QUOT => defTAGINT(x, tagIntQuot(false, v, w), e, hp)
+			      | P.REM => defTAGINT(x, tagIntRem(false, v, w), e, hp)
 			      | P.XORB => defTAGINT(x, tagIntXor(v, w), e, hp)
 			      | P.LSHIFT => defTAGINT(x, tagIntLShift(v, w), e, hp)
 			      | P.RSHIFT => defTAGINT(x, tagIntRShift(M.SRA, v, w), e, hp)
 			      | P.RSHIFTL => defTAGINT(x, tagIntRShift(M.SRL, v, w), e, hp)
-			      | _ => error "gen: PURE UINT TAGGED"
+			      | _ => error ("gen: PURE UINT TAGGED: " ^ PPCps.pureopToString oper)
 			    (* end case *))
 			  else (case oper
 			     of P.ADD => arithINT(M.ADD, v, w, x, e, hp)
@@ -1433,7 +1468,7 @@ functor MLRiscGen (
 			      | P.LSHIFT => shiftINT(M.SLL, v, w, x, e, hp)
 			      | P.RSHIFT => shiftINT(M.SRA, v, w, x, e, hp)
 			      | P.RSHIFTL => shiftINT(M.SRL, v, w, x, e, hp)
-			      | _ => error "gen:PURE UINT BOXED"
+			      | _ => error ("gen: PURE UINT: " ^ PPCps.pureopToString oper)
 			    (* end case *))
 		      | _ => error "unexpected numkind in pure binary arithop"
 		    (* end case *))
@@ -1639,30 +1674,22 @@ functor MLRiscGen (
 		      then defTAGINT(x, M.SUBT(ity, two, regbind v), e, 0)
 		      else defINT(x, M.SUBT(ity, zero, regbind v), e, 0))
 		| gen (C.ARITH(P.IARITH{sz=sz, oper}, [v, w], x, _, e), hp) = (
-		    updtHeapPtr hp;
+		    updtHeapPtr hp; (* because of potential exception *)
 		    if (sz <= Target.defaultIntSz)
 		      then (case oper
 			 of P.IADD => defTAGINT(x, tagIntAdd(M.ADDT, v, w), e, 0)
 			  | P.ISUB => defTAGINT(x, tagIntSub(M.SUBT, v, w), e, 0)
 			  | P.IMUL => defTAGINT(x, tagIntMul(true, M.MULT, v, w), e, 0)
-			  | P.IDIV => defTAGINT(x, tagIntDiv(true, M.DIV_TO_NEGINF, v, w), e, 0)
-			  | P.IMOD => defTAGINT(x, tagIntRem(true, M.DIV_TO_NEGINF, v, w), e, 0)
-			  | P.IQUOT => defTAGINT(x, tagIntDiv(true, M.DIV_TO_ZERO, v, w), e, 0)
-			  | P.IREM => defTAGINT(x, tagIntRem(true, M.DIV_TO_ZERO, v, w), e, 0)
+			  | P.IQUOT => defTAGINT(x, tagIntQuot(true, v, w), e, 0)
+			  | P.IREM => defTAGINT(x, tagIntRem(true, v, w), e, 0)
 			  | _ => error(concat["gen: ", PPCps.arithopToString oper, " TAG INT"])
 			(* end case *))
 		      else (case oper
 			 of P.IADD => arithINT(M.ADDT, v, w, x, e, 0)
 			  | P.ISUB => arithINT(M.SUBT, v, w, x, e, 0)
 			  | P.IMUL => arithINT(M.MULT, v, w, x, e, 0)
-			  | P.IDIV => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_NEGINF,ty,x,y),
-					     v, w, x, e, 0)
-			  | P.IMOD => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_NEGINF,ty,x,y),
-					     v, w, x, e, 0)
-			  | P.IQUOT => arithINT(fn(ty,x,y)=>M.DIVT(M.DIV_TO_ZERO,ty,x,y),
-					     v, w, x, e, 0)
-			  | P.IREM => arithINT(fn(ty,x,y)=>M.REMS(M.DIV_TO_ZERO,ty,x,y),
-					     v, w, x, e, 0)
+			  | P.IQUOT => divINT(M.DIVT, v, w, x, e, 0)
+			  | P.IREM => divINT(M.REMS, v, w, x, e, 0)
 			  | _ => error(concat["gen: ", PPCps.arithopToString oper, " INT"])
 			(* end case *)))
 		| gen (C.ARITH(P.TESTU{from, to}, [v], x, _, e), hp) =
@@ -1682,79 +1709,11 @@ functor MLRiscGen (
 			    then defTAGINT(x, vreg, e, 0)
 			    else defINT(x, vreg, e, 0)
 			end
-		    else if (from = ity) andalso (to = Target.defaultIntSz)
-		      then let (* native word to tagged int conversion *)
-			val vreg = regbind v
-			val tmp = Cells.newReg()
-			val tmpR = M.REG(ity, tmp)
-			val lab = newLabel ()
-			in
-			  emit(M.MV(ity, tmp, allOnes'));
-			  updtHeapPtr hp;
-			  emit(branchWithProb(
-			    M.BCC(M.CMP(ity, M.LEU, vreg, tmpR), lab),
-			    SOME Probability.likely));
-			(* generate a trap by adding allOnes' to itself.  This code assumes that
-			 * ity = Target.defaultIntSz+1.
-			 *)
-			  emit(M.MV(ity, tmp, M.ADDT(ity, tmpR, tmpR)));
-			  defineLabel lab;
-			  defTAGINT(x, tagUnsigned vreg, e, 0)
-			end
-		    else if (from <= ity) andalso (to < Target.defaultIntSz)
-		      then let (* conversion between tagged numbers of different sizes *)
-			val maxToWord = IntInf.<<(1, Word.fromInt to) - 1
-			val lab = newLabel ()
-			val vreg = regbind v
-			val tmp = Cells.newReg()
-			val tmpR = M.REG(ity, tmp)
-			in
-			  updtHeapPtr hp;
-			  emit(branchWithProb(
-			    M.BCC(M.CMP(ity, M.LEU, vreg, LI maxToWord), lab),
-			    SOME Probability.likely));
-			(* generate a trap by adding allOnes' to itself.  This code assumes
-			 * that ity = Target.defaultIntSz+1.
-			 *)
-			  emit(M.MV(ity, tmp, M.ADDT(ity, tmpR, tmpR)));
-			  defineLabel lab;
-			  if (from = ity)
-			    then defTAGINT(x, tagUnsigned vreg, e, 0)
-			    else defTAGINT(x, vreg, e, 0)
-			end
-		      else error "gen:ARITH:TESTU with unexpected precisions (not implemented)"
+		      else error "gen:ARITH:TESTU with unexpected precisions"
 		| gen (C.ARITH(P.TEST{from, to}, [v], x, _, e), hp) =
-		    if (from = to)
-		      then copy(x, v, e, hp)
-		    else if (from = ity) andalso (to = Target.defaultIntSz)
+		    if (from = ity) andalso (to = Target.defaultIntSz)
 		      then (updtHeapPtr hp; defTAGINT(x, tagSigned(regbind v), e, 0))
-		    else if (from <= ity) andalso (to < Target.defaultIntSz)
-		      then let
-		      (* conversion between tagged integers of different sizes *)
-			val maxToInt = IntInf.<<(1, Word.fromInt(to - 1)) - 1
-			val minToInt = ~(maxToInt + 1)
-			val lab = newLabel ()
-			val vreg = regbind v
-			val tmp = Cells.newReg()
-			val tmpR = M.REG(ity, tmp)
-			in
-			  updtHeapPtr hp;
-			  emit(branchWithProb(
-			    M.BCC(M.CMP(ity, M.LEU, vreg, LI maxToInt), lab),
-			    SOME Probability.likely));
-			  emit(branchWithProb(
-			    M.BCC(M.CMP(ity, M.LEU, LI minToInt, vreg), lab),
-			    SOME Probability.likely));
-			(* generate a trap by adding allOnes' to itself.  This code assumes
-			 * that ity = Target.defaultIntSz+1.
-			 *)
-			  emit(M.MV(ity, tmp, M.ADDT(ity, tmpR, tmpR)));
-			  defineLabel lab;
-			  if (from = ity)
-			    then defTAGINT(x, tagSigned vreg, e, 0)
-			    else defTAGINT(x, vreg, e, 0)
-			end
-		      else error "gen:ARITH:TEST with unexpected precisions (not implemented)"
+		      else error "gen:ARITH:TEST with unexpected precisions"
 		| gen (C.ARITH(P.TEST_INF _, _, _, _, _), hp) =
 		    error "gen:ARITH:TEST_INF"
 

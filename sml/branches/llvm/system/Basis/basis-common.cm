@@ -5,7 +5,7 @@
  * in 2004).  It is included in the base/system/Basis/basis.cm file, but is
  * also used to implement the libraries in the old-basis package (base/old-basis).
  *
- * Copyright (c) 2018 by The Fellowship of SML/NJ
+ * Copyright (c) 2020 by The Fellowship of SML/NJ
  *)
 
 (primitive)
@@ -62,6 +62,7 @@ Library
 	signature FN		(* proposal 2015-005 *)
 	signature REF		(* proposal 2015-007 *)
 	signature MONO_BUFFER	(* proposal 2018-001 *)
+	signature UNIVERSAL	(* proposal 2020-001 *)
 
       (* backward compatible signatures *)
 	signature ARRAY_2004
@@ -186,6 +187,7 @@ Library
 	structure Ref		(* proposal 2015-007 *)
 	structure CharBuffer	(* proposal 2018-001 *)
 	structure Word8Buffer	(* proposal 2018-001 *)
+	structure Universal	(* proposal 2020-001 *)
 
 	structure SML90
 

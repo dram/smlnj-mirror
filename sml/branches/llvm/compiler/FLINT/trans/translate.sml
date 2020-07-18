@@ -36,7 +36,6 @@ local structure B  = Bindings
       structure PU = PPUtil
       structure S  = Symbol
       structure SP = SymPath
-      structure VC = VarCon
       structure LN = LiteralToNum
       structure TT = TransTypes
       structure TP = Types
@@ -48,11 +47,11 @@ local structure B  = Bindings
       structure IIMap = RedBlackMapFn (type ord_key = IntInf.int
 					val compare = IntInf.compare)
 
-      open Absyn PLambda
+      open Absyn PLambda TransUtil
 in
 
 (****************************************************************************
- *                   CONSTANTS AND UTILITY FUNCTIONS                        *
+ *                   DEBUGGING AND PRETTYPRINTING                           *
  ****************************************************************************)
 
 val debugging = FLINT_Control.trdebugging
@@ -74,97 +73,6 @@ fun ppType ty =
 
 fun ppLexp lexp =
     PP.with_default_pp(fn s => PPLexp.ppLexp 20 s lexp)
-
-fun ident x = x
-val unitLexp = RECORD []
-
-fun getNameOp p = if SP.null p then NONE else SOME(SP.last p)
-
-type pid = PersStamps.persstamp
-type compInfo = Absyn.dec CompInfo.compInfo
-
-(** old-style fold for cases where it is partially applied *)
-fun fold f l init = foldr f init l
-
-(** sorting the record fields for record types and record expressions *)
-fun elemgtr ((LABEL{number=x,...},_),(LABEL{number=y,...},_)) = (x>y)
-fun sorted x = ListMergeSort.sorted elemgtr x
-fun sortrec x = ListMergeSort.sort elemgtr x
-
-(** check if an access is external *)
-fun extern (DA.EXTERN _) = true
-  | extern (DA.PATH(a, _)) = extern a
-  | extern _ = false
-
-(** an exception raised if coreEnv is not available *)
-exception NoCore
-
-(** instPoly : ty * ty list -> ty
- * instPoly(t,ts): the type t is instantiated with parameters ts.
- * Checked innvariant: ts <> nil <==>  t is polymophic (a POLYty) (DBM) *)
-fun instPoly(ty: TP.ty, tys : TP.ty list) : TP.ty =
-    case tys
-      of nil =>  (* no instantiation parameters *)
-         (case ty
-            of TP.POLYty{tyfun=TP.TYFUN{arity,body},...} =>
-               if arity = 0 then body
-               else (say "instPoly: polytype with no inst parameters\n";
-                     ppType ty;
-                     ty)
-             | _ => ty)
-       | _ =>    (* instantiation parameters *)
-         (case ty
-            of TP.POLYty _ => TU.applyPoly(ty, tys)
-             | _ => bug "instPoly: non-polytype with inst parameters")
-
-(* aconvertPat:
- *   "alpha convert" a pattern with respect to the lvar access values
- *   of the pattern variables. Old variables are replaced by
- *   new ones, with fresh LVAR accesses and new refs for the typ field.
- *   Returns the converted pattern, the list of the original pattern
- *   variables (VALvars), and the list of new variables (VALvars).
- *   Called only once, in mkVB inside mkVBs below. *)
-
-fun aconvertPat (pat, {mkLvar=mkv, ...} : compInfo)
-    : Absyn.pat * VC.var list * VC.var list =
-    let val varmap : (VC.var * VC.var) list ref = ref nil
-            (* association list mapping old vars to new *)
-        (* ASSERT: any VARpat/VALvar will have an LVAR access. *)
-        (* ASSERT: pat will not contain MARKpat *)
-	fun mappat (VARpat(oldvar as VC.VALvar{access=DA.LVAR(oldlvar),
-                                            typ=ref oldtyp,prim,btvs,path})) =
-              let fun find ((VC.VALvar{access=DA.LVAR(lv),...}, newvar)::rest) =
-                        if lv=oldlvar then newvar else find rest
-			(* a variable could occur multiple times because
-                           repetition in OR patterns *)
-                    | find (_::rest) = bug "aconvertPat: bad varmap key"
-		    | find nil =
-		        let val (newtyp,_) = TypesUtil.instantiatePoly oldtyp
-			    val newvar =
-                                VC.VALvar{access=DA.dupAcc(oldlvar,mkv), prim=prim,
-					  typ=ref newtyp, path=path, btvs = btvs}
-			 in varmap := (oldvar,newvar)::(!varmap); newvar
-			end
-	       in VARpat(find(!varmap))
-	      end
-	  | mappat (VARpat _) = bug "aconvertPat: bad variable"
-	  | mappat (RECORDpat{fields,flex,typ}) =
-		RECORDpat{fields=map (fn(l,p)=>(l,mappat p)) fields,
-                          flex=flex, typ=typ}
-	  | mappat (VECTORpat(pats,t)) = VECTORpat(map mappat pats, t)
-	  | mappat (APPpat(d,c,p)) = APPpat(d,c,mappat p)
-	  | mappat (ORpat(a,b)) = ORpat(mappat a, mappat b)
-	  | mappat (CONSTRAINTpat(p,t)) = CONSTRAINTpat(mappat p, t)
-	  | mappat (LAYEREDpat(p,q)) = LAYEREDpat(mappat p, mappat q)
-	  | mappat (MARKpat(p,_)) = bug "aconvertPat: MARKpat"
-	  | mappat p = p
-
-        val newpat = mappat pat
-
-        val (oldvars,newvars) = ListPair.unzip (!varmap)
-
-     in (newpat,oldvars,newvars)
-    end (* aconvertPat *)
 
 
 (****************************************************************************
@@ -457,6 +365,11 @@ and mkRep (rep, lt, name) =
 fun mkAccInfo (acc, getLty, nameOp) =
   if extern acc then mkAccT(acc, getLty(), nameOp) else mkAcc (acc, nameOp)
 
+(* fillPat : AS.pat * int -> AS.pat *)
+(* (1) fills out flex record patterns according to the known record type, turning them
+ *     into nonflex record patterns.  Using WILDpat for the elided fields.
+ * (2) uses mkRep to adjust representations for exception constructors and
+ *     the SUSP pseudo-constructor *)
 fun fillPat(pat, d) =
   let fun fill (CONSTRAINTpat (p,_)) = fill p
 	| fill (MARKpat (p,_)) = fill p
@@ -561,35 +474,71 @@ val transPrim = TransPrim.trans {
 	coreAcc = coreAcc, coreExn = coreExn, mkv = mkv, mkRaise = mkRaise
       }
 
-fun genintinfswitch (sv, cases, default) = let
-      val v = mkv ()
-    (* build a chain of equality tests for checking large pattern values *)
-      fun build [] = default
-	| build ((n, e) :: r) =
-	    COND (APP (#getIntInfEq eqDict (), RECORD [VAR v, VAR (getII n)]),
-		  e, build r)
-    (* make a small int constant pattern *)
-      fun mkSmall n = INTcon{ival = IntInf.fromInt n, ty = Tgt.defaultIntSz}
-    (* split pattern values into small values and large values;
-     * small values can be handled directly using SWITCH *)
-      fun split ([], s, l) = (rev s, rev l)
-	| split ((n, e) :: r, sm, lg) = (case LN.lowVal n
-	     of SOME l => split (r, (mkSmall l, e) :: sm, lg)
-	      | NONE => split (r, sm, (n, e) :: lg)
-	    (* end case *))
-      fun gen () = (case split (cases, [], [])
-	     of ([], largeints) => build largeints
-	      | (smallints, largeints) => let
-		  val iv = mkv ()
-	          in
-		    LET (iv, APP (coreAcc "infLowValue", VAR v),
-		      SWITCH (VAR iv, DA.CNIL, smallints, SOME (build largeints)))
-	          end
-	    (* end case *))
-      in
-	LET (v, sv, gen ())
+(* generates PLambda.lexp code for a case over an IntInf.int value. *)
+(* where does this belong?  At what level should it be coded?  To Absyn? *)
+(* This belongs in trans/translate.sml. It's input should be an Absyn CASEexp
+ * matching against IntInf.int constant keys.
+ * E.g. key0 = {ival, ty=IntInf.int}: Types.ty IntConst.t
+ * translate.sml has to recognize this special form of a shallow Case. *)
+fun genintinfswitch (sv, cases, default) =
+    let val v = mkv ()
+        (* build a chain of equality tests for checking large pattern values *)
+	fun build [] = default
+	  | build ((n, e) :: r) =
+	      COND (APP (#getIntInfEq eqDict (), RECORD [VAR v, VAR (getII n)]),
+		    e, build r)
+	(* make a small int constant pattern *)
+	fun mkSmall n = INTcon{ival = IntInf.fromInt n, ty = Tgt.defaultIntSz}
+	(* split pattern values into small values and large values;
+	 * small values can be handled directly using SWITCH *)
+	fun split ([], s, l) = (rev s, rev l)
+	  | split ((n, e) :: r, sm, lg) =
+	      (case LN.lowVal n
+		 of SOME l => split (r, (mkSmall l, e) :: sm, lg)
+		  | NONE => split (r, sm, (n, e) :: lg)
+	      (* end case *))
+	fun gen () =
+	      (case split (cases, [], [])
+		 of ([], largeints) => build largeints
+		  | (smallints, largeints) =>
+		      let val iv = mkv ()
+		       in LET (iv, APP (coreAcc "infLowValue", VAR v),
+			       SWITCH (VAR iv, DA.CNIL, smallints, SOME (build largeints)))
+		      end
+	      (* end case *))
+       in LET (v, sv, gen ())
       end
+(* similar special cases for REF and SUSP constructors in pattern.  See genswitch in
+ * FLINT/trans/matchcomp.sml. *)
 
+
+(* genswitch : <<SWITCH domain>> -> Plambda.lexp *)
+(* This function moved here from trans/matchcomp (the old match compiler). It
+ * treats the special single (pseudo-) constructor pattern cases involving
+ * the "ref" and "susp" constructors, and the special case of switching on
+ * intinf constants. For all other cases, immediately builds a SWITCH. *)
+fun genswitch (sv, sign, [(DATAcon((_, DA.REF, lt), ts, x), e)], NONE) =
+      (* deconstructor (DEREF primop) for SINGLE pseudo-constructor "ref". *)
+      LET(x, APP (PRIM (Primop.DEREF, LT.lt_swap lt, ts), sv), e)
+  | genswitch(sv, sign, [(DATAcon((_, DA.SUSP(SOME(_, DA.LVAR f)), lt),
+				  ts, x), e)], NONE) =
+      (* deconstruction for SINGLE pseudo-constructor "susp" --
+       * Should we treat susp as a pseudo-constructor? Let's not! *)
+      let val v = mkv()
+       in LET(x, LET(v, TAPP(VAR f, ts), APP(VAR v, sv)), e)
+      end
+  | genswitch (sv, sign, cases as ((INTcon{ty=0, ...}, _) :: _), default) =
+      let fun strip (INTcon{ty=0, ival}, e) = (ival, e)
+	    | strip _ = bug "genswitch - INTINFcon"
+       in case default
+	    of NONE => bug "genswitch - no default in switch on IntInf"
+	     | SOME d => genintinfswitch (sv, map strip cases, d)
+      end
+  | genswitch x = SWITCH x
+
+(* A SWITCH is build for all other match constructs -- including those for
+ * SINGLE datatypes (with a single datacon).  So for SINGLE datacons, deconstruction
+ * is handled by SWITCH (where?). *)
 
 (***************************************************************************
  *                                                                         *
@@ -814,7 +763,7 @@ and mkVBs (vbs, d) =
 		      (* this is the only call of aconvertPat; it replaces pattern variables with
 		       * new versions with fresh lvar access values *)
 		    val newVarExps = map (fn v => VARexp(ref v,[])) newvars
-		    val rhsTy = BasicTypes.tupleTy(map (fn (VC.VALvar{typ,...}) => !typ) newvars)
+		    val rhsTy = BasicTypes.tupleTy(map (fn (V.VALvar{typ,...}) => !typ) newvars)
 		    val bindRule = RULE(newpat, EU.TUPLEexp(newVarExps))
 		    val defaultRule = RULE(WILDpat,
 					   RAISEexp(CONexp(CoreAccess.getExn env ["Bind"],[]),rhsTy))
@@ -1011,7 +960,7 @@ and mkExp (exp, d) =
   let val tTyc = toTyc d
       val tLty = toLty d
 
-      fun mkRules xs = map (fn (RULE(p, e)) => (fillPat(p, d), mkExp0 e)) xs
+      fun mkRules rules = map (fn (RULE(p, e)) => (fillPat(p, d), mkExp0 e)) rules
 
       and mkExp0 (VARexp (ref v, ts)) =
             (debugmsg ">>mkExp VARexp";

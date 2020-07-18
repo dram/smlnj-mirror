@@ -79,7 +79,6 @@ structure LowerCPS : sig
 		  | cexp (C.ARITH(a, xl, v, t, e)) = C.ARITH(a, xl, v, t, cexp e)
 		  | cexp (C.PURE(p, xl, v, t, e)) = C.PURE(p, xl, v, t, cexp e)
 		  | cexp (C.RCC(k, s, p, xl, vtl, e)) = C.RCC(k, s, p, xl, vtl, cexp e)
-		  | cexp (C.TRAP e) = C.TRAP(cexp e)
 		in
 		  (fk, f, formals, tl, cexp e)
 		end

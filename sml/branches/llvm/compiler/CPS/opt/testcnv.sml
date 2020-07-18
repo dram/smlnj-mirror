@@ -61,17 +61,11 @@ structure TestCnv : sig
 	  end
 
     fun test (from, to, [v], x, ty, k) =
-(if !Control.CG.printit
-then Control.Print.say(concat[
-    "## test_", Int.toString from, "_", Int.toString to, " ", PPCps.value2str v,
-    " -> ", LV.lvarName x, "\n"
-  ])
-else ();
 	  if (from = ity) andalso (to = tty)
 	    then C.ARITH(P.TEST{from=from, to=to}, [v], x, ty, k)
 	  else if (from = to)
 	    then C.PURE(P.COPY{from=from, to=to}, [v], x, ty, k)
-	  else if (from <= ity) andalso (to < Target.defaultIntSz)
+	  else if (from <= ity) andalso (to < tty)
 	    then let
 	      val fromIsTagged = (from < ity)
 	      fun num iv = C.NUM{ival=iv, ty={sz=from, tag=fromIsTagged}}
@@ -90,11 +84,14 @@ else ();
 		    trap,
 		    branch(sLT, [num maxToInt, v],
 		      trap,
-		      C.PURE(P.TRUNC{from=from, to=to}, [v], x', ty,
-			C.APP(jk', [C.VAR x'])))))
+		      if fromIsTagged
+		      (* both are tagged, so nothing to do *)
+			then C.APP(jk', [v])
+		      (* convert from untagged to tagged representation *)
+			else C.ARITH(P.TEST{from=ity, to=tty}, [v], x', ty,
+			  C.APP(jk', [C.VAR x'])))))
 	      end
 	    else bug "TEST with unexpected precisions"
-)
       | test _ = bug "TEST with bogus arguments"
 
     fun testu (from, to, [v], x, ty, k) =

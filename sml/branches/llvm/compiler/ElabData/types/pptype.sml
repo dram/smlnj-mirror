@@ -211,8 +211,8 @@ fun ppEqProp ppstrm p =
 fun ppSymPath ppstream (path: SymPath.path) =
     PP.string ppstream (SymPath.toString path)
 
-fun ppInvPath ppstream (rpath: InvPath.path) =
-    PP.string ppstream (InvPath.toString rpath)
+fun ppInvPath ppstream (ipath: InvPath.path) =
+    PP.string ppstream (SymPath.toString(ConvertPaths.invertIPath ipath))
 
 fun ppBool ppstream b =
     case b of true => pps ppstream "t" | false => pps ppstream "f"
@@ -222,13 +222,14 @@ fun ppTycon1 env ppstrm membersOp =
 	fun ppTyc (tyc as GENtyc { path, stamp, eq, kind, ... }) =
 	    if !internals
 	    then (openHOVBox 1;
-		  ppInvPath ppstrm path;
-		  pps "[";
-		  pps "G"; ppkind ppstrm kind; pps ";";
-		  pps (Stamps.toShortString stamp);
-		  pps ";";
-		  ppEqProp ppstrm (!eq);
-		  pps "]";
+		    ppInvPath ppstrm path;
+		    PP.string ppstrm "[";
+		    PP.string ppstrm "G";
+		    ppkind ppstrm kind; pps ";";
+		    PP.string ppstrm (Stamps.toShortString stamp);
+		    PP.string ppstrm ";";
+		    ppEqProp ppstrm (!eq);
+		    PP.string ppstrm "]";
 		  closeBox())
 	    else pps(effectivePath(path,tyc,env))
 	  | ppTyc(tyc as DEFtyc{path,strict,tyfun=TYFUN{body,...},...}) =
@@ -277,9 +278,10 @@ fun ppTycon1 env ppstrm membersOp =
  	  | ppTyc (tyc as PATHtyc{arity,entPath,path}) =
 	     if !internals
 	     then (openHOVBox 1;
-		    ppInvPath ppstrm path; pps "[P;";
-		    pps (EntPath.entPathToString entPath);
-		    pps "]";
+		     ppInvPath ppstrm path;
+		     PP.string ppstrm "[P;";
+		     PP.string ppstrm (EntPath.entPathToString entPath);
+		     PP.string ppstrm "]";
 		   closeBox())
 	     else ppInvPath ppstrm path
 
@@ -290,7 +292,8 @@ fun ppTycon1 env ppstrm membersOp =
 
 and ppType1 env ppstrm (ty: ty, sign: T.polysign,
                         membersOp: (T.dtmember vector * T.tycon list) option) : unit =
-    let val {openVBox,openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} = en_pp ppstrm
+    let val {openVBox,openHVBox,openHOVBox,closeBox,pps,ppi,break,newline} =
+	    en_pp ppstrm
         fun prty ty =
 	    case ty
 	      of VARty(ref(INSTANTIATED ty')) => prty(ty')
@@ -300,16 +303,15 @@ and ppType1 env ppstrm (ty: ty, sign: T.polysign,
 		                handle Subscript => false
 		    in pps ((if eq then "''" else "'") ^ boundTyvarName n)
 		   end
-	       | CONty(tycon, args) => let
-		     fun otherwise () =
+	       | CONty(tycon, args) =>
+		   let fun otherwise () =
 			 (openHOVBox 2;
 			  ppTypeArgs args;
 			  break{nsp=0,offset=0};
 			  ppTycon1 env ppstrm membersOp tycon;
 			  closeBox())
-		 in
-		     case tycon
-		      of GENtyc { stamp, kind, ... } =>
+		   in case tycon
+		        of GENtyc { stamp, kind, ... } =>
 			 (case kind of
 			      PRIMITIVE =>
 			      if Stamps.eq(stamp,arrowStamp)
@@ -356,9 +358,9 @@ and ppType1 env ppstrm (ty: ty, sign: T.polysign,
 	  | ppTypeArgs [ty] =
 	     (if strength ty <= 1
 	      then (openHOVBox 1;
-                    pps "(";
-                    prty ty;
-                    pps ")";
+                      PP.string ppstrm "(";
+                      prty ty;
+                      PP.string ppstrm ")";
                     closeBox())
 	      else prty ty;
 	      break{nsp=1,offset=0})
@@ -450,21 +452,21 @@ fun ppTycon env ppstrm tyc = ppTycon1 env ppstrm NONE tyc
 fun ppTyfun env ppstrm (TYFUN{arity,body}) =
     let val {openHVBox, openHOVBox, closeBox, pps, break,...} = en_pp ppstrm
      in openHOVBox 2;
-	pps "TYFUN({arity=";
-	ppi ppstrm arity; ppcomma ppstrm;
-	break{nsp=0,offset=0};
-	pps "body=";
-	ppType env ppstrm body;
-	pps "})";
+	  PP.string ppstrm "TYFUN{arity=";
+	  ppi ppstrm arity; ppcomma ppstrm;
+	  PP.break ppstrm {nsp=0,offset=0};
+	  PP.string ppstrm "body=";
+	  ppType env ppstrm body;
+	  PP.string ppstrm "}";
         closeBox()
     end
 
+(* ppFormals : PP.stream -> int -> unit *)
 fun ppFormals ppstrm =
     let fun ppF 0 = ()
-	  | ppF 1 = pps ppstrm " 'a"
-	  | ppF n = (pps ppstrm " ";
-		     ppTuple ppstrm (fn ppstrm => fn s => pps ppstrm ("'"^s))
-				    (typeFormals n))
+	  | ppF 1 = pps ppstrm "'a"
+	  | ppF n = ppTuple ppstrm (fn ppstrm => fn s => pps ppstrm ("'"^s))
+				    (typeFormals n)
      in ppF
     end
 

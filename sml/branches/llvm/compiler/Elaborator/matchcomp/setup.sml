@@ -67,7 +67,7 @@ val pats1 = [pat11, pat12]
 
 val pat21 = mkTuplePat [truePat, falsePat]
 val pat22 = mkTuplePat [falsePat, truePat]
-				   
+
 val example0 = [pat21, pat22]
 
 val xpat = VARpat(V.mkVALvar(S.make "x", LV.mkLvar()))
@@ -90,25 +90,27 @@ val p3 = zpat
 val example0 = [p1,p2,p3]
 
 val example1 =
-"N(x,L); N(L,y); z"    
+"N(x,L);\
+\N(L,y);\
+\z"
 val polyty1 = POLY{arity=0, body=CONty(treeTycon, [])}
 
 val example2 =
-"(T, F, T);\
-\(T, x, F);\
-\(F, T, y)"
+"(true, false, true);\
+\(true, x, false);\
+\(false, true, y)"
 val polyty2 = POLY{arity=0, body=TU.mkTupleTy [BT.boolTy, BT.boolTy, BT.boolTy]}
 
 val example3 =
-"(A, F, T);\
-\(B, x, F);\
-\(z, T, y)"
+"(A, fals, true);\
+\(B, x, false);\
+\(z, true, y)"
 val polyty3 = POLY{arity=0, body=TU.mkTupleTy [tTy, BT.boolTy, BT.boolTy]}
 
 val example4 =
-"(A, F, T);\
-\(B, x, F);\
-\(z, T, F)"
+"(A, false, true);\
+\(B, x, false);\
+\(z, true, false)"
 
 end (* local *)
 end (* structure Stuff *)

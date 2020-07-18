@@ -382,8 +382,12 @@ structure Binfile :> BINFILE = struct
     fun read { arch, version, stream = s } = let
 	val MAGIC = mkMAGIC (arch, version)
 	val magic = bytesIn (s, magicBytes)
-	val _ = if Byte.bytesToString magic = MAGIC then ()
-		else error "bad magic number"
+	val _ = if Byte.bytesToString magic <> MAGIC
+	      then error (concat[
+		  "bad magic number \"", String.toString(Byte.bytesToString magic),
+		  "\", expected \"", String.toString MAGIC, "\""
+		])
+	      else ()
 	val leni = readInt32 s
 	val ne = readInt32 s
 	val importSzB = readInt32 s

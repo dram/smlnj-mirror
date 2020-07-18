@@ -6,7 +6,11 @@
  * The encoding of object description headers.
  *
  * WARNING: this file must agree with the run-time system values and the
- * values used in boot/core.sml and boot/Unsafe/object.sml.
+ * values used in the following files:
+ *
+ *	system/init/core.sml
+ *	system/Basis/Implementation/Unsafe/object.sml
+ *	runtime/include/tags.h
  *)
 
 structure ObjectDesc :> OBJECT_DESC =

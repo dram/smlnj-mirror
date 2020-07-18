@@ -8,12 +8,12 @@ sig
   val openStyleBox : break_style -> PrettyPrint.stream -> PrettyPrint.indent -> unit
 
   val ppSequence : PrettyPrint.stream ->
-		   {sep: PrettyPrint.stream->unit, 
+		   {sep: PrettyPrint.stream->unit,
 		    pr: PrettyPrint.stream->'a->unit,
 		    style: break_style}
 		   -> 'a list -> unit
   val ppClosedSequence : PrettyPrint.stream
-			 -> {front:PrettyPrint.stream->unit, 
+			 -> {front:PrettyPrint.stream->unit,
                              sep:PrettyPrint.stream->unit,
 			     back:PrettyPrint.stream->unit,
                              pr:PrettyPrint.stream->'a->unit,
@@ -21,6 +21,10 @@ sig
 			 -> 'a list -> unit
   val ppSym : PrettyPrint.stream -> Symbol.symbol -> unit
   val ppString : PrettyPrint.stream -> string -> unit
+
+  val ppvseqNoBox : PrettyPrint.stream
+		    -> (PrettyPrint.stream -> 'a -> unit)
+		    -> 'a list -> unit
 
   val ppvseq : PrettyPrint.stream
                -> int -> string -> (PrettyPrint.stream -> 'a -> unit)
@@ -47,19 +51,19 @@ sig
   val ppcomma : PrettyPrint.stream -> unit
   val ppcomma_nl : PrettyPrint.stream -> unit
   val nl_app : PrettyPrint.stream -> (PrettyPrint.stream -> 'a -> unit)
-               -> 'a list -> unit 
+               -> 'a list -> unit
   val br_app : PrettyPrint.stream -> (PrettyPrint.stream -> 'a -> unit)
-               -> 'a list -> unit 
-  val en_pp : PrettyPrint.stream -> 
-              {break      : {nsp: int, offset: int} -> unit, 
+               -> 'a list -> unit
+  val en_pp : PrettyPrint.stream ->
+              {break      : {nsp: int, offset: int} -> unit,
 	       newline    : unit -> unit,
 	       openVBox   : int -> unit,
 	       openHVBox  : int -> unit,
 	       openHOVBox : int -> unit,
-	       closeBox   : unit -> unit, 
+	       closeBox   : unit -> unit,
 	       pps        : string -> unit,
                ppi        : int -> unit}
-  val ppArray : PrettyPrint.stream -> 
+  val ppArray : PrettyPrint.stream ->
                 (PrettyPrint.stream -> 'a -> unit) * 'a array
 	        -> unit
 

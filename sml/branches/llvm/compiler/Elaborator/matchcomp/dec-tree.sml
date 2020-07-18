@@ -45,7 +45,7 @@ fun decisionTree andor =
 	val ruleCounts = Array.tabulate (R.numItems rules, (fn i => 0))
 	fun incrementRuleCount r =
 	    Array.update(ruleCounts, r, Array.sub(ruleCounts,r)+1)
-		
+
 (* makeDecisionTree : (APQ.queue * ruleset * path -> decTree *)
 (* orNodes is a priority queue (APQ.queue) of OR nodes
  * -- oldlive is a ruleset containing rules that are live on this branch,
@@ -61,11 +61,11 @@ fun makeDecisionTree(orNodes, survivors, thisPath) =
       (case OO.selectBestRelevant(orNodes, R.minItem survivors, thisPath)
         of SOME (node as OR{path, direct, defaults, variants, ...}, candidates) =>
 	   (* best relevant OR node, remainder is queue of remaining OR nodes *)
-	   let val _ =
+	   let (* val _ =
 		  (print "makeDecisionTree: \n";
 		   print "  thisPath: "; MCPrint.tppPath thisPath;
 	           print "  survivors: "; MCPrint.tppRules survivors;
-		   print "  path: "; MCPrint.tppPath path)
+		   print "  path: "; MCPrint.tppPath path) *)
 	       (* variantDecTrees: variant list * decVariant list * APQ.queue
                                    -> decVariant list * APQ.queue *)
 	       fun variantDecTrees ((key,andor)::rest, decvariants) =
@@ -105,7 +105,7 @@ fun makeDecisionTree(orNodes, survivors, thisPath) =
 	 | _ => bug "makeDecisionTree")
 
 (* What to do when there are no relevant OR nodes in the queue? In this case, is the
- * match degenerate (only one pattern/rule)? Produce degenerate CHOICE{andor,DLEAF,NONE}? 
+ * match degenerate (only one pattern/rule)? Produce degenerate CHOICE{andor,DLEAF,NONE}?
  * Or possibly DLEAF(andor)? Or a new decTree constructor? Examples? *)
 
      in (makeDecisionTree(orNodes, rules, rootPath), Array.vector ruleCounts)

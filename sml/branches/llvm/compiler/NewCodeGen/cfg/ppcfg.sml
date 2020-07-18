@@ -43,8 +43,6 @@ structure PPCfg : sig
 	    | P.ISUB => "ISUB"
 	    | P.IMUL => "IMUL"
 	    | P.IDIV => "IDIV"
-	    | P.IMOD => "IMOD"
-	    | P.IQUOT => "IQUOT"
 	    | P.IREM => "IREM"
 	  (* end case *))
 
@@ -55,10 +53,9 @@ structure PPCfg : sig
 		]
 	    | P.FCMP{oper, sz} => concat[fcmpopToString oper, "_f", Int.toString sz]
 	    | P.FSGN sz => concat["f", Int.toString sz, "sgn"]
-	    | P.BOXED => "boxed"
-	    | P.UNBOXED => "unboxed"
 	    | P.PEQL => "peql"
 	    | P.PNEQ => "pneq"
+	    | P.STREQL n => "streql" ^ Int.toString n
 	  (* end case *))
 
     fun allocToString (P.RECORD{desc, mut=false}) =
@@ -91,6 +88,8 @@ structure PPCfg : sig
       | lookerToString P.SUBSCRIPT = "array_sub"
       | lookerToString (P.RAW_SUBSCRIPT{kind, sz}) =
 	  concat("array_sub_" :: numkindToString(kind, sz))
+      | lookerToString (P.RAW_LOAD{kind, sz}) =
+	  concat("load_" :: numkindToString(kind, sz))
       | lookerToString P.GET_HDLR = "gethdlr"
       | lookerToString P.GET_VAR = "getvar"
 
@@ -141,9 +140,6 @@ structure PPCfg : sig
       | pureToString (P.EXTEND{signed=false, from, to}) =
 	  cvtParams ("zero_extend_", from, to)
       | pureToString (P.INT_TO_REAL{from, to}) = cvtParams ("real", from, to)
-      | pureToString (P.LOAD_RAW{offset, kind, sz}) =
-	  concat("load_" :: numkindToString(kind, sz)
-	    @ ["[@", i2s offset, "]"])
       | pureToString P.PURE_SUBSCRIPT = "vector_sub"
       | pureToString (P.PURE_RAW_SUBSCRIPT{kind, sz}) =
 	  concat("vector_sub_" :: numkindToString(kind, sz))
@@ -153,10 +149,8 @@ structure PPCfg : sig
     fun expToString e = (case e
 	   of C.VAR x => LV.lvarName x
 	    | C.LABEL lab => "L_" ^ LV.lvarName lab
-	    | C.NUM{iv, signed=true, sz} =>
+	    | C.NUM{iv, sz} =>
 		concat["(i", i2s sz, ")", IntInf.toString iv]
-	    | C.NUM{iv, signed=false, sz} =>
-		concat["(u", i2s sz, ")", IntInf.toString iv]
 	    | C.LOOKER(p, args) => appToS(lookerToString p, args)
 	    | C.PURE(p, args) => appToS(pureToString p, args)
 	    | C.SELECT(i, e) => appToS("#" ^ i2s i, [e])
