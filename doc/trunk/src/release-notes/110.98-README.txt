@@ -128,7 +128,7 @@ exception of the pretty-printing library).
 === Installation
 
 The default installation for machines that report "``x86_64``" as their
-hardware is no 64 bits.  See the installation instructions for more
+hardware is now 64 bits.  See the installation instructions for more
 details.
 
 === 32-bit macOS issues
