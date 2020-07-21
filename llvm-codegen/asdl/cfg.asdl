@@ -229,30 +229,27 @@ module CFG (
 	  param* live,			-- live variables across call (with types)
 	  stm k)			-- the continuation
 
-    frag_kind
-      = GC_CHECK        -- garbage-collection check
-      | INTERNAL        -- internal extended basic block
-
   -- cluster entry fragment
   --
-    entry = Entry (calling_conv, LambdaVar.lvar, param*, stm)
+    entry = Entry (calling_conv cc, LambdaVar.lvar lab, param* params, stm body)
 
   -- internal cluster fragment
   --
-    frag = Frag (frag_kind, LambdaVar.lvar, param*, stm)
+    frag = Frag (bool gcCheck, LambdaVar.lvar lab, param* params, stm body)
 
   -- meta data about a cluster
   --
     attrs = (
 	int alignHP,		-- alignment requirement for allocation pointer
 	bool needsBasePtr,	-- true if cluster does PC-relative addressing
+	bool hasTrapArith,	-- true if cluster has trapping arithmetic
 	bool hasRCC		-- true if cluster contains raw C Calls
       )
 
   -- a cluster is a maximal flow graph where every known call is to a fragment in the
   -- the cluster.
   --
-    cluster = Cluster (attrs, entry, frag*)
+    cluster = Cluster (attrs attrs, entry entry, frag* frags)
 
 }
 
@@ -261,72 +258,92 @@ module CFG (
 view Cxx {
     <file> <= interface_prologue %%
 #include "code-buffer.hxx"
-#include "prim-types.hxx"
+#include "lambda-var.hxx"
 
 using Args_t = std::vector<llvm::Value *>;
 %%
     <file> <= suppress : pickler
 -- branch
     { CFG_Prim.branch }  <= public_code %%
-    virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
 %%
     { CFG_Prim.branch.* } <= public_code %%
-    llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer &buf, Args_t &args);
 %%
 
 -- setter
     { CFG_Prim.setter }  <= public_code %%
-    virtual void codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual void codegen (code_buffer &buf, Args_t &args) = 0;
 %%
     { CFG_Prim.setter.* } <= public_code %%
-    void codegen (code_buffer &buf, Args_t &args);
+        void codegen (code_buffer &buf, Args_t &args);
 %%
 
 -- looker
     { CFG_Prim.looker }  <= public_code %%
-    virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
 %%
     { CFG_Prim.looker.* } <= public_code %%
-    llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer &buf, Args_t &args);
 %%
 
 -- arith
     { CFG_Prim.arith }  <= public_code %%
-    virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
 %%
     { CFG_Prim.arith.* } <= public_code %%
-    llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer &buf, Args_t &args);
 %%
 
 -- pure
     { CFG_Prim.pure }  <= public_code %%
-    virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
 %%
     { CFG_Prim.pure.* } <= public_code %%
-    llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer &buf, Args_t &args);
 %%
 
 -- alloc
     { CFG_Prim.alloc }  <= public_code %%
-    virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
 %%
     { CFG_Prim.alloc.* } <= public_code %%
-    llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer &buf, Args_t &args);
 %%
 
 -- exp
-    {CFG.exp } <= public_code %%
-    virtual llvm::Value *codegen (code_buffer &buf) = 0;
+    { CFG.exp } <= public_code %%
+        virtual llvm::Value *codegen (code_buffer &buf) = 0;
 %%
     { CFG.exp.* } <= public_code %%
-    llvm::Value *codegen (code_buffer &buf);
+        llvm::Value *codegen (code_buffer &buf);
 %%
 
 -- stm
     { CFG.stm } <= public_code %%
-    virtual void codegen (code_buffer &buf) = 0;
+        virtual void init (code_buffer &buf, bool blkEntry) = 0;
+        virtual void codegen (code_buffer &buf) = 0;
+        llvm::BasicBlock *bb () { return this->_bb; }
 %%
+    { CFG.stm } <= protected_code %%
+        llvm::BasicBlock *_bb;  // for the first stm in a block
+	void _initBB (code_buffer &buf, bool blkEntry);
+%%
+
     { CFG.stm.* } <= public_code %%
-    void codegen (code_buffer &buf);
+        void init (code_buffer &buf, bool blkEntry);
+        void codegen (code_buffer &buf);
 %%
+
+-- entry and frag, and cluster
+    { CFG.entry CFG.frag } <= public_code %%
+        void init (code_buffer &buf);
+        void codegen (code_buffer &buf);
+%%
+
+-- cluster
+    { CFG.cluster } <= public_code %%
+        void codegen (code_buffer &buf);
+%%
+
 }

@@ -13,7 +13,9 @@ LD_FLAGS =	-L../llvm/lib -L/opt/local/include
 
 VPATH =		../src
 
-SRCS =		cfg.cxx
+SRCS =		cfg.cxx lambda-var.cxx \
+		codegen.cxx \
+		cfg-init.cxx cfg-codegen.cxx cfg-prim-codegen.cxx
 
 OBJS =		$(SRCS:%.cxx=%.o)
 
@@ -21,3 +23,8 @@ llvm-codegen:	$(OBJS)
 
 %.o: %.cxx
 	$(CXX) -c $(CPP_FLAGS) $(CXX_FLAGS) $<
+
+.PHONY:		clean
+clean:
+		rm -rf $(OBJS)
+

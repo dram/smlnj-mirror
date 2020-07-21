@@ -8,11 +8,17 @@
 /// \author John Reppy
 ///
 
-#include "cfg.hxx"
+#include "code-buffer.hxx"
+#include "target-info.hxx"
+
+/* FIXME: for now, these are all zero, but we should do something else */
+/* address spaces for various kinds of ML data that are necessarily disjoint */
+#define ML_HEAP_ADDR_SP		0		// immutable heap objects
+#define ML_REF_ADDR_SP		0		// mutable heap objects
 
 /***** class code_buffer member functions *****/
 
-code_buffer::code_buffer ()
+code_buffer::code_buffer (target_info const &info)
   : _context(), _builder(this->_context), _module(nullptr)
 {
 
@@ -24,26 +30,27 @@ code_buffer::code_buffer ()
     this->f32Ty = llvm::Type::getPrimitiveType (this->_context, llvm::Type::FloatTyID);
     this->f64Ty = llvm::Type::getPrimitiveType (this->_context, llvm::Type::DoubleTyID);
 
+    if (info.wordSz == 32) {
+	this->intTy = this->i32Ty;
+    }
+    else { // info.wordSz == 64
+	this->intTy = this->i64Ty;
+    }
+    this->mlRefTy = this->intTy->getPointerTo (ML_REF_ADDR_SP);
+    this->mlPtrTy = this->intTy->getPointerTo (ML_HEAP_ADDR_SP);
+
 } // constructor
 
 void code_buffer::initModule (std::string &src)
 {
-    this->_module = new Module(src, this->_context);
+    this->_module = new llvm::Module (src, this->_context);
 
   // clear the cached intrinsic functions
     this->_sadd32WO = nullptr;
     this->_ssub32WO = nullptr;
     this->_smul32WO = nullptr;
-    this->_sad64dWO = nullptr;
+    this->_sadd64WO = nullptr;
     this->_ssub64WO = nullptr;
     this->_smul64WO = nullptr;
 
 } // initModule
-
-// helper function for getting an intrinsic when it has not yet
-// been loaded for this module.
-//
-void llvm::Function *code_buffer::_getIntrinsic (llvm::Intrinsic::ID id, llvm::Type *ty)
-{
-    return llvm::Intrinsic::getDeclaration (this->_module, id, llvm::ArrayRef(ty));
-}

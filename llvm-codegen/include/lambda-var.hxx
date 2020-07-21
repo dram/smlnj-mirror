@@ -1,16 +1,17 @@
-/// \file prim-types.hxx
+/// \file lambda-var.hxx
 ///
 /// \copyright 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
 /// All rights reserved.
 ///
-/// \brief The definitions of the primitive modules iun cps.asdl
+/// \brief The definitions of the primitive LambdaVar module from cfg.asdl
 ///
 /// \author John Reppy
 ///
 
-#ifndef __PRIM_TYPES_HXX__
-#define __PRIM_TYPES_HXX__
+#ifndef __LAMBDA_VAR_HXX__
+#define __LAMBDA_VAR_HXX__
 
+#include "asdl/asdl.hxx"
 #include <vector>
 
 namespace LambdaVar {
@@ -22,4 +23,4 @@ namespace LambdaVar {
 
 } // namespace LambdaVar
 
-#endif // !__PRIM_TYPES_HXX__
+#endif // !__LAMBDA_VAR_HXX__
