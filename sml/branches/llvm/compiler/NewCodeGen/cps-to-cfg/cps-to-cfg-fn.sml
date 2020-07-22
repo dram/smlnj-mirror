@@ -658,11 +658,6 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 			unkProb,
 			kBoxed,
 			kUnboxed)
-	      (* translate a comparison of two strings that are of length n *)
-		fun stringEqTest (n, s1, s2, k1, k2) =
-		      CFG.BRANCH(TP.STREQL n, [CFG.SELECT(0, s1), CFG.SELECT(0, s2)],
-			unkProb,
-			k1, k2)
 		in
 		  case (test, args)
 		   of (P.CMP{oper, kind=CPS.P.INT sz}, _) =>
@@ -676,10 +671,6 @@ functor CPStoCFGFn (MS : MACH_SPEC) : sig
 		    | (P.UNBOXED, [v]) => boxedTest (genV v, k2, k1)
 		    | (P.PEQL, _) => mkBr TP.PEQL
 		    | (P.PNEQ, _) => mkBr TP.PNEQ
-		    | (P.STREQL, [NUM{ty={tag=true, ...}, ival}, v, w]) =>
-			stringEqTest (IntInf.toInt ival, genV v, genV w, k1, k2)
-		    | (P.STRNEQ, [NUM{ty={tag=true, ...}, ival}, v, w]) =>
-			stringEqTest (IntInf.toInt ival, genV v, genV w, k2, k1)
 		    | _ => error [".branch: bogus test ", PPCps.branchToString test]
 		  (* end case *)
 		end

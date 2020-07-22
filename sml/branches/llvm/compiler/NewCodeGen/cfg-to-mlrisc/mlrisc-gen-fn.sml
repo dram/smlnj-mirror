@@ -810,10 +810,6 @@ functor NewMLRiscGenFn (
 		      M.CMP(sz, unsignedCmp oper, genExp a, genExp b)
 		  | genCCExp (P.FCMP{oper, sz}, [a, b]) =
 		      M.FCMP(sz, floatCmp oper, genFExp a, genFExp b)
-		  | genCCExp (P.BOXED, [a]) =
-		      M.CMP(ity, M.EQ, M.ANDB(ity, genExp a, one), zero)
-		  | genCCExp (P.UNBOXED, [a]) =
-		      M.CMP(ity, M.NE, M.ANDB(ity, genExp a, one), zero)
 		  | genCCExp (P.PEQL, [a, b]) = M.CMP(ity, M.EQ, genExp a, genExp b)
 		  | genCCExp (P.PNEQ, [a, b]) = M.CMP(ity, M.NE, genExp a, genExp b)
 		  | genCCExp (tst, _) = error [
