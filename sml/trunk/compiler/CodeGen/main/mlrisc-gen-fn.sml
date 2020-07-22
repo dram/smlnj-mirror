@@ -1111,6 +1111,7 @@ functor MLRiscGen (
 		      genlab (lab, no, hp)
 		    end
 
+(*
 	    (* branch if are identical strings v, w of length n *)
 	      and branchStreq (n, v, w, yes, no, hp) = let
 		  (* round number of bytes up to ws bytes *)
@@ -1135,6 +1136,7 @@ functor MLRiscGen (
 		      genCont (yes, hp);
 		      genlab (false_lab, no, hp)
 		    end
+*)
 
 	      and arithINT (oper, v, w, x, e, hp) =
 		    defINT(x, oper(ity, regbind v, regbind w), e, hp)
@@ -1895,10 +1897,12 @@ raise Fail "unexpected constant branch"
 		| gen (C.BRANCH(P.UNBOXED, [x], p, a, b), hp) = branchOnBoxed(p, x, b, a, hp)
 		| gen (C.BRANCH(P.PEQL, vw, p, e, d), hp) = branch(p, M.EQ, vw, e, d, hp)
 		| gen (C.BRANCH(P.PNEQ, vw, p, e, d), hp) = branch(p, M.NE, vw, e, d, hp)
+(* expanded in lowering
 		| gen (C.BRANCH(P.STRNEQ, [NUM{ty={tag=true, ...}, ival},v,w], p, d, e), hp) =
 		    branchStreq(ival, v, w, e, d, hp)
 		| gen (C.BRANCH(P.STREQL, [NUM{ty={tag=true, ...}, ival},v,w],p,d,e), hp) =
 		    branchStreq(ival, v, w, d, e, hp)
+*)
 		| gen (e, hp) = (PPCps.prcps e; print "\n"; error "genCluster.gen")
 
 	      fun fragComp() = let

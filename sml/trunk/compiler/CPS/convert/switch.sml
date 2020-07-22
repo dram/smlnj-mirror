@@ -234,9 +234,7 @@ structure Switch : sig
 
   (* generate a switch for string patterns *)
     fun stringSwitch (arg, cases, default : CPS.cexp) = let
-	  fun ifeq (s, tr, fl) = CPS.BRANCH(
-		CPS.P.STREQL, [tagNum(toII(size s)), arg, CPS.STRING s], mkv(),
-		tr, fl)
+	  fun ifeq (s, tr, fl) = CPS.BRANCH(CPS.P.STREQL s, [arg], mkv(), tr, fl)
 	  fun un_str (F.STRINGcon s, act) = (s, act)
 	    | un_str _ = bug "un_str"
 	(* group cases by length of the string *)

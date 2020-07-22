@@ -104,10 +104,10 @@ structure FreeClose : FREECLOSE = struct
        in f(infinity,l)
       end
 
-    fun bfirst (P.BOXED | P.PNEQ | P.STRNEQ | P.CMP{oper=P.NEQ,...}) = true
+    fun bfirst (P.BOXED | P.PNEQ | P.CMP{oper=P.NEQ,...}) = true
       | bfirst _ = false
 
-    fun bsecond (P.UNBOXED | P.PEQL | P.STREQL | P.CMP{oper=P.EQL,...}) = true
+    fun bsecond (P.UNBOXED | P.PEQL | P.CMP{oper=P.EQL,...}) = true
       | bsecond _ = false
 
     (** datatype used to represent the free variable information **)

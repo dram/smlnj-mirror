@@ -21,6 +21,9 @@
  *	  code that tests for overflow and explicitly raises the exception
  *	  if necessary.
  *
+ *	- replace `STREQL` with unrolled sequence of word-sized equality
+ *	  tests.
+ *
  * Note that the bulk of the work is actually done in other modules; this
  * module is responsible for detecting places where things need transforming.
  *)
@@ -54,6 +57,9 @@ structure LowerCPS : sig
 		      C.FIX(map function fl, cexp e)
 		  | cexp (C.SWITCH(x, v, el)) =
 		      C.SWITCH(x, v, map cexp el)
+		  | cexp (C.BRANCH(P.STREQL lit, [s], _, e1, e2)) =
+		      StrEqlCnv.strEql (s, lit, cexp e1, cexp e2)
+		  | cexp (C.BRANCH(P.STREQL _, _, _, _, _)) = bug "bogus STREQL"
 		  | cexp (C.BRANCH(b, xl, v, e1, e2)) =
 		      C.BRANCH(b, xl, v, cexp e1, cexp e2)
 		  | cexp (C.SETTER(s, xl, e)) =

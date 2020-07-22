@@ -89,8 +89,7 @@ structure PPCps : PPCPS =
       | branchToString P.UNBOXED = "unboxed"
       | branchToString P.PEQL = "peql"
       | branchToString P.PNEQ = "pneq"
-      | branchToString P.STREQL = "streql"
-      | branchToString P.STRNEQ = "strneq"
+      | branchToString (P.STREQL s) = concat["streql(\"", String.toString s, "\")"]
 
     fun setterToString P.UNBOXEDUPDATE = "unboxedupdate"
       | setterToString P.UPDATE = "update"

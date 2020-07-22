@@ -56,12 +56,10 @@ structure CPS : CPS =
 	  | FCMP of {oper: fcmpop, size: int}
 	  | FSGN of int
 	  | BOXED | UNBOXED | PEQL | PNEQ
-(* FIXME: make length part of string equality test
-          | streq of int | strneq of int (* streq n is defined on strings of length n *)
-*)
-	  | STREQL | STRNEQ
-	      (* streq(n,a,b) is defined only if strings a and b have
-		 exactly the same length n>1 *)
+	(* `STREQL s` tests if a string is equal to `s`, where the tested string must have
+	 * the same length as `s` and `s` is not the empty string.
+	 *)
+	  | STREQL of string
 
       (* These all update the store *)
 	datatype setter

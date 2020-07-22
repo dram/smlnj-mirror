@@ -54,11 +54,10 @@ structure CPSUtil : sig
     in
     fun opp (P.CMP{oper, kind}) = P.CMP{oper=ioper oper, kind=kind}
       | opp (P.FCMP{oper, size}) = P.FCMP{oper=foper oper, size=size}
-      | opp (P.FSGN _) = bug "fsgn has no opposite"
+      | opp (P.FSGN _) = bug "FSGN has no opposite"
       | opp P.BOXED = P.UNBOXED
       | opp P.UNBOXED = P.BOXED
-      | opp P.STREQL = P.STRNEQ
-      | opp P.STRNEQ = P.STREQL
+      | opp (P.STREQL _) = bug "STREQL has no opposite"
       | opp P.PEQL = P.PNEQ
       | opp P.PNEQ = P.PEQL
     end (* local *)
