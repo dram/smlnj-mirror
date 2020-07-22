@@ -82,6 +82,8 @@ namespace CFG_Prim {
 
     llvm::Value *REAL_TO_INT::codegen (code_buffer & buf, Args_t & args)
     {
+	return buf.build().CreateFPToSI (args[0], buf.iType (this->_v_to));
+
     } // REAL_TO_INT::codegen
 
 
@@ -126,7 +128,7 @@ namespace CFG_Prim {
 	    case pureop::FDIV:
 		return buf.build().CreateFDiv(args[0], args[1]);
 	    case pureop::FNEG:
-		break;
+		return buf.build().CreateFNeg(args[0]);
 	    case pureop::FABS:
 // TODO: call @llvm.fabs.f32 or @llvm.fabs.f64
 		break;
@@ -139,14 +141,26 @@ namespace CFG_Prim {
 
     llvm::Value *EXTEND::codegen (code_buffer & buf, Args_t & args)
     {
+	if (this->_v_signed) {
+	    return buf.build().CreateSExt (args[0], buf.iType(this->_v_to));
+	} else {
+	    return buf.build().CreateZExt (args[0], buf.iType(this->_v_to));
+	}
+
     } // EXTEND::codegen
 
     llvm::Value *INT_TO_REAL::codegen (code_buffer & buf, Args_t & args)
     {
+	return buf.build().CreateSIToFP (args[0], buf.fType(this->_v_to));
+
     } // INT_TO_REAL::codegen
 
     llvm::Value *PURE_SUBSCRIPT::codegen (code_buffer & buf, Args_t & args)
     {
+// QUESTION: do we need to cast args[1] to an integer type?
+	llvm::Value *adr = buf.build().CreateGEP(args[0], args[1]);
+	return buf.build().CreateLoad (buf.mlRefTy, adr);
+
     } // PURE_SUBSCRIPT::codegen
 
     llvm::Value *PURE_RAW_SUBSCRIPT::codegen (code_buffer & buf, Args_t & args)
@@ -164,8 +178,9 @@ namespace CFG_Prim {
 
     llvm::Value *SUBSCRIPT::codegen (code_buffer & buf, Args_t & args)
     {
-	llvm::Value *offset = buf.build().CreateMul(args[1], buf.wordSzInBytes());
-	llvm::Value *adr = buf.build().CreateAdd(args[0], offset);
+// QUESTION: do we need to cast args[1] to an integer type?
+	llvm::Value *adr = buf.build().CreateGEP(args[0], args[1]);
+// QUESTION: should we mark the load as volatile?
 	return buf.build().CreateLoad (buf.mlRefTy, adr);
 
     } // SUBSCRIPT::codegen
@@ -180,10 +195,14 @@ namespace CFG_Prim {
 
     llvm::Value *GET_HDLR::codegen (code_buffer & buf, Args_t & args)
     {
+	return buf.exnHndlr (false);
+
     } // GET_HDLR::codegen
 
     llvm::Value *GET_VAR::codegen (code_buffer & buf, Args_t & args)
     {
+	return buf.varPtr (false);
+
     } // GET_VAR::codegen
 
 
@@ -222,29 +241,75 @@ namespace CFG_Prim {
 
 
   /***** code generation for the `branch` type *****/
+
+    static llvm::CmpInst::Predicate ICmpMap[] = {
+	    llvm::ICmpInst::ICMP_SGT,	// signed GT
+	    llvm::ICmpInst::ICMP_UGT,	// unsigned GT
+	    llvm::ICmpInst::ICMP_SGE,	// signed GTE
+	    llvm::ICmpInst::ICMP_UGE,	// unsigned GTE
+	    llvm::ICmpInst::ICMP_SLT,	// signed LT
+	    llvm::ICmpInst::ICMP_ULT,	// unsigned LT
+	    llvm::ICmpInst::ICMP_SLE,	// signed LTE
+	    llvm::ICmpInst::ICMP_ULE,	// unsigned LTE
+	    llvm::ICmpInst::ICMP_EQ,	// (signed) EQL
+	    llvm::ICmpInst::ICMP_EQ,	// (unsigned) EQL
+	    llvm::ICmpInst::ICMP_NE,	// (signed) NEQ
+	    llvm::ICmpInst::ICMP_NE	// (unsigned) NEQ
+	};
+
     llvm::Value *CMP::codegen (code_buffer & buf, Args_t & args)
     {
+	int idx = 2 * (static_cast<int>(this->_v_oper) - 1);
+	if (this->_v_signed) {
+	    idx += 1;
+	}
+
+	return buf.build().CreateICmp (ICmpMap[idx], args[0], args[1]);
+
     } // CMP::codegen
+
+    static llvm::CmpInst::Predicate FCmpMap[] = {
+	    llvm::FCmpInst::FCMP_OEQ,	// F_EQ
+	    llvm::FCmpInst::FCMP_UNE,	// F_ULG
+	    llvm::FCmpInst::FCMP_ONE,	// F_UN
+	    llvm::FCmpInst::FCMP_ORD,	// F_LEG
+	    llvm::FCmpInst::FCMP_OGT,	// F_GT
+	    llvm::FCmpInst::FCMP_OGE,	// F_GE
+	    llvm::FCmpInst::FCMP_UGT,	// F_UGT
+	    llvm::FCmpInst::FCMP_UGE,	// F_UGE
+	    llvm::FCmpInst::FCMP_OLT,	// F_LT
+	    llvm::FCmpInst::FCMP_OLE,	// F_LE
+	    llvm::FCmpInst::FCMP_ULT,	// F_ULT
+	    llvm::FCmpInst::FCMP_ULE,	// F_ULE
+	    llvm::FCmpInst::FCMP_ONE,	// F_LG
+	    llvm::FCmpInst::FCMP_UEQ	// F_UE
+	};
 
     llvm::Value *FCMP::codegen (code_buffer & buf, Args_t & args)
     {
+	return buf.build().CreateFCmp (FCmpMap[static_cast<int>(this->_v_oper) - 1], args[0], args[1]);
+
     } // FCMP::codegen
 
     llvm::Value *FSGN::codegen (code_buffer & buf, Args_t & args)
     {
+      // bitcast to integer type of same size
+	llvm::Value *asInt = buf.build().CreateBitCast (args[0], buf.iType (this->_v0));
+
+	return buf.build().CreateICmpSLT(asInt, buf.iConst(this->_v0, 0));
+
     } // FSGN::codegen
 
     llvm::Value *PEQL::codegen (code_buffer & buf, Args_t & args)
     {
+	return buf.build().CreateICmpEQ(args[0], args[1]);
+
     } // PEQL::codegen
 
     llvm::Value *PNEQ::codegen (code_buffer & buf, Args_t & args)
     {
+	return buf.build().CreateICmpNE(args[0], args[1]);
+
     } // PNEQ::codegen
-
-    llvm::Value *STRNEQ::codegen (code_buffer & buf, Args_t & args)
-    {
-    } // STRNEQ::codegen
-
 
 } // namespace CFG_Prim

@@ -31,6 +31,19 @@ using lvar_map_t = std::unordered_map<LambdaVar::lvar,T>;
 
 struct target_info;
 
+// the SML Machine "registers"
+enum class ml_regs {
+    ALLOC_PTR = 0,
+    LIMIT_PTR,
+    STD_ARG,
+    EXN_HNDLR,			// exception handler
+    VAR_PTR,			// var_ptr register
+};
+
+// cached state of SML registers; this is used to save/restore the state when
+// processing the arms of a `BRANCH` or `SELECT`.
+struct reg_state;
+
 class code_buffer {
   public:
     code_buffer (target_info const &info);
@@ -40,39 +53,17 @@ class code_buffer {
 
     llvm::IRBuilder<> build () { return this->_builder; }
 
-  // LLVM values that represent the standard registers; note that these get
-  // redefined for each fragment
-    llvm::Value *allocPtr () const;	// FIXME: should be inline
-    llvm::Value *limitPtr () const;	// FIXME: should be inline
+  // get the LLVM value that represents the specified SML register
+    llvm::Value *mlReg (ml_regs r) const;
 
-/** NOTE: we may be able to avoid needing the signed constants */
-  // signed integer constant of specified bit size
-    llvm::Value *iConst (int sz, int64_t c)
-    {
-	if (sz == 8) return llvm::ConstantInt::getSigned(this->i8Ty, c);
-	else if (sz == 16) return llvm::ConstantInt::getSigned(this->i16Ty, c);
-	else if (sz == 32) return llvm::ConstantInt::getSigned(this->i32Ty, c);
-	else return llvm::ConstantInt::getSigned(this->i64Ty, c);
-    }
-  // signed constant of native size
-    llvm::Value *iConst (int64_t c)
-    {
-	return llvm::ConstantInt::getSigned (this->intTy, c);
-    }
+  // assign a value to an SML register
+    void setMLReg (ml_regs r, llvm::Value *v);
 
-  // unsigned integer constant of specified bit size
-    llvm::Value *uConst (int sz, uint64_t c)
-    {
-	if (sz == 8) return llvm::ConstantInt::get(this->i8Ty, c);
-	else if (sz == 16) return llvm::ConstantInt::get(this->i16Ty, c);
-	else if (sz == 32) return llvm::ConstantInt::get(this->i32Ty, c);
-	else return llvm::ConstantInt::get(this->i64Ty, c);
-    }
-  // unsigned constant of native size
-    llvm::Value *uConst (uint64_t c)
-    {
-	return llvm::ConstantInt::get (this->intTy, c);
-    }
+  // save the current state of the SML registers
+    reg_state *saveMLRegState ();
+
+  // restore the state of the SML registers
+    void restoreMLRegState (reg_state *);
 
   // get intinsics; these are cached for the current module
     llvm::Function *sadd32WOvflw ()
@@ -124,6 +115,10 @@ class code_buffer {
 	return this->_smul64WO;
     }
 
+  // target parameters
+    int wordSzInBytes () { return this->_wordSzB; }
+    bool is64Bit () { return (this->_wordSzB == 8); }
+
   // cached types
     llvm::IntegerType *i8Ty;
     llvm::IntegerType *i16Ty;
@@ -134,6 +129,42 @@ class code_buffer {
     llvm::IntegerType *intTy;	// native integer type
     llvm::Type *mlRefTy;	// type of pointers to mutable data (i.e., refs and arrays)
     llvm::Type *mlPtrTy;	// type of pointers to immutable data
+
+    llvm::IntegerType *iType (int sz)
+    {
+	if (sz == 64) return this->i64Ty;
+	else if (sz == 32) return this->i32Ty;
+	else if (sz == 16) return this->i16Ty;
+	else return this->i8Ty;
+    }
+    llvm::Type *fType (int sz)
+    {
+	if (sz == 64) return this->f64Ty;
+	else return this->f32Ty;
+    }
+
+/** NOTE: we may be able to avoid needing the signed constants */
+  // signed integer constant of specified bit size
+    llvm::ConstantInt *iConst (int sz, int64_t c)
+    {
+	return llvm::ConstantInt::getSigned (this->iType (sz), c);
+    }
+  // signed constant of native size
+    llvm::ConstantInt *iConst (int64_t c)
+    {
+	return llvm::ConstantInt::getSigned (this->intTy, c);
+    }
+
+  // unsigned integer constant of specified bit size
+    llvm::ConstantInt *uConst (int sz, uint64_t c)
+    {
+	return llvm::ConstantInt::get (this->iType (sz), c);
+    }
+  // unsigned constant of native size
+    llvm::ConstantInt *uConst (uint64_t c)
+    {
+	return llvm::ConstantInt::get (this->intTy, c);
+    }
 
   // lvar to value map operations
     llvm::Value *lookupVal (LambdaVar::lvar lv)
@@ -153,11 +184,6 @@ class code_buffer {
 	this->_vMap.insert (pair);
     }
 
-    llvm::Value *wordSzInBytes ()
-    {
-	return this->uConst (this->_wordSzB);
-    }
-
   // create a fresh basic block in the current function
     llvm::BasicBlock *newBB ()
     {
@@ -172,6 +198,10 @@ class code_buffer {
 
   // return the basic-block that contains the Overflow trap generator
     llvm::BasicBlock *getOverflowBB ();
+
+  // return branch-weight meta data, where `prob` represents the probability of
+  // the true branch and is in the range 1..999.
+    llvm::MDNode *branchProb (int prob);
 
   // get the branch-weight meta data for overflow-trap branches
     llvm::MDNode *overflowWeights ();

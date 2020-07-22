@@ -324,11 +324,6 @@ namespace CFG_Prim {
             return new PEQL;
           case _con_PNEQ:
             return new PNEQ;
-          case _con_STRNEQ:
-            {
-                auto f0 = asdl::read_int(is);
-                return new STRNEQ(f0);
-            }
         }
     }
     branch::~branch () { }
@@ -337,7 +332,6 @@ namespace CFG_Prim {
     FSGN::~FSGN () { }
     PEQL::~PEQL () { }
     PNEQ::~PNEQ () { }
-    STRNEQ::~STRNEQ () { }
 } // namespace CFG_Prim
 namespace CFG {
     ty * ty::read (asdl::instream & is)
@@ -525,6 +519,15 @@ namespace CFG {
                 auto f4 = stm::read(is);
                 return new BRANCH(f0, f1, f2, f3, f4);
             }
+          case _con_STREQL:
+            {
+                auto f0 = asdl::read_int(is);
+                auto f1 = exp::read(is);
+                auto f2 = exp::read(is);
+                auto f3 = stm::read(is);
+                auto f4 = stm::read(is);
+                return new STREQL(f0, f1, f2, f3, f4);
+            }
           case _con_ARITH:
             {
                 auto f0 = CFG_Prim::arith::read(is);
@@ -578,6 +581,13 @@ namespace CFG {
         delete this->_v3;
         delete this->_v4;
     }
+    STREQL::~STREQL ()
+    {
+        delete this->_v1;
+        delete this->_v2;
+        delete this->_v3;
+        delete this->_v4;
+    }
     ARITH::~ARITH ()
     {
         delete this->_v0;
@@ -599,11 +609,6 @@ namespace CFG {
     {
         return asdl::read_seq<stm>(is);
     }
-    // pickler suppressed for frag_kind
-    frag_kind read_frag_kind (asdl::instream & is)
-    {
-        return static_cast<frag_kind>(asdl::read_tag8(is));
-    }
     entry * entry::read (asdl::instream & is)
     {
         auto fcc = read_calling_conv(is);
@@ -618,11 +623,11 @@ namespace CFG {
     }
     frag * frag::read (asdl::instream & is)
     {
-        auto ffk = read_frag_kind(is);
+        auto fgcCheck = asdl::read_bool(is);
         auto flab = LambdaVar::read_lvar(is);
         auto fparams = read_param_seq(is);
         auto fbody = stm::read(is);
-        return new frag(ffk, flab, fparams, fbody);
+        return new frag(fgcCheck, flab, fparams, fbody);
     }
     frag::~frag ()
     {
@@ -637,8 +642,9 @@ namespace CFG {
     {
         auto falignHP = asdl::read_int(is);
         auto fneedsBasePtr = asdl::read_bool(is);
+        auto fhasTrapArith = asdl::read_bool(is);
         auto fhasRCC = asdl::read_bool(is);
-        return new attrs(falignHP, fneedsBasePtr, fhasRCC);
+        return new attrs(falignHP, fneedsBasePtr, fhasTrapArith, fhasRCC);
     }
     attrs::~attrs () { }
     cluster * cluster::read (asdl::instream & is)

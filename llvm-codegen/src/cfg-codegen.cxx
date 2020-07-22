@@ -101,10 +101,61 @@ namespace CFG {
 
     void SWITCH::codegen (code_buffer & buf)
     {
+      // the number of non-default cases; we use the last case as the default
+	int nCases = this->_v1.size() - 1;
+
+      // evaluate the argument
+// FIXME: do we need to downcast to 32 bits?
+	llvm::Value *arg = this->_v0->codegen(buf);
+
+      // create the switch; note that we use the last case as the default
+	llvm::SwitchInst *sw = buf.build().CreateSwitch(arg, this->_v1[nCases]->bb(), nCases);
+
+      // add the cases to the switch
+	for (int i = 0;  i < nCases;  i++) {
+	    sw->addCase (buf.iConst(32, i), this->_v1[i]->bb());
+	}
+
+      // generate the code for the basic blocks
+	reg_state *saveRegs = buf.saveMLRegState();
+	for (auto it = this->_v1.begin();  it != this->_v1.end();  ++it) {
+	    buf.restoreMLRegState (saveRegs);
+	    buf.setInsertPoint ((*it)->bb());
+	    (*it)->codegen (buf);
+	}
+
     } // SWITCH::codegen
 
     void BRANCH::codegen (code_buffer & buf)
     {
+      // evaluate the test
+	Args_t args;
+	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
+	    args.push_back ((*it)->codegen (buf));
+	}
+	llvm::Value *cond = this->_v0->codegen(buf, args);
+
+      // generate the conditional branch
+	if (this->_v2 == 0) {
+	  // no branch prediction
+	    buf.build().CreateCondBr(cond, this->_v3->bb(), this->_v4->bb());
+	} else {
+	    buf.build().CreateCondBr(
+		cond,
+		this->_v3->bb(), this->_v4->bb(),
+		buf.branchProb (this->_v2));
+	}
+
+      // generate code for the true branch
+	reg_state *saveRegs = buf.saveMLRegState();
+	buf.setInsertPoint (this->_v3->bb());
+	this->_v3->codegen (buf);
+
+      // generate code for the false branch
+	buf.restoreMLRegState (saveRegs);
+	buf.setInsertPoint (this->_v4->bb());
+	this->_v4->codegen (buf);
+
     } // BRANCH::codegen
 
     void ARITH::codegen (code_buffer & buf)

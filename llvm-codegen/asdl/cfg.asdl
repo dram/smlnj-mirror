@@ -146,7 +146,6 @@ module CFG_Prim {
       | FCMP (fcmpop oper, int sz)
       | FSGN (int)
       | PEQL | PNEQ
-      | STRNEQ (int)
 
 }
 
@@ -217,6 +216,9 @@ module CFG (
       -- `BRANCH(br, args, p, trueExp, falseExp)` is a two-way conditional branch,
       -- where `p` is the probability that the branch is taken
       | BRANCH (CFG_Prim.branch, exp*, probability, stm, stm)
+      -- `STREQL(n, s1, s2, trueExp, falseExp)` branches to `trueExp` if the string
+      -- data `s1` is equal to `s2`, and to `falseExp` otherwise.
+      | STREQL (int, exp, exp, stm, stm)
       -- "raw C call"
       | ARITH (CFG_Prim.arith, exp*, param, stm)
       | SETTER (CFG_Prim.setter, exp*, stm)
