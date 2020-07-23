@@ -18,31 +18,38 @@ SML/NJ 110.98. This document replaces the Alex Aiken compiler note.
 == New Files (in base/compiler/Elaborator/matchcomp)
    mctypes.sml  -- match compiler types (replaces trans/mccommon.sml)
                    defines types key, path, andor, dec-tree, and mcexp
+   rules.{sig,sml}
+                -- ruleno sets (sets of rule numbers)
    andor.sml    -- construction or the andor tree from pattern list
-   dec-tree.sml -- constructing a decision tree from andor tree,
+   decisiontree.sml
+                -- constructing a decision tree from andor tree,
    		   decision trees involve only OR nodes
-   mccode.sml   -- constructing "abstract" match compiler code (mcexp)
+   mcexp.sml    -- concrete abstract syntax of match compiler expressions
+   vmcexp.sml   -- virtual implementation of mcexp in terms of Absyn.exp
+   mc-code.sml  -- constructing "abstract" match compiler code (mcexp)
                    from rules, andor, and dec-tree for a match
    vcode.sml    -- translating "virtual" mcexp expressions to Absyn
-
+   match.sml    -- top-level matchComp function
+   transmc.sml  -- translating typed Absyn into Absyn with compiled matches
+ 
 == Terminology anb basic types
 
 The types used in the match compiler are defined 
 
 - type ruleno = int
-   index, zero-based, of a rule in a match (pre- or post- ?) OR expansion
-   E.g. "allRules" defined in matchComp, which is the list after OR expansion
+   index, zero-based, of a rule in a match
+   [OBS] E.g. "allRules" defined in matchComp, which is the list after OR expansion
 
 - type ruleset = ruleno list = int list
    an ordered list of rule indices (no duplicates) representing rule index sets
-   [should be abstract]
+   Based on BinaryIntMap library (smlnj-lib/Util) module.
    
 - type dconinfo = datacon * tyvar list
-   a dataconstructor (occurring in a pattern) with an "associated"? list of tyvars
+   [OBS] a dataconstructor (occurring in a pattern) with an "associated"? list of tyvars
    [Q: what is the relation between the datacon and the tyvars?]
 
 - "destructuring paths" (datatype path)
-  [paths that record a position in a decision tree? But paths are _trees_ because
+  [OBS: paths that record a position in a decision tree? But paths are _trees_ because
    of the RECORDPATH constructor! ]
 
 Two compilcations in the and-or analysis.
@@ -1797,9 +1804,75 @@ rhs0.
 
 * Translating VB declarations (e.g. val (x,y) = e, or val x::y = e *)
 
+Naive translation:
+
+Example 1: irrefutable pattern, no case
+
+  val (x,y) = def
+
+local decl:
+
+  let val (x,y) = def in body
+
+  ==>
+
+  let r = def in
+    let x = SELECT(0,r) in
+      let y = SELECT(1,r) in
+        body
+
+top-level decl:
+
+  - val (x,y) = def;
+
+  ==>
+
+  local
+    let r = def
+  in
+    let x = SELECT(0,r)
+    let y = SELECT(1,r)
+  end
+
+Example 2: refutable pattern
+
+  val x::y = def
+
+local decl:
+
+  let val x::y = def in body
+
+  ==>
+
+  case def
+    of x::y => body
+     | _ => raise Bind
+
+  let r = def in
+    switch r
+      [(::,  let x = SELECT(0,r) in let y = SELECT(1,r) in body),
+       (nil, raise Bind)] -- implicit default rule
+      NONE
+      
+top-level decl:
+
+  - val x::y = def;
+
+  ==>
+
+  local
+    let r = def
+  in
+    val (x,y) = 
+      case r
+        of ::(u,v) => (u,v)
+	 | nil => raise Bind
+  end
+
+
 
 ================================================================================
-email to Bob, 2020.5.31 - high level overview of the new match compiler
+High level overview of the new match compiler [email to Bob, 2020.5.31]
 ================================================================================
 
 I am trying to reconstruct the match compilation algorithm from first
