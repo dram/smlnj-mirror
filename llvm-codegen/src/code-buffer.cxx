@@ -3,7 +3,7 @@
 /// \copyright 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
 /// All rights reserved.
 ///
-/// \brief This file holds the main code generator code.
+/// \brief This file implements the methods for the `code_buffer` class
 ///
 /// \author John Reppy
 ///
@@ -71,7 +71,11 @@ llvm::Function *code_buffer::newFunction (llvm::FunctionType *fnTy, bool isFirst
 // return the basic-block that contains the Overflow trap generator
 llvm::BasicBlock *code_buffer::getOverflowBB ()
 {
-    return nullptr; /* FIXME */
+    if (this->_overflowBB == nullptr) {
+	/* FIXME: need to allocate and initialize the overflow block */
+    }
+
+    return this->_overflowBB;
 
 } // code_buffer::getOverflowBB
 

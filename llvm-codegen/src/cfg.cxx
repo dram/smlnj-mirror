@@ -659,4 +659,16 @@ namespace CFG {
         delete this->_v_attrs;
         delete this->_v_entry;
     }
+    comp_unit * comp_unit::read (asdl::instream & is)
+    {
+        auto fsrcFile = asdl::read_string(is);
+        auto fentry = cluster::read(is);
+        auto ffns = cluster::read(is);
+        return new comp_unit(fsrcFile, fentry, ffns);
+    }
+    comp_unit::~comp_unit ()
+    {
+        delete this->_v_entry;
+        delete this->_v_fns;
+    }
 } // namespace CFG
