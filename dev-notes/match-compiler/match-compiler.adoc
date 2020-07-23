@@ -8,12 +8,22 @@
 == Introduction
 
 This document describes the revised implementation of the match compiler
-SML/NJ 110.98. This document replaces the Alex Aiken note.
+SML/NJ 110.98. This document replaces the Alex Aiken compiler note.
 
-== Files (relative to base/compiler/FLINT/trans
+== Old Files (in base/compiler/FLINT/trans)
    mcommon.sml  -- match compiler types
    andor.sml  -- building the and-or trees
    matchcomp.sml  -- the main (or reset of the) match compiler
+
+== New Files (in base/compiler/Elaborator/matchcomp)
+   mctypes.sml  -- match compiler types (replaces trans/mccommon.sml)
+                   defines types key, path, andor, dec-tree, and mcexp
+   andor.sml    -- construction or the andor tree from pattern list
+   dec-tree.sml -- constructing a decision tree from andor tree,
+   		   decision trees involve only OR nodes
+   mccode.sml   -- constructing "abstract" match compiler code (mcexp)
+                   from rules, andor, and dec-tree for a match
+   vcode.sml    -- translating "virtual" mcexp expressions to Absyn
 
 == Terminology anb basic types
 
@@ -1446,7 +1456,7 @@ to makeAndor.
 
 
 ================================================================================
-external (source) variable binding and RHSs linkage and dispatch
+External (source) variable binding and RHSs linkage and dispatch
 ================================================================================
 
 After the decision tree is constructed, we need the following:
@@ -1508,8 +1518,288 @@ at the dispatch point
 the bindings of the dispatch function f would be wrapped around the body of
 the match expression.
 
+NOTE: Each rule introduces its own _local_ bindings of its own pattern variables.
+A given variable _name_ may occur in different rules (even with different types!),
+but these variables will be unique to each rule.  For example:
+
+fun f (x::y, z) = x + 3 > 0
+  | f (nil, x) = not x
+
+Here x in the first rule is of type int, while x in the second rule is a different
+locally bound variable of type bool.  So the two "rule variables" (<x>, 0) and
+(<x>, 1) involve two different variables, both named x, with types int and bool,
+respectively.  The two variables named x will have different lvars (access values).
+
+NOTE: Variables appearing in patterns are _not_ polymorphic (they are
+lambda-bound in fun matches), and their occurrences in patterns are not assigned
+instances of a polymorphic type. Therefore (?)  the tyvars field of a pattern
+VALvar should contain the empty list. The type of a pattern variable may contain
+metatyvars introduced by instantiating polymorphic types of datacons.  Those
+metatyvars may be "generalized" at the level of a val/fun binding containing
+the match that contains the pattern, but they can be treated (after typechecking)
+as fixed during the analysis and translation of the match.
+
 ================================================================================
-email to Bob, 2020.5.31 - high level overview of rebuilt match compiler
+"Code generation" (mc-code.sml) Generating the absyn for a match
+================================================================================
+[Preliminary notes, extracted from mc-code.sml]
+----------------------------------------------------------------------------
+When we are generating code for a decTree D (at node N), the surrounding
+structure for D has been "destructed" to provide a context that, in particular
+has a binding for Var(Node(D)).  During dynamic matching, Var(D) will be bound to
+the value component being matched to decTree.
+ 
+When an AND node is destructed, we get a Letr binding of all the variables (lvars) of
+the component nodes of the AND.  We need to remember that these have been bound
+(and are still in scope?) when we need to use one of those variables for some
+decision. Their scope os the body of the Letr exp.
+
+So at each subexpression we can keep track of which variables are in scope
+at that subexpression (a set of lvars).  Veriables for the nodes of variants
+are bound in branches of Case0 expressions.  These are in scope only in the
+exp of the corresponding switch branch.
+
+How much of the top of the pattern space has been destructured before we
+deal with the first decTree node (OR node), D?  I must be at least enough to
+bind Var(Node(D)).  At the top level, the whole value being matched is bound
+to vtop.
+
+(1) find root andor node of dtree and construct code to access that node
+(2) generate Case0 for root of dtree
+    (2a) for each decVariant for that root, "find" arg component corresponding
+         to the associated variant decTree (meaning construct access code).
+
+ * Given a decTree node (and associated andor node and its path), need two bind a variable
+   to the correspoinding value component (using a nesting of letv bindings).
+ * Among the existing variable bindings, which is closest along a path from vtop (the
+   root variable bound to the entire argument value) to the path to the target..
+
+ * given a path (of the next decTree node), find the nearest (lowest) variable
+   bound along that path and construct access to bind a variable to the given path.
+
+   Example:  decTree D @ p0 where p0 = [k1, k2, k3, k4, k5, k6]
+    The case0 code for D must be placed in a mcexp context that "unravels" the
+    path p0 and binds a variable v_p0 to the arg value at p0 (val_p0).
+    Maybe this is represented as a kind of "continuation", or "context" expression?
+
+    Suppose a variable v is bound at k3 (has path [k1, k2, k3]) and it is the "closest"
+    variable on the path, i.e. there are no variables bound at k4, k5, k6.
+    Suppose k4, k5, k6 are R1.D(true).R2   (k4 = R1, k5 = D(true), k6 = R2)
+    The D(true) key on this path means there has been a previous decTree at the
+    path p1 = [k1, ..., k4], with true as one of its keys. The OR node at p1 "dominates"
+    the OR node underlying the decTree at  
+
+    letv (v1,v2) = v (the variable at k3)
+       Case0 v1
+         true =>   (bind a variable here? No, because of nullary key true.)
+   
+    If 
+
+Example:
+AND(a1,a2,a3)
+  
+let vtop = arg
+letv (v1,v2,v3) = vtop
+    (v1: R1, v2: R2, v3: R3)
+
+get dtree
+dtree.node.path = R1  --> v3 = vtop.R1
+
+    Case0(v1, branches)
+    variants = R1.variants = (k1, a11) :: (k2, a12) :: arest
+       branch1 = (k1, dt1) :: dtrest1
+       k1 => code(a11,dt1)
+       branch2 = (k2, dt2):: dtrest2  (where dtrest1 = (k2,dt2)::dtrest2)
+       k2 => code(a12,dt2)
+
+
+what if dt_root (root node of decTree) has path R1.R3?
+
+   letv (v1,...) = vtop
+    letv (w1,w2,w3) = v1   (w3 = vtop.R1.R3)
+      case0 w3
+       etc. ....
+
+auxiliary info
+
+   path -> variable (for already bound variables)
+   variable -> path
+
+(for "visible top-and structure")
+
+for each variable binding in the code, can record path for the variable.
+ 
+given a path, can produce a path relative to some existing bound variable
+
+CONJECTURE: if N1 is an ancestor of N2, then Var(N1) is in scope at the
+"(code) position" of N2.
+
+
+================================================================================
+Vector patterns
+================================================================================
+The vector key or con case discriminates on vector length, but that discrimination
+does not destructure the vector (i.e. does not "strip" a constructor). Instead,
+the vector is left intact and must be destructed explicitly by a nested sequence
+of Vector.sub (vector subscript) operations.
+
+* There is no absyn form for vector subscripting (also no syntax form for record
+  selection. We could add such forms, or we can create some other kind of
+  syntactic representative for record selection and vector subscripting (what
+  would that be?).
+
+* When you "virtually" strip the V (VLEN) constructor when discriminating on
+  vector length, the resulting "stripped" value is the same vector -- it is not
+  turned into a record/tuple. Therefore the children of a vector OR node are
+  vectors, and should be represented by (new) vector andor nodes (VEC). When
+  the corresponding vector values are deconstructed, it will be done by a
+  series of nested lets involving vector subscripting:
+
+    letv (v0, v1, v2) = (sv: ty vector) in body
+    ==>
+    let v0 = Vector.sub(sv,0) in
+      let v1 = Vector.sub(sv,1) in
+	let v2 = Vector.sub(sv,2) in body
+
+  (expanded by a "wrapLets" function).
+
+  How do we represent
+
+  (1)    let v1 = Vector.sub(v0, i) in body
+
+  in Absyn?
+
+  For records, we could possibly expand <<select>> into the
+  appropriate expansion of #n, i.e. (fn (_,_,_,x,_,_) => x) for
+  tuples, but this would not work for vectors, and it would
+  reintroduce a (simple) record pattern match that would have to be
+  tranlated.
+
+  We could introduce an Absyn for for the primop Vector.sub,
+  and another one for record selection. Say
+
+  datatype exp =
+    ...
+    | selVec of exp * int  (* n >= 0 *)
+    | selRec of exp * int  (* n >= 0 *)
+
+  Then the absyn for (1) would be
+
+    let v1 = selVec(v0,i)
+
+  The types would be
+
+    selRec : {f0: t0, ..., fn: tn, ...} * int -> tn
+
+    selVec : ty vector * int -> ty
+
+  The first of these is anomalous, but we don't need to deal with these
+  operators during type checking because they do not occur in the surface
+  abstract syntax.  Also, during translation, the index of selection/subscripting
+  will be known statically, so the type (of a record selection) will be known.
+
+  Alternatively, selRec and selVec could be a pair of "handmade" constants
+  (VALvars) that could be inserted in the abstract syntax during match
+  compilation, so that 
+
+    val selVec = VALvar{name = <selVec>, ...}
+    selVec(v0,i)  ==>  APP(VARexp (selVec,_), NUMexp i)
+
+  and similarly for selRec.
+
+  A related approach would be to add destRec and destVec as new variants of
+  VALvar, whose typing and translation would be treated in an ad hoc manner.
+  This has the advantage of not needing to construct an artificial and inaccurate
+  type for the VALvar form. But the application of these special "variables"
+  would have to be detected and handled specially during translation.
+
+* NOTE: This analysis indicates that _converting_ the contents of a vector
+  into a tuple (AND node) during match compilation is incorrect. We need to
+  preserve the distinction between records/tuples and vectors through match
+  compilation and translation.  Therefore we need to add a new VEC node to
+  the andor type.
+
+* NOTE: first approach (7/14/20) chosen is to add SelRec and SelVec as
+  new variants of VarCon.VALvar.  These will need to be handled
+  specially in translate.
+
+
+================================================================================
+Variable bindings (VB); irrefutable patterns; single, irrefutable rules
+================================================================================
+
+Defn: a pattern is irrefutable if it will successfully match any value of
+ its type.
+
+* An irrefutable pattern is made up of products (records/tuples), variables,
+and singleton datacons (with or without arguments): 
+
+Defn: Pattern p is _irrefutable) iff p is constructed by these three constructions:
+    (1) p == (p0, ..., pn)  where pi is irrefutable; or
+    (2) p == v, a variable (VarCon.var)
+    (3) p == Dcon {p}, where p (if present) is irrefutable
+
+Note: These three constructions correspond to the AndOr node constructors
+handled by genNode in mc-code.sml.
+
+Defn: a pattern is refutable if it is not irrefutable
+
+* A refutable pattern has a refutable element, which could be
+
+   (1) a constant (int, word, char, string); or
+   (2) a nonsingular datacon (e.g. true, false, nil, cons, ...)
+       (a datacon belonging to a datatype with more than one datacon); or
+   (3) a vector element (AND[VECTOR]) (vector patterns are always refutable)
+
+The refutable elements of (a list of) patterns are the elements that give
+rise to OR-nodes in the AndOr tree for the patterns.
+
+An irrefutable pattern has an AndOr tree with no OR nodes (only VAR, AND[RECORD],
+and SINGLE nodes).  Note that any vector element gives rise to an OR-node
+(of vector type), with variants leading to AND[RECORD] nodes.
+
+If an irrefutable pattern occurs in a list of rules, any rules following the
+one with the irrefutable pattern are redundant (unreachable).  The rule with
+an irrefutable pattern serves as a default rule (if the earlier patterns are
+not exhaustive).
+
+Example:  pats = [(x,y)]
+
+  (0) (x,y)   =>  rhs0     
+
+AndOr: andor(pats)
+
+  [] AND ('X * 'Y)
+     [0] VAR (x, 0)
+     [1] VAR (y, 0)
+
+Decision Tree:
+
+  DLEAF 0  (trivial, no OR nodes)
+
+Code:
+
+  Letr (sv_x, sv_y) = svroot in rhs0
+
+  == genNode (andor(pats), genDec (DLEAF 0))
+     == genNode (andor(pats), rhs0)
+
+Lexp:
+
+  LET lvar_x = SELECT (0, lvar_root) in
+    LET lvar_y = SELECT (1, lvar_root) in trans(rhs0)
+
+
+In the event of there being no OR-nodes, decisionTree will produce the result
+DLEAF 0, which genDec will translate to rhs0. genNode (applied to the pattern
+AndOr tree, will produce the necessary patten destruction code to wrap around
+rhs0.
+
+* Translating VB declarations (e.g. val (x,y) = e, or val x::y = e *)
+
+
+================================================================================
+email to Bob, 2020.5.31 - high level overview of the new match compiler
 ================================================================================
 
 I am trying to reconstruct the match compilation algorithm from first
