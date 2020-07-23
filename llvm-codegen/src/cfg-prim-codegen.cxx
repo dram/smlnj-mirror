@@ -16,14 +16,43 @@ namespace CFG_Prim {
   /***** code generation for the `alloc` type *****/
     llvm::Value *RECORD::codegen (code_buffer & buf, Args_t & args)
     {
+	int len = args.size();
+	llvm::Value *allocPtr = buf.mlReg (ml_regs::ALLOC_PTR);
+
+      // write object descriptor
+	buf.build().CreateAlignedStore (
+	    buf.uConst(this->_v_desc.toUInt64()),
+	    allocPtr,
+	    (unsigned)buf.wordSzInBytes());
+
+      // initialize the object's fields
+	for (int i = 1;  i <= len;  i++) {
+	    llvm::Value *adr = buf.build().CreateInBoundsGEP (allocPtr, { buf.uConst(i) });
+	    buf.build().CreateAlignedStore (
+		args[i],
+		adr,
+		(unsigned)buf.wordSzInBytes());
+	}
+
+      // compute the object's address
+	llvm::Value *obj = buf.build().CreateInBoundsGEP (allocPtr, { buf.uConst(0) });
+
+      // bump the allocation pointer
+	buf.setMLReg (ml_regs::ALLOC_PTR,
+	    buf.build().CreateInBoundsGEP (allocPtr, { buf.uConst(len + 1) }));
+
+	return obj;
+
     } // RECORD::codegen
 
     llvm::Value *RAW_RECORD::codegen (code_buffer & buf, Args_t & args)
     {
+/* FIXME */ return nullptr;
     } // RAW_RECORD::codegen
 
     llvm::Value *RAW_ALLOC::codegen (code_buffer & buf, Args_t & args)
     {
+/* FIXME */ return nullptr;
     } // RAW_ALLOC::codegen
 
 
@@ -130,11 +159,13 @@ namespace CFG_Prim {
 	    case pureop::FNEG:
 		return buf.build().CreateFNeg(args[0]);
 	    case pureop::FABS:
-// TODO: call @llvm.fabs.f32 or @llvm.fabs.f64
-		break;
+		 return buf.build().CreateCall(
+		    (this->get_sz() == 32) ? buf.fabs32() : buf.fabs64(),
+		    args);
 	    case pureop::FSQRT:
-// TODO: call @llvm.sqrt.f32 or @llvm.sqrt.f64
-		break;
+		 return buf.build().CreateCall(
+		    (this->get_sz() == 32) ? buf.sqrt32() : buf.sqrt64(),
+		    args);
 	} // switch
 
     } // PURE_ARITH::codegen
@@ -195,13 +226,13 @@ namespace CFG_Prim {
 
     llvm::Value *GET_HDLR::codegen (code_buffer & buf, Args_t & args)
     {
-	return buf.exnHndlr (false);
+	return buf.mlReg (ml_regs::EXN_HNDLR);
 
     } // GET_HDLR::codegen
 
     llvm::Value *GET_VAR::codegen (code_buffer & buf, Args_t & args)
     {
-	return buf.varPtr (false);
+	return buf.mlReg (ml_regs::VAR_PTR);
 
     } // GET_VAR::codegen
 
@@ -233,10 +264,14 @@ namespace CFG_Prim {
 
     void SET_HDLR::codegen (code_buffer & buf, Args_t & args)
     {
+	buf.setMLReg (ml_regs::EXN_HNDLR, args[0]);
+
     } // SETHDLR::codegen
 
     void SET_VAR::codegen (code_buffer & buf, Args_t & args)
     {
+	buf.setMLReg (ml_regs::VAR_PTR, args[0]);
+
     } // SETVAR::codegen
 
 

@@ -20,6 +20,39 @@ namespace CFG {
 	buf.insertVal (param->get_0(), v);
     }
 
+  /***** code generation for the `ty` type *****/
+
+    llvm::Type *NUMt::codegen (code_buffer & buf)
+    {
+	return buf.iType (this->_v0);
+
+    } // NUMt::codegen
+
+    llvm::Type *FLTt::codegen (code_buffer & buf)
+    {
+	return buf.fType (this->_v0);
+
+    } // FLTt::codegen
+
+    llvm::Type *PTRt::codegen (code_buffer & buf)
+    {
+	return buf.mlPtrTy;
+
+    } // PTRt::codegen
+
+    llvm::Type *FUNt::codegen (code_buffer & buf)
+    {
+	return buf.mlPtrTy;
+
+    } // FUNt::codegen
+
+    llvm::Type *CNTt::codegen (code_buffer & buf)
+    {
+	return buf.mlPtrTy;
+
+    } // CNTt::codegen
+
+
   /***** code generation for the `exp` type *****/
 
     llvm::Value *VAR::codegen (code_buffer & buf)
@@ -78,7 +111,7 @@ namespace CFG {
     {
       // record mapping from the parameter to the compiled expression
 	insert (buf, this->_v1, this->_v0->codegen(buf));
-      // continue compiling
+      // compile continuation
 	this->_v2->codegen(buf);
 
     } // LET::codegen
@@ -97,6 +130,17 @@ namespace CFG {
 
     void GOTO::codegen (code_buffer & buf)
     {
+	llvm::BasicBlock *srcBB = buf.getCurBB();
+	frag *dstFrag = buf.lookupFrag (this->_v1);
+// QUESTION: what about calling conventions; SML registers?
+
+      // add outgoing values as incoming values to the destination's
+      // phi nodes
+	for (int i = 0;  i < this->_v2.size(); ++i) {
+// FIXME: typecast around value
+	    dstFrag->setIncoming (i, srcBB, this->_v2[i]->codegen (buf));
+	}
+
     } // GOTO::codegen
 
     void SWITCH::codegen (code_buffer & buf)
@@ -166,13 +210,21 @@ namespace CFG {
 	}
       // record mapping from the parameter to the compiled expression
 	insert (buf, this->_v2, this->_v0->codegen (buf, args));
-      // continue compiling
+      // compile continuation
 	this->_v3->codegen(buf);
 
     } // ARITH::codegen
 
     void SETTER::codegen (code_buffer & buf)
     {
+	Args_t args;
+	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
+	    args.push_back ((*it)->codegen (buf));
+	}
+	this->_v0->codegen (buf, args);
+      // compile continuation
+	this->_v2->codegen(buf);
+
     } // SETTER::codegen
 
     void RCC::codegen (code_buffer & buf)
@@ -182,7 +234,7 @@ namespace CFG {
 
   /***** code generation for the `entry` type *****/
 
-    void entry::codegen (code_buffer & buf)
+    void entry::codegen (code_buffer & buf, Args_t &args)
     {
 
     } // entry::codegen
@@ -192,14 +244,32 @@ namespace CFG {
 
     void frag::codegen (code_buffer & buf)
     {
+      // initialize the lvar to value map with the incoming parameters
+	buf.clearValMap ();
+	for (int i = 0;  i < this->_v_params.size();  i++) {
+	    buf.insertVal (this->_v_params[i]->get_0(), this->_phiNodes[i]);
+	}
+
+      // generate code for the fragment
+	buf.setInsertPoint (this->_v_body->bb());
+	this->_v_body->codegen (buf);
 
     } // frag::codegen
 
 
   /***** code generation for the `cluster` type *****/
 
-    void cluster::codegen (code_buffer & buf)
+    void cluster::codegen (code_buffer & buf, bool isFirst)
     {
+      // define the LLVM function for this cluster
+	llvm::FunctionType *fnTy /* = ?? */;
+	llvm::Function *fn = buf.newFunction (fnTy, isFirst);
+
+      // set the calling convention to our "Jump-with-arguments" convention
+	fn->setCallingConv (llvm::CallingConv::JWA);
+
+      // assign attributes to the function
+	 fn->addFnAttr (llvm::Attribute::naked);
 
       // first we initialize the fragments for the cluster
 	this->_v_entry->init (buf);

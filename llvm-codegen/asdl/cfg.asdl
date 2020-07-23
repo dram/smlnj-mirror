@@ -265,6 +265,7 @@ view Cxx {
 using Args_t = std::vector<llvm::Value *>;
 %%
     <file> <= suppress : pickler
+
 -- branch
     { CFG_Prim.branch }  <= public_code %%
         virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
@@ -313,6 +314,14 @@ using Args_t = std::vector<llvm::Value *>;
         llvm::Value *codegen (code_buffer &buf, Args_t &args);
 %%
 
+-- ty
+    { CFG.ty } <= public_code %%
+	virtual llvm::Type *codegen (code_buffer &buf) = 0;
+%%
+    { CFG.ty.* } <= public_code %%
+	llvm::Type *codegen (code_buffer &buf);
+%%
+
 -- exp
     { CFG.exp } <= public_code %%
         virtual llvm::Value *codegen (code_buffer &buf) = 0;
@@ -337,15 +346,29 @@ using Args_t = std::vector<llvm::Value *>;
         void codegen (code_buffer &buf);
 %%
 
--- entry and frag, and cluster
-    { CFG.entry CFG.frag } <= public_code %%
+-- entry
+    { CFG.entry } <= public_code %%
+        void init (code_buffer &buf);
+        void codegen (code_buffer &buf, Args_t &args);
+%%
+
+-- frag
+    { CFG.frag } <= public_code %%
         void init (code_buffer &buf);
         void codegen (code_buffer &buf);
+	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
+	void setIncoming (int i, const llvm::BasicBlock *bblk, llvm::Value *v)
+	{
+	    this->_phiNodes[i]->setIncomingValueForBlock(bblk, v);
+	}
+%%
+    { CFG.frag } <= private_code %%
+        std::vector<llvm::PHINode *> _phiNodes;
 %%
 
 -- cluster
     { CFG.cluster } <= public_code %%
-        void codegen (code_buffer &buf);
+        void codegen (code_buffer &buf, bool isFirst);
 %%
 
 }

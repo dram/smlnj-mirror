@@ -54,3 +54,15 @@ void code_buffer::initModule (std::string &src)
     this->_smul64WO = nullptr;
 
 } // initModule
+
+llvm::Function *code_buffer::newFunction (llvm::FunctionType *fnTy, bool isFirst)
+{
+    this->_curFn = llvm::Function::Create (
+	    fnTy,
+	    isFirst ? llvm::GlobalValue::ExternalLinkage : llvm::GlobalValue::PrivateLinkage,
+	    isFirst ? "main" : "",
+	    this->_module);
+
+    return this->_curFn;
+
+}
