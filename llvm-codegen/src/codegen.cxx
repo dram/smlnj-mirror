@@ -18,8 +18,9 @@
 
 /***** class code_buffer member functions *****/
 
-code_buffer::code_buffer (target_info const &info)
-  : _context(), _builder(this->_context), _module(nullptr)
+code_buffer::code_buffer (std::string const &target)
+  : _target(target_info::InfoForTarget(target)),
+    _context(), _builder(this->_context), _module(nullptr)
 {
 
   // initialize the standard types that we use
@@ -30,7 +31,7 @@ code_buffer::code_buffer (target_info const &info)
     this->f32Ty = llvm::Type::getPrimitiveType (this->_context, llvm::Type::FloatTyID);
     this->f64Ty = llvm::Type::getPrimitiveType (this->_context, llvm::Type::DoubleTyID);
 
-    if (info.wordSz == 32) {
+    if (this->_target->wordSz == 32) {
 	this->intTy = this->i32Ty;
     }
     else { // info.wordSz == 64
@@ -66,3 +67,33 @@ llvm::Function *code_buffer::newFunction (llvm::FunctionType *fnTy, bool isFirst
     return this->_curFn;
 
 }
+
+// return the basic-block that contains the Overflow trap generator
+llvm::BasicBlock *code_buffer::getOverflowBB ()
+{
+    return nullptr; /* FIXME */
+
+} // code_buffer::getOverflowBB
+
+// return branch-weight meta data, where `prob` represents the probability of
+// the true branch and is in the range 1..999.
+llvm::MDNode *code_buffer::branchProb (int prob)
+{
+    auto name = llvm::MDString::get(this->_context, "branch_weights");
+    auto trueProb = llvm::ValueAsMetadata::get(this->i32Const(prob));
+    auto falseProb = llvm::ValueAsMetadata::get(this->i32Const(1000 - prob));
+    auto tpl = llvm::MDTuple::get(this->_context, {name, trueProb, falseProb});
+
+    return tpl;
+
+} // code_buffer::branchProb
+
+// get the branch-weight meta data for overflow-trap branches
+//
+llvm::MDNode *code_buffer::overflowWeights ()
+{
+  // we use 1/1000 as the probability of an overflow
+    return this->branchProb(1);
+
+} // code_buffer::overflowWeights
+

@@ -268,94 +268,94 @@ using Args_t = std::vector<llvm::Value *>;
 
 -- branch
     { CFG_Prim.branch }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.branch.* } <= public_code %%
-        llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- setter
     { CFG_Prim.setter }  <= public_code %%
-        virtual void codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual void codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.setter.* } <= public_code %%
-        void codegen (code_buffer &buf, Args_t &args);
+        void codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- looker
     { CFG_Prim.looker }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.looker.* } <= public_code %%
-        llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- arith
     { CFG_Prim.arith }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.arith.* } <= public_code %%
-        llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- pure
     { CFG_Prim.pure }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.pure.* } <= public_code %%
-        llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- alloc
     { CFG_Prim.alloc }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer &buf, Args_t &args) = 0;
+        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
     { CFG_Prim.alloc.* } <= public_code %%
-        llvm::Value *codegen (code_buffer &buf, Args_t &args);
+        llvm::Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- ty
     { CFG.ty } <= public_code %%
-	virtual llvm::Type *codegen (code_buffer &buf) = 0;
+	virtual llvm::Type *codegen (code_buffer *buf) = 0;
 %%
     { CFG.ty.* } <= public_code %%
-	llvm::Type *codegen (code_buffer &buf);
+	llvm::Type *codegen (code_buffer *buf);
 %%
 
 -- exp
     { CFG.exp } <= public_code %%
-        virtual llvm::Value *codegen (code_buffer &buf) = 0;
+        virtual llvm::Value *codegen (code_buffer *buf) = 0;
 %%
     { CFG.exp.* } <= public_code %%
-        llvm::Value *codegen (code_buffer &buf);
+        llvm::Value *codegen (code_buffer *buf);
 %%
 
 -- stm
     { CFG.stm } <= public_code %%
-        virtual void init (code_buffer &buf, bool blkEntry) = 0;
-        virtual void codegen (code_buffer &buf) = 0;
+        virtual void init (code_buffer *buf, bool blkEntry) = 0;
+        virtual void codegen (code_buffer *buf) = 0;
         llvm::BasicBlock *bb () { return this->_bb; }
 %%
     { CFG.stm } <= protected_code %%
         llvm::BasicBlock *_bb;  // for the first stm in a block
-	void _initBB (code_buffer &buf, bool blkEntry);
+	void _initBB (code_buffer *buf, bool blkEntry);
 %%
 
     { CFG.stm.* } <= public_code %%
-        void init (code_buffer &buf, bool blkEntry);
-        void codegen (code_buffer &buf);
+        void init (code_buffer *buf, bool blkEntry);
+        void codegen (code_buffer *buf);
 %%
 
 -- entry
     { CFG.entry } <= public_code %%
-        void init (code_buffer &buf);
-        void codegen (code_buffer &buf, Args_t &args);
+        void init (code_buffer *buf);
+        void codegen (code_buffer *buf, Args_t &args);
 %%
 
 -- frag
     { CFG.frag } <= public_code %%
-        void init (code_buffer &buf);
-        void codegen (code_buffer &buf);
+        void init (code_buffer *buf);
+        void codegen (code_buffer *buf);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
 	void setIncoming (int i, const llvm::BasicBlock *bblk, llvm::Value *v)
 	{
@@ -368,7 +368,7 @@ using Args_t = std::vector<llvm::Value *>;
 
 -- cluster
     { CFG.cluster } <= public_code %%
-        void codegen (code_buffer &buf, bool isFirst);
+        void codegen (code_buffer *buf, bool isFirst);
 %%
 
 }

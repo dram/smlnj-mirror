@@ -14,7 +14,7 @@ LD_FLAGS =	-L../llvm/lib -L/opt/local/include
 VPATH =		../src
 
 SRCS =		cfg.cxx lambda-var.cxx \
-		codegen.cxx \
+		codegen.cxx sml-registers.cxx target-info.cxx \
 		cfg-init.cxx cfg-codegen.cxx cfg-prim-codegen.cxx
 
 OBJS =		$(SRCS:%.cxx=%.o)

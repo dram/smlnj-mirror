@@ -25,32 +25,26 @@
 #include "llvm/IR/Function.h"
 
 #include "lambda-var.hxx"
-
-template <typename T>
-using lvar_map_t = std::unordered_map<LambdaVar::lvar,T>;
-
-struct target_info;
+#include "sml-registers.hxx"
 
 namespace CFG {
     class frag;
 }
 
-// the SML Machine "registers"
-enum class ml_regs {
-    ALLOC_PTR = 0,
-    LIMIT_PTR,
-    STD_ARG,
-    EXN_HNDLR,			// exception handler
-    VAR_PTR,			// var_ptr register
-};
+// map from lvars to values of type T*
+template <typename T>
+using lvar_map_t = std::unordered_map<LambdaVar::lvar, T *>;
 
-// cached state of SML registers; this is used to save/restore the state when
-// processing the arms of a `BRANCH` or `SELECT`.
-struct reg_state;
 
+// The code_buffer class encapsulates the current state of code generation, as well
+// as information about the target architecture.  It is passed as an argument to
+// all of the `codegen` methods in the CFG representation.
+//
 class code_buffer {
   public:
-    code_buffer (target_info const &info);
+
+  // create the code buffer for the given target
+    static code_buffer *create (std::string const &target);
 
   // initialize the code buffer for a new module
     void initModule (std::string &src);
@@ -62,16 +56,14 @@ class code_buffer {
     llvm::Function *newFunction (llvm::FunctionType *fnTy, bool isFirst);
 
   // get the LLVM value that represents the specified SML register
-    llvm::Value *mlReg (ml_regs r) const;
+    llvm::Value *mlReg (sml_reg_id r) const { return this->_regState.get(r); }
 
   // assign a value to an SML register
-    void setMLReg (ml_regs r, llvm::Value *v);
+    void setMLReg (sml_reg_id r, llvm::Value *v) { this->_regState.set(r, v); }
 
-  // save the current state of the SML registers
-    reg_state *saveMLRegState ();
-
-  // restore the state of the SML registers
-    void restoreMLRegState (reg_state *);
+  // save and restore the SML register state to a cache object
+    void saveSMLRegState (reg_state &cache) { cache.copyFrom (this->_regState); }
+    void restoreSMLRegState (reg_state const &cache) { this->_regState.copyFrom (cache); }
 
   // target parameters
     int wordSzInBytes () { return this->_wordSzB; }
@@ -112,6 +104,10 @@ class code_buffer {
     {
 	return llvm::ConstantInt::getSigned (this->intTy, c);
     }
+    llvm::ConstantInt *i32Const (int32_t n)
+    {
+	return llvm::ConstantInt::getSigned (this->i32Ty, n);
+    }
 
   // unsigned integer constant of specified bit size
     llvm::ConstantInt *uConst (int sz, uint64_t c)
@@ -122,6 +118,10 @@ class code_buffer {
     llvm::ConstantInt *uConst (uint64_t c)
     {
 	return llvm::ConstantInt::get (this->intTy, c);
+    }
+    llvm::ConstantInt *u32Const (uint32_t n)
+    {
+	return llvm::ConstantInt::get (this->i32Ty, n);
     }
 
   // clear the lvar to value map
@@ -140,7 +140,7 @@ class code_buffer {
   // lookup a binding in the lvar-to-value map
     llvm::Value *lookupVal (LambdaVar::lvar lv)
     {
-	lvar_map_t<llvm::Value *>::const_iterator got = this->_vMap.find(lv);
+	lvar_map_t<llvm::Value>::const_iterator got = this->_vMap.find(lv);
 	if (got == this->_vMap.end()) {
 	    return nullptr;
 	} else {
@@ -158,7 +158,7 @@ class code_buffer {
   // lookup a binding in the label-to-fragment map
     CFG::frag *lookupFrag (LambdaVar::lvar lab)
     {
-	lvar_map_t<CFG::frag *>::const_iterator got = this->_fragMap.find(lab);
+	lvar_map_t<CFG::frag>::const_iterator got = this->_fragMap.find(lab);
 	if (got == this->_fragMap.end()) {
 	    return nullptr;
 	} else {
@@ -273,12 +273,17 @@ class code_buffer {
     }
 
   private:
+    struct target_info const	*_target;
     llvm::LLVMContext		_context;
     llvm::IRBuilder<>		_builder;
     llvm::Module		*_module;
     llvm::Function		*_curFn;	// current LLVM function
-    lvar_map_t<CFG::frag *>	_fragMap;	// map from labels to fragments
-    lvar_map_t<llvm::Value *>	_vMap;		// map from lvars to values
+    lvar_map_t<CFG::frag>	_fragMap;	// map from labels to fragments
+    lvar_map_t<llvm::Value>	_vMap;		// map from lvars to values
+
+  // tracking the state of the SML registers
+    sml_registers		_regInfo;	// target-specific register info
+    reg_state			_regState;	// current register values
 
   // target-machine properties
     int64_t _wordSzB;
@@ -303,6 +308,9 @@ class code_buffer {
 	return llvm::Intrinsic::getDeclaration (
 	    this->_module, id, llvm::ArrayRef<llvm::Type *>(ty));
     }
+
+  // constructor
+    code_buffer (std::string const &target);
 
 };
 

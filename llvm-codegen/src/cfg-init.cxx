@@ -15,7 +15,7 @@ namespace CFG {
 
   /***** initialization for the `stm` type *****/
 
-    void LET::init (code_buffer & buf, bool blkEntry)
+    void LET::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
@@ -24,7 +24,7 @@ namespace CFG {
 
     } // LET::init
 
-    void ALLOC::init (code_buffer & buf, bool blkEntry)
+    void ALLOC::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
@@ -33,25 +33,25 @@ namespace CFG {
 
     } // ALLOC::init
 
-    void APPLY::init (code_buffer & buf, bool blkEntry)
+    void APPLY::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
     } // APPLY::init
 
-    void THROW::init (code_buffer & buf, bool blkEntry)
+    void THROW::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
     } // THROW::init
 
-    void GOTO::init (code_buffer & buf, bool blkEntry)
+    void GOTO::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
     } // GOTO::init
 
-    void SWITCH::init (code_buffer & buf, bool blkEntry)
+    void SWITCH::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
@@ -62,7 +62,7 @@ namespace CFG {
 
     } // SWITCH::init
 
-    void BRANCH::init (code_buffer & buf, bool blkEntry)
+    void BRANCH::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
@@ -72,7 +72,7 @@ namespace CFG {
 
     } // BRANCH::init
 
-    void ARITH::init (code_buffer & buf, bool blkEntry)
+    void ARITH::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
@@ -81,7 +81,7 @@ namespace CFG {
 
     } // ARITH::init
 
-    void SETTER::init (code_buffer & buf, bool blkEntry)
+    void SETTER::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
@@ -90,7 +90,7 @@ namespace CFG {
 
     } // SETTER::init
 
-    void RCC::init (code_buffer & buf, bool blkEntry)
+    void RCC::init (code_buffer * buf, bool blkEntry)
     {
 	_initBB (buf, blkEntry);
 
@@ -102,7 +102,7 @@ namespace CFG {
 
   /***** initialization for the `entry` type *****/
 
-    void entry::init (code_buffer &buf)
+    void entry::init (code_buffer * buf)
     {
       // initialize the entry fragment's body */
 	this->_v_body->init (buf, true);
@@ -115,20 +115,20 @@ namespace CFG {
     // entry block for the fragment) and we add phi nodes to the block for each
     // of the parameters.
     //
-    void frag::init (code_buffer &buf)
+    void frag::init (code_buffer * buf)
     {
       // add the fragment to the label to fragment map
-	buf.insertFrag (this->_v_lab, this);
+	buf->insertFrag (this->_v_lab, this);
 
       // initialize the fragment's body */
 	this->_v_body->init (buf, true);
 
       // add a phi node for each parameter of the fragment
-	buf.setInsertPoint (this->_v_body->bb());
+	buf->setInsertPoint (this->_v_body->bb());
 	this->_phiNodes.reserve (this->_v_params.size());
 	for (auto it = this->_v_params.begin(); it != this->_v_params.end();  ++it) {
 	    llvm::Type *ty = (*it)->get_1()->codegen (buf);
-	    llvm::PHINode *phi = buf.build().CreatePHI(ty, 0);
+	    llvm::PHINode *phi = buf->build().CreatePHI(ty, 0);
 	    this->_phiNodes.push_back (phi);
 	}
 
