@@ -18,7 +18,7 @@
 
 /***** class code_buffer member functions *****/
 
-code_buffer::code_buffer (std::string const &target)
+code_buffer::code_buffer (std::string const & target)
   : _target(target_info::InfoForTarget(target)),
     _context(), _builder(this->_context), _module(nullptr)
 {
@@ -39,10 +39,11 @@ code_buffer::code_buffer (std::string const &target)
     }
     this->mlRefTy = this->intTy->getPointerTo (ML_REF_ADDR_SP);
     this->mlPtrTy = this->intTy->getPointerTo (ML_HEAP_ADDR_SP);
+    this->bytePtrTy = this->i8Ty->getPointerTo (ML_HEAP_ADDR_SP);
 
 } // constructor
 
-void code_buffer::initModule (std::string &src)
+void code_buffer::initModule (std::string const & src)
 {
     this->_module = new llvm::Module (src, this->_context);
 
@@ -67,6 +68,46 @@ llvm::Function *code_buffer::newFunction (llvm::FunctionType *fnTy, bool isFirst
     return this->_curFn;
 
 }
+
+// the extra arguments that are added to thread the state of the reserved
+// registers through the control-flow graph.
+static const int NumReservedRegArgs = 6;
+static sml_reg_id ReservedRegArgs[NumReservedRegArgs] = {
+	sml_reg_id::ALLOC_PTR,
+	sml_reg_id::LIMIT_PTR,
+	sml_reg_id::STORE_PTR,
+	sml_reg_id::EXN_HNDLR,
+	sml_reg_id::VAR_PTR,
+	sml_reg_id::BASE_PTR
+    };
+
+// setup the argument/parameter lists for a fragment
+Args_t code_buffer::setupFragArgs (CFG::frag *frag, Args_t &args)
+{
+    Args_t newArgs;
+
+    newArgs.reserve (args.size() + NumReservedRegArgs);
+
+  // add initial arguments for those reserved registers that are mapped to hardware registers
+    for (int i = 0;  i < NumReservedRegArgs;  i++) {
+	sml_reg_id id = ReservedRegArgs[i];
+	if (this->_regInfo.info(id)->isMachineReg()) {
+	    newArgs.push_back (this->_regState.get(id));
+	}
+    }
+
+  // copy the rest of the arguments
+    for (auto arg : args) {
+	newArgs.push_back (arg);
+    }
+
+    return newArgs;
+
+} // code_buffer::setupFragArgs
+
+void code_buffer::setupFragEntry (CFG::frag *frag)
+{
+} // code_buffer::setupFragEntry
 
 // return the basic-block that contains the Overflow trap generator
 llvm::BasicBlock *code_buffer::getOverflowBB ()

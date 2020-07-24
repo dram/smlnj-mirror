@@ -75,8 +75,6 @@ module CFG_Prim {
   -- These operations might raise exceptions and do not access mutable memory.
     arith
       = ARITH (arithop oper, int sz)
-      | TEST (int from, int to)			-- int -> int conversion with Overflow
-      | TESTU (int from, int to)		-- word -> int conversion with Overflow
       | REAL_TO_INT (rounding_mode mode, int from, int to)
 
   -- arithmetic operations that do not overflow; for the division operators,
@@ -253,6 +251,8 @@ module CFG (
   --
     cluster = Cluster (attrs attrs, entry entry, frag* frags)
 
+    comp_unit = (string srcFile, cluster entry, cluster* fns)
+
 }
 
 -- C++ specialization
@@ -369,6 +369,11 @@ using Args_t = std::vector<llvm::Value *>;
 -- cluster
     { CFG.cluster } <= public_code %%
         void codegen (code_buffer *buf, bool isFirst);
+%%
+
+-- comp_unit
+    { CFG.comp_unit } <= public_code %%
+        void codegen (code_buffer *buf);
 %%
 
 }

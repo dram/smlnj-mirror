@@ -101,14 +101,6 @@ namespace CFG_Prim {
 
     } // ARITH::codegen
 
-    llvm::Value *TEST::codegen (code_buffer * buf, Args_t & args)
-    {
-    } // TEST::codegen
-
-    llvm::Value *TESTU::codegen (code_buffer * buf, Args_t & args)
-    {
-    } // TESTU::codegen
-
     llvm::Value *REAL_TO_INT::codegen (code_buffer * buf, Args_t & args)
     {
 	return buf->build().CreateFPToSI (args[0], buf->iType (this->_v_to));
@@ -196,6 +188,14 @@ namespace CFG_Prim {
 
     llvm::Value *PURE_RAW_SUBSCRIPT::codegen (code_buffer * buf, Args_t & args)
     {
+	llvm::Type *elemTy = (this->_v_kind == numkind::INT
+	    ? buf->iType(this->_v_sz)
+	    : buf->fType(this->_v_sz));
+
+	llvm::Value *adr = buf->build().CreateGEP (elemTy->getPointerTo(), args[0], args[1]);
+
+	return buf->build().CreateAlignedLoad (elemTy, adr, 0);
+
     } // PURE_RAW_SUBSCRIPT::codegen
 
 
@@ -218,10 +218,33 @@ namespace CFG_Prim {
 
     llvm::Value *RAW_LOAD::codegen (code_buffer * buf, Args_t & args)
     {
+	llvm::Type *elemTy = (this->_v_kind == numkind::INT
+	    ? buf->iType(this->_v_sz)
+	    : buf->fType(this->_v_sz));
+
+      // RAW_LOAD assumes byte addressing, so we compute the address as a `char *`
+      // and then bitcast to the desired pointer type for the load
+	llvm::Value *adr =
+	    buf->build().CreatePointerCast (
+	        buf->build().CreateGEP (buf->bytePtrTy, args[0], args[1]),
+		elemTy->getPointerTo());
+
+// QUESTION: should we mark the load as volatile?
+	return buf->build().CreateAlignedLoad (elemTy, adr, 0);
+
     } // RAW_LOAD::codegen
 
     llvm::Value *RAW_SUBSCRIPT::codegen (code_buffer * buf, Args_t & args)
     {
+	llvm::Type *elemTy = (this->_v_kind == numkind::INT
+	    ? buf->iType(this->_v_sz)
+	    : buf->fType(this->_v_sz));
+
+	llvm::Value *adr = buf->build().CreateGEP (elemTy->getPointerTo(), args[0], args[1]);
+
+// QUESTION: should we mark the load as volatile?
+	return buf->build().CreateAlignedLoad (elemTy, adr, 0);
+
     } // RAW_SUBSCRIPT::codegen
 
     llvm::Value *GET_HDLR::codegen (code_buffer * buf, Args_t & args)

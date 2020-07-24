@@ -32,4 +32,6 @@ fi
 echo "generating SML code"
 $ASDLGEN sml $STEM.asdl || exit 1
 
+mv *sig *sml ../tests
+
 exit 0

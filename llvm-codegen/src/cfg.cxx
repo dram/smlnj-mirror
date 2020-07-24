@@ -146,18 +146,6 @@ namespace CFG_Prim {
                 auto fsz = asdl::read_int(is);
                 return new ARITH(foper, fsz);
             }
-          case _con_TEST:
-            {
-                auto ffrom = asdl::read_int(is);
-                auto fto = asdl::read_int(is);
-                return new TEST(ffrom, fto);
-            }
-          case _con_TESTU:
-            {
-                auto ffrom = asdl::read_int(is);
-                auto fto = asdl::read_int(is);
-                return new TESTU(ffrom, fto);
-            }
           case _con_REAL_TO_INT:
             {
                 auto fmode = read_rounding_mode(is);
@@ -169,8 +157,6 @@ namespace CFG_Prim {
     }
     arith::~arith () { }
     ARITH::~ARITH () { }
-    TEST::~TEST () { }
-    TESTU::~TESTU () { }
     REAL_TO_INT::~REAL_TO_INT () { }
     // pickler suppressed for pureop
     pureop read_pureop (asdl::instream & is)
@@ -659,16 +645,20 @@ namespace CFG {
         delete this->_v_attrs;
         delete this->_v_entry;
     }
+    // cluster_seq pickler suppressed
+    std::vector<cluster *> read_cluster_seq (asdl::instream & is)
+    {
+        return asdl::read_seq<cluster>(is);
+    }
     comp_unit * comp_unit::read (asdl::instream & is)
     {
         auto fsrcFile = asdl::read_string(is);
         auto fentry = cluster::read(is);
-        auto ffns = cluster::read(is);
+        auto ffns = read_cluster_seq(is);
         return new comp_unit(fsrcFile, fentry, ffns);
     }
     comp_unit::~comp_unit ()
     {
         delete this->_v_entry;
-        delete this->_v_fns;
     }
 } // namespace CFG

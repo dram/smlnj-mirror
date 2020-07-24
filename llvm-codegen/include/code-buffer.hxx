@@ -44,11 +44,15 @@ class code_buffer {
   public:
 
   // create the code buffer for the given target
-    static code_buffer *create (std::string const &target);
+    static code_buffer *create (std::string const & target);
 
   // initialize the code buffer for a new module
-    void initModule (std::string &src);
+    void initModule (std::string const & src);
 
+  // dump the current module to stderr
+    void dump () { this->_module->dump(); }
+
+  // get the IR builder
     llvm::IRBuilder<> build () { return this->_builder; }
 
   // define a new function in the module with the given type; the `isFirst` flag
@@ -65,6 +69,10 @@ class code_buffer {
     void saveSMLRegState (reg_state &cache) { cache.copyFrom (this->_regState); }
     void restoreSMLRegState (reg_state const &cache) { this->_regState.copyFrom (cache); }
 
+  // setup the argument/parameter lists for a fragment
+    Args_t setupFragArgs (CFG::frag *frag, Args_t &args);
+    void setupFragEntry (CFG::frag *frag);
+
   // target parameters
     int wordSzInBytes () { return this->_wordSzB; }
     bool is64Bit () { return (this->_wordSzB == 8); }
@@ -79,6 +87,7 @@ class code_buffer {
     llvm::IntegerType *intTy;	// native integer type
     llvm::Type *mlRefTy;	// type of pointers to mutable data (i.e., refs and arrays)
     llvm::Type *mlPtrTy;	// type of pointers to immutable data
+    llvm::Type *bytePtrTy;	// "char *" type
 
     llvm::IntegerType *iType (int sz)
     {
@@ -280,6 +289,9 @@ class code_buffer {
     llvm::Function		*_curFn;	// current LLVM function
     lvar_map_t<CFG::frag>	_fragMap;	// map from labels to fragments
     lvar_map_t<llvm::Value>	_vMap;		// map from lvars to values
+
+  // a basic block for the current cluster that will force an Overflow trap
+    llvm::BasicBlock		*_overflowBB;
 
   // tracking the state of the SML registers
     sml_registers		_regInfo;	// target-specific register info
