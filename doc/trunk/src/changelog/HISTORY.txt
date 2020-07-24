@@ -92,13 +92,32 @@ recent to oldest, I've edited back to release 110.46 (2004/06/17).
 //////////////////////////////////////////////////////////////////////
 
 //====================================================================
-//== Recent updates
+== Recent updates
+
+//--------------------------------------------------------------------
+[2019/07/22]::
++
+Added an additional lowering pass for the `STREQL` primop.  This
+primop is generated to implement pattern matching against string
+literals.  Previously it was unrolled in the *MLRISC* code generator,
+but we now do the unrolling in *CPS*.  The reason for this change
+is that implementing the unrolling in the *LLVM* code generator
+would be complicated because of the need to introduce phi nodes
+in one of the branches.
++
+The unrolling in *CPS* is somewhat different from before in that
+we now bake the literal string being tested into the equality tests.
++
+Also changed the representation of the primop to include the string
+being tested against and removed the `STRNEQ` primop.
++
+owner:cs.uchicago.edu/~jhr[John Reppy]
 
 //====================================================================
 == Version 110.98; 2020/07/16
 
 //--------------------------------------------------------------------
-[2019/06/04]::
+[2019/07/10]::
 +
 Implemented https://github.com/SMLFamily/BasisLibrary/wiki/2020-001-Addition-of-Universal-module[
 Basis Library proposal 2020-001 (Addition of Universal module)].
