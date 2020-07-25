@@ -64,8 +64,8 @@ class reg_info {
     static reg_info *createReg (int idx) { return new reg_info (idx, 0); }
     static reg_info *createStkReg (int offset) { return new reg_info (-1, offset); }
 
-    bool isMachineReg () { return (this->_idx >= 0); }
-    bool isMemReg () { return (this->_idx < 0); }
+    bool isMachineReg () const { return (this->_idx >= 0); }
+    bool isMemReg () const { return (this->_idx < 0); }
 
     std::string const &name () { return this->_name; }
 
@@ -87,29 +87,37 @@ class reg_info {
 class sml_registers {
   public:
 
-    int numRegs () const { return this->_nRegs; }
-
   // setup the register information for the specified target architecture
   //
-    static reg_info *init (std::string const &target);
+    sml_registers (struct target_info const *target);
 
-    reg_info const *info (sml_reg_id id) { return this->_info[static_cast<int>(id)]; }
+    int numRegs () const { return this->_nRegs; }
+
+    reg_info const *info (sml_reg_id id) const { return this->_info[static_cast<int>(id)]; }
+
+    int numSpecialRegs () const { return this->_nSpecialRegs; }
+
+    sml_reg_id specialId (int idx) const { return this->_specialRegs[idx]; }
+    reg_info const *special (int idx) const { return this->info(this->_specialRegs[idx]); }
 
   private:
     bool		_hasBaseReg;		// true if target needs the base register to
 						// compute code-address values
     int			_nRegs;			// number of registers supported by target
+    int			_nSpecialRegs;		// the number of special registers that are
+						// hardware supported.
     reg_info *		_info[NUM_REGS];	// information about the registers;
 						// _info[BASE_PTR] will be null if _hasBaseReg
 						// is false.  Otherwise, _info[i] will be
 						// non-null for 0 <= i < _nRegs.
+    sml_reg_id *	_specialRegs;
 };
 
 class reg_state {
   public:
 
     reg_state () { }
-    explicit reg_state (sml_registers const *info);
+    explicit reg_state (sml_registers const & info);
     ~reg_state () { }
 
   // get the LLVM value that represents the specified SML register
@@ -124,13 +132,12 @@ class reg_state {
 	this->_val[static_cast<int>(r)] = v;
     }
 
-    void copyFrom (reg_state const &cache);
+    void copyFrom (reg_state const & cache);
 
   private:
     int			_nRegs;
     llvm::Value *	_val[NUM_REGS];		// mapping from registers IDs to their current
 						// representation as an LLVM value.
-
 };
 
 sml_registers *InitRegInfo (std::string const &target);

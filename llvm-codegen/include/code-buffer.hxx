@@ -27,6 +27,8 @@
 #include "lambda-var.hxx"
 #include "sml-registers.hxx"
 
+using Args_t = std::vector<llvm::Value *>;
+
 namespace CFG {
     class frag;
 }
@@ -49,15 +51,21 @@ class code_buffer {
   // initialize the code buffer for a new module
     void initModule (std::string const & src);
 
+  // mark the beginning/end of a cluster
+    void beginCluster ();
+    void endCluster ();
+
   // dump the current module to stderr
-    void dump () { this->_module->dump(); }
+    void dump () const { this->_module->dump(); }
 
   // get the IR builder
     llvm::IRBuilder<> build () { return this->_builder; }
 
   // define a new function in the module with the given type; the `isFirst` flag
-  // should be true for the first function in a cluster
-    llvm::Function *newFunction (llvm::FunctionType *fnTy, bool isFirst);
+  // should be true for the entry function of the cluster.  This function sets
+  // the current function of the code generator to be the new function and also
+  // initializes the SML register state.
+    llvm::Function *newFunction (std::vector<llvm::Type *> paramTys, bool isFirst);
 
   // get the LLVM value that represents the specified SML register
     llvm::Value *mlReg (sml_reg_id r) const { return this->_regState.get(r); }
@@ -66,8 +74,8 @@ class code_buffer {
     void setMLReg (sml_reg_id r, llvm::Value *v) { this->_regState.set(r, v); }
 
   // save and restore the SML register state to a cache object
-    void saveSMLRegState (reg_state &cache) { cache.copyFrom (this->_regState); }
-    void restoreSMLRegState (reg_state const &cache) { this->_regState.copyFrom (cache); }
+    void saveSMLRegState (reg_state & cache) { cache.copyFrom (this->_regState); }
+    void restoreSMLRegState (reg_state const & cache) { this->_regState.copyFrom (cache); }
 
   // setup the argument/parameter lists for a fragment
     Args_t setupFragArgs (CFG::frag *frag, Args_t &args);
@@ -88,6 +96,7 @@ class code_buffer {
     llvm::Type *mlRefTy;	// type of pointers to mutable data (i.e., refs and arrays)
     llvm::Type *mlPtrTy;	// type of pointers to immutable data
     llvm::Type *bytePtrTy;	// "char *" type
+    llvm::Type *voidTy;		// "void"
 
     llvm::IntegerType *iType (int sz)
     {

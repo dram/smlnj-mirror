@@ -13,6 +13,8 @@
 #include <cstdint>
 #include <vector>
 
+#include <iostream> //DEBUG
+
 namespace LambdaVar {
 
     // LVars are represented by positive integers (the Int63.int type on 64-bit
@@ -23,7 +25,7 @@ namespace LambdaVar {
     lvar read_lvar (asdl::instream & is)
     {
         unsigned char b0 = is.getb();
-        unsigned int v = b0 & 0x1F;
+        uint64_t v = b0 & 0x1F;
         switch (b0 >> 5) {
           case 7: v = (v << 8) | is.getb();
           case 6: v = (v << 8) | is.getb();

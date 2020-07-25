@@ -353,11 +353,6 @@ namespace CFG {
     {
         return asdl::read_seq<ty>(is);
     }
-    // pickler suppressed for calling_conv
-    calling_conv read_calling_conv (asdl::instream & is)
-    {
-        return static_cast<calling_conv>(asdl::read_tag8(is));
-    }
     exp * exp::read (asdl::instream & is)
     {
         _tag_t tag = static_cast<_tag_t>(asdl::read_tag8(is));
@@ -462,6 +457,12 @@ namespace CFG {
                 auto f2 = stm::read(is);
                 return new LET(f0, f1, f2);
             }
+          case _con_CHK_GC:
+            {
+                auto f0 = asdl::read_int_option(is);
+                auto f1 = stm::read(is);
+                return new CHK_GC(f0, f1);
+            }
           case _con_ALLOC:
             {
                 auto f0 = CFG_Prim::alloc::read(is);
@@ -484,11 +485,9 @@ namespace CFG {
             }
           case _con_GOTO:
             {
-                auto f0 = read_calling_conv(is);
-                auto f1 = LambdaVar::read_lvar(is);
-                auto f2 = read_exp_seq(is);
-                auto f3 = read_ty_seq(is);
-                return new GOTO(f0, f1, f2, f3);
+                auto f0 = LambdaVar::read_lvar(is);
+                auto f1 = read_exp_seq(is);
+                return new GOTO(f0, f1);
             }
           case _con_SWITCH:
             {
@@ -504,15 +503,6 @@ namespace CFG {
                 auto f3 = stm::read(is);
                 auto f4 = stm::read(is);
                 return new BRANCH(f0, f1, f2, f3, f4);
-            }
-          case _con_STREQL:
-            {
-                auto f0 = asdl::read_int(is);
-                auto f1 = exp::read(is);
-                auto f2 = exp::read(is);
-                auto f3 = stm::read(is);
-                auto f4 = stm::read(is);
-                return new STREQL(f0, f1, f2, f3, f4);
             }
           case _con_ARITH:
             {
@@ -549,6 +539,10 @@ namespace CFG {
         delete this->_v1;
         delete this->_v2;
     }
+    CHK_GC::~CHK_GC ()
+    {
+        delete this->_v1;
+    }
     ALLOC::~ALLOC ()
     {
         delete this->_v0;
@@ -564,13 +558,6 @@ namespace CFG {
     BRANCH::~BRANCH ()
     {
         delete this->_v0;
-        delete this->_v3;
-        delete this->_v4;
-    }
-    STREQL::~STREQL ()
-    {
-        delete this->_v1;
-        delete this->_v2;
         delete this->_v3;
         delete this->_v4;
     }
@@ -595,25 +582,12 @@ namespace CFG {
     {
         return asdl::read_seq<stm>(is);
     }
-    entry * entry::read (asdl::instream & is)
-    {
-        auto fcc = read_calling_conv(is);
-        auto flab = LambdaVar::read_lvar(is);
-        auto fparams = read_param_seq(is);
-        auto fbody = stm::read(is);
-        return new entry(fcc, flab, fparams, fbody);
-    }
-    entry::~entry ()
-    {
-        delete this->_v_body;
-    }
     frag * frag::read (asdl::instream & is)
     {
-        auto fgcCheck = asdl::read_bool(is);
         auto flab = LambdaVar::read_lvar(is);
         auto fparams = read_param_seq(is);
         auto fbody = stm::read(is);
-        return new frag(fgcCheck, flab, fparams, fbody);
+        return new frag(flab, fparams, fbody);
     }
     frag::~frag ()
     {
@@ -636,7 +610,7 @@ namespace CFG {
     cluster * cluster::read (asdl::instream & is)
     {
         auto fattrs = attrs::read(is);
-        auto fentry = entry::read(is);
+        auto fentry = frag::read(is);
         auto ffrags = read_frag_seq(is);
         return new cluster(fattrs, fentry, ffrags);
     }

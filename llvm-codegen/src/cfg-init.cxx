@@ -15,18 +15,36 @@ namespace CFG {
 
   /***** initialization for the `stm` type *****/
 
+    void stm::_initBB (code_buffer * buf, bool blkEntry)
+    {
+	if (blkEntry) {
+	    this->_bb = buf->newBB();
+	} else {
+	    this->_bb = nullptr;
+	}
+    }
+
     void LET::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
       // continue initialization
 	this->_v2->init (buf, false);
 
     } // LET::init
 
+    void CHK_GC::init (code_buffer * buf, bool blkEntry)
+    {
+	this->_initBB (buf, blkEntry);
+
+      // continue initialization
+	this->_v1->init (buf, false);
+
+    } // CHK_GC::init
+
     void ALLOC::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
       // continue initialization
 	this->_v3->init (buf, false);
@@ -35,25 +53,25 @@ namespace CFG {
 
     void APPLY::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
     } // APPLY::init
 
     void THROW::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
     } // THROW::init
 
     void GOTO::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
     } // GOTO::init
 
     void SWITCH::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
       // initialize arms of switch
 	for (auto it = this->_v1.begin();  it != this->_v1.end();  ++it) {
@@ -64,7 +82,7 @@ namespace CFG {
 
     void BRANCH::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
       // initialize arms of conditional
 	this->_v3->init (buf, true);
@@ -74,7 +92,7 @@ namespace CFG {
 
     void ARITH::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
       // continue initialization
 	this->_v3->init (buf, false);
@@ -83,7 +101,7 @@ namespace CFG {
 
     void SETTER::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
       // continue initialization
 	this->_v2->init (buf, false);
@@ -92,21 +110,13 @@ namespace CFG {
 
     void RCC::init (code_buffer * buf, bool blkEntry)
     {
-	_initBB (buf, blkEntry);
+	this->_initBB (buf, blkEntry);
 
       // continue initialization
 	this->_v_k->init (buf, false);
 
     } // RCC::init
 
-
-  /***** initialization for the `entry` type *****/
-
-    void entry::init (code_buffer * buf)
-    {
-      // initialize the entry fragment's body */
-	this->_v_body->init (buf, true);
-    }
 
   /***** initialization for the `frag` type *****/
 
@@ -115,10 +125,24 @@ namespace CFG {
     // entry block for the fragment) and we add phi nodes to the block for each
     // of the parameters.
     //
-    void frag::init (code_buffer * buf)
+    void frag::init (code_buffer * buf, bool isEntry)
     {
       // add the fragment to the label to fragment map
 	buf->insertFrag (this->_v_lab, this);
+
+      // define the LLVM function for this cluster
+	std::vector<llvm::Type *> paramTys;
+	paramTys.reserve (this->_v_params.size());
+	for (auto param : this->_v_params) {
+	    paramTys.push_back (param->get_1()->codegen(buf));
+	}
+	llvm::Function *fn = buf->newFunction (paramTys, isEntry);
+
+      // set the calling convention to our "Jump-with-arguments" convention
+	fn->setCallingConv (llvm::CallingConv::JWA);
+
+      // assign attributes to the function
+	 fn->addFnAttr (llvm::Attribute::Naked);
 
       // initialize the fragment's body */
 	this->_v_body->init (buf, true);

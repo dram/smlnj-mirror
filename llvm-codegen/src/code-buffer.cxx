@@ -11,6 +11,8 @@
 #include "code-buffer.hxx"
 #include "target-info.hxx"
 
+#include <exception>
+
 /* FIXME: for now, these are all zero, but we should do something else */
 /* address spaces for various kinds of ML data that are necessarily disjoint */
 #define ML_HEAP_ADDR_SP		0		// immutable heap objects
@@ -18,10 +20,23 @@
 
 /***** class code_buffer member functions *****/
 
+code_buffer *code_buffer::create (std::string const & target)
+{
+    code_buffer *buf = new code_buffer (target);
+
+    return buf;
+}
+
 code_buffer::code_buffer (std::string const & target)
   : _target(target_info::InfoForTarget(target)),
-    _context(), _builder(this->_context), _module(nullptr)
+    _context(), _builder(this->_context), _module(nullptr),
+  // initialize the register info
+    _regInfo(this->_target),
+    _regState(this->_regInfo)
 {
+    if (this->_target == nullptr) {
+	throw std::invalid_argument ("invalid target " + target);
+    }
 
   // initialize the standard types that we use
     this->i8Ty = llvm::IntegerType::get (this->_context, 8);
@@ -40,6 +55,7 @@ code_buffer::code_buffer (std::string const & target)
     this->mlRefTy = this->intTy->getPointerTo (ML_REF_ADDR_SP);
     this->mlPtrTy = this->intTy->getPointerTo (ML_HEAP_ADDR_SP);
     this->bytePtrTy = this->i8Ty->getPointerTo (ML_HEAP_ADDR_SP);
+    this->voidTy = llvm::Type::getVoidTy (this->_context);
 
 } // constructor
 
@@ -55,10 +71,48 @@ void code_buffer::initModule (std::string const & src)
     this->_ssub64WO = nullptr;
     this->_smul64WO = nullptr;
 
-} // initModule
+} // code_buffer::initModule
 
-llvm::Function *code_buffer::newFunction (llvm::FunctionType *fnTy, bool isFirst)
+void code_buffer::beginCluster ()
 {
+    this->_overflowBB = nullptr;
+    this->_fragMap.clear();
+    this->_vMap.clear();
+
+} // code_buffer::beginCluster
+
+void code_buffer::endCluster ()
+{
+    if (this->_overflowBB != nullptr) {
+/* FIXME: initialize the overflow BB */
+    }
+
+/* TODO: call GC code? */
+
+} // code_buffer::endCluster
+
+llvm::Function *code_buffer::newFunction (std::vector<llvm::Type *> paramTys, bool isFirst)
+{
+    llvm::Type *allParams[32];	// no target machine has more than 32 registers
+
+  // the parameter list starts with the special registers (i.e., alloc ptr, ...), which
+  // are all given the SML pointer type
+    int nExtra = this->_regInfo.numSpecialRegs();
+    int i = 0;
+    while (i < nExtra) {
+	allParams[i++] = this->mlPtrTy;
+    }
+
+  // then add the types from the function's formal parameters
+    for (auto paramTy : paramTys) {
+	allParams[i++] = paramTy;
+    }
+
+    llvm::FunctionType *fnTy = llvm::FunctionType::get (
+	this->voidTy,
+	llvm::ArrayRef<llvm::Type *>(allParams, i),
+	false);
+
     this->_curFn = llvm::Function::Create (
 	    fnTy,
 	    isFirst ? llvm::GlobalValue::ExternalLinkage : llvm::GlobalValue::PrivateLinkage,
@@ -69,31 +123,19 @@ llvm::Function *code_buffer::newFunction (llvm::FunctionType *fnTy, bool isFirst
 
 }
 
-// the extra arguments that are added to thread the state of the reserved
-// registers through the control-flow graph.
-static const int NumReservedRegArgs = 6;
-static sml_reg_id ReservedRegArgs[NumReservedRegArgs] = {
-	sml_reg_id::ALLOC_PTR,
-	sml_reg_id::LIMIT_PTR,
-	sml_reg_id::STORE_PTR,
-	sml_reg_id::EXN_HNDLR,
-	sml_reg_id::VAR_PTR,
-	sml_reg_id::BASE_PTR
-    };
-
 // setup the argument/parameter lists for a fragment
 Args_t code_buffer::setupFragArgs (CFG::frag *frag, Args_t &args)
 {
     Args_t newArgs;
 
-    newArgs.reserve (args.size() + NumReservedRegArgs);
+    int nExtra = this->_regInfo.numSpecialRegs();
+    newArgs.reserve (args.size() + nExtra);
 
   // add initial arguments for those reserved registers that are mapped to hardware registers
-    for (int i = 0;  i < NumReservedRegArgs;  i++) {
-	sml_reg_id id = ReservedRegArgs[i];
-	if (this->_regInfo.info(id)->isMachineReg()) {
-	    newArgs.push_back (this->_regState.get(id));
-	}
+    for (int i = 0;  i < nExtra;  i++) {
+	sml_reg_id id = this->_regInfo.specialId(i);
+	assert (this->_regInfo.info(id)->isMachineReg() && "not a machine register");
+	newArgs.push_back (this->_regState.get(id));
     }
 
   // copy the rest of the arguments
@@ -113,7 +155,7 @@ void code_buffer::setupFragEntry (CFG::frag *frag)
 llvm::BasicBlock *code_buffer::getOverflowBB ()
 {
     if (this->_overflowBB == nullptr) {
-	/* FIXME: need to allocate and initialize the overflow block */
+	this->_overflowBB = this->newBB ();
     }
 
     return this->_overflowBB;

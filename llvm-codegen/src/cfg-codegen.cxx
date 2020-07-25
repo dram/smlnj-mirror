@@ -116,29 +116,55 @@ namespace CFG {
 
     } // LET::codegen
 
+    void CHK_GC::codegen (code_buffer * buf)
+    {
+/* FIXME */
+      // compile continuation
+	this->_v1->codegen(buf);
+
+    } // CHK_GC::codegen
+
     void ALLOC::codegen (code_buffer * buf)
     {
+/* FIXME */
+      // compile continuation
+	this->_v3->codegen(buf);
+
     } // ALLOC::codegen
 
     void APPLY::codegen (code_buffer * buf)
     {
+/* FIXME */
     } // APPLY::codegen
 
     void THROW::codegen (code_buffer * buf)
     {
+/* FIXME */
     } // THROW::codegen
 
     void GOTO::codegen (code_buffer * buf)
     {
 	llvm::BasicBlock *srcBB = buf->getCurBB();
-	frag *dstFrag = buf->lookupFrag (this->_v1);
-// QUESTION: what about calling conventions; SML registers?
+	frag *dstFrag = buf->lookupFrag (this->_v0);
+
+      // evaluate the arguments
+	Args_t args;
+	args.reserve(this->_v1.size());
+	for (auto arg : this->_v1) {
+	    args.push_back (arg->codegen (buf));
+	}
+
+      // add extra argument values needed for reserved registers
+	Args_t allArgs = buf->setupFragArgs (dstFrag, args);
+
+      // generate the control transfer
+	buf->build().CreateBr (dstFrag->bb());
 
       // add outgoing values as incoming values to the destination's
       // phi nodes
-	for (int i = 0;  i < this->_v2.size(); ++i) {
-// FIXME: typecast around value
-	    dstFrag->setIncoming (i, srcBB, this->_v2[i]->codegen (buf));
+	for (int i = 0;  i < allArgs.size();  ++i) {
+// FIXME: add typecast around argument values
+	    dstFrag->setIncoming (i, srcBB, allArgs[i]);
 	}
 
     } // GOTO::codegen
@@ -234,14 +260,6 @@ namespace CFG {
     } // RCC::codegen
 
 
-  /***** code generation for the `entry` type *****/
-
-    void entry::codegen (code_buffer * buf, Args_t &args)
-    {
-
-    } // entry::codegen
-
-
   /***** code generation for the `frag` type *****/
 
     void frag::codegen (code_buffer * buf)
@@ -263,24 +281,26 @@ namespace CFG {
 
     void cluster::codegen (code_buffer * buf, bool isFirst)
     {
-      // define the LLVM function for this cluster
-	llvm::FunctionType *fnTy /* = ?? */;
-	llvm::Function *fn = buf->newFunction (fnTy, isFirst);
-
-      // set the calling convention to our "Jump-with-arguments" convention
-	fn->setCallingConv (llvm::CallingConv::JWA);
-
-      // assign attributes to the function
-	 fn->addFnAttr (llvm::Attribute::Naked);
-
       // first we initialize the fragments for the cluster
-	this->_v_entry->init (buf);
+	this->_v_entry->init (buf, true);
 	for (auto it = this->_v_frags.begin();  it != this->_v_frags.end();  ++it) {
-	    (*it)->init (buf);
+	    (*it)->init (buf, false);
 	}
 
 /* TODO setup function / function entry / ... */
 
     } // cluster::codegen
+
+
+  /***** code generation for the `comp_unit` type *****/
+
+    void comp_unit::codegen (code_buffer * buf)
+    {
+	this->_v_entry->codegen (buf, true);
+	for (auto f : this->_v_fns) {
+	    f->codegen (buf, false);
+	}
+
+    } // comp_unit::codegen
 
 } // namespace CFG
