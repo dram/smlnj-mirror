@@ -60,7 +60,6 @@ structure LambdaVarPickle : sig
 		      end
 		(* end case *))
 	  in
-print(concat["# write_lvar: ", LambdaVar.toString lv, " as [", String.concatWithMap "," (fn b => "0x" ^ Word8.toString b) bytes, "]\n"]);
 	    List.app (fn b => output1 (outS, b)) bytes
 	  end
 
