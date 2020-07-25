@@ -46,8 +46,8 @@ structure Ex1 =
 
       val fn78 = C.Cluster{
 	      attrs = attrs,
-	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 78,
+	      entry = C.Frag{
+		  lab = v 78,
 		  params = [
 		      (v 79, C.PTRt), (v 38, C.PTRt), (v 60, C.CNTt), (v 61, C.PTRt),
 		      (v 62, C.PTRt), (v 63, C.PTRt), (v 45, C.PTRt)
@@ -62,8 +62,8 @@ structure Ex1 =
 	    }
       val fn64 = C.Cluster{
 	      attrs = attrs,
-	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 64,
+	      entry = C.Frag{
+		  lab = v 64,
 		  params = [
 		      (v 86, C.PTRt), (v 85, C.PTRt), (v 84, C.CNTt),
 		      (v 83, C.PTRt), (v 82, C.PTRt), (v 81, C.PTRt), (v 80, C.PTRt)
@@ -77,8 +77,8 @@ structure Ex1 =
 	    }
       val fn71 = C.Cluster{
 	      attrs = attrs,
-	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 71,
+	      entry = C.Frag{
+		  lab = v 71,
 		  params = [
 		      (v 93, C.PTRt), (v 92, C.PTRt), (v 91, C.CNTt), (v 90, C.PTRt),
 		      (v 89, C.PTRt), (v 88, C.PTRt), (v 87, C.PTRt)

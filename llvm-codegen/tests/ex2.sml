@@ -60,8 +60,8 @@ structure Ex2 =
 
       val fn130 = C.Cluster{
 	      attrs = attrs,
-	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 130,
+	      entry = C.Frag{
+		  lab = v 130,
 		  params = [
 		      (v 131, C.PTRt), (v 31, C.PTRt), (v 111, C.CNTt), (v 112, C.PTRt),
 		      (v 113, C.PTRt), (v 114, C.PTRt), (v 53, C.PTRt)
@@ -76,8 +76,8 @@ structure Ex2 =
 	    }
       val fn115 = C.Cluster{
 	      attrs = attrs,
-	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 115,
+	      entry = C.Frag{
+		  lab = v 115,
 		  params = [
 		      (v 138, C.PTRt), (v 137, C.PTRt), (v 136, C.CNTt),
 		      (v 135, C.PTRt), (v 134, C.PTRt), (v 133, C.PTRt), (v 132, C.PTRt)
@@ -90,12 +90,13 @@ structure Ex2 =
 	      frags = []
 	    }
       val fn129 = C.Frag{
-	      gcCheck = true, lab = v 129,
+	      lab = v 129,
 	      params = [
 		  (v 151, C.PTRt), (v 150, C.PTRt), (v 149, C.CNTt),
 		  (v 148, C.PTRt), (v 147, C.PTRt), (v 146, C.PTRt)
 		],
-	      body = C.BRANCH(
+	      body = C.CHK_GC(NONE,
+		C.BRANCH(
 		  P.CMP{oper=P.EQL, signed=false, sz=64},
 		  [pureOp(P.ANDB, [V 151, num 1]), num 0],
 		  unkProb,
@@ -105,12 +106,12 @@ structure Ex2 =
 		  (* else *)
 		    C.THROW(
 		      [V 149, V 149, V 148, V 147, V 146, V 150],
-		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
+		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 	    }
       val fn122 = C.Cluster{
 	      attrs = attrs,
-	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 122,
+	      entry = C.Frag{
+		  lab = v 122,
 		  params = [
 		      (v 145, C.PTRt), (v 144, C.PTRt), (v 143, C.CNTt), (v 142, C.PTRt),
 		      (v 141, C.PTRt), (v 140, C.PTRt), (v 139, C.PTRt)

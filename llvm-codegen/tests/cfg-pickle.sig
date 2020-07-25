@@ -57,8 +57,6 @@ signature CFGPICKLE = sig
     type outstream
     val write_ty : outstream * CFG.ty -> unit
     val read_ty : instream -> CFG.ty
-    val write_calling_conv : outstream * CFG.calling_conv -> unit
-    val read_calling_conv : instream -> CFG.calling_conv
     val write_exp : outstream * CFG.exp -> unit
     val read_exp : instream -> CFG.exp
     val write_param : outstream * CFG.param -> unit
@@ -67,8 +65,6 @@ signature CFGPICKLE = sig
     val read_probability : instream -> CFG.probability
     val write_stm : outstream * CFG.stm -> unit
     val read_stm : instream -> CFG.stm
-    val write_entry : outstream * CFG.entry -> unit
-    val read_entry : instream -> CFG.entry
     val write_frag : outstream * CFG.frag -> unit
     val read_frag : instream -> CFG.frag
     val write_attrs : outstream * CFG.attrs -> unit

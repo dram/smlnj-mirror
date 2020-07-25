@@ -9,7 +9,7 @@
 -- primitive module for pickling lvars
 --
 primitive module LambdaVar {
-    type lvar
+    lvar
 }
 
 -- should agree with PrimCTypes
@@ -167,14 +167,6 @@ module CFG (
       | FUNt		-- function
       | CNTt		-- continuation
 
-  -- Calling conventions for function entries and internal calls (i.e., `GOTO`)
-  --
-    calling_conv
-      = STD_FUN		-- escaping function
-      | STD_CONT	-- escaping continuation
-      | KNOWN_CHK	-- non-escaping function with GC check
-      | KNOWN		-- non-escaping function
-
   -- expressions; note that reals and strings are represented by access into the
   -- literal table, so we do not include them here.
   --
@@ -196,6 +188,10 @@ module CFG (
 
     stm
       = LET (exp, param, stm)
+      -- `CHK_GC(needs, stm)` is a heap-limit check; the optional `needs` value
+      -- specifies an about of space required (when it is larger than the
+      -- allocation slop)
+      | CHK_GC (int?, stm)
       | ALLOC (CFG_Prim.alloc, exp*, LambdaVar.lvar, stm)
       -- `APPLY(args, tys)` is an external function application; the first
       -- argument is the function to be called and the `tys` are the argument
@@ -205,18 +201,14 @@ module CFG (
       -- argument is the continuation to be called and the `tys` are the argument
       -- types
       | THROW (exp*, ty*)
-      -- `GOTO(cc, lab, args, tys)` is an internal function call to the specified
-      -- label; `cc` is the calling convention, `args` are the arguments, and
-      -- `tys` are the argument types
-      | GOTO (calling_conv, LambdaVar.lvar, exp*, ty*)
+      -- `GOTO(lab, args)` is an internal function call to the fragment specified
+      -- by `lab`; `args` are the arguments
+      | GOTO (LambdaVar.lvar, exp*)
       -- `SWITCH(v, exps)` is a multiway branch on `v`
       | SWITCH (exp, stm*)
       -- `BRANCH(br, args, p, trueExp, falseExp)` is a two-way conditional branch,
       -- where `p` is the probability that the branch is taken
       | BRANCH (CFG_Prim.branch, exp*, probability, stm, stm)
-      -- `STREQL(n, s1, s2, trueExp, falseExp)` branches to `trueExp` if the string
-      -- data `s1` is equal to `s2`, and to `falseExp` otherwise.
-      | STREQL (int, exp, exp, stm, stm)
       -- "raw C call"
       | ARITH (CFG_Prim.arith, exp*, param, stm)
       | SETTER (CFG_Prim.setter, exp*, stm)
@@ -229,13 +221,9 @@ module CFG (
 	  param* live,			-- live variables across call (with types)
 	  stm k)			-- the continuation
 
-  -- cluster entry fragment
+  -- a cluster fragment is an extended basic block
   --
-    entry = Entry (calling_conv cc, LambdaVar.lvar lab, param* params, stm body)
-
-  -- internal cluster fragment
-  --
-    frag = Frag (bool gcCheck, LambdaVar.lvar lab, param* params, stm body)
+    frag = Frag (LambdaVar.lvar lab, param* params, stm body)
 
   -- meta data about a cluster
   --
@@ -249,7 +237,7 @@ module CFG (
   -- a cluster is a maximal flow graph where every known call is to a fragment in the
   -- the cluster.
   --
-    cluster = Cluster (attrs attrs, entry entry, frag* frags)
+    cluster = Cluster (attrs attrs, frag entry, frag* frags)
 
     comp_unit = (string srcFile, cluster entry, cluster* fns)
 
@@ -262,7 +250,6 @@ view Cxx {
 #include "code-buffer.hxx"
 #include "lambda-var.hxx"
 
-using Args_t = std::vector<llvm::Value *>;
 %%
     <file> <= suppress : pickler
 
@@ -346,15 +333,9 @@ using Args_t = std::vector<llvm::Value *>;
         void codegen (code_buffer *buf);
 %%
 
--- entry
-    { CFG.entry } <= public_code %%
-        void init (code_buffer *buf);
-        void codegen (code_buffer *buf, Args_t &args);
-%%
-
 -- frag
     { CFG.frag } <= public_code %%
-        void init (code_buffer *buf);
+        void init (code_buffer *buf, bool isEntry);
         void codegen (code_buffer *buf);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
 	void setIncoming (int i, const llvm::BasicBlock *bblk, llvm::Value *v)

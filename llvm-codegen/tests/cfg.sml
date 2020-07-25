@@ -141,6 +141,7 @@ structure CFG = struct
       | OFFSET of int * exp
     datatype stm
       = LET of exp * param * stm
+      | CHK_GC of int option * stm
       | ALLOC of CFG_Prim.alloc * exp list * LambdaVar.lvar * stm
       | APPLY of exp list * ty list
       | THROW of exp list * ty list
@@ -150,14 +151,8 @@ structure CFG = struct
       | ARITH of CFG_Prim.arith * exp list * param * stm
       | SETTER of CFG_Prim.setter * exp list * stm
       | RCC of {reentrant : bool, linkage : string, proto : CTypes.c_proto, args : exp list, results : param list, live : param list, k : stm}
-    datatype frag = Frag of {gcCheck : bool, lab : LambdaVar.lvar, params : param list, body : stm}
-    datatype calling_conv
-      = STD_FUN
-      | STD_CONT
-      | KNOWN_CHK
-      | KNOWN
-    datatype entry = Entry of {cc : calling_conv, lab : LambdaVar.lvar, params : param list, body : stm}
-    datatype cluster = Cluster of {attrs : attrs, entry : entry, frags : frag list}
+    datatype frag = Frag of {lab : LambdaVar.lvar, params : param list, body : stm}
+    datatype cluster = Cluster of {attrs : attrs, entry : frag, frags : frag list}
     type comp_unit = {srcFile : string, entry : cluster, fns : cluster list}
   end
 
