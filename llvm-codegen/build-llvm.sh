@@ -88,7 +88,7 @@ while [ "$#" != "0" ] ; do
 done
 
 CMAKE_DEFS="\
-  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_INSTALL_PREFIX=../llvm \
   -DLLVM_TARGETS_TO_BUILD=X86;AArch64 \
   -DLLVM_ENABLE_OCAMLDOC=OFF \
