@@ -1,0 +1,26 @@
+(* sources.cm
+ *
+ * COPYRIGHT (c) 2020 The Fellowship of SML/NJ (http://www.smlnj.org)
+ * All rights reserved.
+ *)
+
+Library
+
+  structure CFG
+  structure Dump
+  structure Load
+
+  structure Ex1
+  structure Ex2
+
+is
+
+  $/basis.cm
+  $/asdl-lib.cm
+
+  cfg.cm
+
+  ex1.sml
+  ex2.sml
+  dump.sml
+  load.sml

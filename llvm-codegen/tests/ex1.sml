@@ -5,36 +5,22 @@
  *
  * Hand-crafted CFG for the function
  *
- *	fun rev xs = let
- *	      fun rev' ([], xs') = xs'
- *		| rev' (x::xs, xs') = rev' (xs, x::xs')
- *	      in
- *		rev' (xs, [])
- *	      end;
+ *	fun f x = x;
  *
  * The generated first-order CPS is:
  *
  * ***********************************************
- *	std v130 (v131[PV], v31[PV], v111[C], v112[PV], v113[PV], v114[PV], v53[PR2]) =
- *	   {RK_ESCAPE 1, (L)v115} -> v156
- *	   {v156} -> v157
- *	   v111 (v111, v112, v113, v114, v157)
+ *	std v78(v79[PV],v38[PV],v60[C],v61[PV],v62[PV],v63[PV],v45[PR2]) =
+ *	   {RK_ESCAPE 1,(L)v64} -> v95
+ *	   {v95} -> v96
+ *	   v60(v60,v61,v62,v63,v96)
  *
- *	std v115 (v138[PV], v137[PV], v136[C], v135[PV], v134[PV], v133[PV], v132[PR1]) =
- *	   {RK_ESCAPE 1, (L)v122} -> v155
- *	   v136 (v136, v135, v134, v133, v155)
+ *	std v64(v86[PV],v85[PV],v84[C],v83[PV],v82[PV],v81[PV],v80[PR1]) =
+ *	   {RK_ESCAPE 1,(L)v71} -> v94
+ *	   v84(v84,v83,v82,v81,v94)
  *
- *	std v122 (v145[PV], v144[PV], v143[C], v142[PV], v141[PV], v140[PV], v139[PV]) =
- *	   (L)v129 (v139, (I63t)0, v143, v142, v141, v140)
- *
- *	known_chk v129 (v151[PV], v150[PV], v149[C], v148[PV], v147[PV], v146[PV]) =
- *	   if boxed(v151) [v105] then
- *	      v151.0 -> v152[PV]
- *	      v151.1 -> v153[PV]
- *	      {v152, v150} -> v154
- *	      (L)v129 (v153, v154, v149, v148, v147, v146)
- *	   else
- *	      v149 (v149, v148, v147, v146, v150)
+ *	std v71(v93[PV],v92[PV],v91[C],v90[PV],v89[PV],v88[PV],v87[PV]) =
+ *	   v91(v91,v90,v89,v88,v87)
  * ***********************************************
  *)
 
@@ -51,82 +37,60 @@ structure Ex1 =
       fun record (flds, x, k) = let
 	    val desc = II.<<(II.fromInt(length flds), 0w7)
 	    in
-	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, (x, C.PTRt), k)
+	      C.ALLOC(P.RECORD{desc = desc, mut = false}, flds, x, k)
 	    end
       fun pureOp (oper, args) = C.PURE(P.PURE_ARITH{oper=oper, sz=64}, args)
-      fun goto (lab, args) = C.GOTO(C.KNOWN_CHK, lab, args)
       fun num n = C.NUM{iv=n, signed=true, sz=64}
-      val attrs = {alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false},
+      val attrs = {alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false}
       val unkProb = 0
 
-      val fn130 = C.Cluster{
+      val fn78 = C.Cluster{
 	      attrs = attrs,
 	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 130,
+		  cc = C.STD_FUN, lab = v 78,
 		  params = [
-		      (v 131, C.PTRt), (v 31, C.PTRt), (v 111, C.CNTt), (v 112, C.PTRt),
-		      (v 113, C.PTRt), (v 114, C.PTRt), (v 53, C.PTRt)
+		      (v 79, C.PTRt), (v 38, C.PTRt), (v 60, C.CNTt), (v 61, C.PTRt),
+		      (v 62, C.PTRt), (v 63, C.PTRt), (v 45, C.PTRt)
 		    ],
-		  body = record ([C.LABEL(v 115)], v 156,
-		    record ([V 156], v 157,
-		      C.APPLY ([V 111, V 111, V 112, V 113, V 114, V 157])))
+		  body = record ([C.LABEL(v 64)], v 95,
+		    record ([V 95], v 96,
+		      C.THROW (
+			[V 60, V 60, V 61, V 62, V 63, V 96],
+			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
-      val fn115 = C.Cluster{
+      val fn64 = C.Cluster{
 	      attrs = attrs,
 	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 115,
+		  cc = C.STD_FUN, lab = v 64,
 		  params = [
-		      (v 138, C.PTRt), (v 137, C.PTRt), (v 136, C.CNTt),
-		      (v 135, C.PTRt), (v 134, C.PTRt), (v 133, C.PTRt), (v 132, C.PTRt)
+		      (v 86, C.PTRt), (v 85, C.PTRt), (v 84, C.CNTt),
+		      (v 83, C.PTRt), (v 82, C.PTRt), (v 81, C.PTRt), (v 80, C.PTRt)
 		    ],
-		  body = record ([C.LABEL(v 122)], v 155,
-		    C.APPLY ([V 136, V 136, V 135, V 134, V 133, V 155]))
+		  body = record ([C.LABEL(v 71)], v 94,
+		    C.THROW (
+		      [V 84, V 84, V 83, V 82, V 81, V 94],
+		      [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
 		},
 	      frags = []
 	    }
-      val fn129 = C.Frag{
-	      gcCheck = true, lab = v 129,
-	      params = [
-		  (v 151, C.PTRt), (v 150, C.PTRt), (v 149, C.CNTt),
-		  (v 148, C.PTRt), (v 147, C.PTRt), (v 146, C.PTRt)
-		],
-	      body = C.BRANCH(
-		  P.CMP{oper=P.EQL, signed=false, sz=64},
-		  [pureOp(P.ANDB, [V 151, num 1]), num 0],
-		  unkProb,
-		  (* then *)
-		    select(0, V 151, (v 152, C.PTRt),
-		    select(1, V 151, (v 153, C.PTRt),
-		    record([V 152, V 150], v 154,
-		      C.GOTO(C.KNONW_CHK, v 129, [
-			  V 153, V 154, V 149, V 148, V 147, V 146
-			],
-			[
-			  C.PTRt, C.PTRt, C.CNTt, C.PTRt, C.PTRt, C.PTRt
-			])))),
-		  (* else *)
-		    C.THROW[V 149, V 149, V 148, V 147, V 146, V 150])
-	    }
-      val fn122 = C.Cluster{
+      val fn71 = C.Cluster{
 	      attrs = attrs,
 	      entry = C.Entry{
-		  cc = C.STD_FUN, lab = v 122,
+		  cc = C.STD_FUN, lab = v 71,
 		  params = [
-		      (v 145, C.PTRt), (v 144, C.PTRt), (v 143, C.CNTt), (v 142, C.PTRt),
-		      (v 141, C.PTRt), (v 140, C.PTRt), (v 139, C.PTRt)
+		      (v 93, C.PTRt), (v 92, C.PTRt), (v 91, C.CNTt), (v 90, C.PTRt),
+		      (v 89, C.PTRt), (v 88, C.PTRt), (v 87, C.PTRt)
 		    ],
-		  body = C.GOTO (C.KNOWN_CHK, v 129, [
-			V 139, num 1, V 143, V 142, V 141, V 140
-		      ], [
-			C.PTRt, C.PTRt, C.CNTt, C.PTRt, C.PTRt, C.PTRt
-		      ])
+		  body = C.APPLY(
+		    [V 91, V 91, V 90, V 89, V 88, V 87],
+		    [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])
 		},
-	      frags = [fn129]
+	      frags = []
 	    }
     in
-    val cu = {srcFile = "rev.sml", entry = fn130, fns = [fn115, fn122]}
+    val cu = {srcFile = "id.sml", entry = fn78, fns = [fn64, fn71]}
     end (* local *)
 
   end

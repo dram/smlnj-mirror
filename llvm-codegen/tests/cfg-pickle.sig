@@ -6,8 +6,6 @@
 signature LAMBDA_VAR_PICKLE = sig
     type instream
     type outstream
-    val write_type : outstream * LambdaVar.type -> unit
-    val read_type : instream -> LambdaVar.type
     val write_lvar : outstream * LambdaVar.lvar -> unit
     val read_lvar : instream -> LambdaVar.lvar
   end

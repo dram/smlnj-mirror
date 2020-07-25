@@ -1,0 +1,31 @@
+Library
+
+  signature CFGPICKLE
+  signature CFG__PRIM_PICKLE
+  signature CTYPES_PICKLE
+
+  structure CFG
+  structure CFGFilePickle
+  structure CFGMemoryPickle
+  structure CFG_Prim
+  structure CFG_PrimFilePickle
+  structure CFG_PrimMemoryPickle
+  structure CTypes
+  structure CTypesFilePickle
+  structure CTypesMemoryPickle
+  structure LambdaVar
+  structure LambdaVarFilePickle
+  structure LambdaVarMemoryPickle
+
+is
+
+  $/basis.cm
+  $/asdl-lib.cm
+
+  cfg-file-pickle.sml
+  cfg-memory-pickle.sml
+  cfg-pickle.sig
+  cfg.sml
+
+(* extra files added by hand *)
+  lambda-var.sml

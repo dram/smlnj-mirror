@@ -139,24 +139,23 @@ structure CFG = struct
       | PURE of CFG_Prim.pure * exp list
       | SELECT of int * exp
       | OFFSET of int * exp
-    datatype calling_conv
-      = STD_FUN
-      | STD_CONT
-      | KNOWN_CHK
-      | KNOWN
     datatype stm
       = LET of exp * param * stm
       | ALLOC of CFG_Prim.alloc * exp list * LambdaVar.lvar * stm
       | APPLY of exp list * ty list
       | THROW of exp list * ty list
-      | GOTO of calling_conv * LambdaVar.lvar * exp list * ty list
+      | GOTO of LambdaVar.lvar * exp list
       | SWITCH of exp * stm list
       | BRANCH of CFG_Prim.branch * exp list * probability * stm * stm
-      | STREQL of int * exp * exp * stm * stm
       | ARITH of CFG_Prim.arith * exp list * param * stm
       | SETTER of CFG_Prim.setter * exp list * stm
       | RCC of {reentrant : bool, linkage : string, proto : CTypes.c_proto, args : exp list, results : param list, live : param list, k : stm}
     datatype frag = Frag of {gcCheck : bool, lab : LambdaVar.lvar, params : param list, body : stm}
+    datatype calling_conv
+      = STD_FUN
+      | STD_CONT
+      | KNOWN_CHK
+      | KNOWN
     datatype entry = Entry of {cc : calling_conv, lab : LambdaVar.lvar, params : param list, body : stm}
     datatype cluster = Cluster of {attrs : attrs, entry : entry, frags : frag list}
     type comp_unit = {srcFile : string, entry : cluster, fns : cluster list}

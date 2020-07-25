@@ -9,6 +9,6 @@
 structure Dump =
   struct
 
-    fun dump = ASDLFilePickle.toFile CFGFilePickle.write_comp_unit
+    val dump = ASDLFilePickle.toFile CFGFilePickle.write_comp_unit
 
   end
