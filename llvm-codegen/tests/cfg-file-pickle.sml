@@ -541,20 +541,23 @@ structure CFGFilePickle : CFGPICKLE
 (*---------- end pickle-util.in ----------*)
 
     fun write_attrs (outS, obj) = let
-          val {alignHP, needsBasePtr, hasTrapArith, hasRCC} = obj
+          val {isCont, alignHP, needsBasePtr, hasTrapArith, hasRCC} = obj
           in
+            ASDLFilePickle.writeBool (outS, isCont);
             ASDLFilePickle.writeInt (outS, alignHP);
             ASDLFilePickle.writeBool (outS, needsBasePtr);
             ASDLFilePickle.writeBool (outS, hasTrapArith);
             ASDLFilePickle.writeBool (outS, hasRCC)
           end
     fun read_attrs inS = let
+          val isCont = ASDLFilePickle.readBool inS
           val alignHP = ASDLFilePickle.readInt inS
           val needsBasePtr = ASDLFilePickle.readBool inS
           val hasTrapArith = ASDLFilePickle.readBool inS
           val hasRCC = ASDLFilePickle.readBool inS
           in
               {
+              isCont = isCont,
               alignHP = alignHP,
               needsBasePtr = needsBasePtr,
               hasTrapArith = hasTrapArith,
@@ -670,14 +673,16 @@ structure CFGFilePickle : CFGPICKLE
               writeSeq write_exp (outS, x1);
               LambdaVarFilePickle.write_lvar (outS, x2);
               write_stm (outS, x3))
-            | CFG.APPLY(x0, x1) => (
+            | CFG.APPLY(x0, x1, x2) => (
               ASDLFilePickle.writeTag8 (outS, 0w4);
-              writeSeq write_exp (outS, x0);
-              writeSeq write_ty (outS, x1))
-            | CFG.THROW(x0, x1) => (
+              write_exp (outS, x0);
+              writeSeq write_exp (outS, x1);
+              writeSeq write_ty (outS, x2))
+            | CFG.THROW(x0, x1, x2) => (
               ASDLFilePickle.writeTag8 (outS, 0w5);
-              writeSeq write_exp (outS, x0);
-              writeSeq write_ty (outS, x1))
+              write_exp (outS, x0);
+              writeSeq write_exp (outS, x1);
+              writeSeq write_ty (outS, x2))
             | CFG.GOTO(x0, x1) => (
               ASDLFilePickle.writeTag8 (outS, 0w6);
               LambdaVarFilePickle.write_lvar (outS, x0);
@@ -736,16 +741,18 @@ structure CFGFilePickle : CFGPICKLE
                   CFG.ALLOC (x0, x1, x2, x3)
               end
             | 0w4 => let
-              val x0 = readSeq read_exp inS
-              val x1 = readSeq read_ty inS
+              val x0 = read_exp inS
+              val x1 = readSeq read_exp inS
+              val x2 = readSeq read_ty inS
               in
-                  CFG.APPLY (x0, x1)
+                  CFG.APPLY (x0, x1, x2)
               end
             | 0w5 => let
-              val x0 = readSeq read_exp inS
-              val x1 = readSeq read_ty inS
+              val x0 = read_exp inS
+              val x1 = readSeq read_exp inS
+              val x2 = readSeq read_ty inS
               in
-                  CFG.THROW (x0, x1)
+                  CFG.THROW (x0, x1, x2)
               end
             | 0w6 => let
               val x0 = LambdaVarFilePickle.read_lvar inS

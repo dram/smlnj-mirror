@@ -24,6 +24,9 @@
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 
+/*DEBUG*/#include "llvm/Support/raw_os_ostream.h"
+/*DEBUG*/#include "llvm/Support/Debug.h"
+
 #include "lambda-var.hxx"
 #include "sml-registers.hxx"
 
@@ -31,6 +34,7 @@ using Args_t = std::vector<llvm::Value *>;
 
 namespace CFG {
     class frag;
+    class cluster;
 }
 
 // map from lvars to values of type T*
@@ -49,11 +53,14 @@ class code_buffer {
     static code_buffer *create (std::string const & target);
 
   // initialize the code buffer for a new module
-    void initModule (std::string const & src);
+    void beginModule (std::string const & src, int nClusters);
 
   // mark the beginning/end of a cluster
-    void beginCluster ();
+    void beginCluster (llvm::Function *fn);
     void endCluster ();
+
+  // initialize the code buffer for a new fragment
+    void beginFrag ();
 
   // dump the current module to stderr
     void dump () const { this->_module->dump(); }
@@ -67,6 +74,12 @@ class code_buffer {
   // initializes the SML register state.
     llvm::Function *newFunction (std::vector<llvm::Type *> paramTys, bool isFirst);
 
+    void setupStdEntry (CFG::frag *frag);
+
+  // setup the argument/parameter lists for a fragment
+    Args_t setupFragArgs (CFG::frag *frag, Args_t &args);
+    void setupFragEntry (CFG::frag *frag);
+
   // get the LLVM value that represents the specified SML register
     llvm::Value *mlReg (sml_reg_id r) const { return this->_regState.get(r); }
 
@@ -76,10 +89,6 @@ class code_buffer {
   // save and restore the SML register state to a cache object
     void saveSMLRegState (reg_state & cache) { cache.copyFrom (this->_regState); }
     void restoreSMLRegState (reg_state const & cache) { this->_regState.copyFrom (cache); }
-
-  // setup the argument/parameter lists for a fragment
-    Args_t setupFragArgs (CFG::frag *frag, Args_t &args);
-    void setupFragEntry (CFG::frag *frag);
 
   // target parameters
     int wordSzInBytes () { return this->_wordSzB; }
@@ -93,8 +102,8 @@ class code_buffer {
     llvm::Type *f32Ty;
     llvm::Type *f64Ty;
     llvm::IntegerType *intTy;	// native integer type
-    llvm::Type *mlRefTy;	// type of pointers to mutable data (i.e., refs and arrays)
-    llvm::Type *mlPtrTy;	// type of pointers to immutable data
+    llvm::Type *mlValueTy;	// the uniform ML value type, which is a pointer to the intTy
+    llvm::Type *objPtrTy;	// pointer into the heap (i.e., a pointer to an ML value)
     llvm::Type *bytePtrTy;	// "char *" type
     llvm::Type *voidTy;		// "void"
 
@@ -109,6 +118,36 @@ class code_buffer {
     {
 	if (sz == 64) return this->f64Ty;
 	else return this->f32Ty;
+    }
+
+  // ensure that a value has the `mlValue` type
+    llvm::Value *asMLValue (llvm::Value *v)
+    {
+	if (! v->getType()->isPointerTy()) {
+	    return this->_builder.CreateIntToPtr(v, this->mlValueTy);
+	} else {
+	    return v;
+	}
+    }
+
+  // ensure that a value has the `mlValue` type
+    llvm::Value *asObjPtr (llvm::Value *v)
+    {
+	if (! v->getType()->isPointerTy()) {
+	    return this->_builder.CreateIntToPtr(v, this->objPtrTy);
+	} else {
+	    return this->_builder.CreateBitCast(v, this->objPtrTy);
+	}
+    }
+
+  // ensure that a value is a machine-sized int type (assume that it is either intTy or mlValueTy
+    llvm::Value *asInt (llvm::Value *v)
+    {
+	if (v->getType()->isPointerTy()) {
+	    return this->_builder.CreatePtrToInt(v, this->intTy);
+	} else {
+	    return v;
+	}
     }
 
 /** NOTE: we may be able to avoid needing the signed constants */
@@ -142,24 +181,18 @@ class code_buffer {
 	return llvm::ConstantInt::get (this->i32Ty, n);
     }
 
-  // clear the lvar to value map
-    void clearValMap ()
+  // insert a binding into the label-to-cluster map
+    void insertCluster (LambdaVar::lvar lab, CFG::cluster *cluster)
     {
-	this->_vMap.clear();
+	std::pair<LambdaVar::lvar,CFG::cluster *> pair(lab, cluster);
+	this->_clusterMap.insert (pair);
     }
 
-  // insert a binding into the lvar-to-value map
-    void insertVal (LambdaVar::lvar lv, llvm::Value *v)
+  // lookup a binding in the label-to-cluster map
+    CFG::cluster *lookupCluster (LambdaVar::lvar lab)
     {
-	std::pair<LambdaVar::lvar,llvm::Value *> pair(lv, v);
-	this->_vMap.insert (pair);
-    }
-
-  // lookup a binding in the lvar-to-value map
-    llvm::Value *lookupVal (LambdaVar::lvar lv)
-    {
-	lvar_map_t<llvm::Value>::const_iterator got = this->_vMap.find(lv);
-	if (got == this->_vMap.end()) {
+	lvar_map_t<CFG::cluster>::const_iterator got = this->_clusterMap.find(lab);
+	if (got == this->_clusterMap.end()) {
 	    return nullptr;
 	} else {
 	    return got->second;
@@ -178,6 +211,24 @@ class code_buffer {
     {
 	lvar_map_t<CFG::frag>::const_iterator got = this->_fragMap.find(lab);
 	if (got == this->_fragMap.end()) {
+	    return nullptr;
+	} else {
+	    return got->second;
+	}
+    }
+
+  // insert a binding into the lvar-to-value map
+    void insertVal (LambdaVar::lvar lv, llvm::Value *v)
+    {
+	std::pair<LambdaVar::lvar,llvm::Value *> pair(lv, v);
+	this->_vMap.insert (pair);
+    }
+
+  // lookup a binding in the lvar-to-value map
+    llvm::Value *lookupVal (LambdaVar::lvar lv)
+    {
+	lvar_map_t<llvm::Value>::const_iterator got = this->_vMap.find(lv);
+	if (got == this->_vMap.end()) {
 	    return nullptr;
 	} else {
 	    return got->second;
@@ -296,8 +347,9 @@ class code_buffer {
     llvm::IRBuilder<>		_builder;
     llvm::Module		*_module;
     llvm::Function		*_curFn;	// current LLVM function
-    lvar_map_t<CFG::frag>	_fragMap;	// map from labels to fragments
-    lvar_map_t<llvm::Value>	_vMap;		// map from lvars to values
+    lvar_map_t<CFG::cluster>	_clusterMap;	// per-module mapping from labels to clusters
+    lvar_map_t<CFG::frag>	_fragMap;	// pre-cluster map from labels to fragments
+    lvar_map_t<llvm::Value>	_vMap;		// per-fragment map from lvars to values
 
   // a basic block for the current cluster that will force an Overflow trap
     llvm::BasicBlock		*_overflowBB;

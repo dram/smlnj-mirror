@@ -473,15 +473,17 @@ namespace CFG {
             }
           case _con_APPLY:
             {
-                auto f0 = read_exp_seq(is);
-                auto f1 = read_ty_seq(is);
-                return new APPLY(f0, f1);
+                auto f0 = exp::read(is);
+                auto f1 = read_exp_seq(is);
+                auto f2 = read_ty_seq(is);
+                return new APPLY(f0, f1, f2);
             }
           case _con_THROW:
             {
-                auto f0 = read_exp_seq(is);
-                auto f1 = read_ty_seq(is);
-                return new THROW(f0, f1);
+                auto f0 = exp::read(is);
+                auto f1 = read_exp_seq(is);
+                auto f2 = read_ty_seq(is);
+                return new THROW(f0, f1, f2);
             }
           case _con_GOTO:
             {
@@ -548,8 +550,14 @@ namespace CFG {
         delete this->_v0;
         delete this->_v3;
     }
-    APPLY::~APPLY () { }
-    THROW::~THROW () { }
+    APPLY::~APPLY ()
+    {
+        delete this->_v0;
+    }
+    THROW::~THROW ()
+    {
+        delete this->_v0;
+    }
     GOTO::~GOTO () { }
     SWITCH::~SWITCH ()
     {
@@ -600,11 +608,12 @@ namespace CFG {
     }
     attrs * attrs::read (asdl::instream & is)
     {
+        auto fisCont = asdl::read_bool(is);
         auto falignHP = asdl::read_int(is);
         auto fneedsBasePtr = asdl::read_bool(is);
         auto fhasTrapArith = asdl::read_bool(is);
         auto fhasRCC = asdl::read_bool(is);
-        return new attrs(falignHP, fneedsBasePtr, fhasTrapArith, fhasRCC);
+        return new attrs(fisCont, falignHP, fneedsBasePtr, fhasTrapArith, fhasRCC);
     }
     attrs::~attrs () { }
     cluster * cluster::read (asdl::instream & is)

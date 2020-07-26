@@ -67,7 +67,7 @@ class reg_info {
     bool isMachineReg () const { return (this->_idx >= 0); }
     bool isMemReg () const { return (this->_idx < 0); }
 
-    std::string const &name () { return this->_name; }
+    std::string const &name () const { return this->_name; }
 
   private:
     int		_idx;		// index of hardware register assigned to this register.
@@ -80,6 +80,13 @@ class reg_info {
 
     reg_info (int idx, int off) : _idx(idx), _offset(off) { }
 
+};
+
+// information about the arguments for a standard function or continuation call
+//
+struct argument_info {
+    std::vector<sml_reg_id>	formals;	// the registers used to pass the arguments
+    std::vector<llvm::Type *>	tys;		// the LLVM types for the parameters
 };
 
 // information about the "SML" registers for a given target
@@ -113,6 +120,10 @@ class sml_registers {
     sml_reg_id *	_specialRegs;
 };
 
+/* FIXME: I think that we only need to track the special registers here, since the
+ * other registers are named by lambda variables, which are tracked by the cluster's
+ * lvar-to-value map.
+ */
 class reg_state {
   public:
 

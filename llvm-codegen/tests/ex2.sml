@@ -47,6 +47,7 @@ structure Ex2 =
       structure II = IntInf
       fun v id = LambdaVar.fromId id
       fun V id = C.VAR(v id)
+      fun LAB id = C.LABEL(v id)
 
       fun record (flds, x, k) = let
 	    val desc = II.<<(II.fromInt(length flds), 0w7)
@@ -55,36 +56,38 @@ structure Ex2 =
 	    end
       fun pureOp (oper, args) = C.PURE(P.PURE_ARITH{oper=oper, sz=64}, args)
       fun num n = C.NUM{iv=n, signed=true, sz=64}
-      val attrs = {alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false}
+      fun attrs isC = {
+	      isCont = isC, alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false
+	    }
       val unkProb = 0
 
       val fn130 = C.Cluster{
-	      attrs = attrs,
+	      attrs = attrs false,
 	      entry = C.Frag{
 		  lab = v 130,
 		  params = [
 		      (v 131, C.PTRt), (v 31, C.PTRt), (v 111, C.CNTt), (v 112, C.PTRt),
 		      (v 113, C.PTRt), (v 114, C.PTRt), (v 53, C.PTRt)
 		    ],
-		  body = record ([C.LABEL(v 115)], v 156,
+		  body = record ([LAB 115], v 156,
 		    record ([V 156], v 157,
-		      C.THROW (
-			[V 111, V 111, V 112, V 113, V 114, V 157],
+		      C.THROW (V 111,
+			[V 111, V 112, V 113, V 114, V 157],
 			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
 	    }
       val fn115 = C.Cluster{
-	      attrs = attrs,
+	      attrs = attrs false,
 	      entry = C.Frag{
 		  lab = v 115,
 		  params = [
 		      (v 138, C.PTRt), (v 137, C.PTRt), (v 136, C.CNTt),
 		      (v 135, C.PTRt), (v 134, C.PTRt), (v 133, C.PTRt), (v 132, C.PTRt)
 		    ],
-		  body = record ([C.LABEL(v 122)], v 155,
-		    C.THROW (
-		      [V 136, V 136, V 135, V 134, V 133, V 155],
+		  body = record ([LAB 122], v 155,
+		    C.THROW (V 136,
+		      [V 136, V 135, V 134, V 133, V 155],
 		      [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
 		},
 	      frags = []
@@ -104,12 +107,12 @@ structure Ex2 =
 		    record([C.SELECT(0, V 151), V 150], v 154,
 		      C.GOTO(v 129, [C.SELECT(1, V 151), V 154, V 149, V 148, V 147, V 146])),
 		  (* else *)
-		    C.THROW(
-		      [V 149, V 149, V 148, V 147, V 146, V 150],
+		    C.THROW(V 149,
+		      [V 149, V 148, V 147, V 146, V 150],
 		      [C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 	    }
       val fn122 = C.Cluster{
-	      attrs = attrs,
+	      attrs = attrs false,
 	      entry = C.Frag{
 		  lab = v 122,
 		  params = [

@@ -13,13 +13,6 @@
 
 namespace CFG {
 
-  // helper function for binding a llvm::Value to a CFG parameter
-  //
-    inline void insert (code_buffer * buf, param *param, llvm::Value *v)
-    {
-	buf->insertVal (param->get_0(), v);
-    }
-
   /***** code generation for the `ty` type *****/
 
     llvm::Type *NUMt::codegen (code_buffer * buf)
@@ -36,19 +29,19 @@ namespace CFG {
 
     llvm::Type *PTRt::codegen (code_buffer * buf)
     {
-	return buf->mlPtrTy;
+	return buf->mlValueTy;
 
     } // PTRt::codegen
 
     llvm::Type *FUNt::codegen (code_buffer * buf)
     {
-	return buf->mlPtrTy;
+	return buf->mlValueTy;
 
     } // FUNt::codegen
 
     llvm::Type *CNTt::codegen (code_buffer * buf)
     {
-	return buf->mlPtrTy;
+	return buf->mlValueTy;
 
     } // CNTt::codegen
 
@@ -58,11 +51,16 @@ namespace CFG {
     llvm::Value *VAR::codegen (code_buffer * buf)
     {
 	return buf->lookupVal (this->_v0);
+
     } // VAR::codegen
 
     llvm::Value *LABEL::codegen (code_buffer * buf)
     {
-/* FIXME */return nullptr;
+	cluster *cluster = buf->lookupCluster (this->_v0);
+
+	assert (cluster && "Unknown cluster label");
+
+/* FIXME */return buf->uConst(42);
     } // LABEL::codegen
 
     llvm::Value *NUM::codegen (code_buffer * buf)
@@ -110,7 +108,7 @@ namespace CFG {
     void LET::codegen (code_buffer * buf)
     {
       // record mapping from the parameter to the compiled expression
-	insert (buf, this->_v1, this->_v0->codegen(buf));
+	this->_v1->bind (buf, this->_v0->codegen(buf));
       // compile continuation
 	this->_v2->codegen(buf);
 
@@ -126,7 +124,19 @@ namespace CFG {
 
     void ALLOC::codegen (code_buffer * buf)
     {
-/* FIXME */
+	Args_t args;
+	for (auto it = this->_v1.begin(); it != this->_v1.end(); ++it) {
+#ifndef XXX
+	    llvm::Value *v = (*it)->codegen (buf);
+llvm::dbgs() << "ALLOC: type = "; v->getType()->print(llvm::dbgs(), true, true);
+llvm::dbgs() << "; value = " << *v << "\n";
+	    args.push_back (v);
+#else
+	    args.push_back ((*it)->codegen (buf));
+#endif
+	}
+	buf->insertVal (this->_v2, this->_v0->codegen(buf, args));
+
       // compile continuation
 	this->_v3->codegen(buf);
 
@@ -134,12 +144,62 @@ namespace CFG {
 
     void APPLY::codegen (code_buffer * buf)
     {
-/* FIXME */
+	llvm::FunctionType *fnTy;
+	llvm::Value *fn;
+	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
+	if (lab == nullptr) {
+/* FIXME: compute function type from tys */
+	    fn = this->_v0->codegen (buf);
+	} else {
+	    cluster *f = buf->lookupCluster (lab->get_0());
+	    assert (f && "APPLY of unknown cluster");
+	    fn = f->fn();
+	    fnTy = f->fn()->getFunctionType();
+	}
+
+      // evaluate the arguments
+	Args_t args;
+	args.reserve(this->_v1.size());
+	for (auto arg : this->_v1) {
+	    args.push_back (arg->codegen (buf));
+	}
+
+	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
+	call->setCallingConv (llvm::CallingConv::JWA);
+	call->setTailCallKind (llvm::CallInst::TCK_MustTail);
+
+	buf->build().CreateRetVoid();
+
     } // APPLY::codegen
 
     void THROW::codegen (code_buffer * buf)
     {
-/* FIXME */
+	llvm::FunctionType *fnTy;
+	llvm::Value *fn;
+	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
+	if (lab == nullptr) {
+/* FIXME: compute function type from tys */
+	    fn = this->_v0->codegen (buf);
+	} else {
+	    cluster *f = buf->lookupCluster (lab->get_0());
+	    assert (f && "APPLY of unknown cluster");
+	    fn = f->fn();
+	    fnTy = f->fn()->getFunctionType();
+	}
+
+      // evaluate the arguments
+	Args_t args;
+	args.reserve(this->_v1.size());
+	for (auto arg : this->_v1) {
+	    args.push_back (arg->codegen (buf));
+	}
+
+	llvm::CallInst *call = buf->build().CreateCall(fnTy, fn, args);
+	call->setCallingConv (llvm::CallingConv::JWA);
+	call->setTailCallKind (llvm::CallInst::TCK_MustTail);
+
+	buf->build().CreateRetVoid();
+
     } // THROW::codegen
 
     void GOTO::codegen (code_buffer * buf)
@@ -237,7 +297,7 @@ namespace CFG {
 	    args.push_back ((*it)->codegen (buf));
 	}
       // record mapping from the parameter to the compiled expression
-	insert (buf, this->_v2, this->_v0->codegen (buf, args));
+	this->_v2->bind (buf, this->_v0->codegen (buf, args));
       // compile continuation
 	this->_v3->codegen(buf);
 
@@ -262,12 +322,18 @@ namespace CFG {
 
   /***** code generation for the `frag` type *****/
 
-    void frag::codegen (code_buffer * buf)
+    void frag::codegen (code_buffer * buf, bool isEntry)
     {
-      // initialize the lvar to value map with the incoming parameters
-	buf->clearValMap ();
-	for (int i = 0;  i < this->_v_params.size();  i++) {
-	    buf->insertVal (this->_v_params[i]->get_0(), this->_phiNodes[i]);
+	buf->beginFrag ();
+
+	if (! isEntry) {
+	  // initialize the lvar to value map with the incoming parameters
+	    for (int i = 0;  i < this->_phiNodes.size();  i++) {
+		buf->insertVal (this->_v_params[i]->get_0(), this->_phiNodes[i]);
+	    }
+	}
+	else {
+	    buf->setupStdEntry (this);
 	}
 
       // generate code for the fragment
@@ -281,13 +347,19 @@ namespace CFG {
 
     void cluster::codegen (code_buffer * buf, bool isFirst)
     {
-      // first we initialize the fragments for the cluster
+	buf->beginCluster (this->_fn);
+
+      // initialize the fragments for the cluster
 	this->_v_entry->init (buf, true);
 	for (auto it = this->_v_frags.begin();  it != this->_v_frags.end();  ++it) {
 	    (*it)->init (buf, false);
 	}
 
-/* TODO setup function / function entry / ... */
+      // generate code for the cluster
+	this->_v_entry->codegen (buf, true);
+	for (auto it = this->_v_frags.begin();  it != this->_v_frags.end();  ++it) {
+	    (*it)->codegen (buf, false);
+	}
 
     } // cluster::codegen
 
@@ -296,6 +368,9 @@ namespace CFG {
 
     void comp_unit::codegen (code_buffer * buf)
     {
+      // initialize the buffer for the comp_unit
+	buf->beginModule (this->_v_srcFile, this->_v_fns.size() + 1);
+
 	this->_v_entry->codegen (buf, true);
 	for (auto f : this->_v_fns) {
 	    f->codegen (buf, false);

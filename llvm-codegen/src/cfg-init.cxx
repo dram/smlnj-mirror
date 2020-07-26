@@ -148,13 +148,27 @@ namespace CFG {
 	this->_v_body->init (buf, true);
 
       // add a phi node for each parameter of the fragment
-	buf->setInsertPoint (this->_v_body->bb());
-	this->_phiNodes.reserve (this->_v_params.size());
-	for (auto it = this->_v_params.begin(); it != this->_v_params.end();  ++it) {
-	    llvm::Type *ty = (*it)->get_1()->codegen (buf);
-	    llvm::PHINode *phi = buf->build().CreatePHI(ty, 0);
-	    this->_phiNodes.push_back (phi);
+	if (! isEntry) {
+	    buf->setInsertPoint (this->_v_body->bb());
+	    this->_phiNodes.reserve (this->_v_params.size());
+	    for (auto it = this->_v_params.begin(); it != this->_v_params.end();  ++it) {
+		llvm::Type *ty = (*it)->get_1()->codegen (buf);
+		llvm::PHINode *phi = buf->build().CreatePHI(ty, 0);
+		this->_phiNodes.push_back (phi);
+	    }
 	}
+
+    }
+
+
+  /***** initialization for the `cluster` type *****/
+
+    void cluster::init (code_buffer * buf, bool isEntry)
+    {
+      // add the cluster to the cluster map
+	buf->insertCluster (this->_v_entry->get_lab(), this);
+
+      // create and record the LLVM function for the cluster
 
     }
 

@@ -21,7 +21,7 @@ namespace CFG_Prim {
 
       // write object descriptor
 	buf->build().CreateAlignedStore (
-	    buf->uConst(this->_v_desc.toUInt64()),
+	    buf->build().CreateIntToPtr(buf->uConst(this->_v_desc.toUInt64()), buf->mlValueTy),
 	    allocPtr,
 	    (unsigned)buf->wordSzInBytes());
 
@@ -29,13 +29,15 @@ namespace CFG_Prim {
 	for (int i = 1;  i <= len;  i++) {
 	    llvm::Value *adr = buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(i) });
 	    buf->build().CreateAlignedStore (
-		args[i],
+		buf->asMLValue (args[i-1]),
 		adr,
 		(unsigned)buf->wordSzInBytes());
 	}
 
-      // compute the object's address
-	llvm::Value *obj = buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(0) });
+      // compute the object's address and cast it to an ML value
+	llvm::Value *obj = buf->build().CreateBitCast (
+	    buf->build().CreateInBoundsGEP (allocPtr, { buf->uConst(0) }),
+	    buf->mlValueTy);
 
       // bump the allocation pointer
 	buf->setMLReg (sml_reg_id::ALLOC_PTR,
@@ -180,9 +182,9 @@ namespace CFG_Prim {
 
     llvm::Value *PURE_SUBSCRIPT::codegen (code_buffer * buf, Args_t & args)
     {
-// QUESTION: do we need to cast args[1] to an integer type?
-	llvm::Value *adr = buf->build().CreateGEP(args[0], args[1]);
-	return buf->build().CreateLoad (buf->mlRefTy, adr);
+	llvm::Value *baseAdr = buf->asObjPtr(args[0]);
+	llvm::Value *adr = buf->build().CreateGEP(baseAdr, buf->asInt(args[1]));
+	return buf->build().CreateLoad (buf->mlValueTy, adr);
 
     } // PURE_SUBSCRIPT::codegen
 
@@ -203,16 +205,16 @@ namespace CFG_Prim {
 
     llvm::Value *DEREF::codegen (code_buffer * buf, Args_t & args)
     {
-	return buf->build().CreateLoad (buf->mlRefTy, args[0]);
+	return buf->build().CreateLoad (buf->mlValueTy, buf->asObjPtr(args[0]));
 
     } // DEREF::codegen
 
     llvm::Value *SUBSCRIPT::codegen (code_buffer * buf, Args_t & args)
     {
-// QUESTION: do we need to cast args[1] to an integer type?
-	llvm::Value *adr = buf->build().CreateGEP(args[0], args[1]);
+	llvm::Value *baseAdr = buf->asObjPtr(args[0]);
+	llvm::Value *adr = buf->build().CreateGEP(baseAdr, buf->asInt(args[1]));
 // QUESTION: should we mark the load as volatile?
-	return buf->build().CreateLoad (buf->mlRefTy, adr);
+	return buf->build().CreateLoad (buf->mlValueTy, adr);
 
     } // SUBSCRIPT::codegen
 

@@ -541,20 +541,23 @@ structure CFGMemoryPickle : CFGPICKLE
 (*---------- end pickle-util.in ----------*)
 
     fun write_attrs (outS, obj) = let
-          val {alignHP, needsBasePtr, hasTrapArith, hasRCC} = obj
+          val {isCont, alignHP, needsBasePtr, hasTrapArith, hasRCC} = obj
           in
+            ASDLMemoryPickle.writeBool (outS, isCont);
             ASDLMemoryPickle.writeInt (outS, alignHP);
             ASDLMemoryPickle.writeBool (outS, needsBasePtr);
             ASDLMemoryPickle.writeBool (outS, hasTrapArith);
             ASDLMemoryPickle.writeBool (outS, hasRCC)
           end
     fun read_attrs inS = let
+          val isCont = ASDLMemoryPickle.readBool inS
           val alignHP = ASDLMemoryPickle.readInt inS
           val needsBasePtr = ASDLMemoryPickle.readBool inS
           val hasTrapArith = ASDLMemoryPickle.readBool inS
           val hasRCC = ASDLMemoryPickle.readBool inS
           in
               {
+              isCont = isCont,
               alignHP = alignHP,
               needsBasePtr = needsBasePtr,
               hasTrapArith = hasTrapArith,
@@ -673,14 +676,16 @@ structure CFGMemoryPickle : CFGPICKLE
               writeSeq write_exp (outS, x1);
               LambdaVarMemoryPickle.write_lvar (outS, x2);
               write_stm (outS, x3))
-            | CFG.APPLY(x0, x1) => (
+            | CFG.APPLY(x0, x1, x2) => (
               ASDLMemoryPickle.writeTag8 (outS, 0w4);
-              writeSeq write_exp (outS, x0);
-              writeSeq write_ty (outS, x1))
-            | CFG.THROW(x0, x1) => (
+              write_exp (outS, x0);
+              writeSeq write_exp (outS, x1);
+              writeSeq write_ty (outS, x2))
+            | CFG.THROW(x0, x1, x2) => (
               ASDLMemoryPickle.writeTag8 (outS, 0w5);
-              writeSeq write_exp (outS, x0);
-              writeSeq write_ty (outS, x1))
+              write_exp (outS, x0);
+              writeSeq write_exp (outS, x1);
+              writeSeq write_ty (outS, x2))
             | CFG.GOTO(x0, x1) => (
               ASDLMemoryPickle.writeTag8 (outS, 0w6);
               LambdaVarMemoryPickle.write_lvar (outS, x0);
@@ -739,16 +744,18 @@ structure CFGMemoryPickle : CFGPICKLE
                   CFG.ALLOC (x0, x1, x2, x3)
               end
             | 0w4 => let
-              val x0 = readSeq read_exp inS
-              val x1 = readSeq read_ty inS
+              val x0 = read_exp inS
+              val x1 = readSeq read_exp inS
+              val x2 = readSeq read_ty inS
               in
-                  CFG.APPLY (x0, x1)
+                  CFG.APPLY (x0, x1, x2)
               end
             | 0w5 => let
-              val x0 = readSeq read_exp inS
-              val x1 = readSeq read_ty inS
+              val x0 = read_exp inS
+              val x1 = readSeq read_exp inS
+              val x2 = readSeq read_ty inS
               in
-                  CFG.THROW (x0, x1)
+                  CFG.THROW (x0, x1, x2)
               end
             | 0w6 => let
               val x0 = LambdaVarMemoryPickle.read_lvar inS

@@ -41,7 +41,7 @@ structure Ex1 =
 	    end
       fun pureOp (oper, args) = C.PURE(P.PURE_ARITH{oper=oper, sz=64}, args)
       fun num n = C.NUM{iv=n, signed=true, sz=64}
-      val attrs = {alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false}
+      val attrs = {isCont = false, alignHP = 8, needsBasePtr = true, hasTrapArith = false, hasRCC = false}
       val unkProb = 0
 
       val fn78 = C.Cluster{
@@ -54,8 +54,8 @@ structure Ex1 =
 		    ],
 		  body = record ([C.LABEL(v 64)], v 95,
 		    record ([V 95], v 96,
-		      C.THROW (
-			[V 60, V 60, V 61, V 62, V 63, V 96],
+		      C.THROW (V 60,
+			[V 60, V 61, V 62, V 63, V 96],
 			[C.CNTt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])))
 		},
 	      frags = []
@@ -69,8 +69,8 @@ structure Ex1 =
 		      (v 83, C.PTRt), (v 82, C.PTRt), (v 81, C.PTRt), (v 80, C.PTRt)
 		    ],
 		  body = record ([C.LABEL(v 71)], v 94,
-		    C.THROW (
-		      [V 84, V 84, V 83, V 82, V 81, V 94],
+		    C.THROW (V 84,
+		      [V 84, V 83, V 82, V 81, V 94],
 		      [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt]))
 		},
 	      frags = []
@@ -83,8 +83,8 @@ structure Ex1 =
 		      (v 93, C.PTRt), (v 92, C.PTRt), (v 91, C.CNTt), (v 90, C.PTRt),
 		      (v 89, C.PTRt), (v 88, C.PTRt), (v 87, C.PTRt)
 		    ],
-		  body = C.APPLY(
-		    [V 91, V 91, V 90, V 89, V 88, V 87],
+		  body = C.APPLY(V 91,
+		    [V 91, V 90, V 89, V 88, V 87],
 		    [C.PTRt, C.PTRt, C.PTRt, C.PTRt, C.PTRt])
 		},
 	      frags = []

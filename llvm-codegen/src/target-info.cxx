@@ -14,6 +14,7 @@ static target_info AMD64Info = {
 	"amd64",			// name
 	64,				// wordSz
 	18,				// numRegs
+	3,				// numCalleeSaves
 // TODO: change the following to false
 	true,				// needsBasePtr
 	{				// offsets for memory registers

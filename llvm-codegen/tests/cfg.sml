@@ -122,7 +122,7 @@ structure CFG_Prim = struct
   end
 
 structure CFG = struct
-    type attrs = {alignHP : int, needsBasePtr : bool, hasTrapArith : bool, hasRCC : bool}
+    type attrs = {isCont : bool, alignHP : int, needsBasePtr : bool, hasTrapArith : bool, hasRCC : bool}
     type probability = int
     datatype ty
       = NUMt of int
@@ -143,8 +143,8 @@ structure CFG = struct
       = LET of exp * param * stm
       | CHK_GC of int option * stm
       | ALLOC of CFG_Prim.alloc * exp list * LambdaVar.lvar * stm
-      | APPLY of exp list * ty list
-      | THROW of exp list * ty list
+      | APPLY of exp * exp list * ty list
+      | THROW of exp * exp list * ty list
       | GOTO of LambdaVar.lvar * exp list
       | SWITCH of exp * stm list
       | BRANCH of CFG_Prim.branch * exp list * probability * stm * stm

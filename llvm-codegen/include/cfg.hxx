@@ -1343,6 +1343,8 @@ namespace CFG {
         {
             this->_v1 = v;
         }
+        void bind (code_buffer *buf, llvm::Value *v) { buf->insertVal (this->_v0, v); }
+
       private:
         LambdaVar::lvar _v0;
         ty * _v1;
@@ -1500,63 +1502,81 @@ namespace CFG {
     };
     class APPLY : public stm {
       public:
-        APPLY (std::vector<exp *> p0, std::vector<ty *> p1)
-            : stm(stm::_con_APPLY), _v0(p0), _v1(p1)
+        APPLY (exp * p0, std::vector<exp *> p1, std::vector<ty *> p2)
+            : stm(stm::_con_APPLY), _v0(p0), _v1(p1), _v2(p2)
         { }
         ~APPLY ();
         // pickler method suppressed
-        std::vector<exp *> get_0 ()
+        exp * get_0 ()
         {
             return this->_v0;
         }
-        void set_0 (std::vector<exp *> v)
+        void set_0 (exp * v)
         {
             this->_v0 = v;
         }
-        std::vector<ty *> get_1 ()
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
-        void set_1 (std::vector<ty *> v)
+        void set_1 (std::vector<exp *> v)
         {
             this->_v1 = v;
+        }
+        std::vector<ty *> get_2 ()
+        {
+            return this->_v2;
+        }
+        void set_2 (std::vector<ty *> v)
+        {
+            this->_v2 = v;
         }
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
       private:
-        std::vector<exp *> _v0;
-        std::vector<ty *> _v1;
+        exp * _v0;
+        std::vector<exp *> _v1;
+        std::vector<ty *> _v2;
     };
     class THROW : public stm {
       public:
-        THROW (std::vector<exp *> p0, std::vector<ty *> p1)
-            : stm(stm::_con_THROW), _v0(p0), _v1(p1)
+        THROW (exp * p0, std::vector<exp *> p1, std::vector<ty *> p2)
+            : stm(stm::_con_THROW), _v0(p0), _v1(p1), _v2(p2)
         { }
         ~THROW ();
         // pickler method suppressed
-        std::vector<exp *> get_0 ()
+        exp * get_0 ()
         {
             return this->_v0;
         }
-        void set_0 (std::vector<exp *> v)
+        void set_0 (exp * v)
         {
             this->_v0 = v;
         }
-        std::vector<ty *> get_1 ()
+        std::vector<exp *> get_1 ()
         {
             return this->_v1;
         }
-        void set_1 (std::vector<ty *> v)
+        void set_1 (std::vector<exp *> v)
         {
             this->_v1 = v;
+        }
+        std::vector<ty *> get_2 ()
+        {
+            return this->_v2;
+        }
+        void set_2 (std::vector<ty *> v)
+        {
+            this->_v2 = v;
         }
         void init (code_buffer *buf, bool blkEntry);
         void codegen (code_buffer *buf);
 
       private:
-        std::vector<exp *> _v0;
-        std::vector<ty *> _v1;
+        exp * _v0;
+        std::vector<exp *> _v1;
+        std::vector<ty *> _v2;
     };
     class GOTO : public stm {
       public:
@@ -1874,7 +1894,7 @@ namespace CFG {
             this->_v_body = v;
         }
         void init (code_buffer *buf, bool isEntry);
-        void codegen (code_buffer *buf);
+        void codegen (code_buffer *buf, bool isEntry);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
 	void setIncoming (int i, const llvm::BasicBlock *bblk, llvm::Value *v)
 	{
@@ -1892,13 +1912,22 @@ namespace CFG {
     std::vector<frag *> read_frag_seq (asdl::instream & is);
     class attrs {
       public:
-        attrs (int p_alignHP, bool p_needsBasePtr, bool p_hasTrapArith, bool p_hasRCC)
-            : _v_alignHP(p_alignHP), _v_needsBasePtr(p_needsBasePtr),
-            _v_hasTrapArith(p_hasTrapArith), _v_hasRCC(p_hasRCC)
+        attrs (bool p_isCont, int p_alignHP, bool p_needsBasePtr, bool p_hasTrapArith, bool p_hasRCC)
+            : _v_isCont(p_isCont), _v_alignHP(p_alignHP),
+            _v_needsBasePtr(p_needsBasePtr), _v_hasTrapArith(p_hasTrapArith),
+            _v_hasRCC(p_hasRCC)
         { }
         ~attrs ();
         // pickler method suppressed
         static attrs * read (asdl::instream & is);
+        bool get_isCont ()
+        {
+            return this->_v_isCont;
+        }
+        void set_isCont (bool v)
+        {
+            this->_v_isCont = v;
+        }
         int get_alignHP ()
         {
             return this->_v_alignHP;
@@ -1932,6 +1961,7 @@ namespace CFG {
             this->_v_hasRCC = v;
         }
       private:
+        bool _v_isCont;
         int _v_alignHP;
         bool _v_needsBasePtr;
         bool _v_hasTrapArith;
@@ -1969,12 +1999,16 @@ namespace CFG {
         {
             this->_v_frags = v;
         }
+        void init (code_buffer *buf, bool isFirst);
         void codegen (code_buffer *buf, bool isFirst);
+	llvm::Function *fn () const { return this->_fn; }
 
       private:
         attrs * _v_attrs;
         frag * _v_entry;
         std::vector<frag *> _v_frags;
+        llvm::Function *_fn;
+
     };
     // cluster_seq pickler suppressed
     std::vector<cluster *> read_cluster_seq (asdl::instream & is);

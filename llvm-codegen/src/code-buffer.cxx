@@ -10,6 +10,7 @@
 
 #include "code-buffer.hxx"
 #include "target-info.hxx"
+#include "cfg.hxx" // for argument setup
 
 #include <exception>
 
@@ -52,16 +53,20 @@ code_buffer::code_buffer (std::string const & target)
     else { // info.wordSz == 64
 	this->intTy = this->i64Ty;
     }
-    this->mlRefTy = this->intTy->getPointerTo (ML_REF_ADDR_SP);
-    this->mlPtrTy = this->intTy->getPointerTo (ML_HEAP_ADDR_SP);
+    this->mlValueTy = this->intTy->getPointerTo ();
+    this->objPtrTy = this->mlValueTy->getPointerTo ();
     this->bytePtrTy = this->i8Ty->getPointerTo (ML_HEAP_ADDR_SP);
     this->voidTy = llvm::Type::getVoidTy (this->_context);
 
 } // constructor
 
-void code_buffer::initModule (std::string const & src)
+void code_buffer::beginModule (std::string const & src, int nClusters)
 {
     this->_module = new llvm::Module (src, this->_context);
+
+  // prepare the label-to-cluster map
+    this->_clusterMap.clear();
+    this->_clusterMap.reserve(nClusters);
 
   // clear the cached intrinsic functions
     this->_sadd32WO = nullptr;
@@ -71,13 +76,13 @@ void code_buffer::initModule (std::string const & src)
     this->_ssub64WO = nullptr;
     this->_smul64WO = nullptr;
 
-} // code_buffer::initModule
+} // code_buffer::beginModule
 
-void code_buffer::beginCluster ()
+void code_buffer::beginCluster (llvm::Function *fn)
 {
     this->_overflowBB = nullptr;
     this->_fragMap.clear();
-    this->_vMap.clear();
+    this->_curFn = fn;
 
 } // code_buffer::beginCluster
 
@@ -91,6 +96,12 @@ void code_buffer::endCluster ()
 
 } // code_buffer::endCluster
 
+void code_buffer::beginFrag ()
+{
+    this->_vMap.clear();
+
+} // code_buffer::beginFrag
+
 llvm::Function *code_buffer::newFunction (std::vector<llvm::Type *> paramTys, bool isFirst)
 {
     llvm::Type *allParams[32];	// no target machine has more than 32 registers
@@ -98,19 +109,23 @@ llvm::Function *code_buffer::newFunction (std::vector<llvm::Type *> paramTys, bo
   // the parameter list starts with the special registers (i.e., alloc ptr, ...), which
   // are all given the SML pointer type
     int nExtra = this->_regInfo.numSpecialRegs();
-    int i = 0;
-    while (i < nExtra) {
-	allParams[i++] = this->mlPtrTy;
+    int nParams = 0;
+    while (nParams < nExtra) {
+	if (this->_regInfo.specialId(nParams) <= sml_reg_id::STORE_PTR) {
+	    allParams[nParams++] = this->objPtrTy;
+	} else {
+	    allParams[nParams++] = this->mlValueTy;
+	}
     }
 
   // then add the types from the function's formal parameters
     for (auto paramTy : paramTys) {
-	allParams[i++] = paramTy;
+	allParams[nParams++] = paramTy;
     }
 
     llvm::FunctionType *fnTy = llvm::FunctionType::get (
 	this->voidTy,
-	llvm::ArrayRef<llvm::Type *>(allParams, i),
+	llvm::ArrayRef<llvm::Type *>(allParams, nParams),
 	false);
 
     this->_curFn = llvm::Function::Create (
@@ -118,8 +133,48 @@ llvm::Function *code_buffer::newFunction (std::vector<llvm::Type *> paramTys, bo
 	    isFirst ? llvm::GlobalValue::ExternalLinkage : llvm::GlobalValue::PrivateLinkage,
 	    isFirst ? "main" : "",
 	    this->_module);
+    this->_curFn->setCallingConv (llvm::CallingConv::JWA);
 
     return this->_curFn;
+
+}
+
+// setup the incoming arguments for a standard function entry
+//
+void code_buffer::setupStdEntry (CFG::frag *frag)
+{
+  // the order of incoming arguments is:
+  //
+  //	1. special registers: ALLOC_PTR, LIMIT_PTR, STORE_PTR, EXN_HNDLR, VAR_PTR, BASE_PTR
+  //
+  //    2. STD_LINK, STD_CLOS, STD_CONT
+  //
+  //	3. general purpose callee-saves (MISC0, MISC1, ...)
+  //
+  //	4. floating-point callee-saves (FPR0, FPR1, ...)
+  //
+  //    5. argument registers: STDARG, MISC{n}, MISC{n+1}, ... / FPR{m}, FPR{m+1}, ...
+  //	   where "n" is the number of callee saves and "m" is the number of floating-point
+  //	   callee-saves
+  //
+
+    llvm::Function *fn = this->_curFn;
+    int nExtra = this->_regInfo.numSpecialRegs();
+
+  // initialize the register state
+    for (int i = 0;  i < nExtra;  ++i) {
+	sml_reg_id id = this->_regInfo.specialId(i);
+	llvm::Argument *arg = this->_curFn->getArg(i);
+#ifndef NDEBUG
+	arg->setName (this->_regInfo.info(id)->name());
+#endif
+	this->_regState.set (id, arg);
+    }
+
+    std::vector<CFG::param *> params = frag->get_params();
+    for (int i = 0;  i < params.size();  i++) {
+	this->insertVal (params[i]->get_0(), fn->getArg(nExtra + i));
+    }
 
 }
 

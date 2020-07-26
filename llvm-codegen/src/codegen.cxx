@@ -11,9 +11,7 @@
 #include "code-buffer.hxx"
 #include "cfg.hxx"
 
-#include <iostream> //DEBUG
-
-static code_buffer *CodeBuf;
+static code_buffer *CodeBuf = nullptr;
 
 void codegen (asdl::instream &inS)
 {
@@ -23,13 +21,8 @@ void codegen (asdl::instream &inS)
 	CodeBuf = code_buffer::create ("amd64");
     }
 
-/*DEBUG*/std::cerr << "# initModule\n";
-    CodeBuf->initModule (cu->get_srcFile());
-
-/*DEBUG*/std::cerr << "# codegen\n";
     cu->codegen (CodeBuf);
 
-/*DEBUG*/std::cerr << "# dump\n";
     CodeBuf->dump ();
 
 }

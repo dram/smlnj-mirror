@@ -192,15 +192,17 @@ module CFG (
       -- specifies an about of space required (when it is larger than the
       -- allocation slop)
       | CHK_GC (int?, stm)
+      -- `ALLOC(p, args, x, k)` applies the allocation primitive `p` to the
+      -- `args`, binds the resulting object to `x` and then executes `k`.
       | ALLOC (CFG_Prim.alloc, exp*, LambdaVar.lvar, stm)
-      -- `APPLY(args, tys)` is an external function application; the first
-      -- argument is the function to be called and the `tys` are the argument
-      -- types
-      | APPLY (exp*, ty*)
-      -- `THROW(args, tys)` is an external continuation application; the first
-      -- argument is the continuation to be called and the `tys` are the argument
-      -- types
-      | THROW (exp*, ty*)
+      -- `APPLY(f, args, tys)` is an external function application; `f` is the
+      -- function to be called, `args` are the arguments, and `tys` are the
+      -- argument types
+      | APPLY (exp, exp*, ty*)
+      -- `THROW(k, args, tys)` is an external continuation application; `k` is
+      -- the continuation to be called, `args` are the arguments, and `tys` are
+      -- the argument types
+      | THROW (exp, exp*, ty*)
       -- `GOTO(lab, args)` is an internal function call to the fragment specified
       -- by `lab`; `args` are the arguments
       | GOTO (LambdaVar.lvar, exp*)
@@ -228,6 +230,8 @@ module CFG (
   -- meta data about a cluster
   --
     attrs = (
+	bool isCont,		-- true if the cluster is a standard continuation; otherwise
+				-- it is a standard function
 	int alignHP,		-- alignment requirement for allocation pointer
 	bool needsBasePtr,	-- true if cluster does PC-relative addressing
 	bool hasTrapArith,	-- true if cluster has trapping arithmetic
@@ -253,27 +257,11 @@ view Cxx {
 %%
     <file> <= suppress : pickler
 
--- branch
-    { CFG_Prim.branch }  <= public_code %%
+-- alloc
+    { CFG_Prim.alloc }  <= public_code %%
         virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
-    { CFG_Prim.branch.* } <= public_code %%
-        llvm::Value *codegen (code_buffer *buf, Args_t &args);
-%%
-
--- setter
-    { CFG_Prim.setter }  <= public_code %%
-        virtual void codegen (code_buffer *buf, Args_t &args) = 0;
-%%
-    { CFG_Prim.setter.* } <= public_code %%
-        void codegen (code_buffer *buf, Args_t &args);
-%%
-
--- looker
-    { CFG_Prim.looker }  <= public_code %%
-        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
-%%
-    { CFG_Prim.looker.* } <= public_code %%
+    { CFG_Prim.alloc.* } <= public_code %%
         llvm::Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
@@ -293,11 +281,27 @@ view Cxx {
         llvm::Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
--- alloc
-    { CFG_Prim.alloc }  <= public_code %%
+-- looker
+    { CFG_Prim.looker }  <= public_code %%
         virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
 %%
-    { CFG_Prim.alloc.* } <= public_code %%
+    { CFG_Prim.looker.* } <= public_code %%
+        llvm::Value *codegen (code_buffer *buf, Args_t &args);
+%%
+
+-- setter
+    { CFG_Prim.setter }  <= public_code %%
+        virtual void codegen (code_buffer *buf, Args_t &args) = 0;
+%%
+    { CFG_Prim.setter.* } <= public_code %%
+        void codegen (code_buffer *buf, Args_t &args);
+%%
+
+-- branch
+    { CFG_Prim.branch }  <= public_code %%
+        virtual llvm::Value *codegen (code_buffer *buf, Args_t &args) = 0;
+%%
+    { CFG_Prim.branch.* } <= public_code %%
         llvm::Value *codegen (code_buffer *buf, Args_t &args);
 %%
 
@@ -307,6 +311,11 @@ view Cxx {
 %%
     { CFG.ty.* } <= public_code %%
 	llvm::Type *codegen (code_buffer *buf);
+%%
+
+-- param
+    { CFG.param } <= public_code %%
+	void bind (code_buffer *buf, llvm::Value *v) { buf->insertVal (this->_v0, v); }
 %%
 
 -- exp
@@ -336,7 +345,7 @@ view Cxx {
 -- frag
     { CFG.frag } <= public_code %%
         void init (code_buffer *buf, bool isEntry);
-        void codegen (code_buffer *buf);
+        void codegen (code_buffer *buf, bool isEntry);
 	llvm::BasicBlock *bb() const { return this->_v_body->bb(); }
 	void setIncoming (int i, const llvm::BasicBlock *bblk, llvm::Value *v)
 	{
@@ -349,7 +358,12 @@ view Cxx {
 
 -- cluster
     { CFG.cluster } <= public_code %%
+        void init (code_buffer *buf, bool isFirst);
         void codegen (code_buffer *buf, bool isFirst);
+	llvm::Function *fn () const { return this->_fn; }
+%%
+    { CFG.cluster } <= private_code %%
+        llvm::Function *_fn;
 %%
 
 -- comp_unit
