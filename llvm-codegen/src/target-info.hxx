@@ -25,10 +25,8 @@ struct target_info {
     bool needsBasePtr;			// true if the target needs the module base address
 					// to compute code addresses.  Otherwise, we assume
 					// PC-relative addressing is supported.
-    int stkOffset[NUM_REGS];		// will be non-zero for SML registers that are
+    int stkOffset[reg_info::NUM_REGS];	// will be non-zero for SML registers that are
 					// represented by a slot in the stack frame.
-    sml_reg_id argOrder[NUM_REGS];	// order of registers as used by the JWA calling
-					// convention (see $LLVM/lib/Target/*/*CallingConv.td)
 
     static target_info const *InfoForTarget (std::string const &name);
 

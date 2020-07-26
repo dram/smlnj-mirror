@@ -11,78 +11,73 @@
 #include "sml-registers.hxx"
 #include "target-info.hxx"
 
-/***** sml_registers methods *****/
+/***** reg_info methods *****/
 
 // the extra arguments that are added to thread the state of the reserved
 // registers through the control-flow graph.
-static const int NumReservedRegArgs = 6;
-static sml_reg_id ReservedRegArgs[NumReservedRegArgs] = {
-	sml_reg_id::ALLOC_PTR,
-	sml_reg_id::LIMIT_PTR,
-	sml_reg_id::STORE_PTR,
-	sml_reg_id::EXN_HNDLR,
-	sml_reg_id::VAR_PTR,
-	sml_reg_id::BASE_PTR
+static std::string RegNames[reg_info::NUM_REGS] = {
+	"allocPtr", "limitPtr", "storePtr", "exnPtr", "varPtr", "basePtr", "gcLink"
     };
+
+reg_info::reg_info (sml_reg_id id, int idx, int off)
+  : _id(id), _idx(idx), _offset(off), _name(RegNames[static_cast<int>(id)])
+{
+}
+
+
+/***** sml_registers methods *****/
 
 sml_registers::sml_registers (struct target_info const *target)
 {
     if (target == nullptr) {
 	this->_nRegs = 0;
-	this->_nSpecialRegs = 0;
 	return;
     }
 
   // initialize the register info for the target
     this->_hasBaseReg = target->needsBasePtr;
     this->_nRegs = target->numRegs;
-    for (int i = 0;  i < target->numRegs;  i++) {
-	if (target->stkOffset[i] != 0) {
-	    this->_info[i] = reg_info::createStkReg (target->stkOffset[i]);
+    for (int i = 0;  i < reg_info::NUM_REGS;  ++i) {
+	sml_reg_id id = static_cast<sml_reg_id>(i);
+	if ((! this->_hasBaseReg) && (id == sml_reg_id::BASE_PTR)) {
+	    this->_info[i] = nullptr;
+	}
+	else if (target->stkOffset[i] != 0) {
+	    this->_info[i] = reg_info::createStkReg (id, target->stkOffset[i]);
 	}
 	else {
-	    this->_info[i] = reg_info::createReg (i);
-	}
-    }
-    for (int i = target->numRegs;  i < NUM_REGS;  i++) {
-	this->_info[i] = nullptr;
-    }
-
-  // count the number of special registers
-    int nSpecial = 0;
-    for (int i = 0;  i < NumReservedRegArgs;  ++i) {
-	if (this->info(ReservedRegArgs[i])->isMachineReg()) {
-	    nSpecial++;
+	    this->_info[i] = reg_info::createReg (id, i);
 	}
     }
 
-  // initialize the special register map
-    this->_specialRegs = new sml_reg_id[nSpecial];
-    this->_nSpecialRegs = nSpecial;
-    for (int i = 0, j = 0;  i < NumReservedRegArgs;  ++i) {
-	reg_info const *info = this->info(ReservedRegArgs[i]);
-	if (info->isMachineReg()) {
-	    this->_specialRegs[j++] = ReservedRegArgs[i];
+  // initialize the info about the SML registers that are mapped to machine registers
+    int i = 0;
+    int nHW = 0;
+    for ( ;  i < reg_info::NUM_REGS;  ++i) {
+	if ((this->_info[i] != nullptr) && this->_info[i]->isMachineReg()) {
+	    this->_hwRegs[nHW++] = this->_info[i];
 	}
     }
+    while (i < reg_info::NUM_REGS) {
+	this->_hwRegs[i] = nullptr;
+    }
+    this->_nHWRegs = nHW;
 
 }
 
 /***** reg_state methods *****/
 
 reg_state::reg_state (sml_registers const & info)
-  : _nRegs (info.numRegs ())
 {
   // we initialize all of the registers to nullptr
-    for (int i = 0;  i < this->_nRegs;  i++) {
+    for (int i = 0;  i < reg_info::NUM_REGS;  i++) {
 	this->_val[i] = nullptr;
     }
 }
 
 void reg_state::copyFrom (reg_state const & cache)
 {
-    this->_nRegs = cache._nRegs;
-    for (int i = 0;  i < this->_nRegs;  i++) {
+    for (int i = 0;  i < reg_info::NUM_REGS;  i++) {
 	this->_val[i] = cache._val[i];
     }
 

@@ -37,6 +37,7 @@ namespace LambdaVar {
           default:
             break;
         }
+std::cerr << "# read_lvar: v" << v << "\n";
 	return static_cast<int>(v);
     }
 

@@ -13,6 +13,8 @@ LD_FLAGS =	-L../llvm/lib -L/opt/local/include
 
 VPATH =		../src
 
+INCLS =		$(wildcard ../include/*hxx) $(wildcard ../../include/asdl/*hxx)
+
 SRCS =		cfg.cxx lambda-var.cxx \
 		codegen.cxx code-buffer.cxx sml-registers.cxx target-info.cxx \
 		cfg-init.cxx cfg-codegen.cxx cfg-prim-codegen.cxx
@@ -21,7 +23,7 @@ OBJS =		$(SRCS:%.cxx=%.o)
 
 llvm-codegen:	$(OBJS)
 
-%.o: %.cxx
+%.o: %.cxx $(INCLS)
 	$(CXX) -c $(CPP_FLAGS) $(CXX_FLAGS) $<
 
 .PHONY:		clean

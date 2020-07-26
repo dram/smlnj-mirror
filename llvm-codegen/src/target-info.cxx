@@ -21,10 +21,7 @@ static target_info AMD64Info = {
 	    0, 0, 0,			    // ALLOC_PTR, LIMIT_PTR, STORE_PTR
 // FIXME: we are using the stack layout used for the MLRISC backend, it may have
 // to be adjusted to be compatible with LLVM's stack layout conventions
-	    40, 56, 48, 32,		    // EXN_HNDLR, VAR_PTR, GC_LINK, BASE_PTR
-	    0, 0, 0, 0,			    // STD_CONT, STD_ARG, STD_LINK, STD_CLOS
-	    0, 0, 0, 0,			    // MISC_REG0, MISC_REG1, MISC_REG2, MISC_REG3
-	    0, 0, 0			    // MISC_REG4 MISC_REG5, MISC_REG6
+	    40, 56, 32, 48		    // EXN_HNDLR, VAR_PTR, BASE_PTR, GC_LINK
 	}
     };
 

@@ -108,10 +108,10 @@ llvm::Function *code_buffer::newFunction (std::vector<llvm::Type *> paramTys, bo
 
   // the parameter list starts with the special registers (i.e., alloc ptr, ...), which
   // are all given the SML pointer type
-    int nExtra = this->_regInfo.numSpecialRegs();
+    int nExtra = this->_regInfo.numMachineRegs();
     int nParams = 0;
     while (nParams < nExtra) {
-	if (this->_regInfo.specialId(nParams) <= sml_reg_id::STORE_PTR) {
+	if (this->_regInfo.machineReg(nParams)->id() <= sml_reg_id::STORE_PTR) {
 	    allParams[nParams++] = this->objPtrTy;
 	} else {
 	    allParams[nParams++] = this->mlValueTy;
@@ -139,6 +139,50 @@ llvm::Function *code_buffer::newFunction (std::vector<llvm::Type *> paramTys, bo
 
 }
 
+llvm::FunctionType *code_buffer::createFnTy (std::vector<llvm::Type *> const & tys) const
+{
+    std::vector<llvm::Type *> allParams;
+
+    int nExtra = this->_regInfo.numMachineRegs();
+
+    allParams.reserve(tys.size() + nExtra);
+
+  // the parameter list starts with the special registers (i.e., alloc ptr, ...),
+  //
+    for (int i = 0;  i < nExtra;  ++i) {
+	if (this->_regInfo.machineReg(i)->id() <= sml_reg_id::STORE_PTR) {
+	    allParams.push_back (this->objPtrTy);
+	} else {
+	    allParams.push_back (this->mlValueTy);
+	}
+    }
+
+  // then add the types from the function's formal parameters
+    for (auto ty : tys) {
+	allParams.push_back (ty);
+    }
+
+    return llvm::FunctionType::get (
+	this->voidTy,
+	llvm::ArrayRef<llvm::Type *>(allParams),
+	false);
+
+}
+
+Args_t code_buffer::createArgs (int n)
+{
+    Args_t args;
+    int nExtra = this->_regInfo.numMachineRegs();
+    args.reserve (n + nExtra);
+
+  // seed the args array with the extra arguments
+    for (int i = 0;  i < nExtra;  ++i) {
+	args.push_back (this->_regState.get (this->_regInfo.machineReg(i)));
+    }
+
+    return args;
+}
+
 // setup the incoming arguments for a standard function entry
 //
 void code_buffer::setupStdEntry (CFG::frag *frag)
@@ -159,16 +203,16 @@ void code_buffer::setupStdEntry (CFG::frag *frag)
   //
 
     llvm::Function *fn = this->_curFn;
-    int nExtra = this->_regInfo.numSpecialRegs();
+    int nExtra = this->_regInfo.numMachineRegs();
 
   // initialize the register state
     for (int i = 0;  i < nExtra;  ++i) {
-	sml_reg_id id = this->_regInfo.specialId(i);
+	reg_info const *info = this->_regInfo.machineReg(i);
 	llvm::Argument *arg = this->_curFn->getArg(i);
 #ifndef NDEBUG
-	arg->setName (this->_regInfo.info(id)->name());
+	arg->setName (info->name());
 #endif
-	this->_regState.set (id, arg);
+	this->_regState.set (info->id(), arg);
     }
 
     std::vector<CFG::param *> params = frag->get_params();
@@ -183,14 +227,14 @@ Args_t code_buffer::setupFragArgs (CFG::frag *frag, Args_t &args)
 {
     Args_t newArgs;
 
-    int nExtra = this->_regInfo.numSpecialRegs();
+    int nExtra = this->_regInfo.numMachineRegs();
     newArgs.reserve (args.size() + nExtra);
 
   // add initial arguments for those reserved registers that are mapped to hardware registers
     for (int i = 0;  i < nExtra;  i++) {
-	sml_reg_id id = this->_regInfo.specialId(i);
-	assert (this->_regInfo.info(id)->isMachineReg() && "not a machine register");
-	newArgs.push_back (this->_regState.get(id));
+	reg_info const *info = this->_regInfo.machineReg(i);
+	assert (info->isMachineReg() && "not a machine register");
+	newArgs.push_back (this->_regState.get(info->id()));
     }
 
   // copy the rest of the arguments

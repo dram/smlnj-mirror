@@ -45,6 +45,16 @@ namespace CFG {
 
     } // CNTt::codegen
 
+  // code generation for a vector of types
+    static std::vector<llvm::Type *> genTypes (code_buffer * buf, std::vector<ty *> const &tys)
+    {
+	std::vector<llvm::Type *> llvmTys;
+	llvmTys.reserve(tys.size());
+	for (auto ty : tys) {
+	    llvmTys.push_back (ty->codegen (buf));
+	}
+	return llvmTys;
+    }
 
   /***** code generation for the `exp` type *****/
 
@@ -148,8 +158,10 @@ llvm::dbgs() << "; value = " << *v << "\n";
 	llvm::Value *fn;
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
-/* FIXME: compute function type from tys */
-	    fn = this->_v0->codegen (buf);
+	    fnTy = buf->createFnTy (genTypes (buf, this->_v2));
+	    fn = buf->build().CreateBitCast(
+		this->_v0->codegen (buf),
+		fnTy->getPointerTo());
 	} else {
 	    cluster *f = buf->lookupCluster (lab->get_0());
 	    assert (f && "APPLY of unknown cluster");
@@ -158,8 +170,7 @@ llvm::dbgs() << "; value = " << *v << "\n";
 	}
 
       // evaluate the arguments
-	Args_t args;
-	args.reserve(this->_v1.size());
+	Args_t args = buf->createArgs (this->_v1.size());
 	for (auto arg : this->_v1) {
 	    args.push_back (arg->codegen (buf));
 	}
@@ -178,18 +189,19 @@ llvm::dbgs() << "; value = " << *v << "\n";
 	llvm::Value *fn;
 	LABEL *lab = dynamic_cast<LABEL *>(this->_v0);
 	if (lab == nullptr) {
-/* FIXME: compute function type from tys */
-	    fn = this->_v0->codegen (buf);
+	    fnTy = buf->createFnTy (genTypes (buf, this->_v2));
+	    fn = buf->build().CreateBitCast(
+		this->_v0->codegen (buf),
+		fnTy->getPointerTo());
 	} else {
 	    cluster *f = buf->lookupCluster (lab->get_0());
-	    assert (f && "APPLY of unknown cluster");
+	    assert (f && "THROW of unknown cluster");
 	    fn = f->fn();
 	    fnTy = f->fn()->getFunctionType();
 	}
 
       // evaluate the arguments
-	Args_t args;
-	args.reserve(this->_v1.size());
+	Args_t args = buf->createArgs (this->_v1.size());
 	for (auto arg : this->_v1) {
 	    args.push_back (arg->codegen (buf));
 	}
@@ -371,6 +383,13 @@ llvm::dbgs() << "; value = " << *v << "\n";
       // initialize the buffer for the comp_unit
 	buf->beginModule (this->_v_srcFile, this->_v_fns.size() + 1);
 
+      // initialize the clusters
+	this->_v_entry->init (buf, true);
+	for (auto f : this->_v_fns) {
+	    f->init (buf, false);
+	}
+
+      // generate code
 	this->_v_entry->codegen (buf, true);
 	for (auto f : this->_v_fns) {
 	    f->codegen (buf, false);

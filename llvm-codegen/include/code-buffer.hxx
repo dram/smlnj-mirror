@@ -74,6 +74,12 @@ class code_buffer {
   // initializes the SML register state.
     llvm::Function *newFunction (std::vector<llvm::Type *> paramTys, bool isFirst);
 
+    llvm::FunctionType *createFnTy (std::vector<llvm::Type *> const & tys) const;
+
+  // create a vector to hold the arguments of a call (APPLY/THROW/GOTO), where
+  // `n` is the number of arguments to the call.
+    Args_t createArgs (int n);
+
     void setupStdEntry (CFG::frag *frag);
 
   // setup the argument/parameter lists for a fragment
