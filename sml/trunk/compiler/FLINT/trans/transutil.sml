@@ -5,10 +5,9 @@ struct
 
 local  (* don't need all these structures *)
   structure DA = Access
-  structure S  = Symbol
   structure SP = SymPath
-  structure VC = VarCon
-  structure TP = Types
+  structure V = VarCon
+  structure T = Types
   structure TU = TypesUtil
   structure PL = PLambda
   open Absyn
@@ -51,11 +50,11 @@ exception NoCore
 (** instPoly : ty * ty list -> ty
  * instPoly(t,ts): the type t is instantiated with parameters ts.
  * Checked innvariant: ts <> nil <==>  t is polymophic (a POLYty) (DBM) *)
-fun instPoly(ty: TP.ty, tys : TP.ty list) : TP.ty =
+fun instPoly(ty: T.ty, tys : T.ty list) : T.ty =
     case tys
       of nil =>  (* no instantiation parameters *)
          (case ty
-            of TP.POLYty{tyfun=TP.TYFUN{arity,body},...} =>
+            of T.POLYty{tyfun=T.TYFUN{arity,body},...} =>
                if arity = 0 then body
                else (say "instPoly: polytype with no inst parameters\n";
                      ppType ty;
@@ -63,26 +62,27 @@ fun instPoly(ty: TP.ty, tys : TP.ty list) : TP.ty =
              | _ => ty)
        | _ =>    (* instantiation parameters *)
          (case ty
-            of TP.POLYty _ => TU.applyPoly(ty, tys)
+            of T.POLYty _ => TU.applyPoly(ty, tys)
              | _ => bug "instPoly: non-polytype with inst parameters")
 
-(* aconvertPat:
+(* aconvertPat: A.pat * compInfo -> A.pat * V.var list * V.var list
  *   "alpha convert" a pattern with respect to the lvar access values
- *   of the pattern variables. Old variables are replaced by
+ *   of the pattern variables. Original variables are replaced by
  *   new ones, with fresh LVAR accesses and new refs for the typ field.
  *   Returns the converted pattern, the list of the original pattern
  *   variables (VALvars), and the list of new variables (VALvars).
- *   Called only once, in mkVB inside mkVBs in Translate. *)
+ *   Called only once, in mkVB inside mkVBs in Translate.
+ *   DBM: why is this function needed? *)
 
 fun aconvertPat (pat, {mkLvar=mkv, ...} : compInfo)
-    : Absyn.pat * VC.var list * VC.var list =
-    let val varmap : (VC.var * VC.var) list ref = ref nil
+    : Absyn.pat * V.var list * V.var list =
+    let val varmap : (V.var * V.var) list ref = ref nil
             (* association list mapping old vars to new *)
-        (* ASSERT: any VARpat/VALvar will have an LVAR access. *)
+        (* ASSERT: any var in a VARpat will have an LVAR access. *)
         (* ASSERT: pat will not contain MARKpat *)
-	fun mappat (VARpat(oldvar as VC.VALvar{access=DA.LVAR(oldlvar),
+	fun mappat (VARpat(oldvar as V.VALvar{access=DA.LVAR(oldlvar),
                                             typ=ref oldtyp,prim,btvs,path})) =
-              let fun find ((VC.VALvar{access=DA.LVAR(lv),...}, newvar)::rest) =
+              let fun find ((V.VALvar{access=DA.LVAR(lv),...}, newvar)::rest) =
                         if lv=oldlvar then newvar else find rest
 			(* a variable could occur multiple times because
                            repetition in OR patterns *)
@@ -90,7 +90,7 @@ fun aconvertPat (pat, {mkLvar=mkv, ...} : compInfo)
 		    | find nil =
 		        let val (newtyp,_) = TypesUtil.instantiatePoly oldtyp
 			    val newvar =
-                                VC.VALvar{access=DA.dupAcc(oldlvar,mkv), prim=prim,
+                                V.VALvar{access=DA.dupAcc(oldlvar,mkv), prim=prim,
 					  typ=ref newtyp, path=path, btvs = btvs}
 			 in varmap := (oldvar,newvar)::(!varmap); newvar
 			end
@@ -98,8 +98,8 @@ fun aconvertPat (pat, {mkLvar=mkv, ...} : compInfo)
 	      end
 	  | mappat (VARpat _) = bug "aconvertPat: bad variable"
 	  | mappat (RECORDpat{fields,flex,typ}) =
-		RECORDpat{fields=map (fn(l,p)=>(l,mappat p)) fields,
-                          flex=flex, typ=typ}
+	      RECORDpat{fields=map (fn(l,p)=>(l,mappat p)) fields,
+                        flex=flex, typ=typ}
 	  | mappat (VECTORpat(pats,t)) = VECTORpat(map mappat pats, t)
 	  | mappat (APPpat(d,c,p)) = APPpat(d,c,mappat p)
 	  | mappat (ORpat(a,b)) = ORpat(mappat a, mappat b)
