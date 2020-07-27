@@ -37,7 +37,7 @@
  *            v149 (v149, v148, v147, v146, v150)
  * ***********************************************
  *
- * The equivalent CFG IR (with type omitted) is
+ * The equivalent CFG IR (with types omitted) is
  *
  * ***********************************************
  *      FUN v130 (v131, v31, v111, v112, v113, v114, v53) =

@@ -13,7 +13,8 @@ structure Dump =
 
     fun dumpAll () = List.app dump [
 	    ("ex1.pkl", Ex1.cu),
-	    ("ex2.pkl", Ex2.cu)
+	    ("ex2.pkl", Ex2.cu),
+	    ("ex3.pkl", Ex3.cu)
 	  ]
 
   end
